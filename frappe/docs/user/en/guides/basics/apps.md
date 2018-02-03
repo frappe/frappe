@@ -1,6 +1,6 @@
-# Frappe Apps
+# Frappé Apps
 
-Frappe Apps are Python packages which use the Frappe platform. They can live
+Frappé Apps are Python packages which use the Frappé platform. They can live
 anywhere on the [Python
 path](https://docs.python.org/2/tutorial/modules.html#the-module-search-path)
 and must have an entry in the `apps.txt` file.
@@ -8,11 +8,11 @@ and must have an entry in the `apps.txt` file.
 
 ### Creating an app
 
-Frappe ships with a boiler plate for a new app. The command `bench make-app
+Frappé ships with a boiler plate for a new app. The command `bench make-app
 app-name` helps you start a new app by starting an interactive shell.
 
 
-	% bench make-app sample_app
+	% bench new-app sample_app
 	App Name: sample_app
 	App Title: Sample App
 	App Description: This is a sample app.
@@ -58,7 +58,7 @@ The boiler plate contains just enough files to show your app icon on the [Desk].
 #### `hooks.py`
 
 The	`hooks.py` file defines the metadata of your app and integration points
-with other parts of Frappe or Frappe apps. Examples of such parts include task
+with other parts of Frappé or Frappé apps. Examples of such parts include task
 scheduling or listening to updates to different documents in the system. For
 now, it just contains the details you entered during app creation.
 
@@ -75,7 +75,7 @@ now, it just contains the details you entered during app creation.
 
 #### `modules.txt`
 
-Modules in Frappe help you organize Documents in Frappe and they are defined in
+Modules in Frappé help you organize Documents in Frappé and they are defined in
 the `modules.txt` file in your app. It is necessary for every [DocType] to be
 attached to a module. By default a module by the name of your app is added.
 Also, each module gets an icon on the [Desk]. For example, the [ERPNext] app is

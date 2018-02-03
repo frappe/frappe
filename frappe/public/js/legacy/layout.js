@@ -43,6 +43,7 @@ Layout.prototype.addcell = function(width) {
 	return this.cur_row.addCell(width);
 }
 
+// eslint-disable-next-line
 Layout.prototype.setcolour = function(col) { $bg(cc,col); }
 
 Layout.prototype.show = function() { $(this.wrapper).toggle(false); }
@@ -89,7 +90,7 @@ function LayoutCell(layout, layoutRow, width) {
 	if(width) { // add '%' if user has forgotten
 		var w = width + '';
 		if(w.substr(w.length-2, 2) != 'px') {
-			if(w.substr(w.length-1, 1) != "%") {width = width + '%'};
+			if(w.substr(w.length-1, 1) != "%") {width = width + '%'}
 		}
 	}
 

@@ -58,13 +58,13 @@ Here is how the General Ledger Report is built:
 
 Here is what the report looks like:
 
-![General Ledger](/assets/frappe_io/images/how-to/general-ledger.png)
+<img class="screenshot" alt="General Ledger" src="/docs/assets/img/general-ledger.png">
 
 ##### Comments:
 
 1. [Bootstrap Stylesheet](http://getbootstrap.com) is pre-loaded.
 1. You can use all global functions like `fmt_money` and dateutil.
 1. Translatable strings should be written as `__("text")`
-1. You can create modules and import using `{% include "templates/includes/formats/common_format" %}`
+1. You can create modules and import using `{% raw %}{% include "templates/includes/formats/common_format" %}{% endraw %}`
 
 <!-- markdown -->

@@ -1,3 +1,4 @@
+/* the element that this class is applied to, should have a max width for this to work*/
 html {
   min-height: 100%;
 }
@@ -23,6 +24,9 @@ body {
   }
   body[data-route^="Form"] .page-title h1 {
     margin-top: 12px;
+  }
+  body[data-route^="Form"] .page-title h1.editable-title {
+    padding-right: 80px;
   }
   body[data-route^="Form"] .page-title .indicator {
     display: inline-block;
@@ -63,11 +67,10 @@ body {
   #navbar-breadcrumbs {
     margin: 0px;
     display: inline-block;
-  }
-  #navbar-breadcrumbs li {
     max-width: 150px;
-    white-space: nowrap;
     overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
   #navbar-breadcrumbs > li,
   #navbar-breadcrumbs > li > a {
@@ -84,6 +87,7 @@ body {
   }
   .navbar-nav {
     margin: 0px;
+    margin-right: -15px;
   }
   .sidebar .form-group {
     margin-bottom: 0px;
@@ -185,28 +189,34 @@ body {
   body[data-sidebar="0"] .navbar-home {
     margin-left: 15px !important;
   }
-  .linked-with-dialog {
-    width: 100% !important;
+}
+@media (max-width: 991px) and (max-width: 480px) {
+  #navbar-breadcrumbs li > a {
+    width: 100px;
   }
 }
 @media (max-width: 767px) {
+  .toggle-sidebar {
+    margin-right: 0;
+  }
+  body[data-route^="Form"] .page-title .title-text {
+    font-size: 16px;
+    width: calc(100% - 90px);
+  }
+  body[data-route^="Form"] .page-title .indicator {
+    float: left;
+    margin-top: 10px;
+    margin-right: 5px;
+  }
   .modal .modal-dialog {
     margin: 0px;
     padding: 0px;
     width: 100%;
-    height: 100%;
-    position: fixed;
-    top: 0px;
-    bottom: 0px;
-    left: 0px;
-    right: 0px;
-    overflow-y: auto;
     background-color: #fff;
   }
   .modal .modal-content {
     border-radius: 0px;
     border: none;
-    box-shadow: none;
     height: 100%;
   }
   .modal .modal-body .form-layout {
@@ -325,16 +335,76 @@ body {
     margin-top: 10px;
     text-align: left;
   }
-  #page-setup-wizard .form-section:first-child .form-column:first-child .frappe-control:first-child {
-    border-top: 1px solid #d1d8dd;
-  }
-  #page-setup-wizard .form-section:last-child .form-column:last-child .frappe-control:last-child {
-    border-bottom: 1px solid #d1d8dd;
-  }
-  #page-setup-wizard .setup-wizard-slide .form {
-    border: none;
-  }
   body[data-route^="Form"] .page-head .sub-heading {
     right: 90px;
+  }
+  .timeline::before {
+    content: none;
+  }
+  .timeline .timeline-new-email {
+    margin: 20px 0;
+    padding-left: 15px;
+  }
+  .timeline .timeline-new-email::before {
+    content: none;
+  }
+  .timeline .timeline-item.user-content {
+    margin: 20px 15px;
+  }
+  .timeline .timeline-item.user-content .media-body {
+    margin-left: 0;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .timeline .timeline-item.user-content .media-body:before {
+    content: none;
+  }
+  .timeline .timeline-item.user-content .action-btns {
+    padding: 7px 10px 2px 5px;
+  }
+  .timeline .timeline-item.user-content .action-btns .edit-btn-container {
+    margin-right: 0;
+  }
+  .timeline .timeline-item.user-content .comment-header {
+    padding: 7px 10px;
+  }
+  .timeline .timeline-item.user-content .comment-header .links-active {
+    padding-right: 10px;
+  }
+  .timeline .timeline-item.user-content .comment-header .reply-link {
+    margin-left: 0;
+  }
+  .timeline .timeline-item.user-content .comment-header .asset-details {
+    width: calc(100% - 30px);
+  }
+  .timeline .timeline-item.user-content .avatar-medium {
+    margin-right: 10px;
+  }
+  .timeline .timeline-item.user-content .reply {
+    padding: 10px;
+  }
+  .timeline .timeline-item.user-content .commented-on-small {
+    display: inline-block;
+  }
+  .timeline .timeline-item.user-content .commented-on-small {
+    display: inline-block;
+  }
+  .timeline .timeline-item.notification-content {
+    padding-left: 15px;
+    margin: 20px 0;
+  }
+  .timeline .timeline-item.notification-content::before {
+    content: none;
+  }
+  .timeline .timeline-item.notification-content .small {
+    padding-left: 0;
+  }
+  .timeline .timeline-item .delivery-status-indicator {
+    float: left;
+    margin: 0 5px 0 0;
+  }
+  .timeline .asset-details {
+    line-height: 24px;
+    /*Height of avtar image -36px to align text center vertically*/
   }
 }

@@ -1,8 +1,9 @@
 /*!
- * FullCalendar v2.8.0 Google Calendar Plugin
- * Docs & License: http://fullcalendar.io/
- * (c) 2016 Adam Shaw
+ * FullCalendar v3.4.0 Google Calendar Plugin
+ * Docs & License: https://fullcalendar.io/
+ * (c) 2017 Adam Shaw
  */
+
 
 (function(factory) {
 	if (typeof define === 'function' && define.amd) {
@@ -73,7 +74,7 @@ FC.sourceFetchers.push(function(sourceOptions, start, end, timezone) {
 
 function transformOptions(sourceOptions, start, end, timezone, calendar) {
 	var url = API_BASE + '/' + encodeURIComponent(sourceOptions.googleCalendarId) + '/events?callback=?'; // jsonp
-	var apiKey = sourceOptions.googleCalendarApiKey || calendar.options.googleCalendarApiKey;
+	var apiKey = sourceOptions.googleCalendarApiKey || calendar.opt('googleCalendarApiKey');
 	var success = sourceOptions.success;
 	var data;
 	var timezoneArg; // populated when a specific timezone. escaped to Google's liking
@@ -83,7 +84,7 @@ function transformOptions(sourceOptions, start, end, timezone, calendar) {
 
 		// call error handlers
 		(sourceOptions.googleCalendarError || $.noop).apply(calendar, errorObjs);
-		(calendar.options.googleCalendarError || $.noop).apply(calendar, errorObjs);
+		(calendar.opt('googleCalendarError') || $.noop).apply(calendar, errorObjs);
 
 		// print error to debug console
 		FC.warn.apply(null, [ message ].concat(apiErrorObjs || []));

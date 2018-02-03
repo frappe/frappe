@@ -6,9 +6,9 @@ To create a new **DocType**, go to:
 
 > Developer > Documents > Doctype > New
 
-<img class="screenshot" alt="New Doctype" src="{{docs_base_url}}/assets/img/doctype_new.png">
+<img class="screenshot" alt="New Doctype" src="/docs/assets/img/doctype_new.png">
 
-In the DocType, first the Module, which in our case is **Library Managment**
+In the DocType, first the Module, which in our case is **Library Management**
 
 #### Adding Fields
 
@@ -25,7 +25,7 @@ Fields are much more than database columns, they can be:
 
 Let us add the fields of the Article.
 
-<img class="screenshot" alt="Adding Fields" src="{{docs_base_url}}/assets/img/doctype_adding_field.png">
+<img class="screenshot" alt="Adding Fields" src="/docs/assets/img/doctype_adding_field.png">
 
 When you add fields, you need to enter the **Type**. **Label** is optional for Section Break and Column Break. **Name** (`fieldname`) is the name of the database table column and also the property of the controller. This has to be *code friendly*, i.e. it has to have small cases are _ instead of " ". If you leave the Fieldname blank, it will be automatically set when you save it.
 
@@ -45,9 +45,9 @@ We can add the following fields:
 
 #### Add Permissions
 
-After adding the fields, hit done and add a new row in the Permission Rules section. For now, let us give Read, Write, Create, Delete and Report access to **Librarian**. Frappe has a finely grained Role based permission model. You can also change permissions later using the **Role Permissions Manager** from **Setup**.
+After adding the fields, hit done and add a new row in the Permission Rules section. For now, let us give Read, Write, Create, Delete and Report access to **Librarian**. Frappé has a finely grained Role based permission model. You can also change permissions later using the **Role Permissions Manager** from **Setup**.
 
-<img class="screenshot" alt="Adding Permissions" src="{{docs_base_url}}/assets/img/doctype_adding_permission.png">
+<img class="screenshot" alt="Adding Permissions" src="/docs/assets/img/doctype_adding_permission.png">
 
 #### Saving
 

@@ -1,10 +1,13 @@
 <!-- title: {{ name }} -->
+<!-- add-breadcrumbs -->
 
 {%- from "templates/autodoc/macros.html" import automodule, source_link,
 	version -%}
+
+<h1>{{ name }}</h1>
 <div class="dev-header">
 {{ version(app.name) }}
-{{ source_link(app, name.replace(".", "/") + ".py") }}
+{{ source_link(app, full_module_name.replace(".", "/") + ".py") }}
 </div>
 
 {{ automodule(name) }}

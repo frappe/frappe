@@ -27,7 +27,7 @@ class TestBot(unittest.TestCase):
 
 	def test_list(self):
 		reply = BotReply().get_reply('list users')
-		self.assertTrue('[test@example.com]' in reply)
+		self.assertTrue('(#Form/User/test@example.com)' in reply)
 
 	def test_how_many(self):
 		reply = BotReply().get_reply('how many users')

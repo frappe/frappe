@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <head>
-	<meta charset="utf-8">
+	<!-- Chrome, Firefox OS and Opera -->
+	<meta name="theme-color" content="#7575ff">
+	<!-- Windows Phone -->
+	<meta name="msapplication-navbutton-color" content="#7575ff">
+	<!-- iOS Safari -->
+	<meta name="apple-mobile-web-app-status-bar-style" content="#7575ff">	<meta charset="utf-8">
 	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
 	<meta content="utf-8" http-equiv="encoding">
 	<meta name="author" content="">
@@ -15,11 +20,11 @@
 	<link rel="icon"
 		href="{{ favicon or "/assets/frappe/images/favicon.png" }}" type="image/x-icon">
 	{% for include in include_css -%}
-	<link type="text/css" rel="stylesheet" href="{{ include }}">
+	<link type="text/css" rel="stylesheet" href="{{ include }}?ver={{ build_version }}">
 	{%- endfor -%}
 </head>
 <body>
-	<div class="centered splash" style="width: 200px; height: 200px;">
+	<div class="centered splash" style="width: 100px; height: 100px;">
         <img src="{{ splash_image or "/assets/frappe/images/frappe-bird-thin.svg" }}">
     </div>
 	<div class="main-section">
@@ -50,9 +55,10 @@
 	</script>
 
 	{% for include in include_js %}
-	<script type="text/javascript" src="{{ include }}"></script>
+	<script type="text/javascript" src="{{ include }}?ver={{ build_version }}"></script>
 	{% endfor %}
-    {% include "templates/includes/google_analytics.html" %}
+    {% include "templates/includes/app_analytics/google_analytics.html" %}
+    {% include "templates/includes/app_analytics/mixpanel_analytics.html" %}
 
 	{% for sound in (sounds or []) %}
 	<audio preload="auto" id="sound-{{ sound.name }}" volume={{ sound.volume or 1 }}>

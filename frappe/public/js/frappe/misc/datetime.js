@@ -3,15 +3,18 @@
 
 frappe.provide('frappe.datetime');
 
-moment.defaultFormat = "YYYY-MM-DD";
-moment.defaultDatetimeFormat = "YYYY-MM-DD HH:mm:ss"
+moment.defaultDateFormat = "YYYY-MM-DD";
+moment.defaultTimeFormat = "HH:mm:ss";
+moment.defaultDatetimeFormat = moment.defaultDateFormat + " " + moment.defaultTimeFormat;
+moment.defaultFormat = moment.defaultDateFormat;
+
 frappe.provide("frappe.datetime");
 
 $.extend(frappe.datetime, {
 	convert_to_user_tz: function(date, format) {
 		// format defaults to true
-		if(sys_defaults.time_zone) {
-			var date_obj = moment.tz(date, sys_defaults.time_zone).local();
+		if(frappe.sys_defaults.time_zone) {
+			var date_obj = moment.tz(date, frappe.sys_defaults.time_zone).local();
 		} else {
 			var date_obj = moment(date);
 		}
@@ -22,8 +25,8 @@ $.extend(frappe.datetime, {
 	convert_to_system_tz: function(date, format) {
 		// format defaults to true
 
-		if(sys_defaults.time_zone) {
-			var date_obj = moment(date).tz(sys_defaults.time_zone);
+		if(frappe.sys_defaults.time_zone) {
+			var date_obj = moment(date).tz(frappe.sys_defaults.time_zone);
 		} else {
 			var date_obj = moment(date);
 		}
@@ -32,8 +35,8 @@ $.extend(frappe.datetime, {
 	},
 
 	is_timezone_same: function() {
-		if(sys_defaults.time_zone) {
-			return moment().tz(sys_defaults.time_zone).utcOffset() === moment().utcOffset();
+		if(frappe.sys_defaults.time_zone) {
+			return moment().tz(frappe.sys_defaults.time_zone).utcOffset() === moment().utcOffset();
 		} else {
 			return true;
 		}
@@ -48,7 +51,7 @@ $.extend(frappe.datetime, {
 	},
 
 	obj_to_user: function(d) {
-		return moment(d).format(dateutil.get_user_fmt().toUpperCase());
+		return moment(d).format(frappe.datetime.get_user_fmt().toUpperCase());
 	},
 
 	get_diff: function(d1, d2) {
@@ -88,12 +91,18 @@ $.extend(frappe.datetime, {
 	},
 
 	get_user_fmt: function() {
-		return sys_defaults.date_format || "yyyy-mm-dd";
+		return frappe.sys_defaults.date_format || "yyyy-mm-dd";
 	},
 
-	str_to_user: function(val, no_time_str) {
+	str_to_user: function(val, only_time = false) {
 		if(!val) return "";
-		var user_fmt = dateutil.get_user_fmt().toUpperCase();
+
+		if(only_time) {
+			return moment(val, moment.defaultTimeFormat)
+				.format(moment.defaultTimeFormat);
+		}
+
+		var user_fmt = frappe.datetime.get_user_fmt().toUpperCase();
 		if(typeof val !== "string" || val.indexOf(" ")===-1) {
 			return moment(val).format(user_fmt);
 		} else {
@@ -101,16 +110,18 @@ $.extend(frappe.datetime, {
 		}
 	},
 
-	now_datetime: function() {
-		return moment().format("YYYY-MM-DD HH:mm:ss");
-	},
-
 	get_datetime_as_string: function(d) {
 		return moment(d).format("YYYY-MM-DD HH:mm:ss");
 	},
 
-	user_to_str: function(val, no_time_str) {
-		var user_fmt = dateutil.get_user_fmt().toUpperCase();
+	user_to_str: function(val, only_time = false) {
+
+		if(only_time) {
+			return moment(val, moment.defaultTimeFormat)
+				.format(moment.defaultTimeFormat);
+		}
+
+		var user_fmt = frappe.datetime.get_user_fmt().toUpperCase();
 		var system_fmt = "YYYY-MM-DD";
 
 		if(val.indexOf(" ")!==-1) {
@@ -124,7 +135,7 @@ $.extend(frappe.datetime, {
 	},
 
 	user_to_obj: function(d) {
-		return dateutil.str_to_obj(dateutil.user_to_str(d));
+		return frappe.datetime.str_to_obj(frappe.datetime.user_to_str(d));
 	},
 
 	global_date_format: function(d) {
@@ -136,25 +147,82 @@ $.extend(frappe.datetime, {
 		}
 	},
 
-	get_today: function() {
-		return moment().locale("en").format();
+	now_date: function(as_obj = false) {
+		return frappe.datetime._date(moment.defaultDateFormat, as_obj);
+	},
+
+	now_time: function(as_obj = false) {
+		return frappe.datetime._date(moment.defaultTimeFormat, as_obj);
+	},
+
+	now_datetime: function(as_obj = false) {
+		return frappe.datetime._date(moment.defaultDatetimeFormat, as_obj);
+	},
+
+	_date: function(format, as_obj = false) {
+		const { time_zone } = frappe.sys_defaults;
+		let date;
+		if (time_zone) {
+			date = moment.tz(time_zone);
+		} else {
+			date = moment();
+		}
+		if (as_obj) {
+			return frappe.datetime.moment_to_date_obj(date);
+		} else {
+			return date.format(format);
+		}
+	},
+
+	moment_to_date_obj: function(moment) {
+		const date_obj = new Date();
+		const date_array = moment.toArray();
+		date_obj.setFullYear(date_array[0]);
+		date_obj.setMonth(date_array[1]);
+		date_obj.setDate(date_array[2]);
+		date_obj.setHours(date_array[3]);
+		date_obj.setMinutes(date_array[4]);
+		date_obj.setSeconds(date_array[5]);
+		date_obj.setMilliseconds(date_array[6]);
+		return date_obj;
 	},
 
 	nowdate: function() {
-		return frappe.datetime.get_today();
+		return frappe.datetime.now_date();
 	},
 
-	now_time: function() {
-		return frappe.datetime.convert_to_system_tz(moment(), false)
-			.locale("en").format("HH:mm:ss");
+	get_today: function() {
+		return frappe.datetime.now_date();
 	},
 
 	validate: function(d) {
-		return moment(d).isValid();
+		return moment(d, [
+			moment.defaultDateFormat,
+			moment.defaultDatetimeFormat,
+			moment.defaultTimeFormat
+		], true).isValid();
 	},
 
 });
 
-// globals (deprecate)
-var date = dateutil = frappe.datetime;
-var get_today = frappe.datetime.get_today;
+// Proxy for dateutil and get_today
+Object.defineProperties(window, {
+	'dateutil': {
+		get: function() {
+			console.warn('Please use `frappe.datetime` instead of `dateutil`. It will be deprecated soon.');
+			return frappe.datetime;
+		}
+	},
+	'date': {
+		get: function() {
+			console.warn('Please use `frappe.datetime` instead of `date`. It will be deprecated soon.');
+			return frappe.datetime;
+		}
+	},
+	'get_today': {
+		get: function() {
+			console.warn('Please use `frappe.datetime.get_today` instead of `get_today`. It will be deprecated soon.');
+			return frappe.datetime.get_today;
+		}
+	}
+});

@@ -1,9 +1,9 @@
 # Les tâches planifiées
 
-Finalement, une application a aussi à envoyer des emails de notifications ou d'autres taches planifiées. Dans Frappe, si 
+Finalement, une application a aussi à envoyer des emails de notifications ou d'autres taches planifiées. Dans Frappé, si 
  vous avez configuré le **bench**, la tâche / planificateur est configuré via Celery en utilisant les queues Redis.
 
-Pour ajouter un nouveau gestionnaire de tâches, ouvrez le fichier `hooks.py` et ajoutez un nouveau gestionnaire. Les gestionnaire
+Pour ajouter un nouveau gestionnaire de tâches, ouvrez le fichier `hooks.py` et ajoutez un nouveau gestionnaire. Les gestionnaires
  par defaut sont `all`, `daily`, `weekly`, `monthly`. Le gestionanire `all` est appelé toutes les 3 minutes par defaut.
 
 	# Scheduled Tasks
@@ -18,7 +18,7 @@ Pour ajouter un nouveau gestionnaire de tâches, ouvrez le fichier `hooks.py` et
 Ici, nous pointons sur une fonction en Python et cette fonction sera appelée tous les jours. Voyons à quoi cette fonction 
 ressemble:
 
-	# Copyright (c) 2013, Frappe
+	# Copyright (c) 2013, Frappé
 	# For license information, please see license.txt
 
 	from __future__ import unicode_literals
@@ -69,9 +69,7 @@ ressemble:
 
 			articles_transacted.append(d.article)
 
-Nous pouvons placer ce code dans un n'importe quel module Python accessible. La route est définie dans `hooks.py`, donc
- 
-so for nso besoins, nos placerons ce code dans `library_management/tasks.py`.
+Nous pouvons placer ce code dans un n'importe quel module Python accessible. La route est définie dans `hooks.py`, dans cet exemple nos placerons ce code dans `library_management/tasks.py`.
 
 Note:
 

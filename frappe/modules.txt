@@ -5,5 +5,7 @@ Email
 Custom
 Geo
 Desk
-Print
 Integrations
+Printing
+Contacts
+Data Migration

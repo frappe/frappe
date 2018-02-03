@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 from frappe.utils import cstr
 from frappe import _
 from frappe.model.document import Document
@@ -17,26 +18,30 @@ class CustomField(Document):
 			if not self.label:
 				frappe.throw(_("Label is mandatory"))
 			# remove special characters from fieldname
-			self.fieldname = filter(lambda x: x.isdigit() or x.isalpha() or '_',
-				cstr(self.label).lower().replace(' ','_'))
+			self.fieldname = "".join(filter(lambda x: x.isdigit() or x.isalpha() or '_',
+				cstr(self.label).lower().replace(' ','_')))
 
 		# fieldnames should be lowercase
 		self.fieldname = self.fieldname.lower()
 
 	def validate(self):
-		meta = frappe.get_meta(self.dt)
+		meta = frappe.get_meta(self.dt, cached=False)
 		fieldnames = [df.fieldname for df in meta.get("fields")]
+
+		if self.insert_after=='append':
+			self.insert_after = fieldnames[-1]
 
 		if self.insert_after and self.insert_after in fieldnames:
 			self.idx = fieldnames.index(self.insert_after) + 1
-
-		if not self.idx:
-			self.idx = len(fieldnames) + 1
 
 		self._old_fieldtype = self.db_get('fieldtype')
 
 		if not self.fieldname:
 			frappe.throw(_("Fieldname not set for Custom Field"))
+
+		if not self.flags.ignore_validate:
+			from frappe.core.doctype.doctype.doctype import check_if_fieldname_conflicts_with_methods
+			check_if_fieldname_conflicts_with_methods(self.dt, self.fieldname)
 
 	def on_update(self):
 		frappe.clear_cache(doctype=self.dt)
@@ -72,7 +77,8 @@ class CustomField(Document):
 
 @frappe.whitelist()
 def get_fields_label(doctype=None):
-	return [{"value": df.fieldname or "", "label": _(df.label or "")} for df in frappe.get_meta(doctype).get("fields")]
+	return [{"value": df.fieldname or "", "label": _(df.label or "")}
+		for df in frappe.get_meta(doctype).get("fields")]
 
 def create_custom_field_if_values_exist(doctype, df):
 	df = frappe._dict(df)
@@ -82,18 +88,44 @@ def create_custom_field_if_values_exist(doctype, df):
 
 		create_custom_field(doctype, df)
 
-
 def create_custom_field(doctype, df):
 	df = frappe._dict(df)
+	if not df.fieldname and df.label:
+		df.fieldname = frappe.scrub(df.label)
 	if not frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df.fieldname}):
 		frappe.get_doc({
 			"doctype":"Custom Field",
 			"dt": doctype,
 			"permlevel": df.permlevel or 0,
 			"label": df.label,
-			"fieldname": df.fieldname or df.label.lower().replace(' ', '_'),
-			"fieldtype": df.fieldtype,
+			"fieldname": df.fieldname,
+			"fieldtype": df.fieldtype or 'Data',
 			"options": df.options,
 			"insert_after": df.insert_after,
-			"print_hide": df.print_hide
+			"print_hide": df.print_hide,
+			"hidden": df.hidden or 0
 		}).insert()
+
+def create_custom_fields(custom_fields):
+	'''Add / update multiple custom fields
+
+	:param custom_fields: example `{'Sales Invoice': [dict(fieldname='test')]}`'''
+	for doctype, fields in custom_fields.items():
+		if isinstance(fields, dict):
+			# only one field
+			fields = [fields]
+
+		for df in fields:
+			field = frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df["fieldname"]})
+			if not field:
+				create_custom_field(doctype, df)
+			else:
+				custom_field = frappe.get_doc("Custom Field", field)
+				custom_field.update(df)
+				custom_field.save()
+
+
+@frappe.whitelist()
+def add_custom_field(doctype, df):
+	df = json.loads(df)
+	return create_custom_field(doctype, df)

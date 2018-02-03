@@ -2,6 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+from six.moves import range
 import frappe
 import json
 import copy
@@ -75,7 +76,7 @@ def get_data(doctypes, last_modified):
 					link_map = {}
 					doctype_data = out[link[0]]
 					col_idx = doctype_data["columns"].index(link[1])
-					for row_idx in xrange(len(doctype_data["data"])):
+					for row_idx in range(len(doctype_data["data"])):
 						row = doctype_data["data"][row_idx]
 						link_map[row[col_idx]] = row_idx
 					

@@ -13,7 +13,10 @@ import os
 import frappe
 from frappe import _
 from frappe.utils import cstr, cint, flt
-import MySQLdb
+
+# imports - third-party imports
+import pymysql
+from pymysql.constants import ER
 
 class InvalidColumnName(frappe.ValidationError): pass
 
@@ -26,22 +29,26 @@ type_map = {
 	,'Float':		('decimal', '18,6')
 	,'Percent':		('decimal', '18,6')
 	,'Check':		('int', '1')
-	,'Small Text':	('text', '')
-	,'Long Text':	('longtext', '')
+	,'Small Text':		('text', '')
+	,'Long Text':		('longtext', '')
 	,'Code':		('longtext', '')
-	,'Text Editor':	('longtext', '')
+	,'Text Editor':		('longtext', '')
 	,'Date':		('date', '')
-	,'Datetime':	('datetime', '6')
+	,'Datetime':		('datetime', '6')
 	,'Time':		('time', '6')
 	,'Text':		('text', '')
 	,'Data':		('varchar', varchar_len)
 	,'Link':		('varchar', varchar_len)
-	,'Dynamic Link':('varchar', varchar_len)
-	,'Password':	('varchar', varchar_len)
+	,'Dynamic Link':	('varchar', varchar_len)
+	,'Password':		('varchar', varchar_len)
 	,'Select':		('varchar', varchar_len)
-	,'Read Only':	('varchar', varchar_len)
+	,'Read Only':		('varchar', varchar_len)
 	,'Attach':		('text', '')
-	,'Attach Image':('text', '')
+	,'Attach Image':	('text', '')
+	,'Signature':		('longtext', '')
+	,'Color':		('varchar', varchar_len)
+	,'Barcode':		('longtext', '')
+	,'Geolocation':		('longtext', '')
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',
@@ -59,7 +66,7 @@ def updatedb(dt, meta=None):
 	"""
 	res = frappe.db.sql("select issingle from tabDocType where name=%s", (dt,))
 	if not res:
-		raise Exception, 'Wrong doctype "%s" in updatedb' % dt
+		raise Exception('Wrong doctype "%s" in updatedb' % dt)
 
 	if not res[0][0]:
 		tab = DbTable(dt, 'tab', meta)
@@ -102,27 +109,30 @@ class DbTable:
 		columns += self.columns.values()
 
 		for col in columns:
+			if len(col.fieldname) >= 64:
+				frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(frappe.bold(col.fieldname)))
+
 			if col.fieldtype in type_map and type_map[col.fieldtype][0]=="varchar":
 
 				# validate length range
 				new_length = cint(col.length) or cint(varchar_len)
-				if not (1 <= new_length <= 255):
-					frappe.throw(_("Length of {0} should be between 1 and 255").format(col.fieldname))
+				if not (1 <= new_length <= 1000):
+					frappe.throw(_("Length of {0} should be between 1 and 1000").format(col.fieldname))
 
 				try:
 					# check for truncation
 					max_length = frappe.db.sql("""select max(char_length(`{fieldname}`)) from `tab{doctype}`"""\
 						.format(fieldname=col.fieldname, doctype=self.doctype))
 
-				except MySQLdb.OperationalError, e:
-					if e.args[0]==1054:
+				except pymysql.InternalError as e:
+					if e.args[0] == ER.BAD_FIELD_ERROR:
 						# Unknown column 'column_name' in 'field list'
 						continue
 
 					else:
 						raise
 
-				if max_length and max_length[0][0] > new_length:
+				if max_length and max_length[0][0] and max_length[0][0] > new_length:
 					current_type = self.current_columns[col.fieldname]["type"]
 					current_length = re.findall('varchar\(([\d]+)\)', current_type)
 					if not current_length:
@@ -171,10 +181,11 @@ class DbTable:
 			parenttype varchar({varchar_len}),
 			idx int(8) not null default '0',
 			%sindex parent(parent))
-			ENGINE=InnoDB
+			ENGINE={engine}
 			ROW_FORMAT=COMPRESSED
 			CHARACTER SET=utf8mb4
-			COLLATE=utf8mb4_unicode_ci""".format(varchar_len=varchar_len) % (self.name, add_text))
+			COLLATE=utf8mb4_unicode_ci""".format(varchar_len=varchar_len,
+				engine=self.meta.get("engine") or 'InnoDB') % (self.name, add_text))
 
 	def get_column_definitions(self):
 		column_list = [] + default_columns
@@ -250,7 +261,7 @@ class DbTable:
 	def get_columns_from_db(self):
 		self.show_columns = frappe.db.sql("desc `%s`" % self.name)
 		for c in self.show_columns:
-			self.current_columns[c[0]] = {'name': c[0],
+			self.current_columns[c[0].lower()] = {'name': c[0],
 				'type':c[1], 'index':c[3]=="MUL", 'default':c[4], "unique":c[3]=="UNI"}
 
 	# GET foreign keys
@@ -286,7 +297,7 @@ class DbTable:
 
 	def alter(self):
 		for col in self.columns.values():
-			col.build_for_alter_table(self.current_columns.get(col.fieldname, None))
+			col.build_for_alter_table(self.current_columns.get(col.fieldname.lower(), None))
 
 		query = []
 
@@ -294,7 +305,8 @@ class DbTable:
 			query.append("add column `{}` {}".format(col.fieldname, col.get_definition()))
 
 		for col in self.change_type:
-			query.append("change `{}` `{}` {}".format(col.fieldname, col.fieldname, col.get_definition()))
+			current_def = self.current_columns.get(col.fieldname.lower(), None)
+			query.append("change `{}` `{}` {}".format(current_def["name"], col.fieldname, col.get_definition()))
 
 		for col in self.add_index:
 			# if index key not exists
@@ -307,7 +319,7 @@ class DbTable:
 				# if index key exists
 				if frappe.db.sql("""show index from `{0}`
 					where key_name=%s
-					and Non_unique=%s""".format(self.name), (col.fieldname, 1 if col.unique else 0)):
+					and Non_unique=%s""".format(self.name), (col.fieldname, col.unique)):
 					query.append("drop index `{}`".format(col.fieldname))
 
 		for col in self.set_default:
@@ -331,7 +343,7 @@ class DbTable:
 		if query:
 			try:
 				frappe.db.sql("alter table `{}` {}".format(self.name, ", ".join(query)))
-			except Exception, e:
+			except Exception as e:
 				# sanitize
 				if e.args[0]==1060:
 					frappe.throw(str(e))
@@ -391,7 +403,8 @@ class DbColumn:
 			return
 
 		# type
-		if (current_def['type'] != column_def) or \
+		if (current_def['type'] != column_def) or\
+			self.fieldname != current_def['name'] or\
 			((self.unique and not current_def['unique']) and column_def not in ('text', 'longtext')):
 			self.table.change_type.append(self)
 
@@ -456,8 +469,8 @@ class DbManager:
 		"""
 		Pass root_conn here for access to all databases.
 		"""
- 		if db:
- 			self.db = db
+		if db:
+			self.db = db
 
 	def get_current_host(self):
 		return self.db.sql("select user()")[0][0].split('@')[1]
@@ -487,20 +500,17 @@ class DbManager:
 		if not host:
 			host = self.get_current_host()
 
-		try:
-			if password:
-				self.db.sql("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" % (user[:16], host, password))
-			else:
-				self.db.sql("CREATE USER '%s'@'%s';" % (user[:16], host))
-		except Exception:
-			raise
+		if password:
+			self.db.sql("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" % (user[:16], host, password))
+		else:
+			self.db.sql("CREATE USER '%s'@'%s';" % (user[:16], host))
 
 	def delete_user(self, target, host=None):
 		if not host:
 			host = self.get_current_host()
 		try:
 			self.db.sql("DROP USER '%s'@'%s';" % (target, host))
-		except Exception, e:
+		except Exception as e:
 			if e.args[0]==1396:
 				pass
 			else:
@@ -519,7 +529,8 @@ class DbManager:
 		if not host:
 			host = self.get_current_host()
 
-		self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target, user, host))
+		self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target,
+			user, host))
 
 	def grant_select_privilges(self, db, table, user, host=None):
 		if not host:
@@ -558,6 +569,13 @@ def validate_column_name(n):
 		frappe.throw(_("Fieldname {0} cannot have special characters like {1}").format(cstr(n), special_characters), InvalidColumnName)
 	return n
 
+def validate_column_length(fieldname):
+	""" In MySQL maximum column length is 64 characters,
+		ref: https://dev.mysql.com/doc/refman/5.5/en/identifiers.html"""
+
+	if len(fieldname) > 64:
+		frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(fieldname))
+
 def remove_all_foreign_keys():
 	frappe.db.sql("set foreign_key_checks = 0")
 	frappe.db.commit()
@@ -565,7 +583,7 @@ def remove_all_foreign_keys():
 		dbtab = DbTable(t[0])
 		try:
 			fklist = dbtab.get_foreign_keys()
-		except Exception, e:
+		except Exception as e:
 			if e.args[0]==1146:
 				fklist = []
 			else:

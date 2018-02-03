@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils import cstr, encode
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken 
 
 def get_decrypted_password(doctype, name, fieldname='password', raise_exception=True):
 	auth = frappe.db.sql('''select `password` from `__Auth`
@@ -47,20 +47,34 @@ def check_password(user, pwd, doctype='User', fieldname='password'):
 
 	return user
 
-def update_password(user, pwd, doctype='User', fieldname='password'):
-	salt = frappe.generate_hash()
+def update_password(user, pwd, doctype='User', fieldname='password', logout_all_sessions=False):
+	'''
+		Update the password for the User
 
+		:param user: username
+		:param pwd: new password
+		:param doctype: doctype name (for encryption)
+		:param fieldname: fieldname (in given doctype) (for encryption)
+		:param logout_all_session: delete all other session
+	'''
+
+	salt = frappe.generate_hash()
 	frappe.db.sql("""insert into __Auth (doctype, name, fieldname, `password`, salt, encrypted)
 		values (%(doctype)s, %(name)s, %(fieldname)s, password(concat(%(pwd)s, %(salt)s)), %(salt)s, 0)
 		on duplicate key update
 			`password`=password(concat(%(pwd)s, %(salt)s)), salt=%(salt)s, encrypted=0""",
 		{ 'doctype': doctype, 'name': user, 'fieldname': fieldname, 'pwd': pwd, 'salt': salt })
 
+	# clear all the sessions except current
+	if logout_all_sessions:
+		from frappe.sessions import clear_sessions
+		clear_sessions(user=user, keep_current=True, force=True)
+
 def delete_all_passwords_for(doctype, name):
 	try:
 		frappe.db.sql("""delete from __Auth where doctype=%(doctype)s and name=%(name)s""",
 			{ 'doctype': doctype, 'name': name })
-	except Exception, e:
+	except Exception as e:
 		if e.args[0]!=1054:
 			raise
 
@@ -97,15 +111,19 @@ def encrypt(pwd):
 	return cipher_text
 
 def decrypt(pwd):
-	cipher_suite = Fernet(encode(get_encryption_key()))
-	plain_text = cstr(cipher_suite.decrypt(encode(pwd)))
-	return plain_text
+	try:
+		cipher_suite = Fernet(encode(get_encryption_key()))
+		plain_text = cstr(cipher_suite.decrypt(encode(pwd)))
+		return plain_text
+	except InvalidToken:
+		# encryption_key in site_config is changed and not valid
+		frappe.throw(_('Encryption key is invalid, Please check site_config.json'))
 
 def get_encryption_key():
 	from frappe.installer import update_site_config
 
 	if 'encryption_key' not in frappe.local.conf:
-		encryption_key = Fernet.generate_key()
+		encryption_key = Fernet.generate_key().decode()
 		update_site_config('encryption_key', encryption_key)
 		frappe.local.conf.encryption_key = encryption_key
 

@@ -3,8 +3,6 @@
 
 $(document).on("toolbar_setup", function() {
 	var help_links = [];
-	var support_link = "#upgrade";
-	var chat_link = "#upgrade";
 	var limits = frappe.boot.limits;
 
 	if(frappe.boot.expiry_message) {
@@ -19,13 +17,8 @@ $(document).on("toolbar_setup", function() {
 		}
 	}
 
-	if(limits.support_email || limits.support_chat) {
+	if(limits.support_chat) {
 		help_links.push('<li class="divider"></li>');
-	}
-
-	if(limits.support_email) {
-		support_link = 'mailto:'+frappe.boot.limits.support_email;
-		help_links.push('<li><a href="'+support_link+'">' + frappe._('Email Support') + '</a></li>');
 	}
 
 	if(limits.support_chat) {
@@ -56,8 +49,8 @@ frappe.get_form_sidebar_extension = function() {
 
 			var template = '<ul class="list-unstyled sidebar-menu">\
 				<li class="usage-stats">\
-			        <a href="#usage-info" class="text-muted">{{ usage.total }}MB ({{ usage.total_used_percent }}%) used</a></li>\
-			</ul>';
+					<a href="#usage-info" class="text-muted">{{ usage.total }}MB ({{ usage.total_used_percent }}%) used</a></li>\
+				</ul>';
 			usage.sidebar_usage_html = frappe.render(template, { 'usage': usage }, "form_sidebar_usage");
 
 		} else {

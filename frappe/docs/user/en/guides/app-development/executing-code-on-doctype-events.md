@@ -1,3 +1,5 @@
+# Executing Code On Doctype Events
+
 To execute code when a DocType is inserted, validated (before saving), updated, submitted, cancelled, deleted, you must write in the DocType's controller module. 
 
 #### 1. Controller Module

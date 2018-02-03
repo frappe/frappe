@@ -2,43 +2,43 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+from six.moves import range
+from six import string_types
 import frappe
+import json
 
-from frappe.utils import getdate, cint, add_months, date_diff, add_days, nowdate, get_datetime_str, cstr
+from frappe.utils import (getdate, cint, add_months, date_diff, add_days,
+	nowdate, get_datetime_str, cstr, get_datetime, now_datetime, format_datetime)
 from frappe.model.document import Document
 from frappe.utils.user import get_enabled_system_users
+from frappe.desk.reportview import get_filters_cond
 
 weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
 class Event(Document):
 	def validate(self):
-		if self.starts_on and self.ends_on and self.starts_on > self.ends_on:
+		if not self.starts_on:
+			self.starts_on = now_datetime()
+
+		if self.starts_on and self.ends_on and get_datetime(self.starts_on) > get_datetime(self.ends_on):
 			frappe.msgprint(frappe._("Event end must be after start"), raise_exception=True)
 
 		if self.starts_on == self.ends_on:
 			# this scenario doesn't make sense i.e. it starts and ends at the same second!
 			self.ends_on = None
 
-		if self.starts_on and self.ends_on and int(date_diff(self.ends_on.split(" ")[0], self.starts_on.split(" ")[0])) > 0 \
-			and self.repeat_on == "Every Day":
+		if getdate(self.starts_on) == getdate(self.ends_on) and self.repeat_on == "Every Day":
 			frappe.msgprint(frappe._("Every day events should finish on the same day."), raise_exception=True)
 
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
-	return """(tabEvent.event_type='Public' or tabEvent.owner='%(user)s'
-		or exists(select * from `tabEvent Role` where
-			`tabEvent Role`.parent=tabEvent.name
-			and `tabEvent Role`.role in ('%(roles)s')))
-		""" % {
+	return """(tabEvent.event_type='Public' or tabEvent.owner='%(user)s')""" % {
 			"user": frappe.db.escape(user),
 			"roles": "', '".join([frappe.db.escape(r) for r in frappe.get_roles(user)])
 		}
 
 def has_permission(doc, user):
 	if doc.event_type=="Public" or doc.owner==user:
-		return True
-
-	if doc.get("roles", {"role":("in", frappe.get_roles(user))}):
 		return True
 
 	return False
@@ -49,27 +49,31 @@ def send_event_digest():
 	for user in get_enabled_system_users():
 		events = get_events(today, today, user.name, for_reminder=True)
 		if events:
-			text = ""
 			frappe.set_user_lang(user.name, user.language)
 
-			text = "<h3>" + frappe._("Events In Today's Calendar") + "</h3>"
 			for e in events:
+				e.starts_on = format_datetime(e.starts_on, 'hh:mm a')
 				if e.all_day:
 					e.starts_on = "All Day"
-				text += "<h4>%(starts_on)s: %(subject)s</h4><p>%(description)s</p>" % e
 
-			text += '<p style="color: #888; font-size: 80%; margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee;">'\
-				+ frappe._("Daily Event Digest is sent for Calendar Events where reminders are set.")+'</p>'
-
-			frappe.sendmail(recipients=user.email, subject=frappe._("Upcoming Events for Today"),
-				content = text)
+			frappe.sendmail(
+				recipients=user.email,
+				subject=frappe._("Upcoming Events for Today"),
+				template="upcoming_events",
+				args={
+					'events': events,
+				},
+				header=[frappe._("Events in Today's Calendar"), 'blue']
+			)
 
 @frappe.whitelist()
-def get_events(start, end, user=None, for_reminder=False):
+def get_events(start, end, user=None, for_reminder=False, filters=None):
 	if not user:
 		user = frappe.session.user
+	if isinstance(filters, string_types):
+		filters = json.loads(filters)
 	roles = frappe.get_roles(user)
-	events = frappe.db.sql("""select name, subject, description,
+	events = frappe.db.sql("""select name, subject, description, color,
 		starts_on, ends_on, owner, all_day, event_type, repeat_this_event, repeat_on,repeat_till,
 		monday, tuesday, wednesday, thursday, friday, saturday, sunday
 		from tabEvent where ((
@@ -81,14 +85,13 @@ def get_events(start, end, user=None, for_reminder=False):
 			ifnull(repeat_till, "3000-01-01") > date(%(start)s)
 		))
 		{reminder_condition}
+		{filter_condition}
 		and (event_type='Public' or owner=%(user)s
 		or exists(select name from `tabDocShare` where
 			tabDocShare.share_doctype="Event" and `tabDocShare`.share_name=tabEvent.name
-			and tabDocShare.user=%(user)s)
-		or exists(select * from `tabEvent Role` where
-			`tabEvent Role`.parent=tabEvent.name
-			and `tabEvent Role`.role in ({roles})))
+			and tabDocShare.user=%(user)s))
 		order by starts_on""".format(
+			filter_condition=get_filters_cond('Event', filters, []),
 			reminder_condition="and ifnull(send_reminder,0)=1" if for_reminder else "",
 			roles=", ".join('"{}"'.format(frappe.db.escape(r)) for r in roles)
 		), {
@@ -148,7 +151,7 @@ def get_events(start, end, user=None, for_reminder=False):
 					date = date[0] + "-" + str(cint(date[1]) - 1) + "-" + date[2]
 
 				start_from = date
-				for i in xrange(int(date_diff(end, start) / 30) + 3):
+				for i in range(int(date_diff(end, start) / 30) + 3):
 					if getdate(date) >= getdate(start) and getdate(date) <= getdate(end) \
 						and getdate(date) <= getdate(repeat) and getdate(date) >= getdate(event_start):
 						add_event(e, date)
@@ -164,7 +167,7 @@ def get_events(start, end, user=None, for_reminder=False):
 				# start from nearest weeday after last monday
 				date = add_days(start, weekday - start_weekday)
 
-				for cnt in xrange(int(date_diff(end, start) / 7) + 3):
+				for cnt in range(int(date_diff(end, start) / 7) + 3):
 					if getdate(date) >= getdate(start) and getdate(date) <= getdate(end) \
 						and getdate(date) <= getdate(repeat) and getdate(date) >= getdate(event_start):
 						add_event(e, date)
@@ -174,7 +177,7 @@ def get_events(start, end, user=None, for_reminder=False):
 				remove_events.append(e)
 
 			if e.repeat_on=="Every Day":
-				for cnt in xrange(date_diff(end, start) + 1):
+				for cnt in range(date_diff(end, start) + 1):
 					date = add_days(start, cnt)
 					if getdate(date) >= getdate(event_start) and getdate(date) <= getdate(end) \
 						and getdate(date) <= getdate(repeat) and e[weekdays[getdate(date).weekday()]]:

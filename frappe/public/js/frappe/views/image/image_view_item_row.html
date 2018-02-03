@@ -1,0 +1,44 @@
+<div class="image-view-item has-checkbox ellipsis">
+	<div class="image-view-header doclist-row">
+		<div class="list-value">
+		{{ subject }}
+		</div>
+	</div>
+	<!-- Image -->
+	<div class="image-view-body">
+		<a  data-name="{{ data.name }}"
+			title="{{ data.name }}"
+			href="#Form/{{ data.doctype }}/{{ data.name }}"
+		>
+			<div class="image-field"
+				data-name="{{ data.name }}"
+				style="
+				{% if (!data._image_url) { %}
+					background-color: {{ color }};
+				{% } %}
+				border: 0px;"
+			>
+				{% if (!data._image_url) { %}
+				<span class="placeholder-text">
+					{%= frappe.get_abbr(data._title) %}
+				</span>
+				{% } %}
+				{% if (data._image_url) { %}
+				<img data-name="{{ data.name }}" src="{{ data._image_url }}" alt="{{data.title}}">
+				{% } %}
+				<button class="btn btn-default zoom-view" data-name="{{data.name}}">
+					<i class="fa fa-search-plus"></i>
+				</button>
+			</div>
+		</a>
+	</div>
+	<div class="image-view-footer hide">
+		<div class="row">
+			<div class="col-xs-4">{%= indicator %}</div>
+			<div class="col-xs-8 text-right">
+				<!-- comments count and assigned to section -->
+				{%= frappe.render_template("item_assigned_to_comment_count", { data: data }) %}
+			</div>
+		</div>
+	</div>
+</div>

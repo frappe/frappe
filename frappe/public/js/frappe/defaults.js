@@ -26,12 +26,12 @@ frappe.defaults = {
 		return d;
 	},
 	get_global_default: function(key) {
-		var d = sys_defaults[key];
+		var d = frappe.sys_defaults[key];
 		if($.isArray(d)) d = d[0];
 		return d;
 	},
 	get_global_defaults: function(key) {
-		var d = sys_defaults[key];
+		var d = frappe.sys_defaults[key];
 		if(!$.isArray(d)) d = [d];
 		return d;
 	},
@@ -77,10 +77,6 @@ frappe.defaults = {
 	},
 
 	get_user_permissions: function() {
-		return frappe.defaults.user_permissions;
+		return frappe.boot.user_permissions;
 	},
-	set_user_permissions: function(user_permissions) {
-		if(!user_permissions) return;
-		frappe.defaults.user_permissions = $.extend(frappe.defaults.user_permissions || {}, user_permissions);
-	}
 }

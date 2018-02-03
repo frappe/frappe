@@ -16,19 +16,19 @@ frappe.query_reports["Permitted Documents For User"] = {
 			"fieldtype": "Link",
 			"options": "DocType",
 			"reqd": 1,
-			"get_query": function() {
+			"get_query": function () {
 				return {
 					"query": "frappe.core.report.permitted_documents_for_user.permitted_documents_for_user.query_doctypes",
 					"filters": {
-						"user": frappe.query_report.filters_by_name.user.get_value()
+						"user": frappe.query_report_filters_by_name.user.get_value()
 					}
 				}
 			}
 		},
- 		{
- 			"fieldname": "show_permissions",
- 			"label": __("Show Permissions"),
- 			"fieldtype": "Check"
- 		}
+		{
+			"fieldname": "show_permissions",
+			"label": __("Show Permissions"),
+			"fieldtype": "Check"
+		}
 	]
 }

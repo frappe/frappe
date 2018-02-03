@@ -1,12 +1,20 @@
-from __future__ import unicode_literals, absolute_import
+from __future__ import unicode_literals, absolute_import, print_function
 import click
-import hashlib, os, sys
+import hashlib, os, sys, compileall
 import frappe
+from frappe import _
 from frappe.commands import pass_context, get_site
 from frappe.commands.scheduler import _is_scheduler_enabled
 from frappe.limits import update_limits, get_limits
 from frappe.installer import update_site_config
 from frappe.utils import touch_file, get_site_path
+from six import text_type
+
+# imports - third-party imports
+from pymysql.constants import ER
+
+# imports - module imports
+from frappe.exceptions import SQLError
 
 @click.command('new-site')
 @click.argument('site')
@@ -22,7 +30,7 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 	"Create a new site"
 	frappe.init(site=site, new_site=True)
 
-	_new_site(None, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password,
+	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password,
 			verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force)
 
 	if len(frappe.utils.get_sites()) == 1:
@@ -33,7 +41,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	"""Install a new Frappe site"""
 
 	if not db_name:
-		db_name = hashlib.sha1(site).hexdigest()[:16]
+		db_name = hashlib.sha1(site.encode()).hexdigest()[:16]
 
 	from frappe.installer import install_db, make_site_dirs
 	from frappe.installer import install_app as _install_app
@@ -44,11 +52,12 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	try:
 		# enable scheduler post install?
 		enable_scheduler = _is_scheduler_enabled()
-	except:
+	except Exception:
 		enable_scheduler = False
 
 	make_site_dirs()
 
+	installing = None
 	try:
 		installing = touch_file(get_site_path('locks', 'installing.lock'))
 
@@ -63,10 +72,15 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 		frappe.db.commit()
 
 		scheduler_status = "disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
-		print "*** Scheduler is", scheduler_status, "***"
+		print("*** Scheduler is", scheduler_status, "***")
+
+	except frappe.exceptions.ImproperDBConfigurationError:
+		_drop_site(site, mariadb_root_username, mariadb_root_password, force=True)
 
 	finally:
-		os.remove(installing)
+		if installing and os.path.exists(installing):
+			os.remove(installing)
+
 		frappe.destroy()
 
 @click.command('restore')
@@ -87,7 +101,7 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 	if not os.path.exists(sql_file_path):
 		sql_file_path = '../' + sql_file_path
 		if not os.path.exists(sql_file_path):
-			print 'Invalid path {0}' + sql_file_path[3:]
+			print('Invalid path {0}' + sql_file_path[3:])
 			sys.exit(1)
 
 	if sql_file_path.endswith('sql.gz'):
@@ -115,11 +129,12 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 @pass_context
 def reinstall(context, admin_password=None, yes=False):
 	"Reinstall site ie. wipe all data and start over"
+	site = get_site(context)
+	_reinstall(site, admin_password, yes, verbose=context.verbose)
 
+def _reinstall(site, admin_password=None, yes=False, verbose=False):
 	if not yes:
 		click.confirm('This will wipe your database. Are you sure you want to reinstall?', abort=True)
-
-	site = get_site(context)
 	try:
 		frappe.init(site=site)
 		frappe.connect()
@@ -134,7 +149,7 @@ def reinstall(context, admin_password=None, yes=False):
 		frappe.destroy()
 
 	frappe.init(site=site)
-	_new_site(frappe.conf.db_name, site, verbose=context.verbose, force=True, reinstall=True,
+	_new_site(frappe.conf.db_name, site, verbose=verbose, force=True, reinstall=True,
 		install_apps=installed, admin_password=admin_password)
 
 @click.command('install-app')
@@ -158,7 +173,7 @@ def list_apps(context):
 	site = get_site(context)
 	frappe.init(site=site)
 	frappe.connect()
-	print "\n".join(frappe.get_installed_apps())
+	print("\n".join(frappe.get_installed_apps()))
 	frappe.destroy()
 
 @click.command('add-system-manager')
@@ -200,13 +215,15 @@ def migrate(context, rebuild_website=False):
 	from frappe.migrate import migrate
 
 	for site in context.sites:
-		print 'Migrating', site
+		print('Migrating', site)
 		frappe.init(site=site)
 		frappe.connect()
 		try:
 			migrate(context.verbose, rebuild_website=rebuild_website)
 		finally:
 			frappe.destroy()
+
+	compileall.compile_dir('../apps', quiet=1)
 
 @click.command('run-patch')
 @click.argument('module')
@@ -238,6 +255,20 @@ def reload_doc(context, module, doctype, docname):
 		finally:
 			frappe.destroy()
 
+@click.command('reload-doctype')
+@click.argument('doctype')
+@pass_context
+def reload_doctype(context, doctype):
+	"Reload schema for a DocType"
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			frappe.reload_doctype(doctype, force=context.force)
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
+
 
 @click.command('use')
 @click.argument('site')
@@ -263,10 +294,10 @@ def backup(context, with_files=False, backup_path_db=None, backup_path_files=Non
 		odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, force=True)
 		if verbose:
 			from frappe.utils import now
-			print "database backup taken -", odb.backup_path_db, "- on", now()
+			print("database backup taken -", odb.backup_path_db, "- on", now())
 			if with_files:
-				print "files backup taken -", odb.backup_path_files, "- on", now()
-				print "private files backup taken -", odb.backup_path_private_files, "- on", now()
+				print("files backup taken -", odb.backup_path_files, "- on", now())
+				print("private files backup taken -", odb.backup_path_private_files, "- on", now())
 
 		frappe.destroy()
 
@@ -306,7 +337,12 @@ def uninstall(context, app, dry_run=False, yes=False):
 @click.option('--root-login', default='root')
 @click.option('--root-password')
 @click.option('--archived-sites-path')
-def drop_site(site, root_login='root', root_password=None, archived_sites_path=None):
+@click.option('--force', help='Force drop-site even if an error is encountered', is_flag=True, default=False)
+def drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False):
+	_drop_site(site, root_login, root_password, archived_sites_path, force)
+
+
+def _drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False):
 	"Remove site from database and filesystem"
 	from frappe.installer import get_root_connection
 	from frappe.model.db_schema import DbManager
@@ -314,7 +350,22 @@ def drop_site(site, root_login='root', root_password=None, archived_sites_path=N
 
 	frappe.init(site=site)
 	frappe.connect()
-	scheduled_backup(ignore_files=False, force=True)
+
+	try:
+		scheduled_backup(ignore_files=False, force=True)
+	except SQLError as err:
+		if err[0] == ER.NO_SUCH_TABLE:
+			if force:
+				pass
+			else:
+				click.echo("="*80)
+				click.echo("Error: The operation has stopped because backup of {s}'s database failed.".format(s=site))
+				click.echo("Reason: {reason}{sep}".format(reason=err[1], sep="\n"))
+				click.echo("Fix the issue and try again.")
+				click.echo(
+					"Hint: Use 'bench drop-site {s} --force' to force the removal of {s}".format(sep="\n", tab="\t", s=site)
+				)
+				sys.exit(1)
 
 	db_name = frappe.local.conf.db_name
 	frappe.local.db = get_root_connection(root_login, root_password)
@@ -330,10 +381,10 @@ def drop_site(site, root_login='root', root_password=None, archived_sites_path=N
 
 	move(archived_sites_path, site)
 
+
 def move(dest_dir, site):
-	import os
 	if not os.path.isdir(dest_dir):
-		raise Exception, "destination is not a directory or does not exist"
+		raise Exception("destination is not a directory or does not exist")
 
 	frappe.init(site)
 	old_path = frappe.utils.get_site_path()
@@ -354,8 +405,9 @@ def move(dest_dir, site):
 
 @click.command('set-admin-password')
 @click.argument('admin-password')
+@click.option('--logout-all-sessions', help='Logout from all sessions', is_flag=True, default=False)
 @pass_context
-def set_admin_password(context, admin_password):
+def set_admin_password(context, admin_password, logout_all_sessions=False):
 	"Set Administrator password for a site"
 	import getpass
 	from frappe.utils.password import update_password
@@ -368,7 +420,7 @@ def set_admin_password(context, admin_password):
 				admin_password = getpass.getpass("Administrator's password for {0}: ".format(site))
 
 			frappe.connect()
-			update_password('Administrator', admin_password)
+			update_password(user='Administrator', pwd=admin_password, logout_all_sessions=logout_all_sessions)
 			frappe.db.commit()
 			admin_password = None
 		finally:
@@ -385,7 +437,7 @@ def set_limit(context, site, limit, value):
 
 @click.command('set-limits')
 @click.option('--site', help='site name')
-@click.option('--limit', 'limits', type=(unicode, unicode), multiple=True)
+@click.option('--limit', 'limits', type=(text_type, text_type), multiple=True)
 @pass_context
 def set_limits(context, site, limits):
 	_set_limits(context, site, limits)
@@ -400,13 +452,14 @@ def _set_limits(context, site, limits):
 		site = get_site(context)
 
 	with frappe.init_site(site):
+		frappe.connect()
 		new_limits = {}
 		for limit, value in limits:
-			if limit not in ('emails', 'space', 'users', 'email_group',
+			if limit not in ('daily_emails', 'emails', 'space', 'users', 'email_group',
 				'expiry', 'support_email', 'support_chat', 'upgrade_url'):
-				frappe.throw('Invalid limit {0}'.format(limit))
+				frappe.throw(_('Invalid limit {0}').format(limit))
 
-			if limit=='expiry':
+			if limit=='expiry' and value:
 				try:
 					datetime.datetime.strptime(value, '%Y-%m-%d')
 				except ValueError:
@@ -415,7 +468,7 @@ def _set_limits(context, site, limits):
 			elif limit=='space':
 				value = float(value)
 
-			elif limit in ('users', 'emails', 'email_group'):
+			elif limit in ('users', 'emails', 'email_group', 'daily_emails'):
 				value = int(value)
 
 			new_limits[limit] = value
@@ -425,7 +478,7 @@ def _set_limits(context, site, limits):
 @click.command('clear-limits')
 @click.option('--site', help='site name')
 @click.argument('limits', nargs=-1, type=click.Choice(['emails', 'space', 'users', 'email_group',
-	'expiry', 'support_email', 'support_chat', 'upgrade_url']))
+	'expiry', 'support_email', 'support_chat', 'upgrade_url', 'daily_emails']))
 @pass_context
 def clear_limits(context, site, limits):
 	"""Clears given limit from the site config, and removes limit from site config if its empty"""
@@ -444,6 +497,50 @@ def clear_limits(context, site, limits):
 		if not limits:
 			update_site_config('limits', 'None', validate=False)
 
+@click.command('set-last-active-for-user')
+@click.option('--user', help="Setup last active date for user")
+@pass_context
+def set_last_active_for_user(context, user=None):
+	"Set users last active date to current datetime"
+
+	from frappe.core.doctype.user.user import get_system_users
+	from frappe.utils.user import set_last_active_to_now
+
+	site = get_site(context)
+
+	with frappe.init_site(site):
+		frappe.connect()
+		if not user:
+			user = get_system_users(limit=1)
+			if len(user) > 0:
+				user = user[0]
+			else:
+				return
+
+		set_last_active_to_now(user)
+		frappe.db.commit()
+
+@click.command('publish-realtime')
+@click.argument('event')
+@click.option('--message')
+@click.option('--room')
+@click.option('--user')
+@click.option('--doctype')
+@click.option('--docname')
+@click.option('--after-commit')
+@pass_context
+def publish_realtime(context, event, message, room, user, doctype, docname, after_commit):
+	"Publish realtime event from bench"
+	from frappe import publish_realtime
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			publish_realtime(event, message=message, room=room, user=user, doctype=doctype, docname=docname,
+				after_commit=after_commit)
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
 
 commands = [
 	add_system_manager,
@@ -455,6 +552,7 @@ commands = [
 	new_site,
 	reinstall,
 	reload_doc,
+	reload_doctype,
 	remove_from_installed_apps,
 	restore,
 	run_patch,
@@ -465,4 +563,6 @@ commands = [
 	clear_limits,
 	disable_user,
 	_use,
+	set_last_active_for_user,
+	publish_realtime,
 ]

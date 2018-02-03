@@ -12,9 +12,6 @@ rename_map = {
 	"Email Alert": [
 		["email_alert_recipients", "recipients"]
 	],
-	"Event": [
-		["event_roles", "roles"]
-	],
 	"Workflow": [
 		["workflow_document_states", "states"],
 		["workflow_transitions", "transitions"]

@@ -7,6 +7,10 @@ import frappe, re, frappe.utils
 from frappe.desk.notifications import get_notifications
 from frappe import _
 
+@frappe.whitelist()
+def get_bot_reply(question):
+	return BotReply().get_reply(question)
+
 class BotParser(object):
 	'''Base class for bot parser'''
 	def __init__(self, reply, query):
@@ -36,7 +40,9 @@ class BotParser(object):
 
 	def format_list(self, data):
 		'''Format list as markdown'''
-		return ', '.join(['[{name}](#Form/{doctype}/{name})'.format(doctype=self.get_doctype(),
+		return _('I found these: ') + ', '.join([' [{title}](#Form/{doctype}/{name})'.format(
+			title = d.title or d.name,
+			doctype=self.get_doctype(),
 			name=d.name) for d in data])
 
 	def get_doctype(self):
@@ -46,7 +52,7 @@ class BotParser(object):
 class ShowNotificationBot(BotParser):
 	'''Show open notifications'''
 	def get_reply(self):
-		if self.has("whatsup", "what's up", "wassup", "whats up"):
+		if self.has("whatsup", "what's up", "wassup", "whats up", 'notifications', 'open tasks'):
 			n = get_notifications()
 			open_items = sorted(n.get('open_count_doctype').items())
 
@@ -78,10 +84,27 @@ class GetOpenListBot(BotParser):
 
 class ListBot(BotParser):
 	def get_reply(self):
-		if self.startswith('list', 'show'):
+		if self.query.endswith(' ' + _('list')) and self.startswith(_('list')):
+			self.query = _('list') + ' ' + self.query.replace(' ' + _('list'), '')
+		if self.startswith(_('list'), _('show')):
+			like = None
+			if ' ' + _('like') + ' ' in self.query:
+				self.query, like = self.query.split(' ' + _('like') + ' ')
+
 			self.tables = self.reply.identify_tables(self.query.split(None, 1)[1])
 			if self.tables:
-				return self.format_list(frappe.get_list(self.get_doctype()))
+				doctype = self.get_doctype()
+				meta = frappe.get_meta(doctype)
+				fields = ['name']
+				if meta.title_field:
+					fields.append('`{0}` as title'.format(meta.title_field))
+
+				filters = {}
+				if like:
+					filters={
+						meta.title_field or 'name': ('like', '%' + like + '%')
+					}
+				return self.format_list(frappe.get_list(self.get_doctype(), fields=fields, filters=filters))
 
 class CountBot(BotParser):
 	def get_reply(self):
@@ -193,6 +216,7 @@ help_text = """Hello {0}, I am a K.I.S.S Bot, not AI, so be kind. I can try answ
 
 - "todo": list my todos
 - "show customers": list customers
+- "show customers like giant": list customer containing giant
 - "locate shirt": find where to find item "shirt"
 - "open issues": find open issues, try "open sales orders"
 - "how many users": count number of users

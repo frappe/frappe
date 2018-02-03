@@ -3,8 +3,8 @@
 frappe.ui.form.on("ToDo", {
 	onload: function(frm) {
 		frm.set_query("reference_type", function(txt) {
-	        return {
-	            "filters": {
+			return {
+				"filters": {
 					"issingle": 0,
 				}
 			};
@@ -18,16 +18,16 @@ frappe.ui.form.on("ToDo", {
 		}
 
 		if (!frm.doc.__islocal) {
-			if(frm.doc.status=="Open") {
+			if(frm.doc.status!=="Closed") {
 				frm.add_custom_button(__("Close"), function() {
 					frm.set_value("status", "Closed");
 					frm.save(null, function() {
 						// back to list
 						frappe.set_route("List", "ToDo");
 					});
-				}, "icon-ok", "btn-success");
+				}, "fa fa-check", "btn-success");
 			} else {
-				frm.add_custom_button(__("Re-open"), function() {
+				frm.add_custom_button(__("Reopen"), function() {
 					frm.set_value("status", "Open");
 					frm.save();
 				}, null, "btn-default");

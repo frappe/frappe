@@ -3,21 +3,21 @@
 		"doctype": "Event",
 		"subject":"_Test Event 1",
 		"starts_on": "2014-01-01",
-		"event_type": "Public"
+		"event_type": "Public",
+		"creation": "2014-01-01"
 	},
 	{
 		"doctype": "Event",
-		"starts_on": "2014-01-01",
 		"subject":"_Test Event 2",
-		"event_type": "Private"
+		"starts_on": "2014-01-01",
+		"event_type": "Private",
+		"creation": "2014-01-01"
 	},
 	{
 		"doctype": "Event",
-		"starts_on": "2014-01-01",
-		"subject":"_Test Event 3",
+		"subject": "_Test Event 3",
+		"starts_on": "2014-02-01",
 		"event_type": "Private",
-		"roles": [
-			{"role": "System Manager"}
-		]
+		"creation": "2014-02-01"
 	}
 ]

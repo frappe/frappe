@@ -1,3 +1,5 @@
+# How To Improve A Standard Control
+
 Frappé has a couple of elegant and useful widgets, but some times we need to edit them to add small improvements. This small article will describe how to add new resources to the standard widgets.
 
 Let me explain first our goal:
@@ -42,7 +44,7 @@ _-At last, we think we would never stop talking!_
 				<input type="text" class="input-with-feedback form-control">\
 				<span class="dialog-btn">\
 					<a class="btn-open no-decoration" title="' + __(" open="" translation")="" +="" '"="">\
-					<i class="icon-globe"></i></a>\
+					<i class="fa fa-globe"></i></a>\
 				</span>\
 			</div>').prependTo(this.input_area);
 			this.$input_area = $(this.input_area);

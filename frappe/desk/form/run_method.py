@@ -6,6 +6,7 @@ import json, inspect
 import frappe
 from frappe import _
 from frappe.utils import cint
+from six import text_type, string_types
 
 @frappe.whitelist()
 def runserverobj(method, docs=None, dt=None, dn=None, arg=None, args=None):
@@ -53,7 +54,7 @@ def make_csv_output(res, dt):
 	"""send method response as downloadable CSV file"""
 	import frappe
 
-	from cStringIO import StringIO
+	from six import StringIO
 	import csv
 
 	f = StringIO()
@@ -61,13 +62,13 @@ def make_csv_output(res, dt):
 	for r in res:
 		row = []
 		for v in r:
-			if isinstance(v, basestring):
+			if isinstance(v, string_types):
 				v = v.encode("utf-8")
 			row.append(v)
 		writer.writerow(row)
 
 	f.seek(0)
 
-	frappe.response['result'] = unicode(f.read(), 'utf-8')
+	frappe.response['result'] = text_type(f.read(), 'utf-8')
 	frappe.response['type'] = 'csv'
 	frappe.response['doctype'] = dt.replace(' ','')

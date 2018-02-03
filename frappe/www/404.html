@@ -2,13 +2,30 @@
 
 {%- block title -%}{{_("Not Found")}}{%- endblock -%}
 
-{%- block header -%}
-<h1 class="text-danger" style="margin-top: 100px;">{{_("Page missing or moved")}}</h1>
-{%- endblock -%}
-
 {% block page_content %}
+<style>
+.hero-and-content {
+	background-color: #f5f7fa;
+}
+header, footer {
+	display: none;
+}
+html, body {
+	background-color: #f5f7fa;
+}
+</style>
 
-<div class="404-content" style="margin-bottom: 100px;">
-	<p>{{_("We are very sorry for this, but the page you are looking for is missing (this could be because of a typo in the address) or moved.")}}</p>
+<div class='page-card'>
+	<div class='page-card-head'>
+		<span class='indicator darkgrey'>{{_("Page Missing or Moved")}}</span>
+	</div>
+	<p>{{_("The page you are looking for is missing. This could be because it is moved or there is a typo in the link.")}}</p>
+	<div><a href='/' class='btn btn-primary btn-sm'>{{ _("Home") }}</a></div>
 </div>
+<p class='text-muted text-center small' style='margin-top: -20px;'>{{ _("Error Code: {0}").format('404') }}</p>
+<style>
+.hero-and-content {
+	background-color: #f5f7fa;
+}
+</style>
 {% endblock %}

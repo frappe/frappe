@@ -1,12 +1,10 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-cur_frm.cscript.refresh = function(doc) {
-	cur_frm.set_intro("");
-	if(doc.__islocal) {
-		cur_frm.set_intro("First set the name and save the record.");
+frappe.ui.form.on("Website Slideshow", {
+	refresh: (frm) => {
+		let intro = frm.doc.__islocal?
+			"First set the name and save the record.": "Attach files / urls and add in table.";
+		frm.set_intro(intro);
 	}
-	else {
-		cur_frm.set_intro("Attach files / urls and add in table.");
-	}
-}
+})

@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.desk.form.load import get_docinfo
+import frappe.share
 
 class DuplicateToDoError(frappe.ValidationError): pass
 
@@ -62,14 +63,18 @@ def add(args=None):
 		if frappe.get_meta(args['doctype']).get_field("assigned_to"):
 			frappe.db.set_value(args['doctype'], args['name'], "assigned_to", args['assign_to'])
 
+		doc = frappe.get_doc(args['doctype'], args['name'])
+
+		# if assignee does not have permissions, share
+		if not frappe.has_permission(doc=doc, user=args['assign_to']):
+			frappe.share.add(doc.doctype, doc.name, args['assign_to'])
+			frappe.msgprint(_('Shared with user {0} with read access').format(args['assign_to']), alert=True)
+
 	# notify
 	notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',\
 			 description=args.get("description"), notify=args.get('notify'))
 
-	if not args.get("bulk_assign"):
-		return get(args)
-	else:
-		return {}
+	return get(args)
 
 @frappe.whitelist()
 def add_multiple(args=None):

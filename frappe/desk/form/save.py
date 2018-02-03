@@ -20,7 +20,7 @@ def savedocs(doc, action):
 		else:
 			try:
 				doc.save()
-			except frappe.NameError, e:
+			except frappe.NameError as e:
 				doctype, name, original_exception = e if isinstance(e, tuple) else (doc.doctype or "", doc.name or "", None)
 				frappe.msgprint(frappe._("{0} {1} already exists").format(doctype, name))
 				raise

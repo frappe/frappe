@@ -2,9 +2,23 @@
 
 Let us create a new site and call it `library`.
 
-You can install a new site, by the command `bench new-site library`
+*Note: Before you create any new site, you need to activate the Barracuda storage engine on your MariaDB installation.*
+*Copy the following default ERPNext database settings into your `my.cnf` file.*
 
-This will create a new database and site folder and install `frappe` (which is also an application!) in the new site. The `frappe` application has two built-in modules **Core** and **Website**. The Core module contains the basic models for the application. Frappe is a batteries included framework and comes with a lot of built-in models. These models are called **DocTypes**. More on that later.
+    [mysqld]
+    innodb-file-format=barracuda
+    innodb-file-per-table=1
+    innodb-large-prefix=1
+    character-set-client-handshake = FALSE
+    character-set-server = utf8mb4
+    collation-server = utf8mb4_unicode_ci
+
+    [mysql]
+    default-character-set = utf8mb4
+
+You can then install a new site, by the command `bench new-site library`.
+
+This will create a new database and site folder and install `frappe` (which is also an application!) in the new site. The `frappe` application has two built-in modules **Core** and **Website**. The Core module contains the basic models for the application. Frappé is a batteries included framework and comes with a lot of built-in models. These models are called **DocTypes**. More on that later.
 
 	$ bench new-site library
 	MySQL root password:

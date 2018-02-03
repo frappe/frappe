@@ -43,7 +43,7 @@ class WebsiteTheme(Document):
 	def export_doc(self):
 		"""Export to standard folder `[module]/website_theme/[name]/[name].json`."""
 		from frappe.modules.export_file import export_to_files
-		export_to_files(record_list=[['Website Theme', self.name]])
+		export_to_files(record_list=[['Website Theme', self.name]], create_init=True)
 
 
 	def clear_cache_if_current_theme(self):
@@ -63,6 +63,7 @@ def use_theme(theme):
 
 def add_website_theme(context):
 	bootstrap = frappe.get_hooks("bootstrap")[0]
+	bootstrap = [bootstrap]
 	context.theme = frappe._dict()
 
 	if not context.disable_website_theme:
@@ -71,11 +72,11 @@ def add_website_theme(context):
 
 		if website_theme:
 			if website_theme.bootstrap:
-				bootstrap = website_theme.bootstrap
+				bootstrap.append(website_theme.bootstrap)
 
 			context.web_include_css = context.web_include_css + ["website_theme.css"]
 
-	context.web_include_css = [bootstrap] + context.web_include_css
+	context.web_include_css = bootstrap + context.web_include_css
 
 def get_active_theme():
 	website_theme = frappe.db.get_value("Website Settings", "Website Settings", "website_theme")

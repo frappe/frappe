@@ -28,8 +28,8 @@ Also make sure that your private key is not world readable. Generally, it is own
 
 Set the paths to the certificate and private key for your site
 	
-	bench set-ssl-certificate site1.local /etc/nginx/ssl/certificate_bundle.crt
-	bench set-ssl-key site1.local /etc/nginx/ssl/private.key
+	bench set-ssl-certificate site1.local /etc/nginx/conf.d/ssl/certificate_bundle.crt
+	bench set-ssl-key site1.local /etc/nginx/conf.d/ssl/private.key
 
 ### Generate nginx config
 	
@@ -37,7 +37,7 @@ Set the paths to the certificate and private key for your site
 
 ### Reload nginx
 	
-	service nginx reload
+	sudo service nginx reload
 
 or
 

@@ -6,12 +6,16 @@ import frappe
 from frappe import _
 import frappe.sessions
 from frappe.utils import cstr
-import mimetypes, json
+import os, mimetypes, json
+
+from six import iteritems
 from werkzeug.wrappers import Response
 from werkzeug.routing import Map, Rule, NotFound
+from werkzeug.wsgi import wrap_file
 
 from frappe.website.context import get_context
-from frappe.website.utils import get_home_page, can_cache, delete_page_cache
+from frappe.website.utils import (get_home_page, can_cache, delete_page_cache,
+	get_toc, get_next_link)
 from frappe.website.router import clear_sitemap
 from frappe.translate import guess_language
 
@@ -19,21 +23,24 @@ class PageNotFoundError(Exception): pass
 
 def render(path=None, http_status_code=None):
 	"""render html page"""
-	path = resolve_path(path or frappe.local.request.path.strip('/ '))
+	if not path:
+		path = frappe.local.request.path
+	path = resolve_path(path.strip('/ '))
 	data = None
 
 	# if in list of already known 404s, send it
 	if can_cache() and frappe.cache().hget('website_404', frappe.request.url):
 		data = render_page('404')
 		http_status_code = 404
-
+	elif is_static_file(path):
+		return get_static_file_response()
 	else:
 		try:
 			data = render_page_by_language(path)
-		except frappe.DoesNotExistError, e:
+		except frappe.DoesNotExistError as e:
 			doctype, name = get_doctype_from_path(path)
 			if doctype and name:
-				path = "print"
+				path = "printview"
 				frappe.local.form_dict.doctype = doctype
 				frappe.local.form_dict.name = name
 			elif doctype:
@@ -48,13 +55,13 @@ def render(path=None, http_status_code=None):
 			if not data:
 				try:
 					data = render_page(path)
-				except frappe.PermissionError, e:
+				except frappe.PermissionError as e:
 					data, http_status_code = render_403(e, path)
 
-		except frappe.PermissionError, e:
+		except frappe.PermissionError as e:
 			data, http_status_code = render_403(e, path)
 
-		except frappe.Redirect, e:
+		except frappe.Redirect as e:
 			return build_response(path, "", 301, {
 				"Location": frappe.flags.redirect_location or (frappe.local.response or {}).get('location'),
 				"Cache-Control": "no-store, no-cache, must-revalidate"
@@ -69,6 +76,31 @@ def render(path=None, http_status_code=None):
 
 	return build_response(path, data, http_status_code or 200)
 
+def is_static_file(path):
+	if ('.' not in path):
+		return False
+	extn = path.rsplit('.', 1)[-1]
+	if extn in ('html', 'md', 'js', 'xml', 'css', 'txt', 'py'):
+		return False
+
+	for app in frappe.get_installed_apps():
+		file_path = frappe.get_app_path(app, 'www') + '/' + path
+		if os.path.exists(file_path):
+			frappe.flags.file_path = file_path
+			return True
+
+	return False
+
+def get_static_file_response():
+	try:
+		f = open(frappe.flags.file_path, 'rb')
+	except IOError:
+		raise NotFound
+
+	response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)
+	response.mimetype = mimetypes.guess_type(frappe.flags.file_path)[0] or b'application/octet-stream'
+	return response
+
 def build_response(path, data, http_status_code, headers=None):
 	# build response
 	response = Response()
@@ -78,7 +110,7 @@ def build_response(path, data, http_status_code, headers=None):
 	response.headers[b"X-From-Cache"] = frappe.local.response.from_cache or False
 
 	if headers:
-		for key, val in headers.iteritems():
+		for key, val in iteritems(headers):
 			response.headers[bytes(key)] = val.encode("utf-8")
 
 	return response
@@ -135,11 +167,20 @@ def build_page(path):
 		frappe.local.path = path
 
 	context = get_context(path)
+	if context.title and "{{" in context.title:
+		title_template = context.pop('title')
+		context.title = frappe.render_template(title_template, context)
 
 	if context.source:
 		html = frappe.render_template(context.source, context)
 	elif context.template:
 		html = frappe.get_template(context.template).render(context)
+
+	if '{index}' in html:
+		html = html.replace('{index}', get_toc(context.route))
+
+	if '{next}' in html:
+		html = html.replace('{next}', get_next_link(context.route))
 
 	# html = frappe.get_template(context.base_template_path).render(context)
 
@@ -169,7 +210,7 @@ def resolve_path(path):
 
 def resolve_from_map(path):
 	m = Map([Rule(r["from_route"], endpoint=r["to_route"], defaults=r.get("defaults"))
-		for r in frappe.get_hooks("website_route_rules")])
+		for r in get_website_rules()])
 	urls = m.bind_to_environ(frappe.local.request.environ)
 	try:
 		endpoint, args = urls.match("/" + path)
@@ -183,6 +224,18 @@ def resolve_from_map(path):
 		pass
 
 	return path
+
+def get_website_rules():
+	'''Get website route rules from hooks and DocType route'''
+	def _get():
+		rules = frappe.get_hooks("website_route_rules")
+		for d in frappe.get_all('DocType', 'name, route', dict(has_web_view=1)):
+			if d.route:
+				rules.append(dict(from_route = '/' + d.route.strip('/'), to_route=d.name))
+
+		return rules
+
+	return frappe.cache().get_value('website_route_rules', _get)
 
 def set_content_type(response, data, path):
 	if isinstance(data, dict):
@@ -204,26 +257,34 @@ def set_content_type(response, data, path):
 	return data
 
 def clear_cache(path=None):
-	frappe.cache().delete_value("website_generator_routes")
+	'''Clear website caches
+
+	:param path: (optional) for the given path'''
+	for key in ('website_generator_routes', 'website_pages',
+		'website_full_index'):
+		frappe.cache().delete_value(key)
 	delete_page_cache(path)
+	frappe.cache().delete_value("website_404")
 	if not path:
 		clear_sitemap()
 		frappe.clear_cache("Guest")
-		frappe.cache().delete_value("website_404")
-		frappe.cache().delete_value("portal_menu_items")
-		frappe.cache().delete_value("home_page")
+		for key in ('portal_menu_items', 'home_page', 'website_route_rules',
+			'doctypes_with_web_view'):
+			frappe.cache().delete_value(key)
 
 	for method in frappe.get_hooks("website_clear_cache"):
 		frappe.get_attr(method)(path)
 
 def render_403(e, pathname):
-	path = "message"
-	frappe.local.message = """<p><strong>{error}</strong></p>
-	<p>
-		<a href="/login?redirect-to=/{pathname}" class="btn btn-primary">{login}</a>
-	</p>""".format(error=cstr(e.message), login=_("Login"), pathname=frappe.local.path)
+	frappe.local.message = cstr(e.message)
 	frappe.local.message_title = _("Not Permitted")
-	return render_page(path), e.http_status_code
+	frappe.local.response['context'] = dict(
+		indicator_color = 'red',
+		primary_action = '/login',
+		primary_label = _('Login'),
+		fullpage=True
+	)
+	return render_page("message"), e.http_status_code
 
 def get_doctype_from_path(path):
 	doctypes = frappe.db.sql_list("select name from tabDocType")
@@ -244,5 +305,8 @@ def get_doctype_from_path(path):
 	return None, None
 
 def add_csrf_token(data):
-	return data.replace("<!-- csrf_token -->", '<script>frappe.csrf_token = "{0}";</script>'.format(
-			frappe.local.session.data.csrf_token))
+	if frappe.local.session:
+		return data.replace("<!-- csrf_token -->", '<script>frappe.csrf_token = "{0}";</script>'.format(
+				frappe.local.session.data.csrf_token))
+	else:
+		return data

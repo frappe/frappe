@@ -1,0 +1,21 @@
+<div class="print-format-builder-section row light-bg" data-label={{ section.label || "" }}>
+    <div class="print-format-builder-section-head">
+        <a class="section-settings pull-right
+            btn-default btn-xs" style="padding-top: 3px">
+            <span class="octicon octicon-gear text-muted"></span></a>
+        <span class="octicon octicon-three-bars drag-handle"></span>
+        <span class="section-label">{{ section.label || "" }}</span>
+    </div>
+    {% for(var j=0; j < section.columns.length; j++) {
+        var column = section.columns[j]; %}
+    <div class="col-md-{%= 12 / section.no_of_columns %} section-column">
+        <div class="print-format-builder-column">
+            {% for(var k=0; k < column.fields.length; k++) {
+                var field = column.fields[k]; %}
+            {%= frappe.render_template("print_format_builder_field",
+                {field: field, me:me}) %}
+            {% } %}
+        </div>
+    </div>
+    {% } %}
+</div>

@@ -3,8 +3,11 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 
 from frappe.model.document import Document
+
+not_allowed_fieldtype_change = ['naming_series']
 
 class PropertySetter(Document):
 	def autoname(self):
@@ -13,6 +16,18 @@ class PropertySetter(Document):
 			+ self.property
 
 	def validate(self):
+		self.validate_fieldtype_change()
+		self.delete_property_setter()
+
+		# clear cache
+		frappe.clear_cache(doctype = self.doc_type)
+
+	def validate_fieldtype_change(self):
+		if self.field_name in not_allowed_fieldtype_change and \
+			self.property == 'fieldtype':
+			frappe.throw(_("Field type cannot be changed for {0}").format(self.field_name))
+
+	def delete_property_setter(self):
 		"""delete other property setters on this, if this is new"""
 		if self.get('__islocal'):
 			frappe.db.sql("""delete from `tabProperty Setter` where
@@ -20,9 +35,6 @@ class PropertySetter(Document):
 				and doc_type = %(doc_type)s
 				and ifnull(field_name,'') = ifnull(%(field_name)s, '')
 				and property = %(property)s""", self.get_valid_dict())
-
-		# clear cache
-		frappe.clear_cache(doctype = self.doc_type)
 
 	def get_property_list(self, dt):
 		return frappe.db.sql("""select fieldname, label, fieldtype
@@ -57,7 +69,8 @@ class PropertySetter(Document):
 			from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 			validate_fields_for_doctype(self.doc_type)
 
-def make_property_setter(doctype, fieldname, property, value, property_type, for_doctype = False, validate_fields_for_doctype=True):
+def make_property_setter(doctype, fieldname, property, value, property_type, for_doctype = False, 
+		validate_fields_for_doctype=True):
 	# WARNING: Ignores Permissions
 	property_setter = frappe.get_doc({
 		"doctype":"Property Setter",

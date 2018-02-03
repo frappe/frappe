@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 
 import frappe, unittest
 from frappe.desk.form.load import getdoctype, getdoc
+from frappe.core.page.permission_manager.permission_manager import update, reset
+from frappe.permissions import get_valid_perms
 
 class TestFormLoad(unittest.TestCase):
 	def test_load(self):
@@ -21,10 +23,16 @@ class TestFormLoad(unittest.TestCase):
 		user = frappe.get_doc('User', 'test@example.com')
 		user.remove_roles('Website Manager')
 		user.add_roles('Blogger')
-		frappe.set_user(user.name)
+		reset('Blog Post')
 
 		frappe.db.sql('update tabDocField set permlevel=1 where fieldname="published" and parent="Blog Post"')
-		frappe.db.sql('update tabDocPerm set permlevel=1 where role="Website Manager" and parent="Blog Post"')
+
+		update('Blog Post', 'Website Manager', 0, 'permlevel', 1)
+
+		frappe.set_user(user.name)
+
+		# print frappe.as_json(get_valid_perms('Blog Post'))
+
 		frappe.clear_cache(doctype='Blog Post')
 
 		blog = frappe.db.get_value('Blog Post', {'title': '_Test Blog Post'})
@@ -41,7 +49,7 @@ class TestFormLoad(unittest.TestCase):
 		self.assertTrue(checked, True)
 
 		frappe.db.sql('update tabDocField set permlevel=0 where fieldname="published" and parent="Blog Post"')
-		frappe.db.sql('update tabDocPerm set permlevel=0 where role="Website Manager" and parent="Blog Post"')
+		reset('Blog Post')
 
 		frappe.clear_cache(doctype='Blog Post')
 

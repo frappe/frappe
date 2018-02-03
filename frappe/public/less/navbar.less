@@ -37,7 +37,7 @@
 
 @media (max-width: 991px) {
 	.navbar-desk {
-		width: 40% !important;
+		width: 35% !important;
 
 		& ~ ul > li {
 			float: left;
@@ -59,7 +59,7 @@
 
 @media (max-width: 767px) {
 	.navbar-desk {
-		width: 60% !important;
+		width: 50% !important;
 	}
 }
 
@@ -95,9 +95,43 @@
 	}
 }
 
+.dropdown-help .dropdown-menu {
+	width: 350px !important;
+	max-height: 440px;
+	overflow: auto;
+
+	.input-group {
+		width: 100%;
+		background-color: #f5f7fa;
+		padding: 8px 12px;
+	}
+
+	input {
+		width: 100%;
+		padding: 5px 10px;
+		outline: none;
+		border-radius: 3px 0 0 3px;
+		border: 1px solid #d1d8dd;
+		opacity: 0.9;
+		line-height: 1.5;
+	}
+	button {
+		border: 1px solid #d1d8dd;
+
+		&.loading {
+
+		}
+	}
+
+	@media (max-width: @screen-xs) {
+		position: fixed !important;
+		top: 40px;
+		width: 100% !important;
+	}
+}
+
 @media (max-width: 767px) {
-	.dropdown-navbar-new-comments.open .dropdown-menu,
-	.dropdown-navbar-user.open .dropdown-menu {
+	.dropdown-mobile.open .dropdown-menu {
 		position: absolute;
 		border-top: 1px solid rgba(0, 0, 0, 0.14902);
 		box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
@@ -119,14 +153,28 @@
 	color: #fff;
 	text-align: center;
 	padding: 2px 5px;
+	background-color: @indicator-darkgrey;
 }
 
 .navbar-new-comments-true {
 	background-color: @indicator-red;
 }
 
-#navbar-search {
+.navbar-form .awesomplete {
+	margin-left: -15px;
 	width: 300px;
+
+	@media (max-width: @screen-md) {
+		width: 280px;
+	}
+
+	@media (max-width: @screen-sm) {
+		width: 250px;
+	}
+}
+
+#navbar-search {
+	width: 100%;
 	background-color: rgba(255, 255, 255, 0.9);
 }
 
@@ -171,15 +219,19 @@
 
 #navbar-breadcrumbs > li > a {
 	padding: 6px 15px 10px 0px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 170px;
+
+	@media (min-width:991px) and (max-width: 1199px) {
+		max-width: 120px;
+	}
 }
 
 .toolbar-user-fullname {
-	max-width: 200px;
+	max-width: 150px;
 	display: inline-block;
-}
-
-.navbar-brand {
-	padding: 10px;
 }
 
 .navbar-brand > img {
@@ -187,7 +239,7 @@
 }
 
 .toggle-sidebar {
-	margin-right: 15px;
+	margin-right: 10px;
 }
 
 .navbar-default .navbar-nav > li > a,

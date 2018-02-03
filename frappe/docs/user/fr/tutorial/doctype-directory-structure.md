@@ -29,4 +29,4 @@ Après avoir sauvegardé vos DocTypes, vérifiez que les modèles dans les fichi
 	│   │           ├── library_transaction.json
 	│   │           └── library_transaction.py
 
-{suite}
+{next}

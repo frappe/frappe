@@ -3,8 +3,11 @@
 
 from __future__ import unicode_literals
 
+'''
+File based locking utility
+'''
+
 import os
-import frappe
 from time import time
 from frappe.utils import get_site_path, touch_file
 
@@ -12,11 +15,16 @@ class LockTimeoutError(Exception):
     pass
 
 def create_lock(name):
+	'''Creates a file in the /locks folder by the given name'''
 	lock_path = get_lock_path(name)
 	if not check_lock(lock_path):
 		return touch_file(lock_path)
 	else:
 		return False
+
+def lock_exists(name):
+	'''Returns True if lock of the given name exists'''
+	return os.path.exists(get_lock_path(name))
 
 def check_lock(path, timeout=600):
 	if not os.path.exists(path):

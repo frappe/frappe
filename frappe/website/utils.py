@@ -3,9 +3,11 @@
 
 from __future__ import unicode_literals
 import frappe, re, os
+from six import iteritems
 
 def delete_page_cache(path):
 	cache = frappe.cache()
+	cache.delete_value('full_index')
 	groups = ("website_page", "page_context")
 	if path:
 		for name in groups:
@@ -17,12 +19,16 @@ def delete_page_cache(path):
 def find_first_image(html):
 	m = re.finditer("""<img[^>]*src\s?=\s?['"]([^'"]*)['"]""", html)
 	try:
-		return m.next().groups()[0]
+		return next(m).groups()[0]
 	except StopIteration:
 		return None
 
 def can_cache(no_cache=False):
-	return not (frappe.conf.disable_website_cache or getattr(frappe.local, "no_cache", False) or no_cache)
+	if frappe.conf.disable_website_cache or frappe.conf.developer_mode:
+		return False
+	if getattr(frappe.local, "no_cache", False):
+		return False
+	return not no_cache
 
 def get_comment_list(doctype, name):
 	return frappe.db.sql("""select
@@ -182,35 +188,124 @@ def abs_url(path):
 		path = "/" + path
 	return path
 
-def get_full_index(route=None, extn = False):
+def get_toc(route, url_prefix=None, app=None):
+	'''Insert full index (table of contents) for {index} tag'''
+	from frappe.website.utils import get_full_index
+
+	full_index = get_full_index(app=app)
+
+	return frappe.get_template("templates/includes/full_index.html").render({
+			"full_index": full_index,
+			"url_prefix": url_prefix or "/",
+			"route": route.rstrip('/')
+		})
+
+def get_next_link(route, url_prefix=None, app=None):
+	# insert next link
+	next_item = None
+	route = route.rstrip('/')
+	children_map = get_full_index(app=app)
+	parent_route = os.path.dirname(route)
+	children = children_map[parent_route]
+
+	if parent_route and children:
+		for i, c in enumerate(children):
+			if c.route == route and i < (len(children) - 1):
+				next_item = children[i+1]
+				next_item.url_prefix = url_prefix or "/"
+
+	if next_item:
+		if next_item.route and next_item.title:
+			html = ('<p class="btn-next-wrapper">' + frappe._("Next")\
+				+': <a class="btn-next" href="{url_prefix}{route}">{title}</a></p>').format(**next_item)
+
+			return html
+
+	return ''
+
+def get_full_index(route=None, app=None):
 	"""Returns full index of the website for www upto the n-th level"""
+	from frappe.website.router import get_pages
+
 	if not frappe.local.flags.children_map:
-		from frappe.website.router import get_pages
-		children_map = {}
-		pages = get_pages()
+		def _build():
+			children_map = {}
+			added = []
+			pages = get_pages(app=app)
 
-		# make children map
-		for route, page_info in pages.iteritems():
-			parent_route = os.path.dirname(route)
-			children_map.setdefault(parent_route, []).append(page_info)
+			# make children map
+			for route, page_info in iteritems(pages):
+				parent_route = os.path.dirname(route)
+				if parent_route not in added:
+					children_map.setdefault(parent_route, []).append(page_info)
 
-		# order as per index if present
-		for route, children in children_map.items():
-			page_info = pages[route]
-			if page_info.index:
-				new_children = []
-				for name in page_info.index:
-					child_route = page_info.route + '/' + name
-					if child_route in pages:
-						new_children.append(pages[child_route])
+			# order as per index if present
+			for route, children in children_map.items():
+				if not route in pages:
+					# no parent (?)
+					continue
 
-				# add remaining pages not in index.txt
-				for c in children:
-					if c not in new_children:
-						new_children.append(c)
+				page_info = pages[route]
+				if page_info.index or ('index' in page_info.template):
+					new_children = []
+					page_info.extn = ''
+					for name in (page_info.index or []):
+						child_route = page_info.route + '/' + name
+						if child_route in pages:
+							if child_route not in added:
+								new_children.append(pages[child_route])
+								added.append(child_route)
 
-				children_map[route] = new_children
+					# add remaining pages not in index.txt
+					_children = sorted(children, lambda a, b: cmp(
+						os.path.basename(a.route), os.path.basename(b.route)))
+
+					for child_route in _children:
+						if child_route not in new_children:
+							if child_route not in added:
+								new_children.append(child_route)
+								added.append(child_route)
+
+					children_map[route] = new_children
+
+			return children_map
+
+		children_map = frappe.cache().get_value('website_full_index', _build)
 
 		frappe.local.flags.children_map = children_map
 
 	return frappe.local.flags.children_map
+
+def extract_title(source, path):
+	'''Returns title from `&lt;!-- title --&gt;` or &lt;h1&gt; or path'''
+	title = ''
+
+	if "<!-- title:" in source:
+		title = re.findall('<!-- title:([^>]*) -->', source)[0].strip()
+	elif "<h1>" in source:
+		match = re.findall('<h1>([^<]*)', source)
+		title = match[0].strip()[:300]
+	if not title:
+		title = os.path.basename(path.rsplit('.', )[0].rstrip('/')).replace('_', ' ').replace('-', ' ').title()
+
+	return title
+
+def add_missing_headers():
+	'''Walk and add missing headers in docs (to be called from bench execute)'''
+	path = frappe.get_app_path('erpnext', 'docs')
+	for basepath, folders, files in os.walk(path):
+		for fname in files:
+			if fname.endswith('.md'):
+				with open(os.path.join(basepath, fname), 'r') as f:
+					content = frappe.as_unicode(f.read())
+
+				if not content.startswith('# ') and not '<h1>' in content:
+					with open(os.path.join(basepath, fname), 'w') as f:
+						if fname=='index.md':
+							fname = os.path.basename(basepath)
+						else:
+							fname = fname[:-3]
+						h = fname.replace('_', ' ').replace('-', ' ').title()
+						content = '# {0}\n\n'.format(h) + content
+						f.write(content.encode('utf-8'))
+

@@ -7,18 +7,12 @@ import frappe
 import json
 
 
-no_value_fields = ('Section Break', 'Column Break', 'HTML', 'Table', 'Button', 'Image', 'Fold', 'Heading')
+no_value_fields = ('Section Break', 'Column Break', 'HTML', 'Table', 'Button', 'Image',
+	'Fold', 'Heading')
 display_fieldtypes = ('Section Break', 'Column Break', 'HTML', 'Button', 'Image', 'Fold', 'Heading')
 default_fields = ('doctype','name','owner','creation','modified','modified_by',
 	'parent','parentfield','parenttype','idx','docstatus')
-integer_docfield_properties = ("reqd", "search_index", "in_list_view", "permlevel",
-	"hidden", "read_only", "ignore_user_permissions", "allow_on_submit", "report_hide",
-	"in_filter", "no_copy", "print_hide", "unique")
 optional_fields = ("_user_tags", "_comments", "_assign", "_liked_by", "_seen")
-
-def rename(doctype, old, new, debug=False):
-	import frappe.model.rename_doc
-	frappe.model.rename_doc.rename_doc(doctype, old, new, debug)
 
 def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfields=[]):
 	if not tarfields:

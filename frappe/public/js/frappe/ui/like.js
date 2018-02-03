@@ -3,7 +3,7 @@
 
 frappe.ui.is_liked = function(doc) {
 	var liked = frappe.ui.get_liked_by(doc);
-	return liked.indexOf(user)===-1 ? false : true;
+	return liked.indexOf(frappe.session.user)===-1 ? false : true;
 }
 
 frappe.ui.get_liked_by = function(doc) {
@@ -47,10 +47,10 @@ frappe.ui.toggle_like = function($btn, doctype, name, callback) {
 				var doc = locals[doctype] && locals[doctype][name];
 				if(doc) {
 					var liked_by = JSON.parse(doc._liked_by || "[]"),
-						idx = liked_by.indexOf(user);
+						idx = liked_by.indexOf(frappe.session.user);
 					if(add==="Yes") {
 						if(idx===-1)
-							liked_by.push(user);
+							liked_by.push(frappe.session.user);
 					} else {
 						if(idx!==-1) {
 							liked_by = liked_by.slice(0,idx).concat(liked_by.slice(idx+1))
@@ -98,7 +98,7 @@ frappe.ui.setup_like_popover = function($parent, selector) {
 			placement: "right",
 			content: function() {
 				var liked_by = JSON.parse($wrapper.attr('data-liked-by') || "[]");
-
+				var user = frappe.session.user;
 				// hack
 				if ($wrapper.find(".not-liked").length) {
 					if (liked_by.indexOf(user)!==-1) {

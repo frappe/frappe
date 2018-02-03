@@ -4,11 +4,13 @@ from frappe import _
 from frappe.utils import now_datetime, getdate, flt, cint, get_fullname
 from frappe.installer import update_site_config
 from frappe.utils.data import formatdate
-from frappe.utils.user import get_enabled_system_users, get_system_managers
-import os, subprocess, urlparse, urllib
+from frappe.utils.user import get_enabled_system_users, disable_users
+import os, subprocess
+from six.moves.urllib.parse import parse_qsl, urlsplit, urlunsplit, urlencode
+from six import string_types
 
 class SiteExpiredError(frappe.ValidationError):
-	pass
+	http_status_code = 417
 
 EXPIRY_WARNING_DAYS = 10
 
@@ -18,6 +20,11 @@ def check_if_expired():
 		return
 
 	limits = get_limits()
+	expiry = limits.get("expiry")
+
+	if not expiry:
+		return
+
 	expires_on = formatdate(limits.get("expiry"))
 	support_email = limits.get("support_email")
 
@@ -28,7 +35,8 @@ def check_if_expired():
 		message = _("""Your subscription expired on {0}. To renew, please send an email to {1}.""").format(expires_on, support_email)
 
 	else:
-		message = _("""Your subscription expired on {0}""").format(expires_on)
+		# no recourse just quit
+		return
 
 	frappe.throw(message, SiteExpiredError)
 
@@ -115,8 +123,8 @@ def get_usage_info():
 	return usage_info
 
 def get_upgrade_url(upgrade_url):
-	parts = urlparse.urlsplit(upgrade_url)
-	params = dict(urlparse.parse_qsl(parts.query))
+	parts = urlsplit(upgrade_url)
+	params = dict(parse_qsl(parts.query))
 	params.update({
 		'site': frappe.local.site,
 		'email': frappe.session.user,
@@ -124,8 +132,8 @@ def get_upgrade_url(upgrade_url):
 		'country': frappe.db.get_value("System Settings", "System Settings", 'country')
 	})
 
-	query = urllib.urlencode(params, doseq=True)
-	url = urlparse.urlunsplit((parts.scheme, parts.netloc, parts.path, query, parts.fragment))
+	query = urlencode(params, doseq=True)
+	url = urlunsplit((parts.scheme, parts.netloc, parts.path, query, parts.fragment))
 	return url
 
 def get_upgrade_link(upgrade_url, label=None):
@@ -149,12 +157,13 @@ def update_limits(limits_dict):
 	limits = get_limits()
 	limits.update(limits_dict)
 	update_site_config("limits", limits, validate=False)
+	disable_users(limits)
 	frappe.local.conf.limits = limits
 
 def clear_limit(key):
 	'''Remove a limit option from site_config'''
 	limits = get_limits()
-	to_clear = [key] if isinstance(key, basestring) else key
+	to_clear = [key] if isinstance(key, string_types) else key
 	for key in to_clear:
 		if key in limits:
 			del limits[key]

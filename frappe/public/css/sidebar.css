@@ -1,3 +1,4 @@
+/* the element that this class is applied to, should have a max width for this to work*/
 html {
   min-height: 100%;
 }
@@ -93,9 +94,6 @@ body[data-route^="Module"] .main-menu .form-sidebar {
   position: absolute;
   right: 5px;
 }
-.form-sidebar .attachment-row a.close {
-  margin-top: -5px;
-}
 .form-sidebar .form-shared .share-doc-btn,
 .form-sidebar .form-viewers .share-doc-btn {
   cursor: pointer;
@@ -119,6 +117,9 @@ body[data-route^="Module"] .main-menu .form-sidebar {
 .form-sidebar .form-shared .shared-with-everyone .octicon,
 .form-sidebar .form-viewers .shared-with-everyone .octicon {
   color: #36414C !important;
+}
+.form-sidebar .liked-by {
+  margin-left: -4px;
 }
 .form-sidebar .liked-by .octicon-heart {
   font-size: 16px;
@@ -288,19 +289,6 @@ body[data-route^="Module"] .main-menu .form-sidebar {
 }
 .sidebar-left .list-sidebar .stat-label {
   margin-bottom: -10px;
-}
-.list-sidebar .list-tag-preview {
-  padding: 5px !important;
-  margin-left: 5px;
-  display: inline !important;
-}
-.list-sidebar .list-tag-preview:hover,
-a.close:hover,
-.list-sidebar .list-tag-preview:active,
-a.close:active,
-.list-sidebar .list-tag-preview:focus,
-a.close:focus {
-  border-color: transparent !important;
 }
 .layout-side-section .module-sidebar-nav {
   margin-top: 15px;

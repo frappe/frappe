@@ -1,14 +1,14 @@
 # Hooks
 <!-- TODO: Add tables for quick reference -->
 
-Hooks are the duct tape of the Frappe system. Hooks allow you to "hook" in to
-functionality and events of other parts of the Frappe system. Following are the
-official hooks from Frappe. 
+Hooks are the duct tape of the Frappé system. Hooks allow you to "hook" in to
+functionality and events of other parts of the Frappé system. Following are the
+official hooks from Frappé. 
 
 ### Application Name and Details
 
 1. `app_name` - slugified name with underscores e.g. "shopping\_cart"
-2. `app_title` - full title name e.g. "Frappe"
+2. `app_title` - full title name e.g. "Frappé"
 3. `app_publisher`
 4. `app_description`
 5. `app_version`
@@ -31,7 +31,7 @@ Note, the `before_install` and `after_install` hooks are called with no argument
 
 ### Boot Session
 
-After a successful login, the Frappe JS Client requests for a resource called
+After a successful login, the Frappé JS Client requests for a resource called
 `bootinfo`. The `bootinfo` is available as a global in Javascript via
 `frappe.boot`. By default, the `bootinfo` contains
 
@@ -123,7 +123,7 @@ which will be called with a context (dictionary) argument.
 
 ### Customizing Email footer
 
-By default, for every email, a footer with content, "Sent via Frappe" is sent.
+By default, for every email, a footer with content, "Sent via Frappé" is sent.
 You can customize this globally by adding a `mail_footer` hook. The hook should
 be a dotted path to a variable.
 
@@ -144,7 +144,7 @@ Eg,
 ### Website Clear Cache
 
 If you cache values in your views, the `website_clear_cache` allows you to hook
-methods that invalidate your caches when Frappe tries to clear cache for all
+methods that invalidate your caches when Frappé tries to clear cache for all
 website related pages.
 
 ### Document hooks
@@ -216,6 +216,7 @@ The hook function will be passed the doc in concern as the only argument.
 
 * `validate`
 * `before_save`
+* `autoname`
 * `after_save`
 * `before_insert`
 * `after_insert`
@@ -226,6 +227,9 @@ The hook function will be passed the doc in concern as the only argument.
 * `on_submit`
 * `on_cancel`
 * `on_update_after_submit`
+* `on_change`
+* `on_trash`
+* `after_delete`
 
 
 Eg, 

@@ -5,20 +5,21 @@ Call from command line:
 	bench setup-docs app path
 
 """
+from __future__ import unicode_literals, print_function
 
-import os, json, frappe, shutil, re
-from frappe.website.context import get_context
+import os, json, frappe, shutil
 from frappe.utils import markdown
 
 class setup_docs(object):
-	def __init__(self, app):
+	def __init__(self, app, target_app):
 		"""Generate source templates for models reference and module API
 			and templates at `templates/autodoc`
 		"""
 		self.app = app
+		self.target_app = target_app
 
-		frappe.local.flags.web_pages_folders = ['docs',]
-		frappe.local.flags.web_pages_apps = [self.app,]
+		frappe.flags.web_pages_folders = ['docs',]
+		frappe.flags.web_pages_apps = [self.app,]
 
 		self.hooks = frappe.get_hooks(app_name = self.app)
 		self.app_title = self.hooks.get("app_title")[0]
@@ -26,7 +27,7 @@ class setup_docs(object):
 
 	def setup_app_context(self):
 		self.docs_config = frappe.get_module(self.app + ".config.docs")
-		version = self.hooks.get("app_version")[0]
+		version = get_version(app=self.app)
 		self.app_context =  {
 			"app": frappe._dict({
 				"name": self.app,
@@ -36,15 +37,9 @@ class setup_docs(object):
 				"publisher": self.hooks.get("app_publisher")[0],
 				"icon": self.hooks.get("app_icon")[0],
 				"email": self.hooks.get("app_email")[0],
-				"headline": self.docs_config.headline,
-				"sub_heading": self.docs_config.sub_heading,
 				"source_link": self.docs_config.source_link,
-				"hide_install": getattr(self.docs_config, "hide_install", False),
-				"docs_base_url": self.docs_config.docs_base_url,
-				"long_description": markdown(getattr(self.docs_config, "long_description", "")),
 				"license": self.hooks.get("app_license")[0],
 				"branch": getattr(self.docs_config, "branch", None) or "develop",
-				"style": getattr(self.docs_config, "style", "")
 			}),
 			"metatags": {
 				"description": self.hooks.get("app_description")[0],
@@ -54,14 +49,14 @@ class setup_docs(object):
 
 	def build(self, docs_version):
 		"""Build templates for docs models and Python API"""
-		self.docs_path = frappe.get_app_path(self.app, "docs")
+		self.docs_path = frappe.get_app_path(self.target_app, 'www', "docs")
 		self.path = os.path.join(self.docs_path, docs_version)
 		self.app_context["app"]["docs_version"] = docs_version
 
 		self.app_title = self.hooks.get("app_title")[0]
 		self.app_path = frappe.get_app_path(self.app)
 
-		print "Deleting current..."
+		print("Deleting current...")
 		shutil.rmtree(self.path, ignore_errors = True)
 		os.makedirs(self.path)
 
@@ -86,23 +81,58 @@ class setup_docs(object):
 				#print parts
 				module, doctype = parts[-3], parts[-1]
 
-				if doctype not in ("doctype", "boilerplate"):
+				if doctype != "boilerplate":
 					self.write_model_file(basepath, module, doctype)
 
 			# standard python module
 			if self.is_py_module(basepath, folders, files):
 				self.write_modules(basepath, folders, files)
 
-		self.build_user_docs()
+		#self.build_user_docs()
+		self.copy_user_assets()
+		self.add_sidebars()
+		self.add_breadcrumbs_for_user_pages()
+
+	def add_breadcrumbs_for_user_pages(self):
+		for basepath, folders, files in os.walk(os.path.join(self.docs_path,
+			'user')): # pylint: disable=unused-variable
+			for fname in files:
+				if fname.endswith('.md') or fname.endswith('.html'):
+					add_breadcrumbs_tag(os.path.join(basepath, fname))
+
+	def add_sidebars(self):
+		'''Add _sidebar.json in each folder in docs'''
+		for basepath, folders, files in os.walk(self.docs_path): # pylint: disable=unused-variable
+			with open(os.path.join(basepath, '_sidebar.json'), 'w') as sidebarfile:
+				sidebarfile.write(frappe.as_json([
+					{"title": "Docs Home", "route": "/docs"},
+					{"title": "User Guide", "route": "/docs/user"},
+					{"title": "Server API", "route": "/docs/current/api"},
+					{"title": "Models (Reference)", "route": "/docs/current/models"},
+					{"title": "Improve Docs", "route":
+						"{0}/tree/develop/{1}/docs".format(self.docs_config.source_link, self.app)}
+				]))
+
+
+	def copy_user_assets(self):
+		'''Copy docs/user and docs/assets to the target app'''
+		print('Copying docs/user and docs/assets...')
+		shutil.rmtree(os.path.join(self.docs_path, 'user'),
+			ignore_errors=True)
+		shutil.rmtree(os.path.join(self.docs_path, 'assets'),
+			ignore_errors=True)
+		shutil.copytree(os.path.join(self.app_path, 'docs', 'user'),
+			os.path.join(self.docs_path, 'user'))
+		shutil.copytree(os.path.join(self.app_path, 'docs', 'assets'),
+			frappe.get_app_path(self.target_app, 'www', 'docs', 'assets'))
+
+		# copy index
+		shutil.copy(os.path.join(self.app_path, 'docs', 'index.md'),
+			frappe.get_app_path(self.target_app, 'www', 'docs'))
 
 	def make_home_pages(self):
 		"""Make standard home pages for docs, developer docs, api and models
 			from templates"""
-		# make dev home page
-		with open(os.path.join(self.docs_path, "index.html"), "w") as home:
-			home.write(frappe.render_template("templates/autodoc/docs_home.html",
-			self.app_context))
-
 		# make dev home page
 		with open(os.path.join(self.path, "index.html"), "w") as home:
 			home.write(frappe.render_template("templates/autodoc/dev_home.html",
@@ -156,24 +186,6 @@ class setup_docs(object):
 
 		self.update_index_txt(self.docs_path)
 
-	def make_docs(self, target, local = False):
-		self.target = target
-		self.local = local
-
-		if self.local:
-			self.docs_base_url = ""
-		else:
-			self.docs_base_url = self.docs_config.docs_base_url
-
-		# add for processing static files (full-index)
-		frappe.local.docs_base_url = self.docs_base_url
-
-		# write in target path
-		self.write_files()
-
-		# copy assets/js, assets/css, assets/img
-		self.copy_assets()
-
 	def is_py_module(self, basepath, folders, files):
 		return "__init__.py" in files \
 			and (not "/doctype" in basepath) \
@@ -191,8 +203,10 @@ class setup_docs(object):
 
 		for f in files:
 			if f.endswith(".py"):
-				module_name = os.path.relpath(os.path.join(basepath, f),
-					self.app_path)[:-3].replace("/", ".").replace(".__init__", "")
+				full_module_name = os.path.relpath(os.path.join(basepath, f),
+					self.app_path)[:-3].replace("/", ".")
+
+				module_name = full_module_name.replace(".__init__", "")
 
 				module_doc_path = os.path.join(module_folder,
 					self.app + "." + module_name + ".html")
@@ -200,12 +214,13 @@ class setup_docs(object):
 				self.make_folder(basepath)
 
 				if not os.path.exists(module_doc_path):
-					print "Writing " + module_doc_path
+					print("Writing " + module_doc_path)
 					with open(module_doc_path, "w") as f:
 						context = {"name": self.app + "." + module_name}
 						context.update(self.app_context)
+						context['full_module_name'] = self.app + '.' + full_module_name
 						f.write(frappe.render_template("templates/autodoc/pymodule.html",
-							context))
+							context).encode('utf-8'))
 
 		self.update_index_txt(module_folder)
 
@@ -217,7 +232,7 @@ class setup_docs(object):
 			os.makedirs(path)
 
 			index_txt_path = os.path.join(path, "index.txt")
-			print "Writing " + index_txt_path
+			print("Writing " + index_txt_path)
 			with open(index_txt_path, "w") as f:
 				f.write("")
 
@@ -230,7 +245,7 @@ class setup_docs(object):
 					"title": name
 				}
 			context.update(self.app_context)
-			print "Writing " + index_html_path
+			print("Writing " + index_html_path)
 			with open(index_html_path, "w") as f:
 				f.write(frappe.render_template(template, context))
 
@@ -246,7 +261,7 @@ class setup_docs(object):
 				index_parts = filter(None, f.read().splitlines())
 
 		if not set(pages).issubset(set(index_parts)):
-			print "Updating " + index_txt_path
+			print("Updating " + index_txt_path)
 			with open(index_txt_path, "w") as f:
 				f.write("\n".join(pages))
 
@@ -259,7 +274,7 @@ class setup_docs(object):
 				with open(model_json_path, "r") as j:
 					doctype_real_name = json.loads(j.read()).get("name")
 
-				print "Writing " + model_path
+				print("Writing " + model_path)
 
 				with open(model_path, "w") as f:
 					context = {"doctype": doctype_real_name}
@@ -267,179 +282,26 @@ class setup_docs(object):
 					f.write(frappe.render_template("templates/autodoc/doctype.html",
 						context).encode("utf-8"))
 
-	def write_files(self):
-		"""render templates and write files to target folder"""
-		frappe.local.flags.home_page = "index"
-
-		from frappe.website.router import get_pages, make_toc
-		pages = get_pages()
-
-		# clear the user, current folder in target
-		shutil.rmtree(os.path.join(self.target, "user"), ignore_errors=True)
-		shutil.rmtree(os.path.join(self.target, "current"), ignore_errors=True)
-
-		cnt = 0
-		for path, context in pages.iteritems():
-			print "Writing {0}".format(path)
-
-			# set this for get_context / website libs
-			frappe.local.path = path
-
-			context.update({
-				"page_links_with_extn": True,
-				"relative_links": True,
-				"docs_base_url": self.docs_base_url,
-				"url_prefix": self.docs_base_url,
-			})
-
-			context.update(self.app_context)
-
-			context = get_context(path, context)
-
-			if context.basename:
-				target_path_fragment = context.route + '.html'
-			else:
-				# index.html
-				target_path_fragment = context.route + '/index.html'
-
-			target_filename = os.path.join(self.target, target_path_fragment.strip('/'))
-
-			context.brand_html = context.top_bar_items = context.favicon = None
-
-			self.docs_config.get_context(context)
-
-			if not context.brand_html:
-				if context.docs_icon:
-					context.brand_html = '<i class="{0}"></i> {1}'.format(context.docs_icon, context.app.title)
-				else:
-					context.brand_html = context.app.title
-
-			if not context.top_bar_items:
-				context.top_bar_items = [
-					# {"label": "Contents", "url": self.docs_base_url + "/contents.html", "right": 1},
-					{"label": "User Guide", "url": self.docs_base_url + "/user", "right": 1},
-					{"label": "Developer Docs", "url": self.docs_base_url + "/current", "right": 1},
-				]
-
-			context.top_bar_items = [{"label": '<i class="octicon octicon-search"></i>', "url": "#",
-				"right": 1}] + context.top_bar_items
-
-			context.parents = []
-			parent_route = os.path.dirname(context.route)
-			if pages[parent_route]:
-				context.parents = [pages[parent_route]]
-
-			if not context.favicon:
-				context.favicon = "/assets/img/favicon.ico"
-
-			context.only_static = True
-			context.base_template_path = "templates/autodoc/base_template.html"
-
-			if '<code>' in context.source:
-				context.source = re.sub('\<code\>(.*)\</code\>', '<code>{% raw %}\g<1>{% endraw %}</code>', context.source)
-
-			html = frappe.render_template(context.source, context)
-
-			html = make_toc(context, html)
-
-			if not "<!-- autodoc -->" in html:
-				html = html.replace('<!-- edit-link -->',
-					edit_link.format(\
-						source_link = self.docs_config.source_link,
-						app_name = self.app,
-						branch = context.app.branch,
-						target = context.template))
-
-			if not os.path.exists(os.path.dirname(target_filename)):
-				os.makedirs(os.path.dirname(target_filename))
-
-			with open(target_filename, "w") as htmlfile:
-				htmlfile.write(html.encode("utf-8"))
-
-				cnt += 1
-
-		print "Wrote {0} files".format(cnt)
-
-
-	def copy_assets(self):
-		"""Copy jquery, bootstrap and other assets to files"""
-
-		print "Copying assets..."
-		assets_path = os.path.join(self.target, "assets")
-
-		# copy assets from docs
-		source_assets = frappe.get_app_path(self.app, "docs", "assets")
-		if os.path.exists(source_assets):
-			for basepath, folders, files in os.walk(source_assets):
-				target_basepath = os.path.join(assets_path, os.path.relpath(basepath, source_assets))
-
-				# make the base folder
-				if not os.path.exists(target_basepath):
-					os.makedirs(target_basepath)
-
-				# copy all files in the current folder
-				for f in files:
-					shutil.copy(os.path.join(basepath, f), os.path.join(target_basepath, f))
-
-		# make missing folders
-		for fname in ("js", "css", "img"):
-			path = os.path.join(assets_path, fname)
-			if not os.path.exists(path):
-				os.makedirs(path)
-
-		copy_files = {
-			"js/lib/jquery/jquery.min.js": "js/jquery.min.js",
-			"js/lib/bootstrap.min.js": "js/bootstrap.min.js",
-			"js/lib/highlight.pack.js": "js/highlight.pack.js",
-			"js/docs.js": "js/docs.js",
-			"css/bootstrap.css": "css/bootstrap.css",
-			"css/font-awesome.css": "css/font-awesome.css",
-			"css/docs.css": "css/docs.css",
-			"css/hljs.css": "css/hljs.css",
-			"css/font": "css/font",
-			"css/octicons": "css/octicons",
-			# always overwrite octicons.css to fix the path
-			"css/octicons/octicons.css": "css/octicons/octicons.css",
-			"images/frappe-bird-grey.svg": "img/frappe-bird-grey.svg",
-			"images/background.png": "img/background.png",
-			"images/smiley.png": "img/smiley.png",
-			"images/up.png": "img/up.png"
-		}
-
-		for source, target in copy_files.iteritems():
-			source_path = frappe.get_app_path("frappe", "public", source)
-			if os.path.isdir(source_path):
-				if not os.path.exists(os.path.join(assets_path, target)):
-					shutil.copytree(source_path, os.path.join(assets_path, target))
-			else:
-				shutil.copy(source_path, os.path.join(assets_path, target))
-
-		# fix path for font-files, background
-		files = (
-			os.path.join(assets_path, "css", "octicons", "octicons.css"),
-			os.path.join(assets_path, "css", "font-awesome.css"),
-			os.path.join(assets_path, "css", "docs.css"),
-		)
-
-		for path in files:
-			with open(path, "r") as css_file:
-				text = css_file.read()
-			with open(path, "w") as css_file:
-				if "docs.css" in path:
-					css_file.write(text.replace("/assets/img/",
-						self.docs_base_url + '/assets/img/'))
-				else:
-					css_file.write(text.replace("/assets/frappe/", self.docs_base_url + '/assets/'))
-
+def get_version(app="frappe"):
+	try:
+		return frappe.get_attr(app + ".__version__")
+	except AttributeError:
+		return '0.0.1'
 
 edit_link = '''
 <div class="page-container">
 	<div class="page-content">
 	<div class="edit-container text-center">
-		<i class="icon icon-smile"></i>
+		<i class="fa fa-smile"></i>
 		<a class="text-muted edit" href="{source_link}/blob/{branch}/{app_name}/{target}">
 			Improve this page
 		</a>
 	</div>
 	</div>
 </div>'''
+
+def add_breadcrumbs_tag(path):
+	with open(path, 'r') as f:
+		content = frappe.as_unicode(f.read())
+	with open(path, 'w') as f:
+		f.write(('<!-- add-breadcrumbs -->\n' + content).encode('utf-8'))

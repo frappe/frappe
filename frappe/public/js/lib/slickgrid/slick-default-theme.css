@@ -74,7 +74,7 @@ classes should alter those!
 }
 
 .slick-cell.selected {
-  background-color: beige;
+  background-color: #fffce7 !important;
 }
 
 .slick-cell.active {

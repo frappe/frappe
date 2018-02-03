@@ -20,8 +20,10 @@ frappe.provide = function(namespace) {
 }
 
 frappe.provide("locals");
+frappe.provide("frappe.flags");
 frappe.provide("frappe.settings");
 frappe.provide("frappe.utils");
 frappe.provide("frappe.ui");
 frappe.provide("frappe.modules");
 frappe.provide("frappe.templates");
+frappe.provide("frappe.test_data");

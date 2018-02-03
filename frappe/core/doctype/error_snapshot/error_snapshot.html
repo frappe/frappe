@@ -1,0 +1,77 @@
+<style>
+    a {
+        cursor: pointer;
+    }
+
+    .codebox {
+        font-family: monospace;
+        font-size: 8pt;
+    }
+
+    .codebox .line.current {
+        background: rgba(0,0,255, 0.1);
+    }
+
+    .codebox .lineno {
+        text-align: right;
+        display: inline-block;
+        width: 30px;
+        opacity: .5;
+    }
+
+    .codebox .code {
+        white-space: pre;
+    }
+
+    .object-link {
+        font-family: monospace;
+        white-space: pre;
+    }
+</style>
+{% function id(){ return id._old_id++; }; id._old_id = 0; %}
+<h3>{{ __("Error Report") }}</h3>
+<p class="text-muted">{{ doc.pyver }}</p>
+<dl>
+    <dt>{{ __("Timestamp") }}: </dt>
+    <dd>{{ doc.timestamp }}</dd>
+    <dt>{{ __("Relapsed") }}</dt>
+    <dd><code>{{ doc.relapses }}</code></dd>
+</dl>
+
+<h3>{{ __("Exception") }}</h3>
+{{ frappe.render_template("error_object", {x: JSON.parse(doc.exception)}) }}
+
+<h3>{{ __("Locals") }}</h3>
+{{ frappe.render_template("error_object", {x: JSON.parse(doc.locals)} )}}
+
+<h3>{{ __("Traceback") }}</h3>
+{% var frames = JSON.parse(doc.frames); %}
+{% for (var i in frames) { %}
+    {% var frameid = id(), frame = frames[i] %}
+    <p><i class="octicon octicon-file-text"></i> <code>{{ frame.file }}: {{ frame.lnum }}</code>
+    <div class="row">
+       <div class="codebox">
+           <div class="col-lg-11">
+                {% for (var index in frame.lines) { %}
+                    {% var line = frame.lines[index] %}
+                    <div class="line {{ index == frame.lnum ? "current": "" }}">
+                        <span class="lineno text-muted">{{ index }}</span>
+                        <span class="code">{{ line }}</span>
+                    </div>
+                {% } %}
+           </div>
+           <div class="col-lg-1">
+                <span class="btn btn-xs btn-default" data-toggle="collapse" data-target="#frame-{{ frameid }}-locals">
+                    <i class="fa fa-list-ul"> {{ __("Locals") }}</i>
+                </span>
+            </div>
+       </div>
+    </div>
+     <div class="row">
+        <div class="col-lg-12 collapse" id="frame-{{ frameid }}-locals">
+            <h4>{{ __("Locals") }}</h4>
+            {{ frappe.render_template("error_object", {x: frame.dump }) }}
+        </div>
+    </div>
+    </p>
+{% } %}

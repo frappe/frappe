@@ -1,0 +1,51 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<h1>{{ title }}</h1>
+
+<div>
+	<form action='/search'>
+	<input name='q' class='form-control' type='text'
+		style='max-width: 400px; display: inline-block; margin-right: 10px;'
+		value='{{ frappe.form_dict.q or ''}}'
+		{% if not frappe.form_dict.q%}placeholder="{{ _("Search...") }}"{% endif %}>
+	<input type='submit'
+		class='btn btn-sm btn-primary btn-search' value="{{ _("Search") }}">
+	</form>
+</div>
+
+{% if results %}
+
+	<div class='search-result'>
+	{% include "templates/includes/search_result.html" %}
+	</div>
+
+	{% if has_more %}
+	<button class='btn btn-default btn-sm btn-more'>{{ _("More") }}</button>
+	{% endif %}
+
+{% elif frappe.form_dict.q %}
+	<p class='text-muted'>{{ _("No matching records. Search something new") }}
+{% else %}
+	<p class='text-muted'>{{ _("Type something in the search box to search") }}
+{% endif %}
+
+<script>
+frappe.ready(function() {
+	$('.btn-more').on('click', function() {
+		frappe.call({
+			method: 'frappe.www.search.get_search_results',
+			args: {
+				text: '{{ frappe.form_dict.q }}',
+				start: $('.search-result-item').length,
+				as_html: 1
+			},
+			callback: function(r) {
+				$(r.message.results).appendTo('.search-result');
+				$('.btn-more').toggleClass('hidden', !!!r.message.has_more);
+			}
+		});
+	});
+});
+</script>
+{% endblock %}

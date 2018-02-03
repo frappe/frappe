@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.utils import validate_email_add
 from frappe.model.document import Document
-from email.utils import parseaddr
+from frappe.utils import parse_addr
 
 class EmailGroup(Document):
 	def onload(self):
@@ -17,7 +17,7 @@ class EmailGroup(Document):
 				if d.parent not in singles]
 
 	def import_from(self, doctype):
-		"""Extract email ids from given doctype and add them to the current list"""
+		"""Extract Email Addresses from given doctype and add them to the current list"""
 		meta = frappe.get_meta(doctype)
 		email_field = [d.fieldname for d in meta.fields 
 			if d.fieldtype in ("Data", "Small Text", "Text", "Code") and d.options=="Email"][0]
@@ -26,7 +26,7 @@ class EmailGroup(Document):
 
 		for user in frappe.db.get_all(doctype, [email_field, unsubscribed_field or "name"]):
 			try:
-				email = parseaddr(user.get(email_field))[1]
+				email = parse_addr(user.get(email_field))[1] if user.get(email_field) else None
 				if email:
 					frappe.get_doc({
 						"doctype": "Email Group Member",
@@ -69,22 +69,22 @@ def add_subscribers(name, email_list):
 	count = 0
 	for email in email_list:
 		email = email.strip()
-		valid = validate_email_add(email, False)
+		parsed_email = validate_email_add(email, False)
 
-		if valid:
+		if parsed_email:
 			if not frappe.db.get_value("Email Group Member",
-				{"email_group": name, "email": email}):
+				{"email_group": name, "email": parsed_email}):
 				frappe.get_doc({
 					"doctype": "Email Group Member",
 					"email_group": name,
-					"email": email
+					"email": parsed_email
 				}).insert(ignore_permissions = frappe.flags.ignore_permissions)
 
 				count += 1
 			else:
 				pass
 		else:
-			frappe.msgprint(_("{0} is not a valid email id").format(email))
+			frappe.msgprint(_("{0} is not a valid Email Address").format(email))
 
 	frappe.msgprint(_("{0} subscribers added").format(count))
 

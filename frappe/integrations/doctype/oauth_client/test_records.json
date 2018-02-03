@@ -1,0 +1,16 @@
+[
+ {
+  "app_name": "_Test OAuth Client", 
+  "client_id": "test_client_id", 
+  "client_secret": "test_client_secret", 
+  "default_redirect_uri": "http://localhost", 
+  "docstatus": 0, 
+  "doctype": "OAuth Client", 
+  "grant_type": "Authorization Code", 
+  "name": "test_client_id", 
+  "redirect_uris": "http://localhost", 
+  "response_type": "Code", 
+  "scopes": "all openid", 
+  "skip_authorization": 0
+ }
+]

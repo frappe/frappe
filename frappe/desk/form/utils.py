@@ -7,6 +7,7 @@ import frappe.desk.form.meta
 import frappe.desk.form.load
 
 from frappe import _
+from six import string_types
 
 @frappe.whitelist()
 def remove_attach():
@@ -59,13 +60,24 @@ def add_comment(doc):
 	return doc.as_dict()
 
 @frappe.whitelist()
+def update_comment(name, content):
+	"""allow only owner to update comment"""
+	doc = frappe.get_doc('Communication', name)
+
+	if frappe.session.user not in ['Administrator', doc.owner]:
+		frappe.throw(_('Comment can only be edited by the owner'), frappe.PermissionError)
+
+	doc.content = content
+	doc.save(ignore_permissions=True)
+
+@frappe.whitelist()
 def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
 
 	prev = not int(prev)
 	sort_field, sort_order = order_by.split(" ")
 
 	if not filters: filters = []
-	if isinstance(filters, basestring):
+	if isinstance(filters, string_types):
 		filters = json.loads(filters)
 
 	# condition based on sort order

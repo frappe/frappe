@@ -3,7 +3,7 @@
 
 """This module handles the On Demand Backup utility"""
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 #Imports
 from frappe import _
@@ -61,12 +61,13 @@ class BackupGenerator:
 		import random
 
 		todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
-		random_string = frappe.generate_hash(length=8)
+		site = frappe.local.site or frappe.generate_hash(length=8)
+		site = site.replace('.', '_')
 
 		#Generate a random name using today's date and a 8 digit random number
-		for_db = todays_date + "_" + random_string + "_database.sql.gz"
-		for_public_files = todays_date + "_" + random_string + "_files.tar"
-		for_private_files = todays_date + "_" + random_string + "_private_files.tar"
+		for_db = todays_date + "-" + site + "-database.sql.gz"
+		for_public_files = todays_date + "-" + site + "-files.tar"
+		for_private_files = todays_date + "-" + site + "-private-files.tar"
 		backup_path = get_backup_path()
 
 		if not self.backup_path_db:
@@ -103,7 +104,7 @@ class BackupGenerator:
 			cmd_string = """tar -cf %s %s""" % (backup_path, files_path)
 			err, out = frappe.utils.execute_in_shell(cmd_string)
 
-			print 'Backed up files', os.path.abspath(backup_path)
+			print('Backed up files', os.path.abspath(backup_path))
 
 	def take_dump(self):
 		import frappe.utils
@@ -118,7 +119,7 @@ class BackupGenerator:
 		"""
 			Sends the link to backup file located at erpnext/backups
 		"""
-		from frappe.email import sendmail, get_system_managers
+		from frappe.email import get_system_managers
 
 		recipient_list = get_system_managers()
 		db_backup_url = get_url(os.path.join('backups', os.path.basename(self.backup_path_db)))
@@ -140,7 +141,7 @@ download only after 24 hours.""" % {
 		datetime_str = datetime.fromtimestamp(os.stat(self.backup_path_db).st_ctime)
 		subject = datetime_str.strftime("%d/%m/%Y %H:%M:%S") + """ - Backup ready to be downloaded"""
 
-		sendmail(recipients=recipient_list, msg=msg, subject=subject)
+		frappe.sendmail(recipients=recipient_list, msg=msg, subject=subject)
 		return recipient_list
 
 
@@ -179,11 +180,13 @@ def delete_temp_backups(older_than=24):
 	"""
 		Cleans up the backup_link_path directory by deleting files older than 24 hours
 	"""
-	file_list = os.listdir(get_backup_path())
-	for this_file in file_list:
-		this_file_path = os.path.join(get_backup_path(), this_file)
-		if is_file_old(this_file_path, older_than):
-			os.remove(this_file_path)
+	backup_path = get_backup_path()
+	if os.path.exists(backup_path):
+		file_list = os.listdir(get_backup_path())
+		for this_file in file_list:
+			this_file_path = os.path.join(get_backup_path(), this_file)
+			if is_file_old(this_file_path, older_than):
+				os.remove(this_file_path)
 
 def is_file_old(db_file_name, older_than=24):
 		"""
@@ -198,13 +201,13 @@ def is_file_old(db_file_name, older_than=24):
 			file_datetime = datetime.fromtimestamp\
 						(os.stat(db_file_name).st_ctime)
 			if datetime.today() - file_datetime >= timedelta(hours = older_than):
-				if verbose: print "File is old"
+				if verbose: print("File is old")
 				return True
 			else:
-				if verbose: print "File is recent"
+				if verbose: print("File is recent")
 				return False
 		else:
-			if verbose: print "File does not exist"
+			if verbose: print("File does not exist")
 			return True
 
 def get_backup_path():
@@ -217,7 +220,8 @@ def backup(with_files=False, backup_path_db=None, backup_path_files=None, quiet=
 	odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, force=True)
 	return {
 		"backup_path_db": odb.backup_path_db,
-		"backup_path_files": odb.backup_path_files
+		"backup_path_files": odb.backup_path_files,
+		"backup_path_private_files": odb.backup_path_private_files
 	}
 
 if __name__ == "__main__":

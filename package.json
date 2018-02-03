@@ -1,0 +1,34 @@
+{
+  "name": "frappe",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/frappe/frappe.git"
+  },
+  "author": "Frappé Technologies Pvt. Ltd.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/frappe/frappe/issues"
+  },
+  "homepage": "https://frappe.io",
+  "dependencies": {
+    "cookie": "^0.3.1",
+    "express": "^4.15.3",
+    "redis": "^2.7.1",
+    "socket.io": "^2.0.1",
+    "superagent": "^3.5.2",
+    "touch": "^3.1.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-minify": "^0.2.0",
+    "chokidar": "^1.7.0",
+    "chromedriver": "^2.32.3",
+    "less": "^2.7.2",
+    "nightwatch": "^0.9.16"
+  }
+}

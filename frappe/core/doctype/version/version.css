@@ -1,0 +1,17 @@
+.version-info pre {
+	border: 0px;
+	margin: 0px;
+	background-color: inherit;
+}
+
+.version-info .table {
+	background-color: inherit;
+}
+
+.version-info .success {
+	background-color: #dff0d8 !important;
+}
+
+.version-info .danger {
+	background-color: #f2dede !important;
+}

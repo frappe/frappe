@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import os
 
 def resize_images(path, maxdim=700):
@@ -16,4 +16,4 @@ def resize_images(path, maxdim=700):
 					im.thumbnail(size, Image.ANTIALIAS)
 					im.save(os.path.join(basepath, fname))
 
-					print "resized {0}".format(os.path.join(basepath, fname))
+					print("resized {0}".format(os.path.join(basepath, fname)))

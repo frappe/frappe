@@ -5,10 +5,12 @@
 	<div class="media">
 		<div class="pull-right app-buttons">
 			<a class="btn btn-default btn-xs"
-                href="{{ app.app_url }}" target="_blank">{{ __("Website") }}</a>
+                href="{{ app.app_url }}" target="_blank" rel="noopener noreferrer">{{ __("Website") }}</a>
 			{% if (app.installed) { %}
-			<button class="btn btn-default btn-xs" disabled=disabled>
-                {{ __("Installed") }}</button>
+			<button class="btn btn-danger btn-xs btn-remove"
+                data-title="{{ app.app_title }}"
+                data-app="{{ app.app_name }}" {% if app.app_name === "erpnext" || app.app_name === "frappe" %}disabled{% endif %}>
+                {{ __("Remove") }}</button>
 			{% } else { %}
 			<button class="btn btn-primary btn-xs install"
                 data-app="{{ app.app_name }}"

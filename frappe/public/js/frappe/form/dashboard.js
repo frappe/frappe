@@ -4,20 +4,22 @@
 frappe.ui.form.Dashboard = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
+		this.section = this.frm.fields_dict._form_dashboard.wrapper;
+		this.parent = this.section.find('.section-body');
 		this.wrapper = $(frappe.render_template('form_dashboard',
-			{frm: this.frm})).prependTo(this.frm.layout.wrapper);
+			{frm: this.frm})).appendTo(this.parent);
 
-		this.headline = this.wrapper.find('.form-headline');
 		this.progress_area = this.wrapper.find(".progress-area");
 		this.heatmap_area = this.wrapper.find('.form-heatmap');
-		this.chart_area = this.wrapper.find('.form-chart');
+		this.chart_area = this.wrapper.find('.form-graph');
 		this.stats_area = this.wrapper.find('.form-stats');
+		this.stats_area_row = this.stats_area.find('.row');
 		this.links_area = this.wrapper.find('.form-links');
 		this.transactions_area = this.links_area.find('.transactions');
 
 	},
 	reset: function() {
-		this.wrapper.addClass('hidden');
+		this.section.addClass('hidden');
 		this.clear_headline();
 
 		// clear progress
@@ -28,24 +30,22 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.links_area.find('.count, .open-notification').addClass('hidden');
 
 		// clear stats
-		this.stats_area.empty().addClass('hidden');
+		this.stats_area.addClass('hidden')
+		this.stats_area_row.empty();
 
 		// clear custom
 		this.wrapper.find('.custom').remove();
 	},
 	set_headline: function(html) {
-		this.headline.html(html).removeClass('hidden');
-		this.show();
+		this.frm.layout.show_message(html);
 	},
 	clear_headline: function() {
-		if(this.headline) {
-			this.headline.empty().addClass('hidden');
-		}
+		this.frm.layout.show_message();
 	},
 
-	add_comment: function(text, permanent) {
+	add_comment: function(text, alert_class, permanent) {
 		var me = this;
-		this.set_headline_alert(text);
+		this.set_headline_alert(text, alert_class);
 		if(!permanent) {
 			setTimeout(function() {
 				me.clear_headline();
@@ -57,13 +57,12 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.clear_headline();
 	},
 
-	set_headline_alert: function(text, alert_class) {
+	set_headline_alert: function(text, indicator_color) {
+		if (!indicator_color) {
+			indicator_color = 'orange';
+		}
 		if(text) {
-			if(!alert_class) alert_class = "alert-warning";
-			this.set_headline(repl('<div class="alert %(alert_class)s">%(text)s</div>', {
-				"alert_class": alert_class || "",
-				"text": text
-			}));
+			this.set_headline(`<div><span class="indicator ${indicator_color}">${text}</span></div>`);
 		} else {
 			this.clear_headline();
 		}
@@ -92,6 +91,7 @@ frappe.ui.form.Dashboard = Class.extend({
 
 		this.show();
 	},
+
 	format_percent: function(title, percent) {
 		var width = cint(percent) < 1 ? 1 : cint(percent);
 		var progress_class = "";
@@ -139,9 +139,24 @@ frappe.ui.form.Dashboard = Class.extend({
 			show = true;
 		}
 
+		if(this.data.graph) {
+			this.setup_graph();
+			show = true;
+		}
+
 		if(show) {
 			this.show();
 		}
+	},
+
+	after_refresh: function() {
+		var me = this;
+		// show / hide new buttons (if allowed)
+		this.links_area.find('.btn-new').each(function() {
+			if(me.frm.can_create($(this).attr('data-doctype'))) {
+				$(this).removeClass('hidden');
+			}
+		});
 	},
 
 	init_data: function() {
@@ -175,12 +190,16 @@ frappe.ui.form.Dashboard = Class.extend({
 	render_links: function() {
 		var me = this;
 		this.links_area.removeClass('hidden');
+		this.links_area.find('.btn-new').addClass('hidden');
 		if(this.data_rendered) {
 			return;
 		}
 
-		$(frappe.render_template('form_links',
-			{transactions: this.data.transactions}))
+		//this.transactions_area.empty();
+
+		this.data.frm = this.frm;
+
+		$(frappe.render_template('form_links', this.data))
 			.appendTo(this.transactions_area)
 
 		// bind links
@@ -191,6 +210,11 @@ frappe.ui.form.Dashboard = Class.extend({
 		// bind open notifications
 		this.transactions_area.find('.open-notification').on('click', function() {
 			me.open_document_list($(this).parent(), true);
+		});
+
+		// bind new
+		this.transactions_area.find('.btn-new').on('click', function() {
+			me.frm.make_new($(this).attr('data-doctype'));
 		});
 
 		this.data_rendered = true;
@@ -206,10 +230,10 @@ frappe.ui.form.Dashboard = Class.extend({
 			} else {
 				return false;
 			}
-		} else {
+		} else if(this.data.fieldname) {
 			frappe.route_options = this.get_document_filter(doctype);
 			if(show_open) {
-				$.extend(frappe.route_options, frappe.ui.notifications.get_filters(doctype));
+				frappe.ui.notifications.show_open_count_list(doctype);
 			}
 		}
 
@@ -226,7 +250,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		return filter;
 	},
 	set_open_count: function() {
-		if(!this.data.transactions) {
+		if(!this.data.transactions || !this.data.fieldname) {
 			return;
 		}
 
@@ -238,7 +262,7 @@ frappe.ui.form.Dashboard = Class.extend({
 			group.items.forEach(function(item) { items.push(item); });
 		});
 
-		method = this.data.method || 'frappe.desk.notifications.get_open_count';
+		var method = this.data.method || 'frappe.desk.notifications.get_open_count';
 
 		frappe.call({
 			type: "GET",
@@ -283,13 +307,13 @@ frappe.ui.form.Dashboard = Class.extend({
 		if(open_count) {
 			$link.find('.open-notification')
 				.removeClass('hidden')
-				.html((open_count > 5) ? '5+' : open_count);
+				.html((open_count > 99) ? '99+' : open_count);
 		}
 
 		if(count) {
 			$link.find('.count')
 				.removeClass('hidden')
-				.html((count > 9) ? '9+' : count);
+				.html((count > 99) ? '99+' : count);
 		}
 
 		if(this.data.internal_links[doctype]) {
@@ -310,22 +334,14 @@ frappe.ui.form.Dashboard = Class.extend({
 	// heatmap
 	render_heatmap: function() {
 		if(!this.heatmap) {
-			this.heatmap = new CalHeatMap();
-			this.heatmap.init({
-				itemSelector: "#heatmap-" + this.frm.doctype,
-				domain: "month",
-				subDomain: "day",
-				start: moment().subtract(1, 'year').add(1, 'month').toDate(),
-				cellSize: 9,
-				cellPadding: 2,
-				domainGutter: 2,
-				range: 12,
-				domainLabelFormat: function(date) {
-					return moment(date).format("MMM").toUpperCase();
-				},
-				displayLegend: false,
-				legend: [5, 10, 15, 20]
-				// subDomainTextFormat: "%d",
+			this.heatmap = new Chart({
+				parent: "#heatmap-" + frappe.model.scrub(this.frm.doctype),
+				type: 'heatmap',
+				height: 100,
+				start: new Date(moment().subtract(1, 'year').toDate()),
+				count_label: "interactions",
+				discrete_domains: 0,
+				data: {}
 			});
 
 			// center the heatmap
@@ -338,37 +354,77 @@ frappe.ui.form.Dashboard = Class.extend({
 			} else {
 				heatmap_message.addClass('hidden');
 			}
- 		}
-	},
-
-	// stats
-	add_stats: function(html) {
-		this.stats_area.html(html).removeClass('hidden');
-		this.show();
-	},
-
-	//graphs
-	setup_chart: function(opts) {
-		var me = this;
-
-		this.chart_area.removeClass('hidden');
-
-		$.extend(opts, {
-			wrapper: me.wrapper,
-			bind_to: ".form-chart",
-			padding: {
-				right: 30,
-				bottom: 30
-			}
-		});
-
-		this.chart = new frappe.ui.Chart(opts);
-		if(this.chart) {
-			this.show();
-			this.chart.set_chart_size(me.wrapper.width() - 60);
 		}
 	},
+
+	add_indicator: function(label, color) {
+		this.show();
+		this.stats_area.removeClass('hidden');
+
+
+		// set colspan
+		var indicators = this.stats_area_row.find('.indicator-column');
+		var n_indicators = indicators.length + 1;
+		var colspan;
+		if(n_indicators > 4) { colspan = 3 }
+		else { colspan = 12 / n_indicators; }
+
+		// reset classes in existing indicators
+		if(indicators.length) {
+			indicators.removeClass().addClass('col-sm-'+colspan).addClass('indicator-column');
+		}
+
+		var indicator = $('<div class="col-sm-'+colspan+' indicator-column"><span class="indicator '+color+'">'
+			+label+'</span></div>').appendTo(this.stats_area_row);
+
+		return indicator;
+	},
+
+	// graphs
+	setup_graph: function() {
+		var me = this;
+		var method = this.data.graph_method;
+		var args = {
+			doctype: this.frm.doctype,
+			docname: this.frm.doc.name,
+		};
+		$.extend(args, this.data.graph_method_args);
+
+		frappe.call({
+			type: "GET",
+			method: method,
+			args: args,
+
+			callback: function(r) {
+				if(r.message) {
+					me.render_graph(r.message);
+				}
+			}
+		});
+	},
+
+	render_graph: function(args) {
+		var me = this;
+		this.chart_area.empty().removeClass('hidden');
+		$.extend(args, {
+			parent: '.form-graph',
+			type: 'line',
+			height: 140,
+			colors: ['green']
+		});
+		this.show();
+
+		this.chart = new Chart(args);
+		if(!this.chart) {
+			this.hide();
+		}
+	},
+
 	show: function() {
-		this.wrapper.removeClass('hidden');
+		this.section.removeClass('hidden');
+	},
+
+	hide: function() {
+		this.section.addClass('hidden');
 	}
 });

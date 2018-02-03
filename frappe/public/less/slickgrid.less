@@ -39,6 +39,12 @@
 	margin-top: -1px;
 }
 
+.slick-cell pre {
+    border: none;
+    background-color: transparent;
+    padding: 3px;
+}
+
 .slick-header-column, .slick-header-columns {
 	font-size: 12px;
 	font-weight: bold;
@@ -53,4 +59,12 @@
 
 .slick-row.odd .slick-cell {
 	background-color: @light-bg;
+}
+
+.frappe-rtl .slick-wrapper {
+	direction: ltr;
+}
+
+.slick-cell > span[data-field="_comments"] * {
+	display: inline-block;
 }

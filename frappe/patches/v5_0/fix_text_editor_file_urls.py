@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import frappe
 import re
 
@@ -14,7 +14,7 @@ def execute():
 
 		try:
 			result = frappe.get_all(opts.parent, fields=["name", opts.fieldname])
-		except frappe.SQLError, e:
+		except frappe.SQLError as e:
 			# bypass single tables
 			continue
 
@@ -36,10 +36,10 @@ def scrub_relative_urls(html):
 		return re.sub("""src[\s]*=[\s]*['"]files/([^'"]*)['"]""", 'src="/files/\g<1>"', html)
 		# return re.sub("""(src|href)[^\w'"]*['"](?!http|ftp|mailto|/|#|%|{|cid:|\.com/www\.)([^'" >]+)['"]""", '\g<1>="/\g<2>"', html)
 	except:
-		print "Error", html
+		print("Error", html)
 		raise
 
 def print_diff(html, old_value):
 	import difflib
 	diff = difflib.unified_diff(old_value.splitlines(1), html.splitlines(1), lineterm='')
-	print '\n'.join(list(diff))
+	print('\n'.join(list(diff)))

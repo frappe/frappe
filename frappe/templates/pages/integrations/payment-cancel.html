@@ -1,0 +1,21 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Payment Cancelled") }}{% endblock %}
+
+{%- block page_content -%}
+<div class='page-card'>
+	<div class='page-card-head'>
+		<span class='indicator red'>
+			{{ _("Payment Cancelled") }}</span>
+	</div>
+	<p>{{ _("Your payment is cancelled.") }}</p>
+	<div><a href='{{ frappe.form_dict.redirect_to or "/" }}' class='btn btn-primary btn-sm'>
+		{{ _("Continue") }}</a></div>
+</div>
+<style>
+.hero-and-content {
+	background-color: #f5f7fa;
+}
+</style>
+
+{% endblock %}

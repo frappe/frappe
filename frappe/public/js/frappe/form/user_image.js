@@ -15,6 +15,9 @@ frappe.ui.form.set_user_image = function(frm) {
 
 	// if image field has value
 	if (image) {
+		image = (window.cordova && image.indexOf('http')===-1) ?
+			frappe.base_url + image : image;
+
 		image_section
 			.find(".sidebar-image")
 			.css("background-image", 'url("' + image + '")')

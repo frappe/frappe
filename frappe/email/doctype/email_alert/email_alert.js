@@ -6,32 +6,45 @@ frappe.email_alert = {
 		}
 
 		frappe.model.with_doctype(frm.doc.document_type, function() {
-			var get_select_options = function(df) {
+			let get_select_options = function(df) {
 				return {value: df.fieldname, label: df.fieldname + " (" + __(df.label) + ")"};
 			}
 
-			var fields = frappe.get_doc("DocType", frm.doc.document_type).fields;
+			let get_date_change_options = function() {
+				let date_options = $.map(fields, function(d) {
+					return (d.fieldtype=="Date" || d.fieldtype=="Datetime")?
+						get_select_options(d) : null;
+				});
+				// append creation and modified date to Date Change field
+				return date_options.concat([
+					{ value: "creation", label: `creation (${__('Created On')})` },
+					{ value: "modified", label: `modified (${__('Last Modified Date')})` }
+				]);
+			}
 
-			var options = $.map(fields,
+			let fields = frappe.get_doc("DocType", frm.doc.document_type).fields;
+			let options = $.map(fields,
 				function(d) { return in_list(frappe.model.no_value_type, d.fieldtype) ?
 					null : get_select_options(d); });
 
 			// set value changed options
 			frm.set_df_property("value_changed", "options", [""].concat(options));
+			frm.set_df_property("set_property_after_alert", "options", [""].concat(options));
 
 			// set date changed options
-			frm.set_df_property("date_changed", "options", $.map(fields,
-				function(d) { return (d.fieldtype=="Date" || d.fieldtype=="Datetime") ?
-					get_select_options(d) : null; }));
+			frm.set_df_property("date_changed", "options", get_date_change_options());
 
-			var email_fields = $.map(fields,
-				function(d) { return d.options == "Email" ?
+			let email_fields = $.map(fields,
+				function(d) { return (d.options == "Email" ||
+					(d.options=='User' && d.fieldtype=='Link')) ?
 					get_select_options(d) : null; });
 
 			// set email recipient options
 			frappe.meta.get_docfield("Email Alert Recipient", "email_by_document_field",
-				frm.doc.name).options = ["owner"].concat(email_fields);
+				// set first option as blank to allow email alert not to be defaulted to the owner
+				frm.doc.name).options = [""].concat(["owner"].concat(email_fields));
 
+			frm.fields_dict.recipients.grid.refresh();
 		});
 	}
 }
@@ -44,10 +57,18 @@ frappe.ui.form.on("Email Alert", {
 					"istable": 0
 				}
 			}
-		})
+		});
+		frm.set_query("print_format", function() {
+			return {
+				"filters": {
+					"doc_type": frm.doc.document_type
+				}
+			}
+		});
 	},
 	refresh: function(frm) {
 		frappe.email_alert.setup_fieldname_select(frm);
+		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
 		frm.trigger('event');
 	},
 	document_type: function(frm) {
@@ -67,9 +88,9 @@ frappe.ui.form.on("Email Alert", {
 					},
 					callback: function(r) {
 						if(r.message) {
-							msgprint(r.message);
+							frappe.msgprint(r.message);
 						} else {
-							msgprint(__('No alerts for today'));
+							frappe.msgprint(__('No alerts for today'));
 						}
 					}
 				});
