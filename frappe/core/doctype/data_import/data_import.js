@@ -60,7 +60,8 @@ frappe.ui.form.on('Data Import', {
 			});
 		}
 
-		if (frm.doc.reference_doctype && frm.doc.import_file && frm.doc.total_rows  && frm.doc.docstatus === 0) {
+		if (frm.doc.reference_doctype && frm.doc.import_file && frm.doc.total_rows &&
+			frm.doc.docstatus === 0 && (!frm.doc.import_status || frm.doc.import_status=="Failed")) {
 			frm.page.set_primary_action(__("Start Import"), function() {
 				frappe.call({
 					method: "frappe.core.doctype.data_import.data_import.import_data",
