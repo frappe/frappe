@@ -433,7 +433,7 @@ _f.Frm.prototype.set_indicator_formatter = function(fieldname, get_color, get_te
 		})
 	}
 
-	frappe.meta.get_docfield(doctype, fieldname, this.doc.name).formatter =
+	frappe.meta.docfield_map[doctype][fieldname].formatter =
 		function(value, df, options, doc) {
 			if(value) {
 				return repl('<a class="indicator %(color)s" href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
