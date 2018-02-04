@@ -9,6 +9,7 @@ import frappe.utils
 import json, os
 
 from six import iteritems, string_types, integer_types
+from frappe.utils.file_manager import save_file
 
 '''
 Handle RESTful requests that are mapped to the `/api/resource` route.
