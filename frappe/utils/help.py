@@ -138,8 +138,7 @@ class HelpDatabase(object):
 							import codecs
 							with codecs.open(fpath, 'r', encoding = 'utf-8') as f:
 								try:
-									content = frappe.render_template(text_type(f.read()))
-										{'docs_base_url': '/assets/{app}_docs'.format(app=app)})
+									content = frappe.render_template(text_type(f.read()), {'docs_base_url': '/assets/{app}_docs'.format(app=app)})
 
 									relpath = self.get_out_path(fpath)
 									relpath = relpath.replace("user", app)
