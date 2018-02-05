@@ -16,6 +16,8 @@ from frappe.model import optional_fields
 from frappe.utils.file_manager import save_url
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
+from frappe.custom.doctype.custom_server_action import run_custom_server_action
+
 
 # once_only validation
 # methods
