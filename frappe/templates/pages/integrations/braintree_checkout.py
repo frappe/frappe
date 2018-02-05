@@ -3,9 +3,8 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import flt, cint
+from frappe.utils import flt
 import json
-import braintree
 from frappe.integrations.doctype.braintree_settings.braintree_settings import get_client_token, get_gateway_controller
 
 no_cache = 1
