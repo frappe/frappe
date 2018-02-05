@@ -811,52 +811,6 @@ class Document(BaseDocument):
 			elif alert.event=='Method' and method == alert.method:
 				_evaluate_alert(alert)
 
-	def run_custom_server_action(self, method):
-		'''Run email alerts for this method'''
-		if frappe.flags.in_import or frappe.flags.in_patch or frappe.flags.in_install:
-			return
-
-		if self.flags.custom_server_action_executed==None:
-			self.flags.custom_server_action_executed = []
-
-		from frappe.custom.doctype.custom_server_action.custom_server_action import evaluate_custom_server_action
-
-		#if self.flags.custom_server_actions == None:
-		custom_server_actions = frappe.cache().hget('custom_server_actions', self.doctype)
-		if custom_server_actions==None:
-			custom_server_actions = frappe.get_all('Custom Server Action', fields=['name', 'event', 'method'],
-				filters={'enabled': 1, 'document_type': self.doctype})
-			frappe.cache().hset('custom_server_actions', self.doctype, custom_server_actions)
-		#self.flags.custom_server_actions = custom_server_actions
-
-		if not custom_server_actions:
-			return
-
-		def _evaluate_custom_server_action(custom_server_action):
-			if not custom_server_action.name in self.flags.custom_server_action_executed:
-				evaluate_custom_server_action(self, custom_server_action.name, custom_server_action.event)
-				self.flags.custom_server_action_executed.append(custom_server_action.name)
-
-		event_map = {
-			"on_update": "Save",
-			"after_insert": "New",
-			"on_submit": "Submit",
-			"on_cancel": "Cancel"
-		}
-
-		if not self.flags.in_insert:
-			# value change is not applicable in insert
-			event_map['validate'] = 'Value Change'
-			event_map['before_change'] = 'Value Change'
-			event_map['before_update_after_submit'] = 'Value Change'
-
-		for custom_server_action in custom_server_actions:
-			event = event_map.get(method, None)
-			if event and custom_server_action.event == event:
-				_evaluate_custom_server_action(custom_server_action)
-			elif custom_server_action.event=='Method' and method == custom_server_action.method:
-				_evaluate_custom_server_action(custom_server_action)
-
 	@staticmethod
 	def whitelist(f):
 		f.whitelisted = True
