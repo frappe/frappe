@@ -3,7 +3,7 @@
 # Copyright (c) 2017, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-import frappe
+import frappe, json
 from frappe import _
 from frappe.utils.safe_eval import safe_eval
 from six import string_types
@@ -149,6 +149,6 @@ def run_custom_server_action_by_js(*args,**kwargs):
 			return data
 	
 
-def get_context(doc):
+def get_context(doc=None):
 	return {"doc": doc, "frappe": frappe, "nowdate": frappe.utils.nowdate, 
 		"frappe.utils": frappe.utils, '_': frappe._, 'json': json}
