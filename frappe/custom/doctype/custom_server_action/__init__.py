@@ -120,6 +120,35 @@ def send(server_action, doc):
 		frappe.get_doc(field_dict).insert()
 	elif server_action.action_type == "Execute Python Code":
 		return safe_eval(server_action.code, eval_context, mode='exec')
+	
+@frappe.whitelist()
+def run_custom_server_action_by_js(*args,**kwargs):
+	"""run custom server action by js"""
+	if frappe.local.form_dict.get('server_action_name',''):
+		server_action_name = frappe.local.form_dict.pop('server_action_name')
+	else:
+		return
+	server_action_doc = frappe.cache().hget('custom_server_action', server_action_name)
+	if server_action_doc is None:
+		server_action_doc = frappe.get_doc('Custom Server Action', server_action_name)
+		frappe.cache().hset('custom_server_action', server_action_name, server_action_doc)
+	if not server_action_doc or (not server_action_doc.enabled or server_action_doc.action_type != 'Execute Python Code'):
+		frappe.respond_as_web_page(title='Invalid Custom Server Action Method', html='Method not found',
+			                    indicator_color='red', http_status_code=404)
+		return
+	else:
+		eval_context = get_context()
+		try:
+			safe_eval(server_action_doc.code, eval_context, mode='exec')
+		except Exception as e:
+			frappe.log_error(message=frappe.get_traceback() +  str(e), title ='custom server action runtime error')
+			server_action_doc.db_set('enabled', 0)
+		data = frappe.local.form_dict.get('custom_server_action_out','')
+		if data:
+			frappe.local.form_dict.pop('custom_server_action_out') # remove as this is global shared			
+			return data
+	
 
 def get_context(doc):
-	return {"doc": doc, "frappe": frappe, "nowdate": frappe.utils.nowdate, "frappe.utils": frappe.utils, '_': frappe._}
+	return {"doc": doc, "frappe": frappe, "nowdate": frappe.utils.nowdate, 
+		"frappe.utils": frappe.utils, '_': frappe._, 'json': json}
