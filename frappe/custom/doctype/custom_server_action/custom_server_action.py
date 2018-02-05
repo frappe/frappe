@@ -44,12 +44,11 @@ class CustomServerAction(Document):
 		frappe.cache().hdel('custom_server_actions', self.document_type)
 		frappe.cache().hdel('custom_server_action', self.name)
 
-	def validate_python_code(self, doctype, field_name, field_to_validate):
-		try:			
-			test_python_expr(field_to_validate, mode='exec' if field_name == 'Code' else 'eval')				
-		except Exception as e:
-			frappe.log_error(message=frappe.get_traceback() + 'python code Exception', title=str(e))
-			frappe.throw(_("The {0} '{1}' is invalid, with error {2}").format(field_name, field_to_validate, str(e)))
+	def validate_python_code(self, doctype, field_name, field_to_validate):		
+		msg = test_python_expr(field_to_validate, mode='exec' if field_name == 'Code' else 'eval')
+		if msg:
+			frappe.log_error(field_to_validate + '/n ' + msg, 'python code invalid')
+			frappe.throw(_("The {0} '{1}' is invalid, with error {2}").format(field_name, field_to_validate, msg))
 
 	def validate_items(self):
 		for item in self.value_mapping:
