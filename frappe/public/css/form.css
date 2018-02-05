@@ -724,6 +724,7 @@ body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
 }
 .frappe-control[data-fieldtype="Attach"] .attached-file .close {
   position: absolute;
+  opacity: 1;
   top: 0;
   right: 0;
 }
