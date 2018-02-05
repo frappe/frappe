@@ -7,4 +7,3 @@ def execute():
 		address_doc = frappe.get_doc("Address",address)
 		address_doc.make_complete_address()
 		address_doc.save()
-		frappe.db.commit()
