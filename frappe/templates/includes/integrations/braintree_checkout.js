@@ -31,7 +31,6 @@ $(document).ready(function(){
 						"reference_docname": docname
 					},
 					callback: function(r){
-						console.log(r.message)
 						if (r.message && r.message.status == "Completed") {
 							window.location.href = r.message.redirect_to
 						}
