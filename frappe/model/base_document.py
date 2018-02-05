@@ -634,8 +634,11 @@ class BaseDocument(object):
 		if frappe.flags.in_install:
 			return
 
-		def raise_disabled_link_exception(doctype, docname, label):
-			frappe.throw(_("Cannot use disabled {0}: {1} as a {2}".format(doctype, docname, label)))
+		if not self.is_new():
+			return
+
+		def raise_disabled_link_exception(doctype, docname):
+			frappe.throw(_("{0} {1} is disabled".format(doctype, docname)))
 
 		for fieldname, value in iteritems(self.get_valid_dict()):
 			df = self.meta.get_field(fieldname)
@@ -644,11 +647,12 @@ class BaseDocument(object):
 				reference_meta = frappe.get_meta(df.get("options"))
 				if reference_meta.has_field('enabled'):
 					if not frappe.db.get_value(df.get("options"), value, 'enabled'):
-						raise_disabled_link_exception(df.get("options"), value, df.get("label"))
+						raise_disabled_link_exception(df.get("options"), value)
 				else:
 					if reference_meta.has_field("disabled"):
+						frappe.errprint(frappe.db.get_value(df.get("options"), value, 'disabled'))
 						if frappe.db.get_value(df.get("options"), value, 'disabled'):
-							raise_disabled_link_exception(df.get("options"), value, df.get("label"))
+							raise_disabled_link_exception(df.get("options"), value)
 
 	def get_password(self, fieldname='password', raise_exception=True):
 		if self.get(fieldname) and not self.is_dummy_password(self.get(fieldname)):
