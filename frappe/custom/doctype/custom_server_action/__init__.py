@@ -5,24 +5,26 @@
 
 import frappe, json
 from frappe import _
-from frappe.utils.safe_eval import safe_eval
+from frappe.utils.safe_eval import safe_eval, test_python_expr
 from six import string_types
+#from custom_server_action import evaluate_custom_server_action
 
 
 def run_custom_server_action(doc, method):
-	'''Run custom server action for this method'''
+	'''Run email alerts for this method'''
 	if frappe.flags.in_import or frappe.flags.in_patch or frappe.flags.in_install:
 		return
 
-	if doc.flags.custom_server_action_executed==None:
+	if doc.flags.custom_server_action_executed is None:
 		doc.flags.custom_server_action_executed = []
 
-	if doc.flags.custom_server_actions == None:
+	if doc.flags.custom_server_actions is None:
 		custom_server_actions = frappe.cache().hget('custom_server_action', doc.doctype)
-		if custom_server_actions==None:
-			custom_server_actions = frappe.get_all('Custom Server Action', 
-				fields=['name', 'event', 'method'],
-				filters={'enabled': 1, 'document_type': doc.doctype})
+		if custom_server_actions is None:			
+			server_actions = frappe.get_all('Custom Server Action',
+							filters={'enabled': 1, 'document_type': doc.doctype})
+			#retrieve all fields include child table
+			custom_server_actions=[frappe.get_doc("Custom Server Action", sa.name) for sa in server_actions] 
 			frappe.cache().hset('custom_server_action', doc.doctype, custom_server_actions)
 		doc.flags.custom_server_actions = custom_server_actions
 
@@ -31,7 +33,7 @@ def run_custom_server_action(doc, method):
 
 	def _evaluate_custom_server_action(custom_server_action):
 		if not custom_server_action.name in doc.flags.custom_server_action_executed:
-			evaluate_custom_server_action(doc, custom_server_action.name, custom_server_action.event)
+			evaluate_custom_server_action(doc, custom_server_action, custom_server_action.event)
 			doc.flags.custom_server_action_executed.append(custom_server_action.name)
 
 	event_map = {
@@ -54,45 +56,32 @@ def run_custom_server_action(doc, method):
 		elif custom_server_action.event=='Method' and method == custom_server_action.method:
 			_evaluate_custom_server_action(custom_server_action)
 
-def evaluate_custom_server_action(doc, server_action, event):
-	try:	
-		try:
-			if isinstance(server_action, string_types):
-				server_action = frappe.get_doc("Custom Server Action", server_action)
-		except Exception as e:
+def evaluate_custom_server_action(doc, server_action, event):	
+	#server_action = frappe.get_doc("Custom Server Action", server_action)
+	context = get_context(doc)
+	if server_action.condition:
+		if not frappe.safe_eval(server_action.condition, None, context):
 			return
-	
-		context = get_context(doc)
 
-		if server_action.condition:
-			if not frappe.safe_eval(server_action.condition, None, context):
+	if event == "Value Change" and not doc.is_new():
+		try:
+			db_value = frappe.db.get_value(doc.doctype, doc.name, server_action.value_changed)
+		except frappe.DatabaseOperationalError as e:
+			if e.args[0] == 1054:
+				server_action.db_set('enabled', 0)
+				frappe.log_error('Custom Server Action {0} has been disabled due to missing field'.format(server_action.name))
 				return
 
-		if event == "Value Change" and not doc.is_new():
-			try:
-				db_value = frappe.db.get_value(doc.doctype, doc.name, server_action.value_changed)
-			except frappe.DatabaseOperationalError as e:
-				if e.args[0] == 1054:
-					server_action.db_set('enabled', 0)
-					frappe.log_error(
-						'Custom Server Action {0} has been disabled due to missing field'.format(server_action.name))
-					return
+		db_value = parse_val(db_value)
+		if (doc.get(server_action.value_changed) == db_value) or (not db_value and not doc.get(server_action.value_changed)):
+			return  # value not changed
 
-			db_value = parse_val(db_value)
-			if (doc.get(server_action.value_changed) == db_value) or \
-					(not db_value and not doc.get(server_action.value_changed)):
-				return  # value not changed
+	if event != "Value Change" and not doc.is_new():
+		# reload the doc for the latest values & comments,
+		# except for validate type event.
+		doc = frappe.get_doc(doc.doctype, doc.name)
 
-		if event != "Value Change" and not doc.is_new():
-			# reload the doc for the latest values & comments,
-			# except for validate type event.
-			doc = frappe.get_doc(doc.doctype, doc.name)
-
-		send(server_action, doc)
-	except Exception as e:
-		frappe.log_error(message=frappe.get_traceback() + 'Exception Handling', title=str(e))
-		frappe.throw(_("Error in Custom Server Action"))
-
+	send(server_action, doc)
 
 def send(server_action, doc):
 	'''send Custom Server Action'''
@@ -119,19 +108,20 @@ def send(server_action, doc):
 		field_dict.update({'doctype': server_action.target_document_type})
 		frappe.get_doc(field_dict).insert()
 	elif server_action.action_type == "Execute Python Code":
-		return safe_eval(server_action.code, eval_context, mode='exec')
-	
+		safe_eval(server_action.code, eval_context, mode='exec')
+		# exception raised via frappe.throw in safe_eval can not be handled by outer app.py, throw here instead
+		validation_msg = frappe.local.form_dict.get('validation_msg')
+		if validation_msg:
+			frappe.local.form_dict.pop('validation_msg') 
+			frappe.throw(validation_msg)
+
 @frappe.whitelist()
 def run_custom_server_action_by_js(*args,**kwargs):
-	"""run custom server action by js"""
-	if frappe.local.form_dict.get('server_action_name',''):
-		server_action_name = frappe.local.form_dict.pop('server_action_name')
-	else:
+	server_action_name = kwargs.get('server_action_name') or frappe.local.form_dict.get('server_action_name')
+	if not server_action_name:
 		return
-	server_action_doc = frappe.cache().hget('custom_server_action', server_action_name)
-	if server_action_doc is None:
-		server_action_doc = frappe.get_doc('Custom Server Action', server_action_name)
-		frappe.cache().hset('custom_server_action', server_action_name, server_action_doc)
+	else:
+		server_action_doc = frappe.get_doc('Custom Server Action', server_action_name)		
 	if not server_action_doc or (not server_action_doc.enabled or server_action_doc.action_type != 'Execute Python Code'):
 		frappe.respond_as_web_page(title='Invalid Custom Server Action Method', html='Method not found',
 			                    indicator_color='red', http_status_code=404)
@@ -147,8 +137,11 @@ def run_custom_server_action_by_js(*args,**kwargs):
 		if data:
 			frappe.local.form_dict.pop('custom_server_action_out') # remove as this is global shared			
 			return data
-	
+
+def msgprint(msg):
+	frappe.local.form_dict.update({'validation_msg':msg, 'validation_title': title})
 
 def get_context(doc=None):
 	return {"doc": doc, "frappe": frappe, "nowdate": frappe.utils.nowdate, 
-		"frappe.utils": frappe.utils, '_': frappe._, 'json': json}
+		"frappe.utils": frappe.utils, '_': frappe._, 'json' : json, 'msgprint': msgprint}
+
