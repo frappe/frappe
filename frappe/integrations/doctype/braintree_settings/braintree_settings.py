@@ -25,10 +25,12 @@ class BraintreeSettings(Document):
     ]
 
     def validate(self):
-        create_payment_gateway('Braintree-' + self.gateway_name, settings='Braintree Settings', controller=self.name)
-        call_hook_method('payment_gateway_enabled', gateway='Braintree')
         if not self.flags.ignore_mandatory:
             self.configure_braintree()
+
+    def on_update(self):
+        create_payment_gateway('Braintree-' + self.gateway_name, settings='Braintree Settings', controller=self.gateway_name)
+        call_hook_method('payment_gateway_enabled', gateway='Braintree-' + self.gateway_name)
 
     def configure_braintree(self):
         if self.use_sandbox:
