@@ -2,10 +2,9 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, json
+import frappe
 from frappe import _
 import frappe.utils
-from frappe.utils.safe_eval import safe_eval
 import frappe.async
 import frappe.sessions
 import frappe.utils.file_manager
