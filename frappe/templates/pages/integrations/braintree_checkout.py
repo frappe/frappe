@@ -5,45 +5,45 @@ import frappe
 from frappe import _
 from frappe.utils import flt, cint
 import json
+import braintree
+from frappe.integrations.doctype.braintree_settings.braintree_settings import get_client_token, get_gateway_controller
 
 no_cache = 1
 no_sitemap = 1
 
 expected_keys = ('amount', 'title', 'description', 'reference_doctype', 'reference_docname',
-	'payer_name', 'payer_email', 'order_id', 'currency')
+    'payer_name', 'payer_email', 'order_id', 'currency')
 
 def get_context(context):
-	context.no_cache = 1
-	context.public_key = get_api_key()
+    context.no_cache = 1
 
-	# all these keys exist in form_dict
-	if not (set(expected_keys) - set(frappe.form_dict.keys())):
-		for key in expected_keys:
-			context[key] = frappe.form_dict[key]
+    # all these keys exist in form_dict
+    if not (set(expected_keys) - set(frappe.form_dict.keys())):
+        for key in expected_keys:
+            context[key] = frappe.form_dict[key]
 
-		context['amount'] = flt(context['amount'])
+        context.client_token = get_client_token(context.reference_docname)
 
-	else:
-		frappe.redirect_to_message(_('Some information is missing'),
-			_('Looks like someone sent you to an incomplete URL. Please ask them to look into it.'))
-		frappe.local.flags.redirect_location = frappe.local.response.location
-		raise frappe.Redirect
+        context['amount'] = flt(context['amount'])
 
-def get_api_key():
-	public_key = frappe.db.get_value("Braintree Settings", None, "public_key")
-	if cint(frappe.form_dict.get("use_sandbox")):
-		public_key = frappe.conf.sandbox_public_key
+        gateway_controller = get_gateway_controller(context.reference_docname)
+        context['header_img'] = frappe.db.get_value("Braintree Settings", gateway_controller, "header_img")
 
-	return public_key
+    else:
+        frappe.redirect_to_message(_('Some information is missing'),
+            _('Looks like someone sent you to an incomplete URL. Please ask them to look into it.'))
+        frappe.local.flags.redirect_location = frappe.local.response.location
+        raise frappe.Redirect
 
 @frappe.whitelist(allow_guest=True)
-def make_payment(stripe_token_id, data, reference_doctype=None, reference_docname=None):
-	data = json.loads(data)
+def make_payment(payload_nonce, data, reference_doctype, reference_docname):
+    data = json.loads(data)
 
-	data.update({
-		"stripe_token_id": stripe_token_id
-	})
+    data.update({
+        "payload_nonce": payload_nonce
+    })
 
-	data =  frappe.get_doc("Stripe Settings").create_request(data)
-	frappe.db.commit()
-	return data
+    gateway_controller = get_gateway_controller(reference_docname)
+    data =  frappe.get_doc("Braintree Settings", gateway_controller).create_payment_request(data)
+    frappe.db.commit()
+    return data

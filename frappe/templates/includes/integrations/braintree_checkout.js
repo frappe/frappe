@@ -1,9 +1,13 @@
 $(document).ready(function(){
+
 	var button = document.querySelector('#submit-button');
 	var form = document.querySelector('#payment-form');
+	var data = {{ frappe.form_dict|json }};
+	var doctype = "{{ reference_doctype }}"
+	var docname = "{{ reference_docname }}"
 
 	braintree.dropin.create({
-    authorization: 'sandbox_7dsn3svb_pfsbz9xn3pzywcdf',
+    authorization: "{{ client_token }}",
     container: '#bt-dropin',
     paypal: {
       flow: 'vault'
@@ -16,23 +20,22 @@ $(document).ready(function(){
           console.log('Error', err);
           return;
         }
-        // Add the nonce to the form and submit
-        document.querySelector('#nonce').value = payload.nonce;
 				frappe.call({
 					method:"frappe.templates.pages.integrations.braintree_checkout.make_payment",
 					freeze:true,
 					headers: {"X-Requested-With": "XMLHttpRequest"},
 					args: {
-						"braintree_token_id": token.id,
+						"payload_nonce": payload.nonce,
 						"data": JSON.stringify(data),
 						"reference_doctype": doctype,
 						"reference_docname": docname
 					},
 					callback: function(r){
-						if (r.message && r.message.status == 200) {
+						console.log(r.message)
+						if (r.message && r.message.status == "Completed") {
 							window.location.href = r.message.redirect_to
 						}
-						else if (r.message && ([401,400,500].indexOf(r.message.status) > -1)) {
+						else if (r.message && r.message.status == "Error") {
 							window.location.href = r.message.redirect_to
 						}
 					}
