@@ -6,6 +6,7 @@
 import frappe, json
 from frappe import _
 from frappe.utils.safe_eval import safe_eval, test_python_expr
+from frappe.utils import nowdate, parse_val
 from six import string_types
 #from custom_server_action import evaluate_custom_server_action
 
@@ -139,9 +140,9 @@ def run_custom_server_action_by_js(*args,**kwargs):
 			return data
 
 def msgprint(msg):
-	frappe.local.form_dict.update({'validation_msg':msg, 'validation_title': title})
+	frappe.local.form_dict.update({'validation_msg':msg)
 
 def get_context(doc=None):
-	return {"doc": doc, "frappe": frappe, "nowdate": frappe.utils.nowdate, 
-		"frappe.utils": frappe.utils, '_': frappe._, 'json' : json, 'msgprint': msgprint}
+	return {"doc": doc, "frappe": frappe, "nowdate": nowdate, 
+		"frappe.utils": frappe.utils, '_': _, 'json' : json, 'msgprint': msgprint}
 
