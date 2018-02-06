@@ -139,7 +139,7 @@ def run_custom_server_action_by_js(*args,**kwargs):
 			return data
 
 def msgprint(msg):
-	frappe.local.form_dict.update({'validation_msg':msg)
+	frappe.local.form_dict.update({'validation_msg':msg})
 
 def get_context(doc=None):
 	return {"doc": doc, "frappe": frappe, "nowdate": nowdate, 
