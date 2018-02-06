@@ -20,6 +20,12 @@ class CustomServerAction(Document):
 		if self.event == "Value Change" and not self.value_changed:
 			frappe.throw(_("Please specify which value field must be checked"))
 
+		if self.action_type != "Python Code Called By JS" and not self.document_type:
+			frappe.throw(_("Please specify document type"))
+
+		if self.action_type != "Python Code Called By JS" and not self.event:
+			frappe.throw(_("Please specify trigger on event"))
+			
 		if self.action_type in ("Create Record", "Update Record") and not (
 			self.target_document_type and self.value_mapping):
 			frappe.throw(_("Please specify which target document type and fied mapping"))
