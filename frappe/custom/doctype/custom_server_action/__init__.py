@@ -122,7 +122,7 @@ def run_custom_server_action_by_js(*args,**kwargs):
 		return
 	else:
 		server_action_doc = frappe.get_doc('Custom Server Action', server_action_name)		
-	if not server_action_doc or (not server_action_doc.enabled or server_action_doc.action_type != 'Execute Python Code'):
+	if not server_action_doc or (not server_action_doc.enabled or server_action_doc.action_type != 'Python Code Called By JS'):
 		frappe.respond_as_web_page(title='Invalid Custom Server Action Method', html='Method not found',
 			                    indicator_color='red', http_status_code=404)
 		return
