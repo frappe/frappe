@@ -18,11 +18,14 @@ class CustomServerAction(Document):
 			frappe.throw(_("Please specify which date field must be checked"))
 
 		if self.event == "Value Change" and not self.value_changed:
-			frappe.throw(_("Please specify which value field must be checked"))		
-		if self.action_type in ("Create Record", "Update Record") and not (self.target_document_type and self.value_mapping):
+			frappe.throw(_("Please specify which value field must be checked"))
+
+		if self.action_type in ("Create Record", "Update Record") and not (
+			self.target_document_type and self.value_mapping):
 			frappe.throw(_("Please specify which target document type and fied mapping"))
 
-		if self.action_type in ("Update Record") and not self.link_field:
+		if (self.action_type == "Update Record" and self.document_type != self.target_document_type and
+			   not self.link_field):
 			frappe.throw(_("Please specify link field"))
 
 		if self.action_type in ("Execute Python Code") and not self.code:
@@ -32,23 +35,20 @@ class CustomServerAction(Document):
 		self.validate_python_code(self.document_type, 'Condition', self.condition)
 		self.validate_python_code(self.document_type, 'Code', self.code)
 		self.validate_items()
-		frappe.cache().hdel('custom_server_actions', self.document_type)
-		frappe.cache().hdel('custom_server_action', self.name)
-			
+
 	def on_update(self):
 		frappe.cache().hdel('custom_server_actions', self.document_type)
-		frappe.cache().hdel('custom_server_actions', self.name)
 
-		
 	def on_trash(self):
 		frappe.cache().hdel('custom_server_actions', self.document_type)
-		frappe.cache().hdel('custom_server_action', self.name)
 
-	def validate_python_code(self, doctype, field_name, field_to_validate):		
-		msg = test_python_expr(field_to_validate, mode='exec' if field_name == 'Code' else 'eval')
-		if msg:
-			frappe.log_error(field_to_validate + '/n ' + msg, 'python code invalid')
-			frappe.throw(_("The {0} '{1}' is invalid, with error {2}").format(field_name, field_to_validate, msg))
+	def validate_python_code(self, doctype, field_name, field_to_validate):	
+		if field_to_validate:	
+			mode='exec' if field_name == 'Code' else 'eval'	
+			msg = test_python_expr(field_to_validate, mode=mode)
+			frappe.log_error(field_to_validate, mode)
+			if msg:
+				frappe.throw(_("The {0} '{1}' is invalid, with error {2}").format(field_name, field_to_validate, msg))
 
 	def validate_items(self):
 		for item in self.value_mapping:
