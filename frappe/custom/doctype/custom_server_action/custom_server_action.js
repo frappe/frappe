@@ -8,7 +8,7 @@ frappe.custom_server_action = {
 		frappe.model.with_doctype(frm.doc.document_type, function() {
 			let get_select_options = function(df) {
 				return {value: df.fieldname, label: df.fieldname + " (" + __(df.label) + ")"};
-			}
+			};
 
 			let get_date_change_options = function() {
 				let date_options = $.map(fields, function(d) {
@@ -20,7 +20,7 @@ frappe.custom_server_action = {
 					{ value: "creation", label: `creation (${__('Created On')})` },
 					{ value: "modified", label: `modified (${__('Last Modified Date')})` }
 				]);
-			}
+			};
 
 			let fields = frappe.get_doc("DocType", frm.doc.document_type).fields;
 			let options = $.map(fields,
