@@ -8,7 +8,6 @@ from frappe import _
 from frappe.utils.safe_eval import safe_eval, test_python_expr
 from frappe.utils import nowdate, parse_val
 from six import string_types
-#from custom_server_action import evaluate_custom_server_action
 
 
 def run_custom_server_action(doc, method):
