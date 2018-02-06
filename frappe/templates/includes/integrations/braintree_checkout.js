@@ -2,11 +2,7 @@ $(document).ready(function() {
 
   var button = document.querySelector('#submit-button');
   var form = document.querySelector('#payment-form');
-  var data = {
-    {
-      frappe.form_dict | json
-    }
-  };
+  var data = {{ frappe.form_dict | json }};
   var doctype = "{{ reference_doctype }}"
   var docname = "{{ reference_docname }}"
 
