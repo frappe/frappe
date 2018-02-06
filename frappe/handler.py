@@ -30,7 +30,7 @@ def handle():
 		frappe.response['message'] = data
 
 	return build_response("json")
-		
+
 def execute_cmd(cmd, from_async=False):
 	"""execute a request as python module"""
 	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):
