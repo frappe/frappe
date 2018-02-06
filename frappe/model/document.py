@@ -759,7 +759,7 @@ class Document(BaseDocument):
 		out = Document.hook(fn)(self, *args, **kwargs)
 
 		self.run_email_alerts(method)
-		run_custom_server_action(method)
+		run_custom_server_action(self, method)
 		run_webhooks(self, method)
 
 		return out
