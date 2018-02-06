@@ -6,9 +6,6 @@ import frappe
 from frappe import _
 from frappe.exceptions import *
 from frappe.model.document import Document
-from frappe.utils import  nowdate, parse_val
-from frappe.modules.utils import export_module_json, get_doc_module
-from six import string_types
 from frappe.utils.safe_eval import test_python_expr
 
 
@@ -47,10 +44,11 @@ class CustomServerAction(Document):
 
 	def on_trash(self):
 		frappe.cache().hdel('custom_server_actions', self.document_type)
-
-	def validate_python_code(self, doctype, field_name, field_to_validate):	
-		if field_to_validate:	
-			mode='exec' if field_name == 'Code' else 'eval'	
+	 
+	@classmethod
+	def validate_python_code(cls, doctype, field_name, field_to_validate):
+		if field_to_validate:
+			mode='exec' if field_name == 'Code' else 'eval'
 			msg = test_python_expr(field_to_validate, mode=mode)
 			frappe.log_error(field_to_validate, mode)
 			if msg:
