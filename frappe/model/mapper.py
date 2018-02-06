@@ -32,7 +32,7 @@ def map_docs(method, source_names, target_doc):
 	with each of the given source docs on the target doc'''
 	if 'custom_server_action' in method:
 		server_action_name = frappe.local.form_dict.get('server_action_name')
-		
+
 	method = frappe.get_attr(method)
 	if method not in frappe.whitelisted:
 		raise frappe.PermissionError
