@@ -8,7 +8,6 @@ from frappe.exceptions import *
 from frappe.model.document import Document
 from frappe.utils.safe_eval import test_python_expr
 
-
 class CustomServerAction(Document):
 	def validate(self):
 		if self.event in ("Days Before", "Days After") and not self.date_changed:
