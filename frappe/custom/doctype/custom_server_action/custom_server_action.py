@@ -63,7 +63,7 @@ class CustomServerAction(Document):
 
 	def validate_forbidden_types(self):
 		forbidden_document_types = ("Email Queue",)
-		if if ((self.document_type and self.document_type in forbidden_document_types) or 
+		if ((self.document_type and self.document_type in forbidden_document_types) or 
 		       (frappe.get_meta(self.document_type).istable)):
 			# currently Custom Server Actions don't work on child tables as events are not fired for each record of child table
 
