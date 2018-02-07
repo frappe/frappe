@@ -723,6 +723,7 @@ body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
   margin-top: 5px;
 }
 .frappe-control[data-fieldtype="Attach"] .attached-file .close {
+  margin-right: -7px;
   position: absolute;
   top: 0;
   right: 0;

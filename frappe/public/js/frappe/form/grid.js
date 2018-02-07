@@ -508,6 +508,14 @@ frappe.ui.form.Grid = Class.extend({
 					}
 					df.colsize = colsize;
 				}
+				
+				// attach formatter on refresh
+				if (df.fieldtype == 'Link' && !df.formatter) {
+					const docfield = frappe.meta.docfield_map[df.parent][df.fieldname];
+					if (docfield && docfield.formatter) {
+						df.formatter = docfield.formatter;
+					}
+				}
 
 				total_colsize += df.colsize;
 				if(total_colsize > 11)
