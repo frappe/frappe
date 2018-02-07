@@ -133,7 +133,7 @@ frappe.set_route = function() {
 				frappe.route_options = a;
 				return null;
 			} else {
-				if (a.match(/[%'"]/)) {
+				if (a && a.match(/[%'"]/)) {
 					// if special chars, then encode
 					a = encodeURIComponent(a);
 				}
