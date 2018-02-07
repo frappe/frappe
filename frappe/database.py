@@ -396,6 +396,10 @@ class Database:
 
 			conditions.append(condition)
 
+		if isinstance(filters, int):
+			# docname is a numbers, convert to string
+			filters = str(filters)
+
 		if isinstance(filters, string_types):
 			filters = { "name": filters }
 
@@ -611,7 +615,7 @@ class Database:
 		order_by = ("order by " + order_by) if order_by else ""
 
 		r = self.sql("select {0} from `tab{1}` {2} {3} {4}"
-			.format(fl, doctype, "where" if conditions else "", conditions, order_by), values, 
+			.format(fl, doctype, "where" if conditions else "", conditions, order_by), values,
 			as_dict=as_dict, debug=debug, update=update)
 
 		return r
