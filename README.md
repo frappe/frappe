@@ -1,5 +1,5 @@
 <div align="center">
-    <img src=".github/frappe-bird.png" height="256">
+    <img src=".github/frappe-bird.png" height="150">
     <h1>
         <a href="https://frappe.io">
             frappe
