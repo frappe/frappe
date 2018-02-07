@@ -397,7 +397,7 @@ class Database:
 			conditions.append(condition)
 
 		if isinstance(filters, int):
-			# docname is a numbers, convert to string
+			# docname is a number, convert to string
 			filters = str(filters)
 
 		if isinstance(filters, string_types):
