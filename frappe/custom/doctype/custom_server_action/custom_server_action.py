@@ -39,10 +39,10 @@ class CustomServerAction(Document):
 		self.validate_items()
 
 	def on_update(self):
-		frappe.cache().hdel('custom_server_actions', self.document_type)
+		frappe.cache().hdel('custom_server_action', self.document_type)
 
 	def on_trash(self):
-		frappe.cache().hdel('custom_server_actions', self.document_type)
+		frappe.cache().hdel('custom_server_action', self.document_type)
 	 
 	@classmethod
 	def validate_python_code(cls, doctype, field_name, field_to_validate):
