@@ -86,6 +86,7 @@ def evaluate_custom_server_action(doc, server_action, event):
 def send(server_action, doc):
 	'''send Custom Server Action'''
 	eval_context = get_context(doc)
+	update_doc = None
 	if server_action.document_type != server_action.target_document_type:
 		if isinstance(doc.get(server_action.link_field), string_types):
 			update_doc = frappe.get_doc(server_action.target_document_type, doc.get(server_action.link_field))
