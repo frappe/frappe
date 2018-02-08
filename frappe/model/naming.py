@@ -37,7 +37,8 @@ def set_new_name(doc):
 	else:
 		doc.run_method("autoname")
 
-	if not doc.name and autoname:
+		# to check doc.name in autoname.
+	if autoname:
 		if autoname.startswith('field:'):
 			fieldname = autoname[6:]
 			doc.name = (doc.get(fieldname) or "").strip()
@@ -50,6 +51,7 @@ def set_new_name(doc):
 			doc.name = make_autoname(autoname)
 		elif autoname.lower()=='prompt':
 			# set from __newname in save.py
+			doc.name = doc.__newname
 			if not doc.name:
 				frappe.throw(_("Name not set via prompt"))
 
