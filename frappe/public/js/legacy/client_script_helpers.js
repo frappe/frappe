@@ -437,7 +437,7 @@ _f.Frm.prototype.set_indicator_formatter = function(fieldname, get_color, get_te
 		function(value, df, options, doc) {
 			if(value) {
 				return repl('<a class="indicator %(color)s" href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
-					color: get_color(doc),
+					color: get_color(doc || {}),
 					doctype: df.options,
 					name: value,
 					label: get_text ? get_text(doc) : value
