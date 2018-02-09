@@ -7,7 +7,7 @@ from six import iteritems, string_types
 
 """build query for doclistview and return results"""
 
-import frappe, json, copy
+import frappe, json, copy, re
 import frappe.defaults
 import frappe.share
 import frappe.permissions
@@ -113,6 +113,7 @@ class DatabaseQuery(object):
 
 	def prepare_args(self):
 		self.parse_args()
+		self.sanitize_fields()
 		self.extract_tables()
 		self.set_optional_columns()
 		self.build_conditions()
@@ -177,6 +178,16 @@ class DatabaseQuery(object):
 				for key, value in iteritems(fdict):
 					filters.append(make_filter_tuple(self.doctype, key, value))
 			setattr(self, filter_name, filters)
+
+	def sanitize_fields(self):
+		for field in self.fields:
+			regex = re.compile('^.*[,();].*')
+			if regex.match(field):
+				if 'count' in field:
+					continue
+				if 'locate' in field:
+					continue
+				self.fields.remove(field)
 
 	def extract_tables(self):
 		"""extract tables from fields"""
