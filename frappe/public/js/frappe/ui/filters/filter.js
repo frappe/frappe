@@ -127,7 +127,7 @@ frappe.ui.Filter = class {
 		// set value can be asynchronous, so update_filter_tag should happen after field is set
 		this._filter_value_set = Promise.resolve();
 		if(value) {
-			this._filter_value_set = this.field.set_value(value);
+			this._filter_value_set = this.field.set_value(value.trim());
 		}
 		return this._filter_value_set;
 	}
