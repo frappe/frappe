@@ -3,6 +3,8 @@
 
 from __future__ import unicode_literals
 
+import six
+
 import re, copy, os
 import frappe
 from frappe import _
