@@ -152,9 +152,10 @@ def start_scheduler():
 
 @click.command('worker')
 @click.option('--queue', type=str)
-def start_worker(queue):
+@click.option('--quiet', is_flag = True, default = False, help = 'Hide Log Outputs')
+def start_worker(queue, quiet = False):
 	from frappe.utils.background_jobs import start_worker
-	start_worker(queue)
+	start_worker(queue, quiet = quiet)
 
 @click.command('ready-for-migration')
 @click.option('--site', help='site name')
