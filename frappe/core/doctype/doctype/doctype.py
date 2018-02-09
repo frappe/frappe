@@ -3,6 +3,8 @@
 
 from __future__ import unicode_literals
 
+import six
+
 import re, copy, os
 import frappe
 from frappe import _
@@ -381,7 +383,10 @@ class DocType(Document):
 
 		# a DocType's name should not start with a number or underscore
 		# and should only contain letters, numbers and underscore
-		is_a_valid_name = re.match("^(?![\W])[^\d_\s][\w -]+$", name, re.UNICODE)
+		if six.PY2:
+			is_a_valid_name = re.match("^(?![\W])[^\d_\s][\w -]+$", name)
+		else:
+			is_a_valid_name = re.match("^(?![\W])[^\d_\s][\w -]+$", name, flags = re.ASCII)
 		if not is_a_valid_name:
 			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
 
@@ -620,6 +625,7 @@ def validate_fields(meta):
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
 		if d.fieldtype != "Table": d.allow_bulk_edit = 0
+		if d.fieldtype == "Barcode": d.ignore_xss_filter = 1
 		if not d.fieldname:
 			frappe.throw(_("Fieldname is required in row {0}").format(d.idx))
 		d.fieldname = d.fieldname.lower()
