@@ -180,13 +180,18 @@ class DatabaseQuery(object):
 			setattr(self, filter_name, filters)
 
 	def sanitize_fields(self):
+		whitelisted_functions = ['count', 'locate']
+		blacklisted_statemets = ['select', 'create', 'insert', 'delete', 'drop', 'update']
+
 		for field in self.fields:
 			regex = re.compile('^.*[,();].*')
 			if regex.match(field):
-				if 'count' in field:
+				if any(function in field for function in whitelisted_functions) and \
+					all(stmt not in field for stmt in blacklisted_statemets):
 					continue
-				if 'locate' in field:
-					continue
+				self.fields.remove(field)
+
+			elif any(stmt in field for stmt in blacklisted_statemets):
 				self.fields.remove(field)
 
 	def extract_tables(self):
