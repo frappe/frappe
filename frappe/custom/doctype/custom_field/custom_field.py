@@ -7,6 +7,7 @@ import json
 from frappe.utils import cstr
 from frappe import _
 from frappe.model.document import Document
+from frappe.model.docfield import supports_translation
 
 class CustomField(Document):
 	def autoname(self):
@@ -39,7 +40,7 @@ class CustomField(Document):
 		if not self.fieldname:
 			frappe.throw(_("Fieldname not set for Custom Field"))
 
-		if self.translatable and self.fieldtype in ("Data", "Select", "Text", "Small Text", "Text Editor"):
+		if self.translatable and not supports_translation(self.fieldtype):
 			self.translatable = 0
 
 		if not self.flags.ignore_validate:

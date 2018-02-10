@@ -63,31 +63,12 @@ def render_template(template, context, is_path=None):
 	if not template:
 		return ""
 
-	# if it ends with .html then its a freaking path, not html
-	_doc = None
-
-	if isinstance(context, Document):
-		_doc = context
-	elif isinstance(context, dict):
-		if "doc" in context:
-			_doc = context["doc"]
-		elif "doctype" in context and "docname" in context:
-			_doc = get_doc(context["doctype"], context["docname"])
-	elif hasattr(context, "doc"):
-		_doc = context.doc
-	elif hasattr(context, "doctype") and hasattr(context, "docname"):
-		_doc = get_doc(context.doctype, context.docname)
-
-	if _doc:
-		_doc = get_doc(_doc.as_dict(translated=True))
-		_doc.flags.in_print = True
-
-	if _doc:
-		if (is_path
+	if (is_path
 		or template.startswith("templates/")
+		# if it ends with .html then its a freaking path, not html
 		or (template.endswith('.html') and '\n' not in template)):
-			with open(template, 'rb') as f:
-				template = f.read()
+		with open(template, 'rb') as f:
+			template = f.read()
 
 	return get_jenv().from_string(_(template)).render(context)
 

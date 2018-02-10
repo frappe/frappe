@@ -94,46 +94,56 @@ frappe.ui.form.Control = Class.extend({
 			&& this.$wrapper.toggleClass("hide-control", this.disp_status=="None")
 			&& this.refresh_input
 			&& this.refresh_input();
-		
+
 		var value = this.get_value();
 
+		this.show_translatable_button(value);
+	},
+	show_translatable_button(value) {
 		// Disable translation non-string fields or special string fields
-		if (!value
-			|| !frappe.model.can_write('Translation')
+		if (!frappe.model.can_write('Translation')
+			|| !this.frm
+			|| !this.doc
 			|| !this.df.translatable
-			|| !this.frm ) return;
-		
-		// Disable translation in website
-		if (!frappe.views
-			|| !frappe.views.TranslationManager) return;
-		
-		// At least two languages needs to be enabled to translation works
-		if (frappe.boot.translate_languages.length < 2) return;
+			|| !value) return;
 
-		if (!$('.clearfix .btn-open', this.$wrapper).length){
-			var me = this,
-				translated = (this.doc
-								&& this.doc.__onload
-								&& this.doc.__onload.translations
-								&& this.doc.__onload.translations[value]);
-			
-			$(format('<a class="btn-open no-decoration text-muted" title="{0}">\
-				<i class="fa fa-globe {1}"></i></a>', [
-					__('Open Translation'), (translated) ? "text-warning": ""
-				])).appendTo(this.$wrapper.find('.clearfix'));
-			
-			this.$wrapper.find('.btn-open').on('click', function(){
-				if (!me.doc.__islocal){
-					new frappe.views.TranslationManager({
-						'df': me.df,
-						'source_text': value,
-						'target_language': me.doc.language,
-						'doc': me.doc
-					});
+		// Disable translation in website
+		if (!frappe.views || !frappe.views.TranslationManager) return;
+
+		frappe.get_enabled_languages()
+			.then((langs) => {
+				// At least two languages needs to be enabled to translation works
+				if (langs.length >= 2) {
+					// Already attached button
+					if (this.$wrapper.find('.clearfix .btn-translation').length) return;
+
+					const translated_value = (
+						this.doc.__onload
+						&& this.doc.__onload.translations
+						&& this.doc.__onload.translations[value]
+					);
+
+					const translation_btn =
+						`<a class="btn-translation no-decoration text-muted" title="${__('Open Translation')}">
+							<i class="fa fa-globe ${translated_value ? "text-warning": ""}"></i>
+						</a>`;
+
+					$(translation_btn)
+						.appendTo(this.$wrapper.find('.clearfix'))
+						.on('click', () => {
+							if (!this.doc.__islocal) {
+								new frappe.views.TranslationManager({
+									'df': this.df,
+									'source_text': value,
+									'target_language': this.doc.language,
+									'doc': this.doc
+								});
+							}
+						});
 				}
 			});
-		}
-		
+
+
 	},
 	get_doc: function() {
 		return this.doctype && this.docname

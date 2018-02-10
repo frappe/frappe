@@ -51,11 +51,12 @@ def execute_cmd(cmd, from_async=False):
 
 	is_whitelisted(method)
 
-	if frappe.local.form_dict._lang:
-		lang = get_lang_code(frappe.local.form_dict._lang)
-		print "Language Code: {0}".format(lang)
-		if lang:
-			frappe.local.lang = lang
+	# if frappe.local.form_dict._lang:
+	# 	# Set the local lang for this request
+	# 	lang = get_lang_code(frappe.local.form_dict._lang)
+	# 	print "Language Code: {0}".format(lang)
+	# 	if lang:
+	# 		frappe.local.lang = lang
 
 	return frappe.call(method, **frappe.form_dict)
 

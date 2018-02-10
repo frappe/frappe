@@ -235,7 +235,8 @@ class Meta(Document):
 
 	def is_translatable(self, fieldname):
 		'''Return true of false given a field'''
-		return self.get_field(fieldname).translatable
+		field = self.get_field(fieldname)
+		return field and field.translatable
 
 	def process(self):
 		# don't process for special doctypes

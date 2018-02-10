@@ -182,19 +182,10 @@ class BaseDocument(object):
 
 		return value
 
-	def get_valid_dict(self, sanitize=True, convert_dates_to_str=False, translated=False):
+	def get_valid_dict(self, sanitize=True, convert_dates_to_str=False):
 		d = frappe._dict()
-		link_fields = [f.fieldname for f in self.meta.get_link_fields()]
 		for fieldname in self.meta.get_valid_columns():
-			value = self.get(fieldname)
-			if not translated \
-				or (not isinstance(value, string_types)
-					and value not in link_fields):
-				d[fieldname] = value
-			elif self.meta.is_translatable(fieldname):
-				d[fieldname] = _(value)
-			else:
-				d[fieldname] = value
+			d[fieldname] = self.get(fieldname)
 
 			# if no need for sanitization and value is None, continue
 			if not sanitize and d[fieldname] is None:
@@ -257,12 +248,12 @@ class BaseDocument(object):
 	def is_new(self):
 		return self.get("__islocal")
 
-	def as_dict(self, no_nulls=False, no_default_fields=False, convert_dates_to_str=False, translated=False):
-		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str, translated=translated)
+	def as_dict(self, no_nulls=False, no_default_fields=False, convert_dates_to_str=False):
+		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str)
 		doc["doctype"] = self.doctype
 		for df in self.meta.get_table_fields():
 			children = self.get(df.fieldname) or []
-			doc[df.fieldname] = [d.as_dict(no_nulls=no_nulls, translated=translated) for d in children]
+			doc[df.fieldname] = [d.as_dict(no_nulls=no_nulls) for d in children]
 
 		if no_nulls:
 			for k in doc.keys():
@@ -688,7 +679,7 @@ class BaseDocument(object):
 
 		val = self.get(fieldname)
 
-		if translated and self.meta.is_translatable(fieldname):
+		if translated:
 			val = _(val)
 
 		if absolute_value and isinstance(val, (int, float)):

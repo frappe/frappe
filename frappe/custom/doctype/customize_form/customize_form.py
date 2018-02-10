@@ -201,7 +201,7 @@ class CustomizeForm(Document):
 						frappe.msgprint(_("You can't set 'Options' for field {0}").format(df.label))
 						continue
 
-					elif property == 'translatable' and df.get('fieldtype') not in ("Data", "Select", "Text", "Small Text", "Text Editor"):
+					elif property == 'translatable' and not supports_translation(df.get('fieldtype')):
 						frappe.msgprint(_("You can't set 'Translatable for field {0}").format(df.label))
 						continue
 

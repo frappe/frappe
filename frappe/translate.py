@@ -733,6 +733,42 @@ def rename_language(old_name, new_name):
 	frappe.db.sql("""update `tabUser` set language=%(new_name)s where language=%(old_name)s""",
 		{ "old_name": old_name, "new_name": new_name })
 
+@frappe.whitelist()
+def update_translations_for_source(source=None, translation_dict=None):
+	if not (source and translation_dict):
+		return
+
+	translation_dict = json.loads(translation_dict)
+
+	translation_records = frappe.db.get_values('Translation', { 'source_name': source }, ['name', 'lang'],  as_dict=1)
+
+	# for d in translation_records:
+	# 	if translation_dict[d.lang]:
+	# 		frappe.db.set_value('Translation', d.name, {
+	# 			'target_name': translation_dict[d.lang]
+	# 		})
+	# 	else:
+	# 		frappe.delete_doc('Translation', d.name)
+
+	for t in translation_list:
+		t = frappe._dict(t)
+
+		if t.translation:
+			# has translated text, update or add new
+			if name:
+				frappe.db.set_value('Translation', name, {
+					'target_name': t.translation
+				})
+			else:
+				frappe.get_doc({
+					'doctype': 'Translation',
+					'language': t.lang,
+					'source_name': source,
+					'target_name': t.translation
+				}).insert()
+		else:
+			# doesn't have translated text, delete if exists
+			pass
 
 @frappe.whitelist()
 def update_record_translation(translated, for_removal):
