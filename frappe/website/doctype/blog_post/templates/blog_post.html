@@ -1,7 +1,8 @@
 {% extends "templates/web.html" %}
-{% include "templates/includes/meta_block.html" %}
+{% block meta_block %}
+	{% include "templates/includes/meta_block.html" %}
+{% endblock %}
 {% block page_content %}
-
 <div class="blog-container">
 <article class="blog-content" itemscope itemtype="http://schema.org/BlogPosting">
 	<!-- begin blog content -->
