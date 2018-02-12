@@ -346,9 +346,8 @@ frappe.views.ListSidebar = Class.extend({
 		});
 	},
 	setup_assigned_to_me: function() {
-		var me = this;
-		this.page.sidebar.find(".assigned-to-me a").on("click", function() {
-			me.list_view.assigned_to_me();
+		this.page.sidebar.find(".assigned-to-me a").on("click", () => {
+			this.list_view.filter_area.add(this.list_view.doctype, "_assign", "like", `%${frappe.session.user}%`);
 		});
 	},
 	setup_upgrade_box: function() {

@@ -11,5 +11,7 @@ build/
 frappe/docs/current
 .vscode
 node_modules
+.kdev4/
+*.kdev4
 
 npm-debug.log

@@ -360,8 +360,9 @@ _f.Frm.prototype.show_web_link = function() {
 	}
 };
 
-_f.Frm.prototype.add_web_link = function(path) {
-	this.web_link = this.sidebar.add_user_action(__("See on Website"),
+_f.Frm.prototype.add_web_link = function(path, label) {
+	label = label || "See on Website";
+	this.web_link = this.sidebar.add_user_action(__(label),
 		function() {}).attr("href", path || this.doc.route).attr("target", "_blank");
 };
 

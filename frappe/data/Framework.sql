@@ -144,6 +144,7 @@ CREATE TABLE `tabDocType` (
   `read_only_onload` int(1) NOT NULL DEFAULT 0,
   `document_type` varchar(255) DEFAULT NULL,
   `icon` varchar(255) DEFAULT NULL,
+  `color` varchar(255) DEFAULT NULL,
   `tag_fields` varchar(255) DEFAULT NULL,
   `subject` varchar(255) DEFAULT NULL,
   `_last_update` varchar(32) DEFAULT NULL,

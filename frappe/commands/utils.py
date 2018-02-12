@@ -7,6 +7,7 @@ from distutils.spawn import find_executable
 import frappe
 from frappe.commands import pass_context, get_site
 from frappe.utils import update_progress_bar
+from frappe.utils.response import json_handler
 
 @click.command('build')
 @click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
@@ -123,7 +124,7 @@ def execute(context, method, args=None, kwargs=None):
 		finally:
 			frappe.destroy()
 		if ret:
-			print(json.dumps(ret))
+			print(json.dumps(ret, default=json_handler))
 
 
 @click.command('add-to-email-queue')
@@ -282,18 +283,40 @@ def _bulk_rename(context, doctype, path):
 	frappe.destroy()
 
 @click.command('mysql')
+def mysql():
+	"""
+		Deprecated
+	"""
+	click.echo("""
+mysql command is deprecated.
+Did you mean "bench mariadb"?
+""")
+
+@click.command('mariadb')
 @pass_context
-def mysql(context):
-	"Start Mariadb console for a site"
-	site = get_site(context)
+def mariadb(context):
+	"""
+		Enter into mariadb console for a given site.
+	"""
+	import os
+	import os.path as osp
+
+	site  = get_site(context)
 	frappe.init(site=site)
-	mysql = find_executable('mycli')
-	args  = ['-u', frappe.conf.db_name, '-p'+frappe.conf.db_password, frappe.conf.db_name, '-h', frappe.conf.db_host or "localhost"]
-	if not mysql:
-		mysql = find_executable('mysql')
-		args.append("-A")
-	args.insert(0, mysql)
-	
+
+	# This is assuming you're within the bench instance.
+	path  = os.getcwd()
+	mysql = osp.join(path, '..', 'env', 'bin', 'mycli')
+	args  = [
+		mysql,
+		'-u', frappe.conf.db_name,
+		'-p', frappe.conf.db_password,
+		'-h', frappe.conf.db_host or "localhost",
+		'-D', frappe.conf.db_name,
+		'-R', '{site}> '.format(site = site),
+		'--auto-vertical-output'
+	]
+
 	os.execv(mysql, args)
 
 @click.command('console')
@@ -575,6 +598,7 @@ commands = [
 	import_doc,
 	make_app,
 	mysql,
+	mariadb,
 	request,
 	reset_perms,
 	run_tests,

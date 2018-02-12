@@ -22,14 +22,7 @@ frappe.views.BaseList = class BaseList {
 			this.setup_page,
 			this.setup_page_head,
 			this.setup_side_bar,
-			this.setup_list_wrapper,
-			this.setup_filter_area,
-			this.setup_sort_selector,
-			this.setup_result_area,
-			this.setup_no_result_area,
-			this.setup_freeze_area,
-			this.setup_paging_area,
-			this.setup_footnote_area,
+			this.setup_main_section,
 			this.setup_view,
 		].map(fn => fn.bind(this));
 
@@ -79,9 +72,7 @@ frappe.views.BaseList = class BaseList {
 	set_fields() {
 		let fields = [].concat(
 			frappe.model.std_fields_list,
-			this.get_fields_in_list_view(),
-			[this.meta.title_field, this.meta.image_field],
-			(this.settings.add_fields || [])
+			this.meta.title_field
 		);
 
 		fields.forEach(f => this._add_field(f));
@@ -126,7 +117,8 @@ frappe.views.BaseList = class BaseList {
 		}
 
 		const is_valid_field = frappe.model.std_fields_list.includes(fieldname)
-			|| frappe.meta.has_field(doctype, fieldname);
+			|| frappe.meta.has_field(doctype, fieldname)
+			|| fieldname === '_seen';
 
 		if (!is_valid_field) {
 			return;
@@ -193,6 +185,11 @@ frappe.views.BaseList = class BaseList {
 			page: this.page,
 			list_view: this
 		});
+	}
+
+	toggle_side_bar() {
+		this.list_sidebar.parent.toggleClass('hide');
+		this.page.current_view.find('.layout-main-section-wrapper').toggleClass('col-md-10 col-md-12');
 	}
 
 	setup_main_section() {
@@ -351,6 +348,7 @@ frappe.views.BaseList = class BaseList {
 		} else {
 			data = [];
 		}
+		data = !Array.isArray(data) ? frappe.utils.dict(data.keys, data.values) : data;
 
 		if (this.start === 0) {
 			this.data = data;
@@ -556,6 +554,14 @@ class FilterArea {
 				onchange: () => this.refresh_list_view()
 			}
 		];
+
+		if(this.list_view.custom_filter_configs) {
+			this.list_view.custom_filter_configs.forEach(config => {
+				config.onchange = () => this.refresh_list_view();
+			})
+
+			fields = fields.concat(this.list_view.custom_filter_configs);
+		}
 
 		const doctype_fields = this.list_view.meta.fields;
 

@@ -36,6 +36,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.setup_columns();
 	}
 
+	setup_result_area() {
+		super.setup_result_area();
+		this.$datatable_wrapper = $('<div class="data-table-wrapper">');
+		this.$charts_wrapper = $('<div class="charts-wrapper">');
+		this.$result.append(this.$charts_wrapper);
+		this.$result.append(this.$datatable_wrapper);
+	}
+
 	before_render() {
 		this.save_report_settings();
 	}
@@ -67,6 +75,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	render() {
 		if (this.data.length === 0) return;
 
+		if (this.chart) {
+			this.refresh_charts();
+		}
 		if (this.datatable) {
 			this.datatable.refresh(this.get_data(this.data));
 			return;
@@ -131,7 +142,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	setup_datatable(values) {
-		this.datatable = new DataTable(this.$result[0], {
+		this.datatable = new DataTable(this.$datatable_wrapper[0], {
 			data: this.get_data(values),
 			enableClusterize: true,
 			addCheckbox: this.can_delete,
@@ -212,7 +223,94 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				}
 			}]
 		});
+	}
 
+	toggle_charts() {
+		if (!this.chart) {
+			this.setup_charts();
+			return;
+		}
+		this.$charts_wrapper.toggleClass('hidden');
+		this.chart.refresh();
+	}
+
+	setup_charts() {
+		this.get_chart_data()
+			.then(args => {
+				this.chart_args = args;
+				let data = {
+					labels: this.data.map(d => d.name),
+					datasets: [ args.dataset ]
+				};
+				const df = frappe.meta.get_docfield('Task', args.field);
+				const get_doc = (value) => {
+					return this.data.find(d => {
+						return d[args.field] === value;
+					});
+				};
+
+				this.chart = new Chart({
+					parent: this.$charts_wrapper[0],
+					title: __("{0} Chart", [this.doctype]),
+					data: data,
+					type: 'bar', // or 'line', 'scatter', 'pie', 'percentage'
+					height: 150,
+					colors: ['violet', 'blue'],
+
+					format_tooltip_x: d => (d + '').toUpperCase(),
+					format_tooltip_y: value => frappe.format(value, df, { always_show_decimals: true, inline: true }, get_doc(value))
+				});
+			});
+	}
+
+	refresh_charts() {
+		if (!this.chart) return;
+		const new_dataset = {
+			label: this.chart_args.field,
+			values: this.data.map(d => d[this.chart_args.field])
+		};
+		const labels = this.data.map(d => d.name);
+		this.chart.update_values([new_dataset], labels);
+	}
+
+	get_chart_data() {
+		return new Promise(resolve => {
+			// const x_fields = [];
+			const cur_list_fields = this.fields.map(f => f[0]);
+			const y_fields = this.meta.fields.filter(df =>
+				!df.hidden && frappe.model.is_numeric_field(df)
+				&& cur_list_fields.includes(df.fieldname)
+			).map(df => df.fieldname);
+
+			const dialog = new frappe.ui.Dialog({
+				title: __('Configure Chart'),
+				fields: [
+					{
+						label: __('Y Axis Field'),
+						fieldtype: 'Autocomplete',
+						fieldname: 'y_axis',
+						options: y_fields,
+						description: __('Showing only Numeric fields from Report')
+					}
+				],
+				primary_action: ({ y_axis }) => {
+					if (y_fields.includes(y_axis)) {
+						const data = this.data.map(d => d[y_axis]);
+						const args = {
+							field: y_axis,
+							dataset: {
+								label: y_axis,
+								values: data
+							}
+						}
+						resolve(args);
+						dialog.hide();
+					}
+				}
+			});
+
+			dialog.show();
+		});
 	}
 
 	get_editing_object(colIndex, rowIndex, value, parent) {
@@ -232,7 +330,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				let doctype = cell.doctype;
 
 				control.set_value(value);
-				return this.set_control_value(doctype, docname, fieldname, value);
+				return this.set_control_value(doctype, docname, fieldname, value)
+					.then((updated_doc) => {
+						const _data = this.data.find(d => d.name === updated_doc.name);
+						for (let field in _data) {
+							_data[field] = updated_doc[field];
+						}
+					})
+					.then(() => this.refresh_charts());
 			},
 			getValue: () => {
 				return control.get_value();
@@ -246,7 +351,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			frappe.db.set_value(doctype, docname, {[fieldname]: value})
 				.then(r => {
 					if (r.message) {
-						resolve();
+						resolve(r.message);
 					} else {
 						reject();
 					}
@@ -435,7 +540,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.fields = _fields;
 		this.build_fields();
 		this.setup_columns();
-		this.	_settings();
+		this.refresh();
 	}
 
 	get_columns_for_picker() {
@@ -711,6 +816,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				}
 			},
 			{
+				label: __('Toggle Chart'),
+				action: () => this.toggle_charts()
+			},
+			{
+				label: __('Toggle Sidebar'),
+				action: () => this.toggle_side_bar()
+			},
+			{
 				label: __('Pick Columns'),
 				action: () => {
 					const d = new frappe.ui.Dialog({
@@ -761,6 +874,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						args.cmd = 'frappe.desk.reportview.export_query';
 						args.file_format_type = data.file_format_type;
 
+						if (args.file_format_type === 'CSV') {
+							frappe.tools.downloadify(this.data, null, this.doctype);
+							return;
+						}
+
 						if(this.add_totals_row) {
 							args.add_totals_row = 1;
 						}
@@ -768,6 +886,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						if(selected_items.length > 0) {
 							args.selected_items = selected_items;
 						}
+
+						args.start = 0;
+						args.page_length = this.data.length;
+
 						open_url_post(frappe.request.url, args);
 					},
 					__("Export Report: {0}",[__(this.doctype)]), __("Download"));
