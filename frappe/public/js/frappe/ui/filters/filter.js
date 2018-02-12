@@ -1,6 +1,9 @@
 frappe.ui.Filter = class {
 	constructor(opts) {
 		$.extend(this, opts);
+		if (this.value === null || this.value === undefined) {
+			this.value = '';
+		}
 
 		this.utils = frappe.ui.filter_utils;
 		this.conditions = [
