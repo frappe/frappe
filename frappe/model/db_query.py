@@ -180,19 +180,32 @@ class DatabaseQuery(object):
 			setattr(self, filter_name, filters)
 
 	def sanitize_fields(self):
+		'''
+			regex : ^.*[,();].*
+			purpose : The regex will look for malicious patterns like `,`, '(', ')', ';' in each
+					field which may leads to sql injection.
+			example :
+				field = "`DocType`.`issingle`, version()"
+
+			As field contains `,` and mysql function `version()`, with the help of regex
+			the system will filter out this field.
+		'''
+		regex = re.compile('^.*[,();].*')
 		whitelisted_functions = ['count', 'locate']
 		blacklisted_statements = ['select', 'create', 'insert', 'delete', 'drop', 'update']
-		regex = re.compile('^.*[,();].*')
+
+		def _raise_exception():
+			frappe.throw(_('Cannot use sub-query or function in fields'), frappe.DataError)
 
 		for field in self.fields:
 			if regex.match(field):
 				if any(function in field for function in whitelisted_functions) and \
-					all(statement not in field for statement in blacklisted_statements):
+					all(statement.lower() not in field.lower() for statement in blacklisted_statements):
 					continue
-				self.fields.remove(field)
+				_raise_exception()
 
 			elif any(statement in field for statement in blacklisted_statements):
-				self.fields.remove(field)
+				_raise_exception()
 
 	def extract_tables(self):
 		"""extract tables from fields"""

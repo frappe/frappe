@@ -98,17 +98,28 @@ class TestReportview(unittest.TestCase):
 		frappe.set_user('Administrator')
 
 	def test_query_fields_sanitizer(self):
-		data = DatabaseQuery("DocType").execute(fields=["name", "issingle, version()"],
-			limit_start=0, limit_page_length=1)
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute(
+				fields=["name", "issingle, version()"], limit_start=0, limit_page_length=1))
 
-		self.assertTrue('version()' not in data[0])
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute(
+			fields=["name", "issingle, IF(issingle=1, (select name from tabUser), count(name))"],
+			limit_start=0, limit_page_length=1))
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute(
+			fields=["name", "issingle, (select count(*) from tabSessions)"],
+			limit_start=0, limit_page_length=1))
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute(
+			fields=["name", "issingle, SELECT LOCATE('', `tabUser`.`user`) AS user;"],
+			limit_start=0, limit_page_length=1))
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute(
+			fields=["name", "issingle, IF(issingle=1, (SELECT name from tabUser), count(*))"],
+			limit_start=0, limit_page_length=1))
 
 		data = DatabaseQuery("DocType").execute(fields=["name", "issingle", "count(name)"],
 			limit_start=0, limit_page_length=1)
-
 		self.assertTrue('count(name)' in data[0])
-
-
 
 def create_event(subject="_Test Event", starts_on=None):
 	""" create a test event """
