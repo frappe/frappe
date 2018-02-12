@@ -6,4 +6,3 @@ def execute():
 	for address in existing_addresses:
 		address_doc = frappe.get_doc("Address",address)
 		address_doc.make_complete_address()
-		address_doc.save()
