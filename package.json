@@ -17,7 +17,7 @@
   },
   "homepage": "https://frappe.io",
   "dependencies": {
-    "air-datepicker": "^2.2.3",
+    "air-datepicker": "frappe/air-datepicker",
     "awesomplete": "^1.1.2",
     "babel-core": "^6.26.0",
     "bootstrap": "^3.3.7",

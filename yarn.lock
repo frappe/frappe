@@ -44,6 +44,12 @@ air-datepicker@^2.2.3:
   dependencies:
     jquery ">=2.0.0 <4.0.0"
 
+air-datepicker@frappe/air-datepicker:
+  version "2.2.3"
+  resolved "https://codeload.github.com/frappe/air-datepicker/tar.gz/7911fb1de7707004549826ba401d0f399b66cc0e"
+  dependencies:
+    jquery ">=2.0.0 <4.0.0"
+
 ajv-keywords@^2.0.0:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/ajv-keywords/-/ajv-keywords-2.1.1.tgz#617997fc5f60576894c435f940d819e135b80762"

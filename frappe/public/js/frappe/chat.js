@@ -13,6 +13,8 @@
 // frappe extensions
 
 // frappe.model extensions
+import '../../less/chat.less'
+
 import moment from 'moment-timezone'
 import hyper from '../lib/hyper.min'
 

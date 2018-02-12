@@ -1,6 +1,7 @@
 // summernote lib is included using script-loader, see webpack.config.js
 import moment from 'moment-timezone';
 import 'summernote/dist/summernote.css';
+import './less/text_editor.less';
 
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_input: function() {

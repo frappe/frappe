@@ -1,6 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 import moment from 'moment-timezone';
+import 'script-loader!frappe-charts/dist/frappe-charts.min.iife';
+import 'frappe-charts/dist/frappe-charts.min.css';
 
 frappe.ui.form.Dashboard = Class.extend({
 	init: function(opts) {
