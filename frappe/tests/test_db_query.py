@@ -97,6 +97,19 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue(get_filters_cond('DocType', dict(istable=1), [], ignore_permissions=True))
 		frappe.set_user('Administrator')
 
+	def test_query_fields_sanitizer(self):
+		data = DatabaseQuery("DocType").execute(fields=["name", "issingle, version()"],
+			limit_start=0, limit_page_length=1)
+
+		self.assertTrue('version()' not in data[0])
+
+		data = DatabaseQuery("DocType").execute(fields=["name", "issingle", "count(name)"],
+			limit_start=0, limit_page_length=1)
+
+		self.assertTrue('count(name)' in data[0])
+
+
+
 def create_event(subject="_Test Event", starts_on=None):
 	""" create a test event """
 

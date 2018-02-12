@@ -181,17 +181,17 @@ class DatabaseQuery(object):
 
 	def sanitize_fields(self):
 		whitelisted_functions = ['count', 'locate']
-		blacklisted_statemets = ['select', 'create', 'insert', 'delete', 'drop', 'update']
+		blacklisted_statements = ['select', 'create', 'insert', 'delete', 'drop', 'update']
+		regex = re.compile('^.*[,();].*')
 
 		for field in self.fields:
-			regex = re.compile('^.*[,();].*')
 			if regex.match(field):
 				if any(function in field for function in whitelisted_functions) and \
-					all(stmt not in field for stmt in blacklisted_statemets):
+					all(statement not in field for statement in blacklisted_statements):
 					continue
 				self.fields.remove(field)
 
-			elif any(stmt in field for stmt in blacklisted_statemets):
+			elif any(statement in field for statement in blacklisted_statements):
 				self.fields.remove(field)
 
 	def extract_tables(self):
