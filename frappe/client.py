@@ -315,7 +315,7 @@ def get_time_zone():
 	return {"time_zone": frappe.defaults.get_defaults().get("time_zone")}
 
 @frappe.whitelist()
-def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder=None, decode=False, is_private=None, docfield=None):
+def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder=None, decode_base64=False, is_private=None, docfield=None):
 	'''Attach a file to Document (POST)
 
 	:param filename: filename e.g. test-file.txt
@@ -323,7 +323,7 @@ def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder
 	:param doctype: Reference DocType to attach file
 	:param docname: Reference DocName to attach file
 	:param folder: Folder to add File into
-	:param decode: decode filedata from base64 encode
+	:param decode_base64: decode filedata from base64 encode, default is False
 	:param is_private: Attach file as private file
 	:param docfield: file to attach to'''
 
@@ -337,7 +337,7 @@ def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder
 	if not doc.has_permission():
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-	f = save_file(filename, filedata, doctype, docname, folder, decode, is_private, docfield)
+	f = save_file(filename, filedata, doctype, docname, folder, decode_base64, is_private, docfield)
 
 	if docfield and doctype:
 		doc.set(docfield, f.file_url)
