@@ -1,6 +1,9 @@
 frappe.ui.Filter = class {
 	constructor(opts) {
 		$.extend(this, opts);
+		if (this.value === null || this.value === undefined) {
+			this.value = '';
+		}
 
 		this.utils = frappe.ui.filter_utils;
 		this.conditions = [
@@ -127,7 +130,7 @@ frappe.ui.Filter = class {
 		// set value can be asynchronous, so update_filter_tag should happen after field is set
 		this._filter_value_set = Promise.resolve();
 		if(value) {
-			this._filter_value_set = this.field.set_value(value);
+			this._filter_value_set = this.field.set_value(value.trim());
 		}
 		return this._filter_value_set;
 	}

@@ -1,8 +1,8 @@
 <div align="center">
-    <img src=".github/logo.png" height="256">
+    <img src=".github/frappe-bird.png" height="150">
     <h1>
         <a href="https://frappe.io">
-            frappé
+            frappe
         </a>
     </h1>
     <h3>
@@ -30,7 +30,7 @@ Full-stack web application framework that uses Python and MariaDB on the server 
 
 ### Installation
 
-[Install via Frappé Bench](https://github.com/frappe/bench)
+[Install via Frappe Bench](https://github.com/frappe/bench)
 
 ## Contributing
 
