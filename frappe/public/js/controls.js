@@ -28,3 +28,6 @@ import "./frappe/form/controls/button";
 import "./frappe/form/controls/html";
 import "./frappe/form/controls/heading";
 import "./frappe/form/controls/geolocation";
+import "./frappe/form/controls/autocomplete.js";
+import "./frappe/form/controls/multiselect.js";
+import "./frappe/form/controls/multicheck.js";

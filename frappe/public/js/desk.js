@@ -63,7 +63,7 @@ import "./frappe/ui/capture";
 
 import "./frappe/change_log.html";
 import './frappe/desk';
-// import './frappe/chat';
+import './frappe/chat';
 
 frappe.start_app = function() {
 	if(!frappe.Application)

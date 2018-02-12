@@ -20,17 +20,20 @@ const extractCSS = new ExtractTextPlugin({
 const in_production = process.env.FRAPPE_ENV === 'production';
 
 module.exports = function () {
-	const desk_chunks = Object.keys(bundle_map).filter(file_path => !file_path.includes('frappe-web'));
-	const global_chunks = Object.keys(bundle_map).filter(
-		file_path => file_path.includes('frappe-web') || file_path.includes('desk')
+	const desk_chunks = Object.keys(bundle_map).filter(file_path =>
+		file_path.startsWith('frappe/js')
+		&& !file_path.includes('frappe-web')
+	);
+	const global_chunks = Object.keys(bundle_map).filter(file_path =>
+		file_path.includes('frappe/js/frappe-web')
+		|| file_path.includes('frappe/js/desk')
 	);
 
 	return {
 		entry: Object.assign(bundle_map, {
 			"frappe/js/vendor": [
 				'script-loader!jquery',
-				// 'script-loader!bootstrap/dist/js/bootstrap',
-				// 'script-loader!moment',
+				'script-loader!moment',
 				// 'script-loader!moment-timezone',
 				'script-loader!summernote',
 				'script-loader!sortablejs',
@@ -93,7 +96,7 @@ module.exports = function () {
 					}
 				},
 				{
-					test: /\.(svg|png|jpg)$/,
+					test: /\.(svg|png|jpg|gif)$/,
 					use: {
 						loader: 'file-loader', options: {
 							publicPath: '/assets/bundles/',
@@ -105,9 +108,10 @@ module.exports = function () {
 		},
 
 		plugins: [
-
+			// uglify in production
 			in_production ? new UglifyJsPlugin() : null,
 
+			// contains webpack bootstrap code
 			new webpack.optimize.CommonsChunkPlugin({
 				name: "frappe/js/manifest",
 				minChunks: Infinity

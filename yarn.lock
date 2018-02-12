@@ -2270,6 +2270,10 @@ jquery.hotkeys@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/jquery.hotkeys/-/jquery.hotkeys-0.1.0.tgz#a88f636494fe75de41e4b753a059e5a523b83273"
 
+jquery@1.11.0:
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/jquery/-/jquery-1.11.0.tgz#c67ceee19b403650d682adcf39d5c9009814d949"
+
 jquery@>=1.8.0, "jquery@>=2.0.0 <4.0.0":
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.2.1.tgz#5c4d9de652af6cd0a770154a631bba12b015c787"

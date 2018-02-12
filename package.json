@@ -1,6 +1,7 @@
 {
   "name": "frappe",
   "scripts": {
+    "start": "yarn run frappe-watch",
     "frappe-watch": "webpack --config webpack/webpack.config.js --watch",
     "frappe-build": "webpack --config webpack/webpack.config.js",
     "frappe-build-minify": "FRAPPE_ENV=production webpack --config webpack/webpack.config.js"
@@ -28,6 +29,7 @@
     "frappe-charts": "0.0.8",
     "frappe-gantt": "0.0.7",
     "highlight.js": "^9.12.0",
+    "jquery": "1.11.0",
     "jquery-hotkeys": "^0.2.2",
     "jquery.event.drag": "^2.2.2",
     "jquery.hotkeys": "^0.1.0",

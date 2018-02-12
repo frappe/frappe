@@ -7,3 +7,4 @@ import './about';
 import './navbar.html';
 import './toolbar';
 import './notifications';
+import './modules_select';
