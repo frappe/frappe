@@ -72,9 +72,7 @@ frappe.views.BaseList = class BaseList {
 	set_fields() {
 		let fields = [].concat(
 			frappe.model.std_fields_list,
-			this.get_fields_in_list_view(),
-			[this.meta.title_field, this.meta.image_field],
-			(this.settings.add_fields || [])
+			this.meta.title_field
 		);
 
 		fields.forEach(f => this._add_field(f));
@@ -119,7 +117,8 @@ frappe.views.BaseList = class BaseList {
 		}
 
 		const is_valid_field = frappe.model.std_fields_list.includes(fieldname)
-			|| frappe.meta.has_field(doctype, fieldname);
+			|| frappe.meta.has_field(doctype, fieldname)
+			|| fieldname === '_seen';
 
 		if (!is_valid_field) {
 			return;
@@ -344,7 +343,7 @@ frappe.views.BaseList = class BaseList {
 
 	prepare_data(r) {
 		let data = r.message || {};
-		data = frappe.utils.dict(data.keys, data.values);
+		data = !Array.isArray(data) ? frappe.utils.dict(data.keys, data.values) : data;
 
 		if (this.start === 0) {
 			this.data = data;
@@ -550,6 +549,14 @@ class FilterArea {
 				onchange: () => this.refresh_list_view()
 			}
 		];
+
+		if(this.list_view.custom_filter_configs) {
+			this.list_view.custom_filter_configs.forEach(config => {
+				config.onchange = () => this.refresh_list_view();
+			})
+
+			fields = fields.concat(this.list_view.custom_filter_configs);
+		}
 
 		const doctype_fields = this.list_view.meta.fields;
 
