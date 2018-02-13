@@ -11,12 +11,12 @@ test_records = []
 class TestTransactionLog(unittest.TestCase):
 
 	def test_validate_chaining(self):
-		first_log = frappe.get_doc({
-						"doctype": "Transaction Log",
-						"reference_doctype": "Test Doctype",
-						"document_name": "Test Document 1",
-						"data": "first_data"
-					}).insert(ignore_permissions=True)
+		frappe.get_doc({
+			"doctype": "Transaction Log",
+			"reference_doctype": "Test Doctype",
+			"document_name": "Test Document 1",
+			"data": "first_data"
+		}).insert(ignore_permissions=True)
 
 		second_log = frappe.get_doc({
 						"doctype": "Transaction Log",
