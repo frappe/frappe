@@ -8,7 +8,7 @@ from frappe.model.document import Document
 import braintree
 from frappe import _
 from six.moves.urllib.parse import urlencode
-from frappe.utils import get_url, call_hook_method, flt
+from frappe.utils import get_url, call_hook_method
 from frappe.integrations.utils import create_request_log, create_payment_gateway
 
 class BraintreeSettings(Document):
