@@ -9,6 +9,8 @@ from frappe.build import html_to_js_template
 import re
 from six import text_type
 
+import io
+
 
 """
 Model utilities, unclassified functions
@@ -51,8 +53,8 @@ def render_include(content):
 
 			for path in paths:
 				app, app_path = path.split('/', 1)
-				with open(frappe.get_app_path(app, app_path), 'r') as f:
-					include = text_type(f.read(), 'utf-8')
+				with io.open(frappe.get_app_path(app, app_path), 'r', encoding = 'utf-8') as f:
+					include = f.read()
 					if path.endswith('.html'):
 						include = html_to_js_template(path, include)
 
