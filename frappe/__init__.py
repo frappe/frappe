@@ -1264,9 +1264,7 @@ def attach_print(doctype, name, file_name=None, print_format=None, style=None, h
 	if lang: local.lang = lang
 	local.flags.ignore_print_permissions = True
 
-	no_letterhead = 1
-	if print_letterhead:
-		no_letterhead = 0
+	no_letterhead = not print_letterhead
 
 	if int(print_settings.send_print_as_pdf or 0):
 		out = {
