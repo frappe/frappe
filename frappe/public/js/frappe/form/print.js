@@ -118,7 +118,9 @@ frappe.ui.form.PrintPreview = Class.extend({
  		if (print_format.default_print_language) {
  			this.lang_code = print_format.default_print_language;
  			this.language_sel.val(this.lang_code);
- 		}
+ 		} else {
+			this.language_sel.val(frappe.boot.lang);	
+		}
  	},
 	multilingual_preview: function () {
 		var me = this;
