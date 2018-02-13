@@ -13,7 +13,7 @@ from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
 from frappe.permissions import get_role_permissions
-from six import string_types
+from six import string_types, iteritems
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
@@ -340,7 +340,9 @@ def get_linked_doctypes(columns, data):
 					if val and col not in columns_with_value:
 						columns_with_value.append(col)
 
-	for doctype, key in linked_doctypes.items():
+	items = list(iteritems(linked_doctypes))
+
+	for doctype, key in items:
 		if key not in columns_with_value:
 			del linked_doctypes[doctype]
 
