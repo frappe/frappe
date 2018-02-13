@@ -1463,3 +1463,11 @@ def get_version(doctype, name, limit = None, head = False, raise_err = True):
 			raise ValueError('{doctype} has no versions tracked.'.format(
 				doctype = doctype
 			))
+
+def safe_decode(what, encoding = 'utf-8'):
+	try:
+		what = what.decode('utf-8')
+	except Exception:
+		pass
+		
+	return what

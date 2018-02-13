@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe, re, os
 from six import iteritems
+from past.builtins import cmp
 
 def delete_page_cache(path):
 	cache = frappe.cache()

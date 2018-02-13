@@ -7,6 +7,7 @@ from frappe.utils import scrub_urls
 from frappe import _
 from bs4 import BeautifulSoup
 from PyPDF2 import PdfFileWriter, PdfFileReader
+import io
 
 def get_pdf(html, options=None, output = None):
 	html = scrub_urls(html)
@@ -16,7 +17,7 @@ def get_pdf(html, options=None, output = None):
 	try:
 		pdfkit.from_string(html, fname, options=options or {})
 		if output:
-			append_pdf(PdfFileReader(file(fname,"rb")),output)
+			append_pdf(PdfFileReader(io.open(fname,"rb")),output)
 		else:
 			with open(fname, "rb") as fileobj:
 				filedata = fileobj.read()

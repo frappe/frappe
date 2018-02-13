@@ -25,7 +25,7 @@ def make_boilerplate(dest, app_name):
 		hook_key = key.split(" (")[0].lower().replace(" ", "_")
 		hook_val = None
 		while not hook_val:
-			hook_val = cstr(raw_input(key + ": "))
+			hook_val = cstr(input(key + ": "))
 
 			if not hook_val:
 				defaults = {

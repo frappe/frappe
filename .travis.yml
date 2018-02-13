@@ -3,6 +3,7 @@ dist: trusty
 
 python:
   - "2.7"
+  - "3.5"
 
 services:
   - mysql
@@ -14,13 +15,15 @@ install:
   - sudo rm /etc/apt/sources.list.d/docker.list
   - sudo apt-get purge -y mysql-common mysql-server mysql-client
   - nvm install v7.10.0
+  - sudo apt-get install python3-dev
+  - sudo apt-get install python3-pip
   - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
     
   - sudo python install.py --develop --user travis --without-bench-setup
   - sudo pip install -e ~/bench
 
   - rm $TRAVIS_BUILD_DIR/.git/shallow
-  - cd ~/ && bench init frappe-bench --frappe-path $TRAVIS_BUILD_DIR
+  - cd ~/ && bench init frappe-bench --frappe-path $TRAVIS_BUILD_DIR --python python3
   - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
 
 before_script:
