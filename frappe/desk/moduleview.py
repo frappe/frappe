@@ -124,10 +124,11 @@ def get_doctype_info(module):
 	}, or_filters={
 		"ifnull(restrict_to_domain, '')": "",
 		"restrict_to_domain": ("in", active_domains)
-	}, fields=["'doctype' as type", "name", "description", "ifnull(document_type, '') as document_type",
+	}, fields=["'doctype' as type", "name", "description", "document_type",
 		"custom", "issingle"], order_by="custom asc, document_type desc, name asc")
 
 	for d in doctype_info:
+		d.document_type = d.document_type or ""
 		d.description = _(d.description or "")
 
 	return doctype_info

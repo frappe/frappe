@@ -191,21 +191,22 @@ class DatabaseQuery(object):
 			the system will filter out this field.
 		'''
 		regex = re.compile('^.*[,();].*')
-		whitelisted_functions = ['count', 'locate']
-		blacklisted_statements = ['select', 'create', 'insert', 'delete', 'drop', 'update']
+		blacklisted_keywords = ['select', 'create', 'insert', 'delete', 'drop', 'update', 'case']
+		blacklisted_functions = ['concat', 'concat_ws', 'if', 'ifnull', 'nullif', 'coalesce',
+			'connection_id', 'current_user', 'database', 'last_insert_id', 'session_user',
+			'system_user', 'user', 'version']
 
 		def _raise_exception():
 			frappe.throw(_('Cannot use sub-query or function in fields'), frappe.DataError)
 
 		for field in self.fields:
 			if regex.match(field):
-				if any(function in field for function in whitelisted_functions) and \
-					all(statement.lower() not in field.lower() for statement in blacklisted_statements):
-					continue
-				_raise_exception()
+				if any(keyword in field.lower() for keyword in blacklisted_keywords):
+					_raise_exception()
 
-			elif any(statement in field for statement in blacklisted_statements):
-				_raise_exception()
+				if any("{0}(".format(keyword) in field.lower() \
+					for keyword in blacklisted_functions):
+					_raise_exception()
 
 	def extract_tables(self):
 		"""extract tables from fields"""
