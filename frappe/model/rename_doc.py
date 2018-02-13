@@ -52,6 +52,8 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	update_attachments(doctype, old, new)
 
+	rename_versions(doctype, old, new)
+
 	if merge:
 		frappe.delete_doc(doctype, old)
 
@@ -62,8 +64,6 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 	new_doc._local = getattr(old_doc, "_local", None)
 
 	new_doc.run_method("after_rename", old, new, merge)
-
-	rename_versions(doctype, old, new)
 
 	if not merge:
 		rename_password(doctype, old, new)
