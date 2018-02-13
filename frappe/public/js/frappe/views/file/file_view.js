@@ -113,14 +113,14 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	}
 
 	set_fields() {
-		this._fields = this.meta.fields
+		this.fields = this.meta.fields
 			.filter(df => frappe.model.is_value_type(df.fieldtype) && !df.hidden)
 			.map(df => df.fieldname)
 			.concat(['name', 'modified', 'creation']);
 	}
 
-	update_data(data) {
-		super.update_data(data);
+	prepare_data(data) {
+		super.prepare_data(data);
 
 		this.data = this.data.map(d => {
 			let icon_class = '';

@@ -3,9 +3,7 @@
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
 		"public/css/website.css",
-		"public/css/avatar.css",
-
-		"public/css/chat.css"
+		"public/css/avatar.css"
 	],
 	"js/frappe-web.min.js": [
 		"public/js/frappe/class.js",
@@ -22,11 +20,7 @@
 		"public/js/lib/microtemplate.js",
 		"public/js/frappe/query_string.js",
 		"website/js/website.js",
-		"public/js/frappe/misc/rating_icons.html",
-
-		"public/js/lib/hyper.min.js",
-		"public/js/lib/fuse.min.js",
-		"public/js/frappe/chat.js"
+		"public/js/frappe/misc/rating_icons.html"
 	],
 	"js/control.min.js": [
 		"public/js/frappe/ui/capture.js",
@@ -241,6 +235,7 @@
 		"public/js/frappe/ui/toolbar/about.js",
 		"public/js/frappe/ui/toolbar/navbar.html",
 		"public/js/frappe/ui/toolbar/toolbar.js",
+		"public/js/frappe/ui/toolbar/modules_select.js",
 		"public/js/frappe/ui/toolbar/notifications.js",
 		"public/js/frappe/views/communication.js",
 		"public/js/frappe/views/translation_manager.js",
@@ -367,7 +362,7 @@
 	"js/report.min.js": [
 		"public/js/lib/clusterize.min.js",
 		"public/js/lib/frappe-datatable.js",
-		"public/js/frappe/views/reports/reportview.js",
+		"public/js/frappe/views/reports/report_factory.js",
 		"public/js/frappe/views/reports/report_view.js",
 		"public/js/frappe/views/reports/reportview_footer.html",
 		"public/js/frappe/views/reports/query_report.js",

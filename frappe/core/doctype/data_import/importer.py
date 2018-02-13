@@ -168,7 +168,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 									# added file to attachments list
 									attachments.append(d[fieldname])
 
-								elif fieldtype in ("Link", "Dynamic Link") and d[fieldname]:
+								elif fieldtype in ("Link", "Dynamic Link", "Data") and d[fieldname]:
 									# as fields can be saved in the number format(long type) in data import template
 									d[fieldname] = cstr(d[fieldname])
 
@@ -281,8 +281,11 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	start_row = get_start_row()
 	header = rows[:start_row]
 	data = rows[start_row:]
-	doctype = get_header_row(get_data_keys_definition().main_table)[1]
-	columns = filter_empty_columns(get_header_row(get_data_keys_definition().columns)[1:])
+	try:
+		doctype = get_header_row(get_data_keys_definition().main_table)[1]
+		columns = filter_empty_columns(get_header_row(get_data_keys_definition().columns)[1:])
+	except:
+		frappe.throw(_("Cannot change header content"))
 	doctypes = []
 	column_idx_to_fieldname = {}
 	column_idx_to_fieldtype = {}

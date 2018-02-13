@@ -13,8 +13,6 @@ Build the `public` folders and setup languages
 """
 
 import os, frappe, json, shutil, re
-# from cssmin import cssmin
-
 
 app_paths = None
 def setup():
@@ -103,7 +101,7 @@ def make_asset_dirs(make_copy=False, restore=False):
 							shutil.rmtree(target)
 					os.symlink(source, target)
 			else:
-				warnings.warn('Source {source} does not exists.'.format(source = source))
+				warnings.warn('Source {source} does not exist.'.format(source = source))
 
 def build(no_compress=False, verbose=False):
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
@@ -177,10 +175,6 @@ def pack(target, sources, no_compress, verbose):
 		except Exception:
 			print("--Error in:" + f + "--")
 			print(frappe.get_traceback())
-
-	if not no_compress and outtype == 'css':
-		pass
-		#outtxt = cssmin(outtxt)
 
 	with open(target, 'w') as f:
 		f.write(outtxt.encode("utf-8"))

@@ -9,6 +9,7 @@ import frappe.utils
 import json, os
 
 from six import iteritems, string_types, integer_types
+from frappe.utils.file_manager import save_file
 
 '''
 Handle RESTful requests that are mapped to the `/api/resource` route.
@@ -81,6 +82,13 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 		filters = None
 
 	return frappe.db.get_value(doctype, filters, fieldname, as_dict=as_dict, debug=debug)
+
+@frappe.whitelist()
+def get_single_value(doctype, field):
+	if not frappe.has_permission(doctype):
+		frappe.throw(_("No permission for {doctype}".format(doctype = doctype)), frappe.PermissionError)
+	value = frappe.db.get_single_value(doctype, field)
+	return value
 
 @frappe.whitelist()
 def set_value(doctype, name, fieldname, value=None):
@@ -305,3 +313,34 @@ def get_js(items):
 def get_time_zone():
 	'''Returns default time zone'''
 	return {"time_zone": frappe.defaults.get_defaults().get("time_zone")}
+
+@frappe.whitelist()
+def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder=None, decode_base64=False, is_private=None, docfield=None):
+	'''Attach a file to Document (POST)
+
+	:param filename: filename e.g. test-file.txt
+	:param filedata: base64 encode filedata
+	:param doctype: Reference DocType to attach file
+	:param docname: Reference DocName to attach file
+	:param folder: Folder to add File into
+	:param decode_base64: decode filedata from base64 encode, default is False
+	:param is_private: Attach file as private file
+	:param docfield: file to attach to'''
+
+	request_method = frappe.local.request.environ.get("REQUEST_METHOD")
+
+	if request_method.upper() != "POST":
+		frappe.throw(_("Invalid Request"))
+
+	doc = frappe.get_doc(doctype, docname)
+
+	if not doc.has_permission():
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+	f = save_file(filename, filedata, doctype, docname, folder, decode_base64, is_private, docfield)
+
+	if docfield and doctype:
+		doc.set(docfield, f.file_url)
+		doc.save()
+
+	return f.as_dict()

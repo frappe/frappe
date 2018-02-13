@@ -544,7 +544,7 @@ def get_perm_info(role):
 	return get_all_perms(role)
 
 @frappe.whitelist(allow_guest=True)
-def update_password(new_password, key=None, old_password=None):
+def update_password(new_password, logout_all_sessions=0, key=None, old_password=None):
 	result = test_password_strength(new_password, key, old_password)
 	feedback = result.get("feedback", None)
 
@@ -557,7 +557,7 @@ def update_password(new_password, key=None, old_password=None):
 	else:
 		user = res['user']
 
-	_update_password(user, new_password)
+	_update_password(user, new_password, logout_all_sessions=int(logout_all_sessions))
 
 	user_doc, redirect_url = reset_user_data(user)
 
@@ -566,7 +566,6 @@ def update_password(new_password, key=None, old_password=None):
 	if redirect_to:
 		redirect_url = redirect_to
 		frappe.cache().hdel('redirect_after_login', user)
-
 
 	frappe.local.login_manager.login_as(user)
 

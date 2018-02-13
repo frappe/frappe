@@ -59,6 +59,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.patch_refresh_and_load_lib();
 	}
 
+	set_fields() {
+		let fields = [].concat(
+			frappe.model.std_fields_list,
+			this.get_fields_in_list_view(),
+			[this.meta.title_field, this.meta.image_field],
+			(this.settings.add_fields || []),
+			this.meta.track_seen ? '_seen' : null
+		);
+
+		fields.forEach(f => this._add_field(f));
+	}
+
 	patch_refresh_and_load_lib() {
 		// throttle refresh for 1s
 		this.refresh = this.refresh.bind(this);
@@ -233,18 +245,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.settings.before_render && this.settings.before_render();
 		frappe.model.user_settings.save(this.doctype, 'last_view', this.view_name);
 		this.save_view_user_settings({
-			fields: this._fields,
 			filters: this.filter_area.get(),
 			order_by: this.sort_selector.get_sql_string()
 		});
 	}
 
 	render() {
-
-		if (!this.start === 0) {
-			// append new rows
-		}
-
 		if (this.data.length > 0) {
 			const html = `
 				${this.get_header_html()}
@@ -354,7 +360,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return `
 			<div class="list-row-container">
 				<div class="level list-row small">
-					<div class="level-left">
+					<div class="level-left ellipsis">
 						${left}
 					</div>
 					<div class="level-right text-muted ellipsis">
@@ -513,7 +519,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_form_link(doc) {
-		return '#Form/' + this.doctype + '/' + doc.name;
+		const docname = doc.name.match(/[%'"]/)
+			? encodeURIComponent(doc.name)
+			: doc.name;
+
+		return '#Form/' + this.doctype + '/' + docname;
 	}
 
 	get_subject_html(doc) {
@@ -528,7 +538,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			'liked-by' : 'text-extra-muted not-liked';
 
 		const seen = JSON.parse(doc._seen || '[]')
-			.includes(user) ? 'seen' : '';
+			.includes(user) ? '' : 'bold';
 
 		let subject_html = `
 			<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${doc.name}">
@@ -816,6 +826,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				standard: true
 			});
 		}
+
+		items.push({
+			label: __('Toggle Sidebar'),
+			action: () => this.toggle_side_bar(),
+			standard: true
+		});
 
 		// utility
 		const bulk_assignment = () => {

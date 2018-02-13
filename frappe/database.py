@@ -16,6 +16,7 @@ from frappe.utils import now, get_datetime, cstr
 from frappe import _
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.utils.background_jobs import execute_job, get_queue
+from frappe import as_unicode
 
 # imports - compatibility imports
 from six import (
@@ -402,6 +403,10 @@ class Database:
 
 			conditions.append(condition)
 
+		if isinstance(filters, int):
+			# docname is a number, convert to string
+			filters = str(filters)
+
 		if isinstance(filters, string_types):
 			filters = { "name": filters }
 
@@ -617,7 +622,7 @@ class Database:
 		order_by = ("order by " + order_by) if order_by else ""
 
 		r = self.sql("select {0} from `tab{1}` {2} {3} {4}"
-			.format(fl, doctype, "where" if conditions else "", conditions, order_by), values, 
+			.format(fl, doctype, "where" if conditions else "", conditions, order_by), values,
 			as_dict=as_dict, debug=debug, update=update)
 
 		return r
@@ -886,10 +891,8 @@ class Database:
 
 	def escape(self, s, percent=True):
 		"""Excape quotes and percent in given string."""
-		if isinstance(s, text_type):
-			s = (s or "").encode("utf-8")
-
-		s = text_type(pymysql.escape_string(s), "utf-8").replace("`", "\\`")
+		# pymysql expects unicode argument to escape_string with Python 3
+		s = as_unicode(pymysql.escape_string(as_unicode(s)), "utf-8").replace("`", "\\`")
 
 		# NOTE separating % escape, because % escape should only be done when using LIKE operator
 		# or when you use python format string to generate query that already has a %s

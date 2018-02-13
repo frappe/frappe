@@ -172,8 +172,6 @@ frappe.ui.form.Grid = Class.extend({
 			// redraw
 			var _scroll_y = $(document).scrollTop();
 			this.make_head();
-			// to hide checkbox if grid is not editable
-			this.header_row && this.header_row.toggle_check();
 
 			if(!this.grid_rows) {
 				this.grid_rows = [];
@@ -510,6 +508,14 @@ frappe.ui.form.Grid = Class.extend({
 						case"Check": colsize = 1;
 					}
 					df.colsize = colsize;
+				}
+				
+				// attach formatter on refresh
+				if (df.fieldtype == 'Link' && !df.formatter) {
+					const docfield = frappe.meta.docfield_map[df.parent][df.fieldname];
+					if (docfield && docfield.formatter) {
+						df.formatter = docfield.formatter;
+					}
 				}
 
 				total_colsize += df.colsize;

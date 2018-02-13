@@ -120,6 +120,8 @@ def parse_naming_series(parts, doctype= '', doc = ''):
 			part = today.strftime("%d")
 		elif e=='YYYY':
 			part = today.strftime('%Y')
+		elif e=='FY':
+			part = frappe.defaults.get_user_default("fiscal_year")
 		elif doc and doc.get(e):
 			part = doc.get(e)
 		else: part = e
@@ -197,19 +199,22 @@ def _set_amended_name(doc):
 	doc.name = am_prefix + '-' + str(am_id)
 	return doc.name
 
-def append_number_if_name_exists(doctype, name, fieldname='name', separator='-'):
-	if frappe.db.exists(doctype, name):
-		last = frappe.db.sql("""select name from `tab{doctype}`
-			where {fieldname} regexp '^{name}{separator}[[:digit:]]+'
+def append_number_if_name_exists(doctype, value, fieldname='name', separator='-'):
+	exists = frappe.db.exists(doctype,
+		value if fieldname == 'name' else {fieldname: value})
+				
+	regex = '^{value}{separator}[[:digit:]]+'.format(value=re.escape(value), separator=separator)
+	if exists:
+		last = frappe.db.sql("""select {fieldname} from `tab{doctype}`
+			where {fieldname} regexp %s
 			order by length({fieldname}) desc,
-				{fieldname} desc limit 1""".format(doctype=doctype,
-					name=name, fieldname=fieldname, separator=separator))
+				{fieldname} desc limit 1""".format(doctype=doctype, fieldname=fieldname), regex)
 
 		if last:
-			count = str(cint(last[0][0].rsplit("-", 1)[1]) + 1)
+			count = str(cint(last[0][0].rsplit(separator, 1)[1]) + 1)
 		else:
 			count = "1"
 
-		name = "{0}{1}{2}".format(name, separator, count)
+		value = "{0}{1}{2}".format(value, separator, count)
 
-	return name
+	return value
