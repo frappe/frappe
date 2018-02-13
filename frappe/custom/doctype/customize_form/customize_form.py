@@ -13,6 +13,7 @@ from frappe.utils import cint
 from frappe.model.document import Document
 from frappe.model import no_value_fields
 from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
+from frappe.model.docfield import supports_translation
 
 doctype_properties = {
 	'search_fields': 'Data',

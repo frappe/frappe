@@ -16,6 +16,7 @@ import frappe, os, re, codecs, json
 from frappe.model.utils import render_include, InvalidIncludePath
 from frappe.utils import strip
 from jinja2 import TemplateError
+from six import iteritems
 import itertools, operator
 
 def guess_language(lang_list=None):
@@ -740,35 +741,27 @@ def update_translations_for_source(source=None, translation_dict=None):
 
 	translation_dict = json.loads(translation_dict)
 
-	translation_records = frappe.db.get_values('Translation', { 'source_name': source }, ['name', 'lang'],  as_dict=1)
-
-	# for d in translation_records:
-	# 	if translation_dict[d.lang]:
-	# 		frappe.db.set_value('Translation', d.name, {
-	# 			'target_name': translation_dict[d.lang]
-	# 		})
-	# 	else:
-	# 		frappe.delete_doc('Translation', d.name)
-
-	for t in translation_list:
-		t = frappe._dict(t)
-
-		if t.translation:
-			# has translated text, update or add new
-			if name:
-				frappe.db.set_value('Translation', name, {
-					'target_name': t.translation
-				})
-			else:
-				frappe.get_doc({
-					'doctype': 'Translation',
-					'language': t.lang,
-					'source_name': source,
-					'target_name': t.translation
-				}).insert()
+	# for existing records
+	translation_records = frappe.db.get_values('Translation', { 'source_name': source }, ['name', 'language'],  as_dict=1)
+	for d in translation_records:
+		if translation_dict.get(d.language, None):
+			doc = frappe.get_doc('Translation', d.name)
+			doc.target_name = translation_dict.get(d.language)
+			doc.save()
+			# done with this lang value
+			translation_dict.pop(d.language)
 		else:
-			# doesn't have translated text, delete if exists
-			pass
+			frappe.delete_doc('Translation', d.name)
+
+	# remaining values are to be inserted
+	for lang, target_name in iteritems(translation_dict):
+		doc = frappe.new_doc('Translation')
+		doc.language = lang
+		doc.source_name = source
+		doc.target_name = target_name
+		doc.save()
+
+	return translation_records
 
 @frappe.whitelist()
 def update_record_translation(translated, for_removal):

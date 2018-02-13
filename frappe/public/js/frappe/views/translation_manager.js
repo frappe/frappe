@@ -5,19 +5,36 @@ frappe.views.TranslationManager = class TranslationManager {
 	}
 
 	make() {
+		this.data = [];
 		this.dialog = new frappe.ui.Dialog({
 			fields: this.get_fields(),
 			title: __('Translate {0}', [this.df.label]),
 			no_submit_on_enter: true,
 			primary_action_label: __('Update Translations'),
-			primary_action: this.update_translations.bind(this)
+			primary_action:
+				(values) => this.update_translations(values)
+					.then(() => {
+						this.dialog.hide();
+
+						this.data = [];
+
+						frappe.msgprint({
+							title: __('Success'),
+							message: __('Successfully updated translations'),
+							indicator: 'green'
+						});
+					})
 		});
-		this.dialog.show();
+
+		this.get_translations_data()
+			.then(data => {
+				this.data.push(...(data || []));
+				this.dialog.refresh();
+				this.dialog.show();
+			});
 	}
 
 	get_fields() {
-		const data = this.get_translations_data();
-
 		var fields = [
 			{
 				label: __('Source Text'),
@@ -25,16 +42,16 @@ frappe.views.TranslationManager = class TranslationManager {
 				fieldtype: 'Data',
 				read_only: 1,
 				bold: 1,
-				default: this.source_text
+				default: this.source_name
 			},
 			{
 				label: __('Translations'),
-				fieldname: 'translation_table',
+				fieldname: 'translation_data',
 				fieldtype: 'Table',
 				fields: [
 					{
 						label: 'Language',
-						fieldname: 'lang',
+						fieldname: 'language',
 						fieldtype: 'Link',
 						options: 'Language',
 						in_list_view: 1,
@@ -48,111 +65,39 @@ frappe.views.TranslationManager = class TranslationManager {
 						columns: 7
 					}
 				],
-				data: data,
-				get_data() {
-					return data;
+				data: this.data,
+				get_data: () => {
+					return this.data;
 				}
 			}
 		];
-
-		// frappe.boot.translate_languages.forEach(function (lang) {
-		// 	if (frappe.defaults.get_global_default('lang') == lang) return;
-		// 	var translated = null;
-		// 	if (me.doc.__onload.translations &&
-		// 		me.doc.__onload.translations[me.source_text] &&
-		// 		me.doc.__onload.translations[me.source_text][lang]) {
-		// 		translated = me.doc.__onload.translations[me.source_text][lang].target_name;
-		// 	}
-		// 	fields.push({
-		// 		'label': lang,
-		// 		'fieldtype': 'Section Break',
-		// 		'collapsible': true
-		// 	});
-		// 	fields.push({
-		// 		'fieldname': ['trans', md5(self.source_text), lang].join('_'),
-		// 		'fieldtype': 'Text',
-		// 		'default': translated
-		// 	});
-		// 	fields.push({
-		// 		'label': __('Remove Translation'),
-		// 		'fieldname': ['delete', md5(self.source_text), lang].join('_'),
-		// 		'fieldtype': 'Check',
-		// 		'default': 0
-		// 	});
-		// });
 		return fields;
 	}
 
 	get_translations_data() {
-		let data = [];
-		(frappe.boot.translate_languages || []).map(lang => {
-			if (this.doc.__onload.translations &&
-				this.doc.__onload.translations[this.source_text] &&
-				this.doc.__onload.translations[this.source_text][lang]
-			) {
-				data.push({
-					idx: data.length,
-					lang: lang,
-					translation: this.doc.__onload.translations[this.source_text][lang].target_name
-				});
+		return frappe.db.get_list('Translation', {
+			fields: ['name', 'language', 'target_name as translation'],
+			filters: {
+				source_name: this.source_name
 			}
 		});
-
-		return data;
 	}
 
-	update_translations({ source, translation_table }) {
+	update_translations({ source, translation_data = [] }) {
 		const translation_dict = {};
-		translation_table.map(row => {
-			translation_dict[row.lang] = row.translation;
+		translation_data.map(row => {
+			translation_dict[row.language] = row.translation;
 		});
 
-		frappe.call('frappe.translate.update_translations_for_source', {
+		return frappe.call('frappe.translate.update_translations_for_source', {
 			source,
 			translation_dict
-		}).then(r => {
-			console.log(r);
-		});
-	}
-
-	translate_action(args) {
-		var
-			self = this,
-			translated = {
-				'source': self.source_text,
-				'language': frappe.defaults.get_global_default('language')
-			},
-			key, splitted, for_removal = [];
-
-		for (key in args) {
-			splitted = key.split("_");
-
-			if (splitted[0] == 'delete' && args[key] === 1) {
-				for_removal.push(splitted[2])
-			} else if (splitted[0] != 'delete' && !for_removal.includes(splitted[2]) && args[key] && args[key.replace('trans', 'delete')] !== 1) {
-				translated[splitted[2]] = args[key];
-			}
-		}
-
-		frappe.call({
-			'method': 'frappe.translate.update_record_translation',
-			'args': {
-				'translated': translated,
-				'for_removal': for_removal
-			},
-			'callback': function (res) {
-				if (!res.exc) {
-					// Wont work properly without an setTimeout
-					setTimeout(function () {
-						cur_dialog.hide();
-						frappe.show_alert({
-							message: __("Translations updated"),
-							indicator: "green"
-						});
-						cur_frm.refresh();
-					}, 500);
-				}
-			}
+		}).fail(() => {
+			frappe.msgprint({
+				title: __('Something went wrong'),
+				message: __('Please try again'),
+				indicator: 'red'
+			});
 		});
 	}
 };
