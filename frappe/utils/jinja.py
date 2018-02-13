@@ -57,20 +57,16 @@ def render_template(template, context, is_path=None):
 	:param context: dict of properties to pass to the template
 	:param is_path: (optional) assert that the `template` parameter is a path'''
 
-	from frappe import _, get_doc
-	from frappe.model.document import Document
-
 	if not template:
 		return ""
 
+	# if it ends with .html then its a freaking path, not html
 	if (is_path
 		or template.startswith("templates/")
-		# if it ends with .html then its a freaking path, not html
 		or (template.endswith('.html') and '\n' not in template)):
-		with open(template, 'rb') as f:
-			template = f.read()
-
-	return get_jenv().from_string(_(template)).render(context)
+		return get_jenv().get_template(template).render(context)
+	else:
+		return get_jenv().from_string(template).render(context)
 
 def get_allowed_functions_for_jenv():
 	import os, json
