@@ -110,39 +110,26 @@ frappe.ui.form.Control = Class.extend({
 		// Disable translation in website
 		if (!frappe.views || !frappe.views.TranslationManager) return;
 
-		frappe.get_enabled_languages()
-			.then((langs) => {
-				// At least two languages needs to be enabled to translation works
-				if (langs.length >= 2) {
-					// Already attached button
-					if (this.$wrapper.find('.clearfix .btn-translation').length) return;
+		// Already attached button
+		if (this.$wrapper.find('.clearfix .btn-translation').length) return;
 
-					const translated_value = (
-						this.doc.__onload
-						&& this.doc.__onload.translations
-						&& this.doc.__onload.translations[value]
-					);
+		const translation_btn =
+			`<a class="btn-translation no-decoration text-muted" title="${__('Open Translation')}">
+				<i class="fa fa-globe"></i>
+			</a>`;
 
-					const translation_btn =
-						`<a class="btn-translation no-decoration text-muted" title="${__('Open Translation')}">
-							<i class="fa fa-globe ${translated_value ? "text-warning": ""}"></i>
-						</a>`;
-
-					$(translation_btn)
-						.appendTo(this.$wrapper.find('.clearfix'))
-						.on('click', () => {
-							if (!this.doc.__islocal) {
-								new frappe.views.TranslationManager({
-									'df': this.df,
-									'source_name': value,
-									'target_language': this.doc.language,
-									'doc': this.doc
-								});
-							}
-						});
+		$(translation_btn)
+			.appendTo(this.$wrapper.find('.clearfix'))
+			.on('click', () => {
+				if (!this.doc.__islocal) {
+					new frappe.views.TranslationManager({
+						'df': this.df,
+						'source_name': value,
+						'target_language': this.doc.language,
+						'doc': this.doc
+					});
 				}
 			});
-
 
 	},
 	get_doc: function() {

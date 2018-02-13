@@ -89,9 +89,13 @@ frappe.views.TranslationManager = class TranslationManager {
 			translation_dict[row.language] = row.translation;
 		});
 
-		return frappe.call('frappe.translate.update_translations_for_source', {
-			source,
-			translation_dict
+		return frappe.call({
+			method: 'frappe.translate.update_translations_for_source',
+			btn: this.dialog.get_primary_btn(),
+			args: {
+				source,
+				translation_dict
+			}
 		}).fail(() => {
 			frappe.msgprint({
 				title: __('Something went wrong'),

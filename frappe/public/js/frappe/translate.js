@@ -26,19 +26,3 @@ frappe.get_languages = function() {
 	}
 	return frappe.languages;
 };
-
-// cache enabled languages
-frappe.get_enabled_languages = function() {
-	if (frappe.enabled_languages) {
-		return Promise.resolve(frappe.enabled_languages);
-	}
-
-	return frappe.db.get_list('Language', {
-		filters: {
-			enabled: 1
-		}
-	}).then(langs => {
-		frappe.enabled_languages = langs.map(lang => lang.name);
-		return frappe.enabled_languages;
-	});
-}

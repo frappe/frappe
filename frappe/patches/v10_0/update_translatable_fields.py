@@ -17,13 +17,25 @@ def execute():
 	frappe.reload_doc('core', 'doctype', 'docfield')
 	frappe.reload_doc('custom', 'doctype', 'custom_field')
 
-	# frappe.db.sql('''
-	# 	UPDATE `tabDocField`
-	# 	SET translatable = IF (fieldtype IN ("Data", "Select", "Text", "Small Text", "Text Editor"), 0, 0)
-	# ''')
+	enable_for_fields = [
+		['Customer', 'customer_name'],
+		['Supplier', 'supplier_name'],
+		['Contact', 'first_name'],
+		['Contact', 'last_name'],
+		['Item', 'item_name'],
+		['Item', 'description'],
+		['Address', 'address_line1'],
+		['Address', 'address_line2'],
+	]
 
-	# frappe.db.set_value('DocField')
-	# frappe.db.sql('''
-	# 	UPDATE `tabCustom Field`
-	# 	SET translatable = IF (fieldtype IN ("Data", "Select", "Text", "Small Text", "Text Editor"), 1, 0)
-	# ''')
+
+	for f in enable_for_fields:
+		frappe.get_doc({
+			'doctype': 'Property Setter',
+			'doc_type': f[0],
+			'doctype_or_field': 'DocField',
+			'field_name': f[1],
+			'property': 'translatable',
+			'propery_type': 'Check',
+			'value': 1
+		}).db_insert()
