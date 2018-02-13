@@ -213,7 +213,7 @@ class CustomizeForm(Document):
 						continue
 
 					elif property == 'translatable' and not supports_translation(df.get('fieldtype')):
-						frappe.msgprint(_("You can't set 'Translatable for field {0}").format(df.label))
+						frappe.msgprint(_("You can't set 'Translatable' for field {0}").format(df.label))
 						continue
 
 					self.make_property_setter(property=property, value=df.get(property),
