@@ -19,7 +19,7 @@
 		<a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
 	    	{{ _("Cancel") }}</a>
 		{%- endif %}
-		{% if not is_list %}
+		{% if not is_list and layout|length == 1 %}
 	    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
 	    		{{ _("Save") }}</button>
 		{% endif %}
@@ -109,6 +109,14 @@
 			class="form-control" {{ properties(field) }}
 			value="{{ value(field, _doc) }}"
 			{%- if field.fieldtype=="Int" %} pattern="[0-9]*"{% endif %}
+			{%- if field.max_length %} maxlength={{ field.max_length }}{% endif %}>
+		{{ help(field) }}
+	</div>
+    {% elif field.fieldtype == "Password" %}
+	<div class="form-group{% if field.reqd %} has-error{% endif %}">
+		{% if with_label %}{{ label(field) }}{% endif %}
+		<input type="password" class="form-control" {{ properties(field) }}
+			value="{{ value(field, _doc) }}"
 			{%- if field.max_length %} maxlength={{ field.max_length }}{% endif %}>
 		{{ help(field) }}
 	</div>
@@ -234,7 +242,7 @@
 {% endmacro %}
 
 <!-- pagination -->
-{% if not frappe.form_dict.new and layout|len > 1 %}
+{% if not frappe.form_dict.new and layout|length > 1 %}
 <div class="text-center slide-progress text-extra-muted">
 	{% for page in layout %}
 	<i data-idx="{{ loop.index }}" data-toggle="tooltip" data-placement="top"
@@ -258,7 +266,7 @@
 	{% endif %}
 
 	{% for page in layout %}
-	{% set last_page = True if loop.index == layout|len else False %}
+	{% set last_page = True if loop.index == layout|length else False %}
 	<div class="web-form-page{% if loop.index > 1 %} hidden{% endif %}"
 		data-idx="{{ loop.index }}"
 		data-label="{{ page.label or _("Page {0}").format(loop.index) }}">
@@ -278,7 +286,7 @@
 			{% endif %}
 			<div class="row">
 					{% for column in section.columns %}
-					<div class="col-sm-{{ (12 / (section.columns|len))|int }}">
+					<div class="col-sm-{{ (12 / (section.columns|length))|int }}">
 							{% for field in column %}
 								{% if field.fieldtype=='Table' %}
 									{{ render_table(field) }}
@@ -307,9 +315,9 @@
 		{% endif %}
 		<!-- page footer buttons -->
 		<div>
-			{% if layout|len > 1 %}
+			{% if layout|length > 1 %}
 			<p class='text-muted small text-center'>
-				{{ _("Page {0} of {1}").format(loop.index, layout|len) }}</p>
+				{{ _("Page {0} of {1}").format(loop.index, layout|length) }}</p>
 			{% endif %}
 			<br>
 			<p class='text-right'>
@@ -319,12 +327,12 @@
 					{{ _("Previous") }}</button>
 				{%- endif -%}
 				<!-- save/next button -->
-				{% if (loop.index == layout|len or frappe.form_dict.new) %}
+				{% if loop.index == layout|length %}
 					{% if not read_only %}
 				    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
 				    	{{ _("Save") }}</button>
 					{% endif %}
-				{% elif layout|len > 1 %}
+				{% elif layout|length > 1 %}
 				    <button class="btn btn-primary btn-sm btn-change-section"
 						data-idx="{{ loop.index + 1 }}">
 				    	{{ _("Next") }}</button>
