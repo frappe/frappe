@@ -89,7 +89,7 @@ $.extend(frappe.model, {
 					for (var x=0, y=value.length; x < y; x++) {
 						var d = value[x];
 
-						if(!d.parent)
+						if(typeof d=='object' && !d.parent)
 							d.parent = doc.name;
 
 						frappe.model.add_to_locals(d);

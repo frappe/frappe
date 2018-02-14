@@ -15,6 +15,7 @@ const multi_entry = require('rollup-plugin-multi-entry');
 const commonjs = require('rollup-plugin-commonjs');
 const node_resolve = require('rollup-plugin-node-resolve');
 const buble = require('rollup-plugin-buble');
+const uglify = require('rollup-plugin-uglify');
 const frappe_html = require('./frappe-html-plugin');
 
 const production = process.env.FRAPPE_ENV === 'production';
@@ -73,7 +74,8 @@ function get_js_config(output_file, input_files) {
 			}
 		}),
 		commonjs(),
-		node_resolve()
+		node_resolve(),
+		production && uglify()
 	];
 
 	return {
@@ -106,7 +108,8 @@ function get_css_config(output_file, input_files) {
 			output: path.resolve(assets_path, output_file),
 			option: {
 				// so that other .less files can import variables.less from frappe directly
-				paths: [path.resolve(get_public_path('frappe'), 'less')]
+				paths: [path.resolve(get_public_path('frappe'), 'less')],
+				compress: production
 			},
 			include: [path.resolve(bench_path, '**/*.less'), path.resolve(bench_path, '**/*.css')]
 		})
