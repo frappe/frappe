@@ -63,7 +63,7 @@ def get_app_commands(app):
 	try:
 		app_command_module = importlib.import_module(app + '.commands')
 	except ImportError as e:
-		if not 'No module named commands' in str(e):
+		if not 'No module named' in str(e):
 			traceback.print_exc()
 		return []
 

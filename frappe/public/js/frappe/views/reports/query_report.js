@@ -954,6 +954,8 @@ frappe.views.QueryReport = Class.extend({
 			height: 200
 		});
 
+		console.log(opts)
+
 		if(opts.data && opts.data.labels && opts.data.labels.length) {
 			this.chart_area.toggle(true);
 			this.chart = new Chart(opts);
