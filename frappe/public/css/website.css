@@ -1049,6 +1049,7 @@ li.footer-child-item {
 .post-description {
   margin: 15px 0;
 }
+/* added to make iframe responsive */
 .embed-container {
   position: relative;
   padding-bottom: 56.25%;
