@@ -51,5 +51,6 @@ module.exports = {
 	get_build_json_path,
 	get_app_path,
 	apps_list,
-	assets_path
+	assets_path,
+	bench_path
 };
