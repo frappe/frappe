@@ -3,7 +3,7 @@
 
 frappe.provide("frappe.treeview_settings");
 frappe.provide('frappe.views.trees');
-cur_tree = null;
+window.cur_tree = null;
 
 frappe.views.TreeFactory = frappe.views.Factory.extend({
 	make: function(route) {

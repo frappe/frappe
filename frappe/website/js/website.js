@@ -3,7 +3,7 @@
 
 frappe.provide("website");
 frappe.provide("frappe.awesome_bar_path");
-cur_frm = null;
+window.cur_frm = null;
 
 $.extend(frappe, {
 	boot: {
@@ -160,7 +160,7 @@ $.extend(frappe, {
 				+text+'</div>').appendTo(document.body);
 	},
 	get_sid: function() {
-		var sid = getCookie("sid");
+		var sid = frappe.get_cookie("sid");
 		return sid && sid !== "Guest";
 	},
 	get_modal: function(title, body_html) {
@@ -258,7 +258,7 @@ $.extend(frappe, {
 	},
 
 	highlight_code_blocks: function() {
-		if(hljs) {
+		if(window.hljs) {
 			$('pre code').each(function(i, block) {
 				hljs.highlightBlock(block);
 			});
@@ -366,8 +366,8 @@ function ask_to_login() {
 
 // check if logged in?
 $(document).ready(function() {
-	window.full_name = getCookie("full_name");
-	var logged_in = getCookie("sid") && getCookie("sid") !== "Guest";
+	window.full_name = frappe.get_cookie("full_name");
+	var logged_in = frappe.get_cookie("sid") && frappe.get_cookie("sid") !== "Guest";
 	$("#website-login").toggleClass("hide", logged_in ? true : false);
 	$("#website-post-login").toggleClass("hide", logged_in ? false : true);
 	$(".logged-in").toggleClass("hide", logged_in ? false : true);
@@ -375,7 +375,7 @@ $(document).ready(function() {
 	frappe.bind_navbar_search();
 
 	// switch to app link
-	if(getCookie("system_user")==="yes" && logged_in) {
+	if(frappe.get_cookie("system_user")==="yes" && logged_in) {
 		frappe.add_switch_to_desk();
 	}
 
@@ -394,7 +394,7 @@ $(document).on("page-change", function() {
 		$(this).parent().parent().parent().addClass('open');
 	})
 
-	$.extend(frappe, getCookies());
+	$.extend(frappe, frappe.get_cookies());
 	frappe.session = {'user': frappe.user_id};
 
 	frappe.datetime.refresh_when();

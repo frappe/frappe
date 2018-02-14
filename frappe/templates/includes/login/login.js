@@ -33,7 +33,7 @@ login.bind_events = function() {
 		var args = {};
 		args.cmd = "frappe.core.doctype.user.user.sign_up";
 		args.email = ($("#signup_email").val() || "").trim();
-		args.redirect_to = get_url_arg("redirect-to") || '';
+		args.redirect_to = frappe.utils.get_url_arg("redirect-to") || '';
 		args.full_name = ($("#signup_fullname").val() || "").trim();
 		if(!args.email || !valid_email(args.email) || !args.full_name) {
 			login.set_indicator("{{ _("Valid email and name required") }}", 'red');
@@ -161,13 +161,13 @@ login.login_handlers = (function() {
 		200: function(data) {
 			if(data.message == 'Logged In'){
 				login.set_indicator("{{ _("Success") }}", 'green');
-				window.location.href = get_url_arg("redirect-to") || data.home_page;
+				window.location.href = frappe.utils.get_url_arg("redirect-to") || data.home_page;
 			} else if(data.message=="No App") {
 				login.set_indicator("{{ _("Success") }}", 'green');
 				if(localStorage) {
 					var last_visited =
 						localStorage.getItem("last_visited")
-						|| get_url_arg("redirect-to");
+						|| frappe.utils.get_url_arg("redirect-to");
 					localStorage.removeItem("last_visited");
 				}
 

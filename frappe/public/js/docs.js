@@ -1,7 +1,7 @@
 // used in documenation site built via document generator
 
 $(function() {
-	if(hljs) {
+	if(window.hljs) {
 		$('pre code').each(function(i, block) {
 			hljs.highlightBlock(block);
 		});

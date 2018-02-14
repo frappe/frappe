@@ -62,7 +62,7 @@ function $c_obj_csv(doc, method, arg) {
 	open_url_post(frappe.request.url, args);
 }
 
-function open_url_post(URL, PARAMS, new_window) {
+window.open_url_post = function open_url_post(URL, PARAMS, new_window) {
 	if (window.cordova) {
 		let url = URL + 'api/method/' + PARAMS.cmd + frappe.utils.make_query_string(PARAMS, false);
 		window.location.href = url;

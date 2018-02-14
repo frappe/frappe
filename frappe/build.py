@@ -31,20 +31,25 @@ def bundle(no_compress, make_copy=False, restore=False, verbose=False):
 
 	make_asset_dirs(make_copy=make_copy, restore=restore)
 
-	# new nodejs build system
-	command = 'node --use_strict ../apps/frappe/frappe/build.js --build'
-	if not no_compress:
-		command += ' --minify'
-	subprocess.call(command.split(' '))
+	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
 
-	# build(no_compress, verbose)
+	command = 'yarn run build'
+	if not no_compress:
+		command = 'yarn run production'
+
+	p = subprocess.Popen(command.split(' '), cwd=frappe_app_path)
+	out, err = p.communicate()
 
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
 
-	# new nodejs file watcher
-	command = 'node --use_strict ../apps/frappe/frappe/build.js --watch'
-	subprocess.call(command.split(' '))
+	setup()
+
+	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
+
+	command = 'yarn run watch'
+	p = subprocess.Popen(command.split(' '), cwd=frappe_app_path)
+	out, err = p.communicate()
 
 	# setup()
 

@@ -3,7 +3,7 @@
 
 frappe.provide('frappe.views.list_view');
 
-cur_list = null;
+window.cur_list = null;
 frappe.views.ListFactory = frappe.views.Factory.extend({
 	make: function (route) {
 		var me = this;
@@ -89,7 +89,7 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 		cur_list = frappe.views.list_view[page_name];
 		if (cur_list && cur_list.doctype !== route[1]) {
 			// changing...
-			cur_list = null;
+			window.cur_list = null;
 		}
 	}
 });

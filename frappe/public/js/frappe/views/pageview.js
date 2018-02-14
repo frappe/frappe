@@ -85,7 +85,7 @@ frappe.views.Page = Class.extend({
 
 		// set events
 		$(this.wrapper).on('show', function() {
-			cur_frm = null;
+			window.cur_frm = null;
 			me.trigger_page_event('on_page_show');
 			me.trigger_page_event('refresh');
 		});

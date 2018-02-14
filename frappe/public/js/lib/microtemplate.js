@@ -39,7 +39,7 @@ frappe.template.compile = function(str, name) {
 		// {% endif %} --> {% } %}
 		str = str.replace(/{%\s?endfor\s?%}/g, "{% }; %}");
 
-		fn_str = "var _p=[],print=function(){_p.push.apply(_p,arguments)};" +
+		var fn_str = "var _p=[],print=function(){_p.push.apply(_p,arguments)};" +
 
 	        // Introduce the data as local variables using with(){}
 	        "with(obj){\n_p.push('" +

@@ -439,7 +439,7 @@ frappe.Application = Class.extend({
 	},
 
 	trigger_primary_action: function() {
-		if(cur_dialog && cur_dialog.display) {
+		if(window.cur_dialog && cur_dialog.display) {
 			// trigger primary
 			cur_dialog.get_primary_btn().trigger("click");
 		} else if(cur_frm && cur_frm.page.btn_primary.is(':visible')) {
