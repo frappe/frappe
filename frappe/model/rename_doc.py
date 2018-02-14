@@ -52,8 +52,7 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	update_attachments(doctype, old, new)
 
-	if merge:
-		frappe.delete_doc(doctype, old)
+	rename_versions(doctype, old, new)
 
 	# call after_rename
 	new_doc = frappe.get_doc(doctype, new)
@@ -63,20 +62,22 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	new_doc.run_method("after_rename", old, new, merge)
 
-	rename_versions(doctype, old, new)
-
 	if not merge:
 		rename_password(doctype, old, new)
 
 	# update user_permissions
 	frappe.db.sql("""update tabDefaultValue set defvalue=%s where parenttype='User Permission'
 		and defkey=%s and defvalue=%s""", (new, doctype, old))
-	frappe.clear_cache()
 
 	if merge:
 		new_doc.add_comment('Edit', _("merged {0} into {1}").format(frappe.bold(old), frappe.bold(new)))
 	else:
 		new_doc.add_comment('Edit', _("renamed from {0} to {1}").format(frappe.bold(old), frappe.bold(new)))
+
+	if merge:
+		frappe.delete_doc(doctype, old)
+
+	frappe.clear_cache()
 
 	return new
 
