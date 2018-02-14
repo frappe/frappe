@@ -338,10 +338,13 @@ def get_cc(doc, recipients=None, fetched_from_email_account=False):
 	# get a copy of CC list
 	cc = split_emails(doc.cc)
 
-	if doc.reference_doctype and doc.reference_name:
-		if fetched_from_email_account:
+	if not frappe.flags.in_test and doc.reference_doctype and doc.reference_name:
+		if fetched_from_email_account or \
+			frappe.db.get_value('User', frappe.session.user, 'thread_notify'):
 			# if it is a fetched email, add follows to CC
-			cc.append(get_owner_email(doc))
+			owner_email = get_owner_email(doc)
+			if owner_email:
+				cc.append(owner_email)
 			cc += get_assignees(doc)
 
 	if getattr(doc, "send_me_a_copy", False) and doc.sender not in cc:
@@ -443,8 +446,11 @@ def filter_email_list(doc, email_list, exclude, is_cc=False, is_bcc=False):
 	return filtered
 
 def get_owner_email(doc):
-	owner = get_parent_doc(doc).owner
-	return get_formatted_email(owner) or owner
+	email = ''
+	parent_doc = get_parent_doc(doc)
+	if parent_doc:
+		email = get_formatted_email(parent_doc.owner) or parent_doc.owner
+	return email
 
 def get_assignees(doc):
 	return [( get_formatted_email(d.owner) or d.owner ) for d in
