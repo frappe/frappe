@@ -7,7 +7,7 @@ from six import iteritems, string_types
 
 """build query for doclistview and return results"""
 
-import frappe, json, copy
+import frappe, json, copy, re
 import frappe.defaults
 import frappe.share
 import frappe.permissions
@@ -113,6 +113,7 @@ class DatabaseQuery(object):
 
 	def prepare_args(self):
 		self.parse_args()
+		self.sanitize_fields()
 		self.extract_tables()
 		self.set_optional_columns()
 		self.build_conditions()
@@ -177,6 +178,35 @@ class DatabaseQuery(object):
 				for key, value in iteritems(fdict):
 					filters.append(make_filter_tuple(self.doctype, key, value))
 			setattr(self, filter_name, filters)
+
+	def sanitize_fields(self):
+		'''
+			regex : ^.*[,();].*
+			purpose : The regex will look for malicious patterns like `,`, '(', ')', ';' in each
+					field which may leads to sql injection.
+			example :
+				field = "`DocType`.`issingle`, version()"
+
+			As field contains `,` and mysql function `version()`, with the help of regex
+			the system will filter out this field.
+		'''
+		regex = re.compile('^.*[,();].*')
+		blacklisted_keywords = ['select', 'create', 'insert', 'delete', 'drop', 'update', 'case']
+		blacklisted_functions = ['concat', 'concat_ws', 'if', 'ifnull', 'nullif', 'coalesce',
+			'connection_id', 'current_user', 'database', 'last_insert_id', 'session_user',
+			'system_user', 'user', 'version']
+
+		def _raise_exception():
+			frappe.throw(_('Cannot use sub-query or function in fields'), frappe.DataError)
+
+		for field in self.fields:
+			if regex.match(field):
+				if any(keyword in field.lower() for keyword in blacklisted_keywords):
+					_raise_exception()
+
+				if any("{0}(".format(keyword) in field.lower() \
+					for keyword in blacklisted_functions):
+					_raise_exception()
 
 	def extract_tables(self):
 		"""extract tables from fields"""
