@@ -239,7 +239,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	refresh_charts_sidebar_button() {
 		// show configure charts button if charts is shown
-		const $configure_btn = this.list_sidebar.sidebar.find('.configure-charts')
+		const $configure_btn = this.list_sidebar.sidebar.find('.configure-charts');
 		const charts_visible = this.chart && !this.$charts_wrapper.hasClass('hidden');
 
 		if (charts_visible) {
