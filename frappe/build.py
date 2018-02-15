@@ -28,41 +28,18 @@ def bundle(no_compress, make_copy=False, restore=False, verbose=False):
 	"""concat / minify js files"""
 	# build js files
 	setup()
-
 	make_asset_dirs(make_copy=make_copy, restore=restore)
 
+	command = 'yarn run build' if no_compress else 'yarn run production'
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
-
-	command = 'yarn run build'
-	if not no_compress:
-		command = 'yarn run production'
-
-	p = subprocess.Popen(command.split(' '), cwd=frappe_app_path)
-	out, err = p.communicate()
+	frappe.commands.popen(command, cwd=frappe_app_path)
 
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
-
 	setup()
 
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
-
-	command = 'yarn run watch'
-	p = subprocess.Popen(command.split(' '), cwd=frappe_app_path)
-	out, err = p.communicate()
-
-	# setup()
-
-	# import time
-	# compile_less()
-	# build(no_compress=True)
-
-	# while True:
-	# 	compile_less()
-	# 	if files_dirty():
-	# 		build(no_compress=True)
-
-	# 	time.sleep(3)
+	frappe.commands.popen('yarn run watch', cwd=frappe_app_path)
 
 def make_asset_dirs(make_copy=False, restore=False):
 	# don't even think of making assets_path absolute - rm -rf ahead.
