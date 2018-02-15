@@ -298,6 +298,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		const { x_field, y_fields, chart_type } = this.chart_args;
 		const args = this.get_chart_args(x_field, y_fields, chart_type);
 		this.chart.update_values(args.datasets, args.labels);
+		this.chart.refresh();
 
 		if (args.chart_type !== this.last_chart_type) {
 			this.chart.get_different_chart(args.chart_type);
@@ -308,8 +309,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		return new Promise(resolve => {
 			const cur_list_fields = this.fields.map(f => f[0]);
 			const x_fields = this.meta.fields.filter(df =>
-				!df.hidden && ['Date'].includes(df.fieldtype)
-				&& cur_list_fields.includes(df.fieldname)
+				!df.hidden && cur_list_fields.includes(df.fieldname)
 			).map(df => df.fieldname);
 			const y_fields = this.meta.fields.filter(df =>
 				!df.hidden && frappe.model.is_numeric_field(df)
@@ -326,7 +326,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						fieldtype: 'Autocomplete',
 						fieldname: 'x_axis',
 						options: x_fields,
-						description: __('Showing only Date fields from Report'),
 						default: defaults.x_field
 					},
 					{
