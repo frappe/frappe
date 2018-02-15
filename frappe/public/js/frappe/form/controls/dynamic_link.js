@@ -4,11 +4,11 @@ frappe.ui.form.ControlDynamicLink = frappe.ui.form.ControlLink.extend({
 		if(this.df.get_options) {
 			options = this.df.get_options();
 		}
-		if (this.docname==null && cur_dialog) {
+		else if (this.docname==null && cur_dialog) {
 			//for dialog box
 			options = cur_dialog.get_value(this.df.options);
 		}
-		if (!cur_frm) {
+		else if (!cur_frm) {
 			const selector = `input[data-fieldname="${this.df.options}"]`;
 			let input = null;
 			if (cur_list) {
@@ -22,7 +22,9 @@ frappe.ui.form.ControlDynamicLink = frappe.ui.form.ControlLink.extend({
 				options = input.val();
 			}
 		}
-		options = frappe.model.get_value(this.df.parent, this.docname, this.df.options);
+		else {
+			options = frappe.model.get_value(this.df.parent, this.docname, this.df.options);
+		}
 
 		if (frappe.model.is_single(options)) {
 			frappe.throw(__(`${options.bold()} is not a valid DocType for Dynamic Link`));
