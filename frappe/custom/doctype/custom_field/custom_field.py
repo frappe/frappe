@@ -40,7 +40,7 @@ class CustomField(Document):
 		if not self.fieldname:
 			frappe.throw(_("Fieldname not set for Custom Field"))
 
-		if self.translatable and not supports_translation(self.fieldtype):
+		if self.get('translatable', 0) and not supports_translation(self.fieldtype):
 			self.translatable = 0
 
 		if not self.flags.ignore_validate:

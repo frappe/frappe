@@ -16,7 +16,6 @@ import frappe, os, re, codecs, json
 from frappe.model.utils import render_include, InvalidIncludePath
 from frappe.utils import strip
 from jinja2 import TemplateError
-from six import iteritems
 import itertools, operator
 
 def guess_language(lang_list=None):
