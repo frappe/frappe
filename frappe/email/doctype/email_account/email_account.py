@@ -714,10 +714,10 @@ def get_max_email_uid(email_account):
 		"communication_medium": "Email",
 		"sent_or_received": "Received",
 		"email_account": email_account
-	}, fields=["ifnull(max(uid), 0) as uid"])
+	}, fields=["max(uid) as uid"])
 
 	if not result:
 		return 1
 	else:
-		max_uid = int(result[0].get("uid", 0)) + 1
+		max_uid = cint(result[0].get("uid", 0)) + 1
 		return max_uid
