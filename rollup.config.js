@@ -130,7 +130,7 @@ function make_js_css_dirs() {
 	const paths = [
 		path.resolve(assets_path, 'js'),
 		path.resolve(assets_path, 'css')
-	]
+	];
 	paths.forEach(path => {
 		if (!fs.existsSync(path)) {
 			fs.mkdirSync(path);
@@ -149,13 +149,13 @@ function build_libs() {
 
 	const target_path = path.resolve(assets_path, libs_path);
 	fs.writeFileSync(target_path, libs_content);
-	console.log('✨  Built libs.min.js');
+	console.log('✨  Built libs.min.js'); // eslint-disable-line
 }
 
 function get_all_apps_config() {
 	let configs = [];
 	apps_list.forEach(app => {
-		configs = configs.concat(get_app_config(app))
+		configs = configs.concat(get_app_config(app));
 	});
 	return configs;
 }

@@ -3,7 +3,7 @@ const path = require('path');
 function scrub_html_template(content) {
 	content = content.replace(/\s/g, ' ');
 	content = content.replace(/(<!--.*?-->)/g, '');
-	return content.replace("'", "\'");
+	return content.replace("'", "\'"); // eslint-disable-line
 }
 
 module.exports = function frappe_html() {
@@ -22,5 +22,5 @@ module.exports = function frappe_html() {
 				frappe.templates['${key}'] = '${content}';
 			`;
 		}
-	}
+	};
 };
