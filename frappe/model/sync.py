@@ -50,8 +50,6 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 			# show progress bar
 			update_progress_bar("Updating DocTypes for {0}".format(app_name), i, l)
 
-		print()
-
 
 def get_doc_files(files, start_path, force=0, sync_everything = False, verbose=False):
 	"""walk and sync all doctypes and pages"""
