@@ -132,48 +132,17 @@ frappe.views.TreeView = Class.extend({
 	},
 	make_tree: function() {
 		$(this.parent).find(".tree").remove();
-		let get_nodes = (value, is_root) => {
-			var args = Object.assign({}, this.args);
-			args.parent = value;
-			args.is_root = is_root;
-
-			return new Promise(resolve => {
-				frappe.call({
-					method: this.get_tree_nodes,
-					args: args,
-					callback: (r) => { resolve(r.message); }
-				})
-			});
-		}
-
-		let get_all_nodes = (value, is_root) => {
-			var args = Object.assign({}, this.args);
-			args.parent = value;
-			args.is_root = is_root;
-
-			args.tree_method = this.get_tree_nodes;
-
-			return new Promise(resolve => {
-				frappe.call({
-					method: 'frappe.desk.treeview.get_all_nodes',
-					args: args,
-					callback: (r) => {
-						resolve(r.message);
-					}
-				})
-			});
-		}
 
 		this.tree = new frappe.ui.Tree({
 			parent: this.body,
 			label: this.args[this.opts.root_label] || this.root_label || this.opts.root_label,
 			expandable: true,
 
+			args: this.args,
+			method: this.get_tree_nodes,
+
 			// array of button props: {label, condition, click, btnClass}
 			toolbar: this.get_toolbar(),
-
-			get_nodes: get_nodes,
-			get_all_nodes: get_all_nodes,
 
 			get_label: this.opts.get_label,
 			on_render: this.opts.onrender,
