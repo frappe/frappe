@@ -106,14 +106,14 @@ frappe.ui.Tags = class {
 	}
 
 	getTag(label) {
-		let $tag = $(`<div class="frappe-tag btn-group" data-tag-label=${label}>
+		let $tag = $(`<div class="frappe-tag btn-group" data-tag-label="${label}">
 		<button class="btn btn-default btn-xs toggle-tag"
 			title="${ __("toggle Tag") }"
-			data-tag-label=${label}>${label}
+			data-tag-label="${label}">${label}
 		</button>
 		<button class="btn btn-default btn-xs remove-tag"
 			title="${ __("Remove Tag") }"
-			data-tag-label=${label}>
+			data-tag-label="${label}">
 			<i class="fa fa-remove text-muted"></i>
 		</button></div>`);
 
