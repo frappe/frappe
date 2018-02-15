@@ -407,11 +407,22 @@ fieldset[disabled] .form-control {
   display: none;
 }
 .awesomplete {
+  display: inline-block;
+  position: relative;
   width: 100%;
 }
+.awesomplete .visually-hidden {
+  position: absolute;
+  clip: rect(0, 0, 0, 0);
+}
 .awesomplete > ul {
+  position: absolute;
   z-index: 1041 !important;
   transition: none;
+  padding: 0;
+  min-width: 100%;
+  box-sizing: border-box;
+  list-style: none;
   background-color: #fff;
   max-height: 200px;
   overflow-y: auto;
@@ -1148,6 +1159,9 @@ input[type="checkbox"]:focus {
   background-color: #b1bdca;
   color: #fff;
   border-color: #b1bdca;
+}
+.user-progress-dialog {
+  background-image: url(../images/background.png);
 }
 .user-progress-dialog .slides-progress {
   margin-top: 15px;

@@ -1,3 +1,4 @@
+import "./gantt.less";
 frappe.provide('frappe.views');
 
 frappe.views.GanttView = class GanttView extends frappe.views.ListView {

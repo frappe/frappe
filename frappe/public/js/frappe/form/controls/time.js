@@ -1,3 +1,4 @@
+import moment from 'moment-timezone';
 frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;

@@ -1,3 +1,7 @@
+import "./kanban_board.html";
+import "./kanban_column.html";
+import "./kanban_card.html";
+import "./kanban.less";
 frappe.provide('frappe.views');
 
 frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {

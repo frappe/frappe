@@ -38,8 +38,6 @@
 	<img src="{{ background_image }}" style="height: 1px; width: 1px; margin-bottom: -1px;">
 	{% endif %}
 
-	<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
-
 	<script type="text/javascript">
 	window._version_number = "{{ build_version }}";
 	// browser support
@@ -48,15 +46,15 @@
 
 	if(!window.frappe) window.frappe = {};
 
-	frappe.boot = {{ boot }};
-
 	frappe.csrf_token = "{{ csrf_token }}";
 
 	</script>
 
-	{% for include in include_js %}
-	<script type="text/javascript" src="{{ include }}?ver={{ build_version }}"></script>
+
+	{% for js in include_js %}
+		<script type="text/javascript" src="{{ js }}"></script>
 	{% endfor %}
+
     {% include "templates/includes/app_analytics/google_analytics.html" %}
     {% include "templates/includes/app_analytics/mixpanel_analytics.html" %}
 

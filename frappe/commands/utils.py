@@ -13,14 +13,14 @@ from frappe.utils.response import json_handler
 @click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
 @click.option('--restore', is_flag=True, default=False, help='Copy the files instead of symlinking with force')
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
-def build(make_copy=False, restore = False, verbose=False):
+@click.option('--minify', is_flag=True, default=False, help='Minify')
+def build(make_copy=False, restore = False, verbose=False, minify=False):
 	"Minify + concatenate JS and CSS files, build translations"
 	import frappe.build
 	import frappe
 	frappe.init('')
-	# don't minify in developer_mode for faster builds
-	no_compress = frappe.local.conf.developer_mode or False
-	frappe.build.bundle(no_compress, make_copy=make_copy, restore = restore, verbose=verbose)
+	compress = minify or (not frappe.conf.developer_mode) or False
+	frappe.build.bundle(compress, make_copy=make_copy, restore = restore, verbose=verbose)
 
 @click.command('watch')
 def watch():

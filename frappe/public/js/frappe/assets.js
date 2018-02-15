@@ -9,7 +9,18 @@ frappe.require = function(items, callback) {
 	if(typeof items === "string") {
 		items = [items];
 	}
-	frappe.assets.execute(items, callback);
+
+	const js_files = items.filter(item => item.endsWith('.js'));
+	const css_files = items.filter(item => item.endsWith('.css'));
+
+	return Promise.all(
+		[].concat(
+			js_files.map(frappe.assets.load_script),
+			css_files.map(frappe.assets.load_style)
+		)
+	).then(callback);
+
+	// frappe.assets.execute(items, callback);
 };
 
 frappe.assets = {
@@ -150,6 +161,26 @@ frappe.assets = {
 			src = src.split('?').slice(-1)[0];
 		}
 		return src.split('.').slice(-1)[0];
+	},
+
+	load_script: function(path) {
+		return new Promise(resolve => {
+			const script = document.createElement('script');
+			script.src = path;
+			script.async = true;
+			script.onload = resolve;
+			document.body.appendChild(script);
+		});
+	},
+
+	load_style: function(path) {
+		return new Promise(resolve => {
+			const link = document.createElement('link');
+			link.href = path;
+			link.rel = 'stylesheet';
+			link.onload = resolve;
+			document.head.appendChild(link);
+		});
 	},
 
 	handler: {

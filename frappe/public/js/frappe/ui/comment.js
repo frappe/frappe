@@ -18,9 +18,12 @@ frappe.ui.CommentArea = class CommentArea {
 		this.no_wrapper = no_wrapper;
 
 		this.make();
-		
+
 		// Load emojis initially from https://git.io/frappe-emoji
-		frappe.chat.emoji();
+		// TODO: do something about chat
+		if (frappe.chat) {
+			frappe.chat.emoji();
+		}
 		// All good.
 	}
 
@@ -74,6 +77,7 @@ frappe.ui.CommentArea = class CommentArea {
 						keyword = keyword.substr(1);
 						items = this.mentions;
 					} else if (keyword.startsWith(':')) {
+						if (!frappe.chat) return;
 						frappe.chat.emoji(emojis => { // Returns cached, else fetch.
 							const query = keyword.slice(1);
 							const items = [ ];

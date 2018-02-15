@@ -1,6 +1,10 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import './search';
+import '../../misc/help';
+import '../../misc/help_links';
+
 frappe.provide("frappe.ui.toolbar");
 frappe.provide('frappe.search');
 
@@ -39,7 +43,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		$('.navbar-set-desktop-icons').on('click', () => {
 			this.modules_select.show();
 		});
-  },
+	},
 
 	setup_frappe_chat ( ) {
 		frappe.log = frappe.Logger.get('frappe.chat');
@@ -47,7 +51,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		frappe.log.info('Setting up frappe.chat');
 		frappe.log.warn('TODO: Handle realtime System Settings update.');
 		frappe.log.warn('TODO: frappe.chat.<object> requires a storage.');
-		
+
 		// Create/Get Chat Profile for session User, retrieve enable_chat
 		frappe.log.info('Creating a Chat Profile.');
 		frappe.chat.profile.create('enable_chat').then(({ enable_chat }) => {

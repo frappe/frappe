@@ -2,6 +2,8 @@
 // MIT License. See license.txt
 frappe.provide('frappe.search');
 
+import Awesomplete from "awesomplete";
+
 frappe.search.AwesomeBar = Class.extend({
 	setup: function(element) {
 		var me = this;

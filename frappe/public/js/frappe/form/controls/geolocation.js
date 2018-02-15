@@ -1,3 +1,5 @@
+import 'leaflet';
+
 frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlCode.extend({
 	make_wrapper() {
 		// Create the elements for map area

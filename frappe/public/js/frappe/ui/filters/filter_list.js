@@ -1,3 +1,5 @@
+import "./filter";
+
 frappe.ui.FilterGroup = class {
 	constructor(opts) {
 		$.extend(this, opts);

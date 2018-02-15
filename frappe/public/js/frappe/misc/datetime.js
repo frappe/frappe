@@ -1,6 +1,9 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import moment from 'moment-timezone';
+import './pretty_date';
+
 frappe.provide('frappe.datetime');
 
 moment.defaultDateFormat = "YYYY-MM-DD";
@@ -11,6 +14,16 @@ moment.defaultFormat = moment.defaultDateFormat;
 frappe.provide("frappe.datetime");
 
 $.extend(frappe.datetime, {
+	locale: function(lang) {
+		moment.locale(lang);
+	},
+	localify: function() {
+		frappe.datetime.locale('en');
+		moment.user_utc_offset = moment().utcOffset();
+		if(frappe.boot.timezone_info) {
+			moment.tz.add(frappe.boot.timezone_info);
+		}
+	},
 	convert_to_user_tz: function(date, format) {
 		// format defaults to true
 		if(frappe.sys_defaults.time_zone) {

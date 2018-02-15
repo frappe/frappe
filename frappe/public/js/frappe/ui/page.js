@@ -1,6 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import './page.html';
+
 /**
  * Make a standard page layout with a toolbar and title
  *
@@ -17,7 +19,6 @@
 /**
  * @typedef {Object} frappe.ui.Page
  */
-
 
 frappe.ui.make_app_page = function(opts) {
 	opts.parent.page = new frappe.ui.Page(opts);

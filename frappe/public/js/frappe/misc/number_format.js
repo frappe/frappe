@@ -1,6 +1,5 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-
 if (!window.frappe) window.frappe = {};
 
 function flt(v, decimals, number_format) {
@@ -197,13 +196,6 @@ function precision(fieldname, doc) {
 	}
 }
 
-function in_list(list, item) {
-	if (!list) return false;
-	for (var i = 0, j = list.length; i < j; i++)
-		if (list[i] == item) return true;
-	return false;
-}
-
 // Proxy for in_list
 Object.defineProperty(window, 'inList', {
 	get: function() {
@@ -240,3 +232,19 @@ function round_based_on_smallest_currency_fraction(value, currency, precision) {
 	}
 	return value;
 }
+
+
+Object.assign(window, {
+	flt,
+	cint,
+	strip_number_groups,
+	format_currency,
+	get_currency_symbol,
+	get_number_format,
+	get_number_format_info,
+	_round,
+	roundNumber,
+	precision,
+	remainder,
+	round_based_on_smallest_currency_fraction,
+});

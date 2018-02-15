@@ -1,3 +1,6 @@
+import io from "socket.io-client";
+import moment from 'moment-timezone';
+
 frappe.socketio = {
 	open_tasks: {},
 	open_docs: [],

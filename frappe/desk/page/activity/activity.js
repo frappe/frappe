@@ -1,6 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // License: See license.txt
-
+import moment from 'moment-timezone';
 frappe.provide("frappe.activity");
 
 frappe.pages['activity'].on_page_load = function(wrapper) {

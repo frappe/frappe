@@ -1,9 +1,10 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import "../../../less/tree.less";
 frappe.provide("frappe.treeview_settings");
 frappe.provide('frappe.views.trees');
-cur_tree = null;
+window.cur_tree = null;
 
 frappe.views.TreeFactory = frappe.views.Factory.extend({
 	make: function(route) {
@@ -148,8 +149,7 @@ frappe.views.TreeView = Class.extend({
 			on_render: this.opts.onrender,
 			on_click: (node) => { this.select_node(node); },
 		});
-
-		cur_tree = this.tree;
+		window.cur_tree = this.tree;
 	},
 
 	select_node: function(node) {

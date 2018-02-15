@@ -633,6 +633,13 @@ frappe.utils = {
 	}
 };
 
+window.in_list = function in_list(list, item) {
+	if (!list) return false;
+	for (var i = 0, j = list.length; i < j; i++)
+		if (list[i] == item) return true;
+	return false;
+}
+
 // String.prototype.includes polyfill
 // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/String/includes
 if (!String.prototype.includes) {

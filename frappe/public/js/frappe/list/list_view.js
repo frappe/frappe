@@ -469,7 +469,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</div>
 			`;
 		}
-		const modified = comment_when(doc.modified, true);
+		const modified = window.comment_when(doc.modified, true);
 
 		const last_assignee = JSON.parse(doc._assign || '[]').slice(-1)[0];
 		const assigned_to = last_assignee ?

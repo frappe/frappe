@@ -1,3 +1,9 @@
+import moment from 'moment-timezone';
+import 'air-datepicker/dist/css/datepicker.css';
+import 'air-datepicker/dist/js/datepicker.js';
+import 'air-datepicker/dist/js/i18n/datepicker.en.js';
+import './less/date.less';
+
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		this._super();

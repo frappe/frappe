@@ -1,30 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.start_app = function() {
-	if(!frappe.Application)
-		return;
-	frappe.assets.check();
-	frappe.provide('frappe.app');
-	frappe.app = new frappe.Application();
-}
-
-$(document).ready(function() {
-	if(!frappe.utils.supportsES6) {
-		frappe.msgprint({
-			indicator: 'red',
-			title: __('Browser not supported'),
-			message: __('Some of the features might not work in your browser. Please update your browser to the latest version.')
-		});
-	}
-	frappe.start_app();
-
-	// frappe.Chat
-	// Removing it from here as per rushabh@frappe.io's request.
-	// const chat = new frappe.Chat()
-	// chat.render();
-	// end frappe.Chat
-});
 
 frappe.Application = Class.extend({
 	init: function() {
@@ -201,11 +177,8 @@ frappe.Application = Class.extend({
 			this.check_metadata_cache_status();
 			this.set_globals();
 			this.sync_pages();
-			moment.locale("en");
-			moment.user_utc_offset = moment().utcOffset();
-			if(frappe.boot.timezone_info) {
-				moment.tz.add(frappe.boot.timezone_info);
-			}
+			frappe.datetime.localify();
+
 			if(frappe.boot.print_css) {
 				frappe.dom.set_style(frappe.boot.print_css, "print-style");
 			}
@@ -275,6 +248,7 @@ frappe.Application = Class.extend({
 	},
 
 	set_globals: function() {
+
 		frappe.session.user = frappe.boot.user.name;
 		frappe.session.user_email = frappe.boot.user.email;
 		frappe.session.user_fullname = frappe.user_info().fullname;
@@ -286,6 +260,7 @@ frappe.Application = Class.extend({
 		frappe.ui.py_date_format = frappe.boot.sysdefaults.date_format.replace('dd', '%d').replace('mm', '%m').replace('yyyy', '%Y');
 		frappe.boot.user.last_selected_values = {};
 
+		if ('user' in window) return;
 		// Proxy for user globals
 		Object.defineProperties(window, {
 			'user': {

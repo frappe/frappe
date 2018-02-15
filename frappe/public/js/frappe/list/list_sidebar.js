@@ -1,6 +1,9 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import "./list_sidebar.html";
+import "./list_sidebar_stat.html";
+
 frappe.provide('frappe.views');
 
 // opts:

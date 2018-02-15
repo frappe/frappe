@@ -28,7 +28,7 @@ $.extend(frappe.model, {
 					frappe.meta.sync(d);
 				}
 
-				if(cur_frm && cur_frm.doctype==d.doctype && cur_frm.docname==d.name) {
+				if(window.cur_frm && cur_frm.doctype==d.doctype && cur_frm.docname==d.name) {
 					cur_frm.doc = d;
 				}
 
@@ -88,6 +88,8 @@ $.extend(frappe.model, {
 				if($.isArray(value)) {
 					for (var x=0, y=value.length; x < y; x++) {
 						var d = value[x];
+
+						if (!$.isPlainObject(d)) return;
 
 						if(!d.parent)
 							d.parent = doc.name;

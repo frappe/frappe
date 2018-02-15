@@ -1,0 +1,49 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/Users/farisansari/.nvm/versions/node/v6.9.2/bin/node',
+1 verbose cli   '/Users/farisansari/.nvm/versions/node/v6.9.2/bin/npm',
+1 verbose cli   'run',
+1 verbose cli   'frappe-watch' ]
+2 info using npm@3.10.9
+3 info using node@v6.9.2
+4 verbose run-script [ 'prefrappe-watch', 'frappe-watch', 'postfrappe-watch' ]
+5 info lifecycle frappe@~prefrappe-watch: frappe@
+6 silly lifecycle frappe@~prefrappe-watch: no script for prefrappe-watch, continuing
+7 info lifecycle frappe@~frappe-watch: frappe@
+8 verbose lifecycle frappe@~frappe-watch: unsafe-perm in lifecycle true
+9 verbose lifecycle frappe@~frappe-watch: PATH: /Users/farisansari/.nvm/versions/node/v6.9.2/lib/node_modules/npm/bin/node-gyp-bin:/Users/farisansari/frappe-bench4/apps/frappe/node_modules/.bin:/Users/farisansari/.nvm/versions/node/v6.9.2/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/farisansari/Library/Android/sdk/tools:/Users/farisansari/Library/Android/sdk/platform-tools:/usr/local/bin
+10 verbose lifecycle frappe@~frappe-watch: CWD: /Users/farisansari/frappe-bench4/apps/frappe
+11 silly lifecycle frappe@~frappe-watch: Args: [ '-c',
+11 silly lifecycle   'webpack --config webpack/webpack.config.js --progress --colors --watch' ]
+12 silly lifecycle frappe@~frappe-watch: Returned: code: 1  signal: null
+13 info lifecycle frappe@~frappe-watch: Failed to exec frappe-watch script
+14 verbose stack Error: frappe@ frappe-watch: `webpack --config webpack/webpack.config.js --progress --colors --watch`
+14 verbose stack Exit status 1
+14 verbose stack     at EventEmitter.<anonymous> (/Users/farisansari/.nvm/versions/node/v6.9.2/lib/node_modules/npm/lib/utils/lifecycle.js:255:16)
+14 verbose stack     at emitTwo (events.js:106:13)
+14 verbose stack     at EventEmitter.emit (events.js:191:7)
+14 verbose stack     at ChildProcess.<anonymous> (/Users/farisansari/.nvm/versions/node/v6.9.2/lib/node_modules/npm/lib/utils/spawn.js:40:14)
+14 verbose stack     at emitTwo (events.js:106:13)
+14 verbose stack     at ChildProcess.emit (events.js:191:7)
+14 verbose stack     at maybeClose (internal/child_process.js:877:16)
+14 verbose stack     at Process.ChildProcess._handle.onexit (internal/child_process.js:226:5)
+15 verbose pkgid frappe@
+16 verbose cwd /Users/farisansari/frappe-bench4/apps/frappe/frappe
+17 error Darwin 17.3.0
+18 error argv "/Users/farisansari/.nvm/versions/node/v6.9.2/bin/node" "/Users/farisansari/.nvm/versions/node/v6.9.2/bin/npm" "run" "frappe-watch"
+19 error node v6.9.2
+20 error npm  v3.10.9
+21 error code ELIFECYCLE
+22 error frappe@ frappe-watch: `webpack --config webpack/webpack.config.js --progress --colors --watch`
+22 error Exit status 1
+23 error Failed at the frappe@ frappe-watch script 'webpack --config webpack/webpack.config.js --progress --colors --watch'.
+23 error Make sure you have the latest version of node.js and npm installed.
+23 error If you do, this is most likely a problem with the frappe package,
+23 error not with npm itself.
+23 error Tell the author that this fails on your system:
+23 error     webpack --config webpack/webpack.config.js --progress --colors --watch
+23 error You can get information on how to open an issue for this project with:
+23 error     npm bugs frappe
+23 error Or if that isn't available, you can get their info via:
+23 error     npm owner ls frappe
+23 error There is likely additional logging output above.
+24 verbose exit [ 1, true ]

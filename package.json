@@ -1,7 +1,10 @@
 {
   "name": "frappe",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "yarn run frappe-watch",
+    "frappe-watch": "webpack --config webpack/webpack.config.js --watch",
+    "frappe-build": "webpack --config webpack/webpack.config.js",
+    "frappe-build-minify": "FRAPPE_ENV=production webpack --config webpack/webpack.config.js"
   },
   "repository": {
     "type": "git",
@@ -14,21 +17,50 @@
   },
   "homepage": "https://frappe.io",
   "dependencies": {
+    "air-datepicker": "frappe/air-datepicker",
+    "awesomplete": "^1.1.2",
+    "babel-core": "^6.26.0",
+    "bootstrap": "^3.3.7",
+    "clusterize.js": "^0.18.0",
+    "codemirror": "^5.33.0",
     "cookie": "^0.3.1",
     "express": "^4.15.3",
+    "file-loader": "^1.1.6",
+    "frappe-charts": "0.0.8",
+    "frappe-gantt": "0.0.7",
+    "highlight.js": "^9.12.0",
+    "jquery": "1.11.0",
+    "jquery-hotkeys": "^0.2.2",
+    "jquery.event.drag": "^2.2.2",
+    "jquery.hotkeys": "^0.1.0",
+    "jsignature": "^2.1.2",
+    "leaflet": "^1.3.1",
+    "markdown": "^0.5.0",
+    "md5": "^2.2.1",
+    "moment": "^2.19.4",
+    "moment-timezone": "^0.5.14",
     "redis": "^2.7.1",
+    "script-loader": "^0.7.2",
+    "showdown": "^1.8.6",
+    "slickgrid": "^2.3.10",
     "socket.io": "^2.0.1",
+    "socket.io-client": "^2.0.4",
+    "socketio": "^1.0.0",
+    "sortablejs": "^1.7.0",
+    "summernote": "^0.8.8",
     "superagent": "^3.5.2",
+    "taggle": "^1.13.0",
     "touch": "^3.1.0"
   },
   "devDependencies": {
-    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-env": "^1.6.0",
-    "babel-preset-minify": "^0.2.0",
-    "chokidar": "^1.7.0",
-    "chromedriver": "^2.32.3",
-    "less": "^2.7.2",
-    "nightwatch": "^0.9.16"
+    "css-loader": "^0.28.7",
+    "extract-text-webpack-plugin": "^3.0.2",
+    "less": "^2.7.3",
+    "less-loader": "^4.0.5",
+    "walk": "^2.3.9",
+    "webpack": "^3.10.0"
   }
 }

@@ -1,3 +1,4 @@
+
 frappe.provide('frappe.desktop');
 
 frappe.pages['desktop'].on_page_load = function(wrapper) {
@@ -22,6 +23,7 @@ $.extend(frappe.desktop, {
 		}
 
 		this.render();
+
 		this.make_sortable();
 	},
 
@@ -261,24 +263,26 @@ $.extend(frappe.desktop, {
 			return;
 		}
 
-		new Sortable($("#icon-grid").get(0), {
-			animation: 150,
-			onUpdate: function(event) {
-				var new_order = [];
-				$("#icon-grid .case-wrapper").each(function(i, e) {
-					new_order.push($(this).attr("data-name"));
-				});
+		if (window.Sortable) {
+			new Sortable($("#icon-grid").get(0), {
+				onUpdate: function(event) {
+					var new_order = [];
+					$("#icon-grid .case-wrapper").each(function(i, e) {
+						new_order.push($(this).attr("data-name"));
+					});
 
-				frappe.call({
-					method: 'frappe.desk.doctype.desktop_icon.desktop_icon.set_order',
-					args: {
-						'new_order': new_order,
-						'user': frappe.session.user
-					},
-					quiet: true
-				});
-			}
-		});
+					frappe.call({
+						method: 'frappe.desk.doctype.desktop_icon.desktop_icon.set_order',
+						args: {
+							'new_order': new_order,
+							'user': frappe.session.user
+						},
+						quiet: true
+					});
+				}
+			});
+		}
+
 	},
 
 	set_background: function() {

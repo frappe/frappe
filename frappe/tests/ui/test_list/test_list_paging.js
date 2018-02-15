@@ -11,13 +11,13 @@ QUnit.test("Test paging in list view", function(assert) {
 			"List opened successfully."),
 		//check elements less then page length [20 in this case]
 		() => assert.equal(cur_list.data.length, 20, 'show 20 items'),
-		() => frappe.click_button('More'),
+		() => frappe.tests.click_button('More'),
 		() => frappe.timeout(2),
 		() => assert.equal(cur_list.data.length, 40, 'show more items'),
-		() => frappe.tests.click_button('100'),
+		() => frappe.tests.click_button('100', '.btn-group-paging'),
 		() => frappe.timeout(2),
 		() => assert.ok(cur_list.data.length > 40, 'show 100 items'),
-		() => frappe.tests.click_button('20'),
+		() => frappe.tests.click_button('20', '.btn-group-paging'),
 		() => frappe.timeout(2),
 		() => assert.equal(cur_list.data.length, 20, 'show 20 items again'),
 		() => done()

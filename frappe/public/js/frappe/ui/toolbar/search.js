@@ -1,3 +1,4 @@
+
 frappe.provide('frappe.search');
 
 frappe.search.SearchDialog = Class.extend({

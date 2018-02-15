@@ -1,6 +1,8 @@
 /**
  * frappe.views.ImageView
  */
+import "./photoswipe_dom.html";
+
 frappe.provide("frappe.views");
 
 frappe.views.ImageView = class ImageView extends frappe.views.ListView {

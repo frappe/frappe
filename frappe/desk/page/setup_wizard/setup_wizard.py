@@ -9,6 +9,7 @@ from frappe.translate import (set_default_language, get_dict, send_translations)
 from frappe.geo.country_info import get_country_info
 from frappe.utils.file_manager import save_file
 from frappe.utils.password import update_password
+from frappe.utils import get_gravatar_url
 from werkzeug.useragents import UserAgent
 from . import install_fixtures
 from six import string_types
@@ -348,3 +349,6 @@ def enable_twofactor_all_roles():
 	all_role.two_factor_auth = True
 	all_role.save(ignore_permissions=True)
 
+@frappe.whitelist()
+def get_gravatar(email):
+	return get_gravatar_url(email)

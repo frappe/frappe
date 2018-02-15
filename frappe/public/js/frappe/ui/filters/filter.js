@@ -1,3 +1,6 @@
+import './field_select';
+import "./edit_filter.html";
+
 frappe.ui.Filter = class {
 	constructor(opts) {
 		$.extend(this, opts);

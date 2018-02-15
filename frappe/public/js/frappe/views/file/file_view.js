@@ -1,3 +1,4 @@
+import './file_manager';
 frappe.provide('frappe.views');
 
 frappe.views.FileView = class FileView extends frappe.views.ListView {

@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 from . import __version__ as app_version
 
-
 app_name = "frappe"
 app_title = "Frappe Framework"
 app_publisher = "Frappe Technologies"
@@ -24,29 +23,38 @@ page_js = {
 
 # website
 app_include_js = [
-	"assets/js/libs.min.js",
-	"assets/js/desk.min.js",
-	"assets/js/list.min.js",
-	"assets/js/form.min.js",
-	"assets/js/control.min.js",
-	"assets/js/report.min.js",
-	"assets/frappe/js/frappe/toolbar.js"
+	"assets/bundles/frappe/js/manifest.bundle.js",
+	"assets/bundles/frappe/js/vendor.bundle.js",
+	"assets/bundles/frappe/js/global-commons.bundle.js",
+	"assets/bundles/frappe/js/desk-commons.bundle.js",
+	"assets/bundles/frappe/js/desk.bundle.js",
+	"assets/bundles/frappe/js/dialog.bundle.js",
+	"assets/bundles/frappe/js/controls.bundle.js",
+	"assets/bundles/frappe/js/list.bundle.js",
+	"assets/bundles/frappe/js/form.bundle.js",
+	"assets/bundles/frappe/js/report.bundle.js",
 ]
 app_include_css = [
-	"assets/css/desk.min.css",
-	"assets/css/list.min.css",
-	"assets/css/form.min.css",
-	"assets/css/report.min.css",
-	"assets/css/module.min.css"
+	"assets/bundles/frappe/css/global-commons.css",
+	"assets/bundles/frappe/css/desk.css",
+	"assets/bundles/frappe/css/list.css",
+	"assets/bundles/frappe/css/controls.css",
+	"assets/bundles/frappe/css/form.css",
+	"assets/bundles/frappe/css/report.css",
+	"assets/bundles/frappe/css/module.css"
 ]
 
 web_include_js = [
+	"assets/bundles/frappe/js/manifest.bundle.js",
+	"assets/bundles/frappe/js/vendor.bundle.js",
+	"assets/bundles/frappe/js/global-commons.bundle.js",
+	"assets/bundles/frappe/js/frappe-web.bundle.js",
 	"website_script.js"
 ]
 
-bootstrap = "assets/frappe/css/bootstrap.css"
 web_include_css = [
-	"assets/css/frappe-web.css"
+	"assets/bundles/frappe/css/global-commons.css",
+	"assets/bundles/frappe/css/frappe-web.css"
 ]
 
 website_route_rules = [
