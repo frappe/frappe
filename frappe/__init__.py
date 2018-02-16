@@ -1463,3 +1463,7 @@ def get_version(doctype, name, limit = None, head = False, raise_err = True):
 			raise ValueError('{doctype} has no versions tracked.'.format(
 				doctype = doctype
 			))
+
+@whitelist(allow_guest = True)
+def ping():
+	return "pong"
