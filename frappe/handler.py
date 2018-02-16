@@ -133,6 +133,6 @@ def get_attr(cmd):
 	frappe.log("method:" + cmd)
 	return method
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest = True)
 def ping():
 	return "pong"
