@@ -11,43 +11,43 @@
 
 {%- block page_content -%}
 <div class="wrapper">
-  <div class="checkout container">
+	<div class="checkout container">
 
-    <header>
-      <div>
-        <img class="center" src="{{ header_img }}"></img>
-      </div>
-    </header>
+		<header>
+			<div>
+				<img class="center" src="{{ header_img }}"></img>
+			</div>
+		</header>
 
-    <form id="payment-form">
-      <section>
-        <div class="bt-drop-in-wrapper">
-          <div id="bt-dropin"></div>
-        </div>
-      </section>
+		<form id="payment-form">
+			<section>
+				<div class="bt-drop-in-wrapper">
+					<div id="bt-dropin"></div>
+				</div>
+			</section>
 
-      <button class="btn btn-primary" type="submit" id="submit-button"><span>{{ _("Pay") }} {{ amount }} {{ currency }}</span></button>
-    </form>
+			<button class="btn btn-primary" type="submit" id="submit-button"><span>{{ _("Pay") }} {{ amount }} {{ currency }}</span></button>
+		</form>
 
-  </div>
+	</div>
 </div>
 
 <style>
 .checkout {
-  max-width: 60%;
+	max-width: 60%;
 }
 
 .center {
-  margin:auto;
-  display: block;
+	margin:auto;
+	display: block;
 }
 
 #payment-form {
-  margin-top: 40px;
+	margin-top: 40px;
 }
 
 #submit-button {
-  float: right;
+	float: right;
 }
 
 </style>
