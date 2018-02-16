@@ -238,6 +238,7 @@
 		"public/js/frappe/ui/toolbar/modules_select.js",
 		"public/js/frappe/ui/toolbar/notifications.js",
 		"public/js/frappe/views/communication.js",
+		"public/js/frappe/views/translation_manager.js",
 
 		"public/js/frappe/ui/sort_selector.html",
 		"public/js/frappe/ui/sort_selector.js",

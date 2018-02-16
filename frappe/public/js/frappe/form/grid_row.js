@@ -86,11 +86,22 @@ frappe.ui.form.GridRow = Class.extend({
 					console.trace(e); // eslint-disable-line
 				});
 			} else {
-				this.grid.df.data = this.grid.df.data.filter(function(d) {
-					return d.name !== me.doc.name;
-				})
+				let data = null;
+				if (this.grid.df.get_data) {
+					data = this.grid.df.get_data();
+				} else {
+					data = this.grid.df.data;
+				}
+
+				const index = data.findIndex(d => d.name === me.doc.name);
+
+				if (index > -1) {
+					// mutate array directly,
+					// else the object reference will be lost
+					data.splice(index, 1);
+				}
 				// remap idxs
-				this.grid.df.data.forEach(function(d, i) {
+				data.forEach(function(d, i) {
 					d.idx = i+1;
 				});
 
