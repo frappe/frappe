@@ -202,5 +202,4 @@ frappe.patches.v9_1.move_feed_to_activity_log
 execute:frappe.delete_doc('Page', 'data-import-tool', ignore_missing=True)
 frappe.patches.v10_0.reload_countries_and_currencies
 frappe.patches.v10_0.refactor_social_login_keys
-frappe.patches.v10_0.update_translatable_fields
 frappe.patches.v10_0.enable_chat_by_default_within_system_settings
