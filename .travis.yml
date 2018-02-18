@@ -1,6 +1,11 @@
 language: python
 dist: trusty
 
+cache:
+  apt: true
+  directories:
+    - $HOME/.cache/pip
+
 python:
   - "2.7"
 
