@@ -12,6 +12,8 @@ def savedocs(doc, action):
 		doc = frappe.get_doc(json.loads(doc))
 		set_local_name(doc)
 
+		frappe.local.flags.current_doctype = doc.doctype
+
 		# action
 		doc.docstatus = {"Save":0, "Submit": 1, "Update": 1, "Cancel": 2}[action]
 
