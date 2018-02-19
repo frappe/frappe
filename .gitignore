@@ -13,7 +13,7 @@ frappe/docs/current
 node_modules
 .kdev4/
 *.kdev4
-
+yarn.lock
 
 # Not Recommended, but will remove once webpack ready
 package-lock.json
