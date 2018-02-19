@@ -16,7 +16,12 @@
   },
   "homepage": "https://frappe.io",
   "dependencies": {
-    "showdown": "^1.8.6"
+    "cookie": "^0.3.1",
+    "express": "^4.16.2",
+    "redis": "^2.8.0",
+    "showdown": "^1.8.6",
+    "socket.io": "^2.0.4",
+    "superagent": "^3.8.2"
   },
   "devDependencies": {
     "rollup": "^0.55.3",
