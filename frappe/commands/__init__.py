@@ -8,7 +8,7 @@ import cProfile
 import pstats
 import frappe
 import frappe.utils
-import subprocess
+import subprocess # nosec
 from functools import wraps
 from six import StringIO
 
@@ -55,7 +55,7 @@ def popen(command, *args, **kwargs):
 	proc = subprocess.Popen(command,
 		stdout = None if output else subprocess.PIPE,
 		stderr = None if output else subprocess.PIPE,
-		shell = True,
+		shell = True, # nosec
 		cwd = cwd
 	)
 
