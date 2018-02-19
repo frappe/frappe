@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals, print_function
 from frappe.utils.minify import JavascriptMinify
-import subprocess
 import warnings
 
 from six import iteritems, text_type
