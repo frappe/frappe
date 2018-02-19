@@ -327,7 +327,7 @@ def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder
 	:param is_private: Attach file as private file (1 or 0)
 	:param docfield: file to attach to (optional)'''
 
-	request_method = frappe.local.requesst.environ.get("REQUEST_METHOD")
+	request_method = frappe.local.request.environ.get("REQUEST_METHOD")
 
 	if request_method.upper() != "POST":
 		frappe.throw(_("Invalid Request"))
