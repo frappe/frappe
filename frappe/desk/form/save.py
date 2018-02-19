@@ -51,7 +51,7 @@ def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_stat
 		raise
 
 def send_updated_docs(doc):
-	from load import get_docinfo
+	from .load import get_docinfo
 	get_docinfo(doc)
 
 	d = doc.as_dict()
