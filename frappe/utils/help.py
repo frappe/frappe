@@ -237,7 +237,7 @@ class HelpDatabase(object):
 
 			# files not in index.txt
 			for f in os.listdir(path):
-				if not os.path.isdir(os.path.join(path, f)):
+				if not os.path.isdir(os.path.join(path, f)) and len(f.rsplit('.', 1)) == 2:
 					name, extn = f.rsplit('.', 1)
 					if name not in files \
 						and name != 'index' and extn in ('md', 'html'):
