@@ -50,6 +50,7 @@ def validate_link():
 				frappe.errprint(frappe.get_traceback())
 
 			if fetch_value:
+				if frappe.form_dict.get('current_doctype'): update_in_add_fetch()
 				frappe.response['fetch_values'] = [frappe.utils.parse_val(c) for c in fetch_value]
 
 		frappe.response['valid_value'] = valid_value
@@ -112,4 +113,21 @@ def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
 		return None
 	else:
 		return res[0][0]
+
+def update_in_add_fetch():
+	fetch = [frappe.db.escape(f.strip()) for f in frappe.form_dict.get('fetch').split(",")]
+	target = [frappe.db.escape(f.strip()) for f in frappe.form_dict.get('target').split(",")]
+
+	for d,e in zip(fetch, target):
+		try:
+			frappe.get_doc({
+				"doctype": "Add Fetch",
+				"for_doctype": frappe.form_dict.get('current_doctype'),
+				"for_fieldname": e,
+				"from_doctype": frappe.form_dict.get('options'),
+				"from_fieldname": d
+			}).insert(ignore_if_duplicate=True)
+			frappe.db.commit()
+		except frappe.DuplicateEntryError:
+			pass
 
