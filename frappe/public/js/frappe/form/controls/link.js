@@ -330,19 +330,25 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 		if(value) {
 			return new Promise((resolve) => {
-				var fetch = '';
+				var fetch = '',
+					target = null,
+					current_doctype = null;
 
 				if(this.frm && this.frm.fetch_dict[df.fieldname]) {
 					fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
+					target = this.frm.fetch_dict[df.fieldname].fields.join(', ');
+					current_doctype = this.frm.doctype;
 				}
 
 				return frappe.call({
 					method:'frappe.desk.form.utils.validate_link',
 					type: "GET",
 					args: {
+						'current_doctype': current_doctype,
 						'value': value,
 						'options': doctype,
-						'fetch': fetch
+						'fetch': fetch,
+						'target': target
 					},
 					no_spinner: true,
 					callback: function(r) {

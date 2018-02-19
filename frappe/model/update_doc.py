@@ -49,23 +49,45 @@ def get_linked_data_fields(doctype, fieldname):
 
 	return data_fields
 
+def get_from_add_fetch(for_doctype, from_doctype):
+	out = frappe.db.sql("""
+		select for_doctype, for_fieldname,
+			from_doctype, from_fieldname
+		from `tabAdd Fetch`
+		where
+			for_doctype = '{0}'
+			and from_doctype = '{1}'
+		""".format(for_doctype, from_doctype), as_dict=1)
+
+	return out
+
+
 def update_all_values(doc, method):
 	"""
 		Called through a hook whenever a document is updated.
 	"""
 
-	if doc.doctype==frappe.local.flags.current_doctype:
+	if frappe.local.flags.current_doctype\
+		and doc.doctype==frappe.local.flags.current_doctype.get('doctype')\
+		and not frappe.local.flags.current_doctype.get('islocal'):
+
 		link_fields = get_link_fields(doc.doctype)
 
 		for d in link_fields:
 			data_fields = get_linked_data_fields(d.parent, d.fieldname)
+			add_fetch_fields = get_from_add_fetch(d.parent, doc.doctype)
 
 			for k in data_fields:
 				fetch_field = k.options.split('.')[1]
 				update_doc_query(k.parent, k.fieldname, doc.get(fetch_field),
 					d.fieldname, doc.name)
 
-def update_doc_query(doctype, fieldname, value, parent_fieldname, docname, condition=None):
+			for k in add_fetch_fields:
+				frappe.errprint(k)
+				update_doc_query(k.for_doctype, k.for_fieldname, doc.get(k.from_fieldname),
+					d.fieldname, doc.name)
+
+def update_doc_query(doctype, fieldname, value, parent_fieldname, docname, condition=""):
 	"""
 		Updates values of field which depends on some other link field
 		in the DocType and mentioned through options.
