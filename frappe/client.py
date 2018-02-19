@@ -319,13 +319,13 @@ def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder
 	'''Attach a file to Document (POST)
 
 	:param filename: filename e.g. test-file.txt
-	:param filedata: base64 encode filedata
-	:param doctype: Reference DocType to attach file
-	:param docname: Reference DocName to attach file
+	:param filedata: base64 encode filedata which must be urlencoded
+	:param doctype: Reference DocType to attach file to
+	:param docname: Reference DocName to attach file to
 	:param folder: Folder to add File into
 	:param decode_base64: decode filedata from base64 encode, default is False
-	:param is_private: Attach file as private file
-	:param docfield: file to attach to'''
+	:param is_private: Attach file as private file (1 or 0)
+	:param docfield: file to attach to (optional)'''
 
 	request_method = frappe.local.request.environ.get("REQUEST_METHOD")
 
