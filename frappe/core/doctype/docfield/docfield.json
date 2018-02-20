@@ -40,7 +40,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -73,7 +74,8 @@
    "search_index": 1, 
    "set_only_once": 0, 
    "unique": 0, 
-   "width": "163"
+   "width": "163",
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -106,7 +108,8 @@
    "reqd": 1, 
    "search_index": 1, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -137,7 +140,8 @@
    "reqd": 0, 
    "search_index": 1, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -170,7 +174,8 @@
    "search_index": 0, 
    "set_only_once": 0, 
    "unique": 0, 
-   "width": "50px"
+   "width": "50px",
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -202,7 +207,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -233,7 +239,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -266,7 +273,8 @@
    "search_index": 0, 
    "set_only_once": 0, 
    "unique": 0, 
-   "width": "50px"
+   "width": "50px",
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -297,7 +305,8 @@
    "search_index": 0, 
    "set_only_once": 0, 
    "unique": 0, 
-   "width": "70px"
+   "width": "70px",
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -327,7 +336,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -358,7 +368,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -388,7 +399,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -420,7 +432,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -451,7 +464,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -482,7 +496,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -510,7 +525,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -542,7 +558,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -573,7 +590,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -602,7 +620,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -633,7 +652,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -666,7 +686,8 @@
    "search_index": 0, 
    "set_only_once": 0, 
    "unique": 0, 
-   "width": "50px"
+   "width": "50px",
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -697,7 +718,8 @@
    "search_index": 0, 
    "set_only_once": 0, 
    "unique": 0, 
-   "width": "50px"
+   "width": "50px",
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -727,7 +749,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -757,7 +780,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -788,7 +812,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -816,7 +841,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -850,7 +876,8 @@
    "search_index": 0, 
    "set_only_once": 0, 
    "unique": 0, 
-   "width": "50px"
+   "width": "50px",
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -880,7 +907,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -914,7 +942,8 @@
    "search_index": 0, 
    "set_only_once": 0, 
    "unique": 0, 
-   "width": "50px"
+   "width": "50px",
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -947,7 +976,8 @@
    "search_index": 0, 
    "set_only_once": 0, 
    "unique": 0, 
-   "width": "50px"
+   "width": "50px",
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -978,7 +1008,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -1009,7 +1040,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -1038,7 +1070,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -1071,7 +1104,8 @@
    "search_index": 0, 
    "set_only_once": 0, 
    "unique": 0, 
-   "width": "50px"
+   "width": "50px",
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -1104,7 +1138,8 @@
    "search_index": 0, 
    "set_only_once": 0, 
    "unique": 0, 
-   "width": "50px"
+   "width": "50px",
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -1137,7 +1172,8 @@
    "search_index": 0, 
    "set_only_once": 0, 
    "unique": 0, 
-   "width": "50px"
+   "width": "50px",
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -1168,7 +1204,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -1197,7 +1234,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -1230,7 +1268,8 @@
    "search_index": 0, 
    "set_only_once": 0, 
    "unique": 0, 
-   "width": "50px"
+   "width": "50px",
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -1262,7 +1301,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -1290,7 +1330,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -1323,7 +1364,8 @@
    "search_index": 0, 
    "set_only_once": 0, 
    "unique": 0, 
-   "width": "300px"
+   "width": "300px",
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -1353,7 +1395,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }, 
   {
    "allow_bulk_edit": 0, 
@@ -1383,7 +1426,8 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "unique": 0,
+   "translatable": 0
   }
  ], 
  "has_web_view": 0, 
@@ -1396,7 +1440,7 @@
  "issingle": 0, 
  "istable": 1, 
  "max_attachments": 0, 
- "modified": "2018-01-08 15:52:41.909830", 
+ "modified": "2018-02-20 21:28:41.909830", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocField", 
