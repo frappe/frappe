@@ -48,15 +48,16 @@ def get_site(context):
 		sys.exit(1)
 
 def popen(command, *args, **kwargs):
-	output = kwargs.get('output', True)
+	output    = kwargs.get('output', True)
+	cwd       = kwargs.get('cwd')
+	shell     = kwargs.get('shell', True)
 	raise_err = kwargs.get('raise_err')
-	cwd = kwargs.get('cwd')
 
 	proc = subprocess.Popen(command,
 		stdout = None if output else subprocess.PIPE,
 		stderr = None if output else subprocess.PIPE,
-		shell = True, # nosec
-		cwd = cwd
+		shell  = shell,
+		cwd    = cwd
 	)
 
 	return_ = proc.wait()
