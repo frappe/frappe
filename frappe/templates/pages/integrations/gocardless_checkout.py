@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.utils import flt
 import json
-from frappe.integrations.doctype.gocardless_settings.gocardless_settings import gocardless_initialization
+from frappe.integrations.doctype.gocardless_settings.gocardless_settings import gocardless_initialization, get_gateway_controller
 from frappe.utils import get_url
 
 no_cache = 1
