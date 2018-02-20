@@ -145,7 +145,7 @@
  "issingle": 0,
  "istable": 0,
  "max_attachments": 0,
- "modified": "2018-02-09 12:28:03.183095", 
+ "modified": "2018-02-10 12:28:03.183095",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "GoCardless Mandate",
