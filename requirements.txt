@@ -48,4 +48,3 @@ googlemaps
 mycli
 dill
 braintree
-gocardless_pro

@@ -14,16 +14,6 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "GoCardless Settings",
-					"description": _("GoCardless payment gateway settings"),
-				},
-				{
-					"type": "doctype",
-					"name": "GoCardless Mandate",
-					"description": _("GoCardless SEPA Mandate"),
-				},
-				{
-					"type": "doctype",
 					"name": "PayPal Settings",
 					"description": _("PayPal payment gateway settings"),
 				},
