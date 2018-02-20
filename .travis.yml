@@ -38,5 +38,5 @@ before_script:
   - sleep 20
 
 script:
-  - set -e
+  # - set -e
   - bench run-tests
