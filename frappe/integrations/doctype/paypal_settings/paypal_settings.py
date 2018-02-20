@@ -84,6 +84,9 @@ class PayPalSettings(Document):
 	def on_update(self):
 		pass
 
+	def on_payment_request_submission(self, data):
+		return True
+
 	def validate_transaction_currency(self, currency):
 		if currency not in self.supported_currencies:
 			frappe.throw(_("Please select another payment method. PayPal does not support transactions in currency '{0}'").format(currency))

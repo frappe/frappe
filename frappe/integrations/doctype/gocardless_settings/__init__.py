@@ -18,7 +18,6 @@ def webhooks():
 		raise frappe.AuthenticationError
 
 	gocardless_events = json.loads(r.get_data()) or []
-	frappe.logger().debug({"json_gocardless_events":gocardless_events})
 	for event in gocardless_events["events"]:
 		set_status(event)
 
@@ -43,6 +42,7 @@ def set_mandate_status(event):
 		disabled = 1
 
 	for mandate in mandates:
+		frappe.logger().debug({"modified mandates": mandate})
 		frappe.db.set_value("GoCardless Mandate", mandate, "disabled", disabled)
 
 def authenticate_signature(r):
