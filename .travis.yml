@@ -15,7 +15,7 @@ install:
   - sudo apt-get purge -y mysql-common mysql-server mysql-client
   - nvm install v7.10.0
   - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
-    
+
   - sudo python install.py --develop --user travis --without-bench-setup
   - sudo pip install -e ~/bench
 
@@ -35,8 +35,8 @@ before_script:
   - bench setup-help
   - bench scheduler disable
   - bench start &
-  - sleep 10
+  - sleep 20
 
 script:
-  - set -e
+  # - set -e
   - bench run-tests

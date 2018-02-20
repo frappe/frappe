@@ -14,8 +14,8 @@
 
 <script>
 frappe.ready(function() {
-	if(get_url_arg("search")) {
-		var txt = get_url_arg("search");
+	if(frappe.utils.get_url_arg("search")) {
+		var txt = frappe.utils.get_url_arg("search");
 		$(".item-search-results").html("{{ _('Search results for') }}: " + encodeURIComponent(txt));
 		$(".item-search").toggle(false);
 		$(".clear").toggle(true);

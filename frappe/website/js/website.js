@@ -1,9 +1,10 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
+/* eslint-disable no-console */
 
 frappe.provide("website");
 frappe.provide("frappe.awesome_bar_path");
-cur_frm = null;
+window.cur_frm = null;
 
 $.extend(frappe, {
 	boot: {
@@ -17,10 +18,11 @@ $.extend(frappe, {
 			async: false,
 			dataType: "text",
 			success: function(data) {
+				var el;
 				if(url.split(".").splice(-1) == "js") {
-					var el = document.createElement('script');
+					el = document.createElement('script');
 				} else {
-					var el = document.createElement('style');
+					el = document.createElement('style');
 				}
 				el.appendChild(document.createTextNode(data));
 				document.getElementsByTagName('head')[0].appendChild(el);
@@ -28,13 +30,15 @@ $.extend(frappe, {
 			}
 		});
 	},
-	hide_message: function(text) {
+	hide_message: function() {
 		$('.message-overlay').remove();
 	},
 	call: function(opts) {
 		// opts = {"method": "PYTHON MODULE STRING", "args": {}, "callback": function(r) {}}
 		frappe.prepare_call(opts);
-		if(opts.freeze) { frappe.freeze(); }
+		if(opts.freeze) {
+			frappe.freeze();
+		}
 		return $.ajax({
 			type: opts.type || "POST",
 			url: "/",
@@ -42,13 +46,13 @@ $.extend(frappe, {
 			dataType: "json",
 			headers: { "X-Frappe-CSRF-Token": frappe.csrf_token },
 			statusCode: opts.statusCode || {
-				404: function(xhr) {
+				404: function() {
 					frappe.msgprint(__("Not found"));
 				},
-				403: function(xhr) {
+				403: function() {
 					frappe.msgprint(__("Not permitted"));
 				},
-				200: function(data, xhr) {
+				200: function(data) {
 					if(opts.callback)
 						opts.callback(data);
 					if(opts.success)
@@ -160,7 +164,7 @@ $.extend(frappe, {
 				+text+'</div>').appendTo(document.body);
 	},
 	get_sid: function() {
-		var sid = getCookie("sid");
+		var sid = frappe.get_cookie("sid");
 		return sid && sid !== "Guest";
 	},
 	get_modal: function(title, body_html) {
@@ -183,7 +187,7 @@ $.extend(frappe, {
 	msgprint: function(html, title) {
 		if(html.substr(0,1)==="[") html = JSON.parse(html);
 		if($.isArray(html)) {
-			html = html.join("<hr>")
+			html = html.join("<hr>");
 		}
 
 		return frappe.get_modal(title || "Message", html).modal("show");
@@ -205,7 +209,9 @@ $.extend(frappe, {
 			args: {doctype: doctype, docname: docname, perm_type: perm_type},
 			callback: function(r) {
 				if(!r.exc && r.message.has_permission) {
-					if(callback) { return callback(r); }
+					if(callback) {
+						return callback(r);
+					}
 				}
 			}
 		});
@@ -233,7 +239,9 @@ $.extend(frappe, {
 			freeze.html(repl('<div class="freeze-message-container"><div class="freeze-message">%(msg)s</div></div>',
 				{msg: msg || ""}));
 
-			setTimeout(function() { freeze.addClass("in") }, 1);
+			setTimeout(function() {
+				freeze.addClass("in");
+			}, 1);
 
 		} else {
 			$("#freeze").addClass("in");
@@ -246,7 +254,9 @@ $.extend(frappe, {
 		if(!frappe.freeze_count) {
 			var freeze = $('#freeze').removeClass("in");
 			setTimeout(function() {
-				if(!frappe.freeze_count) { freeze.remove(); }
+				if(!frappe.freeze_count) {
+					freeze.remove();
+				}
 			}, 150);
 		}
 	},
@@ -258,7 +268,7 @@ $.extend(frappe, {
 	},
 
 	highlight_code_blocks: function() {
-		if(hljs) {
+		if(window.hljs) {
 			$('pre code').each(function(i, block) {
 				hljs.highlightBlock(block);
 			});
@@ -282,7 +292,7 @@ $.extend(frappe, {
 			});
 
 			window.location.href = location.pathname + "?" + $.param(args);
-		}
+		};
 
 		$(".filter").on("change", function() {
 			search();
@@ -316,7 +326,7 @@ $.extend(frappe, {
 				$(this).addClass("active");
 				return false;
 			}
-		})
+		});
 	},
 	get_navbar_search: function() {
 		return $(".navbar .search, .sidebar .search");
@@ -333,28 +343,29 @@ $.extend(frappe, {
 // Utility functions
 
 function valid_email(id) {
+	// eslint-disable-next-line
 	return (id.toLowerCase().search("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")==-1) ? 0 : 1;
 }
 
-var validate_email = valid_email;
+window.validate_email = valid_email;
 
 function cstr(s) {
 	return s==null ? '' : s+'';
 }
 
-function is_null(v) {
+window.is_null = function is_null(v) {
 	if(v===null || v===undefined || cstr(v).trim()==="") return true;
-}
+};
 
-function is_html(txt) {
+window.is_html = function is_html(txt) {
 	if(txt.indexOf("<br>")==-1 && txt.indexOf("<p")==-1
 		&& txt.indexOf("<img")==-1 && txt.indexOf("<div")==-1) {
 		return false;
 	}
 	return true;
-}
+};
 
-function ask_to_login() {
+window.ask_to_login = function ask_to_login() {
 	if(!frappe.is_user_logged_in()) {
 		if(localStorage) {
 			localStorage.setItem("last_visited",
@@ -362,12 +373,12 @@ function ask_to_login() {
 		}
 		window.location.href = "login";
 	}
-}
+};
 
 // check if logged in?
 $(document).ready(function() {
-	window.full_name = getCookie("full_name");
-	var logged_in = getCookie("sid") && getCookie("sid") !== "Guest";
+	window.full_name = frappe.get_cookie("full_name");
+	var logged_in = frappe.get_cookie("sid") && frappe.get_cookie("sid") !== "Guest";
 	$("#website-login").toggleClass("hide", logged_in ? true : false);
 	$("#website-post-login").toggleClass("hide", logged_in ? false : true);
 	$(".logged-in").toggleClass("hide", logged_in ? false : true);
@@ -375,7 +386,7 @@ $(document).ready(function() {
 	frappe.bind_navbar_search();
 
 	// switch to app link
-	if(getCookie("system_user")==="yes" && logged_in) {
+	if(frappe.get_cookie("system_user")==="yes" && logged_in) {
 		frappe.add_switch_to_desk();
 	}
 
@@ -389,12 +400,12 @@ $(document).on("page-change", function() {
 	$('.dropdown-toggle').dropdown();
 
 	//multilevel dropdown fix
-	$('.dropdown-menu .dropdown-submenu .dropdown-toggle').on('click', function (e) {
+	$('.dropdown-menu .dropdown-submenu .dropdown-toggle').on('click', function(e) {
 		e.stopPropagation();
 		$(this).parent().parent().parent().addClass('open');
-	})
+	});
 
-	$.extend(frappe, getCookies());
+	$.extend(frappe, frappe.get_cookies());
 	frappe.session = {'user': frappe.user_id};
 
 	frappe.datetime.refresh_when();
@@ -410,7 +421,7 @@ $(document).on("page-change", function() {
 });
 
 
-$(document).ready(function ( ) {
+$(document).ready(function( ) {
 	// frappe.Chat
 	// const chat = new frappe.Chat();
 	// chat.render();
