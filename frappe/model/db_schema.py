@@ -561,6 +561,7 @@ class DbManager:
 			)
 			source = ''
 		else:
+			pipe   = ''
 			source = '< {source}'.format(source = source)
 
 		if pipe:
