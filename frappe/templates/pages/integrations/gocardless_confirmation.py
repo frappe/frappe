@@ -3,8 +3,6 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import flt
-import json
 from frappe.integrations.doctype.gocardless_settings.gocardless_settings import gocardless_initialization, get_gateway_controller
 
 no_cache = 1
@@ -53,7 +51,7 @@ def confirm_payment(redirect_flow_id, reference_doctype, reference_docname):
             frappe.log_error(e, "GoCardless Mandate Registration Error")
 
         gateway_controller = get_gateway_controller(reference_docname)
-        result =  frappe.get_doc("GoCardless Settings", gateway_controller).create_payment_request(data)
+        frappe.get_doc("GoCardless Settings", gateway_controller).create_payment_request(data)
 
         return {"redirect_to": redirect_flow.confirmation_url}
 
@@ -83,5 +81,5 @@ def create_mandate(data):
             "gocardless_customer": data.get('customer')
             }).insert(ignore_permissions=True)
 
-        except Exception as e:
+        except Exception:
             frappe.log_error(frappe.get_traceback())

@@ -133,11 +133,11 @@ class GoCardlessSettings(Document):
 
 			elif payment.status=="cancelled" or payment.status=="customer_approval_denied" or payment.status=="charged_back":
 				self.integration_request.db_set('status', 'Cancelled', update_modified=False)
-				error_log = frappe.log_error(_("Payment Cancelled. Please check your GoCardless Account for more details"), "GoCardless Payment Error")
+				frappe.log_error(_("Payment Cancelled. Please check your GoCardless Account for more details"), "GoCardless Payment Error")
 				self.integration_request.db_set('error', payment.status, update_modified=False)
 			else:
 				self.integration_request.db_set('status', 'Failed', update_modified=False)
-				error_log = frappe.log_error(_("Payment Failed. Please check your GoCardless Account for more details"), "GoCardless Payment Error")
+				frappe.log_error(_("Payment Failed. Please check your GoCardless Account for more details"), "GoCardless Payment Error")
 				self.integration_request.db_set('error', payment.status, update_modified=False)
 
 		except Exception as e:
