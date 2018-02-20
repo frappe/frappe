@@ -32,14 +32,14 @@ def bundle(no_compress, make_copy=False, restore=False, verbose=False):
 
 	command = 'yarn run build' if no_compress else 'yarn run production'
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
-	subprocess.call(command, cwd=frappe_app_path)
+	subprocess.call(command.split(" "), cwd=frappe_app_path)
 
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
 	setup()
 
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
-	subprocess.call('yarn run watch', cwd = frappe_app_path)
+	subprocess.call('yarn run watch'.split(" "), cwd = frappe_app_path)
 
 def make_asset_dirs(make_copy=False, restore=False):
 	# don't even think of making assets_path absolute - rm -rf ahead.
