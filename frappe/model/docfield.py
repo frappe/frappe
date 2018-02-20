@@ -12,10 +12,10 @@ def rename(doctype, fieldname, newname):
 		(doctype, fieldname), as_dict=1)
 	if not df:
 		return
-	
+
 	df = df[0]
-	
-	if frappe.db.get_value('DocType', doctype, 'issingle'):	
+
+	if frappe.db.get_value('DocType', doctype, 'issingle'):
 		update_single(df, newname)
 	else:
 		update_table(df, newname)
@@ -33,7 +33,7 @@ def update_table(f, new):
 	query = get_change_column_query(f, new)
 	if query:
 		frappe.db.sql(query)
-	
+
 def update_parent_field(f, new):
 	"""update 'parentfield' in tables"""
 	if f['fieldtype']=='Table':
@@ -41,7 +41,7 @@ def update_parent_field(f, new):
 		frappe.db.sql("""update `tab%s` set parentfield=%s where parentfield=%s""" \
 			% (f['options'], '%s', '%s'), (new, f['fieldname']))
 		frappe.db.commit()
-	
+
 def get_change_column_query(f, new):
 	"""generate change fieldname query"""
 	desc = frappe.db.sql("desc `tab%s`" % f['parent'])
@@ -49,3 +49,6 @@ def get_change_column_query(f, new):
 		if d[0]== f['fieldname']:
 			return 'alter table `tab%s` change `%s` `%s` %s' % \
 				(f['parent'], f['fieldname'], new, d[1])
+
+def supports_translation(fieldtype):
+	return fieldtype in ["Data", "Select", "Text", "Small Text", "Text Editor"]

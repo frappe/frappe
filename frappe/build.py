@@ -3,10 +3,10 @@
 
 from __future__ import unicode_literals, print_function
 from frappe.utils.minify import JavascriptMinify
-import subprocess
 import warnings
 
 from six import iteritems, text_type
+import subprocess
 
 """
 Build the `public` folders and setup languages
@@ -28,36 +28,18 @@ def bundle(no_compress, make_copy=False, restore=False, verbose=False):
 	"""concat / minify js files"""
 	# build js files
 	setup()
-
 	make_asset_dirs(make_copy=make_copy, restore=restore)
 
-	# new nodejs build system
-	command = 'node --use_strict ../apps/frappe/frappe/build.js --build'
-	if not no_compress:
-		command += ' --minify'
-	subprocess.call(command.split(' '))
-
-	# build(no_compress, verbose)
+	command = 'yarn run build' if no_compress else 'yarn run production'
+	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
+	subprocess.call(command.split(" "), cwd=frappe_app_path)
 
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
+	setup()
 
-	# new nodejs file watcher
-	command = 'node --use_strict ../apps/frappe/frappe/build.js --watch'
-	subprocess.call(command.split(' '))
-
-	# setup()
-
-	# import time
-	# compile_less()
-	# build(no_compress=True)
-
-	# while True:
-	# 	compile_less()
-	# 	if files_dirty():
-	# 		build(no_compress=True)
-
-	# 	time.sleep(3)
+	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
+	subprocess.call('yarn run watch'.split(" "), cwd = frappe_app_path)
 
 def make_asset_dirs(make_copy=False, restore=False):
 	# don't even think of making assets_path absolute - rm -rf ahead.

@@ -47,51 +47,55 @@ frappe.model.subscribe = (doctype, name, field) =>
  * @see  https://stackoverflow.com/a/32749533
  * @todo Requires "transform-builtin-extend" for Babel 6
  */
-frappe.Error = class extends Error {
-	constructor (message) {
-		super (message)
+frappe.Error = Error;
+// class extends Error {
+// 	constructor (message) {
+// 		super (message)
 
-		this.name = 'FrappeError'
+// 		this.name = 'FrappeError'
 
-		if ( typeof Error.captureStackTrace === 'function' )
-			Error.captureStackTrace(this, this.constructor)
-		else
-			this.stack = (new Error(message)).stack
-	}
-}
+// 		if ( typeof Error.captureStackTrace === 'function' )
+// 			Error.captureStackTrace(this, this.constructor)
+// 		else
+// 			this.stack = (new Error(message)).stack
+// 	}
+// }
 
 /**
  * @description TypeError
  */
-frappe.TypeError  = class extends frappe.Error {
-	constructor (message) {
-		super (message)
+frappe.TypeError  = TypeError;
+// class extends frappe.Error {
+// 	constructor (message) {
+// 		super (message)
 
-		this.name = this.constructor.name
-	}
-}
+// 		this.name = this.constructor.name
+// 	}
+// }
 
 /**
  * @description ValueError
  */
-frappe.ValueError = class extends frappe.Error {
-	constructor (message) {
-		super (message)
+frappe.ValueError = Error
+// class extends frappe.Error {
+// 	constructor (message) {
+// 		super (message)
 
-		this.name = this.constructor.name
-	}
-}
+// 		this.name = this.constructor.name
+// 	}
+// }
 
 /**
  * @description ImportError
  */
-frappe.ImportError = class extends frappe.Error {
-	constructor (message) {
-		super (message)
+frappe.ImportError = Error
+// class extends frappe.Error {
+// 	constructor (message) {
+// 		super (message)
 
-		this.name  = this.constructor.name
-	}
-}
+// 		this.name  = this.constructor.name
+// 	}
+// }
 
 // frappe.datetime
 frappe.provide('frappe.datetime')

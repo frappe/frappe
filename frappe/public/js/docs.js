@@ -1,7 +1,7 @@
 // used in documenation site built via document generator
 
 $(function() {
-	if(hljs) {
+	if(window.hljs) {
 		$('pre code').each(function(i, block) {
 			hljs.highlightBlock(block);
 		});
@@ -10,7 +10,7 @@ $(function() {
 	// search
 	$('.sidebar-navbar-items .octicon-search, .navbar .octicon-search').parent().on("click", function() {
 		var modal = frappe.get_modal("Search",
-		'<p><input class="search-input form-control" type="text" placeholder="Search text..." tabindex="1"></p>\
+			'<p><input class="search-input form-control" type="text" placeholder="Search text..." tabindex="1"></p>\
 		<p><a class="btn btn-sm btn-default btn-search" href="#" target="_blank" tabindex="2">Search via Google</a></p>');
 		modal.find(".search-input").on("keyup", function(e) {
 			if(e.which===13) {
@@ -49,4 +49,4 @@ frappe = {
 
 		return modal;
 	},
-}
+};

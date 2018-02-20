@@ -63,7 +63,7 @@ frappe.ui.toolbar.ModulesSelect = class {
 									const user = r.message.user;
 									resolve(icons.map(icon => {
 										const uncheck = user ? icon.hidden : icon.blocked;
-										return { label: icon.value, value: icon.value, checked:!uncheck };
+										return { label: icon.value, value: icon.module_name, checked:!uncheck };
 									}));
 								}
 							});

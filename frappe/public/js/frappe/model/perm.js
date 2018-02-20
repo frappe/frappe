@@ -4,8 +4,15 @@
 frappe.provide("frappe.perm");
 
 // backward compatibilty
-var READ = "read", WRITE = "write", CREATE = "create", DELETE = "delete";
-var SUBMIT = "submit", CANCEL = "cancel", AMEND = "amend";
+Object.assign(window, {
+	READ: "read",
+	WRITE: "write",
+	CREATE: "create",
+	DELETE: "delete",
+	SUBMIT: "submit",
+	CANCEL: "cancel",
+	AMEND: "amend",
+});
 
 $.extend(frappe.perm, {
 	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend",

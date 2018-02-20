@@ -3,7 +3,7 @@
 
 frappe.provide('frappe.ui');
 
-var cur_dialog;
+window.cur_dialog = null;
 
 frappe.ui.open_dialogs = [];
 frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
@@ -49,9 +49,9 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 				if(frappe.ui.open_dialogs[frappe.ui.open_dialogs.length-1]===me) {
 					frappe.ui.open_dialogs.pop();
 					if(frappe.ui.open_dialogs.length) {
-						cur_dialog = frappe.ui.open_dialogs[frappe.ui.open_dialogs.length-1];
+						window.cur_dialog = frappe.ui.open_dialogs[frappe.ui.open_dialogs.length-1];
 					} else {
-						cur_dialog = null;
+						window.cur_dialog = null;
 					}
 				}
 				me.onhide && me.onhide();
@@ -60,7 +60,7 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 			.on("shown.bs.modal", function() {
 				// focus on first input
 				me.display = true;
-				cur_dialog = me;
+				window.cur_dialog = me;
 				frappe.ui.open_dialogs.push(me);
 				me.focus_on_first_input();
 				me.on_page_show && me.on_page_show();
@@ -100,7 +100,6 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 		this.get_primary_btn().removeClass('disabled');
 	},
 	make_head: function() {
-		var me = this;
 		this.set_title(this.title);
 	},
 	set_title: function(t) {
@@ -109,15 +108,15 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 	show: function() {
 		// show it
 		if ( this.animate ) {
-			this.$wrapper.addClass('fade')
+			this.$wrapper.addClass('fade');
 		} else {
-			this.$wrapper.removeClass('fade')
+			this.$wrapper.removeClass('fade');
 		}
 		this.$wrapper.modal("show");
 		this.primary_action_fulfilled = false;
 		this.is_visible = true;
 	},
-	hide: function(from_event) {
+	hide: function() {
 		this.$wrapper.modal("hide");
 		this.is_visible = false;
 	},

@@ -369,7 +369,7 @@ frappe.request.report_error = function(xhr, request_opts) {
 
 		request_opts = frappe.request.cleanup_request_opts(request_opts);
 
-		msg_dialog = frappe.msgprint({message:error_message, indicator:'red'});
+		window.msg_dialog = frappe.msgprint({message:error_message, indicator:'red'});
 
 		msg_dialog.msg_area.find(".report-btn")
 			.toggle(error_report_email ? true : false)

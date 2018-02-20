@@ -14,7 +14,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '10.0.24'
+__version__ = '10.0.25'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -1463,3 +1463,7 @@ def get_version(doctype, name, limit = None, head = False, raise_err = True):
 			raise ValueError('{doctype} has no versions tracked.'.format(
 				doctype = doctype
 			))
+
+@whitelist(allow_guest = True)
+def ping():
+	return "pong"
