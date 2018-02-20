@@ -42,7 +42,6 @@ def set_mandate_status(event):
 		disabled = 1
 
 	for mandate in mandates:
-		frappe.logger().debug({"modified mandates": mandate})
 		frappe.db.set_value("GoCardless Mandate", mandate, "disabled", disabled)
 
 def authenticate_signature(r):
