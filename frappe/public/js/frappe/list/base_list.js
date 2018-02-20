@@ -165,6 +165,9 @@ frappe.views.BaseList = class BaseList {
 		}
 
 		this.menu_items.map(item => {
+			if (item.condition && item.condition() === false) {
+				return;
+			}
 			const $item = this.page.add_menu_item(item.label, item.action, item.standard);
 			if (item.class) {
 				$item.addClass(item.class);
