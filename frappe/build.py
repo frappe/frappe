@@ -6,6 +6,7 @@ from frappe.utils.minify import JavascriptMinify
 import warnings
 
 from six import iteritems, text_type
+import subprocess
 
 """
 Build the `public` folders and setup languages
@@ -38,7 +39,7 @@ def watch(no_compress):
 	setup()
 
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
-	frappe.commands.popen('yarn run watch', cwd=frappe_app_path)
+	subprocess.call(['yarn', 'run', 'watch'], cwd=frappe_app_path)
 
 def make_asset_dirs(make_copy=False, restore=False):
 	# don't even think of making assets_path absolute - rm -rf ahead.
