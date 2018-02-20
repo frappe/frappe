@@ -1,6 +1,6 @@
-# Tutoriel Frappe
+# Tutoriel Frappé
 
-Dans ce guide nous allons vous montrer comment créer une application de A à Z en utilisant **Frappe**. Avec un 
+Dans ce guide nous allons vous montrer comment créer une application de A à Z en utilisant **Frappé**. Avec un 
 exemple de gestion de bibliothèque, nous allons aborder les sujets suivants:
 
 1. Installation
@@ -13,12 +13,12 @@ exemple de gestion de bibliothèque, nous allons aborder les sujets suivants:
 
 ## A qui s'adresse ce tutoriel ?
 
-Ce guide est à destination des développeurs familiers avec la création d'applications web. Le framework Frappe est développé
+Ce guide est à destination des développeurs familiers avec la création d'applications web. Le framework Frappé est développé
 avec Python, utilise le système de base de données MariaDB et HTML/CSS/Javascript pour le rendu des pages. 
 Il est donc nécessaire d'être familier avec ces technologies. Si vous n'avez jamais utilisé Python auparavant, vous devriez
 suivre un tutoriel rapide avant de suivre ce guide.
 
-Frappe utilise le système de gestion de version git sur Github. Il est donc important que vous connaissiez les bases de
+Frappé utilise le système de gestion de version git sur Github. Il est donc important que vous connaissiez les bases de
 l'utilisation de git et que vous ayez un compte sur Github pour gérer vos applications.
 
 ## Exemple
@@ -32,7 +32,7 @@ les modèles suivants:
 1. Library Membership (période pendant laquelle un membre peut emprunter)
 1. Library Management Setting (configuration générale)
 
-L'interface utilisateur (UI) pour le bibliothécaire sera **Frappe Desk**, un système de rendu d'interface où les formulaires sont
+L'interface utilisateur (UI) pour le bibliothécaire sera **Frappé Desk**, un système de rendu d'interface où les formulaires sont
 automatiquement générés depuis les modèles en appliquant rôles et permissions.
 
 Nous allons aussi créer des vues pour la bibliothèque afin que les utilisateurs puissent parcourir la liste des livres depuis un site internet.

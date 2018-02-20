@@ -13,32 +13,23 @@
 			<div class="image-field"
 				data-name="{{ data.name }}"
 				style="
-				{% if (!item_image) { %}
+				{% if (!data._image_url) { %}
 					background-color: {{ color }};
 				{% } %}
 				border: 0px;"
 			>
-				{% if (!item_image) { %}
+				{% if (!data._image_url) { %}
 				<span class="placeholder-text">
 					{%= frappe.get_abbr(data._title) %}
 				</span>
 				{% } %}
-				{% if (item_image) { %}
-				<img data-name="{{ data.name }}" src="{{ item_image }}" alt="{{data.title}}">
+				{% if (data._image_url) { %}
+				<img data-name="{{ data.name }}" src="{{ data._image_url }}" alt="{{data.title}}">
 				{% } %}
 				<button class="btn btn-default zoom-view" data-name="{{data.name}}">
 					<i class="fa fa-search-plus"></i>
 				</button>
 			</div>
 		</a>
-	</div>
-	<div class="image-view-footer hide">
-		<div class="row">
-			<div class="col-xs-4">{%= indicator %}</div>
-			<div class="col-xs-8 text-right">
-				<!-- comments count and assigned to section -->
-				{%= frappe.render_template("item_assigned_to_comment_count", { data: data }) %}
-			</div>
-		</div>
 	</div>
 </div>

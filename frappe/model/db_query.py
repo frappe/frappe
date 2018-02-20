@@ -3,11 +3,11 @@
 
 from __future__ import unicode_literals
 
-from six import iteritems
+from six import iteritems, string_types
 
 """build query for doclistview and return results"""
 
-import frappe, json, copy
+import frappe, json, copy, re
 import frappe.defaults
 import frappe.share
 import frappe.permissions
@@ -37,7 +37,7 @@ class DatabaseQuery(object):
 		update=None, add_total_row=None, user_settings=None):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
-			raise frappe.PermissionError, self.doctype
+			raise frappe.PermissionError(self.doctype)
 
 		# fitlers and fields swappable
 		# its hard to remember what comes first
@@ -47,7 +47,7 @@ class DatabaseQuery(object):
 			filters, fields = fields, filters
 
 		elif fields and isinstance(filters, list) \
-			and len(filters) > 1 and isinstance(filters[0], basestring):
+			and len(filters) > 1 and isinstance(filters[0], string_types):
 			# if `filters` is a list of strings, its probably fields
 			filters, fields = fields, filters
 
@@ -77,7 +77,6 @@ class DatabaseQuery(object):
 		self.user = user or frappe.session.user
 		self.update = update
 		self.user_settings_fields = copy.deepcopy(self.fields)
-		#self.debug = True
 
 		if user_settings:
 			self.user_settings = json.loads(user_settings)
@@ -113,6 +112,7 @@ class DatabaseQuery(object):
 
 	def prepare_args(self):
 		self.parse_args()
+		self.sanitize_fields()
 		self.extract_tables()
 		self.set_optional_columns()
 		self.build_conditions()
@@ -157,7 +157,7 @@ class DatabaseQuery(object):
 
 	def parse_args(self):
 		"""Convert fields and filters from strings to list, dicts"""
-		if isinstance(self.fields, basestring):
+		if isinstance(self.fields, string_types):
 			if self.fields == "*":
 				self.fields = ["*"]
 			else:
@@ -168,7 +168,7 @@ class DatabaseQuery(object):
 
 		for filter_name in ["filters", "or_filters"]:
 			filters = getattr(self, filter_name)
-			if isinstance(filters, basestring):
+			if isinstance(filters, string_types):
 				filters = json.loads(filters)
 
 			if isinstance(filters, dict):
@@ -178,6 +178,35 @@ class DatabaseQuery(object):
 					filters.append(make_filter_tuple(self.doctype, key, value))
 			setattr(self, filter_name, filters)
 
+	def sanitize_fields(self):
+		'''
+			regex : ^.*[,();].*
+			purpose : The regex will look for malicious patterns like `,`, '(', ')', ';' in each
+					field which may leads to sql injection.
+			example :
+				field = "`DocType`.`issingle`, version()"
+
+			As field contains `,` and mysql function `version()`, with the help of regex
+			the system will filter out this field.
+		'''
+		regex = re.compile('^.*[,();].*')
+		blacklisted_keywords = ['select', 'create', 'insert', 'delete', 'drop', 'update', 'case']
+		blacklisted_functions = ['concat', 'concat_ws', 'if', 'ifnull', 'nullif', 'coalesce',
+			'connection_id', 'current_user', 'database', 'last_insert_id', 'session_user',
+			'system_user', 'user', 'version']
+
+		def _raise_exception():
+			frappe.throw(_('Cannot use sub-query or function in fields'), frappe.DataError)
+
+		for field in self.fields:
+			if regex.match(field):
+				if any(keyword in field.lower() for keyword in blacklisted_keywords):
+					_raise_exception()
+
+				if any("{0}(".format(keyword) in field.lower() \
+					for keyword in blacklisted_functions):
+					_raise_exception()
+
 	def extract_tables(self):
 		"""extract tables from fields"""
 		self.tables = ['`tab' + self.doctype + '`']
@@ -185,8 +214,8 @@ class DatabaseQuery(object):
 		# add tables from fields
 		if self.fields:
 			for f in self.fields:
-				if ( not ("tab" in f and "." in f) ) or ("locate(" in f): continue
-
+				if ( not ("tab" in f and "." in f) ) or ("locate(" in f) or ("count(" in f):
+					continue
 
 				table_name = f.split('.')[0]
 				if table_name.lower().startswith('group_concat('):
@@ -203,7 +232,7 @@ class DatabaseQuery(object):
 		doctype = table_name[4:-1]
 		if (not self.flags.ignore_permissions) and (not frappe.has_permission(doctype)):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(doctype))
-			raise frappe.PermissionError, doctype
+			raise frappe.PermissionError(doctype)
 
 	def set_field_tables(self):
 		'''If there are more than one table, the fieldname must not be ambigous.
@@ -230,7 +259,7 @@ class DatabaseQuery(object):
 		# remove from filters
 		to_remove = []
 		for each in self.filters:
-			if isinstance(each, basestring):
+			if isinstance(each, string_types):
 				each = [each]
 
 			for element in each:
@@ -264,7 +293,7 @@ class DatabaseQuery(object):
 			filters = [filters]
 
 		for f in filters:
-			if isinstance(f, basestring):
+			if isinstance(f, string_types):
 				conditions.append(f)
 			else:
 				conditions.append(self.prepare_filter_condition(f))
@@ -291,7 +320,7 @@ class DatabaseQuery(object):
 
 		# prepare in condition
 		if f.operator.lower() in ('in', 'not in'):
-			values = f.value
+			values = f.value or ''
 			if not isinstance(values, (list, tuple)):
 				values = values.split(",")
 
@@ -308,15 +337,7 @@ class DatabaseQuery(object):
 			if f.operator.lower() == 'between' and \
 				(f.fieldname in ('creation', 'modified') or (df and (df.fieldtype=="Date" or df.fieldtype=="Datetime"))):
 
-				from_date = None
-				to_date = None
-				if f.value and isinstance(f.value, (list, tuple)):
-					if len(f.value) >= 1: from_date = f.value[0]
-					if len(f.value) >= 2: to_date = f.value[1]
-
-				value = "'%s' AND '%s'" % (
-					add_to_date(get_datetime(from_date),days=-1).strftime("%Y-%m-%d %H:%M:%S.%f"),
-					get_datetime(to_date).strftime("%Y-%m-%d %H:%M:%S.%f"))
+				value = get_between_date_filter(f.value, df)
 				fallback = "'0000-00-00 00:00:00'"
 
 			elif df and df.fieldtype=="Date":
@@ -331,12 +352,12 @@ class DatabaseQuery(object):
 				value = get_time(f.value).strftime("%H:%M:%S.%f")
 				fallback = "'00:00:00'"
 
-			elif f.operator.lower() in ("like", "not like") or (isinstance(f.value, basestring) and
+			elif f.operator.lower() in ("like", "not like") or (isinstance(f.value, string_types) and
 				(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
 					value = "" if f.value==None else f.value
 					fallback = '""'
 
-					if f.operator.lower() in ("like", "not like") and isinstance(value, basestring):
+					if f.operator.lower() in ("like", "not like") and isinstance(value, string_types):
 						# because "like" uses backslash (\) for escaping
 						value = value.replace("\\", "\\\\").replace("%", "%%")
 
@@ -345,7 +366,7 @@ class DatabaseQuery(object):
 				fallback = 0
 
 			# put it inside double quotes
-			if isinstance(value, basestring) and not f.operator.lower() == 'between':
+			if isinstance(value, string_types) and not f.operator.lower() == 'between':
 				value = '"{0}"'.format(frappe.db.escape(value, percent=False))
 
 		if (self.ignore_ifnull
@@ -388,7 +409,7 @@ class DatabaseQuery(object):
 			# apply user permissions?
 			if role_permissions.get("apply_user_permissions", {}).get("read"):
 				# get user permissions
-				user_permissions = frappe.defaults.get_user_permissions(self.user)
+				user_permissions = frappe.permissions.get_user_permissions(self.user)
 				self.add_user_permissions(user_permissions,
 					user_permission_doctypes=role_permissions.get("user_permission_doctypes").get("read"))
 
@@ -571,3 +592,48 @@ def get_order_by(doctype, meta):
 		order_by = "`tab{0}`.docstatus asc, {1}".format(doctype, order_by)
 
 	return order_by
+
+
+@frappe.whitelist()
+def get_list(doctype, *args, **kwargs):
+	'''wrapper for DatabaseQuery'''
+	kwargs.pop('cmd', None)
+	return DatabaseQuery(doctype).execute(None, *args, **kwargs)
+
+def is_parent_only_filter(doctype, filters):
+	#check if filters contains only parent doctype
+	only_parent_doctype = True
+
+	if isinstance(filters, list):
+		for flt in filters:
+			if doctype not in flt:
+				only_parent_doctype = False
+			if 'Between' in flt:
+				flt[3] = get_between_date_filter(flt[3])
+
+	return only_parent_doctype
+
+def get_between_date_filter(value, df=None):
+	'''
+		return the formattted date as per the given example
+		[u'2017-11-01', u'2017-11-03'] => '2017-11-01 00:00:00.000000' AND '2017-11-04 00:00:00.000000'
+	'''
+	from_date = None
+	to_date = None
+	date_format = "%Y-%m-%d %H:%M:%S.%f"
+
+	if df:
+		date_format = "%Y-%m-%d %H:%M:%S.%f" if df.fieldtype == 'Datetime' else "%Y-%m-%d"
+
+	if value and isinstance(value, (list, tuple)):
+		if len(value) >= 1: from_date = value[0]
+		if len(value) >= 2: to_date = value[1]
+
+	if not df or (df and df.fieldtype == 'Datetime'):
+		to_date = add_to_date(to_date,days=1)
+
+	data = "'%s' AND '%s'" % (
+		get_datetime(from_date).strftime(date_format),
+		get_datetime(to_date).strftime(date_format))
+
+	return data

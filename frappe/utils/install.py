@@ -53,6 +53,7 @@ def install_basic_docs():
 			'roles': [{'role': 'Guest'}]
 		},
 		{'doctype': "Role", "role_name": "Report Manager"},
+		{'doctype': "Role", "role_name": "Translator"},
 		{'doctype': "Workflow State", "workflow_state_name": "Pending",
 			"icon": "question-sign", "style": ""},
 		{'doctype': "Workflow State", "workflow_state_name": "Approved",
@@ -125,7 +126,7 @@ def import_country_and_currency():
 		country = frappe._dict(data[name])
 		add_country_and_currency(name, country)
 
-	print()
+	print("")
 
 	# enable frequently used currencies
 	for currency in ("INR", "USD", "GBP", "EUR", "AED", "AUD", "JPY", "CNY", "CHF"):
@@ -153,4 +154,3 @@ def add_country_and_currency(name, country):
 			"number_format": country.number_format,
 			"docstatus": 0
 		}).db_insert()
-

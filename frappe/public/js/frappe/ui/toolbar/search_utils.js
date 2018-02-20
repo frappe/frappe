@@ -20,7 +20,8 @@ frappe.search.utils = {
 						if($.isPlainObject(option)) {
 							option = [option];
 						}
-						option.forEach(function(o) { o.match = item; });
+						option.forEach(function(o) { o.match = item; o.recent = true;});
+
 						options = option.concat(options);
 					}
 				}
@@ -37,7 +38,7 @@ frappe.search.utils = {
 			if(route[0]==='Form') {
 				values.push([route[2], route]);
 			}
-			else if(in_list(['List', 'Report', 'Tree', 'modules', 'query-report'], route[0])) {
+			else if(['List', 'Tree', 'modules', 'query-report'].includes(route[0]) || route[2]==='Report') {
 				if(route[1]) {
 					values.push([route[1], route]);
 				}
@@ -50,24 +51,27 @@ frappe.search.utils = {
 		find(values, keywords, function(match) {
 			var out = {
 				route: match[1]
-			}
-			if(match[1][0]==='Form') {
-				if(match[1][1] !== match[1][2]) {
+			};
+			if (match[1][0]==='Form') {
+				if (match[1].length > 2 && match[1][1] !== match[1][2]) {
 					out.label = __(match[1][1]) + " " + match[1][2].bold();
 					out.value = __(match[1][1]) + " " + match[1][2];
 				} else {
 					out.label = __(match[1][1]).bold();
 					out.value = __(match[1][1]);
 				}
-			} else if(in_list(['List', 'Report', 'Tree', 'modules', 'query-report'], match[1][0])) {
+			} else if (['List', 'Tree', 'modules', 'query-report'].includes(match[1][0]) && (match[1].length > 1)) {
 				var type = match[1][0], label = type;
 				if(type==='modules') label = 'Module';
-				else if(type==='query-report') label = 'Report';
+				else if(type==='query-report' || match[1][2] ==='Report') label = 'Report';
 				out.label = __(match[1][1]).bold() + " " + __(label);
 				out.value = __(match[1][1]) + " " + __(label);
-			} else {
+			} else if (match[0]) {
 				out.label = match[0].bold();
 				out.value = match[0];
+			} else {
+				// eslint-disable-next-line
+				console.log('Illegal match', match);
 			}
 			out.index = 80;
 			return out;
@@ -131,7 +135,7 @@ frappe.search.utils = {
 			return {
 				type: type,
 				label: me.bolden_match_part(__(target), keywords) + " " + __(type),
-				value: __(target) + " " + __(type),
+				value: __(target + " " + type),
 				index: level + order,
 				match: target,
 				route: route,
@@ -163,11 +167,7 @@ frappe.search.utils = {
 					} else {
 						out.push(option("List", ["List", item], 0.05));
 						if (frappe.model.can_get_report(item)) {
-							out.push(option("Report", ["Report", item], 0.04));
-						}
-						if (frappe.boot.calendars.indexOf(item) !== -1) {
-							out.push(option("Calendar", ["List", item, "Calendar"], 0.03));
-							out.push(option("Gantt", ["List", item, "Gantt"], 0.02));
+							out.push(option("Report", ["List", item, "Report"], 0.04));
 						}
 					}
 				}
@@ -185,7 +185,7 @@ frappe.search.utils = {
 			if(level > 0) {
 				var report = frappe.boot.user.all_reports[item];
 				if(report.report_type == "Report Builder")
-					route = ["Report", report.ref_doctype, item];
+					route = [report.ref_doctype, item, "Report"];
 				else
 					route = ["query-report",  item];
 				out.push({
@@ -251,7 +251,13 @@ frappe.search.utils = {
 			var level = me.fuzzy_search(keywords, item);
 			if(level > 0) {
 				var module = frappe.modules[item];
-				if(module._doctype) return;
+				if (module._doctype) return;
+
+				// disallow restricted modules
+				if (frappe.boot.user.allow_modules &&
+					!frappe.boot.user.allow_modules.includes(module.module_name)) {
+					return;
+				}
 				var ret = {
 					type: "Module",
 					label: __("Open {0}", [me.bolden_match_part(__(item), keywords)]),
@@ -484,6 +490,8 @@ frappe.search.utils = {
 			// 0 - 6 for fuzzy contain
 
 		// **Specific use-case step**
+		keywords = keywords || '';
+
 		var item = __(_item || '').replace(/-/g, " ");
 
 		var ilen = item.length;

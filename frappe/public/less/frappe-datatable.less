@@ -1,0 +1,71 @@
+@import "variables.less";
+
+.data-table {
+	margin-left: -1px;
+	margin-top: -1px;
+	font-size: @text-medium;
+
+	.data-table-col .edit-cell {
+		padding: 0;
+
+		input {
+			font-size: inherit;
+			height: 34px;
+		}
+	}
+
+	.frappe-control {
+		margin: 0;
+	}
+	.form-group {
+		margin: 0;
+	}
+	.form-control {
+		border-radius: 0px;
+		border: none;
+	}
+	.link-btn {
+		top: 6px;
+	}
+	select {
+		height: 34px;
+	}
+
+	.checkbox {
+		margin: 7px 0 7px 8px;
+	}
+	[data-fieldtype="Color"] .control-input {
+		overflow: hidden;
+	}
+
+	.body-scrollable {
+		&::-webkit-scrollbar {
+			display: none;
+		}
+	}
+
+	.data-table-header {
+		background-color: @panel-bg;
+		color: @text-muted;
+	}
+
+	.data-table-row.row-update {
+		animation: 500ms breathe forwards;
+	}
+
+	.data-table-row.row-highlight {
+		background-color: @extra-light-yellow;
+	}
+}
+
+@keyframes breathe {
+	0% {
+		background-color: transparent;
+	}
+	50% {
+		background-color: @extra-light-yellow;
+	}
+	100% {
+		background-color: transparent;
+	}
+}

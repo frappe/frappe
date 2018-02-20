@@ -185,6 +185,11 @@ frappe.ui.BaseList = Class.extend({
 		}
 
 		if (this.meta) {
+			var filter_count = 1;
+			if(this.is_list_view) {
+				$(`<span class="octicon octicon-search text-muted small"></span>`)
+					.prependTo(this.page.page_form);
+			}
 			this.page.add_field({
 				fieldtype: 'Data',
 				label: 'ID',
@@ -193,14 +198,14 @@ frappe.ui.BaseList = Class.extend({
 				onchange: () => { me.refresh(true); }
 			});
 
-			this.meta.fields.forEach(function(df) {
+			this.meta.fields.forEach(function(df, i) {
 				if(df.in_standard_filter && !frappe.model.no_value_type.includes(df.fieldtype)) {
 					let options = df.options;
 					let condition = '=';
 					let fieldtype = df.fieldtype;
-					if (['Link', 'Text', 'Small Text', 'Text Editor', 'Data'].includes(fieldtype)) {
-						fieldtype = 'Data',
-						condition = 'like'
+					if (['Text', 'Small Text', 'Text Editor', 'Data'].includes(fieldtype)) {
+						fieldtype = 'Data';
+						condition = 'like';
 					}
 					if(df.fieldtype == "Select" && df.options) {
 						options = df.options.split("\n");
@@ -209,7 +214,7 @@ frappe.ui.BaseList = Class.extend({
 							options = options.join("\n");
 						}
 					}
-					me.page.add_field({
+					let f = me.page.add_field({
 						fieldtype: fieldtype,
 						label: __(df.label),
 						options: options,
@@ -217,6 +222,13 @@ frappe.ui.BaseList = Class.extend({
 						condition: condition,
 						onchange: () => {me.refresh(true);}
 					});
+					filter_count ++;
+					if (filter_count > 3) {
+						$(f.wrapper).addClass('hidden-sm').addClass('hidden-xs');
+					}
+					if (filter_count > 5) {
+						return false;
+					}
 				}
 			});
 		}
@@ -512,7 +524,7 @@ frappe.ui.BaseList = Class.extend({
 					if (me.list_header) {
 						me.list_header.find(".list-select-all").prop("checked", false);
 					}
-					me.refresh();
+					me.refresh(true);
 				}
 			}
 		});

@@ -39,7 +39,7 @@ frappe.template.compile = function(str, name) {
 		// {% endif %} --> {% } %}
 		str = str.replace(/{%\s?endfor\s?%}/g, "{% }; %}");
 
-		fn_str = "var _p=[],print=function(){_p.push.apply(_p,arguments)};" +
+		var fn_str = "var _p=[],print=function(){_p.push.apply(_p,arguments)};" +
 
 	        // Introduce the data as local variables using with(){}
 	        "with(obj){\n_p.push('" +
@@ -93,8 +93,6 @@ frappe.render_grid = function(opts) {
 		} else if(opts.grid) {
 			opts.data = opts.grid.getData().getItems();
 		}
-	} else {
-		opts.columns = [];
 	}
 
 	// show landscape view if columns more than 10
@@ -121,5 +119,19 @@ frappe.render_grid = function(opts) {
 	}
 
 	w.document.write(html);
+	w.document.close();
+},
+frappe.render_tree = function(opts) {
+	opts.base_url = frappe.urllib.get_base_url();
+	opts.landscape = false;
+	opts.print_css = frappe.boot.print_css;
+	var tree = frappe.render_template("print_tree", opts);
+	var w = window.open();
+
+	if(!w) {
+		frappe.msgprint(__("Please enable pop-ups in your browser"))
+	}
+
+	w.document.write(tree);
 	w.document.close();
 }

@@ -23,8 +23,8 @@ class TestPrintFormat(unittest.TestCase):
 
 	def test_print_user_modern(self):
 		print_html = self.test_print_user("Modern")
-		self.assertTrue("/* modern format: don't remove this line */" in print_html)
+		self.assertTrue("/* modern format: for-test */" in print_html)
 
 	def test_print_user_classic(self):
 		print_html = self.test_print_user("Classic")
-		self.assertTrue("font-family: serif;" in print_html)
+		self.assertTrue("/* classic format: for-test */" in print_html)

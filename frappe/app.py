@@ -4,8 +4,8 @@
 from __future__ import unicode_literals
 
 import os
-import MySQLdb
 from six import iteritems
+import logging
 
 from werkzeug.wrappers import Request
 from werkzeug.local import LocalManager
@@ -25,6 +25,12 @@ from frappe.middlewares import StaticDataMiddleware
 from frappe.utils.error import make_error_snapshot
 from frappe.core.doctype.communication.comment import update_comments_in_parent_after_request
 from frappe import _
+
+# imports - third-party imports
+import pymysql
+from pymysql.constants import ER
+
+# imports - module imports
 
 local_manager = LocalManager([frappe.local])
 
@@ -115,8 +121,18 @@ def init_request(request):
 	frappe.local.http_request = frappe.auth.HTTPRequest()
 
 def make_form_dict(request):
-	frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
-		for k, v in iteritems(request.form or request.args) })
+	import json
+
+	if request.content_type == 'application/json' and request.data:
+		args = json.loads(request.data)
+	else:
+		args = request.form or request.args
+
+	try:
+		frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
+			for k, v in iteritems(args) })
+	except IndexError:
+		frappe.local.form_dict = frappe._dict(args)
 
 	if "_" in frappe.local.form_dict:
 		# _ is passed by $.ajax so that the request is not cached by the browser. So, remove _ from form_dict
@@ -127,17 +143,14 @@ def handle_exception(e):
 	http_status_code = getattr(e, "http_status_code", 500)
 	return_as_message = False
 
-	if frappe.local.is_ajax or 'application/json' in frappe.local.request.headers.get('Accept', ''):
+	if frappe.local.is_ajax or 'application/json' in frappe.get_request_header('Accept'):
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
 		response = frappe.utils.response.report_error(http_status_code)
 
 	elif (http_status_code==500
-		and isinstance(e, MySQLdb.OperationalError)
-		and e.args[0] in (1205, 1213)):
-			# 1205 = lock wait timeout
-			# 1213 = deadlock
-			# code 409 represents conflict
+		and isinstance(e, pymysql.InternalError)
+		and e.args[0] in (ER.LOCK_WAIT_TIMEOUT, ER.LOCK_DEADLOCK)):
 			http_status_code = 508
 
 	elif http_status_code==401:
@@ -165,7 +178,7 @@ def handle_exception(e):
 
 		frappe.respond_as_web_page("Server Error",
 			traceback, http_status_code=http_status_code,
-			indicator_color='red')
+			indicator_color='red', width=640)
 		return_as_message = True
 
 	if e.__class__ == frappe.AuthenticationError:
@@ -177,7 +190,8 @@ def handle_exception(e):
 		make_error_snapshot(e)
 
 	if return_as_message:
-		response = frappe.website.render.render("message", http_status_code=http_status_code)
+		response = frappe.website.render.render("message",
+			http_status_code=http_status_code)
 
 	return response
 
@@ -212,11 +226,11 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 
 	if not os.environ.get('NO_STATICS'):
 		application = SharedDataMiddleware(application, {
-			b'/assets': os.path.join(sites_path, 'assets').encode("utf-8"),
+			'/assets': os.path.join(sites_path, 'assets'),
 		})
 
 		application = StaticDataMiddleware(application, {
-			b'/files': os.path.abspath(sites_path).encode("utf-8")
+			'/files': os.path.abspath(sites_path)
 		})
 
 	application.debug = True
@@ -225,6 +239,10 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 	}
 
 	in_test_env = os.environ.get('CI')
+	if in_test_env:
+		log = logging.getLogger('werkzeug')
+		log.setLevel(logging.ERROR)
+
 	run_simple('0.0.0.0', int(port), application,
 		use_reloader=not in_test_env,
 		use_debugger=not in_test_env,

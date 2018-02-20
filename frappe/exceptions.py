@@ -4,11 +4,11 @@
 from __future__ import unicode_literals
 
 # BEWARE don't put anything in this file except exceptions
-
 from werkzeug.exceptions import NotFound
-from MySQLdb import ProgrammingError as SQLError, Error
-from MySQLdb import OperationalError as DatabaseOperationalError
 
+# imports - third-party imports
+from pymysql import ProgrammingError as SQLError, Error
+# from pymysql import OperationalError as DatabaseOperationalError
 
 class ValidationError(Exception):
 	http_status_code = 417
@@ -37,12 +37,14 @@ class SessionStopped(Exception):
 class UnsupportedMediaType(Exception):
 	http_status_code = 415
 
+class RequestToken(Exception):
+	http_status_code = 200
+
 class Redirect(Exception):
 	http_status_code = 301
 
 class CSRFTokenError(Exception):
 	http_status_code = 400
-
 
 class ImproperDBConfigurationError(Error):
 	"""
@@ -54,7 +56,6 @@ class ImproperDBConfigurationError(Error):
 			msg = "MariaDb is not properly configured"
 		super(ImproperDBConfigurationError, self).__init__(msg)
 		self.reason = reason
-
 
 class DuplicateEntryError(NameError):pass
 class DataError(ValidationError): pass

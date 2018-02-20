@@ -1,6 +1,6 @@
 # Antes de começar
 
-<p class="lead">Uma lista de ferramentas, tecnologias que serão muito úteis para a construção de aplicativos com Frappe.</p>
+<p class="lead">Uma lista de ferramentas, tecnologias que serão muito úteis para a construção de aplicativos com Frappé.</p>
 
 Há uma série de bons tutoriais on-line e encontramos [Codecademy] (http://www.codecademy.com/) como um dos mais bonitos tutoriais, aqui há um monte de lições que você pode aprender com Codecademy
 
@@ -8,7 +8,7 @@ Há uma série de bons tutoriais on-line e encontramos [Codecademy] (http://www.
 
 #### 1. Python
 
-O lado do servidor do Frappe é escrito em Python e é uma boa idéia para [aprender rapidamente Python] (http://www.codecademy.com/tracks/python) antes de começar a se aprofundar em Frappe. Outro bom lugar para aprender Pytohn é o [tutorial no docs.python.org](https://docs.python.org/2.7/tutorial/index.html). Note-se que o Frappe usa Python 2.7
+O lado do servidor do Frappé é escrito em Python e é uma boa idéia para [aprender rapidamente Python] (http://www.codecademy.com/tracks/python) antes de começar a se aprofundar em Frappé. Outro bom lugar para aprender Pytohn é o [tutorial no docs.python.org](https://docs.python.org/2.7/tutorial/index.html). Note-se que o Frappé usa Python 2.7
 
 Para escrever código do lado do servidor de qualidade, você deve incluir testes automáticos. Você pode aprender as noções básicas de [test driven development (TDD) - aqui] (http://code.tutsplus.com/tutorials/beginning-test-driven-development-in-python--net-30137).
 
@@ -44,4 +44,4 @@ Se estiver personalizando modelos de impressão, você precisa aprender a [líng
 
 ---
 
-Quando estiver pronto, [tente construir uma aplicação de exemplo em Frappe]({{docs_base_url}}/user/pt/tutorial/app)
+Quando estiver pronto, [tente construir uma aplicação de exemplo em Frappé](/docs/user/pt/tutorial/app)

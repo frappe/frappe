@@ -1,14 +1,20 @@
 from __future__ import unicode_literals, absolute_import, print_function
 import click
-import hashlib, os, sys
+import hashlib, os, sys, compileall
 import frappe
 from frappe import _
-from _mysql_exceptions import ProgrammingError
 from frappe.commands import pass_context, get_site
 from frappe.commands.scheduler import _is_scheduler_enabled
 from frappe.limits import update_limits, get_limits
 from frappe.installer import update_site_config
 from frappe.utils import touch_file, get_site_path
+from six import text_type
+
+# imports - third-party imports
+from pymysql.constants import ER
+
+# imports - module imports
+from frappe.exceptions import SQLError
 
 @click.command('new-site')
 @click.argument('site')
@@ -35,7 +41,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	"""Install a new Frappe site"""
 
 	if not db_name:
-		db_name = hashlib.sha1(site).hexdigest()[:16]
+		db_name = hashlib.sha1(site.encode()).hexdigest()[:16]
 
 	from frappe.installer import install_db, make_site_dirs
 	from frappe.installer import install_app as _install_app
@@ -95,7 +101,7 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 	if not os.path.exists(sql_file_path):
 		sql_file_path = '../' + sql_file_path
 		if not os.path.exists(sql_file_path):
-			print('Invalid path {0}' + sql_file_path[3:])
+			print('Invalid path {0}'.format(sql_file_path[3:]))
 			sys.exit(1)
 
 	if sql_file_path.endswith('sql.gz'):
@@ -216,6 +222,8 @@ def migrate(context, rebuild_website=False):
 			migrate(context.verbose, rebuild_website=rebuild_website)
 		finally:
 			frappe.destroy()
+
+	compileall.compile_dir('../apps', quiet=1)
 
 @click.command('run-patch')
 @click.argument('module')
@@ -345,8 +353,8 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 
 	try:
 		scheduled_backup(ignore_files=False, force=True)
-	except ProgrammingError as err:
-		if err[0] == 1146:
+	except SQLError as err:
+		if err[0] == ER.NO_SUCH_TABLE:
 			if force:
 				pass
 			else:
@@ -397,8 +405,9 @@ def move(dest_dir, site):
 
 @click.command('set-admin-password')
 @click.argument('admin-password')
+@click.option('--logout-all-sessions', help='Logout from all sessions', is_flag=True, default=False)
 @pass_context
-def set_admin_password(context, admin_password):
+def set_admin_password(context, admin_password, logout_all_sessions=False):
 	"Set Administrator password for a site"
 	import getpass
 	from frappe.utils.password import update_password
@@ -411,7 +420,7 @@ def set_admin_password(context, admin_password):
 				admin_password = getpass.getpass("Administrator's password for {0}: ".format(site))
 
 			frappe.connect()
-			update_password('Administrator', admin_password)
+			update_password(user='Administrator', pwd=admin_password, logout_all_sessions=logout_all_sessions)
 			frappe.db.commit()
 			admin_password = None
 		finally:
@@ -428,7 +437,7 @@ def set_limit(context, site, limit, value):
 
 @click.command('set-limits')
 @click.option('--site', help='site name')
-@click.option('--limit', 'limits', type=(unicode, unicode), multiple=True)
+@click.option('--limit', 'limits', type=(text_type, text_type), multiple=True)
 @pass_context
 def set_limits(context, site, limits):
 	_set_limits(context, site, limits)
@@ -446,7 +455,7 @@ def _set_limits(context, site, limits):
 		frappe.connect()
 		new_limits = {}
 		for limit, value in limits:
-			if limit not in ('emails', 'space', 'users', 'email_group',
+			if limit not in ('daily_emails', 'emails', 'space', 'users', 'email_group',
 				'expiry', 'support_email', 'support_chat', 'upgrade_url'):
 				frappe.throw(_('Invalid limit {0}').format(limit))
 
@@ -459,7 +468,7 @@ def _set_limits(context, site, limits):
 			elif limit=='space':
 				value = float(value)
 
-			elif limit in ('users', 'emails', 'email_group'):
+			elif limit in ('users', 'emails', 'email_group', 'daily_emails'):
 				value = int(value)
 
 			new_limits[limit] = value
@@ -469,7 +478,7 @@ def _set_limits(context, site, limits):
 @click.command('clear-limits')
 @click.option('--site', help='site name')
 @click.argument('limits', nargs=-1, type=click.Choice(['emails', 'space', 'users', 'email_group',
-	'expiry', 'support_email', 'support_chat', 'upgrade_url']))
+	'expiry', 'support_email', 'support_chat', 'upgrade_url', 'daily_emails']))
 @pass_context
 def clear_limits(context, site, limits):
 	"""Clears given limit from the site config, and removes limit from site config if its empty"""

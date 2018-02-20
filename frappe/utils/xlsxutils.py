@@ -6,15 +6,18 @@ import frappe
 from frappe.utils import encode, cstr, cint, flt, comma_or
 
 import openpyxl
-from cStringIO import StringIO
+import re
 from openpyxl.styles import Font
 from openpyxl import load_workbook
+from six import StringIO, string_types
 
-
+ILLEGAL_CHARACTERS_RE = re.compile(r'[\000-\010]|[\013-\014]|[\016-\037]')
 # return xlsx file object
-def make_xlsx(data, sheet_name):
+def make_xlsx(data, sheet_name, wb=None):
 
-	wb = openpyxl.Workbook(write_only=True)
+	if wb is None:
+		wb = openpyxl.Workbook(write_only=True)
+
 	ws = wb.create_sheet(sheet_name, 0)
 
 	row1 = ws.row_dimensions[1]
@@ -23,10 +26,15 @@ def make_xlsx(data, sheet_name):
 	for row in data:
 		clean_row = []
 		for item in row:
-			if isinstance(item, basestring) and sheet_name != "Data Import Template":
+			if isinstance(item, string_types) and sheet_name != "Data Import Template":
 				value = handle_html(item)
 			else:
 				value = item
+
+			if isinstance(item, string_types) and next(ILLEGAL_CHARACTERS_RE.finditer(value), None):
+				# Remove illegal characters from the string
+				value = re.sub(ILLEGAL_CHARACTERS_RE, '', value)
+
 			clean_row.append(value)
 
 		ws.append(clean_row)
@@ -53,13 +61,10 @@ def handle_html(data):
 	obj.ignore_links = True
 	obj.body_width = 0
 	value = obj.handle(h)
-	value = value.split('\n', 1)
-	value = value[0].split('# ',1)
-	if len(value) < 2:
-		return value[0]
-	else:
-		return value[1]
-
+	value = ", ".join(value.split('  \n'))
+	value = " ".join(value.split('\n'))
+	value = ", ".join(value.split('# '))
+	return value
 
 def read_xlsx_file_from_attached_file(file_id=None, fcontent=None):
 	if file_id:

@@ -72,6 +72,7 @@ class TestFeedbackTrigger(unittest.TestCase):
 		}).insert(ignore_permissions=True)
 
 		# check if feedback mail alert is triggered
+		todo.reload()
 		todo.status = "Closed"
 		todo.save(ignore_permissions=True)
 
@@ -112,6 +113,7 @@ class TestFeedbackTrigger(unittest.TestCase):
 			reference_doctype="ToDo", reference_name=todo.name, feedback="Thank You !!", rating=4, fullname="Test User")
 
 		# auto feedback request should trigger only once
+		todo.reload()
 		todo.save(ignore_permissions=True)
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where
 			reference_doctype='ToDo' and reference_name='{0}'""".format(todo.name))
@@ -125,11 +127,10 @@ class TestFeedbackTrigger(unittest.TestCase):
 			"communication_type": "Feedback"
 		})
 		self.assertFalse(communications)
-		
+
 		feedback_requests = frappe.get_all("Feedback Request", {
 			"reference_doctype": "ToDo",
 			"reference_name": todo.name,
 			"is_feedback_submitted": 0
 		})
 		self.assertFalse(feedback_requests)
-		

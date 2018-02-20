@@ -17,16 +17,38 @@ frappe.ui.form.on('User', {
 		}
 
 	},
+
+	role_profile_name: function(frm) {
+		if(frm.doc.role_profile_name) {
+			frappe.call({
+				"method": "frappe.core.doctype.user.user.get_role_profile",
+				args: {
+					role_profile: frm.doc.role_profile_name
+				},
+				callback: function (data) {
+					frm.set_value("roles", []);
+					$.each(data.message || [], function(i, v){
+						var d = frm.add_child("roles");
+						d.role = v.role;
+					});
+					frm.roles_editor.show();
+				}
+			});
+		}
+	},
+
 	onload: function(frm) {
-		if(has_common(frappe.user_roles, ["Administrator", "System Manager"]) && !frm.doc.__islocal) {
+		frm.can_edit_roles = has_common(frappe.user_roles, ["Administrator", "System Manager"]);
+
+		if(frm.can_edit_roles && !frm.is_new()) {
 			if(!frm.roles_editor) {
 				var role_area = $('<div style="min-height: 300px">')
 					.appendTo(frm.fields_dict.roles_html.wrapper);
-				frm.roles_editor = new frappe.RoleEditor(role_area, frm);
+				frm.roles_editor = new frappe.RoleEditor(role_area, frm, frm.doc.role_profile_name ? 1 : 0);
 
 				var module_area = $('<div style="min-height: 300px">')
 					.appendTo(frm.fields_dict.modules_html.wrapper);
-				frm.module_editor = new frappe.ModuleEditor(frm, module_area)
+				frm.module_editor = new frappe.ModuleEditor(frm, module_area);
 			} else {
 				frm.roles_editor.show();
 			}
@@ -34,7 +56,10 @@ frappe.ui.form.on('User', {
 	},
 	refresh: function(frm) {
 		var doc = frm.doc;
-
+		if(!frm.is_new() && !frm.roles_editor && frm.can_edit_roles) {
+			frm.reload_doc();
+			return;
+		}
 		if(doc.name===frappe.session.user && !doc.__unsaved
 			&& frappe.all_timezones
 			&& (doc.language || frappe.boot.user.language)
@@ -45,12 +70,9 @@ frappe.ui.form.on('User', {
 
 		frm.toggle_display(['sb1', 'sb3', 'modules_access'], false);
 
-		if(!doc.__islocal){
+		if(!frm.is_new()) {
 			frm.add_custom_button(__("Set Desktop Icons"), function() {
-				frappe.route_options = {
-					"user": doc.name
-				};
-				frappe.set_route("modules_setup");
+				frappe.frappe_toolbar.modules_select.show(doc.name);
 			}, null, "btn-default")
 
 			if(has_common(frappe.user_roles, ["Administrator", "System Manager"])) {
@@ -59,8 +81,12 @@ frappe.ui.form.on('User', {
 					frappe.route_options = {
 						"user": doc.name
 					};
-					frappe.set_route("user-permissions");
-				}, null, "btn-default")
+					frappe.set_route('List', 'User Permission');
+				}, __("Permissions"))
+
+				frm.add_custom_button(__('View Permitted Documents'),
+					() => frappe.set_route('query-report', 'Permitted Documents For User',
+						{user: frm.doc.name}), __("Permissions"));
 
 				frm.toggle_display(['sb1', 'sb3', 'modules_access'], true);
 			}
@@ -72,11 +98,24 @@ frappe.ui.form.on('User', {
 						"user": frm.doc.name
 					}
 				})
-			})
+			}, __("Password"));
+
+			frm.add_custom_button(__("Reset OTP Secret"), function() {
+				frappe.call({
+					method: "frappe.core.doctype.user.user.reset_otp_secret",
+					args: {
+						"user": frm.doc.name
+					}
+				})
+			}, __("Password"));
 
 			frm.trigger('enabled');
 
-			frm.roles_editor && frm.roles_editor.show();
+			if (frm.roles_editor && frm.can_edit_roles) {
+				frm.roles_editor.disable = frm.doc.role_profile_name ? 1 : 0;
+				frm.roles_editor.show();
+			}
+
 			frm.module_editor && frm.module_editor.refresh();
 
 			if(frappe.session.user==doc.name) {
@@ -107,6 +146,7 @@ frappe.ui.form.on('User', {
 			}
 			cur_frm.dirty();
 		}
+
 	},
 	validate: function(frm) {
 		if(frm.roles_editor) {
@@ -115,13 +155,13 @@ frappe.ui.form.on('User', {
 	},
 	enabled: function(frm) {
 		var doc = frm.doc;
-		if(!doc.__islocal && has_common(frappe.user_roles, ["Administrator", "System Manager"])) {
+		if(!frm.is_new() && has_common(frappe.user_roles, ["Administrator", "System Manager"])) {
 			frm.toggle_display(['sb1', 'sb3', 'modules_access'], doc.enabled);
 			frm.set_df_property('enabled', 'read_only', 0);
 		}
 
 		if(frappe.session.user!=="Administrator") {
-			frm.toggle_enable('email', doc.__islocal);
+			frm.toggle_enable('email', frm.is_new());
 		}
 	},
 	create_user_email:function(frm) {

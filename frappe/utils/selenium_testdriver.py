@@ -19,8 +19,8 @@ import frappe
 from ast import literal_eval
 
 class TestDriver(object):
-	def __init__(self, port='8000'):
-		self.port = port
+	def __init__(self, port=None):
+		self.port = port or frappe.get_site_config().webserver_port or '8000'
 
 		chrome_options = Options()
 		capabilities = DesiredCapabilities.CHROME
@@ -38,7 +38,7 @@ class TestDriver(object):
 		self.driver = webdriver.Chrome(chrome_options=chrome_options,
 			desired_capabilities=capabilities, port=9515)
 
-		self.driver.set_window_size(1080,800)
+		# self.driver.set_window_size(1080,800)
 		self.cur_route = None
 		self.logged_in = False
 
@@ -63,14 +63,14 @@ class TestDriver(object):
 			self.driver.quit()
 		self.driver = None
 
-	def login(self, wait_for_id="#page-desktop"):
+	def login(self, wait_for_id="#page-desktop", animate=0, scroll_offset=0):
 		if self.logged_in:
 			return
 		self.get('login')
 		self.wait_for("#login_email")
 		self.set_input("#login_email", "Administrator")
 		self.set_input("#login_password", "admin")
-		self.click('.btn-login')
+		self.click('.btn-login', animate=animate, offset=scroll_offset)
 		self.wait_for(wait_for_id)
 		self.logged_in = True
 
@@ -84,12 +84,26 @@ class TestDriver(object):
 			time.sleep(0.2)
 
 	def set_field(self, fieldname, text):
-		elem = self.find(xpath='//input[@data-fieldname="{0}"]'.format(fieldname))
-		elem[0].send_keys(text)
+		elem = self.wait_for(xpath='//input[@data-fieldname="{0}"]'.format(fieldname))
+		time.sleep(0.2)
+		elem.send_keys(text)
+
+	def set_select(self, fieldname, text):
+		elem = self.wait_for(xpath='//select[@data-fieldname="{0}"]'.format(fieldname))
+		time.sleep(0.2)
+		elem.send_keys(text)
+
+	def set_multicheck(self, fieldname, values):
+		for value in values:
+			path = '//div[@data-fieldname="{0}"]//span[@data-unit="{1}"]'.format(fieldname, value)
+			elem = self.wait_for(xpath=path)
+			time.sleep(0.2)
+			elem.click()
 
 	def set_text_editor(self, fieldname, text):
-		elem = self.find(xpath='//div[@data-fieldname="{0}"]//div[@contenteditable="true"]'.format(fieldname))
-		elem[0].send_keys(text)
+		elem = self.wait_for(xpath='//div[@data-fieldname="{0}"]//div[@contenteditable="true"]'.format(fieldname))
+		time.sleep(0.2)
+		elem.send_keys(text)
 
 	def find(self, selector=None, everywhere=False, xpath=None):
 		if xpath:
@@ -99,7 +113,7 @@ class TestDriver(object):
 				selector = self.cur_route + " " + selector
 			return self.driver.find_elements_by_css_selector(selector)
 
-	def wait_for(self, selector=None, everywhere=False, timeout=20, xpath=None):
+	def wait_for(self, selector=None, everywhere=False, timeout=20, xpath=None, for_invisible=False):
 		if self.cur_route and not everywhere:
 			selector = self.cur_route + " " + selector
 
@@ -112,21 +126,28 @@ class TestDriver(object):
 			selector = xpath
 
 		try:
-			elem = self.get_wait(timeout).until(
-				EC.presence_of_element_located((_by, selector)))
+			if not for_invisible:
+				elem = self.get_wait(timeout).until(
+					EC.presence_of_element_located((_by, selector)))
+			else:
+				elem = self.get_wait(timeout).until(
+					EC.invisibility_of_element_located((_by, selector)))
 			return elem
-		except Exception, e:
+		except Exception as e:
 			# body = self.driver.find_element_by_id('body_div')
 			# print(body.get_attribute('innerHTML'))
 			self.print_console()
 			raise e
+
+	def wait_for_invisible(self, selector=None, everywhere=False, timeout=20, xpath=None):
+		self.wait_for(selector, everywhere, timeout, xpath, True)
 
 	def get_console(self):
 		out = []
 		for entry in self.driver.get_log('browser'):
 			source, line_no, message = entry.get('message').split(' ', 2)
 
-			if message[0] in ('"', "'"):
+			if message and message[0] in ('"', "'"):
 				# message is a quoted/escaped string
 				message = literal_eval(message)
 
@@ -143,8 +164,8 @@ class TestDriver(object):
 	def get_wait(self, timeout=20):
 		return WebDriverWait(self.driver, timeout)
 
-	def scroll_to(self, selector):
-		self.execute_script("frappe.ui.scroll('{0}')".format(selector))
+	def scroll_to(self, selector, animate=0, offset=0):
+		self.execute_script("frappe.ui.scroll('{0}', {1}, {2})".format(selector, animate, offset))
 
 	def set_route(self, *args):
 		self.execute_script('frappe.set_route({0})'\
@@ -152,8 +173,12 @@ class TestDriver(object):
 
 		self.wait_for(xpath='//div[@data-page-route="{0}"]'.format('/'.join(args)), timeout=4)
 
-	def click(self, css_selector, xpath=None):
-		self.wait_till_clickable(css_selector, xpath).click()
+	def click(self, css_selector, xpath=None, timeout=20, animate=0, offset=0):
+		element = self.wait_till_clickable(css_selector, xpath, timeout)
+		self.scroll_to(css_selector, animate, offset)
+		time.sleep(0.5)
+		element.click()
+		return element
 
 	def click_primary_action(self):
 		selector = ".page-actions .primary-action"
@@ -178,7 +203,7 @@ class TestDriver(object):
 			if elem.is_displayed():
 				return elem
 
-	def wait_till_clickable(self, selector=None, xpath=None):
+	def wait_till_clickable(self, selector=None, xpath=None, timeout=20):
 		if self.cur_route:
 			selector = self.cur_route + " " + selector
 
@@ -187,14 +212,18 @@ class TestDriver(object):
 			by = By.XPATH
 			selector = xpath
 
-		return self.get_wait().until(EC.element_to_be_clickable(
+		return self.get_wait(timeout).until(EC.element_to_be_clickable(
 			(by, selector)))
+
 
 	def execute_script(self, js):
 		self.driver.execute_script(js)
 
-	def wait_for_ajax(self):
+	def wait_for_ajax(self, freeze = False):
 		self.wait_for('body[data-ajax-state="complete"]', True)
+		if freeze:
+			self.wait_for_invisible(".freeze-message-container")
+
 
 # def go_to_module(module_name, item=None):
 # 	global cur_route

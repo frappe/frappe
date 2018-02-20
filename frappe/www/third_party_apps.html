@@ -1,0 +1,66 @@
+{% extends "templates/web.html" %}
+
+{% block title %} {{ _("Third Party Apps") }} {% endblock %}
+{% block header %}
+	<h1>{{ _("Third Party Apps") }}</h1>
+{% endblock %}
+
+{% block page_sidebar %}
+{% include "templates/pages/web_sidebar.html" %}
+{% endblock %}
+
+{% block style %}
+{% endblock %}
+
+{% block page_content %}
+
+<!-- no-cache -->
+
+<div class='padding'></div>
+
+{% if app %}
+<h4>{{ app.app_name }}</h4>
+	<div class="web-list-item">
+		<div class="row">
+			<div class="col-xs-12">
+				<div class="well">
+					<div class="text-muted">{{ _("This will log out {0} from all other devices".format(app.app_name)) }}</div>
+					<div class="padding"></div>
+					<div class="text-right">						
+						<button class="btn btn-default" onclick="location.href = '/third_party_apps';">Cancel</button>
+						<button class="btn btn-danger btn-delete-app" data-client_id="{{ app.client_id }}">Revoke</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{% elif apps|length > 0 %}
+<h4>{{ _("Active Sessions") }}</h4>
+	{% for app in apps %}
+	<div class="web-list-item">
+		<div class="row">
+			<div class="col-xs-6">
+				{{ app.app_name }}
+			</div>
+			<div class="col-xs-4 text-right text-muted">
+				<small class="text-right">
+					{{ _("logged in") }}&nbsp;{{ frappe.utils.pretty_date(app.creation) }}
+				</small>
+			</div>			
+			<div class="col-xs-2 text-right small text-muted">
+				<a class="btn btn-xs btn-link" href="/third_party_apps?app={{ app.name }}">{{ _("Revoke") }}</a>
+			</div>
+		</div>
+	</div>
+	{% endfor %}
+{% else %}
+	<div class="text-center text-muted">
+		{{ _("No Active Sessions")}}
+	</div>
+{% endif %}
+<div class="padding"></div>
+<script>
+{% include "templates/includes/integrations/third_party_apps.js" %}
+</script>
+
+{% endblock %}

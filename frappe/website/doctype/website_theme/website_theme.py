@@ -43,7 +43,7 @@ class WebsiteTheme(Document):
 	def export_doc(self):
 		"""Export to standard folder `[module]/website_theme/[name]/[name].json`."""
 		from frappe.modules.export_file import export_to_files
-		export_to_files(record_list=[['Website Theme', self.name]])
+		export_to_files(record_list=[['Website Theme', self.name]], create_init=True)
 
 
 	def clear_cache_if_current_theme(self):

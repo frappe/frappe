@@ -2,8 +2,15 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Print Settings", "print_style", function (frm) {
-	frm.get_field("print_style_preview").html('<img src="/assets/frappe/images/help/print-style-' +
-		frm.doc.print_style.toLowerCase() + '.png" class="img-responsive">');
+	frappe.db.get_value('Print Style', frm.doc.print_style, 'preview').then((r) => {
+		if(r.message.preview) {
+			frm.get_field("print_style_preview").$wrapper.html(
+				`<img src="${r.message.preview}" class="img-responsive">`);
+		} else {
+			frm.get_field("print_style_preview").$wrapper.html(
+				`<p style="margin: 60px 0px" class="text-center text-muted">${__("No Preview")}</p>`);
+		}
+	});
 });
 
 frappe.ui.form.on("Print Settings", "onload", function (frm) {

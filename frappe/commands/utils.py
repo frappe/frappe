@@ -1,23 +1,32 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import unicode_literals, absolute_import, print_function
 import click
-import json, os, sys
+import json, os, sys, subprocess
 from distutils.spawn import find_executable
 import frappe
 from frappe.commands import pass_context, get_site
+from frappe.utils import update_progress_bar
+from frappe.utils.response import json_handler
 
 @click.command('build')
 @click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
+@click.option('--restore', is_flag=True, default=False, help='Copy the files instead of symlinking with force')
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
-def build(make_copy=False, verbose=False):
+def build(make_copy=False, restore = False, verbose=False):
 	"Minify + concatenate JS and CSS files, build translations"
 	import frappe.build
 	import frappe
 	frappe.init('')
-	frappe.build.bundle(False, make_copy=make_copy, verbose=verbose)
+	# don't minify in developer_mode for faster builds
+	no_compress = frappe.local.conf.developer_mode or False
+	frappe.build.bundle(no_compress, make_copy=make_copy, restore = restore, verbose=verbose)
 
 @click.command('watch')
 def watch():
 	"Watch and concatenate JS and CSS files as and when they change"
+	# if os.environ.get('CI'):
+	# 	return
 	import frappe.build
 	frappe.init('')
 	frappe.build.watch(True)
@@ -115,7 +124,7 @@ def execute(context, method, args=None, kwargs=None):
 		finally:
 			frappe.destroy()
 		if ret:
-			print(json.dumps(ret))
+			print(json.dumps(ret, default=json_handler))
 
 
 @click.command('add-to-email-queue')
@@ -158,12 +167,12 @@ def export_doc(context, doctype, docname):
 @pass_context
 def export_json(context, doctype, path, name=None):
 	"Export doclist as json to the given path, use '-' as name for Singles."
-	from frappe.core.page.data_import_tool import data_import_tool
+	from frappe.core.doctype.data_import import data_import
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			data_import_tool.export_json(doctype, path, name=name)
+			data_import.export_json(doctype, path, name=name)
 		finally:
 			frappe.destroy()
 
@@ -173,12 +182,12 @@ def export_json(context, doctype, path, name=None):
 @pass_context
 def export_csv(context, doctype, path):
 	"Export data import template with data for DocType"
-	from frappe.core.page.data_import_tool import data_import_tool
+	from frappe.core.doctype.data_import import data_import
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			data_import_tool.export_csv(doctype, path)
+			data_import.export_csv(doctype, path)
 		finally:
 			frappe.destroy()
 
@@ -200,7 +209,7 @@ def export_fixtures(context):
 @pass_context
 def import_doc(context, path, force=False):
 	"Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported"
-	from frappe.core.page.data_import_tool import data_import_tool
+	from frappe.core.doctype.data_import import data_import
 
 	if not os.path.exists(path):
 		path = os.path.join('..', path)
@@ -212,7 +221,7 @@ def import_doc(context, path, force=False):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			data_import_tool.import_doc(path, overwrite=context.force)
+			data_import.import_doc(path, overwrite=context.force)
 		finally:
 			frappe.destroy()
 
@@ -225,8 +234,8 @@ def import_doc(context, path, force=False):
 
 @pass_context
 def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False, no_email=True):
-	"Import CSV using data import tool"
-	from frappe.core.page.data_import_tool import importer
+	"Import CSV using data import"
+	from frappe.core.doctype.data_import import importer
 	from frappe.utils.csvutils import read_csv_content
 	site = get_site(context)
 
@@ -274,13 +283,41 @@ def _bulk_rename(context, doctype, path):
 	frappe.destroy()
 
 @click.command('mysql')
+def mysql():
+	"""
+		Deprecated
+	"""
+	click.echo("""
+mysql command is deprecated.
+Did you mean "bench mariadb"?
+""")
+
+@click.command('mariadb')
 @pass_context
-def mysql(context):
-	"Start Mariadb console for a site"
-	site = get_site(context)
+def mariadb(context):
+	"""
+		Enter into mariadb console for a given site.
+	"""
+	import os
+	import os.path as osp
+
+	site  = get_site(context)
 	frappe.init(site=site)
-	msq = find_executable('mysql')
-	os.execv(msq, [msq, '-u', frappe.conf.db_name, '-p'+frappe.conf.db_password, frappe.conf.db_name, '-h', frappe.conf.db_host or "localhost", "-A"])
+
+	# This is assuming you're within the bench instance.
+	path  = os.getcwd()
+	mysql = osp.join(path, '..', 'env', 'bin', 'mycli')
+	args  = [
+		mysql,
+		'-u', frappe.conf.db_name,
+		'-p', frappe.conf.db_password,
+		'-h', frappe.conf.db_host or "localhost",
+		'-D', frappe.conf.db_name,
+		'-R', '{site}> '.format(site = site),
+		'--auto-vertical-output'
+	]
+
+	os.execv(mysql, args)
 
 @click.command('console')
 @pass_context
@@ -291,11 +328,12 @@ def console(context):
 	frappe.connect()
 	frappe.local.lang = frappe.db.get_default("lang")
 	import IPython
-	IPython.embed()
+	IPython.embed(disable_banner = True)
 
 @click.command('run-tests')
 @click.option('--app', help="For App")
 @click.option('--doctype', help="For DocType")
+@click.option('--doctype-list-path', help="Path to .txt file for list of doctypes. Example erpnext/tests/server/agriculture.txt")
 @click.option('--test', multiple=True, help="Specific test")
 @click.option('--driver', help="For Travis")
 @click.option('--ui-tests', is_flag=True, default=False, help="Run UI Tests")
@@ -304,7 +342,7 @@ def console(context):
 @click.option('--junit-xml-output', help="Destination file path for junit xml report")
 @pass_context
 def run_tests(context, app=None, module=None, doctype=None, test=(),
-	driver=None, profile=False, junit_xml_output=False, ui_tests = False):
+	driver=None, profile=False, junit_xml_output=False, ui_tests = False, doctype_list_path=None):
 	"Run tests"
 	import frappe.test_runner
 	tests = test
@@ -314,7 +352,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
 		force=context.force, profile=profile, junit_xml_output=junit_xml_output,
-		ui_tests = ui_tests)
+		ui_tests = ui_tests, doctype_list_path = doctype_list_path)
 	if len(ret.failures) == 0 and len(ret.errors) == 0:
 		ret = 0
 
@@ -323,10 +361,11 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 
 @click.command('run-ui-tests')
 @click.option('--app', help="App to run tests on, leave blank for all apps")
-@click.option('--test', help="File name of the test you want to run")
+@click.option('--test', help="Path to the specific test you want to run")
+@click.option('--test-list', help="Path to the txt file with the list of test cases")
 @click.option('--profile', is_flag=True, default=False)
 @pass_context
-def run_ui_tests(context, app=None, test=False, profile=False):
+def run_ui_tests(context, app=None, test=False, test_list=False, profile=False):
 	"Run UI tests"
 	import frappe.test_runner
 
@@ -334,7 +373,27 @@ def run_ui_tests(context, app=None, test=False, profile=False):
 	frappe.init(site=site)
 	frappe.connect()
 
-	ret = frappe.test_runner.run_ui_tests(app=app, test=test, verbose=context.verbose,
+	ret = frappe.test_runner.run_ui_tests(app=app, test=test, test_list=test_list, verbose=context.verbose,
+		profile=profile)
+	if len(ret.failures) == 0 and len(ret.errors) == 0:
+		ret = 0
+
+	if os.environ.get('CI'):
+		sys.exit(ret)
+
+@click.command('run-setup-wizard-ui-test')
+@click.option('--app', help="App to run tests on, leave blank for all apps")
+@click.option('--profile', is_flag=True, default=False)
+@pass_context
+def run_setup_wizard_ui_test(context, app=None, profile=False):
+	"Run setup wizard UI test"
+	import frappe.test_runner
+
+	site = get_site(context)
+	frappe.init(site=site)
+	frappe.connect()
+
+	ret = frappe.test_runner.run_setup_wizard_ui_test(app=app, verbose=context.verbose,
 		profile=profile)
 	if len(ret.failures) == 0 and len(ret.errors) == 0:
 		ret = 0
@@ -358,9 +417,10 @@ def serve(context, port=None, profile=False, sites_path='.', site=None):
 	frappe.app.serve(port=port, profile=profile, site=site, sites_path='.')
 
 @click.command('request')
-@click.argument('args')
+@click.option('--args', help='arguments like `?cmd=test&key=value` or `/api/request/method?..`')
+@click.option('--path', help='path to request JSON')
 @pass_context
-def request(context, args):
+def request(context, args=None, path=None):
 	"Run a request as an admin"
 	import frappe.handler
 	import frappe.api
@@ -368,13 +428,19 @@ def request(context, args):
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			if "?" in args:
-				frappe.local.form_dict = frappe._dict([a.split("=") for a in args.split("?")[-1].split("&")])
-			else:
-				frappe.local.form_dict = frappe._dict()
+			if args:
+				if "?" in args:
+					frappe.local.form_dict = frappe._dict([a.split("=") for a in args.split("?")[-1].split("&")])
+				else:
+					frappe.local.form_dict = frappe._dict()
 
-			if args.startswith("/api/method"):
-				frappe.local.form_dict.cmd = args.split("?")[0].split("/")[-1]
+				if args.startswith("/api/method"):
+					frappe.local.form_dict.cmd = args.split("?")[0].split("/")[-1]
+			elif path:
+				with open(os.path.join('..', path), 'r') as f:
+					args = json.loads(f.read())
+
+				frappe.local.form_dict = frappe._dict(args)
 
 			frappe.handler.execute_cmd(frappe.form_dict.cmd)
 
@@ -455,6 +521,66 @@ def setup_help(context):
 		finally:
 			frappe.destroy()
 
+@click.command('rebuild-global-search')
+@pass_context
+def rebuild_global_search(context):
+	'''Setup help table in the current site (called after migrate)'''
+	from frappe.utils.global_search import (get_doctypes_with_global_search, rebuild_for_doctype)
+
+	for site in context.sites:
+		try:
+			frappe.init(site)
+			frappe.connect()
+			doctypes = get_doctypes_with_global_search()
+			for i, doctype in enumerate(doctypes):
+				rebuild_for_doctype(doctype)
+				update_progress_bar('Rebuilding Global Search', i, len(doctypes))
+
+		finally:
+			frappe.destroy()
+
+@click.command('auto-deploy')
+@click.argument('app')
+@click.option('--migrate', is_flag=True, default=False, help='Migrate after pulling')
+@click.option('--restart', is_flag=True, default=False, help='Restart after migration')
+@click.option('--remote', default='upstream', help='Remote, default is "upstream"')
+@pass_context
+def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
+	'''Pull and migrate sites that have new version'''
+	from frappe.utils.gitutils import get_app_branch
+	from frappe.utils import get_sites
+
+	branch = get_app_branch(app)
+	app_path = frappe.get_app_path(app)
+
+	# fetch
+	subprocess.check_output(['git', 'fetch', remote, branch], cwd = app_path)
+
+	# get diff
+	if subprocess.check_output(['git', 'diff', '{0}..upstream/{0}'.format(branch)], cwd = app_path):
+		print('Updates found for {0}'.format(app))
+		if app=='frappe':
+			# run bench update
+			subprocess.check_output(['bench', 'update', '--no-backup'], cwd = '..')
+		else:
+			updated = False
+			subprocess.check_output(['git', 'pull', '--rebase', 'upstream', branch],
+				cwd = app_path)
+			# find all sites with that app
+			for site in get_sites():
+				frappe.init(site)
+				if app in frappe.get_installed_apps():
+					print('Updating {0}'.format(site))
+					updated = True
+					subprocess.check_output(['bench', '--site', site, 'clear-cache'], cwd = '..')
+					if migrate:
+						subprocess.check_output(['bench', '--site', site, 'migrate'], cwd = '..')
+				frappe.destroy()
+
+			if updated and restart:
+				subprocess.check_output(['bench', 'restart'], cwd = '..')
+	else:
+		print('No Updates')
 
 commands = [
 	build,
@@ -472,15 +598,19 @@ commands = [
 	import_doc,
 	make_app,
 	mysql,
+	mariadb,
 	request,
 	reset_perms,
 	run_tests,
 	run_ui_tests,
+	run_setup_wizard_ui_test,
 	serve,
 	set_config,
 	watch,
 	_bulk_rename,
 	add_to_email_queue,
 	setup_global_help,
-	setup_help
+	setup_help,
+	rebuild_global_search,
+	auto_deploy
 ]

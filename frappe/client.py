@@ -8,7 +8,8 @@ import frappe.model
 import frappe.utils
 import json, os
 
-from six import iteritems
+from six import iteritems, string_types, integer_types
+from frappe.utils.file_manager import save_file
 
 '''
 Handle RESTful requests that are mapped to the `/api/resource` route.
@@ -57,21 +58,37 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 	:param filters: dict or string for identifying the record'''
 
 	if not frappe.has_permission(doctype):
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
+		frappe.throw(_("No permission for {0}".format(doctype)), frappe.PermissionError)
 
 	try:
 		filters = json.loads(filters)
-	except ValueError:
-		# name passed, not json
+
+		if isinstance(filters, (integer_types, float)):
+			filters = frappe.as_unicode(filters)
+
+	except (TypeError, ValueError):
+		# filters are not passesd, not json
 		pass
 
 	try:
 		fieldname = json.loads(fieldname)
-	except ValueError:
+	except (TypeError, ValueError):
 		# name passed, not json
 		pass
 
+	# check whether the used filters were really parseable and usable
+	# and did not just result in an empty string or dict
+	if not filters:
+		filters = None
+
 	return frappe.db.get_value(doctype, filters, fieldname, as_dict=as_dict, debug=debug)
+
+@frappe.whitelist()
+def get_single_value(doctype, field):
+	if not frappe.has_permission(doctype):
+		frappe.throw(_("No permission for {doctype}".format(doctype = doctype)), frappe.PermissionError)
+	value = frappe.db.get_single_value(doctype, field)
+	return value
 
 @frappe.whitelist()
 def set_value(doctype, name, fieldname, value=None):
@@ -87,7 +104,7 @@ def set_value(doctype, name, fieldname, value=None):
 
 	if not value:
 		values = fieldname
-		if isinstance(fieldname, basestring):
+		if isinstance(fieldname, string_types):
 			try:
 				values = json.loads(fieldname)
 			except ValueError:
@@ -113,7 +130,7 @@ def insert(doc=None):
 	'''Insert a document
 
 	:param doc: JSON or dict object to be inserted'''
-	if isinstance(doc, basestring):
+	if isinstance(doc, string_types):
 		doc = json.loads(doc)
 
 	if doc.get("parent") and doc.get("parenttype"):
@@ -131,7 +148,7 @@ def insert_many(docs=None):
 	'''Insert multiple documents
 
 	:param docs: JSON or list of dict objects to be inserted in one request'''
-	if isinstance(docs, basestring):
+	if isinstance(docs, string_types):
 		docs = json.loads(docs)
 
 	out = []
@@ -157,7 +174,7 @@ def save(doc):
 	'''Update (save) an existing document
 
 	:param doc: JSON or dict object with the properties of the document to be updated'''
-	if isinstance(doc, basestring):
+	if isinstance(doc, string_types):
 		doc = json.loads(doc)
 
 	doc = frappe.get_doc(doc).save()
@@ -178,7 +195,7 @@ def submit(doc):
 	'''Submit a document
 
 	:param doc: JSON or dict object to be submitted remotely'''
-	if isinstance(doc, basestring):
+	if isinstance(doc, string_types):
 		doc = json.loads(doc)
 
 	doc = frappe.get_doc(doc)
@@ -203,7 +220,7 @@ def delete(doctype, name):
 
 	:param doctype: DocType of the document to be deleted
 	:param name: name of the document to be deleted'''
-	frappe.delete_doc(doctype, name)
+	frappe.delete_doc(doctype, name, ignore_missing=False)
 
 @frappe.whitelist()
 def set_default(key, value, parent=None):
@@ -216,7 +233,7 @@ def make_width_property_setter(doc):
 	'''Set width Property Setter
 
 	:param doc: Property Setter document with `width` property'''
-	if isinstance(doc, basestring):
+	if isinstance(doc, string_types):
 		doc = json.loads(doc)
 	if doc["doctype"]=="Property Setter" and doc["property"]=="width":
 		frappe.get_doc(doc).insert(ignore_permissions = True)
@@ -291,3 +308,39 @@ def get_js(items):
 		out.append(code)
 
 	return out
+
+@frappe.whitelist(allow_guest=True)
+def get_time_zone():
+	'''Returns default time zone'''
+	return {"time_zone": frappe.defaults.get_defaults().get("time_zone")}
+
+@frappe.whitelist()
+def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder=None, decode_base64=False, is_private=None, docfield=None):
+	'''Attach a file to Document (POST)
+
+	:param filename: filename e.g. test-file.txt
+	:param filedata: base64 encode filedata which must be urlencoded
+	:param doctype: Reference DocType to attach file to
+	:param docname: Reference DocName to attach file to
+	:param folder: Folder to add File into
+	:param decode_base64: decode filedata from base64 encode, default is False
+	:param is_private: Attach file as private file (1 or 0)
+	:param docfield: file to attach to (optional)'''
+
+	request_method = frappe.local.request.environ.get("REQUEST_METHOD")
+
+	if request_method.upper() != "POST":
+		frappe.throw(_("Invalid Request"))
+
+	doc = frappe.get_doc(doctype, docname)
+
+	if not doc.has_permission():
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+	f = save_file(filename, filedata, doctype, docname, folder, decode_base64, is_private, docfield)
+
+	if docfield and doctype:
+		doc.set(docfield, f.file_url)
+		doc.save()
+
+	return f.as_dict()

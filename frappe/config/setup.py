@@ -17,6 +17,11 @@ def get_data():
 					"type": "doctype",
 					"name": "Role",
 					"description": _("User Roles")
+				},
+				{
+					"type": "doctype",
+					"name": "Role Profile",
+					"description": _("Role Profile")
 				}
 			]
 		},
@@ -30,20 +35,6 @@ def get_data():
 					"label": _("Role Permissions Manager"),
 					"icon": "fa fa-lock",
 					"description": _("Set Permissions on Document Types and Roles")
-				},
-				{
-					"type": "page",
-					"name": "user-permissions",
-					"label": _("User Permissions Manager"),
-					"icon": "fa fa-shield",
-					"description": _("Set Permissions per User")
-				},
-				{
-					"type": "page",
-					"name": "modules_setup",
-					"label": _("Show / Hide Modules"),
-					"icon": "fa fa-upload",
-					"description": _("Show or hide modules globally.")
 				},
 				{
 					"type": "doctype",
@@ -88,6 +79,13 @@ def get_data():
 					"name": "Error Snapshot",
 					"description": _("Log of error during requests.")
 				},
+				{
+					"type": "doctype",
+					"name": "Domain Settings",
+					"label": _("Domain Settings"),
+					"description": _("Enable / Disable Domains"),
+					"hide_count": True
+				},
 			]
 		},
 		{
@@ -95,11 +93,11 @@ def get_data():
 			"icon": "fa fa-th",
 			"items": [
 				{
-					"type": "page",
-					"name": "data-import-tool",
+					"type": "doctype",
+					"name": "Data Import",
 					"label": _("Import / Export Data"),
-					"icon": "fa fa-upload",
-					"description": _("Import / Export Data from .csv files.")
+					"icon": "octicon octicon-cloud-upload",
+					"description": _("Import / Export Data from CSV and Excel files.")
 				},
 				{
 					"type": "doctype",
@@ -131,7 +129,7 @@ def get_data():
 				{
 					"type": "doctype",
 					"name": "Deleted Document",
-					"label": _("Deleted Documents"),					
+					"label": _("Deleted Documents"),
 					"description": _("Restore or permanently delete a document.")
 				},
 			]
@@ -186,6 +184,11 @@ def get_data():
 					"type": "doctype",
 					"name": "Print Format",
 					"description": _("Customized HTML Templates for printing transactions.")
+				},
+				{
+					"type": "doctype",
+					"name": "Print Style",
+					"description": _("Stylesheets for Print Formats")
 				},
 			]
 		},

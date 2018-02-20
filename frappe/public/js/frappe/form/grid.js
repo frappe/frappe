@@ -58,6 +58,7 @@ frappe.ui.form.Grid = Class.extend({
 		this.wrapper.find(".grid-add-row").click(function() {
 			me.add_new_row(null, null, true);
 			me.set_focus_on_row();
+
 			return false;
 		});
 
@@ -70,8 +71,8 @@ frappe.ui.form.Grid = Class.extend({
 		if(this.df.on_setup) {
 			this.df.on_setup(this);
 		}
-
 	},
+
 	setup_check: function() {
 		var me = this;
 		this.wrapper.on('click', '.grid-row-check', function(e) {
@@ -94,15 +95,21 @@ frappe.ui.form.Grid = Class.extend({
 		this.remove_rows_button.on('click', function() {
 			var dirty = false;
 
-			me.get_selected().forEach(function(docname) {
-				me.grid_rows_by_docname[docname].remove();
-				dirty = true;
+			let tasks = [];
+
+			me.get_selected().forEach((docname) => {
+				tasks.push(() => {
+					me.grid_rows_by_docname[docname].remove();
+					dirty = true;
+				});
+				tasks.push(() => frappe.timeout(0.1));
 			});
-			if(dirty) {
-				setTimeout(function() {
-					me.refresh();
-				}, 100);
-			}
+
+			tasks.push(() => {
+				if (dirty) me.refresh();
+			});
+
+			frappe.run_serially(tasks);
 		});
 	},
 	select_row: function(name) {
@@ -164,7 +171,6 @@ frappe.ui.form.Grid = Class.extend({
 		} else {
 			// redraw
 			var _scroll_y = $(document).scrollTop();
-
 			this.make_head();
 
 			if(!this.grid_rows) {
@@ -304,7 +310,7 @@ frappe.ui.form.Grid = Class.extend({
 		}
 
 		new Sortable($rows.get(0), {
-			group: {name: 'row'},
+			group: {name: me.df.fieldname},
 			handle: '.sortable-handle',
 			draggable: '.grid-row',
 			filter: 'li, a',
@@ -343,12 +349,52 @@ frappe.ui.form.Grid = Class.extend({
 			for(var i=0, l=fieldname.length; i<l; i++) {
 				var fname = fieldname[i];
 				me.get_docfield(fname).hidden = show ? 0 : 1;
+				this.set_editable_grid_column_disp(fname, show);
 			}
 		} else {
 			this.get_docfield(fieldname).hidden = show ? 0 : 1;
+			this.set_editable_grid_column_disp(fieldname, show);
 		}
 
 		this.refresh(true);
+	},
+	set_editable_grid_column_disp: function(fieldname, show) {
+		//Hide columns for editable grids
+		if (this.meta.editable_grid && this.grid_rows) {
+			this.grid_rows.forEach(function(row) {
+				row.columns_list.forEach(function(column) {
+					//Hide the column specified
+					if (column.df.fieldname == fieldname) {
+						if (show) {
+							column.df.hidden = false;
+
+							//Show the static area and hide field area if it is not the editable row
+							if  (row != frappe.ui.form.editable_row) {
+								column.static_area.show();
+								column.field_area && column.field_area.toggle(false);
+							}
+							//Hide the static area and show field area if it is the editable row
+							else {
+								column.static_area.hide();
+								column.field_area && column.field_area.toggle(true);
+
+								//Format the editable column appropriately if it is now visible
+								if (column.field) {
+									column.field.refresh();
+									if (column.field.$input) column.field.$input.toggleClass('input-sm', true);
+								}
+							}
+						}
+						else {
+							column.df.hidden = true;
+							column.static_area.hide();
+						}
+					}
+				});
+			});
+		}
+
+		this.refresh();
 	},
 	toggle_reqd: function(fieldname, reqd) {
 		this.get_docfield(fieldname).reqd = reqd;
@@ -433,7 +479,7 @@ frappe.ui.form.Grid = Class.extend({
 	},
 
 	setup_visible_columns: function() {
-		if(this.visible_columns) return;
+		if (this.visible_columns) return;
 
 		var total_colsize = 1,
 			fields = this.editable_fields || this.docfields;
@@ -455,22 +501,6 @@ frappe.ui.form.Grid = Class.extend({
 					df.colsize=df.columns;
 				}
 				else {
-					var colsize=2;
-					switch(df.fieldtype) {
-						case"Text":
-						case"Small Text":
-							colsize=3;
-							break;
-						case"Check":
-							colsize=1
-					}
-					df.colsize=colsize;
-				}
-
-				if(df.columns) {
-					df.colsize=df.columns;
-				}
-				else {
 					var colsize = 2;
 					switch(df.fieldtype) {
 						case "Text":
@@ -478,6 +508,14 @@ frappe.ui.form.Grid = Class.extend({
 						case"Check": colsize = 1;
 					}
 					df.colsize = colsize;
+				}
+
+				// attach formatter on refresh
+				if (df.fieldtype == 'Link' && !df.formatter && frappe.meta.docfield_map[df.parent]) {
+					const docfield = frappe.meta.docfield_map[df.parent][df.fieldname];
+					if (docfield && docfield.formatter) {
+						df.formatter = docfield.formatter;
+					}
 				}
 
 				total_colsize += df.colsize;
@@ -554,6 +592,7 @@ frappe.ui.form.Grid = Class.extend({
 			me.setup_download();
 
 			// upload
+			frappe.flags.no_socketio = true;
 			$(this.wrapper).find(".grid-upload").removeClass("hide").on("click", function() {
 				frappe.prompt({fieldtype:"Attach", label:"Upload File"},
 					function(data) {
@@ -563,7 +602,7 @@ frappe.ui.form.Grid = Class.extend({
 
 						me.frm.clear_table(me.df.fieldname);
 						$.each(data, function(i, row) {
-							if(i > 4) {
+							if(i > 6) {
 								var blank_row = true;
 								$.each(row, function(ci, value) {
 									if(value) {
@@ -603,19 +642,27 @@ frappe.ui.form.Grid = Class.extend({
 	},
 	setup_download: function() {
 		var me = this;
+		let title = me.df.label || frappe.model.unscrub(me.df.fieldname);
 		$(this.wrapper).find(".grid-download").removeClass("hide").on("click", function() {
 			var data = [];
 			var docfields = [];
-			data.push([__("Bulk Edit {0}", [me.df.label])]);
+			data.push([__("Bulk Edit {0}", [title])]);
 			data.push([]);
 			data.push([]);
 			data.push([]);
+			data.push([__("The CSV format is case sensitive")]);
+			data.push([__("Do not edit headers which are preset in the template")]);
 			data.push(["------"]);
 			$.each(frappe.get_meta(me.df.options).fields, function(i, df) {
-				if(frappe.model.is_value_type(df.fieldtype)) {
+				// don't include the hidden field in the template
+				if(frappe.model.is_value_type(df.fieldtype) && !df.hidden) {
 					data[1].push(df.label);
 					data[2].push(df.fieldname);
-					data[3].push(df.description || "");
+					let description = (df.description || "") + ' ';
+					if (df.fieldtype === "Date") {
+						description += frappe.boot.sysdefaults.date_format;
+					}
+					data[3].push(description);
 					docfields.push(df);
 				}
 			});
@@ -636,7 +683,7 @@ frappe.ui.form.Grid = Class.extend({
 				data.push(row);
 			});
 
-			frappe.tools.downloadify(data, null, me.df.label);
+			frappe.tools.downloadify(data, null, title);
 			return false;
 		});
 	},
@@ -645,7 +692,7 @@ frappe.ui.form.Grid = Class.extend({
 		var btn = this.custom_buttons[label];
 		if(!btn) {
 			btn = $('<button class="btn btn-default btn-xs btn-custom">' + label + '</button>')
-				.css('margin-right', '10px')
+				.css('margin-right', '4px')
 				.prependTo(this.grid_buttons)
 				.on('click', click);
 			this.custom_buttons[label] = btn;

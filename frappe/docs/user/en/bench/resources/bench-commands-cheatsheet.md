@@ -1,3 +1,5 @@
+# Bench Commands Cheatsheet
+
 ### General Usage
 * `bench --version` - Show bench version
 * `bench src` - Show bench repo directory

@@ -42,7 +42,7 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 	if l:
 		for i, doc_path in enumerate(files):
 			import_file_by_path(doc_path, force=force, ignore_version=True,
-				reset_permissions=reset_permissions)
+				reset_permissions=reset_permissions, for_sync=True)
 			#print module_name + ' | ' + doctype + ' | ' + name
 
 			frappe.db.commit()
@@ -50,14 +50,17 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 			# show progress bar
 			update_progress_bar("Updating DocTypes for {0}".format(app_name), i, l)
 
+		# print each progress bar on new line
 		print()
-
 
 def get_doc_files(files, start_path, force=0, sync_everything = False, verbose=False):
 	"""walk and sync all doctypes and pages"""
 
-	document_type = ['doctype', 'page', 'report', 'print_format', 'website_theme', 'web_form', 'email_alert']
-	for doctype in document_type:
+	# load in sequence - warning for devs
+	document_types = ['doctype', 'page', 'report', 'print_format',
+		'website_theme', 'web_form', 'email_alert', 'print_style',
+		 'data_migration_mapping', 'data_migration_plan']
+	for doctype in document_types:
 		doctype_path = os.path.join(start_path, doctype)
 		if os.path.exists(doctype_path):
 

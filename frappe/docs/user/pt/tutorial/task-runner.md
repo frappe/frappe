@@ -1,6 +1,6 @@
 # Tarefas agendadas
 
-Finalmente, uma aplicação também tem que enviar notificações de e-mail e fazer outros tipos de tarefas agendadas. Em Frappe, se você instalou o bench, o task / scheduler foi instalado via Celery usando Redis Queue.
+Finalmente, uma aplicação também tem que enviar notificações de e-mail e fazer outros tipos de tarefas agendadas. Em Frappé, se você instalou o bench, o task / scheduler foi instalado via Celery usando Redis Queue.
 
 Para adicionar um novo task handler, vá para `hooks.py` e adicione um novo handler. Handlers padrão são os `all`,` daily`, `weekly`,` monthly`. O handler `all` é chamado a cada 3 minutos por padrão.
 
@@ -15,7 +15,7 @@ Para adicionar um novo task handler, vá para `hooks.py` e adicione um novo hand
 
 Aqui podemos apontar para uma função Python e esta função será executada todos os dias. Vejamos como é essa função:
 
-	# Copyright (c) 2013, Frappe
+	# Copyright (c) 2013, Frappé
 	# For license information, please see license.txt
 
 	from __future__ import unicode_literals

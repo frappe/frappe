@@ -2,7 +2,7 @@ from __future__ import print_function
 import requests
 import json
 import frappe
-from six import iteritems
+from six import iteritems, string_types
 
 '''
 FrappeClient is a library that helps you connect with other frappe systems
@@ -16,6 +16,7 @@ class FrappeException(Exception):
 
 class FrappeClient(object):
 	def __init__(self, url, username, password, verify=True):
+		self.headers = dict(Accept='application/json')
 		self.verify = verify
 		self.session = requests.session()
 		self.url = url
@@ -33,7 +34,7 @@ class FrappeClient(object):
 			'cmd': 'login',
 			'usr': username,
 			'pwd': password
-		}, verify=self.verify)
+		}, verify=self.verify, headers=self.headers)
 
 		if r.status_code==200 and r.json().get('message') == "Logged In":
 			return r.json()
@@ -45,11 +46,11 @@ class FrappeClient(object):
 		'''Logout session'''
 		self.session.get(self.url, params={
 			'cmd': 'logout',
-		}, verify=self.verify)
+		}, verify=self.verify, headers=self.headers)
 
 	def get_list(self, doctype, fields='"*"', filters=None, limit_start=0, limit_page_length=0):
 		"""Returns list of records of a particular type"""
-		if not isinstance(fields, basestring):
+		if not isinstance(fields, string_types):
 			fields = json.dumps(fields)
 		params = {
 			"fields": fields,
@@ -59,7 +60,7 @@ class FrappeClient(object):
 		if limit_page_length:
 			params["limit_start"] = limit_start
 			params["limit_page_length"] = limit_page_length
-		res = self.session.get(self.url + "/api/resource/" + doctype, params=params, verify=self.verify)
+		res = self.session.get(self.url + "/api/resource/" + doctype, params=params, verify=self.verify, headers=self.headers)
 		return self.post_process(res)
 
 	def insert(self, doc):
@@ -67,7 +68,7 @@ class FrappeClient(object):
 
 		:param doc: A dict or Document object to be inserted remotely'''
 		res = self.session.post(self.url + "/api/resource/" + doc.get("doctype"),
-			data={"data":frappe.as_json(doc)}, verify=self.verify)
+			data={"data":frappe.as_json(doc)}, verify=self.verify, headers=self.headers)
 		return self.post_process(res)
 
 	def insert_many(self, docs):
@@ -84,7 +85,7 @@ class FrappeClient(object):
 
 		:param doc: dict or Document object to be updated remotely. `name` is mandatory for this'''
 		url = self.url + "/api/resource/" + doc.get("doctype") + "/" + doc.get("name")
-		res = self.session.put(url, data={"data":frappe.as_json(doc)}, verify=self.verify)
+		res = self.session.put(url, data={"data":frappe.as_json(doc)}, verify=self.verify, headers=self.headers)
 		return self.post_process(res)
 
 	def bulk_update(self, docs):
@@ -169,7 +170,7 @@ class FrappeClient(object):
 			params["fields"] = json.dumps(fields)
 
 		res = self.session.get(self.url + "/api/resource/" + doctype + "/" + name,
-			params=params, verify=self.verify)
+			params=params, verify=self.verify, headers=self.headers)
 
 		return self.post_process(res)
 
@@ -251,21 +252,21 @@ class FrappeClient(object):
 
 	def get_api(self, method, params={}):
 		res = self.session.get(self.url + "/api/method/" + method + "/",
-			params=params, verify=self.verify)
+			params=params, verify=self.verify, headers=self.headers)
 		return self.post_process(res)
 
 	def post_api(self, method, params={}):
 		res = self.session.post(self.url + "/api/method/" + method + "/",
-			params=params, verify=self.verify)
+			params=params, verify=self.verify, headers=self.headers)
 		return self.post_process(res)
 
 	def get_request(self, params):
-		res = self.session.get(self.url, params=self.preprocess(params), verify=self.verify)
+		res = self.session.get(self.url, params=self.preprocess(params), verify=self.verify, headers=self.headers)
 		res = self.post_process(res)
 		return res
 
 	def post_request(self, data):
-		res = self.session.post(self.url, data=self.preprocess(data), verify=self.verify)
+		res = self.session.post(self.url, data=self.preprocess(data), verify=self.verify, headers=self.headers)
 		res = self.post_process(res)
 		return res
 
@@ -292,3 +293,37 @@ class FrappeClient(object):
 			return rjson['data']
 		else:
 			return None
+
+class FrappeOAuth2Client(FrappeClient):
+	def __init__(self, url, access_token, verify=True):
+		self.access_token = access_token
+		self.headers = {
+			"Authorization": "Bearer " + access_token,
+			"content-type": "application/x-www-form-urlencoded"
+		}
+		self.verify = verify
+		self.session = OAuth2Session(self.headers)
+		self.url = url
+
+	def get_request(self, params):
+		res = requests.get(self.url, params=self.preprocess(params), headers=self.headers, verify=self.verify)
+		res = self.post_process(res)
+		return res
+
+	def post_request(self, data):
+		res = requests.post(self.url, data=self.preprocess(data), headers=self.headers, verify=self.verify)
+		res = self.post_process(res)
+		return res
+
+class OAuth2Session():
+	def __init__(self, headers):
+		self.headers = headers
+	def get(self, url, params, verify):
+		res = requests.get(url, params=params, headers=self.headers, verify=verify)
+		return res
+	def post(self, url, data, verify):
+		res = requests.post(url, data=data, headers=self.headers, verify=verify)
+		return res
+	def put(self, url, data, verify):
+		res = requests.put(url, data=data, headers=self.headers, verify=verify)
+		return res

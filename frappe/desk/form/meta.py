@@ -13,8 +13,9 @@ from frappe.translate import make_dict_from_messages, extract_messages_from_code
 from frappe.model.utils import render_include
 from frappe.build import scrub_html_template
 
-######
-from six import iteritems
+import io
+
+from six import iteritems, text_type
 
 
 def get_meta(doctype, cached=True):
@@ -98,8 +99,8 @@ class FormMeta(Meta):
 		templates = dict()
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):
-				with open(os.path.join(path, fname), 'r') as f:
-					templates[fname.split('.')[0]] = scrub_html_template(unicode(f.read(), "utf-8"))
+				with io.open(os.path.join(path, fname), 'r', encoding = 'utf-8') as f:
+					templates[fname.split('.')[0]] = scrub_html_template(f.read())
 
 		self.set("__templates", templates or None)
 

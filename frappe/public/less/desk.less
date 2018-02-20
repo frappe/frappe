@@ -24,7 +24,7 @@ a[disabled="disabled"] {
 
 .link-btn {
 	position: absolute;
-	top: 2px;
+	top: 3px;
 	right: 4px;
 	border-radius: 2px;
 	padding: 3px;
@@ -66,8 +66,8 @@ a[disabled="disabled"] {
 
 #alert-container .desk-alert {
   -webkit-box-shadow: 0 0px 5px rgba(0, 0, 0, 0.1);
-     -moz-box-shadow: 0 0px 5px rgba(0, 0, 0, 0.1);
-          box-shadow: 0 0px 5px rgba(0, 0, 0, 0.1);
+	 -moz-box-shadow: 0 0px 5px rgba(0, 0, 0, 0.1);
+		  box-shadow: 0 0px 5px rgba(0, 0, 0, 0.1);
 
 	padding: 10px 40px 10px 20px;
 	max-width: 400px;
@@ -195,9 +195,9 @@ textarea.form-control {
 	width: 100%;
 
 	&> ul {
-		z-index: 1041;
+		z-index: 1041 !important;
 		transition: none;
-		background: #fff;
+		background-color: #fff;
 		max-height: 200px;
 		overflow-y: auto;
 		overflow-x: hidden;
@@ -245,8 +245,12 @@ textarea.form-control {
 	}
 }
 
+.barcode-wrapper {
+	text-align: center;
+}
+
 @media (min-width: 768px) {
-	.video-modal {
+	.video-modal .modal-dialog {
 		width: 700px;
 	}
 }
@@ -285,6 +289,12 @@ textarea.form-control {
 	margin-top: 5px;
 }
 
+.btn-primary.disabled {
+	background-color: #b1bdca;
+	color: #fff;
+	border-color: #b1bdca;
+}
+
 .form-control {
 	position: relative;
 
@@ -292,6 +302,10 @@ textarea.form-control {
 		// for vertically aligned text in inputs
 		padding: 6px 10px 8px;
 	}
+}
+
+.input-area {
+	position: relative;
 }
 
 .link-field.ui-front {
@@ -318,17 +332,52 @@ textarea.form-control {
 }
 
 .open-notification {
-    position:relative;
+	position:relative;
 	left: 2px;
-    display:inline-block;
-    background:#ff5858;
-    font-size: @text-medium;
-    line-height:20px;
-    padding:0 8px;
-    color:#fff;
-    border-radius:10px;
+	display:inline-block;
+	background:#ff5858;
+	font-size: @text-medium;
+	line-height:20px;
+	padding:0 8px;
+	color:#fff;
+	border-radius:10px;
 	cursor: pointer;
 	margin-right: 10px;
+}
+
+a.progress-small {
+	.progress-chart {
+		width: 40px;
+		margin-top: 4px;
+		float: right;
+	}
+
+	.progress {
+		margin-bottom: 0;
+	}
+
+	.progress-bar {
+		transition: unset;
+		background-color: #98d85b;
+	}
+}
+
+li.user-progress {
+	.progress-chart {
+		width: 50px;
+		margin-top: 8px;
+	}
+
+	.progress {
+		margin-bottom: 0;
+		background-color: #fff;
+		border: 1px solid #e5e7e9;
+	}
+
+	.progress-bar {
+		transition: unset;
+		background-color: #98d85b;
+	}
 }
 
 /* on small screens, show only icons on top */
@@ -341,6 +390,10 @@ textarea.form-control {
 	.nav-stacked > li + li {
 	  margin-top: 0px;
 	  margin-left: 2px;
+	}
+
+	li.user-progress .progress-chart {
+		width: 25px;
 	}
 }
 
@@ -383,11 +436,6 @@ textarea.form-control {
 
 .intro-area {
 	padding: 15px 30px;
-}
-
-.footnote-area {
-	padding: 0px 15px;
-	border-top: 1px solid @border-color;
 }
 
 .file-upload {
@@ -440,7 +488,16 @@ textarea.form-control {
 }
 
 .frappe-rtl input ,.frappe-rtl textarea {
-	direction: rtl
+	direction: rtl;
+}
+
+.frappe-rtl .checkbox .disp-area {
+	margin-right: -20px;
+	margin-left: 0px;
+}
+
+.checkbox .disp-area {
+	margin-left: -20px;
 }
 
 .text-editor {
@@ -572,6 +629,24 @@ textarea.form-control {
 	[data-original-title="Video"],
 	[data-original-title="Table"] {
 		display: none;
+	}
+}
+
+.note-hint-popover {
+	border-radius: 3px;
+	border-color: @border-color;
+	padding: 0;
+
+	.popover-content {
+		padding: 0;
+	}
+
+	.note-hint-item {
+		color: @text-color !important;
+		padding: 5px 8.8px !important;
+	}
+	.note-hint-item.active {
+		background-color: @btn-bg !important;
 	}
 }
 
@@ -818,58 +893,18 @@ textarea.form-control {
 	color: @text-color;
 }
 
-.c3 svg {
-	font-family: inherit;
-	font-size: 10px;
-	color: @text-color;
+.checkbox input[type=checkbox] {
+	margin-left: 0;
 }
 
-.c3-line {
-    stroke-width: 3px;
+.input-area input[type=checkbox] {
+	margin-left: -20px;
 }
-
-.c3-tooltip {
-  box-shadow: 3px 3px 3px rgba(0,0,0,0.1);
-  border-radius: 3px;
-  opacity: 1;
-}
-
-.c3-tooltip tr {
-  border: none;
-}
-
-.c3-tooltip th {
-	color: @text-muted;
-	background-color: #ffffff;
-	font-size: 12px;
-	font-weight: normal;
-	padding: 2px 5px;
-	text-align: left;
-	border: 1px solid @border-color;
-}
-
-.c3-tooltip td {
-	color: @text-color;
-	font-size: 11px;
-	padding: 3px 6px;
-	background-color: #fff;
-	border: 1px solid @border-color;
-}
-
-.c3-tooltip td > span {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin-right: 6px;
-}
-
-.c3-tooltip td.value {
-  text-align: right; }
 
 // custom font awesome checkbox
 input[type="checkbox"] {
-	visibility: hidden;
 	position: relative;
+	left: -999999px;
 
 	&:before {
 		position: absolute;
@@ -885,6 +920,11 @@ input[type="checkbox"] {
 		font-size: 14px;
 		color: @text-extra-muted;
 		.transition(150ms color);
+		left: 999999px;
+	}
+
+	&:focus:before {
+		color: @text-muted;
 	}
 
 	&:checked:before {
@@ -892,15 +932,19 @@ input[type="checkbox"] {
 		font-size: 13px;
 		color: @checkbox-color;
 	}
+
+	&:focus {
+		outline: none;
+	}
 }
 
 // Will not be required after commonifying lists with empty state
 .multiselect-empty-state{
 	min-height: 300px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
 }
 
 // mozilla doesn't support
@@ -908,6 +952,14 @@ input[type="checkbox"] {
 @-moz-document url-prefix() {
 	input[type="checkbox"] {
 		visibility: visible;
+		left: 0;
+	}
+}
+
+@supports (-moz-appearance: none) {
+	input[type="checkbox"] {
+		visibility: visible;
+		left: 0;
 	}
 }
 
@@ -916,6 +968,7 @@ input[type="checkbox"] {
 @supports (-ms-ime-align:auto) {
 	input[type="checkbox"] {
 		 visibility: visible;
+		 left: 0;
 	}
 }
 
@@ -970,4 +1023,97 @@ input[type="checkbox"] {
 		border: 1px solid rgba(0,0,0, 0.25);
 
 	}
+}
+
+// Slides
+.slides-wrapper {
+	&:focus {
+		outline: none;
+	}
+	.fa-circle {
+		font-size: 10px;
+		margin: 0px 2px;
+		&.active {
+			color: #5e64ff;
+		}
+		&.link {
+			cursor: pointer;
+		}
+	}
+	.slide-wrapper {
+		&:focus {
+			outline: none;
+		}
+	}
+	.form {
+		margin-top: 30px;
+		.form-layout {
+			margin-top: 0px;
+			margin-bottom: 0px;
+		}
+		.form-section {
+			padding: 0px 7px;
+			border: none;
+		}
+	}
+	.add-more {
+		margin-bottom: 30px;
+	}
+	.lead {
+		margin-top: 20px;
+	}
+	.success-state {
+		margin-bottom: 20px;
+	}
+	.next-steps-links {
+		.title {
+			text-transform: uppercase;
+			color: #8D99A6;
+			font-size: 11px;
+		}
+
+	}
+	.btn-primary {
+		font-weight: bold;
+	}
+	.footer {
+		margin-top: 15px;
+		padding: 0px 7px;
+
+		.btn:not(:last-child) {
+			margin-right: 3px;
+		}
+
+		a.make-btn.disabled {
+			background-color: #b1bdca;
+			color: #fff;
+			border-color: #b1bdca;
+		}
+	}
+}
+
+// User Progress Dialog
+.user-progress-dialog {
+	.slides-progress {
+		margin-top: 15px;
+	}
+
+	.done-state {
+		.check-container {
+			font-size: 64px;
+			margin: 40px;
+		}
+
+		.title {
+			font-weight: normal;
+		}
+
+		.help-links {
+
+			a {
+				margin: 0px 10px;
+			}
+		}
+	}
+
 }

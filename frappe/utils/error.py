@@ -64,7 +64,7 @@ def get_snapshot(exception, context=10):
 		'traceback': traceback.format_exc(),
 		'frames': [],
 		'etype': cstr(etype),
-		'evalue': cstr(`evalue`),
+		'evalue': cstr(repr(evalue)),
 		'exception': {},
 		'locals': {}
 	}

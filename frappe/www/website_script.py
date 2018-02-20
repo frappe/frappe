@@ -10,7 +10,8 @@ no_sitemap = 1
 base_template_path = "templates/www/website_script.js"
 
 def get_context(context):
-	context.javascript = frappe.db.get_single_value('Website Script', 'javascript') or ""
+	context.javascript = frappe.db.get_single_value('Website Script',
+		'javascript') or ""
 
 	theme = get_active_theme()
 	js = strip(theme and theme.js or "")

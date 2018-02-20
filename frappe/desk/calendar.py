@@ -19,16 +19,28 @@ def update_event(args, field_map):
 
 def get_event_conditions(doctype, filters=None):
 	"""Returns SQL conditions with user permissions and filters for event queries"""
-	from frappe.desk.reportview import build_match_conditions
+	from frappe.desk.reportview import get_filters_cond
 	if not frappe.has_permission(doctype):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 
-	conditions = build_match_conditions(doctype)
-	conditions = conditions and (" and " + conditions) or ""
-	if filters:
-		filters = json.loads(filters)
-		for key in filters:
-			if filters[key]:
-				conditions += 'and `{0}` = "{1}"'.format(frappe.db.escape(key), frappe.db.escape(filters[key]))
+	return get_filters_cond(doctype, filters, [], with_match_conditions = True)
 
-	return conditions
+@frappe.whitelist()
+def get_events(doctype, start, end, field_map, filters=None, fields=None):
+	field_map = frappe._dict(json.loads(field_map))
+
+	if filters:
+		filters = json.loads(filters or '')
+
+	if not fields:
+		fields = [field_map.start, field_map.end, field_map.title, 'name']
+
+	start_date = "ifnull(%s, '0000-00-00 00:00:00')" % field_map.start
+	end_date = "ifnull(%s, '2199-12-31 00:00:00')" % field_map.end
+
+	filters += [
+		[doctype, start_date, '<=', end],
+		[doctype, end_date, '>=', start],
+	]
+
+	return frappe.get_list(doctype, fields=fields, filters=filters)

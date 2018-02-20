@@ -1,6 +1,6 @@
 # Conclusion
 
-Nous espérons vous avoir donné un apercu de comment les applications sont développées avec Frappe. L'ojectif était de vous
+Nous espérons vous avoir donné un apercu de comment les applications sont développées avec Frappé. L'ojectif était de vous
 montrer brievement, les différents aspects du développement d'une application en vous donnant un apércu général. Pour aller plus 
 loin dans les explications, consultez l'API.
 

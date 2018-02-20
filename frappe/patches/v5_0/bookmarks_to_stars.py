@@ -3,6 +3,7 @@ import json
 import frappe
 import frappe.defaults
 from frappe.desk.like import _toggle_like
+from six import string_types
 
 def execute():
 	for user in frappe.get_all("User"):
@@ -12,7 +13,7 @@ def execute():
 		if not bookmarks:
 			continue
 
-		if isinstance(bookmarks, basestring):
+		if isinstance(bookmarks, string_types):
 			bookmarks = json.loads(bookmarks)
 
 		for opts in bookmarks:

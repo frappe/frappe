@@ -1,6 +1,6 @@
 # Criando modelos
 
-O próximo passo é criar os modelos como discutimos na introdução. Em Frappe, os modelos são chamados **DocTypes**. Você pode criar novos doctypes atravez da interface do Desk. **DocTypes** são feitos de campos chamados **DocField** e de permissões com base nas permissões que são integrados nos modelos, estes são chamados **DocPerms**.
+O próximo passo é criar os modelos como discutimos na introdução. Em Frappé, os modelos são chamados **DocTypes**. Você pode criar novos doctypes atravez da interface do Desk. **DocTypes** são feitos de campos chamados **DocField** e de permissões com base nas permissões que são integrados nos modelos, estes são chamados **DocPerms**.
 
 Quando um DocType é salvo, uma nova tabela é criada no banco de dados. Esta tabela é nomeado como `tab[doctype]`.
 

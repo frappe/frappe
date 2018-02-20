@@ -70,7 +70,6 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	if not docs:
 		docs = get_meta_bundle(doctype)
 
-	frappe.response['user_permissions'] = get_user_permissions(docs)
 	frappe.response['user_settings'] = get_user_settings(parent_dt or doctype)
 
 	if cached_timestamp and docs[0].modified==cached_timestamp:
@@ -95,22 +94,13 @@ def get_docinfo(doc=None, doctype=None, name=None):
 	frappe.response["docinfo"] = {
 		"attachments": get_attachments(doc.doctype, doc.name),
 		"communications": _get_communications(doc.doctype, doc.name),
+		'total_comments': len(json.loads(doc.get('_comments') or '[]')),
 		'versions': get_versions(doc),
 		"assignments": get_assignments(doc.doctype, doc.name),
 		"permissions": get_doc_permissions(doc),
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
 		"rating": get_feedback_rating(doc.doctype, doc.name)
 	}
-
-def get_user_permissions(meta):
-	out = {}
-	all_user_permissions = frappe.defaults.get_user_permissions()
-
-	for m in meta:
-		for df in m.get_fields_to_check_permissions(all_user_permissions):
-			out[df.options] = list(set(all_user_permissions[df.options]))
-
-	return out
 
 def get_attachments(dt, dn):
 	return frappe.get_all("File", fields=["name", "file_name", "file_url", "is_private"],
@@ -148,7 +138,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	'''Returns list of communications for a given document'''
 	if not fields:
 		fields = '''name, communication_type,
-			communication_medium, comment_type,
+			communication_medium, comment_type, communication_date,
 			content, sender, sender_full_name, creation, subject, delivery_status, _liked_by,
 			timeline_doctype, timeline_name,
 			reference_doctype, reference_name,

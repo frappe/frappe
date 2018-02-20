@@ -2,7 +2,8 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-from six import reraise as raise_, iteritems
+from six import iteritems, string_types
+import datetime
 import frappe, sys
 from frappe import _
 from frappe.utils import (cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta,
@@ -181,7 +182,7 @@ class BaseDocument(object):
 
 		return value
 
-	def get_valid_dict(self, sanitize=True):
+	def get_valid_dict(self, sanitize=True, convert_dates_to_str=False):
 		d = frappe._dict()
 		for fieldname in self.meta.get_valid_columns():
 			d[fieldname] = self.get(fieldname)
@@ -215,6 +216,9 @@ class BaseDocument(object):
 				if isinstance(d[fieldname], list) and df.fieldtype != 'Table':
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
+				if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time)):
+					d[fieldname] = str(d[fieldname])
+
 		return d
 
 	def init_valid_columns(self):
@@ -244,20 +248,20 @@ class BaseDocument(object):
 	def is_new(self):
 		return self.get("__islocal")
 
-	def as_dict(self, no_nulls=False, no_default_fields=False):
-		doc = self.get_valid_dict()
+	def as_dict(self, no_nulls=False, no_default_fields=False, convert_dates_to_str=False):
+		doc = self.get_valid_dict(convert_dates_to_str=convert_dates_to_str)
 		doc["doctype"] = self.doctype
 		for df in self.meta.get_table_fields():
 			children = self.get(df.fieldname) or []
 			doc[df.fieldname] = [d.as_dict(no_nulls=no_nulls) for d in children]
 
 		if no_nulls:
-			for k in doc.keys():
+			for k in list(doc):
 				if doc[k] is None:
 					del doc[k]
 
 		if no_default_fields:
-			for k in doc.keys():
+			for k in list(doc):
 				if k in default_fields:
 					del doc[k]
 
@@ -289,14 +293,14 @@ class BaseDocument(object):
 
 		d = self.get_valid_dict()
 
-		columns = d.keys()
+		columns = list(d)
 		try:
 			frappe.db.sql("""insert into `tab{doctype}`
 				({columns}) values ({values})""".format(
 					doctype = self.doctype,
 					columns = ", ".join(["`"+c+"`" for c in columns]),
 					values = ", ".join(["%s"] * len(columns))
-				), d.values())
+				), list(d.values()))
 		except Exception as e:
 			if e.args[0]==1062:
 				if "PRIMARY" in cstr(e.args[1]):
@@ -307,8 +311,7 @@ class BaseDocument(object):
 						return
 
 					frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
-					traceback = sys.exc_info()[2]
-					raise_(frappe.DuplicateEntryError, (self.doctype, self.name, e), traceback)
+					raise frappe.DuplicateEntryError(self.doctype, self.name, e)
 
 				elif "Duplicate" in cstr(e.args[1]):
 					# unique constraint
@@ -317,7 +320,6 @@ class BaseDocument(object):
 					raise
 			else:
 				raise
-
 		self.set("__islocal", False)
 
 	def db_update(self):
@@ -331,14 +333,14 @@ class BaseDocument(object):
 		name = d['name']
 		del d['name']
 
-		columns = d.keys()
+		columns = list(d)
 
 		try:
 			frappe.db.sql("""update `tab{doctype}`
 				set {values} where name=%s""".format(
 					doctype = self.doctype,
 					values = ", ".join(["`"+c+"`=%s" for c in columns])
-				), d.values() + [name])
+				), list(d.values()) + [name])
 		except Exception as e:
 			if e.args[0]==1062 and "Duplicate" in cstr(e.args[1]):
 				self.show_unique_validation_message(e)
@@ -361,40 +363,7 @@ class BaseDocument(object):
 		frappe.msgprint(_("{0} must be unique".format(label or fieldname)))
 
 		# this is used to preserve traceback
-		raise_(frappe.UniqueValidationError, (self.doctype, self.name, e), traceback)
-
-	def db_set(self, fieldname, value=None, update_modified=True):
-		'''Set a value in the document object, update the timestamp and update the database.
-
-		WARNING: This method does not trigger controller validations and should
-		be used very carefully.
-
-		:param fieldname: fieldname of the property to be updated, or a {"field":"value"} dictionary
-		:param value: value of the property to be updated
-		:param update_modified: default True. updates the `modified` and `modified_by` properties
-		'''
-		if isinstance(fieldname, dict):
-			self.update(fieldname)
-		else:
-			self.set(fieldname, value)
-
-		if update_modified and (self.doctype, self.name) not in frappe.flags.currently_saving:
-			# don't update modified timestamp if called from post save methods
-			# like on_update or on_submit
-			self.set("modified", now())
-			self.set("modified_by", frappe.session.user)
-
-		# to trigger email alert on value change
-		self.run_method('before_change')
-
-		frappe.db.set_value(self.doctype, self.name, fieldname, value,
-			self.modified, self.modified_by, update_modified=update_modified)
-
-		self.run_method('on_change')
-
-	def db_get(self, fieldname):
-		'''get database vale for this fieldname'''
-		return frappe.db.get_value(self.doctype, self.name, fieldname)
+		raise frappe.UniqueValidationError(self.doctype, self.name, e)
 
 	def update_modified(self):
 		'''Update modified timestamp'''
@@ -564,6 +533,10 @@ class BaseDocument(object):
 		if frappe.flags.in_install:
 			return
 
+		if self.meta.issingle:
+			# single doctype value type is mediumtext
+			return
+
 		for fieldname, value in iteritems(self.get_valid_dict()):
 			df = self.meta.get_field(fieldname)
 			if df and df.fieldtype in type_map and type_map[df.fieldtype][0]=="varchar":
@@ -610,7 +583,7 @@ class BaseDocument(object):
 			return
 
 		for fieldname, value in self.get_valid_dict().items():
-			if not value or not isinstance(value, basestring):
+			if not value or not isinstance(value, string_types):
 				continue
 
 			value = frappe.as_unicode(value)
@@ -673,7 +646,7 @@ class BaseDocument(object):
 		:param parentfield: If fieldname is in child table."""
 		from frappe.model.meta import get_field_precision
 
-		if parentfield and not isinstance(parentfield, basestring):
+		if parentfield and not isinstance(parentfield, string_types):
 			parentfield = parentfield.parentfield
 
 		cache_key = parentfield or "main"
@@ -821,6 +794,9 @@ def _filter(data, filters, limit=None):
 
 	out, _filters = [], {}
 
+	if not data:
+		return out
+
 	# setup filters as tuples
 	if filters:
 		for f in filters:
@@ -831,7 +807,7 @@ def _filter(data, filters, limit=None):
 					fval = ("not None", fval)
 				elif fval is False:
 					fval = ("None", fval)
-				elif isinstance(fval, basestring) and fval.startswith("^"):
+				elif isinstance(fval, string_types) and fval.startswith("^"):
 					fval = ("^", fval[1:])
 				else:
 					fval = ("=", fval)

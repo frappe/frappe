@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 
-from six import iteritems
+from six import iteritems, text_type
 
 """
 bootstrap client session
@@ -17,6 +17,7 @@ from frappe.utils.change_log import get_versions
 from frappe.translate import get_lang_dict
 from frappe.email.inbox import get_email_accounts
 from frappe.core.doctype.feedback_trigger.feedback_trigger import get_enabled_feedback_trigger
+from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -29,7 +30,9 @@ def get_bootinfo():
 	get_user(bootinfo)
 
 	# system info
+	bootinfo.sitename = frappe.local.site
 	bootinfo.sysdefaults = frappe.defaults.get_defaults()
+	bootinfo.user_permissions = get_user_permissions()
 	bootinfo.server_date = frappe.utils.nowdate()
 
 	if frappe.session['user'] != 'Guest':
@@ -66,7 +69,7 @@ def get_bootinfo():
 		frappe.get_attr(method)(bootinfo)
 
 	if bootinfo.lang:
-		bootinfo.lang = unicode(bootinfo.lang)
+		bootinfo.lang = text_type(bootinfo.lang)
 	bootinfo.versions = {k: v['version'] for k, v in get_versions().items()}
 
 	bootinfo.error_report_email = frappe.get_hooks("error_report_email")
@@ -135,8 +138,10 @@ def get_user_page_or_report(parent):
 			and tab{parent}.name not in (
 				select `tabCustom Role`.{field} from `tabCustom Role`
 				where `tabCustom Role`.{field} is not null)
-		""".format(parent=parent, column=column,
-			roles = ', '.join(['%s']*len(roles)), field=parent.lower()), roles, as_dict=True)
+			{condition}
+		""".format(parent=parent, column=column, roles = ', '.join(['%s']*len(roles)),
+			field=parent.lower(), condition="and tabReport.disabled=0" if parent == "Report" else ""),
+			roles, as_dict=True)
 
 	for p in standard_roles:
 		if p.name not in has_role:

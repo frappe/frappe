@@ -15,9 +15,12 @@ from frappe.sessions import Session, clear_sessions, delete_session
 from frappe.modules.patch_handler import check_session_stopped
 from frappe.translate import get_lang_code
 from frappe.utils.password import check_password
-from frappe.core.doctype.authentication_log.authentication_log import add_authentication_log
+from frappe.core.doctype.activity_log.activity_log import add_authentication_log
+from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,
+	confirm_otp_token, get_cached_user_pass)
 
-from urllib import quote
+from six.moves.urllib.parse import quote
+
 
 class HTTPRequest:
 	def __init__(self):
@@ -62,6 +65,7 @@ class HTTPRequest:
 
 	def validate_csrf_token(self):
 		if frappe.local.request and frappe.local.request.method=="POST":
+			if not frappe.local.session: return
 			if not frappe.local.session.data.csrf_token \
 				or frappe.local.session.data.device=="mobile" \
 				or frappe.conf.get('ignore_csrf', None):
@@ -88,7 +92,7 @@ class HTTPRequest:
 	def connect(self, ac_name = None):
 		"""connect to db, from ac_name or db_name"""
 		frappe.local.db = frappe.database.Database(user = self.get_db_name(), \
-			password = getattr(conf,'db_password', ''))
+			password = getattr(conf, 'db_password', ''))
 
 class LoginManager:
 	def __init__(self):
@@ -98,7 +102,7 @@ class LoginManager:
 		self.user_type = None
 
 		if frappe.local.form_dict.get('cmd')=='login' or frappe.local.request.path=="/api/method/login":
-			self.login()
+			if self.login()==False: return
 			self.resume = False
 
 			# run login triggers
@@ -107,34 +111,45 @@ class LoginManager:
 			try:
 				self.resume = True
 				self.make_session(resume=True)
+				self.get_user_info()
 				self.set_user_info(resume=True)
 			except AttributeError:
 				self.user = "Guest"
+				self.get_user_info()
 				self.make_session()
 				self.set_user_info()
 
 	def login(self):
 		# clear cache
 		frappe.clear_cache(user = frappe.form_dict.get('usr'))
-		self.authenticate()
+		user, pwd = get_cached_user_pass()
+		self.authenticate(user=user, pwd=pwd)
+		if should_run_2fa(self.user):
+			authenticate_for_2factor(self.user)
+			if not confirm_otp_token(self):
+				return False
 		self.post_login()
 
 	def post_login(self):
 		self.run_trigger('on_login')
 		self.validate_ip_address()
 		self.validate_hour()
+		self.get_user_info()
 		self.make_session()
 		self.set_user_info()
+
+	def get_user_info(self, resume=False):
+		self.info = frappe.db.get_value("User", self.user,
+			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
+
+		self.user_type = self.info.user_type
 
 	def set_user_info(self, resume=False):
 		# set sid again
 		frappe.local.cookie_manager.init_cookies()
 
-		self.info = frappe.db.get_value("User", self.user,
-			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
 		self.full_name = " ".join(filter(None, [self.info.first_name,
 			self.info.last_name]))
-		self.user_type = self.info.user_type
 
 		if self.info.user_type=="Website User":
 			frappe.local.cookie_manager.set_cookie("system_user", "no")
@@ -183,10 +198,13 @@ class LoginManager:
 		if not (user and pwd):
 			user, pwd = frappe.form_dict.get('usr'), frappe.form_dict.get('pwd')
 		if not (user and pwd):
-			self.fail('Incomplete login details', user=user)
+			self.fail(_('Incomplete login details'), user=user)
 
 		if cint(frappe.db.get_value("System Settings", "System Settings", "allow_login_using_mobile_number")):
 			user = frappe.db.get_value("User", filters={"mobile_no": user}, fieldname="name") or user
+
+		if cint(frappe.db.get_value("System Settings", "System Settings", "allow_login_using_user_name")):
+			user = frappe.db.get_value("User", filters={"username": user}, fieldname="name") or user
 
 		self.check_if_enabled(user)
 		self.user = self.check_password(user, pwd)
@@ -205,7 +223,9 @@ class LoginManager:
 		except frappe.AuthenticationError:
 			self.fail('Incorrect password', user=user)
 
-	def fail(self, message, user="NA"):
+	def fail(self, message, user=None):
+		if not user:
+			user = _('Unknown User')
 		frappe.local.response['message'] = message
 		add_authentication_log(message, user, status="Failed")
 		frappe.db.commit()
@@ -301,6 +321,7 @@ class CookieManager:
 		expires = datetime.datetime.now() + datetime.timedelta(days=-1)
 		for key in set(self.to_delete):
 			response.set_cookie(key, "", expires=expires)
+
 
 @frappe.whitelist()
 def get_logged_user():

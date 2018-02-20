@@ -26,7 +26,7 @@ frappe.confirm = function(message, ifyes, ifno) {
 	var d = new frappe.ui.Dialog({
 		title: __("Confirm"),
 		fields: [
-			{fieldtype:"HTML", options:"<p class='frappe-confirm-message'>" + message + "</p>"}
+			{fieldtype:"HTML", options:`<p class="frappe-confirm-message">${message}</p>`}
 		],
 		primary_action_label: __("Yes"),
 		primary_action: function() {
@@ -137,16 +137,21 @@ frappe.msgprint = function(msg, title) {
 		data.message = '';
 	}
 
-	if(data.message.search(/<br>|<p>|<li>/)==-1)
+	if(data.message.search(/<br>|<p>|<li>/)==-1) {
 		msg = replace_newlines(data.message);
+	}
 
-
-	var msg_exists = msg_dialog.msg_area.html();
+	var msg_exists = false;
+	if(data.clear) {
+		msg_dialog.msg_area.empty();
+	} else {
+		msg_exists = msg_dialog.msg_area.html();
+	}
 
 	if(data.title || !msg_exists) {
 		// set title only if it is explicitly given
 		// and no existing title exists
-		msg_dialog.set_title(data.title || __('Message'))
+		msg_dialog.set_title(data.title || __('Message'));
 	}
 
 	// show / hide indicator
@@ -229,15 +234,17 @@ frappe.verify_password = function(callback) {
 	}, __("Verify Password"), __("Verify"))
 }
 
-frappe.show_progress = function(title, count, total) {
-	if(frappe.cur_progress && frappe.cur_progress.title === title
-			&& frappe.cur_progress.$wrapper.is(":visible")) {
+frappe.show_progress = function(title, count, total=100, description) {
+	if(frappe.cur_progress && frappe.cur_progress.title === title && frappe.cur_progress.is_visible) {
 		var dialog = frappe.cur_progress;
 	} else {
 		var dialog = new frappe.ui.Dialog({
 			title: title,
 		});
-		dialog.progress = $('<div class="progress"><div class="progress-bar"></div></div>')
+		dialog.progress = $(`<div class="progress">
+			<div class="progress-bar"></div>
+			<p class="description text-muted small"></p>
+		</div>`)
 			.appendTo(dialog.body);
 		dialog.progress_bar = dialog.progress.css({"margin-top": "10px"})
 			.find(".progress-bar");
@@ -245,7 +252,12 @@ frappe.show_progress = function(title, count, total) {
 		dialog.show();
 		frappe.cur_progress = dialog;
 	}
-	dialog.progress_bar.css({"width": cint(flt(count) * 100 / total) + "%" });
+	if (description) {
+		dialog.progress.find('.description').text(description);
+	}
+	dialog.percent = cint(flt(count) * 100 / total);
+	dialog.progress_bar.css({"width": dialog.percent + "%" });
+	return dialog;
 }
 
 frappe.hide_progress = function() {

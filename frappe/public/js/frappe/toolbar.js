@@ -17,19 +17,6 @@ $(document).on("toolbar_setup", function() {
 		}
 	}
 
-	if(limits.support_email || limits.support_chat) {
-		help_links.push('<li class="divider"></li>');
-	}
-
-	if(limits.support_email) {
-		var support_link = 'mailto:'+frappe.boot.limits.support_email;
-		help_links.push('<li><a href="'+support_link+'">' + frappe._('Email Support') + '</a></li>');
-	}
-
-	if(limits.support_chat) {
-		help_links.push('<li><a href="'+limits.support_chat+'" target="_blank">' + frappe._('Chat Support') + '</a></li>');
-	}
-
 	$(help_links.join("\n")).insertBefore($("#toolbar-user").find(".divider:last"));
 
 	if(limits.space || limits.users || limits.expiry || limits.emails) {

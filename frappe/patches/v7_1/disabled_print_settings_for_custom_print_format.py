@@ -11,7 +11,7 @@ def execute():
 		update 
 			`tabPrint Format` 
 		set 
-			align_labels_left = 0, line_breaks = 0, show_section_headings = 0 
+			align_labels_right = 0, line_breaks = 0, show_section_headings = 0 
 		where 
 			custom_format = 1
 		""")

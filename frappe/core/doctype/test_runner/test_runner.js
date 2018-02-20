@@ -11,7 +11,8 @@ frappe.ui.form.on('Test Runner', {
 
 				// all tests
 				frappe.call({
-					method: 'frappe.core.doctype.test_runner.test_runner.get_test_js'
+					method: 'frappe.core.doctype.test_runner.test_runner.get_test_js',
+					args: { test_path: frm.doc.module_path }
 				}).always((data) => {
 					$("<div id='qunit'></div>").appendTo(wrapper.empty());
 					frm.events.run_tests(frm, data.message);
@@ -22,6 +23,7 @@ frappe.ui.form.on('Test Runner', {
 
 	},
 	run_tests: function(frm, files) {
+		frappe.flags.in_test = true;
 		let require_list = [
 			"assets/frappe/js/lib/jquery/qunit.js",
 			"assets/frappe/js/lib/jquery/qunit.css"
@@ -32,32 +34,40 @@ frappe.ui.form.on('Test Runner', {
 				frappe.dom.eval(f.script);
 			});
 
-			// if(frm.doc.module_name) {
-			// 	QUnit.module.only(frm.doc.module_name);
-			// }
+			QUnit.config.notrycatch = true;
+
+			window.onerror = function(msg, url, lineNo, columnNo, error) {
+				console.log(error.stack); // eslint-disable-line
+				$('<div id="frappe-qunit-done"></div>').appendTo($('body'));
+			};
 
 			QUnit.testDone(function(details) {
-				var result = {
-					"Module name": details.module,
-					"Test name": details.name,
-					"Assertions": {
-						"Total": details.total,
-						"Passed": details.passed,
-						"Failed": details.failed
-					},
-					"Skipped": details.skipped,
-					"Todo": details.todo,
-					"Runtime": details.runtime
-				};
+				// var result = {
+				// 	"Module name": details.module,
+				// 	"Test name": details.name,
+				// 	"Assertions": {
+				// 		"Total": details.total,
+				// 		"Passed": details.passed,
+				// 		"Failed": details.failed
+				// 	},
+				// 	"Skipped": details.skipped,
+				// 	"Todo": details.todo,
+				// 	"Runtime": details.runtime
+				// };
 
 				// eslint-disable-next-line
-				console.log(JSON.stringify(result, null, 2));
+				// console.log(JSON.stringify(result, null, 2));
+
+				details.assertions.map(a => {
+					// eslint-disable-next-line
+					console.log(`${a.result ? '✔' : '✗'}  ${a.message}`);
+				});
+
 			});
 			QUnit.load();
 
 			QUnit.done(({ total, failed, passed, runtime }) => {
 				// flag for selenium that test is done
-				$('<div id="frappe-qunit-done"></div>').appendTo($('body'));
 
 				console.log( `Total: ${total}, Failed: ${failed}, Passed: ${passed}, Runtime: ${runtime}` );  // eslint-disable-line
 
@@ -67,6 +77,9 @@ frappe.ui.form.on('Test Runner', {
 					console.log('Tests Passed'); // eslint-disable-line
 				}
 				frappe.set_route('Form', 'Test Runner', 'Test Runner');
+
+				$('<div id="frappe-qunit-done"></div>').appendTo($('body'));
+
 			});
 		});
 

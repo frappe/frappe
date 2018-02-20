@@ -7,9 +7,12 @@ from __future__ import unicode_literals
 import frappe, json
 from six.moves import range
 import frappe.permissions
-import MySQLdb
 from frappe.model.db_query import DatabaseQuery
 from frappe import _
+from six import text_type, string_types, StringIO
+
+# imports - third-party imports
+import pymysql
 
 @frappe.whitelist()
 def get():
@@ -30,13 +33,13 @@ def get_form_params():
 	if "csrf_token" in data:
 		del data["csrf_token"]
 
-	if isinstance(data.get("filters"), basestring):
+	if isinstance(data.get("filters"), string_types):
 		data["filters"] = json.loads(data["filters"])
-	if isinstance(data.get("fields"), basestring):
+	if isinstance(data.get("fields"), string_types):
 		data["fields"] = json.loads(data["fields"])
-	if isinstance(data.get("docstatus"), basestring):
+	if isinstance(data.get("docstatus"), string_types):
 		data["docstatus"] = json.loads(data["docstatus"])
-	if isinstance(data.get("save_user_settings"), basestring):
+	if isinstance(data.get("save_user_settings"), string_types):
 		data["save_user_settings"] = json.loads(data["save_user_settings"])
 	else:
 		data["save_user_settings"] = True
@@ -47,11 +50,13 @@ def get_form_params():
 	for field in fields:
 		key = field.split(" as ")[0]
 
+		if key.startswith('count('): continue
+
 		if "." in key:
 			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
 		else:
 			parenttype = data.doctype
-			fieldname = fieldname.strip("`")
+			fieldname = field.strip("`")
 
 		df = frappe.get_meta(parenttype).get_field(fieldname)
 
@@ -145,16 +150,17 @@ def export_query():
 
 		# convert to csv
 		import csv
-		from cStringIO import StringIO
+		from frappe.utils.xlsxutils import handle_html
 
 		f = StringIO()
 		writer = csv.writer(f)
 		for r in data:
 			# encode only unicode type strings and not int, floats etc.
-			writer.writerow(map(lambda v: isinstance(v, unicode) and v.encode('utf-8') or v, r))
+			writer.writerow([handle_html(frappe.as_unicode(v)).encode('utf-8') \
+				if isinstance(v, string_types) else v for v in r])
 
 		f.seek(0)
-		frappe.response['result'] = unicode(f.read(), 'utf-8')
+		frappe.response['result'] = text_type(f.read(), 'utf-8')
 		frappe.response['type'] = 'csv'
 		frappe.response['doctype'] = doctype
 
@@ -211,6 +217,8 @@ def delete_items():
 	il = json.loads(frappe.form_dict.get('items'))
 	doctype = frappe.form_dict.get('doctype')
 
+	failed = []
+
 	for i, d in enumerate(il):
 		try:
 			frappe.delete_doc(doctype, d)
@@ -219,7 +227,9 @@ def delete_items():
 					dict(progress=[i+1, len(il)], title=_('Deleting {0}').format(doctype)),
 					user=frappe.session.user)
 		except Exception:
-			pass
+			failed.append(d)
+
+	return failed
 
 @frappe.whitelist()
 def get_sidebar_stats(stats, doctype, filters=[]):
@@ -240,7 +250,12 @@ def get_stats(stats, doctype, filters=[]):
 		filters = json.loads(filters)
 	stats = {}
 
-	columns = frappe.db.get_table_columns(doctype)
+	try:
+		columns = frappe.db.get_table_columns(doctype)
+	except pymysql.InternalError:
+		# raised when _user_tags column is added on the fly
+		columns = []
+
 	for tag in tags:
 		if not tag in columns: continue
 		try:
@@ -252,17 +267,16 @@ def get_stats(stats, doctype, filters=[]):
 				stats[tag] = scrub_user_tags(tagcount)
 				stats[tag].append([_("No Tags"), frappe.get_list(doctype,
 					fields=[tag, "count(*)"],
-					filters=filters +["({0} = ',' or {0} is null)".format(tag)], as_list=True)[0][1]])
+					filters=filters +["({0} = ',' or {0} = '' or {0} is null)".format(tag)], as_list=True)[0][1]])
 			else:
 				stats[tag] = tagcount
 
 		except frappe.SQLError:
 			# does not work for child tables
 			pass
-		except MySQLdb.OperationalError:
+		except pymysql.InternalError:
 			# raised when _user_tags column is added on the fly
 			pass
-
 	return stats
 
 @frappe.whitelist()
@@ -334,26 +348,35 @@ def build_match_conditions(doctype, as_condition=True):
 	else:
 		return match_conditions
 
-def get_filters_cond(doctype, filters, conditions, ignore_permissions=None):
+def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with_match_conditions=False):
+	if isinstance(filters, string_types):
+		filters = json.loads(filters)
+
 	if filters:
 		flt = filters
 		if isinstance(filters, dict):
 			filters = filters.items()
 			flt = []
 			for f in filters:
-				if isinstance(f[1], basestring) and f[1][0] == '!':
+				if isinstance(f[1], string_types) and f[1][0] == '!':
 					flt.append([doctype, f[0], '!=', f[1][1:]])
+				elif isinstance(f[1], (list, tuple)) and \
+					f[1][0] in (">", "<", ">=", "<=", "like", "not like", "in", "not in", "between"):
+
+					flt.append([doctype, f[0], f[1][0], f[1][1]])
 				else:
-					value = frappe.db.escape(f[1]) if isinstance(f[1], basestring) else f[1]
-					flt.append([doctype, f[0], '=', value])
+					flt.append([doctype, f[0], '=', f[1]])
 
 		query = DatabaseQuery(doctype)
 		query.filters = flt
 		query.conditions = conditions
+
+		if with_match_conditions:
+			query.build_match_conditions()
+
 		query.build_filter_conditions(flt, conditions, ignore_permissions)
 
 		cond = ' and ' + ' and '.join(query.conditions)
 	else:
 		cond = ''
 	return cond
-

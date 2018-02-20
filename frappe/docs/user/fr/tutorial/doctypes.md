@@ -6,7 +6,7 @@ Pour créer un nouveau **DocType**, rendez-vous sur:
 
 > Developer > Documents > Doctype > New
 
-<img class="screenshot" alt="New Doctype" src="{{docs_base_url}}/assets/img/doctype_new.png">
+<img class="screenshot" alt="New Doctype" src="/docs/assets/img/doctype_new.png">
 
 Dans un premier temps, saisissez le module, dans notre cas, **Library Managment**
 
@@ -25,7 +25,7 @@ Les champs sont bien plus que des colonnes d'une base de données, ils peuvent �
 
 Ajoutons des champs pour l'article.
 
-<img class="screenshot" alt="Adding Fields" src="{{docs_base_url}}/assets/img/doctype_adding_field.png">
+<img class="screenshot" alt="Adding Fields" src="/docs/assets/img/doctype_adding_field.png">
 
 Quand vous ajoutez des champs, vous devez entrer le **Type**. Le **Label** est optionnel pour les retours de sections et de colonnes. 
 Le **Name** (`fieldname`) ets le nom de la colonne dans la base de données et aussi la propriété du controleur. Les définitions
@@ -50,11 +50,11 @@ sur chacune des lignes comme ci-dessous
 #### Ajouter des permissins
 
 Après avoir ajouté les champs, validez et ajoutez un nouveau rôle dans la section des règles de permissions. Pour le moment
-ajoutons les droits le lecture, écriture, création et suppression au modèle **Librarian**. Frappe à une gestion fine des 
+ajoutons les droits le lecture, écriture, création et suppression au modèle **Librarian**. Frappé à une gestion fine des 
 permissions sur les modèles. Vous pouvez aussi changer les permissions plus tard en utilisant le gestionnaire de permissions
 dans la configuration.
 
-<img class="screenshot" alt="Adding Permissions" src="{{docs_base_url}}/assets/img/doctype_adding_permission.png">
+<img class="screenshot" alt="Adding Permissions" src="/docs/assets/img/doctype_adding_permission.png">
 
 #### Sauvegarde
 

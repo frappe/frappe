@@ -3,6 +3,7 @@
 
 frappe.provide("frappe.views");
 frappe.provide("frappe.query_reports");
+frappe.provide("frappe.ui.graphs");
 
 frappe.standard_pages["query-report"] = function() {
 	var wrapper = frappe.container.add_page('query-report');
@@ -43,9 +44,9 @@ frappe.views.QueryReport = Class.extend({
 		this.wrapper = $("<div>").appendTo(this.page.main);
 		$('<div class="waiting-area" style="display: none;"></div>\
 		<div class="no-report-area msg-box no-border" style="display: none;"></div>\
-		<div class="chart_area" style="border-bottom: 1px solid #d1d8dd; padding-bottom: 1px"></div>\
+		<div class="chart-area" style="border-bottom: 1px solid #d1d8dd; margin: 0px 3%"></div>\
 		<div class="results" style="display: none;">\
-			<div class="result-area" style="height:400px;"></div>\
+			<div class="result-area" style="height:70vh;"></div>\
 			<button class="btn btn-secondary btn-default btn-xs expand-all hidden" style="margin: 10px;">'+__('Expand All')+'</button>\
 			<button class="btn btn-secondary btn-default btn-xs collapse-all hidden" style="margin: 10px; margin-left: 0px;">'+__('Collapse All')+'</button>\
 			<p class="help-msg alert alert-warning text-center" style="margin: 15px; margin-top: 0px;"></p>\
@@ -56,7 +57,7 @@ frappe.views.QueryReport = Class.extend({
 		</div>').appendTo(this.wrapper);
 		this.wrapper.find(".expand-all").on("click", function() { me.toggle_all(false);});
 		this.wrapper.find(".collapse-all").on("click", function() { me.toggle_all(true);});
-		this.chart_area = this.wrapper.find(".chart_area");
+		this.chart_area = this.wrapper.find(".chart-area");
 		this.make_toolbar();
 	},
 	toggle_expand_collapse_buttons: function(show) {
@@ -103,7 +104,7 @@ frappe.views.QueryReport = Class.extend({
 					doctype: "Report",
 					name: me.report_name
 				};
-				frappe.set_route("user-permissions");
+				frappe.set_route('List', 'User Permission');
 			}, true);
 		}
 
@@ -184,18 +185,19 @@ frappe.views.QueryReport = Class.extend({
 			frappe.msgprint(__("You are not allowed to print this report"));
 			return false;
 		}
-
 		if(this.html_format) {
 			var content = frappe.render(this.html_format, {
 				data: frappe.slickgrid_tools.get_filtered_items(this.dataView),
 				filters: this.get_values(),
-				report: this
+				report: this,
+				data_to_be_printed: this.data_to_be_printed
 			});
 
 			frappe.render_grid({
 				content: content,
 				title: __(this.report_name),
 				print_settings: this.print_settings,
+				columns: this.columns
 			});
 		} else {
 			frappe.render_grid({
@@ -223,7 +225,8 @@ frappe.views.QueryReport = Class.extend({
 			var content = frappe.render(this.html_format, {
 				data: frappe.slickgrid_tools.get_filtered_items(this.dataView),
 				filters:this.get_values(),
-				report:this
+				report:this,
+				data_to_be_printed: this.data_to_be_printed
 			});
 
 			//Render Report in HTML
@@ -326,7 +329,6 @@ frappe.views.QueryReport = Class.extend({
 						me.trigger_refresh();
 					}
 				}
-				df.ignore_link_validation = true;
 			}
 		});
 
@@ -334,36 +336,57 @@ frappe.views.QueryReport = Class.extend({
 		var $filters = $(this.parent).find('.page-form .filters');
 		$(this.parent).find('.page-form').toggle($filters.length ? true : false);
 
+		//  set the field 'query_report_filters_by_name' first as they can be used in
+		//     setting/triggering the filters
+		this.set_filters_by_name();
+
 		this.setting_filters = true;
 		this.set_route_filters();
 		this.setting_filters = false;
 
-		this.set_filters_by_name();
 		this.flags.filters_set = true;
 	},
 	clear_filters: function() {
 		this.filters = [];
 		$(this.parent).find('.page-form .filters').remove();
 	},
-	set_route_filters: function() {
-		var me = this;
-		if(frappe.route_options) {
-			$.each(this.filters || [], function(i, f) {
-				if(frappe.route_options[f.df.fieldname]!=null) {
-					f.set_value(frappe.route_options[f.df.fieldname]);
-				}
-			});
-		}
-		frappe.route_options = null;
-	},
 	set_filters_by_name: function() {
 		frappe.query_report_filters_by_name = {};
-
 		for(var i in this.filters) {
 			frappe.query_report_filters_by_name[this.filters[i].df.fieldname] = this.filters[i];
 		}
 	},
+	set_route_filters: function() {
+		var me = this;
+		if(frappe.route_options) {
+			const fields = Object.keys(frappe.route_options);
+			const filters_to_set = this.filters.filter(f => fields.includes(f.df.fieldname));
+
+			const promises = filters_to_set.map(f => {
+				return () => {
+					const value = frappe.route_options[f.df.fieldname];
+					return f.set_value(value);
+				}
+			});
+			promises.push(() => {
+				frappe.route_options = null;
+			});
+
+			return frappe.run_serially(promises);
+		}
+
+	},
 	refresh: function() {
+		// throttle
+		// stop refresh from being called multiple times (from triggers ?)
+		if (!this.request_refresh) {
+			this.request_refresh = setTimeout(() => {
+				this._refresh();
+				this.request_refresh = null;
+			}, 300);
+		}
+	},
+	_refresh: function() {
 		// Run
 		var me = this;
 
@@ -477,6 +500,7 @@ frappe.views.QueryReport = Class.extend({
 
 		this.set_message(res.message);
 		this.setup_chart(res);
+		this.set_print_data(res.data_to_be_printed);
 
 		this.toggle_expand_collapse_buttons(this.is_tree_report);
 	},
@@ -522,6 +546,10 @@ frappe.views.QueryReport = Class.extend({
 				col.field = df.fieldname || df.label;
 				df.label = __(df.label);
 				col.name = col.id = col.label = df.label;
+
+				if(df.width < 0) {
+					col.hidden = true;
+				}
 
 				return col
 			}));
@@ -574,6 +602,9 @@ frappe.views.QueryReport = Class.extend({
 			newrow.id = newrow.name ? newrow.name : ("_" + newrow._id);
 			this.data.push(newrow);
 		}
+		if(this.data.length && this.report_doc.add_total_row) {
+			this.total_row_id = this.data[this.data.length - 1].id;
+		}
 	},
 	make_dataview: function() {
 		// initialize the model
@@ -592,6 +623,7 @@ frappe.views.QueryReport = Class.extend({
 
 		var me = this;
 		this.dataView.onRowCountChanged.subscribe(function (e, args) {
+			me.update_totals_row();
 			me.grid.updateRowCount();
 			me.grid.render();
 		});
@@ -601,8 +633,36 @@ frappe.views.QueryReport = Class.extend({
 			me.grid.render();
 		});
 	},
+	update_totals_row: function() {
+		if(!this.report_doc.add_total_row) return;
+
+		const number_fields = ['Currency', 'Float', 'Int'];
+		const fields = this.columns
+			.filter(col => number_fields.includes(col.fieldtype))
+			.map(col => col.field);
+
+		// reset numeric fields
+		let updated_totals = Object.assign({}, this.dataView.getItemById(this.total_row_id));
+		fields.map(field => {
+			updated_totals[field] = 0.0;
+		});
+
+		const data_length = this.dataView.getLength();
+		// loop all the rows except the last Total row
+		for (let i = 0; i < data_length - 1; i++) {
+			const item = this.dataView.getItem(i);
+			fields.map(field => {
+				updated_totals[field] += item[field];
+			});
+		}
+		this.dataView.updateItem(updated_totals.id, updated_totals);
+	},
 	inline_filter: function (item) {
 		var me = frappe.container.page.query_report;
+		if(me.report_doc.add_total_row) {
+			// always show totals row
+			if(item.id === me.total_row_id) return true;
+		}
 		for (var columnId in me.columnFilters) {
 			if (columnId !== undefined && me.columnFilters[columnId] !== "") {
 				var c = me.grid.getColumns()[me.grid.getColumnIndex(columnId)];
@@ -772,6 +832,16 @@ frappe.views.QueryReport = Class.extend({
 			var cols = args.sortCols;
 
 			me.data.sort(function (dataRow1, dataRow2) {
+				// Totals row should always be last
+				if(me.report_doc.add_total_row) {
+					if(dataRow1.id === me.total_row_id) {
+						return 1;
+					}
+					if(dataRow2.id === me.total_row_id) {
+						return -1;
+					}
+				}
+
 				for (var i = 0, l = cols.length; i < l; i++) {
 					var field = cols[i].sortCol.field;
 					var sign = cols[i].sortAsc ? 1 : -1;
@@ -880,12 +950,19 @@ frappe.views.QueryReport = Class.extend({
 		}
 
 		$.extend(opts, {
-			wrapper: this.chart_area,
+			parent: ".chart-area",
+			height: 200
 		});
 
-		this.chart = new frappe.ui.Chart(opts);
-		if(this.chart && opts.data && opts.data.rows && opts.data.rows.length) {
+		console.log(opts)
+
+		if(opts.data && opts.data.labels && opts.data.labels.length) {
 			this.chart_area.toggle(true);
+			this.chart = new Chart(opts);
 		}
+	},
+
+	set_print_data: function(data_to_be_printed) {
+		this.data_to_be_printed = data_to_be_printed;
 	}
 })

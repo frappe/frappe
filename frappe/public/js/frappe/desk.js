@@ -1,5 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
+/* eslint-disable no-console */
 
 frappe.start_app = function() {
 	if(!frappe.Application)
@@ -7,7 +8,7 @@ frappe.start_app = function() {
 	frappe.assets.check();
 	frappe.provide('frappe.app');
 	frappe.app = new frappe.Application();
-}
+};
 
 $(document).ready(function() {
 	if(!frappe.utils.supportsES6) {
@@ -18,6 +19,12 @@ $(document).ready(function() {
 		});
 	}
 	frappe.start_app();
+
+	// frappe.Chat
+	// Removing it from here as per rushabh@frappe.io's request.
+	// const chat = new frappe.Chat()
+	// chat.render();
+	// end frappe.Chat
 });
 
 frappe.Application = Class.extend({
@@ -29,7 +36,7 @@ frappe.Application = Class.extend({
 		this.startup();
 	},
 	startup: function() {
-		frappe.socket.init();
+		frappe.socketio.init();
 		frappe.model.init();
 
 		if(frappe.boot.status==='failed') {
@@ -37,7 +44,7 @@ frappe.Application = Class.extend({
 				message: frappe.boot.error,
 				title: __('Session Start Failed'),
 				indicator: 'red',
-			})
+			});
 			throw 'boot failed';
 		}
 
@@ -92,9 +99,9 @@ frappe.Application = Class.extend({
 			var dialog = frappe.msgprint({
 				message:__("The application has been updated to a new version, please refresh this page"),
 				indicator: 'green',
-				title: 'Version Updated'
+				title: __('Version Updated')
 			});
-			dialog.set_primary_action("Refresh", function() {
+			dialog.set_primary_action(__("Refresh"), function() {
 				location.reload(true);
 			});
 			dialog.get_close_btn().toggle(false);
@@ -103,20 +110,20 @@ frappe.Application = Class.extend({
 			var email_list =  frappe.sys_defaults.email_user_password.split(',');
 			for (var u in email_list) {
 				if (email_list[u]===frappe.user.name){
-					this.set_password(email_list[u])
+					this.set_password(email_list[u]);
 				}
 			}
 		}
 
 	},
-	set_password: function (user) {
-		var me=this
+	set_password: function(user) {
+		var me=this;
 		frappe.call({
 			method: 'frappe.core.doctype.user.user.get_email_awaiting',
 			args: {
 				"user": user
 			},
-			callback: function (email_account) {
+			callback: function(email_account) {
 				email_account = email_account["message"];
 				if (email_account) {
 					var i = 0;
@@ -129,7 +136,7 @@ frappe.Application = Class.extend({
 	},
 
 	email_password_prompt: function(email_account,user,i) {
-		var me = this
+		var me = this;
 		var d = new frappe.ui.Dialog({
 			title: __('Email Account setup please enter your password for: '+email_account[i]["email_id"]),
 			fields: [
@@ -154,7 +161,7 @@ frappe.Application = Class.extend({
 					"fieldname": "checking"
 				}]
 			});
-			s.fields_dict.checking.$wrapper.html('<i class="fa fa-spinner fa-spin fa-4x"></i>')
+			s.fields_dict.checking.$wrapper.html('<i class="fa fa-spinner fa-spin fa-4x"></i>');
 			s.show();
 			frappe.call({
 				method: 'frappe.core.doctype.user.user.set_email_password',
@@ -163,21 +170,16 @@ frappe.Application = Class.extend({
 					"user": user,
 					"password": d.get_value("password")
 				},
-				callback: function (passed)
-				{
+				callback: function(passed) {
 					s.hide();
 					d.hide();//hide waiting indication
-					if (!passed["message"])
-					{
+					if (!passed["message"]) {
 						frappe.show_alert("Login Failed please try again", 5);
-						me.email_password_prompt(email_account, user, i)
-					}
-					else
-					{
-						if (i + 1 < email_account.length)
-						{
+						me.email_password_prompt(email_account, user, i);
+					} else {
+						if (i + 1 < email_account.length) {
 							i = i + 1;
-							me.email_password_prompt(email_account, user, i)
+							me.email_password_prompt(email_account, user, i);
 						}
 					}
 
@@ -189,7 +191,9 @@ frappe.Application = Class.extend({
 	load_bootinfo: function() {
 		if(frappe.boot) {
 			frappe.modules = {};
-			frappe.boot.desktop_icons.forEach(function(m) { frappe.modules[m.module_name]=m; });
+			frappe.boot.desktop_icons.forEach(function(m) {
+				frappe.modules[m.module_name]=m;
+			});
 			frappe.model.sync(frappe.boot.docs);
 			$.extend(frappe._messages, frappe.boot.__messages);
 			this.check_metadata_cache_status();
@@ -201,7 +205,7 @@ frappe.Application = Class.extend({
 				moment.tz.add(frappe.boot.timezone_info);
 			}
 			if(frappe.boot.print_css) {
-				frappe.dom.set_style(frappe.boot.print_css)
+				frappe.dom.set_style(frappe.boot.print_css, "print-style");
 			}
 			frappe.user.name = frappe.boot.user.name;
 		} else {
@@ -228,12 +232,12 @@ frappe.Application = Class.extend({
 		// refresh notifications if user is back after sometime
 		$(document).on("session_alive", function() {
 			me.refresh_notifications();
-		})
+		});
 	},
 
 	refresh_notifications: function() {
 		var me = this;
-		if(frappe.session_alive) {
+		if(frappe.session_alive && frappe.boot && !frappe.boot.in_setup_wizard) {
 			return frappe.call({
 				method: "frappe.desk.notifications.get_notifications",
 				callback: function(r) {
@@ -260,7 +264,7 @@ frappe.Application = Class.extend({
 		$.each(frappe.boot.notification_info.open_count_doctype, function(doctype, count) {
 			if(count) {
 				$('.open-notification.global[data-doctype="'+ doctype +'"]')
-					.removeClass("hide").html(count > 20 ? "20+" : count);
+					.removeClass("hide").html(count > 99 ? "99+" : count);
 			} else {
 				$('.open-notification.global[data-doctype="'+ doctype +'"]')
 					.addClass("hide");
@@ -355,7 +359,7 @@ frappe.Application = Class.extend({
 	},
 	make_nav_bar: function() {
 		// toolbar
-		if(frappe.boot) {
+		if(frappe.boot && !frappe.boot.in_setup_wizard) {
 			frappe.frappe_toolbar = new frappe.ui.toolbar.Toolbar();
 		}
 
@@ -371,7 +375,7 @@ frappe.Application = Class.extend({
 				}
 				me.redirect_to_login();
 			}
-		})
+		});
 	},
 	handle_session_expired: function() {
 		if(!frappe.app.session_expired_dialog) {
@@ -433,7 +437,7 @@ frappe.Application = Class.extend({
 	},
 
 	trigger_primary_action: function() {
-		if(cur_dialog && cur_dialog.display) {
+		if(window.cur_dialog && cur_dialog.display) {
 			// trigger primary
 			cur_dialog.get_primary_btn().trigger("click");
 		} else if(cur_frm && cur_frm.page.btn_primary.is(':visible')) {
@@ -443,13 +447,13 @@ frappe.Application = Class.extend({
 		}
 	},
 
-	set_rtl: function () {
+	set_rtl: function() {
 		if (["ar", "he", "fa"].indexOf(frappe.boot.lang) >= 0) {
 			var ls = document.createElement('link');
 			ls.rel="stylesheet";
 			ls.href= "assets/css/frappe-rtl.css";
 			document.getElementsByTagName('head')[0].appendChild(ls);
-			$('body').addClass('frappe-rtl')
+			$('body').addClass('frappe-rtl');
 		}
 	},
 
@@ -503,9 +507,9 @@ frappe.Application = Class.extend({
 						// next note
 						me.show_notes();
 
-					}
+					};
 				}
-			})
+			});
 		}
 	},
 });
@@ -561,17 +565,17 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 	var out = [];
 
 	var add_to_out = function(module) {
-		var module = frappe.get_module(module.module_name, module);
+		module = frappe.get_module(module.module_name, module);
 		module.app_icon = frappe.ui.app_icon.get_html(module);
 		out.push(module);
-	}
+	};
 
 	var show_module = function(m) {
 		var out = true;
 		if(m.type==="page") {
 			out = m.link in frappe.boot.page_info;
 		} else if(m._report) {
-			out = m._report in frappe.boot.user.all_reports
+			out = m._report in frappe.boot.user.all_reports;
 		} else if(m._doctype) {
 			//out = frappe.model.can_read(m._doctype);
 			out = frappe.boot.user.can_read.includes(m._doctype);
@@ -582,7 +586,7 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 			} else if(m.module_name==='Setup' && frappe.user.has_role('System Manager')) {
 				out = true;
 			} else {
-				out = frappe.boot.user.allow_modules.indexOf(m.module_name) !== -1
+				out = frappe.boot.user.allow_modules.indexOf(m.module_name) !== -1;
 			}
 		}
 		if(m.hidden && !show_hidden) {
@@ -592,22 +596,23 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 			out = false;
 		}
 		return out;
-	}
+	};
 
+	let m;
 	for (var i=0, l=frappe.boot.desktop_icons.length; i < l; i++) {
-		var m = frappe.boot.desktop_icons[i];
+		m = frappe.boot.desktop_icons[i];
 		if ((['Setup', 'Core'].indexOf(m.module_name) === -1) && show_module(m)) {
 			add_to_out(m);
 		}
 	}
 
 	if(frappe.user_roles.includes('System Manager')) {
-		var m = frappe.get_module('Setup');
+		m = frappe.get_module('Setup');
 		if(show_module(m)) add_to_out(m);
 	}
 
 	if(frappe.user_roles.includes('Administrator')) {
-		var m = frappe.get_module('Core');
+		m = frappe.get_module('Core');
 		if(show_module(m)) add_to_out(m);
 	}
 
@@ -630,4 +635,4 @@ frappe.add_to_desktop = function(label, doctype, report) {
 			}
 		}
 	});
-}
+};

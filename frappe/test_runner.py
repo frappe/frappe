@@ -4,14 +4,16 @@
 from __future__ import unicode_literals, print_function
 
 import frappe
-import unittest, json, sys
+import unittest, json, sys, os
 import xmlrunner
 import importlib
 from frappe.modules import load_doctype_module, get_module_name
 from frappe.utils import cstr
 import frappe.utils.scheduler
-import cProfile, StringIO, pstats
-
+import cProfile, pstats
+from six import StringIO
+from six.moves import reload_module
+from frappe.model.naming import revert_series_if_last
 
 unittest_runner = unittest.TextTestRunner
 
@@ -23,8 +25,13 @@ def xmlrunner_wrapper(output):
 	return _runner
 
 def main(app=None, module=None, doctype=None, verbose=False, tests=(),
-	force=False, profile=False, junit_xml_output=None, ui_tests=False):
+	force=False, profile=False, junit_xml_output=None, ui_tests=False, doctype_list_path=None):
 	global unittest_runner
+
+	if doctype_list_path:
+		app, doctype_list_path = doctype_list_path.split(os.path.sep, 1)
+		with open(frappe.get_app_path(app, doctype_list_path), 'r') as f:
+			doctype = f.read().strip().splitlines()
 
 	xmloutput_fh = None
 	if junit_xml_output:
@@ -110,26 +117,32 @@ def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False):
 
 	if profile:
 		pr.disable()
-		s = StringIO.StringIO()
+		s = StringIO()
 		ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
 		ps.print_stats()
 		print(s.getvalue())
 
 	return out
 
-def run_tests_for_doctype(doctype, verbose=False, tests=(), force=False, profile=False):
-	module = frappe.db.get_value("DocType", doctype, "module")
-	if not module:
-		print('Invalid doctype {0}'.format(doctype))
-		sys.exit(1)
+def run_tests_for_doctype(doctypes, verbose=False, tests=(), force=False, profile=False):
+	modules = []
+	if not isinstance(doctypes, (list, tuple)):
+		doctypes = [doctypes]
 
-	test_module = get_module_name(doctype, module, "test_")
-	if force:
-		for name in frappe.db.sql_list("select name from `tab%s`" % doctype):
-			frappe.delete_doc(doctype, name, force=True)
-	make_test_records(doctype, verbose=verbose, force=force)
-	module = importlib.import_module(test_module)
-	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile)
+	for doctype in doctypes:
+		module = frappe.db.get_value("DocType", doctype, "module")
+		if not module:
+			print('Invalid doctype {0}'.format(doctype))
+			sys.exit(1)
+
+		test_module = get_module_name(doctype, module, "test_")
+		if force:
+			for name in frappe.db.sql_list("select name from `tab%s`" % doctype):
+				frappe.delete_doc(doctype, name, force=True)
+		make_test_records(doctype, verbose=verbose, force=force)
+		modules.append(importlib.import_module(test_module))
+
+	return _run_unittest(modules, verbose=verbose, tests=tests, profile=profile)
 
 def run_tests_for_module(module, verbose=False, tests=(), profile=False):
 	module = importlib.import_module(module)
@@ -137,25 +150,38 @@ def run_tests_for_module(module, verbose=False, tests=(), profile=False):
 		for doctype in module.test_dependencies:
 			make_test_records(doctype, verbose=verbose)
 
-	return _run_unittest(module=module, verbose=verbose, tests=tests, profile=profile)
+	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile)
 
-def run_ui_tests(app=None, test=None, verbose=False, profile=False):
+def run_setup_wizard_ui_test(app=None, verbose=False, profile=False):
+	'''Run setup wizard UI test using test_test_runner'''
+	frappe.flags.run_setup_wizard_ui_test = 1
+	return run_ui_tests(app=app, test=None, verbose=verbose, profile=profile)
+
+def run_ui_tests(app=None, test=None, test_list=None, verbose=False, profile=False):
 	'''Run a single unit test for UI using test_test_runner'''
 	module = importlib.import_module('frappe.tests.ui.test_test_runner')
 	frappe.flags.ui_test_app = app
-	frappe.flags.ui_test_path = test
-	return _run_unittest(module=module, verbose=verbose, tests=(), profile=profile)
-
-def _run_unittest(module, verbose=False, tests=(), profile=False):
-	test_suite = unittest.TestSuite()
-	module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
-	if tests:
-		for each in module_test_cases:
-			for test_case in each.__dict__["_tests"]:
-				if test_case.__dict__["_testMethodName"] in tests:
-					test_suite.addTest(test_case)
+	if test_list:
+		frappe.flags.ui_test_list = test_list
 	else:
-		test_suite.addTest(module_test_cases)
+		frappe.flags.ui_test_path = test
+	return _run_unittest(module, verbose=verbose, tests=(), profile=profile)
+
+def _run_unittest(modules, verbose=False, tests=(), profile=False):
+	test_suite = unittest.TestSuite()
+
+	if not isinstance(modules, (list, tuple)):
+		modules = [modules]
+
+	for module in modules:
+		module_test_cases = unittest.TestLoader().loadTestsFromModule(module)
+		if tests:
+			for each in module_test_cases:
+				for test_case in each.__dict__["_tests"]:
+					if test_case.__dict__["_testMethodName"] in tests:
+						test_suite.addTest(test_case)
+		else:
+			test_suite.addTest(module_test_cases)
 
 	if profile:
 		pr = cProfile.Profile()
@@ -165,15 +191,15 @@ def _run_unittest(module, verbose=False, tests=(), profile=False):
 
 	out = unittest_runner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
 
+
 	if profile:
 		pr.disable()
-		s = StringIO.StringIO()
+		s = StringIO()
 		ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
 		ps.print_stats()
 		print(s.getvalue())
 
 	return out
-
 
 def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 	import os
@@ -191,6 +217,11 @@ def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 			relative_path=relative_path.replace('/', '.'), module_name=filename[:-3])
 
 	module = importlib.import_module(module_name)
+
+	if hasattr(module, "test_dependencies"):
+		for doctype in module.test_dependencies:
+			make_test_records(doctype, verbose=verbose)
+
 	is_ui_test = True if hasattr(module, 'TestDriver') else False
 
 	if is_ui_test != ui_tests:
@@ -217,8 +248,6 @@ def make_test_records(doctype, verbose=0, force=False):
 			continue
 
 		if not options in frappe.local.test_objects:
-			if options in frappe.local.test_objects:
-				print("No test records or circular reference for {0}".format(options))
 			frappe.local.test_objects[options] = []
 			make_test_records(options, verbose, force)
 			make_test_records_for_doctype(options, verbose, force)
@@ -228,7 +257,7 @@ def get_modules(doctype):
 	try:
 		test_module = load_doctype_module(doctype, module, "test_")
 		if test_module:
-			reload(test_module)
+			reload_module(test_module)
 	except ImportError:
 		test_module = None
 
@@ -266,12 +295,12 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False):
 		frappe.local.test_objects[doctype] += test_module._make_test_records(verbose)
 
 	elif hasattr(test_module, "test_records"):
-		frappe.local.test_objects[doctype] += make_test_objects(doctype, test_module.test_records, verbose)
+		frappe.local.test_objects[doctype] += make_test_objects(doctype, test_module.test_records, verbose, force)
 
 	else:
 		test_records = frappe.get_test_records(doctype)
 		if test_records:
-			frappe.local.test_objects[doctype] += make_test_objects(doctype, test_records, verbose)
+			frappe.local.test_objects[doctype] += make_test_objects(doctype, test_records, verbose, force)
 
 		elif verbose:
 			print_mandatory_fields(doctype)
@@ -280,6 +309,11 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False):
 def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 	'''Make test objects from given list of `test_records` or from `test_records.json`'''
 	records = []
+
+	def revert_naming(d):
+		if getattr(d, 'naming_series', None):
+			revert_series_if_last(d.naming_series, d.name)
+
 
 	if test_records is None:
 		test_records = frappe.get_test_records(doctype)
@@ -290,16 +324,19 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 
 		d = frappe.copy_doc(doc)
 
-		if doc.get('name'):
-			d.name = doc.get('name')
-
-		if frappe.local.test_objects.get(d.doctype) and not reset:
-			# do not create test records, if already exists
-			return []
-
 		if d.meta.get_field("naming_series"):
 			if not d.naming_series:
 				d.naming_series = "_T-" + d.doctype + "-"
+
+		if doc.get('name'):
+			d.name = doc.get('name')
+		else:
+			d.set_new_name()
+
+		if frappe.db.exists(d.doctype, d.name) and not reset:
+			frappe.db.rollback()
+			# do not create test records, if already exists
+			continue
 
 		# submit if docstatus is set to 1 for test record
 		docstatus = d.docstatus
@@ -314,18 +351,17 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 				d.submit()
 
 		except frappe.NameError:
-			pass
+			revert_naming(d)
 
 		except Exception as e:
 			if d.flags.ignore_these_exceptions_in_test and e.__class__ in d.flags.ignore_these_exceptions_in_test:
-				pass
-
+				revert_naming(d)
 			else:
 				raise
 
 		records.append(d.name)
 
-	frappe.db.commit()
+		frappe.db.commit()
 
 	return records
 

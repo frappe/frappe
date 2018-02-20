@@ -7,6 +7,7 @@ import json
 from frappe.utils import cstr
 from frappe import _
 from frappe.model.document import Document
+from frappe.model.docfield import supports_translation
 
 class CustomField(Document):
 	def autoname(self):
@@ -18,8 +19,8 @@ class CustomField(Document):
 			if not self.label:
 				frappe.throw(_("Label is mandatory"))
 			# remove special characters from fieldname
-			self.fieldname = filter(lambda x: x.isdigit() or x.isalpha() or '_',
-				cstr(self.label).lower().replace(' ','_'))
+			self.fieldname = "".join(filter(lambda x: x.isdigit() or x.isalpha() or '_',
+				cstr(self.label).lower().replace(' ','_')))
 
 		# fieldnames should be lowercase
 		self.fieldname = self.fieldname.lower()
@@ -38,6 +39,9 @@ class CustomField(Document):
 
 		if not self.fieldname:
 			frappe.throw(_("Fieldname not set for Custom Field"))
+
+		if self.get('translatable', 0) and not supports_translation(self.fieldtype):
+			self.translatable = 0
 
 		if not self.flags.ignore_validate:
 			from frappe.core.doctype.doctype.doctype import check_if_fieldname_conflicts_with_methods
@@ -105,6 +109,25 @@ def create_custom_field(doctype, df):
 			"print_hide": df.print_hide,
 			"hidden": df.hidden or 0
 		}).insert()
+
+def create_custom_fields(custom_fields):
+	'''Add / update multiple custom fields
+
+	:param custom_fields: example `{'Sales Invoice': [dict(fieldname='test')]}`'''
+	for doctype, fields in custom_fields.items():
+		if isinstance(fields, dict):
+			# only one field
+			fields = [fields]
+
+		for df in fields:
+			field = frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df["fieldname"]})
+			if not field:
+				create_custom_field(doctype, df)
+			else:
+				custom_field = frappe.get_doc("Custom Field", field)
+				custom_field.update(df)
+				custom_field.save()
+
 
 @frappe.whitelist()
 def add_custom_field(doctype, df):

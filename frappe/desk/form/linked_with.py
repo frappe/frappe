@@ -7,10 +7,11 @@ from frappe.model.meta import is_single
 from frappe.modules import load_doctype_module
 import frappe.desk.form.meta
 import frappe.desk.form.load
+from six import string_types
 
 @frappe.whitelist()
 def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
-	if isinstance(linkinfo, basestring):
+	if isinstance(linkinfo, string_types):
 		# additional fields are added in linkinfo
 		linkinfo = json.loads(linkinfo)
 
@@ -118,7 +119,7 @@ def _get_linked_doctypes(doctype):
 		if not dt in ret:
 			ret[dt] = {"get_parent": True}
 
-	for dt in ret.keys():
+	for dt in list(ret.keys()):
 		try:
 			doctype_module = load_doctype_module(dt)
 		except ImportError:

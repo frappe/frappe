@@ -33,7 +33,10 @@ def get_meta(doctype, cached=True):
 				lambda: Meta(doctype))
 		return frappe.local.meta_cache[doctype]
 	else:
-		return Meta(doctype)
+		return load_meta(doctype)
+
+def load_meta(doctype):
+	return Meta(doctype)
 
 def get_table_columns(doctype):
 	return frappe.cache().hget("table_columns", doctype,
@@ -89,6 +92,15 @@ class Meta(Document):
 	def get_select_fields(self):
 		return self.get("fields", {"fieldtype": "Select", "options":["not in",
 			["[Select]", "Loading..."]]})
+
+	def get_image_fields(self):
+		return self.get("fields", {"fieldtype": "Attach Image"})
+
+	def get_set_only_once_fields(self):
+		'''Return fields with `set_only_once` set'''
+		if not hasattr(self, "_set_only_once_fields"):
+			self._set_only_once_fields = self.get("fields", {"set_only_once": 1})
+		return self._set_only_once_fields
 
 	def get_table_fields(self):
 		if not hasattr(self, "_table_fields"):
@@ -212,10 +224,19 @@ class Meta(Document):
 		title_field = getattr(self, 'title_field', None)
 		if not title_field and self.has_field('title'):
 			title_field = 'title'
-		else:
+		if not title_field:
 			title_field = 'name'
 
 		return title_field
+
+	def get_translatable_fields(self):
+		'''Return all fields that are translation enabled'''
+		return [d.fieldname for d in self.fields if d.translatable]
+
+	def is_translatable(self, fieldname):
+		'''Return true of false given a field'''
+		field = self.get_field(fieldname)
+		return field and field.translatable
 
 	def process(self):
 		# don't process for special doctypes
@@ -477,7 +498,7 @@ def trim_tables(doctype=None):
 	if doctype:
 		filters["name"] = doctype
 
-	for doctype in frappe.db.get_all("DocType", filters={"issingle": 0}):
+	for doctype in frappe.db.get_all("DocType", filters=filters):
 		doctype = doctype.name
 		columns = frappe.db.get_table_columns(doctype)
 		fields = frappe.get_meta(doctype).get_fieldnames_with_value()

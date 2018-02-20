@@ -7,11 +7,12 @@ import datetime
 from frappe.utils import formatdate, fmt_money, flt, cstr, cint, format_datetime, format_time
 from frappe.model.meta import get_field_currency, get_field_precision
 import re
+from six import string_types
 
 def format_value(value, df=None, doc=None, currency=None, translated=False):
 	'''Format value based on given fieldtype, document reference, currency reference.
 	If docfield info (df) is not given, it will try and guess based on the datatype of the value'''
-	if isinstance(df, basestring):
+	if isinstance(df, string_types):
 		df = frappe._dict(fieldtype=df)
 
 	if not df:

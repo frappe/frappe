@@ -192,7 +192,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 	get_results: function() {
 		let me = this;
 
-		let filters = this.get_query().filters;
+		let filters = this.get_query ? this.get_query().filters : {};
 		Object.keys(this.setters).forEach(function(setter) {
 			filters[setter] = me.dialog.fields_dict[setter].get_value() || undefined;
 			me.args[setter] = filters[setter];
@@ -200,7 +200,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 
 		let date_val = this.dialog.fields_dict["date_range"].get_value();
 		if(date_val) {
-			filters[this.date_field] = ['Between', me.dialog.fields_dict["date_range"].parse(date_val)];
+			filters[this.date_field] = ['between', date_val];
 		}
 
 		let args = {
@@ -209,7 +209,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			filters: filters,
 			filter_fields: Object.keys(me.setters).concat([me.date_field]),
 			page_length: this.page_length + 1,
-			query: this.get_query().query,
+			query: this.get_query ? this.get_query().query : '',
 			as_dict: 1
 		}
 		frappe.call({

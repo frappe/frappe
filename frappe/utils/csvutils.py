@@ -5,7 +5,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe import msgprint, _
 import json
-import csv, cStringIO
+import csv
+from six import StringIO, text_type, string_types
 from frappe.utils import encode, cstr, cint, flt, comma_or
 
 def read_csv_content_from_uploaded_file(ignore_encoding=False):
@@ -37,11 +38,11 @@ def read_csv_content_from_attached_file(doc):
 def read_csv_content(fcontent, ignore_encoding=False):
 	rows = []
 
-	if not isinstance(fcontent, unicode):
+	if not isinstance(fcontent, text_type):
 		decoded = False
 		for encoding in ["utf-8", "windows-1250", "windows-1252"]:
 			try:
-				fcontent = unicode(fcontent, encoding)
+				fcontent = text_type(fcontent, encoding)
 				decoded = True
 				break
 			except UnicodeDecodeError:
@@ -59,7 +60,7 @@ def read_csv_content(fcontent, ignore_encoding=False):
 			r = []
 			for val in row:
 				# decode everything
-				val = unicode(val, "utf-8").strip()
+				val = text_type(val, "utf-8").strip()
 
 				if val=="":
 					# reason: in maraidb strict config, one cannot have blank strings for non string datatypes
@@ -77,7 +78,7 @@ def read_csv_content(fcontent, ignore_encoding=False):
 
 @frappe.whitelist()
 def send_csv_to_client(args):
-	if isinstance(args, basestring):
+	if isinstance(args, string_types):
 		args = json.loads(args)
 
 	args = frappe._dict(args)
@@ -97,7 +98,7 @@ def to_csv(data):
 class UnicodeWriter:
 	def __init__(self, encoding="utf-8"):
 		self.encoding = encoding
-		self.queue = cStringIO.StringIO()
+		self.queue = StringIO()
 		self.writer = csv.writer(self.queue, quoting=csv.QUOTE_NONNUMERIC)
 
 	def writerow(self, row):

@@ -55,7 +55,8 @@ For razorpay payment status is Authorized
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-import urllib, json
+import json
+from six.moves.urllib.parse import urlencode
 from frappe.model.document import Document
 from frappe.utils import get_url, call_hook_method, cint
 from frappe.integrations.utils import make_get_request, make_post_request, create_request_log, create_payment_gateway
@@ -82,13 +83,15 @@ class RazorpaySettings(Document):
 			frappe.throw(_("Please select another payment method. Razorpay does not support transactions in currency '{0}'").format(currency))
 
 	def get_payment_url(self, **kwargs):
-		return get_url("./integrations/razorpay_checkout?{0}".format(urllib.urlencode(kwargs)))
+		integration_request = create_request_log(kwargs, "Host", "Razorpay")
+		return get_url("./integrations/razorpay_checkout?token={0}".format(integration_request.name))
 
 	def create_request(self, data):
 		self.data = frappe._dict(data)
 
 		try:
-			self.integration_request = create_request_log(self.data, "Host", "Razorpay")
+			self.integration_request = frappe.get_doc("Integration Request", self.data.token)
+			self.integration_request.update_status(self.data, 'Queued')
 			return self.authorize_payment()
 
 		except Exception:
@@ -105,10 +108,7 @@ class RazorpaySettings(Document):
 		until it is explicitly captured by merchant.
 		"""
 		data = json.loads(self.integration_request.data)
-
 		settings = self.get_settings(data)
-		redirect_to = data.get('notes', {}).get('redirect_to') or None
-		redirect_message = data.get('notes', {}).get('redirect_message') or None
 
 		try:
 			resp = make_get_request("https://api.razorpay.com/v1/payments/{0}"
@@ -116,7 +116,7 @@ class RazorpaySettings(Document):
 					settings.api_secret))
 
 			if resp.get("status") == "authorized":
-				self.integration_request.db_set('status', 'Authorized', update_modified=False)
+				self.integration_request.update_status(data, 'Authorized')
 				self.flags.status_changed_to = "Authorized"
 
 			else:
@@ -128,6 +128,9 @@ class RazorpaySettings(Document):
 			pass
 
 		status = frappe.flags.integration_request.status_code
+
+		redirect_to = data.get('notes', {}).get('redirect_to') or None
+		redirect_message = data.get('notes', {}).get('redirect_message') or None
 
 		if self.flags.status_changed_to == "Authorized":
 			if self.data.reference_doctype and self.data.reference_docname:
@@ -146,9 +149,9 @@ class RazorpaySettings(Document):
 			redirect_url = 'payment-failed'
 
 		if redirect_to:
-			redirect_url += '?' + urllib.urlencode({'redirect_to': redirect_to})
+			redirect_url += '?' + urlencode({'redirect_to': redirect_to})
 		if redirect_message:
-			redirect_url += '&' + urllib.urlencode({'redirect_message': redirect_message})
+			redirect_url += '&' + urlencode({'redirect_message': redirect_message})
 
 		return {
 			"redirect_to": redirect_url,

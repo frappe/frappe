@@ -66,12 +66,16 @@ def send_feedback_request(reference_doctype, reference_name, trigger="Manual", d
 	feedback_request, url = get_feedback_request_url(reference_doctype,
 		reference_name, details.get("recipients"), trigger)
 
-	feedback_url = frappe.render_template("templates/emails/feedback_request_url.html", { "url": url })
+	feedback_msg = frappe.render_template("templates/emails/feedback_request_url.html", { "url": url })
 
 	# appending feedback url to message body
-	details.update({ "message": "{message}{feedback_url}".format(
+	message = "{message}{feedback_msg}".format(
 		message=details.get("message"),
-		feedback_url=feedback_url)
+		feedback_msg=feedback_msg
+	)
+	details.update({
+		"message": message,
+		"header": [details.get('subject'), 'blue']
 	})
 
 	if details:
@@ -112,7 +116,8 @@ def get_feedback_request_details(reference_doctype, reference_name, trigger="Man
 			frappe.msgprint(_("At least one reply is mandatory before requesting feedback"))
 			return None
 
-	if recipients and frappe.safe_eval(feedback_trigger.condition, None, context):
+	if recipients and (not feedback_trigger.condition or \
+		frappe.safe_eval(feedback_trigger.condition, None, context)):
 		subject = feedback_trigger.subject
 		context.update({ "feedback_trigger": feedback_trigger })
 

@@ -8,6 +8,15 @@
 	{%- elif df.fieldtype in ("Image", "Attach Image", "Attach", "Signature")
 		and (guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/")  -%}
 		{{ render_image(df, doc) }}
+	{%- elif df.fieldtype=="Geolocation" -%}
+		{{ render_geolocation(df, doc) }}
+	{%- elif df.fieldtype=="Currency" -%}
+		{%- if doc.print_templates and
+				doc.print_templates.get(df.fieldname) -%}
+			{% include doc.print_templates[df.fieldname] %}
+		{%- else -%}
+			{{ render_field_with_label(df, doc) }}
+		{%- endif -%}
 	{%- else -%}
 		{{ render_field_with_label(df, doc) }}
 	{%- endif -%}
@@ -62,7 +71,8 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {%- macro render_field_with_label(df, doc) -%}
 		<div class="row {% if df.bold %}important{% endif %} data-field" {{ fieldmeta(df) }}>
 			<div class="col-xs-{{ "9" if df.fieldtype=="Check" else "5" }}
-				{%- if not doc._align_labels_left %} text-right{%- endif -%}">
+				{%- if doc._align_labels_right %} text-right{%- endif -%}">
+
 				{% if df.fieldtype not in ("Image","HTML","Check") and
 					doc.get(df.fieldname) != None %}
 				<label>{{ _(df.label) }}</label>
@@ -75,7 +85,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 			<div class="col-xs-{{ "3" if df.fieldtype=="Check" else "7" }}
 			{{ get_align_class(df) }} value">
 				{% if doc.get(df.fieldname) != None -%}
-					{{ print_value(df, doc) }}{% endif %}
+					{{ _(print_value(df, doc)) }}{% endif %}
 			</div>
 		</div>
 {%- endmacro -%}
@@ -87,7 +97,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 	{%- if df.fieldtype=="Code" %}
 		<pre class="value">{{ doc.get(df.fieldname) }}</pre>
 	{% else -%}
-		{{ doc.get_formatted(df.fieldname, parent_doc or doc) }}
+		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable) }}
 	{% endif -%}
 </div>
 {%- endif -%}
@@ -96,6 +106,10 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {%- macro render_image(df, doc) -%}
 	{{ print_value(df, doc) }}
 {% endmacro %}
+
+{%- macro render_geolocation(df, doc) -%}
+	{{ "" }}
+{%- endmacro -%}
 
 {%- macro print_value(df, doc, parent_doc=None, visible_columns=None) -%}
     {% if doc.print_templates and
@@ -108,15 +122,16 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 			class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype=="Signature" %}
-		<img src="{{ doc[df.fieldname] }}" class="signature-img img-responsive">
+		<img src="{{ doc[df.fieldname] }}" class="signature-img img-responsive"
+			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
 	{% elif df.fieldtype in ("Attach", "Attach Image") and doc[df.fieldname]
-		and (guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/") %}
+		and frappe.utils.is_image(doc[df.fieldname]) %}
 		<img src="{{ doc[df.fieldname] }}" class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
     {% elif df.fieldtype=="HTML" %}
         {{ frappe.render_template(df.options, {"doc":doc}) }}
 	{% else %}
-		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=True) }}
+		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable) }}
 	{% endif %}
 {%- endmacro %}
 
@@ -128,7 +143,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 
 {% macro get_align_class(df) %}
 	{%- if df.align -%}{{ "text-" + df.align }}
-	{%- elif df.fieldtype in ("Int", "Float", "Currency", "Check") -%}{{ "text-right" }}
+	{%- elif df.fieldtype in ("Int", "Float", "Currency", "Check", "Percent") -%}{{ "text-right" }}
 	{%- else -%}{{ "" }}
 	{%- endif -%}
 {% endmacro %}

@@ -8,3 +8,5 @@ Desk
 Integrations
 Printing
 Contacts
+Data Migration
+Chat

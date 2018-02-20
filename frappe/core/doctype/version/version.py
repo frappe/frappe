@@ -69,10 +69,13 @@ def get_diff(old, new, for_child=False):
 				if not d.name in new_row_by_name:
 					out.removed.append([df.fieldname, d.as_dict()])
 
-		elif (old_value != new_value
-			and old.get_formatted(df.fieldname) != new.get_formatted(df.fieldname)):
-			out.changed.append((df.fieldname, old.get_formatted(df.fieldname),
-				new.get_formatted(df.fieldname)))
+		elif (old_value != new_value):
+			# Check for None values
+			old_data = old.get_formatted(df.fieldname) if old_value else old_value
+			new_data = new.get_formatted(df.fieldname) if new_value else new_value
+
+			if old_data != new_data:
+				out.changed.append((df.fieldname, old_data, new_data))
 
 	# docstatus
 	if not for_child and old.docstatus != new.docstatus:

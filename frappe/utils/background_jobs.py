@@ -1,12 +1,17 @@
 from __future__ import unicode_literals, print_function
 import redis
 from rq import Connection, Queue, Worker
+from rq.logutils import setup_loghandlers
 from frappe.utils import cstr
 from collections import defaultdict
 import frappe
-import MySQLdb
 import os, socket, time
 from frappe import _
+from six import string_types
+
+# imports - third-party imports
+import pymysql
+from pymysql.constants import ER
 
 default_timeout = 300
 queue_timeout = {
@@ -16,7 +21,7 @@ queue_timeout = {
 }
 
 def enqueue(method, queue='default', timeout=300, event=None,
-	async=True, job_name=None, now=False, **kwargs):
+	async=True, job_name=None, now=False, enqueue_after_commit=False, **kwargs):
 	'''
 		Enqueue method to be executed using a background worker
 
@@ -35,17 +40,38 @@ def enqueue(method, queue='default', timeout=300, event=None,
 	q = get_queue(queue, async=async)
 	if not timeout:
 		timeout = queue_timeout.get(queue) or 300
+	queue_args = {
+		"site": frappe.local.site,
+		"user": frappe.session.user,
+		"method": method,
+		"event": event,
+		"job_name": job_name or cstr(method),
+		"async": async,
+		"kwargs": kwargs
+	}
+	if enqueue_after_commit:
+		if not frappe.flags.enqueue_after_commit:
+			frappe.flags.enqueue_after_commit = []
 
-	return q.enqueue_call(execute_job, timeout=timeout,
-		kwargs={
-			"site": frappe.local.site,
-			"user": frappe.session.user,
-			"method": method,
-			"event": event,
-			"job_name": job_name or cstr(method),
+		frappe.flags.enqueue_after_commit.append({
+			"queue": queue,
 			"async": async,
-			"kwargs": kwargs
+			"timeout": timeout,
+			"queue_args":queue_args
 		})
+		return frappe.flags.enqueue_after_commit
+	else:
+		return q.enqueue_call(execute_job, timeout=timeout,
+			kwargs=queue_args)
+
+def enqueue_doc(doctype, name=None, method=None, queue='default', timeout=300,
+	now=False, **kwargs):
+	'''Enqueue a method to be run on a document'''
+	enqueue('frappe.utils.background_jobs.run_doc_method', doctype=doctype, name=name,
+		doc_method=method, queue=queue, timeout=timeout, now=now, **kwargs)
+
+def run_doc_method(doctype, name, doc_method, **kwargs):
+	getattr(frappe.get_doc(doctype, name), doc_method)(**kwargs)
 
 def execute_job(site, method, event, job_name, kwargs, user=None, async=True, retry=0):
 	'''Executes job in a worker, performs commit/rollback and logs if there is any error'''
@@ -53,10 +79,13 @@ def execute_job(site, method, event, job_name, kwargs, user=None, async=True, re
 
 	if async:
 		frappe.connect(site)
+		if os.environ.get('CI'):
+			frappe.flags.in_test = True
+
 		if user:
 			frappe.set_user(user)
 
-	if isinstance(method, basestring):
+	if isinstance(method, string_types):
 		method_name = method
 		method = frappe.get_attr(method)
 	else:
@@ -65,11 +94,11 @@ def execute_job(site, method, event, job_name, kwargs, user=None, async=True, re
 	try:
 		method(**kwargs)
 
-	except (MySQLdb.OperationalError, frappe.RetryBackgroundJobError) as e:
+	except (pymysql.InternalError, frappe.RetryBackgroundJobError) as e:
 		frappe.db.rollback()
 
 		if (retry < 5 and
-			(isinstance(e, frappe.RetryBackgroundJobError) or e.args[0] in (1213, 1205))):
+			(isinstance(e, frappe.RetryBackgroundJobError) or e.args[0] in (ER.LOCK_DEADLOCK, ER.LOCK_WAIT_TIMEOUT))):
 			# retry the job if
 			# 1213 = deadlock
 			# 1205 = lock wait timeout
@@ -96,15 +125,21 @@ def execute_job(site, method, event, job_name, kwargs, user=None, async=True, re
 		if async:
 			frappe.destroy()
 
-def start_worker(queue=None):
+def start_worker(queue=None, quiet = False):
 	'''Wrapper to start rq worker. Connects to redis and monitors these queues.'''
 	with frappe.init_site():
 		# empty init is required to get redis_queue from common_site_config.json
 		redis_connection = get_redis_conn()
 
+	if os.environ.get('CI'):
+		setup_loghandlers('ERROR')
+
 	with Connection(redis_connection):
 		queues = get_queue_list(queue)
-		Worker(queues, name=get_worker_name(queue)).work()
+		logging_level = "INFO"
+		if quiet:
+			logging_level = "WARNING"
+		Worker(queues, name=get_worker_name(queue)).work(logging_level = logging_level)
 
 def get_worker_name(queue):
 	'''When limiting worker to a specific queue, also append queue name to default worker name'''
@@ -144,7 +179,7 @@ def get_queue_list(queue_list=None):
 	'''Defines possible queues. Also wraps a given queue in a list after validating.'''
 	default_queue_list = queue_timeout.keys()
 	if queue_list:
-		if isinstance(queue_list, basestring):
+		if isinstance(queue_list, string_types):
 			queue_list = [queue_list]
 
 		for queue in queue_list:

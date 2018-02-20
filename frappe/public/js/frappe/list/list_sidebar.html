@@ -10,7 +10,7 @@
 			    {{ __("Reports") }} <span class="caret"></span>
 			  </a>
 				<ul class="dropdown-menu reports-dropdown" style="max-height: 300px; overflow-y: auto;">
-					<li><a href="#Report/{{ doctype }}">{{ __("Report Builder") }}</a></li>
+					<li><a href="#List/{{ doctype }}/Report">{{ __("Report Builder") }}</a></li>
 				</ul>
 			</div>
 		</li>
@@ -51,6 +51,15 @@
 	{% if(frappe.help.has_help(doctype)) { %}
 	<li><a class="help-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>
 	{% } %}
+</ul>
+<ul class="list-unstyled sidebar-menu charts-menu hide">
+	<li class="h6">{%= __("Charts") %}</li>
+	<li class="list-link">
+		<a class="toggle-charts">{%= __("Toggle Charts") %}</a>
+	</li>
+	<li class="list-link">
+		<a class="configure-charts hidden">{%= __("Configure Charts") %}</a>
+	</li>
 </ul>
 <ul class="list-unstyled close-sidebar-button visible-xs visible-sm">
 	<li class="divider"></li>

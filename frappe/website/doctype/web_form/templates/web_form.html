@@ -98,9 +98,9 @@
 	{% if field.hidden %}
 	<input type="hidden" data-doctype="{{ field.parent }}"
 		name="{{ field.fieldname }}" value="{{ value(field, _doc) }}">
-	{% elif field.fieldtype == "HTML" and field.options %}
-	<div class="form-group">
-		{{ field.options }}
+	{% elif field.fieldtype == "HTML" %}
+	<div class="form-group" data-label="{{ field.label }}">
+		{% if field.options %}{{ field.options }}{% endif %}
 	</div>
 	{% elif field.fieldtype in ("Data", "Date", "Datetime", "Int", "Float") %}
 	<div class="form-group{% if field.reqd %} has-error{% endif %}">
@@ -238,7 +238,7 @@
 <div class="text-center slide-progress text-extra-muted">
 	{% for page in layout %}
 	<i data-idx="{{ loop.index }}" data-toggle="tooltip" data-placement="top"
-		title="{{ page.label or _("Page {0}").format(loop.index) }}" class="fa-fw
+		title="{{ _(page.label) or _("Page {0}").format(loop.index) }}" class="fa-fw
 		{% if loop.index==1 %}fa fa-circle{% else %}fa fa-circle-o{% endif %}"></i>
 	{% endfor %}
 </div>
@@ -263,10 +263,10 @@
 		data-idx="{{ loop.index }}"
 		data-label="{{ page.label or _("Page {0}").format(loop.index) }}">
 		{% if page.label %}
-			<h2 class='text-center'>{{ page.label }}</h2>
+			<h2 class='text-center'>{{ _(page.label) }}</h2>
 		{% endif %}
 		{% if page.description %}
-			<p class='text-center text-muted small'>{{ page.description }}</p>
+			<p class='text-center text-muted small'>{{ _(page.description) }}</p>
 			<br>
 		{% endif %}
 
@@ -369,7 +369,7 @@ window.web_form_settings = {
 <script type="text/javascript" src="/assets/js/web_form.min.js"></script>
 <script>
 {% if script is defined %}
-{{ script.decode('utf-8') }}
+{{ script }}
 {% endif %}
 </script>
 {% endblock %}

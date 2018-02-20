@@ -11,6 +11,12 @@
   padding: 10px 0px;
   border-bottom: 1px solid #d1d8dd;
 }
+.print-toolbar > div {
+  padding-right: 0px;
+}
+.print-toolbar > div:last-child {
+  padding-right: 15px;
+}
 .form-inner-toolbar {
   padding: 10px 15px 0px;
   background-color: #fafbfc;
@@ -91,6 +97,10 @@
 }
 .form-dashboard-section:last-child {
   border-bottom: none;
+}
+.form-heatmap .heatmap {
+  display: flex;
+  justify-content: center;
 }
 .form-heatmap .heatmap-message {
   margin-top: 10px;
@@ -287,6 +297,8 @@ h6.uppercase,
   border-radius: 3px;
   margin-left: -7px;
   position: relative;
+  max-width: calc(100% - 50px);
+  padding-right: 0px;
   overflow: visible;
 }
 .timeline-item.user-content .avatar-medium {
@@ -294,12 +306,38 @@ h6.uppercase,
   height: 45px;
   width: 45px;
 }
+.timeline-item.user-content .action-btns {
+  position: absolute;
+  right: 0;
+  padding: 8px 15px 0 5px;
+}
+.timeline-item.user-content .action-btns .edit-btn-container {
+  margin-right: 13px;
+}
 .timeline-item.user-content .comment-header {
   background-color: #fafbfc;
-  padding: 10px 15px 10px 13px;
+  padding: 10px 15px 8px 13px;
   margin: 0px;
   color: #8D99A6;
   border-bottom: 1px solid #EBEFF2;
+}
+.timeline-item.user-content .comment-header.links-active {
+  padding-right: 77px;
+}
+.timeline-item.user-content .comment-header .asset-details {
+  display: inline-block;
+  width: 100%;
+}
+.timeline-item.user-content .comment-header .asset-details .btn-link {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+.timeline-item.user-content .comment-header .asset-details .btn-link:hover {
+  text-decoration: none;
+}
+.timeline-item.user-content .comment-header .commented-on-small {
+  display: none;
 }
 .timeline-item.user-content .comment-header .octicon-heart {
   color: #ff5858;
@@ -307,6 +345,7 @@ h6.uppercase,
 }
 .timeline-item.user-content .reply {
   padding: 15px;
+  overflow: auto;
 }
 .timeline-item.user-content .reply > div > p:first-child {
   margin-top: 0px;
@@ -317,11 +356,14 @@ h6.uppercase,
 .timeline-item.user-content .reply hr {
   margin: 10px 0px;
 }
-.timeline-item.user-content .close-btn-container {
-  padding: 4px 10px 2px 5px;
+.timeline-item.user-content .close-btn-container .close {
+  color: inherit;
+  opacity: 1;
+  padding: 0;
+  font-size: 18px;
 }
 .timeline-item.user-content .edit-btn-container {
-  padding: 4px 5px;
+  padding: 0;
 }
 .timeline-item.user-content .edit-btn-container .edit {
   color: inherit;
@@ -393,7 +435,8 @@ h6.uppercase,
   top: 5px;
 }
 .timeline-item .reply-link {
-  padding-left: 7px;
+  margin-left: 15px;
+  font-size: 12px;
 }
 .timeline-head {
   background-color: white;
@@ -445,17 +488,16 @@ h6.uppercase,
   right: 12px;
 }
 .signature-reset {
+  z-index: 10;
   height: 30px;
   width: 30px;
   padding: 4px 0px;
 }
 .signature-img {
-  border: 1px solid #d1d8dd;
   background: #fff;
   border-radius: 3px;
   margin-top: 5px;
-  width: 100%;
-  max-height: 300px;
+  max-height: 150px;
 }
 .timeline-new-email {
   margin: 30px 0px;
@@ -515,6 +557,14 @@ h6.uppercase,
   padding: 0px;
   margin: 0px;
 }
+.flex-justify-center {
+  display: flex;
+  justify-content: center;
+}
+.flex-justify-end {
+  display: flex;
+  justify-content: flex-end;
+}
 .hide-control {
   display: none !important;
 }
@@ -547,12 +597,23 @@ select.form-control {
 .password-strength-message {
   margin-top: -10px;
 }
+.control-code,
+.control-code.bold {
+  height: 400px;
+  font-family: Monaco, "Courier New", monospace;
+  color: #36414C;
+  font-size: 12px;
+  line-height: 1.7em;
+}
 .delivery-status-indicator {
   display: inline-block;
   margin-top: -3px;
   margin-left: 1px;
   font-weight: 500;
   color: #8D99A6;
+}
+.attach-btn {
+  margin-top: 10px;
 }
 @media (min-width: 768px) {
   .layout-main .form-column.col-sm-12 > form > .input-max-width {
@@ -642,6 +703,27 @@ select.form-control {
     box-shadow: none;
   }
 }
+/* goals */
+.goals-page-container {
+  background-color: #fafbfc;
+  padding-top: 1px;
+}
+.goals-page-container .goal-container {
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border-radius: 2px;
+  padding: 10px;
+  margin: 10px;
+}
 body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
   height: 80px !important;
+}
+.frappe-control[data-fieldtype="Attach"] .attached-file {
+  position: relative;
+  margin-top: 5px;
+}
+.frappe-control[data-fieldtype="Attach"] .attached-file .close {
+  position: absolute;
+  top: 0;
+  right: 0;
 }

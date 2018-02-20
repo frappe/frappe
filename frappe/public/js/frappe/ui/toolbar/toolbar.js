@@ -6,25 +6,104 @@ frappe.provide('frappe.search');
 
 frappe.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
-		var header = $('header').append(frappe.render_template("navbar", {
+		$('header').append(frappe.render_template("navbar", {
 			avatar: frappe.avatar(frappe.session.user)
 		}));
+		$('.dropdown-toggle').dropdown();
 
-		this.setup_sidebar();
-
-		var awesome_bar = new frappe.search.AwesomeBar();
+		let awesome_bar = new frappe.search.AwesomeBar();
 		awesome_bar.setup("#navbar-search");
 		awesome_bar.setup("#modal-search");
 
+		this.make();
+	},
+
+	make: function() {
+		this.setup_sidebar();
 		this.setup_help();
 
+		// frappe.chat (added to toolbar as per rushabh@frappe.io request)
+		this.setup_frappe_chat();
+		// end frappe.chat
+
+		this.setup_modules_dialog();
+		this.setup_progress_dialog();
+		this.bind_events();
+
+		$(document).trigger('toolbar_setup');
+	},
+
+
+	setup_modules_dialog() {
+		this.modules_select = new frappe.ui.toolbar.ModulesSelect();
+		$('.navbar-set-desktop-icons').on('click', () => {
+			this.modules_select.show();
+		});
+  },
+
+	setup_frappe_chat ( ) {
+		frappe.log = frappe.Logger.get('frappe.chat');
+
+		frappe.log.info('Setting up frappe.chat');
+		frappe.log.warn('TODO: Handle realtime System Settings update.');
+		frappe.log.warn('TODO: frappe.chat.<object> requires a storage.');
+		
+		// Create/Get Chat Profile for session User, retrieve enable_chat
+		frappe.log.info('Creating a Chat Profile.');
+		frappe.chat.profile.create('enable_chat').then(({ enable_chat }) => {
+            frappe.log.info(`Chat Profile created for User ${frappe.session.user}.`)
+			const should_render = frappe.sys_defaults.enable_chat && enable_chat;
+			this.render_frappe_chat(should_render);
+		});
+
+		// Triggered when a User updates his/her Chat Profile.
+		// Don't worry, enable_chat is broadcasted to this user only. No overhead. :)
+		frappe.chat.profile.on.update((user, profile) => {
+			if ( user === frappe.session.user && 'enable_chat' in profile ) {
+				frappe.log.warn(`Chat Profile update (Enable Chat - ${Boolean(profile.enable_chat)})`);
+				const should_render = frappe.sys_defaults.enable_chat && profile.enable_chat;
+				this.render_frappe_chat(should_render);
+			}
+		});
+	},
+
+	render_frappe_chat (render = true, force = false) {
+		frappe.log.info(`${render ? "Enable" : "Disable"} Chat for User.`);
+
+		// With the assumption, that there's only one navbar.
+		const $placeholder = $('.navbar .frappe-chat-dropdown');
+
+		// Render if frappe-chat-toggle doesn't exist.
+		if ( frappe.utils.is_empty($placeholder.has('.frappe-chat-toggle')) ) {
+			const $template = $(`
+				<a class="dropdown-toggle frappe-chat-toggle" data-toggle="dropdown">
+					<div>
+						<i class="octicon octicon-comment-discussion"/>
+					</div>
+				</a>
+			`);
+
+			$placeholder.addClass('dropdown hidden');
+			$placeholder.html($template);
+		}
+
+		if ( render ) {
+			$placeholder.removeClass('hidden');
+		} else {
+			$placeholder.addClass('hidden');
+		}
+
+		// Avoid re-renders. Once is enough.
+		if ( !frappe.chatter || force ) {
+			frappe.chatter = new frappe.Chat({ target: '.navbar .frappe-chat-toggle' });
+			frappe.chatter.render();
+		}
+	},
+
+	bind_events: function() {
 		$(document).on("notification-update", function() {
 			frappe.ui.notifications.update_notifications();
 		});
-
-		$('.dropdown-toggle').dropdown();
-
-		$(document).trigger('toolbar_setup');
 
 		// clear all custom menus on page change
 		$(document).on("page-change", function() {
@@ -41,7 +120,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 	},
 
 	setup_sidebar: function () {
-
 		var header = $('header');
 		header.find(".toggle-sidebar").on("click", function () {
 			var layout_side_section = $('.layout-side-section');
@@ -186,9 +264,42 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				});
 			}
 		}
+	},
+
+	setup_progress_dialog: function() {
+		var me = this;
+		frappe.call({
+			method: "frappe.desk.user_progress.get_user_progress_slides",
+			callback: function(r) {
+				if(r.message) {
+					let slides = r.message;
+					if(slides.length && slides.map(s => parseInt(s.done)).includes(0)) {
+						frappe.require("assets/frappe/js/frappe/ui/toolbar/user_progress_dialog.js", function() {
+							me.progress_dialog = new frappe.setup.UserProgressDialog({
+								slides: slides
+							});
+							$('.user-progress').removeClass('hide');
+							$('.user-progress .dropdown-toggle').on('click', () => {
+								me.progress_dialog.show();
+							});
+
+							if (frappe.boot.is_first_startup) {
+								me.progress_dialog.show();
+								frappe.call({
+									method: "frappe.desk.page.setup_wizard.setup_wizard.reset_is_first_startup",
+									args: {},
+									callback: () => {}
+								});
+							}
+
+						});
+					}
+				}
+			},
+			freeze: false
+		});
 	}
 });
-
 
 $.extend(frappe.ui.toolbar, {
 	add_dropdown_button: function(parent, label, click, icon) {
@@ -239,7 +350,8 @@ frappe.ui.toolbar.download_backup = function() {
 frappe.ui.toolbar.show_about = function() {
 	try {
 		frappe.ui.misc.about();
-	} catch(e) {
+	}
+	catch(e) {
 		console.log(e);
 	}
 	return false;

@@ -14,7 +14,7 @@ Para iniciar o servidor de desenvolvimento, digite `bench start`
 
 Agora você pode abrir o seu navegador e ir para `http://localhost:8000`. Você deve ver esta página de login, se tudo correu bem:
 
-<img class="screenshot" alt="Login Screen" src="{{docs_base_url}}/assets/img/login.png">
+<img class="screenshot" alt="Login Screen" src="/docs/assets/img/login.png">
 
 Agora logue com :
 
@@ -24,8 +24,8 @@ Senha : **Use a senha que foi criada durante a instalação**
 
 Quando voce logar, voce deverá ver o "Desk" da pagine home
 
-<img class="screenshot" alt="Desk" src="{{docs_base_url}}/assets/img/desk.png">
+<img class="screenshot" alt="Desk" src="/docs/assets/img/desk.png">
 
-Como você pode ver, o básico do sistema Frappe vem com vários aplicativos pré-carregados como coisas a fazer, o Gerenciador de arquivos etc. Esses aplicativos podem ser integrados no fluxo de trabalho do app à medida que progredimos.
+Como você pode ver, o básico do sistema Frappé vem com vários aplicativos pré-carregados como coisas a fazer, o Gerenciador de arquivos etc. Esses aplicativos podem ser integrados no fluxo de trabalho do app à medida que progredimos.
 
 {next}

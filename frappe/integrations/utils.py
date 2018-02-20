@@ -4,7 +4,9 @@
 
 from __future__ import unicode_literals
 import frappe
-import json, urlparse
+import json
+from six.moves.urllib.parse import parse_qs
+from six import string_types
 from frappe.utils import get_request_session
 from frappe import _
 
@@ -33,14 +35,14 @@ def make_post_request(url, auth=None, headers=None, data=None):
 		data = {}
 	if not headers:
 		headers = {}
-		
+
 	try:
 		s = get_request_session()
 		frappe.flags.integration_request = s.post(url, data=data, auth=auth, headers=headers)
 		frappe.flags.integration_request.raise_for_status()
 
 		if frappe.flags.integration_request.headers.get("content-type") == "text/plain; charset=utf-8":
-			return urlparse.parse_qs(frappe.flags.integration_request.text)
+			return parse_qs(frappe.flags.integration_request.text)
 
 		return frappe.flags.integration_request.json()
 	except Exception as exc:
@@ -48,7 +50,7 @@ def make_post_request(url, auth=None, headers=None, data=None):
 		raise exc
 
 def create_request_log(data, integration_type, service_name, name=None):
-	if isinstance(data, basestring):
+	if isinstance(data, string_types):
 		data = json.loads(data)
 
 	integration_request = frappe.get_doc({
@@ -70,10 +72,18 @@ def create_request_log(data, integration_type, service_name, name=None):
 
 def get_payment_gateway_controller(payment_gateway):
 	'''Return payment gateway controller'''
-	try:
-		return frappe.get_doc("{0} Settings".format(payment_gateway))
-	except Exception:
-		frappe.throw(_("{0} Settings not found".format(payment_gateway)))
+	gateway = frappe.get_doc("Payment Gateway", payment_gateway)
+	if gateway.gateway_controller is None:
+		try:
+			return frappe.get_doc("{0} Settings".format(payment_gateway))
+		except Exception:
+			frappe.throw(_("{0} Settings not found".format(payment_gateway)))
+	else:
+		try:
+			return frappe.get_doc(gateway.gateway_settings, gateway.gateway_controller)
+		except Exception:
+			frappe.throw(_("{0} Settings not found".format(payment_gateway)))
+
 
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def get_checkout_url(**kwargs):
@@ -89,11 +99,13 @@ def get_checkout_url(**kwargs):
 			indicator_color='red',
 			http_status_code=frappe.ValidationError.http_status_code)
 
-def create_payment_gateway(gateway):
+def create_payment_gateway(gateway, settings=None, controller=None):
 	# NOTE: we don't translate Payment Gateway name because it is an internal doctype
 	if not frappe.db.exists("Payment Gateway", gateway):
 		payment_gateway = frappe.get_doc({
 			"doctype": "Payment Gateway",
-			"gateway": gateway
+			"gateway": gateway,
+			"gateway_settings": settings,
+			"gateway_controller": controller
 		})
 		payment_gateway.insert(ignore_permissions=True)

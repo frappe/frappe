@@ -11,7 +11,7 @@ frappe.ui.form.Dashboard = Class.extend({
 
 		this.progress_area = this.wrapper.find(".progress-area");
 		this.heatmap_area = this.wrapper.find('.form-heatmap');
-		this.chart_area = this.wrapper.find('.form-chart');
+		this.chart_area = this.wrapper.find('.form-graph');
 		this.stats_area = this.wrapper.find('.form-stats');
 		this.stats_area_row = this.stats_area.find('.row');
 		this.links_area = this.wrapper.find('.form-links');
@@ -43,9 +43,9 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.frm.layout.show_message();
 	},
 
-	add_comment: function(text, permanent) {
+	add_comment: function(text, alert_class, permanent) {
 		var me = this;
-		this.set_headline_alert(text);
+		this.set_headline_alert(text, alert_class);
 		if(!permanent) {
 			setTimeout(function() {
 				me.clear_headline();
@@ -91,6 +91,7 @@ frappe.ui.form.Dashboard = Class.extend({
 
 		this.show();
 	},
+
 	format_percent: function(title, percent) {
 		var width = cint(percent) < 1 ? 1 : cint(percent);
 		var progress_class = "";
@@ -135,6 +136,11 @@ frappe.ui.form.Dashboard = Class.extend({
 
 		if(this.data.heatmap) {
 			this.render_heatmap();
+			show = true;
+		}
+
+		if(this.data.graph) {
+			this.setup_graph();
 			show = true;
 		}
 
@@ -224,10 +230,10 @@ frappe.ui.form.Dashboard = Class.extend({
 			} else {
 				return false;
 			}
-		} else {
+		} else if(this.data.fieldname) {
 			frappe.route_options = this.get_document_filter(doctype);
 			if(show_open) {
-				$.extend(frappe.route_options, frappe.ui.notifications.get_filters(doctype));
+				frappe.ui.notifications.show_open_count_list(doctype);
 			}
 		}
 
@@ -244,7 +250,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		return filter;
 	},
 	set_open_count: function() {
-		if(!this.data.transactions) {
+		if(!this.data.transactions || !this.data.fieldname) {
 			return;
 		}
 
@@ -328,22 +334,14 @@ frappe.ui.form.Dashboard = Class.extend({
 	// heatmap
 	render_heatmap: function() {
 		if(!this.heatmap) {
-			this.heatmap = new CalHeatMap();
-			this.heatmap.init({
-				itemSelector: "#heatmap-" + frappe.model.scrub(this.frm.doctype),
-				domain: "month",
-				subDomain: "day",
-				start: moment().subtract(1, 'year').add(1, 'month').toDate(),
-				cellSize: 9,
-				cellPadding: 2,
-				domainGutter: 2,
-				range: 12,
-				domainLabelFormat: function(date) {
-					return moment(date).format("MMM").toUpperCase();
-				},
-				displayLegend: false,
-				legend: [5, 10, 15, 20]
-				// subDomainTextFormat: "%d",
+			this.heatmap = new Chart({
+				parent: "#heatmap-" + frappe.model.scrub(this.frm.doctype),
+				type: 'heatmap',
+				height: 100,
+				start: new Date(moment().subtract(1, 'year').toDate()),
+				count_label: "interactions",
+				discrete_domains: 0,
+				data: {}
 			});
 
 			// center the heatmap
@@ -382,27 +380,51 @@ frappe.ui.form.Dashboard = Class.extend({
 		return indicator;
 	},
 
-	//graphs
-	setup_chart: function(opts) {
+	// graphs
+	setup_graph: function() {
 		var me = this;
+		var method = this.data.graph_method;
+		var args = {
+			doctype: this.frm.doctype,
+			docname: this.frm.doc.name,
+		};
+		$.extend(args, this.data.graph_method_args);
 
-		this.chart_area.removeClass('hidden');
+		frappe.call({
+			type: "GET",
+			method: method,
+			args: args,
 
-		$.extend(opts, {
-			wrapper: me.wrapper.find('.form-chart'),
-			padding: {
-				right: 30,
-				bottom: 30
+			callback: function(r) {
+				if(r.message) {
+					me.render_graph(r.message);
+				}
 			}
 		});
+	},
 
-		this.chart = new frappe.ui.Chart(opts);
-		if(this.chart) {
-			this.show();
-			this.chart.set_chart_size(me.wrapper.width() - 60);
+	render_graph: function(args) {
+		var me = this;
+		this.chart_area.empty().removeClass('hidden');
+		$.extend(args, {
+			parent: '.form-graph',
+			type: 'line',
+			height: 140,
+			colors: ['green']
+		});
+		this.show();
+
+		this.chart = new Chart(args);
+		if(!this.chart) {
+			this.hide();
 		}
 	},
+
 	show: function() {
 		this.section.removeClass('hidden');
+	},
+
+	hide: function() {
+		this.section.addClass('hidden');
 	}
 });

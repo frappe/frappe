@@ -44,7 +44,7 @@ def update_link_count():
 				try:
 					frappe.db.sql('update `tab{0}` set idx = idx + {1} where name=%s'.format(key[0], count),
 						key[1], auto_commit=1)
-				except Exception, e:
+				except Exception as e:
 					if e.args[0]!=1146: # table not found, single
 						raise e
 	# reset the count

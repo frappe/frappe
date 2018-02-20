@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 no_sitemap = 1
 no_cache = 1
@@ -11,6 +11,7 @@ import os, re
 import frappe
 from frappe import _
 import frappe.sessions
+from six import text_type
 
 def get_context(context):
 	if (frappe.session.user == "Guest" or
@@ -22,7 +23,7 @@ def get_context(context):
 		boot = frappe.sessions.get()
 	except Exception as e:
 		boot = frappe._dict(status='failed', error = str(e))
-		print frappe.get_traceback()
+		print(frappe.get_traceback())
 
 	# this needs commit
 	csrf_token = frappe.sessions.get_csrf_token()
@@ -34,7 +35,8 @@ def get_context(context):
 	# remove script tags from boot
 	boot_json = re.sub("\<script\>[^<]*\</script\>", "", boot_json)
 
-	return {
+	context.update({
+		"no_cache": 1,
 		"build_version": get_build_version(),
 		"include_js": hooks["app_include_js"],
 		"include_css": hooks["app_include_css"],
@@ -45,7 +47,9 @@ def get_context(context):
 			(boot.user.background_image or boot.default_background_image) or None),
 		"google_analytics_id": frappe.conf.get("google_analytics_id"),
 		"mixpanel_id": frappe.conf.get("mixpanel_id")
-	}
+	})
+
+	return context
 
 @frappe.whitelist()
 def get_desk_assets(build_version):
@@ -62,13 +66,13 @@ def get_desk_assets(build_version):
 				path = path.replace('/assets/', 'assets/')
 			try:
 				with open(os.path.join(frappe.local.sites_path, path) ,"r") as f:
-					assets[0]["data"] = assets[0]["data"] + "\n" + unicode(f.read(), "utf-8")
-			except IOError as e:
+					assets[0]["data"] = assets[0]["data"] + "\n" + text_type(f.read(), "utf-8")
+			except IOError:
 				pass
 
 		for path in data["include_css"]:
 			with open(os.path.join(frappe.local.sites_path, path) ,"r") as f:
-				assets[1]["data"] = assets[1]["data"] + "\n" + unicode(f.read(), "utf-8")
+				assets[1]["data"] = assets[1]["data"] + "\n" + text_type(f.read(), "utf-8")
 
 	return {
 		"build_version": data["build_version"],
@@ -77,5 +81,4 @@ def get_desk_assets(build_version):
 	}
 
 def get_build_version():
-	return str(os.path.getmtime(os.path.join(frappe.local.sites_path, "assets", "js",
-			"desk.min.js")))
+	return str(os.path.getmtime(os.path.join(frappe.local.sites_path, '.build')))

@@ -69,15 +69,15 @@ def add_subscribers(name, email_list):
 	count = 0
 	for email in email_list:
 		email = email.strip()
-		valid = validate_email_add(email, False)
+		parsed_email = validate_email_add(email, False)
 
-		if valid:
+		if parsed_email:
 			if not frappe.db.get_value("Email Group Member",
-				{"email_group": name, "email": email}):
+				{"email_group": name, "email": parsed_email}):
 				frappe.get_doc({
 					"doctype": "Email Group Member",
 					"email_group": name,
-					"email": email
+					"email": parsed_email
 				}).insert(ignore_permissions = frappe.flags.ignore_permissions)
 
 				count += 1

@@ -13,7 +13,9 @@ from jinja2 import TemplateSyntaxError
 from frappe.utils.user import is_website_user
 from frappe.model.naming import make_autoname
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
-from six import iteritems
+from six import iteritems, string_types
+
+import functools
 
 
 class Address(Document):
@@ -75,6 +77,7 @@ class Address(Document):
 
 		return False
 
+@frappe.whitelist()
 def get_default_address(doctype, name, sort_key='is_primary_address'):
 	'''Returns default Address name for the given doctype, name'''
 	out = frappe.db.sql('''select
@@ -89,7 +92,7 @@ def get_default_address(doctype, name, sort_key='is_primary_address'):
 		'''.format(sort_key), (doctype, name))
 
 	if out:
-		return sorted(out, lambda x,y: cmp(y[1], x[1]))[0][0]
+		return sorted(out, key = functools.cmp_to_key(lambda x,y: cmp(y[1], x[1])))[0][0]
 	else:
 		return None
 
@@ -115,7 +118,7 @@ def get_territory_from_address(address):
 	if not address:
 		return
 
-	if isinstance(address, basestring):
+	if isinstance(address, string_types):
 		address = frappe.get_doc("Address", address)
 
 	territory = None
@@ -135,15 +138,34 @@ def get_list_context(context=None):
 	}
 
 def get_address_list(doctype, txt, filters, limit_start, limit_page_length = 20, order_by = None):
-	from frappe.www.list import get_list
-	user = frappe.session.user
-	ignore_permissions = False
-	if is_website_user():
-		if not filters: filters = []
-		filters.append(("Address", "owner", "=", user))
-		ignore_permissions = True
+    from frappe.www.list import get_list
+    user = frappe.session.user
+    ignore_permissions = False
+    if is_website_user():
+        if not filters: filters = []
+        add_name = []
+        contact = frappe.db.sql("""
+			select
+				address.name
+			from
+				`tabDynamic Link` as link
+			join
+				`tabAddress` as address on link.parent = address.name
+			where
+				link.parenttype = 'Address' and
+				link_name in(
+				   select
+					   link.link_name from `tabContact` as contact
+				   join
+					   `tabDynamic Link` as link on contact.name = link.parent
+				   where
+					   contact.user = %s)""",(user))
+        for c in contact:
+            add_name.append(c[0])
+        filters.append(("Address", "name", "in", add_name))
+        ignore_permissions = True
 
-	return get_list(doctype, txt, filters, limit_start, limit_page_length, ignore_permissions=ignore_permissions)
+    return get_list(doctype, txt, filters, limit_start, limit_page_length, ignore_permissions=ignore_permissions)
 
 def has_website_permission(doc, ptype, user, verbose=False):
 	"""Returns true if there is a related lead or contact related to this document"""
@@ -172,25 +194,29 @@ def get_address_templates(address):
 		return result
 
 @frappe.whitelist()
-def get_shipping_address(company):
+def get_shipping_address(company, address = None):
 	filters = [
 		["Dynamic Link", "link_doctype", "=", "Company"],
 		["Dynamic Link", "link_name", "=", company],
 		["Address", "is_your_company_address", "=", 1]
 	]
 	fields = ["name", "address_line1", "address_line2", "city", "state", "country"]
+	if address and frappe.db.get_value('Dynamic Link',
+		{'parent': address, 'link_name': company}):
+		filters.append(["Address", "name", "=", address])
+
 	address = frappe.get_all("Address", filters=filters, fields=fields) or {}
 
 	if address:
 		address_as_dict = address[0]
 		name, address_template = get_address_templates(address_as_dict)
 		return address_as_dict.get("name"), frappe.render_template(address_template, address_as_dict)
-		
+
 def get_company_address(company):
 	ret = frappe._dict()
 	ret.company_address = get_default_address('Company', company)
 	ret.company_address_display = get_address_display(ret.company_address)
-	
+
 	return ret
 
 def address_query(doctype, txt, searchfield, start, page_len, filters):

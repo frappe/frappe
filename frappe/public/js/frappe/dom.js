@@ -10,6 +10,11 @@ frappe.dom = {
 	by_id: function(id) {
 		return document.getElementById(id);
 	},
+	get_unique_id: function() {
+		const id = 'unique-' + frappe.dom.id_count;
+		frappe.dom.id_count++;
+		return id;
+	},
 	set_unique_id: function(ele) {
 		var $ele = $(ele);
 		if($ele.attr('id')) {
@@ -93,6 +98,7 @@ frappe.dom = {
 			se.appendChild(document.createTextNode(txt));
 		}
 		document.getElementsByTagName('head')[0].appendChild(se);
+		return se;
 	},
 	add: function(parent, newtag, className, cs, innerHTML, onclick) {
 		if(parent && parent.substr)parent = frappe.dom.by_id(parent);
@@ -117,6 +123,11 @@ frappe.dom = {
 			$.extend(ele.style, s);
 		}
 		return ele;
+	},
+	activate: function($parent, $child, common_class, active_class='active') {
+		$parent.find(`.${common_class}.${active_class}`)
+			.removeClass(active_class);
+		$child.addClass(active_class);
 	},
 	freeze: function(msg, css_class) {
 		// blur
@@ -219,18 +230,38 @@ frappe.get_modal = function(title, content) {
 	return $(frappe.render_template("modal", {title:title, content:content})).appendTo(document.body);
 };
 
-frappe._in = function(source, target) {
-	// returns true if source is in target and both are not empty / falsy
-	if(!source) return false;
-	if(!target) return false;
-	return (target.indexOf(source) !== -1);
+frappe.is_online = function() {
+	if (frappe.boot.developer_mode == 1) {
+		// always online in developer_mode
+		return true;
+	}
+	if ('onLine' in navigator) {
+		return navigator.onLine;
+	}
+	return true;
 };
+
+// bind online/offline events
+$(window).on('online', function() {
+	frappe.show_alert({
+		indicator: 'green',
+		message: __('You are connected to internet.')
+	});
+});
+
+$(window).on('offline', function() {
+	frappe.show_alert({
+		indicator: 'orange',
+		message: __('Connection lost. Some features might not work.')
+	});
+});
+
 
 // add <option> list to <select>
 (function($) {
 	$.fn.add_options = function(options_list) {
 		// create options
-		for(var i=0; i<options_list.length; i++) {
+		for(var i=0, j=options_list.length; i<j; i++) {
 			var v = options_list[i];
 			if (is_null(v)) {
 				var value = null;

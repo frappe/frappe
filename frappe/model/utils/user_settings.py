@@ -2,7 +2,7 @@
 # such as page_limit, filters, last_view
 
 import frappe, json
-from six import iteritems
+from six import iteritems, string_types
 
 
 def get_user_settings(doctype, for_update=False):
@@ -27,7 +27,7 @@ def update_user_settings(doctype, user_settings, for_update=False):
 	else:
 		current = json.loads(get_user_settings(doctype, for_update = True))
 
-		if isinstance(current, basestring):
+		if isinstance(current, string_types):
 			# corrupt due to old code, remove this in a future release
 			current = {}
 

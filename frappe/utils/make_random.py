@@ -1,5 +1,6 @@
 import frappe, random
 from six.moves import range
+from six import string_types
 
 settings = frappe._dict(
 	prob = {
@@ -15,7 +16,7 @@ def add_random_children(doc, fieldname, rows, randomize, unique=None):
 	for i in range(nrows):
 		d = {}
 		for key, val in randomize.items():
-			if isinstance(val[0], basestring):
+			if isinstance(val[0], string_types):
 				d[key] = get_random(*val)
 			else:
 				d[key] = random.randrange(*val)

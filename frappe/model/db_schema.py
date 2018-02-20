@@ -13,7 +13,10 @@ import os
 import frappe
 from frappe import _
 from frappe.utils import cstr, cint, flt
-import MySQLdb
+
+# imports - third-party imports
+import pymysql
+from pymysql.constants import ER
 
 class InvalidColumnName(frappe.ValidationError): pass
 
@@ -26,24 +29,26 @@ type_map = {
 	,'Float':		('decimal', '18,6')
 	,'Percent':		('decimal', '18,6')
 	,'Check':		('int', '1')
-	,'Small Text':	('text', '')
-	,'Long Text':	('longtext', '')
+	,'Small Text':		('text', '')
+	,'Long Text':		('longtext', '')
 	,'Code':		('longtext', '')
-	,'Text Editor':	('longtext', '')
+	,'Text Editor':		('longtext', '')
 	,'Date':		('date', '')
-	,'Datetime':	('datetime', '6')
+	,'Datetime':		('datetime', '6')
 	,'Time':		('time', '6')
 	,'Text':		('text', '')
 	,'Data':		('varchar', varchar_len)
 	,'Link':		('varchar', varchar_len)
-	,'Dynamic Link':('varchar', varchar_len)
-	,'Password':	('varchar', varchar_len)
+	,'Dynamic Link':	('varchar', varchar_len)
+	,'Password':		('varchar', varchar_len)
 	,'Select':		('varchar', varchar_len)
-	,'Read Only':	('varchar', varchar_len)
+	,'Read Only':		('varchar', varchar_len)
 	,'Attach':		('text', '')
-	,'Attach Image':('text', '')
-	,'Signature':	('longtext', '')
+	,'Attach Image':	('text', '')
+	,'Signature':		('longtext', '')
 	,'Color':		('varchar', varchar_len)
+	,'Barcode':		('longtext', '')
+	,'Geolocation':		('longtext', '')
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',
@@ -119,15 +124,15 @@ class DbTable:
 					max_length = frappe.db.sql("""select max(char_length(`{fieldname}`)) from `tab{doctype}`"""\
 						.format(fieldname=col.fieldname, doctype=self.doctype))
 
-				except MySQLdb.OperationalError as e:
-					if e.args[0]==1054:
+				except pymysql.InternalError as e:
+					if e.args[0] == ER.BAD_FIELD_ERROR:
 						# Unknown column 'column_name' in 'field list'
 						continue
 
 					else:
 						raise
 
-				if max_length and max_length[0][0] > new_length:
+				if max_length and max_length[0][0] and max_length[0][0] > new_length:
 					current_type = self.current_columns[col.fieldname]["type"]
 					current_length = re.findall('varchar\(([\d]+)\)', current_type)
 					if not current_length:
@@ -314,7 +319,7 @@ class DbTable:
 				# if index key exists
 				if frappe.db.sql("""show index from `{0}`
 					where key_name=%s
-					and Non_unique=%s""".format(self.name), (col.fieldname, 0 if col.unique else 1)):
+					and Non_unique=%s""".format(self.name), (col.fieldname, col.unique)):
 					query.append("drop index `{}`".format(col.fieldname))
 
 		for col in self.set_default:
@@ -464,8 +469,8 @@ class DbManager:
 		"""
 		Pass root_conn here for access to all databases.
 		"""
- 		if db:
- 			self.db = db
+		if db:
+			self.db = db
 
 	def get_current_host(self):
 		return self.db.sql("select user()")[0][0].split('@')[1]
@@ -546,8 +551,31 @@ class DbManager:
 	def restore_database(self,target,source,user,password):
 		from frappe.utils import make_esc
 		esc = make_esc('$ ')
-		os.system("mysql -u %s -p%s -h%s %s < %s" % \
-			(esc(user), esc(password), esc(frappe.db.host), esc(target), source))
+		
+		from distutils.spawn import find_executable
+		pipe = find_executable('pv')
+		if pipe:
+			pipe   = '{pipe} {source} |'.format(
+				pipe   = pipe,
+				source = source
+			)
+			source = ''
+		else:
+			pipe   = ''
+			source = '< {source}'.format(source = source)
+
+		if pipe:
+			print('Creating Database...')
+
+		command = '{pipe} mysql -u {user} -p{password} -h{host} {target} {source}'.format(
+			pipe = pipe,
+			user = esc(user),
+			password = esc(password),
+			host     = esc(frappe.db.host),
+			target   = esc(target),
+			source   = source
+		)
+		os.system(command)	
 
 	def drop_table(self,table_name):
 		"""drop table if exists"""

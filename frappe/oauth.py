@@ -1,8 +1,8 @@
 from __future__ import print_function
-import frappe, urllib
+import frappe
+import pytz
 
 from frappe import _
-from urlparse import parse_qs, urlparse
 from oauthlib.oauth2.rfc6749.tokens import BearerToken
 from oauthlib.oauth2.rfc6749.grant_types import AuthorizationCodeGrant, ImplicitGrant, ResourceOwnerPasswordCredentialsGrant, ClientCredentialsGrant,  RefreshTokenGrant, OpenIDConnectAuthCode
 from oauthlib.oauth2 import RequestValidator
@@ -11,6 +11,7 @@ from oauthlib.oauth2.rfc6749.endpoints.token import TokenEndpoint
 from oauthlib.oauth2.rfc6749.endpoints.resource import ResourceEndpoint
 from oauthlib.oauth2.rfc6749.endpoints.revocation import RevocationEndpoint
 from oauthlib.common import Request
+from six.moves.urllib.parse import parse_qs, urlparse, unquote
 
 def get_url_delimiter(separator_character=" "):
 	return separator_character
@@ -133,7 +134,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		oac.scopes = get_url_delimiter().join(request.scopes)
 		oac.redirect_uri_bound_to_authorization_code = request.redirect_uri
 		oac.client = client_id
-		oac.user = urllib.unquote(cookie_dict['user_id'])
+		oac.user = unquote(cookie_dict['user_id'])
 		oac.authorization_code = code['code']
 		oac.save(ignore_permissions=True)
 		frappe.db.commit()
@@ -147,9 +148,9 @@ class OAuthWebRequestValidator(RequestValidator):
 			oc = frappe.get_doc("OAuth Client", request.client_id)
 		else:
 			#Extract token, instantiate OAuth Bearer Token and use clientid from there.
-			if frappe.form_dict.has_key("refresh_token"):
+			if "refresh_token" in frappe.form_dict:
 				oc = frappe.get_doc("OAuth Client", frappe.db.get_value("OAuth Bearer Token", {"refresh_token": frappe.form_dict["refresh_token"]}, 'client'))
-			elif frappe.form_dict.has_key("token"):
+			elif "token" in frappe.form_dict:
 				oc = frappe.get_doc("OAuth Client", frappe.db.get_value("OAuth Bearer Token", frappe.form_dict["token"], 'client'))
 			else:
 				oc = frappe.get_doc("OAuth Client", frappe.db.get_value("OAuth Bearer Token", frappe.get_request_header("Authorization").split(" ")[1], 'client'))
@@ -158,7 +159,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		except Exception as e:
 			print("Failed body authentication: Application %s does not exist".format(cid=request.client_id))
 
-		return frappe.session.user == urllib.unquote(cookie_dict.get('user_id', "Guest"))
+		return frappe.session.user == unquote(cookie_dict.get('user_id', "Guest"))
 
 	def authenticate_client_id(self, client_id, request, *args, **kwargs):
 		cli_id = frappe.db.get_value('OAuth Client', client_id, 'name')
@@ -205,7 +206,10 @@ class OAuthWebRequestValidator(RequestValidator):
 
 		otoken = frappe.new_doc("OAuth Bearer Token")
 		otoken.client = request.client['name']
-		otoken.user = request.user if request.user else frappe.db.get_value("OAuth Bearer Token", {"refresh_token":request.body.get("refresh_token")}, "user")
+		try:
+			otoken.user = request.user if request.user else frappe.db.get_value("OAuth Bearer Token", {"refresh_token":request.body.get("refresh_token")}, "user")
+		except Exception as e:
+			otoken.user = frappe.session.user
 		otoken.scopes = get_url_delimiter().join(request.scopes)
 		otoken.access_token = token['access_token']
 		otoken.refresh_token = token.get('refresh_token')
@@ -227,8 +231,10 @@ class OAuthWebRequestValidator(RequestValidator):
 
 	def validate_bearer_token(self, token, scopes, request):
 		# Remember to check expiration and scope membership
-		otoken = frappe.get_doc("OAuth Bearer Token", token) #{"access_token": str(token)})
-		is_token_valid = (frappe.utils.datetime.datetime.now() < otoken.expiration_time) \
+		otoken = frappe.get_doc("OAuth Bearer Token", token)
+		token_expiration_local = otoken.expiration_time.replace(tzinfo=pytz.timezone(frappe.utils.get_time_zone()))
+		token_expiration_utc = token_expiration_local.astimezone(pytz.utc)
+		is_token_valid = (frappe.utils.datetime.datetime.utcnow().replace(tzinfo=pytz.utc) < token_expiration_utc) \
 			and otoken.status != "Revoked"
 		client_scopes = frappe.db.get_value("OAuth Client", otoken.client, 'scopes').split(get_url_delimiter())
 		are_scopes_valid = True
@@ -381,7 +387,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		    - OpenIDConnectImplicit
 		    - OpenIDConnectHybrid
 		"""
-		if id_token_hint and id_token_hint == frappe.get_value("User", frappe.session.user, "frappe_userid"):
+		if id_token_hint and id_token_hint == frappe.db.get_value("User Social Login", {"parent":frappe.session.user, "provider": "frappe"}, "userid"):
 			return True
 		else:
 			return False

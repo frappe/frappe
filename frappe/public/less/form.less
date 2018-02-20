@@ -14,6 +14,13 @@
 	margin: 0px;
 	padding: 10px 0px;
 	border-bottom: 1px solid @border-color;
+
+	> div {
+		padding-right: 0px;
+	}
+	> div:last-child {
+		padding-right: 15px;
+	}
 }
 
 .form-inner-toolbar {
@@ -128,6 +135,11 @@
 }
 
 .form-heatmap {
+
+	.heatmap {
+		display: flex;
+		justify-content: center;
+	}
 
 	.heatmap-message {
 		margin-top: 10px;
@@ -376,7 +388,8 @@ h6.uppercase, .h6.uppercase {
 		border-radius: 3px;
 		margin-left: -7px;
 		position: relative;
-
+		max-width: calc(~"100% - 50px");
+		padding-right: 0px;
 		// to display the triangle beside the box
 		overflow: visible;
 	}
@@ -387,12 +400,39 @@ h6.uppercase, .h6.uppercase {
 		width: 45px;
 	}
 
+	.action-btns {
+	    position: absolute;
+	    right: 0;
+		padding: 8px 15px 0 5px;
+		.edit-btn-container {
+			margin-right: 13px;
+		}
+	}
+
 	.comment-header {
 		background-color: @light-bg;
-		padding: 10px 15px 10px 13px;
+		padding: 10px 15px 8px 13px;
 		margin: 0px;
 		color: @text-muted;
 		border-bottom: 1px solid @light-border-color;
+		&.links-active {
+			padding-right: 77px;
+		}
+		.asset-details {
+			display: inline-block;
+			width: 100%;
+			.btn-link {
+				border: 0;
+				border-radius: 0;
+				padding: 0;
+				&:hover {
+					text-decoration: none;
+				}
+			}
+		}
+		.commented-on-small {
+			display: none;
+		}
 
 		.octicon-heart {
 			color: @heart-color;
@@ -402,6 +442,7 @@ h6.uppercase, .h6.uppercase {
 
 	.reply {
 		padding: 15px;
+		overflow: auto;
 
 		& > div > p:first-child {
 			margin-top: 0px;
@@ -417,11 +458,16 @@ h6.uppercase, .h6.uppercase {
 	}
 
 	.close-btn-container {
-		padding: 4px 10px 2px 5px;
+		.close {
+			color: inherit;
+			opacity: 1;
+			padding: 0;
+			font-size: 18px;
+		}
 	}
 
 	.edit-btn-container {
-		padding: 4px 5px;
+		padding: 0;
 
 		.edit {
 			color: inherit;
@@ -512,7 +558,8 @@ h6.uppercase, .h6.uppercase {
 }
 
 .timeline-item .reply-link {
-	padding-left: 7px;
+	margin-left: 15px;
+	font-size: 12px;
 }
 
 .timeline-head {
@@ -573,18 +620,17 @@ h6.uppercase, .h6.uppercase {
 	right: 12px;
 }
 .signature-reset {
+	z-index: 10;
 	height: 30px;
 	width: 30px;
 	padding: 4px 0px;
 }
 
 .signature-img {
-	border: 1px solid @border-color;
 	background: #fff;
 	border-radius: 3px;
 	margin-top: 5px;
-	width: 100%;
-	max-height: 300px;
+	max-height: 150px;
 }
 
 
@@ -650,6 +696,16 @@ h6.uppercase, .h6.uppercase {
 	}
 }
 
+.flex-justify-center {
+	display: flex;
+    justify-content: center;
+}
+
+.flex-justify-end {
+	display: flex;
+    justify-content: flex-end;
+}
+
 .hide-control {
 	display: none !important;
 }
@@ -680,14 +736,22 @@ select.form-control {
 }
 
 .password-strength-indicator {
-    float: right;
-    padding: 15px;
-    margin-top: -41px;
-    margin-right: -7px;
+	float: right;
+	padding: 15px;
+	margin-top: -41px;
+	margin-right: -7px;
 }
 
 .password-strength-message {
 	margin-top: -10px;
+}
+
+.control-code, .control-code.bold {
+	height: 400px;
+	font-family: Monaco, "Courier New", monospace;
+	color: @text-color;
+	font-size: 12px;
+	line-height: 1.7em;
 }
 
 .delivery-status-indicator {
@@ -696,6 +760,10 @@ select.form-control {
 	margin-left: 1px;
 	font-weight: 500;
 	color: @text-muted;
+}
+
+.attach-btn {
+	margin-top: 10px;
 }
 
 // above mobile
@@ -827,6 +895,33 @@ select.form-control {
 	}
 }
 
+/* goals */
+.goals-page-container {
+	background-color: #fafbfc;
+	padding-top: 1px;
+
+	.goal-container {
+		background-color: #fff;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+		border-radius: 2px;
+		padding: 10px;
+		margin: 10px;
+	}
+}
+
 body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
 	height: 80px !important;
+}
+
+.frappe-control[data-fieldtype="Attach"] {
+	.attached-file {
+		position: relative;
+		margin-top: 5px;
+
+		.close {
+			position: absolute;
+			top: 0;
+			right: 0;
+		}
+	}
 }

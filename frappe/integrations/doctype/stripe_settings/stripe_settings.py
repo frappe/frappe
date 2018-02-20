@@ -6,8 +6,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe import _
-import urllib
-from frappe.utils import get_url, call_hook_method, cint
+from six.moves.urllib.parse import urlencode
+from frappe.utils import get_url, call_hook_method, cint, flt
 from frappe.integrations.utils import make_get_request, make_post_request, create_request_log, create_payment_gateway
 
 class StripeSettings(Document):
@@ -42,7 +42,7 @@ class StripeSettings(Document):
 			frappe.throw(_("Please select another payment method. Stripe does not support transactions in currency '{0}'").format(currency))
 
 	def get_payment_url(self, **kwargs):
-		return get_url("./integrations/stripe_checkout?{0}".format(urllib.urlencode(kwargs)))
+		return get_url("./integrations/stripe_checkout?{0}".format(urlencode(kwargs)))
 	
 	def create_request(self, data):
 		self.data = frappe._dict(data)
@@ -62,7 +62,7 @@ class StripeSettings(Document):
 			"Bearer {0}".format(self.get_password(fieldname="secret_key", raise_exception=False))}
 		
 		data = {
-			"amount": cint(self.data.amount)*100,
+			"amount": cint(flt(self.data.amount)*100),
 			"currency": self.data.currency,
 			"source": self.data.stripe_token_id,
 			"description": self.data.description
@@ -105,9 +105,9 @@ class StripeSettings(Document):
 			redirect_url = 'payment-failed'
 
 		if redirect_to:
-			redirect_url += '?' + urllib.urlencode({'redirect_to': redirect_to})
+			redirect_url += '?' + urlencode({'redirect_to': redirect_to})
 		if redirect_message:
-			redirect_url += '&' + urllib.urlencode({'redirect_message': redirect_message})
+			redirect_url += '&' + urlencode({'redirect_message': redirect_message})
 
 		return {
 			"redirect_to": redirect_url,

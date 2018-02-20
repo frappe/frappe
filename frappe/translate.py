@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals, print_function
 
-from six import iteritems
+from six import iteritems, text_type, string_types
 
 """
 	frappe.translate
@@ -30,8 +30,8 @@ def guess_language(lang_list=None):
 
 	for l in lang_codes:
 		code = l.strip()
-		if not isinstance(code, unicode):
-			code = unicode(code, 'utf-8')
+		if not isinstance(code, text_type):
+			code = text_type(code, 'utf-8')
 		if code in lang_list or code == "en":
 			guess = code
 			break
@@ -163,6 +163,7 @@ def make_dict_from_messages(messages, full_dict=None):
 	for m in messages:
 		if m[1] in full_dict:
 			out[m[1]] = full_dict[m[1]]
+
 	return out
 
 def get_lang_js(fortype, name):
@@ -359,7 +360,7 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 	else:
 		fixtures = frappe.get_hooks('fixtures', app_name=app_name) or []
 		for fixture in fixtures:
-			if isinstance(fixture, basestring) and fixture == 'Worflow':
+			if isinstance(fixture, string_types) and fixture == 'Worflow':
 				workflows = frappe.get_all('Workflow')
 				break
 			elif isinstance(fixture, dict) and fixture.get('dt', fixture.get('doctype')) == 'Workflow':
@@ -389,12 +390,13 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 
 	return messages
 
+
 def get_messages_from_custom_fields(app_name):
 	fixtures = frappe.get_hooks('fixtures', app_name=app_name) or []
 	custom_fields = []
 
 	for fixture in fixtures:
-		if isinstance(fixture, basestring) and fixture == 'Custom Field':
+		if isinstance(fixture, string_types) and fixture == 'Custom Field':
 			custom_fields = frappe.get_all('Custom Field', fields=['name','label', 'description', 'fieldtype', 'options'])
 			break
 		elif isinstance(fixture, dict) and fixture.get('dt', fixture.get('doctype')) == 'Custom Field':
@@ -453,6 +455,7 @@ def get_server_messages(app):
 			if dontwalk in folders: folders.remove(dontwalk)
 
 		for f in files:
+			f = frappe.as_unicode(f)
 			if f.endswith(".py") or f.endswith(".html") or f.endswith(".js"):
 				messages.extend(get_messages_from_file(os.path.join(basepath, f)))
 
@@ -544,7 +547,7 @@ def read_csv_file(path):
 		# for japanese! #wtf
 		data = data.replace(chr(28), "").replace(chr(29), "")
 		data = reader([r.encode('utf-8') for r in data.splitlines()])
-		newdata = [[unicode(val, 'utf-8') for val in row] for row in data]
+		newdata = [[text_type(val, 'utf-8') for val in row] for row in data]
 	return newdata
 
 def write_csv_file(path, app_messages, lang_dict):
@@ -554,7 +557,7 @@ def write_csv_file(path, app_messages, lang_dict):
 	:param app_messages: Translatable strings for this app.
 	:param lang_dict: Full translated dict.
 	"""
-	app_messages.sort(lambda x,y: cmp(x[1], y[1]))
+	app_messages.sort(key = lambda x: x[1])
 	from csv import writer
 	with open(path, 'wb') as msgfile:
 		w = writer(msgfile, lineterminator='\n')
@@ -683,7 +686,7 @@ def deduplicate_messages(messages):
 	op = operator.itemgetter(1)
 	messages = sorted(messages, key=op)
 	for k, g in itertools.groupby(messages, op):
-		ret.append(g.next())
+		ret.append(next(g))
 	return ret
 
 def get_bench_dir():
@@ -699,3 +702,32 @@ def rename_language(old_name, new_name):
 
 	frappe.db.sql("""update `tabUser` set language=%(new_name)s where language=%(old_name)s""",
 		{ "old_name": old_name, "new_name": new_name })
+
+@frappe.whitelist()
+def update_translations_for_source(source=None, translation_dict=None):
+	if not (source and translation_dict):
+		return
+
+	translation_dict = json.loads(translation_dict)
+
+	# for existing records
+	translation_records = frappe.db.get_values('Translation', { 'source_name': source }, ['name', 'language'],  as_dict=1)
+	for d in translation_records:
+		if translation_dict.get(d.language, None):
+			doc = frappe.get_doc('Translation', d.name)
+			doc.target_name = translation_dict.get(d.language)
+			doc.save()
+			# done with this lang value
+			translation_dict.pop(d.language)
+		else:
+			frappe.delete_doc('Translation', d.name)
+
+	# remaining values are to be inserted
+	for lang, target_name in iteritems(translation_dict):
+		doc = frappe.new_doc('Translation')
+		doc.language = lang
+		doc.source_name = source
+		doc.target_name = target_name
+		doc.save()
+
+	return translation_records

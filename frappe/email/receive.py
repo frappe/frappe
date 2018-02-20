@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 
-from six import iteritems
+from six import iteritems, text_type
 from six.moves import range
 import time, _socket, poplib, imaplib, email, email.utils, datetime, chardet, re, hashlib
 from email_reply_parser import EmailReplyParser
@@ -482,7 +482,7 @@ class Email:
 		charset = self.get_charset(part)
 
 		try:
-			return unicode(part.get_payload(decode=True), str(charset), "ignore")
+			return text_type(part.get_payload(decode=True), str(charset), "ignore")
 		except LookupError:
 			return part.get_payload()
 

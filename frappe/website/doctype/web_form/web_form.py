@@ -11,7 +11,7 @@ from frappe.website.utils import get_comment_list
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
 from frappe.utils.file_manager import get_max_file_size
 from frappe.modules.utils import export_module_json, get_doc_module
-from urllib import urlencode
+from six.moves.urllib.parse import urlencode
 from frappe.integrations.utils import get_payment_gateway_controller
 from six import iteritems
 
@@ -255,7 +255,7 @@ def get_context(context):
 
 			js_path = os.path.join(os.path.dirname(self.web_form_module.__file__), scrub(self.name) + '.js')
 			if os.path.exists(js_path):
-				context.script = open(js_path, 'r').read()
+				context.script = frappe.render_template(open(js_path, 'r').read().decode('utf-8'), context)
 
 			css_path = os.path.join(os.path.dirname(self.web_form_module.__file__), scrub(self.name) + '.css')
 			if os.path.exists(css_path):

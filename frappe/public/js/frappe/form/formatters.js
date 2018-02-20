@@ -9,7 +9,7 @@ frappe.form.link_formatters = {};
 
 frappe.form.formatters = {
 	_right: function(value, options) {
-		if(options && options.inline) {
+		if(options && (options.inline || options.only_value)) {
 			return value;
 		} else {
 			return "<div style='text-align: right'>" + value + "</div>";
@@ -50,22 +50,28 @@ frappe.form.formatters = {
 	Percent: function(value, docfield, options) {
 		return frappe.form.formatters._right(flt(value, 2) + "%", options)
 	},
-	Currency: function(value, docfield, options, doc) {
-		var currency = frappe.meta.get_field_currency(docfield, doc);
+	Currency: function (value, docfield, options, doc) {
+		var currency  = frappe.meta.get_field_currency(docfield, doc);
 		var precision = docfield.precision || cint(frappe.boot.sysdefaults.currency_precision) || 2;
+
+		// If you change anything below, it's going to hurt a company in UAE, a bit.
 		if (precision > 2) {
-			let parts = cstr(value).split('.');
-			let decimals = parts.length > 1 ? parts[1] : '';
-			if (decimals.length < 3) {
-				// min precision 2
-				precision = 2;
-			} else if (decimals.length < precision) {
-				// or min decimals
-				precision = decimals.length;
+			var parts	 = cstr(value).split("."); // should be minimum 2, comes from the DB
+			var decimals = parts.length > 1 ? parts[1] : ""; // parts.length == 2 ???
+			
+			if ( decimals.length < 3 || decimals.length < precision ) {
+				const fraction = frappe.model.get_value(":Currency", currency, "fraction_units") || 100; // if not set, minimum 2.
+				precision      = cstr(fraction).length - 1;
 			}
 		}
-		return frappe.form.formatters._right((value==null || value==="")
-			? "" : format_currency(value, currency, precision), options);
+		
+		value = (value == null || value == "") ? "" : format_currency(value, currency, precision);
+		
+		if ( options && options.only_value ) {
+			return value;
+		} else {
+			return frappe.form.formatters._right(value, options);
+		}
 	},
 	Check: function(value) {
 		if(value) {
@@ -81,12 +87,15 @@ frappe.form.formatters = {
 			value.replace(/^.(.*).$/, "$1");
 		}
 
-		if(options && options.for_print) {
+		if(options && (options.for_print || options.only_value)) {
 			return value;
 		}
 
 		if(frappe.form.link_formatters[doctype]) {
-			value = frappe.form.link_formatters[doctype](value, doc);
+			// don't apply formatters in case of composite (parent field of same type)
+			if (doc && doctype !== doc.doctype) {
+				value = frappe.form.link_formatters[doctype](value, doc);
+			}
 		}
 
 		if(!value) {
@@ -121,7 +130,7 @@ frappe.form.formatters = {
 	},
 	DateRange: function(value) {
 		if($.isArray(value)) {
-			return __("{0} to {1}").format([
+			return __("{0} to {1}", [
 				frappe.datetime.str_to_user(value[0]),
 				frappe.datetime.str_to_user(value[1])
 			]);
@@ -219,6 +228,14 @@ frappe.form.formatters = {
 	},
 	Email: function(value) {
 		return $("<div></div>").text(value).html();
+	},
+	FileSize: function(value) {
+		if(value > 1048576) {
+			value = flt(flt(value) / 1048576, 1) + "M";
+		} else if (value > 1024) {
+			value = flt(flt(value) / 1024, 1) + "K";
+		}
+		return value;
 	}
 }
 

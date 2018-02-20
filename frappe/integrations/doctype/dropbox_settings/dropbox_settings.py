@@ -10,10 +10,10 @@ from frappe.model.document import Document
 import dropbox, json
 from frappe.utils.backups import new_backup
 from frappe.utils.background_jobs import enqueue
-from urlparse import urlparse, parse_qs
+from six.moves.urllib.parse import urlparse, parse_qs
 from frappe.integrations.utils import make_post_request
 from frappe.utils import (cint, split_emails, get_request_site_address, cstr,
-	get_files_path, get_backups_path, encode, get_url)
+	get_files_path, get_backups_path, get_url, encode)
 
 ignore_list = [".DS_Store"]
 
@@ -86,7 +86,7 @@ def backup_to_dropbox():
 		access_token = generate_oauth2_access_token_from_oauth1_token(dropbox_settings)
 
 		if not access_token.get('oauth2_token'):
-			return
+			return 'Failed backup upload', 'No Access Token exists! Please generate the access token for Dropbox.'
 
 		dropbox_settings['access_token'] = access_token['oauth2_token']
 		set_dropbox_access_token(access_token['oauth2_token'])
@@ -122,49 +122,60 @@ def upload_from_folder(path, dropbox_folder, dropbox_client, did_not_upload, err
 		else:
 			raise
 
-	for filename in os.listdir(path):
-		filename = cstr(filename)
+	for root, directory, files in os.walk(path):
+		for filename in files:
+			filename = cstr(filename)
+			filepath = os.path.join(root, filename)
 
-		if filename in ignore_list:
-			continue
+			if filename in ignore_list:
+				continue
 
-		found = False
-		filepath = os.path.join(path, filename)
-		for file_metadata in response.entries:
-			if (os.path.basename(filepath) == file_metadata.name
-				and os.stat(encode(filepath)).st_size == int(file_metadata.size)):
-				found = True
-				break
+			found = False
+			for file_metadata in response.entries:
+				if (os.path.basename(filepath) == file_metadata.name
+					and os.stat(encode(filepath)).st_size == int(file_metadata.size)):
+					found = True
+					break
 
-		if not found:
-			try:
-				upload_file_to_dropbox(filepath, dropbox_folder, dropbox_client)
-			except Exception:
-				did_not_upload.append(filename)
-				error_log.append(frappe.get_traceback())
+			if not found:
+				try:
+					upload_file_to_dropbox(filepath, dropbox_folder, dropbox_client)
+				except Exception:
+					did_not_upload.append(filepath)
+					error_log.append(frappe.get_traceback())
 
 def upload_file_to_dropbox(filename, folder, dropbox_client):
+	"""upload files with chunk of 15 mb to reduce session append calls"""
+
 	create_folder_if_not_exists(folder, dropbox_client)
-	chunk_size = 4 * 1024 * 1024
-	file_size = os.path.getsize(filename)
+	chunk_size = 15 * 1024 * 1024
+	file_size = os.path.getsize(encode(filename))
 	mode = (dropbox.files.WriteMode.overwrite)
 
 	f = open(encode(filename), 'rb')
 	path = "{0}/{1}".format(folder, os.path.basename(filename))
 
-	if file_size <= chunk_size:
-		dropbox_client.files_upload(f.read(), path, mode)
-	else:
-		upload_session_start_result = dropbox_client.files_upload_session_start(f.read(chunk_size))
-		cursor = dropbox.files.UploadSessionCursor(session_id=upload_session_start_result.session_id, offset=f.tell())
-		commit = dropbox.files.CommitInfo(path=path, mode=mode)
+	try:
+		if file_size <= chunk_size:
+			dropbox_client.files_upload(f.read(), path, mode)
+		else:
+			upload_session_start_result = dropbox_client.files_upload_session_start(f.read(chunk_size))
+			cursor = dropbox.files.UploadSessionCursor(session_id=upload_session_start_result.session_id, offset=f.tell())
+			commit = dropbox.files.CommitInfo(path=path, mode=mode)
 
-		while f.tell() < file_size:
-			if ((file_size - f.tell()) <= chunk_size):
-				dropbox_client.files_upload_session_finish(f.read(chunk_size), cursor, commit)
-			else:
-				dropbox_client.files_upload_session_append(f.read(chunk_size), cursor.session_id,cursor.offset)
-				cursor.offset = f.tell()
+			while f.tell() < file_size:
+				if ((file_size - f.tell()) <= chunk_size):
+					dropbox_client.files_upload_session_finish(f.read(chunk_size), cursor, commit)
+				else:
+					dropbox_client.files_upload_session_append(f.read(chunk_size), cursor.session_id,cursor.offset)
+					cursor.offset = f.tell()
+	except dropbox.exceptions.ApiError as e:
+		if isinstance(e.error, dropbox.files.UploadError):
+			error = "File Path: {path}\n".foramt(path=path)
+			error += frappe.get_traceback()
+			frappe.log_error(error)
+		else:
+			raise
 
 def create_folder_if_not_exists(folder, dropbox_client):
 	try:
@@ -210,7 +221,7 @@ def get_redirect_url():
 		if response.get("message"):
 			return response["message"]
 
-	except Exception as e:
+	except Exception:
 		frappe.log_error()
 		frappe.throw(
 			_("Something went wrong while generating dropbox access token. Please check error log for more details.")

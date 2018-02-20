@@ -146,6 +146,7 @@ frappe.customize_form.set_primary_action = function(frm) {
 			return frm.call({
 				doc: frm.doc,
 				freeze: true,
+				btn: frm.page.btn_primary,
 				method: "save_customization",
 				callback: function(r) {
 					if(!r.exc) {
@@ -175,6 +176,7 @@ frappe.customize_form.confirm = function(msg, frm) {
 						frappe.msgprint(r.exc);
 					} else {
 						d.hide();
+						frappe.show_alert({message:__('Customizations Reset'), indicator:'green'});
 						frappe.customize_form.clear_locals_and_refresh(frm);
 					}
 				}

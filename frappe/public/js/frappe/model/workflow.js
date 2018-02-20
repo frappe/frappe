@@ -56,7 +56,7 @@ frappe.workflow = {
 			var state = doc[state_fieldname] ||
 				frappe.workflow.get_default_state(doctype, doc.docstatus);
 
-			var allow_edit = state ? frappe.workflow.get_document_state(doctype, state).allow_edit : null;
+			var allow_edit = state ? frappe.workflow.get_document_state(doctype, state) && frappe.workflow.get_document_state(doctype, state).allow_edit : null;
 
 			if(!frappe.user_roles.includes(allow_edit)) {
 				return true;

@@ -8,6 +8,10 @@ out = frappe.response
 
 from frappe.utils import cint
 import frappe.defaults
+from six import text_type
+
+# imports - third-party imports
+import pymysql
 
 def get_sql_tables(q):
 	if q.find('WHERE') != -1:
@@ -81,10 +85,9 @@ def guess_type(m):
 	"""
 		Returns fieldtype depending on the MySQLdb Description
 	"""
-	import MySQLdb
-	if m in MySQLdb.NUMBER:
+	if m in pymysql.NUMBER:
 		return 'Currency'
-	elif m in MySQLdb.DATE:
+	elif m in pymysql.DATE:
 		return 'Date'
 	else:
 		return 'Data'
@@ -127,7 +130,7 @@ def build_description_standard(meta, tl):
 			coloptions.append(desc[2] or '')
 			colwidths.append(desc[3] or '100')
 
-		elif meta.get(dt,{}).has_key(fn):
+		elif fn in meta.get(dt,{}):
 			# type specified for a multi-table join
 			# usually from Report Builder
 
@@ -239,17 +242,17 @@ def runquery_csv():
 
 	rows = [[rep_name], out['colnames']] + out['values']
 
-	from cStringIO import StringIO
+	from six import StringIO
 	import csv
 
 	f = StringIO()
 	writer = csv.writer(f)
 	for r in rows:
 		# encode only unicode type strings and not int, floats etc.
-		writer.writerow(map(lambda v: isinstance(v, unicode) and v.encode('utf-8') or v, r))
+		writer.writerow(map(lambda v: isinstance(v, text_type) and v.encode('utf-8') or v, r))
 
 	f.seek(0)
-	out['result'] = unicode(f.read(), 'utf-8')
+	out['result'] = text_type(f.read(), 'utf-8')
 	out['type'] = 'csv'
 	out['doctype'] = rep_name
 

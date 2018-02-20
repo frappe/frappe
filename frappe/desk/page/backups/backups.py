@@ -76,9 +76,14 @@ def backup_files_and_notify_user(user_email=None):
 	backup_files = backup(with_files=True)
 	get_downloadable_links(backup_files)
 
-	subject = "File backup is ready"
-	message = frappe.render_template('frappe/templates/emails/file_backup_notification.html', backup_files, is_path=True)
-	frappe.sendmail(recipients=[user_email], subject=subject, message=message)
+	subject = _("File backup is ready")
+	frappe.sendmail(
+		recipients=[user_email],
+		subject=subject,
+		template="file_backup_notification",
+		args=backup_files,
+		header=[subject, 'green']
+	)
 
 def get_downloadable_links(backup_files):
 	for key in ['backup_path_files', 'backup_path_private_files']:

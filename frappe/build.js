@@ -1,3 +1,4 @@
+/*eslint-disable no-console */
 const path = require('path');
 const fs = require('fs');
 const babel = require('babel-core');
@@ -9,6 +10,7 @@ const path_join = path.resolve;
 const app = require('express')();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+const touch = require("touch");
 
 // basic setup
 const sites_path = path_join(__dirname, '..', '..', '..', 'sites');
@@ -17,7 +19,8 @@ const apps_contents = fs.readFileSync(path_join(sites_path, 'apps.txt'), 'utf8')
 const apps = apps_contents.split('\n');
 const app_paths = apps.map(app => path_join(apps_path, app, app)) // base_path of each app
 const assets_path = path_join(sites_path, 'assets');
-const build_map = make_build_map();
+let build_map = make_build_map();
+let compiled_js_cache = {}; // cache each js file after it is compiled
 const file_watcher_port = get_conf().file_watcher_port;
 
 // command line args
@@ -41,6 +44,7 @@ function build(minify) {
 	for (const output_path in build_map) {
 		pack(output_path, build_map[output_path], minify);
 	}
+	touch(path_join(sites_path, '.build'), {force:true});
 }
 
 let socket_connection = false;
@@ -50,6 +54,11 @@ function watch() {
 		console.log('file watching on *:', file_watcher_port);
 	});
 
+	if (process.env.CI) {
+		// don't watch inside CI
+		return;
+	}
+
 	compile_less().then(() => {
 		build();
 		watch_less(function (filename) {
@@ -57,11 +66,13 @@ function watch() {
 				io.emit('reload_css', filename);
 			}
 		});
-		watch_js(function (filename) {
-			if(socket_connection) {
-				io.emit('reload_js', filename);
-			}
-		});
+		watch_js(//function (filename) {
+			// if(socket_connection) {
+			// 	io.emit('reload_js', filename);
+			// }
+		//}
+		);
+		watch_build_json();
 	});
 
 	io.on('connection', function (socket) {
@@ -73,9 +84,7 @@ function watch() {
 	});
 }
 
-function pack(output_path, inputs, minify) {
-	const output_type = output_path.split('.').pop();
-
+function pack(output_path, inputs, minify, file_changed) {
 	let output_txt = '';
 	for (const file of inputs) {
 
@@ -84,25 +93,18 @@ function pack(output_path, inputs, minify) {
 			continue;
 		}
 
-		let file_content = fs.readFileSync(file, 'utf-8');
-
-		if (file.endsWith('.html') && output_type === 'js') {
-			file_content = html_to_js_template(file, file_content);
+		let force_compile = false;
+		if (file_changed) {
+			// if file_changed is passed and is equal to file, force_compile it
+			force_compile = file_changed === file;
 		}
 
-		if(file.endsWith('class.js')) {
-			file_content = minify_js(file_content, file);
-		}
-
-		if (file.endsWith('.js') && !file.includes('/lib/') && output_type === 'js' && !file.endsWith('class.js')) {
-			file_content = babelify(file_content, file, minify);
-		}
+		let file_content = get_compiled_file(file, output_path, minify, force_compile);
 
 		if(!minify) {
 			output_txt += `\n/*\n *\t${file}\n */\n`
 		}
 		output_txt += file_content;
-
 		output_txt = output_txt.replace(/['"]use strict['"];/, '');
 	}
 
@@ -118,14 +120,47 @@ function pack(output_path, inputs, minify) {
 	}
 }
 
+function get_compiled_file(file, output_path, minify, force_compile) {
+	const output_type = output_path.split('.').pop();
+
+	let file_content;
+
+	if (force_compile === false) {
+		// force compile is false
+		// attempt to get from cache
+		file_content = compiled_js_cache[file];
+		if (file_content) {
+			return file_content;
+		}
+	}
+
+	file_content = fs.readFileSync(file, 'utf-8');
+
+	if (file.endsWith('.html') && output_type === 'js') {
+		file_content = html_to_js_template(file, file_content);
+	}
+
+	if(file.endsWith('class.js')) {
+		file_content = minify_js(file_content, file);
+	}
+
+	if (minify && file.endsWith('.js') && !file.includes('/lib/') && output_type === 'js' && !file.endsWith('class.js')) {
+		file_content = babelify(file_content, file, minify);
+	}
+
+	compiled_js_cache[file] = file_content;
+	return file_content;
+}
+
 function babelify(content, path, minify) {
-	let presets = ['es2015', 'es2016'];
-	// if(minify) {
-	// 	presets.push('babili'); // new babel minifier
-	// }
+	let presets = ['env'];
+	const plugins = ['transform-object-rest-spread']
+	// Minification doesn't work when loading Frappe Desk
+	// Avoid for now, trace the error and come back.
 	try {
 		return babel.transform(content, {
 			presets: presets,
+			plugins: plugins,
 			comments: false
 		}).code;
 	} catch (e) {
@@ -225,12 +260,8 @@ function compile_less_file(file, less_path, public_path) {
 function watch_less(ondirty) {
 	const less_paths = app_paths.map(path => path_join(path, 'public', 'less'));
 
-	const to_watch = [];
-	for (const less_path of less_paths) {
-		if (!fs.existsSync(less_path)) continue;
-		to_watch.push(less_path);
-	}
-	chokidar.watch(to_watch).on('change', (filename, stats) => {
+	const to_watch = filter_valid_paths(less_paths);
+	chokidar.watch(to_watch).on('change', (filename) => {
 		console.log(filename, 'dirty');
 		var last_index = filename.lastIndexOf('/');
 		const less_path = filename.slice(0, last_index);
@@ -238,44 +269,51 @@ function watch_less(ondirty) {
 		filename = filename.split('/').pop();
 
 		compile_less_file(filename, less_path, public_path)
-		.then(css_file_path => {
-			// build the target css file for which this css file is input
-			for (const target in build_map) {
-				const sources = build_map[target];
-				if (sources.includes(css_file_path)) {
-					pack(target, sources);
-					ondirty && ondirty(target);
-					break;
+			.then(css_file_path => {
+				// build the target css file for which this css file is input
+				for (const target in build_map) {
+					const sources = build_map[target];
+					if (sources.includes(css_file_path)) {
+						pack(target, sources);
+						ondirty && ondirty(target);
+						break;
+					}
 				}
-			}
-		})
+			});
+		touch(path_join(sites_path, '.build'), {force:true});
 	});
 }
 
 function watch_js(ondirty) {
-	const js_paths = app_paths.map(path => path_join(path, 'public', 'js'));
-
-	const to_watch = [];
-	for (const js_path of js_paths) {
-		if (!fs.existsSync(js_path)) continue;
-		to_watch.push(js_path);
-	}
-	chokidar.watch(to_watch).on('change', (filename, stats) => {
-		console.log(filename, 'dirty');
-		var last_index = filename.lastIndexOf('/');
-		const js_path = filename.slice(0, last_index);
-		const public_path = path_join(js_path, '..');
-
+	chokidar.watch([
+		path_join(apps_path, '**', '*.js'),
+		path_join(apps_path, '**', '*.html')
+	]).on('change', (filename) => {
 		// build the target js file for which this js/html file is input
 		for (const target in build_map) {
 			const sources = build_map[target];
 			if (sources.includes(filename)) {
-				pack(target, sources);
+				console.log(filename, 'dirty');
+				pack(target, sources, null, filename);
 				ondirty && ondirty(target);
 				// break;
 			}
 		}
+		touch(path_join(sites_path, '.build'), {force:true});
 	});
+}
+
+function watch_build_json() {
+	const build_json_paths = app_paths.map(path => path_join(path, 'public', 'build.json'));
+	const to_watch = filter_valid_paths(build_json_paths);
+	chokidar.watch(to_watch).on('change', (filename) => {
+		console.log(filename, 'updated');
+		build_map = make_build_map();
+	});
+}
+
+function filter_valid_paths(paths) {
+	return paths.filter(path => fs.existsSync(path));
 }
 
 function html_to_js_template(path, content) {

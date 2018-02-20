@@ -3,17 +3,16 @@
 
 from __future__ import unicode_literals, print_function
 from frappe.utils.minify import JavascriptMinify
-import subprocess
+import warnings
 
-from six import iteritems
+from six import iteritems, text_type
+import subprocess
 
 """
 Build the `public` folders and setup languages
 """
 
 import os, frappe, json, shutil, re
-# from cssmin import cssmin
-
 
 app_paths = None
 def setup():
@@ -25,42 +24,25 @@ def setup():
 		except ImportError: pass
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
-def bundle(no_compress, make_copy=False, verbose=False):
+def bundle(no_compress, make_copy=False, restore=False, verbose=False):
 	"""concat / minify js files"""
 	# build js files
 	setup()
+	make_asset_dirs(make_copy=make_copy, restore=restore)
 
-	make_asset_dirs(make_copy=make_copy)
-
-	# new nodejs build system
-	command = 'node --use_strict ../apps/frappe/frappe/build.js --build'
-	if not no_compress:
-		command += ' --minify'
-	subprocess.call(command.split(' '))
-
-	# build(no_compress, verbose)
+	command = 'yarn run build' if no_compress else 'yarn run production'
+	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
+	subprocess.call(command.split(" "), cwd=frappe_app_path)
 
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
+	setup()
 
-	# new nodejs file watcher
-	command = 'node --use_strict ../apps/frappe/frappe/build.js --watch'
-	subprocess.call(command.split(' '))
+	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
+	subprocess.call('yarn run watch'.split(" "), cwd = frappe_app_path)
 
-	# setup()
-
-	# import time
-	# compile_less()
-	# build(no_compress=True)
-
-	# while True:
-	# 	compile_less()
-	# 	if files_dirty():
-	# 		build(no_compress=True)
-
-	# 	time.sleep(3)
-
-def make_asset_dirs(make_copy=False):
+def make_asset_dirs(make_copy=False, restore=False):
+	# don't even think of making assets_path absolute - rm -rf ahead.
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
 	for dir_path in [
 			os.path.join(assets_path, 'js'),
@@ -80,11 +62,28 @@ def make_asset_dirs(make_copy=False):
 
 		for source, target in symlinks:
 			source = os.path.abspath(source)
-			if not os.path.exists(target) and os.path.exists(source):
-				if make_copy:
-					shutil.copytree(source, target)
+			if os.path.exists(source):
+				if restore:
+					if os.path.exists(target):
+						if os.path.islink(target):
+							os.unlink(target)
+						else:
+							shutil.rmtree(target)
+						shutil.copytree(source, target)
+				elif make_copy:
+					if os.path.exists(target):
+						warnings.warn('Target {target} already exists.'.format(target = target))
+					else:
+						shutil.copytree(source, target)
 				else:
+					if os.path.exists(target):
+						if os.path.islink(target):
+							os.unlink(target)
+						else:
+							shutil.rmtree(target)
 					os.symlink(source, target)
+			else:
+				warnings.warn('Source {source} does not exist.'.format(source = source))
 
 def build(no_compress=False, verbose=False):
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
@@ -121,7 +120,7 @@ def get_build_maps():
 timestamps = {}
 
 def pack(target, sources, no_compress, verbose):
-	from cStringIO import StringIO
+	from six import StringIO
 
 	outtype, outtxt = target.split(".")[-1], ''
 	jsm = JavascriptMinify()
@@ -135,7 +134,7 @@ def pack(target, sources, no_compress, verbose):
 		timestamps[f] = os.path.getmtime(f)
 		try:
 			with open(f, 'r') as sourcefile:
-				data = unicode(sourcefile.read(), 'utf-8', errors='ignore')
+				data = text_type(sourcefile.read(), 'utf-8', errors='ignore')
 
 			extn = f.rsplit(".", 1)[1]
 
@@ -144,7 +143,7 @@ def pack(target, sources, no_compress, verbose):
 				jsm.minify(tmpin, tmpout)
 				minified = tmpout.getvalue()
 				if minified:
-					outtxt += unicode(minified or '', 'utf-8').strip('\n') + ';'
+					outtxt += text_type(minified or '', 'utf-8').strip('\n') + ';'
 
 				if verbose:
 					print("{0}: {1}k".format(f, int(len(minified) / 1024)))
@@ -158,10 +157,6 @@ def pack(target, sources, no_compress, verbose):
 		except Exception:
 			print("--Error in:" + f + "--")
 			print(frappe.get_traceback())
-
-	if not no_compress and outtype == 'css':
-		pass
-		#outtxt = cssmin(outtxt)
 
 	with open(target, 'w') as f:
 		f.write(outtxt.encode("utf-8"))

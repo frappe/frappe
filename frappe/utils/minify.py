@@ -28,7 +28,7 @@
 # SOFTWARE.
 # */
 
-from StringIO import StringIO
+from six import StringIO
 
 def jsmin(js):
 	ins = StringIO(js)

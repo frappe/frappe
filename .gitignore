@@ -9,3 +9,11 @@ locale
 dist/
 build/
 frappe/docs/current
+.vscode
+node_modules
+.kdev4/
+*.kdev4
+
+
+# Not Recommended, but will remove once webpack ready
+package-lock.json

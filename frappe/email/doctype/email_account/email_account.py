@@ -246,7 +246,12 @@ class EmailAccount(Document):
 			else:
 				email_sync_rule = self.build_email_sync_rule()
 
-				email_server = self.get_incoming_server(in_receive=True, email_sync_rule=email_sync_rule)
+				email_server = None
+				try:
+					email_server = self.get_incoming_server(in_receive=True, email_sync_rule=email_sync_rule)
+				except Exception:
+					frappe.log_error(title=_("Error while connecting to email account {0}").format(self.name))
+
 				if not email_server:
 					return
 
@@ -260,15 +265,14 @@ class EmailAccount(Document):
 				uid_reindexed = emails.get("uid_reindexed", False)
 
 			for idx, msg in enumerate(incoming_mails):
+				uid = None if not uid_list else uid_list[idx]
 				try:
-					uid = None if not uid_list else uid_list[idx]
 					args = {
 						"uid": uid,
 						"seen": None if not seen_status else get_seen(seen_status.get(uid, None)),
 						"uid_reindexed": uid_reindexed
 					}
 					communication = self.insert_communication(msg, args=args)
-					#self.notify_update()
 
 				except SentEmailInInbox:
 					frappe.db.rollback()
@@ -277,7 +281,7 @@ class EmailAccount(Document):
 					frappe.db.rollback()
 					log('email_account.receive')
 					if self.use_imap:
-						self.handle_bad_emails(email_server, msg[1], msg[0], frappe.get_traceback())
+						self.handle_bad_emails(email_server, uid, msg, frappe.get_traceback())
 					exceptions.append(frappe.get_traceback())
 
 				else:
@@ -304,13 +308,14 @@ class EmailAccount(Document):
 				message_id = "can't be parsed"
 
 			unhandled_email = frappe.get_doc({
-				"doctype": "Unhandled Email",
-				"email_account": email_server.settings.email_account,
+				"raw": raw,
 				"uid": uid,
+				"reason":reason,
 				"message_id": message_id,
-				"reason":reason
+				"doctype": "Unhandled Email",
+				"email_account": email_server.settings.email_account
 			})
-			unhandled_email.save()
+			unhandled_email.insert(ignore_permissions=True)
 			frappe.db.commit()
 
 	def insert_communication(self, msg, args={}):
@@ -344,7 +349,7 @@ class EmailAccount(Document):
 			if names:
 				name = names[0].get("name")
 				# email is already available update communication uid instead
-				frappe.db.set_value("Communication", name, "uid", uid)
+				frappe.db.set_value("Communication", name, "uid", uid, update_modified=False)
 				return
 
 		communication = frappe.get_doc({
@@ -452,8 +457,8 @@ class EmailAccount(Document):
 				# try and match by subject and sender
 				# if sent by same sender with same subject,
 				# append it to old coversation
-				subject = frappe.as_unicode(strip(re.sub("(^\s*(Fw|FW|fwd)[^:]*:|\s*(Re|RE)[^:]*:\s*)*",
-					"", email.subject)))
+				subject = frappe.as_unicode(strip(re.sub("(^\s*(fw|fwd|wg)[^:]*:|\s*(re|aw)[^:]*:\s*)*",
+					"", email.subject, 0, flags=re.IGNORECASE)))
 
 				parent = frappe.db.get_all(self.append_to, filters={
 					self.sender_field: email.from_email,
@@ -592,7 +597,7 @@ class EmailAccount(Document):
 
 		flags = frappe.db.sql("""select name, communication, uid, action from
 			`tabEmail Flag Queue` where is_completed=0 and email_account='{email_account}'
-			""".format(email_account=self.name), as_dict=True)
+			""".format(email_account=frappe.db.escape(self.name)), as_dict=True)
 
 		uid_list = { flag.get("uid", None): flag.get("action", "Read") for flag in flags }
 		if flags and uid_list:
@@ -709,10 +714,10 @@ def get_max_email_uid(email_account):
 		"communication_medium": "Email",
 		"sent_or_received": "Received",
 		"email_account": email_account
-	}, fields=["ifnull(max(uid), 0) as uid"])
+	}, fields=["max(uid) as uid"])
 
 	if not result:
 		return 1
 	else:
-		max_uid = int(result[0].get("uid", 0)) + 1
+		max_uid = cint(result[0].get("uid", 0)) + 1
 		return max_uid

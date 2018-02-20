@@ -81,13 +81,18 @@ def notify_mentions(doc):
 			return
 
 		sender_fullname = get_fullname(frappe.session.user)
-		parent_doc_label = "{0} {1}".format(_(doc.reference_doctype), doc.reference_name)
-		subject = _("{0} mentioned you in a comment in {1}").format(sender_fullname, parent_doc_label)
-		message = frappe.get_template("templates/emails/mentioned_in_comment.html").render({
-			"sender_fullname": sender_fullname,
-			"comment": doc,
-			"link": get_link_to_form(doc.reference_doctype, doc.reference_name, label=parent_doc_label)
-		})
+		title_field = frappe.get_meta(doc.reference_doctype).get_title_field()
+		title = doc.reference_name if title_field == "name" else \
+			frappe.db.get_value(doc.reference_doctype, doc.reference_name, title_field)
+
+		if title != doc.reference_name:
+			parent_doc_label = "{0}: {1} (#{2})".format(_(doc.reference_doctype),
+				title, doc.reference_name)
+		else:
+			parent_doc_label = "{0}: {1}".format(_(doc.reference_doctype),
+				doc.reference_name)
+
+		subject = _("{0} mentioned you in a comment").format(sender_fullname)
 
 		recipients = [frappe.db.get_value("User", {"enabled": 1, "username": username, "user_type": "System User"})
 			for username in mentions]
@@ -96,7 +101,13 @@ def notify_mentions(doc):
 			recipients=recipients,
 			sender=frappe.session.user,
 			subject=subject,
-			message=message
+			template="mentioned_in_comment",
+			args={
+				"sender_fullname": sender_fullname,
+				"comment": doc,
+				"link": get_link_to_form(doc.reference_doctype, doc.reference_name, label=parent_doc_label)
+			},
+			header=[_('New Mention'), 'orange']
 		)
 
 def get_comments_from_parent(doc):

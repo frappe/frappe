@@ -10,52 +10,120 @@ from frappe.geo.country_info import get_country_info
 from frappe.utils.file_manager import save_file
 from frappe.utils.password import update_password
 from werkzeug.useragents import UserAgent
-import install_fixtures
+from . import install_fixtures
+from six import string_types
+
+def get_setup_stages(args):
+
+	# App setup stage functions should not include frappe.db.commit
+	# That is done by frappe after successful completion of all stages
+	stages = [
+		{
+			'status': 'Updating global settings',
+			'fail_msg': 'Failed to update global settings',
+			'tasks': [
+				{
+					'fn': update_global_settings,
+					'args': args,
+					'fail_msg': 'Failed to update global settings'
+				}
+			]
+		}
+	]
+
+	stages += get_stages_hooks(args) + get_setup_complete_hooks(args)
+
+	stages.append({
+		# post executing hooks
+		'status': 'Wrapping up',
+		'fail_msg': 'Failed to complete setup',
+		'tasks': [
+			{
+				'fn': run_post_setup_complete,
+				'args': args,
+				'fail_msg': 'Failed to complete setup'
+			}
+		]
+	})
+
+	return stages
 
 @frappe.whitelist()
 def setup_complete(args):
 	"""Calls hooks for `setup_wizard_complete`, sets home page as `desktop`
 	and clears cache. If wizard breaks, calls `setup_wizard_exception` hook"""
 
+	# Setup complete: do not throw an exception, let the user continue to desk
 	if cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
-		# do not throw an exception if setup is already complete
-		# let the user continue to desk
 		return
-		#frappe.throw(_('Setup already complete'))
 
-	args = process_args(args)
+	args = parse_args(args)
+
+	stages = get_setup_stages(args)
 
 	try:
-		if args.language and args.language != "english":
-			set_default_language(get_language_code(args.lang))
+		current_task = None
+		for idx, stage in enumerate(stages):
+			frappe.publish_realtime('setup_task', {"progress": [idx, len(stages)],
+				"stage_status": stage.get('status')}, user=frappe.session.user)
 
-		frappe.clear_cache()
+			for task in stage.get('tasks'):
+				current_task = task
+				task.get('fn')(task.get('args'))
 
-		# update system settings
-		update_system_settings(args)
-		update_user_name(args)
-
-		for method in frappe.get_hooks("setup_wizard_complete"):
-			frappe.get_attr(method)(args)
-
-		disable_future_access()
-
-		frappe.db.commit()
-		frappe.clear_cache()
-	except:
-		frappe.db.rollback()
-		if args:
-			traceback = frappe.get_traceback()
-			for hook in frappe.get_hooks("setup_wizard_exception"):
-				frappe.get_attr(hook)(traceback, args)
-
-		raise
-
+	except Exception:
+		handle_setup_exception(args)
+		return {'status': 'fail', 'fail': current_task.get('fail_msg')}
 	else:
-		for hook in frappe.get_hooks("setup_wizard_success"):
-			frappe.get_attr(hook)(args)
-		install_fixtures.install()
+		run_setup_success(args)
+		return {'status': 'ok'}
 
+def update_global_settings(args):
+	if args.language and args.language != "english":
+		set_default_language(get_language_code(args.lang))
+	frappe.clear_cache()
+
+	update_system_settings(args)
+	update_user_name(args)
+
+def run_post_setup_complete(args):
+	disable_future_access()
+	frappe.db.commit()
+	frappe.clear_cache()
+
+def run_setup_success(args):
+	for hook in frappe.get_hooks("setup_wizard_success"):
+		frappe.get_attr(hook)(args)
+	install_fixtures.install()
+
+def get_stages_hooks(args):
+	stages = []
+	for method in frappe.get_hooks("setup_wizard_stages"):
+		stages += frappe.get_attr(method)(args)
+	return stages
+
+def get_setup_complete_hooks(args):
+	stages = []
+	for method in frappe.get_hooks("setup_wizard_complete"):
+		stages.append({
+			'status': 'Executing method',
+			'fail_msg': 'Failed to execute method',
+			'tasks': [
+				{
+					'fn': frappe.get_attr(method),
+					'args': args,
+					'fail_msg': 'Failed to execute method'
+				}
+			]
+		})
+	return stages
+
+def handle_setup_exception(args):
+	frappe.db.rollback()
+	if args:
+		traceback = frappe.get_traceback()
+		for hook in frappe.get_hooks("setup_wizard_exception"):
+			frappe.get_attr(hook)(traceback, args)
 
 def update_system_settings(args):
 	number_format = get_country_info(args.get("country")).get("number_format", "#,###.##")
@@ -81,7 +149,7 @@ def update_system_settings(args):
 	system_settings.save()
 
 def update_user_name(args):
-	first_name, last_name = args.get('full_name'), ''
+	first_name, last_name = args.get('full_name', ''), ''
 	if ' ' in first_name:
 		first_name, last_name = first_name.split(' ', 1)
 
@@ -105,7 +173,7 @@ def update_user_name(args):
 		frappe.flags.mute_emails = _mute_emails
 		update_password(args.get("email"), args.get("password"))
 
-	else:
+	elif first_name:
 		args.update({
 			"name": frappe.session.user,
 			"first_name": first_name,
@@ -122,19 +190,20 @@ def update_user_name(args):
 			fileurl = save_file(filename, content, "User", args.get("name"), decode=True).file_url
 			frappe.db.set_value("User", args.get("name"), "user_image", fileurl)
 
-	add_all_roles_to(args.get("name"))
+	if args.get('name'):
+		add_all_roles_to(args.get("name"))
 
-def process_args(args):
+def parse_args(args):
 	if not args:
 		args = frappe.local.form_dict
-	if isinstance(args, basestring):
+	if isinstance(args, string_types):
 		args = json.loads(args)
 
 	args = frappe._dict(args)
 
 	# strip the whitespace
 	for key, value in args.items():
-		if isinstance(value, basestring):
+		if isinstance(value, string_types):
 			args[key] = strip(value)
 
 	return args
@@ -150,6 +219,7 @@ def add_all_roles_to(name):
 def disable_future_access():
 	frappe.db.set_default('desktop:home_page', 'desktop')
 	frappe.db.set_value('System Settings', 'System Settings', 'setup_complete', 1)
+	frappe.db.set_value('System Settings', 'System Settings', 'is_first_startup', 1)
 
 	if not frappe.flags.in_test:
 		# remove all roles and add 'Administrator' to prevent future access
@@ -201,10 +271,14 @@ def load_user_details():
 		"email": frappe.cache().hget("email", "signup")
 	}
 
+@frappe.whitelist()
+def reset_is_first_startup():
+	frappe.db.set_value('System Settings', 'System Settings', 'is_first_startup', 0)
+
 def prettify_args(args):
 	# remove attachments
 	for key, val in args.items():
-		if isinstance(val, basestring) and "data:image" in val:
+		if isinstance(val, string_types) and "data:image" in val:
 			filename = val.split("data:image", 1)[0].strip(", ")
 			size = round((len(val) * 3 / 4) / 1048576.0, 2)
 			args[key] = "Image Attached: '{0}' of size {1} MB".format(filename, size)
@@ -227,14 +301,6 @@ def email_setup_wizard_exception(traceback, args):
 		user_agent = frappe._dict()
 
 	message = """
-#### Basic Information
-
-- **Site:** {site}
-- **User:** {user}
-- **Browser:** {user_agent.platform} {user_agent.browser} version: {user_agent.version} language: {user_agent.language}
-- **Browser Languages**: `{accept_languages}`
-
----
 
 #### Traceback
 
@@ -250,7 +316,16 @@ def email_setup_wizard_exception(traceback, args):
 
 #### Request Headers
 
-<pre>{headers}</pre>""".format(
+<pre>{headers}</pre>
+
+---
+
+#### Basic Information
+
+- **Site:** {site}
+- **User:** {user}
+- **Browser:** {user_agent.platform} {user_agent.browser} version: {user_agent.version} language: {user_agent.language}
+- **Browser Languages**: `{accept_languages}`""".format(
 		site=frappe.local.site,
 		traceback=traceback,
 		args="\n".join(pretty_args),
@@ -261,9 +336,15 @@ def email_setup_wizard_exception(traceback, args):
 
 	frappe.sendmail(recipients=frappe.local.conf.setup_wizard_exception_email,
 		sender=frappe.session.user,
-		subject="Exception in Setup Wizard - {}".format(frappe.local.site),
+		subject="Setup failed: {}".format(frappe.local.site),
 		message=message,
 		delayed=False)
 
 def get_language_code(lang):
 	return frappe.db.get_value('Language', {'language_name':lang})
+
+def enable_twofactor_all_roles():
+	all_role = frappe.get_doc('Role',{'role_name':'All'})
+	all_role.two_factor_auth = True
+	all_role.save(ignore_permissions=True)
+

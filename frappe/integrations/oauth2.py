@@ -2,9 +2,8 @@ from __future__ import unicode_literals
 import frappe, json
 from frappe.oauth import OAuthWebRequestValidator, WebApplicationServer
 from oauthlib.oauth2 import FatalClientError, OAuth2Error
-from urllib import quote, urlencode
 from werkzeug import url_fix
-from urlparse import urlparse
+from six.moves.urllib.parse import quote, urlencode, urlparse
 from frappe.integrations.doctype.oauth_provider_settings.oauth_provider_settings import get_oauth_settings
 from frappe import _
 
@@ -104,9 +103,9 @@ def get_token(*args, **kwargs):
 	headers = r.headers
 	
 	#Check whether frappe server URL is set
-	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url") or None
+	frappe_server_url = frappe.db.get_value("Social Login Key", "frappe", "base_url") or None
 	if not frappe_server_url:
-		frappe.throw(_("Define Frappe Server URL in Social Login Keys"))
+		frappe.throw(_("Please set Base URL in Social Login Key for Frappe"))
 
 	try:
 		headers, body, status = get_oauth_server().create_token_response(uri, http_method, body, headers, frappe.flags.oauth_credentials)
@@ -125,7 +124,7 @@ def get_token(*args, **kwargs):
 			id_token = {
 				"aud": token_client,
 				"exp": int((frappe.db.get_value("OAuth Bearer Token", out.access_token, "expiration_time") - frappe.utils.datetime.datetime(1970, 1, 1)).total_seconds()),
-				"sub": frappe.db.get_value("User", token_user, "frappe_userid"),
+				"sub": frappe.db.get_value("User Social Login", {"parent":token_user, "provider": "frappe"}, "userid"),
 				"iss": frappe_server_url,
 				"at_hash": frappe.oauth.calculate_at_hash(out.access_token, hashlib.sha256)
 			}
@@ -157,7 +156,8 @@ def revoke_token(*args, **kwargs):
 @frappe.whitelist()
 def openid_profile(*args, **kwargs):
 	picture = None
-	first_name, last_name, avatar, name, frappe_userid = frappe.db.get_value("User", frappe.session.user, ["first_name", "last_name", "user_image", "name", "frappe_userid"])
+	first_name, last_name, avatar, name = frappe.db.get_value("User", frappe.session.user, ["first_name", "last_name", "user_image", "name"])
+	frappe_userid = frappe.db.get_value("User Social Login", {"parent":frappe.session.user, "provider": "frappe"}, "userid")
 	request_url = urlparse(frappe.request.url)
 
 	if avatar:
@@ -178,7 +178,6 @@ def openid_profile(*args, **kwargs):
 	frappe.local.response = user_profile
 
 def validate_url(url_string):
-	from urlparse import urlparse
 	try:
 		result = urlparse(url_string)
 		if result.scheme and result.scheme in ["http", "https", "ftp", "ftps"]:

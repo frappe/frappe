@@ -5,24 +5,34 @@
 # --------------------
 
 from __future__ import unicode_literals
-import MySQLdb
-from MySQLdb.times import DateTimeDeltaType
-from markdown2 import UnicodeWithAttrs
 import warnings
 import datetime
 import frappe
 import frappe.defaults
 import frappe.async
 import re
-import redis
 import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
 from frappe import _
-from types import StringType, UnicodeType
-from frappe.utils.global_search import sync_global_search
 from frappe.model.utils.link_count import flush_local_link_count
-from six import iteritems
+from frappe.utils.background_jobs import execute_job, get_queue
+from frappe import as_unicode
 
+# imports - compatibility imports
+from six import (
+	integer_types,
+	string_types,
+	binary_type,
+	text_type,
+	iteritems
+)
+
+# imports - third-party imports
+from markdown2 import UnicodeWithAttrs
+from pymysql.times import TimeDelta
+from pymysql.constants 	import ER, FIELD_TYPE
+from pymysql.converters import conversions
+import pymysql
 
 class Database:
 	"""
@@ -30,7 +40,7 @@ class Database:
 	   login details from `conf.py`. This is called by the request handler and is accessible using
 	   the `db` global variable. the `sql` method is also global to run queries
 	"""
-	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default = 0):
+	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default = 0, local_infile = 0):
 		self.host = host or frappe.conf.db_host or 'localhost'
 		self.user = user or frappe.conf.db_name
 		self._conn = None
@@ -47,21 +57,43 @@ class Database:
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
 
+		# this param is to load CSV's with LOCAL keyword.
+		# it can be set in site_config as > bench set-config local_infile 1
+		# once the local-infile is set on MySql Server, the client needs to connect with this option
+		# Connections without this option leads to: 'The used command is not allowed with this MariaDB version' error
+		self.local_infile = local_infile or frappe.conf.local_infile
+
 	def get_db_login(self, ac_name):
 		return ac_name
 
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
-		warnings.filterwarnings('ignore', category=MySQLdb.Warning)
-		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password,
-			use_unicode=True, charset='utf8mb4')
-		self._conn.converter[246]=float
-		self._conn.converter[12]=get_datetime
-		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[UnicodeType]
-		self._conn.encoders[DateTimeDeltaType] = self._conn.encoders[StringType]
+		warnings.filterwarnings('ignore', category=pymysql.Warning)
+		usessl = 0
+		if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
+			usessl = 1
+			self.ssl = {
+				'ca':frappe.conf.db_ssl_ca,
+				'cert':frappe.conf.db_ssl_cert,
+				'key':frappe.conf.db_ssl_key
+			}
 
-		MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
-		self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
+		conversions.update({
+			FIELD_TYPE.NEWDECIMAL: float,
+			FIELD_TYPE.DATETIME: get_datetime,
+			TimeDelta: conversions[binary_type],
+			UnicodeWithAttrs: conversions[text_type]
+		})
+
+		if usessl:
+			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
+				charset='utf8mb4', use_unicode = True, ssl=self.ssl, conv = conversions, local_infile = self.local_infile)
+		else:
+			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
+				charset='utf8mb4', use_unicode = True, conv = conversions, local_infile = self.local_infile)
+
+		# MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
+		# # self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
 
 		self._cursor = self._conn.cursor()
 		if self.user != 'root':
@@ -132,7 +164,6 @@ class Database:
 						frappe.errprint(query % values)
 					except TypeError:
 						frappe.errprint([query, values])
-
 				if (frappe.conf.get("logging") or False)==2:
 					frappe.log("<<<< query")
 					frappe.log(query)
@@ -140,7 +171,6 @@ class Database:
 					frappe.log(values)
 					frappe.log(">>>>")
 				self._cursor.execute(query, values)
-
 			else:
 				if debug:
 					self.explain_query(query)
@@ -153,8 +183,8 @@ class Database:
 				self._cursor.execute(query)
 
 		except Exception as e:
-			# ignore data definition errors
-			if ignore_ddl and e.args[0] in (1146,1054,1091):
+			if ignore_ddl and e.args[0] in (ER.BAD_FIELD_ERROR, ER.NO_SUCH_TABLE,
+				ER.CANT_DROP_FIELD_OR_KEY):
 				pass
 
 			# NOTE: causes deadlock
@@ -165,7 +195,6 @@ class Database:
 			# 		as_dict=as_dict, as_list=as_list, formatted=formatted,
 			# 		debug=debug, ignore_ddl=ignore_ddl, as_utf8=as_utf8,
 			# 		auto_commit=auto_commit, update=update)
-
 			else:
 				raise
 
@@ -248,7 +277,7 @@ class Database:
 				else:
 					val = r[i]
 
-				if as_utf8 and type(val) is unicode:
+				if as_utf8 and type(val) is text_type:
 					val = val.encode('utf-8')
 				row_dict[self._cursor.description[i][0]] = val
 			ret.append(row_dict)
@@ -258,7 +287,7 @@ class Database:
 		"""Returns true if the first row in the result has a Date, Datetime, Long Int."""
 		if result and result[0]:
 			for v in result[0]:
-				if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, long)):
+				if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, integer_types)):
 					return True
 				if formatted and isinstance(v, (int, float)):
 					return True
@@ -275,18 +304,18 @@ class Database:
 
 		from frappe.utils import formatdate, fmt_money
 
-		if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, long)):
+		if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, integer_types)):
 			if isinstance(v, datetime.date):
-				v = unicode(v)
+				v = text_type(v)
 				if formatted:
 					v = formatdate(v)
 
 			# time
 			elif isinstance(v, (datetime.timedelta, datetime.datetime)):
-				v = unicode(v)
+				v = text_type(v)
 
 			# long
-			elif isinstance(v, long):
+			elif isinstance(v, integer_types):
 				v=int(v)
 
 		# convert to strings... (if formatted)
@@ -294,7 +323,7 @@ class Database:
 			if isinstance(v, float):
 				v=fmt_money(v)
 			elif isinstance(v, int):
-				v = unicode(v)
+				v = text_type(v)
 
 		return v
 
@@ -309,7 +338,7 @@ class Database:
 					val = self.convert_to_simple_type(c, formatted)
 				else:
 					val = c
-				if as_utf8 and type(val) is unicode:
+				if as_utf8 and type(val) is text_type:
 					val = val.encode('utf-8')
 				nr.append(val)
 			nres.append(nr)
@@ -321,7 +350,7 @@ class Database:
 		for r in res:
 			nr = []
 			for c in r:
-				if type(c) is unicode:
+				if type(c) is text_type:
 					c = c.encode('utf-8')
 					nr.append(self.convert_to_simple_type(c, formatted))
 			nres.append(nr)
@@ -374,7 +403,11 @@ class Database:
 
 			conditions.append(condition)
 
-		if isinstance(filters, basestring):
+		if isinstance(filters, int):
+			# docname is a number, convert to string
+			filters = str(filters)
+
+		if isinstance(filters, string_types):
 			filters = { "name": filters }
 
 		for f in filters:
@@ -439,7 +472,7 @@ class Database:
 			user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
 		out = None
-		if cache and isinstance(filters, basestring) and \
+		if cache and isinstance(filters, string_types) and \
 			(doctype, filters, fieldname) in self.value_cache:
 			return self.value_cache[(doctype, filters, fieldname)]
 
@@ -451,7 +484,7 @@ class Database:
 		else:
 			fields = fieldname
 			if fieldname!="*":
-				if isinstance(fieldname, basestring):
+				if isinstance(fieldname, string_types):
 					fields = [fieldname]
 				else:
 					fields = fieldname
@@ -471,7 +504,7 @@ class Database:
 			else:
 				out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
 
-		if cache and isinstance(filters, basestring):
+		if cache and isinstance(filters, string_types):
 			self.value_cache[(doctype, filters, fieldname)] = out
 
 		return out
@@ -588,13 +621,14 @@ class Database:
 
 		order_by = ("order by " + order_by) if order_by else ""
 
-		r = self.sql("select {0} from `tab{1}` where {2} {3}".format(fl, doctype,
-			conditions, order_by), values, as_dict=as_dict, debug=debug, update=update)
+		r = self.sql("select {0} from `tab{1}` {2} {3} {4}"
+			.format(fl, doctype, "where" if conditions else "", conditions, order_by), values,
+			as_dict=as_dict, debug=debug, update=update)
 
 		return r
 
 	def _get_value_for_many_names(self, doctype, names, field, debug=False):
-		names = filter(None, names)
+		names = list(filter(None, names))
 
 		if names:
 			return dict(self.sql("select name, `%s` from `tab%s` where name in (%s)" \
@@ -657,7 +691,7 @@ class Database:
 				delete from tabSingles
 				where field in ({0}) and
 					doctype=%s'''.format(', '.join(['%s']*len(keys))),
-					keys + [dt], debug=debug)
+					list(keys) + [dt], debug=debug)
 			for key, value in iteritems(to_update):
 				self.sql('''insert into tabSingles(doctype, field, value) values (%s, %s, %s)''',
 					(dt, key, value), debug=debug)
@@ -727,19 +761,8 @@ class Database:
 		self.sql("commit")
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
-		self.enqueue_global_search()
+		enqueue_jobs_after_commit()
 		flush_local_link_count()
-
-	def enqueue_global_search(self):
-		if frappe.flags.update_global_search:
-			try:
-				frappe.enqueue('frappe.utils.global_search.sync_global_search',
-					now=frappe.flags.in_test or frappe.flags.in_install or frappe.flags.in_migrate,
-					flags=frappe.flags.update_global_search)
-			except redis.exceptions.ConnectionError:
-				sync_global_search()
-
-			frappe.flags.update_global_search = []
 
 	def flush_realtime_log(self):
 		for args in frappe.local.realtime_log:
@@ -776,7 +799,7 @@ class Database:
 
 		:param dt: DocType name.
 		:param dn: Document name or filter dict."""
-		if isinstance(dt, basestring):
+		if isinstance(dt, string_types):
 			if dt!="DocType" and dt==dn:
 				return True # single always exists (!)
 			try:
@@ -841,7 +864,7 @@ class Database:
 				add index `%s`(%s)""" % (doctype, index_name, ", ".join(fields)))
 
 	def add_unique(self, doctype, fields, constraint_name=None):
-		if isinstance(fields, basestring):
+		if isinstance(fields, string_types):
 			fields = [fields]
 		if not constraint_name:
 			constraint_name = "unique_" + "_".join(fields)
@@ -861,17 +884,15 @@ class Database:
 	def close(self):
 		"""Close database connection."""
 		if self._conn:
-			self._cursor.close()
+			# self._cursor.close()
 			self._conn.close()
 			self._cursor = None
 			self._conn = None
 
 	def escape(self, s, percent=True):
 		"""Excape quotes and percent in given string."""
-		if isinstance(s, unicode):
-			s = (s or "").encode("utf-8")
-
-		s = unicode(MySQLdb.escape_string(s), "utf-8").replace("`", "\\`")
+		# pymysql expects unicode argument to escape_string with Python 3
+		s = as_unicode(pymysql.escape_string(as_unicode(s)), "utf-8").replace("`", "\\`")
 
 		# NOTE separating % escape, because % escape should only be done when using LIKE operator
 		# or when you use python format string to generate query that already has a %s
@@ -882,3 +903,11 @@ class Database:
 			s = s.replace("%", "%%")
 
 		return s
+
+def enqueue_jobs_after_commit():
+	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
+		for job in frappe.flags.enqueue_after_commit:
+			q = get_queue(job.get("queue"), async=job.get("async"))
+			q.enqueue_call(execute_job, timeout=job.get("timeout"),
+							kwargs=job.get("queue_args"))
+		frappe.flags.enqueue_after_commit = []

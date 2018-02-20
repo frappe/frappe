@@ -1,6 +1,6 @@
 # Avant de commencer
 
-<p class="lead">Liste des outils et technologies utiles dans le développement d'applications avec Frappe.</p>
+<p class="lead">Liste des outils et technologies utiles dans le développement d'applications avec Frappé.</p>
 
 Il y a un grand nombres de tutoriels en ligne et nous recommandons [CodeAcademy](http://www.codecademy.com/) ou vous trouverez beaucoup de ressources de qualité.
 
@@ -8,7 +8,7 @@ Il y a un grand nombres de tutoriels en ligne et nous recommandons [CodeAcademy]
 
 #### 1. Python
 
-La partie serveur de Frappe est codée en Python et c'est une bonne idée d'[apprendre rapidement Python](http://www.codecademy.com/tracks/python) avant de commencer à comprendre Frappe. [Le tutoriel sur docs.python.org](https://docs.python.org/2.7/tutorial/index.html) est aussi une excellente ressource pour apprendre Python. Notez que Frappe utilise Python 2.7.
+La partie serveur de Frappé est codée en Python et c'est une bonne idée d'[apprendre rapidement Python](http://www.codecademy.com/tracks/python) avant de commencer à comprendre Frappé. [Le tutoriel sur docs.python.org](https://docs.python.org/2.7/tutorial/index.html) est aussi une excellente ressource pour apprendre Python. Notez que Frappé utilise Python 2.7.
 
 Pour produire une application de qualité, vous devez inclure des tests automatiques. Vous pouvez comprendre les bases du développement par les tests [ici](http://code.tutsplus.com/tutorials/beginning-test-driven-development-in-python--net-30137).
 
@@ -45,5 +45,5 @@ Si vous voulez modifier les affichages, vous devez apprendre le [language de tem
 
 ---
 
-Quand vous êtes prêts, [essayez de développer une application simple avec Frappe]({{ docs_base_url }}/user/fr/tutorial/app)
+Quand vous êtes prêts, [essayez de développer une application simple avec Frappé](/docs/user/fr/tutorial/app)
 

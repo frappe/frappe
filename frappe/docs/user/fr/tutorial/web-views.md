@@ -1,11 +1,11 @@
 # Les vues web
 
-Frappe a deux principaux environnements, le **bureau** et **le web**. Le **bureau** est un environnement riche AJAX alors
+Frappé a deux principaux environnements, le **bureau** et **le web**. Le **bureau** est un environnement riche AJAX alors
 que **le web** est une collection plus traditionnelle de fichiers HTML pour la consultation publique. Les vues web peuvent
 aussi être générées pour créer des vues plus controllées pour les utilisateurs qui peuvent se connecter mais qui n'ont pas
 accès au desk.
 
-Dans Frappe, les vues sont gérées par des templates et sont tout naturellement placés dans le repertoire `templates`. Il 
+Dans Frappé, les vues sont gérées par des templates et sont tout naturellement placés dans le repertoire `templates`. Il 
 y a 2 principaux types de templates.
 
 1. Pages: Ce sont des templates Jinja ou une vue unique existe pour une route (exemple:`/blog`).
@@ -20,11 +20,11 @@ Jettons un oeil aux vues standards:
 
 Si vous êtes connecté avec votre utilisateur de test, rendez-vous sur`/article` et vous devriez voir la liste des articles:
 
-<img class="screenshot" alt="web list" src="{{docs_base_url}}/assets/img/web-list.png">
+<img class="screenshot" alt="web list" src="/docs/assets/img/web-list.png">
 
 Cliquez sur un article et vous devriez voir une vue par défaut.
 
-<img class="screenshot" alt="web view" src="{{docs_base_url}}/assets/img/web-view.png">
+<img class="screenshot" alt="web view" src="/docs/assets/img/web-view.png">
 
 Maintenant, si vous voulez une meilleur liste pour vos articles, créez un fichier appelé `row_template.html` dans le
 repertoire `library_management/templates/includes/list/`. Voici un exemple du contenu de ce fichier:
@@ -50,11 +50,11 @@ Ici, vous aurez toutes les propriétés d'un article dans l'object `doc`.
 
 La mise à jour de la liste ressemble à ca !
 
-<img class="screenshot" alt="new web list" src="{{docs_base_url}}/assets/img/web-list-new.png">
+<img class="screenshot" alt="new web list" src="/docs/assets/img/web-list-new.png">
 
 #### La page d'accueil
 
-Frappe permet l'inscription et inclut les inscriptions via Google, Facebook et Github. Quand un utilisateur s'inscrit via
+Frappé permet l'inscription et inclut les inscriptions via Google, Facebook et Github. Quand un utilisateur s'inscrit via
 le web, il n'a pas accès à l'interface du desk par defaut.
 
 > Pour autoriser les utilisateurs à accéder au `Desk`, ouvrez la configuration de l'utilisateur (Setup > User) et définissez

@@ -12,6 +12,7 @@ from __future__ import unicode_literals, print_function
 
 import inspect, importlib, re, frappe
 from frappe.model.document import get_controller
+from six import text_type
 
 
 def automodule(name):
@@ -169,6 +170,6 @@ def automodel(doctype):
 def get_obj_doc(obj):
 	'''Return `__doc__` of the given object as unicode'''
 	doc = getattr(obj, "__doc__", "") or ''
-	if not isinstance(doc, unicode):
-		doc = unicode(doc, 'utf-8')
+	if not isinstance(doc, text_type):
+		doc = text_type(doc, 'utf-8')
 	return doc

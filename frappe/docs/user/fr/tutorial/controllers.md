@@ -50,7 +50,7 @@ Dans ce script:
 
 Vérifiez vos validations en créant de nouveaux enregistrements.
 
-<img class="screenshot" alt="Transaction" src="{{docs_base_url}}/assets/img/lib_trans.png">
+<img class="screenshot" alt="Transaction" src="/docs/assets/img/lib_trans.png">
 
 #### Debogage
 

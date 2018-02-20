@@ -7,6 +7,8 @@ from frappe.core.page.permission_manager.permission_manager import get_roles_and
 from frappe.desk.doctype.desktop_icon.desktop_icon import (get_desktop_icons, add_user_icon,
 	clear_desktop_icons_cache)
 
+from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
+
 class TestDomainification(unittest.TestCase):
 	def setUp(self):
 		# create test domain
@@ -18,8 +20,10 @@ class TestDomainification(unittest.TestCase):
 
 	def tearDown(self):
 		frappe.db.sql("delete from tabRole where name='_Test Role'")
+		frappe.db.sql("delete from `tabHas Role` where role='_Test Role'")
 		frappe.db.sql("delete from tabDomain where name in ('_Test Domain 1', '_Test Domain 2')")
 		frappe.delete_doc('DocType', 'Test Domainification')
+		self.remove_from_active_domains(remove_all=True)
 
 	def add_active_domain(self, domain):
 		""" add domain in active domain """
@@ -33,7 +37,7 @@ class TestDomainification(unittest.TestCase):
 
 	def remove_from_active_domains(self, domain=None, remove_all=False):
 		""" remove domain from domain settings """
-		if not domain:
+		if not (domain or remove_all):
 			return
 
 		domain_settings = frappe.get_doc("Domain Settings", "Domain Settings")
@@ -90,8 +94,8 @@ class TestDomainification(unittest.TestCase):
 
 		# doctype should be hidden in desktop icon, role permissions
 		results = get_roles_and_doctypes()
-		self.assertTrue("Test Domainification" in results.get("doctypes"))
-		self.assertTrue("_Test Role" in results.get("roles"))
+		self.assertTrue("Test Domainification" in [d.get("value") for d in results.get("doctypes")])
+		self.assertTrue("_Test Role" in [d.get("value") for d in results.get("roles")])
 
 		self.add_active_domain("_Test Domain 2")
 		test_doctype.restrict_to_domain = "_Test Domain 2"
@@ -101,18 +105,18 @@ class TestDomainification(unittest.TestCase):
 		test_role.save()
 
 		results = get_roles_and_doctypes()
-		self.assertTrue("Test Domainification" in results.get("doctypes"))
-		self.assertTrue("_Test Role" in results.get("roles"))
+		self.assertTrue("Test Domainification" in [d.get("value") for d in results.get("doctypes")])
+		self.assertTrue("_Test Role" in [d.get("value") for d in results.get("roles")])
 
 		self.remove_from_active_domains("_Test Domain 2")
 		results = get_roles_and_doctypes()
 
-		self.assertTrue("Test Domainification" not in results.get("doctypes"))
-		self.assertTrue("_Test Role" not in results.get("roles"))
+		self.assertTrue("Test Domainification" not in [d.get("value") for d in results.get("doctypes")])
+		self.assertTrue("_Test Role" not in [d.get("value") for d in results.get("roles")])
 
 	def test_desktop_icon_for_domainification(self):
 		""" desktop icon should be hidden if doctype's restrict to domain is not in active domains """
-		
+
 		test_doctype = self.new_doctype("Test Domainification")
 		test_doctype.restrict_to_domain = "_Test Domain 2"
 		test_doctype.insert()
@@ -134,3 +138,24 @@ class TestDomainification(unittest.TestCase):
 		doctypes = [icon.get("_doctype") for icon in icons if icon.get("_doctype") == "Test Domainification" \
 			and icon.get("blocked") == 0]
 		self.assertFalse("Test Domainification" in doctypes)
+
+	def test_module_def_for_domainification(self):
+		""" modules should be hidden if module def's restrict to domain is not in active domains"""
+
+		test_module_def = frappe.get_doc("Module Def", "Contacts")
+		test_module_def.restrict_to_domain = "_Test Domain 2"
+		test_module_def.save()
+
+		self.add_active_domain("_Test Domain 2")
+
+		modules = get_active_modules()
+		self.assertTrue("Contacts" in modules)
+
+		# doctype should be hidden from the desk
+		self.remove_from_active_domains("_Test Domain 2")
+		modules = get_active_modules()
+		self.assertTrue("Contacts" not in modules)
+
+		test_module_def = frappe.get_doc("Module Def", "Contacts")
+		test_module_def.restrict_to_domain = ""
+		test_module_def.save()

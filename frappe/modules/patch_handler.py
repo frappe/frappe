@@ -78,7 +78,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 				frappe.flags.final_patches.append(patchmodule)
 			else:
 				if patchmodule.startswith("execute:"):
-					exec patchmodule.split("execute:")[1] in globals()
+					exec(patchmodule.split("execute:")[1],globals())
 				else:
 					frappe.get_attr(patchmodule.split()[0] + ".execute")()
 				update_patch_log(patchmodule)
