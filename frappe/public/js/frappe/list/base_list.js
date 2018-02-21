@@ -20,7 +20,6 @@ frappe.views.BaseList = class BaseList {
 			this.setup_fields,
 			// make view
 			this.setup_page,
-			this.setup_page_head,
 			this.setup_side_bar,
 			this.setup_main_section,
 			this.setup_view,
@@ -140,10 +139,10 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_page() {
-		this.parent.list_view = this;
 		this.page = this.parent.page;
 		this.$page = $(this.parent);
 		this.page.page_form.removeClass('row').addClass('flex');
+		this.setup_page_head();
 	}
 
 	setup_page_head() {
