@@ -29,6 +29,7 @@ frappe.views.TreeView = Class.extend({
 
 		this.opts = {};
 		this.opts.get_tree_root = true;
+		this.opts.show_expand_all = true;
 		$.extend(this.opts, opts);
 		this.doctype = opts.doctype;
 		this.args = {doctype: me.doctype};
@@ -70,9 +71,11 @@ frappe.views.TreeView = Class.extend({
 			"padding-bottom": "25px"
 		});
 
-		this.page.add_inner_button(__('Expand All'), function() {
-			me.tree.rootnode.load_all();
-		});
+		if(this.opts.show_expand_all) {
+			this.page.add_inner_button(__('Expand All'), function() {
+				me.tree.rootnode.load_all();
+			});
+		}
 
 		if(this.opts.view_template) {
 			var row = $('<div class="row"><div>').appendTo(this.page.main);
