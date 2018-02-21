@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const touch = require('touch');
 
 const {
 	get_build_json_path,
@@ -7,7 +8,8 @@ const {
 	apps_list,
 	assets_path,
 	get_public_path,
-	bench_path
+	bench_path,
+	sites_path
 } = require('./rollup.utils');
 
 const less = require('rollup-plugin-less');
@@ -170,6 +172,7 @@ function build_libs() {
 	const target_path = path.resolve(assets_path, libs_path);
 	fs.writeFileSync(target_path, libs_content);
 	console.log('✨  Built libs.min.js'); // eslint-disable-line
+	touch(path.join(sites_path, '.build'), { force: true });
 }
 
 function get_all_apps_config() {

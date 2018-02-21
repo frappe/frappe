@@ -22,7 +22,8 @@
     "redis": "^2.8.0",
     "showdown": "^1.8.6",
     "socket.io": "^2.0.4",
-    "superagent": "^3.8.2"
+    "superagent": "^3.8.2",
+    "touch": "^3.1.0"
   },
   "devDependencies": {
     "babel-runtime": "^6.26.0",
