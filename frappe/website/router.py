@@ -253,7 +253,8 @@ def setup_source(page_info):
 		css_path = os.path.join(page_info.basepath, (page_info.basename or 'index') + '.css')
 		if os.path.exists(css_path):
 			if not '{% block style %}' in html:
-				css = text_type(open(css_path, 'r').read(), 'utf-8')
+				with io.open(css_path, 'r', encoding='utf-8') as f:
+					css = f.read()
 				html += '\n{% block style %}\n<style>\n' + css + '\n</style>\n{% endblock %}'
 
 	page_info.source = html
