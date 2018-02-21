@@ -1,7 +1,7 @@
 {
   "name": "frappe",
   "scripts": {
-    "build": "rollup -c",
+    "build": "rollup -c --silent",
     "production": "FRAPPE_ENV=production rollup -c",
     "watch": "rollup -c -w"
   },
