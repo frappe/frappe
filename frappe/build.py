@@ -26,20 +26,28 @@ def setup():
 
 def bundle(no_compress, make_copy=False, restore=False, verbose=False):
 	"""concat / minify js files"""
-	# build js files
 	setup()
 	make_asset_dirs(make_copy=make_copy, restore=restore)
 
+	check_yarn()
 	command = 'yarn run build' if no_compress else 'yarn run production'
-	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
-	subprocess.call(command.split(" "), cwd=frappe_app_path)
+	frappe_app_path = frappe.get_app_path('frappe', '..')
+	frappe.commands.popen(command, cwd=frappe_app_path)
 
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
 	setup()
 
-	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
-	subprocess.call('yarn run watch'.split(" "), cwd = frappe_app_path)
+	check_yarn()
+	frappe_app_path = frappe.get_app_path('frappe', '..')
+	frappe.commands.popen('yarn run watch', cwd = frappe_app_path)
+
+def check_yarn():
+	from distutils.spawn import find_executable
+	if not find_executable('yarn'):
+		print('Please install yarn using below command and try again.')
+		print('npm install -g yarn')
+		return
 
 def make_asset_dirs(make_copy=False, restore=False):
 	# don't even think of making assets_path absolute - rm -rf ahead.
