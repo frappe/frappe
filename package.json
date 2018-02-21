@@ -3,7 +3,7 @@
   "scripts": {
     "build": "rollup -c",
     "production": "FRAPPE_ENV=production rollup -c",
-    "watch": "rollup -c -w --silent"
+    "watch": "rollup -c -w"
   },
   "repository": {
     "type": "git",
@@ -18,10 +18,12 @@
   "dependencies": {
     "cookie": "^0.3.1",
     "express": "^4.16.2",
+    "frappe-datatable": "frappe/datatable",
     "redis": "^2.8.0",
     "showdown": "^1.8.6",
     "socket.io": "^2.0.4",
-    "superagent": "^3.8.2"
+    "superagent": "^3.8.2",
+    "touch": "^3.1.0"
   },
   "devDependencies": {
     "babel-runtime": "^6.26.0",
