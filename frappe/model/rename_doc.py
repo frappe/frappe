@@ -386,3 +386,48 @@ def bulk_rename(doctype, rows=None, via_console = False):
 
 	if not via_console:
 		return rename_log
+
+def update_linked_doctypes(parent, child, name, value):
+	"""
+		parent = Master DocType in which the changes are being made
+		child = DocType name of the field thats being updated
+		name = docname
+		value = updated value of the field
+	"""
+	parent_list = get_link_fields(parent)
+	child_list = get_link_fields(child)
+
+	product_list = list_combinatrix(parent_list, child_list)
+
+	for d in product_list:
+		frappe.db.sql("""
+			update
+				`tab{doctype}`
+			set
+				{fieldname} = "{value}"
+			where
+				{parent_fieldname} = "{docname}"
+				and {fieldname} != "{value}"
+		""".format(
+			doctype = d['parent']['parent'],
+			fieldname = d['child']['fieldname'],
+			parent_fieldname = d['parent']['fieldname'],
+			value = value,
+			docname = name
+		))
+
+def list_combinatrix(dict1, dict2):
+	""" form all possible products with the given lists elements """
+	out, dict3 = [], {}
+
+	from itertools import product
+	prod = product(dict1, dict2)
+
+	for d in prod:
+		if d[0]['parent'] == d[1]['parent']:
+			dict3['parent'] = d[0]
+			dict3['child'] = d[1]
+			out.append(dict3)
+			dict3 = {}
+
+	return out
