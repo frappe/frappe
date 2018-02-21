@@ -1,6 +1,9 @@
 /**
  * frappe.views.ReportView
  */
+import DataTable from 'frappe-datatable';
+import 'frappe-datatable/dist/frappe-datatable.css';
+import '../../../../less/frappe-datatable.less';
 frappe.provide('frappe.views');
 
 frappe.views.ReportView = class ReportView extends frappe.views.ListView {
@@ -147,7 +150,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			enableClusterize: true,
 			addCheckbox: this.can_delete,
 			takeAvailableSpace: true,
-			editing: this.get_editing_object.bind(this),
+			getEditor: this.get_editing_object.bind(this),
 			events: {
 				onRemoveColumn: (column) => {
 					this.remove_column_from_datatable(column);
@@ -738,7 +741,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			docfield: docfield,
 			name: title,
 			content: title,
-			width: (docfield ? cint(docfield.width) : 120) || 120,
+			width: (docfield ? cint(docfield.width) : null) || null,
 			editable: editable
 		};
 	}

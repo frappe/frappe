@@ -236,6 +236,10 @@ cliui@^4.0.0:
     strip-ansi "^4.0.0"
     wrap-ansi "^2.0.0"
 
+clusterize.js@^0.18.0:
+  version "0.18.1"
+  resolved "https://registry.yarnpkg.com/clusterize.js/-/clusterize.js-0.18.1.tgz#a286a9749bd1fa9c2fe21b7fabd8780a590dd836"
+
 co@^4.6.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/co/-/co-4.6.0.tgz#6ea6bdf3d853ae54ccb8e47bfa0bf3f9031fb184"
@@ -601,6 +605,13 @@ formidable@^1.1.1:
 forwarded@~0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/forwarded/-/forwarded-0.1.2.tgz#98c23dab1175657b8c0573e8ceccd91b0ff18c84"
+
+frappe-datatable@frappe/datatable:
+  version "0.0.2"
+  resolved "https://codeload.github.com/frappe/datatable/tar.gz/3c4198fc8354a018c98e37287b946da692a9265d"
+  dependencies:
+    clusterize.js "^0.18.0"
+    sortablejs "^1.7.0"
 
 fresh@0.5.2:
   version "0.5.2"
@@ -1572,6 +1583,10 @@ socket.io@^2.0.4:
     socket.io-adapter "~1.1.0"
     socket.io-client "2.0.4"
     socket.io-parser "~3.1.1"
+
+sortablejs@^1.7.0:
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/sortablejs/-/sortablejs-1.7.0.tgz#80a2b2370abd568e1cec8c271131ef30a904fa28"
 
 source-map-support@^0.4.0:
   version "0.4.18"
