@@ -412,8 +412,8 @@ def update_linked_doctypes(parent, child, name, value):
 			doctype = d['parent']['parent'],
 			fieldname = d['child']['fieldname'],
 			parent_fieldname = d['parent']['fieldname'],
-			value = value,
-			docname = name
+			value = frappe.db.escape(value),
+			docname = frappe.db.escape(name)
 		))
 
 def list_combinatrix(dict1, dict2):
