@@ -13,8 +13,8 @@
 from __future__ import unicode_literals
 
 import frappe
-from frappe import _ 
-from frappe.model.document import Document 
+from frappe import _
+from frappe.model.document import Document
 from frappe.utils import now,cstr
 
 class NestedSetRecursionError(frappe.ValidationError): pass
@@ -220,7 +220,7 @@ class NestedSet(Document):
 	def after_rename(self, olddn, newdn, merge=False):
 		if not merge:
 			new_tree_node = frappe.db.get_value(self.doctype, newdn, [frappe.scrub(self.doctype)+"_name", frappe.scrub(self.doctype)+"_number"], as_dict=1)
-			
+
 			# exclude company abbr
 			new_parts = newdn.split(" - ")[:-1]
 			# update node number and remove from parts
@@ -300,7 +300,7 @@ def validate_field_number(doctype_name, name, field_value, company, field_name):
 @frappe.whitelist()
 def update_number_field(doctype_name, name, field_name, field_value):
 
-	field_key = frappe.scrub(doctype_name)+"_name" 
+	field_key = frappe.scrub(doctype_name)+"_name"
 	doc_details = frappe.db.get_value(doctype_name, name, [field_key, "company"], as_dict=True)
 
 	validate_field_number(doctype_name, name, field_value, doc_details.company, field_name)
