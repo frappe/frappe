@@ -371,7 +371,6 @@
 	"css/report.min.css": [
 		"public/less/report.less",
 		"public/css/tree_grid.css",
-		"public/less/frappe-datatable.less",
 
 		"public/js/lib/slickgrid/slick.grid.css",
 		"public/js/lib/slickgrid/slick-default-theme.css",
