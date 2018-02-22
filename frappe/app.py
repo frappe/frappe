@@ -123,7 +123,7 @@ def init_request(request):
 def make_form_dict(request):
 	import json
 
-	if request.content_type == 'application/json' and request.data:
+	if 'application/json' in (request.content_type or '') and request.data:
 		args = json.loads(request.data)
 	else:
 		args = request.form or request.args
