@@ -15,7 +15,7 @@ from frappe.model.document import Document
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate
-from frappe.model.db_schema import validate_column_name, validate_column_length
+from frappe.model.db_schema import validate_column_name, validate_column_length, type_map
 import frappe.website.render
 
 # imports - third-party imports
@@ -205,6 +205,8 @@ class DocType(Document):
 	def on_update(self):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
 		from frappe.model.db_schema import updatedb
+		self.rename_custom_fields()
+
 		updatedb(self.name, self)
 
 		self.change_modified_of_parent()
@@ -235,6 +237,28 @@ class DocType(Document):
 		# clear from local cache
 		if self.name in frappe.local.meta_cache:
 			del frappe.local.meta_cache[self.name]
+
+	def rename_custom_fields(self):
+		if not frappe.db.table_exists(self.name):
+			return
+		fields = [d.fieldname for d in self.fields if d.fieldtype in type_map]
+		custom_field_conflict = frappe.db.sql('''select name, fieldname from
+				`tabCustom Field`
+			where
+				fieldname in ({0})'''.format(', '.join(['%s'] * len(fields))), fields, as_dict=True)
+
+		for custom_field in custom_field_conflict:
+			if frappe.db.has_column(self.name, custom_field.fieldname):
+				frappe.db.commit()
+				column_type = frappe.db.get_column_type(self.name, custom_field.fieldname)
+
+				if not frappe.db.has_column(self.name, custom_field.fieldname + '_custom'):
+					frappe.db.sql('alter table `tab{0}` change `{1}` `{1}_custom` {2}'.format(self.name,
+						custom_field.fieldname, column_type))
+
+				# rename in custom field
+				frappe.db.set_value('Custom Field', custom_field.name, 'fieldname', custom_field.fieldname + '_custom')
+
 
 	def sync_global_search(self):
 		'''If global search settings are changed, rebuild search properties for this table'''

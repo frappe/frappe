@@ -352,7 +352,10 @@ def sync_from_app(app):
 			m['_doctype'] = m.pop('doctype')
 
 		desktop_icon.update(m)
-		desktop_icon.save()
+		try:
+			desktop_icon.save()
+		except frappe.exceptions.UniqueValidationError:
+			pass
 
 	return modules_list
 
