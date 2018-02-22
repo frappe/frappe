@@ -27,6 +27,8 @@ export default class ListFilter {
 			render_input: 1,
 		});
 
+		$(this.filter_input.label_area).css('font-size', 10);
+
 		this.is_global_input = frappe.ui.form.make_control({
 			df: {
 				fieldtype: 'Check',
