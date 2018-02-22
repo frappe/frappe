@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const touch = require('touch');
 
 const {
 	get_build_json_path,
@@ -7,7 +8,8 @@ const {
 	apps_list,
 	assets_path,
 	get_public_path,
-	bench_path
+	bench_path,
+	sites_path
 } = require('./rollup.utils');
 
 const less = require('rollup-plugin-less');
@@ -20,7 +22,7 @@ const frappe_html = require('./frappe-html-plugin');
 
 const production = process.env.FRAPPE_ENV === 'production';
 
-make_js_css_dirs();
+ensure_js_css_dirs();
 build_libs();
 
 function get_app_config(app) {
@@ -61,17 +63,31 @@ function get_app_config(app) {
 
 function get_js_config(output_file, input_files) {
 
+	const css_output_file = path.resolve(assets_path, 'css', path.basename(output_file).split('.js')[0] + '.css');
+
 	const plugins = [
 		// enables array of inputs
 		multi_entry(),
 		// .html -> .js
 		frappe_html(),
+		// less -> css
+		less({
+			output: css_output_file,
+			option: {
+				// so that other .less files can import variables.less from frappe directly
+				paths: [path.resolve(get_public_path('frappe'), 'less'), path.resolve(get_app_path('frappe'), '..')],
+				compress: production
+			},
+			// include: [path.resolve(bench_path, '**/*.less'), path.resolve(bench_path, '**/*.css')],
+			exclude: []
+		}),
 		// ES6 -> ES5
 		buble({
 			objectAssign: 'Object.assign',
 			transforms: {
 				dangerousForOf: true
-			}
+			},
+			exclude: [path.resolve(bench_path, '**/*.css'), path.resolve(bench_path, '**/*.less')]
 		}),
 		commonjs(),
 		node_resolve(),
@@ -85,15 +101,13 @@ function get_js_config(output_file, input_files) {
 			file: path.resolve(assets_path, output_file),
 			format: 'iife',
 			name: 'Rollup',
-			globals: {
-				'sortablejs': 'window.Sortable',
-				'clusterize.js': 'window.Clusterize'
-			}
+			// globals: {
+			// 	'sortablejs': 'window.Sortable',
+			// 	'clusterize.js': 'window.Clusterize'
+			// },
+			sourcemap: true
 		},
 		context: 'window',
-		onwarn: (e) => {
-			if (e.code === 'EVAL') return;
-		},
 		external: ['jquery']
 	};
 }
@@ -126,7 +140,7 @@ function get_css_config(output_file, input_files) {
 	};
 }
 
-function make_js_css_dirs() {
+function ensure_js_css_dirs() {
 	const paths = [
 		path.resolve(assets_path, 'js'),
 		path.resolve(assets_path, 'css')
@@ -135,6 +149,14 @@ function make_js_css_dirs() {
 		if (!fs.existsSync(path)) {
 			fs.mkdirSync(path);
 		}
+	});
+
+	// clear files in css folder
+	const css_path = path.resolve(assets_path, 'css');
+	const files = fs.readdirSync(css_path);
+
+	files.forEach(file => {
+		fs.unlinkSync(path.resolve(css_path, file));
 	});
 }
 
@@ -150,6 +172,7 @@ function build_libs() {
 	const target_path = path.resolve(assets_path, libs_path);
 	fs.writeFileSync(target_path, libs_content);
 	console.log('✨  Built libs.min.js'); // eslint-disable-line
+	touch(path.join(sites_path, '.build'), { force: true });
 }
 
 function get_all_apps_config() {

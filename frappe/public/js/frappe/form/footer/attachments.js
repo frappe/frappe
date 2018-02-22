@@ -140,7 +140,7 @@ frappe.ui.form.Attachments = Class.extend({
 				}
 				me.remove_fileid(fileid);
 				me.frm.get_docinfo().communications.push(r.message);
-				me.frm.timeline.refresh();
+				me.frm.timeline && me.frm.timeline.refresh();
 				if (callback) callback();
 			}
 		});
