@@ -26,7 +26,8 @@ from pymysql.constants import ER
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, sender_full_name=None, recipients=None, communication_medium="Email", send_email=False,
-	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, bcc=None, flags=None,read_receipt=None):
+	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, bcc=None,
+	flags=None, read_receipt=None, print_letterhead=True):
 	"""Make a new communication.
 
 	:param doctype: Reference DocType.
@@ -87,6 +88,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	frappe.db.commit()
 
 	if cint(send_email):
+		frappe.flags.print_letterhead = print_letterhead
 		comm.send(print_html, print_format, attachments, send_me_a_copy=send_me_a_copy)
 
 	return {
@@ -142,7 +144,8 @@ def notify(doc, print_html=None, print_format=None, attachments=None,
 		enqueue(sendmail, queue="default", timeout=300, event="sendmail",
 			communication_name=doc.name,
 			print_html=print_html, print_format=print_format, attachments=attachments,
-			recipients=recipients, cc=cc, bcc=bcc, lang=frappe.local.lang, session=frappe.local.session)
+			recipients=recipients, cc=cc, bcc=bcc, lang=frappe.local.lang,
+			session=frappe.local.session, print_letterhead=frappe.flags.print_letterhead)
 
 def _notify(doc, print_html=None, print_format=None, attachments=None,
 	recipients=None, cc=None, bcc=None):
@@ -171,7 +174,8 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		delayed=True,
 		communication=doc.name,
 		read_receipt=doc.read_receipt,
-		is_notification=True if doc.sent_or_received =="Received" else False
+		is_notification=True if doc.sent_or_received =="Received" else False,
+		print_letterhead=True if frappe.flags.print_letterhead=='true' else False
 	)
 
 def update_parent_mins_to_first_response(doc):
@@ -466,7 +470,7 @@ def get_attach_link(doc, print_format):
 	})
 
 def sendmail(communication_name, print_html=None, print_format=None, attachments=None,
-	recipients=None, cc=None, bcc=None, lang=None, session=None):
+	recipients=None, cc=None, bcc=None, lang=None, session=None, print_letterhead=None):
 	try:
 
 		if lang:
@@ -476,6 +480,9 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 			# hack to enable access to private files in PDF
 			session['data'] = frappe._dict(session['data'])
 			frappe.local.session.update(session)
+
+		if print_letterhead:
+			frappe.flags.print_letterhead = print_letterhead
 
 		# upto 3 retries
 		for i in range(3):

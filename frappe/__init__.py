@@ -14,7 +14,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '10.0.25'
+__version__ = '10.1.0'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -384,7 +384,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=[], bcc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
 		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
-		inline_images=None, template=None, args=None, header=None):
+		inline_images=None, template=None, args=None, header=None, print_letterhead=False):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -433,7 +433,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		attachments=attachments, reply_to=reply_to, cc=cc, bcc=bcc, message_id=message_id, in_reply_to=in_reply_to,
 		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
 		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification,
-		inline_images=inline_images, header=header)
+		inline_images=inline_images, header=header, print_letterhead=print_letterhead)
 
 whitelisted = []
 guest_methods = []
@@ -1250,7 +1250,7 @@ def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
 	else:
 		return html
 
-def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None, doc=None, lang=None):
+def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None, doc=None, lang=None, print_letterhead=False):
 	from frappe.utils import scrub_urls
 
 	if not file_name: file_name = name
@@ -1264,15 +1264,17 @@ def attach_print(doctype, name, file_name=None, print_format=None, style=None, h
 	if lang: local.lang = lang
 	local.flags.ignore_print_permissions = True
 
+	no_letterhead = not print_letterhead
+
 	if int(print_settings.send_print_as_pdf or 0):
 		out = {
 			"fname": file_name + ".pdf",
-			"fcontent": get_print(doctype, name, print_format=print_format, style=style, html=html, as_pdf=True, doc=doc)
+			"fcontent": get_print(doctype, name, print_format=print_format, style=style, html=html, as_pdf=True, doc=doc, no_letterhead=no_letterhead)
 		}
 	else:
 		out = {
 			"fname": file_name + ".html",
-			"fcontent": scrub_urls(get_print(doctype, name, print_format=print_format, style=style, html=html, doc=doc)).encode("utf-8")
+			"fcontent": scrub_urls(get_print(doctype, name, print_format=print_format, style=style, html=html, doc=doc, no_letterhead=no_letterhead)).encode("utf-8")
 		}
 
 	local.flags.ignore_print_permissions = False
