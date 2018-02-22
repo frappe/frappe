@@ -78,9 +78,6 @@ class RazorpaySettings(Document):
 			except Exception:
 				frappe.throw(_("Seems API Key or API Secret is wrong !!!"))
 
-	def on_payment_request_submission(self, data):
-		return True
-
 	def validate_transaction_currency(self, currency):
 		if currency not in self.supported_currencies:
 			frappe.throw(_("Please select another payment method. Razorpay does not support transactions in currency '{0}'").format(currency))
