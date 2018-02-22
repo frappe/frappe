@@ -239,7 +239,7 @@ class DocType(Document):
 			del frappe.local.meta_cache[self.name]
 
 	def rename_custom_fields(self):
-		if not frappe.db.table_exists(self.name):
+		if not (frappe.db.table_exists(self.name) and frappe.db.table_exists("Custom Field")):
 			return
 		fields = [d.fieldname for d in self.fields if d.fieldtype in type_map]
 		custom_field_conflict = frappe.db.sql('''select name, fieldname from
