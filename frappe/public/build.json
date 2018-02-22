@@ -111,7 +111,6 @@
 		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
-<<<<<<< HEAD
 		"public/less/desk.less",
 		"public/less/flex.less",
 		"public/less/indicator.less",
@@ -126,23 +125,6 @@
 		"public/less/kanban.less",
 		"public/less/controls.less",
 		"public/less/chat.less"
-=======
-		"public/css/desk.css",
-		"public/css/flex.css",
-		"public/css/indicator.css",
-		"public/css/avatar.css",
-		"public/css/navbar.css",
-		"public/css/sidebar.css",
-		"public/css/stored_filters.css",
-		"public/css/page.css",
-		"public/css/tree.css",
-		"public/css/desktop.css",
-		"public/css/form.css",
-		"public/css/mobile.css",
-		"public/css/kanban.css",
-		"public/css/controls.css",
-		"public/css/chat.css"
->>>>>>> Adds a stored filters tool on the sidebar
 	],
 	"css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",
@@ -342,7 +324,6 @@
 		"public/js/frappe/list/list_sidebar.js",
 		"public/js/frappe/list/list_sidebar.html",
 		"public/js/frappe/list/list_sidebar_stat.html",
-		"public/js/frappe/list/list_stored_filters.html",
 		"public/js/frappe/list/list_item_main.html",
 		"public/js/frappe/list/list_item_row.html",
 		"public/js/frappe/list/list_item_main_head.html",
