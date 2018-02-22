@@ -400,21 +400,22 @@ def update_linked_doctypes(parent, child, name, value):
 	product_list = list_combinatrix(parent_list, child_list)
 
 	for d in product_list:
-		frappe.db.sql("""
-			update
-				`tab{doctype}`
-			set
-				{fieldname} = "{value}"
-			where
-				{parent_fieldname} = "{docname}"
-				and {fieldname} != "{value}"
-		""".format(
-			doctype = d['parent']['parent'],
-			fieldname = d['child']['fieldname'],
-			parent_fieldname = d['parent']['fieldname'],
-			value = value,
-			docname = name
-		))
+		if not d['parent']['issingle']:
+			frappe.db.sql("""
+				update
+					`tab{doctype}`
+				set
+					{fieldname} = "{value}"
+				where
+					{parent_fieldname} = "{docname}"
+					and {fieldname} != "{value}"
+			""".format(
+				doctype = d['parent']['parent'],
+				fieldname = d['child']['fieldname'],
+				parent_fieldname = d['parent']['fieldname'],
+				value = frappe.db.escape(value),
+				docname = frappe.db.escape(name)
+			))
 
 def list_combinatrix(dict1, dict2):
 	""" form all possible products with the given lists elements """
