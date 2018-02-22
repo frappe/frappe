@@ -697,7 +697,6 @@ _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 		$(document.activeElement).blur();
 
 		frappe.ui.form.close_grid_form();
-
 		// let any pending js process finish
 		setTimeout(function() {
 			me._save(save_action, callback, btn, on_error, resolve);
@@ -761,30 +760,34 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error, resolve)
 
 _f.Frm.prototype.savesubmit = function(btn, callback, on_error) {
 	var me = this;
-	this.validate_form_action("Submit");
-	frappe.confirm(__("Permanently Submit {0}?", [this.docname]), function() {
-		frappe.validated = true;
-		me.script_manager.trigger("before_submit").then(function() {
-			if(!frappe.validated) {
-				if(on_error) {
-					on_error();
-				}
-				return;
-			}
 
-			return me.save('Submit', function(r) {
-				if(r.exc) {
-					if (on_error) {
+	return new Promise(resolve => {
+		this.validate_form_action("Submit");
+		frappe.confirm(__("Permanently Submit {0}?", [this.docname]), function() {
+			frappe.validated = true;
+			me.script_manager.trigger("before_submit").then(function() {
+				if(!frappe.validated) {
+					if(on_error) {
 						on_error();
 					}
-				} else {
-					frappe.utils.play_sound("submit");
-					callback && callback();
-					me.script_manager.trigger("on_submit");
+					return;
 				}
-			}, btn, on_error);
-		});
-	}, on_error);
+
+				me.save('Submit', function(r) {
+					if(r.exc) {
+						if (on_error) {
+							on_error();
+						}
+					} else {
+						frappe.utils.play_sound("submit");
+						callback && callback();
+						me.script_manager.trigger("on_submit")
+							.then(() => resolve(me));
+					}
+				}, btn, on_error, resolve);
+			});
+		}, on_error);
+	});
 };
 
 _f.Frm.prototype.savecancel = function(btn, callback, on_error) {

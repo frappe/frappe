@@ -24,7 +24,7 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 		attachments=None, reply_to=None, cc=[], bcc=[], message_id=None, in_reply_to=None, send_after=None,
 		expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None,
 		queue_separately=False, is_notification=False, add_unsubscribe_link=1, inline_images=None,
-		header=None):
+		header=None, print_letterhead=False):
 	"""Add email to sending queue (Email Queue)
 
 	:param recipients: List of recipients.
@@ -131,7 +131,8 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 		is_notification = is_notification,
 		inline_images = inline_images,
 		header=header,
-		now=now)
+		now=now,
+		print_letterhead=print_letterhead)
 
 
 def add(recipients, sender, subject, **kwargs):
@@ -169,6 +170,7 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 				_attachments.append(att)
 			elif att.get("print_format_attachment") == 1:
 				att['lang'] = frappe.local.lang
+				att['print_letterhead'] = kwargs.get('print_letterhead')
 				_attachments.append(att)
 		e.attachments = json.dumps(_attachments)
 
