@@ -7,6 +7,7 @@ import warnings
 
 from six import iteritems, text_type
 import subprocess
+from distutils.spawn import find_executable
 
 """
 Build the `public` folders and setup languages
@@ -24,13 +25,23 @@ def setup():
 		except ImportError: pass
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
+def get_node_pacman():
+	pacmans = ['npm', 'yarn']
+	for exec_ in pacmans:
+		exec_ = find_executable(exec_)
+		if exec_:
+			return exec_
+	raise ValueError('No Node.js Package Manager found.')
+
 def bundle(no_compress, make_copy=False, restore=False, verbose=False):
 	"""concat / minify js files"""
 	# build js files
 	setup()
 	make_asset_dirs(make_copy=make_copy, restore=restore)
 
-	command = 'yarn run build' if no_compress else 'yarn run production'
+	pacman = get_node_pacman()
+
+	command = '{pacman} run build'.format(pacman=pacman) if no_compress else '{pacman} run production'.format(pacman=pacman)
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
 	subprocess.call(command.split(" "), cwd=frappe_app_path)
 
@@ -38,8 +49,10 @@ def watch(no_compress):
 	"""watch and rebuild if necessary"""
 	setup()
 
+	pacman = get_node_pacman()
+
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
-	subprocess.call('yarn run watch'.split(" "), cwd = frappe_app_path)
+	subprocess.call('{pacman} run watch'.format(pacman=pacman).split(" "), cwd = frappe_app_path)
 
 def make_asset_dirs(make_copy=False, restore=False):
 	# don't even think of making assets_path absolute - rm -rf ahead.
