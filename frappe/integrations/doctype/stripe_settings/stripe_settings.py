@@ -28,7 +28,7 @@ class StripeSettings(Document):
 		call_hook_method('payment_gateway_enabled', gateway='Stripe')
 		if not self.flags.ignore_mandatory:
 			self.validate_stripe_credentails()
-	
+
 	def validate_stripe_credentails(self):
 		if self.publishable_key and self.secret_key:
 			header = {"Authorization": "Bearer {0}".format(self.get_password(fieldname="secret_key", raise_exception=False))}
@@ -36,14 +36,14 @@ class StripeSettings(Document):
 				make_get_request(url="https://api.stripe.com/v1/charges", headers=header)
 			except Exception:
 				frappe.throw(_("Seems Publishable Key or Secret Key is wrong !!!"))
-	
+
 	def validate_transaction_currency(self, currency):
 		if currency not in self.supported_currencies:
 			frappe.throw(_("Please select another payment method. Stripe does not support transactions in currency '{0}'").format(currency))
 
 	def get_payment_url(self, **kwargs):
 		return get_url("./integrations/stripe_checkout?{0}".format(urlencode(kwargs)))
-	
+
 	def create_request(self, data):
 		self.data = frappe._dict(data)
 
@@ -56,24 +56,24 @@ class StripeSettings(Document):
 				"redirect_to": frappe.redirect_to_message(_('Server Error'), _("Seems issue with server's razorpay config. Don't worry, in case of failure amount will get refunded to your account.")),
 				"status": 401
 			}
-	
+
 	def create_charge_on_stripe(self):
 		headers = {"Authorization":
 			"Bearer {0}".format(self.get_password(fieldname="secret_key", raise_exception=False))}
-		
+
 		data = {
 			"amount": cint(flt(self.data.amount)*100),
 			"currency": self.data.currency,
 			"source": self.data.stripe_token_id,
 			"description": self.data.description
 		}
-		
+
 		redirect_to = self.data.get('redirect_to') or None
 		redirect_message = self.data.get('redirect_message') or None
 
 		try:
 			resp = make_post_request(url="https://api.stripe.com/v1/charges", headers=headers, data=data)
-			
+
 			if resp.get("captured") == True:
 				self.integration_request.db_set('status', 'Completed', update_modified=False)
 				self.flags.status_changed_to = "Completed"
