@@ -15,6 +15,8 @@ from bs4 import BeautifulSoup
 import jinja2.exceptions
 from six import text_type
 
+import io
+
 def sync():
 	# make table
 	print('Syncing help database...')
@@ -55,7 +57,7 @@ class HelpDatabase(object):
 		self.global_help_setup = frappe.conf.get('global_help_setup')
 		if self.global_help_setup:
 			bench_name = os.path.basename(os.path.abspath(frappe.get_app_path('frappe')).split('/apps/')[0])
-			self.help_db_name = hashlib.sha224(bench_name).hexdigest()[:15]
+			self.help_db_name = hashlib.sha224(bench_name.encode('utf-8')).hexdigest()[:15]
 
 	def make_database(self):
 		'''make database for global help setup'''
@@ -135,9 +137,9 @@ class HelpDatabase(object):
 					for fname in files:
 						if fname.rsplit('.', 1)[-1] in ('md', 'html'):
 							fpath = os.path.join(basepath, fname)
-							with open(fpath, 'r') as f:
+							with io.open(fpath, 'r', encoding = 'utf-8') as f:
 								try:
-									content = frappe.render_template(text_type(f.read(), 'utf-8'),
+									content = frappe.render_template(f.read(),
 										{'docs_base_url': '/assets/{app}_docs'.format(app=app)})
 
 									relpath = self.get_out_path(fpath)
@@ -235,7 +237,7 @@ class HelpDatabase(object):
 
 			# files not in index.txt
 			for f in os.listdir(path):
-				if not os.path.isdir(os.path.join(path, f)):
+				if not os.path.isdir(os.path.join(path, f)) and len(f.rsplit('.', 1)) == 2:
 					name, extn = f.rsplit('.', 1)
 					if name not in files \
 						and name != 'index' and extn in ('md', 'html'):

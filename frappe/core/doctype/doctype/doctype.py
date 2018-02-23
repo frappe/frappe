@@ -15,7 +15,7 @@ from frappe.model.document import Document
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate
-from frappe.model.db_schema import validate_column_name, validate_column_length
+from frappe.model.db_schema import validate_column_name, validate_column_length, type_map
 import frappe.website.render
 
 # imports - third-party imports
@@ -205,6 +205,7 @@ class DocType(Document):
 	def on_update(self):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
 		from frappe.model.db_schema import updatedb
+		self.delete_duplicate_custom_fields()
 		updatedb(self.name, self)
 
 		self.change_modified_of_parent()
@@ -235,6 +236,17 @@ class DocType(Document):
 		# clear from local cache
 		if self.name in frappe.local.meta_cache:
 			del frappe.local.meta_cache[self.name]
+
+	def delete_duplicate_custom_fields(self):
+		if not (frappe.db.table_exists(self.name) and frappe.db.table_exists("Custom Field")):
+			return
+		fields = [d.fieldname for d in self.fields if d.fieldtype in type_map]
+
+		frappe.db.sql('''delete from
+				`tabCustom Field`
+			where
+				 dt = {0} and fieldname in ({1})
+		'''.format('%s', ', '.join(['%s'] * len(fields))), tuple([self.name] + fields), as_dict=True)
 
 	def sync_global_search(self):
 		'''If global search settings are changed, rebuild search properties for this table'''
@@ -391,6 +403,8 @@ class DocType(Document):
 			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
 
 def validate_fields_for_doctype(doctype):
+	doc = frappe.get_doc("DocType", doctype)
+	doc.delete_duplicate_custom_fields()
 	validate_fields(frappe.get_meta(doctype, cached=False))
 
 # this is separate because it is also called via custom field
