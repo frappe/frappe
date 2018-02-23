@@ -196,7 +196,6 @@ class User(Document):
 
 					if not self.flags.no_welcome_mail and self.send_welcome_email:
 						self.send_welcome_mail_to_user()
-						self.flags.email_sent = 1
 						if frappe.session.user != 'Guest':
 							msgprint(_("Welcome email sent"))
 						return
@@ -266,6 +265,8 @@ class User(Document):
 					link=link,
 					site_url=get_url(),
 				))
+
+		self.flags.email_sent = 1
 
 	def send_login_mail(self, subject, template, add_args, now=None):
 		"""send mail with login details"""
@@ -729,9 +730,11 @@ def verify_password(password):
 
 @frappe.whitelist(allow_guest=True)
 def sign_up(email, full_name, redirect_to):
+	# Check is signup enabled
 	if not is_signup_enabled():
 		frappe.throw(_('Sign Up is disabled'), title='Not Allowed')
 
+	# Check if registered (exists)
 	user = frappe.db.get("User", {"email": email})
 	if user:
 		if user.disabled:
@@ -739,29 +742,8 @@ def sign_up(email, full_name, redirect_to):
 		else:
 			return 0, _("Already Registered")
 	else:
-		if frappe.db.sql("""select count(*) from tabUser where
-			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 300:
-
-			frappe.respond_as_web_page(_('Temperorily Disabled'),
-				_('Too many users signed up recently, so the registration is disabled. Please try back in an hour'),
-				http_status_code=429)
-
-		from frappe.utils import random_string
-		user = frappe.get_doc({
-			"doctype":"User",
-			"email": email,
-			"first_name": full_name,
-			"enabled": 1,
-			"new_password": random_string(10),
-			"user_type": "Website User"
-		})
-		user.flags.ignore_permissions = True
-		user.insert()
-
-		# set default signup role as per Portal Settings
-		default_role = frappe.db.get_value("Portal Settings", None, "default_role")
-		if default_role:
-			user.add_roles(default_role)
+		check_for_spamming()
+		user = create_user(email, full_name)
 
 		if redirect_to:
 			frappe.cache().hset('redirect_after_login', user.name, redirect_to)
@@ -770,6 +752,35 @@ def sign_up(email, full_name, redirect_to):
 			return 1, _("Please check your email for verification")
 		else:
 			return 2, _("Please ask your administrator to verify your sign-up")
+
+def check_for_spamming():
+	# Check for spam signup (timestamp too recent)
+	if frappe.db.sql("""select count(*) from tabUser where
+		HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 300:
+
+		frappe.respond_as_web_page(_('Temperorily Disabled'),
+			_('Too many users signed up recently, so the registration is disabled. Please try back in an hour'),
+			http_status_code=429)
+
+def create_user(email, full_name):
+	from frappe.utils import random_string
+	user = frappe.get_doc({
+		"doctype":"User",
+		"email": email,
+		"first_name": full_name,
+		"enabled": 1,
+		"new_password": random_string(10),
+		"user_type": "Website User"
+	})
+	user.flags.ignore_permissions = True
+	user.insert()
+
+	# set default signup role as per Portal Settings
+	default_role = frappe.db.get_value("Portal Settings", None, "default_role")
+	if default_role:
+		user.add_roles(default_role)
+
+	return user
 
 @frappe.whitelist(allow_guest=True)
 def reset_password(user):
