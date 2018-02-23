@@ -58,7 +58,8 @@ class DocType(Document):
 		self.set_default_in_list_view()
 		self.validate_series()
 		self.validate_document_type()
-		validate_fields(self)
+		self.delete_duplicate_custom_fields()
+		validate_fields(frappe.get_meta(self.name, cached=False))
 
 		if self.istable:
 			# no permission records for child table
@@ -205,8 +206,6 @@ class DocType(Document):
 	def on_update(self):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
 		from frappe.model.db_schema import updatedb
-		self.rename_custom_fields()
-
 		updatedb(self.name, self)
 
 		self.change_modified_of_parent()
@@ -238,27 +237,16 @@ class DocType(Document):
 		if self.name in frappe.local.meta_cache:
 			del frappe.local.meta_cache[self.name]
 
-	def rename_custom_fields(self):
+	def delete_duplicate_custom_fields(self):
 		if not (frappe.db.table_exists(self.name) and frappe.db.table_exists("Custom Field")):
 			return
 		fields = [d.fieldname for d in self.fields if d.fieldtype in type_map]
-		custom_field_conflict = frappe.db.sql('''select name, fieldname from
+
+		frappe.db.sql('''delete from
 				`tabCustom Field`
 			where
-				fieldname in ({0})'''.format(', '.join(['%s'] * len(fields))), fields, as_dict=True)
-
-		for custom_field in custom_field_conflict:
-			if frappe.db.has_column(self.name, custom_field.fieldname):
-				frappe.db.commit()
-				column_type = frappe.db.get_column_type(self.name, custom_field.fieldname)
-
-				if not frappe.db.has_column(self.name, custom_field.fieldname + '_custom'):
-					frappe.db.sql('alter table `tab{0}` change `{1}` `{1}_custom` {2}'.format(self.name,
-						custom_field.fieldname, column_type))
-
-				# rename in custom field
-				frappe.db.set_value('Custom Field', custom_field.name, 'fieldname', custom_field.fieldname + '_custom')
-
+				 dt = {0} and fieldname in ({1})
+		'''.format('%s', ', '.join(['%s'] * len(fields))), tuple([self.name] + fields), as_dict=True)
 
 	def sync_global_search(self):
 		'''If global search settings are changed, rebuild search properties for this table'''
@@ -415,6 +403,8 @@ class DocType(Document):
 			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
 
 def validate_fields_for_doctype(doctype):
+	doc = frappe.get_doc("DocType", doctype)
+	doc.delete_duplicate_custom_fields()
 	validate_fields(frappe.get_meta(doctype, cached=False))
 
 # this is separate because it is also called via custom field
