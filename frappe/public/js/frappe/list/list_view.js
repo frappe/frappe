@@ -8,15 +8,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (route.length === 2) {
 			// List/{doctype} => List/{doctype}/{last_view} or List
 			const user_settings = frappe.get_user_settings(doctype);
-			frappe.set_route('List', doctype, user_settings.last_view || 'List');
+			const last_view = user_settings.last_view;
+			frappe.set_route('List', doctype, frappe.views.is_valid(last_view) ? last_view : 'List');
 			return true;
 		}
 		return false;
-	}
-
-	get view_name() {
-		// ListView -> List
-		return this.constructor.name.split('View')[0];
 	}
 
 	show() {
@@ -36,6 +32,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_defaults() {
 		super.setup_defaults();
+		this.view_name = 'List';
 		// initialize with saved filters
 		const saved_filters = this.view_user_settings.filters;
 		if (saved_filters) {

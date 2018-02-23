@@ -24,6 +24,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 	setup_defaults() {
 		super.setup_defaults();
+		this.view_name = 'Kanban';
 		this.board_name = frappe.get_route()[3];
 		this.page_title = this.board_name;
 	}

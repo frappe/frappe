@@ -9,6 +9,7 @@ frappe.provide('frappe.views');
 frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_defaults() {
 		super.setup_defaults();
+		this.view_name = 'Report';
 		this.page_title = __('Report:') + ' ' + this.page_title;
 		this.menu_items = this.report_menu_items();
 
