@@ -71,5 +71,15 @@ frappe.db = {
 				callback: r => resolve(r.message)
 			});
 		});
+	},
+	insert: function(doc) {
+		return new Promise(resolve => {
+			frappe.call('frappe.client.insert', { doc }, r => resolve(r.message));
+		});
+	},
+	delete_doc: function(doctype, name) {
+		return new Promise(resolve => {
+			frappe.call('frappe.client.delete', { doctype, name }, r => resolve(r.message));
+		});
 	}
 };
