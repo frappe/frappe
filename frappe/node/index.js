@@ -1,9 +1,10 @@
+const path     = require("path");
+const fs       = require("fs");
+
 var app = require('express')();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var cookie = require('cookie')
-var fs = require('fs');
-var path = require('path');
 var redis = require("redis");
 var request = require('superagent');
 
@@ -422,3 +423,11 @@ function get_conf() {
 
 	return conf;
 }
+
+const frappe   =
+{
+	socket: io,
+	   log: console // TODO: Replace with a custom one. Y'know, the pretty one.
+}
+
+module.exports = frappe;
