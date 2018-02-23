@@ -182,40 +182,46 @@ def update_link_field_values(link_fields, old, new, doctype):
 
 def get_link_fields(doctype):
 	# get link fields from tabDocField
-	link_fields = frappe.db.sql("""\
-		select parent, fieldname,
-			(select issingle from tabDocType dt
-			where dt.name = df.parent) as issingle
-		from tabDocField df
-		where
-			df.options=%s and df.fieldtype='Link'""", (doctype,), as_dict=1)
+	if not frappe.flags.link_fields:
+		frappe.flags.link_fields = {}
 
-	# get link fields from tabCustom Field
-	custom_link_fields = frappe.db.sql("""\
-		select dt as parent, fieldname,
-			(select issingle from tabDocType dt
-			where dt.name = df.dt) as issingle
-		from `tabCustom Field` df
-		where
-			df.options=%s and df.fieldtype='Link'""", (doctype,), as_dict=1)
+	if not doctype in frappe.flags.link_fields:
+		link_fields = frappe.db.sql("""\
+			select parent, fieldname,
+				(select issingle from tabDocType dt
+				where dt.name = df.parent) as issingle
+			from tabDocField df
+			where
+				df.options=%s and df.fieldtype='Link'""", (doctype,), as_dict=1)
 
-	# add custom link fields list to link fields list
-	link_fields += custom_link_fields
+		# get link fields from tabCustom Field
+		custom_link_fields = frappe.db.sql("""\
+			select dt as parent, fieldname,
+				(select issingle from tabDocType dt
+				where dt.name = df.dt) as issingle
+			from `tabCustom Field` df
+			where
+				df.options=%s and df.fieldtype='Link'""", (doctype,), as_dict=1)
 
-	# remove fields whose options have been changed using property setter
-	property_setter_link_fields = frappe.db.sql("""\
-		select ps.doc_type as parent, ps.field_name as fieldname,
-			(select issingle from tabDocType dt
-			where dt.name = ps.doc_type) as issingle
-		from `tabProperty Setter` ps
-		where
-			ps.property_type='options' and
-			ps.field_name is not null and
-			ps.value=%s""", (doctype,), as_dict=1)
+		# add custom link fields list to link fields list
+		link_fields += custom_link_fields
 
-	link_fields += property_setter_link_fields
+		# remove fields whose options have been changed using property setter
+		property_setter_link_fields = frappe.db.sql("""\
+			select ps.doc_type as parent, ps.field_name as fieldname,
+				(select issingle from tabDocType dt
+				where dt.name = ps.doc_type) as issingle
+			from `tabProperty Setter` ps
+			where
+				ps.property_type='options' and
+				ps.field_name is not null and
+				ps.value=%s""", (doctype,), as_dict=1)
 
-	return link_fields
+		link_fields += property_setter_link_fields
+
+		frappe.flags.link_fields[doctype] = link_fields
+
+	return frappe.flags.link_fields[doctype]
 
 def update_options_for_fieldtype(fieldtype, old, new):
 	if frappe.conf.developer_mode:
