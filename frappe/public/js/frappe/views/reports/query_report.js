@@ -1,10 +1,9 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 import DataTable from 'frappe-datatable';
 
 frappe.provide("frappe.views");
 frappe.provide("frappe.query_reports");
-
 
 frappe.standard_pages["query-report"] = function() {
 	var wrapper = frappe.container.add_page('query-report');
@@ -20,12 +19,17 @@ frappe.standard_pages["query-report"] = function() {
 	});
 
 	$(wrapper).bind("show", function() {
-		// frappe.query_report.load();
+		frappe.query_report.init();
 	});
 };
 
 frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
+	show() {
+
+	}
+
 	init() {
+		console.log('init')
 		if (this.init_promise && frappe.get_route()[1] === this.report_name) {
 			return this.init_promise;
 		}
@@ -83,16 +87,22 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	setup_report_wrapper() {
+		if (this.$report) return;
 		this.$report = $('<div class="report-wrapper">').appendTo(this.page.main);
 	}
 
 	setup_report() {
+		this.$report.empty();
+		this.datatable = null;
 		return this.load_report_script()
 			.then(() => this.load_report());
 	}
 
 	load_report_script() {
-		if (frappe.query_reports[this.report_name]) return this._load_script;
+		if (frappe.query_reports[this.report_name]) {
+			this.report_settings = frappe.query_reports[this.report_name];
+			return this._load_script;
+		}
 
 		this._load_script = (new Promise(resolve => frappe.call({
 			method: 'frappe.desk.query_report.get_script',
@@ -219,6 +229,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	render_report(data) {
+		this._data = data.result;
 		if (this.datatable) {
 			this.datatable.refresh(data.result);
 			return;
@@ -226,7 +237,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.datatable = new DataTable(this.$report[0], {
 			columns: this.prepare_columns(data.columns),
 			data: data.result,
-			enableInlineFilters: true
+			enableInlineFilters: true,
+			// layout: 'fluid'
 		});
 	}
 
@@ -258,15 +270,36 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return column;
 		});
 
+		let get_original_data = (rowIndex) => {
+			return this._data[rowIndex];
+		};
+
 		return columns.map(column => {
 			return {
 				id: column.fieldname,
 				content: column.label,
 				width: column.width || null,
 				editable: false,
-				format: (value) => frappe.format(value, column)
+				format: (value, cell) => {
+					const original_data = this._data[cell.rowIndex];//get_original_data(cell.rowIndex);
+					let out = frappe.format(value, column);
+					if (original_data.indent !== undefined && cell.colIndex === 1) {
+						const next_row = get_original_data(cell.rowIndex + 1);
+						const is_parent = next_row && next_row.indent > original_data.indent;
+						const margin = 21 * original_data.indent;
+						out = `<span class="report-tree-node" style="margin-left: ${margin}px">
+							${is_parent ? '<span class="octicon octicon-triangle-down text-muted toggle"></span>': ''}
+							${out}
+						</span>`;
+					}
+					return out;
+				}
 			};
 		});
+	}
+
+	get_data() {
+
 	}
 
 	get_filter_values(raise) {

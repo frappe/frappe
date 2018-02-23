@@ -169,7 +169,7 @@ frappe.views.BaseList = class BaseList {
 			}
 			const $item = this.page.add_menu_item(item.label, item.action, item.standard);
 			if (item.class) {
-				$item.addClass(item.class);
+				$item && $item.addClass(item.class);
 			}
 		});
 	}
