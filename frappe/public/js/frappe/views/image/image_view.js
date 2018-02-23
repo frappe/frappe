@@ -7,6 +7,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 
 	setup_defaults() {
 		super.setup_defaults();
+		this.view_name = 'Image';
 		this.page_title = this.page_title + ' ' + __('Images');
 	}
 
