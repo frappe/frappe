@@ -1012,8 +1012,8 @@ _f.Frm.prototype.show_update_number_field = function() {
 	var me = this;
 	
 	if(!this.doc.__islocal && (frappe.get_meta(me.doctype).fields.filter(function(fld) {
-			return (fld.fieldname == "lft" || fld.fieldname == "rgt" || fld.fieldname == frappe.scrub(me.doctype+" number"));
-		}).length == 3)) {
+		return (fld.fieldname == "lft" || fld.fieldname == "rgt" || fld.fieldname == frappe.scrub(me.doctype+" number"));
+	}).length == 3)) {
 		this.add_custom_button(__('Update ' + me.doctype + ' Number'), function() {
 			var d = new frappe.ui.Dialog({
 				title: __('Update ' + me.doctype + ' Number'),
