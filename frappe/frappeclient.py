@@ -318,7 +318,7 @@ class FrappeOAuth2Client(FrappeClient):
 class OAuth2Session():
 	def __init__(self, headers):
 		self.headers = headers
-	def get(self, url, params, verify):
+	def get(self, url, params, headers, verify):
 		res = requests.get(url, params=params, headers=self.headers, verify=verify)
 		return res
 	def post(self, url, data, verify):
