@@ -393,48 +393,58 @@ def bulk_rename(doctype, rows=None, via_console = False):
 	if not via_console:
 		return rename_log
 
-def update_linked_doctypes(parent, child, name, value):
+def update_linked_doctypes(linked_doctype_info_list, docname, value):
 	"""
-		parent = Master DocType in which the changes are being made
-		child = DocType name of the field thats being updated
-		name = docname
-		value = updated value of the field
+		linked_doctype_info_list = list formed by get_fetch_fields() function
+		docname = Master DocType's name in which modification are made
+		value = Value for the field thats set in other DocType's by fetching from Master DocType
 	"""
-	parent_list = get_link_fields(parent)
-	child_list = get_link_fields(child)
 
-	product_list = list_combinatrix(parent_list, child_list)
+	for d in linked_doctype_info_list:
+		frappe.db.sql("""
+			update
+				`tab{doctype}`
+			set
+				{linked_to_fieldname} = "{value}"
+			where
+				{master_fieldname} = "{docname}"
+				and {linked_to_fieldname} != "{value}"
+		""".format(
+			doctype = d['doctype'],
+			linked_to_fieldname = d['linked_to_fieldname'],
+			value = value,
+			master_fieldname = d['master_fieldname'],
+			docname = docname
+		))
 
-	for d in product_list:
-		if not d['parent']['issingle']:
-			frappe.db.sql("""
-				update
-					`tab{doctype}`
-				set
-					{fieldname} = "{value}"
-				where
-					{parent_fieldname} = "{docname}"
-					and {fieldname} != "{value}"
-			""".format(
-				doctype = d['parent']['parent'],
-				fieldname = d['child']['fieldname'],
-				parent_fieldname = d['parent']['fieldname'],
-				value = frappe.db.escape(value),
-				docname = frappe.db.escape(name)
-			))
+def get_fetch_fields(master, linked_to):
+	"""
+		master = Master DocType in which the changes are being made
+		linked_to = DocType name of the field thats being updated in Master
 
-def list_combinatrix(dict1, dict2):
-	""" form all possible products with the given lists elements """
-	out, dict3 = [], {}
+		This function fetches list of all DocType where both master and linked_to is found
+		as link fields.
+		Forms a list of dict in the form -
+			[{doctype: , parent_fieldname: , child_fieldname: ]
+		where
+			doctype = DocType where changes need to be made
+			parent_fieldname = Fieldname where options = parent
+			child_fieldname = Fieldname where options = child
+	"""
+
+	master_list = get_link_fields(master)
+	linked_to_list = get_link_fields(linked_to)
+	out, linked_doctype_info = [], {}
 
 	from itertools import product
-	prod = product(dict1, dict2)
+	product_list = product(master_list, linked_to_list)
 
-	for d in prod:
+	for d in product_list:
 		if d[0]['parent'] == d[1]['parent']:
-			dict3['parent'] = d[0]
-			dict3['child'] = d[1]
-			out.append(dict3)
-			dict3 = {}
+			linked_doctype_info['doctype'] = d[0]['parent']
+			linked_doctype_info['master_fieldname'] = d[0]['fieldname']
+			linked_doctype_info['linked_to_fieldname'] = d[1]['fieldname']
+			out.append(linked_doctype_info)
+			linked_doctype_info = {}
 
 	return out
