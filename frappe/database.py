@@ -776,9 +776,9 @@ class Database:
 		"""Return true of field exists."""
 		return self.sql("select name from tabDocField where fieldname=%s and parent=%s", (dt, fn))
 
-	def table_exists(self, tablename):
-		"""Returns True if table exists."""
-		return ("tab" + tablename) in self.get_tables()
+	def table_exists(self, doctype):
+		"""Returns True if table for given doctype exists."""
+		return ("tab" + doctype) in self.get_tables()
 
 	def get_tables(self):
 		return [d[0] for d in self.sql("show tables")]
@@ -841,6 +841,10 @@ class Database:
 	def has_column(self, doctype, column):
 		"""Returns True if column exists in database."""
 		return column in self.get_table_columns(doctype)
+
+	def get_column_type(self, doctype, column):
+		return frappe.db.sql('''SELECT column_type FROM INFORMATION_SCHEMA.COLUMNS
+			WHERE table_name = 'tab{0}' AND COLUMN_NAME = "{1}"'''.format(doctype, column))[0][0]
 
 	def add_index(self, doctype, fields, index_name=None):
 		"""Creates an index with given fields if not already created.
