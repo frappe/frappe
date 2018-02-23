@@ -58,8 +58,7 @@ class DocType(Document):
 		self.set_default_in_list_view()
 		self.validate_series()
 		self.validate_document_type()
-		self.delete_duplicate_custom_fields()
-		validate_fields(frappe.get_meta(self.name, cached=False))
+		validate_fields(self)
 
 		if self.istable:
 			# no permission records for child table
@@ -206,6 +205,7 @@ class DocType(Document):
 	def on_update(self):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
 		from frappe.model.db_schema import updatedb
+		self.delete_duplicate_custom_fields()
 		updatedb(self.name, self)
 
 		self.change_modified_of_parent()
