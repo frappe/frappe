@@ -6,6 +6,8 @@
 
 from __future__ import unicode_literals, print_function
 
+from six.moves import input
+
 import os, json, sys, subprocess, shutil
 import frappe
 import frappe.database

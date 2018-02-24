@@ -11,7 +11,7 @@ app_color = "orange"
 source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 
-develop_version = '9.x.x-develop'
+develop_version = '10.x.x-develop'
 
 app_email = "info@frappe.io"
 

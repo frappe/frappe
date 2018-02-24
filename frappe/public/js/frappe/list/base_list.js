@@ -521,11 +521,13 @@ class FilterArea {
 	clear() {
 		this.filter_list.clear_filters();
 
+		const promises = [];
 		const fields_dict = this.list_view.page.fields_dict;
 		for (let key in fields_dict) {
 			const field = this.list_view.page.fields_dict[key];
-			field.set_value('');
+			promises.push(() => field.set_value(''));
 		}
+		return frappe.run_serially(promises);
 	}
 
 	make_standard_filters() {

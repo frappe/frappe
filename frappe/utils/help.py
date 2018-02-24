@@ -57,7 +57,7 @@ class HelpDatabase(object):
 		self.global_help_setup = frappe.conf.get('global_help_setup')
 		if self.global_help_setup:
 			bench_name = os.path.basename(os.path.abspath(frappe.get_app_path('frappe')).split('/apps/')[0])
-			self.help_db_name = hashlib.sha224(bench_name).hexdigest()[:15]
+			self.help_db_name = hashlib.sha224(bench_name.encode('utf-8')).hexdigest()[:15]
 
 	def make_database(self):
 		'''make database for global help setup'''

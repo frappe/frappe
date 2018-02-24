@@ -111,7 +111,7 @@ def build_response(path, data, http_status_code, headers=None):
 
 	if headers:
 		for key, val in iteritems(headers):
-			response.headers[bytes(key)] = val.encode("utf-8")
+			response.headers[bytes(key.encode("utf-8"))] = val.encode("utf-8")
 
 	return response
 
@@ -167,7 +167,7 @@ def build_page(path):
 		frappe.local.path = path
 
 	context = get_context(path)
-	if context.title and "{{" in context.title:
+	if context.title and "{{" in cstr(context.title):
 		title_template = context.pop('title')
 		context.title = frappe.render_template(title_template, context)
 

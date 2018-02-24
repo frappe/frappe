@@ -182,40 +182,46 @@ def update_link_field_values(link_fields, old, new, doctype):
 
 def get_link_fields(doctype):
 	# get link fields from tabDocField
-	link_fields = frappe.db.sql("""\
-		select parent, fieldname,
-			(select issingle from tabDocType dt
-			where dt.name = df.parent) as issingle
-		from tabDocField df
-		where
-			df.options=%s and df.fieldtype='Link'""", (doctype,), as_dict=1)
+	if not frappe.flags.link_fields:
+		frappe.flags.link_fields = {}
 
-	# get link fields from tabCustom Field
-	custom_link_fields = frappe.db.sql("""\
-		select dt as parent, fieldname,
-			(select issingle from tabDocType dt
-			where dt.name = df.dt) as issingle
-		from `tabCustom Field` df
-		where
-			df.options=%s and df.fieldtype='Link'""", (doctype,), as_dict=1)
+	if not doctype in frappe.flags.link_fields:
+		link_fields = frappe.db.sql("""\
+			select parent, fieldname,
+				(select issingle from tabDocType dt
+				where dt.name = df.parent) as issingle
+			from tabDocField df
+			where
+				df.options=%s and df.fieldtype='Link'""", (doctype,), as_dict=1)
 
-	# add custom link fields list to link fields list
-	link_fields += custom_link_fields
+		# get link fields from tabCustom Field
+		custom_link_fields = frappe.db.sql("""\
+			select dt as parent, fieldname,
+				(select issingle from tabDocType dt
+				where dt.name = df.dt) as issingle
+			from `tabCustom Field` df
+			where
+				df.options=%s and df.fieldtype='Link'""", (doctype,), as_dict=1)
 
-	# remove fields whose options have been changed using property setter
-	property_setter_link_fields = frappe.db.sql("""\
-		select ps.doc_type as parent, ps.field_name as fieldname,
-			(select issingle from tabDocType dt
-			where dt.name = ps.doc_type) as issingle
-		from `tabProperty Setter` ps
-		where
-			ps.property_type='options' and
-			ps.field_name is not null and
-			ps.value=%s""", (doctype,), as_dict=1)
+		# add custom link fields list to link fields list
+		link_fields += custom_link_fields
 
-	link_fields += property_setter_link_fields
+		# remove fields whose options have been changed using property setter
+		property_setter_link_fields = frappe.db.sql("""\
+			select ps.doc_type as parent, ps.field_name as fieldname,
+				(select issingle from tabDocType dt
+				where dt.name = ps.doc_type) as issingle
+			from `tabProperty Setter` ps
+			where
+				ps.property_type='options' and
+				ps.field_name is not null and
+				ps.value=%s""", (doctype,), as_dict=1)
 
-	return link_fields
+		link_fields += property_setter_link_fields
+
+		frappe.flags.link_fields[doctype] = link_fields
+
+	return frappe.flags.link_fields[doctype]
 
 def update_options_for_fieldtype(fieldtype, old, new):
 	if frappe.conf.developer_mode:
@@ -386,3 +392,59 @@ def bulk_rename(doctype, rows=None, via_console = False):
 
 	if not via_console:
 		return rename_log
+
+def update_linked_doctypes(linked_doctype_info_list, docname, value):
+	"""
+		linked_doctype_info_list = list formed by get_fetch_fields() function
+		docname = Master DocType's name in which modification are made
+		value = Value for the field thats set in other DocType's by fetching from Master DocType
+	"""
+
+	for d in linked_doctype_info_list:
+		frappe.db.sql("""
+			update
+				`tab{doctype}`
+			set
+				{linked_to_fieldname} = "{value}"
+			where
+				{master_fieldname} = "{docname}"
+				and {linked_to_fieldname} != "{value}"
+		""".format(
+			doctype = d['doctype'],
+			linked_to_fieldname = d['linked_to_fieldname'],
+			value = value,
+			master_fieldname = d['master_fieldname'],
+			docname = docname
+		))
+
+def get_fetch_fields(master, linked_to):
+	"""
+		master = Master DocType in which the changes are being made
+		linked_to = DocType name of the field thats being updated in Master
+
+		This function fetches list of all DocType where both master and linked_to is found
+		as link fields.
+		Forms a list of dict in the form -
+			[{doctype: , parent_fieldname: , child_fieldname: ]
+		where
+			doctype = DocType where changes need to be made
+			parent_fieldname = Fieldname where options = parent
+			child_fieldname = Fieldname where options = child
+	"""
+
+	master_list = get_link_fields(master)
+	linked_to_list = get_link_fields(linked_to)
+	out, linked_doctype_info = [], {}
+
+	from itertools import product
+	product_list = product(master_list, linked_to_list)
+
+	for d in product_list:
+		if d[0]['parent'] == d[1]['parent']:
+			linked_doctype_info['doctype'] = d[0]['parent']
+			linked_doctype_info['master_fieldname'] = d[0]['fieldname']
+			linked_doctype_info['linked_to_fieldname'] = d[1]['fieldname']
+			out.append(linked_doctype_info)
+			linked_doctype_info = {}
+
+	return out

@@ -3,6 +3,8 @@
 
 from __future__ import unicode_literals, print_function
 
+from six.moves import input
+
 import frappe, os, re
 from frappe.utils import touch_file, encode, cstr
 

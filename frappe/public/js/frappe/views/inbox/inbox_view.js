@@ -37,6 +37,7 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 
 	setup_defaults() {
 		super.setup_defaults();
+		this.view_name = 'Inbox';
 		this.email_account = frappe.get_route()[3];
 		this.page_title = this.email_account;
 		this.filters = this.get_inbox_filters();
