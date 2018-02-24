@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals, print_function
 
-import six
+from six.moves import input
 
 import frappe, os, re
 from frappe.utils import touch_file, encode, cstr
@@ -27,7 +27,7 @@ def make_boilerplate(dest, app_name):
 		hook_key = key.split(" (")[0].lower().replace(" ", "_")
 		hook_val = None
 		while not hook_val:
-			hook_val = cstr(six.input(key + ": "))
+			hook_val = cstr(input(key + ": "))
 
 			if not hook_val:
 				defaults = {
