@@ -146,6 +146,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	setup_datatable(values) {
 		this.datatable = new DataTable(this.$datatable_wrapper[0], {
+			columns: this.columns,
 			data: this.get_data(values),
 			enableClusterize: true,
 			addCheckbox: this.can_delete,
@@ -493,10 +494,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	get_data(values) {
-		return {
-			columns: this.columns,
-			rows: this.build_rows(values)
-		};
+		return this.build_rows(values);
 	}
 
 	set_fields() {
