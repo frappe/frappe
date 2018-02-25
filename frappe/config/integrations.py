@@ -90,6 +90,16 @@ def get_data():
 			]
 		},
 		{
+			"label": _("Telephony Services"),
+			"items": [
+				{
+					"type": "doctype",
+					"name": "Exotel Settings",
+					"description": _("Exotel cloud telephony service"),
+				}
+			]
+		},		
+		{
 			"label": _("Maps"),
 			"items": [
 				{
