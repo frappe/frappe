@@ -83,9 +83,9 @@ io.on('connection', function (socket) {
 		const doctype = params.doctype
 		const name    = params.name
 		const field   = params.field
-
+		
 		const room    = get_model_room(doctype, name, field)
-
+		
 		console.log('frappe.model: Subscribing ' + socket.user + ' to room ' + room);
 		socket.join(room);
 	})
@@ -125,7 +125,7 @@ io.on('connection', function (socket) {
 		})
 		.end(function (err, res) {
 			if (err) {
-				console.log(err);
+				console.log("Unable to retrieve User Information.")
 				return;
 			}
 			if (res.status == 200) {

@@ -3,7 +3,7 @@
   "scripts": {
     "build": "rollup -c --silent",
     "production": "FRAPPE_ENV=production rollup -c",
-    "watch": "rollup -c -w"
+    "watch": "rollup -c -w --silent"
   },
   "repository": {
     "type": "git",
