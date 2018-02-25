@@ -254,11 +254,11 @@ io.on('connection', function (socket) {
 });
 
 subscriber.on("message", function (channel, message, room) {
-	message = JSON.parse(message)
-	io.to(message.room).emit(message.event, message.message)
+	if ( channel !== "on" ) {
+		message = JSON.parse(message)
+		io.to(message.room).emit(message.event, message.message)
+	}
 });
-
-
 subscriber.subscribe("events");
 
 function send_existing_lines(task_id, socket) {
@@ -424,10 +424,51 @@ function get_conf() {
 	return conf;
 }
 
-const frappe   =
+const frappe    =
 {
+	config: get_conf(), // TODO: Make it pretty man!
 	socket: io,
-	   log: console // TODO: Replace with a custom one. Y'know, the pretty one.
+	log: console 	// TODO: Replace with a custom one. Y'know, the pretty one.
 }
+
+const publisher  = redis.createClient(frappe.config.redis_socketio
+	|| frappe.config.redis_async_broker_port);
+subscriber.subscribe("on"); // Listen to the "on" channel.
+	
+io.on("connection", (socket) => {
+	console.log("Socket.IO connection successful.")
+	
+	// publisher.publish("on", JSON.stringify({
+	// 	event: "ping", message: "ping"
+	// }))
+
+	var connected = false;
+	subscriber.on("message", (channel, message, room) => {
+		console.log("Channel: " + channel)
+		console.log("Message: " + message)
+		const data = JSON.parse(message)
+
+		if ( channel == "on" ) {
+			const event   = data.event;
+			const message = data.message;
+
+			if ( event == "ping" ) {
+				console.log("Wergzeug ready to listen to events.")
+				connected = true;
+				// Hurray!
+			} else
+			if ( event == "register" && connected ) {
+				const e = message.name
+				console.log("Registering event " + e + " to Socket.IO");
+
+				socket.on(e, (data) => {
+					console.log("Publishing event " + e + " to Python")
+					publisher.publish("on", JSON.stringify(data))
+				});
+				console.log(socket._events)
+			}
+		}
+	})
+});
 
 module.exports = frappe;

@@ -1422,7 +1422,7 @@ def get_version(doctype, name, limit = None, head = False, raise_err = True):
 	[
 		{
 			 "version": [version.data], 	 # Refer Version DocType get_diff method and data attribute
-			    "user": "admin@gmail.com"    # User that created this version
+				"user": "admin@gmail.com"    # User that created this version
 			"creation": <datetime.datetime>  # Creation timestamp of that object.
 		}
 	]
@@ -1469,3 +1469,35 @@ def get_version(doctype, name, limit = None, head = False, raise_err = True):
 @whitelist(allow_guest = True)
 def ping():
 	return "pong"
+
+def on_handler(message):
+	print("Recieved event from Socket.IO")
+
+import json
+import redis
+client = redis.Redis.from_url('redis://localhost:12001')
+print("Publishing a ping to node.")
+client.publish("on", json.dumps({
+	  'event': 'ping',
+	'message': 'pong'
+})) # Tell Socket.IO, we're ready to register!
+
+pubsub = client.pubsub()
+pubsub.subscribe(**{
+	'on': on_handler
+})
+
+def on(event):
+	print("Registering event " + event + " to Socket.IO")
+	client.publish("on", json.dumps({
+		  'event': 'register',
+		'message': dict(name = event)
+	}))
+
+	def decorator(function):
+		return function
+	return decorator
+
+@on("ping")
+def foo():
+	print("Python PONG")
