@@ -89,6 +89,16 @@ frappe.ui.form.on("Communication", {
 				}, "Actions");
 			}
 		}
+		if(frm.doc.communication_type=="Communication" 
+			&& frm.doc.communication_medium == "Phone"
+			&& frm.doc.sent_or_received == "Received"){
+			frm.add_custom_button(__("Reply"), function() {
+				frm.trigger('reply');
+			});
+			frm.add_custom_button(__("Add Contact"), function() {
+				frm.trigger('add_to_contact');
+			}, "Actions");
+		}
 	},
 	show_relink_dialog: function(frm){
 		var lib = "frappe.email";
@@ -154,13 +164,28 @@ frappe.ui.form.on("Communication", {
 	},
 
 	reply: function(frm) {
-		var args = frm.events.get_mail_args(frm);
-		$.extend(args, {
-			subject: __("Re: {0}", [frm.doc.subject]),
-			recipients: frm.doc.sender
-		})
-
-		new frappe.views.CommunicationComposer(args);
+		if(frm.doc.communication_medium=="Email"){
+			var args = frm.events.get_mail_args(frm);
+			$.extend(args, {
+				subject: __("Re: {0}", [frm.doc.subject]),
+				recipients: frm.doc.sender
+			})
+			new frappe.views.CommunicationComposer(args);
+		}else if(frm.doc.communication_medium=="Phone"){
+			frappe.call({
+				method: "frappe.integrations.doctype.exotel_settings.exotel_settings.handle_outgoing_calls",
+				args: {
+					"from": frm.doc.exophone,
+					"To":frm.doc.phone_no,
+					"CallerId":frm.doc.exophone
+				},
+				freeze: true,
+				freeze_message: __("Calling.."),
+				callback: function(r) {
+					frappe.msgprint(__("Call Connected"))
+				}
+			})			
+		}
 	},
 
 	reply_all: function(frm) {
@@ -170,6 +195,7 @@ frappe.ui.form.on("Communication", {
 			recipients: frm.doc.sender,
 			cc: frm.doc.cc
 		})
+		// research wt is it?
 		new frappe.views.CommunicationComposer(args);
 	},
 
@@ -186,6 +212,7 @@ frappe.ui.form.on("Communication", {
 	get_mail_args: function(frm) {
 		var sender_email_id = ""
 		$.each(frappe.boot.email_accounts, function(idx, account) {
+			// addnumber
 			if(account.email_account == frm.doc.email_account) {
 				sender_email_id = account.email_id
 				return
@@ -201,19 +228,45 @@ frappe.ui.form.on("Communication", {
 		}
 	},
 
+	// get_call_args: function(frm) {
+	// 	var sender_email_id = ""
+	// 	$.each(frappe.boot.email_accounts, function(idx, account) {
+	// 		// addnumber
+	// 		if(account.email_account == frm.doc.email_account) {
+	// 			sender_email_id = account.email_id
+	// 			return
+	// 		}
+	// 	});
+
+	// 	return {
+	// 		frm: frm,
+	// 		doc: frm.doc,
+	// 		last_email: frm.doc,
+	// 		sender: sender_email_id,
+	// 		// attachments: frm.doc.attachments
+	// 	}
+	// },
+
 	add_to_contact: function(frm) {
 		var me = this;
 		var fullname = frm.doc.sender_full_name || ""
-
+		// get name
 		var names = fullname.split(" ")
 		var first_name = names[0]
 		var last_name = names.length >= 2? names[names.length - 1]: ""
-
-		frappe.route_options = {
-			"email_id": frm.doc.sender,
-			"first_name": first_name,
-			"last_name": last_name,
-		}
+		if(frm.doc.communication_medium=="Email"){
+			frappe.route_options = {
+				"email_id": frm.doc.sender,
+				"first_name": first_name,
+				"last_name": last_name,
+			}
+		}else if(frm.doc.communication_medium=="Phone"){
+			frappe.route_options = {
+				"mobile_no": frm.doc.from,
+				"first_name": first_name,
+				"last_name": last_name,
+			}
+		}	
 		frappe.new_doc("Contact")
 	},
 
