@@ -313,7 +313,7 @@ $.extend(frappe.desktop, {
 			}
 
 			// if module found
-			if(module._id.indexOf('/')===-1) {
+			if(module._id.indexOf('/')===-1 && !module._report) {
 				var notifier = $(".module-count-" + module._id);
 				if(notifier.length) {
 					notifier.toggle(sum ? true : false);
