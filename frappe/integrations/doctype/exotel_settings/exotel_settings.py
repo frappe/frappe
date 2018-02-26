@@ -11,7 +11,7 @@ class ExotelSettings(Document):
 
 @frappe.whitelist(allow_guest=True)
 def handle_incoming_call(*args, **kwargs):
-	r = frappe.form_dict
+	"""Handles incoming calls in telephony service."""
 	try:
 		if args or kwargs:
 			content = args or kwargs or "no kwargs"
@@ -25,7 +25,7 @@ def handle_incoming_call(*args, **kwargs):
 			comm.communication_type = "Communication"
 			comm.status = "Open"
 			comm.sent_or_received = "Received"
-			comm.content = "Incoming Call " + frappe.utils.get_datetime_str(frappe.utils.get_datetime())
+			comm.content = "Incoming Call " + frappe.utils.get_datetime_str(frappe.utils.get_datetime()) + "<br>"+content
 			comm.communication_date = content.get("StartTime")
 			comm.sid = content.get("CallSid")
 			# identify and add exophone
@@ -57,6 +57,12 @@ def capture_call_details(*args, **kwargs):
 
 @frappe.whitelist()
 def handle_outgoing_call(From, To, CallerId, StatusCallback=None):
+	"""Handles outgoing calls in telephony service.
+	
+	:param From: Number of exophone or call center member
+	:param To: Number of customer
+	:param CallerId: Exophone number	
+	"""
 	try:
 		credentials = frappe.get_doc("Exotel Settings")	
 		import requests

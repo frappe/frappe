@@ -263,6 +263,7 @@ _f.Frm.prototype.setup_std_layout = function() {
 
 // email the form
 _f.Frm.prototype.email_doc = function(message) {
+	// hint
 	new frappe.views.CommunicationComposer({
 		doc: this.doc,
 		frm: this,
@@ -272,6 +273,19 @@ _f.Frm.prototype.email_doc = function(message) {
 		message: message,
 		real_name: this.doc.real_name || this.doc.contact_display || this.doc.contact_name
 	});
+};
+
+_f.Frm.prototype.phone = function(message) {
+
+	// new frappe.views.CommunicationComposer({
+	// 	doc: this.doc,
+	// 	frm: this,
+	// 	subject: __(this.meta.name) + ': ' + this.docname,
+	// 	recipients: this.doc.email || this.doc.email_id || this.doc.contact_email,
+	// 	attach_document_print: true,
+	// 	message: message,
+	// 	real_name: this.doc.real_name || this.doc.contact_display || this.doc.contact_name
+	// });
 };
 
 // rename the form
@@ -923,6 +937,7 @@ _f.Frm.prototype.set_footnote = function(txt) {
 
 _f.Frm.prototype.add_custom_button = function(label, fn, group) {
 	// temp! old parameter used to be icon
+	console.log("I",label)
 	if(group && group.indexOf("fa fa-")!==-1) group = null;
 	var btn = this.page.add_inner_button(label, fn, group);
 	this.custom_buttons[label] = btn;
