@@ -7,6 +7,8 @@ import frappe
 from frappe.model.document import Document
 from frappe import _
 from frappe.utils import cint
+from six import string_types
+from json import loads
 
 class BulkUpdate(Document):
 	pass
@@ -40,5 +42,26 @@ def update(doctype, field, value, condition='', limit=500):
 			title = _('Updating Records'), doctype='Bulk Update', docname='Bulk Update')
 
 	# clear messages
+	frappe.local.message_log = []
+	frappe.msgprint(_('{0} records updated').format(n), title=_('Success'), indicator='green')
+
+@frappe.whitelist()
+def update_items(doctype, field, value, items):
+	if isinstance(items, string_types):
+		items = loads(items)
+	n = len(items)
+	if not n: return
+	for i, d in enumerate(items):
+		doc = frappe.get_doc(doctype, d)
+		doc.set(field, value)
+
+		try:
+			doc.save()
+		except Exception as e:
+			frappe.msgprint(_("Validation failed for {0}").format(frappe.bold(doc.name)))
+			raise e
+
+		frappe.publish_progress(float(i)*100/n, title = _('Updating Records'))
+
 	frappe.local.message_log = []
 	frappe.msgprint(_('{0} records updated').format(n), title=_('Success'), indicator='green')

@@ -55,10 +55,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 		// initialize with saved order by
 		this.order_by = this.view_user_settings.order_by || 'modified desc';
-		// buld menu items)
+		// build menu items
 		this.menu_items = this.menu_items.concat(this.get_menu_items());
 
 		this.freeze_on_refresh = true;
+		this.actions_menu_items = this.get_actions_menu_items();
 
 		this.patch_refresh_and_load_lib();
 	}
@@ -220,41 +221,21 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
-	// freeze(toggle) {
-	// 	if (this.view_name !== 'List') return;
-
-	// 	this.$freeze.toggle(toggle);
-	// 	this.$result.toggle(!toggle);
-
-	// 	const columns = this.columns;
-	// 	if (toggle) {
-	// 		if (this.$freeze.find('.freeze-row').length > 0) return;
-
-	// 		const html = `
-	// 			${this.get_header_html()}
-	// 			${Array.from(new Array(10)).map(loading_row).join('')}
-	// 		`;
-	// 		this.$freeze.html(html);
-	// 	}
-
-	// 	function loading_row() {
-	// 		return `
-	// 			<div class="list-row freeze-row level">
-	// 				<div class="level-left">
-	// 					<div class="list-row-col list-subject"></div>
-	// 					${columns.slice(1).map(c => `<div class="list-row-col"></div>`).join('')}
-	// 				</div>
-	// 				<div class="level-right"></div>
-	// 			</div>
-	// 		`;
-	// 	}
-	// }
-
 	toggle_result_area() {
 		super.toggle_result_area();
-		this.toggle_delete_button(
+		this.toggle_actions_menu_button(
 			this.$result.find('.list-row-check:checked').length > 0
 		);
+	}
+
+	toggle_actions_menu_button(toggle) {
+		if (toggle) {
+			this.page.show_actions_menu();
+			this.page.clear_primary_action();
+		} else {
+			this.page.hide_actions_menu();
+			this.set_primary_action();
+		}
 	}
 
 	before_render() {
@@ -734,54 +715,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.$checkbox_actions.show();
 			this.$list_head_subject.hide();
 		}
-
-		if (this.can_delete) {
-			this.toggle_delete_button(this.$checks.length > 0);
-		}
-	}
-
-	toggle_delete_button(toggle) {
-		if (toggle) {
-			this.page.set_primary_action(__('Delete'),
-				() => this.delete_items(),
-				'octicon octicon-trashcan'
-			).addClass('btn-danger');
-		} else {
-			this.page.btn_primary.removeClass('btn-danger');
-			this.set_primary_action();
-		}
+		this.toggle_actions_menu_button(this.$checks.length > 0);
 	}
 
 	toggle_tags() {
 		this.$result.toggleClass('tags-shown');
-	}
-
-	delete_items() {
-		const docnames = this.get_checked_items(true);
-
-		frappe.confirm(__('Delete {0} items permanently?', [docnames.length]),
-			() => {
-				frappe.call({
-					method: 'frappe.desk.reportview.delete_items',
-					freeze: true,
-					args: {
-						items: docnames,
-						doctype: this.doctype
-					}
-				}).then((r) => {
-					let failed = r.message;
-					if (!failed) failed = [];
-
-					if (failed.length && !r._server_messages) {
-						frappe.throw(__('Cannot delete {0}', [failed.map(f => f.bold()).join(', ')]));
-					}
-					if (failed.length < docnames.length) {
-						frappe.utils.play_sound('delete');
-						this.refresh(true);
-					}
-				});
-			}
-		);
 	}
 
 	get_checked_items(only_docnames) {
@@ -848,6 +786,29 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			action: () => this.toggle_side_bar(),
 			standard: true
 		});
+
+		// add to desktop
+		items.push({
+			label: __('Add to Desktop'),
+			action: () => frappe.add_to_desktop(doctype, doctype),
+			standard: true
+		});
+
+		if (frappe.user.has_role('System Manager') && frappe.boot.developer_mode === 1) {
+			// edit doctype
+			items.push({
+				label: __('Edit DocType'),
+				action: () => frappe.set_route('Form', 'DocType', doctype),
+				standard: true
+			});
+		}
+
+		return items;
+	}
+
+	get_actions_menu_items() {
+		const doctype = this.doctype;
+		const items = [];
 
 		// utility
 		const bulk_assignment = () => {
@@ -943,28 +904,177 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			};
 		};
 
+		const bulk_delete = () => {
+			return {
+				label: __('Delete'),
+				action: () => {
+					const docnames = this.get_checked_items(true);
+					if (docnames.length > 0) {
+						frappe.confirm(__('Delete {0} items permanently?', [docnames.length]),
+							() => {
+								frappe.call({
+									method: 'frappe.desk.reportview.delete_items',
+									freeze: true,
+									args: {
+										items: docnames,
+										doctype: this.doctype
+									}
+								}).then((r) => {
+									let failed = r.message;
+									if (!failed) failed = [];
+
+									if (failed.length && !r._server_messages) {
+										frappe.throw(__('Cannot delete {0}', [failed.map(f => f.bold()).join(', ')]));
+									}
+									if (failed.length < docnames.length) {
+										frappe.utils.play_sound('delete');
+										this.refresh(true);
+									}
+								});
+							}
+						);
+					} else {
+						frappe.msgprint(__('Select atleast 1 record for printing'));
+					}
+				},
+				standard: true,
+			}
+		}
+
+		const bulk_cancel = () => {
+			return {
+				label: __('Cancel'),
+				action: () => {
+					const items = this.get_checked_items();
+					if (items.length > 0) {
+						frappe.confirm(__('Cancel {0} documents?', [items.length]),
+							() => {
+								frappe
+									.call({
+										method: 'frappe.desk.doctype.bulk_update.bulk_update.update_items',
+										args: {
+											doctype: doctype,
+											field: 'docstatus',
+											value: 2,
+											items: this.get_checked_items(true)
+										}
+									});
+							});
+					}
+				},
+				standard: true
+			}
+		};
+
+		const bulk_submit = () => {
+			return {
+				label: __('Submit'),
+				action: () => {
+					const items = this.get_checked_items();
+					if (items.length > 0) {
+						frappe.confirm(__('Submit {0} documents?', [items.length]),
+							() => {
+								frappe
+									.call({
+										method: 'frappe.desk.doctype.bulk_update.bulk_update.update_items',
+										args: {
+											doctype: doctype,
+											field: 'docstatus',
+											value: 1,
+											items: this.get_checked_items(true)
+										}
+									});
+							});
+					}
+				},
+				standard: true
+			}
+		};
+
+		const bulk_edit = () => {
+			return {
+				label: __('Edit'),
+				action: () => {
+					let fields_to_skip = [];
+					let field_options = [];
+					let field_mappings = {};
+
+					frappe.meta.get_docfields(doctype).map(field_doc => {
+						if (field_doc.fieldname
+							&& frappe.model.is_value_type(field_doc)
+							&& field_doc.fieldtype !== 'Read Only' && !field_doc.hidden && !field_doc.read_only) {
+							field_options.push(field_doc.label);
+							field_mappings[field_doc.label] = field_doc;
+						}
+						return null;
+					});
+
+					const dialog = new frappe.ui.Dialog({
+						title: __("Edit"),
+						fields: [{
+							"fieldtype": "Select", "options": field_options,
+							"label": __("Field"), "fieldname": "field", "reqd": 1,
+							"onchange": () => {
+								const new_df = field_mappings[dialog.get_value("field")];
+								new_df.fieldname = 'value';
+								new_df.label = __("Value");
+								new_df.reqd = 1;
+								dialog.get_field("value").df = new_df;
+								dialog.rebuild_field('value');
+								dialog.refresh();
+							}
+						},
+						{ "fieldtype": "Data", "label": __("Value"), "fieldname": "value", "reqd": 1 }],
+					});
+
+					dialog.set_primary_action('Update', () => {
+						frappe
+							.call({
+								method: 'frappe.desk.doctype.bulk_update.bulk_update.update_items',
+								args: {
+									doctype: doctype,
+									field: field_mappings[dialog.get_value("field")].fieldname,
+									value: dialog.get_value("value"),
+									items: this.get_checked_items(true)
+								}
+							})
+							.then(() => {
+								frappe.hide_progress();
+								dialog.hide();
+							});
+					});
+
+					dialog.refresh();
+					dialog.show();
+				},
+				standard: true
+			}
+		};
 		// bulk assignment
 		items.push(bulk_assignment());
 
+		// bulk printing
 		if (frappe.model.can_print(doctype)) {
 			items.push(bulk_printing());
 		}
 
-		// add to desktop
-		items.push({
-			label: __('Add to Desktop'),
-			action: () => frappe.add_to_desktop(doctype, doctype),
-			standard: true
-		});
-
-		if (frappe.user.has_role('System Manager') && frappe.boot.developer_mode === 1) {
-			// edit doctype
-			items.push({
-				label: __('Edit DocType'),
-				action: () => frappe.set_route('Form', 'DocType', doctype),
-				standard: true
-			});
+		// Bulk cancel
+		if (frappe.model.can_cancel(doctype)) {
+			items.push(bulk_cancel())
 		}
+
+		// Bulk submit
+		if (frappe.model.is_submittable(doctype)) {
+			items.push(bulk_submit())
+		}
+
+		// bulk delete
+		if (frappe.model.can_delete(doctype)) {
+			items.push(bulk_delete())
+		}
+
+		// bulk delete
+		items.push(bulk_edit())
 
 		return items;
 	}

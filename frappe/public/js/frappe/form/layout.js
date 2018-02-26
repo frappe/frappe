@@ -119,6 +119,27 @@ frappe.ui.form.Layout = Class.extend({
 		});
 	},
 
+	rebuild_field: function (fieldname, render = false) {
+		if (this.fields_dict[fieldname].df) {
+			var fieldobj = frappe.ui.form.make_control({
+				df: this.fields_dict[fieldname].df,
+				doctype: this.doctype,
+				parent: this.column.wrapper.get(0),
+				frm: this.frm,
+				render_input: render
+			});
+			fieldobj.layout = this;
+			this.fields_dict[fieldname].$wrapper.remove();
+			this.fields_list.splice(this.fields_dict[fieldname], 1, fieldobj);
+			this.fields_dict[fieldname] = fieldobj;
+			if (this.frm) {
+				fieldobj.perm = this.frm.perm;
+			}
+			this.section.fields_list.splice(this.section.fields_dict[fieldname], 1, fieldobj);
+			this.section.fields_dict[fieldname] = fieldobj;
+		}
+	},
+
 	make_field: function(df, colspan, render = false) {
 		!this.section && this.make_section();
 		!this.column && this.make_column();

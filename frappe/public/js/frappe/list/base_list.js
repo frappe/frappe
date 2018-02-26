@@ -41,7 +41,6 @@ frappe.views.BaseList = class BaseList {
 		this.method = 'frappe.desk.reportview.get';
 
 		this.can_create = frappe.model.can_create(this.doctype);
-		this.can_delete = frappe.model.can_delete(this.doctype);
 		this.can_write = frappe.model.can_write(this.doctype);
 
 		this.fields = [];
@@ -147,6 +146,7 @@ frappe.views.BaseList = class BaseList {
 	setup_page_head() {
 		this.page.set_title(this.page_title);
 		this.set_menu_items();
+		this.set_actions_menu_items();
 		this.set_breadcrumbs();
 	}
 
@@ -170,6 +170,15 @@ frappe.views.BaseList = class BaseList {
 			const $item = this.page.add_menu_item(item.label, item.action, item.standard);
 			if (item.class) {
 				$item && $item.addClass(item.class);
+			}
+		});
+	}
+
+	set_actions_menu_items() {
+		this.actions_menu_items.map(item => {
+			const $item = this.page.add_actions_menu_item(item.label, item.action, item.standard);
+			if (item.class) {
+				$item.addClass(item.class);
 			}
 		});
 	}
