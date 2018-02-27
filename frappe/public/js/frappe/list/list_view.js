@@ -90,7 +90,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 		// call refresh every 5 minutes
 		const interval = 5 * 60 * 1000;
-		setInterval(this.refresh, interval);
+		setInterval(() => {
+			// don't call if route is different
+			if (frappe.get_route_str() === this.page_name) {
+				this.refresh();
+			}
+		}, interval);
 	}
 
 	setup_page_head() {
