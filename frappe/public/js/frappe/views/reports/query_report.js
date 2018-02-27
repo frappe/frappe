@@ -214,6 +214,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	refresh() {
 		const filters = this.get_filter_values(true);
 
+		if (this.report_ajax) {
+			// abort previous request
+			this.report_ajax.abort();
+		}
+
 		this.report_ajax = frappe.call({
 			method: "frappe.desk.query_report.run",
 			type: "GET",
@@ -224,7 +229,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}).then(r => {
 			this.report_ajax = undefined;
 			this.render_report(r.message);
-			// this.make_results(r.message);
 		});
 	}
 
@@ -281,17 +285,17 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				width: column.width || null,
 				editable: false,
 				format: (value, cell) => {
-					const original_data = this._data[cell.rowIndex];//get_original_data(cell.rowIndex);
+					// const original_data = this._data[cell.rowIndex];//get_original_data(cell.rowIndex);
 					let out = frappe.format(value, column);
-					if (original_data.indent !== undefined && cell.colIndex === 1) {
-						const next_row = get_original_data(cell.rowIndex + 1);
-						const is_parent = next_row && next_row.indent > original_data.indent;
-						const margin = 21 * original_data.indent;
-						out = `<span class="report-tree-node" style="margin-left: ${margin}px">
-							${is_parent ? '<span class="octicon octicon-triangle-down text-muted toggle"></span>': ''}
-							${out}
-						</span>`;
-					}
+					// if (original_data.indent !== undefined && cell.colIndex === 1) {
+					// 	const next_row = get_original_data(cell.rowIndex + 1);
+					// 	const is_parent = next_row && next_row.indent > original_data.indent;
+					// 	const margin = 21 * original_data.indent;
+					// 	out = `<span class="report-tree-node" style="margin-left: ${margin}px">
+					// 		${is_parent ? '<span class="octicon octicon-triangle-down text-muted toggle"></span>': ''}
+					// 		${out}
+					// 	</span>`;
+					// }
 					return out;
 				}
 			};
