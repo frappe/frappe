@@ -810,6 +810,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const doctype = this.doctype;
 		const items = [];
 
+		const is_field_editable = (field_doc) => {
+			return field_doc.fieldname && frappe.model.is_value_type(field_doc)
+			&& field_doc.fieldtype !== 'Read Only' && !field_doc.hidden && !field_doc.read_only;
+		}
+		
+		const has_editable_fields = () => {
+			return frappe.meta.get_docfields(doctype).some(field_doc => is_field_editable(field_doc));
+		}
+
 		// utility
 		const bulk_assignment = () => {
 			return {
@@ -999,15 +1008,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					let field_options = [];
 					let field_mappings = {};
 
-					frappe.meta.get_docfields(doctype).map(field_doc => {
-						if (field_doc.fieldname
-							&& frappe.model.is_value_type(field_doc)
-							&& field_doc.fieldtype !== 'Read Only' && !field_doc.hidden && !field_doc.read_only) {
+					frappe.meta.get_docfields(doctype).forEach(field_doc => {
+						if (is_field_editable(field_doc)) {
 							field_options.push(field_doc.label);
 							field_mappings[field_doc.label] = Object.assign({}, field_doc);
 						}
-						return null;
 					});
+
+					if(!field_options.length) {
+						frappe.msgprint('No editable fields found.');
+					}
 
 					const dialog = new frappe.ui.Dialog({
 						title: __("Edit"),
@@ -1073,8 +1083,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			items.push(bulk_delete())
 		}
 
-		// bulk delete
-		items.push(bulk_edit())
+		// bulk edit
+		if(has_editable_fields()){
+			items.push(bulk_edit())
+		}
 
 		return items;
 	}

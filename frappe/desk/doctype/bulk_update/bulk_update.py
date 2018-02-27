@@ -26,24 +26,7 @@ def update(doctype, field, value, condition='', limit=500):
 
 	items = frappe.db.sql_list('''select name from `tab{0}`{1} limit 0, {2}'''.format(doctype,
 		condition, limit), debug=1)
-	n = len(items)
-
-	for i, d in enumerate(items):
-		doc = frappe.get_doc(doctype, d)
-		doc.set(field, value)
-
-		try:
-			doc.save()
-		except Exception as e:
-			frappe.msgprint(_("Validation failed for {0}").format(frappe.bold(doc.name)))
-			raise e
-
-		frappe.publish_progress(float(i)*100/n,
-			title = _('Updating Records'), doctype='Bulk Update', docname='Bulk Update')
-
-	# clear messages
-	frappe.local.message_log = []
-	frappe.msgprint(_('{0} records updated').format(n), title=_('Success'), indicator='green')
+	update_and_save(doctype, items, field, value)
 
 @frappe.whitelist()
 def update_items(doctype, field, value, items):
@@ -51,6 +34,10 @@ def update_items(doctype, field, value, items):
 		items = loads(items)
 	n = len(items)
 	if not n: return
+	update_and_save(doctype, items, field, value)
+
+def update_and_save(doctype, items, field, value):
+	n = len(items)
 	for i, d in enumerate(items):
 		doc = frappe.get_doc(doctype, d)
 		doc.set(field, value)
