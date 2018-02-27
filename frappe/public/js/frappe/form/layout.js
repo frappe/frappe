@@ -120,7 +120,7 @@ frappe.ui.form.Layout = Class.extend({
 	},
 
 	rebuild_field: function (fieldname, render = false) {
-		if (this.fields_dict[fieldname].df) {
+		if (this.fields_dict[fieldname] && this.fields_dict[fieldname].df) {
 			var fieldobj = frappe.ui.form.make_control({
 				df: this.fields_dict[fieldname].df,
 				doctype: this.doctype,

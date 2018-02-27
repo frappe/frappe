@@ -1004,7 +1004,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							&& frappe.model.is_value_type(field_doc)
 							&& field_doc.fieldtype !== 'Read Only' && !field_doc.hidden && !field_doc.read_only) {
 							field_options.push(field_doc.label);
-							field_mappings[field_doc.label] = field_doc;
+							field_mappings[field_doc.label] = Object.assign({}, field_doc);
 						}
 						return null;
 					});
@@ -1015,7 +1015,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							"fieldtype": "Select", "options": field_options,
 							"label": __("Field"), "fieldname": "field", "reqd": 1,
 							"onchange": () => {
-								const new_df = field_mappings[dialog.get_value("field")];
+								const new_df = Object.assign({}, field_mappings[dialog.get_value("field")]);
 								new_df.fieldname = 'value';
 								new_df.label = __("Value");
 								new_df.reqd = 1;
