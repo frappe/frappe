@@ -19,25 +19,24 @@ frappe.standard_pages["query-report"] = function() {
 	});
 
 	$(wrapper).bind("show", function() {
-		frappe.query_report.init();
+		frappe.query_report.show();
 	});
 };
 
 frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	show() {
-
+		this.init().then(() => this.load());
 	}
 
 	init() {
-		if (this.init_promise && frappe.get_route()[1] === this.report_name) {
+		if (this.init_promise) {
 			return this.init_promise;
 		}
 
 		let tasks = [
 			this.setup_defaults,
 			this.setup_page,
-			this.setup_report_wrapper,
-			this.setup_report
+			this.setup_report_wrapper
 		].map(fn => fn.bind(this));
 
 		this.init_promise = frappe.run_serially(tasks);
@@ -47,17 +46,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	setup_defaults() {
 		this.route = frappe.get_route();
 		this.page_name = frappe.get_route_str();
-		this.report_name = this.route[1];
-		this.page_title = __(this.report_name);
-		this.user_settings = frappe.get_user_settings(this.report_name);
-
-		this.start = 0;
-		this.page_length = 20;
-		this.data = [];
-
-		this.fields = [];
-		this.filters = [];
-		this.order_by = 'modified desc';
 
 		// Setup buttons
 		this.primary_action = null;
@@ -66,43 +54,40 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			action: () => this.refresh()
 		};
 
+		// throttle refresh for 300ms
+		this.refresh = frappe.utils.throttle(this.refresh, 300);
+
+		this.menu_items = [];
+	}
+
+	load() {
+		this.route = frappe.get_route();
+		this.page_name = frappe.get_route_str();
+		this.report_name = this.route[1];
+		this.page_title = __(this.report_name);
+		this.user_settings = frappe.get_user_settings(this.report_name);
 		this.menu_items = this.get_menu_items();
 
-		// throttle refresh for 500ms
-		this.refresh = frappe.utils.throttle(this.refresh, 500);
+		frappe.run_serially([
+			() => this.get_report_doc(),
+			() => this.get_report_settings(),
+			() => this.report_settings.onload && this.report_settings.onload(this),
+			() => this.setup_page_head(),
+			() => this.setup_filters(),
+			() => this.set_route_filters(),
+			() => this.refresh()
+		]);
+	}
 
-		// Report Doc
-		return frappe.db.get_doc('Report', this.report_name)
+	get_report_doc() {
+		return frappe.model.with_doc('Report', this.report_name)
 			.then(doc => {
 				this.report_doc = doc;
 			})
-			// Ref DocType
-			.then(() => {
-				if (this.report_doc.ref_doctype) {
-					return frappe.model.with_doctype(this.report_doc.ref_doctype);
-				}
-				return Promise.resolve();
-			});
+			.then(() => frappe.model.with_doc('DocType', this.report_doc.ref_doctype));
 	}
 
-	setup_report_wrapper() {
-		if (this.$report) return;
-		this.$report = $('<div class="report-wrapper">').appendTo(this.page.main);
-	}
-
-	setup_page_head() {
-		super.setup_page_head();
-		this.page.set_title_sub(`<label class="label label-warning text-color">${__('Beta')}</label>`);
-	}
-
-	setup_report() {
-		this.$report.empty();
-		this.datatable = null;
-		return this.load_report_script()
-			.then(() => this.load_report());
-	}
-
-	load_report_script() {
+	get_report_settings() {
 		if (frappe.query_reports[this.report_name]) {
 			this.report_settings = frappe.query_reports[this.report_name];
 			return this._load_script;
@@ -124,20 +109,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		});
 
 		return this._load_script;
-	}
-
-	load_report() {
-		this.page.clear_inner_toolbar();
-		this.setup_filters();
-		// this.toggle_expand_collapse_buttons(false);
-		// this.is_tree_report = false;
-
-		if (this.report_settings.onload) {
-			frappe.run_serially([
-				() => this.report_settings.onload(this),
-				() => this.refresh()
-			]);
-		}
 	}
 
 	setup_filters() {
@@ -181,8 +152,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		// as they can be used in
 		// setting/triggering the filters
 		this.set_filters_by_name();
-
-		return this.set_route_filters();
 	}
 
 	set_filters_by_name() {
@@ -218,14 +187,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	refresh() {
 		const filters = this.get_filter_values(true);
 
-		if (this.report_ajax) {
-			// abort previous request
-			this.report_ajax.abort();
-		}
-
 		this.report_ajax = frappe.call({
 			method: "frappe.desk.query_report.run",
 			type: "GET",
+			freeze: true,
 			args: {
 				report_name: this.report_name,
 				filters: filters
@@ -238,6 +203,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	render_report(data) {
 		this._data = data.result;
+		this._columns = data.columns;
 		if (this.datatable) {
 			this.datatable.refresh(data.result);
 			return;
@@ -339,9 +305,32 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	set_breadcrumbs() {
-		if (!this.report_doc.ref_doctype) return;
+		if (!this.report_doc || !this.report_doc.ref_doctype) return;
 		const ref_doctype = frappe.get_meta(this.report_doc.ref_doctype);
 		frappe.breadcrumbs.add(ref_doctype.module);
+	}
+
+	print_report(print_settings) {
+		frappe.render_grid({
+			template: this.html_format || null,
+			title: __(this.report_name),
+			print_settings: print_settings,
+			filters: this.get_filter_values(),
+			data: this.get_data_for_print(),
+			columns: this.get_columns_for_print()
+		});
+	}
+
+	pdf_report() {
+
+	}
+
+	get_data_for_print() {
+		return this._data || [];
+	}
+
+	get_columns_for_print() {
+		return this._columns || [];
 	}
 
 	get_menu_items() {
@@ -360,18 +349,23 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			{
 				label: __('Print'),
 				action: () => {
-					frappe.ui.get_print_settings(false, function(print_settings) {
-						this.print_report(print_settings);
-					}, this.report_doc.letter_head);
+					frappe.ui.get_print_settings(
+						false,
+						print_settings => this.print_report(print_settings),
+						this.report_doc.letter_head
+					);
 				},
+				condition: () => frappe.model.can_print(this.report_doc.ref_doctype),
 				standard: true
 			},
 			{
 				label: __('PDF'),
 				action: () => {
-					frappe.ui.get_print_settings(false, function(print_settings) {
-						this.pdf_report(print_settings);
-					}, this.report_doc.letter_head);
+					frappe.ui.get_print_settings(
+						false,
+						print_settings => this.pdf_report(print_settings),
+						this.report_doc.letter_head
+					);
 				},
 				standard: true
 			},
@@ -400,5 +394,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				standard: true
 			},
 		];
+	}
+
+	setup_page_head() {
+		super.setup_page_head();
+		this.page.set_title_sub(`<label class="label label-warning text-color">${__('Beta')}</label>`);
+	}
+
+	setup_report_wrapper() {
+		if (this.$report) return;
+		this.$report = $('<div class="report-wrapper">').appendTo(this.page.main);
+		this.$freeze = $('<div class="report-loading-area">').hide().appendTo(this.page.main);
 	}
 };

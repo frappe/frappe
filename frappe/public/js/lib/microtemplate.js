@@ -104,7 +104,7 @@ frappe.render_grid = function(opts) {
 
 	// render content
 	if(!opts.content) {
-		opts.content = frappe.render_template("print_grid", opts);
+		opts.content = frappe.render_template(opts.template || "print_grid", opts);
 	}
 
 	// render HTML wrapper page
