@@ -56,6 +56,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.patch_refresh_and_load_lib();
 	}
 
+	setup_page() {
+		this.parent.list_view = this;
+		super.setup_page();
+	}
+
 	set_fields() {
 		let fields = [].concat(
 			frappe.model.std_fields_list,

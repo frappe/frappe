@@ -1,1 +1,3981 @@
-!function(e,t){"object"==typeof exports&&"object"==typeof module?module.exports=t(require("sortablejs"),require("clusterize.js")):"function"==typeof define&&define.amd?define("DataTable",[,],t):"object"==typeof exports?exports.DataTable=t(require("sortablejs"),require("clusterize.js")):e.DataTable=t(e.Sortable,e.Clusterize)}("undefined"!=typeof self?self:this,function(e,t){return function(e){function t(o){if(n[o])return n[o].exports;var a=n[o]={i:o,l:!1,exports:{}};return e[o].call(a.exports,a,a.exports,t),a.l=!0,a.exports}var n={};return t.m=e,t.c=n,t.d=function(e,n,o){t.o(e,n)||Object.defineProperty(e,n,{configurable:!1,enumerable:!0,get:o})},t.n=function(e){var n=e&&e.__esModule?function(){return e.default}:function(){return e};return t.d(n,"a",n),n},t.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},t.p="",t(t.s=6)}([function(e,t,n){"use strict";function o(e,t){return"string"==typeof e?(t||document).querySelector(e):e||null}Object.defineProperty(t,"__esModule",{value:!0});var a="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e};t.default=o,o.each=function(e,t){return"string"==typeof e?Array.from((t||document).querySelectorAll(e)):e||null},o.create=function(e,t){var n=document.createElement(e);for(var r in t)!function(e){var r=t[e];if("inside"===e)o(r).appendChild(n);else if("around"===e){var i=o(r);i.parentNode.insertBefore(n,i),n.appendChild(i)}else"styles"===e?"object"===(void 0===r?"undefined":a(r))&&Object.keys(r).map(function(e){n.style[e]=r[e]}):e in n?n[e]=r:n.setAttribute(e,r)}(r);return n},o.on=function(e,t,n,a){a?o.delegate(e,t,n,a):(a=n,o.bind(e,t,a))},o.off=function(e,t,n){e.removeEventListener(t,n)},o.bind=function(e,t,n){t.split(/\s+/).forEach(function(t){e.addEventListener(t,n)})},o.delegate=function(e,t,n,o){e.addEventListener(t,function(e){var t=e.target.closest(n);t&&(e.delegatedTarget=t,o.call(this,e,t))})},o.unbind=function(e,t){if(e){for(var n in t)!function(n){var o=t[n];n.split(/\s+/).forEach(function(t){e.removeEventListener(t,o)})}(n)}},o.fire=function(e,t,n){var o=document.createEvent("HTMLEvents");o.initEvent(t,!0,!0);for(var a in n)o[a]=n[a];return e.dispatchEvent(o)},o.data=function(e,t){if(!t)return e.dataset;for(var n in t)e.dataset[n]=t[n]},o.style=function(e,t){if("string"==typeof t)return o.getStyle(e,t);Array.isArray(e)||(e=[e]),e.map(function(e){for(var n in t)e.style[n]=t[n]})},o.removeStyle=function(e,t){Array.isArray(e)||(e=[e]),Array.isArray(t)||(t=[t]),e.map(function(e){var n=!0,o=!1,a=void 0;try{for(var r,i=t[Symbol.iterator]();!(n=(r=i.next()).done);n=!0){var l=r.value;e.style[l]=""}}catch(e){o=!0,a=e}finally{try{!n&&i.return&&i.return()}finally{if(o)throw a}}})},o.getStyle=function(e,t){var n=getComputedStyle(e)[t];return["width","height"].includes(t)&&(n=parseFloat(n)),n},o.closest=function(e,t){return t?t.matches(e)?t:o.closest(e,t.parentNode):null},o.inViewport=function(e,t){var n=e.getBoundingClientRect(),o=n.top,a=n.left,r=n.bottom,i=n.right,l=t.getBoundingClientRect(),s=l.top,u=l.left,c=l.bottom,d=l.right;return o>=s&&a>=u&&r<=c&&i<=d},o.scrollTop=function(e,t){requestAnimationFrame(function(){e.scrollTop=t})},o.sortable=function(){},e.exports=t.default},function(e,t,n){"use strict";function o(e){return e.replace(/([A-Z])/g,function(e){return"-"+e[0].toLowerCase()})}function a(e){return Object.keys(e).map(function(t){var n=o(t),a=e[t];return void 0===a?"":"data-"+n+'="'+a+'" '}).join("").trim()}function r(e,t){return void 0!==e?e:t}function i(e){return e.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,"\\$&")}function l(e){var t="";for(var n in e)e.hasOwnProperty(n)&&(t+=n+": "+e[n]+"; ");return t.trim()}function s(e,t){return e+" { "+l(t)+" }"}function u(e,t){var n=arguments.length>2&&void 0!==arguments[2]?arguments[2]:"",o=i(e)+" {([^}]*)}",a=new RegExp(o,"g");if(n&&n.match(a)){for(var r in t)!function(o){var r=t[o],l=new RegExp(i(o)+":([^;]*);");n=n.replace(a,function(t,n){return n.match(l)&&(n=n.replace(l,function(e,t){return o+": "+r+";"})),n=n.trim(),e+" { "+n+" }"})}(r);return n}return""+n+s(e,t)}function c(e){var t=arguments.length>1&&void 0!==arguments[1]?arguments[1]:"",n=i(e)+" {([^}]*)}",o=new RegExp(n,"g"),a=t;return t&&t.match(o)&&(a=t.replace(o,"")),a.trim()}function d(e){var t=document.createElement("textarea");t.style.position="fixed",t.style.top=0,t.style.left=0,t.style.width="2em",t.style.height="2em",t.style.padding=0,t.style.border="none",t.style.outline="none",t.style.boxShadow="none",t.style.background="transparent",t.value=e,document.body.appendChild(t),t.select();try{document.execCommand("copy")}catch(e){console.log("Oops, unable to copy")}document.body.removeChild(t)}function f(e){return!isNaN(e)}function h(e,t,n){var o,a,r,i=null,l=0;n||(n={});var s=function(){l=!1===n.leading?0:Date.now(),i=null,r=e.apply(o,a),i||(o=a=null)};return function(){var u=Date.now();l||!1!==n.leading||(l=u);var c=t-(u-l);return o=this,a=arguments,c<=0||c>t?(i&&(clearTimeout(i),i=null),l=u,r=e.apply(o,a),i||(o=a=null)):i||!1===n.trailing||(i=setTimeout(s,c)),r}}function p(e){var t=arguments.length>1&&void 0!==arguments[1]?arguments[1]:null;return function(){for(var n=arguments.length,o=Array(n),a=0;a<n;a++)o[a]=arguments[a];return new Promise(function(n){setTimeout(function(){e.apply(t,o),n("done",e.name)},0)})}}function v(e){return e.reduce(function(e,t){return e.then(t)},Promise.resolve())}Object.defineProperty(t,"__esModule",{value:!0}),t.camelCaseToDash=o,t.makeDataAttributeString=a,t.getDefault=r,t.escapeRegExp=i,t.getCSSString=l,t.getCSSRuleBlock=s,t.buildCSSRule=u,t.removeCSSRule=c,t.copyTextToClipboard=d,t.isNumeric=f,t.throttle=h,t.promisify=p,t.chainPromises=v},function(e,t,n){"use strict";function o(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function a(e,t){return'\n    <tr class="data-table-row" '+(0,s.makeDataAttributeString)(t)+">\n      "+e.map(u.getCellHTML).join("")+"\n    </tr>\n  "}Object.defineProperty(t,"__esModule",{value:!0});var r=function(){function e(e,t){for(var n=0;n<t.length;n++){var o=t[n];o.enumerable=o.enumerable||!1,o.configurable=!0,"value"in o&&(o.writable=!0),Object.defineProperty(e,o.key,o)}}return function(t,n,o){return n&&e(t.prototype,n),o&&e(t,o),t}}();t.getRowHTML=a;var i=n(0),l=function(e){return e&&e.__esModule?e:{default:e}}(i),s=n(1),u=n(3),c=function(){function e(t){o(this,e),this.instance=t,this.options=this.instance.options,this.wrapper=this.instance.wrapper,this.bodyScrollable=this.instance.bodyScrollable,this.bindEvents(),this.refreshRows=(0,s.promisify)(this.refreshRows,this)}return r(e,[{key:"bindEvents",value:function(){this.bindCheckbox()}},{key:"bindCheckbox",value:function(){var e=this;this.options.addCheckboxColumn&&(this.checkMap=[],l.default.on(this.wrapper,"click",'.data-table-col[data-col-index="0"] [type="checkbox"]',function(t,n){var o=n.closest(".data-table-col"),a=l.default.data(o),r=a.rowIndex,i=a.isHeader,s=n.checked;i?e.checkAll(s):e.checkRow(r,s)}))}},{key:"refreshRows",value:function(){this.instance.renderBody(),this.instance.setDimensions()}},{key:"refreshRow",value:function(e,t){var n=this;this.datamanager.updateRow(e,t).forEach(function(e){n.cellmanager.refreshCell(e)})}},{key:"getCheckedRows",value:function(){return this.checkMap.map(function(e,t){return e?t:null}).filter(function(e){return null!==e||void 0!==e})}},{key:"highlightCheckedRows",value:function(){var e=this;this.getCheckedRows().map(function(t){return e.checkRow(t,!0)})}},{key:"checkRow",value:function(e,t){var n=t?1:0;this.checkMap[e]=n,l.default.each('.data-table-col[data-row-index="'+e+'"][data-col-index="0"] [type="checkbox"]',this.bodyScrollable).map(function(e){e.checked=t}),this.highlightRow(e,t)}},{key:"checkAll",value:function(e){var t=e?1:0;this.checkMap=e?Array.from(Array(this.getTotalRows())).map(function(e){return t}):[],l.default.each('.data-table-col[data-col-index="0"] [type="checkbox"]',this.bodyScrollable).map(function(t){t.checked=e}),this.highlightAll(e)}},{key:"highlightRow",value:function(e){var t=!(arguments.length>1&&void 0!==arguments[1])||arguments[1],n=this.getRow$(e);if(n){if(!t&&this.bodyScrollable.classList.contains("row-highlight-all"))return void n.classList.add("row-unhighlight");t&&n.classList.contains("row-unhighlight")&&n.classList.remove("row-unhighlight"),this._highlightedRows=this._highlightedRows||{},t?(n.classList.add("row-highlight"),this._highlightedRows[e]=n):(n.classList.remove("row-highlight"),delete this._highlightedRows[e])}}},{key:"highlightAll",value:function(){if(arguments.length>0&&void 0!==arguments[0]&&!arguments[0]){this.bodyScrollable.classList.remove("row-highlight-all");for(var e in this._highlightedRows)this._highlightedRows[e].classList.remove("row-highlight");this._highlightedRows={}}else this.bodyScrollable.classList.add("row-highlight-all")}},{key:"getRow$",value:function(e){return(0,l.default)('.data-table-row[data-row-index="'+e+'"]',this.bodyScrollable)}},{key:"getTotalRows",value:function(){return this.datamanager.getRowCount()}},{key:"getFirstRowIndex",value:function(){return 0}},{key:"getLastRowIndex",value:function(){return this.datamanager.getRowCount()-1}},{key:"scrollToRow",value:function(e){e=+e,this._lastScrollTo=this._lastScrollTo||0;var t=this.getRow$(e);if(!l.default.inViewport(t,this.bodyScrollable)){var n=t.getBoundingClientRect(),o=n.height,a=this.bodyScrollable.getBoundingClientRect(),r=a.top,i=a.bottom,s=Math.floor((i-r)/o),u=0;u=e>this._lastScrollTo?o*(e+1-s):o*(e+1-1),this._lastScrollTo=e,l.default.scrollTop(this.bodyScrollable,u)}}},{key:"datamanager",get:function(){return this.instance.datamanager}},{key:"cellmanager",get:function(){return this.instance.cellmanager}}]),e}();t.default=c},function(e,t,n){"use strict";function o(e){return e&&e.__esModule?e:{default:e}}function a(e){if(Array.isArray(e)){for(var t=0,n=Array(e.length);t<e.length;t++)n[t]=e[t];return n}return Array.from(e)}function r(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function i(e){var t=e.rowIndex,n=e.colIndex,o=e.isHeader;return'\n    <td class="data-table-col noselect" '+(0,h.makeDataAttributeString)({rowIndex:t,colIndex:n,isHeader:o})+' tabindex="0">\n      '+l(e)+"\n    </td>\n  "}function l(e){var t=e.isHeader,n=!t&&!1!==e.editable,o=n?'\n    <div class="edit-cell"></div>\n  ':"",a=t&&!1!==e.sortable,r=a?'<span class="sort-indicator"></span>':"",i=t&&!1!==e.resizable,l=i?'<span class="column-resizer"></span>':"",s=t&&!1!==e.dropdown,u=s?'<div class="data-table-dropdown">'+(0,m.getDropdownHTML)()+"</div>":"";return'\n    <div class="content ellipsis">\n      '+(e.format?e.format(e.content):e.content)+"\n      "+r+"\n      "+l+"\n      "+u+"\n    </div>\n    "+o+"\n  "}function s(){return'\n    <div class="edit-cell"></div>\n  '}function u(e,t){return'.data-table-col[data-col-index="'+e+'"][data-row-index="'+t+'"]'}Object.defineProperty(t,"__esModule",{value:!0});var c="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},d=function(){function e(e,t){var n=[],o=!0,a=!1,r=void 0;try{for(var i,l=e[Symbol.iterator]();!(o=(i=l.next()).done)&&(n.push(i.value),!t||n.length!==t);o=!0);}catch(e){a=!0,r=e}finally{try{!o&&l.return&&l.return()}finally{if(a)throw r}}return n}return function(t,n){if(Array.isArray(t))return t;if(Symbol.iterator in Object(t))return e(t,n);throw new TypeError("Invalid attempt to destructure non-iterable instance")}}(),f=function(){function e(e,t){for(var n=0;n<t.length;n++){var o=t[n];o.enumerable=o.enumerable||!1,o.configurable=!0,"value"in o&&(o.writable=!0),Object.defineProperty(e,o.key,o)}}return function(t,n,o){return n&&e(t.prototype,n),o&&e(t,o),t}}();t.getCellHTML=i,t.getCellContent=l,t.getEditCellHTML=s;var h=n(1),p=n(4),v=o(p),g=n(0),b=o(g),m=n(5),y=function(){function e(t){r(this,e),this.instance=t,this.wrapper=this.instance.wrapper,this.options=this.instance.options,this.style=this.instance.style,this.bodyScrollable=this.instance.bodyScrollable,this.columnmanager=this.instance.columnmanager,this.rowmanager=this.instance.rowmanager,this.datamanager=this.instance.datamanager,this.bindEvents()}return f(e,[{key:"bindEvents",value:function(){this.bindFocusCell(),this.bindEditCell(),this.bindKeyboardSelection(),this.bindCopyCellContents(),this.bindMouseEvents()}},{key:"bindFocusCell",value:function(){this.bindKeyboardNav()}},{key:"bindEditCell",value:function(){var e=this;this.$editingCell=null,b.default.on(this.bodyScrollable,"dblclick",".data-table-col",function(t,n){e.activateEditing(n)}),v.default.on("enter",function(t){e.$focusedCell&&!e.$editingCell?e.activateEditing(e.$focusedCell):e.$editingCell&&(e.submitEditing(),e.deactivateEditing())})}},{key:"bindKeyboardNav",value:function(){var e=this,t=function(t){if(!e.$focusedCell||e.$editingCell)return!1;var n=e.$focusedCell;return"left"===t?n=e.getLeftCell$(n):"right"===t?n=e.getRightCell$(n):"up"===t?n=e.getAboveCell$(n):"down"===t&&(n=e.getBelowCell$(n)),e.focusCell(n),!0},n=function(t){if(!e.$focusedCell||e.$editingCell)return!1;var n=e.$focusedCell,o=b.default.data(n),a=o.rowIndex,r=o.colIndex;return"left"===t?n=e.getLeftMostCell$(a):"right"===t?n=e.getRightMostCell$(a):"up"===t?n=e.getTopMostCell$(r):"down"===t&&(n=e.getBottomMostCell$(r)),e.focusCell(n),!0};["left","right","up","down"].map(function(e){return v.default.on(e,function(){return t(e)})}),["left","right","up","down"].map(function(e){return v.default.on("ctrl+"+e,function(){return n(e)})}),v.default.on("esc",function(){e.deactivateEditing()})}},{key:"bindKeyboardSelection",value:function(){var e=this,t=function(t){var n=e.getSelectionCursor();return"left"===t?n=e.getLeftCell$(n):"right"===t?n=e.getRightCell$(n):"up"===t?n=e.getAboveCell$(n):"down"===t&&(n=e.getBelowCell$(n)),n};["left","right","up","down"].map(function(n){return v.default.on("shift+"+n,function(){return e.selectArea(t(n))})})}},{key:"bindCopyCellContents",value:function(){var e=this;v.default.on("ctrl+c",function(){e.copyCellContents(e.$focusedCell,e.$selectionCursor)})}},{key:"bindMouseEvents",value:function(){var e=this,t=null;b.default.on(this.bodyScrollable,"mousedown",".data-table-col",function(n){t=!0,e.focusCell((0,b.default)(n.delegatedTarget))}),b.default.on(this.bodyScrollable,"mouseup",function(){t=!1});var n=function(n){t&&e.selectArea((0,b.default)(n.delegatedTarget))};b.default.on(this.bodyScrollable,"mousemove",".data-table-col",(0,h.throttle)(n,50))}},{key:"focusCell",value:function(e){var t=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{},n=t.skipClearSelection,o=void 0===n?0:n;if("number"==typeof e){var a=Array.from(arguments),r=d(a,2),i=r[0],l=r[1];e=this.getCell$(i,l)}if(e&&e!==this.$editingCell){var s=b.default.data(e),u=s.colIndex;if(!s.isHeader){!1!==this.columnmanager.getColumn(u).focusable&&(this.deactivateEditing(),o||this.clearSelection(),this.$focusedCell&&this.$focusedCell.classList.remove("selected"),this.$focusedCell=e,e.classList.add("selected"),this.highlightRowColumnHeader(e),this.scrollToCell(e))}}}},{key:"highlightRowColumnHeader",value:function(e){var t=b.default.data(e),n=t.colIndex,o=t.rowIndex,a=this.columnmanager.getSerialColumnIndex(),r='.data-table-header .data-table-col[data-col-index="'+n+'"]',i='.data-table-col[data-row-index="'+o+'"][data-col-index="'+a+'"]';this.lastHeaders&&b.default.removeStyle(this.lastHeaders,"backgroundColor");var l=(0,b.default)(r,this.wrapper),s=(0,b.default)(i,this.wrapper);b.default.style([l,s],{backgroundColor:"#f5f7fa"}),this.lastHeaders=[l,s]}},{key:"selectAreaOnClusterChanged",value:function(){if(this.$focusedCell&&this.$selectionCursor){var e=b.default.data(this.$selectionCursor),t=e.colIndex,n=e.rowIndex,o=this.getCell$(t,n);if(o&&o!==this.$selectionCursor){var a=b.default.data(this.$focusedCell);this.$focusedCell=this.getCell$(a.colIndex,a.rowIndex),this.selectArea(o)}}}},{key:"focusCellOnClusterChanged",value:function(){if(this.$focusedCell){var e=b.default.data(this.$focusedCell),t=e.colIndex,n=e.rowIndex,o=this.getCell$(t,n);o&&this.focusCell(o,{skipClearSelection:1})}}},{key:"selectArea",value:function(e){this.$focusedCell&&this._selectArea(this.$focusedCell,e)&&(this.$selectionCursor=e)}},{key:"_selectArea",value:function(e,t){var n=this;if(e===t)return!1;var o=this.getCellsInRange(e,t);return!!o&&(this.clearSelection(),o.map(function(e){return n.getCell$.apply(n,a(e))}).map(function(e){return e.classList.add("highlight")}),!0)}},{key:"getCellsInRange",value:function(e,t){var n=void 0,o=void 0,a=void 0,r=void 0;if("number"==typeof e){var i=Array.prototype.slice.call(arguments);n=i[0],o=i[1],a=i[2],r=i[3]}else if("object"===(void 0===e?"undefined":c(e))){if(!e||!t)return!1;var l=b.default.data(e),s=b.default.data(t);n=l.colIndex,o=l.rowIndex,a=s.colIndex,r=s.rowIndex}if(o>r){var u=[r,o];o=u[0],r=u[1]}if(n>a){var d=[a,n];n=d[0],a=d[1]}if(this.isStandardCell(n)||this.isStandardCell(a))return!1;for(var f=[],h=n,p=o,v=[];p<=r;)v.push(p),p++;return v.map(function(e){for(;h<=a;)f.push([h,e]),h++;h=n}),f}},{key:"clearSelection",value:function(){b.default.each(".data-table-col.highlight",this.bodyScrollable).map(function(e){return e.classList.remove("highlight")}),this.$selectionCursor=null}},{key:"getSelectionCursor",value:function(){return this.$selectionCursor||this.$focusedCell}},{key:"activateEditing",value:function(e){var t=b.default.data(e),n=t.rowIndex,o=t.colIndex,a=this.columnmanager.getColumn(o);if(!a||!1!==a.editable&&!1!==a.focusable){var r=this.getCell(o,n);if(!r||!1!==r.editable){if(this.$editingCell){var i=b.default.data(this.$editingCell),l=i._rowIndex,s=i._colIndex;if(n===l&&o===s)return}this.$editingCell=e,e.classList.add("editing");var u=(0,b.default)(".edit-cell",e);u.innerHTML="";var c=this.getEditingObject(o,n,r.content,u);c&&(this.currentCellEditing=c,c.initValue(r.content))}}}},{key:"deactivateEditing",value:function(){this.$editingCell&&(this.$editingCell.classList.remove("editing"),this.$editingCell=null)}},{key:"getEditingObject",value:function(e,t,n,o){var a=this.options.editing(e,t,n,o);if(a&&a.setValue)return a;var r=b.default.create("input",{type:"text",inside:o});return{initValue:function(e){r.focus(),r.value=e},getValue:function(){return r.value},setValue:function(e){r.value=e}}}},{key:"submitEditing",value:function(){var e=this;if(this.$editingCell){var t=this.$editingCell,n=b.default.data(t),o=n.rowIndex,a=n.colIndex;if(t){var r=this.currentCellEditing;if(r){var i=r.getValue(),l=r.setValue(i),s=this.getCell(a,o).content;this.updateCell(a,o,i),t.focus(),l&&l.then&&l.catch(function(t){console.log(t),e.updateCell(a,o,s)})}}this.currentCellEditing=null}}},{key:"copyCellContents",value:function(e,t){var n=this;if(!t&&e){var o=b.default.data(e),r=o.colIndex,i=o.rowIndex,l=this.getCell(r,i);return void(0,h.copyTextToClipboard)(l.content)}var s=this.getCellsInRange(e,t);if(s){var u=s.map(function(e){return n.getCell.apply(n,a(e))}).reduce(function(e,t){var n=t.rowIndex;return e[n]=e[n]||[],e[n].push(t.content),e},[]).map(function(e){return e.join("\t")}).join("\n");(0,h.copyTextToClipboard)(u)}}},{key:"updateCell",value:function(e,t,n){var o=this.datamanager.updateCell(e,t,{content:n});this.refreshCell(o)}},{key:"refreshCell",value:function(e){(0,b.default)(u(e.colIndex,e.rowIndex),this.bodyScrollable).innerHTML=l(e)}},{key:"isStandardCell",value:function(e){return e<this.columnmanager.getFirstColumnIndex()}},{key:"getCell$",value:function(e,t){return(0,b.default)(u(e,t),this.bodyScrollable)}},{key:"getAboveCell$",value:function(e){var t=b.default.data(e),n=t.colIndex,o=e.parentElement.previousElementSibling;return(0,b.default)('[data-col-index="'+n+'"]',o)}},{key:"getBelowCell$",value:function(e){var t=b.default.data(e),n=t.colIndex,o=e.parentElement.nextElementSibling;return(0,b.default)('[data-col-index="'+n+'"]',o)}},{key:"getLeftCell$",value:function(e){return e.previousElementSibling}},{key:"getRightCell$",value:function(e){return e.nextElementSibling}},{key:"getLeftMostCell$",value:function(e){return this.getCell$(this.columnmanager.getFirstColumnIndex(),e)}},{key:"getRightMostCell$",value:function(e){return this.getCell$(this.columnmanager.getLastColumnIndex(),e)}},{key:"getTopMostCell$",value:function(e){return this.getCell$(e,this.rowmanager.getFirstRowIndex())}},{key:"getBottomMostCell$",value:function(e){return this.getCell$(e,this.rowmanager.getLastRowIndex())}},{key:"getCell",value:function(e,t){return this.instance.datamanager.getCell(e,t)}},{key:"getCellAttr",value:function(e){return this.instance.getCellAttr(e)}},{key:"getRowHeight",value:function(){return b.default.style((0,b.default)(".data-table-row",this.bodyScrollable),"height")}},{key:"scrollToCell",value:function(e){if(b.default.inViewport(e,this.bodyScrollable))return!1;var t=b.default.data(e),n=t.rowIndex;return this.rowmanager.scrollToRow(n),!1}},{key:"getRowCountPerPage",value:function(){return Math.ceil(this.instance.getViewportHeight()/this.getRowHeight())}}]),e}();t.default=y},function(e,t,n){"use strict";function o(e){s||(i.default.on(e,"keydown",a),s=!0)}function a(e){var t=l[e.keyCode];e.shiftKey&&"shift"!==t&&(t="shift+"+t),(e.ctrlKey&&"ctrl"!==t||e.metaKey&&"meta"!==t)&&(t="ctrl+"+t);var n=u[t];n&&n.length>0&&n.map(function(t){var n=t();void 0!==n&&!0!==n||e.preventDefault()})}Object.defineProperty(t,"__esModule",{value:!0});var r=n(0),i=function(e){return e&&e.__esModule?e:{default:e}}(r),l={13:"enter",91:"meta",16:"shift",17:"ctrl",18:"alt",37:"left",38:"up",39:"right",40:"down",9:"tab",27:"esc",67:"c"},s=!1,u={};t.default={init:function(e){o(e)},on:function(e,t){e.split(",").map(function(e){return e.trim()}).map(function(e){u[e]=u[e]||[],u[e].push(t)})}},e.exports=t.default},function(e,t,n){"use strict";function o(e){return e&&e.__esModule?e:{default:e}}function a(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(t,"__esModule",{value:!0}),t.getDropdownHTML=void 0;var r=function(){function e(e,t){for(var n=0;n<t.length;n++){var o=t[n];o.enumerable=o.enumerable||!1,o.configurable=!0,"value"in o&&(o.writable=!0),Object.defineProperty(e,o.key,o)}}return function(t,n,o){return n&&e(t.prototype,n),o&&e(t,o),t}}(),i=n(0),l=o(i),s=n(9),u=o(s),c=n(2),d=n(1),f=function(){function e(n){a(this,e),this.instance=n,this.options=this.instance.options,this.fireEvent=this.instance.fireEvent,this.header=this.instance.header,this.datamanager=this.instance.datamanager,this.style=this.instance.style,this.wrapper=this.instance.wrapper,this.rowmanager=this.instance.rowmanager,this.bindEvents(),t.getDropdownHTML=h=h.bind(this,this.options.dropdownButton)}return r(e,[{key:"renderHeader",value:function(){this.header.innerHTML="<thead></thead>",this.refreshHeader()}},{key:"refreshHeader",value:function(){var e=this,t=this.datamanager.getColumns();if((0,l.default)(".data-table-col",this.header)){var n=l.default.each(".data-table-col",this.header);if(t.length<n.length)return void((0,l.default)("thead",this.header).innerHTML=(0,c.getRowHTML)(t,{isHeader:1}));n.map(function(n,o){var a=t[o];l.default.data(n,{colIndex:a.colIndex});var r=(0,l.default)(".sort-indicator",n);r&&(r.innerHTML=e.options.sortIndicator[a.sortOrder])})}else(0,l.default)("thead",this.header).innerHTML=(0,c.getRowHTML)(t,{isHeader:1});this.$columnMap=[]}},{key:"bindEvents",value:function(){this.bindDropdown(),this.bindResizeColumn(),this.bindMoveColumn()}},{key:"bindDropdown",value:function(){function e(e){n&&n.classList.remove("is-active"),n=null}var t=this,n=void 0;l.default.on(this.header,"click",".data-table-dropdown-toggle",function(t,o){var a=l.default.closest(".data-table-dropdown",o);a.classList.contains("is-active")?e():(e(),a.classList.add("is-active"),n=a)}),l.default.on(document.body,"click",function(t){t.target.matches(".data-table-dropdown-toggle")||e()});var o=this.options.headerDropdown;l.default.on(this.header,"click",".data-table-dropdown-list > div",function(e,n){var a=l.default.closest(".data-table-col",n),r=l.default.data(n),i=r.index,s=l.default.data(a),u=s.colIndex,c=o[i].action;c&&c.call(t.instance,t.getColumn(u))})}},{key:"bindResizeColumn",value:function(){var e=this,t=!1,n=void 0,o=void 0,a=void 0;l.default.on(this.header,"mousedown",".data-table-col .column-resizer",function(r,i){document.body.classList.add("data-table-resize");var s=i.parentNode.parentNode;n=s;var u=l.default.data(n),c=u.colIndex,d=e.getColumn(c);d&&!1===d.resizable||(t=!0,o=l.default.style((0,l.default)(".content",n),"width"),a=r.pageX)}),l.default.on(document.body,"mouseup",function(o){if(document.body.classList.remove("data-table-resize"),n){t=!1;var a=l.default.data(n),r=a.colIndex;e.setColumnWidth(r),e.instance.setBodyWidth(),n=null}}),l.default.on(document.body,"mousemove",function(r){if(t){var i=o+(r.pageX-a),s=l.default.data(n),u=s.colIndex;e.getColumnMinWidth(u)>i||(e.datamanager.updateColumn(u,{width:i}),e.setColumnHeaderWidth(u))}})}},{key:"bindMoveColumn",value:function(){var e=this,t=function(){if((0,l.default)(".data-table-col",e.header)){var t=(0,l.default)(".data-table-row",e.header);e.sortable=u.default.create(t,{onEnd:function(t){var n=t.oldIndex,o=t.newIndex,a=t.item;+l.default.data(a).colIndex!==o&&e.switchColumn(n,o)},preventOnFilter:!1,filter:".column-resizer, .data-table-dropdown",animation:150})}};l.default.on(document.body,"mousemove",t)}},{key:"bindSortColumn",value:function(){var e=this;l.default.on(this.header,"click",".data-table-col .column-title",function(t,n){var o=n.closest(".data-table-col"),a=l.default.data(o),r=a.colIndex,i=a.sortOrder;i=(0,d.getDefault)(i,"none");var s=e.getColumn(r);if(!s||!1!==s.sortable){(0,l.default)(".sort-indicator",e.header).textContent="",l.default.each(".data-table-col",e.header).map(function(e){l.default.data(e,{sortOrder:"none"})});var u=void 0,c=void 0;"none"===i?(u="asc",c="▲"):"asc"===i?(u="desc",c="▼"):"desc"===i&&(u="none",c=""),l.default.data(o,{sortOrder:u}),(0,l.default)(".sort-indicator",o).textContent=c,e.sortColumn(r,u)}})}},{key:"sortColumn",value:function(e,t){var n=this;this.instance.freeze(),this.sortRows(e,t).then(function(){return n.refreshHeader(),n.rowmanager.refreshRows()}).then(function(){return n.instance.unfreeze()}).then(function(){n.fireEvent("onSortColumn",n.getColumn(e))})}},{key:"removeColumn",value:function(e){var t=this,n=this.getColumn(e);this.instance.freeze(),this.datamanager.removeColumn(e).then(function(){return t.refreshHeader(),t.rowmanager.refreshRows()}).then(function(){return t.instance.unfreeze()}).then(function(){t.fireEvent("onRemoveColumn",n)})}},{key:"switchColumn",value:function(e,t){var n=this;this.instance.freeze(),this.datamanager.switchColumn(e,t).then(function(){return n.refreshHeader(),n.rowmanager.refreshRows()}).then(function(){n.setColumnWidth(e),n.setColumnWidth(t),n.instance.unfreeze()}).then(function(){n.fireEvent("onSwitchColumn",n.getColumn(e),n.getColumn(t))})}},{key:"setDimensions",value:function(){this.setHeaderStyle(),this.setupMinWidth(),this.setupNaturalColumnWidth(),this.distributeRemainingWidth(),this.setColumnStyle()}},{key:"setHeaderStyle",value:function(){this.options.takeAvailableSpace||l.default.style(this.header,{width:0}),l.default.style(this.header,{margin:0});var e=this.datamanager.getColumns().filter(function(e){return!1===e.resizable}).map(function(e){return e.colIndex}).map(function(e){return'.data-table-header [data-col-index="'+e+'"]'}).join();this.style.setStyle(e,{cursor:"pointer"})}},{key:"setupMinWidth",value:function(){var e=this;l.default.each(".data-table-col",this.header).map(function(t){var n=l.default.style((0,l.default)(".content",t),"width"),o=l.default.data(t),a=o.colIndex;e.getColumn(a).minWidth||e.datamanager.updateColumn(a,{minWidth:n})})}},{key:"setupNaturalColumnWidth",value:function(){var e=this;l.default.each('.data-table-row[data-row-index="0"] .data-table-col',this.bodyScrollable).map(function(t){var n=l.default.data(t),o=n.colIndex;if(!(e.getColumn(o).width>0)){var a=l.default.style((0,l.default)(".content",t),"width"),r=e.getColumnMinWidth(o);a<r&&(a=r),e.datamanager.updateColumn(o,{width:a})}})}},{key:"distributeRemainingWidth",value:function(){var e=this;if(this.options.takeAvailableSpace){var t=l.default.style(this.instance.datatableWrapper,"width"),n=l.default.style(this.header,"width");if(!(n>=t)){var o=this.datamanager.getColumns().filter(function(e){return void 0===e.resizable||e.resizable}),a=(t-n)/o.length;o.map(function(t){var n=l.default.style(e.getColumnHeaderElement(t.colIndex),"width"),o=Math.min(n+a)-2;e.datamanager.updateColumn(t.colIndex,{width:o})})}}}},{key:"setDefaultCellHeight",value:function(e){this.style.setStyle(".data-table-col .content",{height:e+"px"})}},{key:"setColumnStyle",value:function(){var e=this;this.getColumns().map(function(t){["left","center","right"].includes(t.align)&&e.style.setStyle('[data-col-index="'+t.colIndex+'"]',{"text-align":t.align}),e.setColumnHeaderWidth(t.colIndex),e.setColumnWidth(t.colIndex)}),this.instance.setBodyWidth()}},{key:"sortRows",value:function(e,t){return this.datamanager.sortRows(e,t)}},{key:"getColumn",value:function(e){return this.datamanager.getColumn(e)}},{key:"getColumns",value:function(){return this.datamanager.getColumns()}},{key:"setColumnWidth",value:function(e){e=+e,this._columnWidthMap=this._columnWidthMap||[];var t=this.getColumn(e),n=t.width,o=this._columnWidthMap[e],a='[data-col-index="'+e+'"] .content, [data-col-index="'+e+'"] .edit-cell',r={width:n+"px"};o=this.style.setStyle(a,r,o),this._columnWidthMap[e]=o}},{key:"setColumnHeaderWidth",value:function(e){e=+e,this.$columnMap=this.$columnMap||[];var t='[data-col-index="'+e+'"][data-is-header] .content',n=this.getColumn(e),o=n.width,a=this.$columnMap[e];a||(a=this.header.querySelector(t),this.$columnMap[e]=a),a.style.width=o+"px"}},{key:"getColumnMinWidth",value:function(e){return e=+e,this.getColumn(e).minWidth||24}},{key:"getFirstColumnIndex",value:function(){return this.options.addCheckboxColumn&&this.options.addSerialNoColumn?2:this.options.addCheckboxColumn||this.options.addSerialNoColumn?1:0}},{key:"getHeaderCell$",value:function(e){return(0,l.default)('.data-table-col[data-col-index="'+e+'"]',this.header)}},{key:"getLastColumnIndex",value:function(){return this.datamanager.getColumnCount()-1}},{key:"getColumnHeaderElement",value:function(e){return e=+e,e<0?null:(0,l.default)('.data-table-col[data-is-header][data-col-index="'+e+'"]',this.wrapper)}},{key:"getSerialColumnIndex",value:function(){return this.datamanager.getColumns().findIndex(function(e){return e.content.includes("Sr. No")})}}]),e}();t.default=f;var h=function(){return'<div class="data-table-dropdown-toggle">'+(arguments.length>0&&void 0!==arguments[0]?arguments[0]:"v")+'</div>\n    <div class="data-table-dropdown-list">\n      '+this.options.headerDropdown.map(function(e,t){return'<div data-index="'+t+'">'+e.label+"</div>"}).join("")+"\n    </div>\n  "};t.getDropdownHTML=h},function(e,t,n){"use strict";function o(e){return e&&e.__esModule?e:{default:e}}Object.defineProperty(t,"__esModule",{value:!0});var a=n(7),r=o(a),i=n(19),l=o(i);r.default.__version__=l.default.version,t.default=r.default,e.exports=t.default},function(e,t,n){"use strict";function o(e){return e&&e.__esModule?e:{default:e}}function a(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(t,"__esModule",{value:!0});var r=function(){function e(e,t){for(var n=0;n<t.length;n++){var o=t[n];o.enumerable=o.enumerable||!1,o.configurable=!0,"value"in o&&(o.writable=!0),Object.defineProperty(e,o.key,o)}}return function(t,n,o){return n&&e(t.prototype,n),o&&e(t,o),t}}(),i=n(0),l=o(i),s=n(8),u=o(s),c=n(3),d=o(c),f=n(5),h=o(f),p=n(2),v=o(p),g=n(10),b=o(g),m=n(12),y=o(m),w=n(4),C=o(w),k=n(13),x=o(k);n(14);var S=function(){function e(t,n){if(a(this,e),e.instances++,"string"==typeof t&&(t=document.querySelector(t)),this.wrapper=t,!(this.wrapper instanceof HTMLElement))throw new Error("Invalid argument given for `wrapper`");this.options=Object.assign({},x.default,n),this.options.headerDropdown=x.default.headerDropdown.concat(n.headerDropdown||[]),this.events=Object.assign({},x.default.events,n.events||{}),this.fireEvent=this.fireEvent.bind(this),this.prepare(),this.style=new y.default(this),this.datamanager=new u.default(this.options),this.rowmanager=new v.default(this),this.columnmanager=new h.default(this),this.cellmanager=new d.default(this),this.bodyRenderer=new b.default(this),C.default.init(this.wrapper),this.options.data&&this.refresh(this.options.data)}return r(e,[{key:"prepare",value:function(){this.prepareDom(),this.unfreeze()}},{key:"prepareDom",value:function(){this.wrapper.innerHTML='\n      <div class="data-table">\n        <table class="data-table-header">\n        </table>\n        <div class="body-scrollable">\n        </div>\n        <div class="freeze-container">\n          <span>'+this.options.freezeMessage+'</span>\n        </div>\n        <div class="data-table-footer">\n        </div>\n      </div>\n    ',this.datatableWrapper=(0,l.default)(".data-table",this.wrapper),this.header=(0,l.default)(".data-table-header",this.wrapper),this.bodyScrollable=(0,l.default)(".body-scrollable",this.wrapper),this.freezeContainer=(0,l.default)(".freeze-container",this.wrapper)}},{key:"refresh",value:function(e){this.datamanager.init(e),this.render()}},{key:"destroy",value:function(){this.wrapper.innerHTML="",this.style.destroy()}},{key:"appendRows",value:function(e){this.datamanager.appendRows(e),this.rowmanager.refreshRows()}},{key:"refreshRow",value:function(e,t){this.rowmanager.refreshRow(e,t)}},{key:"render",value:function(){this.renderHeader(),this.renderBody()}},{key:"renderHeader",value:function(){this.columnmanager.renderHeader()}},{key:"renderBody",value:function(){this.bodyRenderer.render()}},{key:"setDimensions",value:function(){this.columnmanager.setDimensions(),this.setBodyWidth(),l.default.style(this.bodyScrollable,{marginTop:l.default.style(this.header,"height")+"px"}),l.default.style((0,l.default)("table",this.bodyScrollable),{margin:0})}},{key:"setBodyWidth",value:function(){var e=l.default.style(this.header,"width");l.default.style(this.bodyScrollable,{width:e+"px"})}},{key:"getColumn",value:function(e){return this.datamanager.getColumn(e)}},{key:"getCell",value:function(e,t){return this.datamanager.getCell(e,t)}},{key:"getColumnHeaderElement",value:function(e){return this.columnmanager.getColumnHeaderElement(e)}},{key:"getViewportHeight",value:function(){return this.viewportHeight||(this.viewportHeight=l.default.style(this.bodyScrollable,"height")),this.viewportHeight}},{key:"sortColumn",value:function(e,t){this.columnmanager.sortColumn(e,t)}},{key:"removeColumn",value:function(e){this.columnmanager.removeColumn(e)}},{key:"scrollToLastColumn",value:function(){this.datatableWrapper.scrollLeft=9999}},{key:"freeze",value:function(){l.default.style(this.freezeContainer,{display:""})}},{key:"unfreeze",value:function(){l.default.style(this.freezeContainer,{display:"none"})}},{key:"fireEvent",value:function(e){for(var t=arguments.length,n=Array(t>1?t-1:0),o=1;o<t;o++)n[o-1]=arguments[o];this.events[e].apply(this,n)}},{key:"log",value:function(){this.options.enableLogs&&console.log.apply(console,arguments)}}]),e}();S.instances=0,t.default=S,e.exports=t.default},function(e,t,n){"use strict";function o(e,t){if(!e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!t||"object"!=typeof t&&"function"!=typeof t?e:t}function a(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(Object.setPrototypeOf?Object.setPrototypeOf(e,t):e.__proto__=t)}function r(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function i(e,t){var n={rowIndex:t};return e.map(s).map(function(e){return Object.assign({},n,e)})}function l(e){var t=(arguments.length>1&&void 0!==arguments[1]&&arguments[1],{isHeader:1,editable:!0,sortable:!0,resizable:!0,focusable:!0,dropdown:!0,format:function(e){return'<span class="column-title">'+e+"</span>"}});return e.map(s).map(function(e){return Object.assign({},t,e)})}function s(e,t){var n={content:"",align:"left",sortOrder:"none",colIndex:0,width:0};return"string"==typeof e&&(e={content:e}),Object.assign({},n,e,{colIndex:t})}Object.defineProperty(t,"__esModule",{value:!0}),t.DataError=void 0;var u="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},c=function(){function e(e,t){for(var n=0;n<t.length;n++){var o=t[n];o.enumerable=o.enumerable||!1,o.configurable=!0,"value"in o&&(o.writable=!0),Object.defineProperty(e,o.key,o)}}return function(t,n,o){return n&&e(t.prototype,n),o&&e(t,o),t}}(),d=n(1),f=function(){function e(t){r(this,e),this.options=t,this.sortRows=(0,d.promisify)(this.sortRows,this),this.switchColumn=(0,d.promisify)(this.switchColumn,this),this.removeColumn=(0,d.promisify)(this.removeColumn,this)}return c(e,[{key:"init",value:function(e){e||(e=this.options.data);var t=e,n=t.columns,o=t.rows;this.rowCount=0,this.columns=[],this.rows=[],this.columns=this.prepareColumns(n),this.rows=this.prepareRows(o),this.prepareNumericColumns()}},{key:"prepareColumns",value:function(e){if(this.validateColumns(e),this.options.addSerialNoColumn&&!this.hasColumn("Sr. No")){e=[{content:"Sr. No",align:"center",editable:!1,resizable:!1,focusable:!1,dropdown:!1}].concat(e)}if(this.options.addCheckboxColumn&&!this.hasColumn("Checkbox")){e=[{content:"Checkbox",editable:!1,resizable:!1,sortable:!1,focusable:!1,dropdown:!1,format:function(e){return'<input type="checkbox" />'}}].concat(e)}return l(e)}},{key:"prepareNumericColumns",value:function(){var e=this.getRow(0);this.columns=this.columns.map(function(t,n){var o=e[n].content;return!t.align&&o&&(0,d.isNumeric)(o)&&(t.align="right"),t})}},{key:"prepareRows",value:function(e){var t=this;return this.validateRows(e),e=e.map(function(e,n){var o=t._getNextRowCount();if(e.length<t.columns.length){if(t.hasColumn("Sr. No")){e=[o+1+""].concat(e)}if(t.hasColumn("Checkbox")){e=['<input type="checkbox" />'].concat(e)}}return i(e,o)})}},{key:"validateColumns",value:function(e){if(!Array.isArray(e))throw new h("`columns` must be an array");e.forEach(function(e,t){if("string"!=typeof e&&"object"!==(void 0===e?"undefined":u(e)))throw new h('column "'+t+'" must be a string or an object')})}},{key:"validateRows",value:function(e){var t=this;if(!Array.isArray(e))throw new h("`rows` must be an array");e.forEach(function(e,n){if(!Array.isArray(e))throw new h("`row` must be an array");if(e.length!==t.getColumnCount(!0))throw new h('Row index "'+n+"\" doesn't match column length")})}},{key:"appendRows",value:function(e){this.validateRows(e),this.rows=this.rows.concat(this.prepareRows(e))}},{key:"sortRows",value:function(e){var t=arguments.length>1&&void 0!==arguments[1]?arguments[1]:"none";e=+e,this.getColumns().map(function(n){n.colIndex===e?n.sortOrder=t:n.sortOrder="none"}),this._sortRows(e,t)}},{key:"_sortRows",value:function(e,t){if(this.currentSort.colIndex===e&&("asc"===this.currentSort.sortOrder&&"desc"===t||"desc"===this.currentSort.sortOrder&&"asc"===t))return this.reverseArray(this.rows),void(this.currentSort.sortOrder=t);if(this.rows.sort(function(n,o){var a=n[0].rowIndex,r=o[0].rowIndex,i=n[e].content,l=o[e].content;if("none"===t)return a-r;if("asc"===t){if(i<l)return-1;if(i>l)return 1;if(i===l)return 0}else if("desc"===t){if(i<l)return 1;if(i>l)return-1;if(i===l)return 0}return 0}),this.hasColumn("Sr. No")){var n=this.getColumnIndex("Sr. No");this.rows=this.rows.map(function(e,t){return e.map(function(e){return e.colIndex===n&&(e.content=t+1+""),e})})}}},{key:"reverseArray",value:function(e){var t=null,n=null,o=e.length;for(t=0,n=o-1;t<n;t+=1,n-=1){var a=e[t];e[t]=e[n],e[n]=a}}},{key:"switchColumn",value:function(e,t){var n=this.columns[e];this.columns[e]=this.columns[t],this.columns[t]=n,this.columns[e].colIndex=e,this.columns[t].colIndex=t,this.rows=this.rows.map(function(n){var o=Object.assign({},n[e],{colIndex:t}),a=Object.assign({},n[t],{colIndex:e}),r=n.map(function(e){return Object.assign({},e)});return r[t]=o,r[e]=a,r})}},{key:"removeColumn",value:function(e){e=+e;var t=function(t){return t.colIndex!==e},n=function(e,t){return Object.assign({},e,{colIndex:t})};this.columns=this.columns.filter(t).map(n),this.rows=this.rows.map(function(e){return e.filter(t).map(n)})}},{key:"updateRow",value:function(e,t){if(e.length<this.columns.length){if(this.hasColumn("Sr. No")){e=[t+1+""].concat(e)}if(this.hasColumn("Checkbox")){e=['<input type="checkbox" />'].concat(e)}}var n=i(e,t),o=this.rows.findIndex(function(e){return e[0].rowIndex===t});return this.rows[o]=n,n}},{key:"updateCell",value:function(e,t,n){var o=void 0;"object"===(void 0===e?"undefined":u(e))&&(o=e,e=o.colIndex,t=o.rowIndex,n=o),o=this.getCell(e,t);for(var a in n){var r=n[a];void 0!==r&&(o[a]=r)}return o}},{key:"updateColumn",value:function(e,t){var n=this.getColumn(e);for(var o in t){var a=t[o];void 0!==a&&(n[o]=a)}return n}},{key:"getRowCount",value:function(){return this.rowCount}},{key:"_getNextRowCount",value:function(){var e=this.rowCount;return this.rowCount++,e}},{key:"getRows",value:function(e,t){return this.rows.slice(e,t)}},{key:"getColumns",value:function(e){var t=this.columns;return e&&(t=t.slice(this.getStandardColumnCount())),t}},{key:"getStandardColumnCount",value:function(){return this.options.addCheckboxColumn&&this.options.addSerialNoColumn?2:this.options.addCheckboxColumn||this.options.addSerialNoColumn?1:0}},{key:"getColumnCount",value:function(e){var t=this.columns.length;return e&&(t-=this.getStandardColumnCount()),t}},{key:"getColumn",value:function(e){return e=+e,this.columns.find(function(t){return t.colIndex===e})}},{key:"getRow",value:function(e){return e=+e,this.rows.find(function(t){return t[0].rowIndex===e})}},{key:"getCell",value:function(e,t){return t=+t,e=+e,this.rows.find(function(e){return e[0].rowIndex===t})[e]}},{key:"get",value:function(){return{columns:this.columns,rows:this.rows}}},{key:"hasColumn",value:function(e){return Boolean(this.columns.find(function(t){return t.content===e}))}},{key:"getColumnIndex",value:function(e){return this.columns.findIndex(function(t){return t.content===e})}},{key:"currentSort",get:function(){return this.columns.find(function(e){return"none"!==e.sortOrder})||{colIndex:-1,sortOrder:"none"}}}]),e}();t.default=f;var h=t.DataError=function(e){function t(){return r(this,t),o(this,(t.__proto__||Object.getPrototypeOf(t)).apply(this,arguments))}return a(t,e),t}(function(e){function t(){var t=Reflect.construct(e,Array.from(arguments));return Object.setPrototypeOf(t,Object.getPrototypeOf(this)),t}return t.prototype=Object.create(e.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e,t}(TypeError))},function(t,n){t.exports=e},function(e,t,n){"use strict";function o(e){return e&&e.__esModule?e:{default:e}}function a(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function r(e){return"\n    <tbody>\n      "+e.map(function(e){return(0,d.getRowHTML)(e,{rowIndex:e[0].rowIndex})}).join("")+"\n    </tbody>\n  "}Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var o=t[n];o.enumerable=o.enumerable||!1,o.configurable=!0,"value"in o&&(o.writable=!0),Object.defineProperty(e,o.key,o)}}return function(t,n,o){return n&&e(t.prototype,n),o&&e(t,o),t}}();t.getBodyHTML=r;var l=n(0),s=o(l),u=n(11),c=o(u),d=n(2),f=n(1),h=function(){function e(t){a(this,e),this.instance=t,this.options=t.options,this.datamanager=t.datamanager,this.rowmanager=t.rowmanager,this.cellmanager=t.cellmanager,this.bodyScrollable=t.bodyScrollable,this.log=t.log,this.appendRemainingData=(0,f.promisify)(this.appendRemainingData,this)}return i(e,[{key:"render",value:function(){this.options.enableClusterize?this.renderBodyWithClusterize():this.renderBodyHTML()}},{key:"renderBodyHTML",value:function(){var e=this.datamanager.getRows();this.bodyScrollable.innerHTML='\n      <table class="data-table-body">\n        '+r(e)+"\n      </table>\n    "}},{key:"renderBodyWithClusterize",value:function(){var e=this,t=this.datamanager.getRows(0,20),n=this.getDataForClusterize(t);this.clusterize?this.clusterize.update(n):(this.bodyScrollable.innerHTML='\n        <table class="data-table-body">\n          '+r([])+"\n        </table>\n      ",this.clusterize=new c.default({rows:n,scrollElem:this.bodyScrollable,contentElem:(0,s.default)("tbody",this.bodyScrollable),callbacks:{clusterChanged:function(){e.rowmanager.highlightCheckedRows(),e.cellmanager.selectAreaOnClusterChanged(),e.cellmanager.focusCellOnClusterChanged()}},no_data_text:this.options.loadingText,no_data_class:"empty-state"}),this.instance.setDimensions()),this.appendRemainingData()}},{key:"appendRemainingData",value:function(){var e=this.datamanager.getRows(20),t=this.getDataForClusterize(e);this.clusterize.append(t)}},{key:"getDataForClusterize",value:function(e){return e.map(function(e){return(0,d.getRowHTML)(e,{rowIndex:e[0].rowIndex})})}}]),e}();t.default=h},function(e,n){e.exports=t},function(e,t,n){"use strict";function o(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(t,"__esModule",{value:!0});var a=function(){function e(e,t){for(var n=0;n<t.length;n++){var o=t[n];o.enumerable=o.enumerable||!1,o.configurable=!0,"value"in o&&(o.writable=!0),Object.defineProperty(e,o.key,o)}}return function(t,n,o){return n&&e(t.prototype,n),o&&e(t,o),t}}(),r=n(1),i=function(){function e(t){o(this,e),this.datatable=t,this.scopeClass="datatable-instance-"+t.constructor.instances,t.datatableWrapper.classList.add(this.scopeClass);var n=document.createElement("style");t.wrapper.insertBefore(n,t.datatableWrapper),this.styleEl=n,this.styleSheet=n.sheet}return a(e,[{key:"destroy",value:function(){this.styleEl.remove()}},{key:"setStyle",value:function(e,t){var n=arguments.length>2&&void 0!==arguments[2]?arguments[2]:-1,o=Object.keys(t).map(function(e){return e.includes("-")||(e=(0,r.camelCaseToDash)(e)),e+":"+t[e]+";"}).join(""),a="."+this.scopeClass+" "+e+" { "+o+" }",i=this.styleSheet.cssRules.length;return-1!==n&&(this.styleSheet.deleteRule(n),i=n),this.styleSheet.insertRule(a,i),i}}]),e}();t.default=i,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default={data:{columns:[],rows:[]},dropdownButton:"▼",headerDropdown:[{label:"Sort Ascending",action:function(e){this.sortColumn(e.colIndex,"asc")}},{label:"Sort Descending",action:function(e){this.sortColumn(e.colIndex,"desc")}},{label:"Reset sorting",action:function(e){this.sortColumn(e.colIndex,"none")}},{label:"Remove column",action:function(e){this.removeColumn(e.colIndex)}}],events:{onRemoveColumn:function(e){},onSwitchColumn:function(e,t){},onSortColumn:function(e){}},sortIndicator:{asc:"↑",desc:"↓",none:""},freezeMessage:"Loading...",editing:function(){},addSerialNoColumn:!0,addCheckboxColumn:!0,enableClusterize:!0,enableLogs:!1,takeAvailableSpace:!1,loadingText:"Loading..."},e.exports=t.default},function(e,t,n){var o=n(15);"string"==typeof o&&(o=[[e.i,o,""]]);var a={};a.transform=void 0;n(17)(o,a);o.locals&&(e.exports=o.locals)},function(e,t,n){t=e.exports=n(16)(void 0),t.push([e.i,"/* variables */\n/* resets */\n*, *::after, *::before {\n  box-sizing: border-box; }\n\nbutton, input {\n  overflow: visible;\n  font-family: inherit;\n  font-size: inherit;\n  line-height: inherit;\n  margin: 0; }\n\n/* styling */\n.data-table * {\n  outline: none; }\n\n.data-table {\n  width: 100%;\n  position: relative;\n  overflow: auto; }\n  .data-table table {\n    border-collapse: collapse; }\n  .data-table table td {\n    padding: 0;\n    border: 1px solid #d1d8dd; }\n  .data-table thead td {\n    border-bottom-width: 2px; }\n  .data-table .freeze-container {\n    display: flex;\n    justify-content: center;\n    align-content: center;\n    position: absolute;\n    left: 0;\n    right: 0;\n    top: 0;\n    bottom: 0;\n    background-color: #f5f7fa;\n    opacity: 0.5;\n    font-size: 2em; }\n    .data-table .freeze-container span {\n      position: absolute;\n      top: 50%;\n      transform: translateY(-50%); }\n  .data-table .trash-container {\n    position: absolute;\n    bottom: 0;\n    left: 30%;\n    right: 30%;\n    height: 70px;\n    background: palevioletred;\n    opacity: 0.5; }\n\n.body-scrollable {\n  max-height: 500px;\n  overflow: auto;\n  border-bottom: 1px solid #d1d8dd; }\n  .body-scrollable.row-highlight-all .data-table-row:not(.row-unhighlight) {\n    background-color: #f5f7fa; }\n\n.data-table-header {\n  position: absolute;\n  top: 0;\n  left: 0;\n  background-color: white;\n  font-weight: bold; }\n  .data-table-header .content span:not(.column-resizer) {\n    cursor: pointer; }\n  .data-table-header .column-resizer {\n    display: none;\n    position: absolute;\n    right: 0;\n    top: 0;\n    width: 4px;\n    height: 100%;\n    background-color: #5292f7;\n    cursor: col-resize; }\n  .data-table-header .data-table-dropdown {\n    position: absolute;\n    right: 10px;\n    display: inline-flex;\n    vertical-align: top;\n    text-align: left; }\n    .data-table-header .data-table-dropdown.is-active .data-table-dropdown-list {\n      display: block; }\n    .data-table-header .data-table-dropdown.is-active .data-table-dropdown-toggle {\n      display: block; }\n  .data-table-header .data-table-dropdown-toggle {\n    display: none;\n    background-color: transparent;\n    border: none; }\n  .data-table-header .data-table-dropdown-list {\n    display: none;\n    font-weight: normal;\n    position: absolute;\n    min-width: 8rem;\n    top: 100%;\n    right: 0;\n    z-index: 1;\n    background-color: white;\n    border-radius: 3px;\n    box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);\n    padding-bottom: 0.5rem;\n    padding-top: 0.5rem; }\n    .data-table-header .data-table-dropdown-list > div {\n      padding: 5px 10px; }\n      .data-table-header .data-table-dropdown-list > div:hover {\n        background-color: #f5f7fa; }\n  .data-table-header .data-table-col.remove-column {\n    background-color: #FD8B8B;\n    transition: 300ms background-color ease-in-out; }\n  .data-table-header .data-table-col.sortable-chosen {\n    background-color: #f5f7fa; }\n\n.data-table-col {\n  position: relative; }\n  .data-table-col .content {\n    padding: 8px;\n    border: 2px solid transparent; }\n    .data-table-col .content.ellipsis {\n      text-overflow: ellipsis;\n      white-space: nowrap;\n      overflow: hidden; }\n  .data-table-col .edit-cell {\n    display: none;\n    padding: 8px;\n    background: #fff;\n    z-index: 1;\n    height: 100%; }\n    .data-table-col .edit-cell input {\n      outline: none;\n      width: 100%;\n      border: none;\n      height: 1em; }\n  .data-table-col.selected .content {\n    border: 2px solid #5292f7; }\n  .data-table-col.editing .content {\n    display: none; }\n  .data-table-col.editing .edit-cell {\n    border: 2px solid #5292f7;\n    display: block; }\n  .data-table-col.highlight {\n    background-color: #f5f7fa; }\n  .data-table-col:hover .column-resizer {\n    display: inline-block; }\n  .data-table-col:hover .data-table-dropdown-toggle {\n    display: block; }\n\n.data-table-row.row-highlight {\n  background-color: #f5f7fa; }\n\n.noselect {\n  -webkit-touch-callout: none;\n  -webkit-user-select: none;\n  -khtml-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none; }\n\nbody.data-table-resize {\n  cursor: col-resize; }\n",""])},function(e,t){function n(e,t){var n=e[1]||"",a=e[3];if(!a)return n;if(t&&"function"==typeof btoa){var r=o(a);return[n].concat(a.sources.map(function(e){return"/*# sourceURL="+a.sourceRoot+e+" */"})).concat([r]).join("\n")}return[n].join("\n")}function o(e){return"/*# sourceMappingURL=data:application/json;charset=utf-8;base64,"+btoa(unescape(encodeURIComponent(JSON.stringify(e))))+" */"}e.exports=function(e){var t=[];return t.toString=function(){return this.map(function(t){var o=n(t,e);return t[2]?"@media "+t[2]+"{"+o+"}":o}).join("")},t.i=function(e,n){"string"==typeof e&&(e=[[null,e,""]]);for(var o={},a=0;a<this.length;a++){var r=this[a][0];"number"==typeof r&&(o[r]=!0)}for(a=0;a<e.length;a++){var i=e[a];"number"==typeof i[0]&&o[i[0]]||(n&&!i[2]?i[2]=n:n&&(i[2]="("+i[2]+") and ("+n+")"),t.push(i))}},t}},function(e,t,n){function o(e,t){for(var n=0;n<e.length;n++){var o=e[n],a=p[o.id];if(a){a.refs++;for(var r=0;r<a.parts.length;r++)a.parts[r](o.parts[r]);for(;r<o.parts.length;r++)a.parts.push(c(o.parts[r],t))}else{for(var i=[],r=0;r<o.parts.length;r++)i.push(c(o.parts[r],t));p[o.id]={id:o.id,refs:1,parts:i}}}}function a(e,t){for(var n=[],o={},a=0;a<e.length;a++){var r=e[a],i=t.base?r[0]+t.base:r[0],l=r[1],s=r[2],u=r[3],c={css:l,media:s,sourceMap:u};o[i]?o[i].parts.push(c):n.push(o[i]={id:i,parts:[c]})}return n}function r(e,t){var n=g(e.insertInto);if(!n)throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");var o=y[y.length-1];if("top"===e.insertAt)o?o.nextSibling?n.insertBefore(t,o.nextSibling):n.appendChild(t):n.insertBefore(t,n.firstChild),y.push(t);else{if("bottom"!==e.insertAt)throw new Error("Invalid value for parameter 'insertAt'. Must be 'top' or 'bottom'.");n.appendChild(t)}}function i(e){if(null===e.parentNode)return!1;e.parentNode.removeChild(e);var t=y.indexOf(e);t>=0&&y.splice(t,1)}function l(e){var t=document.createElement("style");return e.attrs.type="text/css",u(t,e.attrs),r(e,t),t}function s(e){var t=document.createElement("link");return e.attrs.type="text/css",e.attrs.rel="stylesheet",u(t,e.attrs),r(e,t),t}function u(e,t){Object.keys(t).forEach(function(n){e.setAttribute(n,t[n])})}function c(e,t){var n,o,a,r;if(t.transform&&e.css){if(!(r=t.transform(e.css)))return function(){};e.css=r}if(t.singleton){var u=m++;n=b||(b=l(t)),o=d.bind(null,n,u,!1),a=d.bind(null,n,u,!0)}else e.sourceMap&&"function"==typeof URL&&"function"==typeof URL.createObjectURL&&"function"==typeof URL.revokeObjectURL&&"function"==typeof Blob&&"function"==typeof btoa?(n=s(t),o=h.bind(null,n,t),a=function(){i(n),n.href&&URL.revokeObjectURL(n.href)}):(n=l(t),o=f.bind(null,n),a=function(){i(n)});return o(e),function(t){if(t){if(t.css===e.css&&t.media===e.media&&t.sourceMap===e.sourceMap)return;o(e=t)}else a()}}function d(e,t,n,o){var a=n?"":o.css;if(e.styleSheet)e.styleSheet.cssText=C(t,a);else{var r=document.createTextNode(a),i=e.childNodes;i[t]&&e.removeChild(i[t]),i.length?e.insertBefore(r,i[t]):e.appendChild(r)}}function f(e,t){var n=t.css,o=t.media;if(o&&e.setAttribute("media",o),e.styleSheet)e.styleSheet.cssText=n;else{for(;e.firstChild;)e.removeChild(e.firstChild);e.appendChild(document.createTextNode(n))}}function h(e,t,n){var o=n.css,a=n.sourceMap,r=void 0===t.convertToAbsoluteUrls&&a;(t.convertToAbsoluteUrls||r)&&(o=w(o)),a&&(o+="\n/*# sourceMappingURL=data:application/json;base64,"+btoa(unescape(encodeURIComponent(JSON.stringify(a))))+" */");var i=new Blob([o],{type:"text/css"}),l=e.href;e.href=URL.createObjectURL(i),l&&URL.revokeObjectURL(l)}var p={},v=function(e){var t;return function(){return void 0===t&&(t=e.apply(this,arguments)),t}}(function(){return window&&document&&document.all&&!window.atob}),g=function(e){var t={};return function(n){return void 0===t[n]&&(t[n]=e.call(this,n)),t[n]}}(function(e){return document.querySelector(e)}),b=null,m=0,y=[],w=n(18);e.exports=function(e,t){if("undefined"!=typeof DEBUG&&DEBUG&&"object"!=typeof document)throw new Error("The style-loader cannot be used in a non-browser environment");t=t||{},t.attrs="object"==typeof t.attrs?t.attrs:{},t.singleton||(t.singleton=v()),t.insertInto||(t.insertInto="head"),t.insertAt||(t.insertAt="bottom");var n=a(e,t);return o(n,t),function(e){for(var r=[],i=0;i<n.length;i++){var l=n[i],s=p[l.id];s.refs--,r.push(s)}if(e){o(a(e,t),t)}for(var i=0;i<r.length;i++){var s=r[i];if(0===s.refs){for(var u=0;u<s.parts.length;u++)s.parts[u]();delete p[s.id]}}}};var C=function(){var e=[];return function(t,n){return e[t]=n,e.filter(Boolean).join("\n")}}()},function(e,t){e.exports=function(e){var t="undefined"!=typeof window&&window.location;if(!t)throw new Error("fixUrls requires window.location");if(!e||"string"!=typeof e)return e;var n=t.protocol+"//"+t.host,o=n+t.pathname.replace(/\/[^\/]*$/,"/");return e.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi,function(e,t){var a=t.trim().replace(/^"(.*)"$/,function(e,t){return t}).replace(/^'(.*)'$/,function(e,t){return t});if(/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/)/i.test(a))return e;var r;return r=0===a.indexOf("//")?a:0===a.indexOf("/")?n+a:o+a.replace(/^\.\//,""),"url("+JSON.stringify(r)+")"})}},function(e,t){e.exports={name:"frappe-datatable",version:"0.0.1",description:"A modern datatable library for the web",main:"lib/frappe-datatable.js",scripts:{start:"npm run dev",build:"webpack --env build",dev:"webpack --progress --colors --watch --env dev",test:"mocha --compilers js:babel-core/register --colors ./test/*.spec.js","test:watch":"mocha --compilers js:babel-core/register --colors -w ./test/*.spec.js"},devDependencies:{"babel-cli":"6.24.1","babel-core":"6.24.1","babel-eslint":"7.2.3","babel-loader":"7.0.0","babel-plugin-add-module-exports":"0.2.1","babel-plugin-transform-builtin-extend":"^1.1.2","babel-preset-env":"^1.6.1",chai:"3.5.0","css-loader":"^0.28.7",eslint:"3.19.0","eslint-loader":"1.7.1",mocha:"3.3.0","node-sass":"^4.5.3","sass-loader":"^6.0.6","style-loader":"^0.18.2",webpack:"^3.1.0",yargs:"7.1.0"},repository:{type:"git",url:"https://github.com/frappe/datatable.git"},keywords:["webpack","es6","starter","library","universal","umd","commonjs"],author:"Faris Ansari",license:"MIT",bugs:{url:"https://github.com/frappe/datatable/issues"},homepage:"https://frappe.github.io/datatable",dependencies:{"clusterize.js":"^0.18.0",sortablejs:"^1.7.0"}}}])});
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory(require("sortablejs"), require("clusterize.js"));
+	else if(typeof define === 'function' && define.amd)
+		define("DataTable", [, ], factory);
+	else if(typeof exports === 'object')
+		exports["DataTable"] = factory(require("sortablejs"), require("clusterize.js"));
+	else
+		root["DataTable"] = factory(root["Sortable"], root["Clusterize"]);
+})(typeof self !== 'undefined' ? self : this, function(__WEBPACK_EXTERNAL_MODULE_8__, __WEBPACK_EXTERNAL_MODULE_11__) {
+return /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, {
+/******/ 				configurable: false,
+/******/ 				enumerable: true,
+/******/ 				get: getter
+/******/ 			});
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = 4);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+exports.default = $;
+function $(expr, con) {
+  return typeof expr === 'string' ? (con || document).querySelector(expr) : expr || null;
+}
+
+$.each = function (expr, con) {
+  return typeof expr === 'string' ? Array.from((con || document).querySelectorAll(expr)) : expr || null;
+};
+
+$.create = function (tag, o) {
+  var element = document.createElement(tag);
+
+  var _loop = function _loop(i) {
+    var val = o[i];
+
+    if (i === 'inside') {
+      $(val).appendChild(element);
+    } else if (i === 'around') {
+      var ref = $(val);
+      ref.parentNode.insertBefore(element, ref);
+      element.appendChild(ref);
+    } else if (i === 'styles') {
+      if ((typeof val === 'undefined' ? 'undefined' : _typeof(val)) === 'object') {
+        Object.keys(val).map(function (prop) {
+          element.style[prop] = val[prop];
+        });
+      }
+    } else if (i in element) {
+      element[i] = val;
+    } else {
+      element.setAttribute(i, val);
+    }
+  };
+
+  for (var i in o) {
+    _loop(i);
+  }
+
+  return element;
+};
+
+$.on = function (element, event, selector, callback) {
+  if (!callback) {
+    callback = selector;
+    $.bind(element, event, callback);
+  } else {
+    $.delegate(element, event, selector, callback);
+  }
+};
+
+$.off = function (element, event, handler) {
+  element.removeEventListener(event, handler);
+};
+
+$.bind = function (element, event, callback) {
+  event.split(/\s+/).forEach(function (event) {
+    element.addEventListener(event, callback);
+  });
+};
+
+$.delegate = function (element, event, selector, callback) {
+  element.addEventListener(event, function (e) {
+    var delegatedTarget = e.target.closest(selector);
+    if (delegatedTarget) {
+      e.delegatedTarget = delegatedTarget;
+      callback.call(this, e, delegatedTarget);
+    }
+  });
+};
+
+$.unbind = function (element, o) {
+  if (element) {
+    var _loop2 = function _loop2(event) {
+      var callback = o[event];
+
+      event.split(/\s+/).forEach(function (event) {
+        element.removeEventListener(event, callback);
+      });
+    };
+
+    for (var event in o) {
+      _loop2(event);
+    }
+  }
+};
+
+$.fire = function (target, type, properties) {
+  var evt = document.createEvent('HTMLEvents');
+
+  evt.initEvent(type, true, true);
+
+  for (var j in properties) {
+    evt[j] = properties[j];
+  }
+
+  return target.dispatchEvent(evt);
+};
+
+$.data = function (element, attrs) {
+  // eslint-disable-line
+  if (!attrs) {
+    return element.dataset;
+  }
+
+  for (var attr in attrs) {
+    element.dataset[attr] = attrs[attr];
+  }
+};
+
+$.style = function (elements, styleMap) {
+  // eslint-disable-line
+
+  if (typeof styleMap === 'string') {
+    return $.getStyle(elements, styleMap);
+  }
+
+  if (!Array.isArray(elements)) {
+    elements = [elements];
+  }
+
+  elements.map(function (element) {
+    for (var prop in styleMap) {
+      element.style[prop] = styleMap[prop];
+    }
+  });
+};
+
+$.removeStyle = function (elements, styleProps) {
+  if (!Array.isArray(elements)) {
+    elements = [elements];
+  }
+
+  if (!Array.isArray(styleProps)) {
+    styleProps = [styleProps];
+  }
+
+  elements.map(function (element) {
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = styleProps[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var prop = _step.value;
+
+        element.style[prop] = '';
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
+      }
+    }
+  });
+};
+
+$.getStyle = function (element, prop) {
+  var val = getComputedStyle(element)[prop];
+
+  if (['width', 'height'].includes(prop)) {
+    val = parseFloat(val);
+  }
+
+  return val;
+};
+
+$.closest = function (selector, element) {
+  if (!element) return null;
+
+  if (element.matches(selector)) {
+    return element;
+  }
+
+  return $.closest(selector, element.parentNode);
+};
+
+$.inViewport = function (el, parentEl) {
+  var _el$getBoundingClient = el.getBoundingClientRect(),
+      top = _el$getBoundingClient.top,
+      left = _el$getBoundingClient.left,
+      bottom = _el$getBoundingClient.bottom,
+      right = _el$getBoundingClient.right;
+
+  var _parentEl$getBounding = parentEl.getBoundingClientRect(),
+      pTop = _parentEl$getBounding.top,
+      pLeft = _parentEl$getBounding.left,
+      pBottom = _parentEl$getBounding.bottom,
+      pRight = _parentEl$getBounding.right;
+
+  return top >= pTop && left >= pLeft && bottom <= pBottom && right <= pRight;
+};
+
+$.scrollTop = function scrollTop(element, pixels) {
+  requestAnimationFrame(function () {
+    element.scrollTop = pixels;
+  });
+};
+module.exports = exports['default'];
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.camelCaseToDash = camelCaseToDash;
+exports.makeDataAttributeString = makeDataAttributeString;
+exports.getDefault = getDefault;
+exports.escapeRegExp = escapeRegExp;
+exports.getCSSString = getCSSString;
+exports.getCSSRuleBlock = getCSSRuleBlock;
+exports.buildCSSRule = buildCSSRule;
+exports.removeCSSRule = removeCSSRule;
+exports.copyTextToClipboard = copyTextToClipboard;
+exports.isNumeric = isNumeric;
+exports.throttle = throttle;
+exports.promisify = promisify;
+exports.chainPromises = chainPromises;
+function camelCaseToDash(str) {
+  return str.replace(/([A-Z])/g, function (g) {
+    return '-' + g[0].toLowerCase();
+  });
+}
+
+function makeDataAttributeString(props) {
+  var keys = Object.keys(props);
+
+  return keys.map(function (key) {
+    var _key = camelCaseToDash(key);
+    var val = props[key];
+
+    if (val === undefined) return '';
+    return 'data-' + _key + '="' + val + '" ';
+  }).join('').trim();
+}
+
+function getDefault(a, b) {
+  return a !== undefined ? a : b;
+}
+
+function escapeRegExp(str) {
+  // https://stackoverflow.com/a/6969486
+  return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
+}
+
+function getCSSString(styleMap) {
+  var style = '';
+
+  for (var prop in styleMap) {
+    if (styleMap.hasOwnProperty(prop)) {
+      style += prop + ': ' + styleMap[prop] + '; ';
+    }
+  }
+
+  return style.trim();
+}
+
+function getCSSRuleBlock(rule, styleMap) {
+  return rule + ' { ' + getCSSString(styleMap) + ' }';
+}
+
+function buildCSSRule(rule, styleMap) {
+  var cssRulesString = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
+
+  // build css rules efficiently,
+  // append new rule if doesnt exist,
+  // update existing ones
+
+  var rulePatternStr = escapeRegExp(rule) + ' {([^}]*)}';
+  var rulePattern = new RegExp(rulePatternStr, 'g');
+
+  if (cssRulesString && cssRulesString.match(rulePattern)) {
+    var _loop = function _loop(property) {
+      var value = styleMap[property];
+      var propPattern = new RegExp(escapeRegExp(property) + ':([^;]*);');
+
+      cssRulesString = cssRulesString.replace(rulePattern, function (match, propertyStr) {
+        if (propertyStr.match(propPattern)) {
+          // property exists, replace value with new value
+          propertyStr = propertyStr.replace(propPattern, function (match, valueStr) {
+            return property + ': ' + value + ';';
+          });
+        }
+        propertyStr = propertyStr.trim();
+
+        var replacer = rule + ' { ' + propertyStr + ' }';
+
+        return replacer;
+      });
+    };
+
+    for (var property in styleMap) {
+      _loop(property);
+    }
+
+    return cssRulesString;
+  }
+  // no match, append new rule block
+  return '' + cssRulesString + getCSSRuleBlock(rule, styleMap);
+}
+
+function removeCSSRule(rule) {
+  var cssRulesString = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+
+  var rulePatternStr = escapeRegExp(rule) + ' {([^}]*)}';
+  var rulePattern = new RegExp(rulePatternStr, 'g');
+  var output = cssRulesString;
+
+  if (cssRulesString && cssRulesString.match(rulePattern)) {
+    output = cssRulesString.replace(rulePattern, '');
+  }
+
+  return output.trim();
+}
+
+function copyTextToClipboard(text) {
+  // https://stackoverflow.com/a/30810322/5353542
+  var textArea = document.createElement('textarea');
+
+  //
+  // *** This styling is an extra step which is likely not required. ***
+  //
+  // Why is it here? To ensure:
+  // 1. the element is able to have focus and selection.
+  // 2. if element was to flash render it has minimal visual impact.
+  // 3. less flakyness with selection and copying which **might** occur if
+  //    the textarea element is not visible.
+  //
+  // The likelihood is the element won't even render, not even a flash,
+  // so some of these are just precautions. However in IE the element
+  // is visible whilst the popup box asking the user for permission for
+  // the web page to copy to the clipboard.
+  //
+
+  // Place in top-left corner of screen regardless of scroll position.
+  textArea.style.position = 'fixed';
+  textArea.style.top = 0;
+  textArea.style.left = 0;
+
+  // Ensure it has a small width and height. Setting to 1px / 1em
+  // doesn't work as this gives a negative w/h on some browsers.
+  textArea.style.width = '2em';
+  textArea.style.height = '2em';
+
+  // We don't need padding, reducing the size if it does flash render.
+  textArea.style.padding = 0;
+
+  // Clean up any borders.
+  textArea.style.border = 'none';
+  textArea.style.outline = 'none';
+  textArea.style.boxShadow = 'none';
+
+  // Avoid flash of white box if rendered for any reason.
+  textArea.style.background = 'transparent';
+
+  textArea.value = text;
+
+  document.body.appendChild(textArea);
+
+  textArea.select();
+
+  try {
+    document.execCommand('copy');
+  } catch (err) {
+    console.log('Oops, unable to copy');
+  }
+
+  document.body.removeChild(textArea);
+}
+
+function isNumeric(val) {
+  return !isNaN(val);
+}
+
+// https://stackoverflow.com/a/27078401
+function throttle(func, wait, options) {
+  var context, args, result;
+  var timeout = null;
+  var previous = 0;
+  if (!options) options = {};
+
+  var later = function later() {
+    previous = options.leading === false ? 0 : Date.now();
+    timeout = null;
+    result = func.apply(context, args);
+    if (!timeout) context = args = null;
+  };
+
+  return function () {
+    var now = Date.now();
+    if (!previous && options.leading === false) previous = now;
+    var remaining = wait - (now - previous);
+    context = this;
+    args = arguments;
+    if (remaining <= 0 || remaining > wait) {
+      if (timeout) {
+        clearTimeout(timeout);
+        timeout = null;
+      }
+      previous = now;
+      result = func.apply(context, args);
+      if (!timeout) context = args = null;
+    } else if (!timeout && options.trailing !== false) {
+      timeout = setTimeout(later, remaining);
+    }
+    return result;
+  };
+};
+
+function promisify(fn) {
+  var context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+
+  return function () {
+    for (var _len = arguments.length, args = Array(_len), _key2 = 0; _key2 < _len; _key2++) {
+      args[_key2] = arguments[_key2];
+    }
+
+    return new Promise(function (resolve) {
+      setTimeout(function () {
+        fn.apply(context, args);
+        resolve('done', fn.name);
+      }, 0);
+    });
+  };
+};
+
+function chainPromises(promises) {
+  return promises.reduce(function (prev, cur) {
+    return prev.then(cur);
+  }, Promise.resolve());
+};
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _dom = __webpack_require__(0);
+
+var _dom2 = _interopRequireDefault(_dom);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var KEYCODES = {
+  13: 'enter',
+  91: 'meta',
+  16: 'shift',
+  17: 'ctrl',
+  18: 'alt',
+  37: 'left',
+  38: 'up',
+  39: 'right',
+  40: 'down',
+  9: 'tab',
+  27: 'esc',
+  67: 'c'
+};
+
+var initDone = false;
+var handlers = {};
+
+function bind(dom) {
+  if (initDone) return;
+  _dom2.default.on(dom, 'keydown', handler);
+  initDone = true;
+}
+
+function handler(e) {
+  var key = KEYCODES[e.keyCode];
+
+  if (e.shiftKey && key !== 'shift') {
+    key = 'shift+' + key;
+  }
+
+  if (e.ctrlKey && key !== 'ctrl' || e.metaKey && key !== 'meta') {
+    key = 'ctrl+' + key;
+  }
+
+  var _handlers = handlers[key];
+
+  if (_handlers && _handlers.length > 0) {
+    _handlers.map(function (handler) {
+      var preventBubbling = handler();
+
+      if (preventBubbling === undefined || preventBubbling === true) {
+        e.preventDefault();
+      }
+    });
+  }
+}
+
+exports.default = {
+  init: function init(dom) {
+    bind(dom);
+  },
+  on: function on(key, handler) {
+    var keys = key.split(',').map(function (k) {
+      return k.trim();
+    });
+
+    keys.map(function (key) {
+      handlers[key] = handlers[key] || [];
+      handlers[key].push(handler);
+    });
+  }
+};
+module.exports = exports['default'];
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.getDropdownHTML = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _dom = __webpack_require__(0);
+
+var _dom2 = _interopRequireDefault(_dom);
+
+var _sortablejs = __webpack_require__(8);
+
+var _sortablejs2 = _interopRequireDefault(_sortablejs);
+
+var _utils = __webpack_require__(1);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var ColumnManager = function () {
+  function ColumnManager(instance) {
+    _classCallCheck(this, ColumnManager);
+
+    this.instance = instance;
+    this.options = this.instance.options;
+    this.fireEvent = this.instance.fireEvent;
+    this.header = this.instance.header;
+    this.datamanager = this.instance.datamanager;
+    this.style = this.instance.style;
+    this.wrapper = this.instance.wrapper;
+    this.rowmanager = this.instance.rowmanager;
+
+    this.bindEvents();
+    exports.getDropdownHTML = getDropdownHTML = getDropdownHTML.bind(this, this.options.dropdownButton);
+  }
+
+  _createClass(ColumnManager, [{
+    key: 'renderHeader',
+    value: function renderHeader() {
+      this.header.innerHTML = '<thead></thead>';
+      this.refreshHeader();
+    }
+  }, {
+    key: 'refreshHeader',
+    value: function refreshHeader() {
+      var _this = this;
+
+      var columns = this.datamanager.getColumns();
+
+      if (!(0, _dom2.default)('.data-table-col', this.header)) {
+        // insert html
+        (0, _dom2.default)('thead', this.header).innerHTML = this.rowmanager.getRowHTML(columns, { isHeader: 1 });
+      } else {
+        // refresh dom state
+        var $cols = _dom2.default.each('.data-table-col', this.header);
+        if (columns.length < $cols.length) {
+          // deleted column
+          (0, _dom2.default)('thead', this.header).innerHTML = this.rowmanager.getRowHTML(columns, { isHeader: 1 });
+          return;
+        }
+
+        $cols.map(function ($col, i) {
+          var column = columns[i];
+          // column sorted or order changed
+          // update colIndex of each header cell
+          _dom2.default.data($col, {
+            colIndex: column.colIndex
+          });
+
+          // refresh sort indicator
+          var sortIndicator = (0, _dom2.default)('.sort-indicator', $col);
+          if (sortIndicator) {
+            sortIndicator.innerHTML = _this.options.sortIndicator[column.sortOrder];
+          }
+        });
+      }
+      // reset columnMap
+      this.$columnMap = [];
+    }
+  }, {
+    key: 'bindEvents',
+    value: function bindEvents() {
+      this.bindDropdown();
+      this.bindResizeColumn();
+      this.bindMoveColumn();
+    }
+  }, {
+    key: 'bindDropdown',
+    value: function bindDropdown() {
+      var _this2 = this;
+
+      var $activeDropdown = void 0;
+      _dom2.default.on(this.header, 'click', '.data-table-dropdown-toggle', function (e, $button) {
+        var $dropdown = _dom2.default.closest('.data-table-dropdown', $button);
+
+        if (!$dropdown.classList.contains('is-active')) {
+          deactivateDropdown();
+          $dropdown.classList.add('is-active');
+          $activeDropdown = $dropdown;
+        } else {
+          deactivateDropdown();
+        }
+      });
+
+      _dom2.default.on(document.body, 'click', function (e) {
+        if (e.target.matches('.data-table-dropdown-toggle')) return;
+        deactivateDropdown();
+      });
+
+      var dropdownItems = this.options.headerDropdown;
+
+      _dom2.default.on(this.header, 'click', '.data-table-dropdown-list > div', function (e, $item) {
+        var $col = _dom2.default.closest('.data-table-col', $item);
+
+        var _$$data = _dom2.default.data($item),
+            index = _$$data.index;
+
+        var _$$data2 = _dom2.default.data($col),
+            colIndex = _$$data2.colIndex;
+
+        var callback = dropdownItems[index].action;
+
+        callback && callback.call(_this2.instance, _this2.getColumn(colIndex));
+      });
+
+      function deactivateDropdown(e) {
+        $activeDropdown && $activeDropdown.classList.remove('is-active');
+        $activeDropdown = null;
+      }
+    }
+  }, {
+    key: 'bindResizeColumn',
+    value: function bindResizeColumn() {
+      var _this3 = this;
+
+      var isDragging = false;
+      var $resizingCell = void 0,
+          startWidth = void 0,
+          startX = void 0;
+
+      _dom2.default.on(this.header, 'mousedown', '.data-table-col .column-resizer', function (e, $handle) {
+        document.body.classList.add('data-table-resize');
+        var $cell = $handle.parentNode.parentNode;
+        $resizingCell = $cell;
+
+        var _$$data3 = _dom2.default.data($resizingCell),
+            colIndex = _$$data3.colIndex;
+
+        var col = _this3.getColumn(colIndex);
+
+        if (col && col.resizable === false) {
+          return;
+        }
+
+        isDragging = true;
+        startWidth = _dom2.default.style((0, _dom2.default)('.content', $resizingCell), 'width');
+        startX = e.pageX;
+      });
+
+      _dom2.default.on(document.body, 'mouseup', function (e) {
+        document.body.classList.remove('data-table-resize');
+        if (!$resizingCell) return;
+        isDragging = false;
+
+        var _$$data4 = _dom2.default.data($resizingCell),
+            colIndex = _$$data4.colIndex;
+
+        _this3.setColumnWidth(colIndex);
+        _this3.instance.setBodyWidth();
+        $resizingCell = null;
+      });
+
+      _dom2.default.on(document.body, 'mousemove', function (e) {
+        if (!isDragging) return;
+        var finalWidth = startWidth + (e.pageX - startX);
+
+        var _$$data5 = _dom2.default.data($resizingCell),
+            colIndex = _$$data5.colIndex;
+
+        if (_this3.getColumnMinWidth(colIndex) > finalWidth) {
+          // don't resize past minWidth
+          return;
+        }
+        _this3.datamanager.updateColumn(colIndex, { width: finalWidth });
+        _this3.setColumnHeaderWidth(colIndex);
+      });
+    }
+  }, {
+    key: 'bindMoveColumn',
+    value: function bindMoveColumn() {
+      var _this4 = this;
+
+      var initialized = void 0;
+
+      var initialize = function initialize() {
+        if (initialized) {
+          _dom2.default.off(document.body, 'mousemove', initialize);
+          return;
+        }
+        var ready = (0, _dom2.default)('.data-table-col', _this4.header);
+        if (!ready) return;
+
+        var $parent = (0, _dom2.default)('.data-table-row', _this4.header);
+
+        _this4.sortable = _sortablejs2.default.create($parent, {
+          onEnd: function onEnd(e) {
+            var oldIndex = e.oldIndex,
+                newIndex = e.newIndex;
+
+            var $draggedCell = e.item;
+
+            var _$$data6 = _dom2.default.data($draggedCell),
+                colIndex = _$$data6.colIndex;
+
+            if (+colIndex === newIndex) return;
+
+            _this4.switchColumn(oldIndex, newIndex);
+          },
+          preventOnFilter: false,
+          filter: '.column-resizer, .data-table-dropdown',
+          animation: 150
+        });
+      };
+
+      _dom2.default.on(document.body, 'mousemove', initialize);
+    }
+  }, {
+    key: 'bindSortColumn',
+    value: function bindSortColumn() {
+      var _this5 = this;
+
+      _dom2.default.on(this.header, 'click', '.data-table-col .column-title', function (e, span) {
+        var $cell = span.closest('.data-table-col');
+
+        var _$$data7 = _dom2.default.data($cell),
+            colIndex = _$$data7.colIndex,
+            sortOrder = _$$data7.sortOrder;
+
+        sortOrder = (0, _utils.getDefault)(sortOrder, 'none');
+        var col = _this5.getColumn(colIndex);
+
+        if (col && col.sortable === false) {
+          return;
+        }
+
+        // reset sort indicator
+        (0, _dom2.default)('.sort-indicator', _this5.header).textContent = '';
+        _dom2.default.each('.data-table-col', _this5.header).map(function ($cell) {
+          _dom2.default.data($cell, {
+            sortOrder: 'none'
+          });
+        });
+
+        var nextSortOrder = void 0,
+            textContent = void 0;
+        if (sortOrder === 'none') {
+          nextSortOrder = 'asc';
+          textContent = '▲';
+        } else if (sortOrder === 'asc') {
+          nextSortOrder = 'desc';
+          textContent = '▼';
+        } else if (sortOrder === 'desc') {
+          nextSortOrder = 'none';
+          textContent = '';
+        }
+
+        _dom2.default.data($cell, {
+          sortOrder: nextSortOrder
+        });
+        (0, _dom2.default)('.sort-indicator', $cell).textContent = textContent;
+
+        _this5.sortColumn(colIndex, nextSortOrder);
+      });
+    }
+  }, {
+    key: 'sortColumn',
+    value: function sortColumn(colIndex, nextSortOrder) {
+      var _this6 = this;
+
+      this.instance.freeze();
+      this.sortRows(colIndex, nextSortOrder).then(function () {
+        _this6.refreshHeader();
+        return _this6.rowmanager.refreshRows();
+      }).then(function () {
+        return _this6.instance.unfreeze();
+      }).then(function () {
+        _this6.fireEvent('onSortColumn', _this6.getColumn(colIndex));
+      });
+    }
+  }, {
+    key: 'removeColumn',
+    value: function removeColumn(colIndex) {
+      var _this7 = this;
+
+      var removedCol = this.getColumn(colIndex);
+      this.instance.freeze();
+      this.datamanager.removeColumn(colIndex).then(function () {
+        _this7.refreshHeader();
+        return _this7.rowmanager.refreshRows();
+      }).then(function () {
+        return _this7.instance.unfreeze();
+      }).then(function () {
+        _this7.fireEvent('onRemoveColumn', removedCol);
+      });
+    }
+  }, {
+    key: 'switchColumn',
+    value: function switchColumn(oldIndex, newIndex) {
+      var _this8 = this;
+
+      this.instance.freeze();
+      this.datamanager.switchColumn(oldIndex, newIndex).then(function () {
+        _this8.refreshHeader();
+        return _this8.rowmanager.refreshRows();
+      }).then(function () {
+        _this8.setColumnWidth(oldIndex);
+        _this8.setColumnWidth(newIndex);
+        _this8.instance.unfreeze();
+      }).then(function () {
+        _this8.fireEvent('onSwitchColumn', _this8.getColumn(oldIndex), _this8.getColumn(newIndex));
+      });
+    }
+  }, {
+    key: 'setDimensions',
+    value: function setDimensions() {
+      this.setHeaderStyle();
+      this.setupMinWidth();
+      this.setupNaturalColumnWidth();
+      this.distributeRemainingWidth();
+      this.setColumnStyle();
+      this.setDefaultCellHeight();
+    }
+  }, {
+    key: 'setHeaderStyle',
+    value: function setHeaderStyle() {
+      if (!this.options.takeAvailableSpace) {
+        // setting width as 0 will ensure that the
+        // header doesn't take the available space
+        _dom2.default.style(this.header, {
+          width: 0
+        });
+      }
+
+      _dom2.default.style(this.header, {
+        margin: 0
+      });
+
+      // don't show resize cursor on nonResizable columns
+      var nonResizableColumnsSelector = this.datamanager.getColumns().filter(function (col) {
+        return col.resizable === false;
+      }).map(function (col) {
+        return col.colIndex;
+      }).map(function (i) {
+        return '.data-table-header [data-col-index="' + i + '"]';
+      }).join();
+
+      this.style.setStyle(nonResizableColumnsSelector, {
+        cursor: 'pointer'
+      });
+    }
+  }, {
+    key: 'setupMinWidth',
+    value: function setupMinWidth() {
+      var _this9 = this;
+
+      _dom2.default.each('.data-table-col', this.header).map(function (col) {
+        var width = _dom2.default.style((0, _dom2.default)('.content', col), 'width');
+
+        var _$$data8 = _dom2.default.data(col),
+            colIndex = _$$data8.colIndex;
+
+        var column = _this9.getColumn(colIndex);
+
+        if (!column.minWidth) {
+          // only set this once
+          _this9.datamanager.updateColumn(colIndex, { minWidth: width });
+        }
+      });
+    }
+  }, {
+    key: 'setupNaturalColumnWidth',
+    value: function setupNaturalColumnWidth() {
+      var _this10 = this;
+
+      // set initial width as naturally calculated by table's first row
+      _dom2.default.each('.data-table-row[data-row-index="0"] .data-table-col', this.bodyScrollable).map(function ($cell) {
+        var _$$data9 = _dom2.default.data($cell),
+            colIndex = _$$data9.colIndex;
+
+        if (_this10.getColumn(colIndex).width > 0) {
+          // already set
+          return;
+        }
+
+        var width = _dom2.default.style((0, _dom2.default)('.content', $cell), 'width');
+        var minWidth = _this10.getColumnMinWidth(colIndex);
+
+        if (width < minWidth) {
+          width = minWidth;
+        }
+        _this10.datamanager.updateColumn(colIndex, { width: width });
+      });
+    }
+  }, {
+    key: 'distributeRemainingWidth',
+    value: function distributeRemainingWidth() {
+      var _this11 = this;
+
+      if (!this.options.takeAvailableSpace) return;
+
+      var wrapperWidth = _dom2.default.style(this.instance.datatableWrapper, 'width');
+      var headerWidth = _dom2.default.style(this.header, 'width');
+
+      if (headerWidth >= wrapperWidth) {
+        // don't resize, horizontal scroll takes place
+        return;
+      }
+
+      var resizableColumns = this.datamanager.getColumns().filter(function (col) {
+        return col.resizable === undefined || col.resizable;
+      });
+
+      var deltaWidth = (wrapperWidth - headerWidth) / resizableColumns.length;
+
+      resizableColumns.map(function (col) {
+        var width = _dom2.default.style(_this11.getColumnHeaderElement(col.colIndex), 'width');
+        var finalWidth = Math.min(width + deltaWidth) - 2;
+
+        _this11.datamanager.updateColumn(col.colIndex, { width: finalWidth });
+      });
+    }
+  }, {
+    key: 'setDefaultCellHeight',
+    value: function setDefaultCellHeight() {
+      if (this.__cellHeightSet) return;
+      var height = _dom2.default.style((0, _dom2.default)('.data-table-col', this.instance.datatableWrapper), 'height');
+      if (height) {
+        this.setCellHeight(height);
+        this.__cellHeightSet = true;
+      }
+    }
+  }, {
+    key: 'setCellHeight',
+    value: function setCellHeight(height) {
+      this.style.setStyle('.data-table-col .content', {
+        height: height + 'px'
+      });
+      this.style.setStyle('.data-table-col .edit-cell', {
+        height: height + 'px'
+      });
+    }
+  }, {
+    key: 'setColumnStyle',
+    value: function setColumnStyle() {
+      var _this12 = this;
+
+      // align columns
+      this.getColumns().map(function (column) {
+        // alignment
+        if (['left', 'center', 'right'].includes(column.align)) {
+          _this12.style.setStyle('[data-col-index="' + column.colIndex + '"]', {
+            'text-align': column.align
+          });
+        }
+        // width
+        _this12.setColumnHeaderWidth(column.colIndex);
+        _this12.setColumnWidth(column.colIndex);
+      });
+      this.instance.setBodyWidth();
+    }
+  }, {
+    key: 'sortRows',
+    value: function sortRows(colIndex, sortOrder) {
+      return this.datamanager.sortRows(colIndex, sortOrder);
+    }
+  }, {
+    key: 'getColumn',
+    value: function getColumn(colIndex) {
+      return this.datamanager.getColumn(colIndex);
+    }
+  }, {
+    key: 'getColumns',
+    value: function getColumns() {
+      return this.datamanager.getColumns();
+    }
+  }, {
+    key: 'setColumnWidth',
+    value: function setColumnWidth(colIndex) {
+      colIndex = +colIndex;
+      this._columnWidthMap = this._columnWidthMap || [];
+
+      var _getColumn = this.getColumn(colIndex),
+          width = _getColumn.width;
+
+      var index = this._columnWidthMap[colIndex];
+      var selector = '[data-col-index="' + colIndex + '"] .content, [data-col-index="' + colIndex + '"] .edit-cell';
+      var styles = {
+        width: width + 'px'
+      };
+
+      index = this.style.setStyle(selector, styles, index);
+      this._columnWidthMap[colIndex] = index;
+    }
+  }, {
+    key: 'setColumnHeaderWidth',
+    value: function setColumnHeaderWidth(colIndex) {
+      colIndex = +colIndex;
+      this.$columnMap = this.$columnMap || [];
+      var selector = '[data-col-index="' + colIndex + '"][data-is-header] .content';
+
+      var _getColumn2 = this.getColumn(colIndex),
+          width = _getColumn2.width;
+
+      var $column = this.$columnMap[colIndex];
+      if (!$column) {
+        $column = this.header.querySelector(selector);
+        this.$columnMap[colIndex] = $column;
+      }
+
+      $column.style.width = width + 'px';
+    }
+  }, {
+    key: 'getColumnMinWidth',
+    value: function getColumnMinWidth(colIndex) {
+      colIndex = +colIndex;
+      return this.getColumn(colIndex).minWidth || 24;
+    }
+  }, {
+    key: 'getFirstColumnIndex',
+    value: function getFirstColumnIndex() {
+      if (this.options.addCheckboxColumn && this.options.addSerialNoColumn) {
+        return 2;
+      }
+
+      if (this.options.addCheckboxColumn || this.options.addSerialNoColumn) {
+        return 1;
+      }
+
+      return 0;
+    }
+  }, {
+    key: 'getHeaderCell$',
+    value: function getHeaderCell$(colIndex) {
+      return (0, _dom2.default)('.data-table-col[data-col-index="' + colIndex + '"]', this.header);
+    }
+  }, {
+    key: 'getLastColumnIndex',
+    value: function getLastColumnIndex() {
+      return this.datamanager.getColumnCount() - 1;
+    }
+  }, {
+    key: 'getColumnHeaderElement',
+    value: function getColumnHeaderElement(colIndex) {
+      colIndex = +colIndex;
+      if (colIndex < 0) return null;
+      return (0, _dom2.default)('.data-table-col[data-is-header][data-col-index="' + colIndex + '"]', this.wrapper);
+    }
+  }, {
+    key: 'getSerialColumnIndex',
+    value: function getSerialColumnIndex() {
+      var columns = this.datamanager.getColumns();
+
+      return columns.findIndex(function (column) {
+        return column.content.includes('Sr. No');
+      });
+    }
+  }]);
+
+  return ColumnManager;
+}();
+
+// eslint-disable-next-line
+
+
+exports.default = ColumnManager;
+var getDropdownHTML = function getDropdownHTML() {
+  var dropdownButton = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'v';
+
+  // add dropdown buttons
+  var dropdownItems = this.options.headerDropdown;
+
+  return '<div class="data-table-dropdown-toggle">' + dropdownButton + '</div>\n    <div class="data-table-dropdown-list">\n      ' + dropdownItems.map(function (d, i) {
+    return '<div data-index="' + i + '">' + d.label + '</div>';
+  }).join('') + '\n    </div>\n  ';
+};
+
+exports.getDropdownHTML = getDropdownHTML;
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _datatable = __webpack_require__(5);
+
+var _datatable2 = _interopRequireDefault(_datatable);
+
+var _package = __webpack_require__(19);
+
+var _package2 = _interopRequireDefault(_package);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_datatable2.default.__version__ = _package2.default.version;
+
+exports.default = _datatable2.default;
+module.exports = exports['default'];
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _dom = __webpack_require__(0);
+
+var _dom2 = _interopRequireDefault(_dom);
+
+var _datamanager = __webpack_require__(6);
+
+var _datamanager2 = _interopRequireDefault(_datamanager);
+
+var _cellmanager = __webpack_require__(7);
+
+var _cellmanager2 = _interopRequireDefault(_cellmanager);
+
+var _columnmanager = __webpack_require__(3);
+
+var _columnmanager2 = _interopRequireDefault(_columnmanager);
+
+var _rowmanager = __webpack_require__(9);
+
+var _rowmanager2 = _interopRequireDefault(_rowmanager);
+
+var _bodyRenderer = __webpack_require__(10);
+
+var _bodyRenderer2 = _interopRequireDefault(_bodyRenderer);
+
+var _style = __webpack_require__(12);
+
+var _style2 = _interopRequireDefault(_style);
+
+var _keyboard = __webpack_require__(2);
+
+var _keyboard2 = _interopRequireDefault(_keyboard);
+
+var _defaults = __webpack_require__(13);
+
+var _defaults2 = _interopRequireDefault(_defaults);
+
+__webpack_require__(14);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var DataTable = function () {
+  function DataTable(wrapper, options) {
+    _classCallCheck(this, DataTable);
+
+    DataTable.instances++;
+
+    if (typeof wrapper === 'string') {
+      // css selector
+      wrapper = document.querySelector(wrapper);
+    }
+    this.wrapper = wrapper;
+    if (!(this.wrapper instanceof HTMLElement)) {
+      throw new Error('Invalid argument given for `wrapper`');
+    }
+
+    this.options = Object.assign({}, _defaults2.default, options);
+    this.options.headerDropdown = _defaults2.default.headerDropdown.concat(options.headerDropdown || []);
+    // custom user events
+    this.events = Object.assign({}, _defaults2.default.events, options.events || {});
+    this.fireEvent = this.fireEvent.bind(this);
+
+    this.prepare();
+
+    this.style = new _style2.default(this);
+    this.datamanager = new _datamanager2.default(this.options);
+    this.rowmanager = new _rowmanager2.default(this);
+    this.columnmanager = new _columnmanager2.default(this);
+    this.cellmanager = new _cellmanager2.default(this);
+    this.bodyRenderer = new _bodyRenderer2.default(this);
+
+    _keyboard2.default.init(this.wrapper);
+
+    if (this.options.data) {
+      this.refresh();
+    }
+  }
+
+  _createClass(DataTable, [{
+    key: 'prepare',
+    value: function prepare() {
+      this.prepareDom();
+      this.unfreeze();
+    }
+  }, {
+    key: 'prepareDom',
+    value: function prepareDom() {
+      this.wrapper.innerHTML = '\n      <div class="data-table">\n        <table class="data-table-header">\n        </table>\n        <div class="body-scrollable">\n        </div>\n        <div class="freeze-container">\n          <span>' + this.options.freezeMessage + '</span>\n        </div>\n        <div class="data-table-footer">\n        </div>\n      </div>\n    ';
+
+      this.datatableWrapper = (0, _dom2.default)('.data-table', this.wrapper);
+      this.header = (0, _dom2.default)('.data-table-header', this.wrapper);
+      this.bodyScrollable = (0, _dom2.default)('.body-scrollable', this.wrapper);
+      this.freezeContainer = (0, _dom2.default)('.freeze-container', this.wrapper);
+    }
+  }, {
+    key: 'refresh',
+    value: function refresh(data) {
+      this.datamanager.init(data);
+      this.render();
+      this.setDimensions();
+    }
+  }, {
+    key: 'destroy',
+    value: function destroy() {
+      this.wrapper.innerHTML = '';
+      this.style.destroy();
+    }
+  }, {
+    key: 'appendRows',
+    value: function appendRows(rows) {
+      this.datamanager.appendRows(rows);
+      this.rowmanager.refreshRows();
+    }
+  }, {
+    key: 'refreshRow',
+    value: function refreshRow(row, rowIndex) {
+      this.rowmanager.refreshRow(row, rowIndex);
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      this.renderHeader();
+      this.renderBody();
+    }
+  }, {
+    key: 'renderHeader',
+    value: function renderHeader() {
+      this.columnmanager.renderHeader();
+    }
+  }, {
+    key: 'renderBody',
+    value: function renderBody() {
+      this.bodyRenderer.render();
+    }
+  }, {
+    key: 'setDimensions',
+    value: function setDimensions() {
+      this.columnmanager.setDimensions();
+
+      this.setBodyWidth();
+
+      _dom2.default.style(this.bodyScrollable, {
+        marginTop: _dom2.default.style(this.header, 'height') + 'px'
+      });
+
+      _dom2.default.style((0, _dom2.default)('table', this.bodyScrollable), {
+        margin: 0
+      });
+    }
+  }, {
+    key: 'setBodyWidth',
+    value: function setBodyWidth() {
+      var width = _dom2.default.style(this.header, 'width');
+
+      _dom2.default.style(this.bodyScrollable, { width: width + 'px' });
+    }
+  }, {
+    key: 'getColumn',
+    value: function getColumn(colIndex) {
+      return this.datamanager.getColumn(colIndex);
+    }
+  }, {
+    key: 'getCell',
+    value: function getCell(colIndex, rowIndex) {
+      return this.datamanager.getCell(colIndex, rowIndex);
+    }
+  }, {
+    key: 'getColumnHeaderElement',
+    value: function getColumnHeaderElement(colIndex) {
+      return this.columnmanager.getColumnHeaderElement(colIndex);
+    }
+  }, {
+    key: 'getViewportHeight',
+    value: function getViewportHeight() {
+      if (!this.viewportHeight) {
+        this.viewportHeight = _dom2.default.style(this.bodyScrollable, 'height');
+      }
+
+      return this.viewportHeight;
+    }
+  }, {
+    key: 'sortColumn',
+    value: function sortColumn(colIndex, sortOrder) {
+      this.columnmanager.sortColumn(colIndex, sortOrder);
+    }
+  }, {
+    key: 'removeColumn',
+    value: function removeColumn(colIndex) {
+      this.columnmanager.removeColumn(colIndex);
+    }
+  }, {
+    key: 'scrollToLastColumn',
+    value: function scrollToLastColumn() {
+      this.datatableWrapper.scrollLeft = 9999;
+    }
+  }, {
+    key: 'freeze',
+    value: function freeze() {
+      _dom2.default.style(this.freezeContainer, {
+        display: ''
+      });
+    }
+  }, {
+    key: 'unfreeze',
+    value: function unfreeze() {
+      _dom2.default.style(this.freezeContainer, {
+        display: 'none'
+      });
+    }
+  }, {
+    key: 'fireEvent',
+    value: function fireEvent(eventName) {
+      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
+
+      this.events[eventName].apply(this, args);
+    }
+  }, {
+    key: 'log',
+    value: function log() {
+      if (this.options.enableLogs) {
+        console.log.apply(console, arguments);
+      }
+    }
+  }]);
+
+  return DataTable;
+}();
+
+DataTable.instances = 0;
+
+exports.default = DataTable;
+module.exports = exports['default'];
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.DataError = undefined;
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _utils = __webpack_require__(1);
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _extendableBuiltin(cls) {
+  function ExtendableBuiltin() {
+    var instance = Reflect.construct(cls, Array.from(arguments));
+    Object.setPrototypeOf(instance, Object.getPrototypeOf(this));
+    return instance;
+  }
+
+  ExtendableBuiltin.prototype = Object.create(cls.prototype, {
+    constructor: {
+      value: cls,
+      enumerable: false,
+      writable: true,
+      configurable: true
+    }
+  });
+
+  if (Object.setPrototypeOf) {
+    Object.setPrototypeOf(ExtendableBuiltin, cls);
+  } else {
+    ExtendableBuiltin.__proto__ = cls;
+  }
+
+  return ExtendableBuiltin;
+}
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var DataManager = function () {
+  function DataManager(options) {
+    _classCallCheck(this, DataManager);
+
+    this.options = options;
+    this.sortRows = (0, _utils.promisify)(this.sortRows, this);
+    this.switchColumn = (0, _utils.promisify)(this.switchColumn, this);
+    this.removeColumn = (0, _utils.promisify)(this.removeColumn, this);
+  }
+
+  _createClass(DataManager, [{
+    key: 'init',
+    value: function init(data) {
+      if (!data) {
+        data = this.options.data;
+      }
+
+      this.data = data;
+
+      this.rowCount = 0;
+      this.columns = [];
+      this.rows = [];
+
+      this.prepareColumns();
+      this.prepareRows();
+
+      this.prepareNumericColumns();
+    }
+
+    // computed property
+
+  }, {
+    key: 'prepareColumns',
+    value: function prepareColumns() {
+      this.columns = [];
+      this.validateColumns();
+      this.prepareDefaultColumns();
+      this.prepareHeader();
+    }
+  }, {
+    key: 'prepareDefaultColumns',
+    value: function prepareDefaultColumns() {
+      if (this.options.addCheckboxColumn && !this.hasColumnById('_checkbox')) {
+        var cell = {
+          id: '_checkbox',
+          content: this.getCheckboxHTML(),
+          editable: false,
+          resizable: false,
+          sortable: false,
+          focusable: false,
+          dropdown: false,
+          width: 25
+        };
+        this.columns.push(cell);
+      }
+
+      if (this.options.addSerialNoColumn && !this.hasColumnById('_rowIndex')) {
+        var _cell = {
+          id: '_rowIndex',
+          content: '',
+          align: 'center',
+          editable: false,
+          resizable: false,
+          focusable: false,
+          dropdown: false,
+          width: 30
+        };
+
+        this.columns.push(_cell);
+      }
+    }
+  }, {
+    key: 'prepareRow',
+    value: function prepareRow(row, i) {
+      var _this = this;
+
+      var baseRowCell = {
+        rowIndex: i
+      };
+
+      return row.map(function (cell, i) {
+        return _this.prepareCell(cell, i);
+      }).map(function (cell) {
+        return Object.assign({}, baseRowCell, cell);
+      });
+    }
+  }, {
+    key: 'prepareHeader',
+    value: function prepareHeader() {
+      var _this2 = this;
+
+      var columns = this.columns.concat(this.options.columns);
+      var baseCell = {
+        isHeader: 1,
+        editable: true,
+        sortable: true,
+        resizable: true,
+        focusable: true,
+        dropdown: true,
+        format: function format(value) {
+          if (value === null || value === undefined) {
+            return '';
+          }
+          return value + '';
+        }
+      };
+
+      this.columns = columns.map(function (cell, i) {
+        return _this2.prepareCell(cell, i);
+      }).map(function (col) {
+        return Object.assign({}, baseCell, col);
+      }).map(function (col) {
+        col.id = col.id || col.content;
+        return col;
+      });
+    }
+  }, {
+    key: 'prepareCell',
+    value: function prepareCell(content, i) {
+      var cell = {
+        content: '',
+        align: 'left',
+        sortOrder: 'none',
+        colIndex: i,
+        column: this.columns[i],
+        width: 0
+      };
+
+      if (content !== null && (typeof content === 'undefined' ? 'undefined' : _typeof(content)) === 'object') {
+        // passed as column/header
+        Object.assign(cell, content);
+      } else {
+        cell.content = content;
+      }
+
+      return cell;
+    }
+  }, {
+    key: 'prepareNumericColumns',
+    value: function prepareNumericColumns() {
+      var row0 = this.getRow(0);
+      if (!row0) return;
+      this.columns = this.columns.map(function (column, i) {
+
+        var cellValue = row0[i].content;
+        if (!column.align && cellValue && (0, _utils.isNumeric)(cellValue)) {
+          column.align = 'right';
+        }
+
+        return column;
+      });
+    }
+  }, {
+    key: 'prepareRows',
+    value: function prepareRows() {
+      var _this3 = this;
+
+      this.validateData(this.data);
+
+      this.rows = this.data.map(function (d, i) {
+        var index = _this3._getNextRowCount();
+
+        var row = [];
+
+        if (Array.isArray(d)) {
+          // row is an array
+          if (_this3.options.addCheckboxColumn) {
+            row.push(_this3.getCheckboxHTML());
+          }
+          if (_this3.options.addSerialNoColumn) {
+            row.push(index + 1 + '');
+          }
+          row = row.concat(d);
+        } else {
+          // row is a dict
+          var _iteratorNormalCompletion = true;
+          var _didIteratorError = false;
+          var _iteratorError = undefined;
+
+          try {
+            for (var _iterator = _this3.columns[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+              var col = _step.value;
+
+              if (col.id === '_checkbox') {
+                row.push(_this3.getCheckboxHTML());
+              } else if (col.id === '_rowIndex') {
+                row.push(index + 1 + '');
+              } else {
+                row.push(col.format(d[col.id]));
+              }
+            }
+          } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion && _iterator.return) {
+                _iterator.return();
+              }
+            } finally {
+              if (_didIteratorError) {
+                throw _iteratorError;
+              }
+            }
+          }
+        }
+
+        return _this3.prepareRow(row, index);
+      });
+    }
+  }, {
+    key: 'validateColumns',
+    value: function validateColumns() {
+      var columns = this.options.columns;
+      if (!Array.isArray(columns)) {
+        throw new DataError('`columns` must be an array');
+      }
+
+      columns.forEach(function (column, i) {
+        if (typeof column !== 'string' && (typeof column === 'undefined' ? 'undefined' : _typeof(column)) !== 'object') {
+          throw new DataError('column "' + i + '" must be a string or an object');
+        }
+      });
+    }
+  }, {
+    key: 'validateData',
+    value: function validateData(data) {
+      if (Array.isArray(data) && (data.length === 0 || Array.isArray(data[0]) || _typeof(data[0]) === 'object')) {
+        return true;
+      }
+      throw new DataError('`data` must be an array of arrays or objects');
+    }
+  }, {
+    key: 'appendRows',
+    value: function appendRows(rows) {
+      this.validateData(rows);
+
+      this.rows = this.rows.concat(this.prepareRows(rows));
+    }
+  }, {
+    key: 'sortRows',
+    value: function sortRows(colIndex) {
+      var sortOrder = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'none';
+
+      colIndex = +colIndex;
+
+      // reset sortOrder and update for colIndex
+      this.getColumns().map(function (col) {
+        if (col.colIndex === colIndex) {
+          col.sortOrder = sortOrder;
+        } else {
+          col.sortOrder = 'none';
+        }
+      });
+
+      this._sortRows(colIndex, sortOrder);
+    }
+  }, {
+    key: '_sortRows',
+    value: function _sortRows(colIndex, sortOrder) {
+
+      if (this.currentSort.colIndex === colIndex) {
+        // reverse the array if only sortOrder changed
+        if (this.currentSort.sortOrder === 'asc' && sortOrder === 'desc' || this.currentSort.sortOrder === 'desc' && sortOrder === 'asc') {
+          this.reverseArray(this.rows);
+          this.currentSort.sortOrder = sortOrder;
+          return;
+        }
+      }
+
+      this.rows.sort(function (a, b) {
+        var _aIndex = a[0].rowIndex;
+        var _bIndex = b[0].rowIndex;
+        var _a = a[colIndex].content;
+        var _b = b[colIndex].content;
+
+        if (sortOrder === 'none') {
+          return _aIndex - _bIndex;
+        } else if (sortOrder === 'asc') {
+          if (_a < _b) return -1;
+          if (_a > _b) return 1;
+          if (_a === _b) return 0;
+        } else if (sortOrder === 'desc') {
+          if (_a < _b) return 1;
+          if (_a > _b) return -1;
+          if (_a === _b) return 0;
+        }
+        return 0;
+      });
+
+      if (this.hasColumnById('_rowIndex')) {
+        // update row index
+        var srNoColIndex = this.getColumnIndexById('_rowIndex');
+        this.rows = this.rows.map(function (row, index) {
+          return row.map(function (cell) {
+            if (cell.colIndex === srNoColIndex) {
+              cell.content = index + 1 + '';
+            }
+            return cell;
+          });
+        });
+      }
+    }
+  }, {
+    key: 'reverseArray',
+    value: function reverseArray(array) {
+      var left = null;
+      var right = null;
+      var length = array.length;
+
+      for (left = 0, right = length - 1; left < right; left += 1, right -= 1) {
+        var temporary = array[left];
+
+        array[left] = array[right];
+        array[right] = temporary;
+      }
+    }
+  }, {
+    key: 'switchColumn',
+    value: function switchColumn(index1, index2) {
+      // update columns
+      var temp = this.columns[index1];
+      this.columns[index1] = this.columns[index2];
+      this.columns[index2] = temp;
+
+      this.columns[index1].colIndex = index1;
+      this.columns[index2].colIndex = index2;
+
+      // update rows
+      this.rows = this.rows.map(function (row) {
+        var newCell1 = Object.assign({}, row[index1], { colIndex: index2 });
+        var newCell2 = Object.assign({}, row[index2], { colIndex: index1 });
+
+        var newRow = row.map(function (cell) {
+          // make object copy
+          return Object.assign({}, cell);
+        });
+
+        newRow[index2] = newCell1;
+        newRow[index1] = newCell2;
+
+        return newRow;
+      });
+    }
+  }, {
+    key: 'removeColumn',
+    value: function removeColumn(index) {
+      index = +index;
+      var filter = function filter(cell) {
+        return cell.colIndex !== index;
+      };
+      var map = function map(cell, i) {
+        return Object.assign({}, cell, { colIndex: i });
+      };
+      // update columns
+      this.columns = this.columns.filter(filter).map(map);
+
+      // update rows
+      this.rows = this.rows.map(function (row) {
+        var newRow = row.filter(filter).map(map);
+
+        return newRow;
+      });
+    }
+  }, {
+    key: 'updateRow',
+    value: function updateRow(row, rowIndex) {
+      if (row.length < this.columns.length) {
+        if (this.hasColumnById('_rowIndex')) {
+          var val = rowIndex + 1 + '';
+
+          row = [val].concat(row);
+        }
+
+        if (this.hasColumnById('_checkbox')) {
+          var _val = '<input type="checkbox" />';
+
+          row = [_val].concat(row);
+        }
+      }
+
+      var _row = this.prepareRow(row, rowIndex);
+      var index = this.rows.findIndex(function (row) {
+        return row[0].rowIndex === rowIndex;
+      });
+      this.rows[index] = _row;
+
+      return _row;
+    }
+  }, {
+    key: 'updateCell',
+    value: function updateCell(colIndex, rowIndex, options) {
+      var cell = void 0;
+      if ((typeof colIndex === 'undefined' ? 'undefined' : _typeof(colIndex)) === 'object') {
+        // cell object was passed,
+        // must have colIndex, rowIndex
+        cell = colIndex;
+        colIndex = cell.colIndex;
+        rowIndex = cell.rowIndex;
+        // the object passed must be merged with original cell
+        options = cell;
+      }
+      cell = this.getCell(colIndex, rowIndex);
+
+      // mutate object directly
+      for (var key in options) {
+        var newVal = options[key];
+        if (newVal !== undefined) {
+          cell[key] = newVal;
+        }
+      }
+
+      return cell;
+    }
+  }, {
+    key: 'updateColumn',
+    value: function updateColumn(colIndex, keyValPairs) {
+      var column = this.getColumn(colIndex);
+      for (var key in keyValPairs) {
+        var newVal = keyValPairs[key];
+        if (newVal !== undefined) {
+          column[key] = newVal;
+        }
+      }
+      return column;
+    }
+  }, {
+    key: 'getRowCount',
+    value: function getRowCount() {
+      return this.rowCount;
+    }
+  }, {
+    key: '_getNextRowCount',
+    value: function _getNextRowCount() {
+      var val = this.rowCount;
+
+      this.rowCount++;
+      return val;
+    }
+  }, {
+    key: 'getRows',
+    value: function getRows(start, end) {
+      return this.rows.slice(start, end);
+    }
+  }, {
+    key: 'getColumns',
+    value: function getColumns(skipStandardColumns) {
+      var columns = this.columns;
+
+      if (skipStandardColumns) {
+        columns = columns.slice(this.getStandardColumnCount());
+      }
+
+      return columns;
+    }
+  }, {
+    key: 'getStandardColumnCount',
+    value: function getStandardColumnCount() {
+      if (this.options.addCheckboxColumn && this.options.addSerialNoColumn) {
+        return 2;
+      }
+
+      if (this.options.addCheckboxColumn || this.options.addSerialNoColumn) {
+        return 1;
+      }
+
+      return 0;
+    }
+  }, {
+    key: 'getColumnCount',
+    value: function getColumnCount(skipStandardColumns) {
+      var val = this.columns.length;
+
+      if (skipStandardColumns) {
+        val = val - this.getStandardColumnCount();
+      }
+
+      return val;
+    }
+  }, {
+    key: 'getColumn',
+    value: function getColumn(colIndex) {
+      colIndex = +colIndex;
+      return this.columns.find(function (col) {
+        return col.colIndex === colIndex;
+      });
+    }
+  }, {
+    key: 'getRow',
+    value: function getRow(rowIndex) {
+      rowIndex = +rowIndex;
+      return this.rows.find(function (row) {
+        return row[0].rowIndex === rowIndex;
+      });
+    }
+  }, {
+    key: 'getCell',
+    value: function getCell(colIndex, rowIndex) {
+      rowIndex = +rowIndex;
+      colIndex = +colIndex;
+      return this.rows.find(function (row) {
+        return row[0].rowIndex === rowIndex;
+      })[colIndex];
+    }
+  }, {
+    key: 'get',
+    value: function get() {
+      return {
+        columns: this.columns,
+        rows: this.rows
+      };
+    }
+  }, {
+    key: 'hasColumn',
+    value: function hasColumn(name) {
+      return Boolean(this.columns.find(function (col) {
+        return col.content === name;
+      }));
+    }
+  }, {
+    key: 'hasColumnById',
+    value: function hasColumnById(id) {
+      return Boolean(this.columns.find(function (col) {
+        return col.id === id;
+      }));
+    }
+  }, {
+    key: 'getColumnIndex',
+    value: function getColumnIndex(name) {
+      return this.columns.findIndex(function (col) {
+        return col.content === name;
+      });
+    }
+  }, {
+    key: 'getColumnIndexById',
+    value: function getColumnIndexById(id) {
+      return this.columns.findIndex(function (col) {
+        return col.id === id;
+      });
+    }
+  }, {
+    key: 'getCheckboxHTML',
+    value: function getCheckboxHTML() {
+      return '<input type="checkbox" />';
+    }
+  }, {
+    key: 'currentSort',
+    get: function get() {
+      var col = this.columns.find(function (col) {
+        return col.sortOrder !== 'none';
+      });
+      return col || {
+        colIndex: -1,
+        sortOrder: 'none'
+      };
+    }
+  }]);
+
+  return DataManager;
+}();
+
+// Custom Errors
+
+
+exports.default = DataManager;
+
+var DataError = exports.DataError = function (_extendableBuiltin2) {
+  _inherits(DataError, _extendableBuiltin2);
+
+  function DataError() {
+    _classCallCheck(this, DataError);
+
+    return _possibleConstructorReturn(this, (DataError.__proto__ || Object.getPrototypeOf(DataError)).apply(this, arguments));
+  }
+
+  return DataError;
+}(_extendableBuiltin(TypeError));
+
+;
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _utils = __webpack_require__(1);
+
+var _keyboard = __webpack_require__(2);
+
+var _keyboard2 = _interopRequireDefault(_keyboard);
+
+var _dom = __webpack_require__(0);
+
+var _dom2 = _interopRequireDefault(_dom);
+
+var _columnmanager = __webpack_require__(3);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var CellManager = function () {
+  function CellManager(instance) {
+    _classCallCheck(this, CellManager);
+
+    this.instance = instance;
+    this.wrapper = this.instance.wrapper;
+    this.options = this.instance.options;
+    this.style = this.instance.style;
+    this.bodyScrollable = this.instance.bodyScrollable;
+    this.columnmanager = this.instance.columnmanager;
+    this.rowmanager = this.instance.rowmanager;
+    this.datamanager = this.instance.datamanager;
+
+    this.bindEvents();
+  }
+
+  _createClass(CellManager, [{
+    key: 'bindEvents',
+    value: function bindEvents() {
+      this.bindFocusCell();
+      this.bindEditCell();
+      this.bindKeyboardSelection();
+      this.bindCopyCellContents();
+      this.bindMouseEvents();
+    }
+  }, {
+    key: 'bindFocusCell',
+    value: function bindFocusCell() {
+      this.bindKeyboardNav();
+    }
+  }, {
+    key: 'bindEditCell',
+    value: function bindEditCell() {
+      var _this = this;
+
+      this.$editingCell = null;
+
+      _dom2.default.on(this.bodyScrollable, 'dblclick', '.data-table-col', function (e, cell) {
+        _this.activateEditing(cell);
+      });
+
+      _keyboard2.default.on('enter', function (e) {
+        if (_this.$focusedCell && !_this.$editingCell) {
+          // enter keypress on focused cell
+          _this.activateEditing(_this.$focusedCell);
+        } else if (_this.$editingCell) {
+          // enter keypress on editing cell
+          _this.submitEditing();
+          _this.deactivateEditing();
+        }
+      });
+    }
+  }, {
+    key: 'bindKeyboardNav',
+    value: function bindKeyboardNav() {
+      var _this2 = this;
+
+      var focusCell = function focusCell(direction) {
+        if (!_this2.$focusedCell || _this2.$editingCell) {
+          return false;
+        }
+
+        var $cell = _this2.$focusedCell;
+
+        if (direction === 'left') {
+          $cell = _this2.getLeftCell$($cell);
+        } else if (direction === 'right' || direction === 'tab') {
+          $cell = _this2.getRightCell$($cell);
+        } else if (direction === 'up') {
+          $cell = _this2.getAboveCell$($cell);
+        } else if (direction === 'down') {
+          $cell = _this2.getBelowCell$($cell);
+        }
+
+        _this2.focusCell($cell);
+        return true;
+      };
+
+      var focusLastCell = function focusLastCell(direction) {
+        if (!_this2.$focusedCell || _this2.$editingCell) {
+          return false;
+        }
+
+        var $cell = _this2.$focusedCell;
+
+        var _$$data = _dom2.default.data($cell),
+            rowIndex = _$$data.rowIndex,
+            colIndex = _$$data.colIndex;
+
+        if (direction === 'left') {
+          $cell = _this2.getLeftMostCell$(rowIndex);
+        } else if (direction === 'right') {
+          $cell = _this2.getRightMostCell$(rowIndex);
+        } else if (direction === 'up') {
+          $cell = _this2.getTopMostCell$(colIndex);
+        } else if (direction === 'down') {
+          $cell = _this2.getBottomMostCell$(colIndex);
+        }
+
+        _this2.focusCell($cell);
+        return true;
+      };
+
+      ['left', 'right', 'up', 'down', 'tab'].map(function (direction) {
+        return _keyboard2.default.on(direction, function () {
+          return focusCell(direction);
+        });
+      });
+
+      ['left', 'right', 'up', 'down'].map(function (direction) {
+        return _keyboard2.default.on('ctrl+' + direction, function () {
+          return focusLastCell(direction);
+        });
+      });
+
+      _keyboard2.default.on('esc', function () {
+        _this2.deactivateEditing();
+      });
+    }
+  }, {
+    key: 'bindKeyboardSelection',
+    value: function bindKeyboardSelection() {
+      var _this3 = this;
+
+      var getNextSelectionCursor = function getNextSelectionCursor(direction) {
+        var $selectionCursor = _this3.getSelectionCursor();
+
+        if (direction === 'left') {
+          $selectionCursor = _this3.getLeftCell$($selectionCursor);
+        } else if (direction === 'right') {
+          $selectionCursor = _this3.getRightCell$($selectionCursor);
+        } else if (direction === 'up') {
+          $selectionCursor = _this3.getAboveCell$($selectionCursor);
+        } else if (direction === 'down') {
+          $selectionCursor = _this3.getBelowCell$($selectionCursor);
+        }
+
+        return $selectionCursor;
+      };
+
+      ['left', 'right', 'up', 'down'].map(function (direction) {
+        return _keyboard2.default.on('shift+' + direction, function () {
+          return _this3.selectArea(getNextSelectionCursor(direction));
+        });
+      });
+    }
+  }, {
+    key: 'bindCopyCellContents',
+    value: function bindCopyCellContents() {
+      var _this4 = this;
+
+      _keyboard2.default.on('ctrl+c', function () {
+        _this4.copyCellContents(_this4.$focusedCell, _this4.$selectionCursor);
+      });
+    }
+  }, {
+    key: 'bindMouseEvents',
+    value: function bindMouseEvents() {
+      var _this5 = this;
+
+      var mouseDown = null;
+
+      _dom2.default.on(this.bodyScrollable, 'mousedown', '.data-table-col', function (e) {
+        mouseDown = true;
+        _this5.focusCell((0, _dom2.default)(e.delegatedTarget));
+      });
+
+      _dom2.default.on(this.bodyScrollable, 'mouseup', function () {
+        mouseDown = false;
+      });
+
+      var selectArea = function selectArea(e) {
+        if (!mouseDown) return;
+        _this5.selectArea((0, _dom2.default)(e.delegatedTarget));
+      };
+
+      _dom2.default.on(this.bodyScrollable, 'mousemove', '.data-table-col', (0, _utils.throttle)(selectArea, 50));
+    }
+  }, {
+    key: 'focusCell',
+    value: function focusCell($cell) {
+      var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
+          _ref$skipClearSelecti = _ref.skipClearSelection,
+          skipClearSelection = _ref$skipClearSelecti === undefined ? 0 : _ref$skipClearSelecti;
+
+      if (!$cell) return;
+
+      // don't focus if already editing cell
+      if ($cell === this.$editingCell) return;
+
+      var _$$data2 = _dom2.default.data($cell),
+          colIndex = _$$data2.colIndex,
+          isHeader = _$$data2.isHeader;
+
+      if (isHeader) {
+        return;
+      }
+
+      var column = this.columnmanager.getColumn(colIndex);
+      if (column.focusable === false) {
+        return;
+      }
+
+      this.deactivateEditing();
+      if (!skipClearSelection) {
+        this.clearSelection();
+      }
+
+      if (this.$focusedCell) {
+        this.$focusedCell.classList.remove('selected');
+      }
+
+      this.$focusedCell = $cell;
+      $cell.classList.add('selected');
+
+      // so that keyboard nav works
+      $cell.focus();
+
+      this.highlightRowColumnHeader($cell);
+      this.scrollToCell($cell);
+    }
+  }, {
+    key: 'highlightRowColumnHeader',
+    value: function highlightRowColumnHeader($cell) {
+      var _$$data3 = _dom2.default.data($cell),
+          colIndex = _$$data3.colIndex,
+          rowIndex = _$$data3.rowIndex;
+
+      var _colIndex = this.datamanager.getColumnIndexById('_rowIndex');
+      var colHeaderSelector = '.data-table-header .data-table-col[data-col-index="' + colIndex + '"]';
+      var rowHeaderSelector = '.data-table-col[data-row-index="' + rowIndex + '"][data-col-index="' + _colIndex + '"]';
+
+      if (this.lastHeaders) {
+        _dom2.default.removeStyle(this.lastHeaders, 'backgroundColor');
+      }
+
+      var colHeader = (0, _dom2.default)(colHeaderSelector, this.wrapper);
+      var rowHeader = (0, _dom2.default)(rowHeaderSelector, this.wrapper);
+
+      _dom2.default.style([colHeader, rowHeader], {
+        backgroundColor: '#f5f7fa' // light-bg
+      });
+
+      this.lastHeaders = [colHeader, rowHeader];
+    }
+  }, {
+    key: 'selectAreaOnClusterChanged',
+    value: function selectAreaOnClusterChanged() {
+      if (!(this.$focusedCell && this.$selectionCursor)) return;
+
+      var _$$data4 = _dom2.default.data(this.$selectionCursor),
+          colIndex = _$$data4.colIndex,
+          rowIndex = _$$data4.rowIndex;
+
+      var $cell = this.getCell$(colIndex, rowIndex);
+
+      if (!$cell || $cell === this.$selectionCursor) return;
+
+      // selectArea needs $focusedCell
+      var fCell = _dom2.default.data(this.$focusedCell);
+      this.$focusedCell = this.getCell$(fCell.colIndex, fCell.rowIndex);
+
+      this.selectArea($cell);
+    }
+  }, {
+    key: 'focusCellOnClusterChanged',
+    value: function focusCellOnClusterChanged() {
+      if (!this.$focusedCell) return;
+
+      var _$$data5 = _dom2.default.data(this.$focusedCell),
+          colIndex = _$$data5.colIndex,
+          rowIndex = _$$data5.rowIndex;
+
+      var $cell = this.getCell$(colIndex, rowIndex);
+
+      if (!$cell) return;
+      // this function is called after selectAreaOnClusterChanged,
+      // focusCell calls clearSelection which resets the area selection
+      // so a flag to skip it
+      this.focusCell($cell, { skipClearSelection: 1 });
+    }
+  }, {
+    key: 'selectArea',
+    value: function selectArea($selectionCursor) {
+      if (!this.$focusedCell) return;
+
+      if (this._selectArea(this.$focusedCell, $selectionCursor)) {
+        // valid selection
+        this.$selectionCursor = $selectionCursor;
+      }
+    }
+  }, {
+    key: '_selectArea',
+    value: function _selectArea($cell1, $cell2) {
+      var _this6 = this;
+
+      if ($cell1 === $cell2) return false;
+
+      var cells = this.getCellsInRange($cell1, $cell2);
+      if (!cells) return false;
+
+      this.clearSelection();
+      cells.map(function (index) {
+        return _this6.getCell$.apply(_this6, _toConsumableArray(index));
+      }).map(function ($cell) {
+        return $cell.classList.add('highlight');
+      });
+      return true;
+    }
+  }, {
+    key: 'getCellsInRange',
+    value: function getCellsInRange($cell1, $cell2) {
+      var colIndex1 = void 0,
+          rowIndex1 = void 0,
+          colIndex2 = void 0,
+          rowIndex2 = void 0;
+
+      if (typeof $cell1 === 'number') {
+        var _arguments = Array.prototype.slice.call(arguments);
+
+        colIndex1 = _arguments[0];
+        rowIndex1 = _arguments[1];
+        colIndex2 = _arguments[2];
+        rowIndex2 = _arguments[3];
+      } else if ((typeof $cell1 === 'undefined' ? 'undefined' : _typeof($cell1)) === 'object') {
+
+        if (!($cell1 && $cell2)) {
+          return false;
+        }
+
+        var cell1 = _dom2.default.data($cell1);
+        var cell2 = _dom2.default.data($cell2);
+
+        colIndex1 = cell1.colIndex;
+        rowIndex1 = cell1.rowIndex;
+        colIndex2 = cell2.colIndex;
+        rowIndex2 = cell2.rowIndex;
+      }
+
+      if (rowIndex1 > rowIndex2) {
+        var _ref2 = [rowIndex2, rowIndex1];
+        rowIndex1 = _ref2[0];
+        rowIndex2 = _ref2[1];
+      }
+
+      if (colIndex1 > colIndex2) {
+        var _ref3 = [colIndex2, colIndex1];
+        colIndex1 = _ref3[0];
+        colIndex2 = _ref3[1];
+      }
+
+      if (this.isStandardCell(colIndex1) || this.isStandardCell(colIndex2)) {
+        return false;
+      }
+
+      var cells = [];
+      var colIndex = colIndex1;
+      var rowIndex = rowIndex1;
+      var rowIndices = [];
+
+      while (rowIndex <= rowIndex2) {
+        rowIndices.push(rowIndex);
+        rowIndex++;
+      }
+
+      rowIndices.map(function (rowIndex) {
+        while (colIndex <= colIndex2) {
+          cells.push([colIndex, rowIndex]);
+          colIndex++;
+        }
+        colIndex = colIndex1;
+      });
+
+      return cells;
+    }
+  }, {
+    key: 'clearSelection',
+    value: function clearSelection() {
+      _dom2.default.each('.data-table-col.highlight', this.bodyScrollable).map(function (cell) {
+        return cell.classList.remove('highlight');
+      });
+
+      this.$selectionCursor = null;
+    }
+  }, {
+    key: 'getSelectionCursor',
+    value: function getSelectionCursor() {
+      return this.$selectionCursor || this.$focusedCell;
+    }
+  }, {
+    key: 'activateEditing',
+    value: function activateEditing($cell) {
+      var _$$data6 = _dom2.default.data($cell),
+          rowIndex = _$$data6.rowIndex,
+          colIndex = _$$data6.colIndex;
+
+      var col = this.columnmanager.getColumn(colIndex);
+      if (col && (col.editable === false || col.focusable === false)) {
+        return;
+      }
+
+      var cell = this.getCell(colIndex, rowIndex);
+      if (cell && cell.editable === false) {
+        return;
+      }
+
+      if (this.$editingCell) {
+        var _$$data7 = _dom2.default.data(this.$editingCell),
+            _rowIndex = _$$data7._rowIndex,
+            _colIndex = _$$data7._colIndex;
+
+        if (rowIndex === _rowIndex && colIndex === _colIndex) {
+          // editing the same cell
+          return;
+        }
+      }
+
+      this.$editingCell = $cell;
+      $cell.classList.add('editing');
+
+      var $editCell = (0, _dom2.default)('.edit-cell', $cell);
+      $editCell.innerHTML = '';
+
+      var editor = this.getEditor(colIndex, rowIndex, cell.content, $editCell);
+
+      if (editor) {
+        this.currentCellEditor = editor;
+        // initialize editing input with cell value
+        editor.initValue(cell.content, rowIndex, col);
+      }
+    }
+  }, {
+    key: 'deactivateEditing',
+    value: function deactivateEditing() {
+      // keep focus on the cell so that keyboard navigation works
+      if (this.$focusedCell) this.$focusedCell.focus();
+
+      if (!this.$editingCell) return;
+      this.$editingCell.classList.remove('editing');
+      this.$editingCell = null;
+    }
+  }, {
+    key: 'getEditor',
+    value: function getEditor(colIndex, rowIndex, value, parent) {
+      // debugger;
+      var obj = this.options.getEditor(colIndex, rowIndex, value, parent);
+      if (obj && obj.setValue) return obj;
+
+      // editing fallback
+      var $input = _dom2.default.create('input', {
+        type: 'text',
+        inside: parent
+      });
+
+      return {
+        initValue: function initValue(value) {
+          $input.focus();
+          $input.value = value;
+        },
+        getValue: function getValue() {
+          return $input.value;
+        },
+        setValue: function setValue(value) {
+          $input.value = value;
+        }
+      };
+    }
+  }, {
+    key: 'submitEditing',
+    value: function submitEditing() {
+      var _this7 = this;
+
+      if (!this.$editingCell) return;
+      var $cell = this.$editingCell;
+
+      var _$$data8 = _dom2.default.data($cell),
+          rowIndex = _$$data8.rowIndex,
+          colIndex = _$$data8.colIndex;
+
+      var col = this.datamanager.getColumn(colIndex);
+
+      if ($cell) {
+        var editor = this.currentCellEditor;
+
+        if (editor) {
+          var value = editor.getValue();
+          var done = editor.setValue(value, rowIndex, col);
+          var oldValue = this.getCell(colIndex, rowIndex).content;
+
+          // update cell immediately
+          this.updateCell(colIndex, rowIndex, value);
+          $cell.focus();
+
+          if (done && done.then) {
+            // revert to oldValue if promise fails
+            done.catch(function (e) {
+              console.log(e);
+              _this7.updateCell(colIndex, rowIndex, oldValue);
+            });
+          }
+        }
+      }
+
+      this.currentCellEditor = null;
+    }
+  }, {
+    key: 'copyCellContents',
+    value: function copyCellContents($cell1, $cell2) {
+      var _this8 = this;
+
+      if (!$cell2 && $cell1) {
+        // copy only focusedCell
+        var _$$data9 = _dom2.default.data($cell1),
+            colIndex = _$$data9.colIndex,
+            rowIndex = _$$data9.rowIndex;
+
+        var cell = this.getCell(colIndex, rowIndex);
+        (0, _utils.copyTextToClipboard)(cell.content);
+        return;
+      }
+      var cells = this.getCellsInRange($cell1, $cell2);
+
+      if (!cells) return;
+
+      var values = cells
+      // get cell objects
+      .map(function (index) {
+        return _this8.getCell.apply(_this8, _toConsumableArray(index));
+      })
+      // convert to array of rows
+      .reduce(function (acc, curr) {
+        var rowIndex = curr.rowIndex;
+
+        acc[rowIndex] = acc[rowIndex] || [];
+        acc[rowIndex].push(curr.content);
+
+        return acc;
+      }, [])
+      // join values by tab
+      .map(function (row) {
+        return row.join('\t');
+      })
+      // join rows by newline
+      .join('\n');
+
+      (0, _utils.copyTextToClipboard)(values);
+    }
+  }, {
+    key: 'updateCell',
+    value: function updateCell(colIndex, rowIndex, value) {
+      var cell = this.datamanager.updateCell(colIndex, rowIndex, {
+        content: value
+      });
+      this.refreshCell(cell);
+    }
+  }, {
+    key: 'refreshCell',
+    value: function refreshCell(cell) {
+      var $cell = (0, _dom2.default)(this.cellSelector(cell.colIndex, cell.rowIndex), this.bodyScrollable);
+      $cell.innerHTML = this.getCellContent(cell);
+    }
+  }, {
+    key: 'isStandardCell',
+    value: function isStandardCell(colIndex) {
+      // Standard cells are in Sr. No and Checkbox column
+      return colIndex < this.columnmanager.getFirstColumnIndex();
+    }
+  }, {
+    key: 'getCell$',
+    value: function getCell$(colIndex, rowIndex) {
+      return (0, _dom2.default)(this.cellSelector(colIndex, rowIndex), this.bodyScrollable);
+    }
+  }, {
+    key: 'getAboveCell$',
+    value: function getAboveCell$($cell) {
+      var _$$data10 = _dom2.default.data($cell),
+          colIndex = _$$data10.colIndex;
+
+      var $aboveRow = $cell.parentElement.previousElementSibling;
+
+      return (0, _dom2.default)('[data-col-index="' + colIndex + '"]', $aboveRow);
+    }
+  }, {
+    key: 'getBelowCell$',
+    value: function getBelowCell$($cell) {
+      var _$$data11 = _dom2.default.data($cell),
+          colIndex = _$$data11.colIndex;
+
+      var $belowRow = $cell.parentElement.nextElementSibling;
+
+      return (0, _dom2.default)('[data-col-index="' + colIndex + '"]', $belowRow);
+    }
+  }, {
+    key: 'getLeftCell$',
+    value: function getLeftCell$($cell) {
+      return $cell.previousElementSibling;
+    }
+  }, {
+    key: 'getRightCell$',
+    value: function getRightCell$($cell) {
+      return $cell.nextElementSibling;
+    }
+  }, {
+    key: 'getLeftMostCell$',
+    value: function getLeftMostCell$(rowIndex) {
+      return this.getCell$(this.columnmanager.getFirstColumnIndex(), rowIndex);
+    }
+  }, {
+    key: 'getRightMostCell$',
+    value: function getRightMostCell$(rowIndex) {
+      return this.getCell$(this.columnmanager.getLastColumnIndex(), rowIndex);
+    }
+  }, {
+    key: 'getTopMostCell$',
+    value: function getTopMostCell$(colIndex) {
+      return this.getCell$(colIndex, this.rowmanager.getFirstRowIndex());
+    }
+  }, {
+    key: 'getBottomMostCell$',
+    value: function getBottomMostCell$(colIndex) {
+      return this.getCell$(colIndex, this.rowmanager.getLastRowIndex());
+    }
+  }, {
+    key: 'getCell',
+    value: function getCell(colIndex, rowIndex) {
+      return this.instance.datamanager.getCell(colIndex, rowIndex);
+    }
+  }, {
+    key: 'getCellAttr',
+    value: function getCellAttr($cell) {
+      return this.instance.getCellAttr($cell);
+    }
+  }, {
+    key: 'getRowHeight',
+    value: function getRowHeight() {
+      return _dom2.default.style((0, _dom2.default)('.data-table-row', this.bodyScrollable), 'height');
+    }
+  }, {
+    key: 'scrollToCell',
+    value: function scrollToCell($cell) {
+      if (_dom2.default.inViewport($cell, this.bodyScrollable)) return false;
+
+      var _$$data12 = _dom2.default.data($cell),
+          rowIndex = _$$data12.rowIndex;
+
+      this.rowmanager.scrollToRow(rowIndex);
+      return false;
+    }
+  }, {
+    key: 'getRowCountPerPage',
+    value: function getRowCountPerPage() {
+      return Math.ceil(this.instance.getViewportHeight() / this.getRowHeight());
+    }
+  }, {
+    key: 'getCellHTML',
+    value: function getCellHTML(cell) {
+      var rowIndex = cell.rowIndex,
+          colIndex = cell.colIndex,
+          isHeader = cell.isHeader;
+
+      var dataAttr = (0, _utils.makeDataAttributeString)({
+        rowIndex: rowIndex,
+        colIndex: colIndex,
+        isHeader: isHeader
+      });
+
+      return '\n      <td class="data-table-col noselect" ' + dataAttr + ' tabindex="0">\n        ' + this.getCellContent(cell) + '\n      </td>\n    ';
+    }
+  }, {
+    key: 'getCellContent',
+    value: function getCellContent(cell) {
+      var isHeader = cell.isHeader;
+
+
+      var editable = !isHeader && cell.editable !== false;
+      var editCellHTML = editable ? this.getEditCellHTML() : '';
+
+      var sortable = isHeader && cell.sortable !== false;
+      var sortIndicator = sortable ? '<span class="sort-indicator"></span>' : '';
+
+      var resizable = isHeader && cell.resizable !== false;
+      var resizeColumn = resizable ? '<span class="column-resizer"></span>' : '';
+
+      var hasDropdown = isHeader && cell.dropdown !== false;
+      var dropdown = hasDropdown ? '<div class="data-table-dropdown">' + (0, _columnmanager.getDropdownHTML)() + '</div>' : '';
+
+      var contentHTML = !cell.isHeader && cell.column.format ? cell.column.format(cell.content) : cell.content;
+
+      return '\n      <div class="content ellipsis">\n        ' + contentHTML + '\n        ' + sortIndicator + '\n        ' + resizeColumn + '\n        ' + dropdown + '\n      </div>\n      ' + editCellHTML + '\n    ';
+    }
+  }, {
+    key: 'getEditCellHTML',
+    value: function getEditCellHTML() {
+      return '\n      <div class="edit-cell"></div>\n    ';
+    }
+  }, {
+    key: 'cellSelector',
+    value: function cellSelector(colIndex, rowIndex) {
+      return '.data-table-col[data-col-index="' + colIndex + '"][data-row-index="' + rowIndex + '"]';
+    }
+  }]);
+
+  return CellManager;
+}();
+
+exports.default = CellManager;
+module.exports = exports['default'];
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_8__;
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _dom = __webpack_require__(0);
+
+var _dom2 = _interopRequireDefault(_dom);
+
+var _utils = __webpack_require__(1);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var RowManager = function () {
+  function RowManager(instance) {
+    _classCallCheck(this, RowManager);
+
+    this.instance = instance;
+    this.options = this.instance.options;
+    this.wrapper = this.instance.wrapper;
+    this.bodyScrollable = this.instance.bodyScrollable;
+
+    this.bindEvents();
+    this.refreshRows = (0, _utils.promisify)(this.refreshRows, this);
+  }
+
+  _createClass(RowManager, [{
+    key: 'bindEvents',
+    value: function bindEvents() {
+      this.bindCheckbox();
+    }
+  }, {
+    key: 'bindCheckbox',
+    value: function bindCheckbox() {
+      var _this = this;
+
+      if (!this.options.addCheckboxColumn) return;
+
+      // map of checked rows
+      this.checkMap = [];
+
+      _dom2.default.on(this.wrapper, 'click', '.data-table-col[data-col-index="0"] [type="checkbox"]', function (e, $checkbox) {
+        var $cell = $checkbox.closest('.data-table-col');
+
+        var _$$data = _dom2.default.data($cell),
+            rowIndex = _$$data.rowIndex,
+            isHeader = _$$data.isHeader;
+
+        var checked = $checkbox.checked;
+
+        if (isHeader) {
+          _this.checkAll(checked);
+        } else {
+          _this.checkRow(rowIndex, checked);
+        }
+      });
+    }
+  }, {
+    key: 'refreshRows',
+    value: function refreshRows() {
+      this.instance.renderBody();
+      this.instance.setDimensions();
+    }
+  }, {
+    key: 'refreshRow',
+    value: function refreshRow(row, rowIndex) {
+      var _this2 = this;
+
+      var _row = this.datamanager.updateRow(row, rowIndex);
+
+      _row.forEach(function (cell) {
+        _this2.cellmanager.refreshCell(cell);
+      });
+    }
+  }, {
+    key: 'getCheckedRows',
+    value: function getCheckedRows() {
+      if (!this.checkMap) {
+        return [];
+      }
+
+      return this.checkMap.map(function (c, rowIndex) {
+        if (c) {
+          return rowIndex;
+        }
+        return null;
+      }).filter(function (c) {
+        return c !== null || c !== undefined;
+      });
+    }
+  }, {
+    key: 'highlightCheckedRows',
+    value: function highlightCheckedRows() {
+      var _this3 = this;
+
+      this.getCheckedRows().map(function (rowIndex) {
+        return _this3.checkRow(rowIndex, true);
+      });
+    }
+  }, {
+    key: 'checkRow',
+    value: function checkRow(rowIndex, toggle) {
+      var value = toggle ? 1 : 0;
+
+      // update internal map
+      this.checkMap[rowIndex] = value;
+      // set checkbox value explicitly
+      _dom2.default.each('.data-table-col[data-row-index="' + rowIndex + '"][data-col-index="0"] [type="checkbox"]', this.bodyScrollable).map(function (input) {
+        input.checked = toggle;
+      });
+      // highlight row
+      this.highlightRow(rowIndex, toggle);
+    }
+  }, {
+    key: 'checkAll',
+    value: function checkAll(toggle) {
+      var value = toggle ? 1 : 0;
+
+      // update internal map
+      if (toggle) {
+        this.checkMap = Array.from(Array(this.getTotalRows())).map(function (c) {
+          return value;
+        });
+      } else {
+        this.checkMap = [];
+      }
+      // set checkbox value
+      _dom2.default.each('.data-table-col[data-col-index="0"] [type="checkbox"]', this.bodyScrollable).map(function (input) {
+        input.checked = toggle;
+      });
+      // highlight all
+      this.highlightAll(toggle);
+    }
+  }, {
+    key: 'highlightRow',
+    value: function highlightRow(rowIndex) {
+      var toggle = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
+      var $row = this.getRow$(rowIndex);
+      if (!$row) return;
+
+      if (!toggle && this.bodyScrollable.classList.contains('row-highlight-all')) {
+        $row.classList.add('row-unhighlight');
+        return;
+      }
+
+      if (toggle && $row.classList.contains('row-unhighlight')) {
+        $row.classList.remove('row-unhighlight');
+      }
+
+      this._highlightedRows = this._highlightedRows || {};
+
+      if (toggle) {
+        $row.classList.add('row-highlight');
+        this._highlightedRows[rowIndex] = $row;
+      } else {
+        $row.classList.remove('row-highlight');
+        delete this._highlightedRows[rowIndex];
+      }
+    }
+  }, {
+    key: 'highlightAll',
+    value: function highlightAll() {
+      var toggle = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+
+      if (toggle) {
+        this.bodyScrollable.classList.add('row-highlight-all');
+      } else {
+        this.bodyScrollable.classList.remove('row-highlight-all');
+        for (var rowIndex in this._highlightedRows) {
+          var $row = this._highlightedRows[rowIndex];
+          $row.classList.remove('row-highlight');
+        }
+        this._highlightedRows = {};
+      }
+    }
+  }, {
+    key: 'getRow$',
+    value: function getRow$(rowIndex) {
+      return (0, _dom2.default)('.data-table-row[data-row-index="' + rowIndex + '"]', this.bodyScrollable);
+    }
+  }, {
+    key: 'getTotalRows',
+    value: function getTotalRows() {
+      return this.datamanager.getRowCount();
+    }
+  }, {
+    key: 'getFirstRowIndex',
+    value: function getFirstRowIndex() {
+      return 0;
+    }
+  }, {
+    key: 'getLastRowIndex',
+    value: function getLastRowIndex() {
+      return this.datamanager.getRowCount() - 1;
+    }
+  }, {
+    key: 'scrollToRow',
+    value: function scrollToRow(rowIndex) {
+      rowIndex = +rowIndex;
+      this._lastScrollTo = this._lastScrollTo || 0;
+      var $row = this.getRow$(rowIndex);
+      if (_dom2.default.inViewport($row, this.bodyScrollable)) return;
+
+      var _$row$getBoundingClie = $row.getBoundingClientRect(),
+          height = _$row$getBoundingClie.height;
+
+      var _bodyScrollable$getBo = this.bodyScrollable.getBoundingClientRect(),
+          top = _bodyScrollable$getBo.top,
+          bottom = _bodyScrollable$getBo.bottom;
+
+      var rowsInView = Math.floor((bottom - top) / height);
+
+      var offset = 0;
+      if (rowIndex > this._lastScrollTo) {
+        offset = height * (rowIndex + 1 - rowsInView);
+      } else {
+        offset = height * (rowIndex + 1 - 1);
+      }
+
+      this._lastScrollTo = rowIndex;
+      _dom2.default.scrollTop(this.bodyScrollable, offset);
+    }
+  }, {
+    key: 'getRowHTML',
+    value: function getRowHTML(row, props) {
+      var _this4 = this;
+
+      var dataAttr = (0, _utils.makeDataAttributeString)(props);
+
+      return '\n      <tr class="data-table-row" ' + dataAttr + '>\n        ' + row.map(function (cell) {
+        return _this4.cellmanager.getCellHTML(cell);
+      }).join('') + '\n      </tr>\n    ';
+    }
+  }, {
+    key: 'datamanager',
+    get: function get() {
+      return this.instance.datamanager;
+    }
+  }, {
+    key: 'cellmanager',
+    get: function get() {
+      return this.instance.cellmanager;
+    }
+  }]);
+
+  return RowManager;
+}();
+
+exports.default = RowManager;
+module.exports = exports['default'];
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+exports.getBodyHTML = getBodyHTML;
+
+var _dom = __webpack_require__(0);
+
+var _dom2 = _interopRequireDefault(_dom);
+
+var _clusterize = __webpack_require__(11);
+
+var _clusterize2 = _interopRequireDefault(_clusterize);
+
+var _utils = __webpack_require__(1);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var BodyRenderer = function () {
+  function BodyRenderer(instance) {
+    _classCallCheck(this, BodyRenderer);
+
+    this.instance = instance;
+    this.options = instance.options;
+    this.datamanager = instance.datamanager;
+    this.rowmanager = instance.rowmanager;
+    this.cellmanager = instance.cellmanager;
+    this.bodyScrollable = instance.bodyScrollable;
+    this.log = instance.log;
+    this.appendRemainingData = (0, _utils.promisify)(this.appendRemainingData, this);
+  }
+
+  _createClass(BodyRenderer, [{
+    key: 'render',
+    value: function render() {
+      if (this.options.enableClusterize) {
+        this.renderBodyWithClusterize();
+      } else {
+        this.renderBodyHTML();
+      }
+    }
+  }, {
+    key: 'renderBodyHTML',
+    value: function renderBodyHTML() {
+      var rows = this.datamanager.getRows();
+
+      this.bodyScrollable.innerHTML = '\n      <table class="data-table-body">\n        ' + getBodyHTML(rows) + '\n      </table>\n    ';
+      this.instance.setDimensions();
+      this.restoreState();
+    }
+  }, {
+    key: 'renderBodyWithClusterize',
+    value: function renderBodyWithClusterize() {
+      var _this = this;
+
+      // first page
+      var rows = this.datamanager.getRows(0, 20);
+      var initialData = this.getDataForClusterize(rows);
+
+      if (!this.clusterize) {
+        // empty body
+        this.bodyScrollable.innerHTML = '\n        <table class="data-table-body">\n          ' + getBodyHTML([]) + '\n        </table>\n      ';
+
+        // first 20 rows will appended
+        // rest of them in nextTick
+        this.clusterize = new _clusterize2.default({
+          rows: initialData,
+          scrollElem: this.bodyScrollable,
+          contentElem: (0, _dom2.default)('tbody', this.bodyScrollable),
+          callbacks: {
+            clusterChanged: function clusterChanged() {
+              _this.restoreState();
+            }
+          },
+          /* eslint-disable */
+          no_data_text: this.options.loadingText,
+          no_data_class: 'empty-state'
+          /* eslint-enable */
+        });
+
+        // setDimensions requires atleast 1 row to exist in dom
+        this.instance.setDimensions();
+      } else {
+        this.clusterize.update(initialData);
+      }
+
+      this.appendRemainingData();
+    }
+  }, {
+    key: 'restoreState',
+    value: function restoreState() {
+      this.rowmanager.highlightCheckedRows();
+      this.cellmanager.selectAreaOnClusterChanged();
+      this.cellmanager.focusCellOnClusterChanged();
+    }
+  }, {
+    key: 'appendRemainingData',
+    value: function appendRemainingData() {
+      var rows = this.datamanager.getRows(20);
+      var data = this.getDataForClusterize(rows);
+      this.clusterize.append(data);
+    }
+  }, {
+    key: 'getDataForClusterize',
+    value: function getDataForClusterize(rows) {
+      var _this2 = this;
+
+      return rows.map(function (row) {
+        return _this2.rowmanager.getRowHTML(row, { rowIndex: row[0].rowIndex });
+      });
+    }
+  }]);
+
+  return BodyRenderer;
+}();
+
+exports.default = BodyRenderer;
+;
+
+function getBodyHTML(rows) {
+  var _this3 = this;
+
+  return '\n    <tbody>\n      ' + rows.map(function (row) {
+    return _this3.rowmanager.getRowHTML(row, { rowIndex: row[0].rowIndex });
+  }).join('') + '\n    </tbody>\n  ';
+}
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_11__;
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _utils = __webpack_require__(1);
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Style = function () {
+  function Style(datatable) {
+    _classCallCheck(this, Style);
+
+    this.datatable = datatable;
+    this.scopeClass = 'datatable-instance-' + datatable.constructor.instances;
+    datatable.datatableWrapper.classList.add(this.scopeClass);
+
+    var styleEl = document.createElement('style');
+    datatable.wrapper.insertBefore(styleEl, datatable.datatableWrapper);
+    this.styleEl = styleEl;
+    this.styleSheet = styleEl.sheet;
+  }
+
+  _createClass(Style, [{
+    key: 'destroy',
+    value: function destroy() {
+      this.styleEl.remove();
+    }
+  }, {
+    key: 'setStyle',
+    value: function setStyle(rule, styleMap) {
+      var index = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : -1;
+
+      var styles = Object.keys(styleMap).map(function (prop) {
+        if (!prop.includes('-')) {
+          prop = (0, _utils.camelCaseToDash)(prop);
+        }
+        return prop + ':' + styleMap[prop] + ';';
+      }).join('');
+      var ruleString = '.' + this.scopeClass + ' ' + rule + ' { ' + styles + ' }';
+
+      var _index = this.styleSheet.cssRules.length;
+      if (index !== -1) {
+        this.styleSheet.deleteRule(index);
+        _index = index;
+      }
+
+      this.styleSheet.insertRule(ruleString, _index);
+      return _index;
+    }
+  }]);
+
+  return Style;
+}();
+
+exports.default = Style;
+module.exports = exports['default'];
+
+/***/ }),
+/* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = {
+  columns: [],
+  data: [],
+  dropdownButton: '▼',
+  headerDropdown: [{
+    label: 'Sort Ascending',
+    action: function action(column) {
+      this.sortColumn(column.colIndex, 'asc');
+    }
+  }, {
+    label: 'Sort Descending',
+    action: function action(column) {
+      this.sortColumn(column.colIndex, 'desc');
+    }
+  }, {
+    label: 'Reset sorting',
+    action: function action(column) {
+      this.sortColumn(column.colIndex, 'none');
+    }
+  }, {
+    label: 'Remove column',
+    action: function action(column) {
+      this.removeColumn(column.colIndex);
+    }
+  }],
+  events: {
+    onRemoveColumn: function onRemoveColumn(column) {},
+    onSwitchColumn: function onSwitchColumn(column1, column2) {},
+    onSortColumn: function onSortColumn(column) {}
+  },
+  sortIndicator: {
+    asc: '↑',
+    desc: '↓',
+    none: ''
+  },
+  freezeMessage: '',
+  getEditor: function getEditor() {},
+  addSerialNoColumn: true,
+  addCheckboxColumn: false,
+  enableClusterize: true,
+  enableLogs: false,
+  takeAvailableSpace: false,
+  loadingText: ''
+};
+module.exports = exports['default'];
+
+/***/ }),
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(15);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(17)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../node_modules/css-loader/index.js!../node_modules/sass-loader/lib/loader.js!./style.scss", function() {
+			var newContent = require("!!../node_modules/css-loader/index.js!../node_modules/sass-loader/lib/loader.js!./style.scss");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 15 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(16)(false);
+// imports
+
+
+// module
+exports.push([module.i, "/* variables */\n.data-table {\n  /* resets */\n  /* styling */\n  width: 100%;\n  position: relative;\n  overflow: auto; }\n  .data-table *, .data-table *::after, .data-table *::before {\n    box-sizing: border-box; }\n  .data-table button, .data-table input {\n    overflow: visible;\n    font-family: inherit;\n    font-size: inherit;\n    line-height: inherit;\n    margin: 0;\n    padding: 0; }\n  .data-table *, .data-table *:focus {\n    outline: none;\n    border-radius: 0px;\n    box-shadow: none; }\n  .data-table table {\n    border-collapse: collapse; }\n  .data-table table td {\n    padding: 0;\n    border: 1px solid #d1d8dd; }\n  .data-table thead td {\n    border-bottom-width: 1px; }\n  .data-table .freeze-container {\n    display: flex;\n    justify-content: center;\n    align-content: center;\n    position: absolute;\n    left: 0;\n    right: 0;\n    top: 0;\n    bottom: 0;\n    background-color: #f5f7fa;\n    opacity: 0.5;\n    font-size: 2em; }\n    .data-table .freeze-container span {\n      position: absolute;\n      top: 50%;\n      transform: translateY(-50%); }\n  .data-table .trash-container {\n    position: absolute;\n    bottom: 0;\n    left: 30%;\n    right: 30%;\n    height: 70px;\n    background: palevioletred;\n    opacity: 0.5; }\n\n.body-scrollable {\n  max-height: 500px;\n  overflow: auto;\n  border-bottom: 1px solid #d1d8dd; }\n  .body-scrollable.row-highlight-all .data-table-row:not(.row-unhighlight) {\n    background-color: #f5f7fa; }\n\n.data-table-header {\n  position: absolute;\n  top: 0;\n  left: 0;\n  background-color: white;\n  font-weight: bold; }\n  .data-table-header .content span:not(.column-resizer) {\n    cursor: pointer; }\n  .data-table-header .column-resizer {\n    display: none;\n    position: absolute;\n    right: 0;\n    top: 0;\n    width: 0.25rem;\n    height: 100%;\n    background-color: #5292f7;\n    cursor: col-resize; }\n  .data-table-header .data-table-dropdown {\n    position: absolute;\n    right: 10px;\n    display: inline-flex;\n    vertical-align: top;\n    text-align: left; }\n    .data-table-header .data-table-dropdown.is-active .data-table-dropdown-list {\n      display: block; }\n    .data-table-header .data-table-dropdown.is-active .data-table-dropdown-toggle {\n      display: block; }\n  .data-table-header .data-table-dropdown-toggle {\n    display: none;\n    background-color: transparent;\n    border: none; }\n  .data-table-header .data-table-dropdown-list {\n    display: none;\n    font-weight: normal;\n    position: absolute;\n    min-width: 8rem;\n    top: 100%;\n    right: 0;\n    z-index: 1;\n    background-color: white;\n    border-radius: 3px;\n    box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);\n    padding-bottom: 0.5rem;\n    padding-top: 0.5rem; }\n    .data-table-header .data-table-dropdown-list > div {\n      padding: 0.5rem 1rem; }\n      .data-table-header .data-table-dropdown-list > div:hover {\n        background-color: #f5f7fa; }\n  .data-table-header .data-table-col.remove-column {\n    background-color: #FD8B8B;\n    transition: 300ms background-color ease-in-out; }\n  .data-table-header .data-table-col.sortable-chosen {\n    background-color: #f5f7fa; }\n\n.data-table-col {\n  position: relative; }\n  .data-table-col .content {\n    padding: 0.25rem;\n    border: 2px solid transparent; }\n    .data-table-col .content.ellipsis {\n      text-overflow: ellipsis;\n      white-space: nowrap;\n      overflow: hidden; }\n  .data-table-col .edit-cell {\n    display: none;\n    padding: 0.25rem;\n    background: #fff;\n    z-index: 1;\n    height: 100%; }\n    .data-table-col .edit-cell input {\n      outline: none;\n      width: 100%;\n      border: none; }\n  .data-table-col.selected .content {\n    border: 2px solid #5292f7; }\n  .data-table-col.editing .content {\n    display: none; }\n  .data-table-col.editing .edit-cell {\n    border: 2px solid #5292f7;\n    display: block; }\n  .data-table-col.highlight {\n    background-color: #f5f7fa; }\n  .data-table-col:hover .column-resizer {\n    display: inline-block; }\n  .data-table-col:hover .data-table-dropdown-toggle {\n    display: block; }\n\n.data-table-row.row-highlight {\n  background-color: #f5f7fa; }\n\n.noselect {\n  -webkit-touch-callout: none;\n  -webkit-user-select: none;\n  -khtml-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none; }\n\nbody.data-table-resize {\n  cursor: col-resize; }\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 16 */
+/***/ (function(module, exports) {
+
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+// css base code, injected by the css-loader
+module.exports = function(useSourceMap) {
+	var list = [];
+
+	// return the list of modules as css string
+	list.toString = function toString() {
+		return this.map(function (item) {
+			var content = cssWithMappingToString(item, useSourceMap);
+			if(item[2]) {
+				return "@media " + item[2] + "{" + content + "}";
+			} else {
+				return content;
+			}
+		}).join("");
+	};
+
+	// import a list of modules into the list
+	list.i = function(modules, mediaQuery) {
+		if(typeof modules === "string")
+			modules = [[null, modules, ""]];
+		var alreadyImportedModules = {};
+		for(var i = 0; i < this.length; i++) {
+			var id = this[i][0];
+			if(typeof id === "number")
+				alreadyImportedModules[id] = true;
+		}
+		for(i = 0; i < modules.length; i++) {
+			var item = modules[i];
+			// skip already imported module
+			// this implementation is not 100% perfect for weird media query combinations
+			//  when a module is imported multiple times with different media queries.
+			//  I hope this will never occur (Hey this way we have smaller bundles)
+			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+				if(mediaQuery && !item[2]) {
+					item[2] = mediaQuery;
+				} else if(mediaQuery) {
+					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+				}
+				list.push(item);
+			}
+		}
+	};
+	return list;
+};
+
+function cssWithMappingToString(item, useSourceMap) {
+	var content = item[1] || '';
+	var cssMapping = item[3];
+	if (!cssMapping) {
+		return content;
+	}
+
+	if (useSourceMap && typeof btoa === 'function') {
+		var sourceMapping = toComment(cssMapping);
+		var sourceURLs = cssMapping.sources.map(function (source) {
+			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
+		});
+
+		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
+	}
+
+	return [content].join('\n');
+}
+
+// Adapted from convert-source-map (MIT)
+function toComment(sourceMap) {
+	// eslint-disable-next-line no-undef
+	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
+	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
+
+	return '/*# ' + data + ' */';
+}
+
+
+/***/ }),
+/* 17 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+
+var stylesInDom = {};
+
+var	memoize = function (fn) {
+	var memo;
+
+	return function () {
+		if (typeof memo === "undefined") memo = fn.apply(this, arguments);
+		return memo;
+	};
+};
+
+var isOldIE = memoize(function () {
+	// Test for IE <= 9 as proposed by Browserhacks
+	// @see http://browserhacks.com/#hack-e71d8692f65334173fee715c222cb805
+	// Tests for existence of standard globals is to allow style-loader
+	// to operate correctly into non-standard environments
+	// @see https://github.com/webpack-contrib/style-loader/issues/177
+	return window && document && document.all && !window.atob;
+});
+
+var getElement = (function (fn) {
+	var memo = {};
+
+	return function(selector) {
+		if (typeof memo[selector] === "undefined") {
+			memo[selector] = fn.call(this, selector);
+		}
+
+		return memo[selector]
+	};
+})(function (target) {
+	return document.querySelector(target)
+});
+
+var singleton = null;
+var	singletonCounter = 0;
+var	stylesInsertedAtTop = [];
+
+var	fixUrls = __webpack_require__(18);
+
+module.exports = function(list, options) {
+	if (typeof DEBUG !== "undefined" && DEBUG) {
+		if (typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
+	}
+
+	options = options || {};
+
+	options.attrs = typeof options.attrs === "object" ? options.attrs : {};
+
+	// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+	// tags it will allow on a page
+	if (!options.singleton) options.singleton = isOldIE();
+
+	// By default, add <style> tags to the <head> element
+	if (!options.insertInto) options.insertInto = "head";
+
+	// By default, add <style> tags to the bottom of the target
+	if (!options.insertAt) options.insertAt = "bottom";
+
+	var styles = listToStyles(list, options);
+
+	addStylesToDom(styles, options);
+
+	return function update (newList) {
+		var mayRemove = [];
+
+		for (var i = 0; i < styles.length; i++) {
+			var item = styles[i];
+			var domStyle = stylesInDom[item.id];
+
+			domStyle.refs--;
+			mayRemove.push(domStyle);
+		}
+
+		if(newList) {
+			var newStyles = listToStyles(newList, options);
+			addStylesToDom(newStyles, options);
+		}
+
+		for (var i = 0; i < mayRemove.length; i++) {
+			var domStyle = mayRemove[i];
+
+			if(domStyle.refs === 0) {
+				for (var j = 0; j < domStyle.parts.length; j++) domStyle.parts[j]();
+
+				delete stylesInDom[domStyle.id];
+			}
+		}
+	};
+};
+
+function addStylesToDom (styles, options) {
+	for (var i = 0; i < styles.length; i++) {
+		var item = styles[i];
+		var domStyle = stylesInDom[item.id];
+
+		if(domStyle) {
+			domStyle.refs++;
+
+			for(var j = 0; j < domStyle.parts.length; j++) {
+				domStyle.parts[j](item.parts[j]);
+			}
+
+			for(; j < item.parts.length; j++) {
+				domStyle.parts.push(addStyle(item.parts[j], options));
+			}
+		} else {
+			var parts = [];
+
+			for(var j = 0; j < item.parts.length; j++) {
+				parts.push(addStyle(item.parts[j], options));
+			}
+
+			stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
+		}
+	}
+}
+
+function listToStyles (list, options) {
+	var styles = [];
+	var newStyles = {};
+
+	for (var i = 0; i < list.length; i++) {
+		var item = list[i];
+		var id = options.base ? item[0] + options.base : item[0];
+		var css = item[1];
+		var media = item[2];
+		var sourceMap = item[3];
+		var part = {css: css, media: media, sourceMap: sourceMap};
+
+		if(!newStyles[id]) styles.push(newStyles[id] = {id: id, parts: [part]});
+		else newStyles[id].parts.push(part);
+	}
+
+	return styles;
+}
+
+function insertStyleElement (options, style) {
+	var target = getElement(options.insertInto)
+
+	if (!target) {
+		throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");
+	}
+
+	var lastStyleElementInsertedAtTop = stylesInsertedAtTop[stylesInsertedAtTop.length - 1];
+
+	if (options.insertAt === "top") {
+		if (!lastStyleElementInsertedAtTop) {
+			target.insertBefore(style, target.firstChild);
+		} else if (lastStyleElementInsertedAtTop.nextSibling) {
+			target.insertBefore(style, lastStyleElementInsertedAtTop.nextSibling);
+		} else {
+			target.appendChild(style);
+		}
+		stylesInsertedAtTop.push(style);
+	} else if (options.insertAt === "bottom") {
+		target.appendChild(style);
+	} else {
+		throw new Error("Invalid value for parameter 'insertAt'. Must be 'top' or 'bottom'.");
+	}
+}
+
+function removeStyleElement (style) {
+	if (style.parentNode === null) return false;
+	style.parentNode.removeChild(style);
+
+	var idx = stylesInsertedAtTop.indexOf(style);
+	if(idx >= 0) {
+		stylesInsertedAtTop.splice(idx, 1);
+	}
+}
+
+function createStyleElement (options) {
+	var style = document.createElement("style");
+
+	options.attrs.type = "text/css";
+
+	addAttrs(style, options.attrs);
+	insertStyleElement(options, style);
+
+	return style;
+}
+
+function createLinkElement (options) {
+	var link = document.createElement("link");
+
+	options.attrs.type = "text/css";
+	options.attrs.rel = "stylesheet";
+
+	addAttrs(link, options.attrs);
+	insertStyleElement(options, link);
+
+	return link;
+}
+
+function addAttrs (el, attrs) {
+	Object.keys(attrs).forEach(function (key) {
+		el.setAttribute(key, attrs[key]);
+	});
+}
+
+function addStyle (obj, options) {
+	var style, update, remove, result;
+
+	// If a transform function was defined, run it on the css
+	if (options.transform && obj.css) {
+	    result = options.transform(obj.css);
+
+	    if (result) {
+	    	// If transform returns a value, use that instead of the original css.
+	    	// This allows running runtime transformations on the css.
+	    	obj.css = result;
+	    } else {
+	    	// If the transform function returns a falsy value, don't add this css.
+	    	// This allows conditional loading of css
+	    	return function() {
+	    		// noop
+	    	};
+	    }
+	}
+
+	if (options.singleton) {
+		var styleIndex = singletonCounter++;
+
+		style = singleton || (singleton = createStyleElement(options));
+
+		update = applyToSingletonTag.bind(null, style, styleIndex, false);
+		remove = applyToSingletonTag.bind(null, style, styleIndex, true);
+
+	} else if (
+		obj.sourceMap &&
+		typeof URL === "function" &&
+		typeof URL.createObjectURL === "function" &&
+		typeof URL.revokeObjectURL === "function" &&
+		typeof Blob === "function" &&
+		typeof btoa === "function"
+	) {
+		style = createLinkElement(options);
+		update = updateLink.bind(null, style, options);
+		remove = function () {
+			removeStyleElement(style);
+
+			if(style.href) URL.revokeObjectURL(style.href);
+		};
+	} else {
+		style = createStyleElement(options);
+		update = applyToTag.bind(null, style);
+		remove = function () {
+			removeStyleElement(style);
+		};
+	}
+
+	update(obj);
+
+	return function updateStyle (newObj) {
+		if (newObj) {
+			if (
+				newObj.css === obj.css &&
+				newObj.media === obj.media &&
+				newObj.sourceMap === obj.sourceMap
+			) {
+				return;
+			}
+
+			update(obj = newObj);
+		} else {
+			remove();
+		}
+	};
+}
+
+var replaceText = (function () {
+	var textStore = [];
+
+	return function (index, replacement) {
+		textStore[index] = replacement;
+
+		return textStore.filter(Boolean).join('\n');
+	};
+})();
+
+function applyToSingletonTag (style, index, remove, obj) {
+	var css = remove ? "" : obj.css;
+
+	if (style.styleSheet) {
+		style.styleSheet.cssText = replaceText(index, css);
+	} else {
+		var cssNode = document.createTextNode(css);
+		var childNodes = style.childNodes;
+
+		if (childNodes[index]) style.removeChild(childNodes[index]);
+
+		if (childNodes.length) {
+			style.insertBefore(cssNode, childNodes[index]);
+		} else {
+			style.appendChild(cssNode);
+		}
+	}
+}
+
+function applyToTag (style, obj) {
+	var css = obj.css;
+	var media = obj.media;
+
+	if(media) {
+		style.setAttribute("media", media)
+	}
+
+	if(style.styleSheet) {
+		style.styleSheet.cssText = css;
+	} else {
+		while(style.firstChild) {
+			style.removeChild(style.firstChild);
+		}
+
+		style.appendChild(document.createTextNode(css));
+	}
+}
+
+function updateLink (link, options, obj) {
+	var css = obj.css;
+	var sourceMap = obj.sourceMap;
+
+	/*
+		If convertToAbsoluteUrls isn't defined, but sourcemaps are enabled
+		and there is no publicPath defined then lets turn convertToAbsoluteUrls
+		on by default.  Otherwise default to the convertToAbsoluteUrls option
+		directly
+	*/
+	var autoFixUrls = options.convertToAbsoluteUrls === undefined && sourceMap;
+
+	if (options.convertToAbsoluteUrls || autoFixUrls) {
+		css = fixUrls(css);
+	}
+
+	if (sourceMap) {
+		// http://stackoverflow.com/a/26603875
+		css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
+	}
+
+	var blob = new Blob([css], { type: "text/css" });
+
+	var oldSrc = link.href;
+
+	link.href = URL.createObjectURL(blob);
+
+	if(oldSrc) URL.revokeObjectURL(oldSrc);
+}
+
+
+/***/ }),
+/* 18 */
+/***/ (function(module, exports) {
+
+
+/**
+ * When source maps are enabled, `style-loader` uses a link element with a data-uri to
+ * embed the css on the page. This breaks all relative urls because now they are relative to a
+ * bundle instead of the current page.
+ *
+ * One solution is to only use full urls, but that may be impossible.
+ *
+ * Instead, this function "fixes" the relative urls to be absolute according to the current page location.
+ *
+ * A rudimentary test suite is located at `test/fixUrls.js` and can be run via the `npm test` command.
+ *
+ */
+
+module.exports = function (css) {
+  // get current location
+  var location = typeof window !== "undefined" && window.location;
+
+  if (!location) {
+    throw new Error("fixUrls requires window.location");
+  }
+
+	// blank or null?
+	if (!css || typeof css !== "string") {
+	  return css;
+  }
+
+  var baseUrl = location.protocol + "//" + location.host;
+  var currentDir = baseUrl + location.pathname.replace(/\/[^\/]*$/, "/");
+
+	// convert each url(...)
+	/*
+	This regular expression is just a way to recursively match brackets within
+	a string.
+
+	 /url\s*\(  = Match on the word "url" with any whitespace after it and then a parens
+	   (  = Start a capturing group
+	     (?:  = Start a non-capturing group
+	         [^)(]  = Match anything that isn't a parentheses
+	         |  = OR
+	         \(  = Match a start parentheses
+	             (?:  = Start another non-capturing groups
+	                 [^)(]+  = Match anything that isn't a parentheses
+	                 |  = OR
+	                 \(  = Match a start parentheses
+	                     [^)(]*  = Match anything that isn't a parentheses
+	                 \)  = Match a end parentheses
+	             )  = End Group
+              *\) = Match anything and then a close parens
+          )  = Close non-capturing group
+          *  = Match anything
+       )  = Close capturing group
+	 \)  = Match a close parens
+
+	 /gi  = Get all matches, not the first.  Be case insensitive.
+	 */
+	var fixedCss = css.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi, function(fullMatch, origUrl) {
+		// strip quotes (if they exist)
+		var unquotedOrigUrl = origUrl
+			.trim()
+			.replace(/^"(.*)"$/, function(o, $1){ return $1; })
+			.replace(/^'(.*)'$/, function(o, $1){ return $1; });
+
+		// already a full url? no change
+		if (/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/)/i.test(unquotedOrigUrl)) {
+		  return fullMatch;
+		}
+
+		// convert the url to a full url
+		var newUrl;
+
+		if (unquotedOrigUrl.indexOf("//") === 0) {
+		  	//TODO: should we add protocol?
+			newUrl = unquotedOrigUrl;
+		} else if (unquotedOrigUrl.indexOf("/") === 0) {
+			// path should be relative to the base url
+			newUrl = baseUrl + unquotedOrigUrl; // already starts with '/'
+		} else {
+			// path should be relative to current directory
+			newUrl = currentDir + unquotedOrigUrl.replace(/^\.\//, ""); // Strip leading './'
+		}
+
+		// send back the fixed url(...)
+		return "url(" + JSON.stringify(newUrl) + ")";
+	});
+
+	// send back the fixed css
+	return fixedCss;
+};
+
+
+/***/ }),
+/* 19 */
+/***/ (function(module, exports) {
+
+module.exports = {"name":"frappe-datatable","version":"0.0.1","description":"A modern datatable library for the web","main":"lib/frappe-datatable.js","scripts":{"start":"npm run dev","build":"webpack --env build","dev":"webpack --progress --colors --watch --env dev","test":"mocha --compilers js:babel-core/register --colors ./test/*.spec.js","test:watch":"mocha --compilers js:babel-core/register --colors -w ./test/*.spec.js"},"devDependencies":{"babel-cli":"6.24.1","babel-core":"6.24.1","babel-eslint":"7.2.3","babel-loader":"7.0.0","babel-plugin-add-module-exports":"0.2.1","babel-plugin-transform-builtin-extend":"^1.1.2","babel-preset-env":"^1.6.1","chai":"3.5.0","css-loader":"^0.28.7","eslint":"3.19.0","eslint-loader":"1.7.1","mocha":"3.3.0","node-sass":"^4.5.3","sass-loader":"^6.0.6","style-loader":"^0.18.2","webpack":"^3.1.0","yargs":"7.1.0"},"repository":{"type":"git","url":"https://github.com/frappe/datatable.git"},"keywords":["webpack","es6","starter","library","universal","umd","commonjs"],"author":"Faris Ansari","license":"MIT","bugs":{"url":"https://github.com/frappe/datatable/issues"},"homepage":"https://frappe.github.io/datatable","dependencies":{"clusterize.js":"^0.18.0","sortablejs":"^1.7.0"}}
+
+/***/ })
+/******/ ]);
+});
+//# sourceMappingURL=frappe-datatable.js.map
