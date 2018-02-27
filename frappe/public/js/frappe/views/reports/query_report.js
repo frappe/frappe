@@ -91,6 +91,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.$report = $('<div class="report-wrapper">').appendTo(this.page.main);
 	}
 
+	setup_page_head() {
+		super.setup_page_head();
+		this.page.set_title_sub(`<label class="label label-warning text-color">${__('Beta')}</label>`);
+	}
+
 	setup_report() {
 		this.$report.empty();
 		this.datatable = null;
