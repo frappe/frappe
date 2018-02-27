@@ -29,7 +29,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	init() {
-		console.log('init')
 		if (this.init_promise && frappe.get_route()[1] === this.report_name) {
 			return this.init_promise;
 		}
@@ -279,17 +278,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return column;
 		});
 
-		let get_original_data = (rowIndex) => {
-			return this._data[rowIndex];
-		};
-
 		return columns.map(column => {
 			return {
 				id: column.fieldname,
 				content: column.label,
 				width: column.width || null,
 				editable: false,
-				format: (value, cell) => {
+				format: (value) => {
 					// const original_data = this._data[cell.rowIndex];//get_original_data(cell.rowIndex);
 					let out = frappe.format(value, column);
 					// if (original_data.indent !== undefined && cell.colIndex === 1) {

@@ -557,7 +557,7 @@ class FilterArea {
 		if(this.list_view.custom_filter_configs) {
 			this.list_view.custom_filter_configs.forEach(config => {
 				config.onchange = () => this.refresh_list_view();
-			})
+			});
 
 			fields = fields.concat(this.list_view.custom_filter_configs);
 		}
