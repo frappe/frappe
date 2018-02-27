@@ -22,7 +22,7 @@ We added `published`, `route` in the DocType
 
 **Note:** The field `route` is mandatory
 
-<img class="screenshot" alt="Generator fields" src="/docs/assets/img/generators.png">
+<img class="screenshot" alt="Generator fields" src="{{docs_base_url}}/assets/img/generators.png">
 
 #### 2. Added Website Generator to Hooks
 
