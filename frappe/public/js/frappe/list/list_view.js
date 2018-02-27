@@ -53,6 +53,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// buld menu items)
 		this.menu_items = this.menu_items.concat(this.get_menu_items());
 
+		this.freeze_on_refresh = true;
+
 		this.patch_refresh_and_load_lib();
 	}
 
@@ -290,7 +292,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				},
 				list_sidebar: this.list_sidebar,
 				user_tags: d._user_tags,
-				on_change: function (user_tags) {
+				on_change: (user_tags) => {
 					d._user_tags = user_tags;
 				}
 			});
