@@ -3,7 +3,6 @@ frappe.provide('frappe.views');
 frappe.views.BaseList = class BaseList {
 	constructor(opts) {
 		Object.assign(this, opts);
-		this.show();
 	}
 
 	show() {
@@ -152,6 +151,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	set_menu_items() {
+		this.page.clear_menu();
 		const $secondary_action = this.page.set_secondary_action(
 			this.secondary_action.label,
 			this.secondary_action.action,

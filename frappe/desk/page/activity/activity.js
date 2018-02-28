@@ -166,6 +166,10 @@ frappe.activity.render_heatmap = function(page) {
 }
 
 frappe.views.Activity = class Activity extends frappe.views.BaseList {
+	constructor(opts) {
+		super(opts);
+		this.show();
+	}
 
 	setup_defaults() {
 		super.setup_defaults();
