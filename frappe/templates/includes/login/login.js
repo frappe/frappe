@@ -35,7 +35,7 @@ login.bind_events = function() {
 		args.email = ($("#signup_email").val() || "").trim();
 		args.redirect_to = frappe.utils.get_url_arg("redirect-to") || '';
 		args.full_name = ($("#signup_fullname").val() || "").trim();
-		if(!args.email || !valid_email(args.email) || !args.full_name) {
+		if(!args.email || !validate_email(args.email) || !args.full_name) {
 			login.set_indicator("{{ _("Valid email and name required") }}", 'red');
 			return false;
 		}

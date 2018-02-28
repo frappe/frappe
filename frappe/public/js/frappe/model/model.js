@@ -166,7 +166,9 @@ $.extend(frappe.model, {
 					name: name
 				},
 				freeze: true,
-				callback: function(r) { callback(name, r); }
+				callback: function(r) {
+					callback && callback(name, r);
+				}
 			});
 		}
 	},

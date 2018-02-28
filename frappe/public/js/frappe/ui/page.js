@@ -529,8 +529,14 @@ frappe.ui.Page = Class.extend({
 		this.fields_dict[df.fieldname || df.label] = f;
 		return f;
 	},
+	clear_fields: function() {
+		this.page_form.empty();
+	},
 	show_form: function() {
 		this.page_form.removeClass("hide");
+	},
+	hide_form: function() {
+		this.page_form.addClass("hide");
 	},
 	get_form_values: function() {
 		var values = {};

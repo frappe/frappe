@@ -97,7 +97,7 @@
 				return false;
 			}
 
-			if (args.comment_by!=='Administrator' && !valid_email(args.comment_by)) {
+			if (args.comment_by!=='Administrator' && !validate_email(args.comment_by)) {
 				frappe.msgprint("{{ _("Please enter a valid email address.") }}");
 				return false;
 			}

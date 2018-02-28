@@ -351,11 +351,7 @@
 	],
 	"css/report.min.css": [
 		"public/less/report.less",
-		"public/css/tree_grid.css",
-
-		"public/js/lib/slickgrid/slick.grid.css",
-		"public/js/lib/slickgrid/slick-default-theme.css",
-		"public/css/slickgrid.css"
+		"public/css/tree_grid.css"
 	],
 	"js/report.min.js": [
 		"public/js/lib/clusterize.min.js",
@@ -366,16 +362,7 @@
 		"public/js/frappe/views/reports/query_report.js",
 		"public/js/frappe/views/reports/grid_report.js",
 		"public/js/frappe/views/reports/print_grid.html",
-		"public/js/frappe/views/reports/print_tree.html",
-
-		"public/js/lib/slickgrid/jquery.event.drag.js",
-		"public/js/lib/slickgrid/plugins/slick.cellrangedecorator.js",
-		"public/js/lib/slickgrid/plugins/slick.cellrangeselector.js",
-		"public/js/lib/slickgrid/plugins/slick.cellselectionmodel.js",
-		"public/js/lib/slickgrid/plugins/slick.cellexternalcopymanager.js",
-		"public/js/lib/slickgrid/slick.core.js",
-		"public/js/lib/slickgrid/slick.grid.js",
-		"public/js/lib/slickgrid/slick.dataview.js"
+		"public/js/frappe/views/reports/print_tree.html"
 	],
 	"js/web_form.min.js": [
 		"website/js/web_form.js",

@@ -489,15 +489,19 @@ frappe.Logger = class {
 	 *
 	 * @param {string} name - Name of the logger.
 	 */
-	constructor (name) {
+	constructor (name, level) {
 		if ( typeof name !== 'string' )
 			throw new frappe.TypeError(`Expected string for name, got ${typeof name} instead.`)
 
 		this.name   = name
-		if ( frappe.boot.developer_mode )
-			this.level  = frappe.Logger.ERROR
-		else
-			this.level  = frappe.Logger.NOTSET
+		this.level  = level
+
+		if ( !this.level ) {
+			if ( frappe.boot.developer_mode )
+				this.level  = frappe.Logger.ERROR
+			else
+				this.level  = frappe.Logger.NOTSET
+		}
 		this.format = frappe.Logger.FORMAT
 	}
 
@@ -506,9 +510,9 @@ frappe.Logger = class {
 	 *
 	 * @param {string} name - Name of the logger.
 	 */
-	static get (name) {
+	static get (name, level) {
 		if ( !(name in frappe.loggers) )
-			frappe.loggers[name] = new frappe.Logger(name)
+			frappe.loggers[name] = new frappe.Logger(name, level)
 		return frappe.loggers[name]
 	}
 
@@ -541,7 +545,7 @@ frappe.Logger.FORMAT = '{time} {name}'
 // frappe.chat
 frappe.provide('frappe.chat')
 
-frappe.log = frappe.Logger.get('frappe.chat')
+frappe.log = frappe.Logger.get('frappe.chat', frappe.Logger.NOTSET)
 
 // frappe.chat.profile
 frappe.provide('frappe.chat.profile')
