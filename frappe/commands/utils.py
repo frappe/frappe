@@ -314,7 +314,8 @@ def mariadb(context):
 		'-h', frappe.conf.db_host or "localhost",
 		'-D', frappe.conf.db_name,
 		'-R', '{site}> '.format(site = site),
-		'--auto-vertical-output'
+		'--auto-vertical-output',
+		'--warn'
 	]
 
 	os.execv(mysql, args)
