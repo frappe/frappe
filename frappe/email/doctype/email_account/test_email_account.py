@@ -146,8 +146,8 @@ class TestEmailAccount(unittest.TestCase):
 		sent = frappe.get_doc("Communication", sent_name)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
-		self.assertEquals(comm.reference_doctype, sent.reference_doctype)
-		self.assertEquals(comm.reference_name, sent.reference_name)
+		self.assertEqual(comm.reference_doctype, sent.reference_doctype)
+		self.assertEqual(comm.reference_name, sent.reference_name)
 
 	def test_threading_by_subject(self):
 		frappe.db.sql("""delete from tabCommunication
@@ -167,8 +167,8 @@ class TestEmailAccount(unittest.TestCase):
 			fields=["name", "reference_doctype", "reference_name"])
 
 		# both communications attached to the same reference
-		self.assertEquals(comm_list[0].reference_doctype, comm_list[1].reference_doctype)
-		self.assertEquals(comm_list[0].reference_name, comm_list[1].reference_name)
+		self.assertEqual(comm_list[0].reference_doctype, comm_list[1].reference_doctype)
+		self.assertEqual(comm_list[0].reference_name, comm_list[1].reference_name)
 
 	def test_threading_by_message_id(self):
 		frappe.db.sql("""delete from tabCommunication""")
@@ -195,5 +195,5 @@ class TestEmailAccount(unittest.TestCase):
 			fields=["name", "reference_doctype", "reference_name"])
 
 		# check if threaded correctly
-		self.assertEquals(comm_list[0].reference_doctype, event.doctype)
-		self.assertEquals(comm_list[0].reference_name, event.name)
+		self.assertEqual(comm_list[0].reference_doctype, event.doctype)
+		self.assertEqual(comm_list[0].reference_name, event.name)

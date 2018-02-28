@@ -47,7 +47,7 @@ class TestEvent(unittest.TestCase):
 	def test_event_list(self):
 		frappe.set_user(self.test_user)
 		res = frappe.get_list("Event", filters=[["Event", "subject", "like", "_Test Event%"]], fields=["name", "subject"])
-		self.assertEquals(len(res), 1)
+		self.assertEqual(len(res), 1)
 		subjects = [r.subject for r in res]
 		self.assertTrue("_Test Event 1" in subjects)
 		self.assertFalse("_Test Event 3" in subjects)
@@ -63,7 +63,7 @@ class TestEvent(unittest.TestCase):
 		ev = frappe.get_doc(self.test_records[0]).insert()
 
 		# the name should be same!
-		self.assertEquals(ev.name, name)
+		self.assertEqual(ev.name, name)
 
 	def test_assign(self):
 		from frappe.desk.form.assign_to import add
@@ -79,7 +79,7 @@ class TestEvent(unittest.TestCase):
 
 		ev = frappe.get_doc("Event", ev.name)
 
-		self.assertEquals(ev._assign, json.dumps(["test@example.com"]))
+		self.assertEqual(ev._assign, json.dumps(["test@example.com"]))
 
 		# add another one
 		add({
@@ -91,7 +91,7 @@ class TestEvent(unittest.TestCase):
 
 		ev = frappe.get_doc("Event", ev.name)
 
-		self.assertEquals(set(json.loads(ev._assign)), set(["test@example.com", self.test_user]))
+		self.assertEqual(set(json.loads(ev._assign)), set(["test@example.com", self.test_user]))
 
 		# close an assignment
 		todo = frappe.get_doc("ToDo", {"reference_type": ev.doctype, "reference_name": ev.name,
@@ -100,7 +100,7 @@ class TestEvent(unittest.TestCase):
 		todo.save()
 
 		ev = frappe.get_doc("Event", ev.name)
-		self.assertEquals(ev._assign, json.dumps(["test@example.com"]))
+		self.assertEqual(ev._assign, json.dumps(["test@example.com"]))
 
 		# cleanup
 		ev.delete()

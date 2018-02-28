@@ -24,26 +24,26 @@ class TestUser(unittest.TestCase):
 	def test_user_type(self):
 		new_user = frappe.get_doc(dict(doctype='User', email='test-for-type@example.com',
 			first_name='Tester')).insert()
-		self.assertEquals(new_user.user_type, 'Website User')
+		self.assertEqual(new_user.user_type, 'Website User')
 
 		# social login userid for frappe
 		self.assertTrue(new_user.social_logins[0].userid)
-		self.assertEquals(new_user.social_logins[0].provider, "frappe")
+		self.assertEqual(new_user.social_logins[0].provider, "frappe")
 
 		# role with desk access
 		new_user.add_roles('_Test Role 2')
 		new_user.save()
-		self.assertEquals(new_user.user_type, 'System User')
+		self.assertEqual(new_user.user_type, 'System User')
 
 		# clear role
 		new_user.roles = []
 		new_user.save()
-		self.assertEquals(new_user.user_type, 'Website User')
+		self.assertEqual(new_user.user_type, 'Website User')
 
 		# role without desk access
 		new_user.add_roles('_Test Role 4')
 		new_user.save()
-		self.assertEquals(new_user.user_type, 'Website User')
+		self.assertEqual(new_user.user_type, 'Website User')
 
 		frappe.delete_doc('User', new_user.name)
 
@@ -72,26 +72,26 @@ class TestUser(unittest.TestCase):
 		frappe.copy_doc(role_records[1]).insert()
 
 	def test_get_value(self):
-		self.assertEquals(frappe.db.get_value("User", "test@example.com"), "test@example.com")
-		self.assertEquals(frappe.db.get_value("User", {"email":"test@example.com"}), "test@example.com")
-		self.assertEquals(frappe.db.get_value("User", {"email":"test@example.com"}, "email"), "test@example.com")
-		self.assertEquals(frappe.db.get_value("User", {"email":"test@example.com"}, ["first_name", "email"]),
+		self.assertEqual(frappe.db.get_value("User", "test@example.com"), "test@example.com")
+		self.assertEqual(frappe.db.get_value("User", {"email":"test@example.com"}), "test@example.com")
+		self.assertEqual(frappe.db.get_value("User", {"email":"test@example.com"}, "email"), "test@example.com")
+		self.assertEqual(frappe.db.get_value("User", {"email":"test@example.com"}, ["first_name", "email"]),
 			("_Test", "test@example.com"))
-		self.assertEquals(frappe.db.get_value("User",
+		self.assertEqual(frappe.db.get_value("User",
 			{"email":"test@example.com", "first_name": "_Test"},
 			["first_name", "email"]),
 				("_Test", "test@example.com"))
 
 		test_user = frappe.db.sql("select * from tabUser where name='test@example.com'",
 			as_dict=True)[0]
-		self.assertEquals(frappe.db.get_value("User", {"email":"test@example.com"}, "*", as_dict=True),
+		self.assertEqual(frappe.db.get_value("User", {"email":"test@example.com"}, "*", as_dict=True),
 			test_user)
 
-		self.assertEquals(frappe.db.get_value("User", "xxxtest@example.com"), None)
+		self.assertEqual(frappe.db.get_value("User", "xxxtest@example.com"), None)
 
 		frappe.db.set_value("Website Settings", "Website Settings", "_test", "_test_val")
-		self.assertEquals(frappe.db.get_value("Website Settings", None, "_test"), "_test_val")
-		self.assertEquals(frappe.db.get_value("Website Settings", "Website Settings", "_test"), "_test_val")
+		self.assertEqual(frappe.db.get_value("Website Settings", None, "_test"), "_test_val")
+		self.assertEqual(frappe.db.get_value("Website Settings", "Website Settings", "_test"), "_test_val")
 
 	def test_high_permlevel_validations(self):
 		user = frappe.get_meta("User")
@@ -202,12 +202,12 @@ class TestUser(unittest.TestCase):
 	def test_delete_user(self):
 		new_user = frappe.get_doc(dict(doctype='User', email='test-for-delete@example.com',
 			first_name='Tester Delete User')).insert()
-		self.assertEquals(new_user.user_type, 'Website User')
+		self.assertEqual(new_user.user_type, 'Website User')
 
 		# role with desk access
 		new_user.add_roles('_Test Role 2')
 		new_user.save()
-		self.assertEquals(new_user.user_type, 'System User')
+		self.assertEqual(new_user.user_type, 'System User')
 
 		comm = frappe.get_doc({
 			"doctype":"Communication",
