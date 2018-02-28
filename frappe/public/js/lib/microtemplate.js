@@ -135,3 +135,31 @@ frappe.render_tree = function(opts) {
 	w.document.write(tree);
 	w.document.close();
 }
+frappe.render_pdf = function(html, opts = {}) {
+	//Create a form to place the HTML content
+	var formData = new FormData();
+
+	//Push the HTML content into an element
+	formData.append("html", html);
+	if (opts.orientation) {
+		formData.append("orientation", opts.orientation);
+	}
+	var blob = new Blob([], { type: "text/xml"});
+	formData.append("blob", blob);
+
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", '/api/method/frappe.utils.print_format.report_to_pdf');
+	xhr.setRequestHeader("X-Frappe-CSRF-Token", frappe.csrf_token);
+	xhr.responseType = "arraybuffer";
+
+	xhr.onload = function(success) {
+		if (this.status === 200) {
+			var blob = new Blob([success.currentTarget.response], {type: "application/pdf"});
+			var objectUrl = URL.createObjectURL(blob);
+
+			//Open report in a new window
+			window.open(objectUrl);
+		}
+	};
+	xhr.send(formData);
+}
