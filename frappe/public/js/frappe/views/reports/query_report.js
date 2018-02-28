@@ -385,6 +385,39 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		frappe.render_pdf(html, print_settings);
 	}
 
+	export_report() {
+		if (this.export_dialog) {
+			this.export_dialog.clear();
+			this.export_dialog.show();
+			return;
+		}
+
+		this.export_dialog = frappe.prompt({
+			label: __('Select File Format'),
+			fieldname: 'file_format',
+			fieldtype: 'Select',
+			options: ['Excel', 'CSV'],
+			default: 'Excel',
+			reqd: 1
+		}, ({ file_format }) => {
+			if (file_format === 'CSV') {
+				frappe.tools.downloadify(this.get_data_for_print(), null, this.report_name);
+			} else {
+				const filters = this.get_filter_values(true);
+
+				const args = {
+					cmd: 'frappe.desk.query_report.export_query',
+					report_name: this.report_name,
+					file_format_type: file_format,
+					filters: filters,
+					visible_idx: this.datatable.datamanager.getFilteredRowIndices(),
+				};
+
+				open_url_post(frappe.request.url, args);
+			}
+		}, __("Export Report: "+ this.report_name), __("Download"));
+	}
+
 	get_data_for_print() {
 		const indices = this.datatable.datamanager.getFilteredRowIndices();
 		return indices.map(i => this._data[i]);
@@ -433,7 +466,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			},
 			{
 				label: __('Export'),
-				action: () => this.make_export(),
+				action: () => this.export_report(),
 				standard: true
 			},
 			{
