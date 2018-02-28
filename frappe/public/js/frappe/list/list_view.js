@@ -15,6 +15,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return false;
 	}
 
+	constructor(opts) {
+		super(opts);
+		this.show();
+	}
+
 	show() {
 		this.init().then(() => {
 			if (frappe.route_options) {

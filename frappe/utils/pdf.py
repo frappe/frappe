@@ -128,7 +128,7 @@ def prepare_header_footer(soup):
 
 			# create temp file
 			fname = os.path.join("/tmp", "frappe-pdf-{0}.html".format(frappe.generate_hash()))
-			with open(fname, "w") as f:
+			with open(fname, "wb") as f:
 				f.write(html.encode("utf-8"))
 
 			# {"header-html": "/tmp/frappe-pdf-random.html"}
