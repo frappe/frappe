@@ -17,12 +17,12 @@ class TestToDo(unittest.TestCase):
 		todo.delete()
 
 		deleted = frappe.get_doc('Deleted Document', dict(deleted_doctype=todo.doctype, deleted_name=todo.name))
-		self.assertEquals(todo.as_json(), deleted.data)
+		self.assertEqual(todo.as_json(), deleted.data)
 
 	def test_fetch(self):
 		todo = frappe.get_doc(dict(doctype='ToDo', description='test todo',
 			assigned_by='Administrator')).insert()
-		self.assertEquals(todo.assigned_by_full_name,
+		self.assertEqual(todo.assigned_by_full_name,
 			frappe.db.get_value('User', todo.assigned_by, 'full_name'))
 
 	def test_fetch_setup(self):
@@ -44,5 +44,5 @@ class TestToDo(unittest.TestCase):
 
 		todo.reload()
 
-		self.assertEquals(todo.assigned_by_full_name,
+		self.assertEqual(todo.assigned_by_full_name,
 			frappe.db.get_value('User', todo.assigned_by, 'full_name'))

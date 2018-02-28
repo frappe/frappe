@@ -108,7 +108,7 @@ class TestPermissions(unittest.TestCase):
 
 		frappe.set_user("test2@example.com")
 		doc = frappe.new_doc("Blog Post")
-		self.assertEquals(doc.get("blog_category"), "_Test Blog Category 1")
+		self.assertEqual(doc.get("blog_category"), "_Test Blog Category 1")
 
 	def test_user_link_match_doc(self):
 		self.set_user_permission_doctypes(["Blogger"])
@@ -343,7 +343,7 @@ class TestPermissions(unittest.TestCase):
 		self.set_strict_user_permissions(0)
 
 		frappe.set_user("test3@example.com")
-		self.assertEquals(len(frappe.get_list("Contact")), 2)
+		self.assertEqual(len(frappe.get_list("Contact")), 2)
 
 		frappe.set_user("Administrator")
 		self.set_strict_user_permissions(1)

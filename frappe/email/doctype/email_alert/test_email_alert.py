@@ -34,7 +34,7 @@ class TestEmailAlert(unittest.TestCase):
 		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": "Communication",
 			"reference_name": communication.name, "status":"Not Sent"}))
 
-		self.assertEquals(frappe.db.get_value('Communication',
+		self.assertEqual(frappe.db.get_value('Communication',
 			communication.name, 'subject'), '__testing__')
 
 	def test_condition(self):
