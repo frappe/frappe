@@ -61,6 +61,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	load() {
+		this.toggle_freeze(true);
 		if (this.report_name !== frappe.get_route()[1]) {
 			// different report
 			this.load_report();
@@ -203,22 +204,21 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	refresh() {
 		const filters = this.get_filter_values(true);
-
-		this.report_ajax = frappe.call({
+		return new Promise(resolve => frappe.call({
 			method: "frappe.desk.query_report.run",
 			type: "GET",
-			freeze: true,
 			args: {
 				report_name: this.report_name,
 				filters: filters
-			}
-		}).then(r => {
-			this.report_ajax = undefined;
+			},
+			callback: resolve
+		})).then(r => {
 			this.render_report(r.message);
 		});
 	}
 
 	render_report(data) {
+		this.toggle_freeze(false);
 		this._data = data.result;
 		this._columns = data.columns;
 		if (this.datatable) {
@@ -371,7 +371,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			})
 
 			//Render Report in HTML
-			html = frappe.render_template("print_template",{
+			html = frappe.render_template("print_template", {
 				content: content,
 				title: __(this.report_name),
 				base_url: base_url,
@@ -466,7 +466,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	setup_report_wrapper() {
 		if (this.$report) return;
 		this.$report = $('<div class="report-wrapper">').appendTo(this.page.main);
-		this.$freeze = $('<div class="report-loading-area">').hide().appendTo(this.page.main);
+		this.$freeze =
+			$(`<div class="report-loading-area flex justify-center align-center text-muted" style="height: 50vh;">
+				<div>${__('Loading')}...</div>
+			</div>`).hide().appendTo(this.page.main);
+	}
+
+	toggle_freeze(flag) {
+		this.$freeze.toggle(flag);
+		this.$report.toggle(!flag);
 	}
 
 	get data() {
