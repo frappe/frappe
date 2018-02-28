@@ -76,7 +76,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.page_name = frappe.get_route_str();
 		this.report_name = this.route[1];
 		this.page_title = __(this.report_name);
-		this.user_settings = frappe.get_user_settings(this.report_name);
 		this.menu_items = this.get_menu_items();
 		this.datatable = null;
 
@@ -90,10 +89,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	refresh_report() {
+		this.toggle_freeze(true);
+
 		return frappe.run_serially([
 			() => this.setup_filters(),
 			() => this.set_route_filters(),
-			() => this.refresh()
+			() => this.get_user_settings(),
+			() => this.refresh(),
+			() => this.save_user_settings()
 		]);
 	}
 
@@ -121,7 +124,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}).then(r => {
 			return frappe.after_ajax(() => {
 				this.report_settings = frappe.query_reports[this.report_name];
-				this.html_format = r.message.html_format;
 				this.report_settings.html_format = r.message.html_format;
 			});
 		});
@@ -229,8 +231,26 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			columns: this.prepare_columns(data.columns),
 			data: data.result,
 			enableInlineFilters: true,
-			// layout: 'fluid'
+			events: {
+				onRemoveColumn: () => this.save_user_settings(),
+				onSwitchColumn: () => this.save_user_settings()
+			}
 		});
+	}
+
+	get_user_settings() {
+		return frappe.model.user_settings.get(this.report_name)
+			.then(user_settings => {
+				this.user_settings = user_settings;
+			});
+	}
+
+	save_user_settings(clear_settings = false) {
+		if (clear_settings) {
+			return frappe.model.user_settings.remove(this.report_name, 'column_order');
+		}
+		const column_order = this.datatable.datamanager.getColumns(true).map(col => col.id);
+		return frappe.model.user_settings.save(this.report_name, 'column_order', column_order);
 	}
 
 	prepare_columns(columns) {
@@ -261,7 +281,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return column;
 		});
 
-		return columns.map(column => {
+		columns = columns.map(column => {
 			return {
 				id: column.fieldname,
 				content: column.label,
@@ -283,6 +303,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 			};
 		});
+
+		if (this.user_settings.column_order) {
+			return this.user_settings.column_order
+				.map(id => columns.find(col => col.id === id))
+				.filter(Boolean);
+		} else {
+			return columns;
+		}
 	}
 
 	get_data() {
@@ -329,7 +357,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	print_report(print_settings) {
 		frappe.render_grid({
-			template: this.html_format || null,
+			template: this.report_settings.html_format || null,
 			title: __(this.report_name),
 			print_settings: print_settings,
 			filters: this.get_filter_values(),
@@ -346,8 +374,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const columns = this.columns;
 
 		let html;
-		if (this.html_format) {
-			const content = frappe.render(this.html_format, {
+		if (this.report_settings.html_format) {
+			const content = frappe.render(this.report_settings.html_format, {
 				data: this.get_data_for_print(),
 				filters: this.get_filter_values(),
 				report: this,
@@ -368,7 +396,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				title: __(this.report_name),
 				data: this.get_data_for_print(),
 				columns: columns
-			})
+			});
 
 			//Render Report in HTML
 			html = frappe.render_template("print_template", {
@@ -481,6 +509,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					name: this.report_name
 				}),
 				condition: () => frappe.model.can_set_user_permissions('Report'),
+				standard: true
+			},
+			{
+				label: __('Clear User Settings'),
+				action: () => this.save_user_settings(true).then(() => this.refresh_report()),
 				standard: true
 			},
 			{
