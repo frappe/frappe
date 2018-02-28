@@ -66,8 +66,7 @@ The notification configuration hook is expected to return a Python dictionary.
 		},
 		"for_module": {
 			"To Do": "frappe.core.notifications.get_things_todo",
-			"Calendar": "frappe.core.notifications.get_todays_events",
-			"Messages": "frappe.core.notifications.get_unread_messages"
+			"Calendar": "frappe.core.notifications.get_todays_events"
 		}
 	}
 

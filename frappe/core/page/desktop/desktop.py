@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import functools
 import frappe
 
 @frappe.whitelist()
@@ -20,4 +21,4 @@ def get_help_messages():
 	for fn in frappe.get_hooks('get_help_messages'):
 		messages += frappe.get_attr(fn)()
 
-	return sorted(messages, lambda a, b: cmp(a.get('count'), b.get('count')))
+	return sorted(messages, key = functools.cmp_to_key(lambda a, b: cmp(a.get('count'), b.get('count'))))
