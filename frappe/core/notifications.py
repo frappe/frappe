@@ -15,7 +15,6 @@ def get_notification_config():
 		},
 		"for_other": {
 			"Likes": "frappe.core.notifications.get_unseen_likes",
-			"Chat": "frappe.core.notifications.get_unread_messages",
 			"Email": "frappe.core.notifications.get_unread_emails",
 		}
 	}
@@ -41,18 +40,6 @@ def get_todays_events(as_list=False):
 	today = nowdate()
 	events = get_events(today, today)
 	return events if as_list else len(events)
-
-def get_unread_messages():
-	"returns unread (docstatus-0 messages for a user)"
-	return frappe.db.sql("""\
-		SELECT count(*)
-		FROM `tabCommunication`
-		WHERE communication_type in ('Chat', 'Notification')
-		AND reference_doctype = 'User'
-		AND reference_name = %s
-		and modified >= DATE_SUB(NOW(),INTERVAL 1 YEAR)
-		AND seen=0
-		""", (frappe.session.user,))[0][0]
 
 def get_unseen_likes():
 	"""Returns count of unseen likes"""
