@@ -2,6 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+import functools
 import frappe, re, os
 from six import iteritems
 
