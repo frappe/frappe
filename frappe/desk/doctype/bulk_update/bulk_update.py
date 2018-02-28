@@ -38,7 +38,7 @@ def update_items(doctype, field, value, items):
 
 def update_and_save(doctype, items, field, value):
 	n = len(items)
-	for i, d in enumerate(items):
+	for i, d in enumerate(items, 1):
 		doc = frappe.get_doc(doctype, d)
 		doc.set(field, value)
 
@@ -47,8 +47,9 @@ def update_and_save(doctype, items, field, value):
 		except Exception as e:
 			frappe.msgprint(_("Validation failed for {0}").format(frappe.bold(doc.name)))
 			raise e
-
-		frappe.publish_progress(float(i)*100/n, title = _('Updating Records'))
+		#show progress if there are 10 or more items
+		if n >= 10:
+			frappe.publish_progress(float(i)*100/n, title = _('Updating Records'))
 
 	frappe.local.message_log = []
 	frappe.msgprint(_('{0} records updated').format(n), title=_('Success'), indicator='green')

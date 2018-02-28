@@ -1029,6 +1029,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 								new_df.fieldname = 'value';
 								new_df.label = __("Value");
 								new_df.reqd = 1;
+								delete new_df.depends_on;
 								dialog.get_field("value").df = new_df;
 								dialog.rebuild_field('value');
 								dialog.refresh();
@@ -1049,8 +1050,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 								}
 							})
 							.then(() => {
-								frappe.hide_progress();
 								dialog.hide();
+							})
+							.catch(() => {
+								frappe.hide_progress();
 							});
 					});
 
