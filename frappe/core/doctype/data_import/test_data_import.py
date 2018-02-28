@@ -25,8 +25,8 @@ class TestDataImport(unittest.TestCase):
 		content = read_csv_content(frappe.response.result)
 		self.assertTrue(content[1][1], "User")
 		self.assertTrue('"Administrator"' in [c[1] for c in content if len(c)>1])
-		self.assertEquals(content[13][0], "DocType:")
-		self.assertEquals(content[13][1], "User")
+		self.assertEqual(content[13][0], "DocType:")
+		self.assertEqual(content[13][1], "User")
 		self.assertTrue("Has Role" in content[13])
 
 	def test_import(self):
@@ -71,7 +71,7 @@ class TestDataImport(unittest.TestCase):
 		importer.upload(content, overwrite=True)
 
 		user = frappe.get_doc("User", user_email)
-		self.assertEquals(len(user.get("roles")), 1)
+		self.assertEqual(len(user.get("roles")), 1)
 		self.assertTrue(user.get("roles")[0].role, "Website Manager")
 
 	def test_import_with_children(self):	#pylint: disable=R0201

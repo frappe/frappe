@@ -1,8 +1,6 @@
-# see license
 import frappe
 
 def execute():
-	# Move User Data into DocType
 	frappe.reload_doc("core", "doctype", "user", force=True)
 	frappe.reload_doc("core", "doctype", "user_social_login", force=True)
 	users = frappe.get_all("User", filters=[["username", "not in", ["Guest","Administrator"]]])
