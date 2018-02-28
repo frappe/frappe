@@ -433,42 +433,40 @@ const frappe    =
 
 const publisher  = redis.createClient(frappe.config.redis_socketio
 	|| frappe.config.redis_async_broker_port);
-subscriber.subscribe("on"); // Listen to the "on" channel.
+subscriber.subscribe("socketio"); // Listen to the "socketio" channel.
 	
 io.on("connection", (socket) => {
 	console.log("Socket.IO connection successful.")
-	
-	// publisher.publish("on", JSON.stringify({
-	// 	event: "ping", message: "ping"
-	// }))
 
-	var connected = false;
-	subscriber.on("message", (channel, message, room) => {
+	subscriber.on("message", (channel, message, room) =>
+	{
+		console.log("Recieved a message from Wergzeug.")
 		console.log("Channel: " + channel)
 		console.log("Message: " + message)
-		const data = JSON.parse(message)
 
-		if ( channel == "on" ) {
-			const event   = data.event;
-			const message = data.message;
+		if ( channel == "socketio" )
+		{
+			// connected to wergzeug.
+			const packet = JSON.parse(message)
+			const event  = packet.event
+			const data   = packet.data
 
-			if ( event == "ping" ) {
-				console.log("Wergzeug ready to listen to events.")
-				connected = true;
-				// Hurray!
-			} else
-			if ( event == "register" && connected ) {
-				const e = message.name
-				console.log("Registering event " + e + " to Socket.IO");
+			if ( event == "register" )
+			{
+				const name = data.name
+				console.log("Registering Event " + name + " to Socket.IO.")
+				socket.on(name, (data) =>
+				{
+					console.log("PING: Socket.IO event " + name + " triggered.")
+					var packet = { event: name, data: data }
+					packet     = JSON.stringify(packet)
 
-				socket.on(e, (data) => {
-					console.log("Publishing event " + e + " to Python")
-					publisher.publish("on", JSON.stringify(data))
-				});
-				console.log(socket._events)
+					console.log("Publishing Socket.IO event " + name + " to Wergzeug with packet: " + packet)
+					publisher.publish("socketio", packet)
+				})
 			}
 		}
-	})
+	});
 });
 
 module.exports = frappe;
