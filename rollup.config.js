@@ -101,10 +101,9 @@ function get_js_config(output_file, input_files) {
 			file: path.resolve(assets_path, output_file),
 			format: 'iife',
 			name: 'Rollup',
-			// globals: {
-			// 	'sortablejs': 'window.Sortable',
-			// 	'clusterize.js': 'window.Clusterize'
-			// },
+			globals: {
+				'jquery': 'window.jQuery'
+			},
 			sourcemap: true
 		},
 		context: 'window',
