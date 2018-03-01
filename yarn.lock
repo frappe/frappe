@@ -615,7 +615,6 @@ frappe-datatable@frappe/datatable:
   resolved "https://codeload.github.com/frappe/datatable/tar.gz/99701f2477b3fb8180ccafaf2c2746886b13ba53"
   dependencies:
     clusterize.js "^0.18.0"
-    lodash "^4.17.5"
     sortablejs "^1.7.0"
 
 fresh@0.5.2:
@@ -1105,6 +1104,10 @@ mkdirp@^0.5.0:
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-0.5.1.tgz#30057438eac6cf7f8c4767f38648d6697d75c903"
   dependencies:
     minimist "0.0.8"
+
+moment@^2.20.1:
+  version "2.20.1"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.20.1.tgz#d6eb1a46cbcc14a2b2f9434112c1ff8907f313fd"
 
 ms@2.0.0:
   version "2.0.0"
