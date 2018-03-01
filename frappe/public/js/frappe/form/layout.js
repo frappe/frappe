@@ -119,16 +119,10 @@ frappe.ui.form.Layout = Class.extend({
 		});
 	},
 
-	rebuild_field: function (fieldname, render = false) {
+	change_df: function (fieldname, df, render) {
+		df.fieldname = fieldname; // change of fieldname is avoided
 		if (this.fields_dict[fieldname] && this.fields_dict[fieldname].df) {
-			var fieldobj = frappe.ui.form.make_control({
-				df: this.fields_dict[fieldname].df,
-				doctype: this.doctype,
-				parent: this.column.wrapper.get(0),
-				frm: this.frm,
-				render_input: render
-			});
-			fieldobj.layout = this;
+			var fieldobj = this.init_field(df, render);
 			this.fields_dict[fieldname].$wrapper.remove();
 			this.fields_list.splice(this.fields_dict[fieldname], 1, fieldobj);
 			this.fields_dict[fieldname] = fieldobj;
@@ -137,22 +131,15 @@ frappe.ui.form.Layout = Class.extend({
 			}
 			this.section.fields_list.splice(this.section.fields_dict[fieldname], 1, fieldobj);
 			this.section.fields_dict[fieldname] = fieldobj;
+			this.refresh();
 		}
 	},
 
-	make_field: function(df, colspan, render = false) {
+	make_field: function(df, colspan, render) {
 		!this.section && this.make_section();
 		!this.column && this.make_column();
 
-		var fieldobj = frappe.ui.form.make_control({
-			df: df,
-			doctype: this.doctype,
-			parent: this.column.wrapper.get(0),
-			frm: this.frm,
-			render_input: render
-		});
-
-		fieldobj.layout = this;
+		const fieldobj = this.init_field(df, render)
 		this.fields_list.push(fieldobj);
 		this.fields_dict[df.fieldname] = fieldobj;
 		if(this.frm) {
@@ -162,6 +149,20 @@ frappe.ui.form.Layout = Class.extend({
 		this.section.fields_list.push(fieldobj);
 		this.section.fields_dict[df.fieldname] = fieldobj;
 	},
+
+	init_field: function(df, render = false) {
+		const fieldobj = frappe.ui.form.make_control({
+			df: df,
+			doctype: this.doctype,
+			parent: this.column.wrapper.get(0),
+			frm: this.frm,
+			render_input: render
+		});
+
+		fieldobj.layout = this;
+		return fieldobj
+	},
+
 	make_page: function(df) {
 		var me = this,
 			head = $('<div class="form-clickable-section text-center">\
