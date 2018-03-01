@@ -46,7 +46,7 @@ class Broker(object):
 		if self.error:
 			raise self.error
 
-	def get(cache  = True):
+	def get(cache = True):
 		global BROKER
 		if not BROKER or not cache:
 			BROKER = Broker()
