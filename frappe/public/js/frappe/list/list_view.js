@@ -943,7 +943,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							}
 						);
 					} else {
-						frappe.msgprint(__('Select atleast 1 record for printing'));
+						frappe.msgprint(__('Select atleast 1 record to delete'));
 					}
 				},
 				standard: true,
