@@ -32,7 +32,6 @@ app.get('/', function (req, res) {
 	res.sendfile('index.html');
 });
 
-io.set("origins", "*:*");
 // on socket connection
 io.on('connection', function (socket) {
 	if (get_hostname(socket.request.headers.host) != get_hostname(socket.request.headers.origin)) {

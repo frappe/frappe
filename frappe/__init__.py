@@ -55,14 +55,14 @@ def _(msg, lang=None):
 	# return lang_full_dict according to lang passed parameter
 	return get_full_dict(lang).get(msg) or msg
 
-def as_unicode(text, encoding='utf-8'):
+def as_unicode(text, encoding='utf-8', errors = 'ignore'):
 	'''Convert to unicode if required'''
 	if isinstance(text, text_type):
 		return text
 	elif text==None:
 		return ''
 	elif isinstance(text, binary_type):
-		return text_type(text, encoding)
+		return text_type(text, encoding, errors = errors)
 	else:
 		return text_type(text)
 
