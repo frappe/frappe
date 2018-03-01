@@ -954,18 +954,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return {
 				label: __('Cancel'),
 				action: () => {
-					const items = this.get_checked_items();
+					const items = this.get_checked_items(true);
 					if (items.length > 0) {
 						frappe.confirm(__('Cancel {0} documents?', [items.length]),
 							() => {
 								frappe
 									.call({
-										method: 'frappe.desk.doctype.bulk_update.bulk_update.update_items',
+										method: 'frappe.desk.doctype.bulk_update.bulk_update.cancel_items',
 										args: {
 											doctype: doctype,
-											field: 'docstatus',
-											value: 2,
-											items: this.get_checked_items(true)
+											items: items
 										}
 									});
 							});
@@ -979,18 +977,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return {
 				label: __('Submit'),
 				action: () => {
-					const items = this.get_checked_items();
+					const items = this.get_checked_items(true);
 					if (items.length > 0) {
 						frappe.confirm(__('Submit {0} documents?', [items.length]),
 							() => {
 								frappe
 									.call({
-										method: 'frappe.desk.doctype.bulk_update.bulk_update.update_items',
+										method: 'frappe.desk.doctype.bulk_update.bulk_update.submit_items',
 										args: {
 											doctype: doctype,
-											field: 'docstatus',
-											value: 1,
-											items: this.get_checked_items(true)
+											items: items
 										}
 									});
 							});
