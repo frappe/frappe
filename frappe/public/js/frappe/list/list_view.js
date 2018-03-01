@@ -964,7 +964,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 										args: {
 											doctype: doctype,
 											items: items
-										}
+										},
+										callback: this.refresh()
 									});
 							});
 					}
@@ -987,7 +988,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 										args: {
 											doctype: doctype,
 											items: items
-										}
+										},
+										callback: this.refresh()
 									});
 							});
 					}
