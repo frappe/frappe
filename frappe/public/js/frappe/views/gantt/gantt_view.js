@@ -114,6 +114,10 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 			var mode = $(this).data('value');
 			me.gantt.change_view_mode(mode);
 			$dropdown.find(".dropdown-text").text(mode);
+			$dropdown.removeClass('open');
+		});
+		$dropdown.on('click', '.dropdown-toggle', function() {
+			$dropdown.addClass('open');
 		});
 	},
 
