@@ -113,13 +113,17 @@ function get_js_config(output_file, input_files) {
 }
 
 function get_css_config(output_file, input_files) {
+	const output_path = path.resolve(assets_path, output_file);
+
+	// clear css file to avoid appending problem
+	delete_file(output_path);
 
 	const plugins = [
 		// enables array of inputs
 		multi_entry(),
 		// less -> css
 		less({
-			output: path.resolve(assets_path, output_file),
+			output: output_path,
 			option: {
 				// so that other .less files can import variables.less from frappe directly
 				paths: [path.resolve(get_public_path('frappe'), 'less')],
@@ -156,7 +160,7 @@ function ensure_js_css_dirs() {
 	const files = fs.readdirSync(css_path);
 
 	files.forEach(file => {
-		fs.unlinkSync(path.resolve(css_path, file));
+		delete_file(path.resolve(css_path, file));
 	});
 }
 
@@ -189,6 +193,12 @@ function get_build_json(app) {
 	} catch (e) {
 		// build.json does not exist
 		return null;
+	}
+}
+
+function delete_file(path) {
+	if (fs.existsSync(path)) {
+		fs.unlinkSync(path);
 	}
 }
 
