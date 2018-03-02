@@ -148,42 +148,6 @@ frappe.views.BaseList = class BaseList {
 		this.set_breadcrumbs();
 	}
 
-<<<<<<< HEAD
-	set_menu_items() {
-		this.page.clear_menu();
-		const $secondary_action = this.page.set_secondary_action(
-			this.secondary_action.label,
-			this.secondary_action.action,
-			this.secondary_action.icon
-		);
-		if (!this.secondary_action.icon) {
-			$secondary_action.addClass('hidden-xs');
-		} else {
-			$secondary_action.addClass('visible-xs');
-		}
-
-		this.menu_items.map(item => {
-			if (item.condition && item.condition() === false) {
-				return;
-			}
-			const $item = this.page.add_menu_item(item.label, item.action, item.standard);
-			if (item.class) {
-				$item && $item.addClass(item.class);
-			}
-		});
-	}
-
-	set_actions_menu_items() {
-		this.actions_menu_items.map(item => {
-			const $item = this.page.add_actions_menu_item(item.label, item.action, item.standard);
-			if (item.class) {
-				$item.addClass(item.class);
-			}
-		});
-	}
-
-=======
->>>>>>> requested changes and refactor
 	set_breadcrumbs() {
 		frappe.breadcrumbs.add(this.meta.module, this.doctype);
 	}
