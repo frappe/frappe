@@ -124,12 +124,20 @@ def make_issue_from_communication(communication, ignore_communication_links=Fals
 	""" raise a issue from email """
 
 	doc = frappe.get_doc("Communication", communication)
-	issue = frappe.get_doc({
-		"doctype": "Issue",
-		"subject": doc.subject,
-		"raised_by": doc.sender,
-		"raised_by_phone": doc.phone_no
-	}).insert(ignore_permissions=True)
+	if doc.communication_medium == "Email":
+		issue = frappe.get_doc({
+			"doctype": "Issue",
+			"subject": doc.subject,
+			"communication_medium": doc.communication_medium,			
+			"raised_by": doc.sender
+		}).insert(ignore_permissions=True)
+	elif doc.communication_medium == "Phone":
+		issue = frappe.get_doc({
+			"doctype": "Issue",
+			"subject": doc.subject,
+			"communication_medium": doc.communication_medium,
+			"raised_by_phone": doc.phone_no
+		}).insert(ignore_permissions=True)
 
 	link_communication_to_document(doc, "Issue", issue.name, ignore_communication_links)
 
