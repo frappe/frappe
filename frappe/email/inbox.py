@@ -127,7 +127,8 @@ def make_issue_from_communication(communication, ignore_communication_links=Fals
 	issue = frappe.get_doc({
 		"doctype": "Issue",
 		"subject": doc.subject,
-		"raised_by": doc.sender or doc.phone_no
+		"raised_by": doc.sender,
+		"raised_by_phone": doc.phone_no
 	}).insert(ignore_permissions=True)
 
 	link_communication_to_document(doc, "Issue", issue.name, ignore_communication_links)
@@ -140,17 +141,18 @@ def make_lead_from_communication(communication, ignore_communication_links=False
 
 	doc = frappe.get_doc("Communication", communication)
 	frappe.errprint(doc.sender_full_name)
-	lead_name = frappe.db.get_value("Lead", {"email_id": doc.sender})
+	lead_name = frappe.db.get_value("Lead", {"email_id": doc.sender,"mobile_no": doc.phone_no})
 	if not lead_name:
 		lead = frappe.get_doc({
 			"doctype": "Lead",
 			"lead_name": doc.sender_full_name,
-			"email_id": doc.sender or doc.phone_no
+			"email_id": doc.sender,
+			"mobile_no": doc.phone_no
 		})
 		lead.flags.ignore_mandatory = True
 		lead.flags.ignore_permissions = True
 		lead.insert()
-
+		# possible small PR
 		lead_name = lead.name
 
 	link_communication_to_document(doc, "Lead", lead_name, ignore_communication_links)
