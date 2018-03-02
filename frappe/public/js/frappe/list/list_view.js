@@ -844,7 +844,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_actions_menu_items() {
 		const doctype = this.doctype;
-		const items = [];
+		const actions_menu_items = [];
 
 		const is_field_editable = (field_doc) => {
 			return field_doc.fieldname && frappe.model.is_value_type(field_doc)
@@ -853,7 +853,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		
 		const has_editable_fields = () => {
 			return frappe.meta.get_docfields(doctype).some(field_doc => is_field_editable(field_doc));
-		}
+		};
 
 		// utility
 		const bulk_assignment = () => {
@@ -986,8 +986,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					}
 				},
 				standard: true,
-			}
-		}
+			};
+		};
 
 		const cancel_items = (list, items) => {
 			frappe
@@ -1010,14 +1010,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					const items = this.get_checked_items(true);
 					if (items.length > 0) {
 						frappe.confirm(__('Cancel {0} documents?', [items.length]),
-							cancel_items(this, items));
+							() => cancel_items(this, items)); 
 					}
 				},
 				standard: true
-			}
+			};
 		};
 
-		const submit_items = () => {
+		const submit_items = (list, items) => {
 			frappe
 				.call({
 					method: 'frappe.desk.doctype.bulk_update.bulk_update.submit_items',
@@ -1029,7 +1029,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				.then(() => {
 					this.refresh();
 				});
-		}
+		};
 
 		const bulk_submit = () => {
 			return {
@@ -1038,11 +1038,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					const items = this.get_checked_items(true);
 					if (items.length > 0) {
 						frappe.confirm(__('Submit {0} documents?', [items.length]),
-							submit_items(this, items));
+							() => submit_items(this, items));
 					}
 				},
 				standard: true
-			}
+			};
 		};
 
 		const show_bulk_edit_dialog = (list, field_mappings) => {
@@ -1086,7 +1086,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	
 			dialog.refresh();
 			dialog.show();	
-		}
+		};
 
 		const bulk_edit = () => {
 			return {
@@ -1103,37 +1103,37 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					show_bulk_edit_dialog(this, field_mappings);
 				},
 				standard: true
-			}
+			};
 		};
 		// bulk assignment
-		items.push(bulk_assignment());
+		actions_menu_items.push(bulk_assignment());
 
 		// bulk printing
 		if (frappe.model.can_print(doctype)) {
-			items.push(bulk_printing());
+			actions_menu_items.push(bulk_printing());
 		}
 
 		// Bulk cancel
 		if (frappe.model.can_cancel(doctype)) {
-			items.push(bulk_cancel());
+			actions_menu_items.push(bulk_cancel());
 		}
 
 		// Bulk submit
 		if (frappe.model.is_submittable(doctype)) {
-			items.push(bulk_submit());
+			actions_menu_items.push(bulk_submit());
 		}
 
 		// bulk delete
 		if (frappe.model.can_delete(doctype)) {
-			items.push(bulk_delete());
+			actions_menu_items.push(bulk_delete());
 		}
 
 		// bulk edit
 		if(has_editable_fields()){
-			items.push(bulk_edit());
+			actions_menu_items.push(bulk_edit());
 		}
 
-		return items;
+		return actions_menu_items;
 	}
 
 	set_filters_from_route_options() {
@@ -1188,6 +1188,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 };
 
-$(document).on('save', function (event, doc) {
+$(document).on('save', function(event, doc) {
 	frappe.views.ListView.trigger_list_update(doc);
 });

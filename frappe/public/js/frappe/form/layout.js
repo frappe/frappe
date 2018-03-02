@@ -119,7 +119,7 @@ frappe.ui.form.Layout = Class.extend({
 		});
 	},
 
-	change_df: (fieldname, df, render) => {
+	change_df: function(fieldname, df, render) {
 		df.fieldname = fieldname; // change of fieldname is avoided
 		if (this.fields_dict[fieldname] && this.fields_dict[fieldname].df) {
 			const fieldobj = this.init_field(df, render);
@@ -150,7 +150,7 @@ frappe.ui.form.Layout = Class.extend({
 		this.section.fields_dict[df.fieldname] = fieldobj;
 	},
 
-	init_field: (df, render = false) => {
+	init_field: function(df, render = false) {
 		const fieldobj = frappe.ui.form.make_control({
 			df: df,
 			doctype: this.doctype,
@@ -256,7 +256,7 @@ frappe.ui.form.Layout = Class.extend({
 				if(cnt % 2) {
 					$this.addClass("shaded-section");
 				}
-				cnt ++;
+				cnt++;
 			}
 		});
 	},
@@ -436,11 +436,9 @@ frappe.ui.form.Layout = Class.extend({
 			} else {
 				field.grid.grid_rows[0].toggle_view(true);
 			}
-		}
-		else if(field.editor) {
+		} else if(field.editor) {
 			field.editor.set_focus();
-		}
-		else if(field.$input) {
+		} else if(field.$input) {
 			field.$input.focus();
 		}
 	},
@@ -654,11 +652,13 @@ frappe.ui.form.Column = Class.extend({
 			</form>\
 		</div>').appendTo(this.section.body)
 			.find("form")
-			.on("submit", function() { return false; });
+			.on("submit", function() {
+				return false;
+			});
 
-		if(this.df.label) {
-			$('<label class="control-label">'+ __(this.df.label)
-				+'</label>').appendTo(this.wrapper);
+		if (this.df.label) {
+			$('<label class="control-label">' + __(this.df.label)
+				+ '</label>').appendTo(this.wrapper);
 		}
 	},
 	resize_all_columns: function() {
