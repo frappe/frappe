@@ -55,6 +55,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 		// initialize with saved order by
 		this.order_by = this.view_user_settings.order_by || 'modified desc';
+
 		// build menu items
 		this.menu_items = this.menu_items.concat(this.get_menu_items());
 
@@ -67,6 +68,45 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	setup_page() {
 		this.parent.list_view = this;
 		super.setup_page();
+	}
+
+	setup_page_head() {
+		super.setup_page_head();
+		this.set_primary_action();
+		this.set_menu_items();
+		this.set_actions_menu_items();
+	}
+
+	set_menu_items() {
+		const $secondary_action = this.page.set_secondary_action(
+			this.secondary_action.label,
+			this.secondary_action.action,
+			this.secondary_action.icon
+		);
+		if (!this.secondary_action.icon) {
+			$secondary_action.addClass('hidden-xs');
+		} else {
+			$secondary_action.addClass('visible-xs');
+		}
+
+		this.menu_items.map(item => {
+			if (item.condition && item.condition() === false) {
+				return;
+			}
+			const $item = this.page.add_menu_item(item.label, item.action, item.standard);
+			if (item.class) {
+				$item && $item.addClass(item.class);
+			}
+		});
+	}
+
+	set_actions_menu_items() {
+		this.actions_menu_items.map(item => {
+			const $item = this.page.add_actions_menu_item(item.label, item.action, item.standard);
+			if (item.class) {
+				$item.addClass(item.class);
+			}
+		});
 	}
 
 	set_fields() {
@@ -104,10 +144,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}, interval);
 	}
 
-	setup_page_head() {
-		super.setup_page_head();
-		this.set_primary_action();
-	}
 
 	set_primary_action() {
 		if (this.can_create) {
@@ -913,6 +949,30 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			};
 		};
 
+		const delete_items = (list, items) => {
+			frappe
+				.call({
+					method: 'frappe.desk.reportview.delete_items',
+					freeze: true,
+					args: {
+						items: items,
+						doctype: list.doctype
+					}
+				})
+				.then((r) => {
+					let failed = r.message;
+					if (!failed) failed = [];
+
+					if (failed.length && !r._server_messages) {
+						frappe.throw(__('Cannot delete {0}', [failed.map(f => f.bold()).join(', ')]));
+					}
+					if (failed.length < items.length) {
+						frappe.utils.play_sound('delete');
+						list.refresh(true);
+					}
+				});
+		};
+
 		const bulk_delete = () => {
 			return {
 				label: __('Delete'),
@@ -920,28 +980,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					const docnames = this.get_checked_items(true);
 					if (docnames.length > 0) {
 						frappe.confirm(__('Delete {0} items permanently?', [docnames.length]),
-							() => {
-								frappe.call({
-									method: 'frappe.desk.reportview.delete_items',
-									freeze: true,
-									args: {
-										items: docnames,
-										doctype: this.doctype
-									}
-								}).then((r) => {
-									let failed = r.message;
-									if (!failed) failed = [];
-
-									if (failed.length && !r._server_messages) {
-										frappe.throw(__('Cannot delete {0}', [failed.map(f => f.bold()).join(', ')]));
-									}
-									if (failed.length < docnames.length) {
-										frappe.utils.play_sound('delete');
-										this.refresh(true);
-									}
-								});
-							}
-						);
+							delete_items(this, docnames));
 					} else {
 						frappe.msgprint(__('Select atleast 1 record to delete'));
 					}
@@ -950,6 +989,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 		}
 
+		const cancel_items = (list, items) => {
+			frappe
+				.call({
+					method: 'frappe.desk.doctype.bulk_update.bulk_update.cancel_items',
+					args: {
+						doctype: list.doctype,
+						items: items
+					},
+				})
+				.then(() => {
+					list.refresh();
+				});
+		};
+
 		const bulk_cancel = () => {
 			return {
 				label: __('Cancel'),
@@ -957,22 +1010,26 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					const items = this.get_checked_items(true);
 					if (items.length > 0) {
 						frappe.confirm(__('Cancel {0} documents?', [items.length]),
-							() => {
-								frappe
-									.call({
-										method: 'frappe.desk.doctype.bulk_update.bulk_update.cancel_items',
-										args: {
-											doctype: doctype,
-											items: items
-										},
-										callback: this.refresh()
-									});
-							});
+							cancel_items(this, items));
 					}
 				},
 				standard: true
 			}
 		};
+
+		const submit_items = () => {
+			frappe
+				.call({
+					method: 'frappe.desk.doctype.bulk_update.bulk_update.submit_items',
+					args: {
+						doctype: doctype,
+						items: items
+					},
+				})
+				.then(() => {
+					this.refresh();
+				});
+		}
 
 		const bulk_submit = () => {
 			return {
@@ -981,76 +1038,69 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					const items = this.get_checked_items(true);
 					if (items.length > 0) {
 						frappe.confirm(__('Submit {0} documents?', [items.length]),
-							() => {
-								frappe
-									.call({
-										method: 'frappe.desk.doctype.bulk_update.bulk_update.submit_items',
-										args: {
-											doctype: doctype,
-											items: items
-										},
-										callback: this.refresh()
-									});
-							});
-					}
+							submit_items(this, items))
+					};
 				},
 				standard: true
 			}
 		};
 
+		const show_bulk_edit_dialog = (list, field_mappings) => {
+			let field_options = Object.keys(field_mappings).sort();
+			const dialog = new frappe.ui.Dialog({
+				title: __("Edit"),
+				fields: [{
+					"fieldtype": "Select", "options": field_options,
+					"label": __("Field"), "fieldname": "field", "reqd": 1,
+					"onchange": () => {
+						const new_df = Object.assign({},
+							field_mappings[dialog.get_value("field")]);
+						new_df.label = __("Value");
+						new_df.reqd = 1;
+						delete new_df.depends_on;
+						dialog.change_df('value', new_df);
+					}
+				}, {
+					"fieldtype": "Data",
+					"label": __("Value"),
+					"fieldname": "value",
+					"reqd": 1
+				}],
+			});
+
+			dialog.set_primary_action('Update', () => {
+				frappe
+					.call({
+						method: 'frappe.desk.doctype.bulk_update.bulk_update.update_items',
+						args: {
+							doctype: doctype,
+							field: field_mappings[dialog.get_value("field")].fieldname,
+							value: dialog.get_value("value"),
+							items: list.get_checked_items(true)
+						}
+					})
+					.then(() => {
+						dialog.hide();
+					});
+			});
+	
+			dialog.refresh();
+			dialog.show();	
+		}
+
 		const bulk_edit = () => {
 			return {
 				label: __('Edit'),
 				action: () => {
-					let fields_to_skip = [];
-					let field_options = [];
 					let field_mappings = {};
 
 					frappe.meta.get_docfields(doctype).forEach(field_doc => {
 						if (is_field_editable(field_doc)) {
-							field_options.push(field_doc.label);
 							field_mappings[field_doc.label] = Object.assign({}, field_doc);
 						}
 					});
-
-					if(!field_options.length) {
-						frappe.msgprint('No editable fields found.');
-					}
-
-					const dialog = new frappe.ui.Dialog({
-						title: __("Edit"),
-						fields: [{
-							"fieldtype": "Select", "options": field_options,
-							"label": __("Field"), "fieldname": "field", "reqd": 1,
-							"onchange": () => {
-								const new_df = Object.assign({}, field_mappings[dialog.get_value("field")]);
-								new_df.label = __("Value");
-								new_df.reqd = 1;
-								delete new_df.depends_on;
-								dialog.change_df('value', new_df);
-							}
-						},
-						{ "fieldtype": "Data", "label": __("Value"), "fieldname": "value", "reqd": 1 }],
-					});
-
-					dialog.set_primary_action('Update', () => {
-						frappe
-							.call({
-								method: 'frappe.desk.doctype.bulk_update.bulk_update.update_items',
-								args: {
-									doctype: doctype,
-									field: field_mappings[dialog.get_value("field")].fieldname,
-									value: dialog.get_value("value"),
-									items: this.get_checked_items(true)
-								}
-							})
-							.then(() => {
-								dialog.hide();
-							});
-					});
-
-					dialog.refresh();
-					dialog.show();
+					
+					show_bulk_edit_dialog(this, field_mappings);
 				},
 				standard: true
 			}

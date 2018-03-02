@@ -145,11 +145,10 @@ frappe.views.BaseList = class BaseList {
 
 	setup_page_head() {
 		this.page.set_title(this.page_title);
-		this.set_menu_items();
-		this.set_actions_menu_items();
 		this.set_breadcrumbs();
 	}
 
+<<<<<<< HEAD
 	set_menu_items() {
 		this.page.clear_menu();
 		const $secondary_action = this.page.set_secondary_action(
@@ -183,6 +182,8 @@ frappe.views.BaseList = class BaseList {
 		});
 	}
 
+=======
+>>>>>>> requested changes and refactor
 	set_breadcrumbs() {
 		frappe.breadcrumbs.add(this.meta.module, this.doctype);
 	}

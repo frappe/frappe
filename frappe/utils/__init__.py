@@ -548,3 +548,13 @@ def get_site_info():
 
 	# dumps -> loads to prevent datatype conflicts
 	return json.loads(frappe.as_json(site_info))
+
+def get_json(items):
+	"""
+	converts to an object if a string 
+	representing a json object is passed.
+	"""
+	if isinstance(items, string_types):
+		items = json.loads(items)
+	return items
+

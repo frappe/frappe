@@ -7,8 +7,6 @@ import frappe
 from frappe.model.document import Document
 from frappe import _
 from frappe.utils import cint
-from six import string_types
-from json import loads
 
 class BulkUpdate(Document):
 	pass
@@ -30,7 +28,7 @@ def update(doctype, field, value, condition='', limit=500):
 
 @frappe.whitelist()
 def update_items(doctype, field, value, items):
-	items = get_list(items)
+	items = frappe.utils.get_json(items)
 	n = len(items)
 	if not n: return
 	update_and_save(doctype, items, field, value)
@@ -45,17 +43,15 @@ def update_and_save(doctype, items, field, value):
 			doc.save()
 		except Exception as e:
 			frappe.msgprint(_("Validation failed for {0}").format(frappe.bold(doc.name)))
-			raise e
 		#show progress if there are 10 or more items
 		if n >= 10:
 			frappe.publish_progress(float(i)*100/n, title = _('Updating Records'))
-
-	frappe.local.message_log = []
+	frappe.clear_messages()
 	frappe.msgprint(_('{0} record(s) updated').format(n), title=_('Success'), indicator='green')
 
 @frappe.whitelist()
 def submit_items(doctype, items):
-	items = get_list(items)
+	items = frappe.utils.get_json(items)
 	n = len(items)
 	for i, d in enumerate(items, 1):
 		doc = frappe.get_doc(doctype, d)
@@ -68,12 +64,12 @@ def submit_items(doctype, items):
 		#show progress if there are 10 or more items
 		if n >= 10:
 			frappe.publish_progress(float(i)*100/n, title = _('Submiting Records'))
-	frappe.local.message_log = []
+	frappe.clear_messages()
 	frappe.msgprint(_('{0} record(s) submitted').format(n), title=_('Success'), indicator='green')
 
 @frappe.whitelist()
 def cancel_items(doctype, items):
-	items = get_list(items)
+	items = frappe.utils.get_json(items)
 	n = len(items)
 	for i, d in enumerate(items, 1):
 		doc = frappe.get_doc(doctype, d)
@@ -86,10 +82,6 @@ def cancel_items(doctype, items):
 		#show progress if there are 10 or more items
 		if n >= 10:
 			frappe.publish_progress(float(i)*100/n, title = _('Cancelling Records'))
-	frappe.local.message_log = []
+	frappe.clear_messages()
 	frappe.msgprint(_('{0} record(s) cancelled').format(n), title=_('Success'), indicator='green')
 
-def get_list(items):
-	if isinstance(items, string_types):
-		items = loads(items)
-	return items

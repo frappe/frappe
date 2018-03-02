@@ -122,7 +122,7 @@ frappe.ui.form.Layout = Class.extend({
 	change_df: function (fieldname, df, render) {
 		df.fieldname = fieldname; // change of fieldname is avoided
 		if (this.fields_dict[fieldname] && this.fields_dict[fieldname].df) {
-			var fieldobj = this.init_field(df, render);
+			const fieldobj = this.init_field(df, render);
 			this.fields_dict[fieldname].$wrapper.remove();
 			this.fields_list.splice(this.fields_dict[fieldname], 1, fieldobj);
 			this.fields_dict[fieldname] = fieldobj;
