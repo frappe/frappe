@@ -612,7 +612,7 @@ forwarded@~0.1.2:
 
 frappe-datatable@frappe/datatable:
   version "0.0.2"
-  resolved "https://codeload.github.com/frappe/datatable/tar.gz/3c4198fc8354a018c98e37287b946da692a9265d"
+  resolved "https://codeload.github.com/frappe/datatable/tar.gz/99701f2477b3fb8180ccafaf2c2746886b13ba53"
   dependencies:
     clusterize.js "^0.18.0"
     sortablejs "^1.7.0"
@@ -986,6 +986,10 @@ locate-path@^2.0.0:
     p-locate "^2.0.0"
     path-exists "^3.0.0"
 
+lodash@^4.17.5:
+  version "4.17.5"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.5.tgz#99a92d65c0272debe8c96b6057bc8fbfa3bed511"
+
 lru-cache@^4.0.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-4.1.1.tgz#622e32e82488b49279114a4f9ecf45e7cd6bba55"
@@ -1100,6 +1104,10 @@ mkdirp@^0.5.0:
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-0.5.1.tgz#30057438eac6cf7f8c4767f38648d6697d75c903"
   dependencies:
     minimist "0.0.8"
+
+moment@^2.20.1:
+  version "2.20.1"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.20.1.tgz#d6eb1a46cbcc14a2b2f9434112c1ff8907f313fd"
 
 ms@2.0.0:
   version "2.0.0"

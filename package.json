@@ -19,6 +19,7 @@
     "cookie": "^0.3.1",
     "express": "^4.16.2",
     "frappe-datatable": "frappe/datatable",
+    "moment": "^2.20.1",
     "redis": "^2.8.0",
     "showdown": "^1.8.6",
     "socket.io": "^2.0.4",

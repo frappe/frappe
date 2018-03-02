@@ -191,7 +191,7 @@ It’s designed for the CI Jenkins, but will work for anything else that underst
 		def test_event_list(self):
 			frappe.set_user("test1@example.com")
 			res = frappe.get_list("Event", filters=[["Event", "subject", "like", "_Test Event%"]], fields=["name", "subject"])
-			self.assertEquals(len(res), 2)
+			self.assertEqual(len(res), 2)
 			subjects = [r.subject for r in res]
 			self.assertTrue("_Test Event 1" in subjects)
 			self.assertTrue("_Test Event 3" in subjects)
