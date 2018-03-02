@@ -119,7 +119,7 @@ frappe.ui.form.Layout = Class.extend({
 		});
 	},
 
-	change_df: function (fieldname, df, render) {
+	change_df: (fieldname, df, render) => {
 		df.fieldname = fieldname; // change of fieldname is avoided
 		if (this.fields_dict[fieldname] && this.fields_dict[fieldname].df) {
 			const fieldobj = this.init_field(df, render);
@@ -139,7 +139,7 @@ frappe.ui.form.Layout = Class.extend({
 		!this.section && this.make_section();
 		!this.column && this.make_column();
 
-		const fieldobj = this.init_field(df, render)
+		const fieldobj = this.init_field(df, render);
 		this.fields_list.push(fieldobj);
 		this.fields_dict[df.fieldname] = fieldobj;
 		if(this.frm) {
@@ -150,7 +150,7 @@ frappe.ui.form.Layout = Class.extend({
 		this.section.fields_dict[df.fieldname] = fieldobj;
 	},
 
-	init_field: function(df, render = false) {
+	init_field: (df, render = false) => {
 		const fieldobj = frappe.ui.form.make_control({
 			df: df,
 			doctype: this.doctype,
@@ -160,7 +160,7 @@ frappe.ui.form.Layout = Class.extend({
 		});
 
 		fieldobj.layout = this;
-		return fieldobj
+		return fieldobj;
 	},
 
 	make_page: function(df) {

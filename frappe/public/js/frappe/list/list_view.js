@@ -849,7 +849,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const is_field_editable = (field_doc) => {
 			return field_doc.fieldname && frappe.model.is_value_type(field_doc)
 			&& field_doc.fieldtype !== 'Read Only' && !field_doc.hidden && !field_doc.read_only;
-		}
+		};
 		
 		const has_editable_fields = () => {
 			return frappe.meta.get_docfields(doctype).some(field_doc => is_field_editable(field_doc));
@@ -1038,8 +1038,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					const items = this.get_checked_items(true);
 					if (items.length > 0) {
 						frappe.confirm(__('Submit {0} documents?', [items.length]),
-							submit_items(this, items))
-					};
+							submit_items(this, items));
+					}
 				},
 				standard: true
 			}
@@ -1115,22 +1115,22 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		// Bulk cancel
 		if (frappe.model.can_cancel(doctype)) {
-			items.push(bulk_cancel())
+			items.push(bulk_cancel());
 		}
 
 		// Bulk submit
 		if (frappe.model.is_submittable(doctype)) {
-			items.push(bulk_submit())
+			items.push(bulk_submit());
 		}
 
 		// bulk delete
 		if (frappe.model.can_delete(doctype)) {
-			items.push(bulk_delete())
+			items.push(bulk_delete());
 		}
 
 		// bulk edit
 		if(has_editable_fields()){
-			items.push(bulk_edit())
+			items.push(bulk_edit());
 		}
 
 		return items;

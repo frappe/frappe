@@ -551,7 +551,7 @@ def get_site_info():
 
 def get_json(items):
 	"""
-	converts to an object if a string 
+	converts to an object if a string
 	representing a json object is passed.
 	"""
 	if isinstance(items, string_types):

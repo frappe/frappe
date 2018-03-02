@@ -38,7 +38,6 @@ def update_and_save(doctype, items, field, value):
 	for i, d in enumerate(items, 1):
 		doc = frappe.get_doc(doctype, d)
 		doc.set(field, value)
-
 		try:
 			doc.save()
 		except Exception as e:
@@ -55,7 +54,6 @@ def submit_items(doctype, items):
 	n = len(items)
 	for i, d in enumerate(items, 1):
 		doc = frappe.get_doc(doctype, d)
-		
 		try:
 			doc.submit()
 		except Exception as e:
@@ -73,7 +71,6 @@ def cancel_items(doctype, items):
 	n = len(items)
 	for i, d in enumerate(items, 1):
 		doc = frappe.get_doc(doctype, d)
-		
 		try:
 			doc.cancel()
 		except Exception as e:
