@@ -61,9 +61,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	load() {
-		this.toggle_freeze(true);
-		this.toggle_nothing_to_show(false);
+		if (frappe.get_route().length < 2) {
+			this.toggle_message(true, __('Nothing to show'));
+			return;
+		}
 		if (this.report_name !== frappe.get_route()[1]) {
+			this.toggle_message(true, __('Loading') + '...');
 			// different report
 			this.load_report();
 		} else {
@@ -90,7 +93,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	refresh_report() {
-		this.toggle_freeze(true);
+		this.toggle_message(true, __('Loading') + '...');
 
 		return frappe.run_serially([
 			() => this.setup_filters(),
@@ -218,14 +221,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		})).then(r => {
 			const data = r.message;
 
-			this.toggle_nothing_to_show(false);
-			this.toggle_freeze(false);
+			this.toggle_message(false);
 
 			if (data.result && data.result.length) {
 				this.render_chart(r.message);
 				this.render_report(r.message);
 			} else {
-				this.toggle_nothing_to_show(true);
+				this.toggle_message(true, __('Nothing to show'));
 			}
 		});
 	}
@@ -563,8 +565,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (this.$report) return;
 		this.$chart = $('<div class="chart-wrapper">').hide().appendTo(this.page.main);
 		this.$report = $('<div class="report-wrapper">').appendTo(this.page.main);
-		this.$freeze = $(this.message_div(__('Loading') + '...')).hide().appendTo(this.page.main);
-		this.$nothing_to_show = $(this.message_div(__('Nothing to show'))).hide().appendTo(this.page.main);
+		this.$message = $(this.message_div(__('Loading') + '...')).hide().appendTo(this.page.main);
 	}
 
 	message_div(message) {
@@ -573,14 +574,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		</div>`;
 	}
 
-	toggle_freeze(flag) {
-		this.$freeze.toggle(flag);
-		this.$report.toggle(!flag);
-		this.$chart.toggle(!flag);
-	}
-
-	toggle_nothing_to_show(flag) {
-		this.$nothing_to_show.toggle(flag);
+	toggle_message(flag, message) {
+		if (flag) {
+			this.$message.find('div').html(message);
+			this.$message.show();
+		} else {
+			this.$message.hide();
+		}
 		this.$report.toggle(!flag);
 		this.$chart.toggle(!flag);
 	}
