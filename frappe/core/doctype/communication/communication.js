@@ -183,6 +183,7 @@ frappe.ui.form.on("Communication", {
 				freeze_message: __("Calling.."),
 				callback: function(r) {
 					frappe.msgprint(__("Call Connected"))
+					console.log("Outbound calls communication",r);
 				}
 			})			
 		}
@@ -262,7 +263,7 @@ frappe.ui.form.on("Communication", {
 			}
 		}else if(frm.doc.communication_medium=="Phone"){
 			frappe.route_options = {
-				"mobile_no": frm.doc.from,
+				"mobile_no": frm.doc.phone_no,
 				"first_name": first_name,
 				"last_name": last_name,
 			}
