@@ -173,7 +173,7 @@ frappe.ui.form.on("Communication", {
 			new frappe.views.CommunicationComposer(args);
 		}else if(frm.doc.communication_medium=="Phone"){
 			frappe.call({
-				method: "frappe.integrations.doctype.exotel_settings.exotel_settings.handle_outgoing_calls",
+				method: "frappe.integrations.doctype.exotel_settings.exotel_settings.handle_outgoing_call",
 				args: {
 					"from": frm.doc.exophone,
 					"To":frm.doc.phone_no,

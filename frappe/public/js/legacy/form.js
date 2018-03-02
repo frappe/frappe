@@ -937,7 +937,6 @@ _f.Frm.prototype.set_footnote = function(txt) {
 
 _f.Frm.prototype.add_custom_button = function(label, fn, group) {
 	// temp! old parameter used to be icon
-	console.log("I",label)
 	if(group && group.indexOf("fa fa-")!==-1) group = null;
 	var btn = this.page.add_inner_button(label, fn, group);
 	this.custom_buttons[label] = btn;

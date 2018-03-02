@@ -11,8 +11,8 @@ class ExotelSettings(Document):
 
 @frappe.whitelist(allow_guest=True)
 def handle_incoming_call(*args, **kwargs):
-	 """ Handles incoming calls in telephony service. """
-	r = frappe.form_dict
+	""" Handles incoming calls in telephony service. """
+	r = frappe.request
 
 	try:
 		if args or kwargs:
@@ -22,15 +22,15 @@ def handle_incoming_call(*args, **kwargs):
 			comm.subject = "Incoming Call " + frappe.utils.get_datetime_str(frappe.utils.get_datetime())
 			comm.send_email = 0
 			comm.communication_medium = "Phone"
-			comm.phone_no = content.get("From")
+			comm.phone_no = content.get("CallFrom")
 			comm.comment_type = "Info"
 			comm.communication_type = "Communication"
 			comm.status = "Open"
 			comm.sent_or_received = "Received"
-			comm.content = "Incoming Call " + frappe.utils.get_datetime_str(frappe.utils.get_datetime()) + "<br>" + content + "<br> R=" + r
+			comm.content = "Incoming Call " + frappe.utils.get_datetime_str(frappe.utils.get_datetime()) + "<br>" + str(content) + "<br> R=" + str(r)
 			comm.communication_date = content.get("StartTime")
 			comm.sid = content.get("CallSid")
-			# identify and add exophone
+			comm.exophone = content.get("CallTo")
 
 			comm.save(ignore_permissions=True)
 			frappe.db.commit()
@@ -41,7 +41,7 @@ def handle_incoming_call(*args, **kwargs):
 
 @frappe.whitelist(allow_guest=True)
 def capture_call_details(*args, **kwargs):
-	 """ Captures post-call details in telephony service. """
+	""" Captures post-call details in telephony service. """
 
 	# requests.get('https://{0}:{1}@api.exotel.com/v1/Accounts/{0}/Calls/callsid'.format(credentials.exotel_sid,credentials.exotel_token), data=data)
 	try:
@@ -62,11 +62,11 @@ def capture_call_details(*args, **kwargs):
 def handle_outgoing_call(From, To, CallerId, StatusCallback=None):
 	"""Handles outgoing calls in telephony service.
 	
-	:param From: Number of exophone or call center member
+	:param From: Number of exophone or call center number
 	:param To: Number of customer
 	:param CallerId: Exophone number	
 	"""
-	r = frappe.form_dict
+	r = frappe.request
 	try:
 		credentials = frappe.get_doc("Exotel Settings")	
 		import requests
@@ -82,12 +82,13 @@ def handle_outgoing_call(From, To, CallerId, StatusCallback=None):
 		comm.subject = "Outgoing Call " + frappe.utils.get_datetime_str(frappe.utils.get_datetime())
 		comm.send_email = 0
 		comm.communication_medium = "Phone"
-		# comm.phone_no = content.get("From")
+		# confirm
+		comm.phone_no = content.get("exophone")
 		comm.comment_type = "Info"
 		comm.communication_type = "Communication"
 		comm.status = "Open"
 		comm.sent_or_received = "Sent"
-		comm.content = "Outgoing Call " + frappe.utils.get_datetime_str(frappe.utils.get_datetime()) + "<br>" + content + "<br> R=" + r
+		comm.content = "Outgoing Call " + frappe.utils.get_datetime_str(frappe.utils.get_datetime()) + "<br>" + str(content) + "<br> R=" + str(r)
 		comm.communication_date = content.get("StartTime")
 		comm.recording_url = content.get("RecordingUrl")
 		comm.sid = content.get("CallSid")
