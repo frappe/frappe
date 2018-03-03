@@ -280,8 +280,7 @@ frappe.ui.Filter = Class.extend({
 
 		this.flist.remove(this);
 		this.flist.push_new_filter(f[0], f[1], f[2], f[3]);
-		this.wrapper.remove();
-		this.flist.update_filters();
+		this.remove();
 	},
 
 	remove: function(dont_run) {
@@ -499,7 +498,7 @@ frappe.ui.Filter = Class.extend({
 		});
 
 		this.$btn_group.find(".toggle-filter").on("click", function() {
-			$(this).closest('.show_filters').find('.filter_area').show()
+			$(this).closest('.show_filters').find('.filter_area').show();
 			me.wrapper.toggle();
 		})
 		this.wrapper.toggle(false);
