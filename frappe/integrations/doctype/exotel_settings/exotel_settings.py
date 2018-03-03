@@ -59,7 +59,7 @@ def capture_call_details(*args, **kwargs):
 		frappe.log_error(message=e, title="Error in capturing call details")
 
 @frappe.whitelist()
-def handle_outgoing_call(From, To, CallerId, StatusCallback=None):
+def handle_outgoing_call(From, To, CallerId, StatusCallback=None,reference_doctype=None,reference_docname=None):
 	"""Handles outgoing calls in telephony service.
 	
 	:param From: Number of exophone or call center number
@@ -74,7 +74,8 @@ def handle_outgoing_call(From, To, CallerId, StatusCallback=None):
 		data = {
 			'From': From,
 			'To': To,
-			'CallerId': CallerId
+			'CallerId': CallerId,
+			'StatusCallback': StatusCallback
 		}
 		response = requests.post('https://{0}:{1}@api.exotel.com/v1/Accounts/{0}/Calls/connect'.format(credentials.exotel_sid,credentials.exotel_token), data=data)
 
@@ -83,15 +84,17 @@ def handle_outgoing_call(From, To, CallerId, StatusCallback=None):
 		comm.send_email = 0
 		comm.communication_medium = "Phone"
 		# confirm
-		comm.phone_no = content.get("exophone")
+		comm.phone_no = response.get("CallFrom")
 		comm.comment_type = "Info"
 		comm.communication_type = "Communication"
 		comm.status = "Open"
 		comm.sent_or_received = "Sent"
 		comm.content = "Outgoing Call " + frappe.utils.get_datetime_str(frappe.utils.get_datetime()) + "<br>" + str(content) + "<br> R=" + str(r)
-		comm.communication_date = content.get("StartTime")
-		comm.recording_url = content.get("RecordingUrl")
-		comm.sid = content.get("CallSid")
+		comm.communication_date = response.get("StartTime")
+		# comm.recording_url = content.get("RecordingUrl")
+		comm.sid = response.get("CallSid")
+		comm.reference_doctype = reference_doctype
+		comm.reference_docname = reference_docname
 
 		comm.save(ignore_permissions=True)
 		frappe.db.commit()
