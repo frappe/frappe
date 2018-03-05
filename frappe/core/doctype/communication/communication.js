@@ -175,17 +175,17 @@ frappe.ui.form.on("Communication", {
 			frappe.call({
 				method: "frappe.integrations.doctype.exotel_settings.exotel_settings.handle_outgoing_call",
 				args: {
-					"from": frm.doc.exophone,
+					"From": frm.doc.exophone,
 					"To": frm.doc.phone_no,
 					"CallerId": frm.doc.exophone,
-					"reference_doctype": frm.doc.reference_doctype,
-					"reference_name": frm.doc.reference_name					
+					"reference_doctype": frm.doc.reference_doctype || "",
+					"reference_name": frm.doc.reference_name || ""		
 				},
 				freeze: true,
 				freeze_message: __("Calling.."),
 				callback: function(r) {
 					frappe.msgprint(__("Call Connected"))
-					console.log("Outbound calls communication",r);
+					// console.log("Outbound calls communication",r);
 				}
 			})			
 		}
