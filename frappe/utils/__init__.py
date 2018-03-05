@@ -548,3 +548,11 @@ def get_site_info():
 
 	# dumps -> loads to prevent datatype conflicts
 	return json.loads(frappe.as_json(site_info))
+
+def parse_json(val):
+	"""
+	Parses json if string else return
+	"""
+	if isinstance(val, string_types):
+		return json.loads(val)
+	return val
