@@ -1,3 +1,5 @@
+import BulkOperations from "./bulk_operations";
+
 frappe.provide('frappe.views');
 
 frappe.views.ListView = class ListView extends frappe.views.BaseList {
@@ -790,6 +792,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				standard: true
 			});
 		}
+
 		if (frappe.model.can_set_user_permissions(doctype)) {
 			items.push({
 				label: __('User Permissions'),
@@ -799,6 +802,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				standard: true
 			});
 		}
+
 		if (frappe.user_roles.includes('System Manager')) {
 			items.push({
 				label: __('Role Permissions Manager'),
@@ -845,132 +849,36 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_actions_menu_items() {
 		const doctype = this.doctype;
 		const actions_menu_items = [];
+		const bulk_operations = new BulkOperations({ doctype: this.doctype });
 
 		const is_field_editable = (field_doc) => {
 			return field_doc.fieldname && frappe.model.is_value_type(field_doc)
-			&& field_doc.fieldtype !== 'Read Only' && !field_doc.hidden && !field_doc.read_only;
+				&& field_doc.fieldtype !== 'Read Only' && !field_doc.hidden && !field_doc.read_only;
 		};
-		
+
 		const has_editable_fields = () => {
 			return frappe.meta.get_docfields(doctype).some(field_doc => is_field_editable(field_doc));
+		};
+
+		const has_submit_permission = () => {
+			return frappe.perm.has_perm('Sales Order', 0, 'submit');
 		};
 
 		// utility
 		const bulk_assignment = () => {
 			return {
 				label: __('Assign To'),
-				action: () => {
-					const docnames = this.get_checked_items(true);
-					if (docnames.length > 0) {
-						const dialog = new frappe.ui.form.AssignToDialog({
-							obj: this,
-							method: 'frappe.desk.form.assign_to.add_multiple',
-							doctype: this.doctype,
-							docname: docnames,
-							bulk_assign: true,
-							re_assign: true,
-							callback: () => this.refresh(true)
-						});
-						dialog.clear();
-						dialog.show();
-					} else {
-						frappe.msgprint(__('Select records for assignment'));
-					}
-				},
+				action: () => bulk_operations.assign(this.get_checked_items(true), this.refresh),
 				standard: true
 			};
 		};
 
 		const bulk_printing = () => {
-			const print_settings = frappe.model.get_doc(':Print Settings', 'Print Settings');
-			const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
-			const is_submittable = frappe.model.is_submittable(this.doctype);
-			const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
-
 			return {
 				label: __('Print'),
-				action: () => {
-					const items = this.get_checked_items();
-
-					const valid_docs = items.filter(doc => {
-						return !is_submittable || doc.docstatus === 1 ||
-							(allow_print_for_cancelled && doc.docstatus == 2) ||
-							(allow_print_for_draft && doc.docstatus == 0) ||
-							frappe.user.has_role('Administrator');
-					}).map(doc => doc.name);
-
-					var invalid_docs = items.filter(doc => !valid_docs.includes(doc.name));
-
-					if (invalid_docs.length > 0) {
-						frappe.msgprint(__('You selected Draft or Cancelled documents'));
-						return;
-					}
-
-					if (valid_docs.length > 0) {
-						const dialog = new frappe.ui.Dialog({
-							title: __('Print Documents'),
-							fields: [{
-								'fieldtype': 'Check',
-								'label': __('With Letterhead'),
-								'fieldname': 'with_letterhead'
-							},
-							{
-								'fieldtype': 'Select',
-								'label': __('Print Format'),
-								'fieldname': 'print_sel',
-								options: frappe.meta.get_print_formats(this.doctype)
-							}]
-						});
-
-						dialog.set_primary_action(__('Print'), args => {
-							if (!args) return;
-							const default_print_format = frappe.get_meta(this.doctype).default_print_format;
-							const with_letterhead = args.with_letterhead ? 1 : 0;
-							const print_format = args.print_sel ? args.print_sel : default_print_format;
-							const json_string = JSON.stringify(valid_docs);
-
-							const w = window.open('/api/method/frappe.utils.print_format.download_multi_pdf?' +
-								'doctype=' + encodeURIComponent(this.doctype) +
-								'&name=' + encodeURIComponent(json_string) +
-								'&format=' + encodeURIComponent(print_format) +
-								'&no_letterhead=' + (with_letterhead ? '0' : '1'));
-							if (!w) {
-								frappe.msgprint(__('Please enable pop-ups'));
-								return;
-							}
-						});
-
-						dialog.show();
-					} else {
-						frappe.msgprint(__('Select atleast 1 record for printing'));
-					}
-				},
+				action: () => bulk_operations.print(this.get_checked_items()),
 				standard: true
 			};
-		};
-
-		const delete_items = (list, items) => {
-			frappe
-				.call({
-					method: 'frappe.desk.reportview.delete_items',
-					freeze: true,
-					args: {
-						items: items,
-						doctype: list.doctype
-					}
-				})
-				.then((r) => {
-					let failed = r.message;
-					if (!failed) failed = [];
-
-					if (failed.length && !r._server_messages) {
-						frappe.throw(__('Cannot delete {0}', [failed.map(f => f.bold()).join(', ')]));
-					}
-					if (failed.length < items.length) {
-						frappe.utils.play_sound('delete');
-						list.refresh(true);
-					}
-				});
 		};
 
 		const bulk_delete = () => {
@@ -978,114 +886,39 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				label: __('Delete'),
 				action: () => {
 					const docnames = this.get_checked_items(true);
-					if (docnames.length > 0) {
-						frappe.confirm(__('Delete {0} items permanently?', [docnames.length]),
-							delete_items(this, docnames));
-					} else {
-						frappe.msgprint(__('Select atleast 1 record to delete'));
-					}
+					frappe.confirm(__('Delete {0} items permanently?', [docnames.length]),
+						() => bulk_operations.delete(docnames, this.refresh));
 				},
 				standard: true,
 			};
-		};
-
-		const cancel_items = (list, items) => {
-			frappe
-				.call({
-					method: 'frappe.desk.doctype.bulk_update.bulk_update.cancel_items',
-					args: {
-						doctype: list.doctype,
-						items: items
-					},
-				})
-				.then(() => {
-					list.refresh();
-				});
 		};
 
 		const bulk_cancel = () => {
 			return {
 				label: __('Cancel'),
 				action: () => {
-					const items = this.get_checked_items(true);
-					if (items.length > 0) {
-						frappe.confirm(__('Cancel {0} documents?', [items.length]),
-							() => cancel_items(this, items)); 
+					const docnames = this.get_checked_items(true);
+					if (docnames.length > 0) {
+						frappe.confirm(__('Cancel {0} documents?', [docnames.length]),
+							() => bulk_operations.submit_or_cancel(docnames, 'cancel', this.refresh));
 					}
 				},
 				standard: true
 			};
-		};
-
-		const submit_items = (list, items) => {
-			frappe
-				.call({
-					method: 'frappe.desk.doctype.bulk_update.bulk_update.submit_items',
-					args: {
-						doctype: doctype,
-						items: items
-					},
-				})
-				.then(() => {
-					this.refresh();
-				});
 		};
 
 		const bulk_submit = () => {
 			return {
 				label: __('Submit'),
 				action: () => {
-					const items = this.get_checked_items(true);
-					if (items.length > 0) {
-						frappe.confirm(__('Submit {0} documents?', [items.length]),
-							() => submit_items(this, items));
+					const docnames = this.get_checked_items(true);
+					if (docnames.length > 0) {
+						frappe.confirm(__('Submit {0} documents?', [docnames.length]),
+							() => bulk_operations.submit_or_cancel(docnames, 'submit', this.refresh));
 					}
 				},
 				standard: true
 			};
-		};
-
-		const show_bulk_edit_dialog = (list, field_mappings) => {
-			let field_options = Object.keys(field_mappings).sort();
-			const dialog = new frappe.ui.Dialog({
-				title: __("Edit"),
-				fields: [{
-					"fieldtype": "Select", "options": field_options,
-					"label": __("Field"), "fieldname": "field", "reqd": 1,
-					"onchange": () => {
-						const new_df = Object.assign({},
-							field_mappings[dialog.get_value("field")]);
-						new_df.label = __("Value");
-						new_df.reqd = 1;
-						delete new_df.depends_on;
-						dialog.change_df('value', new_df);
-					}
-				}, {
-					"fieldtype": "Data",
-					"label": __("Value"),
-					"fieldname": "value",
-					"reqd": 1
-				}],
-			});
-
-			dialog.set_primary_action('Update', () => {
-				frappe
-					.call({
-						method: 'frappe.desk.doctype.bulk_update.bulk_update.update_items',
-						args: {
-							doctype: doctype,
-							field: field_mappings[dialog.get_value("field")].fieldname,
-							value: dialog.get_value("value"),
-							items: list.get_checked_items(true)
-						}
-					})
-					.then(() => {
-						dialog.hide();
-					});
-			});
-	
-			dialog.refresh();
-			dialog.show();	
 		};
 
 		const bulk_edit = () => {
@@ -1099,8 +932,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							field_mappings[field_doc.label] = Object.assign({}, field_doc);
 						}
 					});
-					
-					show_bulk_edit_dialog(this, field_mappings);
+
+					const docnames = this.get_checked_items(true);
+
+					bulk_operations.edit(docnames, field_mappings, this.refresh);
 				},
 				standard: true
 			};
@@ -1119,7 +954,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		// Bulk submit
-		if (frappe.model.is_submittable(doctype)) {
+		if (frappe.model.is_submittable(doctype) && has_submit_permission()) {
 			actions_menu_items.push(bulk_submit());
 		}
 
@@ -1129,7 +964,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		// bulk edit
-		if(has_editable_fields()){
+		if (has_editable_fields()) {
 			actions_menu_items.push(bulk_edit());
 		}
 
@@ -1188,6 +1023,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 };
 
-$(document).on('save', function(event, doc) {
+$(document).on('save', (event, doc) => {
 	frappe.views.ListView.trigger_list_update(doc);
 });
