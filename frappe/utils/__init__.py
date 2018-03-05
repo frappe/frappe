@@ -151,7 +151,7 @@ def has_gravatar(email):
 		return ''
 
 def get_gravatar_url(email):
-	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(hash=hashlib.md5(email).hexdigest())
+	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(hash=hashlib.md5(email.encode('utf-8')).hexdigest())
 
 def get_gravatar(email):
 	gravatar_url = has_gravatar(email)
