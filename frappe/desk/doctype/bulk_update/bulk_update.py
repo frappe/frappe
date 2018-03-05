@@ -22,63 +22,47 @@ def update(doctype, field, value, condition='', limit=500):
 	if ';' in condition:
 		frappe.throw(_('; not allowed in condition'))
 
-	items = frappe.db.sql_list('''select name from `tab{0}`{1} limit 0, {2}'''.format(doctype,
-		condition, limit), debug=1)
-	update_and_save(doctype, items, field, value)
+	docnames = frappe.db.sql_list(
+		'''select name from `tab{0}`{1} limit 0, {2}'''.format(doctype, condition, limit)
+	)
+	data = {}
+	data[field] = value
+	return submit_cancel_or_update_docs(doctype, docnames, 'update', data)
 
 @frappe.whitelist()
-def update_items(doctype, field, value, items):
-	items = frappe.utils.get_json(items)
-	n = len(items)
-	if not n: return
-	update_and_save(doctype, items, field, value)
+def submit_cancel_or_update_docs(doctype, docnames, action='submit', data=None):
+	docnames = frappe.parse_json(docnames)
 
-def update_and_save(doctype, items, field, value):
-	n = len(items)
-	for i, d in enumerate(items, 1):
-		doc = frappe.get_doc(doctype, d)
-		doc.set(field, value)
-		try:
-			doc.save()
-		except Exception as e:
-			frappe.msgprint(_("Validation failed for {0}").format(frappe.bold(doc.name)))
-		#show progress if there are 10 or more items
-		if n >= 10:
-			frappe.publish_progress(float(i)*100/n, title = _('Updating Records'))
-	frappe.clear_messages()
-	frappe.msgprint(_('{0} record(s) updated').format(n), title=_('Success'), indicator='green')
+	if data:
+		data = frappe.parse_json(data)
 
-@frappe.whitelist()
-def submit_items(doctype, items):
-	items = frappe.utils.get_json(items)
-	n = len(items)
-	for i, d in enumerate(items, 1):
+	failed = []
+
+	for i, d in enumerate(docnames, 1):
 		doc = frappe.get_doc(doctype, d)
 		try:
-			doc.submit()
-		except Exception as e:
-			frappe.msgprint(_("Cannot submit {0}").format(frappe.bold(doc.name)))
-			raise e
-		#show progress if there are 10 or more items
-		if n >= 10:
-			frappe.publish_progress(float(i)*100/n, title = _('Submiting Records'))
-	frappe.clear_messages()
-	frappe.msgprint(_('{0} record(s) submitted').format(n), title=_('Success'), indicator='green')
+			if action == 'submit':
+				doc.submit()
+				message = _('Submiting {0}').format(doctype)
+			elif action == 'cancel':
+				doc.cancel()
+				message = _('Cancelling {0}').format(doctype)
+			elif action == 'update':
+				doc.update(data)
+				doc.save()
+				message = _('Updating {0}').format(doctype)
 
-@frappe.whitelist()
-def cancel_items(doctype, items):
-	items = frappe.utils.get_json(items)
-	n = len(items)
-	for i, d in enumerate(items, 1):
-		doc = frappe.get_doc(doctype, d)
-		try:
-			doc.cancel()
-		except Exception as e:
-			frappe.msgprint(_("Cannot cancel {0}").format(frappe.bold(doc.name)))
-			raise e
-		#show progress if there are 10 or more items
-		if n >= 10:
-			frappe.publish_progress(float(i)*100/n, title = _('Cancelling Records'))
-	frappe.clear_messages()
-	frappe.msgprint(_('{0} record(s) cancelled').format(n), title=_('Success'), indicator='green')
+			show_progress(docnames, message, i, d)
 
+		except Exception:
+			failed.append(d)
+	return failed
+
+def show_progress(docnames, message, i, description):
+	n = len(docnames)
+	if n >= 10:
+		frappe.publish_progress(
+			float(i) * 100 / n,
+			title = message,
+			description = description
+		)
