@@ -612,7 +612,7 @@ forwarded@~0.1.2:
 
 frappe-datatable@frappe/datatable:
   version "0.0.2"
-  resolved "https://codeload.github.com/frappe/datatable/tar.gz/99701f2477b3fb8180ccafaf2c2746886b13ba53"
+  resolved "https://codeload.github.com/frappe/datatable/tar.gz/470ab90fef56727e860c94869d251aafaaca743e"
   dependencies:
     clusterize.js "^0.18.0"
     sortablejs "^1.7.0"

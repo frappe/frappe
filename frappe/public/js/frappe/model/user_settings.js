@@ -1,6 +1,10 @@
 frappe.provide('frappe.model.user_settings');
 
 $.extend(frappe.model.user_settings, {
+	get: function(doctype) {
+		return frappe.call('frappe.model.utils.user_settings.get', { doctype })
+			.then(r => JSON.parse(r.message || '{}'));
+	},
 	save: function(doctype, key, value) {
 		var user_settings = frappe.model.user_settings[doctype] || {};
 
