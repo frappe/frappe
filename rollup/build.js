@@ -18,6 +18,7 @@ const {
 	get_rollup_options
 } = require('./config');
 
+show_production_message();
 ensure_js_css_dirs();
 build_libs();
 build_assets_for_all_apps();
@@ -94,4 +95,11 @@ function ensure_js_css_dirs() {
 	files.forEach(file => {
 		delete_file(path.resolve(css_path, file));
 	});
+}
+
+function show_production_message() {
+	const production = process.env.FRAPPE_ENV === 'production';
+	if (production) {
+		log(chalk.green('Production mode'));
+	}
 }
