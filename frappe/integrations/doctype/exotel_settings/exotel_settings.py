@@ -62,7 +62,7 @@ def capture_call_details(*args, **kwargs):
 		frappe.log_error(message=e, title="Error in capturing call details")
 
 @frappe.whitelist()
-def handle_outgoing_call(From, To, CallerId, StatusCallback=None,reference_doctype=None,reference_docname=None):
+def handle_outgoing_call(From, To, CallerId,reference_doctype,reference_docname):
 	"""Handles outgoing calls in telephony service.
 	
 	:param From: Number of exophone or call center number
@@ -77,7 +77,7 @@ def handle_outgoing_call(From, To, CallerId, StatusCallback=None,reference_docty
 			'From': From,
 			'To': To,
 			'CallerId': CallerId,
-			'StatusCallback': StatusCallback
+			'StatusCallback': 'http://dev.mntechnique.com/api/method/frappe.integrations.doctype.exotel_settings.exotel_settings.capture_call_details'
 		}
 		response = requests.post('https://{0}:{1}@api.exotel.com/v1/Accounts/{0}/Calls/connect'.format(credentials.exotel_sid,credentials.exotel_token), data=data)
 
