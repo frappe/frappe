@@ -17,7 +17,7 @@ def execute():
 		fields_in_social_login = [f.split("_")[1] for f in provider_fieldname_map[provider]] #userid
 
 		null_condition = ["`tabUser`.`" + field_on_user + "` is not null" for field_on_user in fields_on_user]
-		null_condition = " and ".join(null_condition)
+		null_condition = " or ".join(null_condition)
 
 		query = """
 			insert into `tabUser Social Login` (provider, {social_login_fields})
