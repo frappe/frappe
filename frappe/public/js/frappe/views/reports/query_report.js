@@ -61,8 +61,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	load() {
-		this.toggle_freeze(true);
+		if (frappe.get_route().length < 2) {
+			this.toggle_message(true, __('Nothing to show'));
+			return;
+		}
 		if (this.report_name !== frappe.get_route()[1]) {
+			this.toggle_message(true, __('Loading') + '...');
 			// different report
 			this.load_report();
 		} else {
@@ -76,7 +80,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.page_name = frappe.get_route_str();
 		this.report_name = this.route[1];
 		this.page_title = __(this.report_name);
-		this.user_settings = frappe.get_user_settings(this.report_name);
 		this.menu_items = this.get_menu_items();
 		this.datatable = null;
 
@@ -90,10 +93,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	refresh_report() {
+		this.toggle_message(true, __('Loading') + '...');
+
 		return frappe.run_serially([
 			() => this.setup_filters(),
 			() => this.set_route_filters(),
-			() => this.refresh()
+			() => this.get_user_settings(),
+			() => this.refresh(),
+			() => this.save_user_settings()
 		]);
 	}
 
@@ -121,7 +128,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}).then(r => {
 			return frappe.after_ajax(() => {
 				this.report_settings = frappe.query_reports[this.report_name];
-				this.html_format = r.message.html_format;
 				this.report_settings.html_format = r.message.html_format;
 			});
 		});
@@ -213,14 +219,23 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			},
 			callback: resolve
 		})).then(r => {
-			this.render_report(r.message);
+			const data = r.message;
+
+			this.toggle_message(false);
+
+			if (data.result && data.result.length) {
+				this.render_chart(r.message);
+				this.render_report(r.message);
+			} else {
+				this.toggle_message(true, __('Nothing to show'));
+			}
 		});
 	}
 
 	render_report(data) {
-		this.toggle_freeze(false);
 		this._data = data.result;
 		this._columns = data.columns;
+
 		if (this.datatable) {
 			this.datatable.refresh(data.result);
 			return;
@@ -229,8 +244,45 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			columns: this.prepare_columns(data.columns),
 			data: data.result,
 			enableInlineFilters: true,
-			// layout: 'fluid'
+			events: {
+				onRemoveColumn: () => this.save_user_settings(),
+				onSwitchColumn: () => this.save_user_settings()
+			}
 		});
+	}
+
+	render_chart(data) {
+		this.$chart.empty();
+		let opts = this.report_settings.get_chart_data
+			? this.report_settings.get_chart_data(data.columns, data.result)
+			: data.chart
+				? data.chart
+				: {};
+		if (!(opts.data && opts.data.labels && opts.data.labels.length > 0)) return;
+
+		Object.assign(opts, {
+			parent: this.$chart[0],
+			height: 200
+		});
+
+		this.$chart.show();
+		this.chart = new Chart(opts);
+	}
+
+	get_user_settings() {
+		return frappe.model.user_settings.get(this.report_name)
+			.then(user_settings => {
+				this.user_settings = user_settings;
+			});
+	}
+
+	save_user_settings(clear_settings = false) {
+		if (clear_settings) {
+			return frappe.model.user_settings.remove(this.report_name, 'column_order');
+		}
+		if (!this.datatable) return;
+		const column_order = this.datatable.datamanager.getColumns(true).map(col => col.id);
+		return frappe.model.user_settings.save(this.report_name, 'column_order', column_order);
 	}
 
 	prepare_columns(columns) {
@@ -261,9 +313,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return column;
 		});
 
-		return columns.map(column => {
+		columns = columns.map(column => {
 			return {
-				id: column.fieldname,
+				id: column.fieldname || column.label,
 				content: column.label,
 				width: column.width || null,
 				editable: false,
@@ -283,6 +335,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 			};
 		});
+
+		if (this.user_settings.column_order && this.user_settings.column_order.length > 0) {
+			return this.user_settings.column_order
+				.map(id => columns.find(col => col.id === id))
+				.filter(Boolean);
+		} else {
+			return columns;
+		}
 	}
 
 	get_data() {
@@ -329,7 +389,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	print_report(print_settings) {
 		frappe.render_grid({
-			template: this.html_format || null,
+			template: this.report_settings.html_format || null,
 			title: __(this.report_name),
 			print_settings: print_settings,
 			filters: this.get_filter_values(),
@@ -346,8 +406,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const columns = this.columns;
 
 		let html;
-		if (this.html_format) {
-			const content = frappe.render(this.html_format, {
+		if (this.report_settings.html_format) {
+			const content = frappe.render(this.report_settings.html_format, {
 				data: this.get_data_for_print(),
 				filters: this.get_filter_values(),
 				report: this,
@@ -368,7 +428,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				title: __(this.report_name),
 				data: this.get_data_for_print(),
 				columns: columns
-			})
+			});
 
 			//Render Report in HTML
 			html = frappe.render_template("print_template", {
@@ -484,6 +544,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				standard: true
 			},
 			{
+				label: __('Clear User Settings'),
+				action: () => this.save_user_settings(true).then(() => this.refresh_report()),
+				standard: true
+			},
+			{
 				label: __('Add to Desktop'),
 				action: () => frappe.add_to_desktop(this.report_name, null, this.report_name),
 				standard: true
@@ -498,16 +563,26 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	setup_report_wrapper() {
 		if (this.$report) return;
+		this.$chart = $('<div class="chart-wrapper">').hide().appendTo(this.page.main);
 		this.$report = $('<div class="report-wrapper">').appendTo(this.page.main);
-		this.$freeze =
-			$(`<div class="report-loading-area flex justify-center align-center text-muted" style="height: 50vh;">
-				<div>${__('Loading')}...</div>
-			</div>`).hide().appendTo(this.page.main);
+		this.$message = $(this.message_div(__('Loading') + '...')).hide().appendTo(this.page.main);
 	}
 
-	toggle_freeze(flag) {
-		this.$freeze.toggle(flag);
+	message_div(message) {
+		return `<div class="flex justify-center align-center text-muted" style="height: 50vh;">
+			<div>${message}</div>
+		</div>`;
+	}
+
+	toggle_message(flag, message) {
+		if (flag) {
+			this.$message.find('div').html(message);
+			this.$message.show();
+		} else {
+			this.$message.hide();
+		}
 		this.$report.toggle(!flag);
+		this.$chart.toggle(!flag);
 	}
 
 	get data() {

@@ -48,3 +48,7 @@ def save(doctype, user_settings):
 	user_settings = json.loads(user_settings or '{}')
 	update_user_settings(doctype, user_settings)
 	return user_settings
+
+@frappe.whitelist()
+def get(doctype):
+	return get_user_settings(doctype)

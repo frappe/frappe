@@ -241,11 +241,12 @@ frappe.show_progress = function(title, count, total=100, description) {
 		var dialog = new frappe.ui.Dialog({
 			title: title,
 		});
-		dialog.progress = $(`<div class="progress">
-			<div class="progress-bar"></div>
+		dialog.progress = $(`<div>
+			<div class="progress">
+				<div class="progress-bar"></div>
+			</div>
 			<p class="description text-muted small"></p>
-		</div>`)
-			.appendTo(dialog.body);
+		</div`).appendTo(dialog.body);
 		dialog.progress_bar = dialog.progress.css({"margin-top": "10px"})
 			.find(".progress-bar");
 		dialog.$wrapper.removeClass("fade");

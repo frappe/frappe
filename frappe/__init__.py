@@ -1469,3 +1469,7 @@ def get_version(doctype, name, limit = None, head = False, raise_err = True):
 @whitelist(allow_guest = True)
 def ping():
 	return "pong"
+
+def parse_json(val):
+	from frappe.utils import parse_json
+	return parse_json(val)
