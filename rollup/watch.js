@@ -48,6 +48,8 @@ function get_watch_options(app) {
 				.map(input_file => path.resolve(get_app_path(app), input_file));
 			const { inputOptions, outputOptions } = get_rollup_options(output_file, input_files);
 
+			if (output_file.endsWith('libs.min.js')) return;
+
 			return Object.assign({}, inputOptions, {
 				output: outputOptions
 			});

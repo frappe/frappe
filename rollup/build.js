@@ -40,6 +40,8 @@ function build_assets(app) {
 				.map(input_file => path.resolve(get_app_path(app), input_file));
 			const { inputOptions, outputOptions } = get_rollup_options(output_file, input_files);
 
+			if (output_file.endsWith('libs.min.js')) return Promise.resolve();
+
 			return build(inputOptions, outputOptions)
 				.then(() => {
 					log(`${chalk.green('✔')} Built ${output_file}`);
