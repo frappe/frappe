@@ -3,90 +3,33 @@ import frappe
 def execute():
 	frappe.reload_doc("core", "doctype", "user", force=True)
 	frappe.reload_doc("core", "doctype", "user_social_login", force=True)
-	users = frappe.get_all("User", filters=[["username", "not in", ["Guest","Administrator"]]])
-	for u in users:
-		user = frappe.get_doc("User", u.get("name"))
-		save = False
 
-		if user.get("fb_userid") and user.get("fb_username"):
-			user.append("social_logins", {
-				"provider": "facebook",
-				"userid": user.get("fb_userid"),
-				"username": user.get("fb_username")
-			})
-			save = True
+	provider_fieldname_map = {
+		"frappe": ["frappe_userid"],
+		"facebook": ["fb_userid", "fb_username"],
+		"github": ["github_userid", "github_username"],
+		"google": ["google_userid"],
+	}
 
-		if user.get("frappe_userid"):
-			user.append("social_logins", {
-				"provider": "frappe",
-				"userid": user.get("frappe_userid")
-			})
-			save = True
+	for provider in provider_fieldname_map:
+		user_fields = [f.split("_")[1] for f in provider_fieldname_map[provider]]
 
-		if user.get("github_userid") and user.get("github_username"):
-			user.append("social_logins", {
-				"provider": "github",
-				"userid": user.get("github_userid"),
-				"username": user.get("github_username"),
-			})
-			save = True
+		null_condition = ["`tabUser`.`" + user_field + "` is not null" for user_field in user_fields]
+		null_condition = " AND ".join(null_condition)
 
-		if user.get("google_userid"):
-			user.append("social_logins", {
-				"provider": "google",
-				"userid": user.get("google_userid"),
-			})
-			save = True
+		query = """
+			insert into `tabUser Social Login` (provider, {social_login_fields})
+			select ('{provider}', {user_fields})
+			from `tabUser`
+			where `tabUser`.`name` not in ('Guest', 'Administrator');
+			and {null_condition}
+		""".format(
+			user_fields = ", ".join(provider_fieldname_map[provider]),
+			provider=provider,
+			social_login_fields = ", ".join(user_fields),
+			null_condition = null_condition
+		)
 
-		if save:
-			user.save()
-
-	# Create Social Login Key(s) from Social Login Keys
-	frappe.reload_doc("integrations", "doctype", "social_login_key", force=True)
-
-	if not frappe.db.exists('DocType', 'Social Login Keys'):
-		return
-
-	social_login_keys = frappe.get_doc("Social Login Keys", "Social Login Keys")
-	if social_login_keys.get("facebook_client_id") or social_login_keys.get("facebook_client_secret"):
-		facebook_login_key = frappe.new_doc("Social Login Key")
-		facebook_login_key.get_social_login_provider("Facebook", initialize=True)
-		facebook_login_key.social_login_provider = "Facebook"
-		facebook_login_key.client_id = social_login_keys.get("facebook_client_id")
-		facebook_login_key.client_secret = social_login_keys.get("facebook_client_secret")
-		if not (facebook_login_key.client_secret and facebook_login_key.client_id):
-			facebook_login_key.enable_social_login = 0
-		facebook_login_key.save()
-
-	if social_login_keys.get("frappe_server_url"):
-		frappe_login_key = frappe.new_doc("Social Login Key")
-		frappe_login_key.get_social_login_provider("Frappe", initialize=True)
-		frappe_login_key.social_login_provider = "Frappe"
-		frappe_login_key.base_url = social_login_keys.get("frappe_server_url")
-		frappe_login_key.client_id = social_login_keys.get("frappe_client_id")
-		frappe_login_key.client_secret = social_login_keys.get("frappe_client_secret")
-		if not (frappe_login_key.client_secret and frappe_login_key.client_id and frappe_login_key.base_url):
-			frappe_login_key.enable_social_login = 0
-		frappe_login_key.save()
-
-	if social_login_keys.get("github_client_id") or social_login_keys.get("github_client_secret"):
-		github_login_key = frappe.new_doc("Social Login Key")
-		github_login_key.get_social_login_provider("GitHub", initialize=True)
-		github_login_key.social_login_provider = "GitHub"
-		github_login_key.client_id = social_login_keys.get("github_client_id")
-		github_login_key.client_secret = social_login_keys.get("github_client_secret")
-		if not (github_login_key.client_secret and github_login_key.client_id):
-			github_login_key.enable_social_login = 0
-		github_login_key.save()
-
-	if social_login_keys.get("google_client_id") or social_login_keys.get("google_client_secret"):
-		google_login_key = frappe.new_doc("Social Login Key")
-		google_login_key.get_social_login_provider("Google", initialize=True)
-		google_login_key.social_login_provider = "Google"
-		google_login_key.client_id = social_login_keys.get("google_client_id")
-		google_login_key.client_secret = social_login_keys.get("google_client_secret")
-		if not (google_login_key.client_secret and google_login_key.client_id):
-			google_login_key.enable_social_login = 0
-		google_login_key.save()
+		frappe.db.sql(query)
 
 	frappe.delete_doc("DocType", "Social Login Keys")
