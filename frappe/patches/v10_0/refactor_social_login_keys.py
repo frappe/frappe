@@ -1,3 +1,4 @@
+
 import frappe
 
 def execute():
@@ -12,21 +13,22 @@ def execute():
 	}
 
 	for provider in provider_fieldname_map:
-		user_fields = [f.split("_")[1] for f in provider_fieldname_map[provider]]
+		fields_on_user = [f for f in provider_fieldname_map[provider]] #fb_userid
+		fields_in_social_login = [f.split("_")[1] for f in provider_fieldname_map[provider]] #userid
 
-		null_condition = ["`tabUser`.`" + user_field + "` is not null" for user_field in user_fields]
-		null_condition = " AND ".join(null_condition)
+		null_condition = ["`tabUser`.`" + field_on_user + "` is not null" for field_on_user in fields_on_user]
+		null_condition = " and ".join(null_condition)
 
 		query = """
 			insert into `tabUser Social Login` (provider, {social_login_fields})
 			select '{provider}' as provider, {user_fields}
 			from `tabUser`
-			where `tabUser`.`name` not in ('Guest', 'Administrator');
-			and {null_condition}
+			where `tabUser`.`name` not in ('Guest', 'Administrator')
+			and {null_condition};
 		""".format(
-			user_fields = ", ".join(provider_fieldname_map[provider]),
+			user_fields = ", ".join(fields_on_user),
 			provider=provider,
-			social_login_fields = ", ".join(user_fields),
+			social_login_fields = ", ".join(fields_in_social_login),
 			null_condition = null_condition
 		)
 
