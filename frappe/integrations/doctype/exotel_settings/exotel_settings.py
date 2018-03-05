@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
+import requests
 
 class ExotelSettings(Document):
 	pass
@@ -27,7 +28,7 @@ def handle_incoming_call(*args, **kwargs):
 			comm.communication_type = "Communication"
 			comm.status = "Open"
 			comm.sent_or_received = "Received"
-			comm.content = "Incoming Call " + frappe.utils.get_datetime_str(frappe.utils.get_datetime()) + "<br>" + str(content) + "<br> R=" + str(r)
+			comm.content = "Incoming Call " + frappe.utils.get_datetime_str(frappe.utils.get_datetime()) + "<br>" + str(content)
 			comm.communication_date = content.get("StartTime")
 			comm.sid = content.get("CallSid")
 			comm.exophone = content.get("CallTo")
@@ -43,10 +44,12 @@ def handle_incoming_call(*args, **kwargs):
 def capture_call_details(*args, **kwargs):
 	""" Captures post-call details in telephony service. """
 
-	# requests.get('https://{0}:{1}@api.exotel.com/v1/Accounts/{0}/Calls/callsid'.format(credentials.exotel_sid,credentials.exotel_token), data=data)
 	try:
 		if args or kwargs:
+			credentials = frappe.get_doc("Exotel Settings")
+			
 			content = args or kwargs
+			call_details = requests.get('https://{0}:{1}@api.exotel.com/v1/Accounts/{0}/Calls/{2}'.format(credentials.exotel_sid,credentials.exotel_token,content.get("CallSid")))
 
 			call = frappe.get_all("Communication", filters={"sid":content.get("CallSid")}, fields=["name"])
 			comm = frappe.get_doc("Communication",call[0].name)
@@ -69,7 +72,6 @@ def handle_outgoing_call(From, To, CallerId, StatusCallback=None,reference_docty
 	r = frappe.request
 	try:
 		credentials = frappe.get_doc("Exotel Settings")	
-		import requests
 
 		data = {
 			'From': From,
