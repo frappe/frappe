@@ -443,7 +443,8 @@ def get_fetch_fields(doctype, linked_to, ignore_doctypes=None):
 	for d in product_list:
 		linked_doctype_info = frappe._dict()
 		if d[0]['parent'] == d[1]['parent'] \
-				and (not ignore_doctypes or d[0]['parent'] not in ignore_doctypes):
+				and (not ignore_doctypes or d[0]['parent'] not in ignore_doctypes) \
+				and not d[1]['issingle']:
 			linked_doctype_info['doctype'] = d[0]['parent']
 			linked_doctype_info['master_fieldname'] = d[0]['fieldname']
 			linked_doctype_info['linked_to_fieldname'] = d[1]['fieldname']
