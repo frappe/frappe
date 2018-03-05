@@ -1,7 +1,7 @@
 const path = require('path');
 const chalk = require('chalk');
 const rollup = require('rollup');
-const log = console.log;
+const log = console.log; // eslint-disable-line
 const {
 	apps_list,
 	get_app_path,

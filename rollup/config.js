@@ -1,6 +1,6 @@
 const path = require('path');
 const chalk = require('chalk');
-const log = console.log;
+const log = console.log; // eslint-disable-line
 
 const multi_entry = require('rollup-plugin-multi-entry');
 const commonjs = require('rollup-plugin-commonjs');
