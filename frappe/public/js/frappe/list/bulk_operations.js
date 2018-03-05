@@ -145,7 +145,7 @@ export default class BulkOperations {
 						new_df.label = __('Value');
 						new_df.reqd = 1;
 						delete new_df.depends_on;
-						dialog.change_df('value', new_df);
+						dialog.replace_field('value', new_df);
 					}
 				},
 				{
