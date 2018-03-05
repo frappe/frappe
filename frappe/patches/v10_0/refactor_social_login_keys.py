@@ -15,14 +15,14 @@ def execute():
 		user_fields = [f.split("_")[1] for f in provider_fieldname_map[provider]]
 
 		null_condition = ["`tabUser`.`" + user_field + "` is not null" for user_field in user_fields]
-		null_condition = " and ".join(null_condition)
+		null_condition = " AND ".join(null_condition)
 
 		query = """
 			insert into `tabUser Social Login` (provider, {social_login_fields})
-			select ('{provider}', {user_fields})
+			select '{provider}' as provider, {user_fields}
 			from `tabUser`
-			where `tabUser`.`name` not in ('Guest', 'Administrator')
-			and ({null_condition});
+			where `tabUser`.`name` not in ('Guest', 'Administrator');
+			and {null_condition}
 		""".format(
 			user_fields = ", ".join(provider_fieldname_map[provider]),
 			provider=provider,
