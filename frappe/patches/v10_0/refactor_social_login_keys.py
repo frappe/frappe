@@ -54,7 +54,7 @@ def execute():
 			target_cols = "`" + "`, `".join(target_cols) + "`",
 			null_check_condition = null_check_condition
 		)
-		print (query)
+
 		frappe.db.sql(query)
 		idx += 1
 
