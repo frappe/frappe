@@ -8,7 +8,7 @@ def execute():
 	frappe.reload_doc("core", "doctype", "user", force=True)
 	frappe.reload_doc("core", "doctype", "user_social_login", force=True)
 
-	standard_cols = ["name", "creation", "modified", "owner", "modified_by", "parent", "parenttype", "parentfield", "idx"]
+	standard_cols = ["name", "creation", "modified", "owner", "modified_by", "parent", "parenttype", "parentfield", "idx", "provider"]
 
 	provider_source_cols_map = {
 		"frappe": ["frappe_userid"],
