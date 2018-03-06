@@ -105,7 +105,8 @@ def make_asset_dirs(make_copy=False, restore=False):
 							shutil.rmtree(target)
 					os.symlink(source, target)
 			else:
-				warnings.warn('Source {source} does not exist.'.format(source = source))
+				# warnings.warn('Source {source} does not exist.'.format(source = source))
+				pass
 
 def build(no_compress=False, verbose=False):
 	assets_path = os.path.join(frappe.local.sites_path, "assets")

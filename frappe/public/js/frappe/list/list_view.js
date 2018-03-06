@@ -856,12 +856,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				&& field_doc.fieldtype !== 'Read Only' && !field_doc.hidden && !field_doc.read_only;
 		};
 
-		const has_editable_fields = () => {
+		const has_editable_fields = (doctype) => {
 			return frappe.meta.get_docfields(doctype).some(field_doc => is_field_editable(field_doc));
 		};
 
-		const has_submit_permission = () => {
-			return frappe.perm.has_perm('Sales Order', 0, 'submit');
+		const has_submit_permission = (doctype) => {
+			return frappe.perm.has_perm(doctype, 0, 'submit');
 		};
 
 		// utility
@@ -954,7 +954,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		// Bulk submit
-		if (frappe.model.is_submittable(doctype) && has_submit_permission()) {
+		if (frappe.model.is_submittable(doctype) && has_submit_permission(doctype)) {
 			actions_menu_items.push(bulk_submit());
 		}
 
@@ -964,7 +964,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		// bulk edit
-		if (has_editable_fields()) {
+		if (has_editable_fields(doctype)) {
 			actions_menu_items.push(bulk_edit());
 		}
 
