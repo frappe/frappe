@@ -940,6 +940,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				standard: true
 			};
 		};
+
+		// bulk edit
+		if (has_editable_fields(doctype)) {
+			actions_menu_items.push(bulk_edit());
+		}
+
 		// bulk assignment
 		actions_menu_items.push(bulk_assignment());
 
@@ -948,24 +954,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			actions_menu_items.push(bulk_printing());
 		}
 
-		// Bulk cancel
-		if (frappe.model.can_cancel(doctype)) {
-			actions_menu_items.push(bulk_cancel());
-		}
-
 		// Bulk submit
 		if (frappe.model.is_submittable(doctype) && has_submit_permission(doctype)) {
 			actions_menu_items.push(bulk_submit());
 		}
 
+		// Bulk cancel
+		if (frappe.model.can_cancel(doctype)) {
+			actions_menu_items.push(bulk_cancel());
+		}
+
 		// bulk delete
 		if (frappe.model.can_delete(doctype)) {
 			actions_menu_items.push(bulk_delete());
-		}
-
-		// bulk edit
-		if (has_editable_fields(doctype)) {
-			actions_menu_items.push(bulk_edit());
 		}
 
 		return actions_menu_items;
