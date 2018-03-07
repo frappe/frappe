@@ -235,15 +235,29 @@ frappe.ui.Page = Class.extend({
 		this.icon_group.addClass("hide");
 	},
 
-	//--- Actions (workflow) --//
+	//--- Actions Menu--//
+	
+	show_actions_menu: function() {
+		this.actions_btn_group.removeClass("hide");
+	},
 
+	hide_actions_menu: function() {
+		this.actions_btn_group.addClass("hide");
+	},
+
+	
 	add_action_item: function(label, click, standard) {
+		return this.add_dropdown_item(label, click, standard, this.actions);
+	},
+
+	add_actions_menu_item: function(label, click, standard) {
 		return this.add_dropdown_item(label, click, standard, this.actions);
 	},
 
 	clear_actions_menu: function() {
 		this.clear_btn_group(this.actions);
 	},
+
 
 	//-- Generic --//
 

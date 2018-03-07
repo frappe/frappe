@@ -14,7 +14,7 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '10.1.1'
+__version__ = '10.1.2'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -1469,3 +1469,7 @@ def get_version(doctype, name, limit = None, head = False, raise_err = True):
 @whitelist(allow_guest = True)
 def ping():
 	return "pong"
+
+def parse_json(val):
+	from frappe.utils import parse_json
+	return parse_json(val)

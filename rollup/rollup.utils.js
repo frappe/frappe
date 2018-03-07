@@ -42,6 +42,31 @@ const get_public_path = app => public_paths[app];
 
 const get_build_json_path = app => path.resolve(get_public_path(app), 'build.json');
 
+function get_build_json(app) {
+	try {
+		return require(get_build_json_path(app));
+	} catch (e) {
+		// build.json does not exist
+		return null;
+	}
+}
+
+function delete_file(path) {
+	if (fs.existsSync(path)) {
+		fs.unlinkSync(path);
+	}
+}
+
+function run_serially(tasks) {
+	let result = Promise.resolve();
+	tasks.forEach(task => {
+		if(task) {
+			result = result.then ? result.then(task) : Promise.resolve();
+		}
+	});
+	return result;
+}
+
 const get_app_path = app => app_paths[app];
 
 module.exports = {
@@ -49,8 +74,11 @@ module.exports = {
 	bundle_map,
 	get_public_path,
 	get_build_json_path,
+	get_build_json,
 	get_app_path,
 	apps_list,
 	assets_path,
-	bench_path
+	bench_path,
+	delete_file,
+	run_serially
 };

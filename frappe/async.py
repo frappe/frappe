@@ -47,8 +47,8 @@ def remove_old_task_logs():
 def is_file_old(file_path):
 	return ((time.time() - os.stat(file_path).st_mtime) > TASK_LOG_MAX_AGE)
 
-def publish_progress(percent, title=None, doctype=None, docname=None):
-	publish_realtime('progress', {'percent': percent, 'title': title},
+def publish_progress(percent, title=None, doctype=None, docname=None, description=None):
+	publish_realtime('progress', {'percent': percent, 'title': title, 'description': description},
 		user=frappe.session.user, doctype=doctype, docname=docname)
 
 def publish_realtime(event=None, message=None, room=None,
@@ -200,6 +200,6 @@ def get_task_progress_room(task_id):
 # frappe.chat
 def get_chat_room(room):
 	room = ''.join([frappe.local.site, ":room:", room])
-	
+
 	return room
 # end frappe.chat room
