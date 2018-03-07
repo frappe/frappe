@@ -9,7 +9,13 @@ from frappe.model.document import Document
 import requests
 
 class ExotelSettings(Document):
-	pass
+	def validate(self):
+		def validate_credentials(self):
+			response = requests.get('https://api.exotel.com/v1/Accounts/{sid}'.format(sid = self.exotel_sid),
+				auth=(self.exotel_sid, self.exotel_token))
+			if response.status_code not 200:
+				frappe.throw(_("Invalid credentials. Please try again with valid credentials"))
+
 
 @frappe.whitelist(allow_guest=True)
 def handle_incoming_call(*args, **kwargs):
@@ -48,9 +54,13 @@ def capture_call_details(*args, **kwargs):
 	try:
 		if args or kwargs:
 			credentials = frappe.get_doc("Exotel Settings")
-			
 			content = args or kwargs
-			response = requests.get('https://{0}:{1}@api.exotel.com/v1/Accounts/{0}/Calls/{2}'.format(credentials.exotel_sid,credentials.exotel_token,content.get("CallSid")))
+
+			response = requests.get('https://api.exotel.com/v1/Accounts/{sid}/Calls/{callsid}.json'.format(sid = credentials.exotel_sid,callsid = content.get("CallSid")),\
+				auth=(credentials.exotel_sid,credentials.exotel_token))
+
+			content = response.json()["Call"]
+
 			if response.status_code == 200:
 				call = frappe.get_all("Communication", filters={"sid":content.get("CallSid")}, fields=["name"])
 				comm = frappe.get_doc("Communication",call[0].name)
@@ -77,15 +87,18 @@ def handle_outgoing_call(To, CallerId,reference_doctype,reference_name):
 	r = frappe.request
 	try:
 		credentials = frappe.get_doc("Exotel Settings")	
+
+		response = requests.post('https://api.exotel.in/v1/Accounts/{sid}/Calls/connect.json'.format(sid=credentials.exotel_sid),
+        auth = (credentials.exotel_sid,credentials.exotel_token),
 		data = {
 			'From': frappe.get_doc("User",frappe.session.user).phone or frappe.get_doc("User",frappe.session.user).mobile_no,
 			'To': To,
 			'CallerId': CallerId,
 			'StatusCallback': 'http://dev.mntechnique.com/api/method/frappe.integrations.doctype.exotel_settings.exotel_settings.capture_call_details'
-		}
-		response = requests.post('https://{0}:{1}@api.exotel.com/v1/Accounts/{0}/Calls/connect.json'.format(credentials.exotel_sid,credentials.exotel_token), data=data)
+		})
+
 		if response.status_code == 200:
-			content = response.json()
+			content = response.json()["Call"]
 
 			comm = frappe.new_doc("Communication")
 			comm.subject = "Outgoing Call " + frappe.utils.get_datetime_str(frappe.utils.get_datetime())
