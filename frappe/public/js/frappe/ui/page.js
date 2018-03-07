@@ -268,10 +268,11 @@ frappe.ui.Page = Class.extend({
 	* @param {function} click - function to be called when `label` is clicked
 	* @param {Boolean} standard
 	* @param {object} parent - DOM object representing the parent of the drop down item lists
+	* @param {Boolean} show_parent - Whether to show the dropdown button if dropdown item is added
 	*/
-	add_dropdown_item: function(label, click, standard, parent, unhide_parent=true) {
+	add_dropdown_item: function(label, click, standard, parent, show_parent=true) {
 		let item_selector = 'li > a.grey-link';
-		if(unhide_parent) {
+		if(show_parent) {
 			parent.parent().removeClass("hide");
 		}
 
