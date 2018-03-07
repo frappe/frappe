@@ -626,9 +626,10 @@ forwarded@~0.1.2:
 
 frappe-datatable@frappe/datatable:
   version "0.0.2"
-  resolved "https://codeload.github.com/frappe/datatable/tar.gz/470ab90fef56727e860c94869d251aafaaca743e"
+  resolved "https://codeload.github.com/frappe/datatable/tar.gz/b3f281b2146085226ec6741ce30cb9c6cbd6b00c"
   dependencies:
     clusterize.js "^0.18.0"
+    lodash "^4.17.5"
     sortablejs "^1.7.0"
 
 frappe-gantt@^0.1.0:
@@ -1003,6 +1004,10 @@ locate-path@^2.0.0:
   dependencies:
     p-locate "^2.0.0"
     path-exists "^3.0.0"
+
+lodash@^4.17.5:
+  version "4.17.5"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.5.tgz#99a92d65c0272debe8c96b6057bc8fbfa3bed511"
 
 lru-cache@^4.0.1:
   version "4.1.1"
