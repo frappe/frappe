@@ -145,7 +145,31 @@ frappe.views.BaseList = class BaseList {
 
 	setup_page_head() {
 		this.page.set_title(this.page_title);
+		this.set_menu_items();
 		this.set_breadcrumbs();
+	}
+
+	set_menu_items() {
+		const $secondary_action = this.page.set_secondary_action(
+			this.secondary_action.label,
+			this.secondary_action.action,
+			this.secondary_action.icon
+		);
+		if (!this.secondary_action.icon) {
+			$secondary_action.addClass('hidden-xs');
+		} else {
+			$secondary_action.addClass('visible-xs');
+		}
+
+		this.menu_items.map(item => {
+			if (item.condition && item.condition() === false) {
+				return;
+			}
+			const $item = this.page.add_menu_item(item.label, item.action, item.standard);
+			if (item.class) {
+				$item && $item.addClass(item.class);
+			}
+		});
 	}
 
 	set_breadcrumbs() {

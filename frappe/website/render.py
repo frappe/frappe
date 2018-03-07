@@ -98,7 +98,7 @@ def get_static_file_response():
 		raise NotFound
 
 	response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)
-	response.mimetype = mimetypes.guess_type(frappe.flags.file_path)[0] or b'application/octet-stream'
+	response.mimetype = mimetypes.guess_type(frappe.flags.file_path)[0] or 'application/octet-stream'
 	return response
 
 def build_response(path, data, http_status_code, headers=None):
