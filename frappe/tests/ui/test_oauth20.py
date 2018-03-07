@@ -80,6 +80,14 @@ class TestOAuth20(unittest.TestCase):
 		self.assertTrue(bearer_token.get("token_type") == "Bearer")
 		self.assertTrue(check_valid_openid_response(bearer_token.get("access_token")))
 
+		# Revoke Token
+		revoke_token_response = requests.post(frappe.get_site_config().host_name + "/api/method/frappe.integrations.oauth2.revoke_token",
+			data="token=" + bearer_token.get("access_token"))
+		self.assertTrue(revoke_token_response.status_code == 200)
+
+		# Check revoked token
+		self.assertFalse(check_valid_openid_response(bearer_token.get("access_token")))
+
 	def test_login_using_implicit_token(self):
 
 		oauth_client = frappe.get_doc("OAuth Client", self.client_id)
