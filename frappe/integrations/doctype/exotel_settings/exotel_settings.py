@@ -64,10 +64,10 @@ def capture_call_details(*args, **kwargs):
 		frappe.log_error(message=e, title="Error in capturing call details")
 
 @frappe.whitelist()
-def handle_outgoing_call(From, To, CallerId,reference_doctype,reference_name):
+def handle_outgoing_call(To, CallerId,reference_doctype,reference_name):
 	"""Handles outgoing calls in telephony service.
 	
-	:param From: Number of exophone or call center number
+	:param From: Number of user
 	:param To: Number of customer
 	:param CallerId: Exophone number
 	:param reference_doctype: links reference doctype,if any
@@ -78,37 +78,34 @@ def handle_outgoing_call(From, To, CallerId,reference_doctype,reference_name):
 	try:
 		credentials = frappe.get_doc("Exotel Settings")	
 		data = {
-			'From': From,
+			'From': frappe.get_doc("User",frappe.session.user).phone or frappe.get_doc("User",frappe.session.user).mobile_no,
 			'To': To,
 			'CallerId': CallerId,
 			'StatusCallback': 'http://dev.mntechnique.com/api/method/frappe.integrations.doctype.exotel_settings.exotel_settings.capture_call_details'
 		}
-		response = requests.post('https://{0}:{1}@api.exotel.com/v1/Accounts/{0}/Calls/connect'.format(credentials.exotel_sid,credentials.exotel_token), data=data)
+		response = requests.post('https://{0}:{1}@api.exotel.com/v1/Accounts/{0}/Calls/connect.json'.format(credentials.exotel_sid,credentials.exotel_token), data=data)
 		if response.status_code == 200:
+			content = response.json()
+
 			comm = frappe.new_doc("Communication")
 			comm.subject = "Outgoing Call " + frappe.utils.get_datetime_str(frappe.utils.get_datetime())
 			comm.send_email = 0
 			comm.communication_medium = "Phone"
-			# confirm
-			comm.phone_no = response.get("CallFrom")
+			comm.phone_no = content.get("To")
 			comm.comment_type = "Info"
 			comm.communication_type = "Communication"
 			comm.status = "Open"
 			comm.sent_or_received = "Sent"
-			comm.content = "Outgoing Call " + frappe.utils.get_datetime_str(frappe.utils.get_datetime()) + "<br>" + str(content) + "<br> R=" + str(r)
-			comm.communication_date = response.get("StartTime")
-			# comm.recording_url = content.get("RecordingUrl")
-			comm.sid = response.get("CallSid")
+			comm.content = "Outgoing Call " + frappe.utils.get_datetime_str(frappe.utils.get_datetime()) + "<br>" + str(content)
+			comm.communication_date = content.get("StartTime")
+			comm.recording_url = content.get("RecordingUrl")
+			comm.sid = content.get("Sid")
 			comm.reference_doctype = reference_doctype
 			comm.reference_name = reference_name
 
 			comm.save(ignore_permissions=True)
 			frappe.db.commit()
-			# test
-			t = frappe.new_doc("Note")
-			t.content =comm
-			t.save()
-			frappe.db.commit()
+
 			return comm
 		else:
 			frappe.msgprint(_("Authenication error. Invalid exotel credentials."))

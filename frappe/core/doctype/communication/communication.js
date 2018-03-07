@@ -175,7 +175,6 @@ frappe.ui.form.on("Communication", {
 			frappe.call({
 				method: "frappe.integrations.doctype.exotel_settings.exotel_settings.handle_outgoing_call",
 				args: {
-					"From": frm.doc.exophone,
 					"To": frm.doc.phone_no,
 					"CallerId": frm.doc.exophone,
 					"reference_doctype": frm.doc.reference_doctype || "",
@@ -185,7 +184,7 @@ frappe.ui.form.on("Communication", {
 				freeze_message: __("Calling.."),
 				callback: function(r) {
 					frappe.msgprint(__("Call Connected"))
-					// console.log("Outbound calls communication",r);
+					console.log("Outbound calls communication",r);
 				}
 			})			
 		}
