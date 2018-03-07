@@ -2,62 +2,8 @@
 import frappe
 
 def execute():
-
 	# Update Social Logins in User
-
-	frappe.reload_doc("core", "doctype", "user", force=True)
-	frappe.reload_doc("core", "doctype", "user_social_login", force=True)
-
-	standard_cols = ["name", "creation", "modified", "owner", "modified_by", "parent", "parenttype", "parentfield", "idx", "provider"]
-
-	provider_source_cols_map = {
-		"frappe": ["frappe_userid"],
-		"facebook": ["fb_userid", "fb_username"],
-		"github": ["github_userid", "github_username"],
-		"google": ["google_userid"],
-	}
-
-	idx = 0
-	for provider in provider_source_cols_map:
-		source_social_login_cols = provider_source_cols_map[provider] #fb_userid
-		target_social_login_cols = [f.split("_")[1] for f in provider_source_cols_map[provider]] #userid
-
-		creation_time = frappe.utils.get_datetime_str(frappe.utils.get_datetime())
-
-		source_cols = [
-			"'{0}' AS `name`".format(str(frappe.generate_hash(length=10))),
-			"'{0}' AS `creation`".format(creation_time),
-			"'{0}' AS `modified`".format(creation_time),
-			"`tabUser`.`owner`",
-			"`tabUser`.`modified_by`",
-			"`tabUser`.`name` AS `parent`",
-			"'User' AS `parenttype`",
-			"'social_logins' AS `parentfield`",
-			"{0} AS `idx`".format(idx),
-			"'{0}' AS `provider`".format(provider)
-		]
-
-		null_check_condition = ["`tabUser`.`" + col + "` IS NOT NULL" for col in source_social_login_cols]
-		null_check_condition = " OR ".join(null_check_condition)
-
-		source_cols = source_cols + ["`tabUser`.`" + col + "`" for col in source_social_login_cols]
-		target_cols = standard_cols + target_social_login_cols
-
-		query = """
-			INSERT INTO `tabUser Social Login` ({target_cols})
-			SELECT {source_cols}
-			FROM `tabUser`
-			WHERE `tabUser`.`name` NOT IN ('Guest', 'Administrator')
-			AND {null_check_condition};
-		""".format(
-			source_cols = ", ".join(source_cols),
-			target_cols = "`" + "`, `".join(target_cols) + "`",
-			null_check_condition = null_check_condition
-		)
-
-		frappe.db.sql(query)
-		idx += 1
-
+	run_patch()
 
 	# Create Social Login Key(s) from Social Login Keys
 	frappe.reload_doc("integrations", "doctype", "social_login_key", force=True)
@@ -108,3 +54,78 @@ def execute():
 		google_login_key.save()
 
 	frappe.delete_doc("DocType", "Social Login Keys")
+
+def run_patch():
+	frappe.reload_doc("core", "doctype", "user", force=True)
+	frappe.reload_doc("core", "doctype", "user_social_login", force=True)
+
+	users = frappe.get_all("User", 
+		fields=["name", "frappe_userid", "fb_userid", "fb_username", "github_userid", "github_username", "google_userid"], 
+		filters={"name":("not in", ["Administrator", "Guest"])})
+
+	idx = 0
+	for user in users:
+		if user.get("frappe_userid"):
+			insert_user_social_login(user.name, user.modified_by, 'frappe', idx, user.get("frappe_userid"))
+			idx += 1
+
+		if user.get("fb_userid") or user.get("fb_username"):
+			insert_user_social_login(user.name, 'facebook', user.get("fb_userid"), idx, user.get("fb_username"))
+			idx += 1
+
+		if user.get("github_userid") or user.get("github_username"):
+			insert_user_social_login(user.name, 'github', user.get("github_userid"), idx, user.get("github_username"))
+			idx += 1
+
+		if user.get("google_userid"):
+			insert_user_social_login(user.name, 'google', idx, user.get("google_userid"))
+			idx += 1
+
+
+def insert_user_social_login(user, modified_by, provider, idx, userid=None, username=None):
+	source_cols = get_standard_cols() + get_provider_fields(provider)
+
+	creation_time = frappe.utils.get_datetime_str(frappe.utils.get_datetime())
+	values = [
+		frappe.generate_hash(length=10),
+		creation_time,
+		creation_time,
+		user,
+		modified_by,
+		user,
+		"User",
+		"social_logins",
+		idx,
+		provider
+	]
+
+	if userid:
+		values.append("'{0}'".format(userid))
+
+	if username:
+		values.append("'{0}'".format(username))
+	
+	
+	query = """INSERT INTO `tabUser Social Login` ({source_cols}) 
+		VALUES ({values})
+	""".format(
+		source_cols = ", ".join(source_cols),
+		values=", ".join(values),
+	)
+
+	print(query)
+
+
+def get_provider_field_map():
+	return frappe._dict({
+		"frappe": ["frappe_userid"],
+		"facebook": ["fb_userid", "fb_username"],
+		"github": ["github_userid", "github_username"],
+		"google": ["google_userid"],
+	})
+
+def get_provider_fields(provider):
+		return get_provider_field_map().get(provider)
+
+def get_standard_cols():
+	return ["name", "creation", "modified", "owner", "modified_by", "parent", "parenttype", "parentfield", "idx", "provider"]
