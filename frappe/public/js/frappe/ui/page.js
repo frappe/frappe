@@ -61,7 +61,7 @@ frappe.ui.Page = Class.extend({
 		return $empty_state;
 	},
 
-	load_lib: function (callback) {
+	load_lib: function(callback) {
 		frappe.require(this.required_libs, callback);
 	},
 
@@ -236,7 +236,7 @@ frappe.ui.Page = Class.extend({
 	},
 
 	//--- Actions Menu--//
-	
+
 	show_actions_menu: function() {
 		this.actions_btn_group.removeClass("hide");
 	},
@@ -245,13 +245,13 @@ frappe.ui.Page = Class.extend({
 		this.actions_btn_group.addClass("hide");
 	},
 
-	
+
 	add_action_item: function(label, click, standard) {
 		return this.add_dropdown_item(label, click, standard, this.actions);
 	},
 
 	add_actions_menu_item: function(label, click, standard) {
-		return this.add_dropdown_item(label, click, standard, this.actions);
+		return this.add_dropdown_item(label, click, standard, this.actions, false);
 	},
 
 	clear_actions_menu: function() {
@@ -269,10 +269,11 @@ frappe.ui.Page = Class.extend({
 	* @param {Boolean} standard
 	* @param {object} parent - DOM object representing the parent of the drop down item lists
 	*/
-	add_dropdown_item: function(label, click, standard, parent) {
+	add_dropdown_item: function(label, click, standard, parent, unhide_parent=true) {
 		let item_selector = 'li > a.grey-link';
-
-		parent.parent().removeClass("hide");
+		if(unhide_parent) {
+			parent.parent().removeClass("hide");
+		}
 
 		var $li = $('<li><a class="grey-link">'+ label +'</a><li>'),
 			$link = $li.find("a").on("click", click);
@@ -561,7 +562,7 @@ frappe.ui.Page = Class.extend({
 	},
 	add_view: function(name, html) {
 		let element = html;
-		if(typeof(html) === "string") {
+		if(typeof (html) === "string") {
 			element = $(html);
 		}
 		this.views[name] = element.appendTo($(this.wrapper).find(".page-content"));
