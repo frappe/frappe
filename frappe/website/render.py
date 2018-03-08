@@ -111,7 +111,7 @@ def build_response(path, data, http_status_code, headers=None):
 
 	if headers:
 		for key, val in iteritems(headers):
-			response.headers[str(key.encode("utf-8"))] = val.encode("utf-8")
+			response.headers[key] = val.encode("utf-8")
 
 	return response
 
