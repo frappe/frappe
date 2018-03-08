@@ -396,10 +396,10 @@ class Email:
 		_subject = decode_header(self.mail.get("Subject", "No Subject"))
 		self.subject = _subject[0][0] or ""
 		if _subject[0][1]:
-			self.subject = self.subject.decode(_subject[0][1])
+			self.subject = safe_decode(self.subject, _subject[0][1])
 		else:
 			# assume that the encoding is utf-8
-			self.subject = self.subject.decode("utf-8")[:140]
+			self.subject = safe_decode(subject)[:140]
 
 		if not self.subject:
 			self.subject = "No Subject"
