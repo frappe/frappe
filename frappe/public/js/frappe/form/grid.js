@@ -234,7 +234,7 @@ frappe.ui.form.Grid = Class.extend({
 			this.wrapper.find(".grid-footer").toggle(true);
 
 			// show, hide buttons to add rows
-			if(this.cannot_add_rows) {
+			if(this.cannot_add_rows || (this.df && this.df.cannot_add_rows)) {
 				// add 'hide' to buttons
 				this.wrapper.find(".grid-add-row, .grid-add-multiple-rows")
 					.addClass('hide');

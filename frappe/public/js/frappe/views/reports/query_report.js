@@ -19,25 +19,24 @@ frappe.standard_pages["query-report"] = function() {
 	});
 
 	$(wrapper).bind("show", function() {
-		frappe.query_report.init();
+		frappe.query_report.show();
 	});
 };
 
 frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	show() {
-
+		this.init().then(() => this.load());
 	}
 
 	init() {
-		if (this.init_promise && frappe.get_route()[1] === this.report_name) {
+		if (this.init_promise) {
 			return this.init_promise;
 		}
 
 		let tasks = [
 			this.setup_defaults,
 			this.setup_page,
-			this.setup_report_wrapper,
-			this.setup_report
+			this.setup_report_wrapper
 		].map(fn => fn.bind(this));
 
 		this.init_promise = frappe.run_serially(tasks);
@@ -47,17 +46,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	setup_defaults() {
 		this.route = frappe.get_route();
 		this.page_name = frappe.get_route_str();
-		this.report_name = this.route[1];
-		this.page_title = __(this.report_name);
-		this.user_settings = frappe.get_user_settings(this.report_name);
-
-		this.start = 0;
-		this.page_length = 20;
-		this.data = [];
-
-		this.fields = [];
-		this.filters = [];
-		this.order_by = 'modified desc';
 
 		// Setup buttons
 		this.primary_action = null;
@@ -66,43 +54,65 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			action: () => this.refresh()
 		};
 
+		// throttle refresh for 300ms
+		this.refresh = frappe.utils.throttle(this.refresh, 300);
+
+		this.menu_items = [];
+	}
+
+	load() {
+		if (frappe.get_route().length < 2) {
+			this.toggle_nothing_to_show(true);
+			return;
+		}
+		if (this.report_name !== frappe.get_route()[1]) {
+			this.toggle_loading(true);
+			// different report
+			this.load_report();
+		} else {
+			// same report
+			this.refresh_report();
+		}
+	}
+
+	load_report() {
+		this.route = frappe.get_route();
+		this.page_name = frappe.get_route_str();
+		this.report_name = this.route[1];
+		this.page_title = __(this.report_name);
 		this.menu_items = this.get_menu_items();
+		this.datatable = null;
 
-		// throttle refresh for 500ms
-		this.refresh = frappe.utils.throttle(this.refresh, 500);
+		frappe.run_serially([
+			() => this.get_report_doc(),
+			() => this.get_report_settings(),
+			() => this.report_settings.onload && this.report_settings.onload(this),
+			() => this.setup_page_head(),
+			() => this.refresh_report()
+		]);
+	}
 
-		// Report Doc
-		return frappe.db.get_doc('Report', this.report_name)
+	refresh_report() {
+		this.toggle_message(true);
+
+		return frappe.run_serially([
+			() => this.setup_filters(),
+			() => this.set_route_filters(),
+			() => this.get_user_settings(),
+			() => this.refresh(),
+			() => this.save_user_settings()
+		]);
+	}
+
+	get_report_doc() {
+		return frappe.model.with_doc('Report', this.report_name)
 			.then(doc => {
 				this.report_doc = doc;
 			})
-			// Ref DocType
-			.then(() => {
-				if (this.report_doc.ref_doctype) {
-					return frappe.model.with_doctype(this.report_doc.ref_doctype);
-				}
-				return Promise.resolve();
-			});
+			.then(() => frappe.model.with_doc('DocType', this.report_doc.ref_doctype));
 	}
 
-	setup_report_wrapper() {
-		if (this.$report) return;
-		this.$report = $('<div class="report-wrapper">').appendTo(this.page.main);
-	}
-
-	setup_page_head() {
-		super.setup_page_head();
-		this.page.set_title_sub(`<label class="label label-warning text-color">${__('Beta')}</label>`);
-	}
-
-	setup_report() {
-		this.$report.empty();
-		this.datatable = null;
-		return this.load_report_script()
-			.then(() => this.load_report());
-	}
-
-	load_report_script() {
+	get_report_settings() {
 		if (frappe.query_reports[this.report_name]) {
 			this.report_settings = frappe.query_reports[this.report_name];
 			return this._load_script;
@@ -118,26 +128,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}).then(r => {
 			return frappe.after_ajax(() => {
 				this.report_settings = frappe.query_reports[this.report_name];
-				this.html_format = r.message.html_format;
 				this.report_settings.html_format = r.message.html_format;
 			});
 		});
 
 		return this._load_script;
-	}
-
-	load_report() {
-		this.page.clear_inner_toolbar();
-		this.setup_filters();
-		// this.toggle_expand_collapse_buttons(false);
-		// this.is_tree_report = false;
-
-		if (this.report_settings.onload) {
-			frappe.run_serially([
-				() => this.report_settings.onload(this),
-				() => this.refresh()
-			]);
-		}
 	}
 
 	setup_filters() {
@@ -156,10 +151,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (df.get_query) f.get_query = df.get_query;
 			if (df.on_change) f.on_change = df.on_change;
 			df.onchange = () => {
-				// if(!this.flags.filters_set) {
-				// 	// don't trigger change while setting filters
-				// 	return;
-				// }
 				if (f.on_change) {
 					f.on_change(this);
 				} else {
@@ -181,8 +172,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		// as they can be used in
 		// setting/triggering the filters
 		this.set_filters_by_name();
-
-		return this.set_route_filters();
 	}
 
 	set_filters_by_name() {
@@ -216,42 +205,91 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	refresh() {
+		this.toggle_message(true);
 		const filters = this.get_filter_values(true);
-
-		if (this.report_ajax) {
-			// abort previous request
-			this.report_ajax.abort();
-		}
-
-		this.report_ajax = frappe.call({
+		return new Promise(resolve => frappe.call({
 			method: "frappe.desk.query_report.run",
 			type: "GET",
 			args: {
 				report_name: this.report_name,
 				filters: filters
+			},
+			callback: resolve
+		})).then(r => {
+			const data = r.message;
+
+			this.toggle_message(false);
+
+			if (data.result && data.result.length) {
+				this.render_chart(r.message);
+				this.render_report(r.message);
+			} else {
+				this.toggle_nothing_to_show(true);
 			}
-		}).then(r => {
-			this.report_ajax = undefined;
-			this.render_report(r.message);
 		});
 	}
 
 	render_report(data) {
 		this._data = data.result;
+		this._columns = data.columns;
+		this.is_tree_report = data.result.some(d => 'indent' in d);
+
+		const columns = this.prepare_columns(this._columns);
+
 		if (this.datatable) {
-			this.datatable.refresh(data.result);
+			this.datatable.refresh(data.result, columns);
 			return;
 		}
+
 		this.datatable = new DataTable(this.$report[0], {
-			columns: this.prepare_columns(data.columns),
+			columns: columns,
 			data: data.result,
 			enableInlineFilters: true,
-			// layout: 'fluid'
+			enableTreeView: this.is_tree_report,
+			layout: 'fixed',
+			events: {
+				onRemoveColumn: () => this.save_user_settings(),
+				onSwitchColumn: () => this.save_user_settings()
+			}
 		});
 	}
 
+	render_chart(data) {
+		this.$chart.empty();
+		let opts = this.report_settings.get_chart_data
+			? this.report_settings.get_chart_data(data.columns, data.result)
+			: data.chart
+				? data.chart
+				: {};
+		if (!(opts.data && opts.data.labels && opts.data.labels.length > 0)) return;
+
+		Object.assign(opts, {
+			parent: this.$chart[0],
+			height: 200
+		});
+
+		this.$chart.show();
+		this.chart = new Chart(opts);
+	}
+
+	get_user_settings() {
+		return frappe.model.user_settings.get(this.report_name)
+			.then(user_settings => {
+				this.user_settings = user_settings;
+			});
+	}
+
+	save_user_settings(clear_settings = false) {
+		if (clear_settings) {
+			return frappe.model.user_settings.remove(this.report_name, 'column_order');
+		}
+		if (!this.datatable) return;
+		const column_order = this.datatable.datamanager.getColumns(true).map(col => col.id);
+		return frappe.model.user_settings.save(this.report_name, 'column_order', column_order);
+	}
+
 	prepare_columns(columns) {
-		columns = columns.map(column => {
+		const docfields = columns.map(column => {
 			if (typeof column === 'string') {
 				if (column.includes(':')) {
 					let [label, fieldtype, width] = column.split(':');
@@ -278,28 +316,25 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return column;
 		});
 
-		return columns.map(column => {
+		columns = docfields.map(df => {
 			return {
-				id: column.fieldname,
-				content: column.label,
-				width: column.width || null,
+				id: df.fieldname || df.label,
+				content: df.label,
+				width: df.width || null,
 				editable: false,
-				format: (value) => {
-					// const original_data = this._data[cell.rowIndex];//get_original_data(cell.rowIndex);
-					let out = frappe.format(value, column);
-					// if (original_data.indent !== undefined && cell.colIndex === 1) {
-					// 	const next_row = get_original_data(cell.rowIndex + 1);
-					// 	const is_parent = next_row && next_row.indent > original_data.indent;
-					// 	const margin = 21 * original_data.indent;
-					// 	out = `<span class="report-tree-node" style="margin-left: ${margin}px">
-					// 		${is_parent ? '<span class="octicon octicon-triangle-down text-muted toggle"></span>': ''}
-					// 		${out}
-					// 	</span>`;
-					// }
-					return out;
-				}
+				format: (value, row, column, data) =>
+					frappe.format(value || '', df,
+						{for_print: false, always_show_decimals: true}, data)
 			};
 		});
+
+		if (this.user_settings.column_order && this.user_settings.column_order.length > 0) {
+			return this.user_settings.column_order
+				.map(id => columns.find(col => col.id === id))
+				.filter(Boolean);
+		} else {
+			return columns;
+		}
 	}
 
 	get_data() {
@@ -339,9 +374,110 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	set_breadcrumbs() {
-		if (!this.report_doc.ref_doctype) return;
+		if (!this.report_doc || !this.report_doc.ref_doctype) return;
 		const ref_doctype = frappe.get_meta(this.report_doc.ref_doctype);
 		frappe.breadcrumbs.add(ref_doctype.module);
+	}
+
+	print_report(print_settings) {
+		const columns = this.get_columns_for_print();
+		frappe.render_grid({
+			template: this.report_settings.html_format || null,
+			title: __(this.report_name),
+			print_settings: print_settings,
+			filters: this.get_filter_values(),
+			data: this.get_data_for_print(),
+			columns: columns,
+			report: this
+		});
+	}
+
+	pdf_report(print_settings) {
+		const base_url = frappe.urllib.get_base_url();
+		const print_css = frappe.boot.print_css;
+		const landscape = print_settings.orientation == "Landscape";
+		const columns = this.columns;
+
+		let html;
+		if (this.report_settings.html_format) {
+			const content = frappe.render(this.report_settings.html_format, {
+				data: this.get_data_for_print(),
+				filters: this.get_filter_values(),
+				report: this,
+			});
+
+			//Render Report in HTML
+			html = frappe.render_template("print_template", {
+				title:__(this.report_name),
+				content: content,
+				base_url: base_url,
+				print_css: print_css,
+				print_settings: print_settings,
+				landscape: landscape,
+				columns: columns
+			});
+		} else {
+			const content = frappe.render_template("print_grid", {
+				title: __(this.report_name),
+				data: this.get_data_for_print(),
+				columns: columns
+			});
+
+			//Render Report in HTML
+			html = frappe.render_template("print_template", {
+				content: content,
+				title: __(this.report_name),
+				base_url: base_url,
+				print_css: print_css,
+				print_settings: print_settings,
+				landscape: landscape,
+				columns: columns
+			});
+		}
+
+		frappe.render_pdf(html, print_settings);
+	}
+
+	export_report() {
+		if (this.export_dialog) {
+			this.export_dialog.clear();
+			this.export_dialog.show();
+			return;
+		}
+
+		this.export_dialog = frappe.prompt({
+			label: __('Select File Format'),
+			fieldname: 'file_format',
+			fieldtype: 'Select',
+			options: ['Excel', 'CSV'],
+			default: 'Excel',
+			reqd: 1
+		}, ({ file_format }) => {
+			if (file_format === 'CSV') {
+				frappe.tools.downloadify(this.get_data_for_print(), null, this.report_name);
+			} else {
+				const filters = this.get_filter_values(true);
+
+				const args = {
+					cmd: 'frappe.desk.query_report.export_query',
+					report_name: this.report_name,
+					file_format_type: file_format,
+					filters: filters,
+					visible_idx: this.datatable.datamanager.getFilteredRowIndices(),
+				};
+
+				open_url_post(frappe.request.url, args);
+			}
+		}, __("Export Report: "+ this.report_name), __("Download"));
+	}
+
+	get_data_for_print() {
+		const indices = this.datatable.datamanager.getFilteredRowIndices();
+		return indices.map(i => this._data[i]);
+	}
+
+	get_columns_for_print() {
+		return this._columns || [];
 	}
 
 	get_menu_items() {
@@ -360,24 +496,30 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			{
 				label: __('Print'),
 				action: () => {
-					frappe.ui.get_print_settings(false, function(print_settings) {
-						this.print_report(print_settings);
-					}, this.report_doc.letter_head);
+					frappe.ui.get_print_settings(
+						false,
+						print_settings => this.print_report(print_settings),
+						this.report_doc.letter_head
+					);
 				},
+				condition: () => frappe.model.can_print(this.report_doc.ref_doctype),
 				standard: true
 			},
 			{
 				label: __('PDF'),
 				action: () => {
-					frappe.ui.get_print_settings(false, function(print_settings) {
-						this.pdf_report(print_settings);
-					}, this.report_doc.letter_head);
+					frappe.ui.get_print_settings(
+						false,
+						print_settings => this.pdf_report(print_settings),
+						this.report_doc.letter_head
+					);
 				},
+				condition: () => frappe.model.can_print(this.report_doc.ref_doctype),
 				standard: true
 			},
 			{
 				label: __('Export'),
-				action: () => this.make_export(),
+				action: () => this.export_report(),
 				standard: true
 			},
 			{
@@ -395,10 +537,65 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				standard: true
 			},
 			{
+				label: __('Clear User Settings'),
+				action: () => this.save_user_settings(true).then(() => this.refresh_report()),
+				standard: true
+			},
+			{
 				label: __('Add to Desktop'),
 				action: () => frappe.add_to_desktop(this.report_name, null, this.report_name),
 				standard: true
 			},
 		];
+	}
+
+	setup_page_head() {
+		super.setup_page_head();
+		this.page.set_title_sub(`<label class="label label-warning text-color">${__('Beta')}</label>`);
+	}
+
+	setup_report_wrapper() {
+		if (this.$report) return;
+		this.$chart = $('<div class="chart-wrapper">').hide().appendTo(this.page.main);
+		this.$report = $('<div class="report-wrapper">').appendTo(this.page.main);
+		this.$message = $(this.message_div('')).hide().appendTo(this.page.main);
+	}
+
+	message_div(message) {
+		return `<div class="flex justify-center align-center text-muted" style="height: 50vh;">
+			<div>${message}</div>
+		</div>`;
+	}
+
+	toggle_loading(flag) {
+		this.toggle_message(flag, __('Loading') + '...');
+	}
+
+	toggle_nothing_to_show(flag) {
+		this.toggle_message(flag, __('Nothing to show'));
+	}
+
+	toggle_message(flag, message) {
+		if (flag) {
+			this.$message.find('div').html(message);
+			this.$message.show();
+		} else {
+			this.$message.hide();
+		}
+		this.$report.toggle(!flag);
+		this.$chart.toggle(!flag);
+	}
+
+	// backward compatibility
+	get get_values() {
+		return this.get_filter_values;
+	}
+
+	get data() {
+		return this._data;
+	}
+
+	get columns() {
+		return this._columns;
 	}
 };

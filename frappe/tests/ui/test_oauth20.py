@@ -23,6 +23,9 @@ class TestOAuth20(unittest.TestCase):
 		frappe_login_key.base_url = "http://localhost:8000"
 		frappe_login_key.save()
 
+	def test_invalid_login(self):
+		self.assertFalse(check_valid_openid_response())
+
 	def test_login_using_authorization_code(self):
 
 		# Go to Authorize url
@@ -75,6 +78,15 @@ class TestOAuth20(unittest.TestCase):
 		self.assertTrue(bearer_token.get("refresh_token"))
 		self.assertTrue(bearer_token.get("scope"))
 		self.assertTrue(bearer_token.get("token_type") == "Bearer")
+		self.assertTrue(check_valid_openid_response(bearer_token.get("access_token")))
+
+		# Revoke Token
+		revoke_token_response = requests.post(frappe.get_site_config().host_name + "/api/method/frappe.integrations.oauth2.revoke_token",
+			data="token=" + bearer_token.get("access_token"))
+		self.assertTrue(revoke_token_response.status_code == 200)
+
+		# Check revoked token
+		self.assertFalse(check_valid_openid_response(bearer_token.get("access_token")))
 
 	def test_login_using_implicit_token(self):
 
@@ -118,6 +130,21 @@ class TestOAuth20(unittest.TestCase):
 		self.assertTrue(response_url.get("expires_in"))
 		self.assertTrue(response_url.get("scope"))
 		self.assertTrue(response_url.get("token_type"))
+		self.assertTrue(check_valid_openid_response(response_url.get("access_token")))
 
 	def tearDown(self):
 		self.driver.close()
+
+def check_valid_openid_response(access_token=None):
+	# Returns True for valid response
+
+	# Use token in header
+	headers = {}
+	if access_token:
+		headers["Authorization"] = 'Bearer' + access_token
+
+	# check openid for email test@example.com
+	openid_response = requests.get(frappe.get_site_config().host_name +
+		"/api/method/frappe.integrations.oauth2.openid_profile", headers=headers)
+
+	return True if openid_response.status_code == 200 else False

@@ -33,10 +33,13 @@ frappe.ui.form.on('Data Import', {
 		frm.disable_save();
 		frm.dashboard.clear_headline();
 		if (frm.doc.reference_doctype && !frm.doc.import_file) {
-			frm.dashboard.add_comment(__('Please attach a file to import'));
+			frm.page.set_indicator(__('Please attach a file to import'), 'orange');
 		} else {
 			if (frm.doc.import_status) {
-				frm.dashboard.add_comment(frm.doc.import_status);
+				const listview_settings = frappe.listview_settings['Data Import'];
+				const indicator = listview_settings.get_indicator(frm.doc);
+				
+				frm.page.set_indicator(indicator[0], indicator[1]);
 
 				if (frm.doc.import_status==="In Progress") {
 					frm.dashboard.add_progress("Data Import Progress", "0");

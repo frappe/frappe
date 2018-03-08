@@ -224,8 +224,8 @@ def delete_items():
 			frappe.delete_doc(doctype, d)
 			if len(il) >= 5:
 				frappe.publish_realtime("progress",
-					dict(progress=[i+1, len(il)], title=_('Deleting {0}').format(doctype)),
-					user=frappe.session.user)
+					dict(progress=[i+1, len(il)], title=_('Deleting {0}').format(doctype), description=d),
+						user=frappe.session.user)
 		except Exception:
 			failed.append(d)
 

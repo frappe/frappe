@@ -3,7 +3,6 @@ frappe.provide('frappe.views');
 frappe.views.BaseList = class BaseList {
 	constructor(opts) {
 		Object.assign(this, opts);
-		this.show();
 	}
 
 	show() {
@@ -42,7 +41,6 @@ frappe.views.BaseList = class BaseList {
 		this.method = 'frappe.desk.reportview.get';
 
 		this.can_create = frappe.model.can_create(this.doctype);
-		this.can_delete = frappe.model.can_delete(this.doctype);
 		this.can_write = frappe.model.can_write(this.doctype);
 
 		this.fields = [];
@@ -337,11 +335,11 @@ frappe.views.BaseList = class BaseList {
 			freeze_message: this.freeze_message || (__('Loading') + '...')
 		}).then(r => {
 			// render
-			this.freeze(false);
 			this.prepare_data(r);
 			this.toggle_result_area();
 			this.before_render();
 			this.render();
+			this.freeze(false);
 		});
 	}
 
