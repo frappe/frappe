@@ -399,7 +399,7 @@ class Email:
 			self.subject = safe_decode(self.subject, _subject[0][1])
 		else:
 			# assume that the encoding is utf-8
-			self.subject = safe_decode(subject)[:140]
+			self.subject = safe_decode(self.subject)[:140]
 
 		if not self.subject:
 			self.subject = "No Subject"
