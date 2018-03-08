@@ -335,11 +335,11 @@ frappe.views.BaseList = class BaseList {
 			freeze_message: this.freeze_message || (__('Loading') + '...')
 		}).then(r => {
 			// render
-			this.freeze(false);
 			this.prepare_data(r);
 			this.toggle_result_area();
 			this.before_render();
 			this.render();
+			this.freeze(false);
 		});
 	}
 
