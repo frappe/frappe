@@ -153,7 +153,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 
 	sync_fixtures(name)
 	sync_customizations(name)
-    
+
 	for after_install in app_hooks.after_install or []:
 		frappe.get_attr(after_install)()
 
