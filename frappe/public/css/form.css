@@ -537,8 +537,9 @@ h6.uppercase,
 }
 .disabled-check {
   color: #f5f7fa;
-  margin-right: 3px;
+  margin-right: 5px;
   margin-bottom: -2px;
+  margin-left: 20px;
 }
 .like-disabled-input.for-description {
   font-weight: normal;
@@ -723,7 +724,6 @@ body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
   margin-top: 5px;
 }
 .frappe-control[data-fieldtype="Attach"] .attached-file .close {
-  margin-right: -7px;
   position: absolute;
   top: 0;
   right: 0;
