@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import functools
 import frappe
+from past.builtins import cmp
 
 @frappe.whitelist()
 def get_help_messages():
