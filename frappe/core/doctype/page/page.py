@@ -113,7 +113,7 @@ class Page(Document):
 		fpath = os.path.join(path, page_name + '.css')
 		if os.path.exists(fpath):
 			with open(fpath, 'r') as f:
-				self.style = text_type(f.read(), "utf-8")
+				self.style = safe_decode((f.read())
 
 		# html as js template
 		for fname in os.listdir(path):
