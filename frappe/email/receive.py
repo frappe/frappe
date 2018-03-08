@@ -427,7 +427,7 @@ class Email:
 			if encoding:
 				decoded += part.decode(encoding)
 			else:
-				decoded += part.decode('utf-8')
+				decoded += safe_decode(part)
 		return decoded
 
 	def set_content_and_type(self):
