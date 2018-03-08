@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals, print_function
 
-from six import iteritems, text_type, string_types
+from six import iteritems, text_type, string_types, PY2
 
 """
 	frappe.translate
@@ -12,7 +12,7 @@ from six import iteritems, text_type, string_types
 	Translation tools for frappe
 """
 
-import frappe, os, re, codecs, json
+import frappe, os, re, io, codecs, json
 from frappe.model.utils import render_include, InvalidIncludePath
 from frappe.utils import strip
 from jinja2 import TemplateError
@@ -541,13 +541,19 @@ def read_csv_file(path):
 
 	:param path: File path"""
 	from csv import reader
-	with codecs.open(path, 'r', 'utf-8') as msgfile:
-		data = msgfile.read()
 
-		# for japanese! #wtf
-		data = data.replace(chr(28), "").replace(chr(29), "")
-		data = reader([r.encode('utf-8') for r in data.splitlines()])
-		newdata = [[text_type(val, 'utf-8') for val in row] for row in data]
+	if PY2:
+		with codecs.open(path, 'r', 'utf-8') as msgfile:
+			data = msgfile.read()
+
+			# for japanese! #wtf
+			data = data.replace(chr(28), "").replace(chr(29), "")
+			data = reader([r.encode('utf-8') for r in data.splitlines()])
+			newdata = [[text_type(val, 'utf-8') for val in row] for row in data]
+	else:
+		with io.open(path, mode='r', encoding='utf-8', newline='') as msgfile:
+			data = reader(msgfile)
+			newdata = [[ val for val in row ] for row in data]
 	return newdata
 
 def write_csv_file(path, app_messages, lang_dict):
