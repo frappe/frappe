@@ -16,8 +16,11 @@ def execute(filters=None):
 	return columns, data
 
 def get_columns(filters):
+	party_type = filters.get("party_type")
+	party_type_value = party_filter(party_type)
 	return [
-		"{party_type}:Link/{party_type}".format(party_type=filters.get("party_type")),
+		"{party_type}:Link/{party_type}".format(party_type = filters.get("party_type")),
+		"{party_value_type}::150".format(party_value_type = frappe.unscrub(party_type_value)),
 		"Address Line 1",
 		"Address Line 2",
 		"City",
@@ -47,13 +50,15 @@ def get_party_addresses_and_contact(party_type, party):
 
 	if not party_type:
 		return []
-
 	if party:
 		filters = { "name": party }
-		
-	party_details = frappe.get_list(party_type, filters=filters, fields=["name"], as_list=True)
+
+	party_type_value = party_filter(party_type)
+
+	party_details = frappe.get_list(party_type, filters=filters, fields=["name", party_type_value], as_list=True)
 	for party_detail in map(list, party_details):
 		docname = party_detail[0]
+
 
 		addresses = get_party_details(party_type, docname, doctype="Address")
 		contacts = get_party_details(party_type, docname, doctype="Contact")
@@ -77,6 +82,16 @@ def get_party_addresses_and_contact(party_type, party):
 
 				data.append(result)
 	return data
+
+def party_filter(party_type):
+	party_type_value =  ""
+	if party_type == "Customer":
+		party_type_value = "customer_group"
+	elif party_type == "Supplier":
+		party_type_value = "supplier_type"
+	else:
+		party_type_value = "partner_type"
+	return party_type_value
 
 def get_party_details(party_type, docname, doctype="Address", fields=None):
 	default_filters = get_default_address_contact_filters(party_type, docname)
