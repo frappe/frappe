@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-
+import six
 from six import iteritems, text_type
 from six.moves import range
 import time, _socket, poplib, imaplib, email, email.utils, datetime, chardet, re, hashlib
@@ -360,7 +360,7 @@ class Email:
 		"""Parses headers, content, attachments from given raw message.
 
 		:param content: Raw message."""
-		self.raw = safe_encode(content)
+		self.raw = safe_encode(content) if six.PY2 else safe_decode(content)
 		self.mail = email.message_from_string(self.raw)
 
 
