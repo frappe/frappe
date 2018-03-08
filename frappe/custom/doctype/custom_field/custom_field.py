@@ -14,6 +14,8 @@ class CustomField(Document):
 		self.name = self.dt + "-" + self.fieldname
 
 	def set_fieldname(self):
+		if self.fieldtype in ["Section Break", "Column Break"]:
+			self.fieldname = self.fieldtype.lower().replace(" ","_") + "_" + str(self.idx)
 		if not self.fieldname:
 			if not self.label:
 				frappe.throw(_("Label is mandatory"))
