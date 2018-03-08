@@ -8,6 +8,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from six import iteritems
+from past.builtins import cmp
 
 import functools
 
