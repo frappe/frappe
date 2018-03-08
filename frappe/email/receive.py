@@ -9,7 +9,7 @@ import time, _socket, poplib, imaplib, email, email.utils, datetime, chardet, re
 from email_reply_parser import EmailReplyParser
 from email.header import decode_header
 import frappe
-from frappe import _, safe_decode
+from frappe import _, safe_decode, safe_encode
 from frappe.utils import (extract_email_id, convert_utc_to_user_timezone, now,
 	cint, cstr, strip, markdown, parse_addr)
 from frappe.utils.scheduler import log
