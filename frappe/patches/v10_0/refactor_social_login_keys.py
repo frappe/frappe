@@ -66,19 +66,19 @@ def run_patch():
 	idx = 0
 	for user in users:
 		if user.get("frappe_userid"):
-			insert_user_social_login(user.name, user.modified_by, 'frappe', idx, user.get("frappe_userid"))
+			insert_user_social_login(user.get("name"), user.modified_by, 'frappe', idx, user.get("frappe_userid"))
 			idx += 1
 
 		if user.get("fb_userid") or user.get("fb_username"):
-			insert_user_social_login(user.name, 'facebook', user.get("fb_userid"), idx, user.get("fb_username"))
+			insert_user_social_login(user.get("name"), 'facebook', user.get("fb_userid"), idx, user.get("fb_username"))
 			idx += 1
 
 		if user.get("github_userid") or user.get("github_username"):
-			insert_user_social_login(user.name, 'github', user.get("github_userid"), idx, user.get("github_username"))
+			insert_user_social_login(user.get("name"), 'github', user.get("github_userid"), idx, user.get("github_username"))
 			idx += 1
 
 		if user.get("google_userid"):
-			insert_user_social_login(user.name, 'google', idx, user.get("google_userid"))
+			insert_user_social_login(user.get("name"), 'google', idx, user.get("google_userid"))
 			idx += 1
 
 
@@ -100,21 +100,20 @@ def insert_user_social_login(user, modified_by, provider, idx, userid=None, user
 	]
 
 	if userid:
-		values.append("'{0}'".format(userid))
+		values.append(userid)
 
 	if username:
-		values.append("'{0}'".format(username))
+		values.append(username)
 	
 	
 	query = """INSERT INTO `tabUser Social Login` ({source_cols}) 
 		VALUES ({values})
 	""".format(
-		source_cols = ", ".join(source_cols),
-		values=", ".join(values),
+		source_cols = "`" + "`, `".join(source_cols) + "`",
+		values= "'" + "', '".join(values) + "'"
 	)
 
-	print(query)
-
+	frappe.db.sql(query)
 
 def get_provider_field_map():
 	return frappe._dict({
