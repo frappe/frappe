@@ -39,7 +39,7 @@ def update_user_settings(doctype, user_settings, for_update=False):
 def sync_user_settings():
 	'''Sync from cache to database (called asynchronously via the browser)'''
 	for key, data in iteritems(frappe.cache().hgetall('_user_settings')):
-		doctype, user = key.split('::')
+		doctype, user = frappe.safe_encode(key).split('::') # WTF?
 		frappe.db.sql('''insert into __UserSettings (user, doctype, data) values (%s, %s, %s)
 			on duplicate key update data=%s''', (user, doctype, data, data))
 
