@@ -360,7 +360,7 @@ class Email:
 		"""Parses headers, content, attachments from given raw message.
 
 		:param content: Raw message."""
-		self.raw = safe_decode(content)
+		self.raw = safe_encode(content)
 		self.mail = email.message_from_string(self.raw)
 
 
