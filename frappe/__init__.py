@@ -40,28 +40,6 @@ class _dict(dict):
 	def copy(self):
 		return _dict(dict(self).copy())
 
-	def __cmp__(self, other):
-		diff_keys = lambda a, b: [
-			key for key in list(a)
-				if key not in b or a[key] != b[key]
-		]
-		
-		if len(self) != len(other):
-			return cmp(len(self), len(other))
-		
-		try:
-			adiff = min(diff_keys(self, other))
-		except ValueError:
-			return 0
-		
-		bdiff = min(diff_keys(other, self))
-		
-		if adiff != bdiff:
-			return cmp(adiff, bdiff)
-
-		return cmp(self[adiff], other[bdiff])
-			
-
 def _(msg, lang=None):
 	"""Returns translated string in current lang, if exists."""
 	from frappe.translate import get_full_dict
