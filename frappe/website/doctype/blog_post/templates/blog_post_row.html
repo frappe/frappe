@@ -2,13 +2,13 @@
 <div class="web-list-item blog-list-item">
 	<div class="row">
 		<div class="col-xs-12">
-			<h1><a href="/{{ post.route }}">{{ post.title }}</a></h1>
+			<h1><a href="/{{ post.route }}">{{ _(post.title) }}</a></h1>
 			{% if post.cover_image %}
 			<p>
 				<img  class="blogpost-cover-img" src="{{ post.cover_image }}" alt="{{post.title}} - Cover Image">
 			</p>
 			{% endif %}
-			<p class="post-description">{{ post.intro }}</p>
+			<p class="post-description">{{ _(post.intro) }}</p>
 
 			<div>
 				<div class="inline-block" style="vertical-align: top">
@@ -24,7 +24,7 @@
 						{{ frappe.format_date(post.published_on) }}
 						{% if post.comments %}
 						<span style='display: inline-block; margin-left: 10px;'>
-						<i class='octicon octicon-comment-discussion'></i> {{ post.comments }}
+						<i class='octicon octicon-comment-discussion'></i> {{ _(post.comments) }}
 						</span>
 						{% endif %}
 					</div>

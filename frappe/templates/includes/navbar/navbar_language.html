@@ -1,0 +1,21 @@
+<!-- website language -->
+{%- if website_languages -%}
+    <ul class="nav navbar-nav">
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+				<img id="imgNavSel" src="" style = "height:18px; width:24px; margin:0; padding:0;" class="img-thumbnail icon-small hidden">
+				  <span id="lanNavSel"></span> <span class="caret"></span></a>
+            <ul class="dropdown-menu" role="menu">
+				{%- for child in website_languages -%}
+    	        <li id="{{ child.language }}">
+					<a id="{{ child.language }}" href="#" class="language">
+						{%- if child.flag -%}
+						<img id="{{ child.language }}" src="{{ child.flag }}" class="img-thumbnail icon-small" style = 									"height:18px; width:24px; margin:0; padding:0;"> {%- endif -%}  
+						<span id="{{ child.language }}"> {{ child.language_name }} </span>
+					</a>
+				</li>
+				{%- endfor -%}
+	        </ul>
+        </li>
+    </ul>
+{%- endif -%}

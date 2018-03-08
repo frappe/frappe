@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.website.website_generator import WebsiteGenerator
-from frappe.utils import is_markdown, markdown
+from frappe.utils import is_markdown, markdown, is_jinja
 from frappe.website.utils import get_comment_list
 from frappe import _
 
@@ -32,6 +32,7 @@ class HelpArticle(WebsiteGenerator):
 	def get_context(self, context):
 		if is_markdown(context.content):
 			context.content = markdown(context.content)
+		is_jinja(context, context.content, 'content')
 		context.login_required = True
 		context.category = frappe.get_doc('Help Category', self.category)
 		context.level_class = get_level_class(self.level)
@@ -52,7 +53,7 @@ def get_list_context(context=None):
 		filters['category'] = category
 
 	list_context = frappe._dict(
-		title = category or _("Knowledge Base"),
+		title = _(category) or _("Knowledge Base"),
 		get_level_class = get_level_class,
 		show_sidebar = True,
 		sidebar_items = get_sidebar_items(),

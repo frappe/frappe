@@ -18,7 +18,6 @@ from frappe.website.context import get_context
 from frappe.website.utils import (get_home_page, can_cache, delete_page_cache,
 	get_toc, get_next_link)
 from frappe.website.router import clear_sitemap
-from frappe.translate import guess_language
 
 class PageNotFoundError(Exception): pass
 
@@ -117,19 +116,19 @@ def build_response(path, data, http_status_code, headers=None):
 	return response
 
 def render_page_by_language(path):
-	translated_languages = frappe.get_hooks("translated_languages_for_website")
-	user_lang = guess_language(translated_languages)
-	if translated_languages and user_lang in translated_languages:
+	parts = path.split('/')
+	if parts[0] in frappe.translate.get_all_languages():
+		frappe.local.lang = parts[0]
+		path = '/'.join(parts[1:])
+		user_lang = parts[0]
 		try:
 			if path and path != "index":
-				lang_path = '{0}/{1}'.format(user_lang, path)
+				lang_path = '{0}/{1}'.format(user_lang, _(path))
 			else:
 				lang_path = user_lang # index
-
 			return render_page(lang_path)
 		except frappe.DoesNotExistError:
 			return render_page(path)
-
 	else:
 		return render_page(path)
 

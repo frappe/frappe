@@ -1,15 +1,16 @@
+/* eslint-disable */
 // rename this file from _test_[name] to test_[name] to activate
 // and remove above this line
 
-QUnit.test("test: Web Page", function (assert) {
+QUnit.test("test: Web Form", function (assert) {
 	let done = assert.async();
 
 	// number of asserts
 	assert.expect(1);
 
 	frappe.run_serially([
-		// insert a new Web Page
-		() => frappe.tests.make('Web Page', [
+		// insert a new Web Form
+		() => frappe.tests.make('Web Form', [
 			// values to be set
 			{key: 'value'}
 		]),

@@ -887,3 +887,19 @@ def get_source_value(source, key):
 		return source.get(key)
 	else:
 		return getattr(source, key)
+
+def is_jinja(context, section, section_name):
+	from frappe.utils.jinja import render_template
+	from jinja2.exceptions import TemplateSyntaxError
+	is_jinja = "<!-- jinja -->" in section
+	if is_jinja or ("{{" in section):
+		try:
+			context[section_name] = render_template(section,
+				context)
+			if not "<!-- static -->" in section:
+				context["no_cache"] = 1
+		except TemplateSyntaxError:
+			if is_jinja:
+				raise
+	else:
+		context[section_name] = section		

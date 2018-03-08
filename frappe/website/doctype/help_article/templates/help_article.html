@@ -1,19 +1,19 @@
 {% extends "templates/web.html" %}
 
 {% block header %}
-<h1>{{ title }}</h1>
+<h1>{{ _(title) }}</h1>
 {% endblock %}
 
 {% block page_content %}
 <article class="help-content" itemscope itemtype="http://schema.org/BlogPost">
 	<div class="help-article-info">
 		<p>
-			<span class="indicator {{ level_class }}">{{ level }}</span>
+			<span class="indicator {{ level_class }}">{{ _(level) }}</span>
 		</p>
-	    <h6 class='text-muted'>By {{ author }} on {{ frappe.format_date(creation) }}</h6>
+	    <h6 class='text-muted'>{{_("By {0} on {1}").format(author, frappe.format_date(creation))}}</h6>
 	</div>
 	<div class="longform" itemprop="articleBody" style='margin: 30px 0px;'>
-	{{ content }}
+	{{ _(content) }}
 	</div>
 
 	<p><br><a href="/{{ category.route }}" class='text-muted small'>

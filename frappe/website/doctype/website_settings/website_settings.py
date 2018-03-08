@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import get_request_site_address, encode
+from frappe.utils import get_request_site_address, encode, is_jinja
 from frappe.model.document import Document
 from six.moves.urllib.parse import quote
 from frappe.website.router import resolve_route
@@ -15,6 +15,11 @@ class WebsiteSettings(Document):
 		self.validate_top_bar_items()
 		self.validate_footer_items()
 		self.validate_home_page()
+	
+	def onload(self):
+		self.set_onload('all_languages',
+			[{'language_code': l.language_code, 'language_name':l.language_name} for l in frappe.db.get_all('Language',
+				fields=['language_code', 'language_name', 'flag'], order_by="language_name")])
 
 	def validate_home_page(self):
 		if frappe.flags.in_install:
@@ -89,7 +94,10 @@ def get_website_settings():
 			context[k] = settings.get(k)
 
 	if settings.address:
-		context["footer_address"] = settings.address
+		is_jinja(context, settings.address, 'footer_address')
+
+	if settings.website_languages:
+		context["website_languages"] = settings.website_languages
 
 	for k in ["facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup"]:
@@ -131,9 +139,13 @@ def get_items(parentfield):
 		order by idx asc""", parentfield, as_dict=1)
 
 	top_items = [d for d in all_top_items if not d['parent_label']]
+	language = frappe.local.lang
 
 	# attach child items to top bar
 	for d in all_top_items:
+		translated_url = '{0}/{1}'.format(language, _(d['url']))
+		if frappe.db.exists({'doctype': 'Route', 'route': translated_url}):
+			d['url'] = translated_url
 		if d['parent_label']:
 			for t in top_items:
 				if t['label']==d['parent_label']:
@@ -143,3 +155,16 @@ def get_items(parentfield):
 					break
 	return top_items
 
+@frappe.whitelist(allow_guest=True)
+def set_website_language(language = None, path = None):
+	if not language:
+		language = 'en'
+	frappe.local.lang = language
+	if not path:
+		path = frappe.db.get_value("Website Settings", "Website Settings", "home_page") or 'index'
+	if ('/' in path) and (path.split('/')[0] in frappe.translate.get_all_languages()):
+		new_path = path.split('/', 1)[1]
+		if new_path:
+			return '{0}/{1}'.format(language, _(new_path))
+	else:
+		return '{0}/{1}'.format(language, _(path))

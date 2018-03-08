@@ -4,13 +4,12 @@
 from __future__ import unicode_literals, print_function
 import frappe, re
 import requests, requests.exceptions
-from frappe.utils import strip_html
+from frappe.utils import strip_html, is_jinja
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.router import resolve_route
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
 from frappe.website.utils import find_first_image, get_comment_list, extract_title
-from frappe.utils.jinja import render_template
-from jinja2.exceptions import TemplateSyntaxError
+
 from frappe import _
 
 class WebPage(WebsiteGenerator):
@@ -31,8 +30,8 @@ class WebPage(WebsiteGenerator):
 		context.update({
 			"style": self.css or "",
 			"script": self.javascript or "",
-			"header": self.header,
-			"title": self.title,
+			"header": _(self.header),
+			"title": _(self.title),
 			"text_align": self.text_align,
 		})
 
@@ -45,21 +44,8 @@ class WebPage(WebsiteGenerator):
 		self.set_metatags(context)
 		self.set_breadcrumbs(context)
 		self.set_title_and_header(context)
-
+		is_jinja(context, context.main_section, 'main_section')
 		return context
-
-	def render_dynamic(self, context):
-		# dynamic
-		is_jinja = "<!-- jinja -->" in context.main_section
-		if is_jinja or ("{{" in context.main_section):
-			try:
-				context["main_section"] = render_template(context.main_section,
-					context)
-				if not "<!-- static -->" in context.main_section:
-					context["no_cache"] = 1
-			except TemplateSyntaxError:
-				if is_jinja:
-					raise
 
 	def set_breadcrumbs(self, context):
 		"""Build breadcrumbs template """

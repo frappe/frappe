@@ -344,9 +344,42 @@ $.extend(frappe, {
 	},
 	add_switch_to_desk: function() {
 		$('.switch-to-desk').removeClass('hidden');
-	}
+	},
+	set_website_language: function(language) {
+		$.extend(frappe._messages);
+		frappe.call({
+			method: 'frappe.website.doctype.website_settings.website_settings.set_website_language',
+			args: {
+				language: language,
+				path: location.pathname.slice(1)
+			},
+			callback: function(r) {
+				if (r.message && (location.pathname != '/'+ r.message)) {
+					localStorage.setItem("website_lang", language);
+					window.location.href = location.origin +'/'+ r.message;
+				}
+			}
+		});
+	},
+	set_switcher_language: function() {
+		var path = (location.pathname).split('/');
+		if (path[1] &&  $('ul li#'+path[1]+'').length) {
+			var language = path[1]
+		}
+		else {
+			var language = navigator.language;
+		}
+		if (!localStorage.website_lang) {
+			frappe.set_website_language(language);
+		}
+		var img_src = $('img#'+language).attr("src");
+		$('#lanNavSel').text(language);
+		if (img_src) {
+			$('#imgNavSel').removeClass('hidden');
+			$('#imgNavSel').attr("src",img_src);
+		}
+	},
 });
-
 
 // Utility functions
 
@@ -392,7 +425,6 @@ $(document).ready(function() {
 	$(".logged-in").toggleClass("hide", logged_in ? false : true);
 
 	frappe.bind_navbar_search();
-
 	// switch to app link
 	if(frappe.get_cookie("system_user")==="yes" && logged_in) {
 		frappe.add_switch_to_desk();
@@ -401,6 +433,17 @@ $(document).ready(function() {
 	frappe.render_user();
 
 	$(document).trigger("page-change");
+});
+
+$( ".language" ).on( "click", function() {
+	var language = $(this).attr('id');
+	var img_src = $('img', this).attr('src');
+	if (img_src) {
+		$('#imgNavSel').removeClass('hidden');
+		$('#imgNavSel').attr("src",img_src);
+	}
+	$('#lanNavSel').text(language);
+	frappe.set_website_language(language);
 });
 
 $(document).on("page-change", function() {
@@ -421,6 +464,7 @@ $(document).on("page-change", function() {
 	frappe.bind_filters();
 	frappe.highlight_code_blocks();
 	frappe.make_navbar_active();
+	frappe.set_switcher_language();
 	// scroll to hash
 	if (window.location.hash) {
 		var element = document.getElementById(window.location.hash.substring(1));
@@ -428,10 +472,6 @@ $(document).on("page-change", function() {
 	}
 });
 
-
 $(document).ready(function( ) {
-	// frappe.Chat
-	// const chat = new frappe.Chat();
-	// chat.render();
-	// end frappe.Chat
+
 });
