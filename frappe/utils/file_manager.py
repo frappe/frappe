@@ -110,7 +110,7 @@ def save_url(file_url, filename, dt, dn, folder, is_private, df=None):
 def get_uploaded_content():
 	# should not be unicode when reading a file, hence using frappe.form
 	if 'filedata' in frappe.form_dict:
-		if "," in frappe.form_dict.filedata:
+		if b"," in frappe.form_dict.filedata:
 			frappe.form_dict.filedata = frappe.form_dict.filedata.rsplit(",", 1)[1]
 		frappe.uploaded_content = base64.b64decode(frappe.form_dict.filedata)
 		frappe.uploaded_filename = frappe.form_dict.filename
