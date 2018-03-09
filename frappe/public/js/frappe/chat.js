@@ -1473,8 +1473,8 @@ class extends Component {
 			placeholder: __("Search or Create a New Chat"),
 				  class: "level",
 				 layout: props.layout,
-				actions:
-			[
+				actions: 
+			frappe._.compact([
 				{
 					  label: __("New"),
 					onclick: function ( ) {
@@ -1536,8 +1536,12 @@ class extends Component {
 						})
 						dialog.show()
 					}
+				},
+				frappe._.is_mobile() && {
+					   icon: "octicon octicon-x",
+					onclick: () => this.set_state({ toggle: false })
 				}
-			],
+			], Boolean),
 			change: function (query) {
 				me.set_state({
 					query: query
@@ -1737,7 +1741,8 @@ class extends Component {
 	}
 }
 frappe.Chat.Widget.ActionBar.defaultState
-= {
+=
+{
 	query: null
 }
 
@@ -1753,7 +1758,7 @@ class extends Component {
 		return (
 			h(frappe.components.Button, { size: "small", class: "btn-action", ...props },
 				props.icon ? h("i", { class: props.icon }) : null,
-				`${props.icon ? " " : ""}${props.label}`
+				`${props.icon ? " " : ""}${props.label ? props.label : ""}`
 			)
 		)
 	}
