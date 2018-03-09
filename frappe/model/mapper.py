@@ -179,7 +179,8 @@ def map_fetch_fields(target_doc, df, no_copy_fields):
 		if not (fetch_df.fieldtype == "Read Only" or fetch_df.read_only):
 			continue
 
-		if not target_doc.get(fetch_df.fieldname) and fetch_df.fieldname not in no_copy_fields:
+		if ((not target_doc.get(fetch_df.fieldname) or fetch_df.fieldtype == "Read Only")
+			and fetch_df.fieldname not in no_copy_fields):
 			source_fieldname = fetch_df.options.split(".")[1]
 
 			if not linked_doc:
