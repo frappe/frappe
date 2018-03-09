@@ -970,6 +970,15 @@ li.user-progress .progress-bar {
 .note-editor.note-frame .note-editing-area .note-editable {
   color: #36414C;
 }
+.checkbox label {
+  padding-left: 0px;
+}
+.checkbox input[type=checkbox] {
+  margin-right: 5px;
+  margin-left: 0px;
+  position: relative;
+  height: 12px;
+}
 input[type="checkbox"] {
   position: relative;
   height: 16px;
