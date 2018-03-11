@@ -91,7 +91,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			# In order_by, `idx` gets second priority, because it stores link count
 			from frappe.model.db_query import get_order_by
 			order_by_based_on_meta = get_order_by(doctype, meta)
-			order_by = "if(_relevance, _relevance, 99999), idx desc, {0}".format(order_by_based_on_meta)
+			order_by = "if(_relevance, _relevance, 99999), `tab{0}`.idx desc, {1}".format(doctype, order_by_based_on_meta)
 
 			values = frappe.get_list(doctype,
 				filters=filters, fields=formatted_fields,
