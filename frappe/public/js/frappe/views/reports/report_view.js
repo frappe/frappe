@@ -281,8 +281,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				const get_df = (field) => frappe.meta.get_docfield(this.doctype, field);
 				const get_doc = (value, field) => this.data.find(d => d[field] === value);
 
-				this.chart = new Chart({
-					parent: this.$charts_wrapper[0],
+				this.chart = new Chart(this.$charts_wrapper[0], {
 					title: __("{0} Chart", [this.doctype]),
 					data: data,
 					type: args.chart_type, // 'bar', 'line', 'scatter', 'pie', 'percentage'
@@ -390,7 +389,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			y_fields: y_axes,
 			labels: labels,
 			datasets: y_axes.map(y_axis => ({
-				title: frappe.meta.get_docfield(this.doctype, y_axis).label,
+				name: frappe.meta.get_docfield(this.doctype, y_axis).label,
 				values: this.data.map(d => ({
 					doc: d,
 					field: y_axis,

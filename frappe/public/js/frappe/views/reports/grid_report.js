@@ -674,8 +674,7 @@ frappe.views.GridReportWithPlot = frappe.views.GridReport.extend({
 		}
 		var chart_data = this.get_chart_data ? this.get_chart_data() : null;
 
-		this.chart = new Chart({
-			parent: ".chart",
+		this.chart = new Chart(".chart", {
 			height: 200,
 			data: chart_data,
 			type: 'line'
@@ -719,7 +718,7 @@ frappe.views.GridReportWithPlot = frappe.views.GridReport.extend({
 		$.each(this.data, function(i, item) {
 			if (item.checked) {
 				let dataset = {};
-				dataset.title = item.name;
+				dataset.name = item.name;
 				dataset.values = [];
 				$.each(plottable_cols, function(idx, col) {
 					dataset.values.push(item[col]);
