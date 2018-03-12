@@ -1,9 +1,10 @@
+const path     = require("path");
+const fs       = require("fs");
+
 var app = require('express')();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var cookie = require('cookie')
-var fs = require('fs');
-var path = require('path');
 var redis = require("redis");
 var request = require('superagent');
 
@@ -82,9 +83,9 @@ io.on('connection', function (socket) {
 		const doctype = params.doctype
 		const name    = params.name
 		const field   = params.field
-
+		
 		const room    = get_model_room(doctype, name, field)
-
+		
 		console.log('frappe.model: Subscribing ' + socket.user + ' to room ' + room);
 		socket.join(room);
 	})
@@ -124,7 +125,7 @@ io.on('connection', function (socket) {
 		})
 		.end(function (err, res) {
 			if (err) {
-				console.log(err);
+				console.log("Unable to retrieve User Information.")
 				return;
 			}
 			if (res.status == 200) {
@@ -253,11 +254,11 @@ io.on('connection', function (socket) {
 });
 
 subscriber.on("message", function (channel, message, room) {
-	message = JSON.parse(message)
-	io.to(message.room).emit(message.event, message.message)
+	if ( channel !== "on" ) {
+		message = JSON.parse(message)
+		io.to(message.room).emit(message.event, message.message)
+	}
 });
-
-
 subscriber.subscribe("events");
 
 function send_existing_lines(task_id, socket) {
@@ -422,3 +423,50 @@ function get_conf() {
 
 	return conf;
 }
+
+const frappe    =
+{
+	config: get_conf(), // TODO: Make it pretty man!
+	socket: io,
+	log: console 	// TODO: Replace with a custom one. Y'know, the pretty one.
+}
+
+const publisher  = redis.createClient(frappe.config.redis_socketio
+	|| frappe.config.redis_async_broker_port);
+subscriber.subscribe("socketio"); // Listen to the "socketio" channel.
+	
+io.on("connection", (socket) => {
+	console.log("Socket.IO connection successful.")
+
+	subscriber.on("message", (channel, message, room) =>
+	{
+		console.log("Recieved a message from Wergzeug.")
+		console.log("Channel: " + channel)
+		console.log("Message: " + message)
+
+		if ( channel == "socketio" )
+		{
+			// connected to wergzeug.
+			const packet = JSON.parse(message)
+			const event  = packet.event
+			const data   = packet.data
+
+			if ( event == "register" )
+			{
+				const name = data.name
+				console.log("Registering Event " + name + " to Socket.IO.")
+				socket.on(name, (data) =>
+				{
+					console.log("PING: Socket.IO event " + name + " triggered.")
+					var packet = { event: name, data: data }
+					packet     = JSON.stringify(packet)
+
+					console.log("Publishing Socket.IO event " + name + " to Wergzeug with packet: " + packet)
+					publisher.publish("socketio", packet)
+				})
+			}
+		}
+	});
+});
+
+module.exports = frappe;

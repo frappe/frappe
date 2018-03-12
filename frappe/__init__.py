@@ -56,14 +56,14 @@ def _(msg, lang=None):
 	# return lang_full_dict according to lang passed parameter
 	return get_full_dict(lang).get(msg) or msg
 
-def as_unicode(text, encoding='utf-8'):
+def as_unicode(text, encoding='utf-8', errors = 'ignore'):
 	'''Convert to unicode if required'''
 	if isinstance(text, text_type):
 		return text
 	elif text==None:
 		return ''
 	elif isinstance(text, binary_type):
-		return text_type(text, encoding)
+		return text_type(text, encoding, errors = errors)
 	else:
 		return text_type(text)
 
@@ -1423,7 +1423,7 @@ def get_version(doctype, name, limit = None, head = False, raise_err = True):
 	[
 		{
 			 "version": [version.data], 	 # Refer Version DocType get_diff method and data attribute
-			    "user": "admin@gmail.com"    # User that created this version
+				"user": "admin@gmail.com"    # User that created this version
 			"creation": <datetime.datetime>  # Creation timestamp of that object.
 		}
 	]
