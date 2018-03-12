@@ -2,14 +2,14 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-
+import six
 from six import iteritems, text_type
 from six.moves import range
 import time, _socket, poplib, imaplib, email, email.utils, datetime, chardet, re, hashlib
 from email_reply_parser import EmailReplyParser
 from email.header import decode_header
 import frappe
-from frappe import _
+from frappe import _, safe_decode, safe_encode
 from frappe.utils import (extract_email_id, convert_utc_to_user_timezone, now,
 	cint, cstr, strip, markdown, parse_addr)
 from frappe.utils.scheduler import log
@@ -360,8 +360,9 @@ class Email:
 		"""Parses headers, content, attachments from given raw message.
 
 		:param content: Raw message."""
-		self.raw = content
+		self.raw = safe_encode(content) if six.PY2 else safe_decode(content)
 		self.mail = email.message_from_string(self.raw)
+
 
 		self.text_content = ''
 		self.html_content = ''
@@ -395,10 +396,10 @@ class Email:
 		_subject = decode_header(self.mail.get("Subject", "No Subject"))
 		self.subject = _subject[0][0] or ""
 		if _subject[0][1]:
-			self.subject = self.subject.decode(_subject[0][1])
+			self.subject = safe_decode(self.subject, _subject[0][1])
 		else:
 			# assume that the encoding is utf-8
-			self.subject = self.subject.decode("utf-8")[:140]
+			self.subject = safe_decode(self.subject)[:140]
 
 		if not self.subject:
 			self.subject = "No Subject"
@@ -426,7 +427,7 @@ class Email:
 			if encoding:
 				decoded += part.decode(encoding)
 			else:
-				decoded += part.decode('utf-8')
+				decoded += safe_decode(part)
 		return decoded
 
 	def set_content_and_type(self):

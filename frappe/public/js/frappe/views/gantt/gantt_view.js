@@ -11,9 +11,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 	}
 
 	setup_view() {
-		this.$result
-			.css('overflow', 'auto')
-			.append('<svg class="gantt-container" width="20" height="20"></svg>');
+
 	}
 
 	prepare_data(data) {
@@ -77,20 +75,22 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		const field_map = this.calendar_settings.field_map;
 		const date_format = 'YYYY-MM-DD';
 
-		this.gantt = new Gantt(".gantt-container", this.tasks, {
+		this.$result.empty();
+
+		this.gantt = new Gantt(this.$result[0], this.tasks, {
 			view_mode: gantt_view_mode,
 			date_format: "YYYY-MM-DD",
-			on_click: function (task) {
+			on_click: task => {
 				frappe.set_route('Form', task.doctype, task.id);
 			},
-			on_date_change: function (task, start, end) {
+			on_date_change: (task, start, end) => {
 				if (!me.can_write) return;
 				frappe.db.set_value(task.doctype, task.id, {
-					[field_map.start]: start.format(date_format),
-					[field_map.end]: end.format(date_format)
+					[field_map.start]: moment(start).format(date_format),
+					[field_map.end]: moment(end).format(date_format)
 				});
 			},
-			on_progress_change: function (task, progress) {
+			on_progress_change: (task, progress) => {
 				if (!me.can_write) return;
 				var progress_fieldname = 'progress';
 
@@ -106,13 +106,13 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 					});
 				}
 			},
-			on_view_change: function (mode) {
+			on_view_change: mode => {
 				// save view mode
 				me.save_view_user_settings({
 					gantt_view_mode: mode
 				});
 			},
-			custom_popup_html: function (task) {
+			custom_popup_html: task => {
 				var item = me.get_item(task.id);
 
 				var html =
@@ -139,7 +139,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		let $btn_group = this.$paging_area.find('.gantt-view-mode');
 		if ($btn_group.length > 0) return;
 
-		const view_modes = this.gantt.config.view_modes || [];
+		const view_modes = this.gantt.options.view_modes || [];
 		const active_class = view_mode => this.gantt.view_is(view_mode) ? 'btn-info' : '';
 		const html =
 			`<div class="btn-group gantt-view-mode">
@@ -189,15 +189,13 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 	}
 
 	get_item(name) {
-		return this.data.find(function (item) {
-			return item.name === name;
-		});
+		return this.data.find(item => item.name === name);
 	}
 
 	get required_libs() {
 		return [
-			"assets/frappe/js/lib/snap.svg-min.js",
-			"assets/frappe/js/lib/frappe-gantt/frappe-gantt.js"
+			"assets/frappe/js/lib/frappe-gantt/frappe-gantt.css",
+			"assets/frappe/js/lib/frappe-gantt/frappe-gantt.min.js"
 		];
 	}
 };

@@ -124,7 +124,7 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 		if isinstance(content, text_type):
 			content = content.encode("utf-8")
 
-		if "," in content:
+		if b"," in content:
 			content = content.split(",")[1]
 		content = base64.b64decode(content)
 

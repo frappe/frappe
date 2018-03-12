@@ -9,12 +9,13 @@ from __future__ import unicode_literals, print_function
 from six import iteritems, binary_type, text_type, string_types
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
+from past.builtins import cmp
 
 # public
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '10.1.2'
+__version__ = '10.1.3'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -1470,6 +1471,22 @@ def get_version(doctype, name, limit = None, head = False, raise_err = True):
 def ping():
 	return "pong"
 
+
+def safe_encode(param, encoding = 'utf-8'):
+	try:
+		param = param.encode(encoding)
+	except Exception:
+		pass
+	return param
+
+
+def safe_decode(param, encoding = 'utf-8'):
+	try:
+		param = param.decode(encoding)
+	except Exception:
+		pass
+	return param
+	
 def parse_json(val):
 	from frappe.utils import parse_json
 	return parse_json(val)
