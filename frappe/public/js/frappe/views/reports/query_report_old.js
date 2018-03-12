@@ -950,15 +950,12 @@ frappe.views.QueryReport = Class.extend({
 		}
 
 		$.extend(opts, {
-			parent: ".chart-area",
 			height: 200
 		});
 
-		console.log(opts)
-
 		if(opts.data && opts.data.labels && opts.data.labels.length) {
 			this.chart_area.toggle(true);
-			this.chart = new Chart(opts);
+			this.chart = new Chart(".chart-area", opts);
 		}
 	},
 

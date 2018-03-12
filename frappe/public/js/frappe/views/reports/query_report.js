@@ -264,12 +264,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (!(opts.data && opts.data.labels && opts.data.labels.length > 0)) return;
 
 		Object.assign(opts, {
-			parent: this.$chart[0],
 			height: 200
 		});
 
 		this.$chart.show();
-		this.chart = new Chart(opts);
+		this.chart = new Chart(this.$chart[0], opts);
 	}
 
 	get_user_settings() {
