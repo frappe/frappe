@@ -13,6 +13,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		var me = this;
 		this.dialog = new frappe.ui.Dialog({
 			title: (this.title || this.subject || __("New Email")),
+			size: "large",
 			no_submit_on_enter: true,
 			fields: this.get_fields(),
 			primary_action_label: __("Send"),
