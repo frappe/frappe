@@ -15,14 +15,17 @@ class CustomField(Document):
 		self.name = self.dt + "-" + self.fieldname
 
 	def set_fieldname(self):
-		if self.fieldtype in ["Section Break", "Column Break"]:
-			self.fieldname = self.fieldtype.lower().replace(" ","_") + "_" + str(self.idx)
 		if not self.fieldname:
-			if not self.label:
-				frappe.throw(_("Label is mandatory"))
+			label = self.label
+			if not label:
+				if self.fieldtype in ["Section Break", "Column Break"]:
+					label = self.fieldtype + "_" + str(self.idx)
+				else:
+					frappe.throw(_("Label is mandatory"))
+
 			# remove special characters from fieldname
 			self.fieldname = "".join(filter(lambda x: x.isdigit() or x.isalpha() or '_',
-				cstr(self.label).lower().replace(' ','_')))
+				cstr(label).replace(' ','_')))
 
 		# fieldnames should be lowercase
 		self.fieldname = self.fieldname.lower()
