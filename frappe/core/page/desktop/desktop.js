@@ -299,7 +299,7 @@ $.extend(frappe.desktop, {
 				// sum all doctypes for a module
 				for (var j=0, k=module_doctypes.length; j < k; j++) {
 					var doctype = module_doctypes[j];
-					var count = (frappe.boot.notification_info.open_count_doctype[doctype] || 0);
+					let count = (frappe.boot.notification_info.open_count_doctype[doctype] || 0);
 					count = typeof count == "string" ? parseInt(count) : count;
 					sum += count;
 				}
@@ -308,7 +308,7 @@ $.extend(frappe.desktop, {
 			if(frappe.boot.notification_info.open_count_doctype
 				&& frappe.boot.notification_info.open_count_doctype[module.module_name]!=null) {
 				// notification count explicitly for doctype
-				var count = frappe.boot.notification_info.open_count_doctype[module.module_name] || 0;
+				let count = frappe.boot.notification_info.open_count_doctype[module.module_name] || 0;
 				count = typeof count == "string" ? parseInt(count) : count;
 				sum += count;
 			}
@@ -316,7 +316,7 @@ $.extend(frappe.desktop, {
 			if(frappe.boot.notification_info.open_count_module
 				&& frappe.boot.notification_info.open_count_module[module.module_name]!=null) {
 				// notification count explicitly for module
-				var count = frappe.boot.notification_info.open_count_module[module.module_name] || 0;
+				let count = frappe.boot.notification_info.open_count_module[module.module_name] || 0;
 				count = typeof count == "string" ? parseInt(count) : count;
 				sum += count;
 			}
