@@ -84,7 +84,7 @@ class TestEmail(unittest.TestCase):
 		self.assertTrue('test@example.com' in queue_recipients)
 		self.assertTrue('test1@example.com' in queue_recipients)
 
-		self.assertTrue('This email was sent to test@example.com and copied to test1@example.com' in frappe.flags.sent_mail.decode())
+		self.assertTrue('This email was sent to test@example.com and copied to test1@example.com' in frappe.safe_decode(frappe.flags.sent_mail))
 
 	def test_expose(self):
 		from frappe.utils.verified_command import verify_request
