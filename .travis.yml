@@ -17,6 +17,8 @@ matrix:
     env: PYTHON=python3
   - python: "pypy3"
     env: PYTHON=pypy3
+  allow_failures:
+    - env: PYTHON=python3 PYTHON=pypy3
 
 services:
   - mysql
