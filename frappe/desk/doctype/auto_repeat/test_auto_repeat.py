@@ -6,8 +6,6 @@ from __future__ import unicode_literals
 import unittest
 
 import frappe
-from erpnext.accounts.report.financial_statements import get_months
-from erpnext.accounts.utils import get_fiscal_year
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.desk.doctype.auto_repeat.auto_repeat import make_auto_repeat_entry, disable_auto_repeat
 from frappe.utils import today, add_days, getdate
@@ -45,9 +43,8 @@ class TestAutoRepeat(unittest.TestCase):
 		self.assertEqual(todo.get('description'), new_todo.get('description'))
 
 	def test_monthly_auto_repeat(self):
-		current_fiscal_year = get_fiscal_year(today(), as_dict=True)
-		start_date = current_fiscal_year.year_start_date
-		end_date = current_fiscal_year.year_end_date
+		start_date = '2018-01-01'
+		end_date = '2018-12-31'
 
 		todo = frappe.get_doc(
 			dict(doctype='ToDo', description='test recurring todo', assigned_by='Administrator')).insert()
@@ -55,14 +52,15 @@ class TestAutoRepeat(unittest.TestCase):
 		self.monthly_auto_repeat('ToDo', todo.name, start_date, end_date)
 
 	def monthly_auto_repeat(self, doctype, docname, start_date, end_date):
+		def get_months(start, end):
+			diff = (12 * end.year + end.month) - (12 * start.year + start.month)
+			return diff + 1
+
 		doc = make_auto_repeat(
 			reference_doctype=doctype, frequency='Monthly',	reference_document=docname, start_date=start_date,
 			end_date=end_date)
 
 		disable_auto_repeat(doc)
-		# doc.disabled = 1
-		# doc.save()
-		# frappe.db.commit()
 
 		make_auto_repeat_entry()
 		docnames = frappe.get_all(doc.reference_doctype, {'auto_repeat': doc.name})
@@ -70,7 +68,6 @@ class TestAutoRepeat(unittest.TestCase):
 
 		doc = frappe.get_doc('Auto Repeat', doc.name)
 		doc.db_set('disabled', 0)
-		# doc.save()
 
 		months = get_months(getdate(start_date), getdate(today()))
 		make_auto_repeat_entry()
@@ -84,8 +81,7 @@ def make_auto_repeat(**args):
 	doc = frappe.get_doc({
 		'doctype': 'Auto Repeat',
 		'reference_doctype': args.reference_doctype or 'ToDo',
-		'reference_document': args.reference_document or \
-			frappe.db.get_value('ToDo', {'docstatus': 1}, 'name'),
+		'reference_document': args.reference_document or frappe.db.get_value('ToDo', {'docstatus': 1}, 'name'),
 		'frequency': args.frequency or 'Daily',
 		'start_date': args.start_date or add_days(today(), -1),
 		'end_date': args.end_date or add_days(today(), 1),
