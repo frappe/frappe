@@ -4,7 +4,7 @@
 		"public/css/octicons/octicons.css",
 		"public/less/website.less",
 		"public/less/avatar.less",
-		
+
 		"public/less/chat.less"
 	],
 	"js/frappe-web.min.js": [
@@ -22,7 +22,7 @@
 		"public/js/frappe/query_string.js",
 		"website/js/website.js",
 		"public/js/frappe/misc/rating_icons.html",
-		
+
 		"public/js/frappe/chat.js"
 	],
 	"js/control.min.js": [
@@ -378,5 +378,8 @@
 		"public/js/legacy/layout.js",
 		"public/js/legacy/print_table.js",
 		"public/js/legacy/print_format.js"
+	],
+	"frappe/css/email.css": [
+		"public/less/email.less"
 	]
 }
