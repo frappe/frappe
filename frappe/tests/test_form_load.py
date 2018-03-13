@@ -10,13 +10,13 @@ from frappe.permissions import get_valid_perms
 class TestFormLoad(unittest.TestCase):
 	def test_load(self):
 		getdoctype("DocType")
-		meta = filter(lambda d: d.name=="DocType", frappe.response.docs)[0]
+		meta = list(filter(lambda d: d.name=="DocType", frappe.response.docs))[0]
 		self.assertEqual(meta.name, "DocType")
 		self.assertTrue(meta.get("__js"))
 
 		frappe.response.docs = []
 		getdoctype("Event")
-		meta = filter(lambda d: d.name=="Event", frappe.response.docs)[0]
+		meta = list(filter(lambda d: d.name=="Event", frappe.response.docs))[0]
 		self.assertTrue(meta.get("__calendar_js"))
 
 	def test_fieldlevel_permissions_in_load(self):

@@ -3,31 +3,25 @@ dist: trusty
 
 python:
   - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+  - "pypy3"
 
 services:
   - mysql
 
-install:
-  - sudo rm /etc/apt/sources.list.d/mongodb*.list
-  - pip install flake8==3.3.0
-  - flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
-  - sudo rm /etc/apt/sources.list.d/docker.list
-  - sudo apt-get purge -y mysql-common mysql-server mysql-client
-  - nvm install v7.10.0
-  - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
-
-  - sudo python install.py --develop --user travis --without-bench-setup
-  - sudo pip install -e ~/bench
-
-  - rm $TRAVIS_BUILD_DIR/.git/shallow
-  - cd ~/ && bench init frappe-bench --frappe-path $TRAVIS_BUILD_DIR
-  - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
+matrix:
+  allow_failures:
+    - python: "3.4"
+    - python: "3.5"
+    - python: "3.6"
+    - python: "pypy3"
 
 before_script:
-  - mysql -u root -ptravis -e 'create database test_frappe'
+  - mysql -u root -ptravis -e 'CREATE DATABASE test_frappe'
   - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
   - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
-
 
   - cd ~/frappe-bench
   - bench use test_site
@@ -37,6 +31,20 @@ before_script:
   - bench start &
   - sleep 20
 
+install:
+  - sudo rm /etc/apt/sources.list.d/mongodb*.list
+  - sudo rm /etc/apt/sources.list.d/docker.list
+  - sudo apt-get purge -y mysql-common mysql-server mysql-client
+  - nvm install v8.10.0
+  
+  - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
+
+  - sudo python install.py --develop --user travis --without-bench-setup
+  - sudo pip install -e ~/bench
+
+  - rm $TRAVIS_BUILD_DIR/.git/shallow
+  - cd ~/ && bench init frappe-bench --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
+  - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
+
 script:
-  # - set -e
   - bench run-tests

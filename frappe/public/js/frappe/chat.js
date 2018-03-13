@@ -1,38 +1,10 @@
 // Frappe Chat
 // Author - Achilles Rasquinha <achilles@frappe.io>
 
-/**
- * --------------------------------------------------------------------------------
- * Developer Notes
- * --------------------------------------------------------------------------------
- */
-
 /* eslint semi: "never" */
 // Fuck semicolons - https://mislav.net/2010/05/semicolons
 
 // frappe extensions
-
-// frappe.model extensions
-frappe.provide('frappe.model')
-/**
- * @description Subscribe to a model for realtime updates.
- *
- * @example
- * frappe.model.subscribe('User')
- * // Subscribe to all User records
- *
- * frappe.model.subscribe('User', 'achilles@frappe.io')
- * frappe.model.subscribe('User', ['achilles@frappe.io', 'rushabh@frappe.io'])
- * // Subscribe to User of name(s)
- *
- * frappe.model.subscribe('User', 'achilles@frappe.io', 'username')
- * frappe.model.subscribe('User', ['achilles@frappe.io', 'rushabh@frappe.io'], ['email', 'username'])
- * // Subscribe to User of name for field(s)
- *
- * @todo Under Development
- */
-frappe.model.subscribe = (doctype, name, field) =>
-	frappe.realtime.publish('frappe.model:subscribe', { doctype: doctype, name: name, field: field })
 
 /**
  * @description The base class for all Frappe Errors.

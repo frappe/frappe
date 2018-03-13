@@ -49,7 +49,7 @@ class TestEmail(unittest.TestCase):
 		self.assertTrue('test@example.com' in queue_recipients)
 		self.assertTrue('test1@example.com' in queue_recipients)
 		self.assertEqual(len(queue_recipients), 2)
-		self.assertTrue('Unsubscribe' in frappe.flags.sent_mail.decode())
+		self.assertTrue('Unsubscribe' in frappe.safe_decode(frappe.flags.sent_mail))
 
 	def test_cc_header(self):
 		#test if sending with cc's makes it into header
@@ -84,7 +84,7 @@ class TestEmail(unittest.TestCase):
 		self.assertTrue('test@example.com' in queue_recipients)
 		self.assertTrue('test1@example.com' in queue_recipients)
 
-		self.assertTrue('This email was sent to test@example.com and copied to test1@example.com' in frappe.flags.sent_mail.decode())
+		self.assertTrue('This email was sent to test@example.com and copied to test1@example.com' in frappe.safe_decode(frappe.flags.sent_mail))
 
 	def test_expose(self):
 		from frappe.utils.verified_command import verify_request
@@ -104,7 +104,7 @@ class TestEmail(unittest.TestCase):
 			where status='Sent'""", as_dict=1)[0].message
 		self.assertTrue('<!--recipient-->' in message)
 
-		email_obj = email.message_from_string(frappe.flags.sent_mail.decode())
+		email_obj = email.message_from_string(frappe.safe_decode(frappe.flags.sent_mail))
 		for part in email_obj.walk():
 			content = part.get_payload(decode=True)
 
@@ -150,7 +150,7 @@ class TestEmail(unittest.TestCase):
 		self.assertFalse('test@example.com' in queue_recipients)
 		self.assertTrue('test1@example.com' in queue_recipients)
 		self.assertEqual(len(queue_recipients), 1)
-		self.assertTrue('Unsubscribe' in frappe.flags.sent_mail.decode())
+		self.assertTrue('Unsubscribe' in frappe.safe_decode(frappe.flags.sent_mail))
 
 	def test_email_queue_limit(self):
 		from frappe.email.queue import send, EmailLimitCrossedError
