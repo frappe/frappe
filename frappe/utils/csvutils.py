@@ -8,6 +8,7 @@ import json
 import csv
 from six import StringIO, text_type, string_types
 from frappe.utils import encode, cstr, cint, flt, comma_or
+import io
 
 def read_csv_content_from_uploaded_file(ignore_encoding=False):
 	if getattr(frappe, "uploaded_file", None):
@@ -56,7 +57,8 @@ def read_csv_content(fcontent, ignore_encoding=False):
 
 	try:
 		rows = []
-		for row in csv.reader(fcontent):
+		io_string = io.StringIO(fcontent)
+		for row in io_string:
 			r = []
 			for val in row:
 				# decode everything
