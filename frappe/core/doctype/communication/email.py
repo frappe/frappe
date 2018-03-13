@@ -175,7 +175,7 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		communication=doc.name,
 		read_receipt=doc.read_receipt,
 		is_notification=True if doc.sent_or_received =="Received" else False,
-		print_letterhead=True if frappe.flags.print_letterhead=='true' else False
+		print_letterhead=frappe.flags.print_letterhead
 	)
 
 def update_parent_mins_to_first_response(doc):
