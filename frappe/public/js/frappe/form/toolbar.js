@@ -285,9 +285,11 @@ frappe.ui.form.Toolbar = Class.extend({
 
 		if(status!== 'Edit') {
 			var perm_to_check = this.frm.action_perm_type_map[status];
-			if(!this.frm.perm[0][perm_to_check]) {
-				return;
-			}
+			$.each(this.frm.perm || [], function(i, v) {
+				if(!v[perm_to_check]) {
+					return;
+				}
+			})
 		}
 
 		if(status === "Edit") {
