@@ -84,7 +84,7 @@ def run_patch():
 
 
 def insert_user_social_login(user, modified_by, provider, idx, userid=None, username=None):
-	source_cols = get_standard_cols() + get_provider_fields(provider)
+	source_cols = get_standard_cols()
 
 	creation_time = frappe.utils.get_datetime_str(frappe.utils.get_datetime())
 	values = [
@@ -101,9 +101,11 @@ def insert_user_social_login(user, modified_by, provider, idx, userid=None, user
 	]
 
 	if userid:
+		source_cols.append("userid")
 		values.append(userid)
 
 	if username:
+		source_cols.append("username")
 		values.append(username)
 	
 	
