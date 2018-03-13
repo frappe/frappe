@@ -35,6 +35,14 @@ $.extend(frappe, {
 	},
 	call: function(opts) {
 		// opts = {"method": "PYTHON MODULE STRING", "args": {}, "callback": function(r) {}}
+		if (typeof arguments[0]==='string') {
+			opts = {
+				method: arguments[0],
+				args: arguments[1],
+				callback: arguments[2]
+			}
+		}
+		
 		frappe.prepare_call(opts);
 		if(opts.freeze) {
 			frappe.freeze();
