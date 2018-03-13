@@ -15,7 +15,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import now
+from frappe.utils import now,cstr
 
 class NestedSetRecursionError(frappe.ValidationError): pass
 class NestedSetMultipleRootsError(frappe.ValidationError): pass
@@ -218,6 +218,25 @@ class NestedSet(Document):
 				frappe.throw(_("Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node"), NestedSetInvalidMergeError)
 
 	def after_rename(self, olddn, newdn, merge=False):
+		if not merge:
+			new_tree_node = frappe.db.get_value(self.doctype, newdn, [frappe.scrub(self.doctype)+"_name", frappe.scrub(self.doctype)+"_number"], as_dict=1)
+
+			# exclude company abbr
+			new_parts = newdn.split(" - ")[:-1]
+			# update node number and remove from parts
+			if new_parts[0][0].isdigit():
+				# if  node number is separate by space, split using space
+				if len(new_parts) == 1:
+					new_parts = newdn.split("-")
+				if new_tree_node[frappe.scrub(self.doctype)+"_number"] != new_parts[0]:
+					self.db_set(frappe.scrub(self.doctype)+"_number", new_parts[0])
+				new_parts = new_parts[1:]
+
+			# update node name
+			node_name = " - ".join(new_parts)
+			if new_tree_node[frappe.scrub(self.doctype)+"_name"] != node_name:
+				self.db_set(frappe.scrub(self.doctype)+"_name", node_name)
+
 		if not self.nsm_parent_field:
 			parent_field = "parent_" + self.doctype.replace(" ", "_").lower()
 		else:
@@ -258,3 +277,46 @@ def get_ancestors_of(doctype, name):
 	result = frappe.db.sql_list("""select name from `tab{0}`
 		where lft<%s and rgt>%s order by lft desc""".format(doctype), (lft, rgt))
 	return result or []
+
+def get_doc_name_autoname(field_value, doc_title, company):
+	# first validate if company exists
+	company = frappe.db.get_value("Company", company, ["abbr", "name"], as_dict=True)
+	if not company:
+		frappe.throw(_('Company {0} does not exist').format(company))
+
+	parts = [doc_title.strip(), company.abbr]
+	if cstr(field_value).strip():
+		parts.insert(0, cstr(field_value).strip())
+	return ' - '.join(parts)
+
+def validate_field_number(doctype_name, name, field_value, company, field_name):
+	if field_value:
+		doctype_with_same_number = frappe.db.get_value(doctype_name,
+			{field_name: field_value, "company": company, "name": ["!=", name]})
+		if doctype_with_same_number:
+			frappe.throw(_("{0} Number {1} already used in account {2}")
+				.format(doctype_name, field_value, doctype_with_same_number))
+
+@frappe.whitelist()
+def update_number_field(doctype_name, name, field_name, field_value):
+
+	field_key = frappe.scrub(doctype_name)+"_name"
+	doc_details = frappe.db.get_value(doctype_name, name, [field_key, "company"], as_dict=True)
+
+	validate_field_number(doctype_name, name, field_value, doc_details.company, field_name)
+
+	frappe.db.set_value(doctype_name, name, field_name, field_value)
+
+	doc_title = doc_details[field_key]
+	if doc_title[0].isdigit():
+		separator = " - " if " - " in doc_title else " "
+		doc_title = doc_title.split(separator, 1)[1]
+
+	frappe.db.set_value(doctype_name, name, field_key, doc_title)
+
+	new_name = get_doc_name_autoname(field_value, doc_title, doc_details.company)
+
+	if name != new_name:
+		frappe.rename_doc(doctype_name, name, new_name)
+		return new_name
+	

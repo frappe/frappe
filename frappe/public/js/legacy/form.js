@@ -466,6 +466,7 @@ _f.Frm.prototype.refresh = function(docname) {
 
 		this.show_if_needs_refresh();
 	}
+	
 };
 
 _f.Frm.prototype.show_if_needs_refresh = function() {
@@ -498,6 +499,8 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 		// header must be refreshed before client methods
 		// because add_custom_button
 		this.refresh_header(is_a_different_doc);
+
+		this.show_update_number_field();
 
 		// call trigger
 		this.script_manager.trigger("refresh");
@@ -923,6 +926,7 @@ _f.Frm.prototype.set_footnote = function(txt) {
 
 _f.Frm.prototype.add_custom_button = function(label, fn, group) {
 	// temp! old parameter used to be icon
+	// console.log("label:"+label+" fn:"+fn+" group:"+group);
 	if(group && group.indexOf("fa fa-")!==-1) group = null;
 	var btn = this.page.add_inner_button(label, fn, group);
 	this.custom_buttons[label] = btn;
@@ -1006,3 +1010,57 @@ _f.Frm.prototype.scroll_to_element = function() {
 		}
 	}
 };
+_f.Frm.prototype.show_update_number_field = function() {
+	
+	var me = this;
+	
+	if(!this.doc.__islocal && (frappe.get_meta(me.doctype).fields.filter(function(fld) {
+		return (fld.fieldname == "lft" || fld.fieldname == "rgt" || fld.fieldname == frappe.scrub(me.doctype+" number"));
+	}).length == 3)) {
+		this.add_custom_button(__('Update ' + me.doctype + ' Number'), function() {
+			var d = new frappe.ui.Dialog({
+				title: __('Update ' + me.doctype + ' Number'),
+				fields: [
+					{
+						"label": me.doctype+' Number',
+						"fieldname": frappe.scrub(me.doctype+" Number"),
+						"fieldtype": "Data",
+						"reqd": 1
+					}
+				],
+				primary_action: function() {
+		
+					var data = d.get_values();
+					if(data[frappe.scrub(me.doctype+" number")] === me.doc[frappe.scrub(me.doctype+" number")]) {
+						d.hide();
+						return;
+					}
+
+					frappe.call({
+						method: "frappe.utils.nestedset.update_number_field",
+						args: {
+							doctype_name: me.doc.doctype,
+							name: me.doc.name,
+							field_name: d.fields[0].fieldname,
+							field_value: data[frappe.scrub(me.doctype+" number")]
+						},
+						callback: function(r) {
+							if(!r.exc) {
+								if(r.message) {
+									frappe.set_route("Form", me.doctype, r.message);
+								} else {
+									me.set_value(frappe.scrub(me.doctype+" number"), data[frappe.scrub(me.doctype+" number")]);
+								}
+								d.hide();
+							}
+						}
+					});
+				},
+				primary_action_label: __('Update')
+			});
+			d.show();
+		});
+	}
+	
+};
+
