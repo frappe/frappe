@@ -1,5 +1,6 @@
 
 import frappe
+from frappe.utils import cstr
 
 def execute():
 	# Update Social Logins in User
@@ -95,7 +96,7 @@ def insert_user_social_login(user, modified_by, provider, idx, userid=None, user
 		user,
 		"User",
 		"social_logins",
-		idx,
+		cstr(idx),
 		provider
 	]
 
