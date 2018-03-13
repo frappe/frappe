@@ -29,12 +29,19 @@ class TransactionLog(Document):
 
 	def hash_line(self):
 		sha = hashlib.sha256()
-		sha.update(frappe.safe_encode(self.row_index) + frappe.safe_encode(self.timestamp) + frappe.safe_encode(self.data))
+		sha.update('{}{}{}'.format(
+			frappe.safe_encode(str(self.row_index)),
+			frappe.safe_encode(str(self.timestamp)),
+			frappe.safe_encode(str(self.data))
+		))
 		return sha.hexdigest()
 
 	def hash_chain(self):
 		sha = hashlib.sha256()
-		sha.update(frappe.safe_encode(self.transaction_hash) + frappe.safe_encode(self.previous_hash))
+		sha.update('{}{}{}'.format(
+			frappe.safe_encode(str(self.transaction_hash)),
+			frappe.safe_encode(str(self.previous_hash))
+		))
 		return sha.hexdigest()
 
 
