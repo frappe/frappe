@@ -10,14 +10,18 @@
 
 @frappe-chat-toggle-height:								40px;
 
-@frappe-chat-popper-margin:								15px;
+@frappe-fab-box-shadow:                                 0 5px 15px rgba(0, 0, 0, .5);
+@frappe-fab-size-lg:                                    56px;
+@frappe-fab-margin:                                     15px;
+
+@frappe-chat-popper-margin:								@frappe-fab-margin;
 @frappe-chat-popper-panel-width:						350px;
 @frappe-chat-popper-panel-height:						500px;
 // z-index greater than FAB, lesser than modal.
 @frappe-chat-popper-z-index:							1035;
 
 // BS modal's box-shadow
-@frappe-chat-popper-panel-box-shadow:					0 5px 15px rgba(0, 0, 0, .5);
+@frappe-chat-popper-panel-box-shadow:					@frappe-fab-box-shadow;
 
 // https://github.com/twbs/bootstrap/blob/v3.3.7/less/variables.less#L278
 // Keep z-index of the ChatPopper higher than others, lower than modal background.
@@ -39,6 +43,22 @@
 // suggested by rushabh@frappe.io. Thanks, Rushabh!
 .avatar { padding: 2px; }
 
+.frappe-fab
+{
+         position: fixed;
+           bottom: 0;
+            right: 0;
+    border-radius: 50%;
+       box-shadow: @frappe-fab-box-shadow;
+           margin: @frappe-fab-margin;
+    
+    &.frappe-fab-lg
+    {
+         width: @frappe-fab-size-lg;
+        height: @frappe-fab-size-lg;
+    }
+}
+
 .navbar
 {
     .frappe-chat-toggle
@@ -54,20 +74,20 @@
 {
     & > .frappe-chat-popper
     {
-        position: fixed;
+         position: fixed;
            bottom: 0px;
-           right: 0px;	
-          margin: @frappe-chat-popper-margin;
-         z-index: @frappe-chat-popper-z-index;
+            right: 0px;	
+           margin: @frappe-chat-popper-margin;
+          z-index: @frappe-chat-popper-z-index;
             
         & > .frappe-chat-popper-collapse
         {
             & > .panel
             {
                        position: relative;
-                          display: flex;
+                        display: flex;
                  flex-direction: column;
-                            width: @frappe-chat-popper-panel-width;
+                          width: @frappe-chat-popper-panel-width;
                          height: @frappe-chat-popper-panel-height;
                      box-shadow: @frappe-chat-popper-panel-box-shadow;
 
@@ -75,7 +95,7 @@
                 {
                      position: absolute;
                           top: 50%;
-                          left: 50%;
+                         left: 50%;
                     transform: translate(-50%, -50%);
                 }
 
@@ -88,8 +108,8 @@
                         .media-heading
                         {
                             font-size: 12px;
-                            margin: 0px;
-                            padding: 0px;
+                               margin: 0px;
+                              padding: 0px;
                         }
 
                         .media-subtitle
@@ -143,13 +163,13 @@
             & > .panel.panel-span
             {
                      position: fixed;
-                           width: 100%;
-                            height: 100%;
-                             top: 0px;
-                          left: 0px;
-                            bottom: 0px;
-                           right: 0px;
-                      overflow: auto;
+                        width: 100%;
+                       height: 100%;
+                          top: 0px;
+                         left: 0px;
+                       bottom: 0px;
+                        right: 0px;
+                     overflow: auto;
                 border-radius: 0px;
         
                 .panel-heading

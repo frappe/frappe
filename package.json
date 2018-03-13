@@ -20,6 +20,7 @@
     "express": "^4.16.2",
     "frappe-datatable": "frappe/datatable",
     "frappe-gantt": "^0.1.0",
+    "fuse.js": "^3.2.0",
     "moment": "^2.20.1",
     "redis": "^2.8.0",
     "showdown": "^1.8.6",

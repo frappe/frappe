@@ -280,9 +280,9 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 			import inspect
 
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
-				raise raise_exception(encode(msg))
+				raise raise_exception(as_unicode(msg))
 			else:
-				raise ValidationError(encode(msg))
+				raise ValidationError(as_unicode(msg))
 
 	if flags.mute_messages:
 		_raise_exception()
