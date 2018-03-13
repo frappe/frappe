@@ -60,25 +60,25 @@ def run_patch():
 	frappe.reload_doc("core", "doctype", "user_social_login", force=True)
 
 	users = frappe.get_all("User", 
-		fields=["name", "frappe_userid", "fb_userid", "fb_username", "github_userid", "github_username", "google_userid"], 
+		fields=["name", "frappe_userid", "fb_userid", "fb_username", "github_userid", "github_username", "google_userid", "modified_by"], 
 		filters={"name":("not in", ["Administrator", "Guest"])})
 
-	idx = 0
 	for user in users:
-		if user.get("frappe_userid"):
-			insert_user_social_login(user.get("name"), user.modified_by, 'frappe', idx, user.get("frappe_userid"))
+		idx = 0
+		if user.frappe_userid:
+			insert_user_social_login(user.name, user.modified_by, 'frappe', idx, userid=user.frappe_userid)
 			idx += 1
 
-		if user.get("fb_userid") or user.get("fb_username"):
-			insert_user_social_login(user.get("name"), 'facebook', user.get("fb_userid"), idx, user.get("fb_username"))
+		if user.fb_userid or user.fb_username:
+			insert_user_social_login(user.name, user.modified_by, 'facebook', idx, userid=user.fb_userid, username=user.fb_username)
 			idx += 1
 
-		if user.get("github_userid") or user.get("github_username"):
-			insert_user_social_login(user.get("name"), 'github', user.get("github_userid"), idx, user.get("github_username"))
+		if user.github_userid or user.github_username:
+			insert_user_social_login(user.name, user.modified_by, 'github', idx, userid=user.github_userid, username=user.github_username)
 			idx += 1
 
-		if user.get("google_userid"):
-			insert_user_social_login(user.get("name"), 'google', idx, user.get("google_userid"))
+		if user.google_userid:
+			insert_user_social_login(user.name, user.modified_by, 'google', idx, userid=user.google_userid)
 			idx += 1
 
 
