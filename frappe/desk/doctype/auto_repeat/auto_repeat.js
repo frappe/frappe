@@ -3,7 +3,7 @@
 
 frappe.ui.form.on('Auto Repeat', {
 	setup: function(frm) {
-		frm.fields_dict['reference_doctype'].get_query = function(doc) {
+		frm.fields_dict['reference_doctype'].get_query = function() {
 			return {
 				query: "frappe.desk.doctype.auto_repeat.auto_repeat.auto_repeat_doctype_query"
 			};
