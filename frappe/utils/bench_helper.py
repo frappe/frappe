@@ -60,11 +60,14 @@ def get_sites(site_arg):
 				return [f.read().strip()]
 
 def get_app_commands(app):
-	try:
-		app_command_module = importlib.import_module(app + '.commands')
-	except ImportError as e:
-		if not 'No module named' in str(e):
+	if os.path.exists(frappe.get_app_path(app, 'commands.py'))\
+		or os.path.exists(frappe.get_app_path(app, 'commands', '__init__.py')):
+		try:
+			app_command_module = importlib.import_module(app + '.commands')
+		except Exception:
 			traceback.print_exc()
+			return []
+	else:
 		return []
 
 	ret = {}
