@@ -19,6 +19,68 @@ class ExotelSettings(Document):
 		if(response.status_code != 200):
 			frappe.throw(_("Invalid credentials. Please try again with valid credentials"))
 
+def make_popup(caller_no):
+	out_html = ""
+
+	contact_lookup = frappe.db.get_list("Contact", or_filters={"phone":caller_no, "mobile_no":caller_no})
+	if len(contact_lookup) > 0:
+		contact_name = contact_lookup[0].get("name")
+		customer_name = frappe.db.get_value("Dynamic Link", {"parent":contact_name}, "link_name")
+		customer_full_name = frappe.db.get_value("Customer", customer_name, "customer_name")
+		popup_data = {
+			"title": "Customer", 
+			"number": caller_no,
+			"name": customer_full_name,
+			"call_timestamp": frappe.utils.datetime.datetime.strftime(frappe.utils.datetime.datetime.today(), '%d/%m/%Y %H:%M:%S'),
+			"call_id": call_id
+		}
+
+		popup_html = render_popup(popup_data)
+		return popup_html
+
+	lead_lookup = frappe.db.get_list("Lead", or_filters={"phone":caller_no,"mobile_no":caller_no,"contact_number":caller_no}, fields=["name", "lead_name"])
+	if len(lead_lookup) > 0:
+		lead_name = lead_lookup[0].get("name")
+		lead_full_name = lead_lookup[0].get("lead_name")
+		popup_data = {
+			"title": "Lead", 
+			"number": caller_no,
+			"name": lead_full_name,
+			"call_timestamp": frappe.utils.datetime.datetime.strftime(frappe.utils.datetime.datetime.today(), '%d/%m/%Y %H:%M:%S'),
+			"call_id": call_id
+		}
+		popup_html = render_popup(popup_data)
+		return popup_html
+
+	popup_data = {
+		"title": "Unknown Caller",
+		"number": caller_no,
+		"name": "Unknown",
+		"call_timestamp": frappe.utils.datetime.datetime.strftime(frappe.utils.datetime.datetime.today(), '%d/%m/%Y %H:%M:%S'),
+		"call_id": call_id
+	}
+	popup_html = render_popup(popup_data)
+	return popup_html
+
+def render_popup(popup_data):
+	html = frappe.render_template("frappe/public/js/popup.html", popup_data)
+	return html
+
+def display_popup():
+	# agent_no = popup_json.get("destination")
+
+		try:
+			popup_html = make_popup(caller_no)
+			# if agent_id:	
+			# 	frappe.async.publish_realtime(event="msgprint", message=popup_html, user=agent_id)
+			# else:
+			users = frappe.get_all("Has Role", filters={"parenttype":"User","role":"Support Team"}, fields=["parent"])
+			agents = [user.get("parent") for user in users]
+			for agent in agents:
+				frappe.async.publish_realtime(event="msgprint", message=popup_html, user=agent)	
+
+		except Exception as e:
+			frappe.log_error(message=e, title="Error in popup display")
 
 @frappe.whitelist(allow_guest=True)
 def handle_incoming_call(*args, **kwargs):
@@ -42,6 +104,8 @@ def handle_incoming_call(*args, **kwargs):
 			comm.communication_date = content.get("StartTime")
 			comm.sid = content.get("CallSid")
 			comm.exophone = content.get("CallTo")
+			if(frappe.get_doc("Telephony Settings").show_popup_for_incoming_calls):
+				display_popup()
 
 			comm.save(ignore_permissions=True)
 			frappe.db.commit()
