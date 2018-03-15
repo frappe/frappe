@@ -3,20 +3,16 @@ dist: trusty
 
 python:
   - "2.7"
-  - "3.4"
   - "3.5"
   - "3.6"
-  - "pypy3"
 
 services:
   - mysql
 
 matrix:
   allow_failures:
-    - python: "3.4"
     - python: "3.5"
     - python: "3.6"
-    - python: "pypy3"
 
 before_script:
   - mysql -u root -ptravis -e 'CREATE DATABASE test_frappe'
