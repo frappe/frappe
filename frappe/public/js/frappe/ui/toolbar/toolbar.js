@@ -220,7 +220,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 								me.progress_dialog.show();
 							});
 
-							if (cint(frappe.boot.sysdefault.is_first_startup)) {
+							if (cint(frappe.boot.sysdefaults.is_first_startup)) {
 								me.progress_dialog.show();
 								frappe.call({
 									method: "frappe.desk.page.setup_wizard.setup_wizard.reset_is_first_startup",
