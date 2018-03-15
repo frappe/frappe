@@ -108,7 +108,7 @@ def insert_user_social_login(user, modified_by, provider, idx, userid=None, user
 		source_cols.append("username")
 		values.append(username)
 
-	
+
 	query = """INSERT INTO `tabUser Social Login` ({source_cols})
 		VALUES ({values})
 	""".format(
