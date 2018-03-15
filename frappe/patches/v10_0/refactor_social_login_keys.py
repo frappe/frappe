@@ -60,8 +60,8 @@ def run_patch():
 	frappe.reload_doc("core", "doctype", "user", force=True)
 	frappe.reload_doc("core", "doctype", "user_social_login", force=True)
 
-	users = frappe.get_all("User", 
-		fields=["name", "frappe_userid", "fb_userid", "fb_username", "github_userid", "github_username", "google_userid", "modified_by"], 
+	users = frappe.get_all("User",
+		fields=["name", "frappe_userid", "fb_userid", "fb_username", "github_userid", "github_username", "google_userid", "modified_by"],
 		filters={"name":("not in", ["Administrator", "Guest"])})
 
 	for user in users:
@@ -107,9 +107,9 @@ def insert_user_social_login(user, modified_by, provider, idx, userid=None, user
 	if username:
 		source_cols.append("username")
 		values.append(username)
+
 	
-	
-	query = """INSERT INTO `tabUser Social Login` ({source_cols}) 
+	query = """INSERT INTO `tabUser Social Login` ({source_cols})
 		VALUES ({values})
 	""".format(
 		source_cols = "`" + "`, `".join(source_cols) + "`",
