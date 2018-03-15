@@ -19,7 +19,12 @@ $.extend(frappe.model, {
 			for(var i=0, l=r.docs.length; i<l; i++) {
 				var d = r.docs[i];
 
-				frappe.model.add_to_locals(d);
+				if (locals[d.doctype] && locals[d.doctype][d.name]) {
+					// update values
+					frappe.model.update_in_locals(d);
+				} else {
+					frappe.model.add_to_locals(d);
+				}
 
 				d.__last_sync_on = new Date();
 
@@ -94,6 +99,35 @@ $.extend(frappe.model, {
 						frappe.model.add_to_locals(d);
 					}
 				}
+			}
+		}
+	},
+	update_in_locals: function(d) {
+		// update values in the existing local doc instead of replacing
+		let local_doc = locals[d.doctype][d.name];
+		for (let fieldname in d) {
+			if (local_doc[fieldname] instanceof Array) {
+				// table
+				if (!(d[fieldname] instanceof Array)) {
+					d[fieldname] = [];
+				}
+				// child table, override each row and append new rows if required
+				for (let i=0; i < d[fieldname].length; i++ ) {
+					if (local_doc[fieldname][i]) {
+						// row exists, just copy the values
+						Object.assign(local_doc[fieldname][i], d[fieldname][i]);
+					} else {
+						local_doc[fieldname].push(d[fieldname][i]);
+					}
+				}
+
+				// remove extra rows
+				if (local_doc[fieldname].length > d[fieldname].length) {
+					local_doc[fieldname].length = d[fieldname].length;
+				}
+			} else {
+				// literal
+				local_doc[fieldname] = d[fieldname];
 			}
 		}
 	}
