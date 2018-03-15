@@ -8,6 +8,7 @@ import frappe.sessions
 from frappe.utils import cstr
 import os, mimetypes, json
 
+import six
 from six import iteritems
 from werkzeug.wrappers import Response
 from werkzeug.routing import Map, Rule, NotFound
@@ -276,7 +277,7 @@ def clear_cache(path=None):
 		frappe.get_attr(method)(path)
 
 def render_403(e, pathname):
-	frappe.local.message = cstr(e.message)
+	frappe.local.message = cstr(e.message if six.PY2 else e)
 	frappe.local.message_title = _("Not Permitted")
 	frappe.local.response['context'] = dict(
 		indicator_color = 'red',

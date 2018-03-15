@@ -18,7 +18,7 @@ class TestWebsite(unittest.TestCase):
 
 		self.assertTrue(response.status_code, 200)
 
-		html = response.get_data()
+		html = frappe.safe_decode(response.get_data())
 
 		self.assertTrue('/* login-css */' in html)
 		self.assertTrue('// login.js' in html)

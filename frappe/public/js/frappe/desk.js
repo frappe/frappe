@@ -237,7 +237,7 @@ frappe.Application = Class.extend({
 
 	refresh_notifications: function() {
 		var me = this;
-		if(frappe.session_alive && frappe.boot && !frappe.boot.in_setup_wizard) {
+		if(frappe.session_alive && frappe.boot && !(frappe.boot.home_page !== 'setup-wizard')) {
 			return frappe.call({
 				method: "frappe.desk.notifications.get_notifications",
 				callback: function(r) {
@@ -359,7 +359,7 @@ frappe.Application = Class.extend({
 	},
 	make_nav_bar: function() {
 		// toolbar
-		if(frappe.boot && !frappe.boot.in_setup_wizard) {
+		if(frappe.boot && frappe.boot.home_page!=='setup-wizard') {
 			frappe.frappe_toolbar = new frappe.ui.toolbar.Toolbar();
 		}
 

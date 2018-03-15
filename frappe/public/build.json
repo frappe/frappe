@@ -3,7 +3,9 @@
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
 		"public/less/website.less",
-		"public/less/avatar.less"
+		"public/less/avatar.less",
+
+		"public/less/chat.less"
 	],
 	"js/frappe-web.min.js": [
 		"public/js/frappe/class.js",
@@ -19,7 +21,9 @@
 		"public/js/lib/microtemplate.js",
 		"public/js/frappe/query_string.js",
 		"website/js/website.js",
-		"public/js/frappe/misc/rating_icons.html"
+		"public/js/frappe/misc/rating_icons.html",
+
+		"public/js/frappe/chat.js"
 	],
 	"js/control.min.js": [
 		"public/js/frappe/ui/capture.js",
@@ -122,8 +126,7 @@
 		"public/less/form.less",
 		"public/less/mobile.less",
 		"public/less/kanban.less",
-		"public/less/controls.less",
-		"public/less/chat.less"
+		"public/less/controls.less"
 	],
 	"css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",
@@ -147,10 +150,7 @@
 		"public/js/lib/leaflet/leaflet.js",
 		"public/js/lib/leaflet/leaflet.draw.js",
 		"public/js/lib/leaflet/L.Control.Locate.js",
-		"public/js/lib/leaflet/easy-button.js",
-
-		"public/js/lib/hyper.min.js",
-		"public/js/lib/fuse.min.js"
+		"public/js/lib/leaflet/easy-button.js"
 	],
 	"js/desk.min.js": [
 		"public/js/frappe/class.js",
@@ -378,5 +378,8 @@
 		"public/js/legacy/layout.js",
 		"public/js/legacy/print_table.js",
 		"public/js/legacy/print_format.js"
+	],
+	"frappe/css/email.css": [
+		"public/less/email.less"
 	]
 }

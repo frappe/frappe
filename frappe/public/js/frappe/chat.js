@@ -1,38 +1,15 @@
 // Frappe Chat
 // Author - Achilles Rasquinha <achilles@frappe.io>
 
-/**
- * --------------------------------------------------------------------------------
- * Developer Notes
- * --------------------------------------------------------------------------------
- */
+import Fuse  from 'fuse.js'
+import hyper from '../lib/hyper.min'
+
+import '../../less/chat.less'
 
 /* eslint semi: "never" */
 // Fuck semicolons - https://mislav.net/2010/05/semicolons
 
 // frappe extensions
-
-// frappe.model extensions
-frappe.provide('frappe.model')
-/**
- * @description Subscribe to a model for realtime updates.
- *
- * @example
- * frappe.model.subscribe('User')
- * // Subscribe to all User records
- *
- * frappe.model.subscribe('User', 'achilles@frappe.io')
- * frappe.model.subscribe('User', ['achilles@frappe.io', 'rushabh@frappe.io'])
- * // Subscribe to User of name(s)
- *
- * frappe.model.subscribe('User', 'achilles@frappe.io', 'username')
- * frappe.model.subscribe('User', ['achilles@frappe.io', 'rushabh@frappe.io'], ['email', 'username'])
- * // Subscribe to User of name for field(s)
- *
- * @todo Under Development
- */
-frappe.model.subscribe = (doctype, name, field) =>
-	frappe.realtime.publish('frappe.model:subscribe', { doctype: doctype, name: name, field: field })
 
 /**
  * @description The base class for all Frappe Errors.
@@ -626,16 +603,20 @@ frappe.chat.profile.on.update = function (fn) {
 }
 frappe.chat.profile.STATUSES
 =
-[ {
+[
+	{
 		name: "Online",
 	   color: "green"
-	}, {
+	},
+	{
 		 name: "Away",
 		color: "yellow"
-	}, {
+	},
+	{
 		 name: "Busy",
 		color: "red"
-	}, {
+	},
+	{
 		 name: "Offline",
 		color: "darkgrey"
 	}
@@ -1030,7 +1011,8 @@ class extends Component {
 	}
 }
 frappe.components.Button.SIZE
-= {
+=
+{
 	small: {
 		class: "btn-sm"
 	},
@@ -1039,7 +1021,8 @@ frappe.components.Button.SIZE
 	}
 }
 frappe.components.Button.defaultProps
-= {
+=
+{
 	 type: "default",
 	block: false
 }
@@ -1064,15 +1047,19 @@ class extends frappe.components.Button {
 	}
 }
 frappe.components.FAB.defaultProps
-= {
+=
+{
 	icon: "octicon octicon-plus"
 }
 frappe.components.FAB.SIZE
-= {
-	small: {
+= 
+{
+	small:
+	{
 		class: "frappe-fab-sm"
 	},
-	large: {
+	large:
+	{
 		class: "frappe-fab-lg"
 	}
 }
@@ -1105,7 +1092,8 @@ class extends Component {
 	}
 }
 frappe.components.FontAwesome.defaultProps
-= {
+=
+{
 	fixed: false
 }
 
@@ -1151,14 +1139,18 @@ class extends Component {
 	}
 }
 frappe.components.Avatar.SIZE
-= {
-	small: {
+=
+{
+	small:
+	{
 		class: "avatar-small"
 	},
-	large: {
+	large:
+	{
 		class: "avatar-large"
 	},
-	medium: {
+	medium:
+	{
 		class: "avatar-medium"
 	}
 }
@@ -1276,11 +1268,12 @@ class {
 	}
 }
 frappe.Chat.Layout
-= {
+=
+{
 	PAGE: "page", POPPER: "popper"
 }
 frappe.Chat.OPTIONS
-= {
+={
 	layout: frappe.Chat.Layout.POPPER
 }
 
@@ -1374,21 +1367,22 @@ class extends Component {
 	}
 
 	make ( ) {
-		frappe.chat.profile.create([
-			"status", "message_preview", "notification_tones", "conversation_tones"
-		]).then(profile => {
-			this.set_state({ profile })
+		if ( frappe.session.user != 'Guest' )
+			frappe.chat.profile.create([
+				"status", "message_preview", "notification_tones", "conversation_tones"
+			]).then(profile => {
+				this.set_state({ profile })
 
-			frappe.chat.room.get(rooms => {
-				rooms = frappe._.as_array(rooms)
-				frappe.log.info(`User ${frappe.session.user} is subscribed to ${rooms.length} ${frappe._.pluralize('room', rooms.length)}.`)
+				frappe.chat.room.get(rooms => {
+					rooms = frappe._.as_array(rooms)
+					frappe.log.info(`User ${frappe.session.user} is subscribed to ${rooms.length} ${frappe._.pluralize('room', rooms.length)}.`)
 
-				if ( !frappe._.is_empty(rooms) )
-					this.room.add(rooms)
+					if ( !frappe._.is_empty(rooms) )
+						this.room.add(rooms)
+				})
+
+				this.bind()
 			})
-
-			this.bind()
-		})
 	}
 
 	bind ( ) {
@@ -1549,9 +1543,11 @@ class extends Component {
 			}
 		})
 
-		const contacts   = Object.keys(frappe.boot.user_info).map(key =>  {
-			return { owner: frappe.session.user, users: [frappe.boot.user_info[key].email] }
-		})
+		var   contacts   = [ ]
+		if ( 'user_info' in frappe.boot )
+			contacts     = Object.keys(frappe.boot.user_info).map(key =>  {
+				return { owner: frappe.session.user, users: [frappe.boot.user_info[key].email] }
+			})
 		const rooms      = state.query ? frappe.chat.room.search(state.query, state.rooms.concat(contacts)) : frappe.chat.room.sort(state.rooms)
 
 		const RoomList   = frappe._.is_empty(rooms) && !state.query ?
@@ -1654,7 +1650,7 @@ class extends Component {
 
 		return !state.destroy ?
 		(
-			h("div", { class: "frappe-chat-popper" },
+			h("div", { class: "frappe-chat-popper", style: !props.target ? { "margin-bottom": "80px" } : null },
 				!props.target ?
 					h(frappe.components.FAB, {
 						  class: "frappe-fab",
@@ -1679,7 +1675,8 @@ class extends Component {
 	}
 }
 frappe.Chat.Widget.Popper.defaultState
-= {
+=
+{
 	 active: false,
 	destroy: false
 }
@@ -1871,7 +1868,8 @@ class extends Component {
 	}
 }
 frappe.Chat.Widget.MediaProfile.POSITION
-= {
+=
+{
 	left: { class: "media-left" }, right: { class: "media-right" }
 }
 
@@ -2319,7 +2317,8 @@ class extends Component {
 	}
 }
 frappe.chat.component.ChatForm.defaultState
-= {
+=
+{
 	content: null,
 	  hints: [ ],
 }
@@ -2419,3 +2418,78 @@ frappe.notify     = (string, options) =>
 		}
 	})
 }
+
+// $(document).ready(() =>
+// {
+// 	if ( frappe.boot.user != 'Guest' )
+// 	{
+// 		const chat = new frappe.Chat()
+// 		chat.render()
+// 	}
+// })
+
+frappe.chat.render = (render = true, force = false) =>
+{
+	frappe.log.info(`${render ? "Enable" : "Disable"} Chat for User.`);
+
+	// With the assumption, that there's only one navbar.
+	const $placeholder = $('.navbar .frappe-chat-dropdown');
+
+	// Render if frappe-chat-toggle doesn't exist.
+	if ( frappe.utils.is_empty($placeholder.has('.frappe-chat-toggle')) ) {
+		const $template = $(`
+			<a class="dropdown-toggle frappe-chat-toggle" data-toggle="dropdown">
+				<div>
+					<i class="octicon octicon-comment-discussion"/>
+				</div>
+			</a>
+		`);
+
+		$placeholder.addClass('dropdown hidden');
+		$placeholder.html($template);
+	}
+
+	if ( render ) {
+		$placeholder.removeClass('hidden');
+	} else {
+		$placeholder.addClass('hidden');
+	}
+
+	// Avoid re-renders. Once is enough.
+	if ( !frappe.chatter || force ) {
+		frappe.chatter = new frappe.Chat({ target: '.navbar .frappe-chat-toggle' });
+		frappe.chatter.render();
+	}
+}
+
+frappe.chat.setup  = () =>
+{
+	frappe.log = frappe.Logger.get('frappe.chat');
+
+	frappe.log.info('Setting up frappe.chat');
+	frappe.log.warn('TODO: Handle realtime System Settings update.');
+	frappe.log.warn('TODO: frappe.chat.<object> requires a storage.');
+	
+	// Create/Get Chat Profile for session User, retrieve enable_chat
+	frappe.log.info('Creating a Chat Profile.');
+	frappe.chat.profile.create('enable_chat').then(({ enable_chat }) => {
+		frappe.log.info(`Chat Profile created for User ${frappe.session.user}.`)
+		const should_render = frappe.sys_defaults.enable_chat && enable_chat;
+		frappe.chat.render(should_render);
+	});
+
+	// Triggered when a User updates his/her Chat Profile.
+	// Don't worry, enable_chat is broadcasted to this user only. No overhead. :)
+	frappe.chat.profile.on.update((user, profile) => {
+		if ( user === frappe.session.user && 'enable_chat' in profile ) {
+			frappe.log.warn(`Chat Profile update (Enable Chat - ${Boolean(profile.enable_chat)})`);
+			const should_render = frappe.sys_defaults.enable_chat && profile.enable_chat;
+			frappe.chat.render(should_render);
+		}
+	});
+}
+
+$(document).on('ready toolbar_setup', () =>
+{
+	frappe.chat.setup()
+})
