@@ -6,15 +6,18 @@ from __future__ import unicode_literals
 import frappe
 from frappe import msgprint, _
 from frappe.model.document import Document
+from six.moves.urllib.parse import urlparse
 import requests
 
 class ExotelSettings(Document):
 	def validate(self):
-		def validate_credentials(self):
-			response = requests.get('https://api.exotel.com/v1/Accounts/{sid}'.format(sid = self.exotel_sid),
-				auth=(self.exotel_sid, self.exotel_token))
-			if response.status_code not 200:
-				frappe.throw(_("Invalid credentials. Please try again with valid credentials"))
+		validate_credentials()
+
+	def validate_credentials(self):
+		response = requests.get('https://api.exotel.com/v1/Accounts/{sid}'.format(sid = self.exotel_sid),
+			auth=(self.exotel_sid, self.exotel_token))
+		if(response.status_code != 200):
+			frappe.throw(_("Invalid credentials. Please try again with valid credentials"))
 
 
 @frappe.whitelist(allow_guest=True)
@@ -87,6 +90,14 @@ def handle_outgoing_call(To, CallerId,reference_doctype,reference_name):
 	r = frappe.request
 	try:
 		credentials = frappe.get_doc("Exotel Settings")	
+		
+		endpoint = "/api/method/frappe.integrations.doctype.exotel_settings.exotel_settings.capture_call_details"
+		url = frappe.request.url
+
+		server_url = '{uri.scheme}://{uri.netloc}'.format(
+			uri=urlparse(url)
+		)
+		status_callback_url = server_url + endpoint
 
 		response = requests.post('https://api.exotel.in/v1/Accounts/{sid}/Calls/connect.json'.format(sid=credentials.exotel_sid),
         auth = (credentials.exotel_sid,credentials.exotel_token),
@@ -94,7 +105,7 @@ def handle_outgoing_call(To, CallerId,reference_doctype,reference_name):
 			'From': frappe.get_doc("User",frappe.session.user).phone or frappe.get_doc("User",frappe.session.user).mobile_no,
 			'To': To,
 			'CallerId': CallerId,
-			'StatusCallback': 'http://dev.mntechnique.com/api/method/frappe.integrations.doctype.exotel_settings.exotel_settings.capture_call_details'
+			'StatusCallback': status_callback_url
 		})
 
 		if response.status_code == 200:

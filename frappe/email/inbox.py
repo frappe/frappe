@@ -145,7 +145,6 @@ def make_issue_from_communication(communication, ignore_communication_links=Fals
 
 @frappe.whitelist()
 def make_lead_from_communication(communication, ignore_communication_links=False):
-	""" raise a issue from email """
 
 	doc = frappe.get_doc("Communication", communication)
 	frappe.errprint(doc.sender_full_name)
@@ -160,7 +159,6 @@ def make_lead_from_communication(communication, ignore_communication_links=False
 		lead.flags.ignore_mandatory = True
 		lead.flags.ignore_permissions = True
 		lead.insert()
-		# possible small PR
 		lead_name = lead.name
 
 	link_communication_to_document(doc, "Lead", lead_name, ignore_communication_links)
