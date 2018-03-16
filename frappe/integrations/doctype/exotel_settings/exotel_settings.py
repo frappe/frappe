@@ -20,7 +20,6 @@ class ExotelSettings(Document):
 			frappe.throw(_("Invalid credentials. Please try again with valid credentials"))
 
 def make_popup(caller_no):
-	out_html = ""
 
 	contact_lookup = frappe.db.get_list("Contact", or_filters={"phone":caller_no, "mobile_no":caller_no})
 	if len(contact_lookup) > 0:
@@ -32,7 +31,7 @@ def make_popup(caller_no):
 			"number": caller_no,
 			"name": customer_full_name,
 			"call_timestamp": frappe.utils.datetime.datetime.strftime(frappe.utils.datetime.datetime.today(), '%d/%m/%Y %H:%M:%S'),
-			"call_id": call_id
+			# "call_id": call_id
 		}
 
 		popup_html = render_popup(popup_data)
@@ -47,7 +46,7 @@ def make_popup(caller_no):
 			"number": caller_no,
 			"name": lead_full_name,
 			"call_timestamp": frappe.utils.datetime.datetime.strftime(frappe.utils.datetime.datetime.today(), '%d/%m/%Y %H:%M:%S'),
-			"call_id": call_id
+			# "call_id": call_id
 		}
 		popup_html = render_popup(popup_data)
 		return popup_html
@@ -57,7 +56,7 @@ def make_popup(caller_no):
 		"number": caller_no,
 		"name": "Unknown",
 		"call_timestamp": frappe.utils.datetime.datetime.strftime(frappe.utils.datetime.datetime.today(), '%d/%m/%Y %H:%M:%S'),
-		"call_id": call_id
+		# "call_id": call_id
 	}
 	popup_html = render_popup(popup_data)
 	return popup_html
