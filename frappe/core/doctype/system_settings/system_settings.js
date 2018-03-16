@@ -24,5 +24,6 @@ frappe.ui.form.on("System Settings", "enable_password_policy", function(frm) {
 frappe.ui.form.on("System Settings", "enable_two_factor_auth", function(frm) {
 	if(frm.doc.enable_two_factor_auth == 0){
 		frm.set_value("bypass_2fa_for_retricted_ip_users", 0);
+		frm.set_value("bypass_restrict_ip_check_if_2fa_enabled", 0);
 	}
 });
