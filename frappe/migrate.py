@@ -27,8 +27,6 @@ def migrate(verbose=True, rebuild_website=False):
 	frappe.flags.in_migrate = True
 	clear_global_cache()
 
-	# run patches
-	frappe.modules.patch_handler.run_all()
 	# sync
 	frappe.model.sync.sync_all(verbose=verbose)
 	frappe.translate.clear_cache()
@@ -36,6 +34,9 @@ def migrate(verbose=True, rebuild_website=False):
 	sync_customizations()
 	sync_desktop_icons()
 	sync_languages()
+
+	# run patches
+	frappe.modules.patch_handler.run_all()
 
 	frappe.get_doc('Portal Settings', 'Portal Settings').sync_menu()
 
