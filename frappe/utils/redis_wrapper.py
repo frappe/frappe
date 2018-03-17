@@ -44,9 +44,9 @@ class RedisWrapper(redis.Redis):
 				return None
 
 		try:
-			_set_value(key, val, expires = expires_in_sec, pickler = pickle)
+			_set_value(self, key, val, expires = expires_in_sec, pickler = pickle)
 		except TypeError:
-			_set_value(key, val, expires = expires_in_sec, pickler = dill)
+			_set_value(self, key, val, expires = expires_in_sec, pickler = dill)
 
 	def get_value(self, key, generator=None, user=None, expires=False):
 		"""Returns cache value. If not found and generator function is
