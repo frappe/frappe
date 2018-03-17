@@ -34,12 +34,12 @@ class RedisWrapper(redis.Redis):
 		if not expires_in_sec:
 			frappe.local.cache[key] = val
 
-		def _set_value(key, value, expires = 0, pickler = pickle):
+		def _set_value(instance, key, value, expires = 0, pickler = pickle):
 			try:
-				if expires_in_sec:
-					self.setex(key, pickler.dumps(value), expires_in_sec)
+				if expires:
+					instance.setex(key, pickler.dumps(value), expires)
 				else:
-					self.set(key, pickler.dumps(value))
+					instance.set(key, pickler.dumps(value))
 			except redis.exceptions.ConnectionError:
 				return None
 
@@ -58,7 +58,7 @@ class RedisWrapper(redis.Redis):
 		"""
 		def _get_value(instance, key, generator=None, user=None, expires=False, pickler = pickle):
 			original_key = key
-			key = self.make_key(key, user)
+			key = instance.make_key(key, user)
 
 			if key in frappe.local.cache:
 				val = frappe.local.cache[key]
@@ -66,17 +66,17 @@ class RedisWrapper(redis.Redis):
 			else:
 				val = None
 				try:
-					val = self.get(key)
+					val = instance.get(key)
 				except redis.exceptions.ConnectionError:
 					pass
 
 				if val is not None:
-					val = pickle.loads(val)
+					val = pickler.loads(val)
 
 				if not expires:
 					if val is None and generator:
 						val = generator()
-						self.set_value(original_key, val, user=user)
+						instance.set_value(original_key, val, user=user)
 
 					else:
 						frappe.local.cache[key] = val
@@ -175,7 +175,7 @@ class RedisWrapper(redis.Redis):
 
 	def hgetall(self, name):
 		def _hgetall(instance, name, pickler = pickle):
-			return {key: pickle.loads(value) for key, value in
+			return {key: pickler.loads(value) for key, value in
 				iteritems(super(redis.Redis, instance).hgetall(instance.make_key(name)))}
 				
 		try:
@@ -185,7 +185,7 @@ class RedisWrapper(redis.Redis):
 
 	def hget(self, name, key, generator=None, shared=False):
 		def _hget(instance, name, key, generator=None, shared=False, pickler = pickle):
-			_name = self.make_key(name, shared=shared)
+			_name = instance.make_key(name, shared=shared)
 			if not _name in frappe.local.cache:
 				frappe.local.cache[_name] = {}
 
@@ -194,17 +194,17 @@ class RedisWrapper(redis.Redis):
 
 			value = None
 			try:
-				value = super(redis.Redis, self).hget(_name, key)
+				value = super(redis.Redis, instance).hget(_name, key)
 			except redis.exceptions.ConnectionError:
 				pass
 
 			if value:
-				value = pickle.loads(value)
+				value = pickler.loads(value)
 				frappe.local.cache[_name][key] = value
 			elif generator:
 				value = generator()
 				try:
-					self.hset(name, key, value)
+					instance.hset(name, key, value)
 				except redis.exceptions.ConnectionError:
 					pass
 			return value
