@@ -3,11 +3,10 @@
 from __future__ import unicode_literals
 
 import redis, frappe, re
-# from six.moves import cPickle as pickle
-import dill as pickle
+from six.moves import cPickle as pickle
+import dill
 from frappe.utils import cstr
 from six import iteritems
-
 
 class RedisWrapper(redis.Redis):
 	"""Redis client that will automatically prefix conf.db_name"""
@@ -35,14 +34,19 @@ class RedisWrapper(redis.Redis):
 		if not expires_in_sec:
 			frappe.local.cache[key] = val
 
-		try:
-			if expires_in_sec:
-				self.setex(key, pickle.dumps(val), expires_in_sec)
-			else:
-				self.set(key, pickle.dumps(val))
+		def _set_value(key, value, expires = 0, pickler = pickle):
+			try:
+				if expires_in_sec:
+					self.setex(key, pickler.dumps(value), expires_in_sec)
+				else:
+					self.set(key, pickler.dumps(value))
+			except redis.exceptions.ConnectionError:
+				return None
 
-		except redis.exceptions.ConnectionError:
-			return None
+		try:
+			_set_value(key, val, expires = expires_in_sec, pickler = pickle)
+		except TypeError:
+			_set_value(key, val, expires = expires_in_sec, pickler = dill)
 
 	def get_value(self, key, generator=None, user=None, expires=False):
 		"""Returns cache value. If not found and generator function is
@@ -52,31 +56,37 @@ class RedisWrapper(redis.Redis):
 		:param generator: Function to be called to generate a value if `None` is returned.
 		:param expires: If the key is supposed to be with an expiry, don't store it in frappe.local
 		"""
-		original_key = key
-		key = self.make_key(key, user)
+		def _get_value(instance, key, generator=None, user=None, expires=False, pickler = pickle):
+			original_key = key
+			key = self.make_key(key, user)
 
-		if key in frappe.local.cache:
-			val = frappe.local.cache[key]
+			if key in frappe.local.cache:
+				val = frappe.local.cache[key]
 
-		else:
-			val = None
-			try:
-				val = self.get(key)
-			except redis.exceptions.ConnectionError:
-				pass
+			else:
+				val = None
+				try:
+					val = self.get(key)
+				except redis.exceptions.ConnectionError:
+					pass
 
-			if val is not None:
-				val = pickle.loads(val)
+				if val is not None:
+					val = pickle.loads(val)
 
-			if not expires:
-				if val is None and generator:
-					val = generator()
-					self.set_value(original_key, val, user=user)
+				if not expires:
+					if val is None and generator:
+						val = generator()
+						self.set_value(original_key, val, user=user)
 
-				else:
-					frappe.local.cache[key] = val
+					else:
+						frappe.local.cache[key] = val
 
-		return val
+			return val
+
+		try:
+			return _get_value(self, key, generator, user, expires, pickler = pickle)
+		except TypeError:
+			return _get_value(self, key, generator, user, expires, pickler = dill)
 
 	def get_all(self, key):
 		ret = {}
@@ -143,40 +153,66 @@ class RedisWrapper(redis.Redis):
 		frappe.local.cache[_name][key] = value
 
 		# set in redis
-		try:
-			super(redis.Redis, self).hset(_name,
-				key, pickle.dumps(value))
-		except redis.exceptions.ConnectionError:
-			pass
-
-	def hgetall(self, name):
-		return {key: pickle.loads(value) for key, value in
-			iteritems(super(redis.Redis, self).hgetall(self.make_key(name)))}
-
-	def hget(self, name, key, generator=None, shared=False):
-		_name = self.make_key(name, shared=shared)
-		if not _name in frappe.local.cache:
-			frappe.local.cache[_name] = {}
-
-		if key in frappe.local.cache[_name]:
-			return frappe.local.cache[_name][key]
-
-		value = None
-		try:
-			value = super(redis.Redis, self).hget(_name, key)
-		except redis.exceptions.ConnectionError:
-			pass
-
-		if value:
-			value = pickle.loads(value)
-			frappe.local.cache[_name][key] = value
-		elif generator:
-			value = generator()
+		def _hset_value(instance, name, key, value, pickler = pickle):
 			try:
-				self.hset(name, key, value)
+				super(redis.Redis, instance).hset(name, key, pickler.dumps(value))
 			except redis.exceptions.ConnectionError:
 				pass
-		return value
+
+		# I'm not sure why we expect to pickle lambda objects.
+		# But unfortunately, you cannot afford to, which silently fails.
+		# dill although impressively slower should be used in case of such failures
+		# both do serialize and deserialize.
+		# One way was to try catch a lambda, but that is expected for each function call.
+		# This also means there's a cost associated to a pickle failure (it then occurs twice).
+
+		# if you think of a better solution, feel free to change RedisWrapper.
+
+		try:
+			_hset_value(self, _name, key, value, pickler = pickle)
+		except TypeError:
+			_hset_value(self, _name, key, value, pickler = dill)
+
+	def hgetall(self, name):
+		def _hgetall(instance, name, pickler = pickle):
+			return {key: pickle.loads(value) for key, value in
+				iteritems(super(redis.Redis, instance).hgetall(instance.make_key(name)))}
+				
+		try:
+			return _hgetall(self, name, pickler = pickle)
+		except TypeError:
+			return _hgetall(self, name, pickler = dill)
+
+	def hget(self, name, key, generator=None, shared=False):
+		def _hget(instance, name, key, generator=None, shared=False, pickler = pickle):
+			_name = self.make_key(name, shared=shared)
+			if not _name in frappe.local.cache:
+				frappe.local.cache[_name] = {}
+
+			if key in frappe.local.cache[_name]:
+				return frappe.local.cache[_name][key]
+
+			value = None
+			try:
+				value = super(redis.Redis, self).hget(_name, key)
+			except redis.exceptions.ConnectionError:
+				pass
+
+			if value:
+				value = pickle.loads(value)
+				frappe.local.cache[_name][key] = value
+			elif generator:
+				value = generator()
+				try:
+					self.hset(name, key, value)
+				except redis.exceptions.ConnectionError:
+					pass
+			return value
+
+		try:
+			return _hget(self, name, key, generator, shared, pickler = pickle)
+		except ValueError:
+			return _hget(self, name, key, generator, shared, pickler = dill)
 
 	def hdel(self, name, key, shared=False):
 		_name = self.make_key(name, shared=shared)
