@@ -26,7 +26,7 @@ def make_xlsx(data, sheet_name, wb=None):
 	for row in data:
 		clean_row = []
 		for item in row:
-			if isinstance(item, string_types) and sheet_name != "Data Import Template":
+			if isinstance(item, string_types) and (sheet_name not in ['Data Import Template', 'Data Export']):
 				value = handle_html(item)
 			else:
 				value = item

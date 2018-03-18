@@ -8,7 +8,7 @@ from frappe import _
 import frappe.permissions
 import re, csv, os
 from frappe.utils.csvutils import UnicodeWriter
-from frappe.utils import cstr, formatdate, format_datetime
+from frappe.utils import cstr, formatdate, format_datetime, parse_json
 from frappe.core.doctype.data_import.importer import get_data_keys
 from six import string_types
 
@@ -23,15 +23,17 @@ reflags = {
 }
 
 @frappe.whitelist()
-def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data="No", select_columns=None,
-	from_data_import="No", excel_format="No"):
-	all_doctypes = all_doctypes=="Yes"
+def export_data(doctype=None, parent_doctype=None, all_doctypes=True, with_data=False, select_columns=None, file_type='CSV', template=False, filters=None):
+	print(doctype, parent_doctype, all_doctypes, with_data, select_columns, file_type, template, filters)
 	if select_columns:
-		select_columns = json.loads(select_columns);
+		select_columns = parse_json(select_columns)
+	if filters:
+		filters = parse_json(filters)
+
 	docs_to_export = {}
 	if doctype:
 		if isinstance(doctype, string_types):
-			doctype = [doctype];
+			doctype = [doctype]
 		if len(doctype) > 1:
 			docs_to_export = doctype[1]
 		doctype = doctype[0]
@@ -179,7 +181,8 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 		w.writerow(mandatoryrow)
 		w.writerow(typerow)
 		w.writerow(inforow)
-		w.writerow([get_data_keys_definition().data_separator])
+		if template:
+			w.writerow([get_data_keys_definition().data_separator])
 
 	def add_data():
 		def add_data_row(row_group, dt, parentfield, doc, rowidx):
@@ -207,7 +210,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 
 					row[_column_start_end.start + i + 1] = value
 
-		if with_data=='Yes':
+		if not template or with_data:
 			frappe.permissions.can_export(parent_doctype, raise_exception=True)
 
 			# sort nested set doctypes by `lft asc`
@@ -215,9 +218,8 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 			table_columns = frappe.db.get_table_columns(parent_doctype)
 			if 'lft' in table_columns and 'rgt' in table_columns:
 				order_by = '`tab{doctype}`.`lft` asc'.format(doctype=parent_doctype)
-
 			# get permitted data only
-			data = frappe.get_list(doctype, fields=["*"], limit_page_length=None, order_by=order_by)
+			data = frappe.get_list(doctype, fields=["*"], filters=filters, limit_page_length=None, order_by=order_by)
 
 			for doc in data:
 				op = docs_to_export.get("op")
@@ -261,7 +263,8 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 	w = UnicodeWriter()
 	key = 'parent' if parent_doctype != doctype else 'name'
 
-	add_main_header()
+	if template:
+		add_main_header()
 
 	w.writerow([''])
 	tablerow = [get_data_keys_definition().doctype, ""]
@@ -284,7 +287,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 	add_field_headings()
 	add_data()
 
-	if from_data_import == "Yes" and excel_format == "Yes":
+	if file_type == 'Excel':
 		filename = frappe.generate_hash("", 10)
 		with open(filename, 'wb') as f:
 			f.write(cstr(w.getvalue()).encode("utf-8"))
@@ -292,7 +295,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 		reader = csv.reader(f)
 
 		from frappe.utils.xlsxutils import make_xlsx
-		xlsx_file = make_xlsx(reader, "Data Import Template")
+		xlsx_file = make_xlsx(reader, "Data Import Template" if template else 'Data Export')
 
 		f.close()
 		os.remove(filename)
