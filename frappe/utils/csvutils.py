@@ -52,15 +52,18 @@ def read_csv_content(fcontent, ignore_encoding=False):
 			frappe.msgprint(_("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."),
 				raise_exception=True)
 
-	fcontent = fcontent.encode("utf-8").splitlines(True)
+	fcontent = fcontent.encode("utf-8")
+	content  = [ ]
+	for line in fcontent.splitlines(True):
+		content.append(frappe.safe_decode(line))
 
 	try:
 		rows = []
-		for row in csv.reader(fcontent):
+		for row in csv.reader(content):
 			r = []
 			for val in row:
 				# decode everything
-				val = text_type(val, "utf-8").strip()
+				val = val.strip()
 
 				if val=="":
 					# reason: in maraidb strict config, one cannot have blank strings for non string datatypes
