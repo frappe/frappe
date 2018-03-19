@@ -7,6 +7,7 @@ frappe.ui.form.on('Data Export', {
 		frm.page.set_primary_action('Export', () => {
 			can_export(frm) ? export_data(frm) : null;
 		});
+		frm.page.sidebar.empty();
 	},
 	onload: (frm) => {
 		frm.set_query("reference_doctype", () => {
@@ -45,6 +46,7 @@ const can_export = frm => {
 };
 
 const export_data = frm => {
+	let get_template_url = '/api/method/frappe.core.doctype.data_export.exporter.export_data';
 	var export_params = () => {
 		let columns = {};
 		Object.keys(frm.fields_multicheck).forEach(dt => {
@@ -58,7 +60,7 @@ const export_data = frm => {
 			file_type: frm.doc.file_type
 		};
 	};
-	let get_template_url = '/api/method/frappe.core.doctype.data_export.exporter.export_data';
+
 	open_url_post(get_template_url, export_params());
 };
 
@@ -75,18 +77,22 @@ const set_field_options = (frm) => {
 	const parent_wrapper = frm.fields_dict.fields_multicheck.$wrapper;
 	const filter_wrapper = frm.fields_dict.filter_list.$wrapper;
 	const doctype = frm.doc.reference_doctype;
+	const related_doctypes = get_doctypes(doctype);
+
 	parent_wrapper.empty();
 	filter_wrapper.empty();
+
 	frm.filter_list = new frappe.ui.FilterGroup({
 		parent: filter_wrapper,
 		doctype: doctype,
 		on_change: () => { },
 	});
-	const related_doctypes = get_doctypes(doctype);
+
 	frm.fields_multicheck = {};
 	related_doctypes.forEach(dt => {
 		frm.fields_multicheck[dt] = add_doctype_field_multicheck_control(dt, parent_wrapper);
 	});
+
 	frm.refresh();
 };
 
@@ -107,6 +113,7 @@ const add_doctype_field_multicheck_control = (doctype, parent_wrapper) => {
 				checked: 1
 			};
 		});
+
 	const multicheck_control = frappe.ui.form.make_control({
 		parent: parent_wrapper,
 		df: {
@@ -120,6 +127,7 @@ const add_doctype_field_multicheck_control = (doctype, parent_wrapper) => {
 		},
 		render_input: true
 	});
+
 	multicheck_control.refresh_input();
 	return multicheck_control;
 };
