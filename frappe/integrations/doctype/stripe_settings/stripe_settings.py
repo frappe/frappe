@@ -23,12 +23,18 @@ class StripeSettings(Document):
 		"XAF", "XOF", "XPF", "YER", "ZAR"
 	]
 
+	currency_wise_minimum_charge_amount = {
+		'JPY': 50, 'MXN': 10, 'DKK': 2.50, 'HKD': 4.00, 'NOK': 3.00, 'SEK': 3.00,
+		'USD': 0.50, 'AUD': 0.50, 'BRL': 0.50, 'CAD': 0.50, 'CHF': 0.50, 'EUR': 0.50,
+		'GBP': 0.30, 'NZD': 0.50, 'SGD': 0.50
+	}
+
 	def validate(self):
 		create_payment_gateway('Stripe')
 		call_hook_method('payment_gateway_enabled', gateway='Stripe')
 		if not self.flags.ignore_mandatory:
 			self.validate_stripe_credentails()
-	
+
 	def validate_stripe_credentails(self):
 		if self.publishable_key and self.secret_key:
 			header = {"Authorization": "Bearer {0}".format(self.get_password(fieldname="secret_key", raise_exception=False))}
@@ -36,10 +42,16 @@ class StripeSettings(Document):
 				make_get_request(url="https://api.stripe.com/v1/charges", headers=header)
 			except Exception:
 				frappe.throw(_("Seems Publishable Key or Secret Key is wrong !!!"))
-	
+
 	def validate_transaction_currency(self, currency):
 		if currency not in self.supported_currencies:
 			frappe.throw(_("Please select another payment method. Stripe does not support transactions in currency '{0}'").format(currency))
+
+	def validate_minimum_transaction_amount(self, currency, amount):
+		if currency in self.currency_wise_minimum_charge_amount:
+			if flt(amount) < self.currency_wise_minimum_charge_amount.get(currency, 0.0):
+				frappe.throw(_("For currency {0}, the minimum transaction amount should be {1}").format(currency,
+					self.currency_wise_minimum_charge_amount.get(currency, 0.0)))
 
 	def get_payment_url(self, **kwargs):
 		return get_url("./integrations/stripe_checkout?{0}".format(urlencode(kwargs)))
