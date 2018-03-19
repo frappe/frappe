@@ -57,7 +57,8 @@ const export_data = frm => {
 			doctype: frm.doc.reference_doctype,
 			select_columns: JSON.stringify(columns),
 			filters: frm.filter_list.get_filters().map(filter => filter.slice(1, 4)),
-			file_type: frm.doc.file_type
+			file_type: frm.doc.file_type,
+			template: true
 		};
 	};
 
