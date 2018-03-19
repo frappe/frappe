@@ -4,7 +4,7 @@ function prettyDate(time, mini) {
 	if (!time) {
 		time = new Date();
 	}
-	if (moment) {
+	if ('moment' in window) { // use frappe.ImportError ;)
 		let ret;
 		if (frappe.sys_defaults && frappe.sys_defaults.time_zone) {
 			ret = moment.tz(time, frappe.sys_defaults.time_zone).locale(frappe.boot.lang).fromNow(mini);
