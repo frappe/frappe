@@ -46,20 +46,6 @@ io.on('connection', function (socket) {
 		return;
 	}
 
-	// firefox reconnects multiple times on boot, so allow a few
-	// rapid reconnections
-	if (flags[sid] && flags[sid] > 4) {
-		// throttle this function
-		return;
-	} else {
-		flags[sid] = 1;
-	}
-
-	flags[sid] += 1;
-	setTimeout(function () {
-		flags[sid] = null;
-	}, 10000);
-
 	socket.user = cookie.parse(socket.request.headers.cookie).user_id;
 	socket.files = {};
 
