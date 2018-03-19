@@ -9,7 +9,7 @@ import openpyxl
 import re
 from openpyxl.styles import Font
 from openpyxl import load_workbook
-from six import StringIO, string_types
+from six import StringIO, BytesIO, string_types
 
 ILLEGAL_CHARACTERS_RE = re.compile(r'[\000-\010]|[\013-\014]|[\016-\037]')
 # return xlsx file object
@@ -39,7 +39,7 @@ def make_xlsx(data, sheet_name, wb=None):
 
 		ws.append(clean_row)
 
-	xlsx_file = StringIO()
+	xlsx_file = BytesIO()
 	wb.save(xlsx_file)
 	return xlsx_file
 
