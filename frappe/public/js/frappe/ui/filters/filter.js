@@ -120,7 +120,6 @@ frappe.ui.Filter = class {
 	}
 
 	set_values(doctype, fieldname, condition, value) {
-		console.log(doctype, fieldname, condition, value);
 		// presents given (could be via tags!)
 		this.set_field(doctype, fieldname);
 
