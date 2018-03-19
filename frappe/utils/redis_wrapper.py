@@ -3,8 +3,7 @@
 from __future__ import unicode_literals
 
 import redis, frappe, re
-# from six.moves import cPickle as pickle
-import dill as pickle
+from six.moves import cPickle as pickle
 from frappe.utils import cstr
 from six import iteritems
 
