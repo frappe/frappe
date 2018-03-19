@@ -11,11 +11,6 @@ frappe.socketio = {
 			return;
 		}
 
-		if (frappe.boot.developer_mode) {
-			// File watchers for development
-			frappe.socketio.setup_file_watchers();
-		}
-
 		//Enable secure option when using HTTPS
 		if (window.location.protocol == "https:") {
 			frappe.socketio.socket = io.connect(frappe.socketio.get_host(), {secure: true});
@@ -48,7 +43,7 @@ frappe.socketio = {
 				if(data.percent==100) {
 					frappe.hide_progress();
 				} else {
-					frappe.show_progress(data.title || __("Progress"), data.percent, 100);
+					frappe.show_progress(data.title || __("Progress"), data.percent, 100, data.description);
 				}
 			}
 		});
@@ -196,47 +191,6 @@ frappe.socketio = {
 			}, 5000);
 		});
 	},
-	setup_file_watchers: function() {
-		var host = window.location.origin;
-		if(!window.dev_server) {
-			return;
-		}
-
-		var port = frappe.boot.file_watcher_port || 6787;
-		var parts = host.split(":");
-		// remove the port number from string if exists
-		if (parts.length > 2) {
-			host = host.split(':').slice(0, -1).join(":");
-		}
-		host = host + ':' + port;
-
-		frappe.socketio.file_watcher = io.connect(host);
-		// css files auto reload
-		frappe.socketio.file_watcher.on('reload_css', function(filename) {
-			let abs_file_path = "assets/" + filename;
-			const link = $(`link[href*="${abs_file_path}"]`);
-			abs_file_path = abs_file_path.split('?')[0] + '?v='+ moment();
-			link.attr('href', abs_file_path);
-			frappe.show_alert({
-				indicator: 'orange',
-				message: filename + ' reloaded'
-			}, 5);
-		});
-		// js files show alert
-
-		// commenting as this kills a branch change
-		// frappe.socketio.file_watcher.on('reload_js', function(filename) {
-		//  filename = "assets/" + filename;
-		//  var msg = $(`
-		//      <span>${filename} changed <a data-action="reload">Click to Reload</a></span>
-		//  `)
-		//  msg.find('a').click(frappe.ui.toolbar.clear_cache);
-		//  frappe.show_alert({
-		//      indicator: 'orange',
-		//      message: msg
-		//  }, 5);
-		// });
-	},
 	process_response: function(data, method) {
 		if(!data) {
 			return;
@@ -328,52 +282,44 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 			frappe.throw(__('File Upload in Progress. Please try again in a few moments.'));
 		}
 		var fallback_flag = false;
+		if (frappe.boot.sysdefaults.use_socketio_to_upload_file==0){
+			fallback_flag = true;
+		}
 
-		frappe.model.get_value(
-			'System Settings',
-			{'name': 'System Settings'},
-			'use_socketio_to_upload_file',
-			function(d) {
-				if (d.use_socketio_to_upload_file==0){
-					fallback_flag = true;
-				}
+		if (!fallback_flag && !frappe.socketio.socket.connected) {
+			fallback_flag = true;
+		}
 
-				if (!fallback_flag && !frappe.socketio.socket.connected) {
-					fallback_flag = true;
-				}
-
-				if(fallback_flag){
-					if (fallback) {
-						fallback();
-						return;
-					} else {
-						frappe.throw(__('Socketio is not connected. Cannot upload'));
-					}
-				}else{
-					reader_instance.reader = new FileReader();
-					reader_instance.file = file;
-					reader_instance.chunk_size = chunk_size;
-					reader_instance.callback = callback;
-					reader_instance.on_progress = on_progress;
-					reader_instance.fallback = fallback;
-					reader_instance.started = false;
-
-					reader_instance.reader.onload = () => {
-						frappe.socketio.socket.emit('upload-accept-slice', {
-							is_private: is_private,
-							name: filename,
-							type: reader_instance.file.type,
-							size: reader_instance.file.size,
-							data: reader_instance.reader.result
-						});
-						reader_instance.keep_alive();
-					};
-
-					var slice = file.slice(0, reader_instance.chunk_size);
-					reader_instance.reader.readAsArrayBuffer(slice);
-				}
+		if(fallback_flag){
+			if (fallback) {
+				fallback();
+				return;
+			} else {
+				frappe.throw(__('Socketio is not connected. Cannot upload'));
 			}
-		)
+		}else{
+			reader_instance.reader = new FileReader();
+			reader_instance.file = file;
+			reader_instance.chunk_size = chunk_size;
+			reader_instance.callback = callback;
+			reader_instance.on_progress = on_progress;
+			reader_instance.fallback = fallback;
+			reader_instance.started = false;
+
+			reader_instance.reader.onload = () => {
+				frappe.socketio.socket.emit('upload-accept-slice', {
+					is_private: is_private,
+					name: filename,
+					type: reader_instance.file.type,
+					size: reader_instance.file.size,
+					data: reader_instance.reader.result
+				});
+				reader_instance.keep_alive();
+			};
+
+			var slice = file.slice(0, reader_instance.chunk_size);
+			reader_instance.reader.readAsArrayBuffer(slice);
+		}
 	}
 
 	keep_alive() {
