@@ -158,7 +158,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 	sync_customizations(name)
 
 	for after_sync in app_hooks.after_sync or []:
-		frappe.get_attr(after_sync)()
+		frappe.get_attr(after_sync)() #
 
 	frappe.flags.in_install = False
 
