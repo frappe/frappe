@@ -2,9 +2,13 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Data Export', {
-	refresh: () => { },
-	onload: (frm) => {
+	refresh: frm => {
 		frm.disable_save();
+		frm.page.set_primary_action('Export', () => {
+			can_export(frm) ? export_data(frm) : null;
+		});
+	},
+	onload: (frm) => {
 		frm.set_query("reference_doctype", () => {
 			return {
 				"filters": {
@@ -19,14 +23,26 @@ frappe.ui.form.on('Data Export', {
 		const doctype = frm.doc.reference_doctype;
 		if (doctype) {
 			frappe.model.with_doctype(doctype, () => set_field_options(frm));
-			frm.page.set_primary_action('Export', () => {
-				export_data(frm);
-			});
 		} else {
 			reset_filter_and_field(frm);
 		}
 	}
 });
+
+const can_export = frm => {
+	const doctype = frm.doc.reference_doctype;
+	const parent_multicheck_options = frm.fields_multicheck[doctype] ?
+		frm.fields_multicheck[doctype].get_checked_options() : [];
+	let is_valid_form = false;
+	if (!doctype || !frm.doc.file_type) {
+		frappe.msgprint('Please enter mandatory data');
+	} else if (!parent_multicheck_options.length) {
+		frappe.msgprint('Atleast one field of parent doctype is mandatory');
+	} else {
+		is_valid_form = true;
+	}
+	return is_valid_form;
+};
 
 const export_data = frm => {
 	var export_params = () => {
@@ -46,14 +62,14 @@ const export_data = frm => {
 	open_url_post(get_template_url, export_params());
 };
 
-const reset_filter_and_field = (frm) =>{
+const reset_filter_and_field = (frm) => {
 	const parent_wrapper = frm.fields_dict.fields_multicheck.$wrapper;
 	const filter_wrapper = frm.fields_dict.filter_list.$wrapper;
 	parent_wrapper.empty();
 	filter_wrapper.empty();
 	frm.filter_list = [];
 	frm.fields_multicheck = {};
-}
+};
 
 const set_field_options = (frm) => {
 	const parent_wrapper = frm.fields_dict.fields_multicheck.$wrapper;
