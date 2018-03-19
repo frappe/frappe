@@ -42,7 +42,7 @@ const export_data = frm => {
 			file_type: frm.doc.file_type
 		};
 	};
-	let get_template_url = '/api/method/frappe.core.doctype.data_import.exporter.export_data';
+	let get_template_url = '/api/method/frappe.core.doctype.data_export.exporter.export_data';
 	open_url_post(get_template_url, export_params());
 };
 

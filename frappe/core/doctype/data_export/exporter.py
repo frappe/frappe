@@ -24,7 +24,6 @@ reflags = {
 
 @frappe.whitelist()
 def export_data(doctype=None, parent_doctype=None, all_doctypes=True, with_data=False, select_columns=None, file_type='CSV', template=False, filters=None):
-	print(doctype, parent_doctype, all_doctypes, with_data, select_columns, file_type, template, filters)
 	if select_columns:
 		select_columns = parse_json(select_columns)
 	if filters:

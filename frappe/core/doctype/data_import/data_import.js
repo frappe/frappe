@@ -250,7 +250,7 @@ frappe.data_import.download_dialog = function(frm) {
 						template: true
 					};
 				};
-				let get_template_url = '/api/method/frappe.core.doctype.data_import.exporter.data_export';
+				let get_template_url = '/api/method/frappe.core.doctype.data_export.exporter.export_data';
 				open_url_post(get_template_url, export_params());
 			} else {
 				frappe.msgprint(__("Please select the Document Type."));

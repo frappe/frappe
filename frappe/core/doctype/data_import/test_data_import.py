@@ -4,24 +4,24 @@
 from __future__ import unicode_literals
 
 import frappe, unittest
-from frappe.core.doctype.data_import import exporter
+from frappe.core.doctype.data_export import exporter
 from frappe.core.doctype.data_import import importer
 from frappe.utils.csvutils import read_csv_content
 
 class TestDataImport(unittest.TestCase):
 	def test_export(self):
-		exporter.get_template("User", all_doctypes="No", with_data="No")
+		exporter.export_data("User", all_doctypes=True, template=True)
 		content = read_csv_content(frappe.response.result)
 		self.assertTrue(content[1][1], "User")
 
 	def test_export_with_data(self):
-		exporter.get_template("User", all_doctypes="No", with_data="Yes")
+		exporter.export_data("User", all_doctypes=True, template=True, with_data=True)
 		content = read_csv_content(frappe.response.result)
 		self.assertTrue(content[1][1], "User")
-		self.assertTrue("Administrator" in [c[1] for c in content if len(c)>1])
+		self.assertTrue('"Administrator"' in [c[1] for c in content if len(c)>1])
 
 	def test_export_with_all_doctypes(self):
-		exporter.get_template("User", all_doctypes="Yes", with_data="Yes")
+		exporter.export_data("User", all_doctypes="Yes", template=True, with_data=True)
 		content = read_csv_content(frappe.response.result)
 		self.assertTrue(content[1][1], "User")
 		self.assertTrue('"Administrator"' in [c[1] for c in content if len(c)>1])
@@ -33,14 +33,14 @@ class TestDataImport(unittest.TestCase):
 		if frappe.db.exists("Blog Category", "test-category"):
 			frappe.delete_doc("Blog Category", "test-category")
 
-		exporter.get_template("Blog Category", all_doctypes="No", with_data="No")
+		exporter.export_data("Blog Category", all_doctypes=True, template=True)
 		content = read_csv_content(frappe.response.result)
 		content.append(["", "", "test-category", "Test Cateogry"])
 		importer.upload(content)
 		self.assertTrue(frappe.db.get_value("Blog Category", "test-category", "title"), "Test Category")
 
 		# export with data
-		exporter.get_template("Blog Category", all_doctypes="No", with_data="Yes")
+		exporter.export_data("Blog Category", all_doctypes=True, template=True, with_data=True)
 		content = read_csv_content(frappe.response.result)
 
 		# overwrite
@@ -55,7 +55,7 @@ class TestDataImport(unittest.TestCase):
 
 		frappe.get_doc({"doctype": "User", "email": user_email, "first_name": "Test Import UserRole"}).insert()
 
-		exporter.get_template("Has Role", "User", all_doctypes="No", with_data="No")
+		exporter.export_data("Has Role", "User", all_doctypes=True, template=True)
 		content = read_csv_content(frappe.response.result)
 		content.append(["", "test_import_userrole@example.com", "Blogger"])
 		importer.upload(content)
@@ -65,7 +65,7 @@ class TestDataImport(unittest.TestCase):
 		self.assertTrue(user.get("roles")[0].role, "Blogger")
 
 		# overwrite
-		exporter.get_template("Has Role", "User", all_doctypes="No", with_data="No")
+		exporter.export_data("Has Role", "User", all_doctypes=True, template=True)
 		content = read_csv_content(frappe.response.result)
 		content.append(["", "test_import_userrole@example.com", "Website Manager"])
 		importer.upload(content, overwrite=True)
@@ -77,7 +77,7 @@ class TestDataImport(unittest.TestCase):
 	def test_import_with_children(self):	#pylint: disable=R0201
 		if frappe.db.exists("Event", "EV00001"):
 			frappe.delete_doc("Event", "EV00001")
-		exporter.get_template("Event", all_doctypes="Yes", with_data="No")
+		exporter.export_data("Event", all_doctypes="Yes", template=True)
 		content = read_csv_content(frappe.response.result)
 
 		content.append([None] * len(content[-2]))
@@ -93,7 +93,7 @@ class TestDataImport(unittest.TestCase):
 		if frappe.db.exists("Event", "EV00001"):
 			frappe.delete_doc("Event", "EV00001")
 
-		exporter.get_template("Event", all_doctypes="No", with_data="No", from_data_import="Yes", excel_format="Yes")
+		exporter.export_data("Event", all_doctypes=True, template=True, file_type="Excel")
 		from frappe.utils.xlsxutils import read_xlsx_file_from_attached_file
 		content = read_xlsx_file_from_attached_file(fcontent=frappe.response.filecontent)
 		content.append(["", "EV00001", "_test", "Private", "05-11-2017 13:51:48", "0", "0", "", "1", "blue"])
