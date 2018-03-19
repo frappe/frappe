@@ -122,7 +122,8 @@ class FormMeta(Meta):
 			if df.options:
 				search_fields = frappe.get_meta(df.options).search_fields
 				if search_fields:
-					df.search_fields = map(lambda sf: sf.strip(), search_fields.split(","))
+					search_fields = search_fields.split(",")
+					df.search_fields = [sf.strip() for sf in search_fields]
 
 	def add_linked_document_type(self):
 		for df in self.get("fields", {"fieldtype": "Link"}):
