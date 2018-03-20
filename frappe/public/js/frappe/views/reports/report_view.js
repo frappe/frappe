@@ -2,8 +2,7 @@
  * frappe.views.ReportView
  */
 import DataTable from 'frappe-datatable';
-import 'frappe-datatable/dist/frappe-datatable.css';
-import '../../../../less/frappe-datatable.less';
+
 frappe.provide('frappe.views');
 
 frappe.views.ReportView = class ReportView extends frappe.views.ListView {

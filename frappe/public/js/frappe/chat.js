@@ -7,8 +7,6 @@ import hyper  from '../lib/hyper.min'
 
 import './socketio_client'
 
-import '../../less/chat.less'
-
 /* eslint semi: "never" */
 // Fuck semicolons - https://mislav.net/2010/05/semicolons
 
@@ -1055,7 +1053,7 @@ frappe.components.FAB.defaultProps
 	icon: "octicon octicon-plus"
 }
 frappe.components.FAB.SIZE
-= 
+=
 {
 	small:
 	{
@@ -1470,7 +1468,7 @@ class extends Component {
 			placeholder: __("Search or Create a New Chat"),
 				  class: "level",
 				 layout: props.layout,
-				actions: 
+				actions:
 			frappe._.compact([
 				{
 					  label: __("New"),
@@ -2460,11 +2458,11 @@ frappe.chat.setup  = () =>
 {
 	if ( frappe.session.user !== 'Guest' ) {
 		frappe.log = frappe.Logger.get('frappe.chat');
-	
+
 		frappe.log.info('Setting up frappe.chat');
 		frappe.log.warn('TODO: Handle realtime System Settings update.');
 		frappe.log.warn('TODO: frappe.chat.<object> requires a storage.');
-		
+
 		// Create/Get Chat Profile for session User, retrieve enable_chat
 		frappe.log.info('Creating a Chat Profile.');
 		frappe.chat.profile.create('enable_chat').then(({ enable_chat }) => {
@@ -2472,7 +2470,7 @@ frappe.chat.setup  = () =>
 			const should_render = frappe.sys_defaults.enable_chat && enable_chat;
 			frappe.chat.render(should_render);
 		});
-	
+
 		// Triggered when a User updates his/her Chat Profile.
 		// Don't worry, enable_chat is broadcasted to this user only. No overhead. :)
 		frappe.chat.profile.on.update((user, profile) => {

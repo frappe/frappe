@@ -10,12 +10,11 @@ const {
 	apps_list,
 	run_serially,
 	assets_path,
-	sites_path,
-	delete_file
+	sites_path
 } = require('./rollup.utils');
 
 const {
-	get_rollup_options
+	get_options_for
 } = require('./config');
 
 show_production_message();
@@ -30,23 +29,16 @@ function build_assets_for_all_apps() {
 }
 
 function build_assets(app) {
-	const build_json = get_build_json(app);
-	if (!build_json) return Promise.resolve();
+	const options = get_options_for(app);
+	if (!options.length) return Promise.resolve();
 	log(chalk.yellow(`\nBuilding ${app} assets...\n`));
 
-	const promises = Object.keys(build_json)
-		.map(output_file => {
-			const input_files = build_json[output_file]
-				.map(input_file => path.resolve(get_app_path(app), input_file));
-			const { inputOptions, outputOptions } = get_rollup_options(output_file, input_files);
-
-			if (output_file.endsWith('libs.min.js')) return Promise.resolve();
-
-			return build(inputOptions, outputOptions)
-				.then(() => {
-					log(`${chalk.green('✔')} Built ${output_file}`);
-				});
-		});
+	const promises = options.map(({ inputOptions, outputOptions, output_file}) => {
+		return build(inputOptions, outputOptions)
+			.then(() => {
+				log(`${chalk.green('✔')} Built ${output_file}`);
+			});
+	});
 
 	const start = Date.now();
 	return Promise.all(promises)
@@ -89,19 +81,9 @@ function ensure_js_css_dirs() {
 			fs.mkdirSync(path);
 		}
 	});
-
-	// clear files in css folder
-	const css_path = path.resolve(assets_path, 'css');
-	const files = fs.readdirSync(css_path);
-
-	files.forEach(file => {
-		delete_file(path.resolve(css_path, file));
-	});
 }
 
 function show_production_message() {
 	const production = process.env.FRAPPE_ENV === 'production';
-	if (production) {
-		log(chalk.green('Production mode'));
-	}
+	log(chalk.yellow(`${production ? 'Production' : 'Development'} mode`));
 }
