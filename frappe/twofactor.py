@@ -81,11 +81,7 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 def two_factor_is_enabled_for_(user):
 	'''Check if 2factor is enabled for user.'''
 	if user == "Administrator":
-		if frappe.get_value(
-			"System Settings",
-			"enable_two_factor_authentication_for_administrator",
-			"enable_two_factor_authentication_for_administrator"
-		) == 1:
+		if not int(frappe.db.get_value('System Settings', None, 'enable_two_factor_authentication_for_administrator') or 0):
 			return False
 
 	if isinstance(user, string_types):
