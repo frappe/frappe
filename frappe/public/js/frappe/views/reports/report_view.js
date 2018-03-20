@@ -147,9 +147,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.datatable = new DataTable(this.$datatable_wrapper[0], {
 			columns: this.columns,
 			data: this.get_data(values),
-			enableClusterize: true,
-			addCheckbox: this.can_delete,
-			takeAvailableSpace: true,
 			getEditor: this.get_editing_object.bind(this),
 			events: {
 				onRemoveColumn: (column) => {
