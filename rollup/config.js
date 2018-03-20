@@ -5,7 +5,7 @@ const log = console.log; // eslint-disable-line
 const multi_entry = require('rollup-plugin-multi-entry');
 const commonjs = require('rollup-plugin-commonjs');
 const node_resolve = require('rollup-plugin-node-resolve');
-const less = require('rollup-plugin-less');
+const postcss = require('rollup-plugin-postcss');
 const buble = require('rollup-plugin-buble');
 const uglify = require('rollup-plugin-uglify');
 const frappe_html = require('./frappe-html-plugin');
@@ -17,7 +17,7 @@ const {
 	bench_path,
 	get_public_path,
 	get_app_path,
-	delete_file,
+	get_build_json
 } = require('./rollup.utils');
 
 function get_rollup_options(output_file, input_files) {
@@ -36,17 +36,6 @@ function get_rollup_options_for_js(output_file, input_files) {
 		multi_entry(),
 		// .html -> .js
 		frappe_html(),
-		// less -> css
-		less({
-			output: css_output_file,
-			option: {
-				// so that other .less files can import variables.less from frappe directly
-				paths: [path.resolve(get_public_path('frappe'), 'less'), path.resolve(get_app_path('frappe'), '..')],
-				compress: production
-			},
-			include: [path.resolve(bench_path, '**/*.less'), path.resolve(bench_path, '**/*.css')],
-			exclude: []
-		}),
 		// ES6 -> ES5
 		buble({
 			objectAssign: 'Object.assign',
@@ -93,21 +82,20 @@ function get_rollup_options_for_js(output_file, input_files) {
 function get_rollup_options_for_css(output_file, input_files) {
 	const output_path = path.resolve(assets_path, output_file);
 
-	// clear css file to avoid appending problem
-	delete_file(output_path);
-
 	const plugins = [
 		// enables array of inputs
 		multi_entry(),
 		// less -> css
-		less({
-			output: output_path,
-			option: {
-				// so that other .less files can import variables.less from frappe directly
-				paths: [path.resolve(get_public_path('frappe'), 'less')],
-				compress: production
-			},
-			include: [path.resolve(bench_path, '**/*.less'), path.resolve(bench_path, '**/*.css')]
+		postcss({
+			extract: output_path,
+			use: [['less', {
+				// import other less/css files starting from these folders
+				paths: [
+					path.resolve(get_public_path('frappe'), 'less')
+				]
+			}]],
+			include: [path.resolve(bench_path, '**/*.less'), path.resolve(bench_path, '**/*.css')],
+			minimize: production
 		})
 	];
 
@@ -131,6 +119,30 @@ function get_rollup_options_for_css(output_file, input_files) {
 	};
 }
 
+function get_options_for(app) {
+	const build_json = get_build_json(app);
+	if (!build_json) return [];
+
+	return Object.keys(build_json)
+		.map(output_file => {
+			if (output_file.endsWith('libs.min.js')) return null;
+
+			const input_files = build_json[output_file]
+				.map(input_file => {
+					let prefix = get_app_path(app);
+					if (input_file.startsWith('node_modules/')) {
+						prefix = path.resolve(get_app_path(app), '..');
+					}
+					return path.resolve(prefix, input_file);
+				});
+			return Object.assign(
+				get_rollup_options(output_file, input_files), {
+					output_file
+				});
+		})
+		.filter(Boolean);
+}
+
 module.exports = {
-	get_rollup_options
+	get_options_for
 };
