@@ -86,7 +86,7 @@ def two_factor_is_enabled_for_(user):
 			"enable_two_factor_authentication_for_administrator",
 			"enable_two_factor_authentication_for_administrator"
 		)):
-		return False
+			return False
 
 	if isinstance(user, string_types):
 		user = frappe.get_doc('User', user)
