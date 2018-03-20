@@ -583,11 +583,30 @@ def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
 	else:
 		print('No Updates')
 
+@click.command('disable-admin-2fa')
+@pass_context
+def two_fa(context):
+	'''Setup help table in the current site (called after migrate)'''
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			frappe.set_value(
+				"System Settings",
+				"enable_two_factor_authentication_for_administrator",
+				"enable_two_factor_authentication_for_administrator", 0)
+
+			if frappe.db:
+				frappe.db.commit()
+		finally:
+			frappe.destroy()
+
 commands = [
 	build,
 	clear_cache,
 	clear_website_cache,
 	console,
+	two_fa,
 	destroy_all_sessions,
 	execute,
 	export_csv,
