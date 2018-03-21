@@ -1,7 +1,7 @@
 // String.prototype.includes polyfill
 // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/String/includes
 if (!String.prototype.includes) {
-	String.prototype.includes = function (search, start) {
+	String.prototype.includes = function(search, start) {
 		'use strict';
 		if (typeof start !== 'number') {
 			start = 0;
@@ -17,7 +17,7 @@ if (!String.prototype.includes) {
 // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
 if (!Array.prototype.includes) {
 	Object.defineProperty(Array.prototype, 'includes', {
-		value: function (searchElement, fromIndex) {
+		value: function(searchElement, fromIndex) {
 			if (this == null) {
 				throw new TypeError('"this" is null or not defined');
 			}
