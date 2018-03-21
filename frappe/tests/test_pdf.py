@@ -30,9 +30,9 @@ class TestPdfBorders(unittest.TestCase):
 		"""
 
         html, html_options = read_options_from_html(html)
-        self.assertTrue(html_options['margin-top'] == '0')   
-        self.assertTrue(html_options['margin-left'] == '10')   
-        self.assertTrue(html_options['margin-right'] == '0')    
+        self.assertTrue(html_options['margin-top'] == '0')
+        self.assertTrue(html_options['margin-left'] == '10')
+        self.assertTrue(html_options['margin-right'] == '0')
 
 # allows to run $ bench execute frappe.tests.test_pdf.run_tests
 def run_tests():
