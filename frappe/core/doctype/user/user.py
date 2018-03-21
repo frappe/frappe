@@ -68,6 +68,7 @@ class User(Document):
 		self.validate_user_email_inbox()
 		ask_pass_update()
 		self.validate_roles()
+		self.validate_user_image()
 
 		if self.language == "Loading...":
 			self.language = None
@@ -75,6 +76,10 @@ class User(Document):
 		if (self.name not in ["Administrator", "Guest"]) and (not self.get_social_login_userid("frappe")):
 			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
 
+	def validate_user_image(self):
+		if len(self.user_image) > 2000:
+			frappe.throw(_("Not a valid User Image."))
+			
 	def validate_roles(self):
 		if self.role_profile_name:
 				role_profile = frappe.get_doc('Role Profile', self.role_profile_name)
