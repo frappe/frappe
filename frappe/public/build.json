@@ -357,7 +357,6 @@
 	],
 	"js/report.min.js": [
 		"public/js/lib/clusterize.min.js",
-		"public/js/lib/frappe-datatable.js",
 		"public/js/frappe/views/reports/report_factory.js",
 		"public/js/frappe/views/reports/report_view.js",
 		"public/js/frappe/views/reports/reportview_footer.html",

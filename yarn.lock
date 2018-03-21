@@ -867,6 +867,7 @@ frappe-datatable@frappe/datatable:
   resolved "https://codeload.github.com/frappe/datatable/tar.gz/88486b5a078387464426922d340124f92a30f2ef"
   dependencies:
     clusterize.js "^0.18.0"
+    lodash "^4.17.5"
     sortablejs "^1.7.0"
 
 frappe-gantt@^0.1.0:
@@ -1369,6 +1370,10 @@ lodash.memoize@^4.1.2:
 lodash.uniq@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.uniq/-/lodash.uniq-4.5.0.tgz#d0225373aeb652adc1bc82e4945339a842754773"
+
+lodash@^4.17.5:
+  version "4.17.5"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.5.tgz#99a92d65c0272debe8c96b6057bc8fbfa3bed511"
 
 lru-cache@^4.0.1:
   version "4.1.1"
