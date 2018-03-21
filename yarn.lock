@@ -862,9 +862,9 @@ forwarded@~0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/forwarded/-/forwarded-0.1.2.tgz#98c23dab1175657b8c0573e8ceccd91b0ff18c84"
 
-frappe-datatable@frappe/datatable:
-  version "0.0.2"
-  resolved "https://codeload.github.com/frappe/datatable/tar.gz/88486b5a078387464426922d340124f92a30f2ef"
+frappe-datatable@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-0.0.3.tgz#55d3fd7bafdf2a7380efab2ae2aaaa956624fca0"
   dependencies:
     clusterize.js "^0.18.0"
     lodash "^4.17.5"
