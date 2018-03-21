@@ -212,7 +212,7 @@ class DataExporter():
 		self.columns.append("")
 
 	@staticmethod
-	def getinforow(self, docfield):
+	def getinforow(docfield):
 		"""make info comment for options, links etc."""
 		if docfield.fieldtype == 'Select':
 			if not docfield.options:
