@@ -13,7 +13,7 @@ from frappe.utils.identicon import Identicon
 from email.utils import parseaddr, formataddr
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
-from six.moves.urllib.parse import quote
+from six.moves.urllib.parse import quote, urlparse
 from six import text_type, string_types
 
 default_fields = ['doctype', 'name', 'owner', 'creation', 'modified', 'modified_by',
@@ -556,3 +556,7 @@ def parse_json(val):
 	if isinstance(val, string_types):
 		return json.loads(val)
 	return val
+
+def is_url(arg):
+	parsed = urlparse(arg)
+	return parsed.scheme
