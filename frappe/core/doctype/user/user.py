@@ -83,7 +83,7 @@ class User(Document):
 				self.append_roles(*[role.role for role in role_profile.roles])
 
 	def validate_user_image(self):
-		if len(self.user_image) > 2000:
+		if self.user_image and len(self.user_image) > 2000:
 			frappe.throw(_("Not a valid User Image."))
 
 	def on_update(self):
