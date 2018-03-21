@@ -7,7 +7,7 @@ frappe.ui.form.on('Data Export', {
 		frm.page.set_primary_action('Export', () => {
 			can_export(frm) ? export_data(frm) : null;
 		});
-		frm.page.sidebar.empty();
+		$(frm.footer.wrapper).toggle(false);
 	},
 	onload: (frm) => {
 		frm.set_query("reference_doctype", () => {
@@ -35,10 +35,10 @@ const can_export = frm => {
 	const parent_multicheck_options = frm.fields_multicheck[doctype] ?
 		frm.fields_multicheck[doctype].get_checked_options() : [];
 	let is_valid_form = false;
-	if (!doctype || !frm.doc.file_type) {
-		frappe.msgprint('Please enter mandatory data');
+	if (!doctype) {
+		frappe.msgprint(__('Please select the Document Type.'));
 	} else if (!parent_multicheck_options.length) {
-		frappe.msgprint('Atleast one field of parent doctype is mandatory');
+		frappe.msgprint(__('Atleast one field of Parent Document Type is mandatory'));
 	} else {
 		is_valid_form = true;
 	}
