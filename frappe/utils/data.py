@@ -335,15 +335,10 @@ def encode(obj, encoding="utf-8"):
 	if isinstance(obj, list):
 		out = []
 		for o in obj:
-			if isinstance(o, text_type):
-				out.append(o.encode(encoding))
-			else:
-				out.append(o)
+			out.append(frappe.safe_encode(o, encoding))
 		return out
-	elif isinstance(obj, text_type):
-		return obj.encode(encoding)
 	else:
-		return obj
+		return frappe.safe_encode(obj, encoding)
 
 def parse_val(v):
 	"""Converts to simple datatypes from SQL query results"""
