@@ -3,12 +3,12 @@
 
 from __future__ import unicode_literals
 
-import frappe, json
+import frappe
 from frappe import _
 import frappe.permissions
 import re, csv, os
 from frappe.utils.csvutils import UnicodeWriter
-from frappe.utils import cstr, formatdate, format_datetime, parse_json
+from frappe.utils import cstr, formatdate, format_datetime, parse_json, cint
 from frappe.core.doctype.data_import.importer import get_data_keys
 from six import string_types
 
@@ -35,7 +35,7 @@ class DataExporter():
 		self.doctype = doctype
 		self.parent_doctype = parent_doctype
 		self.all_doctypes = all_doctypes
-		self.with_data = with_data
+		self.with_data = cint(with_data)
 		self.select_columns = select_columns
 		self.file_type = file_type
 		self.template = template
@@ -96,8 +96,7 @@ class DataExporter():
 
 		self.add_field_headings()
 		self.add_data()
-
-		if not self.data:
+		if self.with_data and not self.data:
 			frappe.respond_as_web_page(_('No Data'), _('There is no data to be exported'), indicator_color='orange')
 			return
 
@@ -212,6 +211,7 @@ class DataExporter():
 		self.inforow.append("")
 		self.columns.append("")
 
+	@staticmethod
 	def getinforow(self, docfield):
 		"""make info comment for options, links etc."""
 		if docfield.fieldtype == 'Select':
@@ -276,7 +276,7 @@ class DataExporter():
 					m = c.match(doc.name)
 					if not m:
 						continue
-				except:
+				except Exception:
 					if doc.name not in names:
 						continue
 			# add main table
