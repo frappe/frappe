@@ -11,7 +11,7 @@ import requests
 
 class ExotelSettings(Document):
 	def validate(self):
-		validate_credentials()
+		self.validate_credentials()
 
 	def validate_credentials(self):
 		response = requests.get('https://api.exotel.com/v1/Accounts/{sid}'.format(sid = self.exotel_sid),
@@ -20,11 +20,11 @@ class ExotelSettings(Document):
 			frappe.throw(_("Invalid credentials. Please try again with valid credentials"))
 
 def make_popup(caller_no):
-	contact_lookup = frappe.get_list("Contact", or_filters={"phone":caller_no, "mobile_no":caller_no})
+	contact_lookup = frappe.get_list("Contact", or_filters={"phone":caller_no, "mobile_no":caller_no}, ignore_permissions=True)
 
 	if len(contact_lookup) > 0:
 		contact_doc = frappe.get_doc("Contact", contact_lookup[0].get("name"))
-		if(contact_doc.get_link_for('Customer')):		
+		if(contact_doc.get_link_for('Customer')):
 			customer_name = frappe.db.get_value("Dynamic Link", {"parent":contact_doc.get("name")}, "link_name")
 			customer_full_name = frappe.db.get_value("Customer", customer_name, "customer_name")
 			popup_data = {
