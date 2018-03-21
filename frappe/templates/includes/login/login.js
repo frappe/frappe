@@ -7,6 +7,13 @@ window.login = {};
 
 window.verify = {};
 
+
+(function foo(){
+   r = frappe.utils.get_url_arg("redirect-to")
+   localStorage.redirect_to = r || ''
+}());
+
+
 login.bind_events = function() {
 	$(window).on("hashchange", function() {
 		login.route();
@@ -159,6 +166,7 @@ login.login_handlers = (function() {
 
 	var login_handlers = {
 		200: function(data) {
+			localStorage.removeItem('redirect_to')
 			if(data.message == 'Logged In'){
 				login.set_indicator("{{ _("Success") }}", 'green');
 				window.location.href = frappe.utils.get_url_arg("redirect-to") || data.home_page;

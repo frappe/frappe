@@ -19,7 +19,8 @@ before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
 
 page_js = {
-	"setup-wizard": "public/js/frappe/setup_wizard.js"
+	"setup-wizard": "public/js/frappe/setup_wizard.js",
+	"desktop": "public/js/oauth.js"
 }
 
 # website
