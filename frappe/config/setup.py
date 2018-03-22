@@ -95,9 +95,16 @@ def get_data():
 				{
 					"type": "doctype",
 					"name": "Data Import",
-					"label": _("Import / Export Data"),
+					"label": _("Import Data"),
 					"icon": "octicon octicon-cloud-upload",
-					"description": _("Import / Export Data from CSV and Excel files.")
+					"description": _("Import Data from CSV / Excel files.")
+				},
+				{
+					"type": "doctype",
+					"name": "Data Export",
+					"label": _("Export Data"),
+					"icon": "octicon octicon-cloud-upload",
+					"description": _("Export Data in CSV / Excel format.")
 				},
 				{
 					"type": "doctype",
