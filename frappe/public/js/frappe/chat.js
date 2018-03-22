@@ -441,17 +441,38 @@ frappe.ui.Uploader.TEMPLATE =
 frappe.provide('frappe.ui.keycode')
 frappe.ui.keycode = { RETURN: 13 }
 
-// frappe.stores  - A registry for frappe stores.
-frappe.provide('frappe.stores')
 /**
  * @description Frappe's Store Class
- *
- * @todo Under Development
  */
-frappe.Store   = class {
-	constructor ( ) {
-
+ // frappe.stores  - A registry for frappe stores.
+frappe.provide('frappe.stores')
+frappe.stores = [ ]
+frappe.Store  = class
+{
+	/**
+	 * @description Frappe's Store Class's constructor.
+	 *
+	 * @param {string} name - Name of the logger.
+	 */
+	constructor (name) {
+		if ( typeof name !== 'string' )
+			throw new frappe.TypeError(`Expected string for name, got ${typeof name} instead.`)
+		this.name = name
 	}
+
+	/**
+	 * @description Get instance of frappe.Store (return registered one if declared).
+	 *
+	 * @param {string} name - Name of the store.
+	 */
+	static get (name) {
+		if ( !(name in frappe.stores) )
+			frappe.stores[name] = new frappe.Store(name)
+		return frappe.stores[name]
+	}
+
+	set (key, value) { localStorage.setItem(`${this.name}:${key}`, value) }
+	get (key, value) { return localStorage.getItem(`${this.name}:${key}`) }
 }
 
 // frappe.loggers - A registry for frappe loggers.
@@ -481,9 +502,9 @@ frappe.Logger = class {
 
 		if ( !this.level ) {
 			if ( frappe.boot.developer_mode )
-				this.level  = frappe.Logger.ERROR
+				this.level = frappe.Logger.ERROR
 			else
-				this.level  = frappe.Logger.NOTSET
+				this.level = frappe.Logger.NOTSET
 		}
 		this.format = frappe.Logger.FORMAT
 	}
@@ -528,7 +549,7 @@ frappe.Logger.FORMAT = '{time} {name}'
 // frappe.chat
 frappe.provide('frappe.chat')
 
-frappe.log = frappe.Logger.get('frappe.chat', frappe.Logger.NOTSET)
+frappe.log = frappe.Logger.get('frappe.chat', frappe.Logger.ERROR)
 
 // frappe.chat.profile
 frappe.provide('frappe.chat.profile')
@@ -988,6 +1009,41 @@ frappe.chat.emoji  = function (fn) {
 	})
 }
 
+// Website Settings
+frappe.provide('frappe.chat.website.settings')
+frappe.chat.website.settings = (fields, fn) =>
+{
+	if ( typeof fields === "function" ) {
+		fn     = fields
+		fields = null
+	} else
+	if ( typeof fields === "string" )
+		fields = frappe._.as_array(fields)
+
+	return new Promise(resolve => {
+		frappe.call("frappe.chat.website.settings")
+			.then(response => {
+				if ( fn )
+					fn(response.message)
+
+				resolve(response.message)
+			})
+	})
+}
+
+frappe.chat.website.token    = (fn) =>
+{
+	return new Promise(resolve => {
+		frappe.call("frappe.chat.website.token")
+			.then(response => {
+				if ( fn )
+					fn(response.message)
+
+				resolve(response.message)
+			})
+	})
+}
+
 const { h, Component } = hyper
 
 // frappe.components
@@ -1197,6 +1253,11 @@ class {
 
 		// Load Emojis.
 		frappe.chat.emoji()
+
+		frappe.log.info('Initializing Socket.IO')
+		frappe.chat.website.settings("socketio").then(({ socketio }) => {
+			frappe.socketio.init(socketio.port)
+		})
 	}
 
 	/**
@@ -1480,7 +1541,8 @@ class extends Component {
 					onclick: function ( ) {
 						const dialog = new frappe.ui.Dialog({
 							  title: __("New Chat"),
-							 fields: [ {
+							 fields: [
+								 {
 										 label: __("Chat Type"),
 									 fieldname: "type",
 									 fieldtype: "Select",
@@ -1493,19 +1555,22 @@ class extends Component {
 											dialog.set_df_property("group_name", "reqd",  is_group)
 											dialog.set_df_property("user",       "reqd", !is_group)
 									  }
-								 }, {
+								 },
+								 {
 										 label: __("Group Name"),
 									 fieldname: "group_name",
 									 fieldtype: "Data",
 										  reqd: true,
 									depends_on: "eval:doc.type == 'Group'"
-								 }, {
+								 },
+								 {
 										 label: __("Users"),
 									 fieldname: "users",
 									 fieldtype: "MultiSelect",
 									   options: frappe.user.get_emails(),
 									depends_on: "eval:doc.type == 'Group'"
-								 }, {
+								 },
+								 {
 										 label: __("User"),
 									 fieldname: "user",
 									 fieldtype: "Link",
@@ -2460,6 +2525,26 @@ frappe.chat.render = (render = true, force = false) =>
 		frappe.chatter = new frappe.Chat({
 			target: desk ? '.navbar .frappe-chat-toggle' : null
 		})
+
+		if ( !desk ) {
+			frappe.store = frappe.Store.get('frappe.chat')
+			var token	 = frappe.store.get('guest_token')
+
+			frappe.log.info(`Local Guest Token - ${token}`)
+			
+			if ( !token ) {
+				frappe.chat.website.token().then(token => {
+					frappe.log.info(`Generated Guest Token - ${token}`)
+					frappe.store.set('guest_token', token)
+				})
+			}
+
+			frappe.chat.room.create("Visitor", token).then(room => {
+				
+			})
+		}
+
+
 		frappe.chatter.render()
 	}
 }
@@ -2470,16 +2555,14 @@ frappe.chat.setup  = () =>
 	frappe.log.info('Setting up frappe.chat')
 	frappe.log.warn('TODO: frappe.chat.<object> requires a storage.')
 
-	const desk = 'desk' in frappe 
-	if ( desk ) {
+	if ( frappe.session.user !== 'Guest' ) {
 		// Create/Get Chat Profile for session User, retrieve enable_chat
 		frappe.log.info('Creating a Chat Profile.')
-		
+	
 		frappe.chat.profile.create('enable_chat').then(({ enable_chat }) => {
 			frappe.log.info(`Chat Profile created for User ${frappe.session.user}.`)
 			if ( 'desk' in frappe ) {
 				const should_render = frappe.sys_defaults.enable_chat && enable_chat
-				
 				frappe.chat.render(should_render)
 			}
 		})
@@ -2493,6 +2576,7 @@ frappe.chat.setup  = () =>
 				frappe.chat.render(should_render)
 			}
 		})
+		
 	} else {
 		// Website Settings.
 		frappe.log.info('Retrieving Chat Website Settings.')

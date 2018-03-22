@@ -2,7 +2,7 @@ frappe.socketio = {
 	open_tasks: {},
 	open_docs: [],
 	emit_queue: [],
-	init: function() {
+	init: function(port = 3000) {
 		if (frappe.boot.disable_async) {
 			return;
 		}
@@ -13,17 +13,17 @@ frappe.socketio = {
 
 		//Enable secure option when using HTTPS
 		if (window.location.protocol == "https:") {
-			frappe.socketio.socket = io.connect(frappe.socketio.get_host(), {secure: true});
+			frappe.socketio.socket = io.connect(frappe.socketio.get_host(port), {secure: true});
 		}
 		else if (window.location.protocol == "http:") {
-			frappe.socketio.socket = io.connect(frappe.socketio.get_host());
+			frappe.socketio.socket = io.connect(frappe.socketio.get_host(port));
 		}
 		else if (window.location.protocol == "file:") {
 			frappe.socketio.socket = io.connect(window.localStorage.server);
 		}
 
 		if (!frappe.socketio.socket) {
-			console.log("Unable to connect to " + frappe.socketio.get_host());
+			console.log("Unable to connect to " + frappe.socketio.get_host(port));
 			return;
 		}
 
@@ -96,11 +96,11 @@ frappe.socketio = {
 			}
 		}
 	},
-	get_host: function() {
+	get_host: function(port = 3000) {
 		var host = window.location.origin;
 		if(window.dev_server) {
 			var parts = host.split(":");
-			var port = frappe.boot.socketio_port || '3000';
+			var port = frappe.boot.socketio_port || port.toString() || '3000';
 			if(parts.length > 2) {
 				host = parts[0] + ":" + parts[1];
 			}

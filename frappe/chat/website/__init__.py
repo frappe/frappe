@@ -7,7 +7,7 @@ def settings():
         socketio        = dict(
             port        = frappe.conf.socketio_port
         ),
-        enable_chat     = dsettings.chat_enable,
+        enable_chat     = bool(dsettings.chat_enable),
         welcome_message = dsettings.chat_welcome_message,
         operators       = [
             duser.user for duser in dsettings.chat_operators
@@ -15,3 +15,8 @@ def settings():
     )
 
     return response
+
+@frappe.whitelist(allow_guest = True)
+def token():
+    token = frappe.generate_hash()
+    return token

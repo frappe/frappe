@@ -157,17 +157,21 @@ def get(user, rooms = None, fields = None, filters = None):
 	
 	return rooms
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest = True)
 def create(kind, owner, users = None, name = None):
-	authenticate(owner)
+	if kind != 'Visitor':
+		authenticate(owner)
 
 	users = safe_json_loads(users)
 
 	room  = frappe.new_doc('Chat Room')
-	room.type 	   = kind
-	room.owner	   = owner
-	room.room_name = name
-
+	if kind != 'Visitor':
+		room.type 	   = kind
+		room.owner	   = owner
+		room.room_name = name
+	else:
+		pass
+		
 	dusers     	   = [ ]
 
 	if users:
