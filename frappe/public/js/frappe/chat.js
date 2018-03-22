@@ -7,6 +7,11 @@ import hyper  from '../lib/hyper.min'
 
 import './socketio_client'
 
+import './ui/dialog'
+import './ui/capture'
+
+import './misc/user'
+
 /* eslint semi: "never" */
 // Fuck semicolons - https://mislav.net/2010/05/semicolons
 
@@ -25,7 +30,7 @@ import './socketio_client'
  * @see  https://stackoverflow.com/a/32749533
  * @todo Requires "transform-builtin-extend" for Babel 6
  */
-frappe.Error = Error;
+frappe.Error = Error
 // class extends Error {
 // 	constructor (message) {
 // 		super (message)
@@ -42,7 +47,7 @@ frappe.Error = Error;
 /**
  * @description TypeError
  */
-frappe.TypeError  = TypeError;
+frappe.TypeError  = TypeError
 // class extends frappe.Error {
 // 	constructor (message) {
 // 		super (message)
@@ -2422,64 +2427,85 @@ frappe.notify     = (string, options) =>
 
 frappe.chat.render = (render = true, force = false) =>
 {
-	frappe.log.info(`${render ? "Enable" : "Disable"} Chat for User.`);
+	frappe.log.info(`${render ? "Enable" : "Disable"} Chat for User.`)
 
-	// With the assumption, that there's only one navbar.
-	const $placeholder = $('.navbar .frappe-chat-dropdown');
-
-	// Render if frappe-chat-toggle doesn't exist.
-	if ( frappe.utils.is_empty($placeholder.has('.frappe-chat-toggle')) ) {
-		const $template = $(`
-			<a class="dropdown-toggle frappe-chat-toggle" data-toggle="dropdown">
-				<div>
-					<i class="octicon octicon-comment-discussion"/>
-				</div>
-			</a>
-		`);
-
-		$placeholder.addClass('dropdown hidden');
-		$placeholder.html($template);
+	const desk = 'desk' in frappe
+	if ( desk ) {
+		// With the assumption, that there's only one navbar.
+		const $placeholder = $('.navbar .frappe-chat-dropdown')
+	
+		// Render if frappe-chat-toggle doesn't exist.
+		if ( frappe.utils.is_empty($placeholder.has('.frappe-chat-toggle')) ) {
+			const $template = $(`
+				<a class="dropdown-toggle frappe-chat-toggle" data-toggle="dropdown">
+					<div>
+						<i class="octicon octicon-comment-discussion"/>
+					</div>
+				</a>
+			`)
+	
+			$placeholder.addClass('dropdown hidden')
+			$placeholder.html($template)
+		}
+	
+		if ( render ) {
+			$placeholder.removeClass('hidden')
+		} else {
+			$placeholder.addClass('hidden')
+		}
 	}
-
-	if ( render ) {
-		$placeholder.removeClass('hidden');
-	} else {
-		$placeholder.addClass('hidden');
-	}
-
+	
 	// Avoid re-renders. Once is enough.
 	if ( !frappe.chatter || force ) {
-		frappe.chatter = new frappe.Chat({ target: '.navbar .frappe-chat-toggle' });
-		frappe.chatter.render();
+		frappe.chatter = new frappe.Chat({
+			target: desk ? '.navbar .frappe-chat-toggle' : null
+		})
+		frappe.chatter.render()
 	}
 }
 
 frappe.chat.setup  = () =>
 {
-	if ( frappe.session.user !== 'Guest' ) {
-		frappe.log = frappe.Logger.get('frappe.chat');
+	frappe.log = frappe.Logger.get('frappe.chat')
+	frappe.log.info('Setting up frappe.chat')
+	frappe.log.warn('TODO: frappe.chat.<object> requires a storage.')
 
-		frappe.log.info('Setting up frappe.chat');
-		frappe.log.warn('TODO: Handle realtime System Settings update.');
-		frappe.log.warn('TODO: frappe.chat.<object> requires a storage.');
-
+	const desk = 'desk' in frappe 
+	if ( desk ) {
 		// Create/Get Chat Profile for session User, retrieve enable_chat
-		frappe.log.info('Creating a Chat Profile.');
+		frappe.log.info('Creating a Chat Profile.')
+		
 		frappe.chat.profile.create('enable_chat').then(({ enable_chat }) => {
 			frappe.log.info(`Chat Profile created for User ${frappe.session.user}.`)
-			const should_render = frappe.sys_defaults.enable_chat && enable_chat;
-			frappe.chat.render(should_render);
-		});
+			if ( 'desk' in frappe ) {
+				const should_render = frappe.sys_defaults.enable_chat && enable_chat
+				
+				frappe.chat.render(should_render)
+			}
+		})
 
 		// Triggered when a User updates his/her Chat Profile.
 		// Don't worry, enable_chat is broadcasted to this user only. No overhead. :)
 		frappe.chat.profile.on.update((user, profile) => {
 			if ( user === frappe.session.user && 'enable_chat' in profile ) {
-				frappe.log.warn(`Chat Profile update (Enable Chat - ${Boolean(profile.enable_chat)})`);
-				const should_render = frappe.sys_defaults.enable_chat && profile.enable_chat;
-				frappe.chat.render(should_render);
+				frappe.log.warn(`Chat Profile update (Enable Chat - ${Boolean(profile.enable_chat)})`)
+				const should_render = frappe.sys_defaults.enable_chat && profile.enable_chat
+				frappe.chat.render(should_render)
 			}
-		});
+		})
+	} else {
+		// Website Settings.
+		frappe.log.info('Retrieving Chat Website Settings.')
+		frappe.chat.website.settings(["socketio", "enable_chat"]).then((settings) => {
+			frappe.log.info(`Chat Website Setting - ${JSON.stringify(settings)}`)
+			frappe.log.info(`Chat Website Setting - ${settings.enable_chat ? "Enable" : "Disable"}`)
+			
+			const should_render = settings.enable_chat
+			
+			frappe.socketio.init(settings.socketio.port)
+			
+			frappe.chat.render(should_render)
+		})
 	}
 }
 
