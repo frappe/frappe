@@ -20,7 +20,8 @@ ignore_list = [".DS_Store"]
 class DropboxSettings(Document):
 	def onload(self):
 		if not self.app_access_key and frappe.conf.dropbox_access_key:
-			self.dropbox_setup_via_site_config = 1
+			self.set_onload("dropbox_setup_via_site_config", 1)
+		
 
 @frappe.whitelist()
 def take_backup():
