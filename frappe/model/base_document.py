@@ -216,7 +216,7 @@ class BaseDocument(object):
 				if isinstance(d[fieldname], list) and df.fieldtype != 'Table':
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
-				if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time)):
+				if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time, datetime.timedelta)):
 					d[fieldname] = str(d[fieldname])
 
 		return d
@@ -291,7 +291,7 @@ class BaseDocument(object):
 			self.creation = self.modified = now()
 			self.created_by = self.modifield_by = frappe.session.user
 
-		d = self.get_valid_dict()
+		d = self.get_valid_dict(convert_dates_to_str=True)
 
 		columns = list(d)
 		try:
@@ -327,7 +327,7 @@ class BaseDocument(object):
 			self.db_insert()
 			return
 
-		d = self.get_valid_dict()
+		d = self.get_valid_dict(convert_dates_to_str=True)
 
 		# don't update name, as case might've been changed
 		name = d['name']
