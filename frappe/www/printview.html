@@ -9,6 +9,9 @@
         href="/assets/frappe/css/bootstrap.css">
 	<link type="text/css" rel="stylesheet"
         href="/assets/frappe/css/font-awesome.css">
+	{%- if has_rtl -%}
+		<link type="text/css" rel="stylesheet" href="assets/css/frappe-rtl.css">
+	{%- endif -%}
 	<style>
 	{{ css }}
 	</style>
