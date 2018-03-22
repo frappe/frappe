@@ -185,7 +185,7 @@ sounds = [
 	{"name": "delete", "src": "/assets/frappe/sounds/delete.mp3", "volume": 0.05},
 	{"name": "click", "src": "/assets/frappe/sounds/click.mp3", "volume": 0.05},
 	{"name": "error", "src": "/assets/frappe/sounds/error.mp3", "volume": 0.1},
-	# {"name": "alert", "src": "/assets/frappe/sounds/alert.mp3"},
+	{"name": "alert", "src": "/assets/frappe/sounds/alert.mp3", "volume": 0.2},
 	# {"name": "chime", "src": "/assets/frappe/sounds/chime.mp3"},
 
 	# frappe.chat sounds
