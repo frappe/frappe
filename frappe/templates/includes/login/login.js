@@ -166,7 +166,6 @@ login.login_handlers = (function() {
 
 	var login_handlers = {
 		200: function(data) {
-			localStorage.removeItem('redirect_to')
 			if(data.message == 'Logged In'){
 				login.set_indicator("{{ _("Success") }}", 'green');
 				window.location.href = frappe.utils.get_url_arg("redirect-to") || data.home_page;
