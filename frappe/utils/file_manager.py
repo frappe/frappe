@@ -392,3 +392,8 @@ def get_random_filename(extn=None, content_type=None):
 		extn = mimetypes.guess_extension(content_type)
 
 	return random_string(7) + (extn or "")
+
+@frappe.whitelist()
+def validate_filename(filename):
+	fname = get_file_name(filename, hashlib.md5(filename).hexdigest()[-6:])
+	return fname

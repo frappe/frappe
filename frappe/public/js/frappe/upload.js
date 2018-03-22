@@ -296,6 +296,15 @@ frappe.upload = {
 		if (opts.no_socketio || frappe.flags.no_socketio || file_not_big_enough) {
 			upload_with_filedata();
 			return;
+		} else {
+			frappe.call({
+				method: 'frappe.utils.file_manager.validate_filename',
+				async: false,
+				args: {"filename": args.filename},
+				callback: function(r) {
+					args.filename = r.message;
+				}
+			});
 		}
 
 		frappe.socketio.uploader.start({
