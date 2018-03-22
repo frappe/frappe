@@ -439,6 +439,7 @@ class Document(BaseDocument):
 	def _validate(self):
 		self._validate_mandatory()
 		self._validate_selects()
+		self._validate_disabled_link()
 		self._validate_length()
 		self._extract_images_from_text_editor()
 		self._sanitize_content()
@@ -447,6 +448,7 @@ class Document(BaseDocument):
 		children = self.get_all_children()
 		for d in children:
 			d._validate_selects()
+			d._validate_disabled_link()
 			d._validate_length()
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
