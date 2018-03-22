@@ -81,9 +81,13 @@ class Database:
 		conversions.update({
 			FIELD_TYPE.NEWDECIMAL: float,
 			FIELD_TYPE.DATETIME: get_datetime,
-			TimeDelta: conversions[binary_type],
 			UnicodeWithAttrs: conversions[text_type]
 		})
+
+		if six.PY2:
+			conversions.update({
+				TimeDelta: conversions[binary_type]
+			})
 
 		if usessl:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
