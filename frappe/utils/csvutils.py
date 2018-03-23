@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import msgprint, _
+from frappe import msgprint, _, safe_encode
 import json
 import csv
 from six import StringIO, text_type, string_types
@@ -105,7 +105,7 @@ class UnicodeWriter:
 		self.writer = csv.writer(self.queue, quoting=csv.QUOTE_NONNUMERIC)
 
 	def writerow(self, row):
-		row = encode(row, self.encoding)
+		row = safe_encode(row, self.encoding)
 		self.writer.writerow(row)
 
 	def getvalue(self):

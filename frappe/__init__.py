@@ -1471,14 +1471,12 @@ def get_version(doctype, name, limit = None, head = False, raise_err = True):
 def ping():
 	return "pong"
 
-
 def safe_encode(param, encoding = 'utf-8'):
 	try:
 		param = param.encode(encoding)
 	except Exception:
 		pass
 	return param
-
 
 def safe_decode(param, encoding = 'utf-8'):
 	try:
