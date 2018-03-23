@@ -296,26 +296,38 @@ frappe.upload = {
 		if (opts.no_socketio || frappe.flags.no_socketio || file_not_big_enough) {
 			upload_with_filedata();
 			return;
+		} else {
+			args.file_size = fileobj.size;
+			frappe.call({
+				method: 'frappe.utils.file_manager.validate_filename',
+				args: {"filename": args.filename},
+				callback: function(r) {
+					args.filename = r.message;
+					upload_through_socketio();
+				}
+			});
 		}
 
-		frappe.socketio.uploader.start({
-			file: fileobj,
-			filename: args.filename,
-			is_private: args.is_private,
-			fallback: () => {
-				// if fails, use old filereader
-				upload_with_filedata();
-			},
-			callback: (data) => {
-				args.file_url = data.file_url;
-				frappe.upload._upload_file(fileobj, args, opts);
-			},
-			on_progress: (percent_complete) => {
-				let increment = (flt(percent_complete) / frappe.upload.total_files);
-				frappe.show_progress(__('Uploading'),
-					start_complete + increment);
-			}
-		});
+		var upload_through_socketio = function() {
+			frappe.socketio.uploader.start({
+				file: fileobj,
+				filename: args.filename,
+				is_private: args.is_private,
+				fallback: () => {
+					// if fails, use old filereader
+					upload_with_filedata();
+				},
+				callback: (data) => {
+					args.file_url = data.file_url;
+					frappe.upload._upload_file(fileobj, args, opts);
+				},
+				on_progress: (percent_complete) => {
+					let increment = (flt(percent_complete) / frappe.upload.total_files);
+					frappe.show_progress(__('Uploading'),
+						start_complete + increment);
+				}
+			});
+		}
 	},
 
 	upload_to_server: function(file, args, opts) {

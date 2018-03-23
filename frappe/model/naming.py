@@ -47,7 +47,7 @@ def set_new_name(doc):
 		if autoname.startswith("naming_series:"):
 			set_name_by_naming_series(doc)
 		elif "#" in autoname:
-			doc.name = make_autoname(autoname)
+			doc.name = make_autoname(autoname, doc=doc)
 		elif autoname.lower()=='prompt':
 			# set from __newname in save.py
 			if not doc.name:
