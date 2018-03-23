@@ -84,6 +84,7 @@ def save_url(file_url, filename, dt, dn, folder, is_private, df=None):
 	# 	return None, None
 
 	file_url = unquote(file_url)
+	file_size = frappe.form_dict.file_size
 
 	f = frappe.get_doc({
 		"doctype": "File",
@@ -93,6 +94,7 @@ def save_url(file_url, filename, dt, dn, folder, is_private, df=None):
 		"attached_to_name": dn,
 		"attached_to_field": df,
 		"folder": folder,
+		"file_size": file_size,
 		"is_private": is_private
 	})
 	f.flags.ignore_permissions = True
@@ -392,3 +394,8 @@ def get_random_filename(extn=None, content_type=None):
 		extn = mimetypes.guess_extension(content_type)
 
 	return random_string(7) + (extn or "")
+
+@frappe.whitelist()
+def validate_filename(filename):
+	fname = get_file_name(filename, hashlib.md5(filename).hexdigest()[-6:])
+	return fname
