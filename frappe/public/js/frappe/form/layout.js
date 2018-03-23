@@ -1,13 +1,6 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt
+import '../class'
+
 frappe.provide("frappe.ui.form");
-
-// 	- page
-//		- section
-//			- column
-//		- section
-
-
 frappe.ui.form.Layout = Class.extend({
 	init: function(opts) {
 		this.views = {};

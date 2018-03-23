@@ -157,26 +157,42 @@ def get(user, rooms = None, fields = None, filters = None):
 	
 	return rooms
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest = True)
 def create(kind, owner, users = None, name = None):
-	authenticate(owner)
+	if kind != 'Visitor':
+		authenticate(owner)
 
-	users = safe_json_loads(users)
+	users  = safe_json_loads(users)
+	create = False
 
-	room  = frappe.new_doc('Chat Room')
-	room.type 	   = kind
-	room.owner	   = owner
-	room.room_name = name
+	if kind == 'Visitor':
+		room = frappe.db.sql("""
+			SELECT *
+			FROM  `tabChat Room`
+			WHERE owner = "{owner}"
+		""".format(owner = owner))
+		if not room:
+			create = True
 
+	if create:
+		room  		   = frappe.new_doc('Chat Room')
+		room.type 	   = kind
+		room.owner	   = owner
+		room.room_name = name
+		
 	dusers     	   = [ ]
 
-	if users:
-		users  = listify(users)
-		for user in users:
-			duser 	   = frappe.new_doc('Chat Room User')
-			duser.user = user
-			dusers.append(duser)
-	
+	if kind != 'Visitor':
+		if users:
+			users  = listify(users)
+			for user in users:
+				duser 	   = frappe.new_doc('Chat Room User')
+				duser.user = user
+				dusers.append(duser)
+	else:
+		dsettings = frappe.get_single('Website Settings')
+		dusers    = dsettings.chat_operators
+
 	room.users = dusers
 	room.save(ignore_permissions = True)
 
