@@ -34,6 +34,9 @@ class TestTransactionLog(unittest.TestCase):
 
 
 		sha = hashlib.sha256()
-		sha.update(str(third_log.transaction_hash) + str(second_log.chaining_hash))
+		sha.update(
+			frappe.safe_encode(str(third_log.transaction_hash)) + 
+			frappe.safe_encode(str(second_log.chaining_hash))
+		)
 
 		self.assertEqual(sha.hexdigest(), third_log.chaining_hash)
