@@ -47,7 +47,7 @@ class CalendarConnector(BaseConnection):
 		try:
 			if self.account.gcalendar_id is not None:
 				try:
-					calendar = self.gcalendar.calendars().get(calendarId=self.account.gcalendar_id).execute()
+					self.gcalendar.calendars().get(calendarId=self.account.gcalendar_id).execute()
 				except Exception:
 					frappe.log_error(frappe.get_traceback())
 			else:
@@ -158,20 +158,19 @@ class CalendarConnector(BaseConnection):
 				frappe.log_error(e, "GCalendar Synchronization Error")
 		except HttpError as err:
 			if err.resp.status in [404]:
-				inserted_doc = self.insert_events(doctype, doc, migration_id)
+				self.insert_events(doctype, doc, migration_id)
 			else:
 				frappe.log_error(err.resp, "GCalendar Synchronization Error")
 
 	def delete_events(self, migration_id):
 		try:
-			deleted = self.gcalendar.events().delete(calendarId=self.account.gcalendar_id, eventId=migration_id).execute()
+			self.gcalendar.events().delete(calendarId=self.account.gcalendar_id, eventId=migration_id).execute()
 		except HttpError as err:
 			if err.resp.status in [410]:
 				pass
 
 	def return_dates(self, doc):
 		timezone = frappe.db.get_value("System Settings", None, "time_zone")
-		tz = pytz.timezone(timezone)
 		if doc.end_datetime is None:
 			doc.end_datetime = doc.start_datetime
 		if doc.all_day == 1:
