@@ -13,7 +13,6 @@ frappe.views.CommunicationComposer = Class.extend({
 		var me = this;
 		this.dialog = new frappe.ui.Dialog({
 			title: (this.title || this.subject || __("New Email")),
-			size: "large",
 			no_submit_on_enter: true,
 			fields: this.get_fields(),
 			primary_action_label: __("Send"),
@@ -556,10 +555,10 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	is_print_letterhead_checked: function() {
 		if (this.frm && $(this.frm.wrapper).find('.form-print-wrapper').is(':visible')){
-			return $(this.frm.wrapper).find('.print-letterhead').prop('checked');
+			return $(this.frm.wrapper).find('.print-letterhead').prop('checked') ? 1 : 0;
 		} else {
 			return (frappe.model.get_doc(":Print Settings", "Print Settings") ||
-				{ with_letterhead: 1 }).with_letterhead ? true : false;
+				{ with_letterhead: 1 }).with_letterhead ? 1 : 0;
 		}
 	},
 

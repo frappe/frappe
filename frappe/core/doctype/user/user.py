@@ -68,6 +68,7 @@ class User(Document):
 		self.validate_user_email_inbox()
 		ask_pass_update()
 		self.validate_roles()
+		self.validate_user_image()
 
 		if self.language == "Loading...":
 			self.language = None
@@ -80,6 +81,10 @@ class User(Document):
 				role_profile = frappe.get_doc('Role Profile', self.role_profile_name)
 				self.set('roles', [])
 				self.append_roles(*[role.role for role in role_profile.roles])
+
+	def validate_user_image(self):
+		if self.user_image and len(self.user_image) > 2000:
+			frappe.throw(_("Not a valid User Image."))
 
 	def on_update(self):
 		# clear new password

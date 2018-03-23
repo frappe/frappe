@@ -86,7 +86,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		frappe.run_serially([
 			() => this.get_report_doc(),
 			() => this.get_report_settings(),
-			() => this.report_settings.onload && this.report_settings.onload(this),
 			() => this.setup_page_head(),
 			() => this.refresh_report()
 		]);
@@ -98,6 +97,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		return frappe.run_serially([
 			() => this.setup_filters(),
 			() => this.set_route_filters(),
+			() => this.report_settings.onload && this.report_settings.onload(this),
 			() => this.get_user_settings(),
 			() => this.refresh(),
 			() => this.save_user_settings()
@@ -230,22 +230,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	render_report(data) {
-		this._data = data.result;
-		this._columns = this.prepare_columns(data.columns);
-		this.is_tree_report = this._data.some(d => 'indent' in d);
+		this.columns = this.prepare_columns(data.columns);
+		this.data = this.prepare_data(data.result);
 
-		const columns = this.get_columns_for_datatable();
-
+		// const columns = this.get_columns_for_datatable();
 		if (this.datatable) {
-			this.datatable.refresh(this._data, columns);
+			this.datatable.refresh(this.data, this.columns);
 			return;
 		}
 
 		this.datatable = new DataTable(this.$report[0], {
-			columns: columns,
-			data: this._data,
+			columns: this.columns,
+			data: this.data,
 			inlineFilters: true,
-			treeView: this.is_tree_report,
+			treeView: this.data.some(d => 'indent' in d),
 			layout: 'fixed',
 			events: {
 				onRemoveColumn: () => this.save_user_settings(),
@@ -298,28 +296,51 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						[fieldtype, options] = fieldtype.split('/');
 					}
 
-					return {
+					column = {
 						label,
 						fieldname: label,
 						fieldtype,
 						width,
 						options
 					};
+				} else {
+					column = {
+						label: column,
+						fieldname: column,
+						fieldtype: 'Data'
+					};
 				}
-
-				return {
-					label: column,
-					fieldname: column,
-					fieldtype: 'Data'
-				};
 			}
 
-			return column;
+			return Object.assign(column, {
+				id: column.fieldname,
+				name: column.label,
+				width: parseInt(column.width) || null,
+				editable: false,
+				format: (value, row, column, data) =>
+					frappe.format(value || '', column,
+						{for_print: false, always_show_decimals: true}, data)
+			});
+		});
+	}
+
+	prepare_data(data) {
+		return data.map(row => {
+			let row_obj = {};
+			if (Array.isArray(row)) {
+				this.columns.forEach((column, i) => {
+					row_obj[column.id] = row[i] || null;
+				});
+
+				return row_obj;
+			}
+			return row;
 		});
 	}
 
 	get_columns_for_datatable() {
-		const columns = this._columns.map(df => {
+		// return columns according to user_settings
+		const columns = this.columns.map(df => {
 			return {
 				id: df.fieldname,
 				name: df.label,
@@ -331,15 +352,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			};
 		});
 
-		return columns;
+		// return columns;
 
-		// if (this.user_settings.column_order && this.user_settings.column_order.length > 0) {
-		// 	return this.user_settings.column_order
-		// 		.map(id => columns.find(col => col.id === id))
-		// 		.filter(Boolean);
-		// } else {
-		// 	return columns;
-		// }
+		if (this.user_settings.column_order && this.user_settings.column_order.length > 0) {
+			return this.user_settings.column_order
+				.map(id => columns.find(col => col.id === id))
+				.filter(Boolean);
+		} else {
+			return columns;
+		}
 	}
 
 	get_filter_values(raise) {
@@ -455,7 +476,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			reqd: 1
 		}, ({ file_format }) => {
 			if (file_format === 'CSV') {
-				const column_row = this._columns.map(col => col.label);
+				const column_row = this.columns.map(col => col.label);
 				const data = this.get_data_for_print();
 				const out = [column_row].concat(data);
 
@@ -483,7 +504,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_columns_for_print() {
-		return this._columns || [];
+		return this.columns || [];
 	}
 
 	get_menu_items() {
@@ -595,13 +616,5 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	// backward compatibility
 	get get_values() {
 		return this.get_filter_values;
-	}
-
-	get data() {
-		return this._data;
-	}
-
-	get columns() {
-		return this._columns;
 	}
 };
