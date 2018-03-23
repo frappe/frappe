@@ -2540,10 +2540,9 @@ frappe.chat.render = (render = true, force = false) =>
 			}
 
 			frappe.chat.room.create("Visitor", token).then(room => {
-				
+				frappe.log.info('Visitor Room Created');
 			})
 		}
-
 
 		frappe.chatter.render()
 	}
