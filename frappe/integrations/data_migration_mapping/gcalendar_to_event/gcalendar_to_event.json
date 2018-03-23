@@ -45,7 +45,7 @@
  "mapping_name": "GCalendar to Event", 
  "mapping_type": "Pull", 
  "migration_id_field": "gcalendar_sync_id", 
- "modified": "2018-03-09 10:40:26.979490", 
+ "modified": "2018-03-23 19:11:43.491367", 
  "modified_by": "Administrator", 
  "name": "GCalendar to Event", 
  "owner": "Administrator", 

@@ -74,6 +74,16 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
+					"name": "GCalendar Settings",
+					"description": _("Configure your google calendar integration"),
+				},
+				{
+					"type": "doctype",
+					"name": "GCalendar Account",
+					"description": _("Configure accounts for google calendar"),
+				},
+				{
+					"type": "doctype",
 					"name": "GSuite Settings",
 					"description": _("Enter keys to enable integration with Google GSuite"),
 				},

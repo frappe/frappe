@@ -45,7 +45,7 @@
  "mapping_name": "Event to GCalendar", 
  "mapping_type": "Push", 
  "migration_id_field": "gcalendar_sync_id", 
- "modified": "2018-03-09 10:40:26.931261", 
+ "modified": "2018-03-23 19:11:43.470602", 
  "modified_by": "Administrator", 
  "name": "Event to GCalendar", 
  "owner": "Administrator", 
