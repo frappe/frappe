@@ -216,6 +216,17 @@ frappe.run_serially = function(tasks) {
 	return result;
 };
 
+frappe.load_image = (src, onload, onerror, preprocess = () => {}) => {
+	var tester = new Image();
+	tester.onload = function() {
+		onload(this);
+	};
+	tester.onerror = onerror;
+
+	preprocess(tester);
+	tester.src = src;
+}
+
 frappe.timeout = seconds => {
 	return new Promise((resolve) => {
 		setTimeout(() => resolve(), seconds * 1000);
