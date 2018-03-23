@@ -22,26 +22,23 @@ test_dependencies = ["User", "Contact", "Salutation"]
 class TestPermissions(unittest.TestCase):
 	def setUp(self):
 		frappe.clear_cache(doctype="Blog Post")
-		frappe.clear_cache(doctype="Contact")
 
-		user = frappe.get_doc("User", "test1@example.com")
-		user.add_roles("Website Manager")
-		user.add_roles("System Manager")
+		if not frappe.flags.permission_user_setup_done:
+			user = frappe.get_doc("User", "test1@example.com")
+			user.add_roles("Website Manager")
+			user.add_roles("System Manager")
 
-		user = frappe.get_doc("User", "test2@example.com")
-		user.add_roles("Blogger")
+			user = frappe.get_doc("User", "test2@example.com")
+			user.add_roles("Blogger")
 
-		user = frappe.get_doc("User", "test3@example.com")
-		user.add_roles("Sales User")
+			user = frappe.get_doc("User", "test3@example.com")
+			user.add_roles("Sales User")
+			frappe.flags.permission_user_setup_done = True
 
 		reset('Blogger')
 		reset('Blog Post')
-		reset('Contact')
-		reset('Salutation')
 
 		frappe.db.sql('delete from `tabUser Permission`')
-
-		self.set_ignore_user_permissions_if_missing(0)
 
 		frappe.set_user("test1@example.com")
 
@@ -52,17 +49,6 @@ class TestPermissions(unittest.TestCase):
 		clear_user_permissions_for_doctype("Blog Category")
 		clear_user_permissions_for_doctype("Blog Post")
 		clear_user_permissions_for_doctype("Blogger")
-		clear_user_permissions_for_doctype("Contact")
-		clear_user_permissions_for_doctype("Salutation")
-
-		self.set_ignore_user_permissions_if_missing(0)
-
-	@staticmethod
-	def set_ignore_user_permissions_if_missing(ignore):
-		ss = frappe.get_doc("System Settings")
-		ss.ignore_user_permissions_if_missing = ignore
-		ss.flags.ignore_mandatory = 1
-		ss.save()
 
 	@staticmethod
 	def set_strict_user_permissions(ignore):
@@ -162,7 +148,7 @@ class TestPermissions(unittest.TestCase):
 		self.assertRaises(frappe.PermissionError, remove_user_permission,
 			"Blog Post", "-test-blog-post", "test2@example.com")
 
-	def test_user_permissions_based_on_blogger(self):
+	def test_user_permissions_if_applied_on_doc_being_evaluated(self):
 		frappe.set_user("test2@example.com")
 		doc = frappe.get_doc("Blog Post", "-test-blog-post-1")
 		self.assertTrue(doc.has_permission("read"))
@@ -241,12 +227,12 @@ class TestPermissions(unittest.TestCase):
 		add_user_permission("Blogger", "_Test Blogger 1",
 			"test2@example.com")
 
-		update('Blog Post', 'Blogger', 0, 'user_permission_doctypes', json.dumps(["Blog Category"]))
-
 		frappe.model.meta.clear_cache("Blog Post")
 
 	def test_insert_if_owner_with_user_permissions(self):
-		"""If `If Owner` is checked for a Role, check if that document is allowed to be read, updated, submitted, etc. except be created, even if the document is restricted based on User Permissions."""
+		"""If `If Owner` is checked for a Role, check if that document
+		is allowed to be read, updated, submitted, etc. except be created,
+		even if the document is restricted based on User Permissions."""
 		frappe.delete_doc('Blog Post', '-test-blog-post-title')
 
 		self.if_owner_setup()
@@ -263,7 +249,7 @@ class TestPermissions(unittest.TestCase):
 
 		self.assertRaises(frappe.PermissionError, doc.insert)
 
-		frappe.set_user("Administrator")
+		frappe.set_user('test1@example.com')
 		add_user_permission("Blog Category", "_Test Blog Category",
 			"test2@example.com")
 
@@ -271,7 +257,7 @@ class TestPermissions(unittest.TestCase):
 		doc.insert()
 
 		frappe.set_user("Administrator")
-		frappe.permissions.remove_user_permission("Blog Category", "_Test Blog Category",
+		remove_user_permission("Blog Category", "_Test Blog Category",
 			"test2@example.com")
 
 		frappe.set_user("test2@example.com")
@@ -281,16 +267,15 @@ class TestPermissions(unittest.TestCase):
 		self.assertFalse(doc.has_permission("create"))
 
 	def test_ignore_user_permissions_if_missing(self):
-		"""If `Ignore User Permissions If Missing` is checked in System Settings, show records even if User Permissions are missing for a linked doctype"""
+		"""If there are no user permissions, then allow as per role"""
 
-		frappe.set_user("Administrator")
-		# add_user_permission("Blog Category", "_Test Blog Category",
-		# 	"test2@example.com")
+		add_user_permission("Blog Category", "_Test Blog Category",
+			"test2@example.com")
 		frappe.set_user("test2@example.com")
 
 		doc = frappe.get_doc({
 			"doctype": "Blog Post",
-			"blog_category": "_Test Blog Category",
+			"blog_category": "_Test Blog Category 2",
 			"blogger": "_Test Blogger 1",
 			"title": "_Test Blog Post Title",
 			"content": "_Test Blog Post Content"
@@ -299,34 +284,49 @@ class TestPermissions(unittest.TestCase):
 		self.assertFalse(doc.has_permission("write"))
 
 		frappe.set_user("Administrator")
-		self.set_ignore_user_permissions_if_missing(1)
+		remove_user_permission("Blog Category", "_Test Blog Category",
+			"test2@example.com")
 
 		frappe.set_user("test2@example.com")
-		self.assertTrue(doc.has_permission("write"))
+		self.assertTrue(doc.has_permission('write'))
 
 	def test_strict_user_permissions(self):
 		"""If `Strict User Permissions` is checked in System Settings,
 			show records even if User Permissions are missing for a linked
 			doctype"""
 
-		frappe.set_user("Administrator")
+		frappe.set_user('Administrator')
 		frappe.db.sql('delete from tabContact')
+
+		reset('Salutation')
+		reset('Contact')
+
 		make_test_records_for_doctype('Contact', force=True)
 
 		add_user_permission("Salutation", "Mr", "test3@example.com")
 		self.set_strict_user_permissions(0)
 
+		allowed_contact = frappe.get_doc('Contact', '_Test Contact for _Test Customer')
+		other_contact = frappe.get_doc('Contact', '_Test Contact for _Test Supplier')
+
 		frappe.set_user("test3@example.com")
+		self.assertTrue(allowed_contact.has_permission('read'))
+		self.assertTrue(other_contact.has_permission('read'))
 		self.assertEqual(len(frappe.get_list("Contact")), 2)
 
 		frappe.set_user("Administrator")
 		self.set_strict_user_permissions(1)
 
 		frappe.set_user("test3@example.com")
+		self.assertTrue(allowed_contact.has_permission('read'))
+		self.assertFalse(other_contact.has_permission('read'))
 		self.assertTrue(len(frappe.get_list("Contact")), 1)
 
 		frappe.set_user("Administrator")
 		self.set_strict_user_permissions(0)
+
+		clear_user_permissions_for_doctype("Salutation")
+		clear_user_permissions_for_doctype("Contact")
 
 	def test_automatic_apply_user_permissions(self):
 		'''Test user permissions are automatically applied when a user permission
@@ -356,3 +356,9 @@ class TestPermissions(unittest.TestCase):
 		# restrict by module
 		self.assertTrue('Module Def' in json.loads(_perm.user_permission_doctypes))
 
+	def test_user_permissions_not_applied_if_user_can_edit_user_permissions(self):
+		add_user_permission('Blogger', '_Test Blogger 1', 'test1@example.com', True)
+
+		# test1@example.com has rights to create user permissions
+		# so it should not matter if explict user permissions are not set
+		self.assertTrue(frappe.get_doc('Blogger', '_Test Blogger').has_permission('read'))
