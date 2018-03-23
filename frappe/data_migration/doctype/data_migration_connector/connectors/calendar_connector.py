@@ -6,7 +6,6 @@ import google.oauth2.credentials
 from googleapiclient.errors import HttpError
 import time
 from datetime import datetime
-import pytz
 from frappe.utils import add_days
 
 class CalendarConnector(BaseConnection):
