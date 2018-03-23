@@ -60,16 +60,12 @@ def get_user_permissions(user=None):
 
 	out = frappe.cache().hget("user_permissions", user)
 
-	if not out:
+	if out is None:
 		out = {}
 		try:
 			for perm in frappe.get_all('User Permission',
 				fields=['allow', 'for_value'], filters=dict(user=user)):
 				out.setdefault(perm.allow, []).append(perm.for_value)
-
-			# add profile match
-			if user not in out.get("User", []):
-				out.setdefault("User", []).append(user)
 
 			frappe.cache().hset("user_permissions", user, out)
 		except frappe.SQLError as e:

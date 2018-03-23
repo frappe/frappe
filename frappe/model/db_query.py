@@ -406,12 +406,9 @@ class DatabaseQuery(object):
 				self.conditions.append(self.get_share_condition())
 
 		else:
-			# apply user permissions?
-			if role_permissions.get("apply_user_permissions", {}).get("read"):
-				# get user permissions
-				user_permissions = frappe.permissions.get_user_permissions(self.user)
-				self.add_user_permissions(user_permissions,
-					user_permission_doctypes=role_permissions.get("user_permission_doctypes").get("read"))
+			# get user permissions
+			user_permissions = frappe.permissions.get_user_permissions(self.user)
+			self.add_user_permissions(user_permissions)
 
 			if role_permissions.get("if_owner", {}).get("read"):
 				self.match_conditions.append("`tab{0}`.owner = '{1}'".format(self.doctype,
@@ -441,31 +438,28 @@ class DatabaseQuery(object):
 		return """`tab{0}`.name in ({1})""".format(self.doctype, ", ".join(["'%s'"] * len(self.shared))) % \
 			tuple([frappe.db.escape(s, percent=False) for s in self.shared])
 
-	def add_user_permissions(self, user_permissions, user_permission_doctypes=None):
-		user_permission_doctypes = frappe.permissions.get_user_permission_doctypes(user_permission_doctypes, user_permissions)
+	def add_user_permissions(self, user_permissions):
 		meta = frappe.get_meta(self.doctype)
-		for doctypes in user_permission_doctypes:
+		for doctype in frappe.permissions.get_linked_doctypes(self.doctype):
+			# print(doctype, self.doctype)
 			match_filters = {}
 			match_conditions = []
 			# check in links
-			for df in meta.get_fields_to_check_permissions(doctypes):
+			for df in meta.get_fields_to_check_permissions(doctype):
 				user_permission_values = user_permissions.get(df.options, [])
 
-				cond = 'ifnull(`tab{doctype}`.`{fieldname}`, "")=""'.format(doctype=self.doctype, fieldname=df.fieldname)
+				empty_value_condition = 'ifnull(`tab{doctype}`.`{fieldname}`, "")=""'.format(doctype=self.doctype, fieldname=df.fieldname)
 				if user_permission_values:
-					if not cint(frappe.get_system_settings("apply_strict_user_permissions")):
-						condition = cond + " or "
+					if not frappe.get_system_settings("apply_strict_user_permissions"):
+						condition = empty_value_condition + " or "
 					else:
 						condition = ""
 					condition += """`tab{doctype}`.`{fieldname}` in ({values})""".format(
 						doctype=self.doctype, fieldname=df.fieldname,
 						values=", ".join([('"'+frappe.db.escape(v, percent=False)+'"') for v in user_permission_values]))
-				else:
-					condition = cond
 
-				match_conditions.append("({condition})".format(condition=condition))
-
-				match_filters[df.options] = user_permission_values
+					match_conditions.append("({condition})".format(condition=condition))
+					match_filters[df.options] = user_permission_values
 
 			if match_conditions:
 				self.match_conditions.append(" and ".join(match_conditions))
