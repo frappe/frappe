@@ -1318,7 +1318,7 @@ class {
 	 * const chat = new frappe.Chat()
 	 * chat.render()
 	 */
-	render ( ) {
+	render (props = { }) {
 		this.destroy()
 
 		const $wrapper   = this.$wrapper
@@ -1326,7 +1326,8 @@ class {
 
 		const component  = h(frappe.Chat.Widget, {
 			layout: options.layout,
-			target: options.target
+			target: options.target,
+			...props
 		})
 
 		hyper.render(component, $wrapper[0])
@@ -1364,7 +1365,7 @@ class extends Component {
 			const state     = [ ]
 
 			for (const room of rooms)
-				if ( room.type === "Group" || room.owner === frappe.session.user || room.last_message ) {
+				if ( ["Group", "Visitor"].includes(room.type) || room.owner === frappe.session.user || room.last_message ) {
 					frappe.log.info(`Adding ${room.name} to component.`)
 					state.push(room)
 				}
@@ -1428,7 +1429,7 @@ class extends Component {
 			})
 		}
 
-		this.state = frappe.Chat.Widget.defaultState
+		this.state = { ...frappe.Chat.Widget.defaultState, ...props }
 
 		this.make()
 	}
@@ -1953,7 +1954,8 @@ class extends Component {
 	render ( ) {
 		const { props, state } = this
 		const hints            =
-		[ {
+		[
+			{
 				 match: /@(\w*)$/,
 				search: function (keyword, callback) {
 					if ( props.type === 'Group' ) {
@@ -1973,7 +1975,8 @@ class extends Component {
 						})
 					)
 				}
-			}, {
+			},
+			{
 				match: /:([a-z]*)$/,
 			   search: function (keyword, callback) {
 					frappe.chat.emoji(function (emojis) {
@@ -2073,10 +2076,10 @@ class extends Component {
 
 		const item          = { }
 
-		if ( props.type === "Group" ) {
+		if ( ["Group", "Visitor"].includes(props.type) ) {
 			item.route      = `Form/Chat Room/${props.name}`
 
-			item.title      = props.room_name
+			item.title      = props.room_name || "Support";
 			item.image      = props.avatar
 
 			if ( !frappe._.is_empty(props.typing) ) {
@@ -2540,11 +2543,16 @@ frappe.chat.render = (render = true, force = false) =>
 			}
 
 			frappe.chat.room.create("Visitor", token).then(room => {
-				frappe.log.info('Visitor Room Created');
+				frappe.log.info(`Visitor Room Created: ${JSON.stringify(room, null, 2)}`)
+				frappe.chat.room.subscribe(room.name)
+				
+				frappe.chatter.render({
+					room: room
+				})
 			})
+		} else {
+			frappe.chatter.render()
 		}
-
-		frappe.chatter.render()
 	}
 }
 

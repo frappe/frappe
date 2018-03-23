@@ -53,7 +53,7 @@ class ChatRoom(Document):
 				users = users
 			))
 
-		if self.type in ("Direct", "Visitor"):
+		if self.type == "Direct":
 			if len(self.users) != 1:
 				frappe.throw(_('{type} room must have atmost one user.'.format(type = self.type)))
 
@@ -99,15 +99,13 @@ def authenticate(user):
 	if user != session.user:
 		frappe.throw(_("Sorry, you're not authorized."))
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest = True)
 def get(user, rooms = None, fields = None, filters = None):
 	# There is this horrible bug out here.
 	# Looks like if frappe.call sends optional arguments (not in right order), the argument turns to an empty string.
 	# I'm not even going to think searching for it.
 	# Hence, the hack was assign_if_empty (previous assign_if_none)
 	# - Achilles Rasquinha achilles@frappe.io
-	authenticate(user)
-
 	rooms, fields, filters = safe_json_loads(rooms, fields, filters)
 
 	rooms   = listify(assign_if_empty(rooms,  [ ]))
@@ -140,6 +138,7 @@ def get(user, rooms = None, fields = None, filters = None):
 	if not fields or 'users' in fields:
 		for i, r in enumerate(rooms):
 			droom = frappe.get_doc('Chat Room', r.name)
+			print(droom.users)
 			rooms[i]['users'] = [ ]
 
 			for duser in droom.users:
@@ -163,16 +162,18 @@ def create(kind, owner, users = None, name = None):
 		authenticate(owner)
 
 	users  = safe_json_loads(users)
-	create = False
+	create = True
 
 	if kind == 'Visitor':
-		room = frappe.db.sql("""
-			SELECT *
-			FROM  `tabChat Room`
-			WHERE owner = "{owner}"
-		""".format(owner = owner))
-		if not room:
-			create = True
+		room = squashify(frappe.db.sql("""
+			SELECT name
+			FROM   `tabChat Room`
+			WHERE  owner = "{owner}"
+		""".format(owner = owner), as_dict = True))
+
+		if room:
+			room   = frappe.get_doc('Chat Room', room.name)
+			create = False
 
 	if create:
 		room  		   = frappe.new_doc('Chat Room')
@@ -180,7 +181,7 @@ def create(kind, owner, users = None, name = None):
 		room.owner	   = owner
 		room.room_name = name
 		
-	dusers     	   = [ ]
+	dusers = [ ]
 
 	if kind != 'Visitor':
 		if users:
@@ -189,11 +190,16 @@ def create(kind, owner, users = None, name = None):
 				duser 	   = frappe.new_doc('Chat Room User')
 				duser.user = user
 				dusers.append(duser)
-	else:
-		dsettings = frappe.get_single('Website Settings')
-		dusers    = dsettings.chat_operators
 
-	room.users = dusers
+			room.users = dusers
+	else:
+		dsettings  = frappe.get_single('Website Settings')
+		users      = [user for user in room.users] if hasattr(room, 'users') else [ ]
+
+		for user in dsettings.chat_operators:
+			if user.user not in users:
+				room.append('users', user)
+			
 	room.save(ignore_permissions = True)
 
 	room  = get(owner, rooms = room.name)
