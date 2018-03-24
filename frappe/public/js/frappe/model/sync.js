@@ -98,32 +98,35 @@ $.extend(frappe.model, {
 			}
 		}
 	},
-	update_in_locals: function(d) {
+	update_in_locals: function(doc) {
 		// update values in the existing local doc instead of replacing
-		let local_doc = locals[d.doctype][d.name];
-		for (let fieldname in d) {
+		let local_doc = locals[doc.doctype][doc.name];
+		for (let fieldname in doc) {
 			if (local_doc[fieldname] instanceof Array) {
 				// table
-				if (!(d[fieldname] instanceof Array)) {
-					d[fieldname] = [];
+				if (!(doc[fieldname] instanceof Array)) {
+					doc[fieldname] = [];
 				}
 				// child table, override each row and append new rows if required
-				for (let i=0; i < d[fieldname].length; i++ ) {
+				for (let i=0; i < doc[fieldname].length; i++ ) {
+					let d = doc[fieldname][i];
 					if (local_doc[fieldname][i]) {
 						// row exists, just copy the values
-						Object.assign(local_doc[fieldname][i], d[fieldname][i]);
+						Object.assign(local_doc[fieldname][i], d);
 					} else {
-						local_doc[fieldname].push(d[fieldname][i]);
+						local_doc[fieldname].push(d);
+						if (!d.parent) d.parent = doc.name;
+						frappe.model.add_to_locals(d);
 					}
 				}
 
 				// remove extra rows
-				if (local_doc[fieldname].length > d[fieldname].length) {
-					local_doc[fieldname].length = d[fieldname].length;
+				if (local_doc[fieldname].length > doc[fieldname].length) {
+					local_doc[fieldname].length = doc[fieldname].length;
 				}
 			} else {
 				// literal
-				local_doc[fieldname] = d[fieldname];
+				local_doc[fieldname] = doc[fieldname];
 			}
 		}
 	}
