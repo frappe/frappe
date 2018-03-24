@@ -123,7 +123,17 @@ $.extend(frappe.model, {
 
 				// remove extra rows
 				if (local_doc[fieldname].length > doc[fieldname].length) {
+					for (let i = doc[fieldname].length; i < local_doc[fieldname].length; i++) {
+
+						// clear from local
+						let d = local_doc[fieldname][i];
+						if (locals[d.doctype] && locals[d.doctype][d.name]) {
+							delete locals[d.doctype][d.name];
+						}
+					}
 					local_doc[fieldname].length = doc[fieldname].length;
+
+
 				}
 			} else {
 				// literal
