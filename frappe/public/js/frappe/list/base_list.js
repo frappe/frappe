@@ -225,7 +225,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_result_area() {
-		this.$result = $(`<div class="result">`).hide();
+		this.$result = $(`<div class="result">`);
 		this.$frappe_list.append(this.$result);
 	}
 
@@ -531,19 +531,6 @@ class FilterArea {
 	}
 
 	make_standard_filters() {
-		$(
-			`<div class="flex justify-center align-center">
-				<span class="octicon octicon-search text-muted small"></span>
-			</div>`
-		)
-			.css({
-				height: '30px',
-				width: '20px',
-				marginRight: '-2px',
-				marginLeft: '10px'
-			})
-			.prependTo(this.standard_filters_wrapper);
-
 		let fields = [
 			{
 				fieldtype: 'Data',
@@ -602,6 +589,21 @@ class FilterArea {
 		}
 
 		fields.map(df => this.list_view.page.add_field(df));
+
+		// search icon in name filter
+		$('<span class="octicon octicon-search text-muted small"></span>')
+			.appendTo(this.list_view.page.fields_dict.name.$wrapper)
+			.css({
+				'position': 'absolute',
+				'z-index': '1',
+				'right': '7px',
+				'top': '9px',
+				'font-size': '90%'
+			});
+
+		this.list_view.page.fields_dict.name.$wrapper
+			.find('.form-control')
+			.css('padding-right', '2em');
 	}
 
 	get_standard_filters() {
