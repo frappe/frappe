@@ -19,6 +19,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 
 	var save = function () {
 		remove_empty_rows();
+
 		$(frm.wrapper).addClass('validated-form');
 		if (check_mandatory()) {
 			_call({
@@ -127,9 +128,8 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 					if (df.reqd && !frappe.model.has_value(doc.doctype, doc.name, df.fieldname)) {
 						has_errors = true;
 						error_fields[error_fields.length] = __(df.label);
-
 						// scroll to field
-						if (!me.scroll_set) {
+						if (!frm.scroll_set) {
 							scroll_to(doc.parentfield || df.fieldname);
 						}
 
@@ -141,6 +141,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 
 				}
 			});
+
 			if (error_fields.length) {
 				if (doc.parenttype) {
 					var message = __('Mandatory fields required in table {0}, Row {1}',
