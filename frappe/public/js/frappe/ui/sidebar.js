@@ -4,6 +4,7 @@ frappe.ui.Sidebar = class Sidebar {
 	constructor({ wrapper, css_class }) {
 		this.wrapper = wrapper;
 		this.css_class = css_class;
+		this.items = {};
 		this.make_dom();
 	}
 
@@ -37,6 +38,16 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 
 		$section.append($li_item);
+
+		if(item.name) {
+			this.items[item.name] = $li_item;
+		}
+	}
+
+	remove_item(name) {
+		if(this.items[name]) {
+			this.items[name].remove();
+		}
 	}
 
 	get_section(section_heading="") {
