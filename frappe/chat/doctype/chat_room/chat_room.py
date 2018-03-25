@@ -138,7 +138,6 @@ def get(user, rooms = None, fields = None, filters = None):
 	if not fields or 'users' in fields:
 		for i, r in enumerate(rooms):
 			droom = frappe.get_doc('Chat Room', r.name)
-			print(droom.users)
 			rooms[i]['users'] = [ ]
 
 			for duser in droom.users:
@@ -210,9 +209,10 @@ def create(kind, owner, users = None, name = None):
 
 	return room
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest = True)
 def history(room, user, fields = None, limit = 10, start = None, end = None):
-	authenticate(user)
+	if frappe.get_doc('Chat Room', room).type != 'Visitor':
+		authenticate(user)
 
 	fields = safe_json_loads(fields)
 

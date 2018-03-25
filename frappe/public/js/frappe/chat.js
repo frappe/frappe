@@ -1435,7 +1435,7 @@ class extends Component {
 	}
 
 	make ( ) {
-		if ( frappe.session.user != 'Guest' )
+		if ( frappe.session.user != 'Guest' ) {
 			frappe.chat.profile.create([
 				"status", "message_preview", "notification_tones", "conversation_tones"
 			]).then(profile => {
@@ -1451,6 +1451,9 @@ class extends Component {
 
 				this.bind()
 			})
+		} else {
+			this.bind()
+		}
 	}
 
 	bind ( ) {
@@ -2106,7 +2109,7 @@ class extends Component {
 		return (
 			h("div", { class: "panel-heading", style: { "height": "50px" } }, // sorry. :(
 				h("div", { class: "level" },
-					popper ?
+					popper && frappe.session.user !== "Guest" ?
 						h(frappe.components.Button,{class:"btn-back",onclick:props.on_back},
 							h(frappe.components.Octicon, { type: "chevron-left" })
 						) : null,
@@ -2542,13 +2545,20 @@ frappe.chat.render = (render = true, force = false) =>
 				})
 			}
 
-			frappe.chat.room.create("Visitor", token).then(room => {
+			frappe.chat.room.create("Visitor", token).then((room) => {
 				frappe.log.info(`Visitor Room Created: ${JSON.stringify(room, null, 2)}`)
 				frappe.chat.room.subscribe(room.name)
-				
-				frappe.chatter.render({
-					room: room
+
+				var reference = room;
+
+				frappe.chat.room.history(room.name, messages => {
+					const room = { ...reference, messages: messages }
+					frappe.log.info(`Rendering Visitor Room: ${JSON.stringify(room, null, 2)}`)
+					frappe.chatter.render({
+						room: room
+					})
 				})
+				
 			})
 		} else {
 			frappe.chatter.render()

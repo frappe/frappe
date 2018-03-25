@@ -126,14 +126,14 @@ def get_new_chat_message(user, room, content):
 
 	return resp
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest = True)
 def send(user, room, content):
 	mess = get_new_chat_message(user, room, content)
 	
 	frappe.publish_realtime('frappe.chat.message:create', mess, room = room,
 		after_commit = True)
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest = True)
 def seen(message, user = None):
 	mess = frappe.get_doc('Chat Message', message)
 	mess.add_seen(user)
