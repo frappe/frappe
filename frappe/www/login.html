@@ -16,7 +16,8 @@
 			</div>
 
 			<input type="text" id="login_email"
-				class="form-control" placeholder="{{ login_name_placeholder  }}"
+				class="form-control"
+				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _("Email address") }}{% endif %}"
 				required autofocus>
 
 
