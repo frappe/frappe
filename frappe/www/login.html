@@ -26,7 +26,7 @@
 			<button class="btn btn-sm btn-primary btn-block btn-login" type="submit">
 				{{ _("Sign in") }}</button>
 
-			{% if ldap_settings.enabled %}
+			{% if ldap_settings and ldap_settings.enabled %}
 			<button class="btn btn-sm btn-default btn-block btn-login btn-ldap-login">
 				{{ _("Login with LDAP") }}</button>
 			{% endif %}
