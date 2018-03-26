@@ -1,4 +1,4 @@
-import './field_group'
+import './field_group';
 
 frappe.provide('frappe.ui');
 

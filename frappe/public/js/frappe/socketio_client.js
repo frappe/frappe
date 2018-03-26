@@ -100,7 +100,7 @@ frappe.socketio = {
 		var host = window.location.origin;
 		if(window.dev_server) {
 			var parts = host.split(":");
-			var port = frappe.boot.socketio_port || port.toString() || '3000';
+			port = frappe.boot.socketio_port || port.toString() || '3000';
 			if(parts.length > 2) {
 				host = parts[0] + ":" + parts[1];
 			}

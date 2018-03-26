@@ -1,4 +1,4 @@
-import '../class'
+import '../class';
 
 frappe.provide("frappe.ui.form");
 frappe.ui.form.Layout = Class.extend({

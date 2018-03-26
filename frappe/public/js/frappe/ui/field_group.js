@@ -1,4 +1,4 @@
-import '../form/layout'
+import '../form/layout';
 
 frappe.provide('frappe.ui');
 
