@@ -54,7 +54,7 @@ frappe.search.AwesomeBar = Class.extend({
 			// if(txt && txt.length > 1) {
 			// 	me.global.get_awesome_bar_options(txt.toLowerCase(), me);
 			// }
-
+			txt = __(txt);
 			var $this = $(this);
 			clearTimeout($this.data('timeout'));
 
