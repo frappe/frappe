@@ -1384,8 +1384,9 @@ class extends Component {
 	constructor (props) {
 		super (props)
 
+		// room actions
 		this.room           = { }
-		this.room.add       = (rooms) => {
+		this.room.add       = rooms => {
 			rooms           = frappe._.as_array(rooms)
 			const names     = rooms.map(r => r.name)
 
@@ -1465,7 +1466,7 @@ class extends Component {
 	}
 
 	make ( ) {
-		if ( frappe.session.user != 'Guest' ) {
+		if ( frappe.session.user !== 'Guest' ) {
 			frappe.chat.profile.create([
 				"status", "message_preview", "notification_tones", "conversation_tones"
 			]).then(profile => {
@@ -1519,7 +1520,7 @@ class extends Component {
 			if ( user !== frappe.session.user ) {
 				frappe.log.warn(`User ${user} typing in Chat Room ${room}.`)
 				this.room.update(room, { typing: user })
-
+				
 				setTimeout(() => this.room.update(room, { typing: null }), 5000)
 			}
 		})
@@ -2112,7 +2113,7 @@ class extends Component {
 		if ( ["Group", "Visitor"].includes(props.type) ) {
 			item.route      = `Form/Chat Room/${props.name}`
 
-			item.title      = props.room_name || "Support"
+			item.title      = props.room_name
 			item.image      = props.avatar
 
 			if ( !frappe._.is_empty(props.typing) ) {
@@ -2120,7 +2121,10 @@ class extends Component {
 				const users   = props.typing.map(user => frappe.user.first_name(user))
 				item.subtitle = `${users.join(", ")} typing...`
 			} else
-				item.subtitle = __(`${props.users.length} ${frappe._.pluralize('member', props.users.length)}`)
+				item.subtitle = props.type === "Group" ?
+					__(`${props.users.length} ${frappe._.pluralize('member', props.users.length)}`)
+					:
+					""
 		}
 		else {
 			const user      = props.owner === frappe.session.user ? frappe._.squash(props.users) : props.owner
@@ -2567,29 +2571,45 @@ frappe.chat.render = (render = true, force = false) =>
 			var token	 = frappe.store.get('guest_token')
 
 			frappe.log.info(`Local Guest Token - ${token}`)
-			
+
+			const setup_room = (token) =>
+			{
+				return new Promise(resolve => {
+					frappe.chat.room.create("Visitor", token).then(room => {
+						frappe.log.info(`Visitor Room Created: ${room.name}`)
+						frappe.chat.room.subscribe(room.name)
+		
+						var reference = room
+		
+						frappe.chat.room.history(room.name).then(messages => {
+							const  room = { ...reference, messages: messages }
+							return room
+						}).then(room => {
+							resolve(room)
+						})
+					})
+				})
+			}
+
 			if ( !token ) {
 				frappe.chat.website.token().then(token => {
 					frappe.log.info(`Generated Guest Token - ${token}`)
 					frappe.store.set('guest_token', token)
+
+					setup_room(token).then(room => {
+						frappe.chatter.render({
+							room: room
+						})
+					})
 				})
-			}
-
-			frappe.chat.room.create("Visitor", token).then((room) => {
-				frappe.log.info(`Visitor Room Created: ${room.name}`)
-				frappe.chat.room.subscribe(room.name)
-
-				var reference = room
-
-				frappe.chat.room.history(room.name, messages => {
-					const room = { ...reference, messages: messages }
-					frappe.log.info(`Rendering Visitor Room: ${room.name}`)
+			} else {
+				setup_room(token).then(room => {
 					frappe.chatter.render({
 						room: room
 					})
 				})
-				
-			})
+			}
+			
 		} else {
 			frappe.chatter.render()
 		}

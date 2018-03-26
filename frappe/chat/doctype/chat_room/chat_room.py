@@ -7,6 +7,7 @@ from   frappe import _
 import frappe
 
 # imports - frappe module imports
+from frappe.chat 						 import authenticate
 from frappe.core.doctype.version.version import get_diff
 from frappe.chat.doctype.chat_message	 import chat_message
 from frappe.chat.util import (
@@ -95,10 +96,6 @@ class ChatRoom(Document):
 
 				frappe.publish_realtime('frappe.chat.room:update', update, room = self.name, after_commit = True)
 
-def authenticate(user):
-	if user != session.user:
-		frappe.throw(_("Sorry, you're not authorized."))
-
 @frappe.whitelist(allow_guest = True)
 def get(user, rooms = None, fields = None, filters = None):
 	# There is this horrible bug out here.
@@ -106,6 +103,8 @@ def get(user, rooms = None, fields = None, filters = None):
 	# I'm not even going to think searching for it.
 	# Hence, the hack was get_if_empty (previous assign_if_none)
 	# - Achilles Rasquinha achilles@frappe.io
+	authenticate(user)
+
 	rooms, fields, filters = safe_json_loads(rooms, fields, filters)
 
 	rooms   = listify(get_if_empty(rooms,  [ ]))
@@ -157,8 +156,7 @@ def get(user, rooms = None, fields = None, filters = None):
 
 @frappe.whitelist(allow_guest = True)
 def create(kind, owner, users = None, name = None):
-	if kind != 'Visitor':
-		authenticate(owner)
+	authenticate(owner)
 
 	users  = safe_json_loads(users)
 	create = True
@@ -192,8 +190,10 @@ def create(kind, owner, users = None, name = None):
 
 			room.users = dusers
 	else:
-		dsettings  = frappe.get_single('Website Settings')
-		users      = [user for user in room.users] if hasattr(room, 'users') else [ ]
+		dsettings	   = frappe.get_single('Website Settings')
+		room.room_name = dsettings.chat_room_name
+
+		users          = [user for user in room.users] if hasattr(room, 'users') else [ ]
 
 		for user in dsettings.chat_operators:
 			if user.user not in users:

@@ -11,6 +11,7 @@ from   frappe import _, _dict
 import frappe
 
 # imports - frappe module imports
+from frappe.chat 	  import authenticate
 from frappe.chat.util import (
 	get_if_empty,
 	check_url,
@@ -135,6 +136,8 @@ def send(user, room, content):
 
 @frappe.whitelist(allow_guest = True)
 def seen(message, user = None):
+	authenticate(user)
+
 	mess = frappe.get_doc('Chat Message', message)
 	mess.add_seen(user)
 

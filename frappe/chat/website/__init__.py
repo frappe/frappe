@@ -1,6 +1,8 @@
 import frappe
 from   frappe.chat.util import filter_dict, safe_json_loads
 
+from   frappe.sessions  import get_geo_ip_country
+
 @frappe.whitelist(allow_guest = True)
 def settings(fields = None):
     fields    = safe_json_loads(fields)
@@ -27,5 +29,11 @@ def settings(fields = None):
 
 @frappe.whitelist(allow_guest = True)
 def token():
-    token = frappe.generate_hash()
-    return token
+    dtoken            = frappe.new_doc('Chat Token')
+
+    dtoken.token      = frappe.generate_hash()
+    dtoken.ip_address = frappe.local.request_ip
+    dtoken.country    = get_geo_ip_country(dtoken.ip_address)
+    dtoken.save(ignore_permissions = True)
+
+    return dtoken.token
