@@ -110,7 +110,7 @@ frappe.search.utils = {
 		var firstKeyword = keywords.split(" ")[0];
 		if(firstKeyword.toLowerCase() === __("new")) {
 			frappe.boot.user.can_create.forEach(function (item) {
-				var level = me.fuzzy_search(keywords.substr(4), item);
+				var level = me.fuzzy_search(__(keywords).substr(4), item);
 				if(level) {
 					out.push({
 						type: "New",
@@ -142,7 +142,7 @@ frappe.search.utils = {
 			}
 		};
 		frappe.boot.user.can_read.forEach(function (item) {
-			level = me.fuzzy_search(keywords, item);
+			level = me.fuzzy_search(__(keywords), item);
 			if (level) {
 				target = item;
 				if (in_list(frappe.boot.single_types, item)) {
@@ -181,7 +181,7 @@ frappe.search.utils = {
 		var out = [];
 		var route;
 		Object.keys(frappe.boot.user.all_reports).forEach(function(item) {
-			var level = me.fuzzy_search(keywords, item);
+			var level = me.fuzzy_search(__(keywords), item);
 			if(level > 0) {
 				var report = frappe.boot.user.all_reports[item];
 				if(report.report_type == "Report Builder")
@@ -209,7 +209,7 @@ frappe.search.utils = {
 			p.name = name;
 		});
 		Object.keys(this.pages).forEach(function(item) {
-			var level = me.fuzzy_search(keywords, item);
+			var level = me.fuzzy_search(__(keywords), item);
 			if(level) {
 				var page = me.pages[item];
 				out.push({
@@ -227,7 +227,7 @@ frappe.search.utils = {
 			out.push({
 				type: "Calendar",
 				value: __("Open {0}", [__(target)]),
-				index: me.fuzzy_search(keywords, 'Calendar'),
+				index: me.fuzzy_search(__(keywords), 'Calendar'),
 				match: target,
 				route: ['List', 'Event', target],
 			});
@@ -236,7 +236,7 @@ frappe.search.utils = {
 			out.push({
 				type: "Inbox",
 				value: __("Open {0}", [__('Email Inbox')]),
-				index: me.fuzzy_search(keywords, 'email inbox'),
+				index: me.fuzzy_search(__(keywords), 'email inbox'),
 				match: target,
 				route: ['List', 'Communication', 'Inbox'],
 			});
@@ -248,7 +248,7 @@ frappe.search.utils = {
 		var me = this;
 		var out = [];
 		Object.keys(frappe.modules).forEach(function(item) {
-			var level = me.fuzzy_search(keywords, item);
+			var level = me.fuzzy_search(__(keywords), item);
 			if(level > 0) {
 				var module = frappe.modules[item];
 				if (module._doctype) return;
