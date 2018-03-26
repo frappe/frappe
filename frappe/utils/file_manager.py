@@ -421,5 +421,6 @@ def get_random_filename(extn=None, content_type=None):
 
 @frappe.whitelist()
 def validate_filename(filename):
-	fname = get_file_name(filename, hashlib.md5(filename).hexdigest()[-6:])
+	hash_ = get_content_hash(filename)
+	fname = get_file_name(filename, hash_[-6:])
 	return fname
