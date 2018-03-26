@@ -14,7 +14,7 @@ from frappe.chat.util import (
 	dictify,
 	listify,
 	squashify,
-	assign_if_empty
+	get_if_empty
 )
 
 session = frappe.session
@@ -104,12 +104,12 @@ def get(user, rooms = None, fields = None, filters = None):
 	# There is this horrible bug out here.
 	# Looks like if frappe.call sends optional arguments (not in right order), the argument turns to an empty string.
 	# I'm not even going to think searching for it.
-	# Hence, the hack was assign_if_empty (previous assign_if_none)
+	# Hence, the hack was get_if_empty (previous assign_if_none)
 	# - Achilles Rasquinha achilles@frappe.io
 	rooms, fields, filters = safe_json_loads(rooms, fields, filters)
 
-	rooms   = listify(assign_if_empty(rooms,  [ ]))
-	fields  = listify(assign_if_empty(fields, [ ]))
+	rooms   = listify(get_if_empty(rooms,  [ ]))
+	fields  = listify(get_if_empty(fields, [ ]))
 
 	const   = [ ] # constraints
 	if rooms:

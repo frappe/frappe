@@ -12,7 +12,7 @@ import frappe
 
 # imports - frappe module imports
 from frappe.chat.util import (
-	assign_if_empty,
+	get_if_empty,
 	check_url,
 	dictify,
 	get_emojis,
@@ -177,7 +177,7 @@ def get(name, rooms = None, fields = None):
 		urls      = dmess.urls,
 		mentions  = dmess.mentions,
 		creation  = dmess.creation,
-		seen      = assign_if_empty(dmess._seen, [ ])
+		seen      = get_if_empty(dmess._seen, [ ])
 	)
 
 	return data

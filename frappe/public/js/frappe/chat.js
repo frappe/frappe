@@ -93,19 +93,34 @@ frappe.datetime.datetime = class {
 	/**
 	 * @description Frappe's datetime Class's constructor.
 	 */
-	constructor (instance) {
+	constructor (instance, format = null) {
 		if ( typeof moment === undefined )
 			throw new frappe.ImportError(`Moment.js not installed.`)
 
-		this.moment      = instance ? moment(instance) : moment()
+		this.moment      = instance ? moment(instance, format) : moment()
 	}
 
 	/**
 	 * @description Returns a formatted string of the datetime object.
 	 */
-	format (format) {
+	format (format = null) {
 		const  formatted = this.moment.format(format)
 		return formatted
+	}
+}
+
+frappe.datetime.range   = class {
+	constructor (start, end) {
+		if ( typeof moment === undefined )
+			throw new frappe.ImportError(`Moment.js not installed.`)
+
+		this.start = start
+		this.end   = end
+	}
+
+	contains (datetime) {
+		const  contains = datetime.moment.isBetween(this.start.moment, this.end.moment)
+		return contains
 	}
 }
 
@@ -1021,12 +1036,20 @@ frappe.chat.website.settings = (fields, fn) =>
 		fields = frappe._.as_array(fields)
 
 	return new Promise(resolve => {
-		frappe.call("frappe.chat.website.settings")
+		frappe.call("frappe.chat.website.settings",
+			{ fields: fields })
 			.then(response => {
-				if ( fn )
-					fn(response.message)
+				var message = response.message
 
-				resolve(response.message)
+				if ( message.enable_from )
+					message   = { ...message, enable_from: new frappe.datetime.datetime(message.enable_from, 'HH:mm:ss') }
+				if ( message.enable_to )
+					message   = { ...message, enable_to:   new frappe.datetime.datetime(message.enable_to, 'HH:mm:ss') }
+
+				if ( fn )
+					fn(message)
+
+				resolve(message)
 			})
 	})
 }
@@ -2082,7 +2105,7 @@ class extends Component {
 		if ( ["Group", "Visitor"].includes(props.type) ) {
 			item.route      = `Form/Chat Room/${props.name}`
 
-			item.title      = props.room_name || "Support";
+			item.title      = props.room_name || "Support"
 			item.image      = props.avatar
 
 			if ( !frappe._.is_empty(props.typing) ) {
@@ -2546,14 +2569,14 @@ frappe.chat.render = (render = true, force = false) =>
 			}
 
 			frappe.chat.room.create("Visitor", token).then((room) => {
-				frappe.log.info(`Visitor Room Created: ${JSON.stringify(room, null, 2)}`)
+				frappe.log.info(`Visitor Room Created: ${room.name}`)
 				frappe.chat.room.subscribe(room.name)
 
-				var reference = room;
+				var reference = room
 
 				frappe.chat.room.history(room.name, messages => {
 					const room = { ...reference, messages: messages }
-					frappe.log.info(`Rendering Visitor Room: ${JSON.stringify(room, null, 2)}`)
+					frappe.log.info(`Rendering Visitor Room: ${room.name}`)
 					frappe.chatter.render({
 						room: room
 					})
@@ -2593,19 +2616,26 @@ frappe.chat.setup  = () =>
 				frappe.chat.render(should_render)
 			}
 		})
-		
 	} else {
-		// Website Settings.
+		// Website Settings
 		frappe.log.info('Retrieving Chat Website Settings.')
-		frappe.chat.website.settings(["socketio", "enable_chat"]).then((settings) => {
-			frappe.log.info(`Chat Website Setting - ${JSON.stringify(settings)}`)
-			frappe.log.info(`Chat Website Setting - ${settings.enable_chat ? "Enable" : "Disable"}`)
-			
-			const should_render = settings.enable_chat
-			
-			frappe.socketio.init(settings.socketio.port)
-			
-			frappe.chat.render(should_render)
+		frappe.chat.website.settings(["socketio", "enable", "enable_from",
+			"enable_to"])
+			.then(settings => {
+				frappe.log.info(`Chat Website Setting - ${JSON.stringify(settings)}`)
+				frappe.log.info(`Chat Website Setting - ${settings.enable ? "Enable" : "Disable"}`)
+				
+				var should_render = settings.enable
+				if ( settings.enable_from && settings.enable_to ) {
+					frappe.log.info(`Enabling Chat Schedule - ${settings.enable_from.format()} : ${settings.enable_to.format()}`)
+					
+					const range   = new frappe.datetime.range(settings.enable_from, settings.enable_to)
+					should_render = range.contains(frappe.datetime.now())
+				}
+				
+				frappe.socketio.init(settings.socketio.port)
+				
+				frappe.chat.render(should_render)
 		})
 	}
 }

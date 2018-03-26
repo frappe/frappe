@@ -4,7 +4,7 @@ from frappe.chat.util.util import (
 	squashify,
 	safe_json_loads,
 	filter_dict,
-	assign_if_empty,
+	get_if_empty,
 	listify,
 	dictify,
 	check_url,
