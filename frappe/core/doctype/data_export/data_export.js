@@ -7,7 +7,6 @@ frappe.ui.form.on('Data Export', {
 		frm.page.set_primary_action('Export', () => {
 			can_export(frm) ? export_data(frm) : null;
 		});
-		$(frm.footer.wrapper).toggle(false);
 	},
 	onload: (frm) => {
 		frm.set_query("reference_doctype", () => {
