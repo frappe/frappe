@@ -213,8 +213,7 @@ io.on('connection', function (socket) {
 
 subscriber.on("message", function (channel, message, room) {
 	message = JSON.parse(message);
-	console.log("Dispatching to Room: " + message.room + " event " + message.event + " with message " + JSON.stringify(message.message));
-	io.to(message.room).emit(message.event, message.message)
+	io.to(message.room).emit(message.event, message.message);
 });
 
 
