@@ -109,6 +109,13 @@ frappe.datetime.datetime = class {
 	}
 }
 
+/**
+ * @description Frappe's daterange object.
+ *
+ * @example
+ * const range = new frappe.datetime.range(frappe.datetime.now(), frappe.datetime.now())
+ * range.contains(frappe.datetime.now())
+ */
 frappe.datetime.range   = class {
 	constructor (start, end) {
 		if ( typeof moment === undefined )
