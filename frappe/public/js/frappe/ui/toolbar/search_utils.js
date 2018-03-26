@@ -20,8 +20,7 @@ frappe.search.utils = {
 						if($.isPlainObject(option)) {
 							option = [option];
 						}
-						option.forEach(function(o) { o.match = item; o.recent = true;});
-
+						option.forEach(function(o) { o.match = item; });
 						options = option.concat(options);
 					}
 				}
@@ -38,7 +37,7 @@ frappe.search.utils = {
 			if(route[0]==='Form') {
 				values.push([route[2], route]);
 			}
-			else if(['List', 'Tree', 'modules', 'query-report'].includes(route[0]) || route[2]==='Report') {
+			else if(in_list(['List', 'Report', 'Tree', 'modules', 'query-report'], route[0])) {
 				if(route[1]) {
 					values.push([route[1], route]);
 				}
@@ -60,10 +59,10 @@ frappe.search.utils = {
 					out.label = __(match[1][1]).bold();
 					out.value = __(match[1][1]);
 				}
-			} else if (['List', 'Tree', 'modules', 'query-report'].includes(match[1][0]) && (match[1].length > 1)) {
+			} else if (in_list(['List', 'Report', 'Tree', 'modules', 'query-report'], match[1][0]) && (match[1].length > 1)) {
 				var type = match[1][0], label = type;
 				if(type==='modules') label = 'Module';
-				else if(type==='query-report' || match[1][2] ==='Report') label = 'Report';
+				else if(type==='query-report') label = 'Report';
 				out.label = __(match[1][1]).bold() + " " + __(label);
 				out.value = __(match[1][1]) + " " + __(label);
 			} else if (match[0]) {
@@ -110,7 +109,7 @@ frappe.search.utils = {
 		var firstKeyword = keywords.split(" ")[0];
 		if(firstKeyword.toLowerCase() === __("new")) {
 			frappe.boot.user.can_create.forEach(function (item) {
-				var level = me.fuzzy_search(__(keywords).substr(4), item);
+				var level = me.fuzzy_search(keywords.substr(4), item);
 				if(level) {
 					out.push({
 						type: "New",
@@ -135,14 +134,14 @@ frappe.search.utils = {
 			return {
 				type: type,
 				label: me.bolden_match_part(__(target), keywords) + " " + __(type),
-				value: __(target + " " + type),
+				value: __(target) + " " + __(type),
 				index: level + order,
 				match: target,
 				route: route,
 			}
 		};
 		frappe.boot.user.can_read.forEach(function (item) {
-			level = me.fuzzy_search(__(keywords), item);
+			level = me.fuzzy_search(keywords, item);
 			if (level) {
 				target = item;
 				if (in_list(frappe.boot.single_types, item)) {
@@ -167,7 +166,11 @@ frappe.search.utils = {
 					} else {
 						out.push(option("List", ["List", item], 0.05));
 						if (frappe.model.can_get_report(item)) {
-							out.push(option("Report", ["List", item, "Report"], 0.04));
+							out.push(option("Report", ["Report", item], 0.04));
+						}
+						if (frappe.boot.calendars.indexOf(item) !== -1) {
+							out.push(option("Calendar", ["List", item, "Calendar"], 0.03));
+							out.push(option("Gantt", ["List", item, "Gantt"], 0.02));
 						}
 					}
 				}
@@ -181,11 +184,11 @@ frappe.search.utils = {
 		var out = [];
 		var route;
 		Object.keys(frappe.boot.user.all_reports).forEach(function(item) {
-			var level = me.fuzzy_search(__(keywords), item);
+			var level = me.fuzzy_search(keywords, item);
 			if(level > 0) {
 				var report = frappe.boot.user.all_reports[item];
 				if(report.report_type == "Report Builder")
-					route = [report.ref_doctype, item, "Report"];
+					route = ["Report", report.ref_doctype, item];
 				else
 					route = ["query-report",  item];
 				out.push({
@@ -209,7 +212,7 @@ frappe.search.utils = {
 			p.name = name;
 		});
 		Object.keys(this.pages).forEach(function(item) {
-			var level = me.fuzzy_search(__(keywords), item);
+			var level = me.fuzzy_search(keywords, item);
 			if(level) {
 				var page = me.pages[item];
 				out.push({
@@ -227,7 +230,7 @@ frappe.search.utils = {
 			out.push({
 				type: "Calendar",
 				value: __("Open {0}", [__(target)]),
-				index: me.fuzzy_search(__(keywords), 'Calendar'),
+				index: me.fuzzy_search(keywords, 'Calendar'),
 				match: target,
 				route: ['List', 'Event', target],
 			});
@@ -236,7 +239,7 @@ frappe.search.utils = {
 			out.push({
 				type: "Inbox",
 				value: __("Open {0}", [__('Email Inbox')]),
-				index: me.fuzzy_search(__(keywords), 'email inbox'),
+				index: me.fuzzy_search(keywords, 'email inbox'),
 				match: target,
 				route: ['List', 'Communication', 'Inbox'],
 			});
@@ -248,7 +251,7 @@ frappe.search.utils = {
 		var me = this;
 		var out = [];
 		Object.keys(frappe.modules).forEach(function(item) {
-			var level = me.fuzzy_search(__(keywords), item);
+			var level = me.fuzzy_search(keywords, item);
 			if(level > 0) {
 				var module = frappe.modules[item];
 				if (module._doctype) return;
