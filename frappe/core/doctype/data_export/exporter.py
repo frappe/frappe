@@ -29,7 +29,7 @@ def export_data(doctype=None, parent_doctype=None, all_doctypes=True, with_data=
 		select_columns=select_columns, file_type=file_type, template=template, filters=filters)
 	exporter.build_response()
 
-class DataExporter():
+class DataExporter:
 	def __init__(self, doctype=None, parent_doctype=None, all_doctypes=True, with_data=False,
 		select_columns=None, file_type='CSV', template=False, filters=None):
 		self.doctype = doctype
@@ -98,10 +98,9 @@ class DataExporter():
 		self.add_data()
 		if self.with_data and not self.data:
 			frappe.respond_as_web_page(_('No Data'), _('There is no data to be exported'), indicator_color='orange')
-			return
 
 		if self.file_type == 'Excel':
-			return self.build_response_as_excel()
+			self.build_response_as_excel()
 		else:
 			# write out response as a type csv
 			frappe.response['result'] = cstr(self.writer.getvalue())
@@ -323,7 +322,7 @@ class DataExporter():
 	def build_response_as_excel(self):
 		filename = frappe.generate_hash("", 10)
 		with open(filename, 'wb') as f:
-			f.write(cstr(self.writer.getvalue()).encode("utf-8"))
+			f.write(cstr(self.writer.getvalue()).encode('utf-8'))
 		f = open(filename)
 		reader = csv.reader(f)
 

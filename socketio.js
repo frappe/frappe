@@ -63,6 +63,7 @@ io.on('connection', function (socket) {
 			socket.join(room);
 		}
 	});
+
 	socket.on("frappe.chat.message:typing", function (data) {
 		const user = data.user;
 		const room = get_chat_room(socket, data.room);
@@ -92,9 +93,7 @@ io.on('connection', function (socket) {
 				socket.join(get_site_room(socket));
 			}
 		});
-
-
-
+		
 	socket.on('disconnect', function () {
 		delete socket.files;
 	})

@@ -17,6 +17,7 @@ from frappe import _
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.utils.background_jobs import execute_job, get_queue
 from frappe import as_unicode
+import six
 
 # imports - compatibility imports
 from six import (
@@ -81,9 +82,13 @@ class Database:
 		conversions.update({
 			FIELD_TYPE.NEWDECIMAL: float,
 			FIELD_TYPE.DATETIME: get_datetime,
-			TimeDelta: conversions[binary_type],
 			UnicodeWithAttrs: conversions[text_type]
 		})
+
+		if six.PY2:
+			conversions.update({
+				TimeDelta: conversions[binary_type]
+			})
 
 		if usessl:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
