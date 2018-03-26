@@ -102,7 +102,6 @@ $.extend(frappe.model, {
 	update_in_locals: function(doc) {
 		// update values in the existing local doc instead of replacing
 		let local_doc = locals[doc.doctype][doc.name];
-		let meta = frappe.get_meta(doc.doctype);
 		for (let fieldname in doc) {
 			let df = frappe.meta.get_field(doc.doctype, fieldname);
 			if (df && df.fieldtype === 'Table') {
