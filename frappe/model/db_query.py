@@ -203,8 +203,7 @@ class DatabaseQuery(object):
 				field_lower = field.lower()
 				tab_name = re.search(r'`.*?`', field_lower)
 				if tab_name:
-					#remove table name from comparison, quoted name only with ``
-					#example: table (project update in erpnext) contains the update blacklist! 
+					#remove table name from comparison (quoted name only with ` `)
 					field_lower = field_lower.replace(tab_name.group(0),"")
 				if any(keyword in field_lower for keyword in blacklisted_keywords):
 					_raise_exception()
