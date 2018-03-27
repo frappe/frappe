@@ -65,6 +65,7 @@ frappe.ui.Filter = class {
 		this.filter_edit_area.find(".set-filter-and-run").on("click", () => {
 			this.filter_edit_area.removeClass("new-filter");
 			this.on_change();
+			this.update_filter_tag();
 		});
 
 		this.filter_edit_area.find('.condition').change(() => {

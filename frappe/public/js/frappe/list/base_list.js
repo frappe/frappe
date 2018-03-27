@@ -144,9 +144,13 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_page_head() {
-		this.page.set_title(this.page_title);
+		this.set_title();
 		this.set_menu_items();
 		this.set_breadcrumbs();
+	}
+
+	set_title() {
+		this.page.set_title(this.page_title);
 	}
 
 	set_menu_items() {
@@ -225,7 +229,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_result_area() {
-		this.$result = $(`<div class="result">`).hide();
+		this.$result = $(`<div class="result">`);
 		this.$frappe_list.append(this.$result);
 	}
 
@@ -309,7 +313,9 @@ frappe.views.BaseList = class BaseList {
 	get_filters_for_args() {
 		// filters might have a fifth param called hidden,
 		// we don't want to pass that server side
-		return this.filter_area.get().map(filter => filter.slice(0, 4));
+		return this.filter_area
+			? this.filter_area.get().map(filter => filter.slice(0, 4))
+			: [];
 	}
 
 	get_args() {
@@ -531,19 +537,6 @@ class FilterArea {
 	}
 
 	make_standard_filters() {
-		$(
-			`<div class="flex justify-center align-center">
-				<span class="octicon octicon-search text-muted small"></span>
-			</div>`
-		)
-			.css({
-				height: '30px',
-				width: '20px',
-				marginRight: '-2px',
-				marginLeft: '10px'
-			})
-			.prependTo(this.standard_filters_wrapper);
-
 		let fields = [
 			{
 				fieldtype: 'Data',
@@ -602,6 +595,21 @@ class FilterArea {
 		}
 
 		fields.map(df => this.list_view.page.add_field(df));
+
+		// search icon in name filter
+		$('<span class="octicon octicon-search text-muted small"></span>')
+			.appendTo(this.list_view.page.fields_dict.name.$wrapper)
+			.css({
+				'position': 'absolute',
+				'z-index': '1',
+				'right': '7px',
+				'top': '9px',
+				'font-size': '90%'
+			});
+
+		this.list_view.page.fields_dict.name.$wrapper
+			.find('.form-control')
+			.css('padding-right', '2em');
 	}
 
 	get_standard_filters() {

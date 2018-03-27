@@ -3,6 +3,10 @@
 <h2>{{ __(title) }}</h2>
 <hr>
 {% endif %}
+{% if subtitle %}
+{{ subtitle }}
+<hr>
+{% endif %}
 <table class="table table-bordered">
     <!-- heading -->
     <thead>
@@ -24,7 +28,7 @@
             {% for col in columns %}
                 {% if col.name && col._id !== "_check" %}
 
-                    {% var value = col.fieldname ? row[col.fieldname] : row[col.field]; %}
+                    {% var value = col.fieldname ? row[col.fieldname] : row[col.id]; %}
 
                     <td>
                         {{ col.formatter

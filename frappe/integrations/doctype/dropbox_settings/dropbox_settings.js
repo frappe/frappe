@@ -3,6 +3,7 @@
 
 frappe.ui.form.on('Dropbox Settings', {
 	refresh: function(frm) {
+		frm.toggle_display(["app_access_key", "app_secret_key"], !(frm.doc.__onload && frm.doc.__onload.dropbox_setup_via_site_config));
 		frm.clear_custom_buttons();
 		frm.events.take_backup(frm);
 	},
@@ -19,7 +20,7 @@ frappe.ui.form.on('Dropbox Settings', {
 				}
 			})
 		}
-		else if (frm.doc.dropbox_setup_via_site_config) {
+		else if (frm.doc.__onload && frm.doc.__onload.dropbox_setup_via_site_config) {
 			frappe.call({
 				method: "frappe.integrations.doctype.dropbox_settings.dropbox_settings.get_redirect_url",
 				freeze: true,
@@ -36,7 +37,7 @@ frappe.ui.form.on('Dropbox Settings', {
 	},
 
 	take_backup: function(frm) {
-		if ((frm.doc.app_access_key && frm.doc.app_secret_key) || frm.doc.dropbox_setup_via_site_config){
+		if ((frm.doc.app_access_key && frm.doc.app_secret_key) || (frm.doc.__onload && frm.doc.__onload.dropbox_setup_via_site_config)){
 			frm.add_custom_button(__("Take Backup Now"), function(frm){
 				frappe.call({
 					method: "frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup",

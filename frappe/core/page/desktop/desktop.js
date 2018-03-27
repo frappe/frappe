@@ -294,23 +294,31 @@ $.extend(frappe.desktop, {
 			var module_doctypes = frappe.boot.notification_info.module_doctypes[module.module_name];
 
 			var sum = 0;
-			if(module_doctypes) {
-				if(frappe.boot.notification_info.open_count_doctype) {
-					// sum all doctypes for a module
-					for (var j=0, k=module_doctypes.length; j < k; j++) {
-						var doctype = module_doctypes[j];
-						sum += (frappe.boot.notification_info.open_count_doctype[doctype] || 0);
-					}
+			
+			if(module_doctypes && frappe.boot.notification_info.open_count_doctype) {
+				// sum all doctypes for a module
+				for (var j=0, k=module_doctypes.length; j < k; j++) {
+					var doctype = module_doctypes[j];
+					let count = (frappe.boot.notification_info.open_count_doctype[doctype] || 0);
+					count = typeof count == "string" ? parseInt(count) : count;
+					sum += count;
 				}
-			} else if(frappe.boot.notification_info.open_count_doctype
+			}
+			
+			if(frappe.boot.notification_info.open_count_doctype
 				&& frappe.boot.notification_info.open_count_doctype[module.module_name]!=null) {
 				// notification count explicitly for doctype
-				sum = frappe.boot.notification_info.open_count_doctype[module.module_name];
-
-			} else if(frappe.boot.notification_info.open_count_module
+				let count = frappe.boot.notification_info.open_count_doctype[module.module_name] || 0;
+				count = typeof count == "string" ? parseInt(count) : count;
+				sum += count;
+			}
+			
+			if(frappe.boot.notification_info.open_count_module
 				&& frappe.boot.notification_info.open_count_module[module.module_name]!=null) {
 				// notification count explicitly for module
-				sum = frappe.boot.notification_info.open_count_module[module.module_name];
+				let count = frappe.boot.notification_info.open_count_module[module.module_name] || 0;
+				count = typeof count == "string" ? parseInt(count) : count;
+				sum += count;
 			}
 
 			// if module found

@@ -145,6 +145,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_view() {
 		this.setup_columns();
+		this.render_header();
+		this.render_skeleton();
 		this.setup_events();
 		this.settings.onload && this.settings.onload(this);
 	}
@@ -233,10 +235,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		</div>`;
 	}
 
-	freeze(show) {
-		this.$result.find('.list-header-meta').html(__('Refreshing') + '...');
-		this.$result.find('.checkbox-actions').toggle(show);
-		this.$result.find('.list-header-subject').toggle(!show);
+	freeze() {
+		this.$result.find('.list-count').html(`<span>${__('Refreshing')}...</span>`);
 	}
 
 	get_args() {
@@ -264,6 +264,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 	}
 
+	render_header() {
+		if (this.$result.find('.list-row-head').length === 0) {
+			// append header once
+			this.$result.prepend(this.get_header_html());
+		}
+	}
+
+	render_skeleton() {
+		const $row = this.get_list_row_html_skeleton('<div><input type="checkbox" /></div>');
+		this.$result.append($row.repeat(3));
+	}
+
 	before_render() {
 		this.settings.before_render && this.settings.before_render();
 		frappe.model.user_settings.save(this.doctype, 'last_view', this.view_name);
@@ -274,12 +286,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	render() {
+		this.$result.find('.list-row-container').remove();
 		if (this.data.length > 0) {
-			this.$result.find('.list-row-container').remove();
-			if (this.$result.find('.list-row-head').length === 0) {
-				// append header once
-				this.$result.prepend(this.get_header_html());
-			}
 			// append rows
 			this.$result.append(
 				this.data.map(doc => this.get_list_row_html(doc)).join('')
