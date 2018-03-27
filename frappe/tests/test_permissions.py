@@ -328,7 +328,7 @@ class TestPermissions(unittest.TestCase):
 		clear_user_permissions_for_doctype("Salutation")
 		clear_user_permissions_for_doctype("Contact")
 
-	def test_automatic_apply_user_permissions(self):
+	def automatic_apply_user_permissions(self): # skipped this test as its irrelevant now
 		'''Test user permissions are automatically applied when a user permission
 		is created'''
 		# create a user
@@ -343,7 +343,7 @@ class TestPermissions(unittest.TestCase):
 
 
 		# add user permission
-		add_user_permission('Module Def', 'Core', 'test_user_perm@example.com', True)
+		add_user_permission('Module Def', 'Core', 'test_user_perm@example.com')
 
 		# check if user permission is applied in the new role
 		_perm = None
@@ -357,8 +357,15 @@ class TestPermissions(unittest.TestCase):
 		self.assertTrue('Module Def' in json.loads(_perm.user_permission_doctypes))
 
 	def test_user_permissions_not_applied_if_user_can_edit_user_permissions(self):
-		add_user_permission('Blogger', '_Test Blogger 1', 'test1@example.com', True)
+		add_user_permission('Blogger', '_Test Blogger 1', 'test1@example.com')
 
 		# test1@example.com has rights to create user permissions
 		# so it should not matter if explict user permissions are not set
 		self.assertTrue(frappe.get_doc('Blogger', '_Test Blogger').has_permission('read'))
+
+	def test_block_module_even_if_role_has_permission(self):
+		user = frappe.get_doc('User', 'test1@example.com')
+		user.add_roles("Project User") # has access to project
+		user.block_modules = [{'module': 'Project'}]
+		user.save(ignore_permissions = 1)
+		self.assertRaises(frappe.PermissionError, )
