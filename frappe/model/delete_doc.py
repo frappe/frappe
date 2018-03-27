@@ -193,7 +193,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 					# don't check for communication and todo!
 					continue
 
-				if item and ((item.parent or item.name) != doc.name) \
+				if item and (link_dt != doc.doctype or ((item.parent or item.name) != doc.name)) \
 						and ((method=="Delete" and item.docstatus<2) or (method=="Cancel" and item.docstatus==1)):
 					# raise exception only if
 					# linked to an non-cancelled doc when deleting
