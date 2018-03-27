@@ -26,7 +26,6 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 				method: "frappe.desk.form.save.savedocs",
 				args: { doc: frm.doc, action: action },
 				callback: function (r) {
-					frm.doc.__unsaved = false;
 					$(document).trigger("save", [frm.doc]);
 					callback(r);
 				},
