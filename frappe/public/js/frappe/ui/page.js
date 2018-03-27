@@ -444,14 +444,15 @@ frappe.ui.Page = Class.extend({
 		return this.$title_area;
 	},
 
-	set_title: function(txt, icon) {
+	set_title: function(txt, icon = '', stripHtml = true, tabTitle = '') {
 		if(!txt) txt = "";
 
-		// strip html
-		txt = strip_html(txt);
+		if(stripHtml) {
+			txt = strip_html(txt);
+		}
 		this.title = txt;
 
-		frappe.utils.set_title(txt);
+		frappe.utils.set_title(tabTitle || txt);
 		if(icon) {
 			txt = '<span class="'+ icon +' text-muted" style="font-size: inherit;"></span> ' + txt;
 		}

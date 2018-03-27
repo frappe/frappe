@@ -214,7 +214,7 @@ frappe.ui.ReviewArea = class ReviewArea extends frappe.ui.CommentArea {
 	setup_dom() {
 		const header = !this.no_wrapper ?
 			`<div class="comment-input-header">
-				<span class="small text-muted">${__("Add a review")}</span>
+				<span class="small text-muted">${__("Add your review")}</span>
 				<button class="btn btn-default btn-comment btn-xs disabled pull-right">
 					${__("Submit Review")}
 				</button>
