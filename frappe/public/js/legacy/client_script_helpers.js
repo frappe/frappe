@@ -509,3 +509,11 @@ _f.Frm.prototype.update_in_all_rows = function(table_fieldname, fieldname, value
 	}
 	refresh_field("items");
 }
+
+_f.Frm.prototype.get_sum = function(table_fieldname, fieldname) {
+	let sum = 0;
+	for (let d of (this.doc[table_fieldname] || [])) {
+		sum += d[fieldname];
+	}
+	return sum;
+};
