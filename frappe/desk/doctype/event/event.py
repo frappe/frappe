@@ -30,12 +30,6 @@ class Event(Document):
 		if getdate(self.starts_on) == getdate(self.ends_on) and self.repeat_on == "Every Day":
 			frappe.msgprint(frappe._("Every day events should finish on the same day."), raise_exception=True)
 
-	def after_insert(self):
-		#Avoids copying the ID when duplicating events
-		if self.gcalendar_sync_id:
-			frappe.db.set_value("Event", self.name, "gcalendar_sync_id", None)
-			frappe.db.commit()
-
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
 	return """(tabEvent.event_type='Public' or tabEvent.owner='%(user)s')""" % {
