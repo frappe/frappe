@@ -362,10 +362,3 @@ class TestPermissions(unittest.TestCase):
 		# test1@example.com has rights to create user permissions
 		# so it should not matter if explict user permissions are not set
 		self.assertTrue(frappe.get_doc('Blogger', '_Test Blogger').has_permission('read'))
-
-	def test_block_module_even_if_role_has_permission(self):
-		user = frappe.get_doc('User', 'test1@example.com')
-		user.add_roles("Project User") # has access to project
-		user.block_modules = [{'module': 'Project'}]
-		user.save(ignore_permissions = 1)
-		self.assertRaises(frappe.PermissionError, )
