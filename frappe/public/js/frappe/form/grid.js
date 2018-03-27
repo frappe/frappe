@@ -75,6 +75,7 @@ frappe.ui.form.Grid = Class.extend({
 
 	setup_check: function() {
 		var me = this;
+
 		this.wrapper.on('click', '.grid-row-check', function(e) {
 			var $check = $(this);
 			if($check.parents('.grid-heading-row:first').length!==0) {
@@ -96,9 +97,13 @@ frappe.ui.form.Grid = Class.extend({
 			var dirty = false;
 
 			let tasks = [];
+			me.deleted_docs = [];
 
 			me.get_selected().forEach((docname) => {
 				tasks.push(() => {
+					if (!me.frm) {
+						me.deleted_docs.push(docname);
+					}
 					me.grid_rows_by_docname[docname].remove();
 					dirty = true;
 				});
@@ -339,9 +344,16 @@ frappe.ui.form.Grid = Class.extend({
 	get_data: function() {
 		var data = this.frm ?
 			this.frm.doc[this.df.fieldname] || []
-			: this.df.get_data();
+			: this.get_modal_data();
 		data.sort(function(a, b) { return a.idx - b.idx});
 		return data;
+	},
+	get_modal_data: function() {
+		return this.df.get_data().filter(data => {
+			if (!this.deleted_docs || !in_list(this.deleted_docs, data.name)) {
+				return data;
+			}
+		});
 	},
 	set_column_disp: function(fieldname, show) {
 		if($.isArray(fieldname)) {
