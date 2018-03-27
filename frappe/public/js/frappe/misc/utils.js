@@ -624,7 +624,7 @@ frappe.utils = {
 			return result;
 		};
 	},
-	debounce: function debounce(func, wait, immediate) {
+	debounce: function(func, wait, immediate) {
 		var timeout;
 		return function() {
 			var context = this, args = arguments;
