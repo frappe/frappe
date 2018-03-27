@@ -395,10 +395,12 @@ class DatabaseQuery(object):
 
 		meta = frappe.get_meta(self.doctype)
 		role_permissions = frappe.permissions.get_role_permissions(meta, user=self.user)
-
 		self.shared = frappe.share.get_shared(self.doctype, self.user)
 
-		if not meta.istable and not role_permissions.get("read") and not self.flags.ignore_permissions:
+		if (not meta.istable and
+			not role_permissions.get("read") and
+			not self.flags.ignore_permissions and
+			not has_any_user_permission_for_doctype(self.doctype, self.user)):
 			only_if_shared = True
 			if not self.shared:
 				frappe.throw(_("No permission to read {0}").format(self.doctype), frappe.PermissionError)
@@ -592,6 +594,7 @@ def get_order_by(doctype, meta):
 def get_list(doctype, *args, **kwargs):
 	'''wrapper for DatabaseQuery'''
 	kwargs.pop('cmd', None)
+	print(doctype, args, kwargs)
 	return DatabaseQuery(doctype).execute(None, *args, **kwargs)
 
 def is_parent_only_filter(doctype, filters):
@@ -606,6 +609,10 @@ def is_parent_only_filter(doctype, filters):
 				flt[3] = get_between_date_filter(flt[3])
 
 	return only_parent_doctype
+
+def has_any_user_permission_for_doctype(doctype, user):
+	user_permissions = frappe.permissions.get_user_permissions(user=user)
+	return	user_permissions and user_permissions.get(doctype)
 
 def get_between_date_filter(value, df=None):
 	'''

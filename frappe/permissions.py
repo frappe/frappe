@@ -77,7 +77,11 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 
 		perm = role_permissions.get(ptype)
 		if not perm:
-			perm = false_if_not_shared()
+			user_permissions = get_user_permissions(user)
+			if user_permissions and user_permissions.get(doctype): # check if user has atleast one 'user permission' related to passed doctype
+				perm = True # to pass check in DatabaseQuery so as to show list of allowed docs for the user
+			else:
+				perm = false_if_not_shared()
 
 	if verbose: print("Final Permission: {0}".format(perm))
 	return perm
@@ -171,7 +175,7 @@ def get_user_permissions(user):
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 	return get_user_permissions(user)
 
-def has_user_permission(doc, user=None, verbose=True):
+def has_user_permission(doc, user=None, verbose=False):
 	'''Returns True if User is allowed to view considering User Permissions'''
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 	user_permissions = get_user_permissions(user)
@@ -324,9 +328,9 @@ def can_set_user_permissions(doctype, docname=None):
 
 def set_user_permission_if_allowed(doctype, name, user, with_message=False):
 	if get_role_permissions(frappe.get_meta(doctype), user).set_user_permissions!=1:
-		add_user_permission(doctype, name, user, with_message)
+		add_user_permission(doctype, name, user)
 
-def add_user_permission(doctype, name, user, apply=False):
+def add_user_permission(doctype, name, user):
 	'''Add user permission'''
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 	if name not in get_user_permissions(user).get(doctype, []):
@@ -337,8 +341,7 @@ def add_user_permission(doctype, name, user, apply=False):
 			doctype='User Permission',
 			user=user,
 			allow=doctype,
-			for_value=name,
-			apply_for_all_roles=apply
+			for_value=name
 		)).insert()
 
 def remove_user_permission(doctype, name, user):
