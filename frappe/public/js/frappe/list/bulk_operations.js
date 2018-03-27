@@ -142,6 +142,19 @@ export default class BulkOperations {
 					'onchange': () => {
 						const new_df = Object.assign({},
 							field_mappings[dialog.get_value('field')]);
+						/* if the field label has status in it and
+						if it has select fieldtype with no default value then
+						set a default value from the available option. */
+						if(new_df.label.match(/status/i) &&
+							new_df.fieldtype === 'Select' && !new_df.default) {
+
+							let options = [];
+							if(typeof new_df.options==="string") {
+								options = new_df.options.split("\n");
+							}
+							//set second option as default if first option is an empty string
+							new_df.default = options[0] || options[1];
+						}
 						new_df.label = __('Value');
 						new_df.reqd = 1;
 						delete new_df.depends_on;
