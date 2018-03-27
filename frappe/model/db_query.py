@@ -200,12 +200,18 @@ class DatabaseQuery(object):
 
 		for field in self.fields:
 			if regex.match(field):
-				if any(keyword in field.lower() for keyword in blacklisted_keywords):
+				field_lower = field.lower()
+				tab_name = re.search(r'`.*?`', field_lower)
+				if tab_name:
+					#remove table name from comparison (quoted name only with ` `)
+					field_lower = field_lower.replace(tab_name.group(0),"")
+				if any(keyword in field_lower for keyword in blacklisted_keywords):
 					_raise_exception()
 
-				if any("{0}(".format(keyword) in field.lower() \
+				if any("{0}(".format(keyword) in field_lower \
 					for keyword in blacklisted_functions):
 					_raise_exception()
+
 
 	def extract_tables(self):
 		"""extract tables from fields"""
