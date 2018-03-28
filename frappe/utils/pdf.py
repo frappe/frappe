@@ -29,8 +29,11 @@ def get_pdf(html, options=None, output = None):
 
 			# allow pdfs with missing images if file got created
 			if os.path.exists(fname):
-				with open(fname, "rb") as fileobj:
-					filedata = fileobj.read()
+				if output:
+                        		append_pdf(PdfFileReader(file(fname,"rb")),output)
+                		else:
+                        		with open(fname, "rb") as fileobj:
+                                		filedata = fileobj.read()
 
 			else:
 				frappe.throw(_("PDF generation failed because of broken image links"))
