@@ -90,7 +90,7 @@ def get_doc_permissions(doc, verbose=False, user=None, ptype=None):
 	"""Returns a dict of evaluated permissions for given `doc` like `{"read":1, "write":1}`"""
 	if not user: user = frappe.session.user
 
-	if frappe.is_table(doc.doctype):
+	if frappe.is_table(doc.doctype) or has_user_permission(doc, user, verbose):
 		return {"read":1, "write":1}
 
 	meta = frappe.get_meta(doc.doctype)
@@ -103,13 +103,12 @@ def get_doc_permissions(doc, verbose=False, user=None, ptype=None):
 	if not cint(meta.allow_import):
 		permissions["import"] = 0
 
-	if not has_user_permission(doc, user, verbose):
-		if doc.owner == frappe.session.user and permissions.get("if_owner"):
-			permissions = permissions.get("if_owner")
-			# if_owner does not come with create rights...
-			permissions['create'] = 0
-		else:
-			permissions = {}
+	if doc.owner == frappe.session.user and permissions.get("if_owner"):
+		permissions = permissions.get("if_owner")
+		# if_owner does not come with create rights...
+		permissions['create'] = 0
+	else:
+		permissions = {}
 
 	if ptype:
 		if ptype in ('read', 'write', 'share') and not permissions.get(ptype):
