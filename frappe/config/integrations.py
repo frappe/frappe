@@ -88,7 +88,7 @@ def get_data():
 					"description": _("Webhooks calling API requests into web apps"),
 				}
 			]
-		},
+		},		
 		{
 			"label": _("Maps"),
 			"items": [
