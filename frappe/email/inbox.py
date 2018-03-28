@@ -128,7 +128,7 @@ def make_issue_from_communication(communication, ignore_communication_links=Fals
 		issue = frappe.get_doc({
 			"doctype": "Issue",
 			"subject": doc.subject,
-			"communication_medium": doc.communication_medium,			
+			"communication_medium": doc.communication_medium,
 			"raised_by": doc.sender
 		}).insert(ignore_permissions=True)
 	elif doc.communication_medium == "Phone":
