@@ -197,5 +197,4 @@ def add_metatags(context):
 		if tags.get("description"):
 			tags["og:description"] = tags["twitter:description"] = tags["description"]
 		if tags.get("image"):
-			tags["og:image"] = tags["twitter:image:src"] = tags["image"] = frappe.utils.get_url("image")
-        
+			tags["og:image"] = tags["twitter:image:src"] = tags["image"] = frappe.utils.get_url(tags.get("image"))

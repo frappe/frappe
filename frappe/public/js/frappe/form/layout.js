@@ -124,7 +124,7 @@ frappe.ui.form.Layout = Class.extend({
 			}
 			this.section.fields_list.splice(this.section.fields_dict[fieldname], 1, fieldobj);
 			this.section.fields_dict[fieldname] = fieldobj;
-			this.refresh();
+			this.refresh_fields([df]);
 		}
 	},
 

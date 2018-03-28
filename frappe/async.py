@@ -89,6 +89,8 @@ def publish_realtime(event=None, message=None, room=None,
 			room = get_user_room(user)
 		elif doctype and docname:
 			room = get_doc_room(doctype, docname)
+		else:
+			room = get_site_room()
 	else:
 		# frappe.chat
 		room = get_chat_room(room)

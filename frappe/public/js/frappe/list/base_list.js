@@ -144,9 +144,13 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_page_head() {
-		this.page.set_title(this.page_title);
+		this.set_title();
 		this.set_menu_items();
 		this.set_breadcrumbs();
+	}
+
+	set_title() {
+		this.page.set_title(this.page_title);
 	}
 
 	set_menu_items() {
@@ -309,7 +313,9 @@ frappe.views.BaseList = class BaseList {
 	get_filters_for_args() {
 		// filters might have a fifth param called hidden,
 		// we don't want to pass that server side
-		return this.filter_area.get().map(filter => filter.slice(0, 4));
+		return this.filter_area
+			? this.filter_area.get().map(filter => filter.slice(0, 4))
+			: [];
 	}
 
 	get_args() {
