@@ -88,16 +88,6 @@ def get_data():
 					"description": _("Webhooks calling API requests into web apps"),
 				}
 			]
-		},
-		{
-			"label": _("Telephony Services"),
-			"items": [
-				{
-					"type": "doctype",
-					"name": "Exotel Settings",
-					"description": _("Exotel cloud telephony service"),
-				}
-			]
 		},		
 		{
 			"label": _("Maps"),

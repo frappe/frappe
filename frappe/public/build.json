@@ -250,9 +250,7 @@
 
 		"public/js/frappe/feedback.js",
 
-		"public/js/frappe/chat.js",
-
-		"public/js/integrations/call_popup.html"
+		"public/js/frappe/chat.js"
 	],
 	"css/module.min.css": [
 		"public/less/module.less"
