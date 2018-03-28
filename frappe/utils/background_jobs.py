@@ -20,6 +20,8 @@ queue_timeout = {
 	'short': 300
 }
 
+redis_connection = None
+
 def enqueue(method, queue='default', timeout=300, event=None,
 	async=True, job_name=None, now=False, enqueue_after_commit=False, **kwargs):
 	'''
@@ -207,7 +209,12 @@ def get_redis_conn():
 	elif not frappe.local.conf.redis_queue:
 		raise Exception('redis_queue missing in common_site_config.json')
 
-	return redis.from_url(frappe.local.conf.redis_queue)
+	global redis_connection
+
+	if not redis_connection:
+		redis_connection = redis.from_url(frappe.local.conf.redis_queue)
+
+	return redis_connection
 
 def enqueue_test_job():
 	enqueue('frappe.utils.background_jobs.test_job', s=100)
