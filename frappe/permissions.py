@@ -132,7 +132,7 @@ def update_share_permissions(permissions, doc, user):
 			if permissions_by_share[ptype]:
 				permissions[ptype] = 1
 
-def get_role_permissions(meta, user=None, verbose=False):
+def get_role_permissions(doctype_meta, user=None, verbose=False):
 	"""Returns dict of evaluated role permissions like `{"read": True, "write":False}`
 
 	If user permissions are applicable, it adds a dict of user permissions like
@@ -141,31 +141,36 @@ def get_role_permissions(meta, user=None, verbose=False):
 			"if_owner": {"read": 1, "write": 1}
 		}
 	"""
-	if isinstance(meta, string_types):
-		meta = frappe.get_meta(meta)
+	if isinstance(doctype_meta, string_types):
+		doctype_meta = frappe.get_meta(doctype_meta) # assuming doctype name was passed
 	if not user: user = frappe.session.user
-	cache_key = (meta.name, user)
+
+	user_doc = frappe.get_doc('User', user)
+	blocked_modules = user_doc.get_blocked_modules()
+	is_module_blocked = doctype_meta.module in blocked_modules
+
+	cache_key = (doctype_meta.name, user)
 
 	if not frappe.local.role_permissions.get(cache_key):
 		perms = frappe._dict(
 			if_owner={}
 		)
-		roles = frappe.get_roles(user)
-		dont_match = []
+		if is_module_blocked:
+			for ptype in rights: perms[ptype] = 0
+			return
 
-		for p in meta.permissions:
+		roles = frappe.get_roles(user)
+
+		for p in doctype_meta.permissions:
 			if cint(p.permlevel)==0 and (p.role in roles):
 				# apply only for level 0
 
 				for ptype in rights:
-					# build if_owner dict if applicable for this right
 					perms[ptype] = perms.get(ptype, 0) or cint(p.get(ptype))
 
+					# build if_owner dict if applicable for this right
 					if p.if_owner and p.get(ptype):
 						perms["if_owner"][ptype] = 1
-
-					if p.get(ptype) and not p.if_owner:
-						dont_match.append(ptype)
 
 		frappe.local.role_permissions[cache_key] = perms
 
