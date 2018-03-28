@@ -27,6 +27,10 @@ def get_list(doctype, fields=None, filters=None, order_by=None,
 	:param order_by: Order by this fieldname
 	:param limit_start: Start at this index
 	:param limit_page_length: Number of records to be returned (default 20)'''
+	if frappe.is_table(doctype):
+		# not allowed for child tables!
+		raise frappe.PermissionError
+
 	return frappe.get_list(doctype, fields=fields, filters=filters, order_by=order_by,
 		limit_start=limit_start, limit_page_length=limit_page_length, ignore_permissions=False)
 
@@ -37,6 +41,10 @@ def get(doctype, name=None, filters=None):
 	:param doctype: DocType of the document to be returned
 	:param name: return document of this `name`
 	:param filters: If name is not set, filter by these values and return the first match'''
+	if frappe.is_table(doctype):
+		# not allowed for child tables!
+		raise frappe.PermissionError
+
 	if filters and not name:
 		name = frappe.db.get_value(doctype, json.loads(filters))
 		if not name:
@@ -55,6 +63,9 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 	:param doctype: DocType to be queried
 	:param fieldname: Field to be returned (default `name`)
 	:param filters: dict or string for identifying the record'''
+	if frappe.is_table(doctype):
+		# not allowed for child tables!
+		raise frappe.PermissionError
 
 	if not frappe.has_permission(doctype):
 		frappe.throw(_("No permission for {0}".format(doctype)), frappe.PermissionError)
