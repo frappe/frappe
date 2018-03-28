@@ -145,26 +145,22 @@ def get_role_permissions(doctype_meta, user=None, verbose=False):
 		doctype_meta = frappe.get_meta(doctype_meta) # assuming doctype name was passed
 	if not user: user = frappe.session.user
 
-	user_doc = frappe.get_doc('User', user)
-	blocked_modules = user_doc.get_blocked_modules()
-	is_module_blocked = doctype_meta.module in blocked_modules
-
 	cache_key = (doctype_meta.name, user)
 
 	if not frappe.local.role_permissions.get(cache_key):
 		perms = frappe._dict(
 			if_owner={}
 		)
-		if is_module_blocked:
+
+		if is_module_blocked_for_user(user, doctype_meta.module):
 			for ptype in rights: perms[ptype] = 0
-			return
+		else:
+			roles = frappe.get_roles(user)
 
-		roles = frappe.get_roles(user)
+			for p in doctype_meta.permissions:
+				if not cint(p.permlevel)==0 or not(p.role in roles): continue
 
-		for p in doctype_meta.permissions:
-			if cint(p.permlevel)==0 and (p.role in roles):
 				# apply only for level 0
-
 				for ptype in rights:
 					perms[ptype] = perms.get(ptype, 0) or cint(p.get(ptype))
 
@@ -442,4 +438,9 @@ def get_linked_doctypes(dt):
 			"options": ("!=", "[Select]")
 		})
 	]))
+
+def is_module_blocked_for_user(user, module):
+	user_doc = frappe.get_doc('User', user)
+	blocked_modules = user_doc.get_blocked_modules()
+	return module in blocked_modules
 
