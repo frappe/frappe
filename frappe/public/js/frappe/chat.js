@@ -416,50 +416,6 @@ frappe.utils       = { ...frappe.utils, ...frappe._ }
 frappe.provide('frappe.user')
 frappe.user.first_name = user => frappe._.head(frappe.user.full_name(user).split(" "))
 
-// frappe.ui extensions
-frappe.provide('frappe.ui')
-/**
- * @description Frappe's Uploader Widget
- *
- * @see - Heavily inspired https://uppy.io
- *
- * @todo Under Development
- */
-frappe.ui.Uploader = class {
-	constructor (wrapper, options = { }) {
-		this.options = frappe.ui.Uploader.OPTIONS
-		this.set_wrapper(wrapper)
-		this.set_options(options)
-	}
-
-	set_wrapper (wrapper) {
-		this.$wrapper = $(wrapper)
-
-		return this
-	}
-
-	set_options (options) {
-		this.options  = { ...this.options, ...options }
-
-		return this
-	}
-
-	render ( ) {
-		const $template = $(frappe.ui.Uploader.TEMPLATE)
-		this.$wrapper.html($template)
-	}
-}
-frappe.ui.Uploader.Layout   = { DIALOG: 'DIALOG' }
-frappe.ui.Uploader.OPTIONS  = {
-	layout: frappe.ui.Uploader.Layout.DIALOG
-}
-frappe.ui.Uploader.TEMPLATE =
-`
-<div class="foobar">
-	FooBar
-</div>
-`
-
 frappe.provide('frappe.ui.keycode')
 frappe.ui.keycode = { RETURN: 13 }
 
@@ -1371,7 +1327,8 @@ frappe.Chat.Layout
 	PAGE: "page", POPPER: "popper"
 }
 frappe.Chat.OPTIONS
-={
+=
+{
 	layout: frappe.Chat.Layout.POPPER
 }
 
@@ -1642,11 +1599,11 @@ class extends Component {
 					onclick: () => this.set_state({ toggle: false })
 				}
 			], Boolean),
-			change: function (query) {
-				me.set_state({
-					query: query
-				})
-			}
+			change: function (query) { me.set_state({ query }) },
+			  span: () => {
+				  const span = state.span ? false : true
+				  me.set_state({ span })
+			  }
 		})
 
 		var   contacts   = [ ]
@@ -1668,6 +1625,8 @@ class extends Component {
 		}
 		const rooms      = state.query ? frappe.chat.room.search(state.query, state.rooms.concat(contacts)) : frappe.chat.room.sort(state.rooms)
 
+		const layout     = state.span  ? frappe.Chat.Layout.PAGE : frappe.Chat.Layout.POPPER
+
 		const RoomList   = frappe._.is_empty(rooms) && !state.query ?
 			h("div", { class: "vcenter" },
 				h("div", { class: "text-center text-extra-muted" },
@@ -1681,39 +1640,36 @@ class extends Component {
 				else
 					frappe.chat.room.create("Direct", room.owner, frappe._.squash(room.users), ({ name }) => this.room.select(name))
 			}})
-		const Room       = h(frappe.Chat.Widget.Room, { ...state.room, layout: props.layout, destroy: () => {
+		const Room       = h(frappe.Chat.Widget.Room, { ...state.room, layout: layout, destroy: () => {
 			this.set_state({
 				room: { name: null, messages: [ ] }
 			})
 		}})
 
-		const component  = props.layout === frappe.Chat.Layout.POPPER ?
+
+		const component  = layout === frappe.Chat.Layout.POPPER ?
 			h(frappe.Chat.Widget.Popper, { heading: ActionBar, page: state.room.name && Room, target: props.target,
 				toggle: (t) => this.set_state({ toggle: t }) },
 				RoomList
 			)
 			:
-			h("div", { class: "row" },
-				h("div", { class: "col-md-2  col-sm-3 layout-side-section" },
-					ActionBar, RoomList
-				),
-				h("div", { class: "col-md-10 col-sm-9 layout-main-section-wrapper" },
-					state.room.name ?
-						Room : (
-							h("div", "",
-								h("div", { class: "text-center text-muted" },
-									h(frappe.components.Octicon, { type: "comment-discussion", style: "font-size: 48px" }),
-									h("p","",__("Select a chat to start messaging."))
-								)
-							)
-						)
+			h("div", { class: "frappe-chat-popper" },
+				h("div", { class: "frappe-chat-popper-collapse" },
+					h("div", { class: "panel panel-default panel-span", style: { width: "30%" } },
+						h("div", { class: "panel-heading" },
+							ActionBar
+						),
+						RoomList
+					),
+					Room
 				)
 			)
 
-		return component ?
+		return (
 			h("div", { class: "frappe-chat" },
 				component
-			) : null
+			)
+		)
 	}
 }
 frappe.Chat.Widget.defaultState =  {
@@ -1721,7 +1677,8 @@ frappe.Chat.Widget.defaultState =  {
 	profile: { },
 	  rooms: [ ],
 	   room: { name: null, messages: [ ], typing: [ ] },
-	 toggle: false
+	 toggle: false,
+	   span: false
 }
 frappe.Chat.Widget.defaultProps = {
 	layout: frappe.Chat.Layout.POPPER
@@ -1850,7 +1807,13 @@ class extends Component {
 					h("input", { autocomplete: "off", class: "form-control input-sm", name: "query", value: state.query, placeholder: props.placeholder || "Search" }),
 				),
 				!frappe._.is_empty(actions) ?
-					actions.map(action => h(frappe.Chat.Widget.ActionBar.Action, { ...action })) : null
+					actions.map(action => h(frappe.Chat.Widget.ActionBar.Action, { ...action })) : null,
+				h(frappe.Chat.Widget.ActionBar.Action, {
+					   icon: "fa fa-fw fa-expand",
+					onclick: () => {
+						props.span()
+					}
+				})
 			)
 		)
 	}
@@ -2064,7 +2027,8 @@ class extends Component {
 						// data_url
 					})
 				}
-			}, {
+			},
+			{
 				 icon: "file",
 				label: "File",
 				on_click: ( ) => {
@@ -2083,12 +2047,13 @@ class extends Component {
 		}
 
 		return (
-			h("div", { class: `panel panel-default panel-bg ${frappe._.is_mobile() ? "panel-span" : ""}` },
+			h("div", { class: `panel panel-default panel-bg ${props.layout === frappe.Chat.Layout.PAGE || frappe._.is_mobile() ? "panel-span" : ""}`,
+				style: props.layout === frappe.Chat.Layout.PAGE && { width: "70%", left: "30%", "box-shadow": "none" } },
 				h(frappe.Chat.Widget.Room.Header, { ...props, on_back: props.destroy }),
 				// !frappe._.is_empty(props.messages) ?
-				h(frappe.chat.component.ChatList, {
-					messages: props.messages
-				}),
+					h(frappe.chat.component.ChatList, {
+						messages: props.messages
+					}),
 					// :
 					// h("div", { class: "panel-body vcenter" },
 					// 	h("div","",
