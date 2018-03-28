@@ -89,7 +89,17 @@ frappe.ui.form.on("Communication", {
 				}, "Actions");
 			}
 		}
+
+		if(frm.doc.communication_type=="Communication" 
+			&& frm.doc.communication_medium == "Phone"
+			&& frm.doc.sent_or_received == "Received"){
+
+			frm.add_custom_button(__("Add Contact"), function() {
+				frm.trigger('add_to_contact');
+			}, "Actions");
+		}
 	},
+
 	show_relink_dialog: function(frm){
 		var lib = "frappe.email";
 		var d = new frappe.ui.Dialog ({
@@ -209,10 +219,18 @@ frappe.ui.form.on("Communication", {
 		var first_name = names[0]
 		var last_name = names.length >= 2? names[names.length - 1]: ""
 
-		frappe.route_options = {
-			"email_id": frm.doc.sender,
-			"first_name": first_name,
-			"last_name": last_name,
+		if(frm.doc.communication_medium=="Email"){
+			frappe.route_options = {
+				"email_id": frm.doc.sender,
+				"first_name": first_name,
+				"last_name": last_name,
+			}
+		}else if(frm.doc.communication_medium=="Phone"){
+			frappe.route_options = {
+				"mobile_no": frm.doc.phone_no,
+				"first_name": first_name,
+				"last_name": last_name,
+			}
 		}
 		frappe.new_doc("Contact")
 	},
