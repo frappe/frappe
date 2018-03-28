@@ -103,6 +103,8 @@ def run_custom_method(doctype, name, custom_method):
 
 @frappe.whitelist()
 def uploadfile():
+	ret = None
+	
 	try:
 		if frappe.form_dict.get('from_form'):
 			try:

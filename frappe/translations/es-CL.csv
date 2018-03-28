@@ -1,37 +1,15 @@
-apps/frappe/frappe/contacts/doctype/address/address.py +58,"Company is mandatory, as it is your company address","Compañía es obligatoria, igual que la dirección de la empresa"
-DocType: Address Template,"<h4>Default Template</h4>
-<p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br&gt;
-{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}
-{{ city }}&lt;br&gt;
-{% if state %}{{ state }}&lt;br&gt;{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}
-{{ country }}&lt;br&gt;
-{% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}
-</code></pre>","<h4> Por defecto la plantilla <!-- h4--> 
- <p> <a href=""http://jinja.pocoo.org/docs/templates/""> Jinja Templating </a> y todos los campos de la Dirección ( incluyendo campos personalizados en su caso) estará disponible <!-- p--> 
- </p><pre> <code> {{address_line1}} &amp; lt; br &amp; gt; 
- {% if address_line2%} {{address_line2}} &amp; lt; br &amp; gt; { endif% -%} 
- {{ciudad}} &amp; lt; br &amp; gt; 
- {% if%} Estado {{Estado}} &amp; lt; br &amp; gt; {% endif -%} {% if 
- código PIN%} PIN: {{código PIN}} &amp; lt; br &amp; gt; {% endif -%} 
- {{país}} &amp; lt; br &amp; gt; 
- {% if teléfono%} Teléfono: {{teléfono}} &amp; lt; br &amp; gt; { % endif -%} 
- {% if fax%} Fax: {{fax}} &amp; lt; br &amp; gt; {% endif -%} 
- {% if email_ID%} Email: {{email_ID}} &amp; lt; br &amp; gt ; {% endif -%} 
- <!-- code--> <!-- pre--></code></pre></h4>"
-apps/frappe/frappe/email/receive.py +197,Can not find UIDVALIDITY in imap status response,No se puede encontrar UIDVALIDITY en la respuesta de estado IMAP
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +491,changed values for {0},Valores modificados para {0}
-DocType: Activity Log,Link DocType,Enlace DocType
-apps/frappe/frappe/desk/doctype/kanban_board/kanban_board.py +20,Column Name cannot be empty,El Nombre de la Columna no puede estar vacía
-,Feedback Ratings,Ratings de Feedback
-apps/frappe/frappe/email/queue.py +252,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,No se puede enviar este correo electrónico. Usted ha cruzado el límite de envío de {0} mensajes de correo electrónico para este mes.
-apps/frappe/frappe/model/db_query.py +534,Cannot use sub-query in order by,No se puede utilizar una sub-consulta en order by
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +229,Permissions can be managed via Setup &gt; Role Permissions Manager,Los permisos se pueden gestionar a través de Configuración &gt; Administrador de permisos
-DocType: LDAP Settings,LDAP First Name Field,Campo de Primer Nombre LDAP
-DocType: Feedback Request,Feedback Rating,Rating de Feedback
-DocType: Dynamic Link,Link Title,Título del Enlace
-DocType: Workflow State,facetime-video,Vídeo FaceTime
-DocType: Payment Gateway,Gateway,Puerta de Entrada
+b'apps/frappe/frappe/contacts/doctype/address/address.py +59',"b'Company is mandatory, as it is your company address'","b'Compa\xc3\xb1\xc3\xada es obligatoria, igual que la direcci\xc3\xb3n de la empresa'"
+b'DocType: Address Template',"b'<h4>Default Template</h4>\n<p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>\n<pre><code>{{ address_line1 }}&lt;br&gt;\n{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}\n{{ city }}&lt;br&gt;\n{% if state %}{{ state }}&lt;br&gt;{% endif -%}\n{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}\n{{ country }}&lt;br&gt;\n{% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}\n{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}\n{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}\n</code></pre>'","b'<h4> Por defecto la plantilla <!-- h4--> \n <p> <a href=""http://jinja.pocoo.org/docs/templates/""> Jinja Templating </a> y todos los campos de la Direcci\xc3\xb3n ( incluyendo campos personalizados en su caso) estar\xc3\xa1 disponible <!-- p--> \n </p><pre> <code> {{address_line1}} &amp; lt; br &amp; gt; \n {% if address_line2%} {{address_line2}} &amp; lt; br &amp; gt; { endif% -%} \n {{ciudad}} &amp; lt; br &amp; gt; \n {% if%} Estado {{Estado}} &amp; lt; br &amp; gt; {% endif -%} {% if \n c\xc3\xb3digo PIN%} PIN: {{c\xc3\xb3digo PIN}} &amp; lt; br &amp; gt; {% endif -%} \n {{pa\xc3\xads}} &amp; lt; br &amp; gt; \n {% if tel\xc3\xa9fono%} Tel\xc3\xa9fono: {{tel\xc3\xa9fono}} &amp; lt; br &amp; gt; { % endif -%} \n {% if fax%} Fax: {{fax}} &amp; lt; br &amp; gt; {% endif -%} \n {% if email_ID%} Email: {{email_ID}} &amp; lt; br &amp; gt ; {% endif -%} \n <!-- code--> <!-- pre--></code></pre></h4>'"
+b'apps/frappe/frappe/email/receive.py +197',b'Can not find UIDVALIDITY in imap status response',b'No se puede encontrar UIDVALIDITY en la respuesta de estado IMAP'
+b'apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +491',b'changed values for {0}',b'Valores modificados para {0}'
+b'DocType: Activity Log',b'Link DocType',b'Enlace DocType'
+b'apps/frappe/frappe/desk/doctype/kanban_board/kanban_board.py +20',b'Column Name cannot be empty',b'El Nombre de la Columna no puede estar vac\xc3\xada'
+,b'Feedback Ratings',b'Ratings de Feedback'
+b'apps/frappe/frappe/email/queue.py +252',b'Cannot send this email. You have crossed the sending limit of {0} emails for this month.',b'No se puede enviar este correo electr\xc3\xb3nico. Usted ha cruzado el l\xc3\xadmite de env\xc3\xado de {0} mensajes de correo electr\xc3\xb3nico para este mes.'
+b'apps/frappe/frappe/model/db_query.py +534',b'Cannot use sub-query in order by',b'No se puede utilizar una sub-consulta en order by'
+b'apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +229',b'Permissions can be managed via Setup &gt; Role Permissions Manager',b'Los permisos se pueden gestionar a trav\xc3\xa9s de Configuraci\xc3\xb3n &gt; Administrador de permisos'
+b'DocType: LDAP Settings',b'LDAP First Name Field',b'Campo de Primer Nombre LDAP'
+b'DocType: Feedback Request',b'Feedback Rating',b'Rating de Feedback'
+b'DocType: Dynamic Link',b'Link Title',b'T\xc3\xadtulo del Enlace'
+b'DocType: Workflow State',b'facetime-video',b'V\xc3\xaddeo FaceTime'
+b'DocType: Payment Gateway',b'Gateway',b'Puerta de Entrada'

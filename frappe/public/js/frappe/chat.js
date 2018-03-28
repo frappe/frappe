@@ -1545,10 +1545,22 @@ class extends Component {
 		})
 
 		var   contacts   = [ ]
-		if ( 'user_info' in frappe.boot )
-			contacts     = Object.keys(frappe.boot.user_info).map(key =>  {
-				return { owner: frappe.session.user, users: [frappe.boot.user_info[key].email] }
-			})
+		if ( 'user_info' in frappe.boot ) {
+			const emails = frappe.user.get_emails()
+			for (const email of emails) {
+				var exists = false
+
+				for (const room of state.rooms) {
+					if ( room.type === 'Direct' ) {
+						if ( room.owner === email || frappe._.squash(room.users) === email )
+							exists = true
+					}
+				}
+
+				if ( !exists )
+					contacts.push({ owner: frappe.session.user, users: [email] })
+			}
+		}
 		const rooms      = state.query ? frappe.chat.room.search(state.query, state.rooms.concat(contacts)) : frappe.chat.room.sort(state.rooms)
 
 		const RoomList   = frappe._.is_empty(rooms) && !state.query ?

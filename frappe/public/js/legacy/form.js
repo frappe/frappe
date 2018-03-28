@@ -202,9 +202,7 @@ _f.Frm.prototype.watch_model_updates = function() {
 				// the texteditor, summernote, changes nulls to empty strings on render,
 				// so ignore those changes
 			} else {
-				if (value != doc[fieldname]) {
-					me.dirty();
-				}
+				me.dirty();
 			}
 			me.fields_dict[fieldname]
 				&& me.fields_dict[fieldname].refresh(fieldname);

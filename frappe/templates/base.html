@@ -34,6 +34,7 @@
 		window.dev_server = {{ dev_server }};
     </script>
 </head>
+{% block body %}
 <body data-path="{{ path }}">
 	<div class="main-section">
 		<div>
@@ -95,4 +96,5 @@
 	<!-- csrf_token -->
     {%- block body_include %}{{ body_include or "" }}{% endblock -%}
 </body>
+{% endblock %}
 </html>
