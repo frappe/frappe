@@ -86,6 +86,22 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
+	show_restricted_list_indicator_if_applicable() {
+		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
+		if(match_rules_list.length) {
+			this.restricted_list = $('<button class="restricted-list form-group">Restricted</button>')
+				.prepend('<span class="octicon octicon-lock"></span>')
+				.click(() => this.show_restrictions(match_rules_list))
+				.appendTo(this.page.page_form);
+		}
+	}
+
+	show_restrictions(match_rules_list) {
+		frappe.msgprint(frappe.render_template('list_view_permission_restrictions', {
+			condition_list: match_rules_list
+		}), 'Restrictions');
+	}
+
 	set_fields() {
 		let fields = [].concat(
 			frappe.model.std_fields_list,
@@ -149,6 +165,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.render_skeleton();
 		this.setup_events();
 		this.settings.onload && this.settings.onload(this);
+		this.show_restricted_list_indicator_if_applicable();
 	}
 
 	setup_freeze_area() {
@@ -156,18 +173,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			$(`<div class="freeze flex justify-center align-center text-muted">${__('Loading')}...</div>`)
 				.hide();
 		this.$result.append(this.$freeze);
-	}
-
-	setup_footnote_area() {
-		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
-
-		if (match_rules_list.length) {
-			this.$footnote_area =
-				frappe.utils.set_footnote(this.$footnote_area, this.$frappe_list,
-					frappe.render_template('list_permission_footer', {
-						condition_list: match_rules_list
-					}));
-		}
 	}
 
 	setup_columns() {
