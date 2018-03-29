@@ -567,7 +567,7 @@ class Database:
 
 			batch.append(tuple([field, value]))
 
-		return batch
+		return tuple(batch)
 
 	def get_singles_dict(self, doctype, debug = False):
 		"""Get Single DocType as dict.
