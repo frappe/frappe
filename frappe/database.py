@@ -544,7 +544,7 @@ class Database:
 				from tabSingles where field in (%s) and doctype=%s""" \
 					% (', '.join(['%s'] * len(fields)), '%s'),
 					tuple(fields) + (doctype,), as_dict=False, debug=debug)
-			r = self._cast_singles_result(doctype, r)
+			r = self._cast_result(doctype, r)
 
 			if as_dict:
 				if r:
@@ -557,7 +557,7 @@ class Database:
 			else:
 				return r and [[i[1] for i in r]] or []
 
-	def _cast_singles_result(self, doctype, result):
+	def _cast_result(doctype, result):
 		batch = [ ]
 
 		for field, value in result:
@@ -584,7 +584,7 @@ class Database:
 			FROM   `tabSingles`
 			WHERE  doctype = %s
 		""", doctype)
-		result = self._cast_singles_result(doctype, result)
+		result = self._cast_result(doctype, result)
 
 		dict_  = frappe._dict(result)
 
