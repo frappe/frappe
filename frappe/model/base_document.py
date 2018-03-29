@@ -758,7 +758,7 @@ class BaseDocument(object):
 
 		return self.cast(val, df)
 
-	def cast(self, val, df):
+	def cast(self, value, df):
 		return cast_fieldtype(df.fieldtype, value)
 
 	def _extract_images_from_text_editor(self):
