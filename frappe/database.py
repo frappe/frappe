@@ -35,6 +35,19 @@ from pymysql.constants 	import ER, FIELD_TYPE
 from pymysql.converters import conversions
 import pymysql
 
+# Helpers
+def _cast_result(doctype, result):
+	batch = [ ]
+
+	for field, value in result:
+		df = frappe.get_meta(doctype).get_field(field)
+		if df:
+			value = cast_fieldtype(df.fieldtype, value)
+
+		batch.append(tuple([field, value]))
+
+	return tuple(batch)
+
 class Database:
 	"""
 	   Open a database connection with the given parmeters, if use_default is True, use the
@@ -544,7 +557,7 @@ class Database:
 				from tabSingles where field in (%s) and doctype=%s""" \
 					% (', '.join(['%s'] * len(fields)), '%s'),
 					tuple(fields) + (doctype,), as_dict=False, debug=debug)
-			r = self._cast_result(doctype, r)
+			r = _cast_result(doctype, r)
 
 			if as_dict:
 				if r:
@@ -556,18 +569,6 @@ class Database:
 					return []
 			else:
 				return r and [[i[1] for i in r]] or []
-
-	def _cast_result(doctype, result):
-		batch = [ ]
-
-		for field, value in result:
-			df = frappe.get_meta(doctype).get_field(field)
-			if df:
-				value = cast_fieldtype(df.fieldtype, value)
-
-			batch.append(tuple([field, value]))
-
-		return tuple(batch)
 
 	def get_singles_dict(self, doctype, debug = False):
 		"""Get Single DocType as dict.
@@ -584,7 +585,7 @@ class Database:
 			FROM   `tabSingles`
 			WHERE  doctype = %s
 		""", doctype)
-		result = self._cast_result(doctype, result)
+		result = _cast_result(doctype, result)
 
 		dict_  = frappe._dict(result)
 
