@@ -39,12 +39,16 @@ import pymysql
 def _cast_result(doctype, result):
 	batch = [ ]
 
-	for field, value in result:
-		df = frappe.get_meta(doctype).get_field(field)
-		if df:
-			value = cast_fieldtype(df.fieldtype, value)
+	try:
+		for field, value in result:
+			try:
+				df = frappe.get_meta(doctype).get_field(field)
+			except:
+				df = frappe.get_meta(doctype, cached = True)
 
-		batch.append(tuple([field, value]))
+			batch.append(tuple([field, value]))
+	except Exception:
+		return result
 
 	return tuple(batch)
 
