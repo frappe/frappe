@@ -211,8 +211,8 @@ io.on('connection', function (socket) {
 });
 
 subscriber.on("message", function (channel, message, room) {
-	message = JSON.parse(message)
-	io.to(message.room).emit(message.event, message.message)
+	message = JSON.parse(message);
+	io.to(message.room).emit(message.event, message.message);
 });
 
 

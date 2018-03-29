@@ -3,6 +3,7 @@
 // http://codeguide.co - @mdo (Author of Bootstrap)
 
 @import "common.less";
+@import "flex.less";
 
 // Typography
 @font-weight-bold:										700;
@@ -10,9 +11,10 @@
 
 @frappe-chat-toggle-height:								40px;
 
-@frappe-fab-box-shadow:                                 0 5px 15px rgba(0, 0, 0, .5);
+@frappe-fab-box-shadow:                                 0 5px 15px rgba(0, 0, 0, .25);
+@frappe-fab-size:                                       48px;
 @frappe-fab-size-lg:                                    56px;
-@frappe-fab-margin:                                     15px;
+@frappe-fab-margin:                                     20px;
 
 @frappe-chat-popper-margin:								@frappe-fab-margin;
 @frappe-chat-popper-panel-width:						350px;
@@ -51,11 +53,13 @@
     border-radius: 50%;
        box-shadow: @frappe-fab-box-shadow;
            margin: @frappe-fab-margin;
+            width: @frappe-fab-size;
+           height: @frappe-fab-size;
     
     &.frappe-fab-lg
     {
-         width: @frappe-fab-size-lg;
-        height: @frappe-fab-size-lg;
+            width: @frappe-fab-size-lg;
+           height: @frappe-fab-size-lg;
     }
 }
 
