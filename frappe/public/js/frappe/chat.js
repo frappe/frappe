@@ -1007,7 +1007,7 @@ frappe.chat.website.settings = (fields, fn) =>
 				if ( message.enable_from )
 					message   = { ...message, enable_from: new frappe.datetime.datetime(message.enable_from, 'HH:mm:ss') }
 				if ( message.enable_to )
-					message   = { ...message, enable_to:   new frappe.datetime.datetime(message.enable_to, 'HH:mm:ss') }
+					message   = { ...message, enable_to:   new frappe.datetime.datetime(message.enable_to,   'HH:mm:ss') }
 
 				if ( fn )
 					fn(message)
@@ -1599,11 +1599,8 @@ class extends Component {
 					onclick: () => this.set_state({ toggle: false })
 				}
 			], Boolean),
-			change: function (query) { me.set_state({ query }) },
-			  span: () => {
-				  const span = state.span ? false : true
-				  me.set_state({ span })
-			  }
+			change: query => { me.set_state({ query }) },
+			  span: span  => { me.set_state({ span  }) },
 		})
 
 		var   contacts   = [ ]
@@ -1645,7 +1642,6 @@ class extends Component {
 				room: { name: null, messages: [ ] }
 			})
 		}})
-
 
 		const component  = layout === frappe.Chat.Layout.POPPER ?
 			h(frappe.Chat.Widget.Popper, { heading: ActionBar, page: state.room.name && Room, target: props.target,
@@ -1790,6 +1786,7 @@ class extends Component {
 	}
 
 	render ( ) {
+		const me               = this
 		const { props, state } = this
 		const { actions }      = props
 
@@ -1801,9 +1798,11 @@ class extends Component {
 				!frappe._.is_empty(actions) ?
 					actions.map(action => h(frappe.Chat.Widget.ActionBar.Action, { ...action })) : null,
 				h(frappe.Chat.Widget.ActionBar.Action, {
-					   icon: "octicon octicon-screen-full",
+					   icon: `octicon octicon-screen-${state.span ? "normal" : "full"}`,
 					onclick: () => {
-						props.span()
+						const span = !state.span
+						me.set_state({ span })
+						props.span(span)
 					}
 				})
 			)
@@ -1813,7 +1812,8 @@ class extends Component {
 frappe.Chat.Widget.ActionBar.defaultState
 =
 {
-	query: null
+	query: null,
+	 span: false
 }
 
 /**
