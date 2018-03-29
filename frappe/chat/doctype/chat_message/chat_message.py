@@ -87,7 +87,7 @@ def sanitize_message_content(content):
 
 	return content
 
-def get_new_chat_message_doc(user, room, content, link = True):
+def get_new_chat_message_doc(user, room, content, type = "Content", link = True):
 	user = get_user_doc(user)
 	room = frappe.get_doc('Chat Room', room)
 
@@ -96,6 +96,7 @@ def get_new_chat_message_doc(user, room, content, link = True):
 	mess.room 	   = room.name
 	mess.room_type = room.type
 	mess.content   = sanitize_message_content(content)
+	mess.type      = type
 	mess.user	   = user.name
 
 	mess.mentions  = json.dumps(meta.mentions)
@@ -110,15 +111,15 @@ def get_new_chat_message_doc(user, room, content, link = True):
 
 	return mess
 
-def get_new_chat_message(user, room, content):
-	mess = get_new_chat_message_doc(user, room, content)
+def get_new_chat_message(user, room, content, type = "Content"):
+	mess = get_new_chat_message_doc(user, room, content, type)
 
 	resp = dict(
 		name      = mess.name,
 		user      = mess.user,
 		room      = mess.room,
 		room_type = mess.room_type,
-		content   = mess.content,
+		content   = json.loads(mess.content) if mess.type in ["File"] else mess.content,
 		urls      = mess.urls,
 		mentions  = json.loads(mess.mentions),
 		creation  = mess.creation,
@@ -128,8 +129,8 @@ def get_new_chat_message(user, room, content):
 	return resp
 
 @frappe.whitelist(allow_guest = True)
-def send(user, room, content):
-	mess = get_new_chat_message(user, room, content)
+def send(user, room, content, type = "Content"):
+	mess = get_new_chat_message(user, room, content, type)
 	
 	frappe.publish_realtime('frappe.chat.message:create', mess, room = room,
 		after_commit = True)
@@ -154,7 +155,7 @@ def history(room, fields = None, limit = 10, start = None, end = None):
 			('Chat Message', 'room_type', '=', room.type)
 		],
 		fields   = fields if fields else [
-			'name', 'room_type', 'room', 'content', 'user', 'mentions', 'urls', 'creation', '_seen'
+			'name', 'room_type', 'room', 'content', 'type', 'user', 'mentions', 'urls', 'creation', '_seen'
 		],
 		order_by = 'creation'
 	)
@@ -163,6 +164,9 @@ def history(room, fields = None, limit = 10, start = None, end = None):
 		for m in mess:
 			m['seen'] = json.loads(m._seen) if m._seen else [ ]
 			del m['_seen']
+	if not fields or 'content' in fields:
+		for m in mess:
+			m['content'] = json.loads(m.content) if m.type in ["File"] else m.content
 
 	return mess
 
@@ -176,7 +180,8 @@ def get(name, rooms = None, fields = None):
 		user      = dmess.user,
 		room      = dmess.room,
 		room_type = dmess.room_type,
-		content   = dmess.content,
+		content   = json.loads(dmess.content) if dmess.type in ["File"] else dmess.content,
+		type      = dmess.type,
 		urls      = dmess.urls,
 		mentions  = dmess.mentions,
 		creation  = dmess.creation,

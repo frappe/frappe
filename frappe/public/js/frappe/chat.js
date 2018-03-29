@@ -730,7 +730,10 @@ frappe.chat.room.get = function (names, fields, fn) {
 						rooms = frappe._.as_array(rooms)
 						rooms = rooms.map(room => {
 							return { ...room, creation: new frappe.datetime.datetime(room.creation),
-								last_message: room.last_message ? { ...room.last_message, creation: new frappe.datetime.datetime(room.last_message.creation) } : null
+								last_message: room.last_message ? {
+									...room.last_message,
+									creation: new frappe.datetime.datetime(room.last_message.creation)
+								} : null
 							}
 						})
 						rooms = frappe._.squash(rooms)
@@ -777,7 +780,11 @@ frappe.chat.room.history = function (name, fn) {
 			{ room: name, user: frappe.session.user },
 				r => {
 					let messages = r.message ? frappe._.as_array(r.message) : [ ] // frappe.api BOGZ! (emtpy arrays are falsified, not good design).
-					messages     = messages.map(m => { return { ...m, creation: new frappe.datetime.datetime(m.creation) } })
+					messages     = messages.map(m => {
+						return { ...m,
+							creation: new frappe.datetime.datetime(m.creation)
+						}
+					})
 
 					if ( fn )
 						fn(messages)
@@ -859,7 +866,9 @@ frappe.chat.room.on.update = function (fn) {
  * @param {function} fn - callback with the created Chat Room.
  */
 frappe.chat.room.on.create = function (fn) {
-	frappe.realtime.on("frappe.chat.room:create", r => fn({ ...r, creation: new frappe.datetime.datetime(r.creation) }))
+	frappe.realtime.on("frappe.chat.room:create", r => 
+		fn({ ...r, creation: new frappe.datetime.datetime(r.creation) })
+	)
 }
 
 /**
@@ -878,9 +887,9 @@ frappe.chat.message.typing = function (room, user) {
 	frappe.realtime.publish("frappe.chat.message:typing", { user: user || frappe.session.user, room: room })
 }
 
-frappe.chat.message.send   = function (room, message) {
+frappe.chat.message.send   = function (room, message, type = "Content") {
 	frappe.call("frappe.chat.doctype.chat_message.chat_message.send",
-		{ user: frappe.session.user, room: room, content: message })
+		{ user: frappe.session.user, room: room, content: message, type: type })
 }
 
 frappe.chat.message.update = function (message, update, fn) {
@@ -913,9 +922,10 @@ frappe.chat.message.seen   = (mess, user) => {
 
 frappe.provide('frappe.chat.message.on')
 frappe.chat.message.on.create = function (fn) {
-	frappe.realtime.on("frappe.chat.message:create", r => fn({ ...r, creation: new frappe.datetime.datetime(r.creation) }))
+	frappe.realtime.on("frappe.chat.message:create", r =>
+		fn({ ...r, creation: new frappe.datetime.datetime(r.creation) })
+	)
 }
-
 
 frappe.chat.message.on.update = function (fn) {
 	frappe.realtime.on("frappe.chat.message:update", r => fn(r.message, r.data))
@@ -1874,8 +1884,16 @@ class extends Component {
 				const names   = props.typing.map(user => frappe.user.first_name(user))
 				item.subtitle = `${names.join(", ")} typing...`
 			} else
-			if ( props.last_message )
-				item.subtitle = props.last_message.content
+			if ( props.last_message ) {
+				const message = props.last_message
+				const content = message.content
+
+				if ( message.type === "File" ) {
+					item.subtitle = `📁 ${content.name}`
+				} else {
+					item.subtitle = props.last_message.content
+				}
+			}
 		} else {
 			const user     = props.owner === frappe.session.user ? frappe._.squash(props.users) : props.owner
 
@@ -1886,8 +1904,17 @@ class extends Component {
 			if ( !frappe._.is_empty(props.typing) )
 				item.subtitle = 'typing...'
 			else
-			if ( props.last_message )
-				item.subtitle = props.last_message.content
+			if ( props.last_message ) {
+				const message = props.last_message
+				console.log(message)
+				const content = message.content
+
+				if ( message.type === "File" ) {
+					item.subtitle = `📁 ${content.name}`
+				} else {
+					item.subtitle = props.last_message.content
+				}
+			}
 		}
 
 		if ( props.last_message )
@@ -2027,7 +2054,13 @@ class extends Component {
 				 icon: "file",
 				label: "File",
 				onclick: ( ) => {
-
+					const dialog = frappe.upload.make({
+							args: { doctype: "Chat Room", docname: props.name },
+						callback: (a, b, args) => {
+							const { file_url, filename } = args
+							frappe.chat.message.send(props.name, { path: file_url, name: filename }, "File")
+						}
+					})
 				}
 			}
 		])
@@ -2209,13 +2242,14 @@ class extends Component {
 		const { props } = this
 
 		const me        = props.user === frappe.session.user
-
+		const content   = props.content
+		
 		return (
 			h("div",{class: "chat-list-item list-group-item"},
 				props.type === "Notification" ?
 					h("div",{class:"chat-list-notification"},
 						h("div",{class:"chat-list-notification-content"},
-							props.content
+							content
 						)
 					)
 					:
@@ -2266,7 +2300,14 @@ class extends Component {
 						)
 					) : null,
 				h("div",{class:"chat-bubble-content"},
-					h("small","",content)
+						h("small","",
+							props.type === "File" ?
+								h("a", { class: "no-decoration", href: content.path, target: "_blank" },
+									h(frappe.components.FontAwesome, { type: "file", fixed: true }), ` ${content.name}`
+								)
+								:
+								content
+						)
 				),
 				h("div",{class:"chat-bubble-meta"},
 					h("span",{class:"chat-bubble-creation"},creation),
