@@ -721,7 +721,6 @@ frappe.chat.room.get = function (names, fields, fn) {
 	}
 
 	return new Promise(resolve => {
-
 		frappe.call("frappe.chat.doctype.chat_room.chat_room.get",
 			{ user: frappe.session.user, rooms: names, fields: fields },
 				response => {
@@ -1394,10 +1393,12 @@ class extends Component {
 				return r
 			})
 
-			if ( !exists )
-				frappe.chat.room.get(room, (room) => this.room.add(room))
-			else
-				this.set_state({ rooms })
+			if ( frappe.session.user !== 'Guest' ) {
+				if ( !exists )
+					frappe.chat.room.get(room, (room) => this.room.add(room))
+				else
+					this.set_state({ rooms })
+			}
 
 			if ( state.room.name === room ) {
 				if ( update.typing ) {
@@ -1906,7 +1907,6 @@ class extends Component {
 			else
 			if ( props.last_message ) {
 				const message = props.last_message
-				console.log(message)
 				const content = message.content
 
 				if ( message.type === "File" ) {
@@ -2065,13 +2065,15 @@ class extends Component {
 			}
 		])
 
-		if (props.messages) {
-			props.messages = frappe._.as_array(props.messages)
-			for (const message of props.messages)
-				if ( !message.seen.includes(frappe.session.user) )
-					frappe.chat.message.seen(message.name)
-				else
-					break
+		if ( frappe.session.user !== 'Guest' ) {
+			if (props.messages) {
+				props.messages = frappe._.as_array(props.messages)
+				for (const message of props.messages)
+					if ( !message.seen.includes(frappe.session.user) )
+						frappe.chat.message.seen(message.name)
+					else
+						break
+			}
 		}
 
 		return (
