@@ -408,13 +408,13 @@ class DatabaseQuery(object):
 				self.conditions.append(self.get_share_condition())
 
 		else:
-			# get user permissions
-			user_permissions = frappe.permissions.get_user_permissions(self.user)
-			self.add_user_permissions(user_permissions)
-
-			if role_permissions.get("if_owner", {}).get("read"):
+			if role_permissions.get("if_owner", {}).get("read"): #if has if_owner permission skip user perm check
 				self.match_conditions.append("`tab{0}`.owner = '{1}'".format(self.doctype,
 					frappe.db.escape(self.user, percent=False)))
+			elif role_permissions.get("read"): # add user permission only if role has read perm
+				# get user permissions
+				user_permissions = frappe.permissions.get_user_permissions(self.user)
+				self.add_user_permissions(user_permissions)
 
 		if as_condition:
 			conditions = ""

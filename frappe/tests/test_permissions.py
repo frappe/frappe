@@ -360,5 +360,20 @@ class TestPermissions(unittest.TestCase):
 		add_user_permission('Blogger', '_Test Blogger 1', 'test1@example.com')
 
 		# test1@example.com has rights to create user permissions
-		# so it should not matter if explict user permissions are not set
+		# so it should not matter if explicit user permissions are not set
 		self.assertTrue(frappe.get_doc('Blogger', '_Test Blogger').has_permission('read'))
+
+	def test_user_permission_is_not_applied_if_user_roles_does_not_have_permission(self):
+		add_user_permission('Blog Post', '-test-blog-post-1', 'test3@example.com')
+		frappe.set_user("test3@example.com")
+		doc = frappe.get_doc("Blog Post", "-test-blog-post-1")
+		self.assertFalse(doc.has_permission("read"))
+
+		frappe.set_user("Administrator")
+		user = frappe.get_doc("User", "test3@example.com")
+		user.add_roles("Blogger")
+		frappe.set_user("test3@example.com")
+		self.assertTrue(doc.has_permission("read"))
+
+		frappe.set_user("Administrator")
+		user.remove_roles("Blogger")
