@@ -7,7 +7,7 @@ import datetime
 import frappe, sys
 from frappe import _
 from frappe.utils import (cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta,
-	sanitize_html, sanitize_email)
+	sanitize_html, sanitize_email, cast_fieldtype)
 from frappe.model import default_fields
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
@@ -759,26 +759,7 @@ class BaseDocument(object):
 		return self.cast(val, df)
 
 	def cast(self, val, df):
-		if df.fieldtype in ("Currency", "Float", "Percent"):
-			val = flt(val)
-
-		elif df.fieldtype in ("Int", "Check"):
-			val = cint(val)
-
-		elif df.fieldtype in ("Data", "Text", "Small Text", "Long Text",
-			"Text Editor", "Select", "Link", "Dynamic Link"):
-				val = cstr(val)
-
-		elif df.fieldtype == "Date":
-			val = getdate(val)
-
-		elif df.fieldtype == "Datetime":
-			val = get_datetime(val)
-
-		elif df.fieldtype == "Time":
-			val = to_timedelta(val)
-
-		return val
+		return cast_fieldtype(df.fieldtype, value)
 
 	def _extract_images_from_text_editor(self):
 		from frappe.utils.file_manager import extract_images_from_doc

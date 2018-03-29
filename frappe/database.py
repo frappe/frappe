@@ -12,7 +12,7 @@ import frappe.defaults
 import frappe.async
 import re
 import frappe.model.meta
-from frappe.utils import now, get_datetime, cstr
+from frappe.utils import now, get_datetime, cstr, cast_fieldtype
 from frappe import _
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.utils.background_jobs import execute_job, get_queue
@@ -544,6 +544,7 @@ class Database:
 				from tabSingles where field in (%s) and doctype=%s""" \
 					% (', '.join(['%s'] * len(fields)), '%s'),
 					tuple(fields) + (doctype,), as_dict=False, debug=debug)
+			r = self._cast_singles_result(doctype, result)
 
 			if as_dict:
 				if r:
@@ -556,7 +557,26 @@ class Database:
 			else:
 				return r and [[i[1] for i in r]] or []
 
-	def get_singles_dict(self, doctype):
+	def _cast_singles_result(self, doctype, result):
+		batch = [ ]
+
+		for field, value in result:
+			docfields = self.sql("""
+				SELECT fieldname, fieldtype
+				FROM   `tabDocField`
+				WHERE  parent    = %s
+				AND    fieldname = %s
+			""", (doctype, field))
+
+			if docfields:
+				field, type_ = docfields[0]
+				value = cast_fieldtype(type_, value)
+
+			batch.append(tuple([field, value]))
+
+		return batch
+
+	def get_singles_dict(self, doctype, debug = False):
 		"""Get Single DocType as dict.
 
 		:param doctype: DocType of the single object whose value is requested
@@ -566,9 +586,16 @@ class Database:
 			# Get coulmn and value of the single doctype Accounts Settings
 			account_settings = frappe.db.get_singles_dict("Accounts Settings")
 		"""
+		result = self.sql("""
+			SELECT field, value
+			FROM   `tabSingles`
+			WHERE  doctype = %s
+		""", doctype)
+		result = self._cast_singles_result(doctype, result)
 
-		return frappe._dict(self.sql("""select field, value from
-			tabSingles where doctype=%s""", doctype))
+		dict_  = frappe._dict(result)
+
+		return dict_
 
 	def get_all(self, *args, **kwargs):
 		return frappe.get_all(*args, **kwargs)
