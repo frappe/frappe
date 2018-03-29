@@ -1789,14 +1789,6 @@ class extends Component {
 		props.submit(state.query)
 	}
 
-	on_mounted ( )
-	{
-		$(document).ready(function (e)
-		{
-			// if ( e.keyCode === frappe.ui.keycode.CTRL )
-		})
-	}
-
 	render ( ) {
 		const { props, state } = this
 		const { actions }      = props
@@ -1809,7 +1801,7 @@ class extends Component {
 				!frappe._.is_empty(actions) ?
 					actions.map(action => h(frappe.Chat.Widget.ActionBar.Action, { ...action })) : null,
 				h(frappe.Chat.Widget.ActionBar.Action, {
-					   icon: "fa fa-fw fa-expand",
+					   icon: "octicon octicon-screen-full",
 					onclick: () => {
 						props.span()
 					}
