@@ -1651,7 +1651,7 @@ class extends Component {
 			:
 			h("div", { class: "frappe-chat-popper" },
 				h("div", { class: "frappe-chat-popper-collapse" },
-					h("div", { class: "panel panel-default panel-span", style: { width: "30%" } },
+					h("div", { class: "panel panel-default panel-span", style: { width: "25%" } },
 						h("div", { class: "panel-heading" },
 							ActionBar
 						),
@@ -2008,7 +2008,7 @@ class extends Component {
 			!frappe._.is_mobile() && {
 				 icon: "camera",
 				label: "Camera",
-				on_click: ( ) => {
+				onclick: ( ) => {
 					const capture = new frappe.ui.Capture({
 						animate: false,
 						  error: true
@@ -2023,7 +2023,7 @@ class extends Component {
 			{
 				 icon: "file",
 				label: "File",
-				on_click: ( ) => {
+				onclick: ( ) => {
 
 				}
 			}
@@ -2040,7 +2040,7 @@ class extends Component {
 
 		return (
 			h("div", { class: `panel panel-default panel-bg ${props.layout === frappe.Chat.Layout.PAGE || frappe._.is_mobile() ? "panel-span" : ""}`,
-				style: props.layout === frappe.Chat.Layout.PAGE && { width: "70%", left: "30%", "box-shadow": "none" } },
+				style: props.layout === frappe.Chat.Layout.PAGE && { width: "75%", left: "25%", "box-shadow": "none" } },
 				h(frappe.Chat.Widget.Room.Header, { ...props, on_back: props.destroy }),
 				// !frappe._.is_empty(props.messages) ?
 					h(frappe.chat.component.ChatList, {
@@ -2366,7 +2366,7 @@ class extends Component {
 									!frappe._.is_empty(props.actions) && props.actions.map((action) => {
 										return (
 											h("li", null,
-												h("a",{onclick:action.on_click},
+												h("a",{onclick:action.onclick},
 													h(frappe.components.FontAwesome,{type:action.icon,fixed:true}), ` ${action.label}`,
 												)
 											)
