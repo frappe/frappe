@@ -561,16 +561,9 @@ class Database:
 		batch = [ ]
 
 		for field, value in result:
-			docfields = self.sql("""
-				SELECT fieldname, fieldtype
-				FROM   `tabDocField`
-				WHERE  parent    = %s
-				AND    fieldname = %s
-			""", (doctype, field))
-
-			if docfields:
-				field, type_ = docfields[0]
-				value = cast_fieldtype(type_, value)
+			df = frappe.get_meta(doctype).get_field(field)
+			if df:
+				value = cast_fieldtype(df.fieldtype, value)
 
 			batch.append(tuple([field, value]))
 
