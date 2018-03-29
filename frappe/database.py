@@ -46,7 +46,7 @@ def _cast_result(doctype, result):
 				value = cast_fieldtype(df.fieldtype, value)
 
 			batch.append(tuple([field, value]))
-	except Exception:
+	except frappe.exceptions.DoesNotExistError:
 		return result
 
 	return tuple(batch)
