@@ -558,7 +558,7 @@ def parse_json(val):
 	return val
 
 def cast_fieldtype(fieldtype, value):
-	if 	 fieldtype in ("Currency", "Float", "Percent"):
+	if fieldtype in ("Currency", "Float", "Percent"):
 		value = flt(value)
 
 	elif fieldtype in ("Int", "Check"):
