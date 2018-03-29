@@ -544,7 +544,7 @@ class Database:
 				from tabSingles where field in (%s) and doctype=%s""" \
 					% (', '.join(['%s'] * len(fields)), '%s'),
 					tuple(fields) + (doctype,), as_dict=False, debug=debug)
-			r = self._cast_singles_result(doctype, result)
+			r = self._cast_singles_result(doctype, r)
 
 			if as_dict:
 				if r:
