@@ -51,7 +51,7 @@ function build_assets(app) {
 function build(inputOptions, outputOptions) {
 	return rollup.rollup(inputOptions)
 		.then(bundle => bundle.write(outputOptions))
-		.catch(err => console.log(chalk.red(err)));
+		.catch(err => log(chalk.red(err)));
 }
 
 function build_libs() {
