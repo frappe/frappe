@@ -41,10 +41,9 @@ def _cast_result(doctype, result):
 
 	try:
 		for field, value in result:
-			try:
-				df = frappe.get_meta(doctype).get_field(field)
-			except:
-				df = frappe.get_meta(doctype, cached = True)
+			df = frappe.get_meta(doctype).get_field(field)
+			if df:
+				value = cast_fieldtype(df.fieldtype, value)
 
 			batch.append(tuple([field, value]))
 	except Exception:
