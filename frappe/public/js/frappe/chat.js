@@ -2065,10 +2065,10 @@ class extends Component {
 					// ),
 				h("div", { class: "chat-room-footer" },
 					h(frappe.chat.component.ChatForm, { actions: actions,
-						on_change: () => {
+						onchange: () => {
 							frappe.chat.message.typing(props.name)
 						},
-						on_submit: (message) => {
+						onsubmit: (message) => {
 							frappe.chat.message.send(props.name, message)
 						},
 						  hint: hints
@@ -2279,15 +2279,15 @@ class extends Component {
 	constructor (props) {
 		super (props)
 
-		this.on_change   = this.on_change.bind(this)
-		this.on_submit   = this.on_submit.bind(this)
+		this.onchange   = this.onchange.bind(this)
+		this.onsubmit   = this.onsubmit.bind(this)
 
 		this.hint        = this.hint.bind(this)
 
 		this.state       = frappe.chat.component.ChatForm.defaultState
 	}
 
-	on_change (e) {
+	onchange (e) {
 		const { props, state } = this
 		const value            = e.target.value
 
@@ -2295,7 +2295,7 @@ class extends Component {
 			[e.target.name]: value
 		})
 
-		props.on_change(state)
+		props.onchange(state)
 
 		this.hint(value)
 	}
@@ -2334,11 +2334,11 @@ class extends Component {
 		}
 	}
 
-	on_submit (e) {
+	onsubmit (e) {
 		e.preventDefault()
 
 		if ( this.state.content ) {
-			this.props.on_submit(this.state.content)
+			this.props.onsubmit(this.state.content)
 
 			this.set_state({ content: null })
 		}
@@ -2363,7 +2363,7 @@ class extends Component {
 							)
 						})
 					) : null,
-				h("form", { oninput: this.on_change, onsubmit: this.on_submit },
+				h("form", { oninput: this.onchange, onsubmit: this.onsubmit },
 					h("div",{class:"input-group input-group-lg"},
 						!frappe._.is_empty(props.actions) ?
 							h("div",{class:"input-group-btn dropup"},
@@ -2390,11 +2390,11 @@ class extends Component {
 								autofocus: true,
 							   onkeypress: (e) => {
 									if ( e.which === frappe.ui.keycode.RETURN && !e.shiftKey )
-										this.on_submit(e)
+										this.onsubmit(e)
 							   }
 						}),
 						h("div",{class:"input-group-btn"},
-							h(frappe.components.Button, { onclick: this.on_submit },
+							h(frappe.components.Button, { onclick: this.onsubmit },
 								h(frappe.components.FontAwesome, { class: !frappe._.is_empty(state.content) ? "text-primary" : "text-muted", type: "send", fixed: true })
 							),
 						)
@@ -2410,7 +2410,6 @@ frappe.chat.component.ChatForm.defaultState
 	content: null,
 	  hints: [ ],
 }
-
 
 /**
  * @description EmojiPicker Component
@@ -2455,8 +2454,7 @@ class extends Component {
  * @description Python equivalent to sys.platform
  */
 frappe.provide('frappe._')
-frappe._.platform   = () =>
-{
+frappe._.platform   = () => {
 	const string    = navigator.appVersion
 
 	if ( string.includes("Win") ) 	return "Windows"
@@ -2471,8 +2469,7 @@ frappe._.platform   = () =>
  * @description Frappe's Asset Helper
  */
 frappe.provide('frappe.assets')
-frappe.assets.image = (image, app = 'frappe') =>
-{
+frappe.assets.image = (image, app = 'frappe') => {
 	const  path     = `/assets/${app}/images/${image}`
 	return path
 }
@@ -2484,12 +2481,10 @@ frappe.provide('frappe.boot')
 frappe.provide('frappe.browser')
 frappe.browser.Notification = 'Notification' in window
 
-frappe.notify     = (string, options) =>
-{
+frappe.notify     = (string, options) => {
 	frappe.log    = frappe.Logger.get('frappe.notify')
 
-	const OPTIONS =
-	{
+	const OPTIONS = {
 		icon: frappe.assets.image('favicon.png', 'frappe'),
 		lang: frappe.boot.lang || "en"
 	}
@@ -2498,10 +2493,8 @@ frappe.notify     = (string, options) =>
 	if ( !frappe.browser.Notification )
 		frappe.log.error('ERROR: This browser does not support desktop notifications.')
 
-	Notification.requestPermission(status =>
-	{
-		if ( status === "granted" )
-		{
+	Notification.requestPermission(status => {
+		if ( status === "granted" ) {
 			const notification = new Notification(string, options)
 		}
 	})
@@ -2604,6 +2597,7 @@ frappe.chat.setup  = () => {
 	
 		frappe.chat.profile.create('enable_chat').then(({ enable_chat }) => {
 			frappe.log.info(`Chat Profile created for User ${frappe.session.user}.`)
+			
 			if ( 'desk' in frappe ) {
 				const should_render = frappe.sys_defaults.enable_chat && enable_chat
 				frappe.chat.render(should_render)
@@ -2622,8 +2616,7 @@ frappe.chat.setup  = () => {
 	} else {
 		// Website Settings
 		frappe.log.info('Retrieving Chat Website Settings.')
-		frappe.chat.website.settings(["socketio", "enable", "enable_from",
-			"enable_to"])
+		frappe.chat.website.settings(["socketio", "enable", "enable_from", "enable_to"])
 			.then(settings => {
 				frappe.log.info(`Chat Website Setting - ${JSON.stringify(settings)}`)
 				frappe.log.info(`Chat Website Setting - ${settings.enable ? "Enable" : "Disable"}`)
