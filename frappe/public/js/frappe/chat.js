@@ -1797,14 +1797,17 @@ class extends Component {
 				),
 				!frappe._.is_empty(actions) ?
 					actions.map(action => h(frappe.Chat.Widget.ActionBar.Action, { ...action })) : null,
-				h(frappe.Chat.Widget.ActionBar.Action, {
-					   icon: `octicon octicon-screen-${state.span ? "normal" : "full"}`,
-					onclick: () => {
-						const span = !state.span
-						me.set_state({ span })
-						props.span(span)
-					}
-				})
+				!frappe._.is_mobile() ?
+					h(frappe.Chat.Widget.ActionBar.Action, {
+						icon: `octicon octicon-screen-${state.span ? "normal" : "full"}`,
+						onclick: () => {
+							const span = !state.span
+							me.set_state({ span })
+							props.span(span)
+						}
+					})
+					:
+					null
 			)
 		)
 	}
@@ -2039,33 +2042,48 @@ class extends Component {
 		}
 
 		return (
-			h("div", { class: `panel panel-default panel-bg ${props.layout === frappe.Chat.Layout.PAGE || frappe._.is_mobile() ? "panel-span" : ""}`,
+			h("div", { class: `panel panel-default 
+				${props.name ? "panel-bg" : ""}
+				${props.layout === frappe.Chat.Layout.PAGE || frappe._.is_mobile() ? "panel-span" : ""}`,
 				style: props.layout === frappe.Chat.Layout.PAGE && { width: "75%", left: "25%", "box-shadow": "none" } },
-				h(frappe.Chat.Widget.Room.Header, { ...props, on_back: props.destroy }),
-				// !frappe._.is_empty(props.messages) ?
-					h(frappe.chat.component.ChatList, {
-						messages: props.messages
-					}),
-					// :
-					// h("div", { class: "panel-body vcenter" },
-					// 	h("div","",
-					// 		h("div", { class: "text-center text-extra-muted" },
-					// 			h(frappe.components.Octicon, { type: "comment-discussion", style: "font-size: 48px" }),
-					// 			h("p","",__("Start a conversation."))
-					// 		)
-					// 	)
-					// ),
-				h("div", { class: "chat-room-footer" },
-					h(frappe.chat.component.ChatForm, { actions: actions,
-						onchange: () => {
-							frappe.chat.message.typing(props.name)
-						},
-						onsubmit: (message) => {
-							frappe.chat.message.send(props.name, message)
-						},
-						  hint: hints
-					})
-				)
+				props.name && h(frappe.Chat.Widget.Room.Header, { ...props, on_back: props.destroy }),
+				props.name ?
+					!frappe._.is_empty(props.messages) ?
+						h(frappe.chat.component.ChatList, {
+							messages: props.messages
+						})
+						:
+						h("div", { class: "panel-body", style: { "height": "100%" } },
+							h("div", { class: "vcenter" },
+								h("div", { class: "text-center text-extra-muted" },
+									h(frappe.components.Octicon, { type: "comment-discussion", style: "font-size: 48px" }),
+									h("p","",__("Start a conversation."))
+								)
+							)
+						)
+					:
+					h("div", { class: "panel-body", style: { "height": "100%" } },
+						h("div", { class: "vcenter" },
+							h("div", { class: "text-center text-extra-muted" },
+								h(frappe.components.Octicon, { type: "comment-discussion", style: "font-size: 48px" }),
+								h("p","",__("Select a Chat to start messaging."))
+							)
+						)
+					),
+				props.name ?
+					h("div", { class: "chat-room-footer" },
+						h(frappe.chat.component.ChatForm, { actions: actions,
+							onchange: () => {
+								frappe.chat.message.typing(props.name)
+							},
+							onsubmit: (message) => {
+								frappe.chat.message.send(props.name, message)
+							},
+							hint: hints
+						})
+					)
+					:
+					null
 			)
 		)
 	}
