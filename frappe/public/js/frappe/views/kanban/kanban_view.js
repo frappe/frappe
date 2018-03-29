@@ -28,6 +28,23 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		this.board_name = frappe.get_route()[3];
 		this.page_title = this.board_name;
 		this.card_meta = this.get_card_meta();
+
+		return this.get_board()
+			.then(() => {
+				this.filters = this.board.filters_array;
+			});
+	}
+
+	get_board() {
+		return frappe.db.get_doc('Kanban Board', this.board_name)
+			.then(board => {
+				this.board = board;
+				this.board.filters_array = JSON.parse(this.board.filters || '[]');
+			});
+	}
+
+	setup_view() {
+
 	}
 
 	set_fields() {
@@ -35,10 +52,22 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		this._add_field(this.card_meta.title_field);
 	}
 
-	show() {
-		super.show();
+	before_render() {
 		this.save_view_user_settings({
 			last_kanban_board: this.board_name
+		});
+
+		frappe.call({
+			method: 'frappe.desk.doctype.kanban_board.kanban_board.save_filters',
+			args: {
+				board_name: this.board_name,
+				filters: this.filter_area.get()
+			}
+		}).then(function() {
+			frappe.show_alert({
+				message: __('Filters saved'),
+				indicator: 'green'
+			}, 0.5);
 		});
 	}
 
@@ -46,12 +75,12 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		const board_name = this.board_name;
 		if(this.kanban && board_name === this.kanban.board_name) {
 			this.kanban.update(this.data);
-			this.kanban.$kanban_board.trigger('after-refresh');
 			return;
 		}
 
 		this.kanban = new frappe.views.KanbanBoard({
 			doctype: this.doctype,
+			board: this.board,
 			board_name: board_name,
 			cards: this.data,
 			card_meta: this.card_meta,
@@ -59,7 +88,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			cur_list: this,
 			user_settings: this.view_user_settings
 		});
-		this.kanban.$kanban_board.trigger('after-refresh');
 	}
 
 	get_card_meta() {
