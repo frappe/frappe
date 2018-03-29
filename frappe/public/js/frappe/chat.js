@@ -2593,8 +2593,7 @@ frappe.chat.render = (render = true, force = false) =>
 	}
 }
 
-frappe.chat.setup  = () =>
-{
+frappe.chat.setup  = () => {
 	frappe.log = frappe.Logger.get('frappe.chat')
 	frappe.log.info('Setting up frappe.chat')
 	frappe.log.warn('TODO: frappe.chat.<object> requires a storage.')
