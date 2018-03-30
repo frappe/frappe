@@ -2895,6 +2895,7 @@ function scale(val, yAxis) {
 function calcDistribution(values, distributionSize) {
 	// Assume non-negative values,
 	// implying distribution minimum at zero
+	if(!values.length) values = [0];
 
 	var dataMaxValue = Math.max.apply(Math, toConsumableArray(values));
 
