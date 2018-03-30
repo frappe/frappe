@@ -14,6 +14,7 @@ from six.moves.urllib.parse import urlparse, parse_qs
 from frappe.integrations.utils import make_post_request
 from frappe.utils import (cint, split_emails, get_request_site_address, cstr,
 	get_files_path, get_backups_path, get_url, encode)
+from six import text_type
 
 ignore_list = [".DS_Store"]
 
@@ -123,6 +124,7 @@ def upload_from_folder(path, dropbox_folder, dropbox_client, did_not_upload, err
 		else:
 			raise
 
+	path = text_type(path)
 	for root, directory, files in os.walk(path):
 		for filename in files:
 			filename = cstr(filename)
