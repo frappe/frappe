@@ -2584,57 +2584,59 @@ frappe.chat.render = (render = true, force = false) =>
 	}
 	
 	// Avoid re-renders. Once is enough.
-	if ( !frappe.chatter || force ) {
-		frappe.chatter = new frappe.Chat({
-			target: desk ? '.navbar .frappe-chat-toggle' : null
-		})
-
-		if ( !desk ) {
-			frappe.store = frappe.Store.get('frappe.chat')
-			var token	 = frappe.store.get('guest_token')
-
-			frappe.log.info(`Local Guest Token - ${token}`)
-
-			const setup_room = (token) =>
-			{
-				return new Promise(resolve => {
-					frappe.chat.room.create("Visitor", token).then(room => {
-						frappe.log.info(`Visitor Room Created: ${room.name}`)
-						frappe.chat.room.subscribe(room.name)
-		
-						var reference = room
-		
-						frappe.chat.room.history(room.name).then(messages => {
-							const  room = { ...reference, messages: messages }
-							return room
-						}).then(room => {
-							resolve(room)
+	if ( render ) {
+		if ( !frappe.chatter || force ) {
+			frappe.chatter = new frappe.Chat({
+				target: desk ? '.navbar .frappe-chat-toggle' : null
+			})
+	
+			if ( !desk ) {
+				frappe.store = frappe.Store.get('frappe.chat')
+				var token	 = frappe.store.get('guest_token')
+	
+				frappe.log.info(`Local Guest Token - ${token}`)
+	
+				const setup_room = (token) =>
+				{
+					return new Promise(resolve => {
+						frappe.chat.room.create("Visitor", token).then(room => {
+							frappe.log.info(`Visitor Room Created: ${room.name}`)
+							frappe.chat.room.subscribe(room.name)
+			
+							var reference = room
+			
+							frappe.chat.room.history(room.name).then(messages => {
+								const  room = { ...reference, messages: messages }
+								return room
+							}).then(room => {
+								resolve(room)
+							})
 						})
 					})
-				})
-			}
-
-			if ( !token ) {
-				frappe.chat.website.token().then(token => {
-					frappe.log.info(`Generated Guest Token - ${token}`)
-					frappe.store.set('guest_token', token)
-
+				}
+	
+				if ( !token ) {
+					frappe.chat.website.token().then(token => {
+						frappe.log.info(`Generated Guest Token - ${token}`)
+						frappe.store.set('guest_token', token)
+	
+						setup_room(token).then(room => {
+							frappe.chatter.render({
+								room: room
+							})
+						})
+					})
+				} else {
 					setup_room(token).then(room => {
 						frappe.chatter.render({
 							room: room
 						})
 					})
-				})
+				}
+				
 			} else {
-				setup_room(token).then(room => {
-					frappe.chatter.render({
-						room: room
-					})
-				})
+				frappe.chatter.render()
 			}
-			
-		} else {
-			frappe.chatter.render()
 		}
 	}
 }
