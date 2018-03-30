@@ -1248,11 +1248,6 @@ class {
 
 		// Load Emojis.
 		frappe.chat.emoji()
-
-		frappe.log.info('Initializing Socket.IO')
-		frappe.chat.website.settings("socketio").then(({ socketio }) => {
-			frappe.socketio.init(socketio.port)
-		})
 	}
 
 	/**
@@ -2588,50 +2583,50 @@ frappe.chat.render = (render = true, force = false) =>
 		frappe.chatter = new frappe.Chat({
 			target: desk ? '.navbar .frappe-chat-toggle' : null
 		})
-	}
-	
-	if ( render ) {
-		if ( frappe.session.user === 'Guest' && !desk ) {
-			frappe.store = frappe.Store.get('frappe.chat')
-			var token	 = frappe.store.get('guest_token')
-	
-			frappe.log.info(`Local Guest Token - ${token}`)
-	
-			const setup_room = (token) =>
-			{
-				return new Promise(resolve => {
-					frappe.chat.room.create("Visitor", token).then(room => {
-						frappe.log.info(`Visitor Room Created: ${room.name}`)
-						frappe.chat.room.subscribe(room.name)
 		
-						var reference = room
+		if ( render ) {
+			if ( frappe.session.user === 'Guest' && !desk ) {
+				frappe.store = frappe.Store.get('frappe.chat')
+				var token	 = frappe.store.get('guest_token')
 		
-						frappe.chat.room.history(room.name).then(messages => {
-							const  room = { ...reference, messages: messages }
-							return room
-						}).then(room => {
-							resolve(room)
+				frappe.log.info(`Local Guest Token - ${token}`)
+		
+				const setup_room = (token) =>
+				{
+					return new Promise(resolve => {
+						frappe.chat.room.create("Visitor", token).then(room => {
+							frappe.log.info(`Visitor Room Created: ${room.name}`)
+							frappe.chat.room.subscribe(room.name)
+			
+							var reference = room
+			
+							frappe.chat.room.history(room.name).then(messages => {
+								const  room = { ...reference, messages: messages }
+								return room
+							}).then(room => {
+								resolve(room)
+							})
 						})
 					})
-				})
-			}
-	
-			if ( !token ) {
-				frappe.chat.website.token().then(token => {
-					frappe.log.info(`Generated Guest Token - ${token}`)
-					frappe.store.set('guest_token', token)
-	
+				}
+		
+				if ( !token ) {
+					frappe.chat.website.token().then(token => {
+						frappe.log.info(`Generated Guest Token - ${token}`)
+						frappe.store.set('guest_token', token)
+		
+						setup_room(token).then(room => {
+							frappe.chatter.render({ room })
+						})
+					})
+				} else {
 					setup_room(token).then(room => {
 						frappe.chatter.render({ room })
 					})
-				})
+				}
 			} else {
-				setup_room(token).then(room => {
-					frappe.chatter.render({ room })
-				})
+				frappe.chatter.render()
 			}
-		} else {
-			frappe.chatter.render()
 		}
 	}
 }
@@ -2649,7 +2644,7 @@ frappe.chat.setup  = () => {
 		frappe.chat.profile.create('enable_chat').then(({ enable_chat }) => {
 			frappe.log.info(`Chat Profile created for User ${frappe.session.user}.`)
 			
-			if ( 'sys_defaults' in frappe ) { // same as desk?
+			if ( 'desk' in frappe ) { // same as desk?
 				const should_render = frappe.sys_defaults.enable_chat && enable_chat
 				frappe.chat.render(should_render)
 			}
@@ -2679,8 +2674,11 @@ frappe.chat.setup  = () => {
 					const range   = new frappe.datetime.range(settings.enable_from, settings.enable_to)
 					should_render = range.contains(frappe.datetime.now())
 				}
-				
-				frappe.socketio.init(settings.socketio.port)
+
+				if ( should_render ) {
+					frappe.log.info("Initializing Socket.IO")
+					frappe.socketio.init(settings.socketio.port)
+				}
 				
 				frappe.chat.render(should_render)
 		})
