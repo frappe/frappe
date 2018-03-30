@@ -2095,8 +2095,8 @@ class extends Component {
 					h("div", { class: "panel-body", style: { "height": "100%" } },
 						h("div", { class: "vcenter" },
 							h("div", { class: "text-center text-extra-muted" },
-								h(frappe.components.Octicon, { type: "comment-discussion", style: "font-size: 48px" }),
-								h("p","",__("Select a Chat to start messaging."))
+								h(frappe.components.Octicon, { type: "comment-discussion", style: "font-size: 125px" }),
+								h("p","",__("Select a chat to start messaging."))
 							)
 						)
 					),
