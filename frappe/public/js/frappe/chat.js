@@ -2622,19 +2622,14 @@ frappe.chat.render = (render = true, force = false) =>
 					frappe.store.set('guest_token', token)
 	
 					setup_room(token).then(room => {
-						frappe.chatter.render({
-							room: room
-						})
+						frappe.chatter.render({ room })
 					})
 				})
 			} else {
 				setup_room(token).then(room => {
-					frappe.chatter.render({
-						room: room
-					})
+					frappe.chatter.render({ room })
 				})
 			}
-			
 		} else {
 			frappe.chatter.render()
 		}
@@ -2642,7 +2637,8 @@ frappe.chat.render = (render = true, force = false) =>
 }
 
 frappe.chat.setup  = () => {
-	frappe.log = frappe.Logger.get('frappe.chat')
+	frappe.log     = frappe.Logger.get('frappe.chat')
+
 	frappe.log.info('Setting up frappe.chat')
 	frappe.log.warn('TODO: frappe.chat.<object> requires a storage.')
 
@@ -2653,7 +2649,7 @@ frappe.chat.setup  = () => {
 		frappe.chat.profile.create('enable_chat').then(({ enable_chat }) => {
 			frappe.log.info(`Chat Profile created for User ${frappe.session.user}.`)
 			
-			if ( 'desk' in frappe ) {
+			if ( 'sys_defaults' in frappe ) { // same as desk?
 				const should_render = frappe.sys_defaults.enable_chat && enable_chat
 				frappe.chat.render(should_render)
 			}
