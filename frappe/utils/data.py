@@ -373,8 +373,11 @@ def fmt_money(amount, precision=None, currency=None):
 	# 40,000.23000 -> 40,000.23
 
 	if decimal_str:
-		parts = str(amount).split(decimal_str)
-		decimals = parts[1] if len(parts) > 1 else ''
+		decimals_after = str(amount % 1)
+		parts = decimals_after.split(decimal_str)
+		parts = parts[1] if len(parts) > 1 else ''
+		decimals = parts
+		print("Decimals: {}".format(decimals))
 		if precision > 2:
 			if len(decimals) < 3:
 				if currency:
@@ -414,7 +417,8 @@ def fmt_money(amount, precision=None, currency=None):
 	parts.reverse()
 
 	amount = comma_str.join(parts) + ((precision and decimal_str) and (decimal_str + decimals) or "")
-	amount = minus + amount
+	if amount != '0':
+		amount = minus + amount
 
 	if currency and frappe.defaults.get_global_default("hide_currency_symbol") != "Yes":
 		symbol = frappe.db.get_value("Currency", currency, "symbol") or currency
