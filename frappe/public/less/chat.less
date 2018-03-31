@@ -236,7 +236,7 @@
 
 // ChatBubble
 @frappe-chat-bubble-padding:					@frappe-chat-base-spacing @frappe-chat-base-spacing * 2;
-@frappe-chat-bubble-min-width:                  20%;
+@frappe-chat-bubble-min-width:                  25%;
 @frappe-chat-bubble-max-width:                  75%;
 
 @frappe-chat-bubble-box-shadow:                 0px 0.1px 0.5px 0px rgba(0,0,0,0.5);
@@ -341,15 +341,18 @@
     
         .chat-bubble
         {
-                min-width: @frappe-chat-bubble-min-width;
-                max-width: @frappe-chat-bubble-max-width;
-                  display: inline-block;
-                  padding: @frappe-chat-bubble-padding;
+            max-width: @frappe-chat-bubble-max-width;
+            display: inline-block;
+            padding: @frappe-chat-bubble-padding;
             border-radius: @frappe-chat-bubble-border-radius;
-        
+            
             -webkit-box-shadow: @frappe-chat-bubble-box-shadow;
-               -moz-box-shadow: @frappe-chat-bubble-box-shadow;
-                    box-shadow: @frappe-chat-bubble-box-shadow;
+            -moz-box-shadow: @frappe-chat-bubble-box-shadow;
+            box-shadow: @frappe-chat-bubble-box-shadow;
+            
+            @media (max-width : 768px) {
+                min-width: @frappe-chat-bubble-min-width;
+            }
 
             &.chat-bubble-l
             {

@@ -177,6 +177,14 @@ frappe.datetime.compare = (a, b) => {
 		return  0
 }
 
+// frappe.quick_edit
+frappe.quick_edit = (doctype, docname) => {
+	const  dialog = new frappe.ui.Dialog({
+		title: __(`Edit ${doctype}`)
+	})
+	dialog.show()
+}
+
 // frappe._
 // frappe's utility namespace.
 frappe.provide('frappe._')
@@ -2278,7 +2286,18 @@ class extends Component {
 frappe.chat.component.ChatBubble
 =
 class extends Component {
-	render ( ) {
+	constructor (props) {
+		super (props)
+
+		this.onclick = this.onclick.bind(this)
+	}
+
+	onclick ( ) {
+		const { props } = this
+		frappe.quick_edit("Chat Message", props.name)
+	}
+
+	render  ( ) {
 		const { props } = this
 
 		const creation  = props.creation.format('hh:mm A')
@@ -2289,7 +2308,8 @@ class extends Component {
 		const content   = props.content
 
 		return (
-			h("div",{class:`chat-bubble ${props.groupable ? "chat-groupable" : ""} chat-bubble-${me ? "r" : "l"}`},
+			h("div",{class:`chat-bubble ${props.groupable ? "chat-groupable" : ""} chat-bubble-${me ? "r" : "l"}`,
+				onclick: this.onclick},
 				props.room_type === "Group" && !me?
 					h("div",{class:"chat-bubble-author"},
 						h("a", { onclick: () => { frappe.set_route(`Form/User/${props.user}`) } },
