@@ -384,7 +384,7 @@ def fmt_money(amount, precision=None, currency=None):
 					precision = len(cstr(fraction)) - 1
 				else:
 					precision = number_format_precision
-			elif len(decimals) < precision:
+			elif len(decimals) <= precision:
 				precision = len(decimals)
 
 	amount = '%.*f' % (precision, round(flt(amount), precision))
