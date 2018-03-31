@@ -6,6 +6,7 @@ import frappe
 from frappe import msgprint, _
 import json
 import csv
+import six
 from six import StringIO, text_type, string_types
 from frappe.utils import encode, cstr, cint, flt, comma_or
 
