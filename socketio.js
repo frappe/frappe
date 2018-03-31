@@ -26,11 +26,6 @@ server.listen(conf.socketio_port, function () {
 	console.log('listening on *:', conf.socketio_port); //eslint-disable-line
 });
 
-// test route
-app.get('/', function (req, res) {
-	res.sendfile('index.html');
-});
-
 // on socket connection
 io.on('connection', function (socket) {
 	if (get_hostname(socket.request.headers.host) != get_hostname(socket.request.headers.origin)) {
