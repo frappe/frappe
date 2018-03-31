@@ -81,7 +81,7 @@ class TestNewsletter(unittest.TestCase):
 		doc = frappe.get_doc("Newsletter", newsletter_name)
 		doc.get_context(context)
 		self.assertEqual(context.no_cache, 1)
-		self.assertTrue("attachments" not in context.keys())
+		self.assertTrue("attachments" not in list(context))
 
 
 test_dependencies = ["Email Group"]

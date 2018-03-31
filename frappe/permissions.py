@@ -450,7 +450,7 @@ def get_user_permission_doctypes(user_permission_doctypes, user_permissions):
 	if cint(frappe.get_system_settings('ignore_user_permissions_if_missing')):
 		# select those user permission doctypes for which user permissions exist!
 		user_permission_doctypes = [
-			list(set(doctypes).intersection(set(user_permissions.keys())))
+			list(set(doctypes).intersection(set(list(user_permissions))))
 			for doctypes in user_permission_doctypes]
 
 	if len(user_permission_doctypes) > 1:

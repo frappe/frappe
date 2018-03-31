@@ -78,7 +78,7 @@ def compress(data, args = {}):
 
 	if not data: return data
 	values = []
-	keys = data[0].keys()
+	keys = list(data[0])
 	for row in data:
 		new_row = []
 		for key in keys:

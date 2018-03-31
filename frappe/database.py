@@ -719,7 +719,7 @@ class Database:
 
 		else:
 			# for singles
-			keys = to_update.keys()
+			keys = list(to_update)
 			self.sql('''
 				delete from tabSingles
 				where field in ({0}) and

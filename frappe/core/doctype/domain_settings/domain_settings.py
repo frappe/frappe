@@ -28,7 +28,7 @@ class DomainSettings(Document):
 	def restrict_roles_and_modules(self):
 		'''Disable all restricted roles and set `restrict_to_domain` property in Module Def'''
 		active_domains = frappe.get_active_domains()
-		all_domains = (frappe.get_hooks('domains') or {}).keys()
+		all_domains = list((frappe.get_hooks('domains') or {}))
 
 		def remove_role(role):
 			frappe.db.sql('delete from `tabHas Role` where role=%s', role)

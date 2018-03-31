@@ -17,7 +17,7 @@ def get_context(context):
 	context.publishable_key = get_api_key()
 
 	# all these keys exist in form_dict
-	if not (set(expected_keys) - set(frappe.form_dict.keys())):
+	if not (set(expected_keys) - set(list(frappe.form_dict))):
 		for key in expected_keys:
 			context[key] = frappe.form_dict[key]
 
