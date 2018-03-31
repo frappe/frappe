@@ -602,10 +602,9 @@ class Document(BaseDocument):
 		self._action = "save"
 		if not self.get('__islocal'):
 			if self.meta.issingle:
-				modified = frappe.db.sql('''select value from tabSingles
-					where doctype=%s and field='modified' for update''', self.doctype)
+				modified = frappe.db.get_values_from_single(["modified"], "", self.doctype)
 				modified = modified and modified[0][0]
-				if modified and modified != cstr(self._original_modified):
+				if modified and modified != self._original_modified:
 					conflict = True
 			else:
 				tmp = frappe.db.sql("""select modified, docstatus from `tab{0}`
