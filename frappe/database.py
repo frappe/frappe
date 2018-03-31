@@ -15,6 +15,7 @@ import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr, cast_fieldtype
 from frappe import _
 from frappe.model.utils.link_count import flush_local_link_count
+from frappe.model.utils import STANDARD_FIELD_CONVERSION_MAP
 from frappe.utils.background_jobs import execute_job, get_queue
 from frappe import as_unicode
 import six
@@ -44,6 +45,9 @@ def _cast_result(doctype, result):
 			df = frappe.get_meta(doctype).get_field(field)
 			if df:
 				value = cast_fieldtype(df.fieldtype, value)
+			else:
+				if field in STANDARD_FIELD_CONVERSION_MAP:
+					value = cast_fieldtype(STANDARD_FIELD_CONVERSION_MAP[field], value)
 
 			batch.append(tuple([field, value]))
 	except frappe.exceptions.DoesNotExistError:
