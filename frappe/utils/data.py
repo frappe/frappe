@@ -373,8 +373,7 @@ def fmt_money(amount, precision=None, currency=None):
 	# 40,000.23000 -> 40,000.23
 
 	if decimal_str:
-		parts = str(amount).split(decimal_str)
-		decimals = parts[1] if len(parts) > 1 else ''
+		decimals = str(amount % 1).split(decimal_str)[1]
 		if precision > 2:
 			if len(decimals) < 3:
 				if currency:
