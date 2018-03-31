@@ -178,11 +178,57 @@ frappe.datetime.compare = (a, b) => {
 }
 
 // frappe.quick_edit
-frappe.quick_edit = (doctype, docname) => {
-	const  dialog = new frappe.ui.Dialog({
-		title: __(`Edit ${doctype}`)
+frappe.quick_edit      = (doctype, docname, fn) => {
+	return new Promise(resolve => {
+		frappe.model.with_doctype(doctype, () => {
+			frappe.db.get_doc(doctype, docname).then(doc  => {
+				const meta     = frappe.get_meta(doctype)
+				const fields   = meta.fields
+				const required = fields.filter(f => f.reqd || f.bold && !f.read_only)
+	
+				const dialog   = new frappe.ui.Dialog({
+					 title: __(`Edit ${doctype} (${docname})`),
+					fields: required,
+					action: {
+						primary: {
+							   label: __("Save"),
+							onsubmit: (values) => {
+								frappe.call('frappe.client.save',
+									{ doc: { doctype: doctype, docname: docname, ...doc, ...values } })
+									  .then(r => {
+										if ( fn )
+											fn(r.message)
+
+										resolve(r.message)
+									  })
+
+								dialog.hide()
+							}
+						},
+						secondary: {
+							label: __("Discard")
+						}
+					}
+				})
+				dialog.set_values(doc)
+
+				const $element = $(dialog.body)
+				$element.append(`
+					<div class="qe-fp" style="padding-top: '15px'; padding-bottom: '15px'; padding-left: '7px'">
+						<button class="btn btn-default btn-sm">
+							${__("Edit in Full Page")}
+						</button>
+					</div>
+				`)
+				$element.find('.qe-fp').click(() => {
+					dialog.hide()
+					frappe.set_route(`Form/${doctype}/${docname}`)
+				})
+
+				dialog.show()
+			})
+		})
 	})
-	dialog.show()
 }
 
 // frappe._
@@ -2294,13 +2340,16 @@ class extends Component {
 
 	onclick ( ) {
 		const { props } = this
-		frappe.quick_edit("Chat Message", props.name)
+		if ( props.user === frappe.session.user ) {
+			frappe.quick_edit("Chat Message", props.name, (values) => {
+				
+			})
+		}
 	}
 
 	render  ( ) {
 		const { props } = this
-
-		const creation  = props.creation.format('hh:mm A')
+		const creation 	= props.creation.format('hh:mm A')
 
 		const me        = props.user === frappe.session.user
 		const read      = !frappe._.is_empty(props.seen) && !props.seen.includes(frappe.session.user)
