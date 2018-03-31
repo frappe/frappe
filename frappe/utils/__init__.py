@@ -178,7 +178,7 @@ def dict_to_str(args, sep='&'):
 	Converts a dictionary to URL
 	"""
 	t = []
-	for k in args.keys():
+	for k in list(args):
 		t.append(str(k)+'='+quote(str(args[k] or '')))
 	return sep.join(t)
 
