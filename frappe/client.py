@@ -185,7 +185,9 @@ def save(doc):
 	if isinstance(doc, string_types):
 		doc = json.loads(doc)
 
-	doc = frappe.get_doc(doc).save()
+	doc = frappe.get_doc(doc)
+	doc.save()
+	
 	return doc.as_dict()
 
 @frappe.whitelist()
