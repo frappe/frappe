@@ -80,7 +80,7 @@ class TestFmtMoney(unittest.TestCase):
 		self.assertEqual(fmt_money(100000.1234), "100,000.1234")
 		self.assertEqual(fmt_money(1000000.3456), "1,000,000.3456")
 		self.assertEqual(fmt_money(10000000.3344567), "10,000,000.3345")
-		self.assertEqual(fmt_money(100000000.37827268), "100,000,000.378")
+		self.assertEqual(fmt_money(100000000.37827268), "100,000,000.3783")
 		self.assertEqual(fmt_money(1000000000.2718272637), "1,000,000,000.27")
 		frappe.db.set_default("currency_precision", "")
 
