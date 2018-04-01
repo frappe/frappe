@@ -11,11 +11,7 @@ rights = ("read", "write", "create", "delete", "submit", "cancel", "amend",
 	"print", "email", "report", "import", "export", "set_user_permissions", "share")
 
 # TODO:
-# remove: apply_user_permissions
-# remove: user_permission_doctypes
-# Employee - set a checkbox if user permissions are to be set or not
-# 	(don't create employee user permission for everyone)
-# fix UI
+
 # optimize: meta.get_link_map (check if the doctype link exists for the given permission type)
 
 def check_admin_or_system_manager(user=None):

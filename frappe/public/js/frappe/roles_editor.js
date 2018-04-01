@@ -173,7 +173,6 @@ frappe.RoleEditor = Class.extend({
 					$body.find('tbody').append(repl('<tr>\
 						<td style="text-align: left">%(parent)s</td>\
 						<td>%(permlevel)s</td>\
-						<td>%(apply_user_permissions)s</td>\
 						<td>%(read)s</td>\
 						<td>%(write)s</td>\
 						<td>%(create)s</td>\

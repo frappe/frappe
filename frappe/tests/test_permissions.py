@@ -328,34 +328,6 @@ class TestPermissions(unittest.TestCase):
 		clear_user_permissions_for_doctype("Salutation")
 		clear_user_permissions_for_doctype("Contact")
 
-	def automatic_apply_user_permissions(self): # skipped this test as its irrelevant now
-		'''Test user permissions are automatically applied when a user permission
-		is created'''
-		# create a user
-		frappe.get_doc(dict(doctype='User', email='test_user_perm@example.com',
-			first_name='tester')).insert(ignore_if_duplicate=True)
-		frappe.get_doc(dict(doctype='Role', role_name='Test Role User Perm')
-			).insert(ignore_if_duplicate=True)
-
-		# add a permission for event
-		add_permission('DocType', 'Test Role User Perm')
-		frappe.get_doc('User', 'test_user_perm@example.com').add_roles('Test Role User Perm')
-
-
-		# add user permission
-		add_user_permission('Module Def', 'Core', 'test_user_perm@example.com')
-
-		# check if user permission is applied in the new role
-		_perm = None
-		for perm in get_valid_perms('DocType', 'test_user_perm@example.com'):
-			if perm.role == 'Test Role User Perm':
-				_perm = perm
-
-		self.assertEqual(_perm.apply_user_permissions, 1)
-
-		# restrict by module
-		self.assertTrue('Module Def' in json.loads(_perm.user_permission_doctypes))
-
 	def test_user_permissions_not_applied_if_user_can_edit_user_permissions(self):
 		add_user_permission('Blogger', '_Test Blogger 1', 'test1@example.com')
 
