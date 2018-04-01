@@ -197,13 +197,15 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_main_section() {
-		this.setup_list_wrapper();
-		this.setup_filter_area();
-		this.setup_sort_selector();
-		this.setup_result_area();
-		this.setup_no_result_area();
-		this.setup_freeze_area();
-		this.setup_paging_area();
+		return frappe.run_serially([
+			this.setup_list_wrapper,
+			this.setup_filter_area,
+			this.setup_sort_selector,
+			this.setup_result_area,
+			this.setup_no_result_area,
+			this.setup_freeze_area,
+			this.setup_paging_area
+		].map(fn => fn.bind(this)));
 	}
 
 	setup_list_wrapper() {

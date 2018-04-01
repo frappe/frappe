@@ -178,7 +178,7 @@ def dict_to_str(args, sep='&'):
 	Converts a dictionary to URL
 	"""
 	t = []
-	for k in args.keys():
+	for k in list(args):
 		t.append(str(k)+'='+quote(str(args[k] or '')))
 	return sep.join(t)
 
@@ -556,3 +556,25 @@ def parse_json(val):
 	if isinstance(val, string_types):
 		return json.loads(val)
 	return val
+
+def cast_fieldtype(fieldtype, value):
+	if fieldtype in ("Currency", "Float", "Percent"):
+		value = flt(value)
+
+	elif fieldtype in ("Int", "Check"):
+		value = cint(value)
+
+	elif fieldtype in ("Data", "Text", "Small Text", "Long Text",
+		"Text Editor", "Select", "Link", "Dynamic Link"):
+		value = cstr(value)
+
+	elif fieldtype == "Date":
+		value = getdate(value)
+
+	elif fieldtype == "Datetime":
+		value = get_datetime(value)
+
+	elif fieldtype == "Time":
+		value = to_timedelta(value)
+
+	return value

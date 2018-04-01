@@ -290,7 +290,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	render_skeleton() {
 		const $row = this.get_list_row_html_skeleton('<div><input type="checkbox" /></div>');
-		this.$result.append($row.repeat(3));
+		this.$result.append($row);
 	}
 
 	before_render() {

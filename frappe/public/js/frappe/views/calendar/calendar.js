@@ -26,6 +26,10 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 		this.calendar_name = frappe.get_route()[3];
 	}
 
+	setup_view() {
+
+	}
+
 	before_render() {
 		super.before_render();
 		this.save_view_user_settings({

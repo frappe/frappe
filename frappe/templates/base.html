@@ -34,6 +34,7 @@
 		window.dev_server = {{ dev_server }};
     </script>
 </head>
+{% block body %}
 <body data-path="{{ path }}">
 	<div class="main-section">
 		<div>
@@ -78,6 +79,7 @@
 	<!-- js should be loaded in body! -->
 	<script type="text/javascript"
 		src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.slim.js"></script>
 	<script type="text/javascript"
 		src="/assets/js/frappe-web.min.js"></script>
 	{% endblock %}
@@ -95,4 +97,5 @@
 	<!-- csrf_token -->
     {%- block body_include %}{{ body_include or "" }}{% endblock -%}
 </body>
+{% endblock %}
 </html>

@@ -12,9 +12,10 @@ import frappe.defaults
 import frappe.async
 import re
 import frappe.model.meta
-from frappe.utils import now, get_datetime, cstr
+from frappe.utils import now, get_datetime, cstr, cast_fieldtype
 from frappe import _
 from frappe.model.utils.link_count import flush_local_link_count
+from frappe.model.utils import STANDARD_FIELD_CONVERSION_MAP
 from frappe.utils.background_jobs import execute_job, get_queue
 from frappe import as_unicode
 import six
@@ -34,6 +35,25 @@ from pymysql.times import TimeDelta
 from pymysql.constants 	import ER, FIELD_TYPE
 from pymysql.converters import conversions
 import pymysql
+
+# Helpers
+def _cast_result(doctype, result):
+	batch = [ ]
+
+	try:
+		for field, value in result:
+			df = frappe.get_meta(doctype).get_field(field)
+			if df:
+				value = cast_fieldtype(df.fieldtype, value)
+			else:
+				if field in STANDARD_FIELD_CONVERSION_MAP:
+					value = cast_fieldtype(STANDARD_FIELD_CONVERSION_MAP[field], value)
+
+			batch.append(tuple([field, value]))
+	except frappe.exceptions.DoesNotExistError:
+		return result
+
+	return tuple(batch)
 
 class Database:
 	"""
@@ -544,6 +564,7 @@ class Database:
 				from tabSingles where field in (%s) and doctype=%s""" \
 					% (', '.join(['%s'] * len(fields)), '%s'),
 					tuple(fields) + (doctype,), as_dict=False, debug=debug)
+			r = _cast_result(doctype, r)
 
 			if as_dict:
 				if r:
@@ -556,7 +577,7 @@ class Database:
 			else:
 				return r and [[i[1] for i in r]] or []
 
-	def get_singles_dict(self, doctype):
+	def get_singles_dict(self, doctype, debug = False):
 		"""Get Single DocType as dict.
 
 		:param doctype: DocType of the single object whose value is requested
@@ -566,9 +587,16 @@ class Database:
 			# Get coulmn and value of the single doctype Accounts Settings
 			account_settings = frappe.db.get_singles_dict("Accounts Settings")
 		"""
+		result = self.sql("""
+			SELECT field, value
+			FROM   `tabSingles`
+			WHERE  doctype = %s
+		""", doctype)
+		result = _cast_result(doctype, result)
 
-		return frappe._dict(self.sql("""select field, value from
-			tabSingles where doctype=%s""", doctype))
+		dict_  = frappe._dict(result)
+
+		return dict_
 
 	def get_all(self, *args, **kwargs):
 		return frappe.get_all(*args, **kwargs)
@@ -691,7 +719,7 @@ class Database:
 
 		else:
 			# for singles
-			keys = to_update.keys()
+			keys = list(to_update)
 			self.sql('''
 				delete from tabSingles
 				where field in ({0}) and

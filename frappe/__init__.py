@@ -15,7 +15,7 @@ from past.builtins import cmp
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '10.1.14'
+__version__ = '10.1.16'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -271,6 +271,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	"""
 	from frappe.utils import encode
 
+	msg = safe_decode(msg)
 	out = _dict(message=msg)
 
 	def _raise_exception():
@@ -280,9 +281,9 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 			import inspect
 
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
-				raise raise_exception(as_unicode(msg))
+				raise raise_exception(msg)
 			else:
-				raise ValidationError(as_unicode(msg))
+				raise ValidationError(msg)
 
 	if flags.mute_messages:
 		_raise_exception()
