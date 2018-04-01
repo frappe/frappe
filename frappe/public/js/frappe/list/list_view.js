@@ -22,7 +22,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.show();
 	}
 
+	has_permissions() {
+		const can_read = frappe.perm.has_perm(this.doctype, 0, 'read');
+		return can_read;
+	}
+
 	show() {
+		if (!this.has_permissions()) {
+			frappe.set_route('');
+			frappe.msgprint(__(`Not permitted to view ${this.doctype}`));
+			return;
+		}
+
 		this.init().then(() => {
 			if (frappe.route_options) {
 				this.set_filters_from_route_options();
@@ -88,6 +99,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	show_restricted_list_indicator_if_applicable() {
 		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
+		console.log(match_rules_list);
 		if(match_rules_list.length) {
 			this.restricted_list = $('<button class="restricted-list form-group">Restricted</button>')
 				.prepend('<span class="octicon octicon-lock"></span>')

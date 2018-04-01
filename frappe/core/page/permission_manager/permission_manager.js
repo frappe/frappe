@@ -231,7 +231,7 @@ frappe.PermissionEngine = Class.extend({
 			.html(__(d[fieldname]));
 	},
 
-	add_check: function(cell, d, fieldname, label) {
+	add_check: (cell, d, fieldname, label, description="") => {
 		var me = this;
 
 		if(!label) label = toTitle(fieldname.replace(/_/g, " "));
@@ -239,9 +239,14 @@ frappe.PermissionEngine = Class.extend({
 			return;
 		}
 
-		var checkbox = $("<div class='col-md-4'><div class='checkbox'>\
-				<label><input type='checkbox'>"+__(label)+"</input></label>"
-				+ (d.help || "") + "</div></div>").appendTo(cell)
+		var checkbox = $(
+			`<div class='col-md-4'>
+				<div class='checkbox'>
+					<label><input type='checkbox'>${__(label)}</input></label>
+					<p class='help-box small text-muted'>${__(description)}</p>
+				</div>
+			</div>`)
+			.appendTo(cell)
 			.attr("data-fieldname", fieldname);
 
 		checkbox.find("input")
@@ -258,7 +263,8 @@ frappe.PermissionEngine = Class.extend({
 	},
 
 	setup_if_owner: function(d, role_cell) {
-		var checkbox = this.add_check(role_cell, d, "if_owner")
+		const description = __("If checked the permission will be applied only to the owner of the document and other users will restricted");
+		const checkbox = this.add_check(role_cell, d, "if_owner", null, description)
 			.removeClass("col-md-4")
 			.css({"margin-top": "15px"});
 	},
