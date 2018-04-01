@@ -1250,7 +1250,7 @@ def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
 	else:
 		return html
 
-def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None, doc=None, lang=None, print_letterhead=False):
+def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None, doc=None, lang=None, print_letterhead=True):
 	from frappe.utils import scrub_urls
 
 	if not file_name: file_name = name
