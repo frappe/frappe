@@ -11,6 +11,8 @@ from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 from past.builtins import cmp
 
+from faker import Faker
+
 # public
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
@@ -1491,3 +1493,19 @@ def safe_decode(param, encoding = 'utf-8'):
 def parse_json(val):
 	from frappe.utils import parse_json
 	return parse_json(val)
+
+def mock(type, size = 1, locale = 'en'):
+	results = [ ]
+	faker 	= Faker(locale)
+	if not type in dir(faker):
+		raise ValueError('Not a valid mock type.')
+	else:
+		for i in range(size):
+			data = getattr(faker, type)()
+			results.append(data)
+
+	from frappe.chat.util import squashify, dictify, safe_json_loads
+		
+	results = squashify(results)
+
+	return results
