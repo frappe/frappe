@@ -45,9 +45,6 @@ def _cast_result(doctype, result):
 			df = frappe.get_meta(doctype).get_field(field)
 			if df:
 				value = cast_fieldtype(df.fieldtype, value)
-			else:
-				if field in STANDARD_FIELD_CONVERSION_MAP:
-					value = cast_fieldtype(STANDARD_FIELD_CONVERSION_MAP[field], value)
 
 			batch.append(tuple([field, value]))
 	except frappe.exceptions.DoesNotExistError:
@@ -564,7 +561,7 @@ class Database:
 				from tabSingles where field in (%s) and doctype=%s""" \
 					% (', '.join(['%s'] * len(fields)), '%s'),
 					tuple(fields) + (doctype,), as_dict=False, debug=debug)
-			r = _cast_result(doctype, r)
+			# r = _cast_result(doctype, r)
 
 			if as_dict:
 				if r:
@@ -592,7 +589,7 @@ class Database:
 			FROM   `tabSingles`
 			WHERE  doctype = %s
 		""", doctype)
-		result = _cast_result(doctype, result)
+		# result = _cast_result(doctype, result)
 
 		dict_  = frappe._dict(result)
 
