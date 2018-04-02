@@ -8,7 +8,7 @@ from frappe import _dict
 import frappe.share
 from frappe.utils import cint
 from frappe.boot import get_allowed_reports
-from frappe.permissions import get_roles, get_valid_perms
+from frappe.permissions import get_roles, get_valid_perms, is_module_blocked_for_user
 from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
 
 class UserPermissions:
@@ -78,7 +78,7 @@ class UserPermissions:
 		for r in get_valid_perms():
 			dt = r['parent']
 
-			if not dt in  self.perm_map:
+			if not dt in self.perm_map:
 				self.perm_map[dt] = {}
 
 			for k in frappe.permissions.rights:
@@ -96,9 +96,11 @@ class UserPermissions:
 		user_shared = frappe.share.get_shared_doctypes()
 		no_list_view_link = []
 		active_modules = get_active_modules() or []
-
 		for dt in self.doctype_map:
 			dtp = self.doctype_map[dt]
+
+			if is_module_blocked_for_user(self.name, dtp.get('module')): continue
+
 			p = self.perm_map.get(dt, {})
 
 			if not p.get("read") and (dt in user_shared):

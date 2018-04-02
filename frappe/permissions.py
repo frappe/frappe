@@ -27,9 +27,9 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 	Note: if Table DocType is passed, it always returns True.
 	"""
 	if not user: user = frappe.session.user
-
 	if verbose:
-		print('--- Checking for {0} {1} ---'.format(doctype, doc.name if doc else '-'))
+		doc_name = get_doc_name(doc) or '_'
+		print('--- Checking for {0} {1} ---'.format(doctype, doc_name))
 
 	if frappe.is_table(doctype):
 		if verbose: print("Table type, always true")
@@ -53,25 +53,35 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 			if verbose: print("Not importable")
 			return False
 
-		def false_if_not_shared():
-			if ptype in ("read", "write", "share", "email", "print"):
-				shared = frappe.share.get_shared(doctype, user,
-					["read" if ptype in ("email", "print") else ptype])
-
-				if shared:
-					# if atleast one shared doc of that type, then return True
-					# this is used in db_query to check if permission on DocType
-					if verbose: print("Has a shared document")
-					return True
-
-			if verbose: print("Not Shared")
-			return False
 
 		role_permissions = get_role_permissions(meta, user=user, verbose=verbose)
 
 		perm = role_permissions.get(ptype)
-		if not perm:
-			perm = false_if_not_shared()
+
+	def false_if_not_shared():
+		if ptype in ("read", "write", "share", "email", "print"):
+			shared = frappe.share.get_shared(doctype, user,
+				["read" if ptype in ("email", "print") else ptype])
+
+			if doc:
+				doc_name = get_doc_name(doc)
+				if doc_name in shared:
+					if verbose: print("Shared")
+					if ptype in ("read", "write", "share") or meta.permissions[0].get(ptype):
+						if verbose: print("Is shared")
+						return True
+
+			elif shared:
+				# if atleast one shared doc of that type, then return True
+				# this is used in db_query to check if permission on DocType
+				if verbose: print("Has a shared document")
+				return True
+
+		if verbose: print("Not Shared")
+		return False
+
+	if not perm:
+		perm = false_if_not_shared()
 
 	if verbose: print("Final Permission: {0}".format(perm))
 	return perm
@@ -80,10 +90,12 @@ def get_doc_permissions(doc, verbose=False, user=None, ptype=None):
 	"""Returns a dict of evaluated permissions for given `doc` like `{"read":1, "write":1}`"""
 	if not user: user = frappe.session.user
 
-	if frappe.is_table(doc.doctype):
-		return {"read":1, "write":1}
+	if frappe.is_table(doc.doctype): return {"read": 1, "write": 1}
 
 	meta = frappe.get_meta(doc.doctype)
+
+	if has_controller_permissions(doc, ptype, user=user) == False :
+		return {ptype: 0}
 
 	permissions = copy.deepcopy(get_role_permissions(meta, user=user, verbose=verbose))
 
@@ -104,25 +116,7 @@ def get_doc_permissions(doc, verbose=False, user=None, ptype=None):
 		else:
 			permissions = {}
 
-	if ptype:
-		if ptype in ('read', 'write', 'share') and not permissions.get(ptype):
-			update_share_permissions(permissions, doc, user)
-	else:
-		if not permissions.get('read') and not permissions.get('write') and not permissions.get('share'):
-			update_share_permissions(permissions, doc, user)
 	return permissions
-
-def update_share_permissions(permissions, doc, user):
-	"""Updates share permissions on `role_permissions` for given doc, if shared"""
-	share_ptypes = ("read", "write", "share")
-	permissions_by_share = frappe.db.get_value("DocShare",
-		{"share_doctype": doc.doctype, "share_name": doc.name, "user": user},
-		share_ptypes, as_dict=True)
-
-	if permissions_by_share:
-		for ptype in share_ptypes:
-			if permissions_by_share[ptype]:
-				permissions[ptype] = 1
 
 def get_role_permissions(doctype_meta, user=None, verbose=False):
 	"""Returns dict of evaluated role permissions like `{"read": True, "write":False}`
@@ -207,7 +201,6 @@ def has_user_permission(doc, user=None, verbose=False):
 						msg = _('Not allowed for {0} = {1}').format(_(field.options), d.get(field.fieldname))
 
 					if verbose: msgprint(msg)
-					if frappe.flags.in_test: print(msg)
 
 					return False
 		return True
@@ -433,3 +426,6 @@ def is_module_blocked_for_user(user, module):
 	blocked_modules = user_doc.get_blocked_modules()
 	return module in blocked_modules
 
+def get_doc_name(doc):
+	if not doc: return None
+	return doc if isinstance(doc, string_types) else doc.name
