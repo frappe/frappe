@@ -1504,7 +1504,7 @@ def mock(type, size = 1, locale = 'en'):
 			data = getattr(faker, type)()
 			results.append(data)
 
-	from frappe.chat.util import squashify, dictify, safe_json_loads
+	from frappe.chat.util import squashify
 		
 	results = squashify(results)
 
