@@ -176,7 +176,9 @@ frappe.views.TreeView = Class.extend({
 			},
 			{
 				label:__("Add Child"),
-				condition: function(node) { return me.can_create && node.expandable; },
+				condition: function(node) {
+					return me.can_create && node.expandable && !node.hide_add;
+				},
 				click: function(node) {
 					me.new_node();
 				},
