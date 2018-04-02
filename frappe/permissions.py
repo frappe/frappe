@@ -422,9 +422,7 @@ def get_linked_doctypes(dt):
 	]))
 
 def is_module_blocked_for_user(user, module):
-	user_doc = frappe.get_doc('User', user)
-	blocked_modules = user_doc.get_blocked_modules()
-	return module in blocked_modules
+	return frappe.db.get_all('Block Module', filters={'parent': user, 'module': module})
 
 def get_doc_name(doc):
 	if not doc: return None
