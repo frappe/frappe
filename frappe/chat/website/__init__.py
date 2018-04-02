@@ -29,11 +29,13 @@ def settings(fields = None):
 
 @frappe.whitelist(allow_guest = True)
 def token():
-    dtoken            = frappe.new_doc('Chat Token')
+    dtoken             = frappe.new_doc('Chat Token')
 
-    dtoken.token      = frappe.generate_hash()
-    dtoken.ip_address = frappe.local.request_ip
-    dtoken.country    = get_geo_ip_country(dtoken.ip_address)
+    dtoken.token       = frappe.generate_hash()
+    dtoken.ip_address  = frappe.local.request_ip
+    country            = get_geo_ip_country(dtoken.ip_address)
+    if country:
+        dtoken.country = country['iso_code']
     dtoken.save(ignore_permissions = True)
 
     return dtoken.token
