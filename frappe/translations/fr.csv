@@ -13,11 +13,11 @@ b'apps/frappe/frappe/www/me.py +14',b'You need to be logged in to access this pa
 b'DocType: System Settings',b'Note: Multiple sessions will be allowed in case of mobile device',"b""Remarque : Plusieurs sessions seront autoris\xc3\xa9es en cas d'appareil mobile"""
 b'apps/frappe/frappe/core/doctype/user/user.py +687',b'Enabled email inbox for user {users}',"b""Activer bo\xc3\xaete de r\xc3\xa9ception Email pour l'utilisateur {users}"""
 b'apps/frappe/frappe/email/queue.py +252',b'Cannot send this email. You have crossed the sending limit of {0} emails for this month.',"b""Impossible d'envoyer cet E-mail. Vous avez franchi la limite d'envoi de {0} E-mails pour ce mois."""
-b'apps/frappe/frappe/public/js/legacy/form.js +769',b'Permanently Submit {0}?',b'Soumettre de Mani\xc3\xa8re Permanente {0} ?'
+b'apps/frappe/frappe/public/js/legacy/form.js +776',b'Permanently Submit {0}?',b'Soumettre de Mani\xc3\xa8re Permanente {0} ?'
 b'apps/frappe/frappe/desk/page/backups/backups.js +12',b'Download Files Backup',b'T\xc3\xa9l\xc3\xa9charger la Sauvegarde des Fichiers'
 b'DocType: Address',b'County',b'Canton'
 b'DocType: Workflow',b'If Checked workflow status will not override status in list view',b'Si Coch\xc3\xa9e le statut du flux de travail ne remplacera pas le statut de la vue en liste'
-b'apps/frappe/frappe/client.py +297',b'Invalid file path: {0}',b'Chemin de fichier invalide : {0}'
+b'apps/frappe/frappe/client.py +307',b'Invalid file path: {0}',b'Chemin de fichier invalide : {0}'
 b'DocType: Workflow State',b'eye-open',b'oeil-ouvert'
 b'DocType: Email Queue',b'Send After',b'Envoyer Apr\xc3\xa8s'
 b'apps/frappe/frappe/utils/file_manager.py +36',b'Please select a file or url',b'Veuillez s\xc3\xa9lectionner un fichier ou une URL'
@@ -31,7 +31,7 @@ b'DocType: GSuite Settings',b'Run Script Test',b'Ex\xc3\xa9cuter un Script de Te
 b'DocType: Data Import',b'Total Rows',b'Total des lignes'
 b'DocType: Contact',b'Department',b'D\xc3\xa9partement'
 b'DocType: DocField',b'Options',b'Options'
-b'apps/frappe/frappe/client.py +103',b'Cannot edit standard fields',b'Impossible de modifier les champs standards'
+b'apps/frappe/frappe/client.py +111',b'Cannot edit standard fields',b'Impossible de modifier les champs standards'
 b'DocType: Print Format',b'Print Format Builder',"b""\xc3\x89diteur de Format d'Impression"""
 b'DocType: Report',b'Report Manager',b'Gestionnaire de Rapports'
 b'DocType: Workflow',b'Document States',b'\xc3\x89tats du Document'
@@ -83,7 +83,6 @@ b'apps/frappe/frappe/config/website.py +78',b'Settings for Contact Us Page.',b'R
 b'apps/frappe/frappe/core/doctype/user/user.py +913',b'Administrator Logged In',b'Administrateur Connect\xc3\xa9'
 b'DocType: Contact Us Settings',"b'Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.'","b'Les options de contact, comme ""Demande de Ventes, Demande d\'Aide"" etc., doivent \xc3\xaatre chacune sur une nouvelle ligne ou s\xc3\xa9par\xc3\xa9es par des virgules.'"
 b'DocType: Data Migration Run',b'Insert',b'Ins\xc3\xa9rer'
-b'apps/frappe/frappe/email/smtp.py +69',b'Please setup default Email Account from Setup &gt; Email &gt; Email Account',b'Veuillez configurer le compte de messagerie par d\xc3\xa9faut depuis Configuration&gt; E-mail&gt; Compte de messagerie'
 b'apps/frappe/frappe/public/js/frappe/form/link_selector.js +22',b'Select {0}',b'S\xc3\xa9lectionner {0}'
 b'apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py +24',b'Please enter Base URL',b'Veuillez entrer l&#39;URL de base'
 b'DocType: DocField',b'Color',b'Couleur'
@@ -148,7 +147,7 @@ b'apps/frappe/frappe/public/js/frappe/views/file/file_view.js +35',b'File Manage
 b'DocType: OAuth Bearer Token',b'Refresh Token',b'Jeton de Rafra\xc3\xaechissement'
 b'DocType: Address',b'Goa',b'Goa'
 b'DocType: Webhook',b'Doc Event',b'\xc3\x89v\xc3\xa9nement Doc'
-b'apps/frappe/frappe/public/js/frappe/misc/user.js +61',b'You',b'Vous'
+b'apps/frappe/frappe/public/js/frappe/misc/user.js +58',b'You',b'Vous'
 b'DocType: Braintree Settings',b'Braintree Settings',b'Braintree Param\xc3\xa8tres'
 b'DocType: Website Theme',b'lowercase',b'minuscules'
 b'apps/frappe/frappe/public/js/frappe/list/list_filter.js +22',b'Save Filter',b'Enregistrer le filtre'
@@ -222,7 +221,7 @@ b'DocType: Email Group',b'Total Subscribers',"b""Total d'Abonn\xc3\xa9s"""
 b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +25',"b'If a Role does not have access at Level 0, then higher levels are meaningless.'","b""Si un R\xc3\xb4le n'a pas acc\xc3\xa8s au niveau 0, les niveaux plus \xc3\xa9lev\xc3\xa9s n'ont pas de sens."""
 b'apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +862',b'Save As',b'Enregistrer Sous'
 b'DocType: Communication',b'Seen',b'Vu'
-b'apps/frappe/frappe/public/js/frappe/form/layout.js +169',b'Show more details',b'Montrer plus de d\xc3\xa9tails'
+b'apps/frappe/frappe/public/js/frappe/form/layout.js +162',b'Show more details',b'Montrer plus de d\xc3\xa9tails'
 b'DocType: System Settings',b'Run scheduled jobs only if checked',b'Les t\xc3\xa2ches planifi\xc3\xa9es ne sont ex\xc3\xa9cut\xc3\xa9es que si la case est coch\xc3\xa9e.'
 b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +408',b'Will only be shown if section headings are enabled',b'Ne seront montr\xc3\xa9s que si les titres de section sont activ\xc3\xa9s'
 b'apps/frappe/frappe/public/js/frappe/views/kanban/kanban_column.html +9',b'Archive',b'Archiver'
@@ -267,7 +266,7 @@ b'DocType: Salutation',b'Administrator',b'Administrateur'
 b'DocType: Activity Log',b'Closed',b'Ferm\xc3\xa9'
 b'DocType: Blog Settings',b'Blog Title',b'Titre du Blog'
 b'apps/frappe/frappe/core/doctype/role/role.py +24',b'Standard roles cannot be disabled',b'Les r\xc3\xb4les standard ne peuvent pas \xc3\xaatre d\xc3\xa9sactiv\xc3\xa9es'
-b'apps/frappe/frappe/public/js/frappe/chat.js +1479',b'Chat Type',b'Type de chat'
+b'apps/frappe/frappe/public/js/frappe/chat.js +1598',b'Chat Type',b'Type de chat'
 b'DocType: Address',b'Mizoram',b'Mizoram'
 b'DocType: Newsletter',b'Newsletter',b'Newsletter'
 b'apps/frappe/frappe/model/db_query.py +534',b'Cannot use sub-query in order by',"b""Impossible d'utiliser la sous-requ\xc3\xaate dans l'ordre demand\xc3\xa9"""
@@ -283,7 +282,7 @@ b'DocType: Bulk Update',"b'SQL Conditions. Example: status=""Open""'","b'Conditi
 b'DocType: User',b'Get your globally recognized avatar from Gravatar.com',b'Obtenir votre avatar mondialement reconnu depuis Gravatar.com'
 b'apps/frappe/frappe/limits.py +32',"b'Your subscription expired on {0}. To renew, {1}.'","b'Votre abonnement a expir\xc3\xa9 le {0}. Pour le renouveler, {1}.'"
 b'DocType: Workflow State',b'plus-sign',b'signe plus'
-b'apps/frappe/frappe/__init__.py +916',b'App {0} is not installed',"b""App {0} n'est pas install\xc3\xa9e"""
+b'apps/frappe/frappe/__init__.py +919',b'App {0} is not installed',"b""App {0} n'est pas install\xc3\xa9e"""
 b'DocType: Data Migration Plan',b'Mappings',b'Mappings'
 b'DocType: Workflow State',b'Refresh',b'Actualiser'
 b'DocType: Event',b'Public',b'Public'
@@ -336,7 +335,7 @@ b'apps/frappe/frappe/core/doctype/data_export/exporter.py +122',b'First data col
 b'apps/frappe/frappe/core/doctype/version/version.js +5',b'Show all Versions',b'Afficher toutes les Versions'
 b'DocType: Workflow State',b'Print',b'Imprimer'
 b'DocType: User',b'Restrict IP',"b""Restreindre l'IP"""
-b'apps/frappe/frappe/public/js/frappe/form/layout.js +115',b'Dashboard',b'Tableau de Bord'
+b'apps/frappe/frappe/public/js/frappe/form/layout.js +108',b'Dashboard',b'Tableau de Bord'
 b'apps/frappe/frappe/email/smtp.py +215',b'Unable to send emails at this time',"b""Impossible d'envoyer des emails en ce moment"""
 b'apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +93',b'Search or type a command',b'Rechercher ou taper une commande'
 b'DocType: Activity Log',b'Timeline Name',b'Nom de la Chronologie'
@@ -384,7 +383,7 @@ b'DocType: Chat Profile',b'Away',b'Un moyen'
 b'DocType: Currency',b'Fraction Units',b'Fractions d\xe2\x80\x99Unit\xc3\xa9s'
 b'apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +448',b'{0} from {1} to {2}',b'{0} de {1} \xc3\xa0 {2}'
 b'apps/frappe/frappe/public/js/frappe/ui/toolbar/user_progress_dialog.js +116',b'Mark as Done',b'Marquer comme Termin\xc3\xa9'
-b'DocType: Chat Room',b'Type',b'Type'
+b'DocType: Chat Message',b'Type',b'Type'
 b'DocType: Activity Log',b'Subject',b'Sujet'
 b'DocType: Web Form',b'Amount Based On Field',b'Montant Bas\xc3\xa9 sur le Champ'
 b'apps/frappe/frappe/core/doctype/docshare/docshare.py +34',b'User is mandatory for Share',b'L&#39;utilisateur est obligatoire pour Partager'
@@ -412,9 +411,9 @@ b'DocType: Language',b'Language Code',b'Code de la Langue'
 b'apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js +282',"b'Your download is being built, this may take a few moments...'","b'Votre t\xc3\xa9l\xc3\xa9chargement est en cours de construction, patientez quelques instants ...'"
 b'apps/frappe/frappe/public/js/frappe/ui/filters/filter_list.js +144',b'Add Filter',b'Ajouter un filtre'
 b'apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py +86',b'SMS sent to following numbers: {0}',b'SMS envoy\xc3\xa9 aux num\xc3\xa9ros suivants : {0}'
-b'apps/frappe/frappe/www/feedback.html +23',b'Your rating: ',b'Votre note :'
-b'apps/frappe/frappe/utils/data.py +598',b'{0} and {1}',b'{0} et {1}'
-b'apps/frappe/frappe/public/js/frappe/chat.js +1978',b'Start a conversation.',b'Commencer une conversation.'
+b'apps/frappe/frappe/public/js/frappe/ui/comment.js +230',b'Your rating: ',b'Votre note :'
+b'apps/frappe/frappe/utils/data.py +602',b'{0} and {1}',b'{0} et {1}'
+b'apps/frappe/frappe/public/js/frappe/chat.js +2144',b'Start a conversation.',b'Commencer une conversation.'
 b'DocType: Print Settings',"b'Always add ""Draft"" Heading for printing draft documents'","b'Toujours ajouter ""Brouillon"" pour l\'impression des documents brouillons'"
 b'DocType: Data Migration Run',b'Current Mapping Start',b'D\xc3\xa9marrage Mapping Actuel'
 b'apps/frappe/frappe/core/doctype/communication/communication.js +229',b'Email has been marked as spam',"b""L'Email a \xc3\xa9t\xc3\xa9 marqu\xc3\xa9 comme \xc3\xa9tant un spam"""
@@ -447,7 +446,7 @@ b'apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +56',b'Charts',b'Gr
 b'DocType: User',b'Fill Screen',"b""Remplir l'\xc3\x89cran"""
 b'apps/frappe/frappe/chat/doctype/chat_profile/chat_profile.py +81',b'Chat Profile for User {user} exists.',b'Le profil de conversation pour l&#39;utilisateur {utilisateur} existe.'
 b'apps/frappe/frappe/public/js/frappe/socketio_client.js +267',b'Upload Failed',b'T\xc3\xa9l\xc3\xa9chargement \xc3\x89chou\xc3\xa9'
-b'apps/frappe/frappe/public/js/frappe/form/grid.js +638',b'Edit via Upload',b'Modifier via Chargement'
+b'apps/frappe/frappe/public/js/frappe/form/grid.js +630',b'Edit via Upload',b'Modifier via Chargement'
 b'apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +135',"b'document type..., e.g. customer'","b'type de document ..., ex. client'"
 b'apps/frappe/frappe/core/doctype/feedback_trigger/feedback_trigger.py +29',"b""The Condition '{0}' is invalid""","b""La Condition '{0}' est invalide"""
 b'DocType: Workflow State',b'barcode',b'Code Barre'
@@ -457,7 +456,7 @@ b'DocType: About Us Team Member',b'About Us Team Member',"b""\xc3\x80 propos du 
 b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5',"b'Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.'","b""Les Autorisations sont d\xc3\xa9finies sur les R\xc3\xb4les et les Types de Documents (appel\xc3\xa9s DocTypes) en d\xc3\xa9finissant des droits , tels que Lire, \xc3\x89crire, Cr\xc3\xa9er, Supprimer, Soumettre, Annuler, Modifier, Rapporter, Importer, Exporter, Imprimer, Envoyer un Email et D\xc3\xa9finir les Autorisations de l'Utilisateur ."""
 b'DocType: Event',b'Wednesday',b'Mercredi'
 b'apps/frappe/frappe/core/doctype/doctype/doctype.py +596',b'Image field must be a valid fieldname',"b""Champ de l'image doit \xc3\xaatre un champ valide"""
-b'DocType: OAuth Client',b'Token',b'Jeton'
+b'DocType: Chat Token',b'Token',b'Jeton'
 b'DocType: Property Setter',b'ID (name) of the entity whose property is to be set',b'ID (nom) de l&#39;entit\xc3\xa9 dont la propri\xc3\xa9t\xc3\xa9 doit \xc3\xaatre d\xc3\xa9finie'
 b'apps/frappe/frappe/limits.py +84',"b'To renew, {0}.'","b'Pour renouveler, {0}.'"
 b'DocType: Website Settings',b'Website Theme Image Link',"b""Lien de l'Image du Th\xc3\xa8me du Site Web"""
@@ -480,7 +479,7 @@ b'apps/frappe/frappe/model/rename_doc.py +380',b'Successful: {0} to {1}',b'Succ\
 b'apps/frappe/frappe/core/doctype/user/user.py +106',b'Cannot change user details in demo. Please signup for a new account at https://erpnext.com',b'Vous ne pouvez pas changer les d\xc3\xa9tails utilisateur dans la d\xc3\xa9mo. Veuillez cr\xc3\xa9er un nouveau compte sur https://erpnext.com'
 b'apps/frappe/frappe/printing/doctype/print_format/print_format.js +18',b'Please duplicate this to make changes',b'Veuillez cr\xc3\xa9er un duplicata pour faire des changements'
 b'apps/frappe/frappe/public/js/frappe/list/list_filter.js +99',b'Press Enter to save',b'Appuyez sur Entr\xc3\xa9e pour enregistrer'
-b'apps/frappe/frappe/utils/pdf.py +36',b'PDF generation failed because of broken image links',b'La g\xc3\xa9n\xc3\xa9ration du PDF a \xc3\xa9chou\xc3\xa9 en raison de liens invalides vers une/des image(s)'
+b'apps/frappe/frappe/utils/pdf.py +39',b'PDF generation failed because of broken image links',b'La g\xc3\xa9n\xc3\xa9ration du PDF a \xc3\xa9chou\xc3\xa9 en raison de liens invalides vers une/des image(s)'
 b'DocType: Print Settings',b'Font Size',b'Taille de la Police'
 b'DocType: System Settings',b'Disable Standard Email Footer',b'D\xc3\xa9sactiver le Pied de Page d\xe2\x80\x99Email Standard'
 b'DocType: Workflow State',b'facetime-video',b'vid\xc3\xa9o-facetime'
@@ -494,7 +493,7 @@ b'DocType: DocField',b'Collapsible',b'R\xc3\xa9ductible'
 b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +790',b'Saved',b'Enregistr\xc3\xa9'
 b'apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +57',b'What do you need help with?',"b""Avec quoi avez vous besoin d'aide ?"""
 b'apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63',b'Options for select. Each option on a new line.',b'Options pour s\xc3\xa9lectionner. Chaque option sur une nouvelle ligne.'
-b'apps/frappe/frappe/public/js/legacy/form.js +799',b'Permanently Cancel {0}?',b'Annuler de Mani\xc3\xa8re Permanente {0} ?'
+b'apps/frappe/frappe/public/js/legacy/form.js +810',b'Permanently Cancel {0}?',b'Annuler de Mani\xc3\xa8re Permanente {0} ?'
 b'DocType: Workflow State',b'music',b'musique'
 b'apps/frappe/frappe/www/qrcode.html +3',b'QR Code',b'QR Code'
 b'apps/frappe/frappe/email/doctype/email_alert/email_alert.js +21',b'Last Modified Date',b'Date de Derni\xc3\xa8re Modification'
@@ -503,17 +502,18 @@ b'apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_document
 b'DocType: Print Format',b'Style Settings',b'R\xc3\xa9glages de Style'
 b'apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +332',b'Y Axis Fields',"b""Champs de l'Axe Y"""
 b'apps/frappe/frappe/core/doctype/doctype/doctype.py +627',b'Sort field {0} must be a valid fieldname',b'Champ de tri {0} doit \xc3\xaatre un nom de champ valide'
-b'apps/frappe/frappe/public/js/frappe/ui/base_list.js +81',b'More',b'Plus'
+b'apps/frappe/frappe/public/js/frappe/list/base_list.js +272',b'More',b'Plus'
 b'DocType: Contact',b'Sales Manager',b'Responsable des Ventes'
 b'apps/frappe/frappe/public/js/frappe/model/model.js +534',b'Rename',b'Renommer'
 b'DocType: Print Format',b'Format Data',b'Format des Donn\xc3\xa9es'
 b'DocType: List Filter',b'Filter Name',b'Nom du filtre'
 b'apps/frappe/frappe/utils/bot.py +91',b'Like',b'Comme'
 b'DocType: Customize Form Field',b'Customize Form Field',b'Personnaliser un Champ de Formulaire'
+b'DocType: Website Settings',b'Chat Room Name',b'Nom de la salle de conversation'
 b'DocType: OAuth Client',b'Grant Type',b'Type de Subvention'
 b'apps/frappe/frappe/config/setup.py +50',b'Check which Documents are readable by a User',b'V\xc3\xa9rifier quels Documents sont lisibles par un Utilisateur'
 b'DocType: Deleted Document',b'Hub Sync ID',b'Hub Sync ID'
-b'apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +269',b'use % as wildcard',b'utiliser % comme joker'
+b'apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +274',b'use % as wildcard',b'utiliser % comme joker'
 b'apps/frappe/frappe/email/doctype/email_account/email_account.js +151',"b'Email Domain not configured for this account, Create one?'","b""Nom de Domain de l'Email non configur\xc3\xa9 pour ce compte, En cr\xc3\xa9er un ?"""
 b'DocType: User',b'Reset Password Key',b'R\xc3\xa9initialiser le Mot de Passe'
 b'DocType: Email Account',b'Enable Auto Reply',b'Activer la R\xc3\xa9ponse Automatique'
@@ -531,7 +531,7 @@ b'apps/frappe/frappe/core/doctype/data_import/importer.py +27',b'Parent Table',b
 b'apps/frappe/frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.js +18',b'S3 Backup complete!',b'S3 Sauvegarde termin\xc3\xa9e!'
 b'apps/frappe/frappe/config/desktop.py +60',b'Developer',b'D\xc3\xa9veloppeur'
 b'apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +145',b'Created',b'Cr\xc3\xa9\xc3\xa9 Par'
-b'apps/frappe/frappe/client.py +89',b'No permission for {doctype}',b'Aucune autorisation pour {doctype}'
+b'apps/frappe/frappe/client.py +97',b'No permission for {doctype}',b'Aucune autorisation pour {doctype}'
 b'apps/frappe/frappe/website/doctype/website_settings/website_settings.py +38',b'{0} in row {1} cannot have both URL and child items',b'{0} \xc3\xa0 la ligne {1} ne peut pas avoir \xc3\xa0 la fois une URL et des sous-articles'
 b'apps/frappe/frappe/utils/nestedset.py +194',b'Root {0} cannot be deleted',b'Racine {0} ne peut pas \xc3\xaatre supprim\xc3\xa9e'
 b'apps/frappe/frappe/website/doctype/blog_post/blog_post.py +75',b'No comments yet',b'Pas encore de commentaires'
@@ -572,7 +572,7 @@ b'apps/frappe/frappe/core/doctype/user/user.py +1012',b'OTP Secret has been rese
 b'DocType: Communication',b'From Full Name',b'Nom de l\xe2\x80\x99Exp\xc3\xa9diteur'
 b'apps/frappe/frappe/desk/query_report.py +21',"b""You don't have access to Report: {0}""","b""Vous n'avez pas acc\xc3\xa8s au Rapport : {0}"""
 b'DocType: User',b'Send Welcome Email',b'Envoyer un Email de Bienvenue'
-b'apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +255',b'Remove Filter',b'Supprimer le filtre'
+b'apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +260',b'Remove Filter',b'Supprimer le filtre'
 b'DocType: Address',b'Daman and Diu',b'Daman and Diu'
 b'DocType: Address',b'Personal',b'Personnel'
 b'apps/frappe/frappe/config/setup.py +118',b'Bulk Rename',b'Renommer en Masse'
@@ -640,7 +640,7 @@ b'apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63',b'Option 1
 b'apps/frappe/frappe/public/js/frappe/form/formatters.js +133',b'{0} to {1}',b'{0} \xc3\xa0 {1}'
 b'apps/frappe/frappe/config/setup.py +80',b'Log of error during requests.',"b""Journal d'erreur lors des requ\xc3\xaates."""
 b'apps/frappe/frappe/email/doctype/newsletter/newsletter.py +219',b'{0} has been successfully added to the Email Group.',b'{0} a \xc3\xa9t\xc3\xa9 ajout\xc3\xa9 avec succ\xc3\xa8s au Groupe d\xe2\x80\x99Email.'
-b'apps/frappe/frappe/public/js/frappe/form/grid.js +654',b'Do not edit headers which are preset in the template',b'Ne pas modifier les en-t\xc3\xaates pr\xc3\xa9d\xc3\xa9finis dans le mod\xc3\xa8le'
+b'apps/frappe/frappe/public/js/frappe/form/grid.js +646',b'Do not edit headers which are preset in the template',b'Ne pas modifier les en-t\xc3\xaates pr\xc3\xa9d\xc3\xa9finis dans le mod\xc3\xa8le'
 b'apps/frappe/frappe/twofactor.py +216',b'Login Verification Code from {}',b'Code de V\xc3\xa9rification de Connexion depuis {}'
 b'DocType: Address',b'Uttar Pradesh',b'Uttar Pradesh'
 b'DocType: Address',b'Pondicherry',b'Pondicherry'
@@ -697,7 +697,7 @@ b'apps/frappe/frappe/core/page/permission_manager/permission_manager.js +513',b'
 b'DocType: Address',b'Shop',b'Magasin'
 b'DocType: DocField',b'Button',b'Bouton'
 b'apps/frappe/frappe/printing/doctype/print_format/print_format.py +80',b'{0} is now default print format for {1} doctype',"b""{0} est maintenant le format d'impression par d\xc3\xa9faut pour le type de document {1}"""
-b'apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +388',b'Archived Columns',b'Colonnes Archiv\xc3\xa9es'
+b'apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +338',b'Archived Columns',b'Colonnes Archiv\xc3\xa9es'
 b'DocType: Email Account',b'Default Outgoing',b'Sortant par D\xc3\xa9faut'
 b'DocType: Workflow State',b'play',b'jouer'
 b'apps/frappe/frappe/templates/emails/new_user.html +4',b'Click on the link below to complete your registration and set a new password',b'Cliquez sur le lien ci-dessous pour compl\xc3\xa9ter votre inscription et d\xc3\xa9finir un nouveau mot de passe'
@@ -722,7 +722,6 @@ b'DocType: Webhook',b'on_submit',b'on_submit'
 b'apps/frappe/frappe/config/website.py +7',b'Web Site',b'Site Internet'
 b'apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +8',b'Checked items will be shown on desktop',b'Les \xc3\xa9l\xc3\xa9ments s\xc3\xa9lectionn\xc3\xa9s seront affich\xc3\xa9s sur le bureau'
 b'apps/frappe/frappe/core/doctype/doctype/doctype.py +773',b'{0} cannot be set for Single types',b'{0} ne peut pas \xc3\xaatre r\xc3\xa9gl\xc3\xa9 pour les Types Uniques'
-b'apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +688',b'Kanban Board {0} does not exist.',"b""Tableau Kanban {0} n'existe pas."""
 b'DocType: Data Import',b'Data Import',b'Importation de donn\xc3\xa9es'
 b'apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +322',b'Configure Chart',b'Configurer le graphique'
 b'apps/frappe/frappe/public/js/frappe/form/form_viewers.js +55',b'{0} are currently viewing this document',b'{0} sont en train de regarder ce document'
@@ -734,7 +733,7 @@ b'DocType: Email Account',b'Awaiting Password',b'En attente Mot de Passe'
 b'DocType: Address',b'Address Line 1',b'Adresse Ligne 1'
 b'DocType: Custom DocPerm',b'Role',b'R\xc3\xb4le'
 b'apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html +21',b'Settings...',b'Param\xc3\xa8tres...'
-b'apps/frappe/frappe/utils/data.py +464',b'Cent',b'Centime'
+b'apps/frappe/frappe/utils/data.py +468',b'Cent',b'Centime'
 b'apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +172',b'Compose Email',b'\xc3\x89crire un Email'
 b'apps/frappe/frappe/config/setup.py +214',"b'States for workflow (e.g. Draft, Approved, Cancelled).'","b'\xc3\x89tats pour flux de travail (par exemple, Brouillons , Approuv\xc3\xa9, Annul\xc3\xa9).'"
 b'DocType: Print Settings',b'Allow Print for Draft',"b""Autoriser l'Impression si Brouillon"""
@@ -776,7 +775,7 @@ b'apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.js +32
 b'DocType: Feedback Trigger',"b'To add dynamic subject, use jinja tags like\n\n<div><pre><code>{{ doc.name }} Delivered</code></pre></div>'","b'Pour ajouter l&#39;objet dynamique, utiliser des balises comme Jinja <div><pre> <code>{{ doc.name }} Delivered</code> </pre> </div>'"
 b'DocType: Custom DocPerm',b'Apply User Permissions',b'Appliquer les Autorisations Utilisateurs'
 b'DocType: User',b'Modules HTML',b'Modules HTML'
-b'apps/frappe/frappe/public/js/frappe/ui/field_group.js +89',b'Missing Values Required',b'Valeurs Manquantes Requises'
+b'apps/frappe/frappe/public/js/frappe/ui/field_group.js +88',b'Missing Values Required',b'Valeurs Manquantes Requises'
 b'DocType: DocType',b'Other Settings',b'Autres R\xc3\xa9glages'
 b'DocType: Data Migration Connector',b'Frappe',b'Frappe'
 b'apps/frappe/frappe/core/doctype/communication/communication_list.js +17',b'Mark as Unread',b'Marquer comme non Lu'
@@ -794,7 +793,7 @@ b'DocType: System Settings',b'OTP Issuer Name',"b""Nom de l'\xc3\x89metteur OTP"
 b'DocType: OAuth Bearer Token',b'OAuth Bearer Token',b'Jeton de D\xc3\xa9tention OAuth'
 b'apps/frappe/frappe/public/js/legacy/print_format.js +124',b'No document selected',b'Aucun document s\xc3\xa9lectionn\xc3\xa9'
 b'apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16',b'Dr',b'Dr'
-b'apps/frappe/frappe/public/js/frappe/dom.js +255',b'You are connected to internet.',b'Vous \xc3\xaates connect\xc3\xa9 \xc3\xa0 Internet.'
+b'apps/frappe/frappe/public/js/frappe/dom.js +266',b'You are connected to internet.',b'Vous \xc3\xaates connect\xc3\xa9 \xc3\xa0 Internet.'
 b'DocType: Social Login Key',b'Enable Social Login',b'Activer la connexion sociale'
 b'DocType: Event',b'Event',b'\xc3\x89v\xc3\xa9nement'
 b'apps/frappe/frappe/public/js/frappe/views/communication.js +603',"b'On {0}, {1} wrote:'","b'Sur {0}, {1} a \xc3\xa9crit :'"
@@ -826,7 +825,7 @@ b'DocType: Property Setter',b'Property Setter',b'Initialisateur de Propri\xc3\xa
 b'DocType: Web Form',b'Allow Print',"b""Autoriser l'Impression"""
 b'apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +241',b'Mark the field as Mandatory',b'Marquez le champ comme Obligatoire'
 b'DocType: Communication',b'Clicked',b'Cliqu\xc3\xa9'
-b'apps/frappe/frappe/public/js/legacy/form.js +984',"b""No permission to '{0}' {1}""","b""Pas d'autorisation pour '{0}' {1}"""
+b'apps/frappe/frappe/public/js/legacy/form.js +991',"b""No permission to '{0}' {1}""","b""Pas d'autorisation pour '{0}' {1}"""
 b'apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +38',b'Scheduled to send',b'Pr\xc3\xa9vu pour envoyer'
 b'DocType: DocType',b'Track Seen',b'Suivre les Vues'
 b'apps/frappe/frappe/desk/form/utils.py +64',b'This method can only be used to create a Comment',b'Cette m\xc3\xa9thode peut uniquement \xc3\xaatre utilis\xc3\xa9e pour cr\xc3\xa9er un Commentaire'
@@ -847,7 +846,7 @@ b'apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +13',b'Inser
 b'DocType: Kanban Board Column',b'Blue',b'Bleu'
 b'apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +168',b'All customizations will be removed. Please confirm.',b'Toutes les personnalisations seront supprim\xc3\xa9es. Veuillez confirmer.'
 b'DocType: Page',b'Page HTML',b'Page HTML'
-b'apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +69',b'Group name cannot be empty.',b'Le nom du groupe ne peut pas \xc3\xaatre vide.'
+b'apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +70',b'Group name cannot be empty.',b'Le nom du groupe ne peut pas \xc3\xaatre vide.'
 b'apps/frappe/frappe/public/js/frappe/views/treeview.js +289',"b""Further nodes can be only created under 'Group' type nodes""","b""D'autres n\xc5\x93uds peuvent \xc3\xaatre cr\xc3\xa9\xc3\xa9s uniquement sous les n\xc5\x93uds de type 'Groupe'"""
 b'DocType: SMS Parameter',b'Header',b'En-T\xc3\xaate'
 b'apps/frappe/frappe/public/js/frappe/model/model.js +90',b'Unknown Column: {0}',b'Colonne Inconnue : {0}'
@@ -873,7 +872,7 @@ b'DocType: User',b'Represents a User in the system.',b'Repr\xc3\xa9sente un Util
 b'DocType: Communication',b'Label',b'\xc3\x89tiquette'
 b'apps/frappe/frappe/desk/form/assign_to.py +145',"b'The task {0}, that you assigned to {1}, has been closed.'","b'La t\xc3\xa2che {0}, que vous avez attribu\xc3\xa9e \xc3\xa0 {1}, a \xc3\xa9t\xc3\xa9 ferm\xc3\xa9e.'"
 b'DocType: User',b'Modules Access',b'Acc\xc3\xa8s aux Modules'
-b'apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +253',b'Please close this window',b'Veuillez fermer cette fen\xc3\xaatre'
+b'apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +255',b'Please close this window',b'Veuillez fermer cette fen\xc3\xaatre'
 b'DocType: Print Format',b'Print Format Type',"b""Type de Format d'Impression"""
 b'DocType: Newsletter',b'A Lead with this Email Address should exist',b'Un Prospect avec cette Adresse Email devrait exister'
 b'apps/frappe/frappe/public/js/frappe/ui/toolbar/about.js +7',b'Open Source Applications for the Web',b'Applications Open Source pour le Web'
@@ -889,8 +888,8 @@ b'DocType: Data Export',b'Excel',b'Exceller'
 b'apps/frappe/frappe/templates/emails/password_update.html +2',b'Your password has been updated. Here is your new password',b'Votre mot de passe a \xc3\xa9t\xc3\xa9 mis \xc3\xa0 jour. Voici votre nouveau mot de passe'
 b'DocType: Email Account',b'Auto Reply Message',b'Message de R\xc3\xa9ponse Automatique'
 b'DocType: Feedback Trigger',b'Condition',b'Conditions'
-b'apps/frappe/frappe/utils/data.py +576',b'{0} hours ago',b'Il y a {0} heures'
-b'apps/frappe/frappe/utils/data.py +586',b'1 month ago',b'Il y a 1 mois'
+b'apps/frappe/frappe/utils/data.py +580',b'{0} hours ago',b'Il y a {0} heures'
+b'apps/frappe/frappe/utils/data.py +590',b'1 month ago',b'Il y a 1 mois'
 b'DocType: Contact',b'User ID',"b""ID de l'Utilisateur"""
 b'DocType: Communication',b'Sent',b'Envoy\xc3\xa9'
 b'DocType: Address',b'Kerala',b'Kerala'
@@ -910,7 +909,7 @@ b'DocType: Email Queue',b'Unsubscribe Method',b'M\xc3\xa9thode de D\xc3\xa9sinsc
 b'DocType: GSuite Templates',b'Related DocType',b'DocType Li\xc3\xa9'
 b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +674',b'Edit to add content',b'Modifier pour ajouter du contenu'
 b'apps/frappe/frappe/public/js/frappe/views/communication.js +80',b'Select Languages',b'S\xc3\xa9lectionner les Langues'
-b'apps/frappe/frappe/__init__.py +536',b'No permission for {0}',"b""Pas d'autorisation pour {0}"""
+b'apps/frappe/frappe/__init__.py +539',b'No permission for {0}',"b""Pas d'autorisation pour {0}"""
 b'DocType: DocType',b'Advanced',b'Avanc\xc3\xa9'
 b'apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +79',b'Seems API Key or API Secret is wrong !!!',b'Il semble que la Cl\xc3\xa9 API ou le Secret API soit faux !!!'
 b'apps/frappe/frappe/templates/emails/auto_reply.html +3',b'Reference: {0} {1}',b'R\xc3\xa9f\xc3\xa9rence : {0} {1}'
@@ -926,7 +925,7 @@ b'apps/frappe/frappe/desk/page/activity/activity_row.html +21',b'Updated {0}: {1
 b'apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16',b'Master',b'Ma\xc3\xaetre'
 b'DocType: DocType',b'User Cannot Create',"b""L'utilisateur ne peut pas Cr\xc3\xa9er"""
 b'apps/frappe/frappe/core/doctype/file/file.py +320',b'Folder {0} does not exist',"b""Dossier {0} n'existe pas"""
-b'apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +278',b'Dropbox access is approved!',b'Acc\xc3\xa8s Dropbox approuv\xc3\xa9!'
+b'apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +280',b'Dropbox access is approved!',b'Acc\xc3\xa8s Dropbox approuv\xc3\xa9!'
 b'DocType: Customize Form',b'Enter Form Type',b'Entrez le Type de Formulaire'
 b'apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +13',b'Missing parameter Kanban Board Name',b'Param\xc3\xa8tre manquant Nom du tableau Kanban'
 b'apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html +5',b'No records tagged.',b'Aucun enregistrement \xc3\xa9tiquet\xc3\xa9.'
@@ -935,7 +934,7 @@ b'apps/frappe/frappe/public/js/frappe/request.js +16',b'You are not connected to
 b'DocType: User',b'Send Password Update Notification',b'Envoyer la Notification de Changement de Mot de Passe'
 b'apps/frappe/frappe/public/js/legacy/form.js +62',"b'Allowing DocType, DocType. Be careful!'","b'Autorisation de DocType, DocType. Soyez prudent !'"
 b'apps/frappe/frappe/config/core.py +32',"b'Customized Formats for Printing, Email'","b""Formats Personnalis\xc3\xa9s pour l'Impression, l'Email"""
-b'apps/frappe/frappe/public/js/frappe/desk.js +464',b'Updated To New Version',b'Mis \xc3\xa0 Jour vers la Nouvelle Version'
+b'apps/frappe/frappe/public/js/frappe/desk.js +471',b'Updated To New Version',b'Mis \xc3\xa0 Jour vers la Nouvelle Version'
 b'DocType: Custom Field',b'Depends On',b'D\xc3\xa9pend De'
 b'DocType: Kanban Board Column',b'Green',b'Vert'
 b'DocType: Custom DocPerm',b'Additional Permissions',b'Autorisations Suppl\xc3\xa9mentaires'
@@ -960,7 +959,7 @@ b'DocType: Address',b'Is Your Company Address',"b""Est l'Adresse de votre Entrep
 b'apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +4',b'Editing Row',b'Modifier Ligne'
 b'DocType: Workflow Action',b'Workflow Action Master',b'Actions de Base du Flux de Travail'
 b'DocType: Custom Field',b'Field Type',b'Type de Champ'
-b'apps/frappe/frappe/utils/data.py +494',b'only.',b'seulement.'
+b'apps/frappe/frappe/utils/data.py +498',b'only.',b'seulement.'
 b'apps/frappe/frappe/core/doctype/user/user.py +1014',b'OTP secret can only be reset by the Administrator.',"b""Le Secret OTP ne peut \xc3\xaatre r\xc3\xa9initialis\xc3\xa9 que par l'Administrateur."""
 b'apps/frappe/frappe/utils/password_strength.py +135',b'Avoid years that are associated with you.',b'\xc3\x89vitez les ann\xc3\xa9es qui vous sont associ\xc3\xa9es.'
 b'DocType: GSuite Templates',b'GSuite Templates',b'Mod\xc3\xa8les GSuite'
@@ -991,7 +990,7 @@ b'apps/frappe/frappe/email/doctype/email_alert/email_alert.py +35',b'Please spec
 b'DocType: Custom DocPerm',b'Set User Permissions',b'D\xc3\xa9finir les Autorisations des Utilisateurs'
 b'DocType: Email Account',b'Email Account Name',b'Nom du Compte Email'
 b'apps/frappe/frappe/core/page/permission_manager/permission_manager.js +259',b'Select Document Types',b'S\xc3\xa9lectionner les Types de Document'
-b'apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +228',b'Something went wrong while generating dropbox access token. Please check error log for more details.',"b""Quelque chose s'est mal pass\xc3\xa9 pendant la g\xc3\xa9n\xc3\xa9ration du jeton d'acc\xc3\xa8s Dropbox. Veuillez v\xc3\xa9rifier le log d'erreurs pour plus de d\xc3\xa9tails."""
+b'apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +230',b'Something went wrong while generating dropbox access token. Please check error log for more details.',"b""Quelque chose s'est mal pass\xc3\xa9 pendant la g\xc3\xa9n\xc3\xa9ration du jeton d'acc\xc3\xa8s Dropbox. Veuillez v\xc3\xa9rifier le log d'erreurs pour plus de d\xc3\xa9tails."""
 b'DocType: File',b'old_parent',b'grand_parent'
 b'apps/frappe/frappe/config/desk.py +54',"b'Newsletters to contacts, leads.'","b'Newsletters aux contacts, prospects.'"
 b'DocType: Email Account',"b'e.g. ""Support"", ""Sales"", ""Jerry Yang""'","b'e.g. ""Support"",""Vente"",""Jerry Yang""'"
@@ -1034,7 +1033,7 @@ b'DocType: Web Form',b'Actions',b'Actions'
 b'DocType: Workflow State',b'align-justify',b'align\xc3\xa9-justifi\xc3\xa9'
 b'DocType: User',b'Middle Name (Optional)',b'Deuxi\xc3\xa8me Pr\xc3\xa9nom (Optionnel)'
 b'apps/frappe/frappe/public/js/frappe/request.js +103',b'Not Permitted',b'Non Autoris\xc3\xa9'
-b'apps/frappe/frappe/public/js/frappe/ui/field_group.js +90',b'Following fields have missing values:',b'Les champs suivants ont des valeurs manquantes:'
+b'apps/frappe/frappe/public/js/frappe/ui/field_group.js +89',b'Following fields have missing values:',b'Les champs suivants ont des valeurs manquantes:'
 b'apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py +29',b'First Transaction',b'Premi\xc3\xa8re transaction'
 b'apps/frappe/frappe/app.py +164',b'You do not have enough permissions to complete the action',"b""Vous ne disposez pas de suffisamment d'autorisations pour compl\xc3\xa9ter l'action"""
 b'apps/frappe/frappe/public/js/frappe/form/link_selector.js +103',b'No Results',b'Aucun R\xc3\xa9sultat'
@@ -1075,7 +1074,7 @@ b'apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.js +32
 b'DocType: System Settings',b'Backups',b'Sauvegardes'
 b'apps/frappe/frappe/core/doctype/communication/communication.js +77',b'Add Contact',b'Ajouter le Contact'
 b'DocType: Email Alert Recipient',b'Optional: Always send to these ids. Each Email Address on a new row',b'Optionel : Toujours envoyer \xc3\xa0 ces ids. Chaque Adresse Email sera sur une nouvelle ligne'
-b'apps/frappe/frappe/public/js/frappe/form/layout.js +177',b'Hide Details',b'Masquer les D\xc3\xa9tails'
+b'apps/frappe/frappe/public/js/frappe/form/layout.js +170',b'Hide Details',b'Masquer les D\xc3\xa9tails'
 b'apps/frappe/frappe/www/qrcode.py +32',b'Page has expired!',b'La Page a Expir\xc3\xa9!'
 b'DocType: Workflow State',b'Tasks',b'T\xc3\xa2ches'
 b'DocType: Event',b'Tuesday',b'Mardi'
@@ -1084,18 +1083,18 @@ b'apps/frappe/frappe/templates/emails/new_user.html +16',b'You can also copy-pas
 b'DocType: Workflow State',b'bullhorn',b'M\xc3\xa9gaphone (bullhorn)'
 b'DocType: Footer Item',b'Target',b'Cible'
 b'DocType: System Settings',b'Number of Backups',b'Nombre de Sauvegardes'
+b'apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55',b'&gt; {0} year(s) ago',b'&gt; {0} ann\xc3\xa9e (s) il y a'
 b'DocType: Website Settings',b'Copyright',"b""Droit d'Auteur"""
 b'apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +58',b'Go',b'Aller'
 b'DocType: OAuth Authorization Code',b'Invalid',b'Invalide'
 b'DocType: ToDo',b'Due Date',"b""Date d'\xc3\x89ch\xc3\xa9ance"""
 b'apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +141',b'Quarter Day',b'Quart de Journ\xc3\xa9e'
 b'DocType: Website Settings',b'Hide Footer Signup',b'Masquer l\xe2\x80\x99Inscription dans le Pied de Page'
-b'apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55',b'&gt; {0} year(s) ago',b'&gt; {0} ann\xc3\xa9e (s) il y a'
 b'apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +438',b'cancelled this document',b'ce document est annul\xc3\xa9'
 b'apps/frappe/frappe/core/doctype/report/report.js +16',b'Write a Python file in the same folder where this is saved and return column and result.',b'\xc3\x89crire un fichier Python dans le m\xc3\xaame dossier o\xc3\xb9 cela est sauvegard\xc3\xa9 et retourner la colonne et le r\xc3\xa9sultat.'
 b'DocType: DocType',b'Sort Field',b'Champ de Tri'
 b'DocType: Razorpay Settings',b'Razorpay Settings',b'R\xc3\xa9glages Razorpay'
-b'apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +252',b'Edit Filter',b'Modifier le Filtre'
+b'apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +257',b'Edit Filter',b'Modifier le Filtre'
 b'apps/frappe/frappe/core/doctype/doctype/doctype.py +451',b'Field {0} of type {1} cannot be mandatory',b'Champ {0} de type {1} ne peut pas \xc3\xaatre obligatoire'
 b'apps/frappe/frappe/public/js/frappe/ui/slides.js +29',b'Add More',b'Ajouter Plus'
 b'DocType: System Settings',b'Session Expiry Mobile',b'Expiration de Session Mobile'
@@ -1180,7 +1179,7 @@ b'apps/frappe/frappe/model/naming.py +183',b'Name of {0} cannot be {1}',b'Nom de
 b'apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +33',b'From Date',b'A partir du'
 b'apps/frappe/frappe/core/doctype/version/version_view.html +47',b'Success',b'R\xc3\xa9ussite'
 b'apps/frappe/frappe/public/js/frappe/feedback.js +95',b'Feedback Request for {0} is sent to {1}',"b""Demande de Retour d'Exp\xc3\xa9rience {0} est envoy\xc3\xa9 \xc3\xa0 {1}"""
-b'apps/frappe/frappe/public/js/frappe/desk.js +383',b'Session Expired',b'La Session a Expir\xc3\xa9'
+b'apps/frappe/frappe/public/js/frappe/desk.js +390',b'Session Expired',b'La Session a Expir\xc3\xa9'
 b'DocType: Kanban Board Column',b'Kanban Board Column',b'Colonne Tableau Kanban'
 b'apps/frappe/frappe/utils/password_strength.py +98',b'Straight rows of keys are easy to guess',b'Lignes droites de touches sont faciles \xc3\xa0 deviner'
 b'DocType: Communication',b'Phone No.',b'N\xc2\xb0 de T\xc3\xa9l\xc3\xa9phone.'
@@ -1200,11 +1199,11 @@ b'apps/frappe/frappe/model/db_schema.py +147',"b""Reverting length to {0} for '{
 b'DocType: Print Format',b'Custom CSS',b'CSS Personnalis\xc3\xa9'
 b'apps/frappe/frappe/public/js/frappe/ui/comment.js +36',b'Add a comment',b'Ajouter un commentaire'
 b'DocType: Webhook',b'on_update',b'on_update'
-b'apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +58',b'{type} room must have atmost one user.',b'{type} room doit avoir au moins un utilisateur.'
+b'apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +59',b'{type} room must have atmost one user.',b'{type} room doit avoir au moins un utilisateur.'
 b'apps/frappe/frappe/model/rename_doc.py +383',b'Ignored: {0} to {1}',b'Ignor\xc3\xa9 : {0} \xc3\xa0 {1}'
 b'DocType: Address',b'Gujarat',b'Gujarat'
 b'apps/frappe/frappe/config/setup.py +75',b'Log of error on automated events (scheduler).',"b""Registre d'erreur sur les \xc3\xa9v\xc3\xa9nements automatiques (planificateur) ."""
-b'apps/frappe/frappe/utils/csvutils.py +79',b'Not a valid Comma Separated Value (CSV File)',b'Valeurs S\xc3\xa9par\xc3\xa9es par des Virgules non valides (Fichier CSV)'
+b'apps/frappe/frappe/utils/csvutils.py +80',b'Not a valid Comma Separated Value (CSV File)',b'Valeurs S\xc3\xa9par\xc3\xa9es par des Virgules non valides (Fichier CSV)'
 b'DocType: Address',b'Postal',b'Postal'
 b'DocType: Email Account',b'Default Incoming',b'Entrant par D\xc3\xa9faut'
 b'DocType: Workflow State',b'repeat',b'r\xc3\xa9p\xc3\xa9ter'
@@ -1240,7 +1239,7 @@ b'DocType: Communication',b'Recipient Unsubscribed',b'Destinataire D\xc3\xa9sins
 b'DocType: Feedback Request',b'Is Sent',b'Est Envoy\xc3\xa9'
 b'apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +68',b'About',b'\xc3\x80 propos'
 b'apps/frappe/frappe/core/doctype/data_export/exporter.py +126',"b'For updating, you can update only selective columns.'","b'Pour la mise \xc3\xa0 jour, vous pouvez mettre \xc3\xa0 jour uniquement une s\xc3\xa9lection colonnes.'"
-b'DocType: Address',b'Country',b'Pays'
+b'DocType: Chat Token',b'Country',b'Pays'
 b'apps/frappe/frappe/contacts/doctype/address/address.py +135',b'Addresses',b'Adresses'
 b'DocType: Communication',b'Shared',b'Partag\xc3\xa9'
 b'apps/frappe/frappe/public/js/frappe/views/communication.js +76',b'Attach Document Print',"b""Joindre l'Impression de Document"""
@@ -1255,7 +1254,6 @@ b'DocType: Workflow State',b'list-alt',b'liste-alt'
 b'apps/frappe/frappe/www/update-password.html +87',b'Password Updated',b'Mot de Passe Mis \xc3\xa0 Jour'
 b'apps/frappe/frappe/www/qrcode.html +11',b'Steps to verify your login',b'\xc3\x89tapes pour v\xc3\xa9rifier votre connexion'
 b'apps/frappe/frappe/utils/password.py +19',b'Password not found',b'Mot de Passe non trouv\xc3\xa9'
-b'apps/frappe/frappe/email/smtp.py +172',b'Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account',b'Le compte de messagerie n&#39;est pas configur\xc3\xa9. Veuillez cr\xc3\xa9er un nouveau compte de messagerie depuis Configuration&gt; E-mail&gt; Compte de messagerie'
 b'DocType: Data Migration Mapping',b'Page Length',b'Longueur de la Page'
 b'DocType: Email Queue',b'Expose Recipients',b'Exposer Destinataires'
 b'apps/frappe/frappe/email/doctype/email_account/email_account.py +60',b'Append To is mandatory for incoming mails',b'Ajouter \xc3\x80 est obligatoire pour les mails entrants'
@@ -1285,7 +1283,6 @@ b'DocType: SMS Settings',b'Message Parameter',b'Param\xc3\xa8tre Message'
 b'DocType: Help Article',b'Likes',b'Aime'
 b'DocType: Website Settings',b'Top Bar',b'Barre Sup\xc3\xa9rieure'
 b'DocType: GSuite Settings',b'Script Code',b'Code du Script'
-b'apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357',"b""<p>No results found for '</p>""",b'<p> Aucun r\xc3\xa9sultat trouv\xc3\xa9 pour &#39; </p>'
 b'apps/frappe/frappe/core/doctype/user/user.js +136',b'Create User Email',b'Cr\xc3\xa9er un Email Utilisateur'
 b'apps/frappe/frappe/core/doctype/doctype/doctype.py +701',b'No Permissions Specified',b'Aucune Autorisation Sp\xc3\xa9cifi\xc3\xa9e'
 b'apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py +299',b'{0} not found',b'{0} introuvable'
@@ -1326,7 +1323,7 @@ b'DocType: Website Theme',b'Text Color',b'Couleur du Texte'
 b'apps/frappe/frappe/desk/page/backups/backups.py +72',b'Backup job is already queued. You will receive an email with the download link',"b""La sauvegarde est d\xc3\xa9j\xc3\xa0 mise en file d'attente. Vous recevrez un email avec le lien de t\xc3\xa9l\xc3\xa9chargement"""
 b'DocType: Desktop Icon',b'Force Show',"b""Forcer l'Affichage"""
 b'apps/frappe/frappe/auth.py +82',b'Invalid Request',b'Requ\xc3\xaate Invalide'
-b'apps/frappe/frappe/public/js/frappe/form/layout.js +35',b'This form does not have any input',"b""Ce formulaire n'a aucune entr\xc3\xa9e"""
+b'apps/frappe/frappe/public/js/frappe/form/layout.js +28',b'This form does not have any input',"b""Ce formulaire n'a aucune entr\xc3\xa9e"""
 b'apps/frappe/frappe/core/doctype/system_settings/system_settings.py +27',b'Session Expiry must be in format {0}',b'Expiration de Session doit \xc3\xaatre au format {0}'
 b'DocType: Chat Message',b'Group',b'Groupe'
 b'DocType: Footer Item',"b'Select target = ""_blank"" to open in a new page.'","b'S\xc3\xa9lectionner target = ""_blank"" pour ouvrir dans une nouvelle page.'"
@@ -1354,7 +1351,7 @@ b'DocType: Social Login Key',b'Identity Details',b'D\xc3\xa9tails de l&#39;ident
 b'DocType: File',b'Preview HTML',b'Aper\xc3\xa7u HTML'
 b'DocType: Desktop Icon',b'query-report',b'rapport-requ\xc3\xaate'
 b'apps/frappe/frappe/desk/doctype/todo/todo.py +20',b'Assigned to {0}: {1}',b'Attribu\xc3\xa9 \xc3\xa0 {0} : {1}'
-b'apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +122',b'Filters saved',b'Filtres sauvegard\xc3\xa9s'
+b'apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +68',b'Filters saved',b'Filtres sauvegard\xc3\xa9s'
 b'DocType: DocField',b'Percent',b'Pourcent'
 b'apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +361',b'Please set filters',b'Veuillez d\xc3\xa9finir des filtres'
 b'apps/frappe/frappe/public/js/frappe/form/linked_with.js +28',b'Linked With',b'Li\xc3\xa9 avec'
@@ -1392,14 +1389,14 @@ b'DocType: Auto Email Report',b'Report Filters',b'Filtres du Rapport'
 b'apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +16',b'now',b'maintenant'
 b'DocType: Workflow State',b'step-backward',b'vers-larri\xc3\xa8re'
 b'apps/frappe/frappe/utils/boilerplate.py +265',b'{app_title}',b'{app_title}'
-b'apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +212',b'Please set Dropbox access keys in your site config',"b""Veuillez d\xc3\xa9finir les cl\xc3\xa9s d'acc\xc3\xa8s Dropbox dans la configuration de votre site"""
+b'apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +214',b'Please set Dropbox access keys in your site config',"b""Veuillez d\xc3\xa9finir les cl\xc3\xa9s d'acc\xc3\xa8s Dropbox dans la configuration de votre site"""
 b'apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16',b'Delete this record to allow sending to this email address',"b""Supprimer cet enregistrement pour permettre l'envoi \xc3\xa0 cette adresse Email"""
 b'apps/frappe/frappe/core/doctype/data_export/exporter.py +125',b'Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.',b'Seuls les champs obligatoires sont n\xc3\xa9cessaires pour les nouveaux enregistrements. Vous pouvez supprimer des colonnes non obligatoires si vous le souhaitez.'
-b'apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +326',b'Unable to update event',"b""Impossible de mettre \xc3\xa0 jour l'\xc3\xa9v\xc3\xa9nement"""
+b'apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +330',b'Unable to update event',"b""Impossible de mettre \xc3\xa0 jour l'\xc3\xa9v\xc3\xa9nement"""
 b'apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +304',b'Payment Complete',b'Paiement Complet'
 b'apps/frappe/frappe/twofactor.py +204',b'Verification code has been sent to your registered email address.',b'Le code de v\xc3\xa9rification a \xc3\xa9t\xc3\xa9 envoy\xc3\xa9 \xc3\xa0 votre adresse e-mail enregistr\xc3\xa9e.'
 b'apps/frappe/frappe/core/doctype/user/user.py +1021',b'Throttled',b'\xc3\x89trangl\xc3\xa9'
-b'apps/frappe/frappe/utils/data.py +764',"b'Filter must have 4 values (doctype, fieldname, operator, value): {0}'","b'Le Filtre doit avoir 4 valeurs (doctype, nom du champ, op\xc3\xa9rateur, valeur) : {0}'"
+b'apps/frappe/frappe/utils/data.py +768',"b'Filter must have 4 values (doctype, fieldname, operator, value): {0}'","b'Le Filtre doit avoir 4 valeurs (doctype, nom du champ, op\xc3\xa9rateur, valeur) : {0}'"
 b'apps/frappe/frappe/utils/bot.py +89',b'show',b'montrer'
 b'DocType: Address Template',b'Address Template',"b""Mod\xc3\xa8le d'Adresse"""
 b'DocType: Workflow State',b'text-height',b'Hauteur-texte'
@@ -1416,7 +1413,7 @@ b'DocType: Data Import',b'Generated File',b'Fichier g\xc3\xa9n\xc3\xa9r\xc3\xa9'
 b'DocType: Transaction Log',b'Previous Hash',b'Hash pr\xc3\xa9c\xc3\xa9dent'
 b'DocType: File',b'Is Attachments Folder',b'Est Dossier de Pi\xc3\xa8ces Jointes'
 b'apps/frappe/frappe/public/js/frappe/views/treeview.js +75',b'Expand All',b'D\xc3\xa9velopper Tout'
-b'apps/frappe/frappe/public/js/frappe/chat.js +1589',b'Select a chat to start messaging.',b'S\xc3\xa9lectionnez une conversation pour d\xc3\xa9marrer la messagerie.'
+b'apps/frappe/frappe/public/js/frappe/chat.js +2153',b'Select a chat to start messaging.',b'S\xc3\xa9lectionnez une conversation pour d\xc3\xa9marrer la messagerie.'
 b'apps/frappe/frappe/templates/includes/login/login.js +52',b'Valid Login id required.',b'Un Identifiant de Connexion valide est n\xc3\xa9c\xc3\xa9ssaire.'
 b'apps/frappe/frappe/model/rename_doc.py +367',b'Please select a valid csv file with data',b'Veuillez s\xc3\xa9lectionner un fichier CSV valide contenant des donn\xc3\xa9es'
 b'apps/frappe/frappe/core/doctype/docshare/docshare.py +56',b'{0} un-shared this document with {1}',b'{0} ne partage plus ce document avec {1}'
@@ -1466,7 +1463,7 @@ b'apps/frappe/frappe/core/doctype/data_import/data_import_list.js +11',b'Pending
 b'DocType: System Settings',b'Allow only one session per user',b'Autoriser une seule session par utilisateur'
 b'apps/frappe/frappe/core/doctype/file/test_file.py +74',b'Home/Test Folder 1/Test Folder 3',b'Accueil / Dossier Test 1 / Dossier Test 3'
 b'DocType: Website Settings',b'&lt;head&gt; HTML',b'HTML'
-b'apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +117',b'Select or drag across time slots to create a new event.',b'S\xc3\xa9lectionner ou glisser sur des intervalles de temps pour cr\xc3\xa9er un nouvel \xc3\xa9v\xc3\xa9nement.'
+b'apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +121',b'Select or drag across time slots to create a new event.',b'S\xc3\xa9lectionner ou glisser sur des intervalles de temps pour cr\xc3\xa9er un nouvel \xc3\xa9v\xc3\xa9nement.'
 b'DocType: DocField',b'In Filter',b'Dans le Filtre'
 b'apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +32',b'Kanban',b'Kanban'
 b'DocType: DocType',b'Show in Module Section',b'Afficher la Section Module'
@@ -1486,6 +1483,7 @@ b'DocType: System Settings',b'OTP App',b'Application OTP'
 b'apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +21',b'Document ID',b'ID de Document'
 b'DocType: Print Settings',b'Letter',b'Lettre'
 b'apps/frappe/frappe/core/doctype/doctype/doctype.py +598',b'Image field must be of type Attach Image',"b""Champ de l'image doit \xc3\xaatre du type Image Jointe"""
+b'apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357',"b""<p>No results found for '</p>""",b'<p> Aucun r\xc3\xa9sultat trouv\xc3\xa9 pour &#39; </p>'
 b'DocType: DocField',b'Columns',b'Colonnes'
 b'apps/frappe/frappe/desk/form/assign_to.py +71',b'Shared with user {0} with read access',b'Partag\xc3\xa9 avec l&#39;utilisateur {0} avec acc\xc3\xa8s en lecture'
 b'DocType: Async Task',b'Succeeded',b'R\xc3\xa9ussi'
@@ -1516,7 +1514,7 @@ b'apps/frappe/frappe/public/js/frappe/form/quick_entry.js +207',b'Edit in full p
 b'DocType: Report',b'Add Total Row',b'Ajouter une Ligne Totale'
 b'apps/frappe/frappe/twofactor.py +201',b'Please check your registered email address for instructions on how to proceed. Do not close this window as you will have to return to it.',b'V\xc3\xa9rifiez votre adresse e-mail enregistr\xc3\xa9e pour obtenir des instructions sur la proc\xc3\xa9dure \xc3\xa0 suivre. Ne fermez pas cette fen\xc3\xaatre car vous devrez y retourner.'
 b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +19',b'For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.',"b'Par exemple, si vous annulez et modifiez le document INV004, il deviendra un nouveau document INV004-1. Cela vous aide \xc3\xa0 garder une trace de chaque modification.'"
-b'apps/frappe/frappe/core/doctype/data_export/data_export.js +41',b'Atleast one field of Parent Document Type is mandatory',b'Au moins un champ du type de document parent est obligatoire'
+b'apps/frappe/frappe/core/doctype/data_export/data_export.js +40',b'Atleast one field of Parent Document Type is mandatory',b'Au moins un champ du type de document parent est obligatoire'
 b'apps/frappe/frappe/config/setup.py +171',b'Setup Reports to be emailed at regular intervals',b'Configurer les Rapports pour \xc3\xaatre envoyer par email \xc3\xa0 intervalles r\xc3\xa9guliers'
 b'DocType: Workflow Document State',b'0 - Draft; 1 - Submitted; 2 - Cancelled',b'0 - Brouillon; 1 - Soumis; 2 - Annul\xc3\xa9'
 b'DocType: File',b'Attached To DocType',b'Joint au DocType'
@@ -1575,6 +1573,7 @@ b'apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +283',b'Loadi
 b'apps/frappe/frappe/limits.py +74',b'Your subscription will expire today.',"b""Votre abonnement expirera aujourd'hui."""
 b'DocType: Page',b'Standard',b'Standard'
 b'apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +50',b'Attach File',b'Joindre un Fichier'
+b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8',b'Setup &gt; User',b'Configuration&gt; Utilisateur'
 b'apps/frappe/frappe/desk/page/backups/backups.html +13',b'Size',b'Taille'
 b'apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +59',b'Assignment Complete',"b""Terminer l'Affectation"""
 b'DocType: Custom DocPerm',b'User Permission DocTypes',"b""DocTypes d'Autorisation de l'Utilisateur"""
@@ -1666,7 +1665,7 @@ b'DocType: Address',b'Fax',b'Fax'
 b'apps/frappe/frappe/config/setup.py +256',b'Custom Tags',b'Balises Personnalis\xc3\xa9es'
 b'DocType: Communication',b'Submitted',b'Soumis'
 b'DocType: System Settings',b'Email Footer Address',b'Pied de Page Email'
-b'apps/frappe/frappe/public/js/frappe/form/grid.js +636',b'Table updated',b'Table Mise \xc3\xa0 Jour'
+b'apps/frappe/frappe/public/js/frappe/form/grid.js +628',b'Table updated',b'Table Mise \xc3\xa0 Jour'
 b'DocType: Activity Log',b'Timeline DocType',b'DocType Chronologie'
 b'DocType: DocField',b'Text',b'Texte'
 b'apps/frappe/frappe/config/setup.py +166',b'Standard replies to common queries.',b'R\xc3\xa9ponse standard aux questions communes.'
@@ -1692,6 +1691,7 @@ b'DocType: Report',b'Report Builder',b'\xc3\x89diteur de Rapports'
 b'DocType: Async Task',b'Task Name',b'Nom de la T\xc3\xa2che'
 b'apps/frappe/frappe/app.py +158',"b'Your session has expired, please login again to continue.'","b'Votre session a expir\xc3\xa9, connectez-vous \xc3\xa0 nouveau pour continuer.'"
 b'DocType: Communication',b'Workflow',b'Flux de Travail'
+b'DocType: Website Settings',b'Welcome Message',b'Message de bienvenue'
 b'DocType: Webhook',b'Webhook Headers',b'En-T\xc3\xaates Webhook'
 b'DocType: Workflow State',b'Upload',b'Charger'
 b'DocType: System Settings',b'Date Format',b'Format de Date'
@@ -1734,6 +1734,7 @@ b'DocType: Website Settings',b'Disable Customer Signup link in Login page',"b""D
 b'apps/frappe/frappe/desk/report/todo/todo.py +20',b'Assigned To/Owner',b'Assign\xc3\xa9 \xc3\x80 /Responsable'
 b'DocType: Workflow State',b'arrow-left',b'fl\xc3\xa8che-gauche'
 b'DocType: Workflow State',b'fullscreen',b'Plein \xc3\x89cran'
+b'DocType: Chat Token',b'Chat Token',b'Jeton de chat'
 b'apps/frappe/frappe/templates/emails/feedback_request_url.html +8',b'1 star being lowest & 5 stars being highest rating',b'1 \xc3\xa9toile \xc3\xa9tant la pire note et 5 \xc3\xa9toiles \xc3\xa9tant la meilleure note'
 b'DocType: Event',b'Ref Name',b'Nom de R\xc3\xa9f.'
 b'DocType: Web Page',b'Center',b'Centre'
@@ -1744,10 +1745,10 @@ b'DocType: Workflow Document State',b'Represents the states allowed in one docum
 b'DocType: Data Migration Connector',b'Database Name',b'Nom de la Base de Donn\xc3\xa9es'
 b'apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +71',b'Refresh Form',b'Actualiser le Formulaire'
 b'DocType: DocField',b'Select',b'S\xc3\xa9lectionner'
-b'apps/frappe/frappe/utils/csvutils.py +28',b'File not attached',b'Fichier joint manquant'
-b'apps/frappe/frappe/public/js/frappe/dom.js +262',b'Connection lost. Some features might not work.',b'Connexion perdue. Certaines fonctionnalit\xc3\xa9s peuvent ne pas fonctionner.'
+b'apps/frappe/frappe/utils/csvutils.py +29',b'File not attached',b'Fichier joint manquant'
+b'apps/frappe/frappe/public/js/frappe/dom.js +273',b'Connection lost. Some features might not work.',b'Connexion perdue. Certaines fonctionnalit\xc3\xa9s peuvent ne pas fonctionner.'
 b'apps/frappe/frappe/utils/password_strength.py +115',"b'Repeats like ""aaa"" are easy to guess'","b'Les r\xc3\xa9p\xc3\xa9titions comme ""aaa"" sont faciles \xc3\xa0 deviner'"
-b'apps/frappe/frappe/public/js/frappe/chat.js +1477',b'New Chat',b'Nouveau chat'
+b'apps/frappe/frappe/public/js/frappe/chat.js +1595',b'New Chat',b'Nouveau chat'
 b'DocType: Top Bar Item',"b'If you set this, this Item will come in a drop-down under the selected parent.'","b'Si vous d\xc3\xa9finissez ceci, cet Article sera dans un menu d\xc3\xa9roulant sous le parent s\xc3\xa9lectionn\xc3\xa9.'"
 b'DocType: Print Format',b'Show Section Headings',b'Voir la Section Titres'
 b'DocType: Bulk Update',b'Limit',b'Limite'
@@ -1821,6 +1822,7 @@ b'apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +84',b
 b'apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +125',b'Cannot {0} {1}',b'Impossible de {0} {1}'
 b'DocType: Custom DocPerm',b'Apply this rule if the User is the Owner',"b""Appliquer cette r\xc3\xa8gle si l'Utilisateur est le Responsable"""
 b'apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +418',b'Will be your login ID',b'Sera votre identifiant de connexion'
+b'apps/frappe/frappe/email/smtp.py +69',b'Please setup default Email Account from Setup &gt; Email &gt; Email Account',b'Veuillez configurer le compte de messagerie par d\xc3\xa9faut depuis Configuration&gt; E-mail&gt; Compte de messagerie'
 b'apps/frappe/frappe/desk/page/activity/activity.js +45',b'Build Report',b'Cr\xc3\xa9er un Rapport'
 b'DocType: Note',b'Notify users with a popup when they log in',b'Informer les utilisateurs avec un popup quand ils se connectent'
 b'apps/frappe/frappe/model/rename_doc.py +118',"b'{0} {1} does not exist, select a new target to merge'","b""{0} {1} n'existe pas, veuillez s\xc3\xa9lectionner une nouvelle cible \xc3\xa0 fusionner"""
@@ -1860,7 +1862,7 @@ b'DocType: Role',b'Two Factor Authentication',b'Authentification \xc3\xa0 Double
 b'apps/frappe/frappe/templates/pages/integrations/braintree_checkout.html +29',b'Pay',b'Payer'
 b'DocType: SMS Settings',b'SMS Gateway URL',b'URL de la Passerelle SMS'
 b'apps/frappe/frappe/model/base_document.py +507',"b'{0} {1} cannot be ""{2}"". It should be one of ""{3}""'","b'{0} {1} ne peut pas \xc3\xaatre ""{2}"". Il devrait \xc3\xaatre l\'un de ""{3}""'"
-b'apps/frappe/frappe/utils/data.py +595',b'{0} or {1}',b'{0} ou {1}'
+b'apps/frappe/frappe/utils/data.py +599',b'{0} or {1}',b'{0} ou {1}'
 b'apps/frappe/frappe/core/doctype/user/user.py +249',b'Password Update',b'Mise \xc3\xa0 Jour du Mot de Passe'
 b'DocType: Workflow State',b'trash',b'corbeille'
 b'DocType: System Settings',b'Older backups will be automatically deleted',b'Les anciennes sauvegardes seront automatiquement supprim\xc3\xa9es'
@@ -2015,7 +2017,7 @@ b'DocType: System Settings',b'Choose authentication method to be used by all use
 b'apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +3',b'Doctype required',b'Doctype requis'
 b'DocType: Workflow State',b'ok-sign',b'ok-signe'
 b'apps/frappe/frappe/config/setup.py +139',b'Deleted Documents',b'Documents Supprim\xc3\xa9s'
-b'apps/frappe/frappe/public/js/frappe/form/grid.js +653',b'The CSV format is case sensitive',b'Le format CSV est sensible \xc3\xa0 la casse'
+b'apps/frappe/frappe/public/js/frappe/form/grid.js +645',b'The CSV format is case sensitive',b'Le format CSV est sensible \xc3\xa0 la casse'
 b'apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py +166',b'Desktop Icon already exists',"b""L'Ic\xc3\xb4ne du Bureau existe d\xc3\xa9j\xc3\xa0"""
 b'apps/frappe/frappe/public/js/frappe/form/toolbar.js +142',b'Duplicate',b'Dupliquer'
 b'DocType: Newsletter',b'Create and Send Newsletters',b'Cr\xc3\xa9er et Envoyer des Newsletters'
@@ -2039,7 +2041,7 @@ b'DocType: User',b'Location',b'Lieu'
 ,b'Permitted Documents For User',"b""Documents Autoris\xc3\xa9s pour l'Utilisateur"""
 b'apps/frappe/frappe/core/doctype/docshare/docshare.py +40',"b'You need to have ""Share"" permission'","b'Vous devez avoir l\'autorisation de ""Partager""'"
 b'DocType: Communication',b'Assignment Completed',b'Affectation Termin\xc3\xa9e'
-b'apps/frappe/frappe/public/js/frappe/form/grid.js +649',b'Bulk Edit {0}',b'Modifier en Masse {0}'
+b'apps/frappe/frappe/public/js/frappe/form/grid.js +641',b'Bulk Edit {0}',b'Modifier en Masse {0}'
 b'DocType: Email Alert Recipient',b'Email Alert Recipient',b'Alerte Email du Destinataire'
 b'apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js +7',b'Not active',b'Non actif'
 b'DocType: About Us Settings',b'Settings for the About Us Page',b'R\xc3\xa9glages pour la page \xc3\x80 Propos'
@@ -2074,6 +2076,7 @@ b'apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63',b'Option 2
 b'DocType: Feedback Trigger',b'Email Field',b'Champ Email'
 b'apps/frappe/frappe/www/update-password.html +68',b'New Password Required.',b'Nouveau Mot de Passe Requis.'
 b'apps/frappe/frappe/core/doctype/docshare/docshare.py +49',b'{0} shared this document with {1}',b'{0} a partag\xc3\xa9 ce document avec {1}'
+b'apps/frappe/frappe/public/js/frappe/ui/comment.js +217',b'Add your review',b'Ajoutez votre avis'
 b'DocType: Website Settings',b'Brand Image',b'Logo'
 b'DocType: Print Settings',b'A4',b'A4'
 b'apps/frappe/frappe/config/website.py +58',"b'Setup of top navigation bar, footer and logo.'","b'Configuration de la barre de navigation en haut, du pied de page et du logo.'"
@@ -2089,20 +2092,20 @@ b'DocType: Address',b'Sikkim',b'Sikkim'
 b'apps/frappe/frappe/core/page/permission_manager/permission_manager.js +443',b'Set',b'D\xc3\xa9finir'
 b'apps/frappe/frappe/desk/search.py +42',b'This query style is discontinued',b'Le style de cette requ\xc3\xaate est discontinu'
 b'DocType: Email Alert',b'Trigger Method',b'M\xc3\xa9thode de D\xc3\xa9clenchement'
-b'apps/frappe/frappe/utils/data.py +774',b'Operator must be one of {0}',"b""L'Op\xc3\xa9rateur doit \xc3\xaatre parmi {0}"""
+b'apps/frappe/frappe/utils/data.py +778',b'Operator must be one of {0}',"b""L'Op\xc3\xa9rateur doit \xc3\xaatre parmi {0}"""
 b'DocType: Dropbox Settings',b'Dropbox Access Token',"b""Jeton d'Acc\xc3\xa8s Dropbox"""
 b'DocType: Workflow State',b'align-right',b'align\xc3\xa9-droite'
 b'DocType: Auto Email Report',b'Email To',b'Email \xc3\x80'
 b'apps/frappe/frappe/core/doctype/file/file.py +235',b'Folder {0} is not empty',b'Dossier {0} n\xe2\x80\x99est pas vide'
 b'DocType: Page',b'Roles',b'R\xc3\xb4les'
 b'apps/frappe/frappe/model/base_document.py +399',b'Error: Value missing for {0}: {1}',b'Erreur: Valeur absente pour {0}: {1}'
-b'apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +146',b'Field {0} is not selectable.',"b""Champ {0} n'est pas s\xc3\xa9lectionnable."""
+b'apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +151',b'Field {0} is not selectable.',"b""Champ {0} n'est pas s\xc3\xa9lectionnable."""
 b'DocType: Webhook',b'Webhook',b'Webhook'
 b'DocType: System Settings',b'Session Expiry',b'Expiration de Session'
 b'DocType: Workflow State',b'ban-circle',b'Interdiction (ban-circle)'
 b'DocType: Email Flag Queue',b'Unread',b'Non Lus'
 b'DocType: Bulk Update',b'Desk',b'Bureau'
-b'apps/frappe/frappe/utils/data.py +758',b'Filter must be a tuple or list (in a list)',b'Le Filtre doit \xc3\xaatre un tuple ou une liste (dans une liste)'
+b'apps/frappe/frappe/utils/data.py +762',b'Filter must be a tuple or list (in a list)',b'Le Filtre doit \xc3\xaatre un tuple ou une liste (dans une liste)'
 b'apps/frappe/frappe/core/doctype/report/report.js +8',b'Write a SELECT query. Note result is not paged (all data is sent in one go).',"b""\xc3\x89crire une requ\xc3\xaate SELECT. Remarque : le r\xc3\xa9sultat n'est pas pagin\xc3\xa9 (toutes les donn\xc3\xa9es sont transmises en une seule fois)."""
 b'DocType: Email Account',b'Attachment Limit (MB)',b'Taille Maximale de la Pi\xc3\xa8ce jointe (MB)'
 b'DocType: Address',b'Arunachal Pradesh',b'Arunachal Pradesh'
@@ -2270,7 +2273,6 @@ b'DocType: Email Alert',b'Attach Print',"b""Joindre l'Impression"""
 b'apps/frappe/frappe/core/doctype/user/user.py +453',b'Suggested Username: {0}',"b""Nom d'Utilisateur Sugg\xc3\xa9r\xc3\xa9e : {0}"""
 b'apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +140',b'Day',b'Jour'
 ,b'Modules',b'Modules'
-b'apps/frappe/frappe/contacts/doctype/address/address.py +193',b'No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.',b'Aucun mod\xc3\xa8le d&#39;adresse par d\xc3\xa9faut trouv\xc3\xa9. Veuillez en cr\xc3\xa9er un nouveau \xc3\xa0 partir de Configuration&gt; Impression et marquage&gt; Mod\xc3\xa8le d&#39;adresse.'
 b'apps/frappe/frappe/core/doctype/user/user.js +74',b'Set Desktop Icons',b'D\xc3\xa9finir les Ic\xc3\xb4nes du Bureau'
 b'apps/frappe/frappe/templates/pages/integrations/payment-success.html +3',b'Payment Success',b'Paiement Effectu\xc3\xa9 avec Succ\xc3\xa8s'
 b'apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +159',b'No {0} mail',b'Pas de courrier {0}'
@@ -2300,6 +2302,7 @@ b'apps/frappe/frappe/core/doctype/communication/communication.js +65',b'Reply Al
 b'DocType: DocType',b'Setup',b'Configuration'
 b'DocType: Email Account',b'Initial Sync Count',b'Nombre de Synchronisation Initiale'
 b'apps/frappe/frappe/templates/includes/comments/comments.py +55',b'New comment on {0} {1}',b'Nouveau commentaire sur {0} {1}'
+b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33',b'Setup &gt; User Permissions Manager',b'Configuration&gt; Gestionnaire des autorisations utilisateur'
 b'DocType: Workflow State',b'glass',b'verre'
 b'DocType: DocType',b'Timeline Field',b'Champ Chronologie'
 b'DocType: Country',b'Time Zones',b'Fuseaux Horaires'
@@ -2336,7 +2339,7 @@ b'DocType: Email Flag Queue',b'Action',b'Action'
 b'DocType: GSuite Settings',b'Script URL',b'URL du Script'
 b'apps/frappe/frappe/www/update-password.html +119',b'Please enter the password',b'Veuillez entrer le mot de passe'
 b'apps/frappe/frappe/www/printview.py +84',b'Not allowed to print cancelled documents',b'Non autoris\xc3\xa9 \xc3\xa0 imprimer des documents annul\xc3\xa9s'
-b'apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +70',b'You are not allowed to create columns',b'Vous n&#39;\xc3\xaates pas autoris\xc3\xa9 \xc3\xa0 cr\xc3\xa9er des colonnes'
+b'apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +61',b'You are not allowed to create columns',b'Vous n&#39;\xc3\xaates pas autoris\xc3\xa9 \xc3\xa0 cr\xc3\xa9er des colonnes'
 b'DocType: Data Import',"b""If you don't want to create any new records while updating the older records.""",b'Si vous ne souhaitez pas cr\xc3\xa9er de nouveaux enregistrements lors de la mise \xc3\xa0 jour des anciens enregistrements.'
 b'apps/frappe/frappe/core/doctype/data_export/exporter.py +85',b'Info:',b'Info :'
 b'DocType: Custom Field',b'Permission Level',"b""Niveau d'Autorisation"""
@@ -2344,7 +2347,7 @@ b'DocType: User',b'Send Notifications for Transactions I Follow',b'Envoyer des n
 b'apps/frappe/frappe/core/doctype/doctype/doctype.py +752',"b'{0}: Cannot set Submit, Cancel, Amend without Write'","b'{0} : Vous ne pouvez pas choisir Envoyer, Annuler, Modifier sans \xc3\x89crire'"
 b'DocType: Google Maps',b'Client Key',b'Cl\xc3\xa9 client'
 b'apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +83',b'Are you sure you want to delete the attachment?',b'\xc3\x8ates-vous s\xc3\xbbr de vouloir supprimer la pi\xc3\xa8ce jointe?'
-b'apps/frappe/frappe/__init__.py +1094',b'Thank you',b'Merci'
+b'apps/frappe/frappe/__init__.py +1097',b'Thank you',b'Merci'
 b'apps/frappe/frappe/public/js/frappe/form/save.js +11',b'Saving',"b""En Cours d'Enregistrement"""
 b'DocType: Print Settings',b'Print Style Preview',"b""Aper\xc3\xa7u Style d'Impression"""
 b'apps/frappe/frappe/core/doctype/file/test_file.py +81',b'Test_Folder',b'Dossier_Test'
@@ -2360,7 +2363,6 @@ b'DocType: Email Account',b'Use TLS',b'Utiliser TLS'
 b'apps/frappe/frappe/email/smtp.py +24',b'Invalid login or password',b'Identifiant ou mot de passe invalide'
 b'apps/frappe/frappe/core/doctype/data_import/data_import.js +61',b'Download Template',b'T\xc3\xa9l\xc3\xa9charger le Mod\xc3\xa8le'
 b'apps/frappe/frappe/config/setup.py +247',b'Add custom javascript to forms.',b'Ajouter du javascript aux formulaires.'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8',b'Setup &gt; User',b'Configuration&gt; Utilisateur'
 ,b'Role Permissions Manager',b'Gestionnaire d\xe2\x80\x99Autorisations du R\xc3\xb4le'
 b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +117',b'Name of the new Print Format',"b""Nom du nouveau Format d'Impression"""
 b'apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +903',b'Toggle Sidebar',b'Basculer la barre lat\xc3\xa9rale'
@@ -2405,7 +2407,7 @@ b'DocType: Custom Role',b'Permission Rules',"b""R\xc3\xa8gles d'Autorisation"""
 b'DocType: Braintree Settings',b'Public Key',b'Cl\xc3\xa9 publique'
 b'DocType: GSuite Settings',b'GSuite Settings',b'Param\xc3\xa8tres GSuite'
 b'DocType: Address',b'Links',b'Liens'
-b'apps/frappe/frappe/core/doctype/data_export/data_export.js +39',b'Please select the Document Type.',b'Veuillez s\xc3\xa9lectionner le type de document.'
+b'apps/frappe/frappe/core/doctype/data_export/data_export.js +38',b'Please select the Document Type.',b'Veuillez s\xc3\xa9lectionner le type de document.'
 b'apps/frappe/frappe/model/base_document.py +396',b'Value missing for',b'Valeur manquante pour'
 b'apps/frappe/frappe/public/js/frappe/views/treeview.js +183',b'Add Child',b'Ajouter une Sous-Cat\xc3\xa9gorie'
 b'apps/frappe/frappe/model/delete_doc.py +176',b'{0} {1}: Submitted Record cannot be deleted.',b'{0} {1}: Enregistrement Soumis ne peut pas \xc3\xaatre supprim\xc3\xa9.'
@@ -2418,7 +2420,7 @@ b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js 
 b'apps/frappe/frappe/www/update-password.html +14',b'Old Password',b'Ancien Mot De Passe'
 b'apps/frappe/frappe/website/doctype/blog_post/blog_post.py +106',b'Posts by {0}',b'Messages de {0}'
 b'apps/frappe/frappe/core/doctype/report/report.js +9',"b'To format columns, give column labels in the query.'","b'Pour formater des colonnes, donnez des \xc3\xa9tiquettes de colonne dans la requ\xc3\xaate.'"
-b'apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +64',b'Direct room with {other} already exists.',b'La pi\xc3\xa8ce directe avec {autre} existe d\xc3\xa9j\xc3\xa0.'
+b'apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +65',b'Direct room with {other} already exists.',b'La pi\xc3\xa8ce directe avec {autre} existe d\xc3\xa9j\xc3\xa0.'
 b'DocType: Has Domain',b'Has Domain',b'A un Domaine'
 b'apps/frappe/frappe/core/page/desktop/desktop.js +190',b'Hide',b'Cacher'
 b'apps/frappe/frappe/www/login.html +54',"b""Don't have an account? Sign up""",b'Vous n\xe2\x80\x99avez pas encore de compte\xc2\xa0? Inscrivez-vous'
@@ -2426,7 +2428,7 @@ b'apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +603',b'Canno
 b'apps/frappe/frappe/core/doctype/doctype/doctype.py +779',b'{0}: Cannot set Assign Amend if not Submittable',b'{0} : Impossible de d\xc3\xa9finir \xe2\x80\x98Assigner Modifier\xe2\x80\x99 si non Soumissible'
 b'DocType: Address',b'Bihar',b'Bihar'
 b'DocType: Activity Log',b'Link DocType',b'DocType du Lien'
-b'apps/frappe/frappe/public/js/frappe/chat.js +1557',"b""You don't have any messages yet.""",b'Vous n&#39;avez encore aucun message.'
+b'apps/frappe/frappe/public/js/frappe/chat.js +1690',"b""You don't have any messages yet.""",b'Vous n&#39;avez encore aucun message.'
 b'apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +76',b'Remove all customizations?',b'Retirer toutes les personnalisations ?'
 b'DocType: Website Slideshow',b'Slideshow Name',b'Nom du Diaporama'
 b'DocType: Address',b'Andhra Pradesh',b'Andhra Pradesh'
@@ -2456,7 +2458,7 @@ b'apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contac
 b'DocType: Website Theme',"b'If image is selected, color will be ignored.'","b""Si l'image est s\xc3\xa9lectionn\xc3\xa9e, la couleur sera ignor\xc3\xa9e."""
 b'DocType: User',b'Mute Sounds',b'D\xc3\xa9sactiver les Sons'
 b'DocType: Top Bar Item',b'Top Bar Item',b'Article de la Barre Sup\xc3\xa9rieure'
-b'apps/frappe/frappe/utils/csvutils.py +52',"b'Unknown file encoding. Tried utf-8, windows-1250, windows-1252.'","b'Encodage du fichier inconnu. Essayez utf-8, windows-1250, windows-1252.'"
+b'apps/frappe/frappe/utils/csvutils.py +53',"b'Unknown file encoding. Tried utf-8, windows-1250, windows-1252.'","b'Encodage du fichier inconnu. Essayez utf-8, windows-1250, windows-1252.'"
 b'apps/frappe/frappe/printing/doctype/print_style/print_style.py +15',b'Standard Print Style cannot be changed. Please duplicate to edit.',"b""Le style d'impression standard ne peut pas \xc3\xaatre modifi\xc3\xa9. Veuillez le copier pour le modifier."""
 b'DocType: Website Settings',b'Robots.txt',b'robots.txt'
 b'apps/frappe/frappe/core/doctype/user/user.py +191',b'Sorry! Sharing with Website User is prohibited.',b'D\xc3\xa9sol\xc3\xa9 ! Partage avec Utilisateur du Site Web est interdit.'
@@ -2476,7 +2478,7 @@ b'DocType: DocField',b'Set non-standard precision for a Float or Currency field'
 b'DocType: Email Account',b'Ignore attachments over this size',b'Ignorer les pi\xc3\xa8ces jointes sup\xc3\xa9rieures \xc3\xa0 cette taille'
 b'DocType: Address',b'Preferred Billing Address',b'Adresse de Facturation Principale'
 b'apps/frappe/frappe/config/integrations.py +73',b'External Documents',b'Documents Externes'
-b'apps/frappe/frappe/database.py +269',b'Too many writes in one request. Please send smaller requests',b'Trop d\xe2\x80\x99\xc3\xa9critures en une seule requ\xc3\xaate. Veuillez envoyer des requ\xc3\xaates plus petites'
+b'apps/frappe/frappe/database.py +286',b'Too many writes in one request. Please send smaller requests',b'Trop d\xe2\x80\x99\xc3\xa9critures en une seule requ\xc3\xaate. Veuillez envoyer des requ\xc3\xaates plus petites'
 b'apps/frappe/frappe/core/doctype/version/version_view.html +8',b'Values Changed',b'Valeurs Modifi\xc3\xa9es'
 b'DocType: Workflow State',b'arrow-up',b'fl\xc3\xa8che-haut'
 b'DocType: OAuth Bearer Token',b'Expires In',b'Expire Dans'
@@ -2518,6 +2520,7 @@ b'apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63',b'Option 3
 b'DocType: Communication',b'uid',b'uid'
 b'DocType: Workflow State',b'Edit',b'Modifier'
 b'apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +229',b'Permissions can be managed via Setup &gt; Role Permissions Manager',b'Les autorisations peuvent \xc3\xaatre g\xc3\xa9r\xc3\xa9s via Configuration &gt; Gestion des R\xc3\xb4les et Autorisation'
+b'DocType: Website Settings',b'Chat Operators',b'Les op\xc3\xa9rateurs de chat'
 b'DocType: Contact Us Settings',b'Pincode',b'Code Postal'
 b'apps/frappe/frappe/core/doctype/data_import/importer.py +105',b'Please make sure that there are no empty columns in the file.',"b""Veuillez vous assurer qu'il n'y a pas de colonnes vides dans le fichier."""
 b'apps/frappe/frappe/utils/oauth.py +183',b'Please ensure that your profile has an email address',b'Veuillez vous assurer que votre profil a une adresse email'
@@ -2530,7 +2533,7 @@ b'apps/frappe/frappe/email/queue.py +339',b'Emails are muted',b'Les Emails sont 
 b'apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +25',b'Ctrl + Up',b'Ctrl + Haut'
 b'DocType: Website Theme',b'Heading Style',b'Style de Titre'
 b'apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +200',b'A new Project with this name will be created',b'Un nouveau Projet sera cr\xc3\xa9\xc3\xa9 avec ce nom'
-b'apps/frappe/frappe/utils/data.py +582',b'1 weeks ago',b'Il y a 1 semaine'
+b'apps/frappe/frappe/utils/data.py +586',b'1 weeks ago',b'Il y a 1 semaine'
 b'DocType: Communication',b'Error',b'Erreur'
 b'DocType: Data Import',b'Ignore encoding errors',b'Ignorer les erreurs d&#39;encodage'
 b'DocType: Chat Profile',b'Notifications',b'Notifications'
@@ -2554,6 +2557,7 @@ b'DocType: Workflow State',b'star-empty',b'\xc3\xa9toile-vide'
 b'apps/frappe/frappe/utils/password_strength.py +141',b'Dates are often easy to guess.',b'Les Dates sont souvent faciles \xc3\xa0 deviner.'
 b'apps/frappe/frappe/public/js/frappe/form/workflow.js +39',b'Next actions',b'Prochaines actions'
 b'DocType: Workflow State',b'ok',b'ok'
+b'apps/frappe/frappe/public/js/frappe/ui/comment.js +219',b'Submit Review',b'Poster le commentaire'
 b'DocType: User',b'These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.',b'Ces valeurs seront automatiquement mises \xc3\xa0 jour dans les transactions et sera \xc3\xa9galement utile pour restreindre les autorisations pour cet utilisateur sur les transactions contenant ces valeurs.'
 b'apps/frappe/frappe/twofactor.py +307',b'Verfication Code',b'Code de V\xc3\xa9rification'
 b'DocType: Webhook',b'Webhook Request',b'Requ\xc3\xaate Webhook'
@@ -2573,8 +2577,8 @@ b'apps/frappe/frappe/core/doctype/doctype/doctype.py +508',b'Fieldtype {0} for {
 b'apps/frappe/frappe/public/js/frappe/list/list_filter.js +35',b'Is Global',b'Est Global'
 b'DocType: Email Account',b'Use SSL',b'Utiliser SSL'
 b'DocType: Workflow State',b'play-circle',b'cercle-jouer'
-b'apps/frappe/frappe/public/js/frappe/form/layout.js +509',"b'Invalid ""depends_on"" expression'","b'Expression ""depends_on"" non valide'"
-b'apps/frappe/frappe/public/js/frappe/chat.js +1492',b'Group Name',b'Nom de groupe'
+b'apps/frappe/frappe/public/js/frappe/form/layout.js +502',"b'Invalid ""depends_on"" expression'","b'Expression ""depends_on"" non valide'"
+b'apps/frappe/frappe/public/js/frappe/chat.js +1612',b'Group Name',b'Nom de groupe'
 b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +82',b'Select Print Format to Edit',"b""S\xc3\xa9lectionner le Format d'Impression \xc3\xa0 \xc3\x89diter"""
 b'DocType: Address',b'Shipping',b'Livraison'
 b'DocType: Workflow State',b'circle-arrow-down',b'fl\xc3\xa8che-cercle-bas'
@@ -2629,11 +2633,13 @@ b'apps/frappe/frappe/core/page/permission_manager/permission_manager.js +490',b'
 b'DocType: ToDo',b'ToDo',b'T\xc3\xa2che \xc3\xa0 Faire'
 b'DocType: DocField',b'No Copy',b'Aucune Copie'
 b'DocType: Workflow State',b'qrcode',b'qrcode'
+b'DocType: Chat Token',b'IP Address',b'Adresse IP'
 b'DocType: Data Import',b'Submit after importing',b'Envoyer apr\xc3\xa8s l&#39;importation'
 b'apps/frappe/frappe/www/login.html +32',b'Login with LDAP',b'Se connecter avec LDAP'
 b'DocType: Web Form',b'Breadcrumbs',b'Fil d\xe2\x80\x99Ariane (Breadcrumbs)'
 b'apps/frappe/frappe/core/doctype/doctype/doctype.py +725',b'If Owner',b'Si Responsable'
 b'DocType: Data Migration Mapping',b'Push',b'Transmission'
+b'apps/frappe/frappe/contacts/doctype/address/address.py +193',b'No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.',b'Aucun mod\xc3\xa8le d&#39;adresse par d\xc3\xa9faut trouv\xc3\xa9. Veuillez en cr\xc3\xa9er un nouveau \xc3\xa0 partir de Configuration&gt; Impression et marquage&gt; Mod\xc3\xa8le d&#39;adresse.'
 b'DocType: OAuth Authorization Code',b'Expiration time',"b""Date d'Expiration"""
 b'DocType: Web Page',b'Website Sidebar',b'Barre Lat\xc3\xa9rale du Site Web'
 b'DocType: Web Form',b'Show Sidebar',b'Afficher la Barre Lat\xc3\xa9rale'
@@ -2661,7 +2667,7 @@ b'apps/frappe/frappe/core/doctype/data_import/log_details.html +6',b'Row Status'
 b'DocType: Workflow Transition',b'Workflow Transition',b'Transition du Flux de Travail'
 b'apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54',b'{0} months ago',b'Il y a {0} mois'
 b'apps/frappe/frappe/public/js/frappe/model/model.js +18',b'Created By',b'\xc3\x89tabli par'
-b'apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +272',b'Dropbox Setup',b'Param\xc3\xa9trage Dropbox'
+b'apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +274',b'Dropbox Setup',b'Param\xc3\xa9trage Dropbox'
 b'DocType: Workflow State',b'resize-horizontal',b'redimensionner-horizontalement'
 b'DocType: Chat Message',b'Content',b'Contenu'
 b'DocType: Data Migration Run',b'Push Insert',b'Transmission et Insertion'
@@ -2669,6 +2675,7 @@ b'apps/frappe/frappe/public/js/frappe/views/treeview.js +288',b'Group Node',b'No
 b'DocType: Communication',b'Notification',b'Notification'
 b'DocType: DocType',b'Document',b'Document'
 b'apps/frappe/frappe/core/doctype/doctype/doctype.py +211',b'Series {0} already used in {1}',b'S\xc3\xa9ries {0} d\xc3\xa9j\xc3\xa0 utilis\xc3\xa9 dans {1}'
+b'apps/frappe/frappe/email/smtp.py +172',b'Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account',b'Le compte de messagerie n&#39;est pas configur\xc3\xa9. Veuillez cr\xc3\xa9er un nouveau compte de messagerie depuis Configuration&gt; E-mail&gt; Compte de messagerie'
 b'apps/frappe/frappe/core/doctype/data_import/importer.py +279',b'Unsupported File Format',b'Ce format de fichier n&#39;est pas support\xc3\xa9'
 b'DocType: DocField',b'Code',b'Code'
 b'DocType: Workflow',"b'All possible Workflow States and roles of the workflow. Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""'","b'Tous les \xc3\x89tats et R\xc3\xb4les possibles du Flux de Travail. Options de Statut du Document : 0 est ""Enregistr\xc3\xa9"", 1 est ""Soumis"" et 2 est ""Annul\xc3\xa9""'"
@@ -2777,12 +2784,13 @@ b'apps/frappe/frappe/public/js/frappe/views/communication.js +68',b'Send Read Re
 b'DocType: Stripe Settings',b'Stripe Settings',b'Param\xc3\xa8tres Stripe'
 b'DocType: Data Migration Mapping',b'Data Migration Mapping',b'Mapping de Migration de Donn\xc3\xa9es'
 b'apps/frappe/frappe/www/login.py +89',b'Invalid Login Token',b'Jeton de Connexion invalide'
+b'apps/frappe/frappe/public/js/frappe/chat.js +209',b'Discard',b'Jeter'
 b'apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +49',b'1 hour ago',b'Il y a 1 heure'
 b'DocType: Website Settings',b'Home Page',b'Page d\xe2\x80\x99Accueil'
 b'DocType: Error Snapshot',b'Parent Error Snapshot',"b""Instantan\xc3\xa9 d'Erreur Parent"""
 b'DocType: Kanban Board',b'Filters',b'Filtres'
 b'DocType: Workflow State',b'share-alt',b'part-alt'
-b'apps/frappe/frappe/utils/background_jobs.py +204',b'Queue should be one of {0}',b'La Queue doit \xc3\xaatre parmi {0}'
+b'apps/frappe/frappe/utils/background_jobs.py +206',b'Queue should be one of {0}',b'La Queue doit \xc3\xaatre parmi {0}'
 b'DocType: Address Template',"b'<h4>Default Template</h4>\n<p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>\n<pre><code>{{ address_line1 }}&lt;br&gt;\n{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}\n{{ city }}&lt;br&gt;\n{% if state %}{{ state }}&lt;br&gt;{% endif -%}\n{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}\n{{ country }}&lt;br&gt;\n{% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}\n{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}\n{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}\n</code></pre>'","b'<H4> Mod\xc3\xa8le par d\xc3\xa9faut </ h4> \n <p> <a Utilise href=""http://jinja.pocoo.org/docs/templates/""> Jinja Templating </a> et tous les champs d\'adresse ( y compris les champs personnalis\xc3\xa9s le cas \xc3\xa9ch\xc3\xa9ant) sera disponible </ p> \n <pre> <code> {{address_line1}} & lt; br & gt; \n {% si address_line2%} {{address_line2}} & lt; br & gt; { % endif -%} \n {{ville}} & lt; br & gt; \n {% si l\'\xc3\xa9tat%} {{}} Etat & lt; br & gt; {% endif -%} {% if \n code PIN%} PIN: {{code PIN}} & lt; br & gt; {% endif -%} \n {{pays}} & lt; br & gt; \n {% si le t\xc3\xa9l\xc3\xa9phone%} T\xc3\xa9l\xc3\xa9phone: {{t\xc3\xa9l\xc3\xa9phone}} & lt; br & gt; { % endif -%} \n {% if t\xc3\xa9l\xc3\xa9copieur%} Fax: {{fax}} & lt; br & gt; {% endif -%} \n {% si email_id%} Email: {{email_id}} & lt; br & gt ; {% endif -%} \n </ code> </ pre>'"
 b'DocType: Calendar View',b'Start Date Field',b'Date de d\xc3\xa9but'
 b'DocType: Role',b'Role Name',b'Nom du R\xc3\xb4le'
@@ -2803,7 +2811,7 @@ b'apps/frappe/frappe/public/js/frappe/form/link_selector.js +22',b'Value',b'Vale
 b'apps/frappe/frappe/email/doctype/newsletter/newsletter.py +191',b'Click here to verify',b'Cliquez ici pour v\xc3\xa9rifier'
 b'apps/frappe/frappe/utils/password_strength.py +202',"b""Predictable substitutions like '@' instead of 'a' don't help very much.""","b""Les substitutions pr\xc3\xa9visibles comme '@' au lieu de 'a' n\xe2\x80\x99aident pas beaucoup."""
 b'apps/frappe/frappe/desk/doctype/todo/todo_list.js +22',b'Assigned By Me',b'Assign\xc3\xa9 par moi'
-b'apps/frappe/frappe/utils/data.py +485',b'Zero',b'Z\xc3\xa9ro'
+b'apps/frappe/frappe/utils/data.py +489',b'Zero',b'Z\xc3\xa9ro'
 b'apps/frappe/frappe/core/doctype/doctype/doctype.py +105',"b""Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.""","b""Pas en Mode D\xc3\xa9veloppeur! Configurez le dans site_config.json ou cr\xc3\xa9ez un DocType 'Custom'."""
 b'DocType: Workflow State',b'globe',b'globe'
 b'DocType: System Settings',b'dd.mm.yyyy',b'dd.mm.yyyy'
@@ -2838,7 +2846,7 @@ b'DocType: User',b'Allow user to login only before this hour (0-24)',"b""Autoris
 b'DocType: Social Login Key',b'Access Token URL',b'URL du jeton d&#39;acc\xc3\xa8s'
 b'apps/frappe/frappe/core/doctype/file/file.py +142',b'Folder is mandatory',b'Dossier est obligatoire'
 b'apps/frappe/frappe/email/doctype/email_alert/email_alert.py +120',"b'Not allowed to attach {0} document,\n\t\t\t\t\tplease enable Allow Print For {0} in Print Settings'","b""Non autoris\xc3\xa9 \xc3\xa0 joindre le document {0}, veuillez activer Autoriser l'Impression pour {0} dans les R\xc3\xa9glages d'Impression"""
-b'apps/frappe/frappe/www/contact.py +54',b'New Message from Website Contact Page',b'Nouveau Message depuis la Page Contact du Site Web'
+b'apps/frappe/frappe/www/contact.py +57',b'New Message from Website Contact Page',b'Nouveau Message depuis la Page Contact du Site Web'
 b'DocType: Email Alert',b'Reference Date',b'Date de R\xc3\xa9f\xc3\xa9rence'
 b'apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py +27',b'Please enter valid mobile nos',b'Veuillez entrer des N\xc2\xb0 de mobiles valides'
 b'apps/frappe/frappe/public/js/frappe/desk.js +18',b'Some of the features might not work in your browser. Please update your browser to the latest version.',b'Certaines des fonctionnalit\xc3\xa9s peuvent ne pas fonctionner dans votre navigateur. Veuillez mettre \xc3\xa0 jour votre navigateur vers la derni\xc3\xa8re version.'
@@ -2867,16 +2875,15 @@ b'apps/frappe/frappe/core/doctype/user/user.py +908',b'Administrator accessed {0
 b'apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +10',b'Equals',b'\xc3\x89gal \xc3\xa0'
 b'apps/frappe/frappe/core/doctype/doctype/doctype.py +489',"b""Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'""","b""Les champs de type Options 'Lien Dynamique' doivent pointer vers un autre Champ Li\xc3\xa9 avec 'Doctype' pour options"""
 b'DocType: About Us Settings',b'Team Members Heading',b'Titre des Membres de l\xe2\x80\x99\xc3\x89quipe'
-b'apps/frappe/frappe/utils/csvutils.py +36',b'Invalid CSV Format',b'Format CSV Invalide'
+b'apps/frappe/frappe/utils/csvutils.py +37',b'Invalid CSV Format',b'Format CSV Invalide'
 b'apps/frappe/frappe/desk/page/backups/backups.js +8',b'Set Number of Backups',b'D\xc3\xa9finir Nombre de Sauvegardes'
 b'DocType: DocField',b'Do not allow user to change after set the first time',"b""Ne pas permettre \xc3\xa0 l'utilisateur de changer apr\xc3\xa8s avoir d\xc3\xa9fini le premier param\xc3\xa9trage"""
 b'apps/frappe/frappe/public/js/frappe/upload.js +275',b'Private or Public?',b'Public ou Priv\xc3\xa9 ?'
-b'apps/frappe/frappe/utils/data.py +590',b'1 year ago',b'Il y a 1 an'
+b'apps/frappe/frappe/utils/data.py +594',b'1 year ago',b'Il y a 1 an'
 b'DocType: Contact',b'Contact',b'Contact'
 b'DocType: User',b'Third Party Authentication',b'Authentification Tierce'
 b'DocType: Website Settings',b'Banner is above the Top Menu Bar.',b'La Banni\xc3\xa8re est au-dessus de la Barre de Menu Sup\xc3\xa9rieure.'
 b'DocType: Razorpay Settings',b'API Secret',b'Secret API'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33',b'Setup &gt; User Permissions Manager',b'Configuration&gt; Gestionnaire des autorisations utilisateur'
 b'apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +487',b'Export Report: ',"b""Rapport d'Exportation :"""
 b'DocType: Data Migration Run',b'Push Update',b'Transmission et Mise \xc3\xa0 Jour'
 b'DocType: Email Account',b'Port',b'Port'
@@ -2886,7 +2893,7 @@ b'apps/frappe/frappe/config/core.py +12',b'Models (building blocks) of the Appli
 b'DocType: Website Slideshow',b'Slideshow like display for the website',b'Diaporama comme \xc3\xa9cran pour le site'
 b'DocType: Communication',b'Updated',b'Mis \xc3\xa0 Jour'
 b'apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +105',b'Select Module',b'S\xc3\xa9lectionner Module'
-b'apps/frappe/frappe/public/js/frappe/chat.js +1468',b'Search or Create a New Chat',b'Rechercher ou cr\xc3\xa9er un nouveau chat'
+b'apps/frappe/frappe/public/js/frappe/chat.js +1586',b'Search or Create a New Chat',b'Rechercher ou cr\xc3\xa9er un nouveau chat'
 b'apps/frappe/frappe/sessions.py +30',b'Cache Cleared',b'Cache Effac\xc3\xa9'
 b'DocType: Email Account',b'UIDVALIDITY',b'UIDVALIDITY'
 b'apps/frappe/frappe/public/js/frappe/views/communication.js +15',b'New Email',b'Nouvel Email'
@@ -2924,7 +2931,7 @@ b'DocType: Data Migration Run',b'Current Mapping Delete Start',b'Supprimer D\xc3
 b'apps/frappe/frappe/config/core.py +47',b'Errors in Background Events',b'Erreurs dans les \xc3\x89v\xc3\xa9nements en T\xc3\xa2che de Fond'
 b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +399',b'No of Columns',b'Nb de Colonnes'
 b'DocType: Workflow State',b'Calendar',b'Calendrier'
-b'apps/frappe/frappe/client.py +44',b'No document found for given filters',b'Aucun document trouv\xc3\xa9 pour ces filtres'
+b'apps/frappe/frappe/client.py +50',b'No document found for given filters',b'Aucun document trouv\xc3\xa9 pour ces filtres'
 b'apps/frappe/frappe/model/rename_doc.py +125',"b'Another {0} with name {1} exists, select another name'","b'Un autre {0} avec le nom {1} existe, choisir un autre nom'"
 b'DocType: DocType',b'Custom?',b'Personnaliser ?'
 b'DocType: Website Settings',b'Website Theme Image',b'Image du Th\xc3\xa8me du Site Web'
@@ -2962,6 +2969,7 @@ b'DocType: Integration Request',b'Integration Type',"b""Type d'Int\xc3\xa9gratio
 b'DocType: Newsletter',b'Send Attachements',b'Envoyer Pi\xc3\xa8ces Jointes'
 b'DocType: Transaction Log',b'Transaction Log',b'Journal des transactions'
 b'DocType: Contact Us Settings',b'City',b'Ville'
+b'apps/frappe/frappe/public/js/frappe/ui/comment.js +225',b'Ctrl+Enter to submit',b'Ctrl + Entr\xc3\xa9e pour soumettre'
 b'DocType: DocField',b'Perm Level',"b""Niveau d'Autorisation"""
 b'apps/frappe/frappe/desk/doctype/event/event.py +66',"b""Events In Today's Calendar""","b""\xc3\x89v\xc3\xa9nements dans le Calendrier d'Aujourd'hui"""
 b'DocType: Web Page',b'Web Page',b'Page Web'
@@ -2987,7 +2995,7 @@ b'DocType: Page',b'No',b'Non'
 b'DocType: Property Setter',b'Set Value',b'D\xc3\xa9finir la Valeur'
 b'apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +249',b'Hide field in form',b'Masquer le champ dans le formulaire'
 b'DocType: Webhook',b'Webhook Data',b'Donn\xc3\xa9es Webhook'
-b'apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +273',b'Illegal Access Token. Please try again',"b""Jeton d'Acc\xc3\xa8s Invalide. Veuillez r\xc3\xa9essayer"""
+b'apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +275',b'Illegal Access Token. Please try again',"b""Jeton d'Acc\xc3\xa8s Invalide. Veuillez r\xc3\xa9essayer"""
 b'apps/frappe/frappe/public/js/frappe/desk.js +100',"b'The application has been updated to a new version, please refresh this page'","b""L'application a \xc3\xa9t\xc3\xa9 mise \xc3\xa0 jour vers une nouvelle version, veuillez rafra\xc3\xaechir cette page"""
 b'apps/frappe/frappe/core/doctype/communication/communication.js +35',b'Resend',b'Renvoyer'
 b'DocType: Feedback Trigger',b'Optional: The alert will be sent if this expression is true',"b""Optionel : L'alerte sera envoy\xc3\xa9e si cette expression est vraie"""
@@ -3020,7 +3028,7 @@ b'apps/frappe/frappe/www/feedback.py +42',b'Please add a rating',b'Veuillez ajou
 b'apps/frappe/frappe/core/doctype/doctype/doctype.py +754',b'{0}: Cannot set Amend without Cancel',b'{0} : Impossible de choisir Modifier sans Annuler'
 b'apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html +25',b'Full Page',b'Pleine Page'
 b'DocType: DocType',b'Is Child Table',b'Est Table Enfant'
-b'apps/frappe/frappe/utils/csvutils.py +128',b'{0} must be one of {1}',"b""{0} doit \xc3\xaatre l'un des {1}"""
+b'apps/frappe/frappe/utils/csvutils.py +130',b'{0} must be one of {1}',"b""{0} doit \xc3\xaatre l'un des {1}"""
 b'apps/frappe/frappe/public/js/frappe/form/form_viewers.js +35',b'{0} is currently viewing this document',b'{0} est en train de regarder ce document'
 b'apps/frappe/frappe/config/core.py +52',b'Background Email Queue',b'File d\xe2\x80\x99Attente d\xe2\x80\x99Email en Arri\xc3\xa8re-Plan'
 b'apps/frappe/frappe/core/doctype/user/user.py +245',b'Password Reset',b'R\xc3\xa9initialisation du Mot de Passe'
@@ -3047,7 +3055,7 @@ b'DocType: Contact',b'Gender',b'Sexe'
 b'apps/frappe/frappe/website/doctype/web_form/web_form.py +342',b'Mandatory Information missing:',b'Renseignements Obligatoires manquants :'
 b'apps/frappe/frappe/core/doctype/doctype/doctype.py +528',"b""Field '{0}' cannot be set as Unique as it has non-unique values""","b""Le champ '{0}' ne peut pas \xc3\xaatre d\xc3\xa9fini comme Unique, car il a des valeurs non-uniques"""
 b'apps/frappe/frappe/integrations/doctype/webhook/webhook.py +37',b'Check Request URL',"b""V\xc3\xa9rifier l'URL de Demande"""
-b'apps/frappe/frappe/client.py +157',b'Only 200 inserts allowed in one request',b'Seuls 200 inserts autoris\xc3\xa9s dans une requ\xc3\xaate'
+b'apps/frappe/frappe/client.py +165',b'Only 200 inserts allowed in one request',b'Seuls 200 inserts autoris\xc3\xa9s dans une requ\xc3\xaate'
 b'DocType: Footer Item',b'URL',b'URL'
 b'apps/frappe/frappe/www/qrcode.html +15',b'Return to the Verification screen and enter the code displayed by your authentication app',"b""Revenez \xc3\xa0 l'\xc3\xa9cran de v\xc3\xa9rification et entrez le code affich\xc3\xa9 par votre application d'authentification"""
 b'DocType: ToDo',b'Reference Type',b'Type de R\xc3\xa9f\xc3\xa9rence'
@@ -3094,7 +3102,7 @@ b'apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +986',b'Pleas
 b'apps/frappe/frappe/email/doctype/email_group/email_group.py +42',b'{0} subscribers added',b'{0} abonn\xc3\xa9s ajout\xc3\xa9s'
 b'apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +15',b'Not In',b'Non Inclus'
 b'DocType: Workflow State',b'star',b'\xc3\xa9toile'
-b'apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +268',b'values separated by commas',b'valeurs s\xc3\xa9par\xc3\xa9es par des virgules'
+b'apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +273',b'values separated by commas',b'valeurs s\xc3\xa9par\xc3\xa9es par des virgules'
 b'apps/frappe/frappe/core/doctype/doctype/doctype.py +473',b'Max width for type Currency is 100px in row {0}',b'Largeur max pour le type Devise est 100px dans la ligne {0}'
 b'apps/frappe/frappe/www/feedback.html +68',b'Please share your feedback for {0}',b'Veuillez partager votre retour d\xe2\x80\x99exp\xc3\xa9rience pour {0}'
 b'apps/frappe/frappe/config/website.py +13',b'Content web page.',b'Contenu de la page web.'
@@ -3110,7 +3118,7 @@ b'DocType: Address',b'Office',b'Bureau'
 b'apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +204',b'This Kanban Board will be private',b'Ce Tableau Kanban sera priv\xc3\xa9'
 b'apps/frappe/frappe/desk/moduleview.py +94',b'Standard Reports',b'Rapports Standard'
 b'DocType: User',b'Email Settings',"b""Param\xc3\xa8tres d'Email"""
-b'apps/frappe/frappe/public/js/frappe/desk.js +387',b'Please Enter Your Password to Continue',b'Veuillez Entrer votre Mot de Passe pour Continuer'
+b'apps/frappe/frappe/public/js/frappe/desk.js +394',b'Please Enter Your Password to Continue',b'Veuillez Entrer votre Mot de Passe pour Continuer'
 b'apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +97',b'Not a valid LDAP user',b'Utilisateur LDAP non valide'
 b'apps/frappe/frappe/workflow/doctype/workflow/workflow.py +57',b'{0} not a valid State',b'{0} pas un \xc3\x89tat valide'
 b'apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +89',"b""Please select another payment method. PayPal does not support transactions in currency '{0}'""",b'Veuillez choisir un autre mode de paiement. PayPal ne supporte pas les transactions en monnaie \xe2\x80\x98{0}\xe2\x80\x99'
@@ -3171,6 +3179,7 @@ b'DocType: Web Page',b'Header and Description',b'En-T\xc3\xaate et Description'
 b'apps/frappe/frappe/templates/includes/login/login.js +24',b'Both login and password required',b'Un login et un mot de passe sont requis'
 b'apps/frappe/frappe/model/document.py +629',b'Please refresh to get the latest document.',b'Veuillez actualiser pour obtenir la derni\xc3\xa8re version du document.'
 b'DocType: User',b'Security Settings',b'R\xc3\xa9glages de S\xc3\xa9curit\xc3\xa9'
+b'DocType: Website Settings',b'Operators',b'Les op\xc3\xa9rateurs'
 b'apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +160',b'Add Column',b'Ajouter une Colonne'
 ,b'Desktop',b'Bureau'
 b'apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +975',b'Export Report: {0}',"b""Rapport d'Export: {0}"""
@@ -3189,7 +3198,7 @@ b'apps/frappe/frappe/www/qrcode.html +13',b'Open your authentication app on your
 b'apps/frappe/frappe/model/rename_doc.py +73',b'merged {0} into {1}',b'fusionn\xc3\xa9 {0} avec {1}'
 b'DocType: System Settings',b'mm-dd-yyyy',b'mm-jj-aaaa'
 b'apps/frappe/frappe/data_migration/doctype/data_migration_connector/data_migration_connector.js +7',b'New Connection',b'Nouvelle Connexion'
-b'apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +100',"b""Sorry, you're not authorized.""","b'D\xc3\xa9sol\xc3\xa9, vous n&#39;\xc3\xaates pas autoris\xc3\xa9.'"
+b'apps/frappe/frappe/chat/__init__.py +10',"b""Sorry, you're not authorized.""","b'D\xc3\xa9sol\xc3\xa9, vous n&#39;\xc3\xaates pas autoris\xc3\xa9.'"
 b'apps/frappe/frappe/core/doctype/activity_log/feed.py +51',b'{0} logged in',b'{0} connect\xc3\xa9'
 b'apps/frappe/frappe/templates/emails/new_user.html +3',b'Your login id is',b'Votre id de connexion est'
 b'DocType: OAuth Client',b'Skip Authorization',b'Passer autorisation'
@@ -3198,7 +3207,7 @@ b'DocType: Web Form',b'Amount Field',b'Champ du Montant'
 b'DocType: Dropbox Settings',b'Send Notifications To',b'Envoyer des Notifications \xc3\x80'
 b'DocType: Bulk Update',b'Max 500 records at a time',b'Max 500 enregistrements \xc3\xa0 la fois'
 b'DocType: Translation',"b'If your data is in HTML, please copy paste the exact HTML code with the tags.'","b'Si vos donn\xc3\xa9es sont en HTML, veuillez copier-coller le code HTML exact avec les balises.'"
-b'apps/frappe/frappe/utils/csvutils.py +36',b'Unable to open attached file. Did you export it as CSV?',"b""Impossible d'ouvrir le fichier joint. L'avez-vous export\xc3\xa9 au format CSV ?"""
+b'apps/frappe/frappe/utils/csvutils.py +37',b'Unable to open attached file. Did you export it as CSV?',"b""Impossible d'ouvrir le fichier joint. L'avez-vous export\xc3\xa9 au format CSV ?"""
 b'DocType: DocField',b'Ignore User Permissions',b'Ignorer les Autorisations des Utilisateurs'
 b'apps/frappe/frappe/core/doctype/user/user.py +795',b'Please ask your administrator to verify your sign-up',b'Veuillez demander \xc3\xa0 votre administrateur de v\xc3\xa9rifier votre inscription'
 b'DocType: Domain Settings',b'Active Domains',b'Domaines Actifs'
