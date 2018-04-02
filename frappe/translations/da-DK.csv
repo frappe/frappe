@@ -1,5 +1,5 @@
 b'apps/frappe/frappe/utils/nestedset.py +243',b'{0} {1} cannot be a leaf node as it has children',"b'{0} {1} kan ikke v\xc3\xa6re en blad node, da den har undernoder'"
-b'apps/frappe/frappe/utils/csvutils.py +52',"b'Unknown file encoding. Tried utf-8, windows-1250, windows-1252.'","b'Ukendt fil kodning. Pr\xc3\xb8vede utf-8, vinduer-1250, vinduer-1252.'"
+b'apps/frappe/frappe/utils/csvutils.py +53',"b'Unknown file encoding. Tried utf-8, windows-1250, windows-1252.'","b'Ukendt fil kodning. Pr\xc3\xb8vede utf-8, vinduer-1250, vinduer-1252.'"
 b'DocType: About Us Settings',"b'""Company History""'","b""'Virksomhedshistorie'"""
 b'DocType: Currency',b'1 Currency = [?] Fraction\nFor e.g. 1 USD = 100 Cent',b'1 Valuta = [?] Fraktion For eksempel 1 USD = 100 Cent'
 b'DocType: Workflow State',b'zoom-in',b'zoom-in'
