@@ -1,3 +1,3 @@
-b'DocType: Communication',b'Comment Type',b'Tipo de Comentario'
-b'apps/frappe/frappe/public/js/frappe/form/controls/attach.js +60',b'Clear Attachment',b'Limpiar Adjunto'
-b'DocType: Communication',b'Communication',b'Comunicacion'
+DocType: Communication,Comment Type,Tipo de Comentario
+apps/frappe/frappe/public/js/frappe/form/controls/attach.js +60,Clear Attachment,Limpiar Adjunto
+DocType: Communication,Communication,Comunicacion
