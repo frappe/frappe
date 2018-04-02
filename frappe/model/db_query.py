@@ -39,7 +39,7 @@ class DatabaseQuery(object):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
 
-		# fitlers and fields swappable
+		# filters and fields swappable
 		# its hard to remember what comes first
 		if (isinstance(fields, dict)
 			or (isinstance(fields, list) and fields and isinstance(fields[0], list))):

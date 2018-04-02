@@ -45,10 +45,11 @@ $.extend(frappe.perm, {
 		let perm = [{ read: 0 }];
 
 		let meta = frappe.get_doc("DocType", doctype);
+		const user  = frappe.session.user;
 
 		if (!meta) return perm;
 
-		if (frappe.session.user === "Administrator" || frappe.user_roles.includes("Administrator")) {
+		if (user === "Administrator" || frappe.user_roles.includes("Administrator")) {
 			perm[0].read = 1;
 		}
 
@@ -65,11 +66,11 @@ $.extend(frappe.perm, {
 
 			// if owner
 			if (!$.isEmptyObject(perm[0].if_owner)) {
-				if (doc.owner === frappe.session.user) {
+				if (doc.owner === user) {
 					$.extend(perm[0], perm[0].if_owner);
 				} else {
 					// not owner, remove permissions
-					$.each(perm[0].if_owner, (ptype, value) => {
+					$.each(perm[0].if_owner, (ptype) => {
 						if (perm[0].if_owner[ptype]) {
 							perm[0][ptype] = 0;
 						}
@@ -81,7 +82,7 @@ $.extend(frappe.perm, {
 			if (docinfo && docinfo.shared) {
 				for (let i = 0; i < docinfo.shared.length; i++) {
 					let s = docinfo.shared[i];
-					if (s.user === frappe.session.user) {
+					if (s.user === user) {
 						perm[0]["read"] = perm[0]["read"] || s.read;
 						perm[0]["write"] = perm[0]["write"] || s.write;
 						perm[0]["share"] = perm[0]["share"] || s.share;
@@ -108,7 +109,6 @@ $.extend(frappe.perm, {
 
 	build_role_permissions: (perm, meta) => {
 		// Returns a `dict` of evaluated Role Permissions
-		// Apply User Permission and its DocTypes are used to display match rules in list view
 		$.each(meta.permissions || [], (i, p) => {
 			// if user has this role
 			if (frappe.user_roles.includes(p.role)) {
@@ -138,7 +138,6 @@ $.extend(frappe.perm, {
 	},
 
 	get_match_rules: (doctype, ptype) => {
-		let me = this;
 		let match_rules = [];
 
 		if (!ptype) ptype = "read";

@@ -264,7 +264,7 @@ frappe.PermissionEngine = Class.extend({
 
 	setup_if_owner: function(d, role_cell) {
 		const description = __("If checked the permission will be applied only to the owner of the document and other users will restricted");
-		const checkbox = this.add_check(role_cell, d, "if_owner", null, description)
+		this.add_check(role_cell, d, "if_owner", null, description)
 			.removeClass("col-md-4")
 			.css({"margin-top": "15px"});
 	},

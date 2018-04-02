@@ -99,7 +99,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	show_restricted_list_indicator_if_applicable() {
 		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
-		console.log(match_rules_list);
 		if(match_rules_list.length) {
 			this.restricted_list = $('<button class="restricted-list form-group">Restricted</button>')
 				.prepend('<span class="octicon octicon-lock"></span>')

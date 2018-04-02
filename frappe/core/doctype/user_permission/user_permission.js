@@ -39,7 +39,7 @@ frappe.ui.form.on('User Permission', {
 				callback: (r) => {
 					const linked_doctypes = r.message;
 					if (linked_doctypes) {
-						let wrap = $(frappe.render_template("user_permission_help", { linked_doctypes: linked_doctypes }))
+						$(frappe.render_template("user_permission_help", { linked_doctypes: linked_doctypes }))
 							.appendTo(help_wrapper);
 					}
 				}
