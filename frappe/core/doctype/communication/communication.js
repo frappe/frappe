@@ -219,18 +219,11 @@ frappe.ui.form.on("Communication", {
 		var first_name = names[0]
 		var last_name = names.length >= 2? names[names.length - 1]: ""
 
-		if(frm.doc.communication_medium=="Email"){
-			frappe.route_options = {
-				"email_id": frm.doc.sender,
-				"first_name": first_name,
-				"last_name": last_name,
-			}
-		}else if(frm.doc.communication_medium=="Phone"){
-			frappe.route_options = {
-				"mobile_no": frm.doc.phone_no,
-				"first_name": first_name,
-				"last_name": last_name,
-			}
+		frappe.route_options = {
+			"email_id": frm.doc.sender || "",
+			"first_name": first_name,
+			"last_name": last_name,
+			"mobile_no": frm.doc.phone_no || ""
 		}
 		frappe.new_doc("Contact")
 	},
