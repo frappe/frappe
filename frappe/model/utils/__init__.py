@@ -11,6 +11,19 @@ from six import text_type
 
 import io
 
+STANDARD_FIELD_CONVERSION_MAP = {
+	'name': 'Link',
+	'owner': 'Data',
+	'idx': 'Int',
+	'creation': 'Data',
+	'modified': 'Data',
+	'modified_by': 'Data',
+	'_user_tags': 'Data',
+	'_liked_by': 'Data',
+	'_comments': 'Text',
+	'_assign': 'Text',
+	'docstatus': 'Int'
+}
 
 """
 Model utilities, unclassified functions

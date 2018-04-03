@@ -190,7 +190,7 @@ class DbTable:
 	def get_column_definitions(self):
 		column_list = [] + default_columns
 		ret = []
-		for k in self.columns.keys():
+		for k in list(self.columns):
 			if k not in column_list:
 				d = self.columns[k].get_definition()
 				if d:

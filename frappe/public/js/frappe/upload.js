@@ -367,7 +367,7 @@ frappe.upload = {
 				}
 				var attachment = r.message;
 				opts.loopcallback && opts.loopcallback();
-				opts.callback && opts.callback(attachment, r);
+				opts.callback && opts.callback(attachment, r, args);
 				$(document).trigger("upload_complete", attachment);
 			},
 			error: function(r) {

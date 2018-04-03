@@ -6,6 +6,7 @@ import frappe
 from frappe import msgprint, _
 import json
 import csv
+import six
 from six import StringIO, text_type, string_types
 from frappe.utils import encode, cstr, cint, flt, comma_or
 
@@ -105,7 +106,8 @@ class UnicodeWriter:
 		self.writer = csv.writer(self.queue, quoting=csv.QUOTE_NONNUMERIC)
 
 	def writerow(self, row):
-		row = encode(row, self.encoding)
+		if six.PY2:
+			row = encode(row, self.encoding)
 		self.writer.writerow(row)
 
 	def getvalue(self):

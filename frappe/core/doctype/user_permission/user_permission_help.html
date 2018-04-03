@@ -1,0 +1,12 @@
+<div style="padding-top: 15px">
+	<h5>{%= __("Records for following doctypes will be filtered.") %}:</h5>
+	<ul class="row">
+		{% Object.keys(linked_doctypes).forEach(key => {  %}
+			<li class={{ Object.keys(linked_doctypes).length >= 10 ? "col-md-4" : "" }}>{%= __(key) %}</li>
+		{% }) %}
+	</ul>
+	<hr>
+	<p>{%= __("If these instructions where not helpful, please add in your suggestions on GitHub Issues.") %}
+		<a href="https://github.com/frappe/frappe/issues" target="_blank" rel="noopener noreferrer">{%= __("Submit an Issue") %}</a>
+	</p>
+</div>

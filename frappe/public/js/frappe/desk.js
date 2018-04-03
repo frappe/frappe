@@ -222,9 +222,16 @@ frappe.Application = Class.extend({
 
 	start_notification_updates: function() {
 		var me = this;
-		setInterval(function() {
+
+		// refresh_notifications will be called only once during a 1 second window
+		this.refresh_notifications = frappe.utils.debounce(this.refresh_notifications.bind(this), 1000);
+
+		// kickoff
+		this.refresh_notifications();
+
+		frappe.realtime.on('clear_notifications', () => {
 			me.refresh_notifications();
-		}, 30000);
+		});
 
 		// first time loaded in boot
 		$(document).trigger("notification-update");
@@ -237,7 +244,7 @@ frappe.Application = Class.extend({
 
 	refresh_notifications: function() {
 		var me = this;
-		if(frappe.session_alive && frappe.boot && !(frappe.boot.home_page !== 'setup-wizard')) {
+		if(frappe.session_alive && frappe.boot && frappe.boot.home_page !== 'setup-wizard') {
 			return frappe.call({
 				method: "frappe.desk.notifications.get_notifications",
 				callback: function(r) {

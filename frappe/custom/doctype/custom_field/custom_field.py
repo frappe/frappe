@@ -127,7 +127,10 @@ def create_custom_fields(custom_fields):
 		for df in fields:
 			field = frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df["fieldname"]})
 			if not field:
-				create_custom_field(doctype, df)
+				try:
+					create_custom_field(doctype, df)
+				except frappe.exceptions.DuplicateEntryError:
+					pass
 			else:
 				custom_field = frappe.get_doc("Custom Field", field)
 				custom_field.update(df)

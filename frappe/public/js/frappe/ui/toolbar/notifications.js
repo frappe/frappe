@@ -110,8 +110,6 @@ frappe.ui.notifications = {
 		}
 		let route = frappe.get_route();
 		if(route[0]==="List" && route[1]===doctype) {
-			frappe.pages["List/" + doctype].list_view.refresh();
-		} else {
 			frappe.set_route("List", doctype);
 		}
 	},

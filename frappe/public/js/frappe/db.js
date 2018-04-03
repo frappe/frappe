@@ -64,12 +64,12 @@ frappe.db = {
 		});
 	},
 	get_doc: function(doctype, name, filters = null) {
-		return new Promise(resolve => {
+		return new Promise((resolve, reject) => {
 			frappe.call({
 				method: "frappe.client.get",
 				args: { doctype, name, filters },
 				callback: r => resolve(r.message)
-			});
+			}).fail(reject);
 		});
 	},
 	insert: function(doc) {

@@ -157,7 +157,7 @@ def collect_error_snapshots():
 			fullpath = os.path.join(path, fname)
 
 			try:
-				with open(fullpath, 'rb') as filedata:
+				with open(fullpath, 'r') as filedata:
 					data = json.load(filedata)
 
 			except ValueError:

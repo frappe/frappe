@@ -1,501 +1,504 @@
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +783',b'{0}: Cannot set import as {1} is not importable',"b""{0}: no se puede definir 'De Importaci\xc3\xb3n' como {1} porque no es importable"""
-b'DocType: DocField',b'Heading',b'T\xc3\xadtulo'
-b'apps/frappe/frappe/public/js/frappe/model/model.js +116',b'Unable to load: {0}',b'No se puede cargar : {0}'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +26',b'Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.',b'Permisos en los niveles m\xc3\xa1s altos son los permisos de nivel de campo. Todos los campos tienen un conjunto Nivel de permiso en su contra y las reglas definidas en el que los permisos se aplican al campo. Esto es \xc3\xbatil en caso de que quiera ocultar o hacer cierto campo de s\xc3\xb3lo lectura para ciertas funciones.'
-b'apps/frappe/frappe/core/doctype/data_import/data_import.js +159',b'Select Columns',b'Seleccionar columnas'
-b'DocType: DocType',b'DocType is a Table / Form in the application.',b'El DocType es una tabla / formulario en la aplicaci\xc3\xb3n.'
-b'DocType: Workflow State',b'th',b'\xc2\xaa'
-b'apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +214',b'Set the display label for the field',b'Ajuste la etiqueta de visualizaci\xc3\xb3n para el campo'
-b'DocType: Communication',b'Sending',b'Env\xc3\xado'
-b'DocType: DocType',b'Child Tables are shown as a Grid in other DocTypes.',b'Las tablas secundarias se muestran como una cuadr\xc3\xadcula en los DocTypes.'
-b'apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +822',b'With Ledgers',b'Con Libro Mayor'
-b'DocType: Report',b'Ref DocType',b'Referencia Tipo de Documento'
-b'DocType: Print Settings',b'Print Style Preview',b'Vista previa de Estilo de impresi\xc3\xb3n'
-b'DocType: Customize Form',b'Enter Form Type',b'Introduzca Tipo de Formulario'
-b'apps/frappe/frappe/public/js/frappe/form/controls/text_editor.js +311',b'Select from existing attachments',b'Seleccione de archivos adjuntos existentes'
-b'DocType: Email Alert Recipient',b'Email By Document Field',b'Email Por Campo Documento'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager.js +492',b'Saved!',b'Guardado!'
-b'apps/frappe/frappe/public/js/frappe/ui/messages.js +66',b'Enter Value',b'Introducir valor'
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +752',"b'{0}: Cannot set Submit, Cancel, Amend without Write'","b'{0}: no se puede Presentar, Cancelar y Corregir sin Guardar'"
-b'DocType: Web Page',b'Insert Style',b'Inserte Estilo'
-b'DocType: Workflow State',b'th-large',b'-\xc3\xa9simo gran'
-b'DocType: User',b'Email Settings',b'Configuraci\xc3\xb3n del correo electr\xc3\xb3nico'
-b'DocType: User',b'Send Password Update Notification',b'Enviar contrase\xc3\xb1a Notificaci\xc3\xb3n de actualizaci\xc3\xb3n'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager.js +49',b'Select Document Type',b'Seleccionar el tipo de documento'
-b'apps/frappe/frappe/public/js/frappe/request.js +152',b'Server Error: Please check your server logs or contact tech support.',b'Error de servidor : Se recomienda consultar los registros del servidor o contacte con Soporte t\xc3\xa9cnico.'
-b'DocType: Website Settings',b'Website Theme Image Link',b'Sitio web Imagen por tema Enlace'
-b'DocType: Custom DocPerm',b'Role and Level',b'Funci\xc3\xb3n y Nivel'
-b'DocType: Contact Us Settings',b'Send enquiries to this email address',b'Puede enviar sus preguntas a la siguiente direcci\xc3\xb3n de correo electr\xc3\xb3nico'
-b'DocType: DocType',b'Sort Field',b'Ordenar campo'
-b'DocType: Workflow State',b'remove',b'Quitar'
-b'apps/frappe/frappe/desk/form/utils.py +64',b'This method can only be used to create a Comment',b'Este m\xc3\xa9todo s\xc3\xb3lo se puede utilizar para crear un comentario'
-b'DocType: Footer Item',"b'target = ""_blank""'","b'target = "" _blank""'"
-b'DocType: System Settings',b'Setup Complete',b'Configuraci\xc3\xb3n completa'
-b'DocType: Address',b'Subsidiary',b'Filial'
-b'DocType: Email Account',b'Service',b'Servicio'
-b'DocType: About Us Settings',b'Settings for the About Us Page',b'Ajustes de la p\xc3\xa1gina Qui\xc3\xa9nes somos'
-b'DocType: Workflow State',b'Stop',b'Detenerse'
-b'apps/frappe/frappe/config/setup.py +50',b'Check which Documents are readable by a User',b'Marque que documentos pueden ser le\xc3\xaddos por el usuario'
-,b'Modules Setup',b'M\xc3\xb3dulos de configuraci\xc3\xb3n'
-b'apps/frappe/frappe/model/document.py +615',b'Record does not exist',b'Registro no existe'
-b'apps/frappe/frappe/model/document.py +666',b'Cannot edit cancelled document',b'No se puede editar un documento anulado'
-b'apps/frappe/frappe/config/setup.py +112',b'Set numbering series for transactions.',b'Establecer series de numeraci\xc3\xb3n para las transacciones.'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39',b'Submit an Issue',b'Presentar un problema'
-b'apps/frappe/frappe/public/js/frappe/views/communication.js +64',b'Send As Email',b'Enviar como correo electr\xc3\xb3nico'
-b'DocType: Currency',b'Symbol',b'S\xc3\xadmbolo'
-b'DocType: Workflow Document State',b'Update Field',b'Actualizar Campos'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +17',"b'You can change Submitted documents by cancelling them and then, amending them.'","b'Puede cambiar los documentos Enviados cancel\xc3\xa1ndolos y luego, haciendo los cambios pertinentes.'"
-b'DocType: About Us Settings',b'Team Members Heading',b'Miembros del Equipo Lider'
-b'apps/frappe/frappe/email/doctype/newsletter/newsletter.py +54',b'Scheduled to send to {0} recipients',b'Programado para enviar a {0} destinatarios'
-b'DocType: Website Script',b'Script to attach to all web pages.',b'Gui\xc3\xb3n para unir a todas las p\xc3\xa1ginas web.'
-b'DocType: Property Setter',b'Set Value',b'Valor seleccionado'
-b'apps/frappe/frappe/public/js/frappe/form/layout.js +169',b'Show more details',b'Mostrar m\xc3\xa1s detalles'
-b'apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +66',b'Fieldname which will be the DocType for this link field.',b'Nombre de campo el cual ser\xc3\xa1 el DocType para enlazar el campo.'
-b'DocType: Workflow',b'DocType on which this Workflow is applicable.',b'El DocType en el presente del flujo de trabajo es aplicable.'
-b'DocType: Workflow',"b'If checked, all other workflows become inactive.'","b'Si se selecciona, todos los otros flujos de trabajo se vuelven inactivos .'"
-b'DocType: Event',b'Send an email reminder in the morning',b'Enviar un recordatorio por correo electr\xc3\xb3nico en la ma\xc3\xb1ana'
-b'DocType: DocField',b'No Copy',b'Sin copia'
-b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +679',b'Edit Custom HTML',b'Edici\xc3\xb3n de HTML personalizado'
-b'apps/frappe/frappe/templates/emails/password_update.html +2',b'Your password has been updated. Here is your new password',b'Su contrase\xc3\xb1a se ha actualizado. Aqu\xc3\xad est\xc3\xa1 tu nueva contrase\xc3\xb1a'
-b'DocType: Role',b'Role Name',b'Nombre de la Funci\xc3\xb3n'
-b'DocType: DocField',b'Report Hide',b'Ocultar Informe'
-b'apps/frappe/frappe/public/js/frappe/form/print.js +195',b'Warning: This Print Format is in old style and cannot be generated via the API.',b'Advertencia: Este formato de impresi\xc3\xb3n es de estilo antiguo y no se puede generar a trav\xc3\xa9s de la API.'
-b'apps/frappe/frappe/core/doctype/data_export/exporter.py +124',"b'If you are uploading new records, ""Naming Series"" becomes mandatory, if present.'","b'Si va a cargar nuevos registros, ""Secuencias"" se convierte en obligatoria, si est\xc3\xa1 presente.'"
-b'DocType: Report',b'Letter Head',b'Membretes'
-b'DocType: Custom DocPerm',b'Role',b'Funci\xc3\xb3n'
-b'apps/frappe/frappe/model/base_document.py +434',b'Options not set for link field {0}',b'Las opciones no establecen para campo de enlace {0}'
-b'DocType: Web Page',b'Style',b'Estilo'
-b'apps/frappe/frappe/model/rename_doc.py +131',b'{0} not allowed to be renamed',b'{0} no es permitido ser renombrado'
-b'DocType: Property Setter',b'Field Name',b'Nombre del campo'
-b'DocType: Custom Script',b'Adds a custom script (client or server) to a DocType',b'A\xc3\xb1ade un acript personalizado (cliente o servidor) a un tipo de documento'
-b'DocType: Report',b'Report Type',b'Tipo de informe'
-b'DocType: User Email',b'Enable Outgoing',b'Habilitar saliente'
-b'DocType: Email Account',b'Ignore attachments over this size',b'Ignorar los adjuntos mayores a este tama\xc3\xb1o'
-b'apps/frappe/frappe/public/js/frappe/form/controls/date.js +114',b'Date must be in format: {0}',b'La fecha debe estar en formato : {0}'
-b'DocType: Print Settings',b'In points. Default is 9.',b'En puntos. El valor predeterminado es 9.'
-b'apps/frappe/frappe/config/website.py +18',b'User editable form on Website.',b'Forma editable Usuario en el Sitio Web.'
-b'DocType: Event',b'Ref Name',b'Nombre Ref'
-b'apps/frappe/frappe/public/js/frappe/roles_editor.js +40',b'Clear all roles',b'Desactive todos los roles'
-b'DocType: Workflow State',b'thumbs-down',b'pulgar hacia abajo'
-b'DocType: Address Template',b'This format is used if country specific format is not found',b'Este formato se utiliza si no se encuentra un formato espec\xc3\xadfico del pa\xc3\xads'
-b'apps/frappe/frappe/public/js/frappe/views/treeview.js +89',b'{0} Tree',b'{0} \xc3\x81rbol'
-b'DocType: Communication',b'Email',b'Correo electr\xc3\xb3nico'
-b'apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +127',b'Help on Search',b'Ayuda en la b\xc3\xbasqueda'
-b'DocType: Web Page',b'Left',b'Izquierda'
-b'DocType: SMS Settings',"b'Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)'","b'Introduzca los par\xc3\xa1metros de URL est\xc3\xa1ticas aqu\xc3\xad (Ej. sender = ERPNext , nombre de usuario = ERPNext , contrase\xc3\xb1a = 1234 etc )'"
-b'apps/frappe/frappe/core/doctype/user/user.py +191',b'Sorry! Sharing with Website User is prohibited.',b'\xc2\xa1Lo siento! Compartir con los del Sitio Web est\xc3\xa1 prohibido.'
-b'DocType: Custom Script',b'Script',b'Gui\xc3\xb3n'
-b'apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +71',b'Refresh Form',b'Formulario de actualizaci\xc3\xb3n'
-b'apps/frappe/frappe/templates/emails/new_user.html +2',b'A new account has been created for you at {0}',b'Una nueva cuenta ha sido creada para ti en {0}'
-b'DocType: Website Script',b'Website Script',b'Gui\xc3\xb3n del Sitio Web'
-b'apps/frappe/frappe/core/doctype/communication/communication.js +100',b'Reference DocType',b'Referencia DocType'
-b'apps/frappe/frappe/__init__.py +1094',b'Thank you',b'Gracias'
-b'DocType: Address',b'Shipping',b'Env\xc3\xado'
-b'DocType: Standard Reply',b'Standard Reply',b'Respuestas autom\xc3\xa1ticas'
-b'DocType: Currency',"b'How should this currency be formatted? If not set, will use system defaults'","b'\xc2\xbfC\xc3\xb3mo se debe formatear esta moneda ? Si no se establece, utilizar\xc3\xa1 valores predeterminados del sistema'"
-b'apps/frappe/frappe/core/doctype/report/report.py +37',b'Only Administrator allowed to create Query / Script Reports',b'Solo el Administrador puede crear consultas / Informes de Secuencias de Comandos'
-b'DocType: Web Form',b'Sidebar Items',b'Sidebar Art\xc3\xadculos'
-b'apps/frappe/frappe/utils/nestedset.py +201',b'Cannot delete {0} as it has child nodes',"b'No se puede eliminar {0} , ya que tiene nodos secundarios'"
-b'DocType: DocField',b'Set non-standard precision for a Float or Currency field',b'Ajuste de precisi\xc3\xb3n no est\xc3\xa1ndar para Decimales  Campo de Moneda'
-b'DocType: Workflow State',b'eye-close',b'ojo -cierre'
-b'DocType: Workflow State',b'step-backward',b'paso hacia atr\xc3\xa1s'
-b'DocType: User',b'User Defaults',b'Predeterminadas del Usuario'
-b'DocType: DocType',b'Fields',b'Los campos'
-b'DocType: Web Form',b'Success Message',b'Mensaje de \xc3\xa9xito'
-b'DocType: Website Slideshow',b'Slideshow Name',b'Presentaci\xc3\xb3n Nombre'
-b'apps/frappe/frappe/core/doctype/version/version_view.html +74',b'Row # ',b'Fila #'
-b'DocType: Workflow State',b'share-alt',b'share- alt'
-b'DocType: Report',"b""JavaScript Format: frappe.query_reports['REPORTNAME'] = {}""","b""Formato de JavaScript: frappe.query_reports [' REPORTNAME'] = { }"""
-b'apps/frappe/frappe/website/doctype/website_theme/website_theme.py +40',b'Top Bar Color and Text Color are the same. They should be have good contrast to be readable.',b'Top Bar en color y texto en color son los mismos. Deben tienen buen contraste para ser legible.'
-b'apps/frappe/frappe/desk/form/assign_to.py +151',"b'The task {0}, that you assigned to {1}, has been closed by {2}.'","b'La tarea {0}, que asign\xc3\xb3 a {1}, ha sido cerrado por {2}.'"
-b'DocType: Workflow State',b'star-empty',b'- estrella vac\xc3\xada'
-b'apps/frappe/frappe/templates/emails/auto_reply.html +1',b'Thank you for your email',b'Gracias por tu email'
-b'apps/frappe/frappe/public/js/legacy/form.js +62',"b'Allowing DocType, DocType. Be careful!'","b'Permitir DocType , tipo de documento . \xc2\xa1Ten cuidado!'"
-b'apps/frappe/frappe/core/doctype/docshare/docshare.py +40',"b'You need to have ""Share"" permission'","b'Usted necesita tener el permiso ""Compartir""'"
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9',b'The system provides many pre-defined roles. You can add new roles to set finer permissions.',b'El sistema ofrece muchas funciones predefinidas . Usted puede agregar nuevos roles para establecer permisos m\xc3\xa1s finos.'
-b'apps/frappe/frappe/utils/nestedset.py +243',b'{0} {1} cannot be a leaf node as it has children',"b'{0} {1} no puede ser un nodo de hoja , ya que tiene los ni\xc3\xb1os'"
-b'DocType: Footer Item',b'Company',b'Compa\xc3\xb1\xc3\xada(s)'
-b'DocType: Email Alert',"b""Send alert if date matches this field's value""",b'Env\xc3\xade la alarma si la fecha coincide con el valor de este campo'
-b'apps/frappe/frappe/config/setup.py +161',b'Setup Email Alert based on various criteria.',b'Configuraci\xc3\xb3n de Alerta de E-mail basado en varios criterios.'
-b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +697',b'You can add dynamic properties from the document by using Jinja templating.',b'Puede a\xc3\xb1adir propiedades din\xc3\xa1micas del documento mediante el uso de plantillas Jinja.'
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +495',b'Default for {0} must be an option',b'Predeterminado para {0} debe ser una opci\xc3\xb3n'
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +462',b'Options must be a valid DocType for field {0} in row {1}',b'Las opciones deben ser validas para el DocType en el campo {0} de la linea {1}'
-b'apps/frappe/frappe/templates/emails/auto_reply.html +5',b'This is an automatically generated reply',b'Esta es una respuesta generada autom\xc3\xa1ticamente'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager.js +443',b'Set',b'conjunto'
-b'DocType: Workflow State',b'Workflow State',b'Estados de los flujos de trabajo'
-b'DocType: Communication',b'Submitted',b'Enviado'
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +713',b'{0}: No basic permissions set',b'{0}: No se han asignado permisos b\xc3\xa1sicos'
-b'apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js +282',"b'Your download is being built, this may take a few moments...'","b'Se est\xc3\xa1 generando su descarga, esto puede tardar unos minutos...'"
-b'apps/frappe/frappe/core/doctype/data_import/data_import.js +177',b'Download with data',b'Descarga de datos'
-b'DocType: DocType',b'Hide Heading',b'Ocultar Rubro'
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +779',b'{0}: Cannot set Assign Amend if not Submittable',"b""{0}: no se puede 'Asignar Correci\xc3\xb3n' si no se puede presentar"""
-b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +411',b'Remove Section',b'Retire la Secci\xc3\xb3n'
-b'apps/frappe/frappe/config/setup.py +209',b'Define workflows for forms.',b'Definir los flujos de trabajo para las formas .'
-b'DocType: Workflow State',b'font',b'Fuente'
-b'apps/frappe/frappe/public/js/frappe/model/model.js +33',b'Parent',b'Padre'
-b'DocType: Communication',b'Workflow',b'Flujo de Trabajo'
-b'apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +136',b'Search in a document type',b'Buscar en un tipo de documento'
-b'DocType: Print Format',b'Server',b'Servidor'
-b'DocType: Custom DocPerm',b'Apply User Permissions',b'Aplicar permisos de usuario'
-b'DocType: Website Settings',b'Set Banner from Image',b'Establecer Banner de imagen'
-b'DocType: DocType',b'Is Single',b'Es Individual'
-b'apps/frappe/frappe/templates/includes/list/filters.html +19',b'clear',b'claro'
-b'DocType: Email Alert',"b""Send alert if this field's value changes""",b'Enviar alerta si cambia el valor de este campo'
-b'apps/frappe/frappe/desk/query_report.py +78',b'Must have report permission to access this report.',b'Debe tener permiso de informe para acceder a este informe.'
-b'apps/frappe/frappe/public/js/frappe/views/pageview.js +112',b'Sorry! You are not permitted to view this page.',b'\xc2\xa1Lo siento! Usted no est\xc3\xa1 autorizado a ver esta p\xc3\xa1gina.'
-b'apps/frappe/frappe/core/doctype/data_export/exporter.py +121',b'Please do not change the template headings.',"b'Por favor, no cambiar los encabezados de la plantilla.'"
-b'DocType: Email Alert',b'Days Before or After',b'D\xc3\xadas Anteriores o Posteriores'
-b'DocType: File',b'Content Hash',b'Hash contenido'
-b'DocType: Workflow State',b'align-left',b'alinear -izquierda'
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +756',b'{0}: Cannot set Import without Create',"b""{0}: no se puede establecer 'De importaci\xc3\xb3n' sin crearlo primero"""
-b'apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +257',b'Hide field in Report Builder',b'Ocultar campo en el Generador de Informes'
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +473',b'Max width for type Currency is 100px in row {0}',b'El ancho m\xc3\xa1ximo para la moneda es 100px en la linea {0}'
-b'apps/frappe/frappe/public/js/frappe/form/link_selector.js +146',b'{0} added',b'{0} agregado(s)'
-b'DocType: Integration Request',b'Reference DocName',b'Referencia DocNombre'
-b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +790',b'Saved',b'Guardado'
-b'DocType: System Settings',b'Security',b'Seguridad'
-b'DocType: Custom DocPerm',b'Read',b'Lectura'
-b'apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +269',b'use % as wildcard',b'Use% como comod\xc3\xadn'
-b'apps/frappe/frappe/model/delete_doc.py +171',b'User not allowed to delete {0}: {1}',b'El usuario no puede eliminar {0}: {1}'
-b'apps/frappe/frappe/desk/query_report.py +88',b'Query must be a SELECT',b'Debe seleccionar la Consulta'
-b'DocType: DocShare',b'Document Name',b'Nombre del documento'
-b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +162',b'Start new Format',b'Comenzar una nueva Formato'
-b'apps/frappe/frappe/desk/form/assign_to.py +145',"b'The task {0}, that you assigned to {1}, has been closed.'","b'La tarea {0}, que asign\xc3\xb3 a {1}, se ha cerrado.'"
-b'apps/frappe/frappe/config/website.py +42',b'Write titles and introductions to your blog.',b'Escribe t\xc3\xadtulos y las introducciones a tu blog .'
-b'DocType: Role Profile',b'Roles Assigned',b'Funciones Asignadas'
-b'DocType: Custom Field',b'Adds a custom field to a DocType',b'A\xc3\xb1ade un campo personalizado para un tipo de documento'
-b'DocType: User',b'Middle Name (Optional)',b'Segundo Nombre ( Opcional)'
-b'DocType: Email Account',b'Use TLS',b'Utilice TLS'
-b'apps/frappe/frappe/contacts/doctype/address_template/address_template.py +31',b'Default Address Template cannot be deleted',b'Plantilla de la Direcciones Predeterminadas no puede eliminarse'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +34',b'Select Document Types to set which User Permissions are used to limit access.',b'Seleccione los Tipos de Documento para establecer los Permisos de Usuario para limitar el acceso.'
-b'apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30',b'You are not allowed to delete a standard Website Theme',b'No se le permite eliminar un tema Sitio web est\xc3\xa1ndar'
-b'apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +229',b'Permissions can be managed via Setup &gt; Role Permissions Manager',b'Los permisos se pueden gestionar a trav\xc3\xa9s de Configuraci\xc3\xb3n > Administrador de Funciones'
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +742',b'{0}: Permission at level 0 must be set before higher levels are set',b'{0} : Permiso en el nivel 0 se debe establecer antes de fijar niveles m\xc3\xa1s altos'
-b'DocType: System Settings',b'dd-mm-yyyy',b'dd- mm- aaaa'
-b'apps/frappe/frappe/config/desk.py +54',"b'Newsletters to contacts, leads.'","b'Boletines para contactos, clientes potenciales .'"
-b'DocType: Email Alert',b'Message Examples',b'Ejemplos de Mensajes'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +11',"b'As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.'","b'Como pr\xc3\xa1ctica recomendada , no asigne el mismo conjunto de permisos para diferentes funciones. En su lugar, establecer varias funciones al mismo usuario .'"
-b'DocType: Website Theme',b'Top Bar Color',b'Inicio Barra Color'
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +538',b'There can be only one Fold in a form',b'S\xc3\xb3lo puede haber un doblez en forma'
-b'DocType: Address',b'Shop',b'Tienda'
-b'apps/frappe/frappe/public/js/frappe/views/treeview.js +183',b'Add Child',b'Agregar subcuenta'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7',b'Roles can be set for users from their User page.',b'Las funciones se pueden configurar para los usuarios de su p\xc3\xa1gina de usuario .'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6',b'Permissions get applied on Users based on what Roles they are assigned.',b'Permisos han sido aplicados a los Usuarios en base a los funciones que tienen asignadas.'
-b'DocType: Contact',b'Replied',b'Respondio'
-b'DocType: Contact Us Settings',"b'Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.'","b'Opciones de contacto , como "" Consultas de Ventas , Soporte de consultas"" , etc cada uno en una nueva l\xc3\xadnea o separados por comas.'"
-b'DocType: Page',b'Roles',b'Funciones'
-b'DocType: Country',b'Time Zones',b'Husos horarios'
-b'DocType: Website Settings',b'Website Theme Image',b'Sitio web Imagen por tema'
-b'DocType: Address',b'City/Town',b'Ciudad/Provincia'
-b'apps/frappe/frappe/templates/includes/login/login.js +39',b'Valid email and name required',b'Nombre y Correo Electr\xc3\xb3nico v\xc3\xa1lido requerido'
-b'DocType: Property Setter',b'Property Setter overrides a standard DocType or Field property',b'Propiedad Setter se impone a una DocType est\xc3\xa1ndar o propiedad Campo'
-b'DocType: DocField',b'Float',b'flotador'
-b'apps/frappe/frappe/website/doctype/website_settings/website_settings.py +34',b'{0} does not exist in row {1}',b'{0} no existe en la linea {1}'
-b'DocType: Contact',b'Open',b'Abrir'
-b'DocType: DocType',b'Hide Copy',b'Copia Oculta'
-b'apps/frappe/frappe/printing/doctype/print_format/print_format.py +19',b'Standard Print Format cannot be updated',b'Formato de impresi\xc3\xb3n est\xc3\xa1ndar no se puede actualizar'
-b'apps/frappe/frappe/model/rename_doc.py +385',b'** Failed: {0} to {1}: {2}',b'** Fallo: {0} a {1}: {2}'
-b'apps/frappe/frappe/public/js/frappe/form/layout.js +35',b'This form does not have any input',b'Esta forma no tiene ninguna entrada'
-b'apps/frappe/frappe/model/naming.py +45',b'{0} is required',b'{0} es necesario'
-b'DocType: Website Settings',b'Select an image of approx width 150px with a transparent background for best results.',b'Seleccione una imagen de ancho aprox 150px con fondo transparente para obtener mejores resultados .'
-b'DocType: Workflow State',b'Tag',b'Etiqueta'
-b'DocType: Print Settings',b'Send Print as PDF',b'Enviar Impresi\xc3\xb3n como PDF'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager.js +55',b'Select Role',b'Seleccione Funci\xc3\xb3n'
-b'apps/frappe/frappe/model/base_document.py +392',b'Data missing in table',b'Los datos que faltan en la tabla'
-b'apps/frappe/frappe/desk/doctype/event/event.py +31',b'Every day events should finish on the same day.',b'Los eventos deben terminar el mismo d\xc3\xada.'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +32',"b'To give acess to a role for only specific records, check the Apply User Permissions. User Permissions are used to limit users with such role to specific records.'","b'Para dar acceso a una funci\xc3\xb3n s\xc3\xb3lo a registros espec\xc3\xadficos, marque la casilla Aplicar Permisos de Usuario. Los Permisos de Usuario se utilizan para limitar los usuarios con esa funci\xc3\xb3n a acceder a registros espec\xc3\xadficos.'"
-b'DocType: Workflow State',b'resize-vertical',b'cambiar el tama\xc3\xb1o vertical'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager.js +100',b'Reset Permissions for {0}?',b'Restablecer los permisos para {0} ?'
-b'DocType: Property Setter',b'DocType or Field',b'DocType o campo'
-b'DocType: System Settings',b'Scheduler Last Event',b'Programador \xc3\x9altimo Evento'
-b'DocType: Workflow Document State',b'Doc Status',b'Estado Doc.'
-b'DocType: DocType',b'Single Types have only one record no tables associated. Values are stored in tabSingles',b'Tipos simples tienen s\xc3\xb3lo un registro no hay tablas asociadas . Los valores se almacenan en tabSingles'
-b'apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +58',b'Make a new',b'Hacer una nueva'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35',"b'Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).'","b'Una vez que haya establecido esto, los usuarios s\xc3\xb3lo tendr\xc3\xa1n acceso a los documentos que puedan (por ejemplo, Entrada de blog ) donde se encuentra la relaci\xc3\xb3n (por ejemplo, Blogger ) .'"
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +477',"b""'In List View' not allowed for type {0} in row {1}""",b'No est\xc3\xa1 permitido para el tipo {0} en la linea {1}'
-b'apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +218',"b""Change type of field. (Currently, Type change is \\\n\t\t\t\t\t\tallowed among 'Currency and Float')""","b'Cambiar el tipo de campo. (Actual, Tipo de cambio, Cantidad permitida, Moneda, Flotante, etc)'"
-b'DocType: Footer Item',"b'Select target = ""_blank"" to open in a new page.'","b'Select target = "" _blank"" para abrir en una nueva p\xc3\xa1gina.'"
-b'apps/frappe/frappe/core/doctype/report/report.js +9',"b'To format columns, give column labels in the query.'","b'Para dar formato a columnas, dar t\xc3\xadtulos de las columnas en la consulta.'"
-,b'User Permissions Manager',b'Permisos de Usuario Administrador'
-b'apps/frappe/frappe/model/naming.py +95',b'Invalid naming series (. missing)',b'Serie de nombres Inv\xc3\xa1lidos (. Faltante)'
-b'DocType: Communication',b'Sent or Received',b'Env\xc3\xado y de recepci\xc3\xb3n'
-b'apps/frappe/frappe/public/js/frappe/form/grid.js +638',b'Edit via Upload',b'Editar v\xc3\xada Subir Archivo'
-b'DocType: Communication',b'User Tags',b'Nube de Etiquetas'
-b'apps/frappe/frappe/public/js/frappe/list/list_permission_footer.html +12',b'{0} is not set',b'{0} no se ha establecido'
-b'DocType: Workflow State',b'text-height',b'text- altura'
-b'DocType: Website Theme',b'Text Color',b'Color del texto'
-b'apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +60',b'Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer',b'Nombre del tipo de documento (DocType) el cual quiere que este campo este vinculado. por ejemplo al Cliente'
-b'DocType: Web Form',b'Success URL',b'URL de \xc3\x89xito'
-b'apps/frappe/frappe/core/doctype/report/report.js +16',b'Write a Python file in the same folder where this is saved and return column and result.',b'Escriba un archivo de Python en la misma carpeta donde esta se guarda y devuelve la columna y el resultado.'
-b'DocType: Workflow',"b'Rules for how states are transitions, like next state and which role is allowed to change state etc.'","b'Reglas para transici\xc3\xb3n entre estados, como el siguiente estado y qu\xc3\xa9 funci\xc3\xb3n permite cambiar de estado , etc'"
-b'DocType: User',b'Change Password',b'Cambiar contrase\xc3\xb1a.'
-b'DocType: Workflow',b'States',b'Unidos'
-b'DocType: User',b'Email Signature',b'Firma Email'
-b'apps/frappe/frappe/sessions.py +163',b'Redis cache server not running. Please contact Administrator / Tech support',"b'Servidor de Cach\xc3\xa9 Redis no esta funcionando. Por favor, p\xc3\xb3ngase en contacto con el Administrador / Soporte t\xc3\xa9cnico'"
-b'DocType: Workflow Document State',b'Only Allow Edit For',b'S\xc3\xb3lo Permitir Editar Para'
-b'DocType: Website Slideshow',b'This goes above the slideshow.',b'Esto va por encima de la presentaci\xc3\xb3n de diapositivas.'
-b'DocType: Website Settings',b'Footer Items',b'Elementos del Pie de P\xc3\xa1gina'
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +754',b'{0}: Cannot set Amend without Cancel',"b""{0}: no se puede 'Corregir' sin antes cancelar"""
-b'apps/frappe/frappe/templates/emails/new_user.html +3',b'Your login id is',b'Su nombre de usuario es'
-b'DocType: DocField',b'Currency',b'Divisa'
-b'apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +36',b'Please specify doctype',"b'Por favor, especifique el doctype'"
-b'DocType: System Settings',b'Session Expiry Mobile',b'Vencimiento de sesi\xc3\xb3n en dispositivo mobil'
-b'DocType: Web Form',b'Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`',b'El texto que se muestra para enlazar a la p\xc3\xa1gina Web si esta forma dispone de una p\xc3\xa1gina web. Ruta Enlace autom\xc3\xa1ticamente se genera en base a `page_name` y` parent_website_route`'
-,b'Setup Wizard',b'Asistente de configuraci\xc3\xb3n'
-b'DocType: Print Settings',b'Send Email Print Attachments as PDF (Recommended)',b'Enviar Emails con adjuntos en formato PDF (recomendado)'
-b'apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +146',b'Field {0} is not selectable.',b'El campo {0} no se puede seleccionar .'
-b'apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +820',b'Select To Download:',b'Seleccione la descarga :'
-b'apps/frappe/frappe/public/js/frappe/upload.js +246',b'Please attach a file or set a URL',"b'Por favor, adjuntar un archivo o defina una URL'"
-b'DocType: Contact',b'Is Primary Contact',b'Es Contacto principal'
-,b'Permitted Documents For User',b'Documentos permitidos para los usuarios'
-b'apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +132',b'Make a new record',b'Hacer un Nuevo Registro'
-b'DocType: Report',b'Script Report',b'Informe de secuencias de comandos'
-b'apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +24',b'Label is mandatory',b'Etiqueta es obligatoria'
-b'DocType: Currency',b'**Currency** Master',b'**Moneda** Principal'
-b'DocType: Event',b'Sunday',b'Domingo'
-b'DocType: Custom Field',b'Label Help',b'Etiqueta Ayuda'
-b'apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +93',b'Search or type a command',b'Busque o escriba un comando'
-b'DocType: Event',b'Repeat On',b'Repetir OK'
-b'apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +76',b'Remove all customizations?',b'Eliminar todas las personalizaciones ?'
-b'apps/frappe/frappe/geo/doctype/currency/currency.js +7',b'This Currency is disabled. Enable to use in transactions',b'Esta moneda est\xc3\xa1 deshabilitada . Habilite el uso en las transacciones'
-b'DocType: Contact Us Settings',b'Contact Us Settings',b'Configuraci\xc3\xb3n de Cont\xc3\xa1ctenos'
-b'DocType: Workflow State',b'thumbs-up',b'pulgar hacia arriba'
-b'DocType: About Us Settings',b'Introduce your company to the website visitor.',b'Dar a conocer su empresa al visitante del sitio Web .'
-b'apps/frappe/frappe/config/setup.py +247',b'Add custom javascript to forms.',b'A\xc3\xb1adir javascript personalizado las formas .'
-b'DocType: Communication',b'Unread Notification Sent',b'Notificaci\xc3\xb3n No le\xc3\xaddo Enviado'
-b'apps/frappe/frappe/public/js/frappe/views/treeview.js +232',b'Select a group node first.',b'Seleccione un nodo de grupo primero.'
-b'DocType: Workflow State',"b'Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange'","b'Estilo representa el color del bot\xc3\xb3n : \xc3\x89xito - Verde , Peligro - Rojo , Inverso - Negro , Primaria - Azul Oscuro , Info - Azul Claro, Advertencia - Orange'"
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager.js +310',b'Users with role {0}:',b'Los usuarios con funci\xc3\xb3n {0}:'
-b'apps/frappe/frappe/core/doctype/file/file.py +168',b'Same file has already been attached to the record',b'El mismo archivo ya se ha adjuntado al registro'
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +749',b'{0}: Cannot set Cancel without Submit',"b""{0}: no se puede 'Cancelar' sin presentarlo"""
-b'DocType: Address',b'Address Title',b'Direcci\xc3\xb3n T\xc3\xadtulo'
-b'apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +241',b'Mark the field as Mandatory',b'Marque el campo como obligatorio'
-b'DocType: Workflow State',b'resize-full',b'cambiar a tama\xc3\xb1o completo'
-b'apps/frappe/frappe/core/doctype/docshare/docshare.py +47',b'{0} shared this document with everyone',b'{0} comparti\xc3\xb3 este documento con todos'
-b'apps/frappe/frappe/public/js/frappe/form/workflow.js +117',b'is not allowed.',b'no est\xc3\xa1 permitido.'
-b'apps/frappe/frappe/public/js/frappe/model/model.js +508',b'Permanently delete {0}?',b'Eliminar permanentemente {0} ?'
-b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +82',b'Select Print Format to Edit',b'Seleccione Formato de impresi\xc3\xb3n a Editar'
-b'DocType: Contact',b'Sales Master Manager',b'Gerente de Ventas'
-b'apps/frappe/frappe/public/js/frappe/form/link_selector.js +26',b'You can use wildcard %',b'Puede utilizar caracteres comod\xc3\xadn%'
-b'apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +846',b'Report was not saved (there were errors)',b'Informe no se guard\xc3\xb3 ( hubo errores )'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +24',"b'Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.'","b'Los permisos del nivel 0 son los permisos a nivel de documentos, es decir, que tienen permiso especial para los documentos.'"
-b'apps/frappe/frappe/config/setup.py +230',"b'Change field properties (hide, readonly, permission etc.)'","b'Cambiar las propiedades de campo (ocultar, s\xc3\xb3lo lectura, permisos, etc)'"
-b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +108',b'Select a DocType to make a new format',b'Seleccione un tipo de documento para hacer un nuevo formato'
-b'apps/frappe/frappe/model/document.py +1072',b'Table {0} cannot be empty',b'La tabla {0} no puede estar vac\xc3\xado'
-b'DocType: Report',b'Report Builder',b'Generador de informes'
-b'DocType: Workflow Document State',b'Represents the states allowed in one document and role assigned to change the state.',b'Representa los estados permitidos en un solo documento y funci\xc3\xb3n asignada a cambiar el estado.'
-b'apps/frappe/frappe/config/setup.py +19',b'User Roles',b'Funciones de Usuario'
-b'apps/frappe/frappe/email/receive.py +65',b'Cannot connect: {0}',b'No puede conectarse: {0}'
-b'apps/frappe/frappe/core/doctype/report/report.py +33',b'Only Administrator can save a standard report. Please rename and save.',"b'S\xc3\xb3lo el administrador puede guardar un informe est\xc3\xa1ndar. Por favor, cambie el nombre y guardar.'"
-b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +126',b'Both DocType and Name required',b'Tanto DocType y Nombre son obligatorios'
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +730',"b'{0}: Only one rule allowed with the same Role, Level and {1}'","b'{0}: S\xc3\xb3lo una regla es permitida con el mismo rol, Nivel y {1}'"
-b'DocType: Customize Form',"b'Customize Label, Print Hide, Default etc.'","b'Personaliza etiquetas, impresi\xc3\xb3n Hide , Default , etc'"
-b'apps/frappe/frappe/desk/form/utils.py +111',b'No further records',b'No hay registros adicionales'
-b'apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +907',b'Pick Columns',b'Seleccione columnas'
-b'DocType: Patch Log',b'Patch Log',b'Registro de Parches'
-b'apps/frappe/frappe/public/js/frappe/model/indicator.js +54',b'Draft',b'Borrador.'
-b'apps/frappe/frappe/utils/verified_command.py +44',b'This link is invalid or expired. Please make sure you have pasted correctly.',"b'Este enlace no es v\xc3\xa1lido o caducado. Por favor, aseg\xc3\xbarese de que ha pegado correctamente.'"
-b'apps/frappe/frappe/desk/query_report.py +84',b'Must specify a Query to run',b'Debe especificar una consulta para ejecutar'
-b'apps/frappe/frappe/public/js/frappe/misc/tools.js +10',b'Export not allowed. You need {0} role to export.',b'Exportaciones no permitido. Es necesario {0} funci\xc3\xb3n de exportar .'
-b'apps/frappe/frappe/core/doctype/report/report.js +8',b'Write a SELECT query. Note result is not paged (all data is sent in one go).',b'Escriba una consulta SELECT. Nota resultado no se pagina ( todos los datos se env\xc3\xadan en una sola vez ) .'
-b'DocType: Event',b'Repeat this Event',b'Repita este Evento'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager.js +436',b'If {0} is permitted',b'Si se permite {0}'
-b'DocType: Footer Item',b'Link to the page you want to open. Leave blank if you want to make it a group parent.',b'Enlace a la p\xc3\xa1gina que desea abrir. Dejar en blanco si desea que sea un grupo padre.'
-b'DocType: Report',b'Report Name',b'Nombre del informe'
-b'DocType: Workflow State',b'minus-sign',b'signo menos'
-b'apps/frappe/frappe/public/js/frappe/form/share.js +27',b'Shared with everyone',b'Compartido con todo el mundo'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27',b'You can use Customize Form to set levels on fields.',b'Usted puede utilizar Personalizar formulario para establecer los niveles de los campos .'
-b'apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +140',b'Month',b'Mes.'
-b'apps/frappe/frappe/website/doctype/website_settings/website_settings.py +38',b'{0} in row {1} cannot have both URL and child items',b'{0} en la linea {1} no puede tener URL y elementos secundarios'
-b'apps/frappe/frappe/templates/includes/login/login.js +24',b'Both login and password required',b'Se requiere tanto usuario como contrase\xc3\xb1a'
-b'DocType: Workflow State',b'download-alt',b'descargar -alt'
-b'DocType: About Us Settings',b'Website Manager',b'Administrador de P\xc3\xa1gina Web'
-b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html +3',b'Drag elements from the sidebar to add. Drag them back to trash.',b'Arrastre los elementos de la barra lateral para agregar. Arrastre de nuevo a la papelera de reciclaje.'
-b'DocType: Currency',"b'Sub-currency. For e.g. ""Cent""'","b'Sub-moneda, por ejemplo, ""Centavo""'"
-b'DocType: Workflow State',b'exclamation-sign',b'signo de exclamaci\xc3\xb3n'
-b'DocType: Desktop Icon',b'List',b'Vista de \xc3\xa1rbol'
-b'apps/frappe/frappe/public/js/frappe/views/communication.js +541',b'There were errors while sending email. Please try again.',"b'Hubo errores al enviar el correo electr\xc3\xb3nico. Por favor, int\xc3\xa9ntelo de nuevo.'"
-b'apps/frappe/frappe/core/doctype/system_settings/system_settings.py +27',b'Session Expiry must be in format {0}',b'Vencimiento de sesi\xc3\xb3n debe estar en formato {0}'
-b'DocType: User',b'Stores the JSON of last known versions of various installed apps. It is used to show release notes.',b'Almacena el JSON de las \xc3\xbaltimas versiones conocidas de diferentes aplicaciones instaladas. Se utiliza para mostrar notas de la versi\xc3\xb3n.'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14',"b'Meaning of Submit, Cancel, Amend'","b'Significado de Enviar, Cancelar, Corregir'"
-b'apps/frappe/frappe/config/website.py +58',"b'Setup of top navigation bar, footer and logo.'","b'Configuraci\xc3\xb3n de la barra de navegaci\xc3\xb3n superior , pie de p\xc3\xa1gina y el logotipo.'"
-b'apps/frappe/frappe/public/js/frappe/upload.js +26',b'Upload Attachment',b'Subir Archivos Adjuntos'
-b'apps/frappe/frappe/templates/emails/new_user.html +16',b'You can also copy-paste this link in your browser',b'Tambi\xc3\xa9n puede copiar y pegar este enlace en su navegador'
-b'DocType: Email Group',b'Total Subscribers',b'Los suscriptores totales'
-b'apps/frappe/frappe/config/website.py +73',b'Settings for About Us Page.',b'Ajustes para Nosotros Pagina .'
-b'DocType: File',b'File Size',b'Tama\xc3\xb1o del archivo'
-b'apps/frappe/frappe/config/setup.py +188',"b'Set default format, page size, print style etc.'","b'Establecer formato por defecto, tama\xc3\xb1o de p\xc3\xa1gina, el estilo de impresi\xc3\xb3n, etc'"
-b'DocType: System Settings',b'Your organization name and address for the email footer.',b'Su nombre de la organizaci\xc3\xb3n y direcci\xc3\xb3n para el pie de p\xc3\xa1gina de correo electr\xc3\xb3nico.'
-b'apps/frappe/frappe/config/desk.py +44',b'Activity log of all users.',b'Registro de Actividad para todos los Usuarios'
-b'apps/frappe/frappe/core/doctype/report/report.js +5',b'Report Builder reports are managed directly by the report builder. Nothing to do.',b'Informes del Generador de informes son enviadas por el generador de informes . No hay nada que hacer.'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +10',b'Permissions are automatically translated to Standard Reports and Searches.',b'Los permisos se traducir\xc3\xa1n autom\xc3\xa1ticamente a los informes Est\xc3\xa1ndar y B\xc3\xbasquedas .'
-b'DocType: Email Alert',b'Email Alert',b'Alerta por Email'
-b'DocType: Website Theme',b'Top Bar Text Color',b'Top Bar Color del texto'
-b'DocType: Website Slideshow',b'Slideshow Items',b'Presentaci\xc3\xb3n Art\xc3\xadculos'
-b'DocType: Top Bar Item',"b'If you set this, this Item will come in a drop-down under the selected parent.'","b'Si usted habilita esto, el elemento crear\xc3\xa1 un men\xc3\xba desplegable--'"
-b'apps/frappe/frappe/config/website.py +27',b'Embed image slideshows in website pages.',b'Presentacion de im\xc3\xa1genes incrustadas en p\xc3\xa1ginas web .'
-b'apps/frappe/frappe/printing/doctype/print_format/print_format.js +28',b'Please select DocType first',"b'Por favor, seleccione DocType primero'"
-b'apps/frappe/frappe/contacts/doctype/address_template/address_template.py +20',b'Setting this Address Template as default as there is no other default',b'Al establecer esta plantilla de direcci\xc3\xb3n por defecto ya que no hay otra manera predeterminada'
-b'apps/frappe/frappe/core/doctype/data_export/exporter.py +129',"b'""Parent"" signifies the parent table in which this row must be added'","b""'Padre' es la tabla principal en la que hay que a\xc3\xb1adir esta fila"""
-b'apps/frappe/frappe/website/doctype/web_form/web_form.py +130',b'You need to be logged in to access this {0}.',b'Tienes que estar registrado para acceder a este {0}.'
-b'DocType: Website Settings',b'Disable Customer Signup link in Login page',b'Desactivar enlace de registro del cliente en la p\xc3\xa1gina de entrada'
-b'DocType: Kanban Board Column',b'Column Name',b'Nombre de la columna'
-b'apps/frappe/frappe/public/js/frappe/form/link_selector.js +106',b'Make a new {0}',b'Crear un nuevo {0}'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager.js +145',b'Select Document Type or Role to start.',b'Seleccione el Tipo de Documento o Funci\xc3\xb3n para empezar.'
-b'DocType: Workflow Transition',b'Defines actions on states and the next step and allowed roles.',b'Define las acciones de los estados y el siguiente paso y funciones permitidas.'
-b'DocType: DocType',b'Show Print First',b'Mostrar Imprimir Primera'
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +763',b'Report cannot be set for Single types',b'Reportar no se puede configurar para los tipos individuales'
-b'apps/frappe/frappe/core/doctype/report/report.js +37',b'Disable Report',b'Desactivar Informe'
-b'DocType: Workflow State',b'resize-small',b'cambiar el tama\xc3\xb1o peque\xc3\xb1o'
-b'DocType: Workflow State',b'question-sign',b'Consultar Firma'
-b'apps/frappe/frappe/utils/nestedset.py +237',b'Multiple root nodes not allowed.',b'Nodos ra\xc3\xadz m\xc3\xbaltiples no permitidos.'
-b'DocType: Event',b'Saturday',b'S\xc3\xa1bado'
-b'DocType: Address',b'Maintenance User',b'Mantenimiento por el Usuario'
-b'apps/frappe/frappe/email/doctype/newsletter/newsletter.py +35',b'Scheduled to send to {0}',b'Programado para enviar a {0}'
-b'apps/frappe/frappe/model/base_document.py +438',b'{0} must be set first',b'debe establecerse primero: {0}'
-b'apps/frappe/frappe/core/doctype/data_export/exporter.py +126',"b'For updating, you can update only selective columns.'","b'Para la actualizaci\xc3\xb3n, usted lo puede hacer solo en algunas columnas.'"
-b'DocType: Custom DocPerm',b'Export',b'Exportaci\xc3\xb3n'
-b'DocType: Workflow State',b'Search',b'B\xc3\xbasqueda'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16',"b'Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.'","b""Algunos documentos como facturas, no se deben cambiar una vez guardados. El estado final de dichos documentos se llama 'Presentado'. Puede restringir qu\xc3\xa9 roles/usuarios pueden presentar documentos"""
-b'apps/frappe/frappe/public/js/frappe/views/pageview.js +104',b'Sorry! I could not find what you were looking for.',b'\xc2\xa1Lo siento! No pude encontrar lo que estabas buscando.'
-b'DocType: Workflow State',b'remove-sign',b'Eliminar el efecto de signo'
-b'apps/frappe/frappe/public/js/frappe/form/controls/select.js +61',b'Please attach a file first.',b'Adjunte un archivo primero .'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager.js +261',b'Show User Permissions',b'Permisos Mostrar usuario'
-b'apps/frappe/frappe/public/js/frappe/request.js +367',b'Report this issue',b'Reportar Incidencia'
-b'apps/frappe/frappe/public/js/frappe/views/treeview.js +240',b'New {0}',b'Nuevo {0}'
-b'DocType: Workflow Action',b'Workflow Action',b'Acciones de los flujos de trabajo'
-b'DocType: Custom Script',b'Script Type',b'Gui\xc3\xb3n Tipo'
-b'DocType: Workflow State',b'text-width',b'texto de ancho'
-b'DocType: Custom DocPerm',b'This role update User Permissions for a user',b'Este funci\xc3\xb3n actualiza los Permisos de Usuario para un usuario'
-b'DocType: Workflow State',b'resize-horizontal',b'cambiar el tama\xc3\xb1o horizontal'
-b'apps/frappe/frappe/model/delete_doc.py +176',b'{0} {1}: Submitted Record cannot be deleted.',b'{0} {1}: registro presentado no se puede eliminar.'
-b'apps/frappe/frappe/public/js/frappe/form/save.js +150',b'Mandatory fields required in {0}',b'Campos obligatorios requeridos en {0}'
-b'apps/frappe/frappe/model/rename_doc.py +372',b'Maximum {0} rows allowed',b'M\xc3\xa1ximo {0} filas permitidos'
-b'DocType: Custom DocPerm',b'Import',b'Importaci\xc3\xb3n'
-b'apps/frappe/frappe/model/naming.py +177',"b'There were some errors setting the name, please contact the administrator'","b'Hab\xc3\xada algunos errores de configuraci\xc3\xb3n el nombre, por favor p\xc3\xb3ngase en contacto con el administrador'"
-b'apps/frappe/frappe/website/doctype/web_form/web_form.py +37',b'You need to be in developer mode to edit a Standard Web Form',b'Se requiere estar en modo desarrollador para editar un formulario web est\xc3\xa1ndar.'
-b'DocType: Website Theme',b'Google Font (Heading)',b'Google Font (T\xc3\xadtulo)'
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +489',"b""Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'""","b'Las opciones de campo de tipo \'Vinculo Din\xc3\xa1mico\' debe apuntar a otro campo con propiedades ""Tipo de Documento""'"
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +777',b'{0}: Cannot set Assign Submit if not Submittable',"b""{0}: no se puede 'Asignar Enviar' si no se puede presentar"""
-b'DocType: Workflow State',b'step-forward',b'paso hacia adelante'
-b'DocType: Workflow State',b'align-justify',b'alinear - justificar'
-b'apps/frappe/frappe/core/doctype/data_import/importer.py +308',b'Not allowed to Import',b'No tiene permisos para importar'
-b'apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +138',b'Open a module or tool',b'Abra un M\xc3\xb3dulo o Herramienta'
-b'apps/frappe/frappe/public/js/legacy/form.js +137',b'Please save before attaching.',"b'Por favor, guarde los cambios antes de conectar'"
-b'apps/frappe/frappe/core/doctype/data_import/importer.py +27',b'Parent Table',b'Tabla de Padres'
-b'DocType: Dropbox Settings',b'Dropbox Access Key',b'Clave de Acceso de Dropbox'
-b'apps/frappe/frappe/public/js/frappe/ui/field_group.js +89',b'Missing Values Required',b'Valores perdidos requeridos'
-b'DocType: User',b'Third Party Authentication',b'Autenticaci\xc3\xb3n de socios'
-b'DocType: Activity Log',b'Subject',b'Sujeto'
-b'apps/frappe/frappe/utils/nestedset.py +78',b'Nested set error. Please contact the Administrator.',"b'Error de conjunto anidado . Por favor, p\xc3\xb3ngase en contacto con el Administrador.'"
-b'DocType: DocField',b'Set Only Once',b'Un \xc3\xbanico ajuste'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager.js +48',b'Document Types',b'Tipos de Documento'
-b'DocType: DocField',b'Perm Level',b'Nivel Perm'
-b'DocType: Email Account',"b'Append as communication against this DocType (must have fields, ""Status"", ""Subject"")'","b'Anexar como la comunicaci\xc3\xb3n en contra de este tipo de documento (debe tener campos, ""Estado"", ""Asunto"")'"
-b'DocType: About Us Settings',b'About Us Settings',b'Configuraci\xc3\xb3n de Acerca de Nosotros'
-b'apps/frappe/frappe/public/js/frappe/ui/slides.js +324',b'Next',b'Pr\xc3\xb3ximo'
-b'DocType: DocField',b'Default',b'Defecto'
-b'DocType: Workflow',b'Rules defining transition of state in the workflow.',b'Reglas que definen la transici\xc3\xb3n de estado del flujo de trabajo .'
-b'DocType: Workflow State',b'align-right',b'alinear a la derecha'
-b'DocType: Workflow State',b'italic',b'it\xc3\xa1lico'
-b'DocType: Workflow State',b'shopping-cart',b'carro de la compra'
-b'apps/frappe/frappe/utils/data.py +494',b'only.',b'exactos.'
-b'apps/frappe/frappe/model/naming.py +67',b'Naming Series mandatory',b'Las secuencias son obligatorias'
-b'DocType: Event',b'Ref Type',b'Tipo Ref'
-b'DocType: DocType',b'Sort Order',b'Orden de Clasificaci\xc3\xb3n'
-b'apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +249',b'Hide field in form',b'Ocultar campo en forma'
-b'DocType: Newsletter',b'Email Sent?',b'Enviar Email ?'
-b'apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +274',b'Show a description below the field',b'Mostrar una descripci\xc3\xb3n debajo del campo'
-b'DocType: User',b'Send Welcome Email',b'Enviar Bienvenido Email'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +25',"b'If a Role does not have access at Level 0, then higher levels are meaningless.'","b'Si una funci\xc3\xb3n no tiene acceso en el Nivel 0, entonces los niveles m\xc3\xa1s altos no tienen sentido .'"
-b'DocType: Website Theme',b'Heading Style',b'Estilo de t\xc3\xadtulo'
-b'apps/frappe/frappe/email/doctype/newsletter/newsletter.py +40',b'Newsletter has already been sent',b'El bolet\xc3\xadn de noticias ya ha sido enviado'
-b'DocType: Workflow State',b'star',b'estrella'
-b'DocType: Contact',b'Salutation',b'Saludo'
-b'apps/frappe/frappe/templates/emails/auto_reply.html +2',"b'Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail.'","b'Su petici\xc3\xb3n ha sido recibida. Le contestaremos en breve. Si usted tiene alguna informaci\xc3\xb3n adicional, por favor responda a este correo.'"
-b'DocType: Workflow State',b'Icon will appear on the button',b'Icono aparecer\xc3\xa1 en el bot\xc3\xb3n'
-b'apps/frappe/frappe/public/js/frappe/form/share.js +115',b'Share With',b'Comparte con'
-b'DocType: Blogger',b'Posts',b'Mensajes'
-b'DocType: Custom Field',b'Field Description',b'Descripci\xc3\xb3n del Campo'
-b'apps/frappe/frappe/utils/nestedset.py +194',b'Root {0} cannot be deleted',b'Ra\xc3\xadz {0} no se puede eliminar'
-b'DocType: Website Settings',b'Banner is above the Top Menu Bar.',b'El Banner est\xc3\xa1 por sobre la barra de men\xc3\xba superior.'
-b'apps/frappe/frappe/templates/includes/comments/comments.py +50',b'View it in your browser',b'V\xc3\xa9alo en su navegador'
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +569',b'Title field must be a valid fieldname',b'Campo T\xc3\xadtulo debe ser un nombre de campo v\xc3\xa1lido'
-b'DocType: SMS Settings',b'Enter url parameter for receiver nos',b'Introduzca el par\xc3\xa1metro url para el receptor no'
-b'apps/frappe/frappe/client.py +103',b'Cannot edit standard fields',b'No se puede editar campos est\xc3\xa1ndar'
-b'apps/frappe/frappe/config/website.py +78',b'Settings for Contact Us Page.',b'Ajustes para la p\xc3\xa1gina de contacto.'
-b'apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +49',b'1 hour ago',b'Hace 1 hora'
-b'DocType: Workflow State',b'th-list',b'th -list'
-b'apps/frappe/frappe/desk/query_report.py +28',b'Report {0} is disabled',b'Informe {0} est\xc3\xa1 deshabilitado'
-b'DocType: Currency',b'1 Currency = [?] Fraction\nFor e.g. 1 USD = 100 Cent',"b'1 Moneda = [?] Fracci\xc3\xb3n, ejem: 1 USD = 100 Centavos'"
-b'apps/frappe/frappe/core/doctype/data_import/importer.py +25',b'Start entering data below this line',b'Empiece a introducir datos por debajo de esta l\xc3\xadnea'
-b'apps/frappe/frappe/config/setup.py +37',b'Set Permissions on Document Types and Roles',b'Establecer Permisos en los Tipos de Documentos y Funciones'
-b'DocType: Feedback Trigger',b'Optional: The alert will be sent if this expression is true',b'Opcional: La alerta ser\xc3\xa1 enviado si esta expresi\xc3\xb3n es verdadera'
-b'apps/frappe/frappe/public/js/frappe/views/kanban/kanban_column.html +19',b'Add',b'A\xc3\xb1adir'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9',b'Add a New Role',b'A\xc3\xb1adir un Nuevo Rol'
-b'DocType: Workflow',"b'Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.'","b'Este documento puede estar en Diferentes ""Estados"". Como ""Abierto"", ""Pendiente de Aprobaci\xc3\xb3n"", etc.'"
-b'DocType: Web Page',b'Text Align',b'Alineaci\xc3\xb3n del texto'
-b'apps/frappe/frappe/auth.py +251',b'Not allowed from this IP Address',b'No se permite desde esta direcci\xc3\xb3n IP'
-b'DocType: Contact Us Settings',b'Settings for Contact Us Page',b'Ajustes para Cont\xc3\xa1ctenos P\xc3\xa1gina'
-b'DocType: Custom DocPerm',b'User Permission DocTypes',b'Doctypes de Permisos de Usuarios'
-b'apps/frappe/frappe/public/js/frappe/roles_editor.js +204',b'Role Permissions',b'Permisos de la Funci\xc3\xb3n'
-,b'Role Permissions Manager',b'Administrador de Permisos'
-b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_field.html +21',b'Edit HTML',b'Edici\xc3\xb3n de HTML'
-b'apps/frappe/frappe/public/js/frappe/form/save.js +12',b'Submitting',b'Presentar'
-b'DocType: Dropbox Settings',b'Dropbox Access Secret',b'Acceso Secreto de Dropbox'
-b'apps/frappe/frappe/core/doctype/user/user.py +189',b'Sorry! User should have complete access to their own record.',b'\xc2\xa1Lo siento! El usuario debe tener acceso completo a su propio r\xc3\xa9cord.'
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +312',b'DocType can not be merged',b'El DocType no se puede fusionar'
-b'DocType: DocField',b'Allow on Submit',b'Permitir en Enviar'
-b'apps/frappe/frappe/public/js/frappe/views/communication.js +78',b'Select Print Format',b'Seleccionar el formato de impresi\xc3\xb3n'
-b'DocType: DocField',"b'For Links, enter the DocType as range.\nFor Select, enter list of Options, each on a new line.'","b'Para enlaces, introduzca el DocType como rango. para seleccionar, ingrese lista de opciones, cada uno en una nueva l\xc3\xadnea.'"
-b'DocType: Workflow State',b'eye-open',b'- ojo abierto'
-b'DocType: Email Account',b'Email Account Name',b'Correo electr\xc3\xb3nico Nombre de cuenta'
-b'apps/frappe/frappe/public/js/frappe/list/list_renderer.js +629',b'No {0} found',b'{0} no encontrado'
-b'apps/frappe/frappe/website/doctype/blog_post/blog_post.py +106',b'Posts by {0}',b'Publicaciones por {0}'
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +211',b'Series {0} already used in {1}',b'Serie {0} ya se utiliza en {1}'
-b'DocType: Report',b'Report Manager',b'Administrador de informes'
-b'DocType: Custom DocPerm',b'Report',b'Informe'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +18',"b'When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.'","b'Cuando se modifique un documento despu\xc3\xa9s de Cancelar y guardarlo , se obtendr\xc3\xa1 un nuevo n\xc3\xbamero que es una versi\xc3\xb3n del antiguo n\xc3\xbamero.'"
-b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_start.html +16',b'Create a New Format',b'Crear un nuevo formato'
-b'DocType: Email Account',b'Enable Incoming',b'Habilitar entrante'
-b'apps/frappe/frappe/core/doctype/data_export/exporter.py +123',"b'If you are uploading new records, leave the ""name"" (ID) column blank.'","b'Si va a cargar nuevos registros, deje en blanco la columna ""nombre"" (ID)'"
-b'apps/frappe/frappe/config/website.py +37',b'Single Post (article).',b'Mensaje Individual ( art\xc3\xadculo).'
-b'DocType: Address',b'Address',b'Direcciones'
-b'apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +47',b'1 minute ago',b'Hace 1 minuto'
-b'DocType: Website Slideshow',b'Slideshow like display for the website',b'Presentaci\xc3\xb3n como pantalla para el sitio web'
-b'apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5',"b'Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.'","b'Los permisos se establecen en las Funciones y Tipos de Documentos (llamados  DocTypes ) mediante el establecimiento de permisos  como Leer, Escribir , Crear, Eliminar , Enviar, Cancelar, Corregir, Informe , Importaci\xc3\xb3n, Exportaci\xc3\xb3n, Impresi\xc3\xb3n , Correo Electr\xc3\xb3nico y Establecer Permisos de Usuario .'"
-b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html +8',b'Edit Heading',b'Editar Rubro'
-b'apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +180',b'Row {0}: Not allowed to enable Allow on Submit for standard fields',b'Fila {0}: No se permite habilitar Permitir en Enviar para campos est\xc3\xa1ndar'
-b'apps/frappe/frappe/www/list.html +4',b'{0} List',b'Listado: {0}'
-b'DocType: DocType',b'Is Submittable',b'Es presentable--'
-b'DocType: System Settings',b'Disable Standard Email Footer',b'Desactivar pie de p\xc3\xa1gina estandar en Email'
-b'DocType: Blog Post',"b'Description for listing page, in plain text, only a couple of lines. (max 140 characters)'","b'Descripci\xc3\xb3n de la p\xc3\xa1gina perfil, en texto plano, s\xc3\xb3lo un par de l\xc3\xadneas. (m\xc3\xa1x. 140 caracteres)'"
-b'apps/frappe/frappe/core/doctype/doctype/doctype.py +773',b'{0} cannot be set for Single types',b'{0} no se puede establecer para los tipos individuales'
-b'apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +600',b'Select Table Columns for {0}',b'Seleccionar columnas de tabla para {0}'
-b'DocType: Workflow State',b'cog',b'diente'
-b'DocType: Custom Field',b'Select the label after which you want to insert new field.',b'Seleccione la etiqueta despu\xc3\xa9s de la cual desea insertar el nuevo campo .'
-b'apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +135',"b'document type..., e.g. customer'","b'Tipo de documento ..., por ejemplo, al cliente'"
-b'apps/frappe/frappe/public/js/frappe/form/link_selector.js +22',b'Select {0}',b'Seleccione {0}'
-b'DocType: Property Setter',b'Property Setter',b'Establecer prioridad--'
-b'DocType: Website Settings',"b'Show title in browser window as ""Prefix - title""'",b'Mostrar t\xc3\xadtulo en la ventana del navegador como &quot;Prefijo - t\xc3\xadtulo&quot;'
-b'DocType: File',b'Attached To DocType',b'Asociado A DocType'
-b'apps/frappe/frappe/model/base_document.py +503',b'Row #{0}:',b'Fila # {0}:'
-b'apps/frappe/frappe/utils/response.py +143',b'You need to be logged in and have System Manager Role to be able to access backups.',"b'Necesitas estar conectado y tener la funci\xc3\xb3n de Administrador del Sistema, para poder tener acceso a las copias de seguridad .'"
-b'DocType: Website Settings',b'Title Prefix',b'Prefijo del T\xc3\xadtulo'
-b'DocType: DocField',b'Section Break',b'Salto de secci\xc3\xb3n'
-b'DocType: Print Settings',b'PDF Settings',b'Configuraci\xc3\xb3n de PDF'
-b'apps/frappe/frappe/templates/includes/login/login.js +223',b'Oops! Something went wrong',b'Oups! Algo sali\xc3\xb3 mal'
-b'DocType: Data Export',b'Select DocType',b'Seleccione tipo de documento'
-b'apps/frappe/frappe/public/js/legacy/form.js +769',b'Permanently Submit {0}?',b'Presentar permanentemente {0}?'
-b'DocType: Email Account',"b'e.g. ""Support"", ""Sales"", ""Jerry Yang""'","b'por ejemplo ""Soporte "","" Ventas "","" Jerry Yang ""'"
-b'apps/frappe/frappe/config/setup.py +219',"b'Actions for workflow (e.g. Approve, Cancel).'","b'Acciones para los flujos de trabajo (por ejemplo: Aprobar, Cancelar).'"
-b'DocType: Communication',b'Feedback',b'Comentarios'
-b'DocType: User',b'Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111)',b'Restringir el usuario a esta direcci\xc3\xb3n IP. Todas las direcciones IP se pueden agregar separandolas con comas. Tambi\xc3\xa9n se aceptan direcciones IP parciales como ( 111.111.111 )'
-b'apps/frappe/frappe/desk/doctype/event/event.py +24',b'Event end must be after start',b'Finalizaci\xc3\xb3n del evento debe ser posterior al inicio'
-b'DocType: Email Alert Recipient',b'Email Alert Recipient',b'Destinatario Alerta Email'
-b'apps/frappe/frappe/email/doctype/email_account/email_account_list.js +10',b'Default Inbox',b'Bandeja de entrada por defecto'
-b'DocType: Event',b'Repeat Till',b'Repita Hasta'
-b'DocType: Workflow State',b'remove-circle',b'Eliminar el efecto de c\xc3\xadrculo'
-b'DocType: Custom Script',b'Sample',b'Muestra'
-b'apps/frappe/frappe/public/js/frappe/form/workflow.js +35',b'Current status',b'Situaci\xc3\xb3n Actual'
-b'DocType: Custom DocPerm',"b'JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.'","b'Lista JSON de doctypes utilizados para aplicar los permisos de usuario. Si est\xc3\xa1 vac\xc3\xado, todos doctypes vinculadas ser\xc3\xa1n utilizados para solicitar permisos de usuario.'"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +783,{0}: Cannot set import as {1} is not importable,{0}: no se puede definir 'De Importación' como {1} porque no es importable
+DocType: DocField,Heading,Título
+apps/frappe/frappe/public/js/frappe/model/model.js +116,Unable to load: {0},No se puede cargar : {0}
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +26,Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Permisos en los niveles más altos son los permisos de nivel de campo. Todos los campos tienen un conjunto Nivel de permiso en su contra y las reglas definidas en el que los permisos se aplican al campo. Esto es útil en caso de que quiera ocultar o hacer cierto campo de sólo lectura para ciertas funciones.
+apps/frappe/frappe/core/doctype/data_import/data_import.js +159,Select Columns,Seleccionar columnas
+DocType: DocType,DocType is a Table / Form in the application.,El DocType es una tabla / formulario en la aplicación.
+DocType: Workflow State,th,ª
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +214,Set the display label for the field,Ajuste la etiqueta de visualización para el campo
+DocType: Communication,Sending,Envío
+DocType: DocType,Child Tables are shown as a Grid in other DocTypes.,Las tablas secundarias se muestran como una cuadrícula en los DocTypes.
+apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +822,With Ledgers,Con Libro Mayor
+DocType: Report,Ref DocType,Referencia Tipo de Documento
+DocType: Print Settings,Print Style Preview,Vista previa de Estilo de impresión
+DocType: Customize Form,Enter Form Type,Introduzca Tipo de Formulario
+apps/frappe/frappe/public/js/frappe/form/controls/text_editor.js +311,Select from existing attachments,Seleccione de archivos adjuntos existentes
+DocType: Email Alert Recipient,Email By Document Field,Email Por Campo Documento
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +492,Saved!,Guardado!
+apps/frappe/frappe/public/js/frappe/ui/messages.js +66,Enter Value,Introducir valor
+apps/frappe/frappe/core/doctype/doctype/doctype.py +752,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: no se puede Presentar, Cancelar y Corregir sin Guardar"
+DocType: Web Page,Insert Style,Inserte Estilo
+DocType: Workflow State,th-large,-ésimo gran
+DocType: User,Email Settings,Configuración del correo electrónico
+DocType: User,Send Password Update Notification,Enviar contraseña Notificación de actualización
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +49,Select Document Type,Seleccionar el tipo de documento
+apps/frappe/frappe/public/js/frappe/request.js +152,Server Error: Please check your server logs or contact tech support.,Error de servidor : Se recomienda consultar los registros del servidor o contacte con Soporte técnico.
+DocType: Website Settings,Website Theme Image Link,Sitio web Imagen por tema Enlace
+DocType: Custom DocPerm,Role and Level,Función y Nivel
+DocType: Contact Us Settings,Send enquiries to this email address,Puede enviar sus preguntas a la siguiente dirección de correo electrónico
+DocType: DocType,Sort Field,Ordenar campo
+DocType: Workflow State,remove,Quitar
+apps/frappe/frappe/desk/form/utils.py +64,This method can only be used to create a Comment,Este método sólo se puede utilizar para crear un comentario
+DocType: Footer Item,"target = ""_blank""","target = "" _blank"""
+DocType: System Settings,Setup Complete,Configuración completa
+DocType: Address,Subsidiary,Filial
+DocType: Email Account,Service,Servicio
+DocType: About Us Settings,Settings for the About Us Page,Ajustes de la página Quiénes somos
+DocType: Workflow State,Stop,Detenerse
+apps/frappe/frappe/config/setup.py +50,Check which Documents are readable by a User,Marque que documentos pueden ser leídos por el usuario
+,Modules Setup,Módulos de configuración
+apps/frappe/frappe/model/document.py +615,Record does not exist,Registro no existe
+apps/frappe/frappe/model/document.py +666,Cannot edit cancelled document,No se puede editar un documento anulado
+apps/frappe/frappe/config/setup.py +112,Set numbering series for transactions.,Establecer series de numeración para las transacciones.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Presentar un problema
+apps/frappe/frappe/public/js/frappe/views/communication.js +64,Send As Email,Enviar como correo electrónico
+DocType: Currency,Symbol,Símbolo
+DocType: Workflow Document State,Update Field,Actualizar Campos
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +17,"You can change Submitted documents by cancelling them and then, amending them.","Puede cambiar los documentos Enviados cancelándolos y luego, haciendo los cambios pertinentes."
+DocType: About Us Settings,Team Members Heading,Miembros del Equipo Lider
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +54,Scheduled to send to {0} recipients,Programado para enviar a {0} destinatarios
+DocType: Website Script,Script to attach to all web pages.,Guión para unir a todas las páginas web.
+DocType: Property Setter,Set Value,Valor seleccionado
+apps/frappe/frappe/public/js/frappe/form/layout.js +162,Show more details,Mostrar más detalles
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +66,Fieldname which will be the DocType for this link field.,Nombre de campo el cual será el DocType para enlazar el campo.
+DocType: Workflow,DocType on which this Workflow is applicable.,El DocType en el presente del flujo de trabajo es aplicable.
+DocType: Workflow,"If checked, all other workflows become inactive.","Si se selecciona, todos los otros flujos de trabajo se vuelven inactivos ."
+DocType: Event,Send an email reminder in the morning,Enviar un recordatorio por correo electrónico en la mañana
+DocType: DocField,No Copy,Sin copia
+apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +679,Edit Custom HTML,Edición de HTML personalizado
+apps/frappe/frappe/templates/emails/password_update.html +2,Your password has been updated. Here is your new password,Su contraseña se ha actualizado. Aquí está tu nueva contraseña
+DocType: Role,Role Name,Nombre de la Función
+DocType: DocField,Report Hide,Ocultar Informe
+apps/frappe/frappe/public/js/frappe/form/print.js +195,Warning: This Print Format is in old style and cannot be generated via the API.,Advertencia: Este formato de impresión es de estilo antiguo y no se puede generar a través de la API.
+apps/frappe/frappe/core/doctype/data_export/exporter.py +124,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","Si va a cargar nuevos registros, ""Secuencias"" se convierte en obligatoria, si está presente."
+DocType: Report,Letter Head,Membretes
+DocType: Custom DocPerm,Role,Función
+apps/frappe/frappe/model/base_document.py +434,Options not set for link field {0},Las opciones no establecen para campo de enlace {0}
+DocType: Web Page,Style,Estilo
+apps/frappe/frappe/model/rename_doc.py +131,{0} not allowed to be renamed,{0} no es permitido ser renombrado
+DocType: Property Setter,Field Name,Nombre del campo
+DocType: Custom Script,Adds a custom script (client or server) to a DocType,Añade un acript personalizado (cliente o servidor) a un tipo de documento
+DocType: Report,Report Type,Tipo de informe
+DocType: User Email,Enable Outgoing,Habilitar saliente
+DocType: Email Account,Ignore attachments over this size,Ignorar los adjuntos mayores a este tamaño
+apps/frappe/frappe/public/js/frappe/form/controls/date.js +114,Date must be in format: {0},La fecha debe estar en formato : {0}
+DocType: Print Settings,In points. Default is 9.,En puntos. El valor predeterminado es 9.
+apps/frappe/frappe/config/website.py +18,User editable form on Website.,Forma editable Usuario en el Sitio Web.
+DocType: Event,Ref Name,Nombre Ref
+apps/frappe/frappe/public/js/frappe/roles_editor.js +40,Clear all roles,Desactive todos los roles
+DocType: Workflow State,thumbs-down,pulgar hacia abajo
+DocType: Address Template,This format is used if country specific format is not found,Este formato se utiliza si no se encuentra un formato específico del país
+apps/frappe/frappe/public/js/frappe/views/treeview.js +89,{0} Tree,{0} Árbol
+DocType: Communication,Email,Correo electrónico
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +127,Help on Search,Ayuda en la búsqueda
+DocType: Web Page,Left,Izquierda
+DocType: SMS Settings,"Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)","Introduzca los parámetros de URL estáticas aquí (Ej. sender = ERPNext , nombre de usuario = ERPNext , contraseña = 1234 etc )"
+apps/frappe/frappe/core/doctype/user/user.py +191,Sorry! Sharing with Website User is prohibited.,¡Lo siento! Compartir con los del Sitio Web está prohibido.
+DocType: Custom Script,Script,Guión
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +71,Refresh Form,Formulario de actualización
+apps/frappe/frappe/templates/emails/new_user.html +2,A new account has been created for you at {0},Una nueva cuenta ha sido creada para ti en {0}
+DocType: Website Script,Website Script,Guión del Sitio Web
+apps/frappe/frappe/core/doctype/communication/communication.js +100,Reference DocType,Referencia DocType
+apps/frappe/frappe/__init__.py +1097,Thank you,Gracias
+DocType: Address,Shipping,Envío
+DocType: Standard Reply,Standard Reply,Respuestas automáticas
+DocType: Currency,"How should this currency be formatted? If not set, will use system defaults","¿Cómo se debe formatear esta moneda ? Si no se establece, utilizará valores predeterminados del sistema"
+apps/frappe/frappe/core/doctype/report/report.py +37,Only Administrator allowed to create Query / Script Reports,Solo el Administrador puede crear consultas / Informes de Secuencias de Comandos
+DocType: Web Form,Sidebar Items,Sidebar Artículos
+apps/frappe/frappe/utils/nestedset.py +201,Cannot delete {0} as it has child nodes,"No se puede eliminar {0} , ya que tiene nodos secundarios"
+DocType: DocField,Set non-standard precision for a Float or Currency field,Ajuste de precisión no estándar para Decimales  Campo de Moneda
+DocType: Workflow State,eye-close,ojo -cierre
+DocType: Workflow State,step-backward,paso hacia atrás
+DocType: User,User Defaults,Predeterminadas del Usuario
+DocType: DocType,Fields,Los campos
+DocType: Web Form,Success Message,Mensaje de éxito
+DocType: Website Slideshow,Slideshow Name,Presentación Nombre
+apps/frappe/frappe/core/doctype/version/version_view.html +74,Row # ,Fila #
+DocType: Workflow State,share-alt,share- alt
+DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},Formato de JavaScript: frappe.query_reports [' REPORTNAME'] = { }
+apps/frappe/frappe/website/doctype/website_theme/website_theme.py +40,Top Bar Color and Text Color are the same. They should be have good contrast to be readable.,Top Bar en color y texto en color son los mismos. Deben tienen buen contraste para ser legible.
+apps/frappe/frappe/desk/form/assign_to.py +151,"The task {0}, that you assigned to {1}, has been closed by {2}.","La tarea {0}, que asignó a {1}, ha sido cerrado por {2}."
+DocType: Workflow State,star-empty,- estrella vacía
+apps/frappe/frappe/templates/emails/auto_reply.html +1,Thank you for your email,Gracias por tu email
+apps/frappe/frappe/public/js/legacy/form.js +62,"Allowing DocType, DocType. Be careful!","Permitir DocType , tipo de documento . ¡Ten cuidado!"
+apps/frappe/frappe/core/doctype/docshare/docshare.py +40,"You need to have ""Share"" permission","Usted necesita tener el permiso ""Compartir"""
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,The system provides many pre-defined roles. You can add new roles to set finer permissions.,El sistema ofrece muchas funciones predefinidas . Usted puede agregar nuevos roles para establecer permisos más finos.
+apps/frappe/frappe/utils/nestedset.py +243,{0} {1} cannot be a leaf node as it has children,"{0} {1} no puede ser un nodo de hoja , ya que tiene los niños"
+DocType: Footer Item,Company,Compañía(s)
+DocType: Email Alert,Send alert if date matches this field's value,Envíe la alarma si la fecha coincide con el valor de este campo
+apps/frappe/frappe/config/setup.py +161,Setup Email Alert based on various criteria.,Configuración de Alerta de E-mail basado en varios criterios.
+apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +697,You can add dynamic properties from the document by using Jinja templating.,Puede añadir propiedades dinámicas del documento mediante el uso de plantillas Jinja.
+apps/frappe/frappe/core/doctype/doctype/doctype.py +495,Default for {0} must be an option,Predeterminado para {0} debe ser una opción
+apps/frappe/frappe/core/doctype/doctype/doctype.py +462,Options must be a valid DocType for field {0} in row {1},Las opciones deben ser validas para el DocType en el campo {0} de la linea {1}
+apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,Esta es una respuesta generada automáticamente
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +443,Set,conjunto
+DocType: Workflow State,Workflow State,Estados de los flujos de trabajo
+DocType: Communication,Submitted,Enviado
+apps/frappe/frappe/core/doctype/doctype/doctype.py +713,{0}: No basic permissions set,{0}: No se han asignado permisos básicos
+apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js +282,"Your download is being built, this may take a few moments...","Se está generando su descarga, esto puede tardar unos minutos..."
+apps/frappe/frappe/core/doctype/data_import/data_import.js +177,Download with data,Descarga de datos
+DocType: DocType,Hide Heading,Ocultar Rubro
+apps/frappe/frappe/core/doctype/doctype/doctype.py +779,{0}: Cannot set Assign Amend if not Submittable,{0}: no se puede 'Asignar Correción' si no se puede presentar
+apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +411,Remove Section,Retire la Sección
+apps/frappe/frappe/config/setup.py +209,Define workflows for forms.,Definir los flujos de trabajo para las formas .
+DocType: Workflow State,font,Fuente
+apps/frappe/frappe/public/js/frappe/model/model.js +33,Parent,Padre
+DocType: Communication,Workflow,Flujo de Trabajo
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +136,Search in a document type,Buscar en un tipo de documento
+DocType: Print Format,Server,Servidor
+DocType: Custom DocPerm,Apply User Permissions,Aplicar permisos de usuario
+DocType: Website Settings,Set Banner from Image,Establecer Banner de imagen
+DocType: DocType,Is Single,Es Individual
+apps/frappe/frappe/templates/includes/list/filters.html +19,clear,claro
+DocType: Email Alert,Send alert if this field's value changes,Enviar alerta si cambia el valor de este campo
+apps/frappe/frappe/desk/query_report.py +78,Must have report permission to access this report.,Debe tener permiso de informe para acceder a este informe.
+apps/frappe/frappe/public/js/frappe/views/pageview.js +112,Sorry! You are not permitted to view this page.,¡Lo siento! Usted no está autorizado a ver esta página.
+apps/frappe/frappe/core/doctype/data_export/exporter.py +121,Please do not change the template headings.,"Por favor, no cambiar los encabezados de la plantilla."
+DocType: Email Alert,Days Before or After,Días Anteriores o Posteriores
+DocType: File,Content Hash,Hash contenido
+DocType: Workflow State,align-left,alinear -izquierda
+apps/frappe/frappe/core/doctype/doctype/doctype.py +756,{0}: Cannot set Import without Create,{0}: no se puede establecer 'De importación' sin crearlo primero
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +257,Hide field in Report Builder,Ocultar campo en el Generador de Informes
+apps/frappe/frappe/core/doctype/doctype/doctype.py +473,Max width for type Currency is 100px in row {0},El ancho máximo para la moneda es 100px en la linea {0}
+apps/frappe/frappe/public/js/frappe/form/link_selector.js +146,{0} added,{0} agregado(s)
+DocType: Integration Request,Reference DocName,Referencia DocNombre
+apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +790,Saved,Guardado
+DocType: System Settings,Security,Seguridad
+DocType: Custom DocPerm,Read,Lectura
+apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +274,use % as wildcard,Use% como comodín
+apps/frappe/frappe/model/delete_doc.py +171,User not allowed to delete {0}: {1},El usuario no puede eliminar {0}: {1}
+apps/frappe/frappe/desk/query_report.py +88,Query must be a SELECT,Debe seleccionar la Consulta
+DocType: DocShare,Document Name,Nombre del documento
+apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +162,Start new Format,Comenzar una nueva Formato
+apps/frappe/frappe/desk/form/assign_to.py +145,"The task {0}, that you assigned to {1}, has been closed.","La tarea {0}, que asignó a {1}, se ha cerrado."
+apps/frappe/frappe/config/website.py +42,Write titles and introductions to your blog.,Escribe títulos y las introducciones a tu blog .
+DocType: Role Profile,Roles Assigned,Funciones Asignadas
+DocType: Custom Field,Adds a custom field to a DocType,Añade un campo personalizado para un tipo de documento
+DocType: User,Middle Name (Optional),Segundo Nombre ( Opcional)
+DocType: Email Account,Use TLS,Utilice TLS
+apps/frappe/frappe/contacts/doctype/address_template/address_template.py +31,Default Address Template cannot be deleted,Plantilla de la Direcciones Predeterminadas no puede eliminarse
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +34,Select Document Types to set which User Permissions are used to limit access.,Seleccione los Tipos de Documento para establecer los Permisos de Usuario para limitar el acceso.
+apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30,You are not allowed to delete a standard Website Theme,No se le permite eliminar un tema Sitio web estándar
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +229,Permissions can be managed via Setup &gt; Role Permissions Manager,Los permisos se pueden gestionar a través de Configuración > Administrador de Funciones
+apps/frappe/frappe/core/doctype/doctype/doctype.py +742,{0}: Permission at level 0 must be set before higher levels are set,{0} : Permiso en el nivel 0 se debe establecer antes de fijar niveles más altos
+DocType: System Settings,dd-mm-yyyy,dd- mm- aaaa
+apps/frappe/frappe/config/desk.py +54,"Newsletters to contacts, leads.","Boletines para contactos, clientes potenciales ."
+DocType: Email Alert,Message Examples,Ejemplos de Mensajes
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +11,"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Como práctica recomendada , no asigne el mismo conjunto de permisos para diferentes funciones. En su lugar, establecer varias funciones al mismo usuario ."
+DocType: Website Theme,Top Bar Color,Inicio Barra Color
+apps/frappe/frappe/core/doctype/doctype/doctype.py +538,There can be only one Fold in a form,Sólo puede haber un doblez en forma
+DocType: Address,Shop,Tienda
+apps/frappe/frappe/public/js/frappe/views/treeview.js +183,Add Child,Agregar subcuenta
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,Roles can be set for users from their User page.,Las funciones se pueden configurar para los usuarios de su página de usuario .
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,Permissions get applied on Users based on what Roles they are assigned.,Permisos han sido aplicados a los Usuarios en base a los funciones que tienen asignadas.
+DocType: Contact,Replied,Respondio
+DocType: Contact Us Settings,"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Opciones de contacto , como "" Consultas de Ventas , Soporte de consultas"" , etc cada uno en una nueva línea o separados por comas."
+DocType: Page,Roles,Funciones
+DocType: Country,Time Zones,Husos horarios
+DocType: Website Settings,Website Theme Image,Sitio web Imagen por tema
+DocType: Address,City/Town,Ciudad/Provincia
+apps/frappe/frappe/templates/includes/login/login.js +39,Valid email and name required,Nombre y Correo Electrónico válido requerido
+DocType: Property Setter,Property Setter overrides a standard DocType or Field property,Propiedad Setter se impone a una DocType estándar o propiedad Campo
+DocType: DocField,Float,flotador
+apps/frappe/frappe/website/doctype/website_settings/website_settings.py +34,{0} does not exist in row {1},{0} no existe en la linea {1}
+DocType: Contact,Open,Abrir
+DocType: DocType,Hide Copy,Copia Oculta
+apps/frappe/frappe/printing/doctype/print_format/print_format.py +19,Standard Print Format cannot be updated,Formato de impresión estándar no se puede actualizar
+apps/frappe/frappe/model/rename_doc.py +385,** Failed: {0} to {1}: {2},** Fallo: {0} a {1}: {2}
+apps/frappe/frappe/public/js/frappe/form/layout.js +28,This form does not have any input,Esta forma no tiene ninguna entrada
+apps/frappe/frappe/model/naming.py +45,{0} is required,{0} es necesario
+DocType: Website Settings,Select an image of approx width 150px with a transparent background for best results.,Seleccione una imagen de ancho aprox 150px con fondo transparente para obtener mejores resultados .
+DocType: Workflow State,Tag,Etiqueta
+DocType: Print Settings,Send Print as PDF,Enviar Impresión como PDF
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +55,Select Role,Seleccione Función
+apps/frappe/frappe/model/base_document.py +392,Data missing in table,Los datos que faltan en la tabla
+apps/frappe/frappe/desk/doctype/event/event.py +31,Every day events should finish on the same day.,Los eventos deben terminar el mismo día.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +32,"To give acess to a role for only specific records, check the Apply User Permissions. User Permissions are used to limit users with such role to specific records.","Para dar acceso a una función sólo a registros específicos, marque la casilla Aplicar Permisos de Usuario. Los Permisos de Usuario se utilizan para limitar los usuarios con esa función a acceder a registros específicos."
+DocType: Workflow State,resize-vertical,cambiar el tamaño vertical
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +100,Reset Permissions for {0}?,Restablecer los permisos para {0} ?
+DocType: Property Setter,DocType or Field,DocType o campo
+DocType: System Settings,Scheduler Last Event,Programador Último Evento
+DocType: Workflow Document State,Doc Status,Estado Doc.
+DocType: DocType,Single Types have only one record no tables associated. Values are stored in tabSingles,Tipos simples tienen sólo un registro no hay tablas asociadas . Los valores se almacenan en tabSingles
+apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +58,Make a new,Hacer una nueva
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Una vez que haya establecido esto, los usuarios sólo tendrán acceso a los documentos que puedan (por ejemplo, Entrada de blog ) donde se encuentra la relación (por ejemplo, Blogger ) ."
+apps/frappe/frappe/core/doctype/doctype/doctype.py +477,'In List View' not allowed for type {0} in row {1},No está permitido para el tipo {0} en la linea {1}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +218,"Change type of field. (Currently, Type change is \
+						allowed among 'Currency and Float')","Cambiar el tipo de campo. (Actual, Tipo de cambio, Cantidad permitida, Moneda, Flotante, etc)"
+DocType: Footer Item,"Select target = ""_blank"" to open in a new page.","Select target = "" _blank"" para abrir en una nueva página."
+apps/frappe/frappe/core/doctype/report/report.js +9,"To format columns, give column labels in the query.","Para dar formato a columnas, dar títulos de las columnas en la consulta."
+,User Permissions Manager,Permisos de Usuario Administrador
+apps/frappe/frappe/model/naming.py +95,Invalid naming series (. missing),Serie de nombres Inválidos (. Faltante)
+DocType: Communication,Sent or Received,Envío y de recepción
+apps/frappe/frappe/public/js/frappe/form/grid.js +630,Edit via Upload,Editar vía Subir Archivo
+DocType: Communication,User Tags,Nube de Etiquetas
+apps/frappe/frappe/public/js/frappe/list/list_permission_footer.html +12,{0} is not set,{0} no se ha establecido
+DocType: Workflow State,text-height,text- altura
+DocType: Website Theme,Text Color,Color del texto
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +60,Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,Nombre del tipo de documento (DocType) el cual quiere que este campo este vinculado. por ejemplo al Cliente
+DocType: Web Form,Success URL,URL de Éxito
+apps/frappe/frappe/core/doctype/report/report.js +16,Write a Python file in the same folder where this is saved and return column and result.,Escriba un archivo de Python en la misma carpeta donde esta se guarda y devuelve la columna y el resultado.
+DocType: Workflow,"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Reglas para transición entre estados, como el siguiente estado y qué función permite cambiar de estado , etc"
+DocType: User,Change Password,Cambiar contraseña.
+DocType: Workflow,States,Unidos
+DocType: User,Email Signature,Firma Email
+apps/frappe/frappe/sessions.py +163,Redis cache server not running. Please contact Administrator / Tech support,"Servidor de Caché Redis no esta funcionando. Por favor, póngase en contacto con el Administrador / Soporte técnico"
+DocType: Workflow Document State,Only Allow Edit For,Sólo Permitir Editar Para
+DocType: Website Slideshow,This goes above the slideshow.,Esto va por encima de la presentación de diapositivas.
+DocType: Website Settings,Footer Items,Elementos del Pie de Página
+apps/frappe/frappe/core/doctype/doctype/doctype.py +754,{0}: Cannot set Amend without Cancel,{0}: no se puede 'Corregir' sin antes cancelar
+apps/frappe/frappe/templates/emails/new_user.html +3,Your login id is,Su nombre de usuario es
+DocType: DocField,Currency,Divisa
+apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +36,Please specify doctype,"Por favor, especifique el doctype"
+DocType: System Settings,Session Expiry Mobile,Vencimiento de sesión en dispositivo mobil
+DocType: Web Form,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,El texto que se muestra para enlazar a la página Web si esta forma dispone de una página web. Ruta Enlace automáticamente se genera en base a `page_name` y` parent_website_route`
+,Setup Wizard,Asistente de configuración
+DocType: Print Settings,Send Email Print Attachments as PDF (Recommended),Enviar Emails con adjuntos en formato PDF (recomendado)
+apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +151,Field {0} is not selectable.,El campo {0} no se puede seleccionar .
+apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +820,Select To Download:,Seleccione la descarga :
+apps/frappe/frappe/public/js/frappe/upload.js +246,Please attach a file or set a URL,"Por favor, adjuntar un archivo o defina una URL"
+DocType: Contact,Is Primary Contact,Es Contacto principal
+,Permitted Documents For User,Documentos permitidos para los usuarios
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +132,Make a new record,Hacer un Nuevo Registro
+DocType: Report,Script Report,Informe de secuencias de comandos
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +24,Label is mandatory,Etiqueta es obligatoria
+DocType: Currency,**Currency** Master,**Moneda** Principal
+DocType: Event,Sunday,Domingo
+DocType: Custom Field,Label Help,Etiqueta Ayuda
+apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +93,Search or type a command,Busque o escriba un comando
+DocType: Event,Repeat On,Repetir OK
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +76,Remove all customizations?,Eliminar todas las personalizaciones ?
+apps/frappe/frappe/geo/doctype/currency/currency.js +7,This Currency is disabled. Enable to use in transactions,Esta moneda está deshabilitada . Habilite el uso en las transacciones
+DocType: Contact Us Settings,Contact Us Settings,Configuración de Contáctenos
+DocType: Workflow State,thumbs-up,pulgar hacia arriba
+DocType: About Us Settings,Introduce your company to the website visitor.,Dar a conocer su empresa al visitante del sitio Web .
+apps/frappe/frappe/config/setup.py +247,Add custom javascript to forms.,Añadir javascript personalizado las formas .
+DocType: Communication,Unread Notification Sent,Notificación No leído Enviado
+apps/frappe/frappe/public/js/frappe/views/treeview.js +232,Select a group node first.,Seleccione un nodo de grupo primero.
+DocType: Workflow State,"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Estilo representa el color del botón : Éxito - Verde , Peligro - Rojo , Inverso - Negro , Primaria - Azul Oscuro , Info - Azul Claro, Advertencia - Orange"
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +310,Users with role {0}:,Los usuarios con función {0}:
+apps/frappe/frappe/core/doctype/file/file.py +168,Same file has already been attached to the record,El mismo archivo ya se ha adjuntado al registro
+apps/frappe/frappe/core/doctype/doctype/doctype.py +749,{0}: Cannot set Cancel without Submit,{0}: no se puede 'Cancelar' sin presentarlo
+DocType: Address,Address Title,Dirección Título
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +241,Mark the field as Mandatory,Marque el campo como obligatorio
+DocType: Workflow State,resize-full,cambiar a tamaño completo
+apps/frappe/frappe/core/doctype/docshare/docshare.py +47,{0} shared this document with everyone,{0} compartió este documento con todos
+apps/frappe/frappe/public/js/frappe/form/workflow.js +117,is not allowed.,no está permitido.
+apps/frappe/frappe/public/js/frappe/model/model.js +508,Permanently delete {0}?,Eliminar permanentemente {0} ?
+apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +82,Select Print Format to Edit,Seleccione Formato de impresión a Editar
+DocType: Contact,Sales Master Manager,Gerente de Ventas
+apps/frappe/frappe/public/js/frappe/form/link_selector.js +26,You can use wildcard %,Puede utilizar caracteres comodín%
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +846,Report was not saved (there were errors),Informe no se guardó ( hubo errores )
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +24,"Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.","Los permisos del nivel 0 son los permisos a nivel de documentos, es decir, que tienen permiso especial para los documentos."
+apps/frappe/frappe/config/setup.py +230,"Change field properties (hide, readonly, permission etc.)","Cambiar las propiedades de campo (ocultar, sólo lectura, permisos, etc)"
+apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +108,Select a DocType to make a new format,Seleccione un tipo de documento para hacer un nuevo formato
+apps/frappe/frappe/model/document.py +1072,Table {0} cannot be empty,La tabla {0} no puede estar vacío
+DocType: Report,Report Builder,Generador de informes
+DocType: Workflow Document State,Represents the states allowed in one document and role assigned to change the state.,Representa los estados permitidos en un solo documento y función asignada a cambiar el estado.
+apps/frappe/frappe/config/setup.py +19,User Roles,Funciones de Usuario
+apps/frappe/frappe/email/receive.py +65,Cannot connect: {0},No puede conectarse: {0}
+apps/frappe/frappe/core/doctype/report/report.py +33,Only Administrator can save a standard report. Please rename and save.,"Sólo el administrador puede guardar un informe estándar. Por favor, cambie el nombre y guardar."
+apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +126,Both DocType and Name required,Tanto DocType y Nombre son obligatorios
+apps/frappe/frappe/core/doctype/doctype/doctype.py +730,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: Sólo una regla es permitida con el mismo rol, Nivel y {1}"
+DocType: Customize Form,"Customize Label, Print Hide, Default etc.","Personaliza etiquetas, impresión Hide , Default , etc"
+apps/frappe/frappe/desk/form/utils.py +111,No further records,No hay registros adicionales
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +907,Pick Columns,Seleccione columnas
+DocType: Patch Log,Patch Log,Registro de Parches
+apps/frappe/frappe/public/js/frappe/model/indicator.js +54,Draft,Borrador.
+apps/frappe/frappe/utils/verified_command.py +44,This link is invalid or expired. Please make sure you have pasted correctly.,"Este enlace no es válido o caducado. Por favor, asegúrese de que ha pegado correctamente."
+apps/frappe/frappe/desk/query_report.py +84,Must specify a Query to run,Debe especificar una consulta para ejecutar
+apps/frappe/frappe/public/js/frappe/misc/tools.js +10,Export not allowed. You need {0} role to export.,Exportaciones no permitido. Es necesario {0} función de exportar .
+apps/frappe/frappe/core/doctype/report/report.js +8,Write a SELECT query. Note result is not paged (all data is sent in one go).,Escriba una consulta SELECT. Nota resultado no se pagina ( todos los datos se envían en una sola vez ) .
+DocType: Event,Repeat this Event,Repita este Evento
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +436,If {0} is permitted,Si se permite {0}
+DocType: Footer Item,Link to the page you want to open. Leave blank if you want to make it a group parent.,Enlace a la página que desea abrir. Dejar en blanco si desea que sea un grupo padre.
+DocType: Report,Report Name,Nombre del informe
+DocType: Workflow State,minus-sign,signo menos
+apps/frappe/frappe/public/js/frappe/form/share.js +27,Shared with everyone,Compartido con todo el mundo
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,You can use Customize Form to set levels on fields.,Usted puede utilizar Personalizar formulario para establecer los niveles de los campos .
+apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +140,Month,Mes.
+apps/frappe/frappe/website/doctype/website_settings/website_settings.py +38,{0} in row {1} cannot have both URL and child items,{0} en la linea {1} no puede tener URL y elementos secundarios
+apps/frappe/frappe/templates/includes/login/login.js +24,Both login and password required,Se requiere tanto usuario como contraseña
+DocType: Workflow State,download-alt,descargar -alt
+DocType: About Us Settings,Website Manager,Administrador de Página Web
+apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html +3,Drag elements from the sidebar to add. Drag them back to trash.,Arrastre los elementos de la barra lateral para agregar. Arrastre de nuevo a la papelera de reciclaje.
+DocType: Currency,"Sub-currency. For e.g. ""Cent""","Sub-moneda, por ejemplo, ""Centavo"""
+DocType: Workflow State,exclamation-sign,signo de exclamación
+DocType: Desktop Icon,List,Vista de árbol
+apps/frappe/frappe/public/js/frappe/views/communication.js +541,There were errors while sending email. Please try again.,"Hubo errores al enviar el correo electrónico. Por favor, inténtelo de nuevo."
+apps/frappe/frappe/core/doctype/system_settings/system_settings.py +27,Session Expiry must be in format {0},Vencimiento de sesión debe estar en formato {0}
+DocType: User,Stores the JSON of last known versions of various installed apps. It is used to show release notes.,Almacena el JSON de las últimas versiones conocidas de diferentes aplicaciones instaladas. Se utiliza para mostrar notas de la versión.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","Significado de Enviar, Cancelar, Corregir"
+apps/frappe/frappe/config/website.py +58,"Setup of top navigation bar, footer and logo.","Configuración de la barra de navegación superior , pie de página y el logotipo."
+apps/frappe/frappe/public/js/frappe/upload.js +26,Upload Attachment,Subir Archivos Adjuntos
+apps/frappe/frappe/templates/emails/new_user.html +16,You can also copy-paste this link in your browser,También puede copiar y pegar este enlace en su navegador
+DocType: Email Group,Total Subscribers,Los suscriptores totales
+apps/frappe/frappe/config/website.py +73,Settings for About Us Page.,Ajustes para Nosotros Pagina .
+DocType: File,File Size,Tamaño del archivo
+apps/frappe/frappe/config/setup.py +188,"Set default format, page size, print style etc.","Establecer formato por defecto, tamaño de página, el estilo de impresión, etc"
+DocType: System Settings,Your organization name and address for the email footer.,Su nombre de la organización y dirección para el pie de página de correo electrónico.
+apps/frappe/frappe/config/desk.py +44,Activity log of all users.,Registro de Actividad para todos los Usuarios
+apps/frappe/frappe/core/doctype/report/report.js +5,Report Builder reports are managed directly by the report builder. Nothing to do.,Informes del Generador de informes son enviadas por el generador de informes . No hay nada que hacer.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +10,Permissions are automatically translated to Standard Reports and Searches.,Los permisos se traducirán automáticamente a los informes Estándar y Búsquedas .
+DocType: Email Alert,Email Alert,Alerta por Email
+DocType: Website Theme,Top Bar Text Color,Top Bar Color del texto
+DocType: Website Slideshow,Slideshow Items,Presentación Artículos
+DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.","Si usted habilita esto, el elemento creará un menú desplegable--"
+apps/frappe/frappe/config/website.py +27,Embed image slideshows in website pages.,Presentacion de imágenes incrustadas en páginas web .
+apps/frappe/frappe/printing/doctype/print_format/print_format.js +28,Please select DocType first,"Por favor, seleccione DocType primero"
+apps/frappe/frappe/contacts/doctype/address_template/address_template.py +20,Setting this Address Template as default as there is no other default,Al establecer esta plantilla de dirección por defecto ya que no hay otra manera predeterminada
+apps/frappe/frappe/core/doctype/data_export/exporter.py +129,"""Parent"" signifies the parent table in which this row must be added",'Padre' es la tabla principal en la que hay que añadir esta fila
+apps/frappe/frappe/website/doctype/web_form/web_form.py +130,You need to be logged in to access this {0}.,Tienes que estar registrado para acceder a este {0}.
+DocType: Website Settings,Disable Customer Signup link in Login page,Desactivar enlace de registro del cliente en la página de entrada
+DocType: Kanban Board Column,Column Name,Nombre de la columna
+apps/frappe/frappe/public/js/frappe/form/link_selector.js +106,Make a new {0},Crear un nuevo {0}
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +145,Select Document Type or Role to start.,Seleccione el Tipo de Documento o Función para empezar.
+DocType: Workflow Transition,Defines actions on states and the next step and allowed roles.,Define las acciones de los estados y el siguiente paso y funciones permitidas.
+DocType: DocType,Show Print First,Mostrar Imprimir Primera
+apps/frappe/frappe/core/doctype/doctype/doctype.py +763,Report cannot be set for Single types,Reportar no se puede configurar para los tipos individuales
+apps/frappe/frappe/core/doctype/report/report.js +37,Disable Report,Desactivar Informe
+DocType: Workflow State,resize-small,cambiar el tamaño pequeño
+DocType: Workflow State,question-sign,Consultar Firma
+apps/frappe/frappe/utils/nestedset.py +237,Multiple root nodes not allowed.,Nodos raíz múltiples no permitidos.
+DocType: Event,Saturday,Sábado
+DocType: Address,Maintenance User,Mantenimiento por el Usuario
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +35,Scheduled to send to {0},Programado para enviar a {0}
+apps/frappe/frappe/model/base_document.py +438,{0} must be set first,debe establecerse primero: {0}
+apps/frappe/frappe/core/doctype/data_export/exporter.py +126,"For updating, you can update only selective columns.","Para la actualización, usted lo puede hacer solo en algunas columnas."
+DocType: Custom DocPerm,Export,Exportación
+DocType: Workflow State,Search,Búsqueda
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Algunos documentos como facturas, no se deben cambiar una vez guardados. El estado final de dichos documentos se llama 'Presentado'. Puede restringir qué roles/usuarios pueden presentar documentos"
+apps/frappe/frappe/public/js/frappe/views/pageview.js +104,Sorry! I could not find what you were looking for.,¡Lo siento! No pude encontrar lo que estabas buscando.
+DocType: Workflow State,remove-sign,Eliminar el efecto de signo
+apps/frappe/frappe/public/js/frappe/form/controls/select.js +61,Please attach a file first.,Adjunte un archivo primero .
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +261,Show User Permissions,Permisos Mostrar usuario
+apps/frappe/frappe/public/js/frappe/request.js +367,Report this issue,Reportar Incidencia
+apps/frappe/frappe/public/js/frappe/views/treeview.js +240,New {0},Nuevo {0}
+DocType: Workflow Action,Workflow Action,Acciones de los flujos de trabajo
+DocType: Custom Script,Script Type,Guión Tipo
+DocType: Workflow State,text-width,texto de ancho
+DocType: Custom DocPerm,This role update User Permissions for a user,Este función actualiza los Permisos de Usuario para un usuario
+DocType: Workflow State,resize-horizontal,cambiar el tamaño horizontal
+apps/frappe/frappe/model/delete_doc.py +176,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: registro presentado no se puede eliminar.
+apps/frappe/frappe/public/js/frappe/form/save.js +150,Mandatory fields required in {0},Campos obligatorios requeridos en {0}
+apps/frappe/frappe/model/rename_doc.py +372,Maximum {0} rows allowed,Máximo {0} filas permitidos
+DocType: Custom DocPerm,Import,Importación
+apps/frappe/frappe/model/naming.py +177,"There were some errors setting the name, please contact the administrator","Había algunos errores de configuración el nombre, por favor póngase en contacto con el administrador"
+apps/frappe/frappe/website/doctype/web_form/web_form.py +37,You need to be in developer mode to edit a Standard Web Form,Se requiere estar en modo desarrollador para editar un formulario web estándar.
+DocType: Website Theme,Google Font (Heading),Google Font (Título)
+apps/frappe/frappe/core/doctype/doctype/doctype.py +489,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',"Las opciones de campo de tipo 'Vinculo Dinámico' debe apuntar a otro campo con propiedades ""Tipo de Documento"""
+apps/frappe/frappe/core/doctype/doctype/doctype.py +777,{0}: Cannot set Assign Submit if not Submittable,{0}: no se puede 'Asignar Enviar' si no se puede presentar
+DocType: Workflow State,step-forward,paso hacia adelante
+DocType: Workflow State,align-justify,alinear - justificar
+apps/frappe/frappe/core/doctype/data_import/importer.py +308,Not allowed to Import,No tiene permisos para importar
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +138,Open a module or tool,Abra un Módulo o Herramienta
+apps/frappe/frappe/public/js/legacy/form.js +137,Please save before attaching.,"Por favor, guarde los cambios antes de conectar"
+apps/frappe/frappe/core/doctype/data_import/importer.py +27,Parent Table,Tabla de Padres
+DocType: Dropbox Settings,Dropbox Access Key,Clave de Acceso de Dropbox
+apps/frappe/frappe/public/js/frappe/ui/field_group.js +88,Missing Values Required,Valores perdidos requeridos
+DocType: User,Third Party Authentication,Autenticación de socios
+DocType: Activity Log,Subject,Sujeto
+apps/frappe/frappe/utils/nestedset.py +78,Nested set error. Please contact the Administrator.,"Error de conjunto anidado . Por favor, póngase en contacto con el Administrador."
+DocType: DocField,Set Only Once,Un único ajuste
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +48,Document Types,Tipos de Documento
+DocType: DocField,Perm Level,Nivel Perm
+DocType: Email Account,"Append as communication against this DocType (must have fields, ""Status"", ""Subject"")","Anexar como la comunicación en contra de este tipo de documento (debe tener campos, ""Estado"", ""Asunto"")"
+DocType: About Us Settings,About Us Settings,Configuración de Acerca de Nosotros
+apps/frappe/frappe/public/js/frappe/ui/slides.js +324,Next,Próximo
+DocType: DocField,Default,Defecto
+DocType: Workflow,Rules defining transition of state in the workflow.,Reglas que definen la transición de estado del flujo de trabajo .
+DocType: Workflow State,align-right,alinear a la derecha
+DocType: Workflow State,italic,itálico
+DocType: Workflow State,shopping-cart,carro de la compra
+apps/frappe/frappe/utils/data.py +498,only.,exactos.
+apps/frappe/frappe/model/naming.py +67,Naming Series mandatory,Las secuencias son obligatorias
+DocType: Event,Ref Type,Tipo Ref
+DocType: DocType,Sort Order,Orden de Clasificación
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +249,Hide field in form,Ocultar campo en forma
+DocType: Newsletter,Email Sent?,Enviar Email ?
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +274,Show a description below the field,Mostrar una descripción debajo del campo
+DocType: User,Send Welcome Email,Enviar Bienvenido Email
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +25,"If a Role does not have access at Level 0, then higher levels are meaningless.","Si una función no tiene acceso en el Nivel 0, entonces los niveles más altos no tienen sentido ."
+DocType: Website Theme,Heading Style,Estilo de título
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +40,Newsletter has already been sent,El boletín de noticias ya ha sido enviado
+DocType: Workflow State,star,estrella
+DocType: Contact,Salutation,Saludo
+apps/frappe/frappe/templates/emails/auto_reply.html +2,"Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail.","Su petición ha sido recibida. Le contestaremos en breve. Si usted tiene alguna información adicional, por favor responda a este correo."
+DocType: Workflow State,Icon will appear on the button,Icono aparecerá en el botón
+apps/frappe/frappe/public/js/frappe/form/share.js +115,Share With,Comparte con
+DocType: Blogger,Posts,Mensajes
+DocType: Custom Field,Field Description,Descripción del Campo
+apps/frappe/frappe/utils/nestedset.py +194,Root {0} cannot be deleted,Raíz {0} no se puede eliminar
+DocType: Website Settings,Banner is above the Top Menu Bar.,El Banner está por sobre la barra de menú superior.
+apps/frappe/frappe/templates/includes/comments/comments.py +50,View it in your browser,Véalo en su navegador
+apps/frappe/frappe/core/doctype/doctype/doctype.py +569,Title field must be a valid fieldname,Campo Título debe ser un nombre de campo válido
+DocType: SMS Settings,Enter url parameter for receiver nos,Introduzca el parámetro url para el receptor no
+apps/frappe/frappe/client.py +111,Cannot edit standard fields,No se puede editar campos estándar
+apps/frappe/frappe/config/website.py +78,Settings for Contact Us Page.,Ajustes para la página de contacto.
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +49,1 hour ago,Hace 1 hora
+DocType: Workflow State,th-list,th -list
+apps/frappe/frappe/desk/query_report.py +28,Report {0} is disabled,Informe {0} está deshabilitado
+DocType: Currency,"1 Currency = [?] Fraction
+For e.g. 1 USD = 100 Cent","1 Moneda = [?] Fracción, ejem: 1 USD = 100 Centavos"
+apps/frappe/frappe/core/doctype/data_import/importer.py +25,Start entering data below this line,Empiece a introducir datos por debajo de esta línea
+apps/frappe/frappe/config/setup.py +37,Set Permissions on Document Types and Roles,Establecer Permisos en los Tipos de Documentos y Funciones
+DocType: Feedback Trigger,Optional: The alert will be sent if this expression is true,Opcional: La alerta será enviado si esta expresión es verdadera
+apps/frappe/frappe/public/js/frappe/views/kanban/kanban_column.html +19,Add,Añadir
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,Add a New Role,Añadir un Nuevo Rol
+DocType: Workflow,"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Este documento puede estar en Diferentes ""Estados"". Como ""Abierto"", ""Pendiente de Aprobación"", etc."
+DocType: Web Page,Text Align,Alineación del texto
+apps/frappe/frappe/auth.py +251,Not allowed from this IP Address,No se permite desde esta dirección IP
+DocType: Contact Us Settings,Settings for Contact Us Page,Ajustes para Contáctenos Página
+DocType: Custom DocPerm,User Permission DocTypes,Doctypes de Permisos de Usuarios
+apps/frappe/frappe/public/js/frappe/roles_editor.js +204,Role Permissions,Permisos de la Función
+,Role Permissions Manager,Administrador de Permisos
+apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_field.html +21,Edit HTML,Edición de HTML
+apps/frappe/frappe/public/js/frappe/form/save.js +12,Submitting,Presentar
+DocType: Dropbox Settings,Dropbox Access Secret,Acceso Secreto de Dropbox
+apps/frappe/frappe/core/doctype/user/user.py +189,Sorry! User should have complete access to their own record.,¡Lo siento! El usuario debe tener acceso completo a su propio récord.
+apps/frappe/frappe/core/doctype/doctype/doctype.py +312,DocType can not be merged,El DocType no se puede fusionar
+DocType: DocField,Allow on Submit,Permitir en Enviar
+apps/frappe/frappe/public/js/frappe/views/communication.js +78,Select Print Format,Seleccionar el formato de impresión
+DocType: DocField,"For Links, enter the DocType as range.
+For Select, enter list of Options, each on a new line.","Para enlaces, introduzca el DocType como rango. para seleccionar, ingrese lista de opciones, cada uno en una nueva línea."
+DocType: Workflow State,eye-open,- ojo abierto
+DocType: Email Account,Email Account Name,Correo electrónico Nombre de cuenta
+apps/frappe/frappe/public/js/frappe/list/list_renderer.js +629,No {0} found,{0} no encontrado
+apps/frappe/frappe/website/doctype/blog_post/blog_post.py +106,Posts by {0},Publicaciones por {0}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +211,Series {0} already used in {1},Serie {0} ya se utiliza en {1}
+DocType: Report,Report Manager,Administrador de informes
+DocType: Custom DocPerm,Report,Informe
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +18,"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Cuando se modifique un documento después de Cancelar y guardarlo , se obtendrá un nuevo número que es una versión del antiguo número."
+apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_start.html +16,Create a New Format,Crear un nuevo formato
+DocType: Email Account,Enable Incoming,Habilitar entrante
+apps/frappe/frappe/core/doctype/data_export/exporter.py +123,"If you are uploading new records, leave the ""name"" (ID) column blank.","Si va a cargar nuevos registros, deje en blanco la columna ""nombre"" (ID)"
+apps/frappe/frappe/config/website.py +37,Single Post (article).,Mensaje Individual ( artículo).
+DocType: Address,Address,Direcciones
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +47,1 minute ago,Hace 1 minuto
+DocType: Website Slideshow,Slideshow like display for the website,Presentación como pantalla para el sitio web
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5,"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Los permisos se establecen en las Funciones y Tipos de Documentos (llamados  DocTypes ) mediante el establecimiento de permisos  como Leer, Escribir , Crear, Eliminar , Enviar, Cancelar, Corregir, Informe , Importación, Exportación, Impresión , Correo Electrónico y Establecer Permisos de Usuario ."
+apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html +8,Edit Heading,Editar Rubro
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +180,Row {0}: Not allowed to enable Allow on Submit for standard fields,Fila {0}: No se permite habilitar Permitir en Enviar para campos estándar
+apps/frappe/frappe/www/list.html +4,{0} List,Listado: {0}
+DocType: DocType,Is Submittable,Es presentable--
+DocType: System Settings,Disable Standard Email Footer,Desactivar pie de página estandar en Email
+DocType: Blog Post,"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Descripción de la página perfil, en texto plano, sólo un par de líneas. (máx. 140 caracteres)"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +773,{0} cannot be set for Single types,{0} no se puede establecer para los tipos individuales
+apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +600,Select Table Columns for {0},Seleccionar columnas de tabla para {0}
+DocType: Workflow State,cog,diente
+DocType: Custom Field,Select the label after which you want to insert new field.,Seleccione la etiqueta después de la cual desea insertar el nuevo campo .
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +135,"document type..., e.g. customer","Tipo de documento ..., por ejemplo, al cliente"
+apps/frappe/frappe/public/js/frappe/form/link_selector.js +22,Select {0},Seleccione {0}
+DocType: Property Setter,Property Setter,Establecer prioridad--
+DocType: Website Settings,"Show title in browser window as ""Prefix - title""",Mostrar título en la ventana del navegador como &quot;Prefijo - título&quot;
+DocType: File,Attached To DocType,Asociado A DocType
+apps/frappe/frappe/model/base_document.py +503,Row #{0}:,Fila # {0}:
+apps/frappe/frappe/utils/response.py +143,You need to be logged in and have System Manager Role to be able to access backups.,"Necesitas estar conectado y tener la función de Administrador del Sistema, para poder tener acceso a las copias de seguridad ."
+DocType: Website Settings,Title Prefix,Prefijo del Título
+DocType: DocField,Section Break,Salto de sección
+DocType: Print Settings,PDF Settings,Configuración de PDF
+apps/frappe/frappe/templates/includes/login/login.js +223,Oops! Something went wrong,Oups! Algo salió mal
+DocType: Data Export,Select DocType,Seleccione tipo de documento
+apps/frappe/frappe/public/js/legacy/form.js +776,Permanently Submit {0}?,Presentar permanentemente {0}?
+DocType: Email Account,"e.g. ""Support"", ""Sales"", ""Jerry Yang""","por ejemplo ""Soporte "","" Ventas "","" Jerry Yang """
+apps/frappe/frappe/config/setup.py +219,"Actions for workflow (e.g. Approve, Cancel).","Acciones para los flujos de trabajo (por ejemplo: Aprobar, Cancelar)."
+DocType: Communication,Feedback,Comentarios
+DocType: User,Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Restringir el usuario a esta dirección IP. Todas las direcciones IP se pueden agregar separandolas con comas. También se aceptan direcciones IP parciales como ( 111.111.111 )
+apps/frappe/frappe/desk/doctype/event/event.py +24,Event end must be after start,Finalización del evento debe ser posterior al inicio
+DocType: Email Alert Recipient,Email Alert Recipient,Destinatario Alerta Email
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +10,Default Inbox,Bandeja de entrada por defecto
+DocType: Event,Repeat Till,Repita Hasta
+DocType: Workflow State,remove-circle,Eliminar el efecto de círculo
+DocType: Custom Script,Sample,Muestra
+apps/frappe/frappe/public/js/frappe/form/workflow.js +35,Current status,Situación Actual
+DocType: Custom DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","Lista JSON de doctypes utilizados para aplicar los permisos de usuario. Si está vacío, todos doctypes vinculadas serán utilizados para solicitar permisos de usuario."
