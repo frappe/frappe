@@ -204,8 +204,7 @@ frappe.views.BaseList = class BaseList {
 			this.setup_result_area,
 			this.setup_no_result_area,
 			this.setup_freeze_area,
-			this.setup_paging_area,
-			this.setup_footnote_area
+			this.setup_paging_area
 		].map(fn => fn.bind(this)));
 	}
 
@@ -297,10 +296,6 @@ frappe.views.BaseList = class BaseList {
 				this.refresh();
 			}
 		});
-	}
-
-	setup_footnote_area() {
-		this.$footnote_area = null;
 	}
 
 	get_fields() {

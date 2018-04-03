@@ -5,14 +5,18 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe import _
 
 class DomainSettings(Document):
 	def set_active_domains(self, domains):
-		self.active_domains = []
+		active_domains = [d.domain for d in self.active_domains]
+		added = False
 		for d in domains:
-			self.append('active_domains', dict(domain=d))
-		self.save()
+			if not d in active_domains:
+				self.append('active_domains', dict(domain=d))
+				added = True
+
+		if added:
+			self.save()
 
 	def on_update(self):
 		for i, d in enumerate(self.active_domains):

@@ -614,7 +614,7 @@ class Database:
 		"""
 
 		value = self.value_cache.setdefault(doctype, {}).get(fieldname)
-		if value:
+		if value is not None:
 			return value
 
 		val = self.sql("""select value from

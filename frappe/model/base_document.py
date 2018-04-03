@@ -216,7 +216,7 @@ class BaseDocument(object):
 				if isinstance(d[fieldname], list) and df.fieldtype != 'Table':
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
-				if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time)):
+				if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time, datetime.timedelta)):
 					d[fieldname] = str(d[fieldname])
 
 		return d
@@ -291,7 +291,7 @@ class BaseDocument(object):
 			self.creation = self.modified = now()
 			self.created_by = self.modifield_by = frappe.session.user
 
-		d = self.get_valid_dict()
+		d = self.get_valid_dict(convert_dates_to_str=True)
 
 		columns = list(d)
 		try:
@@ -327,7 +327,7 @@ class BaseDocument(object):
 			self.db_insert()
 			return
 
-		d = self.get_valid_dict()
+		d = self.get_valid_dict(convert_dates_to_str=True)
 
 		# don't update name, as case might've been changed
 		name = d['name']
@@ -462,21 +462,22 @@ class BaseDocument(object):
 				if frappe.get_meta(doctype).issingle:
 					values.name = doctype
 
-				setattr(self, df.fieldname, values.name)
+				if values:
+					setattr(self, df.fieldname, values.name)
 
-				for _df in fields_to_fetch:
-					setattr(self, _df.fieldname, values[_df.options.split('.')[-1]])
+					for _df in fields_to_fetch:
+						setattr(self, _df.fieldname, values[_df.options.split('.')[-1]])
 
-				notify_link_count(doctype, docname)
+					notify_link_count(doctype, docname)
 
-				if not values.name:
-					invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
+					if not values.name:
+						invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
 
-				elif (df.fieldname != "amended_from"
-					and (is_submittable or self.meta.is_submittable) and frappe.get_meta(doctype).is_submittable
-					and cint(frappe.db.get_value(doctype, docname, "docstatus"))==2):
+					elif (df.fieldname != "amended_from"
+						and (is_submittable or self.meta.is_submittable) and frappe.get_meta(doctype).is_submittable
+						and cint(frappe.db.get_value(doctype, docname, "docstatus"))==2):
 
-					cancelled_links.append((df.fieldname, docname, get_msg(df, docname)))
+						cancelled_links.append((df.fieldname, docname, get_msg(df, docname)))
 
 		return invalid_links, cancelled_links
 
