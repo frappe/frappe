@@ -180,6 +180,7 @@ apps/frappe/frappe/integrations/doctype/webhook/webhook.py +29,DocType must be S
 DocType: Workflow State,circle-arrow-up,circle-arrow-up
 DocType: Email Domain,Email Domain,E-posta domain
 DocType: Workflow State,italic,italic
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Kurulum&gt; Kullanıcı
 apps/frappe/frappe/core/doctype/doctype/doctype.py +756,{0}: Cannot set Import without Create,{0}: oluşturulmadan içeri atanamaz
 DocType: SMS Settings,Enter url parameter for message,Mesaj için url parametresi girin
 apps/frappe/frappe/templates/emails/auto_email_report.html +46,View report in your browser,Raporu tarayıcınızda görüntüleyin
@@ -980,6 +981,7 @@ apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +
 apps/frappe/frappe/templates/emails/auto_reply.html +3,Reference: {0} {1},Referans: {0} {1}
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Mrs,Bayan
 DocType: File,Attached To Name,Adı için Eklenmiş
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} yıl önce
 DocType: Address,Address Type,Adres Tipi
 apps/frappe/frappe/email/receive.py +95,Invalid User Name or Support Password. Please rectify and try again.,Geçersiz Kullanıcı Adı veya Şifre Destek. Lütfen Düzeltin ve tekrar deneyin.
 DocType: Email Account,Yahoo Mail,Yahoo E-Posta
@@ -1160,7 +1162,6 @@ apps/frappe/frappe/templates/emails/new_user.html +16,You can also copy-paste th
 DocType: Workflow State,bullhorn,Megafonu
 DocType: Footer Item,Target,Hedef
 DocType: System Settings,Number of Backups,Yedeklemeler sayısı
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} yıl önce
 DocType: Website Settings,Copyright,Telif hakkı
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +58,Go,Gitmek
 DocType: OAuth Authorization Code,Invalid,Geçersiz
@@ -1489,6 +1490,7 @@ DocType: Workflow State,step-backward,step-backward
 apps/frappe/frappe/utils/boilerplate.py +265,{app_title},{App_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +214,Please set Dropbox access keys in your site config,Lütfen site yapılandırmanızda Dropbox erişim anahtarı ayarlayınız
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,Bu e-posta adresine gönderilmesine izin Bu kayıt silinsin
+apps/frappe/frappe/email/smtp.py +69,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Lütfen Kurulum&gt; E-posta&gt; E-posta Hesabı&#39;ndan varsayılan E-posta Hesabı&#39;nı ayarlayın
 apps/frappe/frappe/core/doctype/data_export/exporter.py +125,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,Sadece zorunlu alanlar yeni kayıtlar için gereklidir. İsterseniz zorunlu olmayan sütunları silebilirsiniz.
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +330,Unable to update event,Etkinlik güncellenemedi
 apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +304,Payment Complete,Ödeme Tamamlandı
@@ -1585,7 +1587,6 @@ DocType: System Settings,OTP App,OTP Uygulaması
 apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +21,Document ID,Döküman ID
 DocType: Print Settings,Letter,Mektup
 apps/frappe/frappe/core/doctype/doctype/doctype.py +598,Image field must be of type Attach Image,"Resim Alanı ""Resim Ekle"" cinsinden bir alan olmalıdır"
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357,<p>No results found for '</p>,<p> &#39;Için sonuç bulunamadı </p>
 DocType: DocField,Columns,Sütunlar
 apps/frappe/frappe/desk/form/assign_to.py +71,Shared with user {0} with read access,{0} kullanıcısı ile okuma erişimi ile paylaşıldı
 DocType: Async Task,Succeeded,Başarılı
@@ -1628,6 +1629,7 @@ apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +171,Customize,Özelleştirme
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +171,Customize,Özelleştirme
 apps/frappe/frappe/core/doctype/user/user.js +87,View Permitted Documents,İzin Verilen Belgeleri Görüntüle
+apps/frappe/frappe/email/smtp.py +172,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,E-posta Hesabı ayarlanmamış. Lütfen Kurulum&gt; E-posta&gt; E-posta Hesabı&#39;ndan yeni bir E-posta Hesabı oluşturun.
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py +53,Chain Integrity,Zincir bütünlüğü
 DocType: Data Export,CSV,CSV
 apps/frappe/frappe/www/feedback.html +96,Please give a detailed feebdack.,detaylı feebdack verin.
@@ -1683,7 +1685,6 @@ apps/frappe/frappe/limits.py +74,Your subscription will expire today.,Aboneliği
 DocType: Page,Standard,Standart
 DocType: Page,Standard,Standart
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +50,Attach File,Dosya Eki
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Kurulum&gt; Kullanıcı
 apps/frappe/frappe/desk/page/backups/backups.html +13,Size,Boyut
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +59,Assignment Complete,Komple Atama
 DocType: Custom DocPerm,User Permission DocTypes,Belge Türüne Göre Kullanıcı İzni
@@ -1753,6 +1754,7 @@ apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permiss
 DocType: Activity Log,Logout,Çıkış
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +26,Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Yüksek seviyelerde izinler Saha Seviye izinleri vardır. Tüm Alanlar onlara karşı bir İzin Düzeyi seti ve izinleri alan için geçerli olduğunu tanımlanmış kurallar var. Bu gizlemek veya belirli alan salt okunur belirli roller için yapmak istemeniz durumunda yararlıdır.
 DocType: SMS Settings,"Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)","Buraya statik url parametreleri girin (Örn. gönderen = ERPNext, kullanıcı adı = ERPNext, Şifre = 1234 vb)"
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357,<p>No results found for '</p>,<p> &#39;Için sonuç bulunamadı </p>
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +38,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Bu talimatlar burada yararlı değilse, GitHub konular üzerinde önerileri lütfen ekleyin."
 DocType: Workflow State,bookmark,Yerimi
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js +66,Folder name should not include '/' (slash),Klasör adı &#39;/&#39; (eğik çizgi) içermemelidir.
@@ -1954,7 +1956,6 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +84,Inva
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +125,Cannot {0} {1},{0} {1} olamaz
 DocType: Custom DocPerm,Apply this rule if the User is the Owner,Kullanıcı Sahibi ise bu kuralı uygula
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +418,Will be your login ID,Oturum açma kimliğiniz olacak
-apps/frappe/frappe/email/smtp.py +69,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Lütfen Kurulum&gt; E-posta&gt; E-posta Hesabı&#39;ndan varsayılan E-posta Hesabı&#39;nı ayarlayın
 apps/frappe/frappe/desk/page/activity/activity.js +45,Build Report,Rapor oluşturmak
 DocType: Note,Notify users with a popup when they log in,oturum açtıklarında bir pop-up ile kullanıcılara bildir
 apps/frappe/frappe/model/rename_doc.py +118,"{0} {1} does not exist, select a new target to merge","{0} {1} yok, birleştirmek için yeni bir hedef seçin"
@@ -2470,7 +2471,6 @@ DocType: DocType,Setup,Kurulum
 DocType: DocType,Setup,Kurulum
 DocType: Email Account,Initial Sync Count,İlk Eşitleme Sayısı
 apps/frappe/frappe/templates/includes/comments/comments.py +55,New comment on {0} {1},Yeni Yorum {0} {1}
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,Kurulum&gt; Kullanıcı İzinleri Yöneticisi
 DocType: Workflow State,glass,cam
 DocType: DocType,Timeline Field,Zaman Çizelgesi Alan
 DocType: Country,Time Zones,Saat Dilimleri
@@ -2602,6 +2602,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +603,Cannot rem
 apps/frappe/frappe/core/doctype/doctype/doctype.py +779,{0}: Cannot set Assign Amend if not Submittable,{0}: Ata Amend ayarlanamaz Submittable değilse
 DocType: Address,Bihar,Bihar
 DocType: Activity Log,Link DocType,bağlantı DocType
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,Kurulum&gt; Kullanıcı İzinleri Yöneticisi
 apps/frappe/frappe/public/js/frappe/chat.js +1690,You don't have any messages yet.,Henüz hiç mesajın yok.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +76,Remove all customizations?,Tüm özelleştirmeleri kaldırmak?
 DocType: Website Slideshow,Slideshow Name,Slayt İsmi
@@ -2826,7 +2827,6 @@ apps/frappe/frappe/www/login.html +32,Login with LDAP,LDAP ile giriş
 DocType: Web Form,Breadcrumbs,Kırıntıları
 apps/frappe/frappe/core/doctype/doctype/doctype.py +725,If Owner,Sahibi ise
 DocType: Data Migration Mapping,Push,it
-apps/frappe/frappe/contacts/doctype/address/address.py +193,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Varsayılan Adres Şablonu bulunamadı. Lütfen Kurulum&gt; Yazdırma ve Markalama&gt; Adres Şablonu&#39;ndan yeni bir tane oluşturun.
 DocType: OAuth Authorization Code,Expiration time,Sona erme zamanı
 DocType: Web Page,Website Sidebar,Web sitesi Kenar Çubuğu
 DocType: Web Form,Show Sidebar,göster Kenar Çubuğu
@@ -2865,7 +2865,6 @@ apps/frappe/frappe/public/js/frappe/views/treeview.js +288,Group Node,Grup Düğ
 DocType: Communication,Notification,tebliğ
 DocType: DocType,Document,Belge
 apps/frappe/frappe/core/doctype/doctype/doctype.py +211,Series {0} already used in {1},Seriler {0} {1} de zaten kullanılmıştır
-apps/frappe/frappe/email/smtp.py +172,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,E-posta Hesabı ayarlanmamış. Lütfen Kurulum&gt; E-posta&gt; E-posta Hesabı&#39;ndan yeni bir E-posta Hesabı oluşturun.
 apps/frappe/frappe/core/doctype/data_import/importer.py +279,Unsupported File Format,Desteklenmeyen Dosya Biçimi
 DocType: DocField,Code,Kod
 DocType: DocField,Code,Kod
@@ -2981,6 +2980,7 @@ DocType: Data Migration Mapping,Data Migration Mapping,Veri Taşıma Eşleme
 apps/frappe/frappe/www/login.py +89,Invalid Login Token,Geçersiz Girişi Jetonu
 apps/frappe/frappe/public/js/frappe/chat.js +209,Discard,ıskarta
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +49,1 hour ago,1 saat önce
+apps/frappe/frappe/contacts/doctype/address/address.py +193,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Varsayılan Adres Şablonu bulunamadı. Lütfen Kurulum&gt; Yazdırma ve Markalama&gt; Adres Şablonu&#39;ndan yeni bir tane oluşturun.
 DocType: Website Settings,Home Page,Ana Sayfa
 DocType: Error Snapshot,Parent Error Snapshot,Veli Hata Anlık
 DocType: Kanban Board,Filters,Filtreler

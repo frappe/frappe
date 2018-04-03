@@ -170,6 +170,7 @@ apps/frappe/frappe/integrations/doctype/webhook/webhook.py +29,DocType must be S
 DocType: Workflow State,circle-arrow-up,원형 화살표 업
 DocType: Email Domain,Email Domain,이메일 도메인
 DocType: Workflow State,italic,이탤릭체
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,설정&gt; 사용자
 apps/frappe/frappe/core/doctype/doctype/doctype.py +756,{0}: Cannot set Import without Create,{0} 작성하지 않고 수입을 설정할 수 없습니다
 DocType: SMS Settings,Enter url parameter for message,메시지의 URL 매개 변수를 입력
 apps/frappe/frappe/templates/emails/auto_email_report.html +46,View report in your browser,브라우저에서 보고서보기
@@ -934,6 +935,7 @@ apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +
 apps/frappe/frappe/templates/emails/auto_reply.html +3,Reference: {0} {1},참조 : {0} {1}
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Mrs,부인
 DocType: File,Attached To Name,이름에 첨부
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} 년 전
 DocType: Address,Address Type,주소 유형
 apps/frappe/frappe/email/receive.py +95,Invalid User Name or Support Password. Please rectify and try again.,잘못된 사용자 이름 또는 지원의 비밀.조정하고 다시 시도하십시오.
 DocType: Email Account,Yahoo Mail,야후 메일
@@ -1106,7 +1108,6 @@ apps/frappe/frappe/templates/emails/new_user.html +16,You can also copy-paste th
 DocType: Workflow State,bullhorn,물러나
 DocType: Footer Item,Target,목표물
 DocType: System Settings,Number of Backups,백업의 수
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} 년 전
 DocType: Website Settings,Copyright,저작권
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +58,Go,가기
 DocType: OAuth Authorization Code,Invalid,잘못된
@@ -1418,6 +1419,7 @@ DocType: Workflow State,step-backward,스텝 뒤로
 apps/frappe/frappe/utils/boilerplate.py +265,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +214,Please set Dropbox access keys in your site config,사이트 구성에 보관 액세스 키를 설정하십시오
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,이 이메일 주소로 보낼 수 있도록이 기록을 삭제
+apps/frappe/frappe/email/smtp.py +69,Please setup default Email Account from Setup &gt; Email &gt; Email Account,설정&gt; 이메일&gt; 이메일 계정에서 기본 이메일 계정을 설정하십시오.
 apps/frappe/frappe/core/doctype/data_export/exporter.py +125,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,만 필수 필드는 새로운 기록을 위해 필요하다.당신이 원하는 경우 필수가 아닌 열을 삭제할 수 있습니다.
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +330,Unable to update event,이벤트를 업데이트 할 수 없습니다
 apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +304,Payment Complete,결제 완료
@@ -1512,7 +1514,6 @@ DocType: System Settings,OTP App,OTP 앱
 apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +21,Document ID,문서 ID
 DocType: Print Settings,Letter,글자
 apps/frappe/frappe/core/doctype/doctype/doctype.py +598,Image field must be of type Attach Image,이미지 필드 유형이어야합니다 이미지 첨부
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357,<p>No results found for '</p>,<p> &#39;에 대한 검색 결과가 없습니다. </p>
 DocType: DocField,Columns,열
 apps/frappe/frappe/desk/form/assign_to.py +71,Shared with user {0} with read access,읽기 권한이있는 {0} 사용자와 공유 됨
 DocType: Async Task,Succeeded,성공
@@ -1552,6 +1553,7 @@ DocType: Error Log,Title,제목
 apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +100,"Seems issue with server's razorpay config. Don't worry, in case of failure amount will get refunded to your account.","서버의 razorpay의 구성에 문제를 보인다. 계정에 환불 얻을 것이다 실패 양의 경우, 걱정하지 마십시오."
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +171,Customize,사용자 지정
 apps/frappe/frappe/core/doctype/user/user.js +87,View Permitted Documents,허용 된 문서보기
+apps/frappe/frappe/email/smtp.py +172,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,이메일 계정이 설정되지 않았습니다. 설정&gt; 이메일&gt; 이메일 계정에서 새 이메일 계정을 만드십시오.
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py +53,Chain Integrity,체인 무결성
 DocType: Data Export,CSV,CSV
 apps/frappe/frappe/www/feedback.html +96,Please give a detailed feebdack.,자세한 feebdack을주십시오.
@@ -1604,7 +1606,6 @@ apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +283,Loading Re
 apps/frappe/frappe/limits.py +74,Your subscription will expire today.,가입이 오늘 만료됩니다.
 DocType: Page,Standard,표준
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +50,Attach File,파일 첨부
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,설정&gt; 사용자
 apps/frappe/frappe/desk/page/backups/backups.html +13,Size,크기
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +59,Assignment Complete,전체 할당
 DocType: Custom DocPerm,User Permission DocTypes,사용자 권한 doctype에
@@ -1669,6 +1670,7 @@ apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permiss
 DocType: Activity Log,Logout,로그아웃
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +26,Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,더 높은 수준의 권한은 필드 레벨의 권한입니다.모든 필드는 그들에 대한 권한 수준 설정과 권한을 현장에 적용하는 것이 정의 규칙을 가지고있다.이 숨기거나 특정 필드는 읽기 전용 특정 역할 있도록 할 경우에 유용합니다.
 DocType: SMS Settings,"Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)","여기에 정적 URL 매개 변수를 입력합니다 (예 : 보낸 사람 = ERPNext, 사용자 이름 = ERPNext, 암호 = 1234 등)"
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357,<p>No results found for '</p>,<p> &#39;에 대한 검색 결과가 없습니다. </p>
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +38,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","이 지침 곳에 도움이되지 않으면, GitHub의 문제에 대한 당신의 제안에 추가하십시오."
 DocType: Workflow State,bookmark,북마크
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js +66,Folder name should not include '/' (slash),폴더 이름에 &#39;/&#39;(슬래시)가 없어야합니다.
@@ -1862,7 +1864,6 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +84,Inva
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +125,Cannot {0} {1},{0} {1} 할 수 없습니다.
 DocType: Custom DocPerm,Apply this rule if the User is the Owner,사용자가 소유자 인 경우이 규칙 적용
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +418,Will be your login ID,로그인 ID가됩니다.
-apps/frappe/frappe/email/smtp.py +69,Please setup default Email Account from Setup &gt; Email &gt; Email Account,설정&gt; 이메일&gt; 이메일 계정에서 기본 이메일 계정을 설정하십시오.
 apps/frappe/frappe/desk/page/activity/activity.js +45,Build Report,보고서보기 빌드
 DocType: Note,Notify users with a popup when they log in,그들이 로그인 할 때 팝업으로 사용자에게 알림
 apps/frappe/frappe/model/rename_doc.py +118,"{0} {1} does not exist, select a new target to merge","{0} {1}이 (가) 없습니다, 새로운 대상을 선택해서 병합하세요."
@@ -2358,7 +2359,6 @@ apps/frappe/frappe/core/doctype/communication/communication.js +65,Reply All,모
 DocType: DocType,Setup,설정
 DocType: Email Account,Initial Sync Count,초기 동기화 카운트
 apps/frappe/frappe/templates/includes/comments/comments.py +55,New comment on {0} {1},에 새 코멘트 {0} {1}
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,설정&gt; 사용자 권한 관리자
 DocType: Workflow State,glass,유리
 DocType: DocType,Timeline Field,타임 라인 필드
 DocType: Country,Time Zones,시간대
@@ -2485,6 +2485,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +603,Cannot rem
 apps/frappe/frappe/core/doctype/doctype/doctype.py +779,{0}: Cannot set Assign Amend if not Submittable,{0} : 지정을 개정 설정할 수 Submittable 아니라면
 DocType: Address,Bihar,비하르
 DocType: Activity Log,Link DocType,링크 DOCTYPE입니다
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,설정&gt; 사용자 권한 관리자
 apps/frappe/frappe/public/js/frappe/chat.js +1690,You don't have any messages yet.,아직 메시지가 없습니다.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +76,Remove all customizations?,모든 사용자 지정을 삭제 하시겠습니까?
 DocType: Website Slideshow,Slideshow Name,슬라이드 쇼 이름
@@ -2698,7 +2699,6 @@ apps/frappe/frappe/www/login.html +32,Login with LDAP,LDAP에 로그인
 DocType: Web Form,Breadcrumbs,빵 부스러기
 apps/frappe/frappe/core/doctype/doctype/doctype.py +725,If Owner,사용하는 경우
 DocType: Data Migration Mapping,Push,푸시
-apps/frappe/frappe/contacts/doctype/address/address.py +193,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,기본 주소 템플릿이 없습니다. 설정&gt; 인쇄 및 브랜딩&gt; 주소 템플릿에서 새 것을 만드십시오.
 DocType: OAuth Authorization Code,Expiration time,만료 시간
 DocType: Web Page,Website Sidebar,웹 사이트 사이드 바
 DocType: Web Form,Show Sidebar,보기 사이드 바
@@ -2735,7 +2735,6 @@ apps/frappe/frappe/public/js/frappe/views/treeview.js +288,Group Node,그룹 노
 DocType: Communication,Notification,공고
 DocType: DocType,Document,문서
 apps/frappe/frappe/core/doctype/doctype/doctype.py +211,Series {0} already used in {1},계열 {0} 이미 사용될 {1}
-apps/frappe/frappe/email/smtp.py +172,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,이메일 계정이 설정되지 않았습니다. 설정&gt; 이메일&gt; 이메일 계정에서 새 이메일 계정을 만드십시오.
 apps/frappe/frappe/core/doctype/data_import/importer.py +279,Unsupported File Format,지원되지 않는 파일 형식
 DocType: DocField,Code,코드
 DocType: Workflow,"All possible Workflow States and roles of the workflow. Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","가능한 모든 워크 플로우 미국과 워크 플로우의 역할. Docstatus 옵션 : 0 &quot;저장&quot;, 1은 &quot;제출&quot;하고 2 &quot;취소&quot;한다"
@@ -2850,6 +2849,7 @@ DocType: Data Migration Mapping,Data Migration Mapping,데이터 마이그레이
 apps/frappe/frappe/www/login.py +89,Invalid Login Token,잘못된 로그인 토큰
 apps/frappe/frappe/public/js/frappe/chat.js +209,Discard,포기
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +49,1 hour ago,1 시간 전
+apps/frappe/frappe/contacts/doctype/address/address.py +193,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,기본 주소 템플릿이 없습니다. 설정&gt; 인쇄 및 브랜딩&gt; 주소 템플릿에서 새 것을 만드십시오.
 DocType: Website Settings,Home Page,홈페이지
 DocType: Error Snapshot,Parent Error Snapshot,부모 오류 스냅 샷
 DocType: Kanban Board,Filters,필터

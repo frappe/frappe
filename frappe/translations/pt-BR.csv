@@ -392,6 +392,7 @@ apps/frappe/frappe/public/js/frappe/model/model.js +90,Unknown Column: {0},Colun
 DocType: Email Alert Recipient,Email By Role,Email por Função
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +310,Users with role {0}:,Os usuários com a função {0}:
 DocType: Workflow State,random,randômico
+DocType: Newsletter Email Group,Newsletter Email Group,Grupo de Email de Newsletter
 apps/frappe/frappe/desk/query_report.py +84,Must specify a Query to run,Deve especificar uma consulta para executar
 apps/frappe/frappe/config/setup.py +69,"Language, Date and Time settings","Configurações de Idioma , Data e Hora"
 DocType: User Email,User Email,Email do Usuário
@@ -1212,6 +1213,7 @@ apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +8
 DocType: Address,Shipping,Expedição
 DocType: Workflow State,circle-arrow-down,círculo de seta para baixo
 apps/frappe/frappe/config/desk.py +38,Private and public Notes.,Privadas e públicas Notas.
+apps/frappe/frappe/templates/includes/login/login.js +187,Not a valid user,Não é um usuário válido
 DocType: Workflow State,arrow-right,seta para a direita
 DocType: Workflow State,Workflow state represents the current state of a document.,O Status do Fluxo de Trabalho representa o status atual de um documento.
 apps/frappe/frappe/utils/file_manager.py +256,Removed {0},Removido {0}
