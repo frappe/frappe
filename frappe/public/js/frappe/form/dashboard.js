@@ -273,7 +273,12 @@ frappe.ui.form.Dashboard = Class.extend({
 			},
 			callback: function(r) {
 				if(r.message.timeline_data) {
-					me.update_heatmap(r.message.timeline_data);
+					let heatmapData = {};						
+					const object = r.message.timeline_data;
+					for (const [key, value] of Object.entries(object)) {
+						heatmapData[(parseInt(key) - 79200)] = value;
+					}
+					me.update_heatmap(heatmapData);
 				}
 
 				// update badges
