@@ -198,8 +198,15 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			doc['doctype'] = doctype
 			return doc
 
+	# used in testing whether a row is empty or parent row or child row
+	# checked only 3 first columns since first two columns can be blank for example the case of
+	# importing the item variant where item code and item name will be blank.
 	def main_doc_empty(row):
-		return not (row and ((len(row) > 1 and row[1]) or (len(row) > 2 and row[2])))
+		if row:
+			for i in xrange(3,1,-1):
+				if len(row) > i and row[i]:
+					return False
+		return True
 
 	def validate_naming(doc):
 		autoname = frappe.get_meta(doctype).autoname
