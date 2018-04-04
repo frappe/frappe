@@ -16,10 +16,7 @@ def get_context(context):
 		query_options = ["Sales", "Support", "General"]
 
 	out = {
-		"query_options": query_options,
-		"parents": [
-			{ "name": _("Home"), "route": "/" }
-		]
+		"query_options": query_options
 	}
 	out.update(doc.as_dict())
 
