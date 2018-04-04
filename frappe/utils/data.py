@@ -261,23 +261,17 @@ def global_date_format(date, format="long"):
     return formatted_date
 
 def is_weekday(date):
-    print(date, type(date))
     date = getdate(date)
-    print(date, type(date))
     if date.weekday() not in [5, 6]:
         return True
     else:
         return False
 
 def next_weekday_date(date):
-    print(date, type(date))
     date = getdate(date)
-    print(date, type(date))
     date = add_days(date, 1)
-    print(date, type(date))
     while is_weekday(date) is False:
         date = add_days(date, 1)
-    print(date, type(date))
     return date
 
 def has_common(l1, l2):
