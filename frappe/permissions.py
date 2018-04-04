@@ -55,9 +55,7 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 
 
 		role_permissions = get_role_permissions(meta, user=user, verbose=verbose)
-
 		perm = role_permissions.get(ptype)
-
 	def false_if_not_shared():
 		if ptype in ("read", "write", "share", "email", "print"):
 			shared = frappe.share.get_shared(doctype, user,
@@ -138,19 +136,16 @@ def get_role_permissions(doctype_meta, user=None, verbose=False):
 			if_owner={}
 		)
 
-		if is_module_blocked_for_user(user, doctype_meta.module):
-			for ptype in rights: perms[ptype] = 0
-		else:
-			roles = frappe.get_roles(user)
+		roles = frappe.get_roles(user)
 
-			for p in doctype_meta.permissions:
-				if not cint(p.permlevel)==0 or not(p.role in roles): continue
-				# apply only for level 0
-				for ptype in rights:
-					perms[ptype] = perms.get(ptype, 0) or cint(p.get(ptype))
-					# build if_owner dict if applicable for this right
-					if p.get('if_owner') and p.get(ptype):
-						perms['if_owner'][ptype] = 1
+		for p in doctype_meta.permissions:
+			if not cint(p.permlevel)==0 or not(p.role in roles): continue
+			# apply only for level 0
+			for ptype in rights:
+				perms[ptype] = perms.get(ptype, 0) or cint(p.get(ptype))
+				# build if_owner dict if applicable for this right
+				if p.get('if_owner') and p.get(ptype):
+					perms['if_owner'][ptype] = 1
 
 		frappe.local.role_permissions[cache_key] = perms
 	return frappe.local.role_permissions[cache_key]
@@ -420,9 +415,6 @@ def get_linked_doctypes(dt):
 			"options": ("!=", "[Select]")
 		})
 	]))
-
-def is_module_blocked_for_user(user, module):
-	return frappe.db.get_all('Block Module', filters={'parent': user, 'module': module})
 
 def get_doc_name(doc):
 	if not doc: return None
