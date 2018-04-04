@@ -260,6 +260,7 @@ def global_date_format(date, format="long"):
     formatted_date = babel.dates.format_date(date, locale=(frappe.local.lang or "en").replace("-", "_"), format=format)
     return formatted_date
 
+
 def is_weekday(date):
     date = getdate(date)
     if date.weekday() not in [5, 6]:
