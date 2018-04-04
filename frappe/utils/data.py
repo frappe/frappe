@@ -260,6 +260,20 @@ def global_date_format(date, format="long"):
     formatted_date = babel.dates.format_date(date, locale=(frappe.local.lang or "en").replace("-", "_"), format=format)
     return formatted_date
 
+def is_weekday(date):
+    date = getdate(date)
+    if date.weekday() not in [5, 6]:
+        return True
+    else:
+        return False
+
+def next_weekday_date(date):
+    date = getdate(date)
+    date = add_days(date, 1)
+    while is_weekday(date) is False:
+        date = add_days(date, 1)
+    return date
+
 def has_common(l1, l2):
     """Returns truthy value if there are common elements in lists l1 and l2"""
     return set(l1) & set(l2)
