@@ -273,7 +273,13 @@ frappe.ui.form.Dashboard = Class.extend({
 			},
 			callback: function(r) {
 				if(r.message.timeline_data) {
-					me.update_heatmap(r.message.timeline_data);
+					let heatmapData = {};						
+					const object = r.message.timeline_data;
+					for (const [key, value] of Object.entries(object)) {
+					  console.log(key, value);
+					  heatmapData[(parseInt(key) - 79200)] = value;
+					}
+					me.update_heatmap(heatmapData);
 				}
 
 				// update badges
@@ -334,13 +340,12 @@ frappe.ui.form.Dashboard = Class.extend({
 	// heatmap
 	render_heatmap: function() {
 		if(!this.heatmap) {
-			this.heatmap = new Chart({
-				parent: "#heatmap-" + frappe.model.scrub(this.frm.doctype),
+			this.heatmap = new Chart("#heatmap-" + frappe.model.scrub(this.frm.doctype), {
 				type: 'heatmap',
-				height: 100,
+				height: 120,
 				start: new Date(moment().subtract(1, 'year').toDate()),
 				count_label: "interactions",
-				discrete_domains: 0,
+				discreteDomains: 0,
 				data: {}
 			});
 
@@ -407,14 +412,13 @@ frappe.ui.form.Dashboard = Class.extend({
 		var me = this;
 		this.chart_area.empty().removeClass('hidden');
 		$.extend(args, {
-			parent: '.form-graph',
 			type: 'line',
 			height: 140,
 			colors: ['green']
 		});
 		this.show();
 
-		this.chart = new Chart(args);
+		this.chart = new Chart('.form-graph', args);
 		if(!this.chart) {
 			this.hide();
 		}
