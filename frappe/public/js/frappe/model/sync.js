@@ -127,11 +127,19 @@ $.extend(frappe.model, {
 					if (local_d) {
 						// deleted and added again
 						if (!locals[d.doctype]) locals[d.doctype] = {};
-						if (!d.name || !locals[d.doctype][d.name]) {
-							frappe.model.add_to_locals(d);
-							if (locals[d.doctype][local_d.name]) {
-								delete locals[d.doctype][local_d.name];
-							}
+
+						if (!d.name) {
+							// incoming row is new, find a new name
+							d.name = frappe.model.get_new_name(doc.doctype);
+						}
+
+						// if incoming row is not registered, register it
+						if (!locals[d.doctype][d.name]) {
+							// detach old key
+							delete locals[d.doctype][local_d.name];
+
+							// re-attach with new name
+							locals[d.doctype][d.name] = local_d;
 						}
 
 						// row exists, just copy the values

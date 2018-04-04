@@ -810,15 +810,25 @@ class Database:
 			except:
 				return None
 
-	def count(self, dt, filters=None, debug=False):
+	def count(self, dt, filters=None, debug=False, cache=False):
 		"""Returns `COUNT(*)` for given DocType and filters."""
+		if cache and not filters:
+			cache_count = frappe.cache().get_value('doctype:count:{}'.format(dt))
+			if cache_count is not None:
+				return cache_count
 		if filters:
 			conditions, filters = self.build_conditions(filters)
-			return frappe.db.sql("""select count(*)
+			count = frappe.db.sql("""select count(*)
 				from `tab%s` where %s""" % (dt, conditions), filters, debug=debug)[0][0]
+			return count
 		else:
-			return frappe.db.sql("""select count(*)
+			count = frappe.db.sql("""select count(*)
 				from `tab%s`""" % (dt,))[0][0]
+
+			if cache:
+				frappe.cache().set_value('doctype:count:{}'.format(dt), count, expires_in_sec = 86400)
+
+			return count
 
 
 	def get_creation_count(self, doctype, minutes):
