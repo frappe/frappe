@@ -273,7 +273,8 @@
 		"public/less/list.less",
 		"public/less/calendar.less",
 		"public/less/role_editor.less",
-		"public/less/gantt.less"
+		"public/less/gantt.less",
+		"public/less/tags.less"
 	],
 	"js/list.min.js": [
 		"public/js/frappe/ui/listing.html",
@@ -301,7 +302,7 @@
 		"public/js/frappe/list/list_item_main_head.html",
 		"public/js/frappe/list/list_item_row_head.html",
 		"public/js/frappe/list/list_item_subject.html",
-		"public/js/frappe/list/list_permission_footer.html",
+		"public/js/frappe/list/list_view_permission_restrictions.html",
 
 		"public/js/frappe/views/gantt/gantt_view.js",
 		"public/js/frappe/views/calendar/calendar.js",

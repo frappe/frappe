@@ -149,6 +149,7 @@ frappe.ui.Filter = class {
 		let original_docfield = (this.fieldselect.fields_by_name[doctype] || {})[fieldname];
 		if(!original_docfield) {
 			frappe.msgprint(__("Field {0} is not selectable.", [fieldname]));
+			this.remove();
 			return;
 		}
 

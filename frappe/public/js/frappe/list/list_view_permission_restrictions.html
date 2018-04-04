@@ -1,0 +1,13 @@
+<div class="level">
+	{% for(var i=0; i < condition_list.length; i++) { var conditions=condition_list[i]; %}
+	<div class="level-item">
+		{% if (i > 0) { %}
+		<span style="margin-right: 10px;">{{ __("Or") }}</span>{% } %} {% for(key in conditions) { %}
+		<span class="label label-default" style="margin-right: 10px;">
+			{% if(conditions[key].length) { %} {{ key }} = {{ frappe.utils.comma_or(conditions[key]) }} {% } else { %} {{ __("{0} is
+			not set", [key]) }} {% } %}
+		</span>
+		{% } %}
+	</div>
+	{% } %}
+</div>
