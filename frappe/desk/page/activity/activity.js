@@ -190,7 +190,13 @@ frappe.activity.render_heatmap = function(page) {
 					data: {}
 				});
 
-				heatmap.update(r.message);
+				let heatmapData = {};						
+				const object = r.message;
+				for (const [key, value] of Object.entries(object)) {
+					heatmapData[(parseInt(key) - 79200)] = value;
+				}
+
+				heatmap.update(heatmapData);
 			}
 		}
 	})
