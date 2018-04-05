@@ -278,7 +278,7 @@ frappe.ui.form.Layout = Class.extend({
 				if(df.fieldname === '_form_dashboard') {
 					collapse = false;
 					if (frappe.sys_defaults.dashboard_collapse_def === 'true') {
-							collapse = true;
+						collapse = true;
 					}
 				}
 
