@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import six
 from six import iteritems, text_type
 from six.moves import range
-import time, _socket, poplib, imaplib, email, email.utils, datetime, chardet, re, hashlib
+import time, _socket, poplib, imaplib, email, email.utils, datetime, chardet, re
 from email_reply_parser import EmailReplyParser
 from email.header import decode_header
 import frappe
@@ -14,7 +14,6 @@ from frappe.utils import (extract_email_id, convert_utc_to_user_timezone, now,
 	cint, cstr, strip, markdown, parse_addr)
 from frappe.utils.scheduler import log
 from frappe.utils.file_manager import get_random_filename, save_file, MaxFileSizeReachedError
-import re
 
 class EmailSizeExceededError(frappe.ValidationError): pass
 class EmailTimeoutError(frappe.ValidationError): pass
@@ -239,7 +238,7 @@ class EmailServer:
 
 			if cint(self.settings.use_imap):
 				status, message = self.imap.uid('fetch', message_meta, '(BODY.PEEK[] BODY.PEEK[HEADER] FLAGS)')
-				raw, header, ignore = message
+				raw = message[0]
 
 				self.get_email_seen_status(message_meta, raw[0])
 				self.latest_messages.append(raw[1])
@@ -351,7 +350,7 @@ class EmailServer:
 			op = "+FLAGS" if operation == "Read" else "-FLAGS"
 			try:
 				self.imap.uid('STORE', uid, op, '(\\SEEN)')
-			except Exception as e:
+			except Exception:
 				continue
 
 class Email:
