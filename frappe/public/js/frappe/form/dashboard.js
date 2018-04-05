@@ -339,13 +339,19 @@ frappe.ui.form.Dashboard = Class.extend({
 	// heatmap
 	render_heatmap: function() {
 		if(!this.heatmap) {
+			let heatmap_style = 0;
+			if (frappe.sys_defaults.heatmap_style) {
+				if (frappe.sys_defaults.heatmap_style == "Continuous") {
+					heatmap_style = 1;
+				}
+			}
 			this.heatmap = new Chart({
 				parent: "#heatmap-" + frappe.model.scrub(this.frm.doctype),
 				type: 'heatmap',
 				height: 100,
 				start: new Date(moment().subtract(1, 'year').toDate()),
 				count_label: "interactions",
-				discrete_domains: 0,
+				discrete_domains: heatmap_style,
 				data: {}
 			});
 
