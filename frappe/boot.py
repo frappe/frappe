@@ -100,12 +100,12 @@ def load_desktop_icons(bootinfo):
 	bootinfo.desktop_icons = get_desktop_icons()
 
 def get_allowed_pages():
-	return get_user_page_or_report('Page')
+	return get_user_pages_or_reports('Page')
 
 def get_allowed_reports():
-	return get_user_page_or_report('Report')
+	return get_user_pages_or_reports('Report')
 
-def get_user_page_or_report(parent):
+def get_user_pages_or_reports(parent):
 	roles = frappe.get_roles()
 	has_role = {}
 	column = get_column(parent)
