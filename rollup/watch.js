@@ -35,6 +35,16 @@ function watch_assets() {
 				break;
 			}
 
+			case 'ERROR': {
+				log_error(event.error);
+				break;
+			}
+
+			case 'FATAL': {
+				log_error(event.error);
+				break;
+			}
+
 			default: break;
 		}
 	});
@@ -60,4 +70,9 @@ function log_css_change({output}) {
 			return null;
 		}
 	};
+}
+
+function log_error(error) {
+	log(chalk.yellow('Error in: ' +  error.id));
+	log(chalk.red(error.frame));
 }
