@@ -73,6 +73,7 @@ def get_unread_emails():
 		FROM `tabCommunication`
 		WHERE communication_type='Communication'
 		AND communication_medium="Email"
+		AND sent_or_received="Received"
 		AND email_status not in ("Spam", "Trash")
 		AND email_account in (
 			SELECT distinct email_account from `tabUser Email` WHERE parent=%(user)s
