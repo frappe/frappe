@@ -276,7 +276,7 @@ frappe.ui.form.Dashboard = Class.extend({
 					let heatmapData = {};						
 					const object = r.message.timeline_data;
 					for (const [key, value] of Object.entries(object)) {
-						heatmapData[(parseInt(key) - 79200)] = value;
+						heatmapData[Math.floor((parseInt(key) - ((parseInt(key) % 86400)))).toFixed(1)] = value;
 					}
 					me.update_heatmap(heatmapData);
 				}
@@ -348,7 +348,7 @@ frappe.ui.form.Dashboard = Class.extend({
 			this.heatmap = new Chart({
 				parent: "#heatmap-" + frappe.model.scrub(this.frm.doctype),
 				type: 'heatmap',
-				height: 100,
+				height: 120,
 				start: new Date(moment().subtract(1, 'year').toDate()),
 				count_label: "interactions",
 				discrete_domains: heatmap_style,
