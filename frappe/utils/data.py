@@ -370,6 +370,8 @@ def parse_val(v):
     return v
 
 def fmt_money(amount, precision=None, currency=None):
+    print(amount, precision, currency)
+
     """
     Convert to string with commas for thousands, millions etc
     """
