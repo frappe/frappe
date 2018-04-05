@@ -29,7 +29,6 @@ function get_rollup_options(output_file, input_files) {
 }
 
 function get_rollup_options_for_js(output_file, input_files) {
-	const css_output_file = path.resolve(assets_path, 'css', path.basename(output_file).split('.js')[0] + '.css');
 
 	const plugins = [
 		// enables array of inputs
