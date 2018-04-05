@@ -341,7 +341,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		if(!this.heatmap) {
 			let heatmap_style = 0;
 			if (frappe.sys_defaults.heatmap_style) {
-				if (frappe.sys_defaults.heatmap_style == "Continuous") {
+				if (frappe.sys_defaults.heatmap_style == "Discrete") {
 					heatmap_style = 1;
 				}
 			}

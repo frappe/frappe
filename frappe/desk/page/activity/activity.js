@@ -180,20 +180,26 @@ frappe.activity.render_heatmap = function(page) {
 		method: "frappe.desk.page.activity.activity.get_heatmap_data",
 		callback: function(r) {
 			if(r.message) {
+				let heatmap_style = 0;
+				if (frappe.sys_defaults.heatmap_style) {
+					if (frappe.sys_defaults.heatmap_style == "Discrete") {
+						heatmap_style = 1;
+					}
+				}
 				var heatmap = new Chart({
 					parent: ".heatmap",
 					type: 'heatmap',
-					height: 100,
+					height: 120,
 					start: new Date(moment().subtract(1, 'year').toDate()),
 					count_label: "actions",
-					discrete_domains: 0,
+					discrete_domains: heatmap_style,
 					data: {}
 				});
 
 				let heatmapData = {};						
 				const object = r.message;
 				for (const [key, value] of Object.entries(object)) {
-					heatmapData[(parseInt(key) - 79200)] = value;
+					heatmapData[Math.floor((parseInt(key) - ((parseInt(key) % 86400)))).toFixed(1)] = value;
 				}
 
 				heatmap.update(heatmapData);
