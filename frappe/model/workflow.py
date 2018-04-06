@@ -6,6 +6,8 @@ import frappe
 from frappe.utils import cint
 from frappe import _
 
+class WorkflowTransitionError(frappe.ValidationError): pass
+
 def get_workflow_name(doctype):
 	workflow_name = frappe.cache().hget('workflow', doctype)
 	if workflow_name is None:
@@ -14,15 +16,6 @@ def get_workflow_name(doctype):
 		frappe.cache().hset('workflow', doctype, workflow_name or '')
 
 	return workflow_name
-
-def get_default_state(doctype):
-	workflow_name = get_workflow_name(doctype)
-	return frappe.db.get_value("Workflow Document State", {"parent": workflow_name,
-		"idx":1}, "state")
-
-def get_state_fieldname(doctype):
-	workflow_name = get_workflow_name(doctype)
-	return frappe.db.get_value("Workflow", workflow_name, "workflow_state_field")
 
 @frappe.whitelist()
 def get_transitions(doc, workflow = None):
@@ -66,7 +59,7 @@ def apply_workflow(doc, action):
 			transition = t
 
 	if not transition:
-		frappe.throw(_("Not a valid Workflow Action"), frappe.PermissionError)
+		frappe.throw(_("Not a valid Workflow Action"), WorkflowTransitionError)
 
 	# update workflow state field
 	doc.set(workflow.workflow_state_field, transition.next_state)
@@ -101,7 +94,17 @@ def validate_workflow(doc):
 	- Check if user is allowed to transition to the next state (if changed)
 	'''
 	workflow = get_workflow(doc.doctype)
-	current_state = doc._doc_before_save.get(workflow.workflow_state_field)
+
+	current_state = None
+	if getattr(doc, '_doc_before_save', None):
+		current_state = doc._doc_before_save.get(workflow.workflow_state_field)
+	next_state = doc.get(workflow.workflow_state_field)
+
+	if not next_state:
+		# set default state (maybe not set in insert)
+		current_state = next_state = workflow.states[0].state
+		doc.set(workflow.workflow_state_field, workflow.states[0].state)
+
 	state_row = [d for d in workflow.states if d.state == current_state]
 	if not state_row:
 		frappe.throw(_('{0} is not a valid Workflow State. Please update your Workflow and try again.'.format(frappe.bold(current_state))))
@@ -112,12 +115,11 @@ def validate_workflow(doc):
 		frappe.throw(_('Not allowed to edit in Workflow State {0}'.format(frappe.bold(current_state))))
 
 	# if transitioning, check if user is allowed to transition
-	next_state = doc.get(workflow.workflow_state_field)
 	if current_state != next_state:
 		transitions = get_transitions(doc._doc_before_save)
 		transition = [d for d in transitions if d.next_state == next_state]
 		if not transition:
-			frappe.throw(_('Workflow State {0} is not allowed').format(frappe.bold(next_state)))
+			frappe.throw(_('Workflow State {0} is not allowed').format(frappe.bold(next_state)), WorkflowTransitionError)
 
 def get_workflow(doctype):
 	return frappe.get_doc('Workflow', get_workflow_name(doctype))
