@@ -7,6 +7,13 @@ window.login = {};
 
 window.verify = {};
 
+
+(function foo(){
+   r = frappe.utils.get_url_arg("redirect-to")
+   localStorage.redirect_to = r || ''
+}());
+
+
 login.bind_events = function() {
 	$(window).on("hashchange", function() {
 		login.route();

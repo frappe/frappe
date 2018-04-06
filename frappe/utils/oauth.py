@@ -60,11 +60,13 @@ def get_oauth_keys(provider):
 
 def get_oauth2_authorize_url(provider):
 	flow = get_oauth2_flow(provider)
-
+	url=frappe.utils.data.get_url()
 	state = { "site": frappe.utils.get_url(), "token": frappe.generate_hash() }
-	frappe.cache().set_value("{0}:{1}".format(provider, state["token"]), True, expires_in_sec=120)
+	redirect_to = frappe.request.args.get('redirect-to', None)
 
-	# relative to absolute url
+	if redirect_to:
+		state['redirect_to'] = '%s%s' % (url, redirect_to)
+	frappe.cache().set_value("{0}:{1}".format(provider, state["token"]), True, expires_in_sec=120)
 	data = {
 		"redirect_uri": get_redirect_uri(provider),
 		"state": json.dumps(state)
@@ -196,6 +198,12 @@ def login_oauth_user(data=None, provider=None, state=None, email_id=None, key=No
 
 	# because of a GET request!
 	frappe.db.commit()
+
+	rediret_to = state.get('redirect_to', None)
+	if rediret_to:
+		frappe.local.response["type"] = "redirect"
+		frappe.local.response["location"] = rediret_to
+		return
 
 	if frappe.utils.cint(generate_login_token):
 		login_token = frappe.generate_hash(length=32)
