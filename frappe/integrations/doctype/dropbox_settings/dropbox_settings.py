@@ -155,6 +155,9 @@ def upload_file_to_dropbox(filename, folder, dropbox_client):
 	file_size = os.path.getsize(encode(filename))
 	mode = (dropbox.files.WriteMode.overwrite)
 
+	if not os.path.exists(filename):
+		return
+
 	f = open(encode(filename), 'rb')
 	path = "{0}/{1}".format(folder, os.path.basename(filename))
 
