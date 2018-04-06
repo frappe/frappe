@@ -586,7 +586,7 @@ def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
 @click.command('disable-admin-2fa')
 @pass_context
 def two_fa(context):
-	'''Setup help table in the current site (called after migrate)'''
+	'''Disable 2fa for admin.'''
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
