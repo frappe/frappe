@@ -40,7 +40,8 @@ class DataMigrationPlan(Document):
 			'fieldtype': 'Data',
 			'hidden': 1,
 			'read_only': 1,
-			'unique': 1
+			'unique': 1,
+			'no_copy': 1
 		}
 
 		for m in self.mappings:

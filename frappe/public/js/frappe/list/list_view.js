@@ -54,7 +54,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// initialize with saved filters
 		const saved_filters = this.view_user_settings.filters;
 		if (saved_filters) {
-			this.filters = saved_filters;
+			this.filters = this.validate_filters(saved_filters);
 		} else {
 			// filters in listview_settings
 			const filters = (this.settings.filters || []).map(f => {
@@ -75,6 +75,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.actions_menu_items = this.get_actions_menu_items();
 
 		this.patch_refresh_and_load_lib();
+	}
+
+	validate_filters(filters) {
+		return filters.uniqBy(f => f[1]);
 	}
 
 	setup_page() {

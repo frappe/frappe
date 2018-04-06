@@ -70,8 +70,33 @@ def get_data():
 			]
 		},
 		{
-			"label": _("External Documents"),
+			"label": _("Webhook"),
 			"items": [
+				{
+					"type": "doctype",
+					"name": "Webhook",
+					"description": _("Webhooks calling API requests into web apps"),
+				}
+			]
+		},
+		{
+			"label": _("Google Services"),
+			"items": [
+				{
+					"type": "doctype",
+					"name": "Google Maps",
+					"description": _("Google Maps integration"),
+				},
+				{
+					"type": "doctype",
+					"name": "GCalendar Settings",
+					"description": _("Configure your google calendar integration"),
+				},
+				{
+					"type": "doctype",
+					"name": "GCalendar Account",
+					"description": _("Configure accounts for google calendar"),
+				},
 				{
 					"type": "doctype",
 					"name": "GSuite Settings",
@@ -81,21 +106,6 @@ def get_data():
 					"type": "doctype",
 					"name": "GSuite Templates",
 					"description": _("Google GSuite Templates to integration with DocTypes"),
-				},
-				{
-					"type": "doctype",
-					"name": "Webhook",
-					"description": _("Webhooks calling API requests into web apps"),
-				}
-			]
-		},
-		{
-			"label": _("Maps"),
-			"items": [
-				{
-					"type": "doctype",
-					"name": "Google Maps",
-					"description": _("Google Maps integration"),
 				}
 			]
 		}

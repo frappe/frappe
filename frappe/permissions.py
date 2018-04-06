@@ -327,7 +327,11 @@ def remove_user_permission(doctype, name, user):
 		dict(user=user, allow=doctype, for_value=name))
 	frappe.delete_doc('User Permission', user_permission_name)
 
-def clear_user_permissions_for_doctype(doctype):
+def clear_user_permissions_for_doctype(doctype, user=None):
+	user_permissions_for_doctype = frappe.db.get_list('User Permission',
+		dict(user=user, allow=doctype))
+	for d in user_permissions_for_doctype:
+		frappe.delete_doc('User Permission', d.name)
 	frappe.cache().delete_value('user_permissions')
 
 def can_import(doctype, raise_exception=False):
