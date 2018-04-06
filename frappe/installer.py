@@ -157,6 +157,9 @@ def install_app(name, verbose=False, set_as_patched=True):
 	sync_fixtures(name)
 	sync_customizations(name)
 
+	for after_sync in app_hooks.after_sync or []:
+		frappe.get_attr(after_sync)() #
+
 	frappe.flags.in_install = False
 
 def add_to_installed_apps(app_name, rebuild_website=True):
@@ -361,10 +364,10 @@ def check_if_ready_for_barracuda():
 		if mariadb_variables.get(key) != value:
 			site = frappe.local.site
 			msg = ("Creation of your site - {x} failed because MariaDB is not properly {sep}"
-			       "configured to use the Barracuda storage engine. {sep}"
-			       "Please add the settings below to MariaDB's my.cnf, restart MariaDB then {sep}"
-			       "run `bench new-site {x}` again.{sep2}"
-			       "").format(x=site, sep2="\n"*2, sep="\n")
+				   "configured to use the Barracuda storage engine. {sep}"
+				   "Please add the settings below to MariaDB's my.cnf, restart MariaDB then {sep}"
+				   "run `bench new-site {x}` again.{sep2}"
+				   "").format(x=site, sep2="\n"*2, sep="\n")
 
 			print_db_config(msg, expected_config_for_barracuda)
 			raise frappe.exceptions.ImproperDBConfigurationError(

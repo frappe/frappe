@@ -1,7 +1,4 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt
 
-// misc user functions
 
 frappe.user_info = function(uid) {
 	if(!uid)
@@ -17,7 +14,7 @@ frappe.user_info = function(uid) {
 
 	if(!(frappe.boot.user_info && frappe.boot.user_info[uid])) {
 		var user_info = {
-			fullname: toTitle(uid.split("@")[0]) || "Unknown"
+			fullname: frappe.utils.capitalize(uid.split("@")[0]) || "Unknown"
 		};
 	} else {
 		var user_info = frappe.boot.user_info[uid];

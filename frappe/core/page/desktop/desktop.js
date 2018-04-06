@@ -42,8 +42,21 @@ $.extend(frappe.desktop, {
 			color: '#7578f6',
 			link: 'modules'
 		};
+		var hub_icon = {
+			module_name: 'Hub Node',
+			// color: "#009248",
+			icon: "/assets/erpnext/images/hub_logo.svg",
+			svg: "/assets/erpnext/images/hub_logo.svg",
+			type: "page",
+			link: "Hub/Item",
+			_label: __("Hub"),
+			_id: 'Hub',
+			_doctype: '',
+		};
 		explore_icon.app_icon = frappe.ui.app_icon.get_html(explore_icon);
+		hub_icon.app_icon = frappe.ui.app_icon.get_html(hub_icon);
 		all_icons.push(explore_icon);
+		all_icons.push(hub_icon);
 
 		frappe.desktop.wrapper.html(frappe.render_template(template, {
 			// all visible icons
@@ -294,23 +307,31 @@ $.extend(frappe.desktop, {
 			var module_doctypes = frappe.boot.notification_info.module_doctypes[module.module_name];
 
 			var sum = 0;
-			if(module_doctypes) {
-				if(frappe.boot.notification_info.open_count_doctype) {
-					// sum all doctypes for a module
-					for (var j=0, k=module_doctypes.length; j < k; j++) {
-						var doctype = module_doctypes[j];
-						sum += (frappe.boot.notification_info.open_count_doctype[doctype] || 0);
-					}
+
+			if(module_doctypes && frappe.boot.notification_info.open_count_doctype) {
+				// sum all doctypes for a module
+				for (var j=0, k=module_doctypes.length; j < k; j++) {
+					var doctype = module_doctypes[j];
+					let count = (frappe.boot.notification_info.open_count_doctype[doctype] || 0);
+					count = typeof count == "string" ? parseInt(count) : count;
+					sum += count;
 				}
-			} else if(frappe.boot.notification_info.open_count_doctype
+			}
+
+			if(frappe.boot.notification_info.open_count_doctype
 				&& frappe.boot.notification_info.open_count_doctype[module.module_name]!=null) {
 				// notification count explicitly for doctype
-				sum = frappe.boot.notification_info.open_count_doctype[module.module_name];
+				let count = frappe.boot.notification_info.open_count_doctype[module.module_name] || 0;
+				count = typeof count == "string" ? parseInt(count) : count;
+				sum += count;
+			}
 
-			} else if(frappe.boot.notification_info.open_count_module
+			if(frappe.boot.notification_info.open_count_module
 				&& frappe.boot.notification_info.open_count_module[module.module_name]!=null) {
 				// notification count explicitly for module
-				sum = frappe.boot.notification_info.open_count_module[module.module_name];
+				let count = frappe.boot.notification_info.open_count_module[module.module_name] || 0;
+				count = typeof count == "string" ? parseInt(count) : count;
+				sum += count;
 			}
 
 			// if module found

@@ -130,8 +130,13 @@ frappe.ui.Filter = class {
 
 		// set value can be asynchronous, so update_filter_tag should happen after field is set
 		this._filter_value_set = Promise.resolve();
+
+		if (['in', 'not in'].includes(condition) && Array.isArray(value)) {
+			value = value.join(',');
+		}
+
 		if(value) {
-			this._filter_value_set = this.field.set_value(value.trim());
+			this._filter_value_set = this.field.set_value((value + '').trim());
 		}
 		return this._filter_value_set;
 	}
@@ -144,6 +149,7 @@ frappe.ui.Filter = class {
 		let original_docfield = (this.fieldselect.fields_by_name[doctype] || {})[fieldname];
 		if(!original_docfield) {
 			frappe.msgprint(__("Field {0} is not selectable.", [fieldname]));
+			this.remove();
 			return;
 		}
 

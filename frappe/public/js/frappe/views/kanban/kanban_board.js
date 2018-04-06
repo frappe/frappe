@@ -3,7 +3,6 @@ frappe.provide("frappe.views");
 (function() {
 
 	var method_prefix = 'frappe.desk.doctype.kanban_board.kanban_board.';
-	var saving_filters = false;
 
 	var store = fluxify.createStore({
 		id: 'store',
@@ -23,32 +22,24 @@ frappe.provide("frappe.views");
 					empty_state: true
 				});
 
-				get_board(opts.board_name)
-					.then(function(board) {
-						var card_meta = opts.card_meta;
-						opts.card_meta = card_meta;
-						opts.board = board;
-						var cards = opts.cards.map(function(card) {
-							return prepare_card(card, opts);
-						});
-						var columns = prepare_columns(board.columns);
+				var board = opts.board;
+				var card_meta = opts.card_meta;
+				opts.card_meta = card_meta;
+				opts.board = board;
+				var cards = opts.cards.map(function(card) {
+					return prepare_card(card, opts);
+				});
+				var columns = prepare_columns(board.columns);
 
-						updater.set({
-							doctype: opts.doctype,
-							board: board,
-							card_meta: card_meta,
-							cards: cards,
-							columns: columns,
-							cur_list: opts.cur_list,
-							empty_state: false
-						});
-					})
-					.fail(function() {
-						// redirect back to List
-						setTimeout(() => {
-							frappe.set_route('List', opts.doctype, 'List');
-						}, 2000);
-					});
+				updater.set({
+					doctype: opts.doctype,
+					board: board,
+					card_meta: card_meta,
+					cards: cards,
+					columns: columns,
+					cur_list: opts.cur_list,
+					empty_state: false
+				});
 			},
 			update_cards: function(updater, cards) {
 				var state = this;
@@ -96,33 +87,6 @@ frappe.provide("frappe.views");
 					}, function(err) {
 						console.error(err); // eslint-disable-line
 					});
-			},
-			set_filter_state: function(updater) {
-				is_filters_modified(this.board, this.cur_list)
-					.then(function(flag) {
-						updater.set({
-							filters_modified: flag
-						});
-					});
-			},
-			save_filters: function(updater) {
-				if(saving_filters) return;
-				saving_filters = true;
-				var filters = JSON.stringify(this.cur_list.filter_area.get());
-				frappe.call({
-					method: method_prefix + 'save_filters',
-					args: {
-						board_name: this.board.name,
-						filters: filters
-					}
-				}).then(function() {
-					saving_filters = false;
-					updater.set({ filters_modified: false });
-					frappe.show_alert({
-						message: __('Filters saved'),
-						indicator: 'green'
-					}, 0.5);
-				});
 			},
 			add_card: function(updater, card_title, column_title) {
 				var doc = frappe.model.get_new_doc(this.doctype);
@@ -292,7 +256,6 @@ frappe.provide("frappe.views");
 
 		function bind_events() {
 			bind_add_column();
-			bind_save_filter();
 		}
 
 		function setup_sortable() {
@@ -346,19 +309,6 @@ frappe.provide("frappe.views");
 				$compose_column.show();
 				$compose_column_form.hide();
 			});
-		}
-
-		function bind_save_filter() {
-			var set_filter_state = function() {
-				fluxify.doAction('set_filter_state');
-			};
-
-			if(isBound(self.$kanban_board, 'after-refresh', set_filter_state)) return;
-
-			store.on('change:filters_modified', function(modified) {
-				if(modified) fluxify.doAction('save_filters');
-			});
-			self.$kanban_board.on('after-refresh', set_filter_state);
 		}
 
 		function setup_restore_columns() {
@@ -672,34 +622,6 @@ frappe.provide("frappe.views");
 
 		init();
 	};
-
-	// Helpers
-	function get_board(board_name) {
-		return frappe.call({
-			type: 'GET',
-			method: "frappe.client.get",
-			args: {
-				doctype: 'Kanban Board',
-				name: board_name
-			}
-		}).then(function(r) {
-			var board = r.message;
-			if (!board) {
-				frappe.msgprint(__('Kanban Board {0} does not exist.',
-					['<b>' + self.board_name + '</b>']));
-			}
-			return prepare_board(board);
-		}, function(e) {
-			console.log(e); // eslint-disable-line
-		});
-	}
-
-	function prepare_board(board) {
-		board.filters_array = board.filters ?
-			JSON.parse(board.filters) : [];
-		return board;
-	}
-
 
 	function prepare_card(card, state, doc) {
 		var assigned_list = card._assign ?

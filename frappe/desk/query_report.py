@@ -103,7 +103,7 @@ def run(report_name, filters=None, user=None):
 			if len(res) > 4:
 				data_to_be_printed = res[4]
 
-	if report.apply_user_permissions and result:
+	if result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
 
 	if cint(report.add_total_row) and result:

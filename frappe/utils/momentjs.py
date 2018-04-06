@@ -14,7 +14,7 @@ def update(tz, out):
 			out["rules"][parts[1]] = data["rules"][parts[1]]
 
 def get_all_timezones():
-	return sorted(data["zones"].keys())
+	return sorted(list(data["zones"]))
 
 data = {
 	"zones": {

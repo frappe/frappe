@@ -421,5 +421,7 @@ def get_random_filename(extn=None, content_type=None):
 
 @frappe.whitelist()
 def validate_filename(filename):
-	fname = get_file_name(filename, hashlib.md5(filename).hexdigest()[-6:])
+	from frappe.utils import now_datetime
+	timestamp = now_datetime().strftime(" %Y-%m-%d %H:%M:%S")
+	fname = get_file_name(filename, timestamp)
 	return fname
