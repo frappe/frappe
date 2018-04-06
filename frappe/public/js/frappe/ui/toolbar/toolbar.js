@@ -1,8 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-import Showdown from 'showdown';
-
 frappe.provide("frappe.ui.toolbar");
 frappe.provide('frappe.search');
 
@@ -183,7 +181,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			if(href.indexOf('blob') > 0) {
 				window.open(href, '_blank');
 			}
-			var converter = new Showdown.Converter();
 			var path = $(e.target).attr("data-path");
 			if(path) {
 				e.preventDefault();
