@@ -1,0 +1,55 @@
+{
+ "creation": "2018-02-16 13:07:13.325914", 
+ "docstatus": 0, 
+ "doctype": "Data Migration Mapping", 
+ "fields": [
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "subject", 
+   "remote_fieldname": "summary"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "description", 
+   "remote_fieldname": "description"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "starts_on", 
+   "remote_fieldname": "start_datetime"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "ends_on", 
+   "remote_fieldname": "end_datetime"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "all_day", 
+   "remote_fieldname": "all_day"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "repeat_this_event", 
+   "remote_fieldname": "repeat_this_event"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "gcalendar_sync_id", 
+   "remote_fieldname": "id"
+  }
+ ], 
+ "idx": 0, 
+ "local_doctype": "Event", 
+ "local_primary_key": "gcalendar_sync_id", 
+ "mapping_name": "GCalendar to Event", 
+ "mapping_type": "Pull", 
+ "migration_id_field": "gcalendar_sync_id", 
+ "modified": "2018-03-23 19:11:43.491367", 
+ "modified_by": "Administrator", 
+ "name": "GCalendar to Event", 
+ "owner": "Administrator", 
+ "page_length": 250, 
+ "remote_objectname": "Events", 
+ "remote_primary_key": "id"
+}
