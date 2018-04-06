@@ -130,7 +130,7 @@ def notify(doc, print_html=None, print_format=None, attachments=None,
 	recipients, cc, bcc = get_recipients_cc_and_bcc(doc, recipients, cc, bcc,
 		fetched_from_email_account=fetched_from_email_account)
 
-	if not recipients:
+	if not recipients and not cc:
 		return
 
 	doc.emails_not_sent_to = set(doc.all_email_addresses) - set(doc.sent_email_addresses)
