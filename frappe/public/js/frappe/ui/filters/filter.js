@@ -78,6 +78,11 @@ frappe.ui.Filter = class {
 				fieldtype = 'Data';
 				this.add_condition_help(condition);
 			}
+
+			if (['Select', 'MultiSelect'].includes(this.field.df.fieldtype) && ["in", "not in"].includes(condition)) {
+				fieldtype = 'MultiSelect';
+			}
+
 			this.set_field(this.field.df.parent, this.field.df.fieldname, fieldtype, condition);
 		});
 	}
@@ -196,7 +201,7 @@ frappe.ui.Filter = class {
 
 		// run on enter
 		$(this.field.wrapper).find(':input').keydown(e => {
-			if(e.which==13) {
+			if(e.which==13 && this.field.df.fieldtype !== 'MultiSelect') {
 				this.on_change();
 			}
 		});
@@ -320,7 +325,7 @@ frappe.ui.filter_utils = {
 			}
 		} else if(in_list(["in", "not in"], condition)) {
 			if(val) {
-				val = $.map(val.split(","), function(v) { return strip(v); });
+				val = val.split(',').map(v => strip(v));
 			}
 		} if(val === '%') {
 			val = "";
