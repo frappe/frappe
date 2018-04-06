@@ -37,7 +37,8 @@ def get_transitions(doc, workflow = None):
 				# access to frappe.db.get_value and frappe.db.get_list
 				success = frappe.safe_eval(transition.condition,
 					dict(frappe = frappe._dict(
-						db = frappe._dict(get_value = frappe.db.get_value, get_list=frappe.db.get_list)
+						db = frappe._dict(get_value = frappe.db.get_value, get_list=frappe.db.get_list),
+						session = frappe.session
 					)),
 					dict(doc = doc))
 				if not success:
