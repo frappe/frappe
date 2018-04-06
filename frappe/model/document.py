@@ -13,6 +13,7 @@ from six import iteritems, string_types
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields
+from frappe.model.workflow import validate_workflow
 from frappe.utils.file_manager import save_url
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
@@ -443,6 +444,7 @@ class Document(BaseDocument):
 		self._extract_images_from_text_editor()
 		self._sanitize_content()
 		self._save_passwords()
+		self.validate_workflow()
 
 		children = self.get_all_children()
 		for d in children:
@@ -458,6 +460,11 @@ class Document(BaseDocument):
 			# don't set fields like _assign, _comments for new doc
 			for fieldname in optional_fields:
 				self.set(fieldname, None)
+
+	def validate_workflow(self):
+		'''Validate if the workflow transition is valid'''
+		if self.meta.get_workflow():
+			validate_workflow(self)
 
 	def validate_set_only_once(self):
 		'''Validate that fields are not changed if not in insert'''
@@ -873,7 +880,8 @@ class Document(BaseDocument):
 		self._doc_before_save = None
 		if not (self.is_new()
 			and (getattr(self.meta, 'track_changes', False)
-				or self.meta.get_set_only_once_fields())):
+				or self.meta.get_set_only_once_fields()
+				or self.meta.get_workflow())):
 			self.get_doc_before_save()
 
 	def run_post_save_methods(self):

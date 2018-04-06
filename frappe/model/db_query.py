@@ -201,6 +201,7 @@ class DatabaseQuery(object):
 		for field in self.fields:
 			if regex.match(field):
 				if any(keyword in field.lower() for keyword in blacklisted_keywords):
+					print(field.lower())
 					_raise_exception()
 
 				if any("{0}(".format(keyword) in field.lower() \

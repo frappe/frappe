@@ -27,21 +27,24 @@ frappe.ui.form.States = Class.extend({
 				title: "Workflow: "
 					+ frappe.workflow.workflows[me.frm.doctype].name
 			})
-			var next_html = $.map(frappe.workflow.get_transitions(me.frm.doctype, state),
-				function(d) {
-					return d.action.bold() + __(" by Role ") + d.allowed;
-				}).join(", ") || __("None: End of Workflow").bold();
 
-			$(d.body).html("<p>"+__("Current status")+": " + state.bold() + "</p>"
-				+ "<p>"+__("Document is only editable by users of role")+": "
-					+ frappe.workflow.get_document_state(me.frm.doctype,
-						state).allow_edit.bold() + "</p>"
-				+ "<p>"+__("Next actions")+": "+ next_html +"</p>"
-				+ (me.frm.doc.__islocal ? ("<div class='alert alert-info'>"
-					+__("Workflow will start after saving.")+"</div>") : "")
-				+ "<p class='help'>"+__("Note: Other permission rules may also apply")+"</p>"
-				).css({padding: '15px'});
-			d.show();
+			frappe.workflow.get_transitions(me.frm.doc).then((transitions) => {
+				var next_html = $.map(transitions,
+					function(d) {
+						return d.action.bold() + __(" by Role ") + d.allowed;
+					}).join(", ") || __("None: End of Workflow").bold();
+
+				$(d.body).html("<p>"+__("Current status")+": " + state.bold() + "</p>"
+					+ "<p>"+__("Document is only editable by users of role")+": "
+						+ frappe.workflow.get_document_state(me.frm.doctype,
+							state).allow_edit.bold() + "</p>"
+					+ "<p>"+__("Next actions")+": "+ next_html +"</p>"
+					+ (me.frm.doc.__islocal ? ("<div class='alert alert-info'>"
+						+__("Workflow will start after saving.")+"</div>") : "")
+					+ "<p class='help'>"+__("Note: Other permission rules may also apply")+"</p>"
+					).css({padding: '15px'});
+				d.show();
+			});
 		}, true);
 	},
 
@@ -72,57 +75,20 @@ frappe.ui.form.States = Class.extend({
 			return;
 		}
 
-		$.each(frappe.workflow.get_transitions(this.frm.doctype, state), function(i, d) {
-			if(frappe.user_roles.includes(d.allowed)) {
-				added = true;
-				me.frm.page.add_action_item(__(d.action), function() {
-					var action = d.action;
-					// capture current state
-					var doc_before_action = copy_dict(me.frm.doc);
-
-					// set new state
-					var next_state = frappe.workflow.get_next_state(me.frm.doctype,
-							me.frm.doc[me.state_fieldname], action);
-					me.frm.doc[me.state_fieldname] = next_state;
-					var new_state = frappe.workflow.get_document_state(me.frm.doctype, next_state);
-					var new_docstatus = cint(new_state.doc_status);
-
-
-					if(new_state.update_field) {
-						me.frm.set_value(new_state.update_field, new_state.update_value);
-					}
-
-					// revert state on error
-					var on_error = function() {
-						// reset in locals
-						frappe.model.add_to_locals(doc_before_action);
-						me.frm.refresh();
-					}
-
-					// success - add a comment
-					var success = function() {
-						me.frm.timeline.insert_comment("Workflow", next_state);
-					}
-					if(new_docstatus==1 && me.frm.doc.docstatus==0) {
-						me.frm.savesubmit(null, success, on_error);
-					} else if(new_docstatus==0 && me.frm.doc.docstatus==0) {
-						me.frm.save("Save", success, null, on_error);
-					} else if(new_docstatus==1 && me.frm.doc.docstatus==1) {
-						me.frm.save("Update", success, null, on_error);
-					} else if(new_docstatus==2 && me.frm.doc.docstatus==1) {
-						me.frm.savecancel(null, success, on_error);
-					} else {
-						frappe.msgprint(__("Document Status transition from ") + me.frm.doc.docstatus + " "
-							+ __("to") +
-							new_docstatus + " " + __("is not allowed."));
-						frappe.msgprint(__("Document Status transition from {0} to {1} is not allowed", [me.frm.doc.docstatus, new_docstatus]));
-						return false;
-					}
-
-					return false;
-
-				});
-			}
+		frappe.workflow.get_transitions(this.frm.doc).then(transitions => {
+			$.each(transitions, function(i, d) {
+				if(frappe.user_roles.includes(d.allowed)) {
+					added = true;
+					me.frm.page.add_action_item(__(d.action), function() {
+						frappe.xcall('frappe.model.workflow.apply_workflow',
+							{doc: me.frm.doc, action: d.action})
+							.then((doc) => {
+								frappe.model.sync(doc);
+								me.frm.refresh();
+							});
+					});
+				}
+			});
 		});
 
 		if(added) {

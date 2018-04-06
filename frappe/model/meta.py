@@ -24,6 +24,7 @@ from frappe.model.document import Document
 from frappe.model.base_document import BaseDocument
 from frappe.model.db_schema import type_map
 from frappe.modules import load_doctype_module
+from frappe.model.workflow import get_workflow_name
 from frappe import _
 
 def get_meta(doctype, cached=True):
@@ -237,6 +238,9 @@ class Meta(Document):
 		'''Return true of false given a field'''
 		field = self.get_field(fieldname)
 		return field and field.translatable
+
+	def get_workflow(self):
+		return get_workflow_name(self.name)
 
 	def process(self):
 		# don't process for special doctypes
@@ -510,36 +514,3 @@ def trim_tables(doctype=None):
 			query = """alter table `tab{doctype}` {columns}""".format(
 				doctype=doctype, columns=columns_to_remove)
 			frappe.db.sql_ddl(query)
-
-def clear_cache(doctype=None):
-	cache = frappe.cache()
-
-	if getattr(frappe.local, 'meta_cache') and (doctype in frappe.local.meta_cache):
-		del frappe.local.meta_cache[doctype]
-
-	for key in ('is_table', 'doctype_modules'):
-		cache.delete_value(key)
-
-	groups = ["meta", "form_meta", "table_columns", "last_modified",
-		"linked_doctypes", 'email_alerts']
-
-	def clear_single(dt):
-		for name in groups:
-			cache.hdel(name, dt)
-
-	if doctype:
-		clear_single(doctype)
-
-		# clear all parent doctypes
-		for dt in frappe.db.sql("""select parent from tabDocField
-			where fieldtype="Table" and options=%s""", (doctype,)):
-			clear_single(dt[0])
-
-		# clear all notifications
-		from frappe.desk.notifications import delete_notification_count_for
-		delete_notification_count_for(doctype)
-
-	else:
-		# clear all
-		for name in groups:
-			cache.delete_value(name)
