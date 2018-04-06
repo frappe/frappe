@@ -7,6 +7,7 @@ from frappe.utils import cint
 from frappe import _
 
 class WorkflowTransitionError(frappe.ValidationError): pass
+class WorkflowPermissionError(frappe.ValidationError): pass
 
 def get_workflow_name(doctype):
 	workflow_name = frappe.cache().hget('workflow', doctype)
@@ -73,7 +74,7 @@ def apply_workflow(doc, action):
 
 	new_docstatus = cint(next_state.doc_status)
 	if doc.docstatus == 0 and new_docstatus == 0:
-		doc.save
+		doc.save()
 	elif doc.docstatus == 0 and new_docstatus == 1:
 		doc.submit()
 	elif doc.docstatus == 1 and new_docstatus == 1:
@@ -112,14 +113,14 @@ def validate_workflow(doc):
 
 	# check if user is allowed to edit in current state
 	if not state_row.allow_edit in frappe.get_roles():
-		frappe.throw(_('Not allowed to edit in Workflow State {0}'.format(frappe.bold(current_state))))
+		frappe.throw(_('Not allowed to edit in Workflow State {0}'.format(frappe.bold(current_state))), WorkflowPermissionError)
 
 	# if transitioning, check if user is allowed to transition
 	if current_state != next_state:
 		transitions = get_transitions(doc._doc_before_save)
 		transition = [d for d in transitions if d.next_state == next_state]
 		if not transition:
-			frappe.throw(_('Workflow State {0} is not allowed').format(frappe.bold(next_state)), WorkflowTransitionError)
+			frappe.throw(_('Workflow State {0} is not allowed').format(frappe.bold(next_state)), WorkflowPermissionError)
 
 def get_workflow(doctype):
 	return frappe.get_doc('Workflow', get_workflow_name(doctype))

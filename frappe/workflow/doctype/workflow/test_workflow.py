@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 from frappe.utils import random_string
-from frappe.model.workflow import apply_workflow, WorkflowTransitionError
+from frappe.model.workflow import apply_workflow, WorkflowTransitionError, WorkflowPermissionError
 
 class TestWorkflow(unittest.TestCase):
 	def setUp(self):
@@ -24,7 +24,8 @@ class TestWorkflow(unittest.TestCase):
 					state = 'Pending', allow_edit = 'All'
 				))
 				self.workflow.append('states', dict(
-					state = 'Approved', allow_edit = 'Test Approver'
+					state = 'Approved', allow_edit = 'Test Approver',
+					update_field = 'statue', update_value = 'Closed'
 				))
 				self.workflow.append('states', dict(
 					state = 'Rejected', allow_edit = 'Test Approver'
@@ -41,6 +42,7 @@ class TestWorkflow(unittest.TestCase):
 				self.workflow.insert()
 
 	def test_default_condition(self):
+		'''test default condition is set'''
 		todo = frappe.get_doc(dict(doctype='ToDo', description='workflow ' + random_string(10))).insert()
 
 		# default condition is set
@@ -49,16 +51,41 @@ class TestWorkflow(unittest.TestCase):
 		return todo
 
 	def test_approve(self):
+		'''test simple workflow'''
 		todo = self.test_default_condition()
 
 		apply_workflow(todo, 'Approve')
 
 		# default condition is set
 		self.assertEqual(todo.workflow_state, 'Approved')
+		self.assertEqual(todo.status, 'Closed')
 
 		return todo
 
 	def test_wrong_action(self):
+		'''Check illegal action (approve after reject)'''
 		todo = self.test_approve()
 
 		self.assertRaises(WorkflowTransitionError, apply_workflow, todo, 'Reject')
+
+	def test_workflow_role(self):
+		'''Check if user is allowed to edit in state via role'''
+		todo = self.test_approve()
+
+		todo.description = 'new'
+
+		frappe.set_user('test@example.com')
+		self.assertRaises(WorkflowPermissionError, todo.save)
+		frappe.set_user('Administrator')
+
+	def test_workflow_condition(self):
+		'''Test condition in transition'''
+		self.workflow.transitions[0].condition = 'doc.status == "Closed"'
+		self.workflow.save()
+
+		# only approve if status is closed
+		self.assertRaises(WorkflowTransitionError, self.test_approve)
+
+		self.workflow.transitions[0].condition = ''
+		self.workflow.save()
+
