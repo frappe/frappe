@@ -373,11 +373,6 @@ def get_bcc(doc, recipients=None, fetched_from_email_account=False):
 	"""Build a list of email addresses for BCC"""
 	bcc = split_emails(doc.bcc)
 
-	if doc.reference_doctype and doc.reference_name:
-		if fetched_from_email_account:
-			bcc.append(get_owner_email(doc))
-			bcc += get_assignees(doc)
-
 	if bcc:
 		exclude = []
 		exclude += [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
