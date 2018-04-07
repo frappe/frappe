@@ -13,6 +13,7 @@ class TestGCalendarAccount(unittest.TestCase):
 		doc.enabled = 1
 		doc.user = users[0].name
 		doc.calendar_name = "Frappe Test"
+		doc.save()
 		self.assertTrue(frappe.db.exists('GCalendar Account', users[0].name))
 
 		connector_name = 'Calendar Connector-' + users[0].name
