@@ -193,13 +193,20 @@ def check_if_doc_is_linked(doc, method="Delete"):
 					# don't check for communication and todo!
 					continue
 
-				if item and (link_dt != doc.doctype or ((item.parent or item.name) != doc.name)) \
-						and ((method=="Delete" and item.docstatus<2) or (method=="Cancel" and item.docstatus==1)):
-					# raise exception only if
-					# linked to an non-cancelled doc when deleting
-					# or linked to a submitted doc when cancelling
+				if not item:
+					continue
+				elif not ((method=="Delete" and item.docstatus<2) or (method=="Cancel" and item.docstatus==1)):
+					# don't raise exception if not
+					# linked to a non-cancelled doc when deleting or to a submitted doc when cancelling
+					continue
+				elif not (link_dt != doc.doctype or ((item.parent or item.name) != doc.name)):
+						# don't raise exception if not
+						# linked to same item or doc having same name as the item
+					continue
+				else:
 					reference_docname = item.parent or item.name
 					raise_link_exists_exception(doc, linked_doctype, reference_docname)
+
 		else:
 			if frappe.db.get_value(link_dt, None, link_field) == doc.name:
 				raise_link_exists_exception(doc, link_dt, link_dt)
