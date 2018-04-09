@@ -108,9 +108,6 @@ frappe.ui.notifications = {
 			}
 			$.extend(frappe.route_options, filters);
 		}
-		let route = frappe.get_route();
-		if(route[0]==="List" && route[1]===doctype) {
-			frappe.set_route("List", doctype);
-		}
+		frappe.set_route('List', doctype);
 	},
 }
