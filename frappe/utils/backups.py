@@ -65,7 +65,7 @@ class BackupGenerator:
 		site = site.replace('.', '_')
 
 		#Generate a random name using today's date and a 8 digit random number
-		for_db = todays_date + "-" + site + "-database.sql.gz"
+		for_db = todays_date + "-" + site + "-database.sql"
 		for_public_files = todays_date + "-" + site + "-files.tar"
 		for_private_files = todays_date + "-" + site + "-private-files.tar"
 		backup_path = get_backup_path()
@@ -118,6 +118,8 @@ class BackupGenerator:
 
 		cmd_string = 'gzip %(backup_path_db)s '% args
 		err, out = frappe.utils.execute_in_shell(cmd_string)
+
+		self.backup_path_db = "{0}.gz".format(self.backup_path_db)
 
 	def send_email(self):
 		"""
