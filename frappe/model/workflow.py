@@ -6,6 +6,7 @@ import frappe
 from frappe.utils import cint
 from frappe import _
 
+class WorkflowStateError(frappe.ValidationError): pass
 class WorkflowTransitionError(frappe.ValidationError): pass
 class WorkflowPermissionError(frappe.ValidationError): pass
 
@@ -22,12 +23,19 @@ def get_workflow_name(doctype):
 def get_transitions(doc, workflow = None):
 	'''Return list of possible transitions for the given doc'''
 	doc = frappe.get_doc(frappe.parse_json(doc))
+
+	if doc.is_new():
+		return []
+
 	frappe.has_permission(doc, 'read', throw=True)
 	roles = frappe.get_roles()
 
 	if not workflow:
 		workflow = get_workflow(doc.doctype)
 	current_state = doc.get(workflow.workflow_state_field)
+
+	if not current_state:
+		frappe.throw(_('Workflow State not set'), WorkflowStateError)
 
 	transitions = []
 	for transition in workflow.transitions:

@@ -15,10 +15,12 @@ class TestWorkflow(unittest.TestCase):
 
 			if frappe.db.exists('Workflow', 'Test ToDo'):
 				self.workflow = frappe.get_doc('Workflow', 'Test ToDo')
+				self.workflow.save()
 			else:
 				self.workflow = frappe.new_doc('Workflow')
 				self.workflow.workflow_name = 'Test ToDo'
 				self.workflow.document_type = 'ToDo'
+				self.workflow.workflow_state_field = 'workflow_state'
 				self.workflow.is_active = 1
 				self.workflow.append('states', dict(
 					state = 'Pending', allow_edit = 'All'
@@ -40,6 +42,8 @@ class TestWorkflow(unittest.TestCase):
 					state = 'Rejected', action='Review', next_state = 'Pending', allowed='All'
 				))
 				self.workflow.insert()
+
+		frappe.set_user('Administrator')
 
 	def test_default_condition(self):
 		'''test default condition is set'''
