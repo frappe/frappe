@@ -704,6 +704,9 @@ _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 		setTimeout(function() {
 			me._save(save_action, callback, btn, on_error, resolve);
 		}, 100);
+	}).then((data) => {
+		console.log(data)
+		me.show_success_action();
 	});
 };
 
@@ -1012,4 +1015,9 @@ _f.Frm.prototype.scroll_to_element = function() {
 			frappe.utils.scroll_to(selector);
 		}
 	}
+};
+
+_f.Frm.prototype.show_success_action = function() {
+	const action = new frappe.ui.form.SuccessAction(this);
+	action.show();
 };

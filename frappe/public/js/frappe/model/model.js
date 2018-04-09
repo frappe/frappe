@@ -142,6 +142,9 @@ $.extend(frappe.model, {
 		if(meta.__calendar_js) {
 			eval(meta.__calendar_js);
 		}
+		if(meta.__success_action) {
+			eval(meta.__success_action);
+		}
 		if(meta.__map_js) {
 			eval(meta.__map_js);
 		}

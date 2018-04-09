@@ -48,11 +48,14 @@ class FormMeta(Meta):
 
 	def as_dict(self, no_nulls=False):
 		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)
-		for k in ("__js", "__css", "__list_js", "__calendar_js", "__map_js",
+		keys = [
+			"__js", "__css", "__list_js", "__calendar_js", "__map_js",
 			"__linked_with", "__messages", "__print_formats", "__workflow_docs",
 			"__form_grid_templates", "__listview_template", "__tree_js",
-			"__dashboard", "__kanban_boards", "__kanban_column_fields", '__templates',
-			'__custom_js'):
+			"__dashboard", "__kanban_boards", "__kanban_column_fields", "__templates",
+			"__custom_js", "__success_action"
+		]
+		for k in keys:
 			d[k] = self.get(k)
 
 		for i, df in enumerate(d.get("fields")):
@@ -75,6 +78,7 @@ class FormMeta(Meta):
 		self._add_code(_get_path(self.name + '_list.js'), '__list_js')
 		self._add_code(_get_path(self.name + '_calendar.js'), '__calendar_js')
 		self._add_code(_get_path(self.name + '_tree.js'), '__tree_js')
+		self._add_code(_get_path(self.name + '_success.js'), '__success_action')
 
 		listview_template = _get_path(self.name + '_list.html')
 		if os.path.exists(listview_template):
