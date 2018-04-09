@@ -209,7 +209,7 @@ frappe.search.utils = {
 			p.name = name;
 		});
 		Object.keys(this.pages).forEach(function(item) {
-			if(item == "Hub") return;
+			if(item == "Hub" || item == "hub") return;
 			var level = me.fuzzy_search(keywords, item);
 			if(level) {
 				var page = me.pages[item];

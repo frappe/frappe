@@ -132,7 +132,7 @@ $.extend(frappe.desktop, {
 				frappe.desktop.open_module($(this));
 			});
 		} else {
-			frappe.desktop.wrapper.on("click", ".app-icon", function() {
+			frappe.desktop.wrapper.on("click", ".app-icon, .app-icon-svg", function() {
 				if ( !frappe.desktop.wiggling ) {
 					frappe.desktop.open_module($(this).parent());
 				}
