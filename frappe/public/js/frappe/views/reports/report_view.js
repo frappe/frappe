@@ -148,6 +148,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			columns: this.columns,
 			data: this.get_data(values),
 			getEditor: this.get_editing_object.bind(this),
+			dynamicRowHeight: true,
 			events: {
 				onRemoveColumn: (column) => {
 					this.remove_column_from_datatable(column);

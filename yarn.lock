@@ -870,6 +870,14 @@ frappe-datatable@^0.0.4:
     lodash "^4.17.5"
     sortablejs "^1.7.0"
 
+frappe-datatable@frappe/datatable:
+  version "0.0.4"
+  resolved "https://codeload.github.com/frappe/datatable/tar.gz/4bb400230087fbf97e8587a34916e14f77fa01cd"
+  dependencies:
+    clusterize.js "^0.18.0"
+    lodash "^4.17.5"
+    sortablejs "^1.7.0"
+
 frappe-gantt@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/frappe-gantt/-/frappe-gantt-0.1.0.tgz#0532d7f10bc4c905ad7dd1ef8e65c7457d13355f"
