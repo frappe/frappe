@@ -140,7 +140,7 @@ frappe.ui.Filter = class {
 			value = value.join(',');
 		}
 
-		if(value) {
+		if (value !== undefined || value !== null) {
 			this._filter_value_set = this.field.set_value((value + '').trim());
 		}
 		return this._filter_value_set;
