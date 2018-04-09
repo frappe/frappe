@@ -329,7 +329,7 @@ def console(context):
 	frappe.connect()
 	frappe.local.lang = frappe.db.get_default("lang")
 	import IPython
-	IPython.embed(disable_banner = True)
+	IPython.embed(display_banner = "")
 
 @click.command('run-tests')
 @click.option('--app', help="For App")
