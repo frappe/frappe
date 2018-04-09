@@ -1430,7 +1430,7 @@ apps/frappe/frappe/utils/bot.py +89,show,நிகழ்ச்சி
 DocType: Address Template,Address Template,முகவரி டெம்ப்ளேட்
 DocType: Workflow State,text-height,உரை உயரம்
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,தரவு இடம்பெயர்வு திட்ட வரைபடம்
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,ஃபிராப்பே தொடங்குகிறது ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,ஃபிராப்பே தொடங்குகிறது ...
 DocType: Web Form Field,Max Length,அதிகபட்ச நீளம்
 DocType: Workflow State,map-marker,வரைபடம்-மார்க்கர்
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,ஒரு Issue சமர்ப்பிக்கவும்

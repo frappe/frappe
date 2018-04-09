@@ -1422,7 +1422,7 @@ apps/frappe/frappe/utils/bot.py +89,show,exposição
 DocType: Address Template,Address Template,Modelo de Endereço
 DocType: Workflow State,text-height,texto de altura
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,Mapeamento do Plano de Migração de Dados
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,Iniciando Frappé ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,Iniciando Frappe ...
 DocType: Web Form Field,Max Length,Comprimento máximo
 DocType: Workflow State,map-marker,marcador-de-mapa
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Enviar um Incidente

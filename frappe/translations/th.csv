@@ -1429,7 +1429,7 @@ apps/frappe/frappe/utils/bot.py +89,show,แสดง
 DocType: Address Template,Address Template,แม่แบบที่อยู่
 DocType: Workflow State,text-height,ข้อความที่มีความสูง
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,แผนแผนที่การย้ายถิ่นฐาน
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,กำลังเริ่มต้น Frappe ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,กำลังเริ่มต้น Frappe ...
 DocType: Web Form Field,Max Length,ความยาวสูงสุด
 DocType: Workflow State,map-marker,แผนที่เครื่องหมาย
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,ส่ง ออก

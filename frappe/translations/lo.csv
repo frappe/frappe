@@ -1430,7 +1430,7 @@ apps/frappe/frappe/utils/bot.py +89,show,ສະແດງໃຫ້ເຫັນ
 DocType: Address Template,Address Template,ແມ່ແບບທີ່ຢູ່
 DocType: Workflow State,text-height,ຂໍ້ຄວາມລະດັບຄວາມສູງ
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,ການວາງແຜນແຜນການຍ້າຍຖິ່ນຖານຂໍ້ມູນ
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,ເລີ່ມຕົ້ນ Frapp ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,ເລີ່ມຕົ້ນ Frapp ...
 DocType: Web Form Field,Max Length,Length Max
 DocType: Workflow State,map-marker,"ແຜນທີ່, ເຄື່ອງຫມາຍ"
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,ຍື່ນສະເຫນີບັນຫາ

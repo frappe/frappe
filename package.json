@@ -9,7 +9,7 @@
     "type": "git",
     "url": "git+https://github.com/frappe/frappe.git"
   },
-  "author": "Frappé Technologies Pvt. Ltd.",
+  "author": "Frappe Technologies Pvt. Ltd.",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/frappe/frappe/issues"

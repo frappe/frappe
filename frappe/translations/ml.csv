@@ -1428,7 +1428,7 @@ apps/frappe/frappe/utils/bot.py +89,show,കാണിക്കുക
 DocType: Address Template,Address Template,വിലാസം ഫലകം
 DocType: Workflow State,text-height,ടെക്സ്റ്റ്-ഉയരം
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,ഡാറ്റ മൈഗ്രേഷൻ പ്ലാൻ മാപ്പിംഗ്
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,ഫ്രെപ്സ് ആരംഭിക്കുന്നു ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,ഫ്രെപ്സ് ആരംഭിക്കുന്നു ...
 DocType: Web Form Field,Max Length,പരമാവധി നീളം
 DocType: Workflow State,map-marker,മാപ്പ്-മാർക്കർ
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,ഒരു പ്രശ്നം സമർപ്പിക്കുക

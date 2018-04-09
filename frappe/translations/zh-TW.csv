@@ -1227,7 +1227,7 @@ apps/frappe/frappe/core/doctype/user/user.py +1021,Throttled,節流
 apps/frappe/frappe/utils/data.py +768,"Filter must have 4 values (doctype, fieldname, operator, value): {0}",過濾器必須有4個值（doctype，fieldname，operator，value）：{0}
 apps/frappe/frappe/utils/bot.py +89,show,顯示
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,數據遷移計劃映射
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,開始Frappé...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,開始Frappé...
 DocType: Web Form Field,Max Length,最長長度
 DocType: Workflow State,map-marker,地圖標記
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,提交問題

@@ -1408,7 +1408,7 @@ apps/frappe/frappe/utils/bot.py +89,show,προβολή
 DocType: Address Template,Address Template,Πρότυπο διεύθυνσης
 DocType: Workflow State,text-height,Text-height
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,Χαρτογράφηση σχεδίου μετεγκατάστασης δεδομένων
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,Ξεκινώντας τον Frappe ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,Ξεκινώντας τον Frappe ...
 DocType: Web Form Field,Max Length,Μέγιστο μήκος
 DocType: Workflow State,map-marker,Σήμανση χάρτη
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Υποβολή Θέματος

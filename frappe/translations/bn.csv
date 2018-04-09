@@ -1408,7 +1408,7 @@ apps/frappe/frappe/utils/bot.py +89,show,প্রদর্শনী
 DocType: Address Template,Address Template,ঠিকানা টেমপ্লেট
 DocType: Workflow State,text-height,টেক্সট-উচ্চতা
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,ডেটা মাইগ্রেশন প্ল্যান ম্যাপিং
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,Frappé শুরু হচ্ছে ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,Frappe শুরু হচ্ছে ...
 DocType: Web Form Field,Max Length,সর্বোচ্চ দৈর্ঘ্য
 DocType: Workflow State,map-marker,মানচিত্র-মার্কার
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,একটি সমস্যার জমা

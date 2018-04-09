@@ -1,6 +1,6 @@
 # Dialogs Types
 
-Frappé provides a group of standard dialogs that are very useful while coding.
+Frappe provides a group of standard dialogs that are very useful while coding.
 
 ## Alert Dialog
 
