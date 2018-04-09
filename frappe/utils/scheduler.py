@@ -79,7 +79,7 @@ def enqueue_events_for_site(site, queued_jobs):
 	def log_and_raise():
 		frappe.logger(__name__).error('Exception in Enqueue Events for Site {0}'.format(site) +
 			'\n' + frappe.get_traceback())
-		raise
+		raise # pylint: disable=misplaced-bare-raise
 
 	try:
 		frappe.init(site=site)

@@ -2,9 +2,6 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-"""
-Cache management
-"""
 
 import frappe
 import frappe.defaults

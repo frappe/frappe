@@ -26,7 +26,7 @@ frappe.ui.form.States = Class.extend({
 			var d = new frappe.ui.Dialog({
 				title: "Workflow: "
 					+ frappe.workflow.workflows[me.frm.doctype].name
-			})
+			});
 
 			frappe.workflow.get_transitions(me.frm.doc).then((transitions) => {
 				var next_html = $.map(transitions,
@@ -42,7 +42,7 @@ frappe.ui.form.States = Class.extend({
 					+ (me.frm.doc.__islocal ? ("<div class='alert alert-info'>"
 						+__("Workflow will start after saving.")+"</div>") : "")
 					+ "<p class='help'>"+__("Note: Other permission rules may also apply")+"</p>"
-					).css({padding: '15px'});
+				).css({padding: '15px'});
 				d.show();
 			});
 		}, true);
@@ -64,7 +64,7 @@ frappe.ui.form.States = Class.extend({
 		}
 	},
 
-	show_actions: function(state) {
+	show_actions: function() {
 		var added = false,
 			me = this;
 
@@ -110,11 +110,5 @@ frappe.ui.form.States = Class.extend({
 			this.set_default_state();
 		}
 		return this.frm.doc[this.state_fieldname];
-	},
-
-	bind_action: function() {
-		var me = this;
-		this.dropdown.on("click", "[data-action]", function() {
-		})
 	}
 });
