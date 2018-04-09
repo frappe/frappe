@@ -233,14 +233,19 @@ def get_recipients_cc_and_bcc(doc, recipients, cc, bcc, fetched_from_email_accou
 
 		# don't cc to people who already received the mail from sender's email service
 		cc = list(set(cc) - set(original_cc) - set(original_recipients))
+		remove_administrator_from_email_list(cc)
 
 		original_bcc = split_emails(doc.bcc)
 		bcc = list(set(bcc) - set(original_bcc) - set(original_recipients))
+		remove_administrator_from_email_list(bcc)
 
-	if 'Administrator' in recipients:
-		recipients.remove('Administrator')
+	remove_administrator_from_email_list(recipients)
 
 	return recipients, cc, bcc
+
+def remove_administrator_from_email_list(email_list):
+	if 'Administrator' in email_list:
+		email_list.remove('Administrator')
 
 def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None):
 	"""Prepare to make multipart MIME Email
