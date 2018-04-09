@@ -25,7 +25,7 @@ class TestWorkflow(unittest.TestCase):
 				))
 				self.workflow.append('states', dict(
 					state = 'Approved', allow_edit = 'Test Approver',
-					update_field = 'statue', update_value = 'Closed'
+					update_field = 'status', update_value = 'Closed'
 				))
 				self.workflow.append('states', dict(
 					state = 'Rejected', allow_edit = 'Test Approver'
@@ -75,7 +75,7 @@ class TestWorkflow(unittest.TestCase):
 		todo.description = 'new'
 
 		frappe.set_user('test@example.com')
-		self.assertRaises(WorkflowPermissionError, todo.save)
+		self.assertRaises(WorkflowPermissionError, todo.save, ignore_permissions=True)
 		frappe.set_user('Administrator')
 
 	def test_workflow_condition(self):
