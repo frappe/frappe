@@ -279,23 +279,34 @@ frappe.show_alert = function(message, seconds=7) {
 		$('<div id="dialog-container"><div id="alert-container"></div></div>').appendTo('body');
 	}
 
-	var message_html;
+	let message_html;
+	let body_html;
+	
 	if(message.indicator) {
 		message_html = $('<span class="indicator ' + message.indicator + '"></span>').append(message.message);
 	} else {
 		message_html = message.message;
 	}
 
-	var div = $(`
+	if (message.body) {
+		body_html = message.body;
+	}
+
+	const div = $(`
 		<div class="alert desk-alert">
-			<span class="alert-message"></span><a class="close">&times;</a>
+			<span class="alert-message"></span>
+			<p class="alert-body small" style="display: none"></p>
+			<a class="close">&times;</a>
 		</div>`);
 
 	div.find('.alert-message').append(message_html);
 
-	div.hide()
-		.appendTo("#alert-container")
-		.fadeIn(300);
+	if (body_html) {
+		div.find('.alert-body').show().html(body_html);
+	}
+
+	div.hide().appendTo("#alert-container").show()
+		.css('transform', 'translateX(0)');
 
 	div.find('.close').click(function() {
 		$(this).parent().remove();
