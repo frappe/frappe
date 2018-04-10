@@ -204,7 +204,7 @@ class DatabaseQuery(object):
                 tab_name = re.search(r'`.*?`', field_lower)
                 if tab_name:
                     field_lower = field_lower.replace(tab_name.group(0),"")
-                    #remove table name from comparison (quoted name only with ` `)
+                    # remove table name from comparison (quoted name only with ` `)
 
                 if any(keyword in field_lower for keyword in blacklisted_keywords):
                     _raise_exception()
