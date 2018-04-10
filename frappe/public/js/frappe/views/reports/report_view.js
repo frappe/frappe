@@ -149,12 +149,17 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			data: this.get_data(values),
 			getEditor: this.get_editing_object.bind(this),
 			dynamicRowHeight: true,
+			checkboxColumn: true,
 			events: {
 				onRemoveColumn: (column) => {
 					this.remove_column_from_datatable(column);
 				},
 				onSwitchColumn: (column1, column2) => {
 					this.switch_column(column1, column2);
+				},
+				onCheckRow: () => {
+					const checked_items = this.get_checked_items();
+					this.toggle_actions_menu_button(checked_items.length > 0);
 				}
 			},
 			headerDropdown: [{
