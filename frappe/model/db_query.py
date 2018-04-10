@@ -208,7 +208,7 @@ class DatabaseQuery(object):
 					_raise_exception()
 
 				if any("{0}(".format(keyword) in field_lower
-					   for keyword in blacklisted_functions):
+					for keyword in blacklisted_functions):
 					_raise_exception()
 
 	def extract_tables(self):
