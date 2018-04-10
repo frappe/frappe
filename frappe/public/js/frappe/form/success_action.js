@@ -11,44 +11,72 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 		this.config = frappe.success_action[this.form.doctype] || null;
 	}
 
-	make_dom() {
+	show() {
+		if (!this.config) return;
+		if (!this.form.is_first_creation()) return;
+
+		this.prepare_dom();
+		this.show_alert();
+	}
+
+	prepare_dom() {
 		this.container = $(document.body).find('.success-container');
-		const nav_z_index = $(document.body).find('.navbar-fixed-top').css('z-index');
 		if (!this.container.length) {
 			this.container = $('<div class="success-container">').appendTo(document.body);
 		}
-
-		const $buttons = this.config.actions.map(action => {
-			const $btn = $(`<button class="next-action-button text-muted"><i class="${action.icon}"></i> <span>${action.label}</span></button> `);
-			$btn.click(() => action.action(this.form));
-			return $btn;
-		});
-
-		this.wrapper = $(`
-			<div class="success-action border">
-				<i class="success-icon fa fa-check-circle"></i>
-				<h2 class="success-message">Success</h2>
-				<p class="success-description">${this.config.message}</>
-				<div class="actions"></div>
-			</div>
-		`).appendTo(this.container);
-
-		this.wrapper.find('.actions').append($buttons);
-		this.container.css('z-index', nav_z_index+1);
-		this.container.show().css('right', '20px');
-		this.wrapper.delay(4 * 1000).fadeOut('slow');
-		// this.wrapper.hover((event) => {
-		// 	if (event.type === 'mouseenter') {
-		// 		this.wrapper.stop().fadeIn(100);
-		// 	} else {
-		// 		this.wrapper.stop().delay(2 * 1000).fadeOut('slow');
-		// 	}
-
-		// });
 	}
 
-	show() {
-		if (!this.config) return;
-		this.make_dom();
+	show_alert() {
+		frappe.db.count(this.form.doctype)
+			.then(count => {
+				let message = count === 1 ?
+					this.config.first_creation_message :
+					this.config.message;
+
+				const $buttons = this.get_actions().map(action => {
+					const $btn = $(`<a class="padding"><span>${action.label}</span></a>`);
+					$btn.click(() => action.action(this.form));
+					return $btn;
+				});
+
+				const html = $buttons;
+				// html.find('.next-actions').append($buttons);
+
+				frappe.show_alert({
+					message: message,
+					body: html,
+					indicator: 'green'
+				});
+			});
+	}
+
+	get_actions() {
+		const default_actions = {
+			New: {
+				label: __('New'),
+				action: (frm) => frappe.new_doc(frm.doctype)
+			},
+			Print: {
+				label: __('Print'),
+				action: (frm) => frm.print_doc()
+			},
+			Email: {
+				label: __('Email'),
+				action: (frm) => frm.email_doc()
+			}
+		};
+
+		const actions = [];
+
+		this.config.actions
+			.forEach(action => {
+				if (typeof action === 'string') {
+					actions.push(default_actions[action]);
+				} else {
+					actions.push(action);
+				}
+			});
+
+		return actions;
 	}
 };
