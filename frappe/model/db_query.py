@@ -203,13 +203,16 @@ class DatabaseQuery(object):
 				field_lower = field.lower()
 				tab_name = re.search(r'`.*?`', field_lower)
 				if tab_name:
-					field_lower = field_lower.replace(tab_name.group(0), "")
+					field_lower = field_lower.replace(tab_name.group(0),"")
+					#remove table name from comparison (quoted name only with ` `)
+
 				if any(keyword in field_lower for keyword in blacklisted_keywords):
 					_raise_exception()
 
-				if any("{0}(".format(keyword) in field_lower
+				if any("{0}(".format(keyword) in field_lower \
 					for keyword in blacklisted_functions):
 					_raise_exception()
+
 
 	def extract_tables(self):
 		"""extract tables from fields"""
