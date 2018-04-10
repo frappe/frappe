@@ -135,16 +135,12 @@ class WebPage(WebsiteGenerator):
 			frappe.throw(_("End Date cannot be before Start Date!"))
 
 		if now() > self.end_date:
-			# If current date is after end date, and
-			# web page is published, empty the end date.
+			# If the current date is past end date, and
+			# web page is published, empty the end date
 			if self.published and self.end_date is not None:
 				self.end_date = None
-		else:
-			# If current date is before end date,
-			# and web page is manually unpublished,
-			# set end date to current date.
-			if not self.published:
-				self.end_date = get_datetime(now())
+
+				frappe.msgprint(_("Clearing end date, as it cannot be in the past for published pages."))
 
 
 def check_publish_status():
