@@ -76,6 +76,11 @@ def enqueue_events_for_all_sites():
 			print(frappe.get_traceback())
 
 def enqueue_events_for_site(site, queued_jobs):
+	def log_and_raise():
+		frappe.logger(__name__).error('Exception in Enqueue Events for Site {0}'.format(site) +
+			'\n' + frappe.get_traceback())
+		raise # pylint: disable=misplaced-bare-raise
+
 	try:
 		frappe.init(site=site)
 		if frappe.local.conf.maintenance_mode:
@@ -91,11 +96,13 @@ def enqueue_events_for_site(site, queued_jobs):
 		enqueue_events(site=site, queued_jobs=queued_jobs)
 
 		frappe.logger(__name__).debug('Queued events for site {0}'.format(site))
-
+	except pymysql.OperationalError as e:
+		if e.args[0]==ER.ACCESS_DENIED_ERROR:
+			frappe.logger(__name__).debug('Access denied for site {0}'.format(site))
+		else:
+			log_and_raise()
 	except:
-		frappe.logger(__name__).error('Exception in Enqueue Events for Site {0}'.format(site) +
-			'\n' + frappe.get_traceback())
-		raise
+		log_and_raise()
 
 	finally:
 		frappe.destroy()
