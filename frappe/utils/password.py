@@ -55,12 +55,12 @@ def set_encrypted_password(doctype, name, pwd, fieldname='password'):
 		on duplicate key update `password`=%(pwd)s, encrypted=1""",
 		{ 'doctype': doctype, 'name': name, 'fieldname': fieldname, 'pwd': encrypt(pwd) })
 
-def check_password(auth, pwd, doctype='User', fieldname='password'):
+def check_password(user, pwd, doctype='User', fieldname='password'):
 	'''Checks if user and password are correct, else raises frappe.AuthenticationError'''
 
 	auth = frappe.db.sql("""select name, `password` from `__Auth`
 								where doctype=%(doctype)s and name=%(name)s and fieldname=%(fieldname)s and encrypted=0""",
-						 {'doctype': doctype, 'name': auth, 'fieldname': fieldname},
+						 {'doctype': doctype, 'name': user, 'fieldname': fieldname},
 						 as_dict=True
 						 )
 
