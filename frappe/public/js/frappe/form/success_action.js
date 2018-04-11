@@ -13,7 +13,7 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 
 	show() {
 		if (!this.config) return;
-		if (this.form.docstatus === 1 && !this.form.is_first_creation()) return;
+		if (this.form.doc.docstatus === 0 && !this.form.is_first_creation()) return;
 
 		this.prepare_dom();
 		this.show_alert();
