@@ -40,8 +40,7 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 				});
 
 				const html = $buttons;
-				// html.find('.next-actions').append($buttons);
-
+				
 				frappe.show_alert({
 					message: message,
 					body: html,

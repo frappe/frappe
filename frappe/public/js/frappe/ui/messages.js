@@ -281,7 +281,7 @@ frappe.show_alert = function(message, seconds=7) {
 
 	let message_html;
 	let body_html;
-	
+
 	if(message.indicator) {
 		message_html = $('<span class="indicator ' + message.indicator + '"></span>').append(message.message);
 	} else {
@@ -308,8 +308,8 @@ frappe.show_alert = function(message, seconds=7) {
 	div.hide().appendTo("#alert-container").show()
 		.css('transform', 'translateX(0)');
 
-	div.find('.close').click(function() {
-		$(this).parent().remove();
+	div.find('.close, a').click(function() {
+		div.remove();
 		return false;
 	});
 
