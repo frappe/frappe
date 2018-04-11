@@ -910,7 +910,7 @@ class Document(BaseDocument):
 
 		update_global_search(self)
 
-		if self.meta.track_changes and self._doc_before_save and not self.flags.ignore_version:
+		if getattr(self.meta, 'track_changes', False) and self._doc_before_save and not self.flags.ignore_version:
 			self.save_version()
 
 		if (self.doctype, self.name) in frappe.flags.currently_saving:
