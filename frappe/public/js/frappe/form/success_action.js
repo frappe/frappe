@@ -13,7 +13,7 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 
 	show() {
 		if (!this.config) return;
-		if (!this.form.is_first_creation()) return;
+		if (this.form.docstatus === 1 && !this.form.is_first_creation()) return;
 
 		this.prepare_dom();
 		this.show_alert();
@@ -34,13 +34,14 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 					this.config.message;
 
 				const $buttons = this.get_actions().map(action => {
-					const $btn = $(`<a class="padding"><span>${action.label}</span></a>`);
+					const $btn = $(`<button class="next-action"><span>${action.label}</span></button>`);
 					$btn.click(() => action.action(this.form));
 					return $btn;
 				});
+				const next_action_container = $(`<div class="next-action-container"></div>`);
+				next_action_container.append($buttons);
+				const html = next_action_container;
 
-				const html = $buttons;
-				
 				frappe.show_alert({
 					message: message,
 					body: html,

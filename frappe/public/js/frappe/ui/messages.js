@@ -273,20 +273,13 @@ frappe.show_alert = function(message, seconds=7) {
 	if(typeof message==='string') {
 		message = {
 			message: message
-		}
+		};
 	}
 	if(!$('#dialog-container').length) {
 		$('<div id="dialog-container"><div id="alert-container"></div></div>').appendTo('body');
 	}
 
-	let message_html;
 	let body_html;
-
-	if(message.indicator) {
-		message_html = $('<span class="indicator ' + message.indicator + '"></span>').append(message.message);
-	} else {
-		message_html = message.message;
-	}
 
 	if (message.body) {
 		body_html = message.body;
@@ -294,12 +287,16 @@ frappe.show_alert = function(message, seconds=7) {
 
 	const div = $(`
 		<div class="alert desk-alert">
-			<span class="alert-message"></span>
-			<p class="alert-body small" style="display: none"></p>
+			<div class="alert-message"></div>
+			<div class="alert-body" style="display: none"></div>
 			<a class="close">&times;</a>
 		</div>`);
 
-	div.find('.alert-message').append(message_html);
+	div.find('.alert-message').append(message.message);
+
+	if(message.indicator) {
+		div.find('.alert-message').addClass('indicator '+ message.indicator);
+	}
 
 	if (body_html) {
 		div.find('.alert-body').show().html(body_html);
@@ -308,7 +305,7 @@ frappe.show_alert = function(message, seconds=7) {
 	div.hide().appendTo("#alert-container").show()
 		.css('transform', 'translateX(0)');
 
-	div.find('.close, a').click(function() {
+	div.find('.close, button').click(function() {
 		div.remove();
 		return false;
 	});

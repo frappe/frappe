@@ -66,8 +66,6 @@ a[disabled="disabled"] {
 
 #alert-container .desk-alert {
 	box-shadow: 0 0px 5px rgba(0, 0, 0, 0.1);
-
-	padding: 10px 40px 10px 20px;
 	max-width: 400px;
 	min-width: 200px;
 	max-height: 200px;
@@ -79,6 +77,11 @@ a[disabled="disabled"] {
 	position: relative;
 	transform: translateX(calc(100% + 20px));
 	transition: transform 300ms ease;
+	padding: 0px;
+
+	.alert-message {
+		padding: 10px 40px 10px 10px;
+	}
 
 	.close {
 		position: absolute;
@@ -88,6 +91,31 @@ a[disabled="disabled"] {
 		line-height: inherit;
 		opacity: 1;
 		font-size: inherit;
+	}
+
+	.next-action-container {
+		display: flex;
+
+		.next-action {
+			border: none;
+			background: none;
+			width: 100%;
+			border-top: 1px solid @border-color;
+			border-right: 1px solid @border-color;
+			padding: 7px;
+			outline: none;
+			font-size: 12px;
+			font-weight: bold;
+			color: @text-light;
+
+			&:hover {
+				background-color: darken(@light-yellow, 5%);
+			}
+
+			&:last-child {
+				border-right: none;
+			}
+		}
 	}
 }
 
