@@ -195,13 +195,13 @@ def check_if_doc_is_linked(doc, method="Delete"):
 
 				if not item:
 					continue
-				elif not ((method=="Delete" and item.docstatus<2) or (method=="Cancel" and item.docstatus==1)):
+				elif (method != "Delete" or item.docstatus == 2) and (method != "Cancel" or item.docstatus != 1):
 					# don't raise exception if not
 					# linked to a non-cancelled doc when deleting or to a submitted doc when cancelling
 					continue
-				elif not (link_dt != doc.doctype or ((item.parent or item.name) != doc.name)):
-						# don't raise exception if not
-						# linked to same item or doc having same name as the item
+				elif link_dt == doc.doctype and (item.parent or item.name) == doc.name:
+					# don't raise exception if not
+					# linked to same item or doc having same name as the item
 					continue
 				else:
 					reference_docname = item.parent or item.name
