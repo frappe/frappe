@@ -11,7 +11,7 @@
 Supervisor
 ----------
 
-Supervisor 确保 Frappé 系统进程保持运行并在它发生崩溃后自动重新启动。你可以使用命令 `bench setup supervisor` 生成  Supervisor 所需的配置。该配置可参考`config/supervisor.conf` 文件。你可以将该文件复制或链接到 supervisor 配置目录并重新加载它以使其生效。 
+Supervisor 确保 Frappe 系统进程保持运行并在它发生崩溃后自动重新启动。你可以使用命令 `bench setup supervisor` 生成  Supervisor 所需的配置。该配置可参考`config/supervisor.conf` 文件。你可以将该文件复制或链接到 supervisor 配置目录并重新加载它以使其生效。 
 
 例如,
 

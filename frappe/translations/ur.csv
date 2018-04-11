@@ -1427,7 +1427,7 @@ apps/frappe/frappe/utils/bot.py +89,show,شو
 DocType: Address Template,Address Template,ایڈریس سانچہ
 DocType: Workflow State,text-height,متن اونچائی
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,ڈیٹا مگراگریشن پلان نقشہ جات
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,Frappé شروع ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,Frappe شروع ...
 DocType: Web Form Field,Max Length,زیادہ سے زیادہ لمبائی
 DocType: Workflow State,map-marker,نقشہ مارکر
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,ایک مسئلہ جمع کرائیں

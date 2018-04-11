@@ -1429,7 +1429,7 @@ apps/frappe/frappe/utils/bot.py +89,show,parādīt
 DocType: Address Template,Address Template,Adrese Template
 DocType: Workflow State,text-height,teksta augstums
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,Datu migrācijas plāna kartēšana
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,Sākot Frappé ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,Sākot Frappe ...
 DocType: Web Form Field,Max Length,Max garums
 DocType: Workflow State,map-marker,karte-marķieris
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Iesniegt Problēma

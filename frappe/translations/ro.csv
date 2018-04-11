@@ -791,7 +791,7 @@ DocType: Custom DocPerm,Apply User Permissions,Aplicați permisiuni utilizator
 DocType: User,Modules HTML,Module HTML
 apps/frappe/frappe/public/js/frappe/ui/field_group.js +88,Missing Values Required,Valorile lipsă necesare
 DocType: DocType,Other Settings,alte setări
-DocType: Data Migration Connector,Frappe,Frappé
+DocType: Data Migration Connector,Frappe,Frappe
 apps/frappe/frappe/core/doctype/communication/communication_list.js +17,Mark as Unread,Marcheaza ca necitit
 apps/frappe/frappe/public/js/frappe/list/list_permission_footer.html +12,{0} is not set,{0} nu este configurat
 DocType: Activity Log,Operation,Operație
@@ -1426,7 +1426,7 @@ apps/frappe/frappe/utils/bot.py +89,show,spectacol
 DocType: Address Template,Address Template,Model adresă
 DocType: Workflow State,text-height,text-înălțime
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,Planificarea migrării planului de date
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,Incepand cu Frappe ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,Incepand cu Frappe ...
 DocType: Web Form Field,Max Length,Lungime maxima
 DocType: Workflow State,map-marker,Harta marker
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Prezenta eroare

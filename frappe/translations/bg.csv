@@ -1408,7 +1408,7 @@ apps/frappe/frappe/utils/bot.py +89,show,покажи
 DocType: Address Template,Address Template,Адрес Template
 DocType: Workflow State,text-height,текст-височина
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,Картографиране на плана за миграция на данни
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,Стартиране на Frappe ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,Стартиране на Frappe ...
 DocType: Web Form Field,Max Length,Максимална дължина
 DocType: Workflow State,map-marker,Карта-маркер
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Пуснете Issue

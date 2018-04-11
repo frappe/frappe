@@ -1408,7 +1408,7 @@ apps/frappe/frappe/utils/bot.py +89,show,አሳይ
 DocType: Address Template,Address Template,አድራሻ አብነት
 DocType: Workflow State,text-height,ጽሑፍ-ቁመት
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,የውሂብ ጎዳና የዕቅድ ካርታ
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,ሽግግር መጀመር ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,ሽግግር መጀመር ...
 DocType: Web Form Field,Max Length,ከፍተኛ ርዝመት
 DocType: Workflow State,map-marker,ካርታ-ማድረጊያ
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,አንድ ችግር አስገባ

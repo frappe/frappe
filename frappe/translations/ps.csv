@@ -1429,7 +1429,7 @@ apps/frappe/frappe/utils/bot.py +89,show,خپرونه
 DocType: Address Template,Address Template,پته کينډۍ
 DocType: Workflow State,text-height,text-قد
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,د معلوماتو د مهاجرت پالن نقشه
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,د فریپ پیلول ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,د فریپ پیلول ...
 DocType: Web Form Field,Max Length,Max اوږدوالی
 DocType: Workflow State,map-marker,نقشه-مارکر
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,یو Issue سپارل

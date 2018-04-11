@@ -1428,7 +1428,7 @@ apps/frappe/frappe/utils/bot.py +89,show,Rodyti
 DocType: Address Template,Address Template,adresas Šablono
 DocType: Workflow State,text-height,teksto aukštis
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,Duomenų migracijos plano atvaizdavimas
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,Pradedant Frappé ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,Pradedant Frappe ...
 DocType: Web Form Field,Max Length,Maksimalus ilgis
 DocType: Workflow State,map-marker,žemėlapis gabaritinis
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Pateikti numeris

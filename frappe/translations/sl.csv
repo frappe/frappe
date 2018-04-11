@@ -1426,7 +1426,7 @@ apps/frappe/frappe/utils/bot.py +89,show,oddaja
 DocType: Address Template,Address Template,Predloga Naslovov
 DocType: Workflow State,text-height,text-višina
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,Mapiranje načrta migracij podatkov
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,Začetek Frappéja ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,Začetek Frappeja ...
 DocType: Web Form Field,Max Length,Max dolžina
 DocType: Workflow State,map-marker,map-dvojno podajo
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Predloži vprašanje

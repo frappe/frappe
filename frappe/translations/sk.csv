@@ -1429,7 +1429,7 @@ apps/frappe/frappe/utils/bot.py +89,show,zobraziť
 DocType: Address Template,Address Template,Šablona adresy
 DocType: Workflow State,text-height,text-height
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,Mapovanie plánu migrácie údajov
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,Spustenie Frappe ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,Spustenie Frappe ...
 DocType: Web Form Field,Max Length,Maximálna dĺžka
 DocType: Workflow State,map-marker,map-marker
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Vložit případ podpory
