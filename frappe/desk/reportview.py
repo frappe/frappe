@@ -342,6 +342,9 @@ def get_match_cond(doctype):
 	return ((' and ' + cond) if cond else "").replace("%", "%%")
 
 def build_match_conditions(doctype, user=None, as_condition=True):
+	if not user:
+		user = frappe.session.user
+
 	match_conditions =  DatabaseQuery(doctype, user=user).build_match_conditions(as_condition=as_condition)
 	if as_condition:
 		return match_conditions.replace("%", "%%")
