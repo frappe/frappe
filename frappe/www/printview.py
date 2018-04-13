@@ -338,6 +338,9 @@ def has_value(df, doc):
 		return False
 
 	elif isinstance(value, string_types) and not strip_html(value).strip():
+		if df.fieldtype in ["Text", "Text Editor"]:
+			return True
+
 		return False
 
 	elif isinstance(value, list) and not len(value):
