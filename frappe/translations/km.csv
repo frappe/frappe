@@ -1408,7 +1408,7 @@ apps/frappe/frappe/utils/bot.py +89,show,បង្ហាញ
 DocType: Address Template,Address Template,អាសយដ្ឋានទំព័រគំរូ
 DocType: Workflow State,text-height,កម្ពស់អត្ថបទ
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,ការធ្វើផែនទីផែនការធ្វើចំណាកស្រុក
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,ចាប់ផ្តើមFrappé ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,ចាប់ផ្តើមFrappé ...
 DocType: Web Form Field,Max Length,ប្រវែងអតិបរមា
 DocType: Workflow State,map-marker,ផែនទីបង្គោល
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,ដាក់ស្នើនូវបញ្ហា

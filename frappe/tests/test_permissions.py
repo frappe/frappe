@@ -209,7 +209,7 @@ class TestPermissions(unittest.TestCase):
 
 		frappe.set_user("test2@example.com")
 
-		frappe.model.meta.clear_cache("Blog Post")
+		frappe.clear_cache(doctype="Blog Post")
 
 		doc = frappe.get_doc("Blog Post", "-test-blog-post")
 		self.assertFalse(doc.has_permission("read"))
@@ -217,7 +217,7 @@ class TestPermissions(unittest.TestCase):
 		doc = frappe.get_doc("Blog Post", "-test-blog-post-2")
 		self.assertTrue(doc.has_permission("read"))
 
-		frappe.model.meta.clear_cache("Blog Post")
+		frappe.clear_cache(doctype="Blog Post")
 
 	def if_owner_setup(self):
 		update('Blog Post', 'Blogger', 0, 'if_owner', 1)
@@ -227,7 +227,7 @@ class TestPermissions(unittest.TestCase):
 		add_user_permission("Blogger", "_Test Blogger 1",
 			"test2@example.com")
 
-		frappe.model.meta.clear_cache("Blog Post")
+		frappe.clear_cache(doctype="Blog Post")
 
 	def test_insert_if_owner_with_user_permissions(self):
 		"""If `If Owner` is checked for a Role, check if that document

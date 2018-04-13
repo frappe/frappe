@@ -780,7 +780,7 @@ DocType: Custom DocPerm,Apply User Permissions,Alkalmazza a felhasználói enged
 DocType: User,Modules HTML,Modulok HTML
 apps/frappe/frappe/public/js/frappe/ui/field_group.js +88,Missing Values Required,Hiányzó szükséges értékek
 DocType: DocType,Other Settings,Egyéb beállítások
-DocType: Data Migration Connector,Frappe,Frappé
+DocType: Data Migration Connector,Frappe,Frappe
 apps/frappe/frappe/core/doctype/communication/communication_list.js +17,Mark as Unread,Megjelölés olvasatlanként
 apps/frappe/frappe/public/js/frappe/list/list_permission_footer.html +12,{0} is not set,{0} nincs beállítva
 DocType: Activity Log,Operation,Üzemeltetés
@@ -1177,7 +1177,7 @@ apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permiss
 DocType: Data Migration Mapping,Mapping Name,Térképezés név
 DocType: Currency,A symbol for this currency. For e.g. $,A szimbólum erre a pénznemre. Pl.: $$
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js +23,Successfully updated translations,Sikeresen frissített fordítások
-apps/frappe/frappe/public/js/frappe/ui/toolbar/about.js +4,Frappe Framework,Frappé Framework
+apps/frappe/frappe/public/js/frappe/ui/toolbar/about.js +4,Frappe Framework,Frappe Framework
 DocType: S3 Backup Settings,Enable Automatic Backup,Engedélyezze az automatikus biztonsági  mentést
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +114,Permission Error,Engedélyezési hiba
 apps/frappe/frappe/model/naming.py +183,Name of {0} cannot be {1},Ez a név {0} nem lehet {1}
@@ -1408,7 +1408,7 @@ apps/frappe/frappe/utils/bot.py +89,show,mutasd
 DocType: Address Template,Address Template,Címlista sablon
 DocType: Workflow State,text-height,szöveg-magasság
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,Adatátviteli terv leképezés
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,Frappé elindítása ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,Frappe elindítása ...
 DocType: Web Form Field,Max Length,Max hossz
 DocType: Workflow State,map-marker,térkép-jelölő
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Jelentsen egy problémát

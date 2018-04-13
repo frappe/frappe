@@ -1408,7 +1408,7 @@ apps/frappe/frappe/utils/bot.py +89,show,sýna
 DocType: Address Template,Address Template,Heimilisfang Snið
 DocType: Workflow State,text-height,texti-hæð
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,Gagnaflutningsáætlun Kortlagning
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,Byrjar Frappé ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,Byrjar Frappe ...
 DocType: Web Form Field,Max Length,max Length
 DocType: Workflow State,map-marker,map-merki
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Leggja mál

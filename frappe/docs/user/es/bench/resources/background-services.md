@@ -8,7 +8,7 @@ Servicios Externos
 	* nginx (para producción)
 	* supervisor (para producción)
 
-Procesos de Frappé
+Procesos de Frappe
 ----------------
 
 
@@ -20,12 +20,12 @@ Procesos de Frappé
 
 * Procesos de Redis Worker
 
-	* Los procesos de Celery se encargan de ejecutar tareas en background en Frappé.
+	* Los procesos de Celery se encargan de ejecutar tareas en background en Frappe.
 	Estos procesos son iniciados automáticamente cuando se ejecuta el comando `bench start` y
 	para producción se configuran en las configuraciones de supervisor.
 
 * Procesos Scheduler
 
-	* Los procesos del Scheduler programan la lista de tareas programadas en Frappé.
+	* Los procesos del Scheduler programan la lista de tareas programadas en Frappe.
 	Este proceso es iniciado automáticamente cuando se ejecuta el comando `bench start` y
 	para producción se configuran en las configuraciones de supervisor.

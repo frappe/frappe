@@ -49,7 +49,7 @@
 
 * 添加站点
 
-	Frappé 应用由 frappe 站点运行，您需要至少创建一个站点。命令 new-site 可以达到该目的：
+	Frappe 应用由 frappe 站点运行，您需要至少创建一个站点。命令 new-site 可以达到该目的：
 
 		bench new-site site1.local
 
@@ -59,7 +59,7 @@
 
 		bench start
 
-	要登录 Frappé / ERPNext，打开你的浏览器输入 `localhost:8000`
+	要登录 Frappe / ERPNext，打开你的浏览器输入 `localhost:8000`
 
 	默认用户名为 "Administrator"，密码则是当你设置新站点时指定的密码。
 

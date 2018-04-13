@@ -780,7 +780,7 @@ DocType: Custom DocPerm,Apply User Permissions,Applica autorizzazioni utente
 DocType: User,Modules HTML,Moduli HTML
 apps/frappe/frappe/public/js/frappe/ui/field_group.js +88,Missing Values Required,Valori mancanti richiesti
 DocType: DocType,Other Settings,Altre impostazioni
-DocType: Data Migration Connector,Frappe,Frappé
+DocType: Data Migration Connector,Frappe,Frappe
 apps/frappe/frappe/core/doctype/communication/communication_list.js +17,Mark as Unread,Segna come non letto
 apps/frappe/frappe/public/js/frappe/list/list_permission_footer.html +12,{0} is not set,{0} non è impostato
 DocType: Activity Log,Operation,Operazione
@@ -1408,7 +1408,7 @@ apps/frappe/frappe/utils/bot.py +89,show,mostrare
 DocType: Address Template,Address Template,Indirizzo Template
 DocType: Workflow State,text-height,text-height
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,Mappatura dei piani di migrazione dei dati
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,Avvio di Frappé ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,Avvio di Frappe ...
 DocType: Web Form Field,Max Length,Lunghezza massima
 DocType: Workflow State,map-marker,map-marker
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Segnala un Problema

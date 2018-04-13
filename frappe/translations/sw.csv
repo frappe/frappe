@@ -1406,7 +1406,7 @@ apps/frappe/frappe/utils/bot.py +89,show,onyesha
 DocType: Address Template,Address Template,Kigezo cha Anwani
 DocType: Workflow State,text-height,urefu wa maandishi
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,Mpangilio wa Mpango wa Uhamiaji wa Data
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,Kuanza Frappé ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,Kuanza Frappe ...
 DocType: Web Form Field,Max Length,Urefu wa Max
 DocType: Workflow State,map-marker,alama ya ramani
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Tuma Suala

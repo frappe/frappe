@@ -163,6 +163,7 @@ frappe.patches.v7_1.set_backup_limit
 frappe.patches.v7_2.set_doctype_engine
 frappe.patches.v7_2.merge_knowledge_base
 frappe.patches.v7_0.update_report_builder_json
+frappe.patches.v11_0.drop_column_apply_user_permissions
 frappe.patches.v7_2.set_in_standard_filter_property #1
 frappe.patches.v8_0.drop_unwanted_indexes
 execute:frappe.db.sql("update tabCommunication set communication_date = creation where time(communication_date) = 0")
@@ -205,4 +206,3 @@ frappe.patches.v10_0.refactor_social_login_keys
 frappe.patches.v10_0.enable_chat_by_default_within_system_settings
 frappe.patches.v10_0.remove_custom_field_for_disabled_domain
 execute:frappe.delete_doc("Page", "chat")
-frappe.patches.v11_0.drop_column_apply_user_permissions

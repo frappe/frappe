@@ -1430,7 +1430,7 @@ apps/frappe/frappe/utils/bot.py +89,show,ပြသ
 DocType: Address Template,Address Template,လိပ်စာ Template:
 DocType: Workflow State,text-height,text-အမြင့်
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,ဒေတာကိုရွှေ့ပြောင်း Plan ကိုပုံထုတ်ခြင်း
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,Frappéစတင်ကာ ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,Frappeစတင်ကာ ...
 DocType: Web Form Field,Max Length,မက်စ်ရှည်
 DocType: Workflow State,map-marker,မြေပုံ-အမှတ်အသား
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,တစ်ဦး Issue Submit

@@ -2714,7 +2714,7 @@ frappe.chat.setup  = () => {
 			frappe.log.info(`Chat Profile created for User ${frappe.session.user}.`)
 
 			if ( 'desk' in frappe ) { // same as desk?
-				const should_render = frappe.sys_defaults.enable_chat && enable_chat
+				const should_render = Boolean(parseInt(frappe.sys_defaults.enable_chat)) && enable_chat
 				frappe.chat.render(should_render)
 			}
 		})
@@ -2724,7 +2724,7 @@ frappe.chat.setup  = () => {
 		frappe.chat.profile.on.update((user, profile) => {
 			if ( user === frappe.session.user && 'enable_chat' in profile ) {
 				frappe.log.warn(`Chat Profile update (Enable Chat - ${Boolean(profile.enable_chat)})`)
-				const should_render = frappe.sys_defaults.enable_chat && profile.enable_chat
+				const should_render = Boolean(parseInt(frappe.sys_defaults.enable_chat)) && profile.enable_chat
 				frappe.chat.render(should_render)
 			}
 		})

@@ -1408,7 +1408,7 @@ apps/frappe/frappe/utils/bot.py +89,show,menunjukkan
 DocType: Address Template,Address Template,Template Alamat
 DocType: Workflow State,text-height,text-height
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,Pemetaan Rencana Migrasi Data
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,Memulai Frappé ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,Memulai Frappe ...
 DocType: Web Form Field,Max Length,Panjang maksimal
 DocType: Workflow State,map-marker,peta-penanda
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Menyerahkan Masalah

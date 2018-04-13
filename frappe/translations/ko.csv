@@ -1430,7 +1430,7 @@ apps/frappe/frappe/utils/bot.py +89,show,보여 주다
 DocType: Address Template,Address Template,주소 템플릿
 DocType: Workflow State,text-height,텍스트 높이
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,데이터 마이그레이션 계획 매핑
-apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappé ...,Frappé 시작 ...
+apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +267,Starting Frappe ...,Frappe 시작 ...
 DocType: Web Form Field,Max Length,최대 길이
 DocType: Workflow State,map-marker,지도 마커
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,문제 제출
