@@ -171,7 +171,7 @@ frappe.views.TreeView = Class.extend({
 					return !node.is_root && me.can_read;
 				},
 				click: function(node) {
-					frappe.set_route("Form", me.doctype, node.label);
+					frappe.set_route("Form", me.doctype, encodeURIComponent(node.label));
 				}
 			},
 			{
