@@ -7,16 +7,16 @@ from frappe.model.document import Document
 from frappe.utils.jinja import validate_template
 from six import string_types
 
-class StandardReply(Document):
+class EmailTemplate(Document):
 	def validate(self):
 		validate_template(self.response)
 
 @frappe.whitelist()
-def get_standard_reply(template_name, doc):
-	'''Returns the processed HTML of a standard reply with the given doc'''
+def get_email_template(template_name, doc):
+	'''Returns the processed HTML of a email template with the given doc'''
 	if isinstance(doc, string_types):
 		doc = json.loads(doc)
 
-	standard_reply = frappe.get_doc("Standard Reply", template_name)
-	return {"subject" : frappe.render_template(standard_reply.subject, doc), 
-			"message" : frappe.render_template(standard_reply.response, doc)}
+	email_template = frappe.get_doc("Email Template", template_name)
+	return {"subject" : frappe.render_template(email_template.subject, doc), 
+			"message" : frappe.render_template(email_template.response, doc)}
