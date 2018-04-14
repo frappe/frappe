@@ -48,7 +48,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	get_fields: function() {
 		var fields= [
 			{label:__("To"), fieldtype:"Data", reqd: 0, fieldname:"recipients",length:524288},
-			{fieldtype: "Section Break", collapsible: 1, label: __("CC, BCC & Standard Reply")},
+			{fieldtype: "Section Break", collapsible: 1, label: __("CC, BCC & Email Template")},
 			{label:__("CC"), fieldtype:"Data", fieldname:"cc", length:524288},
 			{label:__("BCC"), fieldtype:"Data", fieldname:"bcc", length:524288},
 			{label:__("Email Template"), fieldtype:"Link", options:"Email Template",

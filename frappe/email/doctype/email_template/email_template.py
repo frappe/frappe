@@ -18,5 +18,5 @@ def get_email_template(template_name, doc):
 		doc = json.loads(doc)
 
 	email_template = frappe.get_doc("Email Template", template_name)
-	return {"subject" : frappe.render_template(email_template.subject, doc), 
+	return {"subject" : frappe.render_template(email_template.subject, doc),
 			"message" : frappe.render_template(email_template.response, doc)}
