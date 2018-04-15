@@ -206,3 +206,4 @@ frappe.patches.v10_0.refactor_social_login_keys
 frappe.patches.v10_0.enable_chat_by_default_within_system_settings
 frappe.patches.v10_0.remove_custom_field_for_disabled_domain
 execute:frappe.delete_doc("Page", "chat")
+frappe.patches.v11_0.add_default_email_template_for_leave
