@@ -110,7 +110,8 @@ class DbTable:
 
 		for col in columns:
 			if len(col.fieldname) >= 64:
-				frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(frappe.bold(col.fieldname)))
+				frappe.throw(_("Fieldname is limited to 64 characters ({0})")
+					.format(frappe.bold(col.fieldname)))
 
 			if col.fieldtype in type_map and type_map[col.fieldtype][0]=="varchar":
 
@@ -119,6 +120,9 @@ class DbTable:
 				if not (1 <= new_length <= 1000):
 					frappe.throw(_("Length of {0} should be between 1 and 1000").format(col.fieldname))
 
+				current_col = self.current_columns.get(col.fieldname, {})
+				if not current_col:
+					continue
 				current_type = self.current_columns[col.fieldname]["type"]
 				current_length = re.findall('varchar\(([\d]+)\)', current_type)
 				if not current_length:
@@ -179,7 +183,8 @@ class DbTable:
 			parentfield varchar({varchar_len}),
 			parenttype varchar({varchar_len}),
 			idx int(8) not null default '0',
-			%sindex parent(parent) modified(modified))
+			%sindex parent(parent),
+			index modified(modified))
 			ENGINE={engine}
 			ROW_FORMAT=COMPRESSED
 			CHARACTER SET=utf8mb4
