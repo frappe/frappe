@@ -9,7 +9,7 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 
 	load_setting() {
 		this.setting = frappe.boot.success_action
-			.filter(setting => setting.for_doctype === this.form.doctype)[0];
+			.find(setting => setting.ref_doctype === this.form.doctype);
 	}
 
 	show() {
@@ -32,7 +32,7 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 			.then(count => {
 				const setting = this.setting;
 				let message = count === 1 ?
-					setting.first_creation_message :
+					setting.first_success_message :
 					setting.message;
 
 				const $buttons = this.get_actions().map(action => {

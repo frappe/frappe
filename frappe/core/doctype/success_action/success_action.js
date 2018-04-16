@@ -25,7 +25,8 @@ frappe.ui.form.on('Success Action', {
 		frm.doc.next_actions = checked_actions.join('\n');
 	},
 	after_save: (frm) => {
-		frappe.boot.success_action.push(frm.doc); //needs refactor
+		frappe.boot.success_action.push(frm.doc);
+		//TODO: update success action cache on record update and delete
 	},
 	set_next_action_multicheck: (frm) => {
 		const next_actions_wrapper = frm.fields_dict.next_actions_html.$wrapper;
