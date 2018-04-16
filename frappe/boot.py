@@ -78,6 +78,7 @@ def get_bootinfo():
 	bootinfo.lang_dict = get_lang_dict()
 	bootinfo.feedback_triggers = get_enabled_feedback_trigger()
 	bootinfo.gsuite_enabled = get_gsuite_status()
+	bootinfo.success_action_settings = get_success_action_settings()
 	bootinfo.update(get_email_accounts(user=frappe.session.user))
 
 	return bootinfo
@@ -253,3 +254,6 @@ def get_unseen_notes():
 
 def get_gsuite_status():
 	return (frappe.get_value('Gsuite Settings', None, 'enable') == '1')
+
+def get_success_action_settings():
+	return frappe.get_list("Success Action Settings", ["*"])

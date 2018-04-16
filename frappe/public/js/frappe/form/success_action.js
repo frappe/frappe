@@ -4,15 +4,16 @@ frappe.provide('frappe.success_action');
 frappe.ui.form.SuccessAction = class SuccessAction {
 	constructor(form) {
 		this.form = form;
-		this.load_config();
+		this.load_setting();
 	}
 
-	load_config() {
-		this.config = frappe.success_action[this.form.doctype] || null;
+	load_setting() {
+		this.setting = frappe.boot.success_action_settings
+			.filter(setting => setting.for_doctype === this.form.doctype)[0];
 	}
 
 	show() {
-		if (!this.config) return;
+		if (!this.setting) return;
 		if (this.form.doc.docstatus === 0 && !this.form.is_first_creation()) return;
 
 		this.prepare_dom();
@@ -29,15 +30,17 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 	show_alert() {
 		frappe.db.count(this.form.doctype)
 			.then(count => {
+				const setting = this.setting;
 				let message = count === 1 ?
-					this.config.first_creation_message :
-					this.config.message;
+					setting.first_creation_message :
+					setting.message;
 
 				const $buttons = this.get_actions().map(action => {
 					const $btn = $(`<button class="next-action"><span>${action.label}</span></button>`);
 					$btn.click(() => action.action(this.form));
 					return $btn;
 				});
+
 				const next_action_container = $(`<div class="next-action-container"></div>`);
 				next_action_container.append($buttons);
 				const html = next_action_container;
@@ -51,32 +54,40 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 	}
 
 	get_actions() {
-		const default_actions = {
-			New: {
-				label: __('New'),
-				action: (frm) => frappe.new_doc(frm.doctype)
-			},
-			Print: {
-				label: __('Print'),
-				action: (frm) => frm.print_doc()
-			},
-			Email: {
-				label: __('Email'),
-				action: (frm) => frm.email_doc()
-			}
-		};
-
 		const actions = [];
-
-		this.config.actions
+		const checked_actions = this.setting.next_actions.split("\n");
+		checked_actions
 			.forEach(action => {
-				if (typeof action === 'string') {
-					actions.push(default_actions[action]);
-				} else {
+				if (typeof action === 'string' && this.default_actions[action]) {
+					actions.push(this.default_actions[action]);
+				} else if (typeof action === 'object') {
 					actions.push(action);
 				}
 			});
 
 		return actions;
+	}
+
+	get default_actions() {
+		return {
+			'New': {
+				label: __('New'),
+				action: (frm) => frappe.new_doc(frm.doctype)
+			},
+			'Print': {
+				label: __('Print'),
+				action: (frm) => frm.print_doc()
+			},
+			'Email': {
+				label: __('Email'),
+				action: (frm) => frm.email_doc()
+			},
+			'List': {
+				label: __('View All'),
+				action: (frm) => {
+					frappe.set_route('List', frm.doctype);
+				}
+			}
+		};
 	}
 };
