@@ -70,19 +70,19 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 
 	get default_actions() {
 		return {
-			'New': {
+			'new': {
 				label: __('New'),
 				action: (frm) => frappe.new_doc(frm.doctype)
 			},
-			'Print': {
+			'print': {
 				label: __('Print'),
 				action: (frm) => frm.print_doc()
 			},
-			'Email': {
+			'email': {
 				label: __('Email'),
 				action: (frm) => frm.email_doc()
 			},
-			'List': {
+			'list': {
 				label: __('View All'),
 				action: (frm) => {
 					frappe.set_route('List', frm.doctype);

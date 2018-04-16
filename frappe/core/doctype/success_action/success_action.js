@@ -30,14 +30,13 @@ frappe.ui.form.on('Success Action', {
 	set_next_action_multicheck: (frm) => {
 		const next_actions_wrapper = frm.fields_dict.next_actions_html.$wrapper;
 		const checked_actions = frm.doc.next_actions ? frm.doc.next_actions.split('\n') : [];
-		const action_multicheck_options = ['New', 'Print', 'Email', 'List']
-			.map(action => {
-				return {
-					label: action,
-					value: action,
-					checked: checked_actions.length ? checked_actions.includes(action) : 1
-				};
-			});
+		const action_multicheck_options = get_default_next_actions().map(action => {
+			return {
+				label: action.label,
+				value: action.value,
+				checked: checked_actions.length ? checked_actions.includes(action) : 1
+			};
+		});
 		frm.action_multicheck = frappe.ui.form.make_control({
 			parent: next_actions_wrapper,
 			df: {
@@ -49,3 +48,12 @@ frappe.ui.form.on('Success Action', {
 		});
 	}
 });
+
+const get_default_next_actions = () => {
+	return [
+		{ label: __('New'), value: 'new' },
+		{ label: __('Print'), value: 'print' },
+		{ label: __('Email'), value: 'email' },
+		{ label: __('View All'), value: 'list' }
+	];
+};
