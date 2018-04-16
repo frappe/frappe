@@ -12,7 +12,7 @@ DocType: About Us Settings,Website,وېب پاڼه
 apps/frappe/frappe/www/me.py +14,You need to be logged in to access this page,تاسو ته په غونډال کې د دې مخ د لاسرسی
 DocType: System Settings,Note: Multiple sessions will be allowed in case of mobile device,یادونه: په څو غونډو کې به د ګرځنده آله صورت کې اجازه ورکړل شي
 apps/frappe/frappe/core/doctype/user/user.py +687,Enabled email inbox for user {users},کارن لپاره چارن ايميل {کارنان}
-apps/frappe/frappe/email/queue.py +252,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,دا برېښناليک نه واستوي. تاسو د دې مياشت کې د {0} بریښنالیکونو د استولو حد اوښتي.
+apps/frappe/frappe/email/queue.py +253,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,دا برېښناليک نه واستوي. تاسو د دې مياشت کې د {0} بریښنالیکونو د استولو حد اوښتي.
 apps/frappe/frappe/public/js/legacy/form.js +776,Permanently Submit {0}?,د تل لپاره {0} سپارل؟
 apps/frappe/frappe/desk/page/backups/backups.js +12,Download Files Backup,د دوتنې شاتړ ډاونلوډ
 DocType: Address,County,County
@@ -20,12 +20,12 @@ DocType: Workflow,If Checked workflow status will not override status in list vi
 apps/frappe/frappe/client.py +307,Invalid file path: {0},د دوتنې ناباوره لاره: {0}
 DocType: Workflow State,eye-open,د سترګو علني
 DocType: Email Queue,Send After,وروسته وليږئ
-apps/frappe/frappe/utils/file_manager.py +36,Please select a file or url,لطفا یو دوتنه يا url وټاکئ
+apps/frappe/frappe/utils/file_manager.py +37,Please select a file or url,لطفا یو دوتنه يا url وټاکئ
 apps/frappe/frappe/public/js/frappe/views/treeview.js +89,{0} Tree,{0} د ونو
 DocType: User,User Emails,کارن برېښناليک
 DocType: User,Username,نوم
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js +87,Import Zip,زېرمه وارد کړه
-apps/frappe/frappe/model/base_document.py +553,Value too big,ارزښت ډېر لوی
+apps/frappe/frappe/model/base_document.py +554,Value too big,ارزښت ډېر لوی
 DocType: DocField,DocField,DocField
 DocType: GSuite Settings,Run Script Test,د دويم الخط ټیسټ
 DocType: Data Import,Total Rows,ټولې رڼې
@@ -33,6 +33,7 @@ DocType: Contact,Department,ریاست
 DocType: DocField,Options,غوراوي
 apps/frappe/frappe/client.py +111,Cannot edit standard fields,کولای شي معیاري برخو نه د سمولو
 DocType: Print Format,Print Format Builder,چاپ شکل جوړونکی
+DocType: GCalendar Account,Calendar Name,د نوم نوم
 DocType: Report,Report Manager,راپور مدير
 DocType: Workflow,Document States,سند ايالات
 apps/frappe/frappe/public/js/frappe/views/pageview.js +104,Sorry! I could not find what you were looking for.,اوبخښه! زه نه څه لپاره چې تاسو په لټه کې شول.
@@ -48,7 +49,7 @@ apps/frappe/frappe/public/js/frappe/views/image/image_view.js +11,Images,انځ�
 DocType: Activity Log,Reference Owner,ماخذ خاوند
 DocType: Currency,Smallest circulating fraction unit (coin). For e.g. 1 cent for USD and it should be entered as 0.01,کوچنۍ دوران کسر واحد (سکې). لپاره د ډالرو د بيلګې په توګه 1 په سلو کې او دا باید د 0.01 داخل شي
 DocType: Social Login Key,GitHub,GitHub
-apps/frappe/frappe/model/base_document.py +547,"{0}, Row {1}",{0}، د کتارونو تر {1}
+apps/frappe/frappe/model/base_document.py +548,"{0}, Row {1}",{0}، د کتارونو تر {1}
 apps/frappe/frappe/www/feedback.html +93,Please give a fullname.,لطفا یو fullname ورکړي.
 apps/frappe/frappe/model/document.py +1046,Beginning with,سره پیل
 apps/frappe/frappe/core/doctype/data_export/exporter.py +111,Data Import Template,د معلوماتو د وارداتو کينډۍ
@@ -68,8 +69,9 @@ apps/frappe/frappe/www/login.html +20,Email Address,بریښنالیک
 DocType: Workflow State,th-large,مه-لوی
 DocType: Communication,Unread Notification Sent,لېکل خبر ته وليږدول شوه
 apps/frappe/frappe/public/js/frappe/misc/tools.js +10,Export not allowed. You need {0} role to export.,د صادراتو د اجازه نشته. تاسو د {0} د صادراتو رول ته اړتيا لري.
-apps/frappe/frappe/public/js/frappe/list/list_view.js +902,Cancel {0} documents?,د {0} اسنادو رد کول؟
+apps/frappe/frappe/public/js/frappe/list/list_view.js +922,Cancel {0} documents?,د {0} اسنادو رد کول؟
 DocType: DocType,Is Published Field,خپور ساحوي
+DocType: GCalendar Settings,GCalendar Settings,د ګالالرنې ترتیبونه
 DocType: Email Group,Email Group,دبرېښنا ګروپ
 DocType: Note,Seen By,لیدل By
 apps/frappe/frappe/public/js/frappe/form/templates/grid_body.html +17,Add Multiple,Add ګڼ
@@ -99,7 +101,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +36
 DocType: Company History,Company History,شرکت تاریخ
 apps/frappe/frappe/website/doctype/portal_settings/portal_settings.js +19,Reset,Reset
 DocType: Workflow State,volume-up,حجم-up
-apps/frappe/frappe/config/integrations.py +88,Webhooks calling API requests into web apps,ویبوکس په ویب ایپسونو کې د API غوښتنې غوښتنه کوي
+apps/frappe/frappe/config/integrations.py +78,Webhooks calling API requests into web apps,ویبوکس په ویب ایپسونو کې د API غوښتنې غوښتنه کوي
 DocType: DocType,Default Print Format,Default چاپ شکل
 DocType: Workflow State,Tags,نښانونه
 apps/frappe/frappe/public/js/frappe/form/workflow.js +33,None: End of Workflow,هيڅ: د ننګولې پايان
@@ -122,7 +124,7 @@ DocType: LDAP Settings,LDAP Search String,LDAP لټون تار
 DocType: Translation,Translation,ژباړه
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Mr,ښاغلی
 DocType: Custom Script,Client,د مراجع
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +188,Select Column,کالم غوره کړئ
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +189,Select Column,کالم غوره کړئ
 apps/frappe/frappe/public/js/legacy/form.js +475,This form has been modified after you have loaded it,دغه فورمه بدل شوی دی وروسته تاسو بار دا
 DocType: User Permission for Page and Report,User Permission for Page and Report,د Page او راپور کارن د اجازې د
 DocType: Address,Himachal Pradesh,Himachal پرادېش
@@ -139,14 +141,14 @@ apps/frappe/frappe/public/js/frappe/form/save.js +147,"Mandatory fields required
 apps/frappe/frappe/utils/password_strength.py +196,Capitalization doesn't help very much.,کپیتالیزیشن نه ډېره مرسته نه کوي.
 DocType: Error Snapshot,Friendly Title,دوستانه عنوان
 DocType: Newsletter,Email Sent?,برېښناليک لېږلو؟
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +899,Toggle Chart,چارټ ټګ کړئ
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +897,Toggle Chart,چارټ ټګ کړئ
 apps/frappe/frappe/desk/form/save.py +50,Did not cancel,ايا لغوه نه
 DocType: Social Login Key,Client Information,د مراجع معلومات
 DocType: Workflow State,plus,جمع
 apps/frappe/frappe/integrations/oauth2.py +118,Logged in as Guest or Administrator,په توګه ميلمه یا مدیر غونډال کې
 DocType: Email Account,UNSEEN,په غیبو
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js +35,File Manager,د دوتنې د مدير
-DocType: OAuth Bearer Token,Refresh Token,تاندول د نښې
+DocType: GCalendar Account,Refresh Token,تاندول د نښې
 DocType: Address,Goa,Goa
 DocType: Webhook,Doc Event,د کور پېښلیک
 apps/frappe/frappe/public/js/frappe/misc/user.js +58,You,تاسو
@@ -170,8 +172,7 @@ apps/frappe/frappe/integrations/doctype/webhook/webhook.py +29,DocType must be S
 DocType: Workflow State,circle-arrow-up,دایره-غشی-up
 DocType: Email Domain,Email Domain,برېښناليک ډومېن
 DocType: Workflow State,italic,شوی
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,غوراوي&gt; کارن
-apps/frappe/frappe/core/doctype/doctype/doctype.py +756,{0}: Cannot set Import without Create,{0}: پرته جوړول د وارداتو جوړ نه شي
+apps/frappe/frappe/core/doctype/doctype/doctype.py +752,{0}: Cannot set Import without Create,{0}: پرته جوړول د وارداتو جوړ نه شي
 DocType: SMS Settings,Enter url parameter for message,د پیغام url عوامل وليکئ
 apps/frappe/frappe/templates/emails/auto_email_report.html +46,View report in your browser,په خپل لټون کې راپور وګورئ
 apps/frappe/frappe/config/desk.py +26,Event and other calendars.,دکمپاینونو او نورو کلیزه.
@@ -185,7 +186,7 @@ apps/frappe/frappe/core/doctype/file/file.py +184,Cannot delete Home and Attachm
 apps/frappe/frappe/config/desk.py +19,Files,دوتنې
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,Permissions get applied on Users based on what Roles they are assigned.,حلال پر بنسټ پر هغه څه رولونه د هغوی ګمارل شوي کارنان استعمال شي.
 apps/frappe/frappe/public/js/frappe/views/communication.js +481,You are not allowed to send emails related to this document,تاسو اجازه نه لري چې د دې سند د اړوند بریښنالیکونو ته واستوي
-apps/frappe/frappe/model/db_query.py +543,Please select atleast 1 column from {0} to sort/group,لطفا له {0} ته ړک / ډله تيروخت 1 کالم انتخاب
+apps/frappe/frappe/model/db_query.py +546,Please select atleast 1 column from {0} to sort/group,لطفا له {0} ته ړک / ډله تيروخت 1 کالم انتخاب
 DocType: PayPal Settings,Check this if you are testing your payment using the Sandbox API,وګورئ دا که تاسو ته ستاسو د sandbox API په کارولو سره د پیسو د آزمیښت
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30,You are not allowed to delete a standard Website Theme,تاسو اجازه نه لري چې د يوې معياري وېب پاڼه موضوع ړنګول
 DocType: Data Import,Log Details,د ننوتلو تفصیلات
@@ -211,7 +212,7 @@ DocType: Workflow State,chevron-up,chevron-up
 DocType: DocType,Allow Guest to View,اجازه ميلمه ته ښکاره کړی
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +64,Documentation,لاسوند
 DocType: Webhook,on_change,په
-apps/frappe/frappe/public/js/frappe/list/list_view.js +889,Delete {0} items permanently?,{0} توکي د تل لپاره ړنګول؟
+apps/frappe/frappe/public/js/frappe/list/list_view.js +909,Delete {0} items permanently?,{0} توکي د تل لپاره ړنګول؟
 apps/frappe/frappe/core/doctype/user/user.py +106,Not Allowed,نه پرې نږدي
 DocType: DocShare,Internal record of document shares,د سند د سهم د داخلي ریکارډ
 DocType: Workflow State,Comment,تبصره
@@ -222,7 +223,7 @@ apps/frappe/frappe/data_migration/doctype/data_migration_connector/data_migratio
 DocType: DocField,Display,وښایئ
 DocType: Email Group,Total Subscribers,Total پېرودونکي
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +25,"If a Role does not have access at Level 0, then higher levels are meaningless.",که يو رول کوي 0 د ليول لاس رسی نه لري، نو په لوړه کچه د دي معنی نه ورکوي.
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +862,Save As,Save As
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +860,Save As,Save As
 DocType: Communication,Seen,لیدل
 apps/frappe/frappe/public/js/frappe/form/layout.js +162,Show more details,نور معلومات وښیه
 DocType: System Settings,Run scheduled jobs only if checked,یوازې ټاکل شوې دندې پرمخ که وکتل
@@ -243,7 +244,7 @@ DocType: DocType,Hide Heading,پټول Heading
 DocType: Address,Current,اوسني
 DocType: Address,Current,اوسني
 apps/frappe/frappe/config/core.py +17,Groups of DocTypes,د DocTypes ډلو
-apps/frappe/frappe/config/integrations.py +98,Google Maps integration,د ګوګل نقشه یوځای کول
+apps/frappe/frappe/config/integrations.py +88,Google Maps integration,د ګوګل نقشه یوځای کول
 DocType: Auto Email Report,XLSX,XLSX
 apps/frappe/frappe/templates/emails/password_reset.html +3,Reset your password,خپل پټنوم بیا وټاکئ
 DocType: Workflow State,remove-circle,لرې-کړۍ
@@ -262,7 +263,7 @@ apps/frappe/frappe/config/setup.py +126,Update many values at one time.,په ي�
 apps/frappe/frappe/model/document.py +627,Error: Document has been modified after you have opened it,تېروتنه: لاسوند بدل شوی دی وروسته تاسو پرانیستل دا
 apps/frappe/frappe/core/doctype/activity_log/feed.py +56,{0} logged out: {1},{0} غونډال څخه: {1}
 DocType: Address,West Bengal,لویدیځ بنګال
-apps/frappe/frappe/core/doctype/doctype/doctype.py +777,{0}: Cannot set Assign Submit if not Submittable,{0}: جوړ نشي دمکپاین سپارل که Submittable نه
+apps/frappe/frappe/core/doctype/doctype/doctype.py +772,{0}: Cannot set Assign Submit if not Submittable,{0}: جوړ نشي دمکپاین سپارل که Submittable نه
 DocType: Transaction Log,Row Index,د قطار لست
 DocType: Social Login Key,Facebook,Facebook
 apps/frappe/frappe/www/list.py +66,"Filtered by ""{0}""",فلتر له خوا د &quot;{0}&quot;
@@ -273,7 +274,7 @@ apps/frappe/frappe/core/doctype/role/role.py +24,Standard roles cannot be disabl
 apps/frappe/frappe/public/js/frappe/chat.js +1598,Chat Type,د چیٹ ډول
 DocType: Address,Mizoram,Mizoram
 DocType: Newsletter,Newsletter,خبر پاڼه
-apps/frappe/frappe/model/db_query.py +534,Cannot use sub-query in order by,آيا نه په خاطر له خوا د فرعي پکارواچوی
+apps/frappe/frappe/model/db_query.py +537,Cannot use sub-query in order by,آيا نه په خاطر له خوا د فرعي پکارواچوی
 DocType: Web Form,Button Help,تڼی په مرسته
 DocType: Kanban Board Column,purple,ارغواني
 DocType: About Us Settings,Team Members,د ډلې غړي
@@ -347,9 +348,10 @@ apps/frappe/frappe/email/smtp.py +215,Unable to send emails at this time,په د
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +93,Search or type a command,پلټنه يا د يو کمانډ ټايپ
 DocType: Activity Log,Timeline Name,مهال ویش نوم
 DocType: Email Account,e.g. smtp.gmail.com,د بيلګې په توګه smtp.gmail.com
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +380,Add A New Rule,Add يو نوي حاکمیت
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +364,Add A New Rule,Add يو نوي حاکمیت
 DocType: Contact,Sales Master Manager,خرڅلاو ماسټر مدير
 DocType: User Permission,For Value,د ارزښت لپاره
+DocType: GCalendar Account,Google Calendar ID,د ګوګل کتل ID
 apps/frappe/frappe/www/complete_signup.html +13,One Last Step,یو تېر ګام
 apps/frappe/frappe/config/setup.py +98,Import Data,واردات ډاټا
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +60,Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,د لاسوند ډول (DocType) تاسو غواړئ دې برخه کې وي چې په تړاو نوم. د بيلګې په توګه د پېرېدونکي
@@ -359,6 +361,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +143,Search Help,�
 DocType: Top Bar Item,Parent Label,Parent نښه د
 apps/frappe/frappe/templates/emails/auto_reply.html +2,"Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail.",ستاسو دپوښتنی سره ترلاسه شوي دي. موږ به بېرته ډېر ژر ځواب. که تاسو په کوم اضافي معلومات ولري، نو مهرباني وکړئ ځواب او دا پيغام.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +10,Permissions are automatically translated to Standard Reports and Searches.,حلال دي په اتوماتيک ډول د کره راپورونو او د تالاشيو ژباړل.
+DocType: GCalendar Account,Allow GCalendar Access,د ګالیالیلر لاسرسی ته اجازه ورکړه
 apps/frappe/frappe/templates/includes/login/login.js +251,Login token required,د ننوتلو اړتیا نشته
 DocType: Event,Repeat Till,تر تکرار
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +111,New,د نوي
@@ -380,7 +383,7 @@ DocType: Email Alert Recipient,Email By Document Field,ليک د سند د سا�
 DocType: Domain Settings,Domain Settings,Domain امستنې
 apps/frappe/frappe/core/page/usage_info/usage_info.html +63,Files Size:,د دوتنې اندازه:
 apps/frappe/frappe/core/page/usage_info/usage_info.js +20,Upgrade,ترفیع
-apps/frappe/frappe/email/receive.py +65,Cannot connect: {0},پیوستېدلی نشي: {0}
+apps/frappe/frappe/email/receive.py +64,Cannot connect: {0},پیوستېدلی نشي: {0}
 apps/frappe/frappe/utils/password_strength.py +184,A word by itself is easy to guess.,A لخوا په خپله کلمه ده اسانه فکر.
 apps/frappe/frappe/www/search.html +11,Search...,د لټون ...
 apps/frappe/frappe/utils/nestedset.py +218,Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,آژانسونو تر منځ یوازې هله ممکن دئ ګروپ-to-ګروپ یا د پاڼی غوټه-to-د پاڼی غوټه
@@ -392,6 +395,7 @@ apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +448,{0} from {1} to
 apps/frappe/frappe/public/js/frappe/ui/toolbar/user_progress_dialog.js +116,Mark as Done,د ډون په توګه نښه
 DocType: Chat Message,Type,ډول
 DocType: Activity Log,Subject,مضمون
+apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html +13,Back to Desk,بېرته میز ته
 DocType: Web Form,Amount Based On Field,اندازه په ساحوي
 apps/frappe/frappe/core/doctype/docshare/docshare.py +34,User is mandatory for Share,کارن لپاره د Share الزامی دی
 DocType: DocField,Hidden,پټ
@@ -415,7 +419,7 @@ DocType: Workflow Document State,Doc Status,doc حالت
 DocType: Data Migration Run,Pull Update,اوسمهال کړئ
 DocType: Auto Email Report,No of Rows (Max 500),نه د کتارونو (Max 500)
 DocType: Language,Language Code,ژبه کوډ
-apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js +282,"Your download is being built, this may take a few moments...",ستاسو دانلود جوړيږي، چې دا کار ښايي د څو شيبو ونیسي ...
+apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js +281,"Your download is being built, this may take a few moments...",ستاسو دانلود جوړيږي، چې دا کار ښايي د څو شيبو ونیسي ...
 apps/frappe/frappe/public/js/frappe/ui/filters/filter_list.js +144,Add Filter,Add Filter
 apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py +86,SMS sent to following numbers: {0},پیغامونه د دې لاندې شمېرې ته استول: {0}
 apps/frappe/frappe/public/js/frappe/ui/comment.js +230,Your rating: ,ستاسو کچونګ:
@@ -423,7 +427,7 @@ apps/frappe/frappe/utils/data.py +602,{0} and {1},{0} او {1}
 apps/frappe/frappe/public/js/frappe/chat.js +2144,Start a conversation.,خبرې اترې پیل کړئ.
 DocType: Print Settings,"Always add ""Draft"" Heading for printing draft documents",&quot;مسوده&quot; تل د چاپ اسناد مسوده مدعي دی اضافه
 DocType: Data Migration Run,Current Mapping Start,اوسنۍ نقشه ایزه شروع
-apps/frappe/frappe/core/doctype/communication/communication.js +229,Email has been marked as spam,برېښناليک په نښه شوی سپم
+apps/frappe/frappe/core/doctype/communication/communication.js +240,Email has been marked as spam,برېښناليک په نښه شوی سپم
 DocType: About Us Settings,Website Manager,وېب پاڼه مدير
 apps/frappe/frappe/public/js/frappe/socketio_client.js +342,File Upload Disconnected. Please try again.,د دوتنې اپارتمان ونشو. مهرباني وکړئ بیا هڅه وکړئ.
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js +48,Translations,ژباړونکي
@@ -448,7 +452,7 @@ DocType: Letter Head,Check this to make this the default letter head in all prin
 DocType: Print Format,Server,سرور
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +208,New Kanban Board,نوي Kanban بورډ
 DocType: Desktop Icon,Link,لینک
-apps/frappe/frappe/utils/file_manager.py +121,No file attached,نه د دوتنې سره ضميمه
+apps/frappe/frappe/utils/file_manager.py +122,No file attached,نه د دوتنې سره ضميمه
 DocType: Version,Version,نسخه
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +56,Charts,چارټونه
 DocType: User,Fill Screen,پرده ډکه کړئ
@@ -508,9 +512,9 @@ apps/frappe/frappe/email/doctype/email_alert/email_alert.js +21,Last Modified Da
 DocType: Chat Profile,Settings,امستنې
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +36,Please specify doctype,لطفا doctype مشخص
 DocType: Print Format,Style Settings,Style امستنې
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +332,Y Axis Fields,د ایکس اکس ډګرونه
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +333,Y Axis Fields,د ایکس اکس ډګرونه
 apps/frappe/frappe/core/doctype/doctype/doctype.py +627,Sort field {0} must be a valid fieldname,ننداره ډګر {0} باید یو قانوني fieldname وي
-apps/frappe/frappe/public/js/frappe/list/base_list.js +272,More,نور
+apps/frappe/frappe/public/js/frappe/list/base_list.js +271,More,نور
 DocType: Contact,Sales Manager,خرڅلاو مدير
 apps/frappe/frappe/public/js/frappe/model/model.js +534,Rename,نوم بدلول
 DocType: Print Format,Format Data,شکل د معلوماتو د
@@ -521,7 +525,7 @@ DocType: Website Settings,Chat Room Name,د چیٹ کوډ نوم
 DocType: OAuth Client,Grant Type,وړیا ډول
 apps/frappe/frappe/config/setup.py +50,Check which Documents are readable by a User,د وګورئ چې اسناد يو کارن لخوا د لوستلو وړ دي
 DocType: Deleted Document,Hub Sync ID,د کور همکاري ID
-apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +274,use % as wildcard,په توګه پځای٪ کاروي
+apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +280,use % as wildcard,په توګه پځای٪ کاروي
 apps/frappe/frappe/email/doctype/email_account/email_account.js +151,"Email Domain not configured for this account, Create one?",برېښناليک ډومېن لپاره دې حساب نه بندي شوې، یو جوړول؟
 DocType: User,Reset Password Key,د بیرته شفر کلیدي
 DocType: Email Account,Enable Auto Reply,فعال د موټرونو ته ځواب ورکړئ
@@ -568,8 +572,9 @@ DocType: DocField,Set Only Once,د ټاکلو په یوازې کله
 DocType: Email Queue Recipient,Email Queue Recipient,ليک د کتار تسلیمونکی
 DocType: Address,Nagaland,Nagaland
 apps/frappe/frappe/core/doctype/user/user.py +423,Username {0} already exists,نوم {0} د مخکې نه شتون
-apps/frappe/frappe/core/doctype/doctype/doctype.py +783,{0}: Cannot set import as {1} is not importable,{0}: نه د وارداتو جوړ آیا په توګه {1} importable نه دی
+apps/frappe/frappe/core/doctype/doctype/doctype.py +778,{0}: Cannot set import as {1} is not importable,{0}: نه د وارداتو جوړ آیا په توګه {1} importable نه دی
 apps/frappe/frappe/contacts/doctype/address/address.py +114,There is an error in your Address Template {0},ستاسو په پته کينډۍ یوه تېروتنه شته {0}
+DocType: User,Allow Desktop Icon,د ډیسټیک آئیکن اجازه ورکړئ
 DocType: Footer Item,"target = ""_blank""",هدف = &quot;_blank&quot;
 DocType: Workflow State,hdd,hdd
 DocType: Integration Request,Host,کوربه
@@ -581,7 +586,7 @@ apps/frappe/frappe/core/doctype/user/user.py +1012,OTP Secret has been reset. Re
 DocType: Communication,From Full Name,له بشپړ نوم
 apps/frappe/frappe/desk/query_report.py +21,You don't have access to Report: {0},تاسو ته راپور ته لاسرسی نه لري: {0}
 DocType: User,Send Welcome Email,وليږئ بريښناليک ښه راغلاست
-apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +260,Remove Filter,Filter لرې کړئ
+apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +266,Remove Filter,Filter لرې کړئ
 DocType: Address,Daman and Diu,دامان او يعنې
 DocType: Address,Personal,د شخصي
 apps/frappe/frappe/config/setup.py +118,Bulk Rename,د حجم د رښتو
@@ -597,7 +602,7 @@ apps/frappe/frappe/core/doctype/page/page.py +37,Not in Developer Mode,نه په
 apps/frappe/frappe/desk/page/backups/backups.py +79,File backup is ready,د دوتنې شاتړ چمتو دی
 DocType: DocField,In Global Search,په نړیوال لټون
 DocType: Workflow State,indent-left,indent-کيڼ
-apps/frappe/frappe/utils/file_manager.py +281,It is risky to delete this file: {0}. Please contact your System Manager.,دا خطرناکه چې د دغې دوتنې د ړنګولو: {0}. لطفا د خپل سیستم د مدیر سره اړیکه.
+apps/frappe/frappe/utils/file_manager.py +282,It is risky to delete this file: {0}. Please contact your System Manager.,دا خطرناکه چې د دغې دوتنې د ړنګولو: {0}. لطفا د خپل سیستم د مدیر سره اړیکه.
 DocType: Currency,Currency Name,د اسعارو نوم
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +171,No Emails,نه برېښناليک
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +461,Select File Format,د دوتنې بڼه غوره کړه
@@ -608,7 +613,7 @@ DocType: Website Theme,Google Font (Text),د ګوګل Font (متن)
 DocType: DocType,MyISAM,MyISAM
 DocType: Data Migration Run,Push Delete,پټه ړنګول
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +31,{0} already unsubscribed for {1} {2},{0} لا د کش {1} {2}
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +336,Did not remove,ايا لرې نه
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +318,Did not remove,ايا لرې نه
 apps/frappe/frappe/desk/like.py +89,Liked,خوبيا
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send Now,وليږئ اوس
 apps/frappe/frappe/core/doctype/doctype/doctype.py +81,"Standard DocType cannot have default print format, use Customize Form",معياري DocType نه شي کولای تلوالیزه چاپي بڼه لري، دتنظيمولو فورمه وکاروي
@@ -631,7 +636,7 @@ apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +63,Select atleast 1
 apps/frappe/frappe/core/doctype/has_role/has_role.py +12,User '{0}' already has the role '{1}',کارن &#39;{0}&#39; پخوا د رول &#39;{1}&#39;
 DocType: System Settings,Two Factor Authentication method,د دوو فکتور اعتباري طریقه
 apps/frappe/frappe/public/js/frappe/form/share.js +36,Shared with {0},د شریکې سره د {0}
-apps/frappe/frappe/email/queue.py +269,Unsubscribe,ویسي
+apps/frappe/frappe/email/queue.py +270,Unsubscribe,ویسي
 DocType: Activity Log,Reference Name,ماخذ نوم
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js +13,Update Translations,اوسمهال لاسوندونه
 DocType: Error Snapshot,Exception,استثنا
@@ -661,7 +666,7 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.py +35,Scheduled to send 
 DocType: Kanban Board Column,Indicator,شاخص
 DocType: DocShare,Everyone,هرڅوک
 DocType: Workflow State,backward,په شا
-apps/frappe/frappe/core/doctype/doctype/doctype.py +730,"{0}: Only one rule allowed with the same Role, Level and {1}",{0}: يوازې يو واکمنۍ د همدې رول، د ليول او اجازه {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +726,"{0}: Only one rule allowed with the same Role, Level and {1}",{0}: يوازې يو واکمنۍ د همدې رول، د ليول او اجازه {1}
 DocType: Email Queue,Add Unsubscribe Link,Add لاسرسۍ لینک
 apps/frappe/frappe/templates/includes/comments/comments.html +7,No comments yet. Start a new discussion.,څه نه دي ویلي اوسه. یو نوی بحث پیل کړئ.
 DocType: Workflow State,share,برخه
@@ -674,7 +679,6 @@ DocType: User,Last IP,تېره IP
 apps/frappe/frappe/core/page/usage_info/usage_info.js +20,Renew / Upgrade,نه ايستل / ترفیع
 apps/frappe/frappe/share.py +148,A new document {0} has been shared by with you {1}.,یو نوی سند {0} له تاسو سره {1} شریک شوی دی.
 DocType: Data Migration Connector,Data Migration Connector,د ډاټا مهاجرت کنټرول
-DocType: Custom DocPerm,Filter records based on User Permissions defined for a user,Filter اسنادو پر بنسټ د کارن حلال لپاره د کارونکي تعریف
 DocType: Note,Notify Users On Every Login,په هر ننوتل کارنان خبر
 DocType: Note,Notify Users On Every Login,په هر ننوتل کارنان خبر
 DocType: PayPal Settings,API Password,API پاسورډ
@@ -692,7 +696,7 @@ DocType: Portal Settings,Portal Settings,تانبه امستنې
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.js +24,Cannot update {0},تازه ندی کولی {0}
 DocType: Data Migration Mapping,Mapping,نقشه
 DocType: Web Page,0 is highest,0 لوړه ده
-apps/frappe/frappe/core/doctype/communication/communication.js +117,Are you sure you want to relink this communication to {0}?,آیا تاسو په ډاډمنه توګه غواړئ چې د {0} د دې اړیکو relink؟
+apps/frappe/frappe/core/doctype/communication/communication.js +127,Are you sure you want to relink this communication to {0}?,آیا تاسو په ډاډمنه توګه غواړئ چې د {0} د دې اړیکو relink؟
 apps/frappe/frappe/www/login.html +86,Send Password,وليږئ پاسورډ
 DocType: Email Queue,Attachments,ضم
 apps/frappe/frappe/website/doctype/web_form/web_form.py +133,You don't have the permissions to access this document,تاسو د پرېښلې د دې سند د لاسرسی نه لري
@@ -705,7 +709,7 @@ DocType: Web Form Field,Web Form Field,ويب فورمه ساحوي
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +257,Hide field in Report Builder,په راپور جوړونکی پټول برخه
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_field.html +21,Edit HTML,سمول HTML
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py +30,Please enter Redirect URL,لطفا د مستقیم یو آر ایل داخل کړئ
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +513,Restore Original Permissions,Original حلال لپاره بيازېرمل
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +416,Restore Original Permissions,Original حلال لپاره بيازېرمل
 DocType: Address,Shop,شاپ
 DocType: DocField,Button,تڼی
 apps/frappe/frappe/printing/doctype/print_format/print_format.py +80,{0} is now default print format for {1} doctype,{0} اوس د ده لپاره د {1} doctype تلوالیزه چاپي بڼه
@@ -713,7 +717,7 @@ apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.js +338,Archived C
 DocType: Email Account,Default Outgoing,default باورلیک
 DocType: Workflow State,play,ولوبوي
 apps/frappe/frappe/templates/emails/new_user.html +4,Click on the link below to complete your registration and set a new password,پر لینک کلیک لاندې ستاسو د نوم ليکنې د بشپړې او د يوه نوي پټنوم د ټاکل
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +417,Did not add,نه اضافه
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +401,Did not add,نه اضافه
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +184,No Email Accounts Assigned,نه برېښناليک حسابونه موظف
 DocType: Contact Us Settings,Contact Us Settings,له مونږ سره تماس امستنې
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +176,Searching ...,پلټي ...
@@ -734,13 +738,13 @@ DocType: Dropbox Settings,App Secret Key,ددفتروسایل پټې کلیدي
 DocType: Webhook,on_submit,پرسونل
 apps/frappe/frappe/config/website.py +7,Web Site,وېبپاڼه:
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +8,Checked items will be shown on desktop,چک توکي به د سرپاڼې ته وښودل شي
-apps/frappe/frappe/core/doctype/doctype/doctype.py +773,{0} cannot be set for Single types,{0} نه مجرد ډولونه جوړ شي
+apps/frappe/frappe/core/doctype/doctype/doctype.py +768,{0} cannot be set for Single types,{0} نه مجرد ډولونه جوړ شي
 DocType: Data Import,Data Import,ډاټا واردات
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +322,Configure Chart,چارټ بدل کړئ
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +323,Configure Chart,چارټ بدل کړئ
 apps/frappe/frappe/public/js/frappe/form/form_viewers.js +55,{0} are currently viewing this document,{0} اوس مهال د دې سند یې ګورې
 DocType: ToDo,Assigned By Full Name,ګمارل شوي By بشپړ نوم
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +155,{0} updated,{0} تازه
-apps/frappe/frappe/core/doctype/doctype/doctype.py +763,Report cannot be set for Single types,د مجرد ډوله راپور نه جوړ شي
+apps/frappe/frappe/core/doctype/doctype/doctype.py +759,Report cannot be set for Single types,د مجرد ډوله راپور نه جوړ شي
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +52,{0} days ago,{0} ورځې مخکې
 DocType: Email Account,Awaiting Password,تمه پاسورډ
 DocType: Address,Address Line 1,پته کرښې 1
@@ -756,7 +760,7 @@ DocType: Contact,Unsubscribed,کش
 apps/frappe/frappe/config/setup.py +42,Set custom roles for page and report,لپاره د مخ او راپور جوړ ګمرک رولونه
 DocType: Braintree Settings,Merchant ID,د سوداګرې پېژندنې
 apps/frappe/frappe/public/js/frappe/misc/rating_icons.html +2,Rating: ,درجه:
-apps/frappe/frappe/email/receive.py +197,Can not find UIDVALIDITY in imap status response,آيا په imap حالت ځواب UIDVALIDITY نه پیدا
+apps/frappe/frappe/email/receive.py +196,Can not find UIDVALIDITY in imap status response,آيا په imap حالت ځواب UIDVALIDITY نه پیدا
 DocType: Address,Dadra and Nagar Haveli,Dadra او ناګار Haveli
 apps/frappe/frappe/website/js/web_form.js +265,Uploading files please wait for a few seconds.,د پورته دوتنې مهرباني وکړئ د يو څو ثانيو کې انتظار وباسي.
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +415,Attach Your Picture,ستاسو انځوريز ضمیمه
@@ -765,10 +769,10 @@ DocType: Workflow State,Stop,درېدل
 DocType: Footer Item,Link to the page you want to open. Leave blank if you want to make it a group parent.,لینک د پاڼې تاسو غواړئ چې دابرخه ته. خالي پريږدئ که تاسو غواړئ چې دا د يوې ډلې د مورنی.
 DocType: DocType,Is Single,ده مجرد
 apps/frappe/frappe/core/doctype/user/user.py +756,Sign Up is disabled,ګڼون جوړولو کار نکوی
-apps/frappe/frappe/email/queue.py +328,{0} has left the conversation in {1} {2},{0} په محاورې پاتې {1} {2}
+apps/frappe/frappe/email/queue.py +329,{0} has left the conversation in {1} {2},{0} په محاورې پاتې {1} {2}
 DocType: Blogger,User ID of a Blogger,د ویبالګ کارن ID
 apps/frappe/frappe/core/doctype/user/user.py +305,There should remain at least one System Manager,دلته باید لږ تر لږه یو سیستم مدير پاتې شي
-DocType: GSuite Settings,Authorization Code,د واک ورکولو د قانون
+DocType: GCalendar Account,Authorization Code,د واک ورکولو د قانون
 DocType: PayPal Settings,Mention transaction completion page URL,ذکر د راکړې ورکړې بشپړیدو مخ URL
 DocType: Help Article,Expert,کارپوه
 DocType: Workflow State,circle-arrow-right,دایره-غشی-حق
@@ -788,20 +792,18 @@ apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.js +32,G
 DocType: Feedback Trigger,"To add dynamic subject, use jinja tags like
 
 <div><pre><code>{{ doc.name }} Delivered</code></pre></div>","ته خوځنده تابع اضافه، jinja نښانونو په څېر استفاده <div style=""""><pre style=""""> <code>{{ doc.name }} Delivered</code> </pre> </div>"
-DocType: Custom DocPerm,Apply User Permissions,کارن حلال Apply
+DocType: Report,Apply User Permissions,کارن حلال Apply
 DocType: User,Modules HTML,ماډل د HTML
 apps/frappe/frappe/public/js/frappe/ui/field_group.js +88,Missing Values Required,ورک ارزښتونه اړین
 DocType: DocType,Other Settings,نور امستنې
 DocType: Data Migration Connector,Frappe,Frappe
 apps/frappe/frappe/core/doctype/communication/communication_list.js +17,Mark as Unread,مارک په توګه نوې
-apps/frappe/frappe/public/js/frappe/list/list_permission_footer.html +12,{0} is not set,{0} نه جوړ
 DocType: Activity Log,Operation,د عملياتو
 DocType: Customize Form,Change Label (via Custom Translation),د بدلون نښه د (د ګمرکونو ژباړه له لارې)
 apps/frappe/frappe/share.py +137,No permission to {0} {1} {2},ته هيڅ اجازه {0} د {1} {2}
 DocType: Address,Permanent,د دایمي
 DocType: Address,Permanent,د دایمي
 apps/frappe/frappe/public/js/frappe/form/workflow.js +42,Note: Other permission rules may also apply,یادونه: نور اجازه اصولو ښايي هم تر غوږو
-apps/frappe/frappe/permissions.py +285,Not allowed to access {0} with {1} = {2},اجازه نه لاس رسی {0} د {1} = {2}
 DocType: Data Import,"If this is checked, rows with valid data will be imported and invalid rows will be dumped into a new file for you to import later.
 ",که چیرې دا چک شوی وي، د قطعاتو باوري ډاټا سره به واردېږي او باوري قطار به تاسو ته وروسته د واردولو لپاره نوي فایل ته وځنډول شي.
 apps/frappe/frappe/templates/emails/print_link.html +2,View this in your browser,ښکاره دې چې خپل لټونګر کې
@@ -865,11 +867,11 @@ DocType: Kanban Board Column,Blue,آبي
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +168,All customizations will be removed. Please confirm.,ټول خپلخوښی به لرې شي. مهرباني وکړئ تایید یې کړئ.
 DocType: Page,Page HTML,Page HTML
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +70,Group name cannot be empty.,د ډلې نوم خالي نه دی.
-apps/frappe/frappe/public/js/frappe/views/treeview.js +289,Further nodes can be only created under 'Group' type nodes,لا غوټو يوازې ډله &#39;ډول غوټو لاندې جوړ شي
+apps/frappe/frappe/public/js/frappe/views/treeview.js +291,Further nodes can be only created under 'Group' type nodes,لا غوټو يوازې ډله &#39;ډول غوټو لاندې جوړ شي
 DocType: SMS Parameter,Header,سرۍ
 apps/frappe/frappe/public/js/frappe/model/model.js +90,Unknown Column: {0},نامعلوم کالم: {0}
 DocType: Email Alert Recipient,Email By Role,په بريښناليک رول
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +310,Users with role {0}:,سره د {0} رول کاروونکي:
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +291,Users with role {0}:,سره د {0} رول کاروونکي:
 DocType: Print Format,Custom Format,د ګمرکونو شکل
 DocType: Workflow State,random,تصادفي
 DocType: Newsletter Email Group,Newsletter Email Group,خبر پاڼه برېښناليک ګروپ
@@ -890,8 +892,7 @@ DocType: Event,Saturday,شنبه
 DocType: User,Represents a User in the system.,استازيتوب په سيستم کې يو کارن.
 DocType: Communication,Label,لیبل
 apps/frappe/frappe/desk/form/assign_to.py +145,"The task {0}, that you assigned to {1}, has been closed.",د دنده {0}، چې تاسو د {1}، تړل شوې ده ګمارل شوي و.
-DocType: User,Modules Access,ماډل د لاسرسي
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +255,Please close this window,لطفا دا کړکۍ وتړي
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +258,Please close this window,لطفا دا کړکۍ وتړي
 DocType: Print Format,Print Format Type,چاپ شکل ډول
 DocType: Newsletter,A Lead with this Email Address should exist,په دې ليک پته د مشرتابه باید شتون
 apps/frappe/frappe/public/js/frappe/ui/toolbar/about.js +7,Open Source Applications for the Web,د ويب لپاره پرانیستې سرچینه غوښتنلیکونه
@@ -934,18 +935,16 @@ apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +
 apps/frappe/frappe/templates/emails/auto_reply.html +3,Reference: {0} {1},ماخذ: {0} د {1}
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Mrs,میرمن
 DocType: File,Attached To Name,د نوم سره ضميمه
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} کال (مخکې)
 DocType: Address,Address Type,پته ډول
-apps/frappe/frappe/email/receive.py +95,Invalid User Name or Support Password. Please rectify and try again.,باطلې کارن نوم یا د ملاتړ شفر. لطفا د سمولو او بیا کوښښ وکړه.
+apps/frappe/frappe/email/receive.py +94,Invalid User Name or Support Password. Please rectify and try again.,باطلې کارن نوم یا د ملاتړ شفر. لطفا د سمولو او بیا کوښښ وکړه.
 DocType: Email Account,Yahoo Mail,ياهو مېل
 apps/frappe/frappe/limits.py +77,Your subscription will expire tomorrow.,ستاسو ګډون به سبا ته ورسیږي.
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +492,Saved!,وژغوره!
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Madam,آغلې
 apps/frappe/frappe/desk/page/activity/activity_row.html +21,Updated {0}: {1},Updated {0}: {1}
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Master,ماسټر
 DocType: DocType,User Cannot Create,کارن جوړول نه شي
 apps/frappe/frappe/core/doctype/file/file.py +320,Folder {0} does not exist,دادوسیه خلاصه {0} نه شته
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +280,Dropbox access is approved!,Dropbox لاسرسي تصویب!
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +283,Dropbox access is approved!,Dropbox لاسرسي تصویب!
 DocType: Customize Form,Enter Form Type,وليکئ فورمه ډول
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +13,Missing parameter Kanban Board Name,د پیرودونکي کنبن بورډ نوم ورک شوی
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html +5,No records tagged.,هیڅ ډول ثبتونې سکس.
@@ -980,15 +979,16 @@ apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +4,Editing Row
 DocType: Workflow Action,Workflow Action Master,ننګولې کړنه ماسټر
 DocType: Custom Field,Field Type,ساحوي ډول
 apps/frappe/frappe/utils/data.py +498,only.,يوازې.
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357,<p>No results found for '</p>,"<p style=""""> د &#39; </p>"
 apps/frappe/frappe/core/doctype/user/user.py +1014,OTP secret can only be reset by the Administrator.,د OTP راز یوازې د مدیر لخوا ترتیب کیدی شي.
 apps/frappe/frappe/utils/password_strength.py +135,Avoid years that are associated with you.,کلونو له تاسو سره چې بوخت دي ډډه وکړي.
 DocType: GSuite Templates,GSuite Templates,GSuite کينډۍ
 apps/frappe/frappe/utils/goal.py +109,Goal,موخه
-apps/frappe/frappe/email/receive.py +61,Invalid Mail Server. Please rectify and try again.,باطلې Mail سرور. لطفا د سمولو او بیا کوښښ وکړه.
+apps/frappe/frappe/email/receive.py +60,Invalid Mail Server. Please rectify and try again.,باطلې Mail سرور. لطفا د سمولو او بیا کوښښ وکړه.
 DocType: DocField,"For Links, enter the DocType as range.
 For Select, enter list of Options, each on a new line.",د دویب، په توګه لړ د DocType ته ننوځي. د انتخاب، د غوراوي په يوه نوي مزي دواړو داخل لست،.
 DocType: Workflow State,film,فلم
-apps/frappe/frappe/model/db_query.py +404,No permission to read {0},د لوستلو نه اجازه {0}
+apps/frappe/frappe/model/db_query.py +406,No permission to read {0},د لوستلو نه اجازه {0}
 apps/frappe/frappe/config/desktop.py +8,Tools,وسیلې
 apps/frappe/frappe/utils/password_strength.py +134,Avoid recent years.,وروستیو کلونو څخه ډډه وکړي.
 apps/frappe/frappe/utils/nestedset.py +237,Multiple root nodes not allowed.,څو د ريښو غوټو اجازه نه لري.
@@ -1010,9 +1010,9 @@ apps/frappe/frappe/email/doctype/email_account/email_account.py +171,Authenticat
 DocType: Custom Field,Custom Field,د ګمرکونو د ساحوي
 apps/frappe/frappe/email/doctype/email_alert/email_alert.py +35,Please specify which date field must be checked,مهرباني وکړئ مشخص چې نېټې ډګر باید وکتل شي
 DocType: Custom DocPerm,Set User Permissions,جوړ کارن حلال
+apps/frappe/frappe/permissions.py +172,Not allowed for {0} = {1},د {0} = {1} لپاره اجازه نشته
 DocType: Email Account,Email Account Name,Email اکانټ نوم
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +259,Select Document Types,انتخاب سند ډولونه
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +230,Something went wrong while generating dropbox access token. Please check error log for more details.,څه ستونزه لاړل د توليد په داسې حال کې dropbox لاسرسی نښه. لطفا د نورو معلوماتو لپاره د ګمراهۍ يادښت وګورئ.
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +233,Something went wrong while generating dropbox access token. Please check error log for more details.,څه ستونزه لاړل د توليد په داسې حال کې dropbox لاسرسی نښه. لطفا د نورو معلوماتو لپاره د ګمراهۍ يادښت وګورئ.
 DocType: File,old_parent,old_parent
 apps/frappe/frappe/config/desk.py +54,"Newsletters to contacts, leads.",د تماسونو خبر پاڼې، سبب کیږي.
 DocType: Email Account,"e.g. ""Support"", ""Sales"", ""Jerry Yang""",د بيلګې په توګه: &quot;د مالتړ&quot;، &quot;خرڅلاو&quot;، &quot;Jerry يانګ&quot;
@@ -1031,11 +1031,11 @@ DocType: Event,Every Day,هره ورځ
 DocType: LDAP Settings,Password for Base DN,لپاره اډه DN پټنوم
 apps/frappe/frappe/core/doctype/version/version_view.html +73,Table Field,جدول د ساحوي
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +178,Columns based on,یورتان پر بنسټ
-apps/frappe/frappe/config/integrations.py +78,Enter keys to enable integration with Google GSuite,سره د ګوګل GSuite ادغام تڼیو وليکئ
+apps/frappe/frappe/config/integrations.py +103,Enter keys to enable integration with Google GSuite,سره د ګوګل GSuite ادغام تڼیو وليکئ
 DocType: Workflow State,move,حرکت
 apps/frappe/frappe/model/document.py +1229,Action Failed,کړنه کې پاتې راغی
 DocType: List Filter,For User,د کارن
-apps/frappe/frappe/public/js/frappe/views/treeview.js +374,Chart of Accounts,د حسابونو چارټ
+apps/frappe/frappe/public/js/frappe/views/treeview.js +376,Chart of Accounts,د حسابونو چارټ
 DocType: Address,Assam,آسام
 apps/frappe/frappe/core/page/usage_info/usage_info.html +5,You have {0} days left in your subscription,تاسو په {0} ورځو کې ستاسو په ګډون کې پاتې شوي دي
 apps/frappe/frappe/email/doctype/email_domain/email_domain.py +57,Outgoing email account not correct,د تېرې ایمیل حساب صحيح نه
@@ -1117,16 +1117,14 @@ apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +438,cancelled this 
 apps/frappe/frappe/core/doctype/report/report.js +16,Write a Python file in the same folder where this is saved and return column and result.,په همدې پوښۍ چې هلته دا وژغوره او ستون او له امله بيرته Python دوتنې ولیکئ.
 DocType: DocType,Sort Field,ننداره ساحوي
 DocType: Razorpay Settings,Razorpay Settings,Razorpay امستنې
-apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +257,Edit Filter,چاڼ
+apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +263,Edit Filter,چاڼ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +451,Field {0} of type {1} cannot be mandatory,ساحوي {0} د {1} ډول نه شي اجباري وي
 apps/frappe/frappe/public/js/frappe/ui/slides.js +29,Add More,Add نور
 DocType: System Settings,Session Expiry Mobile,د ناستې د پای د موبايل په
 apps/frappe/frappe/templates/includes/search_box.html +19,Search results for,د پلټنې پايلې
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py +28,Please enter Access Token URL,لطفا د لاسرسۍ یو آر ایل ډک کړئ
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +820,Select To Download:,انتخاب د وورد:
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +436,If {0} is permitted,که {0} ته اجازه
 DocType: Custom DocPerm,If user is the owner,که د کارونکي عکس د هغې مالک دی
-apps/frappe/frappe/config/integrations.py +93,Maps,نقشه
 ,Activity,فعالیت
 DocType: Note,"Help: To link to another record in the system, use ""#Form/Note/[Note Name]"" as the Link URL. (don't use ""http://"")",مرسته: د په سيستم کې د بل ریکارډ سره تړنې لري، وکاروي &quot;# فورمه / يادونه / [یادونه نوم]&quot; د لینک په حافظی په توګه. (نه کاروي &quot;http: //&quot;)
 DocType: User Permission,Allow,اجازه ورکړه
@@ -1147,7 +1145,6 @@ DocType: Portal Menu Item,Portal Menu Item,تانبه Menu د قالب
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +562,Clear User Settings,د کارن غوره کولو ترتیبونه
 DocType: Contact Us Settings,Email ID,Email ID
 DocType: Activity Log,Keep track of all update feeds,د ټولو تازه تغذیاتو څارنه وکړئ
-DocType: System Settings,"If Apply User Permissions is checked for Report DocType but no User Permissions are defined for Report for a User, then all Reports are shown to that User",که کارن حلال Apply لپاره راپور DocType چک دی، خو د کارن حلال نه د کارن لپاره راپور کې تعريف شوي دي، نو ټول راپورونه چې د کارن ښودل شوي دي
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,د سرچینو لست چې د مراجع ددفتروسایل به وروسته د کارونکي ته اجازه ورکوي چې دا ته لاسرسی ولري. <br> د بيلګې په توګه د پروژې د
 DocType: Translation,Translated Text,ژباړه متن
 DocType: Contact Us Settings,Query Options,خوری غوراوي
@@ -1166,7 +1163,7 @@ apps/frappe/frappe/config/setup.py +57,Report of all document shares,د ټولو
 apps/frappe/frappe/www/update-password.html +18,New Password,نوئ پټ نوم
 apps/frappe/frappe/core/doctype/activity_log/activity_log.py +29,Sorry! You cannot delete auto-generated comments,اوبخښه! تاسو نه شي کولای د Auto-تولید تبصرې ړنګول
 DocType: Website Theme,Style using CSS,CSS کارولو Style
-apps/frappe/frappe/core/doctype/communication/communication.js +100,Reference DocType,ماخذ DocType
+apps/frappe/frappe/core/doctype/communication/communication.js +110,Reference DocType,ماخذ DocType
 DocType: User,System User,سيستم کارن
 DocType: Report,Is Standard,آیا د معياري
 DocType: Desktop Icon,_report,_report
@@ -1214,12 +1211,11 @@ DocType: Async Task,Async Task,Async کاري
 DocType: Workflow State,picture,انځور
 apps/frappe/frappe/www/complete_signup.html +22,Complete,بشپړ
 DocType: Customize Form,Image Field,د انځور د ساحوي
-apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.py +31,Something went wrong during the token generation. Please request again an authorization code.,څه نښه نسل په ترڅ کې ناسم. لطفا یو د صالحیت کوډ بيا غوښتنه وکړي.
+apps/frappe/frappe/integrations/doctype/gcalendar_settings/gcalendar_settings.py +49,Something went wrong during the token generation. Please request again an authorization code.,څه نښه نسل په ترڅ کې ناسم. لطفا یو د صالحیت کوډ بيا غوښتنه وکړي.
 DocType: Print Format,Custom HTML Help,د ګمرکونو د HTML مرسته
 apps/frappe/frappe/website/doctype/contact_us_settings/contact_us_settings.js +3,See on Website,په ويب پاڼه وګورئ
 DocType: Workflow Transition,Next State,بل د بهرنیو چارو
 DocType: User,Block Modules,د بنديز د روزنیز ماډل
-DocType: User Permission,"If you un-check this, you will have to apply manually for each Role + Document Type combination",که تاسو دا وګورئ نو بیا به تاسو باید د هر رول + سند ډول ډول د ترکیب لپاره په دستی توګه غوښتنه وکړئ
 apps/frappe/frappe/model/db_schema.py +147,Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.,ته د اوپيات اوږدوالي د {0} لپاره د &#39;{1}&#39; په &#39;{2}؛ د اوږدوالي د خوښو په توګه {3} به د معلوماتو د truncation سبب شي.
 DocType: Print Format,Custom CSS,د ګمرکونو د سټايل شي
 apps/frappe/frappe/public/js/frappe/ui/comment.js +36,Add a comment,Add a comment
@@ -1241,6 +1237,7 @@ apps/frappe/frappe/public/js/frappe/roles_editor.js +40,Clear all roles,ټول �
 apps/frappe/frappe/model/base_document.py +363,{0} must be unique,{0} بايد بې سارې وي
 apps/frappe/frappe/public/js/frappe/list/list_renderer.js +554,Row,د کتارونو
 DocType: Data Migration Mapping Detail,Local Fieldname,ځایی ډګر نوم
+DocType: User Permission,Linked Doctypes,تړل شوي دکتیکونه
 DocType: DocType,Track Changes,Track بدلونونه
 DocType: Workflow State,Check,چيک
 DocType: Chat Profile,Offline,د نالیکي
@@ -1254,11 +1251,10 @@ DocType: User,Email Signature,دبرېښنا ليک لاسلیک
 DocType: Website Settings,Google Analytics ID,Google Analytics ID
 DocType: Website Theme,Link to your Bootstrap theme,مخونه چې د ستاسو د Bootstrap موضوع
 DocType: Custom DocPerm,Delete,ړنګول
-apps/frappe/frappe/public/js/frappe/views/treeview.js +240,New {0},نوي {0}
+apps/frappe/frappe/public/js/frappe/views/treeview.js +242,New {0},نوي {0}
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js +10,Default Inbox,default د inbox
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +58,Make a new,د کمکیانو لپاره د نوي
 DocType: Print Settings,PDF Page Size,د PDF په اندازه
-apps/frappe/frappe/public/js/frappe/list/list_permission_footer.html +20,Note: fields having empty value for above criteria are not filtered out.,یادونه: په برخو کې لرلو لپاره د پورته معیارونو تش ارزښت دي فلتر نه کړي.
 DocType: Data Import,Attach file for Import,د واردولو لپاره دوتنه ضمیمه کړئ
 DocType: Communication,Recipient Unsubscribed,دترلاسه کوونکي کش
 DocType: Feedback Request,Is Sent,آیا ته وليږدول شوه
@@ -1315,7 +1311,6 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +701,No Permissions Specified
 apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py +299,{0} not found,{0} ونه موندل شو
 DocType: Custom Role,Custom Role,د ګمرکونو رول
 apps/frappe/frappe/core/doctype/file/test_file.py +57,Home/Test Folder 2,کور / امتحان پوښی 2
-DocType: System Settings,Ignore User Permissions If Missing,کارن حلال پامه که ورک
 apps/frappe/frappe/public/js/frappe/form/controls/attach.js +48,Please save the document before uploading.,لطفا د پورته مخکې سند وژغوري.
 apps/frappe/frappe/public/js/frappe/ui/messages.js +219,Enter your password,خپل پټ نوم وليکئ
 DocType: Dropbox Settings,Dropbox Access Secret,Dropbox لاسرسی پټې
@@ -1326,11 +1321,11 @@ apps/frappe/frappe/public/js/frappe/form/toolbar.js +179,Edit DocType,سمول D
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +160,Unsubscribed from Newsletter,څخه د خبرپانې کش
 apps/frappe/frappe/core/doctype/doctype/doctype.py +543,Fold must come before a Section Break,قات باید یو برخه له خلاصيدو نه مخکې راغلي
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +13,Under Development,د پرمختګ لاندې
-apps/frappe/frappe/public/js/frappe/model/meta.js +190,Last Modified By,اخري تاييد By
+apps/frappe/frappe/public/js/frappe/model/meta.js +185,Last Modified By,اخري تاييد By
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +179,Customizations Reset,د ګمرکونو بیا رغونه
 DocType: Workflow State,hand-down,لاس ښکته
 DocType: Address,GST State,GST د بهرنیو چارو
-apps/frappe/frappe/core/doctype/doctype/doctype.py +749,{0}: Cannot set Cancel without Submit,{0}: جوړ نشي لغوه پرته سپارل
+apps/frappe/frappe/core/doctype/doctype/doctype.py +745,{0}: Cannot set Cancel without Submit,{0}: جوړ نشي لغوه پرته سپارل
 DocType: Website Theme,Theme,موضوع
 DocType: OAuth Authorization Code,Redirect URI Bound To Auth Code,Redirect URI د Auth قانون تابع دي
 DocType: DocType,Is Submittable,ده Submittable
@@ -1343,7 +1338,6 @@ DocType: Workflow State,Inbox,ته درشي
 DocType: Kanban Board Column,Red,سور
 DocType: Workflow State,Tag,Tag
 DocType: Custom Script,Script,د ښونکی
-DocType: User Permission,Apply for all Roles for this User,د دې کارن لپاره د ټولو ونډو لپاره غوښتنه وکړئ
 apps/frappe/frappe/core/doctype/data_import/log_details.html +30,Document can't saved.,لاسوند نشي خوندي کېدلی.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +35,My Settings,زما امستنې
 DocType: Website Theme,Text Color,د متن رنګ
@@ -1370,7 +1364,7 @@ DocType: DocField,Mandatory,اجباري
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +88,Module to Export,ماډل د صادرولو
 apps/frappe/frappe/core/doctype/doctype/doctype.py +713,{0}: No basic permissions set,{0}: نه د اساسي پرېښلې ټولګه
 apps/frappe/frappe/limits.py +80,Your subscription will expire on {0}.,ستاسو ګډون به د پای ته د {0}.
-apps/frappe/frappe/utils/backups.py +160,Download link for your backup will be emailed on the following email address: {0},ستاسو د شاتړ دانلود مخونه به په لاندې ایمیل ادرس راولي شي: {0}
+apps/frappe/frappe/utils/backups.py +164,Download link for your backup will be emailed on the following email address: {0},ستاسو د شاتړ دانلود مخونه به په لاندې ایمیل ادرس راولي شي: {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend",د سپارل، لغوه ترجمه، تعدیل
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,کول
 DocType: Test Runner,Module Path,ماډل يونلور
@@ -1388,7 +1382,7 @@ DocType: Workflow State,book,کتاب
 DocType: Website Settings,Landing Page,بېړنۍ ناسته Page
 apps/frappe/frappe/public/js/frappe/form/script_manager.js +163,Error in Custom Script,په ګمرکونو الخط کې تېروتنه
 apps/frappe/frappe/public/js/frappe/form/quick_entry.js +84,{0} Name,{0} نوم
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +167,No Permissions set for this criteria.,نه حلال د دې ثبتیږي.
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +171,No Permissions set for this criteria.,نه حلال د دې ثبتیږي.
 DocType: Auto Email Report,Auto Email Report,د موټرونو دبرېښنا ليک راپور
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +580,Delete comment?,ړنګول نظر؟
 DocType: Address Template,This format is used if country specific format is not found,دا فرمت که د هېواد مشخصې فرمت ونه موندل کارول
@@ -1407,7 +1401,7 @@ DocType: Workflow State,thumbs-up,تړون
 DocType: DocPerm,DocPerm,DocPerm
 DocType: Print Settings,Fonts,فکسونه
 apps/frappe/frappe/core/doctype/doctype/doctype.py +499,Precision should be between 1 and 6,Precision بايد 1 او 6 تر منځ وي
-apps/frappe/frappe/core/doctype/communication/communication.js +180,Fw: {0},FW: {0}
+apps/frappe/frappe/core/doctype/communication/communication.js +190,Fw: {0},FW: {0}
 apps/frappe/frappe/public/js/frappe/misc/utils.js +162,and,او
 DocType: Error Snapshot,Frames,چوکاټونه
 apps/frappe/frappe/patches/v6_19/comment_feed_communication.py +131,Assignment,دندې
@@ -1416,9 +1410,8 @@ DocType: Auto Email Report,Report Filters,راپور چاڼګرونه
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +16,now,اوس
 DocType: Workflow State,step-backward,ګام په شا
 apps/frappe/frappe/utils/boilerplate.py +265,{app_title},{app_title}
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +214,Please set Dropbox access keys in your site config,مهرباني وکړئ په خپل ځای جوړول Useragent Dropbox لاسرسي کیلي ګانو څخه جوړ
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +217,Please set Dropbox access keys in your site config,مهرباني وکړئ په خپل ځای جوړول Useragent Dropbox لاسرسي کیلي ګانو څخه جوړ
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,دغه ریکارډ ړنګول چې د دې ایمیل ادرس استولو اجازه
-apps/frappe/frappe/email/smtp.py +69,Please setup default Email Account from Setup &gt; Email &gt; Email Account,مهرباني وکړئ د سایټ اپ&gt; بریښنالیک&gt; ایمیل ادرس څخه د بریښناليک بریښناليک حساب جوړول
 apps/frappe/frappe/core/doctype/data_export/exporter.py +125,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,يوازې جبري پټی لپاره د نوي ریکارډونه ضروري دي. تاسو کولای غیر الزامی ستنې ړنګول که تاسو غواړئ.
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +330,Unable to update event,د غونډې د اوسمهالولو توان نلري
 apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +304,Payment Complete,د تادیاتو بشپړ
@@ -1516,10 +1509,10 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +598,Image field must be of t
 DocType: DocField,Columns,ستونونه
 DocType: Async Task,Succeeded,بریالي وو
 apps/frappe/frappe/public/js/frappe/form/save.js +150,Mandatory fields required in {0},اجباري برخو کې اړتیا {0}
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +100,Reset Permissions for {0}?,لپاره د بیرته حلال {0}؟
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +102,Reset Permissions for {0}?,لپاره د بیرته حلال {0}؟
 DocType: S3 Backup Settings,S3 Backup Settings,S3 بیک اپ امستنې
 apps/frappe/frappe/core/doctype/version/version_view.html +32,Rows Removed,د کتارونو له منځه
-apps/frappe/frappe/permissions.py +409,{0} {1} not found,{0} د {1} ونه موندل شو
+apps/frappe/frappe/permissions.py +316,{0} {1} not found,{0} د {1} ونه موندل شو
 apps/frappe/frappe/www/login.py +48,Mobile Number,ګرځنده شمیره
 DocType: Communication,Attachment Removed,ضميمه له منځه
 apps/frappe/frappe/utils/password_strength.py +132,Recent years are easy to guess.,وروستیو کلونو کې چې په اسانۍ سره فکر.
@@ -1551,7 +1544,7 @@ DocType: Error Log,Title,نوم
 apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +100,"Seems issue with server's razorpay config. Don't worry, in case of failure amount will get refunded to your account.",سره پالنګر د razorpay جوړول Useragent ښکاري موضوع. اندېښنه مه کوه، په د ناکامۍ اندازه صورت کې به ستاسو حساب ته پيسې بيرته تر لاسه کړي.
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +171,Customize,دتنظيمولو
 apps/frappe/frappe/core/doctype/user/user.js +87,View Permitted Documents,اجازه لیک شوي اسناد وګورئ
-apps/frappe/frappe/email/smtp.py +172,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,د بریښنالیک حساب ندی جوړ شوی. مهرباني وکړئ د سایټ اپ&gt; بریښنالیک&gt; ایمیل ادرس څخه یو نوی بریښنالیک جوړ کړئ
+apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html +11,Your connection request to Google Calendar was successfully accepted,ستاسو د پیوستون د کښته کولو غوښتنه په بریالیتوب سره منل شوې وه
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py +53,Chain Integrity,د چین بشپړتیا
 DocType: Data Export,CSV,CSV
 apps/frappe/frappe/www/feedback.html +96,Please give a detailed feebdack.,لطفا يو مفصل feebdack ورکړي.
@@ -1559,7 +1552,7 @@ DocType: Currency,"1 Currency = [?] Fraction
 For e.g. 1 USD = 100 Cent",1 د اسعارو له = [؟] کسر د ساري 1 ډالره = 100 په سلو کې
 DocType: Data Import,Partially Successful,په بریالي توګه بریالی
 apps/frappe/frappe/core/doctype/user/user.py +769,"Too many users signed up recently, so the registration is disabled. Please try back in an hour",ډېر زيات کارنان په دې وروستيو کې لاسليک شو، له دې امله د نوم ليکنې د نافعال دی. مهرباني وکړئ د يوه ساعت په بېرته هڅه
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +384,Add New Permission Rule,Add نوي اجازه حاکمیت
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +368,Add New Permission Rule,Add نوي اجازه حاکمیت
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +26,You can use wildcard %,تاسو کولای شي پځای٪
 DocType: Chat Message Attachment,Chat Message Attachment,د چالان پیغام لغوه کول
 apps/frappe/frappe/public/js/frappe/upload.js +293,"Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed",يوازې انځور پراخونې (.gif، .JPG، .jpeg، .tiff، .png، .svg) اجازه
@@ -1577,7 +1570,7 @@ DocType: Data Migration Mapping,Remote Primary Key,لیرې پرائمري کی�
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +14,In,په
 DocType: Email Alert,Value Change,د ارزښت د بدلون
 DocType: Standard Reply,Standard Reply,کره ځواب ورکړئ
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +336,Showing only Numeric fields from Report,د راپور څخه یواځې د شمیرې ساحې ښودل
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +337,Showing only Numeric fields from Report,د راپور څخه یواځې د شمیرې ساحې ښودل
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +235,Width of the input box,د وتنی په صندوق کې د سور د
 DocType: Address,Subsidiary,د متمم
 DocType: System Settings,In Hours,په ساعتونه
@@ -1605,7 +1598,6 @@ DocType: Page,Standard,معياري
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +50,Attach File,دوتنه ضمیمه
 apps/frappe/frappe/desk/page/backups/backups.html +13,Size,اندازه
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +59,Assignment Complete,دنده بشپړه
-DocType: Custom DocPerm,User Permission DocTypes,کارن اجازه DocTypes
 DocType: Desktop Icon,Idx,Idx
 DocType: Address,Madhya Pradesh,Madhya پرادېش
 DocType: Deleted Document,New Name,د نوي نوم
@@ -1658,7 +1650,7 @@ apps/frappe/frappe/public/js/frappe/desk.js +17,Browser not supported,لټونګ
 DocType: Social Login Key,Client URLs,د مراجع یو آر ایل
 apps/frappe/frappe/templates/pages/integrations/braintree_checkout.py +32,Some information is missing,ځينې معلومات ورک دی
 DocType: Custom DocPerm,Cancel,لغوه کړه
-apps/frappe/frappe/public/js/frappe/views/treeview.js +372,Add to Desktop,د Desktop ورزیات کړئ
+apps/frappe/frappe/public/js/frappe/views/treeview.js +374,Add to Desktop,د Desktop ورزیات کړئ
 apps/frappe/frappe/core/doctype/file/file.py +153,File {0} does not exist,د دوتنې {0} نه شته
 apps/frappe/frappe/core/doctype/data_export/exporter.py +158,Leave blank for new records,د نوي ریکارډونه خالي پريږدئ
 apps/frappe/frappe/config/website.py +63,List of themes for Website.,د وېب پاڼه موضوعاتو بشپړفهرست.
@@ -1666,7 +1658,6 @@ apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permiss
 DocType: Activity Log,Logout,وتل
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +26,Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,په لوړه کچه د حلال دي ساحوي کچه پرېښلې. ټول فیلډز د هغوی په وړاندې یو د اجازې د ليول ټولګه او د اصولو تعریف په هغه پرېښلې په پټي درخواست لري. دا په هغه صورت کې ګټور تاسو غواړئ چې پټ یا ځینو ډګر پاتې-يوازې د ځانګړو رولونه کړي.
 DocType: SMS Settings,"Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)",دلته د ثابتو url پارامترونو وليکئ (د مثال په توګه. د استوونکي = ERPNext، کارن = ERPNext، پټنوم = 1234 نور)
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357,<p>No results found for '</p>,"<p style=""""> د &#39; </p>"
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +38,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.",که چېرې دا د لارښوونو کې چې ګټور نه، مهرباني وکړی په GitHub مسایل د تاسو وړانديزونو اضافه کړي.
 DocType: Workflow State,bookmark,ليکی
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js +66,Folder name should not include '/' (slash),دادوسیه خلاصه نوم باید شامل نه دي &#39;/&#39; (مخرېوند)
@@ -1677,8 +1668,9 @@ apps/frappe/frappe/www/qrcode.html +19,Authentication Apps you can use are: ,د 
 apps/frappe/frappe/core/doctype/feedback_trigger/feedback_trigger.py +137,Feedback conditions do not match,Feedback شرایطو سمون نه
 DocType: S3 Backup Settings,None,هیڅ نه
 apps/frappe/frappe/core/doctype/doctype/doctype.py +612,Timeline field must be a valid fieldname,مهال ویش په برخه باید یو قانوني fieldname وي
+DocType: GCalendar Account,Session Token,د سیشن نښه
 DocType: Currency,Symbol,سمبول
-apps/frappe/frappe/model/base_document.py +503,Row #{0}:,د کتارونو تر # {0}:
+apps/frappe/frappe/model/base_document.py +504,Row #{0}:,د کتارونو تر # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +157,New password emailed,نوی پټنوم راولي
 apps/frappe/frappe/auth.py +265,Login not allowed at this time,د ننوت په دې وخت کې اجازه نه لري
 DocType: Data Migration Run,Current Mapping Action,اوسنۍ نقشه ایزه کړنه
@@ -1717,7 +1709,7 @@ apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py +44,S
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +3,Quick Help for Setting Permissions,لپاره د خوښو حلال چټک مرسته
 DocType: Tag Doc Category,Doctype to Assign Tags,Doctype ته نښانونه موظف
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.js +9,Show Relapses,انکړپټه ښودل راوس
-apps/frappe/frappe/core/doctype/communication/communication.js +242,Email has been moved to trash,د خځلنۍ ته برېښناليک دی کډه شوي دي
+apps/frappe/frappe/core/doctype/communication/communication.js +253,Email has been moved to trash,د خځلنۍ ته برېښناليک دی کډه شوي دي
 DocType: Report,Report Builder,راپور جوړونکی
 DocType: Async Task,Task Name,کاري نوم
 apps/frappe/frappe/app.py +158,"Your session has expired, please login again to continue.",ستاسو د غونډې وخت تېر شوی دی، لطفا بیا سئ ته دوام ورکړي.
@@ -1775,7 +1767,8 @@ apps/frappe/frappe/templates/emails/feedback_request_url.html +8,1 star being lo
 DocType: Event,Ref Name,دسرچینی یادونه نوم
 DocType: Web Page,Center,مرکز
 DocType: Email Alert,Value To Be Set,ارزښت جوړ شي
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +454,Edit {0},{0}
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +455,Edit {0},{0}
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,ترتیب&gt; د کارن د اجازې مدیر
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js +11,First Level,لومړی د ليول
 DocType: Workflow Document State,Represents the states allowed in one document and role assigned to change the state.,ایالتونو کې د یو سند او رول ته دنده وسپارله څو د دولت د بدلون اجازه استازيتوب کوي.
 DocType: Data Migration Connector,Database Name,د ډاټا ډاټا
@@ -1869,7 +1862,7 @@ apps/frappe/frappe/www/qrcode.html +6,QR Code for Login Verification,د ننوت
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +134,Add to To Do,ته اضافه کړی تر آیا
 DocType: Footer Item,Company,شرکت
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +49,Assigned To Me,ما ته ګمارل شوي
-apps/frappe/frappe/config/integrations.py +83,Google GSuite Templates to integration with DocTypes,د ګوګل GSuite سره DocTypes ادغام کينډۍ
+apps/frappe/frappe/config/integrations.py +108,Google GSuite Templates to integration with DocTypes,د ګوګل GSuite سره DocTypes ادغام کينډۍ
 DocType: User,Logout from all devices while changing Password,د پټنوم بدلولو په وخت کې د ټولو وسیلو څخه ننوتل
 apps/frappe/frappe/public/js/frappe/ui/messages.js +234,Verify Password,شفر تاييد
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +138,There were errors,تېروتنې وې
@@ -1877,10 +1870,12 @@ apps/frappe/frappe/core/doctype/communication/communication.js +42,Close,بند�
 apps/frappe/frappe/model/document.py +653,Cannot change docstatus from 0 to 2,نه له 0 تر 2 docstatus بدلون
 DocType: File,Attached To Field,د ساحې سره نښلول
 DocType: User Permission for Page and Report,Roles Permission,رول د اجازې د
+apps/frappe/frappe/contacts/doctype/address/address.py +193,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,د ڈیفالف پته نه دی موندلی. مهرباني وکړئ د سایټ اپ&gt; چاپ او برنامه&gt; د پتې پته د یو نوی پیدا کړئ.
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js +14,Update,تازه
 DocType: Transaction Log,Transaction Hash,د راکړې ورکړې ها
 DocType: Error Snapshot,Snapshot View,انځور ښکاره کړی
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +106,Please save the Newsletter before sending,لطفا د استولو مخکې د دغی وژغوري
+apps/frappe/frappe/config/integrations.py +98,Configure accounts for google calendar,د google کیلنر لپاره اکاونټونه جوړ کړئ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +462,Options must be a valid DocType for field {0} in row {1},غوراوي باید د ساحوي {0} په قطار کې یو باوري DocType وي {1}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +167,Edit Properties,سمول Properties
 DocType: Patch Log,List of patches executed,د ټوټې د بشپړفهرست د اعدام
@@ -1897,7 +1892,7 @@ DocType: Data Migration Connector,Authentication Credentials,د اعتبار ا�
 DocType: Role,Two Factor Authentication,د دوو فکتور اعتبار
 apps/frappe/frappe/templates/pages/integrations/braintree_checkout.html +29,Pay,د تنخاوو
 DocType: SMS Settings,SMS Gateway URL,SMS ليدونکی URL
-apps/frappe/frappe/model/base_document.py +507,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""",{0} د {1} نه وي. &quot;{2}&quot;. دا بايد د يو وي &quot;{3}&quot;
+apps/frappe/frappe/model/base_document.py +508,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""",{0} د {1} نه وي. &quot;{2}&quot;. دا بايد د يو وي &quot;{3}&quot;
 apps/frappe/frappe/utils/data.py +599,{0} or {1},{0} يا {1}
 apps/frappe/frappe/core/doctype/user/user.py +249,Password Update,د تېرنويې د تازه
 DocType: Workflow State,trash,خځلنۍ
@@ -1914,7 +1909,7 @@ DocType: Website Settings,"Added HTML in the &lt;head&gt; section of the web pag
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js +9,Relapsed,وروګرځېد
 apps/frappe/frappe/utils/nestedset.py +181,Item cannot be added to its own descendents,د قالب د خپل descendents زياته نه شي
 DocType: System Settings,Expiry time of QR Code Image Page,د QR Code عکس پاڼه ختمولو وخت
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +877,Show Totals,انکړپټه ښودل مجموعه
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +875,Show Totals,انکړپټه ښودل مجموعه
 DocType: Error Snapshot,Relapses,ګرځېدنو
 DocType: Address,Preferred Shipping Address,نقل غوره پته
 apps/frappe/frappe/public/js/frappe/form/print.js +263,With Letter head,د لیک سر
@@ -1967,11 +1962,11 @@ DocType: Workflow State,hand-up,لاس-up
 DocType: Blog Settings,Writers Introduction,ليکوال سريزه
 DocType: Address,Phone,تيليفون
 apps/frappe/frappe/email/doctype/email_alert/email_alert.py +269,Error while evaluating Email Alert {0}. Please fix your template.,په داسې حال کې تېروتنه ارزونه دبرېښنا ليک خبرتیا {0}. لورينه وکړئ خپل د کېنډۍ ورکوی.
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +145,Select Document Type or Role to start.,انتخاب لاسوند ډول یا رول ته پيل کړي.
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +149,Select Document Type or Role to start.,انتخاب لاسوند ډول یا رول ته پيل کړي.
 DocType: Contact,Passive,Passive
 DocType: Contact,Accounts Manager,حسابونه مدير
 apps/frappe/frappe/templates/pages/integrations/payment-cancel.html +11,Your payment is cancelled.,ستاسو اجوره لغوه.
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +950,Select File Type,دوتنه انتخاب ډول
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +948,Select File Type,دوتنه انتخاب ډول
 DocType: Help Article,Knowledge Base Editor,پوهې بنسټ اېډېټر
 apps/frappe/frappe/public/js/frappe/views/container.js +57,Page not found,Page ونه موندل شو
 DocType: DocField,Precision,Precision
@@ -2000,12 +1995,12 @@ DocType: Property Setter,Property Type,د ملکیت ډول
 DocType: Workflow State,screenshot,پرده
 apps/frappe/frappe/core/doctype/report/report.py +33,Only Administrator can save a standard report. Please rename and save.,یوازې د اداره کولای شي د يوې معياري راپور وژغوري. لطفا نوم بدلولی شی او وژغوري.
 DocType: System Settings,Background Workers,شاليد کارګرانو
-apps/frappe/frappe/core/doctype/doctype/doctype.py +837,Fieldname {0} conflicting with meta object,Fieldname {0} سره meta څيز په ټکر کې
+apps/frappe/frappe/core/doctype/doctype/doctype.py +832,Fieldname {0} conflicting with meta object,Fieldname {0} سره meta څيز په ټکر کې
 DocType: Deleted Document,Data,د معلوماتو د
 apps/frappe/frappe/public/js/frappe/model/model.js +27,Document Status,سند حالت
 apps/frappe/frappe/core/page/desktop/desktop_help_message.html +5,You have made {0} of {1},تاسو کړې {0} د {1}
 DocType: OAuth Authorization Code,OAuth Authorization Code,OAuth د واک ورکولو د قانون
-apps/frappe/frappe/core/doctype/data_import/importer.py +308,Not allowed to Import,اجازه نه واردیږي
+apps/frappe/frappe/core/doctype/data_import/importer.py +315,Not allowed to Import,اجازه نه واردیږي
 DocType: Deleted Document,Deleted DocType,ړنګ DocType
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +22,Permission Levels,اجازه کچه
 DocType: Workflow State,Warning,خبرداری
@@ -2016,18 +2011,17 @@ apps/frappe/frappe/core/doctype/data_import/data_import.js +56,Help,مرسته
 DocType: User,Login Before,ننوتل مخکې
 DocType: Web Page,Insert Style,درج Style
 apps/frappe/frappe/config/setup.py +269,Application Installer,کاریال Installer
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +860,New Report name,نوي راپور نوم
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +858,New Report name,نوي راپور نوم
 DocType: Workflow State,info-sign,معلومات-نښه
 apps/frappe/frappe/model/base_document.py +217,Value for {0} cannot be a list,د {0} نه شي کولای یو لست وي ارزښت
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults",څنګه بايد د دغه کار د اسعارو بڼول شي؟ که ټاکل شوی نه، به سيستم افتراضیو وکاروي
-apps/frappe/frappe/public/js/frappe/list/list_view.js +916,Submit {0} documents?,د {0} اسناد تسلیم کړئ؟
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +261,Show User Permissions,انکړپټه ښودل کارن حلال
+apps/frappe/frappe/public/js/frappe/list/list_view.js +936,Submit {0} documents?,د {0} اسناد تسلیم کړئ؟
 apps/frappe/frappe/utils/response.py +143,You need to be logged in and have System Manager Role to be able to access backups.,تاسو بايد غونډال کې شي او د سیستم د مدير رول ولري تر څو backups لاسرسی وي.
 apps/frappe/frappe/public/js/legacy/form.js +137,Please save before attaching.,لطفا د ژغورلو ضميمه مخکې.
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +125,Added {0} ({1}),د ورزیاتولو {0} ({1})
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js +20,Default theme is set in {0},په تلواله موضوع ټاکل شوې ده {0}
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +338,Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype څخه نشي بدل شي {0} د {1} په قطار {2}
-apps/frappe/frappe/public/js/frappe/roles_editor.js +204,Role Permissions,رول حلال
+apps/frappe/frappe/public/js/frappe/roles_editor.js +194,Role Permissions,رول حلال
 DocType: Help Article,Intermediate,منځني
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py +20,Cancelled Document restored as Draft,مستند اسناد د مسودې په توګه بیرته راګرځیدل
 apps/frappe/frappe/model/delete_doc.py +252,Cannot delete or cancel because {0} {1} is linked with {2} {3} {4},{0} {1} د {2} {3} {4} سره تړاو لري، ځکه چې ړنګول یا رد نه شي کولی.
@@ -2035,20 +2029,24 @@ apps/frappe/frappe/public/js/frappe/form/templates/set_sharing.html +5,Can Read,
 DocType: Custom Role,Response,په ځواب کې
 DocType: DocField,Geolocation,جغرافیه
 apps/frappe/frappe/public/js/frappe/form/workflow.js +41,Workflow will start after saving.,ننګولې به د سپما له پيل څخه وروسته.
+apps/frappe/frappe/email/smtp.py +172,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,د بریښنالیک حساب ندی جوړ شوی. مهرباني وکړئ د سایټ اپ&gt; بریښنالیک&gt; ایمیل ادرس څخه یو نوی بریښنالیک جوړ کړئ
 apps/frappe/frappe/public/js/frappe/form/templates/set_sharing.html +7,Can Share,آیا شريک
 apps/frappe/frappe/email/smtp.py +27,Invalid recipient address,دترلاسه کوونکي ایمیل ادرس ناسم نوم
 DocType: Workflow State,step-forward,په ګام مخ
 apps/frappe/frappe/limits.py +69,Your subscription has expired.,ستاسو ګډون تېر شوی دی.
 DocType: Role Permission for Page and Report,Set Role For,د ټاکلو په رول د
+DocType: GCalendar Account,The name that will appear in Google Calendar,هغه نوم چې په ګوګل کټل کې راځي
 apps/frappe/frappe/core/doctype/user/user.js +67,Refreshing...,تازه ...
 DocType: Event,Starts on,پيل په
 DocType: System Settings,System Settings,سيستم امستنې
+DocType: GCalendar Settings,Google API Credentials,د ګوګل API کریډیټونه
 apps/frappe/frappe/public/js/frappe/desk.js +45,Session Start Failed,ناستې شروع ناکام
 apps/frappe/frappe/public/js/frappe/desk.js +45,Session Start Failed,ناستې شروع ناکام
-apps/frappe/frappe/email/queue.py +505,This email was sent to {0} and copied to {1},ایمیل د {0} ته استول شوې وه او کاپي د {1}
+apps/frappe/frappe/email/queue.py +506,This email was sent to {0} and copied to {1},ایمیل د {0} ته استول شوې وه او کاپي د {1}
 DocType: Workflow State,th,مه
 DocType: Social Login Key,Provider Name,د چمتو کوونکي نوم
 apps/frappe/frappe/public/js/frappe/form/controls/link.js +169,Create a new {0},د جوړولو لپاره یو نوی {0}
+DocType: GCalendar Account,GCalendar Account,د ګالیلر حساب
 DocType: Email Rule,Is Spam,آیا سپام
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +193,Report {0},راپور {0}
 apps/frappe/frappe/public/js/frappe/form/templates/form_links.html +13,Open {0},د پرانیستې {0}
@@ -2071,7 +2069,6 @@ DocType: Website Theme,Apply Style,Apply Style
 DocType: Feedback Request,Feedback Rating,Feedback درجه
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +63,Shared With,د شریکې سره
 DocType: Help Category,Help Articles,مرسته بیشتر
-,Modules Setup,ماډل د Setup
 apps/frappe/frappe/core/doctype/data_export/exporter.py +84,Type:,ډول:
 apps/frappe/frappe/templates/pages/integrations/payment-failed.html +11,Your payment has failed.,ستاسو د ورکړې ناکام دی.
 DocType: Communication,Unshared,شویوغیرمشترکو
@@ -2100,7 +2097,7 @@ DocType: OAuth Client,App Client ID,ددفتروسایل د مراجع ID
 DocType: Kanban Board,Kanban Board Name,Kanban بورډ نوم
 DocType: Email Alert Recipient,"Expression, Optional",د بيان، اختیاري
 DocType: GSuite Settings,Copy and paste this code into and empty Code.gs in your project at script.google.com,کاپي او په script.google.com دغه کوډ په خالي او Code.gs کې د خپلې پروژې پېسټ
-apps/frappe/frappe/email/queue.py +507,This email was sent to {0},دې برېښناليک ته استول شوې وه {0}
+apps/frappe/frappe/email/queue.py +508,This email was sent to {0},دې برېښناليک ته استول شوې وه {0}
 DocType: System Settings,Hide footer in auto email reports,د آوم ای میل راپورونو کې فوټر پټ کړئ
 DocType: DocField,Remember Last Selected Value,په یاد ولرئ تېره غوره ارزښت
 DocType: Email Account,Check this to pull emails from your mailbox,وګورئ دا ستاسو له ليارې څخه برېښلیکونه وباسي
@@ -2130,7 +2127,7 @@ DocType: Communication,Has  Attachment,لري ضميمه
 DocType: Address,Sales User,خرڅلاو کارن
 apps/frappe/frappe/config/setup.py +183,Drag and Drop tool to build and customize Print Formats.,راکښن او لاسرسئ وسیله د جوړولو او چاپ بڼی دتنظيمولو.
 DocType: Address,Sikkim,Sikkim
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +443,Set,ټاکل شوی
+apps/frappe/frappe/public/js/frappe/form/link_selector.js +142,Set,ټاکل شوی
 apps/frappe/frappe/desk/search.py +42,This query style is discontinued,داپوښتنه سبک دی ودرول
 DocType: Email Alert,Trigger Method,ماشه Method
 apps/frappe/frappe/utils/data.py +778,Operator must be one of {0},چلوونکې بايد د يو شي {0}
@@ -2140,7 +2137,7 @@ DocType: Auto Email Report,Email To,د ليک
 apps/frappe/frappe/core/doctype/file/file.py +235,Folder {0} is not empty,دادوسیه خلاصه {0} خالي نه ده
 DocType: Page,Roles,رول
 apps/frappe/frappe/model/base_document.py +399,Error: Value missing for {0}: {1},تېروتنه: د ارزښت لپاره ورک {0}: {1}
-apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +151,Field {0} is not selectable.,ساحوي {0} selectable نه ده.
+apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +156,Field {0} is not selectable.,ساحوي {0} selectable نه ده.
 DocType: Webhook,Webhook,ویبوک
 DocType: System Settings,Session Expiry,د ناستې د پای
 DocType: Workflow State,ban-circle,ban-کړۍ
@@ -2150,12 +2147,12 @@ apps/frappe/frappe/utils/data.py +762,Filter must be a tuple or list (in a list)
 apps/frappe/frappe/core/doctype/report/report.js +8,Write a SELECT query. Note result is not paged (all data is sent in one go).,انتخاب شوی نه خوری ولیکئ. يادونه پایله Paged نه دی (ټول معلومات په يو استول).
 DocType: Email Account,Attachment Limit (MB),ضميمه حد (MB)
 DocType: Address,Arunachal Pradesh,اروناچل پرادېش
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +981,Setup Auto Email,Setup د موټرونو دبرېښنا ليک
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +979,Setup Auto Email,Setup د موټرونو دبرېښنا ليک
 apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +25,Ctrl + Down,Ctrl + Down
 DocType: Chat Profile,Message Preview,د پېغام کتنه
 apps/frappe/frappe/utils/password_strength.py +173,This is a top-10 common password.,دا یو سر-10 عام شفر.
 DocType: User,User Defaults,کارن افتراضیو
-apps/frappe/frappe/public/js/frappe/views/treeview.js +251,Create New,نوی جوړول
+apps/frappe/frappe/public/js/frappe/views/treeview.js +253,Create New,نوی جوړول
 DocType: Workflow State,chevron-down,chevron ښکته
 apps/frappe/frappe/public/js/frappe/views/communication.js +518,Email not sent to {0} (unsubscribed / disabled),ایمیل ته نه استول {0} (کش / معيوبو)
 DocType: Async Task,Traceback,Traceback
@@ -2167,13 +2164,13 @@ apps/frappe/frappe/desk/doctype/note/note_list.js +3,Notes,یاداښتونه
 DocType: User,Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),IP پتې يوازې د کارونکي اندیښمن دي. څو IP پتې کولای سره commas بیلولو زياته شي. هم لکه قسمي IP پتې مني (111.111.111)
 DocType: Communication,From,له
 DocType: Website Theme,Google Font (Heading),د ګوګل Font (Heading)
-apps/frappe/frappe/public/js/frappe/views/treeview.js +232,Select a group node first.,لومړی د يوې ډلې غوټه وټاکئ.
+apps/frappe/frappe/public/js/frappe/views/treeview.js +234,Select a group node first.,لومړی د يوې ډلې غوټه وټاکئ.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +232,Find {0} in {1},موندل {0} د {1}
 DocType: OAuth Client,Implicit,ضمني
 DocType: Email Account,"Append as communication against this DocType (must have fields, ""Status"", ""Subject"")",د دې DocType په وړاندې د اړیکو د پايملون (باید برخو کې، &quot;حالت&quot; ولري، &quot;مضمون&quot;)
 DocType: OAuth Client,"URIs for receiving authorization code once the user allows access, as well as failure responses. Typically a REST endpoint exposed by the Client App.
 <br>e.g. http://hostname//api/method/frappe.www.login.login_via_facebook",لپاره اجازه کوډ تر لاسه يو ځل د کارونکي رسي اجازه ورکوي، او همدارنګه د ناکامۍ ځوابونه URIs. په خاصه توګه د استراحت د endpoint بربنډ د مراجع ددفتروسایل له خوا. <br> د بيلګې په توګه http: //hostname//api/method/frappe.www.login.login_via_facebook
-apps/frappe/frappe/model/base_document.py +574,Not allowed to change {0} after submission,اجازه نه سپارلو وروسته د {0} د بدلون
+apps/frappe/frappe/model/base_document.py +575,Not allowed to change {0} after submission,اجازه نه سپارلو وروسته د {0} د بدلون
 DocType: Data Migration Mapping,Migration ID Field,د مهاجرت ID ساحه
 DocType: Communication,Comment Type,پيغام ډول
 DocType: OAuth Client,OAuth Client,OAuth د مراجع
@@ -2183,11 +2180,12 @@ DocType: Address,Odisha,Odisha
 DocType: Report,Report Type,راپور ډول
 DocType: DocField,Signature,د لاسلیک
 apps/frappe/frappe/public/js/frappe/form/share.js +115,Share With,Share سره
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +141,Loading,Loading
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +145,Loading,Loading
 apps/frappe/frappe/config/integrations.py +53,"Enter keys to enable login via Facebook, Google, GitHub.",ته via Facebook، ګوګل، GitHub د ننوتو جوګه کلي ته ننوځي.
 apps/frappe/frappe/core/doctype/file/file.py +376,Unable to read file format for {0},د دوتنه بڼه کې د لوست توان {0}
 DocType: Auto Email Report,Filter Data,چاڼ د معلوماتو د
 DocType: Auto Email Report,Filter Data,چاڼ د معلوماتو د
+apps/frappe/frappe/email/smtp.py +69,Please setup default Email Account from Setup &gt; Email &gt; Email Account,مهرباني وکړئ د سایټ اپ&gt; بریښنالیک&gt; ایمیل ادرس څخه د بریښناليک بریښناليک حساب جوړول
 apps/frappe/frappe/public/js/frappe/form/controls/select.js +61,Please attach a file first.,لطفا یو دوتنې لومړۍ ضمیمه کړي.
 apps/frappe/frappe/model/naming.py +177,"There were some errors setting the name, please contact the administrator",يو شمېر غلطيو په نوم ټاکلو وو، لطفا د پازوال سره اړيکه نيسئ
 apps/frappe/frappe/email/doctype/email_domain/email_domain.py +41,Incoming email account not correct,راتلونکي ایمیل حساب صحيح نه
@@ -2218,7 +2216,7 @@ apps/frappe/frappe/desk/doctype/calendar_view/calendar_view.js +10,Show Calendar
 apps/frappe/frappe/config/integrations.py +58,LDAP Settings,LDAP امستنې
 apps/frappe/frappe/public/js/frappe/form/save.js +14,Amending,د تعديل
 apps/frappe/frappe/config/integrations.py +18,PayPal payment gateway settings,وی.دا پیسو ليدونکی امستنې
-apps/frappe/frappe/model/base_document.py +552,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}",{0}: &#39;{1}&#39; ({3}) به نیمګړې کړې، ځکه max تورو اجازه ده {2}
+apps/frappe/frappe/model/base_document.py +553,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}",{0}: &#39;{1}&#39; ({3}) به نیمګړې کړې، ځکه max تورو اجازه ده {2}
 DocType: OAuth Client,Response Type,غبرګون ډول
 DocType: Contact Us Settings,Send enquiries to this email address,پوښتنو ته دې ایمیل ادرس وليږئ
 DocType: Letter Head,Letter Head Name,لیک د مشر نوم
@@ -2228,7 +2226,6 @@ DocType: Workflow State,file,د دوتنې
 apps/frappe/frappe/www/login.html +90,Back to Login,بېرته ورتګ
 DocType: Data Migration Mapping,Local DocType,سیمه ایز ډاټا ډول
 apps/frappe/frappe/model/rename_doc.py +128,You need write permission to rename,تاسې باید اجازه نوم ولیکي
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +448,Apply Rule,حاکمیت Apply
 DocType: User,Karma,Karma
 DocType: DocField,Table,جدول
 DocType: File,File Size,د دوتنې کچه
@@ -2276,8 +2273,10 @@ DocType: Data Export,Data Export,د ډاټا صادرات
 apps/frappe/frappe/public/js/frappe/form/print.js +110,Select Language...,ژبه غوره کړه ...
 DocType: Help Article,Author,لیکوال
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js +10,Resume Sending,Resume لېږل
+apps/frappe/frappe/public/js/frappe/list/list_view_permission_restrictions.html +7,"{0} is
+			not set",{0} ندی ټاکل شوی
 apps/frappe/frappe/core/doctype/communication/communication.js +47,Reopen,بېرته پرانيستل
-apps/frappe/frappe/core/doctype/communication/communication.js +159,Re: {0},Re: {0}
+apps/frappe/frappe/core/doctype/communication/communication.js +169,Re: {0},Re: {0}
 DocType: Address,Purchase User,کارن رانيول
 DocType: Data Migration Run,Push Failed,پش ناکام شو
 DocType: Workflow,"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.",ډول &quot;د امریکا« د دې سند په شتون کولای شي. &quot;د پرانیستې&quot; په څېر، &quot;تصویبه&quot; او داسې نور
@@ -2293,12 +2292,12 @@ apps/frappe/frappe/core/doctype/communication/communication.js +87,Move To Trash
 DocType: Web Form,Web Form Fields,ويب فورمه فیلډز
 DocType: Website Theme,Top Bar Text Color,غوره مدافع وکیالنو د متن رنګ
 DocType: Data Import,Amended From,تعدیل له
-apps/frappe/frappe/public/js/frappe/model/meta.js +168,Warning: Unable to find {0} in any table related to {1},خبرداری: توان نلري پيدا {0} په اړوند د هر میز {1}
+apps/frappe/frappe/public/js/frappe/model/meta.js +163,Warning: Unable to find {0} in any table related to {1},خبرداری: توان نلري پيدا {0} په اړوند د هر میز {1}
 apps/frappe/frappe/model/document.py +1185,This document is currently queued for execution. Please try again,دغه سند د اوس لپاره د اعدام له پيله. لطفا بیا هڅه وکړې
 apps/frappe/frappe/core/doctype/file/file.py +403,File '{0}' not found,د دوتنې &#39;{0}&#39; ونه موندل شو
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +411,Remove Section,برخه لرې کړئ
 DocType: User,Change Password,پټ نوم بدل کړی
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +325,X Axis Field,د ایکس ایکس ډګر
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +326,X Axis Field,د ایکس ایکس ډګر
 apps/frappe/frappe/public/js/frappe/form/controls/data.js +121,Invalid Email: {0},باطلې برېښناليک: {0}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +348,Hello!,سلام!
 apps/frappe/frappe/config/integrations.py +13,Braintree payment gateway settings,د بریتینت د تادیې دروازې امستنې
@@ -2312,7 +2311,7 @@ DocType: Blog Post,Blog Post,Blog Post
 apps/frappe/frappe/public/js/frappe/form/controls/link.js +179,Advanced Search,ژور لټون
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +115,You are not permitted to view the newsletter.,تاسو ته د خبر لیک لیدو اجازه نلرئ.
 apps/frappe/frappe/core/doctype/user/user.py +809,Password reset instructions have been sent to your email,د تېرنويې د بیرته جوړولو د لارښوونو ته خپل ایمیل استول شوي دي
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +392,"Level 0 is for document level permissions, \
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +376,"Level 0 is for document level permissions, \
 								higher levels for field level permissions.",0 د ليول لپاره د سند په کچه پرېښلې، \ د ساحوي کچه پرېښلې لوړې کچې ده.
 apps/frappe/frappe/core/doctype/data_import/data_import.py +23,Can't save the form as data import is in progress.,د فارم واردولو په صورت کې دا فورمه نشي ساتلای.
 DocType: Workflow,States,د امریکا
@@ -2342,7 +2341,7 @@ apps/frappe/frappe/public/js/frappe/form/controls/text_editor.js +311,Select fro
 DocType: Custom Field,Field Description,ساحوي Description
 apps/frappe/frappe/model/naming.py +54,Name not set via Prompt,له لارې د خپلسرو نوم نه
 DocType: User,"Enter default value fields (keys) and values. If you add multiple values for a field,the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields,go to ""Customize Form"".",د ډیزاین ارزښت میدان (کلیدونه) او ارزښتونه ولیکئ. که تاسو د ځمکې لپاره ډیری ارزښتونه اضافه کړئ نو لومړی به یې غوره شي. دا نښې هم د &quot;میچ&quot; د اجازې مقرراتو د تنظیمولو لپاره کارول کیږي. د ساحو لیست وګورئ، &quot;د ګمرک کولو فورمه&quot; ته لاړ شئ.
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +235,Email Inbox,ايميل
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +246,Email Inbox,ايميل
 DocType: Auto Email Report,Filters Display,چاڼګرونه وښایئ
 DocType: Website Theme,Top Bar Color,غوره مدافع وکیالنو د رنګ
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +156,Do you want to unsubscribe from this mailing list?,تاسو غواړئ چې له دې پتو لیست ویسو؟
@@ -2362,6 +2361,7 @@ apps/frappe/frappe/core/doctype/data_export/exporter.py +100,There is no data to
 DocType: Domain Settings,Domains HTML,ډومینز ایچ ٹی ایم ایل
 apps/frappe/frappe/www/search.html +30,Type something in the search box to search,د پلټنې په بکس څه ډول باید له لټون
 apps/frappe/frappe/config/setup.py +209,Define workflows for forms.,د بڼې workflows تعریف کړي.
+apps/frappe/frappe/integrations/doctype/gcalendar_settings/gcalendar_settings.py +38,GCalendar is not configured.,ګالیلرور ندی بدل شوی.
 DocType: Address,Other,نور
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py +26,Please enter Authorize URL,لطفا رسمي سند URL ولیکئ
 DocType: S3 Backup Settings,Access Key ID,د کیلي لاسرسي
@@ -2392,7 +2392,7 @@ DocType: Data Import,If you don't want to create any new records while updating 
 apps/frappe/frappe/core/doctype/data_export/exporter.py +85,Info:,پيژندنه:
 DocType: Custom Field,Permission Level,د اجازې د ليول
 DocType: User,Send Notifications for Transactions I Follow,د معاملې زه تعقیب د خبرتیا وليږئ
-apps/frappe/frappe/core/doctype/doctype/doctype.py +752,"{0}: Cannot set Submit, Cancel, Amend without Write",{0}: جوړ نشي سپارل، لغوه، پرته نوشتن راولی
+apps/frappe/frappe/core/doctype/doctype/doctype.py +748,"{0}: Cannot set Submit, Cancel, Amend without Write",{0}: جوړ نشي سپارل، لغوه، پرته نوشتن راولی
 DocType: Google Maps,Client Key,د مراجع کیلي
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +83,Are you sure you want to delete the attachment?,آيا تاسو په ډاډمنه توګه غواړئ چې په ضمیمه کی ړنګ کړئ؟
 apps/frappe/frappe/__init__.py +1097,Thank you,مننه
@@ -2413,7 +2413,7 @@ apps/frappe/frappe/core/doctype/data_import/data_import.js +61,Download Template
 apps/frappe/frappe/config/setup.py +247,Add custom javascript to forms.,Add د ګمرک د فارمونو جاوا.
 ,Role Permissions Manager,رول حلال مدير
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +117,Name of the new Print Format,د نوي چاپ شکل نوم
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +903,Toggle Sidebar,د سایډ بار ټګول
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +901,Toggle Sidebar,د سایډ بار ټګول
 DocType: Data Migration Run,Pull Insert,ورننوځئ
 apps/frappe/frappe/public/js/frappe/form/controls/attach.js +60,Clear Attachment,روښانه ضميمه
 apps/frappe/frappe/core/doctype/data_export/exporter.py +83,Mandatory:,اجباري:
@@ -2471,13 +2471,12 @@ apps/frappe/frappe/website/doctype/blog_post/blog_post.py +106,Posts by {0},لي
 apps/frappe/frappe/core/doctype/report/report.js +9,"To format columns, give column labels in the query.",ته بڼه ستنې، په دپوښتنی کالم لیبلونه ورکړي.
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +65,Direct room with {other} already exists.,د {نور} سره مستقیم خونه لا دمخه لا شتون لري.
 DocType: Has Domain,Has Domain,لري ډومېن
-apps/frappe/frappe/core/page/desktop/desktop.js +190,Hide,پټ کړئ
+apps/frappe/frappe/core/page/desktop/desktop.js +203,Hide,پټ کړئ
 apps/frappe/frappe/www/login.html +54,Don't have an account? Sign up,مونږ سره حساب نه لري؟ ګډون کول
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +603,Cannot remove ID field,د ID ساحه نه لیرې کولی شي
-apps/frappe/frappe/core/doctype/doctype/doctype.py +779,{0}: Cannot set Assign Amend if not Submittable,{0}: جوړ نشي دمکپاین راولی که Submittable نه
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +604,Cannot remove ID field,د ID ساحه نه لیرې کولی شي
+apps/frappe/frappe/core/doctype/doctype/doctype.py +774,{0}: Cannot set Assign Amend if not Submittable,{0}: جوړ نشي دمکپاین راولی که Submittable نه
 DocType: Address,Bihar,په بیهار
 DocType: Activity Log,Link DocType,لینک DocType
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions Manager,ترتیب&gt; د کارن د اجازې مدیر
 apps/frappe/frappe/public/js/frappe/chat.js +1690,You don't have any messages yet.,تاسو تراوسه هیڅ پیغام نه لرئ.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +76,Remove all customizations?,ټول خپلخوښی لرې؟
 DocType: Website Slideshow,Slideshow Name,ننداريزکتل نوم
@@ -2500,6 +2499,7 @@ DocType: Email Account,Append To,د پايملون
 DocType: Workflow Document State,Only Allow Edit For,يوازې اجازه سمول د
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js +108,Mandatory field: {0},اجباري ډګر: {0}
 apps/frappe/frappe/templates/includes/comments/comments.html +35,Your Name,ستاسو نوم
+apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html +3,Connection Success,د پیوستون بریالیتوب
 DocType: DocType,InnoDB,InnoDB
 DocType: File,Is Folder,ده پوښی
 ,Feedback Ratings,Feedback د درجې
@@ -2528,7 +2528,6 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +79,Set Permi
 DocType: DocField,Set non-standard precision for a Float or Currency field,ټاکل شوی چې لرګې یا د پیسو د ساحوي غیر معیاري دقت
 DocType: Email Account,Ignore attachments over this size,سترګې پټې کړه په دې اندازه attachments
 DocType: Address,Preferred Billing Address,اولګښت غوره پته
-apps/frappe/frappe/config/integrations.py +73,External Documents,د بهرنیو اسناد
 apps/frappe/frappe/database.py +286,Too many writes in one request. Please send smaller requests,په یوه غوښتنه ډېر زيات ليکي. لطفا کوچني غوښتنې واستوئ
 apps/frappe/frappe/core/doctype/version/version_view.html +8,Values Changed,ارزښتونه بدله
 DocType: Workflow State,arrow-up,غشی-up
@@ -2536,7 +2535,7 @@ DocType: OAuth Bearer Token,Expires In,ته رسیږي په
 DocType: DocField,Allow on Submit,اجازه پر سپارل
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,استثنا ډول
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +907,Pick Columns,یورتان مواده
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +905,Pick Columns,یورتان مواده
 DocType: Web Page,Add code as &lt;script&gt;,په توګه &lt;سکرېپټ&gt; کوډ
 DocType: Webhook,Headers,سرلیکونه
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.js +35,Please enter values for App Access Key and App Secret Key,لورينه وکړئ د ددفتروسایل لاسرسی لپاره عمده او ددفتروسایل پټې او مهمو ارزښتونو ته ننوځي
@@ -2546,23 +2545,23 @@ DocType: Report,Letter Head,لیک مشر
 DocType: DocType,Quick Entry,د چټک انفاذ
 DocType: Web Form,Button Label,تڼی په نښه د
 DocType: Website Theme,UPPERCASE,لوېتوري
-apps/frappe/frappe/public/js/frappe/list/list_view.js +751,{0} items selected,{0} په پېژندتورو ټاکل
+apps/frappe/frappe/public/js/frappe/list/list_view.js +771,{0} items selected,{0} په پېژندتورو ټاکل
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js +16,Suspend Sending,لېږل وځنډول
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html +3,Drag elements from the sidebar to add. Drag them back to trash.,د پټې څخه راکښن عناصرو ته اضافه کړي. هغوي بيرته د کثافاتو راکښ.
 DocType: Workflow State,resize-small,ورواړوو-وړو
 DocType: Address,Postal Code,د ډاګ کوډ
-apps/frappe/frappe/core/doctype/communication/communication.js +96,Relink Communication,Relink مخابراتو
+apps/frappe/frappe/core/doctype/communication/communication.js +106,Relink Communication,Relink مخابراتو
 apps/frappe/frappe/www/third_party_apps.html +58,No Active Sessions,هیڅ فعاله ناسته
 DocType: Top Bar Item,Right,حق
 DocType: User,User Type,کارن ډول
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +65,Click table to edit,جدول د سمون لپاره ټک
-DocType: GSuite Settings,Client ID,د مراجع د تذکرو
+DocType: GCalendar Settings,Client ID,د مراجع د تذکرو
 DocType: Async Task,Reference Doc,ماخذ Doc
 DocType: Communication,Keep a track of all communications,د ټولو ارتباطاتو په یو روان وساته
 apps/frappe/frappe/desk/form/save.py +34,Did not save,ايا د ژغورلو نه
 DocType: Property Setter,Property,د ملکیت
 DocType: Email Account,Yandex.Mail,Yandex.Mail
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +340,Chart Type,د چارټ ډول
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +341,Chart Type,د چارټ ډول
 DocType: Website Slideshow,"Note: For best results, images must be of the same size and width must be greater than height.",نوټ: د ښه پايلې، انځورونه باید د همدی اندازه وي او عرض باید له ارتفاع ډيره وي.
 DocType: DocType,Auto Name,د موټرونو نوم
 apps/frappe/frappe/utils/password_strength.py +125,Avoid sequences like abc or 6543 as they are easy to guess,لکه ABC يا 6543 سلسلو کې ډډه وشي ځکه چې دوی په اسانه فکر
@@ -2580,7 +2579,8 @@ DocType: Address,Telangana,Telangana
 apps/frappe/frappe/core/doctype/doctype/doctype.py +495,Default for {0} must be an option,د {0} باید یو انتخاب وي Default
 DocType: Tag Doc Category,Tag Doc Category,Tag Doc کټه ګورۍ
 DocType: User,User Image,کارن د انځور
-apps/frappe/frappe/email/queue.py +339,Emails are muted,برېښناليک دي سلبول
+apps/frappe/frappe/email/queue.py +340,Emails are muted,برېښناليک دي سلبول
+apps/frappe/frappe/config/integrations.py +83,Google Services,ګوګل خدمتونه
 apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +25,Ctrl + Up,Ctrl + Up
 DocType: Website Theme,Heading Style,مدعي دی Style
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +200,A new Project with this name will be created,سره د دې نوم د يوې نوې پروژې به رامنځته شي
@@ -2642,7 +2642,7 @@ DocType: Workflow State,arrow-right,غشی-حق
 DocType: Workflow State,Workflow state represents the current state of a document.,ننګولې دي د دولت د يو سند د روان حالت استازيتوب کوي.
 apps/frappe/frappe/utils/oauth.py +172,Token is missing,د نښې ورک دی
 apps/frappe/frappe/public/js/frappe/misc/utils.js +523,Note: Changing the Page Name will break previous URL to this page.,نوټ: د پاڼې نوم بدلول به د دې مخ د تېر په حافظی مات کړي.
-apps/frappe/frappe/utils/file_manager.py +256,Removed {0},لرې {0}
+apps/frappe/frappe/utils/file_manager.py +257,Removed {0},لرې {0}
 DocType: SMS Settings,SMS Settings,SMS امستنې
 DocType: Company History,Highlight,سرټکي
 DocType: OAuth Provider Settings,Force,ځواک
@@ -2657,6 +2657,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +206,Help: Fi
 apps/frappe/frappe/core/doctype/file/file.js +27,Unzip,Unzip
 apps/frappe/frappe/model/document.py +1061,Incorrect value in row {0}: {1} must be {2} {3},په قطار ناسم ارزښت {0}: {1} باید {2} {3}
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +67,Submitted Document cannot be converted back to draft. Transition row {0},ته وسپارل سند نه شي بېرته بدل قانون مسوده. د لیږد د قطار {0}
+apps/frappe/frappe/config/integrations.py +93,Configure your google calendar integration,ستاسو د گوگل کتلر انډول تایید کړئ
 apps/frappe/frappe/desk/reportview.py +227,Deleting {0},ړنګول {0}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_start.html +2,Select an existing format to edit or start a new format.,د شته format ته د سمولو او یا یوه نوې بڼه پيل وټاکئ.
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +38,Created Custom Field {0} in {1},ايجاد ګمرک ساحوي {0} د {1}
@@ -2675,10 +2676,9 @@ DocType: OAuth Provider Settings,Auto,د موټرونو
 DocType: System Settings,User can login using Email id or User Name,کاروونکي کولی شي د بریښناليک د ایمیل یا کارن نوم کارولو سره وکاروي
 DocType: Workflow State,question-sign,پوښتنه-نښه
 apps/frappe/frappe/core/doctype/doctype/doctype.py +157,"Field ""route"" is mandatory for Web Views",ساحه &quot;لاره&quot; د ویب نظریاتو لپاره لازمي ده
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +194,Insert Column Before {0},{0} مخکې د کالم داخل کړئ
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +195,Insert Column Before {0},{0} مخکې د کالم داخل کړئ
 DocType: Email Account,Add Signature,Add لاسلیک
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +38,Left this conversation,کيڼ دې خبرو اترو
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js +490,Did not set,نه جوړ
 ,Background Jobs,شاليد دندې
 DocType: ToDo,ToDo,کول
 DocType: DocField,No Copy,نه کاپي
@@ -2687,7 +2687,7 @@ DocType: Chat Token,IP Address,IP پته
 DocType: Data Import,Submit after importing,د واردولو وروسته وسپارل
 apps/frappe/frappe/www/login.html +32,Login with LDAP,سره LDAP ورتګ
 DocType: Web Form,Breadcrumbs,Breadcrumbs
-apps/frappe/frappe/core/doctype/doctype/doctype.py +725,If Owner,که خاوند
+apps/frappe/frappe/core/doctype/doctype/doctype.py +721,If Owner,که خاوند
 DocType: Data Migration Mapping,Push,ټیله کول
 DocType: OAuth Authorization Code,Expiration time,له کاره وتنې وخت
 DocType: Web Page,Website Sidebar,وېب پاڼه د پټې
@@ -2717,19 +2717,19 @@ apps/frappe/frappe/core/doctype/data_import/log_details.html +6,Row Status,د ق
 DocType: Workflow Transition,Workflow Transition,ننګولې د لیږد
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,{0} months ago,{0} مياشتې دمخه
 apps/frappe/frappe/public/js/frappe/model/model.js +18,Created By,ايجاد By
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +274,Dropbox Setup,Dropbox Setup
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +277,Dropbox Setup,Dropbox Setup
 DocType: Workflow State,resize-horizontal,ورواړوو-افقي
 DocType: Chat Message,Content,منځپانګه
 DocType: Data Migration Run,Push Insert,پټه داخل کړئ
-apps/frappe/frappe/public/js/frappe/views/treeview.js +288,Group Node,ګروپ غوټه
+apps/frappe/frappe/public/js/frappe/views/treeview.js +290,Group Node,ګروپ غوټه
 DocType: Communication,Notification,خبرتیا
 DocType: DocType,Document,سند
 apps/frappe/frappe/core/doctype/doctype/doctype.py +211,Series {0} already used in {1},لړۍ {0} د مخه په کارول {1}
-apps/frappe/frappe/core/doctype/data_import/importer.py +279,Unsupported File Format,د دوتنې ناملاتړی شکل
+apps/frappe/frappe/core/doctype/data_import/importer.py +286,Unsupported File Format,د دوتنې ناملاتړی شکل
 DocType: DocField,Code,کوډ
 DocType: Workflow,"All possible Workflow States and roles of the workflow. Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""",ټول ممکنه ننګولې ايالتونو او د ننګولې رولونه لري. Docstatus غوراوي: 0 دی &quot;خوندي&quot; 1 &quot;ته وسپارل&quot; دی او 2 &quot;ردشوي&quot; ده
 DocType: Website Theme,Footer Text Color,پښۍ متن رنګ
-apps/frappe/frappe/public/js/frappe/model/meta.js +187,Last Modified On,وروستی سمون په
+apps/frappe/frappe/public/js/frappe/model/meta.js +182,Last Modified On,وروستی سمون په
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +24,"Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.",په کچه 0 حلال دي د سند د ليول پرېښلې، يعنې د دوی د سند ته السرسي لومړنۍ دي.
 DocType: Email Alert,Print Format,چاپ شکل
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js +80,Toggle Grid View,د ټریګل لید لید
@@ -2737,9 +2737,8 @@ apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +122,
 DocType: Data Import,This is the template file generated with only the rows having some error. You should use this file for correction and import.,دا د ټایپ فايل دی چې یوازې د قطارونو سره پیدا کیږي ځینې تېروتنه لري. تاسو باید دا دوتنه د اصلاح او واردولو لپاره وکاروي.
 apps/frappe/frappe/config/setup.py +37,Set Permissions on Document Types and Roles,په سند ډولونه او رولونه د ټولګې حلال
 apps/frappe/frappe/model/meta.py +159,No Label,هیڅ نښه د
-apps/frappe/frappe/core/doctype/user_permission/user_permission.py +24,Updating...,اوسمهال کول
 apps/frappe/frappe/core/doctype/transaction_log/transaction_log.py +23,Indexing broken,انډول کولو مات شوی
-apps/frappe/frappe/public/js/frappe/list/list_view.js +239,Refreshing,تازه کول
+apps/frappe/frappe/public/js/frappe/list/list_view.js +259,Refreshing,تازه کول
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py +77,Modified By,بدلون موندلی By
 DocType: Address,Tripura,Tripura
 DocType: About Us Settings,"""Company History""",&quot;د شرکت تاریخ&quot;
@@ -2780,6 +2779,7 @@ DocType: Letter Head,Letter Head in HTML,په HTML لیک مشر
 DocType: Web Form,Web Form,ويب فورمه
 DocType: About Us Settings,Org History Heading,دپوهنتون تاریخ مدعي دی
 apps/frappe/frappe/core/doctype/user/user.py +489,Sorry. You have reached the maximum user limit for your subscription. You can either disable an existing user or buy a higher subscription plan.,اوبخښه. تاسو ستاسو د ګډون ونډې د حد اکثر د کارونکي حد ته رسیدلی. تاسو کولی شی د شته کارونکي ناتوان او یا د لوړو ګډون پلان واخلي.
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} کال (مخکې)
 DocType: Print Settings,Allow Print for Cancelled,چاپ اجازه لپاره ردشوي
 DocType: Communication,Integrations can use this field to set email delivery status,مربوط کولای شي دې برخه کې وکاروي ایمیل وړاندې کولو حالت ټاکل
 DocType: Web Form,Web Page Link Text,ګورت پاڼه لینک متن
@@ -2839,7 +2839,6 @@ DocType: Data Migration Mapping,Data Migration Mapping,د معلوماتو مه�
 apps/frappe/frappe/www/login.py +89,Invalid Login Token,د ننوتو ناسم نوم د نښې
 apps/frappe/frappe/public/js/frappe/chat.js +209,Discard,پرېښودل
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +49,1 hour ago,1 ساعت مخکې
-apps/frappe/frappe/contacts/doctype/address/address.py +193,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,د ڈیفالف پته نه دی موندلی. مهرباني وکړئ د سایټ اپ&gt; چاپ او برنامه&gt; د پتې پته د یو نوی پیدا کړئ.
 DocType: Website Settings,Home Page,لمړی مخ
 DocType: Error Snapshot,Parent Error Snapshot,Parent تېروتنه لنډ جاج
 DocType: Kanban Board,Filters,چاڼګرونه
@@ -2897,12 +2896,12 @@ DocType: DocType,DocType is a Table / Form in the application.,DocType يو جد
 DocType: Social Login Key,Authorize URL,د اعتبار وړ یو آر ایل
 DocType: Email Account,GMail,د Gmail
 DocType: Address,Party GSTIN,ګوند GSTIN
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1018,{0} Report,{0} راپور
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1016,{0} Report,{0} راپور
 DocType: SMS Settings,Use POST,پوسټ څخه کار واخلئ
 DocType: Communication,SMS,پیغامونه
 DocType: DocType,Web View,ويب کتل
 apps/frappe/frappe/public/js/frappe/form/print.js +195,Warning: This Print Format is in old style and cannot be generated via the API.,ګواښنه: دا چاپ شکل په زاړه ډوله دی او نه د API له لارې تولید شي.
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +770,Totals,مجموعه
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +774,Totals,مجموعه
 DocType: DocField,Print Width,چاپ پلنوالي
 ,Setup Wizard,Setup اسانګر
 DocType: Address,GST State Number,GST د بهرنیو چارو شمیره
@@ -2924,7 +2923,7 @@ DocType: DocType,Comments and Communications will be associated with this linked
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_sidebar.html +3,Filter...,چاڼ ...
 DocType: Workflow State,bold,ذکر شوي
 DocType: Chat Profile,Status,وضعیت
-DocType: GSuite Settings,Client Secret,د مراجع د پټې
+DocType: GCalendar Settings,Client Secret,د مراجع د پټې
 DocType: Data Migration Mapping Detail,Child Table Mapping,د ماشوم جدول نقشه
 DocType: Company History,Year,کال
 DocType: User Social Login,Provider,وړاندیز
@@ -3023,7 +3022,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +456,Options required for Lin
 apps/frappe/frappe/core/doctype/doctype/doctype.py +456,Options required for Link or Table type field {0} in row {1},غوراوي لپاره د لینک یا جدول ډول ډګر {0} په قطار اړتیا {1}
 DocType: Auto Email Report,Send only if there is any data,وليږئ يوازې که د هر ډول معلوماتو شتون لري
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +168,Reset Filters,د بیرته چاڼګرونه
-apps/frappe/frappe/core/doctype/doctype/doctype.py +742,{0}: Permission at level 0 must be set before higher levels are set,{0}: په کچه 0 اجازه بايد مخکې له لوړې کچې دي جوړ شي
+apps/frappe/frappe/core/doctype/doctype/doctype.py +738,{0}: Permission at level 0 must be set before higher levels are set,{0}: په کچه 0 اجازه بايد مخکې له لوړې کچې دي جوړ شي
 apps/frappe/frappe/desk/doctype/todo/todo.py +28,Assignment closed by {0},دندې له خوا تړل {0}
 DocType: Integration Request,Remote,Remote
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +140,Calculate,محاسبه
@@ -3046,13 +3045,14 @@ DocType: Web Page,Web Page,ویب پاڼه
 DocType: Blog Category,Blogger,ویبالګ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +481,'In Global Search' not allowed for type {0} in row {1},&#39;په Global د لټون لپاره ډول نه اجازه {0} په قطار {1}
 apps/frappe/frappe/core/doctype/doctype/doctype.py +481,'In Global Search' not allowed for type {0} in row {1},&#39;په Global د لټون لپاره ډول نه اجازه {0} په قطار {1}
-apps/frappe/frappe/public/js/frappe/views/treeview.js +336,View List,محتویات بشپړفهرست
+apps/frappe/frappe/public/js/frappe/views/treeview.js +338,View List,محتویات بشپړفهرست
 apps/frappe/frappe/public/js/frappe/form/controls/date.js +114,Date must be in format: {0},نېټه بايد په بڼه کې وي: {0}
 DocType: Workflow,Don't Override Status,مه حالت نه واوړې
 apps/frappe/frappe/www/feedback.html +90,Please give a rating.,لطفا یوه درجه ورکړي.
 apps/frappe/frappe/public/js/frappe/feedback.js +47,{0} Feedback Request,{0} Feedback غوښتنه
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +26,Search term,د لټون شرايط
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +411,The First User: You,د لومړي کارن: تاسو
+DocType: Deleted Document,GCalendar Sync ID,د ګیالیلر پیوستون ID
 apps/frappe/frappe/config/setup.py +105,Export Data,د صادراتو ډاټا
 apps/frappe/frappe/core/doctype/data_import/data_import.js +159,Select Columns,انتخاب یورتان
 DocType: Translation,Source Text,سرچینه متن
@@ -3066,7 +3066,7 @@ DocType: Page,No,نه
 DocType: Property Setter,Set Value,د ټاکلو په ارزښت
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +249,Hide field in form,په فورمه کې برخه پټول
 DocType: Webhook,Webhook Data,د ویبهک ډاټا
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +275,Illegal Access Token. Please try again,ناقانونه لاسرسی نښه. لطفا بیا هڅه وکړې
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +278,Illegal Access Token. Please try again,ناقانونه لاسرسی نښه. لطفا بیا هڅه وکړې
 apps/frappe/frappe/public/js/frappe/desk.js +100,"The application has been updated to a new version, please refresh this page",د غوښتنليک په اړه د یوه نوي نسخه تازه شوي دي، لطفا د دې مخ د تازه
 apps/frappe/frappe/core/doctype/communication/communication.js +35,Resend,ته واستول شي
 DocType: Feedback Trigger,Optional: The alert will be sent if this expression is true,اختیاري: که دا د بیان د سمه ده د خبرتیا به واستول شي
@@ -3092,11 +3092,11 @@ apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +161,Change,
 DocType: Email Domain,domain name,ډومېن نوم
 DocType: Kanban Board Column,Order,نظم
 DocType: Website Theme,Background,شاليد
-DocType: Custom DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.",د DocTypes ته کارن حلال درخواست کارول JSON لست. که تش، د ټولو سره تړاو DocTypes لپاره به وکارول شي کارن حلال درخواست.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,غوراوي&gt; کارن
 DocType: Report,Ref DocType,دسرچینی یادونه DocType
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py +32,Please enter Client ID before social login is enabled,مهرباني وکړئ د ټولنیز ننوتنې فعالولو دمخه د مراجعینو پیژندنه وليکئ
 apps/frappe/frappe/www/feedback.py +42,Please add a rating,لطفا یوه درجه اضافه
-apps/frappe/frappe/core/doctype/doctype/doctype.py +754,{0}: Cannot set Amend without Cancel,{0}: جوړ نشي تعدیل پرته لغوه کړه
+apps/frappe/frappe/core/doctype/doctype/doctype.py +750,{0}: Cannot set Amend without Cancel,{0}: جوړ نشي تعدیل پرته لغوه کړه
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html +25,Full Page,بشپړ Page
 DocType: DocType,Is Child Table,آیا د ماشومانو د جدول
 apps/frappe/frappe/utils/csvutils.py +130,{0} must be one of {1},{0} بايد د يو شي د {1}
@@ -3116,7 +3116,7 @@ DocType: Print Settings,Send Email Print Attachments as PDF (Recommended),د PDF
 DocType: Web Page,Left,کيڼ
 DocType: Event,All Day,ټوله ورځ
 apps/frappe/frappe/integrations/utils.py +98,Looks like something is wrong with this site's payment gateway configuration. No payment has been made.,ښکاري چې څه غلط سره د دې ځای د پیسو ليدونکی سازونې ده. نه ورکړې شوی دی.
-DocType: Address,State,د بهرنیو چارو
+DocType: GCalendar Settings,State,د بهرنیو چارو
 DocType: Workflow Action,Workflow Action,ننګولې کړنه
 DocType: DocType,"Image Field (Must of type ""Attach Image"")",د انځور د ساحوي (د ډول &quot;د مل انځور&quot; بايد)
 apps/frappe/frappe/utils/bot.py +43,I found these: ,زه د دغو:
@@ -3134,9 +3134,9 @@ apps/frappe/frappe/data_migration/doctype/data_migration_connector/data_migratio
 DocType: Event,Repeat On,تکرار د
 DocType: SMS Parameter,SMS Parameter,پیغامونه د پاراميټر
 DocType: Communication,Marked As Spam,په نښه لکه سپام
-apps/frappe/frappe/utils/file_manager.py +325,There is some problem with the file url: {0},شتون سره د دوتنې url ځينو ستونزه دا ده: {0}
+apps/frappe/frappe/utils/file_manager.py +335,There is some problem with the file url: {0},شتون سره د دوتنې url ځينو ستونزه دا ده: {0}
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +26,Tree,د ونو د
-apps/frappe/frappe/public/js/frappe/views/treeview.js +313,You are not allowed to print this report,تاسو د دې راپور د چاپولو اجازه نه لري
+apps/frappe/frappe/public/js/frappe/views/treeview.js +315,You are not allowed to print this report,تاسو د دې راپور د چاپولو اجازه نه لري
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +30,User Permissions,کارن حلال
 DocType: Workflow State,warning-sign,خبرداری-نښه
 DocType: Workflow State,User,کارن
@@ -3151,7 +3151,7 @@ DocType: Bulk Update,Update Value,تازه ارزښت
 apps/frappe/frappe/core/doctype/communication/communication.js +73,Mark as {0},مارک په توګه {0}
 apps/frappe/frappe/model/rename_doc.py +25,Please select a new name to rename,لطفا یو نوی نوم غوره کړه چې په نوم بدلولی شی
 apps/frappe/frappe/model/rename_doc.py +25,Please select a new name to rename,لطفا یو نوی نوم غوره کړه چې په نوم بدلولی شی
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +201,Invalid column,ناباوره کالم
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +202,Invalid column,ناباوره کالم
 DocType: Data Migration Connector,Data Migration,ډاټا مهاجرت
 apps/frappe/frappe/public/js/frappe/request.js +152,Something went wrong,کومه تیروتنه وشوه
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +186,Only {0} entries shown. Please filter for more specific results.,یوازې د {0} زياتونې ښودل شوي دي. مهرباني وکړئ د نورو مشخصو پایلو چاڼ.
@@ -3170,11 +3170,12 @@ apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +68,Current
 DocType: DocField,Default,default
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +146,{0} added,{0} زياته کړه
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +212,Search for '{0}',لپاره د لټون &#39;{0}&#39;
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +986,Please save the report first,لطفا د دې رپوټ په لومړي سر وژغوري
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +984,Please save the report first,لطفا د دې رپوټ په لومړي سر وژغوري
 apps/frappe/frappe/email/doctype/email_group/email_group.py +42,{0} subscribers added,{0} ګډون کړه
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +15,Not In,نه په
 DocType: Workflow State,star,ستوري
-apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +273,values separated by commas,ارزښتونو له خوا commas جلا
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +237,Hub,مرکز
+apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +279,values separated by commas,ارزښتونو له خوا commas جلا
 apps/frappe/frappe/core/doctype/doctype/doctype.py +473,Max width for type Currency is 100px in row {0},د ډول د اسعارو Max سور دی 100px په قطار {0}
 apps/frappe/frappe/www/feedback.html +68,Please share your feedback for {0},لطفا د خپل نظریات شریک {0}
 apps/frappe/frappe/config/website.py +13,Content web page.,منځپانګه ګورت پاڼه د.
@@ -3185,6 +3186,7 @@ DocType: Help Article,Category,کټه ګورۍ
 apps/frappe/frappe/config/core.py +37,Client side script extensions in Javascript,په Javascript د مراجع لوري سکرېپټ د پراخونې
 apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +70,Guidelines to install ldap dependancies and python,ته ldap dependancies او python نصب لارښود
 DocType: Webhook,on_trash,په
+apps/frappe/frappe/core/doctype/user_permission/user_permission_help.html +2,Records for following doctypes will be filtered,د لاندې عقایدو لپاره ریکارډونه به فلټر شي
 DocType: Blog Settings,Blog Introduction,Blog پېژندنه
 DocType: Address,Office,دفتر
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.js +204,This Kanban Board will be private,دا Kanban بورډ به د خصوصي وي
@@ -3212,22 +3214,22 @@ DocType: DocField,Unique,بې سارې
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js +8,Partial Success,جزایی بریالیتوب
 DocType: Email Account,Service,خدمت
 DocType: File,File Name,د دوسیې نوم
-apps/frappe/frappe/core/doctype/data_import/importer.py +491,Did not find {0} for {0} ({1}),نه پیدا {0} د {0} ({1})
+apps/frappe/frappe/core/doctype/data_import/importer.py +498,Did not find {0} for {0} ({1}),نه پیدا {0} د {0} ({1})
 apps/frappe/frappe/utils/bot.py +176,"Oops, you are not allowed to know that",اوپس، تاسو اجازه نه لري چې پوه شي چې
 apps/frappe/frappe/public/js/frappe/ui/slides.js +324,Next,بل
 apps/frappe/frappe/handler.py +92,You have been successfully logged out,تاسو په برياليتوب سره غونډال شوي
 DocType: Calendar View,Calendar View,د کتل کتل
 apps/frappe/frappe/printing/doctype/print_format/print_format.js +26,Edit Format,سمول شکل
 apps/frappe/frappe/core/doctype/user/user.py +267,Complete Registration,بشپړ نوم ليکنې
-DocType: GSuite Settings,Enable,په توانول
+DocType: GCalendar Settings,Enable,په توانول
 DocType: Google Maps,Home Address,کور پته
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +197,New {0} (Ctrl+B),نوي {0} (Ctrl + B)
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +40,Top Bar Color and Text Color are the same. They should be have good contrast to be readable.,غوره مدافع وکیالنو د رنګ او متن رنګ يو شان دي. هغوی بايد لري شي ښه برخلاف د لوستلو وړ وي.
 apps/frappe/frappe/core/doctype/data_export/exporter.py +127,You can only upload upto 5000 records in one go. (may be less in some cases),تاسو يوازې په يو ترمړوندونو 5000 اسنادو له سختولو. (ښايي په ځینو مواردو کې کمه وي)
 apps/frappe/frappe/model/document.py +184,Insufficient Permission for {0},لپاره ناکافي د اجازې د {0}
 apps/frappe/frappe/model/document.py +184,Insufficient Permission for {0},لپاره ناکافي د اجازې د {0}
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +846,Report was not saved (there were errors),راپور خوندي نه (تېروتنې وې)
-apps/frappe/frappe/core/doctype/data_import/importer.py +288,Cannot change header content,د سرلیک منځپانګې نشي بدلولی
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +844,Report was not saved (there were errors),راپور خوندي نه (تېروتنې وې)
+apps/frappe/frappe/core/doctype/data_import/importer.py +295,Cannot change header content,د سرلیک منځپانګې نشي بدلولی
 DocType: Print Settings,Print Style,چاپ Style
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +52,Not Linked to any record,نه د هر ریکارډ تړلی
 DocType: Custom DocPerm,Import,د وارداتو
@@ -3255,12 +3257,13 @@ apps/frappe/frappe/templates/includes/login/login.js +24,Both login and password
 apps/frappe/frappe/model/document.py +629,Please refresh to get the latest document.,لطفا تازه د وروستیو سند تر لاسه کړي.
 DocType: User,Security Settings,امنیت امستنې
 DocType: Website Settings,Operators,عملیات
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +160,Add Column,Add کالم
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +161,Add Column,Add کالم
 ,Desktop,د سرپاڼې
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +975,Export Report: {0},د صادراتو د راپور: {0}
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +973,Export Report: {0},د صادراتو د راپور: {0}
 DocType: Auto Email Report,Filter Meta,چاڼ ميتاکارډونه
 DocType: Web Form,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,د پلټلو لپاره څه ته لینک ګورت پاڼه نندارې ته شي که دغه فورمه د ګورت پاڼه لري. لینک لاره هم په اتوماتيک ډول د `` page_name` او parent_website_route` پر بنسټ د تولید شوی
 DocType: Feedback Request,Feedback Trigger,Feedback ماشه
+apps/frappe/frappe/permissions.py +193,Not allowed for {0} = {1} in Row {2},د {2} = {1} لپاره په {2} کې اجازه نشته
 DocType: S3 Backup Settings,Backup Limit,د بیک اپ محدودیت
 DocType: Unhandled Email,Message-id,پيغام-ID
 DocType: Patch Log,Patch,پچ
@@ -3268,7 +3271,7 @@ DocType: Activity Log,Failed,کې پاتې راغی
 DocType: Web Form,Allow Comments,ها اجازه
 DocType: User,Background Style,شاليد Style
 DocType: System Settings,Bypass Two Factor Auth for users who login from restricted IP Address,د هغو کارنانو لپاره دوه فکتور لیکوال بکس کړئ چې د محدود IP پتې څخه ننوتل
-apps/frappe/frappe/email/queue.py +270,{0} to stop receiving emails of this type,{0} د دې ډول بریښنالیکونو د ترلاسه کولو مخه نیسي
+apps/frappe/frappe/email/queue.py +271,{0} to stop receiving emails of this type,{0} د دې ډول بریښنالیکونو د ترلاسه کولو مخه نیسي
 apps/frappe/frappe/www/qrcode.html +13,Open your authentication app on your mobile phone.,خپل د اعتبار تایید په خپل ګرځنده تلیفون کې پرانیزئ.
 apps/frappe/frappe/model/rename_doc.py +73,merged {0} into {1},{0} په مدغم {1}
 DocType: System Settings,mm-dd-yyyy,mm-DD-yyyy
