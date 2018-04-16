@@ -173,6 +173,7 @@ frappe.views.Activity = class Activity extends frappe.views.BaseList {
 	setup_defaults() {
 		super.setup_defaults();
 
+		this.page_title = __('Activity');
 		this.doctype = 'Communication';
 		this.method = 'frappe.desk.page.activity.activity.get_feed';
 
@@ -183,6 +184,10 @@ frappe.views.Activity = class Activity extends frappe.views.BaseList {
 	}
 
 	setup_sort_selector() {
+
+	}
+
+	setup_side_bar() {
 
 	}
 

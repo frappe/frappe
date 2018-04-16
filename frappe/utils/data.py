@@ -372,10 +372,13 @@ def fmt_money(amount, precision=None, currency=None):
 	# 40,000.00000 -> 40,000.00
 	# 40,000.23000 -> 40,000.23
 
+	if isinstance(amount, string_types):
+		amount = flt(amount, precision)
+
 	if decimal_str:
 		decimals_after = str(round(amount % 1, precision))
-		parts = decimals_after.split(decimal_str)
-		parts = parts[1] if len(parts) > 1 else ''
+		parts = decimals_after.split('.')
+		parts = parts[1] if len(parts) > 1 else parts[0]
 		decimals = parts
 		if precision > 2:
 			if len(decimals) < 3:
@@ -388,7 +391,7 @@ def fmt_money(amount, precision=None, currency=None):
 				precision = len(decimals)
 
 	amount = '%.*f' % (precision, round(flt(amount), precision))
-	
+
 	if amount.find('.') == -1:
 		decimals = ''
 	else:

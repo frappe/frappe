@@ -10,10 +10,10 @@ Example:
 
 	def get_data():
 		return {
-			"Frappé Apps": {
+			"Frappe Apps": {
 				"color": "orange",
 				"icon": "assets/frappe/images/frappe.svg",
-				"label": _("Frappé.io Portal"),
+				"label": _("Frappe.io Portal"),
 				"type": "module"
 			}
 		}

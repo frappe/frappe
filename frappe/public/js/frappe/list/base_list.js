@@ -521,7 +521,11 @@ class FilterArea {
 		this.filter_list.get_filter(fieldname).remove();
 	}
 
-	clear() {
+	clear(refresh = true) {
+		if (!refresh) {
+			this.trigger_refresh = false;
+		}
+
 		this.filter_list.clear_filters();
 
 		const promises = [];
@@ -530,7 +534,10 @@ class FilterArea {
 			const field = this.list_view.page.fields_dict[key];
 			promises.push(() => field.set_value(''));
 		}
-		return frappe.run_serially(promises);
+		return frappe.run_serially(promises)
+			.then(() => {
+				this.trigger_refresh = true;
+			});
 	}
 
 	make_standard_filters() {

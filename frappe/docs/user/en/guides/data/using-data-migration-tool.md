@@ -1,8 +1,8 @@
 # Using the Data Migration Tool
 
-> Data Migration Tool was introduced in Frappé Framework version 9.
+> Data Migration Tool was introduced in Frappe Framework version 9.
 
-The Data Migration Tool was built to abstract all the syncing of data between a remote source and a DocType. This is a middleware layer between your Frappé based website and a remote data source.
+The Data Migration Tool was built to abstract all the syncing of data between a remote source and a DocType. This is a middleware layer between your Frappe based website and a remote data source.
 
 To understand this tool, let's make a connector to push ERPNext Items to an imaginary service called Atlas.
 

@@ -60,9 +60,7 @@ def run_patch():
 	frappe.reload_doc("core", "doctype", "user", force=True)
 	frappe.reload_doc("core", "doctype", "user_social_login", force=True)
 
-	users = frappe.get_all("User",
-		fields=["name", "frappe_userid", "fb_userid", "fb_username", "github_userid", "github_username", "google_userid", "modified_by"],
-		filters={"name":("not in", ["Administrator", "Guest"])})
+	users = frappe.get_all("User", fields=["*"], filters={"name":("not in", ["Administrator", "Guest"])})
 
 	for user in users:
 		idx = 0
