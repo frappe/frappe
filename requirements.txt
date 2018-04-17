@@ -20,7 +20,6 @@ rauth>=0.6.2
 requests
 redis
 selenium
--e git+https://github.com/frappe/python-pdfkit.git#egg=pdfkit
 babel
 ipython
 html2text==2016.9.19
