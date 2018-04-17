@@ -256,4 +256,4 @@ def get_gsuite_status():
 	return (frappe.get_value('Gsuite Settings', None, 'enable') == '1')
 
 def get_success_action():
-	return frappe.get_list("Success Action", ["*"])
+	return frappe.get_all("Success Action", fields=["*"])
