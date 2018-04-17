@@ -33,12 +33,19 @@ frappe.dom = {
 		document.getElementsByTagName('head')[0].appendChild(el);
 	},
 	remove_script_and_style: function(txt) {
+		const evil_tags = ["script", "style", "noscript", "title", "meta", "base", "head"];
+		const regex = new RegExp(evil_tags.map(tag => `<${tag}>.*<\\/${tag}>`).join('|'));
+		if (!regex.test(txt)) {
+			// no evil tags found, skip the DOM method entirely!
+			return txt;
+		}
+
 		var div = document.createElement('div');
 		div.innerHTML = txt;
 		var found = false;
-		["script", "style", "noscript", "title", "meta", "base", "head"].forEach(function(e, i) {
+		evil_tags.forEach(function(e) {
 			var elements = div.getElementsByTagName(e);
-			var i = elements.length;
+			i = elements.length;
 			while (i--) {
 				found = true;
 				elements[i].parentNode.removeChild(elements[i]);
@@ -215,6 +222,17 @@ frappe.run_serially = function(tasks) {
 	});
 	return result;
 };
+
+frappe.load_image = (src, onload, onerror, preprocess = () => {}) => {
+	var tester = new Image();
+	tester.onload = function() {
+		onload(this);
+	};
+	tester.onerror = onerror;
+
+	preprocess(tester);
+	tester.src = src;
+}
 
 frappe.timeout = seconds => {
 	return new Promise((resolve) => {

@@ -6,12 +6,13 @@ import frappe
 import os, base64, re
 import hashlib
 import mimetypes
+import io
 from frappe.utils import get_hook_method, get_files_path, random_string, encode, cstr, call_hook_method, cint
 from frappe import _
 from frappe import conf
 from copy import copy
 from six.moves.urllib.parse import unquote
-from six import text_type
+from six import text_type, PY2
 
 
 class MaxFileSizeReachedError(frappe.ValidationError):
@@ -88,6 +89,7 @@ def save_url(file_url, filename, dt, dn, folder, is_private, df=None):
 	# 	return None, None
 
 	file_url = unquote(file_url)
+	file_size = frappe.form_dict.file_size
 
 	f = frappe.get_doc({
 		"doctype": "File",
@@ -97,6 +99,7 @@ def save_url(file_url, filename, dt, dn, folder, is_private, df=None):
 		"attached_to_name": dn,
 		"attached_to_field": df,
 		"folder": folder,
+		"file_size": file_size,
 		"is_private": is_private
 	})
 	f.flags.ignore_permissions = True
@@ -124,7 +127,7 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 		if isinstance(content, text_type):
 			content = content.encode("utf-8")
 
-		if "," in content:
+		if b"," in content:
 			content = content.split(",")[1]
 		content = base64.b64decode(content)
 
@@ -295,8 +298,17 @@ def get_file(fname):
 	file_path = get_file_path(fname)
 
 	# read the file
-	with open(encode(file_path), 'r') as f:
-		content = f.read()
+	if PY2:
+		with open(encode(file_path)) as f:
+			content = f.read()
+	else:
+		with io.open(encode(file_path), mode='rb') as f:
+			try:
+				# for plain text files
+				content = f.read().decode()
+			except UnicodeDecodeError:
+				# for .png, .jpg, etc
+				content = f.read()
 
 	return [file_path.rsplit("/", 1)[-1], content]
 
@@ -416,3 +428,10 @@ def get_random_filename(extn=None, content_type=None):
 		extn = mimetypes.guess_extension(content_type)
 
 	return random_string(7) + (extn or "")
+
+@frappe.whitelist()
+def validate_filename(filename):
+	from frappe.utils import now_datetime
+	timestamp = now_datetime().strftime(" %Y-%m-%d %H:%M:%S")
+	fname = get_file_name(filename, timestamp)
+	return fname

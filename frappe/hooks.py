@@ -134,7 +134,8 @@ scheduler_events = {
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
 		"frappe.oauth.delete_oauth2_data",
 		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
-		"frappe.twofactor.delete_all_barcodes_for_users"
+		"frappe.twofactor.delete_all_barcodes_for_users",
+		"frappe.integrations.doctype.gcalendar_settings.gcalendar_settings.sync"
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
@@ -186,7 +187,7 @@ sounds = [
 	{"name": "delete", "src": "/assets/frappe/sounds/delete.mp3", "volume": 0.05},
 	{"name": "click", "src": "/assets/frappe/sounds/click.mp3", "volume": 0.05},
 	{"name": "error", "src": "/assets/frappe/sounds/error.mp3", "volume": 0.1},
-	# {"name": "alert", "src": "/assets/frappe/sounds/alert.mp3"},
+	{"name": "alert", "src": "/assets/frappe/sounds/alert.mp3", "volume": 0.2},
 	# {"name": "chime", "src": "/assets/frappe/sounds/chime.mp3"},
 
 	# frappe.chat sounds

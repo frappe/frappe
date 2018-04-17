@@ -11,11 +11,13 @@ from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 from past.builtins import cmp
 
+from faker import Faker
+
 # public
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '10.1.2'
+__version__ = '10.1.23'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -271,6 +273,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	"""
 	from frappe.utils import encode
 
+	msg = safe_decode(msg)
 	out = _dict(message=msg)
 
 	def _raise_exception():
@@ -280,9 +283,9 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 			import inspect
 
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
-				raise raise_exception(encode(msg))
+				raise raise_exception(msg)
 			else:
-				raise ValidationError(encode(msg))
+				raise ValidationError(msg)
 
 	if flags.mute_messages:
 		_raise_exception()
@@ -499,16 +502,15 @@ def clear_cache(user=None, doctype=None):
 
 	:param user: If user is given, only user cache is cleared.
 	:param doctype: If doctype is given, only DocType cache is cleared."""
-	import frappe.sessions
+	import frappe.cache_manager
 	if doctype:
-		import frappe.model.meta
-		frappe.model.meta.clear_cache(doctype)
+		frappe.cache_manager.clear_doctype_cache(doctype)
 		reset_metadata_version()
 	elif user:
-		frappe.sessions.clear_cache(user)
+		frappe.cache_manager.clear_user_cache(user)
 	else: # everything
 		from frappe import translate
-		frappe.sessions.clear_cache()
+		frappe.cache_manager.clear_user_cache()
 		translate.clear_cache()
 		reset_metadata_version()
 		local.cache = {}
@@ -1251,7 +1253,7 @@ def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
 	else:
 		return html
 
-def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None, doc=None, lang=None, print_letterhead=False):
+def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None, doc=None, lang=None, print_letterhead=True):
 	from frappe.utils import scrub_urls
 
 	if not file_name: file_name = name
@@ -1486,7 +1488,23 @@ def safe_decode(param, encoding = 'utf-8'):
 	except Exception:
 		pass
 	return param
-	
+
 def parse_json(val):
 	from frappe.utils import parse_json
 	return parse_json(val)
+
+def mock(type, size = 1, locale = 'en'):
+	results = [ ]
+	faker 	= Faker(locale)
+	if not type in dir(faker):
+		raise ValueError('Not a valid mock type.')
+	else:
+		for i in range(size):
+			data = getattr(faker, type)()
+			results.append(data)
+
+	from frappe.chat.util import squashify
+
+	results = squashify(results)
+
+	return results

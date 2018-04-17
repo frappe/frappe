@@ -1,12 +1,12 @@
 # Before You Start
 
-<p class="lead">A list of resources to help you get started with building apps using Frappé</p>
+<p class="lead">A list of resources to help you get started with building apps using Frappe</p>
 
 ---
 
 #### 1. Python
 
-Frappé uses Python (v2.7) for server-side programming. It is highly recommended to learn Python before you start building apps with Frappé.
+Frappe uses Python (v2.7) for server-side programming. It is highly recommended to learn Python before you start building apps with Frappe.
 
 To write quality server-side code, you must also include automated tests.
 
@@ -20,7 +20,7 @@ Resources:
 
 #### 2. MariaDB / MySQL
 
-To create database-driven apps with Frappé, you must understand the basics of database management, like how to install, login, create new databases, and basic SQL queries.
+To create database-driven apps with Frappe, you must understand the basics of database management, like how to install, login, create new databases, and basic SQL queries.
 
 Resources:
 
@@ -32,7 +32,7 @@ Resources:
 
 #### 3. HTML / CSS
 
-If you want to build user interfaces using Frappé, you will need to learn basic HTML / CSS and the Boostrap CSS Framework.
+If you want to build user interfaces using Frappe, you will need to learn basic HTML / CSS and the Boostrap CSS Framework.
 
 Resources:
 
@@ -75,5 +75,5 @@ Resources:
 
 ---
 
-When you are ready, you can try [building a sample application](/docs/user/en/tutorial/app) using Frappé.
+When you are ready, you can try [building a sample application](/docs/user/en/tutorial/app) using Frappe.
 

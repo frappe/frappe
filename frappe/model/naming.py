@@ -47,7 +47,7 @@ def set_new_name(doc):
 		if autoname.startswith("naming_series:"):
 			set_name_by_naming_series(doc)
 		elif "#" in autoname:
-			doc.name = make_autoname(autoname)
+			doc.name = make_autoname(autoname, doc=doc)
 		elif autoname.lower()=='prompt':
 			# set from __newname in save.py
 			if not doc.name:
@@ -199,16 +199,17 @@ def _set_amended_name(doc):
 	doc.name = am_prefix + '-' + str(am_id)
 	return doc.name
 
-def append_number_if_name_exists(doctype, value, fieldname='name', separator='-'):
-	exists = frappe.db.exists(doctype,
-		value if fieldname == 'name' else {fieldname: value})
-				
-	regex = '^{value}{separator}[[:digit:]]+'.format(value=re.escape(value), separator=separator)
+def append_number_if_name_exists(doctype, value, fieldname='name', separator='-', filters=None):
+	if not filters: filters = dict()
+	filters.update({fieldname: value})
+	exists = frappe.db.exists(doctype, filters)
+
+	regex = '^{value}{separator}[[:digit:]]$'.format(value=re.escape(value), separator=separator)
 	if exists:
 		last = frappe.db.sql("""select {fieldname} from `tab{doctype}`
 			where {fieldname} regexp %s
 			order by length({fieldname}) desc,
-				{fieldname} desc limit 1""".format(doctype=doctype, fieldname=fieldname), regex)
+			{fieldname} desc limit 1""".format(doctype=doctype, fieldname=fieldname), regex)
 
 		if last:
 			count = str(cint(last[0][0].rsplit(separator, 1)[1]) + 1)

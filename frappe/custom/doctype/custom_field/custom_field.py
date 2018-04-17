@@ -16,11 +16,16 @@ class CustomField(Document):
 
 	def set_fieldname(self):
 		if not self.fieldname:
-			if not self.label:
-				frappe.throw(_("Label is mandatory"))
+			label = self.label
+			if not label:
+				if self.fieldtype in ["Section Break", "Column Break"]:
+					label = self.fieldtype + "_" + str(self.idx)
+				else:
+					frappe.throw(_("Label is mandatory"))
+
 			# remove special characters from fieldname
 			self.fieldname = "".join(filter(lambda x: x.isdigit() or x.isalpha() or '_',
-				cstr(self.label).lower().replace(' ','_')))
+				cstr(label).replace(' ','_')))
 
 		# fieldnames should be lowercase
 		self.fieldname = self.fieldname.lower()
@@ -122,7 +127,10 @@ def create_custom_fields(custom_fields):
 		for df in fields:
 			field = frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df["fieldname"]})
 			if not field:
-				create_custom_field(doctype, df)
+				try:
+					create_custom_field(doctype, df)
+				except frappe.exceptions.DuplicateEntryError:
+					pass
 			else:
 				custom_field = frappe.get_doc("Custom Field", field)
 				custom_field.update(df)

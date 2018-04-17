@@ -176,12 +176,14 @@ frappe.views.TreeView = Class.extend({
 					return !node.is_root && me.can_read;
 				},
 				click: function(node) {
-					frappe.set_route("Form", me.doctype, node.label);
+					frappe.set_route("Form", me.doctype, encodeURIComponent(node.label));
 				}
 			},
 			{
 				label:__("Add Child"),
-				condition: function(node) { return me.can_create && node.expandable; },
+				condition: function(node) {
+					return me.can_create && node.expandable && !node.hide_add;
+				},
 				click: function(node) {
 					me.new_node();
 				},

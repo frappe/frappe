@@ -7,7 +7,11 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		this.view_name = 'Gantt';
 		this.page_title = this.page_title + ' ' + __('Gantt');
 		this.calendar_settings = frappe.views.calendar[this.doctype] || {};
-		this.order_by = this.view_user_settings.order_by || this.calendar_settings.field_map.start + ' asc';
+		if(this.calendar_settings.order_by) {
+			this.order_by = this.calendar_settings.order_by + ' asc';
+		} else {
+			this.order_by = this.view_user_settings.order_by || this.calendar_settings.field_map.start + ' asc';
+		}
 	}
 
 	setup_view() {

@@ -1,6 +1,6 @@
 # Setting Limits for your Site
 
-Frappé v7 has added support for setting limits and restrictions for your site.
+Frappe v7 has added support for setting limits and restrictions for your site.
 These restrictions are set in the `site_config.json` file inside the site's folder. 
 
 	{

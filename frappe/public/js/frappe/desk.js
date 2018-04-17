@@ -19,12 +19,6 @@ $(document).ready(function() {
 		});
 	}
 	frappe.start_app();
-
-	// frappe.Chat
-	// Removing it from here as per rushabh@frappe.io's request.
-	// const chat = new frappe.Chat()
-	// chat.render();
-	// end frappe.Chat
 });
 
 frappe.Application = Class.extend({
@@ -222,9 +216,16 @@ frappe.Application = Class.extend({
 
 	start_notification_updates: function() {
 		var me = this;
-		setInterval(function() {
+
+		// refresh_notifications will be called only once during a 1 second window
+		this.refresh_notifications = frappe.utils.debounce(this.refresh_notifications.bind(this), 1000);
+
+		// kickoff
+		this.refresh_notifications();
+
+		frappe.realtime.on('clear_notifications', () => {
 			me.refresh_notifications();
-		}, 30000);
+		});
 
 		// first time loaded in boot
 		$(document).trigger("notification-update");
@@ -237,7 +238,7 @@ frappe.Application = Class.extend({
 
 	refresh_notifications: function() {
 		var me = this;
-		if(frappe.session_alive && frappe.boot && !frappe.boot.in_setup_wizard) {
+		if(frappe.session_alive && frappe.boot && frappe.boot.home_page !== 'setup-wizard') {
 			return frappe.call({
 				method: "frappe.desk.notifications.get_notifications",
 				callback: function(r) {
@@ -359,7 +360,7 @@ frappe.Application = Class.extend({
 	},
 	make_nav_bar: function() {
 		// toolbar
-		if(frappe.boot && !frappe.boot.in_setup_wizard) {
+		if(frappe.boot && frappe.boot.home_page!=='setup-wizard') {
 			frappe.frappe_toolbar = new frappe.ui.toolbar.Toolbar();
 		}
 
@@ -535,7 +536,10 @@ frappe.get_module = function(m, default_module) {
 	if (!module.link) module.link = "";
 
 	if (!module._id) {
-		module._id = module.link.toLowerCase().replace("/", "-").replace(' ', '-');
+		// links can have complex values that range beyond simple plain text names, and so do not make for robust IDs.
+		// an example from python: "link": r"javascript:eval('window.open(\'timetracking\', \'_self\')')"
+		// this snippet allows a module to open a custom html page in the same window.
+		module._id = module.module_name.toLowerCase();
 	}
 
 

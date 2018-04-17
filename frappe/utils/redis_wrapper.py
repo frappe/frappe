@@ -3,8 +3,7 @@
 from __future__ import unicode_literals
 
 import redis, frappe, re
-# from six.moves import cPickle as pickle
-import dill as pickle
+from six.moves import cPickle as pickle
 from frappe.utils import cstr
 from six import iteritems
 
@@ -93,7 +92,7 @@ class RedisWrapper(redis.Redis):
 
 		except redis.exceptions.ConnectionError:
 			regex = re.compile(cstr(key).replace("|", "\|").replace("*", "[\w]*"))
-			return [k for k in frappe.local.cache.keys() if regex.match(k.decode())]
+			return [k for k in list(frappe.local.cache) if regex.match(k.decode())]
 
 	def delete_keys(self, key):
 		"""Delete keys with wildcard `*`."""

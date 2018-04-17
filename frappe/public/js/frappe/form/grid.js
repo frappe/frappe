@@ -75,6 +75,7 @@ frappe.ui.form.Grid = Class.extend({
 
 	setup_check: function() {
 		var me = this;
+
 		this.wrapper.on('click', '.grid-row-check', function(e) {
 			var $check = $(this);
 			if($check.parents('.grid-heading-row:first').length!==0) {
@@ -96,9 +97,13 @@ frappe.ui.form.Grid = Class.extend({
 			var dirty = false;
 
 			let tasks = [];
+			me.deleted_docs = [];
 
 			me.get_selected().forEach((docname) => {
 				tasks.push(() => {
+					if (!me.frm) {
+						me.deleted_docs.push(docname);
+					}
 					me.grid_rows_by_docname[docname].remove();
 					dirty = true;
 				});
@@ -162,65 +167,57 @@ frappe.ui.form.Grid = Class.extend({
 
 		if(this.display_status==="None") return;
 
-		if(!force && this.data_rows_are_same(data)) {
-			// soft refresh
-			this.header_row && this.header_row.refresh();
-			for(var i in this.grid_rows) {
-				this.grid_rows[i].refresh();
-			}
-		} else {
-			// redraw
-			var _scroll_y = $(document).scrollTop();
-			this.make_head();
+		// redraw
+		var _scroll_y = $(document).scrollTop();
+		this.make_head();
 
-			if(!this.grid_rows) {
-				this.grid_rows = [];
-			}
-
-			this.truncate_rows(data);
-			this.grid_rows_by_docname = {};
-
-			for(var ri=0; ri < data.length; ri++) {
-				var d = data[ri];
-
-				if(d.idx===undefined) {
-					d.idx = ri + 1;
-				}
-
-				if(this.grid_rows[ri]) {
-					var grid_row = this.grid_rows[ri];
-					grid_row.doc = d;
-					grid_row.refresh();
-				} else {
-					var grid_row = new frappe.ui.form.GridRow({
-						parent: $rows,
-						parent_df: this.df,
-						docfields: this.docfields,
-						doc: d,
-						frm: this.frm,
-						grid: this
-					});
-					this.grid_rows.push(grid_row);
-				}
-
-				this.grid_rows_by_docname[d.name] = grid_row;
-			}
-
-			this.wrapper.find(".grid-empty").toggleClass("hide", !!data.length);
-
-			// toolbar
-			this.setup_toolbar();
-
-			// sortable
-			if(this.frm && this.is_sortable() && !this.sortable_setup_done) {
-				this.make_sortable($rows);
-				this.sortable_setup_done = true;
-			}
-
-			this.last_display_status = this.display_status;
-			this.last_docname = this.frm && this.frm.docname;
-			frappe.utils.scroll_to(_scroll_y);
+		if(!this.grid_rows) {
+			this.grid_rows = [];
 		}
+
+		this.truncate_rows(data);
+		this.grid_rows_by_docname = {};
+
+		for(var ri=0; ri < data.length; ri++) {
+			var d = data[ri];
+
+			if(d.idx===undefined) {
+				d.idx = ri + 1;
+			}
+
+			if(this.grid_rows[ri]) {
+				var grid_row = this.grid_rows[ri];
+				grid_row.doc = d;
+				grid_row.refresh();
+			} else {
+				var grid_row = new frappe.ui.form.GridRow({
+					parent: $rows,
+					parent_df: this.df,
+					docfields: this.docfields,
+					doc: d,
+					frm: this.frm,
+					grid: this
+				});
+				this.grid_rows.push(grid_row);
+			}
+
+			this.grid_rows_by_docname[d.name] = grid_row;
+		}
+
+		this.wrapper.find(".grid-empty").toggleClass("hide", !!data.length);
+
+		// toolbar
+		this.setup_toolbar();
+
+		// sortable
+		if(this.frm && this.is_sortable() && !this.sortable_setup_done) {
+			this.make_sortable($rows);
+			this.sortable_setup_done = true;
+		}
+
+		this.last_display_status = this.display_status;
+		this.last_docname = this.frm && this.frm.docname;
+		frappe.utils.scroll_to(_scroll_y);
 
 		// red if mandatory
 		this.form_grid.toggleClass('error', !!(this.df.reqd && !(data && data.length)));
@@ -291,18 +288,6 @@ frappe.ui.form.Grid = Class.extend({
 		this.grid_rows_by_docname[docname] &&
 			this.grid_rows_by_docname[docname].refresh();
 	},
-	data_rows_are_same: function(data) {
-		if(this.grid_rows) {
-			var same = data.length==this.grid_rows.length
-				&& this.display_status==this.last_display_status
-				&& (this.frm && this.frm.docname==this.last_docname)
-				&& !$.map(this.grid_rows, function(g, i) {
-					return (g && g.doc && g.doc.name==data[i].name) ? null : true;
-				}).length;
-
-			return same;
-		}
-	},
 	make_sortable: function($rows) {
 		var me =this;
 		if ('ontouchstart' in window) {
@@ -339,9 +324,16 @@ frappe.ui.form.Grid = Class.extend({
 	get_data: function() {
 		var data = this.frm ?
 			this.frm.doc[this.df.fieldname] || []
-			: this.df.get_data();
+			: this.get_modal_data();
 		data.sort(function(a, b) { return a.idx - b.idx});
 		return data;
+	},
+	get_modal_data: function() {
+		return this.df.get_data().filter(data => {
+			if (!this.deleted_docs || !in_list(this.deleted_docs, data.name)) {
+				return data;
+			}
+		});
 	},
 	set_column_disp: function(fieldname, show) {
 		if($.isArray(fieldname)) {

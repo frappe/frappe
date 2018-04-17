@@ -65,7 +65,7 @@ def get_feed_match_conditions(user=None, force=True):
 	can_read = frappe.get_user().get_can_read()
 
 	can_read_doctypes = ['"{}"'.format(doctype) for doctype in
-		list(set(can_read) - set(user_permissions.keys()))]
+		list(set(can_read) - set(list(user_permissions)))]
 
 	if can_read_doctypes:
 		conditions += ["""(`tabCommunication`.reference_doctype is null

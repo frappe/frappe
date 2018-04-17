@@ -78,7 +78,7 @@ def compress(data, args = {}):
 
 	if not data: return data
 	values = []
-	keys = data[0].keys()
+	keys = list(data[0])
 	for row in data:
 		new_row = []
 		for key in keys:
@@ -341,8 +341,8 @@ def get_match_cond(doctype):
 	cond = DatabaseQuery(doctype).build_match_conditions()
 	return ((' and ' + cond) if cond else "").replace("%", "%%")
 
-def build_match_conditions(doctype, as_condition=True):
-	match_conditions =  DatabaseQuery(doctype).build_match_conditions(as_condition=as_condition)
+def build_match_conditions(doctype, user=None, as_condition=True):
+	match_conditions =  DatabaseQuery(doctype, user=user).build_match_conditions(as_condition=as_condition)
 	if as_condition:
 		return match_conditions.replace("%", "%%")
 	else:

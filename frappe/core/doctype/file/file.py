@@ -173,7 +173,7 @@ class File(NestedSet):
 
 		if self.file_url.startswith("/files/"):
 			try:
-				with open(get_files_path(self.file_name.lstrip("/")), "r") as f:
+				with open(get_files_path(self.file_name.lstrip("/")), "rb") as f:
 					self.content_hash = get_content_hash(f.read())
 			except IOError:
 				frappe.msgprint(_("File {0} does not exist").format(self.file_url))
@@ -455,3 +455,6 @@ def get_attached_images(doctype, names):
 		out[i.docname].append(i.file_url)
 
 	return out
+
+def on_doctype_update():
+	frappe.db.add_index("File", ["lft", "rgt"])

@@ -1,0 +1,55 @@
+{
+ "creation": "2017-12-19 14:42:54.264536", 
+ "docstatus": 0, 
+ "doctype": "Data Migration Mapping", 
+ "fields": [
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "subject", 
+   "remote_fieldname": "summary"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "description", 
+   "remote_fieldname": "description"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "starts_on", 
+   "remote_fieldname": "start_datetime"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "ends_on", 
+   "remote_fieldname": "end_datetime"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "all_day", 
+   "remote_fieldname": "all_day"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "repeat_this_event", 
+   "remote_fieldname": "repeat_this_event"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "name", 
+   "remote_fieldname": "name"
+  }
+ ], 
+ "idx": 0, 
+ "local_doctype": "Event", 
+ "local_primary_key": "gcalendar_sync_id", 
+ "mapping_name": "Event to GCalendar", 
+ "mapping_type": "Push", 
+ "migration_id_field": "gcalendar_sync_id", 
+ "modified": "2018-03-23 19:11:43.470602", 
+ "modified_by": "Administrator", 
+ "name": "Event to GCalendar", 
+ "owner": "Administrator", 
+ "page_length": 10, 
+ "remote_objectname": "Events", 
+ "remote_primary_key": "id"
+}

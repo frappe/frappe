@@ -1,7 +1,8 @@
 /* csslint ignore:start */
+/* palette colors*/
 body {
   line-height: 1.5;
-  color: #36414C;
+  color: #36414c;
 }
 p {
   margin: 1em 0 !important;
@@ -55,7 +56,7 @@ hr {
   margin-bottom: 5px;
 }
 .email-unsubscribe a {
-  color: #8D99A6;
+  color: #8d99a6;
   text-decoration: underline;
 }
 .btn {
@@ -72,7 +73,7 @@ hr {
 }
 .btn.btn-primary {
   color: #fff;
-  background-color: #5E64FF;
+  background-color: #5e64ff;
   border-color: #444bff;
 }
 .table {
@@ -106,8 +107,8 @@ hr {
 }
 .more-info {
   font-size: 80% !important;
-  color: #8D99A6 !important;
-  border-top: 1px solid #EBEFF2;
+  color: #8d99a6 !important;
+  border-top: 1px solid #ebeff2;
   padding-top: 10px;
 }
 .text-right {
@@ -117,7 +118,7 @@ hr {
   text-align: center !important;
 }
 .text-muted {
-  color: #8D99A6 !important;
+  color: #8d99a6 !important;
 }
 .text-extra-muted {
   color: #d1d8dd !important;
@@ -155,7 +156,7 @@ hr {
   background-color: #ff5858;
 }
 .indicator.indicator-yellow {
-  background-color: #FEEF72;
+  background-color: #feef72;
 }
 .screenshot {
   box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);

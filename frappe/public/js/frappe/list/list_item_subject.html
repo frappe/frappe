@@ -13,10 +13,12 @@
 	<span class="likes-count">{{ (_liked_by.length > 99 ? "99+" : _liked_by.length) || "" }}</span>
 </span>
 {% } %}
+
+{% var anchor_title = (_full_title).replace(/["]/g, "&\quot;"); %}
 <a class="grey list-id {{ css_seen }} ellipsis"
 	data-name="{{ _name }}"
 	href="#Form/{{ _doctype_encoded }}/{{ _name_encoded }}"
-    title="{{ _full_title }}">{{ strip_html(_title) }}</a>
+    title="{{ anchor_title }}">{{ strip_html(_title) }}</a>
 {% if (_workflow && !_without_workflow) { %}
 <span class="label label-{{ _workflow.style }} filterable"
     data-filter="{{ _workflow.fieldname }},=,{{ _workflow.value }}">

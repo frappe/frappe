@@ -8,7 +8,7 @@
 	* nginx (用于生产环境部署)
 	* supervisor (用于生产环境部署)
 
-Frappé 进程
+Frappe 进程
 ----------------
 
 * WSGI 服务
@@ -17,8 +17,8 @@ Frappé 进程
 
 * Redis 执行单元(Workers)进程
 
-	* 该 Celery 执行单元进程在 Frappé 系统里运行后台任务。当 supervisor 配置为生产环境时，这些进程在运行 `bench start` 时会自动启动。
+	* 该 Celery 执行单元进程在 Frappe 系统里运行后台任务。当 supervisor 配置为生产环境时，这些进程在运行 `bench start` 时会自动启动。
 
 * 计划任务进程
 
-	* 计划任务进程在 Frappé 系统里运行规划的任务。当 supervisor 配置为生产环境时，该进程在运行 `bench start` 时会自动启动。
+	* 计划任务进程在 Frappe 系统里运行规划的任务。当 supervisor 配置为生产环境时，该进程在运行 `bench start` 时会自动启动。

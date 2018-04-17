@@ -144,9 +144,13 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_page_head() {
-		this.page.set_title(this.page_title);
+		this.set_title();
 		this.set_menu_items();
 		this.set_breadcrumbs();
+	}
+
+	set_title() {
+		this.page.set_title(this.page_title);
 	}
 
 	set_menu_items() {
@@ -193,14 +197,15 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_main_section() {
-		this.setup_list_wrapper();
-		this.setup_filter_area();
-		this.setup_sort_selector();
-		this.setup_result_area();
-		this.setup_no_result_area();
-		this.setup_freeze_area();
-		this.setup_paging_area();
-		this.setup_footnote_area();
+		return frappe.run_serially([
+			this.setup_list_wrapper,
+			this.setup_filter_area,
+			this.setup_sort_selector,
+			this.setup_result_area,
+			this.setup_no_result_area,
+			this.setup_freeze_area,
+			this.setup_paging_area
+		].map(fn => fn.bind(this)));
 	}
 
 	setup_list_wrapper() {
@@ -225,7 +230,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_result_area() {
-		this.$result = $(`<div class="result">`).hide();
+		this.$result = $(`<div class="result">`);
 		this.$frappe_list.append(this.$result);
 	}
 
@@ -293,10 +298,6 @@ frappe.views.BaseList = class BaseList {
 		});
 	}
 
-	setup_footnote_area() {
-		this.$footnote_area = null;
-	}
-
 	get_fields() {
 		// convert [fieldname, Doctype] => tabDoctype.fieldname
 		return this.fields.map(f => frappe.model.get_full_column_name(f[0], f[1]));
@@ -309,7 +310,9 @@ frappe.views.BaseList = class BaseList {
 	get_filters_for_args() {
 		// filters might have a fifth param called hidden,
 		// we don't want to pass that server side
-		return this.filter_area.get().map(filter => filter.slice(0, 4));
+		return this.filter_area
+			? this.filter_area.get().map(filter => filter.slice(0, 4))
+			: [];
 	}
 
 	get_args() {
@@ -518,7 +521,11 @@ class FilterArea {
 		this.filter_list.get_filter(fieldname).remove();
 	}
 
-	clear() {
+	clear(refresh = true) {
+		if (!refresh) {
+			this.trigger_refresh = false;
+		}
+
 		this.filter_list.clear_filters();
 
 		const promises = [];
@@ -527,23 +534,13 @@ class FilterArea {
 			const field = this.list_view.page.fields_dict[key];
 			promises.push(() => field.set_value(''));
 		}
-		return frappe.run_serially(promises);
+		return frappe.run_serially(promises)
+			.then(() => {
+				this.trigger_refresh = true;
+			});
 	}
 
 	make_standard_filters() {
-		$(
-			`<div class="flex justify-center align-center">
-				<span class="octicon octicon-search text-muted small"></span>
-			</div>`
-		)
-			.css({
-				height: '30px',
-				width: '20px',
-				marginRight: '-2px',
-				marginLeft: '10px'
-			})
-			.prependTo(this.standard_filters_wrapper);
-
 		let fields = [
 			{
 				fieldtype: 'Data',
@@ -602,6 +599,21 @@ class FilterArea {
 		}
 
 		fields.map(df => this.list_view.page.add_field(df));
+
+		// search icon in name filter
+		$('<span class="octicon octicon-search text-muted small"></span>')
+			.appendTo(this.list_view.page.fields_dict.name.$wrapper)
+			.css({
+				'position': 'absolute',
+				'z-index': '1',
+				'right': '7px',
+				'top': '9px',
+				'font-size': '90%'
+			});
+
+		this.list_view.page.fields_dict.name.$wrapper
+			.find('.form-control')
+			.css('padding-right', '2em');
 	}
 
 	get_standard_filters() {

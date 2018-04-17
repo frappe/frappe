@@ -1,6 +1,6 @@
 # 为站点配置限额
 
-Frappé v7 加入了对站点进行限额设置的支持。这些限额在站点文件夹内的 `site_config.json` 文件中设置，
+Frappe v7 加入了对站点进行限额设置的支持。这些限额在站点文件夹内的 `site_config.json` 文件中设置，
 
 	{
 	 "db_name": "xxxxxxxxxx",

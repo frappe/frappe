@@ -35,6 +35,14 @@ $.extend(frappe, {
 	},
 	call: function(opts) {
 		// opts = {"method": "PYTHON MODULE STRING", "args": {}, "callback": function(r) {}}
+		if (typeof arguments[0]==='string') {
+			opts = {
+				method: arguments[0],
+				args: arguments[1],
+				callback: arguments[2]
+			}
+		}
+
 		frappe.prepare_call(opts);
 		if(opts.freeze) {
 			frappe.freeze();
@@ -278,7 +286,7 @@ $.extend(frappe, {
 		// set in select
 		$(".filter").each(function() {
 			var key = $(this).attr("data-key");
-			var val = get_url_arg(key).replace(/\+/g, " ");
+			var val = frappe.utils.get_url_arg(key).replace(/\+/g, " ");
 
 			if(val) $(this).val(val);
 		});
@@ -342,14 +350,14 @@ $.extend(frappe, {
 
 // Utility functions
 
-function valid_email(id) {
+window.valid_email = function(id) {
 	// eslint-disable-next-line
 	return (id.toLowerCase().search("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")==-1) ? 0 : 1;
 }
 
 window.validate_email = valid_email;
 
-function cstr(s) {
+window.cstr = function(s) {
 	return s==null ? '' : s+'';
 }
 

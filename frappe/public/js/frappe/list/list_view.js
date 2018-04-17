@@ -22,7 +22,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.show();
 	}
 
+	has_permissions() {
+		const can_read = frappe.perm.has_perm(this.doctype, 0, 'read');
+		return can_read;
+	}
+
 	show() {
+		if (!this.has_permissions()) {
+			frappe.set_route('');
+			frappe.msgprint(__(`Not permitted to view ${this.doctype}`));
+			return;
+		}
+
 		this.init().then(() => {
 			if (frappe.route_options) {
 				this.set_filters_from_route_options();
@@ -43,7 +54,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// initialize with saved filters
 		const saved_filters = this.view_user_settings.filters;
 		if (saved_filters) {
-			this.filters = saved_filters;
+			this.filters = this.validate_filters(saved_filters);
 		} else {
 			// filters in listview_settings
 			const filters = (this.settings.filters || []).map(f => {
@@ -66,6 +77,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.patch_refresh_and_load_lib();
 	}
 
+	validate_filters(filters) {
+		return filters.uniqBy(f => f[1]);
+	}
+
 	setup_page() {
 		this.parent.list_view = this;
 		super.setup_page();
@@ -84,6 +99,22 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				$item.addClass(item.class);
 			}
 		});
+	}
+
+	show_restricted_list_indicator_if_applicable() {
+		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
+		if(match_rules_list.length) {
+			this.restricted_list = $('<button class="restricted-list form-group">Restricted</button>')
+				.prepend('<span class="octicon octicon-lock"></span>')
+				.click(() => this.show_restrictions(match_rules_list))
+				.appendTo(this.page.page_form);
+		}
+	}
+
+	show_restrictions(match_rules_list) {
+		frappe.msgprint(frappe.render_template('list_view_permission_restrictions', {
+			condition_list: match_rules_list
+		}), 'Restrictions');
 	}
 
 	set_fields() {
@@ -145,8 +176,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_view() {
 		this.setup_columns();
+		this.render_header();
+		this.render_skeleton();
 		this.setup_events();
 		this.settings.onload && this.settings.onload(this);
+		this.show_restricted_list_indicator_if_applicable();
 	}
 
 	setup_freeze_area() {
@@ -154,18 +188,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			$(`<div class="freeze flex justify-center align-center text-muted">${__('Loading')}...</div>`)
 				.hide();
 		this.$result.append(this.$freeze);
-	}
-
-	setup_footnote_area() {
-		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
-
-		if (match_rules_list.length) {
-			this.$footnote_area =
-				frappe.utils.set_footnote(this.$footnote_area, this.$frappe_list,
-					frappe.render_template('list_permission_footer', {
-						condition_list: match_rules_list
-					}));
-		}
 	}
 
 	setup_columns() {
@@ -233,10 +255,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		</div>`;
 	}
 
-	freeze(show) {
-		this.$result.find('.list-header-meta').html(__('Refreshing') + '...');
-		this.$result.find('.checkbox-actions').toggle(show);
-		this.$result.find('.list-header-subject').toggle(!show);
+	freeze() {
+		this.$result.find('.list-count').html(`<span>${__('Refreshing')}...</span>`);
 	}
 
 	get_args() {
@@ -264,6 +284,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 	}
 
+	render_header() {
+		if (this.$result.find('.list-row-head').length === 0) {
+			// append header once
+			this.$result.prepend(this.get_header_html());
+		}
+	}
+
+	render_skeleton() {
+		const $row = this.get_list_row_html_skeleton('<div><input type="checkbox" /></div>');
+		this.$result.append($row);
+	}
+
 	before_render() {
 		this.settings.before_render && this.settings.before_render();
 		frappe.model.user_settings.save(this.doctype, 'last_view', this.view_name);
@@ -274,12 +306,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	render() {
+		this.$result.find('.list-row-container').remove();
 		if (this.data.length > 0) {
-			this.$result.find('.list-row-container').remove();
-			if (this.$result.find('.list-row-head').length === 0) {
-				// append header once
-				this.$result.prepend(this.get_header_html());
-			}
 			// append rows
 			this.$result.append(
 				this.data.map(doc => this.get_list_row_html(doc)).join('')
@@ -995,7 +1023,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 		frappe.route_options = null;
 
-		this.filter_area.add(filters);
+		this.filter_area.clear(false)
+			.then(() => {
+				this.filter_area.add(filters);
+			});
 	}
 
 	static trigger_list_update(data) {

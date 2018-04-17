@@ -122,7 +122,7 @@ def get_context(context):
 					title=_("Error in Email Alert"))
 			else:
 				return [{"print_format_attachment":1, "doctype":doc.doctype, "name": doc.name,
-					"print_format":self.print_format}]
+					"print_format":self.print_format, "print_letterhead": print_settings.with_letterhead}]
 
 		context = get_context(doc)
 		recipients = []
@@ -175,7 +175,9 @@ def get_context(context):
 			message= frappe.render_template(self.message, context),
 			reference_doctype = doc.doctype,
 			reference_name = doc.name,
-			attachments = attachments)
+			attachments = attachments,
+			print_letterhead = ((attachments
+				and attachments[0].get('print_letterhead')) or False))
 
 		if self.set_property_after_alert:
 			frappe.db.set_value(doc.doctype, doc.name, self.set_property_after_alert,
@@ -266,7 +268,7 @@ def evaluate_alert(doc, alert, event):
 	except TemplateError:
 		frappe.throw(_("Error while evaluating Email Alert {0}. Please fix your template.").format(alert))
 	except Exception as e:
-		frappe.log_error(message=frappe.get_traceback(), title=e)
+		frappe.log_error(message=frappe.get_traceback(), title=str(e))
 		frappe.throw(_("Error in Email Alert"))
 
 def get_context(doc):

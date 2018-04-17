@@ -3,13 +3,11 @@ const chalk = require('chalk');
 const rollup = require('rollup');
 const log = console.log; // eslint-disable-line
 const {
-	apps_list,
-	get_app_path,
-	get_build_json
+	apps_list
 } = require('./rollup.utils');
 
 const {
-	get_rollup_options
+	get_options_for
 } = require('./config');
 
 watch_assets();
@@ -24,36 +22,61 @@ function watch_assets() {
 
 	watcher.on('event', event => {
 		switch(event.code) {
-			case 'START':
+			case 'START': {
 				log(chalk.yellow(`\nWatching...`));
 				break;
+			}
 
-			case 'BUNDLE_START':
-				log('Rebuilding', path.basename(event.output[0]));
+			case 'BUNDLE_START': {
+				const output = event.output[0];
+				if (output.endsWith('.js')) {
+					log('Rebuilding', path.basename(event.output[0]));
+				}
 				break;
+			}
 
-			default:
+			case 'ERROR': {
+				log_error(event.error);
 				break;
+			}
+
+			case 'FATAL': {
+				log_error(event.error);
+				break;
+			}
+
+			default: break;
 		}
 	});
 }
 
 function get_watch_options(app) {
-	const build_json = get_build_json(app);
-	if (!build_json) return [];
+	const options = get_options_for(app);
 
-	const watchOptions = Object.keys(build_json)
-		.map(output_file => {
-			const input_files = build_json[output_file]
-				.map(input_file => path.resolve(get_app_path(app), input_file));
-			const { inputOptions, outputOptions } = get_rollup_options(output_file, input_files);
+	return options.map(({ inputOptions, outputOptions, output_file}) => {
+		return Object.assign({}, inputOptions, {
+			output: outputOptions,
+			plugins: [log_css_change({output: output_file})].concat(inputOptions.plugins)
+		});
+	});
+}
 
-			if (output_file.endsWith('libs.min.js')) return;
+function log_css_change({output}) {
+	return {
+		name: 'log-css-change',
+		ongenerate() {
+			if (!output.endsWith('.css')) return null;
+			log('Rebuilding', path.basename(output));
+			return null;
+		}
+	};
+}
 
-			return Object.assign({}, inputOptions, {
-				output: outputOptions
-			});
-		}).filter(Boolean);
+function log_error(error) {
+	log(chalk.yellow('Error in: ' +  error.id));
+	log(chalk.red(error.toString()));
 
-	return watchOptions;
+	if (error.frame) {
+		log(chalk.red(error.frame));
+	}
 }

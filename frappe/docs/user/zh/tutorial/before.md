@@ -1,12 +1,12 @@
 # 在您开始之前
 
-<p class="lead">帮助您开始使用 Frappé 创建应用的资源列表</p>
+<p class="lead">帮助您开始使用 Frappe 创建应用的资源列表</p>
 
 ---
 
 #### 1. Python
 
-Frappé 使用 Python (v2.7) 进行服务器端编程。 在您开始使用 Frappé 构建应用之前，强烈建议您学习 Python。
+Frappe 使用 Python (v2.7) 进行服务器端编程。 在您开始使用 Frappe 构建应用之前，强烈建议您学习 Python。
 
 要编写高质量的服务器端代码，还必须包括自动测试。
 
@@ -20,7 +20,7 @@ Frappé 使用 Python (v2.7) 进行服务器端编程。 在您开始使用 Frap
 
 #### 2. MariaDB / MySQL
 
-要使用 Frappé 创建数据库驱动的应用，您必须了解数据库管理的基本知识，比如如何安装、登录、创建新数据库以及基本的 SQL 查询。
+要使用 Frappe 创建数据库驱动的应用，您必须了解数据库管理的基本知识，比如如何安装、登录、创建新数据库以及基本的 SQL 查询。
 
 相关资源：
 
@@ -32,7 +32,7 @@ Frappé 使用 Python (v2.7) 进行服务器端编程。 在您开始使用 Frap
 
 #### 3. HTML / CSS
 
-如果要使用 Frappé 构建用户界面，您需要学习基本的 HTML/CSS 和 Boostrap CSS 框架。
+如果要使用 Frappe 构建用户界面，您需要学习基本的 HTML/CSS 和 Boostrap CSS 框架。
 
 相关资源：
 
@@ -74,5 +74,5 @@ Frappé 使用 Python (v2.7) 进行服务器端编程。 在您开始使用 Frap
 
 ---
 
-当您准备好时，您可以尝试使用 Frappé [构建示例应用](/docs/user/en/tutorial/app)。
+当您准备好时，您可以尝试使用 Frappe [构建示例应用](/docs/user/en/tutorial/app)。
 

@@ -2,8 +2,7 @@
  * frappe.views.ReportView
  */
 import DataTable from 'frappe-datatable';
-import 'frappe-datatable/dist/frappe-datatable.css';
-import '../../../../less/frappe-datatable.less';
+
 frappe.provide('frappe.views');
 
 frappe.views.ReportView = class ReportView extends frappe.views.ListView {
@@ -148,16 +147,19 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.datatable = new DataTable(this.$datatable_wrapper[0], {
 			columns: this.columns,
 			data: this.get_data(values),
-			enableClusterize: true,
-			addCheckbox: this.can_delete,
-			takeAvailableSpace: true,
 			getEditor: this.get_editing_object.bind(this),
+			dynamicRowHeight: true,
+			checkboxColumn: true,
 			events: {
 				onRemoveColumn: (column) => {
 					this.remove_column_from_datatable(column);
 				},
 				onSwitchColumn: (column1, column2) => {
 					this.switch_column(column1, column2);
+				},
+				onCheckRow: () => {
+					const checked_items = this.get_checked_items();
+					this.toggle_actions_menu_button(checked_items.length > 0);
 				}
 			},
 			headerDropdown: [{
@@ -281,8 +283,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				const get_df = (field) => frappe.meta.get_docfield(this.doctype, field);
 				const get_doc = (value, field) => this.data.find(d => d[field] === value);
 
-				this.chart = new Chart({
-					parent: this.$charts_wrapper[0],
+				this.chart = new Chart(this.$charts_wrapper[0], {
 					title: __("{0} Chart", [this.doctype]),
 					data: data,
 					type: args.chart_type, // 'bar', 'line', 'scatter', 'pie', 'percentage'
@@ -390,7 +391,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			y_fields: y_axes,
 			labels: labels,
 			datasets: y_axes.map(y_axis => ({
-				title: frappe.meta.get_docfield(this.doctype, y_axis).label,
+				name: frappe.meta.get_docfield(this.doctype, y_axis).label,
 				values: this.data.map(d => ({
 					doc: d,
 					field: y_axis,
@@ -743,7 +744,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			name: title,
 			content: title,
 			width: (docfield ? cint(docfield.width) : null) || null,
-			editable: editable
+			editable: editable,
+			format: (value, row, column, data) => {
+				return frappe.format(value, column.docfield, { always_show_decimals: true }, data);
+			}
 		};
 	}
 
@@ -804,13 +808,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					name: d.name,
 					doctype: col.docfield.parent,
 					content: value,
-					editable: this.is_editable(col.docfield, d),
-					format: value => {
-						if (col.field === 'name') {
-							return frappe.utils.get_form_link(this.doctype, value, true);
-						}
-						return frappe.format(value, col.docfield, { always_show_decimals: true }, d);
-					}
+					editable: this.is_editable(col.docfield, d)
 				};
 			}
 			return {
