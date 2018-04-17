@@ -30,6 +30,7 @@ class DataMigrationPlan(Document):
 				create_init_py(get_module_path(self.module), dt, dn)
 
 	def make_custom_fields_for_mappings(self):
+		frappe.flags.ignore_in_install = True
 		label = self.name + ' ID'
 		fieldname = frappe.scrub(label)
 
@@ -51,6 +52,7 @@ class DataMigrationPlan(Document):
 
 		# Create custom field in Deleted Document
 		create_custom_field('Deleted Document', df)
+		frappe.flags.ignore_in_install = False
 
 	def pre_process_doc(self, mapping_name, doc):
 		module = self.get_mapping_module(mapping_name)
