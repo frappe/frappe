@@ -100,7 +100,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			() => this.report_settings.onload && this.report_settings.onload(this),
 			() => this.get_user_settings(),
 			() => this.refresh(),
-			() => this.save_user_settings()
+			() => this.save_user_settings(true)
 		]);
 	}
 
@@ -247,8 +247,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			treeView: this.tree_report,
 			layout: 'fixed',
 			events: {
-				onRemoveColumn: () => this.save_user_settings(),
-				onSwitchColumn: () => this.save_user_settings()
+				onRemoveColumn: () => this.save_user_settings(true),
+				onSwitchColumn: () => this.save_user_settings(true)
 			}
 		});
 	}
