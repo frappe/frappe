@@ -114,6 +114,7 @@ def validate_workflow(doc):
 		# set default state (maybe not set in insert)
 		current_state = next_state = workflow.states[0].state
 		doc.set(workflow.workflow_state_field, workflow.states[0].state)
+
 	state_row = [d for d in workflow.states if d.state == current_state]
 	if not state_row:
 		frappe.throw(_('{0} is not a valid Workflow State. Please update your Workflow and try again.'.format(frappe.bold(current_state))))
