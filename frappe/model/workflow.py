@@ -27,7 +27,7 @@ def get_transitions(doc, workflow = None):
 	if doc.is_new():
 		return []
 
-	frappe.has_permission(doc.doctype, 'read', throw=True)
+	frappe.has_permission(doc, 'read', throw=True)
 	roles = frappe.get_roles()
 
 	if not workflow:
