@@ -81,5 +81,14 @@ frappe.db = {
 		return new Promise(resolve => {
 			frappe.call('frappe.client.delete', { doctype, name }, r => resolve(r.message));
 		});
+	},
+	count: function(doctype, args={}) {
+		return new Promise(resolve => {
+			frappe.call(
+				'frappe.client.get_count',
+				Object.assign(args, { doctype }),
+				r => resolve(r.message)
+			);
+		});
 	}
 };
