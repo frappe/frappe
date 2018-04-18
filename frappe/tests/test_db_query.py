@@ -6,6 +6,7 @@ import frappe, unittest
 
 from frappe.model.db_query import DatabaseQuery
 from frappe.desk.reportview import get_filters_cond
+from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 
 class TestReportview(unittest.TestCase):
 	def test_basic(self):
@@ -133,6 +134,36 @@ class TestReportview(unittest.TestCase):
 			"datediff(modified, creation) as date_diff"], limit_start=0, limit_page_length=1)
 		self.assertTrue('date_diff' in data[0])
 
+	def test_nested_permission(self):
+		clear_user_permissions_for_doctype("File")
+		delete_test_file_hierarchy() # delete already existing folders
+
+		from frappe.core.doctype.file.file import create_new_folder
+		frappe.set_user('Administrator')
+
+		create_new_folder('level1-A', 'Home')
+		create_new_folder('level2-A', 'Home/level1-A')
+		create_new_folder('level2-B', 'Home/level1-A')
+		create_new_folder('level3-A', 'Home/level1-A/level2-A')
+
+		create_new_folder('level1-B', 'Home')
+		create_new_folder('level2-A', 'Home/level1-B')
+
+		add_user_permission('File', 'Home/level1-A', 'test2@example.com') # user permission for only one root folder
+		frappe.set_user('test2@example.com')
+		data = DatabaseQuery("File").execute()
+
+		# children of root folder (for which we added user permission) should be accessible
+		self.assertTrue({"name":"Home/level1-A/level2-A"} in data)
+		self.assertTrue({"name":"Home/level1-A/level2-B"} in data)
+		self.assertTrue({"name":"Home/level1-A/level2-A/level3-A"} in data)
+
+		# other folders should not be accessible
+		self.assertFalse({"name":"Home/level1-B"} in data)
+		self.assertFalse({"name":"Home/level1-B/level2-B"} in data)
+
+		frappe.set_user('Administrator')
+
 def create_event(subject="_Test Event", starts_on=None):
 	""" create a test event """
 
@@ -146,3 +177,13 @@ def create_event(subject="_Test Event", starts_on=None):
 	}).insert(ignore_permissions=True)
 
 	return event
+
+def delete_test_file_hierarchy():
+	files_to_delete = ['Home/level1-A/level2-A/level3-A',
+	'Home/level1-A/level2-A',
+	'Home/level1-A/level2-B',
+	'Home/level1-A',
+	'Home/level1-B/level2-A',
+	'Home/level1-B']
+	for file_name in files_to_delete:
+		frappe.delete_doc('File', file_name)
