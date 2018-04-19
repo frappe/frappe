@@ -179,11 +179,13 @@ def create_event(subject="_Test Event", starts_on=None):
 	return event
 
 def delete_test_file_hierarchy():
-	files_to_delete = ['Home/level1-A/level2-A/level3-A',
-	'Home/level1-A/level2-A',
-	'Home/level1-A/level2-B',
-	'Home/level1-A',
-	'Home/level1-B/level2-A',
-	'Home/level1-B']
+	files_to_delete = [
+		'Home/level1-A/level2-A/level3-A',
+		'Home/level1-A/level2-A',
+		'Home/level1-A/level2-B',
+		'Home/level1-A',
+		'Home/level1-B/level2-A',
+		'Home/level1-B'
+	]
 	for file_name in files_to_delete:
 		frappe.delete_doc('File', file_name)
