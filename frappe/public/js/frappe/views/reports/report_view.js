@@ -874,6 +874,17 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		});
 	}
 
+	get_filters_html_for_print() {
+		var filter_html = '';
+		this.filter_area.get().forEach(f => {
+			if (f[2] === "=" && frappe.model.is_non_std_field(f[1])) {
+				const label = frappe.meta.get_label(this.doctype, [f[1]])
+				filter_html += `<h6>${__(label)}: ${f[3]}</h6>`;
+			}
+		});
+		return filter_html;
+	}
+
 	report_menu_items() {
 		let items = [
 			{
@@ -891,6 +902,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						var title =  __(this.doctype);
 						frappe.render_grid({
 							title: title,
+							subtitle: this.get_filters_html_for_print(),
 							print_settings: print_settings,
 							columns: this.columns,
 							data: this.data
