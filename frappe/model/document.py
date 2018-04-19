@@ -1148,7 +1148,7 @@ class Document(BaseDocument):
 		if not user:
 			user = frappe.session.user
 
-		if self.meta.track_view:
+		if self.meta.track_views:
 			frappe.get_doc({
 				"doctype": "Communication",
 				"communication_type": "Comment",
