@@ -7,7 +7,7 @@ python:
 
 services:
   - mysql
-
+ 
 before_script:
   - mysql -u root -ptravis -e 'CREATE DATABASE test_frappe'
   - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
