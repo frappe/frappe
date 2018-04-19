@@ -50,6 +50,7 @@ def getdoc(doctype, name, user=None):
 		frappe.get_user().update_recent(doctype, name)
 
 	doc.add_seen()
+	doc.add_viewed()
 
 	frappe.response.docs.append(doc)
 
