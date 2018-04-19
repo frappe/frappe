@@ -277,13 +277,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			});
 	}
 
-	save_user_settings(clear_settings = false) {
-		if (clear_settings) {
-			return frappe.model.user_settings.save(this.report_name, 'column_order', []);
-		}
-		if (!this.datatable) return;
-		const column_order = this.datatable.datamanager.getColumns(true).map(col => col.id);
-		return frappe.model.user_settings.save(this.report_name, 'column_order', column_order);
+	save_user_settings() {
+		return;
+		// if (clear_settings) {
+		// 	return frappe.model.user_settings.save(this.report_name, 'column_order', []);
+		// }
+		// if (!this.datatable) return;
+		// const column_order = this.datatable.datamanager.getColumns(true).map(col => col.id);
+		// return frappe.model.user_settings.save(this.report_name, 'column_order', column_order);
 	}
 
 	prepare_columns(columns) {
@@ -341,14 +342,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	get_visible_columns() {
 		// return columns according to user_settings
-
-		if (this.user_settings.column_order && this.user_settings.column_order.length > 0) {
-			return this.user_settings.column_order
-				.map(id => this.columns.find(col => col.id === id))
-				.filter(Boolean);
-		} else {
-			return this.columns;
-		}
+		return this.columns;
+		// if (this.user_settings.column_order && this.user_settings.column_order.length > 0) {
+		// 	return this.user_settings.column_order
+		// 		.map(id => this.columns.find(col => col.id === id))
+		// 		.filter(Boolean);
+		// } else {
+		// 	return this.columns;
+		// }
 	}
 
 	get_filter_values(raise) {
@@ -558,11 +559,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				condition: () => frappe.model.can_set_user_permissions('Report'),
 				standard: true
 			},
-			{
-				label: __('Clear User Settings'),
-				action: () => this.save_user_settings(true).then(() => this.refresh_report()),
-				standard: true
-			},
+			// {
+			// 	label: __('Clear User Settings'),
+			// 	action: () => this.save_user_settings(true).then(() => this.refresh_report()),
+			// 	standard: true
+			// },
 			{
 				label: __('Add to Desktop'),
 				action: () => frappe.add_to_desktop(this.report_name, null, this.report_name),
