@@ -948,6 +948,12 @@ class Database:
 
 		return s
 
+	def get_descendants(self, doctype, name):
+		'''Return descendants of the current record'''
+		lft, rgt = self.get_value(doctype, name, ('lft', 'rgt'))
+		return self.sql_list('''select name from `tab{doctype}`
+			where lft > {lft} and rgt < {rgt}'''.format(doctype=doctype, lft=lft, rgt=rgt))
+
 def enqueue_jobs_after_commit():
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
 		for job in frappe.flags.enqueue_after_commit:
