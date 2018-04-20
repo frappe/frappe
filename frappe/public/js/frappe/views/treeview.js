@@ -266,7 +266,7 @@ frappe.views.TreeView = Class.extend({
 			}
 
 			d.hide();
-			frappe.dom.freeze(__(`Creating ${me.doctype}`));
+			frappe.dom.freeze(__('Creating {0}', [me.doctype]));
 
 			$.extend(args, v)
 			return frappe.call({
