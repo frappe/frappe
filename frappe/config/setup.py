@@ -162,8 +162,8 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Standard Reply",
-					"description": _("Standard replies to common queries.")
+					"name": "Email Template",
+					"description": _("Email Templates for common queries.")
 				},
 				{
 					"type": "doctype",
