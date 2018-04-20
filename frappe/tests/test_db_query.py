@@ -137,7 +137,6 @@ class TestReportview(unittest.TestCase):
 	def test_nested_permission(self):
 		clear_user_permissions_for_doctype("File")
 		delete_test_file_hierarchy() # delete already existing folders
-
 		from frappe.core.doctype.file.file import create_new_folder
 		frappe.set_user('Administrator')
 
@@ -149,20 +148,26 @@ class TestReportview(unittest.TestCase):
 		create_new_folder('level1-B', 'Home')
 		create_new_folder('level2-A', 'Home/level1-B')
 
-		add_user_permission('File', 'Home/level1-A', 'test2@example.com') # user permission for only one root folder
+		# user permission for only one root folder
+		add_user_permission('File', 'Home/level1-A', 'test2@example.com')
+		
+		from frappe.core.page.permission_manager.permission_manager import update
+		update('File', 'All', 0, 'if_owner', 0) # to avoid if_owner filter
+
 		frappe.set_user('test2@example.com')
 		data = DatabaseQuery("File").execute()
 
 		# children of root folder (for which we added user permission) should be accessible
-		self.assertTrue({"name":"Home/level1-A/level2-A"} in data)
-		self.assertTrue({"name":"Home/level1-A/level2-B"} in data)
-		self.assertTrue({"name":"Home/level1-A/level2-A/level3-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
 
 		# other folders should not be accessible
-		self.assertFalse({"name":"Home/level1-B"} in data)
-		self.assertFalse({"name":"Home/level1-B/level2-B"} in data)
-
+		self.assertFalse({"name": "Home/level1-B"} in data)
+		self.assertFalse({"name": "Home/level1-B/level2-B"} in data)
+		update('File', 'All', 0, 'if_owner', 1)
 		frappe.set_user('Administrator')
+
 
 def create_event(subject="_Test Event", starts_on=None):
 	""" create a test event """
