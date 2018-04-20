@@ -274,13 +274,15 @@ frappe.views.TreeView = Class.extend({
 				args: args,
 				callback: function(r) {
 					if(!r.exc) {
-						frappe.dom.unfreeze();
 						if(node.expanded) {
 							me.tree.toggle_node(node);
 						}
 						me.tree.load_children(node, true);
 					}
-				}
+				},
+				always: function() {
+					frappe.dom.unfreeze();
+				},
 			});
 		});
 		d.show();
