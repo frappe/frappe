@@ -879,7 +879,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		return filters.map(f => {
 			const [doctype, fieldname, condition, value] = f;
-			if (!(condition === '=' && frappe.model.is_non_std_field(fieldname))) return;
+			if (condition !== '=') return '';
 
 			const label = frappe.meta.get_label(doctype, fieldname);
 			return `<h6>${__(label)}: ${value}</h6>`;
