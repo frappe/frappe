@@ -150,7 +150,7 @@ class TestReportview(unittest.TestCase):
 
 		# user permission for only one root folder
 		add_user_permission('File', 'Home/level1-A', 'test2@example.com')
-		
+
 		from frappe.core.page.permission_manager.permission_manager import update
 		update('File', 'All', 0, 'if_owner', 0) # to avoid if_owner filter
 
@@ -167,7 +167,6 @@ class TestReportview(unittest.TestCase):
 		self.assertFalse({"name": "Home/level1-B/level2-B"} in data)
 		update('File', 'All', 0, 'if_owner', 1)
 		frappe.set_user('Administrator')
-
 
 def create_event(subject="_Test Event", starts_on=None):
 	""" create a test event """
