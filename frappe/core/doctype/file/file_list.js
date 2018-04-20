@@ -39,7 +39,7 @@ frappe.listview_settings['File'] = {
 		doclist.breadcrumb = $('<ol class="breadcrumb for-file-list"></ol>')
 			.insertBefore(doclist.filter_area);
 		
-		if (typeof doclist.list_renderer !== "undefined") {
+		if (doclist.list_renderer) {
 			doclist.list_renderer.settings.setup_menu(doclist);
 			doclist.list_renderer.settings.setup_dragdrop(doclist);
 
