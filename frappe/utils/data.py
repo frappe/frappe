@@ -262,10 +262,7 @@ def global_date_format(date, format="long"):
 
 def is_weekday(date):
 	date = getdate(date)
-	if date.weekday() not in [5, 6]:
-		return True
-	else:
-		return False
+	return date.weekday() not in [5, 6]
 
 def next_weekday_date(date):
 	date = getdate(date)
