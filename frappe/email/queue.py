@@ -6,7 +6,7 @@ from six.moves import range
 import frappe
 from six.moves import html_parser as HTMLParser
 import smtplib, quopri, json
-from frappe import msgprint, throw, _
+from frappe import msgprint, throw, _, safe_decode
 from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html, add_attachment
 from frappe.utils.verified_command import get_signed_params, verify_request
@@ -24,7 +24,7 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 		attachments=None, reply_to=None, cc=[], bcc=[], message_id=None, in_reply_to=None, send_after=None,
 		expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None,
 		queue_separately=False, is_notification=False, add_unsubscribe_link=1, inline_images=None,
-		header=None):
+		header=None, print_letterhead=False):
 	"""Add email to sending queue (Email Queue)
 
 	:param recipients: List of recipients.
@@ -131,7 +131,8 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 		is_notification = is_notification,
 		inline_images = inline_images,
 		header=header,
-		now=now)
+		now=now,
+		print_letterhead=print_letterhead)
 
 
 def add(recipients, sender, subject, **kwargs):
@@ -169,6 +170,7 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 				_attachments.append(att)
 			elif att.get("print_format_attachment") == 1:
 				att['lang'] = frappe.local.lang
+				att['print_letterhead'] = kwargs.get('print_letterhead')
 				_attachments.append(att)
 		e.attachments = json.dumps(_attachments)
 
@@ -202,7 +204,8 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 		frappe.log_error('Invalid Email ID Sender: {0}, Recipients: {1}'.format(mail.sender,
 			', '.join(mail.recipients)), 'Email Not Sent')
 
-	e.set_recipients(recipients + kwargs.get('cc', []) + kwargs.get('bcc', []))
+	recipients = list(set(recipients + kwargs.get('cc', []) + kwargs.get('bcc', [])))
+	e.set_recipients(recipients)
 	e.reference_doctype = kwargs.get('reference_doctype')
 	e.reference_name = kwargs.get('reference_name')
 	e.add_unsubscribe_link = kwargs.get("add_unsubscribe_link")
@@ -508,6 +511,7 @@ def prepare_message(email, recipient, recipients_list):
 		message = message.replace("<!--recipient-->", recipient)
 
 	message = (message and message.encode('utf8')) or ''
+	message = safe_decode(message)
 	if not email.attachments:
 		return message
 

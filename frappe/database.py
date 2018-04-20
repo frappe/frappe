@@ -12,10 +12,13 @@ import frappe.defaults
 import frappe.async
 import re
 import frappe.model.meta
-from frappe.utils import now, get_datetime, cstr
+from frappe.utils import now, get_datetime, cstr, cast_fieldtype
 from frappe import _
 from frappe.model.utils.link_count import flush_local_link_count
+from frappe.model.utils import STANDARD_FIELD_CONVERSION_MAP
 from frappe.utils.background_jobs import execute_job, get_queue
+from frappe import as_unicode
+import six
 
 # imports - compatibility imports
 from six import (
@@ -32,6 +35,22 @@ from pymysql.times import TimeDelta
 from pymysql.constants 	import ER, FIELD_TYPE
 from pymysql.converters import conversions
 import pymysql
+
+# Helpers
+def _cast_result(doctype, result):
+	batch = [ ]
+
+	try:
+		for field, value in result:
+			df = frappe.get_meta(doctype).get_field(field)
+			if df:
+				value = cast_fieldtype(df.fieldtype, value)
+
+			batch.append(tuple([field, value]))
+	except frappe.exceptions.DoesNotExistError:
+		return result
+
+	return tuple(batch)
 
 class Database:
 	"""
@@ -80,9 +99,13 @@ class Database:
 		conversions.update({
 			FIELD_TYPE.NEWDECIMAL: float,
 			FIELD_TYPE.DATETIME: get_datetime,
-			TimeDelta: conversions[binary_type],
 			UnicodeWithAttrs: conversions[text_type]
 		})
+
+		if six.PY2:
+			conversions.update({
+				TimeDelta: conversions[binary_type]
+			})
 
 		if usessl:
 			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
@@ -402,6 +425,10 @@ class Database:
 
 			conditions.append(condition)
 
+		if isinstance(filters, int):
+			# docname is a number, convert to string
+			filters = str(filters)
+
 		if isinstance(filters, string_types):
 			filters = { "name": filters }
 
@@ -534,6 +561,7 @@ class Database:
 				from tabSingles where field in (%s) and doctype=%s""" \
 					% (', '.join(['%s'] * len(fields)), '%s'),
 					tuple(fields) + (doctype,), as_dict=False, debug=debug)
+			# r = _cast_result(doctype, r)
 
 			if as_dict:
 				if r:
@@ -546,7 +574,7 @@ class Database:
 			else:
 				return r and [[i[1] for i in r]] or []
 
-	def get_singles_dict(self, doctype):
+	def get_singles_dict(self, doctype, debug = False):
 		"""Get Single DocType as dict.
 
 		:param doctype: DocType of the single object whose value is requested
@@ -556,9 +584,16 @@ class Database:
 			# Get coulmn and value of the single doctype Accounts Settings
 			account_settings = frappe.db.get_singles_dict("Accounts Settings")
 		"""
+		result = self.sql("""
+			SELECT field, value
+			FROM   `tabSingles`
+			WHERE  doctype = %s
+		""", doctype)
+		# result = _cast_result(doctype, result)
 
-		return frappe._dict(self.sql("""select field, value from
-			tabSingles where doctype=%s""", doctype))
+		dict_  = frappe._dict(result)
+
+		return dict_
 
 	def get_all(self, *args, **kwargs):
 		return frappe.get_all(*args, **kwargs)
@@ -579,7 +614,7 @@ class Database:
 		"""
 
 		value = self.value_cache.setdefault(doctype, {}).get(fieldname)
-		if value:
+		if value is not None:
 			return value
 
 		val = self.sql("""select value from
@@ -617,7 +652,7 @@ class Database:
 		order_by = ("order by " + order_by) if order_by else ""
 
 		r = self.sql("select {0} from `tab{1}` {2} {3} {4}"
-			.format(fl, doctype, "where" if conditions else "", conditions, order_by), values, 
+			.format(fl, doctype, "where" if conditions else "", conditions, order_by), values,
 			as_dict=as_dict, debug=debug, update=update)
 
 		return r
@@ -681,7 +716,7 @@ class Database:
 
 		else:
 			# for singles
-			keys = to_update.keys()
+			keys = list(to_update)
 			self.sql('''
 				delete from tabSingles
 				where field in ({0}) and
@@ -778,9 +813,9 @@ class Database:
 		"""Return true of field exists."""
 		return self.sql("select name from tabDocField where fieldname=%s and parent=%s", (dt, fn))
 
-	def table_exists(self, tablename):
-		"""Returns True if table exists."""
-		return ("tab" + tablename) in self.get_tables()
+	def table_exists(self, doctype):
+		"""Returns True if table for given doctype exists."""
+		return ("tab" + doctype) in self.get_tables()
 
 	def get_tables(self):
 		return [d[0] for d in self.sql("show tables")]
@@ -812,15 +847,25 @@ class Database:
 			except:
 				return None
 
-	def count(self, dt, filters=None, debug=False):
+	def count(self, dt, filters=None, debug=False, cache=False):
 		"""Returns `COUNT(*)` for given DocType and filters."""
+		if cache and not filters:
+			cache_count = frappe.cache().get_value('doctype:count:{}'.format(dt))
+			if cache_count is not None:
+				return cache_count
 		if filters:
 			conditions, filters = self.build_conditions(filters)
-			return frappe.db.sql("""select count(*)
+			count = frappe.db.sql("""select count(*)
 				from `tab%s` where %s""" % (dt, conditions), filters, debug=debug)[0][0]
+			return count
 		else:
-			return frappe.db.sql("""select count(*)
+			count = frappe.db.sql("""select count(*)
 				from `tab%s`""" % (dt,))[0][0]
+
+			if cache:
+				frappe.cache().set_value('doctype:count:{}'.format(dt), count, expires_in_sec = 86400)
+
+			return count
 
 
 	def get_creation_count(self, doctype, minutes):
@@ -843,6 +888,10 @@ class Database:
 	def has_column(self, doctype, column):
 		"""Returns True if column exists in database."""
 		return column in self.get_table_columns(doctype)
+
+	def get_column_type(self, doctype, column):
+		return frappe.db.sql('''SELECT column_type FROM INFORMATION_SCHEMA.COLUMNS
+			WHERE table_name = 'tab{0}' AND COLUMN_NAME = "{1}"'''.format(doctype, column))[0][0]
 
 	def add_index(self, doctype, fields, index_name=None):
 		"""Creates an index with given fields if not already created.
@@ -886,10 +935,8 @@ class Database:
 
 	def escape(self, s, percent=True):
 		"""Excape quotes and percent in given string."""
-		if isinstance(s, text_type):
-			s = (s or "").encode("utf-8")
-
-		s = text_type(pymysql.escape_string(s), "utf-8").replace("`", "\\`")
+		# pymysql expects unicode argument to escape_string with Python 3
+		s = as_unicode(pymysql.escape_string(as_unicode(s)), "utf-8").replace("`", "\\`")
 
 		# NOTE separating % escape, because % escape should only be done when using LIKE operator
 		# or when you use python format string to generate query that already has a %s

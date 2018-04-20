@@ -1,8 +1,33 @@
 frappe.ui.Filter = class {
 	constructor(opts) {
 		$.extend(this, opts);
+		if (this.value === null || this.value === undefined) {
+			this.value = '';
+		}
 
 		this.utils = frappe.ui.filter_utils;
+		this.conditions = [
+			["=", __("Equals")],
+			["!=", __("Not Equals")],
+			["like", __("Like")],
+			["not like", __("Not Like")],
+			["in", __("In")],
+			["not in", __("Not In")],
+			[">", ">"],
+			["<", "<"],
+			[">=", ">="],
+			["<=", "<="],
+			["Between", __("Between")]
+		];
+		this.invalid_condition_map = {
+			Date: ['like', 'not like'],
+			Datetime: ['like', 'not like'],
+			Data: ['Between'],
+			Select: ["Between", "<=", ">=", "<", ">"],
+			Link: ["Between"],
+			Currency: ["Between"],
+			Color: ["Between"]
+		};
 		this.make();
 		this.make_select();
 		this.set_events();
@@ -17,7 +42,7 @@ frappe.ui.Filter = class {
 	make_select() {
 		this.fieldselect = new frappe.ui.FieldSelect({
 			parent: this.filter_edit_area.find('.fieldname-select-area'),
-			doctype: this.doctype,
+			doctype: this.parent_doctype,
 			filter_fields: this.filter_fields,
 			select: (doctype, fieldname) => {
 				this.set_field(doctype, fieldname);
@@ -40,6 +65,7 @@ frappe.ui.Filter = class {
 		this.filter_edit_area.find(".set-filter-and-run").on("click", () => {
 			this.filter_edit_area.removeClass("new-filter");
 			this.on_change();
+			this.update_filter_tag();
 		});
 
 		this.filter_edit_area.find('.condition').change(() => {
@@ -52,6 +78,11 @@ frappe.ui.Filter = class {
 				fieldtype = 'Data';
 				this.add_condition_help(condition);
 			}
+
+			if (['Select', 'MultiSelect'].includes(this.field.df.fieldtype) && ["in", "not in"].includes(condition)) {
+				fieldtype = 'MultiSelect';
+			}
+
 			this.set_field(this.field.df.parent, this.field.df.fieldname, fieldtype, condition);
 		});
 	}
@@ -104,8 +135,13 @@ frappe.ui.Filter = class {
 
 		// set value can be asynchronous, so update_filter_tag should happen after field is set
 		this._filter_value_set = Promise.resolve();
-		if(value) {
-			this._filter_value_set = this.field.set_value(value);
+
+		if (['in', 'not in'].includes(condition) && Array.isArray(value)) {
+			value = value.join(',');
+		}
+
+		if (value !== undefined || value !== null) {
+			this._filter_value_set = this.field.set_value((value + '').trim());
 		}
 		return this._filter_value_set;
 	}
@@ -115,9 +151,10 @@ frappe.ui.Filter = class {
 		let cur = {};
 		if(this.field) for(let k in this.field.df) cur[k] = this.field.df[k];
 
-		let original_docfield = this.fieldselect.fields_by_name[doctype][fieldname];
+		let original_docfield = (this.fieldselect.fields_by_name[doctype] || {})[fieldname];
 		if(!original_docfield) {
 			frappe.msgprint(__("Field {0} is not selectable.", [fieldname]));
+			this.remove();
 			return;
 		}
 
@@ -147,6 +184,7 @@ frappe.ui.Filter = class {
 
 	make_field(df, old_fieldtype) {
 		let old_text = this.field ? this.field.get_value() : null;
+		this.hide_invalid_conditions(df.fieldtype, df.original_type);
 
 		let field_area = this.filter_edit_area.find('.filter-field').empty().get(0);
 		let f = frappe.ui.form.make_control({
@@ -163,7 +201,7 @@ frappe.ui.Filter = class {
 
 		// run on enter
 		$(this.field.wrapper).find(':input').keydown(e => {
-			if(e.which==13) {
+			if(e.which==13 && this.field.df.fieldtype !== 'MultiSelect') {
 				this.on_change();
 			}
 		});
@@ -241,6 +279,17 @@ frappe.ui.Filter = class {
 			? __("values separated by commas")
 			: __("use % as wildcard"))+'</div>');
 	}
+
+	hide_invalid_conditions(fieldtype, original_type) {
+		let invalid_conditions = this.invalid_condition_map[fieldtype] ||
+			this.invalid_condition_map[original_type] || [];
+
+		for (let condition of this.conditions) {
+			this.filter_edit_area.find(`.condition option[value="${condition[0]}"]`).toggle(
+				!invalid_conditions.includes(condition[0])
+			);
+		}
+	}
 };
 
 frappe.ui.filter_utils = {
@@ -276,7 +325,7 @@ frappe.ui.filter_utils = {
 			}
 		} else if(in_list(["in", "not in"], condition)) {
 			if(val) {
-				val = $.map(val.split(","), function(v) { return strip(v); });
+				val = val.split(',').map(v => strip(v));
 			}
 		} if(val === '%') {
 			val = "";

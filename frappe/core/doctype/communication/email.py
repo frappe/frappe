@@ -26,7 +26,8 @@ from pymysql.constants import ER
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, sender_full_name=None, recipients=None, communication_medium="Email", send_email=False,
-	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, bcc=None, flags=None,read_receipt=None):
+	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, bcc=None,
+	flags=None, read_receipt=None, print_letterhead=True):
 	"""Make a new communication.
 
 	:param doctype: Reference DocType.
@@ -87,6 +88,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	frappe.db.commit()
 
 	if cint(send_email):
+		frappe.flags.print_letterhead = cint(print_letterhead)
 		comm.send(print_html, print_format, attachments, send_me_a_copy=send_me_a_copy)
 
 	return {
@@ -128,7 +130,7 @@ def notify(doc, print_html=None, print_format=None, attachments=None,
 	recipients, cc, bcc = get_recipients_cc_and_bcc(doc, recipients, cc, bcc,
 		fetched_from_email_account=fetched_from_email_account)
 
-	if not recipients:
+	if not recipients and not cc:
 		return
 
 	doc.emails_not_sent_to = set(doc.all_email_addresses) - set(doc.sent_email_addresses)
@@ -142,7 +144,8 @@ def notify(doc, print_html=None, print_format=None, attachments=None,
 		enqueue(sendmail, queue="default", timeout=300, event="sendmail",
 			communication_name=doc.name,
 			print_html=print_html, print_format=print_format, attachments=attachments,
-			recipients=recipients, cc=cc, bcc=bcc, lang=frappe.local.lang, session=frappe.local.session)
+			recipients=recipients, cc=cc, bcc=bcc, lang=frappe.local.lang,
+			session=frappe.local.session, print_letterhead=frappe.flags.print_letterhead)
 
 def _notify(doc, print_html=None, print_format=None, attachments=None,
 	recipients=None, cc=None, bcc=None):
@@ -171,7 +174,8 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		delayed=True,
 		communication=doc.name,
 		read_receipt=doc.read_receipt,
-		is_notification=True if doc.sent_or_received =="Received" else False
+		is_notification=True if doc.sent_or_received =="Received" else False,
+		print_letterhead=frappe.flags.print_letterhead
 	)
 
 def update_parent_mins_to_first_response(doc):
@@ -229,14 +233,19 @@ def get_recipients_cc_and_bcc(doc, recipients, cc, bcc, fetched_from_email_accou
 
 		# don't cc to people who already received the mail from sender's email service
 		cc = list(set(cc) - set(original_cc) - set(original_recipients))
+		remove_administrator_from_email_list(cc)
 
 		original_bcc = split_emails(doc.bcc)
 		bcc = list(set(bcc) - set(original_bcc) - set(original_recipients))
+		remove_administrator_from_email_list(bcc)
 
-	if 'Administrator' in recipients:
-		recipients.remove('Administrator')
+	remove_administrator_from_email_list(recipients)
 
 	return recipients, cc, bcc
+
+def remove_administrator_from_email_list(email_list):
+	if 'Administrator' in email_list:
+		email_list.remove('Administrator')
 
 def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None):
 	"""Prepare to make multipart MIME Email
@@ -369,14 +378,6 @@ def get_bcc(doc, recipients=None, fetched_from_email_account=False):
 	"""Build a list of email addresses for BCC"""
 	bcc = split_emails(doc.bcc)
 
-	if doc.reference_doctype and doc.reference_name:
-		if fetched_from_email_account:
-			bcc.append(get_owner_email(doc))
-			bcc += get_assignees(doc)
-
-	if getattr(doc, "send_me_a_copy", False) and doc.sender not in bcc:
-		bcc.append(doc.sender)
-
 	if bcc:
 		exclude = []
 		exclude += [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
@@ -469,7 +470,7 @@ def get_attach_link(doc, print_format):
 	})
 
 def sendmail(communication_name, print_html=None, print_format=None, attachments=None,
-	recipients=None, cc=None, bcc=None, lang=None, session=None):
+	recipients=None, cc=None, bcc=None, lang=None, session=None, print_letterhead=None):
 	try:
 
 		if lang:
@@ -479,6 +480,9 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 			# hack to enable access to private files in PDF
 			session['data'] = frappe._dict(session['data'])
 			frappe.local.session.update(session)
+
+		if print_letterhead:
+			frappe.flags.print_letterhead = print_letterhead
 
 		# upto 3 retries
 		for i in range(3):

@@ -12,7 +12,7 @@ from frappe.core.doctype.doctype.doctype import (clear_permissions_cache,
 from frappe.permissions import (reset_perms, get_linked_doctypes, get_all_perms,
 	setup_custom_perms, add_permission, update_permission_property)
 
-not_allowed_in_permission_manager = ["DocType", "Patch Log", "Module Def"]
+not_allowed_in_permission_manager = ["DocType", "Patch Log", "Module Def", "Transaction Log"]
 
 @frappe.whitelist()
 def get_roles_and_doctypes():

@@ -110,7 +110,8 @@ class DbTable:
 
 		for col in columns:
 			if len(col.fieldname) >= 64:
-				frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(frappe.bold(col.fieldname)))
+				frappe.throw(_("Fieldname is limited to 64 characters ({0})")
+					.format(frappe.bold(col.fieldname)))
 
 			if col.fieldtype in type_map and type_map[col.fieldtype][0]=="varchar":
 
@@ -119,33 +120,35 @@ class DbTable:
 				if not (1 <= new_length <= 1000):
 					frappe.throw(_("Length of {0} should be between 1 and 1000").format(col.fieldname))
 
-				try:
-					# check for truncation
-					max_length = frappe.db.sql("""select max(char_length(`{fieldname}`)) from `tab{doctype}`"""\
-						.format(fieldname=col.fieldname, doctype=self.doctype))
+				current_col = self.current_columns.get(col.fieldname, {})
+				if not current_col:
+					continue
+				current_type = self.current_columns[col.fieldname]["type"]
+				current_length = re.findall('varchar\(([\d]+)\)', current_type)
+				if not current_length:
+					# case when the field is no longer a varchar
+					continue
+				current_length = current_length[0]
+				if cint(current_length) != cint(new_length):
+					try:
+						# check for truncation
+						max_length = frappe.db.sql("""select max(char_length(`{fieldname}`)) from `tab{doctype}`"""\
+							.format(fieldname=col.fieldname, doctype=self.doctype))
 
-				except pymysql.InternalError as e:
-					if e.args[0] == ER.BAD_FIELD_ERROR:
-						# Unknown column 'column_name' in 'field list'
-						continue
+					except pymysql.InternalError as e:
+						if e.args[0] == ER.BAD_FIELD_ERROR:
+							# Unknown column 'column_name' in 'field list'
+							continue
 
-					else:
-						raise
+						else:
+							raise
 
-				if max_length and max_length[0][0] and max_length[0][0] > new_length:
-					current_type = self.current_columns[col.fieldname]["type"]
-					current_length = re.findall('varchar\(([\d]+)\)', current_type)
-					if not current_length:
-						# case when the field is no longer a varchar
-						continue
+					if max_length and max_length[0][0] and max_length[0][0] > new_length:
+						if col.fieldname in self.columns:
+							self.columns[col.fieldname].length = current_length
 
-					current_length = current_length[0]
-
-					if col.fieldname in self.columns:
-						self.columns[col.fieldname].length = current_length
-
-					frappe.msgprint(_("Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.")\
-						.format(current_length, col.fieldname, self.doctype, new_length))
+						frappe.msgprint(_("Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.")\
+							.format(current_length, col.fieldname, self.doctype, new_length))
 
 
 	def sync(self):
@@ -180,7 +183,8 @@ class DbTable:
 			parentfield varchar({varchar_len}),
 			parenttype varchar({varchar_len}),
 			idx int(8) not null default '0',
-			%sindex parent(parent))
+			%sindex parent(parent),
+			index modified(modified))
 			ENGINE={engine}
 			ROW_FORMAT=COMPRESSED
 			CHARACTER SET=utf8mb4
@@ -190,7 +194,7 @@ class DbTable:
 	def get_column_definitions(self):
 		column_list = [] + default_columns
 		ret = []
-		for k in self.columns.keys():
+		for k in list(self.columns):
 			if k not in column_list:
 				d = self.columns[k].get_definition()
 				if d:
@@ -230,7 +234,7 @@ class DbTable:
 					'fieldtype': 'Text'
 				})
 
-		if not frappe.flags.in_install_db and frappe.flags.in_install != "frappe":
+		if not frappe.flags.in_install_db and (frappe.flags.in_install != "frappe" or frappe.flags.ignore_in_install):
 			custom_fl = frappe.db.sql("""\
 				SELECT * FROM `tabCustom Field`
 				WHERE dt = %s AND docstatus < 2""", (self.doctype,), as_dict=1)
@@ -551,8 +555,31 @@ class DbManager:
 	def restore_database(self,target,source,user,password):
 		from frappe.utils import make_esc
 		esc = make_esc('$ ')
-		os.system("mysql -u %s -p%s -h%s %s < %s" % \
-			(esc(user), esc(password), esc(frappe.db.host), esc(target), source))
+		
+		from distutils.spawn import find_executable
+		pipe = find_executable('pv')
+		if pipe:
+			pipe   = '{pipe} {source} |'.format(
+				pipe   = pipe,
+				source = source
+			)
+			source = ''
+		else:
+			pipe   = ''
+			source = '< {source}'.format(source = source)
+
+		if pipe:
+			print('Creating Database...')
+
+		command = '{pipe} mysql -u {user} -p{password} -h{host} {target} {source}'.format(
+			pipe = pipe,
+			user = esc(user),
+			password = esc(password),
+			host     = esc(frappe.db.host),
+			target   = esc(target),
+			source   = source
+		)
+		os.system(command)	
 
 	def drop_table(self,table_name):
 		"""drop table if exists"""

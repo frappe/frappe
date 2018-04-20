@@ -14,13 +14,15 @@ from six.moves.urllib.parse import urlparse, parse_qs
 from frappe.integrations.utils import make_post_request
 from frappe.utils import (cint, split_emails, get_request_site_address, cstr,
 	get_files_path, get_backups_path, get_url, encode)
+from six import text_type
 
 ignore_list = [".DS_Store"]
 
 class DropboxSettings(Document):
 	def onload(self):
 		if not self.app_access_key and frappe.conf.dropbox_access_key:
-			self.dropbox_setup_via_site_config = 1
+			self.set_onload("dropbox_setup_via_site_config", 1)
+		
 
 @frappe.whitelist()
 def take_backup():
@@ -122,6 +124,7 @@ def upload_from_folder(path, dropbox_folder, dropbox_client, did_not_upload, err
 		else:
 			raise
 
+	path = text_type(path)
 	for root, directory, files in os.walk(path):
 		for filename in files:
 			filename = cstr(filename)
@@ -152,6 +155,9 @@ def upload_file_to_dropbox(filename, folder, dropbox_client):
 	file_size = os.path.getsize(encode(filename))
 	mode = (dropbox.files.WriteMode.overwrite)
 
+	if not os.path.exists(filename):
+		return
+
 	f = open(encode(filename), 'rb')
 	path = "{0}/{1}".format(folder, os.path.basename(filename))
 
@@ -171,7 +177,7 @@ def upload_file_to_dropbox(filename, folder, dropbox_client):
 					cursor.offset = f.tell()
 	except dropbox.exceptions.ApiError as e:
 		if isinstance(e.error, dropbox.files.UploadError):
-			error = "File Path: {path}\n".foramt(path=path)
+			error = "File Path: {path}\n".format(path=path)
 			error += frappe.get_traceback()
 			frappe.log_error(error)
 		else:
@@ -201,7 +207,7 @@ def get_dropbox_settings(redirect_uri=False):
 
 	if redirect_uri:
 		app_details.update({
-			'rediret_uri': get_request_site_address(True) \
+			'redirect_uri': get_request_site_address(True) \
 				+ '/api/method/frappe.integrations.doctype.dropbox_settings.dropbox_settings.dropbox_auth_finish' \
 				if settings.app_secret_key else frappe.conf.dropbox_broker_site\
 				+ '/api/method/dropbox_erpnext_broker.www.setup_dropbox.generate_dropbox_access_token',
@@ -233,7 +239,7 @@ def get_dropbox_authorize_url():
 	dropbox_oauth_flow = dropbox.DropboxOAuth2Flow(
 		app_details["app_key"],
 		app_details["app_secret"],
-		app_details["rediret_uri"],
+		app_details["redirect_uri"],
 		{},
 		"dropbox-auth-csrf-token"
 	)
@@ -254,7 +260,7 @@ def dropbox_auth_finish(return_access_token=False):
 	dropbox_oauth_flow = dropbox.DropboxOAuth2Flow(
 		app_details["app_key"],
 		app_details["app_secret"],
-		app_details["rediret_uri"],
+		app_details["redirect_uri"],
 		{
 			'dropbox-auth-csrf-token': callback.state
 		},

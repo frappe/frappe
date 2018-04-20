@@ -18,9 +18,15 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 		});
 	},
 
-	get_data() {
+	get_values() {
 		const value = this.get_value() || '';
 		const values = value.split(', ').filter(d => d);
+
+		return values;
+	},
+
+	get_data() {
+		const values = this.get_values();
 		const data = this._super();
 
 		// return values which are not already selected

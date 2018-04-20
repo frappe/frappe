@@ -154,21 +154,27 @@ $.extend(frappe.model, {
 	},
 
 	with_doc: function(doctype, name, callback) {
-		if(!name) name = doctype; // single type
-		if(locals[doctype] && locals[doctype][name] && frappe.model.get_docinfo(doctype, name)) {
-			callback(name);
-		} else {
-			return frappe.call({
-				method: 'frappe.desk.form.load.getdoc',
-				type: "GET",
-				args: {
-					doctype: doctype,
-					name: name
-				},
-				freeze: true,
-				callback: function(r) { callback(name, r); }
-			});
-		}
+		return new Promise(resolve => {
+			if(!name) name = doctype; // single type
+			if(locals[doctype] && locals[doctype][name] && frappe.model.get_docinfo(doctype, name)) {
+				callback && callback(name);
+				resolve(frappe.get_doc(doctype, name));
+			} else {
+				return frappe.call({
+					method: 'frappe.desk.form.load.getdoc',
+					type: "GET",
+					args: {
+						doctype: doctype,
+						name: name
+					},
+					freeze: true,
+					callback: function(r) {
+						callback && callback(name, r);
+						resolve(frappe.get_doc(doctype, name));
+					}
+				});
+			}
+		});
 	},
 
 	get_docinfo: function(doctype, name) {

@@ -77,6 +77,7 @@ class DataMigrationRun(Document):
 	def get_last_modified_condition(self):
 		last_run_timestamp = frappe.db.get_value('Data Migration Run', dict(
 			data_migration_plan=self.data_migration_plan,
+			data_migration_connector=self.data_migration_connector,
 			name=('!=', self.name)
 		), 'modified')
 		if last_run_timestamp:

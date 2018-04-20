@@ -128,7 +128,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			}
 		});
 
-		this.$input.on("input", function(e) {
+		this.$input.on("input", frappe.utils.debounce(function(e) {
 			var doctype = me.get_options();
 			if(!doctype) return;
 			if (!me.$input.cache[doctype]) {
@@ -186,7 +186,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					me.awesomplete.list = me.$input.cache[doctype][term];
 				}
 			});
-		});
+		}, 618));
 
 		this.$input.on("blur", function() {
 			if(me.selected) {

@@ -7,6 +7,7 @@ import json
 from frappe.utils import cstr
 from frappe import _
 from frappe.model.document import Document
+from frappe.model.docfield import supports_translation
 
 class CustomField(Document):
 	def autoname(self):
@@ -15,11 +16,16 @@ class CustomField(Document):
 
 	def set_fieldname(self):
 		if not self.fieldname:
-			if not self.label:
-				frappe.throw(_("Label is mandatory"))
+			label = self.label
+			if not label:
+				if self.fieldtype in ["Section Break", "Column Break"]:
+					label = self.fieldtype + "_" + str(self.idx)
+				else:
+					frappe.throw(_("Label is mandatory"))
+
 			# remove special characters from fieldname
 			self.fieldname = "".join(filter(lambda x: x.isdigit() or x.isalpha() or '_',
-				cstr(self.label).lower().replace(' ','_')))
+				cstr(label).replace(' ','_')))
 
 		# fieldnames should be lowercase
 		self.fieldname = self.fieldname.lower()
@@ -38,6 +44,9 @@ class CustomField(Document):
 
 		if not self.fieldname:
 			frappe.throw(_("Fieldname not set for Custom Field"))
+
+		if self.get('translatable', 0) and not supports_translation(self.fieldtype):
+			self.translatable = 0
 
 		if not self.flags.ignore_validate:
 			from frappe.core.doctype.doctype.doctype import check_if_fieldname_conflicts_with_methods
@@ -118,7 +127,10 @@ def create_custom_fields(custom_fields):
 		for df in fields:
 			field = frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df["fieldname"]})
 			if not field:
-				create_custom_field(doctype, df)
+				try:
+					create_custom_field(doctype, df)
+				except frappe.exceptions.DuplicateEntryError:
+					pass
 			else:
 				custom_field = frappe.get_doc("Custom Field", field)
 				custom_field.update(df)

@@ -34,7 +34,7 @@ class TestEmailAlert(unittest.TestCase):
 		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": "Communication",
 			"reference_name": communication.name, "status":"Not Sent"}))
 
-		self.assertEquals(frappe.db.get_value('Communication',
+		self.assertEqual(frappe.db.get_value('Communication',
 			communication.name, 'subject'), '__testing__')
 
 	def test_condition(self):
@@ -121,8 +121,8 @@ class TestEmailAlert(unittest.TestCase):
 		email_alert.delete()
 		event.delete()
 
-
 	def test_date_changed(self):
+
 		event = frappe.new_doc("Event")
 		event.subject = "test",
 		event.event_type = "Private"
@@ -152,3 +152,25 @@ class TestEmailAlert(unittest.TestCase):
 		# today so show alert
 		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": "Event",
 			"reference_name": event.name, "status":"Not Sent"}))
+
+	def test_cc_jinja(self):
+
+		frappe.db.sql("""delete from `tabUser` where email='test_jinja@example.com'""")
+		frappe.db.sql("""delete from `tabEmail Queue`""")
+		frappe.db.sql("""delete from `tabEmail Queue Recipient`""")
+
+		test_user = frappe.new_doc("User")
+		test_user.name = 'test_jinja'
+		test_user.first_name = 'test_jinja'
+		test_user.email = 'test_jinja@example.com'
+
+		test_user.insert(ignore_permissions=True)
+
+		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": "User",
+			"reference_name": test_user.name, "status":"Not Sent"}))
+
+		self.assertTrue(frappe.db.get_value("Email Queue Recipient", {"recipient": "test_jinja@example.com"}))
+
+		frappe.db.sql("""delete from `tabUser` where email='test_jinja@example.com'""")
+		frappe.db.sql("""delete from `tabEmail Queue`""")
+		frappe.db.sql("""delete from `tabEmail Queue Recipient`""")

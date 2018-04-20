@@ -103,6 +103,8 @@ def run_custom_method(doctype, name, custom_method):
 
 @frappe.whitelist()
 def uploadfile():
+	ret = None
+	
 	try:
 		if frappe.form_dict.get('from_form'):
 			try:
@@ -133,6 +135,6 @@ def get_attr(cmd):
 	frappe.log("method:" + cmd)
 	return method
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest = True)
 def ping():
 	return "pong"

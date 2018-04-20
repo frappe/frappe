@@ -1,4 +1,4 @@
-# UI Testing with Frappé API
+# UI Testing with Frappe API
 
 You can either write integration tests, or directly write tests in Javascript using [QUnit](http://api.qunitjs.com/)
 
@@ -28,7 +28,7 @@ To debug a test, you can open it in the **Test Runner** from your UI and run it 
 
 ### Test Sequence
 
-In Frappé UI tests are run in a fixed sequence to ensure dependencies.
+In Frappe UI tests are run in a fixed sequence to ensure dependencies.
 
 The sequence in which the tests will be run will be in `tests/ui/tests.txt`
 file.

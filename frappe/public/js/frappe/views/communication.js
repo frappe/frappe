@@ -48,11 +48,11 @@ frappe.views.CommunicationComposer = Class.extend({
 	get_fields: function() {
 		var fields= [
 			{label:__("To"), fieldtype:"Data", reqd: 0, fieldname:"recipients",length:524288},
-			{fieldtype: "Section Break", collapsible: 1, label: __("CC, BCC & Standard Reply")},
+			{fieldtype: "Section Break", collapsible: 1, label: __("CC, BCC & Email Template")},
 			{label:__("CC"), fieldtype:"Data", fieldname:"cc", length:524288},
 			{label:__("BCC"), fieldtype:"Data", fieldname:"bcc", length:524288},
-			{label:__("Standard Reply"), fieldtype:"Link", options:"Standard Reply",
-				fieldname:"standard_reply"},
+			{label:__("Email Template"), fieldtype:"Link", options:"Email Template",
+				fieldname:"email_template"},
 			{fieldtype: "Section Break"},
 			{label:__("Subject"), fieldtype:"Data", reqd: 1,
 				fieldname:"subject", length:524288},
@@ -106,7 +106,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.setup_email();
 		this.setup_awesomplete();
 		this.setup_last_edited_communication();
-		this.setup_standard_reply();
+		this.setup_email_template();
 
 		this.dialog.fields_dict.recipients.set_value(this.recipients || '');
 		this.dialog.fields_dict.cc.set_value(this.cc || '');
@@ -163,14 +163,14 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 	},
 
-	setup_standard_reply: function() {
+	setup_email_template: function() {
 		var me = this;
 
-		this.dialog.fields_dict["standard_reply"].df.onchange = () => {
-			var standard_reply = me.dialog.fields_dict.standard_reply.get_value();
+		this.dialog.fields_dict["email_template"].df.onchange = () => {
+			var email_template = me.dialog.fields_dict.email_template.get_value();
 
 			var prepend_reply = function(reply) {
-				if(me.reply_added===standard_reply) {
+				if(me.reply_added===email_template) {
 					return;
 				}
 				var content_field = me.dialog.fields_dict.content;
@@ -191,18 +191,19 @@ frappe.views.CommunicationComposer = Class.extend({
 					subject_field.set_value(reply.subject);
 				}
 
-				me.reply_added = standard_reply;
+				me.reply_added = email_template;
 			}
 
 			frappe.call({
-				method: 'frappe.email.doctype.standard_reply.standard_reply.get_standard_reply',
+				method: 'frappe.email.doctype.email_template.email_template.get_email_template',
 				args: {
-					template_name: standard_reply,
-					doc: me.frm.doc
+					template_name: email_template,
+					doc: me.frm.doc,
+					_lang: me.dialog.get_value("language_sel")
 				},
 				callback: function(r) {
 					prepend_reply(r.message);
-				}
+				},
 			});
 		}
 	},
@@ -505,7 +506,8 @@ frappe.views.CommunicationComposer = Class.extend({
 				sender_full_name: form_values.sender?frappe.user.full_name():undefined,
 				attachments: selected_attachments,
 				_lang : me.lang_code,
-				read_receipt:form_values.send_read_receipt
+				read_receipt:form_values.send_read_receipt,
+				print_letterhead: me.is_print_letterhead_checked(),
 			},
 			btn: btn,
 			callback: function(r) {
@@ -551,6 +553,15 @@ frappe.views.CommunicationComposer = Class.extend({
 		});
 	},
 
+	is_print_letterhead_checked: function() {
+		if (this.frm && $(this.frm.wrapper).find('.form-print-wrapper').is(':visible')){
+			return $(this.frm.wrapper).find('.print-letterhead').prop('checked') ? 1 : 0;
+		} else {
+			return (frappe.model.get_doc(":Print Settings", "Print Settings") ||
+				{ with_letterhead: 1 }).with_letterhead ? 1 : 0;
+		}
+	},
+
 	setup_earlier_reply: function() {
 		var fields = this.dialog.fields_dict,
 			signature = frappe.boot.user.email_signature || "",
@@ -584,12 +595,13 @@ frappe.views.CommunicationComposer = Class.extend({
 				.replace(/&lt;meta[\s\S]*meta&gt;/g, '') // remove <meta> tags
 				.replace(/&lt;style[\s\S]*&lt;\/style&gt;/g, ''); // // remove <style> tags
 
+			var communication_date = last_email.communication_date || last_email.creation;
 			content = '<div><br></div>'
 				+ reply
 				+ "<br><!-- original-reply --><br>"
 				+ '<blockquote>' +
 					'<p>' + __("On {0}, {1} wrote:",
-					[frappe.datetime.global_date_format(last_email.communication_date) , last_email.sender]) + '</p>' +
+					[frappe.datetime.global_date_format(communication_date) , last_email.sender]) + '</p>' +
 					last_email_content +
 				'<blockquote>';
 		} else {

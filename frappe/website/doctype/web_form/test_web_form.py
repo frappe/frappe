@@ -64,5 +64,5 @@ class TestWebForm(unittest.TestCase):
 
 		accept(web_form='manage-events', data=json.dumps(doc))
 
-		self.assertEquals(frappe.db.get_value("Event",
+		self.assertEqual(frappe.db.get_value("Event",
 			self.event_name, "description"), doc.get('description'))

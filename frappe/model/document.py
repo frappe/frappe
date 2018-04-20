@@ -13,6 +13,7 @@ from six import iteritems, string_types
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields
+from frappe.model.workflow import validate_workflow
 from frappe.utils.file_manager import save_url
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
@@ -184,7 +185,7 @@ class Document(BaseDocument):
 		frappe.flags.error_message = _('Insufficient Permission for {0}').format(self.doctype)
 		raise frappe.PermissionError
 
-	def insert(self, ignore_permissions=None, ignore_if_duplicate=False, ignore_mandatory=None):
+	def insert(self, ignore_permissions=None, ignore_links=None, ignore_if_duplicate=False, ignore_mandatory=None):
 		"""Insert the document in the database (as a new document).
 		This will check for user permissions and execute `before_insert`,
 		`validate`, `on_update`, `after_insert` methods if they are written.
@@ -197,6 +198,9 @@ class Document(BaseDocument):
 
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
+
+		if ignore_links!=None:
+			self.flags.ignore_links = ignore_links
 
 		if ignore_mandatory!=None:
 			self.flags.ignore_mandatory = ignore_mandatory
@@ -443,6 +447,7 @@ class Document(BaseDocument):
 		self._extract_images_from_text_editor()
 		self._sanitize_content()
 		self._save_passwords()
+		self.validate_workflow()
 
 		children = self.get_all_children()
 		for d in children:
@@ -458,6 +463,11 @@ class Document(BaseDocument):
 			# don't set fields like _assign, _comments for new doc
 			for fieldname in optional_fields:
 				self.set(fieldname, None)
+
+	def validate_workflow(self):
+		'''Validate if the workflow transition is valid'''
+		if self.meta.get_workflow():
+			validate_workflow(self)
 
 	def validate_set_only_once(self):
 		'''Validate that fields are not changed if not in insert'''
@@ -873,7 +883,8 @@ class Document(BaseDocument):
 		self._doc_before_save = None
 		if not (self.is_new()
 			and (getattr(self.meta, 'track_changes', False)
-				or self.meta.get_set_only_once_fields())):
+				or self.meta.get_set_only_once_fields()
+				or self.meta.get_workflow())):
 			self.get_doc_before_save()
 
 	def run_post_save_methods(self):
@@ -902,7 +913,7 @@ class Document(BaseDocument):
 
 		update_global_search(self)
 
-		if self._doc_before_save and not self.flags.ignore_version:
+		if getattr(self.meta, 'track_changes', False) and self._doc_before_save and not self.flags.ignore_version:
 			self.save_version()
 
 		if (self.doctype, self.name) in frappe.flags.currently_saving:

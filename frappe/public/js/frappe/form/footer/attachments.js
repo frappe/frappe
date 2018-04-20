@@ -140,7 +140,7 @@ frappe.ui.form.Attachments = Class.extend({
 				}
 				me.remove_fileid(fileid);
 				me.frm.get_docinfo().communications.push(r.message);
-				me.frm.timeline.refresh();
+				me.frm.timeline && me.frm.timeline.refresh();
 				if (callback) callback();
 			}
 		});
@@ -237,6 +237,7 @@ frappe.ui.get_upload_dialog = function(opts){
 							dialog.$wrapper.find('[name="file_url"]').val(r.message.file_url);
 							dialog.$wrapper.find('.private-file input').prop('checked', r.message.is_private);
 							opts.args.filename = r.message.file_name;
+							opts.args.is_private = r.message.is_private;
 						}
 					});
 				}

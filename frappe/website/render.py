@@ -8,6 +8,7 @@ import frappe.sessions
 from frappe.utils import cstr
 import os, mimetypes, json
 
+import six
 from six import iteritems
 from werkzeug.wrappers import Response
 from werkzeug.routing import Map, Rule, NotFound
@@ -80,7 +81,7 @@ def is_static_file(path):
 	if ('.' not in path):
 		return False
 	extn = path.rsplit('.', 1)[-1]
-	if extn in ('html', 'md', 'js', 'xml', 'css', 'txt'):
+	if extn in ('html', 'md', 'js', 'xml', 'css', 'txt', 'py'):
 		return False
 
 	for app in frappe.get_installed_apps():
@@ -98,7 +99,7 @@ def get_static_file_response():
 		raise NotFound
 
 	response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)
-	response.mimetype = mimetypes.guess_type(frappe.flags.file_path)[0] or b'application/octet-stream'
+	response.mimetype = mimetypes.guess_type(frappe.flags.file_path)[0] or 'application/octet-stream'
 	return response
 
 def build_response(path, data, http_status_code, headers=None):
@@ -106,12 +107,12 @@ def build_response(path, data, http_status_code, headers=None):
 	response = Response()
 	response.data = set_content_type(response, data, path)
 	response.status_code = http_status_code
-	response.headers[b"X-Page-Name"] = path.encode("utf-8")
-	response.headers[b"X-From-Cache"] = frappe.local.response.from_cache or False
+	response.headers["X-Page-Name"] = path.encode("utf-8")
+	response.headers["X-From-Cache"] = frappe.local.response.from_cache or False
 
 	if headers:
 		for key, val in iteritems(headers):
-			response.headers[bytes(key)] = val.encode("utf-8")
+			response.headers[key] = val.encode("utf-8")
 
 	return response
 
@@ -167,7 +168,7 @@ def build_page(path):
 		frappe.local.path = path
 
 	context = get_context(path)
-	if context.title and "{{" in context.title:
+	if context.title and "{{" in cstr(context.title):
 		title_template = context.pop('title')
 		context.title = frappe.render_template(title_template, context)
 
@@ -276,7 +277,7 @@ def clear_cache(path=None):
 		frappe.get_attr(method)(path)
 
 def render_403(e, pathname):
-	frappe.local.message = cstr(e.message)
+	frappe.local.message = cstr(e.message if six.PY2 else e)
 	frappe.local.message_title = _("Not Permitted")
 	frappe.local.response['context'] = dict(
 		indicator_color = 'red',

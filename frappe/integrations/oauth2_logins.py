@@ -26,3 +26,7 @@ def login_via_frappe(code, state):
 @frappe.whitelist(allow_guest=True)
 def login_via_office365(code, state):
 	login_via_oauth2_id_token("office_365", code, state, decoder=json.loads)
+
+@frappe.whitelist(allow_guest=True)
+def login_via_salesforce(code, state):
+	login_via_oauth2("salesforce", code, state, decoder=json.loads)

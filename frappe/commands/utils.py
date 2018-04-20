@@ -1,10 +1,13 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import unicode_literals, absolute_import, print_function
 import click
-import json, os, sys
+import json, os, sys, subprocess
 from distutils.spawn import find_executable
 import frappe
 from frappe.commands import pass_context, get_site
 from frappe.utils import update_progress_bar
+from frappe.utils.response import json_handler
 
 @click.command('build')
 @click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
@@ -121,7 +124,7 @@ def execute(context, method, args=None, kwargs=None):
 		finally:
 			frappe.destroy()
 		if ret:
-			print(json.dumps(ret))
+			print(json.dumps(ret, default=json_handler))
 
 
 @click.command('add-to-email-queue')
@@ -280,13 +283,42 @@ def _bulk_rename(context, doctype, path):
 	frappe.destroy()
 
 @click.command('mysql')
+def mysql():
+	"""
+		Deprecated
+	"""
+	click.echo("""
+mysql command is deprecated.
+Did you mean "bench mariadb"?
+""")
+
+@click.command('mariadb')
 @pass_context
-def mysql(context):
-	"Start Mariadb console for a site"
-	site = get_site(context)
+def mariadb(context):
+	"""
+		Enter into mariadb console for a given site.
+	"""
+	import os
+	import os.path as osp
+
+	site  = get_site(context)
 	frappe.init(site=site)
-	msq = find_executable('mysql')
-	os.execv(msq, [msq, '-u', frappe.conf.db_name, '-p'+frappe.conf.db_password, frappe.conf.db_name, '-h', frappe.conf.db_host or "localhost", "-A"])
+
+	# This is assuming you're within the bench instance.
+	path  = os.getcwd()
+	mysql = osp.join(path, '..', 'env', 'bin', 'mycli')
+	args  = [
+		mysql,
+		'-u', frappe.conf.db_name,
+		'-p', frappe.conf.db_password,
+		'-h', frappe.conf.db_host or "localhost",
+		'-D', frappe.conf.db_name,
+		'-R', '{site}> '.format(site = site),
+		'--auto-vertical-output',
+		'--warn'
+	]
+
+	os.execv(mysql, args)
 
 @click.command('console')
 @pass_context
@@ -297,7 +329,7 @@ def console(context):
 	frappe.connect()
 	frappe.local.lang = frappe.db.get_default("lang")
 	import IPython
-	IPython.embed()
+	IPython.embed(display_banner = "")
 
 @click.command('run-tests')
 @click.option('--app', help="For App")
@@ -428,18 +460,25 @@ def make_app(destination, app_name):
 @click.command('set-config')
 @click.argument('key')
 @click.argument('value')
+@click.option('-g', '--global', 'global_', is_flag = True, default = False, help = 'Set Global Site Config')
 @click.option('--as-dict', is_flag=True, default=False)
 @pass_context
-def set_config(context, key, value, as_dict=False):
+def set_config(context, key, value, global_ = False, as_dict=False):
 	"Insert/Update a value in site_config.json"
 	from frappe.installer import update_site_config
 	import ast
 	if as_dict:
 		value = ast.literal_eval(value)
-	for site in context.sites:
-		frappe.init(site=site)
-		update_site_config(key, value, validate=False)
-		frappe.destroy()
+
+	if global_:
+		sites_path = os.getcwd() # big assumption.
+		common_site_config_path = os.path.join(sites_path, 'common_site_config.json')
+		update_site_config(key, value, validate = False, site_config_path = common_site_config_path)
+	else:
+		for site in context.sites:
+			frappe.init(site=site)
+			update_site_config(key, value, validate=False)
+			frappe.destroy()
 
 @click.command('version')
 def get_version():
@@ -508,6 +547,48 @@ def rebuild_global_search(context):
 		finally:
 			frappe.destroy()
 
+@click.command('auto-deploy')
+@click.argument('app')
+@click.option('--migrate', is_flag=True, default=False, help='Migrate after pulling')
+@click.option('--restart', is_flag=True, default=False, help='Restart after migration')
+@click.option('--remote', default='upstream', help='Remote, default is "upstream"')
+@pass_context
+def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
+	'''Pull and migrate sites that have new version'''
+	from frappe.utils.gitutils import get_app_branch
+	from frappe.utils import get_sites
+
+	branch = get_app_branch(app)
+	app_path = frappe.get_app_path(app)
+
+	# fetch
+	subprocess.check_output(['git', 'fetch', remote, branch], cwd = app_path)
+
+	# get diff
+	if subprocess.check_output(['git', 'diff', '{0}..upstream/{0}'.format(branch)], cwd = app_path):
+		print('Updates found for {0}'.format(app))
+		if app=='frappe':
+			# run bench update
+			subprocess.check_output(['bench', 'update', '--no-backup'], cwd = '..')
+		else:
+			updated = False
+			subprocess.check_output(['git', 'pull', '--rebase', 'upstream', branch],
+				cwd = app_path)
+			# find all sites with that app
+			for site in get_sites():
+				frappe.init(site)
+				if app in frappe.get_installed_apps():
+					print('Updating {0}'.format(site))
+					updated = True
+					subprocess.check_output(['bench', '--site', site, 'clear-cache'], cwd = '..')
+					if migrate:
+						subprocess.check_output(['bench', '--site', site, 'migrate'], cwd = '..')
+				frappe.destroy()
+
+			if updated and restart:
+				subprocess.check_output(['bench', 'restart'], cwd = '..')
+	else:
+		print('No Updates')
 
 commands = [
 	build,
@@ -525,6 +606,7 @@ commands = [
 	import_doc,
 	make_app,
 	mysql,
+	mariadb,
 	request,
 	reset_perms,
 	run_tests,
@@ -537,5 +619,6 @@ commands = [
 	add_to_email_queue,
 	setup_global_help,
 	setup_help,
-	rebuild_global_search
+	rebuild_global_search,
+	auto_deploy
 ]

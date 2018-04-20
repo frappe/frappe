@@ -13,7 +13,7 @@ from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
 from frappe.permissions import get_role_permissions
-from six import string_types
+from six import string_types, iteritems
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
@@ -103,7 +103,7 @@ def run(report_name, filters=None, user=None):
 			if len(res) > 4:
 				data_to_be_printed = res[4]
 
-	if report.apply_user_permissions and result:
+	if result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
 
 	if cint(report.add_total_row) and result:
@@ -235,7 +235,7 @@ def add_total_row(result, columns, meta = None):
 def get_filtered_data(ref_doctype, columns, data, user):
 	result = []
 	linked_doctypes = get_linked_doctypes(columns, data)
-	match_filters_per_doctype = get_user_match_filters(linked_doctypes, ref_doctype)
+	match_filters_per_doctype = get_user_match_filters(linked_doctypes, user=user)
 	shared = frappe.share.get_shared(ref_doctype, user)
 	columns_dict = get_columns_dict(columns)
 
@@ -340,7 +340,9 @@ def get_linked_doctypes(columns, data):
 					if val and col not in columns_with_value:
 						columns_with_value.append(col)
 
-	for doctype, key in linked_doctypes.items():
+	items = list(iteritems(linked_doctypes))
+
+	for doctype, key in items:
 		if key not in columns_with_value:
 			del linked_doctypes[doctype]
 
@@ -378,11 +380,11 @@ def get_columns_dict(columns):
 
 	return columns_dict
 
-def get_user_match_filters(doctypes, ref_doctype):
+def get_user_match_filters(doctypes, user):
 	match_filters = {}
 
 	for dt in doctypes:
-		filter_list = frappe.desk.reportview.build_match_conditions(dt, False)
+		filter_list = frappe.desk.reportview.build_match_conditions(dt, user, False)
 		if filter_list:
 			match_filters[dt] = filter_list
 

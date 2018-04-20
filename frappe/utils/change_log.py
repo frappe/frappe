@@ -3,10 +3,11 @@
 
 from __future__ import unicode_literals
 from six.moves import range
-import json, subprocess, os
+import json, os
 from semantic_version import Version
 import frappe
 from frappe.utils import cstr
+from frappe.utils.gitutils import get_app_last_commit_ref, get_app_branch
 
 def get_change_log(user=None):
 	if not user: user = frappe.session.user
@@ -109,18 +110,3 @@ def get_versions():
 			versions[app]["version"] = '0.0.1'
 
 	return versions
-
-def get_app_branch(app):
-	'''Returns branch of an app'''
-	try:
-		return subprocess.check_output('cd ../apps/{0} && git rev-parse --abbrev-ref HEAD'.format(app),
-			shell=True).strip()
-	except Exception as e:
-		return ''
-
-def get_app_last_commit_ref(app):
-	try:
-		return subprocess.check_output('cd ../apps/{0} && git rev-parse HEAD'.format(app),
-			shell=True).strip()[:7]
-	except Exception as e:
-		return ''

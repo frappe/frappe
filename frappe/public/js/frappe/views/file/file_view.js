@@ -31,6 +31,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 
 	setup_defaults() {
 		super.setup_defaults();
+		this.view_name = 'File';
 		this.page_title = __('File Manager');
 
 		const route = frappe.get_route();
@@ -113,7 +114,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	}
 
 	set_fields() {
-		this._fields = this.meta.fields
+		this.fields = this.meta.fields
 			.filter(df => frappe.model.is_value_type(df.fieldtype) && !df.hidden)
 			.map(df => df.fieldname)
 			.concat(['name', 'modified', 'creation']);

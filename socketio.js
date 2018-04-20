@@ -26,11 +26,6 @@ server.listen(conf.socketio_port, function () {
 	console.log('listening on *:', conf.socketio_port); //eslint-disable-line
 });
 
-// test route
-app.get('/', function (req, res) {
-	res.sendfile('index.html');
-});
-
 // on socket connection
 io.on('connection', function (socket) {
 	if (get_hostname(socket.request.headers.host) != get_hostname(socket.request.headers.origin)) {
@@ -46,48 +41,8 @@ io.on('connection', function (socket) {
 		return;
 	}
 
-
-
-
-	if (flags[sid]) {
-		// throttle this function
-		return;
-	}
-
-	flags[sid] = sid;
-	setTimeout(function () {
-		flags[sid] = null;
-	}, 10000);
-
 	socket.user = cookie.parse(socket.request.headers.cookie).user_id;
 	socket.files = {};
-
-	// frappe namespace (temporary till webpack comes in, we can then reuse).
-	const frappe = { };
-	frappe._     = { };
-
-	frappe._.compact = function (arr) { return arr.filter(Boolean) }
-
-	// frappe.model
-	// Realtime Database Updates FTW!
-	function get_model_room (doctype, name, field) {
-		const site = get_site_name(socket)
-		const room = frappe._.compact([site, doctype, name, field]).join(":")
-
-		return room
-	}
-	
-	socket.on('frappe.model:subscribe', function (params) {
-		const doctype = params.doctype
-		const name    = params.name
-		const field   = params.field
-
-		const room    = get_model_room(doctype, name, field)
-
-		console.log('frappe.model: Subscribing ' + socket.user + ' to room ' + room);
-		socket.join(room);
-	})
-	// end frappe.model
 
 	// frappe.chat
 	socket.on("frappe.chat.room:subscribe", function (rooms) {
@@ -103,6 +58,7 @@ io.on('connection', function (socket) {
 			socket.join(room);
 		}
 	});
+
 	socket.on("frappe.chat.message:typing", function (data) {
 		const user = data.user;
 		const room = get_chat_room(socket, data.room);
@@ -132,9 +88,7 @@ io.on('connection', function (socket) {
 				socket.join(get_site_room(socket));
 			}
 		});
-
-
-
+		
 	socket.on('disconnect', function () {
 		delete socket.files;
 	})
@@ -252,8 +206,8 @@ io.on('connection', function (socket) {
 });
 
 subscriber.on("message", function (channel, message, room) {
-	message = JSON.parse(message)
-	io.to(message.room).emit(message.event, message.message)
+	message = JSON.parse(message);
+	io.to(message.room).emit(message.event, message.message);
 });
 
 

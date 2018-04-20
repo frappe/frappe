@@ -7,6 +7,7 @@ import frappe, os
 from frappe.website.utils import can_cache, delete_page_cache, extract_title
 from frappe.model.document import get_controller
 from six import text_type
+import io
 
 def resolve_route(path):
 	"""Returns the page route object based on searching in pages and generators.
@@ -245,13 +246,15 @@ def setup_source(page_info):
 		js_path = os.path.join(page_info.basepath, (page_info.basename or 'index') + '.js')
 		if os.path.exists(js_path):
 			if not '{% block script %}' in html:
-				js = text_type(open(js_path, 'r').read(), 'utf-8')
+				with io.open(js_path, 'r', encoding = 'utf-8') as f:
+					js = f.read()
 				html += '\n{% block script %}<script>' + js + '\n</script>\n{% endblock %}'
 
 		css_path = os.path.join(page_info.basepath, (page_info.basename or 'index') + '.css')
 		if os.path.exists(css_path):
 			if not '{% block style %}' in html:
-				css = text_type(open(css_path, 'r').read(), 'utf-8')
+				with io.open(css_path, 'r', encoding='utf-8') as f:
+					css = f.read()
 				html += '\n{% block style %}\n<style>\n' + css + '\n</style>\n{% endblock %}'
 
 	page_info.source = html

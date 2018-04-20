@@ -58,15 +58,15 @@ frappe.form.formatters = {
 		if (precision > 2) {
 			var parts	 = cstr(value).split("."); // should be minimum 2, comes from the DB
 			var decimals = parts.length > 1 ? parts[1] : ""; // parts.length == 2 ???
-			
+
 			if ( decimals.length < 3 || decimals.length < precision ) {
 				const fraction = frappe.model.get_value(":Currency", currency, "fraction_units") || 100; // if not set, minimum 2.
 				precision      = cstr(fraction).length - 1;
 			}
 		}
-		
+
 		value = (value == null || value == "") ? "" : format_currency(value, currency, precision);
-		
+
 		if ( options && options.only_value ) {
 			return value;
 		} else {
@@ -83,7 +83,7 @@ frappe.form.formatters = {
 	Link: function(value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
 		var original_value = value;
-		if(value && value.match(/^['"].*['"]$/)) {
+		if(value && value.match && value.match(/^['"].*['"]$/)) {
 			value.replace(/^.(.*).$/, "$1");
 		}
 

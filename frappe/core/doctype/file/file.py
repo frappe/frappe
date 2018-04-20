@@ -75,8 +75,8 @@ class File(NestedSet):
 		self.set_folder_size()
 
 		if frappe.db.exists('File', {'name': self.name, 'is_folder': 0}):
+			old_file_url = self.file_url
 			if not self.is_folder and (self.is_private != self.db_get('is_private')):
-				old_file_url = self.file_url
 				private_files = frappe.get_site_path('private', 'files')
 				public_files = frappe.get_site_path('public', 'files')
 
@@ -92,15 +92,25 @@ class File(NestedSet):
 
 					self.file_url = "/private/files/{0}".format(self.file_name)
 
+
 			# update documents image url with new file url
-			if self.attached_to_doctype and self.attached_to_name and \
-				frappe.db.get_value(self.attached_to_doctype, self.attached_to_name, "image") == old_file_url:
-				frappe.db.set_value(self.attached_to_doctype, self.attached_to_name, "image", self.file_url)
+			if self.attached_to_doctype and self.attached_to_name:
+				if not self.attached_to_field:
+					field_name = None
+					reference_dict = frappe.get_doc(self.attached_to_doctype, self.attached_to_name).as_dict()
+					for key, value in reference_dict.items():
+						if value == old_file_url:
+							field_name = key
+							break
+					self.attached_to_field = field_name
+				if self.attached_to_field:
+					frappe.db.set_value(self.attached_to_doctype, self.attached_to_name, self.attached_to_field, self.file_url)
+
 
 	def set_folder_size(self):
 		"""Set folder size if folder"""
 		if self.is_folder and not self.is_new():
-			self.file_size = self.get_folder_size()
+			self.file_size = frappe.utils.cint(self.get_folder_size())
 			self.db_set('file_size', self.file_size)
 
 			for folder in self.get_ancestors():
@@ -110,6 +120,7 @@ class File(NestedSet):
 		"""Returns folder size for current folder"""
 		if not folder:
 			folder = self.name
+
 		file_size =  frappe.db.sql("""select ifnull(sum(file_size), 0)
 			from tabFile where folder=%s """, (folder))[0][0]
 
@@ -162,7 +173,7 @@ class File(NestedSet):
 
 		if self.file_url.startswith("/files/"):
 			try:
-				with open(get_files_path(self.file_name.lstrip("/")), "r") as f:
+				with open(get_files_path(self.file_name.lstrip("/")), "rb") as f:
 					self.content_hash = get_content_hash(f.read())
 			except IOError:
 				frappe.msgprint(_("File {0} does not exist").format(self.file_url))
@@ -444,3 +455,6 @@ def get_attached_images(doctype, names):
 		out[i.docname].append(i.file_url)
 
 	return out
+
+def on_doctype_update():
+	frappe.db.add_index("File", ["lft", "rgt"])

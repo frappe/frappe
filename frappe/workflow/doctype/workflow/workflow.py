@@ -8,7 +8,6 @@ from frappe import _
 from frappe.model.document import Document
 
 class Workflow(Document):
-
 	def validate(self):
 		self.set_active()
 		self.create_custom_field_for_workflow_state()

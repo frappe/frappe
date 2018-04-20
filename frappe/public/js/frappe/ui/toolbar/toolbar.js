@@ -22,20 +22,19 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		this.setup_sidebar();
 		this.setup_help();
 
-		// Frappe Chat (added to toolbar as per rushabh@frappe.io request)
-		this.setup_chat()
-		// end Frappe Chat
-
+		this.setup_modules_dialog();
 		this.setup_progress_dialog();
 		this.bind_events();
 
 		$(document).trigger('toolbar_setup');
 	},
 
-	setup_chat ( )
-	{
-		const chat = new frappe.Chat({ target: '.navbar .frappe-chat-toggle' })
-		chat.render()
+
+	setup_modules_dialog() {
+		this.modules_select = new frappe.ui.toolbar.ModulesSelect();
+		$('.navbar-set-desktop-icons').on('click', () => {
+			this.modules_select.show();
+		});
 	},
 
 	bind_events: function() {
@@ -182,7 +181,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			if(href.indexOf('blob') > 0) {
 				window.open(href, '_blank');
 			}
-			var converter = new Showdown.converter();
 			var path = $(e.target).attr("data-path");
 			if(path) {
 				e.preventDefault();
@@ -221,7 +219,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 								me.progress_dialog.show();
 							});
 
-							if (frappe.boot.is_first_startup) {
+							if (cint(frappe.boot.sysdefaults.is_first_startup)) {
 								me.progress_dialog.show();
 								frappe.call({
 									method: "frappe.desk.page.setup_wizard.setup_wizard.reset_is_first_startup",
@@ -288,7 +286,8 @@ frappe.ui.toolbar.download_backup = function() {
 frappe.ui.toolbar.show_about = function() {
 	try {
 		frappe.ui.misc.about();
-	} catch(e) {
+	}
+	catch(e) {
 		console.log(e);
 	}
 	return false;

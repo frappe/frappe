@@ -69,7 +69,7 @@ frappe.ui.keys.on('esc', function(e) {
 });
 
 frappe.ui.keys.on('enter', function(e) {
-	if(cur_dialog && cur_dialog.confirm_dialog) {
+	if(window.cur_dialog && cur_dialog.confirm_dialog) {
 		cur_dialog.get_primary_btn().trigger('click');
 	}
 });

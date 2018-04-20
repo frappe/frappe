@@ -5,7 +5,7 @@ import requests
 import six
 
 # imports - standard imports
-from   collections import MutableSequence, Mapping, MutableMapping
+from   collections import Sequence, MutableSequence, Mapping, MutableMapping
 if six.PY2:
 	from urlparse import urlparse 	  # PY2
 else:
@@ -30,7 +30,7 @@ def get_user_doc(user = None):
 	return user
 
 def squashify(what):
-	if isinstance(what, MutableSequence) and len(what) == 1:
+	if isinstance(what, Sequence) and len(what) == 1:
 		return what[0]
 
 	return what
@@ -64,7 +64,7 @@ def filter_dict(what, keys, ignore = False):
 
 	return copy
 
-def assign_if_empty(a, b):
+def get_if_empty(a, b):
 	if not a:
 		a = b
 	return a

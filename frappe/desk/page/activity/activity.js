@@ -149,8 +149,7 @@ frappe.activity.render_heatmap = function(page) {
 		method: "frappe.desk.page.activity.activity.get_heatmap_data",
 		callback: function(r) {
 			if(r.message) {
-				var heatmap = new Chart({
-					parent: ".heatmap",
+				var heatmap = new Chart(".heatmap", {
 					type: 'heatmap',
 					height: 100,
 					start: new Date(moment().subtract(1, 'year').toDate()),
@@ -166,10 +165,15 @@ frappe.activity.render_heatmap = function(page) {
 }
 
 frappe.views.Activity = class Activity extends frappe.views.BaseList {
+	constructor(opts) {
+		super(opts);
+		this.show();
+	}
 
 	setup_defaults() {
 		super.setup_defaults();
 
+		this.page_title = __('Activity');
 		this.doctype = 'Communication';
 		this.method = 'frappe.desk.page.activity.activity.get_feed';
 
@@ -180,6 +184,10 @@ frappe.views.Activity = class Activity extends frappe.views.BaseList {
 	}
 
 	setup_sort_selector() {
+
+	}
+
+	setup_side_bar() {
 
 	}
 

@@ -13,6 +13,7 @@ from frappe.utils import cint
 from frappe.model.document import Document
 from frappe.model import no_value_fields
 from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
+from frappe.model.docfield import supports_translation
 
 doctype_properties = {
 	'search_fields': 'Data',
@@ -53,6 +54,7 @@ docfield_properties = {
 	'print_hide_if_no_value': 'Check',
 	'report_hide': 'Check',
 	'allow_on_submit': 'Check',
+	'translatable': 'Check',
 	'depends_on': 'Data',
 	'description': 'Text',
 	'default': 'Text',
@@ -208,6 +210,10 @@ class CustomizeForm(Document):
 
 					elif property == "options" and df.get("fieldtype") not in allowed_fieldtype_for_options_change:
 						frappe.msgprint(_("You can't set 'Options' for field {0}").format(df.label))
+						continue
+
+					elif property == 'translatable' and not supports_translation(df.get('fieldtype')):
+						frappe.msgprint(_("You can't set 'Translatable' for field {0}").format(df.label))
 						continue
 
 					self.make_property_setter(property=property, value=df.get(property),

@@ -94,6 +94,44 @@ frappe.ui.form.Control = Class.extend({
 			&& this.$wrapper.toggleClass("hide-control", this.disp_status=="None")
 			&& this.refresh_input
 			&& this.refresh_input();
+
+		var value = this.get_value();
+
+		this.show_translatable_button(value);
+	},
+	show_translatable_button(value) {
+		// Disable translation non-string fields or special string fields
+		if (!frappe.model
+			|| !frappe.model.can_write('Translation')
+			|| !this.frm
+			|| !this.doc
+			|| !this.df.translatable
+			|| !value) return;
+
+		// Disable translation in website
+		if (!frappe.views || !frappe.views.TranslationManager) return;
+
+		// Already attached button
+		if (this.$wrapper.find('.clearfix .btn-translation').length) return;
+
+		const translation_btn =
+			`<a class="btn-translation no-decoration text-muted" title="${__('Open Translation')}">
+				<i class="fa fa-globe"></i>
+			</a>`;
+
+		$(translation_btn)
+			.appendTo(this.$wrapper.find('.clearfix'))
+			.on('click', () => {
+				if (!this.doc.__islocal) {
+					new frappe.views.TranslationManager({
+						'df': this.df,
+						'source_name': value,
+						'target_language': this.doc.language,
+						'doc': this.doc
+					});
+				}
+			});
+
 	},
 	get_doc: function() {
 		return this.doctype && this.docname
