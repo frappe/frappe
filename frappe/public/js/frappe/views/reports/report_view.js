@@ -40,7 +40,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	setup_result_area() {
 		super.setup_result_area();
-		this.$datatable_wrapper = $('<div class="data-table-wrapper">');
+		this.$datatable_wrapper = $('<div class="datatable-wrapper">');
 		this.$charts_wrapper = $('<div class="charts-wrapper">');
 		this.$result.append(this.$charts_wrapper);
 		this.$result.append(this.$datatable_wrapper);
@@ -131,7 +131,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		// indicate row update
 		const _flash_row = (rowIndex) => {
 			if (!flash_row) return;
-			const $row = this.$result.find(`.data-table-row[data-row-index="${rowIndex}"]`);
+			const $row = this.$result.find(`.dt-row[data-row-index="${rowIndex}"]`);
 			$row.addClass('row-update');
 			setTimeout(() => $row.removeClass('row-update'), 500);
 		};
