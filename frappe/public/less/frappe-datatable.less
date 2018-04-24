@@ -1,36 +1,24 @@
 @import "variables.less";
 
-.data-table {
+.datatable {
 	margin-left: -1px;
 	margin-top: -1px;
 	font-size: @text-medium;
 
-	.data-table-col .edit-cell {
-		padding: 0;
-
-		input {
-			font-size: inherit;
-			height: 27px;
-		}
-	}
-
-	.data-table-col .content {
-		padding: 0.5rem;
-	}
-
 	.frappe-control {
 		margin: 0;
-	}
-	.form-group {
-		margin: 0;
-	}
-	.form-control {
 		border-radius: 0px;
 		border: none;
 	}
+
+	.form-group {
+		margin: 0;
+	}
+
 	.link-btn {
 		top: 6px;
 	}
+
 	select {
 		height: 27px;
 	}
@@ -38,37 +26,36 @@
 	.checkbox {
 		margin: 7px 0 7px 8px;
 	}
+
 	[data-fieldtype="Color"] .control-input {
 		overflow: hidden;
 	}
+}
 
-	.body-scrollable {
-		&::-webkit-scrollbar {
-			display: none;
-		}
+.dt-scrollable {
+	max-height: calc(100vh - 250px);
+}
+
+table td.dt-cell {
+	position: relative;
+}
+
+.dt-cell__edit {
+	padding: 0;
+
+	input {
+		font-size: inherit;
+		height: 27px;
 	}
+}
 
-	.data-table-header {
-		background-color: @panel-bg;
-		color: @text-muted;
-	}
+.dt-header {
+	background-color: @panel-bg;
+	color: @text-muted;
+}
 
-	.data-table-row.row-update {
-		animation: 500ms breathe forwards;
-	}
-
-	.data-table-row.row-highlight {
-		background-color: @extra-light-yellow;
-	}
-
-	.report-tree-node {
-		display: inline-block;
-
-		.toggle {
-			cursor: pointer;
-			font-size: @text-regular;
-		}
-	}
+.dt-row.row-update {
+	animation: 500ms breathe forwards;
 }
 
 @keyframes breathe {

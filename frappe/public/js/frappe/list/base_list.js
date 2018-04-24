@@ -326,17 +326,21 @@ frappe.views.BaseList = class BaseList {
 		};
 	}
 
-	refresh() {
-		this.freeze(true);
-		// fetch data from server
+	get_call_args() {
 		const args = this.get_args();
-		return frappe.call({
+		return {
 			method: this.method,
 			type: 'GET',
 			args: args,
 			freeze: this.freeze_on_refresh || false,
 			freeze_message: this.freeze_message || (__('Loading') + '...')
-		}).then(r => {
+		};
+	}
+
+	refresh() {
+		this.freeze(true);
+		// fetch data from server
+		return frappe.call(this.get_call_args()).then(r => {
 			// render
 			this.prepare_data(r);
 			this.toggle_result_area();
