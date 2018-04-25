@@ -26,15 +26,17 @@ def get_user_permissions(user=None):
 		out = {}
 		try:
 			for perm in frappe.get_all('User Permission',
-				fields=['allow', 'for_value'], filters=dict(user=user)):
+				fields=['allow', 'for_value', 'skip_for_doctype'], filters=dict(user=user)):
 				meta = frappe.get_meta(perm.allow)
 				if not perm.allow in out:
-					out[perm.allow] = []
-				out[perm.allow].append(perm.for_value)
+					out[perm.allow] = {
+						"docs": [],
+						"skip_for_doctype": perm.skip_for_doctype.split("\n") if perm.skip_for_doctype else []
+					}
+				out[perm.allow]["docs"].append(perm.for_value)
 
 				if meta.is_nested_set():
-					out[perm.allow].extend(frappe.db.get_descendants(perm.allow, perm.for_value))
-
+					out[perm.allow]["docs"].extend(frappe.db.get_descendants(perm.allow, perm.for_value))
 			frappe.cache().hset("user_permissions", user, out)
 		except frappe.SQLError as e:
 			if e.args[0]==1146:

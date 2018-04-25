@@ -176,11 +176,13 @@ def has_user_permission(doc, user=None, verbose=False):
 
 	apply_strict_user_permissions = frappe.get_system_settings('apply_strict_user_permissions')
 
-	if doc.get('doctype') in user_permissions and doc.get('name') not in user_permissions[doc.get('doctype')]:
-		# don't have user permissions on the doc itself!
-		if verbose:
-			msgprint(_('Not allowed for {0} = {1}').format(_(doc.get('doctype')), doc.get('name')))
-		return False
+	if doc.get('doctype') in user_permissions:
+		if (doc.get('name') not in user_permissions[doc.get('doctype')].get("docs", [])
+			and not doc.get('doctype') in user_permissions[doc.get('doctype')].get("skip_for_doctype", [])):
+			# don't have user permissions on the doc itself!
+			if verbose:
+				msgprint(_('Not allowed for {0} = {1}').format(_(doc.get('doctype')), doc.get('name')))
+			return False
 
 	def check_user_permission(d):
 		meta = frappe.get_meta(d.get("doctype"))
@@ -191,7 +193,7 @@ def has_user_permission(doc, user=None, verbose=False):
 			if field.ignore_user_permissions:
 				continue
 
-			if field.options in user_permissions:
+			if field.options in user_permissions and not d.get("doctype") in user_permissions[field.options].get("skip_for_doctype", []):
 				if not apply_strict_user_permissions:
 					# ignore if link is not set
 					if not d.get(field.fieldname):
@@ -318,7 +320,7 @@ def set_user_permission_if_allowed(doctype, name, user, with_message=False):
 	if get_role_permissions(frappe.get_meta(doctype), user).set_user_permissions!=1:
 		add_user_permission(doctype, name, user)
 
-def add_user_permission(doctype, name, user):
+def add_user_permission(doctype, name, user, ignore_permissions=False):
 	'''Add user permission'''
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 	if name not in get_user_permissions(user).get(doctype, []):
@@ -330,7 +332,7 @@ def add_user_permission(doctype, name, user):
 			user=user,
 			allow=doctype,
 			for_value=name
-		)).insert()
+		)).insert(ignore_permissions=ignore_permissions)
 
 def remove_user_permission(doctype, name, user):
 	user_permission_name = frappe.db.get_value('User Permission',
