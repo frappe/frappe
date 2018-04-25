@@ -44,6 +44,6 @@ Handlers are:
 
 1. fieldname_add
 1. fieldname_move
-1. fieldname_before_remove
+1. before_fieldname_remove
 1. fieldname_remove
 
