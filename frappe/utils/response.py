@@ -21,6 +21,7 @@ from frappe.core.doctype.file.file import check_file_permission
 from frappe.website.render import render
 from frappe.utils import cint
 from six import text_type
+import decimal
 
 def report_error(status_code):
 	'''Build error. Show traceback in developer mode'''
@@ -109,8 +110,8 @@ def json_handler(obj):
 	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
 		return text_type(obj)
 
-	if isinstance(obj, Decimal):
-		return text_type(obj)
+	elif isinstance(obj, decimal.Decimal):
+		return float(obj)
 
 	elif isinstance(obj, LocalProxy):
 		return text_type(obj)
