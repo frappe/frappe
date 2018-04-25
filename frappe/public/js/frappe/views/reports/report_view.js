@@ -148,12 +148,18 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			columns: this.columns,
 			data: this.get_data(values),
 			getEditor: this.get_editing_object.bind(this),
+			dynamicRowHeight: true,
+			checkboxColumn: true,
 			events: {
 				onRemoveColumn: (column) => {
 					this.remove_column_from_datatable(column);
 				},
 				onSwitchColumn: (column1, column2) => {
 					this.switch_column(column1, column2);
+				},
+				onCheckRow: () => {
+					const checked_items = this.get_checked_items();
+					this.toggle_actions_menu_button(checked_items.length > 0);
 				}
 			},
 			headerDropdown: [{
@@ -738,7 +744,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			name: title,
 			content: title,
 			width: (docfield ? cint(docfield.width) : null) || null,
-			editable: editable
+			editable: editable,
+			format: (value, row, column, data) => {
+				return frappe.format(value, column.docfield, { always_show_decimals: true }, data);
+			}
 		};
 	}
 
@@ -799,13 +808,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					name: d.name,
 					doctype: col.docfield.parent,
 					content: value,
-					editable: this.is_editable(col.docfield, d),
-					format: value => {
-						if (col.field === 'name') {
-							return frappe.utils.get_form_link(this.doctype, value, true);
-						}
-						return frappe.format(value, col.docfield, { always_show_decimals: true }, d);
-					}
+					editable: this.is_editable(col.docfield, d)
 				};
 			}
 			return {

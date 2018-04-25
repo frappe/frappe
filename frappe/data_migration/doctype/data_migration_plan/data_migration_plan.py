@@ -10,7 +10,6 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model.document import Document
 
 class DataMigrationPlan(Document):
-
 	def on_update(self):
 		# update custom fields in mappings
 		self.make_custom_fields_for_mappings()
@@ -40,7 +39,8 @@ class DataMigrationPlan(Document):
 			'fieldtype': 'Data',
 			'hidden': 1,
 			'read_only': 1,
-			'unique': 1
+			'unique': 1,
+			'no_copy': 1
 		}
 
 		for m in self.mappings:

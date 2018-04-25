@@ -27,10 +27,21 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 
 	if app_name == "frappe":
 		# these need to go first at time of install
-		for d in (("core", "docfield"), ("core", "docperm"), ("core", "has_role"), ("core", "doctype"),
-			("core", "user"), ("core", "role"), ("custom", "custom_field"),
-			("custom", "property_setter"), ("website", "web_form"),
-			("website", "web_form_field"), ("website", "portal_menu_item")):
+		for d in (("core", "docfield"),
+			("core", "docperm"),
+			("core", "has_role"),
+			("core", "doctype"),
+			("core", "user"),
+			("core", "role"),
+			("custom", "custom_field"),
+			("custom", "property_setter"),
+			("website", "web_form"),
+			("website", "web_form_field"),
+			("website", "portal_menu_item"),
+			("data_migration", "data_migration_mapping_detail"),
+			("data_migration", "data_migration_mapping"),
+			("data_migration", "data_migration_plan_mapping"),
+			("data_migration", "data_migration_plan")):
 			files.append(os.path.join(frappe.get_app_path("frappe"), d[0],
 				"doctype", d[1], d[1] + ".json"))
 
@@ -63,7 +74,6 @@ def get_doc_files(files, start_path, force=0, sync_everything = False, verbose=F
 	for doctype in document_types:
 		doctype_path = os.path.join(start_path, doctype)
 		if os.path.exists(doctype_path):
-
 			for docname in os.listdir(doctype_path):
 				if os.path.isdir(os.path.join(doctype_path, docname)):
 					doc_path = os.path.join(doctype_path, docname, docname) + ".json"

@@ -17,7 +17,7 @@ from faker import Faker
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '10.1.17'
+__version__ = '10.1.23'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -502,16 +502,15 @@ def clear_cache(user=None, doctype=None):
 
 	:param user: If user is given, only user cache is cleared.
 	:param doctype: If doctype is given, only DocType cache is cleared."""
-	import frappe.sessions
+	import frappe.cache_manager
 	if doctype:
-		import frappe.model.meta
-		frappe.model.meta.clear_cache(doctype)
+		frappe.cache_manager.clear_doctype_cache(doctype)
 		reset_metadata_version()
 	elif user:
-		frappe.sessions.clear_cache(user)
+		frappe.cache_manager.clear_user_cache(user)
 	else: # everything
 		from frappe import translate
-		frappe.sessions.clear_cache()
+		frappe.cache_manager.clear_user_cache()
 		translate.clear_cache()
 		reset_metadata_version()
 		local.cache = {}
@@ -1489,7 +1488,7 @@ def safe_decode(param, encoding = 'utf-8'):
 	except Exception:
 		pass
 	return param
-	
+
 def parse_json(val):
 	from frappe.utils import parse_json
 	return parse_json(val)
@@ -1505,7 +1504,7 @@ def mock(type, size = 1, locale = 'en'):
 			results.append(data)
 
 	from frappe.chat.util import squashify
-		
+
 	results = squashify(results)
 
 	return results

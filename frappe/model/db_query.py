@@ -18,13 +18,13 @@ from frappe.model.utils.user_settings import get_user_settings, update_user_sett
 from datetime import datetime
 
 class DatabaseQuery(object):
-	def __init__(self, doctype):
+	def __init__(self, doctype, user=None):
 		self.doctype = doctype
 		self.tables = []
 		self.conditions = []
 		self.or_conditions = []
 		self.fields = None
-		self.user = None
+		self.user = user or frappe.session.user
 		self.ignore_ifnull = False
 		self.flags = frappe._dict()
 

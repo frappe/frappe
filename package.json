@@ -9,7 +9,7 @@
     "type": "git",
     "url": "git+https://github.com/frappe/frappe.git"
   },
-  "author": "Frappé Technologies Pvt. Ltd.",
+  "author": "Frappe Technologies Pvt. Ltd.",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/frappe/frappe/issues"
@@ -18,7 +18,7 @@
   "dependencies": {
     "cookie": "^0.3.1",
     "express": "^4.16.2",
-    "frappe-datatable": "^0.0.3",
+    "frappe-datatable": "frappe/datatable",
     "frappe-gantt": "^0.1.0",
     "fuse": "^0.4.0",
     "fuse.js": "^3.2.0",

@@ -1023,7 +1023,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 		frappe.route_options = null;
 
-		this.filter_area.add(filters);
+		this.filter_area.clear(false)
+			.then(() => {
+				this.filter_area.add(filters);
+			});
 	}
 
 	static trigger_list_update(data) {

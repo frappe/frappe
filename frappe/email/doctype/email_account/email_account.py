@@ -492,6 +492,9 @@ class EmailAccount(Document):
 		if self.sender_field:
 			parent.set(self.sender_field, frappe.as_unicode(email.from_email))
 
+		if parent.meta.has_field("email_account"):
+			parent.email_account = self.name
+
 		parent.flags.ignore_mandatory = True
 
 		try:

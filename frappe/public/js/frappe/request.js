@@ -8,6 +8,21 @@ frappe.request.url = '/';
 frappe.request.ajax_count = 0;
 frappe.request.waiting_for_ajax = [];
 
+frappe.xcall = function(method, params) {
+	return new Promise((resolve, reject) => {
+		frappe.call({
+			method: method,
+			args: params,
+			callback: (r) => {
+				resolve(r.message);
+			},
+			error: (r) => {
+				reject(r.message);
+			}
+		});
+	});
+};
+
 // generic server call (call page, object)
 frappe.call = function(opts) {
 	if (!frappe.is_online()) {

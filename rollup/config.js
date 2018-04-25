@@ -80,6 +80,7 @@ function get_rollup_options_for_js(output_file, input_files) {
 
 function get_rollup_options_for_css(output_file, input_files) {
 	const output_path = path.resolve(assets_path, output_file);
+	const minimize_css = output_path.startsWith('css/') && production;
 
 	const plugins = [
 		// enables array of inputs
@@ -94,7 +95,7 @@ function get_rollup_options_for_css(output_file, input_files) {
 				]
 			}]],
 			include: [path.resolve(bench_path, '**/*.less'), path.resolve(bench_path, '**/*.css')],
-			minimize: production
+			minimize: minimize_css
 		})
 	];
 

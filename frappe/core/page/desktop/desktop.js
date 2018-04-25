@@ -42,21 +42,8 @@ $.extend(frappe.desktop, {
 			color: '#7578f6',
 			link: 'modules'
 		};
-		var hub_icon = {
-			module_name: 'Hub Node',
-			// color: "#009248",
-			icon: "/assets/erpnext/images/hub_logo.svg",
-			svg: "/assets/erpnext/images/hub_logo.svg",
-			type: "page",
-			link: "Hub/Item",
-			_label: __("Hub"),
-			_id: 'Hub',
-			_doctype: '',
-		};
 		explore_icon.app_icon = frappe.ui.app_icon.get_html(explore_icon);
-		hub_icon.app_icon = frappe.ui.app_icon.get_html(hub_icon);
 		all_icons.push(explore_icon);
-		all_icons.push(hub_icon);
 
 		frappe.desktop.wrapper.html(frappe.render_template(template, {
 			// all visible icons
@@ -132,7 +119,7 @@ $.extend(frappe.desktop, {
 				frappe.desktop.open_module($(this));
 			});
 		} else {
-			frappe.desktop.wrapper.on("click", ".app-icon", function() {
+			frappe.desktop.wrapper.on("click", ".app-icon, .app-icon-svg", function() {
 				if ( !frappe.desktop.wiggling ) {
 					frappe.desktop.open_module($(this).parent());
 				}

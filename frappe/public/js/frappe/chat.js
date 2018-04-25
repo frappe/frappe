@@ -185,7 +185,7 @@ frappe.quick_edit      = (doctype, docname, fn) => {
 				const meta     = frappe.get_meta(doctype)
 				const fields   = meta.fields
 				const required = fields.filter(f => f.reqd || f.bold && !f.read_only)
-	
+
 				const dialog   = new frappe.ui.Dialog({
 					 title: __(`Edit ${doctype} (${docname})`),
 					fields: required,
@@ -581,7 +581,7 @@ frappe.Logger.FORMAT = '{time} {name}'
 // frappe.chat
 frappe.provide('frappe.chat')
 
-frappe.log = frappe.Logger.get('frappe.chat', frappe.Logger.ERROR)
+frappe.log = frappe.Logger.get('frappe.chat', frappe.Logger.NOTSET)
 
 // frappe.chat.profile
 frappe.provide('frappe.chat.profile')
@@ -919,7 +919,7 @@ frappe.chat.room.on.update = function (fn) {
  * @param {function} fn - callback with the created Chat Room.
  */
 frappe.chat.room.on.create = function (fn) {
-	frappe.realtime.on("frappe.chat.room:create", r => 
+	frappe.realtime.on("frappe.chat.room:create", r =>
 		fn({ ...r, creation: new frappe.datetime.datetime(r.creation) })
 	)
 }
@@ -1537,7 +1537,7 @@ class extends Component {
 			if ( user !== frappe.session.user ) {
 				frappe.log.warn(`User ${user} typing in Chat Room ${room}.`)
 				this.room.update(room, { typing: user })
-				
+
 				setTimeout(() => this.room.update(room, { typing: null }), 5000)
 			}
 		})
@@ -2126,7 +2126,7 @@ class extends Component {
 		}
 
 		return (
-			h("div", { class: `panel panel-default 
+			h("div", { class: `panel panel-default
 				${props.name ? "panel-bg" : ""}
 				${props.layout === frappe.Chat.Layout.PAGE || frappe._.is_mobile() ? "panel-span" : ""}`,
 				style: props.layout === frappe.Chat.Layout.PAGE && { width: "75%", left: "25%", "box-shadow": "none" } },
@@ -2294,7 +2294,7 @@ class extends Component {
 
 		const me        = props.user === frappe.session.user
 		const content   = props.content
-		
+
 		return (
 			h("div",{class: "chat-list-item list-group-item"},
 				props.type === "Notification" ?
@@ -2342,7 +2342,7 @@ class extends Component {
 		const { props } = this
 		if ( props.user === frappe.session.user ) {
 			frappe.quick_edit("Chat Message", props.name, (values) => {
-				
+
 			})
 		}
 	}
@@ -2625,7 +2625,7 @@ frappe.chat.render = (render = true, force = false) =>
 	if ( desk ) {
 		// With the assumption, that there's only one navbar.
 		const $placeholder = $('.navbar .frappe-chat-dropdown')
-	
+
 		// Render if frappe-chat-toggle doesn't exist.
 		if ( frappe.utils.is_empty($placeholder.has('.frappe-chat-toggle')) ) {
 			const $template = $(`
@@ -2635,40 +2635,40 @@ frappe.chat.render = (render = true, force = false) =>
 					</div>
 				</a>
 			`)
-	
+
 			$placeholder.addClass('dropdown hidden')
 			$placeholder.html($template)
 		}
-	
+
 		if ( render ) {
 			$placeholder.removeClass('hidden')
 		} else {
 			$placeholder.addClass('hidden')
 		}
 	}
-	
+
 	// Avoid re-renders. Once is enough.
 	if ( !frappe.chatter || force ) {
 		frappe.chatter = new frappe.Chat({
 			target: desk ? '.navbar .frappe-chat-toggle' : null
 		})
-		
+
 		if ( render ) {
 			if ( frappe.session.user === 'Guest' && !desk ) {
 				frappe.store = frappe.Store.get('frappe.chat')
 				var token	 = frappe.store.get('guest_token')
-		
+
 				frappe.log.info(`Local Guest Token - ${token}`)
-		
+
 				const setup_room = (token) =>
 				{
 					return new Promise(resolve => {
 						frappe.chat.room.create("Visitor", token).then(room => {
 							frappe.log.info(`Visitor Room Created: ${room.name}`)
 							frappe.chat.room.subscribe(room.name)
-			
+
 							var reference = room
-			
+
 							frappe.chat.room.history(room.name).then(messages => {
 								const  room = { ...reference, messages: messages }
 								return room
@@ -2678,12 +2678,12 @@ frappe.chat.render = (render = true, force = false) =>
 						})
 					})
 				}
-		
+
 				if ( !token ) {
 					frappe.chat.website.token().then(token => {
 						frappe.log.info(`Generated Guest Token - ${token}`)
 						frappe.store.set('guest_token', token)
-		
+
 						setup_room(token).then(room => {
 							frappe.chatter.render({ room })
 						})
@@ -2709,12 +2709,12 @@ frappe.chat.setup  = () => {
 	if ( frappe.session.user !== 'Guest' ) {
 		// Create/Get Chat Profile for session User, retrieve enable_chat
 		frappe.log.info('Creating a Chat Profile.')
-	
+
 		frappe.chat.profile.create('enable_chat').then(({ enable_chat }) => {
 			frappe.log.info(`Chat Profile created for User ${frappe.session.user}.`)
-			
+
 			if ( 'desk' in frappe ) { // same as desk?
-				const should_render = frappe.sys_defaults.enable_chat && enable_chat
+				const should_render = Boolean(parseInt(frappe.sys_defaults.enable_chat)) && enable_chat
 				frappe.chat.render(should_render)
 			}
 		})
@@ -2724,7 +2724,7 @@ frappe.chat.setup  = () => {
 		frappe.chat.profile.on.update((user, profile) => {
 			if ( user === frappe.session.user && 'enable_chat' in profile ) {
 				frappe.log.warn(`Chat Profile update (Enable Chat - ${Boolean(profile.enable_chat)})`)
-				const should_render = frappe.sys_defaults.enable_chat && profile.enable_chat
+				const should_render = Boolean(parseInt(frappe.sys_defaults.enable_chat)) && profile.enable_chat
 				frappe.chat.render(should_render)
 			}
 		})
@@ -2735,11 +2735,11 @@ frappe.chat.setup  = () => {
 			.then(settings => {
 				frappe.log.info(`Chat Website Setting - ${JSON.stringify(settings)}`)
 				frappe.log.info(`Chat Website Setting - ${settings.enable ? "Enable" : "Disable"}`)
-				
+
 				var should_render = settings.enable
 				if ( settings.enable_from && settings.enable_to ) {
 					frappe.log.info(`Enabling Chat Schedule - ${settings.enable_from.format()} : ${settings.enable_to.format()}`)
-					
+
 					const range   = new frappe.datetime.range(settings.enable_from, settings.enable_to)
 					should_render = range.contains(frappe.datetime.now())
 				}
@@ -2748,7 +2748,7 @@ frappe.chat.setup  = () => {
 					frappe.log.info("Initializing Socket.IO")
 					frappe.socketio.init(settings.socketio.port)
 				}
-				
+
 				frappe.chat.render(should_render)
 		})
 	}

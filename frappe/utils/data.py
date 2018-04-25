@@ -210,7 +210,11 @@ def get_user_format():
 
 def formatdate(string_date=None, format_string=None):
 	"""
+<<<<<<< HEAD
 		 Convers the given string date to :data:`user_format`
+=======
+		Converts the given string date to :data:`user_format`
+>>>>>>> 2f9e5da55cf461c7758c02086efd576206045aee
 		User format specified in defaults
 
 		 Examples:
@@ -262,10 +266,7 @@ def global_date_format(date, format="long"):
 
 def is_weekday(date):
 	date = getdate(date)
-	if date.weekday() not in [5, 6]:
-		return True
-	else:
-		return False
+	return date.weekday() not in [5, 6]
 
 def next_weekday_date(date):
 	date = getdate(date)
@@ -273,20 +274,6 @@ def next_weekday_date(date):
 	while is_weekday(date) is False:
 		date = add_days(date, 1)
 	return formatdate(date)
-
-def is_weekday(date):
-	date = getdate(date)
-	if date.weekday() not in [5, 6]:
-		return True
-	else:
-		return False
-
-def next_weekday_date(date):
-	date = getdate(date)
-	date = add_days(date, 1)
-	while is_weekday(date) is False:
-		date = add_days(date, 1)
-	return date
 
 def has_common(l1, l2):
 	"""Returns truthy value if there are common elements in lists l1 and l2"""
@@ -472,10 +459,13 @@ def fmt_money(amount, precision=None, currency=None):
 	# 40,000.00000 -> 40,000.00
 	# 40,000.23000 -> 40,000.23
 
+	if isinstance(amount, string_types):
+		amount = flt(amount, precision)
+
 	if decimal_str:
 		decimals_after = str(round(amount % 1, precision))
-		parts = decimals_after.split(decimal_str)
-		parts = parts[1] if len(parts) > 1 else ''
+		parts = decimals_after.split('.')
+		parts = parts[1] if len(parts) > 1 else parts[0]
 		decimals = parts
 		if precision > 2:
 			if len(decimals) < 3:

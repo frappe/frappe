@@ -264,7 +264,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 		this.$working_state = this.get_message(
 			__("Setting up your system"),
-			__("Starting Frappé ...")).appendTo(this.parent);
+			__("Starting Frappe ...")).appendTo(this.parent);
 
 		this.attach_abort_button();
 

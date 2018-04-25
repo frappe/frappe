@@ -261,9 +261,8 @@ def delete_dynamic_links(doctype, name):
 		where reference_doctype=%s and reference_name=%s''', (doctype, name))
 
 	# delete shares
-	delete_doc("DocShare", frappe.db.sql_list("""select name from `tabDocShare`
-		where share_doctype=%s and share_name=%s""", (doctype, name)),
-		ignore_on_trash=True, force=True)
+	frappe.db.sql("""delete from `tabDocShare`
+		where share_doctype=%s and share_name=%s""", (doctype, name))
 
 	# delete versions
 	frappe.db.sql('delete from tabVersion where ref_doctype=%s and docname=%s', (doctype, name))
