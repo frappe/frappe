@@ -313,6 +313,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.data.map(doc => this.get_list_row_html(doc)).join('')
 			);
 		}
+		this.on_row_checked(true);
 		this.render_count();
 		this.render_tags();
 	}
@@ -795,7 +796,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
-	on_row_checked() {
+	on_row_checked(refresh=false) {
 		this.$list_head_subject = this.$list_head_subject || this.$result.find('header .list-header-subject');
 		this.$checkbox_actions = this.$checkbox_actions || this.$result.find('header .checkbox-actions');
 
@@ -803,6 +804,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		this.$list_head_subject.toggle(this.$checks.length === 0);
 		this.$checkbox_actions.toggle(this.$checks.length > 0);
+
+		if(refresh) {
+			return;
+		}
 
 		if (this.$checks.length === 0) {
 			this.$list_head_subject.find('.list-select-all').prop('checked', false);
