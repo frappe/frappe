@@ -14,7 +14,8 @@ from frappe.utils.background_jobs import enqueue
 
 class DataImport(Document):
 	def autoname(self):
-		self.name = "Import on "+ format_datetime(self.creation)
+		if not self.name:
+			self.name = "Import on "+ format_datetime(self.creation)
 
 	def validate(self):
 		if not self.import_file:
