@@ -272,7 +272,7 @@ def next_weekday_date(date):
 	date = add_days(date, 1)
 	while is_weekday(date) is False:
 		date = add_days(date, 1)
-	return date
+	return formatdate(date)
 
 def is_weekday(date):
 	date = getdate(date)
