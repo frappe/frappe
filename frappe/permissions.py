@@ -142,16 +142,20 @@ def get_role_permissions(doctype_meta, user=None, verbose=False):
 			if_owner={}
 		)
 
-		roles = frappe.get_roles(user)
+		def is_perm_applicable(perm):
+			roles = frappe.get_roles(user)
+			return perm.role in roles and cint(perm.permlevel)==0
 
-		for p in doctype_meta.permissions:
-			if not cint(p.permlevel)==0 or not(p.role in roles): continue
-			# apply only for level 0
-			for ptype in rights:
-				perms[ptype] = perms.get(ptype, 0) or cint(p.get(ptype))
-				# build if_owner dict if applicable for this right
-				if p.get('if_owner') and p.get(ptype):
-					perms['if_owner'][ptype] = 1
+		def has_permission_without_if_owner_enabled(ptype):
+			return any(p.get(ptype, 0) and not p.get('if_owner', 0) for p in applicable_permissions)
+
+		applicable_permissions = list(filter(is_perm_applicable, doctype_meta.permissions))
+		has_if_owner_enabled = any(p.get('if_owner', 0) for p in applicable_permissions)
+
+		for ptype in rights:
+			perms[ptype] = any(p.get(ptype, 0) for p in applicable_permissions) # check if any perm object allows perm type
+			if perms[ptype] and has_if_owner_enabled and not has_permission_without_if_owner_enabled(ptype):
+				perms['if_owner'][ptype] = True
 
 		frappe.local.role_permissions[cache_key] = perms
 	return frappe.local.role_permissions[cache_key]
