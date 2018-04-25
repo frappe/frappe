@@ -313,6 +313,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.data.map(doc => this.get_list_row_html(doc)).join('')
 			);
 		}
+		this.on_row_checked();
 		this.render_count();
 		this.render_tags();
 	}
