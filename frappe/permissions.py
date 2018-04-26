@@ -193,7 +193,8 @@ def has_user_permission(doc, user=None, verbose=False):
 			if field.ignore_user_permissions:
 				continue
 
-			if field.options in user_permissions and not d.get("doctype") in user_permissions[field.options].get("skip_for_doctype", []):
+			if (field.options in user_permissions
+				and not d.get("doctype") in user_permissions[field.options].get("skip_for_doctype", [])):
 				if not apply_strict_user_permissions:
 					# ignore if link is not set
 					if not d.get(field.fieldname):
