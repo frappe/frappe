@@ -18,7 +18,10 @@ class CustomField(Document):
 			label = self.label
 			if not label:
 				if self.fieldtype in ["Section Break", "Column Break"]:
-					label = self.fieldtype + "_" + str(self.idx)
+					if self.idx:
+						label = self.fieldtype + "_" + str(self.idx)
+					else:
+						label = self.fieldtype + "-" + self.get_field_idx()
 				else:
 					frappe.throw(_("Label is mandatory"))
 
@@ -80,6 +83,17 @@ class CustomField(Document):
 		if self.fieldname == self.insert_after:
 			frappe.throw(_("Insert After cannot be set as {0}").format(meta.get_label(self.insert_after)))
 
+	def get_field_idx(self):
+		meta = frappe.get_meta(self.dt, cached=False)
+		fields = meta.get_fields()
+		idx = 0
+		for f in fields:
+			if f.fieldname == self.insert_after:
+				idx = cint(f.idx) + 1
+		return idx
+		 
+				
+		
 @frappe.whitelist()
 def get_fields_label(doctype=None):
 	return [{"value": df.fieldname or "", "label": _(df.label or "")}
