@@ -245,6 +245,8 @@ class DocType(Document):
 		if self.name in frappe.local.meta_cache:
 			del frappe.local.meta_cache[self.name]
 
+		clear_linked_doctype_cache()
+
 	def delete_duplicate_custom_fields(self):
 		if not (frappe.db.table_exists(self.name) and frappe.db.table_exists("Custom Field")):
 			return
@@ -829,3 +831,6 @@ def check_if_fieldname_conflicts_with_methods(doctype, fieldname):
 
 	if fieldname in method_list:
 		frappe.throw(_("Fieldname {0} conflicting with meta object").format(fieldname))
+
+def clear_linked_doctype_cache():
+	frappe.cache().delete_value('linked_doctypes_without_ignore_user_permissions_enabled')
