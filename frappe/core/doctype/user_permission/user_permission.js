@@ -40,7 +40,7 @@ frappe.ui.form.on('User Permission', {
 				method: "frappe.desk.form.linked_with.get_linked_doctypes",
 				args: {
 					doctype: frm.doc.allow,
-					skip_enabled_ignore_user_permissions: true
+					without_ignore_user_permissions_enabled: true
 				},
 				callback: (r) => {
 					const linked_doctypes = r.message || {};
