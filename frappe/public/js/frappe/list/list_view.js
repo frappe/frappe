@@ -111,7 +111,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 	}
 
-	show_restrictions(match_rules_list) {
+	show_restrictions(match_rules_list=[]) {
 		frappe.msgprint(frappe.render_template('list_view_permission_restrictions', {
 			condition_list: match_rules_list
 		}), 'Restrictions');
@@ -313,6 +313,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.data.map(doc => this.get_list_row_html(doc)).join('')
 			);
 		}
+		this.on_row_checked();
 		this.render_count();
 		this.render_tags();
 	}
@@ -635,6 +636,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_events() {
+		this.setup_filterable();
+		this.setup_list_click();
+		this.setup_tag_event();
+		this.setup_new_doc_event();
+		this.setup_check_events();
+		this.setup_like();
+		this.setup_realtime_updates();
+	}
+
+	setup_filterable() {
 		// filterable events
 		this.$result.on('click', '.filterable', e => {
 			if (e.metaKey || e.ctrlKey) return;
@@ -653,10 +664,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 			this.filter_area.add(filters_to_apply);
 		});
+	}
 
+	setup_list_click() {
 		this.$result.on('click', '.list-row', (e) => {
 			const $target = $(e.target);
-
 			// tick checkbox if Ctrl/Meta key is pressed
 			if (e.ctrlKey || e.metaKey && !$target.is('a')) {
 				const $list_row = $(e.currentTarget);
@@ -666,16 +678,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.on_row_checked();
 				return;
 			}
-
 			// don't open form when checkbox, like, filterable are clicked
 			if ($target.hasClass('filterable') ||
 				$target.hasClass('octicon-heart') ||
 				$target.is(':checkbox') ||
-				$target.is('a')
-			) {
+				$target.is('a')) {
 				return;
 			}
-
 			// open form
 			const $row = $(e.currentTarget);
 			const link = $row.find('.list-subject a').get(0);
@@ -684,16 +693,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return false;
 			}
 		});
-
-		// toggle tags
-		this.list_sidebar.parent.on('click', '.list-tag-preview', () => {
-			this.toggle_tags();
-		});
-
-		this.$no_result.find('.btn-new-doc').click(() => this.make_new_doc());
-
-		this.setup_check_events();
-		this.setup_like();
 	}
 
 	setup_check_events() {
@@ -755,6 +754,48 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		frappe.ui.setup_like_popover(this.$result, '.liked-by');
 	}
 
+	setup_new_doc_event() {
+		this.$no_result.find('.btn-new-doc').click(() => this.make_new_doc());
+	}
+
+	setup_tag_event() {
+		this.list_sidebar.parent.on('click', '.list-tag-preview', () => {
+			this.toggle_tags();
+		});
+	}
+
+	setup_realtime_updates() {
+		frappe.realtime.on('list_update', data => {
+			const { doctype, name } = data;
+			if (doctype !== this.doctype) return;
+
+			// filters to get only the doc with this name
+			const call_args = this.get_call_args();
+			call_args.args.filters.push([this.doctype, 'name', '=', name]);
+			call_args.args.start = 0;
+
+			frappe.call(call_args)
+				.then(({ message }) => {
+					if (!message) return;
+					const data = frappe.utils.dict(message.keys, message.values);
+					if (!(data && data.length)) return;
+
+					const datum = data[0];
+					const index = this.data.findIndex(d => d.name === datum.name);
+
+					if (index === -1) {
+						// append new data
+						this.data.push(datum);
+					} else {
+						// update this data in place
+						this.data[index] = datum;
+					}
+
+					this.render();
+				});
+		});
+	}
+
 	on_row_checked() {
 		this.$list_head_subject = this.$list_head_subject || this.$result.find('header .list-header-subject');
 		this.$checkbox_actions = this.$checkbox_actions || this.$result.find('header .checkbox-actions');
@@ -793,10 +834,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return frappe.model.user_settings.save(this.doctype, this.view_name, obj);
 	}
 
-	on_update(data) {
-		if (data.doctype === this.doctype) {
-			this.refresh();
-		}
+	on_update() {
+
 	}
 
 	get_menu_items() {

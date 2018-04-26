@@ -27,6 +27,12 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 	Note: if Table DocType is passed, it always returns True.
 	"""
 	if not user: user = frappe.session.user
+
+	if not doc and hasattr(doctype, 'doctype'):
+		# first argument can be doc or doctype
+		doc = doctype
+		doctype = doc.doctype
+
 	if verbose:
 		doc_name = get_doc_name(doc) or '_'
 		print('--- Checking for {0} {1} ---'.format(doctype, doc_name))

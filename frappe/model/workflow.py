@@ -110,7 +110,7 @@ def validate_workflow(doc):
 		current_state = doc._doc_before_save.get(workflow.workflow_state_field)
 	next_state = doc.get(workflow.workflow_state_field)
 
-	if not next_state:
+	if not next_state or not current_state:
 		# set default state (maybe not set in insert)
 		current_state = next_state = workflow.states[0].state
 		doc.set(workflow.workflow_state_field, workflow.states[0].state)

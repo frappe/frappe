@@ -35,6 +35,10 @@ def get_list(doctype, fields=None, filters=None, order_by=None,
 		limit_start=limit_start, limit_page_length=limit_page_length, ignore_permissions=False)
 
 @frappe.whitelist()
+def get_count(doctype, filters=None, debug=False, cache=False):
+	return frappe.db.count(doctype, filters, debug, cache)
+
+@frappe.whitelist()
 def get(doctype, name=None, filters=None, parent=None):
 	'''Returns a document by name or filters
 
@@ -187,7 +191,7 @@ def save(doc):
 
 	doc = frappe.get_doc(doc)
 	doc.save()
-	
+
 	return doc.as_dict()
 
 @frappe.whitelist()

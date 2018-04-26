@@ -403,6 +403,9 @@ class Meta(Document):
 				module_name = module_name, doctype_name = doctype, suffix=suffix)
 		return None
 
+	def is_nested_set(self):
+		return self.has_field('lft') and self.has_field('rgt')
+
 doctype_table_fields = [
 	frappe._dict({"fieldname": "fields", "options": "DocField"}),
 	frappe._dict({"fieldname": "permissions", "options": "DocPerm"})

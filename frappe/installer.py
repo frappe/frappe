@@ -108,6 +108,8 @@ def get_root_connection(root_login='root', root_password=None):
 
 def install_app(name, verbose=False, set_as_patched=True):
 	frappe.flags.in_install = name
+	frappe.flags.ignore_in_install = False
+
 	frappe.clear_cache()
 	app_hooks = frappe.get_hooks(app_name=name)
 	installed_apps = frappe.get_installed_apps()

@@ -468,12 +468,19 @@ frappe.views.ListSidebar = Class.extend({
 			.on("click", ".stat-link", function() {
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
-				if (label == "No Tags") {
-					me.list_view.filter_list.add_filter(me.list_view.doctype, fieldname, 'not like', '%,%');
-					me.list_view.run();
-				} else {
-					me.set_filter(fieldname, label);
+				var condition = "like";
+				var existing = me.list_view.filter_area.filter_list.get_filter(fieldname);
+				if(existing) {
+					existing.remove();
 				}
+				if (label == "No Tags") {
+					label = "%,%";
+					condition = "not like";
+				}
+				me.list_view.filter_area.filter_list.add_filter(me.list_view.doctype, fieldname, condition, label)
+					.then(function() {
+						me.list_view.refresh();
+					});
 			})
 			.insertBefore(this.sidebar.find(".close-sidebar-button"));
 	},

@@ -27,7 +27,13 @@ def get_user_permissions(user=None):
 		try:
 			for perm in frappe.get_all('User Permission',
 				fields=['allow', 'for_value'], filters=dict(user=user)):
-				out.setdefault(perm.allow, []).append(perm.for_value)
+				meta = frappe.get_meta(perm.allow)
+				if not perm.allow in out:
+					out[perm.allow] = []
+				out[perm.allow].append(perm.for_value)
+
+				if meta.is_nested_set():
+					out[perm.allow].extend(frappe.db.get_descendants(perm.allow, perm.for_value))
 
 			frappe.cache().hset("user_permissions", user, out)
 		except frappe.SQLError as e:

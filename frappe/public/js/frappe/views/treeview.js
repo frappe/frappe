@@ -255,7 +255,6 @@ frappe.views.TreeView = Class.extend({
 			var v = d.get_values();
 			if(!v) return;
 
-			var node = me.tree.get_selected_node();
 			v.parent = node.label;
 			v.doctype = me.doctype;
 
@@ -266,19 +265,24 @@ frappe.views.TreeView = Class.extend({
 				v['is_root'] = false;
 			}
 
+			d.hide();
+			frappe.dom.freeze(__('Creating {0}', [me.doctype]));
+
 			$.extend(args, v)
 			return frappe.call({
 				method: me.opts.add_tree_node || "frappe.desk.treeview.add_node",
 				args: args,
 				callback: function(r) {
 					if(!r.exc) {
-						d.hide();
 						if(node.expanded) {
 							me.tree.toggle_node(node);
 						}
 						me.tree.load_children(node, true);
 					}
-				}
+				},
+				always: function() {
+					frappe.dom.unfreeze();
+				},
 			});
 		});
 		d.show();
