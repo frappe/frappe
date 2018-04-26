@@ -371,7 +371,7 @@ def parse_val(v):
 	return v
 
 def fmt_money(amount, precision=None, currency=None):
-<<<<<<< Updated upstream
+
 	print(amount, precision, currency)
 
 	"""
@@ -442,7 +442,7 @@ def fmt_money(amount, precision=None, currency=None):
 		amount = symbol + " " + amount
 
 	return amount
-=======
+
 	"""
 	Convert to string with commas for thousands, millions etc
 	"""
@@ -514,7 +514,6 @@ def fmt_money(amount, precision=None, currency=None):
 		amount = symbol + " " + amount
 
 	return amount
->>>>>>> Stashed changes
 
 number_format_info = {
 	"#,###.##": (".", ",", 2),
