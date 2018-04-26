@@ -69,7 +69,12 @@ def import_file_by_path(path, ignore_links=False, overwrite=False, submit=False,
 
 def export_json(doctype, path, filters=None, or_filters=None, name=None):
 	def post_process(out):
-		del_keys = ('parent', 'parentfield', 'parenttype', 'modified_by', 'creation', 'owner', 'idx')
+		del_keys = None
+		if doctype == "Custom Field":
+			del_keys = ('parent', 'parentfield', 'parenttype', 'modified_by', 'creation', 'owner')
+		else:
+			del_keys = ('parent', 'parentfield', 'parenttype', 'modified_by', 'creation', 'owner', 'idx')
+			
 		for doc in out:
 			for key in del_keys:
 				if key in doc:
