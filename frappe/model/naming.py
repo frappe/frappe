@@ -75,7 +75,7 @@ def _prompt_autoname(autoname, doc):
 
 def _naming_series_autoname(autoname, doc):
 	"""
-	Generate a name using naming series. 
+	Generate a name using naming series.
 	"""
 	if not doc.naming_series:
 		frappe.throw(frappe._("Naming Series mandatory"))
@@ -86,8 +86,8 @@ def _naming_series_autoname(autoname, doc):
 
 def _concatenate_autoname(autoname, doc):
 	"""
-	Generate a name by concatenating as many fields as required. This is called when the doctype's `autoname` 
-	field starts with 'concatenate:'. The field names are separated by a comma. It is also aware of autoname 
+	Generate a name by concatenating as many fields as required. This is called when the doctype's `autoname`
+	field starts with 'concatenate:'. The field names are separated by a comma. It is also aware of autoname
 	'.####' format.
 	"""
 
@@ -108,8 +108,8 @@ def _get_name_from_naming_options(autoname, doc):
 	Get a name based on the autoname field option
 	"""
 	options_map = {
-		'field:': _field_autoname, 
-		'naming_series:': _naming_series_autoname, 
+		'field:': _field_autoname,
+		'naming_series:': _naming_series_autoname,
 		'prompt': _prompt_autoname,
 		'concatenate:': _concatenate_autoname
 	}
