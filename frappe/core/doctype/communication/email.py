@@ -359,7 +359,7 @@ def get_cc(doc, recipients=None, fetched_from_email_account=False):
 	if cc:
 		# exclude unfollows, recipients and unsubscribes
 		exclude = [] #added to remove account check
-		exclude += [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
+		exclude += [d[0] for d in frappe.db.get_all("User", ["email"], {"thread_notify": 0}, as_list=True)]
 		exclude += [(parse_addr(email)[1] or "").lower() for email in recipients]
 
 		if fetched_from_email_account:
@@ -380,7 +380,7 @@ def get_bcc(doc, recipients=None, fetched_from_email_account=False):
 
 	if bcc:
 		exclude = []
-		exclude += [d[0] for d in frappe.db.get_all("User", ["name"], {"thread_notify": 0}, as_list=True)]
+		exclude += [d[0] for d in frappe.db.get_all("User", ["email"], {"thread_notify": 0}, as_list=True)]
 		exclude += [(parse_addr(email)[1] or "").lower() for email in recipients]
 
 		if fetched_from_email_account:
