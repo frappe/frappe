@@ -41,21 +41,25 @@ def submit_cancel_or_update_docs(doctype, docnames, action='submit', data=None):
 	for i, d in enumerate(docnames, 1):
 		doc = frappe.get_doc(doctype, d)
 		try:
-			if action == 'submit':
+			message = ''
+			if action == 'submit' and doc.docstatus==0:
 				doc.submit()
 				message = _('Submiting {0}').format(doctype)
-			elif action == 'cancel':
+			elif action == 'cancel' and doc.docstatus==1:
 				doc.cancel()
 				message = _('Cancelling {0}').format(doctype)
-			elif action == 'update':
+			elif action == 'update' and doc.docstatus < 2:
 				doc.update(data)
 				doc.save()
 				message = _('Updating {0}').format(doctype)
+			else:
+				failed.append(d)
 
 			show_progress(docnames, message, i, d)
 
 		except Exception:
 			failed.append(d)
+
 	return failed
 
 def show_progress(docnames, message, i, description):
