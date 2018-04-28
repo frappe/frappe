@@ -5,6 +5,9 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 		return Object.assign(settings, {
 			filter: function(text, input) {
 				var d = this.get_item(text.value);
+				if(!d) {
+					return Awesomplete.FILTER_CONTAINS(text, input.match(/[^,]*$/)[0]);
+				}
 				var v = Awesomplete.FILTER_CONTAINS(d.label, input.match(/[^,]*$/)[0]);
 				if(!v && d.value){
 					v = Awesomplete.FILTER_CONTAINS(d.value, input.match(/[^,]*$/)[0]);
@@ -30,36 +33,17 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 	},
 
 	get_data() {
-		const values = this.get_values();
-		const data = this._super();
+		let data;
+		if(this.df.get_data) {
+			data = this.df.get_data();
+			this.set_data(data);
+		} else {
+			data = this._super();
+		}
+		const values = this.get_values() || [];
 
 		// return values which are not already selected
-		return data.filter(d => !values.includes(d));
-	},
-	get_options() {
-		let options = '';
-		if(this.df.get_options) {
-			options = this.df.get_options();
-		}
-		else if (this.docname==null && cur_dialog) {
-			//for dialog box
-			options = cur_dialog.get_value(this.df.options);
-		}
-		else if (!cur_frm) {
-			const selector = `input[data-fieldname="${this.df.options}"]`;
-			let input = null;
-			if (cur_list) {
-				// for list page
-				input = cur_list.wrapper.find(selector);
-			}
-			if (cur_page) {
-				input = $(cur_page.page).find(selector);
-			}
-			if (input) {
-				options = input.val();
-			}
-		}
-
-		return options;
-	},
+		if(data) data.filter(d => !values.includes(d));
+		return data;
+	}
 });

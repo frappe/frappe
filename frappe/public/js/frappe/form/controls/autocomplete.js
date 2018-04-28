@@ -18,10 +18,6 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 		}
 	},
 
-	get_options() {
-		return this.df.options;
-	},
-
 	get_awesomplete_settings() {
 		var me = this;
 		return {
@@ -29,7 +25,12 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 			maxItems: 99,
 			autoFirst: true,
 			list: this.get_data(),
-			data: function (item) {
+			data: function(item) {
+				if(!(item instanceof Object)) {
+					var d = {"value": item};
+					item = d;
+				}
+
 				return {
 					label: item.label || item.value,
 					value: item.value
@@ -38,15 +39,20 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 			filter: function() {
 				return true;
 			},
-			item: function (item) {
+			item: function(item) {
 				var d = this.get_item(item.value);
-				if(!d.label) {	d.label = d.value; }
+				if(!d) {
+					d = item;
+				} else {
+					d.label = d.value;
+				}
 
 				var _label = (me.translate_values) ? __(d.label) : d.label;
 				var html = "<strong>" + _label + "</strong>";
 				if(d.description && d.value!==d.description) {
 					html += '<br><span class="small">' + __(d.description) + '</span>';
 				}
+
 				return $('<li></li>')
 					.data('item.autocomplete', d)
 					.prop('aria-selected', 'false')
@@ -60,49 +66,24 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 	},
 
 	setup_awesomplete() {
+		var me = this;
 		this.awesomplete = new Awesomplete(this.input, this.get_awesomplete_settings());
 
 		$(this.input_area).find('.awesomplete ul').css('min-width', '100%');
 
-		this.$input.on('input', () => {
-			this.awesomplete.list = this.get_data();
-		});
+		this.$input.on('input', frappe.utils.debounce(function() {
+			me.awesomplete.list = me.get_data();
+		}, 500));
 
 		this.$input.on('focus', () => {
-			this.get_dropdown();
 			if (!this.$input.val()) {
 				this.$input.val('');
 				this.$input.trigger('input');
 			}
 		});
 
-		this.$input.on('input', () => {
-			this.get_dropdown();
-		});
-
 		this.$input.on('awesomplete-selectcomplete', () => {
 			this.$input.trigger('change');
-		});
-	},
-
-	get_dropdown() {
-		var me = this;
-		const value = this.get_value() || '';
-		const values = value.split(', ').filter(d => d);
-		var term = values.pop() || '';
-		var args = {
-			'txt': term,
-			'doctype': this.get_options()
-		};
-
-		frappe.call({
-			type: "GET",
-			method:'frappe.desk.search.search_link',
-			no_spinner: true,
-			args: args,
-			callback: function(r) {
-				me._data = r.results
-			}
 		});
 	},
 
