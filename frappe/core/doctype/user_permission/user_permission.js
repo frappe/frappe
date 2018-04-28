@@ -58,7 +58,7 @@ frappe.ui.form.on('User Permission', {
 							parent: help_wrapper,
 							df: {
 								'label': 'Apply User Permission for following DocType',
-								'fieldname': 'next_actions_multicheck',
+								'fieldname': 'linked_doctype_multicheck',
 								'fieldtype': 'MultiCheck',
 								'options': for_multicheck_options,
 								'columns': 3,

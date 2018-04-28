@@ -154,7 +154,9 @@ def get_role_permissions(doctype_meta, user=None, verbose=False):
 
 		for ptype in rights:
 			perms[ptype] = any(p.get(ptype, 0) for p in applicable_permissions) # check if any perm object allows perm type
-			if perms[ptype] and has_if_owner_enabled and not has_permission_without_if_owner_enabled(ptype):
+			if (perms[ptype]
+				and has_if_owner_enabled
+				and not has_permission_without_if_owner_enabled(ptype)):
 				perms['if_owner'][ptype] = True
 
 		frappe.local.role_permissions[cache_key] = perms
@@ -177,7 +179,8 @@ def has_user_permission(doc, user=None, verbose=False):
 	apply_strict_user_permissions = frappe.get_system_settings('apply_strict_user_permissions')
 
 	if doc.get('doctype') in user_permissions:
-		if (doc.get('name') not in user_permissions[doc.get('doctype')].get("docs", [])
+		if (doc.get('name')
+			not in user_permissions[doc.get('doctype')].get("docs", [])
 			and not doc.get('doctype') in user_permissions[doc.get('doctype')].get("skip_for_doctype", [])):
 			# don't have user permissions on the doc itself!
 			if verbose:
@@ -190,8 +193,7 @@ def has_user_permission(doc, user=None, verbose=False):
 		# check all link fields for user permissions
 		for field in meta.get_link_fields():
 			# if this type is restricted
-			if field.ignore_user_permissions:
-				continue
+			if field.ignore_user_permissions: continue
 
 			if (field.options in user_permissions
 				and not d.get("doctype") in user_permissions[field.options].get("skip_for_doctype", [])):
