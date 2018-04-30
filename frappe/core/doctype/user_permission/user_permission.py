@@ -20,27 +20,29 @@ def get_user_permissions(user=None):
 	if not user:
 		user = frappe.session.user
 
-	out = frappe.cache().hget("user_permissions", user)
+	cached_user_permissions = frappe.cache().hget("user_permissions", user)
 
-	if out is None:
-		out = {}
-		try:
-			for perm in frappe.get_all('User Permission',
-				fields=['allow', 'for_value', 'skip_for_doctype'], filters=dict(user=user)):
-				meta = frappe.get_meta(perm.allow)
-				if not perm.allow in out:
-					out[perm.allow] = {
-						"docs": [],
-						"skip_for_doctype": perm.skip_for_doctype.split("\n") if perm.skip_for_doctype else []
-					}
-				out[perm.allow]["docs"].append(perm.for_value)
+	if cached_user_permissions is not None:
+		return cached_user_permissions
 
-				if meta.is_nested_set():
-					out[perm.allow]["docs"].extend(frappe.db.get_descendants(perm.allow, perm.for_value))
-			frappe.cache().hset("user_permissions", user, out)
-		except frappe.SQLError as e:
-			if e.args[0]==1146:
-				# called from patch
-				pass
+	out = {}
+	try:
+		for perm in frappe.get_all('User Permission',
+			fields=['allow', 'for_value', 'skip_for_doctype'], filters=dict(user=user)):
+			meta = frappe.get_meta(perm.allow)
+			if not perm.allow in out:
+				out[perm.allow] = {
+					"docs": [],
+					"skip_for_doctype": perm.skip_for_doctype.split("\n") if perm.skip_for_doctype else []
+				}
+			out[perm.allow]["docs"].append(perm.for_value)
+
+			if meta.is_nested_set():
+				out[perm.allow]["docs"].extend(frappe.db.get_descendants(perm.allow, perm.for_value))
+		frappe.cache().hset("user_permissions", user, out)
+	except frappe.SQLError as e:
+		if e.args[0]==1146:
+			# called from patch
+			pass
 
 	return out
