@@ -10,7 +10,6 @@
 	"js/frappe-web.min.js": [
 		"public/js/frappe/class.js",
 		"public/js/frappe/polyfill.js",
-		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/md5.min.js",
 		"public/js/frappe/provide.js",
 		"public/js/frappe/format.js",
