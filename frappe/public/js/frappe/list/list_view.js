@@ -78,7 +78,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	validate_filters(filters) {
-		return filters.uniqBy(f => f[1]);
+		const valid_fields = this.meta.fields.map(df => df.fieldname);
+		return filters
+			.filter(f => valid_fields.includes(f[1]))
+			.uniqBy(f => f[1]);
 	}
 
 	setup_page() {

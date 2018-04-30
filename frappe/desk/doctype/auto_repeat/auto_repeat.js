@@ -61,7 +61,7 @@ frappe.ui.form.on('Auto Repeat', {
 		frappe.call({
 			method: "frappe.desk.doctype.auto_repeat.auto_repeat.stop_resume_auto_repeat",
 			args: {
-				subscription: frm.doc.name,
+				auto_repeat: frm.doc.name,
 				status: status
 			},
 			callback: function(r) {
