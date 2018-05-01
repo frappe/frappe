@@ -40,6 +40,11 @@ frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 			if (options.format && options.format === "EAN") {
 				options.format = value.length == 8 ? "EAN8" : "EAN13";
 			}
+
+			if (options.valueField) {
+				// Set companion field value
+				this.frm.set_value(options.valueField, value);
+			}
 		}
 		return options;
 	},
