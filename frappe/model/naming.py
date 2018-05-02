@@ -41,22 +41,27 @@ def set_new_name(doc):
 	if not doc.name and autoname:
 		doc.name = _get_name_from_naming_options(autoname, doc)
 
-	# if the autoname option if 'field:' and no name was derived, we need to notify
+	# if the autoname option if 'field:' and no name was derived, we need to 
+	# notify
 	if autoname.startswith('field:') and not doc.name:
 		fieldname = autoname[6:]
 		frappe.throw(_("{0} is required").format(doc.meta.get_label(fieldname)))
 
 	# at this point, we fall back to name generation with the hash option
-	if not doc.name or autoname=='hash':
+	if not doc.name or autoname == 'hash':
 		doc.name = make_autoname('hash', doc.doctype)
 
-	doc.name = validate_name(doc.doctype, doc.name, frappe.get_meta(doc.doctype).get_field("name_case"))
+	doc.name = validate_name(
+					doc.doctype,
+					doc.name,
+					frappe.get_meta(doc.doctype).get_field("name_case")
+				)
 
 
 def _field_autoname(autoname, doc, skip_slicing=None):
 	"""
-	Generate a name using `DocType` field. This is called when the doctype's `autoname` field starts
-	with 'field:'
+	Generate a name using `DocType` field. This is called when the doctype's 
+	`autoname` field starts with 'field:'
 	"""
 	fieldname = autoname if skip_slicing else autoname[6:]
 	name = (doc.get(fieldname) or '').strip()
@@ -86,9 +91,10 @@ def _naming_series_autoname(autoname, doc):
 
 def _concatenate_autoname(autoname, doc):
 	"""
-	Generate a name by concatenating as many fields as required. This is called when the doctype's `autoname`
-	field starts with 'concatenate:'. The field names are separated by a comma. It is also aware of autoname
-	'.####' format.
+	Generate a name by concatenating as many fields as required. This is 
+	called when the doctype's `autoname` field starts with 'concatenate:'. The
+	field names are separated by a comma. It is also aware of autoname '.####' 
+	format.
 	"""
 
 	fieldname = autoname[12:]
