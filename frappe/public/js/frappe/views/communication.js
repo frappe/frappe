@@ -46,11 +46,19 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	get_fields: function() {
+		let contactList = [];
+		frappe.call({
+			method: "frappe.email.get_contact_list",
+			async: false,
+			callback: function(r) {
+				contactList = r.message;
+			}
+		});
 		var fields= [
-			{label:__("To"), fieldtype:"Data", reqd: 0, fieldname:"recipients",length:524288},
+			{label:__("To"), fieldtype:"MultiSelect", reqd: 0, fieldname:"recipients",options:contactList},
 			{fieldtype: "Section Break", collapsible: 1, label: __("CC, BCC & Email Template")},
-			{label:__("CC"), fieldtype:"Data", fieldname:"cc", length:524288},
-			{label:__("BCC"), fieldtype:"Data", fieldname:"bcc", length:524288},
+			{label:__("CC"), fieldtype:"MultiSelect", fieldname:"cc",options:contactList},
+			{label:__("BCC"), fieldtype:"MultiSelect", fieldname:"bcc",options:contactList},
 			{label:__("Email Template"), fieldtype:"Link", options:"Email Template",
 				fieldname:"email_template"},
 			{fieldtype: "Section Break"},
@@ -104,7 +112,6 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.setup_print();
 		this.setup_attach();
 		this.setup_email();
-		this.setup_awesomplete();
 		this.setup_last_edited_communication();
 		this.setup_email_template();
 
@@ -608,56 +615,5 @@ frappe.views.CommunicationComposer = Class.extend({
 			content = "<div><br></div>" + reply;
 		}
 		fields.content.set_value(content);
-	},
-	setup_awesomplete: function() {
-		var me = this;
-		[
-			this.dialog.fields_dict.recipients.input,
-			this.dialog.fields_dict.cc.input,
-			this.dialog.fields_dict.bcc.input
-		].map(function(input) {
-			me.setup_awesomplete_for_input(input);
-		});
-	},
-	setup_awesomplete_for_input: function(input) {
-		function split(val) {
-			return val.split( /,\s*/ );
-		}
-		function extractLast(term) {
-			return split(term).pop();
-		}
-
-		var awesomplete = new Awesomplete(input, {
-			minChars: 0,
-			maxItems: 99,
-			autoFirst: true,
-			list: [],
-			item: function(item, input) {
-				return $('<li>').text(item.value).get(0);
-			},
-			filter: function(text, input) { return true },
-			replace: function(text) {
-				var before = this.input.value.match(/^.+,\s*|/)[0];
-				this.input.value = before + text + ", ";
-			}
-		});
-		var delay_timer;
-		var $input = $(input);
-		$input.on("input", function(e) {
-			clearTimeout(delay_timer);
-			delay_timer = setTimeout(function() {
-				var term = e.target.value;
-				frappe.call({
-					method:'frappe.email.get_contact_list',
-					args: {
-						'txt': extractLast(term) || '%'
-					},
-					quiet: true,
-					callback: function(r) {
-						awesomplete.list = r.message || [];
-					}
-				});
-			},250);
-		});
 	}
 });
