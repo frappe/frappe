@@ -479,7 +479,7 @@ fieldset[disabled] .form-control {
 }
 .modal-backdrop {
   opacity: 0.5;
-  position: fixed;
+  position: absolute;
 }
 .modal-header {
   padding: 10px 15px;
