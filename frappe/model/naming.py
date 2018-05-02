@@ -59,7 +59,7 @@ def _field_autoname(autoname, doc, skip_slicing=None):
 	with 'field:'
 	"""
 	fieldname = autoname if skip_slicing else autoname[6:]
-	name = str(doc.get(fieldname) or '').strip()
+	name = (doc.get(fieldname) or '').strip()
 	return name
 
 
