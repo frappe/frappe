@@ -293,7 +293,11 @@ def has_match(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner
 					if dt=="User" and columns_dict[idx]==columns_dict.get("owner"):
 						continue
 
-					cell_value = row[idx]
+					if isinstance(row, dict):
+						cell_value = row.get(idx)
+					elif isinstance(row, list):
+						cell_value = row[idx]
+
 					if dt in match_filters and cell_value not in match_filters.get(dt) and frappe.db.exists(dt, cell_value):
 						match = False
 						break
