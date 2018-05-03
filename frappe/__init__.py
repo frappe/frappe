@@ -17,7 +17,7 @@ from faker import Faker
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
-__version__ = '10.1.26'
+__version__ = '10.1.28'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -1126,7 +1126,7 @@ def redirect_to_message(title, html, http_status_code=None, context=None, indica
 def build_match_conditions(doctype, as_condition=True):
 	"""Return match (User permissions) for given doctype as list or SQL."""
 	import frappe.desk.reportview
-	return frappe.desk.reportview.build_match_conditions(doctype, as_condition)
+	return frappe.desk.reportview.build_match_conditions(doctype, as_condition=as_condition)
 
 def get_list(doctype, *args, **kwargs):
 	"""List database query via `frappe.model.db_query`. Will also check for permissions.
