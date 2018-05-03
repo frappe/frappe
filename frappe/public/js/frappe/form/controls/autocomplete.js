@@ -66,13 +66,12 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 	},
 
 	setup_awesomplete() {
-		var me = this;
 		this.awesomplete = new Awesomplete(this.input, this.get_awesomplete_settings());
 
 		$(this.input_area).find('.awesomplete ul').css('min-width', '100%');
 
-		this.$input.on('input', frappe.utils.debounce(function() {
-			me.awesomplete.list = me.get_data();
+		this.$input.on('input', frappe.utils.debounce(() => {
+			this.awesomplete.list = this.get_data();
 		}, 500));
 
 		this.$input.on('focus', () => {
