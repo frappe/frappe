@@ -208,7 +208,11 @@ def get_user_format():
 
 def formatdate(string_date=None, format_string=None):
 	"""
-	 	Convers the given string date to :data:`user_format`
+<<<<<<< HEAD
+		 Convers the given string date to :data:`user_format`
+=======
+		Converts the given string date to :data:`user_format`
+>>>>>>> 2f9e5da55cf461c7758c02086efd576206045aee
 		User format specified in defaults
 
 		 Examples:
@@ -257,6 +261,17 @@ def global_date_format(date, format="long"):
 	date = getdate(date)
 	formatted_date = babel.dates.format_date(date, locale=(frappe.local.lang or "en").replace("-", "_"), format=format)
 	return formatted_date
+
+def is_weekday(date):
+	date = getdate(date)
+	return date.weekday() not in [5, 6]
+
+def next_weekday_date(date):
+	date = getdate(date)
+	date = add_days(date, 1)
+	while is_weekday(date) is False:
+		date = add_days(date, 1)
+	return formatdate(date)
 
 def has_common(l1, l2):
 	"""Returns truthy value if there are common elements in lists l1 and l2"""
@@ -354,6 +369,78 @@ def parse_val(v):
 	return v
 
 def fmt_money(amount, precision=None, currency=None):
+
+	print(amount, precision, currency)
+
+	"""
+	Convert to string with commas for thousands, millions etc
+	"""
+	number_format = frappe.db.get_default("number_format") or "#,###.##"
+	if precision is None:
+		precision = cint(frappe.db.get_default('currency_precision')) or None
+
+	decimal_str, comma_str, number_format_precision = get_number_format_info(number_format)
+
+	if precision is None:
+		precision = number_format_precision
+
+	# 40,000 -> 40,000.00
+	# 40,000.00000 -> 40,000.00
+	# 40,000.23000 -> 40,000.23
+
+	if decimal_str:
+		decimals_after = str(round(amount % 1, precision))
+		parts = decimals_after.split(decimal_str)
+		parts = parts[1] if len(parts) > 1 else ''
+		decimals = parts
+		if precision > 2:
+			if len(decimals) < 3:
+				if currency:
+					fraction  = frappe.db.get_value("Currency", currency, "fraction_units") or 100
+					precision = len(cstr(fraction)) - 1
+				else:
+					precision = number_format_precision
+			elif len(decimals) < precision:
+				precision = len(decimals)
+
+	amount = '%.*f' % (precision, round(flt(amount), precision))
+
+	if amount.find('.') == -1:
+		decimals = ''
+	else:
+		decimals = amount.split('.')[1]
+
+	parts = []
+	minus = ''
+	if flt(amount) < 0:
+		minus = '-'
+
+	amount = cstr(abs(flt(amount))).split('.')[0]
+
+	if len(amount) > 3:
+		parts.append(amount[-3:])
+		amount = amount[:-3]
+
+		val = number_format=="#,##,###.##" and 2 or 3
+
+		while len(amount) > val:
+			parts.append(amount[-val:])
+			amount = amount[:-val]
+
+	parts.append(amount)
+
+	parts.reverse()
+
+	amount = comma_str.join(parts) + ((precision and decimal_str) and (decimal_str + decimals) or "")
+	if amount != '0':
+		amount = minus + amount
+
+	if currency and frappe.defaults.get_global_default("hide_currency_symbol") != "Yes":
+		symbol = frappe.db.get_value("Currency", currency, "symbol") or currency
+		amount = symbol + " " + amount
+
+	return amount
+
 	"""
 	Convert to string with commas for thousands, millions etc
 	"""
