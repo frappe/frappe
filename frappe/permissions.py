@@ -202,7 +202,7 @@ def has_user_permission(doc, user=None, verbose=False):
 					if not d.get(field.fieldname):
 						continue
 
-				if not d.get(field.fieldname) in user_permissions[field.options]:
+				if not d.get(field.fieldname) in user_permissions.get(field.options, {}).get("docs", []):
 					if d.get('parentfield'):
 						# "Not allowed for Company = Restricted Company in Row 3"
 						msg = _('Not allowed for {0} = {1} in Row {2}').format(_(field.options), d[field.fieldname], d.idx)
