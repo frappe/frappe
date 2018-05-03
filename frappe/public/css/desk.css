@@ -555,6 +555,9 @@ li.user-progress .progress-bar {
   li.user-progress .progress-chart {
     width: 25px;
   }
+  li.user-progress {
+    display: none;
+  }
 }
 .msg-box {
   padding: 30px 15px;
