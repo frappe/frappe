@@ -215,7 +215,6 @@ CREATE TABLE `__Auth` (
 	`name` VARCHAR(255) NOT NULL,
 	`fieldname` VARCHAR(140) NOT NULL,
 	`password` VARCHAR(255) NOT NULL,
-	`salt` VARCHAR(140),
 	`encrypted` INT(1) NOT NULL DEFAULT 0,
 	PRIMARY KEY (`doctype`, `name`, `fieldname`)
 ) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
