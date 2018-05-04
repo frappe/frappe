@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import string
 import frappe
+import six
 from frappe import _
 from frappe.utils import cstr, encode
 from cryptography.fernet import Fernet, InvalidToken
@@ -21,7 +22,10 @@ class LegacyPassword(pbkdf2_sha256):
 		# it is possible that we will generate a false positive if the users password happens to be 40 hex chars proceeded
 		# by an * char, but this seems highly unlikely
 		if not (secret[0] == "*" and len(secret) == 41 and all(c in string.hexdigits for c in secret[1:])):
-			secret = mysql41.hash(secret + self.salt)
+			if six.PY3:
+				secret = mysql41.hash(secret + self.salt.decode())
+			else:
+				secret = mysql41.hash(secret + self.salt)
 		return super(LegacyPassword, self)._calc_checksum(secret)
 
 
