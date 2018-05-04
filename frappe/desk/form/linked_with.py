@@ -155,7 +155,7 @@ def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 	if without_ignore_user_permissions_enabled: child_filters.append(['ignore_user_permissions', '!=', 1])
 
 	# find out if linked in a child table
-	for parent, options in frappe.get_all("Docfield", fields=["parent", "options"], filters=child_filters, as_list=1):
+	for parent, options in frappe.get_all("DocField", fields=["parent", "options"], filters=child_filters, as_list=1):
 		ret[parent] = { "child_doctype": options, "fieldname": links[options]}
 		if options in ret: del ret[options]
 
