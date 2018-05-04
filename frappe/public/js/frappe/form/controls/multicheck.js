@@ -139,10 +139,16 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 	},
 
 	get_select_buttons() {
-		return $(`<div><button class="btn btn-xs btn-default select-all">
-			${__("Select All")}</button>
+		return $(`
+		<div class="bulk-select-options">
+			<button class="btn btn-xs btn-default select-all">
+				${__("Select All")}
+			</button>
 			<button class="btn btn-xs btn-default deselect-all">
-		${__("Unselect All")}</button></div>`);
+			${__("Unselect All")}
+			</button>
+		</div>
+		`);
 	},
 
 	get_column_size() {

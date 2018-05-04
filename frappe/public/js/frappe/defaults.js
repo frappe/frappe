@@ -77,6 +77,15 @@ frappe.defaults = {
 	},
 
 	get_user_permissions: function() {
-		return frappe.boot.user_permissions;
+		return this._user_permissions || {};
 	},
-}
+
+	update_user_permissions: function() {
+		const method = 'frappe.core.doctype.user_permission.user_permission.get_user_permissions';
+		frappe.call(method).then(r => {
+			if (r.message) {
+				this._user_permissions = Object.assign({}, r.message);
+			}
+		});
+	}
+};

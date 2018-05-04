@@ -357,12 +357,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const missing_mandatory = mandatory.filter(f => !f.get_value());
 
 		if (raise && missing_mandatory.length > 0) {
-			// this.chart_area.hide();
-			// this.wrapper.find('.waiting-area').empty().toggle(false);
-			// this.$no_result.html(__('Please set filters')).show();
-			if (raise) {
-				frappe.throw(__('Filter missing: {0}', [missing_mandatory.map(f => f.df.label).join(', ')]));
-			}
+			return;
 		}
 
 		const filters = this.filters

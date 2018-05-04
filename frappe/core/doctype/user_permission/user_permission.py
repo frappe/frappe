@@ -11,12 +11,20 @@ from frappe import _
 class UserPermission(Document):
 	def on_update(self):
 		frappe.cache().delete_value('user_permissions')
+		frappe.publish_realtime('update_user_permissions')
 
 	def on_trash(self): # pylint: disable=no-self-use
 		frappe.cache().delete_value('user_permissions')
+		frappe.publish_realtime('update_user_permissions')
 
+@frappe.whitelist()
 def get_user_permissions(user=None):
 	'''Get all users permissions for the user as a dict of doctype'''
+	# if this is called from client-side,
+	# user can access only his/her user permissions
+	if frappe.request:
+		user = frappe.session.user
+
 	if not user:
 		user = frappe.session.user
 
