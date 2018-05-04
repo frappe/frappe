@@ -123,12 +123,17 @@ def get_doc_permissions(doc, verbose=False, user=None, ptype=None):
 	return permissions
 
 def get_role_permissions(doctype_meta, user=None, verbose=False):
-	"""Returns dict of evaluated role permissions like `{"read": True, "write":False}`
-
-	If user permissions are applicable, it adds a dict of user permissions like
-
+	"""
+	Returns dict of evaluated role permissions like
 		{
-			"if_owner": {"read": 1, "write": 1}
+			"read": 1,
+			"write": 0,
+			// if "if_owner" is enabled
+			"if_owner":
+				{
+					"read": 1,
+					"write": 0
+				}
 		}
 	"""
 	if isinstance(doctype_meta, string_types):
@@ -153,11 +158,12 @@ def get_role_permissions(doctype_meta, user=None, verbose=False):
 		has_if_owner_enabled = any(p.get('if_owner', 0) for p in applicable_permissions)
 
 		for ptype in rights:
-			perms[ptype] = any(p.get(ptype, 0) for p in applicable_permissions) # check if any perm object allows perm type
-			if (perms[ptype]
+			pvalue = any(p.get(ptype, 0) for p in applicable_permissions)
+			perms[ptype] = cint(pvalue) # check if any perm object allows perm type
+			if (pvalue
 				and has_if_owner_enabled
 				and not has_permission_without_if_owner_enabled(ptype)):
-				perms['if_owner'][ptype] = True
+				perms['if_owner'][ptype] = 1
 
 		frappe.local.role_permissions[cache_key] = perms
 	return frappe.local.role_permissions[cache_key]
