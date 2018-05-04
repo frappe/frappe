@@ -23,12 +23,9 @@ $(document).ready(function() {
 
 frappe.Application = Class.extend({
 	init: function() {
-		this.load_startup();
-	},
-
-	load_startup: function() {
 		this.startup();
 	},
+
 	startup: function() {
 		frappe.socketio.init();
 		frappe.model.init();
@@ -43,6 +40,7 @@ frappe.Application = Class.extend({
 		}
 
 		this.load_bootinfo();
+		this.load_user_permissions();
 		this.make_nav_bar();
 		this.set_favicon();
 		this.setup_analytics();
@@ -205,6 +203,14 @@ frappe.Application = Class.extend({
 		} else {
 			this.set_as_guest();
 		}
+	},
+
+	load_user_permissions: function() {
+		frappe.defaults.update_user_permissions();
+
+		frappe.realtime.on('update_user_permissions', frappe.utils.debounce(() => {
+			frappe.defaults.update_user_permissions();
+		}, 500));
 	},
 
 	check_metadata_cache_status: function() {

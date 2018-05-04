@@ -347,7 +347,6 @@ def clear_user_permissions_for_doctype(doctype, user=None):
 		dict(user=user, allow=doctype))
 	for d in user_permissions_for_doctype:
 		frappe.delete_doc('User Permission', d.name)
-	frappe.cache().delete_value('user_permissions')
 
 def can_import(doctype, raise_exception=False):
 	if not ("System Manager" in frappe.get_roles() or has_permission(doctype, "import")):
