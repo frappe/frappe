@@ -38,12 +38,15 @@ frappe.listview_settings['File'] = {
 
 		doclist.breadcrumb = $('<ol class="breadcrumb for-file-list"></ol>')
 			.insertBefore(doclist.filter_area);
-		doclist.list_renderer.settings.setup_menu(doclist);
-		doclist.list_renderer.settings.setup_dragdrop(doclist);
+		
+		if (doclist.list_renderer) {
+			doclist.list_renderer.settings.setup_menu(doclist);
+			doclist.list_renderer.settings.setup_dragdrop(doclist);
 
-		doclist.$page.on("click", ".list-row-checkbox", function(event) {
-			doclist.list_renderer.settings.add_menu_item_copy(doclist);
-		});
+			doclist.$page.on("click", ".list-row-checkbox", function(event) {
+				doclist.list_renderer.settings.add_menu_item_copy(doclist);
+			});
+		}
 	},
 	list_view_doc:function(doclist){
 		$(doclist.wrapper).on("click", 'button[list_view_doc="'+doclist.doctype+'"]', function() {
