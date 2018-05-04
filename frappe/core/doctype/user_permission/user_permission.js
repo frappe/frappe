@@ -33,42 +33,43 @@ frappe.ui.form.on('User Permission', {
 	},
 
 	set_linked_doctype_multicheck: frm => {
-		const help_wrapper = frm.fields_dict.linked_doctypes.$wrapper;
-		help_wrapper.empty();
-		if (frm.doc.allow) {
-			frappe.call({
-				method: "frappe.desk.form.linked_with.get_linked_doctypes",
-				args: {
-					doctype: frm.doc.allow,
-					without_ignore_user_permissions_enabled: true
-				},
-				callback: (r) => {
-					const linked_doctypes = r.message || {};
-					const checked_doctypes = frm.doc.skip_for_doctype ? frm.doc.skip_for_doctype.split('\n') : [];
-					let for_multicheck_options = [];
-					Object.keys(linked_doctypes).forEach(doctype => {
-						for_multicheck_options.push({
-							label: doctype,
-							value: doctype,
-							checked: checked_doctypes.length ? !checked_doctypes.includes(doctype) : 1
-						});
-					});
-					if (for_multicheck_options.length) {
-						frm.linked_doctype_multicheck = frappe.ui.form.make_control({
-							parent: help_wrapper,
-							df: {
-								'label': 'Apply User Permission for following DocType',
-								'fieldname': 'linked_doctype_multicheck',
-								'fieldtype': 'MultiCheck',
-								'options': for_multicheck_options,
-								'columns': 3,
-								'select_all': for_multicheck_options.length > 5
-							},
-						});
-					}
-				}
-			});
-		}
-	}
+		const linked_doctypes_wrapper = frm.fields_dict.linked_doctypes.$wrapper;
+		linked_doctypes_wrapper.empty();
 
+		if (!frm.doc.allow) return;
+
+		frappe.call({
+			method: "frappe.desk.form.linked_with.get_linked_doctypes",
+			args: {
+				doctype: frm.doc.allow,
+				without_ignore_user_permissions_enabled: true
+			},
+			callback: (r) => {
+				linked_doctypes_wrapper.empty();
+				const linked_doctypes = r.message || {};
+				const checked_doctypes = frm.doc.skip_for_doctype ? frm.doc.skip_for_doctype.split('\n') : [];
+				let multicheck_options = [];
+				Object.keys(linked_doctypes).forEach(doctype => {
+					multicheck_options.push({
+						label: doctype,
+						value: doctype,
+						checked: checked_doctypes.length ? !checked_doctypes.includes(doctype) : 1
+					});
+				});
+				if (multicheck_options.length) {
+					frm.linked_doctype_multicheck = frappe.ui.form.make_control({
+						parent: linked_doctypes_wrapper,
+						df: {
+							'label': __('Apply User Permission for following DocTypes'),
+							'fieldname': 'linked_doctype_multicheck',
+							'fieldtype': 'MultiCheck',
+							'options': multicheck_options,
+							'columns': 3,
+							'select_all': multicheck_options.length > 5
+						},
+					});
+				}
+			}
+		});
+	}
 });
