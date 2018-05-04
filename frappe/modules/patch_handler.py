@@ -12,7 +12,7 @@ from __future__ import unicode_literals, print_function
 
 	where patch1, patch2 is module name
 """
-import frappe, frappe.permissions
+import frappe, frappe.permissions, time
 
 # for patches
 import os
@@ -68,7 +68,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 	"""execute the patch"""
 	block_user(True)
 	frappe.db.begin()
-
+	start_time = time.time()
 	try:
 		log('Executing {patch} in {site} ({db})'.format(patch=patchmodule or str(methodargs),
 			site=frappe.local.site, db=frappe.db.cur_db_name))
@@ -91,8 +91,9 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 
 	else:
 		frappe.db.commit()
+		end_time = time.time()
 		block_user(False)
-		log('Success')
+		log('Success: Done in {time}s'.format(time = round(end_time - start_time, 3)))
 
 	return True
 
