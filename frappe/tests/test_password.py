@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 import frappe
 import unittest
-from frappe.utils.password import update_password, check_password
+from frappe.utils.password import update_password, check_password, passlibctx
 
 class TestPassword(unittest.TestCase):
 	def setUp(self):
@@ -52,14 +52,14 @@ class TestPassword(unittest.TestCase):
 
 		update_password(user, new_password)
 
-		auth = frappe.db.sql('''select `password`, `salt` from `__Auth`
+		auth = frappe.db.sql('''select `password` from `__Auth`
 			where doctype='User' and name=%s and fieldname="password"''', user, as_dict=True)[0]
 
+		# is not plain text
 		self.assertTrue(auth.password != new_password)
-		self.assertTrue(auth.salt)
 
-		# stored password = password(plain_text_password + salt)
-		self.assertEqual(frappe.db.sql('select password(concat(%s, %s))', (new_password, auth.salt))[0][0], auth.password)
+		# is valid hashing
+		self.assertTrue(passlibctx.verify(new_password, auth.password))
 
 		self.assertTrue(check_password(user, new_password))
 
