@@ -390,6 +390,8 @@ def bulk_rename(doctype, rows=None, via_console = False):
 			else:
 				rename_log.append(msg)
 
+	frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=doctype)
+
 	if not via_console:
 		return rename_log
 
