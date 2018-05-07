@@ -1,74 +1,30 @@
 import moment from 'moment';
 import WebForm from './WebForm';
 
-// frappe.ready(function() {
-// 	if (!web_form_settings.is_list) {
-// 		frappe.form_dirty = false;
-// 		$.extend(frappe, web_form_settings);
-// 		moment.defaultFormat = frappe.moment_date_format;
-
-// 		frappe.webform = new WebForm();
-// 	}
-// })
-
-
-function render_form() {
-	const { web_form_doctype: doctype, doc_name: name, web_form_name } = web_form_settings;
-
-	const wrapper = $(`.page-container[data-path="${web_form_name}"] .webform-wrapper`);
-
-	frappe.call({
-		method: 'frappe.website.doctype.web_form.web_form.get_form_data',
-		args: { doctype, name, web_form_name }
-	}).then(r => {
-		const { doc, web_form } = r.message;
-		render_form(doc, web_form);
-	});
-
-	function render_form(doc, web_form) {
-
-		const fields = web_form.web_form_fields.map(df => {
-			if (df.fieldtype === 'Link') {
-				df.fieldtype = 'Select';
-			}
-
-			delete df.parent;
-			delete df.parentfield;
-			delete df.parenttype;
-			delete df.doctype;
-
-			return df;
-		});
-
-		const fieldGroup = new frappe.ui.FieldGroup({
-			parent: wrapper,
-			fields: web_form.web_form_fields
-		});
-
-		fieldGroup.make();
-		fieldGroup.set_values(doc);
-
-		// submit
-		$(".btn-form-submit").on("click", function() {
-			// let values = fieldGroup.get_values();
-			// save(values);
-			return false;
-		});
-	}
-}
-
 frappe.ready(function() {
-	if (!web_form_settings.is_list) {
-		render_form();
-	}
+	if(web_form_settings.is_list) return;
 
+	frappe.form_dirty = false;
+	$.extend(frappe, web_form_settings);
+	moment.defaultFormat = frappe.moment_date_format;
 	$('[data-toggle="tooltip"]').tooltip();
 
+	const { web_form_doctype: doctype, doc_name: name, web_form_name } = web_form_settings;
+	const wrapper = $(`.page-container[data-path="${web_form_name}"] .webform-wrapper`);
 	var $form = $("form[data-web-form='"+frappe.web_form_name+"']");
+
+	frappe.webForm = new WebForm(wrapper, doctype, name, web_form_name);
 
 	// allow payment only if
 	$('.btn-payment').on('click', function() {
 		save(true);
+		return false;
+	});
+
+	// submit
+	$(".btn-form-submit").on("click", function() {
+		// let values = fieldGroup.get_values();
+		// save(values);
 		return false;
 	});
 
