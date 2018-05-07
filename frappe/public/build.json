@@ -19,6 +19,7 @@
 		"public/js/frappe/provide.js",
 		"public/js/frappe/format.js",
 		"public/js/frappe/misc/number_format.js",
+		"public/js/frappe/misc/utils.js",
 		"public/js/frappe/misc/common.js",
 		"public/js/frappe/translate.js",
 		"public/js/frappe/misc/pretty_date.js",
