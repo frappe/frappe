@@ -1,5 +1,74 @@
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
-	make_input: function() {
+	make_input() {
+		this.has_input = true;
+
+		this.editor_loaded = frappe.require('/assets/frappe/js/lib/ckeditor/ckeditor.js')
+			.then(() => {
+				this.editor = $("<div>").appendTo(this.input_area);
+				return ClassicEditor.create(this.editor[0])
+					.then(editor => {
+						this.ckeditor = editor;
+
+						this.ckeditor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+							return new FileUploader(loader, this);
+						};
+
+						this.ckeditor.model.document.on('change', frappe.utils.debounce(() => {
+							console.log('change');
+							this.parse_validate_and_set_in_model(this.get_input_value());
+						}, 100));
+					});
+			});
+	},
+
+	parse: function (value) {
+		if (value == null) {
+			value = "";
+		}
+		return frappe.dom.remove_script_and_style(value);
+	},
+
+	set_formatted_input: function (value) {
+		if (value === this.get_input_value()) return;
+		this.editor_loaded.then(() => this.ckeditor.setData(this.format_for_input(value)));
+	},
+
+	get_input_value() {
+		return this.ckeditor ? this.ckeditor.getData() : '';
+	}
+});
+
+class FileUploader {
+	constructor(loader, control) {
+		this.loader = loader;
+		this.control = control;
+	}
+
+	upload() {
+		console.log(this.loader)
+		return new Promise(resolve => {
+
+			frappe.upload.upload_file(this.loader.file, { doctype: this.control.doctype, docname: this.control.docname }, {
+				callback: (a, b, args) => {
+					resolve({
+						default: args.file_url
+					});
+				},
+				socketio_progress: (percent_complete, total) => {
+					this.loader.uploadTotal = total;
+					this.loader.uploaded = percent_complete;
+				}
+			});
+		});
+	}
+
+	abort() { }
+}
+
+frappe.ui.form.ControlTextEditor2 = frappe.ui.form.ControlCode.extend({
+	make_input: function () {
 		this.has_input = true;
 		this.make_editor();
 		this.hide_elements_on_mobile();
@@ -13,7 +82,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		})
 	},
 	render_camera_button: (context) => {
-		var ui     = $.summernote.ui;
+		var ui = $.summernote.ui;
 		var button = ui.button({
 			contents: '<i class="fa fa-camera"/>',
 			tooltip: 'Camera',
@@ -29,7 +98,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 
 		return button.render();
 	},
-	make_editor: function() {
+	make_editor: function () {
 		var me = this;
 		this.editor = $("<div>").appendTo(this.input_area);
 
@@ -64,29 +133,29 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			prettifyHtml: true,
 			dialogsInBody: true,
 			callbacks: {
-				onInit: function() {
+				onInit: function () {
 					// firefox hack that puts the caret in the wrong position
 					// when div is empty. To fix, seed with a <br>.
 					// See https://bugzilla.mozilla.org/show_bug.cgi?id=550434
 					// this function is executed only once
-					$(".note-editable[contenteditable='true']").one('focus', function() {
+					$(".note-editable[contenteditable='true']").one('focus', function () {
 						var $this = $(this);
-						if(!$this.html())
+						if (!$this.html())
 							$this.html($this.html() + '<br>');
 					});
 				},
-				onChange: function(value) {
+				onChange: function (value) {
 					me.parse_validate_and_set_in_model(value);
 				},
-				onKeydown: function(e) {
+				onKeydown: function (e) {
 					me.last_keystroke_on = new Date();
 					var key = frappe.ui.keys.get_key(e);
 					// prevent 'New DocType (Ctrl + B)' shortcut in editor
-					if(['ctrl+b', 'meta+b'].indexOf(key) !== -1) {
+					if (['ctrl+b', 'meta+b'].indexOf(key) !== -1) {
 						e.stopPropagation();
 					}
-					if(key.indexOf('escape') !== -1) {
-						if(me.note_editor.hasClass('fullscreen')) {
+					if (key.indexOf('escape') !== -1) {
+						if (me.note_editor.hasClass('fullscreen')) {
 							// exit fullscreen on escape key
 							me.note_editor
 								.find('.note-btn.btn-fullscreen')
@@ -141,10 +210,10 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		// to fix <p> on enter
 		//this.set_formatted_input('<div><br></div>');
 	},
-	setup_drag_drop: function() {
+	setup_drag_drop: function () {
 		var me = this;
 		this.note_editor.on('dragenter dragover', false)
-			.on('drop', function(e) {
+			.on('drop', function (e) {
 				var dataTransfer = e.originalEvent.dataTransfer;
 
 				if (dataTransfer && dataTransfer.files && dataTransfer.files.length) {
@@ -165,7 +234,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	get_image: function (fileobj, callback) {
 		var reader = new FileReader();
 
-		reader.onload = function() {
+		reader.onload = function () {
 			var dataurl = reader.result;
 			// add filename to dataurl
 			var parts = dataurl.split(",");
@@ -175,30 +244,30 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		};
 		reader.readAsDataURL(fileobj);
 	},
-	hide_elements_on_mobile: function() {
+	hide_elements_on_mobile: function () {
 		this.note_editor.find('.note-btn-underline,\
 			.note-btn-italic, .note-fontsize,\
 			.note-color, .note-height, .btn-codeview')
 			.addClass('hidden-xs');
-		if($('.toggle-sidebar').is(':visible')) {
+		if ($('.toggle-sidebar').is(':visible')) {
 			// disable tooltips on mobile
 			this.note_editor.find('.note-btn')
 				.attr('data-original-title', '');
 		}
 	},
-	get_input_value: function() {
-		return this.editor? this.editor.summernote('code'): '';
+	get_input_value: function () {
+		return this.editor ? this.editor.summernote('code') : '';
 	},
-	parse: function(value) {
-		if(value == null) value = "";
+	parse: function (value) {
+		if (value == null) value = "";
 		return frappe.dom.remove_script_and_style(value);
 	},
-	set_formatted_input: function(value) {
-		if(value !== this.get_input_value()) {
+	set_formatted_input: function (value) {
+		if (value !== this.get_input_value()) {
 			this.set_in_editor(value);
 		}
 	},
-	set_in_editor: function(value) {
+	set_in_editor: function (value) {
 		// set values in editor only if
 		// 1. value not be set in the last 500ms
 		// 2. user has not typed anything in the last 3seconds
@@ -208,7 +277,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		// also firefox tends to reset the cursor for some reason if the values
 		// are reset
 
-		if(this.setting_count > 2) {
+		if (this.setting_count > 2) {
 			// we don't understand how the internal triggers work,
 			// so if someone is setting the value third time in 500ms,
 			// then quit
@@ -219,7 +288,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 
 		let time_since_last_keystroke = moment() - moment(this.last_keystroke_on);
 
-		if(!this.last_keystroke_on || (time_since_last_keystroke > 3000)) {
+		if (!this.last_keystroke_on || (time_since_last_keystroke > 3000)) {
 			// if 3 seconds have passed since the last keystroke and
 			// we have not set any value in the last 1 second, do this
 			setTimeout(() => this.setting_count = 0, 500);
@@ -231,10 +300,10 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			// keep checking every second if our 3 second barrier
 			// has been completed, so that we can refresh the html
 			this._setting_value = setInterval(() => {
-				if(time_since_last_keystroke > 3000) {
+				if (time_since_last_keystroke > 3000) {
 					// 3 seconds done! lets refresh
 					// safe to update
-					if(this.last_value !== this.get_input_value()) {
+					if (this.last_value !== this.get_input_value()) {
 						// if not already in sync, reset
 						this.editor.summernote('code', this.last_value || '');
 					}
@@ -248,10 +317,10 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			}, 1000);
 		}
 	},
-	set_focus: function() {
+	set_focus: function () {
 		return this.editor.summernote('focus');
 	},
-	set_upload_options: function() {
+	set_upload_options: function () {
 		var me = this;
 		this.upload_options = {
 			parent: this.image_dialog.get_field("upload_area").$wrapper,
@@ -261,22 +330,22 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			options: "Image",
 			no_socketio: true,
 			btn: this.image_dialog.set_primary_action(__("Insert")),
-			on_no_attach: function() {
+			on_no_attach: function () {
 				// if no attachmemts,
 				// check if something is selected
 				var selected = me.image_dialog.get_field("select").get_value();
-				if(selected) {
+				if (selected) {
 					me.editor.summernote('insertImage', selected);
 					me.image_dialog.hide();
 				} else {
 					frappe.msgprint(__("Please attach a file or set a URL"));
 				}
 			},
-			callback: function(attachment) {
+			callback: function (attachment) {
 				me.editor.summernote('insertImage', attachment.file_url, attachment.file_name);
 				me.image_dialog.hide();
 			},
-			onerror: function() {
+			onerror: function () {
 				me.image_dialog.hide();
 			}
 		};
@@ -285,14 +354,14 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			this.upload_options.is_private = this.df.is_private;
 		}
 
-		if(this.frm) {
+		if (this.frm) {
 			this.upload_options.args = {
 				from_form: 1,
 				doctype: this.frm.doctype,
 				docname: this.frm.docname
 			};
 		} else {
-			this.upload_options.on_attach = function(fileobj, dataurl) {
+			this.upload_options.on_attach = function (fileobj, dataurl) {
 				me.editor.summernote('insertImage', dataurl);
 				me.image_dialog.hide();
 				frappe.hide_progress();
@@ -300,15 +369,15 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		}
 	},
 
-	setup_image_dialog: function() {
+	setup_image_dialog: function () {
 		this.note_editor.find('[data-original-title="Image"]').on('click', () => {
-			if(!this.image_dialog) {
+			if (!this.image_dialog) {
 				this.image_dialog = new frappe.ui.Dialog({
 					title: __("Image"),
 					fields: [
-						{fieldtype:"HTML", fieldname:"upload_area"},
-						{fieldtype:"HTML", fieldname:"or_attach", options: __("Or")},
-						{fieldtype:"Select", fieldname:"select", label:__("Select from existing attachments") },
+						{ fieldtype: "HTML", fieldname: "upload_area" },
+						{ fieldtype: "HTML", fieldname: "or_attach", options: __("Or") },
+						{ fieldtype: "Select", fieldname: "select", label: __("Select from existing attachments") },
 					]
 				});
 			}
@@ -319,8 +388,8 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			// select from existing attachments
 			var attachments = this.frm && this.frm.attachments.get_attachments() || [];
 			var select = this.image_dialog.get_field("select");
-			if(attachments.length) {
-				attachments = $.map(attachments, function(o) { return o.file_url; });
+			if (attachments.length) {
+				attachments = $.map(attachments, function (o) { return o.file_url; });
 				select.df.options = [""].concat(attachments);
 				select.toggle(true);
 				this.image_dialog.get_field("or_attach").toggle(true);

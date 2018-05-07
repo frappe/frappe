@@ -6,10 +6,18 @@
 // depends on frappe.versions to manage versioning
 
 frappe.require = function(items, callback) {
-	if(typeof items === "string") {
-		items = [items];
-	}
-	frappe.assets.execute(items, callback);
+	return new Promise(resolve => {
+		if(typeof items === "string") {
+			items = [items];
+		}
+
+		const _callback = () => {
+			callback && callback();
+			resolve();
+		}
+
+		frappe.assets.execute(items, _callback);
+	});
 };
 
 frappe.assets = {
