@@ -138,7 +138,7 @@ frappe.msgprint = function(msg, title) {
 	}
 
 	if(data.message.search(/<br>|<p>|<li>/)==-1) {
-		msg = replace_newlines(data.message);
+		msg = frappe.utils.replace_newlines(data.message);
 	}
 
 	var msg_exists = false;

@@ -162,7 +162,7 @@ frappe.form.formatters = {
 			}
 
 			if(!match) {
-				value = replace_newlines(value);
+				value = frappe.utils.replace_newlines(value);
 			}
 		}
 
