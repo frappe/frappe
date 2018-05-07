@@ -1,47 +1,9 @@
 import moment from 'moment';
 
-function render_list() {
-	const { web_form_doctype, web_form_name } = web_form_settings;
-
-	const wrapper = $(`.page-container[data-path="${web_form_name}"] .page-content`);
-
-	frappe.call({
-		method: 'frappe.client.get_list',
-		args: {
-			doctype: web_form_doctype,
-			fields: ['name'],
-			filters: { 'owner': frappe.session.user }
-		}
-	}).then(r => {
-		const list = r.message || [];
-		render_list_view(list);
-	});
-
-	function render_list_view(list) {
-		const html = list.map(get_list_row_html).join('');
-		wrapper.html(`
-			<div class="page-head">
-				<h1>${web_form_doctype}</h1>
-			</div>
-			<div class="page_content">${html}</div>
-		`);
-	}
-
-	function get_list_row_html(row) {
-		return `
-			<a href="${web_form_name}?name=${row.name}">
-			<div class="row padding border-bottom">
-				<div class="col-sm-4">${row.name}</div>
-			</div>
-			</a>
-		`;
-	}
-}
-
 function render_form() {
 	const { web_form_doctype: doctype, doc_name: name, web_form_name } = web_form_settings;
 
-	const wrapper = $(`.page-container[data-path="${web_form_name}"] .page-content`);
+	const wrapper = $(`.page-container[data-path="${web_form_name}"] .webform-wrapper`);
 
 	frappe.call({
 		method: 'frappe.website.doctype.web_form.web_form.get_form_data',
@@ -67,14 +29,21 @@ function render_form() {
 			return df;
 		});
 
-		const layout = new frappe.ui.FieldGroup({
+		const fieldGroup = new frappe.ui.FieldGroup({
 			parent: wrapper,
 			fields: web_form.web_form_fields
 		});
 
-		layout.make();
+		fieldGroup.make();
 
-		console.log(layout);
+		fieldGroup.set_values(doc);
+
+		// submit
+		$(".btn-form-submit").on("click", function() {
+			// let values = fieldGroup.get_values();
+			// save(values);
+			return false;
+		});
 	}
 }
 
@@ -95,50 +64,24 @@ frappe.ready(function() {
 
 	var $form = $("form[data-web-form='"+frappe.web_form_name+"']");
 
-	let formTest = new frappe.ui.FieldGroup({
-		fields: [
-			{
-				fieldname: "test",
-				label: __("test"),
-				reqd: 1,
-				fieldtype: "Date"
-			},
-			{
-				"fieldtype": "MultiSelect",
-				"options": ["DocType"],
-				"reqd": 1,
-				"label": __("Reference Doctype"),
-				"fieldname": "reference_doctype",
-			},
-			{
-				"fieldtype": "Text Editor",
-				"reqd": 1,
-				"label": __("Description"),
-				"fieldname": "desc",
-			}
-		],
-		body: $form
-	});
-	formTest.make();
-
-	var d = new frappe.ui.Dialog ({
-		title: __("Relink"),
-		fields: [{
-			"fieldtype": "MultiSelect",
-			"options": ["DocType"],
-			"reqd": 1,
-			"label": __("Reference Doctype"),
-			"fieldname": "reference_doctype",
-		},
-		{
-			"fieldtype": "Link",
-			"options": "reference_doctype",
-			"label": __("Reference Name"),
-			"fieldname": "reference_name"
-		}]
-	});
-	d.set_primary_action(__("Relink"), function () {});
-	d.show();
+	// var d = new frappe.ui.Dialog ({
+	// 	title: __("Relink"),
+	// 	fields: [{
+	// 		"fieldtype": "MultiSelect",
+	// 		"options": ["DocType"],
+	// 		"reqd": 1,
+	// 		"label": __("Reference Doctype"),
+	// 		"fieldname": "reference_doctype",
+	// 	},
+	// 	{
+	// 		"fieldtype": "Link",
+	// 		"options": "reference_doctype",
+	// 		"label": __("Reference Name"),
+	// 		"fieldname": "reference_name"
+	// 	}]
+	// });
+	// d.set_primary_action(__("Relink"), function () {});
+	// d.show();
 
 	// read file attachment
 	$form.on("change", "[type='file']", function() {
@@ -174,12 +117,6 @@ frappe.ready(function() {
 			}
 		}
 	});
-
-	var set_mandatory_class = function(input) {
-		if($(input).attr('data-reqd')) {
-			$(input).parent().toggleClass('has-error', !!!$(input).val());
-		}
-	};
 
 	// show mandatory fields as red
 	$('.form-group input, .form-group textarea, .form-group select').on('keypress', function() {
@@ -466,12 +403,6 @@ frappe.ready(function() {
 		}
 	}
 
-	// submit
-	$(".btn-form-submit").on("click", function() {
-		save();
-		return false;
-	});
-
 	// close button
 	$(".close").on("click", function() {
 		var name = $(this).attr("data-name");
@@ -492,3 +423,41 @@ frappe.ready(function() {
 		}
 	});
 });
+
+function render_list() {
+	const { web_form_doctype, web_form_name } = web_form_settings;
+
+	const wrapper = $(`.page-container[data-path="${web_form_name}"] .page-content`);
+
+	frappe.call({
+		method: 'frappe.client.get_list',
+		args: {
+			doctype: web_form_doctype,
+			fields: ['name'],
+			filters: { 'owner': frappe.session.user }
+		}
+	}).then(r => {
+		const list = r.message || [];
+		render_list_view(list);
+	});
+
+	function render_list_view(list) {
+		const html = list.map(get_list_row_html).join('');
+		wrapper.html(`
+			<div class="page-head">
+				<h1>${web_form_doctype}</h1>
+			</div>
+			<div class="page_content">${html}</div>
+		`);
+	}
+
+	function get_list_row_html(row) {
+		return `
+			<a href="${web_form_name}?name=${row.name}">
+			<div class="row padding border-bottom">
+				<div class="col-sm-4">${row.name}</div>
+			</div>
+			</a>
+		`;
+	}
+}
