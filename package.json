@@ -16,6 +16,7 @@
   },
   "homepage": "https://frappe.io",
   "dependencies": {
+    "awesomplete": "^1.1.2",
     "cookie": "^0.3.1",
     "express": "^4.16.2",
     "frappe-datatable": "^0.0.6",

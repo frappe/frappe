@@ -1,6 +1,90 @@
 import moment from 'moment';
 
+function render_list() {
+	const { web_form_doctype, web_form_name } = web_form_settings;
+
+	const wrapper = $(`.page-container[data-path="${web_form_name}"] .page-content`);
+
+	frappe.call({
+		method: 'frappe.client.get_list',
+		args: {
+			doctype: web_form_doctype,
+			fields: ['name'],
+			filters: { 'owner': frappe.session.user }
+		}
+	}).then(r => {
+		const list = r.message || [];
+		render_list_view(list);
+	});
+
+	function render_list_view(list) {
+		const html = list.map(get_list_row_html).join('');
+		wrapper.html(`
+			<div class="page-head">
+				<h1>${web_form_doctype}</h1>
+			</div>
+			<div class="page_content">${html}</div>
+		`);
+	}
+
+	function get_list_row_html(row) {
+		return `
+			<a href="${web_form_name}?name=${row.name}">
+			<div class="row padding border-bottom">
+				<div class="col-sm-4">${row.name}</div>
+			</div>
+			</a>
+		`;
+	}
+}
+
+function render_form() {
+	const { web_form_doctype: doctype, doc_name: name, web_form_name } = web_form_settings;
+
+	const wrapper = $(`.page-container[data-path="${web_form_name}"] .page-content`);
+
+	frappe.call({
+		method: 'frappe.website.doctype.web_form.web_form.get_form_data',
+		args: { doctype, name, web_form_name }
+	}).then(r => {
+		const { doc, web_form } = r.message;
+		// console.log(web_form);
+		render_form(doc, web_form);
+	});
+
+	function render_form(doc, web_form) {
+
+		const fields = web_form.web_form_fields.map(df => {
+			if (df.fieldtype === 'Link') {
+				df.fieldtype = 'Select';
+			}
+
+			delete df.parent;
+			delete df.parentfield;
+			delete df.parenttype;
+			delete df.doctype;
+
+			return df;
+		});
+
+		const layout = new frappe.ui.FieldGroup({
+			parent: wrapper,
+			fields: web_form.web_form_fields
+		});
+
+		layout.make();
+
+		console.log(layout);
+	}
+}
+
 frappe.ready(function() {
+	// if (web_form_settings.is_list) {
+	// 	render_list();
+	// } else {
+	// 	render_form();
+	// }
+
 	frappe.file_reading = false;
 	frappe.form_dirty = false;
 
@@ -10,6 +94,51 @@ frappe.ready(function() {
 	$('[data-toggle="tooltip"]').tooltip();
 
 	var $form = $("form[data-web-form='"+frappe.web_form_name+"']");
+
+	let formTest = new frappe.ui.FieldGroup({
+		fields: [
+			{
+				fieldname: "test",
+				label: __("test"),
+				reqd: 1,
+				fieldtype: "Date"
+			},
+			{
+				"fieldtype": "MultiSelect",
+				"options": ["DocType"],
+				"reqd": 1,
+				"label": __("Reference Doctype"),
+				"fieldname": "reference_doctype",
+			},
+			{
+				"fieldtype": "Text Editor",
+				"reqd": 1,
+				"label": __("Description"),
+				"fieldname": "desc",
+			}
+		],
+		body: $form
+	});
+	formTest.make();
+
+	var d = new frappe.ui.Dialog ({
+		title: __("Relink"),
+		fields: [{
+			"fieldtype": "MultiSelect",
+			"options": ["DocType"],
+			"reqd": 1,
+			"label": __("Reference Doctype"),
+			"fieldname": "reference_doctype",
+		},
+		{
+			"fieldtype": "Dynamic Link",
+			"options": "reference_doctype",
+			"label": __("Reference Name"),
+			"fieldname": "reference_name"
+		}]
+	});
+	d.set_primary_action(__("Relink"), function () {});
+	d.show();
 
 	// read file attachment
 	$form.on("change", "[type='file']", function() {
@@ -53,18 +182,12 @@ frappe.ready(function() {
 	};
 
 	// show mandatory fields as red
-	$('.form-group input, .form-group textarea, .form-group select').on('change', function() {
-		set_mandatory_class(this);
-	}).on('keypress', function() {
-		set_mandatory_class(this);
-
+	$('.form-group input, .form-group textarea, .form-group select').on('keypress', function() {
 		// validate maxlength
 		var maxlength = parseInt($(this).attr('maxlength'));
 		if(maxlength && (($(this).val() || '') + '').length > maxlength-1) {
 			$(this).val($(this).val().substr(0, maxlength-1));
 		}
-	}).each(function() {
-		set_mandatory_class(this);
 	});
 
 	// if changed, set dirty flag
@@ -368,107 +491,4 @@ frappe.ready(function() {
 			});
 		}
 	});
-
-	// setup datepicker in all inputs within the given element
-	var setup_date_picker = function(ele) {
-		var $dates = ele.find("[data-fieldtype='Date']");
-		var $date_times = ele.find("[data-fieldtype='Datetime']");
-
-		// setup date
-		if($dates.length) {
-			$dates.datepicker({
-				language: "en",
-				autoClose: true,
-				dateFormat: frappe.datepicker_format,
-				onSelect: function(date, date_str, e) {
-					e.$el.trigger('change');
-				}
-			});
-
-			// initialize dates from YYYY-MM-DD to user format
-			$dates.each(function() {
-				var val = $(this).attr('value');
-				if(val) {
-					$(this).val(moment(val, 'YYYY-MM-DD').format()).trigger('change');
-				}
-			});
-		}
-
-		// setup datetime
-		if($date_times.length) {
-			$date_times.datepicker({
-				language: "en",
-				autoClose: true,
-				dateFormat: frappe.datepicker_format,
-				timepicker: true,
-				timeFormat: "hh:ii:ss"
-			});
-		}
-	};
-
-	setup_date_picker($form);
-
-	var summernotes = {};
-	var setup_text_editor = function() {
-		var editors = $('[data-fieldtype="Text Editor"]');
-		editors.each(function() {
-			if($(this).attr('disabled')) return;
-			summernotes[$(this).attr('data-fieldname')] = $(this).summernote({
-				minHeight: 400,
-				toolbar: [
-					['magic', ['style']],
-					['style', ['bold', 'italic', 'underline', 'clear']],
-					['fontsize', ['fontsize']],
-					['color', ['color']],
-					['para', ['ul', 'ol', 'paragraph']],
-					['media', ['link', 'picture']],
-					['misc', ['fullscreen', 'codeview']]
-				],
-				icons: frappe.summer_note_icons
-			});
-		});
-
-	};
-	setup_text_editor();
 });
-
-frappe.summer_note_icons = {
-	'align': 'fa fa-align',
-	'alignCenter': 'fa fa-align-center',
-	'alignJustify': 'fa fa-align-justify',
-	'alignLeft': 'fa fa-align-left',
-	'alignRight': 'fa fa-align-right',
-	'indent': 'fa fa-indent',
-	'outdent': 'fa fa-outdent',
-	'arrowsAlt': 'fa fa-arrows-alt',
-	'bold': 'fa fa-bold',
-	'caret': 'caret',
-	'circle': 'fa fa-circle',
-	'close': 'fa fa-close',
-	'code': 'fa fa-code',
-	'eraser': 'fa fa-eraser',
-	'font': 'fa fa-font',
-	'frame': 'fa fa-frame',
-	'italic': 'fa fa-italic',
-	'link': 'fa fa-link',
-	'unlink': 'fa fa-chain-broken',
-	'magic': 'fa fa-magic',
-	'menuCheck': 'fa fa-check',
-	'minus': 'fa fa-minus',
-	'orderedlist': 'fa fa-list-ol',
-	'pencil': 'fa fa-pencil',
-	'picture': 'fa fa-image',
-	'question': 'fa fa-question',
-	'redo': 'fa fa-redo',
-	'square': 'fa fa-square',
-	'strikethrough': 'fa fa-strikethrough',
-	'subscript': 'fa fa-subscript',
-	'superscript': 'fa fa-superscript',
-	'table': 'fa fa-table',
-	'textHeight': 'fa fa-text-height',
-	'trash': 'fa fa-trash',
-	'underline': 'fa fa-underline',
-	'undo': 'fa fa-undo',
-	'unorderedlist': 'fa fa-list-ul',
-	'video': 'fa fa-video-camera'
-};

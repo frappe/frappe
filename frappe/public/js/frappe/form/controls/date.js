@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		this._super();
@@ -29,19 +31,25 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		}
 	},
 	set_date_options: function() {
-		var me = this;
-		var lang = frappe.boot.user.language;
+		let userBoot = frappe.boot.user;
+		let sysdefaults = frappe.boot.sysdefaults;
+
+		let lang = userBoot ? userBoot.language : 'en';
 		if(!$.fn.datepicker.language[lang]) {
 			lang = 'en';
 		}
+
+		let dateFormat = sysdefaults && sysdefaults.date_format
+			? sysdefaults.date_format : 'yyyy-mm-dd';
+
 		this.today_text = __("Today");
 		this.date_format = moment.defaultDateFormat;
 		this.datepicker_options = {
 			language: lang,
 			autoClose: true,
 			todayButton: true,
-			dateFormat: (frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd'),
-			startDate: frappe.datetime.now_date(true),
+			dateFormat: dateFormat,
+			startDate: new Date(),
 			keyboardNav: false,
 			onSelect: () => {
 				this.$input.trigger('change');
@@ -49,7 +57,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			onShow: () => {
 				this.datepicker.$datepicker
 					.find('.datepicker--button:visible')
-					.text(me.today_text);
+					.text(this.today_text);
 
 				this.update_datepicker_position();
 			}

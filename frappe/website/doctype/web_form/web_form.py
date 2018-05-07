@@ -483,3 +483,12 @@ def make_route_string(parameters):
 				route_string += route_string + delimeter + key + "=" + cstr(parameters[key])
 				delimeter = '&'
 	return (route_string, delimeter)
+
+@frappe.whitelist()
+def get_form_data(doctype, name, web_form_name):
+	out = frappe._dict()
+
+	out.doc = frappe.get_doc(doctype, name)
+	out.web_form = frappe.get_doc('Web Form', web_form_name)
+
+	return out

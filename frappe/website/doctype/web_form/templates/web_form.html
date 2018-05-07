@@ -361,7 +361,9 @@ window.web_form_settings = {
 	doc_name: 			"{{ frappe.form_dict.name or "" }}",
 	login_required: 	{{ 1 if login_required else 0 }},
 	max_attachment_size:{{ max_attachment_size }},
-	moment_date_format: "{{ frappe.date_format.upper() }}"
+	moment_date_format: "{{ frappe.date_format.upper() }}",
+	is_list: {{ frappe.utils.cint(is_list) }},
+	meta: `{{ meta }}`
 }
 {% if row_template %}web_form_settings.web_form_row_template = "{{ row_template }}";{% endif %}
 </script>
