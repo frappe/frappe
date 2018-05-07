@@ -79,11 +79,11 @@ function render_form() {
 }
 
 frappe.ready(function() {
-	// if (web_form_settings.is_list) {
-	// 	render_list();
-	// } else {
-	// 	render_form();
-	// }
+	if (web_form_settings.is_list) {
+		render_list();
+	} else {
+		render_form();
+	}
 
 	frappe.file_reading = false;
 	frappe.form_dirty = false;

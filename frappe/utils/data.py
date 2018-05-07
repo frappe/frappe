@@ -129,7 +129,7 @@ def get_eta(from_time, percent_complete):
 	return str(datetime.timedelta(seconds=(100 - percent_complete) / percent_complete * diff))
 
 def _get_time_zone():
-	return frappe.db.get_system_setting('time_zone') or 'Asia/Kolkata'
+	return frappe.db.get_system_setting('time_zone') or 'Asia/Kolkata' # Default to India ?!
 
 def get_time_zone():
 	if frappe.local.flags.in_test:

@@ -32,6 +32,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	},
 	set_date_options: function() {
 		let userBoot = frappe.boot.user;
+		// webformTODO:
 		let sysdefaults = frappe.boot.sysdefaults;
 
 		let lang = userBoot ? userBoot.language : 'en';
@@ -119,7 +120,11 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	},
 	validate: function(value) {
 		if(value && !frappe.datetime.validate(value)) {
-			frappe.msgprint(__("Date must be in format: {0}", [frappe.sys_defaults.date_format || "yyyy-mm-dd"]));
+			// webformTODO:
+			let sysdefaults = frappe.sys_defaults;
+			let date_format = sysdefaults && sysdefaults.date_format
+				? sysdefaults.date_format : 'yyyy-mm-dd';
+			frappe.msgprint(__("Date must be in format: {0}", [date_format]));
 			return '';
 		}
 		return value;
