@@ -1,9 +1,7 @@
 export default class WebForm {
-	constructor(wrapper, doctype, docname, web_form_name) {
-		this.wrapper = wrapper;
-		this.doctype = doctype;
-		this.docname = docname;
-		this.web_form_name = web_form_name;
+	constructor(options) {
+		// wrapper, doctype, docname, web_form_name, allow_incomplete
+		Object.assign(this, options);
 
 		this.get_data();
 	}
@@ -15,7 +13,8 @@ export default class WebForm {
 				doctype: this.doctype,
 				docname: this.docname,
 				web_form_name: this.web_form_name
-			}
+			},
+			freeze: true
 		}).then(r => {
 			const { doc, web_form } = r.message;
 			this.render(doc, web_form);
@@ -23,7 +22,7 @@ export default class WebForm {
 	}
 
 	render(doc, web_form) {
-		const fields = web_form.web_form_fields.map(df => {
+		web_form.web_form_fields.map(df => {
 			if (df.fieldtype === 'Link') {
 				df.fieldtype = 'Select';
 			}
@@ -46,6 +45,10 @@ export default class WebForm {
 	}
 
 	get_values() {
-		return this.fieldGroup.get_values();
+		let values = this.fieldGroup.get_values(this.allow_incomplete);
+		values.doctype = this.doctype;
+		values.name = this.docname;
+		values.web_form_name = this.web_form_name;
+		return values;
 	}
 }
