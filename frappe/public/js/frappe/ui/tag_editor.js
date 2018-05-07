@@ -34,7 +34,6 @@ frappe.ui.TagEditor = Class.extend({
 			placeholder: "Add a tag ...",
 			onTagAdd: (tag) => {
 				if(me.initialized && !me.refreshing) {
-					tag = toTitle(tag);
 					return frappe.call({
 						method: 'frappe.desk.tags.add_tag',
 						args: me.get_args(tag),
@@ -116,6 +115,7 @@ frappe.ui.TagEditor = Class.extend({
 		try {
 			me.tags.clearTags();
 			if(user_tags) {
+				me.user_tags = user_tags;
 				me.tags.addTags(user_tags.split(','));
 			}
 		} catch(e) {

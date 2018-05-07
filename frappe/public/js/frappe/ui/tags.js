@@ -65,19 +65,13 @@ frappe.ui.Tags = class {
 		this.$placeholder.show();
 	}
 
-	refresh() {
-		this.deactivate();
-		this.activate();
-	}
-
 	addTag(label) {
-		if(label && !this.tagsList.includes(label)) {
+		label = toTitle(label);
+		if(label && label!== '' && !this.tagsList.includes(label)) {
 			let $tag = this.getTag(label);
 			this.getListElement($tag).insertBefore(this.$inputWrapper);
 			this.tagsList.push(label);
 			this.onTagAdd && this.onTagAdd(label);
-
-			this.refresh();
 		}
 	}
 
@@ -87,8 +81,8 @@ frappe.ui.Tags = class {
 
 			// Just don't remove tag, but also the li DOM.
 			$tag.parent('.tags-list-item').remove();
+			this.tagsList.splice(this.tagsList.indexOf(label), 1);
 
-			this.tagsList = this.tagsList.filter(d => d !== label);
 			this.onTagRemove && this.onTagRemove(label);
 		}
 	}
