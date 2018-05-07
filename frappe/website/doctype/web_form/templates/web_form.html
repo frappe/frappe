@@ -48,6 +48,7 @@
 	{% endif %}
 </div>
 <div class="form-message hide"></div>
+
 {% if _login_required %}
 <div class="login-required">
 	<div class="text-muted">
@@ -76,7 +77,7 @@
 </div>
 {% endif %}
 
-<form role="form"
+<div role="form"
 	data-web-form="{{ name }}" data-owner="{{ doc.owner }}">
 	{% if frappe.form_dict.name and web_page_link_text %}
 	<div class="row">
@@ -147,7 +148,7 @@
 	</div>
 	{% endfor %}
 
-</form>
+</div>
 
 {% if allow_comments and not frappe.form_dict.new -%}
 <div class="comments">
