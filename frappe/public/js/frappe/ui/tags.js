@@ -47,6 +47,7 @@ frappe.ui.Tags = class {
 
 		this.$placeholder.on('click', () => {
 			this.activate();
+			this.$input.focus(); // focus only when clicked
 		});
 	}
 
@@ -57,7 +58,6 @@ frappe.ui.Tags = class {
 	activate() {
 		this.$placeholder.hide();
 		this.$inputWrapper.show();
-		this.$input.focus();
 	}
 
 	deactivate() {
@@ -84,7 +84,7 @@ frappe.ui.Tags = class {
 	removeTag(label) {
 		if(this.tagsList.includes(label)) {
 			let $tag = this.$ul.find(`.frappe-tag[data-tag-label="${label}"]`);
-			
+
 			// Just don't remove tag, but also the li DOM.
 			$tag.parent('.tags-list-item').remove();
 
