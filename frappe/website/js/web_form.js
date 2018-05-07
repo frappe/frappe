@@ -131,7 +131,7 @@ frappe.ready(function() {
 			"fieldname": "reference_doctype",
 		},
 		{
-			"fieldtype": "Dynamic Link",
+			"fieldtype": "Link",
 			"options": "reference_doctype",
 			"label": __("Reference Name"),
 			"fieldname": "reference_name"
