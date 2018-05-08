@@ -210,3 +210,5 @@ frappe.patches.v10_0.migrate_passwords_passlib
 frappe.patches.v11_0.drop_column_apply_user_permissions
 frappe.patches.v11_0.rename_standard_reply_to_email_template
 execute:frappe.delete_doc_if_exists('Page', 'user-permissions')
+frappe.patches.v10_0.set_no_copy_to_workflow_state
+frappe.patches.v10_0.increase_single_table_column_length
