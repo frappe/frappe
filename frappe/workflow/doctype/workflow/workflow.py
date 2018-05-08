@@ -31,6 +31,7 @@ class Workflow(Document):
 				"label": self.workflow_state_field.replace("_", " ").title(),
 				"hidden": 1,
 				"allow_on_submit": 1,
+				"no_copy": 1,
 				"fieldtype": "Link",
 				"options": "Workflow State",
 			}).save()
