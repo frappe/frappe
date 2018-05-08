@@ -24,7 +24,7 @@ DATETIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
 # datetime functions
 def getdate(string_date=None):
 	"""
-		 Coverts string date (yyyy-mm-dd) to datetime.date object
+	Converts string date (yyyy-mm-dd) to datetime.date object
 	"""
 
 	if not string_date:
@@ -208,7 +208,7 @@ def get_user_format():
 
 def formatdate(string_date=None, format_string=None):
 	"""
-	 	Convers the given string date to :data:`user_format`
+		Converts the given string date to :data:`user_format`
 		User format specified in defaults
 
 		 Examples:
@@ -279,6 +279,44 @@ def flt(s, precision=None):
 def cint(s):
 	"""Convert to integer"""
 	try: num = int(float(s))
+	except: num = 0
+	return num
+
+def floor(s):
+	"""
+	A number representing the largest integer less than or equal to the specified number
+
+	Parameters
+	----------
+	s : int or str or Decimal object
+		The mathematical value to be floored
+
+	Returns
+	-------
+	int
+		number representing the largest integer less than or equal to the specified number
+
+	"""
+	try: num = cint(math.floor(flt(s)))
+	except: num = 0
+	return num
+
+def ceil(s):
+	"""
+	The smallest integer greater than or equal to the given number
+
+	Parameters
+	----------
+	s : int or str or Decimal object
+		The mathematical value to be ceiled
+
+	Returns
+	-------
+	int
+		smallest integer greater than or equal to the given number
+
+	"""
+	try: num = cint(math.ceil(flt(s)))
 	except: num = 0
 	return num
 
@@ -436,7 +474,7 @@ def get_number_format_info(format):
 	return number_format_info.get(format) or (".", ",", 2)
 
 #
-# convet currency to words
+# convert currency to words
 #
 def money_in_words(number, main_currency = None, fraction_currency=None):
 	"""

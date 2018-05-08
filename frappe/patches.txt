@@ -201,3 +201,5 @@ frappe.patches.v9_1.revert_domain_settings
 frappe.patches.v9_1.move_feed_to_activity_log
 execute:frappe.delete_doc('Page', 'data-import-tool', ignore_missing=True)
 frappe.patches.v10_0.reload_countries_and_currencies
+frappe.patches.v10_0.set_no_copy_to_workflow_state
+frappe.patches.v10_0.increase_single_table_column_length
