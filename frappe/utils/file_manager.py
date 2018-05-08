@@ -303,12 +303,13 @@ def get_file(fname):
 			content = f.read()
 	else:
 		with io.open(encode(file_path), mode='rb') as f:
+			content = f.read()
 			try:
 				# for plain text files
-				content = f.read().decode()
+				content = content.decode()
 			except UnicodeDecodeError:
 				# for .png, .jpg, etc
-				content = f.read()
+				pass
 
 	return [file_path.rsplit("/", 1)[-1], content]
 
