@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 from six.moves import range
+from six import iteritems
 import frappe
 
 
@@ -43,49 +44,57 @@ def get_data(filters):
 def get_party_addresses_and_contact(party_type, party):
 	data = []
 	filters = None
-	party_details = []
+	party_details = frappe._dict()
 
 	if not party_type:
 		return []
 
 	if party:
 		filters = { "name": party }
-		
-	party_details = frappe.get_list(party_type, filters=filters, fields=["name"], as_list=True)
-	for party_detail in map(list, party_details):
-		docname = party_detail[0]
 
-		addresses = get_party_details(party_type, docname, doctype="Address")
-		contacts = get_party_details(party_type, docname, doctype="Contact")
+	party_list = [d[0] for d in frappe.get_list(party_type, filters=filters, fields=["name"], as_list=True)]
+	for d in party_list:
+		party_details.setdefault(d, frappe._dict())
 
+	party_details = get_party_details(party_type, party_list, "Address", party_details)
+	party_details = get_party_details(party_type, party_list, "Contact", party_details)
+
+	for party, details in iteritems(party_details):
+		addresses = details.get("address", [])
+		contacts  = details.get("contact", [])
 		if not any([addresses, contacts]):
-			party_detail.extend([ "" for field in field_map.get("Address", []) ])
-			party_detail.extend([ "" for field in field_map.get("Contact", []) ])
-			data.append(party_detail)
+			result = [party]
+			result.extend(add_blank_columns_for("Contact"))
+			result.extend(add_blank_columns_for("Address"))
+			data.append(result)
 		else:
 			addresses = map(list, addresses)
 			contacts = map(list, contacts)
 
 			max_length = max(len(addresses), len(contacts))
 			for idx in range(0, max_length):
-				result = list(party_detail)
-
-				address = addresses[idx] if idx < len(addresses) else [ "" for field in field_map.get("Address", []) ]
-				contact = contacts[idx] if idx < len(contacts) else [ "" for field in field_map.get("Contact", []) ]
+				result = [party]
+				address = addresses[idx] if idx < len(addresses) else add_blank_columns_for("Address")
+				contact = contacts[idx] if idx < len(contacts) else add_blank_columns_for("Contact")
 				result.extend(address)
 				result.extend(contact)
 
 				data.append(result)
 	return data
 
-def get_party_details(party_type, docname, doctype="Address", fields=None):
-	default_filters = get_default_address_contact_filters(party_type, docname)
-	if not fields:
-		fields = field_map.get(doctype, ["name"])
-	return frappe.get_list(doctype, filters=default_filters, fields=fields, as_list=True)
-
-def get_default_address_contact_filters(party_type, docname):
-	return [
+def get_party_details(party_type, party_list, doctype, party_details):
+	filters =  [
 		["Dynamic Link", "link_doctype", "=", party_type],
-		["Dynamic Link", "link_name", "=", docname]
+		["Dynamic Link", "link_name", "in", party_list]
 	]
+	fields = ["`tabDynamic Link`.link_name"] + field_map.get(doctype, [])
+
+	records = frappe.get_list(doctype, filters=filters, fields=fields, as_list=True)
+	for d in records:
+		details = party_details.get(d[0])
+		details.setdefault(frappe.scrub(doctype), []).append(d[1:])
+
+	return party_details
+
+def add_blank_columns_for(doctype):
+	return ["" for field in field_map.get(doctype, [])]
