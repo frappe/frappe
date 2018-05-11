@@ -340,7 +340,7 @@ $.extend(frappe, {
 		return $(".navbar .search, .sidebar .search");
 	},
 	is_user_logged_in: function() {
-		return window.full_name ? true : false;
+		return frappe.get_cookie("sid") && frappe.get_cookie("sid") !== "Guest"
 	},
 	add_switch_to_desk: function() {
 		$('.switch-to-desk').removeClass('hidden');
@@ -386,7 +386,7 @@ window.ask_to_login = function ask_to_login() {
 // check if logged in?
 $(document).ready(function() {
 	window.full_name = frappe.get_cookie("full_name");
-	var logged_in = frappe.get_cookie("sid") && frappe.get_cookie("sid") !== "Guest";
+	var logged_in = frappe.is_user_logged_in();
 	$("#website-login").toggleClass("hide", logged_in ? true : false);
 	$("#website-post-login").toggleClass("hide", logged_in ? false : true);
 	$(".logged-in").toggleClass("hide", logged_in ? false : true);
