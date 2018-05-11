@@ -340,7 +340,7 @@ $.extend(frappe, {
 		return $(".navbar .search, .sidebar .search");
 	},
 	is_user_logged_in: function() {
-		return frappe.get_cookie("sid") && frappe.get_cookie("sid") !== "Guest"
+		return frappe.get_cookie("sid") && frappe.get_cookie("sid") !== "Guest";
 	},
 	add_switch_to_desk: function() {
 		$('.switch-to-desk').removeClass('hidden');
