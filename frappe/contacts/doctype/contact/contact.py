@@ -9,6 +9,7 @@ from frappe.model.document import Document
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from six import iteritems
 from past.builtins import cmp
+from frappe.model.naming import append_number_if_name_exists
 
 import functools
 
@@ -17,6 +18,9 @@ class Contact(Document):
 		# concat first and last name
 		self.name = " ".join(filter(None,
 			[cstr(self.get(f)).strip() for f in ["first_name", "last_name"]]))
+
+		if frappe.db.exists("Contact", self.name):
+			self.name = append_number_if_name_exists('Contact', self.name)
 
 		# concat party name if reqd
 		for link in self.links:

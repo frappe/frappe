@@ -93,6 +93,7 @@ class User(Document):
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
 		self.send_password_notification(self.__new_password)
+		create_contact(self)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
 
@@ -1033,3 +1034,18 @@ def update_roles(role_profile):
 		user = frappe.get_doc('User', d)
 		user.set('roles', [])
 		user.add_roles(*roles)
+
+def create_contact(user):
+	if user.name in ["Administrator", "Guest"]: return
+
+	if not frappe.db.get_value("Contact", {"email_id": user.email}):
+		frappe.get_doc({
+			"doctype": "Contact",
+			"first_name": user.first_name,
+			"last_name": user.last_name,
+			"email_id": user.email,
+			"user": user.name,
+			"gender": user.gender,
+			"phone": user.phone,
+			"mobile_no": user.mobile_no
+		}).insert(ignore_permissions=True)

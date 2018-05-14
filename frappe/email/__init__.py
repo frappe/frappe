@@ -3,35 +3,26 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe.desk.reportview import build_match_conditions
 
 def sendmail_to_system_managers(subject, content):
 	frappe.sendmail(recipients=get_system_managers(), subject=subject, content=content)
 
 @frappe.whitelist()
-def get_contact_list(txt):
+def get_contact_list():
 	"""Returns contacts (from autosuggest)"""
-	txt = txt.replace('%', '')
 
-	def get_users():
-		return filter(None, frappe.db.sql_list('select email from tabUser where email like %s',
-			('%' + txt + '%')))
 	try:
-		out = filter(None, frappe.db.sql_list("""select distinct email_id from `tabContact` 
-			where email_id like %(txt)s or concat(first_name, " ", last_name) like %(txt)s order by
-			if (locate( %(_txt)s, concat(first_name, " ", last_name)), locate( %(_txt)s, concat(first_name, " ", last_name)), 99999),
-			if (locate( %(_txt)s, email_id), locate( %(_txt)s, email_id), 99999)""",
-		        {'txt': "%%%s%%" % frappe.db.escape(txt),
-	            '_txt': txt.replace("%", "")
-		        })
-		)
-		if not out:
-			out = get_users()
-	except Exception as e:
-		if e.args[0]==1146:
-			# no Contact, use User
-			out = get_users()
-		else:
-			raise
+		match_conditions = build_match_conditions('Contact')
+		out = frappe.db.sql("""select email_id as value,
+			concat(first_name, ifnull(concat(' ',last_name), '' )) as description
+			from tabContact
+			where {0}
+		""".format(match_conditions), as_dict=True)
+		out = filter(None, out)
+
+	except:
+		raise
 
 	return out
 
