@@ -208,3 +208,6 @@ frappe.patches.v10_0.remove_custom_field_for_disabled_domain
 execute:frappe.delete_doc("Page", "chat")
 frappe.patches.v11_0.rename_standard_reply_to_email_template
 execute:frappe.delete_doc_if_exists('Page', 'user-permissions')
+frappe.patches.v10_0.set_no_copy_to_workflow_state
+frappe.patches.v10_0.increase_single_table_column_length
+frappe.patches.v11_0.create_contact_for_user
