@@ -23,6 +23,7 @@ class TestFeedbackTrigger(unittest.TestCase):
 		new_user.add_roles("System Manager")
 
 	def tearDown(self):
+		frappe.db.sql("delete from tabContact where email_id='test-feedback@example.com'")
 		frappe.delete_doc("User", "test-feedback@example.com")
 		frappe.delete_doc("Feedback Trigger", "ToDo")
 		frappe.db.sql('delete from `tabEmail Queue`')
