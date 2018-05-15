@@ -168,7 +168,7 @@ frappe.views.ListSidebar = Class.extend({
 					fieldname: 'project',
 					label: __('Project'),
 					options: 'Project'
-				})
+				});
 			}
 
 			if(select_fields.length > 0) {
@@ -205,7 +205,7 @@ frappe.views.ListSidebar = Class.extend({
 						var field_name = 'kanban_column';
 					} else {
 						if (!values.field_name) {
-							frappe.throw(__('Please select Columns Based On'))
+							frappe.throw(__('Please select Columns Based On'));
 						}
 						var field_name =
 							select_fields
@@ -215,7 +215,7 @@ frappe.views.ListSidebar = Class.extend({
 
 					me.add_custom_column_field(custom_column)
 						.then(function(custom_column) {
-							return me.make_kanban_board(values.board_name, field_name, values.project)
+							return me.make_kanban_board(values.board_name, field_name, values.project);
 						})
 						.then(function() {
 							d.hide();
