@@ -162,32 +162,30 @@ frappe.views.ListSidebar = Class.extend({
 				}
 			];
 
+			if(me.doctype === 'Task') {
+				fields.push({
+					fieldtype: 'Link',
+					fieldname: 'project',
+					label: __('Project'),
+					options: 'Project'
+				});
+			}
+
 			if(select_fields.length > 0) {
 				fields = fields.concat([{
 					fieldtype: 'Select',
 					fieldname: 'field_name',
 					label: __('Columns based on'),
 					options: select_fields.map(df => df.label).join('\n'),
-					default: select_fields[0]
+					default: select_fields[0],
+					depends_on: 'eval:doc.custom_column===0'
 				},
 				{
 					fieldtype: 'Check',
 					fieldname: 'custom_column',
 					label: __('Custom Column'),
-					default: 0,
-					onchange: function(e) {
-						var checked = d.get_value('custom_column');
-						if(checked) {
-							$(d.body).find('.frappe-control[data-fieldname="field_name"]').hide();
-						} else {
-							$(d.body).find('.frappe-control[data-fieldname="field_name"]').show();
-						}
-					}
+					default: 0
 				}]);
-			}
-
-			if(me.doctype === 'Task') {
-				fields[0].description = __('A new Project with this name will be created');
 			}
 
 			if(['Note', 'ToDo'].includes(me.doctype)) {
@@ -206,6 +204,9 @@ frappe.views.ListSidebar = Class.extend({
 					if(custom_column) {
 						var field_name = 'kanban_column';
 					} else {
+						if (!values.field_name) {
+							frappe.throw(__('Please select Columns Based On'));
+						}
 						var field_name =
 							select_fields
 								.find(df => df.label === values.field_name)
@@ -214,7 +215,7 @@ frappe.views.ListSidebar = Class.extend({
 
 					me.add_custom_column_field(custom_column)
 						.then(function(custom_column) {
-							return me.make_kanban_board(values.board_name, field_name)
+							return me.make_kanban_board(values.board_name, field_name, values.project);
 						})
 						.then(function() {
 							d.hide();
@@ -248,14 +249,15 @@ frappe.views.ListSidebar = Class.extend({
 			});
 		});
 	},
-	make_kanban_board: function(board_name, field_name) {
+	make_kanban_board: function(board_name, field_name, project) {
 		var me = this;
 		return frappe.call({
 			method: 'frappe.desk.doctype.kanban_board.kanban_board.quick_kanban_board',
 			args: {
 				doctype: me.doctype,
-				board_name: board_name,
-				field_name: field_name
+				board_name,
+				field_name,
+				project
 			},
 			callback: function(r) {
 				var kb = r.message;
