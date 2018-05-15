@@ -171,20 +171,16 @@ frappe.views.ListSidebar = Class.extend({
 				reqd: 1
 			}];
 
-<<<<<<< HEAD
-			if (select_fields.length > 0) {
-=======
 			if(me.doctype === 'Task') {
 				fields.push({
 					fieldtype: 'Link',
 					fieldname: 'project',
 					label: __('Project'),
 					options: 'Project'
-				})
+				});
 			}
 
 			if(select_fields.length > 0) {
->>>>>>> Quick Kanban Board
 				fields = fields.concat([{
 					fieldtype: 'Select',
 					fieldname: 'field_name',
@@ -197,32 +193,11 @@ frappe.views.ListSidebar = Class.extend({
 					fieldtype: 'Check',
 					fieldname: 'custom_column',
 					label: __('Custom Column'),
-<<<<<<< HEAD
-					default: 0,
-					onchange: function() {
-						var checked = d.get_value('custom_column');
-						if (checked) {
-							$(d.body).find('.frappe-control[data-fieldname="field_name"]').hide();
-						} else {
-							$(d.body).find('.frappe-control[data-fieldname="field_name"]').show();
-						}
-					}
-				}
-				]);
-			}
-
-			if (me.doctype === 'Task') {
-				fields[0].description = __('A new Project with this name will be created');
-			}
-
-			if (['Note', 'ToDo'].includes(me.doctype)) {
-=======
 					default: 0
 				}]);
 			}
 
 			if(['Note', 'ToDo'].includes(me.doctype)) {
->>>>>>> Quick Kanban Board
 				fields[0].description = __('This Kanban Board will be private');
 			}
 
@@ -238,27 +213,19 @@ frappe.views.ListSidebar = Class.extend({
 					if (custom_column) {
 						field_name = 'kanban_column';
 					} else {
-<<<<<<< HEAD
-						field_name =
-=======
+
 						if (!values.field_name) {
-							frappe.throw(__('Please select Columns Based On'))
+							frappe.throw(__('Please select Columns Based On'));
 						}
 						var field_name =
->>>>>>> Quick Kanban Board
 							select_fields
 								.find(df => df.label === values.field_name)
 								.fieldname;
 					}
 
 					me.add_custom_column_field(custom_column)
-<<<<<<< HEAD
-						.then(function() {
-							return me.make_kanban_board(values.board_name, field_name);
-=======
 						.then(function(custom_column) {
-							return me.make_kanban_board(values.board_name, field_name, values.project)
->>>>>>> Quick Kanban Board
+							return me.make_kanban_board(values.board_name, field_name, values.project);
 						})
 						.then(function() {
 							d.hide();
