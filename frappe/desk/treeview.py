@@ -38,17 +38,17 @@ def get_all_nodes(doctype, parent, tree_method, **filters):
 @frappe.whitelist()
 def get_children(doctype, parent='', **filters):
 	parent_field = 'parent_' + doctype.lower().replace(' ', '_')
+	filters=[['docstatus', '<' ,'2']]
+	doctype_meta = frappe.get_meta(doctype)
+	if doctype_meta.get(parent_field) : filters.append([parent_field,'=', parent])
+	data = frappe.get_list(doctype, fields=[
+		'name as value',
+		'{0} as title'.format(doctype_meta.get('title_field') or 'name'),
+		'is_group as expandable'],
+		filters=filters,
+		order_by='name')
 
-	return frappe.db.sql("""select name as value, `{title_field}` as title,
-		is_group as expandable
-		from `tab{ctype}`
-		where docstatus < 2
-		and ifnull(`{parent_field}`,'') = %s
-		order by name""".format(
-			ctype = frappe.db.escape(doctype),
-			parent_field = frappe.db.escape(parent_field),
-			title_field = frappe.get_meta(doctype).title_field or 'name'),
-		parent, as_dict=1)
+	return data
 
 @frappe.whitelist()
 def add_node():
