@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 from frappe import _
-from urlparse import parse_qs
+from six.moves.urllib.parse import parse_qs
 from frappe.twofactor import get_qr_svg_code
 
 def get_context(context):
