@@ -90,7 +90,7 @@ def get_fetch_values(doctype, fieldname, value):
 	link_df = meta.get_field(fieldname)
 	for df in meta.get_fields_to_fetch(fieldname):
 		# example shipping_address.gistin
-		link_field, source_fieldname = df.options.split('.', 1)
+		link_field, source_fieldname = df.fetch_from.split('.', 1)
 		out[df.fieldname] = frappe.db.get_value(link_df.options, value, source_fieldname)
 
 	return out
