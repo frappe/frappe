@@ -16,7 +16,6 @@
   },
   "homepage": "https://frappe.io",
   "dependencies": {
-    "@ckeditor/ckeditor5-build-classic": "^10.0.0",
     "cookie": "^0.3.1",
     "express": "^4.16.2",
     "frappe-datatable": "^0.0.5",
