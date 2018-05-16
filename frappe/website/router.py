@@ -94,29 +94,34 @@ def get_page_info_from_doctypes(path=None):
 	routes = {}
 	for doctype in get_doctypes_with_web_view():
 		condition = ""
-		values = []
 		controller = get_controller(doctype)
 		meta = frappe.get_meta(doctype)
 		condition_field = meta.is_published_field or controller.website.condition_field
 
 		if condition_field:
-			condition ="where {0}=1".format(condition_field)
-
-		if path:
-			condition += ' {0} `route`=%s limit 1'.format('and' if 'where' in condition else 'where')
-			values.append(path)
-
+			condition ="and {0}=1".format(condition_field)
 		try:
-			for r in frappe.db.sql("""select route, name, modified from `tab{0}`
-					{1}""".format(doctype, condition), values=values, as_dict=True):
-				routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
+			route_info = frappe.db.sql("""select route, name, modified from `tab{0}`
+							where route='{1}' {2} limit 1""".format(doctype, path, condition), as_dict=True)					
 
-				# just want one path, return it!
-				if path:
-					return routes[r.route]
+			multilingual_routes = frappe.db.sql("""select dt.name, dt.modified, rt.route from `tab{0}` dt 
+						LEFT JOIN `tabRoute` rt ON dt.name = rt.parent where 
+						rt.route = '{1}' {2} limit 1""".format(doctype, path, condition), as_dict=True)
+
+			if route_info and multilingual_routes:
+				route_info.append(multilingual_routes)
+				
+			if not route_info and multilingual_routes:
+				route_info = multilingual_routes
+
+			if route_info:
+				for r in route_info:
+					routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
+
+					if path:
+						return routes[r.route]
 		except Exception as e:
-			if e.args[0]!=1054: raise e
-
+			if e.args[0]!=1054: raise e		
 	return routes
 
 def get_pages(app=None):

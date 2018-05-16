@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import clear_cache
-from frappe.utils import today, cint, global_date_format, get_fullname, strip_html_tags, markdown
+from frappe.utils import today, cint, global_date_format, get_fullname, strip_html_tags, markdown, is_jinja
 from frappe.website.utils import find_first_image, get_comment_list
 
 class BlogPost(WebsiteGenerator):
@@ -54,17 +54,19 @@ class BlogPost(WebsiteGenerator):
 		context.updated = global_date_format(self.published_on)
 
 		if self.blogger:
-			context.blogger_info = frappe.get_doc("Blogger", self.blogger).as_dict()
+			context.blogger_info = _(frappe.get_doc("Blogger", self.blogger).as_dict())
 
-		context.description = self.blog_intro or self.content[:140]
+		context.description = _(self.blog_intro) or _(self.content[:140])
 
 		context.metatags = {
-			"name": self.title,
-			"description": context.description,
+			"name": _(self.title),
+			"description": _(context.description),
 		}
 
 		if "<!-- markdown -->" in context.content:
 			context.content = markdown(context.content)
+		
+		is_jinja(context, context.content, 'content')
 
 		image = find_first_image(self.content)
 		if image:
@@ -83,7 +85,7 @@ class BlogPost(WebsiteGenerator):
 			context.doc.blog_category, ["title", "route"], as_dict=1)
 		context.parents = [{"name": _("Home"), "route":"/"},
 			{"name": "Blog", "route": "/blog"},
-			{"label": context.category.title, "route":context.category.route}]
+			{"label": _(context.category.title), "route":context.category.route}]
 
 def get_list_context(context=None):
 	list_context = frappe._dict(
@@ -99,7 +101,7 @@ def get_list_context(context=None):
 	if category:
 		category_title = get_blog_category(category)
 		list_context.sub_title = _("Posts filed under {0}").format(category_title)
-		list_context.title = category_title
+		list_context.title = _(category_title)
 
 	elif frappe.local.form_dict.blogger:
 		blogger = frappe.db.get_value("Blogger", {"name": frappe.local.form_dict.blogger}, "full_name")
