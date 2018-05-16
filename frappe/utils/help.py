@@ -32,6 +32,10 @@ def get_help(text):
 	return HelpDatabase().search(text)
 
 @frappe.whitelist()
+def get_installed_app_help(text):
+	return HelpDatabase().app_docs_search(text)
+
+@frappe.whitelist()
 def get_help_content(path):
 	return HelpDatabase().get_content(path)
 
@@ -104,6 +108,34 @@ class HelpDatabase(object):
 		return self.db.sql('''
 			select title, intro, path from help where title like %s union
 			select title, intro, path from help where match(content) against (%s) limit 10''', ('%'+words+'%', words))
+
+	def app_docs_search(self, words):
+		self.connect()
+		frappe_path = '%' + 'apps/frappe' + '%'
+		return self.db.sql('''
+			select
+				title, intro, full_path
+			from
+				help
+			where
+				title like %s
+				and
+				full_path not like %s
+
+			union
+
+			select
+				title, intro, full_path
+			from
+				help
+			where
+				match(content) against (%s)
+				and
+				full_path not like %s
+			limit
+				15
+
+		''', ('%'+words+'%', frappe_path, words, frappe_path))
 
 	def get_content(self, path):
 		self.connect()
