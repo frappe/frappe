@@ -267,7 +267,6 @@ frappe.ui.form.Layout = Class.extend({
 			var df = section.df;
 			if(df && df.collapsible) {
 				var collapse = true;
-
 				if(df.collapsible_depends_on) {
 					collapse = !this.evaluate_depends_on_value(df.collapsible_depends_on);
 				}
@@ -278,6 +277,9 @@ frappe.ui.form.Layout = Class.extend({
 
 				if(df.fieldname === '_form_dashboard') {
 					collapse = false;
+					if (frappe.sys_defaults.dashboard_collapse_def === 'true') {
+						collapse = true;
+					}
 				}
 
 				section.collapse(collapse);

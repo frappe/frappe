@@ -273,7 +273,12 @@ frappe.ui.form.Dashboard = Class.extend({
 			},
 			callback: function(r) {
 				if(r.message.timeline_data) {
-					me.update_heatmap(r.message.timeline_data);
+					let heatmapData = {};						
+					const object = r.message.timeline_data;
+					for (const [key, value] of Object.entries(object)) {
+						heatmapData[Math.floor((parseInt(key) - ((parseInt(key) % 86400)))).toFixed(1)] = value;
+					}
+					me.update_heatmap(heatmapData);
 				}
 
 				// update badges
@@ -334,13 +339,19 @@ frappe.ui.form.Dashboard = Class.extend({
 	// heatmap
 	render_heatmap: function() {
 		if(!this.heatmap) {
+			let heatmap_style = 0;
+			if (frappe.sys_defaults.heatmap_style) {
+				if (frappe.sys_defaults.heatmap_style == "Discrete") {
+					heatmap_style = 1;
+				}
+			}
 			this.heatmap = new Chart({
 				parent: "#heatmap-" + frappe.model.scrub(this.frm.doctype),
 				type: 'heatmap',
-				height: 100,
+				height: 120,
 				start: new Date(moment().subtract(1, 'year').toDate()),
 				count_label: "interactions",
-				discrete_domains: 0,
+				discrete_domains: heatmap_style,
 				data: {}
 			});
 
