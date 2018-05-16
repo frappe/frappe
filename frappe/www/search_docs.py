@@ -13,12 +13,13 @@ def get_context(context):
 		context.title = _('Documentation Results for "{0}"').format(query)
 		context.route = '/search_docs'
 		d = frappe._dict()
-		d.results = parse_docs_results(query)
+		d.results = get_docs_results(query)
 		context.update(d)
 	else:
 		context.title = _('Docs Search')
 
-def parse_docs_results(text):
+@frappe.whitelist(allow_guest = True)
+def get_docs_results(text):
 	out = []
 	results = get_installed_app_help(text)
 	for d in results:

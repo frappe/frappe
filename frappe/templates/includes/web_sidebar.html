@@ -28,7 +28,7 @@
 						{{ _(item.title or item.label) }}
 					</a>
 				{% else %}
-					<form action='{{ item.route }}' style="margin-right: 15px; margin-top: 10px;">
+					<form action='{{ item.route }}' style="margin-right: 15px;">
 						<input name='q' class='form-control' type='text' style="outline: none"
 							placeholder="{{ _(item.title or item.label) }}">
 					</form>

@@ -14,7 +14,12 @@
 {% if results %}
 
 	<div class='search-result' style="margin-top: 30px;">
-	{% include "templates/includes/search_result.html" %}
+		{% for d in results %}
+		<div class="search-result-item" style="padding-bottom: 15px;">
+			<h4><a href="{{ d.route }}">{{ d.title }}</a></h4>
+			<p>{{ d.preview }}</p>
+		</div>
+		{% endfor %}
 	</div>
 
 	{% if has_more %}
