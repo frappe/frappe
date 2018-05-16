@@ -147,9 +147,8 @@ def get_role_permissions(doctype_meta, user=None, verbose=False):
 			if_owner={}
 		)
 
-		roles = frappe.get_roles(user)
-
 		def is_perm_applicable(perm):
+			roles = frappe.get_roles(user)
 			return perm.role in roles and cint(perm.permlevel)==0
 
 		def has_permission_without_if_owner_enabled(ptype):
