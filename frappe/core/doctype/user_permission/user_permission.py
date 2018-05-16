@@ -22,7 +22,7 @@ def get_user_permissions(user=None):
 	'''Get all users permissions for the user as a dict of doctype'''
 	# if this is called from client-side,
 	# user can access only his/her user permissions
-	if frappe.request:
+	if frappe.request and frappe.local.form_dict.cmd == 'get_user_permissions':
 		user = frappe.session.user
 
 	if not user:
