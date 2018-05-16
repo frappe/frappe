@@ -164,3 +164,10 @@ table td div {
 	max-height: 150px;
 }
 
+.image-style-align-left {
+	float: left;
+}
+
+.image-style-align-right {
+	float: right;
+}

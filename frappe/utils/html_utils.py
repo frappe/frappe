@@ -39,6 +39,16 @@ def sanitize_html(html, linkify=False):
 	if linkify:
 		escaped_html = bleach.linkify(escaped_html, callbacks=[])
 
+	# issue https://github.com/mozilla/bleach/issues/143
+	# bleach converts &nbsp; -> \xa0
+	# so convert it back
+	entity_replacements = {
+		'\xa0': '&nbsp;'
+	}
+
+	for k, v in entity_replacements.items():
+		escaped_html = re.sub(k, v, escaped_html)
+
 	return escaped_html
 
 def is_json(text):

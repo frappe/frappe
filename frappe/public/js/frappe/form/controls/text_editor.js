@@ -1,13 +1,23 @@
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
-
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_input() {
 		this.has_input = true;
 
+		const ckeditor_options = {
+			image: {
+				toolbar: [ 'imageTextAlternative', '|', 'imageStyle:alignLeft', 'imageStyle:full', 'imageStyle:alignRight' ],
+
+				styles: [
+					'full',
+					'alignLeft',
+					'alignRight'
+				]
+			}
+		};
+
 		this.editor_loaded = frappe.require('/assets/frappe/js/lib/ckeditor/ckeditor.js')
 			.then(() => {
 				this.editor = $("<div>").appendTo(this.input_area);
-				return ClassicEditor.create(this.editor[0])
+				return ClassicEditor.create(this.editor[0], ckeditor_options)
 					.then(editor => {
 						this.ckeditor = editor;
 
@@ -15,12 +25,19 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 							return new FileUploader(loader, this);
 						};
 
-						this.ckeditor.model.document.on('change', frappe.utils.debounce(() => {
-							console.log('change');
+						this.ckeditor.model.document.on('change', () => {
+							const input_value = this.get_input_value();
+							if (this.value === input_value) return;
+
 							this.parse_validate_and_set_in_model(this.get_input_value());
-						}, 100));
+						});
 					});
 			});
+
+		// disable default form upload handler
+		$(this.input_area).on('drop', e => {
+			e.stopPropagation();
+		});
 	},
 
 	parse: function (value) {
@@ -47,20 +64,13 @@ class FileUploader {
 	}
 
 	upload() {
-		console.log(this.loader)
 		return new Promise(resolve => {
-
-			frappe.upload.upload_file(this.loader.file, { doctype: this.control.doctype, docname: this.control.docname }, {
-				callback: (a, b, args) => {
+			frappe.dom.file_to_base64(this.loader.file)
+				.then(base64 => {
 					resolve({
-						default: args.file_url
-					});
-				},
-				socketio_progress: (percent_complete, total) => {
-					this.loader.uploadTotal = total;
-					this.loader.uploaded = percent_complete;
-				}
-			});
+						default: base64
+					})
+				});
 		});
 	}
 
