@@ -75,7 +75,6 @@
 	"css/desk.min.css": [
 		"public/js/lib/datepicker/datepicker.min.css",
 		"public/js/lib/awesomplete/awesomplete.css",
-		"public/js/lib/summernote/summernote.css",
 		"public/js/lib/leaflet/leaflet.css",
 		"public/js/lib/leaflet/leaflet.draw.css",
 		"public/js/lib/leaflet/L.Control.Locate.css",
@@ -108,7 +107,6 @@
 		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",
 		"public/js/lib/jquery/jquery.hotkeys.js",
-		"public/js/lib/summernote/summernote.js",
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/moment/moment-with-locales.min.js",
 		"public/js/lib/moment/moment-timezone-with-data.min.js",
@@ -340,13 +338,11 @@
 	],
 	"js/web_form.min.js": [
 		"website/js/web_form.js",
-		"public/js/lib/summernote/summernote.js",
 		"public/js/lib/datepicker/datepicker.min.js",
 		"public/js/lib/datepicker/datepicker.en.js"
 	],
 	"css/web_form.css": [
 		"website/css/web_form.css",
-		"public/js/lib/summernote/summernote.css",
 		"public/js/lib/datepicker/datepicker.min.css"
 	],
 	"js/print_format_v3.min.js": [

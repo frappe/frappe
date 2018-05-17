@@ -14,7 +14,7 @@ frappe.require = function(items, callback) {
 		const _callback = () => {
 			callback && callback();
 			resolve();
-		}
+		};
 
 		frappe.assets.execute(items, _callback);
 	});
