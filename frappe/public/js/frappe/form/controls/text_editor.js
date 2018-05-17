@@ -1,3 +1,5 @@
+/* globals ClassicEditor */
+
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_input() {
 		this.has_input = true;
@@ -40,14 +42,14 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		});
 	},
 
-	parse: function (value) {
+	parse(value) {
 		if (value == null) {
 			value = "";
 		}
 		return frappe.dom.remove_script_and_style(value);
 	},
 
-	set_formatted_input: function (value) {
+	set_formatted_input(value) {
 		if (value === this.get_input_value()) return;
 		this.editor_loaded.then(() => this.ckeditor.setData(this.format_for_input(value)));
 	},
