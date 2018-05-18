@@ -405,7 +405,9 @@ $(document).ready(function() {
 
 $(document).on("page-change", function() {
 	$(document).trigger("apply_permissions");
-	$('.dropdown-toggle').dropdown();
+	$(document).ready(function(){
+		$(".dropdown-toggle").dropdown();
+	});	
 
 	//multilevel dropdown fix
 	$('.dropdown-menu .dropdown-submenu .dropdown-toggle').on('click', function(e) {
