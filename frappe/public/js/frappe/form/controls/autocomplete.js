@@ -43,7 +43,9 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 				var d = this.get_item(item.value);
 				if(!d) {
 					d = item;
-				} else {
+				}
+
+				if (!d.label) {
 					d.label = d.value;
 				}
 
