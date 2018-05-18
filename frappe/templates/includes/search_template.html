@@ -14,6 +14,10 @@
 {% if results %}
 
 	<div class='search-result' style="margin-top: 30px;">
+		{% if title %}
+		<h4>{{ title }}</h4>
+		{% endif %}
+
 		{% for d in results %}
 		<div class="search-result-item" style="padding-bottom: 15px;">
 			<h4><a href="{{ d.route }}">{{ d.title }}</a></h4>
@@ -25,6 +29,8 @@
 	{% if has_more %}
 	<button class='btn btn-default btn-sm btn-more'>{{ _("More") }}</button>
 	{% endif %}
+
+	<hr>
 
 {% elif frappe.form_dict.q %}
 	<p class='text-muted'>{{ _("No matching records. Search something new") }}
