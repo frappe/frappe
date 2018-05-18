@@ -34,10 +34,12 @@ class AutoRepeat(Document):
 
 	def on_submit(self):
 		self.update_auto_repeat_id()
+		
 
 	def on_update_after_submit(self):
 		self.validate_dates()
 		self.set_next_schedule_date()
+		self.get_auto_repeat_schedule()
 
 	def before_cancel(self):
 		self.unlink_auto_repeat_id()
@@ -96,6 +98,22 @@ class AutoRepeat(Document):
 
 		if status and status != 'Resumed':
 			self.status = status
+
+
+	def get_auto_repeat_schedule(self):
+		start_date_copy = self.start_date
+		schedule_details = []
+		while (getdate(start_date_copy) < getdate(self.end_date)):
+			start_date_copy = get_next_schedule_date(start_date_copy,self.frequency,self.repeat_on_day)
+			row = {
+			"reference_document" : self.reference_document,
+			"frequency" : self.frequency,
+			"next_scheduled_date" : start_date_copy
+			}
+			schedule_details.append(row)
+	
+
+		return schedule_details
 
 
 def get_next_schedule_date(start_date, frequency, repeat_on_day):

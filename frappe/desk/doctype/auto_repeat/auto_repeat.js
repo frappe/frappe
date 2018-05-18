@@ -28,7 +28,9 @@ frappe.ui.form.on('Auto Repeat', {
 	},
 
 	refresh: function(frm) {
+		
 		if(frm.doc.docstatus == 1) {
+			
 			let label = __('View {0}', [frm.doc.reference_doctype]);
 			frm.add_custom_button(__(label),
 				function() {
@@ -54,7 +56,13 @@ frappe.ui.form.on('Auto Repeat', {
 					}
 				);
 			}
+			if(frm.doc.status!= 0)
+			{
+				render_schedule(frm);
+			}
+
 		}
+		
 	},
 
 	stop_resume_auto_repeat: function(frm, status) {
@@ -73,3 +81,16 @@ frappe.ui.form.on('Auto Repeat', {
 		});
 	}
 });
+
+function render_schedule(frm){
+	frappe.call({
+		method: "get_auto_repeat_schedule",
+		doc: cur_frm.doc
+	}).done((r) => {
+		console.log("r.message",r.message);
+		var wrapper = $(cur_frm.fields_dict["auto_repeat_schedule"].wrapper);
+
+		wrapper.html(frappe.render_template ("auto_repeat_schedule", {"schedule_details" : r.message || []}  ));
+	})
+		frm.refresh_fields() ;
+};
