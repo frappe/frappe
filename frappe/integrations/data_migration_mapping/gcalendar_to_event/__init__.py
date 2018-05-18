@@ -37,9 +37,6 @@ def pre_process(events):
 				event_tz = events["calendar_tz"]
 			end_dt = timezone(event_tz).localize(end_dt)
 
-		else:
-			return {}
-
 		default_tz = frappe.db.get_value("System Settings", None, "time_zone")
 
 		event = {
