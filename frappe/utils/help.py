@@ -133,7 +133,7 @@ class HelpDatabase(object):
 				and
 				full_path not like %s
 			limit
-				15
+				10
 
 		''', ('%'+words+'%', frappe_path, words, frappe_path))
 

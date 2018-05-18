@@ -1,5 +1,26 @@
 <h1>{{ title }}</h1>
 
+{%- macro search_results_section(results, title, has_more) -%}
+	<div class='search-result' style="margin-top: 30px;">
+		{% if title %}
+		<h3 style="margin-bottom: 30px">{{ title }}</h3>
+		{% endif %}
+
+		{% for d in results %}
+		<div class="search-result-item" style="padding-bottom: 15px;">
+			<a href="{{ d.route }}"><b>{{ d.title }}</b></a>
+			<p>{{ d.preview }}</p>
+		</div>
+		{% endfor %}
+	</div>
+
+	{% if has_more %}
+	<button class='btn btn-default btn-sm btn-more'>{{ _("More") }}</button>
+	{% endif %}
+
+	<hr>
+{%- endmacro %}
+
 <div>
 	<form action='{{ route }}'>
 	<input name='q' class='form-control' type='text'
@@ -12,25 +33,12 @@
 </div>
 
 {% if results %}
+	{{ search_results_section(results, "", has_more) }}
 
-	<div class='search-result' style="margin-top: 30px;">
-		{% if title %}
-		<h4>{{ title }}</h4>
-		{% endif %}
-
-		{% for d in results %}
-		<div class="search-result-item" style="padding-bottom: 15px;">
-			<h4><a href="{{ d.route }}">{{ d.title }}</a></h4>
-			<p>{{ d.preview }}</p>
-		</div>
-		{% endfor %}
-	</div>
-
-	{% if has_more %}
-	<button class='btn btn-default btn-sm btn-more'>{{ _("More") }}</button>
-	{% endif %}
-
-	<hr>
+{% elif results_sections %}
+	{% for section in results_sections %}
+		{{ search_results_section(section.results, section.title) }}
+	{% endfor %}
 
 {% elif frappe.form_dict.q %}
 	<p class='text-muted'>{{ _("No matching records. Search something new") }}
