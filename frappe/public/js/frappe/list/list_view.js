@@ -593,7 +593,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// refactor
 		let doctype = this.doctype;
 		let docname = '';
-		if(this.doctype === 'Workflow Action') {
+		if(this.doctype === 'Workflow Action' && doc.status === 'Open') {
 			doctype = doc.reference_doctype;
 			docname = doc.reference_name || 'test';
 		} else {
@@ -710,7 +710,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				$target.is('a')) {
 				return;
 			}
-			debugger
 			// open form
 			const $row = $(e.currentTarget);
 			const link = $row.find('.list-subject a').get(0);
