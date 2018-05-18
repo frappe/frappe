@@ -593,7 +593,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// refactor
 		let doctype = this.doctype;
 		let docname = '';
-		if(this.doctype === 'Pending Workflow Action') {
+		if(this.doctype === 'Workflow Action') {
 			doctype = doc.reference_doctype;
 			docname = doc.reference_name || 'test';
 		} else {
