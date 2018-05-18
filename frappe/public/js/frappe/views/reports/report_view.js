@@ -63,7 +63,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 	}
 
-	update_data(r) {
+	prepare_data(r) {
 		let data = r.message || {};
 		data = frappe.utils.dict(data.keys, data.values);
 
