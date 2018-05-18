@@ -16,16 +16,38 @@ def pre_process(events):
 	elif events["status"] == "confirmed":
 		if 'date' in events["start"]:
 			datevar = 'date'
-		else:
+			start_dt = parse(events["start"]['date'])
+			end_dt = parse(events["end"]['date'])
+		elif 'dateTime' in events["start"]:
 			datevar = 'dateTime'
+			start_dt = parse(events["start"]['dateTime'])
+			end_dt = parse(events["end"]['dateTime'])
+
+		if start_dt.tzinfo is None or start_dt.tzinfo.utcoffset(start_dt) is None:
+			if "timeZone" in events["start"]:
+				event_tz = events["start"]["timeZone"]
+			else:
+				event_tz = events["calendar_tz"]
+			start_dt= timezone(event_tz).localize(start_dt)
+
+		if end_dt.tzinfo is None or end_dt.tzinfo.utcoffset(end_dt) is None:
+			if "timeZone" in events["end"]:
+				event_tz = events["end"]["timeZone"]
+			else:
+				event_tz = events["calendar_tz"]
+			end_dt = timezone(event_tz).localize(end_dt)
+
+		else:
+			return {}
 
 		default_tz = frappe.db.get_value("System Settings", None, "time_zone")
 
 		event = {
 			'id': events["id"],
 			'summary': events["summary"],
-			'start_datetime': parse(events["start"][datevar]).astimezone(timezone(default_tz)),
-			'end_datetime': parse(events["end"][datevar]).astimezone(timezone(default_tz))
+			'start_datetime': start_dt.astimezone(timezone(default_tz)).strftime('%Y-%m-%d %H:%M:%S'),
+			'end_datetime': end_dt.astimezone(timezone(default_tz)).strftime('%Y-%m-%d %H:%M:%S'),
+			'account': events['account']
 		}
 
 		if "recurrence" in events:
