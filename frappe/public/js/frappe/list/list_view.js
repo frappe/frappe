@@ -590,11 +590,21 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_form_link(doc) {
-		const docname = doc.name.match(/[%'"]/)
-			? encodeURIComponent(doc.name)
-			: doc.name;
+		// refactor
+		let doctype = this.doctype;
+		let docname = '';
+		if(this.doctype === 'Pending Workflow Action') {
+			doctype = doc.reference_doctype;
+			docname = doc.reference_name || 'test';
+		} else {
+			docname = doc.name;
+		}
+		docname = docname.match(/[%'"]/)
+			? encodeURIComponent(docname)
+			: docname;
 
-		return '#Form/' + this.doctype + '/' + docname;
+		const link = '#Form/' + doctype + '/' + docname;
+		return link;
 	}
 
 	get_subject_html(doc) {
@@ -700,6 +710,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				$target.is('a')) {
 				return;
 			}
+			debugger
 			// open form
 			const $row = $(e.currentTarget);
 			const link = $row.find('.list-subject a').get(0);

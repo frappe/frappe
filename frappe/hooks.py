@@ -112,11 +112,14 @@ doc_events = {
 	"*": {
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.core.doctype.activity_log.feed.update_feed"
+			"frappe.core.doctype.activity_log.feed.update_feed",
+			"frappe.workflow.doctype.pending_workflow_action.pending_workflow_action.create_pending_workflow_actions"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
+		"on_submit" : "frappe.workflow.doctype.pending_workflow_action.pending_workflow_action.create_pending_workflow_actions",
 		"on_cancel": [
 			"frappe.desk.notifications.clear_doctype_notifications",
+			"frappe.workflow.doctype.pending_workflow_action.pending_workflow_action.clear_pending_workflow_actions"
 		],
 		"on_trash": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_change": "frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request"
