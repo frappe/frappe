@@ -78,6 +78,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.patch_refresh_and_load_lib();
 	}
 
+	on_sort_change(sort_by, sort_order) {
+		this.sort_by = sort_by;
+		this.sort_order = sort_order;
+		super.on_sort_change();
+	}
+
 	validate_filters(filters) {
 		const valid_fields = this.meta.fields.map(df => df.fieldname);
 		return filters
