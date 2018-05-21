@@ -10,6 +10,13 @@ from frappe.utils.background_jobs import enqueue
 class WorkflowAction(Document):
 	pass
 
+def get_permission_query_conditions(user):
+	if not user: user = frappe.session.user
+
+	if user == "Administrator": return ""
+
+	return "(`tabWorkflow Action`.user='{user}')".format(user=user)
+
 def has_permission(doc, user):
 	if user not in ['Administrator', doc.user]:
 		return False
@@ -93,6 +100,6 @@ def send_workflow_action_email(email_map, doctype, docname):
 				'message': '{0} {1}'.format(doctype, docname)
 			},
 		}
-		email_args = email_args + common_args
+		email_args.update(common_args)
 		enqueue(method=frappe.sendmail, queue='short', **email_args)
 
