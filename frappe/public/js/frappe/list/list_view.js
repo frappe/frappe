@@ -44,13 +44,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
+	get view_name() {
+		return 'List';
+	}
+
 	get view_user_settings() {
 		return this.user_settings[this.view_name] || {};
 	}
 
 	setup_defaults() {
 		super.setup_defaults();
-		this.view_name = 'List';
 		// initialize with saved filters
 		const saved_filters = this.view_user_settings.filters;
 		if (saved_filters) {

@@ -1,16 +1,20 @@
 frappe.provide('frappe.views');
 
 frappe.views.GanttView = class GanttView extends frappe.views.ListView {
+	get view_name() {
+		return 'Gantt';
+	}
 
 	setup_defaults() {
 		super.setup_defaults();
-		this.view_name = 'Gantt';
 		this.page_title = this.page_title + ' ' + __('Gantt');
 		this.calendar_settings = frappe.views.calendar[this.doctype] || {};
 		if(this.calendar_settings.order_by) {
-			this.order_by = this.calendar_settings.order_by + ' asc';
+			this.sort_by = this.calendar_settings.order_by;
+			this.sort_order = 'asc';
 		} else {
-			this.order_by = this.view_user_settings.order_by || this.calendar_settings.field_map.start + ' asc';
+			this.sort_by = this.view_user_settings.sort_by || this.calendar_settings.field_map.start;
+			this.sort_order = this.view_user_settings.sort_order || 'asc';
 		}
 	}
 
