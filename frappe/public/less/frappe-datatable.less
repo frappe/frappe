@@ -53,6 +53,10 @@ table td.dt-cell {
 .dt-header {
 	background-color: @panel-bg;
 	color: @text-muted;
+
+	.dt-row[data-is-filter] {
+		display: table-row !important;
+	}
 }
 
 .dt-row.row-update {
@@ -70,6 +74,11 @@ table td.dt-cell {
 	.help-box {
 		display: none;
 	}
+}
+
+.dt-filter {
+	border: 1px solid @light-border-color;
+	border-radius: 3px;
 }
 
 @keyframes breathe {
