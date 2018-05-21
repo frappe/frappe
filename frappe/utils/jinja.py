@@ -156,6 +156,12 @@ def get_allowed_functions_for_jenv():
 			"escape": frappe.db.escape,
 		}
 
+	# load jenv_methods from hooks.py
+	for app in frappe.get_installed_apps():
+		for jenv_method in (frappe.get_hooks(app_name=app).jenv_methods or []):
+			method_name, method_definition = jenv_method.split(":")
+			out[method_name] = frappe.get_attr(method_definition)
+
 	return out
 
 def get_jloader():
