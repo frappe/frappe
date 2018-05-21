@@ -74,8 +74,8 @@ def get_feed_match_conditions(user=None, force=True):
 
 		if user_permissions:
 			can_read_docs = []
-			for doctype, names in user_permissions.items():
-				for n in names:
+			for doctype, obj in user_permissions.items():
+				for n in obj.get("docs", []):
 					can_read_docs.append('"{}|{}"'.format(doctype, frappe.db.escape(n)))
 
 			if can_read_docs:

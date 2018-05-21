@@ -454,21 +454,27 @@ class DatabaseQuery(object):
 		match_filters = {}
 		match_conditions = []
 		for df in doctype_link_fields:
-			user_permission_values = user_permissions.get(df.get('options'), [])
+			user_permission_values = user_permissions.get(df.get('options'), {})
 			if df.get('ignore_user_permissions'): continue
 
-			empty_value_condition = 'ifnull(`tab{doctype}`.`{fieldname}`, "")=""'.format(doctype=self.doctype, fieldname=df.get('fieldname'))
-			if user_permission_values:
-				if not frappe.get_system_settings("apply_strict_user_permissions"):
-					condition = empty_value_condition + " or "
-				else:
+			empty_value_condition = 'ifnull(`tab{doctype}`.`{fieldname}`, "")=""'.format(
+				doctype=self.doctype, fieldname=df.get('fieldname')
+			)
+
+			if (user_permission_values.get("docs", [])
+				and not self.doctype in user_permission_values.get("skip_for_doctype", [])):
+				if frappe.get_system_settings("apply_strict_user_permissions"):
 					condition = ""
+				else:
+					condition = empty_value_condition + " or "
+
 				condition += """`tab{doctype}`.`{fieldname}` in ({values})""".format(
 					doctype=self.doctype, fieldname=df.get('fieldname'),
-					values=", ".join([('"'+frappe.db.escape(v, percent=False)+'"') for v in user_permission_values]))
+					values=", ".join([('"'+frappe.db.escape(v, percent=False)+'"')
+						for v in user_permission_values.get("docs")]))
 
 				match_conditions.append("({condition})".format(condition=condition))
-				match_filters[df.get('options')] = user_permission_values
+				match_filters[df.get('options')] = user_permission_values.get("docs")
 
 		if match_conditions:
 			self.match_conditions.append(" and ".join(match_conditions))

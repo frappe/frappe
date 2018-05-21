@@ -862,9 +862,9 @@ forwarded@~0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/forwarded/-/forwarded-0.1.2.tgz#98c23dab1175657b8c0573e8ceccd91b0ff18c84"
 
-frappe-datatable@^0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-0.0.5.tgz#347c58c2ffae574a2d32560b1e11251c2d8f07f2"
+frappe-datatable@^0.0.6:
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-0.0.6.tgz#4fc7ad619bd59b8120e97987f81c069c37e63a87"
   dependencies:
     clusterize.js "^0.18.0"
     lodash "^4.17.5"
@@ -1257,6 +1257,10 @@ js-yaml@~3.7.0:
   dependencies:
     argparse "^1.0.7"
     esprima "^2.6.0"
+
+jsbarcode@^3.9.0:
+  version "3.9.0"
+  resolved "https://registry.yarnpkg.com/jsbarcode/-/jsbarcode-3.9.0.tgz#dabe86e28bc3f189a80dc9d88030036882967912"
 
 jsbn@~0.1.0:
   version "0.1.1"

@@ -38,6 +38,13 @@ def get_data():
 				},
 				{
 					"type": "doctype",
+					"name": "User Permission",
+					"label": _("User Permissions"),
+					"icon": "fa fa-lock",
+					"description": _("Restrict user for specific document")
+				},
+				{
+					"type": "doctype",
 					"name": "Role Permission for Page and Report",
 					"description": _("Set custom roles for page and report")
 				},

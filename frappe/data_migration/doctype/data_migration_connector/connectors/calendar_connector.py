@@ -101,6 +101,8 @@ class CalendarConnector(BaseConnection):
 		while True:
 			events = self.gcalendar.events().list(calendarId=self.account.gcalendar_id, maxResults=page_length, singleEvents=False, showDeleted=True).execute()
 			for event in events['items']:
+				event.update({'account': self.account.name})
+				event.update({'calendar_tz': events['timeZone']})
 				results.append(event)
 
 			page_token = events.get('nextPageToken')

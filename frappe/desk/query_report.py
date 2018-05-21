@@ -293,6 +293,7 @@ def has_match(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner
 					if dt=="User" and columns_dict[idx]==columns_dict.get("owner"):
 						continue
 
+					cell_value = None
 					if isinstance(row, dict):
 						cell_value = row.get(idx)
 					elif isinstance(row, list):

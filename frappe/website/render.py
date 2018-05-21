@@ -174,8 +174,12 @@ def build_page(path):
 
 	if context.source:
 		html = frappe.render_template(context.source, context)
+
 	elif context.template:
-		html = frappe.get_template(context.template).render(context)
+		if path.endswith('min.js'):
+			html = frappe.get_jloader().get_source(frappe.get_jenv(), context.template)[0]
+		else:
+			html = frappe.get_template(context.template).render(context)
 
 	if '{index}' in html:
 		html = html.replace('{index}', get_toc(context.route))

@@ -15,9 +15,9 @@ from faker import Faker
 
 # public
 from .exceptions import *
-from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
+from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
 
-__version__ = '10.1.28'
+__version__ = '10.1.31'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -1153,7 +1153,7 @@ def get_list(doctype, *args, **kwargs):
 	return frappe.model.db_query.DatabaseQuery(doctype).execute(None, *args, **kwargs)
 
 def get_all(doctype, *args, **kwargs):
-	"""List database query via `frappe.model.db_query`. Will **not** check for conditions.
+	"""List database query via `frappe.model.db_query`. Will **not** check for permissions.
 	Parameters are same as `frappe.get_list`
 
 	:param doctype: DocType on which query is to be made.

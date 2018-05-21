@@ -70,21 +70,23 @@ def update_reports(doctype, old_fieldname, new_fieldname):
 
 		# update filters
 		new_filters = []
-		for f in report_dict.get("filters"):
-			if f and len(f) > 1 and f[0] == doctype and f[1] == old_fieldname:
-				new_filters.append([doctype, new_fieldname, f[2], f[3]])
-				report_dict["updated"] = True
-			else:
-				new_filters.append(f)
+		if report_dict.get("filters"):
+			for f in report_dict.get("filters"):
+				if f and len(f) > 1 and f[0] == doctype and f[1] == old_fieldname:
+					new_filters.append([doctype, new_fieldname, f[2], f[3]])
+					report_dict["updated"] = True
+				else:
+					new_filters.append(f)
 
 		# update columns
 		new_columns = []
-		for c in report_dict.get("columns"):
-			if c and len(c) > 1 and c[0] == old_fieldname and c[1] == doctype:
-				new_columns.append([new_fieldname, doctype])
-				report_dict["updated"] = True
-			else:
-				new_columns.append(c)
+		if report_dict.get("columns"):
+			for c in report_dict.get("columns"):
+				if c and len(c) > 1 and c[0] == old_fieldname and c[1] == doctype:
+					new_columns.append([new_fieldname, doctype])
+					report_dict["updated"] = True
+				else:
+					new_columns.append(c)
 
 		# update sort by
 		new_sort_by = _get_new_sort_by(report_dict, r, "sort_by")

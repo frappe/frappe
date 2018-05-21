@@ -11,6 +11,10 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		return false;
 	}
 
+	get view_name() {
+		return 'File';
+	}
+
 	setup_view() {
 		this.setup_events();
 	}
@@ -31,7 +35,6 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 
 	setup_defaults() {
 		super.setup_defaults();
-		this.view_name = 'File';
 		this.page_title = __('File Manager');
 
 		const route = frappe.get_route();

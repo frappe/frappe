@@ -6,9 +6,12 @@ import DataTable from 'frappe-datatable';
 frappe.provide('frappe.views');
 
 frappe.views.ReportView = class ReportView extends frappe.views.ListView {
+	get view_name() {
+		return 'Report';
+	}
+
 	setup_defaults() {
 		super.setup_defaults();
-		this.view_name = 'Report';
 		this.page_title = __('Report:') + ' ' + this.page_title;
 		this.menu_items = this.report_menu_items();
 
@@ -63,7 +66,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 	}
 
-	update_data(r) {
+	prepare_data(r) {
 		let data = r.message || {};
 		data = frappe.utils.dict(data.keys, data.values);
 

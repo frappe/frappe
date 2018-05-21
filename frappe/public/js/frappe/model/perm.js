@@ -150,7 +150,10 @@ $.extend(frappe.perm, {
 			let rules = {};
 			let fields_to_check = frappe.meta.get_fields_to_check_permissions(doctype);
 			$.each(fields_to_check, (i, df) => {
-				if (user_permissions[df.options]) rules[df.label] = user_permissions[df.options];
+				if (user_permissions[df.options]
+					&& !(user_permissions[df.options].skip_for_doctype || []).includes(doctype)) {
+					rules[df.label] = user_permissions[df.options].docs;
+				}
 			});
 			if (!$.isEmptyObject(rules)) {
 				match_rules.push(rules);
