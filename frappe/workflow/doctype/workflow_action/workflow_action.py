@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.core.page.permission_manager.permission_manager import get_users_with_role
+from frappe.utils.background_jobs import enqueue
 
 class WorkflowAction(Document):
 	pass
@@ -81,13 +82,15 @@ def create_workflow_actions(doc, state):
 
 def send_workflow_action_email(email_map):
 	for user, d in email_map.items():
-		frappe.sendmail(
-			recipients=['suraj@erpnext.com', d.get('email')],
-			template='workflow_action',
-			attachments=[frappe.attach_print(d.get('doctype'), d.get('docname'), file_name=d.get('docname'))],
-			args={
+		email_args = {
+			'recipients': [d.get('email')],
+			'template': 'workflow_action',
+			'attachments': [frappe.attach_print(d.get('doctype'), d.get('docname'), file_name=d.get('docname'))],
+			'args': {
 				'actions': d.get('possible_actions'),
-				'message': 'Inn {0} {1}'.format(d.get('doctype'), d.get('docname'))
+				'message': '{0} {1}'.format(d.get('doctype'), d.get('docname'))
 			},
-			header=["Workflow Action", "green"]
-		)
+			'header': ["Workflow Action", "orange"]
+		}
+		enqueue(method=frappe.sendmail, queue='short', timeout=300, async=True, **email_args)
+
