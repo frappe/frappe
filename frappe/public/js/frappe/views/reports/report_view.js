@@ -39,6 +39,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_view() {
 		this.setup_columns();
 		this.bind_charts_button();
+		this.setup_dynamic_row_height_check();
 	}
 
 	setup_result_area() {
@@ -77,13 +78,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 	}
 
-	render() {
+	render(force) {
 		if (this.data.length === 0) return;
 
 		if (this.chart) {
 			this.refresh_charts();
 		}
-		if (this.datatable) {
+		if (this.datatable && !force) {
 			this.datatable.refresh(this.get_data(this.data));
 			return;
 		}
@@ -147,11 +148,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	setup_datatable(values) {
+		this.$datatable_wrapper.empty();
 		this.datatable = new DataTable(this.$datatable_wrapper[0], {
 			columns: this.columns,
 			data: this.get_data(values),
 			getEditor: this.get_editing_object.bind(this),
-			dynamicRowHeight: true,
+			dynamicRowHeight: !this.fixed_row_height.get_value(),
 			checkboxColumn: true,
 			events: {
 				onRemoveColumn: (column) => {
@@ -818,6 +820,23 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				content: ''
 			};
 		});
+	}
+
+	setup_dynamic_row_height_check() {
+		this.fixed_row_height = frappe.ui.form.make_control({
+			df: {
+				fieldtype: 'Check',
+				fieldname: 'fixed_row_height',
+				label: __('Fixed height'),
+				onchange: () => {
+					this.render(true);
+				}
+			},
+			parent: this.$paging_area.find('.level-left'),
+			render_input: true
+		});
+		this.fixed_row_height.$wrapper.addClass('report-action-checkbox');
+		this.fixed_row_height.set_value(1);
 	}
 
 	get_checked_items(only_docnames) {
