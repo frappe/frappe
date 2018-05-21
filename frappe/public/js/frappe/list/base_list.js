@@ -229,8 +229,12 @@ frappe.views.BaseList = class BaseList {
 				sort_by: this.sort_by,
 				sort_order: this.sort_order
 			},
-			onchange: () => this.refresh(true)
+			onchange: this.on_sort_change.bind(this)
 		});
+	}
+
+	on_sort_change() {
+		this.refresh();
 	}
 
 	setup_result_area() {
