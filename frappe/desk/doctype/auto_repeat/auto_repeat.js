@@ -87,8 +87,8 @@ function render_schedule(frm){
 		method: "get_auto_repeat_schedule",
 		doc: cur_frm.doc
 	}).done((r) => {
-		console.log("r.message",r.message);
-		var wrapper = $(cur_frm.fields_dict["auto_repeat_schedule"].wrapper);
+		
+		var wrapper = $(frm.fields_dict["auto_repeat_schedule"].wrapper);
 
 		wrapper.html(frappe.render_template ("auto_repeat_schedule", {"schedule_details" : r.message || []}  ));
 	})
