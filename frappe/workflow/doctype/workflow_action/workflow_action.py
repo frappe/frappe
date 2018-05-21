@@ -45,6 +45,7 @@ def create_workflow_actions(doc, state):
 		(reference_doctype, reference_name, doc_current_state))
 
 	email_map = {}
+
 	for transition in immediate_next_possible_transitions:
 		users = get_users_with_role(transition.allowed)
 		for user in users:
@@ -64,8 +65,6 @@ def create_workflow_actions(doc, state):
 				email_map[user] = {
 					'possible_actions': [],
 					'email': frappe.db.get_value('User', user, 'email'),
-					'doctype': reference_doctype,
-					'docname': reference_name
 				}
 
 			email_map[user].get('possible_actions').append({
@@ -75,22 +74,25 @@ def create_workflow_actions(doc, state):
 
 			newdoc.insert(ignore_permissions=True)
 
-		send_workflow_action_email(email_map)
+		frappe.db.commit()
 
-	frappe.db.commit()
+		send_workflow_action_email(email_map, reference_doctype, reference_name)
 
+def send_workflow_action_email(email_map, doctype, docname):
+	common_args = {
+		'template': 'workflow_action',
+		'attachments': [frappe.attach_print(doctype, docname , file_name=docname)],
+		'header': ["Workflow Action", "orange"]
+	}
 
-def send_workflow_action_email(email_map):
 	for user, d in email_map.items():
 		email_args = {
 			'recipients': [d.get('email')],
-			'template': 'workflow_action',
-			'attachments': [frappe.attach_print(d.get('doctype'), d.get('docname'), file_name=d.get('docname'))],
 			'args': {
 				'actions': d.get('possible_actions'),
-				'message': '{0} {1}'.format(d.get('doctype'), d.get('docname'))
+				'message': '{0} {1}'.format(doctype, docname)
 			},
-			'header': ["Workflow Action", "orange"]
 		}
-		enqueue(method=frappe.sendmail, queue='short', timeout=300, async=True, **email_args)
+		email_args = email_args + common_args
+		enqueue(method=frappe.sendmail, queue='short', **email_args)
 
