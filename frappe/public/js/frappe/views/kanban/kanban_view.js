@@ -22,9 +22,12 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return false;
 	}
 
+	get view_name() {
+		return 'Kanban';
+	}
+
 	setup_defaults() {
 		super.setup_defaults();
-		this.view_name = 'Kanban';
 		this.board_name = frappe.get_route()[3];
 		this.page_title = this.board_name;
 		this.card_meta = this.get_card_meta();
