@@ -180,17 +180,18 @@ frappe.activity.render_heatmap = function(page) {
 		method: "frappe.desk.page.activity.activity.get_heatmap_data",
 		callback: function(r) {
 			if(r.message) {
-				var heatmap = new Chart({
-					parent: ".heatmap",
+				var heatmap = new frappeChart.Chart(".heatmap", {
 					type: 'heatmap',
 					height: 100,
 					start: new Date(moment().subtract(1, 'year').toDate()),
-					count_label: "actions",
-					discrete_domains: 0,
+					countLabel: "actions",
+					discreteDomains: 0,
 					data: {}
 				});
 
-				heatmap.update(r.message);
+				heatmap.update({
+					dataPoints: r.message
+				});
 			}
 		}
 	})
