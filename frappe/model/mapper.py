@@ -30,11 +30,17 @@ def make_mapped_doc(method, source_name, selected_children=None):
 def map_docs(method, source_names, target_doc):
 	'''Returns the mapped document calling the given mapper method
 	with each of the given source docs on the target doc'''
+	if 'custom_server_action' in method:
+		server_action_name = frappe.local.form_dict.get('server_action_name')
+
 	method = frappe.get_attr(method)
 	if method not in frappe.whitelisted:
 		raise frappe.PermissionError
 
 	for src in json.loads(source_names):
+		if server_action_name :
+			frappe.local.form_dict.update({'source_name':src, 'target_doc':target_doc,
+						       'server_action_name':server_action_name})
 		target_doc = method(src, target_doc)
 	return target_doc
 

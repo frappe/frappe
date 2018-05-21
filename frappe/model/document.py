@@ -17,6 +17,8 @@ from frappe.model.workflow import validate_workflow
 from frappe.utils.file_manager import save_url
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
+from frappe.custom.doctype.custom_server_action import run_custom_server_action
+
 
 # once_only validation
 # methods
@@ -195,6 +197,7 @@ class Document(BaseDocument):
 			return
 
 		self.flags.email_alerts_executed = []
+		self.flags.custom_server_action_executed = []
 
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
@@ -272,6 +275,7 @@ class Document(BaseDocument):
 			return
 
 		self.flags.email_alerts_executed = []
+		self.flags.custom_server_action_executed = []
 
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
@@ -765,6 +769,7 @@ class Document(BaseDocument):
 		out = Document.hook(fn)(self, *args, **kwargs)
 
 		self.run_email_alerts(method)
+		run_custom_server_action(self, method)
 		run_webhooks(self, method)
 
 		return out
