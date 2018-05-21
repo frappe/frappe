@@ -63,11 +63,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				board_name: this.board_name,
 				filters: this.filter_area.get()
 			}
-		}).then(function() {
-			frappe.show_alert({
-				message: __('Filters saved'),
-				indicator: 'green'
-			}, 0.5);
 		});
 	}
 
