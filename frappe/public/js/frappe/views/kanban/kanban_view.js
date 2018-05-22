@@ -22,9 +22,12 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return false;
 	}
 
+	get view_name() {
+		return 'Kanban';
+	}
+
 	setup_defaults() {
 		super.setup_defaults();
-		this.view_name = 'Kanban';
 		this.board_name = frappe.get_route()[3];
 		this.page_title = this.board_name;
 		this.card_meta = this.get_card_meta();
@@ -53,6 +56,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	before_render() {
+		frappe.model.user_settings.save(this.doctype, 'last_view', this.view_name);
 		this.save_view_user_settings({
 			last_kanban_board: this.board_name
 		});
@@ -63,11 +67,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				board_name: this.board_name,
 				filters: this.filter_area.get()
 			}
-		}).then(function() {
-			frappe.show_alert({
-				message: __('Filters saved'),
-				indicator: 'green'
-			}, 0.5);
 		});
 	}
 

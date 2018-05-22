@@ -44,13 +44,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
+	get view_name() {
+		return 'List';
+	}
+
 	get view_user_settings() {
 		return this.user_settings[this.view_name] || {};
 	}
 
 	setup_defaults() {
 		super.setup_defaults();
-		this.view_name = 'List';
 		// initialize with saved filters
 		const saved_filters = this.view_user_settings.filters;
 		if (saved_filters) {
@@ -67,7 +70,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.filters = filters;
 		}
 		// initialize with saved order by
-		this.order_by = this.view_user_settings.order_by || 'modified desc';
+		this.sort_by = this.view_user_settings.sort_by || 'modified';
+		this.sort_order = this.view_user_settings.sort_order || 'desc';
 
 		// build menu items
 		this.menu_items = this.menu_items.concat(this.get_menu_items());
@@ -75,6 +79,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.actions_menu_items = this.get_actions_menu_items();
 
 		this.patch_refresh_and_load_lib();
+	}
+
+	on_sort_change(sort_by, sort_order) {
+		this.sort_by = sort_by;
+		this.sort_order = sort_order;
+		super.on_sort_change();
 	}
 
 	validate_filters(filters) {
@@ -127,6 +137,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			[this.meta.title_field, this.meta.image_field],
 			(this.settings.add_fields || []),
 			this.meta.track_seen ? '_seen' : null,
+			this.sort_by,
 			'enabled',
 			'disabled'
 		);
@@ -304,7 +315,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		frappe.model.user_settings.save(this.doctype, 'last_view', this.view_name);
 		this.save_view_user_settings({
 			filters: this.filter_area.get(),
-			order_by: this.sort_selector.get_sql_string()
+			sort_by: this.sort_selector.sort_by,
+			sort_order: this.sort_selector.sort_order
 		});
 	}
 
@@ -793,6 +805,25 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						// update this data in place
 						this.data[index] = datum;
 					}
+
+					this.data.sort((a, b) => {
+						const a_value = a[this.sort_by] || '';
+						const b_value = b[this.sort_by] || '';
+
+						let return_value = 0;
+						if (a_value > b_value) {
+							return_value = 1;
+						}
+
+						if (b_value > a_value) {
+							return_value = -1;
+						}
+
+						if (this.sort_order === 'desc') {
+							return_value = -return_value;
+						}
+						return return_value;
+					});
 
 					this.render();
 				});

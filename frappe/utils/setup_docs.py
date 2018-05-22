@@ -105,6 +105,7 @@ class setup_docs(object):
 		for basepath, folders, files in os.walk(self.docs_path): # pylint: disable=unused-variable
 			with open(os.path.join(basepath, '_sidebar.json'), 'w') as sidebarfile:
 				sidebarfile.write(frappe.as_json([
+					{"title": "Search Docs ...", "type": "input", "route": "/search_docs"},
 					{"title": "Docs Home", "route": "/docs"},
 					{"title": "User Guide", "route": "/docs/user"},
 					{"title": "Server API", "route": "/docs/current/api"},

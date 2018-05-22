@@ -27,6 +27,11 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 			return frappe.boot.email_accounts.find(d => d.email_account === email_account);
 		}
 	}
+
+	get view_name() {
+		return 'Inbox';
+	}
+
 	show() {
 		super.show();
 		// save email account in user_settings
@@ -37,7 +42,6 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 
 	setup_defaults() {
 		super.setup_defaults();
-		this.view_name = 'Inbox';
 		this.email_account = frappe.get_route()[3];
 		this.page_title = this.email_account;
 		this.filters = this.get_inbox_filters();
