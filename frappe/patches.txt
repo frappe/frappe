@@ -214,3 +214,4 @@ frappe.patches.v10_0.set_no_copy_to_workflow_state
 frappe.patches.v10_0.increase_single_table_column_length
 frappe.patches.v11_0.create_contact_for_user
 frappe.patches.v11_0.update_list_user_settings
+frappe.patches.v11_0.copy_fetch_data_from_options
