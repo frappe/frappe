@@ -11,6 +11,7 @@ def get_context(context):
 	if frappe.form_dict.q:
 		query = str(utils.escape(sanitize_html(frappe.form_dict.q)))
 		context.title = _('Search Results for "{0}"').format(query)
+		context.route = '/search'
 		context.update(get_search_results(query))
 	else:
 		context.title = _('Search')
