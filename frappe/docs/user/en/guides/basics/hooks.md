@@ -275,3 +275,21 @@ Example,
 			"erpnext.setup.doctype.backup_manager.backup_manager.take_backups_daily"
 		],
 	}
+
+### Jinja Customization
+
+Fetch custom methods and filters that are to be available globally in jinja environment.
+
+* `methods`
+* `filters`
+
+Example,
+
+	jenv = {
+		"methods": [
+			"method_name:dotted.path.to.method_definition"
+		],
+		"filters": [
+			"filter_name:dotted.path.to.filter_function"
+		]
+	}
