@@ -590,21 +590,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_form_link(doc) {
-		// refactor
-		let doctype = this.doctype;
-		let docname = '';
-		if(this.doctype === 'Workflow Action' && doc.status === 'Open') {
-			doctype = doc.reference_doctype;
-			docname = doc.reference_name || 'test';
-		} else {
-			docname = doc.name;
+		if (this.settings.get_form_link) {
+			return this.settings.get_form_link(doc)
 		}
-		docname = docname.match(/[%'"]/)
-			? encodeURIComponent(docname)
-			: docname;
 
-		const link = '#Form/' + doctype + '/' + docname;
-		return link;
+		const docname = doc.name.match(/[%'"]/)
+			? encodeURIComponent(doc.name)
+			: doc.name;
+
+		return '#Form/' + this.doctype + '/' + docname;
 	}
 
 	get_subject_html(doc) {
