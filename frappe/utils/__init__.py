@@ -53,12 +53,18 @@ def get_fullname(user=None):
 
 	return frappe.local.fullnames.get(user)
 
+def get_email_address(user=None):
+	"""get the email address of the user from User"""
+	if not user:
+		user = frappe.session.user
+
+	return frappe.db.get_value("User", user, ["email"], as_dict=True).get("email")
+
 def get_formatted_email(user):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
-	if user == "Administrator":
-		return user
 	fullname = get_fullname(user)
-	return formataddr((fullname, user))
+	mail = get_email_address(user)
+	return formataddr((fullname, mail))
 
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
