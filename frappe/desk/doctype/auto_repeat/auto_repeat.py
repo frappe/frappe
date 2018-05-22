@@ -99,11 +99,12 @@ class AutoRepeat(Document):
 			self.status = status
 
 	def get_auto_repeat_schedule(self):
-		start_date_copy = self.start_date
 		schedule_details = []
+		start_date_copy = self.start_date
+		end_date_copy = self.end_date
 		if not self.end_date:
-			self.end_date = add_days(self.start_date, 360)
-		while (getdate(start_date_copy) < getdate(self.end_date)):
+			end_date_copy = add_days(self.start_date, 360)
+		while (getdate(start_date_copy) < getdate(end_date_copy)):
 			start_date_copy = get_next_schedule_date(start_date_copy,self.frequency,self.repeat_on_day)
 			row = {
 			"reference_document" : self.reference_document,
@@ -111,7 +112,6 @@ class AutoRepeat(Document):
 			"next_scheduled_date" : start_date_copy
 			}
 			schedule_details.append(row)
-	
 		return schedule_details
 
 def get_next_schedule_date(start_date, frequency, repeat_on_day):
