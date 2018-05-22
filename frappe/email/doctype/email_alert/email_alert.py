@@ -12,6 +12,7 @@ from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
 from markdown2 import markdown
 from six import string_types
+from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 
 # imports - third-party imports
 import pymysql
@@ -125,39 +126,9 @@ def get_context(context):
 					"print_format":self.print_format, "print_letterhead": print_settings.with_letterhead}]
 
 		context = get_context(doc)
-		recipients = []
 
 		context = {"doc": doc, "alert": self, "comments": None}
 
-		for recipient in self.recipients:
-			if recipient.condition:
-				if not frappe.safe_eval(recipient.condition, None, context):
-					continue
-			if recipient.email_by_document_field:
-				if validate_email_add(doc.get(recipient.email_by_document_field)):
-					recipient.email_by_document_field = doc.get(recipient.email_by_document_field).replace(",", "\n")
-					recipients = recipients + recipient.email_by_document_field.split("\n")
-
-				# else:
-				# 	print "invalid email"
-			if recipient.cc and "{" in recipient.cc:
-				recipient.cc = frappe.render_template(recipient.cc, context)
-
-			if recipient.cc:
-				recipient.cc = recipient.cc.replace(",", "\n")
-				recipients = recipients + recipient.cc.split("\n")
-
-			#For sending emails to specified role
-			if recipient.email_by_role:
-				emails = get_emails_from_role(recipient.email_by_role)
-
-				for email in emails:
-					recipients = recipients + email.split("\n")
-
-		if not recipients:
-			return
-
-		recipients = list(set(recipients))
 		subject = self.subject
 
 		if self.is_standard:
@@ -171,13 +142,55 @@ def get_context(context):
 
 		attachments = get_attachment(doc)
 
-		frappe.sendmail(recipients=recipients, subject=subject,
-			message= frappe.render_template(self.message, context),
-			reference_doctype = doc.doctype,
-			reference_name = doc.name,
-			attachments = attachments,
-			print_letterhead = ((attachments
-				and attachments[0].get('print_letterhead')) or False))
+		if self.channel == 'Email':
+			recipients = []
+			for recipient in self.recipients:
+				if recipient.condition:
+					if not frappe.safe_eval(recipient.condition, None, context):
+						continue
+				if recipient.email_by_document_field:
+					if validate_email_add(doc.get(recipient.email_by_document_field)):
+						recipient.email_by_document_field = doc.get(recipient.email_by_document_field).replace(",", "\n")
+						recipients = recipients + recipient.email_by_document_field.split("\n")
+
+					# else:
+					# 	print "invalid email"
+				if recipient.cc and "{" in recipient.cc:
+					recipient.cc = frappe.render_template(recipient.cc, context)
+
+				if recipient.cc:
+					recipient.cc = recipient.cc.replace(",", "\n")
+					recipients = recipients + recipient.cc.split("\n")
+
+				#For sending emails to specified role
+				if recipient.email_by_role:
+					emails = get_emails_from_role(recipient.email_by_role)
+
+					for email in emails:
+						recipients = recipients + email.split("\n")
+
+			if not recipients:
+				return
+
+			recipients = list(set(recipients))
+
+			frappe.sendmail(recipients=recipients, subject=subject,
+				message= frappe.render_template(self.message, context),
+				reference_doctype = doc.doctype,
+				reference_name = doc.name,
+				attachments = attachments,
+				print_letterhead = ((attachments
+					and attachments[0].get('print_letterhead')) or False))
+
+		elif self.channel == 'Slack':
+			slack_webhook_url = self.slack_webhook_url
+
+			send_slack_message(
+				webhook_url=slack_webhook_url,
+				message=frappe.render_template(self.message, context),
+				reference_doctype = doc.doctype,
+				reference_name = doc.name
+			)
 
 		if self.set_property_after_alert:
 			frappe.db.set_value(doc.doctype, doc.name, self.set_property_after_alert,
