@@ -29,7 +29,7 @@ class StripeSettings(Document):
 		'GBP': 0.30, 'NZD': 0.50, 'SGD': 0.50
 	}
 
-	def validate(self):
+	def on_update(self):
 		create_payment_gateway('Stripe-' + self.gateway_name, settings='Stripe Settings', controller=self.gateway_name)
 		call_hook_method('payment_gateway_enabled', gateway='Stripe-' + self.gateway_name)
 		if not self.flags.ignore_mandatory:
