@@ -76,7 +76,12 @@ def get_data():
 					"type": "doctype",
 					"name": "Webhook",
 					"description": _("Webhooks calling API requests into web apps"),
-				}
+				},
+				{
+					"type": "doctype",
+					"name": "Slack Webhook URL",
+					"description": _("Slack Webhooks for internal integration"),
+				},
 			]
 		},
 		{

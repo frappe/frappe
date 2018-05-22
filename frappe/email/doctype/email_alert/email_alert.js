@@ -67,6 +67,7 @@ frappe.ui.form.on("Email Alert", {
 		});
 	},
 	refresh: function(frm) {
+		frm.toggle_reqd("recipients", frm.doc.channel=="Email");
 		frappe.email_alert.setup_fieldname_select(frm);
 		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
 		frm.trigger('event');
@@ -96,5 +97,8 @@ frappe.ui.form.on("Email Alert", {
 				});
 			});
 		}
+	},
+	channel: function(frm) {
+		frm.toggle_reqd("recipients", frm.doc.channel=="Email");
 	}
 });
