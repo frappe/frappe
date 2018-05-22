@@ -375,7 +375,7 @@ frappe.ui.Page = Class.extend({
 			$(this.inner_toolbar).removeClass("hide");
 
 			if (!this.is_in_group_button_dropdown($group.find(".dropdown-menu"), 'li', label)) {
-				return $('<li><a data-label="'+label+'">'+label+'</a></li>')
+				return $('<li><a data-label="'+encodeURIComponent(label)+'">'+label+'</a></li>')
 					.on('click', _action)
 					.appendTo($group.find(".dropdown-menu"));
 			}
@@ -383,7 +383,7 @@ frappe.ui.Page = Class.extend({
 		} else {
 			var button = this.inner_toolbar.find('button[data-label="'+label+'"]');
 			if( button.length == 0 ) {
-				return $('<button data-label="'+label+'" class="btn btn-default btn-xs" style="margin-left: 10px;">'+__(label)+'</btn>')
+				return $('<button data-label="'+encodeURIComponent(label)+'" class="btn btn-default btn-xs" style="margin-left: 10px;">'+__(label)+'</btn>')
 					.on("click", _action)
 					.appendTo(this.inner_toolbar.removeClass("hide"));
 			} else {
