@@ -54,13 +54,11 @@ class Communication(Document):
 			# Prevent circular linking of Communication DocTypes
 			if self.reference_doctype == "Communication":
 				circular_linking = False
-				linked_doc_list = []
-				doc = self
+				doc = get_parent_doc(self)
 				while doc.reference_doctype == "Communication":
-					if doc.name in linked_doc_list:
+					if get_parent_doc(doc).name==self.name:
 						circular_linking = True
 						break
-					linked_doc_list.append(doc.name)
 					doc = get_parent_doc(doc)
 				if circular_linking:
 					frappe.throw(_("Please make sure the Reference Communication Docs are not circularly linked."))
