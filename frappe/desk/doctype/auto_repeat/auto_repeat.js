@@ -1,5 +1,6 @@
 // Copyright (c) 2018, Frappe Technologies and contributors
 // For license information, please see license.txt
+frappe.provide("frappe.auto_repeat");
 
 frappe.ui.form.on('Auto Repeat', {
 	setup: function(frm) {
@@ -56,8 +57,9 @@ frappe.ui.form.on('Auto Repeat', {
 					}
 				);
 			}
+
 			if(frm.doc.status!= 0){
-				render_schedule(frm);
+				frappe.auto_repeat.render_schedule(frm);
 			}
 
 		}
@@ -81,12 +83,11 @@ frappe.ui.form.on('Auto Repeat', {
 	}
 });
 
-function render_schedule(frm){
+frappe.auto_repeat.render_schedule = function(frm) { 
 	frappe.call({
 		method: "get_auto_repeat_schedule",
 		doc: cur_frm.doc
 	}).done((r) => {
-		
 		var wrapper = $(frm.fields_dict["auto_repeat_schedule"].wrapper);
 
 		wrapper.html(frappe.render_template ("auto_repeat_schedule", {"schedule_details" : r.message || []}  ));

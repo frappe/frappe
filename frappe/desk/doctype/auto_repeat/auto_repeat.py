@@ -103,7 +103,6 @@ class AutoRepeat(Document):
 		schedule_details = []
 		if not self.end_date:
 			self.end_date = add_days(self.start_date, 360)
-			
 		while (getdate(start_date_copy) < getdate(self.end_date)):
 			start_date_copy = get_next_schedule_date(start_date_copy,self.frequency,self.repeat_on_day)
 			row = {
