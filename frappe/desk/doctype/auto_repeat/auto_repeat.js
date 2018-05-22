@@ -56,8 +56,7 @@ frappe.ui.form.on('Auto Repeat', {
 					}
 				);
 			}
-			if(frm.doc.status!= 0)
-			{
+			if(frm.doc.status!= 0){
 				render_schedule(frm);
 			}
 
@@ -91,6 +90,6 @@ function render_schedule(frm){
 		var wrapper = $(frm.fields_dict["auto_repeat_schedule"].wrapper);
 
 		wrapper.html(frappe.render_template ("auto_repeat_schedule", {"schedule_details" : r.message || []}  ));
-	})
-		frm.refresh_fields() ;
-};
+	});
+	frm.refresh_fields() ;
+}
