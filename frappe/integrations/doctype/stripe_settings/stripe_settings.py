@@ -110,7 +110,8 @@ class StripeSettings(Document):
 			]
 
 		try:
-			subscription = stripe.Subscription.create(customer="cus_BVvAY55gqsudYY", items=items)
+			customer = stripe.Customer.create(description=self.data.payer_name, email=self.data.payer_email, source=self.data.stripe_token_id)
+			subscription = stripe.Subscription.create(customer=customer, items=items)
 
 			if subscription.status == "active":
 				self.integration_request.db_set('status', 'Completed', update_modified=False)
