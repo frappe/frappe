@@ -60,9 +60,9 @@ def install_basic_docs():
 			"icon": "ok-sign", "style": "Success"},
 		{'doctype': "Workflow State", "workflow_state_name": "Rejected",
 			"icon": "remove", "style": "Danger"},
-		{'doctype': "Workflow Action", "workflow_action_name": "Approve"},
-		{'doctype': "Workflow Action", "workflow_action_name": "Reject"},
-		{'doctype': "Workflow Action", "workflow_action_name": "Review"},
+		{'doctype': "Workflow Action Master", "workflow_action_name": "Approve"},
+		{'doctype': "Workflow Action Master", "workflow_action_name": "Reject"},
+		{'doctype': "Workflow Action Master", "workflow_action_name": "Review"},
 		{'doctype': "Email Domain", "domain_name":"example.com", "email_id": "account@example.com", "password": "pass", "email_server": "imap.example.com","use_imap": 1, "smtp_server": "smtp.example.com"},
 		{'doctype': "Email Account", "domain":"example.com", "email_id": "notifications@example.com", "default_outgoing": 1},
 		{'doctype': "Email Account", "domain":"example.com", "email_id": "replies@example.com", "default_incoming": 1}
