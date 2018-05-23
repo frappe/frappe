@@ -11,6 +11,7 @@ frappe.ui.form.on("Contact", {
 			if (last_route && last_route.length > 3) {
 				docname = last_route.slice(2).join("/");
 			}
+
 			if(frappe.dynamic_link && frappe.dynamic_link.doc
 					&& frappe.dynamic_link.doc.name==docname) {
 				frm.add_child('links', {
