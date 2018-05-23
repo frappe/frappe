@@ -61,7 +61,7 @@ class Communication(Document):
 						break
 					doc = get_parent_doc(doc)
 				if circular_linking:
-					frappe.throw(_("Please make sure the Reference Communication Docs are not circularly linked."))
+					frappe.throw(_("Please make sure the Reference Communication Docs are not circularly linked."), frappe.CircularLinkingError)
 
 		if not self.user:
 			self.user = frappe.session.user

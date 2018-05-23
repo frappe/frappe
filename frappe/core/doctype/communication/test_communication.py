@@ -67,5 +67,5 @@ class TestCommunication(unittest.TestCase):
 		a = frappe.get_doc("Communication", a.name)
 		a.reference_doctype = "Communication"
 		a.reference_name = c.name
-		self.assertRaises(frappe.ValidationError, a.save)
+		self.assertRaises(frappe.CircularLinkingError, a.save)
 
