@@ -131,13 +131,13 @@ class WebPage(WebsiteGenerator):
 			context.metatags["image"] = image
 
 	def check_publication_dates(self):
-		if self.end_date and get_datetime(self.end_date) < get_datetime(self.start_date):
-			frappe.throw(_("End Date cannot be before Start Date!"))
+		if self.end_date:
+			if get_datetime(self.end_date) < get_datetime(self.start_date):
+				frappe.throw(_("End Date cannot be before Start Date!"))
 
-		if now() > self.end_date:
 			# If the current date is past end date, and
 			# web page is published, empty the end date
-			if self.published and self.end_date is not None:
+			if self.published and now() > self.end_date:
 				self.end_date = None
 
 				frappe.msgprint(_("Clearing end date, as it cannot be in the past for published pages."))
