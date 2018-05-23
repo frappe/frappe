@@ -32,7 +32,7 @@ def create_workflow_actions(doc, state):
 	from frappe.permissions import has_permission
 
 	workflow = frappe.get_all("Workflow",
-		fields=['*'],
+		fields=['name'],
 		filters=[['document_type', '=', doc.get('doctype')], ['is_active', '=', 1]]
 	)
 	if not workflow: return
@@ -43,6 +43,15 @@ def create_workflow_actions(doc, state):
 	workflow = frappe.get_doc('Workflow', workflow[0].name)
 
 	doc_current_state = doc.get(workflow.workflow_state_field)
+
+	# hack to check if workflow action was already created and is this method called again due some field changes
+	workflow_action_already_created = frappe.db.count('Workflow Action', filters=[
+		['reference_doctype', '=', reference_doctype],
+		['reference_name', '=', reference_name],
+		['workflow_state', '=', doc_current_state]
+	])
+
+	if workflow_action_already_created: return
 
 	immediate_next_possible_transitions = [d for d in workflow.transitions if d.state == doc_current_state]
 
