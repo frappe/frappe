@@ -10,6 +10,7 @@ import datetime
 import frappe
 import frappe.defaults
 import frappe.async
+from time import time
 import re
 import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr, cast_fieldtype
@@ -172,6 +173,9 @@ class Database:
 
 		# execute
 		try:
+			if debug:
+				time_start = time()
+
 			if values!=():
 				if isinstance(values, dict):
 					values = dict(values)
@@ -203,6 +207,12 @@ class Database:
 					frappe.log(">>>>")
 
 				self._cursor.execute(query)
+
+			if debug:
+				frappe.errprint("\n--- query stats start ---\n")
+				time_end = time()
+				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
+				frappe.errprint("\n--- query stats end ---\n")
 
 		except Exception as e:
 			if ignore_ddl and e.args[0] in (ER.BAD_FIELD_ERROR, ER.NO_SUCH_TABLE,
