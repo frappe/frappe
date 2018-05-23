@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Workflow Action Master', {
-	refresh: function(frm) {
+	refresh: function() {
 
 	}
 });

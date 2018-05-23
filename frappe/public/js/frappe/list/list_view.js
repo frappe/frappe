@@ -591,7 +591,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_form_link(doc) {
 		if (this.settings.get_form_link) {
-			return this.settings.get_form_link(doc)
+			return this.settings.get_form_link(doc);
 		}
 
 		const docname = doc.name.match(/[%'"]/)

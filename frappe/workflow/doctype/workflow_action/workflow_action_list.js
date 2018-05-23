@@ -16,4 +16,4 @@ frappe.listview_settings['Workflow Action'] = {
 		const link = '#Form/' + doctype + '/' + docname;
 		return link;
 	}
-}
+};

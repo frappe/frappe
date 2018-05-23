@@ -118,7 +118,7 @@ def send_workflow_action_email(email_map, doctype, docname):
 			'recipients': [d.get('email')],
 			'args': {
 				'actions': d.get('possible_actions'),
-				'message': _('{0} : {1}'.format(doctype, docname))
+				'message': email_message
 			},
 		}
 		email_args.update(common_args)
@@ -127,6 +127,7 @@ def send_workflow_action_email(email_map, doctype, docname):
 
 @frappe.whitelist()
 def apply_action(action, doctype, docname, current_state):
+	verify_request()
 	doc = frappe.get_doc(doctype, docname)
 	workflow = get_workflow_name(doctype)
 	doc_workflow_state = doc.get(
