@@ -60,7 +60,8 @@ frappe.ui.form.States = Class.extend({
 
 		function has_approval_access() {
 			let approval_access = false;
-			user = frappe.session.user;
+			const user = frappe.session.user;
+
 			if (user === 'Administrator'
 				|| frappe.workflow.is_self_approval_enabled(this.frm.doctype)
 				|| user !== this.frm.doc.owner) {
