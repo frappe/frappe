@@ -9,7 +9,8 @@ from frappe.utils.background_jobs import enqueue
 from frappe.utils import get_url
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe import _
-from frappe.model.workflow import apply_workflow, get_workflow_name
+from frappe.model.workflow import apply_workflow, get_workflow_name, has_approval_access
+from frappe.desk.notifications import clear_doctype_notifications
 
 class WorkflowAction(Document):
 	pass
@@ -63,6 +64,7 @@ def create_workflow_actions(doc, state):
 		where reference_doctype=%s and reference_name=%s and user!=%s''',
 		(reference_doctype, reference_name, current_user))
 
+	clear_doctype_notifications('Workflow Action')
 
 	from frappe.permissions import has_permission
 
@@ -71,7 +73,9 @@ def create_workflow_actions(doc, state):
 	for transition in immediate_next_possible_transitions:
 		users = get_users_with_role(transition.allowed)
 		for user in users:
-			if not has_permission(doctype=doc, ptype='read', user=user): continue
+			if (has_approval_access(doc, workflow, user) and
+				has_permission(doctype=doc, ptype='read', user=user)): pass
+			else: continue
 
 			if not email_map.get(user):
 				email_map[user] = {

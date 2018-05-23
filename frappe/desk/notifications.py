@@ -180,7 +180,10 @@ def delete_notification_count_for(doctype):
 
 def clear_doctype_notifications(doc, method=None, *args, **kwargs):
 	config = get_notification_config()
-	doctype = doc.doctype
+	if isinstance(doc, str):
+		doctype = doc # assuming doctype name was passed directly
+	else:
+		doctype = doc.doctype
 
 	if doctype in config.for_doctype:
 		delete_notification_count_for(doctype)

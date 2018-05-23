@@ -40,6 +40,9 @@ frappe.workflow = {
 		frappe.workflow.setup(doctype);
 		return frappe.get_children(frappe.workflow.workflows[doctype], "states", {state:state})[0];
 	},
+	is_self_approval_enabled: function(doctype) {
+		return frappe.workflow.workflows[doctype].allow_self_approval;
+	},
 	is_read_only: function(doctype, name) {
 		var state_fieldname = frappe.workflow.get_state_fieldname(doctype);
 		if(state_fieldname) {

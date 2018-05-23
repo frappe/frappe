@@ -56,9 +56,20 @@ frappe.ui.form.States = Class.extend({
 		}
 
 		// state text
-		var state = this.get_state();
+		const state = this.get_state();
 
-		if(state) {
+		function has_approval_access() {
+			let approval_access = false;
+			user = frappe.session.user;
+			if (user === 'Administrator'
+				|| frappe.workflow.is_self_approval_enabled(this.frm.doctype)
+				|| user !== this.frm.doc.owner) {
+				approval_access = true;
+			}
+			return approval_access;
+		}
+
+		if(state && has_approval_access()) {
 			// show actions from that state
 			this.show_actions(state);
 		}

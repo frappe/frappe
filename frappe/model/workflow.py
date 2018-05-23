@@ -61,6 +61,10 @@ def apply_workflow(doc, action):
 	doc = frappe.get_doc(frappe.parse_json(doc))
 	workflow = get_workflow(doc.doctype)
 	transitions = get_transitions(doc, workflow)
+	user = frappe.session.user
+
+	if not has_approval_access(doc, workflow, user):
+		frappe.throw(_("Self approval is not allowed"))
 
 	# find the transition
 	transition = None
@@ -133,3 +137,8 @@ def validate_workflow(doc):
 
 def get_workflow(doctype):
 	return frappe.get_doc('Workflow', get_workflow_name(doctype))
+
+def has_approval_access(doc, workflow, user):
+	return (user == 'Administrator'
+		or workflow.get('allow_self_approval')
+		or user != doc.owner)
