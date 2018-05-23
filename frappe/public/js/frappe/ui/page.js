@@ -322,9 +322,9 @@ frappe.ui.Page = Class.extend({
 	},
 
 	get_or_add_inner_group_button: function(label) {
-		var $group = this.inner_toolbar.find('.btn-group[data-label="'+label+'"]');
+		var $group = this.inner_toolbar.find('.btn-group[data-label="'+encodeURIComponent(label)+'"]');
 		if(!$group.length) {
-			$group = $('<div class="btn-group" data-label="'+label+'" style="margin-left: 10px;">\
+			$group = $('<div class="btn-group" data-label="'+encodeURIComponent(label)+'" style="margin-left: 10px;">\
 				<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\
 				'+label+' <span class="caret"></span></button>\
 				<ul class="dropdown-menu" style="margin-top: -8px;"></ul></div>').appendTo(this.inner_toolbar);
@@ -333,7 +333,7 @@ frappe.ui.Page = Class.extend({
 	},
 
 	get_inner_group_button: function(label) {
-		return this.inner_toolbar.find('.btn-group[data-label="'+label+'"]');
+		return this.inner_toolbar.find('.btn-group[data-label="'+encodeURIComponent(label)+'"]');
 	},
 
 	set_inner_btn_group_as_primary: function(label) {
@@ -381,7 +381,7 @@ frappe.ui.Page = Class.extend({
 			}
 
 		} else {
-			var button = this.inner_toolbar.find('button[data-label="'+label+'"]');
+			var button = this.inner_toolbar.find('button[data-label="'+encodeURIComponent(label)+'"]');
 			if( button.length == 0 ) {
 				return $('<button data-label="'+encodeURIComponent(label)+'" class="btn btn-default btn-xs" style="margin-left: 10px;">'+__(label)+'</btn>')
 					.on("click", _action)
@@ -402,12 +402,12 @@ frappe.ui.Page = Class.extend({
 		if (group) {
 			var $group = this.get_inner_group_button(__(group));
 			if($group.length) {
-				$group.find('.dropdown-menu li a[data-label="'+label+'"]').remove();
+				$group.find('.dropdown-menu li a[data-label="'+encodeURIComponent(label)+'"]').remove();
 			}
 			if ($group.find('.dropdown-menu li a').length === 0) $group.remove();
 		} else {
 
-			this.inner_toolbar.find('button[data-label="'+label+'"]').remove();
+			this.inner_toolbar.find('button[data-label="'+encodeURIComponent(label)+'"]').remove();
 		}
 	},
 
