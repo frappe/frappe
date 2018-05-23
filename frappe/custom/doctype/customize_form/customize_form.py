@@ -37,6 +37,7 @@ docfield_properties = {
 	'label': 'Data',
 	'fieldtype': 'Select',
 	'options': 'Text',
+	'fetch_from': 'Small Text',
 	'permlevel': 'Int',
 	'width': 'Data',
 	'print_width': 'Data',
