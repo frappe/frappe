@@ -17,6 +17,8 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 			return false;
 		}
 	}
+	
+	toggle_result_area() {}
 
 	get view_name() {
 		return 'Calendar';
@@ -183,7 +185,7 @@ frappe.views.Calendar = Class.extend({
 					type: "GET",
 					args: me.get_args(start, end),
 					callback: function(r) {
-						var events = r.message;
+						var events = r.message || [];
 						events = me.prepare_events(events);
 						callback(events);
 					}
