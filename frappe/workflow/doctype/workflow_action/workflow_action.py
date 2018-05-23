@@ -45,11 +45,11 @@ def create_workflow_actions(doc, state):
 	doc_current_state = doc.get(workflow.workflow_state_field)
 
 	# hack to check if workflow action was already created and is this method called again due some field changes
-	workflow_action_already_created = frappe.db.count('Workflow Action', filters=[
-		['reference_doctype', '=', reference_doctype],
-		['reference_name', '=', reference_name],
-		['workflow_state', '=', doc_current_state]
-	])
+	workflow_action_already_created = frappe.db.count('Workflow Action', {
+		'reference_doctype': reference_doctype,
+		'reference_name': reference_name,
+		'workflow_state': doc_current_state
+	})
 
 	if workflow_action_already_created: return
 
