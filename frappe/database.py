@@ -173,7 +173,8 @@ class Database:
 
 		# execute
 		try:
-			time_start = time()
+			if debug:
+				time_start = time()
 
 			if values!=():
 				if isinstance(values, dict):
