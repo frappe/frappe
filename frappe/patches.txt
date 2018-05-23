@@ -11,6 +11,7 @@ execute:frappe.reload_doc('core', 'doctype', 'docperm') #2017-03-03
 execute:frappe.reload_doc('core', 'doctype', 'module_def') #2017-09-22
 execute:frappe.reload_doc('core', 'doctype', 'version') #2017-04-01
 execute:frappe.reload_doc('core', 'doctype', 'activity_log')
+frappe.patches.v11_0.copy_fetch_data_from_options
 frappe.patches.v7_1.rename_scheduler_log_to_error_log
 frappe.patches.v6_1.rename_file_data
 frappe.patches.v7_0.re_route #2016-06-27
@@ -213,4 +214,3 @@ frappe.patches.v10_0.increase_single_table_column_length
 frappe.patches.v11_0.create_contact_for_user
 frappe.patches.v11_0.sync_stripe_settings_before_migrate
 frappe.patches.v11_0.update_list_user_settings
-frappe.patches.v11_0.copy_fetch_data_from_options
