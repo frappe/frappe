@@ -197,7 +197,7 @@ class Meta(Document):
 
 		for df in self.fields:
 			if df.fieldtype in ('Data', 'Read Only', 'Text', 'Small Text',
-				'Text Editor', 'Code', 'Link') and df.fetch_from:
+				'Text Editor', 'Code', 'Link') and getattr(df, 'fetch_from', None):
 				if link_fieldname:
 					if df.fetch_from.startswith(link_fieldname + '.'):
 						out.append(df)
