@@ -1,4 +1,4 @@
-{
+ {
  "allow_copy": 0, 
  "allow_guest_to_view": 0, 
  "allow_import": 1, 
@@ -656,7 +656,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2018-05-16 22:43:31.292255",
+ "modified": "2018-05-23 22:43:31.292255",
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Activity Log", 
