@@ -64,7 +64,7 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 						ret = None
 
 				elif link.get("child_doctype"):
-					or_filters = [[link.get('child_doctype'), links_fieldname, '=', name] for links_fieldname in link.get("fieldname")]
+					or_filters = [[link.get('child_doctype'), link_fieldnames, '=', name] for link_fieldnames in link.get("fieldname")]
 
 					# dynamic link
 					if link.get("doctype_fieldname"):
@@ -73,10 +73,10 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 					ret = frappe.get_list(doctype=dt, fields=fields, filters=filters, or_filters=or_filters, distinct=True)
 
 				else:
-					links_fieldname = link.get("fieldname")
-					if links_fieldname:
-						if isinstance(links_fieldname, basestring): links_fieldname = [links_fieldname]
-						or_filters = [[dt, fieldname, '=', name] for fieldname in links_fieldname]
+					link_fieldnames = link.get("fieldname")
+					if link_fieldnames:
+						if isinstance(link_fieldnames, string_types): link_fieldnames = [link_fieldnames]
+						or_filters = [[dt, fieldname, '=', name] for fieldname in link_fieldnames]
 						# dynamic link
 						if link.get("doctype_fieldname"):
 							filters.append([dt, link.get("doctype_fieldname"), "=", doctype])
