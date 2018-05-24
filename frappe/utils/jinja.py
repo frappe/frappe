@@ -213,9 +213,11 @@ def set_filters(jenv):
 
 def get_jenv_customization(customizable_type):
 	import frappe
-	for app in frappe.get_installed_apps():
-		for jenv_customizable, jenv_customizable_definition in frappe.get_hooks(app_name=app).get("jenv", {}).items():
-			if customizable_type == jenv_customizable:
-				for data in jenv_customizable_definition:
-					split_data = data.split(":")
-					yield split_data[0], split_data[1]
+
+	if getattr(frappe.local, "site", None):
+		for app in frappe.get_installed_apps():
+			for jenv_customizable, jenv_customizable_definition in frappe.get_hooks(app_name=app).get("jenv", {}).items():
+				if customizable_type == jenv_customizable:
+					for data in jenv_customizable_definition:
+						split_data = data.split(":")
+						yield split_data[0], split_data[1]
