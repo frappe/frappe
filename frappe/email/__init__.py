@@ -11,13 +11,14 @@ def sendmail_to_system_managers(subject, content):
 @frappe.whitelist()
 def get_contact_list():
 	"""Returns contacts (from autosuggest)"""
-
 	try:
 		match_conditions = build_match_conditions('Contact')
+		if match_conditions:
+			match_conditions = " where " + match_conditions
+
 		out = frappe.db.sql("""select email_id as value,
 			concat(first_name, ifnull(concat(' ',last_name), '' )) as description
-			from tabContact
-			where {0}
+			from tabContact {0}
 		""".format(match_conditions), as_dict=True)
 		out = filter(None, out)
 
