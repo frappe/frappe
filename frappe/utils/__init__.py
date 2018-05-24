@@ -584,13 +584,3 @@ def cast_fieldtype(fieldtype, value):
 		value = to_timedelta(value)
 
 	return value
-
-def get_ip_list(user):
-	ip_list = frappe.db.get_value('User', user, 'restrict_ip', ignore=True)
-	if not ip_list:
-		return
-
-	ip_list = ip_list.replace(",", "\n").split('\n')
-	ip_list = [i.strip() for i in ip_list]
-
-	return ip_list

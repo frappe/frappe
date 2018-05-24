@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 import pyotp, os
-from frappe.utils import get_ip_list
 from frappe.utils.background_jobs import enqueue
 from jinja2 import Template
 from pyqrcode import create as qrcreate
@@ -30,7 +29,8 @@ def two_factor_is_enabled(user=None):
 	if enabled:
 		bypass_two_factor_auth = int(frappe.db.get_value('System Settings', None, 'bypass_2fa_for_retricted_ip_users') or 0)
 		if bypass_two_factor_auth:
-			restrict_ip_list = get_ip_list(user) #can be None or one or more than one ip address
+			user_doc = frappe.get_doc("User", user)
+			restrict_ip_list = user_doc.get_restricted_ip_list() #can be None or one or more than one ip address
 			if restrict_ip_list:
 				for ip in restrict_ip_list:
 					if frappe.local.request_ip.startswith(ip):

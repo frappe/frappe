@@ -8,7 +8,7 @@ from frappe import _
 import frappe
 import frappe.database
 import frappe.utils
-from frappe.utils import cint, get_ip_list
+from frappe.utils import cint
 import frappe.utils.user
 from frappe import conf
 from frappe.sessions import Session, clear_sessions, delete_session
@@ -237,16 +237,17 @@ class LoginManager:
 
 	def validate_ip_address(self):
 		"""check if IP Address is valid"""
-		ip_list = get_ip_list(self.user)
+		user = frappe.get_doc("User", self.user)
+		ip_list = user.get_restricted_ip_list()
 		if not ip_list:
 			return
 
 		bypass_restrict_ip_check = 0
 		# check if two factor auth is enabled
-		enabled = int(frappe.db.get_value('System Settings', None, 'enable_two_factor_auth') or 0)
+		enabled = int(frappe.get_system_settings('enable_two_factor_auth') or 0)
 		if enabled:
 			#check if bypass restrict ip is enabled for all users
-			bypass_restrict_ip_check = int(frappe.db.get_value('System Settings', None, 'bypass_restrict_ip_check_if_2fa_enabled') or 0)
+			bypass_restrict_ip_check = int(frappe.get_system_settings('bypass_restrict_ip_check_if_2fa_enabled') or 0)
 			if not bypass_restrict_ip_check:
 				#check if bypass restrict ip is enabled for login user
 				bypass_restrict_ip_check = int(frappe.db.get_value('User', self.user, 'bypass_restrict_ip_check_if_2fa_enabled') or 0)
