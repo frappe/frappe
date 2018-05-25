@@ -98,8 +98,11 @@ $.extend(frappe.model, {
 		} else {
 			var cached_timestamp = null;
 			if(localStorage["_doctype:" + doctype]) {
-				var cached_doc = JSON.parse(localStorage["_doctype:" + doctype]);
-				cached_timestamp = cached_doc.modified;
+				let cached_docs = JSON.parse(localStorage["_doctype:" + doctype]);
+				let cached_doc = cached_docs.filter(doc => doc.name === doctype)[0];
+				if(cached_doc) {
+					cached_timestamp = cached_doc.modified;
+				}
 			}
 			return frappe.call({
 				method:'frappe.desk.form.load.getdoctype',
