@@ -14,10 +14,12 @@ def get_contact_list():
 
 	try:
 		match_conditions = build_match_conditions('Contact')
+		match_conditions = "where {0}".format(match_conditions) if match_conditions else ""
+
 		out = frappe.db.sql("""select email_id as value,
 			concat(first_name, ifnull(concat(' ',last_name), '' )) as description
 			from tabContact
-			where {0}
+			{0}
 		""".format(match_conditions), as_dict=True)
 		out = filter(None, out)
 

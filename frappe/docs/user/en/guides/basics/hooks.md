@@ -288,3 +288,20 @@ Example,
 	}
 
 The asterisk (*) operator specifies all possible values for a field. For example, an asterisk in the hour time field would be equivalent to every hour or an asterisk in the month field would be equivalent to every month.
+### Jinja Customization
+
+Fetch custom methods and filters that are to be available globally in jinja environment.
+
+* `methods`
+* `filters`
+
+Example,
+
+	jenv = {
+		"methods": [
+			"method_name:dotted.path.to.method_definition"
+		],
+		"filters": [
+			"filter_name:dotted.path.to.filter_function"
+		]
+	}

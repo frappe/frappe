@@ -452,7 +452,7 @@ class BaseDocument(object):
 					values = frappe._dict(name=frappe.db.get_value(doctype, docname,
 						'name', cache=True))
 				else:
-					values_to_fetch = ['name'] + [_df.options.split('.')[-1]
+					values_to_fetch = ['name'] + [_df.fetch_from.split('.')[-1]
 						for _df in fields_to_fetch]
 
 					# don't cache if fetching other values too
@@ -466,7 +466,7 @@ class BaseDocument(object):
 					setattr(self, df.fieldname, values.name)
 
 					for _df in fields_to_fetch:
-						setattr(self, _df.fieldname, values[_df.options.split('.')[-1]])
+						setattr(self, _df.fieldname, values[_df.fetch_from.split('.')[-1]])
 
 					notify_link_count(doctype, docname)
 
