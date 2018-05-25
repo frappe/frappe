@@ -8,7 +8,7 @@ from frappe.utils.background_jobs import enqueue
 from frappe.utils import get_url
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe import _
-from frappe.model.workflow import apply_workflow, get_workflow_name, has_approval_access
+from frappe.model.workflow import apply_workflow, get_workflow_name, has_approval_access, get_workflow_state_field
 from frappe.desk.notifications import clear_doctype_notifications
 
 class WorkflowAction(Document):
@@ -30,153 +30,119 @@ def has_permission(doc, user):
 
 def process_workflow_actions(doc, state):
 
-	reference_doctype = doc.doctype
-	reference_name = doc.name
-	workflow = get_workflow_name(reference_doctype)
-
+	workflow = get_workflow_name(doc.get('doctype'))
 	if not workflow: return
 
-	workflow = frappe.get_doc('Workflow', workflow)
+	if is_workflow_action_already_created(doc): return
 
-	doc_current_state = doc.get(workflow.workflow_state_field)
+	clear_old_workflow_actions(doc)
+	update_completed_workflow_actions(doc)
+	clear_doctype_notifications('Workflow Action')
 
-	workflow_action_already_created = frappe.db.exists({
-		'doctype': 'Workflow Action',
-		'reference_doctype': reference_doctype,
-		'reference_name': reference_name,
-		'workflow_state': doc_current_state
-	})
+	next_possible_transitions = get_next_possible_transitions(workflow, get_doc_workflow_state(doc))
 
-	if workflow_action_already_created: return
+	if not next_possible_transitions: return
 
+	user_data_map = get_users_next_action_data(next_possible_transitions, doc)
 
-	current_user = frappe.session.user
+	if not user_data_map: return
 
-	clear_and_update_old_workflow_actions(reference_doctype,
-		reference_name, current_user)
+	create_workflow_actions_for_users(user_data_map.keys(), doc)
+	send_workflow_action_email(user_data_map.values(), doc)
 
-	from frappe.permissions import has_permission
-
-	user_map = {}
-
-	next_possible_transitions = [d for d in workflow.transitions if d.state == doc_current_state]
-
-	for transition in next_possible_transitions:
-		users = get_users_with_role(transition.allowed)
-		for user in users:
-			if (has_approval_access(doc, workflow, user) and
-				has_permission(doctype=doc, ptype='read', user=user)): pass
-			else: continue
-
-			if not user_map.get(user):
-				user_map[user] = {
-					'possible_actions': [],
-					'email': frappe.db.get_value('User', user, 'email'),
-				}
-
-			user_map[user].get('possible_actions').append({
-				'action_name': transition.action,
-				'action_link': get_workflow_action_url(transition.action,
-					reference_doctype, reference_name, doc_current_state)
-			})
-
-	if user_map:
-		create_workflows_for_users(user_map.keys(), reference_doctype,
-			reference_name,doc_current_state)
-
-		email_template_name = (state.get('next_action_email_template')
-			for state in workflow.states
-			if state.get('state') == doc_current_state).next()
-		# generator expression https://stackoverflow.com/a/8653568
-
-		send_workflow_action_email(user_map, doc, email_template_name)
 
 
 @frappe.whitelist()
 def apply_action(action, doctype, docname, current_state):
 	verify_request()
 	doc = frappe.get_doc(doctype, docname)
-	workflow = get_workflow_name(doctype)
-	workflow_state_field = frappe.get_value('Workflow', workflow, 'workflow_state_field')
-	doc_workflow_state = doc.get(workflow_state_field)
+	doc_workflow_state = get_doc_workflow_state(doc)
 
 	if doc_workflow_state == current_state:
-		try:
-			newdoc = apply_workflow(doc, action)
-			frappe.respond_as_web_page(_("Success"),
-				_("{0} is set to '{1}'".format(doctype, newdoc.get(workflow_state_field))),
-				indicator_color='green')
-		except Exception as e:
-			frappe.respond_as_web_page(_("Error"), e,
-				indicator_color='red')
+		newdoc = apply_workflow(doc, action)
+		frappe.respond_as_web_page(_("Success"),
+			_("{0}:{1} is set to '{2}'".format(doctype,
+			newdoc.get('name'), get_doc_workflow_state(newdoc))),
+			indicator_color='green')
 	else:
 		frappe.respond_as_web_page(_("Link Expired"),
-			_("Document {0} has been updated by {1}".format(docname, doc.get("modified_by"))),
+			_("Document {0} has been set to state {1} by {2}"
+			.format(docname, doc_workflow_state, doc.get("modified_by"))),
 			indicator_color='blue')
 
 
-def clear_and_update_old_workflow_actions(reference_doctype, reference_name, user):
-	# update status of completed workflow action of user
-	frappe.db.sql('''update `tabWorkflow Action` set status='Completed', completed_by=%s
-		where reference_doctype=%s and reference_name=%s and user=%s''',
-		(user, reference_doctype, reference_name, user))
-
-	# delete irrelevant workflow actions
+def clear_old_workflow_actions(doc, user=None):
+	user = user if user else frappe.session.user
 	frappe.db.sql('''delete from `tabWorkflow Action`
 		where reference_doctype=%s and reference_name=%s and user!=%s''',
-		(reference_doctype, reference_name, user))
+		(doc.get('doctype'), doc.get('name'), user))
 
-	clear_doctype_notifications('Workflow Action')
+def update_completed_workflow_actions(doc, user=None):
+	user = user if user else frappe.session.user
+	frappe.db.sql('''update `tabWorkflow Action` set status='Completed', completed_by=%s
+		where reference_doctype=%s and reference_name=%s and user=%s''',
+		(user, doc.get('doctype'), doc.get('name'), user))
 
-def send_workflow_action_email(user_map, doc, email_template_name):
-	doctype = doc.get('doctype')
-	docname = doc.get('docname')
+def get_next_possible_transitions(workflow_name, state):
+	return frappe.get_all('Workflow Transision', filters=[
+		['parent', '=', workflow_name],
+		['state', '=', state]])
 
-	if email_template_name:
-		email_template = frappe.get_doc("Email Template", email_template_name)
-		email_message = frappe.render_template(email_template.response, doc)
-		subject = frappe.render_template(email_template.response, doc)
-	else:
-		subject = _('Workflow Action')
-		email_message = _('{0}:{1}'.format(doctype, docname))
+def get_users_next_action_data(transisions, doc):
+	user_data_map = {}
+	for transition in transisions:
+		users = get_users_with_role(transition.allowed)
+		filtered_users = filter_allowed_users(users, doc)
+		for user in filtered_users:
+			if not user_data_map.get(user):
+				user_data_map[user] = {
+					'possible_actions': [],
+					'email': frappe.db.get_value('User', user, 'email'),
+				}
 
-	common_args = {
-		'template': 'workflow_action',
-		'attachments': [frappe.attach_print(doctype, docname , file_name=docname)],
-		'subject': subject
-	}
+			user_data_map[user].get('possible_actions').append({
+				'action_name': transition.action,
+				'action_link': get_workflow_action_url(transition.action, doc)
+			})
 
-	for d in user_map.values():
+	return user_data_map
+
+
+def send_workflow_action_email(users_data, doc):
+	common_args = get_common_email_args(doc)
+	message = common_args.pop('message', None)
+
+	for d in users_data:
 		email_args = {
 			'recipients': [d.get('email')],
 			'args': {
 				'actions': d.get('possible_actions'),
-				'message': email_message
+				'message': message
 			},
 		}
 		email_args.update(common_args)
 		enqueue(method=frappe.sendmail, queue='short', **email_args)
 
 
-def get_workflow_action_url(action, doctype, docname, current_state):
+def get_workflow_action_url(action, doc):
 	apply_action_method = "/api/method/frappe.workflow.doctype.workflow_action.workflow_action.apply_action"
 
 	params = {
-		"doctype": doctype,
-		"docname": docname,
+		"doctype": doc.get('doctype'),
+		"docname": doc.get('name'),
 		"action": action,
-		"current_state": current_state
+		"current_state": get_doc_workflow_state(doc)
 	}
 
 	return get_url(apply_action_method + "?" + get_signed_params(params))
 
-def create_workflows_for_users(users, reference_doctype, reference_name, workflow_state):
+def create_workflow_actions_for_users(users, doc):
 	for user in users:
 		frappe.get_doc({
 			'doctype': 'Workflow Action',
-			'reference_doctype': reference_doctype,
-			'reference_name': reference_name,
-			'workflow_state': workflow_state,
+			'reference_doctype': doc.get('doctype'),
+			'reference_name': doc.get('name'),
+			'workflow_state': get_doc_workflow_state(doc),
 			'status': 'Open',
 			'user': user
 		}).insert(ignore_permissions=True)
@@ -190,3 +156,63 @@ def get_users_with_role(role):
 		and tabUser.name != "Administrator"
 		and `tabHas Role`.parent = tabUser.name
 		and tabUser.enabled=1""", role)]
+
+def is_workflow_action_already_created(doc):
+	return frappe.db.exists({
+		'doctype': 'Workflow Action',
+		'reference_doctype': doc.get('doctype'),
+		'reference_name': doc.get('name'),
+		'workflow_state': get_doc_workflow_state(doc)
+	})
+
+def get_doc_workflow_state(doc):
+	workflow_name = get_workflow_name(doc.get('doctype'))
+	workflow_state_field = get_workflow_state_field(workflow_name)
+	return doc.get(workflow_state_field)
+
+def filter_allowed_users(users, doc):
+	"""Filters list of users by checking if user has access to doc and
+	if the user satisfies 'workflow self approval' condition
+	"""
+	from frappe.permissions import has_permission
+	filtered_users = []
+	for user in users:
+		if (has_approval_access(user, doc)
+			and has_permission(doctype=doc, user=user)):
+			filtered_users += user
+	return filtered_users
+
+def get_common_email_args(doc):
+	doctype = doc.get('doctype')
+	docname = doc.get('name')
+
+	email_template = get_email_template(doc)
+	if email_template:
+		subject = frappe.render_template(email_template.subject, doc)
+		response = frappe.render_template(email_template.response, doc)
+	else:
+		subject = _('Workflow Action')
+		response = _('{0}:{1}'.format(doctype, docname))
+
+	common_args = {
+		'template': 'workflow_action',
+		'attachments': [frappe.attach_print(doctype, docname , file_name=docname)],
+		'subject': subject,
+		'message': response
+	}
+	return common_args
+
+def get_email_template(doc):
+	"""Returns next_action_email_template
+	for workflow state (if available) based on doc current workflow state
+	"""
+	workflow_name = get_workflow_name(doc.get('doctype'))
+	doc_state = get_doc_workflow_state(doc)
+	template_name = frappe.db.get_value('Workflow State', {
+		'parent': workflow_name,
+		'state': doc_state
+	}, 'next_action_email_template')
+
+	if not template_name: return
+	return frappe.get_doc('Email Template', template_name)
+

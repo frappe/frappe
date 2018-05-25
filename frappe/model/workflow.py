@@ -63,7 +63,7 @@ def apply_workflow(doc, action):
 	transitions = get_transitions(doc, workflow)
 	user = frappe.session.user
 
-	if not has_approval_access(doc, workflow, user):
+	if not has_approval_access(user, doc):
 		frappe.throw(_("Self approval is not allowed"))
 
 	# find the transition
@@ -138,7 +138,21 @@ def validate_workflow(doc):
 def get_workflow(doctype):
 	return frappe.get_doc('Workflow', get_workflow_name(doctype))
 
-def has_approval_access(doc, workflow, user):
+def has_approval_access(user, doc):
+	workflow_name = get_workflow_name(doc.get('doctype'))
 	return (user == 'Administrator'
-		or workflow.get('allow_self_approval')
+		or is_self_approval_enabled(workflow_name)
 		or user != doc.owner)
+
+def get_workflow_state_field(workflow_name):
+	return cache_and_get_workflow_field_value(workflow_name, 'workflow_state_field')
+
+def is_self_approval_enabled(workflow_name):
+	return cache_and_get_workflow_field_value(workflow_name, 'allow_self_approval')
+
+def cache_and_get_workflow_field_value(workflow_name, field):
+	value = frappe.cache().hget('workflow_'+field, workflow_name)
+	if value is None:
+		value = frappe.db.get_value("Workflow", workflow_name, field)
+		frappe.cache().hset('workflow_state_field', workflow_name, value)
+	return value
