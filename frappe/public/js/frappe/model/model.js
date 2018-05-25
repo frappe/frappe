@@ -99,7 +99,7 @@ $.extend(frappe.model, {
 			var cached_timestamp = null;
 			if(localStorage["_doctype:" + doctype]) {
 				let cached_docs = JSON.parse(localStorage["_doctype:" + doctype]);
-				let cached_doc = cached_docs.filter(doc => doc.name === doctype);
+				let cached_doc = cached_docs.filter(doc => doc.name === doctype)[0];
 				if(cached_doc) {
 					cached_timestamp = cached_doc.modified;
 				}
