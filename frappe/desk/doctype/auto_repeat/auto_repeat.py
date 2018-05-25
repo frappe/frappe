@@ -105,11 +105,11 @@ class AutoRepeat(Document):
 		if not self.end_date:
 			end_date_copy = add_days(self.start_date, 360)
 		while (getdate(start_date_copy) < getdate(end_date_copy)):
-			start_date_copy = get_next_schedule_date(start_date_copy,self.frequency,self.repeat_on_day)
+			start_date_copy = get_next_schedule_date(start_date_copy, self.frequency, self.repeat_on_day)
 			row = {
-			"reference_document" : self.reference_document,
-			"frequency" : self.frequency,
-			"next_scheduled_date" : start_date_copy
+				"reference_document" : self.reference_document,
+				"frequency" : self.frequency,
+				"next_scheduled_date" : start_date_copy
 			}
 			schedule_details.append(row)
 		return schedule_details

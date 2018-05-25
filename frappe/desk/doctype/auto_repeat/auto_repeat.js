@@ -86,7 +86,7 @@ frappe.ui.form.on('Auto Repeat', {
 frappe.auto_repeat.render_schedule = function(frm) { 
 	frappe.call({
 		method: "get_auto_repeat_schedule",
-		doc: cur_frm.doc
+		doc: frm.doc
 	}).done((r) => {
 		var wrapper = $(frm.fields_dict["auto_repeat_schedule"].wrapper);
 
