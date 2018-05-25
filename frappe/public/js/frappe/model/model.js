@@ -15,7 +15,7 @@ $.extend(frappe.model, {
 
 	std_fields: [
 		{fieldname:'name', fieldtype:'Link', label:__('ID')},
-		{fieldname:'owner', fieldtype:'Data', label:__('Created By')},
+		{fieldname:'owner', fieldtype:'Link', label:__('Created By'), options: 'User'},
 		{fieldname:'idx', fieldtype:'Int', label:__('Index')},
 		{fieldname:'creation', fieldtype:'Date', label:__('Created On')},
 		{fieldname:'modified', fieldtype:'Date', label:__('Last Updated On')},
