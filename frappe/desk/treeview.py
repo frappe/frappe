@@ -38,7 +38,7 @@ def get_all_nodes(doctype, parent, tree_method, **filters):
 @frappe.whitelist()
 def get_children(doctype, parent='', **filters):
 	parent_field = 'parent_' + doctype.lower().replace(' ', '_')
-	filters=[[parent_field, '=', parent],
+	filters=[['ifnull(`{0}`,'')'.format(parent_field), '=', parent],
 		['docstatus', '<' ,'2']]
 
 	doctype_meta = frappe.get_meta(doctype)
