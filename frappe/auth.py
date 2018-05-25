@@ -18,6 +18,7 @@ from frappe.utils.password import check_password
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,
 	confirm_otp_token, get_cached_user_pass)
+from getmac import get_mac_address
 
 from six.moves.urllib.parse import quote
 
@@ -133,6 +134,7 @@ class LoginManager:
 	def post_login(self):
 		self.run_trigger('on_login')
 		self.validate_ip_address()
+		self.validate_mac_address()
 		self.validate_hour()
 		self.get_user_info()
 		self.make_session()
@@ -249,6 +251,33 @@ class LoginManager:
 				return
 
 		frappe.throw(_("Not allowed from this IP Address"), frappe.AuthenticationError)
+
+	def validate_mac_address(self):
+		"""
+		Check if User is allowed on the network interface or mac address
+		"""
+		mac_addresses = []
+		allowed_interfaces = frappe.db.get_value('User', self.user, 'interface', ignore=True)
+
+		if not allowed_interfaces:
+			return
+
+		interface_list = [iface.strip() for iface in allowed_interfaces.split(',')]
+		allowed_mac_address = frappe.db.get_value('User', self.user, 'mac_address', ignore=True)
+		if allowed_mac_address:
+			mac_address_list = [iface.strip() for iface in allowed_mac_address.split(',') if allowed_mac_address]
+		else:
+			mac_address_list = []
+
+		for interface in interface_list:
+			mac = get_mac_address(interface=interface)
+			if mac_address_list and mac in mac_address_list:
+				mac_addresses.append(mac)
+			elif not mac_address_list and mac:
+				mac_addresses.append(mac)
+
+		if not mac_addresses:
+			frappe.throw(_('Not allowed from this network'))
 
 	def validate_hour(self):
 		"""check if user is logging in during restricted hours"""
