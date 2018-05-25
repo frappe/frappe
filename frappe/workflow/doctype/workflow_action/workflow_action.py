@@ -84,8 +84,12 @@ def process_workflow_actions(doc, state):
 		create_workflows_for_users(user_map.keys(), reference_doctype,
 			reference_name,doc_current_state)
 
-		send_workflow_action_email(user_map, reference_doctype,
-			reference_name)
+		email_template_name = (state.get('next_action_email_template')
+			for state in workflow.states
+			if state.get('state') == doc_current_state).next()
+		# generator expression https://stackoverflow.com/a/8653568
+
+		send_workflow_action_email(user_map, doc, email_template_name)
 
 
 @frappe.whitelist()
@@ -124,13 +128,22 @@ def clear_and_update_old_workflow_actions(reference_doctype, reference_name, use
 
 	clear_doctype_notifications('Workflow Action')
 
-def send_workflow_action_email(user_map, doctype, docname):
-	email_message = _('{0}:{1}'.format(doctype, docname))
+def send_workflow_action_email(user_map, doc, email_template_name):
+	doctype = doc.get('doctype')
+	docname = doc.get('docname')
+
+	if email_template_name:
+		email_template = frappe.get_doc("Email Template", email_template_name)
+		email_message = frappe.render_template(email_template.response, doc)
+		subject = frappe.render_template(email_template.response, doc)
+	else:
+		subject = _('Workflow Action')
+		email_message = _('{0}:{1}'.format(doctype, docname))
+
 	common_args = {
 		'template': 'workflow_action',
 		'attachments': [frappe.attach_print(doctype, docname , file_name=docname)],
-		'header': [_("Workflow Action"), "orange"],
-		'subject': _('Workflow Action')
+		'subject': subject
 	}
 
 	for d in user_map.values():
