@@ -104,7 +104,7 @@ def apply_action(action, doctype, docname, current_state):
 		try:
 			newdoc = apply_workflow(doc, action)
 			frappe.respond_as_web_page(_("Success"),
-				_("{doctype} is set to '{state}'".format(doctype, newdoc.get(workflow_state_field))),
+				_("{0} is set to '{1}'".format(doctype, newdoc.get(workflow_state_field))),
 				indicator_color='green')
 		except Exception as e:
 			frappe.respond_as_web_page(_("Error"), e,
