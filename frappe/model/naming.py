@@ -41,7 +41,7 @@ def set_new_name(doc):
 	if not doc.name and autoname:
 		doc.name = _get_name_from_naming_options(autoname, doc)
 
-	# if the autoname option if 'field:' and no name was derived, we need to 
+	# if the autoname option is 'field:' and no name was derived, we need to
 	# notify
 	if autoname.startswith('field:') and not doc.name:
 		fieldname = autoname[6:]
@@ -56,57 +56,6 @@ def set_new_name(doc):
 					doc.name,
 					frappe.get_meta(doc.doctype).get_field("name_case")
 				)
-
-
-def _field_autoname(autoname, doc, skip_slicing=None):
-	"""
-	Generate a name using `DocType` field. This is called when the doctype's 
-	`autoname` field starts with 'field:'
-	"""
-	fieldname = autoname if skip_slicing else autoname[6:]
-	name = (doc.get(fieldname) or '').strip()
-	return name
-
-
-def _prompt_autoname(autoname, doc):
-	"""
-	Generate a name using Prompt option. This simply means the user will have to set the name manually.
-	This is called when the doctype's `autoname` field starts with 'prompt'.
-	"""
-	# set from __newname in save.py
-	if not doc.name:
-		frappe.throw(_("Name not set via prompt"))
-
-
-def _naming_series_autoname(autoname, doc):
-	"""
-	Generate a name using naming series.
-	"""
-	if not doc.naming_series:
-		frappe.throw(frappe._("Naming Series mandatory"))
-
-	name = make_autoname(doc.naming_series+'.#####', '', doc)
-	return name
-
-
-def _concatenate_autoname(autoname, doc):
-	"""
-	Generate a name by concatenating as many fields as required. This is 
-	called when the doctype's `autoname` field starts with 'concatenate:'. The
-	field names are separated by a comma. It is also aware of autoname '.####' 
-	format.
-	"""
-
-	fieldname = autoname[12:]
-	fieldnames = []
-
-	for part in fieldname.split(','):
-		if '.#' in part:
-			fieldnames.append(make_autoname(part, doc))
-		else:
-			fieldnames.append(_field_autoname(part, doc, skip_slicing=True))
-	name = '-'.join(fieldnames)
-	return name
 
 
 def _get_name_from_naming_options(autoname, doc):
@@ -272,17 +221,6 @@ def validate_name(doctype, name, case=None, merge=False):
 	return name
 
 
-def _set_amended_name(doc):
-	am_id = 1
-	am_prefix = doc.amended_from
-	if frappe.db.get_value(doc.doctype, doc.amended_from, "amended_from"):
-		am_id = cint(doc.amended_from.split('-')[-1]) + 1
-		am_prefix = '-'.join(doc.amended_from.split('-')[:-1])  # except the last hyphen
-
-	doc.name = am_prefix + '-' + str(am_id)
-	return doc.name
-
-
 def append_number_if_name_exists(doctype, value, fieldname='name', separator='-', filters=None):
 	if not filters:
 		filters = dict()
@@ -305,3 +243,65 @@ def append_number_if_name_exists(doctype, value, fieldname='name', separator='-'
 		value = "{0}{1}{2}".format(value, separator, count)
 
 	return value
+
+
+def _set_amended_name(doc):
+	am_id = 1
+	am_prefix = doc.amended_from
+	if frappe.db.get_value(doc.doctype, doc.amended_from, "amended_from"):
+		am_id = cint(doc.amended_from.split('-')[-1]) + 1
+		am_prefix = '-'.join(doc.amended_from.split('-')[:-1])  # except the last hyphen
+
+	doc.name = am_prefix + '-' + str(am_id)
+	return doc.name
+
+
+def _field_autoname(autoname, doc, skip_slicing=None):
+	"""
+	Generate a name using `DocType` field. This is called when the doctype's
+	`autoname` field starts with 'field:'
+	"""
+	fieldname = autoname if skip_slicing else autoname[6:]
+	name = (doc.get(fieldname) or '').strip()
+	return name
+
+
+def _prompt_autoname(autoname, doc):
+	"""
+	Generate a name using Prompt option. This simply means the user will have to set the name manually.
+	This is called when the doctype's `autoname` field starts with 'prompt'.
+	"""
+	# set from __newname in save.py
+	if not doc.name:
+		frappe.throw(_("Name not set via prompt"))
+
+
+def _naming_series_autoname(autoname, doc):
+	"""
+	Generate a name using naming series.
+	"""
+	if not doc.naming_series:
+		frappe.throw(frappe._("Naming Series mandatory"))
+
+	name = make_autoname(doc.naming_series+'.#####', '', doc)
+	return name
+
+
+def _concatenate_autoname(autoname, doc):
+	"""
+	Generate a name by concatenating as many fields as required. This is
+	called when the doctype's `autoname` field starts with 'concatenate:'. The
+	field names are separated by a comma. It is also aware of autoname '.####'
+	format.
+	"""
+
+	fieldname = autoname[12:]
+	fieldnames = []
+
+	for part in fieldname.split(','):
+		if '.#' in part:
+			fieldnames.append(make_autoname(part, doc))
+		else:
+			fieldnames.append(_field_autoname(part, doc, skip_slicing=True))
+	name = '-'.join(fieldnames)
+	return name
