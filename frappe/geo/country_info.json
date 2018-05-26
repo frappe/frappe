@@ -817,6 +817,7 @@
  },
  "Ethiopia": {
   "code": "et",
+  "currency": "ETB",
   "currency_fraction": "Santim",
   "currency_fraction_units": 100,
   "currency_name": "Ethiopian Birr",
