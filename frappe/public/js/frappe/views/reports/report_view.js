@@ -595,7 +595,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	add_currency_column(fieldname, doctype, col_index) {
 		// Adds dependent currency field if required
 		const df = frappe.meta.get_docfield(doctype, fieldname);
-		if (df && df.fieldtype === 'Currency' && df.options && !df.options.includes(':')) {
+		if (df && df.fieldtype === 'Currency' && df.options &&
+			!df.options.includes(':') && frappe.meta.has_field(doctype, df.options)
+		) {
 			const field = [df.options, doctype];
 			if (col_index === undefined) {
 				this.fields.push(field);
