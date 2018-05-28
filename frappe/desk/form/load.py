@@ -39,6 +39,7 @@ def getdoc(doctype, name, user=None):
 		doc.apply_fieldlevel_read_permissions()
 
 		# add file list
+		doc.add_viewed()
 		get_docinfo(doc)
 
 	except Exception:
