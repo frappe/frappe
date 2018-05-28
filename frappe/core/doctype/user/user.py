@@ -516,6 +516,15 @@ class User(Document):
 
 		self.append("social_logins", social_logins)
 
+	def get_restricted_ip_list(self):
+		if not self.restrict_ip:
+			return
+
+		ip_list = self.restrict_ip.replace(",", "\n").split('\n')
+		ip_list = [i.strip() for i in ip_list]
+
+		return ip_list
+
 @frappe.whitelist()
 def get_timezones():
 	import pytz

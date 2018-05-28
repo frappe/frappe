@@ -10,7 +10,7 @@ def execute():
 		update `tabDocField`
 		set fetch_from = options, options=''
 		where options like '%.%' and (fetch_from is NULL OR fetch_from='')
- 		and fieldtype in ('Data', 'Read Only', 'Text', 'Small Text', 'Text Editor', 'Code', 'Link')
+ 		and fieldtype in ('Data', 'Read Only', 'Text', 'Small Text', 'Text Editor', 'Code', 'Link', 'Check')
  		and fieldname!='naming_series'
 	''')
 
@@ -18,7 +18,7 @@ def execute():
 		update `tabCustom Field`
 		set fetch_from = options, options=''
 		where options like '%.%' and (fetch_from is NULL OR fetch_from='')
- 		and fieldtype in ('Data', 'Read Only', 'Text', 'Small Text', 'Text Editor', 'Code', 'Link')
+ 		and fieldtype in ('Data', 'Read Only', 'Text', 'Small Text', 'Text Editor', 'Code', 'Link', 'Check')
  		and fieldname!='naming_series'
 	''')
 
@@ -26,5 +26,5 @@ def execute():
 		update `tabProperty Setter`
 		set property="fetch_from"
 		where property="options" and value like '%.%'
-		and property_type in ('Data', 'Read Only', 'Text', 'Small Text', 'Text Editor', 'Code', 'Link')
+		and property_type in ('Data', 'Read Only', 'Text', 'Small Text', 'Text Editor', 'Code', 'Link', 'Check')
 	''')
