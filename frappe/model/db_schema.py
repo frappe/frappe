@@ -623,7 +623,7 @@ def get_definition(fieldtype, precision=None, length=None):
 	d = type_map.get(fieldtype)
 
 	# convert int to long int if the length of the int is greater than 11
-	if fieldtype == "Int" and length>11:
+	if fieldtype == "Int" and length and length>11:
 		d = type_map.get("Long Int")
 
 	if not d:
