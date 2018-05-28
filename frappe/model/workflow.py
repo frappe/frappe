@@ -154,5 +154,5 @@ def cache_and_get_workflow_field_value(workflow_name, field):
 	value = frappe.cache().hget('workflow_'+field, workflow_name)
 	if value is None:
 		value = frappe.db.get_value("Workflow", workflow_name, field)
-		frappe.cache().hset('workflow_state_field', workflow_name, value)
+		frappe.cache().hset('workflow_'+field, workflow_name, value)
 	return value
