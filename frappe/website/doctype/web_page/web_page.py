@@ -21,7 +21,7 @@ from frappe.website.website_generator import WebsiteGenerator
 
 class WebPage(WebsiteGenerator):
 	def validate(self):
-		self.check_publication_dates()
+		self.validate_dates()
 
 	def get_feed(self):
 		return self.title
@@ -130,9 +130,9 @@ class WebPage(WebsiteGenerator):
 		if image:
 			context.metatags["image"] = image
 
-	def check_publication_dates(self):
+	def validate_dates(self):
 		if self.end_date:
-			if get_datetime(self.end_date) < get_datetime(self.start_date):
+			if self.start_date and get_datetime(self.end_date) < get_datetime(self.start_date):
 				frappe.throw(_("End Date cannot be before Start Date!"))
 
 			# If the current date is past end date, and
@@ -148,16 +148,19 @@ def check_publish_status():
 	now_date = get_datetime(now())
 
 	for page in web_pages:
-		if page.start_date or page.end_date:
-			start_date = page.start_date or get_datetime("01-01-2000")
-			end_date = page.end_date or get_datetime("01-01-2100")
+		start_date = page.start_date if page.start_date else ""
+		end_date = page.end_date if page.end_date else ""
 
-			if start_date < now_date < end_date:
-				if not page.published:
+		if page.published:
+			# Unpublish pages that are outside the set date ranges
+			if (start_date and now_date < start_date) or (end_date and now_date > end_date):
+				frappe.db.set_value("Web Page", page.name, "published", 0)
+		else:
+			# Publish pages that are inside the set date ranges
+			if start_date:
+				if not end_date or (end_date and now_date < end_date):
 					frappe.db.set_value("Web Page", page.name, "published", 1)
-			else:
-				if page.published:
-					frappe.db.set_value("Web Page", page.name, "published", 0)
+
 
 
 def check_broken_links():
