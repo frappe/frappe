@@ -10,6 +10,6 @@ def execute():
 	users = frappe.get_all('User', filters={"name": ('not in', 'Administrator, Guest')}, fields=["*"])
 	special_characters = "<>"
 	for user in users:
-		if re.findall("[{0}]+".format(special_characters), user.full_name):
-			continue
+		user.first_name = re.sub("[{0}]+".format(special_characters), '', str(user.first_name))
+		user.last_name  = re.sub("[{0}]+".format(special_characters), '', str(user.last_name))
 		create_contact(user)
