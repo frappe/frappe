@@ -120,8 +120,10 @@ frappe.ui.form.Timeline = Class.extend({
 		this.comment_area.val('');
 
 		var communications = this.get_communications(true);
+		var views = this.get_view_logs();
 
-		communications
+		var timeline = communications.concat(views)
+		timeline
 			.sort((a, b) => a.creation > b.creation ? -1 : 1)
 			.filter(c => c.content)
 			.forEach(c => {
@@ -130,7 +132,7 @@ frappe.ui.form.Timeline = Class.extend({
 			});
 
 		// more btn
-		if (this.more===undefined && communications.length===20) {
+		if (this.more===undefined && timeline.length===20) {
 			this.more = true;
 		}
 
@@ -161,6 +163,7 @@ frappe.ui.form.Timeline = Class.extend({
 	render_timeline_item: function(c) {
 		var me = this;
 		this.prepare_timeline_item(c);
+		console.log(c);
 		var $timeline_item = $(frappe.render_template("timeline_item", {data:c, frm:this.frm}))
 			.appendTo(me.list)
 			.on("click", ".delete-comment", function() {
@@ -409,13 +412,33 @@ frappe.ui.form.Timeline = Class.extend({
 			me = this,
 			out = [].concat(docinfo.communications);
 
+		console.log("-----------------------");
+		console.log(docinfo.communications);
 		if(with_versions) {
 			this.build_version_comments(docinfo, out);
 		}
+
 		return out;
 	},
+	get_view_logs: function(){
+		var docinfo = this.frm.get_docinfo(),
+			me = this,
+
+			out = [];
+			docinfo.views.forEach(c => {
+				c.content = "viewed";
+				c.comment_type = "Info";
+				out.push(c)
+			});
+			console.log("--------3333333333333333-----------")
+			console.log(out)
+			return out
+	},
+
 	build_version_comments: function(docinfo, out) {
 		var me = this;
+
+		console.log(docinfo);
 
 		docinfo.versions.forEach(function(version) {
 			if(!version.data) return;
