@@ -65,6 +65,7 @@ def get_doc(*args, **kwargs):
 			raise ValueError('"doctype" is a required key')
 
 	controller = get_controller(doctype)
+	print(controller)
 	if controller:
 		return controller(*args, **kwargs)
 
@@ -1150,13 +1151,10 @@ class Document(BaseDocument):
 
 		if self.meta.track_views:
 			frappe.get_doc({
-				"doctype": "Communication",
-				"communication_type": "Comment",
-				"sender": user,
-				"comment_type": 'Info',
+				"doctype": "View log",
+				"viewed_by": frappe.session.user,
 				"reference_doctype": self.doctype,
 				"reference_name": self.name,
-				"content": "Viewed"
 			}).insert(ignore_permissions=True)
 			frappe.db.commit()
 
