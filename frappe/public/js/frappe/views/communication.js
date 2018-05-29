@@ -21,6 +21,16 @@ frappe.views.CommunicationComposer = Class.extend({
 			}
 		});
 
+		frappe.call({
+			method: "frappe.email.get_contact_list",
+			callback: (r) => {
+				const contactList = r.message;
+				['recipients', 'cc', 'bcc'].forEach(field => {
+					this.dialog.fields_dict[field].set_data(contactList);
+				});
+			}
+		});
+
 		$(document).on("upload_complete", function(event, attachment) {
 			if(me.dialog.display) {
 				var wrapper = $(me.dialog.fields_dict.select_attachments.wrapper);
@@ -47,13 +57,6 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	get_fields: function() {
 		let contactList = [];
-		frappe.call({
-			method: "frappe.email.get_contact_list",
-			async: false,
-			callback: function(r) {
-				contactList = r.message;
-			}
-		});
 		var fields= [
 			{label:__("To"), fieldtype:"MultiSelect", reqd: 0, fieldname:"recipients",options:contactList},
 			{fieldtype: "Section Break", collapsible: 1, label: __("CC, BCC & Email Template")},

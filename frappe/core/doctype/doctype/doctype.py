@@ -182,6 +182,8 @@ class DocType(Document):
 					else:
 						d.fieldname = d.fieldtype.lower().replace(" ","_") + "_" + str(d.idx)
 
+				d.fieldname = re.sub('''['",./%@()<>{}]''', '', d.fieldname)
+
 				# fieldnames should be lowercase
 				d.fieldname = d.fieldname.lower()
 
