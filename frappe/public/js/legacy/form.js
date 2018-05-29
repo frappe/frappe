@@ -715,7 +715,9 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error, resolve,
 	this.validate_form_action(save_action, resolve);
 
 	if((!this.meta.in_dialog || this.in_form) && !this.meta.istable) {
-		frappe.utils.scroll_to(0);
+		if (frappe.defaults.get_default("scroll_to_top")) {
+			frappe.utils.scroll_to(0);
+		}
 	}
 	var after_save = function(r) {
 		if(!r.exc) {
