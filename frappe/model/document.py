@@ -65,7 +65,6 @@ def get_doc(*args, **kwargs):
 			raise ValueError('"doctype" is a required key')
 
 	controller = get_controller(doctype)
-	print(controller)
 	if controller:
 		return controller(*args, **kwargs)
 
