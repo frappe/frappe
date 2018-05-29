@@ -62,14 +62,19 @@ def apply_action(action, doctype, docname, current_state):
 		newdoc = apply_workflow(doc, action)
 		frappe.db.commit()
 		frappe.respond_as_web_page(_("Success"),
-			_("{0}:  {1} is set to '{2}'".format(doctype,
-			newdoc.get('name'), get_doc_workflow_state(newdoc))),
-			indicator_color='green')
+			_("{0}: {1} is set to state {2}".format(
+				doctype,
+				frappe.bold(newdoc.get('name')),
+				frappe.bold(get_doc_workflow_state(newdoc))
+			)), indicator_color='green')
 	else:
 		frappe.respond_as_web_page(_("Link Expired"),
 			_("Document {0} has been set to state {1} by {2}"
-			.format(docname, doc_workflow_state, doc.get("modified_by"))),
-			indicator_color='blue')
+			.format(
+				frappe.bold(docname),
+				frappe.bold(doc_workflow_state),
+				frappe.bold(doc.get("modified_by"))
+			)), indicator_color='blue')
 
 
 def clear_old_workflow_actions(doc, user=None):
@@ -188,8 +193,8 @@ def get_common_email_args(doc):
 
 	email_template = get_email_template(doc)
 	if email_template:
-		subject = frappe.render_template(email_template.subject, doc)
-		response = frappe.render_template(email_template.response, doc)
+		subject = frappe.render_template(email_template.subject, vars(doc))
+		response = frappe.render_template(email_template.response, vars(doc))
 	else:
 		subject = _('Workflow Action')
 		response = _('{0}: {1}'.format(doctype, docname))
@@ -208,9 +213,9 @@ def get_email_template(doc):
 	"""
 	workflow_name = get_workflow_name(doc.get('doctype'))
 	doc_state = get_doc_workflow_state(doc)
-	template_name = frappe.db.get_value('Workflow State', {
+	template_name = frappe.db.get_value('Workflow Document State', {
 		'parent': workflow_name,
-		'workflow_state_name': doc_state
+		'state': doc_state
 	}, 'next_action_email_template')
 
 	if not template_name: return
