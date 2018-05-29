@@ -13,6 +13,8 @@
 					<a class="module-section-link small" data-type="{{ item.type }}"
 						{% if(item.type==="help") { %}
 							data-youtube-id="{{ item.youtube_id }}"{% } %}
+						{% if(item.type==="new_doc") { %}
+							data-doctype="{{ item.name }}"{% } %}
 						href="#{{ item.route }}" style="{{ item.style }}">
 						{{ item.label || __(item.name) }}
 					</a>

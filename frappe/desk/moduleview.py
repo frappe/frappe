@@ -168,7 +168,7 @@ def apply_permissions(data):
 			if ((item.type=="doctype" and item.name in user.can_read)
 				or (item.type=="page" and item.name in allowed_pages)
 				or (item.type=="report" and item.name in allowed_reports)
-				or item.type=="help"):
+				or item.type=="help" or item.type=="new_doc"):
 
 				new_items.append(item)
 
