@@ -100,7 +100,8 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"assignments": get_assignments(doc.doctype, doc.name),
 		"permissions": get_doc_permissions(doc),
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
-		"rating": get_feedback_rating(doc.doctype, doc.name)
+		"rating": get_feedback_rating(doc.doctype, doc.name),
+		"views": get_view_logs(doc.doctype, doc.name)
 	}
 
 def get_attachments(dt, dn):
@@ -215,3 +216,18 @@ def get_feedback_rating(doctype, docname):
 		return 0
 	else:
 		return rating[0][0]
+
+
+def get_view_logs(doctype, docname):
+	""" get and return the latest view logs if available """
+
+	view_logs = frappe.get_all("View log", filters={
+		"reference_doctype": doctype,
+		"reference_name": docname,
+	}, fields=["name", "creation"], order_by="creation desc")
+
+	if not view_logs:
+		return []
+	else:
+		return view_logs
+		
