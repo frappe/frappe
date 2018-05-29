@@ -163,7 +163,6 @@ frappe.ui.form.Timeline = Class.extend({
 	render_timeline_item: function(c) {
 		var me = this;
 		this.prepare_timeline_item(c);
-		console.log(c);
 		var $timeline_item = $(frappe.render_template("timeline_item", {data:c, frm:this.frm}))
 			.appendTo(me.list)
 			.on("click", ".delete-comment", function() {
@@ -411,9 +410,6 @@ frappe.ui.form.Timeline = Class.extend({
 		var docinfo = this.frm.get_docinfo(),
 			me = this,
 			out = [].concat(docinfo.communications);
-
-		console.log("-----------------------");
-		console.log(docinfo.communications);
 		if(with_versions) {
 			this.build_version_comments(docinfo, out);
 		}
@@ -426,20 +422,15 @@ frappe.ui.form.Timeline = Class.extend({
 
 			out = [];
 			docinfo.views.forEach(c => {
-				c.content = "viewed";
+				c.content = '<a href="#Form/View log/'+c.name+'"> viewed</a>';
 				c.comment_type = "Info";
 				out.push(c)
 			});
-			console.log("--------3333333333333333-----------")
-			console.log(out)
 			return out
 	},
 
 	build_version_comments: function(docinfo, out) {
 		var me = this;
-
-		console.log(docinfo);
-
 		docinfo.versions.forEach(function(version) {
 			if(!version.data) return;
 			var data = JSON.parse(version.data);
