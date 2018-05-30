@@ -61,7 +61,6 @@ frappe.ui.form.on('Auto Repeat', {
 			if(frm.doc.status!= 0){
 				frappe.auto_repeat.render_schedule(frm);
 			}
-
 		}
 		
 	},

@@ -17,6 +17,9 @@ month_map = {'Monthly': 1, 'Quarterly': 3, 'Half-yearly': 6, 'Yearly': 12}
 
 
 class AutoRepeat(Document):
+	def onload(self):
+  		self.set_onload("auto_repeat_schedule", self.get_auto_repeat_schedule())
+
 	def validate(self):
 		self.update_status()
 		self.validate_reference_doctype()
@@ -38,8 +41,7 @@ class AutoRepeat(Document):
 	def on_update_after_submit(self):
 		self.validate_dates()
 		self.set_next_schedule_date()
-		self.get_auto_repeat_schedule()
-
+		
 	def before_cancel(self):
 		self.unlink_auto_repeat_id()
 		self.next_schedule_date = None
@@ -100,10 +102,14 @@ class AutoRepeat(Document):
 
 	def get_auto_repeat_schedule(self):
 		schedule_details = []
-		start_date_copy = self.start_date
-		end_date_copy = self.end_date
+		start_date_copy = getdate(self.start_date)
+		end_date_copy = getdate(self.end_date)
+		today_copy = frappe.utils.datetime.date.today()
+		if start_date_copy < today_copy:
+			start_date_copy = today_copy
 		if not self.end_date:
-			end_date_copy = add_days(self.start_date, 360)
+			end_date_copy = add_days(today_copy, 365)
+			self.end_date = end_date_copy
 		while (getdate(start_date_copy) < getdate(end_date_copy)):
 			start_date_copy = get_next_schedule_date(start_date_copy, self.frequency, self.repeat_on_day)
 			row = {

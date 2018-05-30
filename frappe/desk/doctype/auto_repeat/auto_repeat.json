@@ -175,6 +175,7 @@
    "bold": 0, 
    "collapsible": 0, 
    "columns": 0, 
+   "default": "Today", 
    "fieldname": "start_date", 
    "fieldtype": "Date", 
    "hidden": 0, 
@@ -870,7 +871,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2018-05-19 00:49:19.234749", 
+ "modified": "2018-05-30 17:47:41.965193", 
  "modified_by": "Administrator", 
  "module": "Desk", 
  "name": "Auto Repeat", 
@@ -879,6 +880,7 @@
  "permissions": [
   {
    "amend": 0, 
+   "apply_user_permissions": 0, 
    "cancel": 1, 
    "create": 1, 
    "delete": 1, 
@@ -898,6 +900,7 @@
   }, 
   {
    "amend": 0, 
+   "apply_user_permissions": 0, 
    "cancel": 1, 
    "create": 1, 
    "delete": 1, 
@@ -917,6 +920,7 @@
   }, 
   {
    "amend": 0, 
+   "apply_user_permissions": 0, 
    "cancel": 1, 
    "create": 1, 
    "delete": 1, 
