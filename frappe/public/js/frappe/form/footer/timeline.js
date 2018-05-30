@@ -122,7 +122,7 @@ frappe.ui.form.Timeline = Class.extend({
 		var communications = this.get_communications(true);
 		var views = this.get_view_logs();
 
-		var timeline = communications.concat(views)
+		var timeline = communications.concat(views);
 		timeline
 			.sort((a, b) => a.creation > b.creation ? -1 : 1)
 			.filter(c => c.content)
@@ -419,14 +419,13 @@ frappe.ui.form.Timeline = Class.extend({
 	get_view_logs: function(){
 		var docinfo = this.frm.get_docinfo(),
 			me = this,
-
 			out = [];
-			docinfo.views.forEach(c => {
-				c.content = '<a href="#Form/View log/'+c.name+'"> viewed</a>';
-				c.comment_type = "Info";
-				out.push(c)
-			});
-			return out
+		docinfo.views.forEach(c => {
+			c.content = '<a href="#Form/View log/'+c.name+'"> viewed</a>';
+			c.comment_type = "Info";
+			out.push(c);
+		});
+		return out;
 	},
 
 	build_version_comments: function(docinfo, out) {
