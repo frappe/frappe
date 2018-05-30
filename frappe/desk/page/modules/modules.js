@@ -56,6 +56,31 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 		return false;
 	});
 
+	let modules_data = [];
+	// To create new document
+	page.main.on("click", '.module-section-link[data-type="new_doc"]', function() {
+		const doc_name = $(this).attr("data-doctype");
+		if (doc_name) {
+			let module = '';
+			modules_data.forEach(modules => {
+				modules.forEach(item => {
+					if(item && item.type=='new_doc' && item.name==doc_name) {
+						module = item;
+						return false;
+					}
+				});
+			});
+
+			if (module && module.route_options) {
+				frappe.ignore_no_copy = true;
+				frappe.new_doc(doc_name, module.route_options);
+			} else {
+				frappe.new_doc(doc_name);
+			}
+		}
+		return false;
+	});
+
 	// notifications click
 	page.main.on("click", '.open-notification', function() {
 		var doctype = $(this).attr('data-doctype');
@@ -85,6 +110,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 				callback: function(r) {
 					var m = frappe.get_module(module_name);
 					m.data = r.message.data;
+					modules_data = m.data.map(d => d.items);
 					process_data(module_name, m.data);
 					page.section_data[module_name] = m;
 					render_section(m);
@@ -153,7 +179,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 						return encodeURIComponent(key) + "=" + encodeURIComponent(value); }).join('&');
 				}
 
-				if(item.type==="page" || item.type==="help" || item.type==="report" ||
+				if(item.type==="page" || item.type==="help" || item.type==="report"  || item.type==="new_doc" ||
 				(item.doctype && frappe.model.can_read(item.doctype))) {
 					item.shown = true;
 				}
