@@ -2,12 +2,13 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals, print_function
-import frappe
+import frappe, json
 from frappe import _
 from frappe.utils import cint
 from frappe.model.naming import validate_name
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.utils.password import rename_password
+from frappe.model.utils.user_settings import sync_user_settings
 
 @frappe.whitelist()
 def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False, ignore_if_exists=False):
@@ -47,6 +48,9 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	rename_dynamic_links(doctype, old, new)
 
+	# save the user settings in the db
+	update_user_settings(old, new, link_fields)
+
 	if doctype=='DocType':
 		rename_doctype(doctype, old, new, force)
 
@@ -80,6 +84,61 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 	frappe.clear_cache()
 
 	return new
+
+
+def update_user_settings(old, new, link_fields):
+	'''
+		Update the user settings of all the linked doctypes while renaming.
+	'''
+
+	# store the user settings data from the redis to db
+	sync_user_settings()
+
+	# find the user settings for the linked doctypes
+	linked_doctypes = set([d.parent for d in link_fields if not d.issingle])
+	user_settings_details = frappe.db.sql('''select user, doctype, data from `__UserSettings` where data like %s
+			and doctype in (%s)''' %("%s", ", ".join(["%s"]*len(linked_doctypes))),
+		tuple(["%"+old+"%"] + list(linked_doctypes)), as_dict=1)
+
+
+	# create the dict using the doctype name as key and values as list of the user settings 
+	from collections import defaultdict
+	user_settings_dict = defaultdict(list)
+	for user_setting in user_settings_details:
+		user_settings_dict[user_setting.doctype].append(user_setting)
+
+	# update the single user settings db row for a specific user and doctype
+	def update_user_settings_data(user_setting):
+		if user_setting.get("data"):
+			update = False
+			data = json.loads(user_setting.get("data"))
+			print (data)
+			for view in ['List', 'Gantt', 'Kanban', 'Calendar', 'Image', 'Inbox', 'Report']:
+				view_settings = data.get(view)
+				if view_settings and view_settings.get("filters"):
+					view_filters = view_settings.get("filters")
+					for filter in view_filters:
+						if filter[1] == fields.fieldname and filter[3] == old:
+							filter[3] = new
+							update = True
+			if update:
+				frappe.db.sql("update __UserSettings set data=%s where doctype=%s and user=%s",
+					(json.dumps(data), user_setting.doctype, user_setting.user))
+
+				# clear that user settings from the redis cache
+				frappe.cache().hset('_user_settings', '{0}::{1}'.format(user_setting.doctype,
+					user_setting.user), None)
+
+
+	# update the name in linked doctype whose user settings exists
+	for fields in link_fields:
+		user_settings = user_settings_dict.get(fields.parent)
+		if user_settings:
+			for user_setting in user_settings:
+				update_user_settings_data(user_setting)
+		else:
+			continue
+
 
 def update_attachments(doctype, old, new):
 	try:
