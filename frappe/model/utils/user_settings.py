@@ -5,6 +5,14 @@ import frappe, json
 from six import iteritems, string_types
 from frappe import safe_decode
 
+# dict for mapping the index and index type for the filters of different views
+filter_dict = {
+	"doctype": 0,
+	"docfield": 1,
+	"operator": 2,
+	"value": 3
+}
+
 def get_user_settings(doctype, for_update=False):
 	user_settings = frappe.cache().hget('_user_settings',
 		'{0}::{1}'.format(doctype, frappe.session.user))
@@ -53,3 +61,27 @@ def save(doctype, user_settings):
 @frappe.whitelist()
 def get(doctype):
 	return get_user_settings(doctype)
+
+
+def update_user_settings_data(user_setting, fieldname, old, new, condition_fieldname=None, condition_values=None):
+	data = user_setting.get("data")
+	if data:
+		update = False
+		data = json.loads(data)
+		for view in ['List', 'Gantt', 'Kanban', 'Calendar', 'Image', 'Inbox', 'Report']:
+			view_settings = data.get(view)
+			if view_settings and view_settings.get("filters"):
+				view_filters = view_settings.get("filters")
+				for filter in view_filters:
+					if condition_fieldname and filter[filter_dict[condition_fieldname]] != condition_values:
+						continue
+					if filter[filter_dict[fieldname]] == old:
+						filter[filter_dict[fieldname]] = new
+						update = True
+		if update:
+			frappe.db.sql("update __UserSettings set data=%s where doctype=%s and user=%s",
+				(json.dumps(data), user_setting.doctype, user_setting.user))
+
+			# clear that user settings from the redis cache
+			frappe.cache().hset('_user_settings', '{0}::{1}'.format(user_setting.doctype,
+				user_setting.user), None)

@@ -7,6 +7,8 @@ import frappe
 import json
 from frappe.model import no_value_fields
 from frappe.utils.password import rename_password_field
+from frappe.model.utils.user_settings import update_user_settings_data
+
 
 def rename_field(doctype, old_fieldname, new_fieldname):
 	"""This functions assumes that doctype is already synced"""
@@ -41,6 +43,9 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 
 	# update in property setter
 	update_property_setters(doctype, old_fieldname, new_fieldname)
+
+	# update in user settings
+	update_user_settings(doctype, old_fieldname, new_fieldname)
 
 def update_reports(doctype, old_fieldname, new_fieldname):
 	def _get_new_sort_by(report_dict, report, key):
@@ -127,3 +132,14 @@ def update_property_setters(doctype, old_fieldname, new_fieldname):
 
 	frappe.db.sql('''update `tabCustom Field` set insert_after=%s
 		where insert_after=%s and dt=%s''', (new_fieldname, old_fieldname, doctype))
+
+
+def update_user_settings(doctype, old_fieldname, new_fieldname):
+	# store the user settings data from the redis to db
+	sync_user_settings()
+
+	user_settings = frappe.db.sql(''' select user, doctype, data in `__UserSettings`
+		where doctype=%s and data like "%%%s%%"''', (doctype, old_fieldname), as_dict=1)
+
+	for user_setting in user_settings:
+		update_user_settings_data(user_setting, "docfield", old_fieldname, new_fieldname)
