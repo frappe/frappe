@@ -420,11 +420,11 @@ frappe.ui.form.Timeline = Class.extend({
 		var docinfo = this.frm.get_docinfo(),
 			me = this,
 			out = [];
-		docinfo.views.forEach(c => {
+		for(let c of docinfo.views){
 			c.content = '<a href="#Form/View log/'+c.name+'"> viewed</a>';
 			c.comment_type = "Info";
 			out.push(c);
-		});
+		};
 		return out;
 	},
 
