@@ -203,7 +203,10 @@ class DatabaseQuery(object):
 				if any(keyword in field.lower().split() for keyword in blacklisted_keywords):
 					_raise_exception()
 
-				if any("{0}(".format(keyword) in field.lower().split() for keyword in blacklisted_functions):
+				if any("({0}".format(keyword) in field.lower() for keyword in blacklisted_keywords):
+					_raise_exception()
+
+				if any("{0}(".format(keyword) in field.lower() for keyword in blacklisted_functions):
 					_raise_exception()
 
 	def extract_tables(self):
