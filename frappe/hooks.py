@@ -86,7 +86,8 @@ permission_query_conditions = {
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.get_permission_query_conditions",
 	"Contact": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_contact",
 	"Address": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_address",
-	"Communication": "frappe.core.doctype.communication.communication.get_permission_query_conditions_for_communication"
+	"Communication": "frappe.core.doctype.communication.communication.get_permission_query_conditions_for_communication",
+	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.get_permission_query_conditions"
 }
 
 has_permission = {
@@ -98,6 +99,7 @@ has_permission = {
 	"Contact": "frappe.contacts.address_and_contact.has_permission",
 	"Address": "frappe.contacts.address_and_contact.has_permission",
 	"Communication": "frappe.core.doctype.communication.communication.has_permission",
+	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.has_permission"
 }
 
 has_website_permission = {
@@ -112,14 +114,18 @@ doc_events = {
 	"*": {
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.core.doctype.activity_log.feed.update_feed"
+			"frappe.core.doctype.activity_log.feed.update_feed",
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
 			"frappe.desk.notifications.clear_doctype_notifications",
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
 		],
 		"on_trash": "frappe.desk.notifications.clear_doctype_notifications",
-		"on_change": "frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request"
+		"on_change": [
+			"frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request",
+		]
 	},
 	"Email Group Member": {
 		"validate": "frappe.email.doctype.email_group.email_group.restrict_email_group"

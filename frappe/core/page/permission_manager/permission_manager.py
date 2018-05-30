@@ -101,6 +101,7 @@ def reset(doctype):
 @frappe.whitelist()
 def get_users_with_role(role):
 	frappe.only_for("System Manager")
+
 	return [p[0] for p in frappe.db.sql("""select distinct tabUser.name
 		from `tabHas Role`, tabUser where
 			`tabHas Role`.role=%s

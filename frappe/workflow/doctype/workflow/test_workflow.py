@@ -22,6 +22,7 @@ class TestWorkflow(unittest.TestCase):
 				self.workflow.document_type = 'ToDo'
 				self.workflow.workflow_state_field = 'workflow_state'
 				self.workflow.is_active = 1
+				self.workflow.allow_self_approval = 1
 				self.workflow.append('states', dict(
 					state = 'Pending', allow_edit = 'All'
 				))
@@ -42,7 +43,6 @@ class TestWorkflow(unittest.TestCase):
 					state = 'Rejected', action='Review', next_state = 'Pending', allowed='All'
 				))
 				self.workflow.insert()
-
 		frappe.set_user('Administrator')
 
 	def test_default_condition(self):
@@ -54,12 +54,11 @@ class TestWorkflow(unittest.TestCase):
 
 		return todo
 
-	def test_approve(self):
+	def test_approve(self, doc=None):
 		'''test simple workflow'''
-		todo = self.test_default_condition()
+		todo = doc or self.test_default_condition()
 
 		apply_workflow(todo, 'Approve')
-
 		# default condition is set
 		self.assertEqual(todo.workflow_state, 'Approved')
 		self.assertEqual(todo.status, 'Closed')
@@ -93,3 +92,20 @@ class TestWorkflow(unittest.TestCase):
 		self.workflow.transitions[0].condition = ''
 		self.workflow.save()
 
+	def test_if_workflow_actions_were_processed(self):
+		frappe.db.sql('delete from `tabWorkflow Action`')
+		user = frappe.get_doc('User', 'test2@example.com')
+		user.add_roles('Test Approver', 'System Manager')
+		frappe.set_user('test2@example.com')
+
+		doc = self.test_default_condition()
+		workflow_actions = frappe.get_all('Workflow Action', fields=['status'])
+		self.assertEqual(len(workflow_actions), 1)
+
+		# test if status of workflow actions are updated on approval
+		self.test_approve(doc)
+		user.remove_roles('Test Approver', 'System Manager')
+		workflow_actions = frappe.get_all('Workflow Action', fields=['status'])
+		self.assertEqual(len(workflow_actions), 1)
+		self.assertEqual(workflow_actions[0].status, 'Completed')
+		frappe.set_user('Administrator')
