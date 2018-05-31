@@ -250,7 +250,6 @@ def trigger_notifications(doc, method=None):
 				frappe.db.commit()
 
 def evaluate_alert(doc, alert, event):
-	frappe.log_error(doc, alert)
 	from jinja2 import TemplateError
 	try:
 		if isinstance(alert, string_types):
