@@ -53,7 +53,7 @@ def clear_doctype_cache(doctype=None):
 		cache.delete_value(key)
 
 	groups = ["meta", "form_meta", "table_columns", "last_modified",
-		"linked_doctypes", 'email_alerts', 'workflow']
+		"linked_doctypes", 'notifications', 'workflow']
 
 	def clear_single(dt):
 		for name in groups:

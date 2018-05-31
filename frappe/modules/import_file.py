@@ -87,7 +87,7 @@ def read_doc_from_file(path):
 ignore_values = {
 	"Report": ["disabled"],
 	"Print Format": ["disabled"],
-	"Email Alert": ["enabled"],
+	"Notification": ["enabled"],
 	"Print Style": ["disabled"]
 }
 

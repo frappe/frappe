@@ -164,8 +164,8 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Email Alert",
-					"description": _("Setup Email Alert based on various criteria.")
+					"name": "Notification",
+					"description": _("Setup Notification based on various criteria.")
 				},
 				{
 					"type": "doctype",

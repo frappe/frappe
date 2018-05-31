@@ -69,7 +69,7 @@ def get_doc_files(files, start_path, force=0, sync_everything = False, verbose=F
 
 	# load in sequence - warning for devs
 	document_types = ['doctype', 'page', 'report', 'print_format',
-		'website_theme', 'web_form', 'email_alert', 'print_style',
+		'website_theme', 'web_form', 'notification', 'print_style',
 		 'data_migration_mapping', 'data_migration_plan']
 	for doctype in document_types:
 		doctype_path = os.path.join(start_path, doctype)
