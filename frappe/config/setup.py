@@ -165,7 +165,7 @@ def get_data():
 				{
 					"type": "doctype",
 					"name": "Notification",
-					"description": _("Setup Notification based on various criteria.")
+					"description": _("Setup Notifications based on various criteria.")
 				},
 				{
 					"type": "doctype",
