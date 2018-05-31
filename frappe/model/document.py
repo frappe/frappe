@@ -194,7 +194,7 @@ class Document(BaseDocument):
 		if self.flags.in_print:
 			return
 
-		self.flags.email_alerts_executed = []
+		self.flags.notifications_executed = []
 
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
@@ -271,7 +271,7 @@ class Document(BaseDocument):
 		if self.flags.in_print:
 			return
 
-		self.flags.email_alerts_executed = []
+		self.flags.notifications_executed = []
 
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
@@ -764,7 +764,7 @@ class Document(BaseDocument):
 		fn.__name__ = str(method)
 		out = Document.hook(fn)(self, *args, **kwargs)
 
-		self.run_email_alerts(method)
+		self.run_notifications(method)
 		run_webhooks(self, method)
 
 		return out
@@ -772,31 +772,31 @@ class Document(BaseDocument):
 	def run_trigger(self, method, *args, **kwargs):
 		return self.run_method(method, *args, **kwargs)
 
-	def run_email_alerts(self, method):
-		'''Run email alerts for this method'''
+	def run_notifications(self, method):
+		'''Run notifications for this method'''
 		if frappe.flags.in_import or frappe.flags.in_patch or frappe.flags.in_install:
 			return
 
-		if self.flags.email_alerts_executed==None:
-			self.flags.email_alerts_executed = []
+		if self.flags.notifications_executed==None:
+			self.flags.notifications_executed = []
 
-		from frappe.email.doctype.email_alert.email_alert import evaluate_alert
+		from frappe.email.doctype.notification.notification import evaluate_alert
 
-		if self.flags.email_alerts == None:
-			alerts = frappe.cache().hget('email_alerts', self.doctype)
+		if self.flags.notifications == None:
+			alerts = frappe.cache().hget('notifications', self.doctype)
 			if alerts==None:
-				alerts = frappe.get_all('Email Alert', fields=['name', 'event', 'method'],
+				alerts = frappe.get_all('Notification', fields=['name', 'event', 'method'],
 					filters={'enabled': 1, 'document_type': self.doctype})
-				frappe.cache().hset('email_alerts', self.doctype, alerts)
-			self.flags.email_alerts = alerts
+				frappe.cache().hset('notifications', self.doctype, alerts)
+			self.flags.notifications = alerts
 
-		if not self.flags.email_alerts:
+		if not self.flags.notifications:
 			return
 
 		def _evaluate_alert(alert):
-			if not alert.name in self.flags.email_alerts_executed:
+			if not alert.name in self.flags.notifications_executed:
 				evaluate_alert(self, alert.name, alert.event)
-				self.flags.email_alerts_executed.append(alert.name)
+				self.flags.notifications_executed.append(alert.name)
 
 		event_map = {
 			"on_update": "Save",
@@ -811,7 +811,7 @@ class Document(BaseDocument):
 			event_map['before_change'] = 'Value Change'
 			event_map['before_update_after_submit'] = 'Value Change'
 
-		for alert in self.flags.email_alerts:
+		for alert in self.flags.notifications:
 			event = event_map.get(method, None)
 			if event and alert.event == event:
 				_evaluate_alert(alert)
@@ -966,7 +966,7 @@ class Document(BaseDocument):
 			self.set("modified", now())
 			self.set("modified_by", frappe.session.user)
 
-		# to trigger email alert on value change
+		# to trigger notification on value change
 		self.run_method('before_change')
 
 		frappe.db.set_value(self.doctype, self.name, fieldname, value,

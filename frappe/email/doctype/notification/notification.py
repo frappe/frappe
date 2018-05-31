@@ -1,4 +1,5 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# -*- coding: utf-8 -*-
+# Copyright (c) 2018, Frappe Technologies and contributors
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
@@ -12,12 +13,13 @@ from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
 from markdown2 import markdown
 from six import string_types
+from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 
 # imports - third-party imports
 import pymysql
 from pymysql.constants import ER
 
-class EmailAlert(Document):
+class Notification(Document):
 	def onload(self):
 		'''load message'''
 		if self.is_standard:
@@ -64,7 +66,7 @@ def get_context(context):
 
 	def validate_standard(self):
 		if self.is_standard and not frappe.conf.developer_mode:
-			frappe.throw(_('Cannot edit Standard Email Alert. To edit, please disable this and duplicate it'))
+			frappe.throw(_('Cannot edit Standard Notification. To edit, please disable this and duplicate it'))
 
 	def validate_condition(self):
 		temp_doc = frappe.new_doc(self.document_type)
@@ -80,7 +82,7 @@ def get_context(context):
 			or frappe.get_meta(self.document_type).istable):
 			# currently email alerts don't work on child tables as events are not fired for each record of child table
 
-			frappe.throw(_("Cannot set Email Alert on Document Type {0}").format(self.document_type))
+			frappe.throw(_("Cannot set Notification on Document Type {0}").format(self.document_type))
 
 	def get_documents_for_today(self):
 		'''get list of documents that will be triggered today'''
@@ -104,7 +106,7 @@ def get_context(context):
 		return docs
 
 	def send(self, doc):
-		'''Build recipients and send email alert'''
+		'''Build recipients and send Notification'''
 
 		def get_attachment(doc):
 			""" check print settings are attach the pdf """
@@ -119,45 +121,15 @@ def get_context(context):
 				status = "Draft" if doc.docstatus == 0 else "Cancelled"
 				frappe.throw(_("""Not allowed to attach {0} document,
 					please enable Allow Print For {0} in Print Settings""".format(status)),
-					title=_("Error in Email Alert"))
+					title=_("Error in Notification"))
 			else:
 				return [{"print_format_attachment":1, "doctype":doc.doctype, "name": doc.name,
 					"print_format":self.print_format, "print_letterhead": print_settings.with_letterhead}]
 
 		context = get_context(doc)
-		recipients = []
 
 		context = {"doc": doc, "alert": self, "comments": None}
 
-		for recipient in self.recipients:
-			if recipient.condition:
-				if not frappe.safe_eval(recipient.condition, None, context):
-					continue
-			if recipient.email_by_document_field:
-				if validate_email_add(doc.get(recipient.email_by_document_field)):
-					recipient.email_by_document_field = doc.get(recipient.email_by_document_field).replace(",", "\n")
-					recipients = recipients + recipient.email_by_document_field.split("\n")
-
-				# else:
-				# 	print "invalid email"
-			if recipient.cc and "{" in recipient.cc:
-				recipient.cc = frappe.render_template(recipient.cc, context)
-
-			if recipient.cc:
-				recipient.cc = recipient.cc.replace(",", "\n")
-				recipients = recipients + recipient.cc.split("\n")
-
-			#For sending emails to specified role
-			if recipient.email_by_role:
-				emails = get_emails_from_role(recipient.email_by_role)
-
-				for email in emails:
-					recipients = recipients + email.split("\n")
-
-		if not recipients:
-			return
-
-		recipients = list(set(recipients))
 		subject = self.subject
 
 		if self.is_standard:
@@ -171,13 +143,55 @@ def get_context(context):
 
 		attachments = get_attachment(doc)
 
-		frappe.sendmail(recipients=recipients, subject=subject,
-			message= frappe.render_template(self.message, context),
-			reference_doctype = doc.doctype,
-			reference_name = doc.name,
-			attachments = attachments,
-			print_letterhead = ((attachments
-				and attachments[0].get('print_letterhead')) or False))
+		if self.channel == 'Email':
+			recipients = []
+			for recipient in self.recipients:
+				if recipient.condition:
+					if not frappe.safe_eval(recipient.condition, None, context):
+						continue
+				if recipient.email_by_document_field:
+					if validate_email_add(doc.get(recipient.email_by_document_field)):
+						recipient.email_by_document_field = doc.get(recipient.email_by_document_field).replace(",", "\n")
+						recipients = recipients + recipient.email_by_document_field.split("\n")
+
+					# else:
+					# 	print "invalid email"
+				if recipient.cc and "{" in recipient.cc:
+					recipient.cc = frappe.render_template(recipient.cc, context)
+
+				if recipient.cc:
+					recipient.cc = recipient.cc.replace(",", "\n")
+					recipients = recipients + recipient.cc.split("\n")
+
+				#For sending emails to specified role
+				if recipient.email_by_role:
+					emails = get_emails_from_role(recipient.email_by_role)
+
+					for email in emails:
+						recipients = recipients + email.split("\n")
+
+			if not recipients:
+				return
+
+			recipients = list(set(recipients))
+
+			frappe.sendmail(recipients=recipients, subject=subject,
+				message= frappe.render_template(self.message, context),
+				reference_doctype = doc.doctype,
+				reference_name = doc.name,
+				attachments = attachments,
+				print_letterhead = ((attachments
+					and attachments[0].get('print_letterhead')) or False))
+
+		elif self.channel == 'Slack':
+			slack_webhook_url = self.slack_webhook_url
+
+			send_slack_message(
+				webhook_url=slack_webhook_url,
+				message=frappe.render_template(self.message, context),
+				reference_doctype = doc.doctype,
+				reference_name = doc.name
+			)
 
 		if self.set_property_after_alert:
 			frappe.db.set_value(doc.doctype, doc.name, self.set_property_after_alert,
@@ -211,10 +225,10 @@ def get_context(context):
 			self.message = markdown(self.message)
 
 @frappe.whitelist()
-def get_documents_for_today(email_alert):
-	email_alert = frappe.get_doc('Email Alert', email_alert)
-	email_alert.check_permission('read')
-	return [d.name for d in email_alert.get_documents_for_today()]
+def get_documents_for_today(notification):
+	notification = frappe.get_doc('Notification', notification)
+	notification.check_permission('read')
+	return [d.name for d in notification.get_documents_for_today()]
 
 def trigger_daily_alerts():
 	trigger_email_alerts(None, "daily")
@@ -227,7 +241,7 @@ def trigger_email_alerts(doc, method=None):
 	if method == "daily":
 		for alert in frappe.db.sql_list("""select name from `tabEmail Alert`
 			where event in ('Days Before', 'Days After') and enabled=1"""):
-			alert = frappe.get_doc("Email Alert", alert)
+			alert = frappe.get_doc("Notification", alert)
 			for doc in alert.get_documents_for_today():
 				evaluate_alert(doc, alert, alert.event)
 				frappe.db.commit()
@@ -236,7 +250,7 @@ def evaluate_alert(doc, alert, event):
 	from jinja2 import TemplateError
 	try:
 		if isinstance(alert, string_types):
-			alert = frappe.get_doc("Email Alert", alert)
+			alert = frappe.get_doc("Notification", alert)
 
 		context = get_context(doc)
 
@@ -250,7 +264,7 @@ def evaluate_alert(doc, alert, event):
 			except pymysql.InternalError as e:
 				if e.args[0]== ER.BAD_FIELD_ERROR:
 					alert.db_set('enabled', 0)
-					frappe.log_error('Email Alert {0} has been disabled due to missing field'.format(alert.name))
+					frappe.log_error('Notification {0} has been disabled due to missing field'.format(alert.name))
 					return
 
 			db_value = parse_val(db_value)
@@ -266,10 +280,10 @@ def evaluate_alert(doc, alert, event):
 
 		alert.send(doc)
 	except TemplateError:
-		frappe.throw(_("Error while evaluating Email Alert {0}. Please fix your template.").format(alert))
+		frappe.throw(_("Error while evaluating Notification {0}. Please fix your template.").format(alert))
 	except Exception as e:
 		frappe.log_error(message=frappe.get_traceback(), title=str(e))
-		frappe.throw(_("Error in Email Alert"))
+		frappe.throw(_("Error in Notification"))
 
 def get_context(doc):
 	return {"doc": doc, "nowdate": nowdate, "frappe.utils": frappe.utils}

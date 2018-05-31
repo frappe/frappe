@@ -1,7 +1,7 @@
 [
 	{
-		"doctype": "Email Alert",
-		"subject":"_Test Email Alert 1",
+		"doctype": "Notification",
+		"subject":"_Test Notification 1",
 		"document_type": "Communication",
 		"event": "New",
 		"attach_print": 0,
@@ -12,8 +12,8 @@
 		]
 	},
 	{
-		"doctype": "Email Alert",
-		"subject":"_Test Email Alert 2",
+		"doctype": "Notification",
+		"subject":"_Test Notification 2",
 		"document_type": "Communication",
 		"event": "Save",
 		"attach_print": 0,
@@ -26,8 +26,8 @@
 		"property_value": "__testing__"
 	},
 	{
-		"doctype": "Email Alert",
-		"subject":"_Test Email Alert 3",
+		"doctype": "Notification",
+		"subject":"_Test Notification 3",
 		"document_type": "Event",
 		"event": "Save",
 		"attach_print": 0,
@@ -38,8 +38,8 @@
 		]
 	},
 	{
-		"doctype": "Email Alert",
-		"subject":"_Test Email Alert 4",
+		"doctype": "Notification",
+		"subject":"_Test Notification 4",
 		"document_type": "Event",
 		"event": "Value Change",
 		"attach_print": 0,
@@ -50,8 +50,8 @@
 		]
 	},
 	{
-		"doctype": "Email Alert",
-		"subject":"_Test Email Alert 5",
+		"doctype": "Notification",
+		"subject":"_Test Notification 5",
 		"document_type": "Event",
 		"event": "Days Before",
 		"attach_print": 0,
@@ -63,8 +63,8 @@
 		]
 	},
 	{
-		"doctype": "Email Alert",
-		"subject":"_Test Email Alert 6",
+		"doctype": "Notification",
+		"subject":"_Test Notification 6",
 		"document_type": "User",
 		"event": "New",
 		"attach_print": 0,
