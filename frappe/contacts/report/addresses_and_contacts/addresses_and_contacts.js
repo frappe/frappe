@@ -6,7 +6,7 @@ frappe.query_reports["Addresses And Contacts"] = {
 		{
 			"reqd": 1,
 			"fieldname":"reference_doctype",
-			"label": __("Reference DocType"),
+			"label": __("Reference Type"),
 			"fieldtype": "Link",
 			"options": "DocType",
 		},
@@ -17,7 +17,7 @@ frappe.query_reports["Addresses And Contacts"] = {
 			"get_options": function() {
 				let reference_doctype = frappe.query_report_filters_by_name.reference_doctype.get_value();
 				if(!reference_doctype) {
-					frappe.throw(__("Please select Reference DocType first"));
+					frappe.throw(__("Please select Reference Type first"));
 				}
 				return reference_doctype;
 			}
