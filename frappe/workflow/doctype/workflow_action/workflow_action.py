@@ -79,7 +79,7 @@ def apply_action(action, doctype, docname, current_state, user):
 			.format(
 				frappe.bold(docname),
 				frappe.bold(doc_workflow_state),
-				frappe.bold(doc.get("modified_by"))
+				frappe.bold(frappe.get_value('User', doc.get("modified_by"), 'full_name'))
 			)), indicator_color='blue')
 
 	frappe.session.user = logged_in_user # reset session user
