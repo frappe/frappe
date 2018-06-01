@@ -21,13 +21,23 @@ frappe.views.CommunicationComposer = Class.extend({
 			}
 		});
 
-		frappe.call({
-			method: "frappe.email.get_contact_list",
-			callback: (r) => {
-				const contactList = r.message;
-				['recipients', 'cc', 'bcc'].forEach(field => {
-					this.dialog.fields_dict[field].set_data(contactList);
+		['recipients', 'cc', 'bcc'].forEach(field => {
+			this.dialog.fields_dict[field].get_data = function() {
+				const data = me.dialog.fields_dict[field].get_value();
+				const txt = data.match(/[^,\s*]*$/)[0] || '';
+				let options = [];
+
+				frappe.call({
+					method: "frappe.email.get_contact_list",
+					args: {
+						txt: txt,
+					},
+					callback: (r) => {
+						options = r.message;
+						me.dialog.fields_dict[field].set_data(options);
+					}
 				});
+				return options;
 			}
 		});
 

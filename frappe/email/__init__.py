@@ -9,20 +9,31 @@ def sendmail_to_system_managers(subject, content):
 	frappe.sendmail(recipients=get_system_managers(), subject=subject, content=content)
 
 @frappe.whitelist()
-def get_contact_list():
+def get_contact_list(txt, page_length=20):
 	"""Returns contacts (from autosuggest)"""
+
+	cached_contacts = get_cached_contacts(txt)
+	if cached_contacts:
+		return cached_contacts[:page_length]
+
 	try:
 		match_conditions = build_match_conditions('Contact')
-		match_conditions = "where {0}".format(match_conditions) if match_conditions else ""
+		match_conditions = "and {0}".format(match_conditions) if match_conditions else ""
 
 		out = frappe.db.sql("""select email_id as value,
 			concat(first_name, ifnull(concat(' ',last_name), '' )) as description
-			from tabContact {0}""".format(match_conditions), as_dict=True)
-
+			from tabContact
+			where name like %(txt)s
+			%(condition)s
+			limit %(page_length)s
+		""", {'txt': "%%%s%%" % frappe.db.escape(txt),
+			'condition': match_conditions, 'page_length': page_length}, as_dict=True)
 		out = filter(None, out)
 
 	except:
 		raise
+
+	update_contact_cache(out)
 
 	return out
 
@@ -68,3 +79,23 @@ def get_communication_doctype(doctype, txt, searchfield, start, page_len, filter
 		if txt.lower().replace("%", "") in dt.lower() and dt in can_read:
 			out.append([dt])
 	return out
+
+def get_cached_contacts(txt):
+	contacts = frappe.cache().hget("contacts", frappe.session.user) or []
+
+	if not contacts:
+		return
+
+	if not txt:
+		return contacts
+
+	match = [d for d in contacts if (txt in d.value or txt in d.description)]
+	return match
+
+def update_contact_cache(contacts):
+	cached_contacts = frappe.cache().hget("contacts", frappe.session.user) or []
+
+	uncached_contacts = [d for d in contacts if d not in cached_contacts]
+	cached_contacts.extend(uncached_contacts)
+
+	frappe.cache().hset("contacts", frappe.session.user, cached_contacts)
