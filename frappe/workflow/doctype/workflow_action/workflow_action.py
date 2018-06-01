@@ -52,7 +52,6 @@ def process_workflow_actions(doc, state):
 		queue='short', **{"users_data" : user_data_map.values(), "doc" : doc})
 
 
-
 @frappe.whitelist(allow_guest=True)
 def apply_action(action, doctype, docname, current_state, user):
 	if not verify_request():
@@ -61,6 +60,7 @@ def apply_action(action, doctype, docname, current_state, user):
 	logged_in_user = frappe.session.user
 	if logged_in_user == 'Guest':
 		frappe.session.user = user
+
 	doc = frappe.get_doc(doctype, docname)
 	doc_workflow_state = get_doc_workflow_state(doc)
 
@@ -122,6 +122,20 @@ def get_users_next_action_data(transitions, doc):
 	return user_data_map
 
 
+def create_workflow_actions_for_users(users, doc):
+	for user in users:
+		frappe.get_doc({
+			'doctype': 'Workflow Action',
+			'reference_doctype': doc.get('doctype'),
+			'reference_name': doc.get('name'),
+			'workflow_state': get_doc_workflow_state(doc),
+			'status': 'Open',
+			'user': user
+		}).insert(ignore_permissions=True)
+
+	frappe.db.commit()
+
+
 def send_workflow_action_email(users_data, doc):
 	common_args = get_common_email_args(doc)
 	message = common_args.pop('message', None)
@@ -150,18 +164,6 @@ def get_workflow_action_url(action, doc, user):
 
 	return get_url(apply_action_method + "?" + get_signed_params(params))
 
-def create_workflow_actions_for_users(users, doc):
-	for user in users:
-		frappe.get_doc({
-			'doctype': 'Workflow Action',
-			'reference_doctype': doc.get('doctype'),
-			'reference_name': doc.get('name'),
-			'workflow_state': get_doc_workflow_state(doc),
-			'status': 'Open',
-			'user': user
-		}).insert(ignore_permissions=True)
-
-	frappe.db.commit()
 
 def get_users_with_role(role):
 	return [p[0] for p in frappe.db.sql("""select distinct tabUser.name
