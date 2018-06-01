@@ -49,8 +49,7 @@ def process_workflow_actions(doc, state):
 
 	create_workflow_actions_for_users(user_data_map.keys(), doc)
 
-	mail_args = {"users_data" : user_data_map.values(), "doc" : doc}
-	enqueue(send_workflow_action_email, queue='short', **mail_args)
+	enqueue(send_workflow_action_email, queue='short', users_data=user_data_map.values(), doc=doc)
 
 
 @frappe.whitelist(allow_guest=True)
