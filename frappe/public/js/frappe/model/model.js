@@ -233,12 +233,20 @@ $.extend(frappe.model, {
 
 	can_cancel: function(doctype) {
 		if(!doctype) return false;
-		return frappe.boot.user.can_cancel.indexOf(doctype)!==-1;
+		return frappe.boot.user.can_cancel.indexOf(doctype)!==-1
+			&& !this.has_workflow(doctype);
+	},
+
+	has_workflow: function(doctype) {
+		return frappe.get_list('Workflow', {'document_type': doctype,
+			'is_active': 1}).length;
 	},
 
 	is_submittable: function(doctype) {
 		if(!doctype) return false;
-		return locals.DocType[doctype] && locals.DocType[doctype].is_submittable;
+		return locals.DocType[doctype]
+			&& locals.DocType[doctype].is_submittable
+			&& !this.has_workflow(doctype);
 	},
 
 	is_table: function(doctype) {

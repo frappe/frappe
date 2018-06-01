@@ -187,7 +187,7 @@ def has_user_permission(doc, user=None, verbose=False):
 	if not user_permissions: return True
 
 	# user can create own role permissions, so nothing applies
-	if get_role_permissions('User Permission').get('write'): return True
+	if get_role_permissions('User Permission', user=user).get('write'): return True
 
 	apply_strict_user_permissions = frappe.get_system_settings('apply_strict_user_permissions')
 

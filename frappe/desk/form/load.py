@@ -43,7 +43,6 @@ def getdoc(doctype, name, user=None):
 
 	except Exception:
 		frappe.errprint(frappe.utils.get_traceback())
-		frappe.msgprint(_('Did not load'))
 		raise
 
 	if doc and not name.startswith('_'):
