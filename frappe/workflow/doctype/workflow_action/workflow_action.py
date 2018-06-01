@@ -53,9 +53,14 @@ def process_workflow_actions(doc, state):
 
 
 
-@frappe.whitelist()
-def apply_action(action, doctype, docname, current_state):
-	verify_request()
+@frappe.whitelist(allow_guest=True)
+def apply_action(action, doctype, docname, current_state, user):
+	if not verify_request():
+		return
+
+	logged_in_user = frappe.session.user
+	if logged_in_user == 'Guest':
+		frappe.session.user = user
 	doc = frappe.get_doc(doctype, docname)
 	doc_workflow_state = get_doc_workflow_state(doc)
 
@@ -76,6 +81,8 @@ def apply_action(action, doctype, docname, current_state):
 				frappe.bold(doc_workflow_state),
 				frappe.bold(doc.get("modified_by"))
 			)), indicator_color='blue')
+
+	frappe.session.user = logged_in_user # reset session user
 
 
 def clear_old_workflow_actions(doc, user=None):
@@ -110,7 +117,7 @@ def get_users_next_action_data(transitions, doc):
 
 			user_data_map[user].get('possible_actions').append({
 				'action_name': transition.action,
-				'action_link': get_workflow_action_url(transition.action, doc)
+				'action_link': get_workflow_action_url(transition.action, doc, user)
 			})
 	return user_data_map
 
@@ -130,14 +137,15 @@ def send_workflow_action_email(users_data, doc):
 		enqueue(method=frappe.sendmail, queue='short', **email_args)
 
 
-def get_workflow_action_url(action, doc):
+def get_workflow_action_url(action, doc, user):
 	apply_action_method = "/api/method/frappe.workflow.doctype.workflow_action.workflow_action.apply_action"
 
 	params = {
 		"doctype": doc.get('doctype'),
 		"docname": doc.get('name'),
 		"action": action,
-		"current_state": get_doc_workflow_state(doc)
+		"current_state": get_doc_workflow_state(doc),
+		"user": user
 	}
 
 	return get_url(apply_action_method + "?" + get_signed_params(params))
