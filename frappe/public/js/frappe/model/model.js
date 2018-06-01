@@ -239,7 +239,7 @@ $.extend(frappe.model, {
 
 	has_workflow: function(doctype) {
 		return frappe.get_list('Workflow', {'document_type': doctype,
-			'is_active': 1}).length
+			'is_active': 1}).length;
 	},
 
 	is_submittable: function(doctype) {
