@@ -6,18 +6,18 @@ frappe.query_reports["Addresses And Contacts"] = {
 		{
 			"reqd": 1,
 			"fieldname":"reference_doctype",
-			"label": __("Reference Type"),
+			"label": __("Entity Type"),
 			"fieldtype": "Link",
 			"options": "DocType",
 		},
 		{
 			"fieldname":"reference_name",
-			"label": __("Reference Name"),
+			"label": __("Entity Name"),
 			"fieldtype": "Dynamic Link",
 			"get_options": function() {
 				let reference_doctype = frappe.query_report_filters_by_name.reference_doctype.get_value();
 				if(!reference_doctype) {
-					frappe.throw(__("Please select Reference Type first"));
+					frappe.throw(__("Please select Entity Type first"));
 				}
 				return reference_doctype;
 			}
