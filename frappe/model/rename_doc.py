@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals, print_function
-import frappe, json
+import frappe
 from frappe import _
 from frappe.utils import cint
 from frappe.model.naming import validate_name
@@ -100,7 +100,7 @@ def update_user_settings(old, new, link_fields):
 			data like "%%%s%%" and doctype in ({0})'''.format(", ".join(["%s"]*len(linked_doctypes))),
 		tuple([old] + list(linked_doctypes)), as_dict=1)
 
-	# create the dict using the doctype name as key and values as list of the user settings 
+	# create the dict using the doctype name as key and values as list of the user settings
 	from collections import defaultdict
 	user_settings_dict = defaultdict(list)
 	for user_setting in user_settings_details:

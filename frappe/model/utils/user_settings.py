@@ -72,11 +72,11 @@ def update_user_settings_data(user_setting, fieldname, old, new, condition_field
 			view_settings = data.get(view)
 			if view_settings and view_settings.get("filters"):
 				view_filters = view_settings.get("filters")
-				for filter in view_filters:
-					if condition_fieldname and filter[filter_dict[condition_fieldname]] != condition_values:
+				for view_filter in view_filters:
+					if condition_fieldname and view_filter[filter_dict[condition_fieldname]] != condition_values:
 						continue
-					if filter[filter_dict[fieldname]] == old:
-						filter[filter_dict[fieldname]] = new
+					if view_filter[filter_dict[fieldname]] == old:
+						view_filter[filter_dict[fieldname]] = new
 						update = True
 		if update:
 			frappe.db.sql("update __UserSettings set data=%s where doctype=%s and user=%s",
