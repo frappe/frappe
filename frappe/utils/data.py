@@ -27,10 +27,10 @@ def get_string_date(date_object=None):
 	Converts datetime.date object to string date (yyyy-mm-dd)
 	"""
 	if not date_object:
-		return frappe.utils.nowdate()  
+		return frappe.utils.nowdate()
 	else:
 		return date_object.strftime('%Y-%m-%d')
-	
+
 def getdate(string_date=None):
 	"""
 	Converts string date (yyyy-mm-dd) to datetime.date object
