@@ -25,7 +25,7 @@ DATETIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
 def get_string_date(date_object=None):
 	"""
 	Converts datetime.date object to string date (yyyy-mm-dd)
-	""""
+	"""
 	if not date_object:
 		return frappe.utils.nowdate()  
 	else:
