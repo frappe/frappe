@@ -295,9 +295,9 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 
 		if (locals["Print Format"] && locals["Print Format"][format]) {
-			return locals["Print Format"][format]
+			return locals["Print Format"][format];
 		} else {
-			return {}
+			return {};
 		}
 	},
 
