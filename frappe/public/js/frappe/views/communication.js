@@ -285,11 +285,11 @@ frappe.views.CommunicationComposer = Class.extend({
 		return frappe.last_edited_communication[this.doc][this.key];
 	},
 
-	selected_format: function () {
+	selected_format: function() {
 		return this.dialog.fields_dict.select_print_format.input.value || this.frm.meta.default_print_format || "Standard";
 	},
 
-	get_print_format: function (format) {
+	get_print_format: function(format) {
 		if (!format) {
 			format = this.selected_format();
 		}
