@@ -18,7 +18,7 @@ def get_standard_reply(template_name, doc):
 		doc = json.loads(doc)
 
 	the_doc = frappe.get_doc(doc.get('doctype'), doc.get('name'))
-	
+
 	doc.update({'doc': the_doc})
 	
 	standard_reply = frappe.get_doc("Standard Reply", template_name)
