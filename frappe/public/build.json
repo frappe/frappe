@@ -214,7 +214,6 @@
 		"public/js/frappe/ui/sort_selector.js",
 
 		"public/js/frappe/change_log.html",
-		"public/js/frappe/auto_repeat_schedule.html",
 		"public/js/frappe/desk.js",
 		"public/js/frappe/query_string.js",
 
