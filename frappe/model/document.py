@@ -1155,6 +1155,7 @@ class Document(BaseDocument):
 				"reference_doctype": self.doctype,
 				"reference_name": self.name,
 			}).insert(ignore_permissions=True)
+			frappe.local.flags.commit = True
 
 	def get_signature(self):
 		"""Returns signature (hash) for private URL."""

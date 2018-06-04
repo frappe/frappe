@@ -221,7 +221,7 @@ def get_feedback_rating(doctype, docname):
 def get_view_logs(doctype, docname):
 	""" get and return the latest view logs if available """
 	logs = []
-	if frappe.get_value("DocType", doctype, "track_views"):
+	if frappe.get_meta('Credentials').track_views:
 		view_logs = frappe.get_all("View log", filters={
 			"reference_doctype": doctype,
 			"reference_name": docname,
