@@ -41,7 +41,7 @@ class AutoRepeat(Document):
 	def on_update_after_submit(self):
 		self.validate_dates()
 		self.set_next_schedule_date()
-		
+
 	def before_cancel(self):
 		self.unlink_auto_repeat_id()
 		self.next_schedule_date = None
@@ -109,7 +109,6 @@ class AutoRepeat(Document):
 			start_date_copy = today_copy
 		if not self.end_date:
 			end_date_copy = add_days(today_copy, 365)
-			self.end_date = end_date_copy
 		while (getdate(start_date_copy) < getdate(end_date_copy)):
 			start_date_copy = get_next_schedule_date(start_date_copy, self.frequency, self.repeat_on_day)
 			row = {
