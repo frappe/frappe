@@ -64,11 +64,7 @@ class StripeSettings(Document):
 
 		try:
 			self.integration_request = create_request_log(self.data, "Host", "Stripe")
-			if frappe.db.get_value("Payment Request", self.data.reference_docname, 'is_a_subscription'):
-				self.payment_plan = frappe.db.get_value("Payment Request", self.data.reference_docname, 'payment_plan')
-				return self.create_subscription_on_stripe()
-			else:
-				return self.create_charge_on_stripe()
+			return self.create_charge_on_stripe()
 
 		except Exception:
 			frappe.log_error(frappe.get_traceback())
