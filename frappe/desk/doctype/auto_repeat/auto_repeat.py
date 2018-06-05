@@ -17,6 +17,9 @@ month_map = {'Monthly': 1, 'Quarterly': 3, 'Half-yearly': 6, 'Yearly': 12}
 
 
 class AutoRepeat(Document):
+	def onload(self):
+  		self.set_onload("auto_repeat_schedule", self.get_auto_repeat_schedule())
+
 	def validate(self):
 		self.update_status()
 		self.validate_reference_doctype()
@@ -97,6 +100,24 @@ class AutoRepeat(Document):
 		if status and status != 'Resumed':
 			self.status = status
 
+	def get_auto_repeat_schedule(self):
+		schedule_details = []
+		start_date_copy = getdate(self.start_date)
+		end_date_copy = getdate(self.end_date)
+		today_copy = frappe.utils.datetime.date.today()
+		if start_date_copy < today_copy:
+			start_date_copy = today_copy
+		if not self.end_date:
+			end_date_copy = add_days(today_copy, 365)
+		while (getdate(start_date_copy) < getdate(end_date_copy)):
+			start_date_copy = get_next_schedule_date(start_date_copy, self.frequency, self.repeat_on_day)
+			row = {
+				"reference_document" : self.reference_document,
+				"frequency" : self.frequency,
+				"next_scheduled_date" : start_date_copy
+			}
+			schedule_details.append(row)
+		return schedule_details
 
 def get_next_schedule_date(start_date, frequency, repeat_on_day):
 	mcount = month_map.get(frequency)
@@ -106,7 +127,6 @@ def get_next_schedule_date(start_date, frequency, repeat_on_day):
 		days = 7 if frequency == 'Weekly' else 1
 		next_date = add_days(start_date, days)
 	return next_date
-
 
 def make_auto_repeat_entry(date=None):
 	date = date or today()
@@ -120,14 +140,12 @@ def make_auto_repeat_entry(date=None):
 			if schedule_date and not frappe.db.get_value('Auto Repeat', data.name, 'disabled'):
 				frappe.db.set_value('Auto Repeat', data.name, 'next_schedule_date', schedule_date)
 
-
 def get_auto_repeat_entries(date):
 	return frappe.db.sql(""" select * from `tabAuto Repeat`
 		where docstatus = 1 and next_schedule_date <=%s
 			and reference_document is not null and reference_document != ''
 			and next_schedule_date <= ifnull(end_date, '2199-12-31')
 			and ifnull(disabled, 0) = 0 and status != 'Stopped' """, (date), as_dict=1)
-
 
 def create_documents(data, schedule_date):
 	try:
@@ -146,11 +164,9 @@ def create_documents(data, schedule_date):
 		if data.reference_document and not frappe.flags.in_test:
 			notify_error_to_user(data)
 
-
 def disable_auto_repeat(data):
 	auto_repeat = frappe.get_doc('Auto Repeat', data.name)
 	auto_repeat.db_set('disabled', 1)
-
 
 def notify_error_to_user(data):
 	party = ''
@@ -166,7 +182,6 @@ def notify_error_to_user(data):
 
 	notify_errors(data.reference_document, data.reference_doctype, party, data.owner, data.name)
 
-
 def make_new_document(args, schedule_date):
 	doc = frappe.get_doc(args.reference_doctype, args.reference_document)
 	new_doc = frappe.copy_doc(doc, ignore_no_copy=False)
@@ -177,7 +192,6 @@ def make_new_document(args, schedule_date):
 		new_doc.submit()
 
 	return new_doc
-
 
 def update_doc(new_document, reference_doc, args, schedule_date):
 	new_document.docstatus = 0
@@ -208,7 +222,6 @@ def update_doc(new_document, reference_doc, args, schedule_date):
 
 	new_document.run_method("on_recurring", reference_doc=reference_doc, auto_repeat_doc=args)
 
-
 def set_auto_repeat_period(args, mcount, new_document):
 	if mcount and new_document.meta.get_field('from_date') and new_document.meta.get_field('to_date'):
 		last_ref_doc = frappe.db.sql("""
@@ -233,13 +246,11 @@ def set_auto_repeat_period(args, mcount, new_document):
 		new_document.set('from_date', from_date)
 		new_document.set('to_date', to_date)
 
-
 def get_next_date(dt, mcount, day=None):
 	dt = getdate(dt)
 	dt += relativedelta(months=mcount, day=day)
 
 	return dt
-
 
 def send_notification(new_rv, auto_repeat_doc, print_format='Standard'):
 	"""Notify concerned persons about recurring document generation"""
@@ -263,7 +274,6 @@ def send_notification(new_rv, auto_repeat_doc, print_format='Standard'):
 	frappe.sendmail(auto_repeat_doc.recipients,
 					subject=subject, message=message, attachments=attachments)
 
-
 def notify_errors(doc, doctype, party, owner, name):
 	recipients = get_system_managers(only_name=True)
 	frappe.sendmail(recipients + [frappe.db.get_value("User", owner, "email")],
@@ -277,7 +287,6 @@ def notify_errors(doc, doctype, party, owner, name):
 
 	assign_task_to_owner(name, "Recurring Documents Failed", recipients)
 
-
 def assign_task_to_owner(name, msg, users):
 	for d in users:
 		args = {
@@ -289,7 +298,6 @@ def assign_task_to_owner(name, msg, users):
 		}
 		assign_to.add(args)
 
-
 @frappe.whitelist()
 def make_auto_repeat(doctype, docname):
 	doc = frappe.new_doc('Auto Repeat')
@@ -299,7 +307,6 @@ def make_auto_repeat(doctype, docname):
 	doc.reference_document = docname
 	doc.start_date = reference_doc.get('posting_date') or reference_doc.get('transaction_date')
 	return doc
-
 
 @frappe.whitelist()
 def stop_resume_auto_repeat(auto_repeat, status):
@@ -313,7 +320,6 @@ def stop_resume_auto_repeat(auto_repeat, status):
 	doc.save()
 
 	return doc.status
-
 
 def auto_repeat_doctype_query(doctype, txt, searchfield, start, page_len, filters):
 	return frappe.db.sql("""select parent from `tabDocField`
