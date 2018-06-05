@@ -86,41 +86,13 @@ class StripeSettings(Document):
 				self.flags.status_changed_to = "Completed"
 
 			else:
-				frappe.log_error(str(resp), 'Stripe Payment not completed')
+				frappe.log_error(charge.failure_message, 'Stripe Payment not completed')
 
-		except:
+		except Exception:
 			frappe.log_error(frappe.get_traceback())
-			# failed
-			pass
 
 		return self.finalize_request()
 
-	def create_subscription_on_stripe(self):
-		items = [
-				{
-				"plan": self.payment_plan
-				}
-			]
-
-		try:
-			customer = stripe.Customer.create(description=self.data.payer_name, email=self.data.payer_email, source=self.data.stripe_token_id)
-			subscription = stripe.Subscription.create(customer=customer, items=items)
-
-			if subscription.status == "active":
-				self.integration_request.db_set('status', 'Completed', update_modified=False)
-				self.flags.status_changed_to = "Completed"
-
-			else:
-				self.integration_request.db_set('status', 'Failed', update_modified=False)
-				frappe.log_error(str(resp), 'Stripe Payment not completed')
-
-		except:
-			self.integration_request.db_set('status', 'Failed', update_modified=False)
-			frappe.log_error(frappe.get_traceback())
-			# failed
-			pass
-
-		return self.finalize_request()
 
 	def finalize_request(self):
 		redirect_to = self.data.get('redirect_to') or None
