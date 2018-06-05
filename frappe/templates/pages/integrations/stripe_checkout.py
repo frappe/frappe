@@ -27,12 +27,6 @@ def get_context(context):
 
 		context['amount'] = fmt_money(amount=context['amount'], currency=context['currency'])
 
-		if frappe.db.get_value(context.reference_doctype, context.reference_docname, "is_a_subscription"):
-			payment_plan = frappe.db.get_value(context.reference_doctype, context.reference_docname, "payment_plan")
-			recurrence = frappe.db.get_value("Payment Plan", payment_plan, "recurrence")
-
-			context['amount'] = context['amount'] + " " + _(recurrence)
-
 	else:
 		frappe.redirect_to_message(_('Some information is missing'),
 			_('Looks like someone sent you to an incomplete URL. Please ask them to look into it.'))
