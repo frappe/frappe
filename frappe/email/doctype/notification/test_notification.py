@@ -69,6 +69,7 @@ class TestNotification(unittest.TestCase):
 		notification.condition = "test"
 
 		self.assertRaises(frappe.ValidationError, notification.save)
+		notification.delete()
 
 
 	def test_value_changed(self):
