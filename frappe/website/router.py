@@ -229,7 +229,7 @@ def setup_source(page_info):
 	html = ''
 
 	if page_info.template.endswith('.md'):
-		source = markdown(source)
+		source = markdown(source, extras=["fenced-code-blocks"])
 
 	# if only content
 	if page_info.template.endswith('.html') or page_info.template.endswith('.md'):
