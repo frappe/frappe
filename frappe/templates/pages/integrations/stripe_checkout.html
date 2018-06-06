@@ -14,7 +14,9 @@
 
 <div class="row stripe" style="min-height: 400px; padding-bottom: 50px; margin-top:100px;">
 	<div class="col-sm-8 col-sm-offset-2">
-		<img src={{image}}>
+		{% if image %}
+			<img src={{image}}>
+		{% endif %}
 		<h2 class="text-center">{{description}}</h2>
 		<form id="payment-form">
 			<div class="form-row">
