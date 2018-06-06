@@ -290,6 +290,10 @@ def load_properties(page_info):
 
 	if "<!-- no-header -->" in page_info.source:
 		page_info.no_header = 1
+
+	if "<!-- add-next-prev-links -->" in page_info.source:
+		page_info.add_next_prev_links = 1
+
 	# else:
 	# 	# every page needs a header
 	# 	# add missing header if there is no <h1> tag
