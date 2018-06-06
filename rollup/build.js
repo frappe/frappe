@@ -17,15 +17,26 @@ const {
 	get_options_for
 } = require('./config');
 
+const build_for_app = process.argv[2] === '--app' ? process.argv[3] : null;
+
 show_production_message();
 ensure_js_css_dirs();
 build_libs();
-build_assets_for_all_apps();
+
+if (build_for_app) {
+	build_assets_for_app(build_for_app)
+} else {
+	build_assets_for_all_apps();
+}
 
 function build_assets_for_all_apps() {
 	run_serially(
 		apps_list.map(app => () => build_assets(app))
 	);
+}
+
+function build_assets_for_app(app) {
+	build_assets(app)
 }
 
 function build_assets(app) {
