@@ -68,7 +68,7 @@ def set_name_from_naming_options(autoname, doc):
 	if _autoname.startswith('field:'):
 		doc.name = _field_autoname(autoname, doc)
 	elif _autoname.startswith('naming_series:'):
-		set_name_by_naming_series(autoname, doc)
+		set_name_by_naming_series(doc)
 	elif _autoname.startswith('prompt'):
 		doc.name = _prompt_autoname(autoname, doc)
 	elif _autoname.startswith('concatenate:'):
