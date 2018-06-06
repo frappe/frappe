@@ -144,7 +144,7 @@ def export_query():
 
 	data = [['Sr'] + get_labels(db_query.fields, doctype)]
 	for i, row in enumerate(ret):
-		translated_row = list(map(lambda x:_(x), row))
+		translated_row = list(map(_, row))
 		data.append([i+1] + list(translated_row))
 
 	if file_format_type == "CSV":
