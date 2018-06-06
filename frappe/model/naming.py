@@ -39,7 +39,7 @@ def set_new_name(doc):
 		doc.run_method("autoname")
 
 	if not doc.name and autoname:
-		doc.name = _get_name_from_naming_options(autoname, doc)
+		set_name_from_naming_options(autoname, doc)
 
 	# if the autoname option is 'field:' and no name was derived, we need to
 	# notify
@@ -52,32 +52,29 @@ def set_new_name(doc):
 		doc.name = make_autoname('hash', doc.doctype)
 
 	doc.name = validate_name(
-					doc.doctype,
-					doc.name,
-					frappe.get_meta(doc.doctype).get_field("name_case")
-				)
+		doc.doctype,
+		doc.name,
+		frappe.get_meta(doc.doctype).get_field("name_case")
+	)
 
 
-def _get_name_from_naming_options(autoname, doc):
+def set_name_from_naming_options(autoname, doc):
 	"""
 	Get a name based on the autoname field option
 	"""
-	options_map = {
-		'field:': _field_autoname,
-		'naming_series:': _naming_series_autoname,
-		'prompt': _prompt_autoname,
-		'concatenate:': _concatenate_autoname
-	}
 
-	for option in options_map:
-		if autoname.lower().startswith(option):
-			name = options_map[option](autoname, doc)
-			return name
+	_autoname = autoname.lower()
 
-	if '#' in autoname:
-		name = make_autoname(autoname, doc=doc)
-		return name
-
+	if _autoname.startswith('field:'):
+		doc.name = _field_autoname(autoname, doc)
+	elif _autoname.startswith('naming_series:'):
+		set_name_by_naming_series(autoname, doc)
+	elif _autoname.startswith('prompt'):
+		doc.name = _prompt_autoname(autoname, doc)
+	elif _autoname.startswith('concatenate:'):
+		doc.name = _concatenate_autoname(autoname, doc)
+	elif '#' in autoname:
+		doc.name = make_autoname(autoname, doc=doc)
 
 def set_name_by_naming_series(doc):
 	"""Sets name by the `naming_series` property"""
@@ -88,7 +85,6 @@ def set_name_by_naming_series(doc):
 		frappe.throw(frappe._("Naming Series mandatory"))
 
 	doc.name = make_autoname(doc.naming_series+'.#####', '', doc)
-
 
 def make_autoname(key='', doctype='', doc=''):
 	"""
@@ -274,17 +270,6 @@ def _prompt_autoname(autoname, doc):
 	# set from __newname in save.py
 	if not doc.name:
 		frappe.throw(_("Name not set via prompt"))
-
-
-def _naming_series_autoname(autoname, doc):
-	"""
-	Generate a name using naming series.
-	"""
-	if not doc.naming_series:
-		frappe.throw(frappe._("Naming Series mandatory"))
-
-	name = make_autoname(doc.naming_series+'.#####', '', doc)
-	return name
 
 
 def _concatenate_autoname(autoname, doc):
