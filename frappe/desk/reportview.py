@@ -144,7 +144,8 @@ def export_query():
 
 	data = [['Sr'] + get_labels(db_query.fields, doctype)]
 	for i, row in enumerate(ret):
-		data.append([i+1] + list(row))
+		translated_row = list(map(lambda x:_(x), row))
+		data.append([i+1] + list(translated_row))
 
 	if file_format_type == "CSV":
 
@@ -202,7 +203,7 @@ def get_labels(fields, doctype):
 			fieldname = fieldname.strip("`")
 
 		df = frappe.get_meta(parenttype).get_field(fieldname)
-		label = df.label if df else fieldname.title()
+		label = _(df.label if df else fieldname.title())
 		if label in labels:
 			label = doctype + ": " + label
 		labels.append(label)

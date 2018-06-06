@@ -149,7 +149,7 @@ def export_query():
 
 		# add column headings
 		for idx in range(len(data.columns)):
-			result[0].append(columns[idx]["label"])
+			result[0].append(_(columns[idx]["label"]))
 
 		# build table from dict
 		if isinstance(data.result[0], dict):
@@ -158,7 +158,7 @@ def export_query():
 				if row and (i+1 in visible_idx):
 					row_list = []
 					for idx in range(len(data.columns)):
-						row_list.append(row.get(columns[idx]["fieldname"],""))
+						row_list.append(_(row.get(columns[idx]["fieldname"],"")))
 					result.append(row_list)
 				elif not row:
 					result.append([])
