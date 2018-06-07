@@ -26,21 +26,25 @@ def setup():
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
 def get_node_pacman():
-	pacmans = ['npm', 'yarn']
+	pacmans = ['yarn', 'npm']
 	for exec_ in pacmans:
 		exec_ = find_executable(exec_)
 		if exec_:
 			return exec_
 	raise ValueError('No Node.js Package Manager found.')
 
-def bundle(no_compress, make_copy=False, restore=False, verbose=False):
+def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False):
 	"""concat / minify js files"""
 	setup()
 	make_asset_dirs(make_copy=make_copy, restore=restore)
 
 	pacman = get_node_pacman()
+	mode = 'build' if no_compress else 'production'
+	command = '{pacman} run {mode}'.format(pacman=pacman, mode=mode)
 
-	command = '{pacman} run build'.format(pacman=pacman) if no_compress else '{pacman} run production'.format(pacman=pacman)
+	if app:
+		command += ' --app {app}'.format(app=app)
+
 	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
 	check_yarn()
 	frappe.commands.popen(command, cwd=frappe_app_path)

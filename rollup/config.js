@@ -93,8 +93,12 @@ function get_rollup_options_for_css(output_file, input_files) {
 				paths: [
 					path.resolve(get_public_path('frappe'), 'less')
 				]
-			}]],
-			include: [path.resolve(bench_path, '**/*.less'), path.resolve(bench_path, '**/*.css')],
+			}], 'sass'],
+			include: [
+				path.resolve(bench_path, '**/*.less'),
+				path.resolve(bench_path, '**/*.scss'),
+				path.resolve(bench_path, '**/*.css')
+			],
 			minimize: minimize_css
 		})
 	];
