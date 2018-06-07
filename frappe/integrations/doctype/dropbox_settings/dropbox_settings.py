@@ -101,12 +101,12 @@ def backup_to_dropbox(upload_db_backup=True):
 		dropbox_settings['access_token'] = access_token['oauth2_token']
 		set_dropbox_access_token(access_token['oauth2_token'])
 
+	dropbox_client = dropbox.Dropbox(dropbox_settings['access_token'])
+
 	if not upload_db_backup:
-		dropbox_client = dropbox.Dropbox(dropbox_settings['access_token'])
 		backup = new_backup(ignore_files=True)
 		filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
 		upload_file_to_dropbox(filename, "/database", dropbox_client)
-
 
 	# upload files to files folder
 	did_not_upload = []
