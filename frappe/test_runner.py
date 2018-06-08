@@ -220,7 +220,7 @@ def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 
 	if hasattr(module, "test_dependencies"):
 		for doctype in module.test_dependencies:
-			make_test_records(doctype, verbose=verbose)
+			make_test_records(doctype, verbose=verbose, force = True)
 
 	is_ui_test = True if hasattr(module, 'TestDriver') else False
 
@@ -235,7 +235,7 @@ def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 		with open(txt_file, 'r') as f:
 			doc = json.loads(f.read())
 		doctype = doc["name"]
-		make_test_records(doctype, verbose)
+		make_test_records(doctype, verbose, force = True)
 
 	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
 
@@ -353,6 +353,12 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 
 			if docstatus == 1:
 				d.submit()
+
+		except frappe.LinkValidationError as e:
+			pass
+
+		except frappe.ValidationError as e:
+			pass
 
 		except frappe.NameError:
 			revert_naming(d)
