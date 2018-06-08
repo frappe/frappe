@@ -14,6 +14,9 @@ from frappe.translate import send_translations
 import frappe.desk.reportview
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
+from frappe.utils.background_jobs import enqueue
+from frappe.utils.file_manager import save_file
+
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
@@ -28,6 +31,46 @@ def get_report_doc(report_name):
 		frappe.throw(_("Report {0} is disabled").format(report_name))
 
 	return doc
+
+
+def generate_report_result(report, filters, user):
+	columns, result, message, chart, data_to_be_printed = [], [], None, None, None
+	if report.report_type == "Query Report":
+		if not report.query:
+			frappe.msgprint(_("Must specify a Query to run"), raise_exception=True)
+
+		if not report.query.lower().startswith("select"):
+			frappe.msgprint(_("Query must be a SELECT"), raise_exception=True)
+
+		result = [list(t) for t in frappe.db.sql(report.query, filters)]
+		columns = [cstr(c[0]) for c in frappe.db.get_description()]
+	else:
+		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
+		if report.is_standard == "Yes":
+			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
+			res = frappe.get_attr(method_name)(frappe._dict(filters))
+
+			columns, result = res[0], res[1]
+			if len(res) > 2:
+				message = res[2]
+			if len(res) > 3:
+				chart = res[3]
+			if len(res) > 4:
+				data_to_be_printed = res[4]
+
+	if result:
+		result = get_filtered_data(report.ref_doctype, columns, result, user)
+
+	if cint(report.add_total_row) and result:
+		result = add_total_row(result, columns)
+
+	return {
+		"result": result,
+		"columns": columns,
+		"message": message,
+		"chart": chart,
+		"data_to_be_printed": data_to_be_printed
+	}
 
 @frappe.whitelist()
 def get_script(report_name):
@@ -61,6 +104,14 @@ def get_script(report_name):
 		"html_format": html_format
 	}
 
+
+@frappe.whitelist()
+def background_enqueue_run(report, filters=None, user=None):
+	report_instance = frappe.get_doc({"docType": "Background Report"})
+	report_instance.insert(ignore_permissions = True)
+	return generate_report_result(report, filters, user)
+
+
 @frappe.whitelist()
 def run(report_name, filters=None, user=None):
 
@@ -78,44 +129,12 @@ def run(report_name, filters=None, user=None):
 		frappe.msgprint(_("Must have report permission to access this report."),
 			raise_exception=True)
 
-	columns, result, message, chart, data_to_be_printed = [], [], None, None, None
-	if report.report_type=="Query Report":
-		if not report.query:
-			frappe.msgprint(_("Must specify a Query to run"), raise_exception=True)
-
-
-		if not report.query.lower().startswith("select"):
-			frappe.msgprint(_("Query must be a SELECT"), raise_exception=True)
-
-		result = [list(t) for t in frappe.db.sql(report.query, filters)]
-		columns = [cstr(c[0]) for c in frappe.db.get_description()]
+	if report.background_report:
+		return background_enqueue_run(report, filters, user)
+		#enqueue('frappe.desk.query_report.background_enqueue_run', queue='background')
+		# frappe.msgprint(_("This is a background job"), raise_exception=True)
 	else:
-		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
-		if report.is_standard=="Yes":
-			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
-			res = frappe.get_attr(method_name)(frappe._dict(filters))
-
-			columns, result = res[0], res[1]
-			if len(res) > 2:
-				message = res[2]
-			if len(res) > 3:
-				chart = res[3]
-			if len(res) > 4:
-				data_to_be_printed = res[4]
-
-	if result:
-		result = get_filtered_data(report.ref_doctype, columns, result, user)
-
-	if cint(report.add_total_row) and result:
-		result = add_total_row(result, columns)
-
-	return {
-		"result": result,
-		"columns": columns,
-		"message": message,
-		"chart": chart,
-		"data_to_be_printed": data_to_be_printed
-	}
+		return generate_report_result(report, filters, user)
 
 
 @frappe.whitelist()
