@@ -41,7 +41,9 @@ export default class WebForm {
 		});
 
 		this.fieldGroup.make();
-		this.fieldGroup.set_values(doc);
+		if(doc) {
+			this.fieldGroup.set_values(doc);
+		}
 	}
 
 	get_values() {
