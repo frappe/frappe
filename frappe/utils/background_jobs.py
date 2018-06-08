@@ -15,6 +15,7 @@ from pymysql.constants import ER
 
 default_timeout = 300
 queue_timeout = {
+	'background': 2500,
 	'long': 1500,
 	'default': 300,
 	'short': 300
@@ -65,6 +66,7 @@ def enqueue(method, queue='default', timeout=300, event=None,
 	else:
 		return q.enqueue_call(execute_job, timeout=timeout,
 			kwargs=queue_args)
+
 
 def enqueue_doc(doctype, name=None, method=None, queue='default', timeout=300,
 	now=False, **kwargs):
