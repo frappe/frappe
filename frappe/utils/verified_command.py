@@ -30,11 +30,11 @@ def verify_request():
 		getattr(frappe.request, 'query_string', None))
 
 	valid = False
+	signature_string = '&_signature='.encode()
+	if signature_string in query_string:
+		params, signature = query_string.split(signature_string)
 
-	if '&_signature=' in query_string:
-		params, signature = query_string.split("&_signature=")
-
-		given_signature = hmac.new(params.encode("utf-8"))
+		given_signature = hmac.new(params)
 
 		given_signature.update(get_secret().encode())
 		valid = signature == given_signature.hexdigest()

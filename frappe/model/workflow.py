@@ -114,19 +114,17 @@ def validate_workflow(doc):
 		current_state = doc._doc_before_save.get(workflow.workflow_state_field)
 	next_state = doc.get(workflow.workflow_state_field)
 
-	if not next_state or not current_state:
-		# set default state (maybe not set in insert)
-		current_state = next_state = workflow.states[0].state
-		doc.set(workflow.workflow_state_field, workflow.states[0].state)
+	if not next_state:
+		next_state = workflow.states[0].state
+		doc.set(workflow.workflow_state_field, next_state)
+
+	if not current_state:
+		current_state = workflow.states[0].state
 
 	state_row = [d for d in workflow.states if d.state == current_state]
 	if not state_row:
 		frappe.throw(_('{0} is not a valid Workflow State. Please update your Workflow and try again.'.format(frappe.bold(current_state))))
 	state_row = state_row[0]
-
-	# check if user is allowed to edit in current state
-	if not state_row.allow_edit in frappe.get_roles():
-		frappe.throw(_('Not allowed to edit in Workflow State {0}'.format(frappe.bold(current_state))), WorkflowPermissionError)
 
 	# if transitioning, check if user is allowed to transition
 	if current_state != next_state:
