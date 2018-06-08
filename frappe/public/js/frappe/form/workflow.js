@@ -49,6 +49,7 @@ frappe.ui.form.States = Class.extend({
 	},
 
 	refresh: function() {
+		const me = this;
 		// hide if its not yet saved
 		if(this.frm.doc.__islocal) {
 			this.set_default_state();
@@ -65,7 +66,7 @@ frappe.ui.form.States = Class.extend({
 			const user = frappe.session.user;
 			if (user === 'Administrator'
 				|| frappe.workflow.is_self_approval_enabled(doctype)
-				|| user !== this.frm.doc.owner) {
+				|| user !== me.frm.doc.owner) {
 				approval_access = true;
 			}
 			return approval_access;
