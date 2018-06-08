@@ -1,11 +1,11 @@
-frappe.ui.form.GridRowForm = Class.extend({
-	init: function(opts) {
+export default class GridRowForm {
+	constructor(opts) {
 		$.extend(this, opts);
 		this.wrapper = $('<div class="form-in-grid"></div>')
 			.appendTo(this.row.wrapper);
 
-	},
-	render: function() {
+	}
+	render() {
 		var me = this;
 		this.make_form();
 		this.form_area.empty();
@@ -34,16 +34,16 @@ frappe.ui.form.GridRowForm = Class.extend({
 		this.row.grid.open_grid_row = this;
 
 		this.set_focus();
-	},
-	make_form: function() {
+	}
+	make_form() {
 		if(!this.form_area) {
 			$(frappe.render_template("grid_form", {grid:this})).appendTo(this.wrapper);
 			this.form_area = this.wrapper.find(".form-area");
 			this.row.set_row_index();
 			this.set_form_events();
 		}
-	},
-	set_form_events: function() {
+	}
+	set_form_events() {
 		var me = this;
 		this.wrapper.find(".grid-delete-row")
 			.on('click', function() {
@@ -67,18 +67,18 @@ frappe.ui.form.GridRowForm = Class.extend({
 			me.row.toggle_view();
 			return false;
 		});
-	},
-	toggle_add_delete_button_display: function($parent) {
+	}
+	toggle_add_delete_button_display($parent) {
 		$parent.find(".grid-header-toolbar .btn, .grid-footer-toolbar .btn")
 			.toggle(this.row.grid.is_editable());
-	},
-	refresh_field: function(fieldname) {
+	}
+	refresh_field(fieldname) {
 		if(this.fields_dict[fieldname]) {
 			this.fields_dict[fieldname].refresh();
 			this.layout && this.layout.refresh_dependency();
 		}
-	},
-	set_focus: function() {
+	}
+	set_focus() {
 		// wait for animation and then focus on the first row
 		var me = this;
 		setTimeout(function() {
@@ -93,5 +93,5 @@ frappe.ui.form.GridRowForm = Class.extend({
 				}
 			}
 		}, 500);
-	},
-});
+	}
+};
