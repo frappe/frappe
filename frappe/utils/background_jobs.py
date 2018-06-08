@@ -67,6 +67,7 @@ def enqueue(method, queue='default', timeout=300, event=None,
 		return q.enqueue_call(execute_job, timeout=timeout,
 			kwargs=queue_args)
 
+
 def enqueue_doc(doctype, name=None, method=None, queue='default', timeout=300,
 	now=False, **kwargs):
 	'''Enqueue a method to be run on a document'''

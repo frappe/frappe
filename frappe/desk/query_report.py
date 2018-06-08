@@ -14,6 +14,9 @@ from frappe.translate import send_translations
 import frappe.desk.reportview
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
+from frappe.utils.background_jobs import enqueue
+from frappe.utils.file_manager import save_file
+
 
 
 def get_report_doc(report_name):
@@ -103,6 +106,7 @@ def background_enqueue_run(report_name, filters=None, user=None):
 	}
 
 
+
 @frappe.whitelist()
 def get_script(report_name):
 	report = get_report_doc(report_name)
@@ -136,6 +140,14 @@ def get_script(report_name):
 	}
 
 
+
+@frappe.whitelist()
+def background_enqueue_run(report, filters=None, user=None):
+	report_instance = frappe.get_doc({"docType": "Background Report"})
+	report_instance.insert(ignore_permissions = True)
+	return generate_report_result(report, filters, user)
+
+
 @frappe.whitelist()
 def run(report_name, filters=None, user=None):
 
@@ -147,10 +159,10 @@ def run(report_name, filters=None, user=None):
 			raise_exception=True)
 
 	if report.background_report:
-		return {
-			"message": "Background Report",
-			"background_report": True
-		}
+
+		return background_enqueue_run(report, filters, user)
+		#enqueue('frappe.desk.query_report.background_enqueue_run', queue='background')
+		# frappe.msgprint(_("This is a background job"), raise_exception=True)
 	else:
 		return generate_report_result(report, filters, user)
 
