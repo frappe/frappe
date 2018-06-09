@@ -71,16 +71,6 @@ class TestWorkflow(unittest.TestCase):
 
 		self.assertRaises(WorkflowTransitionError, apply_workflow, todo, 'Reject')
 
-	def test_workflow_role(self):
-		'''Check if user is allowed to edit in state via role'''
-		todo = self.test_approve()
-
-		todo.description = 'new'
-
-		frappe.set_user('test@example.com')
-		self.assertRaises(WorkflowPermissionError, todo.save, ignore_permissions=True)
-		frappe.set_user('Administrator')
-
 	def test_workflow_condition(self):
 		'''Test condition in transition'''
 		self.workflow.transitions[0].condition = 'doc.status == "Closed"'
