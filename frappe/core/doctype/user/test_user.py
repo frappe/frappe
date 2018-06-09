@@ -15,6 +15,7 @@ from frappe.core.doctype.user.user import MaxUsersReachedError, test_password_st
 
 test_records = frappe.get_test_records('User')
 
+
 class TestUser(unittest.TestCase):
 	def tearDown(self):
 		# disable password strength test
@@ -265,6 +266,26 @@ class TestUser(unittest.TestCase):
 		# Score 4; should pass
 		result = test_password_strength("Eastern_43A1W")
 		self.assertEqual(result['feedback']['password_policy_validation_passed'], True)
+
+	def test_mac_address_lock(self):
+		user = frappe.new_doc('User')
+		user.first_name = 'zorro'
+		user.email = 'testr@example.com'
+		user.enabled = 1
+		user.new_password = 'Eastern_43A1W'
+		user.interface = 'wrong'
+		user.insert()
+
+		frappe.local.conf = _dict(frappe.get_site_config())
+		params = {
+			'cmd': 'login', 'usr': 'testr@example.com', 'pwd': 'Eastern_43A1W',
+			'device': 'desktop'
+		}
+
+		frappe.db.commit()
+
+		self.assertRaises(frappe.ValidationError, requests.post, url=get_url(), params=params)
+
 
 def delete_contact(user):
 	frappe.db.sql("delete from tabContact where email_id='%s'" % frappe.db.escape(user))
