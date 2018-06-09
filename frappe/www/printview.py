@@ -35,6 +35,10 @@ def get_context(context):
 
 	print_format = get_print_format_doc(None, meta = meta)
 
+	if print_format.default_print_language:
+		frappe.lang = print_format.default_print_language
+		frappe.local.lang = print_format.default_print_language
+
 	return {
 		"body": get_html(doc, print_format = print_format,
 			meta=meta, trigger_print = frappe.form_dict.trigger_print,
