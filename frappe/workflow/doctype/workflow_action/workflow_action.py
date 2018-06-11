@@ -8,7 +8,8 @@ from frappe.utils.background_jobs import enqueue
 from frappe.utils import get_url
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe import _
-from frappe.model.workflow import apply_workflow, get_workflow_name, has_approval_access, get_workflow_state_field
+from frappe.model.workflow import apply_workflow, get_workflow_name, \
+	has_approval_access, get_workflow_state_field, send_email_alert
 from frappe.desk.notifications import clear_doctype_notifications
 
 class WorkflowAction(Document):
@@ -49,7 +50,8 @@ def process_workflow_actions(doc, state):
 
 	create_workflow_actions_for_users(user_data_map.keys(), doc)
 
-	enqueue(send_workflow_action_email, queue='short', users_data=list(user_data_map.values()), doc=doc)
+	if send_email_alert(workflow):
+		enqueue(send_workflow_action_email, queue='short', users_data=list(user_data_map.values()), doc=doc)
 
 
 @frappe.whitelist(allow_guest=True)
