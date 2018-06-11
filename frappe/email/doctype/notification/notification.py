@@ -42,9 +42,9 @@ class Notification(Document):
 		self.validate_forbidden_types()
 		self.validate_condition()
 		self.validate_standard()
+		frappe.cache().hdel('notifications', self.document_type)
 
 	def on_update(self):
-		frappe.cache().hdel('email_alerts', self.document_type)
 		path = export_module_json(self, self.is_standard, self.module)
 		if path:
 			# js

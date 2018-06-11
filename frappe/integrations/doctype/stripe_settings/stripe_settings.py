@@ -9,7 +9,6 @@ from frappe import _
 from six.moves.urllib.parse import urlencode
 from frappe.utils import get_url, call_hook_method, cint, flt
 from frappe.integrations.utils import make_get_request, make_post_request, create_request_log, create_payment_gateway
-import stripe
 
 class StripeSettings(Document):
 	supported_currencies = [
@@ -58,6 +57,7 @@ class StripeSettings(Document):
 		return get_url("./integrations/stripe_checkout?{0}".format(urlencode(kwargs)))
 
 	def create_request(self, data):
+		import stripe
 		self.data = frappe._dict(data)
 		stripe.api_key = self.get_password(fieldname="secret_key", raise_exception=False)
 		stripe.default_http_client = stripe.http_client.RequestsClient()
@@ -74,6 +74,7 @@ class StripeSettings(Document):
 			}
 
 	def create_charge_on_stripe(self):
+		import stripe
 		try:
 			charge = stripe.Charge.create(amount=cint(flt(self.data.amount)*100), currency=self.data.currency, source=self.data.stripe_token_id, description=self.data.description)
 
