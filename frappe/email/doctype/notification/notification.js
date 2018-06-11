@@ -1,4 +1,7 @@
-frappe.email_alert = {
+// Copyright (c) 2018, Frappe Technologies and contributors
+// For license information, please see license.txt
+
+frappe.notification = {
 	setup_fieldname_select: function(frm) {
 		// get the doctype to update fields
 		if(!frm.doc.document_type) {
@@ -40,8 +43,8 @@ frappe.email_alert = {
 					get_select_options(d) : null; });
 
 			// set email recipient options
-			frappe.meta.get_docfield("Email Alert Recipient", "email_by_document_field",
-				// set first option as blank to allow email alert not to be defaulted to the owner
+			frappe.meta.get_docfield("Notification Recipient", "email_by_document_field",
+				// set first option as blank to allow notification not to be defaulted to the owner
 				frm.doc.name).options = [""].concat(["owner"].concat(email_fields));
 
 			frm.fields_dict.recipients.grid.refresh();
@@ -49,7 +52,7 @@ frappe.email_alert = {
 	}
 }
 
-frappe.ui.form.on("Email Alert", {
+frappe.ui.form.on("Notification", {
 	onload: function(frm) {
 		frm.set_query("document_type", function() {
 			return {
@@ -67,12 +70,13 @@ frappe.ui.form.on("Email Alert", {
 		});
 	},
 	refresh: function(frm) {
-		frappe.email_alert.setup_fieldname_select(frm);
+		frm.toggle_reqd("recipients", frm.doc.channel=="Email");
+		frappe.notification.setup_fieldname_select(frm);
 		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
 		frm.trigger('event');
 	},
 	document_type: function(frm) {
-		frappe.email_alert.setup_fieldname_select(frm);
+		frappe.notification.setup_fieldname_select(frm);
 	},
 	view_properties: function(frm) {
 		frappe.route_options = {doc_type:frm.doc.document_type};
@@ -82,9 +86,9 @@ frappe.ui.form.on("Email Alert", {
 		if(in_list(['Days Before', 'Days After'], frm.doc.event)) {
 			frm.add_custom_button(__('Get Alerts for Today'), function() {
 				frappe.call({
-					method: 'frappe.email.doctype.email_alert.email_alert.get_documents_for_today',
+					method: 'frappe.email.doctype.notification.notification.get_documents_for_today',
 					args: {
-						email_alert: frm.doc.name
+						notification: frm.doc.name
 					},
 					callback: function(r) {
 						if(r.message) {
@@ -96,5 +100,8 @@ frappe.ui.form.on("Email Alert", {
 				});
 			});
 		}
+	},
+	channel: function(frm) {
+		frm.toggle_reqd("recipients", frm.doc.channel=="Email");
 	}
 });

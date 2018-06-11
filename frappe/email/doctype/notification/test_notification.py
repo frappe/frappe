@@ -1,15 +1,16 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# -*- coding: utf-8 -*-
+# Copyright (c) 2018, Frappe Technologies and Contributors
 # See license.txt
 from __future__ import unicode_literals
 
 import frappe, frappe.utils, frappe.utils.scheduler
 import unittest
 
-test_records = frappe.get_test_records('Email Alert')
+test_records = frappe.get_test_records('Notification')
 
 test_dependencies = ["User"]
 
-class TestEmailAlert(unittest.TestCase):
+class TestNotification(unittest.TestCase):
 	def setUp(self):
 		frappe.db.sql("""delete from `tabEmail Queue`""")
 		frappe.set_user("test1@example.com")
@@ -55,19 +56,20 @@ class TestEmailAlert(unittest.TestCase):
 
 	def test_invalid_condition(self):
 		frappe.set_user("Administrator")
-		email_alert = frappe.new_doc("Email Alert")
-		email_alert.subject = "test"
-		email_alert.document_type = "ToDo"
-		email_alert.send_alert_on = "New"
-		email_alert.message = "test"
+		notification = frappe.new_doc("Notification")
+		notification.subject = "test"
+		notification.document_type = "ToDo"
+		notification.send_alert_on = "New"
+		notification.message = "test"
 
-		recipent = frappe.new_doc("Email Alert Recipient")
+		recipent = frappe.new_doc("Notification Recipient")
 		recipent.email_by_document_field = "owner"
 
-		email_alert.recipents = recipent
-		email_alert.condition = "test"
+		notification.recipents = recipent
+		notification.condition = "test"
 
-		self.assertRaises(frappe.ValidationError, email_alert.save)
+		self.assertRaises(frappe.ValidationError, notification.save)
+		notification.delete()
 
 
 	def test_value_changed(self):
@@ -94,9 +96,9 @@ class TestEmailAlert(unittest.TestCase):
 
 	def test_alert_disabled_on_wrong_field(self):
 		frappe.set_user('Administrator')
-		email_alert = frappe.get_doc({
-			"doctype": "Email Alert",
-			"subject":"_Test Email Alert for wrong field",
+		notification = frappe.get_doc({
+			"doctype": "Notification",
+			"subject":"_Test Notification for wrong field",
 			"document_type": "Event",
 			"event": "Value Change",
 			"attach_print": 0,
@@ -115,10 +117,10 @@ class TestEmailAlert(unittest.TestCase):
 		event.subject = "test 1"
 		event.save()
 
-		# verify that email_alert is disabled
-		email_alert.reload()
-		self.assertEqual(email_alert.enabled, 0)
-		email_alert.delete()
+		# verify that notification is disabled
+		notification.reload()
+		self.assertEqual(notification.enabled, 0)
+		notification.delete()
 		event.delete()
 
 	def test_date_changed(self):
@@ -142,7 +144,7 @@ class TestEmailAlert(unittest.TestCase):
 		event.starts_on  = frappe.utils.add_days(frappe.utils.nowdate(), 2) + " 12:00:00"
 		event.save()
 
-		# Value Change email alert alert will be trigger as description is not changed
+		# Value Change notification alert will be trigger as description is not changed
 		# mail will not be sent
 		self.assertFalse(frappe.db.get_value("Email Queue", {"reference_doctype": "Event",
 			"reference_name": event.name, "status":"Not Sent"}))

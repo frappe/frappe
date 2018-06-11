@@ -1,4 +1,5 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# -*- coding: utf-8 -*-
+# Copyright (c) 2018, Frappe Technologies and contributors
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
@@ -12,12 +13,13 @@ from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
 from markdown2 import markdown
 from six import string_types
+from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 
 # imports - third-party imports
 import pymysql
 from pymysql.constants import ER
 
-class EmailAlert(Document):
+class Notification(Document):
 	def onload(self):
 		'''load message'''
 		if self.is_standard:
@@ -64,7 +66,7 @@ def get_context(context):
 
 	def validate_standard(self):
 		if self.is_standard and not frappe.conf.developer_mode:
-			frappe.throw(_('Cannot edit Standard Email Alert. To edit, please disable this and duplicate it'))
+			frappe.throw(_('Cannot edit Standard Notification. To edit, please disable this and duplicate it'))
 
 	def validate_condition(self):
 		temp_doc = frappe.new_doc(self.document_type)
@@ -78,9 +80,9 @@ def get_context(context):
 		forbidden_document_types = ("Email Queue",)
 		if (self.document_type in forbidden_document_types
 			or frappe.get_meta(self.document_type).istable):
-			# currently email alerts don't work on child tables as events are not fired for each record of child table
+			# currently notifications don't work on child tables as events are not fired for each record of child table
 
-			frappe.throw(_("Cannot set Email Alert on Document Type {0}").format(self.document_type))
+			frappe.throw(_("Cannot set Notification on Document Type {0}").format(self.document_type))
 
 	def get_documents_for_today(self):
 		'''get list of documents that will be triggered today'''
@@ -104,31 +106,52 @@ def get_context(context):
 		return docs
 
 	def send(self, doc):
-		'''Build recipients and send email alert'''
-
-		def get_attachment(doc):
-			""" check print settings are attach the pdf """
-			if not self.attach_print:
-				return None
-
-			print_settings = frappe.get_doc("Print Settings", "Print Settings")
-			if (doc.docstatus == 0 and not print_settings.allow_print_for_draft) or \
-				(doc.docstatus == 2 and not print_settings.allow_print_for_cancelled):
-
-				# ignoring attachment as draft and cancelled documents are not allowed to print
-				status = "Draft" if doc.docstatus == 0 else "Cancelled"
-				frappe.throw(_("""Not allowed to attach {0} document,
-					please enable Allow Print For {0} in Print Settings""".format(status)),
-					title=_("Error in Email Alert"))
-			else:
-				return [{"print_format_attachment":1, "doctype":doc.doctype, "name": doc.name,
-					"print_format":self.print_format, "print_letterhead": print_settings.with_letterhead}]
+		'''Build recipients and send Notification'''
 
 		context = get_context(doc)
-		recipients = []
-
 		context = {"doc": doc, "alert": self, "comments": None}
+		if doc.get("_comments"):
+			context["comments"] = json.loads(doc.get("_comments"))
 
+		if self.is_standard:
+			self.load_standard_properties(context)
+
+		if self.channel == 'Email':
+			self.send_an_email(doc, context)
+
+		if self.channel == 'Slack':
+			self.send_a_slack_msg(doc, context)
+
+		if self.set_property_after_alert:
+			frappe.db.set_value(doc.doctype, doc.name, self.set_property_after_alert,
+				self.property_value, update_modified = False)
+			doc.set(self.set_property_after_alert, self.property_value)
+
+	def send_an_email(self, doc, context):
+		subject = self.subject
+		if "{" in subject:
+			subject = frappe.render_template(self.subject, context)
+
+		attachments = self.get_attachment(doc)
+		recipients = self.get_list_of_recipients(doc, context)
+
+		frappe.sendmail(recipients=recipients, subject=subject,
+			message= frappe.render_template(self.message, context),
+			reference_doctype = doc.doctype,
+			reference_name = doc.name,
+			attachments = attachments,
+			print_letterhead = ((attachments
+				and attachments[0].get('print_letterhead')) or False))
+
+	def send_a_slack_msg(self, doc, context):
+			send_slack_message(
+				webhook_url=self.slack_webhook_url,
+				message=frappe.render_template(self.message, context),
+				reference_doctype = doc.doctype,
+				reference_name = doc.name)
+
+	def get_list_of_recipients(self, doc, context):
+		recipients = []
 		for recipient in self.recipients:
 			if recipient.condition:
 				if not frappe.safe_eval(recipient.condition, None, context):
@@ -157,32 +180,26 @@ def get_context(context):
 		if not recipients:
 			return
 
-		recipients = list(set(recipients))
-		subject = self.subject
+		return list(set(recipients))
 
-		if self.is_standard:
-			self.load_standard_properties(context)
+	def get_attachment(self, doc):
+		""" check print settings are attach the pdf """
+		if not self.attach_print:
+			return None
 
-		if doc.get("_comments"):
-			context["comments"] = json.loads(doc.get("_comments"))
+		print_settings = frappe.get_doc("Print Settings", "Print Settings")
+		if (doc.docstatus == 0 and not print_settings.allow_print_for_draft) or \
+			(doc.docstatus == 2 and not print_settings.allow_print_for_cancelled):
 
-		if "{" in subject:
-			subject = frappe.render_template(self.subject, context)
+			# ignoring attachment as draft and cancelled documents are not allowed to print
+			status = "Draft" if doc.docstatus == 0 else "Cancelled"
+			frappe.throw(_("""Not allowed to attach {0} document,
+				please enable Allow Print For {0} in Print Settings""".format(status)),
+				title=_("Error in Notification"))
+		else:
+			return [{"print_format_attachment":1, "doctype":doc.doctype, "name": doc.name,
+				"print_format":self.print_format, "print_letterhead": print_settings.with_letterhead}]
 
-		attachments = get_attachment(doc)
-
-		frappe.sendmail(recipients=recipients, subject=subject,
-			message= frappe.render_template(self.message, context),
-			reference_doctype = doc.doctype,
-			reference_name = doc.name,
-			attachments = attachments,
-			print_letterhead = ((attachments
-				and attachments[0].get('print_letterhead')) or False))
-
-		if self.set_property_after_alert:
-			frappe.db.set_value(doc.doctype, doc.name, self.set_property_after_alert,
-				self.property_value, update_modified = False)
-			doc.set(self.set_property_after_alert, self.property_value)
 
 	def get_template(self):
 		module = get_doc_module(self.module, self.doctype, self.name)
@@ -211,23 +228,23 @@ def get_context(context):
 			self.message = markdown(self.message)
 
 @frappe.whitelist()
-def get_documents_for_today(email_alert):
-	email_alert = frappe.get_doc('Email Alert', email_alert)
-	email_alert.check_permission('read')
-	return [d.name for d in email_alert.get_documents_for_today()]
+def get_documents_for_today(notification):
+	notification = frappe.get_doc('Notification', notification)
+	notification.check_permission('read')
+	return [d.name for d in notification.get_documents_for_today()]
 
 def trigger_daily_alerts():
-	trigger_email_alerts(None, "daily")
+	trigger_notifications(None, "daily")
 
-def trigger_email_alerts(doc, method=None):
+def trigger_notifications(doc, method=None):
 	if frappe.flags.in_import or frappe.flags.in_patch:
-		# don't send email alerts while syncing or patching
+		# don't send notifications while syncing or patching
 		return
 
 	if method == "daily":
-		for alert in frappe.db.sql_list("""select name from `tabEmail Alert`
+		for alert in frappe.db.sql_list("""select name from `tabNotification`
 			where event in ('Days Before', 'Days After') and enabled=1"""):
-			alert = frappe.get_doc("Email Alert", alert)
+			alert = frappe.get_doc("Notification", alert)
 			for doc in alert.get_documents_for_today():
 				evaluate_alert(doc, alert, alert.event)
 				frappe.db.commit()
@@ -236,7 +253,7 @@ def evaluate_alert(doc, alert, event):
 	from jinja2 import TemplateError
 	try:
 		if isinstance(alert, string_types):
-			alert = frappe.get_doc("Email Alert", alert)
+			alert = frappe.get_doc("Notification", alert)
 
 		context = get_context(doc)
 
@@ -250,7 +267,7 @@ def evaluate_alert(doc, alert, event):
 			except pymysql.InternalError as e:
 				if e.args[0]== ER.BAD_FIELD_ERROR:
 					alert.db_set('enabled', 0)
-					frappe.log_error('Email Alert {0} has been disabled due to missing field'.format(alert.name))
+					frappe.log_error('Notification {0} has been disabled due to missing field'.format(alert.name))
 					return
 
 			db_value = parse_val(db_value)
@@ -266,10 +283,10 @@ def evaluate_alert(doc, alert, event):
 
 		alert.send(doc)
 	except TemplateError:
-		frappe.throw(_("Error while evaluating Email Alert {0}. Please fix your template.").format(alert))
+		frappe.throw(_("Error while evaluating Notification {0}. Please fix your template.").format(alert))
 	except Exception as e:
 		frappe.log_error(message=frappe.get_traceback(), title=str(e))
-		frappe.throw(_("Error in Email Alert"))
+		frappe.throw(_("Error in Notification"))
 
 def get_context(doc):
 	return {"doc": doc, "nowdate": nowdate, "frappe.utils": frappe.utils}
