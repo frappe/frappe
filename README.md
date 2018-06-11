@@ -21,7 +21,7 @@
         <img src='https://img.shields.io/badge/docs-📖-7575FF.svg?style=flat-square'/>
     </a>
 </div>
-
+ 
 Full-stack web application framework that uses Python and MariaDB on the server side and a tightly integrated client side library. Built for [ERPNext](https://erpnext.com)
 
 ### Table of Contents
