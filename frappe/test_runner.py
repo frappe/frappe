@@ -286,8 +286,9 @@ def get_dependencies(doctype):
 	return options_list
 
 def make_test_records_for_doctype(doctype, verbose=0, force=False):
-	if not force and doctype in get_test_record_log():
-		return
+	# TODO - optimize for the local test running
+	# if not force and doctype in get_test_record_log():
+	# 	return
 
 	module, test_module = get_modules(doctype)
 
@@ -308,7 +309,8 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False):
 		elif verbose:
 			print_mandatory_fields(doctype)
 
-	add_to_test_record_log(doctype)
+	# TODO - optimize for the local test running
+	# add_to_test_record_log(doctype)
 
 def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 	'''Make test objects from given list of `test_records` or from `test_records.json`'''
