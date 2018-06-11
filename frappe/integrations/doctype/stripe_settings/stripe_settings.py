@@ -9,6 +9,7 @@ from frappe import _
 from six.moves.urllib.parse import urlencode
 from frappe.utils import get_url, call_hook_method, cint, flt
 from frappe.integrations.utils import make_get_request, make_post_request, create_request_log, create_payment_gateway
+import stripe
 
 class StripeSettings(Document):
 	supported_currencies = [
@@ -58,47 +59,41 @@ class StripeSettings(Document):
 
 	def create_request(self, data):
 		self.data = frappe._dict(data)
+		stripe.api_key = self.get_password(fieldname="secret_key", raise_exception=False)
+		stripe.default_http_client = stripe.http_client.RequestsClient()
 
 		try:
 			self.integration_request = create_request_log(self.data, "Host", "Stripe")
 			return self.create_charge_on_stripe()
+
 		except Exception:
 			frappe.log_error(frappe.get_traceback())
 			return{
-				"redirect_to": frappe.redirect_to_message(_('Server Error'), _("Seems issue with server's razorpay config. Don't worry, in case of failure amount will get refunded to your account.")),
+				"redirect_to": frappe.redirect_to_message(_('Server Error'), _("It seems that there is an issue with the server's stripe configuration. In case of failure, the amount will get refunded to your account.")),
 				"status": 401
 			}
 
 	def create_charge_on_stripe(self):
-		headers = {"Authorization":
-			"Bearer {0}".format(self.get_password(fieldname="secret_key", raise_exception=False))}
-
-		data = {
-			"amount": cint(flt(self.data.amount)*100),
-			"currency": self.data.currency,
-			"source": self.data.stripe_token_id,
-			"description": self.data.description
-		}
-
-		redirect_to = self.data.get('redirect_to') or None
-		redirect_message = self.data.get('redirect_message') or None
-
 		try:
-			resp = make_post_request(url="https://api.stripe.com/v1/charges", headers=headers, data=data)
+			charge = stripe.Charge.create(amount=cint(flt(self.data.amount)*100), currency=self.data.currency, source=self.data.stripe_token_id, description=self.data.description)
 
-			if resp.get("captured") == True:
+			if charge.captured == True:
 				self.integration_request.db_set('status', 'Completed', update_modified=False)
 				self.flags.status_changed_to = "Completed"
 
 			else:
-				frappe.log_error(str(resp), 'Stripe Payment not completed')
+				frappe.log_error(charge.failure_message, 'Stripe Payment not completed')
 
-		except:
+		except Exception:
 			frappe.log_error(frappe.get_traceback())
-			# failed
-			pass
 
-		status = frappe.flags.integration_request.status_code
+		return self.finalize_request()
+
+
+	def finalize_request(self):
+		redirect_to = self.data.get('redirect_to') or None
+		redirect_message = self.data.get('redirect_message') or None
+		status = self.integration_request.status
 
 		if self.flags.status_changed_to == "Completed":
 			if self.data.reference_doctype and self.data.reference_docname:
@@ -112,7 +107,11 @@ class StripeSettings(Document):
 				if custom_redirect_to:
 					redirect_to = custom_redirect_to
 
-			redirect_url = 'payment-success'
+				redirect_url = 'payment-success'
+
+			if self.redirect_url:
+				redirect_url = self.redirect_url
+				redirect_to = None
 		else:
 			redirect_url = 'payment-failed'
 
