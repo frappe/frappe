@@ -10,7 +10,7 @@ from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_li
 from six import iteritems
 from past.builtins import cmp
 from frappe.model.naming import append_number_if_name_exists
-
+from erpnext.portal.utils import set_default_role
 import functools
 
 class Contact(Document):
@@ -26,6 +26,10 @@ class Contact(Document):
 		for link in self.links:
 			self.name = self.name + '-' + link.link_name.strip()
 			break
+
+	def after_insert(self):
+		user = frappe.get_doc("User", self.user)
+		set_default_role(doc=user, method=None)
 
 	def validate(self):
 		if self.email_id:
