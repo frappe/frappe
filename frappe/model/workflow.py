@@ -148,6 +148,9 @@ def get_workflow_state_field(workflow_name):
 def is_self_approval_enabled(workflow_name):
 	return cache_and_get_workflow_field_value(workflow_name, 'allow_self_approval')
 
+def send_email_alert(workflow_name):
+	return cache_and_get_workflow_field_value(workflow_name, 'send_email_alert')
+
 def cache_and_get_workflow_field_value(workflow_name, field):
 	value = frappe.cache().hget('workflow_'+field, workflow_name)
 	if value is None:
