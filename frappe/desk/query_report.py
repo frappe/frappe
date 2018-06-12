@@ -6,10 +6,12 @@ from __future__ import unicode_literals
 import frappe
 import os, json
 import csv
+import StringIO
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
 from frappe.utils import flt, cint, get_html_format, cstr
+from frappe.utils.data import format_datetime
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
@@ -35,7 +37,55 @@ def get_report_doc(report_name):
 	return doc
 
 
-def generate_report_result(report, filters):
+def create_csv_file(columns, data, dt, dn):
+	# create the list of column labels
+	column_list = [str(d) for d in columns]
+	csv_filename = '{0}.csv'.format(format_datetime(frappe.utils.now(), "Y-m-d-H:M"))
+	# Write columns and results to string
+	out = StringIO.StringIO()
+	csv_out = csv.writer(out)
+	csv_out.writerow(column_list)
+	for row in data:
+		csv_out.writerow(row)
+	# encode the content of csv
+	encoded = base64.b64encode(out.getvalue())
+	# Call save_file function to upload and attahc the file
+	save_file(
+		fname=csv_filename,
+		content=encoded,
+		dt=dt,
+		dn=dn,
+		folder=None,
+		decode=True,
+		is_private=False)
+
+
+def background_enqueue_run(report, filters=None, user=None):
+	track_instance = \
+		frappe.get_doc({
+			"doctype": "Background Report",
+			"filters": json.dumps(filters),
+			"status": "open",
+			"report_start_time": frappe.utils.now()
+		})
+	track_instance.insert(ignore_permissions=True)
+	frappe.db.commit()
+	results = generate_report_result(report, filters, user)
+	# Save report status to docType
+	if results:
+		create_csv_file(results['columns'], results['result'], 'Background Report', track_instance.name)
+		track_instance.status = "done"
+
+	else:
+		track_instance.status = "error"
+
+	track_instance.report_end_time = frappe.utils.now()
+	track_instance.save()
+	frappe.db.commit()
+	return results
+
+
+def generate_report_result(report, filters, user):
 	columns, result, message, chart, data_to_be_printed = [], [], None, None, None
 	if report.report_type == "Query Report":
 		if not report.query:
@@ -108,55 +158,6 @@ def get_script(report_name):
 	}
 
 
-def create_csv_file(columns, data, dt, dn):
-	# create the list of column labels
-	column_list = [str(d) for d in columns]
-	csv_filename = '{0}.csv'.format(frappe.utils.now().strftime("%Y%m%d-%H%M%S"))
-	# Write columns and results to csv file
-	with open(csv_filename, 'wb') as out:
-		csv_out = csv.writer(out)
-		csv_out.writerow(column_list)
-		for row in data:
-			csv_out.writerow(row)
-
-	with open(csv_filename, "rb") as f:  # encode the content of csv
-		encoded = base64.b64encode(f.read())
-	# Call save_file function to upload and attahc the file
-	save_file(
-		fname=csv_filename,
-		content=encoded,
-		dt=dt,
-		dn=dn,
-		folder=None,
-		decode=True,
-		is_private=False)
-
-
-def background_enqueue_run(report, filters=None):
-	track_instance = \
-		frappe.get_doc({
-			"doctype": "Background Report",
-			"filters": json.dumps(filters),
-			"status":"open",
-			"report_start_time": frappe.utils.now()
-		})
-	track_instance.insert(ignore_permissions=True)
-	frappe.db.commit()
-	results = generate_report_result(report, filters)
-	# Save report status to docType
-	if results:
-		create_csv_file(results['columns'], results['result'], 'Background Report', track_instance.name)
-		track_instance.status = "done"
-
-	else:
-		track_instance.status = "error"
-
-	track_instance.report_end_time = frappe.utils.now()
-	track_instance.save()
-	frappe.db.commit()
-	return results
-
-
 @frappe.whitelist()
 def run(report_name, filters=None, user=None):
 
@@ -175,11 +176,11 @@ def run(report_name, filters=None, user=None):
 			raise_exception=True)
 
 	if report.background_report:
-		return background_enqueue_run(report, filters)
+		return background_enqueue_run(report, filters, user)
 		#enqueue('frappe.desk.query_report.background_enqueue_run', queue='background')
 		# frappe.msgprint(_("This is a background job"), raise_exception=True)
 	else:
-		return generate_report_result(report, filters)
+		return generate_report_result(report, filters, user)
 
 
 @frappe.whitelist()
