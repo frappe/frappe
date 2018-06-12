@@ -7,6 +7,7 @@ import frappe
 import os, json
 import csv
 from datetime import datetime
+import uuid
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
@@ -142,11 +143,11 @@ def get_script(report_name):
 	}
 
 
-@frappe.whitelist()
-def create_csv_file(columns, data, doctype):
-	column_list = [str(d) for d in columns]  # create the list of column labels
+def create_csv_file(columns, data, dt, dn):
+	# create the list of column labels
+	column_list = [str(d) for d in columns]
 	csv_filename = '{0}.csv'.format(datetime.now().strftime("%Y%m%d-%H%M%S"))
-	#
+
 	with open(csv_filename, 'wb') as out:
 		csv_out = csv.writer(out)
 		csv_out.writerow(column_list)
@@ -155,16 +156,15 @@ def create_csv_file(columns, data, doctype):
 
 	with open(csv_filename, "rb") as f:  # encode the content of csv
 		encoded = base64.b64encode(f.read())
-
-	save_file(  # call save_file function to upload the file
+	# Call save_file function to upload the file
+	save_file(
 		fname=csv_filename,
 		content=encoded,
-		dt='Background Report',
-		dn='Background Report',
-		df='view_report',
+		dt=dt,
+		dn=dn,
 		folder=None,
 		decode=True,
-		is_private=0)
+		is_private=False)
 
 
 
@@ -172,18 +172,17 @@ def background_enqueue_run(report, filters=None, user=None):
 	track_instance = \
 		frappe.get_doc({
 			"doctype": "Background Report",
-			"filters": "filters to be saved",
+			"filters": json.dumps(filters),
 			"status":"open",
 			"report_start_time": frappe.utils.now()
 		})
 	track_instance.insert(ignore_permissions=True)
 	frappe.db.commit()
 	results = generate_report_result(report, filters, user)
-	print results
 	if results:
-		create_csv_file(results['columns'], results['result'])
+		create_csv_file(results['columns'], results['result'], 'Background Report', track_instance.name)
 		track_instance.status = "done"
-		track_instance.view_report = "http://google.com"
+
 	else:
 		track_instance.status = "error"
 
