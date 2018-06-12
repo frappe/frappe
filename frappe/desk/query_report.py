@@ -114,7 +114,7 @@ def create_csv_file(columns, data, dt, dn):
 	# create the list of column labels
 	column_list = [str(d) for d in columns]
 	csv_filename = '{0}.csv'.format(datetime.now().strftime("%Y%m%d-%H%M%S"))
-
+	# Write columns and results to csv file
 	with open(csv_filename, 'wb') as out:
 		csv_out = csv.writer(out)
 		csv_out.writerow(column_list)
@@ -123,13 +123,13 @@ def create_csv_file(columns, data, dt, dn):
 
 	with open(csv_filename, "rb") as f:  # encode the content of csv
 		encoded = base64.b64encode(f.read())
-	# Call save_file function to upload the file
+	# Call save_file function to upload and attahc the file
 	save_file(
 		fname=csv_filename,
 		content=encoded,
 		dt=dt,
 		dn=dn,
-        folder=None,
+		folder=None,
 		decode=True,
 		is_private=False)
 
@@ -145,6 +145,7 @@ def background_enqueue_run(report, filters=None, user=None):
 	track_instance.insert(ignore_permissions=True)
 	frappe.db.commit()
 	results = generate_report_result(report, filters, user)
+	# Save report status to docType
 	if results:
 		create_csv_file(results['columns'], results['result'], 'Background Report', track_instance.name)
 		track_instance.status = "done"
