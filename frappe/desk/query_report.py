@@ -204,7 +204,7 @@ def run(report_name, filters=None, user=None):
 			raise_exception=True)
 
 	if report.background_report:
-		return background_enqueue_run(report, filters, report, user)
+		return background_enqueue_run(report, filters, user)
 		#enqueue('frappe.desk.query_report.background_enqueue_run', queue='background')
 		# frappe.msgprint(_("This is a background job"), raise_exception=True)
 	else:
