@@ -203,10 +203,10 @@ class DocType(Document):
 				frappe.throw(_("Invalid fieldname '{0}' in autoname".format(field)))
 			else:
   				for df in self.fields:
-    				if(df.fieldname == field):
-      					df.search_index = 1
-      					df.unique = 1
-					break
+    					if df.fieldname == field:
+      						df.search_index = 1
+	      					df.unique = 1
+						break
 
 		if autoname and (not autoname.startswith('field:')) \
 			and (not autoname.startswith('eval:')) \
