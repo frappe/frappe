@@ -109,7 +109,7 @@ def get_script(report_name):
 	}
 
 
-def create_csv_file(columns, data, doctype):
+def create_csv_file(columns, data):
 	print columns
 	column_list = [str(d) for d in columns]  # create the list of column labels
 	csv_filename = '{0}.csv'.format(datetime.now().strftime("%Y%m%d-%H%M%S"))
@@ -124,14 +124,14 @@ def create_csv_file(columns, data, doctype):
 		encoded = base64.b64encode(f.read())
 
 	save_file(  # call save_file function to upload the file
-	    fname=csv_filename,
-	    content=encoded,
-	    dt='',
-	    dn=docname,
-	    df=docfield,
-	    folder=None,
-	    decode=True,
-	    is_private=0)
+		fname=csv_filename,
+		content=encoded,
+		dt='Background Report',
+		dn='Background Report',
+		df='view_report',
+		folder=None,
+		decode=True,
+		is_private=0)
 
 
 def background_enqueue_run(report, filters=None, user=None):
