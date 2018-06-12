@@ -8,6 +8,5 @@ from frappe.model.document import Document
 
 
 class BackgroundReport(Document):
+	pass
 
-	def before_insert(self):
-		print "shrihari"
