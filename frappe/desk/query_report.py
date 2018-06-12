@@ -7,6 +7,7 @@ import frappe
 import os, json
 import csv
 from datetime import datetime
+import uuid
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
@@ -109,11 +110,11 @@ def get_script(report_name):
 	}
 
 
-def create_csv_file(columns, data):
-	print columns
-	column_list = [str(d) for d in columns]  # create the list of column labels
+def create_csv_file(columns, data, dt, dn):
+	# create the list of column labels
+	column_list = [str(d) for d in columns]
 	csv_filename = '{0}.csv'.format(datetime.now().strftime("%Y%m%d-%H%M%S"))
-	#
+
 	with open(csv_filename, 'wb') as out:
 		csv_out = csv.writer(out)
 		csv_out.writerow(column_list)
@@ -122,34 +123,32 @@ def create_csv_file(columns, data):
 
 	with open(csv_filename, "rb") as f:  # encode the content of csv
 		encoded = base64.b64encode(f.read())
-
-	save_file(  # call save_file function to upload the file
+	# Call save_file function to upload the file
+	save_file(
 		fname=csv_filename,
 		content=encoded,
-		dt='Background Report',
-		dn='Background Report',
-		df='view_report',
-		folder=None,
+		dt=dt,
+		dn=dn,
+        folder=None,
 		decode=True,
-		is_private=0)
+		is_private=False)
 
 
 def background_enqueue_run(report, filters=None, user=None):
 	track_instance = \
 		frappe.get_doc({
 			"doctype": "Background Report",
-			"filters": "filters to be saved",
+			"filters": json.dumps(filters),
 			"status":"open",
 			"report_start_time": frappe.utils.now()
 		})
 	track_instance.insert(ignore_permissions=True)
 	frappe.db.commit()
 	results = generate_report_result(report, filters, user)
-	print results
 	if results:
-		create_csv_file(results['columns'], results['result'])
+		create_csv_file(results['columns'], results['result'], 'Background Report', track_instance.name)
 		track_instance.status = "done"
-		track_instance.view_report = "http://google.com"
+
 	else:
 		track_instance.status = "error"
 
@@ -177,7 +176,7 @@ def run(report_name, filters=None, user=None):
 			raise_exception=True)
 
 	if report.background_report:
-		return background_enqueue_run(report, filters, report, user)
+		return background_enqueue_run(report, filters, user)
 		#enqueue('frappe.desk.query_report.background_enqueue_run', queue='background')
 		# frappe.msgprint(_("This is a background job"), raise_exception=True)
 	else:
