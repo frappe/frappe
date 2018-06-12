@@ -143,17 +143,17 @@ def has_approval_access(user, doc):
 		or user != doc.owner)
 
 def get_workflow_state_field(workflow_name):
-	return cache_and_get_workflow_field_value(workflow_name, 'workflow_state_field')
+	return get_workflow_field_value(workflow_name, 'workflow_state_field')
 
 def is_self_approval_enabled(workflow_name):
-	return cache_and_get_workflow_field_value(workflow_name, 'allow_self_approval')
+	return get_workflow_field_value(workflow_name, 'allow_self_approval')
 
 def send_email_alert(workflow_name):
-	return cache_and_get_workflow_field_value(workflow_name, 'send_email_alert')
+	return get_workflow_field_value(workflow_name, 'send_email_alert')
 
-def cache_and_get_workflow_field_value(workflow_name, field):
-	value = frappe.cache().hget('workflow_'+field, workflow_name)
+def get_workflow_field_value(workflow_name, field):
+	value = frappe.cache().hget('workflow_' + workflow_name, field)
 	if value is None:
 		value = frappe.db.get_value("Workflow", workflow_name, field)
-		frappe.cache().hset('workflow_'+field, workflow_name, value)
+		frappe.cache().hset('workflow_' + workflow_name, field, value)
 	return value
