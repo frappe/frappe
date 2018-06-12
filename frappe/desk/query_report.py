@@ -6,8 +6,6 @@ from __future__ import unicode_literals
 import frappe
 import os, json
 import csv
-from datetime import datetime
-import uuid
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
@@ -146,7 +144,7 @@ def get_script(report_name):
 def create_csv_file(columns, data, dt, dn):
 	# create the list of column labels
 	column_list = [str(d) for d in columns]
-	csv_filename = '{0}.csv'.format(datetime.now().strftime("%Y%m%d-%H%M%S"))
+	csv_filename = '{0}.csv'.format(frappe.utils.now().strftime("%Y%m%d-%H%M%S"))
 	# Write columns and results to csv file
 	with open(csv_filename, 'wb') as out:
 		csv_out = csv.writer(out)
@@ -167,7 +165,6 @@ def create_csv_file(columns, data, dt, dn):
 		is_private=False)
 
 
-
 def background_enqueue_run(report, filters=None, user=None):
 	track_instance = \
 		frappe.get_doc({
@@ -178,7 +175,7 @@ def background_enqueue_run(report, filters=None, user=None):
 		})
 	track_instance.insert(ignore_permissions=True)
 	frappe.db.commit()
-	results = generate_report_result(report, filters, user)
+	results = generate_report_result(report, filters)
 	# Save report status to docType
 	if results:
 		create_csv_file(results['columns'], results['result'], 'Background Report', track_instance.name)
@@ -204,11 +201,11 @@ def run(report_name, filters=None, user=None):
 			raise_exception=True)
 
 	if report.background_report:
-		return background_enqueue_run(report, filters, user)
+		return background_enqueue_run(report, filters)
 		#enqueue('frappe.desk.query_report.background_enqueue_run', queue='background')
 		# frappe.msgprint(_("This is a background job"), raise_exception=True)
 	else:
-		return generate_report_result(report, filters, user)
+		return generate_report_result(report, filters)
 
 
 @frappe.whitelist()
