@@ -6,5 +6,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 
+
 class BackgroundReport(Document):
-	pass
+
+	def before_insert(self):
+		print "shrihari"
