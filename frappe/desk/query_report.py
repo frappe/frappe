@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 
 import frappe
 import os, json
-import csv
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
@@ -13,12 +12,9 @@ from frappe.utils import flt, cint, get_html_format, cstr, get_url_to_form
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
+from frappe.utils.csvutils import read_csv_content_from_attached_file
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
-from frappe.utils.background_jobs import enqueue
-from frappe.utils.file_manager import save_file
-import base64
-
 
 
 def get_report_doc(report_name):
@@ -36,8 +32,10 @@ def get_report_doc(report_name):
 	return doc
 
 
-def generate_report_result(report, filters, user):
+def generate_report_result(report, filters=None, user=None):
 	status = None
+	if not user:
+		user = frappe.session.user
 	if not filters:
 		filters = []
 
@@ -59,7 +57,17 @@ def generate_report_result(report, filters, user):
 		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
 		if report.is_standard == "Yes":
 			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
-			res = frappe.get_attr(method_name)(frappe._dict(filters))
+
+			res = []
+
+			# The JOB:
+			try:
+				res = frappe.get_attr(method_name)(frappe._dict(filters))
+			except:
+				report.prepared_report = 1
+				report.save()
+				frappe.throw("The report to too long to load. Please reload the page to generate it in background.")
+
 			columns, result = res[0], res[1]
 			if len(res) > 2:
 				message = res[2]
@@ -86,25 +94,24 @@ def generate_report_result(report, filters, user):
 
 @frappe.whitelist()
 def background_enqueue_run(report_name, filters=None, user=None):
+	"""run reports in background"""
 	if not user:
 		user = frappe.session.user
 	report = get_report_doc(report_name)
 	track_instance = \
 		frappe.get_doc({
-			"doctype": "Background Report Result",
+			"doctype": "Prepared Report",
 			"report_name": report_name,
 			"filters": json.dumps(filters),
 			"ref_report_doctype": report_name,
 			"report_type": report.report_type,
 			"query": report.query,
 			"module": report.module,
-			"status": "Queued",
-			"report_start_time": frappe.utils.now()
 		})
 	track_instance.insert(ignore_permissions=True)
 	frappe.db.commit()
 	return {
-		"redirect_url": get_url_to_form("Background Report Result", track_instance.name)
+		"redirect_url": get_url_to_form("Prepared Report", track_instance.name)
 	}
 
 
@@ -141,55 +148,6 @@ def get_script(report_name):
 	}
 
 
-def create_csv_file(columns, data, dt, dn):
-	# create the list of column labels
-	column_list = [str(d) for d in columns]
-	csv_filename = '{0}.csv'.format(frappe.utils.now().strftime("%Y%m%d-%H%M%S"))
-	# Write columns and results to csv file
-	with open(csv_filename, 'wb') as out:
-		csv_out = csv.writer(out)
-		csv_out.writerow(column_list)
-		for row in data:
-			csv_out.writerow(row)
-
-	with open(csv_filename, "rb") as f:  # encode the content of csv
-		encoded = base64.b64encode(f.read())
-	# Call save_file function to upload and attahc the file
-	save_file(
-		fname=csv_filename,
-		content=encoded,
-		dt=dt,
-		dn=dn,
-		folder=None,
-		decode=True,
-		is_private=False)
-
-
-def background_enqueue_run(report, filters=None, user=None):
-	track_instance = \
-		frappe.get_doc({
-			"doctype": "Background Report",
-			"filters": json.dumps(filters),
-			"status":"open",
-			"report_start_time": frappe.utils.now()
-		})
-	track_instance.insert(ignore_permissions=True)
-	frappe.db.commit()
-	results = generate_report_result(report, filters)
-	# Save report status to docType
-	if results:
-		create_csv_file(results['columns'], results['result'], 'Background Report', track_instance.name)
-		track_instance.status = "done"
-
-	else:
-		track_instance.status = "error"
-
-	track_instance.report_end_time = frappe.utils.now()
-	track_instance.save()
-	frappe.db.commit()
-	return results
-
-
 @frappe.whitelist()
 def run(report_name, filters=None, user=None):
 
@@ -200,12 +158,43 @@ def run(report_name, filters=None, user=None):
 		frappe.msgprint(_("Must have report permission to access this report."),
 			raise_exception=True)
 
-	if report.background_report:
-		return background_enqueue_run(report, filters)
-		#enqueue('frappe.desk.query_report.background_enqueue_run', queue='background')
-		# frappe.msgprint(_("This is a background job"), raise_exception=True)
+	if report.prepared_report:
+		if filters:
+			dn = json.loads(filters).get("prepared_report_name")
+		else:
+			dn = ""
+		return get_prepared_report_result(report, filters, dn)
 	else:
-		return generate_report_result(report, filters)
+		return generate_report_result(report, filters, user)
+
+
+def get_prepared_report_result(report, filters, dn=""):
+	latest_report_data = {}
+	doc_list = frappe.get_list("Prepared Report", filters={"status": "Completed", "report_name": report.name})
+	doc = None
+	if len(doc_list):
+		if dn:
+			# Get specified dn
+			doc = frappe.get_doc("Prepared Report", dn)
+		else:
+			# Get latest
+			doc = frappe.get_doc("Prepared Report", doc_list[0])
+
+		data = read_csv_content_from_attached_file(doc)
+		latest_report_data = {
+			"columns": data[0],
+			"result": data[1:]
+		}
+
+	return {
+		"prepared_report": True,
+		"data": latest_report_data,
+		"doc": doc
+		# "message": message,
+		# "chart": chart,
+		# "data_to_be_printed": data_to_be_printed,
+		# "status": status
+	}
 
 
 @frappe.whitelist()
