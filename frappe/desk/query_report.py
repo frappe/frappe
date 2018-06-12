@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 
 import frappe
 import os, json
+import csv
+from datetime import datetime
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
@@ -16,6 +18,7 @@ from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.file_manager import save_file
+import base64
 
 
 
@@ -106,7 +109,6 @@ def background_enqueue_run(report_name, filters=None, user=None):
 	}
 
 
-
 @frappe.whitelist()
 def get_script(report_name):
 	report = get_report_doc(report_name)
@@ -141,11 +143,57 @@ def get_script(report_name):
 
 
 
+
 @frappe.whitelist()
+def create_csv_file(columns, data, doctype):
+	print columns
+	column_list = [str(d) for d in columns]  # create the list of column labels
+	csv_filename = '{0}.csv'.format(datetime.now().strftime("%Y%m%d-%H%M%S"))
+	#
+	with open(csv_filename, 'wb') as out:
+		csv_out = csv.writer(out)
+		csv_out.writerow(column_list)
+		for row in data:
+			csv_out.writerow(row)
+
+	with open(csv_filename, "rb") as f:  # encode the content of csv
+		encoded = base64.b64encode(f.read())
+
+	save_file(  # call save_file function to upload the file
+	    fname=csv_filename,
+	    content=encoded,
+	    dt='',
+	    dn=docname,
+	    df=docfield,
+	    folder=None,
+	    decode=True,
+	    is_private=0)
+
+
+
 def background_enqueue_run(report, filters=None, user=None):
-	report_instance = frappe.get_doc({"docType": "Background Report"})
-	report_instance.insert(ignore_permissions = True)
-	return generate_report_result(report, filters, user)
+	track_instance = \
+		frappe.get_doc({
+			"doctype": "Background Report",
+			"filters": "filters to be saved",
+			"status":"open",
+			"report_start_time": frappe.utils.now()
+		})
+	track_instance.insert(ignore_permissions=True)
+	frappe.db.commit()
+	results = generate_report_result(report, filters, user)
+	print results
+	if results:
+		create_csv_file(results['columns'], results['result'])
+		track_instance.status = "done"
+		track_instance.view_report = "http://google.com"
+	else:
+		track_instance.status = "error"
+
+	track_instance.report_end_time = frappe.utils.now()
+	track_instance.save()
+	frappe.db.commit()
+	return results
 
 
 @frappe.whitelist()
@@ -159,8 +207,7 @@ def run(report_name, filters=None, user=None):
 			raise_exception=True)
 
 	if report.background_report:
-
-		return background_enqueue_run(report, filters, user)
+		return background_enqueue_run(report, filters, report, user)
 		#enqueue('frappe.desk.query_report.background_enqueue_run', queue='background')
 		# frappe.msgprint(_("This is a background job"), raise_exception=True)
 	else:
