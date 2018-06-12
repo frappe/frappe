@@ -9,6 +9,15 @@ from frappe.permissions import (get_valid_perms, update_permission_property)
 from frappe import _
 
 class UserPermission(Document):
+	def validate(self):
+		exists = frappe.db.get_all(self.doctype, filters={
+			'allow': self.allow,
+			'for_value': self.for_value,
+			'user': self.user
+		}, fields=['name'])
+		if exists and self.name not in [doc.name for doc in exists]:
+			frappe.msgprint(_("User permission already exists"), raise_exception=True)
+
 	def on_update(self):
 		frappe.cache().delete_value('user_permissions')
 		frappe.publish_realtime('update_user_permissions')
