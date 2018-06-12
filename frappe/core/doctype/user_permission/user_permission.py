@@ -10,12 +10,12 @@ from frappe import _
 
 class UserPermission(Document):
 	def validate(self):
-		duplicate_exists = frappe.db.exists(self.doctype, filters={
+		duplicate_exists = frappe.db.get_all(self.doctype, filters={
 			'allow': self.allow,
 			'for_value': self.for_value,
 			'user': self.user,
 			'name': ['!=', self.name]
-		})
+		}, limit=1)
 		if duplicate_exists:
 			frappe.msgprint(_("User permission already exists"), raise_exception=True)
 
