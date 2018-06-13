@@ -1,8 +1,0 @@
-install
-apps
-sites
-site_config
-hooks
-translations
-writing-tests
-frappe_ajax_call
