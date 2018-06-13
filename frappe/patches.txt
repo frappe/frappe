@@ -216,4 +216,4 @@ frappe.patches.v11_0.create_contact_for_user
 frappe.patches.v11_0.sync_stripe_settings_before_migrate
 frappe.patches.v11_0.update_list_user_settings
 frappe.patches.v11_0.rename_workflow_action_to_workflow_action_master #13-06-2018
-frappe.patches.v11_0.rename_email_alert_to_notification
+frappe.patches.v11_0.rename_email_alert_to_notification #13-06-2018
