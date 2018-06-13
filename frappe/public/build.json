@@ -27,6 +27,11 @@
 		"public/js/frappe/misc/pretty_date.js",
 		"public/js/lib/microtemplate.js",
 		"public/js/frappe/query_string.js",
+
+		"public/js/frappe/model/meta.js",
+		"public/js/frappe/model/model.js",
+		"public/js/frappe/model/perm.js",
+
 		"website/js/website.js",
 		"public/js/frappe/misc/rating_icons.html",
 

@@ -13,6 +13,12 @@ frappe.ready(function() {
 	const wrapper = $(`.webform-wrapper`);
 	var $form = $("form[data-web-form='"+frappe.web_form_name+"']");
 
+	// :( Needed by core model, meta and perm, all now included in th website js
+	// One of the few non-touchy options
+	frappe.boot.user = {
+		can_read: '', can_write: '', can_create: ''
+	};
+
 	frappe.webForm = new WebForm({
 		wrapper: wrapper,
 		doctype: doctype,

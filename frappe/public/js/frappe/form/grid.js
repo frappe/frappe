@@ -523,7 +523,7 @@ export default class Grid {
 			if(!df.hidden
 				&& (this.editable_fields || df.in_list_view)
 				&& (this.frm && this.frm.get_perm(df.permlevel, "read") || !this.frm)
-				&& !frappe.model || !in_list(frappe.model.layout_fields, df.fieldtype)) {
+				&& !in_list(frappe.model.layout_fields, df.fieldtype)) {
 
 				if(df.columns) {
 					df.colsize=df.columns;
@@ -560,7 +560,7 @@ export default class Grid {
 				var df = this.visible_columns[i][0];
 				var colsize = this.visible_columns[i][1];
 				if(colsize > 1 && colsize < 11
-					&& !frappe.model || !in_list(frappe.model.std_fields_list, df.fieldname)) {
+					&& !in_list(frappe.model.std_fields_list, df.fieldname)) {
 
 					if (passes < 3 && ["Int", "Currency", "Float", "Check", "Percent"].indexOf(df.fieldtype)!==-1) {
 						// don't increase col size of these fields in first 3 passes
@@ -670,7 +670,7 @@ export default class Grid {
 	}
 	setup_download() {
 		var me = this;
-		let title = me.df.label || frappe.model && frappe.model.unscrub(me.df.fieldname);
+		let title = me.df.label || frappe.model.unscrub(me.df.fieldname);
 		$(this.wrapper).find(".grid-download").removeClass("hide").on("click", function() {
 			var data = [];
 			var docfields = [];
@@ -683,7 +683,7 @@ export default class Grid {
 			data.push(["------"]);
 			$.each(frappe.get_meta(me.df.options).fields, function(i, df) {
 				// don't include the hidden field in the template
-				if(frappe.model && frappe.model.is_value_type(df.fieldtype) && !df.hidden) {
+				if(frappe.model.is_value_type(df.fieldtype) && !df.hidden) {
 					data[1].push(df.label);
 					data[2].push(df.fieldname);
 					let description = (df.description || "") + ' ';

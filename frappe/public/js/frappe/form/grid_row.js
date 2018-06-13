@@ -485,7 +485,7 @@ export default class GridRow {
 		this.row.toggle(false);
 		// this.form_panel.toggle(true);
 		frappe.dom.freeze("", "dark");
-		cur_frm.cur_grid = this;
+		if(cur_frm) cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
 		if(!frappe.dom.is_element_in_viewport(this.wrapper)) {
 			frappe.utils.scroll_to(this.wrapper, true, 15);
@@ -500,7 +500,7 @@ export default class GridRow {
 		frappe.dom.unfreeze();
 		this.row.toggle(true);
 		this.refresh();
-		cur_frm.cur_grid = null;
+		if(cur_frm) cur_frm.cur_grid = null;
 		this.wrapper.removeClass("grid-row-open");
 	}
 	open_prev() {

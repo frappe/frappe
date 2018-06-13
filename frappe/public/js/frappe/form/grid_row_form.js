@@ -37,7 +37,39 @@ export default class GridRowForm {
 	}
 	make_form() {
 		if(!this.form_area) {
-			$(frappe.render_template("grid_form", {grid:this})).appendTo(this.wrapper);
+			let template = `<div class="grid-form-heading">
+				<div class="toolbar grid-header-toolbar">
+					<span class="panel-title">
+						${ __("Editing Row") } #<span class="grid-form-row-index"></span></span>
+					<button class="btn btn-default btn-xs pull-right" style="margin-left: 7px;">
+						<i class="octicon octicon-check visible-xs" style="padding-bottom: 2px;"></i>
+						<span class="hidden-xs octicon octicon-triangle-up"></span></button>
+					<button class="btn btn-default btn-xs pull-right grid-insert-row"
+						style="margin-left: 7px;">
+						${ __("Insert Above") }</button>
+					<button class="btn btn-default btn-xs pull-right grid-insert-row-below hidden-xs"
+						style="margin-left: 7px;">
+						${ __("Insert Below") }</button>
+					<button class="btn btn-danger btn-xs pull-right grid-delete-row">
+						<i class="octicon octicon-trashcan"
+							style="padding-bottom: 2px; margin-top: 1px;"></i>
+					</button>
+				</div>
+			</div>
+			<div class="grid-form-body">
+				<div class="form-area"></div>
+				<div class="grid-footer-toolbar clearfix hidden-xs">
+					<span class="text-muted">
+						<i class="octicon octicon-keyboard"></i> &ndash;
+						<kbd>${ __("Ctrl + Up") }</kbd>, <kbd>${ __("Ctrl + Down") }</kbd>, <kbd>${ __("ESC") }</kbd>
+					</span>
+					<button class="btn btn-default btn-xs pull-right grid-append-row"
+						style="margin-left: 7px;">
+						${ __("Insert Below") }</button>
+				</div>
+			</div>`;
+
+			$(template).appendTo(this.wrapper);
 			this.form_area = this.wrapper.find(".form-area");
 			this.row.set_row_index();
 			this.set_form_events();
