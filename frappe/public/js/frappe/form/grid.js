@@ -20,7 +20,6 @@ frappe.ui.form.close_grid_form = function() {
 
 export default class Grid {
 	constructor(opts) {
-		var me = this;
 		$.extend(this, opts);
 		this.fieldinfo = {};
 		this.doctype = this.df.options;
@@ -51,7 +50,42 @@ export default class Grid {
 	make() {
 		var me = this;
 
-		this.wrapper = $(frappe.render_template("grid_body", {}))
+		let template = `<div>
+			<div class="form-grid">
+				<div class="grid-heading-row"></div>
+				<div class="grid-body">
+					<div class="rows"></div>
+					<div class="grid-empty text-center hide">${__("No Data")}</div>
+					<div class="small form-clickable-section grid-footer">
+						<div class="row">
+							<div class="col-sm-6 grid-buttons">
+								<button type="reset"
+									class="btn btn-xs btn-danger grid-remove-rows hide"
+									style="margin-right: 4px;">
+									${__("Delete")}</button>
+								<button type="reset"
+									class="grid-add-multiple-rows btn btn-xs btn-default hide"
+									style="margin-right: 4px;">
+									${__("Add Multiple")}</a>
+								<!-- hack to allow firefox include this in tabs -->
+								<button type="reset" class="btn btn-xs btn-default grid-add-row">
+									${__("Add Row")}</button>
+							</div>
+							<div class="col-sm-6 text-right">
+								<a href="#" class="grid-download btn btn-xs btn-default hide"
+									style="margin-left: 10px;">
+									${__("Download")}</a>
+								<a href="#" class="grid-upload btn btn-xs btn-default hide"
+									style="margin-left: 10px;">
+									${__("Upload")}</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>`;
+
+		this.wrapper = $(template)
 			.appendTo(this.parent)
 			.attr("data-fieldname", this.df.fieldname);
 
@@ -275,7 +309,7 @@ export default class Grid {
 			}
 		}
 
-		if(this.doctype) {
+		if(this.doctype && this.frm) {
 			this.docfields = frappe.meta.get_docfields(this.doctype, this.frm.docname);
 		} else {
 			// fields given in docfield
@@ -489,7 +523,7 @@ export default class Grid {
 			if(!df.hidden
 				&& (this.editable_fields || df.in_list_view)
 				&& (this.frm && this.frm.get_perm(df.permlevel, "read") || !this.frm)
-				&& !in_list(frappe.model.layout_fields, df.fieldtype)) {
+				&& !frappe.model || !in_list(frappe.model.layout_fields, df.fieldtype)) {
 
 				if(df.columns) {
 					df.colsize=df.columns;
@@ -499,13 +533,13 @@ export default class Grid {
 					switch(df.fieldtype) {
 						case "Text":
 						case "Small Text": colsize = 3; break;
-						case"Check": colsize = 1;
+						case "Check": colsize = 1;
 					}
 					df.colsize = colsize;
 				}
 
 				// attach formatter on refresh
-				if (df.fieldtype == 'Link' && !df.formatter && frappe.meta.docfield_map[df.parent]) {
+				if (df.fieldtype == 'Link' && !df.formatter && df.parent && frappe.meta.docfield_map[df.parent]) {
 					const docfield = frappe.meta.docfield_map[df.parent][df.fieldname];
 					if (docfield && docfield.formatter) {
 						df.formatter = docfield.formatter;
@@ -526,7 +560,7 @@ export default class Grid {
 				var df = this.visible_columns[i][0];
 				var colsize = this.visible_columns[i][1];
 				if(colsize > 1 && colsize < 11
-					&& !in_list(frappe.model.std_fields_list, df.fieldname)) {
+					&& !frappe.model || !in_list(frappe.model.std_fields_list, df.fieldname)) {
 
 					if (passes < 3 && ["Int", "Currency", "Float", "Check", "Percent"].indexOf(df.fieldtype)!==-1) {
 						// don't increase col size of these fields in first 3 passes
@@ -636,7 +670,7 @@ export default class Grid {
 	}
 	setup_download() {
 		var me = this;
-		let title = me.df.label || frappe.model.unscrub(me.df.fieldname);
+		let title = me.df.label || frappe.model && frappe.model.unscrub(me.df.fieldname);
 		$(this.wrapper).find(".grid-download").removeClass("hide").on("click", function() {
 			var data = [];
 			var docfields = [];
@@ -649,7 +683,7 @@ export default class Grid {
 			data.push(["------"]);
 			$.each(frappe.get_meta(me.df.options).fields, function(i, df) {
 				// don't include the hidden field in the template
-				if(frappe.model.is_value_type(df.fieldtype) && !df.hidden) {
+				if(frappe.model && frappe.model.is_value_type(df.fieldtype) && !df.hidden) {
 					data[1].push(df.label);
 					data[2].push(df.fieldname);
 					let description = (df.description || "") + ' ';

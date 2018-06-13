@@ -177,7 +177,6 @@ window.web_form_settings = {
 	max_attachment_size:{{ max_attachment_size }},
 	moment_date_format: "{{ frappe.date_format.upper() }}",
 	is_list: {{ frappe.utils.cint(is_list) }},
-	meta: `{{ meta }}`
 }
 {% if row_template %}web_form_settings.web_form_row_template = "{{ row_template }}";{% endif %}
 </script>

@@ -121,8 +121,6 @@ export default class GridRow {
 		if(this.frm && this.doc) {
 			this.doc = locals[this.doc.doctype][this.doc.name];
 		}
-		// re write columns
-		this.visible_columns = null;
 
 		if(this.grid.template && !this.grid.meta.editable_grid) {
 			this.render_template();
@@ -141,7 +139,6 @@ export default class GridRow {
 		if(this.row_display) {
 			this.row_display.remove();
 		}
-		var index_html = '';
 
 		// row index
 		if(this.doc) {
@@ -217,7 +214,6 @@ export default class GridRow {
 	}
 
 	setup_columns() {
-		var me = this;
 		this.focus_set = false;
 		this.grid.setup_visible_columns();
 

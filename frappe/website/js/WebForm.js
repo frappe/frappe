@@ -17,6 +17,7 @@ export default class WebForm {
 			freeze: true
 		}).then(r => {
 			const { doc, web_form } = r.message;
+			console.log(doc, web_form);
 			this.render(doc, web_form);
 		});
 	}
@@ -25,6 +26,28 @@ export default class WebForm {
 		web_form.web_form_fields.map(df => {
 			if (df.fieldtype === 'Link') {
 				df.fieldtype = 'Select';
+			}
+
+			if (df.fieldtype === 'Table') {
+				df.get_data = () => {
+					let data = []
+					if(doc) {
+						data = doc[df.fieldname];
+					}
+					return data;
+				}
+
+				df.fields = [
+					{
+						fieldtype: 'Link',
+						fieldname: "role",
+						options: "Role",
+						label: __("Role"),
+						in_list_view: 1
+					}
+				];
+
+				df.options = null;
 			}
 
 			delete df.parent;

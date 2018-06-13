@@ -28,5 +28,11 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 		if(this.grid) {
 			return this.grid.get_data();
 		}
+	},
+	set_input: function( ) {
+		//
+	},
+	validate: function() {
+		return true
 	}
 });

@@ -10,7 +10,7 @@ frappe.ready(function() {
 	$('[data-toggle="tooltip"]').tooltip();
 
 	const { web_form_doctype: doctype, doc_name: docname, web_form_name } = web_form_settings;
-	const wrapper = $(`.page-container[data-path="${web_form_name}"] .webform-wrapper`);
+	const wrapper = $(`.webform-wrapper`);
 	var $form = $("form[data-web-form='"+frappe.web_form_name+"']");
 
 	frappe.webForm = new WebForm({
