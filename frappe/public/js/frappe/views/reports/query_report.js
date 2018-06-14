@@ -53,10 +53,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			label: __('Refresh'),
 			action: () => this.refresh()
 		};
-		
 		this.report_action = {
 			label: __('Run In Background'),
 			action: () => this.render_background_report()
+
 		};
 
 		// throttle refresh for 300ms
@@ -239,7 +239,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		});
 	}
-	
+
 	render_background_report() {
         this.toggle_message(true);
 		const filters = this.get_filter_values(true);
@@ -259,6 +259,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			"Notification")
 		});
 	}
+
 	render_report(data) {
 		this.columns = this.prepare_columns(data.columns);
 		this.data = this.prepare_data(data.result);
