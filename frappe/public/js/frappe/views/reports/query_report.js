@@ -53,6 +53,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			label: __('Refresh'),
 			action: () => this.refresh()
 		};
+		this.secondary_action = {
+			label: __('Refresh'),
+			action: () => this.refresh()
+		};
+		this.report_action = {
+			label: __('Report'),
+			action: () => this.refresh()
+		};
 
 		// throttle refresh for 300ms
 		this.refresh = frappe.utils.throttle(this.refresh, 300);
@@ -134,6 +142,19 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		});
 
 		return this._load_script;
+	}
+	set_menu_items() {
+		super.set_menu_items();
+		const $report_action = this.page.set_report_action(
+			this.report_action.label,
+			this.report_action.action,
+			this.report_action.icon
+		);
+		if (!this.report_action.icon) {
+			$report_action.addClass('hidden-xs');
+		} else {
+			$report_action.addClass('visible-xs');
+		}
 	}
 
 	setup_filters() {
@@ -217,7 +238,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			}
 		});
 	}
-
+	
 	render_report(data) {
 		this.columns = this.prepare_columns(data.columns);
 		this.data = this.prepare_data(data.result);
@@ -558,6 +579,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	setup_page_head() {
 		super.setup_page_head();
+		this.set_menu_items();
 		this.page.set_title_sub(`<label class='label label-warning text-color'>${__('Beta')}</label>`);
 	}
 

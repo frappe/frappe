@@ -111,6 +111,7 @@ frappe.ui.Page = Class.extend({
 
 		this.btn_primary = this.page_actions.find(".primary-action");
 		this.btn_secondary = this.page_actions.find(".btn-secondary");
+		this.btn_report = this.page_actions.find(".report-action");
 
 		this.menu = this.page_actions.find(".menu-btn-group .dropdown-menu");
 		this.menu_btn_group = this.page_actions.find(".menu-btn-group");
@@ -187,6 +188,16 @@ frappe.ui.Page = Class.extend({
 
 		return this.btn_secondary;
 	},
+	set_report_action: function(label, click, icon, working_label) {
+		this.set_action(this.btn_report, {
+			label: label,
+			click: click,
+			icon: icon,
+			working_label: working_label
+		});
+
+		return this.btn_report;
+	},
 
 	clear_action_of: function(btn) {
 		btn.addClass("hide").unbind("click").removeAttr("data-working-label");
@@ -199,10 +210,14 @@ frappe.ui.Page = Class.extend({
 	clear_secondary_action: function() {
 		this.clear_action_of(this.btn_secondary);
 	},
+	clear_report_action: function() {
+		this.clear_action_of(this.btn_report);
+	},
 
 	clear_actions: function() {
 		this.clear_primary_action();
 		this.clear_secondary_action();
+		this.clear_report_action();
 	},
 
 	clear_icons: function() {
