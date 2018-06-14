@@ -202,10 +202,10 @@ class DocType(Document):
 			if not field or field not in [ df.fieldname for df in self.fields ]:
 				frappe.throw(_("Invalid fieldname '{0}' in autoname".format(field)))
 			else:
-  				for df in self.fields:
-    					if df.fieldname == field:
-      						df.search_index = 1
-	      					df.unique = 1
+				for df in self.fields:
+					if df.fieldname == field:
+						df.search_index = 1
+						df.unique = 1
 						break
 
 		if autoname and (not autoname.startswith('field:')) \
