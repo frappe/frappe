@@ -31,8 +31,9 @@
 </div>
 
 {% if results %}
+	<div class="row">
 	{{ search_results_section(results, "", has_more) }}
-
+	</div>
 {% elif results_sections %}
 	<div class="row">
 		{% for section in results_sections %}
