@@ -1143,6 +1143,20 @@ class Document(BaseDocument):
 				self.db_set('_seen', json.dumps(_seen), update_modified=False)
 				frappe.local.flags.commit = True
 
+	def add_viewed(self, user=None):
+		'''add log to communication when a user viewes a document'''
+		if not user:
+			user = frappe.session.user
+
+		if self.meta.track_views:
+			frappe.get_doc({
+				"doctype": "View log",
+				"viewed_by": frappe.session.user,
+				"reference_doctype": self.doctype,
+				"reference_name": self.name,
+			}).insert(ignore_permissions=True)
+			frappe.local.flags.commit = True
+
 	def get_signature(self):
 		"""Returns signature (hash) for private URL."""
 		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
