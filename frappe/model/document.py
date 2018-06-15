@@ -1148,7 +1148,7 @@ class Document(BaseDocument):
 		if not user:
 			user = frappe.session.user
 
-		if self.meta.track_views:
+		if hasattr(self.meta, 'track_views') and self.meta.track_views:
 			frappe.get_doc({
 				"doctype": "View log",
 				"viewed_by": frappe.session.user,
