@@ -285,6 +285,22 @@ frappe.views.CommunicationComposer = Class.extend({
 		return frappe.last_edited_communication[this.doc][this.key];
 	},
 
+	selected_format: function() {
+		return this.dialog.fields_dict.select_print_format.input.value || this.frm.meta.default_print_format || "Standard";
+	},
+
+	get_print_format: function(format) {
+		if (!format) {
+			format = this.selected_format();
+		}
+
+		if (locals["Print Format"] && locals["Print Format"][format]) {
+			return locals["Print Format"][format];
+		} else {
+			return {};
+		}
+	},
+
 	setup_print_language: function() {
 		var me = this;
 		var doc = this.doc || cur_frm.doc;
@@ -292,6 +308,13 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		//Load default print language from doctype
 		this.lang_code = doc.language
+
+		if (this.get_print_format().default_print_language) {
+			var default_print_language_code = this.get_print_format().default_print_language;
+			me.lang_code = default_print_language_code;
+		} else {
+			var default_print_language_code = null;
+		}
 
 		//On selection of language retrieve language code
 		$(fields.language_sel.input).change(function(){
@@ -301,8 +324,13 @@ frappe.views.CommunicationComposer = Class.extend({
 		// Load all languages in the select field language_sel
 		$(fields.language_sel.input)
 			.empty()
-			.add_options(frappe.get_languages())
-			.val(doc.language)
+			.add_options(frappe.get_languages());
+
+		if (default_print_language_code) {
+			$(fields.language_sel.input).val(default_print_language_code);
+		} else {
+			$(fields.language_sel.input).val(doc.language);
+		}
 	},
 
 	setup_print: function() {
