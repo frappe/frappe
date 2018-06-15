@@ -53,13 +53,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			label: __('Refresh'),
 			action: () => this.refresh()
 		};
-		this.secondary_action = {
-			label: __('Refresh'),
-			action: () => this.refresh()
-		};
+		
 		this.report_action = {
-			label: __('Report'),
-			action: () => this.refresh()
+			label: __('Run In Background'),
+			action: () => this.render_background_report()
 		};
 
 		// throttle refresh for 300ms
@@ -227,18 +224,38 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			callback: resolve
 		})).then(r => {
 			const data = r.message;
+            if (data.background_report){
+                this.toggle_message(true, 'This report is background. You can run this by hitting Run in background');
+            }
+            else{
+                this.toggle_message(false);
+                if (data.result && data.result.length) {
+                    this.render_chart(data);
+                    this.render_report(data);
+                } else {
+                    this.toggle_nothing_to_show(true);
+                }
+            }
 
-			this.toggle_message(false);
-
-			if (data.result && data.result.length) {
-				this.render_chart(data);
-				this.render_report(data);
-			} else {
-				this.toggle_nothing_to_show(true);
-			}
 		});
 	}
 	
+	render_background_report() {
+        this.toggle_message(true);
+		const filters = this.get_filter_values(true);
+		return new Promise(resolve => frappe.call({
+			method: 'frappe.desk.query_report.background_enqueue_run',
+			type: 'GET',
+			args: {
+				report_name: this.report_name,
+				filters: filters
+			},
+			callback: resolve
+		})).then(r => {
+			this.toggle_nothing_to_show(true);
+			frappe.msgprint("Background Job Initated Successfullly", "Notification")
+		});
+	}
 	render_report(data) {
 		this.columns = this.prepare_columns(data.columns);
 		this.data = this.prepare_data(data.result);
