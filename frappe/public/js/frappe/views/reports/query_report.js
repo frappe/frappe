@@ -239,7 +239,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		});
 	}
-
+	
 	render_background_report() {
         this.toggle_message(true);
 		const filters = this.get_filter_values(true);
@@ -252,14 +252,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			},
 			callback: resolve
 		})).then(r => {
-		    const data = r.message;
 			this.toggle_nothing_to_show(true);
-			frappe
-			.msgprint("Background job initiated Successfully. Track and access results at <a class='text-info' target='_blank' href="+data.redirect_url+">here</a>",
-			"Notification")
+			frappe.msgprint("Background Job Initated Successfullly", "Notification")
 		});
 	}
-
 	render_report(data) {
 		this.columns = this.prepare_columns(data.columns);
 		this.data = this.prepare_data(data.result);

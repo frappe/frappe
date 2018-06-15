@@ -5,10 +5,18 @@ from __future__ import unicode_literals
 
 import frappe
 import os, json
+<<<<<<< HEAD
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
 from frappe.utils import flt, cint, get_html_format, cstr, get_url_to_form
+=======
+import uuid
+
+from frappe import _
+from frappe.modules import scrub, get_module_path
+from frappe.utils import flt, cint, get_html_format, cstr
+>>>>>>> changes on fields and test copy
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
@@ -32,10 +40,15 @@ def get_report_doc(report_name):
 	return doc
 
 
+<<<<<<< HEAD
 def generate_report_result(report, filters=None, user=None):
 	status = None
 	if not user:
 		user = frappe.session.user
+=======
+def generate_report_result(report, filters, user):
+	status = None
+>>>>>>> changes on fields and test copy
 	if not filters:
 		filters = []
 
@@ -55,8 +68,11 @@ def generate_report_result(report, filters=None, user=None):
 		columns = [cstr(c[0]) for c in frappe.db.get_description()]
 	else:
 		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
+		print module
 		if report.is_standard == "Yes":
+			print "in yes part"
 			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
+<<<<<<< HEAD
 
 			res = []
 
@@ -68,6 +84,13 @@ def generate_report_result(report, filters=None, user=None):
 				report.save()
 				frappe.throw("The report to too long to load. Please reload the page to generate it in background.")
 
+=======
+			print method_name
+			print frappe._dict(filters)
+			res = frappe.get_attr(method_name)(frappe._dict(filters))
+			print "in res"
+			print res
+>>>>>>> changes on fields and test copy
 			columns, result = res[0], res[1]
 			if len(res) > 2:
 				message = res[2]
@@ -89,6 +112,7 @@ def generate_report_result(report, filters=None, user=None):
 		"chart": chart,
 		"data_to_be_printed": data_to_be_printed,
 		"status": status
+<<<<<<< HEAD
 	}
 
 
@@ -112,7 +136,31 @@ def background_enqueue_run(report_name, filters=None, user=None):
 	frappe.db.commit()
 	return {
 		"redirect_url": get_url_to_form("Prepared Report", track_instance.name)
+=======
+>>>>>>> changes on fields and test copy
 	}
+
+
+@frappe.whitelist()
+def background_enqueue_run(report_name, filters=None, user=None):
+	if not user:
+		user = frappe.session.user
+	report = get_report_doc(report_name)
+	track_instance = \
+		frappe.get_doc({
+			"doctype": "Result",
+			"report_name": "{0}_{1}".format(report_name, uuid.uuid4().hex),
+			"filters": json.dumps(filters),
+			"ref_report_doctype": report_name,
+			"report_type": report.report_type,
+			"query": report.query,
+			"module": report.module,
+			"status": "Queued",
+			"report_start_time": frappe.utils.now()
+		})
+	track_instance.insert(ignore_permissions=True)
+	frappe.db.commit()
+	return []
 
 
 @frappe.whitelist()
@@ -158,12 +206,20 @@ def run(report_name, filters=None, user=None):
 		frappe.msgprint(_("Must have report permission to access this report."),
 			raise_exception=True)
 
+<<<<<<< HEAD
 	if report.prepared_report:
 		if filters:
 			dn = json.loads(filters).get("prepared_report_name")
 		else:
 			dn = ""
 		return get_prepared_report_result(report, filters, dn)
+=======
+	if report.background_report:
+		return {
+			"message": "Background Report",
+			"background_report": True
+		}
+>>>>>>> changes on fields and test copy
 	else:
 		return generate_report_result(report, filters, user)
 
