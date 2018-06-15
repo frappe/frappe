@@ -196,11 +196,17 @@ class DocType(Document):
 			self.autoname = "naming_series:"
 
 		# validate field name if autoname field:fieldname is used
-
+		# Create unique index on autoname field automatically.
 		if autoname and autoname.startswith('field:'):
 			field = autoname.split(":")[1]
 			if not field or field not in [ df.fieldname for df in self.fields ]:
 				frappe.throw(_("Invalid fieldname '{0}' in autoname".format(field)))
+			else:
+				for df in self.fields:
+					if df.fieldname == field:
+						df.search_index = 1
+						df.unique = 1
+						break
 
 		if autoname and (not autoname.startswith('field:')) \
 			and (not autoname.startswith('eval:')) \
