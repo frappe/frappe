@@ -263,8 +263,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			},
 			callback: resolve
 		})).then(r => {
+		    const data = r.message;
 			this.toggle_nothing_to_show(true);
-			frappe.msgprint("Background Job Initated Successfullly", "Notification")
+			frappe
+			.msgprint("Background job initiated Successfully. Track and access results at <a class='text-info' target='_blank' href="+data.redirect_url+">here</a>",
+			"Notification")
 		});
 	}
 	render_report(data) {
