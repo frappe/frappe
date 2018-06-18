@@ -144,8 +144,13 @@
    "bold": 0, 
    "collapsible": 0, 
    "columns": 0, 
+<<<<<<< HEAD:frappe/core/doctype/data_export/data_export.json
    "fieldname": "filter_list", 
    "fieldtype": "HTML", 
+=======
+   "fieldname": "filters", 
+   "fieldtype": "Text", 
+>>>>>>> removed whitelist and version number:frappe/core/doctype/background_report_result/background_report_result.json
    "hidden": 0, 
    "ignore_user_permissions": 0, 
    "ignore_xss_filter": 0, 
@@ -174,9 +179,9 @@
    "allow_on_submit": 0, 
    "bold": 0, 
    "collapsible": 0, 
-   "columns": 0, 
+   "columns": 0,
    "fieldname": "fields_multicheck", 
-   "fieldtype": "HTML", 
+   "fieldtype": "HTML",
    "hidden": 0, 
    "ignore_user_permissions": 0, 
    "ignore_xss_filter": 0, 
@@ -187,6 +192,7 @@
    "label": "Fields Multicheck", 
    "length": 0, 
    "no_copy": 0, 
+   "options": "Queued\nCompleted", 
    "permlevel": 0, 
    "precision": "", 
    "print_hide": 0, 
@@ -211,7 +217,11 @@
  "issingle": 1, 
  "istable": 0, 
  "max_attachments": 0, 
+<<<<<<< HEAD:frappe/core/doctype/data_export/data_export.json
  "modified": "2018-03-21 13:23:05.623052", 
+=======
+ "modified": "2018-06-18 15:57:45.872305", 
+>>>>>>> removed whitelist and version number:frappe/core/doctype/background_report_result/background_report_result.json
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Data Export", 
