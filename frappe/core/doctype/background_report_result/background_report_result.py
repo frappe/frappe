@@ -9,10 +9,6 @@ import base64
 import json
 
 import frappe
-<<<<<<< HEAD
-from frappe import _
-=======
->>>>>>> 2e9d65aab5ef6e973f45b4fb373da59aba7a457f
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
 from frappe.desk.query_report import generate_report_result, get_columns_dict
@@ -20,14 +16,11 @@ from frappe.utils.file_manager import save_file
 
 
 class BackgroundReportResult(Document):
-<<<<<<< HEAD
 
 	def before_insert(self):
 		self.status = "Queued"
 		self.report_start_time = frappe.utils.now()
 
-=======
->>>>>>> 2e9d65aab5ef6e973f45b4fb373da59aba7a457f
 	def after_insert(self):
 		enqueue(
 			run_background,
@@ -35,10 +28,6 @@ class BackgroundReportResult(Document):
 		)
 
 
-<<<<<<< HEAD
-=======
-@frappe.whitelist()
->>>>>>> 2e9d65aab5ef6e973f45b4fb373da59aba7a457f
 def run_background(instance):
 	report = frappe.get_doc("Report", instance.ref_report_doctype)
 	result = generate_report_result(report, filters=json.loads(instance.filters), user=instance.owner)
@@ -48,10 +37,6 @@ def run_background(instance):
 	instance.save()
 
 
-<<<<<<< HEAD
-=======
-@frappe.whitelist()
->>>>>>> 2e9d65aab5ef6e973f45b4fb373da59aba7a457f
 def create_csv_file(columns, data, dt, dn):
 	# create the list of column labels
 	column_list = []
@@ -67,11 +52,7 @@ def create_csv_file(columns, data, dt, dn):
 		csv_out.writerow(row)
 	# encode the content of csv
 	encoded = base64.b64encode(out.getvalue())
-<<<<<<< HEAD
 	# Call save_file function to upload and attach the file
-=======
-	# Call save_file function to upload and attahc the file
->>>>>>> 2e9d65aab5ef6e973f45b4fb373da59aba7a457f
 	save_file(
 		fname=csv_filename,
 		content=encoded,
