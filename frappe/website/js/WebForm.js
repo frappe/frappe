@@ -17,7 +17,6 @@ export default class WebForm {
 			freeze: true
 		}).then(r => {
 			const { doc, web_form } = r.message;
-			console.log(doc, web_form);
 			this.render(doc, web_form);
 		});
 	}
@@ -43,7 +42,7 @@ export default class WebForm {
 						fieldname: "role",
 						options: "Role",
 						label: __("Role"),
-						in_list_view: 1
+						in_list_view: 1 // added
 					}
 				];
 
