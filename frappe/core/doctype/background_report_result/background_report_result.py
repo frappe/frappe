@@ -9,6 +9,7 @@ import base64
 import json
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
 from frappe.desk.query_report import generate_report_result, get_columns_dict
@@ -16,6 +17,11 @@ from frappe.utils.file_manager import save_file
 
 
 class BackgroundReportResult(Document):
+
+	def before_insert(self):
+		self.status = "Queued"
+		self.report_start_time = frappe.utils.now()
+
 	def after_insert(self):
 		enqueue(
 			run_background,

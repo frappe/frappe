@@ -93,8 +93,6 @@ def background_enqueue_run(report_name, filters=None, user=None):
 			"report_type": report.report_type,
 			"query": report.query,
 			"module": report.module,
-			"status": "Queued",
-			"report_start_time": frappe.utils.now()
 		})
 	track_instance.insert(ignore_permissions=True)
 	frappe.db.commit()
