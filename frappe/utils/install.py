@@ -39,6 +39,10 @@ def after_install():
 	# setup wizard now in frappe
 	frappe.db.set_default('desktop:home_page', 'setup-wizard')
 
+	# clear test log
+	with open(frappe.get_site_path('.test_log'), 'w') as f:
+		f.write('')
+
 	frappe.db.commit()
 
 def install_basic_docs():

@@ -12,8 +12,9 @@ source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 
 develop_version = '11.x.x-develop'
-
 app_email = "info@frappe.io"
+
+docs_app = "frappe_io"
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
@@ -158,7 +159,7 @@ scheduler_events = {
 		"frappe.core.doctype.error_log.error_log.set_old_logs_as_seen",
 		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.sessions.clear_expired_sessions",
-		"frappe.email.doctype.email_alert.email_alert.trigger_daily_alerts",
+		"frappe.email.doctype.notification.notification.trigger_daily_alerts",
 		"frappe.async.remove_old_task_logs",
 		"frappe.utils.scheduler.disable_scheduler_on_expiry",
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",

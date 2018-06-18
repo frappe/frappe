@@ -38,6 +38,3 @@ class TestBackgroundReportResult(unittest.TestCase):
 		self.assertEqual('Queued'.upper(), self.background_report_doc.status)
 		self.assertTrue(self.background_report_doc.report_start_time)
 		self.assertTrue(frappe.db.exists("Report", {"ref_report_doctype": self.report.name}))
-
-
-

@@ -231,6 +231,9 @@ def setup_source(page_info):
 	if page_info.template.endswith('.md'):
 		source = markdown(source, extras=["fenced-code-blocks"])
 
+		if not page_info.show_sidebar:
+			source = '<div class="from-markdown">' + source + '</div>'
+
 	# if only content
 	if page_info.template.endswith('.html') or page_info.template.endswith('.md'):
 		if ('</body>' not in source) and ('{% block' not in source):

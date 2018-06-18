@@ -342,7 +342,7 @@ def set_user_permission_if_allowed(doctype, name, user, with_message=False):
 def add_user_permission(doctype, name, user, ignore_permissions=False):
 	'''Add user permission'''
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
-	if name not in get_user_permissions(user).get(doctype, []):
+	if name not in get_user_permissions(user).get(doctype, {}).get('docs', []):
 		if not frappe.db.exists(doctype, name):
 			frappe.throw(_("{0} {1} not found").format(_(doctype), name), frappe.DoesNotExistError)
 

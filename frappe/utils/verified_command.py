@@ -31,10 +31,11 @@ def verify_request():
 
 	valid = False
 
-	if '&_signature=' in query_string:
-		params, signature = query_string.split("&_signature=")
+	signature_string = '&_signature='
+	if signature_string in query_string:
+		params, signature = query_string.split(signature_string)
 
-		given_signature = hmac.new(params.encode("utf-8"))
+		given_signature = hmac.new(params.encode('utf-8'))
 
 		given_signature.update(get_secret().encode())
 		valid = signature == given_signature.hexdigest()

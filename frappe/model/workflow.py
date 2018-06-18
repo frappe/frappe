@@ -114,19 +114,17 @@ def validate_workflow(doc):
 		current_state = doc._doc_before_save.get(workflow.workflow_state_field)
 	next_state = doc.get(workflow.workflow_state_field)
 
-	if not next_state or not current_state:
-		# set default state (maybe not set in insert)
-		current_state = next_state = workflow.states[0].state
-		doc.set(workflow.workflow_state_field, workflow.states[0].state)
+	if not next_state:
+		next_state = workflow.states[0].state
+		doc.set(workflow.workflow_state_field, next_state)
+
+	if not current_state:
+		current_state = workflow.states[0].state
 
 	state_row = [d for d in workflow.states if d.state == current_state]
 	if not state_row:
 		frappe.throw(_('{0} is not a valid Workflow State. Please update your Workflow and try again.'.format(frappe.bold(current_state))))
 	state_row = state_row[0]
-
-	# check if user is allowed to edit in current state
-	if not state_row.allow_edit in frappe.get_roles():
-		frappe.throw(_('Not allowed to edit in Workflow State {0}'.format(frappe.bold(current_state))), WorkflowPermissionError)
 
 	# if transitioning, check if user is allowed to transition
 	if current_state != next_state:
@@ -145,14 +143,17 @@ def has_approval_access(user, doc):
 		or user != doc.owner)
 
 def get_workflow_state_field(workflow_name):
-	return cache_and_get_workflow_field_value(workflow_name, 'workflow_state_field')
+	return get_workflow_field_value(workflow_name, 'workflow_state_field')
 
 def is_self_approval_enabled(workflow_name):
-	return cache_and_get_workflow_field_value(workflow_name, 'allow_self_approval')
+	return get_workflow_field_value(workflow_name, 'allow_self_approval')
 
-def cache_and_get_workflow_field_value(workflow_name, field):
-	value = frappe.cache().hget('workflow_'+field, workflow_name)
+def send_email_alert(workflow_name):
+	return get_workflow_field_value(workflow_name, 'send_email_alert')
+
+def get_workflow_field_value(workflow_name, field):
+	value = frappe.cache().hget('workflow_' + workflow_name, field)
 	if value is None:
 		value = frappe.db.get_value("Workflow", workflow_name, field)
-		frappe.cache().hset('workflow_'+field, workflow_name, value)
+		frappe.cache().hset('workflow_' + workflow_name, field, value)
 	return value

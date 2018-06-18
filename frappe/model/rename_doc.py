@@ -214,6 +214,9 @@ def update_link_field_values(link_fields, old, new, doctype):
 				% (frappe.db.escape(parent), frappe.db.escape(field['fieldname']), '%s',
 					frappe.db.escape(field['fieldname']), '%s'),
 				(new, old))
+		# update cached link_fields as per new
+		if doctype=='DocType' and field['parent'] == old:
+			field['parent'] = new
 
 def get_link_fields(doctype):
 	# get link fields from tabDocField

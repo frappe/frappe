@@ -157,12 +157,19 @@ class HelpDatabase(object):
 		apps = os.listdir('../apps') if self.global_help_setup else frappe.get_installed_apps()
 
 		for app in apps:
-			docs_folder = '../apps/{app}/{app}/docs/user'.format(app=app)
-			self.out_base_path = '../apps/{app}/{app}/docs'.format(app=app)
+			# Expect handling of cloning docs apps in bench
+			docs_app = frappe.get_hooks('docs_app', app, app)[0]
+
+			web_folder = 'www/' if docs_app != app else ''
+
+			docs_folder = '../apps/{docs_app}/{docs_app}/{web_folder}docs/user'.format(
+				docs_app=docs_app, web_folder=web_folder)
+			self.out_base_path = '../apps/{docs_app}/{docs_app}/{web_folder}docs'.format(
+				docs_app=docs_app, web_folder=web_folder)
 			if os.path.exists(docs_folder):
 				app_name = getattr(frappe.get_module(app), '__title__', None) or app.title()
-				doc_contents += '<li><a data-path="/{app}/index">{app_name}</a></li>'.format(
-					app=app, app_name=app_name)
+				doc_contents += '<li><a data-path="/{docs_app}/index">{app_name}</a></li>'.format(
+					docs_app=docs_app, app_name=app_name)
 
 				for basepath, folders, files in os.walk(docs_folder):
 					files = self.reorder_files(files)
@@ -172,7 +179,7 @@ class HelpDatabase(object):
 							with io.open(fpath, 'r', encoding = 'utf-8') as f:
 								try:
 									content = frappe.render_template(f.read(),
-										{'docs_base_url': '/assets/{app}_docs'.format(app=app)})
+										{'docs_base_url': '/assets/{docs_app}_docs'.format(docs_app=docs_app)})
 
 									relpath = self.get_out_path(fpath)
 									relpath = relpath.replace("user", app)
@@ -216,7 +223,6 @@ class HelpDatabase(object):
 
 		target = path.split('/', 3)[-1]
 		app_name = path.split('/', 3)[2]
-		html += get_improve_page_html(app_name, target)
 
 		soup = BeautifulSoup(html, 'html.parser')
 
