@@ -9,7 +9,7 @@ import uuid
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
-from frappe.utils import flt, cint, get_html_format, cstr
+from frappe.utils import flt, cint, get_html_format, cstr, get_url_to_list
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
@@ -53,15 +53,9 @@ def generate_report_result(report, filters, user):
 		columns = [cstr(c[0]) for c in frappe.db.get_description()]
 	else:
 		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
-		print module
 		if report.is_standard == "Yes":
-			print "in yes part"
 			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
-			print method_name
-			print frappe._dict(filters)
 			res = frappe.get_attr(method_name)(frappe._dict(filters))
-			print "in res"
-			print res
 			columns, result = res[0], res[1]
 			if len(res) > 2:
 				message = res[2]
@@ -105,7 +99,9 @@ def background_enqueue_run(report_name, filters=None, user=None):
 		})
 	track_instance.insert(ignore_permissions=True)
 	frappe.db.commit()
-	return []
+	return {
+		"redirect_url": get_url_to_list("Result")
+	}
 
 
 @frappe.whitelist()
