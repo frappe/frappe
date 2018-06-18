@@ -86,7 +86,7 @@ def background_enqueue_run(report_name, filters=None, user=None):
 	report = get_report_doc(report_name)
 	track_instance = \
 		frappe.get_doc({
-			"doctype": "Result",
+			"doctype": "Background Report Result",
 			"report_name": report_name,
 			"filters": json.dumps(filters),
 			"ref_report_doctype": report_name,
@@ -99,7 +99,7 @@ def background_enqueue_run(report_name, filters=None, user=None):
 	track_instance.insert(ignore_permissions=True)
 	frappe.db.commit()
 	return {
-		"redirect_url": get_url_to_form("Result", track_instance.name)
+		"redirect_url": get_url_to_form("Background Report Result", track_instance.name)
 	}
 
 
