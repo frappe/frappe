@@ -23,7 +23,6 @@ class BackgroundReportResult(Document):
 		)
 
 
-@frappe.whitelist()
 def run_background(instance):
 	report = frappe.get_doc("Report", instance.ref_report_doctype)
 	result = generate_report_result(report, filters=json.loads(instance.filters), user=instance.owner)
@@ -33,7 +32,6 @@ def run_background(instance):
 	instance.save()
 
 
-@frappe.whitelist()
 def create_csv_file(columns, data, dt, dn):
 	# create the list of column labels
 	column_list = []
@@ -49,7 +47,7 @@ def create_csv_file(columns, data, dt, dn):
 		csv_out.writerow(row)
 	# encode the content of csv
 	encoded = base64.b64encode(out.getvalue())
-	# Call save_file function to upload and attahc the file
+	# Call save_file function to upload and attach the file
 	save_file(
 		fname=csv_filename,
 		content=encoded,
