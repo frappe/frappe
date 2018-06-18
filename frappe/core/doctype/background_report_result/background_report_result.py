@@ -17,21 +17,20 @@ from frappe.utils.file_manager import save_file
 
 class BackgroundReportResult(Document):
 	def after_insert(self):
-		# enqueue(
-		# 	run_background,
-		# 	self=self, timeout=6000
-		# )
-		run_background(self=self)
+		enqueue(
+			run_background,
+			instance=self, timeout=6000
+		)
 
 
 @frappe.whitelist()
-def run_background(self):
-	report = frappe.get_doc("Report", self.ref_report_doctype)
-	result = generate_report_result(report, filters=json.loads(self.filters), user=self.owner)
-	create_csv_file(result['columns'], result['result'], 'Background Report Result', self.name)
-	self.status = "Completed"
-	self.report_end_time = frappe.utils.now()
-	self.save()
+def run_background(instance):
+	report = frappe.get_doc("Report", instance.ref_report_doctype)
+	result = generate_report_result(report, filters=json.loads(instance.filters), user=instance.owner)
+	create_csv_file(result['columns'], result['result'], 'Background Report Result', instance.name)
+	instance.status = "Completed"
+	instance.report_end_time = frappe.utils.now()
+	instance.save()
 
 
 @frappe.whitelist()
@@ -45,7 +44,6 @@ def create_csv_file(columns, data, dt, dn):
 	# Write columns and results to string
 	out = StringIO.StringIO()
 	csv_out = csv.writer(out)
-	print(column_list)
 	csv_out.writerow(column_list)
 	for row in data:
 		csv_out.writerow(row)
