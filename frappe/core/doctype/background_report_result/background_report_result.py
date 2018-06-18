@@ -15,8 +15,7 @@ from frappe.desk.query_report import generate_report_result
 from frappe.utils.file_manager import save_file
 
 
-class Result(Document):
-
+class BackgroundReportResult(Document):
 	def after_insert(self):
 		enqueue(
 			run_background,
@@ -28,7 +27,7 @@ class Result(Document):
 def run_background(self):
 	report = frappe.get_doc("Report", self.ref_report_doctype)
 	result = generate_report_result(report, filters=json.loads(self.filters), user=self.owner)
-	create_csv_file(result['columns'], result['result'], 'Result', self.name)
+	create_csv_file(result['columns'], result['result'], 'Background Report Result', self.name)
 	self.status = "Completed"
 	self.report_end_time = frappe.utils.now()
 	self.save()
@@ -56,5 +55,6 @@ def create_csv_file(columns, data, dt, dn):
 		folder=None,
 		decode=True,
 		is_private=False)
+
 
 
