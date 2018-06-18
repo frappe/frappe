@@ -31,8 +31,10 @@ def get_report_doc(report_name):
 	return doc
 
 
-def generate_report_result(report, filters, user):
+def generate_report_result(report, filters=None, user=None):
 	status = None
+	if not user:
+		user = frappe.session.user
 	if not filters:
 		filters = []
 
