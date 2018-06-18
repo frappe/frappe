@@ -256,6 +256,7 @@ def get_report_module_dotted_path(module, report_name):
 	return frappe.local.module_app[scrub(module)] + "." + scrub(module) \
 		+ ".report." + scrub(report_name) + "." + scrub(report_name)
 
+
 def add_total_row(result, columns, meta = None):
 	total_row = [""]*len(columns)
 	has_percent = []
