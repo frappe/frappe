@@ -5,11 +5,10 @@ from __future__ import unicode_literals
 
 import frappe
 import os, json
-import uuid
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
-from frappe.utils import flt, cint, get_html_format, cstr, get_url_to_list
+from frappe.utils import flt, cint, get_html_format, cstr, get_url_to_form
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
@@ -88,7 +87,7 @@ def background_enqueue_run(report_name, filters=None, user=None):
 	track_instance = \
 		frappe.get_doc({
 			"doctype": "Result",
-			"report_name": "{0}_{1}".format(report_name, uuid.uuid4().hex),
+			"report_name": report_name,
 			"filters": json.dumps(filters),
 			"ref_report_doctype": report_name,
 			"report_type": report.report_type,
@@ -100,7 +99,7 @@ def background_enqueue_run(report_name, filters=None, user=None):
 	track_instance.insert(ignore_permissions=True)
 	frappe.db.commit()
 	return {
-		"redirect_url": get_url_to_list("Result")
+		"redirect_url": get_url_to_form("Result", track_instance.name)
 	}
 
 
