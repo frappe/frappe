@@ -5,6 +5,9 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest
+import json
+
 
 class TestChatToken(unittest.TestCase):
 	pass
+
