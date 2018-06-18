@@ -398,6 +398,7 @@ def has_match(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner
 
 	return resultant_match
 
+
 def get_linked_doctypes(columns, data):
 	linked_doctypes = {}
 
