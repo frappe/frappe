@@ -61,6 +61,3 @@ def create_csv_file(columns, data, dt, dn):
 		folder=None,
 		decode=True,
 		is_private=False)
-
-
-
