@@ -22,7 +22,6 @@ class BackgroundReportResult(Document):
 		self.report_start_time = frappe.utils.now()
 
 	def after_insert(self):
-		# run_background(instance=self)
 		enqueue(
 			run_background,
 			instance=self, timeout=6000
