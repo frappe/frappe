@@ -27,8 +27,7 @@ class TestBackgroundReportResult(unittest.TestCase):
 			"report_type": self.report.report_type,
 			"query": self.report.query,
 			"module": self.report.module
-		}) \
-			.insert()
+		}).insert()
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
