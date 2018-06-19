@@ -7,6 +7,7 @@ import time
 
 import frappe
 import unittest
+from frappe.desk.query_report import background_enqueue_run
 
 
 class TestBackgroundReportResult(unittest.TestCase):
@@ -35,14 +36,15 @@ class TestBackgroundReportResult(unittest.TestCase):
 		self.background_report_doc.delete()
 
 	def test_for_creation(self):
-		self.assertEqual('QUEUED', self.background_report_doc.status.upper())
+		self.assertTrue('QUEUED' == self.background_report_doc.status.upper())
 		self.assertTrue(self.background_report_doc.report_start_time)
-		self.assertTrue(frappe.db.exists("Report", {"ref_report_doctype": self.report.name}))
 
 	def test_for_completion(self):
+		background_enqueue_run(self.background_report_doc.report_name, self.filters, 'Administrator')
 		time.sleep(5)
-		self.assertEqual('COMPLETED', self.background_report_doc.status.upper())
-		self.assertTrue(self.background_report_doc.report_end_time)
+		self.result = frappe.get_doc("Background Report Result", self.background_report_doc.name)
+		self.assertTrue('COMPLETED' == str(self.result.status).upper())
+		self.assertTrue(self.result.report_end_time)
 		self.assertGreater(
 			len(frappe.desk.form.load.get_attachments(
-				dt="Background Report Result", dn=self.background_report_doc.name)), 0)
+				dt="Background Report Result", dn=self.result.name)), 0)
