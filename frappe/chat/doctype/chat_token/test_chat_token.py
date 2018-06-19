@@ -7,6 +7,7 @@ import frappe
 import unittest
 import json
 
+
 class TestChatToken(unittest.TestCase):
 	pass
 
