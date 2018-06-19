@@ -48,8 +48,6 @@ def update_controller_context(context, controller):
 				ret = module.get_context(context)
 				if ret:
 					context.update(ret)
-			except frappe.Redirect:
-				raise
 			except (frappe.PermissionError, frappe.DoesNotExistError):
 				raise
 			except:
