@@ -2,10 +2,11 @@
 # Copyright (c) 2018, Frappe Technologies and Contributors
 # See license.txt
 from __future__ import unicode_literals
+import json
+import time
 
 import frappe
 import unittest
-import json
 
 
 class TestBackgroundReportResult(unittest.TestCase):
@@ -34,11 +35,14 @@ class TestBackgroundReportResult(unittest.TestCase):
 		self.background_report_doc.delete()
 
 	def test_for_creation(self):
-		self.assertEqual('Queued'.upper(), self.background_report_doc.status)
+		self.assertEqual('QUEUED', self.background_report_doc.status.upper())
 		self.assertTrue(self.background_report_doc.report_start_time)
 		self.assertTrue(frappe.db.exists("Report", {"ref_report_doctype": self.report.name}))
 
 	def test_for_completion(self):
-		self.assertEqual('Completed'.upper(), self.background_report_doc.status)
-		self.assertTrue(self.background_report_doc.report_start_time)
-		self.assertTrue(frappe.db.exists("Report", {"ref_report_doctype": self.report.name}))
+		time.sleep(5)
+		self.assertEqual('COMPLETED', self.background_report_doc.status.upper())
+		self.assertTrue(self.background_report_doc.report_end_time)
+		self.assertGreater(
+			len(frappe.desk.form.load.get_attachments(
+				dt="Background Report Result", dn=self.background_report_doc.name)), 0)
