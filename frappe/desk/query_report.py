@@ -33,10 +33,8 @@ def get_report_doc(report_name):
 
 def generate_report_result(report, filters=None, user=None):
 	status = None
-
 	if not user:
 		user = frappe.session.user
-
 	if not filters:
 		filters = []
 
@@ -85,6 +83,7 @@ def generate_report_result(report, filters=None, user=None):
 
 @frappe.whitelist()
 def background_enqueue_run(report_name, filters=None, user=None):
+	"""run reports in background"""
 	if not user:
 		user = frappe.session.user
 	report = get_report_doc(report_name)
@@ -97,8 +96,6 @@ def background_enqueue_run(report_name, filters=None, user=None):
 			"report_type": report.report_type,
 			"query": report.query,
 			"module": report.module,
-			"status": "Queued",
-			"report_start_time": frappe.utils.now()
 		})
 	track_instance.insert(ignore_permissions=True)
 	frappe.db.commit()
@@ -217,6 +214,7 @@ def export_query():
 def get_report_module_dotted_path(module, report_name):
 	return frappe.local.module_app[scrub(module)] + "." + scrub(module) \
 		+ ".report." + scrub(report_name) + "." + scrub(report_name)
+
 
 def add_total_row(result, columns, meta = None):
 	total_row = [""]*len(columns)
