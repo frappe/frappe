@@ -72,6 +72,7 @@ def as_unicode(text, encoding='utf-8'):
 	else:
 		return text_type(text)
 
+
 def get_lang_dict(fortype, name=None):
 	"""Returns the translated language dict for the given type and name.
 
