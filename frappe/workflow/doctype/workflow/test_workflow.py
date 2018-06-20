@@ -92,7 +92,6 @@ class TestWorkflow(unittest.TestCase):
 
 		doc = self.test_default_condition()
 		workflow_actions = frappe.get_all('Workflow Action', fields=['status'])
-		print(workflow_actions)
 		self.assertEqual(len(workflow_actions), 1)
 
 		# test if status of workflow actions are updated on approval
