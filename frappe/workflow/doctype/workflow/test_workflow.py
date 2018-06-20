@@ -22,7 +22,6 @@ class TestWorkflow(unittest.TestCase):
 				self.workflow.document_type = 'ToDo'
 				self.workflow.workflow_state_field = 'workflow_state'
 				self.workflow.is_active = 1
-				self.workflow.allow_self_approval = 1
 				self.workflow.send_email_alert = 0
 				self.workflow.append('states', dict(
 					state = 'Pending', allow_edit = 'All'
@@ -35,13 +34,13 @@ class TestWorkflow(unittest.TestCase):
 					state = 'Rejected', allow_edit = 'Test Approver'
 				))
 				self.workflow.append('transitions', dict(
-					state = 'Pending', action='Approve', next_state = 'Approved', allowed='Test Approver'
+					state = 'Pending', action='Approve', next_state = 'Approved', allowed='Test Approver', allow_self_approval= 1
 				))
 				self.workflow.append('transitions', dict(
-					state = 'Pending', action='Reject', next_state = 'Rejected', allowed='Test Approver'
+					state = 'Pending', action='Reject', next_state = 'Rejected', allowed='Test Approver', allow_self_approval= 1
 				))
 				self.workflow.append('transitions', dict(
-					state = 'Rejected', action='Review', next_state = 'Pending', allowed='All'
+					state = 'Rejected', action='Review', next_state = 'Pending', allowed='All', allow_self_approval= 1
 				))
 				self.workflow.insert()
 		frappe.set_user('Administrator')
@@ -89,8 +88,11 @@ class TestWorkflow(unittest.TestCase):
 		user.add_roles('Test Approver', 'System Manager')
 		frappe.set_user('test2@example.com')
 
+
+
 		doc = self.test_default_condition()
 		workflow_actions = frappe.get_all('Workflow Action', fields=['status'])
+		print(workflow_actions)
 		self.assertEqual(len(workflow_actions), 1)
 
 		# test if status of workflow actions are updated on approval
