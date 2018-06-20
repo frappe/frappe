@@ -3,7 +3,6 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import StringIO
 import csv
 import base64
 import json
@@ -13,6 +12,11 @@ from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
 from frappe.desk.query_report import generate_report_result, get_columns_dict
 from frappe.utils.file_manager import save_file
+
+try:
+	from StringIO import StringIO
+except ImportError:
+	from io import StringIO
 
 
 class BackgroundReportResult(Document):
@@ -45,7 +49,7 @@ def create_csv_file(columns, data, dt, dn):
 		column_list.append(columns_header[idx]["label"])
 	csv_filename = '{0}.csv'.format(frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H:M"))
 	# Write columns and results to string
-	out = StringIO.StringIO()
+	out = StringIO()
 	csv_out = csv.writer(out)
 	csv_out.writerow(column_list)
 	for row in data:
