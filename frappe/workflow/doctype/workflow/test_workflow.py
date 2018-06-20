@@ -23,6 +23,7 @@ class TestWorkflow(unittest.TestCase):
 				self.workflow.workflow_state_field = 'workflow_state'
 				self.workflow.is_active = 1
 				self.workflow.allow_self_approval = 1
+				self.workflow.send_email_alert = 0
 				self.workflow.append('states', dict(
 					state = 'Pending', allow_edit = 'All'
 				))
