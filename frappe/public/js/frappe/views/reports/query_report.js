@@ -234,10 +234,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			},
 			callback: resolve
 		})).then(r => {
-			const data = r.message;
+            const data = r.message;
             if (data.background_report){
                 this.toggle_message(true, 'This report is background. You can run this by hitting Run in background');
-			}else{
+            }else{
                 this.toggle_message(false);
                 if (data.result && data.result.length) {
                     this.render_chart(data);
@@ -245,10 +245,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
                 } else {
                     this.toggle_nothing_to_show(true);
                 }
-			}
+            }
 		});
 	}
-	
+
 	render_background_report() {
 		this.toggle_message(true);
 		const filters = this.get_filter_values(true);
@@ -261,11 +261,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			},
 			callback: resolve
 		})).then(r => {
-				const data = r.message;
-				this.toggle_nothing_to_show(true);
-				frappe
-				.msgprint("Background job initiated successfully. Track and access results  <a class='text-info' target='_blank' href="+data.redirect_url+">here</a>",
-				"Notification");
+            const data = r.message;
+            this.toggle_nothing_to_show(true);
+            frappe
+            .msgprint("Background job initiated successfully. Track and access results  <a class='text-info' target='_blank' href="+data.redirect_url+">here</a>",
+            "Notification");
 		});
 	}
 	render_report(data) {
