@@ -43,7 +43,7 @@ class TestBackgroundReportResult(unittest.TestCase):
 		background_enqueue_run(self.background_report_doc.report_name, self.filters, 'Administrator')
 		time.sleep(5)
 		self.result = frappe.get_doc("Background Report Result", self.background_report_doc.name)
-		self.assertTrue('COMPLETED' == str(self.result.status).upper())
+		self.assertTrue('COMPLETED' == self.result.status.upper())
 		self.assertTrue(self.result.report_end_time)
 		self.assertGreater(
 			len(frappe.desk.form.load.get_attachments(
