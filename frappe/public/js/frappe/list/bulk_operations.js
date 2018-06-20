@@ -179,14 +179,14 @@ export default class BulkOperations {
 						dialog.enable_primary_action();
 						frappe.throw(__('Cannot update {0}', [failed.map(f => f.bold ? f.bold() : f).join(', ')]));
 					}
-					dialog.hide();
 					done();
+					dialog.hide();
 				});
 			},
 			primary_action_label: __('Update')
 		});
 
-		if (default_field) set_value_field(dialog); // to set `Value` df based on default field
+		if (default_field) set_value_field(dialog); // to set `Value` df based on default `Field`
 
 		function set_value_field(dialogObj) {
 			const new_df = Object.assign({},
