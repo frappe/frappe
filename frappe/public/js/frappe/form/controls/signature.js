@@ -24,7 +24,7 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 			this.$pad = this.body.jSignature({
 				height: 300,
 				width: this.body.width(),
-				lineWidth: 0.8
+				lineWidth: 3
 			}).on('change',
 				this.on_save_sign.bind(this));
 			this.load_pad();

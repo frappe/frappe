@@ -9,12 +9,15 @@ from __future__ import unicode_literals, print_function
 from six import iteritems, binary_type, text_type, string_types
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
+from past.builtins import cmp
+
+from faker import Faker
 
 # public
 from .exceptions import *
-from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
+from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
 
-__version__ = '10.0.15'
+__version__ = '10.1.36'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -270,6 +273,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	"""
 	from frappe.utils import encode
 
+	msg = safe_decode(msg)
 	out = _dict(message=msg)
 
 	def _raise_exception():
@@ -279,9 +283,9 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 			import inspect
 
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
-				raise raise_exception(encode(msg))
+				raise raise_exception(msg)
 			else:
-				raise ValidationError(encode(msg))
+				raise ValidationError(msg)
 
 	if flags.mute_messages:
 		_raise_exception()
@@ -384,7 +388,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=[], bcc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
 		send_priority=1, communication=None, retry=1, now=None, read_receipt=None, is_notification=False,
-		inline_images=None, template=None, args=None, header=None):
+		inline_images=None, template=None, args=None, header=None, print_letterhead=False):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -433,7 +437,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 		attachments=attachments, reply_to=reply_to, cc=cc, bcc=bcc, message_id=message_id, in_reply_to=in_reply_to,
 		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,
 		communication=communication, now=now, read_receipt=read_receipt, is_notification=is_notification,
-		inline_images=inline_images, header=header)
+		inline_images=inline_images, header=header, print_letterhead=print_letterhead)
 
 whitelisted = []
 guest_methods = []
@@ -498,16 +502,15 @@ def clear_cache(user=None, doctype=None):
 
 	:param user: If user is given, only user cache is cleared.
 	:param doctype: If doctype is given, only DocType cache is cleared."""
-	import frappe.sessions
+	import frappe.cache_manager
 	if doctype:
-		import frappe.model.meta
-		frappe.model.meta.clear_cache(doctype)
+		frappe.cache_manager.clear_doctype_cache(doctype)
 		reset_metadata_version()
 	elif user:
-		frappe.sessions.clear_cache(user)
+		frappe.cache_manager.clear_user_cache(user)
 	else: # everything
 		from frappe import translate
-		frappe.sessions.clear_cache()
+		frappe.cache_manager.clear_user_cache()
 		translate.clear_cache()
 		reset_metadata_version()
 		local.cache = {}
@@ -1123,7 +1126,7 @@ def redirect_to_message(title, html, http_status_code=None, context=None, indica
 def build_match_conditions(doctype, as_condition=True):
 	"""Return match (User permissions) for given doctype as list or SQL."""
 	import frappe.desk.reportview
-	return frappe.desk.reportview.build_match_conditions(doctype, as_condition)
+	return frappe.desk.reportview.build_match_conditions(doctype, as_condition=as_condition)
 
 def get_list(doctype, *args, **kwargs):
 	"""List database query via `frappe.model.db_query`. Will also check for permissions.
@@ -1150,7 +1153,7 @@ def get_list(doctype, *args, **kwargs):
 	return frappe.model.db_query.DatabaseQuery(doctype).execute(None, *args, **kwargs)
 
 def get_all(doctype, *args, **kwargs):
-	"""List database query via `frappe.model.db_query`. Will **not** check for conditions.
+	"""List database query via `frappe.model.db_query`. Will **not** check for permissions.
 	Parameters are same as `frappe.get_list`
 
 	:param doctype: DocType on which query is to be made.
@@ -1250,7 +1253,7 @@ def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
 	else:
 		return html
 
-def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None, doc=None, lang=None):
+def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None, doc=None, lang=None, print_letterhead=True):
 	from frappe.utils import scrub_urls
 
 	if not file_name: file_name = name
@@ -1264,15 +1267,17 @@ def attach_print(doctype, name, file_name=None, print_format=None, style=None, h
 	if lang: local.lang = lang
 	local.flags.ignore_print_permissions = True
 
+	no_letterhead = not print_letterhead
+
 	if int(print_settings.send_print_as_pdf or 0):
 		out = {
 			"fname": file_name + ".pdf",
-			"fcontent": get_print(doctype, name, print_format=print_format, style=style, html=html, as_pdf=True, doc=doc)
+			"fcontent": get_print(doctype, name, print_format=print_format, style=style, html=html, as_pdf=True, doc=doc, no_letterhead=no_letterhead)
 		}
 	else:
 		out = {
 			"fname": file_name + ".html",
-			"fcontent": scrub_urls(get_print(doctype, name, print_format=print_format, style=style, html=html, doc=doc)).encode("utf-8")
+			"fcontent": scrub_urls(get_print(doctype, name, print_format=print_format, style=style, html=html, doc=doc, no_letterhead=no_letterhead)).encode("utf-8")
 		}
 
 	local.flags.ignore_print_permissions = False
@@ -1409,3 +1414,97 @@ def get_system_settings(key):
 def get_active_domains():
 	from frappe.core.doctype.domain_settings.domain_settings import get_active_domains
 	return get_active_domains()
+
+def get_version(doctype, name, limit = None, head = False, raise_err = True):
+	'''
+	Returns a list of version information of a given DocType (Applicable only if DocType has changes tracked).
+
+	Example
+	>>> frappe.get_version('User', 'foobar@gmail.com')
+	>>>
+	[
+		{
+			 "version": [version.data], 	 # Refer Version DocType get_diff method and data attribute
+			    "user": "admin@gmail.com"    # User that created this version
+			"creation": <datetime.datetime>  # Creation timestamp of that object.
+		}
+	]
+	'''
+	meta  = get_meta(doctype)
+	if meta.track_changes:
+		names = db.sql("""
+			SELECT name from tabVersion
+			WHERE  ref_doctype = '{doctype}' AND docname = '{name}'
+			{order_by}
+			{limit}
+		""".format(
+			doctype  = doctype,
+			name     = name,
+			order_by = 'ORDER BY creation'	 			     if head  else '',
+			limit    = 'LIMIT {limit}'.format(limit = limit) if limit else ''
+		))
+
+		from frappe.chat.util import squashify, dictify, safe_json_loads
+
+		versions = [ ]
+
+		for name in names:
+			name = squashify(name)
+			doc  = get_doc('Version', name)
+
+			data = doc.data
+			data = safe_json_loads(data)
+			data = dictify(dict(
+				version  = data,
+				user 	 = doc.owner,
+				creation = doc.creation
+			))
+
+			versions.append(data)
+
+		return versions
+	else:
+		if raise_err:
+			raise ValueError('{doctype} has no versions tracked.'.format(
+				doctype = doctype
+			))
+
+@whitelist(allow_guest = True)
+def ping():
+	return "pong"
+
+
+def safe_encode(param, encoding = 'utf-8'):
+	try:
+		param = param.encode(encoding)
+	except Exception:
+		pass
+	return param
+
+
+def safe_decode(param, encoding = 'utf-8'):
+	try:
+		param = param.decode(encoding)
+	except Exception:
+		pass
+	return param
+
+def parse_json(val):
+	from frappe.utils import parse_json
+	return parse_json(val)
+
+def mock(type, size = 1, locale = 'en'):
+	results = [ ]
+	faker 	= Faker(locale)
+	if not type in dir(faker):
+		raise ValueError('Not a valid mock type.')
+	else:
+		for i in range(size):
+			data = getattr(faker, type)()
+			results.append(data)
+
+	from frappe.chat.util import squashify
+
+	results = squashify(results)
+
+	return results

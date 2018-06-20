@@ -14,10 +14,8 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 
 	// menu
 	page.add_menu_item(__('Set Desktop Icons'), function() {
-		frappe.route_options = {
-			"user": frappe.session.user
-		};
-		frappe.set_route("modules_setup");
+		frappe.frappe_toolbar.modules_select
+			.show(frappe.session.user);
 	});
 
 	if(frappe.user.has_role('System Manager')) {
@@ -143,7 +141,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 						item.route="query-report/" + item.name;
 					}
 					else if(item.type==="report") {
-						item.route="Report/" + item.doctype + "/" + item.name;
+						item.route="List/" + item.doctype + "/Report/" + item.name;
 					}
 					else if(item.type==="page") {
 						item.route=item.name;

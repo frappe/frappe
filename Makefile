@@ -1,2 +1,4 @@
+BASEDIR						:= $(realpath .)
+
 clean:
-	python setup.py clean
+	find $(BASEDIR) | grep -E "__pycache__|\.pyc" | xargs rm -rf

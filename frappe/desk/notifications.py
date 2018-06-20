@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import time_diff_in_seconds, now, now_datetime, DATETIME_FORMAT
 from dateutil.relativedelta import relativedelta
+from six import string_types
 
 @frappe.whitelist()
 def get_notifications():
@@ -14,7 +15,7 @@ def get_notifications():
 
 	config = get_notification_config()
 
-	groups = list(config.get("for_doctype").keys()) + list(config.get("for_module").keys())
+	groups = list(config.get("for_doctype")) + list(config.get("for_module"))
 	cache = frappe.cache()
 
 	notification_count = {}
@@ -161,8 +162,8 @@ def clear_notifications(user=None):
 		return
 
 	config = get_notification_config()
-	for_doctype = config.get('for_doctype').keys() if config.get('for_doctype') else []
-	for_module = list(config.get('for_module').keys()) if config.get('for_module') else []
+	for_doctype = list(config.get('for_doctype')) if config.get('for_doctype') else []
+	for_module = list(config.get('for_module')) if config.get('for_module') else []
 	groups = for_doctype + for_module
 	cache = frappe.cache()
 
@@ -172,12 +173,18 @@ def clear_notifications(user=None):
 		else:
 			cache.delete_key("notification_count:" + name)
 
+	frappe.publish_realtime('clear_notifications')
+
 def delete_notification_count_for(doctype):
 	frappe.cache().delete_key("notification_count:" + doctype)
+	frappe.publish_realtime('clear_notifications')
 
 def clear_doctype_notifications(doc, method=None, *args, **kwargs):
 	config = get_notification_config()
-	doctype = doc.doctype
+	if isinstance(doc, string_types):
+		doctype = doc # assuming doctype name was passed directly
+	else:
+		doctype = doc.doctype
 
 	if doctype in config.for_doctype:
 		delete_notification_count_for(doctype)
@@ -191,7 +198,7 @@ def get_notification_info_for_boot():
 	module_doctypes = {}
 	doctype_info = dict(frappe.db.sql("""select name, module from tabDocType"""))
 
-	for d in list(set(can_read + config.for_doctype.keys())):
+	for d in list(set(can_read + list(config.for_doctype))):
 		if d in config.for_doctype:
 			conditions[d] = config.for_doctype[d]
 

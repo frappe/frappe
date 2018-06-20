@@ -22,7 +22,7 @@ cur_frm.cscript.refresh = function(doc) {
 	cur_frm.add_custom_button("Show Report", function() {
 		switch(doc.report_type) {
 			case "Report Builder":
-				frappe.set_route("Report", doc.ref_doctype, doc.name);
+				frappe.set_route('List', doc.ref_doctype, 'Report', doc.name);
 				break;
 			case "Query Report":
 				frappe.set_route("query-report", doc.name);
@@ -54,7 +54,7 @@ cur_frm.cscript.refresh = function(doc) {
 
 frappe.ui.form.on('Report', {
 	refresh: function(frm) {
-		if(!frappe.boot.developer_mode && user != 'Administrator') {
+		if(!frappe.boot.developer_mode && frappe.session.user != 'Administrator') {
 			// make the document read-only
 			frm.set_read_only();
 		}

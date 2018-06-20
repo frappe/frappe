@@ -5,14 +5,18 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe import _
 
 class DomainSettings(Document):
 	def set_active_domains(self, domains):
-		self.active_domains = []
+		active_domains = [d.domain for d in self.active_domains]
+		added = False
 		for d in domains:
-			self.append('active_domains', dict(domain=d))
-		self.save()
+			if not d in active_domains:
+				self.append('active_domains', dict(domain=d))
+				added = True
+
+		if added:
+			self.save()
 
 	def on_update(self):
 		for i, d in enumerate(self.active_domains):
@@ -28,7 +32,7 @@ class DomainSettings(Document):
 	def restrict_roles_and_modules(self):
 		'''Disable all restricted roles and set `restrict_to_domain` property in Module Def'''
 		active_domains = frappe.get_active_domains()
-		all_domains = (frappe.get_hooks('domains') or {}).keys()
+		all_domains = list((frappe.get_hooks('domains') or {}))
 
 		def remove_role(role):
 			frappe.db.sql('delete from `tabHas Role` where role=%s', role)
@@ -51,6 +55,11 @@ class DomainSettings(Document):
 					if domain not in active_domains:
 						remove_role(role)
 
+			if 'custom_fields' in data:
+				if domain not in active_domains:
+					inactive_domain = frappe.get_doc("Domain", domain)
+					inactive_domain.setup_data()
+					inactive_domain.remove_custom_field()
 
 def get_active_domains():
 	""" get the domains set in the Domain Settings as active domain """

@@ -94,7 +94,7 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 				<img  />
 			</div>
 		'''.format(inline_images[0].get('content_id'))
-		self.assertEquals(message, processed_message)
+		self.assertEqual(message, processed_message)
 
 	def test_inline_styling(self):
 		html = '''

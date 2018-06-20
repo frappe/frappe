@@ -191,6 +191,7 @@ def _run_unittest(modules, verbose=False, tests=(), profile=False):
 
 	out = unittest_runner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
 
+
 	if profile:
 		pr.disable()
 		s = StringIO()
@@ -199,7 +200,6 @@ def _run_unittest(modules, verbose=False, tests=(), profile=False):
 		print(s.getvalue())
 
 	return out
-
 
 def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 	import os
@@ -286,6 +286,9 @@ def get_dependencies(doctype):
 	return options_list
 
 def make_test_records_for_doctype(doctype, verbose=0, force=False):
+	if not force and doctype in get_test_record_log():
+		return
+
 	module, test_module = get_modules(doctype)
 
 	if verbose:
@@ -305,6 +308,7 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False):
 		elif verbose:
 			print_mandatory_fields(doctype)
 
+	add_to_test_record_log(doctype)
 
 def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 	'''Make test objects from given list of `test_records` or from `test_records.json`'''
@@ -362,7 +366,6 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 		records.append(d.name)
 
 		frappe.db.commit()
-
 	return records
 
 def print_mandatory_fields(doctype):
@@ -375,4 +378,22 @@ def print_mandatory_fields(doctype):
 		print(d.parent + ":" + d.fieldname + " | " + d.fieldtype + " | " + (d.options or ""))
 	print()
 
+def add_to_test_record_log(doctype):
+	'''Add `doctype` to site/.test_log
+	`.test_log` is a cache of all doctypes for which test records are created'''
+	test_record_log = get_test_record_log()
+	if not doctype in test_record_log:
+		frappe.flags.test_record_log.append(doctype)
+		with open(frappe.get_site_path('.test_log'), 'w') as f:
+			f.write('\n'.join(filter(None, frappe.flags.test_record_log)))
 
+def get_test_record_log():
+	'''Return the list of doctypes for which test records have been created'''
+	if 'test_record_log' not in frappe.flags:
+		if os.path.exists(frappe.get_site_path('.test_log')):
+			with open(frappe.get_site_path('.test_log'), 'r') as f:
+				frappe.flags.test_record_log = f.read().splitlines()
+		else:
+			frappe.flags.test_record_log = []
+
+	return frappe.flags.test_record_log

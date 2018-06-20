@@ -51,6 +51,18 @@ class Communication(Document):
 				frappe.throw(_("Cannot create a {0} against a child document: {1}")
 					.format(_(self.communication_type), _(self.reference_doctype)))
 
+			# Prevent circular linking of Communication DocTypes
+			if self.reference_doctype == "Communication":
+				circular_linking = False
+				doc = get_parent_doc(self)
+				while doc.reference_doctype == "Communication":
+					if get_parent_doc(doc).name==self.name:
+						circular_linking = True
+						break
+					doc = get_parent_doc(doc)
+				if circular_linking:
+					frappe.throw(_("Please make sure the Reference Communication Docs are not circularly linked."), frappe.CircularLinkingError)
+
 		if not self.user:
 			self.user = frappe.session.user
 

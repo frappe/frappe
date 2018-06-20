@@ -180,7 +180,7 @@ frappe.search.AwesomeBar = Class.extend({
 		var out = [], routes = [];
 		options.forEach(function(option) {
 			if(option.route) {
-				if(option.route[0] === "List" && option.route[2]) {
+				if(option.route[0] === "List" && option.route[2] !== 'Report') {
 					option.route.splice(2);
 				}
 				var str_route = (typeof option.route==='string') ?
@@ -190,7 +190,7 @@ frappe.search.AwesomeBar = Class.extend({
 					routes.push(str_route);
 				} else {
 					var old = routes.indexOf(str_route);
-					if(out[old].index < option.index) {
+					if(out[old].index < option.index && !option.recent) {
 						out[old] = option;
 					}
 				}
@@ -233,7 +233,7 @@ frappe.search.AwesomeBar = Class.extend({
 				value: __('Find {0} in {1}', [txt, __(route[1])]),
 				route_options: options,
 				onclick: function() {
-					cur_list.refresh();
+					cur_list.show();
 				},
 				index: 90,
 				default: "Current",

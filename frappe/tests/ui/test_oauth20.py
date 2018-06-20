@@ -15,8 +15,17 @@ class TestOAuth20(unittest.TestCase):
 		self.client_id = frappe.get_all("OAuth Client", fields=["*"])[0].get("client_id")
 
 		# Set Frappe server URL reqired for id_token generation
-		frappe.db.set_value("Social Login Keys", None, "frappe_server_url", "http://localhost:8000")
-		frappe.db.commit()
+		try:
+			frappe_login_key = frappe.get_doc("Social Login Key", "frappe")
+		except frappe.DoesNotExistError:
+			frappe_login_key = frappe.new_doc("Social Login Key")
+		frappe_login_key.get_social_login_provider("Frappe", initialize=True)
+		frappe_login_key.base_url = "http://localhost:8000"
+		frappe_login_key.enable_social_login = 0
+		frappe_login_key.save()
+
+	def test_invalid_login(self):
+		self.assertFalse(check_valid_openid_response())
 
 	def test_login_using_authorization_code(self):
 
@@ -70,6 +79,35 @@ class TestOAuth20(unittest.TestCase):
 		self.assertTrue(bearer_token.get("refresh_token"))
 		self.assertTrue(bearer_token.get("scope"))
 		self.assertTrue(bearer_token.get("token_type") == "Bearer")
+		self.assertTrue(check_valid_openid_response(bearer_token.get("access_token")))
+
+		# Revoke Token
+		revoke_token_response = requests.post(frappe.get_site_config().host_name + "/api/method/frappe.integrations.oauth2.revoke_token",
+			data="token=" + bearer_token.get("access_token"))
+		self.assertTrue(revoke_token_response.status_code == 200)
+
+		# Check revoked token
+		self.assertFalse(check_valid_openid_response(bearer_token.get("access_token")))
+
+	def test_resource_owner_password_credentials_grant(self):
+		# Set payload
+		payload = "grant_type=password"
+		payload += "&username=test@example.com"
+		payload += "&password=Eastern_43A1W"
+		payload += "&client_id=" + self.client_id
+		payload += "&scope=openid%20all"
+
+		headers = {'content-type':'application/x-www-form-urlencoded'}
+
+		# Request for bearer token
+		token_response = requests.post( frappe.get_site_config().host_name +
+			"/api/method/frappe.integrations.oauth2.get_token", data=payload, headers=headers)
+
+		# Parse bearer token json
+		bearer_token = token_response.json()
+
+		# Check token for valid response
+		self.assertTrue(check_valid_openid_response(bearer_token.get("access_token")))
 
 	def test_login_using_implicit_token(self):
 
@@ -113,3 +151,21 @@ class TestOAuth20(unittest.TestCase):
 		self.assertTrue(response_url.get("expires_in"))
 		self.assertTrue(response_url.get("scope"))
 		self.assertTrue(response_url.get("token_type"))
+		self.assertTrue(check_valid_openid_response(response_url.get("access_token")))
+
+	def tearDown(self):
+		self.driver.close()
+
+def check_valid_openid_response(access_token=None):
+	# Returns True for valid response
+
+	# Use token in header
+	headers = {}
+	if access_token:
+		headers["Authorization"] = 'Bearer' + access_token
+
+	# check openid for email test@example.com
+	openid_response = requests.get(frappe.get_site_config().host_name +
+		"/api/method/frappe.integrations.oauth2.openid_profile", headers=headers)
+
+	return True if openid_response.status_code == 200 else False

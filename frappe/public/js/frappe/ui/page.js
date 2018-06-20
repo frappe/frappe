@@ -61,7 +61,7 @@ frappe.ui.Page = Class.extend({
 		return $empty_state;
 	},
 
-	load_lib: function (callback) {
+	load_lib: function(callback) {
 		frappe.require(this.required_libs, callback);
 	},
 
@@ -235,15 +235,29 @@ frappe.ui.Page = Class.extend({
 		this.icon_group.addClass("hide");
 	},
 
-	//--- Actions (workflow) --//
+	//--- Actions Menu--//
+
+	show_actions_menu: function() {
+		this.actions_btn_group.removeClass("hide");
+	},
+
+	hide_actions_menu: function() {
+		this.actions_btn_group.addClass("hide");
+	},
+
 
 	add_action_item: function(label, click, standard) {
 		return this.add_dropdown_item(label, click, standard, this.actions);
 	},
 
+	add_actions_menu_item: function(label, click, standard) {
+		return this.add_dropdown_item(label, click, standard, this.actions, false);
+	},
+
 	clear_actions_menu: function() {
 		this.clear_btn_group(this.actions);
 	},
+
 
 	//-- Generic --//
 
@@ -254,11 +268,13 @@ frappe.ui.Page = Class.extend({
 	* @param {function} click - function to be called when `label` is clicked
 	* @param {Boolean} standard
 	* @param {object} parent - DOM object representing the parent of the drop down item lists
+	* @param {Boolean} show_parent - Whether to show the dropdown button if dropdown item is added
 	*/
-	add_dropdown_item: function(label, click, standard, parent) {
+	add_dropdown_item: function(label, click, standard, parent, show_parent=true) {
 		let item_selector = 'li > a.grey-link';
-
-		parent.parent().removeClass("hide");
+		if(show_parent) {
+			parent.parent().removeClass("hide");
+		}
 
 		var $li = $('<li><a class="grey-link">'+ label +'</a><li>'),
 			$link = $li.find("a").on("click", click);
@@ -306,9 +322,9 @@ frappe.ui.Page = Class.extend({
 	},
 
 	get_or_add_inner_group_button: function(label) {
-		var $group = this.inner_toolbar.find('.btn-group[data-label="'+label+'"]');
+		var $group = this.inner_toolbar.find('.btn-group[data-label="'+encodeURIComponent(label)+'"]');
 		if(!$group.length) {
-			$group = $('<div class="btn-group" data-label="'+label+'" style="margin-left: 10px;">\
+			$group = $('<div class="btn-group" data-label="'+encodeURIComponent(label)+'" style="margin-left: 10px;">\
 				<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\
 				'+label+' <span class="caret"></span></button>\
 				<ul class="dropdown-menu" style="margin-top: -8px;"></ul></div>').appendTo(this.inner_toolbar);
@@ -317,7 +333,7 @@ frappe.ui.Page = Class.extend({
 	},
 
 	get_inner_group_button: function(label) {
-		return this.inner_toolbar.find('.btn-group[data-label="'+label+'"]');
+		return this.inner_toolbar.find('.btn-group[data-label="'+encodeURIComponent(label)+'"]');
 	},
 
 	set_inner_btn_group_as_primary: function(label) {
@@ -359,15 +375,20 @@ frappe.ui.Page = Class.extend({
 			$(this.inner_toolbar).removeClass("hide");
 
 			if (!this.is_in_group_button_dropdown($group.find(".dropdown-menu"), 'li', label)) {
-				return $('<li><a>'+label+'</a></li>')
+				return $('<li><a data-label="'+encodeURIComponent(label)+'">'+label+'</a></li>')
 					.on('click', _action)
 					.appendTo($group.find(".dropdown-menu"));
 			}
 
 		} else {
-			return $('<button class="btn btn-default btn-xs" style="margin-left: 10px;">'+__(label)+'</btn>')
-				.on("click", _action)
-				.appendTo(this.inner_toolbar.removeClass("hide"));
+			var button = this.inner_toolbar.find('button[data-label="'+encodeURIComponent(label)+'"]');
+			if( button.length == 0 ) {
+				return $('<button data-label="'+encodeURIComponent(label)+'" class="btn btn-default btn-xs" style="margin-left: 10px;">'+__(label)+'</btn>')
+					.on("click", _action)
+					.appendTo(this.inner_toolbar.removeClass("hide"));
+			} else {
+				return button;
+			}
 		}
 	},
 
@@ -381,16 +402,12 @@ frappe.ui.Page = Class.extend({
 		if (group) {
 			var $group = this.get_inner_group_button(__(group));
 			if($group.length) {
-				$group.find('.dropdown-menu li a')
-					.filter((i, btn) => label.includes($(btn).text()))
-					.remove();
+				$group.find('.dropdown-menu li a[data-label="'+encodeURIComponent(label)+'"]').remove();
 			}
 			if ($group.find('.dropdown-menu li a').length === 0) $group.remove();
 		} else {
 
-			this.inner_toolbar.find('button')
-				.filter((i, btn) =>  label.includes($(btn).text()))
-				.remove();
+			this.inner_toolbar.find('button[data-label="'+encodeURIComponent(label)+'"]').remove();
 		}
 	},
 
@@ -428,14 +445,15 @@ frappe.ui.Page = Class.extend({
 		return this.$title_area;
 	},
 
-	set_title: function(txt, icon) {
+	set_title: function(txt, icon = '', stripHtml = true, tabTitle = '') {
 		if(!txt) txt = "";
 
-		// strip html
-		txt = strip_html(txt);
+		if(stripHtml) {
+			txt = strip_html(txt);
+		}
 		this.title = txt;
 
-		frappe.utils.set_title(txt);
+		frappe.utils.set_title(tabTitle || txt);
 		if(icon) {
 			txt = '<span class="'+ icon +' text-muted" style="font-size: inherit;"></span> ' + txt;
 		}
@@ -529,8 +547,14 @@ frappe.ui.Page = Class.extend({
 		this.fields_dict[df.fieldname || df.label] = f;
 		return f;
 	},
+	clear_fields: function() {
+		this.page_form.empty();
+	},
 	show_form: function() {
 		this.page_form.removeClass("hide");
+	},
+	hide_form: function() {
+		this.page_form.addClass("hide");
 	},
 	get_form_values: function() {
 		var values = {};
@@ -541,7 +565,7 @@ frappe.ui.Page = Class.extend({
 	},
 	add_view: function(name, html) {
 		let element = html;
-		if(typeof(html) === "string") {
+		if(typeof (html) === "string") {
 			element = $(html);
 		}
 		this.views[name] = element.appendTo($(this.wrapper).find(".page-content"));

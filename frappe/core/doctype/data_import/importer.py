@@ -198,8 +198,15 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			doc['doctype'] = doctype
 			return doc
 
+	# used in testing whether a row is empty or parent row or child row
+	# checked only 3 first columns since first two columns can be blank for example the case of
+	# importing the item variant where item code and item name will be blank.
 	def main_doc_empty(row):
-		return not (row and ((len(row) > 1 and row[1]) or (len(row) > 2 and row[2])))
+		if row:
+			for i in range(3,1,-1):
+				if len(row) > i and row[i]:
+					return False
+		return True
 
 	def validate_naming(doc):
 		autoname = frappe.get_meta(doctype).autoname
@@ -281,8 +288,11 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	start_row = get_start_row()
 	header = rows[:start_row]
 	data = rows[start_row:]
-	doctype = get_header_row(get_data_keys_definition().main_table)[1]
-	columns = filter_empty_columns(get_header_row(get_data_keys_definition().columns)[1:])
+	try:
+		doctype = get_header_row(get_data_keys_definition().main_table)[1]
+		columns = filter_empty_columns(get_header_row(get_data_keys_definition().columns)[1:])
+	except:
+		frappe.throw(_("Cannot change header content"))
 	doctypes = []
 	column_idx_to_fieldname = {}
 	column_idx_to_fieldtype = {}

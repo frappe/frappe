@@ -7,13 +7,13 @@ from __future__ import unicode_literals
 import frappe, os
 from frappe.model.meta import Meta
 from frappe.modules import scrub, get_module_path, load_doctype_module
-from frappe.model.workflow import get_workflow_name
 from frappe.utils import get_html_format
 from frappe.translate import make_dict_from_messages, extract_messages_from_code
 from frappe.model.utils import render_include
 from frappe.build import scrub_html_template
 
-######
+import io
+
 from six import iteritems, text_type
 
 
@@ -98,8 +98,8 @@ class FormMeta(Meta):
 		templates = dict()
 		for fname in os.listdir(path):
 			if fname.endswith(".html"):
-				with open(os.path.join(path, fname), 'r') as f:
-					templates[fname.split('.')[0]] = scrub_html_template(text_type(f.read(), "utf-8"))
+				with io.open(os.path.join(path, fname), 'r', encoding = 'utf-8') as f:
+					templates[fname.split('.')[0]] = scrub_html_template(f.read())
 
 		self.set("__templates", templates or None)
 
@@ -121,7 +121,8 @@ class FormMeta(Meta):
 			if df.options:
 				search_fields = frappe.get_meta(df.options).search_fields
 				if search_fields:
-					df.search_fields = map(lambda sf: sf.strip(), search_fields.split(","))
+					search_fields = search_fields.split(",")
+					df.search_fields = [sf.strip() for sf in search_fields]
 
 	def add_linked_document_type(self):
 		for df in self.get("fields", {"fieldtype": "Link"}):
@@ -141,7 +142,7 @@ class FormMeta(Meta):
 
 	def load_workflows(self):
 		# get active workflow
-		workflow_name = get_workflow_name(self.name)
+		workflow_name = self.get_workflow()
 		workflow_docs = []
 
 		if workflow_name and frappe.db.exists("Workflow", workflow_name):

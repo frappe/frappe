@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 frappe.ready(function() {
 	frappe.file_reading = false;
 	frappe.form_dirty = false;
@@ -19,7 +21,7 @@ frappe.ready(function() {
 			if(input.files.length) {
 				var file = input.files[0];
 				frappe.file_reading = true;
-				reader.onload = function(e) {
+				reader.onload = function() {
 					input.filedata = {
 						"__file_attachment": 1,
 						"filename": file.name,
@@ -30,14 +32,14 @@ frappe.ready(function() {
 						(frappe.max_attachment_size * 1024 * 1024)) {
 						frappe.msgprint(__('Max file size allowed is {0}MB',
 							[frappe.max_attachment_size]));
-						input.filedata = null
+						input.filedata = null;
 
 						// clear attachment
 						$(input).val('');
 						$(input).attr('data-value', '');
 					}
 					frappe.file_reading = false;
-				}
+				};
 
 				reader.readAsDataURL(file);
 			}
@@ -48,7 +50,7 @@ frappe.ready(function() {
 		if($(input).attr('data-reqd')) {
 			$(input).parent().toggleClass('has-error', !!!$(input).val());
 		}
-	}
+	};
 
 	// show mandatory fields as red
 	$('.form-group input, .form-group textarea, .form-group select').on('change', function() {
@@ -61,7 +63,9 @@ frappe.ready(function() {
 		if(maxlength && (($(this).val() || '') + '').length > maxlength-1) {
 			$(this).val($(this).val().substr(0, maxlength-1));
 		}
-	}).each(function() { set_mandatory_class(this); });
+	}).each(function() {
+		set_mandatory_class(this);
+	});
 
 	// if changed, set dirty flag
 	$form.on('change', function() {
@@ -118,7 +122,7 @@ frappe.ready(function() {
 			.removeClass('hidden')
 			.find(':input:first').focus();
 
-	}
+	};
 
 	// add row
 	$('.btn-add-row').on('click', function() {
@@ -170,7 +174,9 @@ frappe.ready(function() {
 
 					// set name of child record (if set)
 					var name = $(this).attr('data-name');
-					if(name) { d.name = name; }
+					if(name) {
+						d.name = name;
+					}
 
 					// check if child table has value
 					var has_value = false;
@@ -195,7 +201,7 @@ frappe.ready(function() {
 		});
 
 		return doc;
-	}
+	};
 
 	// get data from input elements
 	// for the given doctype
@@ -205,32 +211,32 @@ frappe.ready(function() {
 			var $input = $(this);
 			var input_type = $input.attr("data-fieldtype");
 			var no_attachment = false;
-
+			var val;
 			if(input_type==="Attach") {
 				// save filedata dict as value
 				if($input.get(0).filedata) {
-					var val = $input.get(0).filedata;
+					val = $input.get(0).filedata;
 				} else {
 					// original value
-					var val = $input.attr('data-value');
+					val = $input.attr('data-value');
 					if (!val) {
-						val = {'__no_attachment': 1}
+						val = {'__no_attachment': 1};
 						no_attachment = true;
 					}
 				}
 			} else if(input_type==='Text Editor') {
-				var val = $input.parent().find('.note-editable').html();
+				val = $input.parent().find('.note-editable').html();
 			} else if(input_type==="Check") {
-				var val = $input.prop("checked") ? 1 : 0;
+				val = $input.prop("checked") ? 1 : 0;
 			} else if(input_type==="Date") {
 				// convert from user format to YYYY-MM-DD
 				if($input.val()) {
-					var val = moment($input.val(), moment.defaultFormat).format('YYYY-MM-DD');
+					val = moment($input.val(), moment.defaultFormat).format('YYYY-MM-DD');
 				} else {
-					var val = null;
+					val = null;
 				}
 			} else {
-				var val = $input.val();
+				val = $input.val();
 			}
 
 			if(typeof val==='string') {
@@ -246,7 +252,7 @@ frappe.ready(function() {
 			out[$input.attr("name")] = val;
 		});
 		return out;
-	}
+	};
 
 	function save(for_payment) {
 		if(window.saving)
@@ -398,7 +404,7 @@ frappe.ready(function() {
 				timeFormat: "hh:ii:ss"
 			});
 		}
-	}
+	};
 
 	setup_date_picker($form);
 

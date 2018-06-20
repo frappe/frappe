@@ -1,0 +1,8 @@
+<div style="padding-top: 15px">
+	<h5>{%= __("Records for following doctypes will be filtered") %}</h5>
+	<ul class="row">
+		{% Object.keys(linked_doctypes).forEach(key => {  %}
+			<li class={{ Object.keys(linked_doctypes).length >= 10 ? "col-md-4" : "" }}>{%= __(key) %}</li>
+		{% }) %}
+	</ul>
+</div>

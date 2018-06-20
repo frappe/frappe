@@ -60,11 +60,14 @@ def get_sites(site_arg):
 				return [f.read().strip()]
 
 def get_app_commands(app):
-	try:
-		app_command_module = importlib.import_module(app + '.commands')
-	except ImportError as e:
-		if not 'No module named commands' in str(e):
+	if os.path.exists(os.path.join('..', 'apps', app, app, 'commands.py'))\
+		or os.path.exists(os.path.join('..', 'apps', app, app, 'commands', '__init__.py')):
+		try:
+			app_command_module = importlib.import_module(app + '.commands')
+		except Exception:
 			traceback.print_exc()
+			return []
+	else:
 		return []
 
 	ret = {}
@@ -74,12 +77,12 @@ def get_app_commands(app):
 
 @click.command('get-frappe-commands')
 def get_frappe_commands():
-	commands = list(get_app_commands('frappe').keys())
+	commands = list(get_app_commands('frappe'))
 
 	for app in get_apps():
 		app_commands = get_app_commands(app)
 		if app_commands:
-			commands.extend(app_commands.keys())
+			commands.extend(list(app_commands))
 
 	print(json.dumps(commands))
 

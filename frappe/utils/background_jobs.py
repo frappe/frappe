@@ -20,6 +20,8 @@ queue_timeout = {
 	'short': 300
 }
 
+redis_connection = None
+
 def enqueue(method, queue='default', timeout=300, event=None,
 	async=True, job_name=None, now=False, enqueue_after_commit=False, **kwargs):
 	'''
@@ -125,7 +127,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, async=True, re
 		if async:
 			frappe.destroy()
 
-def start_worker(queue=None):
+def start_worker(queue=None, quiet = False):
 	'''Wrapper to start rq worker. Connects to redis and monitors these queues.'''
 	with frappe.init_site():
 		# empty init is required to get redis_queue from common_site_config.json
@@ -136,7 +138,10 @@ def start_worker(queue=None):
 
 	with Connection(redis_connection):
 		queues = get_queue_list(queue)
-		Worker(queues, name=get_worker_name(queue)).work()
+		logging_level = "INFO"
+		if quiet:
+			logging_level = "WARNING"
+		Worker(queues, name=get_worker_name(queue)).work(logging_level = logging_level)
 
 def get_worker_name(queue):
 	'''When limiting worker to a specific queue, also append queue name to default worker name'''
@@ -174,7 +179,7 @@ def get_jobs(site=None, queue=None, key='method'):
 
 def get_queue_list(queue_list=None):
 	'''Defines possible queues. Also wraps a given queue in a list after validating.'''
-	default_queue_list = queue_timeout.keys()
+	default_queue_list = list(queue_timeout)
 	if queue_list:
 		if isinstance(queue_list, string_types):
 			queue_list = [queue_list]
@@ -195,7 +200,7 @@ def get_queue(queue, async=True):
 
 def validate_queue(queue, default_queue_list=None):
 	if not default_queue_list:
-		default_queue_list = queue_timeout.keys()
+		default_queue_list = list(queue_timeout)
 
 	if queue not in default_queue_list:
 		frappe.throw(_("Queue should be one of {0}").format(', '.join(default_queue_list)))
@@ -207,7 +212,12 @@ def get_redis_conn():
 	elif not frappe.local.conf.redis_queue:
 		raise Exception('redis_queue missing in common_site_config.json')
 
-	return redis.from_url(frappe.local.conf.redis_queue)
+	global redis_connection
+
+	if not redis_connection:
+		redis_connection = redis.from_url(frappe.local.conf.redis_queue)
+
+	return redis_connection
 
 def enqueue_test_job():
 	enqueue('frappe.utils.background_jobs.test_job', s=100)

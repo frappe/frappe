@@ -2,15 +2,15 @@
 <div class="web-list-item blog-list-item">
 	<div class="row">
 		<div class="col-xs-12">
-			<h2><a href="/{{ post.route }}">{{ post.title }}</a></h2>
+			<h1><a href="/{{ post.route }}">{{ post.title }}</a></h1>
 			{% if post.cover_image %}
-			<p style="height: 200px; overflow: hidden;">
-				<img src="{{ post.cover_image }}" alt="{{post.title}} - Cover Image" style="width: 60%;"/ style='blog-cover-image'>
+			<p>
+				<img  class="blogpost-cover-img" src="{{ post.cover_image }}" alt="{{post.title}} - Cover Image">
 			</p>
 			{% endif %}
 			<p class="post-description">{{ post.intro }}</p>
 
-			<div style='margin-top: 15px;'>
+			<div>
 				<div class="inline-block" style="vertical-align: top">
 					<div class="avatar">
 						<img itemprop="thumbnailUrl" src="{{ post.avatar or "/assets/frappe/images/default-avatar.png" }}" />

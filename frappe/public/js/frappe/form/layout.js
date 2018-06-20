@@ -1,13 +1,6 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt
+import '../class';
+
 frappe.provide("frappe.ui.form");
-
-// 	- page
-//		- section
-//			- column
-//		- section
-
-
 frappe.ui.form.Layout = Class.extend({
 	init: function(opts) {
 		this.views = {};
@@ -119,19 +112,27 @@ frappe.ui.form.Layout = Class.extend({
 		});
 	},
 
-	make_field: function(df, colspan, render = false) {
+	replace_field: function(fieldname, df, render) {
+		df.fieldname = fieldname; // change of fieldname is avoided
+		if (this.fields_dict[fieldname] && this.fields_dict[fieldname].df) {
+			const fieldobj = this.init_field(df, render);
+			this.fields_dict[fieldname].$wrapper.remove();
+			this.fields_list.splice(this.fields_dict[fieldname], 1, fieldobj);
+			this.fields_dict[fieldname] = fieldobj;
+			if (this.frm) {
+				fieldobj.perm = this.frm.perm;
+			}
+			this.section.fields_list.splice(this.section.fields_dict[fieldname], 1, fieldobj);
+			this.section.fields_dict[fieldname] = fieldobj;
+			this.refresh_fields([df]);
+		}
+	},
+
+	make_field: function(df, colspan, render) {
 		!this.section && this.make_section();
 		!this.column && this.make_column();
 
-		var fieldobj = frappe.ui.form.make_control({
-			df: df,
-			doctype: this.doctype,
-			parent: this.column.wrapper.get(0),
-			frm: this.frm,
-			render_input: render
-		});
-
-		fieldobj.layout = this;
+		const fieldobj = this.init_field(df, render);
 		this.fields_list.push(fieldobj);
 		this.fields_dict[df.fieldname] = fieldobj;
 		if(this.frm) {
@@ -141,6 +142,20 @@ frappe.ui.form.Layout = Class.extend({
 		this.section.fields_list.push(fieldobj);
 		this.section.fields_dict[df.fieldname] = fieldobj;
 	},
+
+	init_field: function(df, render = false) {
+		const fieldobj = frappe.ui.form.make_control({
+			df: df,
+			doctype: this.doctype,
+			parent: this.column.wrapper.get(0),
+			frm: this.frm,
+			render_input: render
+		});
+
+		fieldobj.layout = this;
+		return fieldobj;
+	},
+
 	make_page: function(df) {
 		var me = this,
 			head = $('<div class="form-clickable-section text-center">\
@@ -234,7 +249,7 @@ frappe.ui.form.Layout = Class.extend({
 				if(cnt % 2) {
 					$this.addClass("shaded-section");
 				}
-				cnt ++;
+				cnt++;
 			}
 		});
 	},
@@ -414,11 +429,9 @@ frappe.ui.form.Layout = Class.extend({
 			} else {
 				field.grid.grid_rows[0].toggle_view(true);
 			}
-		}
-		else if(field.editor) {
+		} else if(field.editor) {
 			field.editor.set_focus();
-		}
-		else if(field.$input) {
+		} else if(field.$input) {
 			field.$input.focus();
 		}
 	},
@@ -632,11 +645,13 @@ frappe.ui.form.Column = Class.extend({
 			</form>\
 		</div>').appendTo(this.section.body)
 			.find("form")
-			.on("submit", function() { return false; });
+			.on("submit", function() {
+				return false;
+			});
 
-		if(this.df.label) {
-			$('<label class="control-label">'+ __(this.df.label)
-				+'</label>').appendTo(this.wrapper);
+		if (this.df.label) {
+			$('<label class="control-label">' + __(this.df.label)
+				+ '</label>').appendTo(this.wrapper);
 		}
 	},
 	resize_all_columns: function() {

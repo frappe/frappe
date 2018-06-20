@@ -68,18 +68,23 @@ class User(Document):
 		self.validate_user_email_inbox()
 		ask_pass_update()
 		self.validate_roles()
+		self.validate_user_image()
 
 		if self.language == "Loading...":
 			self.language = None
 
-		if (self.name not in ["Administrator", "Guest"]) and (not self.frappe_userid):
-			self.frappe_userid = frappe.generate_hash(length=39)
+		if (self.name not in ["Administrator", "Guest"]) and (not self.get_social_login_userid("frappe")):
+			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
 
 	def validate_roles(self):
 		if self.role_profile_name:
 				role_profile = frappe.get_doc('Role Profile', self.role_profile_name)
 				self.set('roles', [])
 				self.append_roles(*[role.role for role in role_profile.roles])
+
+	def validate_user_image(self):
+		if self.user_image and len(self.user_image) > 2000:
+			frappe.throw(_("Not a valid User Image."))
 
 	def on_update(self):
 		# clear new password
@@ -88,6 +93,7 @@ class User(Document):
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
 		self.send_password_notification(self.__new_password)
+		create_contact(self)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
 
@@ -491,6 +497,34 @@ class User(Document):
 		if len(email_accounts) != len(set(email_accounts)):
 			frappe.throw(_("Email Account added multiple times"))
 
+	def get_social_login_userid(self, provider):
+		try:
+			for p in self.social_logins:
+				if p.provider == provider:
+					return p.userid
+		except:
+			return None
+
+	def set_social_login_userid(self, provider, userid, username=None):
+		social_logins = {
+			"provider": provider,
+			"userid": userid
+		}
+
+		if username:
+			social_logins["username"] = username
+
+		self.append("social_logins", social_logins)
+
+	def get_restricted_ip_list(self):
+		if not self.restrict_ip:
+			return
+
+		ip_list = self.restrict_ip.replace(",", "\n").split('\n')
+		ip_list = [i.strip() for i in ip_list]
+
+		return ip_list
+
 @frappe.whitelist()
 def get_timezones():
 	import pytz
@@ -525,7 +559,7 @@ def get_perm_info(role):
 	return get_all_perms(role)
 
 @frappe.whitelist(allow_guest=True)
-def update_password(new_password, key=None, old_password=None):
+def update_password(new_password, logout_all_sessions=0, key=None, old_password=None):
 	result = test_password_strength(new_password, key, old_password)
 	feedback = result.get("feedback", None)
 
@@ -538,7 +572,7 @@ def update_password(new_password, key=None, old_password=None):
 	else:
 		user = res['user']
 
-	_update_password(user, new_password)
+	_update_password(user, new_password, logout_all_sessions=int(logout_all_sessions))
 
 	user_doc, redirect_url = reset_user_data(user)
 
@@ -547,7 +581,6 @@ def update_password(new_password, key=None, old_password=None):
 	if redirect_to:
 		redirect_url = redirect_to
 		frappe.cache().hdel('redirect_after_login', user)
-
 
 	frappe.local.login_manager.login_as(user)
 
@@ -1010,3 +1043,18 @@ def update_roles(role_profile):
 		user = frappe.get_doc('User', d)
 		user.set('roles', [])
 		user.add_roles(*roles)
+
+def create_contact(user):
+	if user.name in ["Administrator", "Guest"]: return
+
+	if not frappe.db.get_value("Contact", {"email_id": user.email}):
+		frappe.get_doc({
+			"doctype": "Contact",
+			"first_name": user.first_name,
+			"last_name": user.last_name,
+			"email_id": user.email,
+			"user": user.name,
+			"gender": user.gender,
+			"phone": user.phone,
+			"mobile_no": user.mobile_no
+		}).insert(ignore_permissions=True)

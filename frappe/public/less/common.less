@@ -9,9 +9,15 @@ a {
 	cursor: pointer;
 }
 
-a, a:hover, a:active, a:focus,
-.btn, .btn:hover, .btn:active, .btn:focus {
-	 outline: 0;
+a,
+a:hover,
+a:active,
+a:focus,
+.btn,
+.btn:hover,
+.btn:active,
+.btn:focus {
+	outline: 0;
 }
 
 img {
@@ -19,15 +25,11 @@ img {
 }
 
 p {
-	margin: 10px 0px;
+	margin: 10px 0;
 }
 
 .text-color {
 	color: @text-color !important;
-}
-
-.text-muted {
-	color: @text-muted !important;
 }
 
 .text-extra-muted {
@@ -44,22 +46,33 @@ a,
 	.transition(background-color .2s);
 }
 
-a.disabled, a.disabled:hover {
+a.disabled,
+a.disabled:hover {
 	color: #888;
 	cursor: default;
 	text-decoration: none;
 }
 
-a.grey, .sidebar-section a, .control-value a, .data-row a {
+a.grey,
+.sidebar-section a,
+.control-value a,
+.data-row a {
 	text-decoration: none;
 }
 
-a.grey:hover, .sidebar-section a:hover, .control-value a:hover, .data-row a:hover,
-a.grey:focus, .sidebar-section a:focus, .control-value a:focus, .data-row a:focus {
+a.grey:hover,
+.sidebar-section a:hover,
+.control-value a:hover,
+.data-row a:hover,
+a.grey:focus,
+.sidebar-section a:focus,
+.control-value a:focus,
+.data-row a:focus {
 	text-decoration: underline;
 }
 
-a.text-muted, a.text-extra-muted {
+a.text-muted,
+a.text-extra-muted {
 	text-decoration: none;
 }
 
@@ -81,11 +94,15 @@ kbd {
 	background-color: @btn-bg;
 }
 
-.btn [class^="fa fa-"], .nav [class^="fa fa-"], .btn [class*="fa fa-"], .nav [class*="fa fa-"] {
+.btn [class^="fa fa-"],
+.nav [class^="fa fa-"],
+.btn [class*="fa fa-"],
+.nav [class*="fa fa-"] {
 	display: inline-block;
 }
 
-// dropdowns
+/* dropdowns */
+
 .dropdown-menu > li > a {
 	padding: 14px;
 	white-space: normal;
@@ -97,10 +114,8 @@ kbd {
 	font-size: @text-medium;
 	max-height: 400px;
 	overflow: auto;
-
 	// only rounded bottoms
 	border-radius: 0px 0px 4px 4px;
-
 }
 
 .dropdown-menu .dropdown-header {
@@ -118,7 +133,7 @@ a.badge-hover& {
 	&:hover .badge,
 	&:focus .badge,
 	&:active .badge {
-		background-color: #D8DFE5;
+		background-color: #d8dfe5;
 	}
 }
 
@@ -163,9 +178,10 @@ a.badge-hover& {
 	color: inherit;
 	display: inline-block;
 }
+
 .close-inline:hover,
 .close-inline:focus {
-  text-decoration: none;
+	text-decoration: none;
 }
 
 .middle {
@@ -191,7 +207,7 @@ a.badge-hover& {
 
 #freeze {
 	z-index: 1020;
-	bottom: 0px;
+	bottom: 0;
 	opacity: 0;
 	background-color: @light-bg;
 
@@ -202,7 +218,6 @@ a.badge-hover& {
 	.freeze-message {
 		.full-center;
 		text-align: center;
-		// color: #fff !important;
 		color: @text-color !important;
 	}
 }
@@ -225,7 +240,6 @@ a.no-decoration& {
 	&:active {
 		text-decoration: none;
 		color: inherit;
-
 	}
 }
 
@@ -236,6 +250,17 @@ a.no-decoration& {
 .margin {
 	margin: 15px;
 }
+
+.margin-(@position) {
+	.margin-@{position} {
+		margin-@{position}: 15px;
+	}
+}
+
+.margin-(top);
+.margin-(bottom);
+.margin-(left);
+.margin-(right);
 
 @media (max-width: 767px) {
 	.text-center-xs {
@@ -255,4 +280,3 @@ a.no-decoration& {
 .ellipsis {
 	.text-ellipsis();
 }
-

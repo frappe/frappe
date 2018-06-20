@@ -81,7 +81,7 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 	months_formatted = []
 	values = []
 	values_formatted = []
-	for i in xrange(0, 12):
+	for i in range(0, 12):
 		month_value = formatdate(add_months(today(), -i), "MM-yyyy")
 		month_word = getdate(month_value).strftime('%b')
 		month_year = getdate(month_value).strftime('%B') + ', ' + getdate(month_value).strftime('%Y')
@@ -94,7 +94,7 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 		values.insert(0, val)
 		values_formatted.insert(0, format_value(val, meta.get_field(goal_total_field), doc))
 
-	specific_values = []
+	y_markers = []
 	summary_values = [
 		{
 			'title': _("This month"),
@@ -104,10 +104,10 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 	]
 
 	if float(goal) > 0:
-		specific_values = [
+		y_markers = [
 			{
-				'title': _("Goal"),
-				'line_type': "dashed",
+				'label': _("Goal"),
+				'lineType': "dashed",
 				'value': goal
 			},
 		]
@@ -136,10 +136,10 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 				}
 			],
 			'labels': months,
-			'specific_values': specific_values,
+			'yMarkers': y_markers
 		},
 
-		'summary': summary_values
+		'summary': summary_values,
 	}
 
 	return data

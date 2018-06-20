@@ -4,91 +4,36 @@
 from __future__ import unicode_literals
 import frappe
 import frappe.utils
-import json
+import json, jwt
 from frappe import _
+from frappe.utils.password import get_decrypted_password
 from six import string_types
 
 class SignupDisabledError(frappe.PermissionError): pass
 
 def get_oauth2_providers():
-	out = {
-		"google": {
+	out = {}
+	providers = frappe.get_all("Social Login Key", fields=["*"])
+	for provider in providers:
+		authorize_url, access_token_url = provider.authorize_url, provider.access_token_url
+		if provider.custom_base_url:
+			authorize_url = provider.base_url + provider.authorize_url
+			access_token_url = provider.base_url + provider.access_token_url
+		out[provider.name] = {
 			"flow_params": {
-				"name": "google",
-				"authorize_url": "https://accounts.google.com/o/oauth2/auth",
-				"access_token_url": "https://accounts.google.com/o/oauth2/token",
-				"base_url": "https://www.googleapis.com",
+				"name": provider.name,
+				"authorize_url": authorize_url,
+				"access_token_url": access_token_url,
+				"base_url": provider.base_url
 			},
-
-			"redirect_uri": "/api/method/frappe.www.login.login_via_google",
-
-			"auth_url_data": {
-				"scope": "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
-				"response_type": "code"
-			},
-
-			# relative to base_url
-			"api_endpoint": "oauth2/v2/userinfo"
-		},
-
-		"github": {
-			"flow_params": {
-				"name": "github",
-				"authorize_url": "https://github.com/login/oauth/authorize",
-				"access_token_url": "https://github.com/login/oauth/access_token",
-				"base_url": "https://api.github.com/"
-			},
-
-			"redirect_uri": "/api/method/frappe.www.login.login_via_github",
-
-			# relative to base_url
-			"api_endpoint": "user"
-		},
-
-		"facebook": {
-			"flow_params": {
-				"name": "facebook",
-				"authorize_url": "https://www.facebook.com/dialog/oauth",
-				"access_token_url": "https://graph.facebook.com/oauth/access_token",
-				"base_url": "https://graph.facebook.com"
-			},
-
-			"redirect_uri": "/api/method/frappe.www.login.login_via_facebook",
-
-			"auth_url_data": {
-				"display": "page",
-				"response_type": "code",
-				"scope": "email,public_profile"
-			},
-
-			# relative to base_url
-			"api_endpoint": "/v2.5/me",
-			"api_endpoint_args": {
-				"fields": "first_name,last_name,email,gender,location,verified,picture"
-			},
+			"redirect_uri": provider.redirect_url,
+			"api_endpoint": provider.api_endpoint,
 		}
-	}
+		if provider.auth_url_data:
+			out[provider.name]["auth_url_data"] = json.loads(provider.auth_url_data)
 
-	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
-	if frappe_server_url:
-		out['frappe'] = {
-			"flow_params": {
-				"name": "frappe",
-				"authorize_url": frappe_server_url + "/api/method/frappe.integrations.oauth2.authorize",
-				"access_token_url": frappe_server_url + "/api/method/frappe.integrations.oauth2.get_token",
-				"base_url": frappe_server_url
-			},
-
-			"redirect_uri": "/api/method/frappe.www.login.login_via_frappe",
-
-			"auth_url_data": {
-				"response_type": "code",
-				"scope": "openid"
-			},
-
-			# relative to base_url
-			"api_endpoint": "/api/method/frappe.integrations.oauth2.openid_profile"
-		}
+		if provider.api_endpoint_args:
+			out[provider.name]["api_endpoint_args"] = json.loads(provider.api_endpoint_args)
 
 	return out
 
@@ -100,17 +45,13 @@ def get_oauth_keys(provider):
 
 	if not keys:
 		# try database
-		social = frappe.get_doc("Social Login Keys", "Social Login Keys")
-		keys = {}
-		for fieldname in ("client_id", "client_secret"):
-			value = social.get("{provider}_{fieldname}".format(provider=provider, fieldname=fieldname))
-			if not value:
-				keys = {}
-				break
-			keys[fieldname] = value
-
+		client_id, client_secret = frappe.get_value("Social Login Key", provider, ["client_id", "client_secret"])
+		client_secret = get_decrypted_password("Social Login Key", provider, "client_secret")
+		keys = {
+			"client_id": client_id,
+			"client_secret": client_secret
+		}
 		return keys
-
 	else:
 		return {
 			"client_id": keys["client_id"],
@@ -169,7 +110,11 @@ def login_via_oauth2(provider, code, state, decoder=None):
 	info = get_info_via_oauth(provider, code, decoder)
 	login_oauth_user(info, provider=provider, state=state)
 
-def get_info_via_oauth(provider, code, decoder=None):
+def login_via_oauth2_id_token(provider, code, state, decoder=None):
+	info = get_info_via_oauth(provider, code, decoder, id_token=True)
+	login_oauth_user(info, provider=provider, state=state)
+
+def get_info_via_oauth(provider, code, decoder=None, id_token=False):
 	flow = get_oauth2_flow(provider)
 	oauth2_providers = get_oauth2_providers()
 
@@ -186,13 +131,19 @@ def get_info_via_oauth(provider, code, decoder=None):
 
 	session = flow.get_auth_session(**args)
 
-	api_endpoint = oauth2_providers[provider].get("api_endpoint")
-	api_endpoint_args = oauth2_providers[provider].get("api_endpoint_args")
-	info = session.get(api_endpoint, params=api_endpoint_args).json()
+	if id_token:
+		parsed_access = json.loads(session.access_token_response.text)
 
-	if (("verified_email" in info and not info.get("verified_email"))
-		or ("verified" in info and not info.get("verified"))):
-		frappe.throw(_("Email not verified with {1}").format(provider.title()))
+		token = parsed_access['id_token']
+
+		info = jwt.decode(token, flow.client_secret, verify=False)
+	else:
+		api_endpoint = oauth2_providers[provider].get("api_endpoint")
+		api_endpoint_args = oauth2_providers[provider].get("api_endpoint_args")
+		info = session.get(api_endpoint, params=api_endpoint_args).json()
+
+	if not (info.get("verified_email") or info.get("verified")):
+		frappe.throw(_("Email not verified with {0}").format(provider.title()))
 
 	return info
 
@@ -227,7 +178,7 @@ def login_oauth_user(data=None, provider=None, state=None, email_id=None, key=No
 		frappe.respond_as_web_page(_("Invalid Request"), _("Invalid Token"), http_status_code=417)
 		return
 
-	user = data["email"]
+	user = get_email(data)
 
 	if not user:
 		frappe.respond_as_web_page(_("Invalid Request"), _("Please ensure that your profile has an email address"))
@@ -274,10 +225,10 @@ def update_oauth_user(user, data, provider):
 			"doctype":"User",
 			"first_name": get_first_name(data),
 			"last_name": get_last_name(data),
-			"email": data["email"],
+			"email": get_email(data),
 			"gender": (data.get("gender") or "").title(),
 			"enabled": 1,
-			"new_password": frappe.generate_hash(data["email"]),
+			"new_password": frappe.generate_hash(get_email(data)),
 			"location": data.get("location"),
 			"user_type": "Website User",
 			"user_image": data.get("picture") or data.get("avatar_url")
@@ -289,26 +240,32 @@ def update_oauth_user(user, data, provider):
 			frappe.respond_as_web_page(_('Not Allowed'), _('User {0} is disabled').format(user.email))
 			return False
 
-	if provider=="facebook" and not user.get("fb_userid"):
+	if provider=="facebook" and not user.get_social_login_userid(provider):
 		save = True
+		user.set_social_login_userid(provider, userid=data["id"], username=data.get("username"))
 		user.update({
-			"fb_username": data.get("username"),
-			"fb_userid": data["id"],
 			"user_image": "https://graph.facebook.com/{id}/picture".format(id=data["id"])
 		})
 
-	elif provider=="google" and not user.get("google_userid"):
+	elif provider=="google" and not user.get_social_login_userid(provider):
 		save = True
-		user.google_userid = data["id"]
+		user.set_social_login_userid(provider, userid=data["id"])
 
-	elif provider=="github" and not user.get("github_userid"):
+	elif provider=="github" and not user.get_social_login_userid(provider):
 		save = True
-		user.github_userid = data["id"]
-		user.github_username = data["login"]
+		user.set_social_login_userid(provider, userid=data["id"], username=data.get("login"))
 
-	elif provider=="frappe" and not user.get("frappe_userid"):
+	elif provider=="frappe" and not user.get_social_login_userid(provider):
 		save = True
-		user.frappe_userid = data["sub"]
+		user.set_social_login_userid(provider, userid=data["sub"])
+
+	elif provider=="office_365" and not user.get_social_login_userid(provider):
+		save = True
+		user.set_social_login_userid(provider, userid=data["sub"])
+
+	elif provider=="salesforce" and not user.get_social_login_userid(provider):
+		save = True
+		user.set_social_login_userid(provider, userid="/".join(data["sub"].split("/")[-2:]))
 
 	if save:
 		user.flags.ignore_permissions = True
@@ -320,6 +277,9 @@ def get_first_name(data):
 
 def get_last_name(data):
 	return data.get("last_name") or data.get("family_name")
+
+def get_email(data):
+	return data.get("email") or data.get("upn") or data.get("unique_name")
 
 def redirect_post_login(desk_user):
 	# redirect!

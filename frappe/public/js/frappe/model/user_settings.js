@@ -1,16 +1,28 @@
 frappe.provide('frappe.model.user_settings');
 
 $.extend(frappe.model.user_settings, {
+	get: function(doctype) {
+		return frappe.call('frappe.model.utils.user_settings.get', { doctype })
+			.then(r => JSON.parse(r.message || '{}'));
+	},
 	save: function(doctype, key, value) {
-		var user_settings = frappe.model.user_settings[doctype] || {};
+		const old_user_settings = frappe.model.user_settings[doctype] || {};
+		const new_user_settings = $.extend(true, {}, old_user_settings); // deep copy
 
 		if ($.isPlainObject(value)) {
-			$.extend(user_settings[key], value);
+			new_user_settings[key] = new_user_settings[key] || {};
+			$.extend(new_user_settings[key], value);
 		} else {
-			user_settings[key] = value;
+			new_user_settings[key] = value;
 		}
 
-		return this.update(doctype, user_settings);
+		const a = JSON.stringify(old_user_settings);
+		const b = JSON.stringify(new_user_settings);
+		if (a !== b) {
+			// update if changed
+			return this.update(doctype, new_user_settings);
+		}
+		return Promise.resolve();
 	},
 	remove: function(doctype, key) {
 		var user_settings = frappe.model.user_settings[doctype] || {};
@@ -28,7 +40,7 @@ $.extend(frappe.model.user_settings, {
 			callback: function(r) {
 				frappe.model.user_settings[doctype] = r.message;
 			}
-		})
+		});
 	}
 });
 

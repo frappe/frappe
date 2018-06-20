@@ -4,6 +4,8 @@
 from __future__ import unicode_literals
 import frappe
 
+import functools
+
 def load_address_and_contact(doc, key=None):
 	"""Loads address list and contact list in `__onload`"""
 	from frappe.contacts.doctype.address.address import get_address_display
@@ -19,9 +21,9 @@ def load_address_and_contact(doc, key=None):
 		for a in address_list]
 
 	address_list = sorted(address_list,
-		lambda a, b:
+		key = functools.cmp_to_key(lambda a, b:
 			(int(a.is_primary_address - b.is_primary_address)) or
-			(1 if a.modified - b.modified else 0), reverse=True)
+			(1 if a.modified - b.modified else 0)), reverse=True)
 
 	doc.set_onload('addr_list', address_list)
 
@@ -34,9 +36,9 @@ def load_address_and_contact(doc, key=None):
 	contact_list = frappe.get_all("Contact", filters=filters, fields=["*"])
 
 	contact_list = sorted(contact_list,
-		lambda a, b:
+		key = functools.cmp_to_key(lambda a, b:
 			(int(a.is_primary_contact - b.is_primary_contact)) or
-			(1 if a.modified - b.modified else 0), reverse=True)
+			(1 if a.modified - b.modified else 0)), reverse=True)
 
 	doc.set_onload('contact_list', contact_list)
 
@@ -134,7 +136,7 @@ def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, fil
 	})
 
 	doctypes = frappe.db.get_all("DocField", filters=filters, fields=["parent"],
-		order_by="parent asc", distinct=True, as_list=True)
+		distinct=True, as_list=True)
 
 	filters.pop("parent")
 	filters.update({
@@ -143,7 +145,13 @@ def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, fil
 	})
 
 	_doctypes = frappe.db.get_all("Custom Field", filters=filters, fields=["dt"],
-		order_by="dt asc", as_list=True)
+		as_list=True)
 
-	all_doctypes = doctypes + _doctypes
-	return sorted(all_doctypes, key=lambda item: item[0])
+	all_doctypes = [d[0] for d in doctypes + _doctypes]
+	valid_doctypes = []
+
+	for doctype in all_doctypes:
+		if frappe.has_permission(doctype):
+			valid_doctypes.append([doctype])
+
+	return sorted(valid_doctypes)

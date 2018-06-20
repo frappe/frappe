@@ -5,7 +5,7 @@ frappe.RoleEditor = Class.extend({
 		this.wrapper = wrapper;
 		this.disable = disable;
 		$(wrapper).html('<div class="help">' + __("Loading") + '...</div>');
-		return frappe.call({
+		frappe.call({
 			method: 'frappe.core.doctype.user.user.get_all_roles',
 			callback: function(r) {
 				me.roles = r.message;
@@ -28,8 +28,8 @@ frappe.RoleEditor = Class.extend({
 
 			role_toolbar.find(".btn-add")
 				.html(__('Add all roles'))
-				.on("click", function () {
-					$(me.wrapper).find('input[type="checkbox"]').each(function (i, check) {
+				.on("click", function() {
+					$(me.wrapper).find('input[type="checkbox"]').each(function(i, check) {
 						if (!$(check).is(":checked")) {
 							check.checked = true;
 						}
@@ -70,7 +70,9 @@ frappe.RoleEditor = Class.extend({
 
 		// uncheck all roles
 		$(this.wrapper).find('input[type="checkbox"]')
-			.each(function(i, checkbox) { checkbox.checked = false; });
+			.each(function(i, checkbox) {
+				checkbox.checked = false;
+			});
 
 		// set user roles as checked
 		$.each((me.frm.doc.roles || []), function(i, user_role) {
@@ -144,7 +146,6 @@ frappe.RoleEditor = Class.extend({
 				$body.append('<table class="user-perm"><thead><tr>'
 					+ '<th style="text-align: left">' + __('Document Type') + '</th>'
 					+ '<th>' + __('Level') + '</th>'
-					+ '<th>' + __('Apply User Permissions') + '</th>'
 					+ '<th>' + __('Read') + '</th>'
 					+ '<th>' + __('Write') + '</th>'
 					+ '<th>' + __('Create') + '</th>'
@@ -152,11 +153,6 @@ frappe.RoleEditor = Class.extend({
 					+ '<th>' + __('Submit') + '</th>'
 					+ '<th>' + __('Cancel') + '</th>'
 					+ '<th>' + __('Amend') + '</th>'
-					// + '<th>' + __('Report') + '</th>'
-					// + '<th>' + __('Import') + '</th>'
-					// + '<th>' + __('Export') + '</th>'
-					// + '<th>' + __('Print') + '</th>'
-					// + '<th>' + __('Email') + '</th>'
 					+ '<th>' + __('Set User Permissions') + '</th>'
 					+ '</tr></thead><tbody></tbody></table>');
 
@@ -177,20 +173,14 @@ frappe.RoleEditor = Class.extend({
 					$body.find('tbody').append(repl('<tr>\
 						<td style="text-align: left">%(parent)s</td>\
 						<td>%(permlevel)s</td>\
-						<td>%(apply_user_permissions)s</td>\
 						<td>%(read)s</td>\
 						<td>%(write)s</td>\
 						<td>%(create)s</td>\
 						<td>%(delete)s</td>\
 						<td>%(submit)s</td>\
 						<td>%(cancel)s</td>\
-						<td>%(amend)s</td>'
-						// + '<td>%(report)s</td>\
-						// <td>%(import)s</td>\
-						// <td>%(export)s</td>\
-						// <td>%(print)s</td>\
-						// <td>%(email)s</td>'
-						+ '<td>%(set_user_permissions)s</td>\
+						<td>%(amend)s</td>\
+						<td>%(set_user_permissions)s</td>\
 						</tr>', perm));
 				}
 

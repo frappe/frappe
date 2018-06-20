@@ -1,0 +1,76 @@
+[
+	{
+		"doctype": "Notification",
+		"subject":"_Test Notification 1",
+		"document_type": "Communication",
+		"event": "New",
+		"attach_print": 0,
+		"message": "New comment {{ doc.content }} created",
+		"condition": "doc.communication_type=='Comment'",
+		"recipients": [
+			{ "email_by_document_field": "owner" }
+		]
+	},
+	{
+		"doctype": "Notification",
+		"subject":"_Test Notification 2",
+		"document_type": "Communication",
+		"event": "Save",
+		"attach_print": 0,
+		"message": "New comment {{ doc.content }} saved",
+		"condition": "doc.communication_type=='Comment'",
+		"recipients": [
+			{ "email_by_document_field": "owner" }
+		],
+		"set_property_after_alert": "subject",
+		"property_value": "__testing__"
+	},
+	{
+		"doctype": "Notification",
+		"subject":"_Test Notification 3",
+		"document_type": "Event",
+		"event": "Save",
+		"attach_print": 0,
+		"condition": "doc.event_type=='Public'",
+		"message": "A new public event {{ doc.subject }} on {{ doc.starts_on }} is created",
+		"recipients": [
+			{ "email_by_document_field": "owner" }
+		]
+	},
+	{
+		"doctype": "Notification",
+		"subject":"_Test Notification 4",
+		"document_type": "Event",
+		"event": "Value Change",
+		"attach_print": 0,
+		"value_changed": "description",
+		"message": "Description changed",
+		"recipients": [
+			{ "email_by_document_field": "owner" }
+		]
+	},
+	{
+		"doctype": "Notification",
+		"subject":"_Test Notification 5",
+		"document_type": "Event",
+		"event": "Days Before",
+		"attach_print": 0,
+		"date_changed": "starts_on",
+		"days_in_advance": 2,
+		"message": "Description changed",
+		"recipients": [
+			{ "email_by_document_field": "owner" }
+		]
+	},
+	{
+		"doctype": "Notification",
+		"subject":"_Test Notification 6",
+		"document_type": "User",
+		"event": "New",
+		"attach_print": 0,
+		"message": "New user {{ doc.name }} created",
+		"recipients": [
+			{ "email_by_document_field": "owner", "cc": "{{ doc.email }}" }
+		]
+	}
+]

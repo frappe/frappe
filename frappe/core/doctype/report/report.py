@@ -159,10 +159,14 @@ class Report(Document):
 		if as_dict:
 			data = []
 			for row in out:
-				_row = frappe._dict()
+				if isinstance(row, (list, tuple)):
+					_row = frappe._dict()
+					for i, val in enumerate(row):
+						_row[columns[i].get('fieldname')] = val
+				elif isinstance(row, dict):
+					# no need to convert from dict to dict
+					_row = frappe._dict(row)
 				data.append(_row)
-				for i, val in enumerate(row):
-					_row[columns[i].get('fieldname')] = val
 		else:
 			data = out
 		return columns, data

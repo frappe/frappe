@@ -33,12 +33,19 @@ frappe.dom = {
 		document.getElementsByTagName('head')[0].appendChild(el);
 	},
 	remove_script_and_style: function(txt) {
+		const evil_tags = ["script", "style", "noscript", "title", "meta", "base", "head"];
+		const regex = new RegExp(evil_tags.map(tag => `<${tag}>.*<\\/${tag}>`).join('|'));
+		if (!regex.test(txt)) {
+			// no evil tags found, skip the DOM method entirely!
+			return txt;
+		}
+
 		var div = document.createElement('div');
 		div.innerHTML = txt;
 		var found = false;
-		["script", "style", "noscript", "title", "meta", "base", "head"].forEach(function(e, i) {
+		evil_tags.forEach(function(e) {
 			var elements = div.getElementsByTagName(e);
-			var i = elements.length;
+			i = elements.length;
 			while (i--) {
 				found = true;
 				elements[i].parentNode.removeChild(elements[i]);
@@ -123,6 +130,11 @@ frappe.dom = {
 			$.extend(ele.style, s);
 		}
 		return ele;
+	},
+	activate: function($parent, $child, common_class, active_class='active') {
+		$parent.find(`.${common_class}.${active_class}`)
+			.removeClass(active_class);
+		$child.addClass(active_class);
 	},
 	freeze: function(msg, css_class) {
 		// blur
@@ -211,6 +223,17 @@ frappe.run_serially = function(tasks) {
 	return result;
 };
 
+frappe.load_image = (src, onload, onerror, preprocess = () => {}) => {
+	var tester = new Image();
+	tester.onload = function() {
+		onload(this);
+	};
+	tester.onerror = onerror;
+
+	preprocess(tester);
+	tester.src = src;
+}
+
 frappe.timeout = seconds => {
 	return new Promise((resolve) => {
 		setTimeout(() => resolve(), seconds * 1000);
@@ -224,6 +247,33 @@ frappe.scrub = function(text) {
 frappe.get_modal = function(title, content) {
 	return $(frappe.render_template("modal", {title:title, content:content})).appendTo(document.body);
 };
+
+frappe.is_online = function() {
+	if (frappe.boot.developer_mode == 1) {
+		// always online in developer_mode
+		return true;
+	}
+	if ('onLine' in navigator) {
+		return navigator.onLine;
+	}
+	return true;
+};
+
+// bind online/offline events
+$(window).on('online', function() {
+	frappe.show_alert({
+		indicator: 'green',
+		message: __('You are connected to internet.')
+	});
+});
+
+$(window).on('offline', function() {
+	frappe.show_alert({
+		indicator: 'orange',
+		message: __('Connection lost. Some features might not work.')
+	});
+});
+
 
 // add <option> list to <select>
 (function($) {

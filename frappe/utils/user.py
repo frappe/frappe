@@ -78,7 +78,7 @@ class UserPermissions:
 		for r in get_valid_perms():
 			dt = r['parent']
 
-			if not dt in  self.perm_map:
+			if not dt in self.perm_map:
 				self.perm_map[dt] = {}
 
 			for k in frappe.permissions.rights:
@@ -96,9 +96,9 @@ class UserPermissions:
 		user_shared = frappe.share.get_shared_doctypes()
 		no_list_view_link = []
 		active_modules = get_active_modules() or []
-
 		for dt in self.doctype_map:
 			dtp = self.doctype_map[dt]
+
 			p = self.perm_map.get(dt, {})
 
 			if not p.get("read") and (dt in user_shared):

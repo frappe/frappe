@@ -1,73 +1,126 @@
 frappe.provide('frappe.views');
 
-frappe.views.GanttView = frappe.views.ListRenderer.extend({
-	name: 'Gantt',
-	prepare: function(values) {
-		this.items = values;
-		this.prepare_tasks();
-		this.prepare_dom();
-	},
+frappe.views.GanttView = class GanttView extends frappe.views.ListView {
+	get view_name() {
+		return 'Gantt';
+	}
 
-	render_view: function(values) {
-		var me = this;
-		this.prepare(values);
-		this.render_gantt();
-	},
-
-	set_defaults: function() {
-		this._super();
-		this.no_realtime = true;
+	setup_defaults() {
+		super.setup_defaults();
 		this.page_title = this.page_title + ' ' + __('Gantt');
-	},
+		this.calendar_settings = frappe.views.calendar[this.doctype] || {};
+		if(this.calendar_settings.order_by) {
+			this.sort_by = this.calendar_settings.order_by;
+			this.sort_order = 'asc';
+		} else {
+			this.sort_by = this.view_user_settings.sort_by || this.calendar_settings.field_map.start;
+			this.sort_order = this.view_user_settings.sort_order || 'asc';
+		}
+	}
 
-	init_settings: function() {
-		this._super();
-		this.field_map = frappe.views.calendar[this.doctype].field_map;
-		this.order_by = this.order_by || this.field_map.start + ' asc';
-	},
+	setup_view() {
 
-	prepare_dom: function() {
-		this.wrapper.css('overflow', 'auto')
-			.append('<svg class="gantt-container" width="20" height="20"></svg>')
-	},
+	}
 
-	render_gantt: function(tasks) {
+	prepare_data(data) {
+		super.prepare_data(data);
+		this.prepare_tasks();
+	}
+
+	prepare_tasks() {
 		var me = this;
-		this.gantt_view_mode = this.user_settings.gantt_view_mode || 'Day';
-		var field_map = frappe.views.calendar[this.doctype].field_map;
+		var meta = this.meta;
+		var field_map = this.calendar_settings.field_map;
 
-		this.gantt = new Gantt(".gantt-container", this.tasks, {
-			view_mode: this.gantt_view_mode,
+		this.tasks = this.data.map(function (item) {
+			// set progress
+			var progress = 0;
+			if (field_map.progress && $.isFunction(field_map.progress)) {
+				progress = field_map.progress(item);
+			} else if (field_map.progress) {
+				progress = item[field_map.progress];
+			}
+
+			// title
+			var label;
+			if (meta.title_field) {
+				label = $.format("{0} ({1})", [item[meta.title_field], item.name]);
+			} else {
+				label = item[field_map.title];
+			}
+
+			var r = {
+				start: item[field_map.start],
+				end: item[field_map.end],
+				name: label,
+				id: item[field_map.id || 'name'],
+				doctype: me.doctype,
+				progress: progress,
+				dependencies: item.depends_on_tasks || ""
+			};
+
+			if (item.color && frappe.ui.color.validate_hex(item.color)) {
+				r['custom_class'] = 'color-' + item.color.substr(1);
+			}
+
+			if (item.is_milestone) {
+				r['custom_class'] = 'bar-milestone';
+			}
+
+			return r;
+		});
+	}
+
+	render() {
+		this.load_lib.then(() => {
+			this.render_gantt();
+		});
+	}
+
+	render_gantt() {
+		const me = this;
+		const gantt_view_mode = this.view_user_settings.gantt_view_mode || 'Day';
+		const field_map = this.calendar_settings.field_map;
+		const date_format = 'YYYY-MM-DD';
+
+		this.$result.empty();
+
+		this.gantt = new Gantt(this.$result[0], this.tasks, {
+			view_mode: gantt_view_mode,
 			date_format: "YYYY-MM-DD",
-			on_click: function (task) {
+			on_click: task => {
 				frappe.set_route('Form', task.doctype, task.id);
 			},
-			on_date_change: function(task, start, end) {
-				if(!me.can_write()) return;
-				me.update_gantt_task(task, start, end);
+			on_date_change: (task, start, end) => {
+				if (!me.can_write) return;
+				frappe.db.set_value(task.doctype, task.id, {
+					[field_map.start]: moment(start).format(date_format),
+					[field_map.end]: moment(end).format(date_format)
+				});
 			},
-			on_progress_change: function(task, progress) {
-				if(!me.can_write()) return;
+			on_progress_change: (task, progress) => {
+				if (!me.can_write) return;
 				var progress_fieldname = 'progress';
 
-				if($.isFunction(field_map.progress)) {
+				if ($.isFunction(field_map.progress)) {
 					progress_fieldname = null;
-				} else if(field_map.progress) {
+				} else if (field_map.progress) {
 					progress_fieldname = field_map.progress;
 				}
 
-				if(progress_fieldname) {
-					frappe.db.set_value(task.doctype, task.id,
-						progress_fieldname, parseInt(progress));
+				if (progress_fieldname) {
+					frappe.db.set_value(task.doctype, task.id, {
+						[progress_fieldname]: parseInt(progress)
+					});
 				}
 			},
-			on_view_change: function(mode) {
+			on_view_change: mode => {
 				// save view mode
-				frappe.model.user_settings.save(me.doctype, 'Gantt', {
+				me.save_view_user_settings({
 					gantt_view_mode: mode
 				});
 			},
-			custom_popup_html: function(task) {
+			custom_popup_html: task => {
 				var item = me.get_item(task.id);
 
 				var html =
@@ -76,48 +129,51 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 
 				// custom html in doctype settings
 				var custom = me.settings.gantt_custom_popup_html;
-				if(custom && $.isFunction(custom)) {
+				if (custom && $.isFunction(custom)) {
 					var ganttobj = task;
 					html = custom(ganttobj, item);
 				}
 				return '<div class="details-container">' + html + '</div>';
 			}
 		});
-		this.render_dropdown();
+		this.setup_view_mode_buttons();
 		this.set_colors();
-	},
+	}
 
-	render_dropdown: function() {
-		var me = this;
-		var view_modes = this.gantt.config.view_modes || [];
-		var dropdown = "<div class='dropdown pull-right'>" +
-			"<a class='text-muted dropdown-toggle' data-toggle='dropdown'>" +
-			"<span class='dropdown-text'>"+__(this.gantt_view_mode)+"</span><i class='caret'></i></a>" +
-			"<ul class='dropdown-menu'></ul>" +
-			"</div>";
-
+	setup_view_mode_buttons() {
 		// view modes (for translation) __("Day"), __("Week"), __("Month"),
 		//__("Half Day"), __("Quarter Day")
 
-		var dropdown_list = "";
-		view_modes.forEach(function(view_mode) {
-			dropdown_list += "<li>" +
-				"<a class='option' data-value='" + view_mode + "'>" +
-				__(view_mode) + "</a></li>";
-		});
-		var $dropdown = $(dropdown)
-		$dropdown.find(".dropdown-menu").append(dropdown_list);
-		me.list_view.$page
-			.find(`[data-list-renderer='Gantt'] > .list-row-right`)
-			.css("margin-right", "15px").html($dropdown)
-		$dropdown.on("click", ".option", function() {
-			var mode = $(this).data('value');
-			me.gantt.change_view_mode(mode);
-			$dropdown.find(".dropdown-text").text(mode);
-		});
-	},
+		let $btn_group = this.$paging_area.find('.gantt-view-mode');
+		if ($btn_group.length > 0) return;
 
-	set_colors: function() {
+		const view_modes = this.gantt.options.view_modes || [];
+		const active_class = view_mode => this.gantt.view_is(view_mode) ? 'btn-info' : '';
+		const html =
+			`<div class="btn-group gantt-view-mode">
+				${view_modes.map(value => `<button type="button"
+						class="btn btn-default btn-sm btn-view-mode ${active_class(value)}"
+						data-value="${value}">
+						${__(value)}
+					</button>`).join('')}
+			</div>`;
+
+		this.$paging_area.find('.level-left').append(html);
+
+		// change view mode asynchronously
+		const change_view_mode = (value) => setTimeout(() => this.gantt.change_view_mode(value), 0);
+
+		this.$paging_area.on('click', '.btn-view-mode', e => {
+			const $btn = $(e.currentTarget);
+			this.$paging_area.find('.btn-view-mode').removeClass('btn-info');
+			$btn.addClass('btn-info');
+
+			const value = $btn.data().value;
+			change_view_mode(value);
+		});
+	}
+
+	set_colors() {
 		const classes = this.tasks
 			.map(t => t.custom_class)
 			.filter(c => c && c.startsWith('color-'));
@@ -137,102 +193,17 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 		}).join("");
 
 		style = `<style>${style}</style>`;
+		this.$result.prepend(style);
+	}
 
-		this.wrapper.prepend(style);
-	},
+	get_item(name) {
+		return this.data.find(item => item.name === name);
+	}
 
-	prepare_tasks: function() {
-		var me = this;
-		var meta = frappe.get_meta(this.doctype);
-		var field_map = frappe.views.calendar[this.doctype].field_map;
-		this.tasks = this.items.map(function(item) {
-			// set progress
-			var progress = 0;
-			if(field_map.progress && $.isFunction(field_map.progress)) {
-				progress = field_map.progress(item);
-			} else if(field_map.progress) {
-				progress = item[field_map.progress]
-			}
-
-			// title
-			if(meta.title_field) {
-				var label = $.format("{0} ({1})", [item[meta.title_field], item.name]);
-			} else {
-				var label = item[field_map.title];
-			}
-
-			var r = {
-				start: item[field_map.start],
-				end: item[field_map.end],
-				name: label,
-				id: item[field_map.id || 'name'],
-				doctype: me.doctype,
-				progress: progress,
-				dependencies: item.depends_on_tasks || ""
-			};
-
-			if(item.color && frappe.ui.color.validate_hex(item.color)) {
-				r['custom_class'] = 'color-' + item.color.substr(1);
-			}
-
-			if(item.is_milestone) {
-				r['custom_class'] = 'bar-milestone';
-			}
-
-			return r;
-		});
-	},
-	get_item: function(name) {
-		return this.items.find(function(item) {
-			return item.name === name;
-		});
-	},
-	update_gantt_task: function(task, start, end) {
-		var me = this;
-		if(me.gantt.updating_task) {
-			setTimeout(me.update_gantt_task.bind(me, task, start, end), 200)
-			return;
-		}
-		me.gantt.updating_task = true;
-
-		var field_map = frappe.views.calendar[this.doctype].field_map;
-		frappe.call({
-			method: 'frappe.desk.gantt.update_task',
-			args: {
-				args: {
-					doctype: task.doctype,
-					name: task.id,
-					start: start.format('YYYY-MM-DD'),
-					end: end.format('YYYY-MM-DD')
-				},
-				field_map: field_map
-			},
-			callback: function() {
-				me.gantt.updating_task = false;
-				frappe.show_alert({message:__("Saved"), indicator: 'green'}, 1);
-			}
-		});
-	},
-	get_header_html: function() {
-		return frappe.render_template('list_item_row_head', { main: '', list: this });
-	},
-	refresh: function(values) {
-		this.prepare(values);
-		this.render();
-	},
-	can_write: function() {
-		if(frappe.model.can_write(this.doctype)) {
-			return true;
-		} else {
-			// reset gantt state
-			this.gantt.change_view_mode(this.gantt_view_mode);
-			frappe.show_alert({message: __("Not permitted"), indicator: 'red'}, 1);
-			return false;
-		}
-	},
-	set_columns: function() {},
-	required_libs: [
-		"assets/frappe/js/lib/snap.svg-min.js",
-		"assets/frappe/js/lib/frappe-gantt/frappe-gantt.js"
-	]
-});
+	get required_libs() {
+		return [
+			"assets/frappe/js/lib/frappe-gantt/frappe-gantt.css",
+			"assets/frappe/js/lib/frappe-gantt/frappe-gantt.min.js"
+		];
+	}
+};

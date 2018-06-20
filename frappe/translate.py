@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals, print_function
 
-from six import iteritems, text_type, string_types
+from six import iteritems, text_type, string_types, PY2
 
 """
 	frappe.translate
@@ -12,7 +12,7 @@ from six import iteritems, text_type, string_types
 	Translation tools for frappe
 """
 
-import frappe, os, re, codecs, json
+import frappe, os, re, io, codecs, json
 from frappe.model.utils import render_include, InvalidIncludePath
 from frappe.utils import strip
 from jinja2 import TemplateError
@@ -390,6 +390,7 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 
 	return messages
 
+
 def get_messages_from_custom_fields(app_name):
 	fixtures = frappe.get_hooks('fixtures', app_name=app_name) or []
 	custom_fields = []
@@ -540,13 +541,19 @@ def read_csv_file(path):
 
 	:param path: File path"""
 	from csv import reader
-	with codecs.open(path, 'r', 'utf-8') as msgfile:
-		data = msgfile.read()
 
-		# for japanese! #wtf
-		data = data.replace(chr(28), "").replace(chr(29), "")
-		data = reader([r.encode('utf-8') for r in data.splitlines()])
-		newdata = [[text_type(val, 'utf-8') for val in row] for row in data]
+	if PY2:
+		with codecs.open(path, 'r', 'utf-8') as msgfile:
+			data = msgfile.read()
+
+			# for japanese! #wtf
+			data = data.replace(chr(28), "").replace(chr(29), "")
+			data = reader([r.encode('utf-8') for r in data.splitlines()])
+			newdata = [[text_type(val, 'utf-8') for val in row] for row in data]
+	else:
+		with io.open(path, mode='r', encoding='utf-8', newline='') as msgfile:
+			data = reader(msgfile)
+			newdata = [[ val for val in row ] for row in data]
 	return newdata
 
 def write_csv_file(path, app_messages, lang_dict):
@@ -701,3 +708,32 @@ def rename_language(old_name, new_name):
 
 	frappe.db.sql("""update `tabUser` set language=%(new_name)s where language=%(old_name)s""",
 		{ "old_name": old_name, "new_name": new_name })
+
+@frappe.whitelist()
+def update_translations_for_source(source=None, translation_dict=None):
+	if not (source and translation_dict):
+		return
+
+	translation_dict = json.loads(translation_dict)
+
+	# for existing records
+	translation_records = frappe.db.get_values('Translation', { 'source_name': source }, ['name', 'language'],  as_dict=1)
+	for d in translation_records:
+		if translation_dict.get(d.language, None):
+			doc = frappe.get_doc('Translation', d.name)
+			doc.target_name = translation_dict.get(d.language)
+			doc.save()
+			# done with this lang value
+			translation_dict.pop(d.language)
+		else:
+			frappe.delete_doc('Translation', d.name)
+
+	# remaining values are to be inserted
+	for lang, target_name in iteritems(translation_dict):
+		doc = frappe.new_doc('Translation')
+		doc.language = lang
+		doc.source_name = source
+		doc.target_name = target_name
+		doc.save()
+
+	return translation_records
