@@ -8,7 +8,7 @@ import frappe.translate
 import frappe.modules.patch_handler
 import frappe.model.sync
 from frappe.utils.fixtures import sync_fixtures
-from frappe.sessions import clear_global_cache
+from frappe.cache_manager import clear_global_cache
 from frappe.desk.notifications import clear_notifications
 from frappe.website import render, router
 from frappe.desk.doctype.desktop_icon.desktop_icon import sync_desktop_icons
