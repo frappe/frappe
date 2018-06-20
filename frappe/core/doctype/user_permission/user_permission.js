@@ -47,15 +47,22 @@ frappe.ui.form.on('User Permission', {
 			callback: (r) => {
 				linked_doctypes_wrapper.empty();
 				const linked_doctypes = r.message || {};
+
+				// adds selected doctype to Multicheck
+				if (!linked_doctypes[frm.doc.allow]) {
+					linked_doctypes[frm.doc.allow] = {}
+				}
+
 				const checked_doctypes = frm.doc.skip_for_doctype ? frm.doc.skip_for_doctype.split('\n') : [];
 				let multicheck_options = [];
-				Object.keys(linked_doctypes).forEach(doctype => {
+				Object.keys(linked_doctypes).sort().forEach(doctype => {
 					multicheck_options.push({
 						label: doctype,
 						value: doctype,
 						checked: checked_doctypes.length ? !checked_doctypes.includes(doctype) : 1
 					});
 				});
+
 				if (multicheck_options.length) {
 					frm.linked_doctype_multicheck = frappe.ui.form.make_control({
 						parent: linked_doctypes_wrapper,
