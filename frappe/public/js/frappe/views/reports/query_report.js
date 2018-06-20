@@ -256,6 +256,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				.msgprint("Background job initiated successfully. Track and access results  <a class='text-info' target='_blank' href="+data.redirect_url+">here</a>", "Notification");
 		});
 	}
+
 	render_report(data) {
 		this.columns = this.prepare_columns(data.columns);
 		this.data = this.prepare_data(data.result);
