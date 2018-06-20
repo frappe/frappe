@@ -88,8 +88,6 @@ class TestWorkflow(unittest.TestCase):
 		user.add_roles('Test Approver', 'System Manager')
 		frappe.set_user('test2@example.com')
 
-
-
 		doc = self.test_default_condition()
 		workflow_actions = frappe.get_all('Workflow Action', fields=['status'])
 		self.assertEqual(len(workflow_actions), 1)
