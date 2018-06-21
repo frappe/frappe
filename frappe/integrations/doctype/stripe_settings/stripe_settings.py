@@ -126,7 +126,7 @@ class StripeSettings(Document):
 			"status": status
 		}
 
-def get_gateway_controller(doc):
-	payment_request = frappe.get_doc("Payment Request", doc)
-	gateway_controller = frappe.db.get_value("Payment Gateway", payment_request.payment_gateway, "gateway_controller")
+def get_gateway_controller(doctype, docname):
+	reference_doc = frappe.get_doc(doctype, docname)
+	gateway_controller = frappe.db.get_value("Payment Gateway", reference_doc.payment_gateway, "gateway_controller")
 	return gateway_controller
