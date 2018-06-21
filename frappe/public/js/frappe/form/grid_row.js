@@ -355,6 +355,9 @@ frappe.ui.form.GridRow = Class.extend({
 
 		// sync get_query
 		field.get_query = this.grid.get_field(df.fieldname).get_query;
+		field.df.onchange = function() {
+			me.grid.grid_rows[this.doc.idx-1].refresh_field(this.df.fieldname);
+		};
 		field.refresh();
 		if(field.$input) {
 			field.$input
