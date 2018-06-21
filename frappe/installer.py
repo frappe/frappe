@@ -348,7 +348,7 @@ def remove_missing_apps():
 
 def check_if_ready_for_barracuda():
 	mariadb_variables = frappe._dict(frappe.db.sql("""show variables"""))
-	mariadb_minor_version = mariadb_variables.get('version').split('-')[0].split('.')[1]
+	mariadb_minor_version = int(mariadb_variables.get('version').split('-')[0].split('.')[1])
 	if mariadb_minor_version < 3:
 		check_database(mariadb_variables, {
 			"innodb_file_format": "Barracuda",
@@ -361,7 +361,7 @@ def check_if_ready_for_barracuda():
 	})
 
 def check_database(mariadb_variables, variables_dict):
-	mariadb_minor_version = mariadb_variables.get('version').split('-')[0].split('.')[1]
+	mariadb_minor_version = int(mariadb_variables.get('version').split('-')[0].split('.')[1])
 	for key, value in variables_dict.items():
 		if mariadb_variables.get(key) != value:
 			site = frappe.local.site
