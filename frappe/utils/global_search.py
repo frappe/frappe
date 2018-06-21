@@ -142,8 +142,8 @@ def rebuild_for_doctype(doctype):
 				"name": frappe.db.escape(doc.name),
 				"content": frappe.db.escape(' ||| '.join(content or '')),
 				"published": published,
-				"title": frappe.db.escape(title or ''),
-				"route": frappe.db.escape(route or '')
+				"title": frappe.db.trim_varchar(frappe.db.escape(title or '')),
+				"route": frappe.db.trim_varchar(frappe.db.escape(route or ''))
 			})
 	if all_contents:
 		insert_values_for_multiple_docs(all_contents)
@@ -257,9 +257,12 @@ def update_global_search(doc):
 		if hasattr(doc, 'is_website_published') and doc.meta.allow_guest_to_view:
 			published = 1 if doc.is_website_published() else 0
 
+		title = frappe.db.trim_varchar(doc.get_title())
+		route = frappe.db.trim_varchar(doc.get('route'))
+
 		frappe.flags.update_global_search.append(
 			dict(doctype=doc.doctype, name=doc.name, content=' ||| '.join(content or ''),
-				published=published, title=doc.get_title(), route=doc.get('route')))
+				published=published, title=title, route=route))
 		enqueue_global_search()
 
 
