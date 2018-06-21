@@ -2,7 +2,6 @@ export default class WebForm {
 	constructor(options) {
 		// wrapper, doctype, docname, web_form_name, allow_incomplete
 		Object.assign(this, options);
-
 		this.get_data();
 	}
 

@@ -1,5 +1,5 @@
 import moment from 'moment';
-import WebForm from './WebForm';
+import WebForm from './webform';
 
 frappe.ready(function() {
 	if(web_form_settings.is_list) return;

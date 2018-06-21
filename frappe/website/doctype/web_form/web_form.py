@@ -488,8 +488,12 @@ def make_route_string(parameters):
 def get_form_data(doctype, docname, web_form_name):
 	out = frappe._dict()
 
-	if(docname):
-		out.doc = frappe.get_doc(doctype, docname)
+	if docname:
+		doc = frappe.get_doc(doctype, docname)
+		if doc.has_permission("read"):
+			out.doc = doc
+		else:
+			frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 	out.web_form = frappe.get_doc('Web Form', web_form_name)
 
