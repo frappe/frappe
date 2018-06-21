@@ -203,7 +203,7 @@ def update_file_dropbox_status(file_name):
 	frappe.db.set_value("File", file_name, 'uploaded_to_dropbox', 1, update_modified=False)
 
 def is_fresh_upload():
-	file_name = frappe.db.get_value("File", filters={'uploaded_to_dropbox': 1}, field='name')
+	file_name = frappe.db.get_value("File", {'uploaded_to_dropbox': 1}, 'name')
 	return not file_name
 
 def get_uploaded_files_meta(dropbox_folder, dropbox_client):
