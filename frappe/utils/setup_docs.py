@@ -127,9 +127,6 @@ class setup_docs(object):
 		shutil.copytree(os.path.join(self.app_path, 'docs', 'assets'),
 			frappe.get_app_path(self.target_app, 'www', 'docs', 'assets'))
 
-		# copy index
-		shutil.copy(os.path.join(self.app_path, 'docs', 'index.md'),
-			frappe.get_app_path(self.target_app, 'www', 'docs'))
 
 	def make_home_pages(self):
 		"""Make standard home pages for docs, developer docs, api and models
