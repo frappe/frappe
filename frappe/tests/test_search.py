@@ -10,9 +10,9 @@ from frappe.desk.search import search_link
 class TestSearch(unittest.TestCase):
 	def test_search_field_sanitizer(self):
 		# pass
-		search_link('DocType', 'Customer', query=None, filters=None, page_length=20, searchfield='name')
+		search_link('DocType', 'User', query=None, filters=None, page_length=20, searchfield='name')
 		result = frappe.response['results'][0]
-		self.assertTrue('Customer' in result['value'])
+		self.assertTrue('User' in result['value'])
 
 		#raise exception on injection
 		self.assertRaises(frappe.DataError,
