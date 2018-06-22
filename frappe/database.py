@@ -15,7 +15,6 @@ import frappe.model.meta
 from frappe.utils import now, get_datetime, cstr
 from frappe import _
 from frappe.model.utils.link_count import flush_local_link_count
-from frappe.model.db_schema import varchar_len
 from frappe.utils.background_jobs import execute_job, get_queue
 
 # imports - compatibility imports
@@ -913,10 +912,6 @@ class Database:
 			s = s.replace("%", "%%")
 
 		return s
-
-	def trim_varchar(self, s):
-		"""Trim given string to the defined varchar length"""
-		return s[:int(varchar_len)]
 
 def enqueue_jobs_after_commit():
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
