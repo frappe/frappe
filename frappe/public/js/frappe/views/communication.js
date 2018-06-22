@@ -207,7 +207,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				}
 
 				content_field.set_value(content.join(''));
-				if(subject === "") {
+				if(subject === "" || subject == __(me.frm.meta.name) + ': ' + me.frm.docname) {
 					subject_field.set_value(reply.subject);
 				}
 
