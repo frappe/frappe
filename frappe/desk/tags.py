@@ -110,7 +110,7 @@ class DocTags:
 			frappe.db.sql("update `tab%s` set _user_tags=%s where name=%s" % \
 				(self.dt,'%s','%s'), (tags , dn))
 			doc= frappe.get_doc(self.dt, dn)
-			update_global_search(doc)			
+			update_global_search(doc)
 		except Exception as e:
 			if e.args[0]==1054:
 				if not tags:
