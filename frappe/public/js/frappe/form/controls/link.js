@@ -4,6 +4,8 @@
 // link validation
 // custom queries
 // add_fetches
+import Awesomplete from 'awesomplete';
+
 frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;

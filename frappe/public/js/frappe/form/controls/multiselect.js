@@ -1,3 +1,5 @@
+import Awesomplete from 'awesomplete';
+
 frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 	get_awesomplete_settings() {
 		const settings = this._super();
