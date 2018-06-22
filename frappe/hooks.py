@@ -116,7 +116,8 @@ doc_events = {
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.core.doctype.activity_log.feed.update_feed",
-			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
+			"frappe.core.doctype.uniqueness_rule.uniqueness_rule.check_uniqueness"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
@@ -126,6 +127,9 @@ doc_events = {
 		"on_trash": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_change": [
 			"frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request",
+		],
+		"before_insert": [
+			"frappe.core.doctype.uniqueness_rule.uniqueness_rule.check_uniqueness"
 		]
 	},
 	"Email Group Member": {
