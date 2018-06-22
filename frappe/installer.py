@@ -348,14 +348,21 @@ def remove_missing_apps():
 
 def check_if_ready_for_barracuda():
 	mariadb_variables = frappe._dict(frappe.db.sql("""show variables"""))
-	for key, value in {
+	mariadb_minor_version = int(mariadb_variables.get('version').split('-')[0].split('.')[1])
+	if mariadb_minor_version < 3:
+		check_database(mariadb_variables, {
 			"innodb_file_format": "Barracuda",
 			"innodb_file_per_table": "ON",
-			"innodb_large_prefix": "ON",
-			"character_set_server": "utf8mb4",
-			"collation_server": "utf8mb4_unicode_ci"
-		}.items():
+			"innodb_large_prefix": "ON"
+		})
+	check_database(mariadb_variables, {
+		"character_set_server": "utf8mb4",
+		"collation_server": "utf8mb4_unicode_ci"
+	})
 
+def check_database(mariadb_variables, variables_dict):
+	mariadb_minor_version = int(mariadb_variables.get('version').split('-')[0].split('.')[1])
+	for key, value in variables_dict.items():
 		if mariadb_variables.get(key) != value:
 			site = frappe.local.site
 			msg = ("Creation of your site - {x} failed because MariaDB is not properly {sep}"
@@ -364,7 +371,10 @@ def check_if_ready_for_barracuda():
 			       "run `bench new-site {x}` again.{sep2}"
 			       "").format(x=site, sep2="\n"*2, sep="\n")
 
-			print_db_config(msg, expected_config_for_barracuda)
+			if mariadb_minor_version < 3:
+				print_db_config(msg, expected_config_for_barracuda_2)
+			else:
+				print_db_config(msg, expected_config_for_barracuda_3)
 			raise frappe.exceptions.ImproperDBConfigurationError(
 				reason="MariaDB default file format is not Barracuda"
 			)
@@ -406,10 +416,19 @@ def extract_tar_files(site_name, file_path, folder_name):
 
 	return tar_path
 
-expected_config_for_barracuda = """[mysqld]
+expected_config_for_barracuda_2 = """[mysqld]
 innodb-file-format=barracuda
 innodb-file-per-table=1
 innodb-large-prefix=1
+character-set-client-handshake = FALSE
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+
+[mysql]
+default-character-set = utf8mb4
+"""
+
+expected_config_for_barracuda_3 = """[mysqld]
 character-set-client-handshake = FALSE
 character-set-server = utf8mb4
 collation-server = utf8mb4_unicode_ci
