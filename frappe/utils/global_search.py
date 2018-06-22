@@ -243,10 +243,10 @@ def update_global_search(doc):
 	for field in doc.meta.get_global_search_fields():
 		if doc.get(field.fieldname) and field.fieldtype != "Table":
 			content.append(get_formatted_value(doc.get(field.fieldname), field))
-			
+
 	tag =(frappe.db.get_value(doc.doctype, doc.name, '_user_tags', ignore=1) or '').strip()
 	if tag:
-		content.append("User Tags : " + tag)	
+		content.append("User Tags : " + tag)
 
 	# Get children
 	for child in doc.meta.get_table_fields():
