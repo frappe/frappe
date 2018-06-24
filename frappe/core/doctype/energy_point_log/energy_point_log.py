@@ -15,7 +15,7 @@ def update_log(doc, state):
 	point_rule = frappe.get_all('Energy Point Rule', filters={
 		'reference_doctype': doc.get('doctype'),
 		'event_type': event_type
-	}, fields=['point', 'rule_name'])
+	}, fields=['point', 'rule_name'], limit=1)
 	if point_rule:
 		point_rule = point_rule[0]
 		print(point_rule)
