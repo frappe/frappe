@@ -16,13 +16,13 @@ class TestSearch(unittest.TestCase):
 
 		#raise exception on injection
 		self.assertRaises(frappe.DataError,
-			search_link('DocType', 'Customer', query=None, filters=None,
-			page_length=20, searchfield='1=1'))
+			search_link, 'DocType', 'Customer', query=None, filters=None,
+			page_length=20, searchfield='1=1')
 
 		self.assertRaises(frappe.DataError,
-			search_link('DocType', 'Customer', query=None, filters=None,
-			page_length=20, searchfield='select * from tabSessions) --'))
+			search_link, 'DocType', 'Customer', query=None, filters=None,
+			page_length=20, searchfield='select * from tabSessions) --')
 
 		self.assertRaises(frappe.DataError,
-			search_link('DocType', 'Customer', query=None, filters=None,
-			page_length=20, searchfield='name or (select * from tabSessions)'))
+			search_link, 'DocType', 'Customer', query=None, filters=None,
+			page_length=20, searchfield='name or (select * from tabSessions)')
