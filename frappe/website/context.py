@@ -127,7 +127,7 @@ def load_sidebar(context, sidebar_json_path):
 
 def get_sidebar_json_path(path):
 	'''Look for a _sidebar.json going upwards from given path'''
-	if path == '/' or not path:
+	if os.path.split(path)[1] == 'www' or path == '/' or not path:
 		return ''
 
 	sidebar_json_path = os.path.join(path, '_sidebar.json')
