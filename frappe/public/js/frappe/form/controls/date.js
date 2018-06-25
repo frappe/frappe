@@ -45,7 +45,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			? sysdefaults.date_format : 'yyyy-mm-dd';
 
 		this.today_text = __("Today");
-		this.date_format = moment.defaultDateFormat;
+		this.date_format = frappe.defaultDateFormat;
 		this.datepicker_options = {
 			language: lang,
 			autoClose: true,
