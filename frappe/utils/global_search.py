@@ -258,12 +258,10 @@ def update_global_search(doc):
 		if hasattr(doc, 'is_website_published') and doc.meta.allow_guest_to_view:
 			published = 1 if doc.is_website_published() else 0
 
-		title = doc.get_title()[:int(varchar_len)]
-		route = doc.get('route')[:int(varchar_len)]
-
 		frappe.flags.update_global_search.append(
 			dict(doctype=doc.doctype, name=doc.name, content=' ||| '.join(content or ''),
-				published=published, title=title, route=route))
+				published=published, title=doc.get_title()[:int(varchar_len)], route=doc.get('route')))
+
 		enqueue_global_search()
 
 
