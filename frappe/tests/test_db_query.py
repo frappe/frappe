@@ -138,7 +138,7 @@ class TestReportview(unittest.TestCase):
 		data = DatabaseQuery("DocType").execute(fields=["name", "issingle",
 			"datediff(modified, creation) as date_diff"], limit_start=0, limit_page_length=1)
 		self.assertTrue('date_diff' in data[0])
-	
+
 	def test_filter_sanitizer(self):
 		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
 				fields=["name"], filters={'istable,': 1}, limit_start=0, limit_page_length=1)
