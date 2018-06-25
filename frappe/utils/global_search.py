@@ -11,7 +11,6 @@ from frappe.model.base_document import get_controller
 from frappe.model.db_schema import varchar_len
 from six import text_type
 
-
 def setup_global_search_table():
 	"""
 	Creates __global_seach table
@@ -20,17 +19,16 @@ def setup_global_search_table():
 	if not '__global_search' in frappe.db.get_tables():
 		frappe.db.sql('''create table __global_search(
 			doctype varchar(100),
-			name varchar(140),
-			title varchar(140),
+			name varchar({varchar_len}),
+			title varchar({varchar_len}),
 			content text,
 			fulltext(content),
-			route varchar(140),
+			route varchar({varchar_len}),
 			published int(1) not null default 0,
 			unique `doctype_name` (doctype, name))
 			COLLATE=utf8mb4_unicode_ci
 			ENGINE=MyISAM
-			CHARACTER SET=utf8mb4''')
-
+			CHARACTER SET=utf8mb4'''.format(varchar_len=varchar_len))
 
 def reset():
 	"""
