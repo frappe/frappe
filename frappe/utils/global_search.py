@@ -8,6 +8,7 @@ import re
 import redis
 from frappe.utils import cint, strip_html_tags
 from frappe.model.base_document import get_controller
+from frappe.model.db_schema import varchar_len
 from six import text_type
 
 
@@ -142,8 +143,8 @@ def rebuild_for_doctype(doctype):
 				"name": frappe.db.escape(doc.name),
 				"content": frappe.db.escape(' ||| '.join(content or '')),
 				"published": published,
-				"title": frappe.db.escape(title or ''),
-				"route": frappe.db.escape(route or '')
+				"title": frappe.db.escape(title or '')[:int(varchar_len)],
+				"route": frappe.db.escape(route or '')[:int(varchar_len)]
 			})
 	if all_contents:
 		insert_values_for_multiple_docs(all_contents)
@@ -259,7 +260,8 @@ def update_global_search(doc):
 
 		frappe.flags.update_global_search.append(
 			dict(doctype=doc.doctype, name=doc.name, content=' ||| '.join(content or ''),
-				published=published, title=doc.get_title(), route=doc.get('route')))
+				published=published, title=doc.get_title()[:int(varchar_len)], route=doc.get('route')))
+
 		enqueue_global_search()
 
 
