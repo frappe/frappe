@@ -8,6 +8,31 @@ from frappe.utils import cstr, unique
 from frappe import _
 from six import string_types
 
+
+def sanitize_searchfield(searchfield):
+	blacklisted_keywords = ['select', 'delete', 'drop', 'update', 'case', 'and', 'or', 'like']
+
+	def _raise_exception():
+		frappe.throw(_('Invalid Search Field'), frappe.DataError)
+
+	if len(searchfield) >= 3:
+
+		# to avoid 1=1
+		if '=' in searchfield:
+			_raise_exception()
+
+		# in mysql -- is used for commenting the query
+		elif ' --' in searchfield:
+			_raise_exception()
+
+		# to avoid and, or and like
+		elif any(' {0} '.format(keyword) in searchfield.split() for keyword in blacklisted_keywords):
+			_raise_exception()
+
+		# to avoid select, delete, drop, update and case
+		elif any(keyword in searchfield.split() for keyword in blacklisted_keywords):
+			_raise_exception()
+
 # this is called by the Link Field
 @frappe.whitelist()
 def search_link(doctype, txt, query=None, filters=None, page_length=20, searchfield=None):
@@ -23,6 +48,9 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 		filters = json.loads(filters)
 
 	meta = frappe.get_meta(doctype)
+
+	if searchfield:
+		sanitize_searchfield(searchfield)
 
 	if not searchfield:
 		searchfield = "name"
