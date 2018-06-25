@@ -484,7 +484,7 @@ def make_route_string(parameters):
 				delimeter = '&'
 	return (route_string, delimeter)
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_form_data(doctype, docname, web_form_name):
 	out = frappe._dict()
 
