@@ -8,6 +8,7 @@ import re
 import redis
 from frappe.utils import cint, strip_html_tags
 from frappe.model.base_document import get_controller
+from frappe.model.db_schema import varchar_len
 from six import text_type
 
 
@@ -19,16 +20,16 @@ def setup_global_search_table():
 	if not '__global_search' in frappe.db.get_tables():
 		frappe.db.sql('''create table __global_search(
 			doctype varchar(100),
-			name varchar(140),
-			title varchar(140),
+			name varchar({0}),
+			title varchar({0}),
 			content text,
 			fulltext(content),
-			route varchar(140),
+			route varchar({0}),
 			published int(1) not null default 0,
 			unique `doctype_name` (doctype, name))
 			COLLATE=utf8mb4_unicode_ci
 			ENGINE=MyISAM
-			CHARACTER SET=utf8mb4''')
+			CHARACTER SET=utf8mb4'''.format(varchar_len))
 
 
 def reset():
@@ -142,8 +143,8 @@ def rebuild_for_doctype(doctype):
 				"name": frappe.db.escape(doc.name),
 				"content": frappe.db.escape(' ||| '.join(content or '')),
 				"published": published,
-				"title": frappe.db.escape(title or ''),
-				"route": frappe.db.escape(route or '')
+				"title": frappe.db.escape(title or '')[:int(varchar_len)],
+				"route": frappe.db.escape(route or '')[:int(varchar_len)]
 			})
 	if all_contents:
 		insert_values_for_multiple_docs(all_contents)
@@ -259,7 +260,7 @@ def update_global_search(doc):
 
 		frappe.flags.update_global_search.append(
 			dict(doctype=doc.doctype, name=doc.name, content=' ||| '.join(content or ''),
-				published=published, title=doc.get_title(), route=doc.get('route')))
+				published=published, title=doc.get_title()[:int(varchar_len)], route=doc.get('route')))
 		enqueue_global_search()
 
 
