@@ -1,6 +1,5 @@
 import frappe
 import json
-from frappe.core.page.permission_manager.permission_manager import get_permissions
 from frappe.permissions import get_valid_perms, get_linked_doctypes
 
 def execute():
@@ -29,7 +28,7 @@ def get_doctypes_to_skip(doctype, user):
 
         try:
             if doctype not in get_linked_doctypes(parent_doctype): continue
-        except:
+        except frappe.DoesNotExistError:
             # if doctype not found (may be due to rename) it should not be considered for skip
             continue
 
