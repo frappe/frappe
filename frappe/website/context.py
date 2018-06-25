@@ -120,6 +120,22 @@ def build_context(context):
 
 	return context
 
+def load_sidebar(context, sidebar_json_path):
+	with open(sidebar_json_path, 'r') as sidebarfile:
+		context.sidebar_items = json.loads(sidebarfile.read())
+		context.show_sidebar = 1
+
+def get_sidebar_json_path(path):
+	'''Look for a _sidebar.json going upwards from given path'''
+	if path == '/' or not path:
+		return ''
+
+	sidebar_json_path = os.path.join(path, '_sidebar.json')
+	if os.path.exists(sidebar_json_path):
+		return sidebar_json_path
+	else:
+		return get_sidebar_json_path(os.path.split(path)[0])
+
 def add_sidebar_and_breadcrumbs(context):
 	'''Add sidebar and breadcrumbs to context'''
 	from frappe.website.router import get_page_info_from_template
@@ -128,11 +144,9 @@ def add_sidebar_and_breadcrumbs(context):
 		add_sidebar_data(context)
 	else:
 		if context.basepath:
-			sidebar_json_path = os.path.join(context.basepath, '_sidebar.json')
-			if os.path.exists(sidebar_json_path):
-				with open(sidebar_json_path, 'r') as sidebarfile:
-					context.sidebar_items = json.loads(sidebarfile.read())
-					context.show_sidebar = 1
+			sidebar_json_path = get_sidebar_json_path(context.basepath)
+			if sidebar_json_path:
+				load_sidebar(context, sidebar_json_path)
 
 	if context.add_breadcrumbs and not context.parents:
 		if context.basepath:
