@@ -44,6 +44,8 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		let date_format = sysdefaults && sysdefaults.date_format
 			? sysdefaults.date_format : 'yyyy-mm-dd';
 
+		let now_date = new Date();
+
 		this.today_text = __("Today");
 		this.date_format = frappe.defaultDateFormat;
 		this.datepicker_options = {
@@ -51,7 +53,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			autoClose: true,
 			todayButton: true,
 			dateFormat: date_format,
-			startDate: new Date(),
+			startDate: now_date,
 			keyboardNav: false,
 			onSelect: () => {
 				this.$input.trigger('change');
