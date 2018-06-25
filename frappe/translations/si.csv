@@ -75,7 +75,7 @@ DocType: DocType,Is Published Field,ක්ෂේත්ර Published ඇත
 DocType: GCalendar Settings,GCalendar Settings,GCalendar සැකසීම්
 DocType: Email Group,Email Group,විද්යුත් සමූහ
 DocType: Note,Seen By,වන විට දැක
-apps/frappe/frappe/public/js/frappe/form/templates/grid_body.html +17,Add Multiple,බහු එකතු
+apps/frappe/frappe/public/js/frappe/form/grid.js +69,Add Multiple,බහු එකතු
 apps/frappe/frappe/core/doctype/user/user.py +87,Not a valid User Image.,වලංගු පරිශීලක අනුරුවක් නොවේ.
 DocType: Success Action,First Success Message,පළමු සාර්ථක පණිවුඩය
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +13,Not Like,වගේ නොවේ
@@ -113,7 +113,7 @@ apps/frappe/frappe/model/db_schema.py +357,"{0} field cannot be set as unique in
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +48,Document Types,ලේඛන වර්ග
 DocType: Address,Jammu and Kashmir,ජම්මු හා කාශ්මීර්
 DocType: Workflow,Workflow State Field,කාර්ය ප්රවාහ රාජ්ය ක්ෂේත්ර
-apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +54,Please sign-up or login to begin,"ආරම්භ කිරීමට හෝ පිවිසුම්-අප් අත්සන් කරන්න,"
+apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +55,Please sign-up or login to begin,"ආරම්භ කිරීමට හෝ පිවිසුම්-අප් අත්සන් කරන්න,"
 DocType: Blog Post,Guest,අමුත්තන්ගේ
 DocType: DocType,Title Field,මාතෘකාව ක්ෂේත්ර
 DocType: Error Log,Error Log,දෝෂ ලොග්
@@ -267,6 +267,7 @@ apps/frappe/frappe/config/website.py +68,Javascript to append to the head sectio
 apps/frappe/frappe/www/printview.py +81,Not allowed to print draft documents,ලේඛන සකසමින් මුද්රණය කිරීමට අවසර නැත
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js +12,Reset to defaults,පෙරනිමි යළි පිහිටුවන්න
 DocType: Workflow,Transition Rules,සංක්රමණය රීති
+apps/frappe/frappe/email/smtp.py +188,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,ඊ-තැපැල් ගිණුම සකසා නැත. කරුණාකර නව ඊමේල් ගිණුමක් සාදන්න&gt; ඊ-තැපෑල&gt; ඊ-මේල් ගිණුම
 apps/frappe/frappe/core/doctype/report/report.js +11,Example:,උදාහරණයක්:
 DocType: Google Maps,Google Maps,ගුගල් සිතියම්
 DocType: Workflow,Defines workflow states and rules for a document.,ලියවිල්ලක් සඳහා කාර්ය ප්රවාහ රාජ්යයන් හා නීති සහ කොන්දේසි සකසයි.
@@ -307,7 +308,7 @@ DocType: Data Migration Plan,Mappings,තාප්පින්ස්
 DocType: Notification Recipient,Notification Recipient,දැනුම්දීමේ ප්රතිග්රාහකයා
 DocType: Workflow State,Refresh,නැවුම් කරන්න
 DocType: Event,Public,පොදු
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +593,Nothing to show,පෙන්වන්න දෙයක්
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +594,Nothing to show,පෙන්වන්න දෙයක්
 DocType: System Settings,Enable Two Factor Auth,ෆැක්ටර් ඔටෝ දෙකක් සක්රීය කරන්න
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +280,[Urgent] Error while creating recurring %s for %s,[හදිසි විය හැකි]% s සඳහා පුනරාවර්තනය වන විටදී දෝශයක්
 apps/frappe/frappe/public/js/frappe/model/model.js +24,Liked By,වන විට කැමති
@@ -341,7 +342,7 @@ DocType: Print Format,Verdana,Verdana
 DocType: Email Flag Queue,Email Flag Queue,ඊ-තැපැල් ධජ පෝලිමේ
 apps/frappe/frappe/config/setup.py +205,Stylesheets for Print Formats,මුද්රණ ආකෘති සඳහා ස්ටේෂීෂීට්
 apps/frappe/frappe/utils/bot.py +83,Can't identify open {0}. Try something else.,{0} විවෘත හඳුනා ගැනීමට නොහැකි. වෙන දෙයක් කරන්න.
-apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +355,Your information has been submitted,ඔබේ තොරතුරු ඉදිරිපත් කර ඇති බවත්
+apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +169,Your information has been submitted,ඔබේ තොරතුරු ඉදිරිපත් කර ඇති බවත්
 apps/frappe/frappe/core/doctype/user/user.py +311,User {0} cannot be deleted,පරිශීලක {0} ඉවත් කල නොහැක
 DocType: System Settings,Currency Precision,ව්යවහාර මුදල් නිරවද්යතාව
 DocType: System Settings,Currency Precision,ව්යවහාර මුදල් නිරවද්යතාව
@@ -352,7 +353,7 @@ DocType: Auto Repeat,Yearly,වාර්ෂිකව
 DocType: Communication,Message ID,පණිවුඩය හැඳුනුම්පත
 DocType: Property Setter,Field Name,ක්ෂේත්ර නාමය
 apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.py +20,Google GSuite is not configured.,ගූගල් GSuite වින්යාස කර නොමැත.
-apps/frappe/frappe/public/js/frappe/misc/utils.js +159,or,හෝ
+apps/frappe/frappe/public/js/frappe/misc/utils.js +162,or,හෝ
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +139,module name...,මොඩියුලය නම ...
 apps/frappe/frappe/templates/pages/integrations/payment-success.html +13,Continue,දිගටම
 DocType: Custom Field,Fieldname,ක්ෂේත්ර නාමය
@@ -481,7 +482,7 @@ DocType: User,Fill Screen,තිර පුරවන්න
 apps/frappe/frappe/chat/doctype/chat_profile/chat_profile.py +87,Chat Profile for User {user} exists.,{User} සඳහා පරිශීලක චැට් පැතිකඩ.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +10,Permissions are automatically applied to Standard Reports and searches.,අවසරය ස්වයංක්රීයව සම්මත වාර්තා සහ සෙවුම් සඳහා ස්වයංක්රීයව යොදනු ලැබේ.
 apps/frappe/frappe/public/js/frappe/socketio_client.js +267,Upload Failed,උඩුගත කිරීම අසාර්ථක විය
-apps/frappe/frappe/public/js/frappe/form/grid.js +630,Edit via Upload,උඩුගත හරහා සංස්කරණය කරන්න
+apps/frappe/frappe/public/js/frappe/form/grid.js +666,Edit via Upload,උඩුගත හරහා සංස්කරණය කරන්න
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +135,"document type..., e.g. customer","ලිපි වර්ගය ..., උදා: පාරිභෝගික"
 apps/frappe/frappe/core/doctype/feedback_trigger/feedback_trigger.py +29,The Condition '{0}' is invalid,මෙම තත්වය &#39;{0}&#39; වලංගු නොවන
 DocType: Workflow State,barcode,පච්චයක්
@@ -635,7 +636,7 @@ apps/frappe/frappe/utils/file_manager.py +282,It is risky to delete this file: {
 DocType: Currency,Currency Name,ව්යවහාර මුදල් නම
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +175,No Emails,කිසිදු විද්යුත් තැපැල් පණිවුඩ
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +79,Link Expired,Link කල් ඉකුත් විය
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +457,Select File Format,ගොනු ආකෘතිය තෝරන්න
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +458,Select File Format,ගොනු ආකෘතිය තෝරන්න
 DocType: Report,Javascript,කරුණාකර Javascript
 DocType: File,Content Hash,අන්තර්ගත නිහඬයි
 DocType: User,Stores the JSON of last known versions of various installed apps. It is used to show release notes.,ගබඩා විවිධ ස්ථාපිත යෙදුම් අවසන්වරට අනුවාදයන් වන JSON. එය නිකුතු සටහන් පෙන්වන්න භාවිතා වේ.
@@ -666,6 +667,7 @@ apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a val
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +63,Select atleast 1 record for printing,මුද්රණය සඳහා ආයෝජිත මුදලක් 1 වාර්තා තෝරන්න
 apps/frappe/frappe/core/doctype/has_role/has_role.py +12,User '{0}' already has the role '{1}',පරිශීලක &#39;{0}&#39; දැනටමත් භූමිකාව &#39;{1}&#39; ඇත
 DocType: System Settings,Two Factor Authentication method,සාධක සහතික කිරීමේ ක්රම දෙකක්
+apps/frappe/frappe/contacts/doctype/address/address.py +193,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,ප්රකෘති ලිපිනය සැකිල්ල හමු නොවිනි. කරුණාකර නවෝත්පාදකයක්&gt; මුද්රණ සහ වෙළඳනාම&gt; ලිපින ආකෘතියෙන් සාදන්න.
 apps/frappe/frappe/public/js/frappe/form/share.js +36,Shared with {0},{0} සමඟ බෙදාහදා
 apps/frappe/frappe/email/queue.py +270,Unsubscribe,"වනවාද,"
 DocType: View log,Reference Name,විමර්ශන නම
@@ -688,7 +690,7 @@ apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,Option 1,ව�
 apps/frappe/frappe/public/js/frappe/form/formatters.js +133,{0} to {1},"{0} කර ගැනීම සඳහා, {1}"
 apps/frappe/frappe/config/setup.py +87,Log of error during requests.,ඉල්ලීම් දෝෂයක් පිළිබඳ ලඝු-සටහන.
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +219,{0} has been successfully added to the Email Group.,{0} සාර්ථකව විද්යුත් සමූහ ද එක් කර ඇත.
-apps/frappe/frappe/public/js/frappe/form/grid.js +646,Do not edit headers which are preset in the template,අච්චුවෙහි පෙරසිටුවූ ශීර්ෂකය සංස්කරණය නොකරන්න
+apps/frappe/frappe/public/js/frappe/form/grid.js +682,Do not edit headers which are preset in the template,අච්චුවෙහි පෙරසිටුවූ ශීර්ෂකය සංස්කරණය නොකරන්න
 apps/frappe/frappe/twofactor.py +221,Login Verification Code from {},සත්යාපන කේතය {{} වෙතින්
 DocType: Address,Uttar Pradesh,උත්තර් ප්රදේශ්
 DocType: Address,Pondicherry,Pondicherry
@@ -758,7 +760,6 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +176,Searching ...,ස�
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +176,Searching ...,සොයමින් ...
 DocType: Workflow State,text-width,පෙළ-පළල
 apps/frappe/frappe/public/js/legacy/form.js +141,Maximum Attachment Limit for this record reached.,මෙම වාර්තාව සඳහා උපරිම ඇමුණුම් සීමාව විය.
-apps/frappe/frappe/website/js/web_form.js +330,The following mandatory fields must be filled:<br>,පහත සඳහන් අනිවාර්ය ක්ෂේත්ර සම්පූර්ණ කළ යුතුය: <br>
 DocType: Notification,View Properties (via Customize Form),දැක්ම Properties (Customize ආකෘතිය හරහා)
 DocType: Note Seen By,Note Seen By,සටහන මගින් දැක
 apps/frappe/frappe/utils/password_strength.py +100,Try to use a longer keyboard pattern with more turns,වැඩි මාරුවෙන් මාරුවට සමඟ තවදුරටත් යතුරු පුවරුව රටාව භාවිතා කිරීමට උත්සාහ
@@ -798,7 +799,6 @@ DocType: Braintree Settings,Merchant ID,වෙළඳ නාම හැඳුන�
 apps/frappe/frappe/public/js/frappe/misc/rating_icons.html +2,Rating: ,ණය ශ්රේණිය:
 apps/frappe/frappe/email/receive.py +196,Can not find UIDVALIDITY in imap status response,IMAP තත්ත්වය ප්රතිචාර UIDVALIDITY සොයා ගැනීමට නොහැක
 DocType: Address,Dadra and Nagar Haveli,Dadra හා නගර් Haveli
-apps/frappe/frappe/website/js/web_form.js +265,Uploading files please wait for a few seconds.,ගොනු උඩුගත කරන්න තත්පර කිහිපයක් රැඳී සිටින්න.
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +419,Attach Your Picture,ඔබේ පින්තූරය අමුණන්න
 apps/frappe/frappe/core/doctype/version/version_view.html +69,Row Values Changed,පේළියේ අගයන් වෙනස්
 DocType: Workflow State,Stop,නවත්වන්න
@@ -830,12 +830,11 @@ DocType: Feedback Trigger,"To add dynamic subject, use jinja tags like
 <div><pre><code>{{ doc.name }} Delivered</code></pre></div>","ගතික විෂය එකතු කිරීම සඳහා, වැනි jinja ටැග් භාවිතා <div><pre> <code>{{ doc.name }} Delivered</code> </pre> </div>"
 DocType: Report,Apply User Permissions,පරිශීලක අවසර යොමු කරන්න
 DocType: User,Modules HTML,මොඩියුල HTML
-apps/frappe/frappe/public/js/frappe/ui/field_group.js +88,Missing Values Required,අවශ්ය අතුරුදහන් වටිනාකම්
+apps/frappe/frappe/public/js/frappe/ui/field_group.js +91,Missing Values Required,අවශ්ය අතුරුදහන් වටිනාකම්
 DocType: DocType,Other Settings,වෙනත් සැකසුම්
 DocType: Data Migration Connector,Frappe,Frappe
 apps/frappe/frappe/core/doctype/communication/communication_list.js +17,Mark as Unread,නොකියවූ ලෙස ලකුණු කරන්න
 DocType: Activity Log,Operation,මෙහෙයුම්
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357,<p>No results found for '</p>,<p> සඳහා ප්රතිඵල කිසිවක් නැත. </p>
 DocType: Customize Form,Change Label (via Custom Translation),ලේබල් වෙනස් (රේගු පරිවර්තනය හරහා)
 apps/frappe/frappe/share.py +137,No permission to {0} {1} {2},{0} {1} {2} සඳහා අවසර
 DocType: Address,Permanent,ස්ථිර
@@ -899,7 +898,7 @@ apps/frappe/frappe/model/mapper.py +120,Cannot map because following condition f
 DocType: Role Permission for Page and Report,Roles HTML,භූමිකා HTML
 apps/frappe/frappe/website/doctype/website_settings/website_settings.js +10,Select a Brand Image first.,පළමු වර්ගය රූප තෝරන්න.
 apps/frappe/frappe/core/doctype/user/user_list.js +12,Active,ක්රියාකාරී
-apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +13,Insert Below,පහත දැක්වෙන්නේ ඇතුල් කරන්න
+apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +52,Insert Below,පහත දැක්වෙන්නේ ඇතුල් කරන්න
 DocType: Kanban Board Column,Blue,නිල්
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +168,All customizations will be removed. Please confirm.,සියලු අභිමතකරණ ඉවත් වනු ඇත. කරුණාකර තහවුරු කරන්න.
 DocType: Page,Page HTML,පිටුව HTML
@@ -956,7 +955,6 @@ DocType: Social Login Key,Client Credentials,සේවාලාභියා අ�
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +138,Open a module or tool,මොඩියුල මොඩියුල හෝ tool විවෘත
 DocType: Communication,Delivery Status,භාරදීම් තත්ත්ව
 DocType: Module Def,App Name,යෙදුම නම
-apps/frappe/frappe/website/js/web_form.js +33,Max file size allowed is {0}MB,අවසර මැක්ස් ගොනු විශාලත්වය {0} මුස්ලිම් සහෝදරත්වය වන
 DocType: Workflow,"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","ගනුදෙනුවේ කාර්ය ප්රවාහ රාජ්ය නියෝජනය කරන බව ක්ෂේත්ර (ක්ෂේත්ර සහභාගී නො වේ නම්, නව සැඟවුණු රේගු ක්ෂේත්ර නිර්මාණය වනු ඇත)"
 DocType: Help Article,Knowledge Base Contributor,දැනුම මූලික දායකත්වය
 DocType: Communication,Sent Read Receipt,එවා රිසිට්පත කියවන්න
@@ -1013,7 +1011,7 @@ DocType: Custom Script,Adds a custom script (client or server) to a DocType,එ�
 DocType: Address,City/Town,නගරය / නගරය
 DocType: Data Migration Connector,Connector Name,සම්බන්ධක නම
 DocType: Address,Is Your Company Address,ඔබේ සමාගම ලිපිනය වේ
-apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +4,Editing Row,සංස්කරණය ෙරෝ
+apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +43,Editing Row,සංස්කරණය ෙරෝ
 DocType: Workflow Action Master,Workflow Action Master,කාර්ය ප්රවාහ ක්රියාකාරී මාස්ටර්
 DocType: Custom Field,Field Type,ක්ෂේත්ර වර්ගය
 apps/frappe/frappe/utils/data.py +537,only.,එකම.
@@ -1035,13 +1033,14 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +649,Invalid {0} condition,�
 DocType: OAuth Client,"If checked, users will not see the Confirm Access dialog.","පරීක්ෂා නම්, පරිශීලකයන් තහවුරු ප්රවේශ සංවාද දැකිය නොහැක."
 apps/frappe/frappe/public/js/frappe/model/model.js +25,Comments,අදහස්
 apps/frappe/frappe/public/js/frappe/ui/modal.html +17,Confirm,තහවුරු කරන්න
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} වසර (ය) පෙර
 apps/frappe/frappe/www/login.html +58,Forgot Password?,මුරපදය අමතක වුණා ද?
 DocType: System Settings,yyyy-mm-dd,දැ ෙ-MM-dd
 apps/frappe/frappe/desk/report/todo/todo.py +19,ID,හැඳුනුම්පත
 apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +100,Server Error,සේවාදායක දෝෂය
 apps/frappe/frappe/email/doctype/email_account/email_account.py +44,Login Id is required,ලොගින් වන්න අංකය අවශ්ය වේ
 DocType: Website Slideshow,Website Slideshow,වෙබ් අඩවිය විනිවිදක දර්ශනය
-apps/frappe/frappe/public/js/frappe/form/templates/grid_body.html +6,No Data,දත්ත නැත
+apps/frappe/frappe/public/js/frappe/form/grid.js +58,No Data,දත්ත නැත
 DocType: Website Settings,"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","මෙම වෙබ් අඩවිය මුල් පිටුව බව ලින්ක් එක. සම්මත වෙබ් අඩවි (දර්ශකය, පිවිසුම්, නිෂ්පාදන, බ්ලොග් ගැන, සබඳතා)"
 apps/frappe/frappe/email/doctype/email_account/email_account.py +171,Authentication failed while receiving emails from Email Account {0}. Message from server: {1},ඊ-තැපැල් ගිණුම {0} ඊ-තැපැල් ලබමින් සිටියදී තහවුරු කරගැනීමේ අසාර්ථක විය. සේවාදායකය වෙතින් පණිවුඩය: {1}
 DocType: Custom Field,Custom Field,රේගු ක්ෂේත්ර
@@ -1081,7 +1080,6 @@ DocType: Transaction Log,Chaining Hash,හැෂ් හෑෂ්
 apps/frappe/frappe/core/doctype/user/user.py +778,Temperorily Disabled,Temperorily ආබාධිත
 apps/frappe/frappe/contacts/doctype/contact/contact.py +89,Please set Email Address,විද්යුත් තැපැල් ලිපිනය සකස් කරන්න
 DocType: System Settings,Date and Number Format,දිනය හා අංකය ආකෘතිය
-apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +169,Max attachment size is {0}MB,මැක්ස් ඇමුණුමක් ප්රමාණය {0} මුස්ලිම් සහෝදරත්වය වන
 apps/frappe/frappe/model/document.py +1055,one of,එක්
 apps/frappe/frappe/public/js/frappe/desk.js +150,Checking one moment,එක් මොහොතක පරීක්ෂා
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html +21,Show Tags,ඇමිණුම් පෙන්වන්න
@@ -1092,7 +1090,7 @@ DocType: Web Form,Actions,ක්රියා
 DocType: Workflow State,align-justify,සන්ධානගත-සාධාරණීකරණය
 DocType: User,Middle Name (Optional),මැද නම (විකල්ප)
 apps/frappe/frappe/public/js/frappe/request.js +118,Not Permitted,අවසර නැත
-apps/frappe/frappe/public/js/frappe/ui/field_group.js +89,Following fields have missing values:,පහත සඳහන් ක්ෂේත්ර වටිනාකම් අතුරුදහන් කර ඇත:
+apps/frappe/frappe/public/js/frappe/ui/field_group.js +92,Following fields have missing values:,පහත සඳහන් ක්ෂේත්ර වටිනාකම් අතුරුදහන් කර ඇත:
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py +29,First Transaction,පලමු ගනුදෙනුව
 apps/frappe/frappe/app.py +164,You do not have enough permissions to complete the action,ඔබ ක්රියාව සම්පූර්ණ කිරීමට ප්රමාණවත් තරම් අවසර නොමැත
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +103,No Results,කිසිදු ප්රතිඵල
@@ -1130,7 +1128,7 @@ DocType: Page,Icon,icon
 apps/frappe/frappe/core/doctype/user/user.py +938,"Hint: Include symbols, numbers and capital letters in the password","ඉඟිය: මුරපදය දී සංකේත, ඉලක්කම් සහ ප්රාග්ධන ලිපි ඇතුළත්"
 apps/frappe/frappe/core/doctype/user/user.py +938,"Hint: Include symbols, numbers and capital letters in the password","ඉඟිය: මුරපදය දී සංකේත, ඉලක්කම් සහ ප්රාග්ධන ලිපි ඇතුළත්"
 DocType: DocField,Allow in Quick Entry,ඉක්මන් පිවිසුමට ඉඩ දෙන්න
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +527,PDF,PDF
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +528,PDF,PDF
 DocType: System Settings,dd/mm/yyyy,dd / mm / දැ ෙ
 apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.js +32,GSuite script test,GSuite තිර රචනය ටෙස්ට්
 DocType: System Settings,Backups,අමතර පිටපත්
@@ -1143,7 +1141,7 @@ DocType: Event,Tuesday,අඟහරුවාදා
 DocType: Blog Settings,Blog Settings,බ්ලොග් සැකසුම්
 apps/frappe/frappe/templates/emails/new_user.html +16,You can also copy-paste this link in your browser,ඔබ ද පිටපත්-ඇලවිය හැකි ඔබගේ බ්රවුසරයෙහි පහත සබැඳිය
 DocType: Workflow State,bullhorn,bullhorn
-apps/frappe/frappe/model/workflow.py +76,Not a valid Workflow Action,වලංගු කාර්ය ප්රවාහ ක්රියාවක් නොවේ
+apps/frappe/frappe/model/workflow.py +73,Not a valid Workflow Action,වලංගු කාර්ය ප්රවාහ ක්රියාවක් නොවේ
 DocType: Footer Item,Target,ඉලක්කය
 DocType: System Settings,Number of Backups,අමතර පිටපත් සංඛ්යාව
 DocType: Website Settings,Copyright,කතුහිමිකම
@@ -1172,7 +1170,6 @@ DocType: User Permission,Allow,ඉඩ දෙන්න
 apps/frappe/frappe/utils/password_strength.py +117,Let's avoid repeated words and characters,යලි යලිත් වචන සහ අක්ෂර වළක්වා ගනිමු
 DocType: Communication,Delayed,ප්රමාද
 apps/frappe/frappe/config/setup.py +140,List of backups available for download,බාගත හැකි රක්ෂිත ඇති ලැයිස්තුව
-apps/frappe/frappe/contacts/doctype/address/address.py +193,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,ප්රකෘති ලිපිනය සැකිල්ල හමු නොවිනි. කරුණාකර නවෝත්පාදකයක්&gt; මුද්රණ සහ වෙළඳනාම&gt; ලිපින ආකෘතියෙන් සාදන්න.
 apps/frappe/frappe/www/login.html +71,Sign up,ලියාපදිංචි වන්න
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +189,Row {0}: Not allowed to disable Mandatory for standard fields,පේළිය {0}: සම්මත ක්ෂේත්ර සඳහා අනිවාර්යය අක්රිය කිරීමට අවසර නැත
 DocType: Test Runner,Output,නිමැවුම
@@ -1184,7 +1181,7 @@ DocType: Email Account,Sendgrid,Sendgrid
 DocType: Data Export,File Type,ගොනු වර්ගය
 DocType: Workflow State,leaf,කොළ
 DocType: Portal Menu Item,Portal Menu Item,ද්වාරය මෙනු අයිතමය
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +558,Clear User Settings,පැහැදිලි පරිශීලක සැකසුම්
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +559,Clear User Settings,පැහැදිලි පරිශීලක සැකසුම්
 DocType: Contact Us Settings,Email ID,ඊ-තැපැල් හැඳුනුම්පත
 DocType: Activity Log,Keep track of all update feeds,සියලුම යාවත්කාලීන පෝෂක ලුහුබැඳීම
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,පරිශීලක ඉඩ සලසන පසු සේවාලාභියා යෙදුම හැකියාව ලැබේ වන සම්පත් පිළිබඳ ලැයිස්තුවක්. <br> උදා: ව්යාපෘතිය
@@ -1386,7 +1383,6 @@ DocType: Workflow State,Inbox,එන ලිපි
 DocType: Kanban Board Column,Red,රතු
 DocType: Workflow State,Tag,ටැග
 DocType: Custom Script,Script,කේත රචනය
-apps/frappe/frappe/email/smtp.py +188,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,ඊ-තැපැල් ගිණුම සකසා නැත. කරුණාකර නව ඊමේල් ගිණුමක් සාදන්න&gt; ඊ-තැපෑල&gt; ඊ-මේල් ගිණුම
 apps/frappe/frappe/core/doctype/data_import/log_details.html +30,Document can't saved.,ලේඛනය සුරැකිය නොහැක.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +35,My Settings,මගේ සැකසුම්
 DocType: Website Theme,Text Color,අකුරු වර්ණය
@@ -1450,7 +1446,7 @@ DocType: DocPerm,DocPerm,DocPerm
 DocType: Print Settings,Fonts,ෆොන්ට්
 apps/frappe/frappe/core/doctype/doctype/doctype.py +511,Precision should be between 1 and 6,නිරවද්යතාවයකින් 1 සහ 6 ත් අතර විය යුතුය
 apps/frappe/frappe/core/doctype/communication/communication.js +190,Fw: {0},Fw: {0}
-apps/frappe/frappe/public/js/frappe/misc/utils.js +162,and,සහ
+apps/frappe/frappe/public/js/frappe/misc/utils.js +165,and,සහ
 apps/frappe/frappe/templates/emails/auto_email_report.html +47,This report was generated on {0},මෙම වාර්තාව {0}
 DocType: Error Snapshot,Frames,රාමු
 apps/frappe/frappe/patches/v6_19/comment_feed_communication.py +131,Assignment,පැවරුම
@@ -1464,7 +1460,7 @@ apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +24
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,මෙම ඊ-තැපැල් ලිපිනය වෙත යැවීමට මෙම වාර්තාව මකන්න
 apps/frappe/frappe/core/doctype/data_import/exporter.py +67,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,"නව වාර්තා අනිවාර්ය ක්ෂේත්ර පමණක් අවශ්ය වේ. ඔබ කැමති නම්, ඔබ-අනිවාර්ය නොවන තීරු මකා දැමිය හැකිය."
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +335,Unable to update event,අවස්ථාවට යාවත්කාල කිරීමට නොහැකි
-apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +304,Payment Complete,ගෙවීම් සම්පූර්ණ
+apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +118,Payment Complete,ගෙවීම් සම්පූර්ණ
 apps/frappe/frappe/twofactor.py +209,Verification code has been sent to your registered email address.,සත්යාපන කේතය ඔබගේ ලියාපදිංචි ඊමේල් ලිපිනය වෙත යවන ලදි.
 apps/frappe/frappe/core/doctype/user/user.py +1031,Throttled,යොදන ලදී
 apps/frappe/frappe/utils/data.py +807,"Filter must have 4 values (doctype, fieldname, operator, value): {0}","{0}: පෙරහන් 4 අගයන් (doctype, fieldname, ක්රියාකරු, වටිනාකම) තිබිය යුතුය"
@@ -1489,6 +1485,7 @@ apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts
 apps/frappe/frappe/templates/includes/login/login.js +52,Valid Login id required.,වලංගු ලොගින් වන්න id අවශ්ය විය.
 apps/frappe/frappe/model/rename_doc.py +405,Please select a valid csv file with data,කරුණාකර දත්ත සමඟ වලංගු CSV ගොනුවක් තෝරා
 apps/frappe/frappe/core/doctype/docshare/docshare.py +56,{0} un-shared this document with {1},{0} {1} සමග මෙම ලියවිල්ල එක්සත් ජාතීන්ගේ-හවුල්
+apps/frappe/frappe/email/smtp.py +85,Please setup default Email Account from Setup &gt; Email &gt; Email Account,කරුණාකර සැකසුම&gt; ඊ-තැපැල්&gt; ඊ-තැපැල් ගිණුමෙන් පෙරනිමි ඊ-තැපැල් ගිණුම සකසන්න
 DocType: DocType,"Make ""name"" searchable in Global Search",ගෝලීය සොයන්න දී &quot;නම&quot; සොයාගත හැකිවන ලෙස සකස් කරන්න
 apps/frappe/frappe/core/doctype/version/version_view.html +74,Row # ,ෙරෝ #
 apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,මෙය ස්වයංක්රීයව ජනනය පිළිතුරුපත්
@@ -1507,10 +1504,9 @@ DocType: Chat Profile,Notification Tones,දැනුම් දීමේ මා�
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +376,Search the docs,මෙම ලේඛන සොයන්න
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +376,Search the docs,මෙම ලේඛන සොයන්න
 DocType: OAuth Authorization Code,Valid,වලංගු
-apps/frappe/frappe/public/js/frappe/form/controls/link.js +14,Open Link,විවෘත ලින්ක්
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} වසර (ය) පෙර
+apps/frappe/frappe/public/js/frappe/form/controls/link.js +16,Open Link,විවෘත ලින්ක්
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +357,Your Language,ඔබගේ භාෂාව
-apps/frappe/frappe/public/js/frappe/form/templates/grid_body.html +20,Add Row,ෙරෝ එකතු කරන්න
+apps/frappe/frappe/public/js/frappe/form/grid.js +72,Add Row,ෙරෝ එකතු කරන්න
 DocType: Tag Category,Doctypes,Doctypes
 apps/frappe/frappe/desk/query_report.py +88,Query must be a SELECT,විමසුම් සඳහා තේරීම් විය යුතුය
 apps/frappe/frappe/core/doctype/data_import/data_import.js +36,Please attach a file to import,කරුණාකර ගොනුව ආයාත කරන්න
@@ -1640,9 +1636,8 @@ apps/frappe/frappe/integrations/doctype/google_maps/google_maps.py +17,Home Addr
 DocType: Data Migration Run,Started,ආරම්භ විය
 apps/frappe/frappe/public/js/frappe/views/communication.js +104,Select Attachments,ඇමුණුම් තෝරන්න
 apps/frappe/frappe/model/naming.py +113, for {0},{0} සඳහා
-apps/frappe/frappe/website/js/web_form.js +303,There were errors. Please report this.,දෝෂ ඇතිවිය. මෙම වාර්තා කරන්න.
+apps/frappe/frappe/website/js/web_form.js +107,There were errors. Please report this.,දෝෂ ඇතිවිය. මෙම වාර්තා කරන්න.
 apps/frappe/frappe/public/js/legacy/form.js +173,You are not allowed to print this document,ඔබ මෙම ලියවිල්ල මුද්රණය කිරීමට අවසර නැත
-apps/frappe/frappe/email/smtp.py +85,Please setup default Email Account from Setup &gt; Email &gt; Email Account,කරුණාකර සැකසුම&gt; ඊ-තැපැල්&gt; ඊ-තැපැල් ගිණුමෙන් පෙරනිමි ඊ-තැපැල් ගිණුම සකසන්න
 apps/frappe/frappe/data_migration/doctype/data_migration_run/data_migration_run.js +11,Currently updating {0},දැනට යාවත්කාලීන කිරීම {0}
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +120,Please set filters value in Report Filter table.,වාර්තාව පෙරහන් වගුවේ පෙරහන් අගය සකස් කරන්න.
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +283,Loading Report,පැටවීම වාර්තාව
@@ -1657,7 +1652,7 @@ DocType: Deleted Document,New Name,නව නම
 DocType: System Settings,Is First Startup,ආරම්භක ආරම්භය
 DocType: Communication,Email Status,ඊ-තැපැල් තත්වය
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +111,Please save the document before removing assignment,පැවරුම ඉවත් කිරීමට ප්රථම ලිපිය සුරැකීම කරුණාකර
-apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +10,Insert Above,ඉහත ඇතුල් කරන්න
+apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +49,Insert Above,ඉහත ඇතුල් කරන්න
 apps/frappe/frappe/desk/form/utils.py +76,Comment can only be edited by the owner,විවරණයක් පමණක් අයිතිකරු විසින් සංස්කරණය කළ හැකිය
 DocType: Data Import,Do not send Emails,ඊමේල් යවන්න එපා
 apps/frappe/frappe/utils/password_strength.py +191,Common names and surnames are easy to guess.,පොදු නම් සහ වාසගම අනුමාන කිරීමට පහසුය.
@@ -1744,7 +1739,7 @@ DocType: Address,Fax,ෆැක්ස්
 apps/frappe/frappe/config/setup.py +263,Custom Tags,රේගු ඇමිණුම්
 DocType: Communication,Submitted,ඉදිරිපත්
 DocType: System Settings,Email Footer Address,විද්යුත් පාදකය ලිපිනය
-apps/frappe/frappe/public/js/frappe/form/grid.js +628,Table updated,වගුව යාවත්කාලීන
+apps/frappe/frappe/public/js/frappe/form/grid.js +664,Table updated,වගුව යාවත්කාලීන
 DocType: Activity Log,Timeline DocType,කාල නියමය DocType
 DocType: DocField,Text,පෙළ
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js +14,Default Sending,පෙරනිමි යැවීම
@@ -1800,8 +1795,8 @@ myfield
 eval:doc.myfield=='My Value'
 eval:doc.age&gt;18",myfield eval: doc.myfield == &#39;&#39; මාගේ අගය &#39;eval: doc.age&gt; 18 මෙතන අර්ථ fieldname වටිනාකමක් නම් පමණක් හෝ නීති රීති (උදාහරණ) සැබෑ මෙම ක්ෂේත්රය දිස් වනු ඇත
 DocType: Social Login Key,Office 365,කාර්යාලය 365
-apps/frappe/frappe/public/js/frappe/form/controls/date.js +37,Today,අද
-apps/frappe/frappe/public/js/frappe/form/controls/date.js +37,Today,අද
+apps/frappe/frappe/public/js/frappe/form/controls/date.js +46,Today,අද
+apps/frappe/frappe/public/js/frappe/form/controls/date.js +46,Today,අද
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","ඔබ මෙම තබා ඇත පසු, එම පරිශීලකයන් පමණක් හැකි ප්රවේශ ලේඛන (උදා. බ්ලොග් පෝස්ට්) සබැඳිය පවතී කොතැන (උදා. Blogger)."
 DocType: Error Log,Log of Scheduler Errors,නියමාකාරකය පත්රයක වරදක් ලඝු-සටහන
 DocType: User,Bio,ජෛව
@@ -1907,6 +1902,7 @@ DocType: Web Form,Success Message,සාර්ථකත්වය පණිවු
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +84,Export Customizations,අපනයන අභිමතකරණ
 apps/frappe/frappe/website/doctype/web_page/web_page.py +136,End Date cannot be before Start Date!,අවසන් දිනය ආරම්භක දිනය දක්වා නොවිය යුතුය!
 DocType: DocType,User Cannot Search,පරිශීලක සොයන්න නොහැක
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions,සැකසුම&gt; පරිශීලක අවසරය
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +84,Invalid Output Format,වලංගු නොවන ප්රතිදාන ආකෘතිය
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +125,Cannot {0} {1},{0} {1}
 DocType: Custom DocPerm,Apply this rule if the User is the Owner,පරිශීලක අයිතිකරු නම් මෙම නීතිය අදාළ
@@ -1980,7 +1976,7 @@ apps/frappe/frappe/public/js/frappe/form/workflow.js +38,Document is only editab
 apps/frappe/frappe/desk/form/assign_to.py +151,"The task {0}, that you assigned to {1}, has been closed by {2}.","ඔබ {1}, {2} විසින් වසා දමා ඇති පවරා බව, කාර්ය {0}."
 DocType: Print Format,Show Line Breaks after Sections,අංශ පසු පෙන්වන්න ලයින්
 DocType: Blogger,Short Name,කෙටි නම
-apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +241,Page {0},පිටුව {0}
+apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +74,Page {0},පිටුව {0}
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +110,Linked with {0},{0} සමඟ සම්බන්ධය
 apps/frappe/frappe/email/doctype/email_account/email_account.js +183,"You are selecting Sync Option as ALL, It will resync all \
 				read as well as unread message from server. This may also cause the duplication\
@@ -2110,7 +2106,7 @@ apps/frappe/frappe/public/js/frappe/desk.js +36,Session Start Failed,සැස�
 apps/frappe/frappe/email/queue.py +506,This email was sent to {0} and copied to {1},මෙම ඊ-තැපෑල {0} වෙත යවන සහ {1} පිටපත් විය
 DocType: Workflow State,th,වන
 DocType: Social Login Key,Provider Name,සැපයුම්කරුගේ නම
-apps/frappe/frappe/public/js/frappe/form/controls/link.js +169,Create a new {0},නව {0} නිර්මාණය
+apps/frappe/frappe/public/js/frappe/form/controls/link.js +171,Create a new {0},නව {0} නිර්මාණය
 DocType: GCalendar Account,GCalendar Account,GCalendar ගිණුම
 DocType: Email Rule,Is Spam,අයාචිත තැපැල් වේ
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +193,Report {0},වාර්තාව {0}
@@ -2121,7 +2117,7 @@ DocType: System Settings,Choose authentication method to be used by all users,�
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +3,Doctype required,ඩොක්ටයිප් අවශ්යයි
 DocType: Workflow State,ok-sign,හරි-ලකුණක්
 apps/frappe/frappe/config/setup.py +146,Deleted Documents,මකා දමන ලදී ලේඛන
-apps/frappe/frappe/public/js/frappe/form/grid.js +645,The CSV format is case sensitive,CSV ආකෘතිය සංවේදී වේ
+apps/frappe/frappe/public/js/frappe/form/grid.js +681,The CSV format is case sensitive,CSV ආකෘතිය සංවේදී වේ
 apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py +166,Desktop Icon already exists,ඩෙස්ක්ටොප් අයිකන දැනටමත් පවතී
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +142,Duplicate,අනුපිටපත්
 DocType: Newsletter,Create and Send Newsletters,පුවත් පත්රිකා නිර්මාණය හා යවන්න
@@ -2144,7 +2140,7 @@ DocType: User,Location,ස්ථානය
 ,Permitted Documents For User,පරිශීලක සඳහා අවසර ලිපි ලේඛන
 apps/frappe/frappe/core/doctype/docshare/docshare.py +40,"You need to have ""Share"" permission",ඔබ &quot;බෙදාගන්න&quot; අවසර තිබිය යුතු
 DocType: Communication,Assignment Completed,පැවරුම සම්පූර්ණ
-apps/frappe/frappe/public/js/frappe/form/grid.js +641,Bulk Edit {0},තොග සංස්කරණය කරන්න {0}
+apps/frappe/frappe/public/js/frappe/form/grid.js +677,Bulk Edit {0},තොග සංස්කරණය කරන්න {0}
 apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js +7,Not active,ක්රියාකාරී නැහැ
 DocType: About Us Settings,Settings for the About Us Page,මෙම අප ගැන පිටුව සඳහා සැකසුම්
 apps/frappe/frappe/config/integrations.py +28,Stripe payment gateway settings,Stripe ගෙවීම් සැකසුම්
@@ -2218,7 +2214,7 @@ apps/frappe/frappe/core/doctype/report/report.js +8,Write a SELECT query. Note r
 DocType: Email Account,Attachment Limit (MB),ඇමුණුම් සීමාව (MB)
 DocType: Address,Arunachal Pradesh,Arunachal ප්රදේශ්
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1021,Setup Auto Email,Setup වාහන විද්යුත්
-apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +25,Ctrl + Down,Ctrl + Down
+apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +64,Ctrl + Down,Ctrl + Down
 DocType: Chat Profile,Message Preview,පණිවිඩ පෙරදැක්මක්
 apps/frappe/frappe/utils/password_strength.py +173,This is a top-10 common password.,මෙම ඉහළ-10 පොදු මුරපදයකි.
 DocType: User,User Defaults,පරිශීලක Defaults
@@ -2261,7 +2257,7 @@ apps/frappe/frappe/email/doctype/email_domain/email_domain.py +41,Incoming email
 apps/frappe/frappe/templates/includes/contact.js +21,"You seem to have written your name instead of your email. \
 				Please enter a valid email address so that we can get back.","ඔබට ඒ වෙනුවට ඔබගේ ඊ-තැපැල් ලිපිනය ඔබගේ නම ලියා ඇති බව පෙනෙන්නට තිබේ. අපි ආපහු ලබා ගත හැක එසේ \, වලංගු විද්යුත්-තැපැල් ලිපිනයක් ඇතුලත් කරන්න."
 DocType: Website Slideshow Item,Website Slideshow Item,වෙබ් අඩවිය විනිවිදක දර්ශනය අයිතමය
-apps/frappe/frappe/model/workflow.py +67,Self approval is not allowed,ස්වයං අනුමැතිය සඳහා අවසර නැත
+apps/frappe/frappe/model/workflow.py +76,Self approval is not allowed,ස්වයං අනුමැතිය සඳහා අවසර නැත
 DocType: GSuite Templates,Template ID,සැකිල්ල හැඳුනුම්පත
 apps/frappe/frappe/integrations/doctype/oauth_client/oauth_client.py +19,Combination of Grant Type (<code>{0}</code>) and Response Type (<code>{1}</code>) not allowed,ප්රදාන වර්ගය ( <code>{0}</code> ) ඒකාබද්ධ කිරීම සහ ප්රතිචාර වර්ගය ( <code>{1}</code> ) අවසර නොදේ
 DocType: Portal Settings,Default Role at Time of Signup,ගොණුව අවස්ථාවේ පෙරනිමි භූමිකාව
@@ -2381,7 +2377,7 @@ DocType: System Settings,Apply Strict User Permissions,දැඩි පරිශ
 DocType: DocField,Allow Bulk Edit,තොග සංස්කරණය කරන්න ඉඩ දෙන්න
 DocType: DocField,Allow Bulk Edit,තොග සංස්කරණය කරන්න ඉඩ දෙන්න
 DocType: Blog Post,Blog Post,බ්ලොග් පෝස්ට්
-apps/frappe/frappe/public/js/frappe/form/controls/link.js +179,Advanced Search,ගැඹුරින් සොයන්න
+apps/frappe/frappe/public/js/frappe/form/controls/link.js +181,Advanced Search,ගැඹුරින් සොයන්න
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +115,You are not permitted to view the newsletter.,ඔබට පුවත් ලිපි බැලීමට අවසර නොමැත.
 apps/frappe/frappe/core/doctype/user/user.py +819,Password reset instructions have been sent to your email,මුරපද යළි උපදෙස් ඔබගේ ඊ-තැපැල් ලිපිනය වෙත යොමු කර ඇති
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +376,"Level 0 is for document level permissions, \
@@ -2413,7 +2409,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/search_header.html +4,Searching,�
 DocType: Currency,Fraction,භාගය
 DocType: LDAP Settings,LDAP First Name Field,LDAP මුල් නම ක්ෂේත්ර
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +6,for automatic creating of the recurring document to continue.,අඛණ්ඩ ලේඛන ස්වයංක්රීයව නිර්මාණය කිරීම සඳහා.
-apps/frappe/frappe/public/js/frappe/form/controls/text_editor.js +311,Select from existing attachments,දැනට පවතින බැඳීම් වලින් තෝරන්න
+apps/frappe/frappe/public/js/frappe/form/controls/text_editor.js +313,Select from existing attachments,දැනට පවතින බැඳීම් වලින් තෝරන්න
 DocType: Custom Field,Field Description,ක්ෂේත්ර විස්තරය
 apps/frappe/frappe/model/naming.py +272,Name not set via Prompt,නම ප්රොම්ප්ට් හරහා පිහිටුවා නැත
 DocType: User,"Enter default value fields (keys) and values. If you add multiple values for a field,the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields,go to ""Customize Form"".","පෙරනිමි අගය ක්ෂේත්ර (යතුරු) සහ අගයන් ඇතුලත් කරන්න. ඔබ ක්ෂේත්රයකට වැඩි අගයන් එකතු කළහොත් පළමුවෙන්ම තෝරා ගනු ලැබේ. මෙම පෙරනිමි ද &quot;ගැලපුම්&quot; අවසර නීති රීති කිරීමට යොදා ගනී. ක්ෂේත්ර ලැයිස්තුවක් බැලීමට, &quot;ආකෘතිය වෙනස් කරන්න&quot; යන්න."
@@ -2520,7 +2516,6 @@ apps/frappe/frappe/templates/pages/integrations/payment-cancel.html +3,Payment C
 ,Addresses And Contacts,ලිපින හා සම්බන්ධතා
 apps/frappe/frappe/core/doctype/error_log/error_log_list.js +12,Clear Error Logs,දෝෂ ලඝු-සටහන් පැහැදිලි
 apps/frappe/frappe/templates/emails/feedback_request_url.html +2,Please select a rating,කරුණාකර ශ්රේණිගත තෝරා
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions,සැකසුම&gt; පරිශීලක අවසරය
 apps/frappe/frappe/core/doctype/user/user.js +103,Reset OTP Secret,OTP රහස් නැවත සකසන්න
 DocType: Email Account,Notify if unreplied for (in mins),(මිනිත්තු දී) සඳහා unreplied නම් දැනුම් දෙන්න
 apps/frappe/frappe/public/js/frappe/list/list_renderer.js +570,2 days ago,දින 2කට පෙර
@@ -2663,7 +2658,7 @@ DocType: Tag Doc Category,Tag Doc Category,ටැග ඩොක් ප්රව�
 DocType: User,User Image,පරිශීලක රූප
 apps/frappe/frappe/email/queue.py +340,Emails are muted,විද්යුත් තැපැල් පණිවුඩ ඇල් මැරුනු වේ
 apps/frappe/frappe/config/integrations.py +88,Google Services,Google සේවා
-apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +25,Ctrl + Up,Ctrl + Up
+apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +64,Ctrl + Up,Ctrl + Up
 DocType: Website Theme,Heading Style,ස්ටයිල් ශීර්ෂය
 apps/frappe/frappe/utils/data.py +625,1 weeks ago,සති 1 කට පෙර
 DocType: Communication,Error,දෝෂ
@@ -2717,6 +2712,7 @@ apps/frappe/frappe/public/js/frappe/form/layout.js +502,"Invalid ""depends_on"" 
 apps/frappe/frappe/public/js/frappe/chat.js +1612,Group Name,කණ්ඩායම් නම
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +82,Select Print Format to Edit,සංස්කරණය කරන්න කිරීමට මුද්රණය ආකෘතිය තෝරන්න
 DocType: Address,Shipping,නාවික
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,Setup &gt; Customize Form,පිහිටුවීම&gt; ආකෘතිය වෙනස් කරන්න
 DocType: Workflow State,circle-arrow-down,රවුම-ඊතල පහළ
 apps/frappe/frappe/config/desk.py +38,Private and public Notes.,පෞද්ගලික හා රාජ්ය සටහන්.
 DocType: DocField,Datetime,දිනය වේලාව
@@ -2726,7 +2722,7 @@ apps/frappe/frappe/templates/includes/comments/comments.html +101,Please enter a
 DocType: Workflow State,arrow-right,ඊතලය දක්ෂිනාංශික
 DocType: Workflow State,Workflow state represents the current state of a document.,කාර්ය ප්රවාහ රාජ්ය ලියවිල්ලක් වත්මන් රාජ්ය නියෝජනය කරයි.
 apps/frappe/frappe/utils/oauth.py +173,Token is missing,සංකේත අතුරුදහන්
-apps/frappe/frappe/public/js/frappe/misc/utils.js +523,Note: Changing the Page Name will break previous URL to this page.,සටහන: පිටු නම වෙනස් මෙම පිටුව වෙත පෙර URL එක කඩා බිඳ දමනු ඇත.
+apps/frappe/frappe/public/js/frappe/misc/utils.js +526,Note: Changing the Page Name will break previous URL to this page.,සටහන: පිටු නම වෙනස් මෙම පිටුව වෙත පෙර URL එක කඩා බිඳ දමනු ඇත.
 apps/frappe/frappe/utils/file_manager.py +257,Removed {0},ඉවත් {0}
 DocType: SMS Settings,SMS Settings,කෙටි පණිවුඩ සැකසුම්
 DocType: Company History,Highlight,මොරටු
@@ -2832,7 +2828,6 @@ apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.js +54,Resume,අරඹ�
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py +77,Modified By,කිරීම නවීකරණය කරන ලද
 DocType: Address,Tripura,Tripura
 DocType: About Us Settings,"""Company History""",&quot;සමාගම ඉතිහාසය&quot;
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Setup&gt; පරිශීලක
 DocType: Address,Tamil Nadu,තමිල්නාඩු
 DocType: Email Rule,Email Rule,ඊ-තැපැල් පාලනය
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +5,"To stop sending repetitive error notifications from the system, we have checked Disabled field in the Auto Repeat document",පද්ධතියේ පුනරාවර්තී දෝෂ පිළිබඳ දැනුම්දීම් යැවීම නතර කිරීමට අප විසින් ආබාධිත ක්ෂේත්රයේ ස්වයංක්රියව නැවත කියවීමේ ලියවිල්ල තුල පරික්ෂා කර ඇත
@@ -2877,7 +2872,7 @@ DocType: Web Form,Web Page Link Text,වෙබ් පිටු ලින්ක�
 DocType: Page,System Page,පද්ධතිය පිටුව
 DocType: Page,System Page,පද්ධතිය පිටුව
 apps/frappe/frappe/config/setup.py +195,"Set default format, page size, print style etc.","සකසන්න පෙරනිමි ආකෘතිය පිටුව විශාලත්වය, මුද්රණ විලාසය ආදිය"
-apps/frappe/frappe/public/js/frappe/form/templates/grid_form.html +25,ESC,පිට වීම
+apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +64,ESC,පිට වීම
 apps/frappe/frappe/modules/utils.py +73,Customizations for <b>{0}</b> exported to:<br>{1},<b>{0}</b> අපනයනය සඳහා අභිමතකරණය: <br> {1}
 DocType: Website Settings,Include Search in Top Bar,Top නීතිඥ සොයන්න ඇතුළත්
 DocType: GSuite Settings,Allow GSuite access,GSuite පිවිසීමට අවසර දෙන්න
@@ -3042,7 +3037,7 @@ DocType: Contact,Contact,අමතන්න
 DocType: User,Third Party Authentication,තුන්වන පක්ෂය තහවුරු කරගැනීමේ
 DocType: Website Settings,Banner is above the Top Menu Bar.,බැනරය Top Menu Bar ඉහත වේ.
 DocType: Razorpay Settings,API Secret,API රහස්
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +483,Export Report: ,අපනයන වාර්තාව:
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +484,Export Report: ,අපනයන වාර්තාව:
 DocType: Data Migration Run,Push Update,යාවත්කාලීන කරන්න
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +10,in the Auto Repeat document,ස්වයං නැවත නැවත ලියවිල්ලේ
 DocType: Email Account,Port,වරාය
@@ -3075,6 +3070,7 @@ DocType: Workflow State,Download,බාගත
 DocType: Blog Post,Blog Intro,බ්ලොග් හැදින්වීමේ
 DocType: Async Task,Result,ප්රතිඵල
 DocType: Webhook,on_update_after_submit,on_update_after_submit
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Setup&gt; පරිශීලක
 DocType: System Settings,Allow Login using User Name,පරිශීලක නම භාවිතා කිරීමෙන් ලොග් වීමට ඉඩ දෙන්න
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,වාර්තාව සබල කරන්න
 DocType: DocField,Display Depends On,ප්රදර්ශනය මත රඳා පවතී
@@ -3126,7 +3122,6 @@ apps/frappe/frappe/desk/page/activity/activity_row.html +19,Communicated via {0}
 apps/frappe/frappe/templates/emails/mentioned_in_comment.html +2,{0} mentioned you in a comment in {1},{0} {1} තුළ ප්රතිචාරයක් ඔබ සඳහන්
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +141,e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...,උදා: (55 + 434) / 4 හෝ = Math.sin (Math.PI / 2) ...
 apps/frappe/frappe/model/naming.py +48,{0} is required,{0} අවශ්ය වේ
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,Setup &gt; Customize Form,පිහිටුවීම&gt; ආකෘතිය වෙනස් කරන්න
 DocType: Integration Request,Integration Type,ඒකාබද්ධතා වර්ගය
 DocType: Newsletter,Send Attachements,Attachements යවන්න
 DocType: Transaction Log,Transaction Log,ගනුදෙනු ලොග්
@@ -3140,7 +3135,7 @@ DocType: Blog Category,Blogger,Blogger
 apps/frappe/frappe/core/doctype/doctype/doctype.py +493,'In Global Search' not allowed for type {0} in row {1},&#39;ගෝලීය සොයන්න දී&#39; පේළිය වර්ගය {0} සඳහා අවසර නැත {1}
 apps/frappe/frappe/core/doctype/doctype/doctype.py +493,'In Global Search' not allowed for type {0} in row {1},&#39;ගෝලීය සොයන්න දී&#39; පේළිය වර්ගය {0} සඳහා අවසර නැත {1}
 apps/frappe/frappe/public/js/frappe/views/treeview.js +342,View List,දැක්ම ලැයිස්තුව
-apps/frappe/frappe/public/js/frappe/form/controls/date.js +114,Date must be in format: {0},දිනය දක්වන විය යුතුය: {0}
+apps/frappe/frappe/public/js/frappe/form/controls/date.js +127,Date must be in format: {0},දිනය දක්වන විය යුතුය: {0}
 DocType: Workflow,Don't Override Status,තත්ත්වය ඉක්මවා යන්න එපා
 apps/frappe/frappe/www/feedback.html +90,Please give a rating.,ණය වර්ගීකරණ දෙන්න.
 apps/frappe/frappe/public/js/frappe/feedback.js +47,{0} Feedback Request,{0} ඔබෙන් ලැබෙන ප්රයෝජනාත්මක ප්රතිචාරය ඉල්ලීම්
@@ -3150,6 +3145,7 @@ DocType: Deleted Document,GCalendar Sync ID,GCalendar සමමුහුර්�
 apps/frappe/frappe/config/setup.py +112,Export Data,අපනයන දත්ත
 apps/frappe/frappe/core/doctype/data_import/data_import.js +159,Select Columns,තීරු තෝරන්න
 DocType: Translation,Source Text,මූලාශ්ර පෙළ
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357,<p>No results found for '</p>,<p> සඳහා ප්රතිඵල කිසිවක් නැත. </p>
 apps/frappe/frappe/www/login.py +80,Missing parameters for login,පිවිසුම සඳහා අතුරුදහන් පරාමිතීන්
 DocType: Workflow State,folder-open,ෆෝල්ඩරය විවෘත
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +1,Search Application,සොයන්න අයදුම්
@@ -3183,7 +3179,6 @@ DocType: Website Settings,An icon file with .ico extension. Should be 16 x 16 px
 DocType: Auto Email Report,Format,ආකෘතිය
 DocType: Email Account,Email Addresses,ඊ-තැපැල් ලිපිනයන්
 DocType: Web Form,Allow saving if mandatory fields are not filled,අනිවාර්ය ක්ෂේත්ර පුරවා නොමැති නම් ඉතිරි ඉඩ දෙන්න
-apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +161,Change,වෙනස්
 DocType: Email Domain,domain name,ඩොමේන් නාමය
 DocType: Kanban Board Column,Order,නියෝග
 DocType: Website Theme,Background,පසුබිම
