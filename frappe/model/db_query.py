@@ -140,7 +140,7 @@ class DatabaseQuery(object):
 
 		if self.or_conditions:
 			args.conditions += (' or ' if args.conditions else "") + \
-				 ' or '.join(self.or_conditions)
+				' or '.join(self.or_conditions)
 
 		self.set_field_tables()
 
@@ -190,7 +190,8 @@ class DatabaseQuery(object):
 			As field contains `,` and mysql function `version()`, with the help of regex
 			the system will filter out this field.
 		'''
-		regex = re.compile('^.*[,();].*')
+
+		sub_query_regex = re.compile("^.*[,();].*")
 		blacklisted_keywords = ['select', 'create', 'insert', 'delete', 'drop', 'update', 'case']
 		blacklisted_functions = ['concat', 'concat_ws', 'if', 'ifnull', 'nullif', 'coalesce',
 			'connection_id', 'current_user', 'database', 'last_insert_id', 'session_user',
@@ -200,13 +201,21 @@ class DatabaseQuery(object):
 			frappe.throw(_('Cannot use sub-query or function in fields'), frappe.DataError)
 
 		for field in self.fields:
-			if regex.match(field):
-				if any(keyword in field.lower() for keyword in blacklisted_keywords):
+			if sub_query_regex.match(field):
+				if any(keyword in field.lower().split() for keyword in blacklisted_keywords):
 					_raise_exception()
 
-				if any("{0}(".format(keyword) in field.lower() \
-					for keyword in blacklisted_functions):
+				if any("({0}".format(keyword) in field.lower() for keyword in blacklisted_keywords):
 					_raise_exception()
+
+				if any("{0}(".format(keyword) in field.lower() for keyword in blacklisted_functions):
+					_raise_exception()
+
+			if re.compile("[a-zA-Z]+\s*'").match(field):
+				_raise_exception()
+
+			if re.compile('[a-zA-Z]+\s*,').match(field):
+				_raise_exception()
 
 	def extract_tables(self):
 		"""extract tables from fields"""
