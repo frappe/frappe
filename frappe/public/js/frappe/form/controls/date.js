@@ -18,7 +18,8 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 				// if date is selected but different from value, refresh
 				const selected_date =
 					moment(this.datepicker.selectedDates[0])
-						.format(this.date_format);
+						.format('YYYY-MM-DD');
+
 				should_refresh = selected_date !== value;
 			} else {
 				// if datepicker has no selected date, refresh
@@ -26,21 +27,21 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			}
 		}
 
+
 		if(should_refresh) {
 			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
 		}
 	},
 	set_date_options: function() {
-		let userBoot = frappe.boot.user;
 		// webformTODO:
 		let sysdefaults = frappe.boot.sysdefaults;
 
-		let lang = userBoot ? userBoot.language : 'en';
+		let lang = frappe.boot.user.language || 'en';
 		if(!$.fn.datepicker.language[lang]) {
 			lang = 'en';
 		}
 
-		let dateFormat = sysdefaults && sysdefaults.date_format
+		let date_format = sysdefaults && sysdefaults.date_format
 			? sysdefaults.date_format : 'yyyy-mm-dd';
 
 		this.today_text = __("Today");
@@ -49,7 +50,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			language: lang,
 			autoClose: true,
 			todayButton: true,
-			dateFormat: dateFormat,
+			dateFormat: date_format,
 			startDate: new Date(),
 			keyboardNav: false,
 			onSelect: () => {
