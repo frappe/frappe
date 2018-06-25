@@ -143,6 +143,25 @@ class TestReportview(unittest.TestCase):
 		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
 				fields=["name"], filters={'istable,': 1}, limit_start=0, limit_page_length=1)
 
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+				fields=["name"], filters={'editable_grid,': 1}, or_filters={'istable,': 1},
+				limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+				fields=["name"], filters={'editable_grid,': 1},
+				or_filters=[['DocType', 'istable,', '=', 1]],
+				limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+				fields=["name"], filters={'editable_grid,': 1},
+				or_filters=[['DocType', 'istable', '=', 1], ['DocType', 'beta and 1=1', '=', 0]],
+				limit_start=0, limit_page_length=1)
+
+		data = DatabaseQuery("DocType").execute(fields=["name", "issingle"],
+				filters={'editable_grid': 1}, or_filters=[['DocType', 'istable', '=', 1]],
+				limit_start=0, limit_page_length=1)
+		self.assertEquals('DocField', data[0]['name'])
+
 def create_event(subject="_Test Event", starts_on=None):
 	""" create a test event """
 
