@@ -17,6 +17,7 @@ def execute():
         doctype_to_skip = '\n'.join(doctype_to_skip)
         frappe.db.set_value('User Permission', perm_name, 'skip_for_doctype', doctype_to_skip)
 
+
 def get_doctypes_to_skip(doctype, user):
     ''' Returns doctypes to be skipped from user permission check'''
     doctypes_to_skip = []
@@ -33,25 +34,22 @@ def get_doctypes_to_skip(doctype, user):
             continue
 
         if not perm.apply_user_permission:
-            # add doctype to skip list if any of the perm has
-            add_doctype_to_skip(parent_doctype)
+            # add doctype to skip list if any of the perm does not apply user permission
+            doctypes_to_skip.append(doctype)
 
         elif parent_doctype not in doctypes_to_skip:
 
-            try:
-                user_permission_doctypes = json.loads(perm.user_permission_doctypes or '[]')
-            except ValueError:
-                user_permission_doctypes = []
+            user_permission_doctypes = get_user_permission_doctypes(perm)
 
-            if not user_permission_doctypes: # No doctypes present indicates that user permission will be applied to each link field
-                continue
+            # "No doctypes present" indicates that user permission will be applied to each link field
+            if not user_permission_doctypes: continue
 
-            elif doctype not in user_permission_doctypes:
-                add_doctype_to_skip(parent_doctype)
+            elif doctype in user_permission_doctypes: continue
 
-    def add_doctype_to_skip(doctype):
-        if doctype in doctypes_to_skip: return
-        doctypes_to_skip.append(doctype)
+            else: doctypes_to_skip.append(doctype)
+
+    # to remove possible duplicates
+    doctypes_to_skip = list(set(doctypes_to_skip))
 
     return doctypes_to_skip
 
@@ -62,3 +60,9 @@ def get_user_valid_perms(user):
     if not user_valid_perm.get(user):
         user_valid_perm[user] = get_valid_perms(user=user)
     return user_valid_perm.get(user)
+
+def get_user_permission_doctypes(perm):
+    try:
+        return json.loads(perm.user_permission_doctypes or '[]')
+    except ValueError:
+        return []
