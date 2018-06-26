@@ -193,13 +193,13 @@ frappe.ui.form.on('User', {
 })
 
 function has_access_to_edit_user() {
-	return has_common(frappe.user_roles, get_roles_for_editing_user())
+	return has_common(frappe.user_roles, get_roles_for_editing_user());
 }
 
 function get_roles_for_editing_user() {
 	return frappe.get_meta('User').permissions
 		.filter(perm => perm.permlevel >= 1 && perm.write)
-		.map(perm => perm.role) || ['System Manager']
+		.map(perm => perm.role) || ['System Manager'];
 }
 
 frappe.ModuleEditor = Class.extend({
