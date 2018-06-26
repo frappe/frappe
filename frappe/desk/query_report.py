@@ -472,5 +472,4 @@ def get_user_match_filters(doctypes, user):
 		filter_list = frappe.desk.reportview.build_match_conditions(dt, user, False)
 		if filter_list:
 			match_filters[dt] = filter_list
-
 	return match_filters
