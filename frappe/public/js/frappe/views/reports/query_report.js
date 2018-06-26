@@ -53,11 +53,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			label: __('Refresh'),
 			action: () => this.refresh()
 		};
-		
-		this.report_action = {
-			label: __('Run In Background'),
-			action: () => this.render_background_report()
-		};
 
 		// throttle refresh for 300ms
 		this.refresh = frappe.utils.throttle(this.refresh, 300);
@@ -139,20 +134,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		return this._load_script;
 	}
-	set_menu_items() {
-		super.set_menu_items();
-		const $report_action = this.page.set_report_action(
-			this.report_action.label,
-			this.report_action.action,
-			this.report_action.icon
-		);
-		if (!this.report_action.icon) {
-			$report_action.addClass('hidden-xs');
-		} else {
-			$report_action.addClass('visible-xs');
-		}
-	}
-
 	setup_filters() {
 		this.clear_filters();
 		const { filters = [] } = this.report_settings;
@@ -234,21 +215,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			},
 			callback: resolve
 		})).then(r => {
-            const data = r.message;
-            if (data.background_report){
-                this.toggle_message(true, 'This report is background. You can run this by hitting Run in background');
-            }else{
-                this.toggle_message(false);
-                if (data.result && data.result.length) {
-                    this.render_chart(data);
-                    this.render_report(data);
-                } else {
-                    this.toggle_nothing_to_show(true);
-                }
-            }
+			const data = r.message;
+			if (data.prepared_report){
+				this.toggle_button(true, data.file_attachment);
+			}else{
+				this.toggle_message(false);
+				if (data.result && data.result.length) {
+					this.render_chart(data);
+					this.render_report(data);
+				} else {
+					this.toggle_nothing_to_show(true);
+				}
+			}
 		});
 	}
-
 	render_background_report() {
 		this.toggle_message(true);
 		const filters = this.get_filter_values(true);
@@ -261,13 +241,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			},
 			callback: resolve
 		})).then(r => {
-            const data = r.message;
+			const data = r.message;
             this.toggle_nothing_to_show(true);
-            frappe
-				.msgprint("Background job initiated successfully. Track and access results  <a class='text-info' target='_blank' href="+data.redirect_url+">here</a>", "Notification");
+			frappe.msgprint("Prepared report initiated successfully. Track and access results  <a class='text-info' target='_blank' href="+data.redirect_url+">here</a>", "Notification");
 		});
 	}
-
 	render_report(data) {
 		this.columns = this.prepare_columns(data.columns);
 		this.data = this.prepare_data(data.result);
@@ -608,7 +586,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	setup_page_head() {
 		super.setup_page_head();
-		this.set_menu_items();
 		this.page.set_title_sub(`<label class='label label-warning text-color'>${__('Beta')}</label>`);
 	}
 
@@ -632,7 +609,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	toggle_nothing_to_show(flag) {
 		this.toggle_message(flag, __('Nothing to show'));
 	}
-
+	toggle_button(flag, attachment){
+        if (flag) {
+            if(attachment){
+				this.$message.find('div').html("<p>Download recent generated Prepared Report <a target='_blank' href="+attachment+">here</a>.");
+			}
+            this.$message.find('div').append("<button class='btn btn-primary prepared-report'>Generate Prepared Report</button>");
+            this.$message.find('.prepared-report').click(() => this.render_background_report());
+            this.$message.show();
+		} else {
+			this.$message.hide();
+		}
+		this.$report.toggle(!flag);
+		this.$chart.toggle(!flag);
+	}
 	toggle_message(flag, message) {
 		if (flag) {
 			this.$message.find('div').html(message);
@@ -643,7 +633,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.$report.toggle(!flag);
 		this.$chart.toggle(!flag);
 	}
-
 	// backward compatibility
 	get get_values() {
 		return this.get_filter_values;

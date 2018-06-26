@@ -21,7 +21,7 @@ def get_context(context):
 		for key in expected_keys:
 			context[key] = frappe.form_dict[key]
 
-		gateway_controller = get_gateway_controller(context.reference_docname)
+		gateway_controller = get_gateway_controller(context.reference_doctype, context.reference_docname)
 		context.publishable_key = get_api_key(context.reference_docname, gateway_controller)
 		context.image = get_header_image(context.reference_docname, gateway_controller)
 
@@ -59,7 +59,7 @@ def make_payment(stripe_token_id, data, reference_doctype=None, reference_docnam
 		"stripe_token_id": stripe_token_id
 	})
 
-	gateway_controller = get_gateway_controller(reference_docname)
+	gateway_controller = get_gateway_controller(reference_doctype,reference_docname)
 
 	if frappe.db.get_value(reference_doctype, reference_docname, 'is_a_subscription'):
 		reference = frappe.get_doc(reference_doctype, reference_docname)

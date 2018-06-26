@@ -89,7 +89,7 @@ def background_enqueue_run(report_name, filters=None, user=None):
 	report = get_report_doc(report_name)
 	track_instance = \
 		frappe.get_doc({
-			"doctype": "Background Report Result",
+			"doctype": "Prepared Report",
 			"report_name": report_name,
 			"filters": json.dumps(filters),
 			"ref_report_doctype": report_name,
@@ -100,7 +100,7 @@ def background_enqueue_run(report_name, filters=None, user=None):
 	track_instance.insert(ignore_permissions=True)
 	frappe.db.commit()
 	return {
-		"redirect_url": get_url_to_form("Background Report Result", track_instance.name)
+		"redirect_url": get_url_to_form("Prepared Report", track_instance.name)
 	}
 
 
@@ -147,10 +147,18 @@ def run(report_name, filters=None, user=None):
 		frappe.msgprint(_("Must have report permission to access this report."),
 			raise_exception=True)
 
-	if report.background_report:
+	if report.prepared_report:
+		file_attachments = None
+		prepared_report = frappe.get_list("Prepared Report", filters={"report_name": report_name})
+		if len(prepared_report):
+			attachment_file = frappe.desk.form.load.get_attachments(dt="Prepared Report", dn=prepared_report[0].name)
+			if len(attachment_file):
+				file_attachments = attachment_file[0].file_url
 		return {
-			"message": "Background Report",
-			"background_report": True
+			"message": "Prepared Report",
+			"prepared_report": True,
+			"file_attachment": file_attachments
+
 		}
 	else:
 		return generate_report_result(report, filters, user)
@@ -193,7 +201,7 @@ def export_query():
 		if isinstance(data.result[0], dict):
 			for i,row in enumerate(data.result):
 				# only rows which are visible in the report
-				if row and (i+1 in visible_idx):
+				if row and (i in visible_idx):
 					row_list = []
 					for idx in range(len(data.columns)):
 						row_list.append(row.get(columns[idx]["fieldname"],""))
@@ -201,7 +209,7 @@ def export_query():
 				elif not row:
 					result.append([])
 		else:
-			result = result + [d for i,d in enumerate(data.result) if (i+1 in visible_idx)]
+			result = result + [d for i,d in enumerate(data.result) if (i in visible_idx)]
 
 		from frappe.utils.xlsxutils import make_xlsx
 		xlsx_file = make_xlsx(result, "Query Report")

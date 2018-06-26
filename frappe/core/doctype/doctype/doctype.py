@@ -187,6 +187,9 @@ class DocType(Document):
 				# fieldnames should be lowercase
 				d.fieldname = d.fieldname.lower()
 
+			# unique is automatically an index
+			if d.unique: d.search_index = 0
+
 	def validate_series(self, autoname=None, name=None):
 		"""Validate if `autoname` property is correctly set."""
 		if not autoname: autoname = self.autoname
@@ -204,7 +207,6 @@ class DocType(Document):
 			else:
 				for df in self.fields:
 					if df.fieldname == field:
-						df.search_index = 1
 						df.unique = 1
 						break
 
