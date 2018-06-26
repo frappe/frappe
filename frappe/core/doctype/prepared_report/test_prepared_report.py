@@ -42,10 +42,10 @@ class TestPreparedReport(unittest.TestCase):
 	def test_for_completion(self):
 		run_background(self.prepared_report_doc.report_name)
 		time.sleep(5)
-		self.result = frappe.get_doc("Background Report Result", self.prepared_report_doc.name)
+		self.result = frappe.get_doc("Prepared Report", self.prepared_report_doc.name)
 		self.assertTrue('COMPLETED' == self.result.status.upper())
 		self.assertTrue(self.result.report_end_time)
 		self.assertGreater(
 			len(frappe.desk.form.load.get_attachments(
-				dt="Background Report Result", dn=self.result.name)), 0)
+				dt="Prepared Report", dn=self.result.name)), 0)
 
