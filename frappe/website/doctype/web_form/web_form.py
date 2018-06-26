@@ -495,6 +495,16 @@ def get_form_data(doctype, docname, web_form_name):
 		else:
 			frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-	out.web_form = frappe.get_doc('Web Form', web_form_name)
+	webform = frappe.get_doc('Web Form', web_form_name)
+
+	fields = webform.get('web_form_fields') or []
+	links = {}
+
+	for f in fields:
+		if f.fieldtype == "Link":
+			links[f.fieldname] = [d.name for d in frappe.get_list(f.options, fields=["name"])]
+
+	out.web_form = webform
+	out.links = links
 
 	return out
