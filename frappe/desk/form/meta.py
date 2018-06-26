@@ -14,7 +14,7 @@ from frappe.build import scrub_html_template
 
 import io
 
-from six import iteritems, text_type
+from six import iteritems
 
 
 def get_meta(doctype, cached=True):
@@ -39,6 +39,7 @@ class FormMeta(Meta):
 
 		if not self.istable:
 			self.add_code()
+			self.add_custom_script()
 			self.load_print_formats()
 			self.load_workflows()
 			self.load_templates()
@@ -61,6 +62,9 @@ class FormMeta(Meta):
 		return d
 
 	def add_code(self):
+		if self.custom:
+			return
+
 		path = os.path.join(get_module_path(self.module), 'doctype', scrub(self.name))
 		def _get_path(fname):
 			return os.path.join(path, scrub(fname))
@@ -83,7 +87,6 @@ class FormMeta(Meta):
 		self.add_code_via_hook("doctype_list_js", "__list_js")
 		self.add_code_via_hook("doctype_tree_js", "__tree_js")
 		self.add_code_via_hook("doctype_calendar_js", "__calendar_js")
-		self.add_custom_script()
 		self.add_html_templates(path)
 
 	def _add_code(self, path, fieldname):
