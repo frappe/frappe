@@ -216,19 +216,38 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			},
 			callback: resolve
 		})).then(r => {
-			const data = r.message;
-
-			this.toggle_message(false);
-
-			if (data.result && data.result.length) {
-				this.render_chart(data);
-				this.render_report(data);
-			} else {
-				this.toggle_nothing_to_show(true);
-			}
+            const data = r.message;
+            if (data.prepared_report){
+                this.toggle_button(true, data.file_attachment);
+            }else{
+                this.toggle_message(false);
+                if (data.result && data.result.length) {
+                    this.render_chart(data);
+                    this.render_report(data);
+                } else {
+                    this.toggle_nothing_to_show(true);
+                }
+            }
 		});
 	}
-
+    render_background_report() {
+		this.toggle_message(true);
+		const filters = this.get_filter_values(true);
+		return new Promise(resolve => frappe.call({
+			method: 'frappe.desk.query_report.background_enqueue_run',
+			type: 'GET',
+			args: {
+				report_name: this.report_name,
+				filters: filters
+			},
+			callback: resolve
+		})).then(r => {
+            const data = r.message;
+            this.toggle_nothing_to_show(true);
+            frappe
+				.msgprint("Prepared report initiated successfully. Track and access results  <a class='text-info' target='_blank' href="+data.redirect_url+">here</a>", "Notification");
+		});
+	}
 	render_report(data) {
 		this.columns = this.prepare_columns(data.columns);
 		this.data = this.prepare_data(data.result);
@@ -592,7 +611,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	toggle_nothing_to_show(flag) {
 		this.toggle_message(flag, __('Nothing to show'));
 	}
-
+    toggle_button(flag, attachment){
+        if (flag) {
+            if(attachment){
+                this.$message.find('div').html("<p>Download recent generated Prepared Report <a target='_blank' href="+attachment+">here</a>.");
+            }
+			this.$message.find('div').append("<button class='btn btn-primary prepared-report'>Generate Prepared Report</button>");
+			this.$message.find('.prepared-report').click(() => this.render_background_report());;
+			this.$message.show();
+		} else {
+			this.$message.hide();
+		}
+		this.$report.toggle(!flag);
+		this.$chart.toggle(!flag);
+    }
 	toggle_message(flag, message) {
 		if (flag) {
 			this.$message.find('div').html(message);

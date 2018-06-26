@@ -8,12 +8,13 @@ import os, json
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
-from frappe.utils import flt, cint, get_html_format, cstr
+from frappe.utils import flt, cint, get_html_format, cstr, get_url_to_form
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
+
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
@@ -28,6 +29,80 @@ def get_report_doc(report_name):
 		frappe.throw(_("Report {0} is disabled").format(report_name))
 
 	return doc
+
+
+def generate_report_result(report, filters=None, user=None):
+	status = None
+	if not user:
+		user = frappe.session.user
+	if not filters:
+		filters = []
+
+	if filters and isinstance(filters, string_types):
+		filters = json.loads(filters)
+	columns, result, message, chart, data_to_be_printed = [], [], None, None, None
+	if report.report_type == "Query Report":
+		if not report.query:
+			status = "error"
+			frappe.msgprint(_("Must specify a Query to run"), raise_exception=True)
+
+		if not report.query.lower().startswith("select"):
+			status = "error"
+			frappe.msgprint(_("Query must be a SELECT"), raise_exception=True)
+
+		result = [list(t) for t in frappe.db.sql(report.query, filters)]
+		columns = [cstr(c[0]) for c in frappe.db.get_description()]
+	else:
+		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
+		if report.is_standard == "Yes":
+			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
+			res = frappe.get_attr(method_name)(frappe._dict(filters))
+			columns, result = res[0], res[1]
+			if len(res) > 2:
+				message = res[2]
+			if len(res) > 3:
+				chart = res[3]
+			if len(res) > 4:
+				data_to_be_printed = res[4]
+
+	if result:
+		result = get_filtered_data(report.ref_doctype, columns, result, user)
+
+	if cint(report.add_total_row) and result:
+		result = add_total_row(result, columns)
+
+	return {
+		"result": result,
+		"columns": columns,
+		"message": message,
+		"chart": chart,
+		"data_to_be_printed": data_to_be_printed,
+		"status": status
+	}
+
+
+@frappe.whitelist()
+def background_enqueue_run(report_name, filters=None, user=None):
+	"""run reports in background"""
+	if not user:
+		user = frappe.session.user
+	report = get_report_doc(report_name)
+	track_instance = \
+		frappe.get_doc({
+			"doctype": "Prepared Report",
+			"report_name": report_name,
+			"filters": json.dumps(filters),
+			"ref_report_doctype": report_name,
+			"report_type": report.report_type,
+			"query": report.query,
+			"module": report.module,
+		})
+	track_instance.insert(ignore_permissions=True)
+	frappe.db.commit()
+	return {
+		"redirect_url": get_url_to_form("Prepared Report", track_instance.name)
+	}
+
 
 @frappe.whitelist()
 def get_script(report_name):
@@ -61,61 +136,31 @@ def get_script(report_name):
 		"html_format": html_format
 	}
 
+
 @frappe.whitelist()
 def run(report_name, filters=None, user=None):
 
 	report = get_report_doc(report_name)
 	if not user:
 		user = frappe.session.user
-
-	if not filters:
-		filters = []
-
-	if filters and isinstance(filters, string_types):
-		filters = json.loads(filters)
-
 	if not frappe.has_permission(report.ref_doctype, "report"):
 		frappe.msgprint(_("Must have report permission to access this report."),
 			raise_exception=True)
 
-	columns, result, message, chart, data_to_be_printed = [], [], None, None, None
-	if report.report_type=="Query Report":
-		if not report.query:
-			frappe.msgprint(_("Must specify a Query to run"), raise_exception=True)
-
-
-		if not report.query.lower().startswith("select"):
-			frappe.msgprint(_("Query must be a SELECT"), raise_exception=True)
-
-		result = [list(t) for t in frappe.db.sql(report.query, filters)]
-		columns = [cstr(c[0]) for c in frappe.db.get_description()]
+	if report.prepared_report:
+		file_attachments = None
+		prepared_report = frappe.get_list("Prepared Report", filters={"report_name": report_name})
+		if len(prepared_report):
+			attachment_file = frappe.desk.form.load.get_attachments(dt="Prepared Report", dn=prepared_report[0].name)
+			if len(attachment_file):
+				file_attachments = attachment_file[0].file_url
+		return {
+			"message": "Prepared Report",
+			"prepared_report": True,
+			"file_attachment": file_attachments
+		}
 	else:
-		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
-		if report.is_standard=="Yes":
-			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
-			res = frappe.get_attr(method_name)(frappe._dict(filters))
-
-			columns, result = res[0], res[1]
-			if len(res) > 2:
-				message = res[2]
-			if len(res) > 3:
-				chart = res[3]
-			if len(res) > 4:
-				data_to_be_printed = res[4]
-
-	if result:
-		result = get_filtered_data(report.ref_doctype, columns, result, user)
-
-	if cint(report.add_total_row) and result:
-		result = add_total_row(result, columns)
-
-	return {
-		"result": result,
-		"columns": columns,
-		"message": message,
-		"chart": chart,
-		"data_to_be_printed": data_to_be_printed
-	}
+		return generate_report_result(report, filters, user)
 
 
 @frappe.whitelist()
