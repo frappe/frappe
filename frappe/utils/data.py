@@ -852,14 +852,14 @@ def sanitize_column(column_name):
 
 	if 'ifnull' in column_name:
 		if regex.match(column_name):
-			# to avoid and, or and like
+			# to avoid and, or
 			if any(' {0} '.format(keyword) in column_name.split() for keyword in blacklisted_keywords):
 				_raise_exception()
 
 			# to avoid select, delete, drop, update and case
 			elif any(keyword in column_name.split() for keyword in blacklisted_keywords):
 				_raise_exception()
-	
+
 	elif regex.match(column_name):
 		_raise_exception()
 

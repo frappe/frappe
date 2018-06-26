@@ -162,6 +162,24 @@ class TestReportview(unittest.TestCase):
 				limit_start=0, limit_page_length=1)
 		self.assertEquals('DocField', data[0]['name'])
 
+		data = DatabaseQuery("DocType").execute(fields=["name"],
+				filters={'issingle': 1}, or_filters=[['DocType', 'module', '=', 'Core']],
+				limit_start=0, limit_page_length=1)
+		self.assertEquals('User Permission for Page and Report', data[0]['name'])
+
+		data = DatabaseQuery("DocType").execute(fields=["name"],
+				filters={'track_changes': 1, 'module': 'Core'},
+				limit_start=0, limit_page_length=4)
+		self.assertEquals(['File', 'Version', 'Data Import', 'Domain Settings'],
+			[d['name'] for d in data])
+
+		data = DatabaseQuery("DocType").execute(fields=["name"],
+				filters=[['DocType', 'ifnull(track_changes, 0)', '=', 0],
+					['DocType', 'module', '=', 'Core']],
+				limit_start=0, limit_page_length=4)
+		self.assertEquals(['DocField', 'User Permission for Page and Report', 'SMS Settings', 'Block Module'],
+			[d['name'] for d in data])
+
 def create_event(subject="_Test Event", starts_on=None):
 	""" create a test event """
 
