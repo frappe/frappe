@@ -158,7 +158,6 @@ def run(report_name, filters=None, user=None):
 			"message": "Prepared Report",
 			"prepared_report": True,
 			"file_attachment": file_attachments
-
 		}
 	else:
 		return generate_report_result(report, filters, user)
@@ -222,7 +221,6 @@ def export_query():
 def get_report_module_dotted_path(module, report_name):
 	return frappe.local.module_app[scrub(module)] + "." + scrub(module) \
 		+ ".report." + scrub(report_name) + "." + scrub(report_name)
-
 
 def add_total_row(result, columns, meta = None):
 	total_row = [""]*len(columns)
