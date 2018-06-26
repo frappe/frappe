@@ -642,7 +642,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.$report.toggle(!flag);
 		this.$chart.toggle(!flag);
 	}
-
 	// backward compatibility
 	get get_values() {
 		return this.get_filter_values;
