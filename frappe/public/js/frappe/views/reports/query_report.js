@@ -242,7 +242,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			callback: resolve
 		})).then(r => {
 			const data = r.message;
-            this.toggle_nothing_to_show(true);
+			this.toggle_nothing_to_show(true);
 			frappe.msgprint("Prepared report initiated successfully. Track and access results  <a class='text-info' target='_blank' href="+data.redirect_url+">here</a>", "Notification");
 		});
 	}
@@ -610,13 +610,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.toggle_message(flag, __('Nothing to show'));
 	}
 	toggle_button(flag, attachment){
-        if (flag) {
-            if(attachment){
+		if (flag) {
+			if(attachment){
 				this.$message.find('div').html("<p>Download recent generated Prepared Report <a target='_blank' href="+attachment+">here</a>.");
 			}
-            this.$message.find('div').append("<button class='btn btn-primary prepared-report'>Generate Prepared Report</button>");
-            this.$message.find('.prepared-report').click(() => this.render_background_report());
-            this.$message.show();
+			this.$message.find('div').append("<button class='btn btn-primary prepared-report'>Generate Prepared Report</button>");
+			this.$message.find('.prepared-report').click(() => this.render_background_report());
+			this.$message.show();
 		} else {
 			this.$message.hide();
 		}
