@@ -15,15 +15,16 @@ export default class WebForm {
 			},
 			freeze: true
 		}).then(r => {
-			const { doc, web_form } = r.message;
-			this.render(doc, web_form);
+			const { doc, web_form, links } = r.message;
+			this.render(doc, web_form, links);
 		});
 	}
 
-	render(doc, web_form) {
+	render(doc, web_form, links) {
 		web_form.web_form_fields.map(df => {
 			if (df.fieldtype === 'Link') {
 				df.fieldtype = 'Select';
+				df.options = links[df.fieldname]
 			}
 
 			if (df.fieldtype === 'Table') {
