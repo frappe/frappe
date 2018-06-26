@@ -22,13 +22,10 @@ class TestPreparedReport(unittest.TestCase):
 			"doctype": "Role"
 		}
 		self.prepared_report_doc = frappe.get_doc({
-			"doctype": "Background Report Result",
+			"doctype": "Prepared Report",
 			"report_name": self.report.name,
 			"filters": json.dumps(self.filters),
-			"ref_report_doctype": self.report.name,
-			"report_type": self.report.report_type,
-			"query": self.report.query,
-			"module": self.report.module
+			"ref_report_doctype": self.report.name
 		}).insert()
 
 	def tearDown(self):
@@ -40,7 +37,7 @@ class TestPreparedReport(unittest.TestCase):
 		self.assertTrue(self.prepared_report_doc.report_start_time)
 
 	def test_for_completion(self):
-		run_background(self.prepared_report_doc.report_name)
+		run_background(self.prepared_report_doc)
 		time.sleep(5)
 		self.result = frappe.get_doc("Prepared Report", self.prepared_report_doc.name)
 		self.assertTrue('COMPLETED' == self.result.status.upper())
