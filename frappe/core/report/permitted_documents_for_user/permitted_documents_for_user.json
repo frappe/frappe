@@ -12,13 +12,12 @@
  "module": "Core",
  "name": "Permitted Documents For User",
  "owner": "Administrator",
- "ref_doctype": "User", 
- "report_name": "Permitted Documents For User", 
- "report_type": "Script Report", 
+ "ref_doctype": "User",
+ "report_name": "Permitted Documents For User",
+ "report_type": "Script Report",
  "roles": [
   {
    "role": "System Manager"
   }
  ]
-
 }

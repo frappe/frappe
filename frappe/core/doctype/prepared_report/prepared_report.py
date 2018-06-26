@@ -14,6 +14,7 @@ from frappe.utils.background_jobs import enqueue
 from frappe.desk.query_report import generate_report_result, get_columns_dict
 from frappe.utils.file_manager import save_file
 from io import BytesIO
+from frappe.utils.csvutils import to_csv
 
 
 class PreparedReport(Document):
@@ -44,14 +45,8 @@ def create_csv_file(columns, data, dt, dn):
 	for idx in range(len(columns)):
 		column_list.append(columns_header[idx]["label"])
 	csv_filename = '{0}.csv'.format(frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H:M"))
-	# Write columns and results to string
-	out = BytesIO()
-	csv_out = csv.writer(out)
-	csv_out.writerow(column_list)
-	for row in data:
-		csv_out.writerow(row)
-	# encode the content of csv
-	encoded = base64.b64encode(out.getvalue())
+	rows = column_list + data
+	encoded = base64.b64encode(to_csv(rows))
 	# Call save_file function to upload and attach the file
 	save_file(
 		fname=csv_filename,
