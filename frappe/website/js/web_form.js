@@ -19,7 +19,7 @@ frappe.ready(function() {
 		can_read: '', can_write: '', can_create: ''
 	};
 
-	frappe.webForm = new WebForm({
+	frappe.web_form = new WebForm({
 		wrapper: wrapper,
 		doctype: doctype,
 		docname: docname,
@@ -29,13 +29,13 @@ frappe.ready(function() {
 
 	// allow payment only if
 	$('.btn-payment').on('click', function() {
-		save(frappe.webForm.get_values(), true);
+		save(frappe.web_form.get_values(), true);
 		return false;
 	});
 
 	// submit
 	$(".btn-form-submit").on("click", function() {
-		let data = frappe.webForm.get_values();
+		let data = frappe.web_form.get_values();
 		save(data);
 		return false;
 	});
@@ -46,7 +46,7 @@ frappe.ready(function() {
 		if(!frappe.form_dirty || frappe.is_read_only) {
 			show_slide(idx);
 		} else {
-			let data = frappe.webForm.get_values();
+			let data = frappe.web_form.get_values();
 			if(save(data)!==false) {
 				show_slide(idx);
 			}

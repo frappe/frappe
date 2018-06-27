@@ -42,7 +42,9 @@ app_include_css = [
 ]
 
 web_include_js = [
-	"website_script.js"
+	"website_script.js",
+	"assets/js/control.min.js",
+	"assets/js/dialog.min.js"
 ]
 
 bootstrap = "assets/frappe/css/bootstrap.css"
