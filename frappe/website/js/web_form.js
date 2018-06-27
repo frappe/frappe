@@ -11,7 +11,7 @@ frappe.ready(function() {
 
 	const { web_form_doctype: doctype, doc_name: docname, web_form_name } = web_form_settings;
 	const wrapper = $(`.webform-wrapper`);
-	var $form = $("form[data-web-form='"+frappe.web_form_name+"']");
+	var $form = $("div[data-web-form='"+frappe.web_form_name+"']");
 
 	// :( Needed by core model, meta and perm, all now included in th website js
 	// One of the few non-touchy options
