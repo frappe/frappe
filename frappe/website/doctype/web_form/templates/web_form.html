@@ -6,6 +6,7 @@
 <h1>{{ _(title) }}</h1>
 {% endblock %}
 
+
 {% block breadcrumbs %}
 {% if has_header and login_required %}
 {% include "templates/includes/breadcrumbs.html" %}
@@ -162,6 +163,8 @@
 {% endblock %}
 
 {% block script %}
+<script type="text/javascript" src="/assets/js/dialog.min.js"></script>
+<script type="text/javascript" src="/assets/js/control.min.js"></script>
 
 <script>
 window.web_form_settings = {

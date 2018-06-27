@@ -75,7 +75,6 @@
 	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
-		"public/js/frappe/ui/modal.html",
 
 		"public/js/frappe/form/formatters.js",
 		"public/js/frappe/form/layout.js",
@@ -142,7 +141,6 @@
 		"public/js/frappe/assets.js",
 		"public/js/frappe/format.js",
 		"public/js/frappe/form/formatters.js",
-		"public/js/frappe/ui/modal.html",
 		"public/js/frappe/dom.js",
 		"public/js/frappe/ui/messages.js",
 		"public/js/frappe/ui/keyboard.js",
