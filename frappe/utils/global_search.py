@@ -246,7 +246,7 @@ def update_global_search(doc):
 
 	tag =(frappe.db.get_value(doc.doctype, doc.name, '_user_tags', ignore=1) or '').strip()
 	if tag:
-		content.append("User Tags : " + tag)
+		content.append(tag)
 
 	# Get children
 	for child in doc.meta.get_table_fields():
