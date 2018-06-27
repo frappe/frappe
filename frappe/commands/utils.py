@@ -516,6 +516,27 @@ def setup_global_help(mariadb_root_password=None):
 	from frappe.utils.help import sync
 	sync()
 
+@click.command('get-docs-app')
+@click.argument('app')
+def get_docs_app(app):
+	'''Get the docs app for given app'''
+
+	docs_app = frappe.get_hooks('docs_app', app, app)[0]
+
+	if docs_app and docs_app not in frappe.get_installed_apps():
+		print("Getting {docs_app} required by {app}".format(docs_app=docs_app, app=app))
+		subprocess.check_output(['bench', 'get-app', docs_app], cwd = '..')
+	else:
+		if docs_app:
+			print("{docs_app} required by {app} already present".format(docs_app=docs_app, app=app))
+
+@click.command('get-all-docs-apps')
+def get_all_docs_apps():
+	'''Get docs apps for all apps'''
+
+	for app in frappe.get_installed_apps():
+		get_docs_app(app)
+
 @click.command('setup-help')
 @pass_context
 def setup_help(context):
