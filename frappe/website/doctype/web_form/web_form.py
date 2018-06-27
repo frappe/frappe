@@ -502,7 +502,7 @@ def get_form_data(doctype, docname, web_form_name):
 
 	for f in fields:
 		if f.fieldtype == "Link":
-			links[f.fieldname] = [d.name for d in frappe.get_list(f.options, fields=["name"])]
+			links[f.fieldname] = [d.name for d in frappe.get_all(f.options, fields=["name"])]
 
 	out.web_form = webform
 	out.links = links
