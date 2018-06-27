@@ -125,8 +125,15 @@ def load_sidebar(context, sidebar_json_path):
 		context.sidebar_items = json.loads(sidebarfile.read())
 		context.show_sidebar = 1
 
-def get_sidebar_json_path(path):
-	'''Look for a _sidebar.json going upwards from given path'''
+def get_sidebar_json_path(path, look_for=False):
+	'''
+		Get _sidebar.json path from directory path
+
+		:param path: path of the current diretory
+		:param look_for: if True, look for _sidebar.json going upwards from given path
+
+		:return: _sidebar.json path
+	'''
 	if os.path.split(path)[1] == 'www' or path == '/' or not path:
 		return ''
 
@@ -134,7 +141,10 @@ def get_sidebar_json_path(path):
 	if os.path.exists(sidebar_json_path):
 		return sidebar_json_path
 	else:
-		return get_sidebar_json_path(os.path.split(path)[0])
+		if look_for:
+			return get_sidebar_json_path(os.path.split(path)[0], look_for)
+		else:
+			return ''
 
 def add_sidebar_and_breadcrumbs(context):
 	'''Add sidebar and breadcrumbs to context'''
@@ -144,7 +154,10 @@ def add_sidebar_and_breadcrumbs(context):
 		add_sidebar_data(context)
 	else:
 		if context.basepath:
-			sidebar_json_path = get_sidebar_json_path(context.basepath)
+			sidebar_json_path = get_sidebar_json_path(
+				context.basepath,
+				frappe.get_hooks('look_for_sidebar_json')[0]
+			)
 			if sidebar_json_path:
 				load_sidebar(context, sidebar_json_path)
 
