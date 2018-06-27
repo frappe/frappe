@@ -10,7 +10,6 @@ class EnergyPointLog(Document):
 	pass
 
 def update_log(doc, state):
-	state = 'on_submit'
 	event_type = get_event_type(state)
 	point_rule = frappe.get_all('Energy Point Rule', filters={
 		'reference_doctype': doc.get('doctype'),
@@ -18,9 +17,9 @@ def update_log(doc, state):
 	}, fields=['point', 'rule_name'], limit=1)
 	if point_rule:
 		point_rule = point_rule[0]
-		print(point_rule)
-		update_user_energy_point(point_rule.point)
-		add_energy_point_log(doc, point_rule)
+		if(point_rule.condition and frappe.safe_eval(point_rule.condition, None, {'doc': doc})):
+			update_user_energy_point(point_rule.point)
+			add_energy_point_log(doc, point_rule)
 
 def update_user_energy_point(point_value, user=None):
 	if not user: user = frappe.session.user
@@ -29,7 +28,7 @@ def update_user_energy_point(point_value, user=None):
 	frappe.db.set_value('User', user, 'energy_point', new_point)
 
 def get_event_type(state):
-	return state[3:].capitalize()
+	return state.capitalize()
 
 def add_energy_point_log(doc, point_rule, user=None):
 	if not user: user = frappe.session.user
