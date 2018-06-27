@@ -216,18 +216,6 @@ a.no-decoration:active {
 .margin {
   margin: 15px;
 }
-.margin-top {
-  margin-top: 15px;
-}
-.margin-bottom {
-  margin-bottom: 15px;
-}
-.margin-left {
-  margin-left: 15px;
-}
-.margin-right {
-  margin-right: 15px;
-}
 @media (max-width: 767px) {
   .text-center-xs {
     text-align: center;
@@ -268,15 +256,6 @@ a[disabled="disabled"] {
 a[disabled="disabled"]:hover {
   text-decoration: none;
 }
-.link-btn {
-  position: absolute;
-  top: 3px;
-  right: 4px;
-  border-radius: 2px;
-  padding: 3px;
-  display: none;
-  z-index: 3;
-}
 .link-primary {
   color: #5E64FF;
 }
@@ -303,10 +282,7 @@ a[disabled="disabled"]:hover {
   z-index: 1050;
 }
 #alert-container .desk-alert {
-  -webkit-box-shadow: 0 0px 5px rgba(0, 0, 0, 0.1);
-  -moz-box-shadow: 0 0px 5px rgba(0, 0, 0, 0.1);
   box-shadow: 0 0px 5px rgba(0, 0, 0, 0.1);
-  padding: 10px 40px 10px 20px;
   max-width: 400px;
   min-width: 200px;
   max-height: 200px;
@@ -314,17 +290,41 @@ a[disabled="disabled"]:hover {
   border: 1px solid #d1d8dd;
   overflow-y: auto;
   position: relative;
+  transform: translateX(calc(100% + 20px));
+  transition: transform 300ms ease;
+  padding: 0px;
+}
+#alert-container .desk-alert .alert-message {
+  padding: 10px 40px 10px 10px;
 }
 #alert-container .desk-alert .close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   color: inherit;
-  line-height: inherit;
   opacity: 1;
   font-size: inherit;
-  float: none;
-  margin-left: 15px;
-  margin-right: 15px;
-  position: absolute;
-  right: 0px;
+}
+#alert-container .desk-alert .next-action-container {
+  display: flex;
+}
+#alert-container .desk-alert .next-action-container .next-action {
+  border: none;
+  background: none;
+  width: 100%;
+  border-top: 1px solid #d1d8dd;
+  border-right: 1px solid #d1d8dd;
+  padding: 7px;
+  outline: none;
+  font-size: 12px;
+  font-weight: bold;
+  color: #6c7680;
+}
+#alert-container .desk-alert .next-action-container .next-action:hover {
+  background-color: #fff9cd;
+}
+#alert-container .desk-alert .next-action-container .next-action:last-child {
+  border-right: none;
 }
 .missing-image {
   background-color: #fafbfc;
@@ -500,6 +500,10 @@ fieldset[disabled] .form-control {
 }
 .input-area {
   position: relative;
+}
+.input-xs {
+  height: 26px;
+  font-size: 12px;
 }
 .link-field.ui-front {
   z-index: inherit;
@@ -981,11 +985,9 @@ li.user-progress .progress-bar {
 .note-editor.note-frame .note-editing-area .note-editable {
   color: #36414C;
 }
-
 .input-area input[type=checkbox] {
   margin-left: -20px;
 }
-
 .checkbox label {
   padding-left: 0px;
 }
@@ -995,7 +997,6 @@ li.user-progress .progress-bar {
   position: relative;
   height: 12px;
 }
-
 input[type="checkbox"] {
   position: relative;
   left: -999999px;

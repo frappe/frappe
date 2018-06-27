@@ -101,8 +101,7 @@ body[data-route^="Module"] .main-menu .form-sidebar {
 .form-sidebar .form-shared .octicon,
 .form-sidebar .form-viewers .octicon {
   position: relative;
-  top: 2px;
-  left: 7px;
+  left: 4.5px;
 }
 .form-sidebar .form-shared .avatar,
 .form-sidebar .form-viewers .avatar {

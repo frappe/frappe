@@ -4,6 +4,9 @@
 .gantt .bar-milestone .bar-progress {
   fill: #FC4F51;
 }
+.frappe-list .gantt-container .popup-wrapper .pointer {
+  height: 14px;
+}
 .frappe-rtl .gantt {
   direction: ltr;
 }

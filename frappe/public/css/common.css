@@ -19,13 +19,10 @@ img {
   max-width: 100%;
 }
 p {
-  margin: 10px 0px;
+  margin: 10px 0;
 }
 .text-color {
   color: #36414C !important;
-}
-.text-muted {
-  color: #8D99A6 !important;
 }
 .text-extra-muted {
   color: #d1d8dd !important;
@@ -87,6 +84,7 @@ kbd {
 .nav [class*="fa fa-"] {
   display: inline-block;
 }
+/* dropdowns */
 .dropdown-menu > li > a {
   padding: 14px;
   white-space: normal;
@@ -111,7 +109,7 @@ kbd {
 a.badge-hover:hover .badge,
 a.badge-hover:focus .badge,
 a.badge-hover:active .badge {
-  background-color: #D8DFE5;
+  background-color: #d8dfe5;
 }
 .msgprint {
   word-wrap: break-word;
@@ -173,7 +171,7 @@ a.badge-hover:active .badge {
 }
 #freeze {
   z-index: 1020;
-  bottom: 0px;
+  bottom: 0;
   opacity: 0;
   background-color: #fafbfc;
 }
@@ -250,4 +248,9 @@ a.no-decoration:active {
   text-overflow: ellipsis;
   max-width: 100%;
   vertical-align: middle;
+}
+/* Given that the element that text-ellipsis is applied to,
+	should have a max width for it to work */
+.ellipsis-width {
+  max-width: 200px;
 }
