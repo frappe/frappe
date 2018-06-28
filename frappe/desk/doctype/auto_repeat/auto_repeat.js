@@ -79,6 +79,34 @@ frappe.ui.form.on('Auto Repeat', {
 				}
 			}
 		});
+	},
+
+	template: function(frm) {
+		if (frm.doc.template) {
+			frappe.model.with_doc("Email Template", frm.doc.template, () => {
+				let email_template = frappe.get_doc("Email Template", frm.doc.template);
+				frm.set_value("subject", email_template.subject);
+				frm.set_value("message", email_template.response);
+				frm.refresh_field("subject");
+				frm.refresh_field("message");
+			});
+		}
+	},
+
+	get_contacts: function(frm) {
+		frappe.call({
+			method: "frappe.desk.doctype.auto_repeat.auto_repeat.get_contacts",
+			args: {
+				reference_doctype: frm.doc.reference_doctype,
+				reference_name: frm.doc.reference_document
+			},
+			callback: function(r) {
+				if(r.message) {
+					frm.set_value("recipients", r.message.join());
+					frm.refresh_field("recipients");
+				}
+			}
+		});
 	}
 });
 
