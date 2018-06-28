@@ -699,5 +699,4 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	get get_values() {
 		return this.get_filter_values;
 	}
-
 };
