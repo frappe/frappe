@@ -12,7 +12,7 @@ from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
 from frappe.desk.query_report import generate_report_result, get_columns_dict
 from frappe.utils.file_manager import save_file
-from frappe.utils.csvutils import to_csv
+from frappe.utils.csvutils import to_csv, read_csv_content_from_attached_file
 
 
 class PreparedReport(Document):
@@ -55,3 +55,14 @@ def create_csv_file(columns, data, dt, dn):
 		decode=True,
 		is_private=False)
 
+
+@frappe.whitelist()
+def get_report_attachment_data(dn):
+
+	doc = frappe.get_doc("Prepared Report", dn)
+	data = read_csv_content_from_attached_file(doc)
+
+	return {
+		'columns': data[0],
+		'result': data[-1:]
+	}
