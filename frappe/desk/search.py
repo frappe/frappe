@@ -144,6 +144,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				ignore_permissions = ignore_permissions,
 				as_list=not as_dict)
 
+
 			# remove _relevance from results
 			if as_dict:
 				for r in values:
