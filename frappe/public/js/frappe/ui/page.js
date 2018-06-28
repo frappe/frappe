@@ -378,7 +378,7 @@ frappe.ui.Page = Class.extend({
 	* @param {object} action - function to be called when button is clicked
 	* @param {string} group - Label of the group button
 	*/
-	add_inner_button: function(label, action, group) {
+	add_inner_button: function(label, action, group, type="default") {
 		var me = this;
 		let _action = function() {
 			let btn = $(this);
@@ -398,7 +398,7 @@ frappe.ui.Page = Class.extend({
 		} else {
 			var button = this.inner_toolbar.find('button[data-label="'+encodeURIComponent(label)+'"]');
 			if( button.length == 0 ) {
-				return $('<button data-label="'+encodeURIComponent(label)+'" class="btn btn-default btn-xs" style="margin-left: 10px;">'+__(label)+'</btn>')
+				return $('<button data-label="'+encodeURIComponent(label)+`" class="btn btn-${type} btn-xs" style="margin-left: 10px;">`+__(label)+'</btn>')
 					.on("click", _action)
 					.appendTo(this.inner_toolbar.removeClass("hide"));
 			} else {
@@ -424,6 +424,12 @@ frappe.ui.Page = Class.extend({
 
 			this.inner_toolbar.find('button[data-label="'+encodeURIComponent(label)+'"]').remove();
 		}
+	},
+
+	add_inner_message: function(message) {
+		let $message = $(`<span class='inner-page-message text-muted small'>${message}</div>`);
+		this.inner_toolbar.find('.inner-page-message').remove();
+		this.inner_toolbar.removeClass("hide").prepend($message);
 	},
 
 	clear_inner_toolbar: function() {

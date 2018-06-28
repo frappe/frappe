@@ -70,7 +70,7 @@ def get_report_attachment_data(dn):
 
 	return {
 		'columns': data[0],
-		'result': data[-1:]
+		'result': data[1:]
 	}
 
 @frappe.whitelist()
