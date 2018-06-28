@@ -11,6 +11,7 @@ from frappe.modules import scrub, get_module_path
 from frappe.utils import flt, cint, get_html_format, cstr, get_url_to_form
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
+from frappe.utils.csvutils import read_csv_content_from_attached_file
 import frappe.desk.reportview
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
@@ -148,16 +149,20 @@ def run(report_name, filters=None, user=None):
 			raise_exception=True)
 
 	if report.prepared_report:
-		file_attachments = None
-		prepared_report = frappe.get_list("Prepared Report", filters={"report_name": report_name})
-		if len(prepared_report):
-			attachment_file = frappe.desk.form.load.get_attachments(dt="Prepared Report", dn=prepared_report[0].name)
-			if len(attachment_file):
-				file_attachments = attachment_file[0].file_url
+		doc_list = frappe.get_list("Prepared List", filters={"status": "Completed", "report_name":report_name })
+		columns = []
+		result = []
+		if len(doc_list):
+			doc = frappe.get_doc("Prepared Report", doc_list[0])
+			data = read_csv_content_from_attached_file(doc)
+			columns
 		return {
 			"message": "Prepared Report",
 			"prepared_report": True,
-			"file_attachment": file_attachments
+			"data": {
+				"columns": [],
+				"result": []
+			}
 		}
 	else:
 		return generate_report_result(report, filters, user)

@@ -207,7 +207,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if(flags) {
 		    const prepared_data = flags.data
 			this.init_report_with_data(prepared_data);
-			this.downloadifypage.add_inner_button(__("Download Report"), function () {
+			this.page.add_inner_button(__("Download Report"), function () {
 				frappe.call({
 					method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
 					args: {"dn": flags.name}
