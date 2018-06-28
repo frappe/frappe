@@ -207,12 +207,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if(flags) {
 		    const prepared_data = flags.data
 			this.init_report_with_data(prepared_data);
-			this.page.add_inner_button(__("Download Report"), function () {
-				frappe.call({
-					method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
-					args: {"dn": flags.name}
-				});
-			});
+			this.toggle_to_button();
 			return;
 		}
 	    if(!this.prepared_report){
@@ -235,16 +230,17 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	init_report_with_data(data) {
 		if (data.prepared_report){
 		    this.prepared_report = true;
-			this.toggle_to_button(true, data.file_attachment);
-		}else{
-			this.toggle_message(false);
-			if (data.result && data.result.length) {
-				this.render_chart(data);
-				this.render_report(data);
-			} else {
-				this.toggle_nothing_to_show(true);
-			}
+		    this.toggle_to_button();
+		    data = data.data;
 		}
+        this.toggle_message(false);
+        if (data.result && data.result.length) {
+            this.render_chart(data);
+            this.render_report(data);
+        } else {
+            this.toggle_nothing_to_show(true);
+        }
+
 	}
 
 	render_background_report() {
@@ -632,19 +628,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	toggle_nothing_to_show(flag) {
 		this.toggle_message(flag, __('Nothing to show'));
 	}
-	toggle_to_button(flag, attachment){
-		if (flag) {
-			if(attachment){
-				this.$message.find('div').html("<p>Download recent generated Prepared Report <a target='_blank' href="+attachment+">here</a>.");
-			}
-			this.$message.find('div').append("<button class='btn btn-primary prepared-report'>Generate Prepared Report</button>");
-			this.$message.find('.prepared-report').click(() => this.render_background_report());
-			this.$message.show();
-		} else {
-			this.$message.hide();
-		}
-		this.$report.toggle(!flag);
-		this.$chart.toggle(!flag);
+	toggle_to_button(){
+		this.page.add_inner_button(__("Download Report"), function () {
+            frappe.call({
+                method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
+                args: {"dn": flags.name}
+            });
+        });
 	}
 	toggle_message(flag, message) {
 		if (flag) {

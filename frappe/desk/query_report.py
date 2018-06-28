@@ -13,6 +13,7 @@ from frappe.model.utils import render_include
 from frappe.translate import send_translations
 from frappe.utils.csvutils import read_csv_content_from_attached_file
 import frappe.desk.reportview
+from frappe.utils.csvutils import read_csv_content_from_attached_file
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
 
@@ -149,19 +150,20 @@ def run(report_name, filters=None, user=None):
 			raise_exception=True)
 
 	if report.prepared_report:
-		doc_list = frappe.get_list("Prepared List", filters={"status": "Completed", "report_name":report_name })
+		doc_list = frappe.get_list("Prepared Report", filters={"status": "Completed", "ref_report_doctype": report})
 		columns = []
 		result = []
 		if len(doc_list):
 			doc = frappe.get_doc("Prepared Report", doc_list[0])
 			data = read_csv_content_from_attached_file(doc)
-			columns
+			columns = data[0]
+			result = data[1:]
 		return {
 			"message": "Prepared Report",
 			"prepared_report": True,
 			"data": {
-				"columns": [],
-				"result": []
+				"columns": columns,
+				"result": result
 			}
 		}
 	else:

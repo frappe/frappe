@@ -16,6 +16,7 @@ from frappe.utils.csvutils import to_csv, read_csv_content_from_attached_file
 from frappe.desk.form.load import get_attachments
 from frappe.utils.file_manager import download_file
 
+
 class PreparedReport(Document):
 	def before_insert(self):
 		self.status = "Queued"
