@@ -13,7 +13,8 @@ from frappe.utils.background_jobs import enqueue
 from frappe.desk.query_report import generate_report_result, get_columns_dict
 from frappe.utils.file_manager import save_file
 from frappe.utils.csvutils import to_csv, read_csv_content_from_attached_file
-
+from frappe.desk.form.load import get_attachments
+from frappe.utils.file_manager import download_file
 
 class PreparedReport(Document):
 	def before_insert(self):
@@ -70,3 +71,9 @@ def get_report_attachment_data(dn):
 		'columns': data[0],
 		'result': data[-1:]
 	}
+
+@frappe.whitelist()
+def download_attachment(dn):
+	doc = frappe.get_doc("Prepared Report", dn)
+	attachment = get_attachments("Prepared Report", dn)[0]
+	download_file(attachment.file_url)

@@ -12,7 +12,10 @@ frappe.ui.form.on('Prepared Report', {
 				callback: function(r) {
 					if(r.message) {
 						let data = r.message;
-						frappe.flags.prepared_report_data = data;
+						frappe.flags.prepared_report = {
+							data: data,
+							name: frm.doc.name
+						};
 
 						frappe.set_route("query-report", frm.doc.report_name);
 					}

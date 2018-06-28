@@ -203,9 +203,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	refresh() {
-		const prepared_data = frappe.flags.prepared_report_data
-		if(prepared_data) {
+		const flags = frappe.flags.prepared_report;
+		if(flags) {
+		    const prepared_data = flags.data
 			this.init_report_with_data(prepared_data);
+			this.downloadifypage.add_inner_button(__("Download Report"), function () {
+				frappe.call({
+					method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
+					args: {"dn": flags.name}
+				});
+			});
 			return;
 		}
 	    if(!this.prepared_report){
@@ -265,7 +272,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.columns = this.prepare_columns(data.columns);
 		this.data = this.prepare_data(data.result);
 
-		console.log(data.columns.slice(0, 2), data);
 		this.tree_report = this.data.some(d => 'indent' in d);
 
 		const columns = this.get_visible_columns();
@@ -275,7 +281,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 
 		this.datatable = new DataTable(this.$report[0], {
-			columns: columns.slice(0, 2),
+			columns: columns,
 			data: this.data,
 			inlineFilters: true,
 			treeView: this.tree_report,
