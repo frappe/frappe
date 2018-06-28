@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
-from frappe.utils import get_url
+from frappe.utils import get_url, get_datetime
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe import _
 from frappe.model.workflow import apply_workflow, get_workflow_name, \
@@ -55,7 +55,7 @@ def process_workflow_actions(doc, state):
 
 
 @frappe.whitelist(allow_guest=True)
-def apply_action(action, doctype, docname, current_state, user):
+def apply_action(action, doctype, docname, current_state, user, last_modified=None):
 	if not verify_request():
 		return
 
@@ -67,14 +67,28 @@ def apply_action(action, doctype, docname, current_state, user):
 	doc_workflow_state = get_doc_workflow_state(doc)
 
 	if doc_workflow_state == current_state:
-		newdoc = apply_workflow(doc, action)
-		frappe.db.commit()
-		frappe.respond_as_web_page(_("Success"),
-			_("{0}: {1} is set to state {2}".format(
-				doctype,
-				frappe.bold(newdoc.get('name')),
-				frappe.bold(get_doc_workflow_state(newdoc))
-			)), indicator_color='green')
+		if not last_modified or get_datetime(doc.modified) == get_datetime(last_modified):
+			newdoc = apply_workflow(doc, action)
+			frappe.db.commit()
+			frappe.respond_as_web_page(_("Success"),
+				_("{0}: {1} is set to state {2}".format(
+					doctype,
+					frappe.bold(newdoc.get('name')),
+					frappe.bold(get_doc_workflow_state(newdoc))
+				)), indicator_color='green')
+		else:
+			response_html_params = {
+				'title': _("Document has been modified!"),
+				'message': "Please review the document before approval",
+				'print_format': frappe.get_print(doc.get('doctype'), doc.get('name')),
+				'action': {
+					'label': action,
+					'link': get_workflow_action_url(action, doc, user)
+				}
+			}
+			frappe.respond_as_web_page(None, None,
+				template="modified_doc_alert",
+				context=response_html_params)
 	else:
 		frappe.respond_as_web_page(_("Link Expired"),
 			_("Document {0} has been set to state {1} by {2}"
@@ -161,7 +175,8 @@ def get_workflow_action_url(action, doc, user):
 		"docname": doc.get('name'),
 		"action": action,
 		"current_state": get_doc_workflow_state(doc),
-		"user": user
+		"user": user,
+		"last_modified": doc.get('modified')
 	}
 
 	return get_url(apply_action_method + "?" + get_signed_params(params))
