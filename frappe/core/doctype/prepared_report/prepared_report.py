@@ -36,14 +36,18 @@ def run_background(instance):
 	instance.save()
 
 
-def create_csv_file(columns, data, dt, dn):
-	# create the list of column labels
+def remove_header_meta(columns):
 	column_list = []
 	columns_header = get_columns_dict(columns)
 	for idx in range(len(columns)):
-		column_list.append(columns_header[idx]["label"])
+		column_list.append(columns_header[idx]['label'])
+	return column_list
+
+
+def create_csv_file(columns, data, dt, dn):
+
 	csv_filename = '{0}.csv'.format(frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H:M"))
-	rows = column_list + data
+	rows = columns + data
 	encoded = base64.b64encode(to_csv(rows))
 	# Call save_file function to upload and attach the file
 	save_file(

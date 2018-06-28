@@ -228,7 +228,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	init_report_with_data(data) {
 		if (data.prepared_report){
 		    this.prepared_report = true;
-			this.toggle_button(true, data.file_attachment);
+			this.toggle_to_button(true, data.file_attachment);
 		}else{
 			this.toggle_message(false);
 			if (data.result && data.result.length) {
