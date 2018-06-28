@@ -5,7 +5,6 @@
 # --------------------
 
 from __future__ import unicode_literals
-import warnings
 import datetime
 import frappe
 import frappe.defaults
@@ -13,45 +12,18 @@ import frappe.async
 from time import time
 import re
 import frappe.model.meta
-from frappe.utils import now, get_datetime, cstr, cast_fieldtype
+from frappe.utils import now, cstr, cast_fieldtype
 from frappe import _
 from frappe.model.utils.link_count import flush_local_link_count
-from frappe.model.utils import STANDARD_FIELD_CONVERSION_MAP
 from frappe.utils.background_jobs import execute_job, get_queue
-from frappe import as_unicode
-import six
 
 # imports - compatibility imports
 from six import (
 	integer_types,
 	string_types,
-	binary_type,
 	text_type,
 	iteritems
 )
-
-# imports - third-party imports
-from markdown2 import UnicodeWithAttrs
-from pymysql.times import TimeDelta
-from pymysql.constants 	import ER, FIELD_TYPE
-from pymysql.converters import conversions
-import pymysql
-
-# Helpers
-def _cast_result(doctype, result):
-	batch = [ ]
-
-	try:
-		for field, value in result:
-			df = frappe.get_meta(doctype).get_field(field)
-			if df:
-				value = cast_fieldtype(df.fieldtype, value)
-
-			batch.append(tuple([field, value]))
-	except frappe.exceptions.DoesNotExistError:
-		return result
-
-	return tuple(batch)
 
 class Database:
 	"""
@@ -59,13 +31,13 @@ class Database:
 	   login details from `conf.py`. This is called by the request handler and is accessible using
 	   the `db` global variable. the `sql` method is also global to run queries
 	"""
-	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default = 0, local_infile = 0):
+	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default=0):
 		self.host = host or frappe.conf.db_host or 'localhost'
 		self.user = user or frappe.conf.db_name
 		self._conn = None
 
 		if ac_name:
-			self.user = self.get_db_login(ac_name) or frappe.conf.db_name
+			self.user = ac_name or frappe.conf.db_name
 
 		if use_default:
 			self.user = frappe.conf.db_name
@@ -76,57 +48,16 @@ class Database:
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
 
-		# this param is to load CSV's with LOCAL keyword.
-		# it can be set in site_config as > bench set-config local_infile 1
-		# once the local-infile is set on MySql Server, the client needs to connect with this option
-		# Connections without this option leads to: 'The used command is not allowed with this MariaDB version' error
-		self.local_infile = local_infile or frappe.conf.local_infile
-
-	def get_db_login(self, ac_name):
-		return ac_name
-
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
-		warnings.filterwarnings('ignore', category=pymysql.Warning)
-		usessl = 0
-		if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
-			usessl = 1
-			self.ssl = {
-				'ca':frappe.conf.db_ssl_ca,
-				'cert':frappe.conf.db_ssl_cert,
-				'key':frappe.conf.db_ssl_key
-			}
-
-		conversions.update({
-			FIELD_TYPE.NEWDECIMAL: float,
-			FIELD_TYPE.DATETIME: get_datetime,
-			UnicodeWithAttrs: conversions[text_type]
-		})
-
-		if six.PY2:
-			conversions.update({
-				TimeDelta: conversions[binary_type]
-			})
-
-		if usessl:
-			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				charset='utf8mb4', use_unicode = True, ssl=self.ssl, conv = conversions, local_infile = self.local_infile)
-		else:
-			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				charset='utf8mb4', use_unicode = True, conv = conversions, local_infile = self.local_infile)
-
-		# MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
-		# # self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
-
+		self.cur_db_name = self.user
+		self._conn = self.get_connection()
 		self._cursor = self._conn.cursor()
-		if self.user != 'root':
-			self.use(self.user)
 		frappe.local.rollback_observers = []
 
 	def use(self, db_name):
 		"""`USE` db_name."""
 		self._conn.select_db(db_name)
-		self.cur_db_name = db_name
 
 	def validate_query(self, q):
 		"""Throw exception for dangerous queries: `ALTER`, `DROP`, `TRUNCATE` if not `Administrator`."""
@@ -215,8 +146,7 @@ class Database:
 				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
 
 		except Exception as e:
-			if ignore_ddl and e.args[0] in (ER.BAD_FIELD_ERROR, ER.NO_SUCH_TABLE,
-				ER.CANT_DROP_FIELD_OR_KEY):
+			if ignore_ddl and (self.is_bad_field(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
 
 			# NOTE: causes deadlock
@@ -953,18 +883,8 @@ class Database:
 
 	def escape(self, s, percent=True):
 		"""Excape quotes and percent in given string."""
-		# pymysql expects unicode argument to escape_string with Python 3
-		s = as_unicode(pymysql.escape_string(as_unicode(s)), "utf-8").replace("`", "\\`")
-
-		# NOTE separating % escape, because % escape should only be done when using LIKE operator
-		# or when you use python format string to generate query that already has a %s
-		# for example: sql("select name from `tabUser` where name=%s and {0}".format(conditions), something)
-		# defaulting it to True, as this is the most frequent use case
-		# ideally we shouldn't have to use ESCAPE and strive to pass values via the values argument of sql
-		if percent:
-			s = s.replace("%", "%%")
-
-		return s
+		# implemented in specific class
+		pass
 
 	def get_descendants(self, doctype, name):
 		'''Return descendants of the current record'''
@@ -979,3 +899,19 @@ def enqueue_jobs_after_commit():
 			q.enqueue_call(execute_job, timeout=job.get("timeout"),
 							kwargs=job.get("queue_args"))
 		frappe.flags.enqueue_after_commit = []
+
+# Helpers
+def _cast_result(doctype, result):
+	batch = [ ]
+
+	try:
+		for field, value in result:
+			df = frappe.get_meta(doctype).get_field(field)
+			if df:
+				value = cast_fieldtype(df.fieldtype, value)
+
+			batch.append(tuple([field, value]))
+	except frappe.exceptions.DoesNotExistError:
+		return result
+
+	return tuple(batch)

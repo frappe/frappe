@@ -11,7 +11,6 @@ from six.moves import input
 import os, json, sys, subprocess, shutil
 import frappe
 import frappe.database
-import getpass
 import importlib
 from frappe import _
 from frappe.model.db_schema import DbManager
@@ -22,20 +21,19 @@ from frappe.desk.doctype.desktop_icon.desktop_icon import sync_from_app
 from frappe.utils.password import create_auth_table
 from frappe.utils.global_search import setup_global_search_table
 from frappe.modules.utils import sync_customizations
+from frappe.database import setup_database
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
 	admin_password=None, verbose=True, force=0, site_config=None, reinstall=False):
+	if not frappe.conf.db_type:
+		frappe.conf.db_type = 'mariadb'
+
 	make_conf(db_name, site_config=site_config)
 	frappe.flags.in_install_db = True
-	if reinstall:
-		frappe.connect(db_name=db_name)
-		dbman = DbManager(frappe.local.db)
-		dbman.create_database(db_name)
 
-	else:
-		frappe.local.db = get_root_connection(root_login, root_password)
-		frappe.local.session = frappe._dict({'user':'Administrator'})
-		create_database_and_user(force, verbose)
+	frappe.flags.root_login = root_login
+	frappe.flags.root_password = root_password
+	setup_database(force, verbose)
 
 	frappe.conf.admin_password = frappe.conf.admin_password or admin_password
 
@@ -56,28 +54,6 @@ Check your mysql root password, or use --force to reinstall''')
 	frappe.flags.in_install_db = False
 
 
-def create_database_and_user(force, verbose):
-	db_name = frappe.local.conf.db_name
-	dbman = DbManager(frappe.local.db)
-	if force or (db_name not in dbman.get_database_list()):
-		dbman.delete_user(db_name)
-		dbman.drop_database(db_name)
-	else:
-		raise Exception("Database %s already exists" % (db_name,))
-
-	dbman.create_user(db_name, frappe.conf.db_password)
-	if verbose: print("Created user %s" % db_name)
-
-	dbman.create_database(db_name)
-	if verbose: print("Created database %s" % db_name)
-
-	dbman.grant_all_privileges(db_name, db_name)
-	dbman.flush_privileges()
-	if verbose: print("Granted privileges to user %s and database %s" % (db_name, db_name))
-
-	# close root connection
-	frappe.db.close()
-
 def create_user_settings_table():
 	frappe.db.sql_ddl("""create table if not exists __UserSettings (
 		`user` VARCHAR(180) NOT NULL,
@@ -93,18 +69,6 @@ def import_db_from_sql(source_sql, verbose):
 		source_sql = os.path.join(os.path.dirname(frappe.__file__), 'data', 'Framework.sql')
 	DbManager(frappe.local.db).restore_database(db_name, source_sql, db_name, frappe.conf.db_password)
 	if verbose: print("Imported from database %s" % source_sql)
-
-def get_root_connection(root_login='root', root_password=None):
-	if not frappe.local.flags.root_connection:
-		if root_login:
-			if not root_password:
-				root_password = frappe.conf.get("root_password") or None
-
-			if not root_password:
-				root_password = getpass.getpass("MySQL root password: ")
-		frappe.local.flags.root_connection = frappe.database.Database(user=root_login, password=root_password)
-
-	return frappe.local.flags.root_connection
 
 def install_app(name, verbose=False, set_as_patched=True):
 	frappe.flags.in_install = name
@@ -300,7 +264,7 @@ def update_site_config(key, value, validate=True, site_config_path=None):
 
 	with open(site_config_path, "w") as f:
 		f.write(json.dumps(site_config, indent=1, sort_keys=True))
-	
+
 	if hasattr(frappe.local, "conf"):
 		frappe.local.conf[key] = value
 
@@ -354,6 +318,8 @@ def remove_missing_apps():
 				frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 
 def check_if_ready_for_barracuda():
+	if frappe.conf.db_type != 'mariadb':
+		return
 	mariadb_variables = frappe._dict(frappe.db.sql("""show variables"""))
 	mariadb_minor_version = int(mariadb_variables.get('version').split('-')[0].split('.')[1])
 	if mariadb_minor_version < 3:

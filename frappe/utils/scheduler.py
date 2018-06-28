@@ -26,10 +26,6 @@ from frappe.installer import update_site_config
 from six import string_types
 from croniter import croniter
 
-# imports - third-party libraries
-import pymysql
-from pymysql.constants import ER
-
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 cron_map = {
@@ -96,8 +92,8 @@ def enqueue_events_for_site(site, queued_jobs):
 		enqueue_events(site=site, queued_jobs=queued_jobs)
 
 		frappe.logger(__name__).debug('Queued events for site {0}'.format(site))
-	except pymysql.OperationalError as e:
-		if e.args[0]==ER.ACCESS_DENIED_ERROR:
+	except frappe.db.OperationalError as e:
+		if frappe.db.is_access_denied(e):
 			frappe.logger(__name__).debug('Access denied for site {0}'.format(site))
 		else:
 			log_and_raise()
@@ -295,8 +291,8 @@ def reset_enabled_scheduler_events(login_manager):
 			if frappe.db.get_global('enabled_scheduler_events'):
 				# clear restricted events, someone logged in!
 				frappe.db.set_global('enabled_scheduler_events', None)
-		except pymysql.InternalError as e:
-			if e.args[0]==ER.LOCK_WAIT_TIMEOUT:
+		except frappe.db.InternalError as e:
+			if frappe.db.is_timedout(e):
 				frappe.log_error(frappe.get_traceback(), "Error in reset_enabled_scheduler_events")
 			else:
 				raise

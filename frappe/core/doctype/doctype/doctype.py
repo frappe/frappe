@@ -19,10 +19,6 @@ from frappe.model.db_schema import validate_column_name, validate_column_length,
 from frappe.model.docfield import supports_translation
 import frappe.website.render
 
-# imports - third-party imports
-import pymysql
-from pymysql.constants import ER
-
 class InvalidFieldNameError(frappe.ValidationError): pass
 
 form_grid_templates = {
@@ -556,8 +552,8 @@ def validate_fields(meta):
 						group by `{fieldname}` having count(*) > 1 limit 1""".format(
 						doctype=d.parent, fieldname=d.fieldname))
 
-				except pymysql.InternalError as e:
-					if e.args and e.args[0] == ER.BAD_FIELD_ERROR:
+				except frappe.db.InternalError as e:
+					if frappe.db.is_bad_field(e):
 						# ignore if missing column, else raise
 						# this happens in case of Custom Field
 						pass
@@ -853,8 +849,8 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 				r.insert()
 	except frappe.DoesNotExistError as e:
 		pass
-	except frappe.SQLError as e:
-		if e.args[0]==1146:
+	except frappe.db.SQLError as e:
+		if frappe.db.is_table_missing(e):
 			pass
 		else:
 			raise

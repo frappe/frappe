@@ -168,11 +168,11 @@ def connect(site=None, db_name=None):
 
 	:param site: If site is given, calls `frappe.init`.
 	:param db_name: Optional. Will use from `site_config.json`."""
-	from frappe.database import Database
+	from frappe.database import get_db
 	if site:
 		init(site)
 
-	local.db = Database(user=db_name or local.conf.db_name)
+	local.db = get_db(user=db_name or local.conf.db_name)
 	set_user("Administrator")
 
 def connect_read_only():

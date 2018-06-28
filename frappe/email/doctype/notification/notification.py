@@ -14,10 +14,6 @@ from frappe.modules.utils import export_module_json, get_doc_module
 from six import string_types
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 
-# imports - third-party imports
-import pymysql
-from pymysql.constants import ER
-
 class Notification(Document):
 	def onload(self):
 		'''load message'''
@@ -263,8 +259,8 @@ def evaluate_alert(doc, alert, event):
 		if event=="Value Change" and not doc.is_new():
 			try:
 				db_value = frappe.db.get_value(doc.doctype, doc.name, alert.value_changed)
-			except pymysql.InternalError as e:
-				if e.args[0]== ER.BAD_FIELD_ERROR:
+			except frappe.db.InternalError as e:
+				if frappe.db.is_bad_field(e):
 					alert.db_set('enabled', 0)
 					frappe.log_error('Notification {0} has been disabled due to missing field'.format(alert.name))
 					return

@@ -11,7 +11,6 @@ from passlib.hash import pbkdf2_sha256, mysql41
 from passlib.registry import register_crypt_handler
 from passlib.context import CryptContext
 
-
 class LegacyPassword(pbkdf2_sha256):
 	name = "frappe_legacy"
 	ident = "$frappel$"

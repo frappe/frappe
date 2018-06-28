@@ -14,14 +14,13 @@ import frappe
 from frappe import _
 from frappe.utils import cstr, cint, flt
 
-# imports - third-party imports
-import pymysql
-from pymysql.constants import ER
-
 class InvalidColumnName(frappe.ValidationError): pass
 
 varchar_len = '140'
 standard_varchar_columns = ('name', 'owner', 'modified_by', 'parent', 'parentfield', 'parenttype')
+
+# int, smallint, bigint, (datetime => timestamp), (longtext => text)
+# create index (not key)
 
 type_map = {
 	'Currency':		('decimal', '18,6'),
@@ -136,8 +135,8 @@ class DbTable:
 						max_length = frappe.db.sql("""select max(char_length(`{fieldname}`)) from `tab{doctype}`"""\
 							.format(fieldname=col.fieldname, doctype=self.doctype))
 
-					except pymysql.InternalError as e:
-						if e.args[0] == ER.BAD_FIELD_ERROR:
+					except frappe.db.InternalError as e:
+						if frappe.db.is_bad_field(e):
 							# Unknown column 'column_name' in 'field list'
 							continue
 
@@ -556,7 +555,7 @@ class DbManager:
 	def restore_database(self,target,source,user,password):
 		from frappe.utils import make_esc
 		esc = make_esc('$ ')
-		
+
 		from distutils.spawn import find_executable
 		pipe = find_executable('pv')
 		if pipe:
@@ -580,7 +579,7 @@ class DbManager:
 			target   = esc(target),
 			source   = source
 		)
-		os.system(command)	
+		os.system(command)
 
 	def drop_table(self,table_name):
 		"""drop table if exists"""
