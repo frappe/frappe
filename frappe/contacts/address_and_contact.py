@@ -141,7 +141,7 @@ def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, fil
 
 	_doctypes = frappe.db.get_all("Custom Field", filters=filters, fields=["dt"],
 		as_list=True)
-	
+
 	_doctypes = tuple([d for d in _doctypes if re.search(txt+".*", _(d[0]), re.IGNORECASE)])
 
 	all_doctypes = [d[0] for d in doctypes + _doctypes]
