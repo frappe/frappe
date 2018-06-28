@@ -11,6 +11,7 @@ from frappe.modules import scrub, get_module_path
 from frappe.utils import flt, cint, get_html_format, cstr, get_url_to_form
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
+from frappe.utils.csvutils import read_csv_content_from_attached_file
 import frappe.desk.reportview
 from frappe.utils.csvutils import read_csv_content_from_attached_file
 from frappe.permissions import get_role_permissions
@@ -159,11 +160,29 @@ def run(report_name, filters=None, user=None):
 			raise_exception=True)
 
 	if report.prepared_report:
+<<<<<<< HEAD
 		if filters:
 			dn = json.loads(filters).get("prepared_report_name")
 		else:
 			dn = ""
 		return get_prepared_report_result(report, filters, dn)
+=======
+		doc_list = frappe.get_list("Prepared List", filters={"status": "Completed", "report_name":report_name })
+		columns = []
+		result = []
+		if len(doc_list):
+			doc = frappe.get_doc("Prepared Report", doc_list[0])
+			data = read_csv_content_from_attached_file(doc)
+			columns
+		return {
+			"message": "Prepared Report",
+			"prepared_report": True,
+			"data": {
+				"columns": [],
+				"result": []
+			}
+		}
+>>>>>>> stash issue
 	else:
 		return generate_report_result(report, filters, user)
 
