@@ -203,6 +203,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	refresh() {
+		const prepared_data = frappe.flags.prepared_report_data
+		if(prepared_data) {
+			this.init_report_with_data(prepared_data);
+			return;
+		}
 	    if(!this.prepared_report){
             this.toggle_message(true);
             const filters = this.get_filter_values(true);
@@ -215,22 +220,26 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
                 },
                 callback: resolve
             })).then(r => {
-                const data = r.message;
-                if (data.prepared_report){
-                    this.prepared_report = true;
-                    this.toggle_to_button(true, data.file_attachment);
-                }else{
-                    this.toggle_message(false);
-                    if (data.result && data.result.length) {
-                        this.render_chart(data);
-                        this.render_report(data);
-                    } else {
-                        this.toggle_nothing_to_show(true);
-                    }
-                }
+                this.init_report_with_data(r.message);
             });
 	    }
 	}
+
+	init_report_with_data(data) {
+		if (data.prepared_report){
+		    this.prepared_report = true;
+			this.toggle_button(true, data.file_attachment);
+		}else{
+			this.toggle_message(false);
+			if (data.result && data.result.length) {
+				this.render_chart(data);
+				this.render_report(data);
+			} else {
+				this.toggle_nothing_to_show(true);
+			}
+		}
+	}
+
 	render_background_report() {
 		this.toggle_message(true);
 		let mandatory = this.filters.filter(f => f.df.reqd);
@@ -255,6 +264,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	render_report(data) {
 		this.columns = this.prepare_columns(data.columns);
 		this.data = this.prepare_data(data.result);
+
+		console.log(data.columns.slice(0, 2), data);
 		this.tree_report = this.data.some(d => 'indent' in d);
 
 		const columns = this.get_visible_columns();
@@ -264,7 +275,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 
 		this.datatable = new DataTable(this.$report[0], {
-			columns: columns,
+			columns: columns.slice(0, 2),
 			data: this.data,
 			inlineFilters: true,
 			treeView: this.tree_report,
