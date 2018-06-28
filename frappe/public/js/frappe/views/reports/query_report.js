@@ -182,6 +182,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	set_route_filters() {
 		if(frappe.route_options) {
 			const fields = Object.keys(frappe.route_options);
+
 			const filters_to_set = this.filters.filter(f => fields.includes(f.df.fieldname));
 
 			const promises = filters_to_set.map(f => {
@@ -204,8 +205,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	refresh() {
 		const flags = frappe.flags.prepared_report;
+
 		if(flags) {
-		    const prepared_data = flags.data
+			const prepared_data = flags.data;
 			this.init_report_with_data(prepared_data);
 			this.toggle_to_button();
 			return;
@@ -630,11 +632,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 	toggle_to_button(){
 		this.page.add_inner_button(__("Download Report"), function () {
-            frappe.call({
-                method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
-                args: {"dn": flags.name}
-            });
-        });
+			frappe.call({
+				method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
+				args: {"dn": flags.name}
+			});
+		});
+
+		this.page.add_inner_message(__("This report was generated on " + flags.generated_on));
 	}
 	toggle_message(flag, message) {
 		if (flag) {

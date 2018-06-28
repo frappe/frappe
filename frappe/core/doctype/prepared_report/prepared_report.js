@@ -14,8 +14,12 @@ frappe.ui.form.on('Prepared Report', {
 						let data = r.message;
 						frappe.flags.prepared_report = {
 							data: data,
-							name: frm.doc.name
+							name: frm.doc.name,
+							generated_on: frm.doc.report_end_time,
+							filters: JSON.parse(frm.doc.filters)
 						};
+
+						frappe.route_options = JSON.parse(JSON.parse(frm.doc.filters));
 
 						frappe.set_route("query-report", frm.doc.report_name);
 					}
