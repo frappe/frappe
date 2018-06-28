@@ -22,10 +22,11 @@ class PreparedReport(Document):
 		self.report_start_time = frappe.utils.now()
 
 	def after_insert(self):
-		enqueue(
-			run_background,
-			instance=self, timeout=6000
-		)
+		# enqueue(
+		# 	run_background,
+		# 	instance=self, timeout=6000
+		# )
+		run_background(self)
 
 
 def run_background(instance):
@@ -46,9 +47,8 @@ def remove_header_meta(columns):
 
 
 def create_csv_file(columns, data, dt, dn):
-
 	csv_filename = '{0}.csv'.format(frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H:M"))
-	rows = columns + data
+	rows = [tuple(columns)] + data
 	encoded = base64.b64encode(to_csv(rows))
 	# Call save_file function to upload and attach the file
 	save_file(
