@@ -39,7 +39,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.setup_page,
 			this.setup_report_wrapper
 		].map(fn => fn.bind(this));
-
 		this.init_promise = frappe.run_serially(tasks);
 		return this.init_promise;
 	}
@@ -213,6 +212,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	refresh() {
+<<<<<<< HEAD
 		this.toggle_message(true);
 		const filters = this.get_filter_values(true);
 
@@ -233,6 +233,35 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		})).then(r => {
 			this.init_report_with_data(r.message);
 		});
+=======
+	    if(!this.prepared_report){
+            this.toggle_message(true);
+            const filters = this.get_filter_values(true);
+            return new Promise(resolve => frappe.call({
+                method: 'frappe.desk.query_report.run',
+                type: 'GET',
+                args: {
+                    report_name: this.report_name,
+                    filters: filters
+                },
+                callback: resolve
+            })).then(r => {
+                const data = r.message;
+                if (data.prepared_report){
+                    this.prepared_report = true;
+                    this.toggle_to_button(true, data.file_attachment);
+                }else{
+                    this.toggle_message(false);
+                    if (data.result && data.result.length) {
+                        this.render_chart(data);
+                        this.render_report(data);
+                    } else {
+                        this.toggle_nothing_to_show(true);
+                    }
+                }
+            });
+	    }
+>>>>>>> added check not trigger run if prepared
 	}
 
 	init_report_with_data(data) {
@@ -251,20 +280,24 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	render_background_report() {
 		this.toggle_message(true);
-		const filters = this.get_filter_values(true);
-		return new Promise(resolve => frappe.call({
-			method: 'frappe.desk.query_report.background_enqueue_run',
-			type: 'GET',
-			args: {
-				report_name: this.report_name,
-				filters: filters
-			},
-			callback: resolve
-		})).then(r => {
-			const data = r.message;
-			this.toggle_nothing_to_show(true);
-			frappe.msgprint("Prepared report initiated successfully. Track and access results  <a class='text-info' target='_blank' href="+data.redirect_url+">here</a>", "Notification");
-		});
+		let mandatory = this.filters.filter(f => f.df.reqd);
+    	let missing_mandatory = mandatory.filter(f => !f.get_value());
+    	if (!missing_mandatory.length){
+    	    let filters = this.get_filter_values(true);
+            return new Promise(resolve => frappe.call({
+                method: 'frappe.desk.query_report.background_enqueue_run',
+                type: 'GET',
+                args: {
+                    report_name: this.report_name,
+                    filters: filters
+                },
+                callback: resolve
+            })).then(r => {
+                const data = r.message;
+                this.toggle_nothing_to_show(true);
+                frappe.msgprint("Prepared report initiated successfully. Track and access results  <a class='text-info' target='_blank' href="+data.redirect_url+">here</a>", "Notification");
+            });
+    	}
 	}
 	render_report(data) {
 		this.columns = this.prepare_columns(data.columns);
@@ -632,7 +665,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	toggle_nothing_to_show(flag) {
 		this.toggle_message(flag, __('Nothing to show'));
 	}
-	toggle_button(flag, attachment){
+	toggle_to_button(flag, attachment){
 		if (flag) {
 			if(attachment){
 				this.$message.find('div').html("<p>Download recent generated Prepared Report <a target='_blank' href="+attachment+">here</a>.");
