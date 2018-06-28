@@ -230,3 +230,10 @@ class SMTPServer:
 		except smtplib.SMTPException:
 			frappe.msgprint(_('Unable to send emails at this time'))
 			raise
+
+	def is_connected(self):
+		try:
+			status = self.sess.noop()[0]
+		except:  # smtplib.SMTPServerDisconnected
+			status = -1
+		return True if status == 250 else False
