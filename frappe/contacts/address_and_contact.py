@@ -4,7 +4,9 @@
 from __future__ import unicode_literals
 import frappe
 
+from frappe import _
 import functools
+import re
 
 def load_address_and_contact(doc, key=None):
 	"""Loads address list and contact list in `__onload`"""
@@ -128,24 +130,28 @@ def delete_contact_and_address(doctype, docname):
 def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, filters):
 	if not txt: txt = ""
 
-	txt = txt.lower()
-	txt = "%%%s%%" % (txt)
+	#txt = txt.lower()
+	#txt = "%%%s%%" % (txt)
 
-	filters.update({
-		"parent": ("like", txt)
-	})
+	#filters.update({
+	#	"parent": ("like", txt)
+	#})
 
 	doctypes = frappe.db.get_all("DocField", filters=filters, fields=["parent"],
 		distinct=True, as_list=True)
 
-	filters.pop("parent")
+	doctypes = filter(lambda x: re.search(txt+".*", _(x[0]), re.IGNORECASE), doctypes)
+
+	#filters.pop("parent")
 	filters.update({
 		"dt": ("not in", [d[0] for d in doctypes]),
-		"dt": ("like", txt),
+		#"dt": ("like", txt),
 	})
 
 	_doctypes = frappe.db.get_all("Custom Field", filters=filters, fields=["dt"],
 		as_list=True)
+	
+	_doctypes = filter(lambda x: re.search(txt+".*", _(x[0]), re.IGNORECASE), _doctypes)
 
 	all_doctypes = [d[0] for d in doctypes + _doctypes]
 	valid_doctypes = []
