@@ -23,21 +23,24 @@ class PreparedReport(Document):
 		self.report_start_time = frappe.utils.now()
 
 	def after_insert(self):
-		# enqueue(
-		# 	run_background,
-		# 	instance=self, timeout=6000
-		# )
-		run_background(self)
+		enqueue(
+			run_background,
+			instance=self, timeout=6000
+		)
 
 
 def run_background(instance):
 	report = frappe.get_doc("Report", instance.ref_report_doctype)
 	result = generate_report_result(report, filters=json.loads(instance.filters), user=instance.owner)
 	create_csv_file(result['columns'], result['result'], 'Prepared Report', instance.name)
+
 	instance.status = "Completed"
 	instance.report_end_time = frappe.utils.now()
 	instance.save()
 
+	# TODO:
+	# Show Alert
+	# Send Email to user
 
 def remove_header_meta(columns):
 	column_list = []

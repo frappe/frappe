@@ -58,7 +58,17 @@ def generate_report_result(report, filters=None, user=None):
 		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
 		if report.is_standard == "Yes":
 			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
-			res = frappe.get_attr(method_name)(frappe._dict(filters))
+
+			res = []
+
+			# The JOB:
+			try:
+				res = frappe.get_attr(method_name)(frappe._dict(filters))
+			except:
+				report.prepared_report = 1
+				report.save()
+				frappe.throw("The report to too long to load. Please reload the page to generate it in background.")
+
 			columns, result = res[0], res[1]
 			if len(res) > 2:
 				message = res[2]
