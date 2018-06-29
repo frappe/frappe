@@ -182,6 +182,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	set_route_filters() {
 		if(frappe.route_options) {
 			const fields = Object.keys(frappe.route_options);
+
 			const filters_to_set = this.filters.filter(f => fields.includes(f.df.fieldname));
 
 			const promises = filters_to_set.map(f => {
@@ -204,8 +205,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	refresh() {
 		const flags = frappe.flags.prepared_report;
+
 		if(flags) {
-		    const prepared_data = flags.data
+			const prepared_data = flags.data;
 			this.init_report_with_data(prepared_data);
 			this.toggle_to_button();
 			return;
@@ -240,30 +242,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
         } else {
             this.toggle_nothing_to_show(true);
         }
-
 	}
 
-	render_background_report() {
-		this.toggle_message(true);
-		let mandatory = this.filters.filter(f => f.df.reqd);
-    	let missing_mandatory = mandatory.filter(f => !f.get_value());
-    	if (!missing_mandatory.length){
-    	    let filters = this.get_filter_values(true);
-            return new Promise(resolve => frappe.call({
-                method: 'frappe.desk.query_report.background_enqueue_run',
-                type: 'GET',
-                args: {
-                    report_name: this.report_name,
-                    filters: filters
-                },
-                callback: resolve
-            })).then(r => {
-                const data = r.message;
-                this.toggle_nothing_to_show(true);
-                frappe.msgprint("Prepared report initiated successfully. Track and access results  <a class='text-info' target='_blank' href="+data.redirect_url+">here</a>", "Notification");
-            });
-    	}
-	}
 	render_report(data) {
 		this.columns = this.prepare_columns(data.columns);
 		this.data = this.prepare_data(data.result);
@@ -630,12 +610,33 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 	toggle_to_button(){
 		this.page.add_inner_button(__("Download Report"), function () {
-            frappe.call({
-                method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
-                args: {"dn": flags.name}
-            });
-        });
+			frappe.call({
+				method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
+				args: {"dn": flags.name}
+			});
+		});
 
+		this.page.add_inner_button(__("Generate Prepared Report"), () => {
+            let mandatory = this.filters.filter(f => f.df.reqd);
+            let missing_mandatory = mandatory.filter(f => !f.get_value());
+            if (!missing_mandatory.length){
+                let filters = this.get_filter_values(true);
+                return new Promise(resolve => frappe.call({
+                    method: 'frappe.desk.query_report.background_enqueue_run',
+                    type: 'GET',
+                    args: {
+                        report_name: this.report_name,
+                        filters: filters
+                    },
+                    callback: resolve
+                })).then(r => {
+                    const data = r.message;
+                    frappe.msgprint("Prepared report initiated successfully. Track and access results  <a class='text-info' target='_blank' href="+data.redirect_url+">here</a>", "Notification");
+                    this.toggle_nothing_to_show(true);
+                });
+            }
+		});
+    	this.page.add_inner_message(__("This report was generated on " + flags.generated_on));
 	}
 	toggle_message(flag, message) {
 		if (flag) {

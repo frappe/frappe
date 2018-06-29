@@ -153,6 +153,7 @@ def run(report_name, filters=None, user=None):
 		doc_list = frappe.get_list("Prepared Report", filters={"status": "Completed", "ref_report_doctype": report})
 		columns = []
 		result = []
+		doc = {}
 		if len(doc_list):
 			doc = frappe.get_doc("Prepared Report", doc_list[0])
 			data = read_csv_content_from_attached_file(doc)
@@ -163,8 +164,9 @@ def run(report_name, filters=None, user=None):
 			"prepared_report": True,
 			"data": {
 				"columns": columns,
-				"result": result
-			}
+				"result": result,
+			},
+			"prepared_doc": doc
 		}
 	else:
 		return generate_report_result(report, filters, user)
