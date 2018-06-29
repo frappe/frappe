@@ -251,12 +251,31 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_prepared_report_buttons(doc) {
-		this.page.add_inner_button(__("Download Report"), function () {
-			frappe.call({
-				method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
-				args: {"dn": flags.name}
-			});
-		});
+	    if (doc){
+	        this.page.add_inner_button(__("Download Report"), function () {
+                frappe.call({
+                    method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
+                    args: {"dn": flags.name}
+                });
+		    });
+		    let $message = this.page.add_inner_message(__(`
+                This report was <a href=#Form/Prepared%20Report/${doc.name}>generated</a>
+                on ${doc.report_end_time}.
+                <a class="generated_report_list">See all</a>.
+            `));
+
+            let filters = JSON.parse(JSON.parse(doc.filters));
+
+            this.set_filters(filters);
+
+            $message.on('click', () => {
+                frappe.route_options = {
+                    report_name: doc.report_name,
+                    filters: doc.filters
+                };
+                frappe.set_route("List", "Prepared Report");
+            })
+	    }
 
 		this.page.add_inner_button(__("Generate Report"), () => {
             let mandatory = this.filters.filter(f => f.df.reqd);
@@ -279,23 +298,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
             }
 		}, "", "primary");
 
-		let $message = this.page.add_inner_message(__(`
-			This report was <a href=#Form/Prepared%20Report/${doc.name}>generated</a>
-			on ${doc.report_end_time}.
-			<a class="generated_report_list">See all</a>.
-		`));
 
-		let filters = JSON.parse(JSON.parse(doc.filters));
-
-		this.set_filters(filters);
-
-		$message.on('click', () => {
-			frappe.route_options = {
-				report_name: doc.report_name,
-				filters: doc.filters
-			};
-			frappe.set_route("List", "Prepared Report");
-		})
 	}
 
 	render_report(data) {
