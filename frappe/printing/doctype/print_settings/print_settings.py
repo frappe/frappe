@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2017, Frappe Technologies and contributors
+# Copyright (c) 2018, Frappe Technologies and contributors
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
@@ -16,14 +16,12 @@ class PrintSettings(Document):
 	@frappe.whitelist()
 	def get_printers(self,ip="localhost",port=631):
 		printer_list = []
-
 		try:
 			cups.setServer(self.server_ip)
 			cups.setPort(self.port)
 			conn = cups.Connection()
 			printers = conn.getPrinters()
-			for printer in printers:
-				printer_list.append(printers[printer]["printer-info"])
+			printer_list = printers.keys()
 		except RuntimeError:
 			frappe.throw(_("Failed to connect to server"))
 		return printer_list
