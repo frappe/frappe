@@ -66,7 +66,7 @@ def print_by_server(doctype, name, format=None, doc=None, no_letterhead=0):
 		output = frappe.get_print(doctype, name, format, doc=doc, no_letterhead=no_letterhead, as_pdf = True, output = output)
 		file = os.path.join("/tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
 		output.write(open(file,"wb"))
-		conn.printFile("Generic-text-only",file , name, {})
+		conn.printFile(print_settings.printer_name,file , name, {})
 	except IOError as e:
 		if ("ContentNotFoundError" in e.message
 			or "ContentOperationNotPermittedError" in e.message
@@ -74,6 +74,6 @@ def print_by_server(doctype, name, format=None, doc=None, no_letterhead=0):
 			or "RemoteHostClosedError" in e.message):
 			frappe.throw(_("PDF generation failed"))
 	except cups.IPPError:
-		frappe.throw(_("Unsupported document-format 'application/pdf'."))
+		frappe.throw(_("Printing failed"))
 	finally:
 		cleanup(file,{})
