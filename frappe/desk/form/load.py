@@ -15,7 +15,7 @@ from frappe import _
 def getdoc(doctype, name, user=None):
 	"""
 	Loads a doclist for a given document. This method is called directly from the client.
-	Requries "doctype", "name" as form variables.
+	Requires "doctype", "name" as form variables.
 	Will also call the "onload" method on the document.
 	"""
 
@@ -29,7 +29,7 @@ def getdoc(doctype, name, user=None):
 		return []
 
 	try:
-		doc = frappe.get_doc(doctype, name)
+		doc = frappe.get_doc(doctype, name, max_children_page_length=100)
 		run_onload(doc)
 
 		if not doc.has_permission("read"):
@@ -100,7 +100,8 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"permissions": get_doc_permissions(doc),
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
 		"rating": get_feedback_rating(doc.doctype, doc.name),
-		"views": get_view_logs(doc.doctype, doc.name)
+		"views": get_view_logs(doc.doctype, doc.name),
+		"child_pagination": get_child_pagination_info(doc) or None
 	}
 
 def get_attachments(dt, dn):
@@ -229,3 +230,41 @@ def get_view_logs(doctype, docname):
 		if  view_logs:
 			logs = view_logs
 	return logs
+
+def get_child_pagination_info(doc):
+	if not doc.get('_max_children_page_length'):
+		return {}
+
+	info = {}
+
+	for df in doc.meta.get_table_fields():
+		total_rows = frappe.db.count(df.options, filters={
+			"parenttype": doc.doctype,
+			"parent": doc.name,
+			"parentfield": df.fieldname
+		})
+
+		info[df.fieldname] = {
+			'page_length': doc._max_children_page_length,
+			'total_rows': total_rows
+		}
+
+	return info
+
+@frappe.whitelist()
+def get_paginated_children(doctype, name, fieldname, start, page_length):
+	meta = frappe.get_meta(doctype)
+	df = meta.get_field(fieldname)
+
+	children = frappe.get_list(df.options,
+		filters={
+			"parent": name,
+			"parenttype": doctype,
+			"parentfield": fieldname
+		},
+		fields="*",
+		order_by="idx asc",
+		limit_start=start,
+		limit_page_length=page_length
+	)
+	return children
