@@ -258,6 +258,27 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			});
 		});
 
+		this.page.add_inner_button(__("Generate Report"), () => {
+            let mandatory = this.filters.filter(f => f.df.reqd);
+            let missing_mandatory = mandatory.filter(f => !f.get_value());
+            if (!missing_mandatory.length){
+                let filters = this.get_filter_values(true);
+                return new Promise(resolve => frappe.call({
+                    method: 'frappe.desk.query_report.background_enqueue_run',
+                    type: 'GET',
+                    args: {
+                        report_name: this.report_name,
+                        filters: filters
+                    },
+                    callback: resolve
+                })).then(r => {
+                    const data = r.message;
+                    frappe.msgprint("Prepared report initiated successfully. Track and access results  <a class='text-info' target='_blank' href="+data.redirect_url+">here</a>", "Notification");
+                    this.toggle_nothing_to_show(true);
+                });
+            }
+		}, "", "primary");
+
 		let $message = this.page.add_inner_message(__(`
 			This report was <a href=#Form/Prepared%20Report/${doc.name}>generated</a>
 			on ${doc.report_end_time}.
@@ -277,27 +298,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		})
 	}
 
-	render_background_report() {
-		this.toggle_message(true);
-		let mandatory = this.filters.filter(f => f.df.reqd);
-    	let missing_mandatory = mandatory.filter(f => !f.get_value());
-    	if (!missing_mandatory.length){
-    	    let filters = this.get_filter_values(true);
-            return new Promise(resolve => frappe.call({
-                method: 'frappe.desk.query_report.background_enqueue_run',
-                type: 'GET',
-                args: {
-                    report_name: this.report_name,
-                    filters: filters
-                },
-                callback: resolve
-            })).then(r => {
-                const data = r.message;
-                this.toggle_nothing_to_show(true);
-                frappe.msgprint("Prepared report initiated successfully. Track and access results  <a class='text-info' target='_blank' href="+data.redirect_url+">here</a>", "Notification");
-            });
-    	}
-	}
 	render_report(data) {
 		this.columns = this.prepare_columns(data.columns);
 		this.data = this.prepare_data(data.result);
@@ -662,6 +662,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	toggle_nothing_to_show(flag) {
 		this.toggle_message(flag, __('Nothing to show'));
 	}
+
 	toggle_message(flag, message) {
 		if (flag) {
 			this.$message.find('div').html(message);
