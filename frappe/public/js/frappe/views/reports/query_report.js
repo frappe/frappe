@@ -635,6 +635,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
                 args: {"dn": flags.name}
             });
         });
+
 	}
 	toggle_message(flag, message) {
 		if (flag) {
