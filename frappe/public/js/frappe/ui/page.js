@@ -416,6 +416,8 @@ frappe.ui.Page = Class.extend({
 		let $message = $(`<span class='inner-page-message text-muted small'>${message}</div>`);
 		this.inner_toolbar.find('.inner-page-message').remove();
 		this.inner_toolbar.removeClass("hide").prepend($message);
+
+		return $message;
 	},
 
 	clear_inner_toolbar: function() {

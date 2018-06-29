@@ -204,45 +204,63 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	refresh() {
-		const flags = frappe.flags.prepared_report;
+	    this.toggle_message(true);
+		let filters = this.get_filter_values(true);
 
-		if(flags) {
-			const prepared_data = flags.data;
-			this.init_report_with_data(prepared_data);
-			this.toggle_to_button();
-			return;
+		let query = frappe.utils.get_query_string(frappe.get_route_str());
+
+		if(query) {
+			let obj = frappe.utils.get_query_params(query);
+			filters = Object.assign(filters || {}, obj);
 		}
-	    if(!this.prepared_report){
-            this.toggle_message(true);
-            const filters = this.get_filter_values(true);
-            return new Promise(resolve => frappe.call({
-                method: 'frappe.desk.query_report.run',
-                type: 'GET',
-                args: {
-                    report_name: this.report_name,
-                    filters: filters
-                },
-                callback: resolve
-            })).then(r => {
-                this.init_report_with_data(r.message);
-            });
-	    }
+
+		return new Promise(resolve => frappe.call({
+			method: 'frappe.desk.query_report.run',
+			type: 'GET',
+			args: {
+				report_name: this.report_name,
+				filters: filters,
+			},
+			callback: resolve
+		})).then(r => {
+			let data = r.message;
+
+			if (data.prepared_report){
+				this.prepared_report = true;
+				this.add_prepared_report_buttons(data.doc);
+				data = data.data;
+			}
+			this.toggle_message(false);
+			if (data.result && data.result.length) {
+				this.render_chart(data);
+				this.render_report(data);
+			} else {
+				this.toggle_nothing_to_show(true);
+			}
+		});
 	}
 
-	init_report_with_data(data) {
-		if (data.prepared_report){
-		    this.prepared_report = true;
-		    this.toggle_to_button();
-		    data = data.data;
-		}
-        this.toggle_message(false);
-        if (data.result && data.result.length) {
-            this.render_chart(data);
-            this.render_report(data);
-        } else {
-            this.toggle_nothing_to_show(true);
-        }
+	add_prepared_report_buttons(doc) {
+		this.page.add_inner_button(__("Download Report"), function () {
+			frappe.call({
+				method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
+				args: {"dn": flags.name}
+			});
+		});
 
+		let $message = this.page.add_inner_message(__(`
+			This report was <a href=#Form/Prepared%20Report/${doc.name}>generated</a>
+			on ${doc.report_end_time}.
+			<a class="generated_report_list">See all</a>.
+		`));
+
+		$message.on('click', () => {
+			frappe.route_options = {
+				report_name: doc.report_name,
+				filters: doc.filters
+			};
+			frappe.set_route("List", "Prepared Report");
+		})
 	}
 
 	render_background_report() {
@@ -629,16 +647,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	toggle_nothing_to_show(flag) {
 		this.toggle_message(flag, __('Nothing to show'));
-	}
-	toggle_to_button(){
-		this.page.add_inner_button(__("Download Report"), function () {
-			frappe.call({
-				method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
-				args: {"dn": flags.name}
-			});
-		});
-
-		this.page.add_inner_message(__("This report was generated on " + flags.generated_on));
 	}
 	toggle_message(flag, message) {
 		if (flag) {
