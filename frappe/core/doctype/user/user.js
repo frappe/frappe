@@ -189,6 +189,20 @@ frappe.ui.form.on('User', {
 				}
 			}
 		})
+	},
+	generate_keys: function(frm){
+		frappe.call({
+			method: 'frappe.core.doctype.user.user.generate_keys',
+			args: {
+				user: frm.doc.name
+			},
+			callback: function(r){
+				if(r.message){
+					frappe.msgprint("Save api Secret " + r.message.api_secret
+					)
+				}
+			}
+		})
 	}
 })
 

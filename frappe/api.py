@@ -9,6 +9,8 @@ import frappe.client
 from frappe.utils.response import build_response
 from frappe import _
 from six.moves.urllib.parse import urlparse, urlencode
+import base64
+
 
 def handle():
 	"""
@@ -149,3 +151,25 @@ def validate_oauth():
 		if valid:
 			frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
 			frappe.local.form_dict = form_dict
+	
+
+def validate_api_key_secret():
+	"""
+	get user from api_key and api_secret 
+
+	set user
+	"""
+	authorization_header = frappe.get_request_header("Authorization").split(" ")
+	if authorization_header[0] == 'Basic':
+		token = base64.b64decode(authorization_header[1]).split(":")
+	elif authorization_header[0] == 'token':
+		token = authorization_header[1].split(":")
+	else:
+		return
+	
+	api_key = token[0]
+	api_secret = token[1]
+
+	frappe.set_user(frappe.db.get_value(
+		"User", {"api_key": api_key, "api_secret": api_secret}, "user")
+	)
