@@ -25,7 +25,7 @@ class User(Document):
 
 	def __setup__(self):
 		# because it is handled separately
-		self.flags.ignore_save_passwords = ['new_password']
+		self.flags.ignore_save_passwords = True
 
 	def autoname(self):
 		"""set name as Email Address"""
