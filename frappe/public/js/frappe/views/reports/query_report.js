@@ -133,6 +133,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		return this._load_script;
 	}
+
 	setup_filters() {
 		this.clear_filters();
 		const { filters = [] } = this.report_settings;
@@ -140,7 +141,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.filters = filters.map(df => {
 			if (df.fieldtype === 'Break') return;
 
-			const f = this.page.add_field(df);
+			let f = this.page.add_field(df);
 
 			if (df.default) {
 				f.set_input(df.default);
@@ -156,7 +157,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 			};
 
+			f = Object.assign(f, df);
+
 			return f;
+
 		}).filter(Boolean);
 
 		if (this.filters.length === 0) {
@@ -170,6 +174,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		// as they can be used in
 		// setting/triggering the filters
 		this.set_filters_by_name();
+	}
+
+	set_filters(filters) {
+		this.filters.map(f => {
+			f.set_input(filters[f.fieldname]);
+		});
 	}
 
 	set_filters_by_name() {
@@ -253,6 +263,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			on ${doc.report_end_time}.
 			<a class="generated_report_list">See all</a>.
 		`));
+
+		let filters = JSON.parse(JSON.parse(doc.filters));
+
+		this.set_filters(filters);
 
 		$message.on('click', () => {
 			frappe.route_options = {
