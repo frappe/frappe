@@ -167,6 +167,30 @@ def run(report_name, filters=None, user=None):
 	else:
 		return generate_report_result(report, filters, user)
 
+def get_prepared_report_result(report, filters, dn=""):
+	latest_report_data = {}
+	doc_list = frappe.get_list("Prepared Report", filters={"status": "Completed", "ref_report_doctype": report})
+
+	if len(doc_list):
+		if dn:
+			# Get specified dn
+			doc = frappe.get_doc("Prepared Report", dn)
+		else:
+			# Get latest
+			doc = frappe.get_doc("Prepared Report", doc_list[0])
+
+		data = read_csv_content_from_attached_file(doc)
+		latest_report_data = {
+			"columns": data[0],
+			"result": data[1:]
+		}
+
+	return {
+		"prepared_report": True,
+		"data": latest_report_data,
+		"doc": doc
+	}
+
 
 def get_prepared_report_result(report, filters, dn=""):
 	latest_report_data = {}

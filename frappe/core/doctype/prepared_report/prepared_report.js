@@ -4,28 +4,13 @@
 frappe.ui.form.on('Prepared Report', {
 	refresh: function(frm) {
 		frm.add_custom_button(__("Show Report"), function() {
-			return frm.call({
-				method: "frappe.core.doctype.prepared_report.prepared_report.get_report_attachment_data",
-				args: {
-					dn: frm.doc.name
-				},
-				callback: function(r) {
-					if(r.message) {
-						let data = r.message;
-						frappe.flags.prepared_report = {
-							data: data,
-							name: frm.doc.name,
-							generated_on: frm.doc.report_end_time,
-							filters: JSON.parse(frm.doc.filters)
-						};
-
-						frappe.route_options = JSON.parse(JSON.parse(frm.doc.filters));
-
-						frappe.set_route("query-report", frm.doc.report_name);
-					}
-				}
-			});
+			frappe.set_route(
+				"query-report",
+				frm.doc.report_name,
+				frappe.utils.make_query_string({
+					prepared_report_name: frm.doc.name
+				})
+			);
 		});
-
 	}
 });
