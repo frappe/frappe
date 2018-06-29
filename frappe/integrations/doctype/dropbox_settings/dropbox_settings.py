@@ -111,9 +111,10 @@ def backup_to_dropbox(upload_db_backup=True):
 	# upload files to files folder
 	did_not_upload = []
 	error_log = []
-
-	upload_from_folder(get_files_path(), 0, "/files", dropbox_client, did_not_upload, error_log)
-	upload_from_folder(get_files_path(is_private=1), 1, "/private/files", dropbox_client, did_not_upload, error_log)
+ 	
+ 	if dropbox_settings['file_backup']:
+		upload_from_folder(get_files_path(), 0, "/files", dropbox_client, did_not_upload, error_log)
+		upload_from_folder(get_files_path(is_private=1), 1, "/private/files", dropbox_client, did_not_upload, error_log)
 
 	return did_not_upload, list(set(error_log))
 
@@ -226,7 +227,8 @@ def get_dropbox_settings(redirect_uri=False):
 		'access_token': settings.get_password('dropbox_access_token', raise_exception=False)
 			if settings.dropbox_access_token else '',
 		'access_key': settings.get_password('dropbox_access_key', raise_exception=False),
-		'access_secret': settings.get_password('dropbox_access_secret', raise_exception=False)
+		'access_secret': settings.get_password('dropbox_access_secret', raise_exception=False),
+		'file_backup':settings.file_backup
 	}
 
 	if redirect_uri:
