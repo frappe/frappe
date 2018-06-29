@@ -619,7 +619,7 @@ class BaseDocument(object):
 
 	def _save_passwords(self):
 		'''Save password field values in __Auth table'''
-		if self.flags.ignore_save_passwords:
+		if self.flags.ignore_save_passwords is True:
 			return
 
 		for df in self.meta.get('fields', {'fieldtype': ('=', 'Password')}):

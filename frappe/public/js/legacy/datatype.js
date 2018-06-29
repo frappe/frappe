@@ -40,10 +40,6 @@ function copy_dict(d) {
 	return n;
 }
 
-function replace_newlines(t) {
-	return t?t.replace(/\n/g, '<br>'):'';
-}
-
 function validate_email(txt) {
 	return frappe.utils.validate_type(txt, "email");
 }
@@ -115,7 +111,6 @@ Object.assign(window, {
 	is_null,
 	set_value_in,
 	copy_dict,
-	replace_newlines,
 	validate_email,
 	validate_spl_chars,
 	cstr,

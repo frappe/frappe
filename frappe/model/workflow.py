@@ -63,9 +63,6 @@ def apply_workflow(doc, action):
 	transitions = get_transitions(doc, workflow)
 	user = frappe.session.user
 
-	if not has_approval_access(user, doc):
-		frappe.throw(_("Self approval is not allowed"))
-
 	# find the transition
 	transition = None
 	for t in transitions:
@@ -74,6 +71,9 @@ def apply_workflow(doc, action):
 
 	if not transition:
 		frappe.throw(_("Not a valid Workflow Action"), WorkflowTransitionError)
+
+	if not has_approval_access(user, doc, transition):
+		frappe.throw(_("Self approval is not allowed"))
 
 	# update workflow state field
 	doc.set(workflow.workflow_state_field, transition.next_state)
@@ -136,17 +136,13 @@ def validate_workflow(doc):
 def get_workflow(doctype):
 	return frappe.get_doc('Workflow', get_workflow_name(doctype))
 
-def has_approval_access(user, doc):
-	workflow_name = get_workflow_name(doc.get('doctype'))
+def has_approval_access(user, doc, transition):
 	return (user == 'Administrator'
-		or is_self_approval_enabled(workflow_name)
+		or transition.get('allow_self_approval')
 		or user != doc.owner)
 
 def get_workflow_state_field(workflow_name):
 	return get_workflow_field_value(workflow_name, 'workflow_state_field')
-
-def is_self_approval_enabled(workflow_name):
-	return get_workflow_field_value(workflow_name, 'allow_self_approval')
 
 def send_email_alert(workflow_name):
 	return get_workflow_field_value(workflow_name, 'send_email_alert')

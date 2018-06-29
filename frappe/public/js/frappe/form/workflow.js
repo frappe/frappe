@@ -61,18 +61,7 @@ frappe.ui.form.States = Class.extend({
 
 		let doctype = this.frm.doctype;
 
-		function has_approval_access() {
-			let approval_access = false;
-			const user = frappe.session.user;
-			if (user === 'Administrator'
-				|| frappe.workflow.is_self_approval_enabled(doctype)
-				|| user !== me.frm.doc.owner) {
-				approval_access = true;
-			}
-			return approval_access;
-		}
-
-		if(state && has_approval_access()) {
+		if(state) {
 			// show actions from that state
 			this.show_actions(state);
 		}
@@ -89,9 +78,20 @@ frappe.ui.form.States = Class.extend({
 			return;
 		}
 
+		function has_approval_access(transition) {
+			let approval_access = false;
+			const user = frappe.session.user;
+			if (user === 'Administrator'
+				|| transition.allow_self_approval
+				|| user !== me.frm.doc.owner) {
+				approval_access = true;
+			}
+			return approval_access;
+		}
+
 		frappe.workflow.get_transitions(this.frm.doc).then(transitions => {
 			$.each(transitions, function(i, d) {
-				if(frappe.user_roles.includes(d.allowed)) {
+				if(frappe.user_roles.includes(d.allowed) && has_approval_access(d)) {
 					added = true;
 					me.frm.page.add_action_item(__(d.action), function() {
 						frappe.xcall('frappe.model.workflow.apply_workflow',

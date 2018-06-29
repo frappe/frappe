@@ -85,7 +85,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			this.refresh_charts();
 		}
 		if (this.datatable && !force) {
-			this.datatable.refresh(this.get_data(this.data));
+			this.datatable.refresh(this.get_data(this.data), this.columns);
 			return;
 		}
 		this.setup_datatable(this.data);
@@ -613,6 +613,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		if (index === -1) return;
 		const field = this.fields[index];
 		if (field[0] === 'name') {
+			this.refresh();
 			frappe.throw(__('Cannot remove ID field'));
 		}
 		this.fields.splice(index, 1);
@@ -744,14 +745,25 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		const editable = frappe.model.is_non_std_field(fieldname) && !docfield.read_only;
 
+		const align = (() => {
+			const is_numeric = frappe.model.is_numeric_field(docfield);
+			if (is_numeric) {
+				return 'right';
+			}
+			return docfield.fieldtype === 'Date' ? 'right' : 'left';
+		})();
+
+		const width = (docfield ? cint(docfield.width) : null) || null;
+
 		return {
 			id: fieldname,
 			field: fieldname,
-			docfield: docfield,
 			name: title,
 			content: title,
-			width: (docfield ? cint(docfield.width) : null) || null,
-			editable: editable,
+			docfield,
+			width,
+			editable,
+			align,
 			format: (value, row, column, data) => {
 				return frappe.format(value, column.docfield, { always_show_decimals: true }, data);
 			}

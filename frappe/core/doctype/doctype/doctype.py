@@ -261,7 +261,6 @@ class DocType(Document):
 		if not (frappe.db.table_exists(self.name) and frappe.db.table_exists("Custom Field")):
 			return
 		fields = [d.fieldname for d in self.fields if d.fieldtype in type_map]
-
 		frappe.db.sql('''delete from
 				`tabCustom Field`
 			where

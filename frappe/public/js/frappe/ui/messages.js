@@ -138,7 +138,7 @@ frappe.msgprint = function(msg, title) {
 	}
 
 	if(data.message.search(/<br>|<p>|<li>/)==-1) {
-		msg = replace_newlines(data.message);
+		msg = frappe.utils.replace_newlines(data.message);
 	}
 
 	var msg_exists = false;
@@ -180,13 +180,7 @@ frappe.msgprint = function(msg, title) {
 	return msg_dialog;
 }
 
-// Proxy for frappe.msgprint
-Object.defineProperty(window, 'msgprint', {
-	get: function() {
-		console.warn('Please use `frappe.msgprint` instead of `msgprint`. It will be deprecated soon.');
-		return frappe.msgprint;
-	}
-});
+window.msgprint = frappe.msgprint;
 
 frappe.hide_msgprint = function(instant) {
 	// clear msgprint

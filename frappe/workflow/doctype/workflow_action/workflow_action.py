@@ -101,7 +101,7 @@ def update_completed_workflow_actions(doc, user=None):
 
 def get_next_possible_transitions(workflow_name, state):
 	return frappe.get_all('Workflow Transition',
-		fields=['allowed', 'action', 'state'],
+		fields=['allowed', 'action', 'state', 'allow_self_approval'],
 		filters=[['parent', '=', workflow_name],
 		['state', '=', state]])
 
@@ -109,7 +109,7 @@ def get_users_next_action_data(transitions, doc):
 	user_data_map = {}
 	for transition in transitions:
 		users = get_users_with_role(transition.allowed)
-		filtered_users = filter_allowed_users(users, doc)
+		filtered_users = filter_allowed_users(users, doc, transition)
 		for user in filtered_users:
 			if not user_data_map.get(user):
 				user_data_map[user] = {
@@ -188,14 +188,14 @@ def get_doc_workflow_state(doc):
 	workflow_state_field = get_workflow_state_field(workflow_name)
 	return doc.get(workflow_state_field)
 
-def filter_allowed_users(users, doc):
+def filter_allowed_users(users, doc, transition):
 	"""Filters list of users by checking if user has access to doc and
-	if the user satisfies 'workflow self approval' condition
+	if the user satisfies 'workflow transision self approval' condition
 	"""
 	from frappe.permissions import has_permission
 	filtered_users = []
 	for user in users:
-		if (has_approval_access(user, doc)
+		if (has_approval_access(user, doc, transition)
 			and has_permission(doctype=doc, user=user)):
 			filtered_users.append(user)
 	return filtered_users
