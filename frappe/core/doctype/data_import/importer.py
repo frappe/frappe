@@ -116,7 +116,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		dt = None
 		for i, d in enumerate(doctype_row[1:]):
 			if d not in ("~", "-"):
-				if d and doctype_row[i] in (None, '' ,'~', '-', 'DocType:'):
+				if d and doctype_row[i] in (None, '' ,'~', '-', _("DocType") + ":"):
 					dt, parentfield = d, None
 					# xls format truncates the row, so it may not have more columns
 					if len(doctype_row) > i+2:
