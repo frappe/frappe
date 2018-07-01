@@ -13,11 +13,17 @@ frappe.ui.form.on('Print Settings', {
 			}
 		});
 	},
-	onload: function (frm) {
+	onload: function(frm) {
 		frm.script_manager.trigger("print_style");
 	},
 	server_ip: function (frm) {
-		if(frm.doc.server_ip){
+		frm.trigger("connect_print_server");
+	},
+	port:function(frm) {
+		frm.trigger("connect_print_server");
+	},
+	connect_print_server:function(frm) {
+		if(frm.doc.server_ip && frm.doc.port){
 			frappe.call({
 				 "doc": frm.doc,
 				 "method": "get_printers",

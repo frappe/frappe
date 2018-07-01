@@ -24,4 +24,6 @@ class PrintSettings(Document):
 			printer_list = printers.keys()
 		except RuntimeError:
 			frappe.throw(_("Failed to connect to server"))
+		except ValidationError:
+			frappe.throw(_("Failed to connect to server"))			
 		return printer_list
