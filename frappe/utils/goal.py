@@ -82,9 +82,10 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 	values = []
 	values_formatted = []
 	for i in range(0, 12):
-		month_value = formatdate(add_months(today(), -i), "MM-yyyy")
-		month_word = getdate(month_value).strftime('%b')
-		month_year = getdate(month_value).strftime('%B') + ', ' + getdate(month_value).strftime('%Y')
+		date_value = add_months(today(), -i)
+		month_value = formatdate(date_value, "MM-yyyy")
+		month_word = getdate(date_value).strftime('%b')
+		month_year = getdate(date_value).strftime('%B') + ', ' + getdate(date_value).strftime('%Y')
 		months.insert(0, month_word)
 		months_formatted.insert(0, month_year)
 		if month_value in month_to_value_dict:
