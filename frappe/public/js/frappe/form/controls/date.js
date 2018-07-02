@@ -18,7 +18,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 				// if date is selected but different from value, refresh
 				const selected_date =
 					moment(this.datepicker.selectedDates[0])
-						.format('YYYY-MM-DD');
+						.format(this.date_format);
 
 				should_refresh = selected_date !== value;
 			} else {
