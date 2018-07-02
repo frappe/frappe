@@ -57,7 +57,7 @@ apps/frappe/frappe/core/doctype/data_import/exporter.py +53,Data Import Template
 apps/frappe/frappe/public/js/frappe/model/model.js +33,Parent,Induk
 DocType: System Settings,"If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong.","Jika diaktifkan, kekuatan kata sandi akan diberlakukan berdasarkan nilai Skor Minimum Kata Sandi. Nilai 2 menjadi medium kuat dan 4 sangat kuat."
 DocType: About Us Settings,"""Team Members"" or ""Management""","""Anggota Tim"" atau ""Manajemen"""
-apps/frappe/frappe/core/doctype/doctype/doctype.py +505,Default for 'Check' type of field must be either '0' or '1',Standar untuk jenis 'Periksa' lapangan harus baik '0' atau '1'
+apps/frappe/frappe/core/doctype/doctype/doctype.py +504,Default for 'Check' type of field must be either '0' or '1',Standar untuk jenis 'Periksa' lapangan harus baik '0' atau '1'
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +51,Yesterday,Kemarin
 DocType: Contact,Designation,Penunjukan
 DocType: Test Runner,Test Runner,Uji Runner
@@ -90,6 +90,7 @@ apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +262,New {0}: #{1},Ba
 DocType: Data Migration Run,Insert,Insert
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +22,Select {0},Pilih {0}
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py +24,Please enter Base URL,Harap masukkan URL Base
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,Setup &gt; Customize Form,Pengaturan&gt; Sesuaikan Formulir
 DocType: Auto Repeat,Repeat on Day,Ulangi pada hari
 DocType: DocField,Color,Warna
 DocType: Data Migration Run,Log,Log
@@ -112,7 +113,7 @@ apps/frappe/frappe/model/db_schema.py +357,"{0} field cannot be set as unique in
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +48,Document Types,Jenis dokumen
 DocType: Address,Jammu and Kashmir,Jammu dan Kashmir
 DocType: Workflow,Workflow State Field,Kolom Status Alur Kerja
-apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +55,Please sign-up or login to begin,Silakan mendaftar atau login untuk memulai
+apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +56,Please sign-up or login to begin,Silakan mendaftar atau login untuk memulai
 DocType: Blog Post,Guest,Tamu
 DocType: DocType,Title Field,Judul Lapangan
 DocType: Error Log,Error Log,Catatan eror
@@ -141,7 +142,7 @@ DocType: Data Import,Import Log,Impor Log
 apps/frappe/frappe/config/website.py +27,Embed image slideshows in website pages.,Image slideshow menanamkan dalam halaman situs web.
 apps/frappe/frappe/email/doctype/newsletter/newsletter.js +9,Send,Kirim
 DocType: Workflow Action Master,Workflow Action Name,Nama Tindakan Alur Kerja
-apps/frappe/frappe/core/doctype/doctype/doctype.py +324,DocType can not be merged,DocType tidak dapat digabungkan
+apps/frappe/frappe/core/doctype/doctype/doctype.py +323,DocType can not be merged,DocType tidak dapat digabungkan
 DocType: Web Form Field,Fieldtype,Fieldtype
 apps/frappe/frappe/core/doctype/file/file.py +270,Not a zip file,Bukan file zip
 DocType: Auto Repeat,"To add dynamic subject, use jinja tags like
@@ -151,7 +152,7 @@ apps/frappe/frappe/public/js/frappe/form/save.js +147,"Mandatory fields required
 apps/frappe/frappe/utils/password_strength.py +196,Capitalization doesn't help very much.,Kapitalisasi tidak membantu sangat banyak.
 DocType: Error Snapshot,Friendly Title,Ramah Judul
 DocType: Newsletter,Email Sent?,Surel Terkirim?
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +939,Toggle Chart,Toggle Chart
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +951,Toggle Chart,Toggle Chart
 apps/frappe/frappe/desk/form/save.py +50,Did not cancel,Tidak membatalkan
 DocType: Social Login Key,Client Information,Informasi klien
 DocType: Workflow State,plus,plus
@@ -182,7 +183,7 @@ apps/frappe/frappe/integrations/doctype/webhook/webhook.py +29,DocType must be S
 DocType: Workflow State,circle-arrow-up,lingkaran-panah-up
 DocType: Email Domain,Email Domain,Domain Surel
 DocType: Workflow State,italic,italic
-apps/frappe/frappe/core/doctype/doctype/doctype.py +764,{0}: Cannot set Import without Create,{0}: Tidak dapat melakukan Impor tanpa dibuat terlebih dahulu
+apps/frappe/frappe/core/doctype/doctype/doctype.py +763,{0}: Cannot set Import without Create,{0}: Tidak dapat melakukan Impor tanpa dibuat terlebih dahulu
 DocType: SMS Settings,Enter url parameter for message,Entrikan parameter url untuk pesan
 apps/frappe/frappe/templates/emails/auto_email_report.html +50,View report in your browser,Lihat laporan di browser Anda
 apps/frappe/frappe/config/desk.py +26,Event and other calendars.,Acara dan kalender lainnya.
@@ -234,7 +235,7 @@ apps/frappe/frappe/data_migration/doctype/data_migration_connector/data_migratio
 DocType: DocField,Display,Tampilan
 DocType: Email Group,Total Subscribers,Jumlah Pelanggan
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +25,"If a Role does not have access at Level 0, then higher levels are meaningless.","Jika Peran yang tidak memiliki akses di Level 0, maka tingkat yang lebih tinggi tidak ada artinya."
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +889,Save As,Disimpan Sebagai
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +901,Save As,Disimpan Sebagai
 DocType: Communication,Seen,Terlihat
 apps/frappe/frappe/public/js/frappe/form/layout.js +162,Show more details,Tampilkan lebih detail
 DocType: System Settings,Run scheduled jobs only if checked,Menjalankan pekerjaan dijadwalkan hanya jika diperiksa
@@ -265,7 +266,6 @@ apps/frappe/frappe/config/website.py +68,Javascript to append to the head sectio
 apps/frappe/frappe/www/printview.py +81,Not allowed to print draft documents,Tidak diizinkan untuk mencetak dokumen draft
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js +12,Reset to defaults,Ulang ke default
 DocType: Workflow,Transition Rules,Aturan Transisi
-apps/frappe/frappe/email/smtp.py +188,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Akun Email bukan penyiapan. Harap buat Akun Email baru dari Pengaturan&gt; Email&gt; Akun Email
 apps/frappe/frappe/core/doctype/report/report.js +11,Example:,Contoh:
 DocType: Google Maps,Google Maps,Google Maps
 DocType: Workflow,Defines workflow states and rules for a document.,Mendefinisikan status alur kerja dan aturan untuk dokumen.
@@ -275,7 +275,7 @@ apps/frappe/frappe/config/setup.py +133,Update many values at one time.,Memperba
 apps/frappe/frappe/model/document.py +637,Error: Document has been modified after you have opened it,Kesalahan: Dokumen telah dimodifikasi setelah Anda membukanya
 apps/frappe/frappe/core/doctype/activity_log/feed.py +56,{0} logged out: {1},{0} log out: {1}
 DocType: Address,West Bengal,Benggala Barat
-apps/frappe/frappe/core/doctype/doctype/doctype.py +783,{0}: Cannot set Assign Submit if not Submittable,{0}: Tidak dapat mengatur Assign Submit jika tidak Submittable
+apps/frappe/frappe/core/doctype/doctype/doctype.py +782,{0}: Cannot set Assign Submit if not Submittable,{0}: Tidak dapat mengatur Assign Submit jika tidak Submittable
 DocType: Transaction Log,Row Index,Indeks Baris
 DocType: Social Login Key,Facebook,Facebook
 apps/frappe/frappe/www/list.py +66,"Filtered by ""{0}""",Disaring oleh &quot;{0}&quot;
@@ -307,12 +307,13 @@ DocType: Notification Recipient,Notification Recipient,Penerima Pemberitahuan
 DocType: Workflow State,Refresh,Segarkan
 DocType: Event,Public,Publik
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +594,Nothing to show,Tidak ada yang menunjukkan
+apps/frappe/frappe/email/smtp.py +188,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Akun Email bukan penyiapan. Harap buat Akun Email baru dari Pengaturan&gt; Email&gt; Akun Email
 DocType: System Settings,Enable Two Factor Auth,Aktifkan Dua Faktor Auth
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +280,[Urgent] Error while creating recurring %s for %s,[Penting] Kesalahan saat membuat perulangan %s untuk %s
 apps/frappe/frappe/public/js/frappe/model/model.js +24,Liked By,Dengan menyukai
 DocType: DocField,Print Hide If No Value,Cetak Sembunyikan Jika ada Nilai
 DocType: Kanban Board Column,yellow,kuning
-apps/frappe/frappe/core/doctype/doctype/doctype.py +617,Is Published Field must be a valid fieldname,Apakah Diterbitkan lapangan harus fieldname valid
+apps/frappe/frappe/core/doctype/doctype/doctype.py +616,Is Published Field must be a valid fieldname,Apakah Diterbitkan lapangan harus fieldname valid
 apps/frappe/frappe/public/js/frappe/upload.js +26,Upload Attachment,Unggah Lampiran
 DocType: Block Module,Block Module,Blok Modul
 apps/frappe/frappe/core/doctype/version/version_view.html +14,New Value,Nilai baru
@@ -338,7 +339,7 @@ DocType: Print Format,Verdana,Verdana
 DocType: Email Flag Queue,Email Flag Queue,Tanda Antrian Surel
 apps/frappe/frappe/config/setup.py +205,Stylesheets for Print Formats,Stylesheets untuk Format Cetak
 apps/frappe/frappe/utils/bot.py +83,Can't identify open {0}. Try something else.,tidak dapat mengidentifikasi terbuka {0}. Mencoba sesuatu yang lain.
-apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +169,Your information has been submitted,Informasi Anda telah dikirim
+apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +172,Your information has been submitted,Informasi Anda telah dikirim
 apps/frappe/frappe/core/doctype/user/user.py +311,User {0} cannot be deleted,Pengguna {0} tidak dapat dihapus
 DocType: System Settings,Currency Precision,Presisi mata uang
 apps/frappe/frappe/public/js/frappe/request.js +143,Another transaction is blocking this one. Please try again in a few seconds.,Transaksi lain yang menghalangi satu ini. Silakan coba lagi dalam beberapa detik.
@@ -357,6 +358,7 @@ DocType: User,Tile,Ubin
 apps/frappe/frappe/templates/includes/login/login.js +118,Verifying...,Memverifikasi ...
 apps/frappe/frappe/core/doctype/data_import/exporter.py +64,First data column must be blank.,Data kolom pertama harus kosong.
 apps/frappe/frappe/core/doctype/version/version.js +5,Show all Versions,Tampilkan semua Versi
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357,<p>No results found for '</p>,<p> Tidak ditemukan hasil untuk &#39; </p>
 DocType: Workflow State,Print,mencetak
 DocType: User,Restrict IP,Membatasi IP
 apps/frappe/frappe/public/js/frappe/form/layout.js +108,Dashboard,Dasbor
@@ -420,14 +422,14 @@ apps/frappe/frappe/utils/password_strength.py +38,"Use a few words, avoid common
 DocType: Workflow State,plane,pesawat
 apps/frappe/frappe/core/doctype/data_import/exporter.py +66,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","Jika Anda mengunggah data baru, ""Seri Penamaan"" menjadi wajib, jika ada."
 apps/frappe/frappe/email/doctype/notification/notification.js +87,Get Alerts for Today,Dapatkan Pemberitahuan untuk Hari ini
-apps/frappe/frappe/core/doctype/doctype/doctype.py +317,DocType can only be renamed by Administrator,DOCTYPE hanya dapat diganti oleh Administrator
+apps/frappe/frappe/core/doctype/doctype/doctype.py +316,DocType can only be renamed by Administrator,DOCTYPE hanya dapat diganti oleh Administrator
 DocType: Chat Message,Chat Message,Pesan chat
 apps/frappe/frappe/utils/oauth.py +146,Email not verified with {0},Email tidak diverifikasi dengan {0}
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +472,changed value of {0},nilai berubah dari {0}
 DocType: User,"If the user has any role checked,then the user becomes a ""System User"". ""System User"" has access to the desktop","Jika pengguna memiliki peran diperiksa, maka pengguna menjadi &quot;System User&quot;. &quot;System User&quot; memiliki akses ke desktop"
 DocType: Report,JSON,JSON
 apps/frappe/frappe/core/doctype/user/user.py +803,Please check your email for verification,Silahkan cek email Anda untuk verifikasi
-apps/frappe/frappe/core/doctype/doctype/doctype.py +557,Fold can not be at the end of the form,Lipat tidak bisa di akhir formulir
+apps/frappe/frappe/core/doctype/doctype/doctype.py +556,Fold can not be at the end of the form,Lipat tidak bisa di akhir formulir
 DocType: Communication,Bounced,Memantul
 DocType: Deleted Document,Deleted Name,Nama dihapus
 apps/frappe/frappe/config/setup.py +14,System and Website Users,Sistem dan Pengguna
@@ -453,7 +455,7 @@ apps/frappe/frappe/model/document.py +1211,Document Queued,dokumen Antri
 DocType: GSuite Templates,Destination ID,ID tujuan
 DocType: Desktop Icon,List,daftar
 DocType: Activity Log,Link Name,Link Nama
-apps/frappe/frappe/core/doctype/doctype/doctype.py +481,Field {0} in row {1} cannot be hidden and mandatory without default,Lapangan {0} berturut-turut {1} tidak dapat disembunyikan dan wajib tanpa standar
+apps/frappe/frappe/core/doctype/doctype/doctype.py +480,Field {0} in row {1} cannot be hidden and mandatory without default,Lapangan {0} berturut-turut {1} tidak dapat disembunyikan dan wajib tanpa standar
 DocType: System Settings,mm/dd/yyyy,hh / bb / tttt
 apps/frappe/frappe/core/doctype/user/user.py +939,Invalid Password: ,Kata sandi salah:
 DocType: Print Settings,Send document web view link in email,Mengirim tautan tampilan web dokumen dalam email
@@ -484,7 +486,7 @@ DocType: Country,Country Name,Nama Negara
 DocType: About Us Team Member,About Us Team Member,Tentang Kami Anggota Tim
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5,"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Perizinan diatur pada Peran dan Jenis Dokumen (disebut DocTypes) dengan menetapkan hak-hak seperti Baca, Tulis, Buat, Hapus, Kirim, Batal, Mengubah, Laporan, Impor, Ekspor, Cetak, Email dan Atur Ijin Pengguna."
 DocType: Event,Wednesday,Rabu
-apps/frappe/frappe/core/doctype/doctype/doctype.py +608,Image field must be a valid fieldname,bidang gambar harus fieldname valid
+apps/frappe/frappe/core/doctype/doctype/doctype.py +607,Image field must be a valid fieldname,bidang gambar harus fieldname valid
 DocType: Chat Token,Token,Token
 DocType: Property Setter,ID (name) of the entity whose property is to be set,ID (nama) dari entitas yang properti harus ditetapkan
 apps/frappe/frappe/limits.py +84,"To renew, {0}.","Untuk memperbaharui, {0}."
@@ -494,7 +496,7 @@ apps/frappe/frappe/installer.py +129,App {0} already installed,App {0} sudah ter
 apps/frappe/frappe/printing/doctype/print_settings/print_settings.js +11,No Preview,Tidak ada preview
 DocType: Workflow State,exclamation-sign,seru-sign
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.js +30,Show Permissions,Tampilkan Perijinan
-apps/frappe/frappe/core/doctype/doctype/doctype.py +628,Timeline field must be a Link or Dynamic Link,bidang Timeline harus Link atau Dynamic Link
+apps/frappe/frappe/core/doctype/doctype/doctype.py +627,Timeline field must be a Link or Dynamic Link,bidang Timeline harus Link atau Dynamic Link
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +53,Date Range,Rentang Tanggal
 apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +10,Gantt,Gantt
 apps/frappe/frappe/public/html/print_template.html +27,Page {0} of {1},Halaman {0} dari {1}
@@ -504,7 +506,7 @@ DocType: SMS Settings,Receiver Parameter,Parameter Penerima
 DocType: Data Migration Mapping Detail,Remote Fieldname,Fieldname jarak jauh
 DocType: Communication,To,untuk
 DocType: Kanban Board Column,darkgrey,Abu-abu gelap
-apps/frappe/frappe/model/rename_doc.py +418,Successful: {0} to {1},Sukses: {0} ke {1}
+apps/frappe/frappe/model/rename_doc.py +428,Successful: {0} to {1},Sukses: {0} ke {1}
 apps/frappe/frappe/core/doctype/user/user.py +107,Cannot change user details in demo. Please signup for a new account at https://erpnext.com,Tidak dapat mengubah detail pengguna di demo. Silakan mendaftar untuk akun baru di https://erpnext.com
 apps/frappe/frappe/printing/doctype/print_format/print_format.js +18,Please duplicate this to make changes,Silakan duplikat ini untuk membuat perubahan
 apps/frappe/frappe/public/js/frappe/list/list_filter.js +99,Press Enter to save,Tekan Enter untuk menyimpan
@@ -530,7 +532,7 @@ apps/frappe/frappe/email/doctype/notification/notification.js +24,Last Modified 
 DocType: Chat Profile,Settings,Pengaturan
 DocType: Print Format,Style Settings,Pengaturan Style
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +343,Y Axis Fields,Bidang Sumbu Y
-apps/frappe/frappe/core/doctype/doctype/doctype.py +639,Sort field {0} must be a valid fieldname,bidang semacam {0} harus fieldname valid
+apps/frappe/frappe/core/doctype/doctype/doctype.py +638,Sort field {0} must be a valid fieldname,bidang semacam {0} harus fieldname valid
 apps/frappe/frappe/public/js/frappe/list/base_list.js +279,More,Lanjut
 DocType: Contact,Sales Manager,Sales Manager
 apps/frappe/frappe/public/js/frappe/model/model.js +545,Rename,Ubah nama
@@ -592,7 +594,7 @@ DocType: Email Queue Recipient,Email Queue Recipient,Penerima Antrian Surel
 DocType: Address,Nagaland,Nagaland
 DocType: Slack Webhook URL,Webhook URL,URL Webhook
 apps/frappe/frappe/core/doctype/user/user.py +424,Username {0} already exists,Nama pengguna {0} sudah ada
-apps/frappe/frappe/core/doctype/doctype/doctype.py +789,{0}: Cannot set import as {1} is not importable,{0}: Tidak dapat melakukan impor karena {1} bukan data yang dapat diimpor
+apps/frappe/frappe/core/doctype/doctype/doctype.py +788,{0}: Cannot set import as {1} is not importable,{0}: Tidak dapat melakukan impor karena {1} bukan data yang dapat diimpor
 apps/frappe/frappe/contacts/doctype/address/address.py +114,There is an error in your Address Template {0},Ada kesalahan dalam Template Alamat Anda {0}
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +82,{0} is an invalid email address in 'Recipients',{0} adalah alamat email yang tidak valid di &#39;Penerima&#39;
 DocType: User,Allow Desktop Icon,Izinkan Ikon Desktop
@@ -643,13 +645,13 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 apps/frappe/frappe/core/doctype/doctype/doctype.py +81,"Standard DocType cannot have default print format, use Customize Form","DocType standar tidak dapat memiliki format cetak standar, gunakan Customize Form"
 DocType: Report,Query,Query
 DocType: DocType,Sort Order,Tata Urutan
-apps/frappe/frappe/core/doctype/doctype/doctype.py +489,'In List View' not allowed for type {0} in row {1},'Tampilan Daftar' tidak diperbolehkan jenis {0} di baris {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +488,'In List View' not allowed for type {0} in row {1},'Tampilan Daftar' tidak diperbolehkan jenis {0} di baris {1}
 DocType: Custom Field,Select the label after which you want to insert new field.,Pilih label setelah itu Anda ingin memasukkan bidang baru.
 ,Document Share Report,Dokumen Saham Laporkan
 DocType: Social Login Key,Base URL,URL dasar
 DocType: User,Last Login,Terakhir Login
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +217,You can't set 'Translatable' for field {0},Anda tidak dapat mengatur &#39;Translatable&#39; untuk field {0}
-apps/frappe/frappe/core/doctype/doctype/doctype.py +664,Fieldname is required in row {0},Fieldname diperlukan berturut-turut {0}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +663,Fieldname is required in row {0},Fieldname diperlukan berturut-turut {0}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_column_selector.html +4,Column,Kolom
 DocType: Chat Profile,Chat Profile,Profil Obrolan
 DocType: Custom Field,Adds a custom field to a DocType,Menambahkan kolom (custom field) untuk DOCTYPE
@@ -658,7 +660,6 @@ apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a val
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +63,Select atleast 1 record for printing,Pilih minimal 1 record untuk pencetakan
 apps/frappe/frappe/core/doctype/has_role/has_role.py +12,User '{0}' already has the role '{1}',Pengguna {0} &#39;sudah memiliki peran&#39; {1} &#39;
 DocType: System Settings,Two Factor Authentication method,Metode Two Factor Authentication
-apps/frappe/frappe/contacts/doctype/address/address.py +193,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Tidak ditemukan Template Alamat default. Harap buat yang baru dari Setup&gt; Percetakan dan Branding&gt; Template Alamat.
 apps/frappe/frappe/public/js/frappe/form/share.js +36,Shared with {0},Bersama dengan {0}
 apps/frappe/frappe/email/queue.py +270,Unsubscribe,Berhenti berlangganan
 DocType: View log,Reference Name,Referensi Nama
@@ -690,7 +691,7 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.py +35,Scheduled to send 
 DocType: Kanban Board Column,Indicator,Indikator
 DocType: DocShare,Everyone,Semua orang
 DocType: Workflow State,backward,mundur
-apps/frappe/frappe/core/doctype/doctype/doctype.py +738,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: Hanya satu aturan diperbolehkan dengan Peran yang sama, Tingkat dan {1}"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +737,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: Hanya satu aturan diperbolehkan dengan Peran yang sama, Tingkat dan {1}"
 DocType: Email Queue,Add Unsubscribe Link,Menambahkan Unsubscribe Link
 apps/frappe/frappe/templates/includes/comments/comments.html +7,No comments yet. Start a new discussion.,Belum ada komentar. Mulai diskusi baru.
 DocType: Workflow State,share,saham
@@ -762,13 +763,13 @@ DocType: Dropbox Settings,App Secret Key,App Kunci Rahasia
 DocType: Webhook,on_submit,on_submit
 apps/frappe/frappe/config/website.py +7,Web Site,Situs web
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +8,Checked items will be shown on desktop,Item yang dicentang akan ditampilkan pada desktop
-apps/frappe/frappe/core/doctype/doctype/doctype.py +779,{0} cannot be set for Single types,{0} tidak dapat ditetapkan untuk tipe Tunggal
+apps/frappe/frappe/core/doctype/doctype/doctype.py +778,{0} cannot be set for Single types,{0} tidak dapat ditetapkan untuk tipe Tunggal
 DocType: Data Import,Data Import,Impor data
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +333,Configure Chart,Konfigurasikan Bagan
 apps/frappe/frappe/public/js/frappe/form/form_viewers.js +55,{0} are currently viewing this document,{0} sedang melihat dokumen ini
 DocType: ToDo,Assigned By Full Name,Ditugaskan Dengan Nama Lengkap
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +156,{0} updated,{0} diperbarui
-apps/frappe/frappe/core/doctype/doctype/doctype.py +771,Report cannot be set for Single types,Laporan tidak dapat ditetapkan untuk jenis Tunggal
+apps/frappe/frappe/core/doctype/doctype/doctype.py +770,Report cannot be set for Single types,Laporan tidak dapat ditetapkan untuk jenis Tunggal
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html +50,An error occured during the payment process. Please contact us.,Terjadi kesalahan selama proses pembayaran. Silakan hubungi kami.
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +52,{0} days ago,{0} hari yang lalu
 DocType: Email Account,Awaiting Password,Menunggu Sandi
@@ -835,7 +836,7 @@ DocType: System Settings,OTP Issuer Name,Nama Emiten OTP
 DocType: OAuth Bearer Token,OAuth Bearer Token,OAuth Pembawa Token
 apps/frappe/frappe/public/js/legacy/print_format.js +124,No document selected,Tidak ada dokumen yang dipilih
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Dr,Dr
-apps/frappe/frappe/public/js/frappe/dom.js +266,You are connected to internet.,Anda terhubung ke internet.
+apps/frappe/frappe/public/js/frappe/dom.js +291,You are connected to internet.,Anda terhubung ke internet.
 DocType: Social Login Key,Enable Social Login,Aktifkan Login Sosial
 DocType: Event,Event,Acara
 apps/frappe/frappe/public/js/frappe/views/communication.js +651,"On {0}, {1} wrote:","Pada {0}, {1} menulis:"
@@ -913,7 +914,7 @@ DocType: Event,Saturday,Sabtu
 DocType: User,Represents a User in the system.,Merupakan Pengguna dalam sistem.
 DocType: Communication,Label,Label
 apps/frappe/frappe/desk/form/assign_to.py +145,"The task {0}, that you assigned to {1}, has been closed.","Tugas {0}, yang ditugaskan untuk {1}, telah ditutup."
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +281,Please close this window,Tutup jendela ini
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +282,Please close this window,Tutup jendela ini
 DocType: Print Format,Print Format Type,Print Format Type
 DocType: Newsletter,A Lead with this Email Address should exist,Pelanggan Prospek dengan alamat email ini harus ada
 apps/frappe/frappe/public/js/frappe/ui/toolbar/about.js +7,Open Source Applications for the Web,Aplikasi Open Source untuk Web
@@ -965,7 +966,7 @@ apps/frappe/frappe/desk/page/activity/activity_row.html +21,Updated {0}: {1},Dip
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Master,Nahkoda
 DocType: DocType,User Cannot Create,Pengguna Tidak dapat Buat
 apps/frappe/frappe/core/doctype/file/file.py +320,Folder {0} does not exist,Folder {0} tidak ada
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +306,Dropbox access is approved!,Akses Dropbox disetujui!
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +307,Dropbox access is approved!,Akses Dropbox disetujui!
 DocType: Customize Form,Enter Form Type,Masukkan Form Type
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +13,Missing parameter Kanban Board Name,Parameter yang hilang Nama Kanban Board
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html +5,No records tagged.,Ada catatan tagged.
@@ -1004,21 +1005,21 @@ apps/frappe/frappe/core/doctype/user/user.py +1024,OTP secret can only be reset 
 apps/frappe/frappe/utils/password_strength.py +135,Avoid years that are associated with you.,Hindari tahun yang berkaitan dengan Anda.
 apps/frappe/frappe/config/setup.py +44,Restrict user for specific document,Batasi pengguna untuk dokumen tertentu
 DocType: GSuite Templates,GSuite Templates,Template GSuite
-apps/frappe/frappe/utils/goal.py +109,Goal,Sasaran
+apps/frappe/frappe/utils/goal.py +110,Goal,Sasaran
 apps/frappe/frappe/email/receive.py +60,Invalid Mail Server. Please rectify and try again.,Mail Server tidak valid. Harap memperbaiki dan coba lagi.
 DocType: DocField,"For Links, enter the DocType as range.
 For Select, enter list of Options, each on a new line.","Untuk Link, masukkan DOCTYPE sebagai kisaran. Untuk Pilih, masukkan daftar Options, masing-masing pada baris baru."
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Pengaturan&gt; Pengguna
 DocType: Workflow State,film,film
 apps/frappe/frappe/model/db_query.py +408,No permission to read {0},Tidak ada izin untuk membaca {0}
 apps/frappe/frappe/config/desktop.py +8,Tools,Alat-alat
 apps/frappe/frappe/utils/password_strength.py +134,Avoid recent years.,Hindari beberapa tahun terakhir.
 apps/frappe/frappe/utils/nestedset.py +240,Multiple root nodes not allowed.,Beberapa node akar tidak diperbolehkan.
 DocType: Note,"If enabled, users will be notified every time they login. If not enabled, users will only be notified once.","Jika diaktifkan, pengguna akan diberitahu setiap kali mereka login. Jika tidak diaktifkan, pengguna hanya akan diberitahu satu kali."
-apps/frappe/frappe/core/doctype/doctype/doctype.py +649,Invalid {0} condition,Kondisi {0} tidak valid
+apps/frappe/frappe/core/doctype/doctype/doctype.py +648,Invalid {0} condition,Kondisi {0} tidak valid
 DocType: OAuth Client,"If checked, users will not see the Confirm Access dialog.","Jika dicentang, pengguna tidak akan melihat dialog Confirm Access."
 apps/frappe/frappe/public/js/frappe/model/model.js +25,Comments,Komentar
-apps/frappe/frappe/public/js/frappe/ui/modal.html +17,Confirm,Menegaskan
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} tahun yang lalu
+apps/frappe/frappe/public/js/frappe/dom.js +264,Confirm,Menegaskan
 apps/frappe/frappe/www/login.html +58,Forgot Password?,Lupa kata sandi?
 DocType: System Settings,yyyy-mm-dd,yyyy-mm-dd
 apps/frappe/frappe/desk/report/todo/todo.py +19,ID,ID
@@ -1033,7 +1034,7 @@ apps/frappe/frappe/email/doctype/notification/notification.py +37,Please specify
 DocType: Custom DocPerm,Set User Permissions,Set User Permissions
 apps/frappe/frappe/permissions.py +200,Not allowed for {0} = {1},Tidak diizinkan untuk {0} = {1}
 DocType: Email Account,Email Account Name,Nama akun surel
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +256,Something went wrong while generating dropbox access token. Please check error log for more details.,Ada yang tidak beres saat menghasilkan token akses token dropbox. Silakan periksa log kesalahan untuk lebih jelasnya.
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +257,Something went wrong while generating dropbox access token. Please check error log for more details.,Ada yang tidak beres saat menghasilkan token akses token dropbox. Silakan periksa log kesalahan untuk lebih jelasnya.
 DocType: File,old_parent,old_parent
 apps/frappe/frappe/config/desk.py +54,"Newsletters to contacts, leads.","Newsletter ke kontak, prospek."
 DocType: Email Account,"e.g. ""Support"", ""Sales"", ""Jerry Yang""","misalnya ""Support "","" Penjualan "","" Jerry Yang """
@@ -1138,7 +1139,7 @@ apps/frappe/frappe/core/doctype/report/report.js +16,Write a Python file in the 
 DocType: DocType,Sort Field,Urutkan Lapangan
 DocType: Razorpay Settings,Razorpay Settings,Pengaturan Razorpay
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +263,Edit Filter,Mengedit Filter
-apps/frappe/frappe/core/doctype/doctype/doctype.py +463,Field {0} of type {1} cannot be mandatory,Lapangan {0} tipe {1} tidak wajib
+apps/frappe/frappe/core/doctype/doctype/doctype.py +462,Field {0} of type {1} cannot be mandatory,Lapangan {0} tipe {1} tidak wajib
 apps/frappe/frappe/public/js/frappe/ui/slides.js +29,Add More,Tambah Lagi
 DocType: System Settings,Session Expiry Mobile,Sesi kadaluarsa Ponsel
 apps/frappe/frappe/utils/password.py +66,Incorrect User or Password,Pengguna atau Kata Sandi salah
@@ -1224,6 +1225,7 @@ apps/frappe/frappe/model/naming.py +210,Name of {0} cannot be {1},Nama {0} tidak
 apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +33,From Date,Dari Tanggal
 apps/frappe/frappe/core/doctype/version/version_view.html +47,Success,Sukses
 apps/frappe/frappe/public/js/frappe/feedback.js +95,Feedback Request for {0} is sent to {1},Masukan Permintaan {0} dikirim ke {1}
+apps/frappe/frappe/email/smtp.py +85,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Silakan setup Akun Email default dari Pengaturan&gt; Email&gt; Akun Email
 apps/frappe/frappe/public/js/frappe/desk.js +390,Session Expired,Sesi berakhir
 DocType: Kanban Board Column,Kanban Board Column,Kolom kanban Dewan
 apps/frappe/frappe/utils/password_strength.py +98,Straight rows of keys are easy to guess,baris lurus kunci yang mudah ditebak
@@ -1237,6 +1239,7 @@ DocType: Customize Form,Image Field,Bidang gambar
 apps/frappe/frappe/integrations/doctype/gcalendar_settings/gcalendar_settings.py +49,Something went wrong during the token generation. Please request again an authorization code.,Ada yang tidak beres selama generasi token. Mohon minta lagi kode otorisasi.
 DocType: Print Format,Custom HTML Help,Custom HTML Bantuan
 apps/frappe/frappe/website/doctype/contact_us_settings/contact_us_settings.js +3,See on Website,Lihat di Website
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions,Pengaturan&gt; Izin Pengguna
 DocType: Workflow Transition,Next State,Negara berikutnya
 DocType: User,Block Modules,Blok Modul
 apps/frappe/frappe/model/db_schema.py +151,Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.,Mengembalikan panjang ke {0} untuk &#39;{1}&#39; di &#39;{2}&#39;; Mengatur panjang sebagai {3} akan menyebabkan pemotongan data.
@@ -1244,7 +1247,7 @@ DocType: Print Format,Custom CSS,Kustom CSS
 apps/frappe/frappe/public/js/frappe/ui/comment.js +36,Add a comment,Tambah komentar
 DocType: Webhook,on_update,on_update
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +59,{type} room must have atmost one user.,{type} harus memiliki paling sedikit satu pengguna.
-apps/frappe/frappe/model/rename_doc.py +421,Ignored: {0} to {1},Diabaikan: {0} ke {1}
+apps/frappe/frappe/model/rename_doc.py +431,Ignored: {0} to {1},Diabaikan: {0} ke {1}
 DocType: Address,Gujarat,Gujarat
 apps/frappe/frappe/config/setup.py +82,Log of error on automated events (scheduler).,Log kesalahan pada peristiwa otomatis (scheduler).
 apps/frappe/frappe/utils/csvutils.py +80,Not a valid Comma Separated Value (CSV File),Bukan Nilai Comma Separated valid (CSV file)
@@ -1312,7 +1315,7 @@ DocType: User,Set New Password,Set Password Baru
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +49,"%s is not a valid report format. Report format should \
 				one of the following %s",%s bukan format laporan yang valid. Format laporan harus \ salah satu %s berikut
 DocType: Chat Message,Chat,Obrolan
-apps/frappe/frappe/core/doctype/doctype/doctype.py +456,Fieldname {0} appears multiple times in rows {1},Fieldname {0} muncul beberapa kali dalam baris {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +455,Fieldname {0} appears multiple times in rows {1},Fieldname {0} muncul beberapa kali dalam baris {1}
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +490,{0} from {1} to {2} in row #{3},{0} dari {1} ke {2} di baris # {3}
 DocType: Communication,Expired,Expired
 apps/frappe/frappe/templates/pages/integrations/razorpay_checkout.py +32,Seems token you are using is invalid!,Sepertinya token yang Anda gunakan tidak valid!
@@ -1331,26 +1334,26 @@ DocType: Help Article,Likes,Suka
 DocType: Website Settings,Top Bar,Top Bar
 DocType: GSuite Settings,Script Code,Kode Script
 apps/frappe/frappe/core/doctype/user/user.js +136,Create User Email,Buat Email Pengguna
-apps/frappe/frappe/core/doctype/doctype/doctype.py +713,No Permissions Specified,Tidak ada izin yang ditentukan
+apps/frappe/frappe/core/doctype/doctype/doctype.py +712,No Permissions Specified,Tidak ada izin yang ditentukan
 apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py +299,{0} not found,{0} tidak ditemukan
 DocType: Custom Role,Custom Role,Peran kustom
 apps/frappe/frappe/core/doctype/file/test_file.py +57,Home/Test Folder 2,Rumah / Test Folder 2
 apps/frappe/frappe/public/js/frappe/form/controls/attach.js +48,Please save the document before uploading.,Silakan simpan dokumen sebelum mengunggah.
-apps/frappe/frappe/public/js/frappe/ui/messages.js +219,Enter your password,Masukkan password Anda
+apps/frappe/frappe/public/js/frappe/ui/messages.js +213,Enter your password,Masukkan password Anda
 DocType: Dropbox Settings,Dropbox Access Secret,Dropbox Access Rahasia
 DocType: Social Login Key,Social Login Provider,Penyedia Login Sosial
 apps/frappe/frappe/templates/includes/comments/comments.html +119,Add Another Comment,Tambahkan Komentar lain
 apps/frappe/frappe/core/doctype/data_import/importer.py +80,No data found in the file. Please reattach the new file with data.,Tidak ada data yang ditemukan dalam file. Tolong pasang kembali file baru dengan data.
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +179,Edit DocType,mengedit DocType
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +160,Unsubscribed from Newsletter,Berhenti berlangganan dari Newsletter
-apps/frappe/frappe/core/doctype/doctype/doctype.py +555,Fold must come before a Section Break,Lipat harus datang sebelum Bagian istirahat
+apps/frappe/frappe/core/doctype/doctype/doctype.py +554,Fold must come before a Section Break,Lipat harus datang sebelum Bagian istirahat
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +13,Under Development,Dalam pengembangan
 apps/frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py +25,Go to the document,Pergi ke dokumen
 apps/frappe/frappe/public/js/frappe/model/meta.js +185,Last Modified By,Terakhir Diubah Dengan
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +179,Customizations Reset,Penyesuaian ulang Reset
 DocType: Workflow State,hand-down,tangan-ke bawah
 DocType: Address,GST State,Negara bagian
-apps/frappe/frappe/core/doctype/doctype/doctype.py +757,{0}: Cannot set Cancel without Submit,{0}: Tidak dapat mengatur Pembatalan tanpa melakukan penyerahan
+apps/frappe/frappe/core/doctype/doctype/doctype.py +756,{0}: Cannot set Cancel without Submit,{0}: Tidak dapat mengatur Pembatalan tanpa melakukan penyerahan
 DocType: Website Theme,Theme,Tema
 DocType: OAuth Authorization Code,Redirect URI Bound To Auth Code,Redirect URI Bound Untuk Kode Tupoksi
 DocType: DocType,Is Submittable,Apakah Submittable
@@ -1388,7 +1391,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,
 apps/frappe/frappe/templates/includes/comments/comments.html +25,Add Comment,Tambahkan komentar
 DocType: DocField,Mandatory,Wajib
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +88,Module to Export,Modul untuk Ekspor
-apps/frappe/frappe/core/doctype/doctype/doctype.py +725,{0}: No basic permissions set,{0}: Tidak ada perizinan dasar yang ditetapkan
+apps/frappe/frappe/core/doctype/doctype/doctype.py +724,{0}: No basic permissions set,{0}: Tidak ada perizinan dasar yang ditetapkan
 apps/frappe/frappe/limits.py +80,Your subscription will expire on {0}.,Langganan Anda akan berakhir pada {0}.
 apps/frappe/frappe/utils/backups.py +166,Download link for your backup will be emailed on the following email address: {0},Tautan unduh untuk cadangan Anda akan dikirimkan melalui surel pada alamat surel berikut: {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","Artinya dari Submit, Batal, Amend"
@@ -1414,6 +1417,7 @@ DocType: System Settings,Allow Login using Mobile Number,Izinkan Login menggunak
 apps/frappe/frappe/public/js/frappe/request.js +135,You do not have enough permissions to access this resource. Please contact your manager to get access.,Anda tidak memiliki izin yang cukup untuk mengakses sumber ini. Silahkan hubungi manajer Anda untuk mendapatkan akses.
 DocType: Custom Field,Custom,Disesuaikan
 DocType: System Settings,"If enabled, users who login from Restricted IP Address, won't be prompted for Two Factor Auth","Jika diaktifkan, pengguna yang masuk dari Alamat IP Terbatas, tidak akan diminta untuk Autentikasi Dua Faktor"
+DocType: Auto Repeat,Get Contacts,Dapatkan Kontak
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +101,Posts filed under {0},Posting mengajukan di bawah {0}
 DocType: Notification,Send alert if date matches this field's value,Kirim pemberitahuan jika tanggal sesuai nilai kolom ini
 DocType: Workflow,Transitions,Transisi
@@ -1424,7 +1428,7 @@ DocType: Letter Head,Printing,Pencetakan
 DocType: Workflow State,thumbs-up,thumbs-up
 DocType: DocPerm,DocPerm,DocPerm
 DocType: Print Settings,Fonts,Font
-apps/frappe/frappe/core/doctype/doctype/doctype.py +511,Precision should be between 1 and 6,Presisi harus antara 1 dan 6
+apps/frappe/frappe/core/doctype/doctype/doctype.py +510,Precision should be between 1 and 6,Presisi harus antara 1 dan 6
 apps/frappe/frappe/core/doctype/communication/communication.js +190,Fw: {0},Fw: {0}
 apps/frappe/frappe/public/js/frappe/misc/utils.js +165,and,dan
 apps/frappe/frappe/templates/emails/auto_email_report.html +47,This report was generated on {0},Laporan ini dibuat pada {0}
@@ -1436,11 +1440,11 @@ DocType: Auto Email Report,Report Filters,laporan Filter
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +16,now,sekarang
 DocType: Workflow State,step-backward,langkah-mundur
 apps/frappe/frappe/utils/boilerplate.py +265,{app_title},{app_title}
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +240,Please set Dropbox access keys in your site config,Silakan set tombol akses Dropbox di situs config Anda
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +241,Please set Dropbox access keys in your site config,Silakan set tombol akses Dropbox di situs config Anda
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,Hapus data ini untuk bisa mengirim ke alamat surel ini
 apps/frappe/frappe/core/doctype/data_import/exporter.py +67,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,Hanya bidang wajib diperlukan untuk catatan baru. Anda dapat menghapus kolom non-wajib jika Anda inginkan.
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +335,Unable to update event,Tidak dapat memperbarui acara
-apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +118,Payment Complete,Lengkap pembayaran
+apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +119,Payment Complete,Lengkap pembayaran
 apps/frappe/frappe/twofactor.py +209,Verification code has been sent to your registered email address.,Kode verifikasi telah dikirim ke alamat email Anda yang terdaftar.
 apps/frappe/frappe/core/doctype/user/user.py +1031,Throttled,Terhempas
 apps/frappe/frappe/utils/data.py +807,"Filter must have 4 values (doctype, fieldname, operator, value): {0}","Filter harus memiliki 4 nilai (doctype, fieldname, operator, value): {0}"
@@ -1463,9 +1467,8 @@ apps/frappe/frappe/public/js/frappe/views/treeview.js +75,Expand All,Melebarkan 
 apps/frappe/frappe/public/js/frappe/chat.js +2153,Select a chat to start messaging.,Pilih obrolan untuk memulai pesan.
 apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.js +20,Please select Entity Type first,Silakan pilih Tipe Entitas terlebih dahulu
 apps/frappe/frappe/templates/includes/login/login.js +52,Valid Login id required.,Login id yang valid dibutuhkan.
-apps/frappe/frappe/model/rename_doc.py +405,Please select a valid csv file with data,Silakan pilih file csv dengan data yang valid
+apps/frappe/frappe/model/rename_doc.py +415,Please select a valid csv file with data,Silakan pilih file csv dengan data yang valid
 apps/frappe/frappe/core/doctype/docshare/docshare.py +56,{0} un-shared this document with {1},{0} berhenti berbagi dokumen ini dengan {1}
-apps/frappe/frappe/email/smtp.py +85,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Silakan setup Akun Email default dari Pengaturan&gt; Email&gt; Akun Email
 DocType: DocType,"Make ""name"" searchable in Global Search",Membuat &quot;nama&quot; dicari di Search global
 apps/frappe/frappe/core/doctype/version/version_view.html +74,Row # ,Row #
 apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,Ini adalah balasan secara otomatis
@@ -1531,7 +1534,7 @@ apps/frappe/frappe/email/doctype/email_account/email_account_list.js +6,Default 
 DocType: System Settings,OTP App,Apl OTP
 apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +21,Document ID,dokumen ID
 DocType: Print Settings,Letter,Surat
-apps/frappe/frappe/core/doctype/doctype/doctype.py +610,Image field must be of type Attach Image,bidang gambar harus dari jenis Lampirkan gambar
+apps/frappe/frappe/core/doctype/doctype/doctype.py +609,Image field must be of type Attach Image,bidang gambar harus dari jenis Lampirkan gambar
 DocType: DocField,Columns,kolom
 apps/frappe/frappe/desk/form/assign_to.py +71,Shared with user {0} with read access,Dibagikan dengan pengguna {0} dengan akses baca
 DocType: Async Task,Succeeded,Berhasil
@@ -1645,9 +1648,10 @@ apps/frappe/frappe/www/third_party_apps.html +51,Revoke,Mencabut
 DocType: Contact,Replied,Menjawab
 DocType: Newsletter,Test,tes
 DocType: Custom Field,Default Value,Nilai Awal
-apps/frappe/frappe/public/js/frappe/ui/messages.js +234,Verify,Memeriksa
+apps/frappe/frappe/public/js/frappe/ui/messages.js +228,Verify,Memeriksa
 DocType: Workflow Document State,Update Field,Perbarui Kolom
 DocType: Chat Profile,Enable Chat,Aktifkan Chat
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} tahun yang lalu
 DocType: LDAP Settings,Base Distinguished Name (DN),Dasar Pembedaan Nama (DN)
 apps/frappe/frappe/core/doctype/communication/email.py +156,Leave this conversation,Tinggalkan percakapan ini
 apps/frappe/frappe/model/base_document.py +434,Options not set for link field {0},Pilihan tidak diatur untuk bidang tautan {0}
@@ -1696,7 +1700,7 @@ apps/frappe/frappe/www/qrcode.html +19,Authentication Apps you can use are: ,Apl
 apps/frappe/frappe/public/js/frappe/form/controls/data.js +46,{0} already exists. Select another name,{0} sudah ada. Pilih nama lain
 apps/frappe/frappe/core/doctype/feedback_trigger/feedback_trigger.py +137,Feedback conditions do not match,Kondisi umpan balik tidak cocok
 DocType: S3 Backup Settings,None,Tidak ada
-apps/frappe/frappe/core/doctype/doctype/doctype.py +624,Timeline field must be a valid fieldname,bidang Timeline harus fieldname valid
+apps/frappe/frappe/core/doctype/doctype/doctype.py +623,Timeline field must be a valid fieldname,bidang Timeline harus fieldname valid
 DocType: GCalendar Account,Session Token,Token Sesi
 DocType: Currency,Symbol,Simbol
 apps/frappe/frappe/model/base_document.py +504,Row #{0}:,Row # {0}:
@@ -1758,7 +1762,7 @@ apps/frappe/frappe/model/naming.py +215,Name cannot contain special characters l
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +29,Print Documents,Cetak Dokumen
 DocType: Contact Us Settings,Forward To Email Address,Teruskan Ke Alamat Surel
 apps/frappe/frappe/public/js/frappe/views/reports/reportview_footer.html +9,Show all data,Tampilkan semua data
-apps/frappe/frappe/core/doctype/doctype/doctype.py +581,Title field must be a valid fieldname,Judul lapangan harus fieldname valid
+apps/frappe/frappe/core/doctype/doctype/doctype.py +580,Title field must be a valid fieldname,Judul lapangan harus fieldname valid
 apps/frappe/frappe/config/core.py +7,Documents,Docuements
 DocType: Social Login Key,Custom Base URL,URL Basis Kustom
 DocType: Email Flag Queue,Is Completed,Apakah selesai
@@ -1771,7 +1775,7 @@ myfield
 eval:doc.myfield=='My Value'
 eval:doc.age&gt;18",Bidang ini hanya akan muncul jika fieldname didefinisikan di sini memiliki nilai OR aturan yang benar (contoh): MyField eval: doc.myfield == &#39;Nilai saya&#39; eval: doc.age&gt; 18
 DocType: Social Login Key,Office 365,Kantor 365
-apps/frappe/frappe/public/js/frappe/form/controls/date.js +46,Today,Hari ini
+apps/frappe/frappe/public/js/frappe/form/controls/date.js +49,Today,Hari ini
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Setelah Anda telah mengatur ini, pengguna hanya akan bisa mengakses dokumen (misalnya Blog Post) di mana link yang ada (misalnya Blogger)."
 DocType: Error Log,Log of Scheduler Errors,Log Kesalahan Scheduler
 DocType: User,Bio,Bio
@@ -1803,7 +1807,7 @@ DocType: Data Migration Connector,Database Name,Nama database
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +71,Refresh Form,Form Segarkan
 DocType: DocField,Select,Pilih
 apps/frappe/frappe/utils/csvutils.py +29,File not attached,Berkas tidak terpasang
-apps/frappe/frappe/public/js/frappe/dom.js +273,Connection lost. Some features might not work.,Koneksi terputus. Beberapa fitur mungkin tidak bekerja.
+apps/frappe/frappe/public/js/frappe/dom.js +298,Connection lost. Some features might not work.,Koneksi terputus. Beberapa fitur mungkin tidak bekerja.
 apps/frappe/frappe/utils/password_strength.py +115,"Repeats like ""aaa"" are easy to guess",Mengulangi seperti &quot;aaa&quot; mudah ditebak
 apps/frappe/frappe/public/js/frappe/chat.js +1595,New Chat,Chat baru
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.","Jika Anda mengatur ini, item ini akan datang dalam drop-down di bawah induk yang dipilih."
@@ -1817,7 +1821,7 @@ DocType: Chat Room,Avatar,Avatar
 DocType: Blogger,Posts,Posts
 DocType: Social Login Key,Salesforce,Tenaga penjualan
 DocType: DocType,Has Web View,Memiliki Web View
-apps/frappe/frappe/core/doctype/doctype/doctype.py +423,"DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores","Nama DocType harus dimulai dengan huruf dan hanya dapat terdiri dari huruf, angka, spasi dan garis bawah"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +422,"DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores","Nama DocType harus dimulai dengan huruf dan hanya dapat terdiri dari huruf, angka, spasi dan garis bawah"
 DocType: Communication,Spam,Spam
 DocType: Integration Request,Integration Request,integrasi Permintaan
 apps/frappe/frappe/public/js/frappe/views/communication.js +631,Dear,Kepada Yth.
@@ -1825,7 +1829,7 @@ DocType: Address,Maharashtra,Maharashtra
 DocType: Address,Accounts User,Pengguna Akun
 DocType: Web Page,HTML for header section. Optional,HTML untuk bagian header. Pilihan
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +13,This feature is brand new and still experimental,Fitur ini baru dan masih eksperimental
-apps/frappe/frappe/model/rename_doc.py +410,Maximum {0} rows allowed,Maksimum {0} baris diperbolehkan
+apps/frappe/frappe/model/rename_doc.py +420,Maximum {0} rows allowed,Maksimum {0} baris diperbolehkan
 DocType: Email Unsubscribe,Global Unsubscribe,Global yang Unsubscribe
 apps/frappe/frappe/utils/password_strength.py +177,This is a very common password.,Ini adalah password yang sangat umum.
 apps/frappe/frappe/email/doctype/email_group/email_group.js +9,View,Melihat
@@ -1876,7 +1880,6 @@ DocType: Web Form,Success Message,Sukses Pesan
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +84,Export Customizations,Kustomisasi ekspor
 apps/frappe/frappe/website/doctype/web_page/web_page.py +136,End Date cannot be before Start Date!,Tanggal Akhir tidak boleh sebelum Tanggal Mulai!
 DocType: DocType,User Cannot Search,Pengguna tidak bisa Cari
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions,Pengaturan&gt; Izin Pengguna
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +84,Invalid Output Format,Output Format valid
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +125,Cannot {0} {1},Tidak bisa {0} {1}
 DocType: Custom DocPerm,Apply this rule if the User is the Owner,Menerapkan aturan ini jika pengguna adalah pemilik
@@ -1893,7 +1896,7 @@ DocType: Footer Item,Company,Perusahaan
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +49,Assigned To Me,Ditugaskan Untukku
 apps/frappe/frappe/config/integrations.py +113,Google GSuite Templates to integration with DocTypes,Google GSuite Template untuk integrasi dengan DocTypes
 DocType: User,Logout from all devices while changing Password,Keluar dari semua perangkat saat mengganti Sandi
-apps/frappe/frappe/public/js/frappe/ui/messages.js +234,Verify Password,Verifikasi Kata Sandi
+apps/frappe/frappe/public/js/frappe/ui/messages.js +228,Verify Password,Verifikasi Kata Sandi
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +138,There were errors,Ada kesalahan
 apps/frappe/frappe/core/doctype/communication/communication.js +42,Close,Tutup
 apps/frappe/frappe/model/document.py +663,Cannot change docstatus from 0 to 2,Tidak dapat mengubah docstatus dari 0 ke 2
@@ -1904,7 +1907,7 @@ DocType: Transaction Log,Transaction Hash,Transaksi Hash
 DocType: Error Snapshot,Snapshot View,Snapshot View
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +106,Please save the Newsletter before sending,Harap menyimpan Newsletter sebelum dikirim
 apps/frappe/frappe/config/integrations.py +103,Configure accounts for google calendar,Konfigurasikan akun untuk kalender google
-apps/frappe/frappe/core/doctype/doctype/doctype.py +474,Options must be a valid DocType for field {0} in row {1},Pilihan harus DocType valid untuk bidang {0} berturut-turut {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +473,Options must be a valid DocType for field {0} in row {1},Pilihan harus DocType valid untuk bidang {0} berturut-turut {1}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +167,Edit Properties,Edit Properties
 DocType: Patch Log,List of patches executed,Daftar patch dieksekusi
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +21,{0} already unsubscribed,{0} sudah berhenti berlangganan
@@ -1940,7 +1943,7 @@ DocType: Website Settings,"Added HTML in the &lt;head&gt; section of the web pag
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js +9,Relapsed,Kambuh
 apps/frappe/frappe/utils/nestedset.py +181,Item cannot be added to its own descendents,Item tidak dapat ditambahkan ke keturunan sendiri
 DocType: System Settings,Expiry time of QR Code Image Page,Waktu kadaluwarsa QR Code Image Page
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +916,Show Totals,Tampilkan Total
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +928,Show Totals,Tampilkan Total
 DocType: Error Snapshot,Relapses,Kambuh
 DocType: Address,Preferred Shipping Address,Disukai Alamat Pengiriman
 apps/frappe/frappe/public/js/frappe/form/print.js +263,With Letter head,Dengan kepala Surat
@@ -1949,7 +1952,7 @@ apps/frappe/frappe/public/js/frappe/form/workflow.js +38,Document is only editab
 apps/frappe/frappe/desk/form/assign_to.py +151,"The task {0}, that you assigned to {1}, has been closed by {2}.","Tugas {0}, yang ditugaskan untuk {1}, telah ditutup oleh {2}."
 DocType: Print Format,Show Line Breaks after Sections,Tampilkan Jalur Breaks setelah Bagian
 DocType: Blogger,Short Name,Nama pendek
-apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +74,Page {0},Halaman {0}
+apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +75,Page {0},Halaman {0}
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +110,Linked with {0},Terhubung dengan {0}
 apps/frappe/frappe/email/doctype/email_account/email_account.js +183,"You are selecting Sync Option as ALL, It will resync all \
 				read as well as unread message from server. This may also cause the duplication\
@@ -1997,7 +2000,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager.js +149,Selec
 DocType: Contact,Passive,Pasif
 DocType: Contact,Accounts Manager,Pengelola Akun
 apps/frappe/frappe/templates/pages/integrations/payment-cancel.html +11,Your payment is cancelled.,Pembayaran anda dibatalkan
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +990,Select File Type,Pilih File Type
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1002,Select File Type,Pilih File Type
 apps/frappe/frappe/core/doctype/success_action/success_action.js +58,View All,Lihat semua
 DocType: Help Article,Knowledge Base Editor,Knowledge Base Editor
 apps/frappe/frappe/public/js/frappe/views/container.js +57,Page not found,Halaman tidak ditemukan
@@ -2027,7 +2030,7 @@ DocType: Property Setter,Property Type,Jenis properti
 DocType: Workflow State,screenshot,screenshot
 apps/frappe/frappe/core/doctype/report/report.py +33,Only Administrator can save a standard report. Please rename and save.,Hanya Administrator dapat menyimpan laporan standar. Silahkan mengubah nama dan simpan.
 DocType: System Settings,Background Workers,Pekerja latar
-apps/frappe/frappe/core/doctype/doctype/doctype.py +843,Fieldname {0} conflicting with meta object,Fieldname {0} bertentangan dengan objek meta
+apps/frappe/frappe/core/doctype/doctype/doctype.py +842,Fieldname {0} conflicting with meta object,Fieldname {0} bertentangan dengan objek meta
 DocType: Deleted Document,Data,Data
 apps/frappe/frappe/public/js/frappe/model/model.js +27,Document Status,Dokumen Status
 apps/frappe/frappe/core/page/desktop/desktop_help_message.html +5,You have made {0} of {1},Anda telah membuat {0} dari {1}
@@ -2043,7 +2046,7 @@ apps/frappe/frappe/core/doctype/data_import/data_import.js +56,Help,Bantuan
 DocType: User,Login Before,Login Sebelum
 DocType: Web Page,Insert Style,Masukkan Style
 apps/frappe/frappe/config/setup.py +276,Application Installer,Application Installer
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +887,New Report name,New nama Laporan
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +899,New Report name,New nama Laporan
 DocType: Workflow State,info-sign,info-tanda
 apps/frappe/frappe/model/base_document.py +217,Value for {0} cannot be a list,Nilai untuk {0} tidak bisa daftar
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults","Bagaimana seharusnya mata uang ini akan diformat? Jika tidak diatur, akan menggunakan default sistem"
@@ -2077,7 +2080,7 @@ apps/frappe/frappe/public/js/frappe/desk.js +36,Session Start Failed,Sesi Mulai 
 apps/frappe/frappe/email/queue.py +506,This email was sent to {0} and copied to {1},Email ini dikirim ke {0} dan disalin ke {1}
 DocType: Workflow State,th,th
 DocType: Social Login Key,Provider Name,Nama Penyedia
-apps/frappe/frappe/public/js/frappe/form/controls/link.js +171,Create a new {0},Buat baru {0}
+apps/frappe/frappe/public/js/frappe/form/controls/link.js +172,Create a new {0},Buat baru {0}
 DocType: GCalendar Account,GCalendar Account,Akun GCalendar
 DocType: Email Rule,Is Spam,Apakah Spam
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +193,Report {0},Laporan {0}
@@ -2155,7 +2158,7 @@ DocType: Website Settings,Brand Image,Image Merek
 DocType: Print Settings,A4,A4
 apps/frappe/frappe/config/website.py +58,"Setup of top navigation bar, footer and logo.","Setup atas bar navigasi, footer dan logo."
 DocType: Web Form Field,Max Value,Max Nilai
-apps/frappe/frappe/core/doctype/doctype/doctype.py +721,For {0} at level {1} in {2} in row {3},Untuk {0} pada tingkat {1} dalam {2} berturut-turut {3}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +720,For {0} at level {1} in {2} in row {3},Untuk {0} pada tingkat {1} dalam {2} berturut-turut {3}
 DocType: User Social Login,User Social Login,Login Sosial Pengguna
 DocType: Contact,All,Semua
 DocType: Email Queue,Recipient,Penerima
@@ -2164,7 +2167,7 @@ DocType: Address,Sales User,Penjualan Pengguna
 apps/frappe/frappe/config/setup.py +190,Drag and Drop tool to build and customize Print Formats.,Drag dan drop alat untuk membangun dan menyesuaikan Format Cetak.
 DocType: Address,Sikkim,Sikkim
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +142,Set,Tetapkan
-apps/frappe/frappe/desk/search.py +42,This query style is discontinued,Gaya kueri ini dihentikan
+apps/frappe/frappe/desk/search.py +43,This query style is discontinued,Gaya kueri ini dihentikan
 DocType: Notification,Trigger Method,Metode pemicu
 apps/frappe/frappe/utils/data.py +817,Operator must be one of {0},Operator harus menjadi salah satu dari {0}
 DocType: Dropbox Settings,Dropbox Access Token,Token Akses Dropbox
@@ -2184,7 +2187,7 @@ apps/frappe/frappe/utils/data.py +801,Filter must be a tuple or list (in a list)
 apps/frappe/frappe/core/doctype/report/report.js +8,Write a SELECT query. Note result is not paged (all data is sent in one go).,Tulis query SELECT. Hasil catatan tidak paged (semua data yang dikirim dalam satu pergi).
 DocType: Email Account,Attachment Limit (MB),Batas Lampiran (MB)
 DocType: Address,Arunachal Pradesh,Arunachal Pradesh
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1021,Setup Auto Email,Atur Email Otomatis
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1033,Setup Auto Email,Atur Email Otomatis
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +64,Ctrl + Down,Ctrl + Down
 DocType: Chat Profile,Message Preview,Pratinjau Pesan
 apps/frappe/frappe/utils/password_strength.py +173,This is a top-10 common password.,Ini adalah top-10 password yang umum.
@@ -2272,7 +2275,7 @@ apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Mx,Mx
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +20,Between,Antara
 DocType: Async Task,Queued,Diantrikan
 DocType: Braintree Settings,Use Sandbox,Gunakan Sandbox
-apps/frappe/frappe/utils/goal.py +100,This month,Bulan ini
+apps/frappe/frappe/utils/goal.py +101,This month,Bulan ini
 apps/frappe/frappe/public/js/frappe/form/print.js +102,New Custom Print Format,New Custom Print Format
 DocType: Custom DocPerm,Create,Buat
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +198,Invalid Filter: {0},Filter tidak valid: {0}
@@ -2345,7 +2348,7 @@ apps/frappe/frappe/desk/query_report.py +24,You don't have permission to get a r
 DocType: System Settings,Apply Strict User Permissions,Terapkan Izin Pengguna yang Ketat
 DocType: DocField,Allow Bulk Edit,Izinkan Edit Massal
 DocType: Blog Post,Blog Post,Posting Blog
-apps/frappe/frappe/public/js/frappe/form/controls/link.js +181,Advanced Search,Pencarian Lanjutan
+apps/frappe/frappe/public/js/frappe/form/controls/link.js +182,Advanced Search,Pencarian Lanjutan
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +115,You are not permitted to view the newsletter.,Anda tidak diizinkan untuk melihat nawala.
 apps/frappe/frappe/core/doctype/user/user.py +819,Password reset instructions have been sent to your email,Instruksi atur ulang password telah dikirim ke email Anda
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +376,"Level 0 is for document level permissions, \
@@ -2412,6 +2415,7 @@ DocType: Contact,Mobile No,Ponsel Tidak ada
 DocType: Communication,Text Content,Konten teks
 DocType: Customize Form Field,Is Custom Field,Apakah Custom Field
 DocType: Workflow,"If checked, all other workflows become inactive.","Jika dicentang, semua alur kerja lain menjadi tidak aktif."
+apps/frappe/frappe/contacts/doctype/address/address.py +193,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Tidak ditemukan Template Alamat default. Harap buat yang baru dari Setup&gt; Percetakan dan Branding&gt; Template Alamat.
 apps/frappe/frappe/core/doctype/report/report.js +10,[Label]:[Field Type]/[Options]:[Width],[Label]:[Field Type]/[Opsi]:[Lebar]
 DocType: Workflow State,folder-close,folder-close
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +15,Report:,Melaporkan:
@@ -2431,7 +2435,7 @@ DocType: Data Import,If you don't want to create any new records while updating 
 apps/frappe/frappe/core/doctype/data_import/exporter.py +272,Info:,Info:
 DocType: Custom Field,Permission Level,Izin Tingkat
 DocType: User,Send Notifications for Transactions I Follow,Kirim Notifikasi Transaksi Saya Ikuti
-apps/frappe/frappe/core/doctype/doctype/doctype.py +760,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Tidak dapat mengatur Pengajuan, Pembatalan, Perubahan tanpa Pencatatan"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +759,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Tidak dapat mengatur Pengajuan, Pembatalan, Perubahan tanpa Pencatatan"
 DocType: Google Maps,Client Key,Kunci klien
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +83,Are you sure you want to delete the attachment?,Apakah Anda yakin ingin menghapus lampiran?
 apps/frappe/frappe/__init__.py +1096,Thank you,Terima kasih
@@ -2452,7 +2456,7 @@ apps/frappe/frappe/core/doctype/data_import/data_import.js +61,Download Template
 apps/frappe/frappe/config/setup.py +254,Add custom javascript to forms.,Tambahkan kustom javascript untuk form.
 ,Role Permissions Manager,Permissions Peran Manajer
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +117,Name of the new Print Format,Nama Print Format baru
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +943,Toggle Sidebar,Toggle Sidebar
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +955,Toggle Sidebar,Toggle Sidebar
 DocType: Data Migration Run,Pull Insert,Tarik Insert
 apps/frappe/frappe/public/js/frappe/form/controls/attach.js +60,Clear Attachment,Bersihkan Lampiran
 apps/frappe/frappe/core/doctype/data_import/exporter.py +270,Mandatory:,Wajib:
@@ -2487,7 +2491,7 @@ apps/frappe/frappe/public/js/frappe/list/list_renderer.js +570,2 days ago,2 hari
 apps/frappe/frappe/config/website.py +47,Categorize blog posts.,Mengkategorikan posting blog.
 DocType: Workflow State,Time,Durasi
 DocType: DocField,Attach,Melampirkan
-apps/frappe/frappe/core/doctype/doctype/doctype.py +593,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} bukan pola nama-kolom yang sah. Seharusnya {{field_name}}.
+apps/frappe/frappe/core/doctype/doctype/doctype.py +592,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} bukan pola nama-kolom yang sah. Seharusnya {{field_name}}.
 DocType: Feedback Trigger,Send Feedback Request only if there is at least one communication is available for the document.,Beri Tanggapan Permintaan hanya jika ada setidaknya satu komunikasi yang tersedia untuk dokumen.
 DocType: Custom Role,Permission Rules,Aturan Izin
 DocType: Braintree Settings,Public Key,Kunci publik
@@ -2510,8 +2514,8 @@ apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +65,Direct room with {oth
 DocType: Has Domain,Has Domain,Memiliki Domain
 apps/frappe/frappe/core/page/desktop/desktop.js +190,Hide,Menyembunyikan
 apps/frappe/frappe/www/login.html +54,Don't have an account? Sign up,Tidak memiliki account? Daftar
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +616,Cannot remove ID field,Tidak dapat menghapus bidang ID
-apps/frappe/frappe/core/doctype/doctype/doctype.py +785,{0}: Cannot set Assign Amend if not Submittable,{0}: Tidak dapat menetapkan perubahan jika dokumen tidak dapat diajukan
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +617,Cannot remove ID field,Tidak dapat menghapus bidang ID
+apps/frappe/frappe/core/doctype/doctype/doctype.py +784,{0}: Cannot set Assign Amend if not Submittable,{0}: Tidak dapat menetapkan perubahan jika dokumen tidak dapat diajukan
 DocType: Address,Bihar,Bihar
 DocType: Activity Log,Link DocType,Link DocType
 apps/frappe/frappe/public/js/frappe/chat.js +1690,You don't have any messages yet.,Kamu belum punya pesan
@@ -2536,7 +2540,7 @@ apps/frappe/frappe/public/js/frappe/form/share.js +27,Shared with everyone,Bersa
 apps/frappe/frappe/model/base_document.py +392,Data missing in table,Data hilang dalam tabel
 DocType: Web Form,Success URL,Sukses URL
 DocType: Email Account,Append To,Untuk menambahkan
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +832,Fixed height,Ketinggian tetap
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +844,Fixed height,Ketinggian tetap
 DocType: Workflow Document State,Only Allow Edit For,Hanya Izinkan Sunting Untuk
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js +108,Mandatory field: {0},bidang wajib: {0}
 apps/frappe/frappe/templates/includes/comments/comments.html +35,Your Name,Nama Anda
@@ -2578,7 +2582,7 @@ DocType: OAuth Bearer Token,Expires In,Kadaluarsa dalam
 DocType: DocField,Allow on Submit,Izinkan Submit
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Pengecualian Jenis
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +947,Pick Columns,Pilih Kolom
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +959,Pick Columns,Pilih Kolom
 DocType: Web Page,Add code as &lt;script&gt;,Tambahkan kode sebagai
 DocType: Webhook,Headers,Judul
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.js +35,Please enter values for App Access Key and App Secret Key,Masukkan nilai untuk App Access Key dan App Kunci Rahasia
@@ -2619,7 +2623,7 @@ apps/frappe/frappe/core/doctype/data_import/importer.py +105,Please make sure th
 apps/frappe/frappe/utils/oauth.py +184,Please ensure that your profile has an email address,Pastikan bahwa profil Anda memiliki alamat email
 apps/frappe/frappe/public/js/frappe/model/create_new.js +288,You have unsaved changes in this form. Please save before you continue.,Anda belum menyimpan perubahan pada formulir ini. Silakan simpan sebelum Anda melanjutkan.
 DocType: Address,Telangana,Telangana
-apps/frappe/frappe/core/doctype/doctype/doctype.py +507,Default for {0} must be an option,Default untuk {0} harus menjadi pilihan
+apps/frappe/frappe/core/doctype/doctype/doctype.py +506,Default for {0} must be an option,Default untuk {0} harus menjadi pilihan
 DocType: Tag Doc Category,Tag Doc Category,Tag Doc Kategori
 DocType: User,User Image,KOSONG
 apps/frappe/frappe/email/queue.py +340,Emails are muted,Surel diabaikan sementara
@@ -2657,7 +2661,7 @@ DocType: User,These values will be automatically updated in transactions and als
 apps/frappe/frappe/twofactor.py +312,Verfication Code,Kode Verifikasi
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +10,for generating the recurring,untuk menghasilkan berulang
 DocType: Webhook,Webhook Request,Permintaan Webhook
-apps/frappe/frappe/model/rename_doc.py +423,** Failed: {0} to {1}: {2},** Gagal: {0} ke {1}: {2}
+apps/frappe/frappe/model/rename_doc.py +433,** Failed: {0} to {1}: {2},** Gagal: {0} ke {1}: {2}
 DocType: Data Migration Mapping,Mapping Type,Tipe pemetaan
 apps/frappe/frappe/public/js/frappe/ui/upload.html +4,Browse,Melihat-lihat
 apps/frappe/frappe/utils/password_strength.py +39,"No need for symbols, digits, or uppercase letters.","Tidak perlu untuk simbol, angka, atau huruf besar."
@@ -2670,7 +2674,7 @@ apps/frappe/frappe/core/doctype/user/user.js +94,Reset Password,Reset Password
 apps/frappe/frappe/email/doctype/email_group/email_group.py +102,Please Upgrade to add more than {0} subscribers,Harap Upgrade ke menambahkan lebih dari {0} pelanggan
 DocType: Workflow State,hand-left,tangan kiri
 DocType: Data Import,If you are updating/overwriting already created records.,Jika Anda memperbarui / menimpa rekaman yang sudah dibuat.
-apps/frappe/frappe/core/doctype/doctype/doctype.py +520,Fieldtype {0} for {1} cannot be unique,Fieldtype {0} untuk {1} tidak dapat menjadi unik
+apps/frappe/frappe/core/doctype/doctype/doctype.py +519,Fieldtype {0} for {1} cannot be unique,Fieldtype {0} untuk {1} tidak dapat menjadi unik
 apps/frappe/frappe/public/js/frappe/list/list_filter.js +35,Is Global,Apakah global
 DocType: Email Account,Use SSL,Gunakan SSL
 DocType: Workflow State,play-circle,bermain-lingkaran
@@ -2678,7 +2682,6 @@ apps/frappe/frappe/public/js/frappe/form/layout.js +502,"Invalid ""depends_on"" 
 apps/frappe/frappe/public/js/frappe/chat.js +1612,Group Name,Nama grup
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +82,Select Print Format to Edit,Pilih Print Format untuk Mengedit
 DocType: Address,Shipping,Pengiriman
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,Setup &gt; Customize Form,Pengaturan&gt; Sesuaikan Formulir
 DocType: Workflow State,circle-arrow-down,lingkaran-panah-down
 apps/frappe/frappe/config/desk.py +38,Private and public Notes.,Swasta dan publik Catatan.
 DocType: DocField,Datetime,Datetime
@@ -2737,7 +2740,7 @@ DocType: Chat Token,IP Address,Alamat IP
 DocType: Data Import,Submit after importing,Kirim setelah mengimpor
 apps/frappe/frappe/www/login.html +32,Login with LDAP,Masuk dengan LDAP
 DocType: Web Form,Breadcrumbs,Tepung Roti
-apps/frappe/frappe/core/doctype/doctype/doctype.py +733,If Owner,Jika Owner
+apps/frappe/frappe/core/doctype/doctype/doctype.py +732,If Owner,Jika Owner
 DocType: Data Migration Mapping,Push,Dorong
 DocType: OAuth Authorization Code,Expiration time,waktu berakhirnya
 DocType: Web Page,Website Sidebar,Sidebar situs
@@ -2768,7 +2771,7 @@ apps/frappe/frappe/core/doctype/data_import/log_details.html +6,Row Status,Statu
 DocType: Workflow Transition,Workflow Transition,Transisi Alur Kerja
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,{0} months ago,{0} bulan yang lalu
 apps/frappe/frappe/public/js/frappe/model/model.js +18,Created By,Dibuat Oleh
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +300,Dropbox Setup,dropbox Pengaturan
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +301,Dropbox Setup,dropbox Pengaturan
 DocType: Workflow State,resize-horizontal,resize-horisontal
 DocType: Chat Message,Content,Isi Halaman
 DocType: Data Migration Run,Push Insert,Push Insert
@@ -2958,12 +2961,12 @@ DocType: DocType,DocType is a Table / Form in the application.,DOCTYPE adalah Ta
 DocType: Social Login Key,Authorize URL,Otorisasi URL
 DocType: Email Account,GMail,GMail
 DocType: Address,Party GSTIN,Pesta GSTIN
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1058,{0} Report,{0} Laporan
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1070,{0} Report,{0} Laporan
 DocType: SMS Settings,Use POST,Gunakan POST
 DocType: Communication,SMS,SMS
 DocType: DocType,Web View,web View
 apps/frappe/frappe/public/js/frappe/form/print.js +195,Warning: This Print Format is in old style and cannot be generated via the API.,Peringatan: Format Cetak ini dalam gaya lama dan tidak dapat dihasilkan melalui API.
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +786,Totals,Total
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +798,Totals,Total
 DocType: DocField,Print Width,Cetak Lebar
 ,Setup Wizard,Setup Wizard
 DocType: Address,GST State Number,Nomor Negara Bagian GST
@@ -2999,7 +3002,7 @@ DocType: Webhook,on_cancel,on_cancel
 DocType: Social Login Key,API Endpoint Args,API Endpoint Args
 apps/frappe/frappe/core/doctype/user/user.py +918,Administrator accessed {0} on {1} via IP Address {2}.,Administrator mengakses {0} pada {1} melalui IP Address {2}.
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +10,Equals,Equals
-apps/frappe/frappe/core/doctype/doctype/doctype.py +501,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',Jenis Options 'Dynamic Link' lapangan harus mengarah ke Link Field lain dengan pilihan sebagai 'DocType'
+apps/frappe/frappe/core/doctype/doctype/doctype.py +500,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',Jenis Options 'Dynamic Link' lapangan harus mengarah ke Link Field lain dengan pilihan sebagai 'DocType'
 DocType: About Us Settings,Team Members Heading,Anggota Tim Pos
 apps/frappe/frappe/utils/csvutils.py +37,Invalid CSV Format,CSV Format valid
 apps/frappe/frappe/desk/page/backups/backups.js +8,Set Number of Backups,Atur Jumlah Cadangan
@@ -3038,13 +3041,12 @@ DocType: Print Settings,PDF Settings,Pengaturan PDF
 DocType: Kanban Board Column,Column Name,Kolom Nama
 DocType: Language,Based On,Berdasarkan
 apps/frappe/frappe/printing/doctype/print_format/print_format.js +34,Make Default,Membuat default
-apps/frappe/frappe/core/doctype/doctype/doctype.py +543,Fieldtype {0} for {1} cannot be indexed,Fieldtype {0} untuk {1} tidak dapat diindeks
+apps/frappe/frappe/core/doctype/doctype/doctype.py +542,Fieldtype {0} for {1} cannot be indexed,Fieldtype {0} untuk {1} tidak dapat diindeks
 DocType: Communication,Email Account,Akun Email
 DocType: Workflow State,Download,Unduh
 DocType: Blog Post,Blog Intro,Pendahuluan Blog
 DocType: Async Task,Result,Hasil
 DocType: Webhook,on_update_after_submit,on_update_after_submit
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Pengaturan&gt; Pengguna
 DocType: System Settings,Allow Login using User Name,Izinkan Login menggunakan User Name
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,Aktifkan Laporan
 DocType: DocField,Display Depends On,Tampilan Tergantung Pada
@@ -3075,15 +3077,15 @@ apps/frappe/frappe/email/doctype/email_group/email_group.js +45,New Newsletter,N
 DocType: Print Settings,Send Print as PDF,Kirim Cetak sebagai PDF
 DocType: Web Form,Amount,Total
 DocType: Workflow Transition,Allowed,Diizinkan
-apps/frappe/frappe/core/doctype/doctype/doctype.py +550,There can be only one Fold in a form,Hanya ada satu Fold dalam bentuk
+apps/frappe/frappe/core/doctype/doctype/doctype.py +549,There can be only one Fold in a form,Hanya ada satu Fold dalam bentuk
 apps/frappe/frappe/core/doctype/file/file.py +222,Unable to write file format for {0},Tidak dapat menulis format file untuk {0}
 apps/frappe/frappe/website/doctype/portal_settings/portal_settings.js +20,Restore to default settings?,Mengembalikan ke pengaturan default?
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +23,Invalid Home Page,Valid Halaman
 apps/frappe/frappe/templates/includes/login/login.js +222,Invalid Login. Try again.,Valid Login. Coba lagi.
-apps/frappe/frappe/core/doctype/doctype/doctype.py +468,Options required for Link or Table type field {0} in row {1},Pilihan yang diperlukan untuk field tipe Link atau Table {0} pada baris {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +467,Options required for Link or Table type field {0} in row {1},Pilihan yang diperlukan untuk field tipe Link atau Table {0} pada baris {1}
 DocType: Auto Email Report,Send only if there is any data,Kirim hanya jika ada data
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +168,Reset Filters,Atur Ulang Filter
-apps/frappe/frappe/core/doctype/doctype/doctype.py +750,{0}: Permission at level 0 must be set before higher levels are set,{0}: Izin pada tingkat 0 harus ditetapkan sebelum tingkat yang lebih tinggi ditetapkan
+apps/frappe/frappe/core/doctype/doctype/doctype.py +749,{0}: Permission at level 0 must be set before higher levels are set,{0}: Izin pada tingkat 0 harus ditetapkan sebelum tingkat yang lebih tinggi ditetapkan
 apps/frappe/frappe/desk/doctype/todo/todo.py +28,Assignment closed by {0},Tugas ditutup oleh {0}
 DocType: Integration Request,Remote,Terpencil
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +140,Calculate,Menghitung
@@ -3105,9 +3107,9 @@ apps/frappe/frappe/desk/doctype/event/event.py +66,Events In Today's Calendar,Ac
 DocType: Web Page,Web Page,Halaman web
 DocType: Workflow Document State,Next Action Email Template,Template Email Aksi Berikutnya
 DocType: Blog Category,Blogger,Blogger
-apps/frappe/frappe/core/doctype/doctype/doctype.py +493,'In Global Search' not allowed for type {0} in row {1},'Di Pencarian Global' tidak dibolehkan jenis {0} pada baris {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +492,'In Global Search' not allowed for type {0} in row {1},'Di Pencarian Global' tidak dibolehkan jenis {0} pada baris {1}
 apps/frappe/frappe/public/js/frappe/views/treeview.js +342,View List,Lihat Daftar
-apps/frappe/frappe/public/js/frappe/form/controls/date.js +127,Date must be in format: {0},Tanggal harus dalam format: {0}
+apps/frappe/frappe/public/js/frappe/form/controls/date.js +130,Date must be in format: {0},Tanggal harus dalam format: {0}
 DocType: Workflow,Don't Override Status,Jangan Override Status
 apps/frappe/frappe/www/feedback.html +90,Please give a rating.,Tolong beri rating.
 apps/frappe/frappe/public/js/frappe/feedback.js +47,{0} Feedback Request,{0} Permintaan Umpan Balik
@@ -3117,7 +3119,6 @@ DocType: Deleted Document,GCalendar Sync ID,ID Sinkronisasi GCalendar
 apps/frappe/frappe/config/setup.py +112,Export Data,Ekspor Data
 apps/frappe/frappe/core/doctype/data_import/data_import.js +159,Select Columns,Pilih Kolom
 DocType: Translation,Source Text,sumber Teks
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357,<p>No results found for '</p>,<p> Tidak ditemukan hasil untuk &#39; </p>
 apps/frappe/frappe/www/login.py +80,Missing parameters for login,Parameter yang hilang untuk masuk
 DocType: Workflow State,folder-open,folder terbuka
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +1,Search Application,Cari Aplikasi
@@ -3129,7 +3130,7 @@ DocType: Property Setter,Set Value,Mengatur Nilai
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +249,Hide field in form,Sembunyikan didang dalam formulir
 DocType: Webhook,Webhook Data,Data Webhook
 apps/frappe/frappe/public/js/frappe/views/treeview.js +269,Creating {0},Membuat {0}
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +301,Illegal Access Token. Please try again,Ilegal Access Token. Silakan coba lagi
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +302,Illegal Access Token. Please try again,Ilegal Access Token. Silakan coba lagi
 apps/frappe/frappe/public/js/frappe/desk.js +92,"The application has been updated to a new version, please refresh this page","Aplikasi ini telah diperbarui ke versi baru, harap perbarui halaman ini"
 apps/frappe/frappe/core/doctype/communication/communication.js +35,Resend,Kirim ulang
 DocType: Feedback Trigger,Optional: The alert will be sent if this expression is true,Opsional: pemberitahuan akan dikirim jika persamaan ini benar
@@ -3157,7 +3158,7 @@ DocType: Website Theme,Background,Latar Belakang
 DocType: Report,Ref DocType,DocType Ref
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py +32,Please enter Client ID before social login is enabled,Harap masukkan ID Klien sebelum login sosial diaktifkan
 apps/frappe/frappe/www/feedback.py +42,Please add a rating,Harap tambahkan nilai
-apps/frappe/frappe/core/doctype/doctype/doctype.py +762,{0}: Cannot set Amend without Cancel,{0}: Tidak dapat melakukan Perubahan tanpa Pembatalan terlebih dahulu
+apps/frappe/frappe/core/doctype/doctype/doctype.py +761,{0}: Cannot set Amend without Cancel,{0}: Tidak dapat melakukan Perubahan tanpa Pembatalan terlebih dahulu
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html +25,Full Page,Full Page
 DocType: DocType,Is Child Table,Apakah Anak Table
 apps/frappe/frappe/utils/csvutils.py +130,{0} must be one of {1},{0} harus merupakan salah satu {1}
@@ -3185,7 +3186,7 @@ DocType: Event,Send an email reminder in the morning,Kirim email pengingat di pa
 DocType: Blog Post,Published On,Published On
 DocType: Contact,Gender,Jenis Kelamin
 apps/frappe/frappe/website/doctype/web_form/web_form.py +342,Mandatory Information missing:,Informasi wajib hilang:
-apps/frappe/frappe/core/doctype/doctype/doctype.py +540,Field '{0}' cannot be set as Unique as it has non-unique values,Bidang &#39;{0}&#39; tidak dapat ditetapkan sebagai Unik karena memiliki nilai-nilai non-unik
+apps/frappe/frappe/core/doctype/doctype/doctype.py +539,Field '{0}' cannot be set as Unique as it has non-unique values,Bidang &#39;{0}&#39; tidak dapat ditetapkan sebagai Unik karena memiliki nilai-nilai non-unik
 apps/frappe/frappe/integrations/doctype/webhook/webhook.py +37,Check Request URL,Periksa Permintaan URL
 apps/frappe/frappe/client.py +169,Only 200 inserts allowed in one request,Hanya 200 sisipan diperbolehkan dalam satu permintaan
 DocType: Footer Item,URL,URL
@@ -3206,7 +3207,7 @@ DocType: Website Settings,"Show title in browser window as ""Prefix - title""",T
 DocType: Payment Gateway,Gateway Settings,Pengaturan Gateway
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +137,text in document type,teks dalam tipe dokumen
 apps/frappe/frappe/core/doctype/test_runner/test_runner.js +7,Run Tests,Jalankan Tes
-apps/frappe/frappe/handler.py +92,Logged Out,Keluar
+apps/frappe/frappe/handler.py +94,Logged Out,Keluar
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +237,More...,Lebih...
 DocType: System Settings,User can login using Email id or Mobile number,Pengguna dapat login menggunakan id email atau nomor ponsel
 DocType: Bulk Update,Update Value,Perbarui Nilai
@@ -3232,13 +3233,13 @@ apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +68,Current
 DocType: DocField,Default,Standar
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +146,{0} added,{0} ditambahkan
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +212,Search for '{0}',Cari &#39;{0}&#39;
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1026,Please save the report first,Harap menyimpan laporan pertama
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1038,Please save the report first,Harap menyimpan laporan pertama
 apps/frappe/frappe/email/doctype/email_group/email_group.py +42,{0} subscribers added,{0} Pelanggan telah ditambahkan
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +15,Not In,Tidak Masuk
 DocType: Workflow State,star,bintang
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +237,Hub,Pusat
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +279,values separated by commas,nilai-nilai dipisahkan oleh koma
-apps/frappe/frappe/core/doctype/doctype/doctype.py +485,Max width for type Currency is 100px in row {0},Max lebar untuk jenis mata uang adalah 100px berturut-turut {0}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +484,Max width for type Currency is 100px in row {0},Max lebar untuk jenis mata uang adalah 100px berturut-turut {0}
 apps/frappe/frappe/www/feedback.html +68,Please share your feedback for {0},Silakan berbagi tanggapan Anda untuk {0}
 apps/frappe/frappe/config/website.py +13,Content web page.,Halaman web konten.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,Add a New Role,Tambahkan Peran Baru
@@ -3259,7 +3260,7 @@ apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +97,Not a
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +58,{0} not a valid State,{0} bukan Keadaan yang berlaku
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +89,Please select another payment method. PayPal does not support transactions in currency '{0}',Pilih metode pembayaran yang lain. PayPal tidak mendukung transaksi dalam mata uang &#39;{0}&#39;
 DocType: Chat Message,Room Type,Tipe ruangan
-apps/frappe/frappe/core/doctype/doctype/doctype.py +573,Search field {0} is not valid,kolom pencarian {0} tidak valid
+apps/frappe/frappe/core/doctype/doctype/doctype.py +572,Search field {0} is not valid,kolom pencarian {0} tidak valid
 DocType: Workflow State,ok-circle,ok-lingkaran
 apps/frappe/frappe/utils/bot.py +150,You can find things by asking 'find orange in customers',Anda dapat menemukan hal-hal dengan bertanya 'temukan oranye di pelanggan'
 apps/frappe/frappe/core/doctype/user/user.py +190,Sorry! User should have complete access to their own record.,Mohon Maaf! Pengguna harus memiliki akses penuh untuk merekam mereka sendiri.
@@ -3278,7 +3279,7 @@ DocType: File,File Name,berkas nama
 apps/frappe/frappe/core/doctype/data_import/importer.py +498,Did not find {0} for {0} ({1}),Tidak menemukan {0} untuk {0} ({1})
 apps/frappe/frappe/utils/bot.py +176,"Oops, you are not allowed to know that","Ups, Anda tidak diizinkan untuk mengetahui bahwa"
 apps/frappe/frappe/public/js/frappe/ui/slides.js +324,Next,Lanjut
-apps/frappe/frappe/handler.py +92,You have been successfully logged out,Anda telah berhasil keluar
+apps/frappe/frappe/handler.py +94,You have been successfully logged out,Anda telah berhasil keluar
 DocType: Calendar View,Calendar View,Tampilan kalender
 apps/frappe/frappe/printing/doctype/print_format/print_format.js +26,Edit Format,Mengedit Format
 apps/frappe/frappe/core/doctype/user/user.py +268,Complete Registration,Pendaftaran Lengkap
@@ -3288,7 +3289,7 @@ apps/frappe/frappe/public/js/frappe/form/toolbar.js +197,New {0} (Ctrl+B),New {0
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +40,Top Bar Color and Text Color are the same. They should be have good contrast to be readable.,Top Bar Warna dan Warna Teks adalah sama. Mereka harus memiliki kontras yang baik untuk dibaca.
 apps/frappe/frappe/core/doctype/data_import/exporter.py +69,You can only upload upto 5000 records in one go. (may be less in some cases),Anda hanya dapat mengunggah hingga 5000 data sekaligus. (Mungkin kurang dalam beberapa kasus)
 apps/frappe/frappe/model/document.py +185,Insufficient Permission for {0},Izin tidak cukup untuk {0}
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +873,Report was not saved (there were errors),Laporan tidak disimpan (ada kesalahan)
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +885,Report was not saved (there were errors),Laporan tidak disimpan (ada kesalahan)
 apps/frappe/frappe/core/doctype/data_import/importer.py +295,Cannot change header content,Tidak dapat mengubah konten header
 DocType: Print Settings,Print Style,Print Style
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +52,Not Linked to any record,Tidak terkait dengan catatan apapun
@@ -3321,7 +3322,7 @@ DocType: User,Security Settings,Pengaturan Keamanan
 DocType: Website Settings,Operators,Operator
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +171,Add Column,Tambahkan Kolom
 ,Desktop,Desktop
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1015,Export Report: {0},Laporan Ekspor: {0}
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1027,Export Report: {0},Laporan Ekspor: {0}
 DocType: Auto Email Report,Filter Meta,Filter Meta
 DocType: Web Form,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,Teks yang akan ditampilkan untuk Link ke Halaman Web jika formulir ini memiliki halaman web. Link rute akan secara otomatis dihasilkan berdasarkan `page_name` dan` parent_website_route`
 DocType: Feedback Request,Feedback Trigger,Masukan Pemicu
