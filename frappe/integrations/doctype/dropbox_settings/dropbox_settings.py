@@ -111,8 +111,8 @@ def backup_to_dropbox(upload_db_backup=True):
 	# upload files to files folder
 	did_not_upload = []
 	error_log = []
- 	
- 	if dropbox_settings['file_backup']:
+
+	if dropbox_settings['file_backup']:
 		upload_from_folder(get_files_path(), 0, "/files", dropbox_client, did_not_upload, error_log)
 		upload_from_folder(get_files_path(is_private=1), 1, "/private/files", dropbox_client, did_not_upload, error_log)
 
