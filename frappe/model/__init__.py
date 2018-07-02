@@ -6,6 +6,34 @@ from __future__ import unicode_literals
 import frappe
 import json
 
+data_fieldtypes = (
+	'Currency',
+	'Int',
+	'Long Int',
+	'Float',
+	'Percent',
+	'Check',
+	'Small Text',
+	'Long Text',
+	'Code',
+	'Text Editor',
+	'Date',
+	'Datetime',
+	'Time',
+	'Text',
+	'Data',
+	'Link',
+	'Dynamic Link',
+	'Password',
+	'Select',
+	'Read Only',
+	'Attach',
+	'Attach Image',
+	'Signature',
+	'Color',
+	'Barcode',
+	'Geolocation'
+)
 
 no_value_fields = ('Section Break', 'Column Break', 'HTML', 'Table', 'Button', 'Image',
 	'Fold', 'Heading')

@@ -66,11 +66,11 @@ class ToDo(Document):
 				"_assign", json.dumps(assignments), update_modified=False)
 
 		except Exception as e:
-			if e.args[0] == 1146 and frappe.flags.in_install:
+			if frappe.db.is_table_missing(e) and frappe.flags.in_install:
 				# no table
 				return
 
-			elif e.args[0]==1054:
+			elif frappe.db.is_column_missing(e):
 				from frappe.model.db_schema import add_column
 				add_column(self.reference_type, "_assign", "Text")
 				self.update_in_reference()

@@ -19,37 +19,7 @@ class InvalidColumnName(frappe.ValidationError): pass
 varchar_len = '140'
 standard_varchar_columns = ('name', 'owner', 'modified_by', 'parent', 'parentfield', 'parenttype')
 
-# int, smallint, bigint, (datetime => timestamp), (longtext => text)
 # create index (not key)
-
-type_map = {
-	'Currency':		('decimal', '18,6'),
-	'Int':			('int', '11'),
-	'Long Int':		('bigint', '20'), # convert int to bigint if length is more than 11
-	'Float':		('decimal', '18,6'),
-	'Percent':		('decimal', '18,6'),
-	'Check':		('int', '1'),
-	'Small Text':		('text', ''),
-	'Long Text':		('longtext', ''),
-	'Code':			('longtext', ''),
-	'Text Editor':		('longtext', ''),
-	'Date':			('date', ''),
-	'Datetime':		('datetime', '6'),
-	'Time':			('time', '6'),
-	'Text':			('text', ''),
-	'Data':			('varchar', varchar_len),
-	'Link':			('varchar', varchar_len),
-	'Dynamic Link':		('varchar', varchar_len),
-	'Password':		('varchar', varchar_len),
-	'Select':		('varchar', varchar_len),
-	'Read Only':		('varchar', varchar_len),
-	'Attach':		('text', ''),
-	'Attach Image':		('text', ''),
-	'Signature':		('longtext', ''),
-	'Color':		('varchar', varchar_len),
-	'Barcode':		('longtext', ''),
-	'Geolocation':		('longtext', '')
-}
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',
 	'docstatus', 'parent', 'parentfield', 'parenttype', 'idx']
@@ -64,7 +34,7 @@ def updatedb(dt, meta=None):
 	   * updates columns
 	   * updates indices
 	"""
-	res = frappe.db.sql("select issingle from tabDocType where name=%s", (dt,))
+	res = frappe.db.sql("select issingle from `tabDocType` where name=%s", (dt,))
 	if not res:
 		raise Exception('Wrong doctype "%s" in updatedb' % dt)
 
@@ -113,7 +83,7 @@ class DbTable:
 				frappe.throw(_("Fieldname is limited to 64 characters ({0})")
 					.format(frappe.bold(col.fieldname)))
 
-			if col.fieldtype in type_map and type_map[col.fieldtype][0]=="varchar":
+			if col.fieldtype in frappe.db.type_map and frappe.db.type_map[col.fieldtype][0]=="varchar":
 
 				# validate length range
 				new_length = cint(col.length) or cint(varchar_len)
@@ -136,7 +106,7 @@ class DbTable:
 							.format(fieldname=col.fieldname, doctype=self.doctype))
 
 					except frappe.db.InternalError as e:
-						if frappe.db.is_bad_field(e):
+						if frappe.db.is_missing_column(e):
 							# Unknown column 'column_name' in 'field list'
 							continue
 
@@ -158,7 +128,7 @@ class DbTable:
 			self.alter()
 
 	def is_new(self):
-		return self.name not in DbManager(frappe.db).get_tables_list(frappe.db.cur_db_name)
+		return self.name not in frappe.db.get_tables()
 
 	def create(self):
 		add_text = ''
@@ -205,8 +175,8 @@ class DbTable:
 	def get_index_definitions(self):
 		ret = []
 		for key, col in self.columns.items():
-			if col.set_index and not col.unique and col.fieldtype in type_map and \
-					type_map.get(col.fieldtype)[0] not in ('text', 'longtext'):
+			if col.set_index and not col.unique and col.fieldtype in frappe.db.type_map and \
+					frappe.db.type_map.get(col.fieldtype)[0] not in ('text', 'longtext'):
 				ret.append('index `' + key + '`(`' + key + '`)')
 		return ret
 
@@ -265,8 +235,13 @@ class DbTable:
 	def get_columns_from_db(self):
 		self.show_columns = frappe.db.sql("desc `%s`" % self.name)
 		for c in self.show_columns:
-			self.current_columns[c[0].lower()] = {'name': c[0],
-				'type':c[1], 'index':c[3]=="MUL", 'default':c[4], "unique":c[3]=="UNI"}
+			self.current_columns[c[0].lower()] = {
+				'name': c[0],
+				'type': c[1],
+				'index': c[3]=="MUL",
+				'default': c[4],
+				"unique": c[3]=="UNI"
+			}
 
 	# GET foreign keys
 	def get_foreign_keys(self):
@@ -485,20 +460,6 @@ class DbManager:
 		"""
 		return list(self.db.sql("SHOW VARIABLES LIKE '%s'"%regex))
 
-	def get_table_schema(self,table):
-		"""
-		Just returns the output of Desc tables.
-		"""
-		return list(self.db.sql("DESC `%s`"%table))
-
-
-	def get_tables_list(self,target=None):
-		"""get list of tables"""
-		if target:
-			self.db.use(target)
-
-		return [t[0] for t in self.db.sql("SHOW TABLES")]
-
 	def create_user(self, user, password, host=None):
 		#Create user if it doesn't exist.
 		if not host:
@@ -583,7 +544,7 @@ class DbManager:
 
 	def drop_table(self,table_name):
 		"""drop table if exists"""
-		if not table_name in self.get_tables_list():
+		if not table_name in frappe.db.get_tables:
 			return
 
 		self.db.sql("DROP TABLE IF EXISTS %s "%(table_name))
@@ -610,7 +571,7 @@ def remove_all_foreign_keys():
 		try:
 			fklist = dbtab.get_foreign_keys()
 		except Exception as e:
-			if e.args[0]==1146:
+			if frappe.db.is_table_missing(e):
 				fklist = []
 			else:
 				raise
@@ -619,11 +580,11 @@ def remove_all_foreign_keys():
 			frappe.db.sql("alter table `tab%s` drop foreign key `%s`" % (t[0], f[1]))
 
 def get_definition(fieldtype, precision=None, length=None):
-	d = type_map.get(fieldtype)
+	d = frappe.db.type_map.get(fieldtype)
 
 	# convert int to long int if the length of the int is greater than 11
 	if fieldtype == "Int" and length and length>11:
-		d = type_map.get("Long Int")
+		d = frappe.db.type_map.get("Long Int")
 
 	if not d:
 		return

@@ -46,7 +46,7 @@ class UserPermissions:
 				pass
 			except Exception as e:
 				# install boo-boo
-				if e.args[0] != 1146: raise
+				if not frappe.db.is_table_missing(e): raise
 
 			return user
 

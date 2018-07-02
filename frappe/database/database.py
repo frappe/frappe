@@ -162,6 +162,9 @@ class Database:
 
 		if auto_commit: self.commit()
 
+		if not self._cursor.description:
+			return ()
+
 		# scrub output if required
 		if as_dict:
 			ret = self.fetch_as_dict(formatted, as_utf8)
@@ -177,6 +180,7 @@ class Database:
 			return self._cursor.fetchall()
 
 	def explain_query(self, query, values=None):
+		return
 		"""Print `EXPLAIN` in error log."""
 		try:
 			frappe.errprint("--- query explain ---")
@@ -458,10 +462,10 @@ class Database:
 				try:
 					out = self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update)
 				except Exception as e:
-					if ignore and e.args[0] in (1146, 1054):
+					if ignore and (frappe.db.is_bad_field(e) or frappe.db.is_table_missing(e)):
 						# table or column not found, return None
 						out = None
-					elif (not ignore) and e.args[0]==1146:
+					elif (not ignore) and frappe.db.is_table_missing(e):
 						# table not found, look in singles
 						out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
 					else:
@@ -827,11 +831,17 @@ class Database:
 
 	def get_db_table_columns(self, table):
 		"""Returns list of column names from given table."""
-		return [r[0] for r in self.sql("DESC `%s`" % table)]
+		return [r[0] for r in self.sql('''
+			select column_name
+			from information_schema.columns
+			where table_name = %s ''', table)]
 
 	def get_table_columns(self, doctype):
 		"""Returns list of column names from given doctype."""
-		return self.get_db_table_columns('tab' + doctype)
+		columns = self.get_db_table_columns('tab' + doctype)
+		if not columns:
+			raise self.ProgrammingError
+		return columns
 
 	def has_column(self, doctype, column):
 		"""Returns True if column exists in database."""
@@ -839,7 +849,7 @@ class Database:
 
 	def get_column_type(self, doctype, column):
 		return frappe.db.sql('''SELECT column_type FROM INFORMATION_SCHEMA.COLUMNS
-			WHERE table_name = 'tab{0}' AND COLUMN_NAME = "{1}"'''.format(doctype, column))[0][0]
+			WHERE table_name = 'tab{0}' AND column_name = '{1}' '''.format(doctype, column))[0][0]
 
 	def add_index(self, doctype, fields, index_name=None):
 		"""Creates an index with given fields if not already created.
@@ -891,6 +901,9 @@ class Database:
 		lft, rgt = self.get_value(doctype, name, ('lft', 'rgt'))
 		return self.sql_list('''select name from `tab{doctype}`
 			where lft > {lft} and rgt < {rgt}'''.format(doctype=doctype, lft=lft, rgt=rgt))
+
+	def is_missing_table_or_column(self, e):
+		return self.is_bad_field(e) or self.is_missing_table(e)
 
 def enqueue_jobs_after_commit():
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:

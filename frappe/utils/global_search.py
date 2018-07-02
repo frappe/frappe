@@ -16,19 +16,7 @@ def setup_global_search_table():
 	Creates __global_seach table
 	:return:
 	"""
-	if not '__global_search' in frappe.db.get_tables():
-		frappe.db.sql('''create table __global_search(
-			doctype varchar(100),
-			name varchar({varchar_len}),
-			title varchar({varchar_len}),
-			content text,
-			fulltext(content),
-			route varchar({varchar_len}),
-			published int(1) not null default 0,
-			unique `doctype_name` (doctype, name))
-			COLLATE=utf8mb4_unicode_ci
-			ENGINE=MyISAM
-			CHARACTER SET=utf8mb4'''.format(varchar_len=varchar_len))
+	frappe.db.create_global_search_table()
 
 
 def reset():
@@ -266,11 +254,11 @@ def update_global_search(doc):
 
 		frappe.flags.update_global_search.append(
 			dict(
-				doctype=doc.doctype, 
-				name=doc.name, 
+				doctype=doc.doctype,
+				name=doc.name,
 				content=' ||| '.join(content or ''),
-				published=published, 
-				title=title, 
+				published=published,
+				title=title,
 				route=route
 			)
 		)

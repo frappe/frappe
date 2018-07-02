@@ -260,7 +260,7 @@ def evaluate_alert(doc, alert, event):
 			try:
 				db_value = frappe.db.get_value(doc.doctype, doc.name, alert.value_changed)
 			except frappe.db.InternalError as e:
-				if frappe.db.is_bad_field(e):
+				if frappe.db.is_missing_column(e):
 					alert.db_set('enabled', 0)
 					frappe.log_error('Notification {0} has been disabled due to missing field'.format(alert.name))
 					return

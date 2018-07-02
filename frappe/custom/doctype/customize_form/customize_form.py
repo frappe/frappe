@@ -183,7 +183,7 @@ class CustomizeForm(Document):
 						continue
 
 					elif property == "reqd" and \
-						((frappe.db.get_value("DocField", 
+						((frappe.db.get_value("DocField",
 							{"parent":self.doc_type,"fieldname":df.fieldname}, "reqd") == 1) \
 							and (df.get(property) == 0)):
 						frappe.msgprint(_("Row {0}: Not allowed to disable Mandatory for standard fields")\
@@ -322,7 +322,7 @@ class CustomizeForm(Document):
 			try:
 				property_value = frappe.db.get_value("DocType", self.doc_type, property_name)
 			except Exception as e:
-				if e.args[0]==1054:
+				if frappe.db.is_column_missing(e):
 					property_value = None
 				else:
 					raise

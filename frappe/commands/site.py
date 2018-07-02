@@ -13,7 +13,7 @@ from six import text_type
 @click.command('new-site')
 @click.argument('site')
 @click.option('--db-name', help='Database name')
-@click.option('--db-engine', help='Optional "postgres" or "mariadb". Default is "mariadb"')
+@click.option('--db-type', help='Optional "postgres" or "mariadb". Default is "mariadb"')
 @click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')
 @click.option('--mariadb-root-password', help='Root password for MariaDB')
 @click.option('--admin-password', help='Administrator password for new site', default=None)
@@ -21,13 +21,16 @@ from six import text_type
 @click.option('--force', help='Force restore if site/database already exists', is_flag=True, default=False)
 @click.option('--source_sql', help='Initiate database with a SQL file')
 @click.option('--install-app', multiple=True, help='Install app after installation')
-def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None, verbose=False, install_apps=None, source_sql=None, force=None, install_app=None, db_name=None):
+def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None,
+	verbose=False, install_apps=None, source_sql=None, force=None, install_app=None,
+	db_name=None, db_type=None):
 	"Create a new site"
 	frappe.init(site=site, new_site=True)
 
 	_new_site(db_name, site, mariadb_root_username=mariadb_root_username,
 			mariadb_root_password=mariadb_root_password, admin_password=admin_password,
-			verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force)
+			verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force,
+			db_type = db_type)
 
 	if len(frappe.utils.get_sites()) == 1:
 		use(site)
@@ -345,8 +348,7 @@ def drop_site(site, root_login='root', root_password=None, archived_sites_path=N
 
 def _drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False):
 	"Remove site from database and filesystem"
-	from frappe.installer import get_root_connection
-	from frappe.model.db_schema import DbManager
+	from frappe.database import drop_user_and_database
 	from frappe.utils.backups import scheduled_backup
 
 	frappe.init(site=site)
@@ -354,25 +356,20 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 
 	try:
 		scheduled_backup(ignore_files=False, force=True)
-	except frappe.db.SQLError as err:
-		if frappe.db.is_table_missing():
-			if force:
-				pass
-			else:
-				click.echo("="*80)
-				click.echo("Error: The operation has stopped because backup of {s}'s database failed.".format(s=site))
-				click.echo("Reason: {reason}{sep}".format(reason=err[1], sep="\n"))
-				click.echo("Fix the issue and try again.")
-				click.echo(
-					"Hint: Use 'bench drop-site {s} --force' to force the removal of {s}".format(sep="\n", tab="\t", s=site)
-				)
-				sys.exit(1)
+	except Exception as err:
+		if force:
+			pass
+		else:
+			click.echo("="*80)
+			click.echo("Error: The operation has stopped because backup of {s}'s database failed.".format(s=site))
+			click.echo("Reason: {reason}{sep}".format(reason=err[1], sep="\n"))
+			click.echo("Fix the issue and try again.")
+			click.echo(
+				"Hint: Use 'bench drop-site {s} --force' to force the removal of {s}".format(sep="\n", tab="\t", s=site)
+			)
+			sys.exit(1)
 
-	db_name = frappe.local.conf.db_name
-	frappe.local.db = get_root_connection(root_login, root_password)
-	dbman = DbManager(frappe.local.db)
-	dbman.delete_user(db_name)
-	dbman.drop_database(db_name)
+	drop_user_and_database(frappe.conf.db_name, root_login, root_password)
 
 	if not archived_sites_path:
 		archived_sites_path = os.path.join(frappe.get_app_path('frappe'), '..', '..', '..', 'archived_sites')

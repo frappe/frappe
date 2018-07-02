@@ -20,10 +20,9 @@ from datetime import datetime
 from six.moves import range
 import frappe, json, os
 from frappe.utils import cstr, cint
-from frappe.model import default_fields, no_value_fields, optional_fields
+from frappe.model import default_fields, no_value_fields, optional_fields, data_fieldtypes
 from frappe.model.document import Document
 from frappe.model.base_document import BaseDocument
-from frappe.model.db_schema import type_map
 from frappe.modules import load_doctype_module
 from frappe.model.workflow import get_workflow_name
 from frappe import _
@@ -171,7 +170,7 @@ class Meta(Document):
 				self._valid_columns = get_table_columns(self.name)
 			else:
 				self._valid_columns = self.default_fields + \
-					[df.fieldname for df in self.get("fields") if df.fieldtype in type_map]
+					[df.fieldname for df in self.get("fields") if df.fieldtype in data_fieldtypes]
 
 		return self._valid_columns
 
@@ -255,7 +254,7 @@ class Meta(Document):
 
 	def get_list_fields(self):
 		list_fields = ["name"] + [d.fieldname \
-			for d in self.fields if (d.in_list_view and d.fieldtype in type_map)]
+			for d in self.fields if (d.in_list_view and d.fieldtype in data_fieldtypes)]
 		if self.title_field and self.title_field not in list_fields:
 			list_fields.append(self.title_field)
 		return list_fields
@@ -292,7 +291,7 @@ class Meta(Document):
 				WHERE dt = %s AND docstatus < 2""", (self.name,), as_dict=1,
 				update={"is_custom_field": 1}))
 		except Exception as e:
-			if e.args[0]==1146:
+			if frappe.db.is_table_missing(e):
 				return
 			else:
 				raise

@@ -8,12 +8,11 @@ from __future__ import unicode_literals, print_function
 
 from six.moves import input
 
-import os, json, sys, subprocess, shutil
+import os, json, subprocess, shutil
 import frappe
 import frappe.database
 import importlib
 from frappe import _
-from frappe.model.db_schema import DbManager
 from frappe.model.sync import sync_for
 from frappe.utils.fixtures import sync_fixtures
 from frappe.website import render
@@ -24,11 +23,14 @@ from frappe.modules.utils import sync_customizations
 from frappe.database import setup_database
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
-	admin_password=None, verbose=True, force=0, site_config=None, reinstall=False):
-	if not frappe.conf.db_type:
-		frappe.conf.db_type = 'mariadb'
+	admin_password=None, verbose=True, force=0, site_config=None, reinstall=False,
+	db_type=None):
 
-	make_conf(db_name, site_config=site_config)
+	if not db_type:
+		db_type = frappe.conf.db_type or 'mariadb'
+
+
+	make_conf(db_name, site_config=site_config, db_type=db_type)
 	frappe.flags.in_install_db = True
 
 	frappe.flags.root_login = root_login
@@ -37,38 +39,14 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 	frappe.conf.admin_password = frappe.conf.admin_password or admin_password
 
-	frappe.connect(db_name=db_name)
-	check_if_ready_for_barracuda()
-	import_db_from_sql(source_sql, verbose)
-	if not 'tabDefaultValue' in frappe.db.get_tables():
-		print('''Database not installed, this can due to lack of permission, or that the database name exists.
-Check your mysql root password, or use --force to reinstall''')
-		sys.exit(1)
-
 	remove_missing_apps()
 
-	create_auth_table()
-	setup_global_search_table()
-	create_user_settings_table()
+	frappe.db.create_auth_table()
+	frappe.db.create_global_search_table()
+	frappe.db.create_user_settings_table()
 
 	frappe.flags.in_install_db = False
 
-
-def create_user_settings_table():
-	frappe.db.sql_ddl("""create table if not exists __UserSettings (
-		`user` VARCHAR(180) NOT NULL,
-		`doctype` VARCHAR(180) NOT NULL,
-		`data` TEXT,
-		UNIQUE(user, doctype)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
-
-def import_db_from_sql(source_sql, verbose):
-	if verbose: print("Starting database import...")
-	db_name = frappe.conf.db_name
-	if not source_sql:
-		source_sql = os.path.join(os.path.dirname(frappe.__file__), 'data', 'Framework.sql')
-	DbManager(frappe.local.db).restore_database(db_name, source_sql, db_name, frappe.conf.db_password)
-	if verbose: print("Imported from database %s" % source_sql)
 
 def install_app(name, verbose=False, set_as_patched=True):
 	frappe.flags.in_install = name
@@ -81,7 +59,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 	# install pre-requisites
 	if app_hooks.required_apps:
 		for app in app_hooks.required_apps:
-			install_app(app)
+			install_app(app, verbose=verbose)
 
 	frappe.flags.in_install = name
 	frappe.clear_cache()
@@ -221,20 +199,23 @@ def init_singles():
 			doc.flags.ignore_validate=True
 			doc.save()
 
-def make_conf(db_name=None, db_password=None, site_config=None):
+def make_conf(db_name=None, db_password=None, site_config=None, db_type=None):
 	site = frappe.local.site
-	make_site_config(db_name, db_password, site_config)
+	make_site_config(db_name, db_password, site_config, db_type=db_type)
 	sites_path = frappe.local.sites_path
 	frappe.destroy()
 	frappe.init(site, sites_path=sites_path)
 
-def make_site_config(db_name=None, db_password=None, site_config=None):
+def make_site_config(db_name=None, db_password=None, site_config=None, db_type=None):
 	frappe.create_folder(os.path.join(frappe.local.site_path))
 	site_file = get_site_config_path()
 
 	if not os.path.exists(site_file):
 		if not (site_config and isinstance(site_config, dict)):
 			site_config = get_conf_params(db_name, db_password)
+
+			if db_type:
+				site_config['db_type'] = db_type
 
 		with open(site_file, "w") as f:
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
@@ -317,49 +298,6 @@ def remove_missing_apps():
 				installed_apps.remove(app)
 				frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 
-def check_if_ready_for_barracuda():
-	if frappe.conf.db_type != 'mariadb':
-		return
-	mariadb_variables = frappe._dict(frappe.db.sql("""show variables"""))
-	mariadb_minor_version = int(mariadb_variables.get('version').split('-')[0].split('.')[1])
-	if mariadb_minor_version < 3:
-		check_database(mariadb_variables, {
-			"innodb_file_format": "Barracuda",
-			"innodb_file_per_table": "ON",
-			"innodb_large_prefix": "ON"
-		})
-	check_database(mariadb_variables, {
-		"character_set_server": "utf8mb4",
-		"collation_server": "utf8mb4_unicode_ci"
-	})
-
-def check_database(mariadb_variables, variables_dict):
-	mariadb_minor_version = int(mariadb_variables.get('version').split('-')[0].split('.')[1])
-	for key, value in variables_dict.items():
-		if mariadb_variables.get(key) != value:
-			site = frappe.local.site
-			msg = ("Creation of your site - {x} failed because MariaDB is not properly {sep}"
-				   "configured to use the Barracuda storage engine. {sep}"
-				   "Please add the settings below to MariaDB's my.cnf, restart MariaDB then {sep}"
-				   "run `bench new-site {x}` again.{sep2}"
-				   "").format(x=site, sep2="\n"*2, sep="\n")
-
-			if mariadb_minor_version < 3:
-				print_db_config(msg, expected_config_for_barracuda_2)
-			else:
-				print_db_config(msg, expected_config_for_barracuda_3)
-			raise frappe.exceptions.ImproperDBConfigurationError(
-				reason="MariaDB default file format is not Barracuda"
-			)
-
-
-def print_db_config(explanation, config_text):
-	print("="*80)
-	print(explanation)
-	print(config_text)
-	print("="*80)
-
-
 def extract_sql_gzip(sql_gz_path):
 	try:
 		subprocess.check_call(['gzip', '-d', '-v', '-f', sql_gz_path])
@@ -388,24 +326,3 @@ def extract_tar_files(site_name, file_path, folder_name):
 		frappe.destroy()
 
 	return tar_path
-
-expected_config_for_barracuda_2 = """[mysqld]
-innodb-file-format=barracuda
-innodb-file-per-table=1
-innodb-large-prefix=1
-character-set-client-handshake = FALSE
-character-set-server = utf8mb4
-collation-server = utf8mb4_unicode_ci
-
-[mysql]
-default-character-set = utf8mb4
-"""
-
-expected_config_for_barracuda_3 = """[mysqld]
-character-set-client-handshake = FALSE
-character-set-server = utf8mb4
-collation-server = utf8mb4_unicode_ci
-
-[mysql]
-default-character-set = utf8mb4
-"""

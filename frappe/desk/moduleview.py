@@ -224,7 +224,7 @@ def get_last_modified(doctype):
 		try:
 			last_modified = frappe.get_all(doctype, fields=["max(modified)"], as_list=True, limit_page_length=1)[0][0]
 		except Exception as e:
-			if e.args[0]==1146:
+			if frappe.db.is_table_missing(e):
 				last_modified = None
 			else:
 				raise

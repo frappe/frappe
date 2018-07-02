@@ -105,7 +105,7 @@ def delete_all_passwords_for(doctype, name):
 		frappe.db.sql("""delete from __Auth where doctype=%(doctype)s and name=%(name)s""",
 			{ 'doctype': doctype, 'name': name })
 	except Exception as e:
-		if e.args[0]!=1054:
+		if frappe.db.is_missing_column(e):
 			raise
 
 def rename_password(doctype, old_name, new_name):
@@ -121,14 +121,7 @@ def rename_password_field(doctype, old_fieldname, new_fieldname):
 
 def create_auth_table():
 	# same as Framework.sql
-	frappe.db.sql_ddl("""create table if not exists __Auth (
-			`doctype` VARCHAR(140) NOT NULL,
-			`name` VARCHAR(255) NOT NULL,
-			`fieldname` VARCHAR(140) NOT NULL,
-			`password` VARCHAR(255) NOT NULL,
-			`encrypted` INT(1) NOT NULL DEFAULT 0,
-			PRIMARY KEY (`doctype`, `name`, `fieldname`)
-		) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci""")
+	frappe.db.create_auth_table()
 
 def encrypt(pwd):
 	if len(pwd) > 100:

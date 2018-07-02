@@ -6,7 +6,7 @@ import frappe
 from frappe import _, throw
 import frappe.utils.user
 from frappe.permissions import check_admin_or_system_manager
-from frappe.model.db_schema import type_map
+from frappe.model import data_fieldtypes
 
 def execute(filters=None):
 	user, doctype, show_permissions = filters.get("user"), filters.get("doctype"), filters.get("show_permissions")
@@ -34,7 +34,7 @@ def get_columns_and_fields(doctype):
 	columns = ["Name:Link/{}:200".format(doctype)]
 	fields = ["`name`"]
 	for df in frappe.get_meta(doctype).fields:
-		if df.in_list_view and df.fieldtype in type_map:
+		if df.in_list_view and df.fieldtype in data_fieldtypes:
 			fields.append("`{0}`".format(df.fieldname))
 			fieldtype = "Link/{}".format(df.options) if df.fieldtype=="Link" else df.fieldtype
 			columns.append("{label}:{fieldtype}:{width}".format(label=df.label, fieldtype=fieldtype, width=df.width or 100))

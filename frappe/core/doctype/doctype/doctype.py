@@ -10,12 +10,12 @@ import frappe
 from frappe import _
 
 from frappe.utils import now, cint
-from frappe.model import no_value_fields, default_fields
+from frappe.model import no_value_fields, default_fields, data_fieldtypes
 from frappe.model.document import Document
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate, get_doc_path
-from frappe.model.db_schema import validate_column_name, validate_column_length, type_map
+from frappe.model.db_schema import validate_column_name, validate_column_length
 from frappe.model.docfield import supports_translation
 import frappe.website.render
 
@@ -264,7 +264,9 @@ class DocType(Document):
 	def delete_duplicate_custom_fields(self):
 		if not (frappe.db.table_exists(self.name) and frappe.db.table_exists("Custom Field")):
 			return
-		fields = [d.fieldname for d in self.fields if d.fieldtype in type_map]
+
+		fields = [d.fieldname for d in self.fields if d.fieldtype in data_fieldtypes]
+
 		frappe.db.sql('''delete from
 				`tabCustom Field`
 			where
@@ -553,7 +555,7 @@ def validate_fields(meta):
 						doctype=d.parent, fieldname=d.fieldname))
 
 				except frappe.db.InternalError as e:
-					if frappe.db.is_bad_field(e):
+					if frappe.db.is_missing_column(e):
 						# ignore if missing column, else raise
 						# this happens in case of Custom Field
 						pass
@@ -849,7 +851,7 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 				r.insert()
 	except frappe.DoesNotExistError as e:
 		pass
-	except frappe.db.SQLError as e:
+	except frappe.db.ProgrammingError as e:
 		if frappe.db.is_table_missing(e):
 			pass
 		else:

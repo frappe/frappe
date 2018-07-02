@@ -123,8 +123,8 @@ def update_attachments(doctype, old, new):
 		if old != "File Data" and doctype != "DocType":
 			frappe.db.sql("""update `tabFile` set attached_to_name=%s
 				where attached_to_name=%s and attached_to_doctype=%s""", (new, old, doctype))
-	except Exception as e:
-		if e.args[0]!=1054: # in patch?
+	except frappe.db.ProgrammingError as e:
+		if not frappe.db.is_column_missing(e):
 			raise
 
 def rename_versions(doctype, old, new):
