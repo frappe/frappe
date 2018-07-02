@@ -4,8 +4,8 @@
 frappe.provide("frappe.ui.toolbar");
 frappe.provide('frappe.search');
 
-frappe.ui.toolbar.Toolbar = Class.extend({
-	init: function() {
+frappe.ui.toolbar.Toolbar = class {
+	constructor() {
 		$('header').append(frappe.render_template("navbar", {
 			avatar: frappe.avatar(frappe.session.user)
 		}));
@@ -16,28 +16,31 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		awesome_bar.setup("#modal-search");
 
 		this.make();
-	},
+	}
 
-	make: function() {
+	make() {
 		this.setup_sidebar();
+		this.setup_modules_dropdown();
 		this.setup_help();
-
 		this.setup_modules_dialog();
 		this.setup_progress_dialog();
 		this.bind_events();
 
 		$(document).trigger('toolbar_setup');
-	},
+	}
 
+	setup_modules_dropdown() {
+		//
+	}
 
 	setup_modules_dialog() {
 		this.modules_select = new frappe.ui.toolbar.ModulesSelect();
 		$('.navbar-set-desktop-icons').on('click', () => {
 			this.modules_select.show();
 		});
-	},
+	}
 
-	bind_events: function() {
+	bind_events() {
 		$(document).on("notification-update", function() {
 			frappe.ui.notifications.update_notifications();
 		});
@@ -54,9 +57,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				search_modal.find('#modal-search').focus();
 			}, 300);
 		});
-	},
+	}
 
-	setup_sidebar: function () {
+	setup_sidebar () {
 		var header = $('header');
 		header.find(".toggle-sidebar").on("click", function () {
 			var layout_side_section = $('.layout-side-section');
@@ -90,9 +93,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				});
 			}
 		});
-	},
+	}
 
-	setup_help: function () {
+	setup_help () {
 		frappe.provide('frappe.help');
 		frappe.help.show_results = show_results;
 
@@ -200,9 +203,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				});
 			}
 		}
-	},
+	}
 
-	setup_progress_dialog: function() {
+	setup_progress_dialog() {
 		var me = this;
 		frappe.call({
 			method: "frappe.desk.user_progress.get_user_progress_slides",
@@ -235,7 +238,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			freeze: false
 		});
 	}
-});
+};
 
 $.extend(frappe.ui.toolbar, {
 	add_dropdown_button: function(parent, label, click, icon) {
