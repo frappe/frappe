@@ -154,9 +154,11 @@ def add_sidebar_and_breadcrumbs(context):
 		add_sidebar_data(context)
 	else:
 		if context.basepath:
+			hooks = frappe.get_hooks('look_for_sidebar_json')
+			look_for_sidebar_json = hooks[0] if hooks else 0
 			sidebar_json_path = get_sidebar_json_path(
 				context.basepath,
-				frappe.get_hooks('look_for_sidebar_json')[0]
+				look_for_sidebar_json
 			)
 			if sidebar_json_path:
 				load_sidebar(context, sidebar_json_path)
