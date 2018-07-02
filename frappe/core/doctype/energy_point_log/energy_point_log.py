@@ -10,11 +10,17 @@ class EnergyPointLog(Document):
 	pass
 
 def update_log(doc, state):
-	event_type = get_event_type(state)
+
+	if doc.is_new() and doc._action =="save":
+		event_type = "Create"
+	else:
+		event_type = get_event_type(doc._action)
+
 	point_rule = frappe.get_all('Energy Point Rule', filters={
 		'reference_doctype': doc.get('doctype'),
 		'event_type': event_type
 	}, fields=['point', 'rule_name'], limit=1)
+
 	if point_rule:
 		point_rule = point_rule[0]
 		if(point_rule.condition and frappe.safe_eval(point_rule.condition, None, {'doc': doc})):
