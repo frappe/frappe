@@ -339,11 +339,12 @@ def get_messages_from_doctype(name):
 	messages = [('DocType: ' + name, message) for message in messages if is_translatable(message)]
 
 	# extract from js, py files
-	doctype_file_path = frappe.get_module_path(meta.module, "doctype", meta.name, meta.name)
-	messages.extend(get_messages_from_file(doctype_file_path + ".js"))
-	messages.extend(get_messages_from_file(doctype_file_path + "_list.js"))
-	messages.extend(get_messages_from_file(doctype_file_path + "_list.html"))
-	messages.extend(get_messages_from_file(doctype_file_path + "_calendar.js"))
+	if not meta.custom:
+		doctype_file_path = frappe.get_module_path(meta.module, "doctype", meta.name, meta.name)
+		messages.extend(get_messages_from_file(doctype_file_path + ".js"))
+		messages.extend(get_messages_from_file(doctype_file_path + "_list.js"))
+		messages.extend(get_messages_from_file(doctype_file_path + "_list.html"))
+		messages.extend(get_messages_from_file(doctype_file_path + "_calendar.js"))
 
 	# workflow based on doctype
 	messages.extend(get_messages_from_workflow(doctype=name))

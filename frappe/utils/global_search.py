@@ -260,7 +260,7 @@ def update_global_search(doc):
 
 		frappe.flags.update_global_search.append(
 			dict(doctype=doc.doctype, name=doc.name, content=' ||| '.join(content or ''),
-				published=published, title=doc.get_title()[:int(varchar_len)], route=doc.get('route')))
+				published=published, title=(doc.get_title() or '')[:int(varchar_len)], route=doc.get('route')))
 		enqueue_global_search()
 
 

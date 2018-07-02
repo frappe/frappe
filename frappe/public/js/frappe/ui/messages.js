@@ -180,13 +180,7 @@ frappe.msgprint = function(msg, title) {
 	return msg_dialog;
 }
 
-// Proxy for frappe.msgprint
-Object.defineProperty(window, 'msgprint', {
-	get: function() {
-		console.warn('Please use `frappe.msgprint` instead of `msgprint`. It will be deprecated soon.');
-		return frappe.msgprint;
-	}
-});
+window.msgprint = frappe.msgprint;
 
 frappe.hide_msgprint = function(instant) {
 	// clear msgprint

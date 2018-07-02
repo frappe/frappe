@@ -63,6 +63,9 @@ export default class WebForm {
 		});
 
 		this.fieldGroup.make();
+
+		this.wrapper.find(".form-column").unwrap(".section-body");
+
 		if(doc) {
 			this.fieldGroup.set_values(doc);
 		}

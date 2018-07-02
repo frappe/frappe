@@ -584,6 +584,8 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 		var out = true;
 		if(m.type==="page") {
 			out = m.link in frappe.boot.page_info;
+		} else if(m.force_show) {
+			out = true;
 		} else if(m._report) {
 			out = m._report in frappe.boot.user.all_reports;
 		} else if(m._doctype) {
