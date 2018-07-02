@@ -1,6 +1,6 @@
 from __future__ import unicode_literals, absolute_import, print_function
 import click
-import hashlib, os, sys, compileall
+import hashlib, os, sys, compileall, re
 import frappe
 from frappe import _
 from frappe.commands import pass_context, get_site
@@ -223,7 +223,7 @@ def migrate(context, rebuild_website=False):
 		finally:
 			frappe.destroy()
 
-	compileall.compile_dir('../apps', quiet=1)
+	compileall.compile_dir('../apps', quiet=1, rx=re.compile('.*node_modules.*'))
 
 @click.command('run-patch')
 @click.argument('module')
