@@ -1066,7 +1066,7 @@ def generate_keys(user):
 	generate api key and api secret
 
 	:param user: str
-	""" 
+	"""
 	if "System Manager" in frappe.get_roles():
 		user_details = frappe.get_doc("User", user)
 		api_secret = frappe.generate_hash(length=15)
