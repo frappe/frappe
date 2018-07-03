@@ -198,8 +198,7 @@ frappe.ui.form.on('User', {
 			},
 			callback: function(r){
 				if(r.message){
-					frappe.msgprint("Save api Secret " + r.message.api_secret
-					)
+					frappe.msgprint("Save api Secret " + r.message.api_secret);
 				}
 			}
 		})
