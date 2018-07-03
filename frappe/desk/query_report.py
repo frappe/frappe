@@ -191,6 +191,10 @@ def get_prepared_report_result(report, filters, dn=""):
 		"prepared_report": True,
 		"data": latest_report_data,
 		"doc": doc
+		# "message": message,
+		# "chart": chart,
+		# "data_to_be_printed": data_to_be_printed,
+		# "status": status
 	}
 
 

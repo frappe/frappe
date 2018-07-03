@@ -235,6 +235,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		})).then(r => {
 			let data = r.message;
 
+			this.hide_status();
+
 			if (data.prepared_report){
 				this.prepared_report = true;
 				this.add_prepared_report_buttons(data.doc);
@@ -257,27 +259,25 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
                     method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
                     args: {"dn": flags.name}
                 });
-		    });
-		    let $message = this.page.add_inner_message(__(`
-                This report was <a href=#Form/Prepared%20Report/${doc.name}>generated</a>
-                on ${doc.report_end_time}.
-                <a class="generated_report_list">See all</a>.
-            `));
+			});
+
+			frappe.route_options = {
+				report_name: doc.report_name,
+				filters: doc.filters
+			};
 
             let filters = JSON.parse(JSON.parse(doc.filters));
 
             this.set_filters(filters);
-
-            $message.on('click', () => {
-                frappe.route_options = {
-                    report_name: doc.report_name,
-                    filters: doc.filters
-                };
-                frappe.set_route("List", "Prepared Report");
-            })
+			
+			this.show_status(__(`
+				<span class="indicator orange">This report was <a href=#Form/Prepared%20Report/${doc.name}>generated</a>
+				on ${frappe.datetime.convert_to_user_tz(doc.report_end_time)}.
+				<a href=#List/Prepared%20Report>See all past reports</a>.</span>
+			`));
 	    }
 
-		this.page.add_inner_button(__("Generate Report"), () => {
+		this.page.add_inner_button(__("Generate New Report"), () => {
             let mandatory = this.filters.filter(f => f.df.reqd);
             let missing_mandatory = mandatory.filter(f => !f.get_value());
             if (!missing_mandatory.length){
@@ -647,9 +647,22 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	setup_report_wrapper() {
 		if (this.$report) return;
+
+		let inner_toolbar = this.page.main.find('.form-inner-toolbar');
+		this.$status = $(`<div class="form-message text-muted small"></div>`)
+			.hide().insertAfter(inner_toolbar);
+
 		this.$chart = $('<div class="chart-wrapper">').hide().appendTo(this.page.main);
 		this.$report = $('<div class="report-wrapper">').appendTo(this.page.main);
 		this.$message = $(this.message_div('')).hide().appendTo(this.page.main);
+	}
+
+	show_status(status_message) {
+		this.$status.html(status_message).show();
+	}
+
+	hide_status() {
+		this.$status.hide();
 	}
 
 	message_div(message) {
