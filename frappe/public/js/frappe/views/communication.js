@@ -286,7 +286,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	selected_format: function() {
-		return this.dialog.fields_dict.select_print_format.input.value || this.frm.meta.default_print_format || "Standard";
+		return this.dialog.fields_dict.select_print_format.input.value || (this.frm && this.frm.meta.default_print_format) || "Standard";
 	},
 
 	get_print_format: function(format) {
