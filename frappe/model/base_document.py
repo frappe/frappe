@@ -623,7 +623,7 @@ class BaseDocument(object):
 			return
 
 		for df in self.meta.get('fields', {'fieldtype': ('=', 'Password')}):
-			if self.flags.ignore_save_passwords and df.fieldname in self.flags.ignore_save_passwords: continue
+			if isinstance(self.flags.ignore_save_passwords, list) and df.fieldname in self.flags.ignore_save_passwords: continue
 			new_password = self.get(df.fieldname)
 			if new_password and not self.is_dummy_password(new_password):
 				# is not a dummy password like '*****'
