@@ -37,7 +37,7 @@ def handle():
 	"""
 
 	validate_oauth()
-	validate_auth()
+	validate_auth_via_api_keys()
 
 	parts = frappe.request.path[1:].split("/",3)
 	call = doctype = name = None
@@ -152,9 +152,9 @@ def validate_oauth():
 		if valid:
 			frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
 			frappe.local.form_dict = form_dict
-	
 
-def validate_auth():
+
+def validate_auth_via_api_keys():
 	"""
 	authentication using api key and api secret
 
@@ -168,11 +168,10 @@ def validate_auth():
 		elif authorization_header and authorization_header[0] == 'token':
 			token = authorization_header[1].split(":")
 			validate_api_key_secret(token[0], token[1])
-	except:
-		pass
+	except Exception as e:
+		raise e
 
 def validate_api_key_secret(api_key, api_secret):
-	
 	user = frappe.db.get_value(
 		doctype="User",
 		filters={"api_key": api_key},
