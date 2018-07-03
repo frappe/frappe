@@ -25,7 +25,7 @@ class User(Document):
 
 	def __setup__(self):
 		# because it is handled separately
-		self.flags.ignore_save_passwords = True
+		self.flags.ignore_save_passwords = ['new_password']
 
 	def autoname(self):
 		"""set name as Email Address"""
@@ -1062,12 +1062,20 @@ def create_contact(user):
 
 @frappe.whitelist()
 def generate_keys(user):
-	api_key = frappe.generate_hash(length=15)
-	api_secret = frappe.generate_hash(length=15)
+	"""
+	generate api key and api secret
 
-	user_details = frappe.get_doc("User", user)
-	user_details.api_key = api_key
-	user_details.api_secret = api_secret
-	user_details.save()
+	:param user: str
+	""" 
+	if "System Manager" in frappe.get_roles():
+		user_details = frappe.get_doc("User", user)
+		api_secret = frappe.generate_hash(length=15)
+		# if api key is not set generate api key
+		if not user_details.api_key:
+			api_key = frappe.generate_hash(length=15)
+			user_details.api_key = api_key
+		user_details.api_secret = api_secret
+		user_details.save()
 
-	return {"api_key": api_key, "api_secret": api_secret}
+		return {"api_secret": api_secret}
+	frappe.throw("Permission denied")
