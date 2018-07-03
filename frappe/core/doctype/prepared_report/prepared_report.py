@@ -38,8 +38,13 @@ def run_background(instance):
 	instance.report_end_time = frappe.utils.now()
 	instance.save()
 
+	frappe.publish_realtime(
+		'report_generated', 
+		{"report_name": instance.report_name}, 
+		user=frappe.session.user
+	)
+
 	# TODO:
-	# Show Alert
 	# Send Email to user
 
 def remove_header_meta(columns):
