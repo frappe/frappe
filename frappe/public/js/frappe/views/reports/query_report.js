@@ -36,7 +36,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		let tasks = [
 			this.setup_defaults,
 			this.setup_page,
-			this.setup_report_wrapper
+			this.setup_report_wrapper,
+			this.setup_events
 		].map(fn => fn.bind(this));
 		this.init_promise = frappe.run_serially(tasks);
 		return this.init_promise;
@@ -57,6 +58,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.refresh = frappe.utils.throttle(this.refresh, 300);
 
 		this.menu_items = [];
+	}
+
+	setup_events() {
+		frappe.realtime.on("report_generated", (data) => {
+			if(data.report_name) {
+				let alert_message = `Report ${this.report_name} generated.  
+					<a target='_blank' href="#query-report/${this.report_name}">View</a>`;
+				frappe.show_alert({message: alert_message, indicator: 'orange'});
+			}
+		})
 	}
 
 	load() {
@@ -291,8 +302,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
                     },
                     callback: resolve
                 })).then(r => {
-                    const data = r.message;
-                    frappe.msgprint("Prepared report initiated successfully. Track and access results  <a class='text-info' target='_blank' href="+data.redirect_url+">here</a>", "Notification");
+					const data = r.message;
+					let alert_message = `Report initiated. You can track its status 
+						<a class='text-info' target='_blank' href=${data.redirect_url}>here</a>`;
+                    frappe.show_alert({message: alert_message, indicator: 'orange'});
                     this.toggle_nothing_to_show(true);
                 });
             }
