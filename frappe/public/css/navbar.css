@@ -1,8 +1,4 @@
 /* the element that this class is applied to, should have a max width for this to work*/
-.navbar .dropdown-toggle {
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
 .navbar-fixed-top {
   left: 0px;
   right: 0px;
@@ -10,6 +6,23 @@
 .navbar a {
   font-size: 12px;
   font-weight: bold;
+}
+.navbar .dropdown-toggle {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.navbar .nav > li > a {
+  padding: 10px 10px;
+}
+.navbar .navbar-search-icon {
+  color: #6C7680;
+  font-size: inherit;
+  position: relative;
+  right: 24px;
+  top: 1px;
+}
+.navbar .badge {
+  font-weight: normal;
 }
 .navbar-icon-home {
   vertical-align: middle;
@@ -152,16 +165,6 @@
 #navbar-search {
   width: 100%;
   background-color: rgba(255, 255, 255, 0.9);
-}
-.navbar .navbar-search-icon {
-  color: #6C7680;
-  font-size: inherit;
-  position: relative;
-  right: 24px;
-  top: 1px;
-}
-.navbar .badge {
-  font-weight: normal;
 }
 #navbar-search-results {
   left: auto;

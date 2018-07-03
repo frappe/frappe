@@ -25,69 +25,31 @@
     opacity: 0.2;
   }
 }
-.sort-selector .dropdown:hover {
-  text-decoration: underline;
-}
 .filter-list {
   position: relative;
 }
+.filter-list .tag-filters-area {
+  padding: 10px 150px 0 10px;
+  border-bottom: 1px solid #d1d8dd;
+}
 .filter-list .sort-selector {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: 0px;
+  right: 0px;
+  margin: 10px;
+  display: flex;
 }
-.tag-filters-area {
-  padding: 15px 15px 0px;
-  border-bottom: 1px solid #d1d8dd;
+.filter-list .sort-selector .dropdown:hover {
+  text-decoration: underline;
 }
-.active-tag-filters {
-  padding-bottom: 4px;
-  padding-right: 120px;
+.filter-list .sort-selector .dropdown-menu {
+  max-height: 300px;
+  overflow-y: scroll;
+  right: 0;
+  left: auto;
 }
-@media (max-width: 767px) {
-  .active-tag-filters {
-    padding-right: 80px;
-  }
-}
-.active-tag-filters .btn {
-  margin-bottom: 10px;
-}
-.active-tag-filters .btn-group {
+.filter-list .sort-selector button {
   margin-left: 10px;
-  white-space: nowrap;
-  font-size: 0;
-}
-.active-tag-filters .btn-group .btn-default {
-  background-color: transparent;
-  border: 1px solid #d1d8dd;
-  color: #8D99A6;
-  float: none;
-}
-.filter-box {
-  border-bottom: 1px solid #d1d8dd;
-  padding: 10px 15px 3px;
-}
-.filter-box .remove-filter {
-  margin-top: 6px;
-  margin-left: 15px;
-}
-.filter-box .filter-field {
-  padding-right: 15px;
-  width: calc(64%);
-}
-.filter-box .filter-field .frappe-control {
-  position: relative;
-}
-@media (min-width: 767px) {
-  .filter-box .row > div[class*="col-sm-"] {
-    padding-right: 0px;
-  }
-  .filter-field {
-    width: 65% !important;
-  }
-  .filter-field .frappe-control {
-    position: relative;
-  }
 }
 .list-row-container {
   border-bottom: 1px solid #d1d8dd;
@@ -252,6 +214,23 @@ input.list-row-checkbox {
 }
 .page-form .awesomplete > ul {
   min-width: 300px;
+}
+.page-form .restricted-list {
+  padding: 0px 10px;
+  border: 1px solid #FEEF72;
+  height: 25px;
+  font-weight: 600;
+  border-radius: 5px;
+  background: lightyellow;
+  color: #6c7680;
+  margin-left: auto;
+  font-size: 10px;
+  margin-top: 3px;
+  outline: 0;
+}
+.page-form .restricted-list .octicon {
+  padding-right: 5px;
+  font-size: 12px;
 }
 .taggle_input {
   padding: 0;
