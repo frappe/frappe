@@ -30,7 +30,7 @@ frappe.ui.toolbar.Toolbar = class {
 	}
 
 	setup_modules_dropdown() {
-		//
+		// 
 	}
 
 	setup_modules_dialog() {
