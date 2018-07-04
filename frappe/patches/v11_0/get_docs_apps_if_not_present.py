@@ -1,5 +1,6 @@
 import frappe
-from frappe.commands.utils import get_all_docs_apps
+from frappe.utils.help import setup_apps_for_docs
 
 def execute():
-	get_all_docs_apps()
+	for app in frappe.get_installed_apps():
+		setup_apps_for_docs(app)
