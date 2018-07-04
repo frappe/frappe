@@ -244,9 +244,9 @@ def update_global_search(doc):
 		if doc.get(field.fieldname) and field.fieldtype != "Table":
 			content.append(get_formatted_value(doc.get(field.fieldname), field))
 
-	tag = (doc.get('_user_tags') or '').strip()
-	if tag:
-		content.append(tag)
+	tags = (doc.get('_user_tags') or '').strip()
+	if tags:
+		content.extend(list(filter(lambda x: x, tags.split(','))))
 
 	# Get children
 	for child in doc.meta.get_table_fields():
