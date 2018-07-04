@@ -48,7 +48,7 @@ class TestAPI(unittest.TestCase):
 		self.assertEqual("Administrator", res.json()["message"])
 		self.assertEqual(keys['api_secret'], generated_secret)
 
-		header = {"Authorization": "Basic {}".format(frappe.safe_encode(base64.b64encode("{}:{}".format(api_key, generated_secret))))}
+		header = {"Authorization": "Basic {}".format(base64.b64encode(frappe.safe_encode("{}:{}".format(api_key, generated_secret))))}
 		res = requests.post(frappe.get_site_config().host_name + "/api/method/frappe.auth.get_logged_user", headers=header)
 		self.assertEqual(res.status_code, 200)
 		self.assertEqual("Administrator", res.json()["message"])
