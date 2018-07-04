@@ -179,6 +179,24 @@ frappe.data_import.download_dialog = function(frm) {
 			"fieldtype": "Check"
 		},
 		{
+			"label": __("Select All"),
+			"fieldname": "select_all",
+			"fieldtype": "Button",
+			"depends_on": "eval:doc.select_columns=='Manually'",
+			click: function() {
+				checkbox_toggle();
+			}
+		},
+		{
+			"label": __("Unselect All"),
+			"fieldname": "unselect_all",
+			"fieldtype": "Button",
+			"depends_on": "eval:doc.select_columns=='Manually'",
+			click: function() {
+				checkbox_toggle(true);
+			}
+		},
+		{
 			"label": frm.doc.reference_doctype,
 			"fieldname": "doctype_fields",
 			"fieldtype": "MultiCheck",
@@ -259,6 +277,20 @@ frappe.data_import.download_dialog = function(frm) {
 		},
 		primary_action_label: __('Download')
 	});
+
+	$(dialog.body).find('div[data-fieldname="select_all"], div[data-fieldname="unselect_all"]')
+		.wrapAll('<div class="inline-buttons" />');
+	const button_container = $(dialog.body).find('.inline-buttons');
+	button_container.addClass('flex');
+	$(button_container).find('.frappe-control').map((index, button) => {
+		$(button).css({"margin-right": "1em"});
+	});
+
+	function checkbox_toggle(checked=false) {
+		$(dialog.body).find('[data-fieldtype="MultiCheck"]').map((index, element) => {
+			$(element).find(`:checkbox`).prop("checked", checked).trigger('click');
+		});
+	}
 
 	return dialog;
 };
