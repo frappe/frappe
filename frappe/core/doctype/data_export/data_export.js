@@ -58,7 +58,7 @@ const export_data = frm => {
 			filters: frm.filter_list.get_filters().map(filter => filter.slice(1, 4)),
 			file_type: frm.doc.file_type,
 			template: true,
-			with_data: true
+			with_data: 1
 		};
 	};
 
