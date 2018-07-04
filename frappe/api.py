@@ -163,7 +163,7 @@ def validate_auth_via_api_keys():
 	try:
 		authorization_header = frappe.get_request_header("Authorization", None).split(" ") if frappe.get_request_header("Authorization") else None
 		if authorization_header and authorization_header[0] == 'Basic':
-			token = base64.b64decode(authorization_header[1]).split(":")
+			token = frappe.safe_decode(base64.b64decode(authorization_header[1])).split(":")
 			validate_api_key_secret(token[0], token[1])
 		elif authorization_header and authorization_header[0] == 'token':
 			token = authorization_header[1].split(":")
