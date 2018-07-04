@@ -169,10 +169,9 @@ class SMTPServer:
 	def setup_email_account(self, append_to=None, sender=None):
 		self.email_account = get_outgoing_email_account(raise_exception_not_set=False, append_to=append_to, sender=sender)
 		if self.email_account:
-			account_password = self.email_account.password
 			self.server = self.email_account.smtp_server
 			self.login = getattr(self.email_account, "login_id", None) or self.email_account.email_id
-			self.password = frappe.safe_encode(account_password)
+			self.password = frappe.safe_encode(self.email_account.password)
 			self.port = self.email_account.smtp_port
 			self.use_tls = self.email_account.use_tls
 			self.sender = self.email_account.email_id
