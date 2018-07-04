@@ -149,7 +149,7 @@ frappe.data_import.download_dialog = function(frm) {
 
 	const doctype_fields = get_fields(frm.doc.reference_doctype)
 		.map(df => ({
-			label: df.label,
+			label: df.label + (df.reqd ? ' (M)' : ''),
 			value: df.fieldname,
 			checked: 1
 		}));
@@ -215,7 +215,7 @@ frappe.data_import.download_dialog = function(frm) {
 				"options": frappe.meta.get_docfields(df.options)
 					.filter(filter_fields)
 					.map(df => ({
-						label: df.label,
+						label: df.label + (df.reqd ? ' (M)' : ''),
 						value: df.fieldname,
 						checked: 1
 					})),
