@@ -32,7 +32,7 @@ frappe.ui.toolbar.Toolbar = class {
 	setup_modules_dropdown() {
 		let get_li_item = (name, label, link) => {
 			return $(`<li class="strong module-sidebar-item">
-				<a class="module-link" data-name="${name}" href="#${link}">
+				<a class="module-link ellipsis" data-name="${name}" href="#${link}">
 					<i class="fa fa-chevron-right pull-right" style="display: none;"></i>
 					<span>${label}</span>
 				</a>
