@@ -244,7 +244,7 @@ def update_global_search(doc):
 		if doc.get(field.fieldname) and field.fieldtype != "Table":
 			content.append(get_formatted_value(doc.get(field.fieldname), field))
 
-	tag =(frappe.db.get_value(doc.doctype, doc.name, '_user_tags', ignore=1) or '').strip()
+	tag = (doc.get('_user_tags') or '').strip()
 	if tag:
 		content.append(tag)
 
