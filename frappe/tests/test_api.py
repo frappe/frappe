@@ -7,7 +7,7 @@ from frappe.utils import get_url
 from frappe.core.doctype.user.user import generate_keys
 
 import requests
-import base64
+# import base64
 
 
 class TestAPI(unittest.TestCase):
