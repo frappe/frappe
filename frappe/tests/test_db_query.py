@@ -158,7 +158,8 @@ class TestReportview(unittest.TestCase):
 				limit_start=0, limit_page_length=1)
 
 		data = DatabaseQuery("DocType").execute(fields=["name", "issingle"],
-				filters={'editable_grid': 1}, or_filters=[['DocType', 'istable', '=', 1]],
+				filters={'editable_grid': 1, 'module': 'Core'},
+				or_filters=[['DocType', 'istable', '=', 1]],
 				limit_start=0, limit_page_length=1)
 		self.assertEquals('DocField', data[0]['name'])
 
