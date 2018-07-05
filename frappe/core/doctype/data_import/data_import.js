@@ -150,6 +150,7 @@ frappe.data_import.download_dialog = function(frm) {
 	const doctype_fields = get_fields(frm.doc.reference_doctype)
 		.map(df => ({
 			label: df.label + (df.reqd ? ' (M)' : ''),
+			reqd: df.reqd ? 1 : 0,
 			value: df.fieldname,
 			checked: 1
 		}));
@@ -163,7 +164,20 @@ frappe.data_import.download_dialog = function(frm) {
 			"reqd": 1,
 			"onchange": function() {
 				const fields = get_doctype_checkbox_fields();
-				fields.map(f => f.toggle(this.value === 'Manually'));
+				fields.map(f => f.toggle(true));
+				if(this.value && this.value != "Manually") {
+					if(this.value == 'Mandatory') {
+						fields.map(f => {
+							f.options.map(opt => {
+								if(opt.reqd) return;
+								$(dialog.body).find(`input[data-unit="${opt.value}"]`)
+									.prop("checked", true)
+									.trigger('click');
+							})
+						})
+					}
+					$(dialog.body).find(`[data-fieldtype="MultiCheck"] :checkbox`).prop('disabled', true);
+				}
 			}
 		},
 		{
@@ -216,6 +230,7 @@ frappe.data_import.download_dialog = function(frm) {
 					.filter(filter_fields)
 					.map(df => ({
 						label: df.label + (df.reqd ? ' (M)' : ''),
+						reqd: df.reqd ? 1 : 0,
 						value: df.fieldname,
 						checked: 1
 					})),
