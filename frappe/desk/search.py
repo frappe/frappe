@@ -10,6 +10,8 @@ from frappe import _
 from six import string_types
 import re
 
+UNTRANSLATED_DOCTYPES = ["DocType", "Roles"]
+
 
 def sanitize_searchfield(searchfield):
 	blacklisted_keywords = ['select', 'delete', 'drop', 'update', 'case', 'and', 'or', 'like']
@@ -109,8 +111,8 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 
 				for f in search_fields:
 					fmeta = meta.get_field(f.strip())
-					if f == "name" or (fmeta and fmeta.fieldtype in ["Data", "Text", "Small Text", "Long Text",
-						"Link", "Select", "Read Only", "Text Editor"]):
+					if (doctype not in UNTRANSLATED_DOCTYPES) and (f == "name" or (fmeta and fmeta.fieldtype in ["Data", "Text", "Small Text", "Long Text",
+						"Link", "Select", "Read Only", "Text Editor"])):
 							or_filters.append([doctype, f.strip(), "like", "%{0}%".format(txt)])
 
 			if meta.get("fields", {"fieldname":"enabled", "fieldtype":"Check"}):
@@ -143,6 +145,9 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				order_by=order_by,
 				ignore_permissions = ignore_permissions,
 				as_list=not as_dict)
+
+			if doctype in UNTRANSLATED_DOCTYPES:
+				values = tuple([v for v in list(values) if re.search(txt+".*", (_(v.name) if as_dict else _(v[0])), re.IGNORECASE)])
 
 			# remove _relevance from results
 			if as_dict:

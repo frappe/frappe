@@ -1,4 +1,3 @@
-
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
@@ -7,6 +6,7 @@ import unittest
 import frappe
 from frappe.desk.search import search_link
 from frappe.contacts.address_and_contact import filter_dynamic_link_doctypes
+from frappe.desk.search import search_widget
 
 
 class TestSearch(unittest.TestCase):
