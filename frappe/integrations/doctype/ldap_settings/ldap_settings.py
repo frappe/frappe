@@ -93,7 +93,7 @@ def authenticate_ldap_user(user=None, password=None):
 				conn.start_tls_s()
 		except:
 			frappe.throw(_("StartTLS is not supported"))
-		
+
 		# simple_bind_s is synchronous binding to server, it takes two param  DN and password
 		conn.simple_bind_s(settings.base_dn, settings.get_password(raise_exception=False))
 
