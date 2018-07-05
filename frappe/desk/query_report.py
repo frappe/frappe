@@ -11,7 +11,6 @@ from frappe.modules import scrub, get_module_path
 from frappe.utils import flt, cint, get_html_format, cstr, get_url_to_form
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
-from frappe.utils.csvutils import read_csv_content_from_attached_file
 import frappe.desk.reportview
 from frappe.utils.csvutils import read_csv_content_from_attached_file
 from frappe.permissions import get_role_permissions

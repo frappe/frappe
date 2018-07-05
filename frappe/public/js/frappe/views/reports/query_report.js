@@ -67,7 +67,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					<a target='_blank' href="#query-report/${this.report_name}">View</a>`;
 				frappe.show_alert({message: alert_message, indicator: 'orange'});
 			}
-		})
+		});
 	}
 
 	load() {
@@ -225,7 +225,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	refresh() {
-	    this.toggle_message(true);
+        this.toggle_message(true);
 		let filters = this.get_filter_values(true);
 
 		let query = frappe.utils.get_query_string(frappe.get_route_str());
@@ -264,13 +264,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_prepared_report_buttons(doc) {
-	    if (doc){
-	        this.page.add_inner_button(__("Download Report"), function () {
+        if(doc){
+            this.page.add_inner_button(__("Download Report"), function (){
                 frappe.call({
                     method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
                     args: {"dn": flags.name}
                 });
-			});
+            });
 
 			frappe.route_options = {
 				report_name: doc.report_name,
@@ -301,7 +301,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
                         filters: filters
                     },
                     callback: resolve
-                })).then(r => {
+                    })).then(r => {
 					const data = r.message;
 					let alert_message = `Report initiated. You can track its status 
 						<a class='text-info' target='_blank' href=${data.redirect_url}>here</a>`;
@@ -310,9 +310,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
                 });
             }
 		}, "", "primary");
-
-
-	}
+    }
 
 	render_report(data) {
 		this.columns = this.prepare_columns(data.columns);
