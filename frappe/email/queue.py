@@ -340,9 +340,9 @@ def flush(from_test=False):
 		msgprint(_("Emails are muted"))
 		from_test = True
 
-	smtpserver = SMTPServer()
-
 	make_cache_queue()
+
+	smtpserver_dict = frappe._dict()
 
 	for i in range(cache.llen('cache_email_queue')):
 		email = cache.lpop('cache_email_queue')
@@ -351,6 +351,12 @@ def flush(from_test=False):
 			break
 
 		if email:
+			sender = frappe.db.get_value("Email Queue", email, "sender")
+			smtpserver = smtpserver_dict.get(sender)
+			if not smtpserver:
+				smtpserver = SMTPServer()
+				smtpserver_dict[sender] = smtpserver
+
 			send_one(email, smtpserver, auto_commit, from_test=from_test)
 
 		# NOTE: removing commit here because we pass auto_commit
