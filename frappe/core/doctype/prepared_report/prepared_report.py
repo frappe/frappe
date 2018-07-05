@@ -11,13 +11,14 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
 from frappe.desk.query_report import generate_report_result, get_columns_dict
-from frappe.utils.file_manager import save_file
+from frappe.utils.file_manager import save_file, remove_all
 from frappe.utils.csvutils import to_csv, read_csv_content_from_attached_file
 from frappe.desk.form.load import get_attachments
 from frappe.utils.file_manager import download_file
 
 
 class PreparedReport(Document):
+
 	def before_insert(self):
 		self.status = "Queued"
 		self.report_start_time = frappe.utils.now()
@@ -27,6 +28,9 @@ class PreparedReport(Document):
 			run_background,
 			instance=self, timeout=6000
 		)
+
+	def on_trash(self):
+		remove_all("PreparedReport", self.name, from_delete=True)
 
 
 def run_background(instance):
@@ -46,6 +50,7 @@ def run_background(instance):
 
 	# TODO:
 	# Send Email to user
+
 
 def remove_header_meta(columns):
 	column_list = []
@@ -81,8 +86,8 @@ def get_report_attachment_data(dn):
 		'result': data[1:]
 	}
 
+
 @frappe.whitelist()
 def download_attachment(dn):
-	doc = frappe.get_doc("Prepared Report", dn)
 	attachment = get_attachments("Prepared Report", dn)[0]
 	download_file(attachment.file_url)
