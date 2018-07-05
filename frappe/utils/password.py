@@ -44,8 +44,14 @@ def check_password(user, pwd, doctype='User', fieldname='password'):
 
 	# lettercase agnostic
 	user = auth[0].name
+	delete_login_failed_cache(user)
 
 	return user
+
+def delete_login_failed_cache(user):
+	frappe.cache().hdel('last_login_tried', user)
+	frappe.cache().hdel('login_failed_count', user)
+	frappe.cache().hdel('locked_account_time', user)
 
 def update_password(user, pwd, doctype='User', fieldname='password', logout_all_sessions=False):
 	'''
