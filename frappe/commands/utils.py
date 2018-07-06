@@ -300,26 +300,19 @@ def mariadb(context):
 		Enter into mariadb console for a given site.
 	"""
 	import os
-	import os.path as osp
 
 	site  = get_site(context)
 	frappe.init(site=site)
 
 	# This is assuming you're within the bench instance.
-	path  = os.getcwd()
-	mysql = osp.join(path, '..', 'env', 'bin', 'mycli')
-	args  = [
+	mysql = find_executable('mysql')
+	os.execv(mysql, [
 		mysql,
 		'-u', frappe.conf.db_name,
-		'-p', frappe.conf.db_password,
+		'-p'+frappe.conf.db_password,
+		frappe.conf.db_name,
 		'-h', frappe.conf.db_host or "localhost",
-		'-D', frappe.conf.db_name,
-		'-R', '{site}> '.format(site = site),
-		'--auto-vertical-output',
-		'--warn'
-	]
-
-	os.execv(mysql, args)
+		"-A"])
 
 @click.command('console')
 @pass_context
