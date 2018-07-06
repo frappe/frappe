@@ -27,4 +27,5 @@ def execute():
 		set property="fetch_from"
 		where property="options" and value like '%.%'
 		and property_type in ('Data', 'Read Only', 'Text', 'Small Text', 'Text Editor', 'Code', 'Link', 'Check')
+		and field_name!='naming_series'
 	''')
