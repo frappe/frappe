@@ -165,18 +165,20 @@ frappe.data_import.download_dialog = function(frm) {
 			"onchange": function() {
 				const fields = get_doctype_checkbox_fields();
 				fields.map(f => f.toggle(true));
-				if(this.value && this.value != "Manually") {
-					if(this.value == 'Mandatory') {
-						fields.map(f => {
-							f.options.map(opt => {
-								if(opt.reqd) return;
-								$(dialog.body).find(`input[data-unit="${opt.value}"]`)
-									.prop("checked", true)
-									.trigger('click');
-							})
-						})
-					}
-					$(dialog.body).find(`[data-fieldtype="MultiCheck"] :checkbox`).prop('disabled', true);
+				if(this.value == 'Mandatory') {
+					checkbox_toggle(true);
+					fields.map(multicheck_field => {
+						multicheck_field.options.map(option => {
+							if(!option.reqd) return;
+							$(dialog.body).find(`:checkbox[data-unit="${option.value}"]`)
+								.prop('checked', false)
+								.trigger('click')
+								.prop('disabled', true);
+						});
+					});
+				} else if(this.value == 'All'){
+					$(dialog.body).find(`[data-fieldtype="MultiCheck"] :checkbox`)
+						.prop('disabled', true);
 				}
 			}
 		},
@@ -249,23 +251,7 @@ frappe.data_import.download_dialog = function(frm) {
 			if (frm.doc.reference_doctype) {
 				var export_params = () => {
 					let columns = {};
-					if (values.select_columns === 'All') {
-						columns = get_doctypes(frm.doc.reference_doctype).reduce((columns, doctype) => {
-							columns[doctype] = get_fields(doctype).map(df => df.fieldname);
-							return columns;
-						}, {});
-					} else if (values.select_columns === 'Mandatory') {
-						// only reqd child tables
-						const doctypes = [frm.doc.reference_doctype].concat(
-							frappe.meta.get_table_fields(frm.doc.reference_doctype)
-								.filter(df => df.reqd).map(df => df.options)
-						);
-
-						columns = doctypes.reduce((columns, doctype) => {
-							columns[doctype] = get_fields(doctype).filter(df => df.reqd).map(df => df.fieldname);
-							return columns;
-						}, {});
-					} else if (values.select_columns === 'Manually') {
+					if(values.select_columns) {
 						columns = get_doctype_checkbox_fields().reduce((columns, field) => {
 							const options = field.get_checked_options();
 							columns[field.df.label] = options;
