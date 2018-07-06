@@ -801,6 +801,8 @@ def get_filter(doctype, f):
 
 	f = frappe._dict(doctype=f[0], fieldname=f[1], operator=f[2], value=f[3])
 
+	sanitize_column(f.fieldname)
+
 	if not f.operator:
 		# if operator is missing
 		f.operator = "="
@@ -839,6 +841,27 @@ def make_filter_dict(filters):
 		_filter[f[1]] = (f[2], f[3])
 
 	return _filter
+
+def sanitize_column(column_name):
+	from frappe import _
+	regex = re.compile("^.*[,'();].*")
+	blacklisted_keywords = ['select', 'create', 'insert', 'delete', 'drop', 'update', 'case', 'and', 'or']
+
+	def _raise_exception():
+		frappe.throw(_("Invalid field name {0}").format(column_name), frappe.DataError)
+
+	if 'ifnull' in column_name:
+		if regex.match(column_name):
+			# to avoid and, or
+			if any(' {0} '.format(keyword) in column_name.split() for keyword in blacklisted_keywords):
+				_raise_exception()
+
+			# to avoid select, delete, drop, update and case
+			elif any(keyword in column_name.split() for keyword in blacklisted_keywords):
+				_raise_exception()
+
+	elif regex.match(column_name):
+		_raise_exception()
 
 def scrub_urls(html):
 	html = expand_relative_urls(html)

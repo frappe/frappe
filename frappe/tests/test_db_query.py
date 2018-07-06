@@ -117,6 +117,12 @@ class TestReportview(unittest.TestCase):
 			fields=["name", "issingle, IF(issingle=1, (SELECT name from tabUser), count(*))"],
 			limit_start=0, limit_page_length=1)
 
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+			fields=["name", "issingle ''"],limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+			fields=["name", "issingle,'"],limit_start=0, limit_page_length=1)
+
 		data = DatabaseQuery("DocType").execute(fields=["name", "issingle", "count(name)"],
 			limit_start=0, limit_page_length=1)
 		self.assertTrue('count(name)' in data[0])
@@ -132,6 +138,48 @@ class TestReportview(unittest.TestCase):
 		data = DatabaseQuery("DocType").execute(fields=["name", "issingle",
 			"datediff(modified, creation) as date_diff"], limit_start=0, limit_page_length=1)
 		self.assertTrue('date_diff' in data[0])
+
+	def test_filter_sanitizer(self):
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+				fields=["name"], filters={'istable,': 1}, limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+				fields=["name"], filters={'editable_grid,': 1}, or_filters={'istable,': 1},
+				limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+				fields=["name"], filters={'editable_grid,': 1},
+				or_filters=[['DocType', 'istable,', '=', 1]],
+				limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+				fields=["name"], filters={'editable_grid,': 1},
+				or_filters=[['DocType', 'istable', '=', 1], ['DocType', 'beta and 1=1', '=', 0]],
+				limit_start=0, limit_page_length=1)
+
+		data = DatabaseQuery("DocType").execute(fields=["name", "issingle"],
+				filters={'editable_grid': 1, 'module': 'Core'},
+				or_filters=[['DocType', 'istable', '=', 1]],
+				limit_start=0, limit_page_length=1)
+		self.assertEquals('DocField', data[0]['name'])
+
+		data = DatabaseQuery("DocType").execute(fields=["name"],
+				filters={'issingle': 1}, or_filters=[['DocType', 'module', '=', 'Core']],
+				limit_start=0, limit_page_length=1)
+		self.assertEquals('User Permission for Page and Report', data[0]['name'])
+
+		data = DatabaseQuery("DocType").execute(fields=["name"],
+				filters={'track_changes': 1, 'module': 'Core'},
+				limit_start=0, limit_page_length=4)
+		self.assertEquals(['File', 'Version', 'Data Import', 'Domain Settings'],
+			[d['name'] for d in data])
+
+		data = DatabaseQuery("DocType").execute(fields=["name"],
+				filters=[['DocType', 'ifnull(track_changes, 0)', '=', 0],
+					['DocType', 'module', '=', 'Core']],
+				limit_start=0, limit_page_length=4)
+		self.assertEquals(['DocField', 'User Permission for Page and Report', 'SMS Settings', 'Block Module'],
+			[d['name'] for d in data])
 
 def create_event(subject="_Test Event", starts_on=None):
 	""" create a test event """
