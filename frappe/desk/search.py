@@ -138,6 +138,9 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 
 			ignore_permissions = True if doctype == "DocType" else (cint(ignore_user_permissions) and has_permission(doctype))
 
+			if doctype in UNTRANSLATED_DOCTYPES:
+				page_length = None
+
 			values = frappe.get_list(doctype,
 				filters=filters, fields=formatted_fields,
 				or_filters = or_filters, limit_start = start,
