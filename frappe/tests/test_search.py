@@ -62,6 +62,7 @@ class TestSearch(unittest.TestCase):
 		frappe.local.lang = 'en'
 		search_widget(doctype="DocType", txt="suppl", page_length=30)
 		output = frappe.response["values"]
+		print(output)
 
 		result = [['found' for x in y if x=="Supplier"] for y in output]
 		self.assertTrue(['found'] in result)
@@ -69,6 +70,7 @@ class TestSearch(unittest.TestCase):
 		frappe.local.lang = 'fr'
 		search_widget(doctype="DocType", txt="fourn", page_length=30)
 		output = frappe.response["values"]
+		print(output)
 
 		result = [['found' for x in y if x=="Supplier"] for y in output]
 		self.assertTrue(['found'] in result)
