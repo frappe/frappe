@@ -8,7 +8,7 @@ from frappe import _
 import frappe
 import frappe.database
 import frappe.utils
-from frappe.utils import cint, get_datetime, datetime
+from frappe.utils import cint, flt, get_datetime, datetime
 import frappe.utils.user
 from frappe import conf
 from frappe.sessions import Session, clear_sessions, delete_session
@@ -233,7 +233,7 @@ class LoginManager:
 		raise frappe.AuthenticationError
 
 	def update_invalid_login(self, user):
-		last_login_tried = get_last_login_tried(user)
+		last_login_tried = get_last_tried_login_data(user)
 
 		failed_count = 0
 		if last_login_tried > get_datetime():
@@ -350,7 +350,7 @@ def get_website_user_home_page(user):
 	else:
 		return '/me'
 
-def get_last_login_tried(user, get_last_login=False):
+def get_last_tried_login_data(user, get_last_login=False):
 	locked_account_time = frappe.cache().hget('locked_account_time', user)
 	if get_last_login and locked_account_time:
 		return locked_account_time
@@ -368,7 +368,7 @@ def get_login_failed_count(user):
 
 def check_consecutive_login_attempts(user, doc):
 	login_failed_count = get_login_failed_count(user)
-	last_login_tried = (get_last_login_tried(user, True)
+	last_login_tried = (get_last_tried_login_data(user, True)
 		+ datetime.timedelta(seconds=doc.allow_login_after_fail))
 
 	if login_failed_count >= cint(doc.allow_consecutive_login_attempts):
@@ -377,6 +377,7 @@ def check_consecutive_login_attempts(user, doc):
 			frappe.cache().hset('locked_account_time', user, get_datetime())
 
 		if last_login_tried > get_datetime():
-			frappe.throw(_("Your account has been locked because the number of consecutive log-in failures exceeded the maximum allowed, please try after sometime"))
+			frappe.throw(_("Your account has been locked and will resume after {0} seconds")
+				.format(doc.allow_login_after_fail))
 		else:
 			delete_login_failed_cache(user)
