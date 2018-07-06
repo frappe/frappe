@@ -601,7 +601,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 Object.defineProperty(frappe, 'query_report_filters_by_name', {
 	get() {
-		if (!frappe.query_report) return {}
+		if (!frappe.query_report) return {};
 
 		return frappe.query_report.filters.reduce((acc, filter) => {
 			acc[filter.df.fieldname] = filter;
