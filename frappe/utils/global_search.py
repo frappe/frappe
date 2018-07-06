@@ -393,7 +393,7 @@ def web_search(text, start=0, limit=20):
 
 	results = []
 	texts = text.split('&')
-	for text in texts:	
+	for text in texts:
 		text = "+" + text + "*"
 		result = frappe.db.sql('''
 			select
