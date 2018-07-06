@@ -23,7 +23,9 @@ frappe.form.formatters = {
 	},
 	Float: function(value, docfield, options, doc) {
 		// don't allow 0 precision for Floats, hence or'ing with null
-		var precision = docfield.precision || cint(frappe.boot.sysdefaults.float_precision) || null;
+		var precision = docfield.precision 
+			|| cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) 
+			|| null;
 		if (docfield.options && docfield.options.trim()) {
 			// options points to a currency field, but expects precision of float!
 			docfield.precision = precision;
