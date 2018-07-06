@@ -351,6 +351,8 @@ def flush(from_test=False):
 			break
 
 		if email:
+			if not smtpserver.is_connected():
+				smtpserver = SMTPServer()
 			send_one(email, smtpserver, auto_commit, from_test=from_test)
 
 		# NOTE: removing commit here because we pass auto_commit
