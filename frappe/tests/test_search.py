@@ -40,8 +40,7 @@ class TestSearch(unittest.TestCase):
 			search_link, 'DocType', 'Customer', query=None, filters=None,
 			page_length=20, searchfield=';')
 	
-	#First search for the word "cust" and get "Customer" as result.
-	#Then search for the word "clie", part of the word "client" (customer) in french.
+	#Search for the word "clie", part of the word "client" (customer) in french.
 	def test_contact_search_in_foreign_language(self):
 		frappe.local.lang = 'fr'
 		output = filter_dynamic_link_doctypes("DocType", "clie", "name", 0, 20, {'fieldtype': 'HTML', 'fieldname': 'contact_html'})
@@ -49,8 +48,7 @@ class TestSearch(unittest.TestCase):
 		result = [['found' for x in y if x=="Customer"] for y in output]
 		self.assertTrue(['found'] in result)
 
-	#First search for the word "suppl" and get "Supplier" as result.
-	#Then search for the word "fourn", part of the word "fournisseur" (supplier) in french.
+	#Search for the word "fourn", part of the word "fournisseur" (supplier) in french.
 	def test_link_search_in_foreign_language(self):
 		frappe.local.lang = 'fr'
 		search_widget(doctype="DocType", txt="fourn", page_length=20)
