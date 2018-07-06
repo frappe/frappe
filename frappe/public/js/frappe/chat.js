@@ -186,6 +186,12 @@ frappe.quick_edit      = (doctype, docname, fn) => {
 				const fields   = meta.fields
 				const required = fields.filter(f => f.reqd || f.bold && !f.read_only)
 
+				required.map(f => {
+					if(f.fieldname == 'content' && doc.type == 'File') {
+						f['read_only'] = 1;
+					}
+				})
+
 				const dialog   = new frappe.ui.Dialog({
 					 title: __(`Edit ${doctype} (${docname})`),
 					fields: required,
