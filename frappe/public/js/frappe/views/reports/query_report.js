@@ -168,18 +168,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		} else {
 			this.page.show_form();
 		}
-
-		// set the field 'query_report_filters_by_name' first
-		// as they can be used in
-		// setting/triggering the filters
-		this.set_filters_by_name();
-	}
-
-	set_filters_by_name() {
-		frappe.query_report_filters_by_name = {};
-		for (var i in this.filters) {
-			frappe.query_report_filters_by_name[this.filters[i].df.fieldname] = this.filters[i];
-		}
 	}
 
 	set_route_filters() {
@@ -610,3 +598,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		return this.get_filter_values;
 	}
 };
+
+Object.defineProperty(frappe, 'query_report_filters_by_name', {
+	get() {
+		if (!frappe.query_report) return {}
+
+		return frappe.query_report.filters.reduce((acc, filter) => {
+			acc[filter.df.fieldname] = filter;
+			return acc;
+		}, {});
+	}
+});
