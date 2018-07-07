@@ -7,7 +7,7 @@ from frappe.utils import get_url
 from frappe.core.doctype.user.user import generate_keys
 
 import requests
-# import base64
+import base64
 
 
 class TestAPI(unittest.TestCase):
@@ -48,15 +48,10 @@ class TestAPI(unittest.TestCase):
 		self.assertEqual("Administrator", res.json()["message"])
 		self.assertEqual(keys['api_secret'], generated_secret)
 
-		# header = {"Authorization": "Basic {}".format(base64.b64encode(frappe.safe_encode("{}:{}".format(api_key, generated_secret))))}
-		# res = requests.post(frappe.get_site_config().host_name + "/api/method/frappe.auth.get_logged_user", headers=header)
-		# self.assertEqual(res.status_code, 200)
-		# self.assertEqual("Administrator", res.json()["message"])
-		# self.assertEqual("Administrator", res.json()["message"])
-
-
-		# self.assertEqual(res.status_code, 200)
-		# self.assertEqual("Administrator", res.json()["message"])
+		header = {"Authorization": "Basic {}".format(base64.b64encode(frappe.safe_encode("{}:{}".format(api_key, generated_secret))).decode())}
+		res = requests.post(frappe.get_site_config().host_name + "/api/method/frappe.auth.get_logged_user", headers=header)
+		self.assertEqual(res.status_code, 200)
+		self.assertEqual("Administrator", res.json()["message"])
 
 		# Valid api key, invalid api secret
 		api_secret = "ksk&93nxoe3os"
