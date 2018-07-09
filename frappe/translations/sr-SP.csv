@@ -240,7 +240,7 @@ apps/frappe/frappe/public/js/frappe/model/indicator.js +19,Not Saved,Nije sačuv
 apps/frappe/frappe/public/js/frappe/views/communication.js +395,Add Attachment,Dodaj prilog
 apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +144,Week,Nedelja
 DocType: Activity Log,Full Name,Puno ime
-apps/frappe/frappe/public/js/frappe/form/quick_entry.js +207,Edit in full page,Izmijeni u punoj strani
+apps/frappe/frappe/public/js/frappe/form/quick_entry.js +213,Edit in full page,Izmijeni u punoj strani
 apps/frappe/frappe/public/js/legacy/form.js +813,Permanently Cancel {0}?,Trajno otkaži {0} ?
 apps/frappe/frappe/core/doctype/data_import/exporter.py +62,Notes:,Bilješke :
 DocType: Notification,Save,Sačuvaj
@@ -286,7 +286,7 @@ DocType: Custom DocPerm,Amend,Izmijeni
 apps/frappe/frappe/public/js/frappe/form/layout.js +170,Hide Details,Sakrij detalje
 apps/frappe/frappe/core/doctype/version/version_view.html +47,Success,Uspješno
 apps/frappe/frappe/core/doctype/data_import/exporter.py +53,Data Import Template,Šablon za uvoz podataka
-apps/frappe/frappe/public/js/frappe/form/formatters.js +133,{0} to {1},{0} do {1}
+apps/frappe/frappe/public/js/frappe/form/formatters.js +135,{0} to {1},{0} do {1}
 DocType: User,Background Image,Pozadinska slika
 DocType: Web Form,Payments,Plaćanja
 apps/frappe/frappe/core/doctype/communication/communication.js +42,Close,Zatvori

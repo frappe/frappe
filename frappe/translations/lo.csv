@@ -5,13 +5,13 @@ DocType: Email Queue,Email Queue records.,ແຖວ Email ການບັນທ�
 DocType: Address,Punjab,Punjab
 apps/frappe/frappe/config/setup.py +126,Rename many items by uploading a .csv file.,ປ່ຽນຊື່ຈໍານວນຫຼາຍໂດຍອັບໂຫລດໄຟລ໌ .csv ເປັນ.
 DocType: Workflow State,pause,ພັກໄວ້
-apps/frappe/frappe/www/desk.py +19,You are not permitted to access this page.,ເຈົ້າຍັງບໍ່ໄດ້ອະນຸຍາດໃຫ້ເຂົ້າເຖິງຫນ້ານີ້.
-apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +24,Seems ldap is not installed on system.<br>Guidelines to install ldap dependancies and python package,ເບິ່ງຄືວ່າ ldap ບໍ່ໄດ້ຕິດຕັ້ງໃນລະບົບ. <br> ຄູ່ມືແນະນໍາໃນການຕິດຕັ້ງເພິ່ງພາອາໄສ ldap ແລະການດັ່ງກ່າວ python
+apps/frappe/frappe/www/desk.py +18,You are not permitted to access this page.,ເຈົ້າຍັງບໍ່ໄດ້ອະນຸຍາດໃຫ້ເຂົ້າເຖິງຫນ້ານີ້.
+apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +33,Seems ldap is not installed on system.<br>Guidelines to install ldap dependancies and python package,ເບິ່ງຄືວ່າ ldap ບໍ່ໄດ້ຕິດຕັ້ງໃນລະບົບ. <br> ຄູ່ມືແນະນໍາໃນການຕິດຕັ້ງເພິ່ງພາອາໄສ ldap ແລະການດັ່ງກ່າວ python
 DocType: About Us Settings,Website,ເວັບໄຊທ໌
 apps/frappe/frappe/www/me.py +14,You need to be logged in to access this page,ທ່ານຈໍາເປັນຕ້ອງເຂົ້າສູ່ລະບົບເພື່ອເຂົ້າສູ່ຫນ້ານີ້
 DocType: System Settings,Note: Multiple sessions will be allowed in case of mobile device,ຫມາຍເຫດ: ບົດຫຼາຍຈະໄດ້ຮັບການອະນຸຍາດໃຫ້ໃນກໍລະນີຂອງອຸປະກອນໂທລະສັບມືຖື
 apps/frappe/frappe/core/doctype/user/user.py +697,Enabled email inbox for user {users},ເປີດການ inbox ອີເມລ໌ສໍາລັບຜູ້ໃຊ້ {ຜູ້ໃຊ້}
-apps/frappe/frappe/email/queue.py +253,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,ບໍ່ສາມາດສົ່ງອີເມວນີ້. ທ່ານໄດ້ຜ່ານໄປໃນຂອບເຂດຈໍາກັດການສົ່ງຂອງ {0} ອີເມວສໍາລັບເດືອນນີ້.
+apps/frappe/frappe/email/queue.py +252,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,ບໍ່ສາມາດສົ່ງອີເມວນີ້. ທ່ານໄດ້ຜ່ານໄປໃນຂອບເຂດຈໍາກັດການສົ່ງຂອງ {0} ອີເມວສໍາລັບເດືອນນີ້.
 apps/frappe/frappe/public/js/legacy/form.js +779,Permanently Submit {0}?,ຢ່າງຖາວອນຍື່ນສະເຫນີການ {0}?
 apps/frappe/frappe/desk/page/backups/backups.js +12,Download Files Backup,ດາວນ໌ໂຫລດໄຟລ໌ Backup
 DocType: Address,County,county
@@ -45,6 +45,7 @@ apps/frappe/frappe/public/js/legacy/form.js +66,Cannot open {0} when its instanc
 apps/frappe/frappe/model/document.py +1083,Table {0} cannot be empty,ຕາຕະລາງ {0} ບໍ່ສາມາດປ່ອຍຫວ່າງ
 DocType: SMS Parameter,Parameter,ພາລາມິເຕີ
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +822,With Ledgers,ກັບ Ledgers
+apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +81,Document has been modified!,ເອກະສານຖືກດັດແກ້!
 apps/frappe/frappe/public/js/frappe/views/image/image_view.js +13,Images,ຮູບພາບ
 DocType: Activity Log,Reference Owner,ເຈົ້າຂອງກະສານອ້າງອີງ
 DocType: User,"If enabled, user can login from any IP Address using Two Factor Auth, this can also be set for all users in System Settings","ຖ້າເປີດໃຊ້, ຜູ້ໃຊ້ສາມາດເຂົ້າສູ່ລະບົບຈາກທີ່ຢູ່ IP ໃດໆໂດຍໃຊ້ Two Factor Auth, ເຊິ່ງສາມາດຕັ້ງຄ່າສໍາລັບຜູ້ໃຊ້ທັງຫມົດໃນ System Settings"
@@ -91,7 +92,6 @@ apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +262,New {0}: #{1},�
 DocType: Data Migration Run,Insert,Insert
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +22,Select {0},ເລືອກ {0}
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py +24,Please enter Base URL,ກະລຸນາໃສ່ URL ຖານ
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,Setup &gt; Customize Form,Setup&gt; Customize Form
 DocType: Auto Repeat,Repeat on Day,Repeat on Day
 DocType: DocField,Color,ສີ
 DocType: Data Migration Run,Log,ເຂົ້າສູ່ລະບົບ
@@ -131,6 +131,7 @@ DocType: Chat Room,Owner,ເຈົ້າຂອງ
 DocType: Communication,Visit,ການຢ້ຽມຢາມ
 DocType: LDAP Settings,LDAP Search String,LDAP ຄົ້ນຫາ String
 DocType: Translation,Translation,ການແປພາສາ
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,Setup &gt; Customize Form,Setup&gt; Customize Form
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Mr,ທ້າວ
 DocType: Custom Script,Client,ລູກຄ້າ
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +199,Select Column,ເລືອກຄໍລໍາ
@@ -199,7 +200,7 @@ apps/frappe/frappe/core/doctype/file/file.py +184,Cannot delete Home and Attachm
 apps/frappe/frappe/config/desk.py +19,Files,ໄຟ
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,Permissions get applied on Users based on what Roles they are assigned.,ການອະນຸຍາດໄດ້ຮັບການນໍາໃຊ້ກັບຜູ້ໃຊ້ໂດຍອີງໃສ່ສິ່ງທີ່ພາລະບົດບາດເຂົາເຈົ້າໄດ້ຖືກມອບຫມາຍ.
 apps/frappe/frappe/public/js/frappe/views/communication.js +529,You are not allowed to send emails related to this document,ເຈົ້າຍັງບໍ່ໄດ້ອະນຸຍາດໃຫ້ສົ່ງອີເມວທີ່ກ່ຽວຂ້ອງກັບເອກະສານນີ້
-apps/frappe/frappe/model/db_query.py +554,Please select atleast 1 column from {0} to sort/group,ກະລຸນາເລືອກ atleast 1 ຖັນຈາກ {0} ຈະຮຽງລໍາດັບ / ກຸ່ມ
+apps/frappe/frappe/model/db_query.py +561,Please select atleast 1 column from {0} to sort/group,ກະລຸນາເລືອກ atleast 1 ຖັນຈາກ {0} ຈະຮຽງລໍາດັບ / ກຸ່ມ
 DocType: PayPal Settings,Check this if you are testing your payment using the Sandbox API,ກວດສອບການຖ້າຫາກວ່າທ່ານກໍາລັງທົດສອບການຊໍາລະເງິນຂອງທ່ານໂດຍໃຊ້ Sandbox API
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30,You are not allowed to delete a standard Website Theme,ເຈົ້າຍັງບໍ່ໄດ້ອະນຸຍາດໃຫ້ລົບ Theme ເວັບໄຊທ໌ມາດຕະຖານ
 DocType: Data Import,Log Details,ລາຍະລະອຽດບັນທຶກ
@@ -286,10 +287,10 @@ DocType: Salutation,Administrator,Administrator
 DocType: Activity Log,Closed,ປິດ
 DocType: Blog Settings,Blog Title,Blog Title
 apps/frappe/frappe/core/doctype/role/role.py +20,Standard roles cannot be disabled,ພາລະບົດບາດມາດຕະຖານບໍ່ສາມາດໄດ້ຮັບການພິ
-apps/frappe/frappe/public/js/frappe/chat.js +1598,Chat Type,Chat Type
+apps/frappe/frappe/public/js/frappe/chat.js +1604,Chat Type,Chat Type
 DocType: Address,Mizoram,Mizoram
 DocType: Newsletter,Newsletter,ຈົດຫມາຍຂ່າວ
-apps/frappe/frappe/model/db_query.py +545,Cannot use sub-query in order by,ບໍ່ສາມາດໃຊ້ຍ່ອຍສອບຖາມໃນຄໍາສັ່ງໂດຍ
+apps/frappe/frappe/model/db_query.py +552,Cannot use sub-query in order by,ບໍ່ສາມາດໃຊ້ຍ່ອຍສອບຖາມໃນຄໍາສັ່ງໂດຍ
 DocType: Web Form,Button Help,ປຸ່ມ Help
 DocType: Kanban Board Column,purple,ສີມ່ວງ
 DocType: About Us Settings,Team Members,ທີມງານສະມາຊິກ
@@ -310,7 +311,6 @@ DocType: Notification Recipient,Notification Recipient,Notification Recipient
 DocType: Workflow State,Refresh,ໂຫຼດຫນ້າຈໍຄືນ
 DocType: Event,Public,ສາທາລະນະ
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +594,Nothing to show,ບໍ່ມີຫຍັງທີ່ຈະສະແດງໃຫ້ເຫັນ
-apps/frappe/frappe/email/smtp.py +188,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,ບັນຊີອີເມວບໍ່ໄດ້ຕັ້ງຄ່າ. ກະລຸນາສ້າງບັນຊີ Email ໃຫມ່ຈາກ Setup&gt; Email&gt; Account Email
 DocType: System Settings,Enable Two Factor Auth,ເປີດໃຊ້ສອງປັດໄຈ Auth
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +280,[Urgent] Error while creating recurring %s for %s,[Urgent] Error while creating% s ສໍາລັບ% s
 apps/frappe/frappe/public/js/frappe/model/model.js +24,Liked By,ຖືກໃຈໂດຍ
@@ -364,7 +364,6 @@ DocType: User,Tile,ກະເບື້ອງ
 apps/frappe/frappe/templates/includes/login/login.js +118,Verifying...,ການກວດສອບ ...
 apps/frappe/frappe/core/doctype/data_import/exporter.py +64,First data column must be blank.,ຄໍລໍາຂໍ້ມູນຄັ້ງທໍາອິດຕ້ອງມີຊ່ອງຫວ່າງ.
 apps/frappe/frappe/core/doctype/version/version.js +5,Show all Versions,ສະແດງໃຫ້ເຫັນສະບັບທັງຫມົດ
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357,<p>No results found for '</p>,<p> ບໍ່ພົບຜົນລັບສໍາລັບ &#39; </p>
 DocType: Workflow State,Print,ພິມ
 DocType: User,Restrict IP,ຈໍາກັດ IP
 apps/frappe/frappe/public/js/frappe/form/layout.js +108,Dashboard,dashboard
@@ -385,7 +384,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +143,Search Help,�
 DocType: Top Bar Item,Parent Label,Label ຂອງພໍ່ແມ່
 apps/frappe/frappe/templates/emails/auto_reply.html +2,"Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail.","ການສອບຖາມຂອງທ່ານໄດ້ຖືກຮັບ. ພວກເຮົາຈະຕອບກັບຄືນໄປບ່ອນດົນ. ຖ້າຫາກວ່າທ່ານມີຂໍ້ມູນເພີ່ມເຕີມ, ກະລຸນາຕອບກັບ mail ນີ້."
 DocType: GCalendar Account,Allow GCalendar Access,ອະນຸຍາດໃຫ້ເຂົ້າ GCalendar
-apps/frappe/frappe/core/doctype/data_import/importer.py +224,{0} is a mandatory field,{0} ເປັນຂົງເຂດບັງຄັບ
+apps/frappe/frappe/core/doctype/data_import/importer.py +225,{0} is a mandatory field,{0} ເປັນຂົງເຂດບັງຄັບ
 apps/frappe/frappe/templates/includes/login/login.js +251,Login token required,ເຂົ້າສູ່ລະບົບ token ຕ້ອງ
 DocType: Event,Repeat Till,ເຮັດເລື້ມຄືນ Till
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +111,New,ໃຫມ່
@@ -449,15 +448,16 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filter_list.js +144,Add Filter,�
 apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py +86,SMS sent to following numbers: {0},SMS ສົ່ງໄປຈໍານວນດັ່ງຕໍ່ໄປນີ້: {0}
 apps/frappe/frappe/public/js/frappe/ui/comment.js +230,Your rating: ,rating ຂອງທ່ານ:
 apps/frappe/frappe/utils/data.py +641,{0} and {1},{0} ແລະ {1}
-apps/frappe/frappe/public/js/frappe/chat.js +2144,Start a conversation.,ເລີ່ມຕົ້ນການສົນທະນາ.
+apps/frappe/frappe/public/js/frappe/chat.js +2150,Start a conversation.,ເລີ່ມຕົ້ນການສົນທະນາ.
 DocType: Print Settings,"Always add ""Draft"" Heading for printing draft documents",ສະເຫມີເພີ່ມ &quot;ຮ່າງ&quot; ຫົວຂໍ້ສໍາລັບເອກະສານຮ່າງການພິມ
 DocType: Data Migration Run,Current Mapping Start,Current Mapping Start
 apps/frappe/frappe/core/doctype/communication/communication.js +240,Email has been marked as spam,Email ໄດ້ຖືກຫມາຍວ່າເປັນສະແປມ
 DocType: About Us Settings,Website Manager,ຜູ້ຈັດການເວັບໄຊທ໌
 apps/frappe/frappe/public/js/frappe/socketio_client.js +342,File Upload Disconnected. Please try again.,ການອັບໂຫຼດໄຟລ໌ທີ່ຖືກປິດການເຊື່ອມຕໍ່. ກະລຸນາລອງອີກຄັ້ງ.
+apps/frappe/frappe/desk/search.py +17,Invalid Search Field,Field Search Invalid
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js +48,Translations,ການແປພາສາ
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +23,You selected Draft or Cancelled documents,ທ່ານ Draft ເລືອກຫຼືເອກະສານຍົກເລີກ
-apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +80,Document {0} has been set to state {1} by {2},ເອກະສານ {0} ໄດ້ຖືກກໍານົດໃຫ້ລັດ {1} ໂດຍ {2}
+apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +94,Document {0} has been set to state {1} by {2},ເອກະສານ {0} ໄດ້ຖືກກໍານົດໃຫ້ລັດ {1} ໂດຍ {2}
 apps/frappe/frappe/model/document.py +1211,Document Queued,ເອກສານການຈັດຄິວ
 DocType: GSuite Templates,Destination ID,ID ຈຸດຫມາຍປາຍທາງ
 DocType: Desktop Icon,List,ບັນຊີລາຍຊື່
@@ -514,7 +514,7 @@ DocType: SMS Settings,Receiver Parameter,ຮັບພາລາມິເຕີ
 DocType: Data Migration Mapping Detail,Remote Fieldname,Remotename fieldname
 DocType: Communication,To,ການ
 DocType: Kanban Board Column,darkgrey,ເທົາເຂັ້ມ
-apps/frappe/frappe/model/rename_doc.py +428,Successful: {0} to {1},ສົບຜົນສໍາເລັດ: {0} ກັບ {1}
+apps/frappe/frappe/model/rename_doc.py +430,Successful: {0} to {1},ສົບຜົນສໍາເລັດ: {0} ກັບ {1}
 apps/frappe/frappe/core/doctype/user/user.py +107,Cannot change user details in demo. Please signup for a new account at https://erpnext.com,ບໍ່ສາມາດມີການປ່ຽນແປງລາຍລະອຽດຂອງຜູ້ໃຊ້ໃນການສາທິດ. ກະລຸນາລົງທະບຽນສໍາລັບການບັນຊີໃຫມ່ທີ່ https://erpnext.com
 apps/frappe/frappe/printing/doctype/print_format/print_format.js +18,Please duplicate this to make changes,ກະລຸນາຊ້ໍານີ້ຈະເຮັດໃຫ້ການປ່ຽນແປງ
 apps/frappe/frappe/public/js/frappe/list/list_filter.js +99,Press Enter to save,ກົດ Enter ເພື່ອບັນທຶກ
@@ -638,7 +638,7 @@ DocType: Workflow State,indent-left,indent ຊ້າຍ
 apps/frappe/frappe/utils/file_manager.py +282,It is risky to delete this file: {0}. Please contact your System Manager.,ມັນເປັນຄວາມສ່ຽງສູງທີ່ຈະລຶບເອກະສານນີ້:. {0} ກະລຸນາຕິດຕໍ່ຈັດການລະບົບຂອງທ່ານ.
 DocType: Currency,Currency Name,ຊື່ສະກຸນເງິນ
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +175,No Emails,No ອີເມວ
-apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +79,Link Expired,ການເຊື່ອມໂຍງຫມົດອາຍຸ
+apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +93,Link Expired,ການເຊື່ອມໂຍງຫມົດອາຍຸ
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +458,Select File Format,ເລືອກຮູບແບບໄຟລ໌
 DocType: Report,Javascript,Javascript
 DocType: File,Content Hash,Hash ເນື້ອໃນ
@@ -671,7 +671,7 @@ apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +63,Select atleast 1
 apps/frappe/frappe/core/doctype/has_role/has_role.py +12,User '{0}' already has the role '{1}',ຜູ້ໃຊ້ {0} &#39;ແລ້ວມີພາລະບົດບາດ&#39; {1} &#39;
 DocType: System Settings,Two Factor Authentication method,ວິທີການສອງກວດສອບປັດໄຈ
 apps/frappe/frappe/public/js/frappe/form/share.js +36,Shared with {0},ແບ່ງປັນກັບ {0}
-apps/frappe/frappe/email/queue.py +270,Unsubscribe,ຍົກເລີກ
+apps/frappe/frappe/email/queue.py +269,Unsubscribe,ຍົກເລີກ
 DocType: View log,Reference Name,ຊື່ກະສານອ້າງອີງ
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js +13,Update Translations,ປັບປຸງການແປພາສາ
 DocType: Error Snapshot,Exception,ຂໍ້ຍົກເວັ້ນ
@@ -689,7 +689,7 @@ DocType: File,Folder,ໂຟນເດີ
 DocType: DocField,Index,ດັດຊະນີ
 DocType: Email Group,Newsletter Manager,ຜູ້ຈັດການຫນັງສືພິມ
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,Option 1,ທາງເລືອກ 1
-apps/frappe/frappe/public/js/frappe/form/formatters.js +133,{0} to {1},{0} ກັບ {1}
+apps/frappe/frappe/public/js/frappe/form/formatters.js +135,{0} to {1},{0} ກັບ {1}
 apps/frappe/frappe/config/setup.py +87,Log of error during requests.,ເຂົ້າສູ່ລະບົບຂອງຄວາມຜິດພາດໃນລະຫວ່າງການຮ້ອງຂໍ.
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +219,{0} has been successfully added to the Email Group.,{0} ໄດ້ຮັບການເພີ່ມສົບຜົນສໍາເລັດເພື່ອ Group Email ໄດ້.
 apps/frappe/frappe/public/js/frappe/form/grid.js +682,Do not edit headers which are preset in the template,ຢ່າແກ້ໄຂຫົວຂໍ້ທີ່ຖືກຕັ້ງຄ່າໃນແບບຟອມ
@@ -745,6 +745,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +257,Hide fie
 apps/frappe/frappe/templates/emails/new_message.html +1,You have a new message from: ,ທ່ານມີຂໍ້ຄວາມໃຫມ່ຈາກ:
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_field.html +21,Edit HTML,ດັດແກ້ HTML
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py +30,Please enter Redirect URL,ກະລຸນາໃສ່ Redirect URL
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions,Setup&gt; User Permissions
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +9,"to be generated. If delayed, you will have to manually change the ""Repeat on Day of Month"" field
 of this","ຈະໄດ້ຮັບການຜະລິດ. ຖ້າຫາກວ່າມີຄວາມຊັກຊ້າ, ທ່ານຈະຕ້ອງປ່ຽນ &quot;ເລື້ມຄືນໃນວັນຂອງເດືອນ&quot; ດ້ວຍຕົນເອງ"
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +416,Restore Original Permissions,ການຟື້ນຟູອະນຸຍາດ Original
@@ -807,7 +808,7 @@ DocType: Workflow State,Stop,ຢຸດເຊົາການ
 DocType: Footer Item,Link to the page you want to open. Leave blank if you want to make it a group parent.,ການເຊື່ອມຕໍ່ກັບຫນ້າທີ່ທ່ານຕ້ອງການທີ່ຈະເປີດ. ໃຫ້ຫວ່າງໄວ້ຖ້າຫາກວ່າທ່ານຕ້ອງການທີ່ຈະເຮັດໃຫ້ມັນເປັນພໍ່ແມ່ກຸ່ມ.
 DocType: DocType,Is Single,ຄືດ່ຽວ
 apps/frappe/frappe/core/doctype/user/user.py +766,Sign Up is disabled,ເຂົ້າສູ່ລະບົບຖືກປິດ
-apps/frappe/frappe/email/queue.py +329,{0} has left the conversation in {1} {2},{0} ໄດ້ປະໄວ້ການສົນທະນາໃນ {1} {2}
+apps/frappe/frappe/email/queue.py +328,{0} has left the conversation in {1} {2},{0} ໄດ້ປະໄວ້ການສົນທະນາໃນ {1} {2}
 DocType: Blogger,User ID of a Blogger,ຊື່ຜູ້ໃຊ້ຂອງ Blogger
 apps/frappe/frappe/core/doctype/user/user.py +306,There should remain at least one System Manager,ມີຄວນຈະຍັງຄົງຢູ່ໃນຢ່າງຫນ້ອຍຫນຶ່ງໃນລະບົບຈັດການ
 DocType: GCalendar Account,Authorization Code,ລະຫັດອະນຸຍາດ
@@ -1025,9 +1026,8 @@ apps/frappe/frappe/utils/goal.py +110,Goal,ເປົ້າຫມາຍຂອງ
 apps/frappe/frappe/email/receive.py +60,Invalid Mail Server. Please rectify and try again.,Server Mail ທີ່ບໍ່ຖືກຕ້ອງ. ກະລຸນາແກ້ໄຂແລະພະຍາຍາມອີກເທື່ອຫນຶ່ງ.
 DocType: DocField,"For Links, enter the DocType as range.
 For Select, enter list of Options, each on a new line.","ສໍາລັບການເຊື່ອມຕໍ່, ເຂົ້າ DocType ເປັນລະດັບ. ສໍາລັບການເລືອກ, ເຂົ້າບັນຊີລາຍຊື່ຂອງຕົວເລືອກແຕ່ລະຄົນກ່ຽວກັບການອອນໄລນ໌ໃຫມ່."
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,ຕັ້ງຄ່າ&gt; ຜູ້ໃຊ້
 DocType: Workflow State,film,ຮູບເງົາ
-apps/frappe/frappe/model/db_query.py +408,No permission to read {0},ບໍ່ອະນຸຍາດໃຫ້ອ່ານ {0}
+apps/frappe/frappe/model/db_query.py +415,No permission to read {0},ບໍ່ອະນຸຍາດໃຫ້ອ່ານ {0}
 apps/frappe/frappe/config/desktop.py +8,Tools,ເຄື່ອງມື
 apps/frappe/frappe/utils/password_strength.py +134,Avoid recent years.,ຫຼີກເວັ້ນການປີທີ່ຜ່ານມາ.
 apps/frappe/frappe/utils/nestedset.py +240,Multiple root nodes not allowed.,ຂໍ້ຮາກຫລາຍບໍ່ອະນຸຍາດໃຫ້.
@@ -1081,7 +1081,7 @@ apps/frappe/frappe/core/page/usage_info/usage_info.html +5,You have {0} days lef
 apps/frappe/frappe/email/doctype/email_domain/email_domain.py +57,Outgoing email account not correct,ບັນຊີອີເມວອອກບໍ່ຖືກຕ້ອງ
 DocType: Transaction Log,Chaining Hash,Chaining Hash
 apps/frappe/frappe/core/doctype/user/user.py +778,Temperorily Disabled,Temperorily ພິການ
-apps/frappe/frappe/contacts/doctype/contact/contact.py +89,Please set Email Address,ກະລຸນາທີ່ກໍານົດໄວ້ທີ່ຢູ່ອີເມວ
+apps/frappe/frappe/contacts/doctype/contact/contact.py +85,Please set Email Address,ກະລຸນາທີ່ກໍານົດໄວ້ທີ່ຢູ່ອີເມວ
 DocType: System Settings,Date and Number Format,ວັນແລະຈໍານວນຮູບແບບ
 apps/frappe/frappe/model/document.py +1055,one of,ຫນຶ່ງໃນ
 apps/frappe/frappe/public/js/frappe/desk.js +150,Checking one moment,ການກວດສອບແຕ່ປັດຈຸບັນ
@@ -1245,7 +1245,6 @@ apps/frappe/frappe/model/naming.py +210,Name of {0} cannot be {1},ຊື່ຂ�
 apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +33,From Date,ຈາກວັນທີ່
 apps/frappe/frappe/core/doctype/version/version_view.html +47,Success,ຄວາມສໍາເລັດ
 apps/frappe/frappe/public/js/frappe/feedback.js +95,Feedback Request for {0} is sent to {1},ຜົນຕອບຮັບຄໍາຮ້ອງຂໍສໍາລັບການ {0} ຈະຖືກສົ່ງກັບ {1}
-apps/frappe/frappe/email/smtp.py +85,Please setup default Email Account from Setup &gt; Email &gt; Email Account,ກະລຸນາຕັ້ງຄ່າບັນຊີ Email ທີ່ຖືກຕ້ອງຈາກ Setup&gt; Email&gt; Account Email
 apps/frappe/frappe/public/js/frappe/desk.js +390,Session Expired,ກອງປະຊຸມຫມົດອາຍຸ
 apps/frappe/frappe/public/js/frappe/desk.js +390,Session Expired,ກອງປະຊຸມຫມົດອາຍຸ
 DocType: Kanban Board Column,Kanban Board Column,ຄໍລໍາ Kanban Board
@@ -1260,7 +1259,6 @@ DocType: Customize Form,Image Field,ມືພາກສະຫນາມຮູບ�
 apps/frappe/frappe/integrations/doctype/gcalendar_settings/gcalendar_settings.py +49,Something went wrong during the token generation. Please request again an authorization code.,ບາງສິ່ງບາງຢ່າງເອງເຮັດຜິດພາດໃນໄລຍະການຜະລິດ token. ກະລຸນາຂໍອີກເທື່ອຫນຶ່ງລະຫັດອະນຸຍາດການ.
 DocType: Print Format,Custom HTML Help,ຊ່ວຍເຫຼືອ HTML Custom
 apps/frappe/frappe/website/doctype/contact_us_settings/contact_us_settings.js +3,See on Website,ເບິ່ງກ່ຽວກັບເວັບໄຊທ໌
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions,Setup&gt; User Permissions
 DocType: Workflow Transition,Next State,State ຕໍ່ໄປ
 DocType: User,Block Modules,Modules Block
 apps/frappe/frappe/model/db_schema.py +151,Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.,ການກັບຄືນຍາວທີ່ {0} ສໍາລັບ &#39;{1}&#39; in &#39;{2}&#39; ການສ້າງຕັ້ງຄວາມຍາວເປັນ {3} ຈະເຮັດໃຫ້ເກີດການຕັດຂອງຂໍ້ມູນ.
@@ -1268,7 +1266,7 @@ DocType: Print Format,Custom CSS,CSS Custom
 apps/frappe/frappe/public/js/frappe/ui/comment.js +36,Add a comment,ເພີ່ມຄວາມຄິດເຫັນ
 DocType: Webhook,on_update,on_update
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +59,{type} room must have atmost one user.,ຫ້ອງ {ປະເພດ} ຕ້ອງມີຜູ້ໃຊ້ຫນຶ່ງທີ່ສຸດ.
-apps/frappe/frappe/model/rename_doc.py +431,Ignored: {0} to {1},ບໍ່ສົນໃຈ: {0} ກັບ {1}
+apps/frappe/frappe/model/rename_doc.py +433,Ignored: {0} to {1},ບໍ່ສົນໃຈ: {0} ກັບ {1}
 DocType: Address,Gujarat,Gujarat
 apps/frappe/frappe/config/setup.py +82,Log of error on automated events (scheduler).,ເຂົ້າສູ່ລະບົບຂອງຄວາມຜິດພາດກ່ຽວກັບເຫດການອັດຕະໂນມັດ (ຕາຕະລາງ).
 apps/frappe/frappe/utils/csvutils.py +80,Not a valid Comma Separated Value (CSV File),ບໍ່ໄດ້ເປັນທີ່ຖືກຕ້ອງ Comma ແຍກມູນຄ່າ (CSV File)
@@ -1365,7 +1363,7 @@ apps/frappe/frappe/public/js/frappe/ui/messages.js +213,Enter your password,ກ�
 DocType: Dropbox Settings,Dropbox Access Secret,Dropbox ເຂົ້າ Secret
 DocType: Social Login Key,Social Login Provider,ຜູ້ໃຫ້ບໍລິການສັງຄົມ
 apps/frappe/frappe/templates/includes/comments/comments.html +119,Add Another Comment,ຕື່ມການຄໍາເຫັນອີກປະການຫນຶ່ງ
-apps/frappe/frappe/core/doctype/data_import/importer.py +80,No data found in the file. Please reattach the new file with data.,ບໍ່ພົບຂໍ້ມູນໃນໄຟລ໌. ກະລຸນາແນບໄຟລ໌ໃຫມ່ດ້ວຍຂໍ້ມູນ.
+apps/frappe/frappe/core/doctype/data_import/importer.py +81,No data found in the file. Please reattach the new file with data.,ບໍ່ພົບຂໍ້ມູນໃນໄຟລ໌. ກະລຸນາແນບໄຟລ໌ໃຫມ່ດ້ວຍຂໍ້ມູນ.
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +179,Edit DocType,ດັດແກ້ DocType
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +160,Unsubscribed from Newsletter,ຍົກເລີກຈາກ Newsletter
 apps/frappe/frappe/core/doctype/doctype/doctype.py +554,Fold must come before a Section Break,ເທົ່າຈະຕ້ອງມາກ່ອນທີ່ຈະພັກຜ່ອນພາກ
@@ -1430,7 +1428,7 @@ DocType: Chat Room,Message Count,Message Count
 DocType: Workflow State,book,ຫນັງສື
 DocType: Website Settings,Landing Page,ຫນ້າທີ່ດິນ
 apps/frappe/frappe/public/js/frappe/form/script_manager.js +163,Error in Custom Script,Error ໃນ Script Custom
-apps/frappe/frappe/public/js/frappe/form/quick_entry.js +84,{0} Name,{0} ຊື່
+apps/frappe/frappe/public/js/frappe/form/quick_entry.js +90,{0} Name,{0} ຊື່
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +171,No Permissions set for this criteria.,ບໍ່ມີການອະນຸຍາດທີ່ກໍານົດໄວ້ສໍາລັບເງື່ອນໄຂນີ້.
 DocType: Auto Email Report,Auto Email Report,Report Email Auto
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +593,Delete comment?,ລົບຄວາມຄິດເຫັນ?
@@ -1471,6 +1469,7 @@ apps/frappe/frappe/twofactor.py +209,Verification code has been sent to your reg
 apps/frappe/frappe/core/doctype/user/user.py +1031,Throttled,Throttled
 apps/frappe/frappe/utils/data.py +807,"Filter must have 4 values (doctype, fieldname, operator, value): {0}","ການກັ່ນຕອງຕ້ອງມີ 4 ຄ່າ (DOCTYPE, fieldName, ປະຕິບັດການ, ມູນຄ່າ): {0}"
 apps/frappe/frappe/utils/bot.py +89,show,ສະແດງໃຫ້ເຫັນ
+apps/frappe/frappe/utils/data.py +858,Invalid field name {0},ຊື່ພາກສະຫນາມບໍ່ຖືກຕ້ອງ {0}
 DocType: Address Template,Address Template,ແມ່ແບບທີ່ຢູ່
 DocType: Workflow State,text-height,ຂໍ້ຄວາມລະດັບຄວາມສູງ
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,ການວາງແຜນແຜນການຍ້າຍຖິ່ນຖານຂໍ້ມູນ
@@ -1486,10 +1485,10 @@ DocType: Data Import,Generated File,ສ້າງໄຟລ໌
 DocType: Transaction Log,Previous Hash,Previous Hash
 DocType: File,Is Attachments Folder,ແມ່ນ Folder Attachments
 apps/frappe/frappe/public/js/frappe/views/treeview.js +75,Expand All,ຂະຫຍາຍທັງຫມົດ
-apps/frappe/frappe/public/js/frappe/chat.js +2153,Select a chat to start messaging.,ເລືອກການສົນທະນາເພື່ອເລີ່ມຕົ້ນການສົ່ງຂໍ້ຄວາມ.
+apps/frappe/frappe/public/js/frappe/chat.js +2159,Select a chat to start messaging.,ເລືອກການສົນທະນາເພື່ອເລີ່ມຕົ້ນການສົ່ງຂໍ້ຄວາມ.
 apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.js +20,Please select Entity Type first,ກະລຸນາເລືອກປະເພດຂອງ Entity ກ່ອນ
 apps/frappe/frappe/templates/includes/login/login.js +52,Valid Login id required.,ເຂົ້າລະບົບ id ຈິງທີ່ຕ້ອງການ.
-apps/frappe/frappe/model/rename_doc.py +415,Please select a valid csv file with data,ກະລຸນາເລືອກເອົາໄຟລ໌ csv ທີ່ຖືກຕ້ອງກັບຂໍ້ມູນ
+apps/frappe/frappe/model/rename_doc.py +417,Please select a valid csv file with data,ກະລຸນາເລືອກເອົາໄຟລ໌ csv ທີ່ຖືກຕ້ອງກັບຂໍ້ມູນ
 apps/frappe/frappe/core/doctype/docshare/docshare.py +56,{0} un-shared this document with {1},{0} ຫະປະຊາຊາດຮ່ວມກັນຕາມເອກກະສານນີ້ກັບ {1}
 DocType: DocType,"Make ""name"" searchable in Global Search",ເຮັດໃຫ້ &quot;ຊື່&quot; ຄົ້ນຫາໃນ Search Global
 apps/frappe/frappe/core/doctype/version/version_view.html +74,Row # ,"ຕິດຕໍ່ກັນ,"
@@ -1543,7 +1542,7 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +32,Kanban,Kanban
 DocType: DocType,Show in Module Section,ສະແດງໃຫ້ເຫັນຢູ່ໃນພາກ Module
 DocType: Website Theme,Footer Color,footer ສີ
 apps/frappe/frappe/core/doctype/communication/communication.js +53,Relink,Relink
-apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +68,Seems ldap is not installed on system.,ເບິ່ງຄືວ່າ ldap ບໍ່ໄດ້ຕິດຕັ້ງໃນລະບົບ.
+apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +77,Seems ldap is not installed on system.,ເບິ່ງຄືວ່າ ldap ບໍ່ໄດ້ຕິດຕັ້ງໃນລະບົບ.
 apps/frappe/frappe/www/feedback.py +39,Invalid Reference,ເອກະສານທີ່ບໍ່ຖືກຕ້ອງ
 apps/frappe/frappe/www/feedback.py +73,"Cannot submit feedback, please try again later","ບໍ່ສາມາດສົ່ງຂໍ້ສະເຫນີແນະ, ກະລຸນາພະຍາຍາມອີກເທື່ອຫນຶ່ງຕໍ່ມາ"
 DocType: Web Page,"Page to show on the website
@@ -1551,7 +1550,7 @@ DocType: Web Page,"Page to show on the website
 DocType: Note,Seen By Table,ເຫັນໂດຍຕາຕະລາງ
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +253,Select template,ເລືອກແມ່ແບບ
 apps/frappe/frappe/www/third_party_apps.html +47,Logged in,ເຂົ້າສູ່ລະບົບ
-apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +32,Incorrect UserId or Password,UserID ທີ່ບໍ່ຖືກຕ້ອງ
+apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +41,Incorrect UserId or Password,UserID ທີ່ບໍ່ຖືກຕ້ອງ
 apps/frappe/frappe/core/page/desktop/desktop.js +38,Explore,ໂຄງການຂຸດຄົ້ນ
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js +6,Default Sending and Inbox,ມາດຕະຖານການສົ່ງແລະ Inbox
 DocType: System Settings,OTP App,OTP App
@@ -1584,7 +1583,7 @@ DocType: Workflow State,fast-backward,ໄວວະ
 DocType: Address,Chandigarh,Chandigarh
 DocType: DocShare,DocShare,DocShare
 DocType: Event,Friday,ສຸກ
-apps/frappe/frappe/public/js/frappe/form/quick_entry.js +207,Edit in full page,ແກ້ໄຂໃນຫນ້າຢ່າງເຕັມທີ່
+apps/frappe/frappe/public/js/frappe/form/quick_entry.js +213,Edit in full page,ແກ້ໄຂໃນຫນ້າຢ່າງເຕັມທີ່
 DocType: Report,Add Total Row,ເພີ່ມທັງຫມົດຕິດຕໍ່ກັນ
 apps/frappe/frappe/twofactor.py +206,Please check your registered email address for instructions on how to proceed. Do not close this window as you will have to return to it.,ກະລຸນາກວດສອບທີ່ຢູ່ອີເມລ໌ທີ່ຈົດທະບຽນຂອງທ່ານສໍາລັບຄໍາແນະນໍາກ່ຽວກັບວິທີການດໍາເນີນການ. ບໍ່ປິດປ່ອງຢ້ຽມນີ້ທີ່ທ່ານຈະມີເພື່ອກັບຄືນມັນ.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +19,For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,ສໍາລັບການຍົກຕົວຢ່າງຖ້າຫາກວ່າທ່ານຍົກເລີກແລະປັບປຸງ INV004 ມັນຈະກາຍເປັນ INV004-1 ເອກະສານໃຫມ່. ນີ້ຈະຊ່ວຍໃຫ້ທ່ານຮັກສາຕິດຕາມຂອງແຕ່ລະການປ່ຽນແປງ.
@@ -1592,6 +1591,7 @@ apps/frappe/frappe/core/doctype/data_export/data_export.js +40,Atleast one field
 apps/frappe/frappe/config/setup.py +178,Setup Reports to be emailed at regular intervals,ບົດລາຍງານການຕິດຕັ້ງຈະໄດ້ຮັບການສົ່ງອີເມວໃນໄລຍະປົກກະຕິ
 DocType: Workflow Document State,0 - Draft; 1 - Submitted; 2 - Cancelled,0 - ຮ່າງ; 1 - ສົ່ງ; 2 - ຍົກເລີກ
 DocType: File,Attached To DocType,ຕິດກັບ DocType
+apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +27,StartTLS is not supported,StartTLS ບໍ່ໄດ້ຮັບການສະຫນັບສະຫນູນ
 DocType: DocField,Int,Int
 DocType: Error Log,Title,Title
 apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +100,"Seems issue with server's razorpay config. Don't worry, in case of failure amount will get refunded to your account.","ເບິ່ງຄືວ່າບັນຫາທີ່ມີເຄື່ອງແມ່ຂ່າຍຂອງ config razorpay. ບໍ່ກັງວົນ, ໃນກໍລະນີຂອງຈໍານວນເງິນທີ່ຄວາມລົ້ມເຫຼວຂອງຈະໄດ້ຮັບການສົ່ງຄືນໃຫ້ບັນຊີຂອງທ່ານ."
@@ -1608,6 +1608,7 @@ apps/frappe/frappe/core/doctype/user/user.py +779,"Too many users signed up rece
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +368,Add New Permission Rule,ເພີ່ມກົດລະບຽບການອະນຸຍາດໃຫມ່
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +26,You can use wildcard %,ທ່ານສາມາດນໍາໃຊ້ຕົວແທນ%
 DocType: Chat Message Attachment,Chat Message Attachment,Chat Attach Attachment
+apps/frappe/frappe/email/smtp.py +85,Please setup default Email Account from Setup &gt; Email &gt; Email Account,ກະລຸນາຕັ້ງຄ່າບັນຊີ Email ທີ່ຖືກຕ້ອງຈາກ Setup&gt; Email&gt; Account Email
 apps/frappe/frappe/public/js/frappe/upload.js +293,"Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed","ພຽງແຕ່ການຂະຫຍາຍຮູບພາບ (gif, jpg, jpeg, .tiff, png, .svg) ອະນຸຍາດໃຫ້"
 DocType: Address,Manipur,Manipur
 DocType: DocType,Database Engine,ສະຖານຂໍ້ມູນ
@@ -1673,12 +1674,11 @@ DocType: Custom Field,Default Value,ຄ່າເລີ່ມຕົ້ນ
 apps/frappe/frappe/public/js/frappe/ui/messages.js +228,Verify,ກວດສອບ
 DocType: Workflow Document State,Update Field,ການປັບປຸງສະຫນາມ
 DocType: Chat Profile,Enable Chat,ເປີດການສົນທະນາ
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} ປີທີ່ຜ່ານມາ
 DocType: LDAP Settings,Base Distinguished Name (DN),ຖານຊື່ເພາະ (DN)
 apps/frappe/frappe/core/doctype/communication/email.py +156,Leave this conversation,ອອກຈາກການສົນທະນານີ້
 apps/frappe/frappe/model/base_document.py +434,Options not set for link field {0},ທາງເລືອກໃນການໄດ້ກໍານົດສໍາລັບການພາກສະຫນາມການເຊື່ອມຕໍ່ {0}
 DocType: Customize Form,"Must be of type ""Attach Image""",ຈະຕ້ອງເປັນຂອງປະເພດ &quot;ຄັດຕິດຮູບພາບ&quot;
-apps/frappe/frappe/public/js/frappe/form/controls/multicheck.js +148,Unselect All,ຍົກເລີກທັງຫມົດ
+apps/frappe/frappe/core/doctype/data_import/data_import.js +207,Unselect All,ຍົກເລີກທັງຫມົດ
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +209,You cannot unset 'Read Only' for field {0},ທ່ານບໍ່ສາມາດລ້າງ &#39;ອ່ານພຽງແຕ່ສໍາລັບພາກສະຫນາມ {0}
 DocType: Auto Email Report,Zero means send records updated at anytime,ສູນມີຄວາມຫມາຍສົ່ງການບັນທຶກການປັບປຸງຕະຫຼອດເວລາ
 DocType: Auto Email Report,Zero means send records updated at anytime,ສູນມີຄວາມຫມາຍສົ່ງການບັນທຶກການປັບປຸງຕະຫຼອດເວລາ
@@ -1836,7 +1836,7 @@ DocType: DocField,Select,ເລືອກ
 apps/frappe/frappe/utils/csvutils.py +29,File not attached,ເອກະສານບໍ່ໄດ້ຕິດ
 apps/frappe/frappe/public/js/frappe/dom.js +298,Connection lost. Some features might not work.,ການເຊື່ອມຕໍ່ສູນເສຍ. ບາງຄຸນສົມບັດອາດຈະບໍ່ເຮັດວຽກ.
 apps/frappe/frappe/utils/password_strength.py +115,"Repeats like ""aaa"" are easy to guess",ຊ້ໍາຄື &quot;AAA&quot; ແມ່ນງ່າຍທີ່ຈະເດົາ
-apps/frappe/frappe/public/js/frappe/chat.js +1595,New Chat,New Chat
+apps/frappe/frappe/public/js/frappe/chat.js +1601,New Chat,New Chat
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.","ຖ້າຫາກວ່າທ່ານກໍານົດໄວ້ນີ້, ລາຍການນີ້ຈະມາໃນການຫຼຸດລົງລົງພາຍໃຕ້ການປົກຄອງການຄັດເລືອກ."
 DocType: Print Format,Show Section Headings,ສະແດງໃຫ້ເຫັນເສັ້ນທາງສັນຫົວ
 DocType: Bulk Update,Limit,ຂອບເຂດຈໍາກັດ
@@ -1856,7 +1856,7 @@ DocType: Address,Maharashtra,Maharashtra
 DocType: Address,Accounts User,ບັນຊີຜູ້ໃຊ້
 DocType: Web Page,HTML for header section. Optional,HTML ສໍາລັບພາກສ່ວນຫົວ. ຖ້າຕ້ອງການ
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +13,This feature is brand new and still experimental,ຄຸນນະສົມບັດນີ້ເປັນຖ່ານກ້ອນໃຫມ່ແລະຍັງເປັນການທົດລອງ
-apps/frappe/frappe/model/rename_doc.py +420,Maximum {0} rows allowed,ສູງສຸດ {0} ແຖວເກັດທີ່ຢູ່ອະນຸຍາດໃຫ້
+apps/frappe/frappe/model/rename_doc.py +422,Maximum {0} rows allowed,ສູງສຸດ {0} ແຖວເກັດທີ່ຢູ່ອະນຸຍາດໃຫ້
 DocType: Email Unsubscribe,Global Unsubscribe,ຍົກເລີກ Global
 apps/frappe/frappe/utils/password_strength.py +177,This is a very common password.,ນີ້ເປັນລະຫັດຜ່ານທົ່ວໄປຫຼາຍ.
 apps/frappe/frappe/email/doctype/email_group/email_group.js +9,View,View
@@ -1914,7 +1914,7 @@ DocType: Custom DocPerm,Apply this rule if the User is the Owner,ໃຊ້ກົ
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +422,Will be your login ID,ຈະ ID ເຂົ້າສູ່ລະບົບຂອງທ່ານ
 apps/frappe/frappe/desk/page/activity/activity.js +45,Build Report,ການກໍ່ສ້າງ Report
 DocType: Note,Notify users with a popup when they log in,ແຈ້ງໃຫ້ຜູ້ໃຊ້ທີ່ມີນິຍົມໃນເວລາທີ່ພວກເຂົາເຈົ້າເຂົ້າສູ່ລະບົບ
-apps/frappe/frappe/model/rename_doc.py +153,"{0} {1} does not exist, select a new target to merge","{0} {1} ບໍ່ມີ, ເລືອກເປົ້າຫມາຍໃຫມ່ໃນການຜະສານ"
+apps/frappe/frappe/model/rename_doc.py +155,"{0} {1} does not exist, select a new target to merge","{0} {1} ບໍ່ມີ, ເລືອກເປົ້າຫມາຍໃຫມ່ໃນການຜະສານ"
 apps/frappe/frappe/www/search.py +13,"Search Results for ""{0}""",ຜົນການຄົ້ນຫາຄົ້ນຫາສໍາລັບ &quot;{0}&quot;
 DocType: Data Migration Connector,Python Module,Python Module
 DocType: GSuite Settings,Google Credentials,ຫນັງສືຮັບຮອງກູໂກ
@@ -2066,7 +2066,7 @@ DocType: Deleted Document,Data,ຂໍ້ມູນ
 apps/frappe/frappe/public/js/frappe/model/model.js +27,Document Status,ສະຖານະເອກະສານ
 apps/frappe/frappe/core/page/desktop/desktop_help_message.html +5,You have made {0} of {1},ທ່ານໄດ້ເຮັດ {0} ຂອງ {1}
 DocType: OAuth Authorization Code,OAuth Authorization Code,OAuth ລະຫັດອະນຸຍາດ
-apps/frappe/frappe/core/doctype/data_import/importer.py +315,Not allowed to Import,ບໍ່ອະນຸຍາດໃຫ້ນໍາເຂົ້າ
+apps/frappe/frappe/core/doctype/data_import/importer.py +316,Not allowed to Import,ບໍ່ອະນຸຍາດໃຫ້ນໍາເຂົ້າ
 DocType: Deleted Document,Deleted DocType,DocType ລຶບ
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +22,Permission Levels,ລະດັບອະນຸຍາດ
 DocType: Workflow State,Warning,ການເຕືອນໄພ
@@ -2109,7 +2109,7 @@ DocType: System Settings,System Settings,ຕັ້ງຄ່າລະບົບ
 DocType: GCalendar Settings,Google API Credentials,Google API Credentials
 apps/frappe/frappe/public/js/frappe/desk.js +36,Session Start Failed,ກອງປະຊຸມເລີ່ມຕົ້ນລົ້ມເຫລວ
 apps/frappe/frappe/public/js/frappe/desk.js +36,Session Start Failed,ກອງປະຊຸມເລີ່ມຕົ້ນລົ້ມເຫລວ
-apps/frappe/frappe/email/queue.py +506,This email was sent to {0} and copied to {1},ອີເມວນີ້ຖືກສົ່ງໄປທີ່ {0} ແລະຄັດລອກໄປທີ່ {1}
+apps/frappe/frappe/email/queue.py +499,This email was sent to {0} and copied to {1},ອີເມວນີ້ຖືກສົ່ງໄປທີ່ {0} ແລະຄັດລອກໄປທີ່ {1}
 DocType: Workflow State,th,th
 DocType: Social Login Key,Provider Name,ຊື່ຜູ້ໃຫ້ບໍລິການ
 apps/frappe/frappe/public/js/frappe/form/controls/link.js +172,Create a new {0},ສ້າງໃຫມ່ {0}
@@ -2132,7 +2132,7 @@ DocType: Address,Andaman and Nicobar Islands,ອັນດາມັນແລະ�
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +248,GSuite Document,GSuite Document
 apps/frappe/frappe/email/doctype/notification/notification.py +40,Please specify which value field must be checked,ກະລຸນາລະບຸວ່າພາກສະຫນາມມູນຄ່າຕ້ອງໄດ້ຮັບການກວດສອບ
 apps/frappe/frappe/core/doctype/data_import/exporter.py +71,"""Parent"" signifies the parent table in which this row must be added",&quot;ພໍ່ແມ່&quot; ຫມາຍເຖິງຕາຕະລາງພໍ່ແມ່ໃນການທີ່ຕິດຕໍ່ກັນນີ້ຕ້ອງໄດ້ຮັບການເພີ່ມ
-apps/frappe/frappe/email/queue.py +243,Cannot send this email. You have crossed the sending limit of {0} emails for this day.,ບໍ່ສາມາດສົ່ງອີເມລ໌ນີ້. ທ່ານໄດ້ຜ່ານໄປໃນຂອບເຂດຈໍາກັດການສົ່ງຂອງ {0} ອີສໍາລັບມື້ນີ້.
+apps/frappe/frappe/email/queue.py +242,Cannot send this email. You have crossed the sending limit of {0} emails for this day.,ບໍ່ສາມາດສົ່ງອີເມລ໌ນີ້. ທ່ານໄດ້ຜ່ານໄປໃນຂອບເຂດຈໍາກັດການສົ່ງຂອງ {0} ອີສໍາລັບມື້ນີ້.
 DocType: Website Theme,Apply Style,ສະຫມັກຕໍາແບບ
 DocType: Feedback Request,Feedback Rating,ຄໍາຄຶດຄໍາເຫັນການຈັດອັນດັບ
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +63,Shared With,ແບ່ງປັນກັບ
@@ -2142,7 +2142,7 @@ apps/frappe/frappe/templates/pages/integrations/payment-failed.html +11,Your pay
 DocType: Communication,Unshared,Unshared
 DocType: Address,Karnataka,Karnataka
 apps/frappe/frappe/desk/moduleview.py +84,Module Not Found,Module ບໍ່ພົບ
-apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +73,{0}: {1} is set to state {2},{0}: {1} ຖືກຕັ້ງຄ່າໃຫ້ລັດ {2}
+apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +74,{0}: {1} is set to state {2},{0}: {1} ຖືກຕັ້ງຄ່າໃຫ້ລັດ {2}
 DocType: User,Location,ສະຖານທີ່
 ,Permitted Documents For User,ເອກະສານອະນຸຍາດສໍາລັບຜູ້ໃຊ້
 apps/frappe/frappe/core/doctype/docshare/docshare.py +40,"You need to have ""Share"" permission",ທ່ານຈໍາເປັນຕ້ອງມີ &quot;Share&quot; ການອະນຸຍາດ
@@ -2167,7 +2167,7 @@ DocType: OAuth Client,App Client ID,App ID Client
 DocType: Kanban Board,Kanban Board Name,ຊື່ Kanban Board
 DocType: Notification Recipient,"Expression, Optional","ການສະແດງອອກ, ຖ້າຕ້ອງການ"
 DocType: GSuite Settings,Copy and paste this code into and empty Code.gs in your project at script.google.com,ສໍາເນົາແລະວາງລະຫັດນີ້ເຂົ້າໄປໃນແລະເປົ່າ Code.gs ໃນໂຄງການຂອງທ່ານໃນ script.google.com
-apps/frappe/frappe/email/queue.py +508,This email was sent to {0},ອີເມວນີ້ຖືກສົ່ງໄປທີ່ {0}
+apps/frappe/frappe/email/queue.py +501,This email was sent to {0},ອີເມວນີ້ຖືກສົ່ງໄປທີ່ {0}
 DocType: System Settings,Hide footer in auto email reports,ລົບ footer ໃນລາຍງານອີເມວອັດຕະໂນມັດ
 DocType: DocField,Remember Last Selected Value,ຈືຂໍ້ມູນການເລືອກຫຼ້າສຸດມູນຄ່າ
 DocType: Email Account,Check this to pull emails from your mailbox,ກວດສອບນີ້ຈະດຶງອີເມວຈາກ mailbox ຂອງທ່ານ
@@ -2200,9 +2200,9 @@ DocType: Address,Sales User,User ຂາຍ
 apps/frappe/frappe/config/setup.py +190,Drag and Drop tool to build and customize Print Formats.,Drag ແລະເຄື່ອງມື Drop ການກໍ່ສ້າງແລະປັບແຕ່ງຮູບແບບພິມ.
 DocType: Address,Sikkim,Sikkim
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +142,Set,ທີ່ກໍານົດໄວ້
-apps/frappe/frappe/desk/search.py +43,This query style is discontinued,ແບບສອບຖາມນີ້ແມ່ນ discontinued
+apps/frappe/frappe/desk/search.py +71,This query style is discontinued,ແບບສອບຖາມນີ້ແມ່ນ discontinued
 DocType: Notification,Trigger Method,ວິທີການຜົນກະທົບຕໍ່
-apps/frappe/frappe/utils/data.py +817,Operator must be one of {0},ປະຕິບັດການຕ້ອງເປັນຫນຶ່ງໃນ {0}
+apps/frappe/frappe/utils/data.py +819,Operator must be one of {0},ປະຕິບັດການຕ້ອງເປັນຫນຶ່ງໃນ {0}
 DocType: Dropbox Settings,Dropbox Access Token,Dropbox Access Token
 DocType: Workflow State,align-right,ຈັດຂວາ
 DocType: Auto Email Report,Email To,Email ການ
@@ -2297,7 +2297,7 @@ apps/frappe/frappe/config/website.py +18,User editable form on Website.,ຜູ�
 DocType: Workflow State,file,ເອກະສານ
 apps/frappe/frappe/www/login.html +90,Back to Login,ກັບຄືນໄປບ່ອນເຂົ້າສູ່ລະບົບ
 DocType: Data Migration Mapping,Local DocType,Local DocType
-apps/frappe/frappe/model/rename_doc.py +163,You need write permission to rename,ທ່ານຈໍາເປັນຕ້ອງຂຽນອະນຸຍາດໃຫ້ປ່ຽນຊື່
+apps/frappe/frappe/model/rename_doc.py +165,You need write permission to rename,ທ່ານຈໍາເປັນຕ້ອງຂຽນອະນຸຍາດໃຫ້ປ່ຽນຊື່
 DocType: User,Karma,ກະທູ້
 DocType: DocField,Table,ຕາຕະລາງ
 DocType: File,File Size,ຂະຫນາດໄຟ
@@ -2343,6 +2343,7 @@ DocType: List Filter,List Filter,List Filter
 DocType: Workflow State,signal,ສັນຍານ
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +105,Has Attachments,ມີເອກະສານຕິດຄັດ
 DocType: DocType,Show Print First,ສະແດງພິມຄັ້ງທໍາອິດ
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,ຕັ້ງຄ່າ&gt; ຜູ້ໃຊ້
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +106,Make a new {0},ເຮັດໃຫມ່ {0}
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +169,New Email Account,ບັນຊີອີເມວໃຫມ່
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py +30,Document Restored,ເອກະສານຄືນ
@@ -2453,12 +2454,11 @@ DocType: Contact,Mobile No,ໂທລະສັບມືຖືທີ່ບໍ່�
 DocType: Communication,Text Content,ເນື້ອໃນຂໍ້ຄວາມ
 DocType: Customize Form Field,Is Custom Field,ແມ່ນພາກສະຫນາມ Custom
 DocType: Workflow,"If checked, all other workflows become inactive.","ຖ້າຫາກວ່າການກວດກາ, workflows ອື່ນໆທັງຫມົດກາຍເປັນ inactive."
-apps/frappe/frappe/contacts/doctype/address/address.py +193,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,ບໍ່ມີແມ່ແບບທີ່ຢູ່ໃນຕອນຕົ້ນທີ່ພົບ. ກະລຸນາສ້າງໃຫມ່ຈາກ Setup&gt; ການພິມແລະການສ້າງ Branding&gt; Template Address.
 apps/frappe/frappe/core/doctype/report/report.js +10,[Label]:[Field Type]/[Options]:[Width],[Label]: [ປະເພດພາກສະຫນາມ] / [Options]: [Width]
 DocType: Workflow State,folder-close,ໂຟນເດີທີ່ໃກ້ຊິດ
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +15,Report:,ລາຍງານ:
 DocType: Print Settings,Print taxes with zero amount,Print taxes with zero amount
-apps/frappe/frappe/model/rename_doc.py +166,{0} not allowed to be renamed,{0} ບໍ່ອະນຸຍາດໃຫ້ໄດ້ຮັບການປ່ຽນຊື່
+apps/frappe/frappe/model/rename_doc.py +168,{0} not allowed to be renamed,{0} ບໍ່ອະນຸຍາດໃຫ້ໄດ້ຮັບການປ່ຽນຊື່
 DocType: Custom Script,Custom Script,Script Custom
 DocType: Address,Address Line 2,ທີ່ຢູ່ Line 2
 DocType: Address,Reference,ກະສານອ້າງອີງ
@@ -2476,7 +2476,7 @@ DocType: User,Send Notifications for Transactions I Follow,ສົ່ງການ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +759,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: ບໍ່ສາມາດກໍານົດຍື່ນສະເຫນີການ, ຍົກເລີກ, ແກ້ໂດຍບໍ່ມີການຂຽນ"
 DocType: Google Maps,Client Key,ລູກຄ້າທີ່ສໍາຄັນ
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +83,Are you sure you want to delete the attachment?,ທ່ານວ່າທ່ານແມ່ນແນ່ໃຈວ່າຕ້ອງການລຶບການຕິດ?
-apps/frappe/frappe/__init__.py +1096,Thank you,ຂອບໃຈ
+apps/frappe/frappe/__init__.py +1097,Thank you,ຂອບໃຈ
 apps/frappe/frappe/public/js/frappe/form/save.js +11,Saving,ຝາກປະຢັດ
 DocType: Print Settings,Print Style Preview,ພິມ Preview ແບບ
 apps/frappe/frappe/core/doctype/file/test_file.py +81,Test_Folder,Test_Folder
@@ -2508,8 +2508,8 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +34
 DocType: Website Settings,HTML Header & Robots,HTML Header ແລະຫຸ່ນຍົນ
 DocType: User Permission,User Permission,ການອະນຸຍາດຜູ້ໃຊ້
 apps/frappe/frappe/config/website.py +32,Blog,Blog
-apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +28,LDAP Not Installed,LDAP ບໍ່ໄດ້ຕິດຕັ້ງ
-apps/frappe/frappe/core/doctype/data_import/data_import.js +177,Download with data,ດາວນ໌ໂຫລດທີ່ມີຂໍ້ມູນ
+apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +37,LDAP Not Installed,LDAP ບໍ່ໄດ້ຕິດຕັ້ງ
+apps/frappe/frappe/core/doctype/data_import/data_import.js +193,Download with data,ດາວນ໌ໂຫລດທີ່ມີຂໍ້ມູນ
 DocType: Workflow State,hand-right,ມືຂວາ
 DocType: Website Settings,Subdomain,subdomain
 apps/frappe/frappe/config/integrations.py +68,Settings for OAuth Provider,ການຕັ້ງຄ່າສໍາລັບຜູ້ໃຫ້ບໍລິ OAuth
@@ -2557,13 +2557,13 @@ apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +617,Cannot rem
 apps/frappe/frappe/core/doctype/doctype/doctype.py +784,{0}: Cannot set Assign Amend if not Submittable,{0}: ບໍ່ສາມາດຕັ້ງຄ່າກໍາຫນົດແກ້ໄຂຖ້າຫາກວ່າບໍ່ສົ່ງ
 DocType: Address,Bihar,Bihar
 DocType: Activity Log,Link DocType,ການເຊື່ອມຕໍ່ DocType
-apps/frappe/frappe/public/js/frappe/chat.js +1690,You don't have any messages yet.,ທ່ານບໍ່ມີຂໍ້ຄວາມໃດໆເທື່ອ.
+apps/frappe/frappe/public/js/frappe/chat.js +1696,You don't have any messages yet.,ທ່ານບໍ່ມີຂໍ້ຄວາມໃດໆເທື່ອ.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +76,Remove all customizations?,ເອົາລູກຄ້າທັງຫມົດ?
 DocType: Website Slideshow,Slideshow Name,ຊື່ slideshow
 DocType: Address,Andhra Pradesh,Andhra Pradesh
 apps/frappe/frappe/public/js/frappe/form/save.js +15,Cancelling,ຍົກເລີກ
 DocType: DocType,Allow Rename,ອະນຸຍາດໃຫ້ປ່ຽນຊື່
-apps/frappe/frappe/model/db_query.py +199,Cannot use sub-query or function in fields,ບໍ່ສາມາດໃຊ້ sub-query ຫຼື function ໃນ fields
+apps/frappe/frappe/model/db_query.py +200,Cannot use sub-query or function in fields,ບໍ່ສາມາດໃຊ້ sub-query ຫຼື function ໃນ fields
 DocType: Activity Log,Full Name,ຊື່ເຕັມ
 apps/frappe/frappe/public/js/frappe/list/list_filter.js +102,Duplicate Filter Name,ຄັດລອກຊື່ກັ່ນຕອງ
 DocType: DocType,Child Tables are shown as a Grid in other DocTypes.,ຕາຕະລາງເດັກນ້ອຍກໍາລັງສະແດງໃຫ້ເຫັນເປັນຕາຂ່າຍໄຟຟ້າໃນ DOCTYPE ອື່ນໆ.
@@ -2657,14 +2657,14 @@ DocType: Workflow State,Edit,ດັດແກ້
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +229,Permissions can be managed via Setup &gt; Role Permissions Manager,ການອະນຸຍາດສາມາດໄດ້ຮັບການຄຸ້ມຄອງໂດຍຜ່ານການ Setup&gt; ພາລະບົດບາດການອະນຸຍາດ Manager
 DocType: Website Settings,Chat Operators,Chat Operators
 DocType: Contact Us Settings,Pincode,Pincode
-apps/frappe/frappe/core/doctype/data_import/importer.py +105,Please make sure that there are no empty columns in the file.,ກະລຸນາເຮັດໃຫ້ແນ່ໃຈວ່າວ່າບໍ່ມີຄໍລໍາເປົ່າໃນໄຟລ໌.
+apps/frappe/frappe/core/doctype/data_import/importer.py +106,Please make sure that there are no empty columns in the file.,ກະລຸນາເຮັດໃຫ້ແນ່ໃຈວ່າວ່າບໍ່ມີຄໍລໍາເປົ່າໃນໄຟລ໌.
 apps/frappe/frappe/utils/oauth.py +184,Please ensure that your profile has an email address,ກະລຸນາຮັບປະກັນວ່າຂໍ້ມູນຂອງທ່ານມີທີ່ຢູ່ອີເມວ
 apps/frappe/frappe/public/js/frappe/model/create_new.js +288,You have unsaved changes in this form. Please save before you continue.,ທ່ານມີການປ່ຽນແປງທີ່ບໍ່ເຊື່ອໃນຮູບແບບນີ້. ກະລຸນາຊ່ວຍປະຢັດກ່ອນທີ່ທ່ານຈະດໍາເນີນການຕໍ່.
 DocType: Address,Telangana,Telangana
 apps/frappe/frappe/core/doctype/doctype/doctype.py +506,Default for {0} must be an option,ມາດຕະຖານສໍາລັບການ {0} ຕ້ອງຈະມີທາງເລືອກ
 DocType: Tag Doc Category,Tag Doc Category,Tag Doc Category
 DocType: User,User Image,Image User
-apps/frappe/frappe/email/queue.py +340,Emails are muted,ອີເມວແມ່ນ muted
+apps/frappe/frappe/email/queue.py +338,Emails are muted,ອີເມວແມ່ນ muted
 apps/frappe/frappe/config/integrations.py +88,Google Services,Google Services
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +64,Ctrl + Up,Ctrl + Up
 DocType: Website Theme,Heading Style,ຫົວຂໍ້ແບບ
@@ -2699,7 +2699,7 @@ DocType: User,These values will be automatically updated in transactions and als
 apps/frappe/frappe/twofactor.py +312,Verfication Code,ລະຫັດ Verfication
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +10,for generating the recurring,ສໍາລັບການຜະລິດ recurring ໄດ້
 DocType: Webhook,Webhook Request,Webhook Request
-apps/frappe/frappe/model/rename_doc.py +433,** Failed: {0} to {1}: {2},** ບໍ່: {0} ກັບ {1}: {2}
+apps/frappe/frappe/model/rename_doc.py +435,** Failed: {0} to {1}: {2},** ບໍ່: {0} ກັບ {1}: {2}
 DocType: Data Migration Mapping,Mapping Type,Mapping Type
 apps/frappe/frappe/public/js/frappe/ui/upload.html +4,Browse,ເອີ້ນເບິ່ງ
 apps/frappe/frappe/utils/password_strength.py +39,"No need for symbols, digits, or uppercase letters.","ບໍ່ຈໍາເປັນຕ້ອງສໍາລັບສັນຍາລັກ, ຕົວເລກ, ຕົວອັກສອນຫລືຕົວພິມໃຫຍ່."
@@ -2717,7 +2717,7 @@ apps/frappe/frappe/public/js/frappe/list/list_filter.js +35,Is Global,ແມ່�
 DocType: Email Account,Use SSL,ການນໍາໃຊ້ SSL
 DocType: Workflow State,play-circle,ສໍາລັບການຫຼິ້ນແຜ່ນປ້າຍວົງກົມ
 apps/frappe/frappe/public/js/frappe/form/layout.js +502,"Invalid ""depends_on"" expression",ບໍ່ຖືກຕ້ອງ &quot;depend_on&quot; ການສະແດງອອກ
-apps/frappe/frappe/public/js/frappe/chat.js +1612,Group Name,ຊື່ກຸ່ມ
+apps/frappe/frappe/public/js/frappe/chat.js +1618,Group Name,ຊື່ກຸ່ມ
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +82,Select Print Format to Edit,ເລືອກຮູບແບບການພິມການແກ້ໄຂ
 DocType: Address,Shipping,ການຂົນສົ່ງ
 DocType: Workflow State,circle-arrow-down,"ແຜ່ນປ້າຍວົງກົມ, ລູກສອນລົງ"
@@ -2745,6 +2745,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +206,Help: Fi
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +607,Also adding the dependent currency field {0},ນອກຈາກນີ້ການເພີ່ມສະຫນາມສະກຸນເງິນທີ່ຂຶ້ນກັບ {0}
 apps/frappe/frappe/core/doctype/file/file.js +27,Unzip,unzip
 apps/frappe/frappe/model/document.py +1072,Incorrect value in row {0}: {1} must be {2} {3},ຄ່າບໍ່ຖືກຕ້ອງໃນຕິດຕໍ່ກັນ {0}: {1} ຕ້ອງ {2} {3}
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357,<p>No results found for '</p>,<p> ບໍ່ພົບຜົນລັບສໍາລັບ &#39; </p>
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +68,Submitted Document cannot be converted back to draft. Transition row {0},ເອກະສານສົ່ງບໍ່ສາມາດໄດ້ຮັບການປ່ຽນໃຈເຫລື້ອມໃສກັບຄືນໄປບ່ອນຮ່າງ. ຕິດຕໍ່ກັນການຫັນປ່ຽນ {0}
 apps/frappe/frappe/config/integrations.py +98,Configure your google calendar integration,ກໍານົດປະຕິທິນປະຕິທິນກູໂກຂອງທ່ານ
 apps/frappe/frappe/desk/reportview.py +227,Deleting {0},ລຶບ {0}
@@ -2817,7 +2818,7 @@ apps/frappe/frappe/public/js/frappe/views/treeview.js +294,Group Node,Node Group
 DocType: Communication,Notification,ການແຈ້ງເຕືອນ
 DocType: DocType,Document,ເອກະສານ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +221,Series {0} already used in {1},Series {0} ນໍາໃຊ້ແລ້ວໃນ {1}
-apps/frappe/frappe/core/doctype/data_import/importer.py +286,Unsupported File Format,ຮູບແບບໄຟລ໌ທີ່ບໍ່ຮອງຮັບ
+apps/frappe/frappe/core/doctype/data_import/importer.py +287,Unsupported File Format,ຮູບແບບໄຟລ໌ທີ່ບໍ່ຮອງຮັບ
 DocType: DocField,Code,ລະຫັດ
 DocType: Workflow,"All possible Workflow States and roles of the workflow. Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","ທັງຫມົດທີ່ເປັນໄປໄດ້ Workflow ລັດອະເມລິກາແລະພາລະບົດບາດຂອງຂະບວນການ. Options Docstatus: 0 ແມ່ນ &quot;ທີ່ບັນທຶກໄວ້&quot;, 1 ແມ່ນ &quot;ສະ&quot; ແລະ 2 ແມ່ນ &quot;ຍົກເລີກ&quot;"
 DocType: Website Theme,Footer Text Color,Footer ຂໍ້ຄວາມສີ
@@ -2887,11 +2888,12 @@ DocType: GSuite Settings,Allow GSuite access,ອະນຸຍາດໃຫ້ເ�
 DocType: DocType,DESC,DESC
 DocType: DocType,Naming,ການຕັ້ງຊື່
 DocType: Event,Every Year,ທຸກໆປີ
-apps/frappe/frappe/public/js/frappe/views/file/file_view.js +206,Select All,ເລືອກທັງຫມົດ
+apps/frappe/frappe/core/doctype/data_import/data_import.js +198,Select All,ເລືອກທັງຫມົດ
 apps/frappe/frappe/config/setup.py +247,Custom Translations,ການແປ Custom
 apps/frappe/frappe/public/js/frappe/socketio_client.js +46,Progress,ຄວາມຄືບຫນ້າ
 apps/frappe/frappe/public/js/frappe/form/workflow.js +34, by Role ,ໂດຍພາລະບົດບາດ
 apps/frappe/frappe/public/js/frappe/form/save.js +157,Missing Fields,ໄຮ່ຫາຍ
+apps/frappe/frappe/email/smtp.py +188,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,ບັນຊີອີເມວບໍ່ໄດ້ຕັ້ງຄ່າ. ກະລຸນາສ້າງບັນຊີ Email ໃຫມ່ຈາກ Setup&gt; Email&gt; Account Email
 apps/frappe/frappe/core/doctype/doctype/doctype.py +206,Invalid fieldname '{0}' in autoname,fieldname ບໍ່ຖືກຕ້ອງ &#39;{0}&#39; ໃນ autoname
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +136,Search in a document type,ຄົ້ນຫາໃນປະເພດເອກະສານ
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +261,Allow field to remain editable even after submission,ອະນຸຍາດໃຫ້ພາກສະຫນາມທີ່ຈະຍັງຄົງສາມາດແກ້ໄຂເຖິງແມ່ນວ່າຫຼັງຈາກການຍື່ນສະເຫນີ
@@ -2906,7 +2908,7 @@ DocType: Workflow,Is Active,ເປັນກິດຈະກໍາ
 apps/frappe/frappe/desk/form/utils.py +111,No further records,ບໍ່ມີການບັນທຶກການໃນຕໍ່ຫນ້າ
 DocType: DocField,Long Text,ຂໍ້ຄວາມຍາວ
 DocType: Workflow State,Primary,ປະຖົມ
-apps/frappe/frappe/core/doctype/data_import/importer.py +76,Please do not change the rows above {0},ກະລຸນາຢ່າມີການປ່ຽນແປງແຖວເກັດທີ່ຢູ່ຂ້າງເທິງນີ້ {0}
+apps/frappe/frappe/core/doctype/data_import/importer.py +77,Please do not change the rows above {0},ກະລຸນາຢ່າມີການປ່ຽນແປງແຖວເກັດທີ່ຢູ່ຂ້າງເທິງນີ້ {0}
 DocType: Web Form,Go to this URL after completing the form (only for Guest users),ໄປທີ່ URL ນີ້ຫຼັງຈາກທີ່ສໍາເລັດແບບຟອມ (ສໍາລັບຜູ້ໃຊ້ທີ່ເປັນຜູ້ໃຊ້)
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +106,(Ctrl + G),(Ctrl + G)
 DocType: Contact,More Information,ຂໍ້ມູນເພີ່ມເຕີມ
@@ -2930,7 +2932,7 @@ DocType: Stripe Settings,Stripe Settings,ການຕັ້ງຄ່າເສັ
 DocType: Stripe Settings,Stripe Settings,ການຕັ້ງຄ່າເສັ້ນດ່າງ
 DocType: Data Migration Mapping,Data Migration Mapping,Mapping Migration Data
 apps/frappe/frappe/www/login.py +89,Invalid Login Token,ເຂົ້າລະບົບ Token ທີ່ບໍ່ຖືກຕ້ອງ
-apps/frappe/frappe/public/js/frappe/chat.js +209,Discard,ຖິ້ມ
+apps/frappe/frappe/public/js/frappe/chat.js +215,Discard,ຖິ້ມ
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +49,1 hour ago,1 ຊົ່ວໂມງກ່ອນຫນ້ານີ້
 DocType: Website Settings,Home Page,ຫນ້າທໍາອິດ
 DocType: Error Snapshot,Parent Error Snapshot,Snapshot Error ພໍ່ແມ່
@@ -3056,7 +3058,7 @@ DocType: Website Slideshow,Slideshow like display for the website,Slideshow ຄ�
 apps/frappe/frappe/config/setup.py +168,Setup Notifications based on various criteria.,ການຕັ້ງຄ່າການແຈ້ງເຕືອນໂດຍອີງໃສ່ເງື່ອນໄຂຕ່າງໆ.
 DocType: Communication,Updated,ການປັບປຸງ
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +105,Select Module,Select Module
-apps/frappe/frappe/public/js/frappe/chat.js +1586,Search or Create a New Chat,ຄົ້ນຫາຫຼືສ້າງສົນທະນາໃຫມ່
+apps/frappe/frappe/public/js/frappe/chat.js +1592,Search or Create a New Chat,ຄົ້ນຫາຫຼືສ້າງສົນທະນາໃຫມ່
 apps/frappe/frappe/sessions.py +29,Cache Cleared,Cache ເກັບກູ້
 DocType: Email Account,UIDVALIDITY,UIDVALIDITY
 apps/frappe/frappe/public/js/frappe/views/communication.js +15,New Email,Email ໃຫມ່
@@ -3095,7 +3097,7 @@ apps/frappe/frappe/config/core.py +47,Errors in Background Events,ຄວາມ�
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +399,No of Columns,ບໍ່ມີຂອງຖັນ
 DocType: Workflow State,Calendar,ປະຕິທິນ
 apps/frappe/frappe/client.py +54,No document found for given filters,No ພົບການກັ່ນຕອງໃຫ້ເອກະສານ
-apps/frappe/frappe/model/rename_doc.py +160,"Another {0} with name {1} exists, select another name","ອີກປະການຫນຶ່ງ {0} ກັບຊື່ {1} ມີຢູ່, ເລືອກເອົາຊື່ອື່ນ"
+apps/frappe/frappe/model/rename_doc.py +162,"Another {0} with name {1} exists, select another name","ອີກປະການຫນຶ່ງ {0} ກັບຊື່ {1} ມີຢູ່, ເລືອກເອົາຊື່ອື່ນ"
 DocType: DocType,Custom?,Custom?
 DocType: Website Settings,Website Theme Image,ເວັບໄຊທ໌ Theme Image
 DocType: Workflow State,road,ຖະຫນົນຫົນທາງ
@@ -3150,7 +3152,7 @@ apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +26,Search term,
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +415,The First User: You,ຜູ້ໃຊ້ທໍາອິດ: ທ່ານ
 DocType: Deleted Document,GCalendar Sync ID,GCalendar Sync ID
 apps/frappe/frappe/config/setup.py +112,Export Data,Export Data
-apps/frappe/frappe/core/doctype/data_import/data_import.js +159,Select Columns,ເລືອກຖັນ
+apps/frappe/frappe/core/doctype/data_import/data_import.js +160,Select Columns,ເລືອກຖັນ
 DocType: Translation,Source Text,ຂໍ້ຄວາມແຫຼ່ງຂໍ້ມູນ
 apps/frappe/frappe/www/login.py +80,Missing parameters for login,ຕົວກໍານົດການທີ່ຂາດຫາຍໄປສໍາລັບການເຂົ້າສູ່ລະບົບ
 DocType: Workflow State,folder-open,ໂຟນເດີເປີດ
@@ -3194,6 +3196,7 @@ apps/frappe/frappe/www/feedback.py +42,Please add a rating,ກະລຸນາເ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +761,{0}: Cannot set Amend without Cancel,{0}: ບໍ່ສາມາດກໍານົດການແກ້ໄຂໂດຍບໍ່ມີການຍົກເລີກການ
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html +25,Full Page,ຫນ້າຢ່າງເຕັມທີ່
 DocType: DocType,Is Child Table,ເປັນຕາຕະລາງເດັກນ້ອຍ
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} ປີທີ່ຜ່ານມາ
 apps/frappe/frappe/utils/csvutils.py +130,{0} must be one of {1},{0} ຕ້ອງເປັນຫນຶ່ງໃນ {1}
 apps/frappe/frappe/public/js/frappe/form/form_viewers.js +35,{0} is currently viewing this document,{0} ຂະນະນີ້ການເບິ່ງເອກະສານນີ້
 apps/frappe/frappe/config/core.py +52,Background Email Queue,ແຖວ Email ຄວາມເປັນມາ
@@ -3217,6 +3220,7 @@ DocType: DocType,"Image Field (Must of type ""Attach Image"")",Image Field (ຕ�
 apps/frappe/frappe/utils/bot.py +43,I found these: ,ຂ້າພະເຈົ້າພົບເຫັນເຫຼົ່ານີ້:
 DocType: Event,Send an email reminder in the morning,ສົ່ງການເຕືອນອີເມວໃນຕອນເຊົ້າ
 DocType: Blog Post,Published On,ຈັດພີມມາກ່ຽວກັບ
+apps/frappe/frappe/contacts/doctype/address/address.py +193,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,ບໍ່ມີແມ່ແບບທີ່ຢູ່ໃນຕອນຕົ້ນທີ່ພົບ. ກະລຸນາສ້າງໃຫມ່ຈາກ Setup&gt; ການພິມແລະການສ້າງ Branding&gt; Template Address.
 DocType: Contact,Gender,ບົດບາດຍິງຊາຍ
 apps/frappe/frappe/website/doctype/web_form/web_form.py +342,Mandatory Information missing:,ຂໍ້ມູນການບັງຄັບຫາຍສາບສູນ:
 apps/frappe/frappe/core/doctype/doctype/doctype.py +539,Field '{0}' cannot be set as Unique as it has non-unique values,ພາກສະຫນາມ &#39;{0}&#39; ບໍ່ສາມາດໄດ້ຮັບການກໍານົດໄວ້ເປັນເອກະລັກຍ້ອນວ່າມັນມີຄຸນຄ່າທີ່ບໍ່ແມ່ນເອກະລັກ
@@ -3281,7 +3285,7 @@ DocType: Deleted Document,Deleted Document,ເອກະສານລຶບ
 apps/frappe/frappe/templates/includes/login/login.js +223,Oops! Something went wrong,Oops! ບາງສິ່ງບາງຢ່າງໄດ້ຜິດພາດ
 DocType: Help Article,Category,ປະເພດ
 apps/frappe/frappe/config/core.py +37,Client side script extensions in Javascript,ການຂະຫຍາຍ script ຂ້າງລູກຄ້າໃນ Javascript
-apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +70,Guidelines to install ldap dependancies and python,ຄໍາແນະນໍາໃນການຕິດຕັ້ງທີ່ເຊື່ອຖືໄດ້ ldap ແລະ python
+apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +79,Guidelines to install ldap dependancies and python,ຄໍາແນະນໍາໃນການຕິດຕັ້ງທີ່ເຊື່ອຖືໄດ້ ldap ແລະ python
 DocType: Webhook,on_trash,on_trash
 apps/frappe/frappe/core/doctype/user_permission/user_permission_help.html +2,Records for following doctypes will be filtered,ບັນທຶກສໍາລັບ doctypes ດັ່ງຕໍ່ໄປນີ້ຈະຖືກກັ່ນຕອງ
 DocType: Blog Settings,Blog Introduction,ການນໍາສະເຫນີ Blog
@@ -3291,7 +3295,7 @@ apps/frappe/frappe/desk/moduleview.py +94,Standard Reports,ບົດລາຍງ
 DocType: User,Email Settings,ການຕັ້ງຄ່າ Email
 apps/frappe/frappe/public/js/frappe/desk.js +394,Please Enter Your Password to Continue,ກະລຸນາໃສ່ລະຫັດຜ່ານຂອງທ່ານທີ່ຈະສືບຕໍ່ການ
 apps/frappe/frappe/public/js/frappe/desk.js +394,Please Enter Your Password to Continue,ກະລຸນາໃສ່ລະຫັດຜ່ານຂອງທ່ານທີ່ຈະສືບຕໍ່ການ
-apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +97,Not a valid LDAP user,ບໍ່ໃຊ້ LDAP ທີ່ຖືກຕ້ອງ
+apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +116,Not a valid LDAP user,ບໍ່ໃຊ້ LDAP ທີ່ຖືກຕ້ອງ
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +58,{0} not a valid State,{0} ບໍ່ State ຖືກຕ້ອງ
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +89,Please select another payment method. PayPal does not support transactions in currency '{0}',ກະລຸນາເລືອກວິທີການຊໍາລະເງິນອື່ນ. PayPal ບໍ່ສະຫນັບສະຫນູນທຸລະກໍາໃນສະກຸນເງິນ &#39;{0}&#39;
 DocType: Chat Message,Room Type,ປະເພດຫ້ອງພັກ
@@ -3311,7 +3315,7 @@ DocType: DocField,Unique,ເປັນເອກະລັກ
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js +8,Partial Success,Partial Success
 DocType: Email Account,Service,ການບໍລິການ
 DocType: File,File Name,ຊື່ເອກະສານ
-apps/frappe/frappe/core/doctype/data_import/importer.py +498,Did not find {0} for {0} ({1}),ບໍ່ໄດ້ຊອກຫາ {0} {0} ({1})
+apps/frappe/frappe/core/doctype/data_import/importer.py +499,Did not find {0} for {0} ({1}),ບໍ່ໄດ້ຊອກຫາ {0} {0} ({1})
 apps/frappe/frappe/utils/bot.py +176,"Oops, you are not allowed to know that","Oops, ທ່ານຍັງບໍ່ໄດ້ອະນຸຍາດໃຫ້ຮູ້ວ່າ"
 apps/frappe/frappe/public/js/frappe/ui/slides.js +324,Next,ຕໍ່ໄປ
 apps/frappe/frappe/handler.py +94,You have been successfully logged out,ທ່ານໄດ້ຮັບການເຂົ້າສູ່ລະບົບສົບຜົນສໍາເລັດອອກ
@@ -3326,7 +3330,7 @@ apps/frappe/frappe/core/doctype/data_import/exporter.py +69,You can only upload 
 apps/frappe/frappe/model/document.py +185,Insufficient Permission for {0},ການອະນຸຍາດບໍ່ພຽງພໍສໍາລັບການ {0}
 apps/frappe/frappe/model/document.py +185,Insufficient Permission for {0},ການອະນຸຍາດບໍ່ພຽງພໍສໍາລັບການ {0}
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +885,Report was not saved (there were errors),ບົດລາຍງານບໍ່ໄດ້ບັນທືກ (ມີຄວາມຜິດພາດ)
-apps/frappe/frappe/core/doctype/data_import/importer.py +295,Cannot change header content,ບໍ່ສາມາດປ່ຽນເນື້ອຫາຂອງຫົວຂໍ້
+apps/frappe/frappe/core/doctype/data_import/importer.py +296,Cannot change header content,ບໍ່ສາມາດປ່ຽນເນື້ອຫາຂອງຫົວຂໍ້
 DocType: Print Settings,Print Style,ແບບພິມ
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +52,Not Linked to any record,ບໍ່ເຊື່ອມຕໍ່ກັບບັນທຶກໃດໆ
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +52,Not Linked to any record,ບໍ່ເຊື່ອມຕໍ່ກັບບັນທຶກໃດໆ
@@ -3370,7 +3374,7 @@ DocType: Activity Log,Failed,ສົບຜົນສໍາເລັດ
 DocType: Web Form,Allow Comments,ອະນຸຍາດໃຫ້ຄວາມຄິດເຫັນ
 DocType: User,Background Style,ແບບພື້ນຖານ
 DocType: System Settings,Bypass Two Factor Auth for users who login from restricted IP Address,Bypass Two Factor Auth ສໍາລັບຜູ້ທີ່ເຂົ້າສູ່ລະບົບຈາກທີ່ຈໍາກັດ IP Address
-apps/frappe/frappe/email/queue.py +271,{0} to stop receiving emails of this type,{0} ການຢຸດຮັບອີເມວຂອງປະເພດນີ້
+apps/frappe/frappe/email/queue.py +270,{0} to stop receiving emails of this type,{0} ການຢຸດຮັບອີເມວຂອງປະເພດນີ້
 apps/frappe/frappe/www/qrcode.html +13,Open your authentication app on your mobile phone.,ເປີດ app ການກວດສອບຂອງທ່ານຢູ່ໃນໂທລະສັບມືຖືຂອງທ່ານ.
 apps/frappe/frappe/model/rename_doc.py +77,merged {0} into {1},ລວມ {0} ເປັນ {1}
 DocType: System Settings,mm-dd-yyyy,ມມ dd-yyyy
