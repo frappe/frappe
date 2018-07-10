@@ -170,7 +170,7 @@ frappe.data_import.download_dialog = function(frm) {
 					fields.map(multicheck_field => {
 						multicheck_field.options.map(option => {
 							if(!option.reqd) return;
-							$(dialog.body).find(`:checkbox[data-unit="${option.value}"]`)
+							$(multicheck_field.$wrapper).find(`:checkbox[data-unit="${option.value}"]`)
 								.prop('checked', false)
 								.trigger('click')
 								.prop('disabled', true);
