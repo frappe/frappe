@@ -2,6 +2,7 @@
 // MIT License. See license.txt
 
 frappe.provide('frappe.datetime');
+import moment from 'moment';
 
 frappe.defaultDateFormat = "YYYY-MM-DD";
 frappe.defaultTimeFormat = "HH:mm:ss";
@@ -91,7 +92,7 @@ $.extend(frappe.datetime, {
 	},
 
 	get_user_fmt: function() {
-		return frappe.sys_defaults.date_format || "yyyy-mm-dd";
+		return frappe.sys_defaults && frappe.sys_defaults.date_format || "yyyy-mm-dd";
 	},
 
 	str_to_user: function(val, only_time = false) {

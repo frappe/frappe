@@ -344,6 +344,7 @@
 		"public/js/frappe/views/reports/print_tree.html"
 	],
 	"js/web_form.min.js": [
+		"public/js/frappe/misc/datetime.js",
 		"website/js/web_form.js",
 		"public/js/lib/summernote/summernote.js",
 		"public/js/lib/datepicker/datepicker.min.js",
