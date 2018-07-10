@@ -378,6 +378,6 @@ def check_consecutive_login_attempts(user, doc):
 
 		if last_login_tried > get_datetime():
 			frappe.throw(_("Your account has been locked and will resume after {0} seconds")
-				.format(doc.allow_login_after_fail))
+				.format(doc.allow_login_after_fail), frappe.SecurityException)
 		else:
 			delete_login_failed_cache(user)
