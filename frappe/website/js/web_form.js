@@ -72,6 +72,7 @@ frappe.ready(function() {
 	};
 
 	function save(data, for_payment) {
+		if(!data) return;
 		if(window.saving)
 			return false;
 		window.saving = true;
