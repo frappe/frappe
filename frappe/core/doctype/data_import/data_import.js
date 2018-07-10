@@ -82,17 +82,27 @@ frappe.ui.form.on('Data Import', {
 		}
 	},
 
-	reference_doctype: function(frm) {
-		if (frm.doc.reference_doctype) {
+	insert_new: function(frm) {
+		if(!frm.doc.reference_doctype) {
+			frappe.msgprint(__("Please select document type first."));
+			frm.doc.insert_new = 0;
+			frm.refresh_field("insert_new");
+		} else {
 			frm.save();
 		}
 	},
 
 	overwrite: function(frm) {
-		if (frm.doc.overwrite === 0) {
-			frm.doc.only_update = 0;
+		if(!frm.doc.reference_doctype) {
+			frappe.msgprint(__("Please select document type first."))
+			frm.doc.overwrite = 0;
+			frm.refresh_field("overwrite");
+		} else {
+			if (frm.doc.overwrite === 0) {
+				frm.doc.only_update = 0;
+			}
+			frm.save();
 		}
-		frm.save();
 	},
 
 	only_update: function(frm) {
