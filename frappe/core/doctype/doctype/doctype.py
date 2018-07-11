@@ -159,10 +159,9 @@ class DocType(Document):
 		"""Change the timestamp of parent DocType if the current one is a child to clear caches."""
 		if frappe.flags.in_import:
 			return
-		parent_list = frappe.db.sql("""SELECT parent
-			from tabDocField where fieldtype="Table" and options=%s""", self.name)
+		parent_list = frappe.db.get_all('DocField', 'parent', dict(fieldtype='Table', options=self.name))
 		for p in parent_list:
-			frappe.db.sql('UPDATE tabDocType SET modified=%s WHERE `name`=%s', (now(), p[0]))
+			frappe.db.sql('UPDATE `tabDocType` SET modified=%s WHERE `name`=%s', (now(), p.parent))
 
 	def scrub_field_names(self):
 		"""Sluggify fieldnames if not set from Label."""
@@ -222,10 +221,9 @@ class DocType(Document):
 
 	def on_update(self):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
-		from frappe.model.db_schema import updatedb
 		self.delete_duplicate_custom_fields()
 		try:
-			updatedb(self.name, self)
+			frappe.db.updatedb(self.name, self)
 		except Exception as e:
 			print("\n\nThere was an issue while migrating the DocType: {}\n".format(self.name))
 			raise e

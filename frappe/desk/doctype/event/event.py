@@ -34,7 +34,6 @@ def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
 	return """(tabEvent.event_type='Public' or tabEvent.owner='%(user)s')""" % {
 			"user": frappe.db.escape(user),
-			"roles": "', '".join([frappe.db.escape(r) for r in frappe.get_roles(user)])
 		}
 
 def has_permission(doc, user):
@@ -92,8 +91,7 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 			and tabDocShare.user=%(user)s))
 		order by starts_on""".format(
 			filter_condition=get_filters_cond('Event', filters, []),
-			reminder_condition="and ifnull(send_reminder,0)=1" if for_reminder else "",
-			roles=", ".join('"{}"'.format(frappe.db.escape(r)) for r in roles)
+			reminder_condition="and ifnull(send_reminder,0)=1" if for_reminder else ""
 		), {
 			"start": start,
 			"end": end,

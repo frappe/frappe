@@ -198,7 +198,7 @@ def get_children_data(doctype, meta):
 def insert_values_for_multiple_docs(all_contents):
 	values = []
 	for content in all_contents:
-		values.append("( '{doctype}', '{name}', '{content}', '{published}', '{title}', '{route}')"
+		values.append("( {doctype}, {name}, {content}, {published}, {title}, {route})"
 			.format(**content))
 
 	batch_size = 50000
@@ -248,6 +248,7 @@ def update_global_search(doc):
 		published = 0
 		if hasattr(doc, 'is_website_published') and doc.meta.allow_guest_to_view:
 			published = 1 if doc.is_website_published() else 0
+		print(frappe.db.escape(' ||| '.join(content or '')), content, '-----------------------------------------')
 
 		title = (doc.get_title() or '')[:int(varchar_len)]
 		route = doc.get('route') if doc else ''
@@ -310,13 +311,16 @@ def sync_global_search(flags=None):
 	# Can pass flags manually as frappe.flags.update_global_search isn't reliable at a later time,
 	# when syncing is enqueued
 	for value in flags:
+		print(value)
 		frappe.db.sql('''
 			insert into __global_search
 				(doctype, name, content, published, title, route)
 			values
 				(%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
-			on duplicate key update
-				content = %(content)s''', value)
+				{on_duplicate_update}
+				content = %(content)s'''.format(
+					on_duplicate_update=frappe.db.get_on_duplicate_update()
+				), value)
 
 	frappe.flags.update_global_search = []
 

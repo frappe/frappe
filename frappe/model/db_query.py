@@ -367,7 +367,7 @@ class DatabaseQuery(object):
 
 			fallback = "''"
 			value = (frappe.db.escape((v or '').strip(), percent=False) for v in values)
-			value = '("{0}")'.format('", "'.join(value))
+			value = "({0})".format(", ".join(value))
 		else:
 			df = frappe.get_meta(f.doctype).get("fields", {"fieldname": f.fieldname})
 			df = df[0] if df else None
@@ -396,7 +396,7 @@ class DatabaseQuery(object):
 			elif f.operator.lower() in ("like", "not like") or (isinstance(f.value, string_types) and
 				(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
 					value = "" if f.value==None else f.value
-					fallback = '""'
+					fallback = "''"
 
 					if f.operator.lower() in ("like", "not like") and isinstance(value, string_types):
 						# because "like" uses backslash (\) for escaping
@@ -406,9 +406,9 @@ class DatabaseQuery(object):
 				value = flt(f.value)
 				fallback = 0
 
-			# put it inside double quotes
+			# escape value
 			if isinstance(value, string_types) and not f.operator.lower() == 'between':
-				value = '"{0}"'.format(frappe.db.escape(value, percent=False))
+				value = "{0}".format(frappe.db.escape(value, percent=False))
 
 		if (self.ignore_ifnull
 			or not can_be_null
@@ -450,7 +450,7 @@ class DatabaseQuery(object):
 
 		else:
 			if role_permissions.get("if_owner", {}).get("read"): #if has if_owner permission skip user perm check
-				self.match_conditions.append("`tab{0}`.owner = '{1}'".format(self.doctype,
+				self.match_conditions.append("`tab{0}`.owner = {1}".format(self.doctype,
 					frappe.db.escape(self.user, percent=False)))
 			elif role_permissions.get("read"): # add user permission only if role has read perm
 				# get user permissions
@@ -478,7 +478,7 @@ class DatabaseQuery(object):
 			return self.match_filters
 
 	def get_share_condition(self):
-		return """`tab{0}`.name in ({1})""".format(self.doctype, ", ".join(["'%s'"] * len(self.shared))) % \
+		return """`tab{0}`.name in ({1})""".format(self.doctype, ", ".join(["%s"] * len(self.shared))) % \
 			tuple([frappe.db.escape(s, percent=False) for s in self.shared])
 
 	def add_user_permissions(self, user_permissions):
@@ -511,7 +511,7 @@ class DatabaseQuery(object):
 
 				condition += """`tab{doctype}`.`{fieldname}` in ({values})""".format(
 					doctype=self.doctype, fieldname=df.get('fieldname'),
-					values=", ".join([('"'+frappe.db.escape(v, percent=False)+'"')
+					values=", ".join([(frappe.db.escape(v, percent=False))
 						for v in user_permission_values.get("docs")]))
 
 				match_conditions.append("({condition})".format(condition=condition))

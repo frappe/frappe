@@ -151,9 +151,9 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 			`tabContact`.idx desc, `tabContact`.name
 		limit %(start)s, %(page_len)s """.format(
 			mcond=get_match_cond(doctype),
-			key=frappe.db.escape(searchfield)),
+			key=searchfield),
 		{
-			'txt': "%%%s%%" % frappe.db.escape(txt),
+			'txt': frappe.db.escape('%' + txt + '%'),
 			'_txt': txt.replace("%", ""),
 			'start': start,
 			'page_len': page_len,

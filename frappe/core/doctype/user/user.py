@@ -846,7 +846,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 			name asc
 		limit %(start)s, %(page_len)s""".format(
 			user_type_condition = user_type_condition,
-			standard_users=", ".join(["'{0}'".format(frappe.db.escape(u)) for u in STANDARD_USERS]),
+			standard_users=", ".join(["{0}".format(frappe.db.escape(u)) for u in STANDARD_USERS]),
 			key=searchfield, mcond=get_match_cond(doctype)),
 			dict(start=start, page_len=page_len, txt=txt))
 

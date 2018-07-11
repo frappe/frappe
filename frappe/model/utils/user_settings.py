@@ -50,7 +50,9 @@ def sync_user_settings():
 		key = safe_decode(key)
 		doctype, user = key.split('::') # WTF?
 		frappe.db.sql('''insert into __UserSettings (user, doctype, data) values (%s, %s, %s)
-			on duplicate key update data=%s''', (user, doctype, data, data))
+			{on_duplicate_update} data=%s'''.format(
+				on_duplicate_update=frappe.db.get_on_duplicate_update()
+			), (user, doctype, data, data))
 
 @frappe.whitelist()
 def save(doctype, user_settings):

@@ -51,8 +51,9 @@ def get_decrypted_password(doctype, name, fieldname='password', raise_exception=
 def set_encrypted_password(doctype, name, pwd, fieldname='password'):
 	frappe.db.sql("""insert into __Auth (doctype, name, fieldname, `password`, encrypted)
 		values (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 1)
-		on duplicate key update `password`=%(pwd)s, encrypted=1""",
-		{ 'doctype': doctype, 'name': name, 'fieldname': fieldname, 'pwd': encrypt(pwd) })
+		{on_duplicate_update} `password`=%(pwd)s, encrypted=1""".format(
+			on_duplicate_update=frappe.db.get_on_duplicate_update()
+		), { 'doctype': doctype, 'name': name, 'fieldname': fieldname, 'pwd': encrypt(pwd) })
 
 def check_password(user, pwd, doctype='User', fieldname='password'):
 	'''Checks if user and password are correct, else raises frappe.AuthenticationError'''
@@ -91,8 +92,10 @@ def update_password(user, pwd, doctype='User', fieldname='password', logout_all_
 	hashPwd = passlibctx.hash(pwd)
 	frappe.db.sql("""insert into __Auth (doctype, name, fieldname, `password`, encrypted)
 		values (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 0)
-		on duplicate key update
-			`password`=%(pwd)s, encrypted=0""",
+		{on_duplicate_update}
+			`password`=%(pwd)s, encrypted=0""".format(
+				on_duplicate_update=frappe.db.get_on_duplicate_update()
+			),
 		{'doctype': doctype, 'name': user, 'fieldname': fieldname, 'pwd': hashPwd})
 
 	# clear all the sessions except current

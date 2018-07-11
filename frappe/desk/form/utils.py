@@ -30,7 +30,7 @@ def validate_link():
 		frappe.response['message'] = 'Ok'
 		return
 
-	valid_value = frappe.db.sql("select name from `tab%s` where name=%s" % (frappe.db.escape(options),
+	valid_value = frappe.db.sql("select name from `tab%s` where name=%s" % (options,
 		'%s'), (value,))
 
 	if valid_value:

@@ -250,10 +250,10 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 			`tabAddress`.idx desc, `tabAddress`.name
 		limit %(start)s, %(page_len)s """.format(
 			mcond=get_match_cond(doctype),
-			key=frappe.db.escape(searchfield),
+			key=searchfield,
 			condition=condition or ""),
 		{
-			'txt': "%%%s%%" % frappe.db.escape(txt),
+			'txt': frappe.db.escape('%' + txt + '%'),
 			'_txt': txt.replace("%", ""),
 			'start': start,
 			'page_len': page_len,

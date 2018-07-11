@@ -62,8 +62,8 @@ def get_tags(doctype, txt, cat_tags):
 	try:
 		for _user_tags in frappe.db.sql_list("""select DISTINCT `_user_tags`
 			from `tab{0}`
-			where _user_tags like '%{1}%'
-			limit 50""".format(frappe.db.escape(doctype), frappe.db.escape(txt))):
+			where _user_tags like
+			limit 50""".format(doctype, frappe.db.escape('%' + txt + '%'))):
 			tags.extend(_user_tags[1:].split(","))
 	except Exception as e:
 		if not frappe.db.is_column_missing(e): raise
