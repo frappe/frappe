@@ -34,6 +34,10 @@
 		font-weight: normal;
 	}
 
+	#navbar-breadcrumbs a:before {
+		margin-left: 10px;
+	}
+
 	ul.explore-menu {
 		list-style: none;
 		padding: 0;
@@ -48,6 +52,16 @@
 			color: #262626;
 			text-decoration: none;
 			background-color: #f0f4f7;
+		}
+
+		.menu-heading {
+			margin: 0;
+			padding: 14px 14px;
+			font-size: 11px;
+		}
+
+		.divider {
+			margin: 0px 14px;
 		}
 	}
 
@@ -151,7 +165,6 @@
 
 	.input-group {
 		width: 100%;
-		background-color: #f5f7fa;
 		padding: 8px 12px;
 	}
 
@@ -177,6 +190,12 @@
 		top: 40px;
 		width: 100% !important;
 	}
+}
+
+.dropdown-explore .dropdown-menu {
+	width: 500px !important;
+
+	max-height: 500px;
 }
 
 @media (max-width: 767px) {

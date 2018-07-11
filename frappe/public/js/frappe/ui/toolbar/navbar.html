@@ -20,15 +20,20 @@
 				
 				<li class="dropdown dropdown-explore dropdown-help dropdown-mobile">
 					<a class="dropdown-toggle" data-toggle="dropdown" href="#"
-						onclick="return false;"  style="padding: 6px 0px;">
+						onclick="return false;"  style="padding: 6px 10px;">
 						<span class="hidden-xs hidden-sm" style="line-height: 24px;"><b class="caret"></b></span>
 					</a>
 					<div class="dropdown-menu">
 
 						<div class="menu-container">
-							<ul class="explore-menu" role="menu">
-								<div class="input-group" style="border-bottom: 1px solid #d1d8dd;">
-									<input id="input-help" type="text" placeholder="{{ __('Need Help?') }}" autofocus>
+							<ul class="explore-menu modules-menu" role="menu">
+
+							</ul>
+
+							<ul class="explore-menu help-menu col-md-6" role="menu">
+								<li class="h6 menu-heading text-muted">{{ __("HELP") }}</li>
+								<div class="input-group">
+									<input id="input-help" type="text" placeholder="{{ __("Need Help?") }}" autofocus>
 									<span class="input-group-btn"><button class="btn btn-default">{{ __("Go") }}</button></span>
 								</div>
 								<li id="help-links"></li>

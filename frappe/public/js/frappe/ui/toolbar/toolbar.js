@@ -20,7 +20,7 @@ frappe.ui.toolbar.Toolbar = class {
 
 	make() {
 		this.setup_sidebar();
-		// this.setup_modules_dropdown();
+		this.setup_modules_dropdown();
 		this.setup_help();
 		this.setup_modules_dialog();
 		this.setup_progress_dialog();
@@ -31,39 +31,34 @@ frappe.ui.toolbar.Toolbar = class {
 
 	setup_modules_dropdown() {
 		let get_li_item = (name, label, link) => {
-			return $(`<li class="strong module-sidebar-item">
-				<a class="module-link ellipsis" data-name="${name}" href="#${link}">
-					<i class="fa fa-chevron-right pull-right" style="display: none;"></i>
+			return $(`<li>
+				<a class="ellipsis" data-name="${name}" href="#${link}">
 					<span>${label}</span>
 				</a>
 			</li>`);
 		};
 
-		let get_ul = () => {
-			return $(`<ul class="module-sidebar-nav overlay-sidebar nav nav-pills nav-stacked col-md-4" 
-				style="width: 120px; padding: 0;"></ul>`);
+		let get_ul = (colsize = 3) => {
+			return $(`<ul class="explore-menu modules-menu col-md-${colsize}"></ul>`);
 		}
 
 		let modules_list = frappe.get_desktop_icons(true)
 			.filter(d => d.type==='module' && !d.blocked)
 			.sort((a, b) => { return (a._label > b._label) ? 1 : -1; });
 
-		let chunk = 5;
-
-		if(modules_list.length > 15) {
-			chunk = Math.ceil(modules_list.length / 3) + 1;
-		} 
+		let chunk = 10;
+		let colsize = 3;
 
 		var i, j, temparray;
 		for (i=0,j=modules_list.length; i<j; i+=chunk) {
 			temparray = modules_list.slice(i,i+chunk);
 
-			let ul = get_ul();
+			let ul = get_ul(colsize);
 			temparray.forEach(m => {
 				ul.append(get_li_item(m.module_name, m._label, m.link));
 			})
 
-			$(".modules-menu").append(ul);
+			$(".help-menu").before(ul);
 		}
 	}
 
