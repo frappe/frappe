@@ -31,7 +31,12 @@ class Database:
 	   login details from `conf.py`. This is called by the request handler and is accessible using
 	   the `db` global variable. the `sql` method is also global to run queries
 	"""
+	VARCHAR_LEN = 140
+	STANDARD_VARCHAR_COLUMNS = ('name', 'owner', 'modified_by', 'parent', 'parentfield', 'parenttype')
+	OPTIONAL_COLUMNS = ["_user_tags", "_comments", "_assign", "_liked_by"]
+
 	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default=0):
+		self.setup_type_map()
 		self.host = host or frappe.conf.db_host or 'localhost'
 		self.user = user or frappe.conf.db_name
 		self._conn = None
@@ -47,6 +52,9 @@ class Database:
 
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
+
+	def setup_type_map(self):
+		pass
 
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
@@ -769,7 +777,7 @@ class Database:
 		return ("tab" + doctype) in self.get_tables()
 
 	def get_tables(self):
-		return [d[0] for d in self.sql("show tables")]
+		return [d[0] for d in self.sql("select table_name from information_schema.tables where table_schema not in ('pg_catalog', 'information_schema')")]
 
 	def a_row_exists(self, doctype):
 		"""Returns True if atleast one row exists."""
@@ -904,6 +912,9 @@ class Database:
 
 	def is_missing_table_or_column(self, e):
 		return self.is_bad_field(e) or self.is_missing_table(e)
+
+	def get_indexes_for(self, table_name):
+		pass
 
 def enqueue_jobs_after_commit():
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:

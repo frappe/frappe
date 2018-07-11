@@ -8,6 +8,7 @@ import subprocess
 import psycopg2
 import psycopg2.extensions
 
+from frappe.database.postgres.schema import PostgresTable
 # cast decimals as floats
 DEC2FLOAT = psycopg2.extensions.new_type(
     psycopg2.extensions.DECIMAL.values,
@@ -16,7 +17,7 @@ DEC2FLOAT = psycopg2.extensions.new_type(
 psycopg2.extensions.register_type(DEC2FLOAT)
 
 from frappe.database.database import Database
-from frappe.model.db_schema import varchar_len
+from frappe.database.postgres.schema import PostgresTable
 
 class PostgresDatabase(Database):
 	ProgrammingError = psycopg2.ProgrammingError
@@ -26,34 +27,35 @@ class PostgresDatabase(Database):
 	DataError = psycopg2.DataError
 	InterfaceError = psycopg2.InterfaceError
 
-	type_map = {
-		'Currency':		('decimal', '18,6'),
-		'Int':			('bigint', None),
-		'Long Int':		('bigint', None), # convert int to bigint if length is more than 11
-		'Float':		('decimal', '18,6'),
-		'Percent':		('decimal', '18,6'),
-		'Check':		('smallint', None),
-		'Small Text':	('text', ''),
-		'Long Text':	('text', ''),
-		'Code':			('text', ''),
-		'Text Editor':	('text', ''),
-		'Date':			('date', ''),
-		'Datetime':		('timestamp', None),
-		'Time':			('time', '6'),
-		'Text':			('text', ''),
-		'Data':			('varchar', varchar_len),
-		'Link':			('varchar', varchar_len),
-		'Dynamic Link':	('varchar', varchar_len),
-		'Password':		('varchar', varchar_len),
-		'Select':		('varchar', varchar_len),
-		'Read Only':	('varchar', varchar_len),
-		'Attach':		('text', ''),
-		'Attach Image':	('text', ''),
-		'Signature':	('longtext', ''),
-		'Color':		('varchar', varchar_len),
-		'Barcode':		('longtext', ''),
-		'Geolocation':	('longtext', '')
-	}
+	def setup_type_map(self):
+		self.type_map = {
+			'Currency':		('decimal', '18,6'),
+			'Int':			('bigint', None),
+			'Long Int':		('bigint', None), # convert int to bigint if length is more than 11
+			'Float':		('decimal', '18,6'),
+			'Percent':		('decimal', '18,6'),
+			'Check':		('smallint', None),
+			'Small Text':	('text', ''),
+			'Long Text':	('text', ''),
+			'Code':			('text', ''),
+			'Text Editor':	('text', ''),
+			'Date':			('date', ''),
+			'Datetime':		('timestamp', None),
+			'Time':			('time', '6'),
+			'Text':			('text', ''),
+			'Data':			('varchar', self.VARCHAR_LEN),
+			'Link':			('varchar', self.VARCHAR_LEN),
+			'Dynamic Link':	('varchar', self.VARCHAR_LEN),
+			'Password':		('varchar', self.VARCHAR_LEN),
+			'Select':		('varchar', self.VARCHAR_LEN),
+			'Read Only':	('varchar', self.VARCHAR_LEN),
+			'Attach':		('text', ''),
+			'Attach Image':	('text', ''),
+			'Signature':	('text', ''),
+			'Color':		('varchar', self.VARCHAR_LEN),
+			'Barcode':		('text', ''),
+			'Geolocation':	('text', '')
+		}
 
 	def get_connection(self):
 		# warnings.filterwarnings('ignore', category=psycopg2.Warning)
@@ -73,7 +75,7 @@ class PostgresDatabase(Database):
 		if percent:
 			s = s.replace("%", "%%")
 
-		return psycopg2.extensions.QuotedString(s)
+		return str(psycopg2.extensions.QuotedString(s))
 
 	def sql(self, query, *args, **kwargs):
 		# replace ` with " for definitions
@@ -134,12 +136,12 @@ class PostgresDatabase(Database):
 		if not '__global_search' in frappe.db.get_tables():
 			frappe.db.sql('''create table __global_search(
 				doctype varchar(100),
-				name varchar({0}),
+				name varchar({0}) UNIQUE,
 				title varchar({0}),
 				content text,
 				route varchar({0}),
 				published int not null default 0,
-				unique (doctype, name))'''.format(varchar_len))
+				unique (doctype, name))'''.format(frappe.db.VARCHAR_LEN))
 
 	def create_user_settings_table(self):
 		frappe.db.sql_ddl("""create table if not exists __UserSettings (
@@ -149,22 +151,17 @@ class PostgresDatabase(Database):
 			UNIQUE("user", "doctype")
 			)""")
 
-def setup_database(force, verbose):
-	root_conn = get_root_connection()
-	root_conn.commit()
-	root_conn.sql('drop database if exists {0}'.format(frappe.conf.db_name))
-	root_conn.sql('drop user if exists {0}'.format(frappe.conf.db_name))
-	root_conn.sql('create database {0}'.format(frappe.conf.db_name))
-	root_conn.sql("create user {0} password '{1}'".format(frappe.conf.db_name,
-		frappe.conf.db_password))
-	root_conn.sql('GRANT ALL PRIVILEGES ON DATABASE {0} TO {0}'.format(frappe.conf.db_name))
+	def updatedb(self, doctype, meta=None):
+		db_table = PostgresTable(doctype, meta)
+		db_table.sync()
 
-	# bootstrap db
-	subprocess.check_output(['psql', frappe.conf.db_name, '-qf',
-		os.path.join(os.path.dirname(__file__), 'bootstrap_db', 'framework_postgres.sql')])
+	def get_on_duplicate_update(self, key='name'):
+		return 'ON CONFLICT ({key}) DO UPDATE SET '.format(
+			key=key
+		)
 
-	frappe.connect()
+	def check_transaction_status(self, query):
+		pass
 
-def get_root_connection():
-	return PostgresDatabase(user='postgres')
-
+	def get_indexes_for(self, table_name):
+		pass

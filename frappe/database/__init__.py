@@ -6,24 +6,28 @@
 
 from __future__ import unicode_literals
 
-import frappe
-import frappe.database.postgres
-import frappe.database.mariadb
-
 def setup_database(force, verbose):
+	import frappe
 	if frappe.conf.db_type == 'postgres':
-		return frappe.database.postgres.setup_database(force, verbose)
+		import frappe.database.postgres.setup_db
+		return frappe.database.postgres.setup_db.setup_database(force, verbose)
 	else:
-		return frappe.database.mariadb.setup_database(force, verbose)
+		import frappe.database.mariadb.setup_db
+		return frappe.database.mariadb.setup_db.setup_database(force, verbose)
 
 def drop_user_and_database(db_name, root_login=None, root_password=None):
+	import frappe
 	if frappe.conf.db_type == 'postgres':
 		pass
 	else:
-		return frappe.database.mariadb.drop_user_and_database(db_name, root_login, root_password)
+		import frappe.database.mariadb.setup_db
+		return frappe.database.mariadb.setup_db.drop_user_and_database(db_name, root_login, root_password)
 
 def get_db(host=None, user=None, password=None):
+	import frappe
 	if frappe.conf.db_type == 'postgres':
-		return frappe.database.postgres.PostgresDatabase(host, user, password)
+		import frappe.database.postgres.database
+		return frappe.database.postgres.database.PostgresDatabase(host, user, password)
 	else:
-		return frappe.database.mariadb.MariadbDatabase(host, user, password)
+		import frappe.database.mariadb.database
+		return frappe.database.mariadb.database.MariaDBDatabase(host, user, password)
