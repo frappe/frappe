@@ -42,20 +42,27 @@ frappe.ui.toolbar.Toolbar = class {
 			return $(`<ul class="explore-menu modules-menu col-md-${colsize}"></ul>`);
 		}
 
-		let modules_list = frappe.get_desktop_icons(true)
+		let links_list = frappe.get_desktop_icons(true)
 			.filter(d => d.type==='module' && !d.blocked)
 			.sort((a, b) => { return (a._label > b._label) ? 1 : -1; });
+
+		links_list.forEach(m => { 
+			m.name = m.module_name; 
+			m.label = m._label; 
+		});
+
+		links_list = links_list.concat(frappe.boot.explore_links);
 
 		let chunk = 10;
 		let colsize = 3;
 
 		var i, j, temparray;
-		for (i=0,j=modules_list.length; i<j; i+=chunk) {
-			temparray = modules_list.slice(i,i+chunk);
+		for (i=0,j=links_list.length; i<j; i+=chunk) {
+			temparray = links_list.slice(i,i+chunk);
 
 			let ul = get_ul(colsize);
 			temparray.forEach(m => {
-				ul.append(get_li_item(m.module_name, m._label, m.link));
+				ul.append(get_li_item(m.name, m.label, m.link));
 			})
 
 			$(".help-menu").before(ul);

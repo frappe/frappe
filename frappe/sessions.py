@@ -123,9 +123,11 @@ def get():
 			bootinfo["user"]["recent"] = json.dumps(\
 				frappe.cache().hget("user_recent", frappe.session.user))
 
+
 	if not bootinfo:
 		# if not create it
 		bootinfo = get_bootinfo()
+		bootinfo["explore_links"] = frappe.get_hooks('explore_links') or []
 		bootinfo["notification_info"] = get_notification_info_for_boot()
 		frappe.cache().hset("bootinfo", frappe.session.user, bootinfo)
 		try:
