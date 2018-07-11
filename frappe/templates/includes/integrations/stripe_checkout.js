@@ -59,7 +59,7 @@ function setOutcome(result) {
 		});
 
 	} else if (result.error) {
-		$('.error').html() = result.error.message;
+		$('.error').html(result.error.message);
 		$('.error').show()
 	}
 }

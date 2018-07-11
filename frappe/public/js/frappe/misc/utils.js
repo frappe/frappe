@@ -23,6 +23,9 @@ frappe.utils = {
 			return filename;
 		}
 	},
+	replace_newlines(t) {
+		return t?t.replace(/\n/g, '<br>'):'';
+	},
 	is_html: function(txt) {
 		if (!txt) return false;
 

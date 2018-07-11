@@ -5,6 +5,7 @@ frappe.provide('frappe.ui');
 frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 	init: function(opts) {
 		$.extend(this, opts);
+		this.dirty = false;
 		this._super();
 		$.each(this.fields || [], function(i, f) {
 			if(!f.fieldname && f.label) {
@@ -33,7 +34,9 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 				this.catch_enter_as_submit();
 			}
 
-			$(this.body).find('input, select').on('change', function() {
+			$(this.body).find('input, select').on('change', () => {
+				this.dirty = true;
+
 				frappe.run_serially([
 					() => frappe.timeout(0.1),
 					() => me.refresh_dependency()

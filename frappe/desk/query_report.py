@@ -155,7 +155,7 @@ def export_query():
 		if isinstance(data.result[0], dict):
 			for i,row in enumerate(data.result):
 				# only rows which are visible in the report
-				if row and (i+1 in visible_idx):
+				if row and (i in visible_idx):
 					row_list = []
 					for idx in range(len(data.columns)):
 						row_list.append(row.get(columns[idx]["fieldname"],""))
@@ -163,7 +163,7 @@ def export_query():
 				elif not row:
 					result.append([])
 		else:
-			result = result + [d for i,d in enumerate(data.result) if (i+1 in visible_idx)]
+			result = result + [d for i,d in enumerate(data.result) if (i in visible_idx)]
 
 		from frappe.utils.xlsxutils import make_xlsx
 		xlsx_file = make_xlsx(result, "Query Report")

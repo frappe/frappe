@@ -40,10 +40,6 @@ class Contact(Document):
 		if not self.user and self.email_id:
 			self.user = frappe.db.get_value("User", {"email": self.email_id})
 
-	def on_trash(self):
-		frappe.db.sql("""update `tabIssue` set contact='' where contact=%s""",
-			self.name)
-
 	def get_link_for(self, link_doctype):
 		'''Return the link name, if exists for the given link DocType'''
 		for link in self.links:

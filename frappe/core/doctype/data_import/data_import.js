@@ -149,7 +149,8 @@ frappe.data_import.download_dialog = function(frm) {
 
 	const doctype_fields = get_fields(frm.doc.reference_doctype)
 		.map(df => ({
-			label: df.label,
+			label: df.label + (df.reqd ? ' (M)' : ''),
+			reqd: df.reqd ? 1 : 0,
 			value: df.fieldname,
 			checked: 1
 		}));
@@ -163,7 +164,22 @@ frappe.data_import.download_dialog = function(frm) {
 			"reqd": 1,
 			"onchange": function() {
 				const fields = get_doctype_checkbox_fields();
-				fields.map(f => f.toggle(this.value === 'Manually'));
+				fields.map(f => f.toggle(true));
+				if(this.value == 'Mandatory') {
+					checkbox_toggle(true);
+					fields.map(multicheck_field => {
+						multicheck_field.options.map(option => {
+							if(!option.reqd) return;
+							$(dialog.body).find(`:checkbox[data-unit="${option.value}"]`)
+								.prop('checked', false)
+								.trigger('click')
+								.prop('disabled', true);
+						});
+					});
+				} else if(this.value == 'All'){
+					$(dialog.body).find(`[data-fieldtype="MultiCheck"] :checkbox`)
+						.prop('disabled', true);
+				}
 			}
 		},
 		{
@@ -177,6 +193,24 @@ frappe.data_import.download_dialog = function(frm) {
 			"label": __("Download with Data"),
 			"fieldname": "with_data",
 			"fieldtype": "Check"
+		},
+		{
+			"label": __("Select All"),
+			"fieldname": "select_all",
+			"fieldtype": "Button",
+			"depends_on": "eval:doc.select_columns=='Manually'",
+			click: function() {
+				checkbox_toggle();
+			}
+		},
+		{
+			"label": __("Unselect All"),
+			"fieldname": "unselect_all",
+			"fieldtype": "Button",
+			"depends_on": "eval:doc.select_columns=='Manually'",
+			click: function() {
+				checkbox_toggle(true);
+			}
 		},
 		{
 			"label": frm.doc.reference_doctype,
@@ -197,7 +231,8 @@ frappe.data_import.download_dialog = function(frm) {
 				"options": frappe.meta.get_docfields(df.options)
 					.filter(filter_fields)
 					.map(df => ({
-						label: df.label,
+						label: df.label + (df.reqd ? ' (M)' : ''),
+						reqd: df.reqd ? 1 : 0,
 						value: df.fieldname,
 						checked: 1
 					})),
@@ -216,23 +251,7 @@ frappe.data_import.download_dialog = function(frm) {
 			if (frm.doc.reference_doctype) {
 				var export_params = () => {
 					let columns = {};
-					if (values.select_columns === 'All') {
-						columns = get_doctypes(frm.doc.reference_doctype).reduce((columns, doctype) => {
-							columns[doctype] = get_fields(doctype).map(df => df.fieldname);
-							return columns;
-						}, {});
-					} else if (values.select_columns === 'Mandatory') {
-						// only reqd child tables
-						const doctypes = [frm.doc.reference_doctype].concat(
-							frappe.meta.get_table_fields(frm.doc.reference_doctype)
-								.filter(df => df.reqd).map(df => df.options)
-						);
-
-						columns = doctypes.reduce((columns, doctype) => {
-							columns[doctype] = get_fields(doctype).filter(df => df.reqd).map(df => df.fieldname);
-							return columns;
-						}, {});
-					} else if (values.select_columns === 'Manually') {
+					if(values.select_columns) {
 						columns = get_doctype_checkbox_fields().reduce((columns, field) => {
 							const options = field.get_checked_options();
 							columns[field.df.label] = options;
@@ -259,6 +278,20 @@ frappe.data_import.download_dialog = function(frm) {
 		},
 		primary_action_label: __('Download')
 	});
+
+	$(dialog.body).find('div[data-fieldname="select_all"], div[data-fieldname="unselect_all"]')
+		.wrapAll('<div class="inline-buttons" />');
+	const button_container = $(dialog.body).find('.inline-buttons');
+	button_container.addClass('flex');
+	$(button_container).find('.frappe-control').map((index, button) => {
+		$(button).css({"margin-right": "1em"});
+	});
+
+	function checkbox_toggle(checked=false) {
+		$(dialog.body).find('[data-fieldtype="MultiCheck"]').map((index, element) => {
+			$(element).find(`:checkbox`).prop("checked", checked).trigger('click');
+		});
+	}
 
 	return dialog;
 };

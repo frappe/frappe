@@ -133,32 +133,22 @@ export default class BulkOperations {
 
 	edit(docnames, field_mappings, done) {
 		let field_options = Object.keys(field_mappings).sort();
+		const status_regex = /status/i;
+
+		const default_field = field_options.find(value => status_regex.test(value));
+
 		const dialog = new frappe.ui.Dialog({
 			title: __('Edit'),
 			fields: [
 				{
-					'fieldtype': 'Select', 'options': field_options,
-					'label': __('Field'), 'fieldname': 'field', 'reqd': 1,
+					'fieldtype': 'Select',
+					'options': field_options,
+					'default': default_field,
+					'label': __('Field'),
+					'fieldname': 'field',
+					'reqd': 1,
 					'onchange': () => {
-						const new_df = Object.assign({},
-							field_mappings[dialog.get_value('field')]);
-						/* if the field label has status in it and
-						if it has select fieldtype with no default value then
-						set a default value from the available option. */
-						if(new_df.label.match(/status/i) &&
-							new_df.fieldtype === 'Select' && !new_df.default) {
-
-							let options = [];
-							if(typeof new_df.options==="string") {
-								options = new_df.options.split("\n");
-							}
-							//set second option as default if first option is an empty string
-							new_df.default = options[0] || options[1];
-						}
-						new_df.label = __('Value');
-						new_df.reqd = 1;
-						delete new_df.depends_on;
-						dialog.replace_field('value', new_df);
+						set_value_field(dialog);
 					}
 				},
 				{
@@ -170,11 +160,12 @@ export default class BulkOperations {
 			],
 			primary_action: ({ value }) => {
 				const fieldname = field_mappings[dialog.get_value('field')].fieldname;
-
+				dialog.disable_primary_action();
 				frappe.call({
 					method: 'frappe.desk.doctype.bulk_update.bulk_update.submit_cancel_or_update_docs',
 					args: {
 						doctype: this.doctype,
+						freeze: true,
 						docnames: docnames,
 						action: 'update',
 						data: {
@@ -185,6 +176,7 @@ export default class BulkOperations {
 					let failed = r.message || [];
 
 					if (failed.length && !r._server_messages) {
+						dialog.enable_primary_action();
 						frappe.throw(__('Cannot update {0}', [failed.map(f => f.bold ? f.bold() : f).join(', ')]));
 					}
 					done();
@@ -193,6 +185,29 @@ export default class BulkOperations {
 			},
 			primary_action_label: __('Update')
 		});
+
+		if (default_field) set_value_field(dialog); // to set `Value` df based on default `Field`
+
+		function set_value_field(dialogObj) {
+			const new_df = Object.assign({},
+				field_mappings[dialogObj.get_value('field')]);
+			/* if the field label has status in it and
+			if it has select fieldtype with no default value then
+			set a default value from the available option. */
+			if(new_df.label.match(status_regex) &&
+				new_df.fieldtype === 'Select' && !new_df.default) {
+				let options = [];
+				if(typeof new_df.options==="string") {
+					options = new_df.options.split("\n");
+				}
+				//set second option as default if first option is an empty string
+				new_df.default = options[0] || options[1];
+			}
+			new_df.label = __('Value');
+			new_df.reqd = 1;
+			delete new_df.depends_on;
+			dialogObj.replace_field('value', new_df);
+		}
 
 		dialog.refresh();
 		dialog.show();

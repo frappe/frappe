@@ -336,3 +336,38 @@ def auto_repeat_doctype_query(doctype, txt, searchfield, start, page_len, filter
 			'start': start,
 			'page_len': page_len
 		})
+
+@frappe.whitelist()
+def get_contacts(reference_doctype, reference_name):
+	docfields = frappe.get_meta(reference_doctype).fields
+
+	contact_fields = []
+	for field in docfields:
+		if field.fieldtype == "Link" and field.options == "Contact":
+			contact_fields.append(field.fieldname)
+
+	if contact_fields:
+		contacts = []
+		for contact_field in contact_fields:
+			contacts.append(frappe.db.get_value(reference_doctype, reference_name, contact_field))
+	else:
+		return []
+
+	if contacts:
+		emails = []
+		for contact in contacts:
+			emails.append(frappe.db.get_value("Contact", contact, "email_id"))
+
+		return emails
+	else:
+		return []
+
+
+@frappe.whitelist()
+def update_reference(docname, reference):
+	try:
+		frappe.db.set_value("Auto Repeat", docname, "reference_document", reference)
+		return "success"
+	except Exception as e:
+		raise e
+		return "error"

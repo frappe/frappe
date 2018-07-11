@@ -130,8 +130,10 @@ def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not
 
 	for f in frappe.get_all("File", filters={"is_folder": 0, "is_private": is_private,
 		"uploaded_to_dropbox": 0}, fields=['file_url', 'name']):
-
-		filename = f.file_url.replace('/files/', '')
+		if is_private:
+			filename = f.file_url.replace('/private/files/', '')
+		else:
+			filename = f.file_url.replace('/files/', '')
 		filepath = os.path.join(path, filename)
 
 		if filename in ignore_list:
@@ -155,14 +157,13 @@ def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not
 
 def upload_file_to_dropbox(filename, folder, dropbox_client):
 	"""upload files with chunk of 15 mb to reduce session append calls"""
+	if not os.path.exists(filename):
+		return
 
 	create_folder_if_not_exists(folder, dropbox_client)
 	chunk_size = 15 * 1024 * 1024
 	file_size = os.path.getsize(encode(filename))
 	mode = (dropbox.files.WriteMode.overwrite)
-
-	if not os.path.exists(filename):
-		return
 
 	f = open(encode(filename), 'rb')
 	path = "{0}/{1}".format(folder, os.path.basename(filename))
@@ -203,7 +204,7 @@ def update_file_dropbox_status(file_name):
 	frappe.db.set_value("File", file_name, 'uploaded_to_dropbox', 1, update_modified=False)
 
 def is_fresh_upload():
-	file_name = frappe.db.get_value("File", filters={'uploaded_to_dropbox': 1}, field='name')
+	file_name = frappe.db.get_value("File", {'uploaded_to_dropbox': 1}, 'name')
 	return not file_name
 
 def get_uploaded_files_meta(dropbox_folder, dropbox_client):

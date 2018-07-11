@@ -17,7 +17,7 @@ class UserPermission(Document):
 			'name': ['!=', self.name]
 		}, limit=1)
 		if duplicate_exists:
-			frappe.msgprint(_("User permission already exists"), raise_exception=True)
+			frappe.throw(_("User permission already exists"), frappe.DuplicateEntryError)
 
 	def on_update(self):
 		frappe.cache().delete_value('user_permissions')

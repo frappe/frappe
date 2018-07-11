@@ -19,14 +19,13 @@ from frappe.utils.change_log import get_change_log
 import redis
 from six.moves.urllib.parse import unquote
 from six import text_type
-from frappe.cache_manager import clear_global_cache, clear_user_cache
+from frappe.cache_manager import clear_user_cache
 
 @frappe.whitelist()
 def clear(user=None):
 	frappe.local.session_obj.update(force=True)
 	frappe.local.db.commit()
 	clear_user_cache(frappe.session.user)
-	clear_global_cache()
 	frappe.response['message'] = _("Cache Cleared")
 
 def clear_sessions(user=None, keep_current=False, device=None, force=False):

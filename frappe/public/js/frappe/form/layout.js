@@ -292,7 +292,7 @@ frappe.ui.form.Layout = Class.extend({
 				}
 
 				if(df.fieldname === '_form_dashboard') {
-					collapse = false;
+					collapse = localStorage.getItem('collapseFormDashboard')==='yes' ? true : false;
 				}
 
 				section.collapse(collapse);
@@ -532,7 +532,7 @@ frappe.ui.form.Section = Class.extend({
 			wrapper: this.wrapper
 		};
 
-		if(this.df.collapsible) {
+		if (this.df.collapsible && this.df.fieldname !== '_form_dashboard') {
 			this.collapse(true);
 		}
 
@@ -605,6 +605,11 @@ frappe.ui.form.Section = Class.extend({
 		if(hide===undefined) {
 			hide = !this.body.hasClass("hide");
 		}
+
+		if (this.df.fieldname==='_form_dashboard') {
+			localStorage.setItem('collapseFormDashboard', hide ? 'yes' : 'no');
+		}
+
 		this.body.toggleClass("hide", hide);
 		this.head.toggleClass("collapsed", hide);
 		this.indicator.toggleClass("octicon-chevron-down", hide);
@@ -616,6 +621,8 @@ frappe.ui.form.Section = Class.extend({
 				f.refresh();
 			}
 		});
+
+
 	},
 	has_missing_mandatory: function() {
 		var missing_mandatory = false;

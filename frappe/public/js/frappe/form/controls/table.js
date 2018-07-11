@@ -1,9 +1,11 @@
+import Grid from '../grid';
+
 frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 	make: function() {
 		this._super();
 
 		// add title if prev field is not column / section heading or html
-		this.grid = new frappe.ui.form.Grid({
+		this.grid = new Grid({
 			frm: this.frm,
 			df: this.df,
 			perm: this.perm || (this.frm && this.frm.perm) || this.df.perm,
@@ -26,5 +28,11 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 		if(this.grid) {
 			return this.grid.get_data();
 		}
+	},
+	set_input: function( ) {
+		//
+	},
+	validate: function() {
+		return true
 	}
 });
