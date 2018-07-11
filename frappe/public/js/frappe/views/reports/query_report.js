@@ -176,7 +176,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	set_filters_by_name() {
-		frappe.query_report_filters_by_name = {};
 		for (var i in this.filters) {
 			frappe.query_report_filters_by_name[this.filters[i].df.fieldname] = this.filters[i];
 		}
@@ -203,6 +202,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	clear_filters() {
 		this.page.clear_fields();
+		frappe.query_report_filters_by_name = {};
 	}
 
 	refresh() {
