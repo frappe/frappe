@@ -1,17 +1,51 @@
 <div class="navbar navbar-default navbar-fixed-top" role="navigation">
 	<div class="container">
 		<div class="navbar-header navbar-desk" style="position: relative">
-			<a class="navbar-brand toggle-sidebar visible-xs visible-sm">
-				<i class="octicon octicon-three-bars"></i>
-			</a>
-			<a class="navbar-brand navbar-home hidden-xs hidden-sm" href="#">Home</a>
+			
 
-			<a class="dropdown-toggle" data-toggle="dropdown" href="#"
+			<!-- <a class="dropdown-toggle" data-toggle="dropdown" href="#"
 				onclick="return false;">
 			<b class="caret text-muted" style="margin-top: 15px;margin-left: -6px;"></b></a>
 			<div class="dropdown-menu">
 					<div class="modules-menu" style="display: flex;"></div>
-			</div>
+			</div> -->
+
+			<ul class="nav navbar-nav">
+				<li>
+					<a class="navbar-brand toggle-sidebar visible-xs visible-sm">
+						<i class="octicon octicon-three-bars"></i>
+					</a>
+					<a class="navbar-brand navbar-home hidden-xs hidden-sm" href="#">Home</a>
+				</li>
+				
+				<li class="dropdown dropdown-explore dropdown-help dropdown-mobile">
+					<a class="dropdown-toggle" data-toggle="dropdown" href="#"
+						onclick="return false;"  style="padding: 6px 0px;">
+						<span class="hidden-xs hidden-sm" style="line-height: 24px;"><b class="caret"></b></span>
+					</a>
+					<div class="dropdown-menu">
+
+						<div class="menu-container">
+							<ul class="explore-menu" role="menu">
+								<div class="input-group" style="border-bottom: 1px solid #d1d8dd;">
+									<input id="input-help" type="text" placeholder="{{ __('Need Help?') }}" autofocus>
+									<span class="input-group-btn"><button class="btn btn-default">{{ __("Go") }}</button></span>
+								</div>
+								<li id="help-links"></li>
+								<li class="divider"></li>
+								<li>
+									<a data-link-type="documentation"
+										data-path="/documentation/index" target="_blank" rel="noopener noreferrer">{{ __("Documentation") }}</a>
+								</li>
+								<li class="divider documentation-links"></li>
+								<li><a href="#" onclick="return frappe.ui.toolbar.show_about();">
+									{%= __("About") %}</a></li>
+							</ul>
+
+					</div>
+					
+				</li>
+			</ul>
 
 			<ul class="nav navbar-nav" id="navbar-breadcrumbs">
 			</ul>
@@ -53,29 +87,29 @@
 				</ul>
 			</li>
 
-			<li class="dropdown dropdown-help dropdown-mobile">
-				<a class="dropdown-toggle" data-toggle="dropdown" href="#"
-					onclick="return false;"  style="height: 40px;">
-					<span class="hidden-xs hidden-sm" style="line-height: 24px;">{{ __("Help") }} <b class="caret"></b></span>
-					<span class="visible-xs visible-sm standard-image"
-						style="padding: 50% 7px; font-size: 17px; background-color: #fafbfc; font-weight: 100;">?</span>
-				</a>
-				<ul class="dropdown-menu" role="menu">
-					<div class="input-group" style="border-bottom: 1px solid #d1d8dd;">
-						<input id="input-help" type="text" placeholder="{{ __("What do you need help with?") }}" autofocus>
-						<span class="input-group-btn"><button class="btn btn-default">{{ __("Go") }}</button></span>
-					</div>
-					<li id="help-links"></li>
-					<li class="divider"></li>
-					<li>
-						<a data-link-type="documentation"
-							data-path="/documentation/index" target="_blank" rel="noopener noreferrer">{{ __("Documentation") }}</a>
-					</li>
-					<li class="divider documentation-links"></li>
-					<li><a href="#" onclick="return frappe.ui.toolbar.show_about();">
-						{%= __("About") %}</a></li>
-				</ul>
-			</li>
+			<li class="dropdown dropdown-help dropdown-mobile visible-xs visible-sm">
+					<a class="dropdown-toggle" data-toggle="dropdown" href="#"
+						onclick="return false;"  style="height: 40px;">
+						<span class="hidden-xs hidden-sm" style="line-height: 24px;">{{ __("Help") }} <b class="caret"></b></span>
+						<span class="visible-xs visible-sm standard-image"
+							style="padding: 50% 7px; font-size: 17px; background-color: #fafbfc; font-weight: 100;">?</span>
+					</a>
+					<ul class="dropdown-menu" role="menu">
+						<div class="input-group" style="border-bottom: 1px solid #d1d8dd;">
+							<input id="input-help" type="text" placeholder="{{ __("What do you need help with?") }}" autofocus>
+							<span class="input-group-btn"><button class="btn btn-default">{{ __("Go") }}</button></span>
+						</div>
+						<li id="help-links"></li>
+						<li class="divider"></li>
+						<li>
+							<a data-link-type="documentation"
+								data-path="/documentation/index" target="_blank" rel="noopener noreferrer">{{ __("Documentation") }}</a>
+						</li>
+						<li class="divider documentation-links"></li>
+						<li><a href="#" onclick="return frappe.ui.toolbar.show_about();">
+							{%= __("About") %}</a></li>
+					</ul>
+				</li>
 
 			<!-- frappe.chat -->
 			<!-- "placeholder, to display or not to display." -->

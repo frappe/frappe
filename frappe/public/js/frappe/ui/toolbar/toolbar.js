@@ -20,7 +20,7 @@ frappe.ui.toolbar.Toolbar = class {
 
 	make() {
 		this.setup_sidebar();
-		this.setup_modules_dropdown();
+		// this.setup_modules_dropdown();
 		this.setup_help();
 		this.setup_modules_dialog();
 		this.setup_progress_dialog();
