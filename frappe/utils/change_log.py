@@ -103,10 +103,6 @@ def get_versions():
 			branch_version = app_hooks.get('{0}_version'.format(versions[app]['branch']))
 			if branch_version:
 				versions[app]['branch_version'] = branch_version[0] + ' ({0})'.format(get_app_last_commit_ref(app))
-			else:
-				beta_version = app_hooks.get('beta_version')
-				if beta_version:
-					versions[app]['branch_version'] = beta_version[0] + ' - beta'
 
 		try:
 			versions[app]["version"] = frappe.get_attr(app + ".__version__")
