@@ -1,5 +1,3 @@
-import moment from 'moment';
-
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_input: function() {
 		this.has_input = true;

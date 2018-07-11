@@ -2,7 +2,6 @@
 // MIT License. See license.txt
 
 frappe.provide('frappe.datetime');
-import moment from 'moment';
 
 frappe.defaultDateFormat = "YYYY-MM-DD";
 frappe.defaultTimeFormat = "HH:mm:ss";
