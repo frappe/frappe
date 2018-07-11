@@ -220,3 +220,4 @@ frappe.patches.v11_0.rename_workflow_action_to_workflow_action_master #13-06-201
 frappe.patches.v11_0.rename_email_alert_to_notification #13-06-2018
 frappe.patches.v11_0.delete_duplicate_user_permissions
 frappe.patches.v11_0.get_docs_apps_if_not_present
+frappe.patches.v11_0.skip_user_permission_check_for_department
