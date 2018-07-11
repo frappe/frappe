@@ -2,7 +2,6 @@
 // Author - Achilles Rasquinha <achilles@frappe.io>
 
 import Fuse   from 'fuse.js'
-import moment from 'moment'
 import hyper  from '../lib/hyper.min'
 
 import './socketio_client'

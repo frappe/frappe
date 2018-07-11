@@ -1,4 +1,3 @@
-import moment from 'moment';
 import WebForm from './webform';
 
 frappe.ready(function() {

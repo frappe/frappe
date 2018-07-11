@@ -73,7 +73,11 @@ function build_libs() {
 	const input_files = get_build_json('frappe')[libs_path];
 
 	const libs_content = input_files.map(file_name => {
-		const full_path = path.resolve(get_app_path('frappe'), file_name);
+		let prefix = get_app_path('frappe');
+		if (file_name.startsWith('node_modules/')) {
+			prefix = path.resolve(get_app_path('frappe'), '..');
+		}
+		const full_path = path.resolve(prefix, file_name);
 		return `/* ${file_name} */\n` + fs.readFileSync(full_path);
 	}).join('\n\n');
 
