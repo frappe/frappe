@@ -5,21 +5,21 @@
 		"public/less/website.less",
 		"public/less/avatar.less",
 		"node_modules/highlight.js/styles/zenburn.css",
-
 		"public/js/lib/awesomplete/awesomplete.css",
-
 		"public/less/form.less",
 		"public/less/controls.less",
 		"public/less/chat.less",
 		"public/less/form_grid.less"
+	],
+	"concat:js/moment-bundle.min.js": [
+		"node_modules/moment/min/moment-with-locales.min.js",
+		"node_modules/moment-timezone/builds/moment-timezone-with-data.min.js"
 	],
 	"js/frappe-web.min.js": [
 		"public/js/frappe/class.js",
 		"public/js/frappe/polyfill.js",
 		"public/js/lib/md5.min.js",
 		"public/js/frappe/provide.js",
-		"node_modules/moment/min/moment-with-locales.js",
-		"node_modules/moment-timezone/builds/moment-timezone-with-data.js",
 		"public/js/frappe/format.js",
 		"public/js/frappe/misc/number_format.js",
 		"public/js/frappe/misc/utils.js",
@@ -117,7 +117,7 @@
 		"public/css/desk-rtl.css",
 		"public/css/report-rtl.css"
 	],
-	"js/libs.min.js": [
+	"concat:js/libs.min.js": [
 		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",
 		"public/js/lib/jquery/jquery.hotkeys.js",

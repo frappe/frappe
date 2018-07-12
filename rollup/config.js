@@ -129,7 +129,7 @@ function get_options_for(app) {
 
 	return Object.keys(build_json)
 		.map(output_file => {
-			if (output_file.endsWith('libs.min.js')) return null;
+			if (output_file.startsWith('concat:')) return null;
 
 			const input_files = build_json[output_file]
 				.map(input_file => {
