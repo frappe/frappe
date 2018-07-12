@@ -18,7 +18,7 @@ month_map = {'Monthly': 1, 'Quarterly': 3, 'Half-yearly': 6, 'Yearly': 12}
 
 class AutoRepeat(Document):
 	def onload(self):
-  		self.set_onload("auto_repeat_schedule", self.get_auto_repeat_schedule())
+		self.set_onload("auto_repeat_schedule", self.get_auto_repeat_schedule())
 
 	def validate(self):
 		self.update_status()
@@ -371,3 +371,6 @@ def update_reference(docname, reference):
 	except Exception as e:
 		raise e
 		return "error"
+
+def on_doctype_update():
+	frappe.db.add_index("Auto Repeat", ["next_schedule_date"])
