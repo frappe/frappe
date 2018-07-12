@@ -51,8 +51,9 @@ table td.dt-cell {
 }
 
 .dt-header {
-	background-color: @panel-bg;
-	color: @text-muted;
+	--header-cell-bg: @panel-bg;
+	--cell-bg: @panel-bg;
+	--text-color: @text-muted;
 
 	.dt-row[data-is-filter] {
 		display: table-row !important;
@@ -79,6 +80,11 @@ table td.dt-cell {
 .dt-filter {
 	border: 1px solid @light-border-color;
 	border-radius: 3px;
+	background-color: #fff;
+}
+
+.dt-tree-node__toggle + a {
+	margin-left: 4px;
 }
 
 @keyframes breathe {

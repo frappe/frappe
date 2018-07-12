@@ -91,7 +91,7 @@ $.extend(frappe.datetime, {
 	},
 
 	get_user_fmt: function() {
-		return frappe.sys_defaults.date_format || "yyyy-mm-dd";
+		return frappe.sys_defaults && frappe.sys_defaults.date_format || "yyyy-mm-dd";
 	},
 
 	str_to_user: function(val, only_time = false) {

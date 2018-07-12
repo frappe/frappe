@@ -1,4 +1,4 @@
-import moment from 'moment';
+
 
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	make_input: function() {
@@ -9,7 +9,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	},
 	set_formatted_input: function(value) {
 		this._super(value);
-		if(!value) return;
+		if(!value || !this.datepicker) return;
 
 		let should_refresh = this.last_value && this.last_value !== value;
 
@@ -26,7 +26,6 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 				should_refresh = true;
 			}
 		}
-
 
 		if(should_refresh) {
 			this.datepicker.selectDate(frappe.datetime.str_to_obj(value));
@@ -123,7 +122,6 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	},
 	validate: function(value) {
 		if(value && !frappe.datetime.validate(value)) {
-			// webformTODO:
 			let sysdefaults = frappe.sys_defaults;
 			let date_format = sysdefaults && sysdefaults.date_format
 				? sysdefaults.date_format : 'yyyy-mm-dd';

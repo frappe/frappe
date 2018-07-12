@@ -18,6 +18,8 @@
 		"public/js/frappe/polyfill.js",
 		"public/js/lib/md5.min.js",
 		"public/js/frappe/provide.js",
+		"node_modules/moment/min/moment-with-locales.js",
+		"node_modules/moment-timezone/builds/moment-timezone-with-data.js",
 		"public/js/frappe/format.js",
 		"public/js/frappe/misc/number_format.js",
 		"public/js/frappe/misc/utils.js",
@@ -121,8 +123,8 @@
 		"public/js/lib/jquery/jquery.hotkeys.js",
 		"public/js/lib/summernote/summernote.js",
 		"public/js/lib/bootstrap.min.js",
-		"public/js/lib/moment/moment-with-locales.min.js",
-		"public/js/lib/moment/moment-timezone-with-data.min.js",
+		"node_modules/moment/min/moment-with-locales.min.js",
+		"node_modules/moment-timezone/builds/moment-timezone-with-data.min.js",
 		"public/js/lib/socket.io.min.js",
 		"public/js/lib/jSignature.min.js",
 		"public/js/frappe/translate.js",
@@ -344,6 +346,7 @@
 		"public/js/frappe/views/reports/print_tree.html"
 	],
 	"js/web_form.min.js": [
+		"public/js/frappe/misc/datetime.js",
 		"website/js/web_form.js",
 		"public/js/lib/summernote/summernote.js",
 		"public/js/lib/datepicker/datepicker.min.js",

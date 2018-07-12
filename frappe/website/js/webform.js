@@ -57,22 +57,23 @@ export default class WebForm {
 			return df;
 		});
 
-		this.fieldGroup = new frappe.ui.FieldGroup({
+		this.field_group = new frappe.ui.FieldGroup({
 			parent: this.wrapper,
 			fields: web_form.web_form_fields
 		});
 
-		this.fieldGroup.make();
+		this.field_group.make();
 
 		this.wrapper.find(".form-column").unwrap(".section-body");
 
 		if(doc) {
-			this.fieldGroup.set_values(doc);
+			this.field_group.set_values(doc);
 		}
 	}
 
 	get_values() {
-		let values = this.fieldGroup.get_values(this.allow_incomplete);
+		let values = this.field_group.get_values(this.allow_incomplete);
+		if (!values) return null;
 		values.doctype = this.doctype;
 		values.name = this.docname;
 		values.web_form_name = this.web_form_name;
