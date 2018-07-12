@@ -116,7 +116,6 @@ frappe.auto_repeat.render_schedule = function(frm) {
 		doc: frm.doc
 	}).done((r) => {
 		var wrapper = $(frm.fields_dict["auto_repeat_schedule"].wrapper);
-
 		wrapper.html(frappe.render_template ("auto_repeat_schedule", {"schedule_details" : r.message || []}  ));
 	});
 	frm.refresh_fields() ;
