@@ -376,6 +376,3 @@ def update_reference(docname, reference):
 	except Exception as e:
 		raise e
 		return "error"
-
-def on_doctype_update():
-	frappe.db.add_index("Auto Repeat", ["next_schedule_date"])
