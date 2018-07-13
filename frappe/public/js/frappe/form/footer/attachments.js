@@ -62,23 +62,13 @@ frappe.ui.form.Attachments = Class.extend({
 		}
 
 		var me = this;
-		var lock_icon = repl('<a href="%(file_path)s"><i class="%(icon)s fa-fw text-warning"></i></a> ', { 
-			file_path: '/desk#Form/File/' + fileid,
-			icon: attachment.is_private ? 'fa fa-lock' : 'fa fa-unlock-alt'
-		})
 
-		var $attach = $(repl('<li class="attachment-row">\
-				<a class="close">&times;</a>\
-				%(lock_icon)s\
-				<a href="%(file_url)s" target="_blank" title="%(file_name)s" \
-					class="ellipsis" style="max-width: calc(100% - 43px);">\
-					<span>%(file_name)s</span></a>\
-			</li>', {
-				lock_icon: lock_icon,
-				file_name: file_name,
-				file_url: frappe.urllib.get_full_url(file_url)
-			}))
-			.insertAfter(this.attachments_label.addClass("has-attachments"));
+		var $attach = $(frappe.render_template("attachment", { 
+			"file_path": "/desk#Form/File/" + fileid,
+			"icon": attachment.is_private ? "fa fa-lock" : "fa fa-unlock-alt",
+			"file_name": file_name,
+			"file_url": frappe.urllib.get_full_url(file_url)
+		})).insertAfter(this.attachments_label.addClass("has-attachments"));			
 
 		var $close =
 			$attach.find(".close")

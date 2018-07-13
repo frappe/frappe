@@ -265,7 +265,7 @@
 		"public/js/frappe/form/user_image.js",
 		"public/js/frappe/form/share.js",
 		"public/js/frappe/form/form_viewers.js",
-
+		"public/js/frappe/form/footer/attachment.html",
 		"public/js/frappe/form/footer/form_footer.html",
 		"public/js/frappe/form/footer/timeline.html",
 		"public/js/frappe/form/footer/timeline_item.html",
