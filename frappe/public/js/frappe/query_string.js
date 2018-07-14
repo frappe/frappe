@@ -5,12 +5,12 @@ function get_url_arg(name) {
 }
 
 function get_query_string(url) {
-    if(url.includes("?")) {
-        return url.slice(url.indexOf("?")+1);
-    }
-    else {
-        return "";
-    }
+	if(url.includes("?")) {
+		return url.slice(url.indexOf("?")+1);
+	}
+	else {
+		return "";
+	}
 }
 
 function get_query_params(query_string) {

@@ -225,8 +225,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	refresh() {
-        this.toggle_message(true);
-        let filters = this.get_filter_values(true);
+		this.toggle_message(true);
+		let filters = this.get_filter_values(true);
 		let query = frappe.utils.get_query_string(frappe.get_route_str());
 
 		if(query) {
@@ -263,50 +263,50 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_prepared_report_buttons(doc) {
-        if(doc){
-            this.page.add_inner_button(__("Download Report"), function (){
-                frappe.call({
-                    method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
-                    args: {"dn": doc.name}
-                });
-            });
+		if(doc){
+			this.page.add_inner_button(__("Download Report"), function (){
+				frappe.call({
+					method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
+					args: {"dn": doc.name}
+				});
+			});
 
 			frappe.route_options = {
 				report_name: doc.report_name,
 				filters: doc.filters
 			};
-            let filters = JSON.parse(JSON.parse(doc.filters));
-            this.set_filters(filters);
+			let filters = JSON.parse(JSON.parse(doc.filters));
+			this.set_filters(filters);
 			this.show_status(__(`
 				<span class="indicator orange">This report was <a href=#Form/Prepared%20Report/${doc.name}>generated</a>
 				on ${frappe.datetime.convert_to_user_tz(doc.report_end_time)}.
 				<a href=#List/Prepared%20Report>See all past reports</a>.</span>
 			`));
-	    }
+		}
 
 		this.page.add_inner_button(__("Generate New Report"), () => {
-            let mandatory = this.filters.filter(f => f.df.reqd);
-            let missing_mandatory = mandatory.filter(f => !f.get_value());
-            if (!missing_mandatory.length){
-                let filters = this.get_filter_values(true);
-                return new Promise(resolve => frappe.call({
-                    method: 'frappe.desk.query_report.background_enqueue_run',
-                    type: 'GET',
-                    args: {
-                        report_name: this.report_name,
-                        filters: filters
-                    },
-                    callback: resolve
-                    })).then(r => {
-                    const data = r.message;
+			let mandatory = this.filters.filter(f => f.df.reqd);
+			let missing_mandatory = mandatory.filter(f => !f.get_value());
+			if (!missing_mandatory.length){
+				let filters = this.get_filter_values(true);
+				return new Promise(resolve => frappe.call({
+					method: 'frappe.desk.query_report.background_enqueue_run',
+					type: 'GET',
+					args: {
+						report_name: this.report_name,
+						filters: filters
+					},
+					callback: resolve
+					})).then(r => {
+					const data = r.message;
 					let alert_message = `Report initiated. You can track its status
-                    <a class='text-info' target='_blank' href=${data.redirect_url}>here</a>`;
-                    frappe.show_alert({message: alert_message, indicator: 'orange'});
-                    this.toggle_nothing_to_show(true);
-                });
-            }
+					<a class='text-info' target='_blank' href=${data.redirect_url}>here</a>`;
+					frappe.show_alert({message: alert_message, indicator: 'orange'});
+					this.toggle_nothing_to_show(true);
+				});
+			}
 		}, "", "primary");
-    }
+	}
 
 	render_report(data) {
 		this.columns = this.prepare_columns(data.columns);
