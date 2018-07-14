@@ -63,7 +63,7 @@ def generate_report_result(report, filters=None, user=None):
 			# The JOB:
 			try:
 				res = frappe.get_attr(method_name)(frappe._dict(filters))
-			except:
+			except Exception:
 				report.prepared_report = 1
 				report.save()
 				frappe.throw("The report to too long to load. Please reload the page to generate it in background.")
