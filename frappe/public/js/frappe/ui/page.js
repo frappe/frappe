@@ -199,6 +199,7 @@ frappe.ui.Page = Class.extend({
 		return this.btn_report;
 	},
 
+
 	clear_action_of: function(btn) {
 		btn.addClass("hide").unbind("click").removeAttr("data-working-label");
 	},

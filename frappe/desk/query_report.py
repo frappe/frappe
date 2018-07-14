@@ -197,35 +197,6 @@ def get_prepared_report_result(report, filters, dn=""):
 	}
 
 
-def get_prepared_report_result(report, filters, dn=""):
-	latest_report_data = {}
-	doc_list = frappe.get_list("Prepared Report", filters={"status": "Completed", "report_name": report.name})
-	doc = None
-	if len(doc_list):
-		if dn:
-			# Get specified dn
-			doc = frappe.get_doc("Prepared Report", dn)
-		else:
-			# Get latest
-			doc = frappe.get_doc("Prepared Report", doc_list[0])
-
-		data = read_csv_content_from_attached_file(doc)
-		latest_report_data = {
-			"columns": data[0],
-			"result": data[1:]
-		}
-
-	return {
-		"prepared_report": True,
-		"data": latest_report_data,
-		"doc": doc
-		# "message": message,
-		# "chart": chart,
-		# "data_to_be_printed": data_to_be_printed,
-		# "status": status
-	}
-
-
 @frappe.whitelist()
 def export_query():
 	"""export from query reports"""
@@ -493,7 +464,6 @@ def get_columns_dict(columns):
 		columns_dict[col_dict["fieldname"]] = col_dict
 
 	return columns_dict
-
 
 def get_user_match_filters(doctypes, user):
 	match_filters = {}
