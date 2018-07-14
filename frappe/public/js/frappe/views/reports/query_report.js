@@ -687,6 +687,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.toggle_message(flag, __('Loading') + '...');
 	}
 
+
 	toggle_nothing_to_show(flag) {
 		this.toggle_message(flag, __('Nothing to show'));
 	}
