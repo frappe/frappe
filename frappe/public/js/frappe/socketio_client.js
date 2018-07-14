@@ -296,7 +296,7 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 					}
 				}
 			}
-		)
+		);
 
 		if (!frappe.socketio.socket.connected) {
 			if (fallback) {
