@@ -22,6 +22,7 @@ __title__ = "Frappe Framework"
 
 local = Local()
 
+
 class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
 	def __getattr__(self, key):
@@ -58,6 +59,7 @@ def _(msg, lang=None):
 	# return lang_full_dict according to lang passed parameter
 	return get_full_dict(lang).get(msg) or msg
 
+
 def as_unicode(text, encoding='utf-8'):
 	'''Convert to unicode if required'''
 	if isinstance(text, text_type):
@@ -68,6 +70,7 @@ def as_unicode(text, encoding='utf-8'):
 		return text_type(text, encoding)
 	else:
 		return text_type(text)
+
 
 def get_lang_dict(fortype, name=None):
 	"""Returns the translated language dict for the given type and name.
