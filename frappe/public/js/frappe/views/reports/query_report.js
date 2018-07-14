@@ -265,29 +265,28 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_prepared_report_buttons(doc) {
-        if(doc){
-            this.page.add_inner_button(__("Download Report"), function (){
-                frappe.call({
-                    method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
-                    args: {"dn": flags.name}
-                });
-            });
+		if(doc){
+			this.page.add_inner_button(__("Download Report"), function () {
+				frappe.call({
+					method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
+					args: {"dn": doc.name}
+				});
+			});
 
 			frappe.route_options = {
 				report_name: doc.report_name,
 				filters: doc.filters
 			};
-
-            let filters = JSON.parse(JSON.parse(doc.filters));
-
-            this.set_filters(filters);
 			
+			let filters = JSON.parse(JSON.parse(doc.filters));
+			this.set_filters(filters);
+
 			this.show_status(__(`
 				<span class="indicator orange">This report was <a href=#Form/Prepared%20Report/${doc.name}>generated</a>
 				on ${frappe.datetime.convert_to_user_tz(doc.report_end_time)}.
 				<a href=#List/Prepared%20Report>See all past reports</a>.</span>
 			`));
-	    }
+		}
 
 		this.page.add_inner_button(__("Generate New Report"), () => {
             let mandatory = this.filters.filter(f => f.df.reqd);
@@ -311,7 +310,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
                 });
             }
 		}, "", "primary");
-    }
+	}
 
 	render_report(data) {
 		this.columns = this.prepare_columns(data.columns);
