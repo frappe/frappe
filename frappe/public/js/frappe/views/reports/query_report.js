@@ -301,7 +301,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
                         filters: filters
                     },
                     callback: resolve
-                    })).then(r => {
+				})).then(r => {
 					const data = r.message;
 					let alert_message = `Report initiated. You can track its status 
 						<a class='text-info' target='_blank' href=${data.redirect_url}>here</a>`;
