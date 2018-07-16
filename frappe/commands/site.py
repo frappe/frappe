@@ -277,8 +277,12 @@ def _use(site, sites_path='.'):
 	use(site, sites_path=sites_path)
 
 def use(site, sites_path='.'):
-	with open(os.path.join(sites_path,  "currentsite.txt"), "w") as sitefile:
-		sitefile.write(site)
+	folders = [name for name in os.listdir(sites_path) if os.path.isdir(name) and name != 'assets']
+	if site in folders:
+		with open(os.path.join(sites_path,  "currentsite.txt"), "w") as sitefile:
+			sitefile.write(site)
+	else:
+		print("{} does not exist".format(site))
 
 @click.command('backup')
 @click.option('--with-files', default=False, is_flag=True, help="Take backup with files")
