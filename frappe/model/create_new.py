@@ -6,11 +6,11 @@ from __future__ import unicode_literals
 Create a new document with defaults set
 """
 
-import frappe
-from frappe.utils import nowdate, nowtime, now_datetime
-import frappe.defaults
-from frappe.model.db_schema import data_fieldtypes
 import copy
+import frappe
+import frappe.defaults
+from frappe.model import data_fieldtypes
+from frappe.utils import nowdate, nowtime, now_datetime
 from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 
 def get_new_doc(doctype, parent_doc = None, parentfield = None, as_dict=False):

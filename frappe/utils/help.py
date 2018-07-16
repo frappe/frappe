@@ -6,7 +6,7 @@ from __future__ import unicode_literals, print_function
 import frappe
 import hashlib
 
-from frappe.model.db_schema import DbManager
+from frappe.database.schema import DbManager
 from frappe.installer import get_root_connection
 from frappe.database import Database
 import os, subprocess

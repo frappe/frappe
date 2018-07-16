@@ -15,7 +15,8 @@ class PostgresTable():
 
 	def get_as_docfields(self):
 		docfields = []
-		columns = frappe.db.sql("select table_name, column_name, data_type, column_default from information_schema.columns where table_name='{0}'".format(self.name), as_dict=1)
+		columns = frappe.db.sql("""select table_name, column_name, data_type, column_default
+			from information_schema.columns where table_name='{0}'""".format(self.table_name), as_dict=1)
 		for column in columns:
 			docfields.append(dict(
 				fieldname = column.column_name,

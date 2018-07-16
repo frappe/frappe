@@ -13,7 +13,7 @@ from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
 from frappe.model import display_fieldtypes, data_fieldtypes
-from frappe.model.db_schema import varchar_len
+from frappe.database.schema import VARCHAR_LEN
 from frappe.utils.password import get_decrypted_password, set_encrypted_password
 
 _classes = {}
@@ -550,7 +550,7 @@ class BaseDocument(object):
 		for fieldname, value in iteritems(self.get_valid_dict()):
 			df = self.meta.get_field(fieldname)
 			if df and df.fieldtype in data_fieldtypes and frappe.db.type_map[df.fieldtype][0]=="varchar":
-				max_length = cint(df.get("length")) or cint(varchar_len)
+				max_length = cint(df.get("length")) or cint(VARCHAR_LEN)
 
 				if len(cstr(value)) > max_length:
 					if self.parentfield and self.idx:

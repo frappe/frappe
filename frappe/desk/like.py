@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 """Allow adding of likes to documents"""
 
 import frappe, json
-from frappe.model.db_schema import add_column
+from frappe.database.schema import add_column
 from frappe import _
 from frappe.utils import get_link_to_form
 

@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-# import warnings
 import os, re
 
 import frappe
@@ -8,12 +7,12 @@ import subprocess
 import psycopg2
 import psycopg2.extensions
 
-from frappe.database.postgres.schema import PostgresTable
 # cast decimals as floats
 DEC2FLOAT = psycopg2.extensions.new_type(
     psycopg2.extensions.DECIMAL.values,
     'DEC2FLOAT',
     lambda value, curs: float(value) if value is not None else None)
+
 psycopg2.extensions.register_type(DEC2FLOAT)
 
 from frappe.database.database import Database
@@ -164,4 +163,4 @@ class PostgresDatabase(Database):
 		pass
 
 	def get_indexes_for(self, table_name):
-		pass
+		frappe.db.sql("""SELECT indexname FROM pg_indexes WHERE tablename={table_name};""".format(table_name), as_list=True)

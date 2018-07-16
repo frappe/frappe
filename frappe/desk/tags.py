@@ -123,5 +123,5 @@ class DocTags:
 
 	def setup(self):
 		"""adds the _user_tags column if not exists"""
-		from frappe.model.db_schema import add_column
+		from frappe.database.schema import add_column
 		add_column(self.dt, "_user_tags", "Data")

@@ -5,17 +5,19 @@
 # --------------------
 
 from __future__ import unicode_literals
-import datetime
-import frappe
-import frappe.defaults
-import frappe.async
-from time import time
+
 import re
+import frappe
+import datetime
+import frappe.async
+import frappe.defaults
 import frappe.model.meta
-from frappe.utils import now, cstr, cast_fieldtype
+
 from frappe import _
-from frappe.model.utils.link_count import flush_local_link_count
+from time import time
+from frappe.utils import now, cstr, cast_fieldtype
 from frappe.utils.background_jobs import execute_job, get_queue
+from frappe.model.utils.link_count import flush_local_link_count
 
 # imports - compatibility imports
 from six import (
@@ -32,8 +34,15 @@ class Database:
 	   the `db` global variable. the `sql` method is also global to run queries
 	"""
 	VARCHAR_LEN = 140
-	STANDARD_VARCHAR_COLUMNS = ('name', 'owner', 'modified_by', 'parent', 'parentfield', 'parenttype')
+
 	OPTIONAL_COLUMNS = ["_user_tags", "_comments", "_assign", "_liked_by"]
+	DEFAULT_SHORTCUTS = ['_Login', '__user', '_Full Name', 'Today', '__today', "now", "Now"]
+	STANDARD_VARCHAR_COLUMNS = ('name', 'owner', 'modified_by', 'parent', 'parentfield', 'parenttype')
+	DEFAULT_COLUMNS = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'parent',
+		'parentfield', 'parenttype', 'idx']
+
+	class InvalidColumnName(frappe.ValidationError): pass
+
 
 	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default=0):
 		self.setup_type_map()
@@ -867,7 +876,7 @@ class Database:
 
 			# remove index length if present e.g. (10) from index name
 			index_name = re.sub(r"\s*\([^)]+\)\s*", r"", index_name)
-
+			
 		if not frappe.db.sql("""show index from `tab%s` where Key_name="%s" """ % (doctype, index_name)):
 			frappe.db.commit()
 			frappe.db.sql("""alter table `tab%s`

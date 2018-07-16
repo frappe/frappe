@@ -8,7 +8,7 @@ import json
 from frappe.core.doctype.user.user import extract_mentions
 from frappe.utils import get_fullname, get_link_to_form
 from frappe.website.render import clear_cache
-from frappe.model.db_schema import add_column
+from frappe.database.schema import add_column
 from frappe.exceptions import ImplicitCommitError
 
 def on_trash(doc):

@@ -10,7 +10,7 @@ import unittest
 
 test_records = frappe.get_test_records('Custom Field')
 
-from frappe.model.db_schema import InvalidColumnName
+from frappe.database.schema import InvalidColumnName
 
 class TestCustomField(unittest.TestCase):
 	pass
