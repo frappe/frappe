@@ -36,9 +36,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		let tasks = [
 			this.setup_defaults,
 			this.setup_page,
-			this.setup_report_wrapper
+			this.setup_report_wrapper,
+			this.setup_events
 		].map(fn => fn.bind(this));
-
 		this.init_promise = frappe.run_serially(tasks);
 		return this.init_promise;
 	}
@@ -58,6 +58,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.refresh = frappe.utils.throttle(this.refresh, 300);
 
 		this.menu_items = [];
+	}
+
+	setup_events() {
+		frappe.realtime.on("report_generated", (data) => {
+			if(data.report_name) {
+				let alert_message = `Report ${this.report_name} generated.  
+					<a target='_blank' href="#query-report/${this.report_name}">View</a>`;
+				frappe.show_alert({message: alert_message, indicator: 'orange'});
+			}
+		});
 	}
 
 	load() {
@@ -143,7 +153,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.filters = filters.map(df => {
 			if (df.fieldtype === 'Break') return;
 
-			const f = this.page.add_field(df);
+			let f = this.page.add_field(df);
 
 			if (df.default) {
 				f.set_input(df.default);
@@ -159,7 +169,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 			};
 
+			f = Object.assign(f, df);
+
 			return f;
+
 		}).filter(Boolean);
 
 		if (this.filters.length === 0) {
@@ -168,11 +181,30 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		} else {
 			this.page.show_form();
 		}
+
+		// set the field 'query_report_filters_by_name' first
+		// as they can be used in
+		// setting/triggering the filters
+		this.set_filters_by_name();
+	}
+
+	set_filters(filters) {
+		this.filters.map(f => {
+			f.set_input(filters[f.fieldname]);
+		});
+	}
+
+	set_filters_by_name() {
+		frappe.query_report_filters_by_name = {};
+		for (var i in this.filters) {
+			frappe.query_report_filters_by_name[this.filters[i].df.fieldname] = this.filters[i];
+		}
 	}
 
 	set_route_filters() {
 		if(frappe.route_options) {
 			const fields = Object.keys(frappe.route_options);
+
 			const filters_to_set = this.filters.filter(f => fields.includes(f.df.fieldname));
 
 			const promises = filters_to_set.map(f => {
@@ -195,20 +227,34 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	refresh() {
 		this.toggle_message(true);
-		const filters = this.get_filter_values(true);
+		let filters = this.get_filter_values(true);
+
+		let query = frappe.utils.get_query_string(frappe.get_route_str());
+
+		if(query) {
+			let obj = frappe.utils.get_query_params(query);
+			filters = Object.assign(filters || {}, obj);
+		}
+
 		return new Promise(resolve => frappe.call({
 			method: 'frappe.desk.query_report.run',
 			type: 'GET',
 			args: {
 				report_name: this.report_name,
-				filters: filters
+				filters: filters,
 			},
 			callback: resolve
 		})).then(r => {
-			const data = r.message;
+			let data = r.message;
 
+			this.hide_status();
+
+			if (data.prepared_report){
+				this.prepared_report = true;
+				this.add_prepared_report_buttons(data.doc);
+				data = data.data;
+			}
 			this.toggle_message(false);
-
 			if (data.result && data.result.length) {
 				this.render_chart(data);
 				this.render_report(data);
@@ -218,9 +264,58 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		});
 	}
 
+	add_prepared_report_buttons(doc) {
+		if(doc){
+			this.page.add_inner_button(__("Download Report"), function (){
+				frappe.call({
+					method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
+					args: {"dn": doc.name}
+				});
+			});
+
+			frappe.route_options = {
+				report_name: doc.report_name,
+				filters: doc.filters
+			};
+			
+			let filters = JSON.parse(JSON.parse(doc.filters));
+			this.set_filters(filters);
+
+			this.show_status(__(`
+				<span class="indicator orange">This report was <a href=#Form/Prepared%20Report/${doc.name}>generated</a>
+				on ${frappe.datetime.convert_to_user_tz(doc.report_end_time)}.
+				<a href=#List/Prepared%20Report>See all past reports</a>.</span>
+			`));
+		}
+
+		this.page.add_inner_button(__("Generate New Report"), () => {
+			let mandatory = this.filters.filter(f => f.df.reqd);
+			let missing_mandatory = mandatory.filter(f => !f.get_value());
+			if (!missing_mandatory.length){
+				let filters = this.get_filter_values(true);
+				return new Promise(resolve => frappe.call({
+					method: 'frappe.desk.query_report.background_enqueue_run',
+					type: 'GET',
+					args: {
+						report_name: this.report_name,
+						filters: filters
+					},
+					callback: resolve
+				})).then(r => {
+					const data = r.message;
+					let alert_message = `Report initiated. You can track its status 
+						<a class='text-info' target='_blank' href=${data.redirect_url}>here</a>`;
+					frappe.show_alert({message: alert_message, indicator: 'orange'});
+					this.toggle_nothing_to_show(true);
+				});
+			}
+		}, "", "primary");
+	}
+
 	render_report(data) {
 		this.columns = this.prepare_columns(data.columns);
 		this.data = this.prepare_data(data.result);
+
 		this.tree_report = this.data.some(d => 'indent' in d);
 
 		const columns = this.get_visible_columns();
@@ -563,9 +658,22 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	setup_report_wrapper() {
 		if (this.$report) return;
+
+		let inner_toolbar = this.page.main.find('.form-inner-toolbar');
+		this.$status = $(`<div class="form-message text-muted small"></div>`)
+			.hide().insertAfter(inner_toolbar);
+
 		this.$chart = $('<div class="chart-wrapper">').hide().appendTo(this.page.main);
 		this.$report = $('<div class="report-wrapper">').appendTo(this.page.main);
 		this.$message = $(this.message_div('')).hide().appendTo(this.page.main);
+	}
+
+	show_status(status_message) {
+		this.$status.html(status_message).show();
+	}
+
+	hide_status() {
+		this.$status.hide();
 	}
 
 	message_div(message) {
@@ -577,6 +685,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	toggle_loading(flag) {
 		this.toggle_message(flag, __('Loading') + '...');
 	}
+
 
 	toggle_nothing_to_show(flag) {
 		this.toggle_message(flag, __('Nothing to show'));
@@ -592,7 +701,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.$report.toggle(!flag);
 		this.$chart.toggle(!flag);
 	}
-
 	// backward compatibility
 	get get_values() {
 		return this.get_filter_values;
