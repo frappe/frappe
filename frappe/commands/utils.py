@@ -312,6 +312,7 @@ def mariadb(context):
 		'-p'+frappe.conf.db_password,
 		frappe.conf.db_name,
 		'-h', frappe.conf.db_host or "localhost",
+		'--pager=less -SFX',
 		"-A"])
 
 @click.command('console')
