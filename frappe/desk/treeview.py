@@ -22,16 +22,15 @@ def get_all_nodes(doctype, parent, tree_method, **filters):
 
 	if 'is_root' in filters:
 		del filters['is_root']
-
-	to_check = [d.value for d in data if d.expandable]
+	to_check = [d.get('value') for d in data if d.get('expandable')]
 
 	while to_check:
 		parent = to_check.pop()
-		data = tree_method(doctype, parent, is_root = False, **filters)
+		data = tree_method(doctype, parent, is_root=False, **filters)
 		out.append(dict(parent=parent, data=data))
 		for d in data:
-			if d.expandable:
-				to_check.append(d.value)
+			if d.get('expandable'):
+				to_check.append(d.get('value'))
 
 	return out
 

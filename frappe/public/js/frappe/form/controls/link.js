@@ -4,6 +4,8 @@
 // link validation
 // custom queries
 // add_fetches
+import Awesomplete from 'awesomplete';
+
 frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
@@ -134,7 +136,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			if (!me.$input.cache[doctype]) {
 				me.$input.cache[doctype] = {};
 			}
-
+			
 			var term = e.target.value;
 
 			if (me.$input.cache[doctype][term]!=null) {
@@ -145,6 +147,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			var args = {
 				'txt': term,
 				'doctype': doctype,
+				'ignore_user_permissions': me.df.ignore_user_permissions
 			};
 
 			me.set_custom_query(args);

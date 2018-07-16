@@ -86,6 +86,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	load_report() {
+		this.page.clear_inner_toolbar();
 		this.route = frappe.get_route();
 		this.page_name = frappe.get_route_str();
 		this.report_name = this.route[1];
@@ -705,3 +706,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		return this.get_filter_values;
 	}
 };
+
+Object.defineProperty(frappe, 'query_report_filters_by_name', {
+	get() {
+		if (!frappe.query_report.filters) return null;
+		return frappe.query_report.filters.reduce((f, acc) => {
+			acc[f.df.fieldname] = f;
+			return acc;
+		}, {});
+	}
+});
