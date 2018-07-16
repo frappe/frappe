@@ -43,8 +43,8 @@ def run_background(instance):
 	instance.save()
 
 	frappe.publish_realtime(
-		'report_generated', 
-		{"report_name": instance.report_name}, 
+		'report_generated',
+		{"report_name": instance.report_name},
 		user=frappe.session.user
 	)
 
