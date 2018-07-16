@@ -1,30 +1,23 @@
 from __future__ import unicode_literals
 
-import sys, os
 import frappe
+import sys, os
 import warnings
 
-from frappe.utils import get_datetime
-
+import pymysql
 from pymysql.times import TimeDelta
 from pymysql.constants 	import ER, FIELD_TYPE
 from pymysql.converters import conversions
-import pymysql
-import pymysql.err
 
+from frappe.utils import get_datetime
+from markdown2 import UnicodeWithAttrs
+from six import PY2, binary_type, text_type
 from frappe.database.database import Database
 from frappe.database.mariadb.schema import MariaDBTable
 
 
-import six
-
 # imports - compatibility imports
-from six import (
-	binary_type,
-	text_type
-)
 
-from markdown2 import UnicodeWithAttrs
 
 class MariaDBDatabase(Database):
 	ProgrammingError = pymysql.err.ProgrammingError
@@ -80,7 +73,7 @@ class MariaDBDatabase(Database):
 			UnicodeWithAttrs: conversions[text_type]
 		})
 
-		if six.PY2:
+		if PY2:
 			conversions.update({
 				TimeDelta: conversions[binary_type]
 			})
@@ -115,7 +108,7 @@ class MariaDBDatabase(Database):
 		if percent:
 			s = s.replace("%", "%%")
 
-		return s
+		return "'" + s + "'"
 
 	# column type
 	def is_type_number(self, code):
