@@ -2,7 +2,6 @@
 # Copyright (c) 2018, Frappe Technologies and Contributors
 # See license.txt
 from __future__ import unicode_literals
-
 import unittest
 
 class TestUniquenessRule(unittest.TestCase):

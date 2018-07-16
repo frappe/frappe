@@ -8,13 +8,16 @@ from frappe import _
 from frappe.model.document import Document
 
 class UniquenessRule(Document):
-	pass
+	def autoname(self):
+		self.name = self.doctype_name
 
 def check_uniqueness(doc, method):
 	new_doc = doc.as_dict()
-	doctype_in_uniqueness_rule = frappe.db.get_value("Uniqueness Rule",{"doctype_name":new_doc.doctype})
+	frappe.cache().set_value("is_doctype", frappe.db.get_value("Uniqueness Rule", {"doctype_name":new_doc.doctype}))
+	doctype_in_uniqueness_rule = frappe.cache().get_value("is_doctype")
 	if doctype_in_uniqueness_rule:
-		uniqueness_doc = frappe.get_doc("Uniqueness Rule",{"doctype_name":new_doc.doctype})
+		frappe.cache().set_value("get_doc", frappe.get_doc("Uniqueness Rule", {"doctype_name":new_doc.doctype}))
+		uniqueness_doc = frappe.cache().get_value("get_doc")
 		uniqueness_doc_fields = [x.field for x in uniqueness_doc.field_names]
 
 		if method == "before_insert":
@@ -23,9 +26,9 @@ def check_uniqueness(doc, method):
 			filters = {"name":("!=",new_doc.name)}
 		for i in uniqueness_doc_fields:
 			filters[i] = new_doc.get(i)
-		msg = message(new_doc.doctype,uniqueness_doc_fields)
+		msg = message(new_doc.doctype, uniqueness_doc_fields)
 
-		with_same_values = frappe.db.get_value(new_doc.doctype,filters=filters)
+		with_same_values = frappe.db.get_value(new_doc.doctype, filters=filters)
 		if with_same_values:
 			frappe.throw(_("{0}").format(msg))
 
