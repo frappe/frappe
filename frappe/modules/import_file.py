@@ -7,6 +7,13 @@ import frappe, os, json
 from frappe.modules import get_module_path, scrub_dt_dn
 from frappe.utils import get_datetime_str
 
+ignore_values = {
+	"Report": ["disabled", "prepared_report"],
+	"Print Format": ["disabled"],
+	"Notification": ["enabled"],
+	"Print Style": ["disabled"]
+}
+
 def import_files(module, dt=None, dn=None, force=False, pre_process=None, reset_permissions=False):
 	if type(module) is list:
 		out = []
@@ -83,13 +90,6 @@ def read_doc_from_file(path):
 		raise IOError('%s missing' % path)
 
 	return doc
-
-ignore_values = {
-	"Report": ["disabled"],
-	"Print Format": ["disabled"],
-	"Notification": ["enabled"],
-	"Print Style": ["disabled"]
-}
 
 ignore_doctypes = [""]
 

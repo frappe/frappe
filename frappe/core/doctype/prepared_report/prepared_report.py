@@ -48,9 +48,6 @@ def run_background(instance):
 		user=frappe.session.user
 	)
 
-	# TODO:
-	# Send Email to user
-
 
 def remove_header_meta(columns):
 	column_list = []
