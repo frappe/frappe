@@ -209,6 +209,9 @@ class BaseDocument(object):
 				elif df.fieldtype in ("Datetime", "Date") and d[fieldname]=="":
 					d[fieldname] = None
 
+				elif df.fieldtype == "Time" and d[fieldname] == "":
+					d[fieldname] = None
+
 				elif df.get("unique") and cstr(d[fieldname]).strip()=="":
 					# unique empty field should be set to None
 					d[fieldname] = None
@@ -619,11 +622,10 @@ class BaseDocument(object):
 
 	def _save_passwords(self):
 		'''Save password field values in __Auth table'''
-		if self.flags.ignore_save_passwords is True:
+		if self.flags.ignore_save_passwords:
 			return
 
 		for df in self.meta.get('fields', {'fieldtype': ('=', 'Password')}):
-			if self.flags.ignore_save_passwords and df.fieldname in self.flags.ignore_save_passwords: continue
 			new_password = self.get(df.fieldname)
 			if new_password and not self.is_dummy_password(new_password):
 				# is not a dummy password like '*****'
