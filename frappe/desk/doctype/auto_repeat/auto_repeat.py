@@ -18,7 +18,7 @@ month_map = {'Monthly': 1, 'Quarterly': 3, 'Half-yearly': 6, 'Yearly': 12}
 
 class AutoRepeat(Document):
 	def onload(self):
-  		self.set_onload("auto_repeat_schedule", self.get_auto_repeat_schedule())
+		self.set_onload("auto_repeat_schedule", self.get_auto_repeat_schedule())
 
 	def validate(self):
 		self.update_status()
@@ -105,10 +105,14 @@ class AutoRepeat(Document):
 		start_date_copy = getdate(self.start_date)
 		end_date_copy = getdate(self.end_date)
 		today_copy = frappe.utils.datetime.date.today()
+
 		if start_date_copy < today_copy:
 			start_date_copy = today_copy
+
 		if not self.end_date:
-			end_date_copy = add_days(today_copy, 365)
+			days = 60 if self.frequency in ['Daily', 'Weekly'] else 365
+			end_date_copy = add_days(today_copy, days)
+
 		while (getdate(start_date_copy) < getdate(end_date_copy)):
 			start_date_copy = get_next_schedule_date(start_date_copy, self.frequency, self.repeat_on_day)
 			row = {
@@ -117,6 +121,7 @@ class AutoRepeat(Document):
 				"next_scheduled_date" : start_date_copy
 			}
 			schedule_details.append(row)
+
 		return schedule_details
 
 def get_next_schedule_date(start_date, frequency, repeat_on_day):
@@ -131,21 +136,21 @@ def get_next_schedule_date(start_date, frequency, repeat_on_day):
 def make_auto_repeat_entry(date=None):
 	date = date or today()
 	for data in get_auto_repeat_entries(date):
+
 		schedule_date = getdate(data.next_schedule_date)
 		while schedule_date <= getdate(today()):
 			create_documents(data, schedule_date)
-			schedule_date = get_next_schedule_date(
-				schedule_date, data.frequency, data.repeat_on_day)
+			schedule_date = get_next_schedule_date(schedule_date, data.frequency, data.repeat_on_day)
 
-			if schedule_date and not frappe.db.get_value('Auto Repeat', data.name, 'disabled'):
-				frappe.db.set_value('Auto Repeat', data.name, 'next_schedule_date', schedule_date)
+		if schedule_date and not frappe.db.get_value('Auto Repeat', data.name, 'disabled'):
+			frappe.db.set_value('Auto Repeat', data.name, 'next_schedule_date', schedule_date)
 
 def get_auto_repeat_entries(date):
 	return frappe.db.sql(""" select * from `tabAuto Repeat`
 		where docstatus = 1 and next_schedule_date <=%s
 			and reference_document is not null and reference_document != ''
 			and next_schedule_date <= ifnull(end_date, '2199-12-31')
-			and ifnull(disabled, 0) = 0 and status != 'Stopped' """, (date), as_dict=1)
+			and disabled = 0 and status != 'Stopped' """, (date), as_dict=1)
 
 def create_documents(data, schedule_date):
 	try:
