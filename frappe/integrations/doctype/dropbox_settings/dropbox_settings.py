@@ -216,9 +216,11 @@ def get_uploaded_files_meta(dropbox_folder, dropbox_client):
 		if isinstance(e.error, dropbox.files.ListFolderError):
 			return frappe._dict({"entries": []})
 		else:
-			raise 
+			raise
 
 def get_dropbox_settings(redirect_uri=False):
+	if not frappe.conf.dropbox_broker_site:
+		frappe.conf.dropbox_broker_site = 'https://dropbox.erpnext.com'
 	settings = frappe.get_doc("Dropbox Settings")
 	app_details = {
 		"app_key": settings.app_access_key or frappe.conf.dropbox_access_key,
@@ -246,6 +248,8 @@ def get_dropbox_settings(redirect_uri=False):
 
 @frappe.whitelist()
 def get_redirect_url():
+	if not frappe.conf.dropbox_broker_site:
+		frappe.conf.dropbox_broker_site = 'https://dropbox.erpnext.com'
 	url = "{0}/api/method/dropbox_erpnext_broker.www.setup_dropbox.get_authotize_url".format(frappe.conf.dropbox_broker_site)
 
 	try:
