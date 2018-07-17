@@ -160,11 +160,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			if (df.get_query) f.get_query = df.get_query;
 			if (df.on_change) f.on_change = df.on_change;
+
 			df.onchange = () => {
 				if (f.on_change) {
 					f.on_change(this);
 				} else {
-					this.refresh();
+					if (!this._no_refresh) {
+						this.refresh();
+					}
 				}
 			};
 
@@ -432,6 +435,40 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		return filters;
 	}
 
+	get_filter(fieldname) {
+		const field = this.filters.find(f => f.df.fieldname === fieldname);
+		if (!field) {
+			console.warn(`[Query Report] Invalid filter: ${fieldname}`);
+		}
+		return field;
+	}
+
+	get_filter_value(fieldname) {
+		const field = this.get_filter(fieldname);
+		return field ? field.get_value() : null;
+	}
+
+	set_filter_value(fieldname, value) {
+		let field_value_map = {};
+		if (typeof fieldname === 'string') {
+			field_value_map[fieldname] = value;
+		} else {
+			field_value_map = fieldname;
+		}
+
+		this._no_refresh = true;
+		Object.keys(field_value_map)
+			.forEach((fieldname, i, arr) => {
+				const value = field_value_map[fieldname];
+
+				if (i === arr.length - 1) {
+					this._no_refresh = false;
+				}
+
+				this.get_filter(fieldname).set_value(value);
+			});
+	}
+
 	set_breadcrumbs() {
 		if (!this.report_doc || !this.report_doc.ref_doctype) return;
 		const ref_doctype = frappe.get_meta(this.report_doc.ref_doctype);
@@ -491,9 +528,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	get_filters_html_for_print() {
 		const applied_filters = this.get_filter_values();
 		return Object.keys(applied_filters)
-			.map(filter_name => {
-				const label = frappe.query_report_filters_by_name[filter_name].df.label;
-				const value = applied_filters[filter_name];
+			.map(fieldname => {
+				const label = frappe.query_report.get_filter(fieldname).df.label;
+				const value = applied_filters[fieldname];
 				return `<h6>${__(label)}: ${value}</h6>`;
 			})
 			.join('');
@@ -673,10 +710,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 Object.defineProperty(frappe, 'query_report_filters_by_name', {
 	get() {
-		if (!frappe.query_report.filters) return null;
-		return frappe.query_report.filters.reduce((acc, f) => {
-			acc[f.df.fieldname] = f;
-			return acc;
-		}, {});
+		console.warn('[Query Report] frappe.query_report_filters_by_name is deprecated. Please use the new api: frappe.query_report.get_filter_value(fieldname) and frappe.query_report.set_filter_value(fieldname, value)');
+		return null;
 	}
 });
