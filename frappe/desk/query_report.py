@@ -60,12 +60,8 @@ def generate_report_result(report, filters=None, user=None):
 
 			res = []
 
-			# The JOB:
-			try:
-				res = frappe.get_attr(method_name)(frappe._dict(filters))
-			except Exception:
-				frappe.db.set_value('Report', report.name, 'prepared_report', 1)
-				frappe.throw("The report to too long to load. Please reload the page to generate it in background.")
+			# The JOB
+			res = frappe.get_attr(method_name)(frappe._dict(filters))
 
 			columns, result = res[0], res[1]
 			if len(res) > 2:
