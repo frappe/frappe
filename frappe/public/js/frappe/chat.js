@@ -2628,9 +2628,11 @@ frappe.chat.render = (render = true, force = false) =>
 
 		// Render if frappe-chat-toggle doesn't exist.
 		if ( frappe.utils.is_empty($placeholder.has('.frappe-chat-toggle')) ) {
+
+			// Note: custom padding set visually for icon
 			const $template = $(`
 				<a class="dropdown-toggle frappe-chat-toggle" data-toggle="dropdown">
-					<div>
+					<div style="padding-top: 3px;">
 						<i class="octicon octicon-comment-discussion"/>
 					</div>
 				</a>
