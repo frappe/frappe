@@ -549,6 +549,8 @@ def in_words(integer, in_million=True):
 		ret = num2words(integer, lang=locale)
 	except NotImplementedError:
 		ret = num2words(integer, lang='en')
+	except OverflowError:
+		ret = num2words(integer, lang='en')
 	return ret.replace('-', ' ')
 
 def is_html(text):

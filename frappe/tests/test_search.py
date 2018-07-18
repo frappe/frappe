@@ -26,3 +26,15 @@ class TestSearch(unittest.TestCase):
 		self.assertRaises(frappe.DataError,
 			search_link, 'DocType', 'Customer', query=None, filters=None,
 			page_length=20, searchfield='name or (select * from tabSessions)')
+
+		self.assertRaises(frappe.DataError,
+			search_link, 'DocType', 'Customer', query=None, filters=None,
+			page_length=20, searchfield='*')
+
+		self.assertRaises(frappe.DataError,
+			search_link, 'DocType', 'Customer', query=None, filters=None,
+			page_length=20, searchfield=';')
+
+		self.assertRaises(frappe.DataError,
+			search_link, 'DocType', 'Customer', query=None, filters=None,
+			page_length=20, searchfield=';')
