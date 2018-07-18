@@ -15,7 +15,7 @@ import frappe.desk.reportview
 from frappe.utils.csvutils import read_csv_content_from_attached_file
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
-
+from multiprocessing import Process, Queue
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
@@ -60,16 +60,32 @@ def generate_report_result(report, filters=None, user=None):
 
 			res = []
 
-			# The JOB
-			res = frappe.get_attr(method_name)(frappe._dict(filters))
+			q = Queue()
+			p = Process(target=run_report_execute_method_as_process, args=(q, method_name, filters))
+			p.daemon = True
+			timeout = 30
 
-			columns, result = res[0], res[1]
-			if len(res) > 2:
-				message = res[2]
-			if len(res) > 3:
-				chart = res[3]
-			if len(res) > 4:
-				data_to_be_printed = res[4]
+			p.start()
+
+			# Wait for timeout seconds
+			p.join(timeout)
+
+			if p.is_alive():
+				frappe.db.set_value('Report', report.name, 'prepared_report', 1)
+				frappe.throw("The report to too long to load. Please reload the page to generate it in the background.")
+				p.terminate()
+				p.join()
+			else:
+				res = q.get()
+
+			if res:
+				columns, result = res[0], res[1]
+				if len(res) > 2:
+					message = res[2]
+				if len(res) > 3:
+					chart = res[3]
+				if len(res) > 4:
+					data_to_be_printed = res[4]
 
 	if result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
@@ -86,6 +102,9 @@ def generate_report_result(report, filters=None, user=None):
 		"status": status
 	}
 
+def run_report_execute_method_as_process(queue, method_name, filters):
+	res = frappe.get_attr(method_name)(frappe._dict(filters))
+	queue.put(res)
 
 @frappe.whitelist()
 def background_enqueue_run(report_name, filters=None, user=None):
