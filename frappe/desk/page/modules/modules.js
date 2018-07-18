@@ -18,7 +18,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 			.show(frappe.session.user);
 	});
 
-	let explore_link = frappe.boot.explore_links ? frappe.boot.explore_links[0] : null;
+	let explore_link = frappe.boot.page_quick_links ? frappe.boot.page_quick_links[0] : null;
 
 	if(explore_link) {
 		this.page.set_secondary_action(

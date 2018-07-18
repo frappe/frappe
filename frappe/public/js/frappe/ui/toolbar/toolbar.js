@@ -30,49 +30,47 @@ frappe.ui.toolbar.Toolbar = class {
 	}
 
 	setup_modules_dropdown() {
-		let get_li_item = (name, label, link) => {
-			return $(`<li>
-				<a class="ellipsis" data-name="${name}" href="#${link}">
-					<span>${label}</span>
-				</a>
-			</li>`);
+		const modules_menu = $(".modules-menu");
+		const places_menu = $(".places-menu");
+		const explore_menu = $(".explore-menu");
+
+		let get_link = (name, label, link) => {
+			return $(`<a class="ellipsis" data-name="${name}" href="#${link}">
+				<span>${label}</span>
+			</a>`);
 		};
 
-		let get_ul = (colsize = 6) => {
-			return $(`<ul class="explore-menu modules-menu col-md-${colsize}">
-				<li class="h6 menu-heading text-muted">${__("MODULES")}</li>
-			</ul>`);
-		}
+		const core = frappe.boot.core_modules.map(d => d.label || d.module_name);
 
-		let core = ["Setup", "Tools", "Integrations", "Contacts", "Website", "Developer", "Learn", "Marketplace"];
-
-		let links_list = frappe.get_desktop_icons(true)
+		const all_links = frappe.get_desktop_icons(true)
 			.filter(d => d.type==='module' && !d.blocked)
 			.sort((a, b) => { return (a._label > b._label) ? 1 : -1; });
 
-		links_list.forEach(m => { 
+		let modules = [];
+		let places = [];
+		all_links.forEach(m => { 
 			m.name = m.module_name; 
 			m.label = m._label; 
+
+			if(core.includes(m.label)) {
+				places.push(m);
+			} else {
+				modules.push(m);
+			}
 		});
 
-		links_list = links_list.concat(frappe.boot.explore_links);
-
-		links_list = links_list.filter(d => !core.includes(d.label));
-
-		let chunk = 30;
-		let colsize = 6;
-		
-		var i, j, temparray;
-		for (i=0,j=links_list.length; i<j; i+=chunk) {
-			temparray = links_list.slice(i,i+chunk);
-
-			let ul = get_ul(colsize);
-			temparray.forEach(m => {
-				ul.append(get_li_item(m.name, m.label, m.link));
-			})
-
-			$(".places-menu").before(ul);
+		// Add explore links to places
+		if(frappe.boot.page_quick_links) {
+			places = frappe.boot.page_quick_links.concat(places);
 		}
+
+		modules.forEach(m => {
+			modules_menu.append(get_link(m.name, m.label, m.link));
+		})
+
+		places.forEach(m => {
+			places_menu.append(get_link(m.name, m.label, m.link));
+		})
 
 		$(".menu-heading.collapsible").on('click', function() {
 			$(".menu-heading.collapsible").toggleClass("open");
@@ -174,6 +172,11 @@ frappe.ui.toolbar.Toolbar = class {
 		});
 
 		$(document).on("page-change", function () {
+			// Show Desk link if inner route
+			const desk_link = $(".places-menu .desk-link-item");
+			const is_route_present = !!frappe.get_route_str().length;
+			desk_link.toggle(is_route_present);
+
 			var $help_links = $(".dropdown-help #help-links");
 			$help_links.html("");
 
