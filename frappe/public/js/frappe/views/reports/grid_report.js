@@ -146,6 +146,7 @@ frappe.views.GridReport = Class.extend({
 	},
 	setup_filters: function() {
 		var me = this;
+
 		$.each(me.filter_inputs, function(i, v) {
 			var opts = v.get(0).opts;
 			if(opts.fieldtype == "Select" && in_list(me.doctypes, opts.link)) {
@@ -175,7 +176,7 @@ frappe.views.GridReport = Class.extend({
 
 		this.page.add_menu_item(__("Print"), function() {
 			frappe.ui.get_print_settings(false, function(print_settings) {
-				frappe.render_grid({grid: me.grid, title: me.page.title, print_settings: print_settings });
+				frappe.render_grid({grid: me.grid, title: me.page.title, print_settings: print_settings, report: me});
 			});
 
 		}, true);
@@ -381,7 +382,6 @@ frappe.views.GridReport = Class.extend({
 			background-color: #eee; '>")
 			.appendTo(this.wrapper);
 		this.id = frappe.dom.set_unique_id(this.grid_wrapper.get(0));
-
 		// zero-value check
 		$('<div class="checkbox show-zero">\
 				<label><input type="checkbox"> '+__('Show rows with zero values')
