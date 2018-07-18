@@ -56,7 +56,7 @@
 
 		.menu-heading {
 			margin: 0;
-			padding: 14px 14px;
+			padding: 12px 14px;
 			font-size: 11px;
 		}
 
@@ -155,6 +155,10 @@
 	
 	.menu-container {
 		display: flex;
+
+		ul:nth-child(2n) {
+			background-color: @light-bg
+		}
 	}
 }
 
@@ -193,9 +197,9 @@
 }
 
 .dropdown-explore .dropdown-menu {
-	width: 500px !important;
+	width: 400px !important;
 
-	max-height: 500px;
+	max-height: 520px;
 }
 
 @media (max-width: 767px) {

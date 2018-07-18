@@ -38,9 +38,13 @@ frappe.ui.toolbar.Toolbar = class {
 			</li>`);
 		};
 
-		let get_ul = (colsize = 3) => {
-			return $(`<ul class="explore-menu modules-menu col-md-${colsize}"></ul>`);
+		let get_ul = (colsize = 6) => {
+			return $(`<ul class="explore-menu modules-menu col-md-${colsize}">
+				<li class="h6 menu-heading text-muted">${__("MODULES")}</li>
+			</ul>`);
 		}
+
+		let core = ["Setup", "Tools", "Integrations", "Contacts", "Website", "Developer", "Learn", "Marketplace"];
 
 		let links_list = frappe.get_desktop_icons(true)
 			.filter(d => d.type==='module' && !d.blocked)
@@ -53,9 +57,11 @@ frappe.ui.toolbar.Toolbar = class {
 
 		links_list = links_list.concat(frappe.boot.explore_links);
 
-		let chunk = 10;
-		let colsize = 3;
+		links_list = links_list.filter(d => !core.includes(d.label));
 
+		let chunk = 30;
+		let colsize = 6;
+		
 		var i, j, temparray;
 		for (i=0,j=links_list.length; i<j; i+=chunk) {
 			temparray = links_list.slice(i,i+chunk);
