@@ -18,7 +18,7 @@
 					<div class="dropdown-menu">
 
 						<div class="menu-container">
-							<ul class="explore-menu help-menu col-md-6" role="menu">
+							<ul class="explore-menu places-menu col-md-6" role="menu">
 								<li class="h6 menu-heading text-muted">{{ __("PLACES") }}</li>
 								<li><a href="#">{%= __("Desk") %}</a></li>
 								<li><a href="#">{%= __("Marketplaces") %}</a></li>
@@ -30,17 +30,25 @@
 								<li><a href="#">{%= __("Tools") %}</a></li>
 								<li><a href="#" style="padding: 25px;"></a></li>
 									
-								<li class="h6 menu-heading text-muted">{{ __("HELP") }}</li>
-								<li id="help-links"></li>
-								<li class="divider"></li>
-								<li><a href="#">{%= __("Learn") %}</a></li>
-								<li>
-									<a data-link-type="documentation"
-										data-path="/documentation/index" target="_blank" rel="noopener noreferrer">{{ __("Documentation") }}</a>
+								<li class="h6 menu-heading collapsible text-muted">
+									<span style="margin-right: 10px;">{{ __("HELP") }}</span> 
+									<span class="octicon collapse-indicator octicon-chevron-down"></span>
+									<span class="octicon collapse-indicator octicon-chevron-up"></span>
 								</li>
-								<li class="divider documentation-links"></li>
-								<li><a href="#" onclick="return frappe.ui.toolbar.show_about();">
-									{%= __("About") %}</a></li>
+								<li>
+									<ul class="help-menu hide" style="list-style: none; padding: 0;">
+										<li id="help-links"></li>
+										<li class="divider"></li>
+										<li><a href="#">{%= __("Learn") %}</a></li>
+										<li>
+											<a data-link-type="documentation"
+												data-path="/documentation/index" target="_blank" rel="noopener noreferrer">{{ __("Documentation") }}</a>
+										</li>
+										<li class="divider documentation-links"></li>
+										<li><a href="#" onclick="return frappe.ui.toolbar.show_about();">
+											{%= __("About") %}</a></li>
+									</ul>
+								</li>
 							</ul>
 
 					</div>

@@ -17,6 +17,27 @@
 	// 	padding-bottom: 8px;
 	// }
 
+	.collapsible {
+		cursor: pointer;
+		
+		// default: collapsed
+		.collapse-indicator.octicon-chevron-up {
+			display: none;
+		}
+		.collapse-indicator.octicon-chevron-down {
+			display: inline;
+		}
+
+		&.open {
+			.collapse-indicator.octicon-chevron-up {
+				display: inline;
+			}
+			.collapse-indicator.octicon-chevron-down {
+				display: none;
+			}
+		}
+	}
+
 	// instead of changes within BS3 itself
 	.nav > li > a {
 		padding: 10px 10px;

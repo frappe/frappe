@@ -71,8 +71,14 @@ frappe.ui.toolbar.Toolbar = class {
 				ul.append(get_li_item(m.name, m.label, m.link));
 			})
 
-			$(".help-menu").before(ul);
+			$(".places-menu").before(ul);
 		}
+
+		$(".menu-heading.collapsible").on('click', function() {
+			$(".menu-heading.collapsible").toggleClass("open");
+			$(".help-menu").toggleClass("hide");
+			return false;
+		});
 	}
 
 	setup_modules_dialog() {
