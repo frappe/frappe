@@ -18,12 +18,14 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 			.show(frappe.session.user);
 	});
 
-	let explore_link = frappe.boot.page_quick_links ? frappe.boot.page_quick_links[0] : null;
+	let quick_link = frappe.boot.page_quick_links ? frappe.boot.page_quick_links[0] : null;
 
-	if(explore_link) {
+	if(quick_link) {
 		this.page.set_secondary_action(
-			explore_link.label,
-			() => { frappe.set_route(explore_link.link); }
+			quick_link.label,
+			() => { 
+				frappe.set_route(quick_link.link); 
+			}
 		);
 	}
 

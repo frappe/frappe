@@ -32,7 +32,6 @@ frappe.ui.toolbar.Toolbar = class {
 	setup_modules_dropdown() {
 		const modules_menu = $(".modules-menu");
 		const places_menu = $(".places-menu");
-		const explore_menu = $(".explore-menu");
 
 		let get_link = (name, label, link) => {
 			return $(`<a class="ellipsis" data-name="${name}" href="#${link}">
@@ -44,7 +43,9 @@ frappe.ui.toolbar.Toolbar = class {
 
 		const all_links = frappe.get_desktop_icons(true)
 			.filter(d => d.type==='module' && !d.blocked)
-			.sort((a, b) => { return (a._label > b._label) ? 1 : -1; });
+			.sort((a, b) => { 
+				return (a._label > b._label) ? 1 : -1; 
+			});
 
 		let modules = [];
 		let places = [];
@@ -66,11 +67,11 @@ frappe.ui.toolbar.Toolbar = class {
 
 		modules.forEach(m => {
 			modules_menu.append(get_link(m.name, m.label, m.link));
-		})
+		});
 
 		places.forEach(m => {
 			places_menu.append(get_link(m.name, m.label, m.link));
-		})
+		});
 
 		$(".menu-heading.collapsible").on('click', function() {
 			$(".menu-heading.collapsible").toggleClass("open");
@@ -105,7 +106,7 @@ frappe.ui.toolbar.Toolbar = class {
 		});
 	}
 
-	setup_sidebar () {
+	setup_sidebar() {
 		var header = $('header');
 		header.find(".toggle-sidebar").on("click", function () {
 			var layout_side_section = $('.layout-side-section');
@@ -141,7 +142,7 @@ frappe.ui.toolbar.Toolbar = class {
 		});
 	}
 
-	setup_help () {
+	setup_help() {
 		frappe.provide('frappe.help');
 		frappe.help.show_results = show_results;
 
