@@ -63,7 +63,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	setup_events() {
 		frappe.realtime.on("report_generated", (data) => {
 			if(data.report_name) {
-				let alert_message = `Report ${this.report_name} generated.  
+				let alert_message = `Report ${this.report_name} generated.
 					<a target='_blank' href="#query-report/${this.report_name}">View</a>`;
 				frappe.show_alert({message: alert_message, indicator: 'orange'});
 			}
@@ -110,8 +110,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			() => this.set_route_filters(),
 			() => this.report_settings.onload && this.report_settings.onload(this),
 			() => this.get_user_settings(),
-			() => this.refresh(),
-			() => this.save_user_settings(true)
+			() => this.refresh()
 		]);
 	}
 
@@ -161,11 +160,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			if (df.get_query) f.get_query = df.get_query;
 			if (df.on_change) f.on_change = df.on_change;
+
 			df.onchange = () => {
 				if (f.on_change) {
 					f.on_change(this);
 				} else {
-					this.refresh();
+					if (!this._no_refresh) {
+						this.refresh();
+					}
 				}
 			};
 
@@ -181,27 +183,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		} else {
 			this.page.show_form();
 		}
-
-		// set the field 'query_report_filters_by_name' first
-		// as they can be used in
-		// setting/triggering the filters
-		this.set_filters_by_name();
 	}
 
 	set_filters(filters) {
 		this.filters.map(f => {
 			f.set_input(filters[f.fieldname]);
 		});
-	}
-
-	set_filters_by_name() {
-		let filters = frappe.query_report_filters_by_name;
-		if(!filters) {
-			filters = {};
-		}
-		for (var i in this.filters) {
-			filters[this.filters[i].df.fieldname] = this.filters[i];
-		}
 	}
 
 	set_route_filters() {
@@ -280,7 +267,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				report_name: doc.report_name,
 				filters: doc.filters
 			};
-			
+
 			let filters = JSON.parse(JSON.parse(doc.filters));
 			this.set_filters(filters);
 
@@ -306,7 +293,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					callback: resolve
 				})).then(r => {
 					const data = r.message;
-					let alert_message = `Report initiated. You can track its status 
+					let alert_message = `Report initiated. You can track its status
 						<a class='text-info' target='_blank' href=${data.redirect_url}>here</a>`;
 					frappe.show_alert({message: alert_message, indicator: 'orange'});
 					this.toggle_nothing_to_show(true);
@@ -321,22 +308,17 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		this.tree_report = this.data.some(d => 'indent' in d);
 
-		const columns = this.get_visible_columns();
 		if (this.datatable) {
-			this.datatable.refresh(this.data, columns);
+			this.datatable.refresh(this.data, this.columns);
 			return;
 		}
 
 		this.datatable = new DataTable(this.$report[0], {
-			columns: columns,
+			columns: this.columns,
 			data: this.data,
 			inlineFilters: true,
 			treeView: this.tree_report,
-			layout: 'fixed',
-			events: {
-				onRemoveColumn: () => this.save_user_settings(true),
-				onSwitchColumn: () => this.save_user_settings(true)
-			}
+			layout: 'fixed'
 		});
 	}
 
@@ -362,16 +344,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			.then(user_settings => {
 				this.user_settings = user_settings;
 			});
-	}
-
-	save_user_settings() {
-		return;
-		// if (clear_settings) {
-		// 	return frappe.model.user_settings.save(this.report_name, 'column_order', []);
-		// }
-		// if (!this.datatable) return;
-		// const column_order = this.datatable.datamanager.getColumns(true).map(col => col.id);
-		// return frappe.model.user_settings.save(this.report_name, 'column_order', column_order);
 	}
 
 	prepare_columns(columns) {
@@ -429,14 +401,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	get_visible_columns() {
 		// return columns according to user_settings
-		return this.columns;
-		// if (this.user_settings.column_order && this.user_settings.column_order.length > 0) {
-		// 	return this.user_settings.column_order
-		// 		.map(id => this.columns.find(col => col.id === id))
-		// 		.filter(Boolean);
-		// } else {
-		// 	return this.columns;
-		// }
+		const visible_column_ids = this.datatable.datamanager.getColumns(true).map(col => col.id);
+
+		return visible_column_ids
+			.map(id => this.columns.find(col => col.id === id))
+			.filter(Boolean);
 	}
 
 	get_filter_values(raise) {
@@ -466,6 +435,40 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		return filters;
 	}
 
+	get_filter(fieldname) {
+		const field = this.filters.find(f => f.df.fieldname === fieldname);
+		if (!field) {
+			console.warn(`[Query Report] Invalid filter: ${fieldname}`);
+		}
+		return field;
+	}
+
+	get_filter_value(fieldname) {
+		const field = this.get_filter(fieldname);
+		return field ? field.get_value() : null;
+	}
+
+	set_filter_value(fieldname, value) {
+		let field_value_map = {};
+		if (typeof fieldname === 'string') {
+			field_value_map[fieldname] = value;
+		} else {
+			field_value_map = fieldname;
+		}
+
+		this._no_refresh = true;
+		Object.keys(field_value_map)
+			.forEach((fieldname, i, arr) => {
+				const value = field_value_map[fieldname];
+
+				if (i === arr.length - 1) {
+					this._no_refresh = false;
+				}
+
+				this.get_filter(fieldname).set_value(value);
+			});
+	}
+
 	set_breadcrumbs() {
 		if (!this.report_doc || !this.report_doc.ref_doctype) return;
 		const ref_doctype = frappe.get_meta(this.report_doc.ref_doctype);
@@ -483,7 +486,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			print_settings: print_settings,
 			filters: this.get_filter_values(),
 			data: custom_format ? this.data : this.get_data_for_print(),
-			columns: custom_format ? this.columns: this.get_visible_columns(),
+			columns: custom_format ? this.columns : this.get_columns_for_print(),
 			report: this
 		});
 	}
@@ -494,7 +497,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const landscape = print_settings.orientation == 'Landscape';
 
 		const custom_format = this.report_settings.html_format || null;
-		const columns = custom_format ? this.columns : this.get_visible_columns();
+		const columns = custom_format ? this.columns : this.get_columns_for_print();
 		const data = custom_format ? this.data : this.get_data_for_print();
 		const applied_filters = this.get_filter_values();
 
@@ -525,9 +528,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	get_filters_html_for_print() {
 		const applied_filters = this.get_filter_values();
 		return Object.keys(applied_filters)
-			.map(filter_name => {
-				const label = frappe.query_report_filters_by_name[filter_name].df.label;
-				const value = applied_filters[filter_name];
+			.map(fieldname => {
+				const label = frappe.query_report.get_filter(fieldname).df.label;
+				const value = applied_filters[fieldname];
 				return `<h6>${__(label)}: ${value}</h6>`;
 			})
 			.join('');
@@ -582,7 +585,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_columns_for_print() {
-		return this.columns || [];
+		return this.get_visible_columns();
 	}
 
 	get_menu_items() {
@@ -641,11 +644,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				condition: () => frappe.model.can_set_user_permissions('Report'),
 				standard: true
 			},
-			// {
-			// 	label: __('Clear User Settings'),
-			// 	action: () => this.save_user_settings(true).then(() => this.refresh_report()),
-			// 	standard: true
-			// },
 			{
 				label: __('Add to Desktop'),
 				action: () => frappe.add_to_desktop(this.report_name, null, this.report_name),
@@ -712,10 +710,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 Object.defineProperty(frappe, 'query_report_filters_by_name', {
 	get() {
-		if (!frappe.query_report.filters) return null;
-		return frappe.query_report.filters.reduce((acc, f) => {
-			acc[f.df.fieldname] = f;
-			return acc;
-		}, {});
+		console.warn('[Query Report] frappe.query_report_filters_by_name is deprecated. Please use the new api: frappe.query_report.get_filter_value(fieldname) and frappe.query_report.set_filter_value(fieldname, value)');
+		return null;
 	}
 });

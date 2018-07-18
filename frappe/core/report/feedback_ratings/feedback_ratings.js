@@ -21,14 +21,14 @@ frappe.query_reports["Feedback Ratings"] = {
 			"label": __("Document ID"),
 			"fieldtype": "Dynamic Link",
 			"get_options": function() {
-				var document_type = frappe.query_report_filters_by_name.document_type.get_value();
+				var document_type = frappe.query_report.get_filter_value('document_type');
 				if(!document_type) {
 					frappe.throw(__("Please select Document Type first"));
 				}
 				return document_type;
 			}
 		},
-		{ 
+		{
 			"fieldname":"from_date",
 			"label": __("From Date"),
 			"fieldtype": "Date",
