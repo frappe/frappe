@@ -44,6 +44,8 @@ def get_doc(*args, **kwargs):
 		# create new object with keyword arguments
 		user = get_doc(doctype='User', email_id='test@example.com')
 	"""
+	doctype = None
+
 	if args:
 		if isinstance(args[0], BaseDocument):
 			# already a document
@@ -58,7 +60,7 @@ def get_doc(*args, **kwargs):
 		else:
 			raise ValueError('First non keyword argument must be a string or dict')
 
-	if kwargs:
+	if kwargs and not doctype:
 		if 'doctype' in kwargs:
 			doctype = kwargs['doctype']
 		else:
@@ -101,6 +103,7 @@ class Document(BaseDocument):
 				else:
 					self.name = args[1]
 
+			self._max_children_page_length = kwargs.get('max_children_page_length', None)
 			self.load_from_db()
 			return
 
@@ -149,9 +152,16 @@ class Document(BaseDocument):
 			table_fields = self.meta.get_table_fields()
 
 		for df in table_fields:
-			children = frappe.db.get_values(df.options,
-				{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname},
-				"*", as_dict=True, order_by="idx asc")
+			children = frappe.get_list(df.options,
+				filters={
+					"parent": self.name,
+					"parenttype": self.doctype,
+					"parentfield": df.fieldname
+				},
+				fields="*",
+				order_by="idx asc",
+				limit_page_length=self._max_children_page_length
+			)
 			if children:
 				self.set(df.fieldname, children)
 			else:

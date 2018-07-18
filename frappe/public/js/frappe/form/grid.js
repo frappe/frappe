@@ -72,12 +72,19 @@ export default class Grid {
 									${__("Add Row")}</button>
 							</div>
 							<div class="col-sm-6 text-right">
-								<a href="#" class="grid-download btn btn-xs btn-default hide"
+								<span class="grid-paging-status text-muted hide"></span>
+								<button type="button" class="grid-prev btn btn-xs btn-default hide"
 									style="margin-left: 10px;">
-									${__("Download")}</a>
-								<a href="#" class="grid-upload btn btn-xs btn-default hide"
+									${__("Prev")}</button>
+								<button type="button" class="grid-next btn btn-xs btn-default hide"
 									style="margin-left: 10px;">
-									${__("Upload")}</a>
+									${__("Next")}</button>
+								<button type="button" class="grid-download btn btn-xs btn-default hide"
+									style="margin-left: 10px;">
+									${__("Download")}</button>
+								<button type="button" class="grid-upload btn btn-xs btn-default hide"
+									style="margin-left: 10px;">
+									${__("Upload")}</button>
 							</div>
 						</div>
 					</div>
@@ -188,10 +195,10 @@ export default class Grid {
 	refresh(force) {
 		!this.wrapper && this.make();
 		var me = this,
-			$rows = $(me.parent).find(".rows"),
-			data = this.get_data();
+			$rows = $(me.parent).find(".rows");
 
 		this.setup_fields();
+		this.setup_pagination();
 
 		if(this.frm) {
 			this.display_status = frappe.perm.get_field_display_status(this.df, this.frm.doc,
@@ -211,34 +218,14 @@ export default class Grid {
 			this.grid_rows = [];
 		}
 
+		const data = this.get_paged_data();
+
 		this.truncate_rows(data);
 		this.grid_rows_by_docname = {};
 
-		for(var ri=0; ri < data.length; ri++) {
-			var d = data[ri];
-
-			if(d.idx===undefined) {
-				d.idx = ri + 1;
-			}
-
-			if(this.grid_rows[ri]) {
-				var grid_row = this.grid_rows[ri];
-				grid_row.doc = d;
-				grid_row.refresh();
-			} else {
-				var grid_row = new GridRow({
-					parent: $rows,
-					parent_df: this.df,
-					docfields: this.docfields,
-					doc: d,
-					frm: this.frm,
-					grid: this
-				});
-				this.grid_rows.push(grid_row);
-			}
-
-			this.grid_rows_by_docname[d.name] = grid_row;
-		}
+		data.forEach((d, i) => {
+			this.make_or_refresh_grid_row(d, i);
+		});
 
 		this.wrapper.find(".grid-empty").toggleClass("hide", !!data.length);
 
@@ -260,7 +247,38 @@ export default class Grid {
 
 		this.refresh_remove_rows_button();
 
+		this.update_pagination_status();
+
 		this.wrapper.trigger('change');
+	}
+	make_or_refresh_grid_row(d, i) {
+		if(d.idx===undefined) {
+			d.idx = i + 1;
+		}
+
+		if(this.grid_rows[i]) {
+			var grid_row = this.grid_rows[i];
+			grid_row.doc = d;
+			grid_row.refresh();
+		} else {
+			const grid_row = this.make_grid_row(d);
+			this.grid_rows.push(grid_row);
+		}
+
+		this.grid_rows_by_docname[d.name] = grid_row;
+	}
+	make_grid_row(d) {
+		const $rows = $(this.parent).find(".rows");
+		const grid_row = new GridRow({
+			parent: $rows,
+			parent_df: this.df,
+			docfields: this.docfields,
+			doc: d,
+			frm: this.frm,
+			grid: this
+		});
+
+		return grid_row;
 	}
 	setup_toolbar() {
 		if(this.is_editable()) {
@@ -289,8 +307,7 @@ export default class Grid {
 		if(this.grid_rows.length > data.length) {
 			// remove extra rows
 			for(var i=data.length; i < this.grid_rows.length; i++) {
-				var grid_row = this.grid_rows[i];
-				grid_row.wrapper.remove();
+				this.remove_row(i);
 			}
 			this.grid_rows.splice(data.length);
 		}
@@ -362,6 +379,14 @@ export default class Grid {
 			this.frm.doc[this.df.fieldname] || []
 			: this.get_modal_data();
 		data.sort(function(a, b) { return a.idx - b.idx});
+
+		return data;
+	}
+	get_paged_data() {
+		const data = this.get_data();
+		if (this.is_paginated()) {
+			return data.slice(this.page_start, this.page_end);
+		}
 		return data;
 	}
 	get_modal_data() {
@@ -493,6 +518,10 @@ export default class Grid {
 
 			return d;
 		}
+	}
+	remove_row(i) {
+		const grid_row = this.grid_rows[i];
+		grid_row.wrapper.remove();
 	}
 
 	set_focus_on_row(idx) {
@@ -714,6 +743,106 @@ export default class Grid {
 			frappe.tools.downloadify(data, null, title);
 			return false;
 		});
+	}
+	is_paginated() {
+		const info = this.get_pagination_info();
+		return info && info.page_length < info.total_rows;
+	}
+	setup_pagination() {
+		// if (this.df.fieldname === 'items') debugger
+		if (!this.is_paginated()) {
+			this._pagination_set_for = null;
+			return;
+		}
+		if (this._pagination_set_for === this.frm.doc.name) return;
+
+		this._pagination_set_for = this.frm.doc.name;
+
+		const info = this.get_pagination_info();
+
+		this.wrapper.on('click', '.grid-next, .grid-prev', (e) => {
+			e.preventDefault();
+
+			if ($(e.currentTarget).is('.grid-next')) {
+				this.next_page();
+			} else if ($(e.currentTarget).is('.grid-prev')) {
+				this.prev_page();
+			}
+		});
+
+		this.page_length = info.page_length;
+		const data = this.get_data();
+
+		this.page_start = 0;
+
+		if (data.length > this.page_length) {
+			this.page_end = this.page_length;
+		} else {
+			this.page_end = data.length;
+		}
+
+		this.update_pagination_status();
+	}
+	next_page() {
+		this.page_start += this.page_length;
+		this.page_end += this.page_length;
+
+		this.fetch_next_page_if_not_exists().then(() => {
+			this.remove_all_rows();
+			this.grid_rows = [];
+			this.refresh();
+		})
+	}
+	fetch_next_page_if_not_exists() {
+		const data = this.get_data();
+		if (this.page_end <= data.length) {
+			return Promise.resolve();
+		}
+
+		this.wrapper.find('.grid-paging-status').text(__('Fetching Data...'));
+
+		return frappe.xcall('frappe.desk.form.load.get_paginated_children', {
+			doctype: this.frm.doctype,
+			name: this.frm.doc.name,
+			fieldname: this.df.fieldname,
+			start: this.page_start,
+			page_length: this.page_length
+		}).then(message => {
+			if (message && Array.isArray(message)) {
+				const data = this.frm.doc[this.df.fieldname];
+				this.frm.doc[this.df.fieldname] = data.concat(message);
+			}
+		});
+	}
+	prev_page() {
+		this.page_start -= this.page_length;
+		this.page_end -= this.page_length;
+
+		this.remove_all_rows();
+		this.grid_rows = [];
+		this.refresh();
+	}
+	update_pagination_status() {
+		const info = this.get_pagination_info();
+		const is_paginated = this.is_paginated();
+		this.wrapper.find('.grid-next, .grid-prev, .grid-paging-status').toggleClass('hide', !is_paginated);
+		if (!is_paginated) return;
+
+		const message = __('Showing {0} - {1} of {2}', [this.page_start + 1, this.page_end, info.total_rows]);
+
+		this.wrapper.find('.grid-prev').prop('disabled', this.page_start === 0);
+		this.wrapper.find('.grid-next').prop('disabled', this.page_end >= info.total_rows);
+
+		this.wrapper.find('.grid-paging-status').text(message);
+	}
+	remove_all_rows() {
+		this.grid_rows.forEach(grid_row => grid_row.wrapper.remove());
+	}
+	get_pagination_info() {
+		const docinfo = this.frm.get_docinfo();
+		if (!docinfo.child_pagination) return null;
+
+		return docinfo.child_pagination[this.df.fieldname];
 	}
 	add_custom_button(label, click) {
 		// add / unhide a custom button
