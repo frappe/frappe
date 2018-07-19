@@ -310,7 +310,6 @@ def sync_global_search(flags=None):
 	# Can pass flags manually as frappe.flags.update_global_search isn't reliable at a later time,
 	# when syncing is enqueued
 	for value in flags:
-		print(value)
 		frappe.db.sql('''
 			insert into __global_search
 				(doctype, name, content, published, title, route)
