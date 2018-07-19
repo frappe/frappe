@@ -7,6 +7,9 @@ import subprocess
 import psycopg2
 import psycopg2.extensions
 
+from frappe.database.database import Database
+from frappe.database.postgres.schema import PostgresTable
+
 # cast decimals as floats
 DEC2FLOAT = psycopg2.extensions.new_type(
     psycopg2.extensions.DECIMAL.values,
@@ -15,9 +18,6 @@ DEC2FLOAT = psycopg2.extensions.new_type(
 
 psycopg2.extensions.register_type(DEC2FLOAT)
 
-from frappe.database.database import Database
-from frappe.database.postgres.schema import PostgresTable
-
 class PostgresDatabase(Database):
 	ProgrammingError = psycopg2.ProgrammingError
 	OperationalError = psycopg2.OperationalError
@@ -25,6 +25,7 @@ class PostgresDatabase(Database):
 	SQLError = psycopg2.ProgrammingError
 	DataError = psycopg2.DataError
 	InterfaceError = psycopg2.InterfaceError
+	IntegrityError = psycopg2.IntegrityError
 
 	def setup_type_map(self):
 		self.type_map = {
@@ -83,8 +84,7 @@ class PostgresDatabase(Database):
 		# select from requires ""
 		if re.search('from tab', query, flags=re.IGNORECASE):
 			query = re.sub('from tab([a-zA-Z]*)', r'from "tab\1"', query, flags=re.IGNORECASE)
-
-		kwargs['debug'] = True
+		# kwargs['debug'] = True
 		return super(PostgresDatabase, self).sql(query, *args, **kwargs)
 
 	def get_tables(self):
@@ -128,7 +128,7 @@ class PostgresDatabase(Database):
 				"fieldname" VARCHAR(140) NOT NULL,
 				"password" VARCHAR(255) NOT NULL,
 				"encrypted" INT NOT NULL DEFAULT 0,
-				unique (doctype, name, fieldname)
+				PRIMARY KEY ("doctype", "name", "fieldname")
 			)""")
 
 	def create_global_search_table(self):
@@ -151,10 +151,27 @@ class PostgresDatabase(Database):
 			)""")
 
 	def updatedb(self, doctype, meta=None):
-		db_table = PostgresTable(doctype, meta)
-		db_table.sync()
+		"""
+		Syncs a `DocType` to the table
+		* creates if required
+		* updates columns
+		* updates indices
+		"""
+		res = frappe.db.sql("select issingle from `tabDocType` where name='{}'".format(doctype))
+		if not res:
+			raise Exception('Wrong doctype {0} in updatedb'.format(doctype))
+
+		if not res[0][0]:
+			db_table = PostgresTable(doctype, meta)
+			db_table.validate()
+
+			frappe.db.commit()
+			db_table.sync()
+			frappe.db.begin()
 
 	def get_on_duplicate_update(self, key='name'):
+		if isinstance(key, list):
+			key = ", ".join(key)
 		return 'ON CONFLICT ({key}) DO UPDATE SET '.format(
 			key=key
 		)
@@ -162,5 +179,26 @@ class PostgresDatabase(Database):
 	def check_transaction_status(self, query):
 		pass
 
-	def get_indexes_for(self, table_name):
-		frappe.db.sql("""SELECT indexname FROM pg_indexes WHERE tablename={table_name};""".format(table_name), as_list=True)
+	def has_index(self, table_name, index_name):
+		return frappe.db.sql("""SELECT 1 FROM pg_indexes WHERE tablename='{table_name}'
+			and indexname='{index_name}' limit 1""".format(table_name=table_name, index_name=index_name))
+
+	def get_table_columns_description(self, table_name):
+		"""Returns list of column and its description"""
+		return self.sql('''select
+			a.column_name as name,
+			case a.data_type
+				when 'character varying' then concat('varchar(', a.character_maximum_length ,')')
+				when 'timestamp without time zone' then 'timestamp'
+				else a.data_type
+			END as type,
+			count(b.indexdef) as Index,
+			coalesce(a.column_default, NULL) as default,
+			bool_or(b.unique) as unique
+			from information_schema.columns a
+			left join
+			(SELECT indexdef, tablename, indexdef like '%UNIQUE INDEX%' as unique FROM pg_indexes where tablename='{table_name}') b
+			on substring(b.indexdef, '\(.*\)') like concat('%', a.column_name, '%')
+			where a.table_name = '{table_name}'
+			group by a.column_name, a.data_type, a.column_default, a.character_maximum_length;'''
+			.format(table_name=table_name), as_dict=1)

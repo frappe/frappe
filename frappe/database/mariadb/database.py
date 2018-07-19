@@ -173,8 +173,23 @@ class MariaDBDatabase(Database):
 	def get_on_duplicate_update(self, key=None):
 		return 'ON DUPLICATE key UPDATE '
 
-	def get_indexes_for(self, table_name):
-		pass
+	def get_table_columns_description(self, table_name):
+		"""Returns list of column and its description"""
+		return self.sql('''select
+			column_name as name,
+			data_type as type,
+			column_default as default,
+			column_key = 'MUL' as index,
+			column_key = 'UNI' as unique
+			from information_schema.columns
+			where table_name = '{table_name}' '''.format(table_name=table_name), as_dict=1)
+
+	def has_index(self, table_name, index_name):
+		return frappe.db.sql("""show index from `{table_name}`
+			where Key_name='{index_name}'""".format(
+				table_name=table_name,
+				index_name=index_name
+			))
 
 	def updatedb(self, doctype, meta=None):
 		"""
