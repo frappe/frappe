@@ -26,6 +26,8 @@ frappe.ready(function() {
 		allow_incomplete: frappe.allow_incomplete
 	});
 
+	setTimeout(() => { $('body').css('display', 'block'); console.log(1); }, 500);
+
 	// allow payment only if
 	$('.btn-payment').on('click', function() {
 		save(frappe.web_form.get_values(), true);
