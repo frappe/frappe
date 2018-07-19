@@ -216,7 +216,7 @@ frappe.ui.form.Grid = Class.extend({
 
 		this.last_display_status = this.display_status;
 		this.last_docname = this.frm && this.frm.docname;
-		frappe.utils.scroll_to(_scroll_y);
+		//frappe.utils.scroll_to(_scroll_y);
 
 		// red if mandatory
 		this.form_grid.toggleClass('error', !!(this.df.reqd && !(data && data.length)));
