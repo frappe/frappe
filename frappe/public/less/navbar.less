@@ -12,9 +12,25 @@
 		font-weight: bold;
 	}
 
-	.dropdown-toggle {
-		padding-top: 8px;
-		padding-bottom: 8px;
+	.collapsible {
+		cursor: pointer;
+
+		// default: collapsed
+		.collapse-indicator.octicon-chevron-up {
+			display: none;
+		}
+		.collapse-indicator.octicon-chevron-down {
+			display: inline;
+		}
+
+		&.open {
+			.collapse-indicator.octicon-chevron-up {
+				display: inline;
+			}
+			.collapse-indicator.octicon-chevron-down {
+				display: none;
+			}
+		}
 	}
 
 	// instead of changes within BS3 itself
@@ -33,6 +49,39 @@
 	.badge {
 		font-weight: normal;
 	}
+
+	#navbar-breadcrumbs a:before {
+		margin-left: 10px;
+	}
+
+	ul.explore-menu {
+		list-style: none;
+		padding: 0;
+
+		a {
+			font-weight: normal;
+			padding: 14px;
+			display: block;
+		}
+	
+		a:hover {
+			color: #262626;
+			text-decoration: none;
+			background-color: #f0f4f7;
+		}
+
+		.menu-heading {
+			margin: 0;
+			padding: 12px 14px;
+			font-size: 11px;
+			display: flex;
+		}
+
+		.divider {
+			margin: 0px 14px;
+		}
+	}
+
 }
 
 .navbar-icon-home {
@@ -114,6 +163,16 @@
 	}
 }
 
+.dropdown-explore {
+	.menu-container {
+		display: flex;
+
+		ul:nth-child(2n) {
+			background-color: @light-bg
+		}
+	}
+}
+
 .dropdown-help .dropdown-menu {
 	width: 350px !important;
 	max-height: 440px;
@@ -121,8 +180,7 @@
 
 	.input-group {
 		width: 100%;
-		background-color: #f5f7fa;
-		padding: 8px 12px;
+		padding: 9px 12px;
 	}
 
 	input {
@@ -147,6 +205,12 @@
 		top: 40px;
 		width: 100% !important;
 	}
+}
+
+.dropdown-explore .dropdown-menu {
+	width: 400px !important;
+
+	max-height: 520px;
 }
 
 @media (max-width: 767px) {
