@@ -208,7 +208,7 @@ class LoginManager:
 	def check_if_enabled(self, user):
 		"""raise exception if user not enabled"""
 		doc = frappe.get_doc("System Settings")
-		if doc.allow_consecutive_login_attempts > 0:
+		if cint(doc.allow_consecutive_login_attempts) > 0:
 			check_consecutive_login_attempts(user, doc)
 
 		if user=='Administrator': return
