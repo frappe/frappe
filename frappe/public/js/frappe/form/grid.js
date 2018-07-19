@@ -253,6 +253,7 @@ export default class Grid {
 
 		this.last_display_status = this.display_status;
 		this.last_docname = this.frm && this.frm.docname;
+
 		// frappe.utils.scroll_to(_scroll_y);
 
 		// red if mandatory
