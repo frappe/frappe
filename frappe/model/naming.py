@@ -158,11 +158,11 @@ def getseries(key, digits, doctype=''):
 	if current and current[0][0] is not None:
 		current = current[0][0]
 		# yes, update it
-		frappe.db.sql("update tabSeries set current = current+1 where name=%s", (key,))
+		frappe.db.sql("update `tabSeries` set current = current+1 where name=%s", (key,))
 		current = cint(current) + 1
 	else:
 		# no, create it
-		frappe.db.sql("insert into tabSeries (name, current) values (%s, 1)", (key,))
+		frappe.db.sql("insert into `tabSeries` (name, current) values (%s, 1)", (key,))
 		current = 1
 	return ('%0'+str(digits)+'d') % current
 

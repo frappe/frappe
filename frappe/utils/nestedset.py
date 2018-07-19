@@ -63,8 +63,8 @@ def update_add_node(doc, parent, parent_field):
 			.format(doctype), parent)[0]
 		validate_loop(doc.doctype, doc.name, left, right)
 	else: # root
-		right = frappe.db.sql("select ifnull(max(rgt),0)+1 from `tab%s` \
-			where ifnull(`%s`,'') =''" % (doctype, parent_field))[0][0]
+		right = frappe.db.sql("""select coalesce(max(rgt),0)+1 from `tab%s`
+			where coalesce(`%s`,'') =''""" % (doctype, parent_field))[0][0]
 	right = right or 1
 
 	# update all on the right
@@ -236,7 +236,7 @@ class NestedSet(Document):
 	def validate_one_root(self):
 		if not self.get(self.nsm_parent_field):
 			if frappe.db.sql("""select count(*) from `tab%s` where
-				ifnull(%s, '')=''""" % (self.doctype, self.nsm_parent_field))[0][0] > 1:
+				coalesce(%s, '')=''""" % (self.doctype, self.nsm_parent_field))[0][0] > 1:
 				frappe.throw(_("""Multiple root nodes not allowed."""), NestedSetMultipleRootsError)
 
 	def validate_ledger(self, group_identifier="is_group"):

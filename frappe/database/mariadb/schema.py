@@ -132,8 +132,6 @@ class MariaDBTable():
 				f['fieldtype'], lengths.get(f["fieldname"]) or f.get('length'), f.get('default'), f.get('search_index'),
 				f.get('options'), uniques.get(f["fieldname"], f.get('unique')), precisions.get(f['fieldname']) or f.get('precision'))
 
-
-
 	def validate(self):
 		"""Check if change in varchar length isn't truncating the columns"""
 		if self.is_new():

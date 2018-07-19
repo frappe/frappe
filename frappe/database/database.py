@@ -382,7 +382,7 @@ class Database:
 
 			if "[" in key:
 				split_key = key.split("[")
-				condition = "ifnull(`" + split_key[0] + "`, " + split_key[1][:-1] + ") " \
+				condition = "coalesce(`" + split_key[0] + "`, " + split_key[1][:-1] + ") " \
 					+ _operator + _rhs
 			else:
 				condition = "`" + key + "` " + _operator + _rhs
@@ -522,7 +522,7 @@ class Database:
 
 		else:
 			r = self.sql("""select field, value
-				from tabSingles where field in (%s) and doctype=%s""" \
+				from `tabSingles` where field in (%s) and doctype=%s""" \
 					% (', '.join(['%s'] * len(fields)), '%s'),
 					tuple(fields) + (doctype,), as_dict=False, debug=debug)
 			# r = _cast_result(doctype, r)
@@ -584,7 +584,7 @@ class Database:
 			return self.value_cache[doctype][fieldname]
 
 		val = self.sql("""select value from
-			tabSingles where doctype=%s and field=%s""", (doctype, fieldname))
+			`tabSingles` where doctype=%s and field=%s""", (doctype, fieldname))
 		val = val[0][0] if val else None
 
 		if val=="0" or val=="1":
@@ -684,12 +684,12 @@ class Database:
 			# for singles
 			keys = list(to_update)
 			self.sql('''
-				delete from tabSingles
+				delete from `tabSingles`
 				where field in ({0}) and
 					doctype=%s'''.format(', '.join(['%s']*len(keys))),
 					list(keys) + [dt], debug=debug)
 			for key, value in iteritems(to_update):
-				self.sql('''insert into tabSingles(doctype, field, value) values (%s, %s, %s)''',
+				self.sql('''insert into `tabSingles` (doctype, field, value) values (%s, %s, %s)''',
 					(dt, key, value), debug=debug)
 
 		if dt in self.value_cache:
@@ -922,7 +922,7 @@ class Database:
 	def is_missing_table_or_column(self, e):
 		return self.is_bad_field(e) or self.is_missing_table(e)
 
-	def get_indexes_for(self, table_name):
+	def has_index(self, table_name, index_name):
 		pass
 
 def enqueue_jobs_after_commit():

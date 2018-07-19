@@ -90,11 +90,11 @@ def update_password(user, pwd, doctype='User', fieldname='password', logout_all_
 		:param logout_all_session: delete all other session
 	'''
 	hashPwd = passlibctx.hash(pwd)
-	frappe.db.sql("""insert into __Auth (doctype, name, fieldname, `password`, encrypted)
+	frappe.db.sql("""insert into __Auth (`doctype`, `name`, `fieldname`, `password`, `encrypted`)
 		values (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 0)
 		{on_duplicate_update}
 			`password`=%(pwd)s, encrypted=0""".format(
-				on_duplicate_update=frappe.db.get_on_duplicate_update()
+				on_duplicate_update=frappe.db.get_on_duplicate_update(key=['name', 'doctype', 'fieldname'])
 			),
 		{'doctype': doctype, 'name': user, 'fieldname': fieldname, 'pwd': hashPwd})
 
