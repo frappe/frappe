@@ -373,14 +373,22 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 			}
 
+			const format_cell = (value, row, column, data) => {
+				return frappe.format(value || '', column,
+					{for_print: false, always_show_decimals: true}, data);
+			}
+
 			return Object.assign(column, {
 				id: column.fieldname,
 				name: column.label,
 				width: parseInt(column.width) || null,
 				editable: false,
-				format: (value, row, column, data) =>
-					frappe.format(value || '', column,
-						{for_print: false, always_show_decimals: true}, data)
+				format: (value, row, column, data) => {
+					if (this.report_settings.formatter) {
+						return this.report_settings.formatter(value, row, column, data, format_cell);
+					}
+					return format_cell(value, row, column, data);
+				}
 			});
 		});
 	}
