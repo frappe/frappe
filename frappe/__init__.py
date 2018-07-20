@@ -488,7 +488,7 @@ def read_only():
 
 			retval = fn(*args, **get_newargs(fn, kwargs))
 
-			if local.master_db:
+			if local and hasattr(local, 'master_db'):
 				local.db = local.master_db
 
 			return retval
