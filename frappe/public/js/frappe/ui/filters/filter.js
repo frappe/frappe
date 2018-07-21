@@ -295,8 +295,8 @@ frappe.ui.Filter = class {
 
 	hide_nested_set_conditions(df) {
 		if ( !( df.fieldtype == "Link" && frappe.boot.nested_set_doctypes.includes(df.options))) {
-			this.filter_edit_area.find(`.condition option[value="descendants of"]`).hide()
-			this.filter_edit_area.find(`.condition option[value="ancestors of"]`).hide()
+			this.filter_edit_area.find(`.condition option[value="descendants of"]`).hide();
+			this.filter_edit_area.find(`.condition option[value="ancestors of"]`).hide();
 		}
 	}
 };

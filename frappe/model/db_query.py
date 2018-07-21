@@ -343,12 +343,12 @@ class DatabaseQuery(object):
 			result=[]
 			lft, rgt = frappe.db.get_value(ref_doctype, f.value, ["lft", "rgt"])
 
+			# Get descendants elements of a DocType with a tree structure
 			if f.operator.lower() in ('descendants of') :
-				"""Get descendants elements of a DocType with a tree structure"""
 				result = frappe.db.sql_list("""select name from `tab{0}`
 					where lft>%s and rgt<%s order by lft asc""".format(ref_doctype), (lft, rgt))
 			else :
-				"""Get ancestor elements of a DocType with a tree structure"""
+				# Get ancestor elements of a DocType with a tree structure
 				result = frappe.db.sql_list("""select name from `tab{0}`
 					where lft<%s and rgt>%s order by lft desc""".format(ref_doctype), (lft, rgt))
 
