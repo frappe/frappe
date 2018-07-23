@@ -2,17 +2,7 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Prepared Report', {
-	refresh: function(frm) {
-		frm.add_custom_button(__("Show Report"), function() {
-			frappe.set_route(
-				"query-report",
-				frm.doc.report_name,
-				frappe.utils.make_query_string({
-					prepared_report_name: frm.doc.name
-				})
-			);
-		});
-
+	onload: function(frm) {
 		var wrapper = $(frm.fields_dict["filter_values"].wrapper);
 
 		let filter_table = $(`<table class="table table-bordered">
@@ -36,5 +26,18 @@ frappe.ui.form.on('Prepared Report', {
 		});
 
 		wrapper.append(filter_table);
+	},
+
+	refresh: function(frm) {
+		frm.disable_save();
+		frm.page.set_primary_action(__("Show Report"), () => {
+			frappe.set_route(
+				"query-report",
+				frm.doc.report_name,
+				frappe.utils.make_query_string({
+					prepared_report_name: frm.doc.name
+				})
+			);
+		});
 	}
 });
