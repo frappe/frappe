@@ -49,7 +49,7 @@ def get_decrypted_password(doctype, name, fieldname='password', raise_exception=
 		frappe.throw(_('Password not found'), frappe.AuthenticationError)
 
 def set_encrypted_password(doctype, name, pwd, fieldname='password'):
-	frappe.db.sql("""insert into __Auth (doctype, name, fieldname, `password`, encrypted)
+	frappe.db.sql("""insert into `__Auth` (doctype, name, fieldname, `password`, encrypted)
 		values (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 1)
 		{on_duplicate_update} `password`=%(pwd)s, encrypted=1""".format(
 			on_duplicate_update=frappe.db.get_on_duplicate_update()
@@ -58,9 +58,11 @@ def set_encrypted_password(doctype, name, pwd, fieldname='password'):
 def check_password(user, pwd, doctype='User', fieldname='password'):
 	'''Checks if user and password are correct, else raises frappe.AuthenticationError'''
 
-	auth = frappe.db.sql("""select name, `password` from `__Auth`
-		where doctype=%(doctype)s and name=%(name)s and fieldname=%(fieldname)s and encrypted=0""",
-		{'doctype': doctype, 'name': user, 'fieldname': fieldname}, as_dict=True)
+	auth = frappe.db.sql("""select `name`, `password` from `__Auth`
+		where `doctype`=%(doctype)s and `name`=%(name)s and `fieldname`=%(fieldname)s and `encrypted`=0""",
+		{'doctype': doctype, 'name': user, 'fieldname': fieldname}, as_dict=True, debug=True)
+
+	print('authooo', auth)
 
 	if not auth or not passlibctx.verify(pwd, auth[0].password):
 		raise frappe.AuthenticationError(_('Incorrect User or Password'))
@@ -90,13 +92,13 @@ def update_password(user, pwd, doctype='User', fieldname='password', logout_all_
 		:param logout_all_session: delete all other session
 	'''
 	hashPwd = passlibctx.hash(pwd)
-	frappe.db.sql("""insert into __Auth (`doctype`, `name`, `fieldname`, `password`, `encrypted`)
+	frappe.db.sql("""insert into `__Auth` (`doctype`, `name`, `fieldname`, `password`, `encrypted`)
 		values (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 0)
 		{on_duplicate_update}
 			`password`=%(pwd)s, encrypted=0""".format(
 				on_duplicate_update=frappe.db.get_on_duplicate_update(key=['name', 'doctype', 'fieldname'])
 			),
-		{'doctype': doctype, 'name': user, 'fieldname': fieldname, 'pwd': hashPwd})
+		{'doctype': doctype, 'name': user, 'fieldname': fieldname, 'pwd': hashPwd}, debug=True)
 
 	# clear all the sessions except current
 	if logout_all_sessions:
@@ -105,7 +107,7 @@ def update_password(user, pwd, doctype='User', fieldname='password', logout_all_
 
 def delete_all_passwords_for(doctype, name):
 	try:
-		frappe.db.sql("""delete from __Auth where doctype=%(doctype)s and name=%(name)s""",
+		frappe.db.sql("""delete from `__Auth` where doctype=%(doctype)s and name=%(name)s""",
 			{ 'doctype': doctype, 'name': name })
 	except Exception as e:
 		if frappe.db.is_missing_column(e):
@@ -113,7 +115,7 @@ def delete_all_passwords_for(doctype, name):
 
 def rename_password(doctype, old_name, new_name):
 	# NOTE: fieldname is not considered, since the document is renamed
-	frappe.db.sql("""update __Auth set name=%(new_name)s
+	frappe.db.sql("""update `__Auth` set name=%(new_name)s
 		where doctype=%(doctype)s and name=%(old_name)s""",
 		{ 'doctype': doctype, 'new_name': new_name, 'old_name': old_name })
 

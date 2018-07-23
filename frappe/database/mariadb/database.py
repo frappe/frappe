@@ -15,10 +15,6 @@ from six import PY2, binary_type, text_type
 from frappe.database.database import Database
 from frappe.database.mariadb.schema import MariaDBTable
 
-
-# imports - compatibility imports
-
-
 class MariaDBDatabase(Database):
 	ProgrammingError = pymysql.err.ProgrammingError
 	OperationalError = pymysql.err.OperationalError
@@ -138,7 +134,7 @@ class MariaDBDatabase(Database):
 		return e.args[0] == ER.CANT_DROP_FIELD_OR_KEY
 
 	def create_auth_table(self):
-		frappe.db.sql_ddl("""create table if not exists __Auth (
+		frappe.db.sql_ddl("""create table if not exists `__Auth` (
 				`doctype` VARCHAR(140) NOT NULL,
 				`name` VARCHAR(255) NOT NULL,
 				`fieldname` VARCHAR(140) NOT NULL,

@@ -224,8 +224,8 @@ class Session:
 			self.insert_session_record()
 
 			# update user
-			frappe.db.sql("""UPDATE tabUser SET last_login = %(now)s, last_ip = %(ip)s, last_active = %(now)s
-				where name=%(name)s""", {
+			frappe.db.sql("""UPDATE `tabUser` SET `last_login` = %(now)s, `last_ip` = %(ip)s, `last_active` = %(now)s
+				where `name`=%(name)s""", {
 					"now": frappe.utils.now(),
 					"ip": frappe.local.request_ip,
 					"name": self.data['user']
@@ -234,8 +234,8 @@ class Session:
 			frappe.db.commit()
 
 	def insert_session_record(self):
-		frappe.db.sql("""insert into tabSessions
-			(sessiondata, user, lastupdate, sid, status, device)
+		frappe.db.sql("""insert into `tabSessions`
+			(`sessiondata`, `user`, `lastupdate`, `sid`, `status`, `device`)
 			values (%s , %s, NOW(), %s, 'Active', %s)""",
 				(str(self.data['data']), self.data['user'], self.data['sid'], self.device))
 
@@ -303,10 +303,11 @@ class Session:
 		self.device = frappe.db.sql('select device from tabSessions where sid=%s', self.sid)
 		self.device = self.device and self.device[0][0] or 'desktop'
 
-		rec = frappe.db.sql("""select user, sessiondata
-			from tabSessions where sid=%s and
-			TIMEDIFF(NOW(), lastupdate) < TIME(%s)""", (self.sid,
-				get_expiry_period(self.device)))
+		# rec = frappe.db.sql("""select user, sessiondata
+		# 	from tabSessions where sid=%s and
+		# 	TIMEDIFF(NOW(), lastupdate) < TIME(%s)""", (self.sid,
+		# 		get_expiry_period(self.device)))
+		rec = None
 		if rec:
 			data = frappe._dict(eval(rec and rec[0][1] or '{}'))
 			data.user = rec[0][0]
@@ -348,7 +349,7 @@ class Session:
 		updated_in_db = False
 		if force or (time_diff==None) or (time_diff > 600):
 			# update sessions table
-			frappe.db.sql("""update tabSessions set sessiondata=%s,
+			frappe.db.sql("""update `tabSessions` set sessiondata=%s,
 				lastupdate=NOW() where sid=%s""" , (str(self.data['data']),
 				self.data['sid']))
 

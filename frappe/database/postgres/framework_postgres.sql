@@ -191,7 +191,7 @@ CREATE TABLE "tabSessions" (
   "lastupdate" timestamp(6) DEFAULT NULL,
   "device" varchar(255) DEFAULT 'desktop',
   "status" varchar(20) DEFAULT NULL
-) ;
+);
 
 create index on "tabSessions" ("sid");
 
