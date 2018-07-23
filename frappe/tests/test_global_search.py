@@ -53,7 +53,7 @@ class TestGlobalSearch(unittest.TestCase):
 		self.assertTrue('Carter explored themes of extraterrestrial involvement in ancient mass extinctions in this episode, the third in a trilogy.' in results[0].content)                
 		results = global_search.search('awakens & duty & alien')
 		self.assertTrue('After Mulder awakens from his coma, he realizes his duty to prevent alien colonization. ' in results[0].content)
-		
+
 	def test_update_doc(self):
 		self.insert_test_events()
 		test_subject = 'testing global search'
