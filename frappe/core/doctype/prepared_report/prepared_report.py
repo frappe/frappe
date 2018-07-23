@@ -60,7 +60,7 @@ def remove_header_meta(columns):
 def create_csv_file(columns, data, dt, dn):
 	csv_filename = '{0}.csv'.format(frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H:M"))
 	rows = [tuple(columns)] + data
-	encoded = base64.b64encode(to_csv(rows))
+	encoded = base64.b64encode(frappe.safe_encode(to_csv(rows)))
 	# Call save_file function to upload and attach the file
 	save_file(
 		fname=csv_filename,
