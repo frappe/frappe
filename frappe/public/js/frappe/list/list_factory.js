@@ -4,8 +4,8 @@
 frappe.provide('frappe.views.list_view');
 
 window.cur_list = null;
-frappe.views.ListFactory = frappe.views.Factory.extend({
-	make: function (route) {
+frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
+	make (route) {
 		var me = this;
 		var doctype = route[1];
 
@@ -38,17 +38,19 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 				me.set_cur_list();
 			}
 		});
-	},
-	show: function () {
+	}
+
+	show() {
 		if(this.re_route_to_view()) {
 			return;
 		}
 		this.set_module_breadcrumb();
-		this._super();
+		super.show();
 		this.set_cur_list();
 		cur_list && cur_list.show();
-	},
-	re_route_to_view: function() {
+	}
+
+	re_route_to_view() {
 		var route = frappe.get_route();
 		var doctype = route[1];
 		var last_route = frappe.route_history.slice(-2)[0];
@@ -69,8 +71,9 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 				return false;
 			}
 		}
-	},
-	set_module_breadcrumb: function () {
+	}
+
+	set_module_breadcrumb() {
 		if (frappe.route_history.length > 1) {
 			var prev_route = frappe.route_history[frappe.route_history.length - 2];
 			if (prev_route[0] === 'modules') {
@@ -82,8 +85,9 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 				}
 			}
 		}
-	},
-	set_cur_list: function () {
+	}
+
+	set_cur_list() {
 		var route = frappe.get_route();
 		var page_name = frappe.get_route_str();
 		cur_list = frappe.views.list_view[page_name];
@@ -92,4 +96,4 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 			window.cur_list = null;
 		}
 	}
-});
+}
