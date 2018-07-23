@@ -206,7 +206,7 @@ class BaseDocument(object):
 				elif df.fieldtype in ("Currency", "Float", "Percent") and not isinstance(d[fieldname], float):
 					d[fieldname] = flt(d[fieldname])
 
-				elif df.fieldtype in ("Datetime", "Date","Time") and d[fieldname]=="":
+				elif df.fieldtype in ("Datetime", "Date", "Time") and d[fieldname]=="":
 					d[fieldname] = None
 
 				elif df.get("unique") and cstr(d[fieldname]).strip()=="":
