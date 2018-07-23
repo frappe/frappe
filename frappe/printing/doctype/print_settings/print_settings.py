@@ -5,7 +5,6 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-import cups
 
 from frappe.model.document import Document
 
@@ -17,6 +16,11 @@ class PrintSettings(Document):
 	def get_printers(self,ip="localhost",port=631):
 		printer_list = []
 		try:
+			import cups
+		except ModuleNotFoundError:
+			frappe.throw("You need to install pycups to use this feature!")
+			return
+		try:
 			cups.setServer(self.server_ip)
 			cups.setPort(self.port)
 			conn = cups.Connection()
@@ -25,5 +29,5 @@ class PrintSettings(Document):
 		except RuntimeError:
 			frappe.throw(_("Failed to connect to server"))
 		except ValidationError:
-			frappe.throw(_("Failed to connect to server"))			
+			frappe.throw(_("Failed to connect to server"))
 		return printer_list

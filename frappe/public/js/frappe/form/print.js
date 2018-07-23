@@ -176,7 +176,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 				args: {
 					doctype: me.frm.doc.doctype,
 					name: me.frm.doc.name,
-					format:  me.selected_format(),
+					print_format:  me.selected_format(),
 					no_letterhead: me.with_letterhead()
 				},
 				callback: function (data) {
