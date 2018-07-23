@@ -277,8 +277,7 @@ def _use(site, sites_path='.'):
 	use(site, sites_path=sites_path)
 
 def use(site, sites_path='.'):
-	folders = [name for name in os.listdir(sites_path) if os.path.isdir(name) and name != 'assets']
-	if site in folders:
+	if os.path.exists(os.path.join(sites_path, site)):
 		with open(os.path.join(sites_path,  "currentsite.txt"), "w") as sitefile:
 			sitefile.write(site)
 	else:
