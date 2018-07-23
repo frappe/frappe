@@ -4,8 +4,8 @@
 frappe.provide("frappe.ui.toolbar");
 frappe.provide('frappe.search');
 
-frappe.ui.toolbar.Toolbar = class {
-	constructor() {
+frappe.ui.toolbar.Toolbar = Class.extend({
+	init: function() {
 		$('header').append(frappe.render_template("navbar", {
 			avatar: frappe.avatar(frappe.session.user)
 		}));
@@ -16,78 +16,28 @@ frappe.ui.toolbar.Toolbar = class {
 		awesome_bar.setup("#modal-search");
 
 		this.make();
-	}
+	},
 
-	make() {
+	make: function() {
 		this.setup_sidebar();
-		this.setup_modules_dropdown();
 		this.setup_help();
+
 		this.setup_modules_dialog();
 		this.setup_progress_dialog();
 		this.bind_events();
 
 		$(document).trigger('toolbar_setup');
-	}
+	},
 
-	setup_modules_dropdown() {
-		const modules_menu = $(".modules-menu");
-		const places_menu = $(".places-menu");
-
-		let get_link = (name, label, link) => {
-			return $(`<a class="ellipsis" data-name="${name}" href="#${link}">
-				<span>${label}</span>
-			</a>`);
-		};
-
-		const core = frappe.boot.core_modules.map(d => d.label || d.module_name);
-
-		const all_links = frappe.get_desktop_icons(true)
-			.filter(d => d.type==='module' && !d.blocked)
-			.sort((a, b) => { 
-				return (a._label > b._label) ? 1 : -1; 
-			});
-
-		let modules = [];
-		let places = [];
-		all_links.forEach(m => { 
-			m.name = m.module_name; 
-			m.label = m._label; 
-
-			if(core.includes(m.label)) {
-				places.push(m);
-			} else {
-				modules.push(m);
-			}
-		});
-
-		// Add explore links to places
-		if(frappe.boot.page_quick_links) {
-			places = frappe.boot.page_quick_links.concat(places);
-		}
-
-		modules.forEach(m => {
-			modules_menu.append(get_link(m.name, m.label, m.link));
-		});
-
-		places.forEach(m => {
-			places_menu.append(get_link(m.name, m.label, m.link));
-		});
-
-		$(".menu-heading.collapsible").on('click', function() {
-			$(".menu-heading.collapsible").toggleClass("open");
-			$(".help-menu").toggleClass("hide");
-			return false;
-		});
-	}
 
 	setup_modules_dialog() {
 		this.modules_select = new frappe.ui.toolbar.ModulesSelect();
 		$('.navbar-set-desktop-icons').on('click', () => {
 			this.modules_select.show();
 		});
-	}
+	},
 
-	bind_events() {
+	bind_events: function() {
 		$(document).on("notification-update", function() {
 			frappe.ui.notifications.update_notifications();
 		});
@@ -104,9 +54,9 @@ frappe.ui.toolbar.Toolbar = class {
 				search_modal.find('#modal-search').focus();
 			}, 300);
 		});
-	}
+	},
 
-	setup_sidebar() {
+	setup_sidebar: function () {
 		var header = $('header');
 		header.find(".toggle-sidebar").on("click", function () {
 			var layout_side_section = $('.layout-side-section');
@@ -140,9 +90,9 @@ frappe.ui.toolbar.Toolbar = class {
 				});
 			}
 		});
-	}
+	},
 
-	setup_help() {
+	setup_help: function () {
 		frappe.provide('frappe.help');
 		frappe.help.show_results = show_results;
 
@@ -173,11 +123,6 @@ frappe.ui.toolbar.Toolbar = class {
 		});
 
 		$(document).on("page-change", function () {
-			// Show Desk link if inner route
-			const desk_link = $(".places-menu .desk-link-item");
-			const is_route_present = !!frappe.get_route_str().length;
-			desk_link.toggle(is_route_present);
-
 			var $help_links = $(".dropdown-help #help-links");
 			$help_links.html("");
 
@@ -255,9 +200,9 @@ frappe.ui.toolbar.Toolbar = class {
 				});
 			}
 		}
-	}
+	},
 
-	setup_progress_dialog() {
+	setup_progress_dialog: function() {
 		var me = this;
 		frappe.call({
 			method: "frappe.desk.user_progress.get_user_progress_slides",
@@ -290,7 +235,7 @@ frappe.ui.toolbar.Toolbar = class {
 			freeze: false
 		});
 	}
-};
+});
 
 $.extend(frappe.ui.toolbar, {
 	add_dropdown_button: function(parent, label, click, icon) {

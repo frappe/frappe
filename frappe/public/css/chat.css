@@ -267,6 +267,9 @@ a.no-decoration:active {
   height: 40px;
   text-align: center;
 }
+.navbar .octicon {
+  margin-top: 5px;
+}
 .frappe-chat > .frappe-chat-popper {
   position: fixed;
   bottom: 0px;

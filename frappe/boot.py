@@ -16,7 +16,6 @@ from frappe.desk.form.load import get_meta_bundle
 from frappe.utils.change_log import get_versions
 from frappe.translate import get_lang_dict
 from frappe.email.inbox import get_email_accounts
-from frappe.config.desktop import get_data as get_core_modules
 from frappe.core.doctype.feedback_trigger.feedback_trigger import get_enabled_feedback_trigger
 
 def get_bootinfo():
@@ -40,7 +39,7 @@ def get_bootinfo():
 
 	bootinfo.modules = {}
 	bootinfo.module_list = []
-	load_desktop_modules(bootinfo)
+	load_desktop_icons(bootinfo)
 	bootinfo.letter_heads = get_letter_heads()
 	bootinfo.active_domains = frappe.get_active_domains()
 	bootinfo.all_domains = [d.get("name") for d in frappe.get_all("Domain")]
@@ -96,16 +95,9 @@ def load_conf_settings(bootinfo):
 	for key in ('developer_mode', 'socketio_port', 'file_watcher_port'):
 		if key in conf: bootinfo[key] = conf.get(key)
 
-def load_desktop_modules(bootinfo):
-	# Get all desktop icons
+def load_desktop_icons(bootinfo):
 	from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
 	bootinfo.desktop_icons = get_desktop_icons()
-
-	# Define core modules
-	bootinfo.core_modules = get_core_modules()
-
-	# Add explore links
-	bootinfo["page_quick_links"] = frappe.get_hooks('page_quick_links') or []
 
 def get_allowed_pages():
 	return get_user_pages_or_reports('Page')
