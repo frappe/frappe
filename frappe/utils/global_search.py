@@ -317,7 +317,7 @@ def sync_global_search(flags=None):
 				(%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
 				{on_duplicate_update}
 				content = %(content)s'''.format(
-					on_duplicate_update=frappe.db.get_on_duplicate_update()
+					on_duplicate_update=frappe.db.get_on_duplicate_update(['name', 'doctype'])
 				), value)
 
 	frappe.flags.update_global_search = []
