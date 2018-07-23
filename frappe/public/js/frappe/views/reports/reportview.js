@@ -619,11 +619,11 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 
 	set_totals_row: function(data, columns) {
 		const field_map = {};
-		const fields = ['Int', 'Currency', 'Float'];
+		const numeric_fieldtypes = ['Int', 'Currency', 'Float'];
 		columns.forEach(function(row) {
 			if (row.docfield) {
 				let r = row.docfield;
-				if (fields.includes(r.fieldtype)) {
+				if (numeric_fieldtypes.includes(r.fieldtype)) {
 					field_map[r.fieldname] = [r.fieldtype];
 				}
 			}
