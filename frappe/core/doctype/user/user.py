@@ -1078,4 +1078,4 @@ def generate_keys(user):
 		user_details.save()
 
 		return {"api_secret": api_secret}
-	frappe.throw("Permission denied")
+	frappe.throw(frappe._("Permission denied"), frappe.PermissionError)
