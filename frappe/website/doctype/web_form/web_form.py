@@ -490,7 +490,7 @@ def get_form_data(doctype, docname, web_form_name):
 
 	if docname:
 		doc = frappe.get_doc(doctype, docname)
-		if doc.has_permission("read"):
+		if has_web_form_permission(doctype, docname, ptype='read'):
 			out.doc = doc
 		else:
 			frappe.throw(_("Not permitted"), frappe.PermissionError)
