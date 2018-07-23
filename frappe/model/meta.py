@@ -451,7 +451,7 @@ def is_single(doctype):
 		raise Exception('Cannot determine whether %s is single' % doctype)
 
 def get_parent_dt(dt):
-	parent_dt = frappe.db.get_all('DocField', 'parent', dict(fieldtype='Table', options=doctype))
+	parent_dt = frappe.db.get_all('DocField', 'parent', dict(fieldtype='Table', options=dt), limit=1)
 	return parent_dt and parent_dt[0].parent or ''
 
 def set_fieldname(field_id, fieldname):

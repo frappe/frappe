@@ -6,6 +6,7 @@ import frappe
 import subprocess
 import psycopg2
 import psycopg2.extensions
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from frappe.database.database import Database
 from frappe.database.postgres.schema import PostgresTable
@@ -60,6 +61,7 @@ class PostgresDatabase(Database):
 	def get_connection(self):
 		# warnings.filterwarnings('ignore', category=psycopg2.Warning)
 		conn = psycopg2.connect('host={} dbname={}'.format(self.host, self.user))
+		conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT) # TODO: Remove this
 		# conn = psycopg2.connect('host={} dbname={} user={} password={}'.format(self.host,
 		# 	self.user, self.user, self.password))
 
@@ -122,7 +124,7 @@ class PostgresDatabase(Database):
 		return e.pgcode.startswith('23')
 
 	def create_auth_table(self):
-		frappe.db.sql_ddl("""create table if not exists __Auth (
+		frappe.db.sql_ddl("""create table if not exists "__Auth" (
 				"doctype" VARCHAR(140) NOT NULL,
 				"name" VARCHAR(255) NOT NULL,
 				"fieldname" VARCHAR(140) NOT NULL,
@@ -133,9 +135,9 @@ class PostgresDatabase(Database):
 
 	def create_global_search_table(self):
 		if not '__global_search' in frappe.db.get_tables():
-			frappe.db.sql('''create table __global_search(
+			frappe.db.sql('''create table "__global_search"(
 				doctype varchar(100),
-				name varchar({0}) UNIQUE,
+				name varchar({0}),
 				title varchar({0}),
 				content text,
 				route varchar({0}),
@@ -143,7 +145,7 @@ class PostgresDatabase(Database):
 				unique (doctype, name))'''.format(frappe.db.VARCHAR_LEN))
 
 	def create_user_settings_table(self):
-		frappe.db.sql_ddl("""create table if not exists __UserSettings (
+		frappe.db.sql_ddl("""create table if not exists "__UserSettings" (
 			"user" VARCHAR(180) NOT NULL,
 			"doctype" VARCHAR(180) NOT NULL,
 			"data" TEXT,

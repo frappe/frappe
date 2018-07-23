@@ -108,7 +108,7 @@ class DatabaseQuery(object):
 
 		query = """select %(fields)s from %(tables)s %(conditions)s
 			%(group_by)s %(order_by)s %(limit)s""" % args
-			
+
 		return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug, update=self.update)
 
 	def prepare_args(self):
@@ -403,6 +403,10 @@ class DatabaseQuery(object):
 						# because "like" uses backslash (\) for escaping
 						value = value.replace("\\", "\\\\").replace("%", "%%")
 
+			elif f.operator == '=' and df and df.fieldtype in ['Link', 'Data']: # TODO: Refactor if possible
+				value = f.value or "''"
+				fallback = "''"
+
 			else:
 				value = flt(f.value)
 				fallback = 0
@@ -595,7 +599,7 @@ class DatabaseQuery(object):
 
 	def add_limit(self):
 		if self.limit_page_length:
-			return 'limit %s, %s' % (self.limit_start, self.limit_page_length)
+			return 'limit %s offset %s' % (self.limit_page_length, self.limit_start)
 		else:
 			return ''
 
