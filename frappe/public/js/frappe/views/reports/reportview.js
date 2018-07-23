@@ -391,7 +391,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		var me = this;
 		var data = this.get_unique_data(this.column_info);
 
-		this.set_totals_row(data);
+		this.set_totals_row(data, this.column_info);
 
 		// add sr in data
 		$.each(data, function(i, v) {
@@ -617,13 +617,23 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		});
 	},
 
-	set_totals_row: function(data) {
+	set_totals_row: function(data, columns) {
+		field_map = {}
+		const fields = ['Int', 'Currency', 'Float']
+		columns.forEach(function(row, ri) {
+			if (row.docfield) {
+				r = row.docfield;
+				if (fields.includes(r.fieldtype)) {
+					field_map[r.fieldname] = [r.fieldtype];
+				}
+			}
+		})
 		if(this.add_totals_row) {
 			var totals_row = {_totals_row: 1};
 			if(data.length) {
 				data.forEach(function(row, ri) {
 					$.each(row, function(key, value) {
-						if($.isNumeric(value)) {
+						if (key in field_map) {
 							totals_row[key] = (totals_row[key] || 0) + value;
 						}
 					});
