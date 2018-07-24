@@ -7,6 +7,7 @@ import frappe
 from frappe.utils import time_diff_in_seconds, now, now_datetime, DATETIME_FORMAT
 from dateutil.relativedelta import relativedelta
 from six import string_types
+import json
 
 @frappe.whitelist()
 def get_notifications():
@@ -232,7 +233,7 @@ def get_filters_for(doctype):
 	return config.get('for_doctype').get(doctype, {})
 
 @frappe.whitelist()
-def get_open_count(doctype, name):
+def get_open_count(doctype, name, items=None):
 	'''Get open count for given transactions and filters
 
 	:param doctype: Reference DocType
@@ -246,9 +247,12 @@ def get_open_count(doctype, name):
 	links = meta.get_dashboard_data()
 
 	# compile all items in a list
-	items = []
-	for group in links.transactions:
-		items.extend(group.get('items'))
+	if not items:
+		for group in links.transactions:
+			items.extend(group.get('items'))
+
+	if not isinstance(items, list):
+		items = json.loads(items)
 
 	out = []
 	for d in items:
