@@ -292,7 +292,9 @@ def scheduler_task(site, event, handler, now=False):
 def reset_enabled_scheduler_events(login_manager):
 	if login_manager.info.user_type == "System User":
 		try:
-			frappe.db.set_global('enabled_scheduler_events', None)
+			if frappe.db.get_global('enabled_scheduler_events'):
+				# clear restricted events, someone logged in!
+				frappe.db.set_global('enabled_scheduler_events', None)
 		except pymysql.InternalError as e:
 			if e.args[0]==ER.LOCK_WAIT_TIMEOUT:
 				frappe.log_error(frappe.get_traceback(), "Error in reset_enabled_scheduler_events")
@@ -308,7 +310,7 @@ def disable_scheduler_on_expiry():
 		disable_scheduler()
 
 def restrict_scheduler_events_if_dormant():
-	if is_dormant():
+	if is_dormant() and not os.environ.get('CI'):
 		restrict_scheduler_events()
 		update_site_config('dormant', True)
 
@@ -317,7 +319,11 @@ def restrict_scheduler_events(*args, **kwargs):
 	frappe.db.set_global('enabled_scheduler_events', val)
 
 def is_dormant(since = 345600):
-	last_active = get_datetime(get_last_active())
+	last_user_activity = get_last_active()
+	if not last_user_activity:
+		# no user has ever logged in, so not yet used
+		return False
+	last_active = get_datetime(last_user_activity)
 	# Get now without tz info
 	now = now_datetime().replace(tzinfo=None)
 	time_since_last_active = now - last_active
@@ -326,7 +332,7 @@ def is_dormant(since = 345600):
 	return False
 
 def get_last_active():
-	return frappe.db.sql("""select max(ifnull(last_active, "2000-01-01 00:00:00")) from `tabUser`
+	return frappe.db.sql("""select max(last_active) from `tabUser`
 		where user_type = 'System User' and name not in ({standard_users})"""\
 		.format(standard_users=", ".join(["%s"]*len(STANDARD_USERS))),
 		STANDARD_USERS)[0][0]
