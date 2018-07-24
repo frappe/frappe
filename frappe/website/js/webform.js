@@ -21,6 +21,8 @@ export default class WebForm {
 	}
 
 	render(doc, web_form, links) {
+		const query_params = frappe.utils.get_query_params();
+
 		web_form.web_form_fields.map(df => {
 			if (df.fieldtype === 'Link') {
 				df.fieldtype = 'Select';
@@ -47,6 +49,11 @@ export default class WebForm {
 				];
 
 				df.options = null;
+			}
+
+			// Set defaults
+			if (query_params && query_params["new"] == 1 && df.fieldname in query_params) {
+				df.default = query_params[df.fieldname];
 			}
 
 			delete df.parent;
