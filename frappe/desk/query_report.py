@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
-import os, json
+import os, json, datetime
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
@@ -15,7 +15,6 @@ import frappe.desk.reportview
 from frappe.utils.csvutils import read_csv_content_from_attached_file
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
-
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
@@ -57,11 +56,17 @@ def generate_report_result(report, filters=None, user=None):
 		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
 		if report.is_standard == "Yes":
 			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
-
+			timeout = 10
 			res = []
-
+			
+			start_time = datetime.datetime.now()
 			# The JOB
-			res = frappe.get_attr(method_name)(frappe._dict(filters))
+			res =  frappe.get_attr(method_name)(frappe._dict(filters))
+			
+			end_time = datetime.datetime.now()
+
+			if (end_time - start_time).seconds > timeout and not report.prepared_report:
+				make_report_prepared(report.name)
 
 			columns, result = res[0], res[1]
 			if len(res) > 2:
@@ -86,6 +91,8 @@ def generate_report_result(report, filters=None, user=None):
 		"status": status
 	}
 
+def make_report_prepared(report_name):
+	frappe.db.set_value("Prepared Report", report_name, "prepared_report", 1)
 
 @frappe.whitelist()
 def background_enqueue_run(report_name, filters=None, user=None):
