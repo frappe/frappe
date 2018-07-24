@@ -296,7 +296,14 @@ frappe.ui.Filter = class {
 	hide_nested_set_conditions(df) {
 		if ( !( df.fieldtype == "Link" && frappe.boot.nested_set_doctypes.includes(df.options))) {
 			this.filter_edit_area.find(`.condition option[value="descendants of"]`).hide();
+			this.filter_edit_area.find(`.condition option[value="not descendants of"]`).hide();
 			this.filter_edit_area.find(`.condition option[value="ancestors of"]`).hide();
+			this.filter_edit_area.find(`.condition option[value="not ancestors of"]`).hide();
+		}else {
+			this.filter_edit_area.find(`.condition option[value="descendants of"]`).show();
+			this.filter_edit_area.find(`.condition option[value="not descendants of"]`).show();
+			this.filter_edit_area.find(`.condition option[value="ancestors of"]`).show();
+			this.filter_edit_area.find(`.condition option[value="not ancestors of"]`).show();
 		}
 	}
 };
@@ -383,7 +390,7 @@ frappe.ui.filter_utils = {
 		} else if(['Text','Small Text','Text Editor','Code','Tag','Comments',
 			'Dynamic Link','Read Only','Assign'].indexOf(df.fieldtype)!=-1) {
 			df.fieldtype = 'Data';
-		} else if(df.fieldtype=='Link' && ['=', '!=', 'descendants of', 'ancestors of'].indexOf(condition)==-1) {
+		} else if(df.fieldtype=='Link' && ['=', '!=', 'descendants of', 'ancestors of', 'not descendants of', 'not ancestors of'].indexOf(condition)==-1) {
 			df.fieldtype = 'Data';
 		}
 		if(df.fieldtype==="Data" && (df.options || "").toLowerCase()==="email") {
