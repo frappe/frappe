@@ -17,7 +17,7 @@ frappe.ui.form.Timeline = Class.extend({
 
 		this.comment_area = new frappe.ui.CommentArea({
 			parent: this.wrapper.find('.timeline-head'),
-			mentions: this.get_usernames_for_mentions(),
+			mentions: this.get_names_for_mentions(),
 			on_submit: (val) => {
 				val && this.insert_comment(
 					"Comment", val, this.comment_area.button);
@@ -99,7 +99,7 @@ frappe.ui.form.Timeline = Class.extend({
 
 		this.editing_area = new frappe.ui.CommentArea({
 			parent: this.$editing_area,
-			mentions: this.get_usernames_for_mentions(),
+			mentions: this.get_names_for_mentions(),
 			no_wrapper: true
 		});
 
@@ -490,8 +490,8 @@ frappe.ui.form.Timeline = Class.extend({
 								parts.push(__('{0} from {1} to {2} in row #{3}', [
 									frappe.meta.get_label(me.frm.fields_dict[row[0]].grid.doctype,
 										p[0]),
-									(frappe.ellipsis(p[2], 40) || '""').bold(),
 									(frappe.ellipsis(p[1], 40) || '""').bold(),
+									(frappe.ellipsis(p[2], 40) || '""').bold(),
 									row[1]
 								]));
 							}
@@ -666,11 +666,11 @@ frappe.ui.form.Timeline = Class.extend({
 		return last_email;
 	},
 
-	get_usernames_for_mentions: function() {
+	get_names_for_mentions: function() {
 		var valid_users = Object.keys(frappe.boot.user_info)
 			.filter(user => !["Administrator", "Guest"].includes(user));
 
-		return valid_users.map(user => frappe.boot.user_info[user].username || frappe.boot.user_info[user].name);
+		return valid_users.map(user => frappe.boot.user_info[user].name);
 	},
 
 	setup_comment_like: function() {

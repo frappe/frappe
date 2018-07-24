@@ -6,6 +6,7 @@
 <h1>{{ _(title) }}</h1>
 {% endblock %}
 
+
 {% block breadcrumbs %}
 {% if has_header and login_required %}
 {% include "templates/includes/breadcrumbs.html" %}
@@ -32,7 +33,7 @@
 	    </a>
 	</div>
 	{% endif %}
-	{%- if allow_print and not is_list and not _login_required -%}
+	{%- if allow_print and not is_list and not _login_required and doc.name -%}
 	<div class='text-right'>
 		<a class='text-muted small' href='/printview?doctype={{ doc.doctype}}&name={{ doc.name }}
 			{%- if print_format -%}&format={{ print_format }}{%- endif -%}' target="_blank" rel="noopener noreferrer">
@@ -162,6 +163,9 @@
 {% endblock %}
 
 {% block script %}
+<script type="text/javascript" src="/assets/js/dialog.min.js"></script>
+<script type="text/javascript" src="/assets/js/control.min.js"></script>
+<script type="text/javascript" src="/assets/js/moment-bundle.min.js"></script>
 
 <script>
 window.web_form_settings = {

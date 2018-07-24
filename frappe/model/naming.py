@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import now_datetime, cint
+from frappe.utils import now_datetime, cint, cstr
 import re
 from six import string_types
 
@@ -223,7 +223,7 @@ def append_number_if_name_exists(doctype, value, fieldname='name', separator='-'
 	filters.update({fieldname: value})
 	exists = frappe.db.exists(doctype, filters)
 
-	regex = '^{value}{separator}[[:digit:]]$'.format(value=re.escape(value), separator=separator)
+	regex = '^{value}{separator}\d+$'.format(value=re.escape(value), separator=separator)
 
 	if exists:
 		last = frappe.db.sql("""select {fieldname} from `tab{doctype}`
@@ -258,7 +258,7 @@ def _field_autoname(autoname, doc, skip_slicing=None):
 	`autoname` field starts with 'field:'
 	"""
 	fieldname = autoname if skip_slicing else autoname[6:]
-	name = (doc.get(fieldname) or '').strip()
+	name = (cstr(doc.get(fieldname)) or '').strip()
 	return name
 
 

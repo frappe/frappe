@@ -15,7 +15,7 @@ frappe.query_reports["Addresses And Contacts"] = {
 			"label": __("Entity Name"),
 			"fieldtype": "Dynamic Link",
 			"get_options": function() {
-				let reference_doctype = frappe.query_report_filters_by_name.reference_doctype.get_value();
+				let reference_doctype = frappe.query_report.get_filter_value('reference_doctype');
 				if(!reference_doctype) {
 					frappe.throw(__("Please select Entity Type first"));
 				}

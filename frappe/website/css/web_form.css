@@ -50,3 +50,7 @@ input[type='checkbox'] {
 .slide-progress .icon-circle {
 	font-size: 14px;
 }
+
+body {
+	display: none;
+}

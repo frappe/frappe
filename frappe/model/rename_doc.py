@@ -94,6 +94,8 @@ def update_user_settings(old, new, link_fields):
 	# store the user settings data from the redis to db
 	sync_user_settings()
 
+	if not link_fields: return
+
 	# find the user settings for the linked doctypes
 	linked_doctypes = set([d.parent for d in link_fields if not d.issingle])
 	user_settings_details = frappe.db.sql('''select user, doctype, data from `__UserSettings` where
@@ -174,6 +176,7 @@ def rename_doctype(doctype, old, new, force=False):
 	# change options for fieldtype Table
 	update_options_for_fieldtype("Table", old, new)
 	update_options_for_fieldtype("Link", old, new)
+	update_user_permissions(old, new)
 
 	# change options where select options are hardcoded i.e. listed
 	select_fields = get_select_fields(old, new)
@@ -282,6 +285,15 @@ def update_options_for_fieldtype(fieldtype, old, new):
 
 	frappe.db.sql("""update `tabProperty Setter` set value=%s
 		where property='options' and value=%s""", (new, old))
+
+def update_user_permissions(old_doctype_name, new_doctype_name):
+	user_perms = frappe.get_all('User Permission', fields=['name','skip_for_doctype'])
+	for perm in user_perms:
+		doctype_list = perm.skip_for_doctype.split("\n") if perm.skip_for_doctype else []
+		if old_doctype_name in doctype_list:
+			new_list = [new_doctype_name if dt==old_doctype_name else dt for dt in doctype_list]
+			new_string = "\n".join(new_list)
+			frappe.db.set_value('User Permission', perm.name, 'skip_for_doctype', new_string)
 
 def get_select_fields(old, new):
 	"""

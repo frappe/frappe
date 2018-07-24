@@ -27,7 +27,11 @@ def get_user_default(key, user=None):
 		else:
 			d = user_defaults.get(frappe.scrub(key), None)
 
-	return isinstance(d, (list, tuple)) and d[0] or d
+	value = isinstance(d, (list, tuple)) and d[0] or d
+	if not_in_user_permission(key, value, user):
+		return
+
+	return value
 
 def get_user_default_as_list(key, user=None):
 	user_defaults = get_defaults(user or frappe.session.user)
@@ -41,10 +45,21 @@ def get_user_default_as_list(key, user=None):
 		else:
 			d = user_defaults.get(frappe.scrub(key), None)
 
-	return list(filter(None, (not isinstance(d, (list, tuple))) and [d] or d))
+	d = list(filter(None, (not isinstance(d, (list, tuple))) and [d] or d))
+
+	# filter default values if not found in user permission
+	values = [value for value in d if not not_in_user_permission(key, value)]
+
+	return values
 
 def is_a_user_permission_key(key):
 	return ":" not in key and key != frappe.scrub(key)
+
+def not_in_user_permission(key, value, user=None):
+	# returns true or false based on if value exist in user permission
+	user = user or frappe.session.user
+	user_permission = get_user_permissions(user).get(frappe.unscrub(key))
+	return user_permission and not (value in user_permission['docs'])
 
 def get_user_permissions(user=None):
 	from frappe.core.doctype.user_permission.user_permission \
@@ -79,7 +94,12 @@ def add_global_default(key, value):
 
 def get_global_default(key):
 	d = get_defaults().get(key, None)
-	return isinstance(d, list) and d[0] or d
+
+	value = isinstance(d, (list, tuple)) and d[0] or d
+	if not_in_user_permission(key, value):
+		return
+
+	return value
 
 # Common
 

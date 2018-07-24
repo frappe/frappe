@@ -1,4 +1,4 @@
-import moment from 'moment';
+
 
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	make_input: function() {
@@ -9,7 +9,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	},
 	set_formatted_input: function(value) {
 		this._super(value);
-		if(!value) return;
+		if(!value || !this.datepicker) return;
 
 		let should_refresh = this.last_value && this.last_value !== value;
 
@@ -19,6 +19,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 				const selected_date =
 					moment(this.datepicker.selectedDates[0])
 						.format(this.date_format);
+
 				should_refresh = selected_date !== value;
 			} else {
 				// if datepicker has no selected date, refresh
@@ -31,26 +32,27 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		}
 	},
 	set_date_options: function() {
-		let userBoot = frappe.boot.user;
 		// webformTODO:
 		let sysdefaults = frappe.boot.sysdefaults;
 
-		let lang = userBoot ? userBoot.language : 'en';
+		let lang = frappe.boot.user.language || 'en';
 		if(!$.fn.datepicker.language[lang]) {
 			lang = 'en';
 		}
 
-		let dateFormat = sysdefaults && sysdefaults.date_format
+		let date_format = sysdefaults && sysdefaults.date_format
 			? sysdefaults.date_format : 'yyyy-mm-dd';
 
+		let now_date = new Date();
+
 		this.today_text = __("Today");
-		this.date_format = moment.defaultDateFormat;
+		this.date_format = frappe.defaultDateFormat;
 		this.datepicker_options = {
 			language: lang,
 			autoClose: true,
 			todayButton: true,
-			dateFormat: dateFormat,
-			startDate: new Date(),
+			dateFormat: date_format,
+			startDate: now_date,
 			keyboardNav: false,
 			onSelect: () => {
 				this.$input.trigger('change');
@@ -120,7 +122,6 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	},
 	validate: function(value) {
 		if(value && !frappe.datetime.validate(value)) {
-			// webformTODO:
 			let sysdefaults = frappe.sys_defaults;
 			let date_format = sysdefaults && sysdefaults.date_format
 				? sysdefaults.date_format : 'yyyy-mm-dd';

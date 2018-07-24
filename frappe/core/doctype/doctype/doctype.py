@@ -261,7 +261,6 @@ class DocType(Document):
 		if not (frappe.db.table_exists(self.name) and frappe.db.table_exists("Custom Field")):
 			return
 		fields = [d.fieldname for d in self.fields if d.fieldtype in type_map]
-
 		frappe.db.sql('''delete from
 				`tabCustom Field`
 			where
@@ -373,8 +372,6 @@ class DocType(Document):
 
 		if not self.istable:
 			make_boilerplate("test_controller._py", self.as_dict())
-
-		if not self.istable:
 			make_boilerplate("controller.js", self.as_dict())
 			#make_boilerplate("controller_list.js", self.as_dict())
 			if not os.path.exists(frappe.get_module_path(frappe.scrub(self.module),
