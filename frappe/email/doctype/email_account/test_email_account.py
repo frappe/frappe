@@ -14,6 +14,9 @@ from datetime import datetime, timedelta
 
 class TestEmailAccount(unittest.TestCase):
 	def setUp(self):
+		frappe.flags.mute_emails = False
+		frappe.flags.sent_mail = None
+
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		email_account.db_set("enable_incoming", 1)
 		frappe.db.sql('delete from `tabEmail Queue`')
@@ -99,7 +102,6 @@ class TestEmailAccount(unittest.TestCase):
 		self.assertTrue("This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content)
 
 	def test_outgoing(self):
-		frappe.flags.sent_mail = None
 		make(subject = "test-mail-000", content="test mail 000", recipients="test_receiver@example.com",
 			send_email=True, sender="test_sender@example.com")
 
@@ -107,7 +109,6 @@ class TestEmailAccount(unittest.TestCase):
 		self.assertTrue("test-mail-000" in mail.get("Subject"))
 
 	def test_sendmail(self):
-		frappe.flags.sent_mail = None
 		frappe.sendmail(sender="test_sender@example.com", recipients="test_recipient@example.com",
 			content="test mail 001", subject="test-mail-001", delayed=False)
 
@@ -115,7 +116,6 @@ class TestEmailAccount(unittest.TestCase):
 		self.assertTrue("test-mail-001" in sent_mail.get("Subject"))
 
 	def test_print_format(self):
-		frappe.flags.sent_mail = None
 		make(sender="test_sender@example.com", recipients="test_recipient@example.com",
 			content="test mail 001", subject="test-mail-002", doctype="Email Account",
 			name="_Test Email Account 1", print_format="Standard", send_email=True)

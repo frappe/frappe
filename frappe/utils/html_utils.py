@@ -37,7 +37,8 @@ def clean_email_html(html):
 def clean_script_and_style(html):
 	# remove script and style
 	soup = BeautifulSoup(html, 'html5lib')
-	[s.decompose() for s in soup(['script', 'style'])]
+	for s in soup(['script', 'style']):
+		s.decompose()
 	return frappe.as_unicode(soup)
 
 def sanitize_html(html, linkify=False):

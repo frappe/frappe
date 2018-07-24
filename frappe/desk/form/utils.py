@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe, json
 import frappe.desk.form.meta
 import frappe.desk.form.load
+from frappe.utils.html_utils import clean_email_html
 
 from frappe import _
 from six import string_types
@@ -59,6 +60,8 @@ def validate_link():
 def add_comment(doc):
 	"""allow any logged user to post a comment"""
 	doc = frappe.get_doc(json.loads(doc))
+
+	doc.content = clean_email_html(doc.content)
 
 	if not (doc.doctype=="Communication" and doc.communication_type=='Comment'):
 		frappe.throw(_("This method can only be used to create a Comment"), frappe.PermissionError)
