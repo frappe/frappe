@@ -498,7 +498,7 @@ def get_default_df(fieldname):
 
 def trim_tables(doctype=None):
 	"""
-	Removes database fields that don't exist in meta (json). This may be needed
+	Removes database fields that don't exist in the doctype (json or custom field). This may be needed
 	as maintenance since removing a field in a DocType doesn't automatically
 	delete the db field.
 	"""
