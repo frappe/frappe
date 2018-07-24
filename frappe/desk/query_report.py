@@ -61,12 +61,12 @@ def generate_report_result(report, filters=None, user=None):
 			
 			start_time = datetime.datetime.now()
 			# The JOB
-			res =  frappe.get_attr(method_name)(frappe._dict(filters))
+			res = frappe.get_attr(method_name)(frappe._dict(filters))
 			
 			end_time = datetime.datetime.now()
 
 			if (end_time - start_time).seconds > timeout and not report.prepared_report:
-				make_report_prepared(report.name)
+				report.db_set('prepared', 1)
 
 			columns, result = res[0], res[1]
 			if len(res) > 2:
@@ -90,9 +90,6 @@ def generate_report_result(report, filters=None, user=None):
 		"data_to_be_printed": data_to_be_printed,
 		"status": status
 	}
-
-def make_report_prepared(report_name):
-	frappe.db.set_value("Prepared Report", report_name, "prepared_report", 1)
 
 @frappe.whitelist()
 def background_enqueue_run(report_name, filters=None, user=None):
