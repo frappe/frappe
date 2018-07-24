@@ -15,6 +15,7 @@ from six import text_type, string_types, StringIO
 import pymysql
 
 @frappe.whitelist()
+@frappe.read_only()
 def get():
 	args = get_form_params()
 

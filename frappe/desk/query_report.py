@@ -148,6 +148,7 @@ def get_script(report_name):
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def run(report_name, filters=None, user=None):
 
 	report = get_report_doc(report_name)
