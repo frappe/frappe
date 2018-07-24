@@ -12,6 +12,7 @@ from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_mins_to_first_response)
 from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr
+from frappe.utils.html_utils import clean_email_html
 
 from collections import Counter
 
@@ -76,6 +77,7 @@ class Communication(Document):
 		self.set_status()
 		self.set_sender_full_name()
 		validate_email(self)
+		self.content = clean_email_html(self.content)
 		set_timeline_doc(self)
 
 	def after_insert(self):
@@ -287,8 +289,6 @@ def has_permission(doc, ptype, user):
 				return True
 
 def get_permission_query_conditions_for_communication(user):
-	from frappe.email.inbox import get_email_accounts
-
 	if not user: user = frappe.session.user
 
 	roles = frappe.get_roles(user)

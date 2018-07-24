@@ -2,17 +2,43 @@ import frappe
 import json, re
 import bleach, bleach_whitelist.bleach_whitelist as bleach_whitelist
 from six import string_types
+from bs4 import BeautifulSoup
 
 def clean_html(html):
 	if not isinstance(html, string_types):
 		return html
 
-	return bleach.clean(html,
+	return bleach.clean(clean_script_and_style(html),
 		tags=['div', 'p', 'br', 'ul', 'ol', 'li', 'b', 'i', 'em',
-			'table', 'thead', 'tbody', 'td', 'tr'],
+                'table', 'thead', 'tbody', 'td', 'tr'],
 		attributes=[],
 		styles=['color', 'border', 'border-color'],
 		strip=True, strip_comments=True)
+
+def clean_email_html(html):
+	if not isinstance(html, string_types):
+		return html
+
+	return bleach.clean(clean_script_and_style(html),
+		tags=['div', 'p', 'br', 'ul', 'ol', 'li', 'b', 'i', 'em', 'a',
+			'table', 'thead', 'tbody', 'td', 'tr', 'th',
+			'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'button', 'img'],
+		attributes=['border', 'colspan', 'rowspan', 'margin', 'padding', 'src', 'href'],
+		styles=['color', 'border-color', 'width', 'height', 'max-width',
+			'background-color', 'border-collapse', 'border-radius',
+			'border', 'border-top', 'border-bottom', 'border-left', 'border-right',
+			'margin', 'margin-top', 'margin-bottom', 'margin-left', 'margin-right',
+			'padding', 'padding-top', 'padding-bottom', 'padding-left', 'padding-right',
+			'font-size', 'font-weight', 'font-family', 'text-decoration',
+			'line-height', 'text-align', 'vertical-align'
+		],
+		strip=True, strip_comments=True)
+
+def clean_script_and_style(html):
+	# remove script and style
+	soup = BeautifulSoup(html, 'html5lib')
+	[s.decompose() for s in soup(['script', 'style'])]
+	return frappe.as_unicode(soup)
 
 def sanitize_html(html, linkify=False):
 	"""
