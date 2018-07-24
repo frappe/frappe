@@ -195,8 +195,6 @@ frappe.ui.form.Dashboard = Class.extend({
 			});
 
 			this.filter_permissions();
-			this.render_links();
-			this.set_open_count();
 		}
 	},
 
