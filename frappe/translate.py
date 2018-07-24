@@ -345,7 +345,7 @@ def get_messages_from_doctype(name):
 		messages.extend(get_messages_from_file(doctype_file_path + "_list.js"))
 		messages.extend(get_messages_from_file(doctype_file_path + "_list.html"))
 		messages.extend(get_messages_from_file(doctype_file_path + "_calendar.js"))
-    messages.extend(get_messages_from_file(doctype_file_path + "_dashboard.html"))
+		messages.extend(get_messages_from_file(doctype_file_path + "_dashboard.html"))
 
 	# workflow based on doctype
 	messages.extend(get_messages_from_workflow(doctype=name))
