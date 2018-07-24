@@ -56,7 +56,7 @@ def generate_report_result(report, filters=None, user=None):
 		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
 		if report.is_standard == "Yes":
 			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
-			timeout = 10
+			threshold = 10
 			res = []
 			
 			start_time = datetime.datetime.now()
@@ -65,7 +65,7 @@ def generate_report_result(report, filters=None, user=None):
 			
 			end_time = datetime.datetime.now()
 
-			if (end_time - start_time).seconds > timeout and not report.prepared_report:
+			if (end_time - start_time).seconds > threshold and not report.prepared_report:
 				report.db_set('prepared', 1)
 
 			columns, result = res[0], res[1]
