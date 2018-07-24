@@ -5,8 +5,8 @@ frappe.provide("frappe.treeview_settings");
 frappe.provide('frappe.views.trees');
 window.cur_tree = null;
 
-frappe.views.TreeFactory = frappe.views.Factory.extend({
-	make: function(route) {
+frappe.views.TreeFactory = class TreeFactory extends frappe.views.Factory {
+	make(route) {
 		frappe.model.with_doctype(route[1], function() {
 			var options = {
 				doctype: route[1],
@@ -21,7 +21,7 @@ frappe.views.TreeFactory = frappe.views.Factory.extend({
 			frappe.views.trees[options.doctype] = new frappe.views.TreeView(options);
 		});
 	}
-});
+}
 
 frappe.views.TreeView = Class.extend({
 	init: function(opts) {
