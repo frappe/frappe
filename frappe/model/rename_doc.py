@@ -94,6 +94,8 @@ def update_user_settings(old, new, link_fields):
 	# store the user settings data from the redis to db
 	sync_user_settings()
 
+	if not link_fields: return
+
 	# find the user settings for the linked doctypes
 	linked_doctypes = set([d.parent for d in link_fields if not d.issingle])
 	user_settings_details = frappe.db.sql('''select user, doctype, data from `__UserSettings` where

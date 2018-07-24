@@ -8,13 +8,13 @@ from frappe import _
 import frappe
 import frappe.database
 import frappe.utils
-from frappe.utils import cint
+from frappe.utils import cint, flt, get_datetime, datetime
 import frappe.utils.user
 from frappe import conf
 from frappe.sessions import Session, clear_sessions, delete_session
 from frappe.modules.patch_handler import check_session_stopped
 from frappe.translate import get_lang_code
-from frappe.utils.password import check_password
+from frappe.utils.password import check_password, delete_login_failed_cache
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,
 	confirm_otp_token, get_cached_user_pass)
@@ -211,6 +211,10 @@ class LoginManager:
 
 	def check_if_enabled(self, user):
 		"""raise exception if user not enabled"""
+		doc = frappe.get_doc("System Settings")
+		if cint(doc.allow_consecutive_login_attempts) > 0:
+			check_consecutive_login_attempts(user, doc)
+
 		if user=='Administrator': return
 		if not cint(frappe.db.get_value('User', user, 'enabled')):
 			self.fail('User disabled or missing', user=user)
@@ -221,6 +225,7 @@ class LoginManager:
 			# returns user in correct case
 			return check_password(user, pwd)
 		except frappe.AuthenticationError:
+			self.update_invalid_login(user)
 			self.fail('Incorrect password', user=user)
 
 	def fail(self, message, user=None):
@@ -230,6 +235,15 @@ class LoginManager:
 		add_authentication_log(message, user, status="Failed")
 		frappe.db.commit()
 		raise frappe.AuthenticationError
+
+	def update_invalid_login(self, user):
+		last_login_tried = get_last_tried_login_data(user)
+
+		failed_count = 0
+		if last_login_tried > get_datetime():
+			failed_count = get_login_failed_count(user)
+
+		frappe.cache().hset('login_failed_count', user, failed_count + 1)
 
 	def run_trigger(self, event='on_login'):
 		for method in frappe.get_hooks().get(event, []):
@@ -346,3 +360,35 @@ def get_website_user_home_page(user):
 		return '/' + home_page.strip('/')
 	else:
 		return '/me'
+
+def get_last_tried_login_data(user, get_last_login=False):
+	locked_account_time = frappe.cache().hget('locked_account_time', user)
+	if get_last_login and locked_account_time:
+		return locked_account_time
+
+	last_login_tried = frappe.cache().hget('last_login_tried', user)
+	if not last_login_tried or last_login_tried < get_datetime():
+		last_login_tried = get_datetime() + datetime.timedelta(seconds=60)
+
+	frappe.cache().hset('last_login_tried', user, last_login_tried)
+
+	return last_login_tried
+
+def get_login_failed_count(user):
+	return cint(frappe.cache().hget('login_failed_count', user)) or 0
+
+def check_consecutive_login_attempts(user, doc):
+	login_failed_count = get_login_failed_count(user)
+	last_login_tried = (get_last_tried_login_data(user, True)
+		+ datetime.timedelta(seconds=doc.allow_login_after_fail))
+
+	if login_failed_count >= cint(doc.allow_consecutive_login_attempts):
+		locked_account_time = frappe.cache().hget('locked_account_time', user)
+		if not locked_account_time:
+			frappe.cache().hset('locked_account_time', user, get_datetime())
+
+		if last_login_tried > get_datetime():
+			frappe.throw(_("Your account has been locked and will resume after {0} seconds")
+				.format(doc.allow_login_after_fail), frappe.SecurityException)
+		else:
+			delete_login_failed_cache(user)

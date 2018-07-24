@@ -1,6 +1,6 @@
 from __future__ import unicode_literals, absolute_import, print_function
 import click
-import hashlib, os, sys, compileall
+import hashlib, os, sys, compileall, re
 import frappe
 from frappe import _
 from frappe.commands import pass_context, get_site
@@ -223,7 +223,7 @@ def migrate(context, rebuild_website=False):
 		finally:
 			frappe.destroy()
 
-	compileall.compile_dir('../apps', quiet=1)
+	compileall.compile_dir('../apps', quiet=1, rx=re.compile('.*node_modules.*'))
 
 @click.command('run-patch')
 @click.argument('module')
@@ -277,8 +277,11 @@ def _use(site, sites_path='.'):
 	use(site, sites_path=sites_path)
 
 def use(site, sites_path='.'):
-	with open(os.path.join(sites_path,  "currentsite.txt"), "w") as sitefile:
-		sitefile.write(site)
+	if os.path.exists(os.path.join(sites_path, site)):
+		with open(os.path.join(sites_path,  "currentsite.txt"), "w") as sitefile:
+			sitefile.write(site)
+	else:
+		print("{} does not exist".format(site))
 
 @click.command('backup')
 @click.option('--with-files', default=False, is_flag=True, help="Take backup with files")

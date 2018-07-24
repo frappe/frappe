@@ -5,13 +5,13 @@ DocType: Email Queue,Email Queue records.,records Email Dorê.
 DocType: Address,Punjab,Punjab
 apps/frappe/frappe/config/setup.py +126,Rename many items by uploading a .csv file.,Rename tomar gelek by cîhek a file .csv.
 DocType: Workflow State,pause,mizdan
-apps/frappe/frappe/www/desk.py +19,You are not permitted to access this page.,Tu nikarî bo gihiştina vê rûpelê.
-apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +24,Seems ldap is not installed on system.<br>Guidelines to install ldap dependancies and python package,Xuya ldap li ser pergala sazkirî ne. <br> Guidelines ji bo sazkirina dependancies ldap û pakêta python
+apps/frappe/frappe/www/desk.py +18,You are not permitted to access this page.,Tu nikarî bo gihiştina vê rûpelê.
+apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +33,Seems ldap is not installed on system.<br>Guidelines to install ldap dependancies and python package,Xuya ldap li ser pergala sazkirî ne. <br> Guidelines ji bo sazkirina dependancies ldap û pakêta python
 DocType: About Us Settings,Website,Website
 apps/frappe/frappe/www/me.py +14,You need to be logged in to access this page,Ji we re lazim têketî bê gihîştina vê rûpelê
 DocType: System Settings,Note: Multiple sessions will be allowed in case of mobile device,Têbînî: danişînên Multiple dê di doza cîhazê mobile destûr
 apps/frappe/frappe/core/doctype/user/user.py +697,Enabled email inbox for user {users},inbox email çalake ji bo user {bikarhênerên}
-apps/frappe/frappe/email/queue.py +253,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,Dikarin vê jî email bişînin ne. Tu sînorê şandina ji {0} emails ji bo vê mehê re derbas kirine.
+apps/frappe/frappe/email/queue.py +252,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,Dikarin vê jî email bişînin ne. Tu sînorê şandina ji {0} emails ji bo vê mehê re derbas kirine.
 apps/frappe/frappe/public/js/legacy/form.js +779,Permanently Submit {0}?,Û her tim {0} Submit?
 apps/frappe/frappe/desk/page/backups/backups.js +12,Download Files Backup,Dosyayên Daxistin Backup
 DocType: Address,County,County
@@ -45,6 +45,7 @@ apps/frappe/frappe/public/js/legacy/form.js +66,Cannot open {0} when its instanc
 apps/frappe/frappe/model/document.py +1083,Table {0} cannot be empty,Table {0} ne vala be
 DocType: SMS Parameter,Parameter,parametreyê
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +822,With Ledgers,bi Ledgers
+apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +81,Document has been modified!,Belgekirin hate guherandin!
 apps/frappe/frappe/public/js/frappe/views/image/image_view.js +13,Images,images
 DocType: Activity Log,Reference Owner,Çavkanî Xwedî
 DocType: User,"If enabled, user can login from any IP Address using Two Factor Auth, this can also be set for all users in System Settings","Heke çalak e, bikarhêner bikaribe ji IP-ê bikarhênerê Du Factor Bikaranîna bikarhênerên IP-ê bikaribe, ev jî ji bo hemî bikarhêneran ji bo Sîstema Sîstema Sîstemê de were saz kirin"
@@ -58,7 +59,7 @@ apps/frappe/frappe/public/js/frappe/model/model.js +33,Parent,dê û bav
 DocType: System Settings,"If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong.","Heke hilbijartî be, hêza vê şîfreya dê li ser bingeha herî kêm nirxê Password Score bi zorê. A value of 2 bûyîna navîn bi hêz û 4 ku pir xurt."
 DocType: System Settings,"If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong.","Heke hilbijartî be, hêza vê şîfreya dê li ser bingeha herî kêm nirxê Password Score bi zorê. A value of 2 bûyîna navîn bi hêz û 4 ku pir xurt."
 DocType: About Us Settings,"""Team Members"" or ""Management""",&quot;Tîma Endam&quot; an &quot;Management&quot;
-apps/frappe/frappe/core/doctype/doctype/doctype.py +505,Default for 'Check' type of field must be either '0' or '1',"Default bo type &#39;Check&#39; yên zeviyê, divê yan jî &#39;0&#39; an jî &#39;1&#39; be"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +504,Default for 'Check' type of field must be either '0' or '1',"Default bo type &#39;Check&#39; yên zeviyê, divê yan jî &#39;0&#39; an jî &#39;1&#39; be"
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +51,Yesterday,Do
 DocType: Contact,Designation,teklîfê
 DocType: Test Runner,Test Runner,test Meşva
@@ -113,7 +114,7 @@ apps/frappe/frappe/model/db_schema.py +357,"{0} field cannot be set as unique in
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +48,Document Types,Types belge
 DocType: Address,Jammu and Kashmir,Jammu û Keşmîrê
 DocType: Workflow,Workflow State Field,Workflow Dewletê Field
-apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +55,Please sign-up or login to begin,Ji kerema xwe îmze-up an jî Bibin Endam dest bi
+apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +56,Please sign-up or login to begin,Ji kerema xwe îmze-up an jî Bibin Endam dest bi
 DocType: Blog Post,Guest,Mêvan
 DocType: DocType,Title Field,title Field
 DocType: Error Log,Error Log,Têkeve Error
@@ -130,6 +131,7 @@ DocType: Chat Room,Owner,Xwedî
 DocType: Communication,Visit,Serdan
 DocType: LDAP Settings,LDAP Search String,LDAP Search String
 DocType: Translation,Translation,Werger
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,Setup &gt; Customize Form,Setup&gt; Forma Taybet
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Mr,Birêz
 DocType: Custom Script,Client,Kirrîxwaz
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +199,Select Column,Column hilbijêre
@@ -143,7 +145,7 @@ DocType: Data Import,Import Log,Import bike Têkeve Têkeve
 apps/frappe/frappe/config/website.py +27,Embed image slideshows in website pages.,Slideshows image Embed Di nav gotarên website.
 apps/frappe/frappe/email/doctype/newsletter/newsletter.js +9,Send,Şandin
 DocType: Workflow Action Master,Workflow Action Name,Navê Workflow Action
-apps/frappe/frappe/core/doctype/doctype/doctype.py +324,DocType can not be merged,DocType bi yek bên
+apps/frappe/frappe/core/doctype/doctype/doctype.py +323,DocType can not be merged,DocType bi yek bên
 DocType: Web Form Field,Fieldtype,Fieldtype
 apps/frappe/frappe/core/doctype/file/file.py +270,Not a zip file,Ne pel zip
 DocType: Auto Repeat,"To add dynamic subject, use jinja tags like
@@ -153,7 +155,7 @@ apps/frappe/frappe/public/js/frappe/form/save.js +147,"Mandatory fields required
 apps/frappe/frappe/utils/password_strength.py +196,Capitalization doesn't help very much.,Sermiyan nade gelekî alîkarî ne.
 DocType: Error Snapshot,Friendly Title,Title çap bike
 DocType: Newsletter,Email Sent?,Email şandin?
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +939,Toggle Chart,Charta Toggle
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +951,Toggle Chart,Charta Toggle
 apps/frappe/frappe/desk/form/save.py +50,Did not cancel,Ma betal ne
 DocType: Social Login Key,Client Information,Agahiya Client
 DocType: Workflow State,plus,biserve
@@ -184,7 +186,7 @@ apps/frappe/frappe/integrations/doctype/webhook/webhook.py +29,DocType must be S
 DocType: Workflow State,circle-arrow-up,circle-tîra-up
 DocType: Email Domain,Email Domain,Domain Email
 DocType: Workflow State,italic,italic
-apps/frappe/frappe/core/doctype/doctype/doctype.py +764,{0}: Cannot set Import without Create,{0}: Can Import bê Create set ne
+apps/frappe/frappe/core/doctype/doctype/doctype.py +763,{0}: Cannot set Import without Create,{0}: Can Import bê Create set ne
 DocType: SMS Settings,Enter url parameter for message,parametre url ji bo peyamek binivîse
 apps/frappe/frappe/templates/emails/auto_email_report.html +50,View report in your browser,Guhertoya we di gerokê de bibînin
 apps/frappe/frappe/config/desk.py +26,Event and other calendars.,Event û din calendars.
@@ -198,7 +200,7 @@ apps/frappe/frappe/core/doctype/file/file.py +184,Cannot delete Home and Attachm
 apps/frappe/frappe/config/desk.py +19,Files,files
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,Permissions get applied on Users based on what Roles they are assigned.,Permissions get li ser Bikarhêner li ser çi ristên ew rêdan bi serî.
 apps/frappe/frappe/public/js/frappe/views/communication.js +529,You are not allowed to send emails related to this document,Tu bi destûr ne ji bo şandina emails related to ev belge
-apps/frappe/frappe/model/db_query.py +554,Please select atleast 1 column from {0} to sort/group,Tikaye Hindîstan 1 column ji {0} ji bo çareser bike koma / hilbijêre
+apps/frappe/frappe/model/db_query.py +561,Please select atleast 1 column from {0} to sort/group,Tikaye Hindîstan 1 column ji {0} ji bo çareser bike koma / hilbijêre
 DocType: PayPal Settings,Check this if you are testing your payment using the Sandbox API,"vê kontrol bike, eger tu bi ceribandina dayina we bi bikaranîna API Ceriban"
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30,You are not allowed to delete a standard Website Theme,Tu nikarî bibî a Theme Website standard
 DocType: Data Import,Log Details,Navnîşan Log
@@ -236,7 +238,7 @@ apps/frappe/frappe/data_migration/doctype/data_migration_connector/data_migratio
 DocType: DocField,Display,Pêşkêşî
 DocType: Email Group,Total Subscribers,Total Subscribers
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +25,"If a Role does not have access at Level 0, then higher levels are meaningless.","Eger Role xwedîyê gihîştina asta 0 tune ne, asta wê bilind bi wate ne."
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +889,Save As,Save As
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +901,Save As,Save As
 DocType: Communication,Seen,dît
 apps/frappe/frappe/public/js/frappe/form/layout.js +162,Show more details,Nîşan hûragahiyan li Mercên
 DocType: System Settings,Run scheduled jobs only if checked,Run karên Biryar tenê eger kontrolkirin
@@ -268,7 +270,6 @@ apps/frappe/frappe/config/website.py +68,Javascript to append to the head sectio
 apps/frappe/frappe/www/printview.py +81,Not allowed to print draft documents,destûr ne ji bo print pêşnûma belge
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js +12,Reset to defaults,Reset ji vebijêrkên wê yên
 DocType: Workflow,Transition Rules,Rules Transition
-apps/frappe/frappe/email/smtp.py +188,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Hesabê Îmêlê nayê sazkirin. Ji kerema xwe ji Hesabê E-Mail-E-nameya Hesabê nû ya nû ya navnîşê biafirînin
 apps/frappe/frappe/core/doctype/report/report.js +11,Example:,Mînak:
 DocType: Google Maps,Google Maps,Nexşeya Google
 DocType: Workflow,Defines workflow states and rules for a document.,Dinasîne dewletên workflow û qaîdeyên ji bo Belgeya.
@@ -278,7 +279,7 @@ apps/frappe/frappe/config/setup.py +133,Update many values at one time.,Baştir 
 apps/frappe/frappe/model/document.py +637,Error: Document has been modified after you have opened it,"Çewtî: dokumênt hatiye guherandin, piştî ku hûn wê vekir"
 apps/frappe/frappe/core/doctype/activity_log/feed.py +56,{0} logged out: {1},{0} logged out: {1}
 DocType: Address,West Bengal,West Bengal
-apps/frappe/frappe/core/doctype/doctype/doctype.py +783,{0}: Cannot set Assign Submit if not Submittable,{0}: Can not set value Submit eger Submittable ne
+apps/frappe/frappe/core/doctype/doctype/doctype.py +782,{0}: Cannot set Assign Submit if not Submittable,{0}: Can not set value Submit eger Submittable ne
 DocType: Transaction Log,Row Index,Index Index
 DocType: Social Login Key,Facebook,facebook
 apps/frappe/frappe/www/list.py +66,"Filtered by ""{0}""",Filtreli by &quot;{0}&quot;
@@ -286,10 +287,10 @@ DocType: Salutation,Administrator,Birêvebir
 DocType: Activity Log,Closed,Girtî
 DocType: Blog Settings,Blog Title,Title Blog
 apps/frappe/frappe/core/doctype/role/role.py +20,Standard roles cannot be disabled,rolên Standard ne dikarin neçalak bibin
-apps/frappe/frappe/public/js/frappe/chat.js +1598,Chat Type,Tîpa Chatê
+apps/frappe/frappe/public/js/frappe/chat.js +1604,Chat Type,Tîpa Chatê
 DocType: Address,Mizoram,Mizoram
 DocType: Newsletter,Newsletter,Newsletter
-apps/frappe/frappe/model/db_query.py +545,Cannot use sub-query in order by,"Can sub-query, da bi kar tînin bi destê"
+apps/frappe/frappe/model/db_query.py +552,Cannot use sub-query in order by,"Can sub-query, da bi kar tînin bi destê"
 DocType: Web Form,Button Help,Button Alîkarî
 DocType: Kanban Board Column,purple,mor
 DocType: About Us Settings,Team Members,Endam Team
@@ -315,7 +316,7 @@ apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +280,[Urgent] Error w
 apps/frappe/frappe/public/js/frappe/model/model.js +24,Liked By,ecibandî By
 DocType: DocField,Print Hide If No Value,Print veşêre Eger No Nirx
 DocType: Kanban Board Column,yellow,zer
-apps/frappe/frappe/core/doctype/doctype/doctype.py +617,Is Published Field must be a valid fieldname,"Ma Published Field, divê bibe fieldname derbasdar"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +616,Is Published Field must be a valid fieldname,"Ma Published Field, divê bibe fieldname derbasdar"
 apps/frappe/frappe/public/js/frappe/upload.js +26,Upload Attachment,Upload pêvek hene.
 DocType: Block Module,Block Module,Module block
 apps/frappe/frappe/core/doctype/version/version_view.html +14,New Value,Nirx New
@@ -343,7 +344,7 @@ DocType: Print Format,Verdana,Unikurd
 DocType: Email Flag Queue,Email Flag Queue,Email Dorê Flag
 apps/frappe/frappe/config/setup.py +205,Stylesheets for Print Formats,Stylesheets for Print Formats
 apps/frappe/frappe/utils/bot.py +83,Can't identify open {0}. Try something else.,ne dikarin vekirî {0}. Try tiştekî din.
-apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +169,Your information has been submitted,agahî te hatin şandin
+apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +172,Your information has been submitted,agahî te hatin şandin
 apps/frappe/frappe/core/doctype/user/user.py +311,User {0} cannot be deleted,Bikarhêner {0} nikare were jêbirin
 DocType: System Settings,Currency Precision,Precision Exchange
 DocType: System Settings,Currency Precision,Precision Exchange
@@ -383,7 +384,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +143,Search Help,�
 DocType: Top Bar Item,Parent Label,Label dê û bav
 apps/frappe/frappe/templates/emails/auto_reply.html +2,"Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail.","query xwe hatiye wergirtin. Em wê bersiva paş demeke kin de. Heger tu agahiyên zêdetir, ji kerema xwe ve ji bo vê mail reply."
 DocType: GCalendar Account,Allow GCalendar Access,G Accessa GCalendar
-apps/frappe/frappe/core/doctype/data_import/importer.py +224,{0} is a mandatory field,{0} zeviyek eynî ye
+apps/frappe/frappe/core/doctype/data_import/importer.py +225,{0} is a mandatory field,{0} zeviyek eynî ye
 apps/frappe/frappe/templates/includes/login/login.js +251,Login token required,Têketinê têketin
 DocType: Event,Repeat Till,dubare Till
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +111,New,Nşh
@@ -427,14 +428,14 @@ apps/frappe/frappe/utils/password_strength.py +38,"Use a few words, avoid common
 DocType: Workflow State,plane,plane
 apps/frappe/frappe/core/doctype/data_import/exporter.py +66,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","Eger tu bi cîhek qeydên nû, &quot;Bidin Series&quot; diyarkirî dibe, eger niha."
 apps/frappe/frappe/email/doctype/notification/notification.js +87,Get Alerts for Today,Get Agehdariyên bo Today
-apps/frappe/frappe/core/doctype/doctype/doctype.py +317,DocType can only be renamed by Administrator,DocType tenê dikare bi destê Administrator ku navên wan
+apps/frappe/frappe/core/doctype/doctype/doctype.py +316,DocType can only be renamed by Administrator,DocType tenê dikare bi destê Administrator ku navên wan
 DocType: Chat Message,Chat Message,Chat Message
 apps/frappe/frappe/utils/oauth.py +146,Email not verified with {0},E-mail bi destûr nekiriye {0}
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +472,changed value of {0},nirxa guhertin yên {0}
 DocType: User,"If the user has any role checked,then the user becomes a ""System User"". ""System User"" has access to the desktop","Heke bikarhêner bikar anî ye, ew bikarhêner &quot;System-User&quot; dibe. &quot;Sîstema bikarhêner&quot; bi destûra sermaseyê heye"
 DocType: Report,JSON,JSON
 apps/frappe/frappe/core/doctype/user/user.py +803,Please check your email for verification,Ji kerema xwe re email xwe ji bo lêkolînê jî
-apps/frappe/frappe/core/doctype/doctype/doctype.py +557,Fold can not be at the end of the form,Hevşiyê de ne dikarin li dawiya formê de be
+apps/frappe/frappe/core/doctype/doctype/doctype.py +556,Fold can not be at the end of the form,Hevşiyê de ne dikarin li dawiya formê de be
 DocType: Communication,Bounced,tayekî
 DocType: Deleted Document,Deleted Name,Navê deleted
 apps/frappe/frappe/config/setup.py +14,System and Website Users,System û Website Bikarhêner li
@@ -447,20 +448,21 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filter_list.js +144,Add Filter,l�
 apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py +86,SMS sent to following numbers: {0},"SMS şandin, da ku hejmarên jêr e: {0}"
 apps/frappe/frappe/public/js/frappe/ui/comment.js +230,Your rating: ,Your rating:
 apps/frappe/frappe/utils/data.py +641,{0} and {1},{0} û {1}
-apps/frappe/frappe/public/js/frappe/chat.js +2144,Start a conversation.,Destpêk biaxivin.
+apps/frappe/frappe/public/js/frappe/chat.js +2150,Start a conversation.,Destpêk biaxivin.
 DocType: Print Settings,"Always add ""Draft"" Heading for printing draft documents",Her tim &quot;Pêşnûmeya&quot; lê zêde bike Berev ji bo çapkirinê pêşnûma belge
 DocType: Data Migration Run,Current Mapping Start,Mapping Current Start
 apps/frappe/frappe/core/doctype/communication/communication.js +240,Email has been marked as spam,Email hatiye dîtin wek zibil nîşankirin
 DocType: About Us Settings,Website Manager,Manager Website
 apps/frappe/frappe/public/js/frappe/socketio_client.js +342,File Upload Disconnected. Please try again.,Daxuyaniya pelê Disconnected. Ji kerema xwe dîsa biceribîne.
+apps/frappe/frappe/desk/search.py +17,Invalid Search Field,Zeviya Bigere
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js +48,Translations,Werger
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +23,You selected Draft or Cancelled documents,Tu bi Pêşnûmeya hilbijartin yan belgeyên Canceled
-apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +80,Document {0} has been set to state {1} by {2},Belgeya {0} hate sazkirin ku {1} bi destê {2}
+apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +94,Document {0} has been set to state {1} by {2},Belgeya {0} hate sazkirin ku {1} bi destê {2}
 apps/frappe/frappe/model/document.py +1211,Document Queued,Dokumentê dorê de
 DocType: GSuite Templates,Destination ID,ID destination
 DocType: Desktop Icon,List,Rêzok
 DocType: Activity Log,Link Name,Navê Link
-apps/frappe/frappe/core/doctype/doctype/doctype.py +481,Field {0} in row {1} cannot be hidden and mandatory without default,Field {0} li row {1} ne bê veşartin û bê default wêneke
+apps/frappe/frappe/core/doctype/doctype/doctype.py +480,Field {0} in row {1} cannot be hidden and mandatory without default,Field {0} li row {1} ne bê veşartin û bê default wêneke
 DocType: System Settings,mm/dd/yyyy,mm / dd / YYYY
 apps/frappe/frappe/core/doctype/user/user.py +939,Invalid Password: ,Şîfre Invalid:
 apps/frappe/frappe/core/doctype/user/user.py +939,Invalid Password: ,Şîfre Invalid:
@@ -492,7 +494,7 @@ DocType: Country,Country Name,Navê welatê
 DocType: About Us Team Member,About Us Team Member,About Us Team Member
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5,"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Permissions in li ser ristên û Types Document (bi navê DocTypes) bi avakirina mafên wek Read set, hewe, Rencber, Vemirandina, Submit, Cancel, Qanûnên, Report, Import, Export, Print, Email û Set User Permissions."
 DocType: Event,Wednesday,Çarşem
-apps/frappe/frappe/core/doctype/doctype/doctype.py +608,Image field must be a valid fieldname,"nav zeviyê Wêne, divê fieldname derbasdar be"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +607,Image field must be a valid fieldname,"nav zeviyê Wêne, divê fieldname derbasdar be"
 DocType: Chat Token,Token,token
 DocType: Property Setter,ID (name) of the entity whose property is to be set,ID (name) ji aliyekê milkên e ku were damezirandin
 apps/frappe/frappe/limits.py +84,"To renew, {0}.","Ji bo ku karibe, {0}."
@@ -502,7 +504,7 @@ apps/frappe/frappe/installer.py +129,App {0} already installed,App {0} jixwe saz
 apps/frappe/frappe/printing/doctype/print_settings/print_settings.js +11,No Preview,No Preview
 DocType: Workflow State,exclamation-sign,baneşana-sign
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.js +30,Show Permissions,Show Permissions
-apps/frappe/frappe/core/doctype/doctype/doctype.py +628,Timeline field must be a Link or Dynamic Link,warê Timeline divê Link an Link Dînamîk be
+apps/frappe/frappe/core/doctype/doctype/doctype.py +627,Timeline field must be a Link or Dynamic Link,warê Timeline divê Link an Link Dînamîk be
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +53,Date Range,Date Range
 apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +10,Gantt,Gantt
 apps/frappe/frappe/public/html/print_template.html +27,Page {0} of {1},Page {0} ji {1}
@@ -512,7 +514,7 @@ DocType: SMS Settings,Receiver Parameter,Receiver parametreyê
 DocType: Data Migration Mapping Detail,Remote Fieldname,Remote Fieldname
 DocType: Communication,To,Ber
 DocType: Kanban Board Column,darkgrey,color
-apps/frappe/frappe/model/rename_doc.py +418,Successful: {0} to {1},Serkeftî: {0} ji bo {1}
+apps/frappe/frappe/model/rename_doc.py +430,Successful: {0} to {1},Serkeftî: {0} ji bo {1}
 apps/frappe/frappe/core/doctype/user/user.py +107,Cannot change user details in demo. Please signup for a new account at https://erpnext.com,Can hûragahiyan li user li demo nayê guhertin. Ji kerema xwe ji bo hesabekî nû çêke signup li https://erpnext.com
 apps/frappe/frappe/printing/doctype/print_format/print_format.js +18,Please duplicate this to make changes,Ji kerema xwe vê vedîtina re bide guhertin
 apps/frappe/frappe/public/js/frappe/list/list_filter.js +99,Press Enter to save,Çapemeniyê binivîse ji bo tomarkirin
@@ -538,7 +540,7 @@ apps/frappe/frappe/email/doctype/notification/notification.js +24,Last Modified 
 DocType: Chat Profile,Settings,Mîhengên
 DocType: Print Format,Style Settings,Settings Style
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +343,Y Axis Fields,Fieldên Y Axis
-apps/frappe/frappe/core/doctype/doctype/doctype.py +639,Sort field {0} must be a valid fieldname,warê Sort {0} divê fieldname derbasdar be
+apps/frappe/frappe/core/doctype/doctype/doctype.py +638,Sort field {0} must be a valid fieldname,warê Sort {0} divê fieldname derbasdar be
 apps/frappe/frappe/public/js/frappe/list/base_list.js +279,More,Zêde
 DocType: Contact,Sales Manager,Manager Sales
 apps/frappe/frappe/public/js/frappe/model/model.js +545,Rename,Nav biguherîne
@@ -601,7 +603,7 @@ DocType: Email Queue Recipient,Email Queue Recipient,Email Recipient Dorê
 DocType: Address,Nagaland,Nagaland
 DocType: Slack Webhook URL,Webhook URL,Webhook URL
 apps/frappe/frappe/core/doctype/user/user.py +424,Username {0} already exists,Username {0} &#39;jixwe heye
-apps/frappe/frappe/core/doctype/doctype/doctype.py +789,{0}: Cannot set import as {1} is not importable,{0}: Can import set ne wek {1} e importable ne
+apps/frappe/frappe/core/doctype/doctype/doctype.py +788,{0}: Cannot set import as {1} is not importable,{0}: Can import set ne wek {1} e importable ne
 apps/frappe/frappe/contacts/doctype/address/address.py +114,There is an error in your Address Template {0},e an error li Address Şablon xwe li wir {0}
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +82,{0} is an invalid email address in 'Recipients',{0} Navnîşa e-nameyek e ku li &#39;Recipients&#39;
 DocType: User,Allow Desktop Icon,Destûra Desktop Desktop
@@ -636,7 +638,7 @@ DocType: Workflow State,indent-left,indent-çepê
 apps/frappe/frappe/utils/file_manager.py +282,It is risky to delete this file: {0}. Please contact your System Manager.,Ev metirsiyek e li vê pelê jê bibî: {0}. Ji kerema xwe ve Manager Pergala xwe re bikeve têkiliyê.
 DocType: Currency,Currency Name,Navê Exchange
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +175,No Emails,No Emails
-apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +79,Link Expired,Girêdanê derbas bûn
+apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +93,Link Expired,Girêdanê derbas bûn
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +458,Select File Format,Format Format Hilbijêre
 DocType: Report,Javascript,Javascript
 DocType: File,Content Hash,Hash Content
@@ -653,13 +655,13 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +81,"Standard DocType cannot 
 apps/frappe/frappe/core/doctype/doctype/doctype.py +81,"Standard DocType cannot have default print format, use Customize Form","Standard DOCTYPE ne dikarin format print standard heye, bi kar tînin Form Customize"
 DocType: Report,Query,Pirs
 DocType: DocType,Sort Order,Sort Order
-apps/frappe/frappe/core/doctype/doctype/doctype.py +489,'In List View' not allowed for type {0} in row {1},ji bo cureyê {0} li row &#39;Li List View&#39; destûr ne {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +488,'In List View' not allowed for type {0} in row {1},ji bo cureyê {0} li row &#39;Li List View&#39; destûr ne {1}
 DocType: Custom Field,Select the label after which you want to insert new field.,li label piştî ku tu dixwazî têxe nav zeviyê ya nû hilbijêre.
 ,Document Share Report,Dokumentê Share Report
 DocType: Social Login Key,Base URL,Navnîşa bingehîn
 DocType: User,Last Login,Last Login
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +217,You can't set 'Translatable' for field {0},Tu dikarî ji bo qada &#39;Translatable&#39; set not set {0}
-apps/frappe/frappe/core/doctype/doctype/doctype.py +664,Fieldname is required in row {0},Fieldname li row pêwîst e {0}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +663,Fieldname is required in row {0},Fieldname li row pêwîst e {0}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_column_selector.html +4,Column,Ling
 DocType: Chat Profile,Chat Profile,Chat Profile
 DocType: Custom Field,Adds a custom field to a DocType,Dixe nav zeviyê adeta ji bo DocType
@@ -668,9 +670,8 @@ apps/frappe/frappe/email/doctype/email_group/email_group.py +87,{0} is not a val
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +63,Select atleast 1 record for printing,Li Hindîstan 1 record ji bo çapkirinê Select
 apps/frappe/frappe/core/doctype/has_role/has_role.py +12,User '{0}' already has the role '{1}',Bikarhêner &#39;{0}&#39; jixwe rola heye &#39;{1}&#39;
 DocType: System Settings,Two Factor Authentication method,Method Mîhengkirina Du Factor
-apps/frappe/frappe/contacts/doctype/address/address.py +193,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Naveroka Navnîşa Navnîşan nehat dîtin. Ji kerema xwe ji nûveka nû ya Setup&gt; Print û Branding&gt; Navnîşana Navnîşek nû çêke.
 apps/frappe/frappe/public/js/frappe/form/share.js +36,Shared with {0},Shared bi {0}
-apps/frappe/frappe/email/queue.py +270,Unsubscribe,Unsubscribe
+apps/frappe/frappe/email/queue.py +269,Unsubscribe,Unsubscribe
 DocType: View log,Reference Name,Navê Reference
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js +13,Update Translations,Update Translations
 DocType: Error Snapshot,Exception,Îstîsna
@@ -688,7 +689,7 @@ DocType: File,Folder,Pêçek
 DocType: DocField,Index,Naverok
 DocType: Email Group,Newsletter Manager,Manager Newsletter
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,Option 1,Vebijarka 1
-apps/frappe/frappe/public/js/frappe/form/formatters.js +133,{0} to {1},{0} ji bo {1}
+apps/frappe/frappe/public/js/frappe/form/formatters.js +135,{0} to {1},{0} ji bo {1}
 apps/frappe/frappe/config/setup.py +87,Log of error during requests.,Têkeve ji error di dema daxwazên.
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +219,{0} has been successfully added to the Email Group.,{0} hatiye dîtin serkeftin bo Email Pol ji added.
 apps/frappe/frappe/public/js/frappe/form/grid.js +682,Do not edit headers which are preset in the template,Hêderên ku pêşîn li ser templateê têne biguherînin
@@ -701,7 +702,7 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.py +35,Scheduled to send 
 DocType: Kanban Board Column,Indicator,indicator
 DocType: DocShare,Everyone,Her kesê
 DocType: Workflow State,backward,bi paş ve
-apps/frappe/frappe/core/doctype/doctype/doctype.py +738,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: Tenê yek desthilata destûr bi Rola heman, Level û {1}"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +737,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: Tenê yek desthilata destûr bi Rola heman, Level û {1}"
 DocType: Email Queue,Add Unsubscribe Link,Lê zêde bike Unsubscribe Link
 apps/frappe/frappe/templates/includes/comments/comments.html +7,No comments yet. Start a new discussion.,No comments yet. Gengeşîyek bide destpêkirin nû.
 DocType: Workflow State,share,par
@@ -744,6 +745,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +257,Hide fie
 apps/frappe/frappe/templates/emails/new_message.html +1,You have a new message from: ,Hûn bi peyamek nû heye ji:
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_field.html +21,Edit HTML,biguherîne HTML
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py +30,Please enter Redirect URL,Ji kerema xwe URL binivîse navnîşan
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions,Setup&gt; Bikarhêner Permissions
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +9,"to be generated. If delayed, you will have to manually change the ""Repeat on Day of Month"" field
 of this","bên afirandin. Heke derengî, divê hûn bixweber bikin &quot;Guhertina Di Roja meha&quot; de"
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +416,Restore Original Permissions,Restore Permissions Original
@@ -775,13 +777,13 @@ DocType: Dropbox Settings,App Secret Key,App Secret Key
 DocType: Webhook,on_submit,on_submit
 apps/frappe/frappe/config/website.py +7,Web Site,Web Site
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +8,Checked items will be shown on desktop,"tomar kontrolkirin, wê bê li ser Sermaseya li banî tê"
-apps/frappe/frappe/core/doctype/doctype/doctype.py +779,{0} cannot be set for Single types,{0} dikarin ji bo cureyên Single ne bê danîn
+apps/frappe/frappe/core/doctype/doctype/doctype.py +778,{0} cannot be set for Single types,{0} dikarin ji bo cureyên Single ne bê danîn
 DocType: Data Import,Data Import,Import Import
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +333,Configure Chart,Çartê veguherîne
 apps/frappe/frappe/public/js/frappe/form/form_viewers.js +55,{0} are currently viewing this document,{0} niha viewing ev belge
 DocType: ToDo,Assigned By Full Name,Rêdan By Name Full
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +156,{0} updated,{0} ve
-apps/frappe/frappe/core/doctype/doctype/doctype.py +771,Report cannot be set for Single types,Report dikarin ji bo cureyên Single ne bê danîn
+apps/frappe/frappe/core/doctype/doctype/doctype.py +770,Report cannot be set for Single types,Report dikarin ji bo cureyên Single ne bê danîn
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html +50,An error occured during the payment process. Please contact us.,Çewtiyek di dema pêvajoyê de derbas kir. Ji kerema xwe re peywendî bikin.
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +52,{0} days ago,{0} days ago
 DocType: Email Account,Awaiting Password,li benda Password
@@ -806,7 +808,7 @@ DocType: Workflow State,Stop,Rawestan
 DocType: Footer Item,Link to the page you want to open. Leave blank if you want to make it a group parent.,"Link ji bo vê rûpela tu dixwazî ku ji bo vekirina. Vala bihêlin heke hûn dixwazin, ev dê û bav koma bide."
 DocType: DocType,Is Single,Single e
 apps/frappe/frappe/core/doctype/user/user.py +766,Sign Up is disabled,Sign Up neçalakirin
-apps/frappe/frappe/email/queue.py +329,{0} has left the conversation in {1} {2},{0} axaftina li çepê hatiye {1} {2}
+apps/frappe/frappe/email/queue.py +328,{0} has left the conversation in {1} {2},{0} axaftina li çepê hatiye {1} {2}
 DocType: Blogger,User ID of a Blogger,ID&#39;ya bikarhêner ji Blogger
 apps/frappe/frappe/core/doctype/user/user.py +306,There should remain at least one System Manager,divê bi kêmanî yek Manager System li wir bimînin
 DocType: GCalendar Account,Authorization Code,Code Authorization
@@ -849,7 +851,7 @@ DocType: System Settings,OTP Issuer Name,Navnîşana OTP Issuer
 DocType: OAuth Bearer Token,OAuth Bearer Token,OAuth hilgirê Token
 apps/frappe/frappe/public/js/legacy/print_format.js +124,No document selected,Tu belge nehatiye hilbijartin
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Dr,Dr
-apps/frappe/frappe/public/js/frappe/dom.js +266,You are connected to internet.,Hûn bi înternetê ve girêdayî ye.
+apps/frappe/frappe/public/js/frappe/dom.js +291,You are connected to internet.,Hûn bi înternetê ve girêdayî ye.
 DocType: Social Login Key,Enable Social Login,Têketina Civakî çalak bike
 DocType: Event,Event,Bûyer
 apps/frappe/frappe/public/js/frappe/views/communication.js +651,"On {0}, {1} wrote:","Li ser {0}, {1} nivîsî:"
@@ -929,7 +931,7 @@ DocType: Event,Saturday,Şemî
 DocType: User,Represents a User in the system.,Temsîl dike User di sîstema.
 DocType: Communication,Label,Awanasî
 apps/frappe/frappe/desk/form/assign_to.py +145,"The task {0}, that you assigned to {1}, has been closed.","Erka {0}, ku hûn ji bo {1} hatiye, girtî rêdan."
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +281,Please close this window,Ji kerema xwe vê paceyê bigire
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +282,Please close this window,Ji kerema xwe vê paceyê bigire
 DocType: Print Format,Print Format Type,Print Format
 DocType: Newsletter,A Lead with this Email Address should exist,A Lead bi vê Email Address divê hene
 apps/frappe/frappe/public/js/frappe/ui/toolbar/about.js +7,Open Source Applications for the Web,Applications Open Source ji bo Webê
@@ -981,7 +983,7 @@ apps/frappe/frappe/desk/page/activity/activity_row.html +21,Updated {0}: {1},Dem
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Master,Mamoste
 DocType: DocType,User Cannot Create,User ne Can Create
 apps/frappe/frappe/core/doctype/file/file.py +320,Folder {0} does not exist,Peldanka {0} tune
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +306,Dropbox access is approved!,access Dropbox pejirandin heye!
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +307,Dropbox access is approved!,access Dropbox pejirandin heye!
 DocType: Customize Form,Enter Form Type,Enter Type Form
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +13,Missing parameter Kanban Board Name,Navê navê Parbanê ya Paramenterê winda bû
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html +5,No records tagged.,No records tagged.
@@ -1020,22 +1022,21 @@ apps/frappe/frappe/core/doctype/user/user.py +1024,OTP secret can only be reset 
 apps/frappe/frappe/utils/password_strength.py +135,Avoid years that are associated with you.,Dûr sal in ku bi we re têkildar.
 apps/frappe/frappe/config/setup.py +44,Restrict user for specific document,Bikaranîna belgeya taybetî ya bikarhêner
 DocType: GSuite Templates,GSuite Templates,GSuite (şablon)
-apps/frappe/frappe/utils/goal.py +109,Goal,Armanc
+apps/frappe/frappe/utils/goal.py +110,Goal,Armanc
 apps/frappe/frappe/email/receive.py +60,Invalid Mail Server. Please rectify and try again.,Server Mail Invalid. Ji kerema xwe re çak û careke din biceribîne.
 DocType: DocField,"For Links, enter the DocType as range.
 For Select, enter list of Options, each on a new line.","Ji bo Links, bikevin DocType wek range. Ji bo Hilbijêre, bikevin lîsteya Options, her yek li ser xeta nû."
 DocType: Workflow State,film,fîlm
-apps/frappe/frappe/model/db_query.py +408,No permission to read {0},No destûr ji bo xwendina {0}
+apps/frappe/frappe/model/db_query.py +415,No permission to read {0},No destûr ji bo xwendina {0}
 apps/frappe/frappe/config/desktop.py +8,Tools,Amûrên
 apps/frappe/frappe/utils/password_strength.py +134,Avoid recent years.,Dûr salên dawî de.
 apps/frappe/frappe/utils/nestedset.py +240,Multiple root nodes not allowed.,hucûma root Multiple qedexe ne.
 DocType: Note,"If enabled, users will be notified every time they login. If not enabled, users will only be notified once.","Heke hilbijartî be, bikarhênerên dê hên her dem ew login. Eger ne çalak, bikarhênerên wê bi tenê bê carekê xistin."
 DocType: Note,"If enabled, users will be notified every time they login. If not enabled, users will only be notified once.","Heke hilbijartî be, bikarhênerên dê hên her dem ew login. Eger ne çalak, bikarhênerên wê bi tenê bê carekê xistin."
-apps/frappe/frappe/core/doctype/doctype/doctype.py +649,Invalid {0} condition,Şerta çewt {0}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +648,Invalid {0} condition,Şerta çewt {0}
 DocType: OAuth Client,"If checked, users will not see the Confirm Access dialog.","Eger kontrolkirin, bikarhênerên bi wê dialog Confirm Têketinê bibînin."
 apps/frappe/frappe/public/js/frappe/model/model.js +25,Comments,Comments
-apps/frappe/frappe/public/js/frappe/ui/modal.html +17,Confirm,Tesdîqkirin
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} sal (s) berê
+apps/frappe/frappe/public/js/frappe/dom.js +264,Confirm,Tesdîqkirin
 apps/frappe/frappe/www/login.html +58,Forgot Password?,Şifre bîrkir?
 DocType: System Settings,yyyy-mm-dd,YYYY-mm-dd
 apps/frappe/frappe/desk/report/todo/todo.py +19,ID,ID
@@ -1050,7 +1051,7 @@ apps/frappe/frappe/email/doctype/notification/notification.py +37,Please specify
 DocType: Custom DocPerm,Set User Permissions,Set Permissions Bikarhêner
 apps/frappe/frappe/permissions.py +200,Not allowed for {0} = {1},Ji bo {0} = {1} nayê destûr kirin
 DocType: Email Account,Email Account Name,Email Name Account
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +256,Something went wrong while generating dropbox access token. Please check error log for more details.,Tiştek xelet çû demekê bi afrandina Dropbox token access. Ji kerema xwe log error bo hûragahiyan li Mercên kontrol bike.
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +257,Something went wrong while generating dropbox access token. Please check error log for more details.,Tiştek xelet çû demekê bi afrandina Dropbox token access. Ji kerema xwe log error bo hûragahiyan li Mercên kontrol bike.
 DocType: File,old_parent,old_parent
 apps/frappe/frappe/config/desk.py +54,"Newsletters to contacts, leads.","Bultenên me yên ji bo têkilî, dibe."
 DocType: Email Account,"e.g. ""Support"", ""Sales"", ""Jerry Yang""","wek &quot;Piştgiriya&quot;, &quot;Nest&quot;, &quot;Jerry Yang&quot;"
@@ -1080,7 +1081,7 @@ apps/frappe/frappe/core/page/usage_info/usage_info.html +5,You have {0} days lef
 apps/frappe/frappe/email/doctype/email_domain/email_domain.py +57,Outgoing email account not correct,hesabekî email nikarbe agadar bikerewe
 DocType: Transaction Log,Chaining Hash,Chaining Hash
 apps/frappe/frappe/core/doctype/user/user.py +778,Temperorily Disabled,Temperorily nivîşkan
-apps/frappe/frappe/contacts/doctype/contact/contact.py +89,Please set Email Address,Ji kerema xwe ve set Email Address
+apps/frappe/frappe/contacts/doctype/contact/contact.py +85,Please set Email Address,Ji kerema xwe ve set Email Address
 DocType: System Settings,Date and Number Format,Dîrok û Number Format
 apps/frappe/frappe/model/document.py +1055,one of,yek ji
 apps/frappe/frappe/public/js/frappe/desk.js +150,Checking one moment,Dinêre yek gavê
@@ -1157,7 +1158,7 @@ apps/frappe/frappe/core/doctype/report/report.js +16,Write a Python file in the 
 DocType: DocType,Sort Field,Sort Field
 DocType: Razorpay Settings,Razorpay Settings,Settings Razorpay
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +263,Edit Filter,biguherîne Filter
-apps/frappe/frappe/core/doctype/doctype/doctype.py +463,Field {0} of type {1} cannot be mandatory,Field {0} ji type {1} nikare were wêneke
+apps/frappe/frappe/core/doctype/doctype/doctype.py +462,Field {0} of type {1} cannot be mandatory,Field {0} ji type {1} nikare were wêneke
 apps/frappe/frappe/public/js/frappe/ui/slides.js +29,Add More,lê zêde bike More
 DocType: System Settings,Session Expiry Mobile,Session Expiry Mobile
 apps/frappe/frappe/utils/password.py +66,Incorrect User or Password,Bikarhêner û Nasnameya çewt
@@ -1265,7 +1266,7 @@ DocType: Print Format,Custom CSS,CSS Custom
 apps/frappe/frappe/public/js/frappe/ui/comment.js +36,Add a comment,Add a comment
 DocType: Webhook,on_update,on_update
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +59,{type} room must have atmost one user.,odeya {type} divê hema hema yek bikarhêner e.
-apps/frappe/frappe/model/rename_doc.py +421,Ignored: {0} to {1},Ignored: {0} ji bo {1}
+apps/frappe/frappe/model/rename_doc.py +433,Ignored: {0} to {1},Ignored: {0} ji bo {1}
 DocType: Address,Gujarat,Gujarat
 apps/frappe/frappe/config/setup.py +82,Log of error on automated events (scheduler).,Têkeve ji error li ser bûyerên automated (scheduler).
 apps/frappe/frappe/utils/csvutils.py +80,Not a valid Comma Separated Value (CSV File),Ne derbasdar e Comma Nirx Veqetandî (CSV File)
@@ -1333,7 +1334,7 @@ DocType: User,Set New Password,Set New Password
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +49,"%s is not a valid report format. Report format should \
 				one of the following %s",% S e a format raporê ne derbasdar e. Report format divê yek ji yên li jêr% s \
 DocType: Chat Message,Chat,Galgalî
-apps/frappe/frappe/core/doctype/doctype/doctype.py +456,Fieldname {0} appears multiple times in rows {1},Fieldname {0} xuya çend caran li rêzên {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +455,Fieldname {0} appears multiple times in rows {1},Fieldname {0} xuya çend caran li rêzên {1}
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +490,{0} from {1} to {2} in row #{3},{0} ji {1} ji bo {2} li row # {3}
 DocType: Communication,Expired,kapê de
 apps/frappe/frappe/templates/pages/integrations/razorpay_checkout.py +32,Seems token you are using is invalid!,Bersivên ku hûn tê bikaranîn ne çewt e!
@@ -1353,26 +1354,26 @@ DocType: Website Settings,Top Bar,Top Bar
 DocType: GSuite Settings,Script Code,Code script
 apps/frappe/frappe/core/doctype/user/user.js +136,Create User Email,Create User Email
 apps/frappe/frappe/core/doctype/user/user.js +136,Create User Email,Create User Email
-apps/frappe/frappe/core/doctype/doctype/doctype.py +713,No Permissions Specified,No Permissions diyarkirî
+apps/frappe/frappe/core/doctype/doctype/doctype.py +712,No Permissions Specified,No Permissions diyarkirî
 apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py +299,{0} not found,{0} nehate dîtin
 DocType: Custom Role,Custom Role,Role Custom
 apps/frappe/frappe/core/doctype/file/test_file.py +57,Home/Test Folder 2,Home / Test Folder 2
 apps/frappe/frappe/public/js/frappe/form/controls/attach.js +48,Please save the document before uploading.,Ji kerema xwe ve belgeya ku berî cîhek din xilas bike.
-apps/frappe/frappe/public/js/frappe/ui/messages.js +219,Enter your password,nasnavê xwe binivîsî
+apps/frappe/frappe/public/js/frappe/ui/messages.js +213,Enter your password,nasnavê xwe binivîsî
 DocType: Dropbox Settings,Dropbox Access Secret,Dropbox Têketinê Secret
 DocType: Social Login Key,Social Login Provider,Têkiliya Civakî ya Civakî
 apps/frappe/frappe/templates/includes/comments/comments.html +119,Add Another Comment,Lê zêde bike Comment din
-apps/frappe/frappe/core/doctype/data_import/importer.py +80,No data found in the file. Please reattach the new file with data.,Daneyên pelan di pelê de nehat dîtin. Ji kerema xwe re pelê nû ya nû ve nûve bike.
+apps/frappe/frappe/core/doctype/data_import/importer.py +81,No data found in the file. Please reattach the new file with data.,Daneyên pelan di pelê de nehat dîtin. Ji kerema xwe re pelê nû ya nû ve nûve bike.
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +179,Edit DocType,biguherîne DocType
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +160,Unsubscribed from Newsletter,Unsubscribed ji Newsletter
-apps/frappe/frappe/core/doctype/doctype/doctype.py +555,Fold must come before a Section Break,Kemera divê berî a Break Beþ were
+apps/frappe/frappe/core/doctype/doctype/doctype.py +554,Fold must come before a Section Break,Kemera divê berî a Break Beþ were
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +13,Under Development,Under Development
 apps/frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py +25,Go to the document,Herin belgeyê
 apps/frappe/frappe/public/js/frappe/model/meta.js +185,Last Modified By,Ev rûpel cara dawî By
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +179,Customizations Reset,Reformên Reformê
 DocType: Workflow State,hand-down,hand-down
 DocType: Address,GST State,gst Dewletê
-apps/frappe/frappe/core/doctype/doctype/doctype.py +757,{0}: Cannot set Cancel without Submit,{0}: Can not set Cancel bê Submit
+apps/frappe/frappe/core/doctype/doctype/doctype.py +756,{0}: Cannot set Cancel without Submit,{0}: Can not set Cancel bê Submit
 DocType: Website Theme,Theme,Mijad
 DocType: OAuth Authorization Code,Redirect URI Bound To Auth Code,Beralîkirina URI Bound To Code Auth
 DocType: DocType,Is Submittable,Submittable e
@@ -1410,7 +1411,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,
 apps/frappe/frappe/templates/includes/comments/comments.html +25,Add Comment,lê zêde bike Comment
 DocType: DocField,Mandatory,Bicî
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +88,Module to Export,Module ji bo îxracata
-apps/frappe/frappe/core/doctype/doctype/doctype.py +725,{0}: No basic permissions set,{0}: No set destûrên bingehîn
+apps/frappe/frappe/core/doctype/doctype/doctype.py +724,{0}: No basic permissions set,{0}: No set destûrên bingehîn
 apps/frappe/frappe/limits.py +80,Your subscription will expire on {0}.,abonetiya xwe li ser dê bi dawî {0}.
 apps/frappe/frappe/utils/backups.py +166,Download link for your backup will be emailed on the following email address: {0},"Download link bo hilanînê, te wê li ser navnîşana email van bi rêket: {0}"
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","Meaning of Submit, Cancel, Qanûnên"
@@ -1427,7 +1428,7 @@ DocType: Chat Room,Message Count,Peyama Dawîn
 DocType: Workflow State,book,pirtûk
 DocType: Website Settings,Landing Page,Rûpela armanckirî
 apps/frappe/frappe/public/js/frappe/form/script_manager.js +163,Error in Custom Script,Error li Custom Script
-apps/frappe/frappe/public/js/frappe/form/quick_entry.js +84,{0} Name,{0} Name
+apps/frappe/frappe/public/js/frappe/form/quick_entry.js +90,{0} Name,{0} Name
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +171,No Permissions set for this criteria.,No Permissions ji bo ev pîvan danîn.
 DocType: Auto Email Report,Auto Email Report,Auto Report Email
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +593,Delete comment?,Vemirandina Rayi?
@@ -1436,6 +1437,7 @@ DocType: System Settings,Allow Login using Mobile Number,Destûrê bide Login bi
 apps/frappe/frappe/public/js/frappe/request.js +135,You do not have enough permissions to access this resource. Please contact your manager to get access.,Tu têra gihîştina vê çavkaniyê re tune ne. Ji kerema xwe li gel birêvebirê xwe ji bo gihîştina.
 DocType: Custom Field,Custom,Hûnbunî
 DocType: System Settings,"If enabled, users who login from Restricted IP Address, won't be prompted for Two Factor Auth","Heke çalak kirin, bikarhênerên ku ji navnîşana IP-IP-Nîsanê vekirî, dê ji bo Faktorê Du Faktorê neyê pejirandin"
+DocType: Auto Repeat,Get Contacts,Têkilî bibin
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +101,Posts filed under {0},Posts doz di bin {0}
 DocType: Notification,Send alert if date matches this field's value,Send hişyar eger date matches nirxa vê qadê da
 DocType: Workflow,Transitions,Transitions
@@ -1446,7 +1448,7 @@ DocType: Letter Head,Printing,Çapnivîs
 DocType: Workflow State,thumbs-up,ser esasa
 DocType: DocPerm,DocPerm,DocPerm
 DocType: Print Settings,Fonts,Fonts
-apps/frappe/frappe/core/doctype/doctype/doctype.py +511,Precision should be between 1 and 6,Precision divê di navbera 1 û 6 be
+apps/frappe/frappe/core/doctype/doctype/doctype.py +510,Precision should be between 1 and 6,Precision divê di navbera 1 û 6 be
 apps/frappe/frappe/core/doctype/communication/communication.js +190,Fw: {0},Fw: {0}
 apps/frappe/frappe/public/js/frappe/misc/utils.js +165,and,û
 apps/frappe/frappe/templates/emails/auto_email_report.html +47,This report was generated on {0},Ev rapor li ser {0}
@@ -1458,15 +1460,16 @@ DocType: Auto Email Report,Report Filters,Report Parzûn
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +16,now,niha
 DocType: Workflow State,step-backward,gav-bi paş ve
 apps/frappe/frappe/utils/boilerplate.py +265,{app_title},{App_title}
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +240,Please set Dropbox access keys in your site config,Ji kerema xwe ve set keys access Dropbox li config-numreya te
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +241,Please set Dropbox access keys in your site config,Ji kerema xwe ve set keys access Dropbox li config-numreya te
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,Vemirandina ev rekor bi rê şandina ji bo vê navnîşana email
 apps/frappe/frappe/core/doctype/data_import/exporter.py +67,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,Tenê zeviyên diyarkirî ji bo qeydên nû pêwîst in. Tu stûnên non-wêneke eger tu dixwazî jê bibî.
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +335,Unable to update event,Nikare Rojane bûyer
-apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +118,Payment Complete,Complete Payment
+apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +119,Payment Complete,Complete Payment
 apps/frappe/frappe/twofactor.py +209,Verification code has been sent to your registered email address.,Navnîşa kodê şîfreya xwe ji navnîşana e-nameyê qeydkirî şandin.
 apps/frappe/frappe/core/doctype/user/user.py +1031,Throttled,Tişt
 apps/frappe/frappe/utils/data.py +807,"Filter must have 4 values (doctype, fieldname, operator, value): {0}","Filter divê 4 nirxên (DOCTYPE, fieldname, operator, nirxê) heye: {0}"
 apps/frappe/frappe/utils/bot.py +89,show,rêdan
+apps/frappe/frappe/utils/data.py +858,Invalid field name {0},Navê navekî çewt {0}
 DocType: Address Template,Address Template,Address Şablon
 DocType: Workflow State,text-height,text-height
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,Mapping Plan Mapping
@@ -1482,12 +1485,11 @@ DocType: Data Import,Generated File,Pelê çêkirî
 DocType: Transaction Log,Previous Hash,Previous Hash
 DocType: File,Is Attachments Folder,E Attachments Folder
 apps/frappe/frappe/public/js/frappe/views/treeview.js +75,Expand All,Expand Hemû
-apps/frappe/frappe/public/js/frappe/chat.js +2153,Select a chat to start messaging.,Vê chatê hilbijêre ku ji bo ragihandinê dest pê bikin.
+apps/frappe/frappe/public/js/frappe/chat.js +2159,Select a chat to start messaging.,Vê chatê hilbijêre ku ji bo ragihandinê dest pê bikin.
 apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.js +20,Please select Entity Type first,Ji kerema xwe cureyê yekem hilbijêre
 apps/frappe/frappe/templates/includes/login/login.js +52,Valid Login id required.,Derbasdar Login id pêwîst.
-apps/frappe/frappe/model/rename_doc.py +405,Please select a valid csv file with data,Ji kerema xwe re file CSV derbasdar bi daneya hilbijêre
+apps/frappe/frappe/model/rename_doc.py +417,Please select a valid csv file with data,Ji kerema xwe re file CSV derbasdar bi daneya hilbijêre
 apps/frappe/frappe/core/doctype/docshare/docshare.py +56,{0} un-shared this document with {1},"{0} un-parvekirin, ev belge bi {1}"
-apps/frappe/frappe/email/smtp.py +85,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Ji kerema xwe ji Hesabê E-Mail-E-nameya Setup-ê-yê-ê-ê-ê-ê-ê-ê-ê-ê-sazkirinê bikin
 DocType: DocType,"Make ""name"" searchable in Global Search",Make &quot;name&quot; de lêgerîn di Global Search
 apps/frappe/frappe/core/doctype/version/version_view.html +74,Row # ,row #
 apps/frappe/frappe/templates/emails/auto_reply.html +5,This is an automatically generated reply,Ev reply Kirîbatî e
@@ -1540,7 +1542,7 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +32,Kanban,Kanban
 DocType: DocType,Show in Module Section,Show li Beþ Module
 DocType: Website Theme,Footer Color,Rêza Color
 apps/frappe/frappe/core/doctype/communication/communication.js +53,Relink,Relink
-apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +68,Seems ldap is not installed on system.,Xuya ldap li ser pergala sazkirî ne.
+apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +77,Seems ldap is not installed on system.,Xuya ldap li ser pergala sazkirî ne.
 apps/frappe/frappe/www/feedback.py +39,Invalid Reference,Çavkanî Invalid
 apps/frappe/frappe/www/feedback.py +73,"Cannot submit feedback, please try again later","Can Deng submit ne, ji kerema xwe ve piştre dîsa biceribîne"
 DocType: Web Page,"Page to show on the website
@@ -1548,13 +1550,13 @@ DocType: Web Page,"Page to show on the website
 DocType: Note,Seen By Table,Dît By Table
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +253,Select template,Hilbijêre şablonê
 apps/frappe/frappe/www/third_party_apps.html +47,Logged in,têketî
-apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +32,Incorrect UserId or Password,"AnvID rast nenivîsandiye, yan Password"
+apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +41,Incorrect UserId or Password,"AnvID rast nenivîsandiye, yan Password"
 apps/frappe/frappe/core/page/desktop/desktop.js +38,Explore,Lêkolîn
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js +6,Default Sending and Inbox,Default Şandina û Inbox
 DocType: System Settings,OTP App,OTP App
 apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +21,Document ID,ID belge
 DocType: Print Settings,Letter,Name
-apps/frappe/frappe/core/doctype/doctype/doctype.py +610,Image field must be of type Attach Image,"nav zeviyê Wêne, divê ji type be Attach Wêne"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +609,Image field must be of type Attach Image,"nav zeviyê Wêne, divê ji type be Attach Wêne"
 DocType: DocField,Columns,Stûn
 apps/frappe/frappe/desk/form/assign_to.py +71,Shared with user {0} with read access,Bi bikarhêner bi xwendinê re vekirî ye {0}
 DocType: Async Task,Succeeded,serkeftî
@@ -1581,7 +1583,7 @@ DocType: Workflow State,fast-backward,fast-bi paş ve
 DocType: Address,Chandigarh,Chandigarh
 DocType: DocShare,DocShare,DocShare
 DocType: Event,Friday,Roja Înê
-apps/frappe/frappe/public/js/frappe/form/quick_entry.js +207,Edit in full page,Edit li rûpel tije
+apps/frappe/frappe/public/js/frappe/form/quick_entry.js +213,Edit in full page,Edit li rûpel tije
 DocType: Report,Add Total Row,Lê zêde bike Total Row
 apps/frappe/frappe/twofactor.py +206,Please check your registered email address for instructions on how to proceed. Do not close this window as you will have to return to it.,Ji kerema xwe ji bo rêvebirinê li ser rêveka e-nameya xwe ya qeydkirî bibînin. Vê nişkêve vê paceyê nekeve ku hûn ê vegerînin wê.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +19,For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,"Ji bo nimûne eger tu betal û mawe, INV004 ev dê bibe INV004-1 belgeyeke nû. Ev alîkariya te dike ji bo şopandina her guhertinan."
@@ -1589,6 +1591,7 @@ apps/frappe/frappe/core/doctype/data_export/data_export.js +40,Atleast one field
 apps/frappe/frappe/config/setup.py +178,Setup Reports to be emailed at regular intervals,Reports Setup ji bo navberan rêkûpêk bi rêket bê
 DocType: Workflow Document State,0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Pêşnûmeya; 1 - Submitted; 2 - weş
 DocType: File,Attached To DocType,Girêdayî To DocType
+apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +27,StartTLS is not supported,StartTLS ne piştevanî ye
 DocType: DocField,Int,Int
 DocType: Error Log,Title,Nav
 apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +100,"Seems issue with server's razorpay config. Don't worry, in case of failure amount will get refunded to your account.","Xuya dike mijarê bi config razorpay server e. Xem neke, di doza ji meblexa têkçûna îade kirin hesabê we dê bistînin."
@@ -1605,6 +1608,7 @@ apps/frappe/frappe/core/doctype/user/user.py +779,"Too many users signed up rece
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +368,Add New Permission Rule,Lê zêde bike New Rule Destûr
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +26,You can use wildcard %,Tu dikarî bi kar wildcard%
 DocType: Chat Message Attachment,Chat Message Attachment,Chat Message Attachment
+apps/frappe/frappe/email/smtp.py +85,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Ji kerema xwe ji Hesabê E-Mail-E-nameya Setup-ê-yê-ê-ê-ê-ê-ê-ê-ê-ê-sazkirinê bikin
 apps/frappe/frappe/public/js/frappe/upload.js +293,"Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed","Tenê extensions image (.gif, .jpg, .JPG, .tiff, .png, .svg) destûr"
 DocType: Address,Manipur,Manîsa
 DocType: DocType,Database Engine,Engine Database
@@ -1667,14 +1671,14 @@ apps/frappe/frappe/www/third_party_apps.html +51,Revoke,Revoke
 DocType: Contact,Replied,vegerand û got:
 DocType: Newsletter,Test,Îmtîhan
 DocType: Custom Field,Default Value,Nirx Default
-apps/frappe/frappe/public/js/frappe/ui/messages.js +234,Verify,Lidûsekirin
+apps/frappe/frappe/public/js/frappe/ui/messages.js +228,Verify,Lidûsekirin
 DocType: Workflow Document State,Update Field,update Field
 DocType: Chat Profile,Enable Chat,Chat Chat
 DocType: LDAP Settings,Base Distinguished Name (DN),Base Name Hêja (DN)
 apps/frappe/frappe/core/doctype/communication/email.py +156,Leave this conversation,Dev ji vê axaftinê
 apps/frappe/frappe/model/base_document.py +434,Options not set for link field {0},Vebijêrkên ji bo qada link set ne {0}
 DocType: Customize Form,"Must be of type ""Attach Image""",Divê ji type be &quot;Attach Image&quot;
-apps/frappe/frappe/public/js/frappe/form/controls/multicheck.js +148,Unselect All,Tu Tiştî Hilnebijêre
+apps/frappe/frappe/core/doctype/data_import/data_import.js +207,Unselect All,Tu Tiştî Hilnebijêre
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +209,You cannot unset 'Read Only' for field {0},Tu wê werine ne &#39;Read Tenê ji bo qada {0}
 DocType: Auto Email Report,Zero means send records updated at anytime,Zero wateya bişîne records ve hate kisandin
 DocType: Auto Email Report,Zero means send records updated at anytime,Zero wateya bişîne records ve hate kisandin
@@ -1720,7 +1724,7 @@ apps/frappe/frappe/www/qrcode.html +19,Authentication Apps you can use are: ,Hû
 apps/frappe/frappe/public/js/frappe/form/controls/data.js +46,{0} already exists. Select another name,{0} already exists. Navê din hilbijêre
 apps/frappe/frappe/core/doctype/feedback_trigger/feedback_trigger.py +137,Feedback conditions do not match,şert û mercên Deng nagirin
 DocType: S3 Backup Settings,None,Netû
-apps/frappe/frappe/core/doctype/doctype/doctype.py +624,Timeline field must be a valid fieldname,warê Timeline divê fieldname derbasdar be
+apps/frappe/frappe/core/doctype/doctype/doctype.py +623,Timeline field must be a valid fieldname,warê Timeline divê fieldname derbasdar be
 DocType: GCalendar Account,Session Token,Token
 DocType: Currency,Symbol,Nîşan
 apps/frappe/frappe/model/base_document.py +504,Row #{0}:,Row # {0}:
@@ -1784,7 +1788,7 @@ apps/frappe/frappe/model/naming.py +215,Name cannot contain special characters l
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +29,Print Documents,Dokumentên çapkirinê
 DocType: Contact Us Settings,Forward To Email Address,Pêş To Email Address
 apps/frappe/frappe/public/js/frappe/views/reports/reportview_footer.html +9,Show all data,Nîşan bide hemû daneyên
-apps/frappe/frappe/core/doctype/doctype/doctype.py +581,Title field must be a valid fieldname,warê Title divê fieldname derbasdar be
+apps/frappe/frappe/core/doctype/doctype/doctype.py +580,Title field must be a valid fieldname,warê Title divê fieldname derbasdar be
 apps/frappe/frappe/config/core.py +7,Documents,belgeyên
 DocType: Social Login Key,Custom Base URL,URL
 DocType: Email Flag Queue,Is Completed,Ma Qediya
@@ -1797,8 +1801,8 @@ myfield
 eval:doc.myfield=='My Value'
 eval:doc.age&gt;18","Ev qada wê derkevin, wê bi tenê dikarî eger fieldname danasîn li vir heye nirxa an jî qaîdeyên rasteqîn (wergerandî) in: myfield eval: doc.myfield == &#39;Nirx My&#39; eval: doc.age&gt; 18"
 DocType: Social Login Key,Office 365,Office 365
-apps/frappe/frappe/public/js/frappe/form/controls/date.js +46,Today,Îro
-apps/frappe/frappe/public/js/frappe/form/controls/date.js +46,Today,Îro
+apps/frappe/frappe/public/js/frappe/form/controls/date.js +49,Today,Îro
+apps/frappe/frappe/public/js/frappe/form/controls/date.js +49,Today,Îro
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Piştî ku we ev ava kir, bikarhênerên bi tenê dikarî wê belgeyên ketina nikarin bibin (wek nimûne. Blog Post) li cihê ku link heye (wek nimûne. Blogger)."
 DocType: Error Log,Log of Scheduler Errors,Têkeve ji Errors Tevlîhevker
 DocType: User,Bio,Bio
@@ -1830,9 +1834,9 @@ DocType: Data Migration Connector,Database Name,Navê Navnîşê
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +71,Refresh Form,Form Refresh
 DocType: DocField,Select,Neqandin
 apps/frappe/frappe/utils/csvutils.py +29,File not attached,File girêdayî ne
-apps/frappe/frappe/public/js/frappe/dom.js +273,Connection lost. Some features might not work.,Têkilî winda kir. Hin taybetmendiyên ku ne kar dikin.
+apps/frappe/frappe/public/js/frappe/dom.js +298,Connection lost. Some features might not work.,Têkilî winda kir. Hin taybetmendiyên ku ne kar dikin.
 apps/frappe/frappe/utils/password_strength.py +115,"Repeats like ""aaa"" are easy to guess",Dubareyên wek &quot;aaa&quot; ne hêsan texmîn
-apps/frappe/frappe/public/js/frappe/chat.js +1595,New Chat,New Chat
+apps/frappe/frappe/public/js/frappe/chat.js +1601,New Chat,New Chat
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.","Eger tu vê set, ev babet dê di dilopa-bin û bav hilbijartin bên."
 DocType: Print Format,Show Section Headings,Show Beþ Headings
 DocType: Bulk Update,Limit,Sînorkirin
@@ -1844,7 +1848,7 @@ DocType: Chat Room,Avatar,Avatar
 DocType: Blogger,Posts,Posts
 DocType: Social Login Key,Salesforce,Salesforce
 DocType: DocType,Has Web View,Has Web View
-apps/frappe/frappe/core/doctype/doctype/doctype.py +423,"DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores","Navê DocType, divê bi nameyek dest û ew bi tenê dikare ji tîp, hejmar, qadên û xêzikên pêk"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +422,"DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores","Navê DocType, divê bi nameyek dest û ew bi tenê dikare ji tîp, hejmar, qadên û xêzikên pêk"
 DocType: Communication,Spam,spam
 DocType: Integration Request,Integration Request,Daxwaza Integration
 apps/frappe/frappe/public/js/frappe/views/communication.js +631,Dear,Birêz
@@ -1852,7 +1856,7 @@ DocType: Address,Maharashtra,Maharashtra
 DocType: Address,Accounts User,hesabên bikarhêneran
 DocType: Web Page,HTML for header section. Optional,HTML ji bo beşa header. Bixwe
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +13,This feature is brand new and still experimental,Ev taybetî ji brand nû û hê jî cerebe ye
-apps/frappe/frappe/model/rename_doc.py +410,Maximum {0} rows allowed,Maximum {0} rêzikan destûr
+apps/frappe/frappe/model/rename_doc.py +422,Maximum {0} rows allowed,Maximum {0} rêzikan destûr
 DocType: Email Unsubscribe,Global Unsubscribe,Global Unsubscribe
 apps/frappe/frappe/utils/password_strength.py +177,This is a very common password.,Ev a şîfreya pir hevbeş e.
 apps/frappe/frappe/email/doctype/email_group/email_group.js +9,View,Dîtinî
@@ -1903,14 +1907,13 @@ DocType: Web Form,Success Message,Message serkeftinê
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +84,Export Customizations,li ser budceya export
 apps/frappe/frappe/website/doctype/web_page/web_page.py +136,End Date cannot be before Start Date!,Dîroka Dawîn nikare berî Destpêk Dîrok!
 DocType: DocType,User Cannot Search,User ne Can Search
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions,Setup&gt; Bikarhêner Permissions
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +84,Invalid Output Format,Format çewt a derxistinê
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +125,Cannot {0} {1},Nikare {0} {1}
 DocType: Custom DocPerm,Apply this rule if the User is the Owner,"Apply vê qeydeyî, eger User xwediyę e"
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +422,Will be your login ID,Dê bibe ID te (login)
 apps/frappe/frappe/desk/page/activity/activity.js +45,Build Report,ava Report
 DocType: Note,Notify users with a popup when they log in,bikarhênerên Notify bi popup gava ku ew jî têkeve
-apps/frappe/frappe/model/rename_doc.py +153,"{0} {1} does not exist, select a new target to merge","{0} {1} does not exist, hedef ya nû hilbijêre ji bo merge"
+apps/frappe/frappe/model/rename_doc.py +155,"{0} {1} does not exist, select a new target to merge","{0} {1} does not exist, hedef ya nû hilbijêre ji bo merge"
 apps/frappe/frappe/www/search.py +13,"Search Results for ""{0}""",Search Results for &quot;{0}&quot;
 DocType: Data Migration Connector,Python Module,Modela Python
 DocType: GSuite Settings,Google Credentials,"negihuriye, Google"
@@ -1920,7 +1923,7 @@ DocType: Footer Item,Company,Şîrket
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +49,Assigned To Me,Daye min
 apps/frappe/frappe/config/integrations.py +113,Google GSuite Templates to integration with DocTypes,Google GSuite Template bo entegrasyona bi DocTypes
 DocType: User,Logout from all devices while changing Password,Logout ji hemî cîhazên di dema guhertina şîfreyê de
-apps/frappe/frappe/public/js/frappe/ui/messages.js +234,Verify Password,Şîfre
+apps/frappe/frappe/public/js/frappe/ui/messages.js +228,Verify Password,Şîfre
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +138,There were errors,bûn çewtî hene
 apps/frappe/frappe/core/doctype/communication/communication.js +42,Close,Nêzîkî
 apps/frappe/frappe/model/document.py +663,Cannot change docstatus from 0 to 2,Can docstatus ji 0 heta 2 nayê guhertin
@@ -1931,7 +1934,7 @@ DocType: Transaction Log,Transaction Hash,Transaction Hash
 DocType: Error Snapshot,Snapshot View,Snapshot View
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +106,Please save the Newsletter before sending,Ji kerema xwe li Newsletter berî şandina xilas bike
 apps/frappe/frappe/config/integrations.py +103,Configure accounts for google calendar,Hesabên google ji bo kulturê google
-apps/frappe/frappe/core/doctype/doctype/doctype.py +474,Options must be a valid DocType for field {0} in row {1},Vebijêrkên divê DocType derbasdar bo warê {0} li row be {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +473,Options must be a valid DocType for field {0} in row {1},Vebijêrkên divê DocType derbasdar bo warê {0} li row be {1}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +167,Edit Properties,biguherîne Properties
 DocType: Patch Log,List of patches executed,List of pîneyên darvekirin
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +21,{0} already unsubscribed,{0} niha unsubscribed
@@ -1968,7 +1971,7 @@ DocType: Website Settings,"Added HTML in the &lt;head&gt; section of the web pag
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js +9,Relapsed,Petzäll
 apps/frappe/frappe/utils/nestedset.py +181,Item cannot be added to its own descendents,Babetê dikarin ji bo neviyên xwe bi xwe ne bê added
 DocType: System Settings,Expiry time of QR Code Image Page,Demjimêra Qeydkirina QR Code Image Page
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +916,Show Totals,Show Totals
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +928,Show Totals,Show Totals
 DocType: Error Snapshot,Relapses,terapî
 DocType: Address,Preferred Shipping Address,Tercîh Navnîşana Şandinê
 apps/frappe/frappe/public/js/frappe/form/print.js +263,With Letter head,Bi serê Letter
@@ -1977,7 +1980,7 @@ apps/frappe/frappe/public/js/frappe/form/workflow.js +38,Document is only editab
 apps/frappe/frappe/desk/form/assign_to.py +151,"The task {0}, that you assigned to {1}, has been closed by {2}.","Erka {0}, ku hûn ji bo {1}, ji aliyê {2} girtin rêdan."
 DocType: Print Format,Show Line Breaks after Sections,Show Line Breaks piştî Sections
 DocType: Blogger,Short Name,Navê Short
-apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +74,Page {0},Page {0}
+apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +75,Page {0},Page {0}
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +110,Linked with {0},Bi girêdana {0}
 apps/frappe/frappe/email/doctype/email_account/email_account.js +183,"You are selecting Sync Option as ALL, It will resync all \
 				read as well as unread message from server. This may also cause the duplication\
@@ -2026,7 +2029,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager.js +149,Selec
 DocType: Contact,Passive,Nejîr
 DocType: Contact,Accounts Manager,Manager bikarhênerên
 apps/frappe/frappe/templates/pages/integrations/payment-cancel.html +11,Your payment is cancelled.,perê te betal e.
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +990,Select File Type,Hilbijêre File Type
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1002,Select File Type,Hilbijêre File Type
 apps/frappe/frappe/core/doctype/success_action/success_action.js +58,View All,View All
 DocType: Help Article,Knowledge Base Editor,Knowledge Nawy Base
 apps/frappe/frappe/public/js/frappe/views/container.js +57,Page not found,Page dîtin ne
@@ -2057,12 +2060,12 @@ DocType: Property Setter,Property Type,Corê Xanûberey
 DocType: Workflow State,screenshot,screenshot
 apps/frappe/frappe/core/doctype/report/report.py +33,Only Administrator can save a standard report. Please rename and save.,Tenê Administrator dikarin rapora standard tomar bike. Ji kerema xwe re biguherîne û xilas bike.
 DocType: System Settings,Background Workers,Karkerên background
-apps/frappe/frappe/core/doctype/doctype/doctype.py +843,Fieldname {0} conflicting with meta object,Fieldname {0} dijber bi object meta
+apps/frappe/frappe/core/doctype/doctype/doctype.py +842,Fieldname {0} conflicting with meta object,Fieldname {0} dijber bi object meta
 DocType: Deleted Document,Data,Jimare
 apps/frappe/frappe/public/js/frappe/model/model.js +27,Document Status,Rewş belge
 apps/frappe/frappe/core/page/desktop/desktop_help_message.html +5,You have made {0} of {1},Te {0} ji {1}
 DocType: OAuth Authorization Code,OAuth Authorization Code,OAuth Code Authorization
-apps/frappe/frappe/core/doctype/data_import/importer.py +315,Not allowed to Import,destûr ne ji bo derxe
+apps/frappe/frappe/core/doctype/data_import/importer.py +316,Not allowed to Import,destûr ne ji bo derxe
 DocType: Deleted Document,Deleted DocType,DocType deleted
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +22,Permission Levels,di dereca destûr
 DocType: Workflow State,Warning,Gazî
@@ -2073,7 +2076,7 @@ apps/frappe/frappe/core/doctype/data_import/data_import.js +56,Help,Alîkarî
 DocType: User,Login Before,Login Berî
 DocType: Web Page,Insert Style,Insert Style
 apps/frappe/frappe/config/setup.py +276,Application Installer,Sazkirina application
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +887,New Report name,Navê Report New
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +899,New Report name,Navê Report New
 DocType: Workflow State,info-sign,info-sign
 apps/frappe/frappe/model/base_document.py +217,Value for {0} cannot be a list,Nirx ji bo {0} dikarin di be ku lîsteya ne
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults","Divê çawa vê currency were formatkirin? Heke ne, wê nirxên standard pergalê bi kar bîne"
@@ -2104,10 +2107,10 @@ DocType: System Settings,System Settings,System Settings
 DocType: GCalendar Settings,Google API Credentials,Google API Kredential
 apps/frappe/frappe/public/js/frappe/desk.js +36,Session Start Failed,Dest Bi Danişîna bi ser neket
 apps/frappe/frappe/public/js/frappe/desk.js +36,Session Start Failed,Dest Bi Danişîna bi ser neket
-apps/frappe/frappe/email/queue.py +506,This email was sent to {0} and copied to {1},Ev email {0} re hat şandin û kopîkirin ji bo {1}
+apps/frappe/frappe/email/queue.py +499,This email was sent to {0} and copied to {1},Ev email {0} re hat şandin û kopîkirin ji bo {1}
 DocType: Workflow State,th,th
 DocType: Social Login Key,Provider Name,Navê Navekî
-apps/frappe/frappe/public/js/frappe/form/controls/link.js +171,Create a new {0},Create a new {0}
+apps/frappe/frappe/public/js/frappe/form/controls/link.js +172,Create a new {0},Create a new {0}
 DocType: GCalendar Account,GCalendar Account,Account GCalendar
 DocType: Email Rule,Is Spam,e Spam
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +193,Report {0},Report {0}
@@ -2127,7 +2130,7 @@ DocType: Address,Andaman and Nicobar Islands,Giravên Andaman û Nicobar
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +248,GSuite Document,GSuite dokumênt
 apps/frappe/frappe/email/doctype/notification/notification.py +40,Please specify which value field must be checked,Ji kerema xwe binivîsin ku warê nirxa divê werin kontrolkirin
 apps/frappe/frappe/core/doctype/data_import/exporter.py +71,"""Parent"" signifies the parent table in which this row must be added","&quot;Parent&quot;, temsîla sifrê û bav in ku ev row, divê bê zêdekirin"
-apps/frappe/frappe/email/queue.py +243,Cannot send this email. You have crossed the sending limit of {0} emails for this day.,Ev e-nameyê bişîne. Hûn ji bo vê rojan em şandina navendên sînorê {0} derbas kirin.
+apps/frappe/frappe/email/queue.py +242,Cannot send this email. You have crossed the sending limit of {0} emails for this day.,Ev e-nameyê bişîne. Hûn ji bo vê rojan em şandina navendên sînorê {0} derbas kirin.
 DocType: Website Theme,Apply Style,Apply Style
 DocType: Feedback Request,Feedback Rating,Rating Deng
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +63,Shared With,Shared With
@@ -2137,7 +2140,7 @@ apps/frappe/frappe/templates/pages/integrations/payment-failed.html +11,Your pay
 DocType: Communication,Unshared,durist
 DocType: Address,Karnataka,Karnataka
 apps/frappe/frappe/desk/moduleview.py +84,Module Not Found,Module Not Found
-apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +73,{0}: {1} is set to state {2},{0}: {1} destnîşan dike ku dewlet {2}
+apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +74,{0}: {1} is set to state {2},{0}: {1} destnîşan dike ku dewlet {2}
 DocType: User,Location,Cîh
 ,Permitted Documents For User,Belgeyên ku destûr bo User
 apps/frappe/frappe/core/doctype/docshare/docshare.py +40,"You need to have ""Share"" permission",Tu pêwîstî heye bi &quot;Share&quot; destûr
@@ -2162,7 +2165,7 @@ DocType: OAuth Client,App Client ID,App Client ID
 DocType: Kanban Board,Kanban Board Name,Navê Kanban Board
 DocType: Notification Recipient,"Expression, Optional","Bîr û bawerî, Bijarî"
 DocType: GSuite Settings,Copy and paste this code into and empty Code.gs in your project at script.google.com,Copy û vê kodê nav û vala Code.gs di projeya xwe de li script.google.com bi îmêlî vrêkey
-apps/frappe/frappe/email/queue.py +508,This email was sent to {0},Ev email hat şandin {0}
+apps/frappe/frappe/email/queue.py +501,This email was sent to {0},Ev email hat şandin {0}
 DocType: System Settings,Hide footer in auto email reports,Di raporên emailên otomobîlan de veşêre
 DocType: DocField,Remember Last Selected Value,Bi bîr bîne Last Nirx Hilbijartî
 DocType: Email Account,Check this to pull emails from your mailbox,Vê kontrol bike bo vekêşana emailên ji posteyê te
@@ -2186,7 +2189,7 @@ DocType: Website Settings,Brand Image,Brand Wêne
 DocType: Print Settings,A4,A4
 apps/frappe/frappe/config/website.py +58,"Setup of top navigation bar, footer and logo.","Setup ji navîgasyon top bar, footer û logo."
 DocType: Web Form Field,Max Value,Max Nirx
-apps/frappe/frappe/core/doctype/doctype/doctype.py +721,For {0} at level {1} in {2} in row {3},Ji bo {0} di asta {1} li {2} li row {3}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +720,For {0} at level {1} in {2} in row {3},Ji bo {0} di asta {1} li {2} li row {3}
 DocType: User Social Login,User Social Login,Têketina Civakî ya Civakî
 DocType: Contact,All,Gişt
 DocType: Email Queue,Recipient,Girtevan
@@ -2195,9 +2198,9 @@ DocType: Address,Sales User,Sales Bikarhêner
 apps/frappe/frappe/config/setup.py +190,Drag and Drop tool to build and customize Print Formats.,Drag û tool Drop bo avakirina û customize Formats Print.
 DocType: Address,Sikkim,Sikkim
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +142,Set,Danîn
-apps/frappe/frappe/desk/search.py +42,This query style is discontinued,Ev style query şûn ye
+apps/frappe/frappe/desk/search.py +71,This query style is discontinued,Ev style query şûn ye
 DocType: Notification,Trigger Method,Method Trigger
-apps/frappe/frappe/utils/data.py +817,Operator must be one of {0},"Operator, divê yek ji yên bê {0}"
+apps/frappe/frappe/utils/data.py +819,Operator must be one of {0},"Operator, divê yek ji yên bê {0}"
 DocType: Dropbox Settings,Dropbox Access Token,Dropbox Access Token
 DocType: Workflow State,align-right,align-mafê
 DocType: Auto Email Report,Email To,Email To
@@ -2215,7 +2218,7 @@ apps/frappe/frappe/utils/data.py +801,Filter must be a tuple or list (in a list)
 apps/frappe/frappe/core/doctype/report/report.js +8,Write a SELECT query. Note result is not paged (all data is sent in one go).,"Hewe a query SELECT. Di encama Têbînî ye, xulam ne (hemû daneyên ku di yek go şandin)."
 DocType: Email Account,Attachment Limit (MB),Attachment Sînora (MB)
 DocType: Address,Arunachal Pradesh,Arunaçal Pradeş
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1021,Setup Auto Email,Setup Auto Email
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1033,Setup Auto Email,Setup Auto Email
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +64,Ctrl + Down,Ctrl + Down
 DocType: Chat Profile,Message Preview,Peyama Pêşniyarê
 apps/frappe/frappe/utils/password_strength.py +173,This is a top-10 common password.,Ev a şîfreya hevpar top-10 e.
@@ -2292,7 +2295,7 @@ apps/frappe/frappe/config/website.py +18,User editable form on Website.,Bikarhê
 DocType: Workflow State,file,dosî
 apps/frappe/frappe/www/login.html +90,Back to Login,Back to Login
 DocType: Data Migration Mapping,Local DocType,DocType Local
-apps/frappe/frappe/model/rename_doc.py +163,You need write permission to rename,Tu pêwîstî bi nivîsandina destûr ji bo rename
+apps/frappe/frappe/model/rename_doc.py +165,You need write permission to rename,Tu pêwîstî bi nivîsandina destûr ji bo rename
 DocType: User,Karma,Karma
 DocType: DocField,Table,Mêz
 DocType: File,File Size,file Size
@@ -2304,7 +2307,7 @@ apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Mx,mx
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +20,Between,Navber
 DocType: Async Task,Queued,li hêvîya
 DocType: Braintree Settings,Use Sandbox,bikaranîna Ceriban
-apps/frappe/frappe/utils/goal.py +100,This month,Vê mehê
+apps/frappe/frappe/utils/goal.py +101,This month,Vê mehê
 apps/frappe/frappe/public/js/frappe/form/print.js +102,New Custom Print Format,New Format Custom bo çapkirinê
 DocType: Custom DocPerm,Create,Xûliqandin
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +198,Invalid Filter: {0},Filter Invalid: {0}
@@ -2338,6 +2341,7 @@ DocType: List Filter,List Filter,Peldanka Lîsteya
 DocType: Workflow State,signal,nîşan
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +105,Has Attachments,Têkilî ye
 DocType: DocType,Show Print First,Show Print First
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Setup&gt; Bikarhêner
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +106,Make a new {0},Make a nû {0}
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +169,New Email Account,Account Email New
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py +30,Document Restored,Dokumentê Keçikê
@@ -2379,7 +2383,7 @@ DocType: System Settings,Apply Strict User Permissions,Apply Permissions User St
 DocType: DocField,Allow Bulk Edit,Destûrê bide Edit Bulk
 DocType: DocField,Allow Bulk Edit,Destûrê bide Edit Bulk
 DocType: Blog Post,Blog Post,Blog Post
-apps/frappe/frappe/public/js/frappe/form/controls/link.js +181,Advanced Search,Search pêşketî
+apps/frappe/frappe/public/js/frappe/form/controls/link.js +182,Advanced Search,Search pêşketî
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +115,You are not permitted to view the newsletter.,Hûn nikarin ku nûçegihanê bibînin.
 apps/frappe/frappe/core/doctype/user/user.py +819,Password reset instructions have been sent to your email,talîmatên şîfreyeke nû ji bo email xwe şandin
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +376,"Level 0 is for document level permissions, \
@@ -2450,7 +2454,7 @@ apps/frappe/frappe/core/doctype/report/report.js +10,[Label]:[Field Type]/[Optio
 DocType: Workflow State,folder-close,Peldanka-nêzîkî
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +15,Report:,Nûçe:
 DocType: Print Settings,Print taxes with zero amount,Bacê bi mûzek zûtirîn çap bikin
-apps/frappe/frappe/model/rename_doc.py +166,{0} not allowed to be renamed,{0} destûr ne divyabû navên wan bên
+apps/frappe/frappe/model/rename_doc.py +168,{0} not allowed to be renamed,{0} destûr ne divyabû navên wan bên
 DocType: Custom Script,Custom Script,Script Custom
 DocType: Address,Address Line 2,Line Address 2
 DocType: Address,Reference,Balkêşî
@@ -2465,10 +2469,10 @@ DocType: Data Import,If you don't want to create any new records while updating 
 apps/frappe/frappe/core/doctype/data_import/exporter.py +272,Info:,Info:
 DocType: Custom Field,Permission Level,Level destûr
 DocType: User,Send Notifications for Transactions I Follow,Send Notifications bo Transactions ez Follow
-apps/frappe/frappe/core/doctype/doctype/doctype.py +760,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Can set ne Submit, Cancel, Qanûnên bê Write"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +759,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Can set ne Submit, Cancel, Qanûnên bê Write"
 DocType: Google Maps,Client Key,Key Client
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +83,Are you sure you want to delete the attachment?,"Ma tu dizanî, tu dixwazî jê bibî girêdayî?"
-apps/frappe/frappe/__init__.py +1096,Thank you,Spas dikim
+apps/frappe/frappe/__init__.py +1097,Thank you,Spas dikim
 apps/frappe/frappe/public/js/frappe/form/save.js +11,Saving,Saving
 DocType: Print Settings,Print Style Preview,Print Preview Style
 apps/frappe/frappe/core/doctype/file/test_file.py +81,Test_Folder,Test_Folder
@@ -2486,7 +2490,7 @@ apps/frappe/frappe/core/doctype/data_import/data_import.js +61,Download Template
 apps/frappe/frappe/config/setup.py +254,Add custom javascript to forms.,Lê zêde bike adeta ji bo formên javascript.
 ,Role Permissions Manager,Permissions rola Manager
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +117,Name of the new Print Format,Name ji Format Print nû
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +943,Toggle Sidebar,Toggle Sidebar
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +955,Toggle Sidebar,Toggle Sidebar
 DocType: Data Migration Run,Pull Insert,Bixweşîne
 apps/frappe/frappe/public/js/frappe/form/controls/attach.js +60,Clear Attachment,Attachment zelal
 apps/frappe/frappe/core/doctype/data_import/exporter.py +270,Mandatory:,Bicî:
@@ -2500,8 +2504,8 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +34
 DocType: Website Settings,HTML Header & Robots,HTML Header &amp; Robots
 DocType: User Permission,User Permission,Destûra User
 apps/frappe/frappe/config/website.py +32,Blog,Blog
-apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +28,LDAP Not Installed,LDAP ne sazkirî ne
-apps/frappe/frappe/core/doctype/data_import/data_import.js +177,Download with data,Download bi daneya
+apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +37,LDAP Not Installed,LDAP ne sazkirî ne
+apps/frappe/frappe/core/doctype/data_import/data_import.js +193,Download with data,Download bi daneya
 DocType: Workflow State,hand-right,hand-mafê
 DocType: Website Settings,Subdomain,Subdomain
 apps/frappe/frappe/config/integrations.py +68,Settings for OAuth Provider,Mîhengên ji bo Provider OAuth
@@ -2522,7 +2526,7 @@ apps/frappe/frappe/public/js/frappe/list/list_renderer.js +570,2 days ago,2 days
 apps/frappe/frappe/config/website.py +47,Categorize blog posts.,De kategorîze posts blog.
 DocType: Workflow State,Time,Dem
 DocType: DocField,Attach,Pêvcebirandin
-apps/frappe/frappe/core/doctype/doctype/doctype.py +593,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} a pattern fieldname derbasdar e ne. Ev divê bê {{field_name}}.
+apps/frappe/frappe/core/doctype/doctype/doctype.py +592,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} a pattern fieldname derbasdar e ne. Ev divê bê {{field_name}}.
 DocType: Feedback Trigger,Send Feedback Request only if there is at least one communication is available for the document.,Daxwaza Feedback tenê eger bi kêmanî yek ragihandinê ji bo belgeya derbasdar e heye.
 DocType: Custom Role,Permission Rules,Rules destûr
 DocType: Braintree Settings,Public Key,Key Key
@@ -2545,17 +2549,17 @@ apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +65,Direct room with {oth
 DocType: Has Domain,Has Domain,has Domain
 apps/frappe/frappe/core/page/desktop/desktop.js +190,Hide,Veşartin
 apps/frappe/frappe/www/login.html +54,Don't have an account? Sign up,Hesabê te nîne? Tomar kirin
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +616,Cannot remove ID field,Zeviya nasnameyê hilbijêre
-apps/frappe/frappe/core/doctype/doctype/doctype.py +785,{0}: Cannot set Assign Amend if not Submittable,{0}: Can not set value Qanûnên eger Submittable ne
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +617,Cannot remove ID field,Zeviya nasnameyê hilbijêre
+apps/frappe/frappe/core/doctype/doctype/doctype.py +784,{0}: Cannot set Assign Amend if not Submittable,{0}: Can not set value Qanûnên eger Submittable ne
 DocType: Address,Bihar,bihar
 DocType: Activity Log,Link DocType,DocType Link
-apps/frappe/frappe/public/js/frappe/chat.js +1690,You don't have any messages yet.,Heta niha tu peyam hene.
+apps/frappe/frappe/public/js/frappe/chat.js +1696,You don't have any messages yet.,Heta niha tu peyam hene.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +76,Remove all customizations?,Jê hemû li ser budceya?
 DocType: Website Slideshow,Slideshow Name,Navê Slideshow
 DocType: Address,Andhra Pradesh,Andhra Pradesh
 apps/frappe/frappe/public/js/frappe/form/save.js +15,Cancelling,Cancelling
 DocType: DocType,Allow Rename,Destûrê bide rename
-apps/frappe/frappe/model/db_query.py +199,Cannot use sub-query or function in fields,Li zeviyên li sub-question an fonksê bikar nakin
+apps/frappe/frappe/model/db_query.py +200,Cannot use sub-query or function in fields,Li zeviyên li sub-question an fonksê bikar nakin
 DocType: Activity Log,Full Name,Navê tam
 apps/frappe/frappe/public/js/frappe/list/list_filter.js +102,Duplicate Filter Name,Navê Navek Naverok
 DocType: DocType,Child Tables are shown as a Grid in other DocTypes.,Tables zarok bi wek Grid din de li DocTypes li banî tê.
@@ -2571,7 +2575,7 @@ apps/frappe/frappe/public/js/frappe/form/share.js +27,Shared with everyone,Share
 apps/frappe/frappe/model/base_document.py +392,Data missing in table,Data kêm li ser sifrê
 DocType: Web Form,Success URL,URL serkeftinê
 DocType: Email Account,Append To,Append To
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +832,Fixed height,Bilindahiya bilind
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +844,Fixed height,Bilindahiya bilind
 DocType: Workflow Document State,Only Allow Edit For,Tenê Destûrê biguherîne Ji bo
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js +108,Mandatory field: {0},warê Mandatory: {0}
 apps/frappe/frappe/templates/includes/comments/comments.html +35,Your Name,Navê te
@@ -2612,7 +2616,7 @@ DocType: OAuth Bearer Token,Expires In,bidawîbûnê In
 DocType: DocField,Allow on Submit,Destûrê bide li ser Submit
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Type îstîsna
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +947,Pick Columns,Pick Stûn
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +959,Pick Columns,Pick Stûn
 DocType: Web Page,Add code as &lt;script&gt;,Lê zêde bike koda wek &lt;script&gt;
 DocType: Webhook,Headers,Headers
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.js +35,Please enter values for App Access Key and App Secret Key,Ji kerema xwe ve nirxên bo App Têketinê Key û App Secret Key binivîse
@@ -2649,14 +2653,14 @@ DocType: Workflow State,Edit,Weşandin
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +229,Permissions can be managed via Setup &gt; Role Permissions Manager,Permissions dikare bi rêya Setup&gt; Permissions Role Manager bi rêve
 DocType: Website Settings,Chat Operators,Chat Operators
 DocType: Contact Us Settings,Pincode,Pincode
-apps/frappe/frappe/core/doctype/data_import/importer.py +105,Please make sure that there are no empty columns in the file.,Ji kerema xwe bila ku tu stûnên vala li file hene.
+apps/frappe/frappe/core/doctype/data_import/importer.py +106,Please make sure that there are no empty columns in the file.,Ji kerema xwe bila ku tu stûnên vala li file hene.
 apps/frappe/frappe/utils/oauth.py +184,Please ensure that your profile has an email address,"Ji kerema xwe, da ku profîla te heye an email address"
 apps/frappe/frappe/public/js/frappe/model/create_new.js +288,You have unsaved changes in this form. Please save before you continue.,Tu xwedî de guhertinên netomarkirî vê formê. Ji kerema xwe xilas bike Berî ku tu bidomîne.
 DocType: Address,Telangana,Salname
-apps/frappe/frappe/core/doctype/doctype/doctype.py +507,Default for {0} must be an option,Default ji bo {0} gerek opsîyonek be
+apps/frappe/frappe/core/doctype/doctype/doctype.py +506,Default for {0} must be an option,Default ji bo {0} gerek opsîyonek be
 DocType: Tag Doc Category,Tag Doc Category,Tag Doc Kategorî
 DocType: User,User Image,Wêne Bikarhêner
-apps/frappe/frappe/email/queue.py +340,Emails are muted,Emails devgirtî ye
+apps/frappe/frappe/email/queue.py +338,Emails are muted,Emails devgirtî ye
 apps/frappe/frappe/config/integrations.py +88,Google Services,Xizmetên Google
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +64,Ctrl + Up,Ctrl + Up
 DocType: Website Theme,Heading Style,diçe Style
@@ -2691,7 +2695,7 @@ DocType: User,These values will be automatically updated in transactions and als
 apps/frappe/frappe/twofactor.py +312,Verfication Code,Kodê Verfication
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +10,for generating the recurring,ji bo hilberandina veguhestinê
 DocType: Webhook,Webhook Request,Webhook Request
-apps/frappe/frappe/model/rename_doc.py +423,** Failed: {0} to {1}: {2},** Ser neket: {0} ji bo {1}: {2}
+apps/frappe/frappe/model/rename_doc.py +435,** Failed: {0} to {1}: {2},** Ser neket: {0} ji bo {1}: {2}
 DocType: Data Migration Mapping,Mapping Type,Tîpa Mapping
 apps/frappe/frappe/public/js/frappe/ui/upload.html +4,Browse,Browse
 apps/frappe/frappe/utils/password_strength.py +39,"No need for symbols, digits, or uppercase letters.","Tu pêwîstî ji bo sembolên, malikên, an jî name peyiva."
@@ -2704,15 +2708,14 @@ apps/frappe/frappe/core/doctype/user/user.js +94,Reset Password,Password reset b
 apps/frappe/frappe/email/doctype/email_group/email_group.py +102,Please Upgrade to add more than {0} subscribers,Ji kerema xwe re domandinê lê zêde bike bêtir ji {0} aboneyên
 DocType: Workflow State,hand-left,hand-hiştin
 DocType: Data Import,If you are updating/overwriting already created records.,Heke ku tu nûvekirin / serdestî ji nû ve hatî tomarkirin çêbûye.
-apps/frappe/frappe/core/doctype/doctype/doctype.py +520,Fieldtype {0} for {1} cannot be unique,Fieldtype {0} ji bo {1} nikare were yekane
+apps/frappe/frappe/core/doctype/doctype/doctype.py +519,Fieldtype {0} for {1} cannot be unique,Fieldtype {0} ji bo {1} nikare were yekane
 apps/frappe/frappe/public/js/frappe/list/list_filter.js +35,Is Global,Globale ye
 DocType: Email Account,Use SSL,Use SSL
 DocType: Workflow State,play-circle,play-circle
 apps/frappe/frappe/public/js/frappe/form/layout.js +502,"Invalid ""depends_on"" expression",Şiklekî &quot;depend_on&quot;
-apps/frappe/frappe/public/js/frappe/chat.js +1612,Group Name,Navê Navê
+apps/frappe/frappe/public/js/frappe/chat.js +1618,Group Name,Navê Navê
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +82,Select Print Format to Edit,Select Print Format bo sererastkirina
 DocType: Address,Shipping,Shipping
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,Setup &gt; Customize Form,Setup&gt; Forma Taybet
 DocType: Workflow State,circle-arrow-down,circle-tîra-down
 apps/frappe/frappe/config/desk.py +38,Private and public Notes.,Taybet û giştî Notes.
 DocType: DocField,Datetime,datetime
@@ -2738,6 +2741,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +206,Help: Fi
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +607,Also adding the dependent currency field {0},Her wiha digel qada peywendiya girêdayî {0}
 apps/frappe/frappe/core/doctype/file/file.js +27,Unzip,Unzip
 apps/frappe/frappe/model/document.py +1072,Incorrect value in row {0}: {1} must be {2} {3},"nirxa rast nenivîsandiye, li row {0}: {1} divê {2} {3}"
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357,<p>No results found for '</p>,"<p style=""""> Ne encam ji bo &#39; </p>"
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +68,Submitted Document cannot be converted back to draft. Transition row {0},Dokumentê radestkirî paş ne venegerin kişandina. row Transition {0}
 apps/frappe/frappe/config/integrations.py +98,Configure your google calendar integration,Konfiraziya malpera googleê veguherîne
 apps/frappe/frappe/desk/reportview.py +227,Deleting {0},Jêbirina {0}
@@ -2771,7 +2775,7 @@ DocType: Chat Token,IP Address,Navnîşana IP&#39;yê
 DocType: Data Import,Submit after importing,Piştî hilberandinê
 apps/frappe/frappe/www/login.html +32,Login with LDAP,Login bi LDAP
 DocType: Web Form,Breadcrumbs,Menûyên
-apps/frappe/frappe/core/doctype/doctype/doctype.py +733,If Owner,Ger Xwedîyê
+apps/frappe/frappe/core/doctype/doctype/doctype.py +732,If Owner,Ger Xwedîyê
 DocType: Data Migration Mapping,Push,Lêqellibînî
 DocType: OAuth Authorization Code,Expiration time,dem boriye
 DocType: Web Page,Website Sidebar,Darikê Kêlekê yê Website
@@ -2802,7 +2806,7 @@ apps/frappe/frappe/core/doctype/data_import/log_details.html +6,Row Status,Row S
 DocType: Workflow Transition,Workflow Transition,Transition Workflow
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,{0} months ago,{0} months ago
 apps/frappe/frappe/public/js/frappe/model/model.js +18,Created By,created By
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +300,Dropbox Setup,Setup Dropbox
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +301,Dropbox Setup,Setup Dropbox
 DocType: Workflow State,resize-horizontal,resize-horizontal
 DocType: Chat Message,Content,Dilşad
 DocType: Data Migration Run,Push Insert,Push
@@ -2810,7 +2814,7 @@ apps/frappe/frappe/public/js/frappe/views/treeview.js +294,Group Node,Node Group
 DocType: Communication,Notification,Agahdayin
 DocType: DocType,Document,Belge
 apps/frappe/frappe/core/doctype/doctype/doctype.py +221,Series {0} already used in {1},Series {0} niha di bikaranîn {1}
-apps/frappe/frappe/core/doctype/data_import/importer.py +286,Unsupported File Format,Bêdestek File Format
+apps/frappe/frappe/core/doctype/data_import/importer.py +287,Unsupported File Format,Bêdestek File Format
 DocType: DocField,Code,Navê dizî
 DocType: Workflow,"All possible Workflow States and roles of the workflow. Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Hemû gengaz States Workflow û rolên ya workflow. Vebijêrkên Docstatus: 0 e &quot;Saved&quot;, 1 is &quot;on&quot; û 2 is &quot;weş&quot;"
 DocType: Website Theme,Footer Text Color,Rêza Text Color
@@ -2880,11 +2884,12 @@ DocType: GSuite Settings,Allow GSuite access,Destûrê bide access GSuite
 DocType: DocType,DESC,DESC
 DocType: DocType,Naming,Bidin
 DocType: Event,Every Year,her sal
-apps/frappe/frappe/public/js/frappe/views/file/file_view.js +206,Select All,Select All
+apps/frappe/frappe/core/doctype/data_import/data_import.js +198,Select All,Select All
 apps/frappe/frappe/config/setup.py +247,Custom Translations,Wergerên Custom
 apps/frappe/frappe/public/js/frappe/socketio_client.js +46,Progress,Pêşverûtî
 apps/frappe/frappe/public/js/frappe/form/workflow.js +34, by Role ,destê Role
 apps/frappe/frappe/public/js/frappe/form/save.js +157,Missing Fields,Fields wenda
+apps/frappe/frappe/email/smtp.py +188,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Hesabê Îmêlê nayê sazkirin. Ji kerema xwe ji Hesabê E-Mail-E-nameya Hesabê nû ya nû ya navnîşê biafirînin
 apps/frappe/frappe/core/doctype/doctype/doctype.py +206,Invalid fieldname '{0}' in autoname,fieldname Invalid &#39;{0}&#39; li BixweberNAME
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +136,Search in a document type,Search di cureyê pelgeyê
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +261,Allow field to remain editable even after submission,Destûrê bide zeviyê heta piştî sertewandina editable bimîne
@@ -2899,7 +2904,7 @@ DocType: Workflow,Is Active,çalak e
 apps/frappe/frappe/desk/form/utils.py +111,No further records,Tu qeydên din
 DocType: DocField,Long Text,Nivîsar di Long
 DocType: Workflow State,Primary,Bingehîn
-apps/frappe/frappe/core/doctype/data_import/importer.py +76,Please do not change the rows above {0},"Ji kerema xwe, li rêzên li jor nayê guhertin {0}"
+apps/frappe/frappe/core/doctype/data_import/importer.py +77,Please do not change the rows above {0},"Ji kerema xwe, li rêzên li jor nayê guhertin {0}"
 DocType: Web Form,Go to this URL after completing the form (only for Guest users),Piştî ku forma temam bikin (tenê ji bo bikarhênerên mêvan)
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +106,(Ctrl + G),(Ctrl + G)
 DocType: Contact,More Information,Information More
@@ -2923,7 +2928,7 @@ DocType: Stripe Settings,Stripe Settings,Settings Stripe
 DocType: Stripe Settings,Stripe Settings,Settings Stripe
 DocType: Data Migration Mapping,Data Migration Mapping,Migration Mapping
 apps/frappe/frappe/www/login.py +89,Invalid Login Token,Invalid Login Token
-apps/frappe/frappe/public/js/frappe/chat.js +209,Discard,Bikişînin
+apps/frappe/frappe/public/js/frappe/chat.js +215,Discard,Bikişînin
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +49,1 hour ago,1 hour ago
 DocType: Website Settings,Home Page,Home Page
 DocType: Error Snapshot,Parent Error Snapshot,Dê û bav Snapshot Error
@@ -2984,12 +2989,12 @@ DocType: DocType,DocType is a Table / Form in the application.,DocType a Table /
 DocType: Social Login Key,Authorize URL,URL
 DocType: Email Account,GMail,Gmail
 DocType: Address,Party GSTIN,Partiya GSTIN
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1058,{0} Report,{0} Report
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1070,{0} Report,{0} Report
 DocType: SMS Settings,Use POST,POST bikar bînin
 DocType: Communication,SMS,SMS
 DocType: DocType,Web View,Web View
 apps/frappe/frappe/public/js/frappe/form/print.js +195,Warning: This Print Format is in old style and cannot be generated via the API.,Hişyarî: Ev Format Print di şêweya kevin e û dikare bi rêya API ne bê bipêşxistin.
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +786,Totals,Totals
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +798,Totals,Totals
 DocType: DocField,Print Width,Firehiya bo çapkirinê
 ,Setup Wizard,sęrbaziya sazkirinę
 DocType: Address,GST State Number,Gst Hejmara Dewletê
@@ -3026,7 +3031,7 @@ DocType: Webhook,on_cancel,on_cancel
 DocType: Social Login Key,API Endpoint Args,API Endpoint Args
 apps/frappe/frappe/core/doctype/user/user.py +918,Administrator accessed {0} on {1} via IP Address {2}.,Administrator xwestin {0} li {1} via IP Address {2}.
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +10,Equals,li beramberî
-apps/frappe/frappe/core/doctype/doctype/doctype.py +501,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',"type &#39;Dînamîk Link&#39; Vebijêrkên yên zeviyê, divê ji bo Link din Field bi options wek &#39;DocType&#39; dîrektîfa"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +500,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',"type &#39;Dînamîk Link&#39; Vebijêrkên yên zeviyê, divê ji bo Link din Field bi options wek &#39;DocType&#39; dîrektîfa"
 DocType: About Us Settings,Team Members Heading,Endam Team Berev
 apps/frappe/frappe/utils/csvutils.py +37,Invalid CSV Format,Format CSV Invalid
 apps/frappe/frappe/desk/page/backups/backups.js +8,Set Number of Backups,Set Hejmara Backups
@@ -3049,7 +3054,7 @@ DocType: Website Slideshow,Slideshow like display for the website,Slideshow wek 
 apps/frappe/frappe/config/setup.py +168,Setup Notifications based on various criteria.,Şertên şîfrekirinê li ser pîvanên cuda hene.
 DocType: Communication,Updated,Demê
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +105,Select Module,Hilbijêre Module
-apps/frappe/frappe/public/js/frappe/chat.js +1586,Search or Create a New Chat,Lêgerînek nû biafirînin
+apps/frappe/frappe/public/js/frappe/chat.js +1592,Search or Create a New Chat,Lêgerînek nû biafirînin
 apps/frappe/frappe/sessions.py +29,Cache Cleared,cache Cleared
 DocType: Email Account,UIDVALIDITY,UIDVALIDITY
 apps/frappe/frappe/public/js/frappe/views/communication.js +15,New Email,New Email
@@ -3065,13 +3070,12 @@ DocType: Print Settings,PDF Settings,Settings PDF
 DocType: Kanban Board Column,Column Name,Navê stûna
 DocType: Language,Based On,Çi qewimî
 apps/frappe/frappe/printing/doctype/print_format/print_format.js +34,Make Default,Make Default
-apps/frappe/frappe/core/doctype/doctype/doctype.py +543,Fieldtype {0} for {1} cannot be indexed,Fieldtype {0} ji bo {1} nikare were hesabkirin
+apps/frappe/frappe/core/doctype/doctype/doctype.py +542,Fieldtype {0} for {1} cannot be indexed,Fieldtype {0} ji bo {1} nikare were hesabkirin
 DocType: Communication,Email Account,Account Email
 DocType: Workflow State,Download,download
 DocType: Blog Post,Blog Intro,Blog Intro
 DocType: Async Task,Result,Netîce
 DocType: Webhook,on_update_after_submit,on_update_after_submit
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Setup&gt; Bikarhêner
 DocType: System Settings,Allow Login using User Name,Destûrê bikar bîne Navê bikarhênerê bikar bînin
 apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,çalak Report
 DocType: DocField,Display Depends On,Display Dimîne li ser
@@ -3089,7 +3093,7 @@ apps/frappe/frappe/config/core.py +47,Errors in Background Events,Errors li Back
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +399,No of Columns,No Stûnan
 DocType: Workflow State,Calendar,Salname
 apps/frappe/frappe/client.py +54,No document found for given filters,No belge hat ji bo filter dayîn
-apps/frappe/frappe/model/rename_doc.py +160,"Another {0} with name {1} exists, select another name","Din {0} bi navê {1} de heye, bi navê din hilbijêre"
+apps/frappe/frappe/model/rename_doc.py +162,"Another {0} with name {1} exists, select another name","Din {0} bi navê {1} de heye, bi navê din hilbijêre"
 DocType: DocType,Custom?,Hûnbunî?
 DocType: Website Settings,Website Theme Image,Website Theme Wêne
 DocType: Workflow State,road,rê
@@ -3102,16 +3106,16 @@ apps/frappe/frappe/email/doctype/email_group/email_group.js +45,New Newsletter,N
 DocType: Print Settings,Send Print as PDF,Send Ji bo çapkirinê PDF
 DocType: Web Form,Amount,Biha
 DocType: Workflow Transition,Allowed,destûr
-apps/frappe/frappe/core/doctype/doctype/doctype.py +550,There can be only one Fold in a form,dikarin bibin yek bi tenê di forma BH hene
+apps/frappe/frappe/core/doctype/doctype/doctype.py +549,There can be only one Fold in a form,dikarin bibin yek bi tenê di forma BH hene
 apps/frappe/frappe/core/doctype/file/file.py +222,Unable to write file format for {0},Nikare binivîse file format ji bo {0}
 apps/frappe/frappe/website/doctype/portal_settings/portal_settings.js +20,Restore to default settings?,Restore to mîhengên standard?
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +23,Invalid Home Page,Invalid Home Page
 apps/frappe/frappe/templates/includes/login/login.js +222,Invalid Login. Try again.,Login Invalid. Dubare bixebitin.
-apps/frappe/frappe/core/doctype/doctype/doctype.py +468,Options required for Link or Table type field {0} in row {1},Vebijêrkên pêwîst ji bo Link an jî qada type Table {0} li row {1}
-apps/frappe/frappe/core/doctype/doctype/doctype.py +468,Options required for Link or Table type field {0} in row {1},Vebijêrkên pêwîst ji bo Link an jî qada type Table {0} li row {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +467,Options required for Link or Table type field {0} in row {1},Vebijêrkên pêwîst ji bo Link an jî qada type Table {0} li row {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +467,Options required for Link or Table type field {0} in row {1},Vebijêrkên pêwîst ji bo Link an jî qada type Table {0} li row {1}
 DocType: Auto Email Report,Send only if there is any data,Send tenê eger e hemû daneyên li wir
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +168,Reset Filters,Parzûn Reset
-apps/frappe/frappe/core/doctype/doctype/doctype.py +750,{0}: Permission at level 0 must be set before higher levels are set,{0}: Destûr di asta 0 bê mîhenkirin berî asta bilind de set bi
+apps/frappe/frappe/core/doctype/doctype/doctype.py +749,{0}: Permission at level 0 must be set before higher levels are set,{0}: Destûr di asta 0 bê mîhenkirin berî asta bilind de set bi
 apps/frappe/frappe/desk/doctype/todo/todo.py +28,Assignment closed by {0},Assignment girtî ji aliyê {0}
 DocType: Integration Request,Remote,Dûr
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +140,Calculate,Hesabkirin
@@ -3133,10 +3137,10 @@ apps/frappe/frappe/desk/doctype/event/event.py +66,Events In Today's Calendar,Ev
 DocType: Web Page,Web Page,Page Web
 DocType: Workflow Document State,Next Action Email Template,Belgeya Bersîvê Next Next
 DocType: Blog Category,Blogger,Blogger
-apps/frappe/frappe/core/doctype/doctype/doctype.py +493,'In Global Search' not allowed for type {0} in row {1},&#39;Li Global Search&#39; ji bo cureyê destûr ne {0} li row {1}
-apps/frappe/frappe/core/doctype/doctype/doctype.py +493,'In Global Search' not allowed for type {0} in row {1},&#39;Li Global Search&#39; ji bo cureyê destûr ne {0} li row {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +492,'In Global Search' not allowed for type {0} in row {1},&#39;Li Global Search&#39; ji bo cureyê destûr ne {0} li row {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +492,'In Global Search' not allowed for type {0} in row {1},&#39;Li Global Search&#39; ji bo cureyê destûr ne {0} li row {1}
 apps/frappe/frappe/public/js/frappe/views/treeview.js +342,View List,View List
-apps/frappe/frappe/public/js/frappe/form/controls/date.js +127,Date must be in format: {0},Date divê di formata be: {0}
+apps/frappe/frappe/public/js/frappe/form/controls/date.js +130,Date must be in format: {0},Date divê di formata be: {0}
 DocType: Workflow,Don't Override Status,Ma Status Override ne
 apps/frappe/frappe/www/feedback.html +90,Please give a rating.,Ji kerema xwe re rating bide.
 apps/frappe/frappe/public/js/frappe/feedback.js +47,{0} Feedback Request,{0} Daxwaza Feedback
@@ -3144,9 +3148,8 @@ apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +26,Search term,
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +415,The First User: You,The User First: Tu
 DocType: Deleted Document,GCalendar Sync ID,Nasnameya GCalendar Sync
 apps/frappe/frappe/config/setup.py +112,Export Data,Daneyên Danûstandinê
-apps/frappe/frappe/core/doctype/data_import/data_import.js +159,Select Columns,Stûn Hilbijêre
+apps/frappe/frappe/core/doctype/data_import/data_import.js +160,Select Columns,Stûn Hilbijêre
 DocType: Translation,Source Text,Source Nivîsar di
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +357,<p>No results found for '</p>,"<p style=""""> Ne encam ji bo &#39; </p>"
 apps/frappe/frappe/www/login.py +80,Missing parameters for login,Parametreyên Missing ji bo têketinê
 DocType: Workflow State,folder-open,Peldanka-vekirî
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +1,Search Application,Search Application
@@ -3158,7 +3161,7 @@ DocType: Property Setter,Set Value,Set Nirx
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +249,Hide field in form,Naverokan veşêre di warê form
 DocType: Webhook,Webhook Data,Agahdariya Webhook
 apps/frappe/frappe/public/js/frappe/views/treeview.js +269,Creating {0},Creating {0}
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +301,Illegal Access Token. Please try again,Neqanûnî Têketinê Token. Ji kerema xwe re dîsa biceribîne
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +302,Illegal Access Token. Please try again,Neqanûnî Têketinê Token. Ji kerema xwe re dîsa biceribîne
 apps/frappe/frappe/public/js/frappe/desk.js +92,"The application has been updated to a new version, please refresh this page","Sepanê ji bo guhertoya nû ghurrînikarî bi serda, ji kerema xwe ve vê rûpelê nû"
 apps/frappe/frappe/core/doctype/communication/communication.js +35,Resend,Ji nûve
 DocType: Feedback Trigger,Optional: The alert will be sent if this expression is true,"Bijarî: The hişyar dê were şandin, eger ev îfade rast e"
@@ -3186,9 +3189,10 @@ DocType: Website Theme,Background,Paşî
 DocType: Report,Ref DocType,Ref DocType
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py +32,Please enter Client ID before social login is enabled,Ji kerema xwe re nasnameya şexsî ya berî şexsî ya çalak e
 apps/frappe/frappe/www/feedback.py +42,Please add a rating,Ji kerema xwe ve lê zêde bike a rating
-apps/frappe/frappe/core/doctype/doctype/doctype.py +762,{0}: Cannot set Amend without Cancel,{0}: Can not set Qanûnên bê Cancel
+apps/frappe/frappe/core/doctype/doctype/doctype.py +761,{0}: Cannot set Amend without Cancel,{0}: Can not set Qanûnên bê Cancel
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html +25,Full Page,Page Full
 DocType: DocType,Is Child Table,E Table Zarokan
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} sal (s) berê
 apps/frappe/frappe/utils/csvutils.py +130,{0} must be one of {1},{0} de divê yek ji yên bê {1}
 apps/frappe/frappe/public/js/frappe/form/form_viewers.js +35,{0} is currently viewing this document,{0} niha viewing ev belge
 apps/frappe/frappe/config/core.py +52,Background Email Queue,Background Dorê Email
@@ -3212,9 +3216,10 @@ DocType: DocType,"Image Field (Must of type ""Attach Image"")",Wêne Field (Must
 apps/frappe/frappe/utils/bot.py +43,I found these: ,Min ev dît:
 DocType: Event,Send an email reminder in the morning,Send an bîrxistineke email di sibê
 DocType: Blog Post,Published On,Published ser
+apps/frappe/frappe/contacts/doctype/address/address.py +193,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Naveroka Navnîşa Navnîşan nehat dîtin. Ji kerema xwe ji nûveka nû ya Setup&gt; Print û Branding&gt; Navnîşana Navnîşek nû çêke.
 DocType: Contact,Gender,Regez
 apps/frappe/frappe/website/doctype/web_form/web_form.py +342,Mandatory Information missing:,Information wêneke missing:
-apps/frappe/frappe/core/doctype/doctype/doctype.py +540,Field '{0}' cannot be set as Unique as it has non-unique values,"Field &#39;{0}&#39; dikare wekî yekane ne bê danîn, wek ku hatiye nirxên ne-yekane"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +539,Field '{0}' cannot be set as Unique as it has non-unique values,"Field &#39;{0}&#39; dikare wekî yekane ne bê danîn, wek ku hatiye nirxên ne-yekane"
 apps/frappe/frappe/integrations/doctype/webhook/webhook.py +37,Check Request URL,Request Request URL
 apps/frappe/frappe/client.py +169,Only 200 inserts allowed in one request,Tenê 200 inserts destûr li yek daxwazeke
 DocType: Footer Item,URL,URL
@@ -3235,7 +3240,7 @@ DocType: Website Settings,"Show title in browser window as ""Prefix - title""",t
 DocType: Payment Gateway,Gateway Settings,Gateway Settings
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +137,text in document type,text li cureyê pelgeyê
 apps/frappe/frappe/core/doctype/test_runner/test_runner.js +7,Run Tests,Îmtîhan de bixebitîne
-apps/frappe/frappe/handler.py +92,Logged Out,(logged out)
+apps/frappe/frappe/handler.py +94,Logged Out,(logged out)
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +237,More...,Zêde...
 DocType: System Settings,User can login using Email id or Mobile number,Bikarhêner nikarim têkevim bikaranîna id Email an hejmara Mobile
 DocType: Bulk Update,Update Value,update Nirx
@@ -3262,13 +3267,13 @@ apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +68,Current
 DocType: DocField,Default,Destçûnî
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +146,{0} added,{0} added
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +212,Search for '{0}',Search for &#39;{0}&#39;
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1026,Please save the report first,Ji kerema xwe re vê raporê xilas yekem
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1038,Please save the report first,Ji kerema xwe re vê raporê xilas yekem
 apps/frappe/frappe/email/doctype/email_group/email_group.py +42,{0} subscribers added,{0} aboneyên added
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +15,Not In,ne In
 DocType: Workflow State,star,stêrk
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +237,Hub,hub
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +279,values separated by commas,nirxên cuda ji aliyê commas
-apps/frappe/frappe/core/doctype/doctype/doctype.py +485,Max width for type Currency is 100px in row {0},width Max ji bo cureyê Exchange 100px li row e {0}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +484,Max width for type Currency is 100px in row {0},width Max ji bo cureyê Exchange 100px li row e {0}
 apps/frappe/frappe/www/feedback.html +68,Please share your feedback for {0},Ji kerema xwe re parve Deng xwe ji bo {0}
 apps/frappe/frappe/config/website.py +13,Content web page.,web page Content.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,Add a New Role,Lê zêde bike roleke nû
@@ -3276,7 +3281,7 @@ DocType: Deleted Document,Deleted Document,Dokumentê deleted
 apps/frappe/frappe/templates/includes/login/login.js +223,Oops! Something went wrong,Oops! Tiştek xelet çû
 DocType: Help Article,Category,Liq
 apps/frappe/frappe/config/core.py +37,Client side script extensions in Javascript,niçikan bi script aliyê Client li Javascript
-apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +70,Guidelines to install ldap dependancies and python,Guidelines ji bo sazkirina dependancies LDAP û python
+apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +79,Guidelines to install ldap dependancies and python,Guidelines ji bo sazkirina dependancies LDAP û python
 DocType: Webhook,on_trash,on_trash
 apps/frappe/frappe/core/doctype/user_permission/user_permission_help.html +2,Records for following doctypes will be filtered,Belge ji bo doktîfên jêrîn dê bêne şandin
 DocType: Blog Settings,Blog Introduction,Blog Introduction
@@ -3286,11 +3291,11 @@ apps/frappe/frappe/desk/moduleview.py +94,Standard Reports,Reports Standard
 DocType: User,Email Settings,Settings Email
 apps/frappe/frappe/public/js/frappe/desk.js +394,Please Enter Your Password to Continue,Ji kerema xwe re ji bo Continue binivîse
 apps/frappe/frappe/public/js/frappe/desk.js +394,Please Enter Your Password to Continue,Ji kerema xwe re ji bo Continue binivîse
-apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +97,Not a valid LDAP user,Ne bikarhênerek LDAP derbasdar
+apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +116,Not a valid LDAP user,Ne bikarhênerek LDAP derbasdar
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +58,{0} not a valid State,{0} ne Dewletê derbasdar
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +89,Please select another payment method. PayPal does not support transactions in currency '{0}',Tikaye din rêbaza dayina hilbijêre. PayPal nade muamele li currency piştgiriya ne &#39;{0}&#39;
 DocType: Chat Message,Room Type,Tenduristiyê
-apps/frappe/frappe/core/doctype/doctype/doctype.py +573,Search field {0} is not valid,warê Search {0} ne derbasdar e
+apps/frappe/frappe/core/doctype/doctype/doctype.py +572,Search field {0} is not valid,warê Search {0} ne derbasdar e
 DocType: Workflow State,ok-circle,ok-circle
 apps/frappe/frappe/utils/bot.py +150,You can find things by asking 'find orange in customers',Tu tişt bi pirs &#39;bibînin porteqalan di mişterî&#39; bibînin
 apps/frappe/frappe/core/doctype/user/user.py +190,Sorry! User should have complete access to their own record.,"Bibore! User, divê bi temamî ji bo qeyda xwe bi xwe heye."
@@ -3306,10 +3311,10 @@ DocType: DocField,Unique,Yekane
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js +8,Partial Success,Serkeftina Partî
 DocType: Email Account,Service,Xizmetkar
 DocType: File,File Name,file Name
-apps/frappe/frappe/core/doctype/data_import/importer.py +498,Did not find {0} for {0} ({1}),Nedît {0} ji bo {0} ({1})
+apps/frappe/frappe/core/doctype/data_import/importer.py +499,Did not find {0} for {0} ({1}),Nedît {0} ji bo {0} ({1})
 apps/frappe/frappe/utils/bot.py +176,"Oops, you are not allowed to know that","Oops, tu nikarî ji bo dizanin ku"
 apps/frappe/frappe/public/js/frappe/ui/slides.js +324,Next,Piştî
-apps/frappe/frappe/handler.py +92,You have been successfully logged out,"Tu bi serkeftin hat qeyd kirin, ji"
+apps/frappe/frappe/handler.py +94,You have been successfully logged out,"Tu bi serkeftin hat qeyd kirin, ji"
 DocType: Calendar View,Calendar View,Calendar View
 apps/frappe/frappe/printing/doctype/print_format/print_format.js +26,Edit Format,biguherîne Format
 apps/frappe/frappe/core/doctype/user/user.py +268,Complete Registration,Registration Complete
@@ -3320,8 +3325,8 @@ apps/frappe/frappe/website/doctype/website_theme/website_theme.py +40,Top Bar Co
 apps/frappe/frappe/core/doctype/data_import/exporter.py +69,You can only upload upto 5000 records in one go. (may be less in some cases),Tu tenê dikarî upto 5000 records li yek go bar. (Dibe ku kêmtir be di hinek rewşan de)
 apps/frappe/frappe/model/document.py +185,Insufficient Permission for {0},Destûr Têrê nake ji bo {0}
 apps/frappe/frappe/model/document.py +185,Insufficient Permission for {0},Destûr Têrê nake ji bo {0}
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +873,Report was not saved (there were errors),Report hat xilas ne (bûn de çewtî heye)
-apps/frappe/frappe/core/doctype/data_import/importer.py +295,Cannot change header content,Naveroka sereke nayê guhertin
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +885,Report was not saved (there were errors),Report hat xilas ne (bûn de çewtî heye)
+apps/frappe/frappe/core/doctype/data_import/importer.py +296,Cannot change header content,Naveroka sereke nayê guhertin
 DocType: Print Settings,Print Style,Print Style
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +52,Not Linked to any record,to de tu ne girêdayî ye
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +52,Not Linked to any record,to de tu ne girêdayî ye
@@ -3353,7 +3358,7 @@ DocType: User,Security Settings,Mîhengên ewlekariyê
 DocType: Website Settings,Operators,Operator
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +171,Add Column,lê zêde bike Stûna
 ,Desktop,Desktop
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1015,Export Report: {0},Report Export: {0}
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1027,Export Report: {0},Report Export: {0}
 DocType: Auto Email Report,Filter Meta,Filter Meta
 DocType: Web Form,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,"Text ji bo Link to Web Page kiriyî werin nîşandan, ger ev form a rûpel web. route Link wê were, bi giştî li ser bingeha `page_name` û` parent_website_route`"
 DocType: Feedback Request,Feedback Trigger,Trigger Deng
@@ -3365,7 +3370,7 @@ DocType: Activity Log,Failed,bi ser neket
 DocType: Web Form,Allow Comments,Destûrê bide Comments
 DocType: User,Background Style,background Style
 DocType: System Settings,Bypass Two Factor Auth for users who login from restricted IP Address,Ji bo bikarhênerên ku ji Ji Navnîşana IP-ê ve girêdayî ye
-apps/frappe/frappe/email/queue.py +271,{0} to stop receiving emails of this type,{0} ji bo emailsên vî rengî rawestînin
+apps/frappe/frappe/email/queue.py +270,{0} to stop receiving emails of this type,{0} ji bo emailsên vî rengî rawestînin
 apps/frappe/frappe/www/qrcode.html +13,Open your authentication app on your mobile phone.,Serîlêdanê li ser telefona te ya serîlêdanê vekin.
 apps/frappe/frappe/model/rename_doc.py +77,merged {0} into {1},"{0}, CVAE û nav {1}"
 DocType: System Settings,mm-dd-yyyy,mm-dd-YYYY

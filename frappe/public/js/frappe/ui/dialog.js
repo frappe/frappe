@@ -1,4 +1,5 @@
 import './field_group';
+import '../dom';
 
 frappe.provide('frappe.ui');
 

@@ -11,7 +11,6 @@ from frappe.model.base_document import get_controller
 from frappe.model.db_schema import varchar_len
 from six import text_type
 
-
 def setup_global_search_table():
 	"""
 	Creates __global_seach table
@@ -20,16 +19,16 @@ def setup_global_search_table():
 	if not '__global_search' in frappe.db.get_tables():
 		frappe.db.sql('''create table __global_search(
 			doctype varchar(100),
-			name varchar({0}),
-			title varchar({0}),
+			name varchar({varchar_len}),
+			title varchar({varchar_len}),
 			content text,
 			fulltext(content),
-			route varchar({0}),
+			route varchar({varchar_len}),
 			published int(1) not null default 0,
 			unique `doctype_name` (doctype, name))
 			COLLATE=utf8mb4_unicode_ci
 			ENGINE=MyISAM
-			CHARACTER SET=utf8mb4'''.format(varchar_len))
+			CHARACTER SET=utf8mb4'''.format(varchar_len=varchar_len))
 
 
 def reset():
@@ -245,6 +244,10 @@ def update_global_search(doc):
 		if doc.get(field.fieldname) and field.fieldtype != "Table":
 			content.append(get_formatted_value(doc.get(field.fieldname), field))
 
+	tags = (doc.get('_user_tags') or '').strip()
+	if tags:
+		content.extend(list(filter(lambda x: x, tags.split(','))))
+
 	# Get children
 	for child in doc.meta.get_table_fields():
 		for d in doc.get(child.fieldname):
@@ -258,9 +261,20 @@ def update_global_search(doc):
 		if hasattr(doc, 'is_website_published') and doc.meta.allow_guest_to_view:
 			published = 1 if doc.is_website_published() else 0
 
+		title = (doc.get_title() or '')[:int(varchar_len)]
+		route = doc.get('route') if doc else ''
+
 		frappe.flags.update_global_search.append(
-			dict(doctype=doc.doctype, name=doc.name, content=' ||| '.join(content or ''),
-				published=published, title=doc.get_title()[:int(varchar_len)], route=doc.get('route')))
+			dict(
+				doctype=doc.doctype, 
+				name=doc.name, 
+				content=' ||| '.join(content or ''),
+				published=published, 
+				title=title, 
+				route=route
+			)
+		)
+
 		enqueue_global_search()
 
 

@@ -12,6 +12,7 @@ from frappe.limits import update_limits, clear_limit
 from frappe.utils import get_url
 from frappe.core.doctype.user.user import get_total_users
 from frappe.core.doctype.user.user import MaxUsersReachedError, test_password_strength
+from frappe.core.doctype.user.user import extract_mentions
 
 test_records = frappe.get_test_records('User')
 
@@ -265,6 +266,14 @@ class TestUser(unittest.TestCase):
 		# Score 4; should pass
 		result = test_password_strength("Eastern_43A1W")
 		self.assertEqual(result['feedback']['password_policy_validation_passed'], True)
+
+	def test_comment_mentions(self):
+		user_name = "@test.comment@example.com"
+		self.assertEqual(extract_mentions(user_name)[0], "test.comment@example.com")
+		user_name = "Testing comment, @test-user please check."
+		self.assertEqual(extract_mentions(user_name)[0], "test-user")
+		user_name = "Testing comment, @test.user@example.com please check."
+		self.assertEqual(extract_mentions(user_name)[0], "test.user@example.com")
 
 def delete_contact(user):
 	frappe.db.sql("delete from tabContact where email_id='%s'" % frappe.db.escape(user))
