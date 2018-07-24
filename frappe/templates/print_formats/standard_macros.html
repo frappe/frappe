@@ -92,7 +92,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 
 {%- macro render_text_field(df, doc) -%}
 {%- if doc.get(df.fieldname) != None -%}
-<div style="padding: 10px 0px" {{ fieldmeta(df) }}>
+<div style="padding: 10px 0px" class="ck-content" {{ fieldmeta(df) }}>
 	{%- if df.fieldtype in ("Text", "Code") %}<label>{{ _(df.label) }}</label>{%- endif %}
 	{%- if df.fieldtype=="Code" %}
 		<pre class="value">{{ doc.get(df.fieldname) }}</pre>
