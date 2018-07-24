@@ -79,6 +79,12 @@ class PostgresDatabase(Database):
 
 		return str(psycopg2.extensions.QuotedString(s))
 
+	def get_database_size(self):
+		''''Returns database size in MB'''
+		db_size = frappe.db.sql("SELECT (pg_database_size(%s) / 1024 / 1024) as database_size",
+			self.db_name, as_dict=True)
+		return db_size[0].get('database_size')
+
 	def sql(self, query, *args, **kwargs):
 		# replace ` with " for definitions
 		query = query.replace('`', '"')

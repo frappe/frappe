@@ -230,7 +230,7 @@ class DatabaseQuery(object):
 				table_name = f.split('.')[0]
 				if table_name.lower().startswith('group_concat('):
 					table_name = table_name[13:]
-				if table_name.lower().startswith('coalesce('):
+				if table_name.lower().startswith('ifnull('):
 					table_name = table_name[7:]
 				if not table_name[0]=='`':
 					table_name = '`' + table_name + '`'
@@ -311,7 +311,7 @@ class DatabaseQuery(object):
 	def prepare_filter_condition(self, f):
 		"""Returns a filter condition in the format:
 
-				coalesce(`tabDocType`.`fieldname`, fallback) operator "value"
+				ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
 		"""
 
 		f = get_filter(self.doctype, f)
@@ -320,7 +320,7 @@ class DatabaseQuery(object):
 		if not tname in self.tables:
 			self.append_table(tname)
 
-		if 'coalesce(' in f.fieldname:
+		if 'ifnull(' in f.fieldname:
 			column_name = f.fieldname
 		else:
 			column_name = '{tname}.{fname}'.format(tname=tname,
@@ -418,12 +418,12 @@ class DatabaseQuery(object):
 		if (self.ignore_ifnull
 			or not can_be_null
 			or (f.value and f.operator.lower() in ('=', 'like'))
-			or 'coalesce(' in column_name.lower()):
+			or 'ifnull(' in column_name.lower()):
 			condition = '{column_name} {operator} {value}'.format(
 				column_name=column_name, operator=f.operator,
 				value=value)
 		else:
-			condition = 'coalesce({column_name}, {fallback}) {operator} {value}'.format(
+			condition = 'ifnull({column_name}, {fallback}) {operator} {value}'.format(
 				column_name=column_name, fallback=fallback, operator=f.operator,
 				value=value)
 
@@ -503,7 +503,7 @@ class DatabaseQuery(object):
 			user_permission_values = user_permissions.get(df.get('options'), {})
 			if df.get('ignore_user_permissions'): continue
 
-			empty_value_condition = 'coalesce(`tab{doctype}`.`{fieldname}`, "")=""'.format(
+			empty_value_condition = 'ifnull(`tab{doctype}`.`{fieldname}`, "")=""'.format(
 				doctype=self.doctype, fieldname=df.get('fieldname')
 			)
 

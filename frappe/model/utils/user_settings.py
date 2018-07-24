@@ -18,8 +18,8 @@ def get_user_settings(doctype, for_update=False):
 		'{0}::{1}'.format(doctype, frappe.session.user))
 
 	if user_settings is None:
-		user_settings = frappe.db.sql('''select data from __UserSettings
-			where user=%s and doctype=%s''', (frappe.session.user, doctype))
+		user_settings = frappe.db.sql('''select data from `__UserSettings`
+			where `user`=%s and `doctype`=%s''', (frappe.session.user, doctype))
 		user_settings = user_settings and user_settings[0][0] or '{}'
 
 		if not for_update:
@@ -49,7 +49,7 @@ def sync_user_settings():
 	for key, data in iteritems(frappe.cache().hgetall('_user_settings')):
 		key = safe_decode(key)
 		doctype, user = key.split('::') # WTF?
-		frappe.db.sql('''insert into __UserSettings (user, doctype, data) values (%s, %s, %s)
+		frappe.db.sql('''insert into `__UserSettings` (`user`, `doctype`, `data`) values (%s, %s, %s)
 			{on_duplicate_update} data=%s'''.format(
 				on_duplicate_update=frappe.db.get_on_duplicate_update()
 			), (user, doctype, data, data))

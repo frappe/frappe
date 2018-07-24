@@ -43,7 +43,7 @@ def bootstrap_database(db_name, verbose):
 	import_db_from_sql(None, verbose)
 	if not 'tabDefaultValue' in frappe.db.get_tables():
 		print('''Database not installed, this can due to lack of permission, or that the database name exists.
-Check your mysql root password, or use --force to reinstall''')
+			Check your mysql root password, or use --force to reinstall''')
 		sys.exit(1)
 
 def import_db_from_sql(source_sql=None, verbose=False):
@@ -109,7 +109,8 @@ def print_db_config(explanation, config_text):
 	print(config_text)
 	print("="*80)
 
-expected_config_for_barracuda_2 = """[mysqld]
+expected_config_for_barracuda_2 = """
+[mysqld]
 innodb-file-format=barracuda
 innodb-file-per-table=1
 innodb-large-prefix=1
@@ -121,7 +122,8 @@ collation-server = utf8mb4_unicode_ci
 default-character-set = utf8mb4
 """
 
-expected_config_for_barracuda_3 = """[mysqld]
+expected_config_for_barracuda_3 = """
+[mysqld]
 character-set-client-handshake = FALSE
 character-set-server = utf8mb4
 collation-server = utf8mb4_unicode_ci

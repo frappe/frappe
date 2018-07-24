@@ -269,7 +269,7 @@ class MariaDBTable():
 		return fk_list
 
 def validate_column_name(n):
-	special_characters = re.findall("[\W]", n, re.UNICODE)
+	special_characters = re.findall(r"[\W]", n, re.UNICODE)
 	if special_characters:
 		special_characters = ", ".join('"{0}"'.format(c) for c in special_characters)
 		frappe.throw(_("Fieldname {0} cannot have special characters like {1}").format(

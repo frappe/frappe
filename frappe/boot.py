@@ -121,7 +121,7 @@ def get_user_pages_or_reports(parent):
 			`tabHas Role`.parent = `tabCustom Role`.name
 			and `tabCustom Role`.{field} is not null
 			and `tabHas Role`.role in ({roles})
-	""".format(field=parent.lower(), roles = ', '.join(['%s']*len(roles))), roles, as_dict=1, debug=True)
+	""".format(field=parent.lower(), roles = ', '.join(['%s']*len(roles))), roles, as_dict=1)
 
 	for p in custom_roles:
 		has_role[p.name] = {"modified":p.modified, "title": p.name, "ref_doctype": p.ref_doctype}
@@ -245,10 +245,10 @@ def load_print_css(bootinfo, print_settings):
 	bootinfo.print_css = frappe.www.printview.get_print_style(print_settings.print_style or "Modern", for_legacy=True)
 
 def get_unseen_notes():
-	return frappe.db.sql('''select name, title, content, notify_on_every_login from tabNote where notify_on_login=1
+	return frappe.db.sql('''select `name`, title, content, notify_on_every_login from `tabNote` where notify_on_login=1
 		and expire_notification_on > %s and %s not in
 			(select user from `tabNote Seen By` nsb
-				where nsb.parent=tabNote.name)''', (frappe.utils.now(), frappe.session.user), as_dict=True)
+				where nsb.parent=`tabNote`.name)''', (frappe.utils.now(), frappe.session.user), as_dict=True)
 
 def get_gsuite_status():
 	return (frappe.get_value('Gsuite Settings', None, 'enable') == '1')

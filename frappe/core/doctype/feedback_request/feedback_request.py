@@ -35,4 +35,4 @@ def is_valid_feedback_request(key=None):
 
 def delete_feedback_request():
 	""" clear 100 days old feedback request """
-	frappe.db.sql("""delete from `tabFeedback Request` where creation<DATE_SUB(NOW(), INTERVAL 100 DAY)""")
+	frappe.db.sql("""delete from `tabFeedback Request` where `creation` < (NOW() - INTERVAL '100' DAY)""")

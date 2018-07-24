@@ -91,6 +91,16 @@ class MariaDBDatabase(Database):
 
 		return conn
 
+	def get_database_size(self):
+		''''Returns database size in MB'''
+		db_size = frappe.db.sql('''
+			SELECT `table_schema` as `database_name`,
+			sum(`data_length` + `index_length`) / 1024 / 1024 as `database_size`
+			FROM information_schema.tables WHERE `table_schema` = %s GROUP BY `table_schema`
+			''', self.db_name, as_dict=True)
+
+		return db_size[0].get('database_size')
+
 	def escape(self, s, percent=True):
 		"""Excape quotes and percent in given string."""
 		# pymysql expects unicode argument to escape_string with Python 3
@@ -114,7 +124,6 @@ class MariaDBDatabase(Database):
 		return code in (pymysql.DATE, pymysql.DATETIME)
 
 	# exception types
-
 	def is_deadlocked(self, e):
 		return e.args[0] == ER.LOCK_DEADLOCK
 

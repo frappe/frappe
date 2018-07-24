@@ -48,6 +48,7 @@ class Database:
 		self.setup_type_map()
 		self.host = host or frappe.conf.db_host or 'localhost'
 		self.user = user or frappe.conf.db_name
+		self.db_name = frappe.conf.db_name
 		self._conn = None
 
 		if ac_name:
@@ -75,6 +76,12 @@ class Database:
 	def use(self, db_name):
 		"""`USE` db_name."""
 		self._conn.select_db(db_name)
+
+	def get_connection(self):
+		pass
+
+	def get_database_size(self):
+		pass
 
 	def validate_query(self, q):
 		"""Throw exception for dangerous queries: `ALTER`, `DROP`, `TRUNCATE` if not `Administrator`."""
@@ -110,6 +117,9 @@ class Database:
 				{"name": "a%", "owner":"test@example.com"})
 
 		"""
+		if re.search('ifnull', query, flags=re.IGNORECASE):
+			query = re.sub('ifnull', 'coalesce', query, flags=re.IGNORECASE) # replaces ifnull in query with coalesce
+
 		if not self._conn:
 			self.connect()
 
@@ -583,8 +593,8 @@ class Database:
 		if fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
 
-		val = self.sql("""select value from
-			`tabSingles` where doctype=%s and field=%s""", (doctype, fieldname))
+		val = self.sql("""select `value` from
+			`tabSingles` where `doctype`=%s and `field`=%s""", (doctype, fieldname))
 		val = val[0][0] if val else None
 
 		if val=="0" or val=="1":
@@ -836,7 +846,6 @@ class Database:
 
 			return count
 
-
 	def get_creation_count(self, doctype, minutes):
 		"""Get count of records created in the last x minutes"""
 		from frappe.utils import now_datetime
@@ -876,7 +885,7 @@ class Database:
 
 			# remove index length if present e.g. (10) from index name
 			index_name = re.sub(r"\s*\([^)]+\)\s*", r"", index_name)
-			
+
 		if not frappe.db.sql("""show index from `tab%s` where Key_name="%s" """ % (doctype, index_name)):
 			frappe.db.commit()
 			frappe.db.sql("""alter table `tab%s`

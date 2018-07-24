@@ -89,7 +89,7 @@ def get_users(doctype, name):
 	return frappe.db.sql("""select
 			`name`, `user`, `read`, `write`, `share`, `everyone`
 		from
-			tabDocShare
+			`tabDocShare`
 		where
 			share_doctype=%s and share_name=%s""",
 		(doctype, name), as_dict=True)

@@ -60,7 +60,7 @@ def check_password(user, pwd, doctype='User', fieldname='password'):
 
 	auth = frappe.db.sql("""select `name`, `password` from `__Auth`
 		where `doctype`=%(doctype)s and `name`=%(name)s and `fieldname`=%(fieldname)s and `encrypted`=0""",
-		{'doctype': doctype, 'name': user, 'fieldname': fieldname}, as_dict=True, debug=True)
+		{'doctype': doctype, 'name': user, 'fieldname': fieldname}, as_dict=True)
 
 	print('authooo', auth)
 
@@ -98,7 +98,7 @@ def update_password(user, pwd, doctype='User', fieldname='password', logout_all_
 			`password`=%(pwd)s, encrypted=0""".format(
 				on_duplicate_update=frappe.db.get_on_duplicate_update(key=['name', 'doctype', 'fieldname'])
 			),
-		{'doctype': doctype, 'name': user, 'fieldname': fieldname, 'pwd': hashPwd}, debug=True)
+		{'doctype': doctype, 'name': user, 'fieldname': fieldname, 'pwd': hashPwd})
 
 	# clear all the sessions except current
 	if logout_all_sessions:
@@ -107,7 +107,7 @@ def update_password(user, pwd, doctype='User', fieldname='password', logout_all_
 
 def delete_all_passwords_for(doctype, name):
 	try:
-		frappe.db.sql("""delete from `__Auth` where doctype=%(doctype)s and name=%(name)s""",
+		frappe.db.sql("""delete from `__Auth` where `doctype`=%(doctype)s and `name`=%(name)s""",
 			{ 'doctype': doctype, 'name': name })
 	except Exception as e:
 		if frappe.db.is_missing_column(e):
