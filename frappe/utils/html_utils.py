@@ -23,7 +23,8 @@ def clean_email_html(html):
 		tags=['div', 'p', 'br', 'ul', 'ol', 'li', 'b', 'i', 'em', 'a',
 			'table', 'thead', 'tbody', 'td', 'tr', 'th',
 			'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'button', 'img'],
-		attributes=['border', 'colspan', 'rowspan', 'margin', 'padding', 'src', 'href'],
+		attributes=['border', 'colspan', 'rowspan',
+			'src', 'href', 'style', 'id'],
 		styles=['color', 'border-color', 'width', 'height', 'max-width',
 			'background-color', 'border-collapse', 'border-radius',
 			'border', 'border-top', 'border-bottom', 'border-left', 'border-right',
@@ -32,6 +33,7 @@ def clean_email_html(html):
 			'font-size', 'font-weight', 'font-family', 'text-decoration',
 			'line-height', 'text-align', 'vertical-align'
 		],
+		protocols=['cid', 'http', 'https', 'mailto'],
 		strip=True, strip_comments=True)
 
 def clean_script_and_style(html):
@@ -61,7 +63,8 @@ def sanitize_html(html, linkify=False):
 	strip_comments = False
 
 	# retuns html with escaped tags, escaped orphan >, <, etc.
-	escaped_html = bleach.clean(html, tags=tags, attributes=attributes, styles=styles, strip_comments=strip_comments)
+	escaped_html = bleach.clean(html, tags=tags, attributes=attributes, styles=styles,
+		strip_comments=strip_comments, protocols=['cid', 'http', 'https', 'mailto'])
 
 	if linkify:
 		escaped_html = bleach.linkify(escaped_html, callbacks=[])
