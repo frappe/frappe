@@ -44,7 +44,9 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 	if user=="Administrator":
 		if verbose: print("Allowing Administrator")
 		return True
+
 	meta = frappe.get_meta(doctype)
+
 	if doc:
 		if isinstance(doc, string_types):
 			doc = frappe.get_doc(meta.name, doc)
@@ -59,9 +61,9 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 			if verbose: print("Not importable")
 			return False
 
-
 		role_permissions = get_role_permissions(meta, user=user, verbose=verbose)
 		perm = role_permissions.get(ptype)
+
 	def false_if_not_shared():
 		if ptype in ("read", "write", "share", "email", "print"):
 			shared = frappe.share.get_shared(doctype, user,
@@ -138,17 +140,22 @@ def get_role_permissions(doctype_meta, user=None, verbose=False):
 	"""
 	if isinstance(doctype_meta, string_types):
 		doctype_meta = frappe.get_meta(doctype_meta) # assuming doctype name was passed
+
 	if not user: user = frappe.session.user
 
 	cache_key = (doctype_meta.name, user)
+
+	if user == 'Administrator':
+		return allow_everything()
 
 	if not frappe.local.role_permissions.get(cache_key):
 		perms = frappe._dict(
 			if_owner={}
 		)
 
+		roles = frappe.get_roles(user)
+
 		def is_perm_applicable(perm):
-			roles = frappe.get_roles(user)
 			return perm.role in roles and cint(perm.permlevel)==0
 
 		def has_permission_without_if_owner_enabled(ptype):
@@ -180,7 +187,7 @@ def has_user_permission(doc, user=None, verbose=False):
 	if not user_permissions: return True
 
 	# user can create own role permissions, so nothing applies
-	if get_role_permissions('User Permission').get('write'): return True
+	if get_role_permissions('User Permission', user=user).get('write'): return True
 
 	apply_strict_user_permissions = frappe.get_system_settings('apply_strict_user_permissions')
 
@@ -289,8 +296,11 @@ def get_roles(user=None, with_standard=True):
 		return ['Guest']
 
 	def get():
-		return [r[0] for r in frappe.db.sql("""select role from `tabHas Role`
-			where parent=%s and role not in ('All', 'Guest')""", (user,))] + ['All', 'Guest']
+		if user == 'Administrator':
+			return [r[0] for r in frappe.db.sql("select name from `tabRole`")] # return all available roles
+		else:
+			return [r[0] for r in frappe.db.sql("""select role from `tabHas Role`
+				where parent=%s and role not in ('All', 'Guest')""", (user,))] + ['All', 'Guest']
 
 	roles = frappe.cache().hget("roles", user, get)
 
@@ -332,7 +342,7 @@ def set_user_permission_if_allowed(doctype, name, user, with_message=False):
 def add_user_permission(doctype, name, user, ignore_permissions=False):
 	'''Add user permission'''
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
-	if name not in get_user_permissions(user).get(doctype, []):
+	if name not in get_user_permissions(user).get(doctype, {}).get('docs', []):
 		if not frappe.db.exists(doctype, name):
 			frappe.throw(_("{0} {1} not found").format(_(doctype), name), frappe.DoesNotExistError)
 
@@ -443,3 +453,11 @@ def get_linked_doctypes(dt):
 def get_doc_name(doc):
 	if not doc: return None
 	return doc if isinstance(doc, string_types) else doc.name
+
+def allow_everything():
+	'''
+	returns a dict with access to everything
+	eg. {"read": 1, "write": 1, ...}
+	'''
+	perm = {ptype: 1 for ptype in rights}
+	return perm

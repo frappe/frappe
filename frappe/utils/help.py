@@ -9,11 +9,10 @@ import hashlib
 from frappe.model.db_schema import DbManager
 from frappe.installer import get_root_connection
 from frappe.database import Database
-import os
+import os, subprocess
 from markdown2 import markdown
 from bs4 import BeautifulSoup
 import jinja2.exceptions
-from six import text_type
 
 import io
 
@@ -30,6 +29,10 @@ def sync():
 @frappe.whitelist()
 def get_help(text):
 	return HelpDatabase().search(text)
+
+@frappe.whitelist()
+def get_installed_app_help(text):
+	return HelpDatabase().app_docs_search(text)
 
 @frappe.whitelist()
 def get_help_content(path):
@@ -105,6 +108,34 @@ class HelpDatabase(object):
 			select title, intro, path from help where title like %s union
 			select title, intro, path from help where match(content) against (%s) limit 10''', ('%'+words+'%', words))
 
+	def app_docs_search(self, words):
+		self.connect()
+		frappe_path = '%' + 'apps/frappe' + '%'
+		return self.db.sql('''
+			select
+				title, intro, full_path
+			from
+				help
+			where
+				title like %s
+				and
+				full_path not like %s
+
+			union
+
+			select
+				title, intro, full_path
+			from
+				help
+			where
+				match(content) against (%s)
+				and
+				full_path not like %s
+			limit
+				10
+
+		''', ('%'+words+'%', frappe_path, words, frappe_path))
+
 	def get_content(self, path):
 		self.connect()
 		query = '''select title, content from help
@@ -125,12 +156,19 @@ class HelpDatabase(object):
 		apps = os.listdir('../apps') if self.global_help_setup else frappe.get_installed_apps()
 
 		for app in apps:
-			docs_folder = '../apps/{app}/{app}/docs/user'.format(app=app)
-			self.out_base_path = '../apps/{app}/{app}/docs'.format(app=app)
+			# Expect handling of cloning docs apps in bench
+			docs_app = frappe.get_hooks('docs_app', app, app)[0]
+
+			web_folder = 'www/' if docs_app != app else ''
+
+			docs_folder = '../apps/{docs_app}/{docs_app}/{web_folder}docs/user'.format(
+				docs_app=docs_app, web_folder=web_folder)
+			self.out_base_path = '../apps/{docs_app}/{docs_app}/{web_folder}docs'.format(
+				docs_app=docs_app, web_folder=web_folder)
 			if os.path.exists(docs_folder):
 				app_name = getattr(frappe.get_module(app), '__title__', None) or app.title()
-				doc_contents += '<li><a data-path="/{app}/index">{app_name}</a></li>'.format(
-					app=app, app_name=app_name)
+				doc_contents += '<li><a data-path="/{docs_app}/index">{app_name}</a></li>'.format(
+					docs_app=docs_app, app_name=app_name)
 
 				for basepath, folders, files in os.walk(docs_folder):
 					files = self.reorder_files(files)
@@ -147,7 +185,7 @@ class HelpDatabase(object):
 									content = markdown(content)
 									title = self.make_title(basepath, fname, content)
 									intro = self.make_intro(content)
-									content = self.make_content(content, fpath, relpath)
+									content = self.make_content(content, fpath, relpath, app)
 									self.db.sql('''insert into help(path, content, title, intro, full_path)
 										values (%s, %s, %s, %s, %s)''', (relpath, content, title, intro, fpath))
 								except jinja2.exceptions.TemplateSyntaxError:
@@ -175,16 +213,12 @@ class HelpDatabase(object):
 			intro = "Help Video: " + intro
 		return intro
 
-	def make_content(self, html, path, relpath):
+	def make_content(self, html, path, relpath, app_name):
 		if '<h1>' in html:
 			html = html.split('</h1>', 1)[1]
 
 		if '{next}' in html:
 			html = html.replace('{next}', '')
-
-		target = path.split('/', 3)[-1]
-		app_name = path.split('/', 3)[2]
-		html += get_improve_page_html(app_name, target)
 
 		soup = BeautifulSoup(html, 'html.parser')
 
@@ -301,3 +335,13 @@ class HelpDatabase(object):
 		if pos:
 			files[0], files[pos] = files[pos], files[0]
 		return files
+
+def setup_apps_for_docs(app):
+	docs_app = frappe.get_hooks('docs_app', app, app)[0]
+
+	if docs_app and not os.path.exists(frappe.get_app_path(app)):
+		print("Getting {docs_app} required by {app}".format(docs_app=docs_app, app=app))
+		subprocess.check_output(['bench', 'get-app', docs_app], cwd = '..')
+	else:
+		if docs_app:
+			print("{docs_app} required by {app} already present".format(docs_app=docs_app, app=app))

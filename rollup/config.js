@@ -93,8 +93,12 @@ function get_rollup_options_for_css(output_file, input_files) {
 				paths: [
 					path.resolve(get_public_path('frappe'), 'less')
 				]
-			}]],
-			include: [path.resolve(bench_path, '**/*.less'), path.resolve(bench_path, '**/*.css')],
+			}], 'sass'],
+			include: [
+				path.resolve(bench_path, '**/*.less'),
+				path.resolve(bench_path, '**/*.scss'),
+				path.resolve(bench_path, '**/*.css')
+			],
 			minimize: minimize_css
 		})
 	];
@@ -125,7 +129,7 @@ function get_options_for(app) {
 
 	return Object.keys(build_json)
 		.map(output_file => {
-			if (output_file.endsWith('libs.min.js')) return null;
+			if (output_file.startsWith('concat:')) return null;
 
 			const input_files = build_json[output_file]
 				.map(input_file => {

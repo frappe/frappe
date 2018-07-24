@@ -17,15 +17,27 @@ const {
 	get_options_for
 } = require('./config');
 
+const build_for_app = process.argv[2] === '--app' ? process.argv[3] : null;
+
 show_production_message();
 ensure_js_css_dirs();
-build_libs();
-build_assets_for_all_apps();
+concatenate_files();
+create_build_file();
+
+if (build_for_app) {
+	build_assets_for_app(build_for_app)
+} else {
+	build_assets_for_all_apps();
+}
 
 function build_assets_for_all_apps() {
 	run_serially(
 		apps_list.map(app => () => build_assets(app))
 	);
+}
+
+function build_assets_for_app(app) {
+	build_assets(app)
 }
 
 function build_assets(app) {
@@ -54,21 +66,33 @@ function build(inputOptions, outputOptions) {
 		.catch(err => log(chalk.red(err)));
 }
 
-function build_libs() {
-	// only concatenates lib files, not processed through rollup
+function concatenate_files() {
+	// only concatenates files, not processed through rollup
 
+	const files_to_concat = Object.keys(get_build_json('frappe'))
+		.filter(filename => filename.startsWith('concat:'));
+
+	files_to_concat.forEach(output_file => {
+		const input_files = get_build_json('frappe')[output_file];
+
+		const file_content = input_files.map(file_name => {
+			let prefix = get_app_path('frappe');
+			if (file_name.startsWith('node_modules/')) {
+				prefix = path.resolve(get_app_path('frappe'), '..');
+			}
+			const full_path = path.resolve(prefix, file_name);
+			return `/* ${file_name} */\n` + fs.readFileSync(full_path);
+		}).join('\n\n');
+
+		const output_file_path = output_file.slice('concat:'.length);
+		const target_path = path.resolve(assets_path, output_file_path);
+		fs.writeFileSync(target_path, file_content);
+		log(`${chalk.green('✔')} Built ${output_file_path}`);
+	});
+}
+
+function create_build_file() {
 	const touch = require('touch');
-	const libs_path = 'js/libs.min.js';
-	const input_files = get_build_json('frappe')[libs_path];
-
-	const libs_content = input_files.map(file_name => {
-		const full_path = path.resolve(get_app_path('frappe'), file_name);
-		return `/* ${file_name} */\n` + fs.readFileSync(full_path);
-	}).join('\n\n');
-
-	const target_path = path.resolve(assets_path, libs_path);
-	fs.writeFileSync(target_path, libs_content);
-	log(`${chalk.green('✔')} Built ${libs_path}`);
 	touch(path.join(sites_path, '.build'), { force: true });
 }
 

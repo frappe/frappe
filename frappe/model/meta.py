@@ -196,14 +196,13 @@ class Meta(Document):
 			link_fields = [df.fieldname for df in self.get_link_fields()]
 
 		for df in self.fields:
-			if df.fieldtype in ('Data', 'Read Only', 'Text', 'Small Text',
-				'Text Editor', 'Code') and df.options:
+			if df.fieldtype not in no_value_fields and getattr(df, 'fetch_from', None):
 				if link_fieldname:
-					if df.options.startswith(link_fieldname + '.'):
+					if df.fetch_from.startswith(link_fieldname + '.'):
 						out.append(df)
 				else:
-					if '.' in df.options:
-						fieldname = df.options.split('.', 1)[0]
+					if '.' in df.fetch_from:
+						fieldname = df.fetch_from.split('.', 1)[0]
 						if fieldname in link_fields:
 							out.append(df)
 

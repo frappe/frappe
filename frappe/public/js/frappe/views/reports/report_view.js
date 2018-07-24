@@ -6,9 +6,12 @@ import DataTable from 'frappe-datatable';
 frappe.provide('frappe.views');
 
 frappe.views.ReportView = class ReportView extends frappe.views.ListView {
+	get view_name() {
+		return 'Report';
+	}
+
 	setup_defaults() {
 		super.setup_defaults();
-		this.view_name = 'Report';
 		this.page_title = __('Report:') + ' ' + this.page_title;
 		this.menu_items = this.report_menu_items();
 
@@ -36,6 +39,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_view() {
 		this.setup_columns();
 		this.bind_charts_button();
+		this.setup_dynamic_row_height_check();
 	}
 
 	setup_result_area() {
@@ -63,7 +67,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 	}
 
-	update_data(r) {
+	prepare_data(r) {
 		let data = r.message || {};
 		data = frappe.utils.dict(data.keys, data.values);
 
@@ -74,14 +78,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 	}
 
-	render() {
+	render(force) {
 		if (this.data.length === 0) return;
 
 		if (this.chart) {
 			this.refresh_charts();
 		}
-		if (this.datatable) {
-			this.datatable.refresh(this.get_data(this.data));
+		if (this.datatable && !force) {
+			this.datatable.refresh(this.get_data(this.data), this.columns);
 			return;
 		}
 		this.setup_datatable(this.data);
@@ -144,11 +148,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	setup_datatable(values) {
+		this.$datatable_wrapper.empty();
 		this.datatable = new DataTable(this.$datatable_wrapper[0], {
 			columns: this.columns,
 			data: this.get_data(values),
 			getEditor: this.get_editing_object.bind(this),
-			dynamicRowHeight: true,
+			dynamicRowHeight: !this.fixed_row_height.get_value(),
 			checkboxColumn: true,
 			events: {
 				onRemoveColumn: (column) => {
@@ -590,7 +595,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	add_currency_column(fieldname, doctype, col_index) {
 		// Adds dependent currency field if required
 		const df = frappe.meta.get_docfield(doctype, fieldname);
-		if (df && df.fieldtype === 'Currency' && df.options && !df.options.includes(':')) {
+		if (df && df.fieldtype === 'Currency' && df.options &&
+			!df.options.includes(':') && frappe.meta.has_field(doctype, df.options)
+		) {
 			const field = [df.options, doctype];
 			if (col_index === undefined) {
 				this.fields.push(field);
@@ -606,6 +613,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		if (index === -1) return;
 		const field = this.fields[index];
 		if (field[0] === 'name') {
+			this.refresh();
 			frappe.throw(__('Cannot remove ID field'));
 		}
 		this.fields.splice(index, 1);
@@ -737,14 +745,25 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		const editable = frappe.model.is_non_std_field(fieldname) && !docfield.read_only;
 
+		const align = (() => {
+			const is_numeric = frappe.model.is_numeric_field(docfield);
+			if (is_numeric) {
+				return 'right';
+			}
+			return docfield.fieldtype === 'Date' ? 'right' : 'left';
+		})();
+
+		const width = (docfield ? cint(docfield.width) : null) || null;
+
 		return {
 			id: fieldname,
 			field: fieldname,
-			docfield: docfield,
 			name: title,
 			content: title,
-			width: (docfield ? cint(docfield.width) : null) || null,
-			editable: editable,
+			docfield,
+			width,
+			editable,
+			align,
 			format: (value, row, column, data) => {
 				return frappe.format(value, column.docfield, { always_show_decimals: true }, data);
 			}
@@ -815,6 +834,23 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				content: ''
 			};
 		});
+	}
+
+	setup_dynamic_row_height_check() {
+		this.fixed_row_height = frappe.ui.form.make_control({
+			df: {
+				fieldtype: 'Check',
+				fieldname: 'fixed_row_height',
+				label: __('Fixed height'),
+				onchange: () => {
+					this.render(true);
+				}
+			},
+			parent: this.$paging_area.find('.level-left'),
+			render_input: true
+		});
+		this.fixed_row_height.$wrapper.addClass('report-action-checkbox');
+		this.fixed_row_height.set_value(1);
 	}
 
 	get_checked_items(only_docnames) {

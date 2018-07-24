@@ -13,7 +13,7 @@ from six import iteritems
 class KanbanBoard(Document):
 	def validate(self):
 		self.validate_column_name()
-	
+
 	def validate_column_name(self):
 		for column in self.columns:
 			if not column.column_name:
@@ -116,7 +116,7 @@ def update_order(board_name, order):
 
 
 @frappe.whitelist()
-def quick_kanban_board(doctype, board_name, field_name):
+def quick_kanban_board(doctype, board_name, field_name, project=None):
 	'''Create new KanbanBoard quickly with default options'''
 	doc = frappe.new_doc('Kanban Board')
 
@@ -142,13 +142,8 @@ def quick_kanban_board(doctype, board_name, field_name):
 	doc.reference_doctype = doctype
 	doc.field_name = field_name
 
-	if doctype == 'Task':
-		project = frappe.new_doc('Project')
-		project.project_name = board_name
-		project.status = 'Open'
-		project.save()
-
-		doc.filters = '[["Task","project","=","{0}"]]'.format(board_name)
+	if project:
+		doc.filters = '[["Task","project","=","{0}"]]'.format(project)
 
 	if doctype in ['Note', 'ToDo']:
 		doc.private = 1
@@ -193,7 +188,7 @@ def set_indicator(board_name, column_name, indicator):
 	for column in board.columns:
 		if column.column_name == column_name:
 			column.indicator = indicator
-	
+
 	board.save()
 	return board
 

@@ -206,7 +206,7 @@ class BaseDocument(object):
 				elif df.fieldtype in ("Currency", "Float", "Percent") and not isinstance(d[fieldname], float):
 					d[fieldname] = flt(d[fieldname])
 
-				elif df.fieldtype in ("Datetime", "Date") and d[fieldname]=="":
+				elif df.fieldtype in ("Datetime", "Date", "Time") and d[fieldname]=="":
 					d[fieldname] = None
 
 				elif df.get("unique") and cstr(d[fieldname]).strip()=="":
@@ -452,7 +452,7 @@ class BaseDocument(object):
 					values = frappe._dict(name=frappe.db.get_value(doctype, docname,
 						'name', cache=True))
 				else:
-					values_to_fetch = ['name'] + [_df.options.split('.')[-1]
+					values_to_fetch = ['name'] + [_df.fetch_from.split('.')[-1]
 						for _df in fields_to_fetch]
 
 					# don't cache if fetching other values too
@@ -466,7 +466,7 @@ class BaseDocument(object):
 					setattr(self, df.fieldname, values.name)
 
 					for _df in fields_to_fetch:
-						setattr(self, _df.fieldname, values[_df.options.split('.')[-1]])
+						setattr(self, _df.fieldname, values[_df.fetch_from.split('.')[-1]])
 
 					notify_link_count(doctype, docname)
 
@@ -619,10 +619,11 @@ class BaseDocument(object):
 
 	def _save_passwords(self):
 		'''Save password field values in __Auth table'''
-		if self.flags.ignore_save_passwords:
+		if self.flags.ignore_save_passwords is True:
 			return
 
 		for df in self.meta.get('fields', {'fieldtype': ('=', 'Password')}):
+			if self.flags.ignore_save_passwords and df.fieldname in self.flags.ignore_save_passwords: continue
 			new_password = self.get(df.fieldname)
 			if new_password and not self.is_dummy_password(new_password):
 				# is not a dummy password like '*****'

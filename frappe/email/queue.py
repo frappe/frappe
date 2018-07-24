@@ -2,7 +2,6 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-from six.moves import range
 import frappe
 from six.moves import html_parser as HTMLParser
 import smtplib, quopri, json
@@ -332,7 +331,6 @@ def return_unsubscribed_page(email, doctype, name):
 def flush(from_test=False):
 	"""flush email queue, every time: called from scheduler"""
 	# additional check
-	cache = frappe.cache()
 	check_email_limit([])
 
 	auto_commit = not from_test
@@ -340,28 +338,27 @@ def flush(from_test=False):
 		msgprint(_("Emails are muted"))
 		from_test = True
 
-	smtpserver = SMTPServer()
+	smtpserver_dict = frappe._dict()
 
-	make_cache_queue()
-
-	for i in range(cache.llen('cache_email_queue')):
-		email = cache.lpop('cache_email_queue')
+	for email in get_queue():
 
 		if cint(frappe.defaults.get_defaults().get("hold_queue"))==1:
 			break
 
-		if email:
-			send_one(email, smtpserver, auto_commit, from_test=from_test)
+		if email.name:
+			smtpserver = smtpserver_dict.get(email.sender)
+			if not smtpserver:
+				smtpserver = SMTPServer()
+				smtpserver_dict[email.sender] = smtpserver
+
+			send_one(email.name, smtpserver, auto_commit, from_test=from_test)
 
 		# NOTE: removing commit here because we pass auto_commit
 		# finally:
 		# 	frappe.db.commit()
-def make_cache_queue():
-	'''cache values in queue before sendign'''
-	cache = frappe.cache()
-
-	emails = frappe.db.sql('''select
-			name
+def get_queue():
+	return frappe.db.sql('''select
+			name, sender
 		from
 			`tabEmail Queue`
 		where
@@ -369,12 +366,8 @@ def make_cache_queue():
 			(send_after is null or send_after < %(now)s)
 		order
 			by priority desc, creation asc
-		limit 500''', { 'now': now_datetime() })
+		limit 500''', { 'now': now_datetime() }, as_dict=True)
 
-	# reset value
-	cache.delete_value('cache_email_queue')
-	for e in emails:
-		cache.rpush('cache_email_queue', e[0])
 
 def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=False):
 	'''Send Email Queue with given smtpserver'''

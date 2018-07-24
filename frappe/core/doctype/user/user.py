@@ -25,7 +25,7 @@ class User(Document):
 
 	def __setup__(self):
 		# because it is handled separately
-		self.flags.ignore_save_passwords = True
+		self.flags.ignore_save_passwords = ['new_password']
 
 	def autoname(self):
 		"""set name as Email Address"""
@@ -93,6 +93,7 @@ class User(Document):
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
 		self.send_password_notification(self.__new_password)
+		create_contact(self)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
 
@@ -515,6 +516,15 @@ class User(Document):
 
 		self.append("social_logins", social_logins)
 
+	def get_restricted_ip_list(self):
+		if not self.restrict_ip:
+			return
+
+		ip_list = self.restrict_ip.replace(",", "\n").split('\n')
+		ip_list = [i.strip() for i in ip_list]
+
+		return ip_list
+
 @frappe.whitelist()
 def get_timezones():
 	import pytz
@@ -917,9 +927,9 @@ def notify_admin_access_to_system_manager(login_manager=None):
 		)
 
 def extract_mentions(txt):
-	"""Find all instances of @username in the string.
+	"""Find all instances of @name in the string.
 	The mentions will be separated by non-word characters or may appear at the start of the string"""
-	return re.findall(r'(?:[^\w]|^)@([\w]*)', txt)
+	return re.findall(r'(?:[^\w\.\-\@]|^)@([\w\.\-\@]*)', txt)
 
 
 def handle_password_test_fail(result):
@@ -1033,3 +1043,39 @@ def update_roles(role_profile):
 		user = frappe.get_doc('User', d)
 		user.set('roles', [])
 		user.add_roles(*roles)
+
+def create_contact(user):
+	if user.name in ["Administrator", "Guest"]: return
+
+	if not frappe.db.get_value("Contact", {"email_id": user.email}):
+		frappe.get_doc({
+			"doctype": "Contact",
+			"first_name": user.first_name,
+			"last_name": user.last_name,
+			"email_id": user.email,
+			"user": user.name,
+			"gender": user.gender,
+			"phone": user.phone,
+			"mobile_no": user.mobile_no
+		}).insert(ignore_permissions=True)
+
+
+@frappe.whitelist()
+def generate_keys(user):
+	"""
+	generate api key and api secret
+
+	:param user: str
+	"""
+	if "System Manager" in frappe.get_roles():
+		user_details = frappe.get_doc("User", user)
+		api_secret = frappe.generate_hash(length=15)
+		# if api key is not set generate api key
+		if not user_details.api_key:
+			api_key = frappe.generate_hash(length=15)
+			user_details.api_key = api_key
+		user_details.api_secret = api_secret
+		user_details.save()
+
+		return {"api_secret": api_secret}
+	frappe.throw(frappe._("Not Permitted"), frappe.PermissionError)

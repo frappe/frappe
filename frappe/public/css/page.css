@@ -67,6 +67,10 @@
   padding-top: 17px;
   padding-bottom: 17px;
 }
+.page-actions .sub-heading {
+  max-width: 50%;
+  overflow: hidden;
+}
 .page-icon-group {
   vertical-align: middle;
 }

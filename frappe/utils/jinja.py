@@ -156,6 +156,10 @@ def get_allowed_functions_for_jenv():
 			"escape": frappe.db.escape,
 		}
 
+	# load jenv methods from hooks.py
+	for method_name, method_definition in get_jenv_customization("methods"):
+		out[method_name] = frappe.get_attr(method_definition)
+
 	return out
 
 def get_jloader():
@@ -204,7 +208,16 @@ def set_filters(jenv):
 	if frappe.flags.in_setup_help: return
 
 	# load jenv_filters from hooks.py
-	for app in frappe.get_installed_apps():
-		for jenv_filter in (frappe.get_hooks(app_name=app).jenv_filter or []):
-			filter_name, filter_function = jenv_filter.split(":")
-			jenv.filters[filter_name] = frappe.get_attr(filter_function)
+	for filter_name, filter_function in get_jenv_customization("filters"):
+		jenv.filters[filter_name] = frappe.get_attr(filter_function)
+
+def get_jenv_customization(customizable_type):
+	import frappe
+
+	if getattr(frappe.local, "site", None):
+		for app in frappe.get_installed_apps():
+			for jenv_customizable, jenv_customizable_definition in frappe.get_hooks(app_name=app).get("jenv", {}).items():
+				if customizable_type == jenv_customizable:
+					for data in jenv_customizable_definition:
+						split_data = data.split(":")
+						yield split_data[0], split_data[1]

@@ -101,6 +101,7 @@ def reset(doctype):
 @frappe.whitelist()
 def get_users_with_role(role):
 	frappe.only_for("System Manager")
+
 	return [p[0] for p in frappe.db.sql("""select distinct tabUser.name
 		from `tabHas Role`, tabUser where
 			`tabHas Role`.role=%s
@@ -111,5 +112,11 @@ def get_users_with_role(role):
 @frappe.whitelist()
 def get_standard_permissions(doctype):
 	frappe.only_for("System Manager")
-	doc = frappe.get_doc('DocType', doctype)
-	return [p.as_dict() for p in doc.permissions]
+	meta = frappe.get_meta(doctype)
+	if meta.custom:
+		doc = frappe.get_doc('DocType', doctype)
+		return [p.as_dict() for p in doc.permissions]
+	else:
+		# also used to setup permissions via patch
+		path = get_file_path(meta.module, "DocType", doctype)
+		return read_doc_from_file(path).get("permissions")

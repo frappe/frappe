@@ -15,9 +15,9 @@ from faker import Faker
 
 # public
 from .exceptions import *
-from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
+from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
 
-__version__ = '10.1.29'
+__version__ = '10.1.42'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -563,7 +563,7 @@ def has_website_permission(doc=None, ptype='read', user=None, verbose=False, doc
 
 		# check permission in controller
 		if hasattr(doc, 'has_website_permission'):
-			return doc.has_website_permission(ptype, verbose=verbose)
+			return doc.has_website_permission(doc, ptype, user, verbose=verbose)
 
 	hooks = (get_hooks("has_website_permission") or {}).get(doctype, [])
 	if hooks:
@@ -1042,7 +1042,7 @@ def compare(val1, condition, val2):
 
 def respond_as_web_page(title, html, success=None, http_status_code=None,
 	context=None, indicator_color=None, primary_action='/', primary_label = None, fullpage=False,
-	width=None):
+	width=None, template='message'):
 	"""Send response as a web page with a message rather than JSON. Used to show permission errors etc.
 
 	:param title: Page title and heading.
@@ -1055,11 +1055,12 @@ def respond_as_web_page(title, html, success=None, http_status_code=None,
 	:param primary_label: label on primary button (defaut is "Home")
 	:param fullpage: hide header / footer
 	:param width: Width of message in pixels
+	:param template: Optionally pass view template
 	"""
 	local.message_title = title
 	local.message = html
 	local.response['type'] = 'page'
-	local.response['route'] = 'message'
+	local.response['route'] = template
 	if http_status_code:
 		local.response['http_status_code'] = http_status_code
 

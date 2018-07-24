@@ -12,6 +12,7 @@ from frappe.limits import update_limits, clear_limit
 from frappe.utils import get_url
 from frappe.core.doctype.user.user import get_total_users
 from frappe.core.doctype.user.user import MaxUsersReachedError, test_password_strength
+from frappe.core.doctype.user.user import extract_mentions
 
 test_records = frappe.get_test_records('User')
 
@@ -45,6 +46,7 @@ class TestUser(unittest.TestCase):
 		new_user.save()
 		self.assertEqual(new_user.user_type, 'Website User')
 
+		delete_contact(new_user.name)
 		frappe.delete_doc('User', new_user.name)
 
 
@@ -55,6 +57,7 @@ class TestUser(unittest.TestCase):
 		delete_doc("Role","_Test Role 2")
 
 		if frappe.db.exists("User", "_test@example.com"):
+			delete_contact("_test@example.com")
 			delete_doc("User", "_test@example.com")
 
 		user = frappe.copy_doc(test_records[1])
@@ -63,6 +66,7 @@ class TestUser(unittest.TestCase):
 
 		frappe.get_doc({"doctype": "ToDo", "description": "_Test"}).insert()
 
+		delete_contact("_test@example.com")
 		delete_doc("User", "_test@example.com")
 
 		self.assertTrue(not frappe.db.sql("""select * from `tabToDo` where owner=%s""",
@@ -127,6 +131,7 @@ class TestUser(unittest.TestCase):
 		self.assertRaises(MaxUsersReachedError, user.add_roles, 'System Manager')
 
 		if frappe.db.exists('User', 'test_max_users@example.com'):
+			delete_contact('test_max_users@example.com')
 			frappe.delete_doc('User', 'test_max_users@example.com')
 
 		# Clear the user limit
@@ -218,6 +223,7 @@ class TestUser(unittest.TestCase):
 		})
 		comm.insert(ignore_permissions=True)
 
+		delete_contact(new_user.name)
 		frappe.delete_doc('User', new_user.name)
 		self.assertFalse(frappe.db.exists('User', new_user.name))
 
@@ -235,6 +241,7 @@ class TestUser(unittest.TestCase):
 		self.assertEqual(frappe.db.get_value("User", "test_deactivate_additional_users@example.com", "enabled"), 0)
 
 		if frappe.db.exists("User", "test_deactivate_additional_users@example.com"):
+			delete_contact('test_deactivate_additional_users@example.com')
 			frappe.delete_doc('User', 'test_deactivate_additional_users@example.com')
 
 		# Clear the user limit
@@ -259,3 +266,14 @@ class TestUser(unittest.TestCase):
 		# Score 4; should pass
 		result = test_password_strength("Eastern_43A1W")
 		self.assertEqual(result['feedback']['password_policy_validation_passed'], True)
+
+	def test_comment_mentions(self):
+		user_name = "@test.comment@example.com"
+		self.assertEqual(extract_mentions(user_name)[0], "test.comment@example.com")
+		user_name = "Testing comment, @test-user please check."
+		self.assertEqual(extract_mentions(user_name)[0], "test-user")
+		user_name = "Testing comment, @test.user@example.com please check."
+		self.assertEqual(extract_mentions(user_name)[0], "test.user@example.com")
+
+def delete_contact(user):
+	frappe.db.sql("delete from tabContact where email_id='%s'" % frappe.db.escape(user))

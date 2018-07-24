@@ -15,7 +15,7 @@ $.extend(frappe.model, {
 
 	std_fields: [
 		{fieldname:'name', fieldtype:'Link', label:__('ID')},
-		{fieldname:'owner', fieldtype:'Data', label:__('Created By')},
+		{fieldname:'owner', fieldtype:'Link', label:__('Created By'), options: 'User'},
 		{fieldname:'idx', fieldtype:'Int', label:__('Index')},
 		{fieldname:'creation', fieldtype:'Date', label:__('Created On')},
 		{fieldname:'modified', fieldtype:'Date', label:__('Last Updated On')},
@@ -98,8 +98,11 @@ $.extend(frappe.model, {
 		} else {
 			var cached_timestamp = null;
 			if(localStorage["_doctype:" + doctype]) {
-				var cached_doc = JSON.parse(localStorage["_doctype:" + doctype]);
-				cached_timestamp = cached_doc.modified;
+				let cached_docs = JSON.parse(localStorage["_doctype:" + doctype]);
+				let cached_doc = cached_docs.filter(doc => doc.name === doctype)[0];
+				if(cached_doc) {
+					cached_timestamp = cached_doc.modified;
+				}
 			}
 			return frappe.call({
 				method:'frappe.desk.form.load.getdoctype',
@@ -230,12 +233,20 @@ $.extend(frappe.model, {
 
 	can_cancel: function(doctype) {
 		if(!doctype) return false;
-		return frappe.boot.user.can_cancel.indexOf(doctype)!==-1;
+		return frappe.boot.user.can_cancel.indexOf(doctype)!==-1
+			&& !this.has_workflow(doctype);
+	},
+
+	has_workflow: function(doctype) {
+		return frappe.get_list('Workflow', {'document_type': doctype,
+			'is_active': 1}).length;
 	},
 
 	is_submittable: function(doctype) {
 		if(!doctype) return false;
-		return locals.DocType[doctype] && locals.DocType[doctype].is_submittable;
+		return locals.DocType[doctype]
+			&& locals.DocType[doctype].is_submittable
+			&& !this.has_workflow(doctype);
 	},
 
 	is_table: function(doctype) {

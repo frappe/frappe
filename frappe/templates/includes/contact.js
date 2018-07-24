@@ -3,6 +3,10 @@
 
 frappe.ready(function() {
 
+	if(frappe.utils.get_url_arg('subject')) {
+	  $('[name="subject"]').val(frappe.utils.get_url_arg('subject'));
+	}
+
 	$('.btn-send').off("click").on("click", function() {
 		var email = $('[name="email"]').val();
 		var message = $('[name="message"]').val();

@@ -1,5 +1,6 @@
 // Copyright (c) 2018, Frappe Technologies and contributors
 // For license information, please see license.txt
+frappe.provide("frappe.auto_repeat");
 
 frappe.ui.form.on('Auto Repeat', {
 	setup: function(frm) {
@@ -28,7 +29,9 @@ frappe.ui.form.on('Auto Repeat', {
 	},
 
 	refresh: function(frm) {
+		
 		if(frm.doc.docstatus == 1) {
+			
 			let label = __('View {0}', [frm.doc.reference_doctype]);
 			frm.add_custom_button(__(label),
 				function() {
@@ -54,7 +57,12 @@ frappe.ui.form.on('Auto Repeat', {
 					}
 				);
 			}
+
+			if(frm.doc.status!= 0){
+				frappe.auto_repeat.render_schedule(frm);
+			}
 		}
+		
 	},
 
 	stop_resume_auto_repeat: function(frm, status) {
@@ -71,5 +79,44 @@ frappe.ui.form.on('Auto Repeat', {
 				}
 			}
 		});
+	},
+
+	template: function(frm) {
+		if (frm.doc.template) {
+			frappe.model.with_doc("Email Template", frm.doc.template, () => {
+				let email_template = frappe.get_doc("Email Template", frm.doc.template);
+				frm.set_value("subject", email_template.subject);
+				frm.set_value("message", email_template.response);
+				frm.refresh_field("subject");
+				frm.refresh_field("message");
+			});
+		}
+	},
+
+	get_contacts: function(frm) {
+		frappe.call({
+			method: "frappe.desk.doctype.auto_repeat.auto_repeat.get_contacts",
+			args: {
+				reference_doctype: frm.doc.reference_doctype,
+				reference_name: frm.doc.reference_document
+			},
+			callback: function(r) {
+				if(r.message) {
+					frm.set_value("recipients", r.message.join());
+					frm.refresh_field("recipients");
+				}
+			}
+		});
 	}
 });
+
+frappe.auto_repeat.render_schedule = function(frm) { 
+	frappe.call({
+		method: "get_auto_repeat_schedule",
+		doc: frm.doc
+	}).done((r) => {
+		var wrapper = $(frm.fields_dict["auto_repeat_schedule"].wrapper);
+		wrapper.html(frappe.render_template ("auto_repeat_schedule", {"schedule_details" : r.message || []}  ));
+	});
+	frm.refresh_fields() ;
+};

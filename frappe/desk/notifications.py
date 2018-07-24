@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import time_diff_in_seconds, now, now_datetime, DATETIME_FORMAT
 from dateutil.relativedelta import relativedelta
+from six import string_types
 
 @frappe.whitelist()
 def get_notifications():
@@ -180,7 +181,10 @@ def delete_notification_count_for(doctype):
 
 def clear_doctype_notifications(doc, method=None, *args, **kwargs):
 	config = get_notification_config()
-	doctype = doc.doctype
+	if isinstance(doc, string_types):
+		doctype = doc # assuming doctype name was passed directly
+	else:
+		doctype = doc.doctype
 
 	if doctype in config.for_doctype:
 		delete_notification_count_for(doctype)

@@ -119,7 +119,7 @@ class DocType(Document):
 		if set(old_fields_to_fetch) != set([df.fieldname for df in new_meta.get_fields_to_fetch()]):
 			for df in new_meta.get_fields_to_fetch():
 				if df.fieldname not in old_fields_to_fetch:
-					link_fieldname, source_fieldname = df.options.split('.', 1)
+					link_fieldname, source_fieldname = df.fetch_from.split('.', 1)
 					link_df = new_meta.get_field(link_fieldname)
 
 					self.flags.update_fields_to_fetch_queries.append('''update
@@ -182,8 +182,13 @@ class DocType(Document):
 					else:
 						d.fieldname = d.fieldtype.lower().replace(" ","_") + "_" + str(d.idx)
 
+				d.fieldname = re.sub('''['",./%@()<>{}]''', '', d.fieldname)
+
 				# fieldnames should be lowercase
 				d.fieldname = d.fieldname.lower()
+
+			# unique is automatically an index
+			if d.unique: d.search_index = 0
 
 	def validate_series(self, autoname=None, name=None):
 		"""Validate if `autoname` property is correctly set."""
@@ -194,11 +199,16 @@ class DocType(Document):
 			self.autoname = "naming_series:"
 
 		# validate field name if autoname field:fieldname is used
-
+		# Create unique index on autoname field automatically.
 		if autoname and autoname.startswith('field:'):
 			field = autoname.split(":")[1]
 			if not field or field not in [ df.fieldname for df in self.fields ]:
 				frappe.throw(_("Invalid fieldname '{0}' in autoname".format(field)))
+			else:
+				for df in self.fields:
+					if df.fieldname == field:
+						df.unique = 1
+						break
 
 		if autoname and (not autoname.startswith('field:')) \
 			and (not autoname.startswith('eval:')) \
@@ -251,7 +261,6 @@ class DocType(Document):
 		if not (frappe.db.table_exists(self.name) and frappe.db.table_exists("Custom Field")):
 			return
 		fields = [d.fieldname for d in self.fields if d.fieldtype in type_map]
-
 		frappe.db.sql('''delete from
 				`tabCustom Field`
 			where
@@ -363,8 +372,6 @@ class DocType(Document):
 
 		if not self.istable:
 			make_boilerplate("test_controller._py", self.as_dict())
-
-		if not self.istable:
 			make_boilerplate("controller.js", self.as_dict())
 			#make_boilerplate("controller_list.js", self.as_dict())
 			if not os.path.exists(frappe.get_module_path(frappe.scrub(self.module),

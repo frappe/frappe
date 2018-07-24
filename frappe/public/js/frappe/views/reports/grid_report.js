@@ -146,6 +146,7 @@ frappe.views.GridReport = Class.extend({
 	},
 	setup_filters: function() {
 		var me = this;
+
 		$.each(me.filter_inputs, function(i, v) {
 			var opts = v.get(0).opts;
 			if(opts.fieldtype == "Select" && in_list(me.doctypes, opts.link)) {
@@ -173,7 +174,7 @@ frappe.views.GridReport = Class.extend({
 
 		this.page.add_menu_item(__("Print"), function() {
 			frappe.ui.get_print_settings(false, function(print_settings) {
-				frappe.render_grid({grid: me.grid, title: me.page.title, print_settings: print_settings });
+				frappe.render_grid({grid: me.grid, title: me.page.title, print_settings: print_settings, report: me});
 			});
 
 		}, true);

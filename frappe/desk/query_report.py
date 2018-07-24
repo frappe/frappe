@@ -8,12 +8,14 @@ import os, json
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
-from frappe.utils import flt, cint, get_html_format, cstr
+from frappe.utils import flt, cint, get_html_format, cstr, get_url_to_form
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
+from frappe.utils.csvutils import read_csv_content_from_attached_file
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
+
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
@@ -28,6 +30,85 @@ def get_report_doc(report_name):
 		frappe.throw(_("Report {0} is disabled").format(report_name))
 
 	return doc
+
+
+def generate_report_result(report, filters=None, user=None):
+	status = None
+	if not user:
+		user = frappe.session.user
+	if not filters:
+		filters = []
+
+	if filters and isinstance(filters, string_types):
+		filters = json.loads(filters)
+	columns, result, message, chart, data_to_be_printed = [], [], None, None, None
+	if report.report_type == "Query Report":
+		if not report.query:
+			status = "error"
+			frappe.msgprint(_("Must specify a Query to run"), raise_exception=True)
+
+		if not report.query.lower().startswith("select"):
+			status = "error"
+			frappe.msgprint(_("Query must be a SELECT"), raise_exception=True)
+
+		result = [list(t) for t in frappe.db.sql(report.query, filters)]
+		columns = [cstr(c[0]) for c in frappe.db.get_description()]
+	else:
+		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
+		if report.is_standard == "Yes":
+			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
+
+			res = []
+
+			# The JOB
+			res = frappe.get_attr(method_name)(frappe._dict(filters))
+
+			columns, result = res[0], res[1]
+			if len(res) > 2:
+				message = res[2]
+			if len(res) > 3:
+				chart = res[3]
+			if len(res) > 4:
+				data_to_be_printed = res[4]
+
+	if result:
+		result = get_filtered_data(report.ref_doctype, columns, result, user)
+
+	if cint(report.add_total_row) and result:
+		result = add_total_row(result, columns)
+
+	return {
+		"result": result,
+		"columns": columns,
+		"message": message,
+		"chart": chart,
+		"data_to_be_printed": data_to_be_printed,
+		"status": status
+	}
+
+
+@frappe.whitelist()
+def background_enqueue_run(report_name, filters=None, user=None):
+	"""run reports in background"""
+	if not user:
+		user = frappe.session.user
+	report = get_report_doc(report_name)
+	track_instance = \
+		frappe.get_doc({
+			"doctype": "Prepared Report",
+			"report_name": report_name,
+			"filters": json.dumps(filters),
+			"ref_report_doctype": report_name,
+			"report_type": report.report_type,
+			"query": report.query,
+			"module": report.module,
+		})
+	track_instance.insert(ignore_permissions=True)
+	frappe.db.commit()
+	return {
+		"redirect_url": get_url_to_form("Prepared Report", track_instance.name)
+	}
+
 
 @frappe.whitelist()
 def get_script(report_name):
@@ -61,60 +142,53 @@ def get_script(report_name):
 		"html_format": html_format
 	}
 
+
 @frappe.whitelist()
 def run(report_name, filters=None, user=None):
 
 	report = get_report_doc(report_name)
 	if not user:
 		user = frappe.session.user
-
-	if not filters:
-		filters = []
-
-	if filters and isinstance(filters, string_types):
-		filters = json.loads(filters)
-
 	if not frappe.has_permission(report.ref_doctype, "report"):
 		frappe.msgprint(_("Must have report permission to access this report."),
 			raise_exception=True)
 
-	columns, result, message, chart, data_to_be_printed = [], [], None, None, None
-	if report.report_type=="Query Report":
-		if not report.query:
-			frappe.msgprint(_("Must specify a Query to run"), raise_exception=True)
-
-
-		if not report.query.lower().startswith("select"):
-			frappe.msgprint(_("Query must be a SELECT"), raise_exception=True)
-
-		result = [list(t) for t in frappe.db.sql(report.query, filters)]
-		columns = [cstr(c[0]) for c in frappe.db.get_description()]
+	if report.prepared_report:
+		if filters:
+			dn = json.loads(filters).get("prepared_report_name")
+		else:
+			dn = ""
+		return get_prepared_report_result(report, filters, dn)
 	else:
-		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
-		if report.is_standard=="Yes":
-			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
-			res = frappe.get_attr(method_name)(frappe._dict(filters))
+		return generate_report_result(report, filters, user)
 
-			columns, result = res[0], res[1]
-			if len(res) > 2:
-				message = res[2]
-			if len(res) > 3:
-				chart = res[3]
-			if len(res) > 4:
-				data_to_be_printed = res[4]
 
-	if result:
-		result = get_filtered_data(report.ref_doctype, columns, result, user)
+def get_prepared_report_result(report, filters, dn=""):
+	latest_report_data = {}
+	doc_list = frappe.get_list("Prepared Report", filters={"status": "Completed", "report_name": report.name})
+	doc = None
+	if len(doc_list):
+		if dn:
+			# Get specified dn
+			doc = frappe.get_doc("Prepared Report", dn)
+		else:
+			# Get latest
+			doc = frappe.get_doc("Prepared Report", doc_list[0])
 
-	if cint(report.add_total_row) and result:
-		result = add_total_row(result, columns)
+		data = read_csv_content_from_attached_file(doc)
+		latest_report_data = {
+			"columns": data[0],
+			"result": data[1:]
+		}
 
 	return {
-		"result": result,
-		"columns": columns,
-		"message": message,
-		"chart": chart,
-		"data_to_be_printed": data_to_be_printed
+		"prepared_report": True,
+		"data": latest_report_data,
+		"doc": doc
+		# "message": message,
+		# "chart": chart,
+		# "data_to_be_printed": data_to_be_printed,
+		# "status": status
 	}
 
 
@@ -155,7 +229,7 @@ def export_query():
 		if isinstance(data.result[0], dict):
 			for i,row in enumerate(data.result):
 				# only rows which are visible in the report
-				if row and (i+1 in visible_idx):
+				if row and (i in visible_idx):
 					row_list = []
 					for idx in range(len(data.columns)):
 						row_list.append(row.get(columns[idx]["fieldname"],""))
@@ -163,7 +237,7 @@ def export_query():
 				elif not row:
 					result.append([])
 		else:
-			result = result + [d for i,d in enumerate(data.result) if (i+1 in visible_idx)]
+			result = result + [d for i,d in enumerate(data.result) if (i in visible_idx)]
 
 		from frappe.utils.xlsxutils import make_xlsx
 		xlsx_file = make_xlsx(result, "Query Report")

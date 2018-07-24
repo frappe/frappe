@@ -121,11 +121,11 @@ class RedisWrapper(redis.Redis):
 			except redis.exceptions.ConnectionError:
 				pass
 
-	def lpush(self, key, value):
-		super(redis.Redis, self).lpush(self.make_key(key), value)
+	def lpush(self, key, *values):
+		super(redis.Redis, self).lpush(self.make_key(key), *values)
 
-	def rpush(self, key, value):
-		super(redis.Redis, self).rpush(self.make_key(key), value)
+	def rpush(self, key, *values):
+		super(redis.Redis, self).rpush(self.make_key(key), *values)
 
 	def lpop(self, key):
 		return super(redis.Redis, self).lpop(self.make_key(key))

@@ -2,6 +2,8 @@
 // MIT License. See license.txt
 /* eslint-disable no-console */
 
+import hljs from 'highlight.js';
+
 frappe.provide("website");
 frappe.provide("frappe.awesome_bar_path");
 window.cur_frm = null;
@@ -175,31 +177,6 @@ $.extend(frappe, {
 		var sid = frappe.get_cookie("sid");
 		return sid && sid !== "Guest";
 	},
-	get_modal: function(title, body_html) {
-		var modal = $('<div class="modal" style="overflow: auto;" tabindex="-1">\
-			<div class="modal-dialog">\
-				<div class="modal-content">\
-					<div class="modal-header">\
-						<a type="button" class="close"\
-							data-dismiss="modal" aria-hidden="true">&times;</a>\
-						<h4 class="modal-title">'+title+'</h4>\
-					</div>\
-					<div class="modal-body ui-front">'+body_html+'\
-					</div>\
-				</div>\
-			</div>\
-			</div>').appendTo(document.body);
-
-		return modal;
-	},
-	msgprint: function(html, title) {
-		if(html.substr(0,1)==="[") html = JSON.parse(html);
-		if($.isArray(html)) {
-			html = html.join("<hr>");
-		}
-
-		return frappe.get_modal(title || "Message", html).modal("show");
-	},
 	send_message: function(opts, btn) {
 		return frappe.call({
 			type: "POST",
@@ -276,11 +253,9 @@ $.extend(frappe, {
 	},
 
 	highlight_code_blocks: function() {
-		if(window.hljs) {
-			$('pre code').each(function(i, block) {
-				hljs.highlightBlock(block);
-			});
-		}
+		$('pre code').each(function(i, block) {
+			hljs.highlightBlock(block);
+		});
 	},
 	bind_filters: function() {
 		// set in select
@@ -340,7 +315,7 @@ $.extend(frappe, {
 		return $(".navbar .search, .sidebar .search");
 	},
 	is_user_logged_in: function() {
-		return window.full_name ? true : false;
+		return frappe.get_cookie("sid") && frappe.get_cookie("sid") !== "Guest";
 	},
 	add_switch_to_desk: function() {
 		$('.switch-to-desk').removeClass('hidden');
@@ -386,7 +361,7 @@ window.ask_to_login = function ask_to_login() {
 // check if logged in?
 $(document).ready(function() {
 	window.full_name = frappe.get_cookie("full_name");
-	var logged_in = frappe.get_cookie("sid") && frappe.get_cookie("sid") !== "Guest";
+	var logged_in = frappe.is_user_logged_in();
 	$("#website-login").toggleClass("hide", logged_in ? true : false);
 	$("#website-post-login").toggleClass("hide", logged_in ? false : true);
 	$(".logged-in").toggleClass("hide", logged_in ? false : true);

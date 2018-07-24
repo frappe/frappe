@@ -185,7 +185,7 @@ frappe.search.utils = {
 			if(level > 0) {
 				var report = frappe.boot.user.all_reports[item];
 				if(report.report_type == "Report Builder")
-					route = [report.ref_doctype, item, "Report"];
+					route = ["List", report.ref_doctype, "Report", item];
 				else
 					route = ["query-report",  item];
 				out.push({

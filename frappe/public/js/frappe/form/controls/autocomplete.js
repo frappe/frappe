@@ -1,3 +1,5 @@
+import Awesomplete from 'awesomplete';
+
 frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 	make_input() {
 		this._super();
@@ -36,14 +38,13 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 					value: item.value
 				};
 			},
-			filter: function() {
-				return true;
-			},
 			item: function(item) {
 				var d = this.get_item(item.value);
 				if(!d) {
 					d = item;
-				} else {
+				}
+
+				if (!d.label) {
 					d.label = d.value;
 				}
 

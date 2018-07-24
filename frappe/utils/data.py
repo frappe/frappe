@@ -24,7 +24,7 @@ DATETIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
 # datetime functions
 def getdate(string_date=None):
 	"""
-		 Coverts string date (yyyy-mm-dd) to datetime.date object
+	Converts string date (yyyy-mm-dd) to datetime.date object
 	"""
 
 	if not string_date:
@@ -129,7 +129,7 @@ def get_eta(from_time, percent_complete):
 	return str(datetime.timedelta(seconds=(100 - percent_complete) / percent_complete * diff))
 
 def _get_time_zone():
-	return frappe.db.get_system_setting('time_zone') or 'Asia/Kolkata'
+	return frappe.db.get_system_setting('time_zone') or 'Asia/Kolkata' # Default to India ?!
 
 def get_time_zone():
 	if frappe.local.flags.in_test:
@@ -208,7 +208,7 @@ def get_user_format():
 
 def formatdate(string_date=None, format_string=None):
 	"""
-	 	Convers the given string date to :data:`user_format`
+		Converts the given string date to :data:`user_format`
 		User format specified in defaults
 
 		 Examples:
@@ -279,6 +279,44 @@ def flt(s, precision=None):
 def cint(s):
 	"""Convert to integer"""
 	try: num = int(float(s))
+	except: num = 0
+	return num
+
+def floor(s):
+	"""
+	A number representing the largest integer less than or equal to the specified number
+
+	Parameters
+	----------
+	s : int or str or Decimal object
+		The mathematical value to be floored
+
+	Returns
+	-------
+	int
+		number representing the largest integer less than or equal to the specified number
+
+	"""
+	try: num = cint(math.floor(flt(s)))
+	except: num = 0
+	return num
+
+def ceil(s):
+	"""
+	The smallest integer greater than or equal to the given number
+
+	Parameters
+	----------
+	s : int or str or Decimal object
+		The mathematical value to be ceiled
+
+	Returns
+	-------
+	int
+		smallest integer greater than or equal to the given number
+
+	"""
+	try: num = cint(math.ceil(flt(s)))
 	except: num = 0
 	return num
 
@@ -443,7 +481,7 @@ def get_number_format_info(format):
 	return number_format_info.get(format) or (".", ",", 2)
 
 #
-# convet currency to words
+# convert currency to words
 #
 def money_in_words(number, main_currency = None, fraction_currency=None):
 	"""
@@ -510,6 +548,8 @@ def in_words(integer, in_million=True):
 	try:
 		ret = num2words(integer, lang=locale)
 	except NotImplementedError:
+		ret = num2words(integer, lang='en')
+	except OverflowError:
 		ret = num2words(integer, lang='en')
 	return ret.replace('-', ' ')
 
@@ -770,6 +810,8 @@ def get_filter(doctype, f):
 
 	f = frappe._dict(doctype=f[0], fieldname=f[1], operator=f[2], value=f[3])
 
+	sanitize_column(f.fieldname)
+
 	if not f.operator:
 		# if operator is missing
 		f.operator = "="
@@ -808,6 +850,27 @@ def make_filter_dict(filters):
 		_filter[f[1]] = (f[2], f[3])
 
 	return _filter
+
+def sanitize_column(column_name):
+	from frappe import _
+	regex = re.compile("^.*[,'();].*")
+	blacklisted_keywords = ['select', 'create', 'insert', 'delete', 'drop', 'update', 'case', 'and', 'or']
+
+	def _raise_exception():
+		frappe.throw(_("Invalid field name {0}").format(column_name), frappe.DataError)
+
+	if 'ifnull' in column_name:
+		if regex.match(column_name):
+			# to avoid and, or
+			if any(' {0} '.format(keyword) in column_name.split() for keyword in blacklisted_keywords):
+				_raise_exception()
+
+			# to avoid select, delete, drop, update and case
+			elif any(keyword in column_name.split() for keyword in blacklisted_keywords):
+				_raise_exception()
+
+	elif regex.match(column_name):
+		_raise_exception()
 
 def scrub_urls(html):
 	html = expand_relative_urls(html)

@@ -16,6 +16,7 @@ class Workflow(Document):
 
 	def on_update(self):
 		frappe.clear_cache(doctype=self.document_type)
+		frappe.cache().delete_key('workflow_' + self.name) # clear cache created in model/workflow.py
 
 	def create_custom_field_for_workflow_state(self):
 		frappe.clear_cache(doctype=self.document_type)
@@ -30,6 +31,7 @@ class Workflow(Document):
 				"label": self.workflow_state_field.replace("_", " ").title(),
 				"hidden": 1,
 				"allow_on_submit": 1,
+				"no_copy": 1,
 				"fieldtype": "Link",
 				"options": "Workflow State",
 			}).save()

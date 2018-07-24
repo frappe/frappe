@@ -118,6 +118,9 @@
   .dropdown-mobile.open .dropdown-menu > li > a {
     padding: 12px;
   }
+  .dropdown-help {
+    display: none !important;
+  }
 }
 .navbar-new-comments {
   display: inline-block;

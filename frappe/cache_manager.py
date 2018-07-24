@@ -5,7 +5,8 @@ from __future__ import unicode_literals
 
 import frappe
 import frappe.defaults
-from frappe.desk.notifications import delete_notification_count_for, clear_notifications
+from frappe.desk.notifications import (delete_notification_count_for,
+	clear_notifications)
 
 common_default_keys = ["__default", "__global"]
 
@@ -24,13 +25,16 @@ def clear_user_cache(user=None):
 	else:
 		for name in groups:
 			cache.delete_key(name)
-		clear_global_cache()
 		clear_defaults_cache()
+		clear_global_cache()
 
 	clear_notifications(user)
 
 def clear_global_cache():
+	from frappe.website.render import clear_cache as clear_website_cache
+
 	clear_doctype_cache()
+	clear_website_cache()
 	frappe.cache().delete_value(["app_hooks", "installed_apps",
 		"app_modules", "module_app", "notification_config", 'system_settings',
 		'scheduler_events', 'time_zone', 'webhooks', 'active_domains', 'active_modules'])
@@ -53,7 +57,7 @@ def clear_doctype_cache(doctype=None):
 		cache.delete_value(key)
 
 	groups = ["meta", "form_meta", "table_columns", "last_modified",
-		"linked_doctypes", 'email_alerts', 'workflow']
+		"linked_doctypes", 'notifications', 'workflow']
 
 	def clear_single(dt):
 		for name in groups:

@@ -40,6 +40,8 @@ def execute_cmd(cmd, from_async=False):
 
 	try:
 		method = get_attr(cmd)
+	except SyntaxError as e: # syntax error throws method not found
+		raise e
 	except:
 		frappe.respond_as_web_page(title='Invalid Method', html='Method not found',
 			indicator_color='red', http_status_code=404)

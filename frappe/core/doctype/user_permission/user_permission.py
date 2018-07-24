@@ -9,6 +9,16 @@ from frappe.permissions import (get_valid_perms, update_permission_property)
 from frappe import _
 
 class UserPermission(Document):
+	def validate(self):
+		duplicate_exists = frappe.db.get_all(self.doctype, filters={
+			'allow': self.allow,
+			'for_value': self.for_value,
+			'user': self.user,
+			'name': ['!=', self.name]
+		}, limit=1)
+		if duplicate_exists:
+			frappe.throw(_("User permission already exists"), frappe.DuplicateEntryError)
+
 	def on_update(self):
 		frappe.cache().delete_value('user_permissions')
 		frappe.publish_realtime('update_user_permissions')
@@ -22,7 +32,7 @@ def get_user_permissions(user=None):
 	'''Get all users permissions for the user as a dict of doctype'''
 	# if this is called from client-side,
 	# user can access only his/her user permissions
-	if frappe.request:
+	if frappe.request and frappe.local.form_dict.cmd == 'get_user_permissions':
 		user = frappe.session.user
 
 	if not user:

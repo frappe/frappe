@@ -45,7 +45,8 @@ frappe.views.BaseList = class BaseList {
 
 		this.fields = [];
 		this.filters = [];
-		this.order_by = 'modified desc';
+		this.sort_by = 'modified';
+		this.sort_order = 'desc';
 
 		// Setup buttons
 		this.primary_action = null;
@@ -224,9 +225,16 @@ frappe.views.BaseList = class BaseList {
 		this.sort_selector = new frappe.ui.SortSelector({
 			parent: this.filter_area.$filter_list_wrapper,
 			doctype: this.doctype,
-			args: this.order_by,
-			onchange: () => this.refresh(true)
+			args: {
+				sort_by: this.sort_by,
+				sort_order: this.sort_order
+			},
+			onchange: this.on_sort_change.bind(this)
 		});
+	}
+
+	on_sort_change() {
+		this.refresh();
 	}
 
 	setup_result_area() {

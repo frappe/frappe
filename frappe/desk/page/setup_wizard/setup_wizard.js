@@ -19,6 +19,10 @@ frappe.setup = {
 		frappe.setup.slides.push(slide);
 	},
 
+	remove_slide: function(slide_name){
+		frappe.setup.slides = frappe.setup.slides.filter((slide) => slide.name !== slide_name);
+	},
+
 	run_event: function(event) {
 		$.each(frappe.setup.events[event] || [], function(i, fn) {
 			fn();

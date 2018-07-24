@@ -61,6 +61,7 @@ def apply_workflow(doc, action):
 	doc = frappe.get_doc(frappe.parse_json(doc))
 	workflow = get_workflow(doc.doctype)
 	transitions = get_transitions(doc, workflow)
+	user = frappe.session.user
 
 	# find the transition
 	transition = None
@@ -70,6 +71,9 @@ def apply_workflow(doc, action):
 
 	if not transition:
 		frappe.throw(_("Not a valid Workflow Action"), WorkflowTransitionError)
+
+	if not has_approval_access(user, doc, transition):
+		frappe.throw(_("Self approval is not allowed"))
 
 	# update workflow state field
 	doc.set(workflow.workflow_state_field, transition.next_state)
@@ -110,19 +114,17 @@ def validate_workflow(doc):
 		current_state = doc._doc_before_save.get(workflow.workflow_state_field)
 	next_state = doc.get(workflow.workflow_state_field)
 
-	if not next_state or not current_state:
-		# set default state (maybe not set in insert)
-		current_state = next_state = workflow.states[0].state
-		doc.set(workflow.workflow_state_field, workflow.states[0].state)
+	if not next_state:
+		next_state = workflow.states[0].state
+		doc.set(workflow.workflow_state_field, next_state)
+
+	if not current_state:
+		current_state = workflow.states[0].state
 
 	state_row = [d for d in workflow.states if d.state == current_state]
 	if not state_row:
 		frappe.throw(_('{0} is not a valid Workflow State. Please update your Workflow and try again.'.format(frappe.bold(current_state))))
 	state_row = state_row[0]
-
-	# check if user is allowed to edit in current state
-	if not state_row.allow_edit in frappe.get_roles():
-		frappe.throw(_('Not allowed to edit in Workflow State {0}'.format(frappe.bold(current_state))), WorkflowPermissionError)
 
 	# if transitioning, check if user is allowed to transition
 	if current_state != next_state:
@@ -133,3 +135,21 @@ def validate_workflow(doc):
 
 def get_workflow(doctype):
 	return frappe.get_doc('Workflow', get_workflow_name(doctype))
+
+def has_approval_access(user, doc, transition):
+	return (user == 'Administrator'
+		or transition.get('allow_self_approval')
+		or user != doc.owner)
+
+def get_workflow_state_field(workflow_name):
+	return get_workflow_field_value(workflow_name, 'workflow_state_field')
+
+def send_email_alert(workflow_name):
+	return get_workflow_field_value(workflow_name, 'send_email_alert')
+
+def get_workflow_field_value(workflow_name, field):
+	value = frappe.cache().hget('workflow_' + workflow_name, field)
+	if value is None:
+		value = frappe.db.get_value("Workflow", workflow_name, field)
+		frappe.cache().hset('workflow_' + workflow_name, field, value)
+	return value
