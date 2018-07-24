@@ -310,7 +310,7 @@ def disable_scheduler_on_expiry():
 		disable_scheduler()
 
 def restrict_scheduler_events_if_dormant():
-	if is_dormant() and not os.environ.get('CI'):
+	if is_dormant():
 		restrict_scheduler_events()
 		update_site_config('dormant', True)
 
