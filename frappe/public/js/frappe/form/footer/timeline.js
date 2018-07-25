@@ -187,8 +187,11 @@ frappe.ui.form.Timeline = Class.extend({
 						.removeClass('octicon-pencil')
 						.addClass('octicon-check');
 
-					me.editing_area.setup_summernote();
-					me.editing_area.val(content);
+					me.editing_area.setup_editor()
+						.then(() => {
+							me.editing_area.val(content);
+						});
+
 					me.editing_area.on_submit = (value) => {
 						me.editing_area.destroy();
 						value = value.trim();

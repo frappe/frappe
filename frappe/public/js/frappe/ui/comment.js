@@ -72,6 +72,8 @@ frappe.ui.CommentArea = class CommentArea {
 			render_input: true,
 			only_input: true
 		});
+
+		return this.editor.editor_loaded;
 	}
 
 	input_has_value() {
@@ -94,7 +96,7 @@ frappe.ui.CommentArea = class CommentArea {
 	}
 
 	destroy() {
-
+		this.input.empty();
 	}
 
 	bind_events() {
@@ -167,7 +169,7 @@ frappe.ui.ReviewArea = class ReviewArea extends frappe.ui.CommentArea {
 	}
 
 	input_has_value() {
-		return !(this.input.summernote('isEmpty') ||
+		return !(super.input_has_value() ||
 			this.rating === 0 || !this.subject.val().length);
 	}
 
@@ -192,7 +194,7 @@ frappe.ui.ReviewArea = class ReviewArea extends frappe.ui.CommentArea {
 	reset() {
 		this.set_rating(0);
 		this.subject.val('');
-		this.input.summernote('code', '');
+		this.editor.set_value('');
 	}
 
 	bind_events() {
@@ -230,10 +232,10 @@ frappe.ui.ReviewArea = class ReviewArea extends frappe.ui.CommentArea {
 			return {
 				rating: this.rating,
 				subject: this.subject.val(),
-				content: this.input.summernote('code')
+				content: this.editor.get_value()
 			}
 		}
 		// Set html if value is specified
-		this.input.summernote('code', value);
+		this.editor.set_value(value);
 	}
 }
