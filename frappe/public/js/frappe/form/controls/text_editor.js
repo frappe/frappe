@@ -5,6 +5,14 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		this.has_input = true;
 
 		const ckeditor_options = {
+			heading: {
+				options: [
+					{ model: 'paragraph', title: __('Paragraph'), class: 'ck-heading_paragraph' },
+					{ model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+					{ model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+					{ model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' }
+				]
+			},
 			image: {
 				toolbar: [ 'imageTextAlternative', '|', 'imageStyle:alignLeft', 'imageStyle:full', 'imageStyle:alignRight' ],
 
@@ -16,10 +24,16 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			}
 		};
 
-		this.editor_loaded = frappe.require('/assets/frappe/js/lib/ckeditor/ckeditor.js')
+		this.editor_loaded = frappe.require('/assets/frappe/js/lib/ckeditor/ckeditor.built.js')
 			.then(() => {
 				this.editor = $("<div>").appendTo(this.input_area);
-				return ClassicEditor.create(this.editor[0], ckeditor_options)
+
+				let editor_class = ClassicEditor;
+				if (this.only_input) {
+					editor_class = BalloonEditor;
+				}
+
+				return editor_class.create(this.editor[0], ckeditor_options)
 					.then(editor => {
 						this.ckeditor = editor;
 
@@ -33,12 +47,55 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 
 							this.parse_validate_and_set_in_model(this.get_input_value());
 						});
+
+						this.make_edit_source_dialog();
+						this.make_edit_source_btn();
 					});
 			});
 
 		// disable default form upload handler
 		$(this.input_area).on('drop', e => {
 			e.stopPropagation();
+		});
+
+		// only input
+
+		if (this.only_input) {
+			this.$wrapper.addClass('only-input');
+		}
+	},
+
+	make_edit_source_btn() {
+		const edit_source_btn = $(`
+			<button class="ck ck-button ck-enabled ck-off" type="button" tabindex="-1"">
+				${edit_source_svg}
+				<span class="ck ck-tooltip ck-tooltip_s">
+					<span class="ck ck-tooltip__text">${__('Edit Source')}</span>
+				</span>
+				<span class="ck ck-button__label">${__('Edit Source')}</span>
+			</button>
+		`);
+
+		edit_source_btn.on('click', () => {
+			this.edit_source_dialog.set_value('source', this.get_input_value());
+			this.edit_source_dialog.show();
+		});
+
+		$(this.input_area).find('.ck.ck-toolbar').append(edit_source_btn);
+	},
+
+	make_edit_source_dialog() {
+		this.edit_source_dialog = new frappe.ui.Dialog({
+			title: __('Edit Source'),
+			fields: [{
+				fieldname: 'source',
+				fieldtype: 'Code',
+				label: __('HTML')
+			}],
+			primary_action: ({ source }) => {
+				this.set_formatted_input(source);
+				this.edit_source_dialog.hide();
+			}
 		});
 	},
 
@@ -78,3 +135,5 @@ class FileUploader {
 
 	abort() { }
 }
+
+var edit_source_svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-code"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`;
