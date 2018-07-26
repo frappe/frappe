@@ -11,7 +11,7 @@ from jinja2 import Template
 from pyqrcode import create as qrcreate
 from six import BytesIO
 from base64 import b64encode, b32encode
-from frappe.utils import get_url, get_datetime, time_diff_in_seconds
+from frappe.utils import get_url, get_datetime, time_diff_in_seconds, cint
 from six import iteritems, string_types
 
 class ExpiredLoginException(Exception): pass
@@ -20,7 +20,7 @@ def toggle_two_factor_auth(state, roles=[]):
 	'''Enable or disable 2FA in site_config and roles'''
 	for role in roles:
 		role = frappe.get_doc('Role', {'role_name': role})
-		role.two_factor_auth = state
+		role.two_factor_auth = cint(state)
 		role.save(ignore_permissions=True)
 
 def two_factor_is_enabled(user=None):
