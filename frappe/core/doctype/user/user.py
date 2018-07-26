@@ -318,8 +318,8 @@ class User(Document):
 			frappe.local.login_manager.logout(user=self.name)
 
 		# delete todos
-		frappe.db.sql("""delete from `tabToDo` where owner=%s""", (self.name,))
-		frappe.db.sql("""update tabToDo set assigned_by=null where assigned_by=%s""",
+		frappe.db.sql("""DELETE FROM `tabToDo` WHERE `owner`=%s""", (self.name,))
+		frappe.db.sql("""UPDATE `tabToDo` SET `assigned_by`=NULL WHERE `assigned_by`=%s""",
 			(self.name,))
 
 		# delete events

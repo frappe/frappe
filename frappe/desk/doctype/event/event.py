@@ -32,7 +32,7 @@ class Event(Document):
 
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
-	return """(tabEvent.event_type='Public' or tabEvent.owner='%(user)s')""" % {
+	return """(`tabEvent`.`event_type`='Public' or `tabEvent`.`owner`=%(user)s)""" % {
 			"user": frappe.db.escape(user),
 		}
 

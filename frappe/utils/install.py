@@ -77,9 +77,6 @@ def install_basic_docs():
 			frappe.get_doc(d).insert()
 		except frappe.NameError:
 			pass
-		except frappe.db.IntegrityError:
-			# for postgres
-			pass
 
 def get_admin_password():
 	def ask_admin_password():

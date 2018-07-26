@@ -724,13 +724,15 @@ def validate_permissions_for_doctype(doctype, for_remove=False):
 def clear_permissions_cache(doctype):
 	frappe.clear_cache(doctype=doctype)
 	delete_notification_count_for(doctype)
-	for user in frappe.db.sql_list("""select
-			distinct `tabHas Role`.parent
-		from
+	for user in frappe.db.sql_list("""
+		SELECT
+			DISTINCT `tabHas Role`.`parent`
+		FROM
 			`tabHas Role`,
-		tabDocPerm
-			where tabDocPerm.parent = %s
-			and tabDocPerm.role = `tabHas Role`.role""", doctype):
+			`tabDocPerm`
+		WHERE `tabDocPerm`.`parent` = %s
+		AND `tabDocPerm`.`role` = `tabHas Role`.`role`
+		""", doctype):
 		frappe.clear_cache(user=user)
 
 def validate_permissions(doctype, for_remove=False):

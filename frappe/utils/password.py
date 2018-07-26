@@ -52,7 +52,7 @@ def set_encrypted_password(doctype, name, pwd, fieldname='password'):
 	frappe.db.sql("""insert into `__Auth` (doctype, name, fieldname, `password`, encrypted)
 		values (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 1)
 		{on_duplicate_update} `password`=%(pwd)s, encrypted=1""".format(
-			on_duplicate_update=frappe.db.get_on_duplicate_update()
+			on_duplicate_update=frappe.db.get_on_duplicate_update(['doctype', 'name', 'fieldname'])
 		), { 'doctype': doctype, 'name': name, 'fieldname': fieldname, 'pwd': encrypt(pwd) })
 
 def check_password(user, pwd, doctype='User', fieldname='password'):
@@ -61,8 +61,6 @@ def check_password(user, pwd, doctype='User', fieldname='password'):
 	auth = frappe.db.sql("""select `name`, `password` from `__Auth`
 		where `doctype`=%(doctype)s and `name`=%(name)s and `fieldname`=%(fieldname)s and `encrypted`=0""",
 		{'doctype': doctype, 'name': user, 'fieldname': fieldname}, as_dict=True)
-
-	print('authooo', auth)
 
 	if not auth or not passlibctx.verify(pwd, auth[0].password):
 		raise frappe.AuthenticationError(_('Incorrect User or Password'))

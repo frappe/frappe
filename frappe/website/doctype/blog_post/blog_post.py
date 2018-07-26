@@ -37,9 +37,9 @@ class BlogPost(WebsiteGenerator):
 			self.published_on = today()
 
 		# update posts
-		frappe.db.sql("""update tabBlogger set posts=(select count(*) from `tabBlog Post`
-			where ifnull(blogger,'')=tabBlogger.name)
-			where name=%s""", (self.blogger,))
+		frappe.db.sql("""UPDATE `tabBlogger` SET `posts`=(SELECT COUNT(*) FROM `tabBlog Post`
+			WHERE IFNULL(`blogger`,'')=`tabBlogger`.`name`)
+			WHERE `name`=%s""", (self.blogger,))
 
 	def on_update(self):
 		clear_cache("writers")

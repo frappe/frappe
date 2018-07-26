@@ -179,10 +179,10 @@ def revert_series_if_last(key, name):
 		prefix = key
 
 	count = cint(name.replace(prefix, ""))
-	current = frappe.db.sql("select `current` from `tabSeries` where name=%s for update", (prefix,))
+	current = frappe.db.sql("SELECT `current` FROM `tabSeries` WHERE `name`=%s FOR UPDATE", (prefix,))
 
 	if current and current[0][0]==count:
-		frappe.db.sql("update tabSeries set current=current-1 where name=%s", prefix)
+		frappe.db.sql("UPDATE `tabSeries` SET `current`='current-1' WHERE `name`=%s", prefix)
 
 
 def get_default_naming_series(doctype):
@@ -226,10 +226,10 @@ def append_number_if_name_exists(doctype, value, fieldname='name', separator='-'
 	regex = '^{value}{separator}\d+$'.format(value=re.escape(value), separator=separator)
 
 	if exists:
-		last = frappe.db.sql("""select {fieldname} from `tab{doctype}`
-			where {fieldname} regexp %s
-			order by length({fieldname}) desc,
-			{fieldname} desc limit 1""".format(doctype=doctype, fieldname=fieldname), regex)
+		last = frappe.db.sql("""SELECT `{fieldname}` FROM `tab{doctype}`
+			WHERE `{fieldname}` {regex_character} %s
+			ORDER BY length({fieldname}) DESC,
+			`{fieldname}` DESC LIMIT 1""".format(doctype=doctype, fieldname=fieldname, regex_character='~'), regex)
 
 		if last:
 			count = str(cint(last[0][0].rsplit(separator, 1)[1]) + 1)
