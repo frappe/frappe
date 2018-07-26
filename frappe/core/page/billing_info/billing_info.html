@@ -1,0 +1,21 @@
+<div>
+	<div class="upgrade-message padding" style="border-bottom: 1px solid #d0d8dc;">
+		<h4>{{ __("Address Details") }}</h4>
+	</div>
+	<div class="usage-info-section" style="margin: 30px;">
+		{% if billing_info.address %}
+			<h5>You cannot edit your billing info, if they are invalid, please contact support.
+		</h5>
+			
+			<div>
+				<br>
+				<b>Name</b>: {{ billing_info.billing_name }}
+				<br><br>
+				<b>Address:</b>
+				{{ billing_info.address }}
+			</div>
+		{% else %}
+			<button class="btn btn-primary btn-sm primary-action"> Add Billing Address </button>
+		{% endif %}
+	</div>
+</div>
