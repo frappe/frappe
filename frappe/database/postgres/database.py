@@ -6,6 +6,8 @@ import frappe
 import subprocess
 import psycopg2
 import psycopg2.extensions
+from six import string_types
+from frappe.utils import cstr
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from frappe.database.database import Database
@@ -26,7 +28,6 @@ class PostgresDatabase(Database):
 	SQLError = psycopg2.ProgrammingError
 	DataError = psycopg2.DataError
 	InterfaceError = psycopg2.InterfaceError
-	IntegrityError = psycopg2.IntegrityError
 
 	def setup_type_map(self):
 		self.type_map = {
@@ -76,6 +77,8 @@ class PostgresDatabase(Database):
 		# ideally we shouldn't have to use ESCAPE and strive to pass values via the values argument of sql
 		if percent:
 			s = s.replace("%", "%%")
+
+		s = s.encode('utf-8')
 
 		return str(psycopg2.extensions.QuotedString(s))
 
@@ -128,6 +131,16 @@ class PostgresDatabase(Database):
 
 	def cant_drop_field_or_key(self, e):
 		return e.pgcode.startswith('23')
+
+	def is_duplicate_entry(self, e):
+		return e.pgcode == '23505'
+
+	def is_primary_key_violation(self, e):
+		return e.pgcode == '23505' and '_pkey' in cstr(e.args[0])
+
+	def is_unique_key_violation(self, e):
+		return e.pgcode == '23505' and '_key' in cstr(e.args[0])
+
 
 	def create_auth_table(self):
 		frappe.db.sql_ddl("""create table if not exists "__Auth" (
@@ -190,6 +203,27 @@ class PostgresDatabase(Database):
 	def has_index(self, table_name, index_name):
 		return frappe.db.sql("""SELECT 1 FROM pg_indexes WHERE tablename='{table_name}'
 			and indexname='{index_name}' limit 1""".format(table_name=table_name, index_name=index_name))
+
+	def add_index(self, doctype, fields, index_name=None):
+		"""Creates an index with given fields if not already created.
+		Index name will be `fieldname1_fieldname2_index`"""
+		index_name = index_name or self.get_index_name(fields)
+
+		frappe.db.commit()
+		frappe.db.sql("""CREATE INDEX IF NOT EXISTS {} ON `tab{}`("{}")""".format(index_name, doctype, '", "'.join(fields)))
+
+	def add_unique(self, doctype, fields, constraint_name=None):
+		if isinstance(fields, string_types):
+			fields = [fields]
+		if not constraint_name:
+			constraint_name = "unique_" + "_".join(fields)
+
+		if not frappe.db.sql("""select CONSTRAINT_NAME from information_schema.TABLE_CONSTRAINTS
+			where table_name=%s and constraint_type='UNIQUE' and CONSTRAINT_NAME=%s""",
+			('tab' + doctype, constraint_name)):
+				frappe.db.commit()
+				frappe.db.sql("""alter table `tab%s`
+					add constraint %s unique (%s)""" % (doctype, constraint_name, ", ".join(fields)))
 
 	def get_table_columns_description(self, table_name):
 		"""Returns list of column and its description"""

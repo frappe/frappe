@@ -118,7 +118,8 @@ class Database:
 
 		"""
 		if re.search('ifnull', query, flags=re.IGNORECASE):
-			query = re.sub('ifnull', 'coalesce', query, flags=re.IGNORECASE) # replaces ifnull in query with coalesce
+			# replaces ifnull in query with coalesce
+			query = re.sub('ifnull', 'coalesce', query, flags=re.IGNORECASE)
 
 		if not self._conn:
 			self.connect()
@@ -175,15 +176,6 @@ class Database:
 		except Exception as e:
 			if ignore_ddl and (self.is_bad_field(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
-
-			# NOTE: causes deadlock
-			# elif e.args[0]==2006:
-			# 	# mysql has gone away
-			# 	self.connect()
-			# 	return self.sql(query=query, values=values,
-			# 		as_dict=as_dict, as_list=as_list, formatted=formatted,
-			# 		debug=debug, ignore_ddl=ignore_ddl, as_utf8=as_utf8,
-			# 		auto_commit=auto_commit, update=update)
 			else:
 				raise
 
@@ -762,7 +754,7 @@ class Database:
 			return frappe.defaults.get_defaults(parent)
 
 	def begin(self):
-		self.sql("start transaction")
+		self.sql("START TRANSACTION")
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
@@ -877,32 +869,21 @@ class Database:
 		return frappe.db.sql('''SELECT column_type FROM INFORMATION_SCHEMA.COLUMNS
 			WHERE table_name = 'tab{0}' AND column_name = '{1}' '''.format(doctype, column))[0][0]
 
+	def has_index(self, table_name, index_name):
+		pass
+
 	def add_index(self, doctype, fields, index_name=None):
-		"""Creates an index with given fields if not already created.
-		Index name will be `fieldname1_fieldname2_index`"""
-		if not index_name:
-			index_name = "_".join(fields) + "_index"
-
-			# remove index length if present e.g. (10) from index name
-			index_name = re.sub(r"\s*\([^)]+\)\s*", r"", index_name)
-
-		if not frappe.db.sql("""show index from `tab%s` where Key_name="%s" """ % (doctype, index_name)):
-			frappe.db.commit()
-			frappe.db.sql("""alter table `tab%s`
-				add index `%s`(%s)""" % (doctype, index_name, ", ".join(fields)))
+		pass
 
 	def add_unique(self, doctype, fields, constraint_name=None):
-		if isinstance(fields, string_types):
-			fields = [fields]
-		if not constraint_name:
-			constraint_name = "unique_" + "_".join(fields)
+		pass
 
-		if not frappe.db.sql("""select CONSTRAINT_NAME from information_schema.TABLE_CONSTRAINTS
-			where table_name=%s and constraint_type='UNIQUE' and CONSTRAINT_NAME=%s""",
-			('tab' + doctype, constraint_name)):
-				frappe.db.commit()
-				frappe.db.sql("""alter table `tab%s`
-					add unique `%s`(%s)""" % (doctype, constraint_name, ", ".join(fields)))
+	@staticmethod
+	def get_index_name(fields):
+		index_name = "_".join(fields) + "_index"
+		# remove index length if present e.g. (10) from index name
+		index_name = re.sub(r"\s*\([^)]+\)\s*", r"", index_name)
+		return index_name
 
 	def get_system_setting(self, key):
 		def _load_system_settings():
@@ -931,8 +912,6 @@ class Database:
 	def is_missing_table_or_column(self, e):
 		return self.is_bad_field(e) or self.is_missing_table(e)
 
-	def has_index(self, table_name, index_name):
-		pass
 
 def enqueue_jobs_after_commit():
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:

@@ -9,11 +9,12 @@ from pymysql.times import TimeDelta
 from pymysql.constants 	import ER, FIELD_TYPE
 from pymysql.converters import conversions
 
-from frappe.utils import get_datetime
+from frappe.utils import get_datetime, cstr
 from markdown2 import UnicodeWithAttrs
-from six import PY2, binary_type, text_type
 from frappe.database.database import Database
+from six import PY2, binary_type, text_type, string_types
 from frappe.database.mariadb.schema import MariaDBTable
+
 
 class MariaDBDatabase(Database):
 	ProgrammingError = pymysql.err.ProgrammingError
@@ -136,6 +137,15 @@ class MariaDBDatabase(Database):
 	def is_missing_column(self, e):
 		return e.args[0] == ER.BAD_FIELD_ERROR
 
+	def is_duplicate_entry(self, e):
+		return e.args[0] == ER.DUP_ENTRY
+
+	def is_primary_key_violation(self, e):
+		return self.is_duplicate_entry(e) and 'PRIMARY' in cstr(e.args[1])
+
+	def is_unique_key_violation(self, e):
+		return self.is_duplicate_entry(e) and 'Duplicate' in cstr(e.args[1])
+
 	def is_access_denied(self, e):
 		return e.args[0] == ER.ACCESS_DENIED_ERROR
 
@@ -195,6 +205,29 @@ class MariaDBDatabase(Database):
 				table_name=table_name,
 				index_name=index_name
 			))
+
+	def add_index(self, doctype, fields, index_name=None):
+		"""Creates an index with given fields if not already created.
+		Index name will be `fieldname1_fieldname2_index`"""
+		index_name = index_name or self.get_index_name(fields)
+
+		if not frappe.db.sql("""show index from `tab%s` where Key_name="%s" """ % (doctype, index_name)):
+			frappe.db.commit()
+			frappe.db.sql("""alter table `tab%s`
+				add index `%s`(%s)""" % (doctype, index_name, ", ".join(fields)))
+
+	def add_unique(self, doctype, fields, constraint_name=None):
+		if isinstance(fields, string_types):
+			fields = [fields]
+		if not constraint_name:
+			constraint_name = "unique_" + "_".join(fields)
+
+		if not frappe.db.sql("""select CONSTRAINT_NAME from information_schema.TABLE_CONSTRAINTS
+			where table_name=%s and constraint_type='UNIQUE' and CONSTRAINT_NAME=%s""",
+			('tab' + doctype, constraint_name)):
+				frappe.db.commit()
+				frappe.db.sql("""alter table `tab%s`
+					add unique `%s`(%s)""" % (doctype, constraint_name, ", ".join(fields)))
 
 	def updatedb(self, doctype, meta=None):
 		"""
