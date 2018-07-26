@@ -119,10 +119,6 @@ window.unhide_field = function(n) {
 	}
 };
 
-window.get_field_obj = function(fn) {
-	return cur_frm.fields_dict[fn];
-};
-
 _f.Frm.prototype.get_doc = function() {
 	return locals[this.doctype][this.docname];
 };
@@ -526,4 +522,30 @@ _f.Frm.prototype.get_sum = function(table_fieldname, fieldname) {
 		sum += d[fieldname];
 	}
 	return sum;
+};
+
+_f.Frm.prototype.setup_fieldname_select = function(fieldname, doctype, filter) {
+	if (!doctype) {
+		this.set_df_property(fieldname, "options", []);
+	}
+	return frappe.model.with_doctype(doctype).then(() => {
+		let get_select_options = function(df) {
+			return {value: df.fieldname, label: df.fieldname + " (" + __(df.label) + ")"};
+		};
+
+		let fields = frappe.get_doc("DocType", doctype).fields;
+
+		if (filter) {
+			fields = $.map(options, filter);
+		}
+
+		// filter empty fields
+		let options = $.map(fields,
+			function(d) {
+				return in_list(frappe.model.no_value_type, d.fieldtype) ?
+					null : get_select_options(d);
+			});
+
+		this.set_df_property(fieldname, "options", options);
+	});
 };

@@ -92,49 +92,52 @@ $.extend(frappe.model, {
 		return docfield[0];
 	},
 
-	with_doctype: function(doctype, callback, async) {
-		if(locals.DocType[doctype]) {
-			callback && callback();
-		} else {
-			var cached_timestamp = null;
-			if(localStorage["_doctype:" + doctype]) {
-				let cached_docs = JSON.parse(localStorage["_doctype:" + doctype]);
-				let cached_doc = cached_docs.filter(doc => doc.name === doctype)[0];
-				if(cached_doc) {
-					cached_timestamp = cached_doc.modified;
+	with_doctype: function(doctype, callback) {
+		return new Promise(resolve => {
+			if(locals.DocType[doctype]) {
+				callback && callback();
+				resolve();
+			} else {
+				var cached_timestamp = null;
+				if(localStorage["_doctype:" + doctype]) {
+					let cached_docs = JSON.parse(localStorage["_doctype:" + doctype]);
+					let cached_doc = cached_docs.filter(doc => doc.name === doctype)[0];
+					if(cached_doc) {
+						cached_timestamp = cached_doc.modified;
+					}
 				}
-			}
-			return frappe.call({
-				method:'frappe.desk.form.load.getdoctype',
-				type: "GET",
-				args: {
-					doctype: doctype,
-					with_parent: 1,
-					cached_timestamp: cached_timestamp
-				},
-				async: async,
-				freeze: true,
-				callback: function(r) {
-					if(r.exc) {
-						frappe.msgprint(__("Unable to load: {0}", [__(doctype)]));
-						throw "No doctype";
-					}
-					if(r.message=="use_cache") {
-						frappe.model.sync(cached_doc);
-					} else {
-						localStorage["_doctype:" + doctype] = JSON.stringify(r.docs);
-					}
-					frappe.model.init_doctype(doctype);
+				return frappe.call({
+					method:'frappe.desk.form.load.getdoctype',
+					type: "GET",
+					args: {
+						doctype: doctype,
+						with_parent: 1,
+						cached_timestamp: cached_timestamp
+					},
+					freeze: true,
+					callback: function(r) {
+						if(r.exc) {
+							frappe.msgprint(__("Unable to load: {0}", [__(doctype)]));
+							throw "No doctype";
+						}
+						if(r.message=="use_cache") {
+							frappe.model.sync(cached_doc);
+						} else {
+							localStorage["_doctype:" + doctype] = JSON.stringify(r.docs);
+						}
+						frappe.model.init_doctype(doctype);
 
-					if(r.user_settings) {
-						// remember filters and other settings from last view
-						frappe.model.user_settings[doctype] = JSON.parse(r.user_settings);
-						frappe.model.user_settings[doctype].updated_on = moment().toString();
+						if(r.user_settings) {
+							// remember filters and other settings from last view
+							frappe.model.user_settings[doctype] = JSON.parse(r.user_settings);
+							frappe.model.user_settings[doctype].updated_on = moment().toString();
+						}
+						callback && callback(r);
+						resolve();
 					}
-					callback && callback(r);
-				}
-			});
-		}
+				});
+			}
+		})
 	},
 
 	init_doctype: function(doctype) {

@@ -8,26 +8,18 @@ import json, os
 from frappe import _
 from frappe.model.document import Document
 from frappe.core.doctype.role.role import get_emails_from_role
-from frappe.utils import validate_email_add, nowdate, parse_val, is_html
+from frappe.utils import validate_email_add, is_html, nowdate
 from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
 from markdown2 import markdown
-from six import string_types
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
-
-# imports - third-party imports
-import pymysql
-from pymysql.constants import ER
+from frappe.automation.automation_utils import run_automation, get_context
 
 class Notification(Document):
 	def onload(self):
 		'''load message'''
 		if self.is_standard:
 			self.message = self.get_template()
-
-	def autoname(self):
-		if not self.name:
-			self.name = self.subject
 
 	def validate(self):
 		validate_template(self.subject)
@@ -42,7 +34,7 @@ class Notification(Document):
 		self.validate_forbidden_types()
 		self.validate_condition()
 		self.validate_standard()
-		frappe.cache().hdel('notifications', self.document_type)
+		frappe.cache().hdel('automations', self.document_type)
 
 	def on_update(self):
 		path = export_module_json(self, self.is_standard, self.module)
@@ -105,6 +97,9 @@ def get_context(context):
 
 		return docs
 
+	def execute(self, doc):
+		return self.send(doc)
+
 	def send(self, doc):
 		'''Build recipients and send Notification'''
 
@@ -158,8 +153,8 @@ def get_context(context):
 					continue
 			if recipient.email_by_document_field:
 				if validate_email_add(doc.get(recipient.email_by_document_field)):
-					recipient.email_by_document_field = doc.get(recipient.email_by_document_field).replace(",", "\n")
-					recipients = recipients + recipient.email_by_document_field.split("\n")
+					email_by_document_field = doc.get(recipient.email_by_document_field).replace(",", "\n")
+					recipients = recipients + email_by_document_field.split("\n")
 
 				# else:
 				# 	print "invalid email"
@@ -246,47 +241,5 @@ def trigger_notifications(doc, method=None):
 			where event in ('Days Before', 'Days After') and enabled=1"""):
 			alert = frappe.get_doc("Notification", alert)
 			for doc in alert.get_documents_for_today():
-				evaluate_alert(doc, alert, alert.event)
+				run_automation(alert, doc, alert.event)
 				frappe.db.commit()
-
-def evaluate_alert(doc, alert, event):
-	from jinja2 import TemplateError
-	try:
-		if isinstance(alert, string_types):
-			alert = frappe.get_doc("Notification", alert)
-
-		context = get_context(doc)
-
-		if alert.condition:
-			if not frappe.safe_eval(alert.condition, None, context):
-				return
-
-		if event=="Value Change" and not doc.is_new():
-			try:
-				db_value = frappe.db.get_value(doc.doctype, doc.name, alert.value_changed)
-			except pymysql.InternalError as e:
-				if e.args[0]== ER.BAD_FIELD_ERROR:
-					alert.db_set('enabled', 0)
-					frappe.log_error('Notification {0} has been disabled due to missing field'.format(alert.name))
-					return
-
-			db_value = parse_val(db_value)
-			if (doc.get(alert.value_changed) == db_value) or \
-				(not db_value and not doc.get(alert.value_changed)):
-
-				return # value not changed
-
-		if event != "Value Change" and not doc.is_new():
-			# reload the doc for the latest values & comments,
-			# except for validate type event.
-			doc = frappe.get_doc(doc.doctype, doc.name)
-
-		alert.send(doc)
-	except TemplateError:
-		frappe.throw(_("Error while evaluating Notification {0}. Please fix your template.").format(alert))
-	except Exception as e:
-		frappe.log_error(message=frappe.get_traceback(), title=str(e))
-		frappe.throw(_("Error in Notification"))
-
-def get_context(doc):
-	return {"doc": doc, "nowdate": nowdate, "frappe.utils": frappe.utils}

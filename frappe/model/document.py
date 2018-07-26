@@ -72,6 +72,8 @@ def get_doc(*args, **kwargs):
 
 class Document(BaseDocument):
 	"""All controllers inherit from `Document`."""
+	__frappedoc__ = True
+
 	def __init__(self, *args, **kwargs):
 		"""Constructor.
 
@@ -764,7 +766,7 @@ class Document(BaseDocument):
 		fn.__name__ = str(method)
 		out = Document.hook(fn)(self, *args, **kwargs)
 
-		self.run_notifications(method)
+		self.run_automations(method)
 		run_webhooks(self, method)
 
 		return out
@@ -772,51 +774,14 @@ class Document(BaseDocument):
 	def run_trigger(self, method, *args, **kwargs):
 		return self.run_method(method, *args, **kwargs)
 
-	def run_notifications(self, method):
+	def run_automations(self, method):
 		'''Run notifications for this method'''
+
 		if frappe.flags.in_import or frappe.flags.in_patch or frappe.flags.in_install:
 			return
 
-		if self.flags.notifications_executed==None:
-			self.flags.notifications_executed = []
-
-		from frappe.email.doctype.notification.notification import evaluate_alert
-
-		if self.flags.notifications == None:
-			alerts = frappe.cache().hget('notifications', self.doctype)
-			if alerts==None:
-				alerts = frappe.get_all('Notification', fields=['name', 'event', 'method'],
-					filters={'enabled': 1, 'document_type': self.doctype})
-				frappe.cache().hset('notifications', self.doctype, alerts)
-			self.flags.notifications = alerts
-
-		if not self.flags.notifications:
-			return
-
-		def _evaluate_alert(alert):
-			if not alert.name in self.flags.notifications_executed:
-				evaluate_alert(self, alert.name, alert.event)
-				self.flags.notifications_executed.append(alert.name)
-
-		event_map = {
-			"on_update": "Save",
-			"after_insert": "New",
-			"on_submit": "Submit",
-			"on_cancel": "Cancel"
-		}
-
-		if not self.flags.in_insert:
-			# value change is not applicable in insert
-			event_map['validate'] = 'Value Change'
-			event_map['before_change'] = 'Value Change'
-			event_map['before_update_after_submit'] = 'Value Change'
-
-		for alert in self.flags.notifications:
-			event = event_map.get(method, None)
-			if event and alert.event == event:
-				_evaluate_alert(alert)
-			elif alert.event=='Method' and method == alert.method:
-				_evaluate_alert(alert)
+		from frappe.automation.automation_utils import run_automations
+		run_automations(self, method)
 
 	@staticmethod
 	def whitelist(f):

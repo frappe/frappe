@@ -13,6 +13,7 @@ test_dependencies = ["User"]
 class TestNotification(unittest.TestCase):
 	def setUp(self):
 		frappe.db.sql("""delete from `tabEmail Queue`""")
+		# frappe.db.sql('delete from tabEvent')
 		frappe.set_user("test1@example.com")
 
 	def tearDown(self):
@@ -124,12 +125,15 @@ class TestNotification(unittest.TestCase):
 		event.delete()
 
 	def test_date_changed(self):
-
-		event = frappe.new_doc("Event")
-		event.subject = "test",
-		event.event_type = "Private"
-		event.starts_on = "2014-01-01 12:00:00"
-		event.insert()
+		event_name = frappe.db.get_value('Event', dict(subject='test for date changed'))
+		if event_name:
+			event = frappe.get_doc('Event', event_name)
+		else:
+			event = frappe.new_doc("Event")
+			event.subject = "test for date changed",
+			event.event_type = "Private"
+			event.starts_on = "2014-01-01 12:00:00"
+			event.insert()
 
 		self.assertFalse(frappe.db.get_value("Email Queue", {"reference_doctype": "Event",
 			"reference_name": event.name, "status": "Not Sent"}))

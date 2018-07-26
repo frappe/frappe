@@ -70,6 +70,8 @@ get_rooms = 'frappe.chat.doctype.chat_room.chat_room.get_rooms'
 
 calendars = ["Event"]
 
+automation_types = ['Notification', 'Action Set Value']
+
 # login
 
 on_session_creation = [
