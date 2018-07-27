@@ -88,7 +88,7 @@ def read_options_from_html(html):
 	options.update(prepare_header_footer(soup))
 
 	toggle_visible_pdf(soup)
-	
+
 	# use regex instead of soup-parser
 	for attr in ("margin-top", "margin-bottom", "margin-left", "margin-right", "page-size"):
 		try:
