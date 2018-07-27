@@ -560,10 +560,9 @@ def get_db_count(*args):
 
 	Example:
 		via terminal:
-			bench --site erpnext.local execute frappe.utils.get_db_count --args "['DocType', 'Communication']" 
+			bench --site erpnext.local execute frappe.utils.get_db_count --args "['DocType', 'Communication']"
 	"""
 	db_count = {}
-	flag = True
 	for doctype in args:
 		db_count[doctype] = frappe.db.count(doctype)
 
