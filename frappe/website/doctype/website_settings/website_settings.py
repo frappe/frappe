@@ -142,3 +142,6 @@ def get_items(parentfield):
 					break
 	return top_items
 
+@frappe.whitelist(allow_guest=True)
+def is_chat_enabled():
+	return bool(frappe.db.get_single_value('Website Settings', 'chat_enable'))
