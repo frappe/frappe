@@ -421,12 +421,10 @@ frappe.ready(function() {
 	frappe.call({
 		method: 'frappe.website.doctype.website_settings.website_settings.is_chat_enabled',
 		callback: (r) => {
-			console.log(r);
-
 			if (r.message) {
 				frappe.require('/assets/js/moment-bundle.min.js', () => {
-					frappe.require('/assets/js/chat.js')
-				})
+					frappe.require('/assets/js/chat.js');
+				});
 			}
 		}
 	})
