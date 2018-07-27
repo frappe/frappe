@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import six
 
-import re, copy, os
+import re, copy, os, subprocess
 import frappe
 from frappe import _
 
@@ -14,7 +14,7 @@ from frappe.model import no_value_fields, default_fields
 from frappe.model.document import Document
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.notifications import delete_notification_count_for
-from frappe.modules import make_boilerplate
+from frappe.modules import make_boilerplate, get_doc_path
 from frappe.model.db_schema import validate_column_name, validate_column_length, type_map
 from frappe.model.docfield import supports_translation
 import frappe.website.render
@@ -316,11 +316,12 @@ class DocType(Document):
 			frappe.throw(_("DocType can only be renamed by Administrator"))
 
 		self.check_developer_mode()
-
 		self.validate_name(new)
 
 		if merge:
 			frappe.throw(_("DocType can not be merged"))
+
+		self.rename_files_and_folders(old, new)
 
 	def after_rename(self, old, new, merge=False):
 		"""Change table name using `RENAME TABLE` if table exists. Or update
@@ -331,6 +332,29 @@ class DocType(Document):
 				where doctype=%s and field='name' and value = %s""", (new, new, old))
 		else:
 			frappe.db.sql("rename table `tab%s` to `tab%s`" % (old, new))
+
+	def rename_files_and_folders(self, old, new):
+		# move files
+		new_path = get_doc_path(self.module, 'doctype', new)
+		subprocess.check_output(['mv', get_doc_path(self.module, 'doctype', old), new_path])
+
+		# rename files
+		for fname in os.listdir(new_path):
+			if frappe.scrub(old) in fname:
+				subprocess.check_output(['mv', os.path.join(new_path, fname),
+					os.path.join(new_path, fname.replace(frappe.scrub(old), frappe.scrub(new)))])
+
+		self.rename_inside_controller(new, old, new_path)
+		frappe.msgprint('Renamed files and replaced code in controllers, please check!')
+
+	def rename_inside_controller(self, new, old, new_path):
+		for fname in ('{}.js', '{}.py', '{}_list.js', '{}_calendar.js', 'test_{}.py', 'test_{}.js'):
+			fname = os.path.join(new_path, fname.format(frappe.scrub(new)))
+			if os.path.exists(fname):
+				with open(fname, 'r') as f:
+					code = f.read()
+				with open(fname, 'w') as f:
+					f.write(code.replace(old.frappe.scrub(new), new.replace(' ', '')))
 
 	def before_reload(self):
 		"""Preserve naming series changes in Property Setter."""
