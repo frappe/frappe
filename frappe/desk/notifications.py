@@ -233,7 +233,7 @@ def get_filters_for(doctype):
 	return config.get('for_doctype').get(doctype, {})
 
 @frappe.whitelist()
-def get_open_count(doctype, name, items=None):
+def get_open_count(doctype, name, items=[]):
 	'''Get open count for given transactions and filters
 
 	:param doctype: Reference DocType
