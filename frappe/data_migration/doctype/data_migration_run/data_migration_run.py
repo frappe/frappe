@@ -116,11 +116,19 @@ class DataMigrationRun(Document):
 		push_failed = self.get_log('push_failed', [])
 		pull_failed = self.get_log('pull_failed', [])
 
-		if push_failed or pull_failed:
-			fields['status'] = 'Partial Success'
-		else:
-			fields['status'] = 'Success'
+		status = 'Partial Success'
+
+		if not push_failed and not pull_failed:
+			status = 'Success'
 			fields['percent_complete'] = 100
+
+		fields['status'] = status
+
+		# Execute post process
+		postprocess_method_path = self.get_plan().postprocess_method
+		frappe.get_attr(postprocess_method_path)({
+			"status": status
+		})
 
 		self.db_set(fields, notify=True, commit=True)
 
@@ -277,7 +285,9 @@ class DataMigrationRun(Document):
 			doc = mapping.get_mapped_record(doc)
 
 			try:
+				print("======================1==========================")
 				response_doc = connection.insert(mapping.remote_objectname, doc)
+				print("======================2==========================")
 				frappe.db.set_value(mapping.local_doctype, d.name,
 						mapping.migration_id_field, response_doc[connection.name_field],
 						update_modified=False)
@@ -285,6 +295,7 @@ class DataMigrationRun(Document):
 				self.update_log('push_insert', 1)
 				# post process after insert
 				self.post_process_doc(local_doc=d, remote_doc=response_doc)
+				print("======================3==========================")
 			except Exception:
 				self.update_log('push_failed', d.name)
 
