@@ -22,6 +22,7 @@ class MariaDBDatabase(Database):
 	InternalError = pymysql.err.InternalError
 	SQLError = pymysql.err.ProgrammingError
 	DataError = pymysql.err.DataError
+	REGEX_CHARACTER = 'regexp'
 
 	def setup_type_map(self):
 		self.type_map = {
@@ -94,9 +95,9 @@ class MariaDBDatabase(Database):
 
 	def get_database_size(self):
 		''''Returns database size in MB'''
-		db_size = frappe.db.sql('''
+		db_size = self.sql('''
 			SELECT `table_schema` as `database_name`,
-			sum(`data_length` + `index_length`) / 1024 / 1024 as `database_size`
+			SUM(`data_length` + `index_length`) / 1024 / 1024 AS `database_size`
 			FROM information_schema.tables WHERE `table_schema` = %s GROUP BY `table_schema`
 			''', self.db_name, as_dict=True)
 
@@ -137,6 +138,9 @@ class MariaDBDatabase(Database):
 	def is_missing_column(self, e):
 		return e.args[0] == ER.BAD_FIELD_ERROR
 
+	def is_duplicate_fieldname(self, e):
+		return e.args[0] == ER.DUP_FIELDNAME
+
 	def is_duplicate_entry(self, e):
 		return e.args[0] == ER.DUP_ENTRY
 
@@ -153,7 +157,7 @@ class MariaDBDatabase(Database):
 		return e.args[0] == ER.CANT_DROP_FIELD_OR_KEY
 
 	def create_auth_table(self):
-		frappe.db.sql_ddl("""create table if not exists `__Auth` (
+		self.sql_ddl("""create table if not exists `__Auth` (
 				`doctype` VARCHAR(140) NOT NULL,
 				`name` VARCHAR(255) NOT NULL,
 				`fieldname` VARCHAR(140) NOT NULL,
@@ -163,8 +167,8 @@ class MariaDBDatabase(Database):
 			) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci""")
 
 	def create_global_search_table(self):
-		if not '__global_search' in frappe.db.get_tables():
-			frappe.db.sql('''create table __global_search(
+		if not '__global_search' in self.get_tables():
+			self.sql('''create table __global_search(
 				doctype varchar(100),
 				name varchar({0}),
 				title varchar({0}),
@@ -178,12 +182,26 @@ class MariaDBDatabase(Database):
 				CHARACTER SET=utf8mb4'''.format(self.VARCHAR_LEN))
 
 	def create_user_settings_table(self):
-		frappe.db.sql_ddl("""create table if not exists __UserSettings (
+		self.sql_ddl("""create table if not exists __UserSettings (
 			`user` VARCHAR(180) NOT NULL,
 			`doctype` VARCHAR(180) NOT NULL,
 			`data` TEXT,
 			UNIQUE(user, doctype)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
+
+	def create_help_table(self):
+		self.sql('''create table help(
+				path varchar(255),
+				content text,
+				title text,
+				intro text,
+				full_path text,
+				fulltext(title),
+				fulltext(content),
+				index (path))
+				COLLATE=utf8mb4_unicode_ci
+				ENGINE=MyISAM
+				CHARACTER SET=utf8mb4''')
 
 	def get_on_duplicate_update(self, key=None):
 		return 'ON DUPLICATE key UPDATE '
@@ -191,16 +209,16 @@ class MariaDBDatabase(Database):
 	def get_table_columns_description(self, table_name):
 		"""Returns list of column and its description"""
 		return self.sql('''select
-			column_name as name,
-			data_type as type,
-			column_default as default,
-			column_key = 'MUL' as index,
-			column_key = 'UNI' as unique
+			column_name as 'name',
+			data_type as 'type',
+			column_default as 'default',
+			column_key = 'MUL' as 'index',
+			column_key = 'UNI' as 'unique'
 			from information_schema.columns
 			where table_name = '{table_name}' '''.format(table_name=table_name), as_dict=1)
 
 	def has_index(self, table_name, index_name):
-		return frappe.db.sql("""show index from `{table_name}`
+		return self.sql("""show index from `{table_name}`
 			where Key_name='{index_name}'""".format(
 				table_name=table_name,
 				index_name=index_name
@@ -211,9 +229,9 @@ class MariaDBDatabase(Database):
 		Index name will be `fieldname1_fieldname2_index`"""
 		index_name = index_name or self.get_index_name(fields)
 
-		if not frappe.db.sql("""show index from `tab%s` where Key_name="%s" """ % (doctype, index_name)):
-			frappe.db.commit()
-			frappe.db.sql("""alter table `tab%s`
+		if not self.sql("""show index from `tab%s` where Key_name="%s" """ % (doctype, index_name)):
+			self.commit()
+			self.sql("""alter table `tab%s`
 				add index `%s`(%s)""" % (doctype, index_name, ", ".join(fields)))
 
 	def add_unique(self, doctype, fields, constraint_name=None):
@@ -222,11 +240,11 @@ class MariaDBDatabase(Database):
 		if not constraint_name:
 			constraint_name = "unique_" + "_".join(fields)
 
-		if not frappe.db.sql("""select CONSTRAINT_NAME from information_schema.TABLE_CONSTRAINTS
+		if not self.sql("""select CONSTRAINT_NAME from information_schema.TABLE_CONSTRAINTS
 			where table_name=%s and constraint_type='UNIQUE' and CONSTRAINT_NAME=%s""",
 			('tab' + doctype, constraint_name)):
-				frappe.db.commit()
-				frappe.db.sql("""alter table `tab%s`
+				self.commit()
+				self.sql("""alter table `tab%s`
 					add unique `%s`(%s)""" % (doctype, constraint_name, ", ".join(fields)))
 
 	def updatedb(self, doctype, meta=None):
@@ -236,7 +254,7 @@ class MariaDBDatabase(Database):
 		* updates columns
 		* updates indices
 		"""
-		res = frappe.db.sql("select issingle from `tabDocType` where name=%s", (doctype,))
+		res = self.sql("select issingle from `tabDocType` where name=%s", (doctype,))
 		if not res:
 			raise Exception('Wrong doctype {0} in updatedb'.format(doctype))
 
@@ -244,6 +262,13 @@ class MariaDBDatabase(Database):
 			db_table = MariaDBTable(doctype, meta)
 			db_table.validate()
 
-			frappe.db.commit()
+			self.commit()
 			db_table.sync()
-			frappe.db.begin()
+			self.begin()
+
+	def get_fulltext_search_condition(self, columns, searchtext):
+		columns = '", "'.join(columns)
+		return """to_tsvector("{columns}") @@ to_tsquery('{searchtext}')""".format(
+			columns=columns,
+			searchtext=self.escape(searchtext)
+		)

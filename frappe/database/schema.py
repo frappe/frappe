@@ -7,12 +7,6 @@ import frappe
 from frappe import _
 from frappe.utils import cstr, cint, flt
 
-VARCHAR_LEN = 140
-OPTIONAL_COLUMNS = ["_user_tags", "_comments", "_assign", "_liked_by"]
-DEFAULT_SHORTCUTS = ['_Login', '__user', '_Full Name', 'Today', '__today', "now", "Now"]
-STANDARD_VARCHAR_COLUMNS = ('name', 'owner', 'modified_by', 'parent', 'parentfield', 'parenttype')
-DEFAULT_COLUMNS = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'parent',
-	'parentfield', 'parenttype', 'idx']
 
 class InvalidColumnName(frappe.ValidationError): pass
 
@@ -41,28 +35,7 @@ class DBTable:
 			self.alter()
 
 	def create(self):
-		add_text = ''
-
-		# columns
-		column_defs = self.get_column_definitions()
-		if column_defs: add_text += ',\n'.join(column_defs)
-
-		# index
-		# index_defs = self.get_index_definitions()
-		# TODO: set docstatus length
-		# create table
-		frappe.db.sql("""create table `%s` (
-			name varchar({varchar_len}) not null primary key,
-			creation timestamp(6),
-			modified timestamp(6),
-			modified_by varchar({varchar_len}),
-			owner varchar({varchar_len}),
-			docstatus smallint not null default '0',
-			parent varchar({varchar_len}),
-			parentfield varchar({varchar_len}),
-			parenttype varchar({varchar_len}),
-			idx bigint not null default '0',
-			%s)""".format(varchar_len=frappe.db.VARCHAR_LEN) % (self.table_name, add_text))
+		pass
 
 	def get_column_definitions(self):
 		column_list = [] + frappe.db.DEFAULT_COLUMNS
@@ -114,7 +87,8 @@ class DBTable:
 			if custom_fl: fl += custom_fl
 
 			# apply length, precision and unique from property setters
-			for ps in frappe.get_all("Property Setter", fields=["field_name", "property", "value"],
+			for ps in frappe.get_all("Property Setter",
+				fields=["field_name", "property", "value"],
 				filters={
 					"doc_type": self.doctype,
 					"doctype_or_field": "DocField",
@@ -169,7 +143,7 @@ class DBTable:
 				if not current_col:
 					continue
 				current_type = self.current_columns[col.fieldname]["type"]
-				current_length = re.findall('varchar\(([\d]+)\)', current_type)
+				current_length = re.findall(r'varchar\(([\d]+)\)', current_type)
 				if not current_length:
 					# case when the field is no longer a varchar
 					continue
@@ -177,7 +151,7 @@ class DBTable:
 				if cint(current_length) != cint(new_length):
 					try:
 						# check for truncation
-						max_length = frappe.db.sql("""select max(char_length(`{fieldname}`)) from `tab{doctype}`"""\
+						max_length = frappe.db.sql("""SELECT MAX(CHAR_LENGTH(`{fieldname}`)) FROM `tab{doctype}`"""\
 							.format(fieldname=col.fieldname, doctype=self.doctype))
 
 					except frappe.db.InternalError as e:
@@ -210,11 +184,11 @@ class DBTable:
 		query = []
 
 		for col in self.add_column:
-			query.append("add column `{}` {}".format(col.fieldname, col.get_definition()))
+			query.append("ADD COLUMN `{}` {}".format(col.fieldname, col.get_definition()))
 
 		for col in self.change_type:
 			current_def = self.current_columns.get(col.fieldname.lower(), None)
-			query.append("alter column `{}` type {}".format(current_def["name"], get_definition(col.fieldtype, precision=col.precision, length=col.length)))
+			query.append("ALTER COLUMN `{}` TYPE {}".format(current_def["name"], get_definition(col.fieldtype, precision=col.precision, length=col.length)))
 
 		for col in self.add_index:
 			# if index key not exists
@@ -251,28 +225,15 @@ class DBTable:
 			try:
 				frappe.db.sql("alter table `{}` {}".format(self.table_name, ", ".join(query)))
 			except Exception as e:
-				raise e
 				# sanitize
-				if e.args[0]==1060:
+				if frappe.db.is_duplicate_fieldname(e):
 					frappe.throw(str(e))
-				elif e.args[0]==1062:
+				elif frappe.db.is_duplicate_entry(e):
 					fieldname = str(e).split("'")[-2]
 					frappe.throw(_("{0} field cannot be set as unique in {1}, as there are non-unique existing values".format(
 						fieldname, self.table_name)))
 				else:
 					raise e
-
-	def get_foreign_keys(self):
-		fk_list = []
-		txt = frappe.db.sql("show create table `%s`" % self.table_name)[0][1]
-		for line in txt.split('\n'):
-			if line.strip().startswith('CONSTRAINT') and line.find('FOREIGN')!=-1:
-				try:
-					fk_list.append((line.split('`')[3], line.split('`')[1]))
-				except IndexError:
-					pass
-
-		return fk_list
 
 
 class DbColumn:
@@ -391,10 +352,7 @@ def validate_column_name(n):
 	return n
 
 def validate_column_length(fieldname):
-	""" In MySQL maximum column length is 64 characters,
-		ref: https://dev.mysql.com/doc/refman/5.5/en/identifiers.html"""
-
-	if len(fieldname) > 64:
+	if len(fieldname) > frappe.db.MAX_COLUMN_LENGTH:
 		frappe.throw(_("Fieldname is limited to 64 characters ({0})").format(fieldname))
 
 def get_definition(fieldtype, precision=None, length=None):
@@ -431,15 +389,7 @@ def add_column(doctype, column_name, fieldtype, precision=None):
 		column_name, get_definition(fieldtype, precision)))
 
 class DbManager:
-	"""
-	Basically, a wrapper for oft-used mysql commands. like show tables,databases, variables etc...
 
-	#TODO:
-		0.  Simplify / create settings for the restore database source folder
-		0a. Merge restore database and extract_sql(from frappe_server_tools).
-		1. Setter and getter for different mysql variables.
-		2. Setter and getter for mysql variables at global level??
-	"""
 	def __init__(self, db):
 		"""
 		Pass root_conn here for access to all databases.
@@ -449,12 +399,6 @@ class DbManager:
 
 	def get_current_host(self):
 		return self.db.sql("select user()")[0][0].split('@')[1]
-
-	def get_variables(self,regex):
-		"""
-		Get variables that match the passed pattern regex
-		"""
-		return list(self.db.sql("SHOW VARIABLES LIKE '%s'"%regex))
 
 	def create_user(self, user, password, host=None):
 		#Create user if it doesn't exist.
@@ -493,14 +437,6 @@ class DbManager:
 		self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target,
 			user, host))
 
-	def grant_select_privilges(self, db, table, user, host=None):
-		if not host:
-			host = self.get_current_host()
-
-		if table:
-			self.db.sql("GRANT SELECT ON %s.%s to '%s'@'%s';" % (db, table, user, host))
-		else:
-			self.db.sql("GRANT SELECT ON %s.* to '%s'@'%s';" % (db, user, host))
 
 	def flush_privileges(self):
 		self.db.sql("FLUSH PRIVILEGES")
@@ -509,7 +445,7 @@ class DbManager:
 		"""get list of databases"""
 		return [d[0] for d in self.db.sql("SHOW DATABASES")]
 
-	def restore_database(self,target,source,user,password):
+	def restore_database(self, target, source, user, password):
 		from frappe.utils import make_esc
 		esc = make_esc('$ ')
 
@@ -538,9 +474,3 @@ class DbManager:
 		)
 		os.system(command)
 
-	def drop_table(self,table_name):
-		"""drop table if exists"""
-		if not table_name in frappe.db.get_tables:
-			return
-
-		self.db.sql("DROP TABLE IF EXISTS %s "%(table_name))

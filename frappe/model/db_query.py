@@ -7,15 +7,15 @@ from six import iteritems, string_types
 
 """build query for doclistview and return results"""
 
-import frappe, json, copy, re
 import frappe.defaults
 import frappe.share
-import frappe.permissions
-from frappe.utils import flt, cint, getdate, get_datetime, get_time, make_filter_tuple, get_filter, add_to_date
 from frappe import _
+import frappe.permissions
+from datetime import datetime
+import frappe, json, copy, re
 from frappe.model import optional_fields
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
-from datetime import datetime
+from frappe.utils import flt, cint, getdate, get_datetime, get_time, make_filter_tuple, get_filter, add_to_date, cstr
 
 class DatabaseQuery(object):
 	def __init__(self, doctype, user=None):
@@ -211,10 +211,10 @@ class DatabaseQuery(object):
 				if any("{0}(".format(keyword) in field.lower() for keyword in blacklisted_functions):
 					_raise_exception()
 
-			if re.compile("[a-zA-Z]+\s*'").match(field):
+			if re.compile(r"[a-zA-Z]+\s*'").match(field):
 				_raise_exception()
 
-			if re.compile('[a-zA-Z]+\s*,').match(field):
+			if re.compile(r'[a-zA-Z]+\s*,').match(field):
 				_raise_exception()
 
 	def extract_tables(self):
@@ -245,7 +245,7 @@ class DatabaseQuery(object):
 			raise frappe.PermissionError(doctype)
 
 	def set_field_tables(self):
-		'''If there are more than one table, the fieldname must not be ambigous.
+		'''If there are more than one table, the fieldname must not be ambiguous.
 		If the fieldname is not explicitly mentioned, set the default table'''
 		if len(self.tables) > 1:
 			for i, f in enumerate(self.fields):
@@ -376,7 +376,11 @@ class DatabaseQuery(object):
 			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
 				can_be_null = False
 
-			if f.operator.lower() == 'between' and \
+			if f.operator in ('>', '<') and (f.fieldname in ('creation', 'modified')):
+				value = "'" + cstr(f.value) +"'"
+				fallback = "NULL"
+
+			elif f.operator.lower() in ('between') and \
 				(f.fieldname in ('creation', 'modified') or (df and (df.fieldtype=="Date" or df.fieldtype=="Datetime"))):
 
 				value = get_between_date_filter(f.value, df)
@@ -454,10 +458,12 @@ class DatabaseQuery(object):
 				self.conditions.append(self.get_share_condition())
 
 		else:
-			if role_permissions.get("if_owner", {}).get("read"): #if has if_owner permission skip user perm check
-				self.match_conditions.append("`tab{0}`.owner = {1}".format(self.doctype,
+			#if has if_owner permission skip user perm check
+			if role_permissions.get("if_owner", {}).get("read"):
+				self.match_conditions.append("`tab{0}`.`owner` = {1}".format(self.doctype,
 					frappe.db.escape(self.user, percent=False)))
-			elif role_permissions.get("read"): # add user permission only if role has read perm
+			# add user permission only if role has read perm
+			elif role_permissions.get("read"):
 				# get user permissions
 				user_permissions = frappe.permissions.get_user_permissions(self.user)
 				self.add_user_permissions(user_permissions)
@@ -503,7 +509,7 @@ class DatabaseQuery(object):
 			user_permission_values = user_permissions.get(df.get('options'), {})
 			if df.get('ignore_user_permissions'): continue
 
-			empty_value_condition = 'ifnull(`tab{doctype}`.`{fieldname}`, "")=""'.format(
+			empty_value_condition = "ifnull(`tab{doctype}`.`{fieldname}`, '')=''".format(
 				doctype=self.doctype, fieldname=df.get('fieldname')
 			)
 
@@ -541,7 +547,7 @@ class DatabaseQuery(object):
 
 	def run_custom_query(self, query):
 		if '%(key)s' in query:
-			query = query.replace('%(key)s', 'name')
+			query = query.replace('%(key)s', '`name`')
 		return frappe.db.sql(query, as_dict = (not self.as_list))
 
 	def set_order_by(self, args):

@@ -49,9 +49,9 @@ def sync_user_settings():
 	for key, data in iteritems(frappe.cache().hgetall('_user_settings')):
 		key = safe_decode(key)
 		doctype, user = key.split('::') # WTF?
-		frappe.db.sql('''insert into `__UserSettings` (`user`, `doctype`, `data`) values (%s, %s, %s)
-			{on_duplicate_update} data=%s'''.format(
-				on_duplicate_update=frappe.db.get_on_duplicate_update()
+		frappe.db.sql('''INSERT INTO `__UserSettings` (`user`, `doctype`, `data`) VALUES (%s, %s, %s)
+			{on_duplicate_update} `data`=%s'''.format(
+				on_duplicate_update=frappe.db.get_on_duplicate_update(['user', 'doctype'])
 			), (user, doctype, data, data))
 
 @frappe.whitelist()

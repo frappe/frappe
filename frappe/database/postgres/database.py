@@ -28,6 +28,7 @@ class PostgresDatabase(Database):
 	SQLError = psycopg2.ProgrammingError
 	DataError = psycopg2.DataError
 	InterfaceError = psycopg2.InterfaceError
+	REGEX_CHARACTER = '~'
 
 	def setup_type_map(self):
 		self.type_map = {
@@ -141,6 +142,16 @@ class PostgresDatabase(Database):
 	def is_unique_key_violation(self, e):
 		return e.pgcode == '23505' and '_key' in cstr(e.args[0])
 
+	def is_duplicate_fieldname(self, e):
+		print('---------------------------------------', e.pgcode)
+		return True
+
+	def get_fulltext_search_condition(self, columns, searchtext):
+		columns = '", "'.join(columns)
+		return """to_tsvector("{columns}") @@ to_tsquery('{searchtext}')""".format(
+			columns=columns,
+			searchtext=self.escape(searchtext)
+		)
 
 	def create_auth_table(self):
 		frappe.db.sql_ddl("""create table if not exists "__Auth" (
@@ -168,8 +179,20 @@ class PostgresDatabase(Database):
 			"user" VARCHAR(180) NOT NULL,
 			"doctype" VARCHAR(180) NOT NULL,
 			"data" TEXT,
-			UNIQUE("user", "doctype")
+			UNIQUE ("user", "doctype")
 			)""")
+
+	def create_help_table(self):
+		self.sql('''CREATE TABLE "help"(
+				"path" varchar(255),
+				"content" text,
+				"title" text,
+				"intro" text,
+				"full_path" text,
+				index (path))
+				COLLATE=utf8mb4_unicode_ci
+				ENGINE=MyISAM
+				CHARACTER SET=utf8mb4''')
 
 	def updatedb(self, doctype, meta=None):
 		"""
@@ -192,8 +215,8 @@ class PostgresDatabase(Database):
 
 	def get_on_duplicate_update(self, key='name'):
 		if isinstance(key, list):
-			key = ", ".join(key)
-		return 'ON CONFLICT ({key}) DO UPDATE SET '.format(
+			key = '", "'.join(key)
+		return 'ON CONFLICT ("{key}") DO UPDATE SET '.format(
 			key=key
 		)
 

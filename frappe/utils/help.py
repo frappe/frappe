@@ -88,18 +88,7 @@ class HelpDatabase(object):
 
 	def make_table(self):
 		if not 'help' in self.db.get_tables():
-			self.db.sql('''create table help(
-				path varchar(255),
-				content text,
-				title text,
-				intro text,
-				full_path text,
-				fulltext(title),
-				fulltext(content),
-				index (path))
-				COLLATE=utf8mb4_unicode_ci
-				ENGINE=MyISAM
-				CHARACTER SET=utf8mb4''')
+			frappe.db.create_help_table()
 
 	def search(self, words):
 		self.connect()

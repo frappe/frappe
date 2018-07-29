@@ -34,6 +34,7 @@ class Database:
 	   the `db` global variable. the `sql` method is also global to run queries
 	"""
 	VARCHAR_LEN = 140
+	MAX_COLUMN_LENGTH = 64
 
 	OPTIONAL_COLUMNS = ["_user_tags", "_comments", "_assign", "_liked_by"]
 	DEFAULT_SHORTCUTS = ['_Login', '__user', '_Full Name', 'Today', '__today', "now", "Now"]

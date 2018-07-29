@@ -87,8 +87,8 @@ def get_context(context):
 		if self.event=="Days After":
 			diff_days = -diff_days
 
-		for name in frappe.db.sql_list("""select name from `tab{0}` where
-			DATE(`{1}`) = ADDDATE(DATE(%s), INTERVAL %s DAY)""".format(self.document_type,
+		for name in frappe.db.sql_list("""SELECT NAME FROM `tab{0}` WHERE
+			DATE(`{1}`) = (DATE('%s') + INTERVAL '%s' DAY)""".format(self.document_type,
 				self.date_changed), (nowdate(), diff_days or 0)):
 
 			doc = frappe.get_doc(self.document_type, name)

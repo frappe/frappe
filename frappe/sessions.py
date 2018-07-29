@@ -300,14 +300,15 @@ class Session:
 		return data and data.data
 
 	def get_session_data_from_db(self):
-		self.device = frappe.db.sql('select device from tabSessions where sid=%s', self.sid)
+		self.device = frappe.get_all('Sessions', ['device'], {'sid': self.sid})
 		self.device = self.device and self.device[0][0] or 'desktop'
 
-		# rec = frappe.db.sql("""select user, sessiondata
-		# 	from tabSessions where sid=%s and
-		# 	TIMEDIFF(NOW(), lastupdate) < TIME(%s)""", (self.sid,
-		# 		get_expiry_period(self.device)))
-		rec = None
+		rec = frappe.db.sql("""
+			SELECT `user`, `sessiondata`
+			FROM `tabSessions` WHERE `sid`=%s AND
+			(NOW() - lastupdate) < %s
+			""", (self.sid, get_expiry_period(self.device)))
+
 		if rec:
 			data = frappe._dict(eval(rec and rec[0][1] or '{}'))
 			data.user = rec[0][0]

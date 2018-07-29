@@ -28,25 +28,29 @@ class PostgresTable(DBTable):
 	# 		))
 	# 	return docfields
 
-	def create_table(self):
-		# add_text = ''
+	def create(self):
+		add_text = ''
+
+		# columns
+		column_defs = self.get_column_definitions()
+		if column_defs: add_text += ',\n'.join(column_defs)
+
+		# index
+		# index_defs = self.get_index_definitions()
+		# TODO: set docstatus length
 		# create table
-		frappe.db.sql("""CREATE TABLE "{name}" (
-			"name" varchar({varchar_len}) NOT NULL,
-			"creation" timestamp(6) DEFAULT NULL,
-			"modified" timestamp(6) DEFAULT NULL,
-			"modified_by" varchar({varchar_len}) DEFAULT NULL,
-			"owner" varchar({varchar_len}) DEFAULT NULL,
-			"docstatus" smallint NOT NULL DEFAULT 0,
-			"parent" varchar({varchar_len}) DEFAULT NULL,
-			"parentfield" varchar({varchar_len}) DEFAULT NULL,
-			"parenttype" varchar({varchar_len}) DEFAULT NULL,
-			"idx" bigint NOT NULL DEFAULT 0,
-			{columns}
-		)""".format(
-			name=self.table_name,
-			columns = self.get_column_definitions(),
-			varchar_len = frappe.db.VARCHAR_LEN))
+		frappe.db.sql("""create table `%s` (
+			name varchar({varchar_len}) not null primary key,
+			creation timestamp(6),
+			modified timestamp(6),
+			modified_by varchar({varchar_len}),
+			owner varchar({varchar_len}),
+			docstatus smallint not null default '0',
+			parent varchar({varchar_len}),
+			parentfield varchar({varchar_len}),
+			parenttype varchar({varchar_len}),
+			idx bigint not null default '0',
+			%s)""".format(varchar_len=frappe.db.VARCHAR_LEN) % (self.table_name, add_text))
 
 	# def get_column_definitions(self):
 	# 	columns_definitions = []
