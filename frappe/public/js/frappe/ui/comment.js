@@ -214,19 +214,19 @@ frappe.ui.ReviewArea = class ReviewArea extends frappe.ui.CommentArea {
 	setup_dom() {
 		const header = !this.no_wrapper ?
 			`<div class="comment-input-header">
-				<span class="small text-muted">${__("Add your review")}</span>
+				<span class="text-muted">${__("Add your review")}</span>
 				<button class="btn btn-default btn-comment btn-xs disabled pull-right">
 					${__("Submit Review")}
 				</button>
 			</div>` : '';
 
 		const footer = !this.no_wrapper ?
-			`<div class="text-muted small">
+			`<div class="text-muted">
 				${__("Ctrl+Enter to submit")}
 			</div>` : '';
 
-		const ratingArea = !this.no_wrapper ?
-			`<div class="rating-area text-muted small" style="margin-bottom: 5px">
+		const rating_area = !this.no_wrapper ?
+			`<div class="rating-area text-muted">
 				${ __("Your rating: ") }
 				<i class='fa fa-fw fa-star-o star-icon' data-index=0></i>
 				<i class='fa fa-fw fa-star-o star-icon' data-index=1></i>
@@ -239,13 +239,15 @@ frappe.ui.ReviewArea = class ReviewArea extends frappe.ui.CommentArea {
 			<div class="comment-input-wrapper">
 				${ header }
 				<div class="comment-input-container">
-					${ ratingArea }
-					<input class="form-control review-subject" type="text"
-						placeholder="${__('Subject')}"
-						style="border-radius: 3px; border-color: #ebeff2">
-					</input>
-					<div class="form-control comment-input"></div>
-					${ footer }
+					${ rating_area }
+					<div class="comment-input-body margin-top">
+						<input class="form-control review-subject" type="text"
+							placeholder="${__('Subject')}"
+							style="border-radius: 3px; border-color: #ebeff2">
+						</input>
+						<div class="form-control comment-input"></div>
+						${ footer }
+					</div>
 				</div>
 			</div>
 		`);
@@ -258,13 +260,19 @@ frappe.ui.ReviewArea = class ReviewArea extends frappe.ui.CommentArea {
 		this.rating = 0;
 	}
 
-	check_state() {
+	input_has_value() {
 		return !(this.input.summernote('isEmpty') ||
 			this.rating === 0 || !this.subject.val().length);
 	}
 
 	set_state() {
-		if(this.check_state()) {
+		if (this.rating === 0) {
+			this.parent.find('.comment-input-body').hide();
+		} else {
+			this.parent.find('.comment-input-body').show();
+		}
+
+		if(this.input_has_value()) {
 			this.button
 				.removeClass('btn-default disabled')
 				.addClass('btn-primary');
@@ -290,7 +298,9 @@ frappe.ui.ReviewArea = class ReviewArea extends frappe.ui.CommentArea {
 
 		this.subject.on('change', () => {
 			this.set_state();
-		})
+		});
+
+		this.set_state();
 	}
 
 	set_rating(rating) {
