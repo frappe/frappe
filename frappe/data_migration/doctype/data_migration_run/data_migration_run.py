@@ -127,7 +127,8 @@ class DataMigrationRun(Document):
 		# Execute post process
 		postprocess_method_path = self.get_plan().postprocess_method
 		frappe.get_attr(postprocess_method_path)({
-			"status": status
+			"status": status,
+			"remote_id": self.remote_id or ''
 		})
 
 		self.db_set(fields, notify=True, commit=True)
