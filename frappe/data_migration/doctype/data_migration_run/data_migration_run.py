@@ -124,14 +124,23 @@ class DataMigrationRun(Document):
 
 		fields['status'] = status
 
+		self.db_set(fields, notify=True, commit=True)
+
 		# Execute post process
 		postprocess_method_path = self.get_plan().postprocess_method
-		frappe.get_attr(postprocess_method_path)({
-			"status": status,
-			"remote_id": self.remote_id or ''
-		})
 
-		self.db_set(fields, notify=True, commit=True)
+		if postprocess_method_path:
+			frappe.get_attr(postprocess_method_path)({
+				"status": status,
+				"remote_id": self.remote_id or '',
+				"stats": {
+					"push_insert": self.push_insert,
+					"push_update": self.push_update,
+					"push_delete": self.push_delete,
+					"pull_insert": self.pull_insert,
+					"pull_update": self.pull_update
+				}
+			})
 
 	def get_plan(self):
 		if not hasattr(self, 'plan'):
@@ -286,9 +295,7 @@ class DataMigrationRun(Document):
 			doc = mapping.get_mapped_record(doc)
 
 			try:
-				print("======================1==========================")
 				response_doc = connection.insert(mapping.remote_objectname, doc)
-				print("======================2==========================")
 				frappe.db.set_value(mapping.local_doctype, d.name,
 						mapping.migration_id_field, response_doc[connection.name_field],
 						update_modified=False)
@@ -296,7 +303,6 @@ class DataMigrationRun(Document):
 				self.update_log('push_insert', 1)
 				# post process after insert
 				self.post_process_doc(local_doc=d, remote_doc=response_doc)
-				print("======================3==========================")
 			except Exception:
 				self.update_log('push_failed', d.name)
 
