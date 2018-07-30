@@ -321,7 +321,8 @@ class DocType(Document):
 		if merge:
 			frappe.throw(_("DocType can not be merged"))
 
-		self.rename_files_and_folders(old, new)
+		if not frappe.flags.in_test and not frappe.flags.in_patch:
+			self.rename_files_and_folders(old, new)
 
 	def after_rename(self, old, new, merge=False):
 		"""Change table name using `RENAME TABLE` if table exists. Or update
@@ -354,7 +355,7 @@ class DocType(Document):
 				with open(fname, 'r') as f:
 					code = f.read()
 				with open(fname, 'w') as f:
-					f.write(code.replace(old.frappe.scrub(new), new.replace(' ', '')))
+					f.write(code.replace(frappe.scurb(old).replace(' ', ''), frappe.scrub(new).replace(' ', '')))
 
 	def before_reload(self):
 		"""Preserve naming series changes in Property Setter."""
