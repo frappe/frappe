@@ -17,6 +17,7 @@ def get_context(context, **dict_params):
 	frappe.local.form_dict.update(dict_params)
 	doctype = frappe.local.form_dict.doctype
 	context.parents = [{"route":"me", "title":_("My Account")}]
+	context.meta = frappe.get_meta(doctype)
 	context.update(get_list_context(context, doctype) or {})
 	context.doctype = doctype
 	context.txt = frappe.local.form_dict.txt
@@ -67,9 +68,12 @@ def get(doctype, txt=None, limit_start=0, limit=20, **kwargs):
 
 	result = []
 	row_template = list_context.row_template or "templates/includes/list/row_template.html"
+	list_view_fields = [df for df in meta.fields if df.in_list_view][:4]
+
 	for doc in raw_result:
 		doc.doctype = doctype
-		new_context = frappe._dict(doc=doc, meta=meta)
+		new_context = frappe._dict(doc=doc, meta=meta,
+			list_view_fields=list_view_fields)
 
 		if not list_context.get_list and not isinstance(new_context.doc, Document):
 			new_context.doc = frappe.get_doc(doc.doctype, doc.name)
