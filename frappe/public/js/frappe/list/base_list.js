@@ -469,6 +469,7 @@ class FilterArea {
 
 	refresh_list_view() {
 		if (this.trigger_refresh) {
+			this.list_view.start = 0;
 			this.list_view.refresh();
 		}
 	}
