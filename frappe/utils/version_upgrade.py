@@ -11,7 +11,7 @@ def send_request_for_version_upgrade(preferred_date):
 	sess = get_request_session()
 
 	try:
-		res = sess.post("htpps://erpnext.com/api/method/central.bench_central.doctype.version_upgrade_request.version_upgrade_request.prepare_version_upgrade_request",
+		res = sess.post("https://erpnext.com/api/method/central.bench_central.doctype.version_upgrade_request.version_upgrade_request.prepare_version_upgrade_request",
 			data= json.dumps({
 				'preferred_date': preferred_date,
 				'request_from': frappe.session.user,
