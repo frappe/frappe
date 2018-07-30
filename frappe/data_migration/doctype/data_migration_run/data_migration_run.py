@@ -41,8 +41,9 @@ class DataMigrationRun(Document):
 
 	def enqueue_next_page(self):
 		mapping = self.get_mapping(self.current_mapping)
+		percent_complete = self.percent_complete + (100.0 / self.total_pages)
 		fields = dict(
-			percent_complete = self.percent_complete + (100.0 / self.total_pages)
+			percent_complete = percent_complete
 		)
 		if self.current_mapping_action == 'Insert':
 			start = self.current_mapping_start + mapping.page_length
@@ -52,6 +53,11 @@ class DataMigrationRun(Document):
 			fields['current_mapping_delete_start'] = delete_start
 
 		self.db_set(fields, notify=True, commit=True)
+
+		if(percent_complete < 100):
+			frappe.publish_realtime(self.trigger_name,
+				{"progress_percent": percent_complete}, user=frappe.session.user)
+
 		frappe.enqueue_doc(self.doctype, self.name, 'run_current_mapping', now=frappe.flags.in_test)
 
 	def run_current_mapping(self):
@@ -141,6 +147,9 @@ class DataMigrationRun(Document):
 					"pull_update": self.pull_update
 				}
 			})
+
+		frappe.publish_realtime(self.trigger_name,
+			{"progress_percent": "100"}, user=frappe.session.user)
 
 	def get_plan(self):
 		if not hasattr(self, 'plan'):
