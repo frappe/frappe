@@ -24,7 +24,7 @@ class TestEmail(unittest.TestCase):
 
 		email_queue = frappe.db.sql("""select name,message from `tabEmail Queue` where status='Not Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
-		queue_recipients = [r.recipient for r in frappe.db.sql("""SELECT recipient FROM `tabEmail Queue Recipient` 
+		queue_recipients = [r.recipient for r in frappe.db.sql("""SELECT recipient FROM `tabEmail Queue Recipient`
 			WHERE status='Not Sent'""", as_dict=1)]
 		self.assertTrue('test@example.com' in queue_recipients)
 		self.assertTrue('test1@example.com' in queue_recipients)
@@ -44,7 +44,7 @@ class TestEmail(unittest.TestCase):
 		flush(from_test=True)
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
-		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient` 
+		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient`
 			where status='Sent'""", as_dict=1)]
 		self.assertTrue('test@example.com' in queue_recipients)
 		self.assertTrue('test1@example.com' in queue_recipients)
@@ -60,12 +60,12 @@ class TestEmail(unittest.TestCase):
 			subject='Testing Email Queue', message='This is mail is queued!', unsubscribe_message="Unsubscribe", expose_recipients="header")
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Not Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
-		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient` 
+		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient`
 			where status='Not Sent'""", as_dict=1)]
 		self.assertTrue('test@example.com' in queue_recipients)
 		self.assertTrue('test1@example.com' in queue_recipients)
 
-		message = frappe.db.sql("""select message from `tabEmail Queue` 
+		message = frappe.db.sql("""select message from `tabEmail Queue`
 			where status='Not Sent'""", as_dict=1)[0].message
 		self.assertTrue('To: test@example.com' in message)
 		self.assertTrue('CC: test1@example.com' in message)
@@ -79,7 +79,7 @@ class TestEmail(unittest.TestCase):
 			subject='Testing Email Queue', message='This is mail is queued!', unsubscribe_message="Unsubscribe", expose_recipients="footer", now=True)
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
-		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient` 
+		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient`
 			where status='Sent'""", as_dict=1)]
 		self.assertTrue('test@example.com' in queue_recipients)
 		self.assertTrue('test1@example.com' in queue_recipients)
@@ -95,12 +95,12 @@ class TestEmail(unittest.TestCase):
 			subject='Testing Email Queue', message='This is mail is queued!', unsubscribe_message="Unsubscribe", now=True)
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
-		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient` 
+		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient`
 			where status='Sent'""", as_dict=1)]
 		self.assertTrue('test@example.com' in queue_recipients)
 		self.assertTrue('test1@example.com' in queue_recipients)
-		
-		message = frappe.db.sql("""select message from `tabEmail Queue` 
+
+		message = frappe.db.sql("""select message from `tabEmail Queue`
 			where status='Sent'""", as_dict=1)[0].message
 		self.assertTrue('<!--recipient-->' in message)
 
@@ -120,7 +120,7 @@ class TestEmail(unittest.TestCase):
 		clear_outbox()
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Expired'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
-		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient` 
+		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient`
 			where parent = %s""",email_queue[0].name, as_dict=1)]
 		self.assertTrue('test@example.com' in queue_recipients)
 		self.assertTrue('test1@example.com' in queue_recipients)
@@ -145,7 +145,7 @@ class TestEmail(unittest.TestCase):
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Not Sent'""",
 			as_dict=1)
 		self.assertEqual(len(email_queue), before + 1)
-		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient` 
+		queue_recipients = [r.recipient for r in frappe.db.sql("""select recipient from `tabEmail Queue Recipient`
 			where status='Not Sent'""", as_dict=1)]
 		self.assertFalse('test@example.com' in queue_recipients)
 		self.assertTrue('test1@example.com' in queue_recipients)
@@ -164,10 +164,11 @@ class TestEmail(unittest.TestCase):
 		import re
 		email_account = frappe.get_doc('Email Account', '_Test Email Account 1')
 
+		frappe.db.sql('''delete from `tabCommunication` where sender = 'sukh@yyy.com' ''')
+
 		with open(frappe.get_app_path('frappe', 'tests', 'data', 'email_with_image.txt'), 'r') as raw:
 			communication = email_account.insert_communication(raw.read())
 
-		#print communication.content
 		self.assertTrue(re.search('''<img[^>]*src=["']/private/files/rtco1.png[^>]*>''', communication.content))
 		self.assertTrue(re.search('''<img[^>]*src=["']/private/files/rtco2.png[^>]*>''', communication.content))
 

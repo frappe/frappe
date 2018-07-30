@@ -1087,3 +1087,36 @@ input[type="checkbox"] {
 	}
 
 }
+
+/* broken image styling */
+
+img.no-image {
+	position: relative;
+	height: 100%;
+	width: 100%;
+}
+
+img.no-image:before {
+	content: " ";
+	display: block;
+	position: absolute;
+	left: 0;
+	height: calc(100%);
+	width: 100%;
+	background-color: @light-bg;
+}
+
+img.no-image:after {
+	content: "\f1c5";
+	display: block;
+	font-style: normal;
+	font-family: FontAwesome;
+	color: @text-muted;
+
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	left: 0;
+	width: 100%;
+	text-align: center;
+}

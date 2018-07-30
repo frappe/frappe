@@ -212,6 +212,12 @@ frappe.dom = {
 			reader.onerror = function(error) {
 				reject(error);
 			};
+    });
+  },
+	handle_broken_images(container) {
+		$(container).find('img').on('error', (e) => {
+			const $img = $(e.currentTarget);
+			$img.addClass('no-image');
 		});
 	}
 }

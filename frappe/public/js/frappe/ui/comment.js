@@ -175,7 +175,9 @@ frappe.ui.ReviewArea = class ReviewArea extends frappe.ui.CommentArea {
 
 	set_state() {
 		if (this.rating === 0) {
-			this.parent.find('.comment-input-body').hide();
+			this.parent.find('.comment-i
+                       
+                       nput-body').hide();
 		} else {
 			this.parent.find('.comment-input-body').show();
 		}
