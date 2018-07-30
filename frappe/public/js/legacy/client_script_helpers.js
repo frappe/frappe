@@ -527,6 +527,7 @@ _f.Frm.prototype.get_sum = function(table_fieldname, fieldname) {
 _f.Frm.prototype.setup_fieldname_select = function(fieldname, doctype, filter) {
 	if (!doctype) {
 		this.set_df_property(fieldname, "options", []);
+		return;
 	}
 	return frappe.model.with_doctype(doctype).then(() => {
 		let get_select_options = function(df) {

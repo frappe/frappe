@@ -268,17 +268,26 @@ def get_data():
 			]
 		},
 		{
-			"label": _("Applications"),
-			"items":[
+			"label": _("Automation"),
+			"items": [
 				{
-					"type": "page",
-					"name": "applications",
-					"label": _("Application Installer"),
-					"description": _("Install Applications."),
-					"icon": "fa fa-download"
+					"type": "doctype",
+					"name": "Notification",
+				},
+				{
+					"type": "doctype",
+					"name": "Auto Email Report",
+				},
+				{
+					"type": "doctype",
+					"name": "Auto Repeat",
+				},
+				{
+					"type": "doctype",
+					"name": "Action Set Value",
 				},
 			]
-		}
+		},
 	]
 	add_setup_section(data, "frappe", "website", _("Website"), "fa fa-globe")
 	return data

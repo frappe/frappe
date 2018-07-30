@@ -25,6 +25,9 @@ def run_automations(doc, method):
 		event_map['before_change'] = 'Value Change'
 		event_map['before_update_after_submit'] = 'Value Change'
 
+	# called before updating, so just update the doc object, do not save the DB
+	doc.flags.automation_before_update = True
+
 	for action in doc.flags.automations:
 		event = event_map.get(method, None)
 		if event and action.event == event:
@@ -67,10 +70,6 @@ def run_automation(action, doc, event):
 			if event=="Value Change":
 				if not evaluate_value_change(doc, action):
 					return
-			else:
-				# reload the doc for the latest values & comments,
-				# except for validate type event.
-				doc = frappe.get_doc(doc.doctype, doc.name)
 
 		if not hasattr(action, '__frappedoc__'):
 			action = frappe.get_doc(action.doctype, action.name)
@@ -80,7 +79,7 @@ def run_automation(action, doc, event):
 
 	except Exception as e:
 		frappe.log_error(message=frappe.get_traceback(), title=str(e))
-		frappe.throw(_("Error while evaluating {doctype} {name}").format(doctype=action.doctype, name=action.name))
+		frappe.throw(_("Error while evaluating {doctype} {name}").format(doctype=action.doctype, name=action.name), e)
 
 def evaluate_value_change(doc, action):
 	try:

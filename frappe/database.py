@@ -877,6 +877,10 @@ class Database:
 
 			return count
 
+	def delete(self, doctype, filters, debug=False):
+		conditions, values = self.build_conditions(filters)
+		self.sql('delete from `tab{doctype}` where {conditions}'.format(doctype=doctype, conditions=conditions),
+			values, debug=debug)
 
 	def get_creation_count(self, doctype, minutes):
 		"""Get count of records created in the last x minutes"""

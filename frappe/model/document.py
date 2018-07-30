@@ -122,6 +122,7 @@ class Document(BaseDocument):
 	def reload(self):
 		"""Reload document from database"""
 		self.load_from_db()
+		self.clear_flags()
 
 	def load_from_db(self):
 		"""Load document and children from database and create properties
@@ -888,6 +889,9 @@ class Document(BaseDocument):
 
 	def clear_cache(self):
 		frappe.cache().hdel("last_modified", self.doctype)
+
+	def clear_flags(self):
+		self.flags = frappe._dict()
 
 	def reset_seen(self):
 		'''Clear _seen property and set current user as seen'''

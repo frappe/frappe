@@ -1418,7 +1418,7 @@ def get_desk_link(doctype, name):
 def bold(text):
 	return '<b>{0}</b>'.format(text)
 
-def safe_eval(code, eval_globals=None, eval_locals=None):
+def safe_eval(code, eval_globals=None, context=None):
 	'''A safer `eval`'''
 	whitelisted_globals = {
 		"int": int,
@@ -1436,7 +1436,7 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 
 	eval_globals.update(whitelisted_globals)
 
-	return eval(code, eval_globals, eval_locals)
+	return eval(code, eval_globals, context)
 
 def get_system_settings(key):
 	if key not in local.system_settings:

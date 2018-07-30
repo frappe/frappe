@@ -13,7 +13,7 @@ test_dependencies = ["User"]
 class TestNotification(unittest.TestCase):
 	def setUp(self):
 		frappe.db.sql("""delete from `tabEmail Queue`""")
-		# frappe.db.sql('delete from tabEvent')
+		frappe.db.sql('delete from tabEvent')
 		frappe.set_user("test1@example.com")
 
 	def tearDown(self):
@@ -30,8 +30,9 @@ class TestNotification(unittest.TestCase):
 			"reference_name": communication.name, "status":"Not Sent"}))
 		frappe.db.sql("""delete from `tabEmail Queue`""")
 
+		communication.clear_flags()
 		communication.content = "test 2"
-		communication.save()
+		communication.save(ignore_permissions=True)
 
 		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": "Communication",
 			"reference_name": communication.name, "status":"Not Sent"}))
@@ -128,6 +129,7 @@ class TestNotification(unittest.TestCase):
 		event_name = frappe.db.get_value('Event', dict(subject='test for date changed'))
 		if event_name:
 			event = frappe.get_doc('Event', event_name)
+			frappe.db.delete('Email Queue', dict(reference_name = event.name))
 		else:
 			event = frappe.new_doc("Event")
 			event.subject = "test for date changed",

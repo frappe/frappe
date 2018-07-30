@@ -103,6 +103,9 @@ def get_context(context):
 	def send(self, doc):
 		'''Build recipients and send Notification'''
 
+		# reload before sending for latest comments
+		doc = frappe.get_doc(doc.doctype, doc.name)
+
 		context = get_context(doc)
 		context = {"doc": doc, "alert": self, "comments": None}
 		if doc.get("_comments"):

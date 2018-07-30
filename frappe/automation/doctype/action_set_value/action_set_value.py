@@ -7,4 +7,13 @@ import frappe
 from frappe.model.document import Document
 
 class ActionSetValue(Document):
-	pass
+	def execute(self, doc):
+		if self.dynamic_value:
+			value = frappe.safe_eval(self.formula, context=dict(doc = doc))
+		else:
+			value = self.value
+
+		if doc.flags.automation_before_save:
+			doc.set(self.fieldname, value)
+		else:
+			doc.db_set(self.fieldname, value)
