@@ -8,12 +8,11 @@ import re
 import redis
 from frappe.utils import cint, strip_html_tags
 from frappe.model.base_document import get_controller
-from frappe.database.schema import VARCHAR_LEN
 from six import text_type
 
 def setup_global_search_table():
 	"""
-	Creates __global_seach table
+	Creates __global_search table
 	:return:
 	"""
 	frappe.db.create_global_search_table()
@@ -24,7 +23,7 @@ def reset():
 	Deletes all data in __global_search
 	:return:
 	"""
-	frappe.db.sql('delete from __global_search')
+	frappe.db.sql('DELETE FROM `__global_search`')
 
 
 def get_doctypes_with_global_search(with_child_tables=True):
@@ -130,8 +129,8 @@ def rebuild_for_doctype(doctype):
 				"name": frappe.db.escape(doc.name),
 				"content": frappe.db.escape(' ||| '.join(content or '')),
 				"published": published,
-				"title": frappe.db.escape(title or '')[:int(VARCHAR_LEN)],
-				"route": frappe.db.escape(route or '')[:int(VARCHAR_LEN)]
+				"title": frappe.db.escape(title or '')[:int(frappe.db.VARCHAR_LEN)],
+				"route": frappe.db.escape(route or '')[:int(frappe.db.VARCHAR_LEN)]
 			})
 	if all_contents:
 		insert_values_for_multiple_docs(all_contents)
@@ -249,7 +248,7 @@ def update_global_search(doc):
 		if hasattr(doc, 'is_website_published') and doc.meta.allow_guest_to_view:
 			published = 1 if doc.is_website_published() else 0
 
-		title = (doc.get_title() or '')[:int(VARCHAR_LEN)]
+		title = (doc.get_title() or '')[:int(frappe.db.VARCHAR_LEN)]
 		route = doc.get('route') if doc else ''
 
 		frappe.flags.update_global_search.append(
@@ -350,31 +349,29 @@ def search(text, start=0, limit=20, doctype=""):
 	results = []
 	texts = text.split('&')
 	for text in texts:
-		text = "+" + text + "*"
+		conditions = ''
+		searchtext = "+" + text + "*"
 		if not doctype:
-			result = frappe.db.sql('''
-				select
-					doctype, name, content
-				from
-					__global_search
-				where
-					match(content) against (%s IN BOOLEAN MODE)
-				limit {start}, {limit}'''.format(start=start, limit=limit), text+"*", as_dict=True)
-		else:
-			result = frappe.db.sql('''
-				select
-					doctype, name, content
-				from
-					__global_search
-				where
-					doctype = %s AND
-					match(content) against (%s IN BOOLEAN MODE)
-				limit {start}, {limit}'''.format(start=start, limit=limit), (doctype, text), as_dict=True)
+			conditions = '`doctype` = {} AND '.format(doctype)
+
+		conditions += '{}'.format(frappe.db.get_fulltext_search_query(columns=['content'], searchtext=searchtext))
+
+		result = frappe.db.sql('''
+			SELECT
+				`doctype`, `name`, `content`
+			FROM
+				`__global_search`
+			WHERE
+				{conditions}
+			LIMIT {limit} OFFSET {start}'''.format(
+				start=start,
+				limit=limit,
+				conditions=conditions), as_dict=True)
 		tmp_result=[]
 		for i in result:
 			if i in results or not results:
 				tmp_result.append(i)
-		results = tmp_result
+		results += tmp_result
 
 	for r in results:
 		try:

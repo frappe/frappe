@@ -328,7 +328,7 @@ def is_dormant(since = 345600):
 	return False
 
 def get_last_active():
-	return frappe.db.sql("""select max(last_active) from `tabUser`
-		where user_type = 'System User' and `name` not in ({standard_users})"""
+	return frappe.db.sql("""SELECT MAX(`last_active`) FROM `tabUser`
+		WHERE `user_type` = 'System User' AND `name` NOT IN ({standard_users})"""
 		.format(standard_users=", ".join(["%s"]*len(STANDARD_USERS))),
 		STANDARD_USERS)[0][0]
