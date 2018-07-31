@@ -21,6 +21,8 @@ class DBTable:
 		# lists for change
 		self.add_column = []
 		self.change_type = []
+		self.change_name = []
+		self.add_unique = []
 		self.add_index = []
 		self.drop_index = []
 		self.set_default = []
@@ -51,8 +53,11 @@ class DBTable:
 	def get_index_definitions(self):
 		ret = []
 		for key, col in self.columns.items():
-			if col.set_index and not col.unique and col.fieldtype in frappe.db.type_map and \
-					frappe.db.type_map.get(col.fieldtype)[0] not in ('text', 'longtext'):
+			if (col.set_index
+				and not col.unique
+				and col.fieldtype in frappe.db.type_map
+				and frappe.db.type_map.get(col.fieldtype)[0]
+				not in ('text', 'longtext')):
 				ret.append('index `' + key + '`(`' + key + '`)')
 		return ret
 
@@ -80,10 +85,13 @@ class DBTable:
 					'fieldtype': 'Text'
 				})
 
-		if not frappe.flags.in_install_db and (frappe.flags.in_install != "frappe" or frappe.flags.ignore_in_install):
-			custom_fl = frappe.db.sql("""\
+		if (not frappe.flags.in_install_db
+			and (frappe.flags.in_install != "frappe"
+			or frappe.flags.ignore_in_install)):
+			custom_fl = frappe.db.sql("""
 				SELECT * FROM `tabCustom Field`
-				WHERE dt = %s AND docstatus < 2""", (self.doctype,), as_dict=1)
+				WHERE dt = %s AND docstatus < 2
+				""", (self.doctype,), as_dict=1)
 			if custom_fl: fl += custom_fl
 
 			# apply length, precision and unique from property setters
@@ -151,14 +159,13 @@ class DBTable:
 				if cint(current_length) != cint(new_length):
 					try:
 						# check for truncation
-						max_length = frappe.db.sql("""SELECT MAX(CHAR_LENGTH(`{fieldname}`)) FROM `tab{doctype}`"""\
+						max_length = frappe.db.sql("""SELECT MAX(CHAR_LENGTH(`{fieldname}`)) FROM `tab{doctype}`"""
 							.format(fieldname=col.fieldname, doctype=self.doctype))
 
 					except frappe.db.InternalError as e:
 						if frappe.db.is_missing_column(e):
 							# Unknown column 'column_name' in 'field list'
 							continue
-
 						else:
 							raise
 
@@ -166,7 +173,8 @@ class DBTable:
 						if col.fieldname in self.columns:
 							self.columns[col.fieldname].length = current_length
 
-						frappe.msgprint(_("Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.")\
+						frappe.msgprint(_("""Reverting length to {0} for '{1}' in '{2}';
+							Setting the length as {3} will cause truncation of data.""")
 							.format(current_length, col.fieldname, self.doctype, new_length))
 
 	def is_new(self):
@@ -178,62 +186,7 @@ class DBTable:
 			self.current_columns[c.name.lower()] = c
 
 	def alter(self):
-		for col in self.columns.values():
-			col.build_for_alter_table(self.current_columns.get(col.fieldname.lower()))
-
-		query = []
-
-		for col in self.add_column:
-			query.append("ADD COLUMN `{}` {}".format(col.fieldname, col.get_definition()))
-
-		for col in self.change_type:
-			current_def = self.current_columns.get(col.fieldname.lower(), None)
-			query.append("ALTER COLUMN `{}` TYPE {}".format(current_def["name"], get_definition(col.fieldtype, precision=col.precision, length=col.length)))
-
-		for col in self.add_index:
-			# if index key not exists
-			if not frappe.db.has_index(self.table_name, col.fieldname):
-				pass
-				# query.append("add index `{}`(`{}`)".format(col.fieldname, col.fieldname))
-
-		for col in self.drop_index:
-			if col.fieldname != 'name': # primary key
-				# if index key exists
-				if not frappe.db.has_index(self.table_name, col.fieldname):
-					pass
-					# query.append("drop index `{}`".format(col.fieldname))
-
-		for col in self.set_default:
-			if col.fieldname=="name":
-				continue
-
-			if col.fieldtype in ("Check", "Int"):
-				col_default = cint(col.default)
-
-			elif col.fieldtype in ("Currency", "Float", "Percent"):
-				col_default = flt(col.default)
-
-			elif not col.default:
-				col_default = "null"
-
-			else:
-				col_default = '"{}"'.format(col.default.replace('"', '\\"'))
-
-			query.append("alter column `{}` set default '{}'".format(col.fieldname, col_default))
-
-		if query:
-			try:
-				frappe.db.sql("alter table `{}` {}".format(self.table_name, ", ".join(query)))
-			except Exception as e:
-				# sanitize
-				if frappe.db.is_duplicate_fieldname(e):
-					frappe.throw(str(e))
-				elif frappe.db.is_duplicate_entry(e):
-					fieldname = str(e).split("'")[-2]
-					frappe.throw(_("{0} field cannot be set as unique in {1}, as there are non-unique existing values".format(
-						fieldname, self.table_name)))
-				else:
-					raise e
+		pass
 
 
 class DbColumn:
@@ -289,23 +242,20 @@ class DbColumn:
 		if ((current_def['type']) != column_type):
 			self.table.change_type.append(self)
 
-		if (self.fieldname != current_def['name']):
-			self.table.change_name.append(self)
-
+		# unique
 		if((self.unique and not current_def['unique']) and column_type not in ('text', 'longtext')):
-			self.table.change_unique.append(self)
+			self.table.add_unique.append(self)
 
-		else:
-			# default
-			if (self.default_changed(current_def) \
-				and (self.default not in frappe.db.DEFAULT_SHORTCUTS) \
-				and not cstr(self.default).startswith(":") \
-				and not (column_type in ['text','longtext'])):
-				self.table.set_default.append(self)
+		# default
+		if (self.default_changed(current_def)
+			and (self.default not in frappe.db.DEFAULT_SHORTCUTS)
+			and not cstr(self.default).startswith(":")
+			and not (column_type in ['text','longtext'])):
+			self.table.set_default.append(self)
 
 		# index should be applied or dropped irrespective of type change
-		if ( (current_def['index'] and not self.set_index and not self.unique)
-			or (current_def['unique'] and not self.unique) ):
+		if ((current_def['index'] and not self.set_index and not self.unique)
+			or (current_def['unique'] and not self.unique)):
 			# to drop unique you have to drop index
 			self.table.drop_index.append(self)
 
@@ -341,7 +291,6 @@ class DbColumn:
 				return float(current_def['default'])!=float(self.default)
 		except TypeError:
 			return True
-
 
 def validate_column_name(n):
 	special_characters = re.findall(r"[\W]", n, re.UNICODE)
@@ -388,89 +337,4 @@ def add_column(doctype, column_name, fieldtype, precision=None):
 	frappe.db.sql("alter table `tab%s` add column %s %s" % (doctype,
 		column_name, get_definition(fieldtype, precision)))
 
-class DbManager:
-
-	def __init__(self, db):
-		"""
-		Pass root_conn here for access to all databases.
-		"""
-		if db:
-			self.db = db
-
-	def get_current_host(self):
-		return self.db.sql("select user()")[0][0].split('@')[1]
-
-	def create_user(self, user, password, host=None):
-		#Create user if it doesn't exist.
-		if not host:
-			host = self.get_current_host()
-
-		if password:
-			self.db.sql("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" % (user[:16], host, password))
-		else:
-			self.db.sql("CREATE USER '%s'@'%s';" % (user[:16], host))
-
-	def delete_user(self, target, host=None):
-		if not host:
-			host = self.get_current_host()
-		try:
-			self.db.sql("DROP USER '%s'@'%s';" % (target, host))
-		except Exception as e:
-			if e.args[0]==1396:
-				pass
-			else:
-				raise
-
-	def create_database(self,target):
-		if target in self.get_database_list():
-			self.drop_database(target)
-
-		self.db.sql("CREATE DATABASE `%s` ;" % target)
-
-	def drop_database(self,target):
-		self.db.sql("DROP DATABASE IF EXISTS `%s`;"%target)
-
-	def grant_all_privileges(self, target, user, host=None):
-		if not host:
-			host = self.get_current_host()
-
-		self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target,
-			user, host))
-
-
-	def flush_privileges(self):
-		self.db.sql("FLUSH PRIVILEGES")
-
-	def get_database_list(self):
-		"""get list of databases"""
-		return [d[0] for d in self.db.sql("SHOW DATABASES")]
-
-	def restore_database(self, target, source, user, password):
-		from frappe.utils import make_esc
-		esc = make_esc('$ ')
-
-		from distutils.spawn import find_executable
-		pipe = find_executable('pv')
-		if pipe:
-			pipe   = '{pipe} {source} |'.format(
-				pipe   = pipe,
-				source = source
-			)
-			source = ''
-		else:
-			pipe   = ''
-			source = '< {source}'.format(source = source)
-
-		if pipe:
-			print('Creating Database...')
-
-		command = '{pipe} mysql -u {user} -p{password} -h{host} {target} {source}'.format(
-			pipe = pipe,
-			user = esc(user),
-			password = esc(password),
-			host     = esc(frappe.db.host),
-			target   = esc(target),
-			source   = source
-		)
-		os.system(command)
 

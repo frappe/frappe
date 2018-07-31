@@ -210,7 +210,7 @@ class MariaDBDatabase(Database):
 		"""Returns list of column and its description"""
 		return self.sql('''select
 			column_name as 'name',
-			data_type as 'type',
+			column_type as 'type',
 			column_default as 'default',
 			column_key = 'MUL' as 'index',
 			column_key = 'UNI' as 'unique'
