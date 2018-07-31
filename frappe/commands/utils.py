@@ -315,6 +315,20 @@ def mariadb(context):
 		'--pager=less -SFX',
 		"-A"])
 
+@click.command('postgres')
+@pass_context
+def postgres(context):
+	"""
+		Enter into postgres console for a given site.
+	"""
+	import os
+
+	site  = get_site(context)
+	frappe.init(site=site)
+	# This is assuming you're within the bench instance.
+	psql = find_executable('psql')
+	os.execv(psql, [ psql, '-d', frappe.conf.db_name])
+
 @click.command('console')
 @pass_context
 def console(context):
@@ -623,6 +637,7 @@ commands = [
 	make_app,
 	mysql,
 	mariadb,
+	postgres,
 	request,
 	reset_perms,
 	run_tests,
