@@ -166,6 +166,38 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.filter_permissions();
 	},
 
+	add_transactions: function(opts) {
+		// add additional data on dashboard
+		let group_added = [];
+
+		if(!Array.isArray(opts)) opts=[opts];
+
+		if(!this.data) {
+			this.init_data();
+		}
+
+		if(this.data && (this.data.transactions || []).length) {
+			// check if label already exists, add items to it
+			this.data.transactions.map(group => {
+				opts.map(d => {
+					if(d.label == group.label) {
+						group_added.push(d.label);
+						group.items.push(...d.items);
+					}
+				});
+			});
+
+			// if label not already present, add new label and items under it
+			opts.map(d => {
+				if(!group_added.includes(d.label)) {
+					this.data.transactions.push(d);
+				}
+			});
+
+			this.filter_permissions();
+		}
+	},
+
 	filter_permissions: function() {
 		// filter out transactions for which the user
 		// does not have permission
@@ -263,13 +295,13 @@ frappe.ui.form.Dashboard = Class.extend({
 		});
 
 		var method = this.data.method || 'frappe.desk.notifications.get_open_count';
-
 		frappe.call({
 			type: "GET",
 			method: method,
 			args: {
 				doctype: this.frm.doctype,
 				name: this.frm.doc.name,
+				items: items
 			},
 			callback: function(r) {
 				if(r.message.timeline_data) {

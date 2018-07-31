@@ -15,6 +15,9 @@
 		"node_modules/moment/min/moment-with-locales.min.js",
 		"node_modules/moment-timezone/builds/moment-timezone-with-data.min.js"
 	],
+	"js/chat.js": [
+		"public/js/frappe/chat.js"
+	],
 	"js/frappe-web.min.js": [
 		"public/js/frappe/class.js",
 		"public/js/frappe/polyfill.js",
@@ -35,9 +38,7 @@
 		"public/js/frappe/model/perm.js",
 
 		"website/js/website.js",
-		"public/js/frappe/misc/rating_icons.html",
-
-		"public/js/frappe/chat.js"
+		"public/js/frappe/misc/rating_icons.html"
 	],
 	"js/control.min.js": [
 		"public/js/frappe/ui/capture.js",

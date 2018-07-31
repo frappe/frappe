@@ -1,7 +1,10 @@
 import WebForm from './webform';
 
 frappe.ready(function() {
-	if(web_form_settings.is_list) return;
+	if(web_form_settings.is_list) {
+		$('body').css('display', 'block');
+		return;
+	}
 
 	frappe.form_dirty = false;
 	$.extend(frappe, web_form_settings);
@@ -25,6 +28,8 @@ frappe.ready(function() {
 		web_form_name: web_form_name,
 		allow_incomplete: frappe.allow_incomplete
 	});
+
+	setTimeout(() => { $('body').css('display', 'block'); }, 500);
 
 	// allow payment only if
 	$('.btn-payment').on('click', function() {

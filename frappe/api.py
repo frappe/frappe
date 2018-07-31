@@ -9,6 +9,8 @@ import frappe.client
 from frappe.utils.response import build_response
 from frappe import _
 from six.moves.urllib.parse import urlparse, urlencode
+import base64
+
 
 def handle():
 	"""
@@ -35,6 +37,7 @@ def handle():
 	"""
 
 	validate_oauth()
+	validate_auth_via_api_keys()
 
 	parts = frappe.request.path[1:].split("/",3)
 	call = doctype = name = None
@@ -149,3 +152,33 @@ def validate_oauth():
 		if valid:
 			frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
 			frappe.local.form_dict = form_dict
+
+
+def validate_auth_via_api_keys():
+	"""
+	authentication using api key and api secret
+
+	set user
+	"""
+	try:
+		authorization_header = frappe.get_request_header("Authorization", None).split(" ") if frappe.get_request_header("Authorization") else None
+		if authorization_header and authorization_header[0] == 'Basic':
+			token = frappe.safe_decode(base64.b64decode(authorization_header[1])).split(":")
+			validate_api_key_secret(token[0], token[1])
+		elif authorization_header and authorization_header[0] == 'token':
+			token = authorization_header[1].split(":")
+			validate_api_key_secret(token[0], token[1])
+	except Exception as e:
+		raise e
+
+def validate_api_key_secret(api_key, api_secret):
+	user = frappe.db.get_value(
+		doctype="User",
+		filters={"api_key": api_key},
+		fieldname=['name']
+	)
+	form_dict = frappe.local.form_dict
+	user_secret = frappe.utils.password.get_decrypted_password ("User", user, fieldname='api_secret')
+	if api_secret == user_secret:
+		frappe.set_user(user)
+		frappe.local.form_dict = form_dict

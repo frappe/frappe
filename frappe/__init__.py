@@ -17,7 +17,7 @@ from faker import Faker
 from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
 
-__version__ = '10.1.41'
+__version__ = '10.1.43'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -170,8 +170,19 @@ def connect(site=None, db_name=None):
 	from frappe.database import Database
 	if site:
 		init(site)
+
 	local.db = Database(user=db_name or local.conf.db_name)
 	set_user("Administrator")
+
+def connect_read_only():
+	from frappe.database import Database
+
+	local.read_only_db = Database(local.conf.slave_host, local.conf.slave_db_name,
+		local.conf.slave_db_password)
+
+	# swap db connections
+	local.master_db = local.db
+	local.db = local.read_only_db
 
 def get_site_config(sites_path=None, site_path=None):
 	"""Returns `site_config.json` combined with `sites/common_site_config.json`.
@@ -469,6 +480,21 @@ def whitelist(allow_guest=False, xss_safe=False):
 
 	return innerfn
 
+def read_only():
+	def innfn(fn):
+		def wrapper_fn(*args, **kwargs):
+			if conf.use_slave_for_read_only:
+				connect_read_only()
+
+			retval = fn(*args, **get_newargs(fn, kwargs))
+
+			if local and hasattr(local, 'master_db'):
+				local.db = local.master_db
+
+			return retval
+		return wrapper_fn
+	return innfn
+
 def only_for(roles):
 	"""Raise `frappe.PermissionError` if the user does not have any of the given **Roles**.
 
@@ -563,7 +589,7 @@ def has_website_permission(doc=None, ptype='read', user=None, verbose=False, doc
 
 		# check permission in controller
 		if hasattr(doc, 'has_website_permission'):
-			return doc.has_website_permission(ptype, verbose=verbose)
+			return doc.has_website_permission(doc, ptype, user, verbose=verbose)
 
 	hooks = (get_hooks("has_website_permission") or {}).get(doctype, [])
 	if hooks:
@@ -926,6 +952,11 @@ def call(fn, *args, **kwargs):
 	if isinstance(fn, string_types):
 		fn = get_attr(fn)
 
+	newargs = get_newargs(fn, kwargs)
+
+	return fn(*args, **newargs)
+
+def get_newargs(fn, kwargs):
 	if hasattr(fn, 'fnargs'):
 		fnargs = fn.fnargs
 	else:
@@ -939,7 +970,7 @@ def call(fn, *args, **kwargs):
 	if "flags" in newargs:
 		del newargs["flags"]
 
-	return fn(*args, **newargs)
+	return newargs
 
 def make_property_setter(args, ignore_validate=False, validate_fields_for_doctype=True):
 	"""Create a new **Property Setter** (for overriding DocType and DocField properties).

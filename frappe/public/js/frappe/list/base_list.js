@@ -338,7 +338,6 @@ frappe.views.BaseList = class BaseList {
 		const args = this.get_args();
 		return {
 			method: this.method,
-			type: 'GET',
 			args: args,
 			freeze: this.freeze_on_refresh || false,
 			freeze_message: this.freeze_message || (__('Loading') + '...')
@@ -469,6 +468,7 @@ class FilterArea {
 
 	refresh_list_view() {
 		if (this.trigger_refresh) {
+			this.list_view.start = 0;
 			this.list_view.refresh();
 		}
 	}

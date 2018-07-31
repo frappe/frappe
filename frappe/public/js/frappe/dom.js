@@ -201,6 +201,12 @@ frappe.dom = {
 	},
 	is_touchscreen: function() {
 		return ('ontouchstart' in window)
+	},
+	handle_broken_images(container) {
+		$(container).find('img').on('error', (e) => {
+			const $img = $(e.currentTarget);
+			$img.addClass('no-image');
+		});
 	}
 }
 
