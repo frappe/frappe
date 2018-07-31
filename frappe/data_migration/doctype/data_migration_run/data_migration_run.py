@@ -149,7 +149,7 @@ class DataMigrationRun(Document):
 			})
 
 		frappe.publish_realtime(self.trigger_name,
-			{"progress_percent": "100"}, user=frappe.session.user)
+			{"progress_percent": 100}, user=frappe.session.user)
 
 	def get_plan(self):
 		if not hasattr(self, 'plan'):
