@@ -92,7 +92,7 @@ class PostgresTable(DBTable):
 				table_name=self.table_name,
 				field=col.fieldname)
 
-		drop_index_query = ''
+		drop_index_query = ""
 		for col in self.drop_index:
 			# primary key
 			if col.fieldname != 'name':
@@ -103,9 +103,9 @@ class PostgresTable(DBTable):
 		if query:
 			try:
 				final_alter_query = "ALTER TABLE `{}` {}".format(self.table_name, ", ".join(query))
-				frappe.db.sql(final_alter_query)
-				frappe.db.sql(create_index_query)
-				frappe.db.sql(drop_index_query)
+				if final_alter_query: frappe.db.sql(final_alter_query)
+				if create_index_query: frappe.db.sql(create_index_query)
+				if drop_index_query: frappe.db.sql(drop_index_query)
 			except Exception as e:
 				# sanitize
 				if frappe.db.is_duplicate_fieldname(e):
