@@ -3,17 +3,16 @@
 
 from __future__ import unicode_literals, print_function
 
+import io
 import frappe
 import hashlib
 
-from frappe.database.db_manager import DbManager
-from frappe.installer import get_root_connection
-from frappe.database import Database
 import os, subprocess
-from bs4 import BeautifulSoup
 import jinja2.exceptions
+from bs4 import BeautifulSoup
+from markdown2 import markdown
+from frappe.database import get_root_connection
 
-import io
 
 def sync():
 	# make table
@@ -66,23 +65,12 @@ class HelpDatabase(object):
 		if not self.global_help_setup:
 			return
 
-		dbman = DbManager(get_root_connection())
-		dbman.drop_database(self.help_db_name)
+		frappe.db.setup_help_database(self.help_db_name)
 
-		# make database
-		if not self.help_db_name in dbman.get_database_list():
-			try:
-				dbman.create_user(self.help_db_name, self.help_db_name)
-			except Exception as e:
-				# user already exists
-				if e.args[0] != 1396: raise
-			dbman.create_database(self.help_db_name)
-			dbman.grant_all_privileges(self.help_db_name, self.help_db_name)
-			dbman.flush_privileges()
 
 	def connect(self):
 		if self.global_help_setup:
-			self.db = Database(user=self.help_db_name, password=self.help_db_name)
+			self.db = frappe.database.get_db(user=self.help_db_name, password=self.help_db_name)
 		else:
 			self.db = frappe.db
 

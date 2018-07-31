@@ -31,6 +31,21 @@ def setup_database(force, verbose):
 
 	bootstrap_database(db_name, verbose)
 
+def setup_help_database(help_db_name, ):
+	dbman = DbManager(get_root_connection(frappe.flags.root_login, frappe.flags.root_password))
+	dbman.drop_database(help_db_name)
+
+	# make database
+	if not help_db_name in dbman.get_database_list():
+		try:
+			dbman.create_user(help_db_name, help_db_name)
+		except Exception as e:
+			# user already exists
+			if e.args[0] != 1396: raise
+		dbman.create_database(help_db_name)
+		dbman.grant_all_privileges(help_db_name, help_db_name)
+		dbman.flush_privileges()
+
 def drop_user_and_database(db_name, root_login, root_password):
 	frappe.local.db = get_root_connection(root_login, root_password)
 	dbman = DbManager(frappe.local.db)
