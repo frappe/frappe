@@ -15,12 +15,15 @@ class FrappeException(Exception):
 	pass
 
 class FrappeClient(object):
-	def __init__(self, url, username, password, verify=True):
+	def __init__(self, url, username=None, password=None, verify=True):
 		self.headers = dict(Accept='application/json')
 		self.verify = verify
 		self.session = requests.session()
 		self.url = url
-		self._login(username, password)
+
+		# for guest connection
+		if username:
+			self._login(username, password)
 
 	def __enter__(self):
 		return self
