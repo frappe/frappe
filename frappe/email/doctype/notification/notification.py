@@ -259,12 +259,13 @@ def evaluate_alert(doc, alert, event):
 		if event=="Value Change" and not doc.is_new():
 			try:
 				db_value = frappe.db.get_value(doc.doctype, doc.name, alert.value_changed)
-			except frappe.db.InternalError as e:
+			except Exception as e:
 				if frappe.db.is_missing_column(e):
 					alert.db_set('enabled', 0)
 					frappe.log_error('Notification {0} has been disabled due to missing field'.format(alert.name))
 					return
-
+				else:
+					raise
 			db_value = parse_val(db_value)
 			if (doc.get(alert.value_changed) == db_value) or \
 				(not db_value and not doc.get(alert.value_changed)):

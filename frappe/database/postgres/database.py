@@ -124,7 +124,7 @@ class PostgresDatabase(Database):
 	def is_table_missing(self, e):
 		return e.pgcode == '42P01'
 
-	def is_bad_field(self, e):
+	def is_missing_column(self, e):
 		return e.pgcode == '42703'
 
 	def is_access_denied(self, e):
@@ -148,7 +148,7 @@ class PostgresDatabase(Database):
 
 	def get_fulltext_search_condition(self, columns, searchtext):
 		columns = '", "'.join(columns)
-		return """to_tsvector("{columns}") @@ to_tsquery('{searchtext}')""".format(
+		return """to_tsvector("{columns}") @@ plainto_tsquery({searchtext})""".format(
 			columns=columns,
 			searchtext=self.escape(searchtext)
 		)

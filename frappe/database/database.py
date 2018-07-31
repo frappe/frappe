@@ -175,7 +175,7 @@ class Database:
 				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
 
 		except Exception as e:
-			if ignore_ddl and (self.is_bad_field(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
+			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
 			else:
 				raise
@@ -482,7 +482,7 @@ class Database:
 				try:
 					out = self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update)
 				except Exception as e:
-					if ignore and (frappe.db.is_bad_field(e) or frappe.db.is_table_missing(e)):
+					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
 						# table or column not found, return None
 						out = None
 					elif (not ignore) and frappe.db.is_table_missing(e):
@@ -755,7 +755,8 @@ class Database:
 			return frappe.defaults.get_defaults(parent)
 
 	def begin(self):
-		self.sql("START TRANSACTION")
+		pass
+		#self.sql("START TRANSACTION")
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
@@ -911,7 +912,7 @@ class Database:
 			where lft > {lft} and rgt < {rgt}'''.format(doctype=doctype, lft=lft, rgt=rgt))
 
 	def is_missing_table_or_column(self, e):
-		return self.is_bad_field(e) or self.is_missing_table(e)
+		return self.is_missing_column(e) or self.is_missing_table(e)
 
 
 def enqueue_jobs_after_commit():
