@@ -548,3 +548,37 @@ def get_site_info():
 
 	# dumps -> loads to prevent datatype conflicts
 	return json.loads(frappe.as_json(site_info))
+
+def get_db_count(*args):
+	"""
+	Pass a doctype or a series of doctypes to get the count of docs in them
+	Parameters:
+		*args: Variable length argument list of doctype names whose doc count you need
+
+	Returns:
+		dict: A dict with the count values.
+
+	Example:
+		via terminal:
+			bench --site erpnext.local execute frappe.utils.get_db_count --args "['DocType', 'Communication']"
+	"""
+	db_count = {}
+	for doctype in args:
+		db_count[doctype] = frappe.db.count(doctype)
+
+	return json.loads(frappe.as_json(db_count))
+
+def call(fn, *args, **kwargs):
+	"""
+	Pass a doctype or a series of doctypes to get the count of docs in them
+	Parameters:
+		fn: frappe function to be called
+
+	Returns:
+		based on the function you call: output of the function you call
+
+	Example:
+		via terminal:
+			bench --site erpnext.local execute frappe.utils.call --args '''["frappe.get_all", "Activity Log"]''' --kwargs '''{"fields": ["user", "creation", "full_name"], "filters":{"Operation": "Login", "Status": "Success"}, "limit": "10"}'''
+	"""
+	return json.loads(frappe.as_json(frappe.call(fn, *args, **kwargs)))

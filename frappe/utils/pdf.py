@@ -7,6 +7,7 @@ from frappe.utils import scrub_urls
 from frappe import _
 from bs4 import BeautifulSoup
 from PyPDF2 import PdfFileWriter, PdfFileReader
+import re
 
 def get_pdf(html, options=None, output = None):
 	html = scrub_urls(html)
@@ -16,7 +17,7 @@ def get_pdf(html, options=None, output = None):
 	try:
 		pdfkit.from_string(html, fname, options=options or {})
 		if output:
-			append_pdf(PdfFileReader(file(fname,"rb")),output)
+			append_pdf(PdfFileReader(fname),output)
 		else:
 			with open(fname, "rb") as fileobj:
 				filedata = fileobj.read()
@@ -88,12 +89,13 @@ def read_options_from_html(html):
 
 	toggle_visible_pdf(soup)
 
-	# extract pdfkit options from html
-	for html_id in ("margin-top", "margin-bottom", "margin-left", "margin-right", "page-size"):
+	# use regex instead of soup-parser
+	for attr in ("margin-top", "margin-bottom", "margin-left", "margin-right", "page-size"):
 		try:
-			tag = soup.find(id=html_id)
-			if tag and tag.contents:
-				options[html_id] = tag.contents
+			pattern = re.compile(r"(\.print-format)([\S|\s][^}]*?)(" + str(attr) + r":)(.+)(mm;)")
+			match = pattern.findall(html)
+			if match:
+				options[attr] = str(match[-1][3]).strip()
 		except:
 			pass
 

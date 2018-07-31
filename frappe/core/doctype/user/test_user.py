@@ -260,6 +260,8 @@ class TestUser(unittest.TestCase):
 	def test_comment_mentions(self):
 		user_name = "@test.comment@example.com"
 		self.assertEqual(extract_mentions(user_name)[0], "test.comment@example.com")
+		user_name = "@test.comment@test-example.com"
+		self.assertEqual(extract_mentions(user_name)[0], "test.comment@test-example.com")
 		user_name = "Testing comment, @test-user please check."
 		self.assertEqual(extract_mentions(user_name)[0], "test-user")
 		user_name = "Testing comment, @test.user@example.com please check."

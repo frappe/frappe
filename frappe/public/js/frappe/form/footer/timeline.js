@@ -310,9 +310,9 @@ frappe.ui.form.Timeline = Class.extend({
 			// bold @mentions
 			if(c.comment_type==="Comment" &&
 				// avoid adding <b> tag a 2nd time
-				!c.content_html.match(/(^|\W)<b>(@\w+)<\/b>/)
+				!c.content_html.match(/(^|\W)<b>(@[^\s]+)<\/b>/)
 			) {
-				c.content_html = c.content_html.replace(/(^|\W)(@\w+)/g, "$1<b>$2</b>");
+				c.content_html = c.content_html.replace(/(^|\W)(@[^\s]+)/g, "$1<b>$2</b>");
 			}
 
 			if (this.is_communication_or_comment(c)) {
