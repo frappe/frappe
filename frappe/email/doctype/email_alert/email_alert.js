@@ -1,4 +1,4 @@
-this.frm.add_fetch('sender', 'email_id', 'sender_email')
+this.frm.add_fetch('sender', 'email_id', 'sender_email');
 
 this.frm.fields_dict.sender.get_query = function(doc){
 	return {
