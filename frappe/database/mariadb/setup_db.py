@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import frappe
 import os, sys
-from frappe.database.schema import DbManager
+from frappe.database.db_manager import DbManager
 
 def setup_database(force, verbose):
 	frappe.local.session = frappe._dict({'user':'Administrator'})
