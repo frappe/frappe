@@ -272,3 +272,6 @@ class MariaDBDatabase(Database):
 			columns=columns,
 			searchtext=self.escape(searchtext)
 		)
+
+	def get_database_list(self, target):
+		return [d[0] for d in self.sql("SHOW DATABASES;")]

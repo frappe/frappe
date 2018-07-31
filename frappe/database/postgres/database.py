@@ -250,6 +250,7 @@ class PostgresDatabase(Database):
 
 	def get_table_columns_description(self, table_name):
 		"""Returns list of column and its description"""
+		# pylint: disable=W1401
 		return self.sql('''select
 			a.column_name as name,
 			case a.data_type
@@ -267,3 +268,6 @@ class PostgresDatabase(Database):
 			where a.table_name = '{table_name}'
 			group by a.column_name, a.data_type, a.column_default, a.character_maximum_length;'''
 			.format(table_name=table_name), as_dict=1)
+
+	def get_database_list(self, target):
+		return [d[0] for d in self.sql("SELECT datname FROM pg_database;")]
