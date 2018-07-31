@@ -1,6 +1,6 @@
 this.frm.add_fetch('sender', 'email_id', 'sender_email');
 
-this.frm.fields_dict.sender.get_query = function(doc){
+this.frm.fields_dict.sender.get_query = function(){
 	return {
 		filters: {
 			'enable_outgoing': 1
