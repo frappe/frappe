@@ -63,7 +63,7 @@ class HelpDatabase(object):
 		if not self.global_help_setup:
 			return
 
-		frappe.db.setup_help_database(self.help_db_name)
+		frappe.database.setup_help_database(self.help_db_name)
 
 
 	def connect(self):
