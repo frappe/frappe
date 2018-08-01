@@ -7,14 +7,15 @@ python:
 
 services:
   - mysql
- 
+  - postgresql
+
 install:
   - sudo rm /etc/apt/sources.list.d/mongodb*.list
   - sudo rm /etc/apt/sources.list.d/docker.list
   - sudo apt-get install hhvm && rm -rf /home/travis/.kiex/
   - sudo apt-get purge -y mysql-common mysql-server mysql-client
   - nvm install v8.10.0
-  
+
   - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
 
   - sudo python install.py --develop --user travis --without-bench-setup
@@ -23,22 +24,39 @@ install:
   - rm $TRAVIS_BUILD_DIR/.git/shallow
   - cd ~/ && bench init frappe-bench --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
   - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
+  - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site_postgres ~/frappe-bench/sites/
 
 before_script:
   - mysql -u root -ptravis -e 'create database test_frappe'
   - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
   - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
 
+  - psql -c "CREATE DATABASE test_frappe;" -U postgres
+  - psql -c "CREATE USER test_frappe WITH PASSWORD 'test_frappe';" -U postgres
 
   - cd ~/frappe-bench
-  - bench use test_site
-  - bench reinstall --yes
-  - bench setup-help
+
+  - bench --site test_site reinstall --yes
+  - bench --site test_site setup-help
   - bench setup-global-help --mariadb_root_password travis
-  - bench scheduler disable
+  - bench --site test_site scheduler disable
+
+  - bench --site test_site_postgres reinstall --yes
+  - bench --site test_site_postgres setup-help
+  - bench setup-global-help --mariadb_root_password travis
+  - bench --site test_site_postgres scheduler disable
+
   - sed -i 's/9000/9001/g' sites/common_site_config.json
   - bench start &
   - sleep 10
 
-script:
-  - bench run-tests
+jobs:
+  include:
+    - stage: Server Side Tests
+      script:
+        - bench --site test_site run-tests
+      env: MariaDB
+    - # stage
+      script:
+        - bench --site test_site_postgres run-tests
+      env: PostgresSQL
