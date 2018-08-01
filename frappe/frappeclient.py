@@ -21,8 +21,8 @@ class FrappeClient(object):
 		self.session = requests.session()
 		self.url = url
 
-		# for guest connection
-		if username:
+		# login if username/password provided
+		if username and password:
 			self._login(username, password)
 
 	def __enter__(self):
