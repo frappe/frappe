@@ -311,12 +311,12 @@ def sync_global_search(flags=None):
 	# when syncing is enqueued
 	for value in flags:
 		frappe.db.sql('''
-			insert into __global_search
-				(doctype, name, content, published, title, route)
-			values
+			INSERT INTO `__global_search`
+				(`doctype`, `name`, `content`, `published`, `title`, `route`)
+			VALUES
 				(%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
 				{on_duplicate_update}
-				content = %(content)s'''.format(
+				`content`=%(content)s'''.format(
 					on_duplicate_update=frappe.db.get_on_duplicate_update(['name', 'doctype'])
 				), value, debug=True)
 
