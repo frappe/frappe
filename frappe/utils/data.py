@@ -713,8 +713,10 @@ def get_url(uri=None, full_address=False):
 	if not uri and full_address:
 		uri = frappe.get_request_header("REQUEST_URI", "")
 
-	if frappe.conf.http_port:
-		host_name = host_name + ':' + str(frappe.conf.http_port)
+	port = frappe.conf.http_port or frappe.conf.webserver_port
+
+	if host_name and ':' not in host_name and port:
+		host_name = host_name + ':' + str(port)
 
 	url = urljoin(host_name, uri) if uri else host_name
 
