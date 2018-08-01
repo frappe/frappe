@@ -11,8 +11,6 @@ import os, subprocess
 import jinja2.exceptions
 from bs4 import BeautifulSoup
 from markdown2 import markdown
-from frappe.database import get_root_connection
-
 
 def sync():
 	# make table
