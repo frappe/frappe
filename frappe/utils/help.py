@@ -74,7 +74,7 @@ class HelpDatabase(object):
 
 	def make_table(self):
 		if not 'help' in self.db.get_tables():
-			frappe.db.create_help_table()
+			self.db.create_help_table()
 
 	def search(self, words):
 		self.connect()
