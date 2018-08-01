@@ -6,7 +6,9 @@ python:
 
 services:
   - mysql
-  - postgresql
+
+addons:
+  postgresql: "9.5"
 
 install:
   - sudo rm /etc/apt/sources.list.d/mongodb*.list
