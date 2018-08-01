@@ -286,7 +286,13 @@ class FrappeClient(object):
 			raise
 
 		if rjson and ("exc" in rjson) and rjson["exc"]:
-			raise FrappeException(rjson["exc"])
+			try:
+				exc = json.loads(rjson["exc"])[0]
+				exc = 'FrappeClient Request Failed\n\n' + exc
+			except Exception:
+				exc = rjson["exc"]
+
+			raise FrappeException(exc)
 		if 'message' in rjson:
 			return rjson['message']
 		elif 'data' in rjson:
