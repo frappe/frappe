@@ -107,7 +107,7 @@ def before_tests():
 	from frappe.desk.page.setup_wizard.setup_wizard import setup_complete
 	if not int(frappe.db.get_single_value('System Settings', 'setup_complete') or 0):
 		setup_complete({
-			"language"			:"english",
+			"language"			:"English",
 			"email"				:"test@erpnext.com",
 			"full_name"			:"Test User",
 			"password"			:"test",

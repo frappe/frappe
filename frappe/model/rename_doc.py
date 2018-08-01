@@ -70,8 +70,8 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 		rename_password(doctype, old, new)
 
 	# update user_permissions
-	frappe.db.sql("""update tabDefaultValue set defvalue=%s where parenttype='User Permission'
-		and defkey=%s and defvalue=%s""", (new, doctype, old))
+	frappe.db.sql("""UPDATE `tabDefaultValue` SET `defvalue`=%s WHERE `parenttype`='User Permission'
+		AND `defkey`=%s AND `defvalue`=%s""", (new, doctype, old))
 
 	if merge:
 		new_doc.add_comment('Edit', _("merged {0} into {1}").format(frappe.bold(old), frappe.bold(new)))
@@ -98,9 +98,10 @@ def update_user_settings(old, new, link_fields):
 
 	# find the user settings for the linked doctypes
 	linked_doctypes = set([d.parent for d in link_fields if not d.issingle])
-	user_settings_details = frappe.db.sql('''select user, doctype, data from `__UserSettings` where
-			data like "%%%s%%" and doctype in ({0})'''.format(", ".join(["%s"]*len(linked_doctypes))),
-		tuple([old] + list(linked_doctypes)), as_dict=1)
+	user_settings_details = frappe.db.sql('''SELECT `user`, `doctype`, `data`
+			FROM `__UserSettings`
+			WHERE `data` like %s
+			AND `doctype` IN ('{doctypes}')'''.format(doctypes="', '".join(linked_doctypes)), (old), as_dict=1)
 
 	# create the dict using the doctype name as key and values as list of the user settings
 	from collections import defaultdict
@@ -128,7 +129,7 @@ def update_attachments(doctype, old, new):
 			raise
 
 def rename_versions(doctype, old, new):
-	frappe.db.sql("""update tabVersion set docname=%s where ref_doctype=%s and docname=%s""",
+	frappe.db.sql("""UPDATE `tabVersion` SET `docname`=%s WHERE `ref_doctype`=%s AND `docname`=%s""",
 		(new, doctype, old))
 
 def rename_parent_and_child(doctype, old, new, meta):
@@ -211,12 +212,11 @@ def update_link_field_values(link_fields, old, new, doctype):
 			# because the table hasn't been renamed yet!
 			parent = field['parent'] if field['parent']!=new else old
 
-			frappe.db.sql("""\
-				update `tab%s` set `%s`=%s
-				where `%s`=%s""" \
-				% (parent, frappe.db.escape(field['fieldname']), '%s',
-					frappe.db.escape(field['fieldname']), '%s'),
-				(new, old))
+			frappe.db.sql("""
+				update `tab{table_name}` set `{fieldname}`=%s
+				where `{fieldname}`=%s""".format(
+					table_name=parent,
+					fieldname=field['fieldname']), (new, old))
 		# update cached link_fields as per new
 		if doctype=='DocType' and field['parent'] == old:
 			field['parent'] = new

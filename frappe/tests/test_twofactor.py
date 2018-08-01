@@ -137,6 +137,7 @@ class TestTwoFactor(unittest.TestCase):
 		#1
 		user = frappe.get_doc('User', self.user)
 		user.restrict_ip = "192.168.255.254" #Dummy IP
+		user.bypass_restrict_ip_check_if_2fa_enabled = 0
 		user.save()
 		enable_2fa(bypass_restrict_ip_check=0)
 		with self.assertRaises(frappe.AuthenticationError):
@@ -188,8 +189,8 @@ def toggle_2fa_all_role(state=None):
 	all_role = frappe.get_doc('Role','All')
 	if state == None:
 		state = False if all_role.two_factor_auth == True else False
-	if state not in [True,False]:return
-	all_role.two_factor_auth = state
+	if state not in [True, False]: return
+	all_role.two_factor_auth = cint(state)
 	all_role.save(ignore_permissions=True)
 	frappe.db.commit()
 

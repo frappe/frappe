@@ -57,18 +57,22 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 	if not device:
 		device = frappe.session.data.device or "desktop"
 
-	limit = 0
+	offset = 0
 	if user == frappe.session.user:
 		simultaneous_sessions = frappe.db.get_value('User', user, 'simultaneous_sessions') or 1
-		limit = simultaneous_sessions - 1
+		offset = simultaneous_sessions - 1
 
 	condition = ''
 	if keep_current:
-		condition = ' and sid != {0}'.format(frappe.db.escape(frappe.session.sid))
+		condition = ' AND sid != {0}'.format(frappe.db.escape(frappe.session.sid))
 
-	return frappe.db.sql_list("""select sid from tabSessions
-		where user=%s and device=%s {condition}
-		order by lastupdate desc limit {limit}, 100""".format(condition=condition, limit=limit),
+	return frappe.db.sql_list("""
+		SELECT `sid` FROM `tabSessions`
+		WHERE user=%s
+		AND device=%s
+		{condition}
+		ORDER BY `lastupdate` DESC
+		LIMIT 100 OFFSET {offset}""".format(condition=condition, offset=offset),
 		(user, device))
 
 def delete_session(sid=None, user=None, reason="Session Expired"):
@@ -95,9 +99,10 @@ def get_expired_sessions():
 	'''Returns list of expired sessions'''
 	expired = []
 	for device in ("desktop", "mobile"):
-		expired += frappe.db.sql_list("""select sid from tabSessions
-				where TIMEDIFF(NOW(), lastupdate) > TIME(%s)
-				and device = %s""", (get_expiry_period(device), device))
+		expired += frappe.db.sql_list("""SELECT `sid`
+				FROM `tabSessions`
+				WHERE (NOW() - `lastupdate`) > %s
+				AND device = %s""", (get_expiry_period(device), device))
 
 	return expired
 

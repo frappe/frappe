@@ -9,16 +9,21 @@ from six.moves import xrange
 def get_monthly_results(goal_doctype, goal_field, date_col, filter_str, aggregation = 'sum'):
 	'''Get monthly aggregation values for given field of doctype'''
 
-	where_clause = ('where ' + filter_str) if filter_str else ''
+	conditions = ('where ' + filter_str) if filter_str else ''
 	results = frappe.db.sql('''
 		select
-			{0}({1}) as {1}, date_format({2}, '%m-%Y') as month_year
+			{aggregation}(`{goal_field}`) as {goal_field},
+			CONCAT(EXTRACT(YEAR FROM `{date_col}`), '-', EXTRACT(MONTH FROM `{date_col}`)) as month_year
 		from
-			`{3}`
-		{4}
+			`{table_name}`
+		{conditions}
 		group by
-			month_year'''.format(aggregation, goal_field, date_col, "tab" +
-			goal_doctype, where_clause), as_dict=True)
+			month_year'''.format(
+				aggregation=aggregation,
+				goal_field=goal_field,
+				date_col=date_col,
+				table_name="tab" + goal_doctype,
+				conditions=conditions), as_dict=True)
 
 	month_to_value_dict = {}
 	for d in results:
@@ -69,7 +74,7 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 		month_to_value_dict = None
 
 	if month_to_value_dict is None:
-		doc_filter = (goal_doctype_link + ' = "' + docname + '"') if doctype != goal_doctype else ''
+		doc_filter = (goal_doctype_link + " = '" + docname + "'") if doctype != goal_doctype else ''
 		if filter_str:
 			doc_filter += ' and ' + filter_str if doc_filter else filter_str
 		month_to_value_dict = get_monthly_results(goal_doctype, goal_field, date_field, doc_filter, aggregation)

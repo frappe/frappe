@@ -92,10 +92,14 @@ def two_factor_is_enabled_for_(user):
 		user = frappe.get_doc('User', user)
 
 	roles = [frappe.db.escape(d.role) for d in user.roles or []]
-	roles.append('All')
+	roles.append("'All'")
 
-	query = """select name from `tabRole` where two_factor_auth=1
-		and name in ({0}) limit 1""".format(', '.join('\"{}\"'.format(i) for i in roles))
+	query = """SELECT `name`
+		FROM `tabRole`
+		WHERE `two_factor_auth`= 1
+		AND `name` IN ({0})
+		LIMIT 1""".format(", ".join(roles))
+
 	if len(frappe.db.sql(query)) > 0:
 		return True
 

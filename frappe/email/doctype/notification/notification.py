@@ -8,7 +8,7 @@ import json, os
 from frappe import _
 from frappe.model.document import Document
 from frappe.core.doctype.role.role import get_emails_from_role
-from frappe.utils import validate_email_add, nowdate, parse_val, is_html
+from frappe.utils import validate_email_add, nowdate, parse_val, is_html, add_to_date
 from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
 from six import string_types
@@ -87,9 +87,11 @@ def get_context(context):
 		if self.event=="Days After":
 			diff_days = -diff_days
 
-		for name in frappe.db.sql_list("""SELECT NAME FROM `tab{0}` WHERE
-			DATE(`{1}`) = (DATE('%s') + INTERVAL '%s' DAY)""".format(self.document_type,
-				self.date_changed), (nowdate(), diff_days or 0)):
+		for name in frappe.db.sql_list("""SELECT name
+			FROM `tab{0}`
+			WHERE {1} = %s""".format(
+				self.document_type,
+				self.date_changed), (add_to_date(nowdate(), days=diff_days)), debug=True):
 
 			doc = frappe.get_doc(self.document_type, name)
 

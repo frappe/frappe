@@ -182,7 +182,7 @@ def revert_series_if_last(key, name):
 	current = frappe.db.sql("SELECT `current` FROM `tabSeries` WHERE `name`=%s FOR UPDATE", (prefix,))
 
 	if current and current[0][0]==count:
-		frappe.db.sql("UPDATE `tabSeries` SET `current`='current-1' WHERE `name`=%s", prefix)
+		frappe.db.sql("UPDATE `tabSeries` SET `current`='0' WHERE `name`=%s", prefix)
 
 
 def get_default_naming_series(doctype):
