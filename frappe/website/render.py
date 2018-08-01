@@ -273,6 +273,7 @@ def clear_cache(path=None):
 	for key in ('website_generator_routes', 'website_pages',
 		'website_full_index'):
 		frappe.cache().delete_value(key)
+
 	frappe.cache().delete_value("website_404")
 	if path:
 		frappe.cache().hdel('website_redirects', path)
@@ -281,7 +282,8 @@ def clear_cache(path=None):
 		clear_sitemap()
 		frappe.clear_cache("Guest")
 		for key in ('portal_menu_items', 'home_page', 'website_route_rules',
-			'doctypes_with_web_view', 'website_redirects'):
+			'doctypes_with_web_view', 'website_redirects', 'page_context',
+			'website_page'):
 			frappe.cache().delete_value(key)
 
 	for method in frappe.get_hooks("website_clear_cache"):
