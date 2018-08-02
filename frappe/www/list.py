@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe
+import frappe, json
 from frappe.utils import cint, quoted
 from frappe.website.render import resolve_path
 from frappe.model.document import get_controller, Document
@@ -86,10 +86,13 @@ def get(doctype, txt=None, limit_start=0, limit=20, **kwargs):
 		rendered_row = frappe.render_template(row_template, new_context, is_path=True)
 		result.append(rendered_row)
 
+	from frappe.utils.response import json_handler
+
 	return {
+		"raw_result": json.dumps(raw_result, default=json_handler),
 		"result": result,
 		"show_more": show_more,
-		"next_start": next_start
+		"next_start": next_start,
 	}
 
 def set_route(context):

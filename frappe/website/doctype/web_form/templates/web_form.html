@@ -62,8 +62,12 @@
 	</p>
 </div>
 {% elif is_list %}
-	{% include "templates/includes/list/list.html" %}
-	<script>{% include "templates/includes/list/list.js" %}</script>
+	<div class="web-form-list">
+		<div class="results"></div>
+		<div class="more-block {% if not show_more -%} hide {%- endif %}">
+			<button class="btn btn-default btn-more btn-sm">{{ _("More") }}</button>
+		</div>
+	</div>
 {% else %}
 <br>
 
@@ -180,7 +184,7 @@ window.web_form_settings = {
 	login_required: 	{{ 1 if login_required else 0 }},
 	max_attachment_size:{{ max_attachment_size }},
 	moment_date_format: "{{ frappe.date_format.upper() }}",
-	is_list: {{ frappe.utils.cint(is_list) }},
+	is_list: {{ frappe.utils.cint(is_list) }}
 }
 {% if row_template %}web_form_settings.web_form_row_template = "{{ row_template }}";{% endif %}
 </script>

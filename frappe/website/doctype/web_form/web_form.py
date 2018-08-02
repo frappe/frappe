@@ -508,3 +508,7 @@ def get_form_data(doctype, docname, web_form_name):
 	out.links = links
 
 	return out
+
+@frappe.whitelist()
+def get_in_list_view_fields(doctype):
+	return [df.as_dict() for df in frappe.get_meta(doctype).fields if df.in_list_view]

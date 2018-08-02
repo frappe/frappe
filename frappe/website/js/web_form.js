@@ -1,8 +1,10 @@
 import WebForm from './webform';
+import DataTable from 'frappe-datatable';
 
 frappe.ready(function() {
 	if(web_form_settings.is_list) {
-		$('body').css('display', 'block');
+		$('body').show();
+		make_datatable('.web-form-list .results', web_form_settings.web_form_doctype);
 		return;
 	}
 
@@ -159,4 +161,52 @@ frappe.ready(function() {
 	});
 });
 
+window.web_list_start = 0;
+window.web_list_page_length = 20;
+window.web_list_datatable;
 
+
+window.make_datatable = function make_datatable(container, doctype) {
+	return new Promise(resolve => {
+		frappe.call({
+			method: 'frappe.website.doctype.web_form.web_form.get_in_list_view_fields',
+			args: { doctype },
+			callback: (r) => {
+				const docfields = r.message;
+
+				frappe.call({
+					method: 'frappe.client.get_list',
+					args: { doctype, fields: docfields.map(df => df.fieldname) },
+					callback: (r) => {
+						const data = r.message || [];
+
+						window.web_list_datatable = new DataTable(container, {
+							columns: docfields.map(df => ({ name: df.label, id: df.fieldname })),
+							data,
+							layout: 'fluid'
+						});
+
+						$(".web-form-list .btn-more").on('click', () => {
+							window.web_list_start += window.web_list_page_length;
+							frappe.call({
+								method: 'frappe.client.get_list',
+								args: {
+									doctype,
+									fields: docfields.map(df => df.fieldname),
+									limit_start: window.web_list_start
+								},
+								callback: (r) => {
+									const data = r.message || [];
+
+									window.web_list_datatable.appendRows(data);
+								}
+							});
+						});
+
+						resolve(window.web_list_datatable);
+					}
+				});
+			}
+		});
+	});
+}
