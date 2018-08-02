@@ -188,11 +188,8 @@ class PostgresDatabase(Database):
 				"content" text,
 				"title" text,
 				"intro" text,
-				"full_path" text,
-				index (path))
-				COLLATE=utf8mb4_unicode_ci
-				ENGINE=MyISAM
-				CHARACTER SET=utf8mb4''')
+				"full_path" text)''')
+		self.sql('''CREATE INDEX IF NOT EXISTS ON "help" ("path")''')
 
 	def updatedb(self, doctype, meta=None):
 		"""
