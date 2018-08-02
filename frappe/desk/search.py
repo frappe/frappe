@@ -12,7 +12,6 @@ import re
 
 UNTRANSLATED_DOCTYPES = ["DocType", "Roles"]
 
-
 def sanitize_searchfield(searchfield):
 	blacklisted_keywords = ['select', 'delete', 'drop', 'update', 'case', 'and', 'or', 'like']
 

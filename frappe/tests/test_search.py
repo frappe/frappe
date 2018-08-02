@@ -39,22 +39,14 @@ class TestSearch(unittest.TestCase):
 		self.assertRaises(frappe.DataError,
 			search_link, 'DocType', 'Customer', query=None, filters=None,
 			page_length=20, searchfield=';')
-	
-	#Search for the word "clie", part of the word "client" (customer) in french.
-	def test_contact_search_in_foreign_language(self):
-		frappe.local.lang = 'fr'
-		output = filter_dynamic_link_doctypes("DocType", "clie", "name", 0, 20, {'fieldtype': 'HTML', 'fieldname': 'contact_html'})
 
-		result = [['found' for x in y if x=="Customer"] for y in output]
-		self.assertTrue(['found'] in result)
-
-	#Search for the word "fourn", part of the word "fournisseur" (supplier) in french.
+	#Search for the word "pay", part of the word "pays" (country) in french.
 	def test_link_search_in_foreign_language(self):
 		frappe.local.lang = 'fr'
-		search_widget(doctype="DocType", txt="fourn", page_length=20)
+		search_widget(doctype="DocType", txt="pay", page_length=20)
 		output = frappe.response["values"]
 
-		result = [['found' for x in y if x=="Supplier"] for y in output]
+		result = [['found' for x in y if x=="Country"] for y in output]
 		self.assertTrue(['found'] in result)
 
 	def tearDown(self):
