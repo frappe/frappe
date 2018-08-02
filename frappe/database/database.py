@@ -175,6 +175,7 @@ class Database:
 				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
 
 		except Exception as e:
+			self.rollback()
 			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
 			else:
@@ -755,8 +756,7 @@ class Database:
 			return frappe.defaults.get_defaults(parent)
 
 	def begin(self):
-		pass
-		#self.sql("START TRANSACTION")
+		self.sql("START TRANSACTION")
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
