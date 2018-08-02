@@ -4,7 +4,9 @@ import DataTable from 'frappe-datatable';
 frappe.ready(function() {
 	if(web_form_settings.is_list) {
 		$('body').show();
-		make_datatable('.web-form-list .results', web_form_settings.web_form_doctype);
+		if($('.web-form-list').length) {
+			make_datatable('.web-form-list .results', web_form_settings.web_form_doctype);
+		}
 		return;
 	}
 

@@ -62,12 +62,17 @@
 	</p>
 </div>
 {% elif is_list %}
-	<div class="web-form-list">
-		<div class="results"></div>
-		<div class="more-block {% if not show_more -%} hide {%- endif %}">
-			<button class="btn btn-default btn-more btn-sm">{{ _("More") }}</button>
+	{% if show_in_grid %}
+		<div class="web-form-list">
+			<div class="results"></div>
+			<div class="more-block {% if not show_more -%} hide {%- endif %}">
+				<button class="btn btn-default btn-more btn-sm">{{ _("More") }}</button>
+			</div>
 		</div>
-	</div>
+	{% else %}
+		{% include "templates/includes/list/list.html" %}
+		<script>{% include "templates/includes/list/list.js" %}</script>
+	{% endif %}
 {% else %}
 <br>
 
