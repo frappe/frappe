@@ -31,7 +31,7 @@ def setup_database(force, verbose):
 
 	bootstrap_database(db_name, verbose)
 
-def setup_help_database(help_db_name, ):
+def setup_help_database(help_db_name):
 	dbman = DbManager(get_root_connection(frappe.flags.root_login, frappe.flags.root_password))
 	dbman.drop_database(help_db_name)
 
