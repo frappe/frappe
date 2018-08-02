@@ -39,12 +39,12 @@ before_script:
 
   - bench --site test_site reinstall --yes
   - bench --site test_site setup-help
-  - bench setup-global-help --mariadb_root_password travis
+  - bench setup-global-help --root_password travis
   - bench --site test_site scheduler disable
 
   - bench --site test_site_postgres reinstall --yes
   - bench --site test_site_postgres setup-help
-  - bench setup-global-help --mariadb_root_password travis
+  - bench setup-global-help --db_type=postgres --root_password travis
   - bench --site test_site_postgres scheduler disable
 
   - sed -i 's/9000/9001/g' sites/common_site_config.json

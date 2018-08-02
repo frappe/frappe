@@ -508,8 +508,9 @@ def get_version():
 
 
 @click.command('setup-global-help')
-@click.option('--mariadb_root_password')
-def setup_global_help(mariadb_root_password=None):
+@click.option('--db_type')
+@click.option('--root_password')
+def setup_global_help(db_type=None, root_password=None):
 	'''setup help table in a separate database that will be
 	shared by the whole bench and set `global_help_setup` as 1 in
 	common_site_config.json'''
@@ -525,8 +526,12 @@ def setup_global_help(mariadb_root_password=None):
 	update_site_config('global_help_setup', 1,
 		site_config_path=os.path.join('.', 'common_site_config.json'))
 
-	if mariadb_root_password:
-		frappe.local.conf.root_password = mariadb_root_password
+	if root_password:
+		frappe.local.conf.root_password = root_password
+
+	if not frappe.local.conf.db_type:
+		frappe.local.conf.db_type = db_type
+
 
 	from frappe.utils.help import sync
 	sync()
