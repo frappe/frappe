@@ -1,8 +1,12 @@
 import WebForm from './webform';
+import make_datatable from './grid_list';
 
 frappe.ready(function() {
 	if(web_form_settings.is_list) {
-		$('body').css('display', 'block');
+		$('body').show();
+		if($('.web-form-list').length) {
+			make_datatable('.web-form-list', web_form_settings.web_form_doctype);
+		}
 		return;
 	}
 
@@ -158,5 +162,3 @@ frappe.ready(function() {
 		}
 	});
 });
-
-

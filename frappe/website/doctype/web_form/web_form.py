@@ -171,6 +171,8 @@ def get_context(context):
 		if not context.max_attachment_size:
 			context.max_attachment_size = get_max_file_size() / 1024 / 1024
 
+		context.show_in_grid = self.show_in_grid
+
 	def load_document(self, context):
 		'''Load document `doc` and `layout` properties for template'''
 		if frappe.form_dict.name or frappe.form_dict.new:
@@ -508,3 +510,7 @@ def get_form_data(doctype, docname, web_form_name):
 	out.links = links
 
 	return out
+
+@frappe.whitelist()
+def get_in_list_view_fields(doctype):
+	return [df.as_dict() for df in frappe.get_meta(doctype).fields if df.in_list_view]
