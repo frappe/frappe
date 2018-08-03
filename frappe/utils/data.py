@@ -129,7 +129,7 @@ def get_eta(from_time, percent_complete):
 	return str(datetime.timedelta(seconds=(100 - percent_complete) / percent_complete * diff))
 
 def _get_time_zone():
-	return frappe.db.get_system_setting('time_zone') or 'Asia/Kolkata' # Default to India ?!
+	return frappe.db.get_system_setting('time_zone') or 'Asia/Kolkata'
 
 def get_time_zone():
 	if frappe.local.flags.in_test:
@@ -812,13 +812,11 @@ def get_filter(doctype, f):
 
 	f = frappe._dict(doctype=f[0], fieldname=f[1], operator=f[2], value=f[3])
 
-	sanitize_column(f.fieldname)
-
 	if not f.operator:
 		# if operator is missing
 		f.operator = "="
 
-	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in", "between")
+	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in", "between","is null","is not null")
 	if f.operator.lower() not in valid_operators:
 		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
 
@@ -852,27 +850,6 @@ def make_filter_dict(filters):
 		_filter[f[1]] = (f[2], f[3])
 
 	return _filter
-
-def sanitize_column(column_name):
-	from frappe import _
-	regex = re.compile("^.*[,'();].*")
-	blacklisted_keywords = ['select', 'create', 'insert', 'delete', 'drop', 'update', 'case', 'and', 'or']
-
-	def _raise_exception():
-		frappe.throw(_("Invalid field name {0}").format(column_name), frappe.DataError)
-
-	if 'ifnull' in column_name:
-		if regex.match(column_name):
-			# to avoid and, or
-			if any(' {0} '.format(keyword) in column_name.split() for keyword in blacklisted_keywords):
-				_raise_exception()
-
-			# to avoid select, delete, drop, update and case
-			elif any(keyword in column_name.split() for keyword in blacklisted_keywords):
-				_raise_exception()
-
-	elif regex.match(column_name):
-		_raise_exception()
 
 def scrub_urls(html):
 	html = expand_relative_urls(html)
@@ -953,3 +930,27 @@ def get_source_value(source, key):
 		return source.get(key)
 	else:
 		return getattr(source, key)
+
+
+def sanitize_column(column_name):
+        from frappe import _
+        regex = re.compile("^.*[,'();].*")
+        blacklisted_keywords = ['select', 'create', 'insert',
+                                'delete', 'drop', 'update', 'case', 'and', 'or']
+
+        def _raise_exception():
+                frappe.throw(_("Invalid field name {0}").format(
+                    column_name), frappe.DataError)
+
+        if 'ifnull' in column_name:
+                if regex.match(column_name):
+                        # to avoid and, or
+                        if any(' {0} '.format(keyword) in column_name.split() for keyword in blacklisted_keywords):
+                                _raise_exception()
+
+                        # to avoid select, delete, drop, update and case
+                        elif any(keyword in column_name.split() for keyword in blacklisted_keywords):
+                                _raise_exception()
+
+        elif regex.match(column_name):
+                _raise_exception()
