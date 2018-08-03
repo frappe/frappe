@@ -316,7 +316,7 @@ class BaseDocument(object):
 					self.name = None
 					self.db_insert()
 					return
-
+					
 				frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
 				raise frappe.DuplicateEntryError(self.doctype, self.name, e)
 

@@ -119,8 +119,8 @@ class DocType(Document):
 					link_df = new_meta.get_field(link_fieldname)
 
 					self.flags.update_fields_to_fetch_queries.append('''update
-							`tab{link_doctype}` source,
-							`tab{doctype}` target
+							`tab{link_doctype}` as source,
+							`tab{doctype}` as target
 						set
 							target.`{fieldname}` = source.`{source_fieldname}`
 						where
