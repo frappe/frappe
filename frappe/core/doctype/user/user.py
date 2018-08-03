@@ -354,7 +354,7 @@ class User(Document):
 	def after_rename(self, old_name, new_name, merge=False):
 		tables = frappe.db.get_tables()
 		for tab in tables:
-			desc = frappe.db.get_column_description(tab)
+			desc = frappe.db.get_table_columns_description(tab)
 			has_fields = []
 			for d in desc:
 				if d.get('name') in ['owner', 'modified_by']:

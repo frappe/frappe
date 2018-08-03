@@ -135,7 +135,7 @@ class DataExporter:
 		# build list of valid docfields
 		tablecolumns = []
 		table_name = 'tab' + dt
-		for f in frappe.db.get_column_description(table_name):
+		for f in frappe.db.get_table_columns_description(table_name):
 			field = meta.get_field(f.name)
 			if field and ((self.select_columns and f.name in self.select_columns[dt]) or not self.select_columns):
 				tablecolumns.append(field)
