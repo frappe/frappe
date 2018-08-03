@@ -165,7 +165,10 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 
 
 def get_file_data_from_hash(content_hash, is_private=0):
-	for name in frappe.db.sql_list("select name from `tabFile` where content_hash=%s and is_private=%s", (content_hash, is_private)):
+	for name in frappe.db.sql_list("""SELECT `name`
+		FROM `tabFile`
+		WHERE `content_hash`=%s
+		AND `is_private`=%s""", (content_hash, cint(is_private))):
 		b = frappe.get_doc('File', name)
 		return {k: b.get(k) for k in frappe.get_hooks()['write_file_keys']}
 	return False

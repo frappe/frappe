@@ -852,9 +852,11 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 
 def get_total_users():
 	"""Returns total no. of system users"""
-	return frappe.db.sql('''select sum(simultaneous_sessions) from `tabUser`
-		where enabled=1 and user_type="System User"
-		and name not in ({})'''.format(", ".join(["%s"]*len(STANDARD_USERS))), STANDARD_USERS)[0][0]
+	return frappe.db.sql('''SELECT SUM(`simultaneous_sessions`)
+		FROM `tabUser`
+		WHERE `enabled` = 1
+		AND `user_type` = 'System User'
+		AND `name` NOT IN ({})'''.format(", ".join(["%s"]*len(STANDARD_USERS))), STANDARD_USERS)[0][0]
 
 def get_system_users(exclude_users=None, limit=None):
 	if not exclude_users:

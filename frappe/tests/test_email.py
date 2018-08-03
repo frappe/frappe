@@ -109,13 +109,13 @@ class TestEmail(unittest.TestCase):
 			content = part.get_payload(decode=True)
 
 			if content:
-				frappe.local.flags.signed_query_string = re.search('(?<=/api/method/frappe.email.queue.unsubscribe\?).*(?=\n)', content.decode()).group(0)
+				frappe.local.flags.signed_query_string = re.search(r'(?<=/api/method/frappe.email.queue.unsubscribe\?).*(?=\n)', content.decode()).group(0)
 				self.assertTrue(verify_request())
 				break
 
 	def test_expired(self):
 		self.test_email_queue()
-		frappe.db.sql("update `tabEmail Queue` set modified=DATE_SUB(curdate(), interval 8 day)")
+		frappe.db.sql("UPDATE `tabEmail Queue` SET `modified`=(NOW() - INTERVAL '8' day)")
 		from frappe.email.queue import clear_outbox
 		clear_outbox()
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Expired'""", as_dict=1)
