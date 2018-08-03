@@ -189,7 +189,7 @@ class PostgresDatabase(Database):
 				"title" text,
 				"intro" text,
 				"full_path" text)''')
-		self.sql('''CREATE INDEX IF NOT EXISTS ON "help" ("path")''')
+		self.sql('''CREATE INDEX IF NOT EXISTS help_index ON "help" ("path")''')
 
 	def updatedb(self, doctype, meta=None):
 		"""
