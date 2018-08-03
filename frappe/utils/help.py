@@ -57,7 +57,6 @@ class HelpDatabase(object):
 		if self.global_help_setup:
 			bench_name = os.path.basename(os.path.abspath(frappe.get_app_path('frappe')).split('/apps/')[0])
 			self.help_db_name = 'd' + hashlib.sha224(bench_name.encode('utf-8')).hexdigest()[:15]
-			print(self.help_db_name)
 
 	def make_database(self):
 		'''make database for global help setup'''
@@ -163,7 +162,7 @@ class HelpDatabase(object):
 									title = self.make_title(basepath, fname, content)
 									intro = self.make_intro(content)
 									content = self.make_content(content, fpath, relpath, app)
-									self.db.sql('''INSERT INTO HELP(`path`, `content`, `title`, `intro`, `full_path`)
+									self.db.sql('''INSERT INTO `help`(`path`, `content`, `title`, `intro`, `full_path`)
 										VALUES (%s, %s, %s, %s, %s)''', (relpath, content, title, intro, fpath))
 								except jinja2.exceptions.TemplateSyntaxError:
 									print("Invalid Jinja Template for {0}. Skipping".format(fpath))

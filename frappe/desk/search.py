@@ -19,7 +19,7 @@ def sanitize_searchfield(searchfield):
 
 	if len(searchfield) == 1:
 		# do not allow special characters to pass as searchfields
-		regex = re.compile('^.*[=;*,\'"$\-+%#@()_].*')
+		regex = re.compile(r'^.*[=;*,\'"$\-+%#@()_].*')
 		if regex.match(searchfield):
 			_raise_exception(searchfield)
 
@@ -42,7 +42,7 @@ def sanitize_searchfield(searchfield):
 			_raise_exception(searchfield)
 
 		else:
-			regex = re.compile('^.*[=;*,\'"$\-+%#@()].*')
+			regex = re.compile(r'^.*[=;*,\'"$\-+%#@()].*')
 			if any(regex.match(f) for f in searchfield.split()):
 				_raise_exception(searchfield)
 

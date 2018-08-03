@@ -17,7 +17,7 @@ class DbManager:
 		#Create user if it doesn't exist.
 		if not host:
 			host = self.get_current_host()
-		print(user, password)
+			
 		if password:
 			self.db.sql("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" % (user[:16], host, password))
 		else:

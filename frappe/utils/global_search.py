@@ -137,11 +137,9 @@ def rebuild_for_doctype(doctype):
 
 
 def delete_global_search_records_for_doctype(doctype):
-	frappe.db.sql('''
-		delete
-			from __global_search
-		where
-			doctype = %s''', doctype, as_dict=True)
+	frappe.db.sql('''DELETE
+		FROM `__global_search`
+		WHERE doctype = %s''', doctype, as_dict=True)
 
 
 def get_selected_fields(meta, global_search_fields):
@@ -197,20 +195,22 @@ def get_children_data(doctype, meta):
 def insert_values_for_multiple_docs(all_contents):
 	values = []
 	for content in all_contents:
-		values.append("( {doctype}, {name}, {content}, {published}, {title}, {route})"
+		values.append("({doctype}, {name}, {content}, {published}, {title}, {route})"
 			.format(**content))
 
 	batch_size = 50000
 	for i in range(0, len(values), batch_size):
 		batch_values = values[i:i + batch_size]
 		# ignoring duplicate keys for doctype_name
-		# TODO: ignore duplicate
-		frappe.db.sql('''
-			INSERT INTO `__global_search`
+		frappe.db.sql({
+			'mysql': '''INSERT IGNORE INTO `__global_search`
 				(doctype, name, content, published, title, route)
-			values
-				{0}
-			'''.format(", ".join(batch_values), on_duplicate_update=frappe.db.get_on_duplicate_update(['name', 'doctype'])))
+				VALUES {0} '''.format(", ".join(batch_values)),
+			'postgres': '''INSERT INTO `__global_search`
+				(doctype, name, content, published, title, route)
+				VALUES {0}
+				ON CONFLICT("name", "doctype") DO NOTHING'''.format(", ".join(batch_values))
+			})
 
 
 def update_global_search(doc):
@@ -310,15 +310,17 @@ def sync_global_search(flags=None):
 	# Can pass flags manually as frappe.flags.update_global_search isn't reliable at a later time,
 	# when syncing is enqueued
 	for value in flags:
-		frappe.db.sql('''
-			INSERT INTO `__global_search`
+		print(value)
+		frappe.db.multisql({
+			'mariadb': '''INSERT INTO `__global_search`
 				(`doctype`, `name`, `content`, `published`, `title`, `route`)
-			VALUES
-				(%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
-				{on_duplicate_update}
-				`content`=%(content)s'''.format(
-					on_duplicate_update=frappe.db.get_on_duplicate_update(['name', 'doctype'])
-				), value)
+				VALUES (%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
+				ON DUPLICATE key UPDATE `content`=%(content)s''',
+			'postgres': '''INSERT INTO `__global_search`
+				(`doctype`, `name`, `content`, `published`, `title`, `route`)
+				VALUES (%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
+				ON CONFLICT("doctype", "name") DO UPDATE SET `content`=%(content)s'''
+		}, value)
 
 	frappe.flags.update_global_search = []
 

@@ -90,13 +90,17 @@ def update_password(user, pwd, doctype='User', fieldname='password', logout_all_
 		:param logout_all_session: delete all other session
 	'''
 	hashPwd = passlibctx.hash(pwd)
-	frappe.db.sql("""insert into `__Auth` (`doctype`, `name`, `fieldname`, `password`, `encrypted`)
-		values (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 0)
-		{on_duplicate_update}
-			`password`=%(pwd)s, encrypted=0""".format(
-				on_duplicate_update=frappe.db.get_on_duplicate_update(key=['name', 'doctype', 'fieldname'])
-			),
-		{'doctype': doctype, 'name': user, 'fieldname': fieldname, 'pwd': hashPwd})
+	frappe.db.multisql({
+		"mariadb": """INSERT INTO `__Auth`
+			(`doctype`, `name`, `fieldname`, `password`, `encrypted`)
+			VALUES (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 0)
+			ON DUPLICATE key UPDATE `password`=%(pwd)s, encrypted=0""",
+		"postgres": """INSERT INTO `__Auth`
+			(`doctype`, `name`, `fieldname`, `password`, `encrypted`)
+			VALUES (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 0)
+			ON CONFLICT("name", "doctype", "fieldname") DO UPDATE
+			SET `password`=%(pwd)s, encrypted=0""",
+	}, {'doctype': doctype, 'name': user, 'fieldname': fieldname, 'pwd': hashPwd})
 
 	# clear all the sessions except current
 	if logout_all_sessions:
