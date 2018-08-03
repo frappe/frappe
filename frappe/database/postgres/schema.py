@@ -53,6 +53,8 @@ class PostgresTable(DBTable):
 			parenttype varchar({varchar_len}),
 			idx bigint not null default '0',
 			%s)""".format(varchar_len=frappe.db.VARCHAR_LEN) % (self.table_name, add_text))
+			
+		frappe.db.commit()
 
 	def alter(self):
 		for col in self.columns.values():
