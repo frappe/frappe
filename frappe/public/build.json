@@ -34,6 +34,10 @@
 		"public/js/lib/microtemplate.js",
 		"public/js/frappe/query_string.js",
 
+		"public/js/frappe/ui/dropzone.js",
+		"public/js/frappe/ui/upload.html",
+		"public/js/frappe/upload.js",
+
 		"public/js/frappe/model/meta.js",
 		"public/js/frappe/model/model.js",
 		"public/js/frappe/model/perm.js",
