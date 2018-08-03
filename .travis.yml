@@ -28,12 +28,7 @@ install:
   - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site_postgres ~/frappe-bench/sites/
 
 before_script:
-  - mysql -u root -ptravis -e 'create database test_frappe'
-  - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
-  - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
-
   - cd ~/frappe-bench
-
   - sed -i 's/9000/9001/g' sites/common_site_config.json
   - bench start &
   - sleep 10
@@ -42,6 +37,9 @@ jobs:
   include:
     - stage: Server Side Tests
       script:
+        - mysql -u root -ptravis -e 'create database test_frappe'
+        - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
+        - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
         - bench --site test_site reinstall --yes
         - bench --site test_site setup-help
         - bench setup-global-help --root_password travis

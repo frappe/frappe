@@ -118,9 +118,9 @@ class Database:
 				{"name": "a%", "owner":"test@example.com"})
 
 		"""
-		if re.search('ifnull', query, flags=re.IGNORECASE):
+		if re.search('ifnull(', query, flags=re.IGNORECASE):
 			# replaces ifnull in query with coalesce
-			query = re.sub('ifnull', 'coalesce', query, flags=re.IGNORECASE)
+			query = re.sub('ifnull(', 'coalesce(', query, flags=re.IGNORECASE)
 
 		if not self._conn:
 			self.connect()

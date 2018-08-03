@@ -352,23 +352,23 @@ class User(Document):
 		validate_email_add(email.strip(), True)
 
 	def after_rename(self, old_name, new_name, merge=False):
-		tables = frappe.db.sql("show tables")
+		tables = frappe.db.get_tables()
 		for tab in tables:
-			desc = frappe.db.sql("desc `%s`" % tab[0], as_dict=1)
+			desc = frappe.db.get_column_description(tab)
 			has_fields = []
 			for d in desc:
-				if d.get('Field') in ['owner', 'modified_by']:
-					has_fields.append(d.get('Field'))
+				if d.get('name') in ['owner', 'modified_by']:
+					has_fields.append(d.get('name'))
 			for field in has_fields:
-				frappe.db.sql("""\
-					update `%s` set `%s`=%s
-					where `%s`=%s""" % \
-					(tab[0], field, '%s', field, '%s'), (new_name, old_name))
+				frappe.db.sql("""UPDATE `%s`
+					SET `%s` = %s
+					WHERE `%s` = %s""" %
+					(tab, field, '%s', field, '%s'), (new_name, old_name))
 
 		# set email
-		frappe.db.sql("""\
-			update `tabUser` set email=%s
-			where name=%s""", (new_name, new_name))
+		frappe.db.sql("""UPDATE `tabUser`
+			SET email = %s
+			WHERE name = %s""", (new_name, new_name))
 
 	def append_roles(self, *roles):
 		"""Add roles to user"""

@@ -112,8 +112,11 @@ class HelpDatabase(object):
 
 	def get_content(self, path):
 		self.connect()
-		query = '''select title, content from help
-			where path like "{path}%" order by path desc limit 1'''
+		query = '''SELECT `title`, `content`
+			FROM `help`
+			WHERE `path` LIKE '{path}%'
+			ORDER BY `path` DESC
+			LIMIT 1'''
 		result = None
 
 		if not path.endswith('index'):
@@ -160,8 +163,8 @@ class HelpDatabase(object):
 									title = self.make_title(basepath, fname, content)
 									intro = self.make_intro(content)
 									content = self.make_content(content, fpath, relpath, app)
-									self.db.sql('''insert into help(path, content, title, intro, full_path)
-										values (%s, %s, %s, %s, %s)''', (relpath, content, title, intro, fpath))
+									self.db.sql('''INSERT INTO HELP(`path`, `content`, `title`, `intro`, `full_path`)
+										VALUES (%s, %s, %s, %s, %s)''', (relpath, content, title, intro, fpath))
 								except jinja2.exceptions.TemplateSyntaxError:
 									print("Invalid Jinja Template for {0}. Skipping".format(fpath))
 

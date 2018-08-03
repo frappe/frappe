@@ -36,9 +36,12 @@ def add(args=None):
 	if not args:
 		args = frappe.local.form_dict
 
-	if frappe.db.sql("""select owner from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
-		and owner=%(assign_to)s""", args):
+	if frappe.db.sql("""SELECT `owner`
+		FROM `tabToDo`
+		WHERE `reference_type`=%(doctype)s
+		AND `reference_name`=%(name)s
+		AND `status`='Open'
+		AND `owner`=%(assign_to)s""", args):
 		frappe.throw(_("Already in user's To Do list"), DuplicateToDoError)
 
 	else:
