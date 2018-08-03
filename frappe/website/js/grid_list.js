@@ -13,7 +13,7 @@ export default function make_datatable(container, doctype) {
 				const docfields = r.message;
 
 				frappe.call({
-					method: 'frappe.client.get_list',
+					method: 'frappe.website.doctype.web_form.web_form.get_list',
 					args: { doctype, fields: docfields.map(df => df.fieldname) },
 					callback: (r) => {
 						const data = r.message || [];
@@ -27,11 +27,11 @@ export default function make_datatable(container, doctype) {
 						$(container + ' .btn-more').on('click', () => {
 							web_list_start += web_list_page_length;
 							frappe.call({
-								method: 'frappe.client.get_list',
+								method: 'frappe.website.doctype.web_form.web_form.get_list',
 								args: {
 									doctype,
 									fields: docfields.map(df => df.fieldname),
-									limit_start: web_list_start
+									limit_page_length: web_list_start
 								},
 								callback: (r) => {
 									const data = r.message || [];
