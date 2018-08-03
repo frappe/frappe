@@ -303,8 +303,8 @@ class BaseDocument(object):
 
 		columns = list(d)
 		try:
-			frappe.db.sql("""insert into `tab{doctype}`
-				({columns}) values ({values})""".format(
+			frappe.db.sql("""INSERT INTO `tab{doctype}` ({columns})
+					VALUES ({values})""".format(
 					doctype = self.doctype,
 					columns = ", ".join(["`"+c+"`" for c in columns]),
 					values = ", ".join(["%s"] * len(columns))
