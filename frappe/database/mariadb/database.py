@@ -218,8 +218,8 @@ class MariaDBDatabase(Database):
 			where table_name = '{table_name}' '''.format(table_name=table_name), as_dict=1)
 
 	def has_index(self, table_name, index_name):
-		return self.sql("""show index from `{table_name}`
-			where Key_name='{index_name}'""".format(
+		return self.sql("""SHOW INDEX FROM `{table_name}`
+			WHERE Key_name='{index_name}'""".format(
 				table_name=table_name,
 				index_name=index_name
 			))
@@ -228,11 +228,11 @@ class MariaDBDatabase(Database):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
 		index_name = index_name or self.get_index_name(fields)
-
-		if not self.sql("""show index from `tab%s` where Key_name="%s" """ % (doctype, index_name)):
+		table_name = 'tab' + doctype
+		if not self.has_index(table_name, index_name):
 			self.commit()
-			self.sql("""alter table `tab%s`
-				add index `%s`(%s)""" % (doctype, index_name, ", ".join(fields)))
+			self.sql("""ALTER TABLE `%s`
+				ADD INDEX `%s`(%s)""" % (table_name, index_name, ", ".join(fields)))
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		if isinstance(fields, string_types):

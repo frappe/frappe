@@ -830,23 +830,23 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 		user_type_condition = ''
 
 	txt = "%{}%".format(txt)
-	return frappe.db.sql("""select name, concat_ws(' ', first_name, middle_name, last_name)
-		from `tabUser`
-		where enabled=1
+	return frappe.db.sql("""SELECT `name`, CONCAT_WS(' ', first_name, middle_name, last_name)
+		FROM `tabUser`
+		WHERE `enabled`=1
 			{user_type_condition}
-			and docstatus < 2
-			and name not in ({standard_users})
-			and ({key} like %(txt)s
-				or concat_ws(' ', first_name, middle_name, last_name) like %(txt)s)
+			AND `docstatus` < 2
+			AND `name` NOT IN ({standard_users})
+			AND ({key} LIKE %(txt)s
+				OR CONCAT_WS(' ', first_name, middle_name, last_name) LIKE %(txt)s)
 			{mcond}
-		order by
-			case when name like %(txt)s then 0 else 1 end,
-			case when concat_ws(' ', first_name, middle_name, last_name) like %(txt)s
-				then 0 else 1 end,
-			name asc
-		limit %(start)s, %(page_len)s""".format(
+		ORDER BY
+			CASE WHEN `name` LIKE %(txt)s THEN 0 ELSE 1 END,
+			CASE WHEN concat_ws(' ', first_name, middle_name, last_name) LIKE %(txt)s
+				THEN 0 ELSE 1 END,
+			NAME asc
+		LIMIT %(page_len)s OFFSET %(start)s""".format(
 			user_type_condition = user_type_condition,
-			standard_users=", ".join(["{0}".format(frappe.db.escape(u)) for u in STANDARD_USERS]),
+			standard_users=", ".join([frappe.db.escape(u) for u in STANDARD_USERS]),
 			key=searchfield, mcond=get_match_cond(doctype)),
 			dict(start=start, page_len=page_len, txt=txt))
 

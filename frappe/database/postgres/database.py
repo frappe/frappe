@@ -189,7 +189,7 @@ class PostgresDatabase(Database):
 				"title" text,
 				"intro" text,
 				"full_path" text)''')
-		self.sql('''CREATE INDEX IF NOT EXISTS help_index ON "help" ("path")''')
+		self.sql('''CREATE INDEX IF NOT EXISTS "help_index" ON "help" ("path")''')
 
 	def updatedb(self, doctype, meta=None):
 		"""
@@ -228,9 +228,10 @@ class PostgresDatabase(Database):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
 		index_name = index_name or self.get_index_name(fields)
+		table_name = 'tab' + doctype
 
 		frappe.db.commit()
-		frappe.db.sql("""CREATE INDEX IF NOT EXISTS {} ON `tab{}`("{}")""".format(index_name, doctype, '", "'.join(fields)))
+		frappe.db.sql("""CREATE INDEX IF NOT EXISTS "{}" ON `{}`("{}")""".format(index_name, table_name, '", "'.join(fields)))
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		if isinstance(fields, string_types):
