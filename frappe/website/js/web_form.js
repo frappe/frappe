@@ -98,7 +98,7 @@ frappe.ready(function() {
 			btn: $form.find("[type='submit']"),
 			callback: function(data) {
 				if(!data.exc) {
-					frappe.doc_name = data.message;
+					frappe.doc_name = data.message.name;
 					if(!frappe.login_required) {
 						show_success_message();
 					}
@@ -112,6 +112,12 @@ frappe.ready(function() {
 						// redirect to payment
 						window.location.href = data.message;
 					}
+
+					// refresh values
+					if (frappe.web_form) {
+						frappe.web_form.field_group.set_values(data.message);
+					}
+
 				} else {
 					frappe.msgprint(__('There were errors. Please report this.'));
 				}

@@ -360,6 +360,7 @@ def accept(web_form, data, for_payment=False):
 		frappe.throw(_("You are not allowed to update this Web Form Document"))
 
 	frappe.flags.in_web_form = True
+	meta = frappe.get_meta(data.doctype)
 
 	if data.name:
 		# update
@@ -369,18 +370,18 @@ def accept(web_form, data, for_payment=False):
 		doc = frappe.new_doc(data.doctype)
 
 	# set values
-	for fieldname, value in iteritems(data):
-		if value and isinstance(value, dict):
-			try:
-				if "__file_attachment" in value:
-					files.append((fieldname, value))
-					continue
-				if '__no_attachment' in value:
-					files_to_delete.append(doc.get(fieldname))
-					value = ''
+	for field in web_form.web_form_fields:
+		fieldname = field.fieldname
+		df = meta.get_field(fieldname)
+		value = data.get(fieldname, None)
 
-			except ValueError:
-				pass
+		if df and df.fieldtype=='Attach':
+			if value and 'data:' and 'base64' in value:
+				files.append((fieldname, value))
+				continue
+
+			if not value and doc.get(fieldname):
+				files_to_delete.append(doc.get(fieldname))
 
 		doc.set(fieldname, value)
 
@@ -412,7 +413,8 @@ def accept(web_form, data, for_payment=False):
 				remove_file_by_url(doc.get(fieldname), doc.doctype, doc.name)
 
 			# save new file
-			filedoc = save_file(filedata["filename"], filedata["dataurl"],
+			filename, dataurl = filedata.split(',', 1)
+			filedoc = save_file(filename, dataurl,
 				doc.doctype, doc.name, decode=True)
 
 			# update values
@@ -430,7 +432,7 @@ def accept(web_form, data, for_payment=False):
 	if for_payment:
 		return web_form.get_payment_gateway_url(doc)
 	else:
-		return doc.name
+		return doc.as_dict()
 
 @frappe.whitelist()
 def delete(web_form, name):
