@@ -224,7 +224,11 @@ class DocType(Document):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
 		from frappe.model.db_schema import updatedb
 		self.delete_duplicate_custom_fields()
-		updatedb(self.name, self)
+		try:
+			updatedb(self.name, self)
+		except Exception as e:
+			print("\n\nThere was an issue while migrating the DocType: {}\n".format(self.name))
+			raise e
 
 		self.change_modified_of_parent()
 		make_module_and_roles(self)
