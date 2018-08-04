@@ -191,6 +191,11 @@ window.web_form_settings = {
 	moment_date_format: "{{ frappe.date_format.upper() }}",
 	is_list: {{ frappe.utils.cint(is_list) }}
 }
+frappe.boot = {
+	sysdefaults: {
+		float_precision: {{ frappe.get_system_settings('float_precision') }}
+	}
+};
 {% if row_template %}web_form_settings.web_form_row_template = "{{ row_template }}";{% endif %}
 </script>
 

@@ -515,6 +515,3 @@ def get_form_data(doctype, docname, web_form_name):
 def get_in_list_view_fields(doctype):
 	return [df.as_dict() for df in frappe.get_meta(doctype).fields if df.in_list_view]
 
-@frappe.whitelist()
-def get_list(doctype, fields, limit_page_length=20):
-	return frappe.get_all(doctype, fields=fields, limit_page_length=limit_page_length, filters={"owner": frappe.session.user}, ignore_permissions=True)
