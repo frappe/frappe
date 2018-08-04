@@ -275,7 +275,8 @@ def get_context(context):
 
 		def add_section(df=None):
 			new_section = {'columns': []}
-			layout[-1]['sections'].append(new_section)
+			if layout:
+				layout[-1]['sections'].append(new_section)
 			if df and df.fieldtype=='Section Break':
 				new_section.update(df.as_dict())
 
@@ -283,7 +284,8 @@ def get_context(context):
 
 		def add_column(df=None):
 			new_col = []
-			layout[-1]['sections'][-1]['columns'].append(new_col)
+			if layout:
+				layout[-1]['sections'][-1]['columns'].append(new_col)
 
 			return new_col
 
