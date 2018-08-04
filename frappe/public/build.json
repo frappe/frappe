@@ -359,6 +359,7 @@
 		"public/js/lib/datepicker/datepicker.en.js"
 	],
 	"css/web_form.css": [
+		"public/less/list.less",
 		"website/css/web_form.css",
 		"public/js/lib/summernote/summernote.css",
 		"public/js/lib/datepicker/datepicker.min.css"
