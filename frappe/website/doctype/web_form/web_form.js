@@ -59,7 +59,8 @@ frappe.ui.form.on("Web Form", {
 							default: field.default,
 							read_only: field.read_only,
 							depends_on: field.depends_on,
-							hidden: field.hidden
+							hidden: field.hidden,
+							description: field.description
 						});
 					}
 				}
