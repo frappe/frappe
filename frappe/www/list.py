@@ -26,42 +26,16 @@ def get_context(context, **dict_params):
 @frappe.whitelist(allow_guest=True)
 def get(doctype, txt=None, limit_start=0, limit=20, **kwargs):
 	"""Returns processed HTML page for a standard listing."""
-	limit_start = cint(limit_start)
-	limit_page_length = limit
-	next_start = limit_start + limit_page_length
+	raw_result = get_list_data(doctype, txt=None, limit_start=0, limit=limit + 1, **kwargs)
 
-	if not txt and frappe.form_dict.search:
-		txt = frappe.form_dict.search
-		del frappe.form_dict['search']
-
-	controller = get_controller(doctype)
-	meta = frappe.get_meta(doctype)
-
-	filters = prepare_filters(doctype, controller, kwargs)
-	list_context = get_list_context(frappe._dict(), doctype)
-	list_context.title_field = getattr(controller, 'website',
-		{}).get('page_title_field', meta.title_field or 'name')
-
-	if list_context.filters:
-		filters.update(list_context.filters)
-
-	_get_list = list_context.get_list or get_list
-
-	kwargs = dict(doctype=doctype, txt=txt, filters=filters,
-		limit_start=limit_start, limit_page_length=limit_page_length + 1,
-		order_by = list_context.order_by or 'modified desc')
-
-	# allow guest if flag is set
-	if not list_context.get_list and (list_context.allow_guest or meta.allow_guest_to_view):
-		kwargs['ignore_permissions'] = True
-
-	raw_result = _get_list(**kwargs)
-
-	if not raw_result: return {"result": []}
-
-	show_more = len(raw_result) > limit_page_length
+	show_more = len(raw_result) > limit
 	if show_more:
 		raw_result = raw_result[:-1]
+
+	meta = frappe.get_meta(doctype)
+	list_context = frappe.flags.list_context
+
+	if not raw_result: return {"result": []}
 
 	if txt:
 		list_context.default_subtitle = _('Filtered by "{0}"').format(txt)
@@ -92,8 +66,45 @@ def get(doctype, txt=None, limit_start=0, limit=20, **kwargs):
 		"raw_result": json.dumps(raw_result, default=json_handler),
 		"result": result,
 		"show_more": show_more,
-		"next_start": next_start,
+		"next_start": limit_start + limit,
 	}
+
+@frappe.whitelist(allow_guest=True)
+def get_list_data(doctype, txt=None, limit_start=0, limit=20, **kwargs):
+	"""Returns processed HTML page for a standard listing."""
+	limit_start = cint(limit_start)
+
+	if not txt and frappe.form_dict.search:
+		txt = frappe.form_dict.search
+		del frappe.form_dict['search']
+
+	controller = get_controller(doctype)
+	meta = frappe.get_meta(doctype)
+
+	filters = prepare_filters(doctype, controller, kwargs)
+	list_context = get_list_context(frappe._dict(), doctype)
+	list_context.title_field = getattr(controller, 'website',
+		{}).get('page_title_field', meta.title_field or 'name')
+
+	if list_context.filters:
+		filters.update(list_context.filters)
+
+	_get_list = list_context.get_list or get_list
+
+	kwargs = dict(doctype=doctype, txt=txt, filters=filters,
+		limit_start=limit_start, limit_page_length=limit,
+		order_by = list_context.order_by or 'modified desc')
+
+	# allow guest if flag is set
+	if not list_context.get_list and (list_context.allow_guest or meta.allow_guest_to_view):
+		kwargs['ignore_permissions'] = True
+
+	raw_result = _get_list(**kwargs)
+
+	# list context to be used if called as rendered list
+	frappe.flags.list_context = list_context
+
+	return raw_result
 
 def set_route(context):
 	'''Set link for the list item'''
