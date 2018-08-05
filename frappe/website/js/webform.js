@@ -51,6 +51,10 @@ export default class WebForm {
 				df.options = null;
 			}
 
+			if (df.fieldtype==='Attach') {
+				df.is_private = true;
+			}
+
 			// Set defaults
 			if (query_params && query_params["new"] == 1 && df.fieldname in query_params) {
 				df.default = query_params[df.fieldname];
