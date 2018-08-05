@@ -204,6 +204,12 @@ frappe.boot = {
 {% if script is defined %}
 {{ script }}
 {% endif %}
+
+{% if client_script %}
+frappe.init_client_script = () => {
+	{{ client_script }}
+}
+{% endif %}
 </script>
 {% endblock %}
 

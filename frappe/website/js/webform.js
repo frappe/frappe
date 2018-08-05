@@ -86,4 +86,46 @@ export default class WebForm {
 		values.web_form_name = this.web_form_name;
 		return values;
 	}
+
+	get_field(fieldname) {
+		const field = this.field_group.fields_dict[fieldname];
+		if (!field) {
+			throw `No field ${fieldname}`;
+		}
+		return field;
+	}
+
+	get_input(fieldname) {
+		const $input = this.get_field(fieldname).$input;
+		if (!$input) {
+			throw `Cannot set trigger for ${fieldname}`;
+		}
+		return $input;
+	}
+
+	get_value(fieldname) {
+		return this.fieldname.get_value(fieldname);
+	}
+
+	set_value(fieldname, value) {
+		return this.field_group.set_value(fieldname, value);
+	}
+
+	set_field_property(fieldname, property, value) {
+		const field = this.get_field(fieldname);
+		field.df[property] = value;
+		field.refresh();
+	}
+
+	on(fieldname, fn) {
+		const field = this.get_field(fieldname);
+		const $input = this.get_input(fieldname);
+		$input.on('change', (event) => {
+			return fn(field, field.get_value(), event);
+		});
+	}
+
+	validate() {
+		return true;
+	}
 }
