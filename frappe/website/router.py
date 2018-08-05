@@ -223,13 +223,12 @@ def get_page_info(path, app, start, basepath=None, app_path=None, fname=None):
 
 def setup_source(page_info):
 	'''Get the HTML source of the template'''
-	from markdown2 import markdown
 	jenv = frappe.get_jenv()
 	source = jenv.loader.get_source(jenv, page_info.template)[0]
 	html = ''
 
 	if page_info.template.endswith('.md'):
-		source = markdown(source, extras=["fenced-code-blocks"])
+		source = frappe.utils.md_to_html(source)
 
 		if not page_info.show_sidebar:
 			source = '<div class="from-markdown">' + source + '</div>'
