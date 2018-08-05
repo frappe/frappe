@@ -33,7 +33,17 @@ frappe.ready(function() {
 		allow_incomplete: frappe.allow_incomplete
 	});
 
-	setTimeout(() => { $('body').css('display', 'block'); }, 500);
+	setTimeout(() => {
+		$('body').css('display', 'block');
+
+		if (frappe.init_client_script) {
+			frappe.init_client_script();
+
+			if (frappe.web_form.after_load) {
+				frappe.web_form.after_load();
+			}
+		}
+	}, 500);
 
 	// allow payment only if
 	$('.btn-payment').on('click', function() {
@@ -79,10 +89,20 @@ frappe.ready(function() {
 
 	};
 
-	function save(data, for_payment) {
-		if(!data) return;
-		if(window.saving)
+	function save(for_payment) {
+		if (frappe.web_form.validate()===false) {
 			return false;
+		}
+
+		let data = frappe.web_form.get_values();
+		if (!data) {
+			return;
+		}
+
+		if (window.saving) {
+			return false;
+		}
+
 		window.saving = true;
 		frappe.form_dirty = false;
 
