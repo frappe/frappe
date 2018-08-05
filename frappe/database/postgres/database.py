@@ -143,8 +143,7 @@ class PostgresDatabase(Database):
 		return e.pgcode == '23505' and '_key' in cstr(e.args[0])
 
 	def is_duplicate_fieldname(self, e):
-		print('---------------------------------------', e.pgcode)
-		return True
+		return e.pgcode == '42701'
 
 	def get_fulltext_search_condition(self, columns, searchtext):
 		columns = '", "'.join(columns)
