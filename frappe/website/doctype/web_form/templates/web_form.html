@@ -193,9 +193,13 @@ window.web_form_settings = {
 }
 frappe.boot = {
 	sysdefaults: {
-		float_precision: {{ frappe.get_system_settings('float_precision') }}
+		float_precision: {{ frappe.get_system_settings('float_precision') }},
+		date_format: "{{ frappe.get_system_settings('date_format') }}",
 	}
 };
+
+// for backward compatibility of some libs
+frappe.sys_defaults = frappe.boot.sysdefaults;
 {% if row_template %}web_form_settings.web_form_row_template = "{{ row_template }}";{% endif %}
 </script>
 

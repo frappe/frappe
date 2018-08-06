@@ -380,9 +380,10 @@ def accept(web_form, data, for_payment=False):
 		if df and df.fieldtype=='Attach':
 			if value and 'data:' and 'base64' in value:
 				files.append((fieldname, value))
+				doc.set(fieldname, '')
 				continue
 
-			if not value and doc.get(fieldname):
+			elif not value and doc.get(fieldname):
 				files_to_delete.append(doc.get(fieldname))
 
 		doc.set(fieldname, value)

@@ -1,5 +1,3 @@
-import DataTable from 'frappe-datatable';
-
 export default function make_datatable(container, doctype) {
 	let web_list_start = 0;
 	const web_list_page_length = 20;
@@ -25,6 +23,14 @@ export default function make_datatable(container, doctype) {
 	};
 
 
+	let truncate = function(txt) {
+		if (txt==null) txt = '';
+		if (typeof txt==='string' && txt.length > 137) {
+			return txt.substr(0, 137) + '...';
+		}
+		return txt;
+	};
+
 	let append_rows = (data) => {
 		let body = $(container + ' .results').find('tbody');
 		for (let i=0; i<data.length; i++) {
@@ -36,12 +42,11 @@ export default function make_datatable(container, doctype) {
 				});
 			for (let fieldname of colnames) {
 				let val = data[i][fieldname];
-				if (val==null) val = '';
-				$(`<td>${val}</td>`).appendTo(tablerow);
+				$(`<td>${truncate(val)}</td>`).appendTo(tablerow);
 			}
 		}
 
-	}
+	};
 
 	return new Promise(resolve => {
 		frappe.call({
