@@ -47,14 +47,14 @@ frappe.ready(function() {
 
 	// allow payment only if
 	$('.btn-payment').on('click', function() {
-		save(frappe.web_form.get_values(), true);
+		save(true);
 		return false;
 	});
 
 	// submit
 	$(".btn-form-submit").on("click", function() {
 		let data = frappe.web_form.get_values();
-		save(data);
+		save();
 		return false;
 	});
 
@@ -64,8 +64,7 @@ frappe.ready(function() {
 		if(!frappe.form_dirty || frappe.is_read_only) {
 			show_slide(idx);
 		} else {
-			let data = frappe.web_form.get_values();
-			if(save(data)!==false) {
+			if(save() !== false) {
 				show_slide(idx);
 			}
 		}
@@ -96,7 +95,7 @@ frappe.ready(function() {
 
 		let data = frappe.web_form.get_values();
 		if (!data) {
-			return;
+			return false;
 		}
 
 		if (window.saving) {
