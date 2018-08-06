@@ -938,10 +938,20 @@ def to_markdown(html):
 
 	return text
 
-def to_html(markdown_text):
+def md_to_html(markdown_text):
+	extras = {
+		'fenced-code-blocks': None,
+		'tables': None,
+		'header-ids': None,
+		'highlightjs-lang': None,
+		'html-classes': {
+			'table': 'table table-bordered'
+		}
+	}
+
 	html = None
 	try:
-		html = markdown(markdown_text)
+		html = markdown(markdown_text, extras=extras)
 	except MarkdownError:
 		pass
 

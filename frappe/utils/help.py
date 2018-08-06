@@ -10,7 +10,6 @@ from frappe.model.db_schema import DbManager
 from frappe.installer import get_root_connection
 from frappe.database import Database
 import os, subprocess
-from markdown2 import markdown
 from bs4 import BeautifulSoup
 import jinja2.exceptions
 
@@ -182,7 +181,7 @@ class HelpDatabase(object):
 
 									relpath = self.get_out_path(fpath)
 									relpath = relpath.replace("user", app)
-									content = markdown(content)
+									content = frappe.utils.md_to_html(content)
 									title = self.make_title(basepath, fname, content)
 									intro = self.make_intro(content)
 									content = self.make_content(content, fpath, relpath, app)

@@ -6,7 +6,6 @@
 from __future__ import unicode_literals, print_function
 from werkzeug.test import Client
 import os, re, sys, json, hashlib, requests, traceback
-from markdown2 import markdown as _markdown
 from .html_utils import sanitize_html
 import frappe
 from frappe.utils.identicon import Identicon
@@ -442,7 +441,7 @@ def watch(path, handler=None, debug=True):
 	observer.join()
 
 def markdown(text, sanitize=True, linkify=True):
-	html = _markdown(text)
+	html = frappe.utils.md_to_html(text)
 
 	if sanitize:
 		html = html.replace("<!-- markdown -->", "")

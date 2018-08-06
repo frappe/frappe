@@ -8,7 +8,6 @@ from frappe import _
 
 from frappe.modules import get_doc_path
 from frappe.utils import cint, strip_html
-from markdown2 import markdown
 from six import string_types
 
 no_cache = 1
@@ -169,7 +168,7 @@ def convert_markdown(doc, meta):
 		if field.fieldtype=='Text Editor':
 			value = doc.get(field.fieldname)
 			if value and '<!-- markdown -->' in value:
-				doc.set(field.fieldname, markdown(value))
+				doc.set(field.fieldname, frappe.utils.md_to_html(value))
 
 @frappe.whitelist()
 def get_html_and_style(doc, name=None, print_format=None, meta=None,
