@@ -203,7 +203,7 @@ def insert_values_for_multiple_docs(all_contents):
 		batch_values = values[i:i + batch_size]
 		# ignoring duplicate keys for doctype_name
 		frappe.db.sql({
-			'mysql': '''INSERT IGNORE INTO `__global_search`
+			'mariadb': '''INSERT IGNORE INTO `__global_search`
 				(doctype, name, content, published, title, route)
 				VALUES {0} '''.format(", ".join(batch_values)),
 			'postgres': '''INSERT INTO `__global_search`
@@ -331,12 +331,10 @@ def delete_for_document(doc):
 	:param doc: Deleted document
 	"""
 
-	frappe.db.sql('''
-		delete
-			from __global_search
-		where
-			doctype = %s and
-			name = %s''', (doc.doctype, doc.name), as_dict=True)
+	frappe.db.sql('''DELETE
+		FROM `__global_search`
+		WHERE doctype = %s
+		AND name = %s''', (doc.doctype, doc.name), as_dict=True)
 
 
 @frappe.whitelist()
@@ -351,24 +349,24 @@ def search(text, start=0, limit=20, doctype=""):
 	results = []
 	texts = text.split('&')
 	for text in texts:
-		conditions = ''
-		searchtext = "+" + text + "*"
-		if not doctype:
-			conditions = '`doctype` = {} AND '.format(doctype)
+		mariadb_conditions = ''
+		postgres_conditions = ''
+		if doctype:
+			mariadb_conditions = postgres_conditions = '`doctype` = {} AND '.format(doctype)
 
-		conditions += '{}'.format(frappe.db.get_fulltext_search_query(columns=['content'], searchtext=searchtext))
+		mariadb_conditions += 'MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)'.format(frappe.db.escape('+' + text + '*'))
+		postgres_conditions += 'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({})'.format(frappe.db.escape(text))
 
-		result = frappe.db.sql('''
-			SELECT
-				`doctype`, `name`, `content`
-			FROM
-				`__global_search`
-			WHERE
-				{conditions}
-			LIMIT {limit} OFFSET {start}'''.format(
-				start=start,
-				limit=limit,
-				conditions=conditions), as_dict=True)
+		common_query = '''SELECT `doctype`, `name`, `content`
+					FROM `__global_search`
+					WHERE {conditions}
+					LIMIT {limit} OFFSET {start}'''
+
+		result = frappe.db.multisql({
+				'mariadb': common_query.format(conditions=mariadb_conditions, limit=limit, start=start),
+				'postgres': common_query.format(conditions=postgres_conditions, limit=limit, start=start)
+			}, as_dict=True)
+
 		tmp_result=[]
 		for i in result:
 			if i in results or not results:
@@ -398,22 +396,24 @@ def web_search(text, start=0, limit=20):
 	results = []
 	texts = text.split('&')
 	for text in texts:
-		text = "+" + text + "*"
-		result = frappe.db.sql('''
-			select
-				doctype, name, content, title, route
-			from
-				__global_search
-			where
-				published = 1 and
-				match(content) against (%s IN BOOLEAN MODE)
-			limit {start}, {limit}'''.format(start=start, limit=limit),
-			text, as_dict=True)
+		common_query = ''' SELECT `doctype`, `name`, `content`, `title`, `route`
+			FROM `__global_search`
+			WHERE {conditions}
+			LIMIT {limit} OFFSET {start}'''
 
+		mariadb_conditions = postgres_conditions = "`published` = 1 AND "
+
+		mariadb_conditions += 'MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)'.format(frappe.db.escape('+' + text + '*'))
+		postgres_conditions += 'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({})'.format(frappe.db.escape(text))
+
+		result = frappe.db.multisql({
+			'mariadb': common_query.format(conditions=mariadb_conditions, limit=limit, start=start),
+			'postgres': common_query.format(conditions=postgres_conditions, limit=limit, start=start)
+		}, as_dict=True)
 		tmp_result=[]
 		for i in result:
 			if i in results or not results:
 				tmp_result.append(i)
-		results = tmp_result
+		results += tmp_result
 
 	return results

@@ -145,13 +145,6 @@ class PostgresDatabase(Database):
 	def is_duplicate_fieldname(self, e):
 		return e.pgcode == '42701'
 
-	def get_fulltext_search_condition(self, columns, searchtext):
-		columns = '", "'.join(columns)
-		return """to_tsvector("{columns}") @@ plainto_tsquery({searchtext})""".format(
-			columns=columns,
-			searchtext=self.escape(searchtext)
-		)
-
 	def create_auth_table(self):
 		frappe.db.sql_ddl("""create table if not exists "__Auth" (
 				"doctype" VARCHAR(140) NOT NULL,
