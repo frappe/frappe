@@ -56,13 +56,9 @@ def process_workflow_actions(doc, state):
 
 
 @frappe.whitelist(allow_guest=True)
-def apply_action(action, doctype, docname, current_state, user, last_modified=None):
+def apply_action(action, doctype, docname, current_state, user=None, last_modified=None):
 	if not verify_request():
 		return
-
-	logged_in_user = frappe.session.user
-	if logged_in_user == 'Guest':
-		frappe.set_user(user)
 
 	doc = frappe.get_doc(doctype, docname)
 	doc_workflow_state = get_doc_workflow_state(doc)
@@ -76,11 +72,7 @@ def apply_action(action, doctype, docname, current_state, user, last_modified=No
 			return_action_confirmation_page(doc, action, action_link, alert_doc_change=True)
 
 	else:
-		# action_link = get_confirm_workflow_action_url(doc, action, user)
-		# return_action_confirmation_page(doc, action, action_link, alert_doc_change=True)
 		return_link_expired_page(doc, doc_workflow_state)
-
-	frappe.set_user(logged_in_user) # reset session user
 
 @frappe.whitelist(allow_guest=True)
 def confirm_action(doctype, docname, user, action):
@@ -88,15 +80,17 @@ def confirm_action(doctype, docname, user, action):
 		return
 
 	logged_in_user = frappe.session.user
-	if logged_in_user == 'Guest':
-		frappe.set_user(user) # to allow user to apply action without login
+	if logged_in_user == 'Guest' and user:
+		# to allow user to apply action without login
+		frappe.set_user(user)
 
 	doc = frappe.get_doc(doctype, docname)
 	newdoc = apply_workflow(doc, action)
 	frappe.db.commit()
 	return_success_page(newdoc)
 
-	frappe.set_user(logged_in_user) # reset session user
+	# reset session user
+	frappe.set_user(logged_in_user)
 
 def return_success_page(doc):
 	frappe.respond_as_web_page(_("Success"),
@@ -116,7 +110,7 @@ def return_action_confirmation_page(doc, action, action_link, alert_doc_change=F
 		'alert_doc_change': alert_doc_change
 	}
 	if alert_doc_change:
-		template_params['pdf_link'] = get_pdf_link(doc.get('doctype'), doc.get('name')),
+		template_params['pdf_link'] = get_pdf_link(doc.get('doctype'), doc.get('name'))
 
 	frappe.respond_as_web_page(None, None,
 		indicator_color="blue",
@@ -126,11 +120,11 @@ def return_action_confirmation_page(doc, action, action_link, alert_doc_change=F
 def return_link_expired_page(doc, doc_workflow_state):
 	frappe.respond_as_web_page(_("Link Expired"),
 		_("Document {0} has been set to state {1} by {2}"
-		.format(
-			frappe.bold(doc.get('name')),
-			frappe.bold(doc_workflow_state),
-			frappe.bold(frappe.get_value('User', doc.get("modified_by"), 'full_name'))
-		)), indicator_color='blue')
+			.format(
+				frappe.bold(doc.get('name')),
+				frappe.bold(doc_workflow_state),
+				frappe.bold(frappe.get_value('User', doc.get("modified_by"), 'full_name'))
+			)), indicator_color='blue')
 
 def clear_old_workflow_actions(doc, user=None):
 	user = user if user else frappe.session.user
