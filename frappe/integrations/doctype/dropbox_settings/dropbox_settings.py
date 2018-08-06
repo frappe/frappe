@@ -56,6 +56,9 @@ def take_backup_to_dropbox():
 
 def send_email(success, service_name, error_status=None):
 	if success:
+		if frappe.db.get_value("Dropbox Settings", None, "send_email_for_successful_backup") == '0':
+			return
+
 		subject = "Backup Upload Successful"
 		message ="""<h3>Backup Uploaded Successfully</h3><p>Hi there, this is just to inform you
 		that your backup was successfully uploaded to your %s account. So relax!</p>
