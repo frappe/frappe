@@ -99,7 +99,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			title_field = frappe.meta.get_field(this.doctype, this.meta.title_field);
 		}
 
-		this.meta.fields.forEach(function (df) {
+		this.meta.fields.forEach((df) => {
 			const is_valid_field =
 				in_list(['Data', 'Text', 'Small Text', 'Text Editor'], df.fieldtype)
 				&& !df.hidden;
@@ -111,9 +111,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		});
 
 		// quick entry
-		var mandatory = meta.fields.filter(function (df) {
-			return df.reqd && !doc[df.fieldname];
-		});
+		var mandatory = meta.fields.filter((df) => df.reqd && !doc[df.fieldname]);
 
 		if (mandatory.some(df => df.fieldtype === 'Table') || mandatory.length > 1) {
 			quick_entry = true;
@@ -138,7 +136,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 };
 
 
-frappe.views.KanbanView.setup_dropdown_in_sidebar = function (doctype, $dropdown) {
+frappe.views.KanbanView.setup_dropdown_in_sidebar = function(doctype, $dropdown) {
 	// get kanban boards and append to dropdown
 	get_kanban_boards()
 		.then((kanban_boards) => {

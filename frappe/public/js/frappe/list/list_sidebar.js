@@ -386,4 +386,4 @@ frappe.views.ListSidebar = class ListSidebar {
 	get_divider() {
 		return $('<li role="separator" class="divider"></li>');
 	}
-}
+};
