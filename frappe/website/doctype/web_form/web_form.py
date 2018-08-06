@@ -377,7 +377,7 @@ def accept(web_form, data, for_payment=False):
 		df = meta.get_field(fieldname)
 		value = data.get(fieldname, None)
 
-		if df and df.fieldtype=='Attach':
+		if df and df.fieldtype in ('Attach', 'Attach Image'):
 			if value and 'data:' and 'base64' in value:
 				files.append((fieldname, value))
 				doc.set(fieldname, '')
