@@ -17,11 +17,11 @@ class DbManager:
 		#Create user if it doesn't exist.
 		if not host:
 			host = self.get_current_host()
-			
+
 		if password:
-			self.db.sql("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" % (user[:16], host, password))
+			self.db.sql("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" % (user, host, password))
 		else:
-			self.db.sql("CREATE USER '%s'@'%s';" % (user[:16], host))
+			self.db.sql("CREATE USER '%s'@'%s';" % (user, host))
 
 	def delete_user(self, target, host=None):
 		if not host:
