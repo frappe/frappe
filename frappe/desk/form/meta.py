@@ -51,7 +51,7 @@ class FormMeta(Meta):
 		for k in ("__js", "__css", "__list_js", "__calendar_js", "__map_js",
 			"__linked_with", "__messages", "__print_formats", "__workflow_docs",
 			"__form_grid_templates", "__listview_template", "__tree_js",
-			"__dashboard", "__kanban_boards", "__kanban_column_fields", '__templates',
+			"__dashboard", "__kanban_column_fields", '__templates',
 			'__custom_js'):
 			d[k] = self.get(k)
 
@@ -185,13 +185,7 @@ class FormMeta(Meta):
 		self.set('__dashboard', self.get_dashboard_data())
 
 	def load_kanban_meta(self):
-		self.load_kanban_boards()
 		self.load_kanban_column_fields()
-
-	def load_kanban_boards(self):
-		kanban_boards = frappe.get_list(
-			'Kanban Board', fields=['name', 'filters', 'reference_doctype', 'private'], filters={'reference_doctype': self.name})
-		self.set("__kanban_boards", kanban_boards, as_value=True)
 
 	def load_kanban_column_fields(self):
 		values = frappe.get_list(
