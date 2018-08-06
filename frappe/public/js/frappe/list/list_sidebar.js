@@ -9,14 +9,15 @@ frappe.provide('frappe.views');
 // parent
 // set_filter = function called on click
 
-frappe.views.ListSidebar = Class.extend({
-	init: function(opts) {
+frappe.views.ListSidebar = class ListSidebar {
+	init(opts) {
 		$.extend(this, opts);
 		this.make();
 		this.get_stats();
 		this.cat_tags = [];
-	},
-	make: function() {
+	}
+
+	make() {
 		var sidebar_content = frappe.render_template("list_sidebar", { doctype: this.doctype });
 
 		this.sidebar = $('<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
@@ -36,8 +37,9 @@ frappe.views.ListSidebar = Class.extend({
 		if (limits.upgrade_url && limits.expiry && !frappe.flags.upgrade_dismissed) {
 			this.setup_upgrade_box();
 		}
-	},
-	setup_views: function() {
+	}
+
+	setup_views() {
 		var show_list_link = false;
 
 		if (frappe.views.calendar[this.doctype]) {
@@ -85,8 +87,9 @@ frappe.views.ListSidebar = Class.extend({
 		if (show_list_link) {
 			this.sidebar.find('.list-link[data-view="List"]').removeClass('hide');
 		}
-	},
-	setup_reports: function() {
+	}
+
+	setup_reports() {
 		// add reports linked to this doctype to the dropdown
 		var me = this;
 		var added = [];
@@ -124,17 +127,17 @@ frappe.views.ListSidebar = Class.extend({
 
 		// from specially tagged reports
 		add_reports(frappe.boot.user.all_reports || []);
-	},
+	}
 
-	setup_list_filter: function() {
+	setup_list_filter() {
 		this.list_filter = new ListFilter({
 			wrapper: this.page.sidebar.find('.list-filters'),
 			doctype: this.doctype,
 			list_view: this.list_view
 		});
-	},
+	}
 
-	setup_kanban_boards: function() {
+	setup_kanban_boards() {
 		// add kanban boards linked to this doctype to the dropdown
 		var me = this;
 		var $dropdown = this.page.sidebar.find('.kanban-dropdown');
@@ -189,6 +192,7 @@ frappe.views.ListSidebar = Class.extend({
 					default: select_fields[0],
 					depends_on: 'eval:doc.custom_column===0'
 				},
+
 				{
 					fieldtype: 'Check',
 					fieldname: 'custom_column',
@@ -236,8 +240,9 @@ frappe.views.ListSidebar = Class.extend({
 			});
 			d.show();
 		});
-	},
-	add_custom_column_field: function(flag) {
+	}
+
+	add_custom_column_field(flag) {
 		var me = this;
 		return new Promise(function(resolve, reject) {
 			if (!flag) resolve(false);
@@ -258,8 +263,9 @@ frappe.views.ListSidebar = Class.extend({
 				reject(err);
 			});
 		});
-	},
-	make_kanban_board: function(board_name, field_name, project) {
+	}
+
+	make_kanban_board(board_name, field_name, project) {
 		var me = this;
 		return frappe.call({
 			method: 'frappe.desk.doctype.kanban_board.kanban_board.quick_kanban_board',
@@ -283,8 +289,9 @@ frappe.views.ListSidebar = Class.extend({
 				);
 			}
 		});
-	},
-	setup_calendar_view: function() {
+	}
+
+	setup_calendar_view() {
 		const doctype = this.doctype;
 
 		frappe.db.get_list('Calendar View', {
@@ -322,8 +329,9 @@ frappe.views.ListSidebar = Class.extend({
 			$link_calendar.removeClass('hide');
 			$link_calendar.html(dropdown_html);
 		});
-	},
-	setup_email_inbox: function() {
+	}
+
+	setup_email_inbox() {
 		// get active email account for the user and add in dropdown
 		if (this.doctype != "Communication")
 			return;
@@ -352,13 +360,15 @@ frappe.views.ListSidebar = Class.extend({
 		$dropdown.find('.new-email-account').click(function() {
 			frappe.new_doc("Email Account");
 		});
-	},
-	setup_assigned_to_me: function() {
+	}
+
+	setup_assigned_to_me() {
 		this.page.sidebar.find(".assigned-to-me a").on("click", () => {
 			this.list_view.filter_area.add(this.list_view.doctype, "_assign", "like", `%${frappe.session.user}%`);
 		});
-	},
-	setup_upgrade_box: function() {
+	}
+
+	setup_upgrade_box() {
 		let upgrade_list = $(`<ul class="list-unstyled sidebar-menu"></ul>`).appendTo(this.sidebar);
 
 		// Show Renew/Upgrade button,
@@ -386,11 +396,13 @@ frappe.views.ListSidebar = Class.extend({
 				frappe.flags.upgrade_dismissed = 1;
 			});
 		}
-	},
-	get_cat_tags: function() {
+	}
+
+	get_cat_tags() {
 		return this.cat_tags;
-	},
-	get_stats: function() {
+	}
+
+	get_stats() {
 		var me = this;
 		frappe.call({
 			method: 'frappe.desk.reportview.get_sidebar_stats',
@@ -425,8 +437,9 @@ frappe.views.ListSidebar = Class.extend({
 				}
 			}
 		});
-	},
-	render_stat: function(field, stat, tags) {
+	}
+
+	render_stat(field, stat, tags) {
 		var me = this;
 		var sum = 0;
 		var stats = [];
@@ -485,8 +498,9 @@ frappe.views.ListSidebar = Class.extend({
 					});
 			})
 			.insertBefore(this.sidebar.find(".close-sidebar-button"));
-	},
-	set_fieldtype: function(df) {
+	}
+
+	set_fieldtype(df) {
 
 		// scrub
 		if (df.fieldname == "docstatus") {
@@ -511,12 +525,14 @@ frappe.views.ListSidebar = Class.extend({
 		if (df.fieldtype === "Data" && (df.options || "").toLowerCase() === "email") {
 			df.options = null;
 		}
-	},
-	reload_stats: function() {
+	}
+
+	reload_stats() {
 		this.sidebar.find(".sidebar-stat").remove();
 		this.get_stats();
-	},
-	get_divider: function() {
+	}
+
+	get_divider() {
 		return $('<li role="separator" class="divider"></li>');
 	}
-});
+}
