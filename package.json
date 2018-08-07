@@ -3,7 +3,8 @@
   "scripts": {
     "build": "node rollup/build.js",
     "production": "FRAPPE_ENV=production node rollup/build.js",
-    "watch": "node rollup/watch.js"
+    "watch": "node rollup/watch.js",
+    "build-ckeditor": "webpack --config rollup/ckeditor.webpack.js"
   },
   "repository": {
     "type": "git",
@@ -33,16 +34,39 @@
     "touch": "^3.1.0"
   },
   "devDependencies": {
+    "@ckeditor/ckeditor5-adapter-ckfinder": "^10.0.2",
+    "@ckeditor/ckeditor5-autoformat": "^10.0.2",
+    "@ckeditor/ckeditor5-basic-styles": "^10.0.2",
+    "@ckeditor/ckeditor5-block-quote": "^10.0.2",
+    "@ckeditor/ckeditor5-build-classic": "^11.0.1",
+    "@ckeditor/ckeditor5-dev-utils": "^10.0.3",
+    "@ckeditor/ckeditor5-dev-webpack-plugin": "^6.0.3",
+    "@ckeditor/ckeditor5-easy-image": "^10.0.2",
+    "@ckeditor/ckeditor5-editor-balloon": "^11.0.0",
+    "@ckeditor/ckeditor5-editor-classic": "^11.0.0",
+    "@ckeditor/ckeditor5-essentials": "^10.1.1",
+    "@ckeditor/ckeditor5-heading": "^10.0.2",
+    "@ckeditor/ckeditor5-image": "^10.2.0",
+    "@ckeditor/ckeditor5-link": "^10.0.3",
+    "@ckeditor/ckeditor5-list": "^11.0.1",
+    "@ckeditor/ckeditor5-paragraph": "^10.0.2",
+    "@ckeditor/ckeditor5-theme-lark": "^11.0.0",
+    "@ckeditor/ckeditor5-upload": "^10.0.2",
     "babel-runtime": "^6.26.0",
     "chalk": "^2.3.2",
     "less": "^3.0.4",
     "node-sass": "^4.9.0",
+    "postcss-loader": "^2.1.6",
+    "raw-loader": "^0.5.1",
     "rollup": "^0.55.3",
     "rollup-plugin-buble": "^0.19.2",
     "rollup-plugin-commonjs": "^8.3.0",
     "rollup-plugin-multi-entry": "^2.0.2",
     "rollup-plugin-node-resolve": "^3.0.2",
     "rollup-plugin-postcss": "^1.4.0",
-    "rollup-plugin-uglify": "^3.0.0"
+    "rollup-plugin-uglify": "^3.0.0",
+    "style-loader": "^0.21.0",
+    "webpack": "4",
+    "webpack-cli": "3"
   }
 }

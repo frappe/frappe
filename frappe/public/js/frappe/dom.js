@@ -202,6 +202,18 @@ frappe.dom = {
 	is_touchscreen: function() {
 		return ('ontouchstart' in window)
 	},
+	file_to_base64: function(file) {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.readAsDataURL(file);
+			reader.onload = function() {
+				resolve(reader.result);
+			};
+			reader.onerror = function(error) {
+				reject(error);
+			};
+    });
+  },
 	handle_broken_images(container) {
 		$(container).find('img').on('error', (e) => {
 			const $img = $(e.currentTarget);

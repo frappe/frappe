@@ -32,6 +32,43 @@
 	overflow-wrap: break-word;
 }
 
+.ck-editor, .ck-content {
+	--ck-border-radius: 3px;
+	--ck-color-toolbar-background: @panel-bg;
+	--ck-color-button-default-focus-background: @btn-hover-bg;
+	--ck-color-list-item-background-active: @btn-hover-bg;
+	--ck-color-list-item-background-active-focus: @btn-hover-bg;
+	--ck-color-list-item-background-hover: @btn-bg;
+	--ck-color-list-item-text-active: @text-color;
+	--ck-color-text: @text-color;
+	--ck-color-base-border: @border-color;
+	--ck-color-toolbar-border: @border-color;
+	--ck-focus-ring: 1px solid @border-color;
+	--ck-color-focus-border: @border-color;
+	--ck-color-base-active-focus: @brand-primary;
+	--ck-color-link-default: @grey-link-color;
+	--ck-color-button-on-background: @btn-hover-bg;
+	--ck-color-button-on-focus-background: @btn-hover-bg;
+	--ck-color-button-on-active-background: @btn-hover-bg;
+	--ck-color-button-default-active-background: @btn-hover-bg;
+	--ck-inner-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 3px rgba(206, 213, 219, .6);
+}
+
+.ck-content {
+	min-height: 300px;
+
+	p {
+		margin: 0;
+	}
+}
+
+.frappe-control[data-fieldtype="TextEditor"].only-input {
+	.ck-content {
+		border: 1px solid @border-color;
+		min-height: 100px;
+	}
+}
+
 .link-btn {
 	position: absolute;
 	top: 3px;

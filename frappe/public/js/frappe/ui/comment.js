@@ -26,7 +26,7 @@ frappe.ui.CommentArea = class CommentArea {
 
 	make() {
 		this.setup_dom();
-		this.setup_summernote();
+		this.setup_editor();
 		this.bind_events();
 	}
 
@@ -48,7 +48,7 @@ frappe.ui.CommentArea = class CommentArea {
 			<div class="comment-input-wrapper">
 				${ header }
 				<div class="comment-input-container">
-					<div class="form-control comment-input"></div>
+					<div class="comment-input"></div>
 					${ footer }
 				</div>
 			</div>
@@ -58,125 +58,33 @@ frappe.ui.CommentArea = class CommentArea {
 		this.button = this.parent.find('.btn-comment');
 	}
 
-	setup_summernote() {
-		const { input, button } = this;
-
-		input.summernote({
-			height: 100,
-			toolbar: false,
-			airMode: true,
-			hint: {
-				mentions: this.mentions,
-				match: /\B([@:]\w*)/,
-				search: function (keyword, callback) {
-					let items = [];
-					if (keyword.startsWith('@')) {
-						keyword = keyword.substr(1);
-						items = this.mentions;
-					} else if (keyword.startsWith(':')) {
-						frappe.chat.emoji(emojis => { // Returns cached, else fetch.
-							const query = keyword.slice(1);
-							const items = [ ];
-							for (const emoji of emojis)
-								for (const alias of emoji.aliases)
-									if ( alias.indexOf(query) === 0 )
-										items.push({ emoji: true, name: alias, value: emoji.emoji });
-							callback(items);
-						});
-					}
-
-					callback($.grep(items, function (item) {
-						return item.indexOf(keyword) == 0;
-					}));
-				},
-				template: function (item) {
-					if ( item.emoji ) {
-						return item.value + ' ' + item.name;
-					} else {
-						return item;
-					}
-				},
-				content: function (item) {
-					if ( item.emoji ) {
-						return item.value;
-					} else {
-						return '@' + item;
-					}
-				}
-			},
-			callbacks: {
-				onChange: () => {
+	setup_editor() {
+		this.editor = frappe.ui.form.make_control({
+			parent: this.input,
+			df: {
+				fieldtype: 'TextEditor',
+				fieldname: 'editor',
+				change: () => {
+					console.log('change');
 					this.set_state();
 				},
-				onKeydown: (e) => {
-					var key = frappe.ui.keys.get_key(e);
-					if(key === 'ctrl+enter') {
-						e.preventDefault();
-						this.submit();
-					}
-					e.stopPropagation();
-				},
 			},
-			icons: {
-				'align': 'fa fa-align',
-				'alignCenter': 'fa fa-align-center',
-				'alignJustify': 'fa fa-align-justify',
-				'alignLeft': 'fa fa-align-left',
-				'alignRight': 'fa fa-align-right',
-				'indent': 'fa fa-indent',
-				'outdent': 'fa fa-outdent',
-				'arrowsAlt': 'fa fa-arrows-alt',
-				'bold': 'fa fa-bold',
-				'caret': 'caret',
-				'circle': 'fa fa-circle',
-				'close': 'fa fa-close',
-				'code': 'fa fa-code',
-				'eraser': 'fa fa-eraser',
-				'font': 'fa fa-font',
-				'frame': 'fa fa-frame',
-				'italic': 'fa fa-italic',
-				'link': 'fa fa-link',
-				'unlink': 'fa fa-chain-broken',
-				'magic': 'fa fa-magic',
-				'menuCheck': 'fa fa-check',
-				'minus': 'fa fa-minus',
-				'orderedlist': 'fa fa-list-ol',
-				'pencil': 'fa fa-pencil',
-				'picture': 'fa fa-image',
-				'question': 'fa fa-question',
-				'redo': 'fa fa-redo',
-				'square': 'fa fa-square',
-				'strikethrough': 'fa fa-strikethrough',
-				'subscript': 'fa fa-subscript',
-				'superscript': 'fa fa-superscript',
-				'table': 'fa fa-table',
-				'textHeight': 'fa fa-text-height',
-				'trash': 'fa fa-trash',
-				'underline': 'fa fa-underline',
-				'undo': 'fa fa-undo',
-				'unorderedlist': 'fa fa-list-ul',
-				'video': 'fa fa-video-camera'
-			}
+			render_input: true,
+			only_input: true
 		});
 
-		this.note_editor = this.wrapper.find('.note-editor');
-		this.note_editor.css({
-			'border': '1px solid #ebeff2',
-			'border-radius': '3px',
-			'padding': '10px',
-			'margin-bottom': '10px',
-			'min-height': '80px',
-			'cursor': 'text'
-		});
-		this.note_editor.on('click', () => input.summernote('focus'));
+		return this.editor.editor_loaded;
 	}
 
-	check_state() {
-		return !(this.input.summernote('isEmpty'));
+	input_has_value() {
+		const val = this.editor.get_value();
+
+		if (val && val === '<p>&nbsp;</p>') return false;
+		return val;
 	}
 
 	set_state() {
-		if(this.check_state()) {
+		if(this.input_has_value()) {
 			this.button
 				.removeClass('btn-default')
 				.addClass('btn-primary');
@@ -188,7 +96,7 @@ frappe.ui.CommentArea = class CommentArea {
 	}
 
 	destroy() {
-		this.input.summernote('destroy');
+		this.input.empty();
 	}
 
 	bind_events() {
@@ -198,10 +106,10 @@ frappe.ui.CommentArea = class CommentArea {
 	val(value) {
 		// Return html if no value specified
 		if(value === undefined) {
-			return this.input.summernote('code');
+			return this.editor.get_value();
 		}
 		// Set html if value is specified
-		this.input.summernote('code', value);
+		this.editor.set_value(value);
 	}
 
 	submit() {
@@ -261,13 +169,15 @@ frappe.ui.ReviewArea = class ReviewArea extends frappe.ui.CommentArea {
 	}
 
 	input_has_value() {
-		return !(this.input.summernote('isEmpty') ||
+		return !(super.input_has_value() ||
 			this.rating === 0 || !this.subject.val().length);
 	}
 
 	set_state() {
 		if (this.rating === 0) {
-			this.parent.find('.comment-input-body').hide();
+			this.parent.find('.comment-i
+                       
+                       nput-body').hide();
 		} else {
 			this.parent.find('.comment-input-body').show();
 		}
@@ -286,7 +196,7 @@ frappe.ui.ReviewArea = class ReviewArea extends frappe.ui.CommentArea {
 	reset() {
 		this.set_rating(0);
 		this.subject.val('');
-		this.input.summernote('code', '');
+		this.editor.set_value('');
 	}
 
 	bind_events() {
@@ -324,10 +234,10 @@ frappe.ui.ReviewArea = class ReviewArea extends frappe.ui.CommentArea {
 			return {
 				rating: this.rating,
 				subject: this.subject.val(),
-				content: this.input.summernote('code')
+				content: this.editor.get_value()
 			}
 		}
 		// Set html if value is specified
-		this.input.summernote('code', value);
+		this.editor.set_value(value);
 	}
 }

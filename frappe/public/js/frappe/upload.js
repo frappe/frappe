@@ -340,9 +340,13 @@ frappe.upload = {
 					frappe.upload._upload_file(fileobj, args, opts);
 				},
 				on_progress: (percent_complete) => {
-					let increment = (flt(percent_complete) / frappe.upload.total_files);
-					frappe.show_progress(__('Uploading'),
-						start_complete + increment);
+					if (opts.socketio_progress) {
+						opts.socketio_progress(percent_complete, frappe.upload.total_files);
+					} else {
+						let increment = (flt(percent_complete) / frappe.upload.total_files);
+						frappe.show_progress(__('Uploading'),
+							start_complete + increment);
+					}
 				}
 			});
 		}
