@@ -225,7 +225,7 @@ class EmailServer:
 
 	def parse_imap_responce(self, cmd, responce):
 		pattern = r"(?<={cmd} )[0-9]*".format(cmd=cmd)
-		match = re.search(pattern, responce, re.U | re.I)
+		match = re.search(pattern, responce.decode('utf-8'), re.U | re.I)
 		if match:
 			return match.group(0)
 		else:
