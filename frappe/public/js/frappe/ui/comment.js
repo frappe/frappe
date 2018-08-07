@@ -187,6 +187,10 @@ frappe.ui.CommentArea = class CommentArea {
 		}
 	}
 
+	reset() {
+		this.val('');
+	}
+
 	destroy() {
 		this.input.summernote('destroy');
 	}
