@@ -377,7 +377,7 @@ class DatabaseQuery(object):
 				can_be_null = False
 
 			if f.operator in ('>', '<') and (f.fieldname in ('creation', 'modified')):
-				value = "'" + cstr(f.value) +"'"
+				value = cstr(f.value)
 				fallback = "NULL"
 
 			elif f.operator.lower() in ('between') and \
