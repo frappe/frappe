@@ -1,3 +1,13 @@
+this.frm.add_fetch('sender', 'email_id', 'sender_email');
+
+this.frm.fields_dict.sender.get_query = function(){
+	return {
+		filters: {
+			'enable_outgoing': 1
+		}
+	}
+};
+
 frappe.email_alert = {
 	setup_fieldname_select: function(frm) {
 		// get the doctype to update fields
