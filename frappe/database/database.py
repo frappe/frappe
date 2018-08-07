@@ -27,7 +27,7 @@ from six import (
 	iteritems
 )
 
-class Database:
+class Database(object):
 	"""
 	   Open a database connection with the given parmeters, if use_default is True, use the
 	   login details from `conf.py`. This is called by the request handler and is accessible using
