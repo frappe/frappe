@@ -16,7 +16,7 @@ class TransactionLog(Document):
 		self.timestamp = now()
 		if index != 1:
 			prev_hash = frappe.db.sql(
-				"SELECT chaining_hash FROM `tabTransaction Log` WHERE row_index = {0}".format(index - 1))
+				"SELECT `chaining_hash` FROM `tabTransaction Log` WHERE `row_index` = '{0}'".format(index - 1))
 			if prev_hash:
 				self.previous_hash = prev_hash[0][0]
 			else:
