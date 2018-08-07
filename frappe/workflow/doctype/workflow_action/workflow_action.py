@@ -6,6 +6,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
 from frappe.utils import get_url, get_datetime
+from frappe.desk.form.utils import get_pdf_link
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe import _
 from frappe.model.workflow import apply_workflow, get_workflow_name, \
@@ -55,51 +56,75 @@ def process_workflow_actions(doc, state):
 
 
 @frappe.whitelist(allow_guest=True)
-def apply_action(action, doctype, docname, current_state, user, last_modified=None):
+def apply_action(action, doctype, docname, current_state, user=None, last_modified=None):
 	if not verify_request():
 		return
-
-	logged_in_user = frappe.session.user
-	if logged_in_user == 'Guest':
-		frappe.session.user = user
 
 	doc = frappe.get_doc(doctype, docname)
 	doc_workflow_state = get_doc_workflow_state(doc)
 
 	if doc_workflow_state == current_state:
+		action_link = get_confirm_workflow_action_url(doc, action, user)
+
 		if not last_modified or get_datetime(doc.modified) == get_datetime(last_modified):
-			newdoc = apply_workflow(doc, action)
-			frappe.db.commit()
-			frappe.respond_as_web_page(_("Success"),
-				_("{0}: {1} is set to state {2}".format(
-					doctype,
-					frappe.bold(newdoc.get('name')),
-					frappe.bold(get_doc_workflow_state(newdoc))
-				)), indicator_color='green')
+			return_action_confirmation_page(doc, action, action_link)
 		else:
-			response_html_params = {
-				'title': _("Document has been modified!"),
-				'message': "Please review the document before approval",
-				'print_format': frappe.get_print(doc.get('doctype'), doc.get('name')),
-				'action': {
-					'label': action,
-					'link': get_workflow_action_url(action, doc, user)
-				}
-			}
-			frappe.respond_as_web_page(None, None,
-				template="modified_doc_alert",
-				context=response_html_params)
+			return_action_confirmation_page(doc, action, action_link, alert_doc_change=True)
+
 	else:
-		frappe.respond_as_web_page(_("Link Expired"),
-			_("Document {0} has been set to state {1} by {2}"
+		return_link_expired_page(doc, doc_workflow_state)
+
+@frappe.whitelist(allow_guest=True)
+def confirm_action(doctype, docname, user, action):
+	if not verify_request():
+		return
+
+	logged_in_user = frappe.session.user
+	if logged_in_user == 'Guest' and user:
+		# to allow user to apply action without login
+		frappe.set_user(user)
+
+	doc = frappe.get_doc(doctype, docname)
+	newdoc = apply_workflow(doc, action)
+	frappe.db.commit()
+	return_success_page(newdoc)
+
+	# reset session user
+	frappe.set_user(logged_in_user)
+
+def return_success_page(doc):
+	frappe.respond_as_web_page(_("Success"),
+		_("{0}: {1} is set to state {2}".format(
+			doc.get('doctype'),
+			frappe.bold(doc.get('name')),
+			frappe.bold(get_doc_workflow_state(doc))
+		)), indicator_color='green')
+
+def return_action_confirmation_page(doc, action, action_link, alert_doc_change=False):
+	template_params = {
+		'title': doc.get('name'),
+		'doctype': doc.get('doctype'),
+		'docname': doc.get('name'),
+		'action': action,
+		'action_link': action_link,
+		'alert_doc_change': alert_doc_change
+	}
+
+	template_params['pdf_link'] = get_pdf_link(doc.get('doctype'), doc.get('name'))
+
+	frappe.respond_as_web_page(None, None,
+		indicator_color="blue",
+		template="confirm_workflow_action",
+		context=template_params)
+
+def return_link_expired_page(doc, doc_workflow_state):
+	frappe.respond_as_web_page(_("Link Expired"),
+		_("Document {0} has been set to state {1} by {2}"
 			.format(
-				frappe.bold(docname),
+				frappe.bold(doc.get('name')),
 				frappe.bold(doc_workflow_state),
 				frappe.bold(frappe.get_value('User', doc.get("modified_by"), 'full_name'))
 			)), indicator_color='blue')
-
-	frappe.session.user = logged_in_user # reset session user
-
 
 def clear_old_workflow_actions(doc, user=None):
 	user = user if user else frappe.session.user
@@ -166,7 +191,6 @@ def send_workflow_action_email(users_data, doc):
 		email_args.update(common_args)
 		enqueue(method=frappe.sendmail, queue='short', **email_args)
 
-
 def get_workflow_action_url(action, doc, user):
 	apply_action_method = "/api/method/frappe.workflow.doctype.workflow_action.workflow_action.apply_action"
 
@@ -180,6 +204,18 @@ def get_workflow_action_url(action, doc, user):
 	}
 
 	return get_url(apply_action_method + "?" + get_signed_params(params))
+
+def get_confirm_workflow_action_url(doc, action, user):
+	confirm_action_method = "/api/method/frappe.workflow.doctype.workflow_action.workflow_action.confirm_action"
+
+	params = {
+		"action": action,
+		"doctype": doc.get('doctype'),
+		"docname": doc.get('name'),
+		"user": user
+	}
+
+	return get_url(confirm_action_method + "?" + get_signed_params(params))
 
 
 def get_users_with_role(role):

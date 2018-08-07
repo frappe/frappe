@@ -116,3 +116,10 @@ def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
 	else:
 		return res[0][0]
 
+def get_pdf_link(doctype, docname, print_format='Standard', no_letterhead=0):
+	return '/api/method/frappe.utils.print_format.download_pdf?doctype={doctype}&name={docname}&format={print_format}&no_letterhead={no_letterhead}'.format(
+		doctype = doctype,
+		docname = docname,
+		print_format = print_format,
+		no_letterhead = no_letterhead
+	)
