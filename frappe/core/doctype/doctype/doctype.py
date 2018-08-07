@@ -55,6 +55,7 @@ class DocType(Document):
 			self.permissions = []
 
 		self.scrub_field_names()
+		self.scrub_options_in_select()
 		self.set_default_in_list_view()
 		self.validate_series()
 		self.validate_document_type()
@@ -176,6 +177,17 @@ class DocType(Document):
 
 				# fieldnames should be lowercase
 				d.fieldname = d.fieldname.lower()
+
+	def scrub_options_in_select(self):
+		"""Strip options for whitespaces"""
+		for field in self.fields:
+			if field.fieldtype == "Select" and field.options is not None:
+				new_options = ""
+				for option in field.options.split("\n"):
+					new_options += option.strip()
+					new_options += "\n"
+				new_options.rstrip("\n")
+				field.options = new_options
 
 	def validate_series(self, autoname=None, name=None):
 		"""Validate if `autoname` property is correctly set."""
