@@ -74,6 +74,9 @@ def take_backups_s3():
 
 def send_email(success, service_name, error_status=None):
 	if success:
+		if frappe.db.get_value("S3 Backup Settings", None, "send_email_for_successful_backup") == '0':
+			return
+
 		subject = "Backup Upload Successful"
 		message = """<h3>Backup Uploaded Successfully! </h3><p>Hi there, this is just to inform you
 		that your backup was successfully uploaded to your Amazon S3 bucket. So relax!</p> """
