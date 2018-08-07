@@ -202,7 +202,7 @@ def insert_values_for_multiple_docs(all_contents):
 	for i in range(0, len(values), batch_size):
 		batch_values = values[i:i + batch_size]
 		# ignoring duplicate keys for doctype_name
-		frappe.db.sql({
+		frappe.db.multisql({
 			'mariadb': '''INSERT IGNORE INTO `__global_search`
 				(doctype, name, content, published, title, route)
 				VALUES {0} '''.format(", ".join(batch_values)),

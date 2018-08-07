@@ -918,7 +918,7 @@ class Database:
 	def multisql(self, sql_dict, values=(), **kwargs):
 		current_dialect = frappe.conf.db_type or 'mariadb'
 		query = sql_dict.get(current_dialect)
-		self.sql(query, values, **kwargs)
+		return self.sql(query, values, **kwargs)
 
 def enqueue_jobs_after_commit():
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:

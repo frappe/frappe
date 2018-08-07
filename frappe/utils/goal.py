@@ -8,22 +8,24 @@ from six.moves import xrange
 
 def get_monthly_results(goal_doctype, goal_field, date_col, filter_str, aggregation = 'sum'):
 	'''Get monthly aggregation values for given field of doctype'''
+	# TODO: move to ORM?
+	if(frappe.conf.db_type == 'postgres'):
+		month_year_format_query = '''to_char("{}", 'MM-YYYY')'''.format(date_col)
+	else:
+		month_year_format_query = 'date_format(`{}`, "%m-%Y")'.format(date_col)
 
 	conditions = ('where ' + filter_str) if filter_str else ''
-	results = frappe.db.sql('''
-		select
-			{aggregation}(`{goal_field}`) as {goal_field},
-			CONCAT(EXTRACT(YEAR FROM `{date_col}`), '-', EXTRACT(MONTH FROM `{date_col}`)) as month_year
-		from
-			`{table_name}`
-		{conditions}
-		group by
-			month_year'''.format(
-				aggregation=aggregation,
-				goal_field=goal_field,
-				date_col=date_col,
-				table_name="tab" + goal_doctype,
-				conditions=conditions), as_dict=True)
+	results = frappe.db.sql('''select {aggregation}(`{goal_field}`) as {goal_field},
+		{month_year_format_query} as month_year
+		from `{table_name}` {conditions}
+		GROUP BY month_year'''
+		.format(
+			aggregation=aggregation,
+			goal_field=goal_field,
+			month_year_format_query=month_year_format_query,
+			table_name="tab" + goal_doctype,
+			conditions=conditions
+		), as_dict=True)
 
 	month_to_value_dict = {}
 	for d in results:

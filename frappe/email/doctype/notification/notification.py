@@ -91,7 +91,7 @@ def get_context(context):
 			FROM `tab{0}`
 			WHERE {1} = %s""".format(
 				self.document_type,
-				self.date_changed), (add_to_date(nowdate(), days=diff_days)), debug=True):
+				self.date_changed), (add_to_date(nowdate(), days=diff_days))):
 
 			doc = frappe.get_doc(self.document_type, name)
 
