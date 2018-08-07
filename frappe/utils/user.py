@@ -240,8 +240,8 @@ def get_system_managers(only_name=False):
 	from frappe.core.doctype.user.user import STANDARD_USERS
 	system_managers = frappe.db.sql("""SELECT DISTINCT `name`, `creation`,
 		CONCAT_WS(' ',
-			CASE WHEN `first_name`= '' THEN NULL ELSE `first_name`,
-			CASE WHEN `last_name`= '' THEN NULL ELSE `last_name`
+			CASE WHEN `first_name`= '' THEN NULL ELSE `first_name` END,
+			CASE WHEN `last_name`= '' THEN NULL ELSE `last_name` END
 		) AS fullname
 		FROM `tabUser` AS p
 		WHERE `docstatus` < 2
