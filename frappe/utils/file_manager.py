@@ -151,7 +151,7 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 		"folder": folder,
 		"file_size": file_size,
 		"content_hash": content_hash,
-		"is_private": is_private
+		"is_private": cint(is_private)
 	})
 
 	f = frappe.get_doc(file_data)

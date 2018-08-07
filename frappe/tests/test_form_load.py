@@ -25,7 +25,7 @@ class TestFormLoad(unittest.TestCase):
 		user.add_roles('Blogger')
 		reset('Blog Post')
 
-		frappe.db.sql('update tabDocField set permlevel=1 where fieldname="published" and parent="Blog Post"')
+		frappe.db.sql("UPDATE `tabDocField` SET permlevel=1 WHERE fieldname='published' AND parent='Blog Post'")
 
 		update('Blog Post', 'Website Manager', 0, 'permlevel', 1)
 
