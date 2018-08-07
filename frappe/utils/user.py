@@ -238,14 +238,21 @@ def get_system_managers(only_name=False):
 	"""returns all system manager's user details"""
 	import email.utils
 	from frappe.core.doctype.user.user import STANDARD_USERS
-	system_managers = frappe.db.sql("""select distinct name,
-		concat_ws(" ", if(first_name="", null, first_name), if(last_name="", null, last_name))
-		as fullname from tabUser p
-		where docstatus < 2 and enabled = 1
-		and name not in ({})
-		and exists (select * from `tabHas Role` ur
-			where ur.parent = p.name and ur.role="System Manager")
-		order by creation desc""".format(", ".join(["%s"]*len(STANDARD_USERS))),
+	system_managers = frappe.db.sql("""SELECT DISTINCT `name`, `creation`,
+		CONCAT_WS(' ',
+			CASE WHEN `first_name`= '' THEN NULL ELSE `first_name`,
+			CASE WHEN `last_name`= '' THEN NULL ELSE `last_name`
+		) AS fullname
+		FROM `tabUser` AS p
+		WHERE `docstatus` < 2
+		AND `enabled` = 1
+		AND `name` NOT IN ({})
+		AND exists
+			(SELECT *
+				FROM `tabHas Role` AS ur
+				WHERE ur.parent = p.name
+				AND ur.role='System Manager')
+		ORDER BY `creation` DESC""".format(", ".join(["%s"]*len(STANDARD_USERS))),
 			STANDARD_USERS, as_dict=True)
 
 	if only_name:
