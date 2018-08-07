@@ -90,13 +90,9 @@ frappe.ready(function() {
 			callback: function(data) {
 				if(!data.exc) {
 					frappe.doc_name = data.message;
-					if(!frappe.login_required) {
-						show_success_message();
-					}
 
-					if(frappe.is_new && frappe.login_required) {
-						// reload page (with ID)
-						window.location.href = window.location.pathname + "?name=" + frappe.doc_name;
+					if(frappe.is_new) {
+						show_success_message();
 					}
 
 					if(for_payment && data.message) {
