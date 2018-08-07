@@ -404,7 +404,7 @@ def accept(web_form, data, for_payment=False):
 		if web_form.login_required and frappe.session.user=="Guest":
 			frappe.throw(_("You must login to submit this form"))
 
-		doc.insert(ignore_permissions = True, ignore_mandatory = True)
+		doc.insert(ignore_permissions = True, ignore_mandatory = True if files else False)
 
 	# add files
 	if files:
