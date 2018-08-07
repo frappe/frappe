@@ -17,7 +17,7 @@ from faker import Faker
 from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
 
-__version__ = '10.1.42'
+__version__ = '10.1.45'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -434,8 +434,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	message = content or message
 
 	if as_markdown:
-		from markdown2 import markdown
-		message = markdown(message)
+		message = frappe.utils.md_to_html(message)
 
 	if not delayed:
 		now = True

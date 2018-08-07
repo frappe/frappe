@@ -2,7 +2,7 @@
 // MIT License. See license.txt
 /* eslint-disable no-console */
 
-import hljs from 'highlight.js';
+import hljs from './syntax_highlight';
 
 frappe.provide("website");
 frappe.provide("frappe.awesome_bar_path");
@@ -13,11 +13,21 @@ $.extend(frappe, {
 		lang: 'en'
 	},
 	_assets_loaded: [],
-	require: function(url) {
-		if(frappe._assets_loaded.indexOf(url)!==-1) return;
+	require: function(url, callback) {
+
+		let async = false;
+		if (callback) {
+			async = true;
+		}
+
+		if(frappe._assets_loaded.indexOf(url)!==-1) {
+			callback && callback();
+			return;
+		}
+
 		return $.ajax({
 			url: url,
-			async: false,
+			async: async,
 			dataType: "text",
 			success: function(data) {
 				var el;
@@ -29,6 +39,8 @@ $.extend(frappe, {
 				el.appendChild(document.createTextNode(data));
 				document.getElementsByTagName('head')[0].appendChild(el);
 				frappe._assets_loaded.push(url);
+
+				callback && callback();
 			}
 		});
 	},
@@ -253,9 +265,7 @@ $.extend(frappe, {
 	},
 
 	highlight_code_blocks: function() {
-		$('pre code').each(function(i, block) {
-			hljs.highlightBlock(block);
-		});
+		hljs.initHighlighting();
 	},
 	bind_filters: function() {
 		// set in select
@@ -401,12 +411,19 @@ $(document).on("page-change", function() {
 		var element = document.getElementById(window.location.hash.substring(1));
 		element && element.scrollIntoView(true);
 	}
+
 });
 
 
-$(document).ready(function( ) {
-	// frappe.Chat
-	// const chat = new frappe.Chat();
-	// chat.render();
-	// end frappe.Chat
+frappe.ready(function() {
+	frappe.call({
+		method: 'frappe.website.doctype.website_settings.website_settings.is_chat_enabled',
+		callback: (r) => {
+			if (r.message) {
+				frappe.require('/assets/js/moment-bundle.min.js', () => {
+					frappe.require('/assets/js/chat.js');
+				});
+			}
+		}
+	})
 });

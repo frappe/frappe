@@ -54,3 +54,11 @@ input[type='checkbox'] {
 body {
 	display: none;
 }
+
+.modal-title {
+	margin-top: 5px;
+}
+
+.modal-header {
+	padding: 10px 15px;
+}

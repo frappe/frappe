@@ -1,8 +1,12 @@
 import WebForm from './webform';
+import make_datatable from './grid_list';
 
 frappe.ready(function() {
 	if(web_form_settings.is_list) {
-		$('body').css('display', 'block');
+		$('body').show();
+		if($('.web-form-list').length) {
+			make_datatable('.web-form-list', web_form_settings.web_form_doctype);
+		}
 		return;
 	}
 
@@ -29,18 +33,28 @@ frappe.ready(function() {
 		allow_incomplete: frappe.allow_incomplete
 	});
 
-	setTimeout(() => { $('body').css('display', 'block'); }, 500);
+	setTimeout(() => {
+		$('body').css('display', 'block');
+
+		if (frappe.init_client_script) {
+			frappe.init_client_script();
+
+			if (frappe.web_form.after_load) {
+				frappe.web_form.after_load();
+			}
+		}
+	}, 500);
 
 	// allow payment only if
 	$('.btn-payment').on('click', function() {
-		save(frappe.web_form.get_values(), true);
+		save(true);
 		return false;
 	});
 
 	// submit
 	$(".btn-form-submit").on("click", function() {
 		let data = frappe.web_form.get_values();
-		save(data);
+		save();
 		return false;
 	});
 
@@ -50,8 +64,7 @@ frappe.ready(function() {
 		if(!frappe.form_dirty || frappe.is_read_only) {
 			show_slide(idx);
 		} else {
-			let data = frappe.web_form.get_values();
-			if(save(data)!==false) {
+			if(save() !== false) {
 				show_slide(idx);
 			}
 		}
@@ -75,10 +88,20 @@ frappe.ready(function() {
 
 	};
 
-	function save(data, for_payment) {
-		if(!data) return;
-		if(window.saving)
+	function save(for_payment) {
+		if (frappe.web_form.validate()===false) {
 			return false;
+		}
+
+		let data = frappe.web_form.get_values();
+		if (!data) {
+			return false;
+		}
+
+		if (window.saving) {
+			return false;
+		}
+
 		window.saving = true;
 		frappe.form_dirty = false;
 
@@ -94,7 +117,7 @@ frappe.ready(function() {
 			btn: $form.find("[type='submit']"),
 			callback: function(data) {
 				if(!data.exc) {
-					frappe.doc_name = data.message;
+					frappe.doc_name = data.message.name;
 					if(!frappe.login_required) {
 						show_success_message();
 					}
@@ -108,6 +131,12 @@ frappe.ready(function() {
 						// redirect to payment
 						window.location.href = data.message;
 					}
+
+					// refresh values
+					if (frappe.web_form) {
+						frappe.web_form.field_group.set_values(data.message);
+					}
+
 				} else {
 					frappe.msgprint(__('There were errors. Please report this.'));
 				}
@@ -158,5 +187,3 @@ frappe.ready(function() {
 		}
 	});
 });
-
-

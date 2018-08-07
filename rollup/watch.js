@@ -10,6 +10,9 @@ const {
 	get_options_for
 } = require('./config');
 
+const { get_redis_subscriber } = require('../node_utils');
+const subscriber = get_redis_subscriber();
+
 watch_assets();
 
 function watch_assets() {
@@ -79,4 +82,17 @@ function log_error(error) {
 	if (error.frame) {
 		log(chalk.red(error.frame));
 	}
+
+	// notify redis which in turns tells socketio to publish this to browser
+	const payload = {
+		event: 'build_error',
+		message: `
+Error in: ${error.id}
+${error.toString()}
+
+${error.frame ? error.frame : ''}
+		`
+	}
+
+	subscriber.publish('events', JSON.stringify(payload));
 }

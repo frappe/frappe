@@ -17,7 +17,7 @@ def get_pdf(html, options=None, output = None):
 	try:
 		pdfkit.from_string(html, fname, options=options or {})
 		if output:
-			append_pdf(PdfFileReader(file(fname,"rb")),output)
+			append_pdf(PdfFileReader(fname),output)
 		else:
 			with open(fname, "rb") as fileobj:
 				filedata = fileobj.read()

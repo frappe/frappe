@@ -5,7 +5,6 @@
 {% block page_content %}
 <style>
 {% include "templates/styles/card_style.css" %}
-
 {% if fullpage %}
 header, footer {
 	display: none;
@@ -25,11 +24,15 @@ html, body {
 		<span class='indicator {{ indicator_color or "blue" }}'>
 			{{ title or _("Message") }}</span>
 	</h5>
-	<p>{{ message or "" }}</p>
-	{% if primary_action %}
-	<div><a href='{{ primary_action or "/" }}' class='btn btn-primary btn-sm'>
-		{{ primary_label or _("Home") }}</a></div>
-	{% endif %}
+	<div class="page-card-body">
+	{% block message_body %}
+		<p>{{ message or "" }}</p>
+		{% if primary_action %}
+		<div><a href='{{ primary_action or "/" }}' class='btn btn-primary btn-sm'>
+			{{ primary_label or _("Home") }}</a></div>
+		{% endif %}
+	{% endblock %}
+	</div>
 </div>
 {% if error_code %}
 <p class='text-muted text-center small' style='margin-top: -20px;'>{{ _("Status: {0}").format(error_code) }}</p>

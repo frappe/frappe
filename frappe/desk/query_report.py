@@ -66,7 +66,7 @@ def generate_report_result(report, filters=None, user=None):
 			end_time = datetime.datetime.now()
 
 			if (end_time - start_time).seconds > threshold and not report.prepared_report:
-				report.db_set('prepared', 1)
+				report.db_set('prepared_report', 1)
 
 			columns, result = res[0], res[1]
 			if len(res) > 2:

@@ -171,6 +171,8 @@ def get_context(context):
 		if not context.max_attachment_size:
 			context.max_attachment_size = get_max_file_size() / 1024 / 1024
 
+		context.show_in_grid = self.show_in_grid
+
 	def load_document(self, context):
 		'''Load document `doc` and `layout` properties for template'''
 		if frappe.form_dict.name or frappe.form_dict.new:
@@ -273,7 +275,8 @@ def get_context(context):
 
 		def add_section(df=None):
 			new_section = {'columns': []}
-			layout[-1]['sections'].append(new_section)
+			if layout:
+				layout[-1]['sections'].append(new_section)
 			if df and df.fieldtype=='Section Break':
 				new_section.update(df.as_dict())
 
@@ -281,7 +284,8 @@ def get_context(context):
 
 		def add_column(df=None):
 			new_col = []
-			layout[-1]['sections'][-1]['columns'].append(new_col)
+			if layout:
+				layout[-1]['sections'][-1]['columns'].append(new_col)
 
 			return new_col
 
@@ -358,6 +362,7 @@ def accept(web_form, data, for_payment=False):
 		frappe.throw(_("You are not allowed to update this Web Form Document"))
 
 	frappe.flags.in_web_form = True
+	meta = frappe.get_meta(data.doctype)
 
 	if data.name:
 		# update
@@ -367,18 +372,19 @@ def accept(web_form, data, for_payment=False):
 		doc = frappe.new_doc(data.doctype)
 
 	# set values
-	for fieldname, value in iteritems(data):
-		if value and isinstance(value, dict):
-			try:
-				if "__file_attachment" in value:
-					files.append((fieldname, value))
-					continue
-				if '__no_attachment' in value:
-					files_to_delete.append(doc.get(fieldname))
-					value = ''
+	for field in web_form.web_form_fields:
+		fieldname = field.fieldname
+		df = meta.get_field(fieldname)
+		value = data.get(fieldname, None)
 
-			except ValueError:
-				pass
+		if df and df.fieldtype in ('Attach', 'Attach Image'):
+			if value and 'data:' and 'base64' in value:
+				files.append((fieldname, value))
+				doc.set(fieldname, '')
+				continue
+
+			elif not value and doc.get(fieldname):
+				files_to_delete.append(doc.get(fieldname))
 
 		doc.set(fieldname, value)
 
@@ -398,7 +404,7 @@ def accept(web_form, data, for_payment=False):
 		if web_form.login_required and frappe.session.user=="Guest":
 			frappe.throw(_("You must login to submit this form"))
 
-		doc.insert(ignore_permissions = True)
+		doc.insert(ignore_permissions = True, ignore_mandatory = True if files else False)
 
 	# add files
 	if files:
@@ -410,13 +416,14 @@ def accept(web_form, data, for_payment=False):
 				remove_file_by_url(doc.get(fieldname), doc.doctype, doc.name)
 
 			# save new file
-			filedoc = save_file(filedata["filename"], filedata["dataurl"],
+			filename, dataurl = filedata.split(',', 1)
+			filedoc = save_file(filename, dataurl,
 				doc.doctype, doc.name, decode=True)
 
 			# update values
 			doc.set(fieldname, filedoc.file_url)
 
-		doc.save()
+		doc.save(ignore_permissions = True)
 
 	if files_to_delete:
 		for f in files_to_delete:
@@ -428,7 +435,7 @@ def accept(web_form, data, for_payment=False):
 	if for_payment:
 		return web_form.get_payment_gateway_url(doc)
 	else:
-		return doc.name
+		return doc.as_dict()
 
 @frappe.whitelist()
 def delete(web_form, name):
@@ -508,3 +515,8 @@ def get_form_data(doctype, docname, web_form_name):
 	out.links = links
 
 	return out
+
+@frappe.whitelist()
+def get_in_list_view_fields(doctype):
+	return [df.as_dict() for df in frappe.get_meta(doctype).fields if df.in_list_view]
+

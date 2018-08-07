@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import six
 
-import re, copy, os
+import re, copy, os, subprocess
 import frappe
 from frappe import _
 
@@ -14,7 +14,7 @@ from frappe.model import no_value_fields, default_fields
 from frappe.model.document import Document
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.notifications import delete_notification_count_for
-from frappe.modules import make_boilerplate
+from frappe.modules import make_boilerplate, get_doc_path
 from frappe.model.db_schema import validate_column_name, validate_column_length, type_map
 from frappe.model.docfield import supports_translation
 import frappe.website.render
@@ -179,6 +179,10 @@ class DocType(Document):
 						d.fieldname = d.label.strip().lower().replace(' ','_')
 						if d.fieldname in restricted:
 							d.fieldname = d.fieldname + '1'
+						if d.fieldtype=='Section Break':
+							d.fieldname = d.fieldname + '_section'
+						elif d.fieldtype=='Column Break':
+							d.fieldname = d.fieldname + '_column'
 					else:
 						d.fieldname = d.fieldtype.lower().replace(" ","_") + "_" + str(d.idx)
 
@@ -224,7 +228,11 @@ class DocType(Document):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
 		from frappe.model.db_schema import updatedb
 		self.delete_duplicate_custom_fields()
-		updatedb(self.name, self)
+		try:
+			updatedb(self.name, self)
+		except Exception as e:
+			print("\n\nThere was an issue while migrating the DocType: {}\n".format(self.name))
+			raise e
 
 		self.change_modified_of_parent()
 		make_module_and_roles(self)
@@ -316,11 +324,13 @@ class DocType(Document):
 			frappe.throw(_("DocType can only be renamed by Administrator"))
 
 		self.check_developer_mode()
-
 		self.validate_name(new)
 
 		if merge:
 			frappe.throw(_("DocType can not be merged"))
+
+		if not frappe.flags.in_test and not frappe.flags.in_patch:
+			self.rename_files_and_folders(old, new)
 
 	def after_rename(self, old, new, merge=False):
 		"""Change table name using `RENAME TABLE` if table exists. Or update
@@ -331,6 +341,29 @@ class DocType(Document):
 				where doctype=%s and field='name' and value = %s""", (new, new, old))
 		else:
 			frappe.db.sql("rename table `tab%s` to `tab%s`" % (old, new))
+
+	def rename_files_and_folders(self, old, new):
+		# move files
+		new_path = get_doc_path(self.module, 'doctype', new)
+		subprocess.check_output(['mv', get_doc_path(self.module, 'doctype', old), new_path])
+
+		# rename files
+		for fname in os.listdir(new_path):
+			if frappe.scrub(old) in fname:
+				subprocess.check_output(['mv', os.path.join(new_path, fname),
+					os.path.join(new_path, fname.replace(frappe.scrub(old), frappe.scrub(new)))])
+
+		self.rename_inside_controller(new, old, new_path)
+		frappe.msgprint('Renamed files and replaced code in controllers, please check!')
+
+	def rename_inside_controller(self, new, old, new_path):
+		for fname in ('{}.js', '{}.py', '{}_list.js', '{}_calendar.js', 'test_{}.py', 'test_{}.js'):
+			fname = os.path.join(new_path, fname.format(frappe.scrub(new)))
+			if os.path.exists(fname):
+				with open(fname, 'r') as f:
+					code = f.read()
+				with open(fname, 'w') as f:
+					f.write(code.replace(frappe.scurb(old).replace(' ', ''), frappe.scrub(new).replace(' ', '')))
 
 	def before_reload(self):
 		"""Preserve naming series changes in Property Setter."""
@@ -658,8 +691,8 @@ def validate_fields(meta):
 		if d.fieldtype != "Table": d.allow_bulk_edit = 0
 		if d.fieldtype == "Barcode": d.ignore_xss_filter = 1
 		if not d.fieldname:
-			frappe.throw(_("Fieldname is required in row {0}").format(d.idx))
-		d.fieldname = d.fieldname.lower()
+			d.fieldname = d.fieldname.lower()
+
 		check_illegal_characters(d.fieldname)
 		check_unique_fieldname(d.fieldname)
 		check_fieldname_length(d.fieldname)

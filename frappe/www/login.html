@@ -8,6 +8,7 @@
 
 {% block page_content %}
 <!-- {{ for_test }} -->
+<div style='min-height: 360px'>
 <section class='for-login'>
 	<div class="login-content page-card" style="margin-top: 30px;">
 		<form class="form-signin form-login" role="form">
@@ -50,11 +51,11 @@
 			</div>
 
 	{%- if not disable_signup -%}
-		<p class="text-center">
+		<p class="text-center sign-up-message">
 			<a href="#signup" style="margin-top: -2px;">{{ _("Don't have an account? Sign up") }}</a>
 		</p>
 	{%- endif -%}
-	<p class="text-center">
+	<p class="text-center forgot-password-message">
 		<a href="#forgot">{{ _("Forgot Password?") }}</a></p>
 	</div>
 </section>
@@ -90,6 +91,7 @@
 		<a href="#login">{{ _("Back to Login") }}</a>
 	</div>
 </section>
+</div>
 {% endblock %}
 
 {% block script %}
