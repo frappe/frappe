@@ -62,7 +62,8 @@ class TestDocument(unittest.TestCase):
 		self.assertEqual(frappe.db.get_value(d.doctype, d.name, "subject"), "subject changed")
 
 	def test_mandatory(self):
-		frappe.delete_doc_if_exists("User", "test_mandatory@example.com")
+		# TODO: recheck if it is OK to force delete
+		frappe.delete_doc_if_exists("User", "test_mandatory@example.com", 1)
 
 		d = frappe.get_doc({
 			"doctype": "User",
@@ -102,7 +103,7 @@ class TestDocument(unittest.TestCase):
 		frappe.set_user("Administrator")
 
 	def test_link_validation(self):
-		frappe.delete_doc_if_exists("User", "test_link_validation@example.com")
+		frappe.delete_doc_if_exists("User", "test_link_validation@example.com", 1)
 
 		d = frappe.get_doc({
 			"doctype": "User",
