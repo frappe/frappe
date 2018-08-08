@@ -76,6 +76,8 @@ class Meta(Document):
 		self._fields = {}
 		if isinstance(doctype, dict):
 			super(Meta, self).__init__(doctype)
+		elif isinstance(doctype, Document):
+			super(Meta, self).__init__(doctype.as_dict())
 		else:
 			super(Meta, self).__init__("DocType", doctype)
 			self.process()
@@ -114,7 +116,7 @@ class Meta(Document):
 						# non standard list object, skip
 						continue
 
-				if isinstance(value, (frappe.text_type, int, float, datetime, list)):
+				if isinstance(value, (frappe.text_type, int, float, datetime, list, None)):
 					out[key] = value
 
 			return out
