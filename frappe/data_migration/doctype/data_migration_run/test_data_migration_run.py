@@ -95,7 +95,7 @@ def create_plan():
 
 	frappe.get_doc({
 		'doctype': 'Data Migration Plan',
-		'plan_name': 'ToDo sync',
+		'plan_name': 'ToDo Sync',
 		'module': 'Core',
 		'mappings': [
 			{ 'mapping': 'Todo to Event' },
@@ -107,7 +107,8 @@ def create_plan():
 		'doctype': 'Data Migration Connector',
 		'connector_name': 'Local Connector',
 		'connector_type': 'Frappe',
-		'hostname': 'http://localhost:8000',
+		# connect to same host.
+		'hostname': frappe.conf.host_name or 'http://localhost:8000',
 		'username': 'Administrator',
 		'password': 'admin'
 	}).insert()
