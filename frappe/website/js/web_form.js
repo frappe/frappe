@@ -1,4 +1,4 @@
-import WebForm from './webform';
+import WebForm from './web_form_class';
 import make_datatable from './grid_list';
 
 frappe.ready(function() {
