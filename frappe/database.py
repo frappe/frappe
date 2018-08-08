@@ -739,6 +739,8 @@ class Database:
 		if dt in self.value_cache:
 			del self.value_cache[dt]
 
+		frappe.clear_document_cache(dt, dn)
+		
 	def set(self, doc, field, val):
 		"""Set value in document. **Avoid**"""
 		doc.db_set(field, val)

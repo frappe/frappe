@@ -362,6 +362,7 @@ def set_user(username):
 	local.session.user = username
 	local.session.sid = username
 	local.cache = {}
+	local.document_cache = {}
 	local.form_dict = _dict()
 	local.jenv = None
 	local.session.data = _dict()
@@ -646,6 +647,37 @@ def set_value(doctype, docname, fieldname, value=None):
 	import frappe.client
 	return frappe.client.set_value(doctype, docname, fieldname, value)
 
+def get_cached_doc(*args, **kwargs):
+	if args and len(args) > 1:
+		key = get_document_cache_key(args[0], args[1])
+		# local cache
+		doc = local.document_cache.get(key)
+		if doc:
+			return doc
+
+		# redis cache
+		doc = cache().hget('document_cache', key)
+		if doc:
+			doc = frappe.get_doc(doc)
+			local.document_cache[key] = doc
+			return doc
+		
+		# database
+		doc = frappe.get_doc(*args, **kwargs)
+
+		return doc
+
+def get_document_cache_key(doctype, name):
+	return '{0}::{1}'.format(doctype, name)
+
+def clear_document_cache(doctype, name):
+	cache().hdel("last_modified", doctype)
+	key = get_document_cache_key(doctype, name)
+	if key in local.document_cache:
+		del local.document_cache[key]
+	cache().hdel('document_cache', key)
+
+
 def get_doc(*args, **kwargs):
 	"""Return a `frappe.model.document.Document` object of the given type and name.
 
@@ -663,7 +695,15 @@ def get_doc(*args, **kwargs):
 
 	"""
 	import frappe.model.document
-	return frappe.model.document.get_doc(*args, **kwargs)
+	doc = frappe.model.document.get_doc(*args, **kwargs)
+
+	# set in cache
+	if args and len(args) > 1:
+		key = get_document_cache_key(args[0], args[1])
+		local.document_cache[key] = doc
+		cache().hset('document_cache', key, doc.as_dict())
+
+	return doc
 
 def get_last_doc(doctype):
 	"""Get last created document of this type."""
