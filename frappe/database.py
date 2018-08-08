@@ -300,7 +300,8 @@ class Database:
 		result = self._cursor.fetchall()
 		ret = []
 		needs_formatting = self.needs_formatting(result, formatted)
-		keys = [column[0] for column in self._cursor.description]
+		if result:
+			keys = [column[0] for column in self._cursor.description]
 
 		for r in result:
 			values = []
