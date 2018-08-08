@@ -279,13 +279,25 @@ def add_system_manager(email, first_name=None, last_name=None, send_welcome_emai
 	user.insert()
 
 	# add roles
-	roles = frappe.db.sql_list("""select name from `tabRole`
-		where name not in ("Administrator", "Guest", "All")""")
+	roles = frappe.get_all('Role',
+		fields=['name'],
+		filters={
+			'name': ['not in', ('Administrator', 'Guest', 'All')]
+		}
+	)
+	roles = [role.name for role in roles]
 	user.add_roles(*roles)
 
 def get_enabled_system_users():
-	return frappe.db.sql("""select * from tabUser where
-		user_type='System User' and enabled=1 and name not in ('Administrator', 'Guest')""", as_dict=1)
+	# add more fields if required
+	return frappe.get_all('User',
+		fields=['email', 'language', 'name'],
+		filters={
+			'user_type': 'System User',
+			'enabled': 1,
+			'name': ['not in', ('Administrator', 'Guest')]
+		}
+	)
 
 def is_website_user():
 	return frappe.db.get_value('User', frappe.session.user, 'user_type') == "Website User"
