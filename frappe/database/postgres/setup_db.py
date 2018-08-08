@@ -19,7 +19,6 @@ def setup_database(force, verbose):
 
 def setup_help_database(help_db_name):
 	root_conn = get_root_connection()
-	root_conn.commit()
 	root_conn.sql("DROP DATABASE IF EXISTS `{0}`".format(help_db_name))
 	root_conn.sql("DROP USER IF EXISTS {0}".format(help_db_name))
 	root_conn.sql("CREATE DATABASE `{0}`".format(help_db_name))

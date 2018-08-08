@@ -8,5 +8,5 @@
  "admin_password": "admin",
  "root_password": "travis",
  "run_selenium_tests": 1,
- "host_name": "http://localhost:8000"
+ "host_name": "http://test_site:8000"
 }

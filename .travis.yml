@@ -9,6 +9,9 @@ services:
 
 addons:
   postgresql: "9.5"
+  hosts:
+    - test_site
+    - test_site_postgres
 
 install:
   - sudo rm /etc/apt/sources.list.d/mongodb*.list
