@@ -839,7 +839,7 @@ class Database:
 		"""Returns True if atleast one row exists."""
 		return self.sql("select name from `tab{doctype}` limit 1".format(doctype=doctype))
 
-	def exists(self, dt, dn=None):
+	def exists(self, dt, dn=None, cache=False):
 		"""Returns true if document exists.
 
 		:param dt: DocType name.
@@ -848,9 +848,10 @@ class Database:
 			if dt!="DocType" and dt==dn:
 				return True # single always exists (!)
 			try:
-				return self.get_value(dt, dn, "name")
+				return self.get_value(dt, dn, "name", cache=cache)
 			except:
 				return None
+
 		elif isinstance(dt, dict) and dt.get('doctype'):
 			try:
 				conditions = []
