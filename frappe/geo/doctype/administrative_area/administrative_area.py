@@ -17,7 +17,8 @@ class AdministrativeArea(NestedSet):
 			if frappe.db.get_value("Administrative Area", self.name, "parent_administrative_area") == self.parent_administrative_area:
 				frappe.throw("{0} already exists".format(self.name))
 			else:
-				self.name = "{self.name}-{self.parent_administrative_area}".format(self=self)
+				#self.name = "{self.name}-{self.parent_administrative_area}".format(self=self)
+				self.name = "{0}-{1}".format(self.name, self.parent_administrative_area)
 				self.name = str(self.name).title()
 
 	def on_update(self):
