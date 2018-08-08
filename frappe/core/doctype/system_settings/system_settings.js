@@ -34,8 +34,6 @@ Check field to enable / disable address standardization
 frappe.ui.form.on("System Settings", "enable_address_check", function(frm){
 	frappe.call({
 		method: "frappe.core.doctype.system_settings.system_settings.update_address_doctype",
-		args: {"check_value": frm.doc.enable_address_check},
-		callback: function(data) {
-		}
+		args: {"check_value": frm.doc.enable_address_check}
 	});
 });
