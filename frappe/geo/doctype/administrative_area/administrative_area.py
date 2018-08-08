@@ -15,7 +15,7 @@ class AdministrativeArea(NestedSet):
 		self.name = str(self.title).title()
 		if frappe.db.exists("Administrative Area", self.name):
 			if frappe.db.get_value("Administrative Area", self.name, "parent_administrative_area") == self.parent_administrative_area:
-				frappe.throw("The following Administrative Area already exists")
+				frappe.throw("{0} already exists".format(self.name))
 			else:
 				self.name = "{self.name}-{self.parent_administrative_area}".format(self=self)
 				self.name = str(self.name).title()
