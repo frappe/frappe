@@ -154,15 +154,15 @@ def parse_naming_series(parts, doctype='', doc=''):
 
 def getseries(key, digits, doctype=''):
 	# series created ?
-	current = frappe.db.sql("select `current` from `tabSeries` where name=%s for update", (key,))
+	current = frappe.db.sql("SELECT `current` FROM `tabSeries` WHERE `name`=%s FOR UPDATE", (key,))
 	if current and current[0][0] is not None:
 		current = current[0][0]
 		# yes, update it
-		frappe.db.sql("update `tabSeries` set current = current+1 where name=%s", (key,))
+		frappe.db.sql("UPDATE `tabSeries` SET `current` = `current` + 1 WHERE `name`=%s", (key,))
 		current = cint(current) + 1
 	else:
 		# no, create it
-		frappe.db.sql("insert into `tabSeries` (name, current) values (%s, 1)", (key,))
+		frappe.db.sql("INSERT INTO `tabSeries` (`name`, `current`) VALUES (%s, 1)", (key,))
 		current = 1
 	return ('%0'+str(digits)+'d') % current
 
@@ -182,7 +182,7 @@ def revert_series_if_last(key, name):
 	current = frappe.db.sql("SELECT `current` FROM `tabSeries` WHERE `name`=%s FOR UPDATE", (prefix,))
 
 	if current and current[0][0]==count:
-		frappe.db.sql("UPDATE `tabSeries` SET `current`='0' WHERE `name`=%s", prefix)
+		frappe.db.sql("UPDATE `tabSeries` SET `current` = `current` - 1 WHERE `name`=%s", prefix)
 
 
 def get_default_naming_series(doctype):
