@@ -662,10 +662,10 @@ def get_cached_doc(*args, **kwargs):
 			local.document_cache[key] = doc
 			return doc
 		
-		# database
-		doc = frappe.get_doc(*args, **kwargs)
+	# database
+	doc = frappe.get_doc(*args, **kwargs)
 
-		return doc
+	return doc
 
 def get_document_cache_key(doctype, name):
 	return '{0}::{1}'.format(doctype, name)
