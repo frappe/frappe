@@ -103,7 +103,7 @@ class Meta(Document):
 		self.get_valid_columns()
 		self.set_custom_permissions()
 
-	def as_dict(self):
+	def as_dict(self, no_nulls = False):
 		def serialize(doc):
 			out = {}
 			for key in doc.__dict__:
