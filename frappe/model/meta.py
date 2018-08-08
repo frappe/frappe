@@ -16,6 +16,7 @@ Example:
 '''
 
 from __future__ import unicode_literals, print_function
+from datetime import datetime
 from six.moves import range
 import frappe, json, os
 from frappe.utils import cstr, cint
@@ -30,8 +31,14 @@ from frappe import _
 def get_meta(doctype, cached=True):
 	if cached:
 		if not frappe.local.meta_cache.get(doctype):
-			frappe.local.meta_cache[doctype] = frappe.cache().hget("meta", doctype,
-				lambda: Meta(doctype))
+			meta = frappe.cache().hget("meta", doctype)
+			if meta:
+				meta = Meta(meta)
+			else:
+				meta = Meta(doctype)
+				frappe.cache().hset('meta', doctype, meta.as_dict())
+			frappe.local.meta_cache[doctype] = meta
+
 		return frappe.local.meta_cache[doctype]
 	else:
 		return load_meta(doctype)
@@ -67,11 +74,11 @@ class Meta(Document):
 
 	def __init__(self, doctype):
 		self._fields = {}
-		if isinstance(doctype, Document):
-			super(Meta, self).__init__(doctype.as_dict())
+		if isinstance(doctype, dict):
+			super(Meta, self).__init__(doctype)
 		else:
 			super(Meta, self).__init__("DocType", doctype)
-		self.process()
+			self.process()
 
 	def load_from_db(self):
 		try:
@@ -81,6 +88,38 @@ class Meta(Document):
 				self.__dict__.update(load_doctype_from_file(self.name))
 			else:
 				raise
+
+	def process(self):
+		# don't process for special doctypes
+		# prevent's circular dependency
+		if self.name in self.special_doctypes:
+			return
+
+		self.add_custom_fields()
+		self.apply_property_setters()
+		self.sort_fields()
+		self.get_valid_columns()
+		self.set_custom_permissions()
+
+	def as_dict(self):
+		def serialize(doc):
+			out = {}
+			for key in doc.__dict__:
+				value = doc.__dict__.get(key)
+
+				if isinstance(value, list):
+					if len(value) > 1 and hasattr(value[0], '__dict__'):
+						value = [serialize(d) for d in value]
+					else:
+						# non standard list object, skip
+						continue
+
+				if isinstance(value, (frappe.text_type, int, float, datetime, list)):
+					out[key] = value
+
+			return out
+
+		return serialize(self)
 
 	def get_link_fields(self):
 		return self.get("fields", {"fieldtype": "Link", "options":["!=", "[Select]"]})
@@ -240,18 +279,6 @@ class Meta(Document):
 
 	def get_workflow(self):
 		return get_workflow_name(self.name)
-
-	def process(self):
-		# don't process for special doctypes
-		# prevent's circular dependency
-		if self.name in self.special_doctypes:
-			return
-
-		self.add_custom_fields()
-		self.apply_property_setters()
-		self.sort_fields()
-		self.get_valid_columns()
-		self.set_custom_permissions()
 
 	def add_custom_fields(self):
 		try:

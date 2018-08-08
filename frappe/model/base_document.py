@@ -27,7 +27,7 @@ def get_controller(doctype):
 	global _classes
 
 	if not doctype in _classes:
-		module_name, custom = frappe.db.get_value("DocType", doctype, ["module", "custom"]) \
+		module_name, custom = frappe.db.get_value("DocType", doctype, ("module", "custom"), cache=True) \
 			or ["Core", False]
 
 		if custom:
@@ -143,7 +143,7 @@ class BaseDocument(object):
 			return value
 		else:
 			raise ValueError(
-				"Document attached to child table must be a dict or BaseDocument, not " + str(type(value))[1:-1]
+				"Document attached to child table must be a dict or BaseDocument, not {0} ({1})".format(str(type(value))[1:-1], value)
 			)
 
 	def extend(self, key, value):
