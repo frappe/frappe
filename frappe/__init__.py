@@ -658,12 +658,12 @@ def get_cached_doc(*args, **kwargs):
 		# redis cache
 		doc = cache().hget('document_cache', key)
 		if doc:
-			doc = frappe.get_doc(doc)
+			doc = get_doc(doc)
 			local.document_cache[key] = doc
 			return doc
-		
+
 	# database
-	doc = frappe.get_doc(*args, **kwargs)
+	doc = get_doc(*args, **kwargs)
 
 	return doc
 
@@ -677,6 +677,17 @@ def clear_document_cache(doctype, name):
 		del local.document_cache[key]
 	cache().hdel('document_cache', key)
 
+def get_cached_value(doctype, name, fieldname, as_dict=False):
+	doc = get_cached_doc(doctype, name)
+	if isinstance(fieldname, text_type):
+		if as_dict:
+			throw('Cannot make dict for single fieldname')
+		return doc.get(fieldname)
+
+	values = [doc.get(f) for f in fieldname]
+	if as_dict:
+		return _dict(zip(fieldname, values))
+	return values
 
 def get_doc(*args, **kwargs):
 	"""Return a `frappe.model.document.Document` object of the given type and name.

@@ -300,9 +300,10 @@ class Database:
 		result = self._cursor.fetchall()
 		ret = []
 		needs_formatting = self.needs_formatting(result, formatted)
+		keys = [column[0] for column in self._cursor.description]
 
 		for r in result:
-			row_dict = frappe._dict({})
+			values = []
 			for i in range(len(r)):
 				if needs_formatting:
 					val = self.convert_to_simple_type(r[i], formatted)
@@ -311,8 +312,9 @@ class Database:
 
 				if as_utf8 and type(val) is text_type:
 					val = val.encode('utf-8')
-				row_dict[self._cursor.description[i][0]] = val
-			ret.append(row_dict)
+				values.append(val)
+
+			ret.append(frappe._dict(zip(keys, values)))
 		return ret
 
 	def needs_formatting(self, result, formatted):
@@ -740,7 +742,7 @@ class Database:
 			del self.value_cache[dt]
 
 		frappe.clear_document_cache(dt, dn)
-		
+
 	def set(self, doc, field, val):
 		"""Set value in document. **Avoid**"""
 		doc.db_set(field, val)
