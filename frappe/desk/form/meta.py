@@ -16,10 +16,14 @@ import io
 
 from six import iteritems
 
-
 def get_meta(doctype, cached=True):
-	if cached and not frappe.conf.developer_mode:
-		meta = frappe.cache().hget("form_meta", doctype, lambda: FormMeta(doctype))
+	if cached:
+		meta = frappe.cache().hget("form_meta", doctype)
+		if meta:
+			meta = FormMeta(meta)
+		else:
+			meta = FormMeta(doctype)
+			frappe.cache().hset("form_meta", doctype, meta.as_dict())
 	else:
 		meta = FormMeta(doctype)
 
@@ -48,6 +52,7 @@ class FormMeta(Meta):
 
 	def as_dict(self, no_nulls=False):
 		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)
+
 		for k in ("__js", "__css", "__list_js", "__calendar_js", "__map_js",
 			"__linked_with", "__messages", "__print_formats", "__workflow_docs",
 			"__form_grid_templates", "__listview_template", "__tree_js",
@@ -55,7 +60,7 @@ class FormMeta(Meta):
 			'__custom_js'):
 			d[k] = self.get(k)
 
-		for i, df in enumerate(d.get("fields")):
+		for i, df in enumerate(d.get("fields") or []):
 			for k in ("search_fields", "is_custom_field", "linked_document_type"):
 				df[k] = self.get("fields")[i].get(k)
 

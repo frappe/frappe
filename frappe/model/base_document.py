@@ -140,10 +140,19 @@ class BaseDocument(object):
 
 			# reference parent document
 			value.parent_doc = self
+
 			return value
 		else:
+
+			# metaclasses may have arbitrary lists
+			# which we can ignore
+			if (getattr(self, '_metaclass', None)
+				or self.__class__.__name__ in ('Meta', 'FormMeta')):
+				return value
+
 			raise ValueError(
-				"Document attached to child table must be a dict or BaseDocument, not {0} ({1})".format(str(type(value))[1:-1], value)
+				'Document for field "{0}" attached to child table of "{1}" must be a dict or BaseDocument, not {2} ({3})'.format(key,
+					self.name, str(type(value))[1:-1], value)
 			)
 
 	def extend(self, key, value):

@@ -76,8 +76,11 @@ class Meta(Document):
 		self._fields = {}
 		if isinstance(doctype, dict):
 			super(Meta, self).__init__(doctype)
+
 		elif isinstance(doctype, Document):
 			super(Meta, self).__init__(doctype.as_dict())
+			self.process()
+
 		else:
 			super(Meta, self).__init__("DocType", doctype)
 			self.process()
@@ -109,14 +112,14 @@ class Meta(Document):
 			for key in doc.__dict__:
 				value = doc.__dict__.get(key)
 
-				if isinstance(value, list):
-					if len(value) > 1 and hasattr(value[0], '__dict__'):
+				if isinstance(value, (list, tuple)):
+					if len(value) > 0 and hasattr(value[0], '__dict__'):
 						value = [serialize(d) for d in value]
 					else:
 						# non standard list object, skip
 						continue
 
-				if (isinstance(value, (frappe.text_type, int, float, datetime, list))
+				if (isinstance(value, (frappe.text_type, int, float, datetime, list, tuple))
 					or (not no_nulls and value is None)):
 					out[key] = value
 
