@@ -147,7 +147,7 @@ class BaseDocument(object):
 			# metaclasses may have arbitrary lists
 			# which we can ignore
 			if (getattr(self, '_metaclass', None)
-				or self.__class__.__name__ in ('Meta', 'FormMeta')):
+				or self.__class__.__name__ in ('Meta', 'FormMeta', 'DocField')):
 				return value
 
 			raise ValueError(
