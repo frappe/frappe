@@ -388,6 +388,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 	if frappe.are_emails_muted():
 		frappe.msgprint(_("Emails are muted"))
 		return
+
 	if cint(frappe.defaults.get_defaults().get("hold_queue"))==1 :
 		return
 
@@ -395,7 +396,6 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 		# rollback to release lock and return
 		frappe.db.rollback()
 		return
-
 
 	frappe.db.sql("""update `tabEmail Queue` set status='Sending', modified=%s where name=%s""",
 		(now_datetime(), email.name), auto_commit=auto_commit)

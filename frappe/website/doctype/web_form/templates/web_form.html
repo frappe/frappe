@@ -62,8 +62,17 @@
 	</p>
 </div>
 {% elif is_list %}
-	{% include "templates/includes/list/list.html" %}
-	<script>{% include "templates/includes/list/list.js" %}</script>
+	{% if show_in_grid %}
+		<div class="web-form-list">
+			<div class="results"></div>
+			<div class="more-block {% if not show_more -%} hide {%- endif %}">
+				<button class="btn btn-default btn-more btn-sm">{{ _("More") }}</button>
+			</div>
+		</div>
+	{% else %}
+		{% include "templates/includes/list/list.html" %}
+		<script>{% include "templates/includes/list/list.js" %}</script>
+	{% endif %}
 {% else %}
 <br>
 
@@ -180,8 +189,17 @@ window.web_form_settings = {
 	login_required: 	{{ 1 if login_required else 0 }},
 	max_attachment_size:{{ max_attachment_size }},
 	moment_date_format: "{{ frappe.date_format.upper() }}",
-	is_list: {{ frappe.utils.cint(is_list) }},
+	is_list: {{ frappe.utils.cint(is_list) }}
 }
+frappe.boot = {
+	sysdefaults: {
+		float_precision: {{ frappe.get_system_settings('float_precision') or 3 }},
+		date_format: "{{ frappe.get_system_settings('date_format') or 'yyyy-mm-dd' }}",
+	}
+};
+
+// for backward compatibility of some libs
+frappe.sys_defaults = frappe.boot.sysdefaults;
 {% if row_template %}web_form_settings.web_form_row_template = "{{ row_template }}";{% endif %}
 </script>
 
@@ -189,6 +207,12 @@ window.web_form_settings = {
 <script>
 {% if script is defined %}
 {{ script }}
+{% endif %}
+
+{% if client_script %}
+frappe.init_client_script = () => {
+	{{ client_script }}
+}
 {% endif %}
 </script>
 {% endblock %}

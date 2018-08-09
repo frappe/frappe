@@ -1,7 +1,9 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.messages")
+frappe.provide("frappe.messages");
+
+import './dialog';
 
 frappe.messages.waiting = function(parent, msg) {
 	return $(frappe.messages.get_waiting_message(msg))

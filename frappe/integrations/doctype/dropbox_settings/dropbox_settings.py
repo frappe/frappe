@@ -64,6 +64,9 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 
 def send_email(success, service_name, error_status=None):
 	if success:
+		if frappe.db.get_value("Dropbox Settings", None, "send_email_for_successful_backup") == '0':
+			return
+
 		subject = "Backup Upload Successful"
 		message ="""<h3>Backup Uploaded Successfully</h3><p>Hi there, this is just to inform you
 		that your backup was successfully uploaded to your %s account. So relax!</p>
@@ -216,9 +219,11 @@ def get_uploaded_files_meta(dropbox_folder, dropbox_client):
 		if isinstance(e.error, dropbox.files.ListFolderError):
 			return frappe._dict({"entries": []})
 		else:
-			raise 
+			raise
 
 def get_dropbox_settings(redirect_uri=False):
+	if not frappe.conf.dropbox_broker_site:
+		frappe.conf.dropbox_broker_site = 'https://dropbox.erpnext.com'
 	settings = frappe.get_doc("Dropbox Settings")
 	app_details = {
 		"app_key": settings.app_access_key or frappe.conf.dropbox_access_key,
@@ -246,6 +251,8 @@ def get_dropbox_settings(redirect_uri=False):
 
 @frappe.whitelist()
 def get_redirect_url():
+	if not frappe.conf.dropbox_broker_site:
+		frappe.conf.dropbox_broker_site = 'https://dropbox.erpnext.com'
 	url = "{0}/api/method/dropbox_erpnext_broker.www.setup_dropbox.get_authotize_url".format(frappe.conf.dropbox_broker_site)
 
 	try:

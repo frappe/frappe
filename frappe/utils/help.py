@@ -10,7 +10,6 @@ from frappe.model.db_schema import DbManager
 from frappe.installer import get_root_connection
 from frappe.database import Database
 import os, subprocess
-from markdown2 import markdown
 from bs4 import BeautifulSoup
 import jinja2.exceptions
 
@@ -178,14 +177,14 @@ class HelpDatabase(object):
 							with io.open(fpath, 'r', encoding = 'utf-8') as f:
 								try:
 									content = frappe.render_template(f.read(),
-										{'docs_base_url': '/assets/{docs_app}_docs'.format(docs_app=docs_app)})
+										{'docs_base_url': '/assets/{app}_docs'.format(app=app)})
 
 									relpath = self.get_out_path(fpath)
 									relpath = relpath.replace("user", app)
-									content = markdown(content)
+									content = frappe.utils.md_to_html(content)
 									title = self.make_title(basepath, fname, content)
 									intro = self.make_intro(content)
-									content = self.make_content(content, fpath, relpath)
+									content = self.make_content(content, fpath, relpath, app)
 									self.db.sql('''insert into help(path, content, title, intro, full_path)
 										values (%s, %s, %s, %s, %s)''', (relpath, content, title, intro, fpath))
 								except jinja2.exceptions.TemplateSyntaxError:
@@ -213,14 +212,12 @@ class HelpDatabase(object):
 			intro = "Help Video: " + intro
 		return intro
 
-	def make_content(self, html, path, relpath):
+	def make_content(self, html, path, relpath, app_name):
 		if '<h1>' in html:
 			html = html.split('</h1>', 1)[1]
 
 		if '{next}' in html:
 			html = html.replace('{next}', '')
-
-		app_name = path.split('/', 3)[2]
 
 		soup = BeautifulSoup(html, 'html.parser')
 

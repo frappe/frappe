@@ -8,31 +8,43 @@ from frappe.utils import cstr, unique, cint
 from frappe.permissions import has_permission
 from frappe import _
 from six import string_types
+import re
 
 
 def sanitize_searchfield(searchfield):
 	blacklisted_keywords = ['select', 'delete', 'drop', 'update', 'case', 'and', 'or', 'like']
 
-	def _raise_exception():
-		frappe.throw(_('Invalid Search Field'), frappe.DataError)
+	def _raise_exception(searchfield):
+		frappe.throw(_('Invalid Search Field {0}').format(searchfield), frappe.DataError)
+
+	if len(searchfield) == 1:
+		# do not allow special characters to pass as searchfields
+		regex = re.compile('^.*[=;*,\'"$\-+%#@()_].*')
+		if regex.match(searchfield):
+			_raise_exception(searchfield)
 
 	if len(searchfield) >= 3:
 
 		# to avoid 1=1
 		if '=' in searchfield:
-			_raise_exception()
+			_raise_exception(searchfield)
 
 		# in mysql -- is used for commenting the query
 		elif ' --' in searchfield:
-			_raise_exception()
+			_raise_exception(searchfield)
 
 		# to avoid and, or and like
 		elif any(' {0} '.format(keyword) in searchfield.split() for keyword in blacklisted_keywords):
-			_raise_exception()
+			_raise_exception(searchfield)
 
 		# to avoid select, delete, drop, update and case
 		elif any(keyword in searchfield.split() for keyword in blacklisted_keywords):
-			_raise_exception()
+			_raise_exception(searchfield)
+
+		else:
+			regex = re.compile('^.*[=;*,\'"$\-+%#@()].*')
+			if any(regex.match(f) for f in searchfield.split()):
+				_raise_exception(searchfield)
 
 # this is called by the Link Field
 @frappe.whitelist()

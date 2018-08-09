@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe, json
 import frappe.desk.form.meta
 import frappe.desk.form.load
+from frappe.utils.html_utils import clean_email_html
 
 from frappe import _
 from six import string_types
@@ -60,6 +61,8 @@ def add_comment(doc):
 	"""allow any logged user to post a comment"""
 	doc = frappe.get_doc(json.loads(doc))
 
+	doc.content = clean_email_html(doc.content)
+
 	if not (doc.doctype=="Communication" and doc.communication_type=='Comment'):
 		frappe.throw(_("This method can only be used to create a Comment"), frappe.PermissionError)
 
@@ -113,3 +116,10 @@ def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
 	else:
 		return res[0][0]
 
+def get_pdf_link(doctype, docname, print_format='Standard', no_letterhead=0):
+	return '/api/method/frappe.utils.print_format.download_pdf?doctype={doctype}&name={docname}&format={print_format}&no_letterhead={no_letterhead}'.format(
+		doctype = doctype,
+		docname = docname,
+		print_format = print_format,
+		no_letterhead = no_letterhead
+	)

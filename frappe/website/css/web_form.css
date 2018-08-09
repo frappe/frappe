@@ -50,3 +50,15 @@ input[type='checkbox'] {
 .slide-progress .icon-circle {
 	font-size: 14px;
 }
+
+body {
+	display: none;
+}
+
+.modal-title {
+	margin-top: 5px;
+}
+
+.modal-header {
+	padding: 10px 15px;
+}

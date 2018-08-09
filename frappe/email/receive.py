@@ -225,7 +225,7 @@ class EmailServer:
 
 	def parse_imap_responce(self, cmd, responce):
 		pattern = r"(?<={cmd} )[0-9]*".format(cmd=cmd)
-		match = re.search(pattern, responce, re.U | re.I)
+		match = re.search(pattern, responce.decode('utf-8'), re.U | re.I)
 		if match:
 			return match.group(0)
 		else:
@@ -454,12 +454,17 @@ class Email:
 
 	def show_attached_email_headers_in_content(self, part):
 		# get the multipart/alternative message
+		try:
+		    from html import escape  # python 3.x
+		except ImportError:
+		    from cgi import escape  # python 2.x
+
 		message = list(part.walk())[1]
 		headers = []
 		for key in ('From', 'To', 'Subject', 'Date'):
 			value = cstr(message.get(key))
 			if value:
-				headers.append('{label}: {value}'.format(label=_(key), value=value))
+				headers.append('{label}: {value}'.format(label=_(key), value=escape(value)))
 
 		self.text_content += '\n'.join(headers)
 		self.html_content += '<hr>' + '\n'.join('<p>{0}</p>'.format(h) for h in headers)

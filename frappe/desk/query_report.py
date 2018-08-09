@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
-import os, json
+import os, json, datetime
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
@@ -15,7 +15,6 @@ import frappe.desk.reportview
 from frappe.utils.csvutils import read_csv_content_from_attached_file
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
-
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
@@ -57,15 +56,17 @@ def generate_report_result(report, filters=None, user=None):
 		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
 		if report.is_standard == "Yes":
 			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
-
+			threshold = 10
 			res = []
+			
+			start_time = datetime.datetime.now()
+			# The JOB
+			res = frappe.get_attr(method_name)(frappe._dict(filters))
+			
+			end_time = datetime.datetime.now()
 
-			# The JOB:
-			try:
-				res = frappe.get_attr(method_name)(frappe._dict(filters))
-			except Exception:
-				frappe.db.set_value('Report', report.name, 'prepared_report', 1)
-				frappe.throw("The report to too long to load. Please reload the page to generate it in background.")
+			if (end_time - start_time).seconds > threshold and not report.prepared_report:
+				report.db_set('prepared_report', 1)
 
 			columns, result = res[0], res[1]
 			if len(res) > 2:
@@ -89,7 +90,6 @@ def generate_report_result(report, filters=None, user=None):
 		"data_to_be_printed": data_to_be_printed,
 		"status": status
 	}
-
 
 @frappe.whitelist()
 def background_enqueue_run(report_name, filters=None, user=None):
@@ -148,6 +148,7 @@ def get_script(report_name):
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def run(report_name, filters=None, user=None):
 
 	report = get_report_doc(report_name)

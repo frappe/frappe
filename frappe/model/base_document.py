@@ -27,7 +27,7 @@ def get_controller(doctype):
 	global _classes
 
 	if not doctype in _classes:
-		module_name, custom = frappe.db.get_value("DocType", doctype, ["module", "custom"]) \
+		module_name, custom = frappe.db.get_value("DocType", doctype, ("module", "custom"), cache=True) \
 			or ["Core", False]
 
 		if custom:
@@ -140,10 +140,19 @@ class BaseDocument(object):
 
 			# reference parent document
 			value.parent_doc = self
+
 			return value
 		else:
+
+			# metaclasses may have arbitrary lists
+			# which we can ignore
+			if (getattr(self, '_metaclass', None)
+				or self.__class__.__name__ in ('Meta', 'FormMeta', 'DocField')):
+				return value
+
 			raise ValueError(
-				"Document attached to child table must be a dict or BaseDocument, not " + str(type(value))[1:-1]
+				'Document for field "{0}" attached to child table of "{1}" must be a dict or BaseDocument, not {2} ({3})'.format(key,
+					self.name, str(type(value))[1:-1], value)
 			)
 
 	def extend(self, key, value):

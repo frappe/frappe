@@ -17,7 +17,7 @@ from faker import Faker
 from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
 
-__version__ = '10.1.39'
+__version__ = '10.1.45'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -154,6 +154,7 @@ def init(site, sites_path=None, new_site=False):
 	local.jenv = None
 	local.jloader =None
 	local.cache = {}
+	local.document_cache = {}
 	local.meta_cache = {}
 	local.form_dict = _dict()
 	local.session = _dict()
@@ -170,8 +171,19 @@ def connect(site=None, db_name=None):
 	from frappe.database import Database
 	if site:
 		init(site)
+
 	local.db = Database(user=db_name or local.conf.db_name)
 	set_user("Administrator")
+
+def connect_read_only():
+	from frappe.database import Database
+
+	local.read_only_db = Database(local.conf.slave_host, local.conf.slave_db_name,
+		local.conf.slave_db_password)
+
+	# swap db connections
+	local.master_db = local.db
+	local.db = local.read_only_db
 
 def get_site_config(sites_path=None, site_path=None):
 	"""Returns `site_config.json` combined with `sites/common_site_config.json`.
@@ -423,8 +435,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	message = content or message
 
 	if as_markdown:
-		from markdown2 import markdown
-		message = markdown(message)
+		message = frappe.utils.md_to_html(message)
 
 	if not delayed:
 		now = True
@@ -468,6 +479,21 @@ def whitelist(allow_guest=False, xss_safe=False):
 		return fn
 
 	return innerfn
+
+def read_only():
+	def innfn(fn):
+		def wrapper_fn(*args, **kwargs):
+			if conf.use_slave_for_read_only:
+				connect_read_only()
+
+			retval = fn(*args, **get_newargs(fn, kwargs))
+
+			if local and hasattr(local, 'master_db'):
+				local.db = local.master_db
+
+			return retval
+		return wrapper_fn
+	return innfn
 
 def only_for(roles):
 	"""Raise `frappe.PermissionError` if the user does not have any of the given **Roles**.
@@ -563,7 +589,7 @@ def has_website_permission(doc=None, ptype='read', user=None, verbose=False, doc
 
 		# check permission in controller
 		if hasattr(doc, 'has_website_permission'):
-			return doc.has_website_permission(ptype, verbose=verbose)
+			return doc.has_website_permission(doc, ptype, user, verbose=verbose)
 
 	hooks = (get_hooks("has_website_permission") or {}).get(doctype, [])
 	if hooks:
@@ -621,6 +647,48 @@ def set_value(doctype, docname, fieldname, value=None):
 	import frappe.client
 	return frappe.client.set_value(doctype, docname, fieldname, value)
 
+def get_cached_doc(*args, **kwargs):
+	if args and len(args) > 1 and isinstance(args[1], text_type):
+		key = get_document_cache_key(args[0], args[1])
+		# local cache
+		doc = local.document_cache.get(key)
+		if doc:
+			return doc
+
+		# redis cache
+		doc = cache().hget('document_cache', key)
+		if doc:
+			doc = get_doc(doc)
+			local.document_cache[key] = doc
+			return doc
+
+	# database
+	doc = get_doc(*args, **kwargs)
+
+	return doc
+
+def get_document_cache_key(doctype, name):
+	return '{0}::{1}'.format(doctype, name)
+
+def clear_document_cache(doctype, name):
+	cache().hdel("last_modified", doctype)
+	key = get_document_cache_key(doctype, name)
+	if key in local.document_cache:
+		del local.document_cache[key]
+	cache().hdel('document_cache', key)
+
+def get_cached_value(doctype, name, fieldname, as_dict=False):
+	doc = get_cached_doc(doctype, name)
+	if isinstance(fieldname, text_type):
+		if as_dict:
+			throw('Cannot make dict for single fieldname')
+		return doc.get(fieldname)
+
+	values = [doc.get(f) for f in fieldname]
+	if as_dict:
+		return _dict(zip(fieldname, values))
+	return values
+
 def get_doc(*args, **kwargs):
 	"""Return a `frappe.model.document.Document` object of the given type and name.
 
@@ -638,7 +706,15 @@ def get_doc(*args, **kwargs):
 
 	"""
 	import frappe.model.document
-	return frappe.model.document.get_doc(*args, **kwargs)
+	doc = frappe.model.document.get_doc(*args, **kwargs)
+
+	# set in cache
+	if args and len(args) > 1:
+		key = get_document_cache_key(args[0], args[1])
+		local.document_cache[key] = doc
+		cache().hset('document_cache', key, doc.as_dict())
+
+	return doc
 
 def get_last_doc(doctype):
 	"""Get last created document of this type."""
@@ -926,6 +1002,11 @@ def call(fn, *args, **kwargs):
 	if isinstance(fn, string_types):
 		fn = get_attr(fn)
 
+	newargs = get_newargs(fn, kwargs)
+
+	return fn(*args, **newargs)
+
+def get_newargs(fn, kwargs):
 	if hasattr(fn, 'fnargs'):
 		fnargs = fn.fnargs
 	else:
@@ -939,7 +1020,7 @@ def call(fn, *args, **kwargs):
 	if "flags" in newargs:
 		del newargs["flags"]
 
-	return fn(*args, **newargs)
+	return newargs
 
 def make_property_setter(args, ignore_validate=False, validate_fields_for_doctype=True):
 	"""Create a new **Property Setter** (for overriding DocType and DocField properties).

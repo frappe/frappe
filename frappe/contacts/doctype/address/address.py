@@ -46,7 +46,7 @@ class Address(Document):
 		if not self.links and not self.is_your_company_address:
 			contact_name = frappe.db.get_value("Contact", {"email_id": self.owner})
 			if contact_name:
-				contact = frappe.get_doc('Contact', contact_name)
+				contact = frappe.get_cached_doc('Contact', contact_name)
 				for link in contact.links:
 					self.append('links', dict(link_doctype=link.link_doctype, link_name=link.link_name))
 				return True
@@ -104,7 +104,7 @@ def get_address_display(address_dict):
 		return
 
 	if not isinstance(address_dict, dict):
-		address_dict = frappe.db.get_value("Address", address_dict, "*", as_dict=True) or {}
+		address_dict = frappe.db.get_value("Address", address_dict, "*", as_dict=True, cache=True) or {}
 
 	name, template = get_address_templates(address_dict)
 
@@ -120,13 +120,14 @@ def get_territory_from_address(address):
 		return
 
 	if isinstance(address, string_types):
-		address = frappe.get_doc("Address", address)
+		address = frappe.get_cached_doc("Address", address)
 
 	territory = None
 	for fieldname in ("city", "state", "country"):
-		territory = frappe.db.get_value("Territory", address.get(fieldname))
-		if territory:
-			break
+		if address.get(fieldname):
+			territory = frappe.db.get_value("Territory", address.get(fieldname))
+			if territory:
+				break
 
 	return territory
 
