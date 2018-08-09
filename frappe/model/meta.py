@@ -116,7 +116,8 @@ class Meta(Document):
 						# non standard list object, skip
 						continue
 
-				if isinstance(value, (frappe.text_type, int, float, datetime, list, None)):
+				if (isinstance(value, (frappe.text_type, int, float, datetime, list))
+					or (not no_nulls and value is None)):
 					out[key] = value
 
 			return out
