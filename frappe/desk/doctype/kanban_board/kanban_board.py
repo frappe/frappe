@@ -15,6 +15,9 @@ class KanbanBoard(Document):
 	def validate(self):
 		self.validate_column_name()
 
+	def on_update(self):
+		frappe.clear_cache(doctype=self.reference_doctype)
+
 	def validate_column_name(self):
 		for column in self.columns:
 			if not column.column_name:
