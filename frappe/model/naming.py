@@ -274,10 +274,14 @@ def _prompt_autoname(autoname, doc):
 
 def _concatenate_autoname(autoname, doc):
 	"""
-	Generate a name by concatenating as many fields as required. This is
+	Generate a name by concatenating as many fields or values as required. This is
 	called when the doctype's `autoname` field starts with 'concatenate:'. The
 	field names are separated by a comma. It is also aware of autoname '.####'
-	format.
+	format. Literal values can be passed in quotes, eg. "LOG"
+
+	Example:
+
+	concatenate:"LOG",naming_series,type,number,.####
 	"""
 
 	fieldname = autoname[12:]
@@ -285,8 +289,14 @@ def _concatenate_autoname(autoname, doc):
 
 	for part in fieldname.split(','):
 		if '.#' in part:
+			# Naming series as parameter
 			fieldnames.append(make_autoname(part, doc))
+		elif '"' in part:
+			# Naming parameter passed in quotes (eg. "LOG"), to be taken as is
+			unquoted_part = part[1:-1]
+			fieldnames.append(unquoted_part)
 		else:
+			# Naming parameter is a fieldname
 			fieldnames.append(_field_autoname(part, doc, skip_slicing=True))
 	name = '-'.join(fieldnames)
 	return name
