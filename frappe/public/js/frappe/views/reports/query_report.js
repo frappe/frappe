@@ -408,7 +408,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_visible_columns() {
-		// return columns according to user_settings
 		const visible_column_ids = this.datatable.datamanager.getColumns(true).map(col => col.id);
 
 		return visible_column_ids
@@ -444,7 +443,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_filter(fieldname) {
-		const field = this.filters.find(f => f.df.fieldname === fieldname);
+		const field = (this.filters || []).find(f => f.df.fieldname === fieldname);
 		if (!field) {
 			console.warn(`[Query Report] Invalid filter: ${fieldname}`);
 		}
@@ -658,11 +657,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				standard: true
 			},
 		];
-	}
-
-	setup_page_head() {
-		super.setup_page_head();
-		this.page.set_title_sub(`<label class='label label-warning text-color'>${__('Beta')}</label>`);
 	}
 
 	setup_report_wrapper() {
