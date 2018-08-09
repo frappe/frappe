@@ -72,6 +72,35 @@ On click each field modify filters for other fields
 for eg. on changing county first and state later state will not be able to affect filters
 of other fields but revrese is not true
 */
+
+function modify_administrative_area_filters(frm, all_address_fields, current_address_field, current_lft, current_rgt){
+	all_address_fields.forEach(field_type => {
+		if (field_type == current_address_field){
+			//do nothing
+		} else if (all_address_fields.indexOf(current_address_field) < address_fields.indexOf(field_type)) {
+			frm.set_query(field_type, function() {
+				return {
+					"filters": [
+						['Administrative Area','administrative_area_type',"=", field_type],
+						['Administrative Area','rgt',">",current_rgt],
+						['Administrative Area','lft',"<",current_lft],
+					]
+				};
+			});
+		} else {
+			frm.set_query(field_type, function() {
+				return {
+					"filters": [
+						['Administrative Area','administrative_area_type',"=", field_type],
+						['Administrative Area','lft',">",current_lft],
+						['Administrative Area','lft',"<",current_rgt],
+					]
+				};
+			});
+		}
+	});
+}
+
 address_fields.forEach(type => {
 	frappe.ui.form.on('Address', type, function(frm){
 		var previous_filter_set_by = frm.filters_set_using;
@@ -83,31 +112,7 @@ address_fields.forEach(type => {
 					args: {"administrative_area": frm.doc[type]},
 					callback: function(data){
 						if (data.message.status == 1){
-							address_fields.forEach(address_type => {
-								if (address_type == type){
-									//do nothing
-								} else if (address_fields.indexOf(type) < address_fields.indexOf(address_type)) {
-									frm.set_query(address_type, function() {
-										return {
-											"filters": [
-												['Administrative Area','administrative_area_type',"=",address_type],
-												['Administrative Area','rgt',">",data.message.rgt],
-												['Administrative Area','lft',"<",data.message.lft],
-											]
-										};
-									});
-								} else {
-									frm.set_query(address_type, function() {
-										return {
-											"filters": [
-												['Administrative Area','administrative_area_type',"=",address_type],
-												['Administrative Area','lft',">",data.message.lft],
-												['Administrative Area','lft',"<",data.message.rgt],
-											]
-										};
-									});
-								}
-							});
+							modify_administrative_area_filters(frm, address_fields, type, data.message.lft, data.message.rgt)
 						}
 					}
 				});
