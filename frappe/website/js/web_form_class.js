@@ -24,11 +24,6 @@ export default class WebForm {
 		const query_params = frappe.utils.get_query_params();
 
 		web_form.web_form_fields.map(df => {
-			if (df.fieldtype === 'Link') {
-				df.fieldtype = 'Select';
-				df.options = links[df.fieldname]
-			}
-
 			if (df.fieldtype === 'Table') {
 				df.get_data = () => {
 					let data = []
