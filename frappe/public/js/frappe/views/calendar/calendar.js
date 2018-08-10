@@ -107,16 +107,16 @@ frappe.views.Calendar = Class.extend({
 					'defaultView': doc.calendar_defaultview ? doc.calendar_defaultview : 'month', 
 					'weekends': doc.calendar_weekends==1 ? true : false, 
 					'nowIndicator': doc.calendar_nowindicator==1 ? true: false
-				}
-				resolve(defaults)
+				};
+				resolve(defaults);
 			});
 		})
 		.then(defaults => {
-			this.make_page();
-			this.setup_options(defaults);
-			this.make();
-			this.bind();
-		})
+				this.make_page();
+				this.setup_options(defaults);
+				this.make();
+				this.bind();
+			});
 	},
 	make_page: function() {
 		var me = this;
@@ -149,7 +149,7 @@ frappe.views.Calendar = Class.extend({
 	bind: function() {
 		var me = this;
 		let btn_group = me.$wrapper.find(".fc-button-group");
-		btn_group.find(".btn").on("click", function(e) {
+		btn_group.find(".btn").on("click", function() {
 			let value = ($(this).hasClass('fc-agendaWeek-button')) ? 'agendaWeek' : (($(this).hasClass('fc-agendaDay-button')) ? 'agendaDay' : 'month');
 			frappe.db.set_value('User', frappe.session.user, 'calendar_defaultview', value);
 		});
