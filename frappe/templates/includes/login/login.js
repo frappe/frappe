@@ -218,6 +218,7 @@ login.login_handlers = (function() {
 			}
 		},
 		401: get_error_handler("{{ _("Invalid Login. Try again.") }}"),
+		403: get_error_handler("{{ _("User Locked. Contact Administrator.") }}"),
 		417: get_error_handler("{{ _("Oops! Something went wrong") }}")
 	};
 
