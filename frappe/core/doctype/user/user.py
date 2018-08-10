@@ -901,7 +901,8 @@ def notify_admin_access_to_system_manager(login_manager=None):
 def extract_mentions(txt):
 	"""Find all instances of @name in the string.
 	The mentions will be separated by non-word characters or may appear at the start of the string"""
-	txt = re.sub(r'(<[a-zA-Z\/][^>]*>)', ' ', txt)
+	txt = txt.replace("<br>", "<br> ")
+	txt = re.sub(r'(<[a-zA-Z\/][^>]*>)', '', txt)
 	return re.findall(r'(?:[^\w\.\-\@]|^)@([\w\.\-\@]*)', txt)
 
 def handle_password_test_fail(result):

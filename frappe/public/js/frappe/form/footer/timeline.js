@@ -310,16 +310,16 @@ frappe.ui.form.Timeline = Class.extend({
 				!c.content_html.match(/(^|\W)<b>(@[^\s]+)<\/b>/)
 			) {
 				/*
-					Replace the <a> tag if it's preceded by an @
-					to avoid creating a link for an email.
+					Replace the email ids by only displaying the string which
+					occurs before the second `@` to enhance the mentions.
 					Eg.
 					@abc@a-example.com will be converted to
-					@abc@a<a href="http://-example.com">-example.com</a>
-					without the below line of code.
+					@abc with the below line of code.
 				*/
+
 				c.content_html = c.content_html.replace(/(<[a][^>]*>)/g, "");
 				// bold the @mentions
-				c.content_html = c.content_html.replace(/(^|\W)(@[@([\w\.\-\@]*)/g, "$1<b>$2</b>");
+				c.content_html = c.content_html.replace(/(@[^\s@]*)@[^\s@|<]*/g, "<b>$1</b>");
 			}
 
 			if (this.is_communication_or_comment(c)) {
