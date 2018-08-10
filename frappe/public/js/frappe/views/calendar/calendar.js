@@ -1,4 +1,4 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.provide("frappe.views.calendar");
@@ -26,7 +26,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 
 	setup_defaults() {
 		super.setup_defaults();
-		this.page_title = this.page_title + ' ' + __('Calendar');
+		this.page_title = __('{0} Calendar', [this.page_title]);
 		this.calendar_settings = frappe.views.calendar[this.doctype] || {};
 		this.calendar_name = frappe.get_route()[3];
 	}
@@ -97,9 +97,26 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 frappe.views.Calendar = Class.extend({
 	init: function(options) {
 		$.extend(this, options);
-		this.make_page();
-		this.setup_options();
-		this.make();
+		this.get_default_options();
+	},
+	get_default_options: function() {
+		return new Promise ((resolve) => {
+			frappe.db.get_doc('User', frappe.session.user).then((r) => {
+				let doc = r;
+				let defaults = {
+					'defaultView': doc.calendar_defaultview ? doc.calendar_defaultview : 'month', 
+					'weekends': doc.calendar_weekends==1 ? true : false, 
+					'nowIndicator': doc.calendar_nowindicator==1 ? true: false
+				}
+				resolve(defaults)
+			});
+		})
+		.then(defaults => {
+			this.make_page();
+			this.setup_options(defaults);
+			this.make();
+			this.bind();
+		})
 	},
 	make_page: function() {
 		var me = this;
@@ -128,6 +145,14 @@ frappe.views.Calendar = Class.extend({
 
 		this.$cal.fullCalendar(this.cal_options);
 		this.set_css();
+	},
+	bind: function() {
+		var me = this;
+		let btn_group = me.$wrapper.find(".fc-button-group");
+		btn_group.find(".btn").on("click", function(e) {
+			let value = ($(this).hasClass('fc-agendaWeek-button')) ? 'agendaWeek' : (($(this).hasClass('fc-agendaDay-button')) ? 'agendaDay' : 'month');
+			frappe.db.set_value('User', frappe.session.user, 'calendar_defaultview', value);
+		});
 	},
 	set_css: function() {
 		// flatify buttons
@@ -166,19 +191,22 @@ frappe.views.Calendar = Class.extend({
 		date._offset = moment.user_utc_offset;
 		return frappe.datetime.convert_to_system_tz(date);
 	},
-	setup_options: function() {
+	setup_options: function(defaults) {
 		var me = this;
 		this.cal_options = {
 			locale: frappe.boot.user.language || "en",
 			header: {
 				left: 'title',
 				center: '',
-				right: 'prev,next month,agendaWeek,agendaDay'
+				right: 'prev,today,next month,agendaWeek,agendaDay'
 			},
 			editable: true,
 			selectable: true,
 			selectHelper: true,
 			forceEventDuration: true,
+			defaultView: defaults.defaultView,
+			weekends: defaults.weekends,
+			nowIndicator: defaults.nowIndicator,
 			events: function(start, end, timezone, callback) {
 				return frappe.call({
 					method: me.get_events_method || "frappe.desk.calendar.get_events",
