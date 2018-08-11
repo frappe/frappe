@@ -280,6 +280,7 @@ class LoginManager:
 			login_attempts.attempts = 0
 			login_attempts.lock_time = 0
 			login_attempts.lock_start_time = 0
+			login_attempts.status = "Active"
 			login_attempts.save(ignore_permissions=True)
 
 	def check_login_attempts(self, user):
@@ -291,6 +292,8 @@ class LoginManager:
 				if (login_attempts.lock_start_time and
 					int(login_attempts.attempts)>=self.attempts_limit and
 					now_datetime < login_attempts.lock_start_time + relativedelta(minutes=login_attempts.lock_time)):
+					login_attempts.status == "Blocked"
+					login_attempts.save(ignore_permissions=True)
 					raise frappe.PermissionError
 
 	def run_trigger(self, event='on_login'):
