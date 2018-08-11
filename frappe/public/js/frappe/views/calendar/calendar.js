@@ -110,8 +110,7 @@ frappe.views.Calendar = Class.extend({
 				};
 				resolve(defaults);
 			});
-		})
-		.then(defaults => {
+		}).then(defaults => {
 				this.make_page();
 				this.setup_options(defaults);
 				this.make();
