@@ -111,11 +111,11 @@ frappe.views.Calendar = Class.extend({
 				resolve(defaults);
 			});
 		}).then(defaults => {
-				this.make_page();
-				this.setup_options(defaults);
-				this.make();
-				this.bind();
-			});
+			this.make_page();
+			this.setup_options(defaults);
+			this.make();
+			this.bind();
+		});
 	},
 	make_page: function() {
 		var me = this;
