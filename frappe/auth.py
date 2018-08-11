@@ -292,7 +292,7 @@ class LoginManager:
 				if (login_attempts.lock_start_time and
 					int(login_attempts.attempts)>=self.attempts_limit and
 					now_datetime < login_attempts.lock_start_time + relativedelta(minutes=login_attempts.lock_time)):
-					login_attempts.status == "Blocked"
+					login_attempts.status = "Blocked"
 					login_attempts.save(ignore_permissions=True)
 					raise frappe.PermissionError
 
