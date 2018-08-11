@@ -22,7 +22,7 @@ class TestNaming(unittest.TestCase):
 		note.insert()
 
 		title2 = append_number_if_name_exists('Note', 'Test')
-		self.assertEquals(title2, 'Test-1')
+		self.assertEqual(title2, 'Test-1')
 
 		title2 = append_number_if_name_exists('Note', 'Test', 'title', '_')
-		self.assertEquals(title2, 'Test_1')
+		self.assertEqual(title2, 'Test_1')

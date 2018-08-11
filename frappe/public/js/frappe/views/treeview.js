@@ -3,10 +3,10 @@
 
 frappe.provide("frappe.treeview_settings");
 frappe.provide('frappe.views.trees');
-cur_tree = null;
+window.cur_tree = null;
 
-frappe.views.TreeFactory = frappe.views.Factory.extend({
-	make: function(route) {
+frappe.views.TreeFactory = class TreeFactory extends frappe.views.Factory {
+	make(route) {
 		frappe.model.with_doctype(route[1], function() {
 			var options = {
 				doctype: route[1],
@@ -21,7 +21,7 @@ frappe.views.TreeFactory = frappe.views.Factory.extend({
 			frappe.views.trees[options.doctype] = new frappe.views.TreeView(options);
 		});
 	}
-});
+}
 
 frappe.views.TreeView = Class.extend({
 	init: function(opts) {
@@ -29,6 +29,7 @@ frappe.views.TreeView = Class.extend({
 
 		this.opts = {};
 		this.opts.get_tree_root = true;
+		this.opts.show_expand_all = true;
 		$.extend(this.opts, opts);
 		this.doctype = opts.doctype;
 		this.args = {doctype: me.doctype};
@@ -70,9 +71,11 @@ frappe.views.TreeView = Class.extend({
 			"padding-bottom": "25px"
 		});
 
-		this.page.add_inner_button(__('Expand All'), function() {
-			me.tree.load_children(me.tree.root_node, true);
-		});
+		if(this.opts.show_expand_all) {
+			this.page.add_inner_button(__('Expand All'), function() {
+				me.tree.load_children(me.tree.root_node, true);
+			});
+		}
 
 		if(this.opts.view_template) {
 			var row = $('<div class="row"><div>').appendTo(this.page.main);
@@ -132,48 +135,17 @@ frappe.views.TreeView = Class.extend({
 	},
 	make_tree: function() {
 		$(this.parent).find(".tree").remove();
-		let get_nodes = (value, is_root) => {
-			var args = Object.assign({}, this.args);
-			args.parent = value;
-			args.is_root = is_root;
-
-			return new Promise(resolve => {
-				frappe.call({
-					method: this.get_tree_nodes,
-					args: args,
-					callback: (r) => { resolve(r.message); }
-				})
-			});
-		}
-
-		let get_all_nodes = (value, is_root) => {
-			var args = Object.assign({}, this.args);
-			args.parent = value;
-			args.is_root = is_root;
-
-			args.tree_method = this.get_tree_nodes;
-
-			return new Promise(resolve => {
-				frappe.call({
-					method: 'frappe.desk.treeview.get_all_nodes',
-					args: args,
-					callback: (r) => {
-						resolve(r.message);
-					}
-				})
-			});
-		}
 
 		this.tree = new frappe.ui.Tree({
 			parent: this.body,
 			label: this.args[this.opts.root_label] || this.root_label || this.opts.root_label,
 			expandable: true,
 
+			args: this.args,
+			method: this.get_tree_nodes,
+
 			// array of button props: {label, condition, click, btnClass}
 			toolbar: this.get_toolbar(),
-
-			get_nodes: get_nodes,
-			get_all_nodes: get_all_nodes,
 
 			get_label: this.opts.get_label,
 			on_render: this.opts.onrender,
@@ -209,7 +181,9 @@ frappe.views.TreeView = Class.extend({
 			},
 			{
 				label:__("Add Child"),
-				condition: function(node) { return me.can_create && node.expandable; },
+				condition: function(node) {
+					return me.can_create && node.expandable && !node.hide_add;
+				},
 				click: function(node) {
 					me.new_node();
 				},
@@ -281,7 +255,6 @@ frappe.views.TreeView = Class.extend({
 			var v = d.get_values();
 			if(!v) return;
 
-			var node = me.tree.get_selected_node();
 			v.parent = node.label;
 			v.doctype = me.doctype;
 
@@ -292,19 +265,24 @@ frappe.views.TreeView = Class.extend({
 				v['is_root'] = false;
 			}
 
+			d.hide();
+			frappe.dom.freeze(__('Creating {0}', [me.doctype]));
+
 			$.extend(args, v)
 			return frappe.call({
 				method: me.opts.add_tree_node || "frappe.desk.treeview.add_node",
 				args: args,
 				callback: function(r) {
 					if(!r.exc) {
-						d.hide();
 						if(node.expanded) {
 							me.tree.toggle_node(node);
 						}
 						me.tree.load_children(node, true);
 					}
-				}
+				},
+				always: function() {
+					frappe.dom.unfreeze();
+				},
 			});
 		});
 		d.show();

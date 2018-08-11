@@ -38,9 +38,15 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 	},
 
 	set_meta_and_mandatory_fields: function(){
-		// prepare a list of mandatory and bold fields
-		this.mandatory = $.map(frappe.get_meta(this.doctype).fields,
-			function(d) { return (d.reqd || d.bold && !d.read_only) ? $.extend({}, d) : null; });
+		let fields = frappe.get_meta(this.doctype).fields;
+		if (fields.length < 7) {
+			// if less than 7 fields, then show everything
+			this.mandatory = fields;
+		} else {
+			// prepare a list of mandatory and bold fields
+			this.mandatory = $.map(fields,
+				function(d) { return ((d.reqd || d.bold || d.allow_in_quick_entry) && !d.read_only) ? $.extend({}, d) : null; });
+		}
 		this.meta = frappe.get_meta(this.doctype);
 		if (!this.doc) {
 			this.doc = frappe.model.get_new_doc(this.doctype, null, null, true);
@@ -183,8 +189,13 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		var me = this;
 		var data = this.dialog.get_values(true);
 		$.each(data, function(key, value) {
-			if(!is_null(value)) {
-				me.dialog.doc[key] = value;
+			if(key==='__newname') {
+				me.dialog.doc.name = value;
+			}
+			else {
+				if(!is_null(value)) {
+					me.dialog.doc[key] = value;
+				}
 			}
 		});
 		return this.dialog.doc;

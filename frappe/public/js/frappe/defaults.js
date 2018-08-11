@@ -8,6 +8,9 @@ frappe.defaults = {
 		if(!d && frappe.defaults.is_a_user_permission_key(key))
 			d = defaults[frappe.model.scrub(key)];
 		if($.isArray(d)) d = d[0];
+		if(frappe.defaults.not_in_user_permission(key, d)) {
+			return;
+		}
 		return d;
 	},
 	get_user_defaults: function(key) {
@@ -23,6 +26,13 @@ frappe.defaults = {
 			}
 		}
 		if(!$.isArray(d)) d = [d];
+
+		// filter out values which are not permitted to the user
+		d.filter(item => {
+			if(!frappe.defaults.not_in_user_permission(key, item)) {
+				return item;
+			}
+		});
 		return d;
 	},
 	get_global_default: function(key) {
@@ -63,6 +73,10 @@ frappe.defaults = {
 			}
 		}
 
+		if(frappe.defaults.not_in_user_permission(key, value)) {
+			return;
+		}
+
 		if(value) {
 			try {
 				return JSON.parse(value)
@@ -76,7 +90,21 @@ frappe.defaults = {
 		return key.indexOf(":")===-1 && key !== frappe.model.scrub(key);
 	},
 
-	get_user_permissions: function() {
-		return frappe.boot.user_permissions;
+	not_in_user_permission: function(key, value) {
+		let user_permission = this.get_user_permissions()[frappe.model.unscrub(key)];
+		return user_permission && !user_permission["docs"].includes(value);
 	},
-}
+
+	get_user_permissions: function() {
+		return this._user_permissions || {};
+	},
+
+	update_user_permissions: function() {
+		const method = 'frappe.core.doctype.user_permission.user_permission.get_user_permissions';
+		frappe.call(method).then(r => {
+			if (r.message) {
+				this._user_permissions = Object.assign({}, r.message);
+			}
+		});
+	}
+};

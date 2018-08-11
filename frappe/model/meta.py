@@ -10,12 +10,13 @@ Example:
 
 	meta = frappe.get_meta('User')
 	if meta.has_field('first_name'):
-		print "DocType" table has field "first_name"
+		print("DocType" table has field "first_name")
 
 
 '''
 
 from __future__ import unicode_literals, print_function
+from datetime import datetime
 from six.moves import range
 import frappe, json, os
 from frappe.utils import cstr, cint
@@ -24,13 +25,20 @@ from frappe.model.document import Document
 from frappe.model.base_document import BaseDocument
 from frappe.model.db_schema import type_map
 from frappe.modules import load_doctype_module
+from frappe.model.workflow import get_workflow_name
 from frappe import _
 
 def get_meta(doctype, cached=True):
 	if cached:
 		if not frappe.local.meta_cache.get(doctype):
-			frappe.local.meta_cache[doctype] = frappe.cache().hget("meta", doctype,
-				lambda: Meta(doctype))
+			meta = frappe.cache().hget("meta", doctype)
+			if meta:
+				meta = Meta(meta)
+			else:
+				meta = Meta(doctype)
+				frappe.cache().hset('meta', doctype, meta.as_dict())
+			frappe.local.meta_cache[doctype] = meta
+
 		return frappe.local.meta_cache[doctype]
 	else:
 		return load_meta(doctype)
@@ -66,11 +74,16 @@ class Meta(Document):
 
 	def __init__(self, doctype):
 		self._fields = {}
-		if isinstance(doctype, Document):
+		if isinstance(doctype, dict):
+			super(Meta, self).__init__(doctype)
+
+		elif isinstance(doctype, Document):
 			super(Meta, self).__init__(doctype.as_dict())
+			self.process()
+
 		else:
 			super(Meta, self).__init__("DocType", doctype)
-		self.process()
+			self.process()
 
 	def load_from_db(self):
 		try:
@@ -80,6 +93,39 @@ class Meta(Document):
 				self.__dict__.update(load_doctype_from_file(self.name))
 			else:
 				raise
+
+	def process(self):
+		# don't process for special doctypes
+		# prevent's circular dependency
+		if self.name in self.special_doctypes:
+			return
+
+		self.add_custom_fields()
+		self.apply_property_setters()
+		self.sort_fields()
+		self.get_valid_columns()
+		self.set_custom_permissions()
+
+	def as_dict(self, no_nulls = False):
+		def serialize(doc):
+			out = {}
+			for key in doc.__dict__:
+				value = doc.__dict__.get(key)
+
+				if isinstance(value, (list, tuple)):
+					if len(value) > 0 and hasattr(value[0], '__dict__'):
+						value = [serialize(d) for d in value]
+					else:
+						# non standard list object, skip
+						continue
+
+				if (isinstance(value, (frappe.text_type, int, float, datetime, list, tuple))
+					or (not no_nulls and value is None)):
+					out[key] = value
+
+			return out
+
+		return serialize(self)
 
 	def get_link_fields(self):
 		return self.get("fields", {"fieldtype": "Link", "options":["!=", "[Select]"]})
@@ -195,14 +241,13 @@ class Meta(Document):
 			link_fields = [df.fieldname for df in self.get_link_fields()]
 
 		for df in self.fields:
-			if df.fieldtype in ('Data', 'Read Only', 'Text', 'Small Text',
-				'Text Editor', 'Code') and df.options:
+			if df.fieldtype not in no_value_fields and getattr(df, 'fetch_from', None):
 				if link_fieldname:
-					if df.options.startswith(link_fieldname + '.'):
+					if df.fetch_from.startswith(link_fieldname + '.'):
 						out.append(df)
 				else:
-					if '.' in df.options:
-						fieldname = df.options.split('.', 1)[0]
+					if '.' in df.fetch_from:
+						fieldname = df.fetch_from.split('.', 1)[0]
 						if fieldname in link_fields:
 							out.append(df)
 
@@ -229,17 +274,17 @@ class Meta(Document):
 
 		return title_field
 
-	def process(self):
-		# don't process for special doctypes
-		# prevent's circular dependency
-		if self.name in self.special_doctypes:
-			return
+	def get_translatable_fields(self):
+		'''Return all fields that are translation enabled'''
+		return [d.fieldname for d in self.fields if d.translatable]
 
-		self.add_custom_fields()
-		self.apply_property_setters()
-		self.sort_fields()
-		self.get_valid_columns()
-		self.set_custom_permissions()
+	def is_translatable(self, fieldname):
+		'''Return true of false given a field'''
+		field = self.get_field(fieldname)
+		return field and field.translatable
+
+	def get_workflow(self):
+		return get_workflow_name(self.name)
 
 	def add_custom_fields(self):
 		try:
@@ -390,6 +435,9 @@ class Meta(Document):
 				module_name = module_name, doctype_name = doctype, suffix=suffix)
 		return None
 
+	def is_nested_set(self):
+		return self.has_field('lft') and self.has_field('rgt')
+
 doctype_table_fields = [
 	frappe._dict({"fieldname": "fields", "options": "DocField"}),
 	frappe._dict({"fieldname": "permissions", "options": "DocPerm"})
@@ -433,7 +481,7 @@ def get_field_currency(df, doc=None):
 		if ":" in cstr(df.get("options")):
 			split_opts = df.get("options").split(":")
 			if len(split_opts)==3:
-				currency = frappe.db.get_value(split_opts[0], doc.get(split_opts[1]), split_opts[2])
+				currency = frappe.get_cached_value(split_opts[0], doc.get(split_opts[1]), split_opts[2])
 		else:
 			currency = doc.get(df.get("options"))
 			if doc.parent:
@@ -482,7 +530,11 @@ def get_default_df(fieldname):
 			)
 
 def trim_tables(doctype=None):
-	"""Use this to remove columns that don't exist in meta"""
+	"""
+	Removes database fields that don't exist in the doctype (json or custom field). This may be needed
+	as maintenance since removing a field in a DocType doesn't automatically
+	delete the db field.
+	"""
 	ignore_fields = default_fields + optional_fields
 
 	filters={ "issingle": 0 }
@@ -501,36 +553,3 @@ def trim_tables(doctype=None):
 			query = """alter table `tab{doctype}` {columns}""".format(
 				doctype=doctype, columns=columns_to_remove)
 			frappe.db.sql_ddl(query)
-
-def clear_cache(doctype=None):
-	cache = frappe.cache()
-
-	if getattr(frappe.local, 'meta_cache') and (doctype in frappe.local.meta_cache):
-		del frappe.local.meta_cache[doctype]
-
-	for key in ('is_table', 'doctype_modules'):
-		cache.delete_value(key)
-
-	groups = ["meta", "form_meta", "table_columns", "last_modified",
-		"linked_doctypes", 'email_alerts']
-
-	def clear_single(dt):
-		for name in groups:
-			cache.hdel(name, dt)
-
-	if doctype:
-		clear_single(doctype)
-
-		# clear all parent doctypes
-		for dt in frappe.db.sql("""select parent from tabDocField
-			where fieldtype="Table" and options=%s""", (doctype,)):
-			clear_single(dt[0])
-
-		# clear all notifications
-		from frappe.desk.notifications import delete_notification_count_for
-		delete_notification_count_for(doctype)
-
-	else:
-		# clear all
-		for name in groups:
-			cache.delete_value(name)

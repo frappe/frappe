@@ -27,7 +27,7 @@ class Event(Document):
 			# this scenario doesn't make sense i.e. it starts and ends at the same second!
 			self.ends_on = None
 
-		if getdate(self.starts_on) == getdate(self.ends_on) and self.repeat_on == "Every Day":
+		if getdate(self.starts_on) != getdate(self.ends_on) and self.repeat_on == "Every Day":
 			frappe.msgprint(frappe._("Every day events should finish on the same day."), raise_exception=True)
 
 def get_permission_query_conditions(user):

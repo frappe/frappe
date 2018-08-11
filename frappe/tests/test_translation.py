@@ -45,7 +45,7 @@ import frappe.translate
 # 		self.assertFalse(frappe.cache().hget("lang_full_dict", "de"))
 #
 # 		langdict = frappe.translate.get_full_dict("de")
-# 		self.assertEquals(langdict['Row'], 'Reihe')
+# 		self.assertEqual(langdict['Row'], 'Reihe')
 #
 # 	def test_write_csv(self):
 # 		tpath = frappe.get_pymodule_path("frappe", "translations", "de.csv")
@@ -53,11 +53,11 @@ import frappe.translate
 # 			os.remove(tpath)
 # 		frappe.translate.write_translations_file("frappe", "de")
 # 		self.assertTrue(os.path.exists(tpath))
-# 		self.assertEquals(dict(frappe.translate.read_csv_file(tpath)).get("Row"), "Reihe")
+# 		self.assertEqual(dict(frappe.translate.read_csv_file(tpath)).get("Row"), "Reihe")
 #
 # 	def test_get_dict(self):
 # 		frappe.local.lang = "de"
-# 		self.assertEquals(frappe.get_lang_dict("doctype", "Role").get("Role"), "Rolle")
+# 		self.assertEqual(frappe.get_lang_dict("doctype", "Role").get("Role"), "Rolle")
 # 		frappe.local.lang = "en"
 #
 # if __name__=="__main__":

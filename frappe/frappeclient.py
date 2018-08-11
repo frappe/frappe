@@ -15,12 +15,15 @@ class FrappeException(Exception):
 	pass
 
 class FrappeClient(object):
-	def __init__(self, url, username, password, verify=True):
+	def __init__(self, url, username=None, password=None, verify=True):
 		self.headers = dict(Accept='application/json')
 		self.verify = verify
 		self.session = requests.session()
 		self.url = url
-		self._login(username, password)
+
+		# login if username/password provided
+		if username and password:
+			self._login(username, password)
 
 	def __enter__(self):
 		return self
@@ -279,6 +282,8 @@ class FrappeClient(object):
 		return params
 
 	def post_process(self, response):
+		response.raise_for_status()
+
 		try:
 			rjson = response.json()
 		except ValueError:
@@ -286,7 +291,13 @@ class FrappeClient(object):
 			raise
 
 		if rjson and ("exc" in rjson) and rjson["exc"]:
-			raise FrappeException(rjson["exc"])
+			try:
+				exc = json.loads(rjson["exc"])[0]
+				exc = 'FrappeClient Request Failed\n\n' + exc
+			except Exception:
+				exc = rjson["exc"]
+
+			raise FrappeException(exc)
 		if 'message' in rjson:
 			return rjson['message']
 		elif 'data' in rjson:

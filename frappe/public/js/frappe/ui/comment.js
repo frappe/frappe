@@ -18,7 +18,7 @@ frappe.ui.CommentArea = class CommentArea {
 		this.no_wrapper = no_wrapper;
 
 		this.make();
-		
+
 		// Load emojis initially from https://git.io/frappe-emoji
 		frappe.chat.emoji();
 		// All good.
@@ -106,15 +106,7 @@ frappe.ui.CommentArea = class CommentArea {
 			},
 			callbacks: {
 				onChange: () => {
-					if(input.summernote('isEmpty')) {
-						button
-							.removeClass('btn-primary')
-							.addClass('btn-default');
-					} else {
-						button
-							.removeClass('btn-default')
-							.addClass('btn-primary');
-					}
+					this.set_state();
 				},
 				onKeydown: (e) => {
 					var key = frappe.ui.keys.get_key(e);
@@ -179,6 +171,26 @@ frappe.ui.CommentArea = class CommentArea {
 		this.note_editor.on('click', () => input.summernote('focus'));
 	}
 
+	check_state() {
+		return !(this.input.summernote('isEmpty'));
+	}
+
+	set_state() {
+		if(this.check_state()) {
+			this.button
+				.removeClass('btn-default')
+				.addClass('btn-primary');
+		} else {
+			this.button
+				.removeClass('btn-primary')
+				.addClass('btn-default');
+		}
+	}
+
+	reset() {
+		this.val('');
+	}
+
 	destroy() {
 		this.input.summernote('destroy');
 	}
@@ -201,3 +213,125 @@ frappe.ui.CommentArea = class CommentArea {
 		this.on_submit && this.on_submit(this.val());
 	}
 };
+
+frappe.ui.ReviewArea = class ReviewArea extends frappe.ui.CommentArea {
+	setup_dom() {
+		const header = !this.no_wrapper ?
+			`<div class="comment-input-header">
+				<span class="text-muted">${__("Add your review")}</span>
+				<button class="btn btn-default btn-comment btn-xs disabled pull-right">
+					${__("Submit Review")}
+				</button>
+			</div>` : '';
+
+		const footer = !this.no_wrapper ?
+			`<div class="text-muted">
+				${__("Ctrl+Enter to submit")}
+			</div>` : '';
+
+		const rating_area = !this.no_wrapper ?
+			`<div class="rating-area text-muted">
+				${ __("Your rating: ") }
+				<i class='fa fa-fw fa-star-o star-icon' data-index=0></i>
+				<i class='fa fa-fw fa-star-o star-icon' data-index=1></i>
+				<i class='fa fa-fw fa-star-o star-icon' data-index=2></i>
+				<i class='fa fa-fw fa-star-o star-icon' data-index=3></i>
+				<i class='fa fa-fw fa-star-o star-icon' data-index=4></i>
+			</div>` : '';
+
+		this.wrapper = $(`
+			<div class="comment-input-wrapper">
+				${ header }
+				<div class="comment-input-container">
+					${ rating_area }
+					<div class="comment-input-body margin-top">
+						<input class="form-control review-subject" type="text"
+							placeholder="${__('Subject')}"
+							style="border-radius: 3px; border-color: #ebeff2">
+						</input>
+						<div class="form-control comment-input"></div>
+						${ footer }
+					</div>
+				</div>
+			</div>
+		`);
+		this.wrapper.appendTo(this.parent);
+		this.input = this.parent.find('.comment-input');
+		this.subject = this.parent.find('.review-subject');
+		this.button = this.parent.find('.btn-comment');
+		this.ratingArea = this.parent.find('.rating-area');
+
+		this.rating = 0;
+	}
+
+	input_has_value() {
+		return !(this.input.summernote('isEmpty') ||
+			this.rating === 0 || !this.subject.val().length);
+	}
+
+	set_state() {
+		if (this.rating === 0) {
+			this.parent.find('.comment-input-body').hide();
+		} else {
+			this.parent.find('.comment-input-body').show();
+		}
+
+		if(this.input_has_value()) {
+			this.button
+				.removeClass('btn-default disabled')
+				.addClass('btn-primary');
+		} else {
+			this.button
+				.removeClass('btn-primary')
+				.addClass('btn-default disabled');
+		}
+	}
+
+	reset() {
+		this.set_rating(0);
+		this.subject.val('');
+		this.input.summernote('code', '');
+	}
+
+	bind_events() {
+		super.bind_events();
+		this.ratingArea.on('click', '.star-icon', (e) => {
+			let index = $(e.target).attr('data-index');
+			this.set_rating(parseInt(index) + 1);
+		})
+
+		this.subject.on('change', () => {
+			this.set_state();
+		});
+
+		this.set_state();
+	}
+
+	set_rating(rating) {
+		this.ratingArea.find('.star-icon').each((i, icon) => {
+			let star = $(icon);
+			if(i < rating) {
+				star.removeClass('fa-star-o');
+				star.addClass('fa-star');
+			} else {
+				star.removeClass('fa-star');
+				star.addClass('fa-star-o');
+			}
+		})
+
+		this.rating = rating;
+		this.set_state();
+	}
+
+	val(value) {
+		if(value === undefined) {
+			return {
+				rating: this.rating,
+				subject: this.subject.val(),
+				content: this.input.summernote('code')
+			}
+		}
+		// Set html if value is specified
+		this.input.summernote('code', value);
+	}
+}

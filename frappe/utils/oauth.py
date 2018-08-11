@@ -133,16 +133,17 @@ def get_info_via_oauth(provider, code, decoder=None, id_token=False):
 
 	if id_token:
 		parsed_access = json.loads(session.access_token_response.text)
+
 		token = parsed_access['id_token']
+
 		info = jwt.decode(token, flow.client_secret, verify=False)
 	else:
 		api_endpoint = oauth2_providers[provider].get("api_endpoint")
 		api_endpoint_args = oauth2_providers[provider].get("api_endpoint_args")
 		info = session.get(api_endpoint, params=api_endpoint_args).json()
 
-	if (("verified_email" in info and not info.get("verified_email"))
-		or ("verified" in info and not info.get("verified"))):
-		frappe.throw(_("Email not verified with {1}").format(provider.title()))
+	if not (info.get("verified_email") or info.get("verified")):
+		frappe.throw(_("Email not verified with {0}").format(provider.title()))
 
 	return info
 
@@ -177,7 +178,7 @@ def login_oauth_user(data=None, provider=None, state=None, email_id=None, key=No
 		frappe.respond_as_web_page(_("Invalid Request"), _("Invalid Token"), http_status_code=417)
 		return
 
-	user = data["email"]
+	user = get_email(data)
 
 	if not user:
 		frappe.respond_as_web_page(_("Invalid Request"), _("Please ensure that your profile has an email address"))
@@ -224,10 +225,10 @@ def update_oauth_user(user, data, provider):
 			"doctype":"User",
 			"first_name": get_first_name(data),
 			"last_name": get_last_name(data),
-			"email": data["email"],
+			"email": get_email(data),
 			"gender": (data.get("gender") or "").title(),
 			"enabled": 1,
-			"new_password": frappe.generate_hash(data["email"]),
+			"new_password": frappe.generate_hash(get_email(data)),
 			"location": data.get("location"),
 			"user_type": "Website User",
 			"user_image": data.get("picture") or data.get("avatar_url")
@@ -276,6 +277,9 @@ def get_first_name(data):
 
 def get_last_name(data):
 	return data.get("last_name") or data.get("family_name")
+
+def get_email(data):
+	return data.get("email") or data.get("upn") or data.get("unique_name")
 
 def redirect_post_login(desk_user):
 	# redirect!

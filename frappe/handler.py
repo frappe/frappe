@@ -40,8 +40,11 @@ def execute_cmd(cmd, from_async=False):
 
 	try:
 		method = get_attr(cmd)
-	except:
-		frappe.respond_as_web_page(title='Invalid Method', html='Method not found',
+	except Exception as e:
+		if frappe.local.conf.developer_mode:
+			raise e
+		else:
+			frappe.respond_as_web_page(title='Invalid Method', html='Method not found',
 			indicator_color='red', http_status_code=404)
 		return
 
@@ -103,6 +106,8 @@ def run_custom_method(doctype, name, custom_method):
 
 @frappe.whitelist()
 def uploadfile():
+	ret = None
+
 	try:
 		if frappe.form_dict.get('from_form'):
 			try:
@@ -133,6 +138,6 @@ def get_attr(cmd):
 	frappe.log("method:" + cmd)
 	return method
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest = True)
 def ping():
 	return "pong"

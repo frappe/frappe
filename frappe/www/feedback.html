@@ -55,11 +55,11 @@
 		init: function() {
 			var me = this;
 
-			this.key = get_url_arg("key");
-			this.reference_name = get_url_arg("reference_name");
-			this.reference_doctype = get_url_arg("reference_doctype");
-			this.sender = get_url_arg("email");
-			this.rating = get_url_arg("rating") || 0;
+			this.key = frappe.utils.get_url_arg("key");
+			this.reference_name = frappe.utils.get_url_arg("reference_name");
+			this.reference_doctype = frappe.utils.get_url_arg("reference_doctype");
+			this.sender = frappe.utils.get_url_arg("email");
+			this.rating = frappe.utils.get_url_arg("rating") || 0;
 
 			// set ratings
 			this.set_ratings_icon(this.rating)
@@ -124,4 +124,8 @@
 		feedback.init();
 	})
 </script>
+<style>
+	{% include "templates/styles/card_style.css" %}
+</style>
+
 {% endblock %}

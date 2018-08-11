@@ -126,7 +126,7 @@ frappe.ui.FilterGroup = class {
 	}
 
 	clear_filters() {
-		this.filters.map(f => { f.remove(true); });
+		this.filters.map(f => f.remove(true));
 		// {}: Clear page filters, .date-range-picker (called list run())
 		this.filters = [];
 	}

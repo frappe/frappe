@@ -185,7 +185,7 @@ frappe.search.utils = {
 			if(level > 0) {
 				var report = frappe.boot.user.all_reports[item];
 				if(report.report_type == "Report Builder")
-					route = [report.ref_doctype, item, "Report"];
+					route = ["List", report.ref_doctype, "Report", item];
 				else
 					route = ["query-report",  item];
 				out.push({
@@ -209,6 +209,7 @@ frappe.search.utils = {
 			p.name = name;
 		});
 		Object.keys(this.pages).forEach(function(item) {
+			if(item == "Hub" || item == "hub") return;
 			var level = me.fuzzy_search(keywords, item);
 			if(level) {
 				var page = me.pages[item];
@@ -230,6 +231,16 @@ frappe.search.utils = {
 				index: me.fuzzy_search(keywords, 'Calendar'),
 				match: target,
 				route: ['List', 'Event', target],
+			});
+		}
+		target = 'Hub';
+		if(__('hub').indexOf(keywords.toLowerCase()) === 0) {
+			out.push({
+				type: "Hub",
+				value: __("Open {0}", [__(target)]),
+				index: me.fuzzy_search(keywords, 'Hub'),
+				match: target,
+				route: [target, 'Item'],
 			});
 		}
 		if(__('email inbox').indexOf(keywords.toLowerCase()) === 0) {

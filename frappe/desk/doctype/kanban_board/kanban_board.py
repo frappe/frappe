@@ -8,12 +8,16 @@ import json
 from frappe import _
 from frappe.model.document import Document
 from six import iteritems
+from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 
 
 class KanbanBoard(Document):
 	def validate(self):
 		self.validate_column_name()
-	
+
+	def on_update(self):
+		frappe.clear_cache(doctype=self.reference_doctype)
+
 	def validate_column_name(self):
 		for column in self.columns:
 			if not column.column_name:
@@ -35,6 +39,14 @@ def has_permission(doc, ptype, user):
 		return True
 
 	return False
+
+@frappe.whitelist()
+def get_kanban_boards(doctype):
+	'''Get Kanban Boards for doctype to show in List View'''
+	return frappe.get_list('Kanban Board',
+		fields=['name', 'filters', 'reference_doctype', 'private'],
+		filters={ 'reference_doctype': doctype }
+	)
 
 @frappe.whitelist()
 def add_column(board_name, column_title):
@@ -116,9 +128,17 @@ def update_order(board_name, order):
 
 
 @frappe.whitelist()
-def quick_kanban_board(doctype, board_name, field_name):
+def quick_kanban_board(doctype, board_name, field_name, project=None):
 	'''Create new KanbanBoard quickly with default options'''
 	doc = frappe.new_doc('Kanban Board')
+
+	if field_name == 'kanban_column':
+		create_custom_field(doctype, {
+			'label': 'Kanban Column',
+			'fieldname': 'kanban_column',
+			'fieldtype': 'Select',
+			'hidden': 1
+		})
 
 	meta = frappe.get_meta(doctype)
 
@@ -142,13 +162,8 @@ def quick_kanban_board(doctype, board_name, field_name):
 	doc.reference_doctype = doctype
 	doc.field_name = field_name
 
-	if doctype == 'Task':
-		project = frappe.new_doc('Project')
-		project.project_name = board_name
-		project.status = 'Open'
-		project.save()
-
-		doc.filters = '[["Task","project","=","{0}"]]'.format(board_name)
+	if project:
+		doc.filters = '[["Task","project","=","{0}"]]'.format(project)
 
 	if doctype in ['Note', 'ToDo']:
 		doc.private = 1
@@ -193,7 +208,7 @@ def set_indicator(board_name, column_name, indicator):
 	for column in board.columns:
 		if column.column_name == column_name:
 			column.indicator = indicator
-	
+
 	board.save()
 	return board
 

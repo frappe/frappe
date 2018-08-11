@@ -166,6 +166,38 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.filter_permissions();
 	},
 
+	add_transactions: function(opts) {
+		// add additional data on dashboard
+		let group_added = [];
+
+		if(!Array.isArray(opts)) opts=[opts];
+
+		if(!this.data) {
+			this.init_data();
+		}
+
+		if(this.data && (this.data.transactions || []).length) {
+			// check if label already exists, add items to it
+			this.data.transactions.map(group => {
+				opts.map(d => {
+					if(d.label == group.label) {
+						group_added.push(d.label);
+						group.items.push(...d.items);
+					}
+				});
+			});
+
+			// if label not already present, add new label and items under it
+			opts.map(d => {
+				if(!group_added.includes(d.label)) {
+					this.data.transactions.push(d);
+				}
+			});
+
+			this.filter_permissions();
+		}
+	},
+
 	filter_permissions: function() {
 		// filter out transactions for which the user
 		// does not have permission
@@ -263,13 +295,13 @@ frappe.ui.form.Dashboard = Class.extend({
 		});
 
 		var method = this.data.method || 'frappe.desk.notifications.get_open_count';
-
 		frappe.call({
 			type: "GET",
 			method: method,
 			args: {
 				doctype: this.frm.doctype,
 				name: this.frm.doc.name,
+				items: items
 			},
 			callback: function(r) {
 				if(r.message.timeline_data) {
@@ -327,20 +359,21 @@ frappe.ui.form.Dashboard = Class.extend({
 
 	update_heatmap: function(data) {
 		if(this.heatmap) {
-			this.heatmap.update(data);
+			this.heatmap.update({
+				dataPoints: data
+			});
 		}
 	},
 
 	// heatmap
 	render_heatmap: function() {
 		if(!this.heatmap) {
-			this.heatmap = new Chart({
-				parent: "#heatmap-" + frappe.model.scrub(this.frm.doctype),
+			this.heatmap = new Chart("#heatmap-" + frappe.model.scrub(this.frm.doctype), {
 				type: 'heatmap',
-				height: 100,
+				height: 120,
 				start: new Date(moment().subtract(1, 'year').toDate()),
 				count_label: "interactions",
-				discrete_domains: 0,
+				discreteDomains: 0,
 				data: {}
 			});
 
@@ -407,14 +440,12 @@ frappe.ui.form.Dashboard = Class.extend({
 		var me = this;
 		this.chart_area.empty().removeClass('hidden');
 		$.extend(args, {
-			parent: '.form-graph',
 			type: 'line',
-			height: 140,
 			colors: ['green']
 		});
 		this.show();
 
-		this.chart = new Chart(args);
+		this.chart = new Chart('.form-graph', args);
 		if(!this.chart) {
 			this.hide();
 		}

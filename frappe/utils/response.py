@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import json
 import datetime
-from decimal import Decimal
+import decimal
 import mimetypes
 import os
 import frappe
@@ -52,14 +52,14 @@ def as_csv():
 	response = Response()
 	response.mimetype = 'text/csv'
 	response.charset = 'utf-8'
-	response.headers[b"Content-Disposition"] = ("attachment; filename=\"%s.csv\"" % frappe.response['doctype'].replace(' ', '_')).encode("utf-8")
+	response.headers["Content-Disposition"] = ("attachment; filename=\"%s.csv\"" % frappe.response['doctype'].replace(' ', '_')).encode("utf-8")
 	response.data = frappe.response['result']
 	return response
 
 def as_raw():
 	response = Response()
-	response.mimetype = frappe.response.get("content_type") or mimetypes.guess_type(frappe.response['filename'])[0] or b"application/unknown"
-	response.headers[b"Content-Disposition"] = ("filename=\"%s\"" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
+	response.mimetype = frappe.response.get("content_type") or mimetypes.guess_type(frappe.response['filename'])[0] or "application/unknown"
+	response.headers["Content-Disposition"] = ("filename=\"%s\"" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
 	response.data = frappe.response['filecontent']
 	return response
 
@@ -78,7 +78,7 @@ def as_json():
 def as_binary():
 	response = Response()
 	response.mimetype = 'application/octet-stream'
-	response.headers[b"Content-Disposition"] = ("filename=\"%s\"" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
+	response.headers["Content-Disposition"] = ("filename=\"%s\"" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
 	response.data = frappe.response['filecontent']
 	return response
 
@@ -109,8 +109,8 @@ def json_handler(obj):
 	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
 		return text_type(obj)
 
-	if isinstance(obj, Decimal):
-		return text_type(obj)
+	elif isinstance(obj, decimal.Decimal):
+		return float(obj)
 
 	elif isinstance(obj, LocalProxy):
 		return text_type(obj)
@@ -162,7 +162,7 @@ def send_private_file(path):
 	if frappe.local.request.headers.get('X-Use-X-Accel-Redirect'):
 		path = '/protected/' + path
 		response = Response()
-		response.headers[b'X-Accel-Redirect'] = frappe.utils.encode(path)
+		response.headers['X-Accel-Redirect'] = frappe.utils.encode(path)
 
 	else:
 		filepath = frappe.utils.get_site_path(path)
@@ -176,7 +176,7 @@ def send_private_file(path):
 	# no need for content disposition and force download. let browser handle its opening.
 	# response.headers.add(b'Content-Disposition', b'attachment', filename=filename.encode("utf-8"))
 
-	response.mimetype = mimetypes.guess_type(filename)[0] or b'application/octet-stream'
+	response.mimetype = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
 
 	return response
 

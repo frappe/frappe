@@ -6,7 +6,7 @@
 		data-docname="{%= reference_name %}"
 		data-link-doctype="{{ link_doctype }}"
 		data-link-name="{{ link_name }}"
-		title="{%= by %} / {%= dateutil.str_to_user(creation) %}">
+		title="{%= by %} / {%= frappe.datetime.str_to_user(creation) %}">
 		{{ avatar }}
 		<span class="small">
 		{% if (feed_type==="Login") { %}

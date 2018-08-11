@@ -409,6 +409,8 @@ def get_website_user_home_page(user):
 	if home_page_method:
 		home_page = frappe.get_attr(home_page_method[-1])(user)
 		return '/' + home_page.strip('/')
+	elif frappe.get_hooks('website_user_home_page'):
+		return '/' + frappe.get_hooks('website_user_home_page')[-1].strip('/')
 	else:
 		return '/me'
 

@@ -17,7 +17,7 @@ class ToDo(Document):
 		self._assignment = None
 		if self.is_new():
 			self._assignment = {
-				"text": frappe._("Assigned to {0}: {1}").format(get_fullname(self.owner), self.description),
+				"text": frappe._("{0} assigned {1}: {2}").format(get_fullname(self.assigned_by), get_fullname(self.owner), self.description),
 				"comment_type": "Assigned"
 			}
 

@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import unittest
 
 from frappe.utils import evaluate_filters, money_in_words, scrub_urls, get_url
+from frappe.utils import ceil, floor
 
 class TestFilters(unittest.TestCase):
 	def test_simple_dict(self):
@@ -84,3 +85,40 @@ class TestDataManipulation(unittest.TestCase):
 		self.assertTrue('<img src="{0}/assets/frappe/test.jpg">'.format(url) in html)
 		self.assertTrue('style="background-image: url(\'{0}/assets/frappe/bg.jpg\') !important"'.format(url) in html)
 		self.assertTrue('<a href="mailto:test@example.com">email</a>' in html)
+
+class TestMathUtils(unittest.TestCase):
+	def test_floor(self):
+		from decimal import Decimal
+		self.assertEqual(floor(2),              2 )
+		self.assertEqual(floor(12.32904),       12)
+		self.assertEqual(floor(22.7330),        22)
+		self.assertEqual(floor('24.7'),         24)
+		self.assertEqual(floor('26.7'),         26)
+		self.assertEqual(floor(Decimal(29.45)), 29)
+
+	def test_ceil(self):
+		from decimal import Decimal
+		self.assertEqual(ceil(2),               2 )
+		self.assertEqual(ceil(12.32904),        13)
+		self.assertEqual(ceil(22.7330),         23)
+		self.assertEqual(ceil('24.7'),          25)
+		self.assertEqual(ceil('26.7'),          27)
+		self.assertEqual(ceil(Decimal(29.45)),  30)
+
+class TestHTMLUtils(unittest.TestCase):
+	def test_clean_email_html(self):
+		from frappe.utils.html_utils import clean_email_html
+		sample = '''<script>a=b</script><h1>Hello</h1><p>Para</p>'''
+		clean = clean_email_html(sample)
+		self.assertFalse('<script>' in clean)
+		self.assertTrue('<h1>Hello</h1>' in clean)
+
+		sample = '''<style>body { font-family: Arial }</style><h1>Hello</h1><p>Para</p>'''
+		clean = clean_email_html(sample)
+		self.assertFalse('<style>' in clean)
+		self.assertTrue('<h1>Hello</h1>' in clean)
+
+		sample = '''<h1>Hello</h1><p>Para</p><a href="http://test.com">text</a>'''
+		clean = clean_email_html(sample)
+		self.assertTrue('<h1>Hello</h1>' in clean)
+		self.assertTrue('<a href="http://test.com">text</a>' in clean)

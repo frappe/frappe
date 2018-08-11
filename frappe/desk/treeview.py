@@ -22,33 +22,33 @@ def get_all_nodes(doctype, parent, tree_method, **filters):
 
 	if 'is_root' in filters:
 		del filters['is_root']
-
-	to_check = [d.value for d in data if d.expandable]
+	to_check = [d.get('value') for d in data if d.get('expandable')]
 
 	while to_check:
 		parent = to_check.pop()
-		data = tree_method(doctype, parent, is_root = False, **filters)
+		data = tree_method(doctype, parent, is_root=False, **filters)
 		out.append(dict(parent=parent, data=data))
 		for d in data:
-			if d.expandable:
-				to_check.append(d.value)
+			if d.get('expandable'):
+				to_check.append(d.get('value'))
 
 	return out
 
 @frappe.whitelist()
 def get_children(doctype, parent='', **filters):
 	parent_field = 'parent_' + doctype.lower().replace(' ', '_')
+	filters=[['ifnull(`{0}`,"")'.format(parent_field), '=', parent],
+		['docstatus', '<' ,'2']]
 
-	return frappe.db.sql("""select name as value, `{title_field}` as title,
-		is_group as expandable
-		from `tab{ctype}`
-		where docstatus < 2
-		and ifnull(`{parent_field}`,'') = %s
-		order by name""".format(
-			ctype = frappe.db.escape(doctype),
-			parent_field = frappe.db.escape(parent_field),
-			title_field = frappe.get_meta(doctype).title_field or 'name'),
-		parent, as_dict=1)
+	doctype_meta = frappe.get_meta(doctype)
+	data = frappe.get_list(doctype, fields=[
+		'name as value',
+		'{0} as title'.format(doctype_meta.get('title_field') or 'name'),
+		'is_group as expandable'],
+		filters=filters,
+		order_by='name')
+
+	return data
 
 @frappe.whitelist()
 def add_node():

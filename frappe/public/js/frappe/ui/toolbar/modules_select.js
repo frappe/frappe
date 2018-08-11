@@ -61,10 +61,16 @@ frappe.ui.toolbar.ModulesSelect = class {
 								callback: (r) => {
 									const icons = r.message.icons;
 									const user = r.message.user;
-									resolve(icons.map(icon => {
-										const uncheck = user ? icon.hidden : icon.blocked;
-										return { label: icon.value, value: icon.value, checked:!uncheck };
-									}));
+									resolve(icons
+										.map(icon => {
+											const uncheck = user ? icon.hidden : icon.blocked;
+											return { label: icon.value, value: icon.module_name, checked:!uncheck };
+										}).sort(function(a, b){
+											if(a.label < b.label) return -1;
+											if(a.label > b.label) return 1;
+											return 0;
+										})
+									);
 								}
 							});
 						});

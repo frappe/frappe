@@ -10,17 +10,18 @@ from frappe.utils import update_progress_bar
 from frappe.utils.response import json_handler
 
 @click.command('build')
+@click.option('--app', help='Build assets for app')
 @click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
 @click.option('--restore', is_flag=True, default=False, help='Copy the files instead of symlinking with force')
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
-def build(make_copy=False, restore = False, verbose=False):
+def build(app=None, make_copy=False, restore = False, verbose=False):
 	"Minify + concatenate JS and CSS files, build translations"
 	import frappe.build
 	import frappe
 	frappe.init('')
 	# don't minify in developer_mode for faster builds
 	no_compress = frappe.local.conf.developer_mode or False
-	frappe.build.bundle(no_compress, make_copy=make_copy, restore = restore, verbose=verbose)
+	frappe.build.bundle(no_compress, app=app, make_copy=make_copy, restore = restore, verbose=verbose)
 
 @click.command('watch')
 def watch():
@@ -299,25 +300,20 @@ def mariadb(context):
 		Enter into mariadb console for a given site.
 	"""
 	import os
-	import os.path as osp
 
 	site  = get_site(context)
 	frappe.init(site=site)
 
 	# This is assuming you're within the bench instance.
-	path  = os.getcwd()
-	mysql = osp.join(path, '..', 'env', 'bin', 'mycli')
-	args  = [
+	mysql = find_executable('mysql')
+	os.execv(mysql, [
 		mysql,
 		'-u', frappe.conf.db_name,
-		'-p', frappe.conf.db_password,
+		'-p'+frappe.conf.db_password,
+		frappe.conf.db_name,
 		'-h', frappe.conf.db_host or "localhost",
-		'-D', frappe.conf.db_name,
-		'-R', '{site}> '.format(site = site),
-		'--auto-vertical-output'
-	]
-
-	os.execv(mysql, args)
+		'--pager=less -SFX',
+		"-A"])
 
 @click.command('console')
 @pass_context
@@ -328,7 +324,7 @@ def console(context):
 	frappe.connect()
 	frappe.local.lang = frappe.db.get_default("lang")
 	import IPython
-	IPython.embed()
+	IPython.embed(display_banner = "")
 
 @click.command('run-tests')
 @click.option('--app', help="For App")
@@ -459,28 +455,42 @@ def make_app(destination, app_name):
 @click.command('set-config')
 @click.argument('key')
 @click.argument('value')
+@click.option('-g', '--global', 'global_', is_flag = True, default = False, help = 'Set Global Site Config')
 @click.option('--as-dict', is_flag=True, default=False)
 @pass_context
-def set_config(context, key, value, as_dict=False):
+def set_config(context, key, value, global_ = False, as_dict=False):
 	"Insert/Update a value in site_config.json"
 	from frappe.installer import update_site_config
 	import ast
 	if as_dict:
 		value = ast.literal_eval(value)
-	for site in context.sites:
-		frappe.init(site=site)
-		update_site_config(key, value, validate=False)
-		frappe.destroy()
+
+	if global_:
+		sites_path = os.getcwd() # big assumption.
+		common_site_config_path = os.path.join(sites_path, 'common_site_config.json')
+		update_site_config(key, value, validate = False, site_config_path = common_site_config_path)
+	else:
+		for site in context.sites:
+			frappe.init(site=site)
+			update_site_config(key, value, validate=False)
+			frappe.destroy()
 
 @click.command('version')
 def get_version():
 	"Show the versions of all the installed apps"
+	from frappe.utils.change_log import get_app_branch
 	frappe.init('')
-	for m in sorted(frappe.get_all_apps()):
-		module = frappe.get_module(m)
-		if hasattr(module, "__version__"):
-			print("{0} {1}".format(m, module.__version__))
 
+	for m in sorted(frappe.get_all_apps()):
+		branch_name = get_app_branch(m)
+		module = frappe.get_module(m)
+		app_hooks = frappe.get_module(m + ".hooks")
+
+		if hasattr(app_hooks, '{0}_version'.format(branch_name)):
+			print("{0} {1}".format(m, getattr(app_hooks, '{0}_version'.format(branch_name))))
+
+		elif hasattr(module, "__version__"):
+			print("{0} {1}".format(m, module.__version__))
 
 
 @click.command('setup-global-help')
@@ -506,6 +516,20 @@ def setup_global_help(mariadb_root_password=None):
 
 	from frappe.utils.help import sync
 	sync()
+
+@click.command('get-docs-app')
+@click.argument('app')
+def get_docs_app(app):
+	'''Get the docs app for given app'''
+	from frappe.utils.help import setup_apps_for_docs
+	setup_apps_for_docs(app)
+
+@click.command('get-all-docs-apps')
+def get_all_docs_apps():
+	'''Get docs apps for all apps'''
+	from frappe.utils.help import setup_apps_for_docs
+	for app in frappe.get_installed_apps():
+		setup_apps_for_docs(app)
 
 @click.command('setup-help')
 @pass_context

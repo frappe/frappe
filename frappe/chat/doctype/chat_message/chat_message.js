@@ -2,7 +2,9 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Chat Message', {
-	refresh: function(frm) {
-
+	onload: function(frm) {
+		if(frm.doc.type == 'File') {
+			frm.set_df_property('content', 'read_only', 1);
+		}
 	}
 });

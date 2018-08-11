@@ -1,5 +1,15 @@
 <div class="web-list-item">
     <a class="no-decoration" href="/{{ route }}">
-        <p>{{ doc.get(title_field) }}</p>
+		{% if list_view_fields %}
+			<div class='row'>
+				{% for df in list_view_fields %}
+				<div class='col-sm-{{ (12/(list_view_fields|len))|int }}'>
+					{{ doc.get(df.fieldname) }}
+				</div>
+				{% endfor %}
+			</div>
+		{% else %}
+        	<p>{{ doc.get(title_field) }}</p>
+		{% endif %}
     </a>
 </div>

@@ -64,12 +64,31 @@ frappe.db = {
 		});
 	},
 	get_doc: function(doctype, name, filters = null) {
-		return new Promise(resolve => {
+		return new Promise((resolve, reject) => {
 			frappe.call({
 				method: "frappe.client.get",
 				args: { doctype, name, filters },
 				callback: r => resolve(r.message)
-			});
+			}).fail(reject);
+		});
+	},
+	insert: function(doc) {
+		return new Promise(resolve => {
+			frappe.call('frappe.client.insert', { doc }, r => resolve(r.message));
+		});
+	},
+	delete_doc: function(doctype, name) {
+		return new Promise(resolve => {
+			frappe.call('frappe.client.delete', { doctype, name }, r => resolve(r.message));
+		});
+	},
+	count: function(doctype, args={}) {
+		return new Promise(resolve => {
+			frappe.call(
+				'frappe.client.get_count',
+				Object.assign(args, { doctype }),
+				r => resolve(r.message)
+			);
 		});
 	}
 };

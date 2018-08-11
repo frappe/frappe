@@ -7,7 +7,7 @@ frappe.ui.Tree = class {
 	constructor({
 		parent, label, icon_set, toolbar, expandable, with_skeleton=1, 	// eslint-disable-line
 
-		get_nodes, get_all_nodes, get_label, on_render, on_click 		// eslint-disable-line
+		args, method, get_label, on_render, on_click 		// eslint-disable-line
 	}) {
 		$.extend(this, arguments[0]);
 		this.setup_treenode_class();
@@ -24,6 +24,40 @@ frappe.ui.Tree = class {
 		}
 
 		this.setup_root_node();
+	}
+
+	get_nodes(value, is_root) {
+		var args = Object.assign({}, this.args);
+		args.parent = value;
+		args.is_root = is_root;
+
+		return new Promise(resolve => {
+			frappe.call({
+				method: this.method,
+				args: args,
+				callback: (r) => {
+					resolve(r.message);
+				}
+			});
+		});
+	}
+
+	get_all_nodes(value, is_root) {
+		var args = Object.assign({}, this.args);
+		args.parent = value;
+		args.is_root = is_root;
+
+		args.tree_method = this.method;
+
+		return new Promise(resolve => {
+			frappe.call({
+				method: 'frappe.desk.treeview.get_all_nodes',
+				args: args,
+				callback: (r) => {
+					resolve(r.message);
+				}
+			});
+		});
 	}
 
 	setup_treenode_class() {
@@ -57,7 +91,7 @@ frappe.ui.Tree = class {
 				value: this.label
 			}
 		});
-		this.expand_node(this.root_node);
+		this.expand_node(this.root_node, false);
 	}
 
 	refresh() {
@@ -107,7 +141,6 @@ frappe.ui.Tree = class {
 
 	set_selected_node(node) {
 		this.selected_node = node;
-		this.on_click && this.on_click(node);
 	}
 
 	load_children(node, deep=false) {
@@ -116,12 +149,14 @@ frappe.ui.Tree = class {
 		if(!deep) {
 			frappe.run_serially([
 				() => {return this.get_nodes(value, is_root);},
-				(data_set) => { this.render_node_children(node, data_set); }
+				(data_set) => { this.render_node_children(node, data_set); },
+				() => { this.set_selected_node(node); }
 			]);
 		} else {
 			frappe.run_serially([
 				() => {return this.get_all_nodes(value, is_root);},
-				(data_list) => { this.render_children_of_all_nodes(data_list); }
+				(data_list) => { this.render_children_of_all_nodes(data_list); },
+				() => { this.set_selected_node(node); }
 			]);
 		}
 	}
@@ -154,8 +189,13 @@ frappe.ui.Tree = class {
 		if(node.$toolbar) this.show_toolbar(node);
 	}
 
-	expand_node(node) {
+	expand_node(node, click = true) {
 		this.set_selected_node(node);
+
+		if(click) {
+			this.on_click && this.on_click(node);
+		}
+
 		if(node.expandable) {
 			this.toggle_node(node);
 		}

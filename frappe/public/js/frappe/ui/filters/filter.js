@@ -1,6 +1,9 @@
 frappe.ui.Filter = class {
 	constructor(opts) {
 		$.extend(this, opts);
+		if (this.value === null || this.value === undefined) {
+			this.value = '';
+		}
 
 		this.utils = frappe.ui.filter_utils;
 		this.conditions = [
@@ -62,6 +65,7 @@ frappe.ui.Filter = class {
 		this.filter_edit_area.find(".set-filter-and-run").on("click", () => {
 			this.filter_edit_area.removeClass("new-filter");
 			this.on_change();
+			this.update_filter_tag();
 		});
 
 		this.filter_edit_area.find('.condition').change(() => {
@@ -74,6 +78,11 @@ frappe.ui.Filter = class {
 				fieldtype = 'Data';
 				this.add_condition_help(condition);
 			}
+
+			if (['Select', 'MultiSelect'].includes(this.field.df.fieldtype) && ["in", "not in"].includes(condition)) {
+				fieldtype = 'MultiSelect';
+			}
+
 			this.set_field(this.field.df.parent, this.field.df.fieldname, fieldtype, condition);
 		});
 	}
@@ -126,8 +135,13 @@ frappe.ui.Filter = class {
 
 		// set value can be asynchronous, so update_filter_tag should happen after field is set
 		this._filter_value_set = Promise.resolve();
-		if(value) {
-			this._filter_value_set = this.field.set_value(value.trim());
+
+		if (['in', 'not in'].includes(condition) && Array.isArray(value)) {
+			value = value.join(',');
+		}
+
+		if (value !== undefined || value !== null) {
+			this._filter_value_set = this.field.set_value((value + '').trim());
 		}
 		return this._filter_value_set;
 	}
@@ -140,6 +154,7 @@ frappe.ui.Filter = class {
 		let original_docfield = (this.fieldselect.fields_by_name[doctype] || {})[fieldname];
 		if(!original_docfield) {
 			frappe.msgprint(__("Field {0} is not selectable.", [fieldname]));
+			this.remove();
 			return;
 		}
 
@@ -186,7 +201,7 @@ frappe.ui.Filter = class {
 
 		// run on enter
 		$(this.field.wrapper).find(':input').keydown(e => {
-			if(e.which==13) {
+			if(e.which==13 && this.field.df.fieldtype !== 'MultiSelect') {
 				this.on_change();
 			}
 		});
@@ -310,7 +325,7 @@ frappe.ui.filter_utils = {
 			}
 		} else if(in_list(["in", "not in"], condition)) {
 			if(val) {
-				val = $.map(val.split(","), function(v) { return strip(v); });
+				val = val.split(',').map(v => strip(v));
 			}
 		} if(val === '%') {
 			val = "";

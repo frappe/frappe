@@ -14,7 +14,8 @@ from frappe.utils.background_jobs import enqueue
 
 class DataImport(Document):
 	def autoname(self):
-		self.name = "Import on "+ format_datetime(self.creation)
+		if not self.name:
+			self.name = "Import on "+ format_datetime(self.creation)
 
 	def validate(self):
 		if not self.import_file:
@@ -99,9 +100,9 @@ def export_json(doctype, path, filters=None, or_filters=None, name=None, order_b
 
 
 def export_csv(doctype, path):
-	from frappe.core.doctype.data_import.exporter import get_template
+	from frappe.core.doctype.data_export.exporter import export_data
 	with open(path, "wb") as csvfile:
-		get_template(doctype=doctype, all_doctypes="Yes", with_data="Yes")
+		export_data(doctype=doctype, all_doctypes=True, template=True, with_data=True)
 		csvfile.write(frappe.response.result.encode("utf-8"))
 
 

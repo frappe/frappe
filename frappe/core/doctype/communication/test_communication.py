@@ -43,3 +43,29 @@ class TestCommunication(unittest.TestCase):
 		for x in invalid_email_list:
 			self.assertFalse(frappe.utils.parse_addr(x)[0])
 
+	def test_circular_linking(self):
+		content = "This was created to test circular linking"
+		a = frappe.get_doc({
+			"doctype": "Communication",
+			"communication_type": "Communication",
+			"content": content,
+		}).insert()
+		b = frappe.get_doc({
+			"doctype": "Communication",
+			"communication_type": "Communication",
+			"content": content,
+			"reference_doctype": "Communication",
+			"reference_name": a.name
+		}).insert()
+		c = frappe.get_doc({
+			"doctype": "Communication",
+			"communication_type": "Communication",
+			"content": content,
+			"reference_doctype": "Communication",
+			"reference_name": b.name
+		}).insert()
+		a = frappe.get_doc("Communication", a.name)
+		a.reference_doctype = "Communication"
+		a.reference_name = c.name
+		self.assertRaises(frappe.CircularLinkingError, a.save)
+
