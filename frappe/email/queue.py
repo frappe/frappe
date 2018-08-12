@@ -269,7 +269,10 @@ def get_unsubscribe_message(unsubscribe_message, expose_recipients):
 			target="_blank">{0}</a>'''.format(_('Unsubscribe'))
 		unsubscribe_html = _("{0} to stop receiving emails of this type").format(unsubscribe_link)
 
-	html = """<div class="email-unsubscribe">
+	html = """<div class="email-pixel">
+			<!--email open check-->
+		</div>
+		<div class="email-unsubscribe">
 			<!--cc message-->
 			<div>
 				{0}
@@ -479,6 +482,15 @@ def prepare_message(email, recipient, recipients_list):
 	message = email.message
 	if not message:
 		return ""
+
+	# Parse "Email Account" from "Email Sender"
+	email_account = email.sender.rsplit('<',1)[0]
+	if frappe.conf.use_ssl and frappe.db.get_value("Email Account", {"name": email_account}, "track_email_status"):
+		# Using SSL => Publically available domain => Email Read Reciept Possible
+		message = message.replace("<!--email open check-->", quopri.encodestring('<img src="https://{}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={}"/>'.format(frappe.local.site, email.communication).encode()).decode())
+	else:
+		# No SSL => No Email Read Reciept
+		message = message.replace("<!--email open check-->", quopri.encodestring("".encode()).decode())
 
 	if email.add_unsubscribe_link and email.reference_doctype: # is missing the check for unsubscribe message but will not add as there will be no unsubscribe url
 		unsubscribe_url = get_unsubcribed_url(email.reference_doctype, email.reference_name, recipient,
