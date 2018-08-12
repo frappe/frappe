@@ -287,7 +287,7 @@ class LoginManager:
 			from dateutil.relativedelta import relativedelta
 			if frappe.db.exists("Login Attempts", user):
 				login_attempts = frappe.get_doc("Login Attempts", user)
-				login_attempts.attempts == self.attempts_limit
+				login_attempts.attempts = self.attempts_limit
 				now_datetime = frappe.utils.now_datetime()
 				if (login_attempts.lock_start_time and
 					int(login_attempts.attempts)>=self.attempts_limit and
