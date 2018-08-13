@@ -118,7 +118,6 @@ frappe.ui.form.Timeline = Class.extend({
 		this.wrapper.toggle(true);
 		this.list.empty();
 		this.comment_area.val('');
-
 		var communications = this.get_communications(true);
 
 		communications
@@ -178,7 +177,6 @@ frappe.ui.form.Timeline = Class.extend({
 				} else {
 					var $edit_btn = $(this);
 					var content = $timeline_item.find('.timeline-item-content').html();
-
 					$edit_btn
 						.text("Save")
 						.find('i')
@@ -298,7 +296,6 @@ frappe.ui.form.Timeline = Class.extend({
 				c.original_content = c.content;
 				c.content = frappe.utils.toggle_blockquote(c.content);
 			}
-
 			if(!frappe.utils.is_html(c.content)) {
 				c.content_html = frappe.markdown(__(c.content));
 			} else {
@@ -312,7 +309,17 @@ frappe.ui.form.Timeline = Class.extend({
 				// avoid adding <b> tag a 2nd time
 				!c.content_html.match(/(^|\W)<b>(@[^\s]+)<\/b>/)
 			) {
-				c.content_html = c.content_html.replace(/(^|\W)(@[^\s]+)/g, "$1<b>$2</b>");
+				/*
+					Replace the email ids by only displaying the string which
+					occurs before the second `@` to enhance the mentions.
+					Eg.
+					@abc@a-example.com will be converted to
+					@abc with the below line of code.
+				*/
+
+				c.content_html = c.content_html.replace(/(<[a][^>]*>)/g, "");
+				// bold the @mentions
+				c.content_html = c.content_html.replace(/(@[^\s@]*)@[^\s@|<]*/g, "<b>$1</b>");
 			}
 
 			if (this.is_communication_or_comment(c)) {
@@ -657,7 +664,7 @@ frappe.ui.form.Timeline = Class.extend({
 		var valid_users = Object.keys(frappe.boot.user_info)
 			.filter(user => !["Administrator", "Guest"].includes(user));
 
-		return valid_users.map(user => frappe.boot.user_info[user].name);
+		return valid_users.map(user => frappe.boot.user_info[user].email);
 	},
 
 	setup_comment_like: function() {
