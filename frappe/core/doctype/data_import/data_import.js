@@ -159,8 +159,8 @@ frappe.data_import.download_dialog = function(frm) {
 
 	const doctype_fields = get_fields(frm.doc.reference_doctype)
 		.map(df => ({
-			label: df.label + (df.reqd ? ' (M)' : ''),
-			reqd: df.reqd ? 1 : 0,
+			label: df.label + ((df.reqd || df.fieldname == 'naming_series') ? ' (M)' : ''),
+			reqd: (df.reqd || df.fieldname == 'naming_series') ? 1 : 0,
 			value: df.fieldname,
 			checked: 1
 		}));
@@ -198,11 +198,6 @@ frappe.data_import.download_dialog = function(frm) {
 			"fieldtype": "Select",
 			"options": "Excel\nCSV",
 			"default": "Excel"
-		},
-		{
-			"label": __("Download with Data"),
-			"fieldname": "with_data",
-			"fieldtype": "Check"
 		},
 		{
 			"label": __("Select All"),
@@ -273,7 +268,7 @@ frappe.data_import.download_dialog = function(frm) {
 						doctype: frm.doc.reference_doctype,
 						parent_doctype: frm.doc.reference_doctype,
 						select_columns: JSON.stringify(columns),
-						with_data: data.with_data,
+						with_data: frm.doc.overwrite,
 						all_doctypes: true,
 						file_type: data.file_type,
 						template: true
