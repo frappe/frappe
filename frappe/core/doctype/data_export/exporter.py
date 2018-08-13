@@ -130,15 +130,6 @@ class DataExporter:
 			self.writer.writerow([_('If you are updating, please select "Overwrite" else existing rows will not be deleted.')])
 
 	def build_field_columns(self, dt, parentfield=None):
-		def _append_name_column():
-			self.tablerow.append("")
-			self.labelrow.append("ID")
-			self.fieldrow.append(self.name_field)
-			self.mandatoryrow.append(_("Yes"))
-			self.typerow.append("Data (text)")
-			self.inforow.append("")
-			self.columns.append(self.name_field)
-
 		meta = frappe.get_meta(dt)
 
 		# build list of valid docfields
@@ -154,20 +145,13 @@ class DataExporter:
 
 		if dt==self.doctype:
 			if (meta.get('autoname') and meta.get('autoname').lower()=='prompt') or (self.with_data):
-				_append_name_column()
+				self._append_name_column()
 			_column_start_end = frappe._dict(start=0)
 		else:
 			_column_start_end = frappe._dict(start=len(self.columns))
 
-			self.append_field_column(frappe._dict({
-				"fieldname": "name",
-				"parent": dt,
-				"label": "ID",
-				"fieldtype": "Data",
-				"reqd": 1,
-				"idx": 0,
-				"info": _("Leave blank for new records")
-			}), True)
+			if self.with_data:
+				self._append_name_column(dt)
 
 		for docfield in tablecolumns:
 			self.append_field_column(docfield, True)
@@ -201,7 +185,8 @@ class DataExporter:
 			return
 		if docfield.hidden:
 			return
-		if self.select_columns and docfield.fieldname not in self.select_columns.get(docfield.parent, []):
+		if self.select_columns and docfield.fieldname not in self.select_columns.get(docfield.parent, []) \
+			and docfield.fieldname!="name":
 			return
 
 		self.tablerow.append("")
@@ -348,3 +333,11 @@ class DataExporter:
 		frappe.response['filecontent'] = xlsx_file.getvalue()
 		frappe.response['type'] = 'binary'
 
+	def _append_name_column(self, dt=None):
+		self.append_field_column(frappe._dict({
+			"fieldname": "name" if dt else self.name_field,
+			"parent": dt or "",
+			"label": "ID",
+			"fieldtype": "Data",
+			"reqd": 1,
+		}), True)
