@@ -1,5 +1,4 @@
 import frappe, subprocess, os
-from frappe.database.postgres.database import PostgresDatabase
 
 def setup_database(force, verbose):
 	root_conn = get_root_connection()

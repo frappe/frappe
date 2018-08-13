@@ -327,7 +327,7 @@ def postgres(context):
 	frappe.init(site=site)
 	# This is assuming you're within the bench instance.
 	psql = find_executable('psql')
-	os.execv(psql, [ psql, '-d', frappe.conf.db_name])
+	subprocess.run([ psql, '-d', frappe.conf.db_name])
 
 @click.command('console')
 @pass_context

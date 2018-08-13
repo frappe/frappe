@@ -134,7 +134,7 @@ def rename_versions(doctype, old, new):
 
 def rename_parent_and_child(doctype, old, new, meta):
 	# rename the doc
-	frappe.db.sql("update `tab%s` set name=%s where name=%s" % (doctype, '%s', '%s'),
+	frappe.db.sql("UPDATE `tab%s` SET `name`=%s WHERE `name`=%s" % (doctype, '%s', '%s'),
 		(new, old))
 	update_autoname_field(doctype, new, meta)
 	update_child_docs(old, new, meta)
@@ -144,7 +144,7 @@ def update_autoname_field(doctype, new, meta):
 	if meta.get('autoname'):
 		field = meta.get('autoname').split(':')
 		if field and field[0] == "field":
-			frappe.db.sql("update `tab%s` set %s=%s where name=%s" % (doctype, field[1], '%s', '%s'),
+			frappe.db.sql("UPDATE `tab%s` SET `%s`=%s WHERE `name`=%s" % (doctype, field[1], '%s', '%s'),
 				(new, new))
 
 def validate_rename(doctype, new, meta, merge, force, ignore_permissions):

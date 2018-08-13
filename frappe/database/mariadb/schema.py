@@ -1,11 +1,9 @@
 from __future__ import unicode_literals
 
-import re
-import os
 import frappe
 from frappe import _
-from frappe.utils import cstr, cint, flt
-from frappe.database.schema import DBTable, DbColumn
+from frappe.utils import cint, flt
+from frappe.database.schema import DBTable
 
 class MariaDBTable(DBTable):
 	def create(self):

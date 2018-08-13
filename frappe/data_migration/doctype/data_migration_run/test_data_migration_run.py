@@ -108,7 +108,7 @@ def create_plan():
 		'connector_name': 'Local Connector',
 		'connector_type': 'Frappe',
 		# connect to same host.
-		'hostname': frappe.conf.host_name or 'http://localhost:8000',
+		'hostname': frappe.conf.host_name,
 		'username': 'Administrator',
 		'password': 'admin'
 	}).insert()

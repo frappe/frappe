@@ -10,7 +10,6 @@ import hashlib
 import os, subprocess
 import jinja2.exceptions
 from bs4 import BeautifulSoup
-from markdown2 import markdown
 
 def sync():
 	# make table

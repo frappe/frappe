@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import frappe
-import sys, os
 import warnings
 
 import pymysql
