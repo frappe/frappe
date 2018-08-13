@@ -15,6 +15,7 @@ import frappe.desk.reportview
 from frappe.utils.csvutils import read_csv_content_from_attached_file
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
+from datetime import timedelta
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
@@ -286,6 +287,12 @@ def add_total_row(result, columns, meta = None):
 
 			if fieldtype == "Percent" and i not in has_percent:
 				has_percent.append(i)
+
+			if fieldtype == "Time" and row[i]:
+				if not total_row[i]:
+					total_row[i]=timedelta(hours=0,minutes=0,seconds=0)
+				total_row[i] =  total_row[i] + row[i]
+
 
 		if fieldtype=="Link" and options == "Currency":
 			total_row[i] = result[0][i]
