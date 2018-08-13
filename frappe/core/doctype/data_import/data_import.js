@@ -94,7 +94,7 @@ frappe.ui.form.on('Data Import', {
 
 	overwrite: function(frm) {
 		if(!frm.doc.reference_doctype) {
-			frappe.msgprint(__("Please select document type first."))
+			frappe.msgprint(__("Please select document type first."));
 			frm.doc.overwrite = 0;
 			frm.refresh_field("overwrite");
 		} else {
