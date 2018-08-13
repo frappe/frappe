@@ -77,13 +77,13 @@ class DataExporter:
 			self.add_main_header()
 
 		self.writer.writerow([''])
-		self.tablerow = [self.data_keys.doctype, ""]
-		self.labelrow = [_("Column Labels:"), "ID"]
-		self.fieldrow = [self.data_keys.columns, self.name_field]
-		self.mandatoryrow = [_("Mandatory:"), _("Yes")]
-		self.typerow = [_('Type:'), 'Data (text)']
-		self.inforow = [_('Info:'), '']
-		self.columns = [self.name_field]
+		self.tablerow = [self.data_keys.doctype]
+		self.labelrow = [_("Column Labels:")]
+		self.fieldrow = [self.data_keys.columns]
+		self.mandatoryrow = [_("Mandatory:")]
+		self.typerow = [_('Type:')]
+		self.inforow = [_('Info:')]
+		self.columns = []
 
 		self.build_field_columns(self.doctype)
 
@@ -130,6 +130,15 @@ class DataExporter:
 			self.writer.writerow([_('If you are updating, please select "Overwrite" else existing rows will not be deleted.')])
 
 	def build_field_columns(self, dt, parentfield=None):
+		def _append_name_column():
+			self.tablerow.append("")
+			self.labelrow.append("ID")
+			self.fieldrow.append(self.name_field)
+			self.mandatoryrow.append(_("Yes"))
+			self.typerow.append("Data (text)")
+			self.inforow.append("")
+			self.columns.append(self.name_field)
+
 		meta = frappe.get_meta(dt)
 
 		# build list of valid docfields
@@ -144,6 +153,8 @@ class DataExporter:
 		_column_start_end = frappe._dict(start=0)
 
 		if dt==self.doctype:
+			if (meta.get('autoname') and meta.get('autoname').lower()=='prompt') or (self.with_data):
+				_append_name_column()
 			_column_start_end = frappe._dict(start=0)
 		else:
 			_column_start_end = frappe._dict(start=len(self.columns))
