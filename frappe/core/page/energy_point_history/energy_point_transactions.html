@@ -1,0 +1,10 @@
+<div style="padding: 20px;">
+    <ul class="list-group">
+    {% for d in data %}
+        <li class="list-item">
+            <span class="text-success mr-2">{{d.point}}</span>
+            <span class="text-muted">{{d.reason}}</span>
+        </li>
+    {% endfor %}
+    </ul>
+</div>
