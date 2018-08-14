@@ -7,6 +7,7 @@ import json, subprocess, os
 from semantic_version import Version
 import frappe
 from frappe.utils import cstr
+import requests, shlex
 
 def get_change_log(user=None):
 	if not user: user = frappe.session.user
@@ -124,3 +125,72 @@ def get_app_last_commit_ref(app):
 			shell=True).strip()[:7]
 	except Exception as e:
 		return ''
+
+def check_for_update():
+	updates = frappe._dict(major=[], minor=[], patch=[])
+	apps    = get_versions()
+
+	for app in apps:
+		# Check if repo remote is on github
+		remote_url = subprocess.check_output("cd ../apps/{} && git ls-remote --get-url".format(app), shell=True)
+		if "github.com" not in remote_url:
+			continue
+
+		# Get latest version from github
+		if 'https' not in remote_url:
+			continue
+
+		org_name = remote_url.split('/')[3]
+		r = requests.get('https://api.github.com/repos/{}/{}/releases'.format(org_name, app))
+		if r.status_code == 200 and r.json():
+			# 0 => latest release
+			github_version = Version(r.json()[0]['tag_name'].strip('v'))
+		else:
+			# In case of an improper response or if there are no releases
+			continue
+
+		# Get local instance's current version or the app
+		instance_version = Version(apps[app]['version'])
+		# Compare and popup update message
+		for update_type in updates:
+			if github_version.__dict__[update_type] > instance_version.__dict__[update_type]:
+				updates[update_type].append(frappe._dict(
+					current_version   = str(instance_version),
+					available_version = str(github_version),
+					org_name          = org_name,
+					app_name          = app,
+					title             = apps[app]['title'],
+				))
+				break
+
+	update_message = ""
+	for update_type in updates:
+		release_links = ""
+		for app in updates[update_type]:
+			release_links += "<a href='https://github.com/{org_name}/{app_name}/releases/tag/v{available_version}'><b>{title}</b>: v{available_version}</a><br>".format(
+				available_version = app.available_version,
+				org_name          = app.org_name,
+				app_name          = app.app_name,
+				title             = app.title
+			)
+		if release_links:
+			update_message += "New {} releases for the following apps are available:<br><br>{}<hr>".format(update_type, release_links)
+
+	# "update-message" will store the update message string
+	# "update-user-set" will be a set of users
+	if update_message:
+		update_message += "<b>Please ask your system manager to update your instance</b>"
+		cache = frappe.cache()
+		cache.set_value("update-message", update_message)
+		user_list = [x.name for x in frappe.get_all("User", filters={"enabled": True})]
+		cache.sadd("update-user-set", *user_list)
+
+@frappe.whitelist()
+def show_update_popup():
+	cache = frappe.cache()
+	user  = frappe.session.user
+
+	# Check if user is int the set of users to send update message to
+	if cache.sismember("update-user-set", user):
+		frappe.msgprint(cache.get_value("update-message"), title="New updates are available", indicator='green')
+		cache.srem("update-user-set", user)
