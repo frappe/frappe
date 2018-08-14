@@ -10,7 +10,7 @@ from frappe import _
 from six import string_types
 import re
 
-UNTRANSLATED_DOCTYPES = ["DocType", "Roles"]
+UNTRANSLATED_DOCTYPES = ["DocType", "Role"]
 
 def sanitize_searchfield(searchfield):
 	blacklisted_keywords = ['select', 'delete', 'drop', 'update', 'case', 'and', 'or', 'like']
