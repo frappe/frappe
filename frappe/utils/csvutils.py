@@ -50,13 +50,12 @@ def read_csv_content(fcontent, ignore_encoding=False):
 				continue
 
 		if not decoded:
-			frappe.msgprint(_("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."),
-				raise_exception=True)
+			frappe.throw(_("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."))
 
 	fcontent = fcontent.encode("utf-8")
 	content  = [ ]
 	for line in fcontent.splitlines(True):
-		content.append(frappe.safe_decode(line))
+		content.append(line)
 
 	try:
 		rows = []
@@ -77,8 +76,7 @@ def read_csv_content(fcontent, ignore_encoding=False):
 		return rows
 
 	except Exception:
-		frappe.msgprint(_("Not a valid Comma Separated Value (CSV File)"))
-		raise
+		frappe.throw(_("Not a valid Comma Separated Value (CSV File)"))
 
 @frappe.whitelist()
 def send_csv_to_client(args):
