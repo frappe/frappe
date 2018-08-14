@@ -104,6 +104,18 @@ class PostgresDatabase(Database):
 				and table_type = 'BASE TABLE'
 				and table_schema='public'""".format(frappe.conf.db_name))]
 
+	def format_date(self, date):
+		if not date:
+			return '0001-01-01::DATE'
+
+		if isinstance(date, frappe.string_types):
+			if ':' not in date:
+				date = date + '::DATE'
+		else:
+			date = date.strftime('%Y-%m-%d') + '::DATE'
+
+		return date
+
 	# column type
 	def is_type_number(self, code):
 		return code == psycopg2.NUMBER

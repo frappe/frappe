@@ -841,6 +841,21 @@ class Database(object):
 
 			return count
 
+	def format_date(self, date):
+		return date
+
+	def format_datetime(self, datetime):
+		if not datetime:
+			return '0001-01-01 00:00:00.000000'
+
+		if isinstance(datetime, frappe.string_types):
+			if ':' not in datetime:
+				datetime = datetime + ' 00:00:00.000000'
+		else:
+			datetime = datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
+
+		return datetime
+
 	def get_creation_count(self, doctype, minutes):
 		"""Get count of records created in the last x minutes"""
 		from frappe.utils import now_datetime

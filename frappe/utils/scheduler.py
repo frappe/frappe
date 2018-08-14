@@ -29,18 +29,18 @@ from croniter import croniter
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 cron_map = {
-    "yearly": "0 0 1 1 *",
-    "annual": "0 0 1 1 *",
-    "monthly": "0 0 1 * *",
-    "monthly_long": "0 0 1 * *",
-    "weekly": "0 0 * * 0",
-    "weekly_long": "0 0 * * 0",
-    "daily": "0 0 * * *",
-    "daily_long": "0 0 * * *",
-    "midnight": "0 0 * * *",
-    "hourly": "0 * * * *",
-    "hourly_long": "0 * * * *",
-    "all": "0/" + str((frappe.get_conf().scheduler_interval or 240) // 60) + " * * * *",
+	"yearly": "0 0 1 1 *",
+	"annual": "0 0 1 1 *",
+	"monthly": "0 0 1 * *",
+	"monthly_long": "0 0 1 * *",
+	"weekly": "0 0 * * 0",
+	"weekly_long": "0 0 * * 0",
+	"daily": "0 0 * * *",
+	"daily_long": "0 0 * * *",
+	"midnight": "0 0 * * *",
+	"hourly": "0 * * * *",
+	"hourly_long": "0 * * * *",
+	"all": "0/" + str((frappe.get_conf().scheduler_interval or 240) // 60) + " * * * *",
 }
 
 def start_scheduler():
@@ -142,43 +142,43 @@ def enqueue_applicable_events(site, nowtime, last, queued_jobs=()):
 	return out
 
 def trigger(site, event, last=None, queued_jobs=(), now=False):
-    """Trigger method in hooks.scheduler_events."""
+	"""Trigger method in hooks.scheduler_events."""
 
-    queue = 'long' if event.endswith('_long') else 'short'
-    timeout = queue_timeout[queue]
-    if not queued_jobs and not now:
-        queued_jobs = get_jobs(site=site, queue=queue)
+	queue = 'long' if event.endswith('_long') else 'short'
+	timeout = queue_timeout[queue]
+	if not queued_jobs and not now:
+		queued_jobs = get_jobs(site=site, queue=queue)
 
-    if frappe.flags.in_test:
-        frappe.flags.ran_schedulers.append(event)
+	if frappe.flags.in_test:
+		frappe.flags.ran_schedulers.append(event)
 
-    events_from_hooks = get_scheduler_events(event)
-    if not events_from_hooks:
-        return
+	events_from_hooks = get_scheduler_events(event)
+	if not events_from_hooks:
+		return
 
-    events = events_from_hooks
-    if not now:
-        events = []
-        if event == "cron":
-            for e in events_from_hooks:
-                e = cron_map.get(e, e)
-                if croniter.is_valid(e):
-                    if croniter(e, last).get_next(datetime) <= frappe.utils.now_datetime():
-                        events.extend(events_from_hooks[e])
-                else:
-                    frappe.log_error("Cron string " + e + " is not valid", "Error triggering cron job")
-                    frappe.logger(__name__).error('Exception in Trigger Events for Site {0}, Cron String {1}'.format(site, e))
+	events = events_from_hooks
+	if not now:
+		events = []
+		if event == "cron":
+			for e in events_from_hooks:
+				e = cron_map.get(e, e)
+				if croniter.is_valid(e):
+					if croniter(e, last).get_next(datetime) <= frappe.utils.now_datetime():
+						events.extend(events_from_hooks[e])
+				else:
+					frappe.log_error("Cron string " + e + " is not valid", "Error triggering cron job")
+					frappe.logger(__name__).error('Exception in Trigger Events for Site {0}, Cron String {1}'.format(site, e))
 
-        else:
-            if croniter(cron_map[event], last).get_next(datetime) <= frappe.utils.now_datetime():
-                events.extend(events_from_hooks)
+		else:
+			if croniter(cron_map[event], last).get_next(datetime) <= frappe.utils.now_datetime():
+				events.extend(events_from_hooks)
 
-    for handler in events:
-        if not now:
-            if handler not in queued_jobs:
-                enqueue(handler, queue, timeout, event)
-        else:
-            scheduler_task(site=site, event=event, handler=handler, now=True)
+	for handler in events:
+		if not now:
+			if handler not in queued_jobs:
+				enqueue(handler, queue, timeout, event)
+		else:
+			scheduler_task(site=site, event=event, handler=handler, now=True)
 
 def get_scheduler_events(event):
 	'''Get scheduler events from hooks and integrations'''
