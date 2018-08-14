@@ -87,13 +87,19 @@ def get_context(context):
 		if self.event=="Days After":
 			diff_days = -diff_days
 
-		for name in frappe.db.sql_list("""SELECT name
-			FROM `tab{0}`
-			WHERE {1} = %s""".format(
-				self.document_type,
-				self.date_changed), (add_to_date(nowdate(), days=diff_days))):
+		reference_date = add_to_date(nowdate(), days=diff_days)
+		reference_date_start = reference_date + ' 00:00:00.000000'
+		reference_date_end = reference_date + ' 23:59:59.000000'
 
-			doc = frappe.get_doc(self.document_type, name)
+		doc_list = frappe.get_all(self.document_type,
+			fields='name',
+			filters=[
+				{ self.date_changed: ('>=', reference_date_start) },
+				{ self.date_changed: ('<=', reference_date_end) }
+			])
+
+		for d in doc_list:
+			doc = frappe.get_doc(self.document_type, d.name)
 
 			if self.condition and not frappe.safe_eval(self.condition, None, get_context(doc)):
 				continue
@@ -239,9 +245,14 @@ def trigger_notifications(doc, method=None):
 		return
 
 	if method == "daily":
-		for alert in frappe.db.sql_list("""select name from `tabNotification`
-			where event in ('Days Before', 'Days After') and enabled=1"""):
-			alert = frappe.get_doc("Notification", alert)
+		doc_list = frappe.get_all('Notification',
+			filters={
+				'event': ('in', ('Days Before', 'Days After')),
+				'enabled': 1
+			})
+		for d in doc_list:
+			alert = frappe.get_doc("Notification", d.name)
+
 			for doc in alert.get_documents_for_today():
 				evaluate_alert(doc, alert, alert.event)
 				frappe.db.commit()
