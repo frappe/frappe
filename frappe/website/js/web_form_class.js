@@ -30,7 +30,7 @@ export default class WebForm {
 				df.options = null;
 
 				if (r.message.hasOwnProperty(df.fieldname)) {
-						df.fields  =r.message[df.fieldname]
+						df.fields = r.message[df.fieldname]
 
 				}
 			}});
@@ -41,7 +41,7 @@ export default class WebForm {
 	}
 
 
-	render(doc, web_form, links) {
+	render(doc, web_form) {
 		const query_params = frappe.utils.get_query_params();
 
 		web_form.web_form_fields.map(df => {
