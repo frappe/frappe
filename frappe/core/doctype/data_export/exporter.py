@@ -146,6 +146,18 @@ class DataExporter:
 		if dt==self.doctype:
 			if (meta.get('autoname') and meta.get('autoname').lower()=='prompt') or (self.with_data):
 				self._append_name_column()
+
+			# if importing only child table for new record, add parent field
+			if meta.get('istable') and not self.with_data:
+				self.append_field_column(frappe._dict({
+					"fieldname": "parent",
+					"parent": "",
+					"label": "Parent",
+					"fieldtype": "Data",
+					"reqd": 1,
+					"info": _("Parent is the name of the document to which the data will get added to.")
+				}), True)
+
 			_column_start_end = frappe._dict(start=0)
 		else:
 			_column_start_end = frappe._dict(start=len(self.columns))
