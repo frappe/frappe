@@ -503,6 +503,13 @@ def get_form_data(doctype, docname, web_form_name):
 			frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 	out.web_form = frappe.get_doc('Web Form', web_form_name)
+
+	# For Table fields, server-side processing for meta
+	for field in out.web_form.web_form_fields:
+		if field.fieldtype == "Table":
+			field.fields = get_in_list_view_fields(field.options)
+			out.update({field.fieldname: field.fields})
+
 	return out
 
 @frappe.whitelist()
