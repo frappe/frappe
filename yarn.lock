@@ -954,9 +954,9 @@ forwarded@~0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/forwarded/-/forwarded-0.1.2.tgz#98c23dab1175657b8c0573e8ceccd91b0ff18c84"
 
-frappe-datatable@^1.1.6:
-  version "1.1.6"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.1.6.tgz#6c0de348ff728facb9b5ea4bba03103745969ede"
+frappe-datatable@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.2.0.tgz#d715eeb009c13a15f5e1b8aebc305284497c19e3"
   dependencies:
     clusterize.js "^0.18.0"
     lodash "^4.17.5"
