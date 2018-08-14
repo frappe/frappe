@@ -3,7 +3,7 @@
 
 frappe.ui.form.on('Prepared Report', {
 	onload: function(frm) {
-		var wrapper = $(frm.fields_dict["filter_values"].wrapper);
+		var wrapper = $(frm.fields_dict["filter_values"].wrapper).empty();
 
 		let filter_table = $(`<table class="table table-bordered">
 			<thead>
