@@ -844,7 +844,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.$checkbox_actions.toggle(this.$checks.length > 0);
 
 		if (this.$checks.length === 0) {
-			this.$list_head_subject.find('.list-select-all').prop('checked', false);
+			this.$list_head_subject.find('.list-check-all').prop('checked', false);
 		} else {
 			this.$checkbox_actions.find('.list-header-meta').html(
 				__('{0} items selected', [this.$checks.length])
