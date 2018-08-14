@@ -147,9 +147,9 @@ frappe.views.Calendar = Class.extend({
 	},
 	setup_view_mode_button(defaults) {
 		var me = this;
-		$(me.footnote_area).find('.btn-weekend').detach()
-		let btnTitle = (defaults.weekends) ? __('Hide Weekends') : __('Show Weekends')
-		const btn = `<button class="btn btn-default btn-xs btn-weekend">${btnTitle}</button>`
+		$(me.footnote_area).find('.btn-weekend').detach();
+		let btnTitle = (defaults.weekends) ? __('Hide Weekends') : __('Show Weekends');
+		const btn = `<button class="btn btn-default btn-xs btn-weekend">${btnTitle}</button>`;
 		me.footnote_area.append(btn);
 	},
 	bind: function() {
@@ -162,11 +162,11 @@ frappe.views.Calendar = Class.extend({
 
 		me.footnote_area.on('click', '.btn-weekend', () => {
 			this.cal_options.weekends = !this.cal_options.weekends;
-			frappe.db.set_value('User', frappe.session.user, 'calendar_weekends', this.cal_options.weekends).then((r) => {
+			frappe.db.set_value('User', frappe.session.user, 'calendar_weekends', this.cal_options.weekends).then(() => {
 				this.$cal.fullCalendar('option', 'weekends', this.cal_options.weekends);
 				this.set_css();
 				this.setup_view_mode_button(this.cal_options);
-			})
+			});
 		});
 	},
 	set_css: function() {
