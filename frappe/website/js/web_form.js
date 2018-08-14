@@ -53,7 +53,6 @@ frappe.ready(function() {
 
 	// submit
 	$(".btn-form-submit").on("click", function() {
-		let data = frappe.web_form.get_values();
 		save();
 		return false;
 	});
