@@ -105,8 +105,7 @@ frappe.views.Calendar = Class.extend({
 				let doc = r;
 				let defaults = {
 					'defaultView': doc.calendar_defaultview ? doc.calendar_defaultview : 'month', 
-					'weekends': doc.calendar_weekends==1 ? true : false, 
-					'nowIndicator': doc.calendar_nowindicator==1 ? true: false
+					'weekends': doc.calendar_weekends==1 ? true : false
 				};
 				resolve(defaults);
 			});
@@ -205,7 +204,7 @@ frappe.views.Calendar = Class.extend({
 			forceEventDuration: true,
 			defaultView: defaults.defaultView,
 			weekends: defaults.weekends,
-			nowIndicator: defaults.nowIndicator,
+			nowIndicator: true,
 			events: function(start, end, timezone, callback) {
 				return frappe.call({
 					method: me.get_events_method || "frappe.desk.calendar.get_events",
