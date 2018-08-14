@@ -17,23 +17,23 @@ export default class WebForm {
 		}).then(r => {
 			const { doc, web_form, links } = r.message;
 			web_form.web_form_fields.map(df => {
-			if (df.fieldtype === 'Table') {
+				if (df.fieldtype === 'Table') {
 
-				df.get_data = () => {
-					let data = []
-					if(doc) {
-						data = doc[df.fieldname];
+					df.get_data = () => {
+						let data = []
+						if(doc) {
+							data = doc[df.fieldname];
+						}
+						return data;
 					}
-					return data;
+
+					df.options = null;
+
+					if (r.message.hasOwnProperty(df.fieldname)) {
+						df.fields = r.message[df.fieldname];
+					}
 				}
-
-				df.options = null;
-
-				if (r.message.hasOwnProperty(df.fieldname)) {
-						df.fields = r.message[df.fieldname]
-
-				}
-			}});
+			});
 
 			this.render(doc, web_form, links);
 
