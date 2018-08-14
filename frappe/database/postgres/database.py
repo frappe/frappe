@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import re
 import frappe
 import psycopg2
 import psycopg2.extensions
@@ -86,9 +87,8 @@ class PostgresDatabase(Database):
 			self.db_name, as_dict=True)
 		return db_size[0].get('database_size')
 
-	def sql(self, *args, **kwargs):
+	def sql(self, query, *args, **kwargs):
 		# replace ` with " for definitions
-		query = args[0]
 		query = query.replace('`', '"')
 
 		# select from requires ""
