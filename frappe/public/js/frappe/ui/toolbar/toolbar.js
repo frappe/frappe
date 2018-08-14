@@ -251,7 +251,7 @@ $.extend(frappe.ui.toolbar, {
 			frappe.ui.toolbar.get_menu(menu) : menu;
 
 		$('<li class="divider custom-menu"></li>').prependTo(menu);
-	}
+	},
 });
 
 frappe.ui.toolbar.clear_cache = function() {
@@ -281,4 +281,42 @@ frappe.ui.toolbar.show_about = function() {
 		console.log(e);
 	}
 	return false;
+}
+
+frappe.ui.toolbar.request_for_version_upgrade = function() {
+		var d = new frappe.ui.Dialog({
+			title: __('Version Upgrade Request'),
+			fields: [
+				{
+					"label": "Preferred On",
+					"fieldname": "preferred_date",
+					"fieldtype": "Date",
+					"reqd": 1
+				}
+			],
+			primary_action: function() {
+				var data = d.get_values();
+
+				d.hide();
+
+				frappe.call({
+					method: "frappe.utils.version_upgrade.send_request_for_version_upgrade",
+					args: {
+						preferred_date: data.preferred_date
+					},
+					freeze:true,
+					freeze_message: __("Sending request to schedule version upgrade"),
+					callback: function(r) {
+						if(!r.exc) {
+							frappe.msgprint(__("Thank You. Your Request {0} has been registered.\
+								Our DevOps team soon schedule the account migration and update \
+							you accordingly ", [r.message['req_id']]));
+							frappe.ui.toolbar.clear_cache();
+						}
+					}
+				});
+			},
+			primary_action_label: __('Send A Request')
+		});
+		d.show();
 }
