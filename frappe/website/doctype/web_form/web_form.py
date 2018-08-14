@@ -510,9 +510,28 @@ def get_form_data(doctype, docname, web_form_name):
 			field.fields = get_in_list_view_fields(field.options)
 			out.update({field.fieldname: field.fields})
 
+		if field.fieldtype == "Link":
+			field.fieldtype = "Autocomplete"
+			field.options = get_link_options(web_form_name, field.options)
+
 	return out
 
 @frappe.whitelist()
 def get_in_list_view_fields(doctype):
 	return [df.as_dict() for df in frappe.get_meta(doctype).fields if df.in_list_view]
+
+@frappe.whitelist(allow_guest=True)
+def get_link_options(web_form_name, doctype):
+	web_form_doc = frappe.get_doc("Web Form", web_form_name)
+	doctype_validated = False
+	if not web_form_doc.login_required:
+		for field in web_form_doc.web_form_fields:
+			if field.options == doctype:
+				doctype_validated = True
+				break
+
+	if doctype_validated:
+		return "\n".join([doc.name for doc in frappe.get_all(doctype)])
+	else:
+		raise frappe.PermissionError('Not Allowed, {0}'.format(doctype))
 
