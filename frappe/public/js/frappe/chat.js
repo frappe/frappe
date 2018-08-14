@@ -1661,6 +1661,7 @@ class extends Component {
 				},
 				frappe._.is_mobile() && {
 					   icon: "octicon octicon-x",
+					   class: "frappe-chat-close",
 					onclick: () => this.set_state({ toggle: false })
 				}
 			], Boolean),
@@ -1775,9 +1776,8 @@ class extends Component {
 	}
 
 	on_mounted ( ) {
-		$(document.body).on('click', '.page-container, .frappe-chat-popper', ({ currentTarget }) => {
-			if ( $(currentTarget).is('.page-container') )
-				this.toggle(false)
+		$(document.body).on('click', '.page-container, .frappe-chat-close', ({ currentTarget }) => {
+			this.toggle(false)
 		})
 	}
 
