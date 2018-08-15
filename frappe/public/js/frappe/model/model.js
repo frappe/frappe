@@ -233,8 +233,7 @@ $.extend(frappe.model, {
 
 	can_cancel: function(doctype) {
 		if(!doctype) return false;
-		return frappe.boot.user.can_cancel.indexOf(doctype)!==-1
-			&& !this.has_workflow(doctype);
+		return frappe.boot.user.can_cancel.indexOf(doctype)!==-1;
 	},
 
 	has_workflow: function(doctype) {

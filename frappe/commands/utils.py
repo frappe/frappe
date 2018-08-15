@@ -478,12 +478,19 @@ def set_config(context, key, value, global_ = False, as_dict=False):
 @click.command('version')
 def get_version():
 	"Show the versions of all the installed apps"
+	from frappe.utils.change_log import get_app_branch
 	frappe.init('')
-	for m in sorted(frappe.get_all_apps()):
-		module = frappe.get_module(m)
-		if hasattr(module, "__version__"):
-			print("{0} {1}".format(m, module.__version__))
 
+	for m in sorted(frappe.get_all_apps()):
+		branch_name = get_app_branch(m)
+		module = frappe.get_module(m)
+		app_hooks = frappe.get_module(m + ".hooks")
+
+		if hasattr(app_hooks, '{0}_version'.format(branch_name)):
+			print("{0} {1}".format(m, getattr(app_hooks, '{0}_version'.format(branch_name))))
+
+		elif hasattr(module, "__version__"):
+			print("{0} {1}".format(m, module.__version__))
 
 
 @click.command('setup-global-help')

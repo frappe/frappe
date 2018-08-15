@@ -634,7 +634,7 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 				data.forEach(function(row, ri) {
 					$.each(row, function(key, value) {
 						if (key in field_map) {
-							totals_row[key] = (totals_row[key] || 0) + value;
+							totals_row[key] = (totals_row[key] || 0) + (value || 0);
 						}
 					});
 				});

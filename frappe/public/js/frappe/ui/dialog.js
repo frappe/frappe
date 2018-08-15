@@ -34,11 +34,12 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 
 		// show footer
 		this.action = this.action || { primary: { }, secondary: { } };
-		if(this.primary_action || !this.action.primary) {
-			this.set_primary_action(this.primary_action_label || this.action.primary.label || __("Submit"), this.primary_action || this.action.primary.onsubmit);
+		if(this.primary_action || (this.action.primary && this.action.primary.onsubmit)) {
+			this.set_primary_action(this.primary_action_label || this.action.primary.label || __("Submit"),
+				this.primary_action || this.action.primary.onsubmit);
 		}
 
-		if (this.secondary_action_label || !this.action.secondary) {
+		if (this.secondary_action_label || (this.action.secondary && this.action.secondary.label)) {
 			this.get_close_btn().html(this.secondary_action_label || this.action.secondary.label);
 		}
 

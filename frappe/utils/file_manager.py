@@ -128,7 +128,7 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 			content = content.encode("utf-8")
 
 		if b"," in content:
-			content = content.split(",")[1]
+			content = content.split(b",")[1]
 		content = base64.b64decode(content)
 
 	file_size = check_max_file_size(content)

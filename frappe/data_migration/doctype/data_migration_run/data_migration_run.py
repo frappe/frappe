@@ -138,7 +138,6 @@ class DataMigrationRun(Document):
 		if postprocess_method_path:
 			frappe.get_attr(postprocess_method_path)({
 				"status": status,
-				"remote_id": self.remote_id or '',
 				"stats": {
 					"push_insert": self.push_insert,
 					"push_update": self.push_update,

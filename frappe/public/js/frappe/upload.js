@@ -53,7 +53,7 @@ frappe.upload = {
 			}
 		});
 		// end dropzone
-		
+
 		$upload.append($dropzone);
 
 		$file_input.on("change", function() {
@@ -310,7 +310,8 @@ frappe.upload = {
 
 		const file_not_big_enough = fileobj.size <= 24576;
 
-		if (opts.no_socketio || frappe.flags.no_socketio || file_not_big_enough) {
+		if (!frappe.socketio || opts.no_socketio ||
+				frappe.flags.no_socketio || file_not_big_enough) {
 			upload_with_filedata();
 			return;
 		} else {

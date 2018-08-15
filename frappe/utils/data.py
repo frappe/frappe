@@ -354,7 +354,7 @@ def remainder(numerator, denominator, precision=2):
 
 def round_based_on_smallest_currency_fraction(value, currency, precision=2):
 	smallest_currency_fraction_value = flt(frappe.db.get_value("Currency",
-		currency, "smallest_currency_fraction_value"))
+		currency, "smallest_currency_fraction_value", cache=True))
 
 	if smallest_currency_fraction_value:
 		remainder_val = remainder(value, smallest_currency_fraction_value, precision)
@@ -419,7 +419,7 @@ def fmt_money(amount, precision=None, currency=None):
 		if precision > 2:
 			if len(decimals) < 3:
 				if currency:
-					fraction  = frappe.db.get_value("Currency", currency, "fraction_units") or 100
+					fraction  = frappe.db.get_value("Currency", currency, "fraction_units", cache=True) or 100
 					precision = len(cstr(fraction)) - 1
 				else:
 					precision = number_format_precision
@@ -459,7 +459,7 @@ def fmt_money(amount, precision=None, currency=None):
 		amount = minus + amount
 
 	if currency and frappe.defaults.get_global_default("hide_currency_symbol") != "Yes":
-		symbol = frappe.db.get_value("Currency", currency, "symbol") or currency
+		symbol = frappe.db.get_value("Currency", currency, "symbol", cache=True) or currency
 		amount = symbol + " " + amount
 
 	return amount
@@ -504,7 +504,7 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	if not main_currency:
 		main_currency = d.get('currency', 'INR')
 	if not fraction_currency:
-		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction") or _("Cent")
+		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction", cache=True) or _("Cent")
 
 	number_format = frappe.db.get_value("Currency", main_currency, "number_format", cache=True) or \
 		frappe.db.get_default("number_format") or "#,###.##"
@@ -713,8 +713,10 @@ def get_url(uri=None, full_address=False):
 	if not uri and full_address:
 		uri = frappe.get_request_header("REQUEST_URI", "")
 
-	if frappe.conf.http_port:
-		host_name = host_name + ':' + str(frappe.conf.http_port)
+	port = frappe.conf.http_port or frappe.conf.webserver_port
+
+	if host_name and ':' not in host_name and port:
+		host_name = host_name + ':' + str(port)
 
 	url = urljoin(host_name, uri) if uri else host_name
 
@@ -816,7 +818,8 @@ def get_filter(doctype, f):
 		# if operator is missing
 		f.operator = "="
 
-	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in", "between")
+	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in",
+		"between", "descendants of", "ancestors of", "not descendants of", "not ancestors of")
 	if f.operator.lower() not in valid_operators:
 		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
 
@@ -936,10 +939,20 @@ def to_markdown(html):
 
 	return text
 
-def to_html(markdown_text):
+def md_to_html(markdown_text):
+	extras = {
+		'fenced-code-blocks': None,
+		'tables': None,
+		'header-ids': None,
+		'highlightjs-lang': None,
+		'html-classes': {
+			'table': 'table table-bordered'
+		}
+	}
+
 	html = None
 	try:
-		html = markdown(markdown_text)
+		html = markdown(markdown_text, extras=extras)
 	except MarkdownError:
 		pass
 

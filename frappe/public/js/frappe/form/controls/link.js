@@ -136,7 +136,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			if (!me.$input.cache[doctype]) {
 				me.$input.cache[doctype] = {};
 			}
-			
+
 			var term = e.target.value;
 
 			if (me.$input.cache[doctype][term]!=null) {
@@ -176,14 +176,18 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 							});
 						}
 						// advanced search
-						r.results.push({
-							label: "<span class='text-primary link-option'>"
-								+ "<i class='fa fa-search' style='margin-right: 5px;'></i> "
-								+ __("Advanced Search")
-								+ "</span>",
-							value: "advanced_search__link_option",
-							action: me.open_advanced_search
-						});
+
+						if (locals && locals['DocType']) {
+							// not applicable in web forms
+							r.results.push({
+								label: "<span class='text-primary link-option'>"
+									+ "<i class='fa fa-search' style='margin-right: 5px;'></i> "
+									+ __("Advanced Search")
+									+ "</span>",
+								value: "advanced_search__link_option",
+								action: me.open_advanced_search
+							});
+						}
 					}
 					me.$input.cache[doctype][term] = r.results;
 					me.awesomplete.list = me.$input.cache[doctype][term];
