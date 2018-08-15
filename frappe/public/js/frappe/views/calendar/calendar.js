@@ -49,13 +49,13 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 		}
 
 		this.load_lib
-			.then(() => this.get_calendar_options())
+			.then(() => this.get_calendar_preferences())
 			.then(options => {
 				this.calendar = new frappe.views.Calendar(options);
 			});
 	}
 
-	get_calendar_options() {
+	get_calendar_preferences() {
 		const options = {
 			doctype: this.doctype,
 			parent: this.$result,
@@ -100,15 +100,15 @@ frappe.views.Calendar = Class.extend({
 		this.get_default_options();
 	},
 	get_default_options: function() {
+		const me = this;
 		return new Promise ((resolve) => {
-			frappe.db.get_doc('User', frappe.session.user).then((r) => {
-				let doc = r;
-				let defaults = {
-					'defaultView': doc.calendar_defaultview ? doc.calendar_defaultview : 'month', 
-					'weekends': doc.calendar_weekends==1 ? true : false
-				};
-				resolve(defaults);
-			});
+			let defaultView = localStorage.getItem('defaultView');
+			let weekends = localStorage.getItem('weekends');
+			let defaults = {
+				'defaultView': defaultView ? defaultView : "month",
+				'weekends': weekends ? weekends : true
+			};
+			resolve(defaults);
 		}).then(defaults => {
 			this.make_page();
 			this.setup_options(defaults);
@@ -145,28 +145,31 @@ frappe.views.Calendar = Class.extend({
 		this.$cal.fullCalendar(this.cal_options);
 		this.set_css();
 	},
-	setup_view_mode_button(defaults) {
+	setup_view_mode_button: function(defaults) {
 		var me = this;
 		$(me.footnote_area).find('.btn-weekend').detach();
 		let btnTitle = (defaults.weekends) ? __('Hide Weekends') : __('Show Weekends');
 		const btn = `<button class="btn btn-default btn-xs btn-weekend">${btnTitle}</button>`;
 		me.footnote_area.append(btn);
 	},
+	set_localStorage_option: function(option, value) {
+		localStorage.removeItem(option);
+		localStorage.setItem(option, value);
+	},
 	bind: function() {
-		var me = this;
+		const me = this;
 		let btn_group = me.$wrapper.find(".fc-button-group");
-		btn_group.find(".btn").on("click", function() {
+		btn_group.on("click", ".btn", function() {
 			let value = ($(this).hasClass('fc-agendaWeek-button')) ? 'agendaWeek' : (($(this).hasClass('fc-agendaDay-button')) ? 'agendaDay' : 'month');
-			frappe.db.set_value('User', frappe.session.user, 'calendar_defaultview', value);
+			me.set_localStorage_option("defaultView", value);
 		});
 
-		me.footnote_area.on('click', '.btn-weekend', () => {
-			this.cal_options.weekends = !this.cal_options.weekends;
-			frappe.db.set_value('User', frappe.session.user, 'calendar_weekends', this.cal_options.weekends).then(() => {
-				this.$cal.fullCalendar('option', 'weekends', this.cal_options.weekends);
-				this.set_css();
-				this.setup_view_mode_button(this.cal_options);
-			});
+		me.$wrapper.on("click", ".btn-weekend", function() {
+			me.cal_options.weekends = !me.cal_options.weekends;
+			me.$cal.fullCalendar('option', 'weekends', me.cal_options.weekends);
+			me.set_localStorage_option("weekends", me.cal_options.weekends)
+			me.set_css();
+			me.setup_view_mode_button(me.cal_options);
 		});
 	},
 	set_css: function() {
