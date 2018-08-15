@@ -328,7 +328,7 @@ def unsubscribe(doctype, name, email):
 
 def return_unsubscribed_page(email, doctype, name):
 	frappe.respond_as_web_page(_("Unsubscribed"),
-		_("{0} has left the conversation in {1} {2}").format(email, _(doctype), name),
+		_("You have successfully unsubscribed"),
 		indicator_color='green')
 
 def flush(from_test=False):
