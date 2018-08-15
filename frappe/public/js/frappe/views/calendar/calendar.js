@@ -100,7 +100,6 @@ frappe.views.Calendar = Class.extend({
 		this.get_default_options();
 	},
 	get_default_options: function() {
-		const me = this;
 		return new Promise ((resolve) => {
 			let defaultView = localStorage.getItem('defaultView');
 			let weekends = localStorage.getItem('weekends');
@@ -167,7 +166,7 @@ frappe.views.Calendar = Class.extend({
 		me.$wrapper.on("click", ".btn-weekend", function() {
 			me.cal_options.weekends = !me.cal_options.weekends;
 			me.$cal.fullCalendar('option', 'weekends', me.cal_options.weekends);
-			me.set_localStorage_option("weekends", me.cal_options.weekends)
+			me.set_localStorage_option("weekends", me.cal_options.weekends);
 			me.set_css();
 			me.setup_view_mode_button(me.cal_options);
 		});
