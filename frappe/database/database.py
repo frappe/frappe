@@ -176,7 +176,6 @@ class Database(object):
 
 		except Exception as e:
 			if(frappe.conf.db_type == 'postgres'):
-				print(e)
 				self.rollback()
 
 			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
