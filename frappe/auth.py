@@ -207,7 +207,17 @@ class LoginManager:
 			user = frappe.db.get_value("User", filters={"username": user}, fieldname="name") or user
 
 		self.check_if_enabled(user)
+		self.attempts_limit = int(frappe.db.get_value("System Settings", "System Settings", "minimum_lock_limit"))
+		if not self.attempts_limit:
+			self.attempts_limit = 3
+
+		self.minimum_lock_limit = int(frappe.db.get_value("System Settings", "System Settings", "lock_time"))
+		# set minimum lock limit to 30 if not set in system settings
+		if not self.minimum_lock_limit:
+			self.minimum_lock_limit = 30
+		self.check_login_attempts(user)
 		self.user = self.check_password(user, pwd)
+		self.clear_login_attempts(user)
 
 	def check_if_enabled(self, user):
 		"""raise exception if user not enabled"""
@@ -226,6 +236,7 @@ class LoginManager:
 			return check_password(user, pwd)
 		except frappe.AuthenticationError:
 			self.update_invalid_login(user)
+			self.update_login_attempts(user)
 			self.fail('Incorrect password', user=user)
 
 	def fail(self, message, user=None):
@@ -244,6 +255,46 @@ class LoginManager:
 			failed_count = get_login_failed_count(user)
 
 		frappe.cache().hset('login_failed_count', user, failed_count + 1)
+
+	def update_login_attempts(self, user):
+		if frappe.db.exists("Login Attempts", user):
+			login_attempts = frappe.get_doc("Login Attempts", user)
+		else:
+			login_attempts = frappe.get_doc({
+				"doctype": "Login Attempts",
+				"user": user,
+				"attempts": 0,
+				"lock_start_time": frappe.utils.data.now(),
+				"status": "Active",
+				"lock_time": 0
+			})
+		login_attempts.attempts = int(login_attempts.attempts) + 1
+		if login_attempts.attempts >= self.attempts_limit:
+			login_attempts.lock_time = int(login_attempts.lock_time) + self.minimum_lock_limit
+			login_attempts.lock_start_time =  frappe.utils.data.now()
+		login_attempts.save(ignore_permissions=True)
+
+	def clear_login_attempts(self, user):
+		if frappe.db.exists("Login Attempts", user):
+			login_attempts = frappe.get_doc("Login Attempts", user)
+			login_attempts.attempts = 0
+			login_attempts.lock_time = 0
+			login_attempts.lock_start_time = 0
+			login_attempts.status = "Active"
+			login_attempts.save(ignore_permissions=True)
+
+	def check_login_attempts(self, user):
+			from dateutil.relativedelta import relativedelta
+			if frappe.db.exists("Login Attempts", user):
+				login_attempts = frappe.get_doc("Login Attempts", user)
+				login_attempts.attempts = self.attempts_limit
+				now_datetime = frappe.utils.now_datetime()
+				if (login_attempts.lock_start_time and
+					int(login_attempts.attempts)>=self.attempts_limit and
+					now_datetime < login_attempts.lock_start_time + relativedelta(minutes=login_attempts.lock_time)):
+					login_attempts.status = "Blocked"
+					login_attempts.save(ignore_permissions=True)
+					raise frappe.PermissionError
 
 	def run_trigger(self, event='on_login'):
 		for method in frappe.get_hooks().get(event, []):
