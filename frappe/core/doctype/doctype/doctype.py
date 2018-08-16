@@ -118,20 +118,31 @@ class DocType(Document):
 					link_fieldname, source_fieldname = df.fetch_from.split('.', 1)
 					link_df = new_meta.get_field(link_fieldname)
 
-					self.flags.update_fields_to_fetch_queries.append('''update
-							`tab{link_doctype}` as source,
-							`tab{doctype}` as target
-						set
-							target.`{fieldname}` = source.`{source_fieldname}`
-						where
-							target.`{link_fieldname}` = source.name
-							and ifnull(target.`{fieldname}`, '')="" '''.format(
-								link_doctype = link_df.options,
-								source_fieldname = source_fieldname,
-								doctype = self.name,
-								fieldname = df.fieldname,
-								link_fieldname = link_fieldname
-					))
+					if frappe.conf.db_type == 'postgres':
+						update_query = '''
+							UPDATE `tab{doctype}`
+							SET `{fieldname}` = source.`{source_fieldname}`
+							FROM `tab{link_doctype}` as source
+							WHERE `{link_fieldname}` = source.name
+							AND ifnull(`{fieldname}`, '')=''
+						'''
+					else:
+						update_query = '''
+							UPDATE `tab{doctype}` as target
+							INNER JOIN `tab{link_doctype}` as source
+							ON `target`.`{link_fieldname}` = `source`.`name`
+							SET `target`.`{fieldname}` = `source`.`{source_fieldname}`
+							WHERE ifnull(`target`.`{fieldname}`, '')=""
+						'''
+
+					self.flags.update_fields_to_fetch_queries.append(update_query.format(
+							link_doctype = link_df.options,
+							source_fieldname = source_fieldname,
+							doctype = self.name,
+							fieldname = df.fieldname,
+							link_fieldname = link_fieldname
+						)
+					)
 
 	def update_fields_to_fetch(self):
 		'''Update fetch values based on queries setup'''
