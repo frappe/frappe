@@ -10,6 +10,8 @@ frappe.start_app = function() {
 	frappe.app = new frappe.Application();
 };
 
+console.log('this is a dummy pr')
+
 $(document).ready(function() {
 	if(!frappe.utils.supportsES6) {
 		frappe.msgprint({
