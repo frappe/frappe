@@ -55,7 +55,10 @@ def read_csv_content(fcontent, ignore_encoding=False):
 	fcontent = fcontent.encode("utf-8")
 	content  = [ ]
 	for line in fcontent.splitlines(True):
-		content.append(line)
+		if six.PY2:
+			content.append(line)
+		else:
+			content.append(frappe.safe_decode(line))
 
 	try:
 		rows = []
