@@ -69,11 +69,9 @@ class PostgresDatabase(Database):
 
 	def escape(self, s, percent=True):
 		"""Excape quotes and percent in given string."""
-		# NOTE separating % escape, because % escape should only be done when using LIKE operator
-		# or when you use python format string to generate query that already has a %s
-		# for example: sql("select name from `tabUser` where name=%s and {0}".format(conditions), something)
-		# defaulting it to True, as this is the most frequent use case
-		# ideally we shouldn't have to use ESCAPE and strive to pass values via the values argument of sql
+		if isinstance(s, bytes):
+			s = s.decode('utf-8')
+		
 		if percent:
 			s = s.replace("%", "%%")
 
