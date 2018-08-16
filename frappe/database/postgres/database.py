@@ -91,6 +91,8 @@ class PostgresDatabase(Database):
 		# replace ` with " for definitions
 		query = query.replace('`', '"')
 
+		query = replace_locate_with_strpos(query)
+
 		# select from requires ""
 		if re.search('from tab', query, flags=re.IGNORECASE):
 			query = re.sub('from tab([a-zA-Z]*)', r'from "tab\1"', query, flags=re.IGNORECASE)
@@ -271,3 +273,10 @@ class PostgresDatabase(Database):
 
 	def get_database_list(self, target):
 		return [d[0] for d in self.sql("SELECT datname FROM pg_database;")]
+
+
+def replace_locate_with_strpos(query):
+	# strpos is the locate equivalent in postgres
+	if re.search(r'locate\(', query, flags=re.IGNORECASE):
+		query = re.sub(r'locate\(([^,]+),([^)]+)\)', r'strpos(\2, \1)', query, flags=re.IGNORECASE)
+	return query

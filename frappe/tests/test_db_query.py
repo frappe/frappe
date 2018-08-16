@@ -124,7 +124,7 @@ class TestReportview(unittest.TestCase):
 		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
 			fields=["name", "issingle,'"],limit_start=0, limit_page_length=1)
 
-		data = DatabaseQuery("DocType").execute(fields=["name", "issingle", "count(name)"],
+		data = DatabaseQuery("DocType").execute(fields=["count(`name`)"],
 			limit_start=0, limit_page_length=1)
 		self.assertTrue('count(name)' in data[0])
 

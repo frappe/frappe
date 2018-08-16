@@ -15,9 +15,9 @@ def get_monthly_results(goal_doctype, goal_field, date_col, filter_str, aggregat
 		month_year_format_query = 'date_format(`{}`, "%m-%Y")'.format(date_col)
 
 	conditions = ('where ' + filter_str) if filter_str else ''
-	results = frappe.db.sql('''select {aggregation}(`{goal_field}`) as {goal_field},
-		{month_year_format_query} as month_year
-		from `{table_name}` {conditions}
+	results = frappe.db.sql('''SELECT {aggregation}(`{goal_field}`) AS {goal_field},
+		{month_year_format_query} AS month_year
+		FROM `{table_name}` {conditions}
 		GROUP BY month_year'''
 		.format(
 			aggregation=aggregation,
