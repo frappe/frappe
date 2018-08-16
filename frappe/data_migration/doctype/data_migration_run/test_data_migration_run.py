@@ -102,13 +102,13 @@ def create_plan():
 			{ 'mapping': 'Event to ToDo' }
 		]
 	}).insert(ignore_if_duplicate=True)
-	
+
 	frappe.get_doc({
 		'doctype': 'Data Migration Connector',
 		'connector_name': 'Local Connector',
 		'connector_type': 'Frappe',
 		# connect to same host.
-		'hostname': 'http://test_site_postgres:8000',
+		'hostname': frappe.conf.host_name,
 		'username': 'Administrator',
 		'password': 'admin'
 	}).insert(ignore_if_duplicate=True)
