@@ -683,8 +683,8 @@ def get_between_date_filter(value, df=None):
 		return the formattted date as per the given example
 		[u'2017-11-01', u'2017-11-03'] => '2017-11-01 00:00:00.000000' AND '2017-11-04 00:00:00.000000'
 	'''
-	from_date = None
-	to_date = None
+	from_date = frappe.utils.nowdate()
+	to_date = frappe.utils.nowdate()
 
 	if value and isinstance(value, (list, tuple)):
 		if len(value) >= 1: from_date = value[0]
