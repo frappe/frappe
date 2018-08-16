@@ -144,7 +144,7 @@ class Database(object):
 				if not isinstance(values, (dict, tuple, list)):
 					values = (values,)
 
-				if debug and query.lower().startswith('select'):
+				if debug:
 					try:
 						if explain:
 							self.explain_query(query, values)
@@ -176,7 +176,9 @@ class Database(object):
 
 		except Exception as e:
 			if(frappe.conf.db_type == 'postgres'):
+				print(e)
 				self.rollback()
+
 			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
 			else:
@@ -815,7 +817,7 @@ class Database(object):
 				conditions = []
 				for d in dt:
 					if d == 'doctype': continue
-					conditions.append('`%s` = "%s"' % (d, cstr(dt[d]).replace('"', '\"')))
+					conditions.append("`%s` = '%s'" % (d, cstr(dt[d]).replace("'", "\'")))
 				return self.sql('select name from `tab%s` where %s' % \
 						(dt['doctype'], " and ".join(conditions)))
 			except:
