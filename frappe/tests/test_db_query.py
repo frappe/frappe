@@ -8,6 +8,8 @@ from frappe.model.db_query import DatabaseQuery
 from frappe.desk.reportview import get_filters_cond
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 
+test_dependencies = ["User"]
+
 class TestReportview(unittest.TestCase):
 	def test_basic(self):
 		self.assertTrue({"name":"DocType"} in DatabaseQuery("DocType").execute(limit_page_length=None))
@@ -230,7 +232,7 @@ class TestReportview(unittest.TestCase):
 		create_new_folder('level2-A', 'Home/level1-B')
 
 		# in descendants filter
-		data = frappe.get_all('File', {'name': ('descendants of', 'Home/level1-A/level2-A')})
+		data = frappe.get_all('File', {'name': ('descendants of', 'Home/level1-A/level2-A')}, debug=1)
 		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
 
 		data = frappe.get_all('File', {'name': ('descendants of', 'Home/level1-A')})

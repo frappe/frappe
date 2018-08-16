@@ -346,16 +346,23 @@ class DatabaseQuery(object):
 
 			# Get descendants elements of a DocType with a tree structure
 			if f.operator.lower() in ('descendants of', 'not descendants of') :
-				result = frappe.db.sql_list("""select name from `tab{0}`
-					where lft>%s and rgt<%s order by lft asc""".format(ref_doctype), (lft, rgt))
+				result = frappe.get_all(ref_doctype, filters={
+					'lft': ['>', lft],
+					'rgt': ['<', rgt]
+				}, order_by='`lft` ASC')
 			else :
 				# Get ancestor elements of a DocType with a tree structure
-				result = frappe.db.sql_list("""select name from `tab{0}`
-					where lft<%s and rgt>%s order by lft desc""".format(ref_doctype), (lft, rgt))
+				result = frappe.get_all(ref_doctype, filters={
+					'lft': ['<', lft],
+					'rgt': ['>', rgt]
+				}, order_by='`lft` DESC')
 
 			fallback = "''"
-			value = (frappe.db.escape((v or '').strip(), percent=False) for v in result)
-			value = '("{0}")'.format('", "'.join(value))
+			value = [frappe.db.escape((v.name or '').strip(), percent=False) for v in result]
+			if len(value):
+				value = "({0})".format(", ".join(value))
+			else:
+				value = "('')"
 			# changing operator to IN as the above code fetches all the parent / child values and convert into tuple
 			# which can be directly used with IN operator to query.
 			f.operator = 'not in' if f.operator.lower() in ('not ancestors of', 'not descendants of') else 'in'
@@ -367,8 +374,11 @@ class DatabaseQuery(object):
 				values = values.split(",")
 
 			fallback = "''"
-			value = (frappe.db.escape((v or '').strip(), percent=False) for v in values)
-			value = "({0})".format(", ".join(value))
+			value = [frappe.db.escape((v or '').strip(), percent=False) for v in values]
+			if len(value):
+				value = "({0})".format(", ".join(value))
+			else:
+				value = "('')"
 		else:
 			df = frappe.get_meta(f.doctype).get("fields", {"fieldname": f.fieldname})
 			df = df[0] if df else None
