@@ -321,7 +321,7 @@ def sync_global_search():
 	frappe.session.user = 'Guest'
 	frappe.local.no_cache = True
 
-	frappe.db.sql('delete from __global_search where doctype="Static Web Page"')
+	frappe.db.sql("DELETE FROM `__global_search` WHERE `doctype`='Static Web Page'")
 
 	for app in frappe.get_installed_apps(frappe_last=True):
 		app_path = frappe.get_app_path(app)
