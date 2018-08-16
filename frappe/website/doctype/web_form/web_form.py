@@ -438,14 +438,38 @@ def accept(web_form, data, for_payment=False):
 		return doc.as_dict()
 
 @frappe.whitelist()
-def delete(web_form, name):
-	web_form = frappe.get_doc("Web Form", web_form)
+def delete(web_form_name, docname):
+	web_form = frappe.get_doc("Web Form", web_form_name)
 
-	owner = frappe.db.get_value(web_form.doc_type, name, "owner")
+	owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
 	if frappe.session.user == owner and web_form.allow_delete:
-		frappe.delete_doc(web_form.doc_type, name, ignore_permissions=True)
+		frappe.delete_doc(web_form.doc_type, docname, ignore_permissions=True)
 	else:
 		raise frappe.PermissionError("Not Allowed")
+
+
+@frappe.whitelist()
+def delete_multiple(web_form_name, docnames):
+	web_form = frappe.get_doc("Web Form", web_form_name)
+
+	docnames = json.loads(docnames)
+
+	allowed_docnames = []
+	restricted_docnames = []
+
+	for docname in docnames:
+		owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
+		if frappe.session.user == owner and web_form.allow_delete:
+			allowed_docnames.append(docname)
+		else:
+			restricted_docnames.append(docname)
+
+	for docname in allowed_docnames:
+		frappe.delete_doc(web_form.doc_type, docname, ignore_permissions=True)
+
+	if restricted_docnames:
+		raise frappe.PermissionError("You do not have permisssion to delete " + ", ".join(restricted_docnames))
+
 
 def has_web_form_permission(doctype, name, ptype='read'):
 	if frappe.session.user=="Guest":
