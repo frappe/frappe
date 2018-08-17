@@ -262,10 +262,14 @@ class User(Document):
 			site_info = get_site_info({})
 			app_title = site_info.get('company', None)
 
-		if app_title:
-			subject = _("Welcome to {0}").format(app_title)
-		else:
-			subject = _("Complete Registration")
+		mail_titles = frappe.get_hooks().get("login_mail_title", [])
+		subject = (mail_titles and mail_titles[0]) or ""
+
+		if not subject:
+			if app_title:
+				subject = _("Welcome to {0}").format(app_title)
+			else:
+				subject = _("Complete Registration")
 
 		self.send_login_mail(subject, "new_user",
 				dict(
@@ -279,7 +283,7 @@ class User(Document):
 		from frappe.utils import get_url
 
 		mail_titles = frappe.get_hooks().get("login_mail_title", [])
-		title = frappe.db.get_default('company') or (mail_titles and mail_titles[0]) or ""
+		title = (mail_titles and mail_titles[0]) or frappe.db.get_default('company') or ""
 
 		full_name = get_user_fullname(frappe.session['user'])
 		if full_name == "Guest":
