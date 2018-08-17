@@ -160,7 +160,7 @@ $.extend(frappe.datetime, {
 	},
 
 	_date: function(format, as_obj = false) {
-		const { time_zone } = frappe.sys_defaults;
+		const time_zone = frappe.sys_defaults && frappe.sys_defaults.time_zone;
 		let date;
 		if (time_zone) {
 			date = moment.tz(time_zone);

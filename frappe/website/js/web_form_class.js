@@ -13,42 +13,41 @@ export default class WebForm {
 				docname: this.docname,
 				web_form_name: this.web_form_name
 			},
-			freeze: true
+			freeze: true,
 		}).then(r => {
 			const { doc, web_form, links } = r.message;
+			web_form.web_form_fields.map(df => {
+				if (df.fieldtype === 'Table') {
+
+					df.get_data = () => {
+						let data = []
+						if(doc) {
+							data = doc[df.fieldname];
+						}
+						return data;
+					}
+
+					df.options = null;
+
+					if (r.message.hasOwnProperty(df.fieldname)) {
+						df.fields = r.message[df.fieldname];
+					}
+				}
+			});
+
 			this.render(doc, web_form, links);
+
 		});
 	}
 
-	render(doc, web_form, links) {
+
+	render(doc, web_form) {
 		const query_params = frappe.utils.get_query_params();
 
 		web_form.web_form_fields.map(df => {
-			if (df.fieldtype === 'Link') {
-				df.fieldtype = 'Select';
-				df.options = links[df.fieldname]
-			}
 
-			if (df.fieldtype === 'Table') {
-				df.get_data = () => {
-					let data = []
-					if(doc) {
-						data = doc[df.fieldname];
-					}
-					return data;
-				}
-
-				df.fields = [
-					{
-						fieldtype: 'Link',
-						fieldname: "role",
-						options: "Role",
-						label: __("Role"),
-						in_list_view: 1 // added
-					}
-				];
-
-				df.options = null;
+			if (df.fieldtype==='Attach') {
+				df.is_private = true;
 			}
 
 			// Set defaults
@@ -85,5 +84,47 @@ export default class WebForm {
 		values.name = this.docname;
 		values.web_form_name = this.web_form_name;
 		return values;
+	}
+
+	get_field(fieldname) {
+		const field = this.field_group.fields_dict[fieldname];
+		if (!field) {
+			throw `No field ${fieldname}`;
+		}
+		return field;
+	}
+
+	get_input(fieldname) {
+		const $input = this.get_field(fieldname).$input;
+		if (!$input) {
+			throw `Cannot set trigger for ${fieldname}`;
+		}
+		return $input;
+	}
+
+	get_value(fieldname) {
+		return this.fieldname.get_value(fieldname);
+	}
+
+	set_value(fieldname, value) {
+		return this.field_group.set_value(fieldname, value);
+	}
+
+	set_field_property(fieldname, property, value) {
+		const field = this.get_field(fieldname);
+		field.df[property] = value;
+		field.refresh();
+	}
+
+	on(fieldname, fn) {
+		const field = this.get_field(fieldname);
+		const $input = this.get_input(fieldname);
+		$input.on('change', (event) => {
+			return fn(field, field.get_value(), event);
+		});
+	}
+
+	validate() {
+		return true;
 	}
 }

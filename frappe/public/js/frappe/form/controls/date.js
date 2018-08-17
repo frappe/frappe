@@ -125,7 +125,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			let sysdefaults = frappe.sys_defaults;
 			let date_format = sysdefaults && sysdefaults.date_format
 				? sysdefaults.date_format : 'yyyy-mm-dd';
-			frappe.msgprint(__("Date must be in format: {0}", [date_format]));
+			frappe.msgprint(__("Date {0} must be in format: {1}", [value, date_format]));
 			return '';
 		}
 		return value;

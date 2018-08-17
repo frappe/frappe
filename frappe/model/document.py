@@ -922,7 +922,7 @@ class Document(BaseDocument):
 		self.latest = None
 
 	def clear_cache(self):
-		frappe.cache().hdel("last_modified", self.doctype)
+		frappe.clear_document_cache(self.doctype, self.name)
 
 	def reset_seen(self):
 		'''Clear _seen property and set current user as seen'''
@@ -977,6 +977,7 @@ class Document(BaseDocument):
 		if notify:
 			self.notify_update()
 
+		self.clear_cache()
 		if commit:
 			frappe.db.commit()
 

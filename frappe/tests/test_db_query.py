@@ -214,6 +214,87 @@ class TestReportview(unittest.TestCase):
 				], order_by='creation')
 		self.assertTrue('DefaultValue' in [d['name'] for d in out])
 
+	def test_of_not_of_descendant_ancestors(self):
+		clear_user_permissions_for_doctype("File")
+		delete_test_file_hierarchy() # delete already existing folders
+		from frappe.core.doctype.file.file import create_new_folder
+
+		create_new_folder('level1-A', 'Home')
+		create_new_folder('level2-A', 'Home/level1-A')
+		create_new_folder('level2-B', 'Home/level1-A')
+		create_new_folder('level3-A', 'Home/level1-A/level2-A')
+
+		create_new_folder('level1-B', 'Home')
+		create_new_folder('level2-A', 'Home/level1-B')
+
+		# in descendants filter
+		data = frappe.get_all('File', {'name': ('descendants of', 'Home/level1-A/level2-A')})
+		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
+
+		data = frappe.get_all('File', {'name': ('descendants of', 'Home/level1-A')})
+		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
+		self.assertFalse({"name": "Home/level1-B"} in data)
+		self.assertFalse({"name": "Home/level1-A"} in data)
+		self.assertFalse({"name": "Home"} in data)
+
+		# in ancestors of filter
+		data = frappe.get_all('File', {'name': ('ancestors of', 'Home/level1-A/level2-A')})
+		self.assertFalse({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertFalse({"name": "Home/level1-A/level2-A"} in data)
+		self.assertFalse({"name": "Home/level1-A/level2-B"} in data)
+		self.assertFalse({"name": "Home/level1-B"} in data)
+		self.assertTrue({"name": "Home/level1-A"} in data)
+		self.assertTrue({"name": "Home"} in data)
+
+		data = frappe.get_all('File', {'name': ('ancestors of', 'Home/level1-A')})
+		self.assertFalse({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertFalse({"name": "Home/level1-A/level2-A"} in data)
+		self.assertFalse({"name": "Home/level1-A/level2-B"} in data)
+		self.assertFalse({"name": "Home/level1-B"} in data)
+		self.assertFalse({"name": "Home/level1-A"} in data)
+		self.assertTrue({"name": "Home"} in data)
+
+		# not descendants filter
+		data = frappe.get_all('File', {'name': ('not descendants of', 'Home/level1-A/level2-A')})
+		self.assertFalse({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
+		self.assertTrue({"name": "Home/level1-A"} in data)
+		self.assertTrue({"name": "Home"} in data)
+
+		data = frappe.get_all('File', {'name': ('not descendants of', 'Home/level1-A')})
+		self.assertFalse({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertFalse({"name": "Home/level1-A/level2-A"} in data)
+		self.assertFalse({"name": "Home/level1-A/level2-B"} in data)
+		self.assertTrue({"name": "Home/level1-B"} in data)
+		self.assertTrue({"name": "Home/level1-A"} in data)
+		self.assertTrue({"name": "Home"} in data)
+
+		# not ancestors of filter
+		data = frappe.get_all('File', {'name': ('not ancestors of', 'Home/level1-A/level2-A')})
+		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
+		self.assertTrue({"name": "Home/level1-B"} in data)
+		self.assertTrue({"name": "Home/level1-A"} not in data)
+		self.assertTrue({"name": "Home"} not in data)
+
+		data = frappe.get_all('File', {'name': ('not ancestors of', 'Home/level1-A')})
+		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
+		self.assertTrue({"name": "Home/level1-B"} in data)
+		self.assertTrue({"name": "Home/level1-A"} in data)
+		self.assertFalse({"name": "Home"} in data)
+
+		data = frappe.get_all('File', {'name': ('ancestors of', 'Home')})
+		self.assertTrue(len(data) == 0)
+		self.assertTrue(len(frappe.get_all('File', {'name': ('not ancestors of', 'Home')})) == len(frappe.get_all('File')))
+
+
+
 def create_event(subject="_Test Event", starts_on=None):
 	""" create a test event """
 

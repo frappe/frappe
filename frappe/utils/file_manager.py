@@ -128,7 +128,7 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 			content = content.encode("utf-8")
 
 		if b"," in content:
-			content = content.split(",")[1]
+			content = content.split(b",")[1]
 		content = base64.b64decode(content)
 
 	file_size = check_max_file_size(content)
@@ -371,13 +371,13 @@ def download_file(file_url):
 	"""
 	file_doc = frappe.get_doc("File", {"file_url":file_url})
 	file_doc.check_permission("read")
+	path = os.path.join(get_files_path(), os.path.basename(file_url))
 
-	with open(getattr(frappe.local, "site_path", None) + file_url, "rb") as fileobj:
+	with open(path, "rb") as fileobj:
 		filedata = fileobj.read()
-	frappe.local.response.filename = file_url[file_url.rfind("/")+1:]
+	frappe.local.response.filename = os.path.basename(file_url)
 	frappe.local.response.filecontent = filedata
 	frappe.local.response.type = "download"
-
 
 def extract_images_from_doc(doc, fieldname):
 	content = doc.get(fieldname)

@@ -179,6 +179,10 @@ class DocType(Document):
 						d.fieldname = d.label.strip().lower().replace(' ','_')
 						if d.fieldname in restricted:
 							d.fieldname = d.fieldname + '1'
+						if d.fieldtype=='Section Break':
+							d.fieldname = d.fieldname + '_section'
+						elif d.fieldtype=='Column Break':
+							d.fieldname = d.fieldname + '_column'
 					else:
 						d.fieldname = d.fieldtype.lower().replace(" ","_") + "_" + str(d.idx)
 
@@ -224,7 +228,11 @@ class DocType(Document):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
 		from frappe.model.db_schema import updatedb
 		self.delete_duplicate_custom_fields()
-		updatedb(self.name, self)
+		try:
+			updatedb(self.name, self)
+		except Exception as e:
+			print("\n\nThere was an issue while migrating the DocType: {}\n".format(self.name))
+			raise e
 
 		self.change_modified_of_parent()
 		make_module_and_roles(self)
@@ -355,7 +363,7 @@ class DocType(Document):
 				with open(fname, 'r') as f:
 					code = f.read()
 				with open(fname, 'w') as f:
-					f.write(code.replace(frappe.scurb(old).replace(' ', ''), frappe.scrub(new).replace(' ', '')))
+					f.write(code.replace(frappe.scrub(old).replace(' ', ''), frappe.scrub(new).replace(' ', '')))
 
 	def before_reload(self):
 		"""Preserve naming series changes in Property Setter."""
@@ -683,8 +691,8 @@ def validate_fields(meta):
 		if d.fieldtype != "Table": d.allow_bulk_edit = 0
 		if d.fieldtype == "Barcode": d.ignore_xss_filter = 1
 		if not d.fieldname:
-			frappe.throw(_("Fieldname is required in row {0}").format(d.idx))
-		d.fieldname = d.fieldname.lower()
+			d.fieldname = d.fieldname.lower()
+
 		check_illegal_characters(d.fieldname)
 		check_unique_fieldname(d.fieldname)
 		check_fieldname_length(d.fieldname)

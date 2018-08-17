@@ -2,7 +2,7 @@
 // MIT License. See license.txt
 /* eslint-disable no-console */
 
-import hljs from 'highlight.js';
+import hljs from './syntax_highlight';
 
 frappe.provide("website");
 frappe.provide("frappe.awesome_bar_path");
@@ -265,9 +265,7 @@ $.extend(frappe, {
 	},
 
 	highlight_code_blocks: function() {
-		$('pre code').each(function(i, block) {
-			hljs.highlightBlock(block);
-		});
+		hljs.initHighlighting();
 	},
 	bind_filters: function() {
 		// set in select

@@ -16,10 +16,15 @@ import io
 
 from six import iteritems
 
-
 def get_meta(doctype, cached=True):
+	# don't cache for developer mode as js files, templates may be edited
 	if cached and not frappe.conf.developer_mode:
-		meta = frappe.cache().hget("form_meta", doctype, lambda: FormMeta(doctype))
+		meta = frappe.cache().hget("form_meta", doctype)
+		if meta:
+			meta = FormMeta(meta)
+		else:
+			meta = FormMeta(doctype)
+			frappe.cache().hset("form_meta", doctype, meta.as_dict())
 	else:
 		meta = FormMeta(doctype)
 
@@ -48,14 +53,15 @@ class FormMeta(Meta):
 
 	def as_dict(self, no_nulls=False):
 		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)
+
 		for k in ("__js", "__css", "__list_js", "__calendar_js", "__map_js",
 			"__linked_with", "__messages", "__print_formats", "__workflow_docs",
 			"__form_grid_templates", "__listview_template", "__tree_js",
-			"__dashboard", "__kanban_boards", "__kanban_column_fields", '__templates',
+			"__dashboard", "__kanban_column_fields", '__templates',
 			'__custom_js'):
 			d[k] = self.get(k)
 
-		for i, df in enumerate(d.get("fields")):
+		for i, df in enumerate(d.get("fields") or []):
 			for k in ("search_fields", "is_custom_field", "linked_document_type"):
 				df[k] = self.get("fields")[i].get(k)
 
@@ -185,13 +191,7 @@ class FormMeta(Meta):
 		self.set('__dashboard', self.get_dashboard_data())
 
 	def load_kanban_meta(self):
-		self.load_kanban_boards()
 		self.load_kanban_column_fields()
-
-	def load_kanban_boards(self):
-		kanban_boards = frappe.get_list(
-			'Kanban Board', fields=['name', 'filters', 'reference_doctype', 'private'], filters={'reference_doctype': self.name})
-		self.set("__kanban_boards", kanban_boards, as_value=True)
 
 	def load_kanban_column_fields(self):
 		values = frappe.get_list(

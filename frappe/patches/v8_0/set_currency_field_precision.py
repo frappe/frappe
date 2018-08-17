@@ -9,7 +9,7 @@ def execute():
 	frappe.reload_doc('core', 'doctype', 'system_settings', force=True)
 	if not frappe.db.get_value("System Settings", None, "currency_precision"):
 		default_currency = frappe.db.get_default("currency")
-		number_format = frappe.db.get_value("Currency", default_currency, "number_format") \
+		number_format = frappe.db.get_value("Currency", default_currency, "number_format", cache=True) \
 			or frappe.db.get_default("number_format")
 		if number_format:
 			precision = get_number_format_info(number_format)[2]

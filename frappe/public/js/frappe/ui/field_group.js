@@ -23,7 +23,7 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			this.refresh();
 			// set default
 			$.each(this.fields_list, function(i, field) {
-				if(field.df["default"]) {
+				if (field.df["default"]) {
 					field.set_input(field.df["default"]);
 					// if default and has depends_on, render its fields.
 					me.refresh_dependency();
@@ -34,7 +34,7 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 				this.catch_enter_as_submit();
 			}
 
-			$(this.body).find('input, select').on('change', () => {
+			$(this.wrapper).find('input, select').on('change', () => {
 				this.dirty = true;
 
 				frappe.run_serially([

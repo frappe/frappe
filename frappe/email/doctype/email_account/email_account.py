@@ -52,7 +52,7 @@ class EmailAccount(Document):
 			"name": ("!=", self.name)
 		})
 		if duplicate_email_account:
-			frappe.throw(_("Email id must be unique, Email Account is already exist \
+			frappe.throw(_("Email ID must be unique, Email Account already exists \
 				for {0}".format(frappe.bold(self.email_id))))
 
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:

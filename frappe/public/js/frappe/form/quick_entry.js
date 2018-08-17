@@ -134,7 +134,10 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 
 			if(data) {
 				me.dialog.working = true;
-				me.insert();
+				me.dialog.set_message(__('Saving...'));
+				me.insert().then(() => {
+					me.dialog.clear_message();
+				});
 			}
 		});
 	},

@@ -26,7 +26,10 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 			$(this.wrapper).addClass("modal-lg");
 
 		this.make_head();
-		this.body = this.$wrapper.find(".modal-body").get(0);
+		this.modal_body = this.$wrapper.find(".modal-body");
+		this.$body = $('<div></div>').appendTo(this.modal_body);
+		this.body = this.$body.get(0);
+		this.$message = $('<div class="hide modal-message"></div>').appendTo(this.modal_body);
 		this.header = this.$wrapper.find(".modal-header");
 
 		// make fields (if any)
@@ -34,11 +37,12 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 
 		// show footer
 		this.action = this.action || { primary: { }, secondary: { } };
-		if(this.primary_action || !this.action.primary) {
-			this.set_primary_action(this.primary_action_label || this.action.primary.label || __("Submit"), this.primary_action || this.action.primary.onsubmit);
+		if(this.primary_action || (this.action.primary && this.action.primary.onsubmit)) {
+			this.set_primary_action(this.primary_action_label || this.action.primary.label || __("Submit"),
+				this.primary_action || this.action.primary.onsubmit);
 		}
 
-		if (this.secondary_action_label || !this.action.secondary) {
+		if (this.secondary_action_label || (this.action.secondary && this.action.secondary.label)) {
 			this.get_close_btn().html(this.secondary_action_label || this.action.secondary.label);
 		}
 
@@ -77,6 +81,18 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 	get_primary_btn: function() {
 		return this.$wrapper.find(".modal-header .btn-primary");
 	},
+
+	set_message: function(text) {
+		this.$message.removeClass('hide');
+		this.$body.addClass('hide');
+		this.$message.text(text);
+	},
+
+	clear_message() {
+		this.$message.addClass('hide');
+		this.$body.removeClass('hide');
+	},
+
 	set_primary_action: function(label, click) {
 		this.has_primary_action = true;
 		var me = this;

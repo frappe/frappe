@@ -207,6 +207,10 @@ frappe.dom = {
 			const $img = $(e.currentTarget);
 			$img.addClass('no-image');
 		});
+	},
+	scroll_to_bottom(container) {
+		const $container = $(container);
+		$container.scrollTop($container[0].scrollHeight);
 	}
 }
 
