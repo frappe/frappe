@@ -245,7 +245,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (data.prepared_report){
 				this.prepared_report = true;
 				this.add_prepared_report_buttons(data.doc);
-				data = data.data;
 			}
 			this.toggle_message(false);
 			if (data.result && data.result.length) {
@@ -567,7 +566,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 				frappe.tools.downloadify(out, null, this.report_name);
 			} else {
-				const filters = this.get_filter_values(true);
+				let filters = this.get_filter_values(true);
+				if (frappe.urllib.get_dict("prepared_report_name")) {
+					filters = Object.assign(frappe.urllib.get_dict("prepared_report_name"), filters);
+				}
 
 				const args = {
 					cmd: 'frappe.desk.query_report.export_query',
