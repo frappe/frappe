@@ -1,22 +1,22 @@
-Delivered-To: support@xxx.com
+Delivered-To: support@example.com
 Received: by 10.140.27.240 with SMTP id 103csp1321115qgx;
         Mon, 7 Mar 2016 05:45:25 -0800 (PST)
 X-Received: by 10.98.13.132 with SMTP id 4mr897053pfn.122.1457358325425;
         Mon, 07 Mar 2016 05:45:25 -0800 (PST)
-Return-Path: <sukh@yyy.com>
+Return-Path: <sukh@example.com>
 Received: from mail-pa0-x231.google.com (mail-pa0-x231.google.com. [2607:f8b0:400e:c03::231])
         by mx.google.com with ESMTPS id xc7si8177568pab.217.2016.03.07.05.45.24
-        for <support@xxx.com>
+        for <support@example.com>
         (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
         Mon, 07 Mar 2016 05:45:24 -0800 (PST)
-Received-SPF: pass (google.com: domain of sukh@yyy.com designates 2607:f8b0:400e:c03::231 as permitted sender) client-ip=2607:f8b0:400e:c03::231;
+Received-SPF: pass (google.com: domain of sukh@example.com designates 2607:f8b0:400e:c03::231 as permitted sender) client-ip=2607:f8b0:400e:c03::231;
 Authentication-Results: mx.google.com;
-       spf=pass (google.com: domain of sukh@yyy.com designates 2607:f8b0:400e:c03::231 as permitted sender) smtp.mailfrom=sukh@yyy.com;
-       dkim=temperror (no key for signature) header.i=@yyy.com
+       spf=pass (google.com: domain of sukh@example.com designates 2607:f8b0:400e:c03::231 as permitted sender) smtp.mailfrom=sukh@example.com;
+       dkim=temperror (no key for signature) header.i=@example.com
 Received: by mail-pa0-x231.google.com with SMTP id fy10so78799490pac.1
-        for <support@xxx.com>; Mon, 07 Mar 2016 05:45:24 -0800 (PST)
+        for <support@example.com>; Mon, 07 Mar 2016 05:45:24 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=yyy.com; s=march;
+        d=example.com; s=march;
         h=from:message-id:mime-version:subject:date:references:to:in-reply-to;
         bh=yeuhcbT1UUBa85dfYr4MvEHUnO1nUwaDjTSXp+RTZqc=;
         b=i7tr2P4icc73830T3HGAWbtn3O4J0hbOexxNEIvjSnm65Xbb6NrH/JK5KNd2FRN0uh
@@ -36,21 +36,21 @@ X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
 X-Gm-Message-State: AD7BkJJkB6+rEJ77M+sJg7jWjs9f9i2vHLJsAx76mKbkNJbiz0HooCVaM9yb8sVm7j1Xug==
 X-Received: by 10.66.250.199 with SMTP id ze7mr33646221pac.103.1457358324406;
         Mon, 07 Mar 2016 05:45:24 -0800 (PST)
-Return-Path: <sukh@yyy.com>
+Return-Path: <sukh@example.com>
 Received: from [10.0.1.3] ([49.248.43.226])
         by smtp.gmail.com with ESMTPSA id x64sm24358984pfa.72.2016.03.07.05.45.15
-        for <support@xxx.com>
+        for <support@example.com>
         (version=TLS1 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
         Mon, 07 Mar 2016 05:45:23 -0800 (PST)
-From: Sukh Dugal <sukh@yyy.com>
+From: Sukh Dugal <sukh@example.com>
 Content-Type: multipart/alternative; boundary="Apple-Mail=_932090B1-CF85-48AE-A8FA-95F2EEB1A521"
-Message-Id: <444FBF29-EE23-4698-A38F-DD1081ABB362@yyy.com>
+Message-Id: <444FBF29-EE23-4698-A38F-DD1081ABB362@example.com>
 Mime-Version: 1.0 (Mac OS X Mail 9.2 \(3112\))
 Subject: Re: 1 minute review 🦄🌈😎
 Date: Mon, 7 Mar 2016 19:15:12 +0530
-References: <7c38972ae7@frappe.xxx.com>
-To: support@xxx.com
-In-Reply-To: <7c38972ae7@frappe.xxx.com>
+References: <7c38972ae7@frappe.example.com>
+To: support@example.com
+In-Reply-To: <7c38972ae7@frappe.example.com>
 X-Mailer: Apple Mail (2.3112)
 
 
@@ -64,7 +64,7 @@ It should ideally be open like #1 but I=E2=80=99d love 2.
 
 
 
-On 07-Mar-2016, at 5:47 PM, Rushabh Mehta <rushabh@xxx.com> wrote:
+On 07-Mar-2016, at 5:47 PM, Rushabh Mehta <rushabh@example.com> wrote:
 >=20
 > Thanks for the feedback!
 >=20
@@ -88,13 +88,13 @@ On 07-Mar-2016, at 5:47 PM, Rushabh Mehta <rushabh@xxx.com> wrote:
 removing any features
 >=20
 > Agree!
-> This email was sent to sukh@yyy.com
+> This email was sent to sukh@example.com
 > Leave this conversation =
-<http://frappe.xxx.com/api/method/frappe.email.bulk.unsubscribe?email=3D=
-sukh%40yyy.com&name=3DWN-SUP17470&doctype=3DIssue&_signature=3Dbba=
+<http://frappe.example.com/api/method/frappe.email.bulk.unsubscribe?email=3D=
+sukh%40example.com&name=3DWN-SUP17470&doctype=3DIssue&_signature=3Dbba=
 bf063b4f3aad9ba1af915aa66df23>
 > Frappe Technologies Private Limited
-> Sent via ERPNext <https://xxx.com/?source=3Dvia_email_footer>
+> Sent via ERPNext <https://example.com/?source=3Dvia_email_footer>
 
 
 --Apple-Mail=_932090B1-CF85-48AE-A8FA-95F2EEB1A521
@@ -122,7 +122,7 @@ id=3D"0740E45B-C8EE-4972-8524-13BB62334D85" height=3D"527" width=3D"697" =
 apple-width=3D"yes" apple-height=3D"yes" =
 src=3D"cid:DC6C108B-9D1B-489E-AEB8-341FADFB4F39" class=3D""></div><div =
 class=3D"">On 07-Mar-2016, at 5:47 PM, Rushabh Mehta &lt;<a =
-href=3D"mailto:rushabh@xxx.com" class=3D"">rushabh@xxx.com</a>&gt;=
+href=3D"mailto:rushabh@example.com" class=3D"">rushabh@example.com</a>&gt;=
  wrote:</div><div class=3D""><div><blockquote type=3D"cite" class=3D""><br=
  class=3D"Apple-interchange-newline"><div class=3D"">
 
@@ -164,11 +164,11 @@ data-email-footer=3D"true" class=3D"">
 	<div style=3D"margin: 15px auto; padding: 0px 7px; text-align: =
 center; color: #8d99a6;" class=3D"">
 			This email was sent to <a =
-href=3D"mailto:sukh@yyy.com" class=3D"">sukh@yyy.com</a>
+href=3D"mailto:sukh@example.com" class=3D"">sukh@example.com</a>
 			<p style=3D"margin: 15px auto;" class=3D"">
 				<a =
-href=3D"http://frappe.xxx.com/api/method/frappe.email.bulk.unsubscribe=
-?email=3Dsukh%40yyy.com&amp;name=3DWN-SUP17470&amp;doctype=3DIssue=
+href=3D"http://frappe.example.com/api/method/frappe.email.bulk.unsubscribe=
+?email=3Dsukh%40example.com&amp;name=3DWN-SUP17470&amp;doctype=3DIssue=
 &amp;_signature=3Dbbabf063b4f3aad9ba1af915aa66df23" style=3D"color: =
 #8d99a6; text-decoration: underline;
 					target=3D" _blank"=3D"" =
@@ -179,7 +179,7 @@ class=3D"">Leave this conversation
 center; color: #8d99a6" class=3D"">Frappe Technologies Private =
 Limited</div><div style=3D"margin: 15px auto;" class=3D""><div =
 style=3D"text-align: center;" class=3D"">
-	<a href=3D"https://xxx.com/?source=3Dvia_email_footer" =
+	<a href=3D"https://example.com/?source=3Dvia_email_footer" =
 target=3D"_blank" style=3D"color: #8d99a6;" class=3D"">
 		Sent via ERPNext
 	</a>
