@@ -315,6 +315,46 @@ def mariadb(context):
 		'--pager=less -SFX',
 		"-A"])
 
+@click.command('jupyter')
+@pass_context
+def jupyter(context):
+	try:
+		from pip import main
+	except ImportError:
+		from pip._internal import main
+
+	reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
+	installed_packages = [r.decode().split('==')[0] for r in reqs.split()]
+	if 'jupyter' not in installed_packages:
+		main(['install', 'jupyter'])
+	site = get_site(context)
+	frappe.init(site=site)
+	jupyter_notebooks_path = frappe.get_site_path('jupyter_notebooks')
+	try:
+		os.stat(jupyter_notebooks_path)
+	except:
+		os.mkdir(jupyter_notebooks_path)
+	absolute_site_path = os.path.abspath(jupyter_notebooks_path)
+	bin_path = '../env/bin'.format(absolute_site_path)
+	absolute_bin_path = os.path.abspath(bin_path)
+	print('''
+Stating Jupyter notebook
+Run the following in your first cell to connect notebook to frappe
+```
+import frappe
+frappe.init(site='{site}',sites_path='{absolute_site_path}')
+frappe.connect()
+frappe.local.lang = frappe.db.get_default('lang')
+frappe.db.connect()
+```
+	'''.format(site=site, absolute_site_path=absolute_site_path))
+	os.execv(sys.executable, [
+		'{0}/jupyter'.format(absolute_bin_path),
+		'{0}/jupyter'.format(absolute_bin_path),
+		'notebook',
+		jupyter_notebooks_path,
+	])
+
 @click.command('console')
 @pass_context
 def console(context):
@@ -610,6 +650,7 @@ commands = [
 	build,
 	clear_cache,
 	clear_website_cache,
+	jupyter,
 	console,
 	destroy_all_sessions,
 	execute,
