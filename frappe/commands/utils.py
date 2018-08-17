@@ -329,28 +329,27 @@ def jupyter(context):
 		main(['install', 'jupyter'])
 	site = get_site(context)
 	frappe.init(site=site)
-	jupyter_notebooks_path = frappe.get_site_path('jupyter_notebooks')
+	jupyter_notebooks_path = os.path.abspath(frappe.get_site_path('jupyter_notebooks'))
+	sites_path = os.path.abspath(frappe.get_site_path('..'))
 	try:
 		os.stat(jupyter_notebooks_path)
 	except:
 		os.mkdir(jupyter_notebooks_path)
-	absolute_site_path = os.path.abspath(jupyter_notebooks_path)
-	bin_path = '../env/bin'.format(absolute_site_path)
-	absolute_bin_path = os.path.abspath(bin_path)
+	bin_path = os.path.abspath('../env/bin')
 	print('''
 Stating Jupyter notebook
 Run the following in your first cell to connect notebook to frappe
 ```
 import frappe
-frappe.init(site='{site}',sites_path='{absolute_site_path}')
+frappe.init(site='{site}', sites_path='{sites_path}')
 frappe.connect()
 frappe.local.lang = frappe.db.get_default('lang')
 frappe.db.connect()
 ```
-	'''.format(site=site, absolute_site_path=absolute_site_path))
+	'''.format(site=site, sites_path=sites_path))
 	os.execv(sys.executable, [
-		'{0}/jupyter'.format(absolute_bin_path),
-		'{0}/jupyter'.format(absolute_bin_path),
+		'{0}/jupyter'.format(bin_path),
+		'{0}/jupyter'.format(bin_path),
 		'notebook',
 		jupyter_notebooks_path,
 	])
