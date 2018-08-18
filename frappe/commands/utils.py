@@ -333,7 +333,8 @@ def jupyter(context):
 	sites_path = os.path.abspath(frappe.get_site_path('..'))
 	try:
 		os.stat(jupyter_notebooks_path)
-	except:
+	except OSError:
+		print('Creating folder to keep jupyter notebooks at {}'.format(jupyter_notebooks_path))
 		os.mkdir(jupyter_notebooks_path)
 	bin_path = os.path.abspath('../env/bin')
 	print('''
@@ -347,8 +348,7 @@ frappe.local.lang = frappe.db.get_default('lang')
 frappe.db.connect()
 ```
 	'''.format(site=site, sites_path=sites_path))
-	os.execv(sys.executable, [
-		'{0}/jupyter'.format(bin_path),
+	os.execv('{0}/jupyter'.format(bin_path), [
 		'{0}/jupyter'.format(bin_path),
 		'notebook',
 		jupyter_notebooks_path,
