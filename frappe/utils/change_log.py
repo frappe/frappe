@@ -131,24 +131,10 @@ def check_for_update():
 	apps    = get_versions()
 
 	for app in apps:
-		# Check if repo remote is on github
-		remote_url = subprocess.check_output("cd ../apps/{} && git ls-remote --get-url".format(app), shell=True)
-		if "github.com" not in remote_url:
-			continue
+		app_details = check_release_on_github(app)
+		if not app_details: continue
 
-		# Get latest version from github
-		if 'https' not in remote_url:
-			continue
-
-		org_name = remote_url.split('/')[3]
-		r = requests.get('https://api.github.com/repos/{}/{}/releases'.format(org_name, app))
-		if r.status_code == 200 and r.json():
-			# 0 => latest release
-			github_version = Version(r.json()[0]['tag_name'].strip('v'))
-		else:
-			# In case of an improper response or if there are no releases
-			continue
-
+		github_version, org_name = app_details
 		# Get local instance's current version or the app
 		instance_version = Version(apps[app]['version'])
 		# Compare and popup update message
@@ -163,6 +149,28 @@ def check_for_update():
 				))
 				break
 
+	generate_update_message(updates)
+
+def check_release_on_github(app):
+		# Check if repo remote is on github
+	remote_url = subprocess.check_output("cd ../apps/{} && git ls-remote --get-url".format(app), shell=True)
+	if "github.com" not in remote_url:
+		return None
+
+	# Get latest version from github
+	if 'https' not in remote_url:
+		return None
+
+	org_name = remote_url.split('/')[3]
+	r = requests.get('https://api.github.com/repos/{}/{}/releases'.format(org_name, app))
+	if r.status_code == 200 and r.json():
+		# 0 => latest release
+		return Version(r.json()[0]['tag_name'].strip('v')), org_name
+	else:
+		# In case of an improper response or if there are no releases
+		return None
+
+def generate_update_message(updates):
 	update_message = ""
 	for update_type in updates:
 		release_links = ""
@@ -176,20 +184,25 @@ def check_for_update():
 		if release_links:
 			update_message += "New {} releases for the following apps are available:<br><br>{}<hr>".format(update_type, release_links)
 
+	if update_message:
+		add_message_to_redis(update_message)	
 	# "update-message" will store the update message string
 	# "update-user-set" will be a set of users
-	if update_message:
-		update_message += "<b>Please ask your system manager to update your instance</b>"
-		cache = frappe.cache()
-		cache.set_value("update-message", update_message)
-		user_list = [x.name for x in frappe.get_all("User", filters={"enabled": True})]
-		cache.sadd("update-user-set", *user_list)
+
+def add_message_to_redis(update_message):
+	update_message += "<b>Please ask your system manager to update your instance</b>"
+	cache = frappe.cache()
+	cache.set_value("update-message", update_message)
+	user_list = [x.name for x in frappe.get_all("User", filters={"enabled": True})]
+	cache.sadd("update-user-set", *user_list)
 
 @frappe.whitelist()
 def show_update_popup():
 	cache = frappe.cache()
 	user  = frappe.session.user
 
+	if not "System Manager" in frappe.get_roles():
+		return
 	# Check if user is int the set of users to send update message to
 	if cache.sismember("update-user-set", user):
 		frappe.msgprint(cache.get_value("update-message"), title="New updates are available", indicator='green')
