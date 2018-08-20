@@ -20,14 +20,21 @@ def download_multi_pdf(doctype, name, format=None):
 	# name can include names of many docs of the same doctype.
 
 	import json
-	result = json.loads(name)
-
-	# Concatenating pdf files
 	output = PdfFileWriter()
-	for i, ss in enumerate(result):
-		output = frappe.get_print(doctype, ss, format, as_pdf = True, output = output)
 
-	frappe.local.response.filename = "{doctype}.pdf".format(doctype=doctype.replace(" ", "-").replace("/", "-"))
+	if not isinstance(doctype, dict):
+		result = json.loads(name)
+
+		# Concatenating pdf files
+		for _, ss in enumerate(result):
+			output = frappe.get_print(doctype, ss, format, as_pdf = True, output = output)
+		frappe.local.response.filename = "{doctype}.pdf".format(doctype=doctype.replace(" ", "-").replace("/", "-"))
+	else:
+		for doctype_name in doctype:
+			for doc_name in doctype[doctype_name]:
+				output = frappe.get_print(doctype_name, doc_name, format, as_pdf = True, output = output)
+		frappe.local.response.filename = "{}.pdf".format(frappe.session.user.replace('@', '-'))
+
 	frappe.local.response.filecontent = read_multi_pdf(output)
 	frappe.local.response.type = "download"
 
