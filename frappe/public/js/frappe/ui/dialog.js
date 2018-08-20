@@ -35,7 +35,6 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.header = this.$wrapper.find(".modal-header");
 
 		// make fields (if any)
-		// console.log(super.make);
 		super.make();
 
 		// show footer
@@ -160,6 +159,6 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	cancel() {
 		this.get_close_btn().trigger("click");
 	}
-}
+};
 
 
