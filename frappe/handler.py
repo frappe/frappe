@@ -21,7 +21,8 @@ def handle():
 	if cmd!='login':
 		data = execute_cmd(cmd)
 
-	if data:
+	# data can be an empty string or list which are valid responses
+	if data is not None:
 		if isinstance(data, Response):
 			# method returns a response object, pass it on
 			return data
