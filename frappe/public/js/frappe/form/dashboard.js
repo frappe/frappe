@@ -359,9 +359,7 @@ frappe.ui.form.Dashboard = Class.extend({
 
 	update_heatmap: function(data) {
 		if(this.heatmap) {
-			this.heatmap.update({
-				dataPoints: data
-			});
+			this.heatmap.update(data);
 		}
 	},
 
