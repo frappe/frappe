@@ -1422,7 +1422,7 @@ def enqueue(*args, **kwargs):
 		:param queue: (optional) should be either long, default or short
 		:param timeout: (optional) should be set according to the functions
 		:param event: this is passed to enable clearing of jobs from queues
-		:param async: (optional) if async=False, the method is executed immediately, else via a worker
+		:param is_async: (optional) if is_async=False, the method is executed immediately, else via a worker
 		:param job_name: (optional) can be used to name an enqueue call, which can be used to prevent duplicate calls
 		:param kwargs: keyword arguments to be passed to the method
 	'''
