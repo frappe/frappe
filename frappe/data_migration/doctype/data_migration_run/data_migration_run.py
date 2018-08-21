@@ -9,15 +9,6 @@ from frappe import _
 from frappe.utils import get_source_value
 
 class DataMigrationRun(Document):
-
-	def validate(self):
-		exists = frappe.db.exists('Data Migration Run', dict(
-			status=('in', ['Fail', 'Error']),
-			name=('!=', self.name)
-		))
-		if exists:
-			frappe.throw(_('There are failed runs with the same Data Migration Plan'))
-
 	def run(self):
 		self.begin()
 		if self.total_pages > 0:
@@ -78,6 +69,7 @@ class DataMigrationRun(Document):
 			self.db_set('status', 'Error', notify=True, commit=True)
 			print('Data Migration Run failed')
 			print(frappe.get_traceback())
+			self.execute_postprocess('Error')
 			raise e
 
 	def get_last_modified_condition(self):
@@ -132,6 +124,12 @@ class DataMigrationRun(Document):
 
 		self.db_set(fields, notify=True, commit=True)
 
+		self.execute_postprocess(status)
+
+		frappe.publish_realtime(self.trigger_name,
+			{"progress_percent": 100}, user=frappe.session.user)
+
+	def execute_postprocess(self, status):
 		# Execute post process
 		postprocess_method_path = self.get_plan().postprocess_method
 
@@ -146,9 +144,6 @@ class DataMigrationRun(Document):
 					"pull_update": self.pull_update
 				}
 			})
-
-		frappe.publish_realtime(self.trigger_name,
-			{"progress_percent": 100}, user=frappe.session.user)
 
 	def get_plan(self):
 		if not hasattr(self, 'plan'):
