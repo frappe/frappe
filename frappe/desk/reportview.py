@@ -233,6 +233,7 @@ def delete_items():
 	return failed
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_sidebar_stats(stats, doctype, filters=[]):
 	cat_tags = frappe.db.sql("""select tag.parent as category, tag.tag_name as tag
 		from `tabTag Doc Category` as docCat
