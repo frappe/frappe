@@ -25,7 +25,7 @@ def update_log(doc, state):
 
 	if point_rule:
 		point_rule = point_rule[0]
-		if(point_rule.condition and frappe.safe_eval(point_rule.condition, None, {'doc': doc})):
+		if frappe.safe_eval(point_rule.condition or True, None, {'doc': doc}):
 			update_user_energy_point(point_rule.point)
 			add_energy_point_log(doc, point_rule)
 
