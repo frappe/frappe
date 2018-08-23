@@ -1,5 +1,6 @@
 frappe.ui.form.ControlFloat = frappe.ui.form.ControlInt.extend({
 	parse: function(value) {
+		value = this.eval_expression(value);
 		return isNaN(parseFloat(value)) ? null : flt(value, this.get_precision());
 	},
 
