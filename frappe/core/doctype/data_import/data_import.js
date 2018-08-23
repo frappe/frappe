@@ -3,6 +3,10 @@
 
 frappe.ui.form.on('Data Import', {
 	onload: function(frm) {
+		if(frm.doc.__islocal) {
+			frm.set_value("action", "");
+		}
+
 		frm.set_query("reference_doctype", function() {
 			return {
 				"filters": {
@@ -53,6 +57,10 @@ frappe.ui.form.on('Data Import', {
 			frappe.model.with_doctype(frm.doc.reference_doctype);
 		}
 
+		if(frm.doc.action == "Insert new records" || frm.doc.action == "Update records") {
+			frm.set_df_property("action", "read_only", 1);
+		}
+
 		frm.add_custom_button(__("Help"), function() {
 			frappe.help.show_video("6wiriRKPhmg");
 		});
@@ -82,27 +90,20 @@ frappe.ui.form.on('Data Import', {
 		}
 	},
 
-	insert_new: function(frm) {
+	action: function(frm) {
+		if(!frm.doc.action) return;
 		if(!frm.doc.reference_doctype) {
 			frappe.msgprint(__("Please select document type first."));
-			frm.doc.insert_new = 0;
-			frm.refresh_field("insert_new");
-		} else {
-			frm.save();
+			frm.set_value("action", "");
+			return;
 		}
-	},
 
-	overwrite: function(frm) {
-		if(!frm.doc.reference_doctype) {
-			frappe.msgprint(__("Please select document type first."));
-			frm.doc.overwrite = 0;
-			frm.refresh_field("overwrite");
-		} else {
-			if (frm.doc.overwrite === 0) {
-				frm.doc.only_update = 0;
-			}
-			frm.save();
+		if(frm.doc.action == "Insert new records") {
+			frm.doc.insert_new = 1;
+		} else if (frm.doc.action == "Update records"){
+			frm.doc.overwrite = 1;
 		}
+		frm.save();
 	},
 
 	only_update: function(frm) {
