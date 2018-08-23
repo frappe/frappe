@@ -25,17 +25,19 @@
 				<a class="dropdown-toggle" data-toggle="dropdown" href="#"
 					onclick="return false;">
 				{{ avatar }}
-                <span class="ellipsis toolbar-user-fullname hidden-xs hidden-sm">
+				<span class="ellipsis toolbar-user-fullname hidden-xs hidden-sm">
 					{%= frappe.user.full_name() %}</span>
-                <b class="caret hidden-xs hidden-sm"></b></a>
+				<span class="ellipsis toolbar-user-fullname hidden-xs hidden-sm primary">
+					({%= frappe.user_info().energy_point %} pts)</span>
+				<b class="caret hidden-xs hidden-sm"></b></a>
 				<ul class="dropdown-menu" id="toolbar-user" role="menu">
 					<li class="navbar-set-desktop-icons"><a>
-					    {%= __("Set Desktop Icons") %}</a></li>
+						{%= __("Set Desktop Icons") %}</a></li>
 					<li><a href="#Form/User/{%= encodeURIComponent(frappe.session.user) %}">
-					    {%= __("My Settings") %}</a></li>
+						{%= __("My Settings") %}</a></li>
 					<li class="navbar-reload">
 						<a href="#" onclick="return frappe.ui.toolbar.clear_cache();">
-					    {%= __("Reload") %}</a></li>
+						{%= __("Reload") %}</a></li>
 					<li><a href="/index" target="_blank" rel="noopener noreferrer">
 						{%= __("View Website") %}</a></li>
 					<li><a href="#background_jobs">
@@ -101,13 +103,13 @@
 		</div>
 
 		<div class="hidden-xs">
-	        <form class="navbar-form navbar-right" role="search" onsubmit="return false;">
-	          <div class="form-group form-group-sm ui-front">
-	            <input id="navbar-search" type="text" class="form-control"
+			<form class="navbar-form navbar-right" role="search" onsubmit="return false;">
+			  <div class="form-group form-group-sm ui-front">
+				<input id="navbar-search" type="text" class="form-control"
 					placeholder="{%= __("Search or type a command") %} {%= __("(Ctrl + G)") %}" aria-haspopup="true">
 				<span class="octicon octicon-search navbar-search-icon"></span>
-	          </div>
-	        </form>
+			  </div>
+			</form>
 		</div>
 	</div>
 </div>
