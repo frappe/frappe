@@ -19,13 +19,13 @@ standard_format = "templates/print_formats/standard.html"
 def download_multi_pdf(doctype, name, format=None):
 	"""
 	Concatenate multiple docs as PDF .
- 
+
 	Returns a PDF compiled by concatenating multiple documents. The documents
 	can be from a single DocType or multiple DocTypes
 
 	Note: The design may seem a little weird, but it exists exists to
 		ensure backward compatibility. The correct way to use this function is to
-		pass a dict to doctype as described below 
+		pass a dict to doctype as described below
 
 	NEW FUNCTIONALITY
 	=================
@@ -63,13 +63,16 @@ def download_multi_pdf(doctype, name, format=None):
 		result = json.loads(name)
 
 		# Concatenating pdf files
-		for _, ss in enumerate(result):
+		for i, ss in enumerate(result):
 			output = frappe.get_print(doctype, ss, format, as_pdf = True, output = output)
 		frappe.local.response.filename = "{doctype}.pdf".format(doctype=doctype.replace(" ", "-").replace("/", "-"))
 	else:
 		for doctype_name in doctype:
 			for doc_name in doctype[doctype_name]:
-				output = frappe.get_print(doctype_name, doc_name, format, as_pdf = True, output = output)
+				try:
+					output = frappe.get_print(doctype_name, doc_name, format, as_pdf = True, output = output)
+				except Exception:
+					frappe.log_error("Permission Error on doc {} of doctype {}".format(doc_name, doctype_name))
 		frappe.local.response.filename = "{}.pdf".format(name)
 
 	frappe.local.response.filecontent = read_multi_pdf(output)
