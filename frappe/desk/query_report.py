@@ -15,6 +15,7 @@ import frappe.desk.reportview
 from frappe.utils.csvutils import read_csv_content_from_attached_file
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
+from datetime import timedelta
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
@@ -160,7 +161,10 @@ def run(report_name, filters=None, user=None):
 
 	if report.prepared_report:
 		if filters:
-			dn = json.loads(filters).get("prepared_report_name")
+			if isinstance(filters, string_types):
+				filters = json.loads(filters)
+
+			dn = filters.get("prepared_report_name")
 		else:
 			dn = ""
 		return get_prepared_report_result(report, filters, dn)
@@ -186,16 +190,12 @@ def get_prepared_report_result(report, filters, dn=""):
 			"result": data[1:]
 		}
 
-	return {
+	latest_report_data.update({
 		"prepared_report": True,
-		"data": latest_report_data,
 		"doc": doc
-		# "message": message,
-		# "chart": chart,
-		# "data_to_be_printed": data_to_be_printed,
-		# "status": status
-	}
+	})
 
+	return latest_report_data
 
 @frappe.whitelist()
 def export_query():
@@ -286,6 +286,12 @@ def add_total_row(result, columns, meta = None):
 
 			if fieldtype == "Percent" and i not in has_percent:
 				has_percent.append(i)
+
+			if fieldtype == "Time" and row[i]:
+				if not total_row[i]:
+					total_row[i]=timedelta(hours=0,minutes=0,seconds=0)
+				total_row[i] =  total_row[i] + row[i]
+
 
 		if fieldtype=="Link" and options == "Currency":
 			total_row[i] = result[0][i]

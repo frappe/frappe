@@ -363,7 +363,7 @@ class DocType(Document):
 				with open(fname, 'r') as f:
 					code = f.read()
 				with open(fname, 'w') as f:
-					f.write(code.replace(frappe.scurb(old).replace(' ', ''), frappe.scrub(new).replace(' ', '')))
+					f.write(code.replace(frappe.scrub(old).replace(' ', ''), frappe.scrub(new).replace(' ', '')))
 
 	def before_reload(self):
 		"""Preserve naming series changes in Property Setter."""

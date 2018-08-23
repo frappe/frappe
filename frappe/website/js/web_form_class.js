@@ -13,38 +13,38 @@ export default class WebForm {
 				docname: this.docname,
 				web_form_name: this.web_form_name
 			},
-			freeze: true
+			freeze: true,
 		}).then(r => {
 			const { doc, web_form, links } = r.message;
+			web_form.web_form_fields.map(df => {
+				if (df.fieldtype === 'Table') {
+
+					df.get_data = () => {
+						let data = []
+						if(doc) {
+							data = doc[df.fieldname];
+						}
+						return data;
+					}
+
+					df.options = null;
+
+					if (r.message.hasOwnProperty(df.fieldname)) {
+						df.fields = r.message[df.fieldname];
+					}
+				}
+			});
+
 			this.render(doc, web_form, links);
+
 		});
 	}
 
-	render(doc, web_form, links) {
+
+	render(doc, web_form) {
 		const query_params = frappe.utils.get_query_params();
 
 		web_form.web_form_fields.map(df => {
-			if (df.fieldtype === 'Table') {
-				df.get_data = () => {
-					let data = []
-					if(doc) {
-						data = doc[df.fieldname];
-					}
-					return data;
-				}
-
-				df.fields = [
-					{
-						fieldtype: 'Link',
-						fieldname: "role",
-						options: "Role",
-						label: __("Role"),
-						in_list_view: 1 // added
-					}
-				];
-
-				df.options = null;
-			}
 
 			if (df.fieldtype==='Attach') {
 				df.is_private = true;

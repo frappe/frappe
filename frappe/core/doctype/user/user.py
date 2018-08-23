@@ -1019,7 +1019,7 @@ def reset_otp_secret(user):
 			'delayed':False,
 			'retry':3
 		}
-		enqueue(method=frappe.sendmail, queue='short', timeout=300, event=None, async=True, job_name=None, now=False, **email_args)
+		enqueue(method=frappe.sendmail, queue='short', timeout=300, event=None, is_async=True, job_name=None, now=False, **email_args)
 		return frappe.msgprint(_("OTP Secret has been reset. Re-registration will be required on next login."))
 	else:
 		return frappe.throw(_("OTP secret can only be reset by the Administrator."))
