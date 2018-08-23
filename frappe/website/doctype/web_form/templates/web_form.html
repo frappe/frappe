@@ -65,6 +65,9 @@
 	</p>
 </div>
 {% elif is_list %}
+	<div class="list-filters row">
+		<script>{% include "templates/includes/list/filters.js" %}</script>
+	</div>
 	{% if show_in_grid %}
 		<div class="web-form-list">
 			<div class="results"></div>
