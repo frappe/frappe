@@ -288,7 +288,7 @@ def send_token_via_sms(otpsecret, token=None, phone_no=None):
 		'use_post': ss.use_post
 	}
 	enqueue(method=send_request, queue='short', timeout=300, event=None,
-		async=True, job_name=None, now=False, **sms_args)
+		is_async=True, job_name=None, now=False, **sms_args)
 	return True
 
 def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, message=None):
@@ -315,7 +315,7 @@ def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, mess
 	}
 
 	enqueue(method=frappe.sendmail, queue='short', timeout=300, event=None,
-		async=True, job_name=None, now=False, **email_args)
+		is_async=True, job_name=None, now=False, **email_args)
 	return True
 
 def get_qr_svg_code(totp_uri):

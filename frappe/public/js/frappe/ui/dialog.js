@@ -6,16 +6,18 @@ frappe.provide('frappe.ui');
 window.cur_dialog = null;
 
 frappe.ui.open_dialogs = [];
-frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
-	init: function(opts) {
+
+frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
+	constructor(opts) {
 		this.display = false;
 		this.is_dialog = true;
 
 		$.extend(this, { animate: true, size: null }, opts);
-		this._super();
+		super();
 		this.make();
-	},
-	make: function() {
+	}
+
+	make() {
 		this.$wrapper = frappe.get_modal("", "");
 
 		this.wrapper = this.$wrapper.find('.modal-dialog')
@@ -26,17 +28,24 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 			$(this.wrapper).addClass("modal-lg");
 
 		this.make_head();
-		this.body = this.$wrapper.find(".modal-body").get(0);
+		this.modal_body = this.$wrapper.find(".modal-body");
+		this.$body = $('<div></div>').appendTo(this.modal_body);
+		this.body = this.$body.get(0);
+		this.$message = $('<div class="hide modal-message"></div>').appendTo(this.modal_body);
 		this.header = this.$wrapper.find(".modal-header");
 
 		// make fields (if any)
-		this._super();
+		super.make();
 
 		// show footer
 		this.action = this.action || { primary: { }, secondary: { } };
 		if(this.primary_action || (this.action.primary && this.action.primary.onsubmit)) {
 			this.set_primary_action(this.primary_action_label || this.action.primary.label || __("Submit"),
 				this.primary_action || this.action.primary.onsubmit);
+		}
+
+		if(this.secondary_action) {
+			this.set_secondary_action(this.secondary_action);
 		}
 
 		if (this.secondary_action_label || (this.action.secondary && this.action.secondary.label)) {
@@ -47,6 +56,8 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 		this.$wrapper
 			.on("hide.bs.modal", function() {
 				me.display = false;
+				me.secondary_action && me.secondary_action();
+
 				if(frappe.ui.open_dialogs[frappe.ui.open_dialogs.length-1]===me) {
 					frappe.ui.open_dialogs.pop();
 					if(frappe.ui.open_dialogs.length) {
@@ -74,11 +85,24 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 				}
 			});
 
-	},
-	get_primary_btn: function() {
+	}
+
+	get_primary_btn() {
 		return this.$wrapper.find(".modal-header .btn-primary");
-	},
-	set_primary_action: function(label, click) {
+	}
+
+	set_message(text) {
+		this.$message.removeClass('hide');
+		this.$body.addClass('hide');
+		this.$message.text(text);
+	}
+
+	clear_message() {
+		this.$message.addClass('hide');
+		this.$body.removeClass('hide');
+	}
+
+	set_primary_action(label, click) {
 		this.has_primary_action = true;
 		var me = this;
 		return this.get_primary_btn()
@@ -93,20 +117,25 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 				if(!values) return;
 				click && click.apply(me, [values]);
 			});
-	},
-	disable_primary_action: function() {
+	}
+
+	set_secondary_action(click) {
+		this.get_close_btn().on('click', click);
+	}
+
+	disable_primary_action() {
 		this.get_primary_btn().addClass('disabled');
-	},
-	enable_primary_action: function() {
+	}
+	enable_primary_action() {
 		this.get_primary_btn().removeClass('disabled');
-	},
-	make_head: function() {
+	}
+	make_head() {
 		this.set_title(this.title);
-	},
-	set_title: function(t) {
+	}
+	set_title(t) {
 		this.$wrapper.find(".modal-title").html(t);
-	},
-	show: function() {
+	}
+	show() {
 		// show it
 		if ( this.animate ) {
 			this.$wrapper.addClass('fade');
@@ -116,19 +145,20 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 		this.$wrapper.modal("show");
 		this.primary_action_fulfilled = false;
 		this.is_visible = true;
-	},
-	hide: function() {
+	}
+	hide() {
 		this.$wrapper.modal("hide");
 		this.is_visible = false;
-	},
-	get_close_btn: function() {
+	}
+	get_close_btn() {
 		return this.$wrapper.find(".btn-modal-close");
-	},
-	no_cancel: function() {
+	}
+	no_cancel() {
 		this.get_close_btn().toggle(false);
-	},
-	cancel: function() {
+	}
+	cancel() {
 		this.get_close_btn().trigger("click");
 	}
-});
+};
+
 
