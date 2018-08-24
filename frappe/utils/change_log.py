@@ -8,6 +8,7 @@ from semantic_version import Version
 import frappe
 from frappe.utils import cstr
 import requests, shlex
+from frappe import _
 
 def get_change_log(user=None):
 	if not user: user = frappe.session.user
@@ -182,7 +183,7 @@ def generate_update_message(updates):
 				title             = app.title
 			)
 		if release_links:
-			update_message += "New {} releases for the following apps are available:<br><br>{}<hr>".format(update_type, release_links)
+			update_message += _("New {} releases for the following apps are available") + ":<br><br>{}<hr>".format(update_type, release_links)
 
 	if update_message:
 		add_message_to_redis(update_message)	
@@ -190,7 +191,6 @@ def generate_update_message(updates):
 	# "update-user-set" will be a set of users
 
 def add_message_to_redis(update_message):
-	update_message += "<b>Please ask your system manager to update your instance</b>"
 	cache = frappe.cache()
 	cache.set_value("update-message", update_message)
 	user_list = [x.name for x in frappe.get_all("User", filters={"enabled": True})]
@@ -205,5 +205,5 @@ def show_update_popup():
 		return
 	# Check if user is int the set of users to send update message to
 	if cache.sismember("update-user-set", user):
-		frappe.msgprint(cache.get_value("update-message"), title="New updates are available", indicator='green')
+		frappe.msgprint(cache.get_value("update-message"), title=_("New updates are available"), indicator='green')
 		cache.srem("update-user-set", user)
