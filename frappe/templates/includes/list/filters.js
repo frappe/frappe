@@ -18,7 +18,6 @@ function setup_list_filters() {
 				df: {
 					fieldname: df.fieldname,
 					fieldtype: df.fieldtype,
-					placeholder: df.label,
 					label: df.label,
 					options: df.options,
 					change: (e) => {
@@ -30,11 +29,10 @@ function setup_list_filters() {
 					}
 				},
 				parent: $('.list-filters'),
-				render_input: true,
-				only_input: df.fieldtype=="Check" ? false : true,
+				render_input: true
 			});
 
-			$(f.wrapper).addClass('col-md-2');
+			$(f.wrapper).addClass('col-md-3');
 
 			if (value) {
 				f.set_input(value);
