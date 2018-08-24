@@ -101,8 +101,8 @@ frappe.views.Calendar = Class.extend({
 	},
 	get_default_options: function() {
 		return new Promise ((resolve) => {
-			let defaultView = localStorage.getItem('defaultView');
-			let weekends = localStorage.getItem('weekends');
+			let defaultView = localStorage.getItem('cal_defaultView');
+			let weekends = localStorage.getItem('cal_weekends');
 			let defaults = {
 				'defaultView': defaultView ? defaultView : "month",
 				'weekends': weekends ? weekends : true
@@ -160,13 +160,13 @@ frappe.views.Calendar = Class.extend({
 		let btn_group = me.$wrapper.find(".fc-button-group");
 		btn_group.on("click", ".btn", function() {
 			let value = ($(this).hasClass('fc-agendaWeek-button')) ? 'agendaWeek' : (($(this).hasClass('fc-agendaDay-button')) ? 'agendaDay' : 'month');
-			me.set_localStorage_option("defaultView", value);
+			me.set_localStorage_option("cal_defaultView", value);
 		});
 
 		me.$wrapper.on("click", ".btn-weekend", function() {
 			me.cal_options.weekends = !me.cal_options.weekends;
 			me.$cal.fullCalendar('option', 'weekends', me.cal_options.weekends);
-			me.set_localStorage_option("weekends", me.cal_options.weekends);
+			me.set_localStorage_option("cal_weekends", me.cal_options.weekends);
 			me.set_css();
 			me.setup_view_mode_button(me.cal_options);
 		});
