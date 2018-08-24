@@ -3,6 +3,10 @@
 
 frappe.ui.form.on('Data Import', {
 	onload: function(frm) {
+		if(frm.doc.__islocal) {
+			frm.set_value("action", "");
+		}
+
 		frm.set_query("reference_doctype", function() {
 			return {
 				"filters": {
@@ -53,6 +57,10 @@ frappe.ui.form.on('Data Import', {
 			frappe.model.with_doctype(frm.doc.reference_doctype);
 		}
 
+		if(frm.doc.action == "Insert new records" || frm.doc.action == "Update records") {
+			frm.set_df_property("action", "read_only", 1);
+		}
+
 		frm.add_custom_button(__("Help"), function() {
 			frappe.help.show_video("6wiriRKPhmg");
 		});
@@ -82,15 +90,18 @@ frappe.ui.form.on('Data Import', {
 		}
 	},
 
-	reference_doctype: function(frm) {
-		if (frm.doc.reference_doctype) {
-			frm.save();
+	action: function(frm) {
+		if(!frm.doc.action) return;
+		if(!frm.doc.reference_doctype) {
+			frappe.msgprint(__("Please select document type first."));
+			frm.set_value("action", "");
+			return;
 		}
-	},
 
-	overwrite: function(frm) {
-		if (frm.doc.overwrite === 0) {
-			frm.doc.only_update = 0;
+		if(frm.doc.action == "Insert new records") {
+			frm.doc.insert_new = 1;
+		} else if (frm.doc.action == "Update records"){
+			frm.doc.overwrite = 1;
 		}
 		frm.save();
 	},
@@ -149,8 +160,8 @@ frappe.data_import.download_dialog = function(frm) {
 
 	const doctype_fields = get_fields(frm.doc.reference_doctype)
 		.map(df => ({
-			label: df.label + (df.reqd ? ' (M)' : ''),
-			reqd: df.reqd ? 1 : 0,
+			label: df.label + ((df.reqd || df.fieldname == 'naming_series') ? ' (M)' : ''),
+			reqd: (df.reqd || df.fieldname == 'naming_series') ? 1 : 0,
 			value: df.fieldname,
 			checked: 1
 		}));
@@ -170,7 +181,7 @@ frappe.data_import.download_dialog = function(frm) {
 					fields.map(multicheck_field => {
 						multicheck_field.options.map(option => {
 							if(!option.reqd) return;
-							$(dialog.body).find(`:checkbox[data-unit="${option.value}"]`)
+							$(multicheck_field.$wrapper).find(`:checkbox[data-unit="${option.value}"]`)
 								.prop('checked', false)
 								.trigger('click')
 								.prop('disabled', true);
@@ -188,11 +199,6 @@ frappe.data_import.download_dialog = function(frm) {
 			"fieldtype": "Select",
 			"options": "Excel\nCSV",
 			"default": "Excel"
-		},
-		{
-			"label": __("Download with Data"),
-			"fieldname": "with_data",
-			"fieldtype": "Check"
 		},
 		{
 			"label": __("Select All"),
@@ -263,7 +269,7 @@ frappe.data_import.download_dialog = function(frm) {
 						doctype: frm.doc.reference_doctype,
 						parent_doctype: frm.doc.reference_doctype,
 						select_columns: JSON.stringify(columns),
-						with_data: data.with_data,
+						with_data: frm.doc.overwrite,
 						all_doctypes: true,
 						file_type: data.file_type,
 						template: true
