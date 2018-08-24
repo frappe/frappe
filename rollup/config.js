@@ -8,6 +8,8 @@ const node_resolve = require('rollup-plugin-node-resolve');
 const postcss = require('rollup-plugin-postcss');
 const buble = require('rollup-plugin-buble');
 const uglify = require('rollup-plugin-uglify');
+// const alias = require('rollup-plugin-alias');
+const vue = require('rollup-plugin-vue');
 const frappe_html = require('./frappe-html-plugin');
 
 const production = process.env.FRAPPE_ENV === 'production';
@@ -31,11 +33,17 @@ function get_rollup_options(output_file, input_files) {
 function get_rollup_options_for_js(output_file, input_files) {
 
 	const plugins = [
+		// alias({
+		// 	vue$: 'vue/dist/vue.common.js',
+		// 	resolve: ['.js', '.vue']
+		// }),
+
 		// enables array of inputs
 		multi_entry(),
 		// .html -> .js
 		frappe_html(),
 		// ES6 -> ES5
+		vue.default(),
 		buble({
 			objectAssign: 'Object.assign',
 			transforms: {
