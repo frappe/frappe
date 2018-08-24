@@ -252,20 +252,17 @@ class User(Document):
 
 	def send_welcome_mail_to_user(self):
 		from frappe.utils import get_url
-
 		link = self.reset_password()
-		app_title = None
-
-		method = frappe.get_hooks('get_site_info')
+		subject = None
+		method = frappe.get_hooks("welcome_email")
 		if method:
-			get_site_info = frappe.get_attr(method[0])
-			site_info = get_site_info({})
-			app_title = site_info.get('company', None)
-
-		if app_title:
-			subject = _("Welcome to {0}").format(app_title)
-		else:
-			subject = _("Complete Registration")
+			subject = frappe.get_attr(method[-1])()
+		if not subject:
+			site_name = frappe.db.get_default('site_name') or frappe.get_conf().get("site_name")
+			if site_name:
+				subject = _("Welcome to {0}".format(site_name))
+			else:
+				subject = _("Complete Registration")
 
 		self.send_login_mail(subject, "new_user",
 				dict(
@@ -278,9 +275,6 @@ class User(Document):
 		from frappe.utils.user import get_user_fullname
 		from frappe.utils import get_url
 
-		mail_titles = frappe.get_hooks().get("login_mail_title", [])
-		title = frappe.db.get_default('company') or (mail_titles and mail_titles[0]) or ""
-
 		full_name = get_user_fullname(frappe.session['user'])
 		if full_name == "Guest":
 			full_name = "Administrator"
@@ -288,7 +282,7 @@ class User(Document):
 		args = {
 			'first_name': self.first_name or self.last_name or "user",
 			'user': self.name,
-			'title': title,
+			'title': subject,
 			'login_url': get_url(),
 			'user_fullname': full_name
 		}
