@@ -8,6 +8,14 @@
   dependencies:
     regenerator-runtime "^0.12.0"
 
+"@types/estree@0.0.39":
+  version "0.0.39"
+  resolved "https://registry.yarnpkg.com/@types/estree/-/estree-0.0.39.tgz#e177e699ee1b8c22d23174caaa7422644389509f"
+
+"@types/node@*":
+  version "10.9.2"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.9.2.tgz#f0ab8dced5cd6c56b26765e1c0d9e4fdcc9f2a00"
+
 "@vue/component-compiler-utils@^2.1.0":
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/@vue/component-compiler-utils/-/component-compiler-utils-2.2.0.tgz#bbbb7ed38a9a8a7c93abe7ef2e54a90a04b631b4"
@@ -2854,9 +2862,12 @@ rollup-pluginutils@^2.0.1:
     estree-walker "^0.3.0"
     micromatch "^2.3.11"
 
-rollup@^0.55.3:
-  version "0.55.5"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-0.55.5.tgz#2f88c300f7cf24b5ec2dca8a6aba73b04e087e93"
+rollup@^0.65.0:
+  version "0.65.0"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-0.65.0.tgz#280db1252169b68fc3043028346b337dde453fba"
+  dependencies:
+    "@types/estree" "0.0.39"
+    "@types/node" "*"
 
 safe-buffer@5.1.1, safe-buffer@^5.0.1, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   version "5.1.1"
