@@ -265,7 +265,7 @@ frappe.hide_progress = function() {
 }
 
 // Floating Message
-frappe.show_alert = function(message, seconds=7) {
+frappe.show_alert = function(message, seconds=7, actions={}) {
 	if(typeof message==='string') {
 		message = {
 			message: message
@@ -304,6 +304,10 @@ frappe.show_alert = function(message, seconds=7) {
 	div.find('.close, button').click(function() {
 		div.remove();
 		return false;
+	});
+
+	Object.keys(actions).map(key => {
+		div.find(`[data-action=${key}]`).on('click', actions[key]);
 	});
 
 	div.delay(seconds * 1000).fadeOut(300);
