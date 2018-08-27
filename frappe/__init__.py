@@ -339,7 +339,7 @@ def throw(msg, exc=ValidationError, title=None):
 	msgprint(msg, raise_exception=exc, title=title, indicator='red')
 
 def emit_js(js, user=False, **kwargs):
-	from frappe.async import publish_realtime
+	from frappe.realtime import publish_realtime
 	if user == False:
 		user = session.user
 	publish_realtime('eval_js', js, user=user, **kwargs)
@@ -1376,8 +1376,8 @@ def publish_progress(*args, **kwargs):
 	:param doctype: Optional, for DocType
 	:param name: Optional, for Document name
 	"""
-	import frappe.async
-	return frappe.async.publish_progress(*args, **kwargs)
+	import frappe.realtime
+	return frappe.realtime.publish_progress(*args, **kwargs)
 
 def publish_realtime(*args, **kwargs):
 	"""Publish real-time updates
@@ -1390,9 +1390,9 @@ def publish_realtime(*args, **kwargs):
 	:param docname: Transmit to doctype, docname
 	:param after_commit: (default False) will emit after current transaction is committed
 	"""
-	import frappe.async
+	import frappe.realtime
 
-	return frappe.async.publish_realtime(*args, **kwargs)
+	return frappe.realtime.publish_realtime(*args, **kwargs)
 
 def local_cache(namespace, key, generator, regenerate_if_none=False):
 	"""A key value store for caching within a request

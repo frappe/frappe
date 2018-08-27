@@ -72,7 +72,7 @@ io.on('connection', function (socket) {
 	});
 	// end frappe.chat
 
-	request.get(get_url(socket, '/api/method/frappe.async.get_user_info'))
+	request.get(get_url(socket, '/api/method/frappe.realtime.get_user_info'))
 		.type('form')
 		.query({
 			sid: sid
@@ -291,7 +291,7 @@ function get_url(socket, path) {
 function can_subscribe_doc(args) {
 	if (!args) return;
 	if (!args.doctype || !args.docname) return;
-	request.get(get_url(args.socket, '/api/method/frappe.async.can_subscribe_doc'))
+	request.get(get_url(args.socket, '/api/method/frappe.realtime.can_subscribe_doc'))
 		.type('form')
 		.query({
 			sid: args.sid,
