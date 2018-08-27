@@ -1039,7 +1039,7 @@ def update_roles(role_profile):
 		user.set('roles', [])
 		user.add_roles(*roles)
 
-def create_contact(user):
+def create_contact(user, ignore_links=False):
 	if user.name in ["Administrator", "Guest"]: return
 
 	if not frappe.db.get_value("Contact", {"email_id": user.email}):
@@ -1052,7 +1052,7 @@ def create_contact(user):
 			"gender": user.gender,
 			"phone": user.phone,
 			"mobile_no": user.mobile_no
-		}).insert(ignore_permissions=True)
+		}).insert(ignore_permissions=True, ignore_links=ignore_links)
 
 
 @frappe.whitelist()
