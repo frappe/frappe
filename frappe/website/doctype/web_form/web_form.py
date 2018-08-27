@@ -551,12 +551,10 @@ def get_in_list_view_fields(doctype):
 def get_link_options(web_form_name, doctype):
 	web_form_doc = frappe.get_doc("Web Form", web_form_name)
 	doctype_validated = False
-	limited_to_user   = False
 	if web_form_doc.login_required:
 		# check if frappe session user is not guest or admin
 		if frappe.session.user != 'Guest':
 			doctype_validated = True
-			limited_to_user   = True
 	else:
 		for field in web_form_doc.web_form_fields:
 			if field.options == doctype:
@@ -564,10 +562,7 @@ def get_link_options(web_form_name, doctype):
 				break
 
 	if doctype_validated:
-		if limited_to_user:
-			return "\n".join([doc.name for doc in frappe.get_all(doctype, filters = {"owner":frappe.session.user})])
-		else:
-			return "\n".join([doc.name for doc in frappe.get_all(doctype)])
+		return "\n".join([doc.name for doc in frappe.get_all(doctype)])
 
 	else:
 		raise frappe.PermissionError('Not Allowed, {0}'.format(doctype))
