@@ -223,3 +223,4 @@ frappe.patches.v11_0.replicate_old_user_permissions
 frappe.patches.v11_0.set_dropbox_file_backup
 frappe.patches.v11_0.get_docs_apps_if_not_present
 frappe.patches.v10_0.set_default_locking_time
+frappe.patches.v11_0.rename_google_maps_doctype
