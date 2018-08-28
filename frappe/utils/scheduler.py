@@ -214,7 +214,7 @@ def log(method, message=None):
 	return message
 
 def get_enabled_scheduler_events():
-	if 'enabled_events' in frappe.flags:
+	if 'enabled_events' in frappe.flags and frappe.flags.enabled_events:
 		return frappe.flags.enabled_events
 
 	enabled_events = frappe.db.get_global("enabled_scheduler_events")

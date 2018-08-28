@@ -6,15 +6,24 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
+import googlemaps
 import datetime
 
-class GoogleMaps(Document):
+class GoogleMapsSettings(Document):
 	def validate(self):
 		if self.enabled:
 			if not self.client_key:
 				frappe.throw(_("Client key is required"))
 			if not self.home_address:
 				frappe.throw(_("Home Address is required"))
+
+	def get_client(self):
+		try:
+			client = googlemaps.Client(key=self.client_key)
+		except Exception as e:
+			frappe.throw(e.message)
+
+		return client
 
 def round_timedelta(td, period):
 	"""Round timedelta"""

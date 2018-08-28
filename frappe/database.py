@@ -9,7 +9,6 @@ import warnings
 import datetime
 import frappe
 import frappe.defaults
-import frappe.async
 from time import time
 import re
 import frappe.model.meta
@@ -813,7 +812,7 @@ class Database:
 
 	def flush_realtime_log(self):
 		for args in frappe.local.realtime_log:
-			frappe.async.emit_via_redis(*args)
+			frappe.realtime.emit_via_redis(*args)
 
 		frappe.local.realtime_log = []
 

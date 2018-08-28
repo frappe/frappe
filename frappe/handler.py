@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 import frappe.utils
-import frappe.async
 import frappe.sessions
 import frappe.utils.file_manager
 import frappe.desk.form.run_method
