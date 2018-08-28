@@ -24,7 +24,7 @@ def execute():
 
 	frappe.db.sql('''
 		update `tabProperty Setter`
-		set property="fetch_from"
+		set property="fetch_from", name=concat(doc_type, '-', field_name, '-', property)
 		where property="options" and value like '%.%'
 		and property_type in ('Data', 'Read Only', 'Text', 'Small Text', 'Text Editor', 'Code', 'Link', 'Check')
 		and field_name!='naming_series'
