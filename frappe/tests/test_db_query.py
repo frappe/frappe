@@ -232,7 +232,7 @@ class TestReportview(unittest.TestCase):
 		create_new_folder('level2-A', 'Home/level1-B')
 
 		# in descendants filter
-		data = frappe.get_all('File', {'name': ('descendants of', 'Home/level1-A/level2-A')}, debug=1)
+		data = frappe.get_all('File', {'name': ('descendants of', 'Home/level1-A/level2-A')})
 		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
 
 		data = frappe.get_all('File', {'name': ('descendants of', 'Home/level1-A')})
