@@ -1,4 +1,4 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.provide("frappe.views.calendar");
@@ -26,7 +26,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 
 	setup_defaults() {
 		super.setup_defaults();
-		this.page_title = this.page_title + ' ' + __('Calendar');
+		this.page_title = __('{0} Calendar', [this.page_title]);
 		this.calendar_settings = frappe.views.calendar[this.doctype] || {};
 		this.calendar_name = frappe.get_route()[3];
 	}
@@ -49,13 +49,13 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 		}
 
 		this.load_lib
-			.then(() => this.get_calendar_options())
+			.then(() => this.get_calendar_preferences())
 			.then(options => {
 				this.calendar = new frappe.views.Calendar(options);
 			});
 	}
 
-	get_calendar_options() {
+	get_calendar_preferences() {
 		const options = {
 			doctype: this.doctype,
 			parent: this.$result,
@@ -97,9 +97,24 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 frappe.views.Calendar = Class.extend({
 	init: function(options) {
 		$.extend(this, options);
-		this.make_page();
-		this.setup_options();
-		this.make();
+		this.get_default_options();
+	},
+	get_default_options: function() {
+		return new Promise ((resolve) => {
+			let defaultView = localStorage.getItem('cal_defaultView');
+			let weekends = localStorage.getItem('cal_weekends');
+			let defaults = {
+				'defaultView': defaultView ? defaultView : "month",
+				'weekends': weekends ? weekends : true
+			};
+			resolve(defaults);
+		}).then(defaults => {
+			this.make_page();
+			this.setup_options(defaults);
+			this.make();
+			this.setup_view_mode_button(defaults);
+			this.bind();
+		});
 	},
 	make_page: function() {
 		var me = this;
@@ -128,6 +143,33 @@ frappe.views.Calendar = Class.extend({
 
 		this.$cal.fullCalendar(this.cal_options);
 		this.set_css();
+	},
+	setup_view_mode_button: function(defaults) {
+		var me = this;
+		$(me.footnote_area).find('.btn-weekend').detach();
+		let btnTitle = (defaults.weekends) ? __('Hide Weekends') : __('Show Weekends');
+		const btn = `<button class="btn btn-default btn-xs btn-weekend">${btnTitle}</button>`;
+		me.footnote_area.append(btn);
+	},
+	set_localStorage_option: function(option, value) {
+		localStorage.removeItem(option);
+		localStorage.setItem(option, value);
+	},
+	bind: function() {
+		const me = this;
+		let btn_group = me.$wrapper.find(".fc-button-group");
+		btn_group.on("click", ".btn", function() {
+			let value = ($(this).hasClass('fc-agendaWeek-button')) ? 'agendaWeek' : (($(this).hasClass('fc-agendaDay-button')) ? 'agendaDay' : 'month');
+			me.set_localStorage_option("cal_defaultView", value);
+		});
+
+		me.$wrapper.on("click", ".btn-weekend", function() {
+			me.cal_options.weekends = !me.cal_options.weekends;
+			me.$cal.fullCalendar('option', 'weekends', me.cal_options.weekends);
+			me.set_localStorage_option("cal_weekends", me.cal_options.weekends);
+			me.set_css();
+			me.setup_view_mode_button(me.cal_options);
+		});
 	},
 	set_css: function() {
 		// flatify buttons
@@ -166,19 +208,22 @@ frappe.views.Calendar = Class.extend({
 		date._offset = moment.user_utc_offset;
 		return frappe.datetime.convert_to_system_tz(date);
 	},
-	setup_options: function() {
+	setup_options: function(defaults) {
 		var me = this;
 		this.cal_options = {
 			locale: frappe.boot.user.language || "en",
 			header: {
 				left: 'title',
 				center: '',
-				right: 'prev,next month,agendaWeek,agendaDay'
+				right: 'prev,today,next month,agendaWeek,agendaDay'
 			},
 			editable: true,
 			selectable: true,
 			selectHelper: true,
 			forceEventDuration: true,
+			defaultView: defaults.defaultView,
+			weekends: defaults.weekends,
+			nowIndicator: true,
 			events: function(start, end, timezone, callback) {
 				return frappe.call({
 					method: me.get_events_method || "frappe.desk.calendar.get_events",

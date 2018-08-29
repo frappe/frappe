@@ -283,7 +283,7 @@ class EmailServer:
 		flags = []
 		for flag in imaplib.ParseFlags(flag_string) or []:
 			pattern = re.compile("\w+")
-			match = re.search(pattern, flag)
+			match = re.search(pattern, frappe.as_unicode(flag))
 			flags.append(match.group(0))
 
 		if "Seen" in flags:

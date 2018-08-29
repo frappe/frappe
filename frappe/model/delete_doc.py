@@ -80,7 +80,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 					doc.run_method('on_change')
 
 				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links', doctype=doc.doctype, name=doc.name,
-					async=False if frappe.flags.in_test else True)
+					is_async=False if frappe.flags.in_test else True)
 
 				# check if links exist
 				if not force:
@@ -324,4 +324,3 @@ def insert_feed(doc):
 		"subject": "{0} {1}".format(_(doc.doctype), doc.name),
 		"full_name": get_fullname(doc.owner)
 	}).insert(ignore_permissions=True)
-

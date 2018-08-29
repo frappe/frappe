@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 import frappe.utils
-import frappe.async
 import frappe.sessions
 import frappe.utils.file_manager
 import frappe.desk.form.run_method
@@ -21,7 +20,8 @@ def handle():
 	if cmd!='login':
 		data = execute_cmd(cmd)
 
-	if data:
+	# data can be an empty string or list which are valid responses
+	if data is not None:
 		if isinstance(data, Response):
 			# method returns a response object, pass it on
 			return data

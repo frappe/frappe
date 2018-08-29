@@ -43,7 +43,7 @@ class TestScheduler(TestCase):
 		self.assertTrue("all" in frappe.flags.ran_schedulers)
 		self.assertTrue("hourly" in frappe.flags.ran_schedulers)
 
-		del frappe.flags['enabled_events']
+		frappe.flags.enabled_events = None
 
 	def test_enabled_events_day_change(self):
 		val = json.dumps(["daily", "daily_long", "weekly", "weekly_long", "monthly", "monthly_long"])

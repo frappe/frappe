@@ -245,7 +245,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (data.prepared_report){
 				this.prepared_report = true;
 				this.add_prepared_report_buttons(data.doc);
-				data = data.data;
 			}
 			this.toggle_message(false);
 			if (data.result && data.result.length) {
@@ -260,10 +259,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	add_prepared_report_buttons(doc) {
 		if(doc){
 			this.page.add_inner_button(__("Download Report"), function (){
-				frappe.call({
-					method:"frappe.core.doctype.prepared_report.prepared_report.download_attachment",
-					args: {"dn": doc.name}
-				});
+				window.open(
+					frappe.urllib.get_full_url(
+						"/api/method/frappe.core.doctype.prepared_report.prepared_report.download_attachment?"
+						+"dn="+encodeURIComponent(doc.name)));
 			});
 
 			this.show_status(__(`
@@ -567,7 +566,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 				frappe.tools.downloadify(out, null, this.report_name);
 			} else {
-				const filters = this.get_filter_values(true);
+				let filters = this.get_filter_values(true);
+				if (frappe.urllib.get_dict("prepared_report_name")) {
+					filters = Object.assign(frappe.urllib.get_dict("prepared_report_name"), filters);
+				}
 
 				const args = {
 					cmd: 'frappe.desk.query_report.export_query',

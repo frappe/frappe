@@ -252,20 +252,17 @@ class User(Document):
 
 	def send_welcome_mail_to_user(self):
 		from frappe.utils import get_url
-
 		link = self.reset_password()
-		app_title = None
-
-		method = frappe.get_hooks('get_site_info')
+		subject = None
+		method = frappe.get_hooks("welcome_email")
 		if method:
-			get_site_info = frappe.get_attr(method[0])
-			site_info = get_site_info({})
-			app_title = site_info.get('company', None)
-
-		if app_title:
-			subject = _("Welcome to {0}").format(app_title)
-		else:
-			subject = _("Complete Registration")
+			subject = frappe.get_attr(method[-1])()
+		if not subject:
+			site_name = frappe.db.get_default('site_name') or frappe.get_conf().get("site_name")
+			if site_name:
+				subject = _("Welcome to {0}".format(site_name))
+			else:
+				subject = _("Complete Registration")
 
 		self.send_login_mail(subject, "new_user",
 				dict(
@@ -278,9 +275,6 @@ class User(Document):
 		from frappe.utils.user import get_user_fullname
 		from frappe.utils import get_url
 
-		mail_titles = frappe.get_hooks().get("login_mail_title", [])
-		title = frappe.db.get_default('company') or (mail_titles and mail_titles[0]) or ""
-
 		full_name = get_user_fullname(frappe.session['user'])
 		if full_name == "Guest":
 			full_name = "Administrator"
@@ -288,7 +282,7 @@ class User(Document):
 		args = {
 			'first_name': self.first_name or self.last_name or "user",
 			'user': self.name,
-			'title': title,
+			'title': subject,
 			'login_url': get_url(),
 			'user_fullname': full_name
 		}
@@ -1021,7 +1015,7 @@ def reset_otp_secret(user):
 			'delayed':False,
 			'retry':3
 		}
-		enqueue(method=frappe.sendmail, queue='short', timeout=300, event=None, async=True, job_name=None, now=False, **email_args)
+		enqueue(method=frappe.sendmail, queue='short', timeout=300, event=None, is_async=True, job_name=None, now=False, **email_args)
 		return frappe.msgprint(_("OTP Secret has been reset. Re-registration will be required on next login."))
 	else:
 		return frappe.throw(_("OTP secret can only be reset by the Administrator."))
@@ -1047,7 +1041,7 @@ def update_roles(role_profile):
 		user.set('roles', [])
 		user.add_roles(*roles)
 
-def create_contact(user):
+def create_contact(user, ignore_links=False):
 	if user.name in ["Administrator", "Guest"]: return
 
 	if not frappe.db.get_value("Contact", {"email_id": user.email}):
@@ -1060,7 +1054,7 @@ def create_contact(user):
 			"gender": user.gender,
 			"phone": user.phone,
 			"mobile_no": user.mobile_no
-		}).insert(ignore_permissions=True)
+		}).insert(ignore_permissions=True, ignore_links=ignore_links)
 
 
 @frappe.whitelist()

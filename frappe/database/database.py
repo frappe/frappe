@@ -10,6 +10,7 @@ import re
 import frappe
 import datetime
 import frappe.async
+from time import time
 import frappe.defaults
 import frappe.model.meta
 
@@ -770,7 +771,7 @@ class Database(object):
 
 	def flush_realtime_log(self):
 		for args in frappe.local.realtime_log:
-			frappe.async.emit_via_redis(*args)
+			frappe.realtime.emit_via_redis(*args)
 
 		frappe.local.realtime_log = []
 
@@ -939,7 +940,7 @@ class Database(object):
 def enqueue_jobs_after_commit():
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
 		for job in frappe.flags.enqueue_after_commit:
-			q = get_queue(job.get("queue"), async=job.get("async"))
+			q = get_queue(job.get("queue"), is_async=job.get("is_async"))
 			q.enqueue_call(execute_job, timeout=job.get("timeout"),
 							kwargs=job.get("queue_args"))
 		frappe.flags.enqueue_after_commit = []

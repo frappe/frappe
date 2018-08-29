@@ -8,7 +8,10 @@ export default function make_datatable(container, doctype) {
 	let make_table = function(docfields, data) {
 		let table = $(`<table class="table table-bordered table-hover">
 			<thead>
-				<tr><th>Sr</th></tr>
+				<tr>
+					<th><input type="checkbox" class="select-all pull-left"></th>
+					<th>Sr</th>
+				</tr>
 			</thead>
 			<tbody></tbody>
 		</table>`).appendTo(parent);
@@ -20,6 +23,8 @@ export default function make_datatable(container, doctype) {
 		}
 
 		append_rows(data);
+
+		bind_events();
 	};
 
 
@@ -31,13 +36,21 @@ export default function make_datatable(container, doctype) {
 		return txt;
 	};
 
+
 	let append_rows = (data) => {
 		let body = $(container + ' .results').find('tbody');
 		for (let i=0; i<data.length; i++) {
-			let tablerow = $(`<tr><td>${web_list_start + i+1}</td></tr>`).appendTo(body);
+			let tablerow = $(`<tr>
+				<td><input type="checkbox"
+					class="grid-row-check pull-left"
+					data-docname="${data[i].name}"></td>
+				<td>${web_list_start + i+1}</td>
+			</tr>`).appendTo(body);
+
 			tablerow
 				.css({cursor: 'pointer'})
-				.click(() => {
+				.click((e) => {
+					if ($(e.target).is('[type=checkbox]')) return
 					window.location.href = window.location.href + '?name=' + data[i].name;
 				});
 			for (let fieldname of colnames) {
@@ -47,6 +60,55 @@ export default function make_datatable(container, doctype) {
 		}
 
 	};
+
+
+	const bind_events = () => {
+		parent.on('click', 'input[type="checkbox"]:not(.select-all)', (e) => {
+			set_actions();
+			e.stopPropagation();
+		});
+
+		let select_all = (deselect=false) => {
+			parent.find(`:checkbox:not(.select-all)`).prop("checked", deselect);
+		};
+		$('.select-all').on('click', function(e) {
+			select_all($(this).prop('checked'));
+			set_actions();
+			e.stopPropagation();
+		});
+
+		$('.btn-delete').on('click', () => {
+			let web_form_names_to_delete = [];
+
+			$.each(parent.find('input[type="checkbox"]:checked:not(.select-all)'), (i, node) => {
+				web_form_names_to_delete.push($(node).attr('data-docname'));
+			});
+
+			if(web_form_names_to_delete.length) {
+				frappe.call({
+					type:"POST",
+					method: "frappe.website.doctype.web_form.web_form.delete_multiple",
+					args: {
+						"web_form_name": window.web_form_settings.web_form_name,
+						"docnames": web_form_names_to_delete
+					},
+					btn: $('.btn-delete'),
+					callback: function(r) {
+						if(!r.exc) {
+							location.reload();
+						}
+					}
+				});
+			}
+		});
+	};
+
+
+	const set_actions = () => {
+		const show_delete = Boolean(parent.find('input[type="checkbox"]:checked').length);
+		$('.page-header-actions-block').toggleClass('actions-mode', show_delete);
+	};
+
 
 	return new Promise(resolve => {
 		frappe.call({

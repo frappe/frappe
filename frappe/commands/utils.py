@@ -329,6 +329,45 @@ def postgres(context):
 	psql = find_executable('psql')
 	subprocess.run([ psql, '-d', frappe.conf.db_name])
 
+@click.command('jupyter')
+@pass_context
+def jupyter(context):
+	try:
+		from pip import main
+	except ImportError:
+		from pip._internal import main
+
+	reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
+	installed_packages = [r.decode().split('==')[0] for r in reqs.split()]
+	if 'jupyter' not in installed_packages:
+		main(['install', 'jupyter'])
+	site = get_site(context)
+	frappe.init(site=site)
+	jupyter_notebooks_path = os.path.abspath(frappe.get_site_path('jupyter_notebooks'))
+	sites_path = os.path.abspath(frappe.get_site_path('..'))
+	try:
+		os.stat(jupyter_notebooks_path)
+	except OSError:
+		print('Creating folder to keep jupyter notebooks at {}'.format(jupyter_notebooks_path))
+		os.mkdir(jupyter_notebooks_path)
+	bin_path = os.path.abspath('../env/bin')
+	print('''
+Stating Jupyter notebook
+Run the following in your first cell to connect notebook to frappe
+```
+import frappe
+frappe.init(site='{site}', sites_path='{sites_path}')
+frappe.connect()
+frappe.local.lang = frappe.db.get_default('lang')
+frappe.db.connect()
+```
+	'''.format(site=site, sites_path=sites_path))
+	os.execv('{0}/jupyter'.format(bin_path), [
+		'{0}/jupyter'.format(bin_path),
+		'notebook',
+		jupyter_notebooks_path,
+	])
+
 @click.command('console')
 @pass_context
 def console(context):
@@ -629,6 +668,7 @@ commands = [
 	build,
 	clear_cache,
 	clear_website_cache,
+	jupyter,
 	console,
 	destroy_all_sessions,
 	execute,
