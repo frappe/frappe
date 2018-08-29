@@ -105,6 +105,7 @@ def get_context(context):
 
 	def send(self, doc):
 		'''Build recipients and send email alert'''
+		from email.utils import formataddr
 
 		def get_attachment(doc):
 			""" check print settings are attach the pdf """
@@ -126,6 +127,7 @@ def get_context(context):
 
 		context = get_context(doc)
 		recipients = []
+		sender = ""
 
 		for recipient in self.recipients:
 			if recipient.condition:
@@ -157,6 +159,9 @@ def get_context(context):
 
 		context = {"doc": doc, "alert": self, "comments": None}
 
+		if self.sender:
+			sender = formataddr((self.sender, self.sender_email))
+
 		if self.is_standard:
 			self.load_standard_properties(context)
 
@@ -170,6 +175,7 @@ def get_context(context):
 
 		frappe.sendmail(recipients=recipients, subject=subject,
 			message= frappe.render_template(self.message, context),
+			sender = sender,
 			reference_doctype = doc.doctype,
 			reference_name = doc.name,
 			attachments = attachments,
