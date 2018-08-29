@@ -13,7 +13,7 @@ from six import text_type
 @click.command('new-site')
 @click.argument('site')
 @click.option('--db-name', help='Database name')
-@click.option('--db-type', help='Optional "postgres" or "mariadb". Default is "mariadb"')
+@click.option('--db-type', default='mariadb', type=click.Choice(['mariadb', 'postgres']), help='Optional "postgres" or "mariadb". Default is "mariadb"')
 @click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')
 @click.option('--mariadb-root-password', help='Root password for MariaDB')
 @click.option('--admin-password', help='Administrator password for new site', default=None)
