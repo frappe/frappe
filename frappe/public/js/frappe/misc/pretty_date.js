@@ -68,7 +68,7 @@ window.comment_when = function(datetime, mini) {
 		+ '" title="' + timestamp + '">'
 		+ prettyDate(datetime, mini) + '</span>';
 };
-frappe.datetime.comment_when = comment_when
+frappe.datetime.comment_when = comment_when;
 
 frappe.datetime.refresh_when = function() {
 	if (jQuery) {

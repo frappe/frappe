@@ -52,7 +52,7 @@ function get_rollup_options_for_js(output_file, input_files) {
 		node_resolve({
 			customResolveOptions: {
 				paths: apps_list.map(app => {
-					return path.resolve(get_app_path(app), '../node_modules')
+					return path.resolve(get_app_path(app), '../node_modules');
 				}).filter(fs.existsSync)
 			}
 		}),
