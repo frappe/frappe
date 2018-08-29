@@ -352,7 +352,7 @@ def remainder(numerator, denominator, precision=2):
 
 	return flt(_remainder, precision);
 
-def safemath_div(numerator, denominator, precision=2):
+def safe_div(numerator, denominator, precision=2):
 	"""
 	SafeMath division that returns zero when divided by zero.
 	"""
