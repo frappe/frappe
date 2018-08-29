@@ -150,6 +150,7 @@
 		"public/js/frappe/format.js",
 		"public/js/frappe/form/formatters.js",
 		"public/js/frappe/dom.js",
+		"public/js/frappe/event_emitter.js",
 		"public/js/frappe/ui/messages.js",
 		"public/js/frappe/ui/keyboard.js",
 		"public/js/frappe/ui/colors.js",
