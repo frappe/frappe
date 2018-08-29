@@ -161,7 +161,6 @@ def get_context(context):
 
 		if self.sender:
 			sender = formataddr((self.sender, self.sender_email))
-			frappe.errprint(sender)
 
 		if self.is_standard:
 			self.load_standard_properties(context)
