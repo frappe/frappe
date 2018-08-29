@@ -26,6 +26,7 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 		this.select_options(this.selected_options);
 	},
 
+
 	set_options() {
 		this.$load_state.show();
 		this.$select_buttons.hide();
@@ -65,7 +66,10 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 		this.$load_state.hide();
 		this.$checkbox_area.empty();
 		this.options.forEach(option => {
-			this.get_checkbox_element(option).appendTo(this.$checkbox_area);
+			let checkbox = this.get_checkbox_element(option).appendTo(this.$checkbox_area);
+			if (option.danger) {
+				checkbox.find('.label-area').addClass('text-danger');
+			}
 		});
 		if(this.df.select_all) {
 			this.setup_select_all();
