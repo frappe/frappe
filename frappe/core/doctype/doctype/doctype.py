@@ -56,6 +56,7 @@ class DocType(Document):
 			self.permissions = []
 
 		self.scrub_field_names()
+		self.scrub_options_in_select()
 		self.set_default_in_list_view()
 		self.set_default_translatable()
 		self.validate_series()
@@ -193,6 +194,17 @@ class DocType(Document):
 
 			# unique is automatically an index
 			if d.unique: d.search_index = 0
+
+	def scrub_options_in_select(self):
+		"""Strip options for whitespaces"""
+		for field in self.fields:
+			if field.fieldtype == "Select" and field.options is not None:
+				new_options = ""
+				for option in field.options.split("\n"):
+					new_options += option.strip()
+					new_options += "\n"
+				new_options.rstrip("\n")
+				field.options = new_options
 
 	def validate_series(self, autoname=None, name=None):
 		"""Validate if `autoname` property is correctly set."""
@@ -446,9 +458,9 @@ class DocType(Document):
 		# a DocType's name should not start with a number or underscore
 		# and should only contain letters, numbers and underscore
 		if six.PY2:
-			is_a_valid_name = re.match("^(?![\W])[^\d_\s][\w -]+$", name)
+			is_a_valid_name = re.match("^(?![\W])[^\d_\s][\w ]+$", name)
 		else:
-			is_a_valid_name = re.match("^(?![\W])[^\d_\s][\w -]+$", name, flags = re.ASCII)
+			is_a_valid_name = re.match("^(?![\W])[^\d_\s][\w ]+$", name, flags = re.ASCII)
 		if not is_a_valid_name:
 			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
 
