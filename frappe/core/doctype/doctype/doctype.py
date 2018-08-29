@@ -199,12 +199,12 @@ class DocType(Document):
 		"""Strip options for whitespaces"""
 		for field in self.fields:
 			if field.fieldtype == "Select" and field.options is not None:
-				new_options = ""
-				for option in field.options.split("\n"):
-					new_options += option.strip()
-					new_options += "\n"
-				new_options.rstrip("\n")
-				field.options = new_options
+				options_list = []
+				for i, option in enumerate(field.options.split("\n")):
+					_option = option.strip()
+					if i==0 or _option:
+						options_list.append(_option)
+				field.options = '\n'.join(options_list)
 
 	def validate_series(self, autoname=None, name=None):
 		"""Validate if `autoname` property is correctly set."""

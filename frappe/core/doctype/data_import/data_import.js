@@ -37,7 +37,7 @@ frappe.ui.form.on('Data Import', {
 		frm.disable_save();
 		frm.dashboard.clear_headline();
 		if (frm.doc.reference_doctype && !frm.doc.import_file) {
-			frm.page.set_indicator(__('Please attach a file to import'), 'orange');
+			frm.page.set_indicator(__('Attach file'), 'orange');
 		} else {
 			if (frm.doc.import_status) {
 				const listview_settings = frappe.listview_settings['Data Import'];
