@@ -9,7 +9,6 @@ from __future__ import unicode_literals
 import re
 import frappe
 import datetime
-import frappe.async
 from time import time
 import frappe.defaults
 import frappe.model.meta
