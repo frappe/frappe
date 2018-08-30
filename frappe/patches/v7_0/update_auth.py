@@ -9,8 +9,12 @@ def execute():
 	create_auth_table()
 
 	# user passwords
-	frappe.db.sql('''insert ignore into `__Auth` (doctype, name, fieldname, `password`)
-		(select 'User', user, 'password', `password` from `__OldAuth`)''')
+	try:
+		frappe.db.sql('''insert ignore into `__Auth` (doctype, name, fieldname, `password`)
+			(select 'User', `name`, 'password', `password` from `__OldAuth`)''')
+	except frappe.db.InternalError:
+		# TODO: find the reason why this exception started occuring
+		pass
 
 	frappe.db.commit()
 
