@@ -71,7 +71,6 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 		user = frappe.session.user
 	if isinstance(filters, string_types):
 		filters = json.loads(filters)
-	roles = frappe.get_roles(user)
 	events = frappe.db.sql("""select `name`, subject, description, color,
 		starts_on, ends_on, owner, all_day, event_type, repeat_this_event, repeat_on,repeat_till,
 		monday, tuesday, wednesday, thursday, friday, saturday, sunday

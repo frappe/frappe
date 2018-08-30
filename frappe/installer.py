@@ -17,8 +17,6 @@ from frappe.model.sync import sync_for
 from frappe.utils.fixtures import sync_fixtures
 from frappe.website import render
 from frappe.desk.doctype.desktop_icon.desktop_icon import sync_from_app
-from frappe.utils.password import create_auth_table
-from frappe.utils.global_search import setup_global_search_table
 from frappe.modules.utils import sync_customizations
 from frappe.database import setup_database
 

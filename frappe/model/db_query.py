@@ -15,7 +15,7 @@ from datetime import datetime
 import frappe, json, copy, re
 from frappe.model import optional_fields
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
-from frappe.utils import flt, cint, getdate, get_datetime, get_time, make_filter_tuple, get_filter, add_to_date, cstr
+from frappe.utils import flt, cint, get_datetime, get_time, make_filter_tuple, get_filter, add_to_date, cstr
 
 class DatabaseQuery(object):
 	def __init__(self, doctype, user=None):
