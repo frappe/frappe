@@ -15,4 +15,7 @@ def execute():
 	)
 	for module in changed:
 		for doctype in module[1]:
-			frappe.reload_doc(module[0], "doctype", doctype)
+			try:
+				frappe.reload_doc(module[0], "doctype", doctype)
+			except KeyError:
+				continue
