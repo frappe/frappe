@@ -60,10 +60,10 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 
 		this.validate_for_prompt_autoname();
 
-		// if (this.too_many_mandatory_fields() || this.has_child_table()
-		// 	|| !this.mandatory.length) {
-		// 	return false;
-		// }
+		if (this.has_child_table()
+			|| !this.mandatory.length) {
+			return false;
+		}
 
 		return true;
 	},

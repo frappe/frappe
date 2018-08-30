@@ -301,6 +301,7 @@ $.extend(frappe.model, {
 			args: {
 				method: opts.method,
 				source_name: opts.source_name,
+				args: opts.args || null,
 				selected_children: opts.frm ? opts.frm.get_selected() : null
 			},
 			freeze: true,
