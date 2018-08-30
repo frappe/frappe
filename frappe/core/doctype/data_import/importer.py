@@ -457,7 +457,6 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		if error_flag and data_import_doc.skip_errors and len(data) != len(data_rows_with_error):
 			import_status = "Partially Successful"
 			# write the file with the faulty row
-			from frappe.utils.file_manager import save_file
 			file_name = 'error_' + filename + file_extension
 			if file_extension == '.xlsx':
 				from frappe.utils.xlsxutils import make_xlsx
@@ -466,8 +465,9 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			else:
 				from frappe.utils.csvutils import to_csv
 				file_data = to_csv(data_rows_with_error)
-			error_data_file = save_file(file_name, file_data, "Data Import",
-				data_import_doc.name,  "Home/Attachments")
+			_file = frappe.get_doc("File", {"file_name": file_name, "content": file_data,
+				"attached_to_doctype": "Data Import", "attached_to_name": data_import_doc.name})
+			error_data_file = _file.save_file(folder="Home/Attachments")
 			data_import_doc.error_file = error_data_file.file_url
 
 		elif error_flag:

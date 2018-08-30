@@ -9,7 +9,6 @@ import frappe.utils
 import json, os
 
 from six import iteritems, string_types, integer_types
-from frappe.utils.file_manager import save_file
 
 '''
 Handle RESTful requests that are mapped to the `/api/resource` route.
@@ -351,7 +350,9 @@ def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder
 	if not doc.has_permission():
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-	f = save_file(filename, filedata, doctype, docname, folder, decode_base64, is_private, docfield)
+	_file = frappe.get_doc("File", {"file_name": filename, "content": filedata,
+		"attached_to_doctype": doctype, "attached_to_name": docname})
+	f = _file.save_file(folder=folder, decode=decode_base64, is_private=is_private, df=docfield)
 
 	if docfield and doctype:
 		doc.set(docfield, f.file_url)

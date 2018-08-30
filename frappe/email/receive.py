@@ -13,7 +13,7 @@ from frappe import _, safe_decode, safe_encode
 from frappe.utils import (extract_email_id, convert_utc_to_user_timezone, now,
 	cint, cstr, strip, markdown, parse_addr)
 from frappe.utils.scheduler import log
-from frappe.utils.file_manager import get_random_filename, save_file, MaxFileSizeReachedError
+from frappe.utils.file_manager import get_random_filename, MaxFileSizeReachedError
 
 class EmailSizeExceededError(frappe.ValidationError): pass
 class EmailTimeoutError(frappe.ValidationError): pass
@@ -523,8 +523,10 @@ class Email:
 
 		for attachment in self.attachments:
 			try:
-				file_data = save_file(attachment['fname'], attachment['fcontent'],
-					doc.doctype, doc.name, is_private=1)
+				_file = frappe.get_doc("File", {"file_name": attachment['fname'],
+					"content": atachment['fcontent'], "attached_to_doctype": doc.doctype,
+					"attached_to_name": doc.name})
+				file_data = _file.save_file(is_private=1)
 				saved_attachments.append(file_data)
 
 				if attachment['fname'] in self.cid_map:

@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest
-from frappe.utils.file_manager import save_file, get_files_path
+from frappe.utils.file_manager import get_files_path
 from frappe import _
 from frappe.core.doctype.file.file import move_file
 # test_records = frappe.get_test_records('File')
@@ -27,8 +27,9 @@ class TestFile(unittest.TestCase):
 			frappe.delete_doc("File", f[0])
 
 	def upload_file(self):
-		self.saved_file = save_file('file_copy.txt', "Testing file copy example.",\
-			 "", "", self.get_folder("Test Folder 1", "Home").name)
+		_file = frappe.get_doc("File", {"file_name": "file_copy.txt", "content": "Testing file copy example.",
+			"attached_to_name": "", "attached_to_doctype": ""})
+		self.saved_file = _file.save_file(folder=self.get_folder("Test Folder 1", "Home").name)
 		self.saved_filename = get_files_path(self.saved_file.file_name)
 
 	def get_folder(self, folder_name, parent_folder="Home"):
@@ -61,8 +62,9 @@ class TestFile(unittest.TestCase):
 	def test_folder_copy(self):
 		folder = self.get_folder("Test Folder 2", "Home")
 		folder = self.get_folder("Test Folder 3", "Home/Test Folder 2")
-
-		self.saved_file = save_file('folder_copy.txt', "Testing folder copy example.", "", "", folder.name)
+		_file = frappe.get_doc("File", {"file_name": "folder_copy.txt", "content": "Testing folder copy example.",
+			"attached_to_name": "", "attached_to_doctype": ""})
+		self.saved_file = _file.save_file(folder=folder.name)
 
 		move_file([{"name": folder.name}], 'Home/Test Folder 1', folder.folder)
 
@@ -91,7 +93,9 @@ class TestFile(unittest.TestCase):
 		self.assertEqual(frappe.db.get_value("File", _("Home/Test Folder 1"), "file_size"), 0)
 
 		folder = self.get_folder("Test Folder 3", "Home/Test Folder 1")
-		self.saved_file = save_file('folder_copy.txt', "Testing folder copy example.", "", "", folder.name)
+		_file = frappe.get_doc("File", {"file_name": "folder_copy.txt", "content": "Testing folder copy example.",
+			"attached_to_name": "", "attached_to_doctype": ""})
+		self.saved_file = _file.save_file(folder=folder.name)
 
 		folder = frappe.get_doc("File", "Home/Test Folder 1/Test Folder 3")
 		self.assertRaises(frappe.ValidationError, folder.delete)
@@ -114,8 +118,11 @@ class TestFile(unittest.TestCase):
 		# Rebuild the frappe.local.conf to take up the changes from site_config
 		frappe.local.conf = _dict(frappe.get_site_config())
 
-		self.assertRaises(MaxFileSizeReachedError, save_file, '_test_max_space.txt',
-			'This files test for max space usage', "", "", self.get_folder("Test Folder 2", "Home").name)
+		_file = frappe.get_doc("File", {"file_name": "_test_max_space.txt",
+			"content": "This file tests for max space usage",
+			"attached_to_name": "", "attached_to_doctype": ""})
+		self.assertRaises(MaxFileSizeReachedError,
+			_file.save_file(self.get_folder("Test Folder 2", "Home").name))
 
 		# Scrub the site_config and rebuild frappe.local.conf
 		clear_limit("space")

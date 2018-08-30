@@ -6,7 +6,6 @@ import frappe, json, os
 from frappe.website.website_generator import WebsiteGenerator
 from frappe import _, scrub
 from frappe.utils import cstr
-from frappe.utils.file_manager import save_file
 from frappe.website.utils import get_comment_list
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
 from frappe.utils.file_manager import get_max_file_size
@@ -421,8 +420,9 @@ def accept(web_form, data, for_payment=False):
 
 			# save new file
 			filename, dataurl = filedata.split(',', 1)
-			filedoc = save_file(filename, dataurl,
-				doc.doctype, doc.name, decode=True)
+			_file = frappe.get_doc("File", {"file_name": filename, "content": dataurl,
+				"attached_to_doctype": doc.doctype, "attached_to_name": doc.name})
+			filedoc = _file.save_file(decode=True)
 
 			# update values
 			doc.set(fieldname, filedoc.file_url)

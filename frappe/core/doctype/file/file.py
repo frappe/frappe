@@ -421,12 +421,11 @@ class File(NestedSet):
 			frappe.uploaded_content = base64.b64decode(frappe.form_dict.filedata)
 			frappe.uploaded_filename = frappe.form_dict.filename
 			return frappe.uploaded_filename, frappe.uploaded_content
-		else:
-			frappe.msgprint(_('No file attached'))
+		frappe.msgprint(_('No file attached'))
 		return None, None
 
 
-	def save_file(self, decode=False):
+	def save_file(self, folder=None, decode=False, is_private=0, df=None):
 		if decode:
 			if isinstance(self.content, text_type):
 				self.content = self.content.encode("utf-8")
@@ -436,10 +435,11 @@ class File(NestedSet):
 			self.content = base64.b64decode(self.content)
 
 		file_size = check_max_file_size(self.content)
-		content_hash = get_content_hash(self.content)
+		self.content_hash = get_content_hash(self.content)
 		self.content_type = mimetypes.guess_type(self.fname)[0]
 		self.fname = self.get_file_name(content_hash[-6:])
-		file_data = get_file_data_from_hash(content_hash, is_private=self.is_private)
+		self.is_private = is_private
+		file_data = self.get_file_data_from_hash(is_private=self.is_private)
 		if not file_data:
 			call_hook_method("before_write_file", file_size=file_size)
 
@@ -466,6 +466,15 @@ class File(NestedSet):
 			return frappe.get_doc("File", f.duplicate_entry)
 
 		return f
+
+
+	def get_file_data_from_hash(self, is_private=0):
+		for name in frappe.db.sql_list("select name from `tabFile` where content_hash=%s and is_private=%s",
+			(self.content_hash, is_private)):
+			b = frappe.get_doc('File', name)
+			return {k: b.get(k) for k in frappe.get_hooks()['write_file_keys']}
+		return False
+
 
 	def save_file_on_filesystem(self):
 		fpath = write_file(self.content, self.fname, self.is_private)
@@ -624,12 +633,6 @@ def check_max_file_size(content):
 
 	return file_size
 
-
-def get_file_data_from_hash(content_hash, is_private=0):
-	for name in frappe.db.sql_list("select name from `tabFile` where content_hash=%s and is_private=%s", (content_hash, is_private)):
-		b = frappe.get_doc('File', name)
-		return {k: b.get(k) for k in frappe.get_hooks()['write_file_keys']}
-	return False
 
 def write_file(content, fname, is_private=0):
 	"""write file to disk with a random name (to compare)"""
@@ -827,7 +830,9 @@ def extract_images_from_html(doc, content):
 		name = doc.parent or doc.name
 
 		# TODO fix this
-		file_url = save_file(filename, content, doctype, name, decode=True).get("file_url")
+		_file = frappe.get_doc("File", {"file_name": filename, "content": content,
+			"attached_to_doctype": doctype, "attached_to_name": name})
+		file_url = _file.save_file(decode=True).file_url
 		if not frappe.flags.has_dataurl:
 			frappe.flags.has_dataurl = True
 
