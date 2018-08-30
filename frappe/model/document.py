@@ -14,7 +14,6 @@ from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields
 from frappe.model.workflow import validate_workflow
-from frappe.utils.file_manager import save_url
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
 
@@ -320,7 +319,11 @@ class Document(BaseDocument):
 		for attach_item in get_attachments(self.doctype, self.amended_from):
 
 			#save attachments to new doc
-			save_url(attach_item.file_url, attach_item.file_name, self.doctype, self.name, "Home/Attachments", attach_item.is_private)
+			_file = frappe.get_doc("File", {"file_url": attach_item.file_url,
+				"file_name": attach_item.file_name, "attached_to_name": self.name,
+				"attached_to_doctype": self.doctype})
+			_file.save_url(folder="Home/Attachments")
+
 
 	def update_children(self):
 		'''update child tables'''

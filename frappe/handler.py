@@ -111,7 +111,8 @@ def uploadfile():
 	try:
 		if frappe.form_dict.get('from_form'):
 			try:
-				ret = frappe.utils.file_manager.upload()
+				ret = frappe.get_doc({"doctype": "File"})
+				ret = ret.upload()
 			except frappe.DuplicateEntryError:
 				# ignore pass
 				ret = None

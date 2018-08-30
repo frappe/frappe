@@ -12,7 +12,6 @@ from frappe import _
 
 from frappe.utils.csvutils import getlink
 from frappe.utils.dateutils import parse_date
-from frappe.utils.file_manager import save_url
 
 from frappe.utils import cint, cstr, flt, getdate, get_datetime, get_url, get_url_to_form
 from six import text_type, string_types
@@ -265,7 +264,10 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			# file is already attached
 			return
 
-		save_url(file_url, None, doctype, docname, "Home/Attachments", 0)
+		_file = frappe.get_doc("File", {"file_url": file_url, "attached_to_name": docname,
+			"attached_to_doctype": doctype})
+		_file.save_url(folder="Home/Attachments", df=0)
+
 
 	# header
 	filename, file_extension = ['','']
