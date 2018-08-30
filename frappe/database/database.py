@@ -847,7 +847,7 @@ class Database(object):
 		return date
 
 	@staticmethod
-	def format_datetime(self, datetime):
+	def format_datetime(datetime):
 		if not datetime:
 			return '0001-01-01 00:00:00.000000'
 
@@ -920,7 +920,8 @@ class Database(object):
 			self._cursor = None
 			self._conn = None
 
-	def escape(self, s, percent=True):
+	@staticmethod
+	def escape(s, percent=True):
 		"""Excape quotes and percent in given string."""
 		# implemented in specific class
 		pass

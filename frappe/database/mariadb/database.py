@@ -102,7 +102,8 @@ class MariaDBDatabase(Database):
 
 		return db_size[0].get('database_size')
 
-	def escape(self, s, percent=True):
+	@staticmethod
+	def escape(s, percent=True):
 		"""Excape quotes and percent in given string."""
 		# pymysql expects unicode argument to escape_string with Python 3
 		s = frappe.as_unicode(pymysql.escape_string(frappe.as_unicode(s)), "utf-8").replace("`", "\\`")
@@ -118,29 +119,37 @@ class MariaDBDatabase(Database):
 		return "'" + s + "'"
 
 	# column type
-	def is_type_number(self, code):
+	@staticmethod
+	def is_type_number(code):
 		return code == pymysql.NUMBER
 
-	def is_type_datetime(self, code):
+	@staticmethod
+	def is_type_datetime(code):
 		return code in (pymysql.DATE, pymysql.DATETIME)
 
 	# exception types
-	def is_deadlocked(self, e):
+	@staticmethod
+	def is_deadlocked(e):
 		return e.args[0] == ER.LOCK_DEADLOCK
 
-	def is_timedout(self, e):
+	@staticmethod
+	def is_timedout(e):
 		return e.args[0] == ER.LOCK_WAIT_TIMEOUT
 
-	def is_table_missing(self, e):
+	@staticmethod
+	def is_table_missing(e):
 		return e.args[0] == ER.NO_SUCH_TABLE
 
-	def is_missing_column(self, e):
+	@staticmethod
+	def is_missing_column(e):
 		return e.args[0] == ER.BAD_FIELD_ERROR
 
-	def is_duplicate_fieldname(self, e):
+	@staticmethod
+	def is_duplicate_fieldname(e):
 		return e.args[0] == ER.DUP_FIELDNAME
 
-	def is_duplicate_entry(self, e):
+	@staticmethod
+	def is_duplicate_entry(e):
 		return e.args[0] == ER.DUP_ENTRY
 
 	def is_primary_key_violation(self, e):
