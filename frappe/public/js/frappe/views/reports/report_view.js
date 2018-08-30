@@ -719,7 +719,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_columns() {
 		const hide_columns = ['docstatus'];
 		const fields = this.fields.filter(f => !hide_columns.includes(f[0]));
-		this.columns = fields.map(f => this.build_column(f));
+		this.columns = fields.map(f => this.build_column(f)).filter(Boolean);
 	}
 
 	build_column(c) {
