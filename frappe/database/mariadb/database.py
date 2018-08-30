@@ -152,17 +152,20 @@ class MariaDBDatabase(Database):
 	def is_duplicate_entry(e):
 		return e.args[0] == ER.DUP_ENTRY
 
+	@staticmethod
+	def is_access_denied( e):
+		return e.args[0] == ER.ACCESS_DENIED_ERROR
+
+	@staticmethod
+	def cant_drop_field_or_key(e):
+		return e.args[0] == ER.CANT_DROP_FIELD_OR_KEY
+
 	def is_primary_key_violation(self, e):
 		return self.is_duplicate_entry(e) and 'PRIMARY' in cstr(e.args[1])
 
 	def is_unique_key_violation(self, e):
 		return self.is_duplicate_entry(e) and 'Duplicate' in cstr(e.args[1])
 
-	def is_access_denied(self, e):
-		return e.args[0] == ER.ACCESS_DENIED_ERROR
-
-	def cant_drop_field_or_key(self, e):
-		return e.args[0] == ER.CANT_DROP_FIELD_OR_KEY
 
 	def create_auth_table(self):
 		self.sql_ddl("""create table if not exists `__Auth` (
@@ -211,7 +214,8 @@ class MariaDBDatabase(Database):
 				ENGINE=MyISAM
 				CHARACTER SET=utf8mb4''')
 
-	def get_on_duplicate_update(self, key=None):
+	@staticmethod
+	def get_on_duplicate_update(key=None):
 		return 'ON DUPLICATE key UPDATE '
 
 	def get_table_columns_description(self, table_name):

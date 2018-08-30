@@ -224,7 +224,8 @@ class PostgresDatabase(Database):
 			db_table.sync()
 			self.begin()
 
-	def get_on_duplicate_update(self, key='name'):
+	@staticmethod
+	def get_on_duplicate_update(key='name'):
 		if isinstance(key, list):
 			key = '", "'.join(key)
 		return 'ON CONFLICT ("{key}") DO UPDATE SET '.format(

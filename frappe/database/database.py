@@ -203,7 +203,6 @@ class Database(object):
 			return self._cursor.fetchall()
 
 	def explain_query(self, query, values=None):
-		return
 		"""Print `EXPLAIN` in error log."""
 		try:
 			frappe.errprint("--- query explain ---")
@@ -214,7 +213,7 @@ class Database(object):
 			import json
 			frappe.errprint(json.dumps(self.fetch_as_dict(), indent=1))
 			frappe.errprint("--- query explain end ---")
-		except:
+		except Exception:
 			frappe.errprint("error in query explain")
 
 	def sql_list(self, query, values=(), debug=False):
@@ -248,7 +247,7 @@ class Database(object):
 			self.transaction_writes += 1
 			if self.transaction_writes > 200000:
 				if self.auto_commit_on_many_writes:
-					frappe.db.commit()
+					self.commit()
 				else:
 					frappe.throw(_("Too many writes in one request. Please send smaller requests"), frappe.ValidationError)
 
@@ -262,20 +261,19 @@ class Database(object):
 
 		for r in result:
 			values = []
-			for i in range(len(r)):
+			for value in r:
 				if needs_formatting:
-					val = self.convert_to_simple_type(r[i], formatted)
-				else:
-					val = r[i]
+					value = self.convert_to_simple_type(value, formatted)
 
-				if as_utf8 and type(val) is text_type:
-					val = val.encode('utf-8')
-				values.append(val)
+				if as_utf8 and isinstance(value, text_type):
+					value = value.encode('utf-8')
+				values.append(value)
 
 			ret.append(frappe._dict(zip(keys, values)))
 		return ret
 
-	def needs_formatting(self, result, formatted):
+	@staticmethod
+	def needs_formatting(result, formatted):
 		"""Returns true if the first row in the result has a Date, Datetime, Long Int."""
 		if result and result[0]:
 			for v in result[0]:
@@ -290,10 +288,9 @@ class Database(object):
 		"""Returns result metadata."""
 		return self._cursor.description
 
-	def convert_to_simple_type(self, v, formatted=0):
+	@staticmethod
+	def convert_to_simple_type(v, formatted=0):
 		"""Format date, time, longint values."""
-		return v
-
 		from frappe.utils import formatdate, fmt_money
 
 		if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, integer_types)):
@@ -330,7 +327,7 @@ class Database(object):
 					val = self.convert_to_simple_type(c, formatted)
 				else:
 					val = c
-				if as_utf8 and type(val) is text_type:
+				if as_utf8 and isinstance(val, text_type):
 					val = val.encode('utf-8')
 				nr.append(val)
 			nres.append(nr)
@@ -348,7 +345,8 @@ class Database(object):
 			nres.append(nr)
 		return nres
 
-	def build_conditions(self, filters):
+	@staticmethod
+	def build_conditions(filters):
 		"""Convert filters sent as dict, lists to SQL conditions. filter's key
 		is passed by map function, build conditions like:
 
@@ -524,14 +522,13 @@ class Database(object):
 				return values and [values] or []
 
 			if isinstance(fields, list):
-				return [map(lambda d: values.get(d), fields)]
+				return [map(values.get, fields)]
 
 		else:
 			r = self.sql("""select field, value
-				from `tabSingles` where field in (%s) and doctype=%s""" \
+				from `tabSingles` where field in (%s) and doctype=%s"""
 					% (', '.join(['%s'] * len(fields)), '%s'),
 					tuple(fields) + (doctype,), as_dict=False, debug=debug)
-			# r = _cast_result(doctype, r)
 
 			if as_dict:
 				if r:
@@ -711,7 +708,7 @@ class Database(object):
 		"""Update the modified timestamp of this document."""
 		from frappe.utils import now
 		modified = now()
-		frappe.db.sql("""update `tab{doctype}` set `modified`=%s
+		self.sql("""update `tab{doctype}` set `modified`=%s
 			where name=%s""".format(doctype=doctype), (modified, docname))
 		return modified
 
@@ -733,20 +730,24 @@ class Database(object):
 		"""Returns a global key value."""
 		return self.get_default(key, user)
 
-	def set_default(self, key, val, parent="__default", parenttype=None):
-		"""Sets a global / user default value."""
-		frappe.defaults.set_default(key, val, parent, parenttype)
-
-	def add_default(self, key, val, parent="__default", parenttype=None):
-		"""Append a default value for a key, there can be multiple default values for a particular key."""
-		frappe.defaults.add_default(key, val, parent, parenttype)
-
 	def get_default(self, key, parent="__default"):
 		"""Returns default value as a list if multiple or single"""
 		d = self.get_defaults(key, parent)
 		return isinstance(d, list) and d[0] or d
 
-	def get_defaults(self, key=None, parent="__default"):
+	@staticmethod
+	def set_default(self, key, val, parent="__default", parenttype=None):
+		"""Sets a global / user default value."""
+		frappe.defaults.set_default(key, val, parent, parenttype)
+
+	@staticmethod
+	def add_default(self, key, val, parent="__default", parenttype=None):
+		"""Append a default value for a key, there can be multiple default values for a particular key."""
+		frappe.defaults.add_default(key, val, parent, parenttype)
+
+
+	@staticmethod
+	def get_defaults(key=None, parent="__default"):
 		"""Get all defaults"""
 		if key:
 			defaults = frappe.defaults.get_defaults(parent)
@@ -768,7 +769,8 @@ class Database(object):
 		enqueue_jobs_after_commit()
 		flush_local_link_count()
 
-	def flush_realtime_log(self):
+	@staticmethod
+	def flush_realtime_log():
 		for args in frappe.local.realtime_log:
 			frappe.realtime.emit_via_redis(*args)
 
@@ -830,11 +832,11 @@ class Database(object):
 				return cache_count
 		if filters:
 			conditions, filters = self.build_conditions(filters)
-			count = frappe.db.sql("""select count(*)
+			count = self.sql("""select count(*)
 				from `tab%s` where %s""" % (dt, conditions), filters, debug=debug)[0][0]
 			return count
 		else:
-			count = frappe.db.sql("""select count(*)
+			count = self.sql("""select count(*)
 				from `tab%s`""" % (dt,))[0][0]
 
 			if cache:
@@ -859,13 +861,12 @@ class Database(object):
 
 		return datetime
 
-	@staticmethod
-	def get_creation_count(doctype, minutes):
+	def get_creation_count(self, doctype, minutes):
 		"""Get count of records created in the last x minutes"""
 		from frappe.utils import now_datetime
 		from dateutil.relativedelta import relativedelta
 
-		return frappe.db.sql("""select count(name) from `tab{doctype}`
+		return self.sql("""select count(name) from `tab{doctype}`
 			where creation >= %s""".format(doctype=doctype),
 			now_datetime() - relativedelta(minutes=minutes))[0][0]
 
@@ -888,7 +889,7 @@ class Database(object):
 		return column in self.get_table_columns(doctype)
 
 	def get_column_type(self, doctype, column):
-		return frappe.db.sql('''SELECT column_type FROM INFORMATION_SCHEMA.COLUMNS
+		return self.sql('''SELECT column_type FROM INFORMATION_SCHEMA.COLUMNS
 			WHERE table_name = 'tab{0}' AND column_name = '{1}' '''.format(doctype, column))[0][0]
 
 	def has_index(self, table_name, index_name):
