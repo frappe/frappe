@@ -87,7 +87,10 @@ class PostgresDatabase(Database):
 
 	def sql(self, *args, **kwargs):
 		if len(args):
+			# since tuple is immutable
+			args = list(args)
 			args[0] = modify_query(args[0])
+			args = tuple(args)
 		elif kwargs.get('query'):
 			kwargs['query'] = modify_query(kwargs.get('query'))
 
