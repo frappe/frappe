@@ -37,7 +37,7 @@ frappe.ui.form.on('Data Import', {
 		frm.disable_save();
 		frm.dashboard.clear_headline();
 		if (frm.doc.reference_doctype && !frm.doc.import_file) {
-			frm.page.set_indicator(__('Please attach a file to import'), 'orange');
+			frm.page.set_indicator(__('Attach file'), 'orange');
 		} else {
 			if (frm.doc.import_status) {
 				const listview_settings = frappe.listview_settings['Data Import'];
@@ -147,24 +147,22 @@ frappe.data_import.download_dialog = function(frm) {
 	const filter_fields = df => frappe.model.is_value_type(df) && !df.hidden;
 	const get_fields = dt => frappe.meta.get_docfields(dt).filter(filter_fields);
 
-	const get_doctypes = parentdt => {
-		return [parentdt].concat(
-			frappe.meta.get_table_fields(parentdt).map(df => df.options)
-		);
-	};
-
 	const get_doctype_checkbox_fields = () => {
 		return dialog.fields.filter(df => df.fieldname.endsWith('_fields'))
 			.map(df => dialog.fields_dict[df.fieldname]);
 	};
 
 	const doctype_fields = get_fields(frm.doc.reference_doctype)
-		.map(df => ({
-			label: df.label + ((df.reqd || df.fieldname == 'naming_series') ? ' (M)' : ''),
-			reqd: (df.reqd || df.fieldname == 'naming_series') ? 1 : 0,
-			value: df.fieldname,
-			checked: 1
-		}));
+		.map(df => {
+			let reqd = (df.reqd || df.fieldname == 'naming_series') ? 1 : 0;
+			return {
+				label: df.label,
+				reqd: reqd,
+				danger: reqd,
+				value: df.fieldname,
+				checked: 1
+			};
+		});
 
 	let fields = [
 		{
@@ -176,15 +174,14 @@ frappe.data_import.download_dialog = function(frm) {
 			"onchange": function() {
 				const fields = get_doctype_checkbox_fields();
 				fields.map(f => f.toggle(true));
-				if(this.value == 'Mandatory') {
+				if(this.value == 'Mandatory' || this.value == 'Manually') {
 					checkbox_toggle(true);
 					fields.map(multicheck_field => {
 						multicheck_field.options.map(option => {
 							if(!option.reqd) return;
 							$(multicheck_field.$wrapper).find(`:checkbox[data-unit="${option.value}"]`)
 								.prop('checked', false)
-								.trigger('click')
-								.prop('disabled', true);
+								.trigger('click');
 						});
 					});
 				} else if(this.value == 'All'){
@@ -237,10 +234,11 @@ frappe.data_import.download_dialog = function(frm) {
 				"options": frappe.meta.get_docfields(df.options)
 					.filter(filter_fields)
 					.map(df => ({
-						label: df.label + (df.reqd ? ' (M)' : ''),
+						label: df.label,
 						reqd: df.reqd ? 1 : 0,
 						value: df.fieldname,
-						checked: 1
+						checked: 1,
+						danger: df.reqd
 					})),
 				"columns": 2,
 				"hidden": 1

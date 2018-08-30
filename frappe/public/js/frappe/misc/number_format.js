@@ -84,7 +84,8 @@ window.format_number = function (v, format, decimals) {
 
 	v = flt(v, decimals, format);
 
-	if (v < 0) var is_negative = true;
+	let is_negative = false;
+	if (v < 0) is_negative = true;
 	v = Math.abs(v);
 
 	v = v.toFixed(decimals);
