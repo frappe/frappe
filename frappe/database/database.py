@@ -84,12 +84,6 @@ class Database(object):
 	def get_database_size(self):
 		pass
 
-	def validate_query(self, q):
-		"""Throw exception for dangerous queries: `ALTER`, `DROP`, `TRUNCATE` if not `Administrator`."""
-		cmd = q.strip().lower().split()[0]
-		if cmd in ['alter', 'drop', 'truncate'] and frappe.session.user != 'Administrator':
-			frappe.throw(_("Not permitted"), frappe.PermissionError)
-
 	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0,
 		debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None, explain=False):
 		"""Execute a SQL query and fetch all rows.
@@ -295,18 +289,6 @@ class Database(object):
 				if as_utf8 and isinstance(val, text_type):
 					val = val.encode('utf-8')
 				nr.append(val)
-			nres.append(nr)
-		return nres
-
-	def convert_to_utf8(self, res, formatted=0):
-		"""Encode result as UTF-8."""
-		nres = []
-		for r in res:
-			nr = []
-			for val in r:
-				if isinstance(val, text_type):
-					val = val.encode('utf-8')
-					nr.append(val)
 			nres.append(nr)
 		return nres
 
@@ -527,10 +509,12 @@ class Database(object):
 
 		return dict_
 
-	def get_all(self, *args, **kwargs):
+	@staticmethod
+	def get_all(*args, **kwargs):
 		return frappe.get_all(*args, **kwargs)
 
-	def get_list(self, *args, **kwargs):
+	@staticmethod
+	def get_list(*args, **kwargs):
 		return frappe.get_list(*args, **kwargs)
 
 	def get_single_value(self, doctype, fieldname, cache=False):
@@ -665,7 +649,8 @@ class Database(object):
 
 		frappe.clear_document_cache(dt, dn)
 
-	def set(self, doc, field, val):
+	@staticmethod
+	def set(doc, field, val):
 		"""Set value in document. **Avoid**"""
 		doc.db_set(field, val)
 
@@ -677,13 +662,15 @@ class Database(object):
 			where name=%s""".format(doctype=doctype), (modified, docname))
 		return modified
 
-	def set_temp(self, value):
+	@staticmethod
+	def set_temp(value):
 		"""Set a temperory value and return a key."""
 		key = frappe.generate_hash()
 		frappe.cache().hset("temp", key, value)
 		return key
 
-	def get_temp(self, key):
+	@staticmethod
+	def get_temp(key):
 		"""Return the temperory value and delete it."""
 		return frappe.cache().hget("temp", key)
 
@@ -784,9 +771,9 @@ class Database(object):
 				for d in dt:
 					if d == 'doctype': continue
 					conditions.append("`%s` = '%s'" % (d, cstr(dt[d]).replace("'", "\'")))
-				return self.sql('select name from `tab%s` where %s' % \
+				return self.sql('SELECT `name` FROM `tab%s` WHERE %s' % 
 						(dt['doctype'], " and ".join(conditions)))
-			except:
+			except Exception:
 				return None
 
 	def count(self, dt, filters=None, debug=False, cache=False):
