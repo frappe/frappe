@@ -254,8 +254,8 @@ class PostgresDatabase(Database):
 			constraint_name = "unique_" + "_".join(fields)
 
 		if not self.sql("""
-			SELECT "CONSTRAINT_NAME"
-			FROM "information_schema"."TABLE_CONSTRAINTS"
+			SELECT CONSTRAINT_NAME
+			FROM information_schema.TABLE_CONSTRAINTS
 			WHERE "table_name"=%s
 			AND "constraint_type"='UNIQUE'
 			AND "CONSTRAINT_NAME"=%s""",
