@@ -90,6 +90,10 @@ def get_checkout_url(**kwargs):
 	try:
 		if kwargs.get('payment_gateway'):
 			doc = frappe.get_doc("{0} Settings".format(kwargs.get('payment_gateway')))
+			resp = doc.run_method("before_get_payment_url", **kwargs)
+
+			if isinstance(resp, dict):
+				kwargs.update(resp)
 			return doc.get_payment_url(**kwargs)
 		else:
 			raise Exception
