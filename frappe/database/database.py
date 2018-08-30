@@ -770,9 +770,8 @@ class Database(object):
 				conditions = []
 				for d in dt:
 					if d == 'doctype': continue
-					conditions.append("`%s` = '%s'" % (d, cstr(dt[d]).replace("'", "\'")))
-				return self.sql('SELECT `name` FROM `tab%s` WHERE %s' % 
-						(dt['doctype'], " and ".join(conditions)))
+					conditions.append([d, '=', dt[d]])
+				return self.get_all(dt['doctype'], filters=conditions, as_list=1)
 			except Exception:
 				return None
 
