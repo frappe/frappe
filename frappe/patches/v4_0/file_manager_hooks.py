@@ -28,6 +28,8 @@ def execute():
 			print('Warning: Error processing ', name)
 			_file_name = old_file_name
 			b.content_hash = None
+		except TypeError:
+			continue
 
 		try:
 			b.save()
