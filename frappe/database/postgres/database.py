@@ -256,9 +256,9 @@ class PostgresDatabase(Database):
 		if not self.sql("""
 			SELECT CONSTRAINT_NAME
 			FROM information_schema.TABLE_CONSTRAINTS
-			WHERE "table_name"=%s
-			AND "constraint_type"='UNIQUE'
-			AND "CONSTRAINT_NAME"=%s""",
+			WHERE table_name=%s
+			AND constraint_type='UNIQUE'
+			AND CONSTRAINT_NAME=%s""",
 			('tab' + doctype, constraint_name)):
 				self.commit()
 				self.sql("""ALTER TABLE `tab%s`
