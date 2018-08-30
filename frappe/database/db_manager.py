@@ -57,7 +57,7 @@ class DbManager:
 		"""get list of databases"""
 		return [d[0] for d in self.db.sql("SHOW DATABASES")]
 
-	@classmethod
+	@staticmethod
 	def restore_database(target, source, user, password):
 		from frappe.utils import make_esc
 		esc = make_esc('$ ')
