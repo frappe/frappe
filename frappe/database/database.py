@@ -7,9 +7,9 @@
 from __future__ import unicode_literals
 
 import re
+from time
 import frappe
 import datetime
-from time import time
 import frappe.defaults
 import frappe.model.meta
 
@@ -842,9 +842,11 @@ class Database(object):
 
 			return count
 
-	def format_date(self, date):
+	@staticmethod
+	def format_date(date):
 		return date
 
+	@staticmethod
 	def format_datetime(self, datetime):
 		if not datetime:
 			return '0001-01-01 00:00:00.000000'
@@ -857,7 +859,8 @@ class Database(object):
 
 		return datetime
 
-	def get_creation_count(self, doctype, minutes):
+	@staticmethod
+	def get_creation_count(doctype, minutes):
 		"""Get count of records created in the last x minutes"""
 		from frappe.utils import now_datetime
 		from dateutil.relativedelta import relativedelta

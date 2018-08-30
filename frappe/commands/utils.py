@@ -321,8 +321,6 @@ def postgres(context):
 	"""
 		Enter into postgres console for a given site.
 	"""
-	import os
-
 	site  = get_site(context)
 	frappe.init(site=site)
 	# This is assuming you're within the bench instance.
