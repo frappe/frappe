@@ -262,9 +262,6 @@ class Database(object):
 		for r in result:
 			values = []
 			for value in r:
-				if needs_formatting:
-					value = self.convert_to_simple_type(value, formatted)
-
 				if as_utf8 and isinstance(value, text_type):
 					value = value.encode('utf-8')
 				values.append(value)
@@ -288,45 +285,13 @@ class Database(object):
 		"""Returns result metadata."""
 		return self._cursor.description
 
-	@staticmethod
-	def convert_to_simple_type(v, formatted=0):
-		"""Format date, time, longint values."""
-		from frappe.utils import formatdate, fmt_money
-
-		if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, integer_types)):
-			if isinstance(v, datetime.date):
-				v = text_type(v)
-				if formatted:
-					v = formatdate(v)
-
-			# time
-			elif isinstance(v, (datetime.timedelta, datetime.datetime)):
-				v = text_type(v)
-
-			# long
-			elif isinstance(v, integer_types):
-				v=int(v)
-
-		# convert to strings... (if formatted)
-		if formatted:
-			if isinstance(v, float):
-				v=fmt_money(v)
-			elif isinstance(v, int):
-				v = text_type(v)
-
-		return v
-
 	def convert_to_lists(self, res, formatted=0, as_utf8=0):
 		"""Convert tuple output to lists (internal)."""
 		nres = []
 		needs_formatting = self.needs_formatting(res, formatted)
 		for r in res:
 			nr = []
-			for c in r:
-				if needs_formatting:
-					val = self.convert_to_simple_type(c, formatted)
-				else:
-					val = c
+			for val in r:
 				if as_utf8 and isinstance(val, text_type):
 					val = val.encode('utf-8')
 				nr.append(val)
@@ -338,10 +303,10 @@ class Database(object):
 		nres = []
 		for r in res:
 			nr = []
-			for c in r:
-				if type(c) is text_type:
-					c = c.encode('utf-8')
-					nr.append(self.convert_to_simple_type(c, formatted))
+			for val in r:
+				if isinstance(val, text_type):
+					val = val.encode('utf-8')
+					nr.append(val)
 			nres.append(nr)
 		return nres
 
