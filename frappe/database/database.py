@@ -7,7 +7,7 @@
 from __future__ import unicode_literals
 
 import re
-from time
+import time
 import frappe
 import datetime
 import frappe.defaults
