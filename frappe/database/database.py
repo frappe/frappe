@@ -736,12 +736,12 @@ class Database(object):
 		return isinstance(d, list) and d[0] or d
 
 	@staticmethod
-	def set_default(self, key, val, parent="__default", parenttype=None):
+	def set_default(key, val, parent="__default", parenttype=None):
 		"""Sets a global / user default value."""
 		frappe.defaults.set_default(key, val, parent, parenttype)
 
 	@staticmethod
-	def add_default(self, key, val, parent="__default", parenttype=None):
+	def add_default(key, val, parent="__default", parenttype=None):
 		"""Append a default value for a key, there can be multiple default values for a particular key."""
 		frappe.defaults.add_default(key, val, parent, parenttype)
 

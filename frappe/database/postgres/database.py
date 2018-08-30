@@ -85,17 +85,13 @@ class PostgresDatabase(Database):
 			self.db_name, as_dict=True)
 		return db_size[0].get('database_size')
 
-	def sql(self, query, *args, **kwargs):
-		# replace ` with " for definitions
-		query = query.replace('`', '"')
+	def sql(self, *args, **kwargs):
+		if len(args):
+			args[0] = modify_query(args[0])
+		elif kwargs.get('query'):
+			kwargs['query'] = modify_query(kwargs.get('query'))
 
-		query = replace_locate_with_strpos(query)
-
-		# select from requires ""
-		if re.search('from tab', query, flags=re.IGNORECASE):
-			query = re.sub('from tab([a-zA-Z]*)', r'from "tab\1"', query, flags=re.IGNORECASE)
-		# kwargs['debug'] = True
-		return super(PostgresDatabase, self).sql(query, *args, **kwargs)
+		return super(PostgresDatabase, self).sql(*args, **kwargs)
 
 	def get_tables(self):
 		return [d[0] for d in self.sql("""select table_name
@@ -291,6 +287,16 @@ class PostgresDatabase(Database):
 	def get_database_list(self, target):
 		return [d[0] for d in self.sql("SELECT datname FROM pg_database;")]
 
+def modify_query(query):
+	""""Modifies query according to the requirements of postgres"""
+	# replace ` with " for definitions
+	query = query.replace('`', '"')
+	query = replace_locate_with_strpos(query)
+	# select from requires ""
+	if re.search('from tab', query, flags=re.IGNORECASE):
+		query = re.sub('from tab([a-zA-Z]*)', r'from "tab\1"', query, flags=re.IGNORECASE)
+
+	return query
 
 def replace_locate_with_strpos(query):
 	# strpos is the locate equivalent in postgres
