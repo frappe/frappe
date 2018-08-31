@@ -1,6 +1,6 @@
 import frappe, subprocess, os
 
-def setup_database(force, verbose):
+def setup_database(force, source_sql, verbose):
 	root_conn = get_root_connection()
 	root_conn.commit()
 	root_conn.sql("DROP DATABASE IF EXISTS `{0}`".format(frappe.conf.db_name))

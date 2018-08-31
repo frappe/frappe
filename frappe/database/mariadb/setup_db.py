@@ -4,7 +4,7 @@ import frappe
 import os, sys
 from frappe.database.db_manager import DbManager
 
-def setup_database(force, verbose):
+def setup_database(force, source_sql, verbose):
 	frappe.local.session = frappe._dict({'user':'Administrator'})
 
 	db_name = frappe.local.conf.db_name
@@ -29,7 +29,7 @@ def setup_database(force, verbose):
 	# close root connection
 	root_conn.close()
 
-	bootstrap_database(db_name, verbose)
+	bootstrap_database(db_name, verbose, source_sql)
 
 def setup_help_database(help_db_name):
 	dbman = DbManager(get_root_connection(frappe.flags.root_login, frappe.flags.root_password))
@@ -52,10 +52,10 @@ def drop_user_and_database(db_name, root_login, root_password):
 	dbman.delete_user(db_name)
 	dbman.drop_database(db_name)
 
-def bootstrap_database(db_name, verbose):
+def bootstrap_database(db_name, verbose, source_sql=None):
 	frappe.connect(db_name=db_name)
 	check_if_ready_for_barracuda()
-	import_db_from_sql(None, verbose)
+	import_db_from_sql(source_sql, verbose)
 	if not 'tabDefaultValue' in frappe.db.get_tables():
 		print('''Database not installed, this can due to lack of permission, or that the database name exists.
 			Check your mysql root password, or use --force to reinstall''')
