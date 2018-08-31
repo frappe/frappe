@@ -115,7 +115,7 @@ def get_page_info_from_doctypes(path=None):
 				if path:
 					return routes[r.route]
 		except Exception as e:
-			if frappe.db.is_missing_column(e): raise e
+			if not frappe.db.is_missing_column(e): raise e
 
 	return routes
 

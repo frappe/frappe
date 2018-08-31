@@ -226,7 +226,7 @@ def remove_all(dt, dn, from_delete=False):
 			attached_to_doctype=%s and attached_to_name=%s""", (dt, dn)):
 			remove_file(fid, dt, dn, from_delete)
 	except Exception as e:
-		if frappe.db.is_missing_column(e): raise # (temp till for patched)
+		if not frappe.db.is_missing_column(e): raise # (temp till for patched)
 
 
 def remove_file_by_url(file_url, doctype=None, name=None):

@@ -112,7 +112,7 @@ def delete_all_passwords_for(doctype, name):
 		frappe.db.sql("""delete from `__Auth` where `doctype`=%(doctype)s and `name`=%(name)s""",
 			{ 'doctype': doctype, 'name': name })
 	except Exception as e:
-		if frappe.db.is_missing_column(e):
+		if not frappe.db.is_missing_column(e):
 			raise
 
 def rename_password(doctype, old_name, new_name):

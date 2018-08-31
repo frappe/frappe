@@ -6,7 +6,7 @@ def execute():
 	try:
 		frappe.db.sql('update `tabCustom Field` set in_standard_filter = in_filter_dash')
 	except Exception as e:
-		if frappe.db.is_missing_column(e): raise e
+		if not frappe.db.is_missing_column(e): raise e
 
 	for doctype in frappe.get_all("DocType", {"istable": 0, "issingle": 0, "custom": 0}):
 		try:
