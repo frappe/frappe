@@ -1,0 +1,62 @@
+@import "variables.less";
+@import (less) "../js/lib/datepicker/datepicker.min.css";
+
+.datepicker {
+	font-family: inherit;
+	z-index: 9999 !important;
+
+	&--time-current-hours, &--time-current-minutes, &--time-current-seconds {
+		font-family: inherit;
+	}
+
+	&--day-name {
+		color: @text-color;
+	}
+
+	&--cell {
+		&.-current- {
+			color: @brand-primary;
+
+			&.-in-range- {
+				color: @brand-primary;
+			}
+		}
+
+		&.-range-from-, &.-range-to- {
+			border: 1px solid fade(@brand-primary, 30%);
+			background: fade(@brand-primary, 10%);
+		}
+
+		&.-selected-, &.-current-.-selected- {
+			background: @brand-primary;
+		}
+
+		&.-in-range- {
+			background: fade(@brand-primary, 5%);
+		}
+
+		&.-in-range-.-focus- {
+			background: fade(@brand-primary, 10%);
+		}
+
+		&.-selected-.-focus- {
+			background: fade(@brand-primary, 90%);
+		}
+
+    }
+
+    &--time-row {
+        background-image: linear-gradient(to right, @border-color, @border-color);
+        background-repeat: no-repeat;
+        background-size: 100% 1px;
+        background-position: left 50%;
+    }
+
+    &--time-row:first-child {
+        margin: 0;
+    }
+}
+
+.datepicker--button {
+	color: @brand-primary;
+}
