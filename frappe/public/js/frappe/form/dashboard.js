@@ -109,8 +109,10 @@ frappe.ui.form.Dashboard = Class.extend({
 		}
 
 		progress_chart.find('.progress-bar').each((i, progress_bar) => {
-			const width = percent[i].width;
-			$(progress_bar).css('width', width);
+			const { progress_class, width } = percent[i];
+			$(progress_bar).css('width', width)
+				.removeClass('progress-bar-danger progress-bar-success')
+				.addClass(progress_class);
 		});
 	},
 
