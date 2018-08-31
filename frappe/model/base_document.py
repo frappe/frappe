@@ -298,10 +298,10 @@ class BaseDocument(object):
 
 		if not self.creation:
 			self.creation = self.modified = now()
-			self.created_by = self.modifield_by = frappe.session.user
+			self.created_by = self.modified_by = frappe.session.user
 
 		d = self.get_valid_dict(convert_dates_to_str=True)
-
+		
 		columns = list(d)
 		try:
 			frappe.db.sql("""INSERT INTO `tab{doctype}` ({columns})
