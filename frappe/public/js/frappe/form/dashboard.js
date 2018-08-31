@@ -90,6 +90,28 @@ frappe.ui.form.Dashboard = Class.extend({
 		}
 
 		this.show();
+
+		return progress_chart;
+	},
+
+	show_progress: function(title, percent, message) {
+		this._progress_map = this._progress_map || {};
+
+		if (!this._progress_map[title]) {
+			const progress_chart = this.add_progress(title, percent, message);
+			this._progress_map[title] = progress_chart;
+		}
+
+		let progress_chart = this._progress_map[title];
+
+		if (!$.isArray(percent)) {
+			percent = this.format_percent(title, percent);
+		}
+
+		progress_chart.find('.progress-bar').each((i, progress_bar) => {
+			const width = percent[i].width;
+			$(progress_bar).css('width', width);
+		});
 	},
 
 	format_percent: function(title, percent) {
