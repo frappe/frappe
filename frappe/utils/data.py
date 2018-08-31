@@ -357,8 +357,8 @@ def safe_div(numerator, denominator, precision=2):
 	SafeMath division that returns zero when divided by zero.
 	"""
 	precision = cint(precision)
-	
-	if denominator == 0: 
+
+	if denominator == 0:
 		_res = 0.0
 	else:
 		_res = float(numerator) / denominator
