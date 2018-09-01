@@ -135,8 +135,8 @@ def get_context(context):
 					continue
 			if recipient.email_by_document_field:
 				if validate_email_add(doc.get(recipient.email_by_document_field)):
-					recipient.email_by_document_field = doc.get(recipient.email_by_document_field).replace(",", "\n")
-					recipients = recipients + recipient.email_by_document_field.split("\n")
+					recipient.tmp_email_by_document_field = doc.get(recipient.email_by_document_field).replace(",", "\n")
+					recipients = recipients + recipient.tmp_email_by_document_field.split("\n")
 
 				# else:
 				# 	print "invalid email"
