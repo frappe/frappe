@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const chalk = require('chalk');
 const log = console.log; // eslint-disable-line
 
@@ -8,11 +9,13 @@ const node_resolve = require('rollup-plugin-node-resolve');
 const postcss = require('rollup-plugin-postcss');
 const buble = require('rollup-plugin-buble');
 const uglify = require('rollup-plugin-uglify');
+const vue = require('rollup-plugin-vue');
 const frappe_html = require('./frappe-html-plugin');
 
 const production = process.env.FRAPPE_ENV === 'production';
 
 const {
+	apps_list,
 	assets_path,
 	bench_path,
 	get_public_path,
@@ -35,6 +38,8 @@ function get_rollup_options_for_js(output_file, input_files) {
 		multi_entry(),
 		// .html -> .js
 		frappe_html(),
+		// .vue -> .js
+		vue.default(),
 		// ES6 -> ES5
 		buble({
 			objectAssign: 'Object.assign',
@@ -44,7 +49,13 @@ function get_rollup_options_for_js(output_file, input_files) {
 			exclude: [path.resolve(bench_path, '**/*.css'), path.resolve(bench_path, '**/*.less')]
 		}),
 		commonjs(),
-		node_resolve(),
+		node_resolve({
+			customResolveOptions: {
+				paths: apps_list.map(app => {
+					return path.resolve(get_app_path(app), '../node_modules');
+				}).filter(fs.existsSync)
+			}
+		}),
 		production && uglify()
 	];
 

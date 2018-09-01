@@ -288,9 +288,13 @@ frappe.search.SearchDialog = Class.extend({
 		}
 
 		if(result.image) {
-			$result.append('<div class="result-image"><img data-name="' + result.label + '" src="'+ result.image +'" alt="' + result.label + '"></div>');
+			$result.append('<a '+ get_link(result) +
+				'><div class="result-image"><img data-name="' + result.label
+					+ '" src="'+ result.image +'" alt="' + result.label + '"></div></a>');
 		} else if (result.image === null) {
-			$result.append('<div class="result-image"><div class="flex-text"><span>'+ frappe.get_abbr(result.label) +'</span></div></div>');
+			$result.append('<a '+ get_link(result) +
+				'><div class="result-image"><div class="flex-text"><span>'
+					+ frappe.get_abbr(result.label) +'</span></div></div></a>');
 		}
 
 		var title_html = '<a '+ get_link(result) +' class="module-section-link small">'+ result.label +'</a>';
@@ -303,7 +307,7 @@ frappe.search.SearchDialog = Class.extend({
 			if(result.route_options) {
 				frappe.route_options = result.route_options;
 			}
-			$result_text.on('click', (e) => {
+			$result.on('click', (e) => {
 				this.search_dialog.hide();
 				if(result.onclick) {
 					result.onclick(result.match);

@@ -59,6 +59,7 @@ function prettyDate(time, mini) {
 }
 
 
+frappe.provide("frappe.datetime");
 window.comment_when = function(datetime, mini) {
 	var timestamp = frappe.datetime.str_to_user ?
 		frappe.datetime.str_to_user(datetime) : datetime;
@@ -67,8 +68,8 @@ window.comment_when = function(datetime, mini) {
 		+ '" title="' + timestamp + '">'
 		+ prettyDate(datetime, mini) + '</span>';
 };
+frappe.datetime.comment_when = comment_when;
 
-frappe.provide("frappe.datetime");
 frappe.datetime.refresh_when = function() {
 	if (jQuery) {
 		$(".frappe-timestamp").each(function() {

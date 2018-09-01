@@ -380,7 +380,8 @@ def accept(web_form, data, for_payment=False):
 		if df and df.fieldtype in ('Attach', 'Attach Image'):
 			if value and 'data:' and 'base64' in value:
 				files.append((fieldname, value))
-				doc.set(fieldname, '')
+				if not doc.name:
+					doc.set(fieldname, '')
 				continue
 
 			elif not value and doc.get(fieldname):
@@ -404,7 +405,9 @@ def accept(web_form, data, for_payment=False):
 		if web_form.login_required and frappe.session.user=="Guest":
 			frappe.throw(_("You must login to submit this form"))
 
-		doc.insert(ignore_permissions = True, ignore_mandatory = True if files else False)
+		ignore_mandatory = True if files else False
+
+		doc.insert(ignore_permissions = True, ignore_mandatory = ignore_mandatory)
 
 	# add files
 	if files:
@@ -516,7 +519,7 @@ def make_route_string(parameters):
 	return (route_string, delimeter)
 
 @frappe.whitelist(allow_guest=True)
-def get_form_data(doctype, docname, web_form_name):
+def get_form_data(doctype, docname=None, web_form_name=None):
 	out = frappe._dict()
 
 	if docname:

@@ -49,7 +49,8 @@ export default function make_datatable(container, doctype) {
 
 			tablerow
 				.css({cursor: 'pointer'})
-				.click(() => {
+				.click((e) => {
+					if ($(e.target).is('[type=checkbox]')) return
 					window.location.href = window.location.href + '?name=' + data[i].name;
 				});
 			for (let fieldname of colnames) {
@@ -62,7 +63,7 @@ export default function make_datatable(container, doctype) {
 
 
 	const bind_events = () => {
-		parent.find('input[type="checkbox"]:not(.select-all)').on('click', (e) => {
+		parent.on('click', 'input[type="checkbox"]:not(.select-all)', (e) => {
 			set_actions();
 			e.stopPropagation();
 		});

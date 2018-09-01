@@ -30,19 +30,22 @@
     "showdown": "^1.8.6",
     "socket.io": "^2.0.4",
     "superagent": "^3.8.2",
-    "touch": "^3.1.0"
+    "touch": "^3.1.0",
+    "vue": "^2.5.17"
   },
   "devDependencies": {
     "babel-runtime": "^6.26.0",
     "chalk": "^2.3.2",
     "less": "^3.0.4",
     "node-sass": "^4.9.0",
-    "rollup": "^0.55.3",
+    "rollup": "^0.65.0",
     "rollup-plugin-buble": "^0.19.2",
     "rollup-plugin-commonjs": "^8.3.0",
     "rollup-plugin-multi-entry": "^2.0.2",
     "rollup-plugin-node-resolve": "^3.0.2",
     "rollup-plugin-postcss": "^1.4.0",
-    "rollup-plugin-uglify": "^3.0.0"
+    "rollup-plugin-uglify": "^3.0.0",
+    "rollup-plugin-vue": "^4.3.2",
+    "vue-template-compiler": "^2.5.17"
   }
 }

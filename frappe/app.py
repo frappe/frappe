@@ -17,7 +17,6 @@ import frappe
 import frappe.handler
 import frappe.auth
 import frappe.api
-import frappe.async
 import frappe.utils.response
 import frappe.website.render
 from frappe.utils import get_site_name

@@ -25,7 +25,8 @@ def xmlrunner_wrapper(output):
 	return _runner
 
 def main(app=None, module=None, doctype=None, verbose=False, tests=(),
-	force=False, profile=False, junit_xml_output=None, ui_tests=False, doctype_list_path=None):
+	force=False, profile=False, junit_xml_output=None, ui_tests=False,
+	doctype_list_path=None, skip_test_records=False):
 	global unittest_runner
 
 	if doctype_list_path:
@@ -55,10 +56,11 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 		frappe.utils.scheduler.disable_scheduler()
 		set_test_email_config()
 
-		if verbose:
-			print('Running "before_tests" hooks')
-		for fn in frappe.get_hooks("before_tests", app_name=app):
-			frappe.get_attr(fn)()
+		if not frappe.flags.skip_before_tests:
+			if verbose:
+				print('Running "before_tests" hooks')
+			for fn in frappe.get_hooks("before_tests", app_name=app):
+				frappe.get_attr(fn)()
 
 		if doctype:
 			ret = run_tests_for_doctype(doctype, verbose, tests, force, profile)
@@ -242,6 +244,9 @@ def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 def make_test_records(doctype, verbose=0, force=False):
 	if not frappe.db:
 		frappe.connect()
+
+	if frappe.flags.skip_test_records:
+		return
 
 	for options in get_dependencies(doctype):
 		if options == "[Select]":
