@@ -964,3 +964,7 @@ def get_source_value(source, key):
 		return source.get(key)
 	else:
 		return getattr(source, key)
+
+def is_subset(list_a, list_b):
+	'''Returns whether list_a is a subset of list_b'''
+	return len(list(set(list_a) & set(list_b))) == len(list_a)
