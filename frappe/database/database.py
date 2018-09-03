@@ -278,7 +278,8 @@ class Database(object):
 		"""Returns result metadata."""
 		return self._cursor.description
 
-	def convert_to_lists(self, res, formatted=0, as_utf8=0):
+	@staticmethod
+	def convert_to_lists(res, formatted=0, as_utf8=0):
 		"""Convert tuple output to lists (internal)."""
 		nres = []
 		for r in res:
@@ -577,8 +578,10 @@ class Database(object):
 		names = list(filter(None, names))
 
 		if names:
-			return dict(self.sql("select name, `%s` from `tab%s` where name in (%s)" \
-				% (field, doctype, ", ".join(["%s"]*len(names))), names, debug=debug))
+			return self.get_all(doctype,
+				fields=['name', field],
+				filters=[['name', 'in', names]],
+				debug=debug, as_list=1)
 		else:
 			return {}
 
@@ -888,6 +891,17 @@ class Database(object):
 		current_dialect = frappe.conf.db_type or 'mariadb'
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
+
+	def delete(self, doctype, conditions):
+		if conditions:
+			conditions, values = self.build_conditions(conditions)
+			return self.sql("DELETE FROM `tab{doctype}` where {conditions}".format(
+				doctype=doctype,
+				conditions=conditions
+			), values)
+		else:
+			frappe.throw('No conditions provided')
+
 
 def enqueue_jobs_after_commit():
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:

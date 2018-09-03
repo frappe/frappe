@@ -85,6 +85,7 @@ class PostgresDatabase(Database):
 			self.db_name, as_dict=True)
 		return db_size[0].get('database_size')
 
+	# pylint: disable=W0221
 	def sql(self, *args, **kwargs):
 		if len(args):
 			# since tuple is immutable
