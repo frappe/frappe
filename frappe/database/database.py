@@ -15,7 +15,7 @@ import frappe.model.meta
 
 from frappe import _
 from time import time
-from frappe.utils import now, cstr, cast_fieldtype
+from frappe.utils import now, cast_fieldtype
 from frappe.utils.background_jobs import execute_job, get_queue
 from frappe.model.utils.link_count import flush_local_link_count
 
@@ -249,7 +249,6 @@ class Database(object):
 		"""Internal. Converts results to dict."""
 		result = self._cursor.fetchall()
 		ret = []
-		needs_formatting = self.needs_formatting(result, formatted)
 		if result:
 			keys = [column[0] for column in self._cursor.description]
 
@@ -282,7 +281,6 @@ class Database(object):
 	def convert_to_lists(self, res, formatted=0, as_utf8=0):
 		"""Convert tuple output to lists (internal)."""
 		nres = []
-		needs_formatting = self.needs_formatting(res, formatted)
 		for r in res:
 			nr = []
 			for val in r:
@@ -656,7 +654,6 @@ class Database(object):
 
 	def touch(self, doctype, docname):
 		"""Update the modified timestamp of this document."""
-		from frappe.utils import now
 		modified = now()
 		self.sql("""update `tab{doctype}` set `modified`=%s
 			where name=%s""".format(doctype=doctype), (modified, docname))
@@ -762,7 +759,7 @@ class Database(object):
 				return True # single always exists (!)
 			try:
 				return self.get_value(dt, dn, "name", cache=cache)
-			except:
+			except Exception:
 				return None
 
 		elif isinstance(dt, dict) and dt.get('doctype'):
