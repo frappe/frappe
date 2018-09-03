@@ -175,7 +175,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +738,Export Repo
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +52,Insert Below,Ubacite ispod
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +137,Assign To,Dodijeli
 apps/frappe/frappe/www/update-password.html +71,Invalid Password,Pogrešna lozinka
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +310,Dropbox Setup,Dropbox podešavanje
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +312,Dropbox Setup,Dropbox podešavanje
 apps/frappe/frappe/public/js/frappe/form/share.js +57,Share {0} with,Podijeli {0} sa
 apps/frappe/frappe/public/js/frappe/form/controls/attach.js +60,Clear Attachment,Obriši dodatu sliku
 ,Addresses And Contacts,Adrese i kontakti
@@ -333,7 +333,7 @@ DocType: ToDo,Low,Nizak
 DocType: Prepared Report,Completed,Završeno
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +28,Apply,Primijeni
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +51,Yesterday,Juče
-apps/frappe/frappe/desk/query_report.py +312,Total,Ukupno
+apps/frappe/frappe/desk/query_report.py +315,Total,Ukupno
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +614,Show Totals,Prikaži ukupno
 apps/frappe/frappe/public/js/frappe/ui/messages.js +215,Enter your password,Unesite lozinku
 apps/frappe/frappe/utils/bot.py +91,Like,Kao
@@ -425,7 +425,7 @@ apps/frappe/frappe/public/js/frappe/ui/sort_selector.js +182,Most Used,Najviše 
 apps/frappe/frappe/email/doctype/email_account/email_account.js +183,"You are selecting Sync Option as ALL, It will resync all \
 				read as well as unread message from server. This may also cause the duplication\
 				of Communication (emails).","Постављате Начин усклађивања на СВЕ, што ће поново усклатиди све прочитане и непрочитане поруке са сервера. Ово може изазвати дупликате комуникација (мејлова)."
-apps/frappe/frappe/utils/data.py +640,{0} or {1},{0} {1} ili
+apps/frappe/frappe/utils/data.py +653,{0} or {1},{0} {1} ili
 DocType: File,Is Attachments Folder,Da li je prilog folder
 DocType: Contact,Gender,Pol
 apps/frappe/frappe/templates/pages/integrations/payment-cancel.html +3,Payment Cancelled,Plaćenje otkazano

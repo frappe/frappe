@@ -1,12 +1,12 @@
 apps/frappe/frappe/www/printview.py +83,Not allowed to print cancelled documents,Not allowed to print canceled documents
 apps/frappe/frappe/templates/pages/integrations/payment-cancel.html +3,Payment Cancelled,Payment Canceled
-apps/frappe/frappe/model/document.py +738,Cannot link cancelled document: {0},Cannot link canceled document: {0}
+apps/frappe/frappe/model/document.py +746,Cannot link cancelled document: {0},Cannot link canceled document: {0}
 DocType: Workflow State,zoom-out,zoom-out
 DocType: Print Settings,Allow Print for Cancelled,Allow Print for Canceled
-apps/frappe/frappe/utils/data.py +627,1 weeks ago,1 week ago
+apps/frappe/frappe/utils/data.py +640,1 weeks ago,1 week ago
 DocType: Workflow State,facetime-video,Facetime-Video
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py +50,Cancelling {0},Canceling {0}
-apps/frappe/frappe/model/document.py +676,Cannot edit cancelled document,Cannot edit canceled document
+apps/frappe/frappe/model/document.py +678,Cannot edit cancelled document,Cannot edit canceled document
 apps/frappe/frappe/templates/pages/integrations/payment-cancel.html +11,Your payment is cancelled.,Your payment is canceled.
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +23,You selected Draft or Cancelled documents,You selected Draft or Canceled documents
 DocType: Workflow Document State,0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Draft; 1 - Submitted; 2 - Canceled
