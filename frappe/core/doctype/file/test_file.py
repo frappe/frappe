@@ -101,7 +101,7 @@ class TestFile(unittest.TestCase):
 		self.assertRaises(frappe.ValidationError, folder.delete)
 
 	def test_file_upload_limit(self):
-		from frappe.utils.file_manager import MaxFileSizeReachedError
+		from frappe.core.doctype.file.file import MaxFileSizeReachedError
 		from frappe.limits import update_limits, clear_limit
 		from frappe import _dict
 

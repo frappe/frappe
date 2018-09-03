@@ -144,7 +144,7 @@ class EMail:
 
 	def attach_file(self, n):
 		"""attach a file from the `FileData` table"""
-		from frappe.utils.file_manager import get_file
+		from frappe.core.doctype.file.file import get_file
 		res = get_file(n)
 		if not res:
 			return

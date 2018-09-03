@@ -30,7 +30,7 @@ def read_csv_content_from_attached_file(doc):
 		raise Exception
 
 	try:
-		from frappe.utils.file_manager import get_file
+		from frappe.core.doctype.file.file import get_file
 		fname, fcontent = get_file(fileid)
 		return read_csv_content(fcontent, frappe.form_dict.get('ignore_encoding_errors'))
 	except Exception:

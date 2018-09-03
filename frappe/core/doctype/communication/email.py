@@ -10,7 +10,7 @@ from email.utils import formataddr
 from frappe.core.utils import get_parent_doc
 from frappe.utils import (get_url, get_formatted_email, cint,
   validate_email_add, split_emails, time_diff_in_seconds, parse_addr, get_datetime)
-from frappe.utils.file_manager import get_file
+from frappe.core.doctype.file.file import get_file
 from frappe.email.queue import check_email_limit
 from frappe.utils.scheduler import log
 from frappe.email.email_body import get_message_id

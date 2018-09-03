@@ -8,7 +8,6 @@ test_records = frappe.get_test_records('Email Account')
 
 from frappe.core.doctype.communication.email import make
 from frappe.desk.form.load import get_attachments
-from frappe.utils.file_manager import delete_file_from_filesystem
 from frappe.email.doctype.email_account.email_account import notify_unreplied
 from datetime import datetime, timedelta
 
@@ -55,7 +54,8 @@ class TestEmailAccount(unittest.TestCase):
 		frappe.db.sql("delete from tabCommunication where sender='test_sender@example.com'")
 		existing_file = frappe.get_doc({'doctype': 'File', 'file_name': 'erpnext-conf-14.png'})
 		frappe.delete_doc("File", existing_file.name)
-		delete_file_from_filesystem(existing_file)
+		_file = frappe.get_doc("File", {"doc": existing_file})
+		_file.delete_file_from_filesystem()
 
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-2.raw"), "r") as testfile:
 			test_mails = [testfile.read()]
@@ -73,7 +73,8 @@ class TestEmailAccount(unittest.TestCase):
 		# cleanup
 		existing_file = frappe.get_doc({'doctype': 'File', 'file_name': 'erpnext-conf-14.png'})
 		frappe.delete_doc("File", existing_file.name)
-		delete_file_from_filesystem(existing_file)
+		_file = frappe.get_doc("File", {"doc": existing_file})
+
 
 	def test_incoming_attached_email_from_outlook_plain_text_only(self):
 		frappe.db.sql("delete from tabCommunication where sender='test_sender@example.com'")

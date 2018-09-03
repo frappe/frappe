@@ -173,7 +173,7 @@ def clear_limit(key):
 
 def validate_space_limit(file_size):
 	"""Stop from writing file if max space limit is reached"""
-	from frappe.utils.file_manager import MaxFileSizeReachedError
+	from frappe.core.doctype.file.file import MaxFileSizeReachedError
 
 	limits = get_limits()
 	if not limits.space:

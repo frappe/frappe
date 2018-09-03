@@ -70,7 +70,7 @@ def handle_html(data):
 
 def read_xlsx_file_from_attached_file(file_id=None, fcontent=None, filepath=None):
 	if file_id:
-		from frappe.utils.file_manager import get_file_path
+		from frappe.core.doctype.file.file import get_file_path
 		filename = get_file_path(file_id)
 	elif fcontent:
 		from io import BytesIO

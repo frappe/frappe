@@ -6,7 +6,7 @@ from __future__ import unicode_literals, print_function
 import frappe
 import os
 from frappe.utils import get_files_path
-from frappe.utils.file_manager import get_content_hash, get_file
+from frappe.core.doctype.file.file import get_content_hash, get_file
 
 
 def execute():

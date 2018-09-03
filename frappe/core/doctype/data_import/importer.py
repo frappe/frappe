@@ -272,7 +272,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	# header
 	filename, file_extension = ['','']
 	if not rows:
-		from frappe.utils.file_manager import get_file # get_file_doc
+		from frappe.core.doctype.file.file import get_file # get_file_doc
 		fname, fcontent = get_file(data_import_doc.import_file)
 		filename, file_extension = os.path.splitext(fname)
 

@@ -11,10 +11,10 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
 from frappe.desk.query_report import generate_report_result, get_columns_dict
-from frappe.utils.file_manager import remove_all
+from frappe.core.doctype.file.file import remove_all
 from frappe.utils.csvutils import to_csv, read_csv_content_from_attached_file
 from frappe.desk.form.load import get_attachments
-from frappe.utils.file_manager import download_file
+from frappe.core.doctype.file.file import download_file
 
 
 class PreparedReport(Document):

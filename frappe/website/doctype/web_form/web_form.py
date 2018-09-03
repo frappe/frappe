@@ -8,7 +8,8 @@ from frappe import _, scrub
 from frappe.utils import cstr
 from frappe.website.utils import get_comment_list
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
-from frappe.utils.file_manager import get_max_file_size
+from frappe.core.doctype.file.file import get_max_file_size
+from frappe.core.doctype.file.file import remove_file_by_url
 from frappe.modules.utils import export_module_json, get_doc_module
 from six.moves.urllib.parse import urlencode
 from frappe.integrations.utils import get_payment_gateway_controller
@@ -415,8 +416,7 @@ def accept(web_form, data, for_payment=False):
 
 			# remove earlier attached file (if exists)
 			if doc.get(fieldname):
-				file = frappe.get_doc("File", {"attached_to_doctype": doc.doctype, "file_url": doc.get(fieldname), "attached_to_name": doc.name})
-				file.remove_file_by_url()
+				remove_file_by_url(doc.get(fieldname), doctype=doc.doctype, name=doc.name)
 
 			# save new file
 			filename, dataurl = filedata.split(',', 1)
@@ -432,8 +432,8 @@ def accept(web_form, data, for_payment=False):
 	if files_to_delete:
 		for f in files_to_delete:
 			if f:
-				file = frappe.get_doc("File", {"attached_to_doctype": doc.doctype, "file_url": doc.get(fieldname), "attached_to_name": doc.name})
-				file.remove_file_by_url()
+				remove_file_by_url(doc.get(fieldname), doctype=doc.doctype, name=doc.name)
+
 
 	frappe.flags.web_form_doc = doc
 

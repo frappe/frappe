@@ -6,7 +6,7 @@ import frappe
 import os
 import unittest
 
-from frappe.utils.file_manager import get_file, get_files_path
+from frappe.core.doctype.file.file import get_file, get_files_path
 
 test_content1 = 'Hello'
 test_content2 = 'Hello World'
