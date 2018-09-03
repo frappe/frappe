@@ -282,8 +282,6 @@ class FrappeClient(object):
 		return params
 
 	def post_process(self, response):
-		response.raise_for_status()
-
 		try:
 			rjson = response.json()
 		except ValueError:
