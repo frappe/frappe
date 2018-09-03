@@ -15,7 +15,7 @@ import frappe.model.meta
 
 from frappe import _
 from time import time
-from frappe.utils import now, cast_fieldtype
+from frappe.utils import now, getdate, cast_fieldtype
 from frappe.utils.background_jobs import execute_job, get_queue
 from frappe.model.utils.link_count import flush_local_link_count
 
@@ -794,7 +794,7 @@ class Database(object):
 
 	@staticmethod
 	def format_date(date):
-		return date
+		return getdate(date).strftime("%Y-%m-%d")
 
 	@staticmethod
 	def format_datetime(datetime):
