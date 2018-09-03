@@ -78,7 +78,8 @@ export default class WebForm {
 
 		setTimeout(() => {
 			this.field_group.fields_list.forEach((field_instance) => {
-				if (field_instance.df.fieldtype === "Attach" && field_instance.get_value().match(".(?:jpg|gif|jpeg|png)") ){
+				let instance_value = field_instance.value;
+				if (instance_value != null && field_instance.df.fieldtype === "Attach" && instance_value.match(".(?:jpg|gif|jpeg|png)") ){
 					field_instance.$input_wrapper.append(`<img src=${field_instance.get_value()} width="auto" height=200>`);
 				}
 			});
