@@ -677,7 +677,7 @@ frappe.ui.form.Timeline = Class.extend({
 		var valid_users = Object.keys(frappe.boot.user_info)
 			.filter(user => !["Administrator", "Guest"].includes(user));
 
-		return valid_users.map(user => frappe.boot.user_info[user].email);
+		return valid_users.map(user => frappe.boot.user_info[user].name);
 	},
 
 	setup_comment_like: function() {
