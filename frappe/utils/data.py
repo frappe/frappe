@@ -352,6 +352,19 @@ def remainder(numerator, denominator, precision=2):
 
 	return flt(_remainder, precision);
 
+def safe_div(numerator, denominator, precision=2):
+	"""
+	SafeMath division that returns zero when divided by zero.
+	"""
+	precision = cint(precision)
+
+	if denominator == 0:
+		_res = 0.0
+	else:
+		_res = float(numerator) / denominator
+	
+	return flt(_res, precision)
+
 def round_based_on_smallest_currency_fraction(value, currency, precision=2):
 	smallest_currency_fraction_value = flt(frappe.db.get_value("Currency",
 		currency, "smallest_currency_fraction_value", cache=True))
