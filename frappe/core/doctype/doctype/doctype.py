@@ -235,10 +235,16 @@ class DocType(Document):
 		if autoname and (not autoname.startswith('field:')) \
 			and (not autoname.startswith('eval:')) \
 			and (not autoname.lower() in ('prompt', 'hash')) \
-			and (not autoname.startswith('naming_series:')):
+			and (not autoname.startswith('naming_series:')) \
+			and (not autoname.startswith('format:')):
 
 			prefix = autoname.split('.')[0]
-			used_in = frappe.db.sql('select name from tabDocType where substring_index(autoname, ".", 1) = %s and name!=%s', (prefix, name))
+			used_in = frappe.db.sql("""
+				SELECT `name`
+				FROM `tabDocType`
+				WHERE `autoname` LIKE CONCAT(%s, '.%%')
+				AND `name`!=%s
+			""", (prefix, name), debug=1)
 			if used_in:
 				frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
