@@ -244,7 +244,7 @@ class DocType(Document):
 				FROM `tabDocType`
 				WHERE `autoname` LIKE CONCAT(%s, '.%%')
 				AND `name`!=%s
-			""", (prefix, name), debug=1)
+			""", (prefix, name))
 			if used_in:
 				frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
