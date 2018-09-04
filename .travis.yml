@@ -58,4 +58,4 @@ jobs:
         - bench setup-global-help --db_type=postgres --root_password travis
         - bench --site test_site_postgres scheduler disable
         - bench --site test_site_postgres run-tests
-      env: PostgresSQL
+      env: Postgres
