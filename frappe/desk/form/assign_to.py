@@ -180,7 +180,7 @@ def _notify(args):
 		frappe.sendmail(\
 			recipients=contact,
 			sender= frappe.db.get_value("User", frappe.session.user, "email"),
-			subject=_("New Message from {0}").format(get_fullname(frappe.session.user)),
+			subject=_("New message from {0}").format(get_fullname(frappe.session.user)),
 			template="new_message",
 			args={
 				"from": get_fullname(frappe.session.user),
