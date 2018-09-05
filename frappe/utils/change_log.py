@@ -153,7 +153,7 @@ def check_for_update():
 	generate_update_message(updates)
 
 def check_release_on_github(app):
-		# Check if repo remote is on github
+	# Check if repo remote is on github
 	remote_url = subprocess.check_output("cd ../apps/{} && git ls-remote --get-url".format(app), shell=True)
 	if "github.com" not in remote_url:
 		return None
@@ -187,22 +187,22 @@ def generate_update_message(updates):
 
 	if update_message:
 		add_message_to_redis(update_message)	
-	# "update-message" will store the update message string
-	# "update-user-set" will be a set of users
+
 
 def add_message_to_redis(update_message):
+	# "update-message" will store the update message string
+	# "update-user-set" will be a set of users
 	cache = frappe.cache()
 	cache.set_value("update-message", update_message)
 	user_list = [x.name for x in frappe.get_all("User", filters={"enabled": True})]
-	cache.sadd("update-user-set", *user_list)
+	system_managers = [user for user in user_list if 'System Manager' in frappe.get_roles(user)]
+	cache.sadd("update-user-set", *system_managers)
 
 @frappe.whitelist()
 def show_update_popup():
 	cache = frappe.cache()
 	user  = frappe.session.user
 
-	if not "System Manager" in frappe.get_roles():
-		return
 	# Check if user is int the set of users to send update message to
 	if cache.sismember("update-user-set", user):
 		frappe.msgprint(cache.get_value("update-message"), title=_("New updates are available"), indicator='green')
