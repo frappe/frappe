@@ -420,9 +420,9 @@ def accept(web_form, data, for_payment=False):
 
 			# save new file
 			filename, dataurl = filedata.split(',', 1)
-			_file = frappe.get_doc("File", {"file_name": filename, "content": dataurl,
+			_file = frappe.get_doc({"doctype": "File", "file_name": filename,
 				"attached_to_doctype": doc.doctype, "attached_to_name": doc.name})
-			filedoc = _file.save_file(decode=True)
+			filedoc = _file.save_file(content=dataurl, decode=True)
 
 			# update values
 			doc.set(fieldname, filedoc.file_url)

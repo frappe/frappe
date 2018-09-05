@@ -186,9 +186,9 @@ def update_user_name(args):
 		attach_user = args.get("attach_user").split(",")
 		if len(attach_user)==3:
 			filename, filetype, content = attach_user
-			_file = frappe.get_doc("File", {"file_name": filename, "content": content,
-				"attached_to_doctype": "User", "attached_to_doctype": args.get("name")})
-			fileurl = _file.save_file(decode=True).file_url
+			_file = frappe.get_doc({"doctype": "File", "file_name": filename,
+				"attached_to_doctype": "User", "attached_to_docname": args.get("name")})
+			fileurl = _file.save_file(content=content, decode=True).file_url
 			frappe.db.set_value("User", args.get("name"), "user_image", fileurl)
 
 	if args.get('name'):

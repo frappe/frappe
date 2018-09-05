@@ -15,8 +15,8 @@ def read_csv_content_from_uploaded_file(ignore_encoding=False):
 		with open(frappe.uploaded_file, "r") as upfile:
 			fcontent = upfile.read()
 	else:
-		_file = frappe.get_doc("File")
-		fname, fcontent = _file.get_uploaded_content()
+		_file = frappe.new_doc("File")
+		_, fcontent = _file.get_uploaded_content()
 	return read_csv_content(fcontent, ignore_encoding)
 
 def read_csv_content_from_attached_file(doc):

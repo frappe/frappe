@@ -6,7 +6,7 @@ import frappe
 import os
 import unittest
 
-from frappe.core.doctype.file.file import get_file, get_files_path
+from frappe.utils.file_manager import save_file, get_file, get_files_path
 
 test_content1 = 'Hello'
 test_content2 = 'Hello World'
@@ -22,9 +22,7 @@ class TestSimpleFile(unittest.TestCase):
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content = test_content1
-		_file = frappe.get_doc("File", {"file_name": "hello.txt", "content": self.test_content,
-			"attached_to_doctype": self.attached_to_doctype, "attached_to_docname": self.attached_to_docname})
-		self.saved_file = _file.save_file()
+		self.saved_file = save_file('hello.txt', self.test_content, self.attached_to_doctype, self.attached_to_docname)
 		self.saved_filename = get_files_path(self.saved_file.file_name)
 		
 	def test_save(self):
@@ -42,12 +40,8 @@ class TestSameFileName(unittest.TestCase):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content1 = test_content1
 		self.test_content2 = test_content2
-		_file1 = frappe.get_doc("File", {"file_name": "hello.txt", "content": self.test_content1,
-			"attached_to_doctype": self.attached_to_doctype, "attached_to_docname": self.attached_to_docname})
-		_file2 = frappe.get_doc("File", {"file_name": "hello.txt", "content": self.test_content2,
-			"attached_to_doctype": self.attached_to_doctype, "attached_to_docname": self.attached_to_docname})
-		self.saved_file1 = _file1.save_file()
-		self.saved_file2 = _file2.save_file()
+		self.saved_file1 = save_file('hello.txt', self.test_content1, self.attached_to_doctype, self.attached_to_docname)
+		self.saved_file2 = save_file('hello.txt', self.test_content2, self.attached_to_doctype, self.attached_to_docname)
 		self.saved_filename1 = get_files_path(self.saved_file1.file_name)
 		self.saved_filename2 = get_files_path(self.saved_file2.file_name)
 	
@@ -71,12 +65,8 @@ class TestSameContent(unittest.TestCase):
 		self.test_content2 = test_content1
 		self.orig_filename = 'hello.txt'
 		self.dup_filename = 'hello2.txt'
-		_file1 = frappe.get_doc("File", {"file_name": self.orig_filename, "content": self.test_content1,
-			"attached_to_doctype": self.attached_to_doctype1, "attached_to_docname": self.attached_to_docname1})
-		_file2 = frappe.get_doc("File", {"file_name": self.dup_filename, "content": self.test_content2,
-			"attached_to_doctype": self.attached_to_doctype2, "attached_to_docname": self.attached_to_docname2})
-		self.saved_file1 = _file1.save_file()
-		self.saved_file2 = _file2.save_file()
+		self.saved_file1 = save_file(self.orig_filename, self.test_content1, self.attached_to_doctype1, self.attached_to_docname1)
+		self.saved_file2 = save_file(self.dup_filename, self.test_content2, self.attached_to_doctype2, self.attached_to_docname2)
 		self.saved_filename1 = get_files_path(self.saved_file1.file_name)
 		self.saved_filename2 = get_files_path(self.saved_file2.file_name)
 	

@@ -405,9 +405,9 @@ def add_attachments(name, attachments):
 
 			# save attachments to new doc
 			_file = frappe.get_doc("File", {"file_url": attach.file_url,
-				"attached_to_doctype": "Communication", "attached_to_name", name})
-
-			_file.save_url(folder="Home/Attachments")
+				"attached_to_doctype": "Communication", "attached_to_name": name,
+				"folder": "Home/Attachments"})
+			_file.save_url()
 
 
 def filter_email_list(doc, email_list, exclude, is_cc=False, is_bcc=False):

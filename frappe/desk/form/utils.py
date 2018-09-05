@@ -6,6 +6,7 @@ import frappe, json
 import frappe.desk.form.meta
 import frappe.desk.form.load
 from frappe.utils.html_utils import clean_email_html
+from frappe.core.doctype.file.file import remove_file
 
 from frappe import _
 from six import string_types
@@ -14,8 +15,7 @@ from six import string_types
 def remove_attach():
 	"""remove attachment"""
 	fid = frappe.form_dict.get('fid')
-	_file = frappe.get_doc("File", {"fid": fid})
-	return _file.remove_file()
+	return remove_file(fid=fid)
 
 
 @frappe.whitelist()

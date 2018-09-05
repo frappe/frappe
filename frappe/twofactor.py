@@ -335,9 +335,9 @@ def qrcode_as_png(user, totp_uri):
 	'''Save temporary Qrcode to server.'''
 	folder = create_barcode_folder()
 	png_file_name = '{}.png'.format(frappe.generate_hash(length=20))
-	_file = frappe.get_doc("File", {"file_name": png_file_name, "content": png_file_name,
-		"attached_to_doctype": 'User', "attached_to_name": user})
-	file_obj = _file.save_file(folder=folder)
+	_file = frappe.get_doc({"doctype": "File", "file_name": png_file_name,
+		"attached_to_doctype": 'User', "attached_to_name": user, "folder": folder})
+	file_obj = _file.save_file(content=png_file_name)
 	frappe.db.commit()
 	file_url = get_url(file_obj.file_url)
 	file_path = os.path.join(frappe.get_site_path('public', 'files'), file_obj.file_name)
