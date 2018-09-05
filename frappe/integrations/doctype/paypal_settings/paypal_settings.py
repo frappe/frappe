@@ -34,7 +34,8 @@ Example:
 			"start_date": "2018-08-30",
 			"billing_period": "Month" #(Day, Week, SemiMonth, Month, Year),
 			"billing_frequency": 1,
-			"customer_notify": 1
+			"customer_notify": 1,
+			"upfront_amount": 1000
 		}
 	}
 
@@ -296,13 +297,12 @@ def create_recurring_profile(token, payerid):
 			"BILLINGPERIOD": subscription_details.get("billing_period"),
 			"BILLINGFREQUENCY": subscription_details.get("billing_frequency"),
 			"AMT": data.get("amount"),
-			"CURRENCYCODE": data.get("currency").upper()
+			"CURRENCYCODE": data.get("currency").upper(),
+			"INITAMT": subscription_details.get("upfront_amount")
 		})
 
-		if subscription_details.get("start_date"):
-			starts_at = subscription_details.get("start_date")
-		else:
-			starts_at = frappe.utils.now()
+		starts_at = subscription_details.get("start_date") if subscription_details.get("start_date")\
+			else frappe.utils.now()
 
 		params.update({
 			"PROFILESTARTDATE": datetime.utcfromtimestamp(get_timestamp(starts_at)).isoformat()

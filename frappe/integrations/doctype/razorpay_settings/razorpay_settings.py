@@ -34,7 +34,8 @@ Example:
 			"start_date": "2018-08-30",
 			"billing_period": "Month" #(Day, Week, Month, Year),
 			"billing_frequency": 1,
-			"customer_notify": 1
+			"customer_notify": 1,
+			"upfront_amount": 1000
 		}
 	}
 
@@ -132,6 +133,7 @@ class RazorpaySettings(Document):
 			"start_at": cint(start_date),
 			"total_count": kwargs.get('subscription_details').get("billing_frequency"),
 			"customer_notify": kwargs.get('subscription_details').get("customer_notify"),
+			"upfront_amount": kwargs.get('subscription_details').get("upfront_amount")
 		}
 
 		try:
