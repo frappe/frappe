@@ -118,8 +118,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		if (title){
 			this._progress_map[title].remove();
 			delete this._progress_map[title];
-		}
-		else {
+		} else {
 			this._progress_map = {};
 			this.progress_area.empty();
 		}
