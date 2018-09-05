@@ -7,7 +7,7 @@ import json, subprocess, os
 from semantic_version import Version
 import frappe
 from frappe.utils import cstr
-import requests, shlex
+import requests
 from frappe import _
 
 def get_change_log(user=None):
@@ -150,11 +150,17 @@ def check_for_update():
 				))
 				break
 
-	generate_update_message(updates)
+	add_message_to_redis(updates)
 
 def check_release_on_github(app):
 	# Check if repo remote is on github
-	remote_url = subprocess.check_output("cd ../apps/{} && git ls-remote --get-url".format(app), shell=True)
+	from subprocess import CalledProcessError
+	try:
+		remote_url = subprocess.check_output("cd ../apps/{} && git ls-remote --get-url".format(app), shell=True)
+	except CalledProcessError:
+		# Passing this since some apps may not have git initializaed in them
+		return None
+
 	if "github.com" not in remote_url:
 		return None
 
@@ -171,29 +177,11 @@ def check_release_on_github(app):
 		# In case of an improper response or if there are no releases
 		return None
 
-def generate_update_message(updates):
-	update_message = ""
-	for update_type in updates:
-		release_links = ""
-		for app in updates[update_type]:
-			release_links += "<a href='https://github.com/{org_name}/{app_name}/releases/tag/v{available_version}'><b>{title}</b>: v{available_version}</a><br>".format(
-				available_version = app.available_version,
-				org_name          = app.org_name,
-				app_name          = app.app_name,
-				title             = app.title
-			)
-		if release_links:
-			update_message += _("New {} releases for the following apps are available") + ":<br><br>{}<hr>".format(update_type, release_links)
-
-	if update_message:
-		add_message_to_redis(update_message)	
-
-
-def add_message_to_redis(update_message):
+def add_message_to_redis(update_json):
 	# "update-message" will store the update message string
 	# "update-user-set" will be a set of users
 	cache = frappe.cache()
-	cache.set_value("update-message", update_message)
+	cache.set_value("update-info", json.dumps(update_json))
 	user_list = [x.name for x in frappe.get_all("User", filters={"enabled": True})]
 	system_managers = [user for user in user_list if 'System Manager' in frappe.get_roles(user)]
 	cache.sadd("update-user-set", *system_managers)
@@ -203,7 +191,26 @@ def show_update_popup():
 	cache = frappe.cache()
 	user  = frappe.session.user
 
+	update_info = cache.get_value("update-info")
+	updates = json.loads(update_info)
+
 	# Check if user is int the set of users to send update message to
+	update_message = ""
 	if cache.sismember("update-user-set", user):
-		frappe.msgprint(cache.get_value("update-message"), title=_("New updates are available"), indicator='green')
+		for update_type in updates:
+			release_links = ""
+			for app in updates[update_type]:
+				app = frappe._dict(app)
+				release_links += "<a href='https://github.com/{org_name}/{app_name}/releases/tag/v{available_version}'><b>{title}</b>: v{available_version}</a><br>".format(
+					available_version = app.available_version,
+					org_name          = app.org_name,
+					app_name          = app.app_name,
+					title             = app.title
+				)
+			if release_links:
+				update_message += _("New {} releases for the following apps are available".format(update_type)) + ":<br><br>{}<hr>".format(release_links)
+
+	if update_message:
+		frappe.msgprint(update_message, title=_("New updates are available"), indicator='green')
 		cache.srem("update-user-set", user)
+
