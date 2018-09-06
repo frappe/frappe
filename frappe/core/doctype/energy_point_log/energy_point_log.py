@@ -5,9 +5,17 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
+from frappe.core.doctype.user.user import update_user_energy_point
+
+ENERGY_POINT_VALUES = {
+	'issue_closed': 2,
+	'instant_reply_on_issue': 2,
+	'feedback_point_multiplier': 2
+}
 
 class EnergyPointLog(Document):
-	pass
+	def after_insert(self):
+		update_user_energy_point(self.points, self.user)
 
 def update_log(doc, state):
 	doc_action = doc.get('_action')
@@ -26,24 +34,25 @@ def update_log(doc, state):
 	if point_rule:
 		point_rule = point_rule[0]
 		if frappe.safe_eval(point_rule.condition or True, None, {'doc': doc}):
-			update_user_energy_point(point_rule.point)
-			add_energy_point_log(doc, point_rule)
-
-def update_user_energy_point(point_value, user=None):
-	if not user: user = frappe.session.user
-	previous_point = frappe.db.get_value('User', user, 'energy_point')
-	new_point = previous_point + point_value
-	frappe.db.set_value('User', user, 'energy_point', new_point)
+			create_energy_point_log(
+				point_rule.point,
+				"Action {0} on {1}".format(point_rule.rule_name, doc.name),
+				doc.doctype,
+				doc.name
+			)
 
 def get_event_type(state):
 	return state.capitalize()
 
-def add_energy_point_log(doc, point_rule, user=None):
-	if not user: user = frappe.session.user
-	log = frappe.get_doc({
+def create_energy_point_log(points, reason, reference_doctype, reference_name, user=None):
+	if not user:
+		user = frappe.session.user
+
+	frappe.get_doc({
 		'doctype': 'Energy Point Log',
+		'points': points,
 		'user': user,
-		'reason': "Action {0} on {1}".format(point_rule.rule_name, doc.name),
-		'point': point_rule.point
-	})
-	log.insert(ignore_permissions=True)
+		'reason': reason,
+		'reference_doctype': reference_doctype,
+		'reference_name': reference_name
+	}).insert()

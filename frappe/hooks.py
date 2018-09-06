@@ -134,6 +134,9 @@ doc_events = {
 	"Email Group Member": {
 		"validate": "frappe.email.doctype.email_group.email_group.restrict_email_group"
 	},
+	"Energy Point Log": {
+		"after_insert": "frappe.core.doctype.user.user.update_user_energy_point"
+	}
 
 }
 
