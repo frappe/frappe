@@ -53,19 +53,21 @@ frappe.ui.form.on('User', {
 				frm.roles_editor.show();
 			}
 		}
-		frm.sidebar.image_section.append(`
-			<ul class="list-unstyled sidebar-menu">
-				<li align="center" class="bold text-muted">
-					<span class="text-large">${frm.doc.energy_point}</span> points
-				</li>
-			</ul>
-		`);
 	},
 	refresh: function(frm) {
 		var doc = frm.doc;
 		if(!frm.is_new() && !frm.roles_editor && frm.can_edit_roles) {
 			frm.reload_doc();
 			return;
+		}
+		if (!frm.points) {
+			frm.points = frm.sidebar.image_section.append(`
+				<ul class="list-unstyled sidebar-menu">
+					<li align="center" class="bold text-muted">
+						<span class="text-large">${frm.doc.energy_point}</span> points
+					</li>
+				</ul>
+			`);
 		}
 		if(doc.name===frappe.session.user && !doc.__unsaved
 			&& frappe.all_timezones
