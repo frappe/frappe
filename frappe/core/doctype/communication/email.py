@@ -10,7 +10,6 @@ from email.utils import formataddr
 from frappe.core.utils import get_parent_doc
 from frappe.utils import (get_url, get_formatted_email, cint,
   validate_email_add, split_emails, time_diff_in_seconds, parse_addr, get_datetime)
-from frappe.core.doctype.file.file import get_file
 from frappe.email.queue import check_email_limit
 from frappe.utils.scheduler import log
 from frappe.email.email_body import get_message_id
@@ -285,7 +284,8 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 				# is it a filename?
 				try:
 					# keep this for error handling
-					file = get_file(a)
+					_file = frappe.get_doc("File", {"file_name": a})
+					content = _file.get_content()
 					# these attachments will be attached on-demand
 					# and won't be stored in the message
 					doc.attachments.append({"fid": a})

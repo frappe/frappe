@@ -272,9 +272,9 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	# header
 	filename, file_extension = ['','']
 	if not rows:
-		from frappe.core.doctype.file.file import get_file # get_file_doc
-		fname, fcontent = get_file(data_import_doc.import_file)
-		filename, file_extension = os.path.splitext(fname)
+		_file = frappe.get_doc("File", {"file_name": data_import_doc.import_file})
+		fcontent = _file.get_content()
+		filename, file_extension = os.path.splitext(_file.file_name)
 
 		if file_extension == '.xlsx' and from_data_import == 'Yes':
 			from frappe.utils.xlsxutils import read_xlsx_file_from_attached_file

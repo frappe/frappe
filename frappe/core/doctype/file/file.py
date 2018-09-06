@@ -345,6 +345,61 @@ class File(NestedSet):
 			"comment": comment.as_dict() if comment else {}
 		}
 
+	def get_content(self):
+		"""Returns [`file_name`, `content`] for given file name `fname`"""
+		if self.get('content'):
+			return self.content
+		file_path = self.get_full_path()
+
+		# read the file
+		if PY2:
+			with open(encode(file_path)) as f:
+				content = f.read()
+		else:
+			with io.open(encode(file_path), mode='rb') as f:
+				content = f.read()
+				try:
+					# for plain text files
+					content = content.decode()
+				except UnicodeDecodeError:
+					# for .png, .jpg, etc
+					pass
+
+		return content
+
+	def get_full_path(self):
+		"""Returns file path from given file name"""
+
+		file_path = self.file_url
+
+		if "/" not in file_path:
+			file_path = "/files/" + file_path
+
+		if file_path.startswith("/private/files/"):
+			file_path = get_files_path(*file_path.split("/private/files/", 1)[1].split("/"), is_private=1)
+
+		elif file_path.startswith("/files/"):
+			file_path = get_files_path(*file_path.split("/files/", 1)[1].split("/"))
+
+		else:
+			frappe.throw(_("There is some problem with the file url: {0}").format(file_path))
+
+		return file_path
+
+	def write_file(self):
+		"""write file to disk with a random name (to compare)"""
+		file_path = get_files_path(is_private=self.is_private)
+
+		# create directory (if not exists)
+		frappe.create_folder(file_path)
+		# write the file
+		self.content = self.get_content()
+		if isinstance(self.content, text_type):
+			self.content = self.content.encode()
+		with open(os.path.join(file_path.encode('utf-8'), self.file_name.encode('utf-8')), 'wb+') as f:
+			f.write(self.content)
+
+		return get_files_path(self.file_name, is_private=self.is_private)
 
 	def get_file_doc(self):
 		'''returns File object (Document) from given parameters or form_dict'''
@@ -368,7 +423,7 @@ class File(NestedSet):
 
 
 	def save_uploaded(self):
-		self.file_name, self.content = self.get_uploaded_content()
+		self.content = self.get_uploaded_content()
 		if self.content:
 			return self.save_file(content=self.content)
 		else:
@@ -408,12 +463,11 @@ class File(NestedSet):
 			if "," in frappe.form_dict.filedata:
 				frappe.form_dict.filedata = frappe.form_dict.filedata.rsplit(",", 1)[1]
 			frappe.uploaded_content = base64.b64decode(frappe.form_dict.filedata)
-			frappe.uploaded_filename = frappe.form_dict.filename
-			return frappe.uploaded_filename, frappe.uploaded_content
-		elif self.content and self.file_name:
-			return self.file_name, self.content
+			return frappe.uploaded_content
+		elif self.content:
+			return self.content
 		frappe.msgprint(_('No file attached'))
-		return None, None
+		return None
 
 
 	def save_file(self, content=None, decode=False):
@@ -436,8 +490,11 @@ class File(NestedSet):
 		if not file_data:
 			call_hook_method("before_write_file", file_size=self.file_size)
 
-			write_file_method = get_hook_method('write_file', fallback=save_file_on_filesystem)
-			file_data = write_file_method(self.file_name, self.content, self.content_type, self.is_private)
+			write_file_method = get_hook_method('write_file')
+			if write_file_method:
+				file_data = write_file_method(self)
+			else:
+				file_data = self.save_file_on_filesystem()
 			file_data = copy(file_data)
 
 		file_data.update({
@@ -460,6 +517,18 @@ class File(NestedSet):
 
 		return f
 
+	def save_file_on_filesystem(self):
+		fpath = self.write_file()
+
+		if self.is_private:
+			self.file_url = "/private/files/{0}".format(self.file_name)
+		else:
+			self.file_url = "/files/{0}".format(self.file_name)
+
+		return {
+			'file_name': os.path.basename(fpath),
+			'file_url': self.file_url
+		}
 
 	def get_file_data_from_hash(self):
 		for name in frappe.db.sql_list("select name from `tabFile` where content_hash=%s and is_private=%s",
@@ -482,8 +551,31 @@ class File(NestedSet):
 
 
 	def delete_file_data_content(self, only_thumbnail=False):
-		method = get_hook_method('delete_file_data_content', fallback=delete_file_from_filesystem)
-		method(self, only_thumbnail=only_thumbnail)
+		method = get_hook_method('delete_file_data_content')
+		if method:
+			method(self, only_thumbnail=only_thumbnail)
+		else:
+			self.delete_file_from_filesystem(only_thumbnail=only_thumbnail)
+
+
+	def delete_file_from_filesystem(self, only_thumbnail=False):
+		"""Delete file, thumbnail from File document"""
+		if only_thumbnail:
+			delete_file(self.thumbnail_url)
+		else:
+			delete_file(self.file_url)
+			delete_file(self.thumbnail_url)
+
+
+	def check_file_permission(self):
+		for file in frappe.get_all("File", filters={"file_url": self.file_url, "is_private": 1},
+			fields=["name", "attached_to_doctype", "attached_to_name"]):
+
+			if (frappe.has_permission("File", ptype="read", doc=file.name)
+				or frappe.has_permission(file.attached_to_doctype, ptype="read", doc=file.attached_to_name)):
+				return True
+
+		raise frappe.PermissionError
 
 
 def on_doctype_update():
@@ -615,44 +707,6 @@ def get_web_image(file_url):
 	return image, filename, extn
 
 
-def save_file_on_filesystem(file_name, content, content_type, is_private):
-	fpath = write_file(file_name, content, is_private=is_private)
-
-	if is_private:
-		file_url = "/private/files/{0}".format(file_name)
-	else:
-		file_url = "/files/{0}".format(file_name)
-
-	return {
-		'file_name': os.path.basename(fpath),
-		'file_url': file_url
-	}
-
-
-def write_file(file_name, content, is_private=0):
-	"""write file to disk with a random name (to compare)"""
-	file_path = get_files_path(is_private=is_private)
-
-	# create directory (if not exists)
-	frappe.create_folder(file_path)
-	# write the file
-	if isinstance(content, text_type):
-		content = content.encode()
-	with open(os.path.join(file_path.encode('utf-8'), file_name.encode('utf-8')), 'wb+') as f:
-		f.write(content)
-
-	return get_files_path(file_name, is_private=is_private)
-
-
-def delete_file_from_filesystem(doc, only_thumbnail=False):
-	"""Delete file, thumbnail from File document"""
-	if only_thumbnail:
-		delete_file(doc.thumbnail_url)
-	else:
-		delete_file(doc.file_url)
-		delete_file(doc.thumbnail_url)
-
-
 def delete_file(path):
 	"""Delete file from `public folder`"""
 	if path:
@@ -719,51 +773,6 @@ def remove_file_by_url(file_url, doctype=None, name=None):
 		return remove_file(fid=fid)
 
 
-def get_file(fname):
-	"""Returns [`file_name`, `content`] for given file name `fname`"""
-	file_path = get_file_path(fname)
-
-	# read the file
-	if PY2:
-		with open(encode(file_path)) as f:
-			content = f.read()
-	else:
-		with io.open(encode(file_path), mode='rb') as f:
-			content = f.read()
-			try:
-				# for plain text files
-				content = content.decode()
-			except UnicodeDecodeError:
-				# for .png, .jpg, etc
-				pass
-
-	return [file_path.rsplit("/", 1)[-1], content]
-
-
-def get_file_path(file_name):
-	"""Returns file path from given file name"""
-	f = frappe.db.sql("""select file_url from `tabFile`
-		where name=%s or file_name=%s""", (file_name, file_name))
-	if f:
-		file_name = f[0][0]
-
-	file_path = file_name
-
-	if "/" not in file_path:
-		file_path = "/files/" + file_path
-
-	if file_path.startswith("/private/files/"):
-		file_path = get_files_path(*file_path.split("/private/files/", 1)[1].split("/"), is_private=1)
-
-	elif file_path.startswith("/files/"):
-		file_path = get_files_path(*file_path.split("/files/", 1)[1].split("/"))
-
-	else:
-		frappe.throw(_("There is some problem with the file url: {0}").format(file_path))
-
-	return file_path
-
-
 def get_content_hash(content):
 	if isinstance(content, text_type):
 		content = content.encode()
@@ -795,7 +804,7 @@ def download_file(file_url):
 	Endpoint : frappe.core.doctype.file.file.download_file
 	URL Params : file_name = /path/to/file relative to site path
 	"""
-	file_doc = frappe.get_doc("File", {"file_url":file_url})
+	file_doc = frappe.get_doc("File", {"file_url": file_url})
 	file_doc.check_permission("read")
 	path = os.path.join(get_files_path(), os.path.basename(file_url))
 
@@ -857,16 +866,6 @@ def get_random_filename(extn=None, content_type=None):
 		extn = mimetypes.guess_extension(content_type)
 
 	return random_string(7) + (extn or "")
-
-
-def check_file_permission(file_url):
-	for file in frappe.get_all("File", filters={"file_url": file_url, "is_private": 1}, fields=["name", "attached_to_doctype", "attached_to_name"]):
-
-		if (frappe.has_permission("File", ptype="read", doc=file.name)
-			or frappe.has_permission(file.attached_to_doctype, ptype="read", doc=file.attached_to_name)):
-			return True
-
-	raise frappe.PermissionError
 
 
 @frappe.whitelist()

@@ -7,7 +7,7 @@ import frappe
 import os
 import unittest
 from frappe import _
-from frappe.core.doctype.file.file import move_file, get_file, get_files_path
+from frappe.core.doctype.file.file import move_file, get_files_path
 # test_records = frappe.get_test_records('File')
 
 test_content1 = 'Hello'
@@ -33,7 +33,8 @@ class TestSimpleFile(unittest.TestCase):
 		self.saved_filename = get_files_path(self.saved_file.file_name)
 
 	def test_save(self):
-		_, content = get_file(self.saved_file.name)
+		_file = frappe.get_doc("File", {"file_name": self.saved_file.file_name})
+		content = _file.get_content()
 		self.assertEqual(content, self.test_content)
 
 	def tearDown(self):
@@ -61,9 +62,11 @@ class TestSameFileName(unittest.TestCase):
 		self.saved_filename2 = get_files_path(self.saved_file2.file_name)
 
 	def test_saved_content(self):
-		_, content1 = get_file(self.saved_file1.name)
+		_file = frappe.get_doc("File", {"file_name": self.saved_file1.file_name})
+		content1 = _file.get_content()
 		self.assertEqual(content1, self.test_content1)
-		_, content2 = get_file(self.saved_file2.name)
+		_file = frappe.get_doc("File", {"file_name": self.saved_file2.file_name})
+		content2 = _file.get_content()
 		self.assertEqual(content2, self.test_content2)
 
 	def tearDown(self):
@@ -94,8 +97,10 @@ class TestSameContent(unittest.TestCase):
 		self.saved_filename2 = get_files_path(self.saved_file2.file_name)
 
 	def test_saved_content(self):
-		filename1, content1 = get_file(self.saved_file1.name)
-		filename2, content2 = get_file(self.saved_file2.name)
+		_file1 = frappe.get_doc("File", {"file_name": self.saved_file1.file_name})
+		filename1 =  _file1.file_name
+		_file2 = frappe.get_doc("File", {"file_name": self.saved_file2.file_name})
+		filename2 =  _file2.file_name
 		self.assertEqual(filename1, filename2)
 		self.assertFalse(os.path.exists(get_files_path(self.dup_filename)))
 
