@@ -26,7 +26,7 @@ def xmlrunner_wrapper(output):
 
 def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 	force=False, profile=False, junit_xml_output=None, ui_tests=False,
-	doctype_list_path=None, skip_test_records=False):
+	doctype_list_path=None, skip_test_records=False, failfast=False):
 	global unittest_runner
 
 	if doctype_list_path:
@@ -67,7 +67,7 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 		elif module:
 			ret = run_tests_for_module(module, verbose, tests, profile)
 		else:
-			ret = run_all_tests(app, verbose, profile, ui_tests)
+			ret = run_all_tests(app, verbose, profile, ui_tests, failfast=failfast)
 
 		frappe.db.commit()
 
@@ -90,7 +90,7 @@ def set_test_email_config():
 		"admin_password": "admin"
 	})
 
-def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False):
+def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False, failfast=False):
 	import os
 
 	apps = [app] if app else frappe.get_installed_apps()
@@ -115,7 +115,7 @@ def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False):
 		pr = cProfile.Profile()
 		pr.enable()
 
-	out = unittest_runner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+	out = unittest_runner(verbosity=1+(verbose and 1 or 0), failfast=failfast).run(test_suite)
 
 	if profile:
 		pr.disable()
