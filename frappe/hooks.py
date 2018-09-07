@@ -136,8 +136,10 @@ doc_events = {
 	},
 	"Energy Point Log": {
 		"after_insert": "frappe.core.doctype.user.user.update_user_energy_point"
+	},
+	"Counter": {
+		"on_update": "frappe.core.doctype.energy_badge.energy_badge.process_counter_for_badge"
 	}
-
 }
 
 scheduler_events = {

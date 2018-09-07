@@ -18,9 +18,12 @@ def update_counter(user, counter_type):
 		'user': user,
 		'type': counter_type
 	}, fields=['name', 'count'], limit=1)
+
 	if count:
-		count = count[0]
-		frappe.db.set_value('Counter', count.name, 'count', cint(count.count) + 1)
+		counter = frappe.get_doc('Counter', count[0].name)
+		counter.count += 1
+		counter.save()
+
 	else:
 		frappe.get_doc({
 			'doctype': 'Counter',
@@ -28,5 +31,3 @@ def update_counter(user, counter_type):
 			'type': counter_type,
 			'count': 1
 		}).insert()
-
-	frappe.msgprint(counter_type, 'counter has been updated')
