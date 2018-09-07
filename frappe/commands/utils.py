@@ -6,8 +6,9 @@ import json, os, sys, subprocess
 from distutils.spawn import find_executable
 import frappe
 from frappe.commands import pass_context, get_site
-from frappe.utils import update_progress_bar
+from frappe.utils import update_progress_bar, get_bench_path
 from frappe.utils.response import json_handler
+from coverage import Coverage
 
 @click.command('build')
 @click.option('--app', help='Build assets for app')
@@ -374,12 +375,13 @@ def console(context):
 @click.option('--ui-tests', is_flag=True, default=False, help="Run UI Tests")
 @click.option('--module', help="Run tests in a module")
 @click.option('--profile', is_flag=True, default=False)
+@click.option('--coverage', is_flag=True, default=False)
 @click.option('--skip-test-records', is_flag=True, default=False, help="Don't create test records")
 @click.option('--skip-before-tests', is_flag=True, default=False, help="Don't run before tests hook")
 @click.option('--junit-xml-output', help="Destination file path for junit xml report")
 @pass_context
 def run_tests(context, app=None, module=None, doctype=None, test=(),
-	driver=None, profile=False, junit_xml_output=False, ui_tests = False,
+	driver=None, profile=False, coverage=False, junit_xml_output=False, ui_tests = False,
 	doctype_list_path=None, skip_test_records=False, skip_before_tests=False):
 	"Run tests"
 	import frappe.test_runner
@@ -391,9 +393,20 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 	frappe.flags.skip_before_tests = skip_before_tests
 	frappe.flags.skip_test_records = skip_test_records
 
+	if coverage:
+		# Generate coverage report only for app that is being tested
+		source_path = os.path.join(get_bench_path(), 'apps', app or 'frappe', '*')
+		cov = Coverage(include=source_path, omit=['*.html', '*.js', '*.css'])
+		cov.start()
+
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
 		force=context.force, profile=profile, junit_xml_output=junit_xml_output,
 		ui_tests = ui_tests, doctype_list_path = doctype_list_path)
+
+	if coverage:
+		cov.stop()
+		cov.save()
+
 	if len(ret.failures) == 0 and len(ret.errors) == 0:
 		ret = 0
 
