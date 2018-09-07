@@ -1073,3 +1073,15 @@ def generate_keys(user):
 
 		return {"api_secret": api_secret}
 	frappe.throw(frappe._("Not Permitted"), frappe.PermissionError)
+
+def update_user_energy_point(point, user=None):
+	point = cint(point)
+	if not point: return
+	# TODO: find alternative
+	if user == 'admin@erpnext.com': user = 'Administrator'
+	if not user: user = frappe.session.user
+	previous_point = frappe.db.get_value('User', user, 'energy_point')
+	new_point = previous_point + point
+	frappe.db.set_value('User', user, 'energy_point', new_point)
+
+	print('================= {} gained {} points ==================='.format(user, point))

@@ -194,7 +194,7 @@ def load_translations(bootinfo):
 def get_fullnames():
 	"""map of user fullnames"""
 	ret = frappe.db.sql("""select name, full_name as fullname,
-			user_image as image, gender, email, username
+			user_image as image, gender, email, username, energy_point
 		from tabUser where enabled=1 and user_type!="Website User" """, as_dict=1)
 
 	d = {}

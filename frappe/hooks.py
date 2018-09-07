@@ -128,12 +128,18 @@ doc_events = {
 		"on_trash": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_change": [
 			"frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request",
+			"frappe.core.doctype.energy_point_log.energy_point_log.update_log"
 		]
 	},
 	"Email Group Member": {
 		"validate": "frappe.email.doctype.email_group.email_group.restrict_email_group"
 	},
-
+	"Energy Point Log": {
+		"after_insert": "frappe.core.doctype.user.user.update_user_energy_point"
+	},
+	"Counter": {
+		"on_update": "frappe.core.doctype.energy_badge.energy_badge.process_counter_for_badge"
+	}
 }
 
 scheduler_events = {
