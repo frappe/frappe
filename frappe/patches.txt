@@ -168,6 +168,7 @@ frappe.patches.v8_0.drop_unwanted_indexes
 execute:frappe.db.sql("update tabCommunication set communication_date = creation where time(communication_date) = 0")
 frappe.patches.v7_2.fix_email_queue_recipient
 frappe.patches.v7_2.update_feedback_request # 2017-02-27
+execute:frappe.delete_doc("DocType", "Hub Settings", ignore_missing=True)
 execute:frappe.rename_doc('Country', 'Macedonia, Republic of', 'Macedonia', ignore_if_exists=True)
 execute:frappe.rename_doc('Country', 'Iran, Islamic Republic of', 'Iran', ignore_if_exists=True)
 execute:frappe.rename_doc('Country', 'Tanzania, United Republic of', 'Tanzania', ignore_if_exists=True)
