@@ -153,7 +153,8 @@ scheduler_events = {
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.core.doctype.feedback_request.feedback_request.delete_feedback_request",
-		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs"
+		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs",
+		"frappe.utils.change_log.check_for_update"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
