@@ -5,7 +5,6 @@
 		"public/less/website.less",
 		"public/less/avatar.less",
 		"node_modules/highlight.js/styles/zenburn.css",
-		"public/js/lib/awesomplete/awesomplete.css",
 		"public/less/form.less",
 		"public/less/controls.less",
 		"public/less/chat.less",
@@ -93,7 +92,6 @@
 	],
 	"css/desk.min.css": [
 		"public/js/lib/datepicker/datepicker.min.css",
-		"public/js/lib/awesomplete/awesomplete.css",
 		"public/js/lib/summernote/summernote.css",
 		"public/js/lib/leaflet/leaflet.css",
 		"public/js/lib/leaflet/leaflet.draw.css",
@@ -150,6 +148,7 @@
 		"public/js/frappe/format.js",
 		"public/js/frappe/form/formatters.js",
 		"public/js/frappe/dom.js",
+		"public/js/frappe/event_emitter.js",
 		"public/js/frappe/ui/messages.js",
 		"public/js/frappe/ui/keyboard.js",
 		"public/js/frappe/ui/colors.js",

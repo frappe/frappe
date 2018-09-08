@@ -97,8 +97,7 @@ class User(Document):
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
 
-
-	def has_website_permission(self, ptype, verbose=False):
+	def has_website_permission(self, ptype, user, verbose=False):
 		"""Returns true if current user is the session user"""
 		return self.name == frappe.session.user
 
@@ -923,9 +922,9 @@ def notify_admin_access_to_system_manager(login_manager=None):
 def extract_mentions(txt):
 	"""Find all instances of @name in the string.
 	The mentions will be separated by non-word characters or may appear at the start of the string"""
+	txt = txt.replace("<br>", "<br> ")
 	txt = re.sub(r'(<[a-zA-Z\/][^>]*>)', '', txt)
 	return re.findall(r'(?:[^\w\.\-\@]|^)@([\w\.\-\@]*)', txt)
-
 
 def handle_password_test_fail(result):
 	suggestions = result['feedback']['suggestions'][0] if result['feedback']['suggestions'] else ''
@@ -1039,7 +1038,7 @@ def update_roles(role_profile):
 		user.set('roles', [])
 		user.add_roles(*roles)
 
-def create_contact(user):
+def create_contact(user, ignore_links=False):
 	if user.name in ["Administrator", "Guest"]: return
 
 	if not frappe.db.get_value("Contact", {"email_id": user.email}):
@@ -1052,7 +1051,7 @@ def create_contact(user):
 			"gender": user.gender,
 			"phone": user.phone,
 			"mobile_no": user.mobile_no
-		}).insert(ignore_permissions=True)
+		}).insert(ignore_permissions=True, ignore_links=ignore_links)
 
 
 @frappe.whitelist()

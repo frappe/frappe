@@ -451,10 +451,10 @@ class BaseDocument(object):
 				# get a map of values ot fetch along with this link query
 				# that are mapped as link_fieldname.source_fieldname in Options of
 				# Readonly or Data or Text type fields
-				fields_to_fetch = [
-					_df for _df in self.meta.get_fields_to_fetch(df.fieldname)
-						 if not self.get(_df.fieldname)
-				]
+
+				# NOTE: All fields will be replaced, if you want manual changes to stay
+				# use `frm.add_fetch`
+				fields_to_fetch = self.meta.get_fields_to_fetch(df.fieldname)
 
 				if not fields_to_fetch:
 					# cache a single value type

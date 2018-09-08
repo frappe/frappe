@@ -16,6 +16,7 @@
  "fields": [
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -47,6 +48,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -80,6 +82,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -113,6 +116,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -147,6 +151,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -180,6 +185,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -209,6 +215,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -242,6 +249,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -275,6 +283,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -305,6 +314,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -333,41 +343,43 @@
    "set_only_once": 0,
    "translatable": 0,
    "unique": 0
-  }, 
+  },
   {
-   "allow_bulk_edit": 0, 
-   "allow_on_submit": 0, 
-   "bold": 0, 
-   "collapsible": 0, 
-   "columns": 0, 
-   "default": "0", 
-   "fieldname": "track_views", 
-   "fieldtype": "Check", 
-   "hidden": 0, 
-   "ignore_user_permissions": 0, 
-   "ignore_xss_filter": 0, 
-   "in_filter": 0, 
-   "in_global_search": 0, 
-   "in_list_view": 0, 
-   "in_standard_filter": 0, 
-   "label": "Track Views", 
-   "length": 0, 
-   "no_copy": 0, 
-   "permlevel": 0, 
-   "precision": "", 
-   "print_hide": 0, 
-   "print_hide_if_no_value": 0, 
-   "read_only": 0, 
-   "remember_last_selected_value": 0, 
-   "report_hide": 0, 
-   "reqd": 0, 
-   "search_index": 0, 
-   "set_only_once": 0, 
-   "translatable": 0, 
+   "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
+   "allow_on_submit": 0,
+   "bold": 0,
+   "collapsible": 0,
+   "columns": 0,
+   "default": "0",
+   "fieldname": "track_views",
+   "fieldtype": "Check",
+   "hidden": 0,
+   "ignore_user_permissions": 0,
+   "ignore_xss_filter": 0,
+   "in_filter": 0,
+   "in_global_search": 0,
+   "in_list_view": 0,
+   "in_standard_filter": 0,
+   "label": "Track Views",
+   "length": 0,
+   "no_copy": 0,
+   "permlevel": 0,
+   "precision": "",
+   "print_hide": 0,
+   "print_hide_if_no_value": 0,
+   "read_only": 0,
+   "remember_last_selected_value": 0,
+   "report_hide": 0,
+   "reqd": 0,
+   "search_index": 0,
+   "set_only_once": 0,
+   "translatable": 0,
    "unique": 0
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -401,6 +413,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -431,6 +444,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -462,6 +476,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -495,6 +510,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -525,11 +541,12 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
    "columns": 0,
-   "description": "Naming Options:\n<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n<li><b>concatenate:[fieldname1],[fieldname2],...[fieldnameX]</b> - By fieldname concatenation (you can concatenate as many fields as you like. Series option also works)</li></ol>",
+   "description": "Naming Options:\n<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>",
    "fieldname": "autoname",
    "fieldtype": "Data",
    "hidden": 0,
@@ -558,6 +575,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -591,6 +609,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -621,6 +640,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -653,6 +673,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -684,6 +705,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -716,6 +738,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -749,6 +772,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -781,6 +805,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -814,6 +839,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -844,6 +870,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -878,6 +905,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -910,6 +938,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -940,6 +969,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -971,6 +1001,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1002,6 +1033,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1034,6 +1066,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1066,6 +1099,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1098,6 +1132,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1130,6 +1165,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1161,6 +1197,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1192,6 +1229,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1226,6 +1264,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1256,6 +1295,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1286,6 +1326,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1316,6 +1357,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1347,6 +1389,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1379,6 +1422,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1409,6 +1453,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1441,6 +1486,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1471,6 +1517,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1502,6 +1549,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1535,6 +1583,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1568,6 +1617,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1598,6 +1648,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1630,6 +1681,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1662,6 +1714,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1693,6 +1746,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1725,6 +1779,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1758,6 +1813,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1788,6 +1844,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1820,6 +1877,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1853,6 +1911,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 1,
@@ -1884,6 +1943,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -1928,7 +1988,7 @@
  "issingle": 0,
  "istable": 0,
  "max_attachments": 0,
- "modified": "2018-04-27 09:27:59.444089",
+ "modified": "2018-08-28 01:14:38.862469",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
@@ -1981,5 +2041,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1,
- "track_seen": 0
+ "track_seen": 0,
+ "track_views": 0
 }

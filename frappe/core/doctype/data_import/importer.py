@@ -7,7 +7,6 @@ from six.moves import range
 import requests
 import frappe, json, os
 import frappe.permissions
-import frappe.async
 
 from frappe import _
 

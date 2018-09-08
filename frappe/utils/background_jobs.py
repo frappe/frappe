@@ -202,7 +202,12 @@ def get_queue(queue, is_async=True):
 	'''Returns a Queue object tied to a redis connection'''
 	validate_queue(queue)
 
-	return Queue(queue, connection=get_redis_conn(), async=is_async)
+	kwargs = {
+		'connection': get_redis_conn(),
+		'async': is_async
+	}
+
+	return Queue(queue, **kwargs)
 
 def validate_queue(queue, default_queue_list=None):
 	if not default_queue_list:
