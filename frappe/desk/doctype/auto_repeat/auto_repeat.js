@@ -32,7 +32,7 @@ frappe.ui.form.on('Auto Repeat', {
 		
 		if(frm.doc.docstatus == 1) {
 			
-			let label = __('View {0}', [frm.doc.reference_doctype]);
+			let label = __('View {0}', [__(frm.doc.reference_doctype)]);
 			frm.add_custom_button(__(label),
 				function() {
 					frappe.route_options = {
