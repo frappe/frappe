@@ -42,10 +42,10 @@ DocType: Website Settings,Brand Image,Slika brenda
 apps/frappe/frappe/utils/bot.py +89,show,Prikaži
 DocType: Page,Yes,Da
 DocType: Custom DocPerm,Role,Uloga
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +798,Totals,Ukupno
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +813,Totals,Ukupno
 apps/frappe/frappe/public/js/frappe/request.js +135,You do not have enough permissions to access this resource. Please contact your manager to get access.,Немате дозволу да приступите овоме. Молимо јавите се свом менаџеру да добијете приступ.
 apps/frappe/frappe/public/js/frappe/views/treeview.js +183,Add Child,Dodaj podređeni
-apps/frappe/frappe/core/doctype/user/user.py +934,Invalid Password: ,Pogrešna lozinka:
+apps/frappe/frappe/core/doctype/user/user.py +933,Invalid Password: ,Pogrešna lozinka:
 DocType: System Settings,System Settings,Sistemska podešavanja
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +697,You can add dynamic properties from the document by using Jinja templating.,Можете да додате динамичке вредности из документа помоћу Jinja шаблона.
 apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +40,To Date,Do datuma
@@ -154,7 +154,7 @@ apps/frappe/frappe/core/doctype/data_import/data_import.js +40,Attach File,Prilo
 DocType: ToDo,High,Visok
 apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +134,Payment Complete,Plaćanje zaključeno
 apps/frappe/frappe/www/printview.py +199,No {0} permission,{0} Nema dozvolu
-apps/frappe/frappe/public/js/frappe/list/list_view.js +986,Delete {0} items permanently?,Trajno obriši stavke{0} ?
+apps/frappe/frappe/public/js/frappe/list/list_view.js +985,Delete {0} items permanently?,Trajno obriši stavke{0} ?
 DocType: Address,Postal Code,Poštanski broj
 apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js +7,Not active,Nije aktivna
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_column.html +19,Add,Dodaj
@@ -365,7 +365,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +217,You can'
 DocType: Workflow,States,Države
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +59,Go,Traži
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +52,{0} days ago,prije {0} dana
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +343,Y Axis Fields,Поља на Y-oси
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +358,Y Axis Fields,Поља на Y-oси
 apps/frappe/frappe/public/js/frappe/form/grid.js +72,Add Row,Dodaj red
 DocType: File,Is Home Folder,Da li je folder naslovna
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,To Do
