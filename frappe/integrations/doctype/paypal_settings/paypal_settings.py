@@ -177,6 +177,26 @@ class PayPalSettings(Document):
 			frappe.throw(_("Looks like something is wrong with this site's Paypal configuration."))
 
 		return response
+	
+	def cancel_recurring_profile(self, **kwargs):
+		params, url = self.get_paypal_params_and_url()
+
+		if not kwargs.get('profile_id'):
+			frappe.throw(_("PayPal Recurring Profile ID is required"))
+
+		params.update({
+			"METHOD": "ManageRecurringPaymentsProfileStatus",
+			"PROFILEID": kwargs['profile_id'],
+			"ACTION": "Cancel"
+		})
+
+		params = urlencode(params)
+
+		response = make_post_request(url, data=params.encode("utf-8"))
+		if response.get("ACK")[0] != "Success":
+			frappe.throw(_("Looks like something is wrong with this site's Paypal configuration."))
+
+		return response
 
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def get_express_checkout_details(token):
@@ -316,6 +336,8 @@ def create_recurring_profile(token, payerid):
 			}, "Completed")
 
 			if data.get("reference_doctype") and data.get("reference_docname"):
+				data['subscription_details']['subscription_id'] = response.get("PROFILEID")[0]
+
 				frappe.flags.data = data
 				custom_redirect_to = frappe.get_doc(data.get("reference_doctype"),
 					data.get("reference_docname")).run_method("on_payment_authorized", "Completed")

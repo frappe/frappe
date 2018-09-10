@@ -258,6 +258,17 @@ class RazorpaySettings(Document):
 			})
 
 		return settings
+	
+	
+	def cancel_subscription(self, subscription_id):
+		settings = self.get_settings()
+		
+		try:
+			resp = make_get_request("https://api.razorpay.com/v1/subscriptions/{0}/cancel"
+				.format(subscription_id), auth=(settings.api_key,
+					settings.api_secret))
+		except Exception:
+			frappe.log_error(frappe.get_traceback())
 
 def capture_payment(is_sandbox=False, sanbox_response=None):
 	"""
