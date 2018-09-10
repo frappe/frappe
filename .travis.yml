@@ -20,6 +20,8 @@ install:
   - sudo apt-get purge -y mysql-common mysql-server mysql-client
   - nvm install v8.10.0
 
+  - pip install python-coveralls
+
   - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
 
   - sudo python install.py --develop --user travis --without-bench-setup
@@ -47,7 +49,9 @@ jobs:
         - bench --site test_site setup-help
         - bench setup-global-help --root_password travis
         - bench --site test_site scheduler disable
-        - bench --site test_site run-tests
+        - bench --site test_site run-tests --coverage
+      after_script:
+        - coveralls -b apps/frappe -d ../../sites/.coverage
       env: MariaDB
     - # stage
       script:
@@ -57,5 +61,7 @@ jobs:
         - bench --site test_site_postgres setup-help
         - bench setup-global-help --db_type=postgres --root_password travis
         - bench --site test_site_postgres scheduler disable
-        - bench --site test_site_postgres run-tests
+        - bench --site test_site_postgres run-tests --coverage
+      after_script:
+        - coveralls -b apps/frappe -d ../../sites/.coverage
       env: Postgres

@@ -728,12 +728,16 @@ def get_url(uri=None, full_address=False):
 
 	port = frappe.conf.http_port or frappe.conf.webserver_port
 
-	if host_name and ':' not in host_name and port:
+	if frappe.conf.developer_mode and host_name and not url_contains_port(host_name) and port:
 		host_name = host_name + ':' + str(port)
 
 	url = urljoin(host_name, uri) if uri else host_name
 
 	return url
+
+def url_contains_port(url):
+	parts = url.split(':')
+	return len(parts) > 2
 
 def get_host_name():
 	return get_url().rsplit("//", 1)[-1]

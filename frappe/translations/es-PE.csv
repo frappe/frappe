@@ -37,8 +37,8 @@ DocType: Email Account,Service,Servicio
 DocType: About Us Settings,Settings for the About Us Page,Ajustes de la página Quiénes somos
 DocType: Workflow State,Stop,Detenerse
 apps/frappe/frappe/config/setup.py +57,Check which Documents are readable by a User,Marque que documentos pueden ser leídos por el usuario
-apps/frappe/frappe/model/document.py +625,Record does not exist,Registro no existe
-apps/frappe/frappe/model/document.py +676,Cannot edit cancelled document,No se puede editar un documento anulado
+apps/frappe/frappe/model/document.py +627,Record does not exist,Registro no existe
+apps/frappe/frappe/model/document.py +678,Cannot edit cancelled document,No se puede editar un documento anulado
 apps/frappe/frappe/config/setup.py +119,Set numbering series for transactions.,Establecer series de numeración para las transacciones.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Presentar un problema
 apps/frappe/frappe/public/js/frappe/views/communication.js +85,Send As Email,Enviar como correo electrónico
@@ -273,7 +273,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +775,Report was 
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +24,"Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.","Los permisos del nivel 0 son los permisos a nivel de documentos, es decir, que tienen permiso especial para los documentos."
 apps/frappe/frappe/config/setup.py +237,"Change field properties (hide, readonly, permission etc.)","Cambiar las propiedades de campo (ocultar, sólo lectura, permisos, etc)"
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +108,Select a DocType to make a new format,Seleccione un tipo de documento para hacer un nuevo formato
-apps/frappe/frappe/model/document.py +1084,Table {0} cannot be empty,La tabla {0} no puede estar vacío
+apps/frappe/frappe/model/document.py +1092,Table {0} cannot be empty,La tabla {0} no puede estar vacío
 DocType: Report,Report Builder,Generador de informes
 DocType: Workflow Document State,Represents the states allowed in one document and role assigned to change the state.,Representa los estados permitidos en un solo documento y función asignada a cambiar el estado.
 apps/frappe/frappe/config/setup.py +19,User Roles,Funciones de Usuario
@@ -389,7 +389,7 @@ DocType: Workflow,Rules defining transition of state in the workflow.,Reglas que
 DocType: Workflow State,align-right,alinear a la derecha
 DocType: Workflow State,italic,itálico
 DocType: Workflow State,shopping-cart,carro de la compra
-apps/frappe/frappe/utils/data.py +537,only.,exactos.
+apps/frappe/frappe/utils/data.py +550,only.,exactos.
 apps/frappe/frappe/model/naming.py +85,Naming Series mandatory,Las secuencias son obligatorias
 DocType: Event,Ref Type,Tipo Ref
 DocType: DocType,Sort Order,Orden de Clasificación
