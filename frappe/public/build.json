@@ -91,7 +91,6 @@
 		"public/js/frappe/ui/dialog.js"
 	],
 	"css/desk.min.css": [
-		"public/js/lib/datepicker/datepicker.min.css",
 		"public/js/lib/summernote/summernote.css",
 		"public/js/lib/leaflet/leaflet.css",
 		"public/js/lib/leaflet/leaflet.draw.css",
@@ -360,8 +359,7 @@
 	"css/web_form.css": [
 		"public/less/list.less",
 		"website/css/web_form.css",
-		"public/js/lib/summernote/summernote.css",
-		"public/js/lib/datepicker/datepicker.min.css"
+		"public/js/lib/summernote/summernote.css"
 	],
 	"js/print_format_v3.min.js": [
 		"public/js/legacy/layout.js",
