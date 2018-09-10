@@ -4,8 +4,6 @@
 
 from __future__ import unicode_literals
 
-import googlemaps
-
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -22,6 +20,8 @@ class GoogleMapsSettings(Document):
 	def get_client(self):
 		if not self.enabled:
 			frappe.throw(_("Google Maps integration is not enabled"))
+
+		import googlemaps
 
 		try:
 			client = googlemaps.Client(key=self.client_key)
