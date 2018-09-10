@@ -391,7 +391,7 @@ def generate_message_preview(reference_dt, reference_doc, message=None, subject=
 	doc = frappe.get_doc(reference_dt, reference_doc)
 	subject_preview = _("Please add a subject to your email")
 	msg_preview = frappe.render_template(message, {'doc': doc})
-	if subject:	
+	if subject:
 		subject_preview = frappe.render_template(subject, {'doc': doc})
-	
+
 	return {'message': msg_preview, 'subject': subject_preview}
