@@ -82,7 +82,7 @@ DocType: Communication,Email,Correo electrónico
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +127,Help on Search,Ayuda en la búsqueda
 DocType: Web Page,Left,Izquierda
 DocType: SMS Settings,"Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)","Introduzca los parámetros de URL estáticas aquí (Ej. sender = ERPNext , nombre de usuario = ERPNext , contraseña = 1234 etc )"
-apps/frappe/frappe/core/doctype/user/user.py +192,Sorry! Sharing with Website User is prohibited.,¡Lo siento! Compartir con los del Sitio Web está prohibido.
+apps/frappe/frappe/core/doctype/user/user.py +191,Sorry! Sharing with Website User is prohibited.,¡Lo siento! Compartir con los del Sitio Web está prohibido.
 DocType: Custom Script,Script,Guión
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +71,Refresh Form,Formulario de actualización
 apps/frappe/frappe/templates/emails/new_user.html +2,A new account has been created for you at {0},Una nueva cuenta ha sido creada para ti en {0}
@@ -433,7 +433,7 @@ apps/frappe/frappe/public/js/frappe/roles_editor.js +194,Role Permissions,Permis
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_field.html +21,Edit HTML,Edición de HTML
 apps/frappe/frappe/public/js/frappe/form/save.js +12,Submitting,Presentar
 DocType: Dropbox Settings,Dropbox Access Secret,Acceso Secreto de Dropbox
-apps/frappe/frappe/core/doctype/user/user.py +190,Sorry! User should have complete access to their own record.,¡Lo siento! El usuario debe tener acceso completo a su propio récord.
+apps/frappe/frappe/core/doctype/user/user.py +189,Sorry! User should have complete access to their own record.,¡Lo siento! El usuario debe tener acceso completo a su propio récord.
 apps/frappe/frappe/core/doctype/doctype/doctype.py +342,DocType can not be merged,El DocType no se puede fusionar
 DocType: DocField,Allow on Submit,Permitir en Enviar
 apps/frappe/frappe/public/js/frappe/views/communication.js +99,Select Print Format,Seleccionar el formato de impresión
