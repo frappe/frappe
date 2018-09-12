@@ -186,7 +186,7 @@ class DocType(Document):
 				for option in field.options.split("\n"):
 					new_options += option.strip()
 					new_options += "\n"
-				new_options.rstrip("\n")
+				new_options = new_options.rstrip("\n")
 				field.options = new_options
 
 	def validate_series(self, autoname=None, name=None):
