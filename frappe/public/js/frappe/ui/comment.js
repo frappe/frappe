@@ -9,6 +9,9 @@
  * });
  */
 
+frappe.provide('frappe.ui');
+frappe.provide('frappe.chat');
+
 frappe.ui.CommentArea = class CommentArea {
 
 	constructor({ parent = null, mentions = [], on_submit = null, no_wrapper = false }) {
