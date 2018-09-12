@@ -3,11 +3,11 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
-import googlemaps
-import datetime
+
 
 class GoogleMapsSettings(Document):
 	def validate(self):
@@ -18,6 +18,11 @@ class GoogleMapsSettings(Document):
 				frappe.throw(_("Home Address is required"))
 
 	def get_client(self):
+		if not self.enabled:
+			frappe.throw(_("Google Maps integration is not enabled"))
+
+		import googlemaps
+
 		try:
 			client = googlemaps.Client(key=self.client_key)
 		except Exception as e:
