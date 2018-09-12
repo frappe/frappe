@@ -192,6 +192,10 @@ def show_update_popup():
 	user  = frappe.session.user
 
 	update_info = cache.get_value("update-info")
+
+	if not update_info:
+		return 
+
 	updates = json.loads(update_info)
 
 	# Check if user is int the set of users to send update message to
