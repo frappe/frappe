@@ -32,7 +32,7 @@ frappe.ui.form.on('Auto Repeat', {
 		
 		if(frm.doc.docstatus == 1) {
 			
-			let label = __('View {0}', [frm.doc.reference_doctype]);
+			let label = __('View {0}', [__(frm.doc.reference_doctype)]);
 			frm.add_custom_button(__(label),
 				function() {
 					frappe.route_options = {
@@ -51,14 +51,14 @@ frappe.ui.form.on('Auto Repeat', {
 			}
 
 			if(frm.doc.status == 'Stopped') {
-				frm.add_custom_button(__("Resume"),
+				frm.add_custom_button(__("Restart"),
 					function() {
 						frm.events.stop_resume_auto_repeat(frm, "Resumed");
 					}
 				);
 			}
 
-			if(frm.doc.status!= 0){
+			if(frm.doc.docstatus!= 0 && !frm.doc.status.includes('Stopped', 'Cancelled') && frm.doc.next_schedule_date >= frappe.datetime.get_today()){
 				frappe.auto_repeat.render_schedule(frm);
 			}
 		}
@@ -107,10 +107,31 @@ frappe.ui.form.on('Auto Repeat', {
 				}
 			}
 		});
+	},
+
+	preview_message: function(frm) {
+		if (frm.doc.message) {
+			frappe.call({
+				method: "frappe.desk.doctype.auto_repeat.auto_repeat.generate_message_preview",
+				args: {
+					reference_dt: frm.doc.reference_doctype,
+					reference_doc: frm.doc.reference_document,
+					subject: frm.doc.subject,
+					message: frm.doc.message
+				},
+				callback: function(r) {
+					if(r.message) {
+						frappe.msgprint(r.message.message, r.message.subject)
+					}
+				}
+			});
+		} else {
+			frappe.msgprint(__("Please setup a message first"), __("Message not setup"))
+		}
 	}
 });
 
-frappe.auto_repeat.render_schedule = function(frm) { 
+frappe.auto_repeat.render_schedule = function(frm) {
 	frappe.call({
 		method: "get_auto_repeat_schedule",
 		doc: frm.doc
