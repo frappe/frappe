@@ -37,7 +37,7 @@ function get_rollup_options_for_js(output_file, input_files) {
 		// node_modules of apps directly importable
 		apps_list.map(app => path.resolve(get_app_path(app), '../node_modules')).filter(fs.existsSync),
 		// import js file of any app if you provide the full path
-		apps_list.map(app => path.resolve(get_app_path(app), '..')).filter(fs.existsSync),
+		apps_list.map(app => path.resolve(get_app_path(app), '..')).filter(fs.existsSync)
 	);
 
 	const plugins = [
