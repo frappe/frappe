@@ -49,6 +49,10 @@ class File(NestedSet):
 	def before_insert(self):
 		frappe.local.rollback_observers.append(self)
 		self.set_folder_name()
+		self.content = self.get("content", None)
+		self.decode = self.get("decode", False)
+		if self.content:
+			self.save_file(content=self.content, decode=self.decode)
 
 	def get_name_based_on_parent_folder(self):
 		path = get_breadcrumbs(self.folder)
@@ -86,6 +90,7 @@ class File(NestedSet):
 			self.generate_content_hash()
 
 		self.set_folder_size()
+		self.validate_url()
 
 		if frappe.db.exists('File', {'name': self.name, 'is_folder': 0}):
 			old_file_url = self.file_url
@@ -152,7 +157,7 @@ class File(NestedSet):
 	def validate_folder(self):
 		if not self.is_home_folder and not self.folder and \
 			not self.flags.ignore_folder_validate:
-			frappe.throw(_("Folder is mandatory"))
+			self.folder = "Home"
 
 	def validate_file(self):
 		"""Validates existence of public file
@@ -317,10 +322,10 @@ class File(NestedSet):
 		self.attached_to_name = frappe.form_dict.docname
 		self.attached_to_field = frappe.form_dict.docfield
 		self.file_url = frappe.form_dict.file_url
-		self.filename = frappe.form_dict.filename
+		self.file_name = frappe.form_dict.filename
 		frappe.form_dict.is_private = cint(frappe.form_dict.is_private)
 
-		if not self.filename and not self.file_url:
+		if not self.file_name and not self.file_url:
 			frappe.msgprint(_("Please select a file or url"),
 				raise_exception=True)
 
@@ -370,7 +375,7 @@ class File(NestedSet):
 	def get_full_path(self):
 		"""Returns file path from given file name"""
 
-		file_path = self.file_url
+		file_path = self.file_url or self.file_name
 
 		if "/" not in file_path:
 			file_path = "/files/" + file_path
@@ -406,7 +411,7 @@ class File(NestedSet):
 		r = frappe.form_dict
 
 		if self.file_url is None: self.file_url = r.file_url
-		if self.filename is None: self.filename = r.filename
+		if self.file_name is None: self.file_name = r.file_name
 		if self.attached_to_doctype is None: self.attached_to_doctype = r.doctype
 		if self.attached_to_name is None: self.attached_to_name = r.docname
 		if self.attached_to_field is None: self.attached_to_field = r.docfield
@@ -417,7 +422,7 @@ class File(NestedSet):
 			file_doc = self.save_uploaded()
 
 		elif r.file_url:
-			file_doc = self.save_url()
+			file_doc = self.save()
 
 		return file_doc
 
@@ -425,37 +430,22 @@ class File(NestedSet):
 	def save_uploaded(self):
 		self.content = self.get_uploaded_content()
 		if self.content:
-			return self.save_file(content=self.content)
+			return self.save()
 		else:
 			raise Exception
 
 
-	def save_url(self, df=None):
-		# if not (file_url.startswith("http://") or file_url.startswith("https://")):
-		# 	frappe.msgprint("URL must start with 'http://' or 'https://'")
-		# 	return None, None
+	def validate_url(self, df=None):
+		if self.file_url:
+			if not self.file_url.startswith(("http://", "https://", "/files/", "/private/files/")):
+				frappe.throw("URL must start with 'http://' or 'https://'")
+				return
 
-		self.file_url = unquote(self.file_url)
-		self.file_size = frappe.form_dict.file_size
+			self.file_url = unquote(self.file_url)
+			self.file_size = frappe.form_dict.file_size
 
-		f = frappe.get_doc({
-			"doctype": "File",
-			"file_url": self.file_url,
-			"file_name": self.file_name,
-			"attached_to_doctype": self.attached_to_doctype,
-			"attached_to_name": self.attached_to_name,
-			"attached_to_field": self.attached_to_field,
-			"folder": self.folder,
-			"file_size": self.file_size,
-			"is_private": self.is_private
-		})
-		f.flags.ignore_permissions = True
-		try:
-			f.insert()
-		except frappe.DuplicateEntryError:
-			return frappe.get_doc("File", f.duplicate_entry)
-		return f
-
+		if not self.file_url and self.get('content', None):
+			self.file_url
 
 	def get_uploaded_content(self):
 		# should not be unicode when reading a file, hence using frappe.form
@@ -492,30 +482,9 @@ class File(NestedSet):
 
 			write_file_method = get_hook_method('write_file')
 			if write_file_method:
-				file_data = write_file_method(self)
-			else:
-				file_data = self.save_file_on_filesystem()
-			file_data = copy(file_data)
+				return write_file_method(self)
+			return self.save_file_on_filesystem()
 
-		file_data.update({
-			"doctype": "File",
-			"attached_to_doctype": self.attached_to_doctype,
-			"attached_to_name": self.attached_to_name,
-			"attached_to_field": self.attached_to_field,
-			"folder": self.folder,
-			"file_size": self.file_size,
-			"content_hash": self.content_hash,
-			"is_private": self.is_private
-		})
-
-		f = frappe.get_doc(file_data)
-		f.flags.ignore_permissions = True
-		try:
-			f.insert()
-		except frappe.DuplicateEntryError:
-			return frappe.get_doc("File", f.duplicate_entry)
-
-		return f
 
 	def save_file_on_filesystem(self):
 		fpath = self.write_file()

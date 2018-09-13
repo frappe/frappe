@@ -421,11 +421,12 @@ def accept(web_form, data, for_payment=False):
 			# save new file
 			filename, dataurl = filedata.split(',', 1)
 			_file = frappe.get_doc({"doctype": "File", "file_name": filename,
-				"attached_to_doctype": doc.doctype, "attached_to_name": doc.name})
-			filedoc = _file.save_file(content=dataurl, decode=True)
+				"attached_to_doctype": doc.doctype, "attached_to_name": doc.name,
+				"content": dataurl, "decode": True})
+			_file.save()
 
 			# update values
-			doc.set(fieldname, filedoc.file_url)
+			doc.set(fieldname, _file.file_url)
 
 		doc.save(ignore_permissions = True)
 

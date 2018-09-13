@@ -526,9 +526,10 @@ class Email:
 				_file = frappe.get_doc({"doctype": "File",
 					"file_name": attachment['fname'],
 					"attached_to_doctype": doc.doctype,
-					"attached_to_name": doc.name, "is_private": 1})
-				file_data = _file.save_file(content=attachment['fcontent'])
-				saved_attachments.append(file_data)
+					"attached_to_name": doc.name, "is_private": 1,
+					"content": attachment['fcontent']})
+				_file.save()
+				saved_attachments.append(_file)
 
 				if attachment['fname'] in self.cid_map:
 					self.cid_map[file_data.name] = self.cid_map[attachment['fname']]

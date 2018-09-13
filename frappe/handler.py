@@ -110,8 +110,20 @@ def uploadfile():
 	try:
 		if frappe.form_dict.get('from_form'):
 			try:
-				ret = frappe.get_doc({"doctype": "File"})
-				ret = ret.upload()
+				ret = frappe.get_doc({
+					"doctype": "File",
+					"attached_to_name": frappe.form_dict.docname,
+					"attached_to_doctype": frappe.form_dict.doctype,
+					"attached_to_field": frappe.form_dict.docfield,
+					"file_url": frappe.form_dict.file_url,
+					"file_name": frappe.form_dict.filename,
+					"is_private": frappe.utils.cint(frappe.form_dict.is_private),
+					"content": frappe.form_dict.filedata,
+					"decode": True
+				})
+				ret = ret.save()
+				# ret = frappe.get_doc({"doctype": "File"})
+				# ret = ret.upload()
 			except frappe.DuplicateEntryError:
 				# ignore pass
 				ret = None

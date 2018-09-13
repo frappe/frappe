@@ -63,8 +63,9 @@ def create_csv_file(columns, data, dt, dn):
 	encoded = base64.b64encode(frappe.safe_encode(to_csv(rows)))
 	# Call save_file function to upload and attach the file
 	_file = frappe.get_doc({"doctype": "File", "file_name": csv_filename,
-		"attached_to_doctype": dt, "attached_to_name": dn})
-	_file.save_file(content=encoded, decode=True)
+		"attached_to_doctype": dt, "attached_to_name": dn, "content": encoded,
+		"decode": True})
+	_file.save()
 
 
 @frappe.whitelist()

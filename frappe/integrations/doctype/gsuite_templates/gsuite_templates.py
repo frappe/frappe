@@ -25,8 +25,9 @@ def create_gsuite_doc(doctype, docname, gs_template=None):
 	r = run_gsuite_script('new', filename, templ.template_id, templ.destination_id, json_data)
 
 	_file = frappe.get_doc("File", {"file_url": r['url'], "file_name": filename,
-		"attached_to_doctype": doctype, "attached_to_name": docname, "folder": "Home/Attachments"})
-	_file.save_url(df=True)
+		"attached_to_doctype": doctype, "attached_to_name": docname, "attached_to_field": True,
+		"folder": "Home/Attachments"})
+	_file.save()
 
 	comment = frappe.get_doc(doctype, docname).add_comment("Attachment",
 		_("added {0}").format("<a href='{file_url}' target='_blank'>{file_name}</a>{icon}".format(**{

@@ -265,8 +265,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			return
 
 		_file = frappe.get_doc("File", {"file_url": file_url, "attached_to_name": docname,
-			"attached_to_doctype": doctype, "folder": "Home/Attachments"})
-		_file.save_url(df=0)
+			"attached_to_doctype": doctype, "attached_to_field": 0, "folder": "Home/Attachments"})
+		_file.save()
 
 
 	# header
@@ -467,9 +467,9 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				file_data = to_csv(data_rows_with_error)
 			_file = frappe.get_doc({"doctype": "File", "file_name": file_name,
 				"attached_to_doctype": "Data Import", "attached_to_name": data_import_doc.name,
-				"folder": "Home/Attachments"})
-			error_data_file = _file.save_file(content=file_data)
-			data_import_doc.error_file = error_data_file.file_url
+				"folder": "Home/Attachments", "content": file_data})
+			_file.save()
+			data_import_doc.error_file = _file.file_url
 
 		elif error_flag:
 			import_status = "Failed"

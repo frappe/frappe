@@ -336,11 +336,12 @@ def qrcode_as_png(user, totp_uri):
 	folder = create_barcode_folder()
 	png_file_name = '{}.png'.format(frappe.generate_hash(length=20))
 	_file = frappe.get_doc({"doctype": "File", "file_name": png_file_name,
-		"attached_to_doctype": 'User', "attached_to_name": user, "folder": folder})
-	file_obj = _file.save_file(content=png_file_name)
+		"attached_to_doctype": 'User', "attached_to_name": user, "folder": folder,
+		"content": png_file_name})
+	_file.save()
 	frappe.db.commit()
-	file_url = get_url(file_obj.file_url)
-	file_path = os.path.join(frappe.get_site_path('public', 'files'), file_obj.file_name)
+	file_url = get_url(_file.file_url)
+	file_path = os.path.join(frappe.get_site_path('public', 'files'), _file.file_name)
 	url = qrcreate(totp_uri)
 	with open(file_path, 'w') as png_file:
 		url.png(png_file, scale=8, module_color=[0, 0, 0, 180], background=[0xff, 0xff, 0xcc])

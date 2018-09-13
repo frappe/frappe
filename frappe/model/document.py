@@ -322,7 +322,7 @@ class Document(BaseDocument):
 			_file = frappe.get_doc("File", {"file_url": attach_item.file_url,
 				"file_name": attach_item.file_name, "attached_to_name": self.name,
 				"attached_to_doctype": self.doctype, "folder": "Home/Attachments"})
-			_file.save_url()
+			_file.save()
 
 
 	def update_children(self):
