@@ -187,6 +187,10 @@ def get_context(context):
 			context.reference_doctype = context.doc.doctype
 			context.reference_name = context.doc.name
 
+			if self.show_attachments:
+			    context.attachments = frappe.get_all('File', filters= {"attached_to_name": context.reference_name, "attached_to_doctype": context.reference_doctype, "is_private": 0},
+					fields=['file_name','file_url', 'file_size'])
+
 			if self.allow_comments:
 				context.comment_list = get_comment_list(context.doc.doctype,
 					context.doc.name)
