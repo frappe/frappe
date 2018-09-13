@@ -22,7 +22,10 @@
     </a>
 	<a href='https://www.codetriage.com/frappe/frappe'>
 		<img src='https://www.codetriage.com/frappe/frappe/badges/users.svg'>
-	</a>
+	</a>   
+    <a href='https://coveralls.io/github/frappe/frappe?branch=develop'>
+        <img src='https://coveralls.io/repos/github/frappe/frappe/badge.svg?branch=develop'>
+    </a>
 </div>
 
 

@@ -334,9 +334,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	render_count() {
-		this.get_count_html()
-			.then(html => {
-				this.$result.find('.list-count').html(html);
+		this.get_count_str()
+			.then(str => {
+				this.$result.find('.list-count').html(`<span>${str}</span>`);
 			});
 	}
 
@@ -570,7 +570,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return html;
 	}
 
-	get_count_html() {
+	get_count_str() {
 		const current_count = this.data.length;
 
 		return frappe.call({
@@ -582,10 +582,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				fields: [`count(${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`]
 			}
 		}).then(r => {
-			const count = r.message.values[0][0] || current_count;
-			const str = __('{0} of {1}', [current_count, count]);
-			const html = `<span>${str}</span>`;
-			return html;
+			this.total_count = r.message.values[0][0] || current_count;
+			const str = __('{0} of {1}', [current_count, this.total_count]);
+			return str;
 		});
 	}
 
