@@ -4,9 +4,9 @@
 
 from __future__ import unicode_literals
 import frappe
-import json
+import json,datetime
 from six.moves.urllib.parse import parse_qs
-from six import string_types
+from six import string_types, text_type
 from frappe.utils import get_request_session
 from frappe import _
 
@@ -40,6 +40,7 @@ def make_post_request(url, auth=None, headers=None, data=None):
 		s = get_request_session()
 		frappe.flags.integration_request = s.post(url, data=data, auth=auth, headers=headers)
 		frappe.flags.integration_request.raise_for_status()
+		print(frappe.flags.integration_request.text)
 
 		if frappe.flags.integration_request.headers.get("content-type") == "text/plain; charset=utf-8":
 			return parse_qs(frappe.flags.integration_request.text)
@@ -59,7 +60,7 @@ def create_request_log(data, integration_type, service_name, name=None):
 		"integration_request_service": service_name,
 		"reference_doctype": data.get("reference_doctype"),
 		"reference_docname": data.get("reference_docname"),
-		"data": json.dumps(data)
+		"data": json.dumps(data, default=json_handler)
 	})
 
 	if name:
@@ -109,3 +110,7 @@ def create_payment_gateway(gateway, settings=None, controller=None):
 			"gateway_controller": controller
 		})
 		payment_gateway.insert(ignore_permissions=True)
+
+def json_handler(obj):
+	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
+		return text_type(obj)

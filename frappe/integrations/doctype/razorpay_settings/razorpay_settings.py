@@ -28,7 +28,14 @@ Example:
 		"payer_name": "Nuran Verkleij",
 		"order_id": "111",
 		"currency": "INR",
-		"payment_gateway": "Razorpay"
+		"payment_gateway": "Razorpay",
+		"subscription_details": {
+			"plan_id": "plan_12313", # if Required
+			"start_date": "2018-08-30",
+			"billing_period": "Month" #(Day, Week, Month, Year),
+			"billing_frequency": 1,
+			"customer_notify": 1
+		}
 	}
 
 	# Redirect the user to this url
@@ -58,7 +65,7 @@ from frappe import _
 import json
 from six.moves.urllib.parse import urlencode
 from frappe.model.document import Document
-from frappe.utils import get_url, call_hook_method, cint
+from frappe.utils import get_url, call_hook_method, cint, get_timestamp
 from frappe.integrations.utils import make_get_request, make_post_request, create_request_log, create_payment_gateway
 
 class RazorpaySettings(Document):
@@ -82,7 +89,74 @@ class RazorpaySettings(Document):
 		if currency not in self.supported_currencies:
 			frappe.throw(_("Please select another payment method. Razorpay does not support transactions in currency '{0}'").format(currency))
 
+	# def before_get_payment_url(self, **kwargs):
+	# 	if not kwargs.get('subscription_details') and not kwargs.get('subscription_id'):
+	# 		return
+	#
+	# 	settings = self.get_settings(kwargs)
+	# 	if kwargs.get('subscription_id') and kwargs.get('addons'):
+	# 		return self.setup_addon(settings, **kwargs)
+	# 	else:
+	# 		return self.setup_subscription(settings, **kwargs)
+	#
+	# def setup_addon(self, settings, **kwargs):
+	# 	url = "https://api.razorpay.com/v1/subscriptions/{0}/addons".format(kwargs.get('subscription_id'))
+	#
+	# 	for addon in kwargs.get("addons"):
+	# 		try:
+	# 			resp = make_post_request(
+	# 				url,
+	# 				auth=(settings.api_key, settings.api_secret),
+	# 				data=json.dumps(addon),
+	# 				headers={
+	# 					"content-type": "application/json"
+	# 				}
+	# 			)
+	#
+	# 			if not resp.get('id'):
+	# 				frappe.log_error(str(resp), 'Razorpay Failed while creating subscription')
+	#
+	# 		except:
+	# 			frappe.log_error(frappe.get_traceback())
+	# 			# failed
+	# 			pass
+	#
+	# 	return {}
+
+	def setup_subscription(self, settings, **kwargs):
+		start_date = get_timestamp(kwargs.get('subscription_details').get("start_date")) \
+			if kwargs.get('subscription_details').get("start_date") else None
+
+		subscription_details = {
+			"plan_id": kwargs.get('subscription_details').get("plan_id"),
+			"start_at": cint(start_date),
+			"total_count": kwargs.get('subscription_details').get("billing_frequency"),
+			"customer_notify": kwargs.get('subscription_details').get("customer_notify"),
+		}
+
+		try:
+			resp = make_post_request(
+				"https://api.razorpay.com/v1/subscriptions",
+				auth=(settings.api_key, settings.api_secret),
+				data=subscription_details
+			)
+
+			if resp.get('status') == 'created':
+				kwargs['subscription_details']['subscription_id'] = resp.get('id')
+			else:
+				frappe.log_error(str(resp), 'Razorpay Failed while creating subscription')
+
+		except:
+			frappe.log_error(frappe.get_traceback())
+			# failed
+			pass
+
 	def get_payment_url(self, **kwargs):
+		settings = self.get_settings(kwargs)
+
+		if kwargs.get('subscription_details'):
+			self.setup_subscription(settings, **kwargs)
+
 		integration_request = create_request_log(kwargs, "Host", "Razorpay")
 		return get_url("./integrations/razorpay_checkout?token={0}".format(integration_request.name))
 
@@ -119,6 +193,15 @@ class RazorpaySettings(Document):
 				self.integration_request.update_status(data, 'Authorized')
 				self.flags.status_changed_to = "Authorized"
 
+			elif data.get('subscription_details') and data.get('subscription_details').get('subscription_id'):
+				if resp.get("status") == "refunded":
+					self.integration_request.update_status(data, 'Refunded')
+					self.flags.status_changed_to = "Authorized"
+
+				if resp.get("status") == "captured":
+					self.integration_request.update_status(data, 'Completed')
+					self.flags.status_changed_to = "Authorized"
+
 			else:
 				frappe.log_error(str(resp), 'Razorpay Payment not authorized')
 
@@ -136,8 +219,10 @@ class RazorpaySettings(Document):
 			if self.data.reference_doctype and self.data.reference_docname:
 				custom_redirect_to = None
 				try:
+					frappe.flags.data = data
 					custom_redirect_to = frappe.get_doc(self.data.reference_doctype,
 						self.data.reference_docname).run_method("on_payment_authorized", self.flags.status_changed_to)
+
 				except Exception:
 					frappe.log_error(frappe.get_traceback())
 
@@ -164,7 +249,7 @@ class RazorpaySettings(Document):
 			"api_secret": self.get_password(fieldname="api_secret", raise_exception=False)
 		})
 
-		if cint(data.get('notes', {}).get('use_sandbox')):
+		if cint(data.get('notes', {}).get('use_sandbox')) or data.get("use_sandbox"):
 			settings.update({
 				"api_key": frappe.conf.sandbox_api_key,
 				"api_secret": frappe.conf.sandbox_api_secret,
