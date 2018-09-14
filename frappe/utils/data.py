@@ -362,7 +362,7 @@ def safe_div(numerator, denominator, precision=2):
 		_res = 0.0
 	else:
 		_res = float(numerator) / denominator
-	
+
 	return flt(_res, precision)
 
 def round_based_on_smallest_currency_fraction(value, currency, precision=2):
@@ -963,7 +963,8 @@ def md_to_html(markdown_text):
 		'header-ids': None,
 		'highlightjs-lang': None,
 		'html-classes': {
-			'table': 'table table-bordered'
+			'table': 'table table-bordered',
+			'img': 'screenshot'
 		}
 	}
 
