@@ -7,6 +7,7 @@ import json, os
 from semantic_version import Version
 import frappe
 import requests
+import subprocess
 from frappe.utils import cstr
 from frappe.utils.gitutils import get_app_last_commit_ref, get_app_branch
 from frappe import _
