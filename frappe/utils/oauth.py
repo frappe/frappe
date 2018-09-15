@@ -269,7 +269,7 @@ def update_oauth_user(user, data, provider):
 	
 	elif provider=="fairlogin" and not user.get_social_login_userid(provider):
 		save = True
-		user.set_social_login_userid(provider, userid=data["sub"])	
+		user.set_social_login_userid(provider, userid=data["preferred_username"])	
 		
 	if save:
 		user.flags.ignore_permissions = True
