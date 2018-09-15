@@ -153,8 +153,8 @@ class SocialLoginKey(Document):
 				"scope": "openid"
 			})
 		}
-		
-		
+
+
 		# Initialize the doc and return, used in patch
 		# Or can be used for creating key from controller
 		if initialize and provider:
