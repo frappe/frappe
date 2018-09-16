@@ -397,8 +397,8 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 
 	if coverage:
 		# Generate coverage report only for app that is being tested
-		source_path = os.path.join(get_bench_path(), 'apps', app or 'frappe', '*')
-		cov = Coverage(include=source_path, omit=['*.html', '*.js', '*.css'])
+		source_path = os.path.join(get_bench_path(), 'apps', app or 'frappe')
+		cov = Coverage(source=[source_path], omit=['*.html', '*.js', '*.css'])
 		cov.start()
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
