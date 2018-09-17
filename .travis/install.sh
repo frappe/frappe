@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ev
+set -e
 set -x
 
 sudo rm /etc/apt/sources.list.d/mongodb*.list
