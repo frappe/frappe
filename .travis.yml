@@ -52,6 +52,8 @@ jobs:
       after_script:
         - coveralls -b apps/frappe -d ../../sites/.coverage
       env: MariaDB
+      python: 2.7
+      python: 3.6
     - # stage
       script:
         - psql -c "CREATE DATABASE test_frappe;" -U postgres
@@ -64,3 +66,4 @@ jobs:
       after_script:
         - coveralls -b apps/frappe -d ../../sites/.coverage
       env: Postgres
+      python: 3.6
