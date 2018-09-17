@@ -37,10 +37,11 @@ before_script:
 
 jobs:
   include:
-    - python: 3.6
-    - python: 2.7
     - stage: Server Side Tests
       name: "MariaDB tests"
+      python:
+        - "3.6"
+        - "2.7"
       script:
         - mysql -u root -ptravis -e 'create database test_frappe'
         - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
