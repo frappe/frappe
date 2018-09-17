@@ -1,3 +1,4 @@
+apps/frappe/frappe/utils/change_log.py +215,New {} releases for the following apps are available,可以使用以下应用程序的新{}版本
 apps/frappe/frappe/website/doctype/web_form/web_form.py +59,Please select a Amount Field.,请选择一个金额字段。
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +284,Press Esc to close,按Esc键关闭
 apps/frappe/frappe/desk/form/assign_to.py +161,"A new task, {0}, has been assigned to you by {1}. {2}",一个新的任务，{0}，已分配给您{1}。 {2}
@@ -33,12 +34,10 @@ DocType: DocField,Options,选项
 apps/frappe/frappe/client.py +115,Cannot edit standard fields,不能编辑标准字段
 DocType: Print Format,Print Format Builder,打印格式生成器
 DocType: GCalendar Account,Calendar Name,日历名称
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +361,<p>No results found for '</p>,<p>找不到符合条件的结果</p>
 DocType: Report,Report Manager,报告管理
 DocType: Workflow,Document States,文档状态
 apps/frappe/frappe/public/js/frappe/views/pageview.js +104,Sorry! I could not find what you were looking for.,抱歉，无法找你要的信息。
 DocType: Data Migration Run,Logs,日志
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,设置&gt;用户
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +8,It is necessary to take this action today itself for the above mentioned recurring,今天有必要采取这一行动，重复上述
 DocType: Custom DocPerm,This role update User Permissions for a user,这个角色更新用户权限的用户
 apps/frappe/frappe/public/js/frappe/model/model.js +538,Rename {0},重命名{0}
@@ -90,7 +89,7 @@ apps/frappe/frappe/config/website.py +78,Settings for Contact Us Page.,联系我
 apps/frappe/frappe/core/doctype/user/user.py +916,Administrator Logged In,管理员登录
 DocType: Contact Us Settings,"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.",联系人选项，如“销售查询，支持查询”等每个新行或以逗号分隔。
 apps/frappe/frappe/public/js/frappe/ui/tag_editor.js +34,Add a tag ...,添加标签...
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +267,New {0}: #{1},新建 {0}：#{1}
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +276,New {0}: #{1},新建 {0}：#{1}
 DocType: Data Migration Run,Insert,插入
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +22,Select {0},选择{0}
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py +24,Please enter Base URL,请输入基本网址
@@ -314,7 +313,7 @@ DocType: Workflow State,Refresh,刷新
 DocType: Event,Public,公
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +703,Nothing to show,没有显示
 DocType: System Settings,Enable Two Factor Auth,启用双因素认证
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +285,[Urgent] Error while creating recurring %s for %s,[紧急]为％s创建循环％s时出错
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +294,[Urgent] Error while creating recurring %s for %s,[紧急]为％s创建循环％s时出错
 apps/frappe/frappe/public/js/frappe/model/model.js +24,Liked By,谁喜欢
 DocType: DocField,Print Hide If No Value,打印隐藏如果没有值
 DocType: Kanban Board Column,yellow,黄色
@@ -347,6 +346,7 @@ DocType: Print Format,Verdana,Verdana
 DocType: Email Flag Queue,Email Flag Queue,电子邮件标志队列
 apps/frappe/frappe/config/setup.py +205,Stylesheets for Print Formats,打印格式样式表
 apps/frappe/frappe/utils/bot.py +83,Can't identify open {0}. Try something else.,无法识别开{0}。尝试别的东西。
+DocType: Auto Repeat,Reference Party,参考方
 apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +188,Your information has been submitted,您的信息已提交
 apps/frappe/frappe/core/doctype/user/user.py +304,User {0} cannot be deleted,用户{0}不能被删除
 DocType: System Settings,Currency Precision,货币精确度
@@ -399,7 +399,7 @@ apps/frappe/frappe/utils/response.py +185,Your system is being updated. Please r
 DocType: Blogger,Will be used in url (usually first name).,会用在URL链接中（通常是名字）。
 DocType: Auto Email Report,Day of Week,星期几
 DocType: Note,Expire Notification On,到期通知在
-apps/frappe/frappe/public/js/frappe/ui/comment.js +44,Ctrl+Enter to add comment,Ctrl + Enter以添加评论
+apps/frappe/frappe/public/js/frappe/ui/comment.js +47,Ctrl+Enter to add comment,Ctrl + Enter以添加评论
 apps/frappe/frappe/public/js/frappe/socketio_client.js +282,File Upload in Progress. Please try again in a few moments.,文件上传正在进行中。请稍后重试。
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html +8,Edit Heading,编辑标题
 DocType: File,File URL,文件的URL
@@ -452,7 +452,7 @@ DocType: Dropbox Settings,Note: By default emails for failed backups are sent.,�
 apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js +281,"Your download is being built, this may take a few moments...",您的下载正在生成，这可能需要一些时间......
 apps/frappe/frappe/public/js/frappe/ui/filters/filter_list.js +144,Add Filter,添加过滤器
 apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py +86,SMS sent to following numbers: {0},短信发送至以下号码：{0}
-apps/frappe/frappe/public/js/frappe/ui/comment.js +234,Your rating: ,您的评分：
+apps/frappe/frappe/public/js/frappe/ui/comment.js +237,Your rating: ,您的评分：
 apps/frappe/frappe/utils/data.py +656,{0} and {1},{0}和{1}
 apps/frappe/frappe/public/js/frappe/chat.js +2149,Start a conversation.,开始对话。
 DocType: Print Settings,"Always add ""Draft"" Heading for printing draft documents",随时添加“草案”标题打印文件草案
@@ -521,6 +521,7 @@ apps/frappe/frappe/utils/password.py +150,"Encryption key is invalid, Please che
 DocType: SMS Settings,Receiver Parameter,接收人参数
 DocType: Data Migration Mapping Detail,Remote Fieldname,远程字段名称
 DocType: Communication,To,到
+apps/frappe/frappe/email/smtp.py +191,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,电子邮件帐户未设置。请从设置&gt;电子邮件&gt;电子邮件帐户创建新的电子邮件帐户
 DocType: Kanban Board Column,darkgrey,深灰色
 apps/frappe/frappe/model/rename_doc.py +430,Successful: {0} to {1},成功：{0} {1}
 apps/frappe/frappe/core/doctype/user/user.py +106,Cannot change user details in demo. Please signup for a new account at https://erpnext.com,演示中无法更改用户详细信息。请在https://erpnext.com注册一个新帐户
@@ -616,7 +617,7 @@ DocType: Slack Webhook URL,Webhook URL,Webhook URL
 apps/frappe/frappe/core/doctype/user/user.py +417,Username {0} already exists,用户名{0}已存在
 apps/frappe/frappe/core/doctype/doctype/doctype.py +831,{0}: Cannot set import as {1} is not importable,{0} ：{1}无法导入所以不能设置“导入”
 apps/frappe/frappe/contacts/doctype/address/address.py +114,There is an error in your Address Template {0},有一个在你的地址模板错误{0}
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +82,{0} is an invalid email address in 'Recipients',{0}是“收件人”中的无效电子邮件地址
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +83,{0} is an invalid email address in 'Recipients',{0}是“收件人”中的无效电子邮件地址
 DocType: User,Allow Desktop Icon,允许桌面图标
 DocType: Footer Item,"target = ""_blank""","target = ""_blank"""
 DocType: Workflow State,hdd,hdd
@@ -669,6 +670,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +82,"Standard DocType cannot 
 DocType: Report,Query,查询
 DocType: DocType,Sort Order,排序
 apps/frappe/frappe/core/doctype/doctype/doctype.py +531,'In List View' not allowed for type {0} in row {1},行{1}中的类型{0}不允许选择“显示在列表视图中”
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,Setup &gt; Customize Form,设置&gt;自定义表单
 DocType: Custom Field,Select the label after which you want to insert new field.,选择标签，在其后插入新字段。
 ,Document Share Report,文档分享报告
 DocType: Social Login Key,Base URL,基本网址
@@ -725,6 +727,7 @@ apps/frappe/frappe/config/setup.py +119,Set numbering series for transactions.,�
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +61,Configure Charts,配置图表
 apps/frappe/frappe/desk/like.py +38,You cannot like something that you created,你不能喜欢你创造的东西
 DocType: User,Last IP,最后登录IP
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +392,Please add a subject to your email,请在您的电子邮件中添加主题
 apps/frappe/frappe/core/page/usage_info/usage_info.js +20,Renew / Upgrade,更新/升级
 apps/frappe/frappe/share.py +148,A new document {0} has been shared by with you {1}.,已与您{1}分享了一个新文档{0}。
 DocType: Data Migration Connector,Data Migration Connector,数据迁移连接器
@@ -1013,7 +1016,7 @@ apps/frappe/frappe/public/js/frappe/request.js +31,You are not connected to Inte
 DocType: User,Send Password Update Notification,发送密码更新通知
 apps/frappe/frappe/public/js/legacy/form.js +62,"Allowing DocType, DocType. Be careful!",允许的DOCTYPE，的DocType 。要小心！
 apps/frappe/frappe/config/core.py +32,"Customized Formats for Printing, Email",自定义打印格式，电子邮件
-apps/frappe/frappe/public/js/frappe/desk.js +475,Updated To New Version,更新到新版本
+apps/frappe/frappe/public/js/frappe/desk.js +477,Updated To New Version,更新到新版本
 DocType: Custom Field,Depends On,取决于
 DocType: Kanban Board Column,Green,绿
 DocType: Custom DocPerm,Additional Permissions,额外的权限
@@ -1110,7 +1113,7 @@ apps/frappe/frappe/core/doctype/user/user.py +771,Temperorily Disabled,临时禁
 apps/frappe/frappe/contacts/doctype/contact/contact.py +85,Please set Email Address,请设置电子邮件地址
 DocType: System Settings,Date and Number Format,日期和数字格式
 apps/frappe/frappe/model/document.py +1064,one of,其中
-apps/frappe/frappe/public/js/frappe/desk.js +154,Checking one moment,检查一个时刻
+apps/frappe/frappe/public/js/frappe/desk.js +156,Checking one moment,检查一个时刻
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html +21,Show Tags,显示标签
 DocType: System Settings,"If Apply Strict User Permission is checked and User Permission is defined for a DocType for a User, then all the documents where value of the link is blank, will not be shown to that User",如果选中了“严格用户权限”，并为用户定义了“用户权限”，则该链接的值为空的所有文档将不会显示给该用户
 DocType: Address,Billing,账单
@@ -1218,6 +1221,7 @@ DocType: OAuth Client,A list of resources which the Client App will have access 
 DocType: Translation,Translated Text,翻译文本
 DocType: Contact Us Settings,Query Options,查询选项
 DocType: Error Snapshot,Timestamp,时间戳
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,设置&gt;用户
 DocType: Patch Log,Patch Log,补丁日志
 DocType: Data Migration Mapping,Local Primary Key,本地主键
 apps/frappe/frappe/utils/bot.py +164,Hello {0},你好{0}
@@ -1272,8 +1276,8 @@ apps/frappe/frappe/model/naming.py +210,Name of {0} cannot be {1},{0}的名称�
 apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +33,From Date,起始日期
 apps/frappe/frappe/core/doctype/version/version_view.html +47,Success,成功
 apps/frappe/frappe/public/js/frappe/feedback.js +95,Feedback Request for {0} is sent to {1},反馈请求{0}被发送到{1}
-apps/frappe/frappe/public/js/frappe/desk.js +394,Session Expired,会话已过期
-apps/frappe/frappe/public/js/frappe/desk.js +394,Session Expired,会话已过期
+apps/frappe/frappe/public/js/frappe/desk.js +396,Session Expired,会话已过期
+apps/frappe/frappe/public/js/frappe/desk.js +396,Session Expired,会话已过期
 DocType: Kanban Board Column,Kanban Board Column,看板列
 apps/frappe/frappe/utils/password_strength.py +98,Straight rows of keys are easy to guess,键的直排容易被猜中
 DocType: Communication,Phone No.,电话号码
@@ -1290,7 +1294,7 @@ DocType: Workflow Transition,Next State,下一状态
 DocType: User,Block Modules,封锁模块
 apps/frappe/frappe/model/db_schema.py +151,Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.,恢复长度{0}为“{1}”在“{2}”;设置长度为{3}将导致数据截断。
 DocType: Print Format,Custom CSS,自定义CSS
-apps/frappe/frappe/public/js/frappe/ui/comment.js +36,Add a comment,添加评论
+apps/frappe/frappe/public/js/frappe/ui/comment.js +39,Add a comment,添加评论
 DocType: Webhook,on_update,on_update
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +59,{type} room must have atmost one user.,{type}空间必须有至多一个用户。
 apps/frappe/frappe/model/rename_doc.py +433,Ignored: {0} to {1},忽略：{0} {1}
@@ -1357,7 +1361,6 @@ DocType: Communication,Rejected,拒绝
 apps/frappe/frappe/public/js/frappe/ui/tags.js +112,Remove Tag,删除标签
 DocType: Chat Room User,Admin,管理员
 DocType: Website Settings,Brand,品牌
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions,设置&gt;用户权限
 DocType: Report,Query Report,查询报告
 DocType: User,Set New Password,设置新密码
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +49,"%s is not a valid report format. Report format should \
@@ -1518,6 +1521,7 @@ DocType: Transaction Log,Previous Hash,先前的哈希
 DocType: File,Is Attachments Folder,是附件文件夹
 apps/frappe/frappe/public/js/frappe/views/treeview.js +75,Expand All,展开全部
 apps/frappe/frappe/public/js/frappe/chat.js +2158,Select a chat to start messaging.,选择一个聊天开始消息。
+apps/frappe/frappe/public/js/frappe/form/controls/table.js +85,Processing,处理
 apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.js +20,Please select Entity Type first,请先选择实体类型
 apps/frappe/frappe/templates/includes/login/login.js +52,Valid Login id required.,请输入有效的登录ID。
 apps/frappe/frappe/model/rename_doc.py +417,Please select a valid csv file with data,请选择与数据的有效csv文件
@@ -1546,6 +1550,7 @@ apps/frappe/frappe/public/js/frappe/form/grid.js +72,Add Row,添加行
 DocType: Tag Category,Doctypes,文档类型
 apps/frappe/frappe/desk/query_report.py +52,Query must be a SELECT,查询必须是一个SELECT语句
 DocType: Prepared Report,Completed,已完成
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions,设置&gt;用户权限
 DocType: File,Is Private,是私有
 DocType: Data Export,Select DocType,选择文档类型
 apps/frappe/frappe/public/js/frappe/request.js +146,File size exceeded the maximum allowed size of {0} MB,文件大小超过允许的{0} MB
@@ -1578,7 +1583,6 @@ apps/frappe/frappe/www/feedback.py +39,Invalid Reference,参考无效
 apps/frappe/frappe/www/feedback.py +73,"Cannot submit feedback, please try again later",无法提交反馈，请稍后再试
 DocType: Web Page,"Page to show on the website
 ",页面显示网站
-apps/frappe/frappe/email/smtp.py +191,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,电子邮件帐户未设置。请从设置&gt;电子邮件&gt;电子邮件帐户创建新的电子邮件帐户
 DocType: Note,Seen By Table,通过看表
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +248,Select template,选择模板
 apps/frappe/frappe/www/third_party_apps.html +47,Logged in,已登录
@@ -1605,6 +1609,7 @@ apps/frappe/frappe/www/login.py +48,Mobile Number,手机号码
 DocType: Communication,Attachment Removed,附件已删除
 apps/frappe/frappe/utils/password_strength.py +132,Recent years are easy to guess.,近年来，很容易被猜到。
 DocType: Calendar View,Subject Field,主题字段
+apps/frappe/frappe/contacts/doctype/address/address.py +194,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,找不到默认地址模板。请从“设置”&gt;“打印和品牌”&gt;“地址模板”中创建一个新的。
 DocType: System Settings,Show Full Error and Allow Reporting of Issues to the Developer,显示完整错误并允许向开发人员报告问题
 apps/frappe/frappe/www/third_party_apps.html +38,Active Sessions,活动会话
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +274,Show a description below the field,在此字段下显示说明
@@ -1703,6 +1708,7 @@ apps/frappe/frappe/utils/password_strength.py +191,Common names and surnames are
 DocType: Auto Repeat,Draft,草稿
 apps/frappe/frappe/utils/password_strength.py +179,This is similar to a commonly used password.,这类似于一个通常使用的密码。
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +15,Female,女
+DocType: Auto Repeat,Reference Party Doctype,参考方Doctype
 DocType: Success Action,Success Action,成功行动
 apps/frappe/frappe/public/js/frappe/model/indicator.js +19,Not Saved,尚未保存
 apps/frappe/frappe/www/third_party_apps.html +51,Revoke,撤消
@@ -1713,6 +1719,7 @@ apps/frappe/frappe/public/js/frappe/ui/messages.js +230,Verify,确认
 DocType: Workflow Document State,Update Field,更新字段
 DocType: Chat Profile,Enable Chat,启用聊天
 DocType: LDAP Settings,Base Distinguished Name (DN),基本专有名称（DN）
+apps/frappe/frappe/integrations/doctype/google_maps_settings/google_maps_settings.py +22,Google Maps integration is not enabled,Google地图集成未启用
 apps/frappe/frappe/core/doctype/communication/email.py +156,Leave this conversation,离开这个谈话
 apps/frappe/frappe/model/base_document.py +443,Options not set for link field {0},对于链接字段没有设置选项{0}
 DocType: Customize Form,"Must be of type ""Attach Image""",类型必须为“附加图片”
@@ -1918,7 +1925,7 @@ DocType: Web Page,Style,风格
 DocType: Prepared Report,Report End Time,报告结束时间
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,e.g.:,例如：
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +80,{0} comments,{0}条评论
-apps/frappe/frappe/public/js/frappe/desk.js +94,Version Updated,版本更新
+apps/frappe/frappe/public/js/frappe/desk.js +96,Version Updated,版本更新
 DocType: Customize Form Field,Label and Type,标签和类型
 DocType: Workflow State,forward,forward
 apps/frappe/frappe/public/js/frappe/form/form_sidebar.js +59,{0} edited this {1},{0}编辑了{1}
@@ -1952,6 +1959,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +84,Export Cu
 apps/frappe/frappe/website/doctype/web_page/web_page.py +136,End Date cannot be before Start Date!,结束日期不能在开始日期之前！
 DocType: DocType,User Cannot Search,用户不能搜索
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +84,Invalid Output Format,无效的输出格式
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.js +54,Restart,重新开始
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +125,Cannot {0} {1},无法{0} {1}
 DocType: Custom DocPerm,Apply this rule if the User is the Owner,应用此规则如果用户是业主
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +422,Will be your login ID,将是您的登录ID
@@ -2066,7 +2074,7 @@ DocType: Workflow State,pencil,铅笔
 apps/frappe/frappe/config/desk.py +32,Chat messages and other notifications.,聊天信息和其他通知。
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +85,Insert After cannot be set as {0},在后边插入不能设置为{0}
 apps/frappe/frappe/public/js/frappe/form/share.js +57,Share {0} with,分享{0}
-apps/frappe/frappe/public/js/frappe/desk.js +137,Email Account setup please enter your password for: ,电子邮件帐户设置，请输入您的密码：
+apps/frappe/frappe/public/js/frappe/desk.js +139,Email Account setup please enter your password for: ,电子邮件帐户设置，请输入您的密码：
 DocType: Workflow State,hand-up,hand-up
 DocType: Blog Settings,Writers Introduction,作者简介
 DocType: Address,Phone,电话
@@ -2185,6 +2193,7 @@ DocType: Website Theme,Apply Style,应用样式
 DocType: Feedback Request,Feedback Rating,反馈评级
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +63,Shared With,共享
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js +7,Attach files / urls and add in table.,附加文件/网址并添加到表格中。
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.js +129,Message not setup,消息未设置
 DocType: Help Category,Help Articles,帮助文章
 apps/frappe/frappe/core/doctype/data_import/exporter.py +271,Type:,类型：
 apps/frappe/frappe/templates/pages/integrations/payment-failed.html +11,Your payment has failed.,您的付款失败。
@@ -2238,12 +2247,13 @@ apps/frappe/frappe/utils/print_format.py +128,Printing failed,打印失败
 DocType: Feedback Trigger,Email Field,电子邮件字段
 apps/frappe/frappe/www/update-password.html +60,New Password Required.,需要新密码
 apps/frappe/frappe/core/doctype/docshare/docshare.py +49,{0} shared this document with {1},{0}向{1}共享了这个文件
-apps/frappe/frappe/public/js/frappe/ui/comment.js +221,Add your review,添加您的评论
+apps/frappe/frappe/public/js/frappe/ui/comment.js +224,Add your review,添加您的评论
 DocType: Website Settings,Brand Image,品牌形象
 DocType: Print Settings,A4,A4
 apps/frappe/frappe/config/website.py +58,"Setup of top navigation bar, footer and logo.",顶部导航栏，页脚和Logo的设置。
 DocType: Web Form Field,Max Value,最大值
 apps/frappe/frappe/core/doctype/doctype/doctype.py +763,For {0} at level {1} in {2} in row {3},对行{3}，{2}中级别{1}的{0}
+DocType: Auto Repeat,Preview Message,预览消息
 DocType: User Social Login,User Social Login,用户社交登录
 DocType: Contact,All,所有
 DocType: Email Queue,Recipient,收件人
@@ -2292,6 +2302,7 @@ DocType: Website Theme,Google Font (Heading),谷歌字体（标题）
 apps/frappe/frappe/public/js/frappe/views/treeview.js +234,Select a group node first.,请先选择一个组节点。
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +232,Find {0} in {1},在{1}中找到{0}
 DocType: OAuth Client,Implicit,隐式
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0}年前
 DocType: Email Account,"Append as communication against this DocType (must have fields, ""Status"", ""Subject"")",作为此文档类型的交流信息添加(必须有“状态”和“主题”字段)
 DocType: OAuth Client,"URIs for receiving authorization code once the user allows access, as well as failure responses. Typically a REST endpoint exposed by the Client App.
 <br>e.g. http://hostname//api/method/frappe.www.login.login_via_facebook",的URI，用于接收授权代码一旦用户允许访问，以及失败的响应。通常，REST端点的客户端应用程序暴露出来。 <br>例如http：//hostname//api/method/frappe.www.login.login_via_facebook
@@ -2368,9 +2379,9 @@ DocType: Braintree Settings,Use Sandbox,使用沙盒
 apps/frappe/frappe/utils/goal.py +101,This month,这个月
 apps/frappe/frappe/public/js/frappe/form/print.js +102,New Custom Print Format,新的自定义打印格式
 DocType: Custom DocPerm,Create,创建
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0}年前
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +199,Invalid Filter: {0},无效的过滤器： {0}
 DocType: Email Account,no failed attempts,没有失败的尝试
+apps/frappe/frappe/email/smtp.py +85,Please setup default Email Account from Setup &gt; Email &gt; Email Account,请从设置&gt;电子邮件&gt;电子邮件帐户设置默认电子邮件帐户
 DocType: GSuite Settings,refresh_token,refresh_token
 DocType: Dropbox Settings,App Access Key,应用程序访问密钥
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +3,An error occured while creating recurring,创建循环时出现错误
@@ -2378,7 +2389,7 @@ DocType: Chat Room,Last Message,最后的消息
 DocType: OAuth Bearer Token,Access Token,访问令牌
 DocType: About Us Settings,Org History,组织历史
 apps/frappe/frappe/core/page/usage_info/usage_info.html +66,Backup Size:,备份大小：
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +319,Auto Repeat has been {0},自动重复已经{0}
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +328,Auto Repeat has been {0},自动重复已经{0}
 DocType: Auto Repeat,Next Schedule Date,下一个附表日期
 DocType: Workflow,Workflow Name,工作流名称
 DocType: DocShare,Notify by Email,通过电子邮件通知
@@ -2507,7 +2518,7 @@ apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +1
 DocType: Workflow State,font,font
 apps/frappe/frappe/utils/password_strength.py +175,This is a top-100 common password.,这是一个前100名的常用密码。
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +30,Please enable pop-ups,请启用弹出窗口
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +59,End date must be greater than start date,结束日期必须大于开始日期
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +60,End date must be greater than start date,结束日期必须大于开始日期
 DocType: Contact,Mobile No,手机号码
 DocType: Communication,Text Content,文本内容
 DocType: Customize Form Field,Is Custom Field,是自定义字段
@@ -2562,7 +2573,7 @@ DocType: Chat Room,Chat Room,聊天室
 DocType: Chat Profile,Conversation Tones,对话音
 DocType: Property Setter,New value to be set,要设置的新值
 DocType: Notification,Days Before or After,日前或后
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +72,Next Date's day and Repeat on Day of Month must be equal,下一个日期的一天，重复上月的天必须相等
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +73,Next Date's day and Repeat on Day of Month must be equal,下一个日期的一天，重复上月的天必须相等
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +34,Select Document Types to set which User Permissions are used to limit access.,选择用户权限针对的文档类型。
 DocType: Website Settings,HTML Header & Robots,HTML页眉和机器人
 DocType: User Permission,User Permission,用户权限
@@ -2732,6 +2743,7 @@ apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +64,Ctrl + Up,按Ctrl 
 DocType: Website Theme,Heading Style,标题样式
 apps/frappe/frappe/utils/data.py +640,1 weeks ago,一周前
 DocType: Communication,Error,错误
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.js +129,Please setup a message first,请先设置一条消息
 DocType: Auto Repeat,End Date,结束日期
 DocType: Data Import,Ignore encoding errors,忽略编码错误
 DocType: Chat Profile,Notifications,通知
@@ -2757,7 +2769,7 @@ apps/frappe/frappe/utils/password_strength.py +141,Dates are often easy to guess
 apps/frappe/frappe/public/js/frappe/form/workflow.js +41,Next actions,下一步行动
 apps/frappe/frappe/email/doctype/notification/notification.py +68,"Cannot edit Standard Notification. To edit, please disable this and duplicate it",无法编辑标准通知。要进行编辑，请禁用并复制它
 DocType: Workflow State,ok,ok
-apps/frappe/frappe/public/js/frappe/ui/comment.js +223,Submit Review,提交评论
+apps/frappe/frappe/public/js/frappe/ui/comment.js +226,Submit Review,提交评论
 DocType: User,These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,这些值将在交易中自动更新，也将是有益的权限限制在含有这些值交易这个用户。
 apps/frappe/frappe/twofactor.py +312,Verfication Code,验证码
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +10,for generating the recurring,用于生成循环
@@ -2766,7 +2778,7 @@ apps/frappe/frappe/model/rename_doc.py +435,** Failed: {0} to {1}: {2},**失败�
 DocType: Data Migration Mapping,Mapping Type,映射类型
 apps/frappe/frappe/public/js/frappe/ui/upload.html +4,Browse,浏览
 apps/frappe/frappe/utils/password_strength.py +39,"No need for symbols, digits, or uppercase letters.",无需符号，数字和大写字母。
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +55,Add custom field Auto Repeat in the doctype {0},在文档类型{0}中添加自定义字段自动重复
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +56,Add custom field Auto Repeat in the doctype {0},在文档类型{0}中添加自定义字段自动重复
 DocType: DocField,Currency,货币
 apps/frappe/frappe/templates/includes/comments/comments.py +50,View it in your browser,在浏览器查看
 apps/frappe/frappe/templates/includes/search_box.html +11,Clear Search,清除搜索
@@ -2866,7 +2878,7 @@ apps/frappe/frappe/config/website.py +93,Knowledge Base,知识库
 DocType: Workflow State,briefcase,公文包
 apps/frappe/frappe/model/document.py +493,Value cannot be changed for {0},值不能被改变为{0}
 DocType: Feedback Request,Is Manual,为手动
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +272,Please find attached {0} #{1},随函附上{0}＃{1}
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +281,Please find attached {0} #{1},随函附上{0}＃{1}
 DocType: Workflow State,"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange",风格代表按钮的颜色：成功 - 绿色，危险 - 红色，逆向 - 黑色，主要 - 深蓝色，信息 - 浅蓝，警告 - 橙色
 apps/frappe/frappe/core/doctype/data_import/log_details.html +6,Row Status,行状态
 DocType: Workflow Transition,Workflow Transition,工作流程转换
@@ -2896,7 +2908,6 @@ apps/frappe/frappe/model/meta.py +205,No Label,无标签
 DocType: System Settings,Use socketio to upload file,使用socketio上传文件
 apps/frappe/frappe/core/doctype/transaction_log/transaction_log.py +23,Indexing broken,索引损坏
 apps/frappe/frappe/public/js/frappe/list/list_view.js +273,Refreshing,清爽
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.js +54,Resume,恢复
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py +77,Modified By,修改者
 DocType: Address,Tripura,特里普拉邦
 DocType: About Us Settings,"""Company History""",“公司历史”
@@ -2908,13 +2919,14 @@ apps/frappe/frappe/templates/emails/recurring_document_failed.html +5,"To stop s
 apps/frappe/frappe/core/doctype/docshare/docshare.py +47,{0} shared this document with everyone,{0}与每个人共享了该文件
 apps/frappe/frappe/desk/page/activity/activity_row.html +17,Commented on {0}: {1},评论时间{0}：{1}
 apps/frappe/frappe/templates/pages/integrations/braintree_checkout.py +33,Looks like someone sent you to an incomplete URL. Please ask them to look into it.,貌似有人送你一个不完整的URL。请让他们寻找到它。
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +361,<p>No results found for '</p>,<p>找不到符合条件的结果</p>
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html +51,Your payment has been successfully registered.,您的付款已成功注册。
 DocType: Stripe Settings,Secret Key,密钥
 DocType: Stripe Settings,Secret Key,密钥
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js +11,Translate {0},翻译{0}
 DocType: Notification,Send alert if this field's value changes,如果这个字段的值改变则发送警报
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +108,Select a DocType to make a new format,请选择新格式的原始文档类型
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +84,'Recipients' not specified,&#39;收件人&#39;未指定
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +85,'Recipients' not specified,&#39;收件人&#39;未指定
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +46,just now,刚刚
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +28,Apply,应用
 DocType: Footer Item,Policy,政策
@@ -2985,7 +2997,6 @@ apps/frappe/frappe/public/js/frappe/views/pageview.js +112,Sorry! You are not pe
 apps/frappe/frappe/public/js/frappe/views/reports/reportview_footer.html +16,Tip:  Double click cell to edit,提示：双击单元格以编辑
 DocType: Workflow State,bell,铃声
 apps/frappe/frappe/public/js/frappe/form/templates/set_sharing.html +39,Share this document with,分享这个文件
-apps/frappe/frappe/contacts/doctype/address/address.py +194,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,找不到默认地址模板。请从“设置”&gt;“打印和品牌”&gt;“地址模板”中创建一个新的。
 apps/frappe/frappe/utils/nestedset.py +246,{0} {1} cannot be a leaf node as it has children,{0} {1}不能是一个叶节点，因为它有下级
 DocType: Communication,Info,信息
 apps/frappe/frappe/public/js/frappe/views/communication.js +395,Add Attachment,添加附件
@@ -3037,6 +3048,7 @@ DocType: Workflow Document State,Workflow Document State,工作流文档状态
 apps/frappe/frappe/public/js/frappe/request.js +146,File too big,文件太大
 apps/frappe/frappe/core/doctype/user/user.py +491,Email Account added multiple times,电子邮件帐户多次添加
 DocType: Payment Gateway,Payment Gateway,支付网关
+apps/frappe/frappe/utils/change_log.py +218,New updates are available,有新的更新
 DocType: Portal Settings,Hide Standard Menu,隐藏标准菜单
 apps/frappe/frappe/config/setup.py +163,Add / Manage Email Domains.,添加/管理电子邮件域。
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +72,Cannot cancel before submitting. See Transition {0},不能在提交前取消，详情参考过渡{0}
@@ -3070,7 +3082,6 @@ DocType: Contact,Purchase Master Manager,采购经理大师
 DocType: Module Def,Module Name,模块名称
 DocType: DocType,DocType is a Table / Form in the application.,文档类型在本程序里是一个表/表格。
 DocType: Social Login Key,Authorize URL,授权URL
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,Setup &gt; Customize Form,设置&gt;自定义表单
 DocType: Email Account,GMail,GMail
 DocType: Address,Party GSTIN,往来单位纳税登记号
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +112,{0} Report,{0}报告
@@ -3218,7 +3229,7 @@ DocType: Integration Request,Integration Type,整合型
 DocType: Newsletter,Send Attachements,发送附着物
 DocType: Transaction Log,Transaction Log,事务日志
 DocType: Contact Us Settings,City,城市
-apps/frappe/frappe/public/js/frappe/ui/comment.js +229,Ctrl+Enter to submit,按Ctrl + Enter提交
+apps/frappe/frappe/public/js/frappe/ui/comment.js +232,Ctrl+Enter to submit,按Ctrl + Enter提交
 DocType: DocField,Perm Level,权限等级
 apps/frappe/frappe/www/confirm_workflow_action.html +12,View document,查看文档
 apps/frappe/frappe/desk/doctype/event/event.py +66,Events In Today's Calendar,今日事件
@@ -3250,7 +3261,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +249,Hide fie
 DocType: Webhook,Webhook Data,Webhook数据
 apps/frappe/frappe/public/js/frappe/views/treeview.js +269,Creating {0},创建{0}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +313,Illegal Access Token. Please try again,非法访问令牌。请再试一次
-apps/frappe/frappe/public/js/frappe/desk.js +92,"The application has been updated to a new version, please refresh this page",该应用程序已被更新到新版本，请刷新本页面
+apps/frappe/frappe/public/js/frappe/desk.js +94,"The application has been updated to a new version, please refresh this page",该应用程序已被更新到新版本，请刷新本页面
 apps/frappe/frappe/core/doctype/communication/communication.js +35,Resend,重发
 DocType: Feedback Trigger,Optional: The alert will be sent if this expression is true,可选：警报会在这个表达式为true发送
 DocType: Data Migration Plan,Plan Name,计划名称
@@ -3377,8 +3388,8 @@ DocType: Address,Office,办公室
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +219,This Kanban Board will be private,这看板私会
 apps/frappe/frappe/desk/moduleview.py +94,Standard Reports,标准报告
 DocType: User,Email Settings,邮件设置
-apps/frappe/frappe/public/js/frappe/desk.js +398,Please Enter Your Password to Continue,请输入您的密码以继续
-apps/frappe/frappe/public/js/frappe/desk.js +398,Please Enter Your Password to Continue,请输入您的密码以继续
+apps/frappe/frappe/public/js/frappe/desk.js +400,Please Enter Your Password to Continue,请输入您的密码以继续
+apps/frappe/frappe/public/js/frappe/desk.js +400,Please Enter Your Password to Continue,请输入您的密码以继续
 apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +116,Not a valid LDAP user,不是有效的LDAP用户
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +59,{0} not a valid State,{0}不是有效的国家
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +89,Please select another payment method. PayPal does not support transactions in currency '{0}',请选择其他付款方式。贝宝不支持货币交易“{0}”
@@ -3394,7 +3405,6 @@ DocType: Data Import,Document Type,文档类型
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +24,Label is mandatory,标签是必须项
 DocType: PayPal Settings,API Username,API用户名
 apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +145,Half Day,半天
-apps/frappe/frappe/email/smtp.py +85,Please setup default Email Account from Setup &gt; Email &gt; Email Account,请从设置&gt;电子邮件&gt;电子邮件帐户设置默认电子邮件帐户
 DocType: Communication,Communication Type,通信类型
 DocType: DocField,Unique,唯一
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js +8,Partial Success,部分成功

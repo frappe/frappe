@@ -81,7 +81,7 @@ apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py +166,Desktop Icon a
 DocType: Communication,Attachment Removed,Prilog uklonjen
 DocType: Chat Room,Users,Korisnici
 DocType: Data Import,Import Log,Log uvoza
-apps/frappe/frappe/public/js/frappe/ui/comment.js +36,Add a comment,Dodaj komentar
+apps/frappe/frappe/public/js/frappe/ui/comment.js +39,Add a comment,Dodaj komentar
 apps/frappe/frappe/public/js/frappe/model/model.js +518,Permanently delete {0}?,Trajno obriši dokument {0} ?
 DocType: Custom DocPerm,Export,Izvezi
 DocType: Communication,Cancelled,Otkazan
@@ -213,7 +213,7 @@ apps/frappe/frappe/public/js/frappe/ui/upload.html +12,Web Link,Url adresa
 DocType: Web Form,Amount,Vrijednost
 ,Address and Contacts,Adresa i kontakti
 apps/frappe/frappe/config/desk.py +26,Event and other calendars.,Događaji i ostali kalendari.
-apps/frappe/frappe/public/js/frappe/ui/comment.js +44,Ctrl+Enter to add comment,Ctrl + enter da dodate komentar
+apps/frappe/frappe/public/js/frappe/ui/comment.js +47,Ctrl+Enter to add comment,Ctrl + enter da dodate komentar
 DocType: Workflow State,Comment,Komentar
 DocType: User,Timezone,Vremenska zona
 DocType: Workflow State,Refresh,Osvježi
@@ -234,6 +234,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/set_sharing.html +39,Share th
 apps/frappe/frappe/templates/pages/integrations/braintree_checkout.html +29,Pay,Plati
 apps/frappe/frappe/public/js/frappe/views/image/image_view.js +13,Images,Slike
 ,Document Share Report,Izvještaj o dijeljenim dokumentima
+apps/frappe/frappe/public/js/frappe/form/form_viewers.js +35,{0} is currently viewing this document,{0} trenutno gleda ovaj dokumenat
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +26,Tree,Stablo
 DocType: Chat Message,Type,Tip
 DocType: DocField,Attach Image,Dodajte sliku
@@ -355,7 +356,7 @@ DocType: Communication,From,Od
 apps/frappe/frappe/core/doctype/file/test_file.py +74,Home/Test Folder 1/Test Folder 3,Naslovna / Test Folder1 / Test Folder3
 DocType: Workflow State,share,Podijeli
 apps/frappe/frappe/core/doctype/file/file.py +168,Same file has already been attached to the record,Isti fajl je već dodijeljen nekom zapisu
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +267,New {0}: #{1},Novi {0}: # {1}
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +276,New {0}: #{1},Novi {0}: # {1}
 apps/frappe/frappe/core/doctype/user/user.js +74,Set Desktop Icons,Podesi ikonice na radnoj površini
 apps/frappe/frappe/public/js/frappe/form/controls/link.js +185,Advanced Search,Napredna pretraga
 DocType: Communication,Error,Greška
@@ -416,7 +417,7 @@ DocType: Report,Letter Head,Zaglavlje
 DocType: Auto Repeat,Series,Vrsta dokumenta
 DocType: Workflow State,Home,Naslovna
 apps/frappe/frappe/public/js/frappe/list/list_filter.js +102,Duplicate Filter Name,Ime filtera već postoji
-apps/frappe/frappe/public/js/frappe/desk.js +394,Session Expired,Sesija je istekla
+apps/frappe/frappe/public/js/frappe/desk.js +396,Session Expired,Sesija je istekla
 DocType: Communication,Received,Primljeno
 DocType: User,Login After,Prijava nakon
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +628,PDF,PDF
@@ -476,7 +477,7 @@ DocType: Custom Role,Custom Role,Prilagođjena rola
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +497,{0} from {1} to {2} in row #{3},{0} od {1} do {2} na poziciji # {3}
 apps/frappe/frappe/public/js/frappe/upload.js +226,Uploading,Prilaganje datoteke
 DocType: Workflow State,User,Korisnik
-apps/frappe/frappe/public/js/frappe/desk.js +398,Please Enter Your Password to Continue,Za nastavak unesite lozinku
+apps/frappe/frappe/public/js/frappe/desk.js +400,Please Enter Your Password to Continue,Za nastavak unesite lozinku
 DocType: File,File Size,Veličina fajla
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +69,About,O Nama
 apps/frappe/frappe/public/js/frappe/views/communication.js +529,You are not allowed to send emails related to this document,Немате дозволу да шаљете мејлове у вези са овим документом
