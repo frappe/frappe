@@ -1,15 +1,6 @@
 language: python
 dist: trusty
 
-services:
-  - mysql
-
-addons:
-  postgresql: "9.5"
-  hosts:
-    - test_site
-    - test_site_postgres
-
 install:
   - sudo rm /etc/apt/sources.list.d/mongodb*.list
   - sudo rm /etc/apt/sources.list.d/docker.list
@@ -35,13 +26,21 @@ before_script:
   - bench start &
   - sleep 10
 
+after_script:
+  - coveralls -b apps/frappe -d ../../sites/.coverage
+
 jobs:
   include:
     - stage: Server Side Tests
       name: "MariaDB tests"
+      services:
+        - mysql
+      addons:
+        hosts:
+          - test_site
       python:
-        - "3.6"
         - "2.7"
+        - "3.6"
       script:
         - mysql -u root -ptravis -e 'create database test_frappe'
         - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
@@ -51,12 +50,13 @@ jobs:
         - bench setup-global-help --root_password travis
         - bench --site test_site scheduler disable
         - bench --site test_site run-tests --coverage
-      after_script:
-        - coveralls -b apps/frappe -d ../../sites/.coverage
-      env: MariaDB
     - # stage
       name: "Postgres tests"
       python: "3.6"
+      addons:
+        postgresql: "9.5"
+        hosts:
+          - test_site_postgres
       script:
         - psql -c "CREATE DATABASE test_frappe;" -U postgres
         - psql -c "CREATE USER test_frappe WITH PASSWORD 'test_frappe';" -U postgres
@@ -65,6 +65,3 @@ jobs:
         - bench setup-global-help --db_type=postgres --root_password travis
         - bench --site test_site_postgres scheduler disable
         - bench --site test_site_postgres run-tests --coverage
-      after_script:
-        - coveralls -b apps/frappe -d ../../sites/.coverage
-      env: Postgres
