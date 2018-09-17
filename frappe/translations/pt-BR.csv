@@ -43,7 +43,7 @@ DocType: Workflow State,lock,trancar
 apps/frappe/frappe/config/website.py +78,Settings for Contact Us Page.,Configurações da Página Fale Conosco.
 apps/frappe/frappe/core/doctype/user/user.py +916,Administrator Logged In,Administrador logou-se
 DocType: Contact Us Settings,"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Opções de contato, como ""Perguntas sobre Vendas, Perguntas de suporte"", etc cada uma em uma nova linha ou separadas por vírgulas."
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +267,New {0}: #{1},Nova {0}: # {1}
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +276,New {0}: #{1},Nova {0}: # {1}
 DocType: Data Migration Run,Insert,Insert
 DocType: Auto Repeat,Repeat on Day,Repetir no dia
 DocType: Workflow State,indent-right,indentar à direita
@@ -138,7 +138,7 @@ DocType: Workflow State,plus-sign,sinal de mais
 apps/frappe/frappe/__init__.py +994,App {0} is not installed,App {0} não está instalado
 DocType: Workflow State,Refresh,Atualizar
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +703,Nothing to show,Nada para mostrar
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +285,[Urgent] Error while creating recurring %s for %s,[Urgente] Ocorreu um erro ao criar %s recorrentes para %s
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +294,[Urgent] Error while creating recurring %s for %s,[Urgente] Ocorreu um erro ao criar %s recorrentes para %s
 apps/frappe/frappe/public/js/frappe/model/model.js +24,Liked By,Gostou por
 DocType: DocField,Print Hide If No Value,Ocultar Impressão se não Preenchido
 apps/frappe/frappe/public/js/frappe/upload.js +26,Upload Attachment,Upload de Anexos
@@ -175,7 +175,7 @@ DocType: Event,Repeat Till,Repita até que
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.html +11,Loading...,Carregando...
 apps/frappe/frappe/utils/response.py +185,Your system is being updated. Please refresh again after a few moments,"Seu sistema está sendo atualizado. Por favor, atualize a página em alguns instantes"
 DocType: Auto Email Report,Day of Week,Dia da Semana
-apps/frappe/frappe/public/js/frappe/ui/comment.js +44,Ctrl+Enter to add comment,Ctrl+Enter para adicionar comentário
+apps/frappe/frappe/public/js/frappe/ui/comment.js +47,Ctrl+Enter to add comment,Ctrl+Enter para adicionar comentário
 DocType: File,File URL,URL do arquivo
 apps/frappe/frappe/email/doctype/email_group/email_group.js +28,Add Subscribers,Adicionar Inscritos
 DocType: Notification Recipient,Email By Document Field,Email por Campo do Documento
@@ -202,7 +202,7 @@ DocType: Workflow Document State,Doc Status,Status do Documento
 DocType: Auto Email Report,No of Rows (Max 500),Número de linhas (max 500)
 DocType: Language,Language Code,Código do Idioma
 apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js +281,"Your download is being built, this may take a few moments...","O seu download está sendo construído, isso pode demorar alguns instantes ..."
-apps/frappe/frappe/public/js/frappe/ui/comment.js +234,Your rating: ,Seu rating:
+apps/frappe/frappe/public/js/frappe/ui/comment.js +237,Your rating: ,Seu rating:
 DocType: Print Settings,"Always add ""Draft"" Heading for printing draft documents","Sempre adicionar ""Rascunho"" no cabeçalho para impressão de documentos não enviados"
 DocType: About Us Settings,Website Manager,Administrador do Site
 apps/frappe/frappe/core/doctype/doctype/doctype.py +523,Field {0} in row {1} cannot be hidden and mandatory without default,"O campo {0} na linha {1} não pode ser escondido e obrigatória , sem padrão"
@@ -437,7 +437,7 @@ apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +4
 DocType: User,Send Password Update Notification,Enviar notificação de alteração de senha
 apps/frappe/frappe/public/js/legacy/form.js +62,"Allowing DocType, DocType. Be careful!","Permitindo DocType , DocType . Tenha cuidado !"
 apps/frappe/frappe/config/core.py +32,"Customized Formats for Printing, Email","Formatos personalizados para impressão, Email"
-apps/frappe/frappe/public/js/frappe/desk.js +475,Updated To New Version,Atualizado para uma Nova Versão
+apps/frappe/frappe/public/js/frappe/desk.js +477,Updated To New Version,Atualizado para uma Nova Versão
 DocType: Custom Field,Depends On,Depende de
 apps/frappe/frappe/templates/includes/comments/comments.html +21,Login to comment,Faça login para comentar
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +511,changed values for {0},mudou o valor para {0}
@@ -482,7 +482,7 @@ apps/frappe/frappe/model/document.py +1263,Action Failed,A Ação Falhou
 DocType: List Filter,For User,Para o Usuário
 DocType: System Settings,Date and Number Format,Data e Formato de número
 apps/frappe/frappe/model/document.py +1064,one of,Um dos
-apps/frappe/frappe/public/js/frappe/desk.js +154,Checking one moment,"Checando, um momento"
+apps/frappe/frappe/public/js/frappe/desk.js +156,Checking one moment,"Checando, um momento"
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html +21,Show Tags,Mostrar Tags
 DocType: Address,Billing,Faturamento
 DocType: Email Queue,Not Sent,Não Enviados
@@ -904,7 +904,7 @@ apps/frappe/frappe/modules/utils.py +205,App not found,App não encontrado
 apps/frappe/frappe/core/doctype/communication/communication.py +70,Cannot create a {0} against a child document: {1},Não é possível criar um {0} contra um documento filho: {1}
 apps/frappe/frappe/config/desk.py +32,Chat messages and other notifications.,Mensagens do chat e outras notificações.
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +85,Insert After cannot be set as {0},Depois de inserir não pode ser definido como {0}
-apps/frappe/frappe/public/js/frappe/desk.js +137,Email Account setup please enter your password for: ,"Configuração de email, por favor informe sua senha para:"
+apps/frappe/frappe/public/js/frappe/desk.js +139,Email Account setup please enter your password for: ,"Configuração de email, por favor informe sua senha para:"
 DocType: Workflow State,hand-up,mão acima
 DocType: Blog Settings,Writers Introduction,Introdução dos Escritores
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +149,Select Document Type or Role to start.,Selecione o Tipo de Documento ou Função para começar.
@@ -1110,7 +1110,7 @@ apps/frappe/frappe/core/doctype/data_import/data_import.js +69,Download Template
 apps/frappe/frappe/config/setup.py +254,Add custom javascript to forms.,Adicionar javascript personalizado aos formulários.
 ,Role Permissions Manager,Gestor de Permissões por Função
 DocType: Notification,Days Before or After,Dias Antes ou Após
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +72,Next Date's day and Repeat on Day of Month must be equal,No dia seguinte de Data e Repetir no dia do mês deve ser igual
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +73,Next Date's day and Repeat on Day of Month must be equal,No dia seguinte de Data e Repetir no dia do mês deve ser igual
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +34,Select Document Types to set which User Permissions are used to limit access.,Selecione os tipos de documentos para definir quais as permissões de usuário são usados para limitar o acesso.
 DocType: User Permission,User Permission,A permissão do usuário
 DocType: Workflow State,hand-right,mão à direita
@@ -1246,7 +1246,7 @@ DocType: DocType,Max Attachments,Máx. de Anexos
 apps/frappe/frappe/config/website.py +93,Knowledge Base,Base de Conhecimento
 apps/frappe/frappe/model/document.py +493,Value cannot be changed for {0},Valor não pode ser alterado para {0}
 DocType: Feedback Request,Is Manual,É manual
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +272,Please find attached {0} #{1},Segue em anexo {0} # {1}
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +281,Please find attached {0} #{1},Segue em anexo {0} # {1}
 DocType: Workflow State,"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Estilo representa a cor do botão: Sucesso - Verde, Perigo - Vermelho, Inverso - Preto, Primário - Azul Escuro, Informações - Azul Claro, Aviso - Laranja"
 DocType: Workflow Transition,Workflow Transition,Transição do Fluxo de Trabalho
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,{0} months ago,{0} meses atrás
@@ -1262,7 +1262,7 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js +273,Refreshing,Atualizand
 DocType: About Us Settings,"""Company History""",&quot;Histórico da Empresa&quot;
 apps/frappe/frappe/core/doctype/docshare/docshare.py +47,{0} shared this document with everyone,{0} compartilhou este documento com todos
 apps/frappe/frappe/desk/page/activity/activity_row.html +17,Commented on {0}: {1},Comentou sobre {0}: {1}
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +84,'Recipients' not specified,'Destinatários' não especificado
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +85,'Recipients' not specified,'Destinatários' não especificado
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +28,Apply,Aplicar
 apps/frappe/frappe/integrations/utils.py +80,{0} Settings not found,{0} Configurações não encontradas
 DocType: Module Def,Module Def,Módulo Def

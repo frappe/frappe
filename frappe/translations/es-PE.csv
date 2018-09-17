@@ -14,7 +14,7 @@ DocType: Print Settings,Print Style Preview,Vista previa de Estilo de impresión
 DocType: Customize Form,Enter Form Type,Introduzca Tipo de Formulario
 apps/frappe/frappe/public/js/frappe/form/controls/text_editor.js +311,Select from existing attachments,Seleccione de archivos adjuntos existentes
 DocType: Notification Recipient,Email By Document Field,Email Por Campo Documento
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +267,New {0}: #{1},Nuevo {0}: # {1}
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +276,New {0}: #{1},Nuevo {0}: # {1}
 apps/frappe/frappe/public/js/frappe/ui/messages.js +68,Enter Value,Introducir valor
 apps/frappe/frappe/core/doctype/doctype/doctype.py +802,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: no se puede Presentar, Cancelar y Corregir sin Guardar"
 DocType: Web Page,Insert Style,Inserte Estilo
