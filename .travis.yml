@@ -1,10 +1,6 @@
 language: python
 dist: trusty
 
-python:
-  - "2.7"
-  - "3.6"
-
 services:
   - mysql
 
@@ -41,7 +37,9 @@ before_script:
 
 jobs:
   include:
-    - stage: Server Side Tests
+   - python: 2.7
+   - python: 3.6
+   - stage: Server Side Tests
       script:
         - mysql -u root -ptravis -e 'create database test_frappe'
         - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
