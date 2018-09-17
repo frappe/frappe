@@ -44,7 +44,7 @@ def get_context(context):
 		"csrf_token": csrf_token,
 		"background_image": (boot.status != 'failed' and
 			(boot.user.background_image or boot.default_background_image) or None),
-		"google_analytics_id": frappe.conf.get("google_analytics_id"),
+		"google_analytics_id": frappe.conf.get("google_analytics_id") or frappe.db.get_single_value("Website Settings", "google_analytics_id"),
 		"mixpanel_id": frappe.conf.get("mixpanel_id")
 	})
 
