@@ -1,10 +1,6 @@
 language: python
 dist: trusty
 
-python:
-  - "2.7"
-  - "3.6"
-
 services:
   - mysql
 
@@ -41,6 +37,8 @@ before_script:
 
 jobs:
   include:
+    - python: 3.6
+    - python: 2.7
     - stage: Server Side Tests
       name: "MariaDB tests"
       script:
