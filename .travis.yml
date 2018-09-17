@@ -4,6 +4,10 @@ dist: trusty
 services:
   - mysql
 
+ python:
+  - 2.7
+  - 3.6
+
 addons:
   postgresql: "9.5"
   hosts:
@@ -37,9 +41,8 @@ before_script:
 
 jobs:
   include:
-   - python: 2.7
-   - python: 3.6
    - stage: Server Side Tests
+      name: 'MariaDB tests'
       script:
         - mysql -u root -ptravis -e 'create database test_frappe'
         - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
@@ -52,9 +55,9 @@ jobs:
       after_script:
         - coveralls -b apps/frappe -d ../../sites/.coverage
       env: MariaDB
-      python: 2.7
-      python: 3.6
     - # stage
+      name: 'Postgres tests'
+      python: 3.6
       script:
         - psql -c "CREATE DATABASE test_frappe;" -U postgres
         - psql -c "CREATE USER test_frappe WITH PASSWORD 'test_frappe';" -U postgres
@@ -66,4 +69,3 @@ jobs:
       after_script:
         - coveralls -b apps/frappe -d ../../sites/.coverage
       env: Postgres
-      python: 3.6
