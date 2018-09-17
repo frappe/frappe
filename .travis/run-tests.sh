@@ -1,7 +1,6 @@
 #!/bin/bash
 
 set -e
-set -x
 
 if [[ $DB == 'mariadb' ]]; then
     mysql -u root -ptravis -e 'create database test_frappe'

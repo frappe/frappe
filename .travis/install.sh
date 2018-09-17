@@ -1,7 +1,6 @@
 #!/bin/bash
 
 set -e
-set -x
 
 sudo rm /etc/apt/sources.list.d/mongodb*.list
 sudo rm /etc/apt/sources.list.d/docker.list
