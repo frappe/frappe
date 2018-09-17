@@ -33,6 +33,7 @@ before_script:
   - sed -i 's/9000/9001/g' sites/common_site_config.json
   - bench start &
   - sleep 10
+  - cd $TRAVIS_BUILD_DIR
 
 script:
   - "./.travis/run-tests.sh"
