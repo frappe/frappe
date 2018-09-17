@@ -26,17 +26,16 @@ matrix:
   fast_finish: true
 
 install:
-  - "./.travis/install.sh"
+  - $TRAVIS_BUILD_DIR/.travis/install.sh
 
 before_script:
   - cd ~/frappe-bench
   - sed -i 's/9000/9001/g' sites/common_site_config.json
   - bench start &
   - sleep 10
-  - cd $TRAVIS_BUILD_DIR
 
 script:
-  - "./.travis/run-tests.sh"
+  - $TRAVIS_BUILD_DIR/.travis/run-tests.sh
 
 after_script:
   - coveralls -b apps/frappe -d ../../sites/.coverage
