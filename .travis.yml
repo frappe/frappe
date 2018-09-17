@@ -5,8 +5,8 @@ services:
   - mysql
 
  python:
-  - 2.7
-  - 3.6
+  - "2.7"
+  - "3.6"
 
 addons:
   postgresql: "9.5"
@@ -57,7 +57,7 @@ jobs:
       env: MariaDB
     - # stage
       name: 'Postgres tests'
-      python: 3.6
+      python: "3.6"
       script:
         - psql -c "CREATE DATABASE test_frappe;" -U postgres
         - psql -c "CREATE USER test_frappe WITH PASSWORD 'test_frappe';" -U postgres
