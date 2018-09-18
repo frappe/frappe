@@ -27,13 +27,10 @@ def get_context(context):
 		context['token'] = frappe.form_dict['token']
 		context['amount'] = flt(context['amount'])
 
-		if payment_details.get('subscription_details'):
-			context['subscription_id'] = payment_details.get("subscription_details", {}).get('subscription_id', '')
-		else:
-			context['subscription_id'] = ''
+		context['subscription_id'] = payment_details['subscription_id'] \
+			if payment_details.get('subscription_id') else ''
 
 	except Exception as e:
-		print(e)
 		frappe.redirect_to_message(_('Invalid Token'),
 			_('Seems token you are using is invalid!'),
 			http_status_code=400, indicator_color='red')

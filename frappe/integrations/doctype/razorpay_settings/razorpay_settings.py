@@ -90,39 +90,42 @@ class RazorpaySettings(Document):
 		if currency not in self.supported_currencies:
 			frappe.throw(_("Please select another payment method. Razorpay does not support transactions in currency '{0}'").format(currency))
 
-	# def before_get_payment_url(self, **kwargs):
-	# 	if not kwargs.get('subscription_details') and not kwargs.get('subscription_id'):
-	# 		return
-	#
-	# 	settings = self.get_settings(kwargs)
-	# 	if kwargs.get('subscription_id') and kwargs.get('addons'):
-	# 		return self.setup_addon(settings, **kwargs)
-	# 	else:
-	# 		return self.setup_subscription(settings, **kwargs)
-	#
-	# def setup_addon(self, settings, **kwargs):
-	# 	url = "https://api.razorpay.com/v1/subscriptions/{0}/addons".format(kwargs.get('subscription_id'))
-	#
-	# 	for addon in kwargs.get("addons"):
-	# 		try:
-	# 			resp = make_post_request(
-	# 				url,
-	# 				auth=(settings.api_key, settings.api_secret),
-	# 				data=json.dumps(addon),
-	# 				headers={
-	# 					"content-type": "application/json"
-	# 				}
-	# 			)
-	#
-	# 			if not resp.get('id'):
-	# 				frappe.log_error(str(resp), 'Razorpay Failed while creating subscription')
-	#
-	# 		except:
-	# 			frappe.log_error(frappe.get_traceback())
-	# 			# failed
-	# 			pass
-	#
-	# 	return {}
+	def setup_addon(self, settings, **kwargs):
+		"""
+			Addon template:
+			{
+				"item": {
+					"name": row.upgrade_type,
+					"amount": row.amount,
+					"currency": currency,
+					"description": "add-on description"
+				},
+				"quantity": 1 (The total amount is calculated as item.amount * quantity)
+			}
+		"""
+		
+		url = "https://api.razorpay.com/v1/subscriptions/{0}/addons".format(kwargs.get('subscription_id'))
+
+		for addon in kwargs.get("addons"):
+			try:
+				addon['item']['amount'] *= 100 #convert amount to paisa
+
+				resp = make_post_request(
+					url,
+					auth=(settings.api_key, settings.api_secret),
+					data=json.dumps(addon),
+					headers={
+						"content-type": "application/json"
+					}
+				)
+
+				if not resp.get('id'):
+					frappe.log_error(str(resp), 'Razorpay Failed while creating subscription')
+
+			except:
+				frappe.log_error(frappe.get_traceback())
+				# failed
+				pass
 
 	def setup_subscription(self, settings, **kwargs):
 		start_date = get_timestamp(kwargs.get('subscription_details').get("start_date")) \
@@ -144,7 +147,8 @@ class RazorpaySettings(Document):
 			)
 
 			if resp.get('status') == 'created':
-				kwargs['subscription_details']['subscription_id'] = resp.get('id')
+				kwargs['subscription_id'] = resp.get('id')
+				return kwargs
 			else:
 				frappe.log_error(str(resp), 'Razorpay Failed while creating subscription')
 
@@ -153,12 +157,20 @@ class RazorpaySettings(Document):
 			# failed
 			pass
 
+	def prepare_subscription_details(self, settings, **kwargs):
+		if kwargs.get('subscription_details'):
+			kwargs = self.setup_subscription(settings, **kwargs)
+
+		if kwargs.get("subscription_id") and kwargs.get("addons"):
+			self.setup_addon(settings, **kwargs)
+			kwargs['subscription_id'] = None
+
+		return kwargs
+
 	def get_payment_url(self, **kwargs):
 		settings = self.get_settings(kwargs)
-
-		if kwargs.get('subscription_details'):
-			self.setup_subscription(settings, **kwargs)
-
+		kwargs = self.prepare_subscription_details(settings, **kwargs)
+		
 		integration_request = create_request_log(kwargs, "Host", "Razorpay")
 		return get_url("./integrations/razorpay_checkout?token={0}".format(integration_request.name))
 
@@ -195,14 +207,15 @@ class RazorpaySettings(Document):
 				self.integration_request.update_status(data, 'Authorized')
 				self.flags.status_changed_to = "Authorized"
 
-			elif data.get('subscription_details') and data.get('subscription_details').get('subscription_id'):
+			elif data.get('subscription_id'):
 				if resp.get("status") == "refunded":
-					self.integration_request.update_status(data, 'Refunded')
+					# razorpay refunds the amount after authorizing the card details
+					self.integration_request.update_status(data, 'Completed')
 					self.flags.status_changed_to = "Authorized"
 
 				if resp.get("status") == "captured":
 					self.integration_request.update_status(data, 'Completed')
-					self.flags.status_changed_to = "Authorized"
+					self.flags.status_changed_to = "Completed"
 
 			else:
 				frappe.log_error(str(resp), 'Razorpay Payment not authorized')
