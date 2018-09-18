@@ -687,9 +687,8 @@ def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_ou
 				"awaiting_password": awaiting_password or 0
 			})
 	else:
-		frappe.msgprint(_("Enabled email inbox for user {users}".format(
-			users=" and ".join([frappe.bold(user.get("name")) for user in user_names])
-		)))
+		users = " and ".join([frappe.bold(user.get("name")) for user in user_names])
+		frappe.msgprint(_("Enabled email inbox for user {0}").format(users))
 
 	ask_pass_update()
 
