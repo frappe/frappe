@@ -4,8 +4,8 @@ set -e
 
 if [[ $DB == 'mariadb' ]]; then
     mysql -u root -ptravis -e 'create database test_frappe'
-    printf "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
-    printf "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
+    mysql -u root -ptravis -e "USE mysql; CREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe'; FLUSH PRIVILEGES; "
+    mysql -u root -ptravis -e "USE mysql; GRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';"
     bench --site test_site reinstall --yes
     bench --site test_site setup-help
     bench setup-global-help --root_password travis
