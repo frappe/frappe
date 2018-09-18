@@ -17,7 +17,7 @@ addons:
   postgresql: "9.5"
   hosts:
     - test_site
-    - test_site_postrgres
+    - test_site_postgres
 
 matrix:
   allow_failures:
