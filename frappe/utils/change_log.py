@@ -163,6 +163,9 @@ def check_release_on_github(app):
 		# Passing this since some apps may not have git initializaed in them
 		return None
 
+	if isinstance(remote_url, bytes):
+		remote_url = remote_url.decode()
+
 	if "github.com" not in remote_url:
 		return None
 

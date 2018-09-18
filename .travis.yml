@@ -14,7 +14,7 @@ services:
   - mysql
 
 addons:
-  postgresql: "9.4"
+  postgresql: "9.5"
   hosts:
     - test_site
     - test_site_postrgres
