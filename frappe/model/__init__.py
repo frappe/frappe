@@ -12,7 +12,7 @@ no_value_fields = ('Section Break', 'Column Break', 'HTML', 'Table', 'Button', '
 display_fieldtypes = ('Section Break', 'Column Break', 'HTML', 'Button', 'Image', 'Fold', 'Heading')
 default_fields = ('doctype','name','owner','creation','modified','modified_by',
 	'parent','parentfield','parenttype','idx','docstatus')
-optional_fields = ("_user_tags", "_comments", "_assign", "_liked_by", "_seen")
+optional_fields = ("_user_tags", "_comments", "_assign", "_liked_by", "_seen", "submission_date", "submitted_by")
 
 def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfields=[]):
 	if not tarfields:
