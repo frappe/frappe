@@ -34,7 +34,7 @@ class Event(Document):
 		self.sync_communication()
 
 	def sync_communication(self):
-		if self.ref_type and self.ref_name:	
+		if self.ref_type and self.ref_name:
 			if frappe.db.exists("Communication", dict(reference_doctype=self.doctype, reference_name=self.name)):
 				communication = frappe.get_doc("Communication", dict(reference_doctype=self.doctype, reference_name=self.name))
 				self.update_communication(communication)

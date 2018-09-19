@@ -23,7 +23,7 @@ class Note(Document):
 
 	def on_update(self):
 		self.sync_communication()
-	
+
 	def sync_communication(self):
 		if self.reference_doctype and self.reference_document:
 			if frappe.db.exists("Communication", dict(reference_doctype=self.doctype, reference_name=self.name)):
