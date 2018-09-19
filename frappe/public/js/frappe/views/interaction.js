@@ -62,6 +62,12 @@ frappe.views.InteractionComposer = class InteractionComposer {
 				},
 				onchange: () => {
 					let values = this.get_values();
+					me.get_fields().forEach(field => {
+						if (field.fieldname != "interaction_type") {
+							me.dialog.set_df_property(field.fieldname, "reqd", 0);
+							me.dialog.set_df_property(field.fieldname, "hidden", 0);
+						}
+					})
 					me.set_reqd_hidden_fields(values);
 				}
 			},
@@ -231,7 +237,11 @@ frappe.views.InteractionComposer = class InteractionComposer {
 					if (selected_attachments) {
 						me.add_attachments(r.message, selected_attachments);
 					}
-					me.frm.timeline.refresh();
+					if (cur_frm) {
+						// clear input
+						cur_frm.timeline.input && cur_frm.timeline.input.val("");
+						cur_frm.reload_doc();
+					}
 				} else {
 					frappe.msgprint(__("There were errors while creating the document. Please try again."));
 

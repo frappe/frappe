@@ -82,8 +82,6 @@ frappe.views.CommunicationComposer = Class.extend({
 				fieldname:"content"},
 			{fieldtype: "Section Break"},
 			{fieldtype: "Column Break"},
-			{label:__("Send As Email"), fieldtype:"Check",
-				fieldname:"send_email"},
 			{label:__("Send me a copy"), fieldtype:"Check",
 				fieldname:"send_me_a_copy", 'default': frappe.boot.user.send_me_a_copy},
 			{label:__("Send Read Receipt"), fieldtype:"Check",
@@ -430,19 +428,11 @@ frappe.views.CommunicationComposer = Class.extend({
 			$(fields.select_print_format.wrapper).toggle(true);
 		}
 
-		$(fields.send_email.input).prop("checked", true);
-
 		$(fields.send_me_a_copy.input).on('click', () => {
 			// update send me a copy (make it sticky)
 			let val = fields.send_me_a_copy.get_value();
 			frappe.db.set_value('User', frappe.session.user, 'send_me_a_copy', val);
 			frappe.boot.user.send_me_a_copy = val;
-		});
-
-		// toggle print format
-		$(fields.send_email.input).click(function() {
-			$(fields.send_read_receipt.wrapper).toggle($(this).prop("checked"));
-			me.dialog.get_primary_btn().html($(this).prop("checked") ? "Send" : "Add Communication");
 		});
 
 	},
@@ -502,7 +492,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		var me = this;
 		me.dialog.hide();
 
-		if(form_values.send_email && !form_values.recipients) {
+		if(!form_values.recipients) {
 			frappe.msgprint(__("Enter Email Recipient(s)"));
 			return;
 		}
@@ -512,13 +502,12 @@ frappe.views.CommunicationComposer = Class.extend({
 			print_format = null;
 		}
 
-		if(form_values.send_email) {
-			if(cur_frm && !frappe.model.can_email(me.doc.doctype, cur_frm)) {
-				frappe.msgprint(__("You are not allowed to send emails related to this document"));
-				return;
-			}
 
+		if(cur_frm && !frappe.model.can_email(me.doc.doctype, cur_frm)) {
+			frappe.msgprint(__("You are not allowed to send emails related to this document"));
+			return;
 		}
+
 
 		return frappe.call({
 			method:"frappe.core.doctype.communication.email.make",
@@ -530,7 +519,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				content: form_values.content,
 				doctype: me.doc.doctype,
 				name: me.doc.name,
-				send_email: form_values.send_email,
+				send_email: 1,
 				print_html: print_html,
 				send_me_a_copy: form_values.send_me_a_copy,
 				print_format: print_format,
@@ -546,7 +535,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				if(!r.exc) {
 					frappe.utils.play_sound("email");
 
-					if(form_values.send_email && r.message["emails_not_sent_to"]) {
+					if(r.message["emails_not_sent_to"]) {
 						frappe.msgprint(__("Email not sent to {0} (unsubscribed / disabled)",
 							[ frappe.utils.escape_html(r.message["emails_not_sent_to"]) ]) );
 					}
