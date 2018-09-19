@@ -1,4 +1,4 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.last_edited_communication = {};
@@ -88,12 +88,6 @@ frappe.views.CommunicationComposer = Class.extend({
 				fieldname:"send_me_a_copy", 'default': frappe.boot.user.send_me_a_copy},
 			{label:__("Send Read Receipt"), fieldtype:"Check",
 				fieldname:"send_read_receipt"},
-			{label:__("Communication Medium"), fieldtype:"Select",
-				options: ["Phone", "Chat", "Email", "SMS", "Visit", "Other"],
-				fieldname:"communication_medium"},
-			{label:__("Sent or Received"), fieldtype:"Select",
-				options: ["Received", "Sent"],
-				fieldname:"sent_or_received"},
 			{label:__("Attach Document Print"), fieldtype:"Check",
 				fieldname:"attach_document_print"},
 			{label:__("Select Print Format"), fieldtype:"Select",
@@ -447,15 +441,9 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		// toggle print format
 		$(fields.send_email.input).click(function() {
-			$(fields.communication_medium.wrapper).toggle(!!!$(this).prop("checked"));
-			$(fields.sent_or_received.wrapper).toggle(!!!$(this).prop("checked"));
 			$(fields.send_read_receipt.wrapper).toggle($(this).prop("checked"));
 			me.dialog.get_primary_btn().html($(this).prop("checked") ? "Send" : "Add Communication");
 		});
-
-		// select print format
-		$(fields.communication_medium.wrapper).toggle(false);
-		$(fields.sent_or_received.wrapper).toggle(false);
 
 	},
 
@@ -514,7 +502,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		var me = this;
 		me.dialog.hide();
 
-		if((form_values.send_email || form_values.communication_medium === "Email") && !form_values.recipients) {
+		if(form_values.send_email && !form_values.recipients) {
 			frappe.msgprint(__("Enter Email Recipient(s)"));
 			return;
 		}
@@ -530,8 +518,6 @@ frappe.views.CommunicationComposer = Class.extend({
 				return;
 			}
 
-			form_values.communication_medium = "Email";
-			form_values.sent_or_received = "Sent";
 		}
 
 		return frappe.call({
@@ -548,8 +534,6 @@ frappe.views.CommunicationComposer = Class.extend({
 				print_html: print_html,
 				send_me_a_copy: form_values.send_me_a_copy,
 				print_format: print_format,
-				communication_medium: form_values.communication_medium,
-				sent_or_received: form_values.sent_or_received,
 				sender: form_values.sender,
 				sender_full_name: form_values.sender?frappe.user.full_name():undefined,
 				attachments: selected_attachments,

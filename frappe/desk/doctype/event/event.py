@@ -30,6 +30,34 @@ class Event(Document):
 		if getdate(self.starts_on) != getdate(self.ends_on) and self.repeat_on == "Every Day":
 			frappe.msgprint(frappe._("Every day events should finish on the same day."), raise_exception=True)
 
+	def on_update(self):
+		self.sync_communication()
+
+	def sync_communication(self):
+		if self.ref_type and self.ref_name:	
+			if frappe.db.exists("Communication", dict(reference_doctype=self.doctype, reference_name=self.name)):
+				communication = frappe.get_doc("Communication", dict(reference_doctype=self.doctype, reference_name=self.name))
+				self.update_communication(communication)
+			else:
+				self.create_communication()
+
+	def create_communication(self):
+			communication = frappe.new_doc("Communication")
+			self.update_communication(communication)
+			self.communication = communication.name
+
+	def update_communication(self, communication):
+		communication.communication_medium = "Event"
+		communication.subject = self.subject
+		communication.content = self.description
+		communication.communication_date = self.starts_on
+		communication.timeline_doctype = self.ref_type
+		communication.timeline_name = self.ref_name
+		communication.reference_doctype = self.doctype
+		communication.reference_name = self.name
+		communication.status = "Linked"
+		communication.save()
+
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
 	return """(`tabEvent`.`event_type`='Public' or `tabEvent`.`owner`=%(user)s)""" % {

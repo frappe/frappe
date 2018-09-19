@@ -18,6 +18,7 @@ import frappe.email.smtp
 import time
 from frappe import _
 from frappe.utils.background_jobs import enqueue
+from frappe.utils.file_manager import add_attachments
 
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
@@ -79,7 +80,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 
 	# if not committed, delayed task doesn't find the communication
 	if attachments:
-		add_attachments(comm.name, attachments)
+		add_attachments("Communication", comm.name, attachments)
 
 	frappe.db.commit()
 
@@ -390,20 +391,6 @@ def get_bcc(doc, recipients=None, fetched_from_email_account=False):
 		bcc = filter_email_list(doc, bcc, exclude, is_bcc=True)
 
 	return bcc
-
-def add_attachments(name, attachments):
-	'''Add attachments to the given Communiction'''
-	from frappe.utils.file_manager import save_url
-
-	# loop through attachments
-	for a in attachments:
-		if isinstance(a, string_types):
-			attach = frappe.db.get_value("File", {"name":a},
-				["file_name", "file_url", "is_private"], as_dict=1)
-
-			# save attachments to new doc
-			save_url(attach.file_url, attach.file_name, "Communication", name,
-				"Home/Attachments", attach.is_private)
 
 def filter_email_list(doc, email_list, exclude, is_cc=False, is_bcc=False):
 	# temp variables

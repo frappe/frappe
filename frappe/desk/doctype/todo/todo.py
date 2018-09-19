@@ -6,7 +6,7 @@ import frappe
 import json
 
 from frappe.model.document import Document
-from frappe.utils import get_fullname
+from frappe.utils import get_fullname, get_datetime
 
 subject_field = "description"
 sender_field = "sender"
@@ -40,6 +40,7 @@ class ToDo(Document):
 			self.add_assign_comment(**self._assignment)
 
 		self.update_in_reference()
+		self.sync_communication()
 
 	def on_trash(self):
 		# unlink todo from linked comments
@@ -83,6 +84,31 @@ class ToDo(Document):
 
 			else:
 				raise
+
+	def sync_communication(self):
+		if self.reference_type and self.reference_name:
+			if frappe.db.exists("Communication", dict(reference_doctype=self.doctype, reference_name=self.name)):
+				communication = frappe.get_doc("Communication", dict(reference_doctype=self.doctype, reference_name=self.name))
+				self.update_communication(communication)
+			else:
+				self.create_communication()
+
+	def create_communication(self):
+			communication = frappe.new_doc("Communication")
+			self.update_communication(communication)
+			self.communication = communication.name
+
+	def update_communication(self, communication):
+		communication.communication_medium = "ToDo"
+		communication.subject = self.status
+		communication.content = self.description
+		communication.communication_date = get_datetime(self.date)
+		communication.timeline_doctype = self.reference_type
+		communication.timeline_name = self.reference_name
+		communication.reference_doctype = self.doctype
+		communication.reference_name = self.name
+		communication.status = "Linked"
+		communication.save()
 
 # NOTE: todo is viewable if either owner or assigned_to or System Manager in roles
 def on_doctype_update():
