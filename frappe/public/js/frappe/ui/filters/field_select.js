@@ -144,11 +144,6 @@ frappe.ui.FieldSelect = Class.extend({
 			table = df.parent;
 		}
 
-		// check if this option should be added
-		if (this.filter_options && this.filter_options(table, df.fieldname) === false) {
-			return;
-		}
-
 		if(frappe.model.no_value_type.indexOf(df.fieldtype) == -1 &&
 			!(me.fields_by_name[df.parent] && me.fields_by_name[df.parent][df.fieldname])) {
 			this.options.push({
