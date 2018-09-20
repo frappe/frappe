@@ -532,7 +532,7 @@ class Email:
 				saved_attachments.append(_file)
 
 				if attachment['fname'] in self.cid_map:
-					self.cid_map[file_data.name] = self.cid_map[attachment['fname']]
+					self.cid_map[_file.name] = self.cid_map[attachment['fname']]
 
 			except MaxFileSizeReachedError:
 				# WARNING: bypass max file size exception

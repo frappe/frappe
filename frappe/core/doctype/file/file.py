@@ -24,7 +24,6 @@ import imghdr
 from frappe.utils import get_hook_method, get_files_path, random_string, encode, cstr, call_hook_method, cint
 from frappe import _
 from frappe import conf
-from copy import copy
 from frappe.utils.nestedset import NestedSet
 from frappe.utils import strip
 from PIL import Image, ImageOps
@@ -163,12 +162,10 @@ class File(NestedSet):
 		"""Validates existence of public file
 		TODO: validate for private file
 		"""
-		if (self.file_url or "").startswith("/files/"):
-			if not self.file_name:
-				self.file_name = self.file_url.split("/files/")[-1]
+		full_path = self.get_full_path()
 
-			if not os.path.exists(get_files_path(frappe.as_unicode(self.file_name.lstrip("/")))):
-				frappe.throw(_("File {0} does not exist").format(self.file_url), IOError)
+		if not os.path.exists(full_path):
+			frappe.throw(_("File {0} does not exist").format(self.file_url), IOError)
 
 	def validate_duplicate_entry(self):
 		if not self.flags.ignore_duplicate_entry_error and not self.is_folder:
@@ -444,8 +441,6 @@ class File(NestedSet):
 			self.file_url = unquote(self.file_url)
 			self.file_size = frappe.form_dict.file_size
 
-		if not self.file_url and self.get('content', None):
-			self.file_url
 
 	def get_uploaded_content(self):
 		# should not be unicode when reading a file, hence using frappe.form
@@ -461,6 +456,7 @@ class File(NestedSet):
 
 
 	def save_file(self, content=None, decode=False):
+		file_exists = False
 		self.content = content
 		if decode:
 			if isinstance(content, text_type):
@@ -475,11 +471,17 @@ class File(NestedSet):
 		self.file_size = self.check_max_file_size()
 		self.content_hash = get_content_hash(self.content)
 		self.content_type = mimetypes.guess_type(self.file_name)[0]
-		self.file_name = get_file_name(self.file_name, self.content_hash[-6:])
-		file_data = self.get_file_data_from_hash()
-		if not file_data:
-			call_hook_method("before_write_file", file_size=self.file_size)
 
+		_file = frappe.get_value("File", {"content_hash": self.content_hash}, ["file_url"])
+		if _file:
+			self.file_url  = _file
+			file_exists = True
+
+		if not file_exists:
+			if os.path.exists(encode(get_files_path(self.file_name))):
+				self.file_name = get_file_name(self.file_name, self.content_hash[-6:])
+
+			call_hook_method("before_write_file", file_size=self.file_size)
 			write_file_method = get_hook_method('write_file')
 			if write_file_method:
 				return write_file_method(self)
@@ -752,15 +754,12 @@ def get_file_name(fname, optional_suffix):
 	# convert to unicode
 	fname = cstr(fname)
 
-	n_records = frappe.db.sql("select name from `tabFile` where file_name=%s", fname)
-	if len(n_records) > 0 or os.path.exists(encode(get_files_path(fname))):
-		f = fname.rsplit('.', 1)
-		if len(f) == 1:
-			partial, extn = f[0], ""
-		else:
-			partial, extn = f[0], "." + f[1]
-		return '{partial}{suffix}{extn}'.format(partial=partial, extn=extn, suffix=optional_suffix)
-	return fname
+	f = fname.rsplit('.', 1)
+	if len(f) == 1:
+		partial, extn = f[0], ""
+	else:
+		partial, extn = f[0], "." + f[1]
+	return '{partial}{suffix}{extn}'.format(partial=partial, extn=extn, suffix=optional_suffix)
 
 
 @frappe.whitelist()
