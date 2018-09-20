@@ -539,7 +539,11 @@ def get_form_data(doctype, docname=None, web_form_name=None):
 
 		if field.fieldtype == "Link":
 			field.fieldtype = "Autocomplete"
-			field.options = get_link_options(web_form_name, field.options)
+			field.options = get_link_options(
+				web_form_name,
+				field.options,
+				field.allow_read_on_all_link_options
+			)
 
 	return out
 
@@ -548,7 +552,7 @@ def get_in_list_view_fields(doctype):
 	return [df.as_dict() for df in frappe.get_meta(doctype).fields if df.in_list_view]
 
 @frappe.whitelist(allow_guest=True)
-def get_link_options(web_form_name, doctype):
+def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=False):
 	web_form_doc = frappe.get_doc("Web Form", web_form_name)
 	doctype_validated = False
 	limited_to_user   = False
@@ -556,7 +560,10 @@ def get_link_options(web_form_name, doctype):
 		# check if frappe session user is not guest or admin
 		if frappe.session.user != 'Guest':
 			doctype_validated = True
-			limited_to_user   = True
+
+			if not allow_read_on_all_link_options:
+				limited_to_user   = True
+
 	else:
 		for field in web_form_doc.web_form_fields:
 			if field.options == doctype:
@@ -564,10 +571,13 @@ def get_link_options(web_form_name, doctype):
 				break
 
 	if doctype_validated:
+		link_options = []
 		if limited_to_user:
-			return "\n".join([doc.name for doc in frappe.get_all(doctype, filters = {"owner":frappe.session.user})])
+			link_options = "\n".join([doc.name for doc in frappe.get_all(doctype, filters = {"owner":frappe.session.user})])
 		else:
-			return "\n".join([doc.name for doc in frappe.get_all(doctype)])
+			link_options = "\n".join([doc.name for doc in frappe.get_all(doctype)])
+
+		return link_options
 
 	else:
 		raise frappe.PermissionError('Not Allowed, {0}'.format(doctype))
