@@ -796,7 +796,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				.then(({ message }) => {
 					if (!message) return;
 					const data = frappe.utils.dict(message.keys, message.values);
-					if (!(data && data.length)) return;
+					if (!(data && data.length)) {
+						// this doc was changed and should not be visible
+						// in the listview according to filters applied
+						// let's remove it manually
+						this.data = this.data.filter(d => d.name !== name);
+						this.render();
+						return;
+					}
 
 					const datum = data[0];
 					const index = this.data.findIndex(d => d.name === datum.name);
