@@ -21,10 +21,10 @@ frappe.ui.FilterGroup = class {
 		let promises = [];
 
 		for (const filter of filters) {
-			promises.push(this.add_filter(...filter));
+			promises.push(() => this.add_filter(...filter));
 		}
 
-		return Promise.all(promises);
+		return frappe.run_serially(promises);
 	}
 
 	add_filter(doctype, fieldname, condition, value, hidden) {
