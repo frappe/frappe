@@ -464,6 +464,9 @@ def validate_fields(meta):
 				options = frappe.db.get_value("DocType", d.options, "name")
 				if not options:
 					frappe.throw(_("Options must be a valid DocType for field {0} in row {1}").format(d.label, d.idx))
+				elif not (options == d.options):
+					frappe.throw(_("Options {0} must be the same as doctype name {1} for the field {2}")
+						.format(d.options, options, d.label))
 				else:
 					# fix case
 					d.options = options
