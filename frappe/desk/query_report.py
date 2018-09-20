@@ -59,11 +59,11 @@ def generate_report_result(report, filters=None, user=None):
 			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
 			threshold = 10
 			res = []
-			
+
 			start_time = datetime.datetime.now()
 			# The JOB
 			res = frappe.get_attr(method_name)(frappe._dict(filters))
-			
+
 			end_time = datetime.datetime.now()
 
 			if (end_time - start_time).seconds > threshold and not report.prepared_report:
@@ -159,6 +159,8 @@ def run(report_name, filters=None, user=None):
 		frappe.msgprint(_("Must have report permission to access this report."),
 			raise_exception=True)
 
+	result = None
+
 	if report.prepared_report:
 		if filters:
 			if isinstance(filters, string_types):
@@ -167,9 +169,13 @@ def run(report_name, filters=None, user=None):
 			dn = filters.get("prepared_report_name")
 		else:
 			dn = ""
-		return get_prepared_report_result(report, filters, dn)
+		result = get_prepared_report_result(report, filters, dn)
 	else:
-		return generate_report_result(report, filters, user)
+		result = generate_report_result(report, filters, user)
+
+	result["add_total_row"] = report.add_total_row
+
+	return result
 
 
 def get_prepared_report_result(report, filters, dn=""):
