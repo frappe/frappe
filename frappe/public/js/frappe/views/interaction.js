@@ -12,7 +12,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 	make() {
 		let me = this;
 		me.dialog = new frappe.ui.Dialog({
-			title: (me.title || me.subject || __("New Interaction")),
+			title: (me.title || me.subject || __("New Activity")),
 			no_submit_on_enter: true,
 			fields: me.get_fields(),
 			primary_action_label: __("Create"),
@@ -50,18 +50,11 @@ frappe.views.InteractionComposer = class InteractionComposer {
 		let interaction_docs = Object.keys(get_doc_mappings());
 
 		let fields= [
-			{label:__("Interaction Type"), fieldtype:"Link",
-				fieldname:"interaction_type", options:"DocType",
+			{label:__("Interaction Type"), fieldtype:"Select",
+				fieldname:"interaction_type", options: interaction_docs,
 				reqd: 1,
-				get_query: () => {
-					return { 
-						filters: {
-						'name': ['in', interaction_docs]
-						}
-					}
-				},
 				onchange: () => {
-					let values = this.get_values();
+					let values = me.get_values();
 					me.get_fields().forEach(field => {
 						if (field.fieldname != "interaction_type") {
 							me.dialog.set_df_property(field.fieldname, "reqd", 0);
@@ -69,10 +62,11 @@ frappe.views.InteractionComposer = class InteractionComposer {
 						}
 					})
 					me.set_reqd_hidden_fields(values);
+					me.get_event_categories();
 				}
 			},
-			{label:__("Summary"), fieldtype:"Data",
-				fieldname:"summary"},
+			{label:__("Category"), fieldtype:"Select",
+				fieldname:"category", options: "", hidden: 1},
 			{label:__("Public"), fieldtype:"Check",
 				fieldname:"public", default: "1"},
 			{fieldtype: "Column Break"},
@@ -81,6 +75,9 @@ frappe.views.InteractionComposer = class InteractionComposer {
 			{label:__("Assigned To"), fieldtype:"Link",
 				fieldname:"assigned_to", options:"User"},
 			{fieldtype: "Section Break"},
+			{label:__("Summary"), fieldtype:"Data",
+				fieldname:"summary"},
+			{fieldtype: "Section Break"},
 			{fieldtype:"Text Editor", fieldname:"description"},
 			{fieldtype: "Section Break"},
 			{label:__("Select Attachments"), fieldtype:"HTML",
@@ -88,6 +85,15 @@ frappe.views.InteractionComposer = class InteractionComposer {
 		];
 
 		return fields;
+		
+	}
+
+	get_event_categories() {
+		let me = this;
+		frappe.model.with_doctype('Event', () => {
+			let categories = frappe.meta.get_docfield("Event", "event_category").options.split("\n");
+			me.dialog.get_input("category").empty().add_options(categories);
+		});
 	}
 
 	prepare() {
@@ -320,6 +326,7 @@ function get_doc_mappings() {
 				"interaction_type": "doctype",
 				"summary": "subject",
 				"description": "description",
+				"categories": "event_category",
 				"due_date": "starts_on",
 				"public": "event_type",
 				"reference_doctype": "ref_type",
@@ -328,18 +335,6 @@ function get_doc_mappings() {
 			"reqd_fields": ["summary", "due_date"],
 			"hidden_fields": []
 		} ,
-		"Note": {
-			"field_map": {
-				"interaction_type": "doctype",
-				"summary": "title",
-				"description": "content",
-				"public": "public",
-				"reference_doctype": "reference_doctype",
-				"reference_document": "reference_document"
-			},
-			"reqd_fields": ["summary"],
-			"hidden_fields": ["due_date"]
-		},
 		"ToDo": {
 			"field_map": {
 				"interaction_type": "doctype",
@@ -350,14 +345,8 @@ function get_doc_mappings() {
 				"assigned_to": "owner"
 			},
 			"reqd_fields": ["description"],
-			"hidden_fields": ["public"]
+			"hidden_fields": ["public", "category"]
 		}
-	}
-
-	if(frappe.interaction_settings) {
-		Object.keys(frappe.interaction_settings).forEach(doc => {
-			doc_map[doc] = frappe.interaction_settings[doc];
-		})
 	}
 
 	return doc_map;

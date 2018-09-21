@@ -21,34 +21,6 @@ class Note(Document):
 		self.print_heading = self.name
 		self.sub_heading = ""
 
-	def on_update(self):
-		self.sync_communication()
-
-	def sync_communication(self):
-		if self.reference_doctype and self.reference_document:
-			if frappe.db.exists("Communication", dict(reference_doctype=self.doctype, reference_name=self.name)):
-				communication = frappe.get_doc("Communication", dict(reference_doctype=self.doctype, reference_name=self.name))
-				self.update_communication(communication)
-			else:
-				self.create_communication()
-
-	def create_communication(self):
-			communication = frappe.new_doc("Communication")
-			self.update_communication(communication)
-			self.communication = communication.name
-
-	def update_communication(self, communication):
-		communication.communication_medium = "Note"
-		communication.subject = self.title
-		communication.content = self.content
-		communication.communication_date = self.creation
-		communication.timeline_doctype = self.reference_doctype
-		communication.timeline_name = self.reference_document
-		communication.reference_doctype = self.doctype
-		communication.reference_name = self.name
-		communication.status = "Linked"
-		communication.save()
-
 @frappe.whitelist()
 def mark_as_seen(note):
 	note = frappe.get_doc('Note', note)

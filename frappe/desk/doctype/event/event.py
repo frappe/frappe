@@ -14,6 +14,7 @@ from frappe.utils.user import get_enabled_system_users
 from frappe.desk.reportview import get_filters_cond
 
 weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+communication_mapping = {"": "Event", "Event": "Event", "Meeting": "Meeting", "Call": "Phone", "Sent/Received Email": "Email", "Other": "Other"}
 
 class Event(Document):
 	def validate(self):
@@ -32,6 +33,10 @@ class Event(Document):
 
 	def on_update(self):
 		self.sync_communication()
+
+	def on_trash(self):
+		if frappe.db.exists("Communication", dict(reference_doctype=self.doctype, reference_name=self.name)):
+			frappe.get_doc("Communication", dict(reference_doctype=self.doctype, reference_name=self.name)).delete()
 
 	def sync_communication(self):
 		if self.ref_type and self.ref_name:
@@ -55,6 +60,7 @@ class Event(Document):
 		communication.timeline_name = self.ref_name
 		communication.reference_doctype = self.doctype
 		communication.reference_name = self.name
+		communication.communication_medium = communication_mapping[self.event_category]
 		communication.status = "Linked"
 		communication.save()
 
