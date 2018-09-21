@@ -503,10 +503,13 @@ def get_name_from_email_string(email_string, email_id, name):
 
 def get_installed_apps_info():
 	out = []
-	for app in frappe.get_installed_apps():
+	from frappe.utils.change_log import get_versions
+
+	for app, version_details in iteritems(get_versions()):
 		out.append({
 			'app_name': app,
-			'version': getattr(frappe.get_module(app), '__version__', 'Unknown')
+			'version': version_details.get('branch_version') or version_details.get('version'),
+			'branch': version_details.get('branch')
 		})
 
 	return out

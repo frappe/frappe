@@ -33,6 +33,13 @@ function get_rollup_options(output_file, input_files) {
 
 function get_rollup_options_for_js(output_file, input_files) {
 
+	const node_resolve_paths = [].concat(
+		// node_modules of apps directly importable
+		apps_list.map(app => path.resolve(get_app_path(app), '../node_modules')).filter(fs.existsSync),
+		// import js file of any app if you provide the full path
+		apps_list.map(app => path.resolve(get_app_path(app), '..')).filter(fs.existsSync)
+	);
+
 	const plugins = [
 		// enables array of inputs
 		multi_entry(),
@@ -51,9 +58,7 @@ function get_rollup_options_for_js(output_file, input_files) {
 		commonjs(),
 		node_resolve({
 			customResolveOptions: {
-				paths: apps_list.map(app => {
-					return path.resolve(get_app_path(app), '../node_modules');
-				}).filter(fs.existsSync)
+				paths: node_resolve_paths
 			}
 		}),
 		production && uglify()

@@ -134,9 +134,10 @@ class DataExporter:
 
 		# build list of valid docfields
 		tablecolumns = []
-		for f in frappe.db.sql('desc `tab%s`' % dt):
-			field = meta.get_field(f[0])
-			if field and ((self.select_columns and f[0] in self.select_columns[dt]) or not self.select_columns):
+		table_name = 'tab' + dt
+		for f in frappe.db.get_table_columns_description(table_name):
+			field = meta.get_field(f.name)
+			if field and ((self.select_columns and f.name in self.select_columns[dt]) or not self.select_columns):
 				tablecolumns.append(field)
 
 		tablecolumns.sort(key = lambda a: int(a.idx))

@@ -106,7 +106,7 @@ def backup_to_dropbox(upload_db_backup=True):
 
 	dropbox_client = dropbox.Dropbox(dropbox_settings['access_token'])
 
-	if not upload_db_backup:
+	if upload_db_backup:
 		backup = new_backup(ignore_files=True)
 		filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
 		upload_file_to_dropbox(filename, "/database", dropbox_client)
@@ -133,10 +133,12 @@ def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not
 	path = text_type(path)
 
 	for f in frappe.get_all("File", filters={"is_folder": 0, "is_private": is_private,
-		"uploaded_to_dropbox": 0}, fields=['file_url', 'name']):
+		"uploaded_to_dropbox": 0}, fields=['file_url', 'name', 'file_name']):
 		if is_private:
 			filename = f.file_url.replace('/private/files/', '')
 		else:
+			if not f.file_url:
+				f.file_url = '/files/' + f.file_name;
 			filename = f.file_url.replace('/files/', '')
 		filepath = os.path.join(path, filename)
 

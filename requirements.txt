@@ -54,3 +54,5 @@ google-auth-httplib2
 google-auth-oauthlib
 faker
 stripe
+psycopg2-binary
+coverage

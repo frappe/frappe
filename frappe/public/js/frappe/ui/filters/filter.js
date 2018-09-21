@@ -48,9 +48,6 @@ frappe.ui.Filter = class {
 			filter_fields: this.filter_fields,
 			select: (doctype, fieldname) => {
 				this.set_field(doctype, fieldname);
-			},
-			filter_options: (doctype, fieldname) => {
-				return this.filter_items(doctype, fieldname);
 			}
 		});
 
@@ -331,13 +328,8 @@ frappe.ui.filter_utils = {
 
 		if(condition.indexOf('like', 'not like')!==-1) {
 			// automatically append wildcards
-			if(val) {
-				if(val.slice(0,1) !== "%") {
-					val = "%" + val;
-				}
-				if(val.slice(-1) !== "%") {
-					val = val + "%";
-				}
+			if(val && !(val.startsWith('%') || val.endsWith('%'))) {
+				val = '%' + val + '%';
 			}
 		} else if(in_list(["in", "not in"], condition)) {
 			if(val) {

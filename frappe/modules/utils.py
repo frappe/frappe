@@ -132,8 +132,7 @@ def sync_customizations_for_doctype(data, folder):
 	validate_fields_for_doctype(doctype)
 
 	if update_schema and not frappe.db.get_value('DocType', doctype, 'issingle'):
-		from frappe.model.db_schema import updatedb
-		updatedb(doctype)
+		frappe.db.updatedb(doctype)
 
 def scrub(txt):
 	return frappe.scrub(txt)

@@ -10,7 +10,7 @@ def execute():
 
 	# user passwords
 	frappe.db.sql('''insert ignore into `__Auth` (doctype, name, fieldname, `password`)
-		(select 'User', user, 'password', `password` from `__OldAuth`)''')
+		(select 'User', `name`, 'password', `password` from `__OldAuth`)''')
 
 	frappe.db.commit()
 

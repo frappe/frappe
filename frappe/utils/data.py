@@ -35,8 +35,8 @@ def getdate(string_date=None):
 	elif isinstance(string_date, datetime.date):
 		return string_date
 
-	# dateutil parser does not agree with dates like 0000-00-00
-	if not string_date or string_date=="0000-00-00":
+	# dateutil parser does not agree with dates like 0001-01-01
+	if not string_date or string_date=="0001-01-01":
 		return None
 	return parser.parse(string_date).date()
 
@@ -53,8 +53,8 @@ def get_datetime(datetime_str=None):
 	elif isinstance(datetime_str, datetime.date):
 		return datetime.datetime.combine(datetime_str, datetime.time())
 
-	# dateutil parser does not agree with dates like 0000-00-00
-	if not datetime_str or (datetime_str or "").startswith("0000-00-00"):
+	# dateutil parser does not agree with dates like 0001-01-01
+	if not datetime_str or (datetime_str or "").startswith("0001-01-01"):
 		return None
 
 	try:
@@ -351,6 +351,19 @@ def remainder(numerator, denominator, precision=2):
 		_remainder = numerator % denominator
 
 	return flt(_remainder, precision);
+
+def safe_div(numerator, denominator, precision=2):
+	"""
+	SafeMath division that returns zero when divided by zero.
+	"""
+	precision = cint(precision)
+
+	if denominator == 0:
+		_res = 0.0
+	else:
+		_res = float(numerator) / denominator
+
+	return flt(_res, precision)
 
 def round_based_on_smallest_currency_fraction(value, currency, precision=2):
 	smallest_currency_fraction_value = flt(frappe.db.get_value("Currency",
@@ -715,12 +728,16 @@ def get_url(uri=None, full_address=False):
 
 	port = frappe.conf.http_port or frappe.conf.webserver_port
 
-	if host_name and ':' not in host_name and port:
+	if frappe.conf.developer_mode and host_name and not url_contains_port(host_name) and port:
 		host_name = host_name + ':' + str(port)
 
 	url = urljoin(host_name, uri) if uri else host_name
 
 	return url
+
+def url_contains_port(url):
+	parts = url.split(':')
+	return len(parts) > 2
 
 def get_host_name():
 	return get_url().rsplit("//", 1)[-1]
@@ -946,7 +963,8 @@ def md_to_html(markdown_text):
 		'header-ids': None,
 		'highlightjs-lang': None,
 		'html-classes': {
-			'table': 'table table-bordered'
+			'table': 'table table-bordered',
+			'img': 'screenshot'
 		}
 	}
 
@@ -964,3 +982,7 @@ def get_source_value(source, key):
 		return source.get(key)
 	else:
 		return getattr(source, key)
+
+def is_subset(list_a, list_b):
+	'''Returns whether list_a is a subset of list_b'''
+	return len(list(set(list_a) & set(list_b))) == len(list_a)

@@ -130,6 +130,9 @@ frappe.ui.FieldSelect = Class.extend({
 	},
 
 	add_field_option(df) {
+		if (df.fieldname == 'docstatus' && !frappe.model.is_submittable(this.doctype))
+			return;
+
 		var me = this;
 		var label, table;
 		if(me.doctype && df.parent==me.doctype) {
@@ -139,11 +142,6 @@ frappe.ui.FieldSelect = Class.extend({
 		} else {
 			label = __(df.label) + ' (' + __(df.parent) + ')';
 			table = df.parent;
-		}
-
-		// check if this option should be added
-		if (this.filter_options && this.filter_options(table, df.fieldname) === false) {
-			return;
 		}
 
 		if(frappe.model.no_value_type.indexOf(df.fieldtype) == -1 &&

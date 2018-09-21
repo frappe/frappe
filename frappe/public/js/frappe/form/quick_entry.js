@@ -60,7 +60,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 
 		this.validate_for_prompt_autoname();
 
-		if (this.too_many_mandatory_fields() || this.has_child_table()
+		if (this.has_child_table()
 			|| !this.mandatory.length) {
 			return false;
 		}
@@ -212,7 +212,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 
 	render_edit_in_full_page_link: function(){
 		var me = this;
-		var $link = $('<div style="padding-left: 7px; padding-top: 15px; padding-bottom: 10px;">' +
+		var $link = $('<div style="padding-left: 7px; padding-top: 30px; padding-bottom: 10px;">' +
 			'<button class="edit-full btn-default btn-sm">' + __("Edit in full page") + '</button></div>').appendTo(this.dialog.body);
 
 		$link.find('.edit-full').on('click', function() {

@@ -45,13 +45,13 @@ class TestEmailAccount(unittest.TestCase):
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		comm.db_set("creation", datetime.now() - timedelta(seconds = 30 * 60))
 
-		frappe.db.sql("delete from `tabEmail Queue`")
+		frappe.db.sql("DELETE FROM `tabEmail Queue`")
 		notify_unreplied()
 		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": comm.reference_doctype,
 			"reference_name": comm.reference_name, "status":"Not Sent"}))
 
 	def test_incoming_with_attach(self):
-		frappe.db.sql("delete from tabCommunication where sender='test_sender@example.com'")
+		frappe.db.sql("DELETE FROM `tabCommunication` WHERE sender='test_sender@example.com'")
 		existing_file = frappe.get_doc({'doctype': 'File', 'file_name': 'erpnext-conf-14.png'})
 		frappe.delete_doc("File", existing_file.name)
 		existing_file.delete_file_from_filesystem()
