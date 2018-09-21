@@ -38,11 +38,11 @@ def validate_link():
 		# get fetch values
 		if fetch:
 			# escape with "`"
-			fetch = ", ".join(("`{0}`".format(frappe.db.escape(f.strip())) for f in fetch.split(",")))
+			fetch = ", ".join(("`{0}`".format(f.strip()) for f in fetch.split(",")))
 			fetch_value = None
 			try:
 				fetch_value = frappe.db.sql("select %s from `tab%s` where name=%s"
-					% (fetch, frappe.db.escape(options), '%s'), (value,))[0]
+					% (fetch, options, '%s'), (value,))[0]
 			except Exception as e:
 				error_message = str(e).split("Unknown column '")
 				fieldname = None if len(error_message)<=1 else error_message[1].split("'")[0]
