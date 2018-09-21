@@ -61,9 +61,13 @@ def create_csv_file(columns, data, dt, dn):
 	csv_filename = '{0}.csv'.format(frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H:M"))
 	rows = [tuple(columns)] + data
 	encoded = base64.b64encode(frappe.safe_encode(to_csv(rows)))
-	# Call save_file function to upload and attach the file
-	_file = frappe.get_doc({"doctype": "File", "file_name": csv_filename,
-		"attached_to_doctype": dt, "attached_to_name": dn, "content": encoded,
+	# Call save() file function to upload and attach the file
+	_file = frappe.get_doc({
+		"doctype": "File",
+		"file_name": csv_filename,
+		"attached_to_doctype": dt,
+		"attached_to_name": dn,
+		"content": encoded,
 		"decode": True})
 	_file.save()
 

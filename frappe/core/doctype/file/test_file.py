@@ -4,9 +4,11 @@
 from __future__ import unicode_literals
 
 import frappe
+import os
 import unittest
 from frappe import _
-from frappe.core.doctype.file.file import move_file, get_files_path
+from frappe.core.doctype.file.file import move_file
+from frappe.utils import get_files_path
 # test_records = frappe.get_test_records('File')
 
 test_content1 = 'Hello'
@@ -24,17 +26,18 @@ class TestSimpleFile(unittest.TestCase):
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content = test_content1
-		_file = frappe.get_doc({"doctype": "File",
+		_file = frappe.get_doc({
+			"doctype": "File",
 			"file_name": "test1.txt",
 			"attached_to_doctype": self.attached_to_doctype,
 			"attached_to_name": self.attached_to_docname,
 			"content": self.test_content})
 		_file.save()
-		self.saved_file_name = _file.file_name
+		self.saved_file_url = _file.file_url
 
 
 	def test_save(self):
-		_file = frappe.get_doc("File", {"file_name": self.saved_file_name})
+		_file = frappe.get_doc("File", {"file_url": self.saved_file_url})
 		content = _file.get_content()
 		self.assertEqual(content, self.test_content)
 
@@ -49,26 +52,28 @@ class TestSameFileName(unittest.TestCase):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content1 = test_content1
 		self.test_content2 = test_content2
-		_file1 = frappe.get_doc({"doctype": "File",
+		_file1 = frappe.get_doc({
+			"doctype": "File",
 			"file_name": "testing.txt",
 			"attached_to_doctype": self.attached_to_doctype,
 			"attached_to_name": self.attached_to_docname,
 			"content": self.test_content1})
-		_file2 = frappe.get_doc({"doctype": "File",
+		_file1.save()
+		_file2 = frappe.get_doc({
+			"doctype": "File",
 			"file_name": "testing.txt",
 			"attached_to_doctype": self.attached_to_doctype,
 			"attached_to_name": self.attached_to_docname,
 			"content": self.test_content2})
-		_file1.save()
 		_file2.save()
-		self.saved_filename1 = _file1.file_name
-		self.saved_filename2 = _file2.file_name
+		self.saved_file_url1 = _file1.file_url
+		self.saved_file_url2 = _file2.file_url
 
 	def test_saved_content(self):
-		_file = frappe.get_doc("File", {"file_name": self.saved_filename1})
+		_file = frappe.get_doc("File", {"file_url": self.saved_file_url1})
 		content1 = _file.get_content()
 		self.assertEqual(content1, self.test_content1)
-		_file = frappe.get_doc("File", {"file_name": self.saved_filename2})
+		_file = frappe.get_doc("File", {"file_url": self.saved_file_url2})
 		content2 = _file.get_content()
 		self.assertEqual(content2, self.test_content2)
 
@@ -86,30 +91,25 @@ class TestSameContent(unittest.TestCase):
 		self.test_content2 = test_content1
 		self.orig_filename = 'hello.txt'
 		self.dup_filename = 'hello2.txt'
-		_file1 = frappe.get_doc({"doctype": "File",
+		_file1 = frappe.get_doc({
+			"doctype": "File",
 			"file_name": self.orig_filename,
 			"attached_to_doctype": self.attached_to_doctype1,
 			"attached_to_name": self.attached_to_docname1,
 			"content": self.test_content1})
 		_file1.save()
 
-		_file2 = frappe.get_doc({"doctype": "File",
+		_file2 = frappe.get_doc({
+			"doctype": "File",
 			"file_name": self.dup_filename,
 			"attached_to_doctype": self.attached_to_doctype2,
 			"attached_to_name": self.attached_to_docname2,
 			"content": self.test_content2})
-		
+
 		_file2.save()
-		self.saved_filename1 = _file1.file_name
-		self.saved_filename2 = _file2.file_name
 
 	def test_saved_content(self):
-		pass
-		# _file1 = frappe.get_doc("File", {"file_name": self.saved_filename1})
-		# filename1 =  _file1.file_name
-		# _file2 = frappe.get_doc("File", {"file_name": self.saved_filename2})
-		# filename2 =  _file2.file_name
-		# self.assertFalse(os.path.exists(get_files_path(self.dup_filename)))
+		self.assertFalse(os.path.exists(get_files_path(self.dup_filename)))
 
 	def tearDown(self):
 		# File gets deleted on rollback, so blank
@@ -133,7 +133,8 @@ class TestFile(unittest.TestCase):
 			frappe.delete_doc("File", f[0])
 
 	def upload_file(self):
-		_file = frappe.get_doc({"doctype": "File",
+		_file = frappe.get_doc({
+			"doctype": "File",
 			"file_name": "file_copy.txt",
 			"attached_to_name": "",
 			"attached_to_doctype": "",
@@ -174,7 +175,8 @@ class TestFile(unittest.TestCase):
 	def test_folder_copy(self):
 		folder = self.get_folder("Test Folder 2", "Home")
 		folder = self.get_folder("Test Folder 3", "Home/Test Folder 2")
-		_file = frappe.get_doc({"doctype": "File",
+		_file = frappe.get_doc({
+			"doctype": "File",
 			"file_name": "folder_copy.txt",
 			"attached_to_name": "",
 			"attached_to_doctype": "",
@@ -210,7 +212,8 @@ class TestFile(unittest.TestCase):
 		self.assertEqual(frappe.db.get_value("File", _("Home/Test Folder 1"), "file_size"), 0)
 
 		folder = self.get_folder("Test Folder 3", "Home/Test Folder 1")
-		_file = frappe.get_doc({"doctype": "File",
+		_file = frappe.get_doc({
+			"doctype": "File",
 			"file_name": "folder_copy.txt",
 			"attached_to_name": "",
 			"attached_to_doctype": "",
@@ -239,7 +242,8 @@ class TestFile(unittest.TestCase):
 		# Rebuild the frappe.local.conf to take up the changes from site_config
 		frappe.local.conf = _dict(frappe.get_site_config())
 
-		_file = frappe.get_doc({"doctype": "File",
+		_file = frappe.get_doc({
+			"doctype": "File",
 			"file_name": "_test_max_space.txt",
 			"attached_to_name": "",
 			"attached_to_doctype": "",

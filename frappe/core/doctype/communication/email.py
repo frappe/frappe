@@ -404,8 +404,11 @@ def add_attachments(name, attachments):
 				["file_name", "file_url", "is_private"], as_dict=1)
 
 			# save attachments to new doc
-			_file = frappe.get_doc("File", {"file_url": attach.file_url,
-				"attached_to_doctype": "Communication", "attached_to_name": name,
+			_file = frappe.get_doc({
+				"doctype": "File",
+				"file_url": attach.file_url,
+				"attached_to_doctype": "Communication",
+				"attached_to_name": name,
 				"folder": "Home/Attachments"})
 			_file.save()
 

@@ -350,9 +350,15 @@ def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder
 	if not doc.has_permission():
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-	_file = frappe.get_doc({"doctype": "File", "file_name": filename, "attached_to_doctype": doctype,
-		"attached_to_name": docname, "attached_to_field": docfield,
-		"folder": folder, "is_private": is_private, "content": filedata,
+	_file = frappe.get_doc({
+		"doctype": "File",
+		"file_name": filename,
+		"attached_to_doctype": doctype,
+		"attached_to_name": docname,
+		"attached_to_field": docfield,
+		"folder": folder,
+		"is_private": is_private,
+		"content": filedata,
 		"decode": decode_base64})
 	_file.save()
 

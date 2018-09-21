@@ -85,7 +85,8 @@ class File(NestedSet):
 		self.validate_folder()
 
 		if not self.flags.ignore_file_validate:
-			self.validate_file()
+			if not self.is_folder:
+				self.validate_file()
 			self.generate_content_hash()
 
 		self.set_folder_size()
@@ -121,7 +122,8 @@ class File(NestedSet):
 							break
 					self.attached_to_field = field_name
 				if self.attached_to_field:
-					frappe.db.set_value(self.attached_to_doctype, self.attached_to_name, self.attached_to_field, self.file_url)
+					frappe.db.set_value(self.attached_to_doctype, self.attached_to_name,
+						self.attached_to_field, self.file_url)
 
 
 	def set_folder_size(self):
@@ -180,7 +182,8 @@ class File(NestedSet):
 					self.attached_to_name))
 			if len(n_records) > 0:
 				self.duplicate_entry = n_records[0][0]
-				frappe.throw(frappe._("Same file has already been attached to the record"), frappe.DuplicateEntryError)
+				frappe.throw(frappe._("Same file has already been attached to the record"),
+					frappe.DuplicateEntryError)
 
 	def generate_content_hash(self):
 		if self.content_hash or not self.file_url:
@@ -261,7 +264,9 @@ class File(NestedSet):
 				if not self.flags.ignore_permissions and \
 					not frappe.has_permission(self.attached_to_doctype,
 						"write", self.attached_to_name):
-					frappe.throw(frappe._("Cannot delete file as it belongs to {0} {1} for which you do not have permissions").format(self.attached_to_doctype, self.attached_to_name),
+					frappe.throw(frappe._(
+						"Cannot delete file as it belongs to {0} {1} for which you do not have permissions").format(
+						self.attached_to_doctype, self.attached_to_name),
 						frappe.PermissionError)
 			except frappe.DoesNotExistError:
 				pass
@@ -551,6 +556,7 @@ class File(NestedSet):
 
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
+	frappe.db.add_index("File", ["lft", "rgt"])
 
 def make_home_folder():
 	home = frappe.get_doc({
@@ -735,8 +741,10 @@ def remove_all(dt, dn, from_delete=False):
 
 def remove_file_by_url(file_url, doctype=None, name=None):
 	if doctype and name:
-		fid = frappe.db.get_value("File", {"file_url": file_url,
-			"attached_to_doctype": doctype, "attached_to_name": name})
+		fid = frappe.db.get_value("File", {
+			"file_url": file_url,
+			"attached_to_doctype": doctype,
+			"attached_to_name": name})
 	else:
 		fid = frappe.db.get_value("File", {"file_url": file_url})
 
@@ -810,10 +818,15 @@ def extract_images_from_html(doc, content):
 		doctype = doc.parenttype if doc.parent else doc.doctype
 		name = doc.parent or doc.name
 
-		# TODO fix this
-		_file = frappe.get_doc({"doctype": "File", "file_name": filename,
-			"attached_to_doctype": doctype, "attached_to_name": name})
-		file_url = _file.save_file(content=content, decode=True).file_url
+		_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": filename,
+			"attached_to_doctype": doctype,
+			"attached_to_name": name,
+			"content": content,
+			"decode": True})
+		_file.save()
+		file_url = _file.file_url
 		if not frappe.flags.has_dataurl:
 			frappe.flags.has_dataurl = True
 
@@ -871,7 +884,3 @@ def validate_filename(filename):
 	timestamp = now_datetime().strftime(" %Y-%m-%d %H:%M:%S")
 	fname = get_file_name(filename, timestamp)
 	return fname
-
-
-def on_doctype_update():
-	frappe.db.add_index("File", ["lft", "rgt"])
