@@ -68,10 +68,13 @@ import frappe
 import json
 from frappe import _
 from datetime import datetime
-from frappe.utils import get_url, call_hook_method, cint, get_timestamp
+from frappe.utils import get_url, call_hook_method, cint, get_timestamp, cstr, nowdate, date_diff
 from six.moves.urllib.parse import urlencode
 from frappe.model.document import Document
 from frappe.integrations.utils import create_request_log, make_post_request, create_payment_gateway
+
+
+api_path = '/api/method/frappe.integrations.doctype.paypal_settings.paypal_settings'
 
 class PayPalSettings(Document):
 	supported_currencies = ["AUD", "BRL", "CAD", "CZK", "DKK", "EUR", "HKD", "HUF", "ILS", "JPY", "MYR", "MXN",
@@ -144,9 +147,8 @@ class PayPalSettings(Document):
 			"token": response.get("TOKEN")[0],
 			"correlation_id": response.get("CORRELATIONID")[0]
 		})
-		print(kwargs)
 		self.integration_request = create_request_log(kwargs, "Remote", "PayPal", response.get("TOKEN")[0])
-		print(return_url.format(kwargs["token"]))
+
 		return return_url.format(kwargs["token"])
 
 	def execute_set_express_checkout(self, **kwargs):
@@ -154,49 +156,61 @@ class PayPalSettings(Document):
 
 		params.update({
 			"METHOD": "SetExpressCheckout",
-			"returnUrl": get_url("/api/method/frappe.integrations.doctype.paypal_settings.paypal_settings.get_express_checkout_details"),
-			"cancelUrl": get_url("/payment-cancel")
+			"returnUrl": get_url("{0}.get_express_checkout_details".format(api_path)),
+			"cancelUrl": get_url("/payment-cancel"),
+			"PAYMENTREQUEST_0_PAYMENTACTION": "SALE",
+			"PAYMENTREQUEST_0_AMT": kwargs['amount'],
+			"PAYMENTREQUEST_0_CURRENCYCODE": kwargs['currency'].upper()
 		})
-		
+
 		if kwargs.get('subscription_details'):
-			params.update({
-				"L_BILLINGTYPE0": "RecurringPayments",  #The type of billing agreement
-				"L_BILLINGAGREEMENTDESCRIPTION0": kwargs['description']
-			})
-		else:
-			params.update({
-				"PAYMENTREQUEST_0_PAYMENTACTION": "SALE",
-				"PAYMENTREQUEST_0_AMT": kwargs['amount'],
-				"PAYMENTREQUEST_0_CURRENCYCODE": kwargs['currency'].upper(),
-			})
+			self.configure_recurring_payments(params, kwargs)
 
 		params = urlencode(params)
-
 		response = make_post_request(url, data=params.encode("utf-8"))
+
 		if response.get("ACK")[0] != "Success":
 			frappe.throw(_("Looks like something is wrong with this site's Paypal configuration."))
 
 		return response
-	
-	def cancel_recurring_profile(self, **kwargs):
-		params, url = self.get_paypal_params_and_url()
 
-		if not kwargs.get('profile_id'):
-			frappe.throw(_("PayPal Recurring Profile ID is required"))
+	def configure_recurring_payments(self, params, kwargs):
+		# removing the params as we have to setup rucurring payments
+		for param in ('PAYMENTREQUEST_0_PAYMENTACTION', 'PAYMENTREQUEST_0_AMT',
+			'PAYMENTREQUEST_0_CURRENCYCODE'):
+			del params[param]
 
 		params.update({
-			"METHOD": "ManageRecurringPaymentsProfileStatus",
-			"PROFILEID": kwargs['profile_id'],
-			"ACTION": "Cancel"
+			"L_BILLINGTYPE0": "RecurringPayments",  #The type of billing agreement
+			"L_BILLINGAGREEMENTDESCRIPTION0": kwargs['description']
 		})
 
-		params = urlencode(params)
+def get_paypal_and_transaction_details(token):
+	doc = frappe.get_doc("PayPal Settings")
+	doc.setup_sandbox_env(token)
+	params, url = doc.get_paypal_params_and_url()
 
-		response = make_post_request(url, data=params.encode("utf-8"))
-		if response.get("ACK")[0] != "Success":
-			frappe.throw(_("Looks like something is wrong with this site's Paypal configuration."))
+	integration_request = frappe.get_doc("Integration Request", token)
+	data = json.loads(integration_request.data)
 
-		return response
+	return data, params, url
+
+def setup_redirect(data, redirect_url, custom_redirect_to=None, redirect=True):
+	redirect_to = data.get('redirect_to') or None
+	redirect_message = data.get('redirect_message') or None
+
+	if custom_redirect_to:
+		redirect_to = custom_redirect_to
+
+	if redirect_to:
+		redirect_url += '?' + urlencode({'redirect_to': redirect_to})
+	if redirect_message:
+		redirect_url += '&' + urlencode({'redirect_message': redirect_message})
+
+	# this is done so that functions called via hooks can update flags.redirect_to
+	if redirect:
+		frappe.local.response["type"] = "redirect"
+		frappe.local.response["location"] = get_url(redirect_url)
 
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def get_express_checkout_details(token):
@@ -225,8 +239,6 @@ def get_express_checkout_details(token):
 				"payerid": response.get("PAYERID")[0],
 				"payer_email": response.get("EMAIL")[0]
 			}, "Authorized", doc=doc)
-		
-		
 
 		frappe.local.response["type"] = "redirect"
 		frappe.local.response["location"] = get_redirect_uri(doc, token, response.get("PAYERID")[0])
@@ -237,19 +249,8 @@ def get_express_checkout_details(token):
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def confirm_payment(token):
 	try:
-		redirect = True
-		status_changed_to, redirect_to = None, None
+		data, params, url = get_paypal_and_transaction_details(token)
 
-		doc = frappe.get_doc("PayPal Settings")
-		doc.setup_sandbox_env(token)
-
-		integration_request = frappe.get_doc("Integration Request", token)
-		data = json.loads(integration_request.data)
-
-		redirect_to = data.get('redirect_to') or None
-		redirect_message = data.get('redirect_message') or None
-
-		params, url = doc.get_paypal_params_and_url()
 		params.update({
 			"METHOD": "DoExpressCheckoutPayment",
 			"PAYERID": data.get("payerid"),
@@ -272,22 +273,11 @@ def confirm_payment(token):
 					data.get("reference_docname")).run_method("on_payment_authorized", "Completed")
 				frappe.db.commit()
 
-				if custom_redirect_to:
-					redirect_to = custom_redirect_to
-
 			redirect_url = '/integrations/payment-success'
 		else:
 			redirect_url = "/integrations/payment-failed"
 
-		if redirect_to:
-			redirect_url += '?' + urlencode({'redirect_to': redirect_to})
-		if redirect_message:
-			redirect_url += '&' + urlencode({'redirect_message': redirect_message})
-
-		# this is done so that functions called via hooks can update flags.redirect_to
-		if redirect:
-			frappe.local.response["type"] = "redirect"
-			frappe.local.response["location"] = get_url(redirect_url)
+		setup_redirect(data, redirect_url, custom_redirect_to)
 
 	except Exception:
 		frappe.log_error(frappe.get_traceback())
@@ -295,20 +285,15 @@ def confirm_payment(token):
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def create_recurring_profile(token, payerid):
 	try:
-		redirect = True
-		status_changed_to, redirect_to = None, None
+		data, params, url = get_paypal_and_transaction_details(token)
 
-		doc = frappe.get_doc("PayPal Settings")
-		doc.setup_sandbox_env(token)
-
-		integration_request = frappe.get_doc("Integration Request", token)
-		data = json.loads(integration_request.data)
-
+		addons = data.get("addons")
 		subscription_details = data.get("subscription_details")
-		redirect_to = data.get('redirect_to') or None
-		redirect_message = data.get('redirect_message') or None
+		setup_subscription_amount(data, addons)
 
-		params, url = doc.get_paypal_params_and_url()
+		if data['subscription_id'] and addons:
+			manage_recurring_payment_profile_status(data['subscription_id'], 'Cancel', params, url)
+
 		params.update({
 			"METHOD": "CreateRecurringPaymentsProfile",
 			"PAYERID": payerid,
@@ -316,13 +301,13 @@ def create_recurring_profile(token, payerid):
 			"DESC": data.get("description"),
 			"BILLINGPERIOD": subscription_details.get("billing_period"),
 			"BILLINGFREQUENCY": subscription_details.get("billing_frequency"),
-			"AMT": data.get("amount"),
+			"AMT": data.get("amount") if data.get("subscription_amount") == data.get("amount") else data.get("subscription_amount"),
 			"CURRENCYCODE": data.get("currency").upper(),
 			"INITAMT": subscription_details.get("upfront_amount")
 		})
 
-		starts_at = subscription_details.get("start_date") if subscription_details.get("start_date")\
-			else frappe.utils.now()
+		starts_at = subscription_details.get("start_date") or nowdate()
+		status_changed_to = 'Completed' if subscription_details.get("upfront_amount") else 'Verified'
 
 		params.update({
 			"PROFILESTARTDATE": datetime.utcfromtimestamp(get_timestamp(starts_at)).isoformat()
@@ -336,32 +321,25 @@ def create_recurring_profile(token, payerid):
 			}, "Completed")
 
 			if data.get("reference_doctype") and data.get("reference_docname"):
-				data['subscription_details']['subscription_id'] = response.get("PROFILEID")[0]
+				data['subscription_id'] = response.get("PROFILEID")[0]
 
 				frappe.flags.data = data
 				custom_redirect_to = frappe.get_doc(data.get("reference_doctype"),
-					data.get("reference_docname")).run_method("on_payment_authorized", "Completed")
+					data.get("reference_docname")).run_method("on_payment_authorized", status_changed_to)
 				frappe.db.commit()
-
-				if custom_redirect_to:
-					redirect_to = custom_redirect_to
 
 			redirect_url = '/integrations/payment-success'
 		else:
 			redirect_url = "/integrations/payment-failed"
 
-		if redirect_to:
-			redirect_url += '?' + urlencode({'redirect_to': redirect_to})
-		if redirect_message:
-			redirect_url += '&' + urlencode({'redirect_message': redirect_message})
-
-		# this is done so that functions called via hooks can update flags.redirect_to
-		if redirect:
-			frappe.local.response["type"] = "redirect"
-			frappe.local.response["location"] = get_url(redirect_url)
+		setup_redirect(data, redirect_url, custom_redirect_to)
 
 	except Exception:
 		frappe.log_error(frappe.get_traceback())
+
+def setup_subscription_amount(data, addons):
+	for addon in addons:
+		data['subscription_amount'] += addon['item']['amount']
 
 def update_integration_request_status(token, data, status, error=False, doc=None):
 	if not doc:
@@ -372,9 +350,20 @@ def update_integration_request_status(token, data, status, error=False, doc=None
 def get_redirect_uri(doc, token, payerid):
 	data = json.loads(doc.data)
 	
-	if data.get("subscription_details"):
-		return get_url( \
-			"/api/method/frappe.integrations.doctype.paypal_settings.paypal_settings.create_recurring_profile?token={0}&payerid={1}".format(token, payerid))
+	if data.get("subscription_details") or data.get("subscription_id"):
+		return get_url("{0}.create_recurring_profile?token={1}&payerid={2}".format(api_path, token, payerid))
 	else:
-		return get_url( \
-			"/api/method/frappe.integrations.doctype.paypal_settings.paypal_settings.confirm_payment?token={0}".format(token))
+		return get_url("{0}.confirm_payment?token={1}".format(api_path, token))
+
+def manage_recurring_payment_profile_status(profile_id, action, args, url):
+	args.update({
+		"METHOD": "ManageRecurringPaymentsProfileStatus",
+		"PROFILEID": profile_id,
+		"ACTION": action
+	})
+
+	response = make_post_request(url, data=args)
+
+	if response.get("ACK")[0] != "Success":
+		frappe.throw(_("Failed while amending subscription"))
+
