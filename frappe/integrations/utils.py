@@ -40,7 +40,6 @@ def make_post_request(url, auth=None, headers=None, data=None):
 		s = get_request_session()
 		frappe.flags.integration_request = s.post(url, data=data, auth=auth, headers=headers)
 		frappe.flags.integration_request.raise_for_status()
-		print(frappe.flags.integration_request.text)
 
 		if frappe.flags.integration_request.headers.get("content-type") == "text/plain; charset=utf-8":
 			return parse_qs(frappe.flags.integration_request.text)
