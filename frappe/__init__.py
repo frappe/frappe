@@ -168,17 +168,17 @@ def connect(site=None, db_name=None):
 
 	:param site: If site is given, calls `frappe.init`.
 	:param db_name: Optional. Will use from `site_config.json`."""
-	from frappe.database import Database
+	from frappe.database import get_db
 	if site:
 		init(site)
 
-	local.db = Database(user=db_name or local.conf.db_name)
+	local.db = get_db(user=db_name or local.conf.db_name)
 	set_user("Administrator")
 
 def connect_read_only():
-	from frappe.database import Database
+	from frappe.database import get_db
 
-	local.read_only_db = Database(local.conf.slave_host, local.conf.slave_db_name,
+	local.read_only_db = get_db(local.conf.slave_host, local.conf.slave_db_name,
 		local.conf.slave_db_password)
 
 	# swap db connections
@@ -259,7 +259,7 @@ def errprint(msg):
 	:param msg: Message."""
 	msg = as_unicode(msg)
 	if not request or (not "cmd" in local.form_dict) or conf.developer_mode:
-		print(msg.encode('utf-8'))
+		print(msg)
 
 	error_log.append(msg)
 

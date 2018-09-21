@@ -316,6 +316,18 @@ def mariadb(context):
 		'--pager=less -SFX',
 		"-A"])
 
+@click.command('postgres')
+@pass_context
+def postgres(context):
+	"""
+		Enter into postgres console for a given site.
+	"""
+	site  = get_site(context)
+	frappe.init(site=site)
+	# This is assuming you're within the bench instance.
+	psql = find_executable('psql')
+	subprocess.run([ psql, '-d', frappe.conf.db_name])
+
 @click.command('jupyter')
 @pass_context
 def jupyter(context):
@@ -554,8 +566,9 @@ def get_version():
 
 
 @click.command('setup-global-help')
-@click.option('--mariadb_root_password')
-def setup_global_help(mariadb_root_password=None):
+@click.option('--db_type')
+@click.option('--root_password')
+def setup_global_help(db_type=None, root_password=None):
 	'''setup help table in a separate database that will be
 	shared by the whole bench and set `global_help_setup` as 1 in
 	common_site_config.json'''
@@ -571,8 +584,12 @@ def setup_global_help(mariadb_root_password=None):
 	update_site_config('global_help_setup', 1,
 		site_config_path=os.path.join('.', 'common_site_config.json'))
 
-	if mariadb_root_password:
-		frappe.local.conf.root_password = mariadb_root_password
+	if root_password:
+		frappe.local.conf.root_password = root_password
+
+	if not frappe.local.conf.db_type:
+		frappe.local.conf.db_type = db_type
+
 
 	from frappe.utils.help import sync
 	sync()
@@ -684,6 +701,7 @@ commands = [
 	make_app,
 	mysql,
 	mariadb,
+	postgres,
 	request,
 	reset_perms,
 	run_tests,

@@ -8,6 +8,8 @@ from frappe.model.db_query import DatabaseQuery
 from frappe.desk.reportview import get_filters_cond
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 
+test_dependencies = ["User"]
+
 class TestReportview(unittest.TestCase):
 	def test_basic(self):
 		self.assertTrue({"name":"DocType"} in DatabaseQuery("DocType").execute(limit_page_length=None))
@@ -124,9 +126,9 @@ class TestReportview(unittest.TestCase):
 		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
 			fields=["name", "issingle,'"],limit_start=0, limit_page_length=1)
 
-		data = DatabaseQuery("DocType").execute(fields=["name", "issingle", "count(name)"],
+		data = DatabaseQuery("DocType").execute(fields=["count(`name`) as count"],
 			limit_start=0, limit_page_length=1)
-		self.assertTrue('count(name)' in data[0])
+		self.assertTrue('count' in data[0])
 
 		data = DatabaseQuery("DocType").execute(fields=["name", "issingle", "locate('', name) as _relevance"],
 			limit_start=0, limit_page_length=1)
@@ -136,9 +138,11 @@ class TestReportview(unittest.TestCase):
 			limit_start=0, limit_page_length=1)
 		self.assertTrue('creation' in data[0])
 
-		data = DatabaseQuery("DocType").execute(fields=["name", "issingle",
-			"datediff(modified, creation) as date_diff"], limit_start=0, limit_page_length=1)
-		self.assertTrue('date_diff' in data[0])
+		if frappe.conf.db_type != 'postgres':
+			# datediff function does not exist in postgres
+			data = DatabaseQuery("DocType").execute(fields=["name", "issingle",
+				"datediff(modified, creation) as date_diff"], limit_start=0, limit_page_length=1)
+			self.assertTrue('date_diff' in data[0])
 
 	def test_nested_permission(self):
 		clear_user_permissions_for_doctype("File")

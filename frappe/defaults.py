@@ -115,7 +115,7 @@ def set_default(key, value, parent, parenttype="__default"):
 		select
 			defkey
 		from
-			tabDefaultValue
+			`tabDefaultValue`
 		where
 			defkey=%s and parent=%s
 		for update''', (key, parent)):

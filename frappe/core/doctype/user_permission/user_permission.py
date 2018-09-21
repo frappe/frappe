@@ -58,8 +58,8 @@ def get_user_permissions(user=None):
 			if meta.is_nested_set():
 				out[perm.allow]["docs"].extend(frappe.db.get_descendants(perm.allow, perm.for_value))
 		frappe.cache().hset("user_permissions", user, out)
-	except frappe.SQLError as e:
-		if e.args[0]==1146:
+	except frappe.db.SQLError:
+		if frappe.db.is_table_missing():
 			# called from patch
 			pass
 

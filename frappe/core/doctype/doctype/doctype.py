@@ -10,18 +10,14 @@ import frappe
 from frappe import _
 
 from frappe.utils import now, cint
-from frappe.model import no_value_fields, default_fields
+from frappe.model import no_value_fields, default_fields, data_fieldtypes
 from frappe.model.document import Document
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate, get_doc_path
-from frappe.model.db_schema import validate_column_name, validate_column_length, type_map
+from frappe.database.schema import validate_column_name, validate_column_length
 from frappe.model.docfield import supports_translation
 import frappe.website.render
-
-# imports - third-party imports
-import pymysql
-from pymysql.constants import ER
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 
@@ -123,20 +119,31 @@ class DocType(Document):
 					link_fieldname, source_fieldname = df.fetch_from.split('.', 1)
 					link_df = new_meta.get_field(link_fieldname)
 
-					self.flags.update_fields_to_fetch_queries.append('''update
-							`tab{link_doctype}` source,
-							`tab{doctype}` target
-						set
-							target.`{fieldname}` = source.`{source_fieldname}`
-						where
-							target.`{link_fieldname}` = source.name
-							and ifnull(target.`{fieldname}`, '')="" '''.format(
-								link_doctype = link_df.options,
-								source_fieldname = source_fieldname,
-								doctype = self.name,
-								fieldname = df.fieldname,
-								link_fieldname = link_fieldname
-					))
+					if frappe.conf.db_type == 'postgres':
+						update_query = '''
+							UPDATE `tab{doctype}`
+							SET `{fieldname}` = source.`{source_fieldname}`
+							FROM `tab{link_doctype}` as source
+							WHERE `{link_fieldname}` = source.name
+							AND ifnull(`{fieldname}`, '')=''
+						'''
+					else:
+						update_query = '''
+							UPDATE `tab{doctype}` as target
+							INNER JOIN `tab{link_doctype}` as source
+							ON `target`.`{link_fieldname}` = `source`.`name`
+							SET `target`.`{fieldname}` = `source`.`{source_fieldname}`
+							WHERE ifnull(`target`.`{fieldname}`, '')=""
+						'''
+
+					self.flags.update_fields_to_fetch_queries.append(update_query.format(
+							link_doctype = link_df.options,
+							source_fieldname = source_fieldname,
+							doctype = self.name,
+							fieldname = df.fieldname,
+							link_fieldname = link_fieldname
+						)
+					)
 
 	def update_fields_to_fetch(self):
 		'''Update fetch values based on queries setup'''
@@ -164,10 +171,9 @@ class DocType(Document):
 		"""Change the timestamp of parent DocType if the current one is a child to clear caches."""
 		if frappe.flags.in_import:
 			return
-		parent_list = frappe.db.sql("""SELECT parent
-			from tabDocField where fieldtype="Table" and options=%s""", self.name)
+		parent_list = frappe.db.get_all('DocField', 'parent', dict(fieldtype='Table', options=self.name))
 		for p in parent_list:
-			frappe.db.sql('UPDATE tabDocType SET modified=%s WHERE `name`=%s', (now(), p[0]))
+			frappe.db.sql('UPDATE `tabDocType` SET modified=%s WHERE `name`=%s', (now(), p.parent))
 
 	def scrub_field_names(self):
 		"""Sluggify fieldnames if not set from Label."""
@@ -229,19 +235,24 @@ class DocType(Document):
 		if autoname and (not autoname.startswith('field:')) \
 			and (not autoname.startswith('eval:')) \
 			and (not autoname.lower() in ('prompt', 'hash')) \
-			and (not autoname.startswith('naming_series:')):
+			and (not autoname.startswith('naming_series:')) \
+			and (not autoname.startswith('format:')):
 
 			prefix = autoname.split('.')[0]
-			used_in = frappe.db.sql('select name from tabDocType where substring_index(autoname, ".", 1) = %s and name!=%s', (prefix, name))
+			used_in = frappe.db.sql("""
+				SELECT `name`
+				FROM `tabDocType`
+				WHERE `autoname` LIKE CONCAT(%s, '.%%')
+				AND `name`!=%s
+			""", (prefix, name))
 			if used_in:
 				frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
 	def on_update(self):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
-		from frappe.model.db_schema import updatedb
 		self.delete_duplicate_custom_fields()
 		try:
-			updatedb(self.name, self)
+			frappe.db.updatedb(self.name, self)
 		except Exception as e:
 			print("\n\nThere was an issue while migrating the DocType: {}\n".format(self.name))
 			raise e
@@ -280,7 +291,9 @@ class DocType(Document):
 	def delete_duplicate_custom_fields(self):
 		if not (frappe.db.table_exists(self.name) and frappe.db.table_exists("Custom Field")):
 			return
-		fields = [d.fieldname for d in self.fields if d.fieldtype in type_map]
+
+		fields = [d.fieldname for d in self.fields if d.fieldtype in data_fieldtypes]
+
 		frappe.db.sql('''delete from
 				`tabCustom Field`
 			where
@@ -571,8 +584,8 @@ def validate_fields(meta):
 						group by `{fieldname}` having count(*) > 1 limit 1""".format(
 						doctype=d.parent, fieldname=d.fieldname))
 
-				except pymysql.InternalError as e:
-					if e.args and e.args[0] == ER.BAD_FIELD_ERROR:
+				except frappe.db.InternalError as e:
+					if frappe.db.is_missing_column(e):
 						# ignore if missing column, else raise
 						# this happens in case of Custom Field
 						pass
@@ -743,13 +756,15 @@ def validate_permissions_for_doctype(doctype, for_remove=False):
 def clear_permissions_cache(doctype):
 	frappe.clear_cache(doctype=doctype)
 	delete_notification_count_for(doctype)
-	for user in frappe.db.sql_list("""select
-			distinct `tabHas Role`.parent
-		from
+	for user in frappe.db.sql_list("""
+		SELECT
+			DISTINCT `tabHas Role`.`parent`
+		FROM
 			`tabHas Role`,
-		tabDocPerm
-			where tabDocPerm.parent = %s
-			and tabDocPerm.role = `tabHas Role`.role""", doctype):
+			`tabDocPerm`
+		WHERE `tabDocPerm`.`parent` = %s
+		AND `tabDocPerm`.`role` = `tabHas Role`.`role`
+		""", doctype):
 		frappe.clear_cache(user=user)
 
 def validate_permissions(doctype, for_remove=False):
@@ -852,7 +867,8 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 			not frappe.db.exists('Domain', doc.restrict_to_domain):
 			frappe.get_doc(dict(doctype='Domain', domain=doc.restrict_to_domain)).insert()
 
-		if not frappe.db.exists("Module Def", doc.module):
+		if	("tabModule Def" in frappe.db.get_tables()
+			and not frappe.db.exists("Module Def", doc.module)):
 			m = frappe.get_doc({"doctype": "Module Def", "module_name": doc.module})
 			m.app_name = frappe.local.module_app[frappe.scrub(doc.module)]
 			m.flags.ignore_mandatory = m.flags.ignore_permissions = True
@@ -868,8 +884,8 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 				r.insert()
 	except frappe.DoesNotExistError as e:
 		pass
-	except frappe.SQLError as e:
-		if e.args[0]==1146:
+	except frappe.db.ProgrammingError as e:
+		if frappe.db.is_table_missing(e):
 			pass
 		else:
 			raise

@@ -407,10 +407,10 @@ class Document(BaseDocument):
 
 	def update_single(self, d):
 		"""Updates values for Single type Document in `tabSingles`."""
-		frappe.db.sql("""delete from tabSingles where doctype=%s""", self.doctype)
+		frappe.db.sql("""delete from `tabSingles` where doctype=%s""", self.doctype)
 		for field, value in iteritems(d):
 			if field != "doctype":
-				frappe.db.sql("""insert into tabSingles(doctype, field, value)
+				frappe.db.sql("""insert into `tabSingles` (doctype, field, value)
 					values (%s, %s, %s)""", (self.doctype, field, value))
 
 		if self.doctype in frappe.db.value_cache:
@@ -468,6 +468,7 @@ class Document(BaseDocument):
 
 	def validate_workflow(self):
 		'''Validate if the workflow transition is valid'''
+		if frappe.flags.in_install == 'frappe': return
 		if self.meta.get_workflow():
 			validate_workflow(self)
 
