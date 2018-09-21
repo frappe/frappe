@@ -111,7 +111,7 @@ def insert_user_social_login(user, modified_by, provider, idx, userid=None, user
 		VALUES ({values})
 	""".format(
 		source_cols = "`" + "`, `".join(source_cols) + "`",
-		values= "'" + "', '".join(values) + "'"
+		values= "'" + "', '".join([frappe.db.escape(d) for d in values]) + "'"
 	)
 
 	frappe.db.sql(query)
