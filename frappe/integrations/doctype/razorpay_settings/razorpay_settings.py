@@ -105,11 +105,10 @@ class RazorpaySettings(Document):
 		"""
 		
 		url = "https://api.razorpay.com/v1/subscriptions/{0}/addons".format(kwargs.get('subscription_id'))
-
-		for addon in kwargs.get("addons"):
-			try:
+		
+		try:
+			for addon in kwargs.get("addons"):
 				addon['item']['amount'] *= 100 #convert amount to paisa
-
 				resp = make_post_request(
 					url,
 					auth=(settings.api_key, settings.api_secret),
@@ -121,11 +120,10 @@ class RazorpaySettings(Document):
 
 				if not resp.get('id'):
 					frappe.log_error(str(resp), 'Razorpay Failed while creating subscription')
-
-			except:
-				frappe.log_error(frappe.get_traceback())
-				# failed
-				pass
+		except:
+			frappe.log_error(frappe.get_traceback())
+			# failed
+			pass
 
 	def setup_subscription(self, settings, **kwargs):
 		start_date = get_timestamp(kwargs.get('subscription_details').get("start_date")) \
@@ -170,7 +168,7 @@ class RazorpaySettings(Document):
 	def get_payment_url(self, **kwargs):
 		settings = self.get_settings(kwargs)
 		kwargs = self.prepare_subscription_details(settings, **kwargs)
-		
+
 		integration_request = create_request_log(kwargs, "Host", "Razorpay")
 		return get_url("./integrations/razorpay_checkout?token={0}".format(integration_request.name))
 
@@ -209,11 +207,18 @@ class RazorpaySettings(Document):
 
 			elif data.get('subscription_id'):
 				if resp.get("status") == "refunded":
+					# if subscription start date is in future then
 					# razorpay refunds the amount after authorizing the card details
+					# thus changing status to Verified
+
 					self.integration_request.update_status(data, 'Completed')
-					self.flags.status_changed_to = "Authorized"
+					self.flags.status_changed_to = "Verified"
 
 				if resp.get("status") == "captured":
+					# if subscription starts immediately then
+					# razorpay charge the actual amount
+					# thus changing status to Completed
+
 					self.integration_request.update_status(data, 'Completed')
 					self.flags.status_changed_to = "Completed"
 
