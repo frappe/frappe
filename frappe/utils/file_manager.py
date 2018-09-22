@@ -443,13 +443,11 @@ def validate_filename(filename):
 @frappe.whitelist()
 def add_attachments(doctype, name, attachments):
 	'''Add attachments to the given DocType'''
-	frappe.log_error(attachments)
 	if isinstance(attachments, string_types):
 		attachments = json.loads(attachments)
 	# loop through attachments
 	files =[]
 	for a in attachments:
-		frappe.log_error(a)
 		if isinstance(a, string_types):
 			attach = frappe.db.get_value("File", {"name":a},
 				["file_name", "file_url", "is_private"], as_dict=1)

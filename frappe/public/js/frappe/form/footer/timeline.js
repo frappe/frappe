@@ -71,7 +71,7 @@ frappe.ui.form.Timeline = class Timeline {
 
 	setup_email_button() {
 		var me = this;
-		var selector = this.frm.doctype === "Communication"? ".btn-reply-email": ".btn-new-email"
+		var selector = this.frm.doctype === "Communication"? ".btn-reply-email": ".btn-new-email";
 		this.email_button = this.wrapper.find(selector)
 			.on("click", function() {
 				var args = {
@@ -98,7 +98,7 @@ frappe.ui.form.Timeline = class Timeline {
 
 	setup_interaction_button() {
 		var me = this;
-		var selector = ".btn-new-interaction"
+		var selector = ".btn-new-interaction";
 		this.activity_button = this.wrapper.find(selector)
 			.on("click", function() {
 				var args = {
@@ -109,7 +109,7 @@ frappe.ui.form.Timeline = class Timeline {
 				$.extend(args, {
 					txt: frappe.markdown(me.comment_area.val())
 				});
-				new frappe.views.InteractionComposer(args)
+				new frappe.views.InteractionComposer(args);
 			});
 	}
 
@@ -180,9 +180,9 @@ frappe.ui.form.Timeline = class Timeline {
 	}
 
 	compare_dates(b, c) {
-		let b_date = b.communication_date ? b.communication_date : b.creation
-		let c_date = c.communication_date ? c.communication_date : c.creation
-		let comparison = new Date(b_date) > new Date(c_date) ? -1 : 1
+		let b_date = b.communication_date ? b.communication_date : b.creation;
+		let c_date = c.communication_date ? c.communication_date : c.creation;
+		let comparison = new Date(b_date) > new Date(c_date) ? -1 : 1;
 		return comparison;
 	}
 
@@ -293,7 +293,7 @@ frappe.ui.form.Timeline = class Timeline {
 		}
 		c.comment_on_small = comment_when(c.communication_date, true);
 		c.comment_on = comment_when(c.communication_date);
-		c.futur_date = c.communication_date > frappe.datetime.now_datetime() ? true : false
+		c.futur_date = c.communication_date > frappe.datetime.now_datetime() ? true : false;
 		if(!c.fullname) {
 			c.fullname = c.sender_full_name || frappe.user.full_name(c.sender);
 		}

@@ -17,6 +17,6 @@ def execute():
 				e.flags.ignore_mandatory   = True
 				e.flags.ignore_permissions = True
 				e.save()
-			except:
+			except Exception:
 				frappe.log_error(frappe.get_traceback())
 

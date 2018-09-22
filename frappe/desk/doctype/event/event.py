@@ -57,7 +57,7 @@ class Event(Document):
 	def update_communication(self, participant, communication):
 		communication.communication_medium = "Event"
 		communication.subject = self.subject
-		communication.content = self.description
+		communication.content = self.description if self.description else self.subject
 		communication.communication_date = self.starts_on
 		communication.timeline_doctype = participant.reference_doctype
 		communication.timeline_name = participant.reference_docname

@@ -40,7 +40,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 					wrapper.find('[data-file-name="'+ filename +'"]').prop("checked", true);
 				});
 			}
-		})
+		});
 		me.prepare();
 		me.dialog.show();
 	}
@@ -70,7 +70,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 			{label:__("Public"), fieldtype:"Check",
 				fieldname:"public", default: "1"},
 			{fieldtype: "Column Break"},
-			{label:__("Due Date"), fieldtype:"Datetime",
+			{label:__("Date"), fieldtype:"Datetime",
 				fieldname:"due_date"},
 			{label:__("Assigned To"), fieldtype:"Link",
 				fieldname:"assigned_to", options:"User"},
@@ -118,9 +118,9 @@ frappe.views.InteractionComposer = class InteractionComposer {
 		let fields = this.dialog.fields_dict;
 		let attach = $(fields.select_attachments.wrapper);
 
-		let me = this
+		let me = this;
 		if (!me.attachments){
-			me.attachments = []
+			me.attachments = [];
 		}
 
 		let args = {
@@ -128,7 +128,9 @@ frappe.views.InteractionComposer = class InteractionComposer {
 				from_form: 1,
 				folder:"Home/Attachments"
 			},
-			callback: function(attachment, r) { me.attachments.push(attachment); },
+			callback: function(attachment){ 
+				me.attachments.push(attachment); 
+			},
 			max_width: null,
 			max_height: null
 		};
@@ -139,11 +141,11 @@ frappe.views.InteractionComposer = class InteractionComposer {
 					? me.frm.attachments.get_args()
 					: { from_form: 1,folder:"Home/Attachments" }),
 				callback: function (attachment, r) {
-					me.frm.attachments.attachment_uploaded(attachment, r)
+					me.frm.attachments.attachment_uploaded(attachment, r);
 				},
 				max_width: me.frm.cscript ? me.frm.cscript.attachment_max_width : null,
 				max_height: me.frm.cscript ? me.frm.cscript.attachment_max_height : null
-			}
+			};
 
 		}
 
@@ -151,11 +153,11 @@ frappe.views.InteractionComposer = class InteractionComposer {
 			+__("Select Attachments")+"</h6><div class='attach-list'></div>\
 			<p class='add-more-attachments'>\
 			<a class='text-muted small'><i class='octicon octicon-plus' style='font-size: 12px'></i> "
-			+__("Add Attachment")+"</a></p>").appendTo(attach.empty())
+			+__("Add Attachment")+"</a></p>").appendTo(attach.empty());
 		attach.find(".add-more-attachments a").on('click',this,function() {
 			me.upload = frappe.ui.get_upload_dialog(args);
 		})
-		me.render_attach()
+		me.render_attach();
 
 	}
 
@@ -182,7 +184,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 					+	' <a href="%(file_url)s" target="_blank" class="text-muted small">'
 					+		'<i class="fa fa-share" style="vertical-align: middle; margin-left: 3px;"></i>'
 					+ '</label></p>', f))
-					.appendTo(attach)
+					.appendTo(attach);
 			});
 		}
 	}
@@ -195,7 +197,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 		if(!form_values) return;
 
 		let selected_attachments =
-			$.map($(me.dialog.wrapper).find("[data-file-name]:checked"), function (element) {
+			$.map($(me.dialog.wrapper).find("[data-file-name]:checked"), function (element){
 				return $(element).attr("data-file-name");
 			});
 
@@ -218,13 +220,18 @@ frappe.views.InteractionComposer = class InteractionComposer {
 		me.dialog.hide();
 
 		let field_map = get_doc_mappings();
-		let interaction_values = {}
+		let interaction_values = {};
 		Object.keys(form_values).forEach(value => {
 			interaction_values[field_map[form_values.interaction_type]["field_map"][value]] = form_values[value];
 		});
-		if ("event_type" in interaction_values) { 
+		
+		if ("event_type" in interaction_values){
 			interaction_values["event_type"] = (form_values.public == 1) ? "Public" : "Private";
-		};
+		}
+		if (interaction_values["doctype"] == "Event") {
+			interaction_values["event_participants"] = [{"reference_doctype": form_values.reference_doctype, 
+				"reference_docname": form_values.reference_document}]
+		}
 
 		return frappe.call({
 			method:"frappe.client.insert",
@@ -250,15 +257,6 @@ frappe.views.InteractionComposer = class InteractionComposer {
 					}
 				} else {
 					frappe.msgprint(__("There were errors while creating the document. Please try again."));
-
-					// try the error callback if it exists
-					if (me.error) {
-						try {
-							me.error(r);
-						} catch (e) {
-							console.log(e);
-						}
-					}
 				}
 			}
 		});
@@ -326,11 +324,9 @@ function get_doc_mappings() {
 				"interaction_type": "doctype",
 				"summary": "subject",
 				"description": "description",
-				"categories": "event_category",
+				"category": "event_category",
 				"due_date": "starts_on",
-				"public": "event_type",
-				"reference_doctype": "ref_type",
-				"reference_document": "ref_name"
+				"public": "event_type"
 			},
 			"reqd_fields": ["summary", "due_date"],
 			"hidden_fields": []
