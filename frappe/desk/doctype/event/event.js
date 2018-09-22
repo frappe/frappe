@@ -1,4 +1,4 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 frappe.provide("desk");
 
@@ -63,40 +63,17 @@ desk.eventParticipants = class eventParticipants {
 
 	make() {
 		let me = this;
-		console.log(me)
-		let d = new frappe.ui.form.MultiSelectDialog({
+
+		let table = me.frm.get_field("event_participants").grid;
+		new frappe.ui.form.LinkSelector({
 			doctype: me.doctype,
-			target: me.frm,
-			date_field: "creation",
-			setters: {},
-			get_query: me.get_query,
-			action: function(selections, args) {
-				if(selections.length === 0){
-					frappe.msgprint(__("Please select at least one {0}", [__(me.doctype)]))
-					return;
-				} else {
-					me.add_participants(selections)
-					d.dialog.hide();
-				}
-			}
-		})
-	}
-	
-	get_query() {
-		return {};
-	}
-
-	add_participants(selections) {
-		let me = this;
-		console.log(selections)
-		selections.forEach(value => {
-			let row = frappe.model.add_child(me.frm.doc, "Event Participants", "event_participants");
-			row.reference_doctype = me.doctype;
-			row.reference_docname = value;
+			dynamic_link_field: "reference_doctype",
+			dynamic_link_reference: me.doctype,
+			fieldname: "reference_docname",
+			target: table,
+			txt: ""
 		});
-		me.frm.refresh_fields("event_participants");
 	}
-
 };
 
 
