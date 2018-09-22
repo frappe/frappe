@@ -35,32 +35,35 @@ class Event(Document):
 		self.sync_communication()
 
 	def on_trash(self):
-		if frappe.db.exists("Communication", dict(reference_doctype=self.doctype, reference_name=self.name)):
-			frappe.get_doc("Communication", dict(reference_doctype=self.doctype, reference_name=self.name)).delete()
+		communications = frappe.get_all("Communication", dict(reference_doctype=self.doctype, reference_name=self.name))
+		if communications:
+			for communication in communications:
+				frappe.get_doc("Communication", communication.name).delete()
 
 	def sync_communication(self):
-		if self.ref_type and self.ref_name:
-			if frappe.db.exists("Communication", dict(reference_doctype=self.doctype, reference_name=self.name)):
-				communication = frappe.get_doc("Communication", dict(reference_doctype=self.doctype, reference_name=self.name))
-				self.update_communication(communication)
-			else:
-				self.create_communication()
+		if self.event_participants:
+			for participant in self.event_participants:
+				if frappe.db.exists("Communication", dict(reference_doctype=self.doctype, reference_name=self.name, timeline_doctype=participant.reference_doctype, timeline_name=participant.reference_docname)):
+					communication = frappe.get_doc("Communication", dict(reference_doctype=self.doctype, reference_name=self.name, timeline_doctype=participant.reference_doctype, timeline_name=participant.reference_docname))
+					self.update_communication(participant, communication)
+				else:
+					self.create_communication(participant)
 
-	def create_communication(self):
+	def create_communication(self, participant):
 			communication = frappe.new_doc("Communication")
-			self.update_communication(communication)
+			self.update_communication(participant, communication)
 			self.communication = communication.name
 
-	def update_communication(self, communication):
+	def update_communication(self, participant, communication):
 		communication.communication_medium = "Event"
 		communication.subject = self.subject
 		communication.content = self.description
 		communication.communication_date = self.starts_on
-		communication.timeline_doctype = self.ref_type
-		communication.timeline_name = self.ref_name
+		communication.timeline_doctype = participant.reference_doctype
+		communication.timeline_name = participant.reference_docname
 		communication.reference_doctype = self.doctype
 		communication.reference_name = self.name
-		communication.communication_medium = communication_mapping[self.event_category]
+		communication.communication_medium = communication_mapping[self.event_category] if self.event_category else ""
 		communication.status = "Linked"
 		communication.save()
 
