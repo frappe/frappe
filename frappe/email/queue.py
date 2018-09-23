@@ -253,12 +253,12 @@ def check_email_limit(recipients):
 				EmailLimitCrossedError)
 
 def get_emails_sent_this_month():
-	return frappe.db.sql("""select count(name) from `tabEmail Queue` where
-		status='Sent' and MONTH(creation)=MONTH(CURDATE())""")[0][0]
+	return frappe.db.sql("""SELECT COUNT(`name`) FROM `tabEmail Queue` WHERE
+		`status`='Sent' AND EXTRACT(MONTH FROM `creation`) = EXTRACT(MONTH FROM NOW())""")[0][0]
 
 def get_emails_sent_today():
-	return frappe.db.sql("""select count(name) from `tabEmail Queue` where
-		status='Sent' and creation>DATE_SUB(NOW(), INTERVAL 24 HOUR)""")[0][0]
+	return frappe.db.sql("""SELECT COUNT(`name`) FROM `tabEmail Queue` WHERE
+		`status`='Sent' AND `creation` > (NOW() - INTERVAL '24' HOUR)""")[0][0]
 
 def get_unsubscribe_message(unsubscribe_message, expose_recipients):
 	if unsubscribe_message:
@@ -484,8 +484,8 @@ def prepare_message(email, recipient, recipients_list):
 		return ""
 
 	# Parse "Email Account" from "Email Sender"
-	email_account = email.sender.rsplit('<',1)[0]
-	if frappe.conf.use_ssl and frappe.db.get_value("Email Account", {"name": email_account}, "track_email_status"):
+	email_account = get_outgoing_email_account(raise_exception_not_set=False, sender=email.sender)
+	if frappe.conf.use_ssl and email_account.track_email_status:
 		# Using SSL => Publically available domain => Email Read Reciept Possible
 		message = message.replace("<!--email open check-->", quopri.encodestring('<img src="https://{}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={}"/>'.format(frappe.local.site, email.communication).encode()).decode())
 	else:
@@ -554,17 +554,21 @@ def clear_outbox():
 	Note: Used separate query to avoid deadlock
 	"""
 
-	email_queues = frappe.db.sql_list("""select name from `tabEmail Queue`
-		where priority=0 and datediff(now(), modified) > 31""")
+	email_queues = frappe.db.sql_list("""SELECT `name` FROM `tabEmail Queue`
+		WHERE `priority`=0 AND `modified` < (NOW() - INTERVAL '31' DAY)""")
 
 	if email_queues:
-		frappe.db.sql("""delete from `tabEmail Queue` where name in (%s)"""
-			% ','.join(['%s']*len(email_queues)), tuple(email_queues))
+		frappe.db.sql("""DELETE FROM `tabEmail Queue` WHERE `name` IN ({0})""".format(
+			','.join(['%s']*len(email_queues)
+		)), tuple(email_queues))
 
-		frappe.db.sql("""delete from `tabEmail Queue Recipient` where parent in (%s)"""
-			% ','.join(['%s']*len(email_queues)), tuple(email_queues))
+		frappe.db.sql("""DELETE FROM `tabEmail Queue Recipient` WHERE `parent` IN ({0})""".format(
+			','.join(['%s']*len(email_queues)
+		)), tuple(email_queues))
 
 	frappe.db.sql("""
-		update `tabEmail Queue`
-		set status='Expired'
-		where datediff(curdate(), modified) > 7 and status='Not Sent' and (send_after is null or send_after < %(now)s)""", { 'now': now_datetime() })
+		UPDATE `tabEmail Queue`
+		SET `status`='Expired'
+		WHERE `modified` < (NOW() - INTERVAL '7' DAY)
+		AND `status`='Not Sent'
+		AND (`send_after` IS NULL OR `send_after` < %(now)s)""", { 'now': now_datetime() })

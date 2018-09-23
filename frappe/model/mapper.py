@@ -9,7 +9,7 @@ from frappe.model import default_fields
 from six import string_types
 
 @frappe.whitelist()
-def make_mapped_doc(method, source_name, selected_children=None):
+def make_mapped_doc(method, source_name, selected_children=None, args=None):
 	'''Returns the mapped document calling the given mapper method.
 	Sets selected_children as flags for the `get_mapped_doc` method.
 
@@ -21,6 +21,9 @@ def make_mapped_doc(method, source_name, selected_children=None):
 
 	if selected_children:
 		selected_children = json.loads(selected_children)
+
+	if args:
+		frappe.flags.args = frappe._dict(json.loads(args))
 
 	frappe.flags.selected_children = selected_children or None
 

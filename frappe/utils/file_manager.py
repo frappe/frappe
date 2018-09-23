@@ -151,7 +151,7 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 		"folder": folder,
 		"file_size": file_size,
 		"content_hash": content_hash,
-		"is_private": is_private
+		"is_private": cint(is_private)
 	})
 
 	f = frappe.get_doc(file_data)
@@ -165,7 +165,10 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 
 
 def get_file_data_from_hash(content_hash, is_private=0):
-	for name in frappe.db.sql_list("select name from `tabFile` where content_hash=%s and is_private=%s", (content_hash, is_private)):
+	for name in frappe.db.sql_list("""SELECT `name`
+		FROM `tabFile`
+		WHERE `content_hash`=%s
+		AND `is_private`=%s""", (content_hash, cint(is_private))):
 		b = frappe.get_doc('File', name)
 		return {k: b.get(k) for k in frappe.get_hooks()['write_file_keys']}
 	return False
@@ -223,7 +226,7 @@ def remove_all(dt, dn, from_delete=False):
 			attached_to_doctype=%s and attached_to_name=%s""", (dt, dn)):
 			remove_file(fid, dt, dn, from_delete)
 	except Exception as e:
-		if e.args[0]!=1054: raise # (temp till for patched)
+		if not frappe.db.is_missing_column(e): raise # (temp till for patched)
 
 
 def remove_file_by_url(file_url, doctype=None, name=None):
@@ -371,13 +374,13 @@ def download_file(file_url):
 	"""
 	file_doc = frappe.get_doc("File", {"file_url":file_url})
 	file_doc.check_permission("read")
+	path = os.path.join(get_files_path(), os.path.basename(file_url))
 
-	with open(getattr(frappe.local, "site_path", None) + file_url, "rb") as fileobj:
+	with open(path, "rb") as fileobj:
 		filedata = fileobj.read()
-	frappe.local.response.filename = file_url[file_url.rfind("/")+1:]
+	frappe.local.response.filename = os.path.basename(file_url)
 	frappe.local.response.filecontent = filedata
 	frappe.local.response.type = "download"
-
 
 def extract_images_from_doc(doc, fieldname):
 	content = doc.get(fieldname)

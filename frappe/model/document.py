@@ -289,6 +289,8 @@ class Document(BaseDocument):
 		self.set_docstatus()
 		self.check_if_latest()
 		self.set_parent_in_children()
+		self.set_name_in_children()
+
 		self.validate_higher_perm_levels()
 		self._validate_links()
 		self.run_before_save_methods()
@@ -405,10 +407,10 @@ class Document(BaseDocument):
 
 	def update_single(self, d):
 		"""Updates values for Single type Document in `tabSingles`."""
-		frappe.db.sql("""delete from tabSingles where doctype=%s""", self.doctype)
+		frappe.db.sql("""delete from `tabSingles` where doctype=%s""", self.doctype)
 		for field, value in iteritems(d):
 			if field != "doctype":
-				frappe.db.sql("""insert into tabSingles(doctype, field, value)
+				frappe.db.sql("""insert into `tabSingles` (doctype, field, value)
 					values (%s, %s, %s)""", (self.doctype, field, value))
 
 		if self.doctype in frappe.db.value_cache:
@@ -466,6 +468,7 @@ class Document(BaseDocument):
 
 	def validate_workflow(self):
 		'''Validate if the workflow transition is valid'''
+		if frappe.flags.in_install == 'frappe': return
 		if self.meta.get_workflow():
 			validate_workflow(self)
 
@@ -680,6 +683,12 @@ class Document(BaseDocument):
 		for d in self.get_all_children():
 			d.parent = self.name
 			d.parenttype = self.doctype
+
+	def set_name_in_children(self):
+		# Set name for any new children
+		for d in self.get_all_children():
+			if not d.name:
+				set_new_name(d)
 
 	def validate_update_after_submit(self):
 		if self.flags.ignore_validate_update_after_submit:

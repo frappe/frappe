@@ -1,6 +1,8 @@
 @import "variables.less";
 @import "mixins.less";
 @import "common.less";
+@import "awesomplete.less";
+@import "datepicker.less";
 
 .unit-checkbox {
 	color: #36414c;
@@ -42,56 +44,3 @@
 	z-index: 3;
 }
 
-.awesomplete {
-	width: 100%;
-
-	&> ul {
-		z-index: 1041 !important;
-		transition: none;
-		background-color: #fff;
-		max-height: 200px;
-		overflow-y: auto;
-		overflow-x: hidden;
-		border-radius: 0px 0px 4px 4px;
-		box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.176);
-		border-color: @border-color;
-
-		&:before {
-			display: none;
-		}
-
-		li[aria-selected="true"] mark, mark {
-			padding: 0px;
-			background-color: inherit;
-		}
-
-		&> li {
-			font-size: 12px;
-			padding: 9px 11.8px;
-		}
-
-		&> li .link-option {
-			font-weight: normal;
-		}
-
-		&> li:hover, &> li[aria-selected=true] {
-			background-color: @btn-bg;
-			color: @text-color;
-			text-shadow: none;
-		}
-
-		a:hover {
-			text-decoration: none;
-		}
-
-		p {
-			margin: 3px 0;
-		}
-	}
-
-	@media (max-width: @screen-sm) {
-		&>ul {
-			top: 26px;
-		}
-	}
-}

@@ -10,6 +10,7 @@ from frappe import _
 from six import string_types
 import re
 
+UNTRANSLATED_DOCTYPES = ["DocType", "Role"]
 
 def sanitize_searchfield(searchfield):
 	blacklisted_keywords = ['select', 'delete', 'drop', 'update', 'case', 'and', 'or', 'like']
@@ -19,7 +20,7 @@ def sanitize_searchfield(searchfield):
 
 	if len(searchfield) == 1:
 		# do not allow special characters to pass as searchfields
-		regex = re.compile('^.*[=;*,\'"$\-+%#@()_].*')
+		regex = re.compile(r'^.*[=;*,\'"$\-+%#@()_].*')
 		if regex.match(searchfield):
 			_raise_exception(searchfield)
 
@@ -42,7 +43,7 @@ def sanitize_searchfield(searchfield):
 			_raise_exception(searchfield)
 
 		else:
-			regex = re.compile('^.*[=;*,\'"$\-+%#@()].*')
+			regex = re.compile(r'^.*[=;*,\'"$\-+%#@()].*')
 			if any(regex.match(f) for f in searchfield.split()):
 				_raise_exception(searchfield)
 
@@ -109,8 +110,8 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 
 				for f in search_fields:
 					fmeta = meta.get_field(f.strip())
-					if f == "name" or (fmeta and fmeta.fieldtype in ["Data", "Text", "Small Text", "Long Text",
-						"Link", "Select", "Read Only", "Text Editor"]):
+					if (doctype not in UNTRANSLATED_DOCTYPES) and (f == "name" or (fmeta and fmeta.fieldtype in ["Data", "Text", "Small Text", "Long Text",
+						"Link", "Select", "Read Only", "Text Editor"])):
 							or_filters.append([doctype, f.strip(), "like", "%{0}%".format(txt)])
 
 			if meta.get("fields", {"fieldname":"enabled", "fieldtype":"Check"}):
@@ -125,16 +126,20 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			formatted_fields = ['`tab%s`.`%s`' % (meta.name, f.strip()) for f in fields]
 
 			# find relevance as location of search term from the beginning of string `name`. used for sorting results.
-			formatted_fields.append("""locate("{_txt}", `tab{doctype}`.`name`) as `_relevance`""".format(
-				_txt=frappe.db.escape((txt or "").replace("%", "")), doctype=frappe.db.escape(doctype)))
+			formatted_fields.append("""locate({_txt}, `tab{doctype}`.`name`) as `_relevance`""".format(
+				_txt=frappe.db.escape((txt or "").replace("%", "")), doctype=doctype))
 
 
 			# In order_by, `idx` gets second priority, because it stores link count
 			from frappe.model.db_query import get_order_by
 			order_by_based_on_meta = get_order_by(doctype, meta)
-			order_by = "if(_relevance, _relevance, 99999), {0}, `tab{1}`.idx desc".format(order_by_based_on_meta, doctype)
+			# 2 is the index of _relevance column
+			order_by = "2 , {0}, `tab{1}`.idx desc".format(order_by_based_on_meta, doctype)
 
 			ignore_permissions = True if doctype == "DocType" else (cint(ignore_user_permissions) and has_permission(doctype))
+
+			if doctype in UNTRANSLATED_DOCTYPES:
+				page_length = None
 
 			values = frappe.get_list(doctype,
 				filters=filters, fields=formatted_fields,
@@ -143,6 +148,9 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				order_by=order_by,
 				ignore_permissions = ignore_permissions,
 				as_list=not as_dict)
+
+			if doctype in UNTRANSLATED_DOCTYPES:
+				values = tuple([v for v in list(values) if re.search(txt+".*", (_(v.name) if as_dict else _(v[0])), re.IGNORECASE)])
 
 			# remove _relevance from results
 			if as_dict:

@@ -4,5 +4,5 @@
 from __future__ import unicode_literals
 import unittest
 
-class TestGoogleMaps(unittest.TestCase):
+class TestGoogleMapsSettings(unittest.TestCase):
 	pass

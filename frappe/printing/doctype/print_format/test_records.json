@@ -2,7 +2,7 @@
 	{
 		"doctype": "Print Format",
 		"name": "_Test Print Format 1",
-		"module": "core",
+		"module": "Core",
 		"doc_type": "User",
 		"html": ""
 	}

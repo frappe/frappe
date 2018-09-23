@@ -17,7 +17,6 @@ import frappe
 import frappe.handler
 import frappe.auth
 import frappe.api
-import frappe.async
 import frappe.utils.response
 import frappe.website.render
 from frappe.utils import get_site_name
@@ -25,12 +24,6 @@ from frappe.middlewares import StaticDataMiddleware
 from frappe.utils.error import make_error_snapshot
 from frappe.core.doctype.communication.comment import update_comments_in_parent_after_request
 from frappe import _
-
-# imports - third-party imports
-import pymysql
-from pymysql.constants import ER
-
-# imports - module imports
 
 local_manager = LocalManager([frappe.local])
 
@@ -149,8 +142,8 @@ def handle_exception(e):
 		response = frappe.utils.response.report_error(http_status_code)
 
 	elif (http_status_code==500
-		and isinstance(e, pymysql.InternalError)
-		and e.args[0] in (ER.LOCK_WAIT_TIMEOUT, ER.LOCK_DEADLOCK)):
+		and (frappe.db and isinstance(e, frappe.db.InternalError))
+		and (frappe.db and (frappe.db.is_deadlocked(e) or frappe.db.is_timedout(e)))):
 			http_status_code = 508
 
 	elif http_status_code==401:

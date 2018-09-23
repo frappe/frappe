@@ -75,6 +75,15 @@ export default class WebForm {
 		if(doc) {
 			this.field_group.set_values(doc);
 		}
+
+		setTimeout(() => {
+			this.field_group.fields_list.forEach((field_instance) => {
+				let instance_value = field_instance.value;
+				if (instance_value != null && field_instance.df.fieldtype === "Attach" && instance_value.match(".(?:jpg|gif|jpeg|png)") ){
+					field_instance.$input_wrapper.append(`<img src=${field_instance.get_value()} width="auto" height=200>`);
+				}
+			});
+		}, 500);
 	}
 
 	get_values() {

@@ -39,6 +39,9 @@ class FormMeta(Meta):
 		self.load_assets()
 
 	def load_assets(self):
+		if self.get('__assets_loaded', False):
+			return
+
 		self.add_search_fields()
 		self.add_linked_document_type()
 
@@ -50,6 +53,8 @@ class FormMeta(Meta):
 			self.load_templates()
 			self.load_dashboard()
 			self.load_kanban_meta()
+
+		self.set('__assets_loaded', True)
 
 	def as_dict(self, no_nulls=False):
 		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)

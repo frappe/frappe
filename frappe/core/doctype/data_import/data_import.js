@@ -3,6 +3,10 @@
 
 frappe.ui.form.on('Data Import', {
 	onload: function(frm) {
+		if(frm.doc.__islocal) {
+			frm.set_value("action", "");
+		}
+
 		frm.set_query("reference_doctype", function() {
 			return {
 				"filters": {
@@ -33,7 +37,7 @@ frappe.ui.form.on('Data Import', {
 		frm.disable_save();
 		frm.dashboard.clear_headline();
 		if (frm.doc.reference_doctype && !frm.doc.import_file) {
-			frm.page.set_indicator(__('Please attach a file to import'), 'orange');
+			frm.page.set_indicator(__('Attach file'), 'orange');
 		} else {
 			if (frm.doc.import_status) {
 				const listview_settings = frappe.listview_settings['Data Import'];
@@ -51,6 +55,10 @@ frappe.ui.form.on('Data Import', {
 
 		if (frm.doc.reference_doctype) {
 			frappe.model.with_doctype(frm.doc.reference_doctype);
+		}
+
+		if(frm.doc.action == "Insert new records" || frm.doc.action == "Update records") {
+			frm.set_df_property("action", "read_only", 1);
 		}
 
 		frm.add_custom_button(__("Help"), function() {
@@ -82,15 +90,18 @@ frappe.ui.form.on('Data Import', {
 		}
 	},
 
-	reference_doctype: function(frm) {
-		if (frm.doc.reference_doctype) {
-			frm.save();
+	action: function(frm) {
+		if(!frm.doc.action) return;
+		if(!frm.doc.reference_doctype) {
+			frappe.msgprint(__("Please select document type first."));
+			frm.set_value("action", "");
+			return;
 		}
-	},
 
-	overwrite: function(frm) {
-		if (frm.doc.overwrite === 0) {
-			frm.doc.only_update = 0;
+		if(frm.doc.action == "Insert new records") {
+			frm.doc.insert_new = 1;
+		} else if (frm.doc.action == "Update records"){
+			frm.doc.overwrite = 1;
 		}
 		frm.save();
 	},
@@ -136,24 +147,22 @@ frappe.data_import.download_dialog = function(frm) {
 	const filter_fields = df => frappe.model.is_value_type(df) && !df.hidden;
 	const get_fields = dt => frappe.meta.get_docfields(dt).filter(filter_fields);
 
-	const get_doctypes = parentdt => {
-		return [parentdt].concat(
-			frappe.meta.get_table_fields(parentdt).map(df => df.options)
-		);
-	};
-
 	const get_doctype_checkbox_fields = () => {
 		return dialog.fields.filter(df => df.fieldname.endsWith('_fields'))
 			.map(df => dialog.fields_dict[df.fieldname]);
 	};
 
 	const doctype_fields = get_fields(frm.doc.reference_doctype)
-		.map(df => ({
-			label: df.label + (df.reqd ? ' (M)' : ''),
-			reqd: df.reqd ? 1 : 0,
-			value: df.fieldname,
-			checked: 1
-		}));
+		.map(df => {
+			let reqd = (df.reqd || df.fieldname == 'naming_series') ? 1 : 0;
+			return {
+				label: df.label,
+				reqd: reqd,
+				danger: reqd,
+				value: df.fieldname,
+				checked: 1
+			};
+		});
 
 	let fields = [
 		{
@@ -165,15 +174,14 @@ frappe.data_import.download_dialog = function(frm) {
 			"onchange": function() {
 				const fields = get_doctype_checkbox_fields();
 				fields.map(f => f.toggle(true));
-				if(this.value == 'Mandatory') {
+				if(this.value == 'Mandatory' || this.value == 'Manually') {
 					checkbox_toggle(true);
 					fields.map(multicheck_field => {
 						multicheck_field.options.map(option => {
 							if(!option.reqd) return;
-							$(dialog.body).find(`:checkbox[data-unit="${option.value}"]`)
+							$(multicheck_field.$wrapper).find(`:checkbox[data-unit="${option.value}"]`)
 								.prop('checked', false)
-								.trigger('click')
-								.prop('disabled', true);
+								.trigger('click');
 						});
 					});
 				} else if(this.value == 'All'){
@@ -188,11 +196,6 @@ frappe.data_import.download_dialog = function(frm) {
 			"fieldtype": "Select",
 			"options": "Excel\nCSV",
 			"default": "Excel"
-		},
-		{
-			"label": __("Download with Data"),
-			"fieldname": "with_data",
-			"fieldtype": "Check"
 		},
 		{
 			"label": __("Select All"),
@@ -231,10 +234,11 @@ frappe.data_import.download_dialog = function(frm) {
 				"options": frappe.meta.get_docfields(df.options)
 					.filter(filter_fields)
 					.map(df => ({
-						label: df.label + (df.reqd ? ' (M)' : ''),
+						label: df.label,
 						reqd: df.reqd ? 1 : 0,
 						value: df.fieldname,
-						checked: 1
+						checked: 1,
+						danger: df.reqd
 					})),
 				"columns": 2,
 				"hidden": 1
@@ -263,7 +267,7 @@ frappe.data_import.download_dialog = function(frm) {
 						doctype: frm.doc.reference_doctype,
 						parent_doctype: frm.doc.reference_doctype,
 						select_columns: JSON.stringify(columns),
-						with_data: data.with_data,
+						with_data: frm.doc.overwrite,
 						all_doctypes: true,
 						file_type: data.file_type,
 						template: true

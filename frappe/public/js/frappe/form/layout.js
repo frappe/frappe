@@ -316,7 +316,7 @@ frappe.ui.form.Layout = Class.extend({
 					fieldobj.perm = me.frm.perm;
 				}
 			}
-			refresh && fieldobj.refresh && fieldobj.refresh();
+			refresh && fieldobj.df && fieldobj.refresh && fieldobj.refresh();
 		}
 	},
 

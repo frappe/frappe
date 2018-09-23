@@ -12,7 +12,7 @@ source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 
 develop_version = '11.x.x-develop'
-staging_version = '11.0.0-beta'
+staging_version = '11.0.2'
 
 app_email = "info@frappe.io"
 
@@ -162,12 +162,13 @@ scheduler_events = {
 		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.sessions.clear_expired_sessions",
 		"frappe.email.doctype.notification.notification.trigger_daily_alerts",
-		"frappe.async.remove_old_task_logs",
+		"frappe.realtime.remove_old_task_logs",
 		"frappe.utils.scheduler.disable_scheduler_on_expiry",
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.core.doctype.feedback_request.feedback_request.delete_feedback_request",
-		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs"
+		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs",
+		"frappe.utils.change_log.check_for_update"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",

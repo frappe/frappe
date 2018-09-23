@@ -115,6 +115,7 @@ $.extend(frappe.perm, {
 				let permlevel = cint(p.permlevel);
 				if (!perm[permlevel]) {
 					perm[permlevel] = {};
+					perm[permlevel]["permlevel"] = permlevel
 				}
 
 				$.each(frappe.perm.rights, (i, key) => {

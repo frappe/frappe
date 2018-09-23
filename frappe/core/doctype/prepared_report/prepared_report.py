@@ -36,7 +36,7 @@ class PreparedReport(Document):
 def run_background(instance):
 	report = frappe.get_doc("Report", instance.ref_report_doctype)
 	result = generate_report_result(report, filters=json.loads(instance.filters), user=instance.owner)
-	create_csv_file(result['columns'], result['result'], 'Prepared Report', instance.name)
+	create_csv_file(remove_header_meta(result['columns']), result['result'], 'Prepared Report', instance.name)
 
 	instance.status = "Completed"
 	instance.report_end_time = frappe.utils.now()

@@ -252,12 +252,21 @@ def get_list_context(context=None):
 
 
 def get_newsletter_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by="modified"):
-	email_group_list = frappe.db.sql('''select eg.name from `tabEmail Group` eg, `tabEmail Group Member` egm
-		where egm.unsubscribed=0 and eg.name=egm.email_group and egm.email = %s''', frappe.session.user)
+	email_group_list = frappe.db.sql('''SELECT eg.name
+		FROM `tabEmail Group` eg, `tabEmail Group Member` egm
+		WHERE egm.unsubscribed=0
+		AND eg.name=egm.email_group
+		AND egm.email = %s''', frappe.session.user)
+	email_group_list = [d[0] for d in email_group_list]
+
 	if email_group_list:
-		return frappe.db.sql('''select n.name, n.subject, n.message, n.modified
-			from `tabNewsletter` n, `tabNewsletter Email Group` neg
-			where n.name = neg.parent and n.email_sent=1 and n.published=1 and neg.email_group in %s
-			order by n.modified desc limit {0}, {1}
-			'''.format(limit_start, limit_page_length), [email_group_list], as_dict=1)
+		return frappe.db.sql('''SELECT n.name, n.subject, n.message, n.modified
+			FROM `tabNewsletter` n, `tabNewsletter Email Group` neg
+			WHERE n.name = neg.parent
+			AND n.email_sent=1
+			AND n.published=1
+			AND neg.email_group in ({0})
+			ORDER BY n.modified DESC LIMIT {1} OFFSET {2}
+			'''.format(','.join(['%s'] * len(email_group_list)),
+					limit_page_length, limit_start), email_group_list, as_dict=1)
 

@@ -26,6 +26,7 @@ class AutoRepeat(Document):
 		self.validate_dates()
 		self.validate_next_schedule_date()
 		self.validate_email_id()
+		self.link_party()
 
 		validate_template(self.subject or "")
 		validate_template(self.message or "")
@@ -123,6 +124,14 @@ class AutoRepeat(Document):
 			schedule_details.append(row)
 
 		return schedule_details
+
+	def link_party(self):
+		reference = frappe.get_meta(self.reference_doctype)
+		for field in reference.fields:
+			if field.options in ['Customer', 'Supplier', 'Employee']:
+				self.reference_party_doctype = field.options
+				self.reference_party = frappe.db.get_value(self.reference_doctype, self.reference_document, field.fieldname)
+				break
 
 def get_next_schedule_date(start_date, frequency, repeat_on_day):
 	mcount = month_map.get(frequency)
@@ -376,3 +385,13 @@ def update_reference(docname, reference):
 	except Exception as e:
 		raise e
 		return "error"
+
+@frappe.whitelist()
+def generate_message_preview(reference_dt, reference_doc, message=None, subject=None):
+	doc = frappe.get_doc(reference_dt, reference_doc)
+	subject_preview = _("Please add a subject to your email")
+	msg_preview = frappe.render_template(message, {'doc': doc})
+	if subject:
+		subject_preview = frappe.render_template(subject, {'doc': doc})
+
+	return {'message': msg_preview, 'subject': subject_preview}

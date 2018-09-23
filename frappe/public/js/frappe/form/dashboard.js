@@ -85,11 +85,43 @@ frappe.ui.form.Dashboard = Class.extend({
 				title="%(title)s"></div>', opts)).appendTo(progress);
 		});
 
-		if(message) {
-			$('<p class="text-muted small">' + message + '</p>').appendTo(this.progress_area);
-		}
+		if (!message) message = '';
+		$(`<p class="progress-message text-muted small">${message}</p>`).appendTo(progress_chart);
 
 		this.show();
+
+		return progress_chart;
+	},
+
+	show_progress: function(title, percent, message) {
+		this._progress_map = this._progress_map || {};
+		if (!this._progress_map[title]) {
+			const progress_chart = this.add_progress(title, percent, message);
+			this._progress_map[title] = progress_chart;
+		}
+		let progress_chart = this._progress_map[title];
+		if (!$.isArray(percent)) {
+			percent = this.format_percent(title, percent);
+		}
+		progress_chart.find('.progress-bar').each((i, progress_bar) => {
+			const { progress_class, width } = percent[i];
+			$(progress_bar).css('width', width)
+				.removeClass('progress-bar-danger progress-bar-success')
+				.addClass(progress_class);
+		});
+
+		if (!message) message = '';
+		progress_chart.find('.progress-message').text(message);
+	},
+
+	hide_progress: function(title) {
+		if (title){
+			this._progress_map[title].remove();
+			delete this._progress_map[title];
+		} else {
+			this._progress_map = {};
+			this.progress_area.empty();
+		}
 	},
 
 	format_percent: function(title, percent) {
@@ -359,9 +391,7 @@ frappe.ui.form.Dashboard = Class.extend({
 
 	update_heatmap: function(data) {
 		if(this.heatmap) {
-			this.heatmap.update({
-				dataPoints: data
-			});
+			this.heatmap.update(data);
 		}
 	},
 

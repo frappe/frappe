@@ -80,7 +80,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 					doc.run_method('on_change')
 
 				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links', doctype=doc.doctype, name=doc.name,
-					async=False if frappe.flags.in_test else True)
+					is_async=False if frappe.flags.in_test else True)
 
 				# check if links exist
 				if not force:
@@ -131,9 +131,9 @@ def update_naming_series(doc):
 
 def delete_from_table(doctype, name, ignore_doctypes, doc):
 	if doctype!="DocType" and doctype==name:
-		frappe.db.sql("delete from `tabSingles` where doctype=%s", name)
+		frappe.db.sql("delete from `tabSingles` where `doctype`=%s", name)
 	else:
-		frappe.db.sql("delete from `tab{0}` where name=%s".format(doctype), name)
+		frappe.db.sql("delete from `tab{0}` where `name`=%s".format(doctype), name)
 
 	# get child tables
 	if doc:
@@ -233,8 +233,8 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 				raise_link_exists_exception(doc, df.parent, df.parent)
 		else:
 			# dynamic link in table
-			df["table"] = ", parent, parenttype, idx" if meta.istable else ""
-			for refdoc in frappe.db.sql("""select name, docstatus{table} from `tab{parent}` where
+			df["table"] = ", `parent`, `parenttype`, `idx`" if meta.istable else ""
+			for refdoc in frappe.db.sql("""select `name`, `docstatus` {table} from `tab{parent}` where
 				{options}=%s and {fieldname}=%s""".format(**df), (doc.doctype, doc.name), as_dict=True):
 
 				if ((method=="Delete" and refdoc.docstatus < 2) or (method=="Cancel" and refdoc.docstatus==1)):
@@ -324,4 +324,3 @@ def insert_feed(doc):
 		"subject": "{0} {1}".format(_(doc.doctype), doc.name),
 		"full_name": get_fullname(doc.owner)
 	}).insert(ignore_permissions=True)
-

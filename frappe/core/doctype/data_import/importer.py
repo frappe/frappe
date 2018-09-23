@@ -7,7 +7,6 @@ from six.moves import range
 import requests
 import frappe, json, os
 import frappe.permissions
-import frappe.async
 
 from frappe import _
 
@@ -204,7 +203,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	# importing the item variant where item code and item name will be blank.
 	def main_doc_empty(row):
 		if row:
-			for i in range(3,1,-1):
+			for i in range(3,0,-1):
 				if len(row) > i and row[i]:
 					return False
 		return True

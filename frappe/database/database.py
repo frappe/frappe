@@ -5,67 +5,55 @@
 # --------------------
 
 from __future__ import unicode_literals
-import warnings
-import datetime
-import frappe
-import frappe.defaults
-import frappe.async
-from time import time
+
 import re
+import time
+import frappe
+import datetime
+import frappe.defaults
 import frappe.model.meta
-from frappe.utils import now, get_datetime, cstr, cast_fieldtype
+
 from frappe import _
-from frappe.model.utils.link_count import flush_local_link_count
-from frappe.model.utils import STANDARD_FIELD_CONVERSION_MAP
+from time import time
+from frappe.utils import now, getdate, cast_fieldtype
 from frappe.utils.background_jobs import execute_job, get_queue
-from frappe import as_unicode
-import six
+from frappe.model.utils.link_count import flush_local_link_count
 
 # imports - compatibility imports
 from six import (
 	integer_types,
 	string_types,
-	binary_type,
 	text_type,
 	iteritems
 )
 
-# imports - third-party imports
-from markdown2 import UnicodeWithAttrs
-from pymysql.times import TimeDelta
-from pymysql.constants 	import ER, FIELD_TYPE
-from pymysql.converters import conversions
-import pymysql
-
-# Helpers
-def _cast_result(doctype, result):
-	batch = [ ]
-
-	try:
-		for field, value in result:
-			df = frappe.get_meta(doctype).get_field(field)
-			if df:
-				value = cast_fieldtype(df.fieldtype, value)
-
-			batch.append(tuple([field, value]))
-	except frappe.exceptions.DoesNotExistError:
-		return result
-
-	return tuple(batch)
-
-class Database:
+class Database(object):
 	"""
 	   Open a database connection with the given parmeters, if use_default is True, use the
 	   login details from `conf.py`. This is called by the request handler and is accessible using
 	   the `db` global variable. the `sql` method is also global to run queries
 	"""
-	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default = 0, local_infile = 0):
+	VARCHAR_LEN = 140
+	MAX_COLUMN_LENGTH = 64
+
+	OPTIONAL_COLUMNS = ["_user_tags", "_comments", "_assign", "_liked_by"]
+	DEFAULT_SHORTCUTS = ['_Login', '__user', '_Full Name', 'Today', '__today', "now", "Now"]
+	STANDARD_VARCHAR_COLUMNS = ('name', 'owner', 'modified_by', 'parent', 'parentfield', 'parenttype')
+	DEFAULT_COLUMNS = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'parent',
+		'parentfield', 'parenttype', 'idx']
+
+	class InvalidColumnName(frappe.ValidationError): pass
+
+
+	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default=0):
+		self.setup_type_map()
 		self.host = host or frappe.conf.db_host or 'localhost'
 		self.user = user or frappe.conf.db_name
+		self.db_name = frappe.conf.db_name
 		self._conn = None
 
 		if ac_name:
-			self.user = self.get_db_login(ac_name) or frappe.conf.db_name
+			self.user = ac_name or frappe.conf.db_name
 
 		if use_default:
 			self.user = frappe.conf.db_name
@@ -76,63 +64,25 @@ class Database:
 		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
 
-		# this param is to load CSV's with LOCAL keyword.
-		# it can be set in site_config as > bench set-config local_infile 1
-		# once the local-infile is set on MySql Server, the client needs to connect with this option
-		# Connections without this option leads to: 'The used command is not allowed with this MariaDB version' error
-		self.local_infile = local_infile or frappe.conf.local_infile
-
-	def get_db_login(self, ac_name):
-		return ac_name
+	def setup_type_map(self):
+		pass
 
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
-		warnings.filterwarnings('ignore', category=pymysql.Warning)
-		usessl = 0
-		if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
-			usessl = 1
-			self.ssl = {
-				'ca':frappe.conf.db_ssl_ca,
-				'cert':frappe.conf.db_ssl_cert,
-				'key':frappe.conf.db_ssl_key
-			}
-
-		conversions.update({
-			FIELD_TYPE.NEWDECIMAL: float,
-			FIELD_TYPE.DATETIME: get_datetime,
-			UnicodeWithAttrs: conversions[text_type]
-		})
-
-		if six.PY2:
-			conversions.update({
-				TimeDelta: conversions[binary_type]
-			})
-
-		if usessl:
-			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				charset='utf8mb4', use_unicode = True, ssl=self.ssl, conv = conversions, local_infile = self.local_infile)
-		else:
-			self._conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				charset='utf8mb4', use_unicode = True, conv = conversions, local_infile = self.local_infile)
-
-		# MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
-		# # self._conn.set_server_option(MYSQL_OPTION_MULTI_STATEMENTS_OFF)
-
+		self.cur_db_name = self.user
+		self._conn = self.get_connection()
 		self._cursor = self._conn.cursor()
-		if self.user != 'root':
-			self.use(self.user)
 		frappe.local.rollback_observers = []
 
 	def use(self, db_name):
 		"""`USE` db_name."""
 		self._conn.select_db(db_name)
-		self.cur_db_name = db_name
 
-	def validate_query(self, q):
-		"""Throw exception for dangerous queries: `ALTER`, `DROP`, `TRUNCATE` if not `Administrator`."""
-		cmd = q.strip().lower().split()[0]
-		if cmd in ['alter', 'drop', 'truncate'] and frappe.session.user != 'Administrator':
-			frappe.throw(_("Not permitted"), frappe.PermissionError)
+	def get_connection(self):
+		pass
+
+	def get_database_size(self):
+		pass
 
 	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0,
 		debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None, explain=False):
@@ -162,6 +112,10 @@ class Database:
 				{"name": "a%", "owner":"test@example.com"})
 
 		"""
+		if re.search(r'ifnull\(', query, flags=re.IGNORECASE):
+			# replaces ifnull in query with coalesce
+			query = re.sub(r'ifnull\(', 'coalesce(', query, flags=re.IGNORECASE)
+
 		if not self._conn:
 			self.connect()
 
@@ -184,7 +138,7 @@ class Database:
 				if not isinstance(values, (dict, tuple, list)):
 					values = (values,)
 
-				if debug and query.lower().startswith('select'):
+				if debug:
 					try:
 						if explain:
 							self.explain_query(query, values)
@@ -215,22 +169,18 @@ class Database:
 				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
 
 		except Exception as e:
-			if ignore_ddl and e.args[0] in (ER.BAD_FIELD_ERROR, ER.NO_SUCH_TABLE,
-				ER.CANT_DROP_FIELD_OR_KEY):
-				pass
+			if(frappe.conf.db_type == 'postgres'):
+				self.rollback()
 
-			# NOTE: causes deadlock
-			# elif e.args[0]==2006:
-			# 	# mysql has gone away
-			# 	self.connect()
-			# 	return self.sql(query=query, values=values,
-			# 		as_dict=as_dict, as_list=as_list, formatted=formatted,
-			# 		debug=debug, ignore_ddl=ignore_ddl, as_utf8=as_utf8,
-			# 		auto_commit=auto_commit, update=update)
+			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
+				pass
 			else:
 				raise
 
 		if auto_commit: self.commit()
+
+		if not self._cursor.description:
+			return ()
 
 		# scrub output if required
 		if as_dict:
@@ -257,7 +207,7 @@ class Database:
 			import json
 			frappe.errprint(json.dumps(self.fetch_as_dict(), indent=1))
 			frappe.errprint("--- query explain end ---")
-		except:
+		except Exception:
 			frappe.errprint("error in query explain")
 
 	def sql_list(self, query, values=(), debug=False):
@@ -291,7 +241,7 @@ class Database:
 			self.transaction_writes += 1
 			if self.transaction_writes > 200000:
 				if self.auto_commit_on_many_writes:
-					frappe.db.commit()
+					self.commit()
 				else:
 					frappe.throw(_("Too many writes in one request. Please send smaller requests"), frappe.ValidationError)
 
@@ -299,26 +249,21 @@ class Database:
 		"""Internal. Converts results to dict."""
 		result = self._cursor.fetchall()
 		ret = []
-		needs_formatting = self.needs_formatting(result, formatted)
 		if result:
 			keys = [column[0] for column in self._cursor.description]
 
 		for r in result:
 			values = []
-			for i in range(len(r)):
-				if needs_formatting:
-					val = self.convert_to_simple_type(r[i], formatted)
-				else:
-					val = r[i]
-
-				if as_utf8 and type(val) is text_type:
-					val = val.encode('utf-8')
-				values.append(val)
+			for value in r:
+				if as_utf8 and isinstance(value, text_type):
+					value = value.encode('utf-8')
+				values.append(value)
 
 			ret.append(frappe._dict(zip(keys, values)))
 		return ret
 
-	def needs_formatting(self, result, formatted):
+	@staticmethod
+	def needs_formatting(result, formatted):
 		"""Returns true if the first row in the result has a Date, Datetime, Long Int."""
 		if result and result[0]:
 			for v in result[0]:
@@ -333,65 +278,21 @@ class Database:
 		"""Returns result metadata."""
 		return self._cursor.description
 
-	def convert_to_simple_type(self, v, formatted=0):
-		"""Format date, time, longint values."""
-		return v
-
-		from frappe.utils import formatdate, fmt_money
-
-		if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, integer_types)):
-			if isinstance(v, datetime.date):
-				v = text_type(v)
-				if formatted:
-					v = formatdate(v)
-
-			# time
-			elif isinstance(v, (datetime.timedelta, datetime.datetime)):
-				v = text_type(v)
-
-			# long
-			elif isinstance(v, integer_types):
-				v=int(v)
-
-		# convert to strings... (if formatted)
-		if formatted:
-			if isinstance(v, float):
-				v=fmt_money(v)
-			elif isinstance(v, int):
-				v = text_type(v)
-
-		return v
-
-	def convert_to_lists(self, res, formatted=0, as_utf8=0):
+	@staticmethod
+	def convert_to_lists(res, formatted=0, as_utf8=0):
 		"""Convert tuple output to lists (internal)."""
 		nres = []
-		needs_formatting = self.needs_formatting(res, formatted)
 		for r in res:
 			nr = []
-			for c in r:
-				if needs_formatting:
-					val = self.convert_to_simple_type(c, formatted)
-				else:
-					val = c
-				if as_utf8 and type(val) is text_type:
+			for val in r:
+				if as_utf8 and isinstance(val, text_type):
 					val = val.encode('utf-8')
 				nr.append(val)
 			nres.append(nr)
 		return nres
 
-	def convert_to_utf8(self, res, formatted=0):
-		"""Encode result as UTF-8."""
-		nres = []
-		for r in res:
-			nr = []
-			for c in r:
-				if type(c) is text_type:
-					c = c.encode('utf-8')
-					nr.append(self.convert_to_simple_type(c, formatted))
-			nres.append(nr)
-		return nres
-
-	def build_conditions(self, filters):
+	@staticmethod
+	def build_conditions(filters):
 		"""Convert filters sent as dict, lists to SQL conditions. filter's key
 		is passed by map function, build conditions like:
 
@@ -431,7 +332,7 @@ class Database:
 
 			if "[" in key:
 				split_key = key.split("[")
-				condition = "ifnull(`" + split_key[0] + "`, " + split_key[1][:-1] + ") " \
+				condition = "coalesce(`" + split_key[0] + "`, " + split_key[1][:-1] + ") " \
 					+ _operator + _rhs
 			else:
 				condition = "`" + key + "` " + _operator + _rhs
@@ -528,10 +429,10 @@ class Database:
 				try:
 					out = self._get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update)
 				except Exception as e:
-					if ignore and e.args[0] in (1146, 1054):
+					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
 						# table or column not found, return None
 						out = None
-					elif (not ignore) and e.args[0]==1146:
+					elif (not ignore) and frappe.db.is_table_missing(e):
 						# table not found, look in singles
 						out = self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
 					else:
@@ -567,14 +468,13 @@ class Database:
 				return values and [values] or []
 
 			if isinstance(fields, list):
-				return [map(lambda d: values.get(d), fields)]
+				return [map(values.get, fields)]
 
 		else:
 			r = self.sql("""select field, value
-				from tabSingles where field in (%s) and doctype=%s""" \
+				from `tabSingles` where field in (%s) and doctype=%s"""
 					% (', '.join(['%s'] * len(fields)), '%s'),
 					tuple(fields) + (doctype,), as_dict=False, debug=debug)
-			# r = _cast_result(doctype, r)
 
 			if as_dict:
 				if r:
@@ -608,10 +508,12 @@ class Database:
 
 		return dict_
 
-	def get_all(self, *args, **kwargs):
+	@staticmethod
+	def get_all(*args, **kwargs):
 		return frappe.get_all(*args, **kwargs)
 
-	def get_list(self, *args, **kwargs):
+	@staticmethod
+	def get_list(*args, **kwargs):
 		return frappe.get_list(*args, **kwargs)
 
 	def get_single_value(self, doctype, fieldname, cache=False):
@@ -632,8 +534,8 @@ class Database:
 		if fieldname in self.value_cache[doctype]:
 			return self.value_cache[doctype][fieldname]
 
-		val = self.sql("""select value from
-			tabSingles where doctype=%s and field=%s""", (doctype, fieldname))
+		val = self.sql("""select `value` from
+			`tabSingles` where `doctype`=%s and `field`=%s""", (doctype, fieldname))
 		val = val[0][0] if val else None
 
 		if val=="0" or val=="1":
@@ -676,8 +578,10 @@ class Database:
 		names = list(filter(None, names))
 
 		if names:
-			return dict(self.sql("select name, `%s` from `tab%s` where name in (%s)" \
-				% (field, doctype, ", ".join(["%s"]*len(names))), names, debug=debug))
+			return self.get_all(doctype,
+				fields=['name', field],
+				filters=[['name', 'in', names]],
+				debug=debug, as_list=1)
 		else:
 			return {}
 
@@ -733,12 +637,12 @@ class Database:
 			# for singles
 			keys = list(to_update)
 			self.sql('''
-				delete from tabSingles
+				delete from `tabSingles`
 				where field in ({0}) and
 					doctype=%s'''.format(', '.join(['%s']*len(keys))),
 					list(keys) + [dt], debug=debug)
 			for key, value in iteritems(to_update):
-				self.sql('''insert into tabSingles(doctype, field, value) values (%s, %s, %s)''',
+				self.sql('''insert into `tabSingles` (doctype, field, value) values (%s, %s, %s)''',
 					(dt, key, value), debug=debug)
 
 		if dt in self.value_cache:
@@ -746,25 +650,27 @@ class Database:
 
 		frappe.clear_document_cache(dt, dn)
 
-	def set(self, doc, field, val):
+	@staticmethod
+	def set(doc, field, val):
 		"""Set value in document. **Avoid**"""
 		doc.db_set(field, val)
 
 	def touch(self, doctype, docname):
 		"""Update the modified timestamp of this document."""
-		from frappe.utils import now
 		modified = now()
-		frappe.db.sql("""update `tab{doctype}` set `modified`=%s
+		self.sql("""update `tab{doctype}` set `modified`=%s
 			where name=%s""".format(doctype=doctype), (modified, docname))
 		return modified
 
-	def set_temp(self, value):
+	@staticmethod
+	def set_temp(value):
 		"""Set a temperory value and return a key."""
 		key = frappe.generate_hash()
 		frappe.cache().hset("temp", key, value)
 		return key
 
-	def get_temp(self, key):
+	@staticmethod
+	def get_temp(key):
 		"""Return the temperory value and delete it."""
 		return frappe.cache().hget("temp", key)
 
@@ -776,20 +682,24 @@ class Database:
 		"""Returns a global key value."""
 		return self.get_default(key, user)
 
-	def set_default(self, key, val, parent="__default", parenttype=None):
-		"""Sets a global / user default value."""
-		frappe.defaults.set_default(key, val, parent, parenttype)
-
-	def add_default(self, key, val, parent="__default", parenttype=None):
-		"""Append a default value for a key, there can be multiple default values for a particular key."""
-		frappe.defaults.add_default(key, val, parent, parenttype)
-
 	def get_default(self, key, parent="__default"):
 		"""Returns default value as a list if multiple or single"""
 		d = self.get_defaults(key, parent)
 		return isinstance(d, list) and d[0] or d
 
-	def get_defaults(self, key=None, parent="__default"):
+	@staticmethod
+	def set_default(key, val, parent="__default", parenttype=None):
+		"""Sets a global / user default value."""
+		frappe.defaults.set_default(key, val, parent, parenttype)
+
+	@staticmethod
+	def add_default(key, val, parent="__default", parenttype=None):
+		"""Append a default value for a key, there can be multiple default values for a particular key."""
+		frappe.defaults.add_default(key, val, parent, parenttype)
+
+
+	@staticmethod
+	def get_defaults(key=None, parent="__default"):
 		"""Get all defaults"""
 		if key:
 			defaults = frappe.defaults.get_defaults(parent)
@@ -801,7 +711,7 @@ class Database:
 			return frappe.defaults.get_defaults(parent)
 
 	def begin(self):
-		self.sql("start transaction")
+		self.sql("START TRANSACTION")
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
@@ -811,9 +721,10 @@ class Database:
 		enqueue_jobs_after_commit()
 		flush_local_link_count()
 
-	def flush_realtime_log(self):
+	@staticmethod
+	def flush_realtime_log():
 		for args in frappe.local.realtime_log:
-			frappe.async.emit_via_redis(*args)
+			frappe.realtime.emit_via_redis(*args)
 
 		frappe.local.realtime_log = []
 
@@ -835,7 +746,7 @@ class Database:
 		return ("tab" + doctype) in self.get_tables()
 
 	def get_tables(self):
-		return [d[0] for d in self.sql("show tables")]
+		return [d[0] for d in self.sql("select table_name from information_schema.tables where table_schema not in ('pg_catalog', 'information_schema')")]
 
 	def a_row_exists(self, doctype):
 		"""Returns True if atleast one row exists."""
@@ -851,7 +762,7 @@ class Database:
 				return True # single always exists (!)
 			try:
 				return self.get_value(dt, dn, "name", cache=cache)
-			except:
+			except Exception:
 				return None
 
 		elif isinstance(dt, dict) and dt.get('doctype'):
@@ -859,10 +770,9 @@ class Database:
 				conditions = []
 				for d in dt:
 					if d == 'doctype': continue
-					conditions.append('`%s` = "%s"' % (d, cstr(dt[d]).replace('"', '\"')))
-				return self.sql('select name from `tab%s` where %s' % \
-						(dt['doctype'], " and ".join(conditions)))
-			except:
+					conditions.append([d, '=', dt[d]])
+				return self.get_all(dt['doctype'], filters=conditions, as_list=1)
+			except Exception:
 				return None
 
 	def count(self, dt, filters=None, debug=False, cache=False):
@@ -873,11 +783,11 @@ class Database:
 				return cache_count
 		if filters:
 			conditions, filters = self.build_conditions(filters)
-			count = frappe.db.sql("""select count(*)
+			count = self.sql("""select count(*)
 				from `tab%s` where %s""" % (dt, conditions), filters, debug=debug)[0][0]
 			return count
 		else:
-			count = frappe.db.sql("""select count(*)
+			count = self.sql("""select count(*)
 				from `tab%s`""" % (dt,))[0][0]
 
 			if cache:
@@ -885,58 +795,69 @@ class Database:
 
 			return count
 
+	@staticmethod
+	def format_date(date):
+		return getdate(date).strftime("%Y-%m-%d")
+
+	@staticmethod
+	def format_datetime(datetime):
+		if not datetime:
+			return '0001-01-01 00:00:00.000000'
+
+		if isinstance(datetime, frappe.string_types):
+			if ':' not in datetime:
+				datetime = datetime + ' 00:00:00.000000'
+		else:
+			datetime = datetime.strftime("%Y-%m-%d %H:%M:%S.%f")
+
+		return datetime
 
 	def get_creation_count(self, doctype, minutes):
 		"""Get count of records created in the last x minutes"""
 		from frappe.utils import now_datetime
 		from dateutil.relativedelta import relativedelta
 
-		return frappe.db.sql("""select count(name) from `tab{doctype}`
+		return self.sql("""select count(name) from `tab{doctype}`
 			where creation >= %s""".format(doctype=doctype),
 			now_datetime() - relativedelta(minutes=minutes))[0][0]
 
 	def get_db_table_columns(self, table):
 		"""Returns list of column names from given table."""
-		return [r[0] for r in self.sql("DESC `%s`" % table)]
+		return [r[0] for r in self.sql('''
+			select column_name
+			from information_schema.columns
+			where table_name = %s ''', table)]
 
 	def get_table_columns(self, doctype):
 		"""Returns list of column names from given doctype."""
-		return self.get_db_table_columns('tab' + doctype)
+		columns = self.get_db_table_columns('tab' + doctype)
+		if not columns:
+			raise self.ProgrammingError
+		return columns
 
 	def has_column(self, doctype, column):
 		"""Returns True if column exists in database."""
 		return column in self.get_table_columns(doctype)
 
 	def get_column_type(self, doctype, column):
-		return frappe.db.sql('''SELECT column_type FROM INFORMATION_SCHEMA.COLUMNS
-			WHERE table_name = 'tab{0}' AND COLUMN_NAME = "{1}"'''.format(doctype, column))[0][0]
+		return self.sql('''SELECT column_type FROM INFORMATION_SCHEMA.COLUMNS
+			WHERE table_name = 'tab{0}' AND column_name = '{1}' '''.format(doctype, column))[0][0]
+
+	def has_index(self, table_name, index_name):
+		pass
 
 	def add_index(self, doctype, fields, index_name=None):
-		"""Creates an index with given fields if not already created.
-		Index name will be `fieldname1_fieldname2_index`"""
-		if not index_name:
-			index_name = "_".join(fields) + "_index"
-
-			# remove index length if present e.g. (10) from index name
-			index_name = re.sub(r"\s*\([^)]+\)\s*", r"", index_name)
-
-		if not frappe.db.sql("""show index from `tab%s` where Key_name="%s" """ % (doctype, index_name)):
-			frappe.db.commit()
-			frappe.db.sql("""alter table `tab%s`
-				add index `%s`(%s)""" % (doctype, index_name, ", ".join(fields)))
+		pass
 
 	def add_unique(self, doctype, fields, constraint_name=None):
-		if isinstance(fields, string_types):
-			fields = [fields]
-		if not constraint_name:
-			constraint_name = "unique_" + "_".join(fields)
+		pass
 
-		if not frappe.db.sql("""select CONSTRAINT_NAME from information_schema.TABLE_CONSTRAINTS
-			where table_name=%s and constraint_type='UNIQUE' and CONSTRAINT_NAME=%s""",
-			('tab' + doctype, constraint_name)):
-				frappe.db.commit()
-				frappe.db.sql("""alter table `tab%s`
-					add unique `%s`(%s)""" % (doctype, constraint_name, ", ".join(fields)))
+	@staticmethod
+	def get_index_name(fields):
+		index_name = "_".join(fields) + "_index"
+		# remove index length if present e.g. (10) from index name
+		index_name = re.sub(r"\s*\([^)]+\)\s*", r"", index_name)
+		return index_name
 
 	def get_system_setting(self, key):
 		def _load_system_settings():
@@ -951,20 +872,11 @@ class Database:
 			self._cursor = None
 			self._conn = None
 
-	def escape(self, s, percent=True):
+	@staticmethod
+	def escape(s, percent=True):
 		"""Excape quotes and percent in given string."""
-		# pymysql expects unicode argument to escape_string with Python 3
-		s = as_unicode(pymysql.escape_string(as_unicode(s)), "utf-8").replace("`", "\\`")
-
-		# NOTE separating % escape, because % escape should only be done when using LIKE operator
-		# or when you use python format string to generate query that already has a %s
-		# for example: sql("select name from `tabUser` where name=%s and {0}".format(conditions), something)
-		# defaulting it to True, as this is the most frequent use case
-		# ideally we shouldn't have to use ESCAPE and strive to pass values via the values argument of sql
-		if percent:
-			s = s.replace("%", "%%")
-
-		return s
+		# implemented in specific class
+		pass
 
 	def get_descendants(self, doctype, name):
 		'''Return descendants of the current record'''
@@ -972,10 +884,45 @@ class Database:
 		return self.sql_list('''select name from `tab{doctype}`
 			where lft > {lft} and rgt < {rgt}'''.format(doctype=doctype, lft=lft, rgt=rgt))
 
+	def is_missing_table_or_column(self, e):
+		return self.is_missing_column(e) or self.is_missing_table(e)
+
+	def multisql(self, sql_dict, values=(), **kwargs):
+		current_dialect = frappe.conf.db_type or 'mariadb'
+		query = sql_dict.get(current_dialect)
+		return self.sql(query, values, **kwargs)
+
+	def delete(self, doctype, conditions):
+		if conditions:
+			conditions, values = self.build_conditions(conditions)
+			return self.sql("DELETE FROM `tab{doctype}` where {conditions}".format(
+				doctype=doctype,
+				conditions=conditions
+			), values)
+		else:
+			frappe.throw('No conditions provided')
+
+
 def enqueue_jobs_after_commit():
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
 		for job in frappe.flags.enqueue_after_commit:
-			q = get_queue(job.get("queue"), async=job.get("async"))
+			q = get_queue(job.get("queue"), is_async=job.get("is_async"))
 			q.enqueue_call(execute_job, timeout=job.get("timeout"),
 							kwargs=job.get("queue_args"))
 		frappe.flags.enqueue_after_commit = []
+
+# Helpers
+def _cast_result(doctype, result):
+	batch = [ ]
+
+	try:
+		for field, value in result:
+			df = frappe.get_meta(doctype).get_field(field)
+			if df:
+				value = cast_fieldtype(df.fieldtype, value)
+
+			batch.append(tuple([field, value]))
+	except frappe.exceptions.DoesNotExistError:
+		return result
+
+	return tuple(batch)

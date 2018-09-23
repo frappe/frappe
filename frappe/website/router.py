@@ -115,7 +115,7 @@ def get_page_info_from_doctypes(path=None):
 				if path:
 					return routes[r.route]
 		except Exception as e:
-			if e.args[0]!=1054: raise e
+			if not frappe.db.is_missing_column(e): raise e
 
 	return routes
 
@@ -321,7 +321,7 @@ def sync_global_search():
 	frappe.session.user = 'Guest'
 	frappe.local.no_cache = True
 
-	frappe.db.sql('delete from __global_search where doctype="Static Web Page"')
+	frappe.db.sql("DELETE FROM `__global_search` WHERE `doctype`='Static Web Page'")
 
 	for app in frappe.get_installed_apps(frappe_last=True):
 		app_path = frappe.get_app_path(app)

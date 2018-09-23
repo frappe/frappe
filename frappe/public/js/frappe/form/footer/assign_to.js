@@ -170,7 +170,6 @@ frappe.ui.form.AssignToDialog = Class.extend({
 			me.get_field("assign_to").$wrapper.toggle(false);
 		} else {
 			me.set_value("assign_to", "");
-			me.set_value("notify", 1);
 			me.get_field("notify").$wrapper.toggle(true);
 			me.get_field("assign_to").$wrapper.toggle(true);
 		}
