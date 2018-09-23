@@ -11,10 +11,6 @@ import subprocess # nosec
 from frappe.utils import cstr
 from frappe.utils.gitutils import get_app_last_commit_ref, get_app_branch
 from frappe import _, safe_decode
-<<<<<<< HEAD
-=======
-import subprocess # nosec
->>>>>>> 31ab5f8... Installation Failure Fix for Python 3 - safe_decode bytes to string
 
 def get_change_log(user=None):
 	if not user: user = frappe.session.user
@@ -121,12 +117,8 @@ def get_versions():
 def get_app_branch(app):
 	'''Returns branch of an app'''
 	try:
-<<<<<<< HEAD
-		result = subprocess.check_output('cd ../apps/{0} && git rev-parse --abbrev-ref HEAD'.format(app),shell=True)
-=======
 		result = subprocess.check_output('cd ../apps/{0} && git rev-parse --abbrev-ref HEAD'.format(app),
 			shell=True)
->>>>>>> 31ab5f8... Installation Failure Fix for Python 3 - safe_decode bytes to string
 		result = safe_decode(result)
 		result = result.strip()
 		return result
