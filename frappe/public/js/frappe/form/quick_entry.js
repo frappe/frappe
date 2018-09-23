@@ -39,7 +39,8 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 
 	set_meta_and_mandatory_fields: function(){
 		let fields = frappe.get_meta(this.doctype).fields;
-		if (fields.length < 7) {
+		this.meta = frappe.get_meta(this.doctype);
+		if (fields.length < this.meta.quick_entry_count) {
 			// if less than 7 fields, then show everything
 			this.mandatory = fields;
 		} else {
@@ -47,7 +48,6 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 			this.mandatory = $.map(fields,
 				function(d) { return ((d.reqd || d.bold || d.allow_in_quick_entry) && !d.read_only) ? $.extend({}, d) : null; });
 		}
-		this.meta = frappe.get_meta(this.doctype);
 		if (!this.doc) {
 			this.doc = frappe.model.get_new_doc(this.doctype, null, null, true);
 		}
@@ -69,7 +69,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 	},
 
 	too_many_mandatory_fields: function(){
-		if(this.mandatory.length > 7) {
+		if(this.mandatory.length > this.meta.quick_entry_count) {
 			// too many fields, show form
 			return true;
 		}
