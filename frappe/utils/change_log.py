@@ -127,11 +127,10 @@ def get_app_branch(app):
 
 def get_app_last_commit_ref(app):
 	try:
-		result = subprocess.check_output('cd ../apps/{0} && git rev-parse HEAD'.format(app),
+		result = subprocess.check_output('cd ../apps/{0} && git rev-parse HEAD --short 7'.format(app),
 			shell=True)
 		result = safe_decode(result)
 		result = result.strip()
-		result = result[:7]
 		return result
 	except Exception as e:
 		return ''
