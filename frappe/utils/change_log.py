@@ -10,7 +10,7 @@ import requests
 import subprocess # nosec
 from frappe.utils import cstr
 from frappe.utils.gitutils import get_app_last_commit_ref, get_app_branch
-from frappe import _
+from frappe import _, safe_decode
 
 def get_change_log(user=None):
 	if not user: user = frappe.session.user
@@ -117,8 +117,10 @@ def get_versions():
 def get_app_branch(app):
 	'''Returns branch of an app'''
 	try:
-		return subprocess.check_output('cd ../apps/{0} && git rev-parse --abbrev-ref HEAD'.format(app),
-			shell=True).strip()
+		result = subprocess.check_output('cd ../apps/{0} && git rev-parse --abbrev-ref HEAD'.format(app),shell=True)
+		result = safe_decode(result)
+		result = result.strip()
+		return result
 	except Exception as e:
 		return ''
 
