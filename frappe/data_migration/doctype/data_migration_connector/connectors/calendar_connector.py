@@ -141,7 +141,7 @@ class CalendarConnector(BaseConnection):
 				'description': doc.description
 			}
 
-			if doc.event_type == "Cancel":
+			if doc.event_type == "Cancelled":
 				event.update({"status": "cancelled"})
 
 			dates = self.return_dates(doc)

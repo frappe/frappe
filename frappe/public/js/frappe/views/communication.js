@@ -1,4 +1,4 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.last_edited_communication = {};
@@ -82,18 +82,10 @@ frappe.views.CommunicationComposer = Class.extend({
 				fieldname:"content"},
 			{fieldtype: "Section Break"},
 			{fieldtype: "Column Break"},
-			{label:__("Send As Email"), fieldtype:"Check",
-				fieldname:"send_email"},
 			{label:__("Send me a copy"), fieldtype:"Check",
 				fieldname:"send_me_a_copy", 'default': frappe.boot.user.send_me_a_copy},
 			{label:__("Send Read Receipt"), fieldtype:"Check",
 				fieldname:"send_read_receipt"},
-			{label:__("Communication Medium"), fieldtype:"Select",
-				options: ["Phone", "Chat", "Email", "SMS", "Visit", "Other"],
-				fieldname:"communication_medium"},
-			{label:__("Sent or Received"), fieldtype:"Select",
-				options: ["Received", "Sent"],
-				fieldname:"sent_or_received"},
 			{label:__("Attach Document Print"), fieldtype:"Check",
 				fieldname:"attach_document_print"},
 			{label:__("Select Print Format"), fieldtype:"Select",
@@ -436,26 +428,12 @@ frappe.views.CommunicationComposer = Class.extend({
 			$(fields.select_print_format.wrapper).toggle(true);
 		}
 
-		$(fields.send_email.input).prop("checked", true);
-
 		$(fields.send_me_a_copy.input).on('click', () => {
 			// update send me a copy (make it sticky)
 			let val = fields.send_me_a_copy.get_value();
 			frappe.db.set_value('User', frappe.session.user, 'send_me_a_copy', val);
 			frappe.boot.user.send_me_a_copy = val;
 		});
-
-		// toggle print format
-		$(fields.send_email.input).click(function() {
-			$(fields.communication_medium.wrapper).toggle(!!!$(this).prop("checked"));
-			$(fields.sent_or_received.wrapper).toggle(!!!$(this).prop("checked"));
-			$(fields.send_read_receipt.wrapper).toggle($(this).prop("checked"));
-			me.dialog.get_primary_btn().html($(this).prop("checked") ? "Send" : "Add Communication");
-		});
-
-		// select print format
-		$(fields.communication_medium.wrapper).toggle(false);
-		$(fields.sent_or_received.wrapper).toggle(false);
 
 	},
 
@@ -514,7 +492,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		var me = this;
 		me.dialog.hide();
 
-		if((form_values.send_email || form_values.communication_medium === "Email") && !form_values.recipients) {
+		if(!form_values.recipients) {
 			frappe.msgprint(__("Enter Email Recipient(s)"));
 			return;
 		}
@@ -524,15 +502,12 @@ frappe.views.CommunicationComposer = Class.extend({
 			print_format = null;
 		}
 
-		if(form_values.send_email) {
-			if(cur_frm && !frappe.model.can_email(me.doc.doctype, cur_frm)) {
-				frappe.msgprint(__("You are not allowed to send emails related to this document"));
-				return;
-			}
 
-			form_values.communication_medium = "Email";
-			form_values.sent_or_received = "Sent";
+		if(cur_frm && !frappe.model.can_email(me.doc.doctype, cur_frm)) {
+			frappe.msgprint(__("You are not allowed to send emails related to this document"));
+			return;
 		}
+
 
 		return frappe.call({
 			method:"frappe.core.doctype.communication.email.make",
@@ -544,12 +519,10 @@ frappe.views.CommunicationComposer = Class.extend({
 				content: form_values.content,
 				doctype: me.doc.doctype,
 				name: me.doc.name,
-				send_email: form_values.send_email,
+				send_email: 1,
 				print_html: print_html,
 				send_me_a_copy: form_values.send_me_a_copy,
 				print_format: print_format,
-				communication_medium: form_values.communication_medium,
-				sent_or_received: form_values.sent_or_received,
 				sender: form_values.sender,
 				sender_full_name: form_values.sender?frappe.user.full_name():undefined,
 				attachments: selected_attachments,
@@ -562,7 +535,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				if(!r.exc) {
 					frappe.utils.play_sound("email");
 
-					if(form_values.send_email && r.message["emails_not_sent_to"]) {
+					if(r.message["emails_not_sent_to"]) {
 						frappe.msgprint(__("Email not sent to {0} (unsubscribed / disabled)",
 							[ frappe.utils.escape_html(r.message["emails_not_sent_to"]) ]) );
 					}

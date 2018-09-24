@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe
+import frappe, json
 import os, base64, re
 import hashlib
 import mimetypes
@@ -12,7 +12,7 @@ from frappe import _
 from frappe import conf
 from copy import copy
 from six.moves.urllib.parse import unquote
-from six import text_type, PY2
+from six import text_type, PY2, string_types
 
 
 class MaxFileSizeReachedError(frappe.ValidationError):
@@ -439,3 +439,23 @@ def validate_filename(filename):
 	timestamp = now_datetime().strftime(" %Y-%m-%d %H:%M:%S")
 	fname = get_file_name(filename, timestamp)
 	return fname
+
+@frappe.whitelist()
+def add_attachments(doctype, name, attachments):
+	'''Add attachments to the given DocType'''
+	if isinstance(attachments, string_types):
+		attachments = json.loads(attachments)
+	# loop through attachments
+	files =[]
+	for a in attachments:
+		if isinstance(a, string_types):
+			attach = frappe.db.get_value("File", {"name":a},
+				["file_name", "file_url", "is_private"], as_dict=1)
+
+			# save attachments to new doc
+			f = save_url(attach.file_url, attach.file_name, doctype, name,
+				"Home/Attachments", attach.is_private)
+
+			files.append(f)
+
+	return files

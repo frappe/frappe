@@ -84,6 +84,7 @@ class ToDo(Document):
 			else:
 				raise
 
+
 # NOTE: todo is viewable if either owner or assigned_to or System Manager in roles
 def on_doctype_update():
 	frappe.db.add_index("ToDo", ["reference_type", "reference_name"])
