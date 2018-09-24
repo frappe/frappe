@@ -165,7 +165,7 @@ def get_context(context):
 
 		if context.success_message:
 			context.success_message = frappe.db.escape(context.success_message.replace("\n",
-				"<br>"))
+				"<br>")).strip("'")
 
 		self.add_custom_context_and_script(context)
 		if not context.max_attachment_size:
