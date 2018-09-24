@@ -35,8 +35,8 @@ def getdate(string_date=None):
 	elif isinstance(string_date, datetime.date):
 		return string_date
 
-	# dateutil parser does not agree with dates like 0000-00-00
-	if not string_date or string_date=="0000-00-00":
+	# dateutil parser does not agree with dates like 0001-01-01
+	if not string_date or string_date=="0001-01-01":
 		return None
 	return parser.parse(string_date).date()
 
@@ -53,8 +53,8 @@ def get_datetime(datetime_str=None):
 	elif isinstance(datetime_str, datetime.date):
 		return datetime.datetime.combine(datetime_str, datetime.time())
 
-	# dateutil parser does not agree with dates like 0000-00-00
-	if not datetime_str or (datetime_str or "").startswith("0000-00-00"):
+	# dateutil parser does not agree with dates like 0001-01-01
+	if not datetime_str or (datetime_str or "").startswith("0001-01-01"):
 		return None
 
 	try:

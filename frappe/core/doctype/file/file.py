@@ -295,6 +295,7 @@ class File(NestedSet):
 
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
+	frappe.db.add_index("File", ["lft", "rgt"])
 
 def make_home_folder():
 	home = frappe.get_doc({
@@ -455,6 +456,3 @@ def get_attached_images(doctype, names):
 		out[i.docname].append(i.file_url)
 
 	return out
-
-def on_doctype_update():
-	frappe.db.add_index("File", ["lft", "rgt"])
