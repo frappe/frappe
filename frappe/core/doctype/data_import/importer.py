@@ -277,7 +277,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	# header
 	filename, file_extension = ['','']
 	if not rows:
-		_file = frappe.get_doc("File", {"file_name": data_import_doc.import_file})
+		_file = frappe.get_doc("File", {"file_url": data_import_doc.import_file})
 		fcontent = _file.get_content()
 		filename, file_extension = os.path.splitext(_file.file_name)
 
