@@ -1,5 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
+frappe.provide("desk");
 
 frappe.ui.form.on("Event", {
 	onload: function(frm) {
@@ -19,6 +20,12 @@ frappe.ui.form.on("Event", {
 				}, __("Participants"));
 			})
 		}
+
+		frm.page.set_inner_btn_group_as_primary(__("Add Participants"));
+
+		frm.add_custom_button(__('Add Contacts'), function() {
+			new desk.eventParticipants(frm, "Contact");
+		}, __("Add Participants"));
 	},
 	repeat_on: function(frm) {
 		if(frm.doc.repeat_on==="Every Day") {
@@ -53,3 +60,24 @@ frappe.ui.form.on("Event Participants", {
 	}
 });
 
+desk.eventParticipants = class eventParticipants {
+	constructor(frm, doctype) {
+		this.frm = frm;
+		this.doctype = doctype;
+		this.make();
+	}
+
+	make() {
+		let me = this;
+
+		let table = me.frm.get_field("event_participants").grid;
+		new frappe.ui.form.LinkSelector({
+			doctype: me.doctype,
+			dynamic_link_field: "reference_doctype",
+			dynamic_link_reference: me.doctype,
+			fieldname: "reference_docname",
+			target: table,
+			txt: ""
+		});
+	}
+};

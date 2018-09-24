@@ -67,7 +67,7 @@ class Event(Document):
 		communication.reference_name = self.name
 		communication.communication_medium = communication_mapping[self.event_category] if self.event_category else ""
 		communication.status = "Linked"
-		communication.save()
+		communication.save(ignore_permissions=True)
 
 @frappe.whitelist()
 def delete_communication(event, reference_doctype, reference_docname):

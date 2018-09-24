@@ -50,7 +50,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 		let interaction_docs = Object.keys(get_doc_mappings());
 
 		let fields= [
-			{label:__("Interaction Type"), fieldtype:"Select",
+			{label:__("Reference"), fieldtype:"Select",
 				fieldname:"interaction_type", options: interaction_docs,
 				reqd: 1,
 				onchange: () => {
