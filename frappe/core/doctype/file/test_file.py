@@ -3,6 +3,7 @@
 # See license.txt
 from __future__ import unicode_literals
 
+import base64
 import frappe
 import os
 import unittest
@@ -14,6 +15,7 @@ from frappe.utils import get_files_path
 test_content1 = 'Hello'
 test_content2 = 'Hello World'
 
+
 def make_test_doc():
 	d = frappe.new_doc('ToDo')
 	d.description = 'Test'
@@ -22,6 +24,7 @@ def make_test_doc():
 
 
 class TestSimpleFile(unittest.TestCase):
+
 
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
@@ -41,12 +44,42 @@ class TestSimpleFile(unittest.TestCase):
 		content = _file.get_content()
 		self.assertEqual(content, self.test_content)
 
+
+	def tearDown(self):
+		# File gets deleted on rollback, so blank
+		pass
+
+
+class TestBase64File(unittest.TestCase):
+
+
+	def setUp(self):
+		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
+		self.test_content = base64.b64encode(test_content1.encode('utf-8'))
+		_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "test_base64.txt",
+			"attached_to_doctype": self.attached_to_doctype,
+			"attached_to_docname": self.attached_to_docname,
+			"content": self.test_content,
+			"decode": True})
+		_file.save()
+		self.saved_file_url = _file.file_url
+
+
+	def test_saved_content(self):
+		_file = frappe.get_doc("File", {"file_url": self.saved_file_url})
+		content = _file.get_content()
+		self.assertEqual(content, test_content1)
+
+
 	def tearDown(self):
 		# File gets deleted on rollback, so blank
 		pass
 
 
 class TestSameFileName(unittest.TestCase):
+
 
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
@@ -69,6 +102,7 @@ class TestSameFileName(unittest.TestCase):
 		self.saved_file_url1 = _file1.file_url
 		self.saved_file_url2 = _file2.file_url
 
+
 	def test_saved_content(self):
 		_file = frappe.get_doc("File", {"file_url": self.saved_file_url1})
 		content1 = _file.get_content()
@@ -77,12 +111,14 @@ class TestSameFileName(unittest.TestCase):
 		content2 = _file.get_content()
 		self.assertEqual(content2, self.test_content2)
 
+
 	def tearDown(self):
 		# File gets deleted on rollback, so blank
 		pass
 
 
 class TestSameContent(unittest.TestCase):
+
 
 	def setUp(self):
 		self.attached_to_doctype1, self.attached_to_docname1 = make_test_doc()
@@ -108,8 +144,10 @@ class TestSameContent(unittest.TestCase):
 
 		_file2.save()
 
+
 	def test_saved_content(self):
 		self.assertFalse(os.path.exists(get_files_path(self.dup_filename)))
+
 
 	def tearDown(self):
 		# File gets deleted on rollback, so blank
@@ -117,9 +155,12 @@ class TestSameContent(unittest.TestCase):
 
 
 class TestFile(unittest.TestCase):
+
+
 	def setUp(self):
 		self.delete_test_data()
 		self.upload_file()
+
 
 	def tearDown(self):
 		try:
@@ -127,10 +168,12 @@ class TestFile(unittest.TestCase):
 		except frappe.DoesNotExistError:
 			pass
 
+
 	def delete_test_data(self):
 		for f in frappe.db.sql('''select name, file_name from tabFile where
 			is_home_folder = 0 and is_attachments_folder = 0 order by rgt-lft asc'''):
 			frappe.delete_doc("File", f[0])
+
 
 	def upload_file(self):
 		_file = frappe.get_doc({
@@ -145,6 +188,7 @@ class TestFile(unittest.TestCase):
 		self.saved_name = _file.name
 		self.saved_filename = get_files_path(_file.file_name)
 
+
 	def get_folder(self, folder_name, parent_folder="Home"):
 		return frappe.get_doc({
 			"doctype": "File",
@@ -153,6 +197,7 @@ class TestFile(unittest.TestCase):
 			"folder": _(parent_folder)
 		}).insert()
 
+
 	def tests_after_upload(self):
 		self.assertEqual(self.saved_folder, _("Home/Test Folder 1"))
 
@@ -160,6 +205,7 @@ class TestFile(unittest.TestCase):
 		saved_file_size = frappe.db.get_value("File", self.saved_name, "file_size")
 
 		self.assertEqual(folder_size, saved_file_size)
+
 
 	def test_file_copy(self):
 		folder = self.get_folder("Test Folder 2", "Home")
@@ -171,6 +217,7 @@ class TestFile(unittest.TestCase):
 		self.assertEqual(_("Home/Test Folder 2"), file.folder)
 		self.assertEqual(frappe.db.get_value("File", _("Home/Test Folder 2"), "file_size"), file.file_size)
 		self.assertEqual(frappe.db.get_value("File", _("Home/Test Folder 1"), "file_size"), 0)
+
 
 	def test_folder_copy(self):
 		folder = self.get_folder("Test Folder 2", "Home")
@@ -194,6 +241,7 @@ class TestFile(unittest.TestCase):
 		self.assertEqual(_("Home/Test Folder 1/Test Folder 3"), file.folder)
 		self.assertEqual(frappe.db.get_value("File", _("Home/Test Folder 1"), "file_size"), file.file_size)
 		self.assertEqual(frappe.db.get_value("File", _("Home/Test Folder 2"), "file_size"), 0)
+
 
 	def test_default_folder(self):
 		d = frappe.get_doc({
@@ -223,6 +271,7 @@ class TestFile(unittest.TestCase):
 
 		folder = frappe.get_doc("File", "Home/Test Folder 1/Test Folder 3")
 		self.assertRaises(frappe.ValidationError, folder.delete)
+
 
 	def test_file_upload_limit(self):
 		from frappe.core.doctype.file.file import MaxFileSizeReachedError
