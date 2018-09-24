@@ -232,7 +232,9 @@ frappe.views.InteractionComposer = class InteractionComposer {
 			interaction_values["event_participants"] = [{"reference_doctype": form_values.reference_doctype, 
 				"reference_docname": form_values.reference_document}];
 		}
-
+		if (!("owner" in interaction_values)){
+			interaction_values["owner"] = frappe.session.user;
+		}
 		return frappe.call({
 			method:"frappe.client.insert",
 			args: { doc: interaction_values},
