@@ -225,3 +225,4 @@ frappe.patches.v11_0.get_docs_apps_if_not_present
 frappe.patches.v10_0.set_default_locking_time
 frappe.patches.v11_0.rename_google_maps_doctype
 frappe.patches.v10_0.modify_smallest_currency_fraction
+frappe.patches.v11_0.multiple_references_in_events.py

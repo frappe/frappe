@@ -1,4 +1,4 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -14,6 +14,7 @@ from frappe.utils.user import get_enabled_system_users
 from frappe.desk.reportview import get_filters_cond
 
 weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+communication_mapping = {"": "Event", "Event": "Event", "Meeting": "Meeting", "Call": "Phone", "Sent/Received Email": "Email", "Other": "Other"}
 
 class Event(Document):
 	def validate(self):
@@ -29,6 +30,42 @@ class Event(Document):
 
 		if getdate(self.starts_on) != getdate(self.ends_on) and self.repeat_on == "Every Day":
 			frappe.msgprint(frappe._("Every day events should finish on the same day."), raise_exception=True)
+
+	def on_update(self):
+		self.sync_communication()
+
+ 	def on_trash(self):
+		communications = frappe.get_all("Communication", dict(reference_doctype=self.doctype, reference_name=self.name))
+		if communications:
+			for communication in communications:
+				frappe.get_doc("Communication", communication.name).delete()
+
+ 	def sync_communication(self):
+		if self.event_participants:
+			for participant in self.event_participants:
+				if frappe.db.exists("Communication", dict(reference_doctype=self.doctype, reference_name=self.name, timeline_doctype=participant.reference_doctype, timeline_name=participant.reference_docname)):
+					communication = frappe.get_doc("Communication", dict(reference_doctype=self.doctype, reference_name=self.name, timeline_doctype=participant.reference_doctype, timeline_name=participant.reference_docname))
+					self.update_communication(participant, communication)
+				else:
+					self.create_communication(participant)
+
+ 	def create_communication(self, participant):
+			communication = frappe.new_doc("Communication")
+			self.update_communication(participant, communication)
+			self.communication = communication.name
+
+ 	def update_communication(self, participant, communication):
+		communication.communication_medium = "Event"
+		communication.subject = self.subject
+		communication.content = self.description if self.description else self.subject
+		communication.communication_date = self.starts_on
+		communication.timeline_doctype = participant.reference_doctype
+		communication.timeline_name = participant.reference_docname
+		communication.reference_doctype = self.doctype
+		communication.reference_name = self.name
+		communication.communication_medium = communication_mapping[self.event_category] if self.event_category else ""
+		communication.status = "Linked"
+		communication.save()
 
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
