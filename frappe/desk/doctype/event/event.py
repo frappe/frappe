@@ -76,7 +76,7 @@ def delete_communication(event, reference_doctype, reference_docname):
 		event = json.loads(event)
 	if frappe.db.exists("Communication", dict(reference_doctype=event["doctype"], reference_name=event["name"], timeline_doctype=deleted_participant.reference_doctype, timeline_name=deleted_participant.reference_docname)):
 		deletion = frappe.get_doc("Communication", dict(reference_doctype=event["doctype"], reference_name=event["name"], timeline_doctype=deleted_participant.reference_doctype, timeline_name=deleted_participant.reference_docname)).delete()
-	
+
 		return deletion
 
 	return {}

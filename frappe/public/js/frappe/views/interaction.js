@@ -140,7 +140,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 				args: (me.frm.attachments.get_args
 					? me.frm.attachments.get_args()
 					: { from_form: 1,folder:"Home/Attachments" }),
-				callback: function (attachment, r) {
+				callback: function (attachment, r){
 					me.frm.attachments.attachment_uploaded(attachment, r);
 				},
 				max_width: me.frm.cscript ? me.frm.cscript.attachment_max_width : null,
@@ -197,7 +197,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 		if(!form_values) return;
 
 		let selected_attachments =
-			$.map($(me.dialog.wrapper).find("[data-file-name]:checked"), function (element){
+			$.map($(me.dialog.wrapper).find("[data-file-name]:checked"), function(element){
 				return $(element).attr("data-file-name");
 			});
 
@@ -230,7 +230,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 		}
 		if (interaction_values["doctype"] == "Event") {
 			interaction_values["event_participants"] = [{"reference_doctype": form_values.reference_doctype, 
-				"reference_docname": form_values.reference_document}]
+				"reference_docname": form_values.reference_document}];
 		}
 
 		return frappe.call({
@@ -343,7 +343,7 @@ function get_doc_mappings() {
 			"reqd_fields": ["description"],
 			"hidden_fields": ["public", "category"]
 		}
-	}
+	};
 
 	return doc_map;
 }
