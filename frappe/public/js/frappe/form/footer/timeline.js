@@ -12,7 +12,7 @@ frappe.ui.form.Timeline = class Timeline {
 	make() {
 		var me = this;
 		this.wrapper = $(frappe.render_template("timeline",
-			{doctype: this.frm.doctype})).appendTo(this.parent);
+			{doctype: me.frm.doctype, allow_events_in_timeline: me.frm.meta.allow_events_in_timeline})).appendTo(me.parent);
 
 		this.list = this.wrapper.find(".timeline-items");
 

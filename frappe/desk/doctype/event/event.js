@@ -3,19 +3,21 @@
 
 frappe.ui.form.on("Event", {
 	onload: function(frm) {
-		frm.set_query("ref_type", function(txt) {
+		frm.set_query('reference_doctype', "event_participants", function() {
 			return {
 				"filters": {
 					"issingle": 0,
 				}
 			};
-		});
+		})
 	},
 	refresh: function(frm) {
-		if(frm.doc.ref_type && frm.doc.ref_name) {
-			frm.add_custom_button(__(frm.doc.ref_name), function() {
-				frappe.set_route("Form", frm.doc.ref_type, frm.doc.ref_name);
-			});
+		if(frm.doc.event_participants) {
+			frm.doc.event_participants.forEach(value => {
+				frm.add_custom_button(__(value.reference_docname), function() {
+					frappe.set_route("Form", value.reference_doctype, value.reference_docname);
+				}, __("Participants"));
+			})
 		}
 	},
 	repeat_on: function(frm) {
@@ -25,6 +27,29 @@ frappe.ui.form.on("Event", {
 					frm.set_value(v, 1);
 				});
 		}
+	}
+});
+
+frappe.ui.form.on("Event Participants", {
+	event_participants_remove: function(frm, cdt, cdn) {
+		frappe.call({
+			type: "POST",
+			method: "frappe.desk.doctype.event.event.delete_communication",
+			args: {
+				"event": frm.doc,
+				"reference_doctype": cdt,
+				"reference_docname": cdn
+			},
+			freeze: true,
+			callback: function(r) {
+				if(r.exc) {
+					frappe.show_alert({
+						message: __("{0}", [r.exc]),
+						indicator: 'orange'
+					});
+				}
+			}
+		});
 	}
 });
 

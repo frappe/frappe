@@ -47,7 +47,9 @@ class Event(Document):
 					communication = frappe.get_doc("Communication", dict(reference_doctype=self.doctype, reference_name=self.name, timeline_doctype=participant.reference_doctype, timeline_name=participant.reference_docname))
 					self.update_communication(participant, communication)
 				else:
-					self.create_communication(participant)
+					meta = frappe.get_meta(participant.reference_doctype)
+					if hasattr(meta, "allow_events_in_timeline") and meta.allow_events_in_timeline==1:
+						self.create_communication(participant)
 
  	def create_communication(self, participant):
 			communication = frappe.new_doc("Communication")
@@ -66,6 +68,18 @@ class Event(Document):
 		communication.communication_medium = communication_mapping[self.event_category] if self.event_category else ""
 		communication.status = "Linked"
 		communication.save()
+
+@frappe.whitelist()
+def delete_communication(event, reference_doctype, reference_docname):
+	deleted_participant = frappe.get_doc(reference_doctype, reference_docname)
+	event = json.loads(event)
+	if frappe.db.exists("Communication", dict(reference_doctype=event["doctype"], reference_name=event["name"], timeline_doctype=deleted_participant.reference_doctype, timeline_name=deleted_participant.reference_docname)):
+		deletion = frappe.get_doc("Communication", dict(reference_doctype=event["doctype"], reference_name=event["name"], timeline_doctype=deleted_participant.reference_doctype, timeline_name=deleted_participant.reference_docname)).delete()
+	
+		return deletion
+
+	return {}
+
 
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
