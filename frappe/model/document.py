@@ -875,9 +875,11 @@ class Document(BaseDocument):
 			return
 
 		if self._action=="save":
+			self.run_method("before_validate")
 			self.run_method("validate")
 			self.run_method("before_save")
 		elif self._action=="submit":
+			self.run_method("before_validate")
 			self.run_method("validate")
 			self.run_method("before_submit")
 		elif self._action=="cancel":
