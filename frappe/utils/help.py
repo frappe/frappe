@@ -245,7 +245,7 @@ class HelpDatabase(object):
 
 			links_html = "<ol class='index-links'>"
 			for line in files:
-				fpath = os.path.join(os.path.dirname(original_path), line)
+				fpath = os.path.join(os.path.dirname(frappe.safe_decode(original_path)), frappe.safe_decode(line))
 
 				title = self.db.sql('select title from help where path like %s',
 					os.path.join(fpath, 'index') + '%')
