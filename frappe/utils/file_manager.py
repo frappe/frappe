@@ -447,7 +447,7 @@ def add_attachments(doctype, name, attachments):
 	for a in attachments:
 		if isinstance(a, string_types):
 			attach = frappe.db.get_value("File", {"name":a}, ["file_name", "file_url", "is_private"], as_dict=1)
- 			# save attachments to new doc
+			# save attachments to new doc
 			f = save_url(attach.file_url, attach.file_name, doctype, name, "Home/Attachments", attach.is_private)
 			files.append(f)
 
