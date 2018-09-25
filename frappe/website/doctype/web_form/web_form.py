@@ -6,10 +6,10 @@ import frappe, json, os
 from frappe.website.website_generator import WebsiteGenerator
 from frappe import _, scrub
 from frappe.utils import cstr
-from frappe.utils.file_manager import save_file, remove_file_by_url
 from frappe.website.utils import get_comment_list
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
-from frappe.utils.file_manager import get_max_file_size
+from frappe.core.doctype.file.file import get_max_file_size
+from frappe.core.doctype.file.file import remove_file_by_url
 from frappe.modules.utils import export_module_json, get_doc_module
 from six.moves.urllib.parse import urlencode
 from frappe.integrations.utils import get_payment_gateway_controller
@@ -416,22 +416,29 @@ def accept(web_form, data, for_payment=False):
 
 			# remove earlier attached file (if exists)
 			if doc.get(fieldname):
-				remove_file_by_url(doc.get(fieldname), doc.doctype, doc.name)
+				remove_file_by_url(doc.get(fieldname), doctype=doc.doctype, name=doc.name)
 
 			# save new file
 			filename, dataurl = filedata.split(',', 1)
-			filedoc = save_file(filename, dataurl,
-				doc.doctype, doc.name, decode=True)
+			_file = frappe.get_doc({
+				"doctype": "File",
+				"file_name": filename,
+				"attached_to_doctype": doc.doctype,
+				"attached_to_name": doc.name,
+				"content": dataurl,
+				"decode": True})
+			_file.save()
 
 			# update values
-			doc.set(fieldname, filedoc.file_url)
+			doc.set(fieldname, _file.file_url)
 
 		doc.save(ignore_permissions = True)
 
 	if files_to_delete:
 		for f in files_to_delete:
 			if f:
-				remove_file_by_url(f, doc.doctype, doc.name)
+				remove_file_by_url(doc.get(fieldname), doctype=doc.doctype, name=doc.name)
+
 
 	frappe.flags.web_form_doc = doc
 

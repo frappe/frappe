@@ -11,10 +11,10 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
 from frappe.desk.query_report import generate_report_result, get_columns_dict
-from frappe.utils.file_manager import save_file, remove_all
+from frappe.core.doctype.file.file import remove_all
 from frappe.utils.csvutils import to_csv, read_csv_content_from_attached_file
 from frappe.desk.form.load import get_attachments
-from frappe.utils.file_manager import download_file
+from frappe.core.doctype.file.file import download_file
 
 
 class PreparedReport(Document):
@@ -61,15 +61,15 @@ def create_csv_file(columns, data, dt, dn):
 	csv_filename = '{0}.csv'.format(frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H:M"))
 	rows = [tuple(columns)] + data
 	encoded = base64.b64encode(frappe.safe_encode(to_csv(rows)))
-	# Call save_file function to upload and attach the file
-	save_file(
-		fname=csv_filename,
-		content=encoded,
-		dt=dt,
-		dn=dn,
-		folder=None,
-		decode=True,
-		is_private=False)
+	# Call save() file function to upload and attach the file
+	_file = frappe.get_doc({
+		"doctype": "File",
+		"file_name": csv_filename,
+		"attached_to_doctype": dt,
+		"attached_to_name": dn,
+		"content": encoded,
+		"decode": True})
+	_file.save()
 
 
 @frappe.whitelist()
