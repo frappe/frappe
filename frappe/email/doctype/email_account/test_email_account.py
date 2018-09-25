@@ -54,7 +54,6 @@ class TestEmailAccount(unittest.TestCase):
 		frappe.db.sql("DELETE FROM `tabCommunication` WHERE sender='test_sender@example.com'")
 		existing_file = frappe.get_doc({'doctype': 'File', 'file_name': 'erpnext-conf-14.png'})
 		frappe.delete_doc("File", existing_file.name)
-		existing_file.delete_file_from_filesystem()
 
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-2.raw"), "r") as testfile:
 			test_mails = [testfile.read()]
@@ -72,7 +71,6 @@ class TestEmailAccount(unittest.TestCase):
 		# cleanup
 		existing_file = frappe.get_doc({'doctype': 'File', 'file_name': 'erpnext-conf-14.png'})
 		frappe.delete_doc("File", existing_file.name)
-		existing_file.delete_file_from_filesystem()
 
 
 	def test_incoming_attached_email_from_outlook_plain_text_only(self):

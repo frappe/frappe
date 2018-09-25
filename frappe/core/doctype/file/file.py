@@ -554,6 +554,11 @@ class File(NestedSet):
 		raise frappe.PermissionError
 
 
+	def get_extension(self):
+		'''returns split filename and extension'''
+		return os.path.splitext(self.file_name)
+
+
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
 	frappe.db.add_index("File", ["lft", "rgt"])
@@ -755,7 +760,7 @@ def remove_file_by_url(file_url, doctype=None, name=None):
 def get_content_hash(content):
 	if isinstance(content, text_type):
 		content = content.encode()
-	return hashlib.md5(content).hexdigest()
+	return hashlib.md5(content).hexdigest() #nosec
 
 
 def get_file_name(fname, optional_suffix):
