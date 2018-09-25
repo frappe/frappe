@@ -196,7 +196,7 @@ class TestDocument(unittest.TestCase):
 		doctype, name = 'User', 'test@example.com'
 
 		d = self.test_insert()
-		d.append('participants', {"reference_doctype": doctype, "reference_docname": name})
+		d.append('event_participants', {"reference_doctype": doctype, "reference_docname": name})
 
 		d.save()
 
