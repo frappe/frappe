@@ -34,13 +34,13 @@ class Event(Document):
 	def on_update(self):
 		self.sync_communication()
 
- 	def on_trash(self):
+	def on_trash(self):
 		communications = frappe.get_all("Communication", dict(reference_doctype=self.doctype, reference_name=self.name))
 		if communications:
 			for communication in communications:
 				frappe.get_doc("Communication", communication.name).delete()
 
- 	def sync_communication(self):
+	def sync_communication(self):
 		if self.event_participants:
 			for participant in self.event_participants:
 				communication_name = frappe.db.get_value("Communication", dict(reference_doctype=self.doctype, reference_name=self.name, timeline_doctype=participant.reference_doctype, timeline_name=participant.reference_docname), "name")
