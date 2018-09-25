@@ -13,6 +13,9 @@ frappe.ui.form.on('Data Import', {
 			};
 		});
 
+		// should never check public
+		frm.fields_dict["import_file"].df.is_private = 1;
+
 		frappe.realtime.on("data_import_progress", function(data) {
 			if (data.data_import === frm.doc.name) {
 				if (data.reload && data.reload === true) {
