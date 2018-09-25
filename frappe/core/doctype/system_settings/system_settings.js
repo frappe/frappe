@@ -27,3 +27,14 @@ frappe.ui.form.on("System Settings", "enable_two_factor_auth", function(frm) {
 		frm.set_value("bypass_restrict_ip_check_if_2fa_enabled", 0);
 	}
 });
+
+
+//Check field to enable / disable address standardization
+
+frappe.ui.form.on("System Settings", "enable_address_check", function(frm){
+	frappe.call({
+		method: "frappe.core.doctype.system_settings.system_settings.update_address_doctype",
+		args: {"check_value": frm.doc.enable_address_check}
+	});
+});
+

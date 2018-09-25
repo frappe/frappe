@@ -260,3 +260,22 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 			'link_name': link_name,
 			'link_doctype': link_doctype
 		})
+
+@frappe.whitelist()
+def get_address_check_status():
+	"""
+	check if address standardization is enabled
+	"""
+	return {"status": frappe.db.get_value("System Settings", "System Settings", "enable_address_check")}
+
+@frappe.whitelist()
+def get_administrative_area_details(administrative_area):
+	"""
+	returns lft, rgt of given administartive area t use for filtering
+	"""
+	address_check_status = get_address_check_status()
+	if address_check_status['status'] == "1":
+		current_territory = frappe.get_doc('Administrative Area', administrative_area, ["lft","rgt"])
+		return {"lft":current_territory.lft, "rgt":current_territory.rgt, "status":1}
+	else:
+		return {"status": 0}

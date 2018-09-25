@@ -63,3 +63,23 @@ def load():
 		"timezones": get_all_timezones(),
 		"defaults": defaults
 	}
+
+@frappe.whitelist()
+def update_address_doctype(check_value):
+	"""
+	interchanges fieldtype of address fields between Data and Link based on input
+	"""
+	address_fields = ['city', 'county', 'state', 'pincode']
+	update_fieldtype_conf = {"Check_1": ["fieldtype,Link", "options,Administrative Area"], "Check_0": ["fieldtype,Data", "options,"]}
+	for fieldname in address_fields:
+		for update_values in update_fieldtype_conf["Check_" + check_value]:
+			field_property, value = update_values.split(",")
+			address_property_setter = frappe.get_doc({
+				"doc_type": "Address",
+				"doctype": "Property Setter",
+				"doctype_or_field": "DocField",
+				"field_name": fieldname,
+				"property": field_property,
+				"value": value})
+			property_setter_result = address_property_setter.insert()
+	return {"set_property_status": property_setter_result}
