@@ -106,11 +106,11 @@ frappe.views.InteractionComposer = class InteractionComposer {
 			let doc_mapping = get_doc_mappings();
 			doc_mapping[values.interaction_type]["reqd_fields"].forEach(value => {
 				me.dialog.set_df_property(value, 'reqd', 1);
-			})
+			});
 
 			doc_mapping[values.interaction_type]["hidden_fields"].forEach(value => {
 				me.dialog.set_df_property(value, 'hidden', 1);
-			})
+			});
 		}
 	}
 
