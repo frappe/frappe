@@ -164,7 +164,7 @@ def check_release_on_github(app):
 	# Check if repo remote is on github
 	from subprocess import CalledProcessError
 	try:
-		remote_url = subprocess.check_output("cd ../apps/{} && git ls-remote --get-url".format(app), shell=True)
+		remote_url = subprocess.check_output("cd ../apps/{} && git ls-remote --get-url".format(app), shell=True).decode()
 	except CalledProcessError:
 		# Passing this since some apps may not have git initializaed in them
 		return None
