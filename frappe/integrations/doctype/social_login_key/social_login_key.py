@@ -137,6 +137,24 @@ class SocialLoginKey(Document):
 			})
 		}
 
+		providers["fairlogin"] = {
+			"provider_name": "fairlogin",
+			"enable_social_login": 1,
+			"base_url": "https://id.fairkom.net/auth/realms/fairlogin/",
+			"custom_base_url": 0,
+			"icon":"fa fa-key",
+			"redirect_url": "/api/method/frappe.integrations.oauth2_logins.login_via_fairlogin",
+			"api_endpoint": "https://id.fairkom.net/auth/realms/fairlogin/protocol/openid-connect/userinfo",
+			"api_endpoint_args":None,
+			"authorize_url": "https://id.fairkom.net/auth/realms/fairlogin/protocol/openid-connect/auth",
+			"access_token_url": "https://id.fairkom.net/auth/realms/fairlogin/protocol/openid-connect/token",
+			"auth_url_data": json.dumps({
+				"response_type": "code",
+				"scope": "openid"
+			})
+		}
+
+
 		# Initialize the doc and return, used in patch
 		# Or can be used for creating key from controller
 		if initialize and provider:
