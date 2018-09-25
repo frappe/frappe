@@ -43,8 +43,9 @@ class Event(Document):
  	def sync_communication(self):
 		if self.event_participants:
 			for participant in self.event_participants:
-				if frappe.db.exists("Communication", dict(reference_doctype=self.doctype, reference_name=self.name, timeline_doctype=participant.reference_doctype, timeline_name=participant.reference_docname)):
-					communication = frappe.get_doc("Communication", dict(reference_doctype=self.doctype, reference_name=self.name, timeline_doctype=participant.reference_doctype, timeline_name=participant.reference_docname))
+				communication_name = frappe.db.get_value("Communication", dict(reference_doctype=self.doctype, reference_name=self.name, timeline_doctype=participant.reference_doctype, timeline_name=participant.reference_docname), "name")
+				if communication_name:
+					communication = frappe.get_doc("Communication", communication_name)
 					self.update_communication(participant, communication)
 				else:
 					meta = frappe.get_meta(participant.reference_doctype)
@@ -74,8 +75,10 @@ def delete_communication(event, reference_doctype, reference_docname):
 	deleted_participant = frappe.get_doc(reference_doctype, reference_docname)
 	if isinstance(event, string_types):
 		event = json.loads(event)
-	if frappe.db.exists("Communication", dict(reference_doctype=event["doctype"], reference_name=event["name"], timeline_doctype=deleted_participant.reference_doctype, timeline_name=deleted_participant.reference_docname)):
-		deletion = frappe.get_doc("Communication", dict(reference_doctype=event["doctype"], reference_name=event["name"], timeline_doctype=deleted_participant.reference_doctype, timeline_name=deleted_participant.reference_docname)).delete()
+	
+	communication_name = frappe.db.get_value("Communication", dict(reference_doctype=event["doctype"], reference_name=event["name"], timeline_doctype=deleted_participant.reference_doctype, timeline_name=deleted_participant.reference_docname), "name")
+	if communication_name:
+		deletion = frappe.get_doc("Communication", communication_name).delete()
 
 		return deletion
 
@@ -90,6 +93,7 @@ def get_permission_query_conditions(user):
 		}
 
 def has_permission(doc, user):
+	frappe.log_error(doc.owner)
 	if doc.event_type=="Public" or doc.owner==user:
 		return True
 

@@ -60,7 +60,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 							me.dialog.set_df_property(field.fieldname, "reqd", 0);
 							me.dialog.set_df_property(field.fieldname, "hidden", 0);
 						}
-					})
+					});
 					me.set_reqd_hidden_fields(values);
 					me.get_event_categories();
 				}
@@ -140,7 +140,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 				args: (me.frm.attachments.get_args
 					? me.frm.attachments.get_args()
 					: { from_form: 1,folder:"Home/Attachments" }),
-				callback: function (attachment, r){
+				callback: function(attachment, r){
 					me.frm.attachments.attachment_uploaded(attachment, r);
 				},
 				max_width: me.frm.cscript ? me.frm.cscript.attachment_max_width : null,

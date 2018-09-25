@@ -1,5 +1,6 @@
 {
  "allow_copy": 0, 
+ "allow_events_in_timeline": 0, 
  "allow_guest_to_view": 0, 
  "allow_import": 1, 
  "allow_rename": 0, 
@@ -886,8 +887,8 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2018-09-24 13:55:10.521726", 
- "modified_by": "chdecultot@dokos.io", 
+ "modified": "2018-09-25 12:40:33.958600", 
+ "modified_by": "Administrator", 
  "module": "Desk", 
  "name": "Event", 
  "owner": "Administrator", 
@@ -939,5 +940,5 @@
  "title_field": "subject", 
  "track_changes": 1, 
  "track_seen": 1, 
- "track_views": 0
+ "track_views": 1
 }

@@ -1,6 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-frappe.provide("desk");
+frappe.provide("frappe.desk");
 
 frappe.ui.form.on("Event", {
 	onload: function(frm) {
@@ -24,7 +24,7 @@ frappe.ui.form.on("Event", {
 		frm.page.set_inner_btn_group_as_primary(__("Add Participants"));
 
 		frm.add_custom_button(__('Add Contacts'), function() {
-			new desk.eventParticipants(frm, "Contact");
+			new frappe.desk.eventParticipants(frm, "Contact");
 		}, __("Add Participants"));
 	},
 	repeat_on: function(frm) {
@@ -60,7 +60,7 @@ frappe.ui.form.on("Event Participants", {
 	}
 });
 
-desk.eventParticipants = class eventParticipants {
+frappe.desk.eventParticipants = class eventParticipants {
 	constructor(frm, doctype) {
 		this.frm = frm;
 		this.doctype = doctype;
