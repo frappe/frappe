@@ -52,12 +52,12 @@ class Event(Document):
 					if hasattr(meta, "allow_events_in_timeline") and meta.allow_events_in_timeline==1:
 						self.create_communication(participant)
 
- 	def create_communication(self, participant):
+	def create_communication(self, participant):
 			communication = frappe.new_doc("Communication")
 			self.update_communication(participant, communication)
 			self.communication = communication.name
 
- 	def update_communication(self, participant, communication):
+	def update_communication(self, participant, communication):
 		communication.communication_medium = "Event"
 		communication.subject = self.subject
 		communication.content = self.description if self.description else self.subject

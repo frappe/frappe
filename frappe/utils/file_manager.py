@@ -450,5 +450,5 @@ def add_attachments(doctype, name, attachments):
  			# save attachments to new doc
 			f = save_url(attach.file_url, attach.file_name, doctype, name, "Home/Attachments", attach.is_private)
 			files.append(f)
-	
+
 	return files

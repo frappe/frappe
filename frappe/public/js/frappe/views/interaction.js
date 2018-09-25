@@ -156,7 +156,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 			+__("Add Attachment")+"</a></p>").appendTo(attach.empty());
 		attach.find(".add-more-attachments a").on('click',this,function() {
 			me.upload = frappe.ui.get_upload_dialog(args);
-		})
+		});
 		me.render_attach();
 
 	}
