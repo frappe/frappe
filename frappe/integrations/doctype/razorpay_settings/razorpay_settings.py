@@ -67,7 +67,8 @@ import json
 from six.moves.urllib.parse import urlencode
 from frappe.model.document import Document
 from frappe.utils import get_url, call_hook_method, cint, get_timestamp
-from frappe.integrations.utils import make_get_request, make_post_request, create_request_log, create_payment_gateway
+from frappe.integrations.utils import (make_get_request, make_post_request, create_request_log,
+	create_payment_gateway)
 
 class RazorpaySettings(Document):
 	supported_currencies = ["INR"]
@@ -103,12 +104,13 @@ class RazorpaySettings(Document):
 				"quantity": 1 (The total amount is calculated as item.amount * quantity)
 			}
 		"""
-		
 		url = "https://api.razorpay.com/v1/subscriptions/{0}/addons".format(kwargs.get('subscription_id'))
-		
+
 		try:
+			if not frappe.conf.converted_rupee_to_paisa:
+				convert_rupee_to_paisa(**kwargs)
+
 			for addon in kwargs.get("addons"):
-				addon['item']['amount'] *= 100 #convert amount to paisa
 				resp = make_post_request(
 					url,
 					auth=(settings.api_key, settings.api_secret),
@@ -133,19 +135,28 @@ class RazorpaySettings(Document):
 			"plan_id": kwargs.get('subscription_details').get("plan_id"),
 			"start_at": cint(start_date),
 			"total_count": kwargs.get('subscription_details').get("billing_frequency"),
-			"customer_notify": kwargs.get('subscription_details').get("customer_notify"),
-			"upfront_amount": kwargs.get('subscription_details').get("upfront_amount")
+			"customer_notify": kwargs.get('subscription_details').get("customer_notify")
 		}
+
+		if kwargs.get('addons'):
+			convert_rupee_to_paisa(**kwargs)
+			subscription_details.update({
+				"addons": kwargs.get('addons')
+			})
 
 		try:
 			resp = make_post_request(
 				"https://api.razorpay.com/v1/subscriptions",
 				auth=(settings.api_key, settings.api_secret),
-				data=subscription_details
+				data=json.dumps(subscription_details),
+				headers={
+					"content-type": "application/json"
+				}
 			)
 
 			if resp.get('status') == 'created':
 				kwargs['subscription_id'] = resp.get('id')
+				frappe.flags.status = 'created'
 				return kwargs
 			else:
 				frappe.log_error(str(resp), 'Razorpay Failed while creating subscription')
@@ -156,11 +167,10 @@ class RazorpaySettings(Document):
 			pass
 
 	def prepare_subscription_details(self, settings, **kwargs):
-		if kwargs.get('subscription_details'):
+		if not kwargs.get("subscription_id"):
 			kwargs = self.setup_subscription(settings, **kwargs)
 
-		if kwargs.get("subscription_id") and kwargs.get("addons"):
-			self.setup_addon(settings, **kwargs)
+		if frappe.flags.status !='created':
 			kwargs['subscription_id'] = None
 
 		return kwargs
@@ -235,7 +245,7 @@ class RazorpaySettings(Document):
 		redirect_to = data.get('notes', {}).get('redirect_to') or None
 		redirect_message = data.get('notes', {}).get('redirect_message') or None
 
-		if self.flags.status_changed_to == "Authorized":
+		if self.flags.status_changed_to in ("Authorized", "Verified", "Completed"):
 			if self.data.reference_doctype and self.data.reference_docname:
 				custom_redirect_to = None
 				try:
@@ -318,3 +328,9 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 			doc.status = "Failed"
 			doc.error = frappe.get_traceback()
 			frappe.log_error(doc.error, '{0} Failed'.format(doc.name))
+
+def convert_rupee_to_paisa(**kwargs):
+	for addon in kwargs.get('addons'):
+		addon['item']['amount'] *= 100
+	
+	frappe.conf.converted_rupee_to_paisa = True

@@ -289,7 +289,6 @@ def create_recurring_profile(token, payerid):
 
 		addons = data.get("addons")
 		subscription_details = data.get("subscription_details")
-		setup_subscription_amount(data, addons)
 
 		if data['subscription_id'] and addons:
 			manage_recurring_payment_profile_status(data['subscription_id'], 'Cancel', params, url)
@@ -336,10 +335,6 @@ def create_recurring_profile(token, payerid):
 
 	except Exception:
 		frappe.log_error(frappe.get_traceback())
-
-def setup_subscription_amount(data, addons):
-	for addon in addons:
-		data['subscription_amount'] += addon['item']['amount']
 
 def update_integration_request_status(token, data, status, error=False, doc=None):
 	if not doc:
