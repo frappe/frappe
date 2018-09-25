@@ -1,8 +1,13 @@
 // Copyright (c) 2016, Frappe Technologies and contributors
 // For license information, please see license.txt
 
+var address_fields = ["pincode","city", "county", "state"];
+
 frappe.ui.form.on("Address", {
 	refresh: function(frm) {
+		
+		frm.filters_set_using = "state";
+		
 		if(frm.doc.__islocal) {
 			var last_route = frappe.route_history.slice(-2, -1)[0];
 			let docname = last_route[2];
@@ -26,6 +31,19 @@ frappe.ui.form.on("Address", {
 			}
 		});
 		frm.refresh_field("links");
+
+		// add filters to link fields
+		address_fields.forEach(area_type => {
+			if (frm.fields_dict[area_type].df.fieldtype == "Link"){
+				frm.set_query(area_type, function() {
+					return {
+						"filters": {
+							"administrative_area_type": area_type,
+						}
+					};
+				});
+			}
+		});
 	},
 	validate: function(frm) {
 		// clear linked customer / supplier / sales partner on saving...
@@ -47,4 +65,59 @@ frappe.ui.form.on("Address", {
 			}
 		]);
 	}
+});
+
+
+/*
+On click each field modify filters for other fields
+for eg. on changing county first and state later state will not be able to affect filters
+of other fields but revrese is not true
+*/
+
+function modify_administrative_area_filters(frm, all_address_fields, current_address_field, current_lft, current_rgt){
+	all_address_fields.forEach(field_type => {
+		if (field_type == current_address_field){
+			//do nothing
+		} else if (all_address_fields.indexOf(current_address_field) < address_fields.indexOf(field_type)) {
+			frm.set_query(field_type, function() {
+				return {
+					"filters": [
+						['Administrative Area','administrative_area_type',"=", field_type],
+						['Administrative Area','rgt',">",current_rgt],
+						['Administrative Area','lft',"<",current_lft],
+					]
+				};
+			});
+		} else {
+			frm.set_query(field_type, function() {
+				return {
+					"filters": [
+						['Administrative Area','administrative_area_type',"=", field_type],
+						['Administrative Area','lft',">",current_lft],
+						['Administrative Area','lft',"<",current_rgt],
+					]
+				};
+			});
+		}
+	});
+}
+
+address_fields.forEach(type => {
+	frappe.ui.form.on('Address', type, function(frm){
+		var previous_filter_set_by = frm.filters_set_using;
+		if (address_fields.indexOf(previous_filter_set_by) >= address_fields.indexOf(type)){
+			if (frm.doc[type]){
+				frm.filters_set_using = type;
+				frappe.call({
+					method: "frappe.contacts.doctype.address.address.get_administrative_area_details",
+					args: {"administrative_area": frm.doc[type]},
+					callback: function(data){
+						if (data.message.status == 1){
+							modify_administrative_area_filters(frm, address_fields, type, data.message.lft, data.message.rgt)
+						}
+					}
+				});
+			}
+		}
+	});
 });
