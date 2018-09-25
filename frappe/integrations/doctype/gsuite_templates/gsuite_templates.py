@@ -7,7 +7,6 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.integrations.doctype.gsuite_settings.gsuite_settings import run_gsuite_script
-from frappe.utils.file_manager import save_url
 
 class GSuiteTemplates(Document):
 	pass
@@ -25,7 +24,16 @@ def create_gsuite_doc(doctype, docname, gs_template=None):
 
 	r = run_gsuite_script('new', filename, templ.template_id, templ.destination_id, json_data)
 
-	filedata = save_url(r['url'], filename, doctype, docname, "Home/Attachments", True)
+	_file = frappe.get_doc({
+		"doctype": "File",
+		"file_url": r['url'],
+		"file_name": filename,
+		"attached_to_doctype": doctype,
+		"attached_to_name": docname,
+		"attached_to_field": True,
+		"folder": "Home/Attachments"})
+	_file.save()
+
 	comment = frappe.get_doc(doctype, docname).add_comment("Attachment",
 		_("added {0}").format("<a href='{file_url}' target='_blank'>{file_name}</a>{icon}".format(**{
 			"icon": ' <i class="fa fa-lock text-warning"></i>' if filedata.is_private else "",

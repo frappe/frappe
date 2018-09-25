@@ -55,7 +55,7 @@ def add(args=None):
 		# 	remove_from_todo_if_already_assigned(args['doctype'], args['name'])
 
 		if not args.get('description'):
-			args['description'] = _('Assignment')
+			args['description'] = _('Assignment for {0} {1}'.format(args['doctype'], args['name']))
 
 		d = frappe.get_doc({
 			"doctype":"ToDo",

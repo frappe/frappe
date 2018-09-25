@@ -317,7 +317,7 @@ frappe.upload = {
 		} else {
 			args.file_size = fileobj.size;
 			frappe.call({
-				method: 'frappe.utils.file_manager.validate_filename',
+				method: 'frappe.core.doctype.file.file.validate_filename',
 				args: {"filename": args.filename},
 				callback: function(r) {
 					args.filename = r.message;
