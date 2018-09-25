@@ -1,4 +1,62 @@
+import Quill from 'quill/dist/quill';
+
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
+	make_input() {
+		this.has_input = true;
+		if (this.quill) return;
+		this.make_quill_editor();
+	},
+
+	make_quill_editor() {
+		this.quill_container = $('<div>').appendTo(this.input_area);
+		this.quill = new Quill(this.quill_container[0], {
+			modules: {
+				toolbar: this.get_toolbar_options(),
+			},
+			theme: 'snow'
+		});
+		this.quill.on('text-change', frappe.utils.debounce(() => {
+			const input_value = this.get_input_value();
+			if (this.value === input_value) return;
+
+			this.parse_validate_and_set_in_model(input_value);
+		}, 300));
+	},
+
+	get_toolbar_options() {
+		return [
+			[{ 'header': [1, 2, 3, false] }],
+			['bold', 'italic', 'underline'],
+			['blockquote', 'code-block'],
+			['link', 'image'],
+			[{ 'list': 'ordered' }, { 'list': 'bullet' }],
+			[{ 'align': [] }],
+			[{ 'color': [] }, { 'background': [] }],
+			[{ 'font': [] }],
+			['clean']
+		];
+	},
+
+	parse(value) {
+		if (value == null) {
+			value = "";
+		}
+		return frappe.dom.remove_script_and_style(value);
+	},
+
+	set_formatted_input(value) {
+		if (!this.quill) return;
+		if (value === this.get_input_value()) return;
+		this.quill.deleteText(0, Infinity);
+		this.quill.pasteHTML(0, value);
+	},
+
+	get_input_value() {
+		return this.quill ? this.quill.root.innerHTML : '';
+	}
+})
+
+frappe.ui.form.ControlTextEditor2 = frappe.ui.form.ControlCode.extend({
 	make_input: function() {
 		this.has_input = true;
 		this.make_editor();
