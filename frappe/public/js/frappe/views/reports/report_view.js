@@ -306,7 +306,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				this.chart = new Chart(this.$charts_wrapper[0], {
 					title: __("{0} Chart", [this.doctype]),
 					data: data,
-					type: args.chart_type, // 'bar', 'line', 'scatter', 'pie', 'percentage'
+					type: args.chart_type,
 					height: 150,
 					colors: ['violet', 'light-blue', 'orange', 'red'],
 
@@ -365,7 +365,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					{
 						label: __('Chart Type'),
 						fieldtype: 'Select',
-						options: ['Bar', 'Line', 'Scatter', 'Pie', 'Percentage'],
+						options: ['Bar', 'Line', 'Pie', 'Percentage'],
 						fieldname: 'chart_type',
 						default: toTitle(defaults.chart_type || 'Bar')
 					}
@@ -396,6 +396,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			// look like strings and also
 			// monkey patch the doc
 			// javascript is awesome
+
+			// O.o
+
 			return {
 				doc: d,
 				toString() {
