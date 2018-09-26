@@ -16,7 +16,6 @@ def remove_attach():
 	fid = frappe.form_dict.get('fid')
 	file_name = frappe.form_dict.get('file_name')
 	frappe.delete_doc('File', fid)
-	return doc.add_comment("Attachment Removed", _("Removed {0}").format(file_name))
 
 
 @frappe.whitelist()

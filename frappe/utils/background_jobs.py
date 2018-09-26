@@ -21,7 +21,7 @@ queue_timeout = {
 
 redis_connection = None
 
-def enqueue(method, queue='default', timeout=300, event=None,
+def enqueue(method, queue='default', timeout=None, event=None,
 	is_async=True, job_name=None, now=False, enqueue_after_commit=False, **kwargs):
 	'''
 		Enqueue method to be executed using a background worker
