@@ -134,8 +134,7 @@ frappe.ui.form.Attachments = Class.extend({
 					return;
 				}
 				me.remove_fileid(fileid);
-				me.frm.get_docinfo().communications.push(r.message);
-				me.frm.timeline && me.frm.timeline.refresh();
+				me.frm.reload_docinfo();
 				if (callback) callback();
 			}
 		});
@@ -164,20 +163,17 @@ frappe.ui.form.Attachments = Class.extend({
 	},
 	attachment_uploaded:  function(attachment, r) {
 		this.dialog && this.dialog.hide();
-		this.update_attachment(attachment, r.message.comment);
+		this.update_attachment(attachment);
+		this.frm.reload_docinfo();
 
 		if(this.fieldname) {
 			this.frm.set_value(this.fieldname, attachment.file_url);
 		}
 	},
-	update_attachment: function(attachment, comment) {
+	update_attachment: function(attachment) {
 		if(attachment.name) {
 			this.add_to_attachments(attachment);
 			this.refresh();
-			if(comment) {
-				this.frm.get_docinfo().communications.push(comment);
-				this.frm.timeline.refresh();
-			}
 		}
 	},
 	add_to_attachments: function (attachment) {
