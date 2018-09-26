@@ -71,14 +71,14 @@ class File(NestedSet):
 
 	def after_insert(self):
 		self.update_parent_folder_size()
-		self.add_comment_in_reference_doc('Attachment',
-			_('Added {0}').format("<a href='{file_url}' target='_blank'>{file_name}</a>{icon}".format(**{
-				"icon": ' <i class="fa fa-lock text-warning"></i>' \
-					if self.is_private else "",
-				"file_url": self.file_url.replace("#", "%23") \
-					if self.file_name else self.file_url,
-				"file_name": self.file_name or self.file_url
-			})))
+
+		if not self.is_folder:
+			self.add_comment_in_reference_doc('Attachment',
+				_('Added {0}').format("<a href='{file_url}' target='_blank'>{file_name}</a>{icon}".format(**{
+					"icon": ' <i class="fa fa-lock text-warning"></i>' if self.is_private else "",
+					"file_url": self.file_url.replace("#", "%23") if self.file_name else self.file_url,
+					"file_name": self.file_name or self.file_url
+				})))
 
 	def after_rename(self, olddn, newdn, merge=False):
 		for successor in self.get_successor():
@@ -211,7 +211,8 @@ class File(NestedSet):
 		self.check_folder_is_empty()
 		super(File, self).on_trash()
 		self.call_delete_file()
-		self.add_comment_in_reference_doc('Attachment Removed', _("Removed {0}").format(self.file_name))
+		if not self.is_folder:
+			self.add_comment_in_reference_doc('Attachment Removed', _("Removed {0}").format(self.file_name))
 
 	def make_thumbnail(self, set_as_thumbnail=True, width=300, height=300, suffix="small", crop=False):
 		if self.file_url:
