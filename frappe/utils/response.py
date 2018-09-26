@@ -147,7 +147,7 @@ def download_private_file(path):
 	"""Checks permissions and sends back private file"""
 	try:
 		_file = frappe.get_doc("File", {"file_url": path})
-		_file.check_file_permission()
+		_file.is_downloadable()
 
 	except frappe.PermissionError:
 		raise Forbidden(_("You don't have permission to access this file"))

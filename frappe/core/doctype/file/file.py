@@ -72,6 +72,14 @@ class File(NestedSet):
 	def after_insert(self):
 		self.update_parent_folder_size()
 
+		if not self.is_folder:
+			self.add_comment_in_reference_doc('Attachment',
+				_('Added {0}').format("<a href='{file_url}' target='_blank'>{file_name}</a>{icon}".format(**{
+					"icon": ' <i class="fa fa-lock text-warning"></i>' if self.is_private else "",
+					"file_url": self.file_url.replace("#", "%23") if self.file_name else self.file_url,
+					"file_name": self.file_name or self.file_url
+				})))
+
 	def after_rename(self, olddn, newdn, merge=False):
 		for successor in self.get_successor():
 			setup_folder_path(successor, self.name)
@@ -182,7 +190,7 @@ class File(NestedSet):
 					self.attached_to_name))
 			if len(n_records) > 0:
 				self.duplicate_entry = n_records[0][0]
-				frappe.throw(frappe._("Same file has already been attached to the record"),
+				frappe.throw(_("Same file has already been attached to the record"),
 					frappe.DuplicateEntryError)
 
 	def generate_content_hash(self):
@@ -201,9 +209,10 @@ class File(NestedSet):
 		if self.is_home_folder or self.is_attachments_folder:
 			frappe.throw(_("Cannot delete Home and Attachments folders"))
 		self.check_folder_is_empty()
-		self.check_reference_doc_permission()
 		super(File, self).on_trash()
 		self.call_delete_file()
+		if not self.is_folder:
+			self.add_comment_in_reference_doc('Attachment Removed', _("Removed {0}").format(self.file_name))
 
 	def make_thumbnail(self, set_as_thumbnail=True, width=300, height=300, suffix="small", crop=False):
 		if self.file_url:
@@ -251,25 +260,6 @@ class File(NestedSet):
 
 		if self.is_folder and files:
 			frappe.throw(_("Folder {0} is not empty").format(self.name), FolderNotEmpty)
-
-	def check_reference_doc_permission(self):
-		"""Check if permission exists for reference document"""
-		if not frappe.db.exists(self.attached_to_doctype, self.attached_to_name):
-			# document is already deleted before deleting attachment
-			return
-
-		if self.attached_to_name:
-			# check persmission
-			try:
-				if not self.flags.ignore_permissions and \
-					not frappe.has_permission(self.attached_to_doctype,
-						"write", self.attached_to_name):
-					frappe.throw(frappe._(
-						"Cannot delete file as it belongs to {0} {1} for which you do not have permissions").format(
-						self.attached_to_doctype, self.attached_to_name),
-						frappe.PermissionError)
-			except frappe.DoesNotExistError:
-				pass
 
 	def call_delete_file(self):
 		"""If file not attached to any other record, delete it"""
@@ -542,21 +532,24 @@ class File(NestedSet):
 			delete_file(self.file_url)
 			delete_file(self.thumbnail_url)
 
-
-	def check_file_permission(self):
-		for file in frappe.get_all("File", filters={"file_url": self.file_url, "is_private": 1},
-			fields=["name", "attached_to_doctype", "attached_to_name"]):
-
-			if (frappe.has_permission("File", ptype="read", doc=file.name)
-				or frappe.has_permission(file.attached_to_doctype, ptype="read", doc=file.attached_to_name)):
+	def is_downloadable(self):
+		if self.is_private:
+			if has_permission(self, 'read'):
 				return True
-
+		
 		raise frappe.PermissionError
-
 
 	def get_extension(self):
 		'''returns split filename and extension'''
 		return os.path.splitext(self.file_name)
+
+	def add_comment_in_reference_doc(self, comment_type, text):
+		if self.attached_to_doctype and self.attached_to_name:
+			try:
+				doc = frappe.get_doc(self.attached_to_doctype, self.attached_to_name)
+				doc.add_comment(comment_type, text)
+			except frappe.DoesNotExistError:
+				pass
 
 
 def on_doctype_update():
@@ -743,6 +736,23 @@ def remove_all(dt, dn, from_delete=False):
 	except Exception as e:
 		if e.args[0]!=1054: raise # (temp till for patched)
 
+def has_permission(doc, ptype, user):
+	permission = None
+	
+	if doc.attached_to_doctype and doc.attached_to_name:
+		ref_doc = frappe.get_doc(doc.attached_to_doctype, doc.attached_to_name)
+		if ptype in ['write', 'create', 'delete']:
+			permission = ref_doc.has_permission('write')
+
+			if ptype == 'delete' and permission == False:
+				frappe.throw(_("Cannot delete file as it belongs to {0} {1} for which you do not have permissions").format(
+					doc.attached_to_doctype, doc.attached_to_name),
+					frappe.PermissionError)
+		else:
+			permission = ref_doc.has_permission('read')
+	
+	return permission
+
 
 def remove_file_by_url(file_url, doctype=None, name=None):
 	if doctype and name:
@@ -875,7 +885,7 @@ def get_attached_images(doctype, names):
 		'is_folder': 0
 	}, fields=['file_url', 'attached_to_name as docname'])
 
-	out = frappe._dict()
+	out = _dict()
 	for i in img_urls:
 		out[i.docname] = out.get(i.docname, [])
 		out[i.docname].append(i.file_url)
