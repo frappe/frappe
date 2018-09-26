@@ -545,8 +545,11 @@ class File(NestedSet):
 
 	def add_comment_in_reference_doc(self, comment_type, text):
 		if self.attached_to_doctype and self.attached_to_name:
-			doc = frappe.get_doc(self.attached_to_doctype, self.attached_to_name)
-			doc.add_comment(comment_type, text)
+			try:
+				doc = frappe.get_doc(self.attached_to_doctype, self.attached_to_name)
+				doc.add_comment(comment_type, text)
+			except frappe.DoesNotExistError:
+				pass
 
 
 def on_doctype_update():
