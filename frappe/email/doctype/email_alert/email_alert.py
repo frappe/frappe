@@ -134,9 +134,10 @@ def get_context(context):
 				if not frappe.safe_eval(recipient.condition, None, context):
 					continue
 			if recipient.email_by_document_field:
-				if validate_email_add(doc.get(recipient.email_by_document_field)):
-					recipient.email_by_document_field = doc.get(recipient.email_by_document_field).replace(",", "\n")
-					recipients = recipients + recipient.email_by_document_field.split("\n")
+				email_ids_value = doc.get(recipient.email_by_document_field)
+				if validate_email_add(email_ids_value):
+					email_ids = email_ids_value.replace(",", "\n")
+					recipients = recipients + email_ids.split("\n")
 
 				# else:
 				# 	print "invalid email"
