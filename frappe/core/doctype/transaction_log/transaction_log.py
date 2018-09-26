@@ -20,7 +20,7 @@ class TransactionLog(Document):
 			if prev_hash:
 				self.previous_hash = prev_hash[0][0]
 			else:
-				self.previous_hash = _("Indexing broken")
+				self.previous_hash = "Indexing broken"
 		else:
 			self.previous_hash = self.hash_line()
 		self.transaction_hash = self.hash_line()
