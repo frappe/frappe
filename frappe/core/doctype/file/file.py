@@ -90,6 +90,7 @@ class File(NestedSet):
 	def validate(self):
 		if self.is_new():
 			self.validate_duplicate_entry()
+			self.validate_file_name()
 		self.validate_folder()
 
 		if not self.flags.ignore_file_validate:
@@ -192,6 +193,10 @@ class File(NestedSet):
 				self.duplicate_entry = n_records[0][0]
 				frappe.throw(_("Same file has already been attached to the record"),
 					frappe.DuplicateEntryError)
+	
+	def validate_file_name(self):
+		if not self.file_name and self.file_url:
+			self.file_name = self.file_url.split('/')[-1]
 
 	def generate_content_hash(self):
 		if self.content_hash or not self.file_url:
@@ -536,7 +541,7 @@ class File(NestedSet):
 		if self.is_private:
 			if has_permission(self, 'read'):
 				return True
-		
+
 		raise frappe.PermissionError
 
 	def get_extension(self):
@@ -736,11 +741,26 @@ def remove_all(dt, dn, from_delete=False):
 	except Exception as e:
 		if e.args[0]!=1054: raise # (temp till for patched)
 
-def has_permission(doc, ptype, user):
-	permission = None
-	
+def has_permission(doc, ptype=None, user=None):
+	permission = True
+
 	if doc.attached_to_doctype and doc.attached_to_name:
-		ref_doc = frappe.get_doc(doc.attached_to_doctype, doc.attached_to_name)
+		attached_to_doctype = doc.attached_to_doctype
+		attached_to_name = doc.attached_to_name
+
+		# if file is being attached to Communication (via email)
+		# check it's permission from the linked doc
+		if doc.attached_to_doctype == 'Communication':			
+			try:
+				ref_doctype, ref_name = frappe.db.get_value('Communication', doc.attached_to_name, ['reference_doctype', 'reference_name'])
+			except frappe.DoesNotExistError:
+				ref_doctype = ref_name = None
+
+			if ref_doctype and ref_name:
+				attached_to_doctype = ref_doctype
+				attached_to_name = ref_name
+
+		ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 		if ptype in ['write', 'create', 'delete']:
 			permission = ref_doc.has_permission('write')
 
@@ -750,7 +770,7 @@ def has_permission(doc, ptype, user):
 					frappe.PermissionError)
 		else:
 			permission = ref_doc.has_permission('read')
-	
+
 	return permission
 
 
