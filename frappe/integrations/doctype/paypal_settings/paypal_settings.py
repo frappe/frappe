@@ -68,7 +68,7 @@ import frappe
 import json
 from frappe import _
 from datetime import datetime
-from frappe.utils import get_url, call_hook_method, cint, get_timestamp, cstr, nowdate, date_diff
+from frappe.utils import get_url, call_hook_method, cint, get_timestamp, cstr, now, date_diff, get_datetime
 from six.moves.urllib.parse import urlencode
 from frappe.model.document import Document
 from frappe.integrations.utils import create_request_log, make_post_request, create_payment_gateway
@@ -249,6 +249,7 @@ def get_express_checkout_details(token):
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def confirm_payment(token):
 	try:
+		custom_redirect_to = None
 		data, params, url = get_paypal_and_transaction_details(token)
 
 		params.update({
@@ -285,12 +286,15 @@ def confirm_payment(token):
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def create_recurring_profile(token, payerid):
 	try:
+		custom_redirect_to = None
+		updating = False
 		data, params, url = get_paypal_and_transaction_details(token)
 
 		addons = data.get("addons")
 		subscription_details = data.get("subscription_details")
 
 		if data['subscription_id'] and addons:
+			updating = True
 			manage_recurring_payment_profile_status(data['subscription_id'], 'Cancel', params, url)
 
 		params.update({
@@ -302,14 +306,15 @@ def create_recurring_profile(token, payerid):
 			"BILLINGFREQUENCY": subscription_details.get("billing_frequency"),
 			"AMT": data.get("amount") if data.get("subscription_amount") == data.get("amount") else data.get("subscription_amount"),
 			"CURRENCYCODE": data.get("currency").upper(),
-			"INITAMT": subscription_details.get("upfront_amount")
+			"INITAMT": data.get("upfront_amount")
 		})
 
-		starts_at = subscription_details.get("start_date") or nowdate()
-		status_changed_to = 'Completed' if subscription_details.get("upfront_amount") else 'Verified'
+		starts_at = get_datetime(subscription_details.get("start_date")) or frappe.utils.now_datetime()
+		status_changed_to = 'Completed' if data.get("starting_immediately") or updating else 'Verified'
 
+		#"PROFILESTARTDATE": datetime.utcfromtimestamp(get_timestamp(starts_at)).isoformat()
 		params.update({
-			"PROFILESTARTDATE": datetime.utcfromtimestamp(get_timestamp(starts_at)).isoformat()
+			"PROFILESTARTDATE": starts_at.isoformat()
 		})
 
 		response = make_post_request(url, data=params)

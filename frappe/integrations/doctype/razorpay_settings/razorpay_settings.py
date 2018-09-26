@@ -176,9 +176,6 @@ class RazorpaySettings(Document):
 		return kwargs
 
 	def get_payment_url(self, **kwargs):
-		settings = self.get_settings(kwargs)
-		kwargs = self.prepare_subscription_details(settings, **kwargs)
-
 		integration_request = create_request_log(kwargs, "Host", "Razorpay")
 		return get_url("./integrations/razorpay_checkout?token={0}".format(integration_request.name))
 

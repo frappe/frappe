@@ -39,7 +39,6 @@ def make_post_request(url, auth=None, headers=None, data=None):
 	try:
 		s = get_request_session()
 		frappe.flags.integration_request = s.post(url, data=data, auth=auth, headers=headers)
-		print(frappe.flags.integration_request.text)
 		frappe.flags.integration_request.raise_for_status()
 
 		if frappe.flags.integration_request.headers.get("content-type") == "text/plain; charset=utf-8":
@@ -47,7 +46,6 @@ def make_post_request(url, auth=None, headers=None, data=None):
 
 		return frappe.flags.integration_request.json()
 	except Exception as exc:
-		print(exc)
 		frappe.log_error()
 		raise exc
 
