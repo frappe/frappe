@@ -6,32 +6,64 @@
 			<div class="user-name">{{ user_name }}</div>
 			<div class="content" v-html="post.content"></div>
 		</div>
-		<post-action :comment_count="comment_count"></post-action>
+		<post-action :reply_count="reply_count" @reply="toggle_reply" @new_reply="create_new_reply"></post-action>
+		<post-reply class="post-reply" v-if="show_replies" :replies="replies"></post-reply>
 	</div>
 </template>
 <script>
+import PostReply from './PostReply.vue';
 import PostAction from './PostAction.vue';
-export default {
+
+frappe.provide('frappe.social');
+
+const Post = {
 	props: ['post'],
 	components: {
-		PostAction
+		PostAction,
+		PostReply
 	},
 	data() {
 		return {
 			user_avatar: frappe.avatar(this.post.owner, 'avatar-medium'),
 			post_time: comment_when(this.post.creation),
 			user_name: frappe.user_info(this.post.owner).fullname,
-			show_comment: false,
-			comment_count: 0,
-			comments: null
+			reply_count: 0,
+			replies: [{
+				content: 'hello',
+				name: 'asdfasdf'
+			}],
+			show_replies: false
 		}
 	},
 	created() {
-
+		frappe.db.get_list('Post', {
+			fields: ['name', 'content', 'owner', 'creation'],
+			order_by: 'creation desc',
+			filters: {
+				reply_to: this.post.name
+			}
+		}).then(replies => {
+			this.replies = replies;
+		})
+		frappe.realtime.on('new_post_reply', (post) => {
+			if (post.reply_to === this.post.name) {
+				this.reply_count += 1;
+			}
+		})
 	},
 	methods: {
+		create_new_reply: () => {
+			frappe.social.post_reply_dialog.show()
+		},
+		toggle_reply: () => {
+			this.show_repies = !this.show_replies
+		}
 	}
 }
+
+frappe.social.Post = Post;
+
+export default Post;
 </script>
 <style lang="less">
 .post-card {
@@ -65,6 +97,9 @@ export default {
 			border-radius: 5px;
 			border: none;
 		}
+	}
+	.post-reply {
+		margin-left: 10px;
 	}
 }
 </style>

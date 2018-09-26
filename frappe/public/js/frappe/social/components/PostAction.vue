@@ -1,8 +1,8 @@
 <template>
 	<div class="flex text-muted justify-center">
-		<div class="comment" @click="$emit('comment')">
+		<div class="reply" @click="$emit('reply')">
 			<i class="fa fa-reply"></i>
-			<span>{{comment_count}}</span>
+			<span>{{reply_count}}</span>
 		</div>
 		<div class="like" @click="$emit('like')">
 			<i class="fa fa-heart"></i>
@@ -17,7 +17,7 @@ export default {
 			'type': Number,
 			'default': 0,
 		},
-		'comment_count': {
+		'reply_count': {
 			'type': Number,
 			'default': 0,
 		}
@@ -25,7 +25,7 @@ export default {
 }
 </script>
 <style lang='less' scoped>
-.comment, .like{
+.reply, .like{
 	padding: 10px;
 	span {
 		margin-left: 5px;

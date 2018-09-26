@@ -39,6 +39,7 @@ frappe.social.post_dialog = new frappe.ui.Dialog({
 	title: __("Create A Post"),
 	fields: [
 		{fieldtype: "Text Editor", fieldname: "content", label: __("Content"), reqd: 1},
+		{fieldtype: "Link", fieldname: "reply_to", label: __("Reply"), hidden: 1}
 	]
 });
 
@@ -46,8 +47,28 @@ frappe.social.post_dialog.set_primary_action(__('Post'), () => {
 	const values = frappe.social.post_dialog.get_values();
 	const post = frappe.model.get_new_doc('Post');
 	post.content = values.content;
+	post.reply_to = values.reply_to;
 	frappe.db.insert(post).then(() => {
 		frappe.social.post_dialog.clear();
 		frappe.social.post_dialog.hide();
+	});
+});
+
+frappe.social.post_reply_dialog = new frappe.ui.Dialog({
+	title: __("Reply"),
+	fields: [
+		{fieldtype: "Text Editor", fieldname: "content", label: __("Content"), reqd: 1},
+		{fieldtype: "Link", fieldname: "reply_to", label: __("Reply"), hidden: 1}
+	]
+});
+
+frappe.social.post_reply_dialog.set_primary_action(__('Reply'), () => {
+	const values = frappe.social.post_reply_dialog.get_values();
+	const post = frappe.model.get_new_doc('Post');
+	post.content = values.content;
+	post.reply_to = values.reply_to;
+	frappe.db.insert(post).then(() => {
+		frappe.social.post_reply_dialog.clear();
+		frappe.social.post_reply_dialog.hide();
 	});
 });

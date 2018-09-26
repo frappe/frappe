@@ -9,6 +9,6 @@ from frappe.model.document import Document
 class Post(Document):
 	def after_insert(self):
 		if self.reply_to:
-			frappe.publish_realtime('post_reply', self, after_commit=True)
+			frappe.publish_realtime('new_post_reply', self, after_commit=True)
 		else:
 			frappe.publish_realtime('new_post', self, after_commit=True)
