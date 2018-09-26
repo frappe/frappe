@@ -89,6 +89,13 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 
 	recipients = [r for r in list(set(recipients)) if r and r not in unsubscribed]
 
+	if cc:
+		cc = [r for r in list(set(cc)) if r and r not in unsubscribed]
+
+	if not recipients and not cc:
+		# Recipients may have been unsubscribed, exit quietly
+		return
+
 	email_text_context = text_content
 
 	should_append_unsubscribe = (add_unsubscribe_link
