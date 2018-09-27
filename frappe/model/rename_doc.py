@@ -455,14 +455,14 @@ def update_linked_doctypes(doctype, docname, linked_to, value, ignore_doctypes=N
 			set
 				{linked_to_fieldname} = "{value}"
 			where
-				{master_fieldname} = "{docname}"
+				{master_fieldname} = {docname}
 				and {linked_to_fieldname} != "{value}"
 		""".format(
 			doctype = d['doctype'],
 			linked_to_fieldname = d['linked_to_fieldname'],
 			value = value,
 			master_fieldname = d['master_fieldname'],
-			docname = docname
+			docname = frappe.db.escape(docname)
 		))
 
 def get_fetch_fields(doctype, linked_to, ignore_doctypes=None):
