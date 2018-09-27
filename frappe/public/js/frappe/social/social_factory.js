@@ -1,6 +1,10 @@
 frappe.views.socialFactory = class socialFactory extends frappe.views.Factory {
 	show() {
-		this.make('Social');
+		if (frappe.pages.social) {
+			frappe.container.change_to('social');
+		} else {
+			this.make('social');
+		}
 	}
 
 	make(page_name) {
