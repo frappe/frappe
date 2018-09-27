@@ -454,13 +454,12 @@ class Document(BaseDocument):
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
 			d._save_passwords()
-
-		self.validate_set_only_once()
-
 		if self.is_new():
 			# don't set fields like _assign, _comments for new doc
 			for fieldname in optional_fields:
 				self.set(fieldname, None)
+		else:
+			self.validate_set_only_once()
 
 	def validate_set_only_once(self):
 		'''Validate that fields are not changed if not in insert'''

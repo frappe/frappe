@@ -310,7 +310,6 @@ class BaseDocument(object):
 						self.db_insert()
 						return
 
-					frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
 					raise frappe.DuplicateEntryError(self.doctype, self.name, e)
 
 				elif "Duplicate" in cstr(e.args[1]):
