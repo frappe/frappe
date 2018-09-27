@@ -753,7 +753,7 @@ def has_permission(doc, ptype=None, user=None):
 		if doc.attached_to_doctype == 'Communication':			
 			try:
 				ref_doctype, ref_name = frappe.db.get_value('Communication', doc.attached_to_name, ['reference_doctype', 'reference_name'])
-			except (frappe.DoesNotExistError, Exception):
+			except (frappe.DoesNotExistError, TypeError):
 				ref_doctype = ref_name = None
 
 			if ref_doctype and ref_name:
