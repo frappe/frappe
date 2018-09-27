@@ -1,12 +1,12 @@
 <template>
-	<div class="flex text-muted justify-center">
-		<div class="reply" @click="$emit('reply')">
-			<i class="fa fa-reply"></i>
-			<span>{{reply_count}}</span>
+	<div class="post-action-container text-muted">
+		<div class="reply">
+			<i class="fa fa-reply" @click="$emit('new_reply')"></i>
+			<span @click="$emit('toggle_reply')">{{ reply_count }}</span>
 		</div>
 		<div class="like" @click="$emit('like')">
 			<i class="fa fa-heart"></i>
-			<span>{{like_count}}</span>
+			<span>{{ like_count }}</span>
 		</div>
 	</div>
 </template>
@@ -25,10 +25,14 @@ export default {
 }
 </script>
 <style lang='less' scoped>
-.reply, .like{
-	padding: 10px;
-	span {
-		margin-left: 5px;
+.post-action-container {
+	display: flex;
+	justify-content: flex-end;
+	.reply, .like {
+		padding: 10px;
+		span {
+			margin-left: 5px;
+		}
 	}
 }
 </style>

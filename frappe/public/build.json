@@ -115,7 +115,8 @@
 		"public/less/kanban.less",
 		"public/less/controls.less",
 		"public/less/chat.less",
-		"public/less/filters.less"
+		"public/less/filters.less",
+		"public/less/social.less"
 	],
 	"css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",

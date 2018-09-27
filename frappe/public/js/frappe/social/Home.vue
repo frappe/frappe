@@ -1,5 +1,5 @@
 <template>
-	<div class="social-page-container">
+	<div class="social">
 		<component :is="current_page"></component>
 	</div>
 </template>

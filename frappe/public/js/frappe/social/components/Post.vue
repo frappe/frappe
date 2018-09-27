@@ -6,7 +6,11 @@
 			<div class="user-name">{{ user_name }}</div>
 			<div class="content" v-html="post.content"></div>
 		</div>
-		<post-action :reply_count="reply_count" @reply="toggle_reply" @new_reply="create_new_reply"></post-action>
+		<post-action
+			:reply_count="replies.length"
+			@toggle_reply="toggle_reply"
+			@new_reply="create_new_reply">
+		</post-action>
 		<post-reply class="post-reply" v-if="show_replies" :replies="replies"></post-reply>
 	</div>
 </template>
@@ -28,10 +32,7 @@ const Post = {
 			post_time: comment_when(this.post.creation),
 			user_name: frappe.user_info(this.post.owner).fullname,
 			reply_count: 0,
-			replies: [{
-				content: 'hello',
-				name: 'asdfasdf'
-			}],
+			replies: [],
 			show_replies: false
 		}
 	},
@@ -47,16 +48,17 @@ const Post = {
 		})
 		frappe.realtime.on('new_post_reply', (post) => {
 			if (post.reply_to === this.post.name) {
-				this.reply_count += 1;
+				this.replies.push(post);
 			}
 		})
 	},
 	methods: {
-		create_new_reply: () => {
+		create_new_reply() {
+			frappe.social.post_reply_dialog.set_value('reply_to', this.post.name);
 			frappe.social.post_reply_dialog.show()
 		},
-		toggle_reply: () => {
-			this.show_repies = !this.show_replies
+		toggle_reply() {
+			this.show_replies = !this.show_replies
 		}
 	}
 }
@@ -67,15 +69,17 @@ export default Post;
 </script>
 <style lang="less">
 .post-card {
-	margin-bottom: 20px;
+	margin: 10px 0;
 	max-width: 500px;
 	max-height: 500px;
 	min-height: 70px;
 	overflow: hidden;
+	cursor: pointer;
+	border: 1px solid #c2c3c4;
+	border-radius: 15px;
 	.post-body {
 		padding: 10px 12px;
 	}
-	cursor: pointer;
 	.user-name{
 		font-weight: 900;
 	}
@@ -99,7 +103,8 @@ export default Post;
 		}
 	}
 	.post-reply {
-		margin-left: 10px;
+		margin-left: 20px;
+		background-color: rgba(0, 0, 0, 0.05);
 	}
 }
 </style>

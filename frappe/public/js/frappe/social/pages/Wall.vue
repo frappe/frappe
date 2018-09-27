@@ -1,5 +1,5 @@
 <template>
-	<div class="container flex">
+	<div class="wall-container">
 		<div class="new_posts_count" @click="load_new_posts()" v-if='new_posts_count'>
 			{{ new_posts_count + ' new post'}}
 		</div>
@@ -28,7 +28,9 @@ export default {
 	},
 	methods: {
 		get_posts(load_only_new_posts = true) {
-			const filters = {};
+			const filters = {
+				'reply_to': ''
+			};
 			if (load_only_new_posts && this.posts[0]) {
 				filters.creation = ['>', this.posts[0].creation]
 			}
@@ -53,20 +55,16 @@ export default {
 </script>
 
 <style lang='less' scoped>
-.container {
+.wall-container {
 	display: flex;
 	flex-direction: column;
-	background: rgb(230, 236, 240);
-	padding: 0px;
+	padding-top: 10px;
 	width: 500px;
 	font-size: 14px;
 	margin: 0;
 	.new_posts_count {
-		height: 40px;
 		cursor: pointer;
-		background: rgb(205, 227, 241);
 		text-align: center;
-		padding: 10px;
 	}
 }
 </style>
