@@ -792,29 +792,18 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		const out = data.map(d => this.build_row(d));
 
 		if (this.add_totals_row) {
-			const totals_row = data.reduce((totals_row, d) => {
-				this.columns.forEach((col, i) => {
-					totals_row[i] = totals_row[i] || {
-						name: 'Totals Row',
-						content: ''
-					};
-
-					if (col.field in d && frappe.model.is_numeric_field(col.docfield)) {
-
-						if (!totals_row[i].format) {
-							totals_row[i].format = value => frappe.format(value, col.docfield, { always_show_decimals: true });
-						}
-
-						totals_row[i].content = totals_row[i].content || 0;
-						totals_row[i].content += parseInt(d[col.field], 10);
+			const totals = this.get_columns_totals(data);
+			const totals_row = this.columns.map((col, i) => {
+				return {
+					name: 'Totals Row',
+					content: totals[col.field],
+					format: value => {
+						return frappe.format(value, col.docfield, { always_show_decimals: true });
 					}
-				});
-
-				return totals_row;
-			}, []);
+				}
+			})
 
 			totals_row[0].content = __('Totals').bold();
-
 			out.push(totals_row);
 		}
 
@@ -940,6 +929,27 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}).join('');
 	}
 
+	get_columns_totals(data) {
+		if (!this.add_totals_row) {
+			return [];
+		}
+
+		const row_totals = {};
+
+		this.columns.forEach((col, i) => {
+			const totals = data.reduce((totals, d) => {
+				if (col.field in d && frappe.model.is_numeric_field(col.docfield)) {
+					totals += flt(d[col.field]);
+					return totals;
+				}
+			}, 0);
+
+			row_totals[col.field] = totals;
+		});
+
+		return row_totals;
+	}
+
 	report_menu_items() {
 		let items = [
 			{
@@ -953,6 +963,15 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			{
 				label: __('Print'),
 				action: () => {
+					this.report_data = this.data.slice();
+
+					if (this.add_totals_row) {
+						const total_data = this.get_columns_totals(this.data);
+
+						total_data['name'] = __('Totals').bold();
+						this.report_data.push(total_data);
+					}
+
 					frappe.ui.get_print_settings(false, (print_settings) => {
 						var title =  __(this.doctype);
 						frappe.render_grid({
@@ -960,7 +979,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							subtitle: this.get_filters_html_for_print(),
 							print_settings: print_settings,
 							columns: this.columns,
-							data: this.data
+							data: this.report_data
 						});
 					});
 				}
