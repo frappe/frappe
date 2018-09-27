@@ -193,7 +193,7 @@ class File(NestedSet):
 				self.duplicate_entry = n_records[0][0]
 				frappe.throw(_("Same file has already been attached to the record"),
 					frappe.DuplicateEntryError)
-	
+
 	def validate_file_name(self):
 		if not self.file_name and self.file_url:
 			self.file_name = self.file_url.split('/')[-1]
@@ -554,7 +554,7 @@ class File(NestedSet):
 				doc = frappe.get_doc(self.attached_to_doctype, self.attached_to_name)
 				doc.add_comment(comment_type, text)
 			except frappe.DoesNotExistError:
-				pass
+				frappe.clear_messages()
 
 
 def on_doctype_update():
@@ -741,6 +741,7 @@ def remove_all(dt, dn, from_delete=False):
 	except Exception as e:
 		if e.args[0]!=1054: raise # (temp till for patched)
 
+      
 def has_permission(doc, ptype=None, user=None):
 	permission = True
 
@@ -748,28 +749,22 @@ def has_permission(doc, ptype=None, user=None):
 		attached_to_doctype = doc.attached_to_doctype
 		attached_to_name = doc.attached_to_name
 
-		# if file is being attached to Communication (via email)
-		# check it's permission from the linked doc
-		if doc.attached_to_doctype == 'Communication':			
-			try:
-				ref_doctype, ref_name = frappe.db.get_value('Communication', doc.attached_to_name, ['reference_doctype', 'reference_name'])
-			except (frappe.DoesNotExistError, TypeError):
-				ref_doctype = ref_name = None
+		try:
+			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 
-			if ref_doctype and ref_name:
-				attached_to_doctype = ref_doctype
-				attached_to_name = ref_name
+			if ptype in ['write', 'create', 'delete']:
+				permission = ref_doc.has_permission('write')
 
-		ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
-		if ptype in ['write', 'create', 'delete']:
-			permission = ref_doc.has_permission('write')
-
-			if ptype == 'delete' and permission == False:
-				frappe.throw(_("Cannot delete file as it belongs to {0} {1} for which you do not have permissions").format(
-					doc.attached_to_doctype, doc.attached_to_name),
-					frappe.PermissionError)
-		else:
-			permission = ref_doc.has_permission('read')
+				if ptype == 'delete' and permission == False:
+					frappe.throw(_("Cannot delete file as it belongs to {0} {1} for which you do not have permissions").format(
+						doc.attached_to_doctype, doc.attached_to_name),
+						frappe.PermissionError)
+			else:
+				permission = ref_doc.has_permission('read')
+		except frappe.DoesNotExistError:
+			# if parent doc is not created before file is created
+			# we cannot check its permission so allow the file
+			permission = True
 
 	return permission
 
@@ -859,8 +854,9 @@ def extract_images_from_html(doc, content):
 			"attached_to_doctype": doctype,
 			"attached_to_name": name,
 			"content": content,
-			"decode": True})
-		_file.save()
+			"decode": True
+		})
+		_file.save(ignore_permissions=True)
 		file_url = _file.file_url
 		if not frappe.flags.has_dataurl:
 			frappe.flags.has_dataurl = True
