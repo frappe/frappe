@@ -566,7 +566,7 @@ class Document(BaseDocument):
 		if not df:
 			df = self.meta.get_field(fieldname)
 
-		return df.permlevel in self.get_permlevel_access()
+		return df.permlevel in self.get_permlevel_access(permission_type)
 
 	def get_permissions(self):
 		if self.meta.istable:
