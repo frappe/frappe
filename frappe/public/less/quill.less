@@ -1,6 +1,7 @@
 @import "variables.less";
 @import (less) "quill/dist/quill.snow.css";
 @import (less) "quill/dist/quill.bubble.css";
+@import (less) "quill-mention/src/quill.mention.css";
 
 .ql-toolbar.ql-snow, .ql-container.ql-snow {
     border-color: @border-color;
@@ -37,4 +38,32 @@
     max-height: 300px;
     border: 1px solid @light-border-color;
     border-radius: 4px;
+}
+
+.ql-mention-list-container {
+    z-index: 1;
+}
+
+.ql-mention-list {
+    border-radius: 4px;
+}
+
+.ql-mention-list-item {
+    font-size: @text-small;
+    padding: 10px 12px;
+    height: initial;
+    line-height: initial;
+
+    &.selected {
+        background-color: @btn-bg;
+    }
+}
+
+.ql-editor .mention {
+    height: auto;
+    width: auto;
+    border-radius: 10px;
+    border: 1px solid @light-border-color;
+    padding: 2px 3px;
+    background-color: @btn-bg;
 }
