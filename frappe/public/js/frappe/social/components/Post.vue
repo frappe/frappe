@@ -7,12 +7,18 @@
 			<div class="content" v-html="post.content"></div>
 		</div>
 		<post-action
+			:like_count="like_count"
 			:reply_count="replies.length"
 			:post_liked="post_liked"
 			@toggle_reply="toggle_reply"
-			@new_reply="create_new_reply">
-		</post-action>
-		<post-reply class="post-reply" v-if="show_replies" :replies="replies"></post-reply>
+			@new_reply="create_new_reply"
+			@toggle_like="toggle_like"
+		/>
+		<post-reply
+			class="post-reply"
+			v-if="show_replies"
+			:replies="replies"
+		/>
 	</div>
 </template>
 <script>
@@ -35,7 +41,14 @@ const Post = {
 			reply_count: 0,
 			replies: [],
 			show_replies: false,
-			post_liked: frappe.ui.is_liked(this.post)
+		}
+	},
+	computed: {
+		like_count() {
+			return this.post.liked_by ? this.post.liked_by.split('\n').length : 0;
+		},
+		post_liked() {
+			return this.post.liked_by ? this.post.liked_by.includes(frappe.session.user) : false;
 		}
 	},
 	created() {
@@ -51,6 +64,7 @@ const Post = {
 		frappe.realtime.on('new_post_reply' + this.post.name, (post) => {
 			this.replies.push(post);
 		})
+		frappe.realtime.on('update_liked_by' + this.post.name, this.update_liked_by)
 	},
 	methods: {
 		create_new_reply() {
@@ -59,6 +73,21 @@ const Post = {
 		},
 		toggle_reply() {
 			this.show_replies = !this.show_replies
+		},
+		update_liked_by(user) {
+			const liked_by = this.post.liked_by ? this.post.liked_by.split('\n') : []
+			const user_index = liked_by.indexOf(user)
+			if (user_index > -1) {
+				liked_by.splice(user_index, 1);
+			} else {
+				liked_by.push(user);
+			}
+			this.post.liked_by = liked_by.join('\n')
+		},
+		toggle_like() {
+			frappe.xcall('frappe.social.doctype.post.post.toggle_like', {
+				post_name: this.post.name,
+			})
 		}
 	}
 }

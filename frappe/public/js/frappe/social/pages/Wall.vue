@@ -47,7 +47,7 @@ export default {
 				filters.creation = ['>', this.posts[0].creation]
 			}
 			frappe.db.get_list('Post', {
-				fields: ['name', 'content', 'owner', 'creation', 'type'],
+				fields: ['name', 'content', 'owner', 'creation', 'type', 'liked_by'],
 				filters: filters,
 				order_by: 'creation desc'
 			}).then((res) => {
