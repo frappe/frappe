@@ -123,4 +123,4 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 			['clean']
 		];
 	},
-})
+});
