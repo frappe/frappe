@@ -70,5 +70,13 @@ def get_data():
 			"icon": "octicon octicon-book",
 			"color": '#FFAEDB',
 			"hidden": 1,
+		},
+		{
+			"module_name": 'Social',
+			"label": _('Social'),
+			"icon": "fa fa-users",
+			"type": 'link',
+			"link": 'social/home',
+			"color": '#00253E'
 		}
 	]
