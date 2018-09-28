@@ -12,19 +12,18 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_quill_editor() {
 		if (this.quill) return;
 		this.quill_container = $('<div>').appendTo(this.input_area);
-		this.quill = new Quill(this.quill_container[0], {
-			modules: {
-				toolbar: this.get_toolbar_options(),
-				imageDrop: true
-			},
-			theme: 'snow',
-		});
+		this.quill = new Quill(this.quill_container[0], this.get_quill_options());
+		this.bind_events();
+	},
+
+	bind_events() {
 		this.quill.on('text-change', frappe.utils.debounce(() => {
 			const input_value = this.get_input_value();
 			if (this.value === input_value) return;
 
 			this.parse_validate_and_set_in_model(input_value);
 		}, 300));
+
 		$(this.quill.root).on('keydown', (e) => {
 			const key = frappe.ui.keys.get_key(e);
 			if (['ctrl+b', 'meta+b'].includes(key)) {
@@ -35,6 +34,16 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		$(this.quill.root).on('drop', (e) => {
 			e.stopPropagation();
 		});
+	},
+
+	get_quill_options() {
+		return {
+			modules: {
+				toolbar: this.get_toolbar_options(),
+				imageDrop: true
+			},
+			theme: 'snow'
+		};
 	},
 
 	get_toolbar_options() {
