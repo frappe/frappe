@@ -78,21 +78,21 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 
 	get_mention_options() {
 		if (!this.mentions) {
-			return null
+			return null;
 		}
 
 		const at_values = this.mentions.map((value, i) => {
 			return {
 				id: i,
 				value
-			}
+			};
 		});
 
 		return {
 			allowedChars: /^[A-Za-z0-9_]*$/,
 			mentionDenotationChars: ["@"],
 			isolateCharacter: true,
-			source: function (searchTerm, renderList, mentionChar) {
+			source: function(searchTerm, renderList, mentionChar) {
 				let values;
 
 				if (mentionChar === "@") {
