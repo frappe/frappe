@@ -8,6 +8,7 @@
 		</div>
 		<post-action
 			:reply_count="replies.length"
+			:post_liked="post_liked"
 			@toggle_reply="toggle_reply"
 			@new_reply="create_new_reply">
 		</post-action>
@@ -33,7 +34,8 @@ const Post = {
 			user_name: frappe.user_info(this.post.owner).fullname,
 			reply_count: 0,
 			replies: [],
-			show_replies: false
+			show_replies: false,
+			post_liked: frappe.ui.is_liked(this.post)
 		}
 	},
 	created() {
@@ -46,10 +48,8 @@ const Post = {
 		}).then(replies => {
 			this.replies = replies;
 		})
-		frappe.realtime.on('new_post_reply', (post) => {
-			if (post.reply_to === this.post.name) {
-				this.replies.push(post);
-			}
+		frappe.realtime.on('new_post_reply' + this.post.name, (post) => {
+			this.replies.push(post);
 		})
 	},
 	methods: {
@@ -73,13 +73,11 @@ export default Post;
 	max-width: 500px;
 	max-height: 500px;
 	min-height: 70px;
-	overflow: hidden;
+	overflow: scroll;
 	cursor: pointer;
 	border: 1px solid #c2c3c4;
 	border-radius: 15px;
-	.post-body {
-		padding: 10px 12px;
-	}
+	padding: 15px 15px 5px 15px;
 	.user-name{
 		font-weight: 900;
 	}
@@ -104,7 +102,6 @@ export default Post;
 	}
 	.post-reply {
 		margin-left: 20px;
-		background-color: rgba(0, 0, 0, 0.05);
 	}
 }
 </style>
