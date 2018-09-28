@@ -77,6 +77,22 @@ def destroy_all_sessions(context, reason=None):
 		finally:
 			frappe.destroy()
 
+@click.command('show-config')
+@pass_context
+def show_config(context):
+	"print configuration file"
+	print("\t\033[92m{:<50}\033[0m \033[92m{:<15}\033[0m".format('Config','Value'))
+	sites_path = os.path.join(frappe.utils.get_bench_path(), 'sites')
+	site_path = context.sites[0]
+	configuration = frappe.get_site_config(sites_path=sites_path, site_path=site_path)
+	print_config(configuration)
+
+def print_config(config):
+	for conf, value in config.items():
+		if isinstance(value, dict):
+			print_config(value)
+		else:
+			print("\t{:<50} {:<15}".format(conf, value))
 
 @click.command('reset-perms')
 @pass_context
@@ -709,6 +725,7 @@ commands = [
 	run_setup_wizard_ui_test,
 	serve,
 	set_config,
+	show_config,
 	watch,
 	_bulk_rename,
 	add_to_email_queue,
