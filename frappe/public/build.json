@@ -62,6 +62,7 @@
 		"public/js/frappe/form/controls/text.js",
 		"public/js/frappe/form/controls/code.js",
 		"public/js/frappe/form/controls/text_editor.js",
+		"public/js/frappe/form/controls/comment.js",
 		"public/js/frappe/form/controls/check.js",
 		"public/js/frappe/form/controls/image.js",
 		"public/js/frappe/form/controls/attach.js",
