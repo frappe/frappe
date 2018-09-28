@@ -1,19 +1,21 @@
+import 'quill-mention';
+
 frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
     make_wrapper() {
-		const header = !this.no_wrapper ?
-			`<div class="comment-input-header">
+        const header = !this.no_wrapper ?
+            `<div class="comment-input-header">
 				<span class="small text-muted">${__("Add a comment")}</span>
 				<button class="btn btn-default btn-comment btn-xs pull-right">
 					${__("Comment")}
 				</button>
 			</div>` : '';
 
-		const footer = !this.no_wrapper ?
-			`<div class="text-muted small">
+        const footer = !this.no_wrapper ?
+            `<div class="text-muted small">
 				${__("Ctrl+Enter to add comment")}
 			</div>` : '';
 
-		this.comment_wrapper = $(`
+        this.comment_wrapper = $(`
 			<div class="comment-input-wrapper">
 				${ header }
 				<div class="comment-input-container">
@@ -66,17 +68,59 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 
     get_quill_options() {
         const options = this._super();
-        options.theme = 'bubble';
-		return options;
+        return Object.assign(options, {
+            theme: 'bubble',
+            modules: Object.assign(options.modules, {
+                mention: this.get_mention_options()
+            })
+        });
+    },
+
+    get_mention_options() {
+        if (!this.mentions) {
+            return null
+        }
+
+        const at_values = this.mentions.map((value, i) => {
+            return {
+                id: i,
+                value
+            }
+        });
+
+        return {
+            allowedChars: /^[A-Za-z0-9_]*$/,
+            mentionDenotationChars: ["@"],
+            isolateCharacter: true,
+            source: function (searchTerm, renderList, mentionChar) {
+                let values;
+
+                if (mentionChar === "@") {
+                    values = at_values;
+                }
+
+                if (searchTerm.length === 0) {
+                    renderList(values, searchTerm);
+                } else {
+                    const matches = [];
+                    for (let i = 0; i < values.length; i++) {
+                        if (~values[i].value.toLowerCase().indexOf(searchTerm.toLowerCase())) {
+                            matches.push(values[i]);
+                        }
+                    }
+                    renderList(matches, searchTerm);
+                }
+            },
+        };
     },
 
     get_toolbar_options() {
-		return [
-			['bold', 'italic', 'underline'],
-			['blockquote', 'code-block'],
-			['link', 'image'],
-			[{ 'list': 'ordered' }, { 'list': 'bullet' }],
-			['clean']
-		];
-	},
+        return [
+            ['bold', 'italic', 'underline'],
+            ['blockquote', 'code-block'],
+            ['link', 'image'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            ['clean']
+        ];
+    },
 })

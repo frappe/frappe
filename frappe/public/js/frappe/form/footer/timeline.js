@@ -22,6 +22,7 @@ frappe.ui.form.Timeline = Class.extend({
 				fieldname: 'comment',
 				label: 'Comment'
 			},
+			mentions: this.get_names_for_mentions(),
 			render_input: true,
 			only_input: true,
 			on_submit: (val) => {
@@ -158,6 +159,7 @@ frappe.ui.form.Timeline = Class.extend({
 				fieldname: 'comment',
 				label: 'Comment'
 			},
+			mentions: this.get_names_for_mentions(),
 			render_input: true,
 			only_input: true,
 			no_wrapper: true
