@@ -228,7 +228,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	refresh() {
 		this.toggle_message(true);
 		let filters = this.get_filter_values(true);
-
 		let query = frappe.utils.get_query_string(frappe.get_route_str());
 
 		if(query) {
@@ -573,9 +572,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	get_filter_values(raise) {
 		const mandatory = this.filters.filter(f => f.df.reqd);
 		const missing_mandatory = mandatory.filter(f => !f.get_value());
-
 		if (raise && missing_mandatory.length > 0) {
-			return;
+			let message = __('Please set filters');
+			this.toggle_message(raise, message);
+			throw "Filter missing";
 		}
 
 		const filters = this.filters
@@ -593,7 +593,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				Object.assign(acc, f);
 				return acc;
 			}, {});
-
 		return filters;
 	}
 
