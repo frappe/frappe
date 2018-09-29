@@ -901,7 +901,7 @@ def get_attached_images(doctype, names):
 		'is_folder': 0
 	}, fields=['file_url', 'attached_to_name as docname'])
 
-	out = _dict()
+	out = frappe._dict()
 	for i in img_urls:
 		out[i.docname] = out.get(i.docname, [])
 		out[i.docname].append(i.file_url)
