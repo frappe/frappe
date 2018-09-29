@@ -42,7 +42,8 @@
 		"public/js/frappe/model/perm.js",
 
 		"website/js/website.js",
-		"public/js/frappe/misc/rating_icons.html"
+		"public/js/frappe/misc/rating_icons.html",
+		"public/js/frappe/socketio_client.js"
 	],
 	"js/control.min.js": [
 		"public/js/frappe/ui/capture.js",

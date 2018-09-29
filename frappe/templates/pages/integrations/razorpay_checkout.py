@@ -26,7 +26,6 @@ def get_context(context):
 
 		context['token'] = frappe.form_dict['token']
 		context['amount'] = flt(context['amount'])
-
 		context['subscription_id'] = payment_details['subscription_id'] \
 			if payment_details.get('subscription_id') else ''
 
