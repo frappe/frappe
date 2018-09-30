@@ -2,32 +2,30 @@ import 'quill-mention';
 
 frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 	make_wrapper() {
-		const header = !this.no_wrapper ?
-			`<div class="comment-input-header">
-				<span class="small text-muted">${__("Add a comment")}</span>
-				<button class="btn btn-default btn-comment btn-xs pull-right">
-					${__("Comment")}
-				</button>
-			</div>` : '';
-
-		const footer = !this.no_wrapper ?
-			`<div class="text-muted small">
-				${__("Ctrl+Enter to add comment")}
-			</div>` : '';
-
-		this.comment_wrapper = $(`
-			<div class="comment-input-wrapper">
-				${ header }
+		this.comment_wrapper = !this.no_wrapper ? $(`
+				<div class="comment-input-wrapper">
+					<div class="comment-input-header">
+					<span class="small text-muted">${__("Add a comment")}</span>
+					<button class="btn btn-default btn-comment btn-xs pull-right">
+						${__("Comment")}
+					</button>
+				</div>
 				<div class="comment-input-container">
 					<div class="frappe-control"></div>
-					${ footer }
+					<div class="text-muted small">
+						${__("Ctrl+Enter to add comment")}
+					</div>
 				</div>
 			</div>
-		`);
+		`) : $('<div class="frappe-control"></div>');
+
 		this.comment_wrapper.appendTo(this.parent);
 
 		// wrapper should point to frappe-control
-		this.$wrapper = this.comment_wrapper.find('.frappe-control');
+		this.$wrapper = !this.no_wrapper
+			? this.comment_wrapper.find('.frappe-control')
+			: this.comment_wrapper;
+
 		this.wrapper = this.$wrapper;
 
 		this.button = this.comment_wrapper.find('.btn-comment');
@@ -77,7 +75,7 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 	},
 
 	get_mention_options() {
-		if (!this.mentions) {
+		if (!(this.mentions && this.mentions.length)) {
 			return null;
 		}
 
