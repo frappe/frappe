@@ -54,7 +54,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			['link', 'image'],
 			[{ 'list': 'ordered' }, { 'list': 'bullet' }],
 			[{ 'align': [] }],
-			[{ 'color': [] }, { 'background': [] }],
+			[{ 'indent': '-1'}, { 'indent': '+1' }],
 			[{ 'font': [] }],
 			['clean']
 		];
