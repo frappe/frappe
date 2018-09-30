@@ -107,8 +107,8 @@ export default Post;
 	border: 1px solid #c2c3c4;
 	border-radius: 15px;
 	padding: 15px 15px 5px 15px;
-	.user-name{
-		font-weight: 900;
+	.user-name {
+		font-weight: 400;
 	}
 	.user-avatar {
 		float: left;

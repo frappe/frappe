@@ -7,11 +7,13 @@
 <script>
 
 import Wall from './pages/Wall.vue';
+import Profile from './pages/Profile.vue';
 import NotFound from './components/NotFound.vue';
 
 function get_route_map() {
 	return {
 		'social/home': Wall,
+		'social/profile': Profile
 	}
 }
 
@@ -36,7 +38,6 @@ export default {
 		get_current_page() {
 			const route_map = get_route_map();
 			const route = frappe.get_route_str();
-
 			if (route_map[route]) {
 				return route_map[route];
 			}
