@@ -40,10 +40,6 @@ function copy_dict(d) {
 	return n;
 }
 
-function replace_newlines(t) {
-	return t?t.replace(/\n/g, '<br>'):'';
-}
-
 function validate_email(txt) {
 	return frappe.utils.validate_type(txt, "email");
 }
@@ -108,3 +104,21 @@ function remove_from_list(list, val) {
 	}
 	return list
 }
+
+Object.assign(window, {
+	fmt_money,
+	toTitle,
+	is_null,
+	set_value_in,
+	copy_dict,
+	validate_email,
+	validate_spl_chars,
+	cstr,
+	nth,
+	esc_quotes,
+	has_words,
+	has_common,
+	add_lists,
+	docstring,
+	remove_from_list,
+});

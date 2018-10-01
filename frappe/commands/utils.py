@@ -1,23 +1,28 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import unicode_literals, absolute_import, print_function
 import click
-import json, os, sys
+import json, os, sys, subprocess
 from distutils.spawn import find_executable
 import frappe
 from frappe.commands import pass_context, get_site
-from frappe.utils import update_progress_bar
+from frappe.utils import update_progress_bar, get_bench_path
+from frappe.utils.response import json_handler
+from coverage import Coverage
 
 @click.command('build')
+@click.option('--app', help='Build assets for app')
 @click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
 @click.option('--restore', is_flag=True, default=False, help='Copy the files instead of symlinking with force')
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
-def build(make_copy=False, restore = False, verbose=False):
+def build(app=None, make_copy=False, restore = False, verbose=False):
 	"Minify + concatenate JS and CSS files, build translations"
 	import frappe.build
 	import frappe
 	frappe.init('')
 	# don't minify in developer_mode for faster builds
 	no_compress = frappe.local.conf.developer_mode or False
-	frappe.build.bundle(no_compress, make_copy=make_copy, restore = restore, verbose=verbose)
+	frappe.build.bundle(no_compress, app=app, make_copy=make_copy, restore = restore, verbose=verbose)
 
 @click.command('watch')
 def watch():
@@ -72,6 +77,22 @@ def destroy_all_sessions(context, reason=None):
 		finally:
 			frappe.destroy()
 
+@click.command('show-config')
+@pass_context
+def show_config(context):
+	"print configuration file"
+	print("\t\033[92m{:<50}\033[0m \033[92m{:<15}\033[0m".format('Config','Value'))
+	sites_path = os.path.join(frappe.utils.get_bench_path(), 'sites')
+	site_path = context.sites[0]
+	configuration = frappe.get_site_config(sites_path=sites_path, site_path=site_path)
+	print_config(configuration)
+
+def print_config(config):
+	for conf, value in config.items():
+		if isinstance(value, dict):
+			print_config(value)
+		else:
+			print("\t{:<50} {:<15}".format(conf, value))
 
 @click.command('reset-perms')
 @pass_context
@@ -121,7 +142,7 @@ def execute(context, method, args=None, kwargs=None):
 		finally:
 			frappe.destroy()
 		if ret:
-			print(json.dumps(ret))
+			print(json.dumps(ret, default=json_handler))
 
 
 @click.command('add-to-email-queue')
@@ -280,13 +301,87 @@ def _bulk_rename(context, doctype, path):
 	frappe.destroy()
 
 @click.command('mysql')
+def mysql():
+	"""
+		Deprecated
+	"""
+	click.echo("""
+mysql command is deprecated.
+Did you mean "bench mariadb"?
+""")
+
+@click.command('mariadb')
 @pass_context
-def mysql(context):
-	"Start Mariadb console for a site"
+def mariadb(context):
+	"""
+		Enter into mariadb console for a given site.
+	"""
+	import os
+
+	site  = get_site(context)
+	frappe.init(site=site)
+
+	# This is assuming you're within the bench instance.
+	mysql = find_executable('mysql')
+	os.execv(mysql, [
+		mysql,
+		'-u', frappe.conf.db_name,
+		'-p'+frappe.conf.db_password,
+		frappe.conf.db_name,
+		'-h', frappe.conf.db_host or "localhost",
+		'--pager=less -SFX',
+		"-A"])
+
+@click.command('postgres')
+@pass_context
+def postgres(context):
+	"""
+		Enter into postgres console for a given site.
+	"""
+	site  = get_site(context)
+	frappe.init(site=site)
+	# This is assuming you're within the bench instance.
+	psql = find_executable('psql')
+	subprocess.run([ psql, '-d', frappe.conf.db_name])
+
+@click.command('jupyter')
+@pass_context
+def jupyter(context):
+	try:
+		from pip import main
+	except ImportError:
+		from pip._internal import main
+
+	reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
+	installed_packages = [r.decode().split('==')[0] for r in reqs.split()]
+	if 'jupyter' not in installed_packages:
+		main(['install', 'jupyter'])
 	site = get_site(context)
 	frappe.init(site=site)
-	msq = find_executable('mysql')
-	os.execv(msq, [msq, '-u', frappe.conf.db_name, '-p'+frappe.conf.db_password, frappe.conf.db_name, '-h', frappe.conf.db_host or "localhost", "-A"])
+	jupyter_notebooks_path = os.path.abspath(frappe.get_site_path('jupyter_notebooks'))
+	sites_path = os.path.abspath(frappe.get_site_path('..'))
+	try:
+		os.stat(jupyter_notebooks_path)
+	except OSError:
+		print('Creating folder to keep jupyter notebooks at {}'.format(jupyter_notebooks_path))
+		os.mkdir(jupyter_notebooks_path)
+	bin_path = os.path.abspath('../env/bin')
+	print('''
+Stating Jupyter notebook
+Run the following in your first cell to connect notebook to frappe
+```
+import frappe
+frappe.init(site='{site}', sites_path='{sites_path}')
+frappe.connect()
+frappe.local.lang = frappe.db.get_default('lang')
+frappe.db.connect()
+```
+	'''.format(site=site, sites_path=sites_path))
+	os.execv('{0}/jupyter'.format(bin_path), [
+		'{0}/jupyter'.format(bin_path),
+		'notebook',
+		jupyter_notebooks_path,
+	])
 
 @click.command('console')
 @pass_context
@@ -297,7 +392,7 @@ def console(context):
 	frappe.connect()
 	frappe.local.lang = frappe.db.get_default("lang")
 	import IPython
-	IPython.embed()
+	IPython.embed(display_banner = "")
 
 @click.command('run-tests')
 @click.option('--app', help="For App")
@@ -308,10 +403,16 @@ def console(context):
 @click.option('--ui-tests', is_flag=True, default=False, help="Run UI Tests")
 @click.option('--module', help="Run tests in a module")
 @click.option('--profile', is_flag=True, default=False)
+@click.option('--coverage', is_flag=True, default=False)
+@click.option('--skip-test-records', is_flag=True, default=False, help="Don't create test records")
+@click.option('--skip-before-tests', is_flag=True, default=False, help="Don't run before tests hook")
 @click.option('--junit-xml-output', help="Destination file path for junit xml report")
+@click.option('--failfast', is_flag=True, default=False)
 @pass_context
 def run_tests(context, app=None, module=None, doctype=None, test=(),
-	driver=None, profile=False, junit_xml_output=False, ui_tests = False, doctype_list_path=None):
+	driver=None, profile=False, coverage=False, junit_xml_output=False, ui_tests = False,
+	doctype_list_path=None, skip_test_records=False, skip_before_tests=False, failfast=False):
+
 	"Run tests"
 	import frappe.test_runner
 	tests = test
@@ -319,9 +420,23 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 	site = get_site(context)
 	frappe.init(site=site)
 
+	frappe.flags.skip_before_tests = skip_before_tests
+	frappe.flags.skip_test_records = skip_test_records
+
+	if coverage:
+		# Generate coverage report only for app that is being tested
+		source_path = os.path.join(get_bench_path(), 'apps', app or 'frappe')
+		cov = Coverage(source=[source_path], omit=['*.html', '*.js', '*.css'])
+		cov.start()
+
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
 		force=context.force, profile=profile, junit_xml_output=junit_xml_output,
-		ui_tests = ui_tests, doctype_list_path = doctype_list_path)
+		ui_tests = ui_tests, doctype_list_path = doctype_list_path, failfast=failfast)
+
+	if coverage:
+		cov.stop()
+		cov.save()
+
 	if len(ret.failures) == 0 and len(ret.errors) == 0:
 		ret = 0
 
@@ -428,33 +543,48 @@ def make_app(destination, app_name):
 @click.command('set-config')
 @click.argument('key')
 @click.argument('value')
+@click.option('-g', '--global', 'global_', is_flag = True, default = False, help = 'Set Global Site Config')
 @click.option('--as-dict', is_flag=True, default=False)
 @pass_context
-def set_config(context, key, value, as_dict=False):
+def set_config(context, key, value, global_ = False, as_dict=False):
 	"Insert/Update a value in site_config.json"
 	from frappe.installer import update_site_config
 	import ast
 	if as_dict:
 		value = ast.literal_eval(value)
-	for site in context.sites:
-		frappe.init(site=site)
-		update_site_config(key, value, validate=False)
-		frappe.destroy()
+
+	if global_:
+		sites_path = os.getcwd() # big assumption.
+		common_site_config_path = os.path.join(sites_path, 'common_site_config.json')
+		update_site_config(key, value, validate = False, site_config_path = common_site_config_path)
+	else:
+		for site in context.sites:
+			frappe.init(site=site)
+			update_site_config(key, value, validate=False)
+			frappe.destroy()
 
 @click.command('version')
 def get_version():
 	"Show the versions of all the installed apps"
+	from frappe.utils.change_log import get_app_branch
 	frappe.init('')
+
 	for m in sorted(frappe.get_all_apps()):
+		branch_name = get_app_branch(m)
 		module = frappe.get_module(m)
-		if hasattr(module, "__version__"):
+		app_hooks = frappe.get_module(m + ".hooks")
+
+		if hasattr(app_hooks, '{0}_version'.format(branch_name)):
+			print("{0} {1}".format(m, getattr(app_hooks, '{0}_version'.format(branch_name))))
+
+		elif hasattr(module, "__version__"):
 			print("{0} {1}".format(m, module.__version__))
 
 
-
 @click.command('setup-global-help')
-@click.option('--mariadb_root_password')
-def setup_global_help(mariadb_root_password=None):
+@click.option('--db_type')
+@click.option('--root_password')
+def setup_global_help(db_type=None, root_password=None):
 	'''setup help table in a separate database that will be
 	shared by the whole bench and set `global_help_setup` as 1 in
 	common_site_config.json'''
@@ -470,11 +600,29 @@ def setup_global_help(mariadb_root_password=None):
 	update_site_config('global_help_setup', 1,
 		site_config_path=os.path.join('.', 'common_site_config.json'))
 
-	if mariadb_root_password:
-		frappe.local.conf.root_password = mariadb_root_password
+	if root_password:
+		frappe.local.conf.root_password = root_password
+
+	if not frappe.local.conf.db_type:
+		frappe.local.conf.db_type = db_type
+
 
 	from frappe.utils.help import sync
 	sync()
+
+@click.command('get-docs-app')
+@click.argument('app')
+def get_docs_app(app):
+	'''Get the docs app for given app'''
+	from frappe.utils.help import setup_apps_for_docs
+	setup_apps_for_docs(app)
+
+@click.command('get-all-docs-apps')
+def get_all_docs_apps():
+	'''Get docs apps for all apps'''
+	from frappe.utils.help import setup_apps_for_docs
+	for app in frappe.get_installed_apps():
+		setup_apps_for_docs(app)
 
 @click.command('setup-help')
 @pass_context
@@ -508,11 +656,54 @@ def rebuild_global_search(context):
 		finally:
 			frappe.destroy()
 
+@click.command('auto-deploy')
+@click.argument('app')
+@click.option('--migrate', is_flag=True, default=False, help='Migrate after pulling')
+@click.option('--restart', is_flag=True, default=False, help='Restart after migration')
+@click.option('--remote', default='upstream', help='Remote, default is "upstream"')
+@pass_context
+def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
+	'''Pull and migrate sites that have new version'''
+	from frappe.utils.gitutils import get_app_branch
+	from frappe.utils import get_sites
+
+	branch = get_app_branch(app)
+	app_path = frappe.get_app_path(app)
+
+	# fetch
+	subprocess.check_output(['git', 'fetch', remote, branch], cwd = app_path)
+
+	# get diff
+	if subprocess.check_output(['git', 'diff', '{0}..upstream/{0}'.format(branch)], cwd = app_path):
+		print('Updates found for {0}'.format(app))
+		if app=='frappe':
+			# run bench update
+			subprocess.check_output(['bench', 'update', '--no-backup'], cwd = '..')
+		else:
+			updated = False
+			subprocess.check_output(['git', 'pull', '--rebase', 'upstream', branch],
+				cwd = app_path)
+			# find all sites with that app
+			for site in get_sites():
+				frappe.init(site)
+				if app in frappe.get_installed_apps():
+					print('Updating {0}'.format(site))
+					updated = True
+					subprocess.check_output(['bench', '--site', site, 'clear-cache'], cwd = '..')
+					if migrate:
+						subprocess.check_output(['bench', '--site', site, 'migrate'], cwd = '..')
+				frappe.destroy()
+
+			if updated and restart:
+				subprocess.check_output(['bench', 'restart'], cwd = '..')
+	else:
+		print('No Updates')
 
 commands = [
 	build,
 	clear_cache,
 	clear_website_cache,
+	jupyter,
 	console,
 	destroy_all_sessions,
 	execute,
@@ -525,6 +716,8 @@ commands = [
 	import_doc,
 	make_app,
 	mysql,
+	mariadb,
+	postgres,
 	request,
 	reset_perms,
 	run_tests,
@@ -532,10 +725,12 @@ commands = [
 	run_setup_wizard_ui_test,
 	serve,
 	set_config,
+	show_config,
 	watch,
 	_bulk_rename,
 	add_to_email_queue,
 	setup_global_help,
 	setup_help,
-	rebuild_global_search
+	rebuild_global_search,
+	auto_deploy
 ]

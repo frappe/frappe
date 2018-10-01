@@ -42,6 +42,25 @@ class Communication(Document):
 			frappe.db.commit()
 
 	def validate(self):
+		self.validate_reference()
+
+		if not self.user:
+			self.user = frappe.session.user
+
+		if not self.subject:
+			self.subject = strip_html((self.content or "")[:141])
+
+		if not self.sent_or_received:
+			self.seen = 1
+			self.sent_or_received = "Sent"
+
+		self.set_status()
+		self.set_sender_full_name()
+
+		validate_email(self)
+		set_timeline_doc(self)
+
+	def validate_reference(self):
 		if self.reference_doctype and self.reference_name:
 			if not self.reference_owner:
 				self.reference_owner = frappe.db.get_value(self.reference_doctype, self.reference_name, "owner")
@@ -62,21 +81,6 @@ class Communication(Document):
 					doc = get_parent_doc(doc)
 				if circular_linking:
 					frappe.throw(_("Please make sure the Reference Communication Docs are not circularly linked."), frappe.CircularLinkingError)
-
-		if not self.user:
-			self.user = frappe.session.user
-
-		if not self.subject:
-			self.subject = strip_html((self.content or "")[:141])
-
-		if not self.sent_or_received:
-			self.seen = 1
-			self.sent_or_received = "Sent"
-
-		self.set_status()
-		self.set_sender_full_name()
-		validate_email(self)
-		set_timeline_doc(self)
 
 	def after_insert(self):
 		if not (self.reference_doctype and self.reference_name):
@@ -287,8 +291,6 @@ def has_permission(doc, ptype, user):
 				return True
 
 def get_permission_query_conditions_for_communication(user):
-	from frappe.email.inbox import get_email_accounts
-
 	if not user: user = frappe.session.user
 
 	roles = frappe.get_roles(user)

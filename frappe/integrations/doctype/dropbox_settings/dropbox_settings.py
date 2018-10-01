@@ -12,7 +12,8 @@ from frappe.utils.backups import new_backup
 from frappe.utils.background_jobs import enqueue
 from six.moves.urllib.parse import urlparse, parse_qs
 from frappe.integrations.utils import make_post_request
-from frappe.utils import (cint, split_emails, get_request_site_address, cstr,
+from rq.timeouts import JobTimeoutException
+from frappe.utils import (cint, split_emails, get_request_site_address,
 	get_files_path, get_backups_path, get_url, encode)
 from six import text_type
 
@@ -22,7 +23,6 @@ class DropboxSettings(Document):
 	def onload(self):
 		if not self.app_access_key and frappe.conf.dropbox_access_key:
 			self.set_onload("dropbox_setup_via_site_config", 1)
-		
 
 @frappe.whitelist()
 def take_backup():
@@ -40,14 +40,22 @@ def take_backups_if(freq):
 	if frappe.db.get_value("Dropbox Settings", None, "backup_frequency") == freq:
 		take_backup_to_dropbox()
 
-def take_backup_to_dropbox():
+def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 	did_not_upload, error_log = [], []
 	try:
 		if cint(frappe.db.get_value("Dropbox Settings", None, "enabled")):
-			did_not_upload, error_log = backup_to_dropbox()
+			did_not_upload, error_log = backup_to_dropbox(upload_db_backup)
 			if did_not_upload: raise Exception
 
 			send_email(True, "Dropbox")
+	except JobTimeoutException:
+		if retry_count < 2:
+			args = {
+				"retry_count": retry_count + 1,
+				"upload_db_backup": False #considering till worker timeout db backup is uploaded
+			}
+			enqueue("frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup_to_dropbox",
+				queue='long', timeout=1500, **args)
 	except Exception:
 		file_and_error = [" - ".join(f) for f in zip(did_not_upload, error_log)]
 		error_message = ("\n".join(file_and_error) + "\n" + frappe.get_traceback())
@@ -80,7 +88,7 @@ def send_email(success, service_name, error_status=None):
 	recipients = split_emails(frappe.db.get_value("Dropbox Settings", None, "send_notifications_to"))
 	frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
-def backup_to_dropbox():
+def backup_to_dropbox(upload_db_backup=True):
 	if not frappe.db:
 		frappe.connect()
 
@@ -96,70 +104,72 @@ def backup_to_dropbox():
 		dropbox_settings['access_token'] = access_token['oauth2_token']
 		set_dropbox_access_token(access_token['oauth2_token'])
 
-
 	dropbox_client = dropbox.Dropbox(dropbox_settings['access_token'])
-	backup = new_backup(ignore_files=True)
-	filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
-	upload_file_to_dropbox(filename, "/database", dropbox_client)
 
-	frappe.db.close()
-	
+	if upload_db_backup:
+		backup = new_backup(ignore_files=True)
+		filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
+		upload_file_to_dropbox(filename, "/database", dropbox_client)
+
 	# upload files to files folder
 	did_not_upload = []
 	error_log = []
 
-	upload_from_folder(get_files_path(), "/files", dropbox_client, did_not_upload, error_log)
-	upload_from_folder(get_files_path(is_private=1), "/private/files", dropbox_client, did_not_upload, error_log)
+	if dropbox_settings['file_backup']:
+		upload_from_folder(get_files_path(), 0, "/files", dropbox_client, did_not_upload, error_log)
+		upload_from_folder(get_files_path(is_private=1), 1, "/private/files", dropbox_client, did_not_upload, error_log)
 
-	frappe.connect()
 	return did_not_upload, list(set(error_log))
 
-def upload_from_folder(path, dropbox_folder, dropbox_client, did_not_upload, error_log):
+def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not_upload, error_log):
 	if not os.path.exists(path):
 		return
 
-	try:
-		response = dropbox_client.files_list_folder(dropbox_folder)
-	except dropbox.exceptions.ApiError as e:
-		# folder not found
-		if isinstance(e.error, dropbox.files.ListFolderError):
-			response = frappe._dict({"entries": []})
-		else:
-			raise
+	if is_fresh_upload():
+		response = get_uploaded_files_meta(dropbox_folder, dropbox_client)
+	else:
+		response = frappe._dict({"entries": []})
 
 	path = text_type(path)
-	for root, directory, files in os.walk(path):
-		for filename in files:
-			filename = cstr(filename)
-			filepath = os.path.join(root, filename)
 
-			if filename in ignore_list:
-				continue
+	for f in frappe.get_all("File", filters={"is_folder": 0, "is_private": is_private,
+		"uploaded_to_dropbox": 0}, fields=['file_url', 'name', 'file_name']):
+		if is_private:
+			filename = f.file_url.replace('/private/files/', '')
+		else:
+			if not f.file_url:
+				f.file_url = '/files/' + f.file_name;
+			filename = f.file_url.replace('/files/', '')
+		filepath = os.path.join(path, filename)
 
-			found = False
-			for file_metadata in response.entries:
-				if (os.path.basename(filepath) == file_metadata.name
-					and os.stat(encode(filepath)).st_size == int(file_metadata.size)):
-					found = True
-					break
+		if filename in ignore_list:
+			continue
 
-			if not found:
-				try:
-					upload_file_to_dropbox(filepath, dropbox_folder, dropbox_client)
-				except Exception:
-					did_not_upload.append(filepath)
-					error_log.append(frappe.get_traceback())
+		found = False
+		for file_metadata in response.entries:
+			if (os.path.basename(filepath) == file_metadata.name
+				and os.stat(encode(filepath)).st_size == int(file_metadata.size)):
+				found = True
+				update_file_dropbox_status(f.name)
+				break
+
+		if not found:
+			try:
+				upload_file_to_dropbox(filepath, dropbox_folder, dropbox_client)
+				update_file_dropbox_status(f.name)
+			except Exception:
+				did_not_upload.append(filepath)
+				error_log.append(frappe.get_traceback())
 
 def upload_file_to_dropbox(filename, folder, dropbox_client):
 	"""upload files with chunk of 15 mb to reduce session append calls"""
+	if not os.path.exists(filename):
+		return
 
 	create_folder_if_not_exists(folder, dropbox_client)
 	chunk_size = 15 * 1024 * 1024
 	file_size = os.path.getsize(encode(filename))
 	mode = (dropbox.files.WriteMode.overwrite)
-
-	if not os.path.exists(filename):
-		return
 
 	f = open(encode(filename), 'rb')
 	path = "{0}/{1}".format(folder, os.path.basename(filename))
@@ -196,7 +206,26 @@ def create_folder_if_not_exists(folder, dropbox_client):
 		else:
 			raise
 
+def update_file_dropbox_status(file_name):
+	frappe.db.set_value("File", file_name, 'uploaded_to_dropbox', 1, update_modified=False)
+
+def is_fresh_upload():
+	file_name = frappe.db.get_value("File", {'uploaded_to_dropbox': 1}, 'name')
+	return not file_name
+
+def get_uploaded_files_meta(dropbox_folder, dropbox_client):
+	try:
+		return dropbox_client.files_list_folder(dropbox_folder)
+	except dropbox.exceptions.ApiError as e:
+		# folder not found
+		if isinstance(e.error, dropbox.files.ListFolderError):
+			return frappe._dict({"entries": []})
+		else:
+			raise
+
 def get_dropbox_settings(redirect_uri=False):
+	if not frappe.conf.dropbox_broker_site:
+		frappe.conf.dropbox_broker_site = 'https://dropbox.erpnext.com'
 	settings = frappe.get_doc("Dropbox Settings")
 	app_details = {
 		"app_key": settings.app_access_key or frappe.conf.dropbox_access_key,
@@ -205,7 +234,8 @@ def get_dropbox_settings(redirect_uri=False):
 		'access_token': settings.get_password('dropbox_access_token', raise_exception=False)
 			if settings.dropbox_access_token else '',
 		'access_key': settings.get_password('dropbox_access_key', raise_exception=False),
-		'access_secret': settings.get_password('dropbox_access_secret', raise_exception=False)
+		'access_secret': settings.get_password('dropbox_access_secret', raise_exception=False),
+		'file_backup':settings.file_backup
 	}
 
 	if redirect_uri:
@@ -223,6 +253,8 @@ def get_dropbox_settings(redirect_uri=False):
 
 @frappe.whitelist()
 def get_redirect_url():
+	if not frappe.conf.dropbox_broker_site:
+		frappe.conf.dropbox_broker_site = 'https://dropbox.erpnext.com'
 	url = "{0}/api/method/dropbox_erpnext_broker.www.setup_dropbox.get_authotize_url".format(frappe.conf.dropbox_broker_site)
 
 	try:

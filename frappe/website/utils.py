@@ -2,8 +2,10 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+import functools
 import frappe, re, os
 from six import iteritems
+from past.builtins import cmp
 
 def delete_page_cache(path):
 	cache = frappe.cache()
@@ -39,7 +41,7 @@ def get_comment_list(doctype, name):
 			and reference_doctype=%s
 			and reference_name=%s
 			and (comment_type is null or comment_type in ('Comment', 'Communication'))
-			and modified >= DATE_SUB(NOW(),INTERVAL 1 YEAR)
+			and modified >= (NOW() - INTERVAL '1' YEAR)
 		order by creation""", (doctype, name), as_dict=1) or []
 
 def get_home_page():
@@ -257,8 +259,8 @@ def get_full_index(route=None, app=None):
 								added.append(child_route)
 
 					# add remaining pages not in index.txt
-					_children = sorted(children, lambda a, b: cmp(
-						os.path.basename(a.route), os.path.basename(b.route)))
+					_children = sorted(children, key = functools.cmp_to_key(lambda a, b: cmp(
+						os.path.basename(a.route), os.path.basename(b.route))))
 
 					for child_route in _children:
 						if child_route not in new_children:

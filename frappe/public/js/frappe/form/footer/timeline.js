@@ -119,8 +119,10 @@ frappe.ui.form.Timeline = Class.extend({
 		this.list.empty();
 		this.comment_area.val('');
 		var communications = this.get_communications(true);
+		var views = this.get_view_logs();
 
-		communications
+		var timeline = communications.concat(views);
+		timeline
 			.sort((a, b) => a.creation > b.creation ? -1 : 1)
 			.filter(c => c.content)
 			.forEach(c => {
@@ -129,7 +131,7 @@ frappe.ui.form.Timeline = Class.extend({
 			});
 
 		// more btn
-		if (this.more===undefined && communications.length===20) {
+		if (this.more===undefined && timeline.length===20) {
 			this.more = true;
 		}
 
@@ -415,15 +417,26 @@ frappe.ui.form.Timeline = Class.extend({
 		var docinfo = this.frm.get_docinfo(),
 			me = this,
 			out = [].concat(docinfo.communications);
-
 		if(with_versions) {
 			this.build_version_comments(docinfo, out);
 		}
+
 		return out;
 	},
+	get_view_logs: function(){
+		var docinfo = this.frm.get_docinfo(),
+			me = this,
+			out = [];
+		for(let c of docinfo.views){
+			c.content = `<a href="#Form/View log/${c.name}"> ${__("viewed")}</a>`;
+			c.comment_type = "Info";
+			out.push(c);
+		};
+		return out;
+	},
+
 	build_version_comments: function(docinfo, out) {
 		var me = this;
-
 		docinfo.versions.forEach(function(version) {
 			if(!version.data) return;
 			var data = JSON.parse(version.data);
@@ -484,8 +497,8 @@ frappe.ui.form.Timeline = Class.extend({
 								parts.push(__('{0} from {1} to {2} in row #{3}', [
 									frappe.meta.get_label(me.frm.fields_dict[row[0]].grid.doctype,
 										p[0]),
-									(frappe.ellipsis(p[2], 40) || '""').bold(),
 									(frappe.ellipsis(p[1], 40) || '""').bold(),
+									(frappe.ellipsis(p[2], 40) || '""').bold(),
 									row[1]
 								]));
 							}
@@ -664,7 +677,7 @@ frappe.ui.form.Timeline = Class.extend({
 		var valid_users = Object.keys(frappe.boot.user_info)
 			.filter(user => !["Administrator", "Guest"].includes(user));
 
-		return valid_users.map(user => frappe.boot.user_info[user].email);
+		return valid_users.map(user => frappe.boot.user_info[user].name);
 	},
 
 	setup_comment_like: function() {

@@ -171,7 +171,10 @@ class SMTPServer:
 		if self.email_account:
 			self.server = self.email_account.smtp_server
 			self.login = getattr(self.email_account, "login_id", None) or self.email_account.email_id
-			self.password = self.email_account.password
+			if self.email_account.ascii_encode_password:
+				self.password = frappe.safe_encode(self.email_account.password, 'ascii')
+			else:
+				self.password = self.email_account.password
 			self.port = self.email_account.smtp_port
 			self.use_tls = self.email_account.use_tls
 			self.sender = self.email_account.email_id
@@ -207,8 +210,7 @@ class SMTPServer:
 				self._sess.ehlo()
 
 			if self.login and self.password:
-				ret = self._sess.login((self.login or "").encode('utf-8'),
-					(self.password or "").encode('utf-8'))
+				ret = self._sess.login((self.login or ""), (self.password or ""))
 
 				# check if logged correctly
 				if ret[0]!=235:

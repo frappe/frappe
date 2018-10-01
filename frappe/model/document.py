@@ -13,7 +13,7 @@ from six import iteritems, string_types
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields
-from frappe.utils.file_manager import save_url
+from frappe.model.workflow import validate_workflow
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
 
@@ -193,7 +193,7 @@ class Document(BaseDocument):
 		if self.flags.in_print:
 			return
 
-		self.flags.email_alerts_executed = []
+		self.flags.notifications_executed = []
 
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
@@ -270,7 +270,7 @@ class Document(BaseDocument):
 		if self.flags.in_print:
 			return
 
-		self.flags.email_alerts_executed = []
+		self.flags.notifications_executed = []
 
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
@@ -288,6 +288,8 @@ class Document(BaseDocument):
 		self.set_docstatus()
 		self.check_if_latest()
 		self.set_parent_in_children()
+		self.set_name_in_children()
+
 		self.validate_higher_perm_levels()
 		self._validate_links()
 		self.run_before_save_methods()
@@ -319,7 +321,15 @@ class Document(BaseDocument):
 		for attach_item in get_attachments(self.doctype, self.amended_from):
 
 			#save attachments to new doc
-			save_url(attach_item.file_url, attach_item.file_name, self.doctype, self.name, "Home/Attachments", attach_item.is_private)
+			_file = frappe.get_doc({
+				"doctype": "File",
+				"file_url": attach_item.file_url,
+				"file_name": attach_item.file_name,
+				"attached_to_name": self.name,
+				"attached_to_doctype": self.doctype,
+				"folder": "Home/Attachments"})
+			_file.save()
+
 
 	def update_children(self):
 		'''update child tables'''
@@ -404,10 +414,10 @@ class Document(BaseDocument):
 
 	def update_single(self, d):
 		"""Updates values for Single type Document in `tabSingles`."""
-		frappe.db.sql("""delete from tabSingles where doctype=%s""", self.doctype)
+		frappe.db.sql("""delete from `tabSingles` where doctype=%s""", self.doctype)
 		for field, value in iteritems(d):
 			if field != "doctype":
-				frappe.db.sql("""insert into tabSingles(doctype, field, value)
+				frappe.db.sql("""insert into `tabSingles` (doctype, field, value)
 					values (%s, %s, %s)""", (self.doctype, field, value))
 
 		if self.doctype in frappe.db.value_cache:
@@ -446,6 +456,7 @@ class Document(BaseDocument):
 		self._extract_images_from_text_editor()
 		self._sanitize_content()
 		self._save_passwords()
+		self.validate_workflow()
 
 		children = self.get_all_children()
 		for d in children:
@@ -461,6 +472,12 @@ class Document(BaseDocument):
 			# don't set fields like _assign, _comments for new doc
 			for fieldname in optional_fields:
 				self.set(fieldname, None)
+
+	def validate_workflow(self):
+		'''Validate if the workflow transition is valid'''
+		if frappe.flags.in_install == 'frappe': return
+		if self.meta.get_workflow():
+			validate_workflow(self)
 
 	def validate_set_only_once(self):
 		'''Validate that fields are not changed if not in insert'''
@@ -674,6 +691,12 @@ class Document(BaseDocument):
 			d.parent = self.name
 			d.parenttype = self.doctype
 
+	def set_name_in_children(self):
+		# Set name for any new children
+		for d in self.get_all_children():
+			if not d.name:
+				set_new_name(d)
+
 	def validate_update_after_submit(self):
 		if self.flags.ignore_validate_update_after_submit:
 			return
@@ -757,7 +780,7 @@ class Document(BaseDocument):
 		fn.__name__ = str(method)
 		out = Document.hook(fn)(self, *args, **kwargs)
 
-		self.run_email_alerts(method)
+		self.run_notifications(method)
 		run_webhooks(self, method)
 
 		return out
@@ -765,31 +788,31 @@ class Document(BaseDocument):
 	def run_trigger(self, method, *args, **kwargs):
 		return self.run_method(method, *args, **kwargs)
 
-	def run_email_alerts(self, method):
-		'''Run email alerts for this method'''
+	def run_notifications(self, method):
+		'''Run notifications for this method'''
 		if frappe.flags.in_import or frappe.flags.in_patch or frappe.flags.in_install:
 			return
 
-		if self.flags.email_alerts_executed==None:
-			self.flags.email_alerts_executed = []
+		if self.flags.notifications_executed==None:
+			self.flags.notifications_executed = []
 
-		from frappe.email.doctype.email_alert.email_alert import evaluate_alert
+		from frappe.email.doctype.notification.notification import evaluate_alert
 
-		if self.flags.email_alerts == None:
-			alerts = frappe.cache().hget('email_alerts', self.doctype)
+		if self.flags.notifications == None:
+			alerts = frappe.cache().hget('notifications', self.doctype)
 			if alerts==None:
-				alerts = frappe.get_all('Email Alert', fields=['name', 'event', 'method'],
+				alerts = frappe.get_all('Notification', fields=['name', 'event', 'method'],
 					filters={'enabled': 1, 'document_type': self.doctype})
-				frappe.cache().hset('email_alerts', self.doctype, alerts)
-			self.flags.email_alerts = alerts
+				frappe.cache().hset('notifications', self.doctype, alerts)
+			self.flags.notifications = alerts
 
-		if not self.flags.email_alerts:
+		if not self.flags.notifications:
 			return
 
 		def _evaluate_alert(alert):
-			if not alert.name in self.flags.email_alerts_executed:
+			if not alert.name in self.flags.notifications_executed:
 				evaluate_alert(self, alert.name, alert.event)
-				self.flags.email_alerts_executed.append(alert.name)
+				self.flags.notifications_executed.append(alert.name)
 
 		event_map = {
 			"on_update": "Save",
@@ -804,7 +827,7 @@ class Document(BaseDocument):
 			event_map['before_change'] = 'Value Change'
 			event_map['before_update_after_submit'] = 'Value Change'
 
-		for alert in self.flags.email_alerts:
+		for alert in self.flags.notifications:
 			event = event_map.get(method, None)
 			if event and alert.event == event:
 				_evaluate_alert(alert)
@@ -859,9 +882,11 @@ class Document(BaseDocument):
 			return
 
 		if self._action=="save":
+			self.run_method("before_validate")
 			self.run_method("validate")
 			self.run_method("before_save")
 		elif self._action=="submit":
+			self.run_method("before_validate")
 			self.run_method("validate")
 			self.run_method("before_submit")
 		elif self._action=="cancel":
@@ -876,7 +901,8 @@ class Document(BaseDocument):
 		self._doc_before_save = None
 		if not (self.is_new()
 			and (getattr(self.meta, 'track_changes', False)
-				or self.meta.get_set_only_once_fields())):
+				or self.meta.get_set_only_once_fields()
+				or self.meta.get_workflow())):
 			self.get_doc_before_save()
 
 	def run_post_save_methods(self):
@@ -914,7 +940,7 @@ class Document(BaseDocument):
 		self.latest = None
 
 	def clear_cache(self):
-		frappe.cache().hdel("last_modified", self.doctype)
+		frappe.clear_document_cache(self.doctype, self.name)
 
 	def reset_seen(self):
 		'''Clear _seen property and set current user as seen'''
@@ -928,7 +954,12 @@ class Document(BaseDocument):
 
 		if not self.meta.get("read_only") and not self.meta.get("issingle") and \
 			not self.meta.get("istable"):
-			frappe.publish_realtime("list_update", {"doctype": self.doctype}, after_commit=True)
+			data = {
+				"doctype": self.doctype,
+				"name": self.name,
+				"user": frappe.session.user
+			}
+			frappe.publish_realtime("list_update", data, after_commit=True)
 
 	def db_set(self, fieldname, value=None, update_modified=True, notify=False, commit=False):
 		'''Set a value in the document object, update the timestamp and update the database.
@@ -953,7 +984,7 @@ class Document(BaseDocument):
 			self.set("modified", now())
 			self.set("modified_by", frappe.session.user)
 
-		# to trigger email alert on value change
+		# to trigger notification on value change
 		self.run_method('before_change')
 
 		frappe.db.set_value(self.doctype, self.name, fieldname, value,
@@ -964,6 +995,7 @@ class Document(BaseDocument):
 		if notify:
 			self.notify_update()
 
+		self.clear_cache()
 		if commit:
 			frappe.db.commit()
 
@@ -1129,6 +1161,20 @@ class Document(BaseDocument):
 				_seen.append(user)
 				self.db_set('_seen', json.dumps(_seen), update_modified=False)
 				frappe.local.flags.commit = True
+
+	def add_viewed(self, user=None):
+		'''add log to communication when a user viewes a document'''
+		if not user:
+			user = frappe.session.user
+
+		if hasattr(self.meta, 'track_views') and self.meta.track_views:
+			frappe.get_doc({
+				"doctype": "View log",
+				"viewed_by": frappe.session.user,
+				"reference_doctype": self.doctype,
+				"reference_name": self.name,
+			}).insert(ignore_permissions=True)
+			frappe.local.flags.commit = True
 
 	def get_signature(self):
 		"""Returns signature (hash) for private URL."""

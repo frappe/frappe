@@ -8,11 +8,15 @@ import json
 from frappe import _
 from frappe.model.document import Document
 from six import iteritems
+from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 
 
 class KanbanBoard(Document):
 	def validate(self):
 		self.validate_column_name()
+
+	def on_update(self):
+		frappe.clear_cache(doctype=self.reference_doctype)
 
 	def validate_column_name(self):
 		for column in self.columns:
@@ -25,7 +29,7 @@ def get_permission_query_conditions(user):
 	if user == "Administrator":
 		return ""
 
-	return """(`tabKanban Board`.private=0 or `tabKanban Board`.owner="{user}")""".format(user=user)
+	return """(`tabKanban Board`.private=0 or `tabKanban Board`.owner='{user}')""".format(user=user)
 
 def has_permission(doc, ptype, user):
 	if doc.private == 0 or user == "Administrator":
@@ -35,6 +39,14 @@ def has_permission(doc, ptype, user):
 		return True
 
 	return False
+
+@frappe.whitelist()
+def get_kanban_boards(doctype):
+	'''Get Kanban Boards for doctype to show in List View'''
+	return frappe.get_list('Kanban Board',
+		fields=['name', 'filters', 'reference_doctype', 'private'],
+		filters={ 'reference_doctype': doctype }
+	)
 
 @frappe.whitelist()
 def add_column(board_name, column_title):
@@ -119,6 +131,14 @@ def update_order(board_name, order):
 def quick_kanban_board(doctype, board_name, field_name, project=None):
 	'''Create new KanbanBoard quickly with default options'''
 	doc = frappe.new_doc('Kanban Board')
+
+	if field_name == 'kanban_column':
+		create_custom_field(doctype, {
+			'label': 'Kanban Column',
+			'fieldname': 'kanban_column',
+			'fieldtype': 'Select',
+			'hidden': 1
+		})
 
 	meta = frappe.get_meta(doctype)
 

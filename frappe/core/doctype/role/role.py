@@ -12,11 +12,7 @@ class Role(Document):
 			frappe.throw(frappe._("Standard roles cannot be renamed"))
 
 	def after_insert(self):
-		# Add role to Administrator
-		if frappe.flags.in_install != "frappe":
-			user = frappe.get_doc("User", "Administrator")
-			user.flags.ignore_permissions = True
-			user.add_roles(self.name)
+		frappe.cache().hdel('roles', 'Administrator')
 
 	def validate(self):
 		if self.disabled:

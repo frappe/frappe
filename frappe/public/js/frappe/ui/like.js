@@ -97,7 +97,10 @@ frappe.ui.setup_like_popover = function($parent, selector) {
 			animation: true,
 			placement: "right",
 			content: function() {
-				var liked_by = JSON.parse($wrapper.attr('data-liked-by') || "[]");
+				var liked_by = $wrapper.attr('data-liked-by');
+				liked_by = liked_by ? decodeURI(liked_by) : '[]';
+				liked_by = JSON.parse(liked_by);
+
 				var user = frappe.session.user;
 				// hack
 				if ($wrapper.find(".not-liked").length) {

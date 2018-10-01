@@ -17,6 +17,15 @@ class LDAPSettings(Document):
 		try:
 			import ldap
 			conn = ldap.initialize(self.ldap_server_url)
+			try:
+				if self.ssl_tls_mode == 'StartTLS':
+					conn.set_option(ldap.OPT_X_TLS_DEMAND, True)
+					if self.require_trusted_certificate == 'Yes':
+						conn.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
+					conn.start_tls_s()
+			except:
+				frappe.throw(_("StartTLS is not supported"))
+
 			conn.simple_bind_s(self.base_dn, self.get_password(raise_exception=False))
 		except ImportError:
 			msg = """
@@ -75,6 +84,16 @@ def authenticate_ldap_user(user=None, password=None):
 	conn = ldap.initialize(settings.ldap_server_url)
 
 	try:
+		try:
+			# set TLS settings for secure connection
+			if self.ssl_tls_mode == 'StartTLS':
+				conn.set_option(ldap.OPT_X_TLS_DEMAND, True)
+				if self.require_trusted_certificate == 'Yes':
+					conn.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
+				conn.start_tls_s()
+		except:
+			frappe.throw(_("StartTLS is not supported"))
+
 		# simple_bind_s is synchronous binding to server, it takes two param  DN and password
 		conn.simple_bind_s(settings.base_dn, settings.get_password(raise_exception=False))
 

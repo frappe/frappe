@@ -8,8 +8,9 @@ frappe.ui.form.on("Contact", {
 		if(frm.doc.__islocal) {
 			var last_route = frappe.route_history.slice(-2, -1)[0];
 			let docname = last_route[2];
-			if (last_route.length > 3)
+			if (last_route && last_route.length > 3) {
 				docname = last_route.slice(2).join("/");
+			}
 			if(frappe.dynamic_link && frappe.dynamic_link.doc
 					&& frappe.dynamic_link.doc.name==docname) {
 				frm.add_child('links', {
@@ -50,6 +51,18 @@ frappe.ui.form.on("Contact", {
 				frappe.model.remove_from_locals(d.link_doctype, d.link_name);
 			});
 		}
+	},
+	after_save: function() {
+		frappe.run_serially([
+			() => frappe.timeout(1),
+			() => {
+				var last_route = frappe.route_history.slice(-2, -1)[0];
+				if(frappe.dynamic_link && frappe.dynamic_link.doc
+					&& last_route.length > 2 && frappe.dynamic_link.doc.name == last_route[2]){
+					frappe.set_route(last_route[0], last_route[1], last_route[2]);
+				}
+			}
+		]);
 	}
 });
 

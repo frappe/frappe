@@ -6,6 +6,9 @@ import frappe, unittest
 
 from frappe.model.db_query import DatabaseQuery
 from frappe.desk.reportview import get_filters_cond
+from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
+
+test_dependencies = ["User"]
 
 class TestReportview(unittest.TestCase):
 	def test_basic(self):
@@ -92,7 +95,7 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue({ "name": event2.name } not in data)
 
 	def test_ignore_permissions_for_get_filters_cond(self):
-		frappe.set_user('test1@example.com')
+		frappe.set_user('test2@example.com')
 		self.assertRaises(frappe.PermissionError, get_filters_cond, 'DocType', dict(istable=1), [])
 		self.assertTrue(get_filters_cond('DocType', dict(istable=1), [], ignore_permissions=True))
 		frappe.set_user('Administrator')
@@ -123,9 +126,9 @@ class TestReportview(unittest.TestCase):
 		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
 			fields=["name", "issingle,'"],limit_start=0, limit_page_length=1)
 
-		data = DatabaseQuery("DocType").execute(fields=["name", "issingle", "count(name)"],
+		data = DatabaseQuery("DocType").execute(fields=["count(`name`) as count"],
 			limit_start=0, limit_page_length=1)
-		self.assertTrue('count(name)' in data[0])
+		self.assertTrue('count' in data[0])
 
 		data = DatabaseQuery("DocType").execute(fields=["name", "issingle", "locate('', name) as _relevance"],
 			limit_start=0, limit_page_length=1)
@@ -135,9 +138,45 @@ class TestReportview(unittest.TestCase):
 			limit_start=0, limit_page_length=1)
 		self.assertTrue('creation' in data[0])
 
-		data = DatabaseQuery("DocType").execute(fields=["name", "issingle",
-			"datediff(modified, creation) as date_diff"], limit_start=0, limit_page_length=1)
-		self.assertTrue('date_diff' in data[0])
+		if frappe.conf.db_type != 'postgres':
+			# datediff function does not exist in postgres
+			data = DatabaseQuery("DocType").execute(fields=["name", "issingle",
+				"datediff(modified, creation) as date_diff"], limit_start=0, limit_page_length=1)
+			self.assertTrue('date_diff' in data[0])
+
+	def test_nested_permission(self):
+		clear_user_permissions_for_doctype("File")
+		delete_test_file_hierarchy() # delete already existing folders
+		from frappe.core.doctype.file.file import create_new_folder
+		frappe.set_user('Administrator')
+
+		create_new_folder('level1-A', 'Home')
+		create_new_folder('level2-A', 'Home/level1-A')
+		create_new_folder('level2-B', 'Home/level1-A')
+		create_new_folder('level3-A', 'Home/level1-A/level2-A')
+
+		create_new_folder('level1-B', 'Home')
+		create_new_folder('level2-A', 'Home/level1-B')
+
+		# user permission for only one root folder
+		add_user_permission('File', 'Home/level1-A', 'test2@example.com')
+
+		from frappe.core.page.permission_manager.permission_manager import update
+		update('File', 'All', 0, 'if_owner', 0) # to avoid if_owner filter
+
+		frappe.set_user('test2@example.com')
+		data = DatabaseQuery("File").execute()
+
+		# children of root folder (for which we added user permission) should be accessible
+		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
+
+		# other folders should not be accessible
+		self.assertFalse({"name": "Home/level1-B"} in data)
+		self.assertFalse({"name": "Home/level1-B/level2-B"} in data)
+		update('File', 'All', 0, 'if_owner', 1)
+		frappe.set_user('Administrator')
 
 	def test_filter_sanitizer(self):
 		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
@@ -179,6 +218,87 @@ class TestReportview(unittest.TestCase):
 				], order_by='creation')
 		self.assertTrue('DefaultValue' in [d['name'] for d in out])
 
+	def test_of_not_of_descendant_ancestors(self):
+		clear_user_permissions_for_doctype("File")
+		delete_test_file_hierarchy() # delete already existing folders
+		from frappe.core.doctype.file.file import create_new_folder
+
+		create_new_folder('level1-A', 'Home')
+		create_new_folder('level2-A', 'Home/level1-A')
+		create_new_folder('level2-B', 'Home/level1-A')
+		create_new_folder('level3-A', 'Home/level1-A/level2-A')
+
+		create_new_folder('level1-B', 'Home')
+		create_new_folder('level2-A', 'Home/level1-B')
+
+		# in descendants filter
+		data = frappe.get_all('File', {'name': ('descendants of', 'Home/level1-A/level2-A')})
+		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
+
+		data = frappe.get_all('File', {'name': ('descendants of', 'Home/level1-A')})
+		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
+		self.assertFalse({"name": "Home/level1-B"} in data)
+		self.assertFalse({"name": "Home/level1-A"} in data)
+		self.assertFalse({"name": "Home"} in data)
+
+		# in ancestors of filter
+		data = frappe.get_all('File', {'name': ('ancestors of', 'Home/level1-A/level2-A')})
+		self.assertFalse({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertFalse({"name": "Home/level1-A/level2-A"} in data)
+		self.assertFalse({"name": "Home/level1-A/level2-B"} in data)
+		self.assertFalse({"name": "Home/level1-B"} in data)
+		self.assertTrue({"name": "Home/level1-A"} in data)
+		self.assertTrue({"name": "Home"} in data)
+
+		data = frappe.get_all('File', {'name': ('ancestors of', 'Home/level1-A')})
+		self.assertFalse({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertFalse({"name": "Home/level1-A/level2-A"} in data)
+		self.assertFalse({"name": "Home/level1-A/level2-B"} in data)
+		self.assertFalse({"name": "Home/level1-B"} in data)
+		self.assertFalse({"name": "Home/level1-A"} in data)
+		self.assertTrue({"name": "Home"} in data)
+
+		# not descendants filter
+		data = frappe.get_all('File', {'name': ('not descendants of', 'Home/level1-A/level2-A')})
+		self.assertFalse({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
+		self.assertTrue({"name": "Home/level1-A"} in data)
+		self.assertTrue({"name": "Home"} in data)
+
+		data = frappe.get_all('File', {'name': ('not descendants of', 'Home/level1-A')})
+		self.assertFalse({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertFalse({"name": "Home/level1-A/level2-A"} in data)
+		self.assertFalse({"name": "Home/level1-A/level2-B"} in data)
+		self.assertTrue({"name": "Home/level1-B"} in data)
+		self.assertTrue({"name": "Home/level1-A"} in data)
+		self.assertTrue({"name": "Home"} in data)
+
+		# not ancestors of filter
+		data = frappe.get_all('File', {'name': ('not ancestors of', 'Home/level1-A/level2-A')})
+		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
+		self.assertTrue({"name": "Home/level1-B"} in data)
+		self.assertTrue({"name": "Home/level1-A"} not in data)
+		self.assertTrue({"name": "Home"} not in data)
+
+		data = frappe.get_all('File', {'name': ('not ancestors of', 'Home/level1-A')})
+		self.assertTrue({"name": "Home/level1-A/level2-A/level3-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-A"} in data)
+		self.assertTrue({"name": "Home/level1-A/level2-B"} in data)
+		self.assertTrue({"name": "Home/level1-B"} in data)
+		self.assertTrue({"name": "Home/level1-A"} in data)
+		self.assertFalse({"name": "Home"} in data)
+
+		data = frappe.get_all('File', {'name': ('ancestors of', 'Home')})
+		self.assertTrue(len(data) == 0)
+		self.assertTrue(len(frappe.get_all('File', {'name': ('not ancestors of', 'Home')})) == len(frappe.get_all('File')))
+
+
+
 def create_event(subject="_Test Event", starts_on=None):
 	""" create a test event """
 
@@ -192,3 +312,15 @@ def create_event(subject="_Test Event", starts_on=None):
 	}).insert(ignore_permissions=True)
 
 	return event
+
+def delete_test_file_hierarchy():
+	files_to_delete = [
+		'Home/level1-A/level2-A/level3-A',
+		'Home/level1-A/level2-A',
+		'Home/level1-A/level2-B',
+		'Home/level1-A',
+		'Home/level1-B/level2-A',
+		'Home/level1-B'
+	]
+	for file_name in files_to_delete:
+		frappe.delete_doc('File', file_name)

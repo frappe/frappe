@@ -26,15 +26,16 @@ def get_secret():
 
 def verify_request():
 	"""Verify if the incoming signed request if it is correct."""
-	query_string = frappe.local.flags.signed_query_string or \
-		getattr(frappe.request, 'query_string', None) \
+	query_string = frappe.safe_decode(frappe.local.flags.signed_query_string or \
+		getattr(frappe.request, 'query_string', None))
 
 	valid = False
 
-	if '&_signature=' in query_string:
-		params, signature = query_string.split("&_signature=")
+	signature_string = '&_signature='
+	if signature_string in query_string:
+		params, signature = query_string.split(signature_string)
 
-		given_signature = hmac.new(params.encode("utf-8"))
+		given_signature = hmac.new(params.encode('utf-8'))
 
 		given_signature.update(get_secret().encode())
 		valid = signature == given_signature.hexdigest()

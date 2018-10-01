@@ -37,9 +37,9 @@ class BlogPost(WebsiteGenerator):
 			self.published_on = today()
 
 		# update posts
-		frappe.db.sql("""update tabBlogger set posts=(select count(*) from `tabBlog Post`
-			where ifnull(blogger,'')=tabBlogger.name)
-			where name=%s""", (self.blogger,))
+		frappe.db.sql("""UPDATE `tabBlogger` SET `posts`=(SELECT COUNT(*) FROM `tabBlog Post`
+			WHERE IFNULL(`blogger`,'')=`tabBlogger`.`name`)
+			WHERE `name`=%s""", (self.blogger,))
 
 	def on_update(self):
 		clear_cache("writers")
@@ -140,12 +140,12 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 	conditions = []
 	if filters:
 		if filters.blogger:
-			conditions.append('t1.blogger="%s"' % frappe.db.escape(filters.blogger))
+			conditions.append('t1.blogger=%s' % frappe.db.escape(filters.blogger))
 		if filters.blog_category:
-			conditions.append('t1.blog_category="%s"' % frappe.db.escape(filters.blog_category))
+			conditions.append('t1.blog_category=%s' % frappe.db.escape(filters.blog_category))
 
 	if txt:
-		conditions.append('(t1.content like "%{0}%" or t1.title like "%{0}%")'.format(frappe.db.escape(txt)))
+		conditions.append('(t1.content like {0} or t1.title like {0}")'.format(frappe.db.escape('%' + txt + '%')))
 
 	if conditions:
 		frappe.local.no_cache = 1

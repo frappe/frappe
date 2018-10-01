@@ -22,34 +22,31 @@ QUnit.test("Calendar View Tests", function(assert) {
 			{event_type: 'Private'}
 		]),
 
+		() => frappe.timeout(1),
+
 		() => frappe.tests.make("Event", [
 			{subject: random_text + ':Pub'},
 			{starts_on: today},
 			{event_type: 'Public'}
 		]),
 
+		() => frappe.timeout(1),
+
 		// Goto Calendar view
 		() => frappe.set_route(["List", "Event", "Calendar"]),
-		() => {
-			// clear filter
-			$('[data-fieldname="event_type"]').val('').trigger('change');
-		},
+
+		// clear filter
+		() => cur_list.filter_area.remove('event_type'),
 		() => frappe.timeout(2),
 		// Check if event is created
 		() => {
 			// Check if the event exists and if its title matches with the one created
 			assert.ok(event_title_text().includes(random_text + ':Pri'),
 				"Event title verified");
-			// Check if time of event created is correct
-
-			// assert.ok(visible_time().includes("4:20"),
-			// 	"Event start time verified");
 		},
 
 		// check filter
-		() => {
-			$('[data-fieldname="event_type"]').val('Public').trigger('change');
-		},
+		() => cur_list.filter_area.add('Event', 'event_type', '=', 'Public'),
 		() => frappe.timeout(1),
 		() => {
 			// private event should be hidden

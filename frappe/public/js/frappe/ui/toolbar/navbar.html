@@ -29,11 +29,12 @@
 					{%= frappe.user.full_name() %}</span>
                 <b class="caret hidden-xs hidden-sm"></b></a>
 				<ul class="dropdown-menu" id="toolbar-user" role="menu">
-					<li class="navbar-set-desktop-icons"><a href="#modules_setup">
+					<li class="navbar-set-desktop-icons"><a>
 					    {%= __("Set Desktop Icons") %}</a></li>
 					<li><a href="#Form/User/{%= encodeURIComponent(frappe.session.user) %}">
 					    {%= __("My Settings") %}</a></li>
-					<li><a href="#" onclick="return frappe.ui.toolbar.clear_cache();">
+					<li class="navbar-reload">
+						<a href="#" onclick="return frappe.ui.toolbar.clear_cache();">
 					    {%= __("Reload") %}</a></li>
 					<li><a href="/index" target="_blank" rel="noopener noreferrer">
 						{%= __("View Website") %}</a></li>
@@ -68,6 +69,11 @@
 						{%= __("About") %}</a></li>
 				</ul>
 			</li>
+
+			<!-- frappe.chat -->
+			<!-- "placeholder, to display or not to display." -->
+			<li class="frappe-chat-dropdown"></li>
+			<!-- end frappe.chat -->
 
 			<li class="dropdown dropdown-navbar-new-comments dropdown-mobile">
 				<a class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">

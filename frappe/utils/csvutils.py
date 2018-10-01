@@ -6,6 +6,7 @@ import frappe
 from frappe import msgprint, _
 import json
 import csv
+import six
 from six import StringIO, text_type, string_types
 from frappe.utils import encode, cstr, cint, flt, comma_or
 
@@ -14,8 +15,8 @@ def read_csv_content_from_uploaded_file(ignore_encoding=False):
 		with open(frappe.uploaded_file, "r") as upfile:
 			fcontent = upfile.read()
 	else:
-		from frappe.utils.file_manager import get_uploaded_content
-		fname, fcontent = get_uploaded_content()
+		_file = frappe.new_doc("File")
+		fcontent = _file.get_uploaded_content()
 	return read_csv_content(fcontent, ignore_encoding)
 
 def read_csv_content_from_attached_file(doc):
@@ -29,8 +30,8 @@ def read_csv_content_from_attached_file(doc):
 		raise Exception
 
 	try:
-		from frappe.utils.file_manager import get_file
-		fname, fcontent = get_file(fileid)
+		_file = frappe.get_doc("File", {"file_name": fileid})
+		fcontent = _file.get_content()
 		return read_csv_content(fcontent, frappe.form_dict.get('ignore_encoding_errors'))
 	except Exception:
 		frappe.throw(_("Unable to open attached file. Did you export it as CSV?"), title=_('Invalid CSV Format'))
@@ -49,18 +50,23 @@ def read_csv_content(fcontent, ignore_encoding=False):
 				continue
 
 		if not decoded:
-			frappe.msgprint(_("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."),
-				raise_exception=True)
+			frappe.msgprint(_("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."), raise_exception=True)
 
-	fcontent = fcontent.encode("utf-8").splitlines(True)
+	fcontent = fcontent.encode("utf-8")
+	content  = [ ]
+	for line in fcontent.splitlines(True):
+		if six.PY2:
+			content.append(line)
+		else:
+			content.append(frappe.safe_decode(line))
 
 	try:
 		rows = []
-		for row in csv.reader(fcontent):
+		for row in csv.reader(content):
 			r = []
 			for val in row:
 				# decode everything
-				val = text_type(val, "utf-8").strip()
+				val = val.strip()
 
 				if val=="":
 					# reason: in maraidb strict config, one cannot have blank strings for non string datatypes
@@ -102,7 +108,8 @@ class UnicodeWriter:
 		self.writer = csv.writer(self.queue, quoting=csv.QUOTE_NONNUMERIC)
 
 	def writerow(self, row):
-		row = encode(row, self.encoding)
+		if six.PY2:
+			row = encode(row, self.encoding)
 		self.writer.writerow(row)
 
 	def getvalue(self):

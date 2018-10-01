@@ -23,25 +23,26 @@ class TestActivityLog(unittest.TestCase):
 		frappe.local.login_manager = LoginManager()
 
 		auth_log = self.get_auth_log()
-		self.assertEquals(auth_log.status, 'Success')
+		self.assertEqual(auth_log.status, 'Success')
 
 		# test user logout log
 		frappe.local.login_manager.logout()
 		auth_log = self.get_auth_log(operation='Logout')
-		self.assertEquals(auth_log.status, 'Success')
+		self.assertEqual(auth_log.status, 'Success')
 
 		# test invalid login
 		frappe.form_dict.update({ 'pwd': 'password' })
 		self.assertRaises(frappe.AuthenticationError, LoginManager)
 		auth_log = self.get_auth_log()
-		self.assertEquals(auth_log.status, 'Failed')
+		self.assertEqual(auth_log.status, 'Failed')
 
 		frappe.local.form_dict = frappe._dict()
 
 	def get_auth_log(self, operation='Login'):
-		names = frappe.db.sql_list("""select name from `tabActivity Log`
-					where user='Administrator' and operation='{operation}' order by
-					creation desc""".format(operation=operation))
+		names = frappe.db.get_all('Activity Log', filters={
+			'user': 'Administrator',
+			'operation': operation,
+		}, order_by='`creation` DESC')
 
 		name = names[0]
 		auth_log = frappe.get_doc('Activity Log', name)

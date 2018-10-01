@@ -13,8 +13,24 @@ ul.tree-children {
   display: inline-block;
   padding: 1px;
 }
+.tree-link .node-parent {
+  color: #8D99A6;
+  font-size: 14px;
+  width: 10px;
+  text-align: center;
+}
+.tree-link .node-leaf {
+  color: #d1d8dd;
+}
+.tree-link .node-parent,
+.tree-link .node-leaf {
+  margin-right: 5px;
+}
 .tree-link.active i {
-  color: #5e64ff !important;
+  color: #5e64ff;
+}
+.tree-link.active a {
+  color: #8D99A6;
 }
 .tree-hover {
   background-color: #F7FAFC;
@@ -33,14 +49,14 @@ ul.tree-children {
     padding-left: 10px;
   }
 }
-.tree,
-.tree-node {
+.tree.with-skeleton,
+.tree.with-skeleton .tree-node {
   position: relative;
 }
-.tree.opened::before,
-.tree-node.opened::before,
-.tree:last-child::after,
-.tree-node:last-child::after {
+.tree.with-skeleton.opened::before,
+.tree.with-skeleton .tree-node.opened::before,
+.tree.with-skeleton:last-child::after,
+.tree.with-skeleton .tree-node:last-child::after {
   content: '';
   position: absolute;
   top: 16px;
@@ -50,16 +66,16 @@ ul.tree-children {
   background: #d1d8dd;
   z-index: -1;
 }
-.tree:last-child::after,
-.tree-node:last-child::after {
+.tree.with-skeleton:last-child::after,
+.tree.with-skeleton .tree-node:last-child::after {
   top: 11px;
   left: -13px;
   height: calc(100% - 15px);
   width: 3px;
   background: #fff;
 }
-.tree.opened > .tree-children > .tree-node > .tree-link::before,
-.tree-node.opened > .tree-children > .tree-node > .tree-link::before {
+.tree.with-skeleton.opened > .tree-children > .tree-node > .tree-link::before,
+.tree.with-skeleton .tree-node.opened > .tree-children > .tree-node > .tree-link::before {
   content: '';
   position: absolute;
   width: 15px;
@@ -69,7 +85,7 @@ ul.tree-children {
   z-index: -1;
   background: #d1d8dd;
 }
-.tree.opened::before {
+.tree.with-skeleton.opened::before {
   left: 23px;
   top: 33px;
   height: calc(100% - 67px);

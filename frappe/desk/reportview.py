@@ -11,10 +11,8 @@ from frappe.model.db_query import DatabaseQuery
 from frappe import _
 from six import text_type, string_types, StringIO
 
-# imports - third-party imports
-import pymysql
-
 @frappe.whitelist()
+@frappe.read_only()
 def get():
 	args = get_form_params()
 
@@ -78,7 +76,7 @@ def compress(data, args = {}):
 
 	if not data: return data
 	values = []
-	keys = data[0].keys()
+	keys = list(data[0])
 	for row in data:
 		new_row = []
 		for key in keys:
@@ -217,23 +215,28 @@ def delete_items():
 	il = json.loads(frappe.form_dict.get('items'))
 	doctype = frappe.form_dict.get('doctype')
 
+	failed = []
+
 	for i, d in enumerate(il):
 		try:
 			frappe.delete_doc(doctype, d)
 			if len(il) >= 5:
 				frappe.publish_realtime("progress",
-					dict(progress=[i+1, len(il)], title=_('Deleting {0}').format(doctype)),
-					user=frappe.session.user)
+					dict(progress=[i+1, len(il)], title=_('Deleting {0}').format(doctype), description=d),
+						user=frappe.session.user)
 		except Exception:
-			pass
+			failed.append(d)
+
+	return failed
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_sidebar_stats(stats, doctype, filters=[]):
-	cat_tags = frappe.db.sql("""select tag.parent as category, tag.tag_name as tag
-		from `tabTag Doc Category` as docCat
-		INNER JOIN  tabTag as tag on tag.parent = docCat.parent
-		where docCat.tagdoc=%s
-		ORDER BY tag.parent asc,tag.idx""",doctype,as_dict=1)
+	cat_tags = frappe.db.sql("""select `tag`.parent as `category`, `tag`.tag_name as `tag`
+		from `tabTag Doc Category` as `docCat`
+		INNER JOIN  `tabTag` as `tag` on `tag`.parent = `docCat`.parent
+		where `docCat`.tagdoc=%s
+		ORDER BY `tag`.parent asc, `tag`.idx""", doctype, as_dict=1)
 
 	return {"defined_cat":cat_tags, "stats":get_stats(stats, doctype, filters)}
 
@@ -248,7 +251,7 @@ def get_stats(stats, doctype, filters=[]):
 
 	try:
 		columns = frappe.db.get_table_columns(doctype)
-	except pymysql.InternalError:
+	except frappe.db.InternalError:
 		# raised when _user_tags column is added on the fly
 		columns = []
 
@@ -267,10 +270,10 @@ def get_stats(stats, doctype, filters=[]):
 			else:
 				stats[tag] = tagcount
 
-		except frappe.SQLError:
+		except frappe.db.SQLError:
 			# does not work for child tables
 			pass
-		except pymysql.InternalError:
+		except frappe.db.InternalError:
 			# raised when _user_tags column is added on the fly
 			pass
 	return stats
@@ -337,8 +340,8 @@ def get_match_cond(doctype):
 	cond = DatabaseQuery(doctype).build_match_conditions()
 	return ((' and ' + cond) if cond else "").replace("%", "%%")
 
-def build_match_conditions(doctype, as_condition=True):
-	match_conditions =  DatabaseQuery(doctype).build_match_conditions(as_condition=as_condition)
+def build_match_conditions(doctype, user=None, as_condition=True):
+	match_conditions =  DatabaseQuery(doctype, user=user).build_match_conditions(as_condition=as_condition)
 	if as_condition:
 		return match_conditions.replace("%", "%%")
 	else:

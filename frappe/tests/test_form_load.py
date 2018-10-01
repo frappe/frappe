@@ -10,13 +10,13 @@ from frappe.permissions import get_valid_perms
 class TestFormLoad(unittest.TestCase):
 	def test_load(self):
 		getdoctype("DocType")
-		meta = filter(lambda d: d.name=="DocType", frappe.response.docs)[0]
-		self.assertEquals(meta.name, "DocType")
+		meta = list(filter(lambda d: d.name=="DocType", frappe.response.docs))[0]
+		self.assertEqual(meta.name, "DocType")
 		self.assertTrue(meta.get("__js"))
 
 		frappe.response.docs = []
 		getdoctype("Event")
-		meta = filter(lambda d: d.name=="Event", frappe.response.docs)[0]
+		meta = list(filter(lambda d: d.name=="Event", frappe.response.docs))[0]
 		self.assertTrue(meta.get("__calendar_js"))
 
 	def test_fieldlevel_permissions_in_load(self):
@@ -25,7 +25,10 @@ class TestFormLoad(unittest.TestCase):
 		user.add_roles('Blogger')
 		reset('Blog Post')
 
-		frappe.db.sql('update tabDocField set permlevel=1 where fieldname="published" and parent="Blog Post"')
+		frappe.db.set_value('DocField', {
+			'fieldname': 'published',
+			'parent': 'Blog Post'
+		}, 'permlevel', 1)
 
 		update('Blog Post', 'Website Manager', 0, 'permlevel', 1)
 
@@ -43,12 +46,16 @@ class TestFormLoad(unittest.TestCase):
 
 		for doc in frappe.response.docs:
 			if doc.name == blog:
-				self.assertEquals(doc.published, None)
+				self.assertEqual(doc.published, None)
 				checked = True
 
 		self.assertTrue(checked, True)
 
-		frappe.db.sql('update tabDocField set permlevel=0 where fieldname="published" and parent="Blog Post"')
+		frappe.db.set_value('DocField', {
+			'fieldname': 'published',
+			'parent': 'Blog Post'
+		}, 'permlevel', 0)
+
 		reset('Blog Post')
 
 		frappe.clear_cache(doctype='Blog Post')
@@ -60,7 +67,7 @@ class TestFormLoad(unittest.TestCase):
 
 		for doc in frappe.response.docs:
 			if doc.name == blog:
-				self.assertEquals(doc.published, 1)
+				self.assertEqual(doc.published, 1)
 				checked = True
 
 		self.assertTrue(checked, True)

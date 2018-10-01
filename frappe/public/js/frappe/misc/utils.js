@@ -23,6 +23,9 @@ frappe.utils = {
 			return filename;
 		}
 	},
+	replace_newlines(t) {
+		return t?t.replace(/\n/g, '<br>'):'';
+	},
 	is_html: function(txt) {
 		if (!txt) return false;
 
@@ -195,13 +198,11 @@ frappe.utils = {
 	},
 	set_footnote: function(footnote_area, wrapper, txt) {
 		if(!footnote_area) {
-			footnote_area = $('<div class="text-muted footnote-area">')
+			footnote_area = $('<div class="text-muted footnote-area level">')
 				.appendTo(wrapper);
 		}
 
 		if(txt) {
-			if(!txt.includes('<p>'))
-				txt = '<p>' + txt + '</p>';
 			footnote_area.html(txt);
 		} else {
 			footnote_area.remove();
@@ -545,6 +546,7 @@ frappe.utils = {
 	},
 
 	is_image_file: function(filename) {
+		if (!filename) return false;
 		// url can have query params
 		filename = filename.split('?')[0];
 		return (/\.(gif|jpg|jpeg|tiff|png|svg)$/i).test(filename);
@@ -592,6 +594,39 @@ frappe.utils = {
 			return false;
 		}
 	}(),
+	throttle: function (func, wait, options) {
+		var context, args, result;
+		var timeout = null;
+		var previous = 0;
+		if (!options) options = {};
+
+		let later = function () {
+			previous = options.leading === false ? 0 : Date.now();
+			timeout = null;
+			result = func.apply(context, args);
+			if (!timeout) context = args = null;
+		};
+
+		return function () {
+			var now = Date.now();
+			if (!previous && options.leading === false) previous = now;
+			let remaining = wait - (now - previous);
+			context = this;
+			args = arguments;
+			if (remaining <= 0 || remaining > wait) {
+				if (timeout) {
+					clearTimeout(timeout);
+					timeout = null;
+				}
+				previous = now;
+				result = func.apply(context, args);
+				if (!timeout) context = args = null;
+			} else if (!timeout && options.trailing !== false) {
+				timeout = setTimeout(later, remaining);
+			}
+			return result;
+		};
+	},
 	debounce: function(func, wait, immediate) {
 		var timeout;
 		return function() {
@@ -605,49 +640,16 @@ frappe.utils = {
 			timeout = setTimeout(later, wait);
 			if (callNow) func.apply(context, args);
 		};
+	},
+	get_form_link: function(doctype, name, html = false) {
+		const route = ['#Form', doctype, name].join('/');
+		if (html) {
+			return `<a href="${route}">${name}</a>`;
+		}
+		return route;
 	}
 };
 
-// String.prototype.includes polyfill
-// https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/String/includes
-if (!String.prototype.includes) {
-	String.prototype.includes = function (search, start) {
-		'use strict';
-		if (typeof start !== 'number') {
-			start = 0;
-		}
-		if (start + search.length > this.length) {
-			return false;
-		} else {
-			return this.indexOf(search, start) !== -1;
-		}
-	};
-}
-// Array.prototype.includes polyfill
-// https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
-if (!Array.prototype.includes) {
-	Object.defineProperty(Array.prototype, 'includes', {
-		value: function(searchElement, fromIndex) {
-			if (this == null) {
-				throw new TypeError('"this" is null or not defined');
-			}
-			var o = Object(this);
-			var len = o.length >>> 0;
-			if (len === 0) {
-				return false;
-			}
-			var n = fromIndex | 0;
-			var k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
-			while (k < len) {
-				if (o[k] === searchElement) {
-					return true;
-				}
-				k++;
-			}
-			return false;
-		}
-	});
-}
 // Array de duplicate
 if (!Array.prototype.uniqBy) {
 	Object.defineProperty(Array.prototype, 'uniqBy', {
@@ -656,7 +658,7 @@ if (!Array.prototype.uniqBy) {
 			return this.filter(function (item) {
 				var k = key(item);
 				return seen.hasOwnProperty(k) ? false : (seen[k] = true);
-			})
+			});
 		}
-	})
+	});
 }

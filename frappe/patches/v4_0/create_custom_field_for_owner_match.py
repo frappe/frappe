@@ -10,7 +10,9 @@ def execute():
 		create_custom_field_for_owner_match()
 
 def create_custom_field_for_owner_match():
-	frappe.db.sql("""update `tabDocPerm` set apply_user_permissions=1 where `match`='owner'""")
+	docperm_meta = frappe.get_meta('DocPerm')
+	if docperm_meta.get_field('apply_user_permissions'):
+		frappe.db.sql("""update `tabDocPerm` set apply_user_permissions=1 where `match`='owner'""")
 
 	for dt in frappe.db.sql_list("""select distinct parent from `tabDocPerm`
 		where `match`='owner' and permlevel=0 and parent != 'User'"""):

@@ -18,9 +18,13 @@ def get(args=None):
 
 	get_docinfo(frappe.get_doc(args.get("doctype"), args.get("name")))
 
-	return frappe.db.sql("""select owner, description from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
-		order by modified desc limit 5""", args, as_dict=True)
+	return frappe.db.sql("""SELECT `owner`, `description`
+		FROM `tabToDo`
+		WHERE reference_type=%(doctype)s
+		AND reference_name=%(name)s
+		AND status='Open'
+		ORDER BY modified DESC
+		LIMIT 5""", args, as_dict=True)
 
 @frappe.whitelist()
 def add(args=None):
@@ -36,9 +40,12 @@ def add(args=None):
 	if not args:
 		args = frappe.local.form_dict
 
-	if frappe.db.sql("""select owner from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
-		and owner=%(assign_to)s""", args):
+	if frappe.db.sql("""SELECT `owner`
+		FROM `tabToDo`
+		WHERE `reference_type`=%(doctype)s
+		AND `reference_name`=%(name)s
+		AND `status`='Open'
+		AND `owner`=%(assign_to)s""", args):
 		frappe.throw(_("Already in user's To Do list"), DuplicateToDoError)
 
 	else:
@@ -46,6 +53,9 @@ def add(args=None):
 
 		# if args.get("re_assign"):
 		# 	remove_from_todo_if_already_assigned(args['doctype'], args['name'])
+
+		if not args.get('description'):
+			args['description'] = _('Assignment for {0} {1}'.format(args['doctype'], args['name']))
 
 		d = frappe.get_doc({
 			"doctype":"ToDo",
@@ -160,7 +170,30 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 			'notify': notify
 		}
 
-	arg["parenttype"] = "Assignment"
+	if arg and arg.get("notify"):
+		_notify(arg)
 
-	from frappe.desk.page.chat import chat
-	chat.post(**arg)
+def _notify(args):
+	from frappe.utils import get_fullname, get_url
+
+	args = frappe._dict(args)
+	contact = args.contact
+	txt = args.txt
+
+	try:
+		if not isinstance(contact, list):
+			contact = [frappe.db.get_value("User", contact, "email") or contact]
+
+		frappe.sendmail(\
+			recipients=contact,
+			sender= frappe.db.get_value("User", frappe.session.user, "email"),
+			subject=_("New message from {0}").format(get_fullname(frappe.session.user)),
+			template="new_message",
+			args={
+				"from": get_fullname(frappe.session.user),
+				"message": txt,
+				"link": get_url()
+			},
+			header=[_('New Message'), 'orange'])
+	except frappe.OutgoingEmailError:
+		pass

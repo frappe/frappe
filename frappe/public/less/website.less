@@ -33,9 +33,8 @@ li {
 	line-height: 1.7em;
 }
 
-
-.navbar-brand {
-	max-width: none;
+.navbar-brand.ellipsis {
+	max-width: 200px;
 }
 
 .navbar-default {
@@ -571,30 +570,15 @@ li.footer-child-item {
 }
 
 .item-search {
-	border-bottom: 1px solid @border-color;
 	width: 100%;
 
 	.input-wrapper {
 		margin-right: 30px;
 	}
 
-	.item-search-input {
-		position: relative;
-		outline: none;
-		border: none;
-		margin-right: 5px;
-		padding: 7px;
-		padding-left: 0px;
-		width: 100%;
-
-		@media (max-width: @screen-xs) {
-			padding: 0;
-		}
-	}
-
 	i {
-		margin-right: -30px;
-		margin-top: -25px;
+		margin-right: -25px;
+		margin-top: -23px;
 
 		@media (max-width: @screen-xs) {
 			margin-right: -25px;
@@ -696,7 +680,96 @@ li.footer-child-item {
 	max-width: 100%;
 }
 
+
+//blog
+.headers(@style) {
+    h1, h2, h3, h4, h5, h6 {
+        @style();
+    }
+}
+
+.blog-text {
+  .headers({
+        margin-top: 3em;
+        margin-bottom: 1em;
+        font-weight:bold;
+    });
+}
+
+.blog-list-content {
+    border: 0px;
+    background: transparent;
+}
+
 .blog-list-item {
-	padding-top: 30px;
-	padding-bottom: 30px;
+	padding-bottom: 4em;
+}
+
+.blog-list-item:not(:first-child) {
+  padding-top: 4em;
+}
+
+.blogpost-cover-img{
+width: 75%;
+}
+
+.blog-list-item .avatar {
+    margin-right: 1em;
+}
+
+.blog-list-item .blog-header {
+    font-size: 1.6em;
+}
+
+.blog-header {
+	font-size: 2em;
+	font-weight:bold;
+}
+.blog-comments {
+	position: relative;
+	border-top: 1px solid @border-color;
+}
+.blog-info {
+	margin: 2em 0;
+}
+.blog-text {
+	line-height: 2;
+	font-size: 1.25em;
+	letter-spacing: 0.01em;
+}
+
+.blog-content{
+margin-bottom: 3em;
+}
+
+.blogger {
+	padding-top: 0px;
+	padding-bottom: 50px;
+}
+.blogger-name {
+	margin-top: 5px;
+}
+
+.post-description {
+    margin: 15px 0;
+}
+
+/* added to make iframe responsive */
+.embed-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    max-width: 100%; }
+
+.embed-container iframe, .embed-container object, .embed-container embed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.webform-wrapper {
+	margin: -30px;
 }

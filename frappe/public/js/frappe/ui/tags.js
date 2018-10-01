@@ -47,6 +47,7 @@ frappe.ui.Tags = class {
 
 		this.$placeholder.on('click', () => {
 			this.activate();
+			this.$input.focus(); // focus only when clicked
 		});
 	}
 
@@ -57,7 +58,6 @@ frappe.ui.Tags = class {
 	activate() {
 		this.$placeholder.hide();
 		this.$inputWrapper.show();
-		this.$input.focus();
 	}
 
 	deactivate() {
@@ -65,27 +65,24 @@ frappe.ui.Tags = class {
 		this.$placeholder.show();
 	}
 
-	refresh() {
-		this.deactivate();
-		this.activate();
-	}
-
 	addTag(label) {
-		if(label && !this.tagsList.includes(label)) {
+		label = toTitle(label);
+		if(label && label!== '' && !this.tagsList.includes(label)) {
 			let $tag = this.getTag(label);
 			this.getListElement($tag).insertBefore(this.$inputWrapper);
 			this.tagsList.push(label);
 			this.onTagAdd && this.onTagAdd(label);
-
-			this.refresh();
 		}
 	}
 
 	removeTag(label) {
 		if(this.tagsList.includes(label)) {
 			let $tag = this.$ul.find(`.frappe-tag[data-tag-label="${label}"]`);
-			$tag.remove();
-			this.tagsList = this.tagsList.filter(d => d !== label);
+
+			// Just don't remove tag, but also the li DOM.
+			$tag.parent('.tags-list-item').remove();
+			this.tagsList.splice(this.tagsList.indexOf(label), 1);
+
 			this.onTagRemove && this.onTagRemove(label);
 		}
 	}

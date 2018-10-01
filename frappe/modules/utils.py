@@ -132,8 +132,7 @@ def sync_customizations_for_doctype(data, folder):
 	validate_fields_for_doctype(doctype)
 
 	if update_schema and not frappe.db.get_value('DocType', doctype, 'issingle'):
-		from frappe.model.db_schema import updatedb
-		updatedb(doctype)
+		frappe.db.updatedb(doctype)
 
 def scrub(txt):
 	return frappe.scrub(txt)
@@ -224,7 +223,7 @@ def make_boilerplate(template, doc, opts=None):
 		with open(target_file_path, 'w') as target:
 			with open(os.path.join(get_module_path("core"), "doctype", scrub(doc.doctype),
 				"boilerplate", template), 'r') as source:
-				target.write(frappe.utils.encode(
+				target.write(frappe.as_unicode(
 					frappe.utils.cstr(source.read()).format(
 						app_publisher=app_publisher,
 						year=frappe.utils.nowdate()[:4],
