@@ -16,21 +16,17 @@ export default {
 	data() {
 		return {
 		}
-	},
-	created() {
-	},
-	methods: {
 	}
 }
 </script>
 <style lang="less" scoped>
 .action-card {
-	margin: 10px 0;
+	margin-bottom: 5px;
 	max-width: 500px;
 	max-height: 500px;
 	min-height: 70px;
 	border: 1px solid #c2c3c4;
-	border-radius: 15px;
+	border-radius: 3px;
 	padding: 15px 15px 5px 15px;
 	.content {
 		font-size: 14px;

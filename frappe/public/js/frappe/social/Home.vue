@@ -40,8 +40,9 @@ export default {
 			const route = frappe.get_route_str();
 			if (route_map[route]) {
 				return route_map[route];
+			} else {
+				return route_map[route.substring(0, route.lastIndexOf('/'))] || NotFound
 			}
-			return NotFound;
 		}
 	}
 }

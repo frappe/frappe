@@ -12,16 +12,14 @@ frappe.social.Home = class SocialHome {
 		this.$parent = $(parent);
 		this.page = parent.page;
 		this.setup_header();
-		// this.make_sidebar();
 		this.make_body();
 		this.set_primary_action();
 	}
 	make_body() {
-		this.$body = this.$parent.find('.layout-main-section');
-		this.$page_container = $('<div class="social-container">').appendTo(this.$body);
+		this.$social_container = this.$parent.find('.layout-main');
 
 		new Vue({
-			el: '.social-container',
+			el: this.$social_container[0],
 			render: h => h(Home)
 		});
 	}
@@ -67,7 +65,6 @@ frappe.social.post_reply_dialog.set_primary_action(__('Reply'), () => {
 	const post = frappe.model.get_new_doc('Post');
 	post.content = values.content;
 	post.reply_to = values.reply_to;
-	console.log(post);
 	frappe.db.insert(post).then(() => {
 		frappe.social.post_reply_dialog.clear();
 		frappe.social.post_reply_dialog.hide();
