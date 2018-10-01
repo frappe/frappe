@@ -406,7 +406,7 @@ def add_attachments(name, attachments):
 				"attached_to_doctype": "Communication",
 				"attached_to_name": name,
 				"folder": "Home/Attachments"})
-			_file.save()
+			_file.save(ignore_permissions=True)
 
 
 def filter_email_list(doc, email_list, exclude, is_cc=False, is_bcc=False):
