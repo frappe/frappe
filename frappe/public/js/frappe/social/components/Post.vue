@@ -2,8 +2,8 @@
 	<div class="post-card">
 		<div class="post-body">
 			<div class="pull-right text-muted" v-html="post_time"></div>
-			<div class="user-avatar" v-html="user_avatar"></div>
-			<div class="user-name">{{ user_name }}</div>
+			<div class="user-avatar" v-html="user_avatar" @click="goto_profile(post.owner)"></div>
+			<div class="user-name" @click="goto_profile(post.owner)">{{ user_name }}</div>
 			<div class="content" v-html="post.content"></div>
 		</div>
 		<post-action
@@ -53,7 +53,7 @@ const Post = {
 	},
 	created() {
 		frappe.db.get_list('Post', {
-			fields: ['name', 'content', 'owner', 'creation'],
+			fields: ['name', 'content', 'owner', 'creation', 'liked_by'],
 			order_by: 'creation desc',
 			filters: {
 				reply_to: this.post.name
@@ -67,6 +67,9 @@ const Post = {
 		frappe.realtime.on('update_liked_by' + this.post.name, this.update_liked_by)
 	},
 	methods: {
+		goto_profile(user) {
+			frappe.set_route('social', 'profile/' + user)
+		},
 		create_new_reply() {
 			frappe.social.post_reply_dialog.set_value('reply_to', this.post.name);
 			frappe.social.post_reply_dialog.show()
@@ -98,15 +101,14 @@ export default Post;
 </script>
 <style lang="less">
 .post-card {
-	margin: 10px 0;
+	margin-bottom: 5px;
 	max-width: 500px;
 	max-height: 500px;
 	min-height: 70px;
 	overflow: scroll;
-	cursor: pointer;
 	border: 1px solid #c2c3c4;
-	border-radius: 15px;
-	padding: 15px 15px 5px 15px;
+	border-radius: 3px;
+	padding: 10px 10px 5px 10px;
 	.user-name {
 		font-weight: 400;
 	}
@@ -120,6 +122,9 @@ export default Post;
 		.avatar-frame, .standard-image {
 			border-radius: 50%;
 		}
+	}
+	.user-avatar, .user-name {
+		cursor: pointer;
 	}
 	.content {
 		margin-left: 58px;

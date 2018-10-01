@@ -1,24 +1,48 @@
 <template>
 	<div>
-		<div v-html="user_avatar"></div>
-		<div v-for="post in posts" :key="post.name">
-			<post :post="post"></post>
+		<profile-sidebar :user_id="user_id" class="col-md-2"></profile-sidebar>
+		<div class="col-md-10">
+			<div v-for="post in my_posts" :key="post.name">
+				<post :post="post"></post>
+			</div>
 		</div>
 	</div>
 </template>
 <script>
 import Post from '../components/Post.vue'
+import ProfileSidebar from '../components/ProfileSidebar.vue'
+
 export default {
 	components: {
-		Post
+		Post,
+		ProfileSidebar
 	},
 	data() {
 		return {
-			user_avatar: frappe.avatar(frappe.session.user, 'avatar-xl')
+			user_id: '',
+			my_posts: []
 		}
 	},
 	created() {
-
+		this.user_id = frappe.get_route()[2];
+		this.set_user_posts();
+		frappe.route.on('change', () => {
+			this.user_id = frappe.get_route()[2];
+			this.set_user_posts()
+		});
+	},
+	methods: {
+		set_user_posts() {
+			frappe.db.get_list('Post', {
+				filters: {
+					owner: this.user_id,
+				},
+				fields: ['name', 'content', 'owner', 'creation', 'liked_by'],
+				order_by: 'creation desc',
+			}).then((posts) => {
+				this.my_posts = posts;
+			})
+		}
 	}
 }
 </script>

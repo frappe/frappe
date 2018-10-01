@@ -34,6 +34,7 @@ export default {
 	display: flex;
 	justify-content: flex-end;
 	.reply, .like {
+		cursor: pointer;
 		padding: 10px;
 		span {
 			margin-left: 5px;

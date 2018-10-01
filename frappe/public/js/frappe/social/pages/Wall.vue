@@ -1,5 +1,6 @@
 <template>
-	<div class="flex">
+	<div class="wall-container">
+		<post-sidebar :user=user class="col-md-2"></post-sidebar>
 		<div class="post-container">
 			<div class="new_posts_count" @click="load_new_posts()" v-if='new_posts_count'>
 				{{ new_posts_count + ' new post'}}
@@ -19,12 +20,14 @@
 import Post from '../components/Post.vue';
 import ActionCard from '../components/ActionCard.vue';
 import EventCard from '../components/EventCard.vue';
+import PostSidebar from '../components/PostSidebar.vue';
 
 export default {
 	components: {
 		Post,
 		ActionCard,
-		EventCard
+		EventCard,
+		PostSidebar
 	},
 	data() {
 		return {
@@ -67,19 +70,19 @@ export default {
 </script>
 
 <style lang='less' scoped>
-.post-container {
+.wall-container {
+	padding: 10px;
 	display: flex;
-	flex-direction: column;
-	padding-top: 10px;
-	width: 500px;
-	font-size: 14px;
-	margin: 0 20px;
-	.new_posts_count {
-		cursor: pointer;
-		text-align: center;
+	.post-container {
+		display: flex;
+		flex-direction: column;
+		width: 500px;
+		font-size: 14px;
+		margin: 0 20px;
+		.new_posts_count {
+			cursor: pointer;
+			text-align: center;
+		}
 	}
-}
-.action-card-container {
-	padding-top: 10px;
 }
 </style>
