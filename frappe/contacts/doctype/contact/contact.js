@@ -1,18 +1,14 @@
 // Copyright (c) 2016, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-
 cur_frm.email_field = "email_id";
 frappe.ui.form.on("Contact", {
 	refresh: function(frm) {
 		if(frm.doc.__islocal) {
-			var last_route = frappe.route_history.slice(-2, -1)[0];
-			let docname = last_route[2];
-			if (last_route && last_route.length > 3) {
-				docname = last_route.slice(2).join("/");
-			}
+			const last_doc = frm.events.get_last_doc();
 			if(frappe.dynamic_link && frappe.dynamic_link.doc
-					&& frappe.dynamic_link.doc.name==docname) {
+					&& frappe.dynamic_link.doc.name == last_doc.docname) {
+				frm.set_value('links', '');
 				frm.add_child('links', {
 					link_doctype: frappe.dynamic_link.doctype,
 					link_name: frappe.dynamic_link.doc[frappe.dynamic_link.fieldname]
@@ -52,17 +48,33 @@ frappe.ui.form.on("Contact", {
 			});
 		}
 	},
-	after_save: function() {
+	after_save: function(frm) {
 		frappe.run_serially([
 			() => frappe.timeout(1),
 			() => {
-				var last_route = frappe.route_history.slice(-2, -1)[0];
+				const last_doc = frm.events.get_last_doc();
 				if(frappe.dynamic_link && frappe.dynamic_link.doc
-					&& last_route.length > 2 && frappe.dynamic_link.doc.name == last_route[2]){
-					frappe.set_route(last_route[0], last_route[1], last_route[2]);
+					&& frappe.dynamic_link.doc.name == last_doc.docname){
+					frappe.set_route('Form', last_doc.doctype, last_doc.docname);
 				}
 			}
 		]);
+	},
+	get_last_doc() {
+		const reverse_routes = frappe.route_history.reverse();
+		const last_route = reverse_routes.find(route => {
+			return route[0] === 'Form' && route[1] !== 'Contact'
+		})
+		let doctype = last_route && last_route[1];
+		let docname = last_route && last_route[2];
+
+		if (last_route && last_route.length > 3)
+			docname = last_route.slice(2).join("/");
+
+		return {
+			doctype,
+			docname
+		}
 	}
 });
 
