@@ -801,14 +801,19 @@ def reset_password(user, send_email=True):
 	if user=="Administrator":
 		return 'not allowed'
 
+	if isinstance(send_email, unicode) or isinstance(send_email, basestring):
+		if send_email=='false':
+			send_email = False
+
 	try:
 		user = frappe.get_doc("User", user)
 		if not user.enabled:
 			return 'disabled'
+
 		user.validate_reset_password()
 		link = user.reset_password(send_email=send_email)
 
-		if not send_email or send_email=='false':
+		if not send_email:
 			return { "link": link }
 
 		return frappe.msgprint(_("Password reset instructions have been sent to your email"))
