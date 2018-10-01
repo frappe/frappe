@@ -219,11 +219,12 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 
 	if not os.environ.get('NO_STATICS'):
 		application = SharedDataMiddleware(application, {
-			b'/assets': str(os.path.join(sites_path, 'assets'))
+			b'/assets': os.path.join(
+				sites_path, 'assets').encode('ascii')
 		})
 
 		application = StaticDataMiddleware(application, {
-			b'/files': str(os.path.abspath(sites_path))
+			b'/files': os.path.abspath(sites_path).encode('ascii')
 		})
 
 	application.debug = True
