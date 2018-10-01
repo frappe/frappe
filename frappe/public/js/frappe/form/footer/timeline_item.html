@@ -58,7 +58,7 @@
 					</span>
 						{% if(in_list(["Communication", "Feedback"], data.communication_type)) { %}
 							{% if (frappe.model.can_read(\'Communication\')) { %}
-							<a href="#Form/{%= data.doctype %}/{%= data.name %}"
+							<a href="#Form/Communication/{%= data.name %}"
 								class="text-muted">
 							{% } %}
 
