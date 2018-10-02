@@ -1,12 +1,17 @@
 <template>
 	<div class="backdrop">
-		<img :src="src">
+		<img :src="src" :class="{'psuedo-zoom': full_size}" @dblclick="full_size = !full_size">
 		<i class="fa fa-close close" @click="$root.$emit('hide_preview')"></i>
 	</div>
 </template>
 <script>
 export default {
 	props: ['src'],
+	data() {
+		return {
+			full_size: false
+		}
+	},
 	created() {
 		document.addEventListener('keyup', this.close_preview_on_escape);
 	},
@@ -31,18 +36,24 @@ export default {
 	z-index: 1030;
 	top: 0;
 	right: 0;
-	padding-top: 100px;
 	img {
 		margin: auto;
 		display: block;
 		width: 80%;
 		max-width: 700px;
+		padding-top: 100px;
+	}
+	.psuedo-zoom {
+		padding: 10px 0px;
+		width: auto;
+		height: 100vh;
+		max-width: initial;
 	}
 	.close {
 		position: absolute;
 		top: 15px;
 		right: 35px;
-		color: #f1f1f1;
+		color: black;
 		font-size: 30px;
 	}
 }
