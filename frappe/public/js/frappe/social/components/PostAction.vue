@@ -64,7 +64,7 @@ export default {
 		cursor: pointer;
 		padding: 10px;
 		span {
-			margin-left: 5px;
+			padding-left: 5px;
 		}
 		i:hover, span:hover {
 			color: black;
