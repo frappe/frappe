@@ -42,7 +42,8 @@
 		"public/js/frappe/model/perm.js",
 
 		"website/js/website.js",
-		"public/js/frappe/misc/rating_icons.html"
+		"public/js/frappe/misc/rating_icons.html",
+		"public/js/frappe/socketio_client.js"
 	],
 	"js/control.min.js": [
 		"public/js/frappe/ui/capture.js",
@@ -324,6 +325,7 @@
 		"public/js/frappe/list/header_select_all_like_filter.html",
 		"public/js/frappe/list/item_assigned_to_comment_count.html",
 		"public/js/frappe/views/treeview.js",
+		"public/js/frappe/views/interaction.js",
 
 		"public/js/frappe/views/image/image_view_item_row.html",
 		"public/js/frappe/views/image/photoswipe_dom.html",
