@@ -1,13 +1,11 @@
 // Copyright (c) 2016, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-{% include 'frappe/contacts/address_and_contact.js' %};
-
 cur_frm.email_field = "email_id";
 frappe.ui.form.on("Contact", {
 	refresh: function(frm) {
 		if(frm.doc.__islocal) {
-			const last_doc = frm.events.get_last_doc();
+			const last_doc = frappe.contacts.get_last_doc(frm);
 			if(frappe.dynamic_link && frappe.dynamic_link.doc
 					&& frappe.dynamic_link.doc.name == last_doc.docname) {
 				frm.set_value('links', '');
@@ -54,7 +52,7 @@ frappe.ui.form.on("Contact", {
 		frappe.run_serially([
 			() => frappe.timeout(1),
 			() => {
-				const last_doc = frm.events.get_last_doc();
+				const last_doc = frappe.contacts.get_last_doc(frm);
 				if(frappe.dynamic_link && frappe.dynamic_link.doc
 					&& frappe.dynamic_link.doc.name == last_doc.docname){
 					frappe.set_route('Form', last_doc.doctype, last_doc.docname);
