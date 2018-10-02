@@ -1,5 +1,5 @@
 <template>
-	<div class="social">
+	<div ref="social" class="social">
 		<component :is="current_page"></component>
 		<image-viewer :src="preview_image_src" v-if="show_preview"></image-viewer>
 	</div>
@@ -47,6 +47,7 @@ export default {
 				frappe.utils.scroll_to(0);
 			}
 		});
+		frappe.ui.setup_like_popover($(this.$refs.social), '.likes', false);
 	},
 	methods: {
 		set_current_page() {

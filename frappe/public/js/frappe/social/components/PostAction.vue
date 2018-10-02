@@ -7,26 +7,29 @@
 			<i class="fa fa-reply" @click="$emit('new_reply')"></i>
 			<span @click="$emit('toggle_reply')">{{ reply_count }}</span>
 		</div>
-		<div class="like" @click="$emit('toggle_like');">
-			<i class="fa fa-heart" :class="{'liked': post_liked}"></i>
-			<span>{{ like_count }}</span>
+		<div class="like">
+			<i
+				class="fa fa-heart"
+				@click="$emit('toggle_like')"
+				:class="{'liked': post_liked}">
+			</i>
+			<span
+				class="likes"
+				:data-liked-by="JSON.stringify(split_string(liked_by))">
+				{{ like_count }}
+			</span>
 		</div>
 	</div>
 </template>
 <script>
 export default {
 	props: {
-		'like_count': {
-			'type': Number,
-			'default': 0,
+		'liked_by': {
+			'type': String,
 		},
 		'reply_count': {
 			'type': Number,
 			'default': 0,
-		},
-		'post_liked': {
-			'type': Boolean,
-			'default': true
 		},
 		'is_pinnable': {
 			'type': Boolean,
@@ -37,6 +40,19 @@ export default {
 			'default': 0
 		}
 	},
+	computed: {
+		like_count() {
+			return this.split_string(this.liked_by).length;
+		},
+		post_liked() {
+			return this.split_string(this.liked_by).includes(frappe.session.user);
+		}
+	},
+	methods: {
+		split_string(str) {
+			return str && str !== '' ? str.split('\n') : []
+		}
+	}
 }
 </script>
 <style lang='less' scoped>

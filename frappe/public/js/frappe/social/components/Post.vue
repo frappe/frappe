@@ -3,15 +3,14 @@
 		<div class="post-body">
 			<div class="pull-right text-muted" v-html="post_time"></div>
 			<div class="user-avatar" v-html="user_avatar" @click="goto_profile(post.owner)"></div>
-			<div class="user-name" @click="goto_profile(post.owner)">{{ user_name }}</div>
+			<div class="user-name text-muted" @click="goto_profile(post.owner)">{{ user_name }}</div>
 			<div class="content" v-html="post.content"></div>
 		</div>
 		<post-action
 			:is_pinnable="is_pinnable"
 			:is_pinned="post.is_pinned"
-			:like_count="like_count"
+			:liked_by="post.liked_by"
 			:reply_count="replies.length"
-			:post_liked="post_liked"
 			@toggle_reply="toggle_reply"
 			@new_reply="create_new_reply"
 			@toggle_like="toggle_like"
@@ -54,14 +53,6 @@ const Post = {
 			is_pinnable: !this.post.reply_to && frappe.user_roles.includes('System Manager')
 		}
 	},
-	computed: {
-		like_count() {
-			return this.post.liked_by ? this.post.liked_by.split('\n').length : 0;
-		},
-		post_liked() {
-			return this.post.liked_by ? this.post.liked_by.includes(frappe.session.user) : false;
-		}
-	},
 	created() {
 		frappe.db.get_list('Post', {
 			fields: ['name', 'content', 'owner', 'creation', 'liked_by', 'is_pinned', 'reply_to'],
@@ -72,6 +63,11 @@ const Post = {
 		}).then(replies => {
 			this.replies = replies;
 		})
+
+		if (!this.post.liked_by) {
+			this.$set(this.post, 'liked_by', '')
+		}
+
 		frappe.realtime.on('new_post_reply' + this.post.name, (post) => {
 			this.replies.push(post);
 		})
@@ -79,6 +75,7 @@ const Post = {
 			this.post.is_pinned = cint(is_pinned);
 		})
 		frappe.realtime.on('update_liked_by' + this.post.name, this.update_liked_by)
+
 	},
 	methods: {
 		goto_profile(user) {
@@ -91,15 +88,8 @@ const Post = {
 		toggle_reply() {
 			this.show_replies = !this.show_replies
 		},
-		update_liked_by(user) {
-			const liked_by = this.post.liked_by ? this.post.liked_by.split('\n') : []
-			const user_index = liked_by.indexOf(user)
-			if (user_index > -1) {
-				liked_by.splice(user_index, 1);
-			} else {
-				liked_by.push(user);
-			}
-			this.post.liked_by = liked_by.join('\n')
+		update_liked_by(liked_by) {
+			this.post.liked_by = liked_by;
 		},
 		toggle_like() {
 			frappe.xcall('frappe.social.doctype.post.post.toggle_like', {

@@ -28,7 +28,8 @@ def toggle_like(post_name, user=None):
 	else:
 		liked_by.append(user)
 
-	frappe.publish_realtime('update_liked_by' + post_name, frappe.session.user, after_commit=True)
-	frappe.db.set_value('Post', post_name, 'liked_by', '\n'.join(liked_by))
+	liked_by_string = '\n'.join(liked_by)
+	frappe.db.set_value('Post', post_name, 'liked_by', liked_by_string)
+	frappe.publish_realtime('update_liked_by' + post_name, liked_by_string, after_commit=True)
 
 
