@@ -64,11 +64,13 @@ def create_email_flag_queue(names, action):
 		uid, seen_status, email_account = frappe.db.get_value("Communication", name, 
 			["ifnull(uid, -1)", "ifnull(seen, 0)", "email_account"])
 
+		mark_as_seen_unseen(name, action)
 		# can not mark email SEEN or UNSEEN without uid
 		if not uid or uid == -1:
 			continue
 
 		seen = 1 if action == "Read" else 0
+
 		# check if states are correct
 		if (action =='Read' and seen_status == 0) or (action =='Unread' and seen_status == 1):
 			create_new = True
@@ -93,7 +95,6 @@ def create_email_flag_queue(names, action):
 				flag_queue.save(ignore_permissions=True)
 				frappe.db.set_value("Communication", name, "seen", seen, 
 					update_modified=False)
-				mark_as_seen_unseen(name, action)
 
 @frappe.whitelist()
 def mark_as_trash(communication):
