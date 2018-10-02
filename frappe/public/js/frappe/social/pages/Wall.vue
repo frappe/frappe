@@ -14,8 +14,8 @@
 			<div class="text-muted text-center padding"><i class="fa fa-thumb-tack"></i> Pinned Posts </div>
 			<div v-for="post in pinned_posts" :key="post.name">
 				<post :post="post"></post>
+			</div>
 		</div>
-	</div>
 	</div>
 
 </template>
@@ -80,21 +80,3 @@ export default {
 	}
 };
 </script>
-
-<style lang='less' scoped>
-.wall-container {
-	padding: 10px;
-	display: flex;
-	.post-container {
-		display: flex;
-		flex-direction: column;
-		width: 500px;
-		font-size: 14px;
-		margin: 0 20px;
-		.new_posts_count {
-			cursor: pointer;
-			text-align: center;
-		}
-	}
-}
-</style>
