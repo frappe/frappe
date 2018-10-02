@@ -41,6 +41,7 @@ body[data-route*="social"] {
 		img, iframe {
 			border-radius: 5px;
 			border: none;
+			margin-bottom: 5px;
 		}
 		img {
 			&:hover {
@@ -53,6 +54,9 @@ body[data-route*="social"] {
 
 .event-card {
 	.generic-card();
+	.content {
+		text-align: center
+	}
 }
 
 .post-card {
@@ -62,7 +66,7 @@ body[data-route*="social"] {
 	}
 	.user-avatar {
 		float: left;
-		margin-right: 10px;
+		margin-right: 5px;
 		.avatar {
 			width: 48px;
 			height: 48px;
@@ -70,6 +74,9 @@ body[data-route*="social"] {
 		.avatar-frame, .standard-image {
 			border-radius: 50%;
 		}
+	}
+	.user-name {
+		margin-bottom: 5px;
 	}
 	.user-avatar, .user-name {
 		cursor: pointer;
