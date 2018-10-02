@@ -11,13 +11,12 @@
 			</div>
 		</div>
 		<div class="action-card-container col-md-4">
-			<div class="text-muted text-center padding"><i class="fa fa-thumb-tack"></i> Pinned Posts </div>
+			<div class="muted-title padding"><i class="fa fa-thumb-tack">&nbsp;</i> Pinned Posts </div>
 			<div v-for="post in pinned_posts" :key="post.name">
 				<post :post="post"></post>
 			</div>
 		</div>
 	</div>
-
 </template>
 <script>
 import Post from '../components/Post.vue';
