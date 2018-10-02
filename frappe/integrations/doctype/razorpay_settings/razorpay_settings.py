@@ -119,7 +119,6 @@ class RazorpaySettings(Document):
 						"content-type": "application/json"
 					}
 				)
-
 				if not resp.get('id'):
 					frappe.log_error(str(resp), 'Razorpay Failed while creating subscription')
 		except:
@@ -329,5 +328,26 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 def convert_rupee_to_paisa(**kwargs):
 	for addon in kwargs.get('addons'):
 		addon['item']['amount'] *= 100
-	
+
 	frappe.conf.converted_rupee_to_paisa = True
+
+
+@frappe.whitelist(allow_guest=True)
+def razorpay_subscription_callback():
+	data = frappe.local.form_dict
+	data.update({
+		"payment_gateway": "Razorpay"
+	})
+
+	doc = frappe.get_doc({
+		"data": json.dumps(frappe.local.form_dict),
+		"doctype": "Integration Request",
+		"status": "Subscription Notification"
+	}).insert(ignore_permissions=True)
+	frappe.db.commit()
+
+	frappe.enqueue(method='frappe.integrations.doctype.razorpay_settings.razorpay_settings.handle_subscription_notification',
+		queue='long', timeout=600, is_async=True, **{"doctype": "Integration Request", "docname":  doc.name})
+
+def handle_subscription_notification(doctype, docname):
+	call_hook_method("handle_subscription_notification", doctype=doctype, docname=docname)

@@ -363,7 +363,27 @@ def manage_recurring_payment_profile_status(profile_id, action, args, url):
 	})
 
 	response = make_post_request(url, data=args)
+	
 
 	if response.get("ACK")[0] != "Success":
 		frappe.throw(_("Failed while amending subscription"))
 
+@frappe.whitelist(allow_guest=True)
+def ipn_handler():
+	data = frappe.local.form_dict
+	data.update({
+		"payment_gateway": "PayPal"
+	})
+
+	doc = frappe.get_doc({
+		"data": frappe.local.form_dict,
+		"doctype": "Integration Request",
+		"status": "Subscription Notification"
+	}).insert(ignore_permissions=True)
+	frappe.db.commit()
+
+	frappe.enqueue(method='frappe.integrations.doctype.paypal_settings.paypal_settings.handle_subscription_notification',
+		queue='long', timeout=600, is_async=True, **{"doctype": "Integration Request", "docname":  doc.name})
+
+def handle_subscription_notification(doctype, docname):
+	call_hook_method("handle_subscription_notification", doctype=doctype, docname=docname)
