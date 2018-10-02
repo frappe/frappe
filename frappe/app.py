@@ -225,11 +225,11 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 
 	if not os.environ.get('NO_STATICS'):
 		application = SharedDataMiddleware(application, {
-			'/assets': frappe.safe_decode(os.path.join(sites_path, 'assets')),
+			'/assets': frappe.safe_encode(os.path.join(sites_path, 'assets')),
 		})
 
 		application = StaticDataMiddleware(application, {
-			'/files': frappe.safe_decode(os.path.abspath(sites_path))
+			'/files': frappe.safe_encode(os.path.abspath(sites_path))
 		})
 
 	application.debug = True
