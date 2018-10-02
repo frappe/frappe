@@ -1,18 +1,21 @@
 <template>
 	<div class="wall-container">
-		<post-sidebar :user=user class="col-md-2"></post-sidebar>
+		<post-sidebar class="col-md-3" :user=user></post-sidebar>
 		<div class="post-container">
 			<div class="new_posts_count" @click="load_new_posts()" v-if='new_posts_count'>
 				{{ new_posts_count + ' new post'}}
 			</div>
-			<div v-for="post in posts" :key="post.name">
-				<post v-if="post.type == 'post'" :post="post"></post>
+			<div v-for="post in user_posts" :key="post.name">
+				<post v-if="post.type == 'post' && !post.is_pinned" :post="post"></post>
 				<event-card  v-else :event="post"></event-card>
 			</div>
 		</div>
-		<div class="action-card-container hidden-xs">
-			<action-card></action-card>
+		<div class="action-card-container col-md-4">
+			<div class="text-muted text-center padding"><i class="fa fa-thumb-tack"></i> Pinned Posts </div>
+			<div v-for="post in pinned_posts" :key="post.name">
+				<post :post="post"></post>
 		</div>
+	</div>
 	</div>
 
 </template>
@@ -42,6 +45,14 @@ export default {
 			this.new_posts_count += 1;
 		})
 	},
+	computed: {
+		pinned_posts() {
+			return this.posts.filter((post) => post.is_pinned)
+		},
+		user_posts() {
+			return this.posts.filter((post) => !post.is_pinned)
+		}
+	},
 	methods: {
 		get_posts(load_only_new_posts = true) {
 			const filters = {
@@ -51,7 +62,7 @@ export default {
 				filters.creation = ['>', this.posts[0].creation]
 			}
 			frappe.db.get_list('Post', {
-				fields: ['name', 'content', 'owner', 'creation', 'type', 'liked_by'],
+				fields: ['name', 'content', 'owner', 'creation', 'type', 'liked_by', 'is_pinned'],
 				filters: filters,
 				order_by: 'creation desc'
 			}).then((res) => {

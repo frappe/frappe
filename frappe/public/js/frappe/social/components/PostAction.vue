@@ -1,5 +1,8 @@
 <template>
 	<div class="post-action-container text-muted">
+		<div class="pin" v-if="is_pinnable">
+			<i class="fa fa-thumb-tack" :class="{'pinned': is_pinned}" @click="$emit('toggle_pin')"></i>
+		</div>
 		<div class="reply">
 			<i class="fa fa-reply" @click="$emit('new_reply')"></i>
 			<span @click="$emit('toggle_reply')">{{ reply_count }}</span>
@@ -24,6 +27,14 @@ export default {
 		'post_liked': {
 			'type': Boolean,
 			'default': true
+		},
+		'is_pinnable': {
+			'type': Boolean,
+			'default': false
+		},
+		'is_pinned': {
+			'type': Number,
+			'default': 0
 		}
 	},
 }
@@ -33,7 +44,7 @@ export default {
 	clear: both;
 	display: flex;
 	justify-content: flex-end;
-	.reply, .like {
+	.reply, .like, .pin {
 		cursor: pointer;
 		padding: 10px;
 		span {
@@ -48,6 +59,9 @@ export default {
 		&:hover {
 			color: lighten(red, 20%) !important;
 		}
+	}
+	.pinned {
+		color: black;
 	}
 }
 </style>

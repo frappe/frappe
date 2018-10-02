@@ -7,6 +7,10 @@ import frappe
 from frappe.model.document import Document
 
 class Post(Document):
+	def on_update(self):
+		if (self.get_doc_before_save().is_pinned != self.is_pinned):
+			frappe.publish_realtime('toggle_pin' + self.name, self.is_pinned, after_commit=True)
+
 	def after_insert(self):
 		if self.reply_to:
 			frappe.publish_realtime('new_post_reply' + self.reply_to, self, after_commit=True)

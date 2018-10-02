@@ -37,7 +37,7 @@ export default {
 				filters: {
 					owner: this.user_id,
 				},
-				fields: ['name', 'content', 'owner', 'creation', 'liked_by'],
+				fields: ['name', 'content', 'owner', 'creation', 'liked_by', 'is_pinned'],
 				order_by: 'creation desc',
 			}).then((posts) => {
 				this.my_posts = posts;

@@ -7,12 +7,15 @@
 			<div class="content" v-html="post.content"></div>
 		</div>
 		<post-action
+			:is_pinnable="is_pinnable"
+			:is_pinned="post.is_pinned"
 			:like_count="like_count"
 			:reply_count="replies.length"
 			:post_liked="post_liked"
 			@toggle_reply="toggle_reply"
 			@new_reply="create_new_reply"
 			@toggle_like="toggle_like"
+			@toggle_pin="toggle_pin"
 		/>
 		<post-reply
 			class="post-reply"
@@ -41,6 +44,7 @@ const Post = {
 			reply_count: 0,
 			replies: [],
 			show_replies: false,
+			is_pinnable: frappe.user_roles.includes('System Manager')
 		}
 	},
 	computed: {
@@ -53,7 +57,7 @@ const Post = {
 	},
 	created() {
 		frappe.db.get_list('Post', {
-			fields: ['name', 'content', 'owner', 'creation', 'liked_by'],
+			fields: ['name', 'content', 'owner', 'creation', 'liked_by', 'is_pinned'],
 			order_by: 'creation desc',
 			filters: {
 				reply_to: this.post.name
@@ -63,6 +67,9 @@ const Post = {
 		})
 		frappe.realtime.on('new_post_reply' + this.post.name, (post) => {
 			this.replies.push(post);
+		})
+		frappe.realtime.on('toggle_pin' + this.post.name, (is_pinned) => {
+			this.post.is_pinned = cint(is_pinned);
 		})
 		frappe.realtime.on('update_liked_by' + this.post.name, this.update_liked_by)
 	},
@@ -91,6 +98,9 @@ const Post = {
 			frappe.xcall('frappe.social.doctype.post.post.toggle_like', {
 				post_name: this.post.name,
 			})
+		},
+		toggle_pin() {
+			frappe.db.set_value('Post', this.post.name, 'is_pinned', cint(!this.post.is_pinned))
 		}
 	}
 }
