@@ -16,16 +16,20 @@ frappe.ui.form.Timeline = class Timeline {
 
 		this.list = this.wrapper.find(".timeline-items");
 
-		this.comment_area = new frappe.ui.CommentArea({
+		this.comment_area = frappe.ui.form.make_control({
 			parent: this.wrapper.find('.timeline-head'),
+			df: {
+				fieldtype: 'Comment',
+				fieldname: 'comment',
+				label: 'Comment'
+			},
 			mentions: this.get_names_for_mentions(),
+			render_input: true,
+			only_input: true,
 			on_submit: (val) => {
-				val && this.insert_comment(
-					"Comment", val, this.comment_area.button);
+				val && this.insert_comment("Comment", val, this.comment_area.button);
 			}
 		});
-
-		this.setup_editing_area();
 
 		this.setup_email_button();
 		this.setup_interaction_button();
@@ -89,7 +93,7 @@ frappe.ui.form.Timeline = class Timeline {
 					});
 				} else {
 					$.extend(args, {
-						txt: frappe.markdown(me.comment_area.val())
+						txt: frappe.markdown(me.comment_area.get_value())
 					});
 				}
 				new frappe.views.CommunicationComposer(args)
@@ -135,7 +139,7 @@ frappe.ui.form.Timeline = class Timeline {
 		}
 		this.wrapper.toggle(true);
 		this.list.empty();
-		this.comment_area.val('');
+		this.comment_area.set_value('');
 		let communications = this.get_communications(true);
 		var views = this.get_view_logs();
 
@@ -186,6 +190,21 @@ frappe.ui.form.Timeline = class Timeline {
 		return comparison;
 	}
 
+	make_editing_area(container) {
+		return frappe.ui.form.make_control({
+			parent: container,
+			df: {
+				fieldtype: 'Comment',
+				fieldname: 'comment',
+				label: 'Comment'
+			},
+			mentions: this.get_names_for_mentions(),
+			render_input: true,
+			only_input: true,
+			no_wrapper: true
+		});
+	},
+
 	render_timeline_item(c) {
 		var me = this;
 		this.prepare_timeline_item(c);
@@ -201,22 +220,31 @@ frappe.ui.form.Timeline = class Timeline {
 				var name = $timeline_item.data('name');
 
 				if($timeline_item.hasClass('is-editing')) {
-					me.editing_area.submit();
-					me.$editing_area.detach();
+					me.current_editing_area.submit();
 				} else {
-					var $edit_btn = $(this);
-					var content = $timeline_item.find('.timeline-item-content').html();
+					const $edit_btn = $(this);
+					const $timeline_content = $timeline_item.find('.timeline-item-content');
+					const $timeline_edit = $timeline_item.find('.timeline-item-edit');
+					const content = $timeline_content.html();
+
+					// update state
 					$edit_btn
-						.text("Save")
+						.text(__("Save"))
 						.find('i')
 						.removeClass('octicon-pencil')
 						.addClass('octicon-check');
+					$timeline_content.hide();
+					$timeline_item.addClass('is-editing');
 
-					me.editing_area.setup_summernote();
-					me.editing_area.val(content);
-					me.editing_area.on_submit = (value) => {
-						me.editing_area.destroy();
-						value = value.trim();
+					// initialize editing area
+					me.current_editing_area = me.make_editing_area($timeline_edit);
+					me.current_editing_area.set_value(content);
+
+					// submit handler
+					me.current_editing_area.on_submit = (value) => {
+						$timeline_edit.empty();
+						$timeline_content.show();
+
 						// set content to new val so that on save and refresh the new content is shown
 						c.content = value;
 						frappe.timeline.update_communication(c);
@@ -224,15 +252,6 @@ frappe.ui.form.Timeline = class Timeline {
 						// all changes to the timeline_item for editing are reset after calling refresh
 						me.refresh();
 					};
-
-					$timeline_item
-						.find('.timeline-item-content')
-						.hide();
-					$timeline_item
-						.find('.timeline-content-show')
-						.append(me.$editing_area);
-					$timeline_item
-						.addClass('is-editing');
 				}
 
 				return false;
@@ -604,7 +623,7 @@ frappe.ui.form.Timeline = class Timeline {
 			btn: btn,
 			callback: function(r) {
 				if(!r.exc) {
-					me.comment_area.val('');
+					me.comment_area.set_value('');
 					frappe.utils.play_sound("click");
 
 					var comment = r.message;
