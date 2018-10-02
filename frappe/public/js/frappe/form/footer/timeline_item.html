@@ -96,9 +96,9 @@
 								data-name="{%= data.name %}" title="{%= __("Reply") %}">{%= __("Reply") %}</a>
 							{% } %}
 						{% } %}
-					<span class="text-muted commented-on hidden-xs">
+					<span class="text-muted commented-on hidden-xs {% if (data.futur_date) { %}timeline-futur{% } %}">
 						&ndash; {%= data.comment_on %}</span>
-					<span class="text-muted commented-on-small">
+					<span class="text-muted commented-on-small {% if (data.futur_date) { %}timeline-futur{% } %}">
 						&ndash; {%= data.comment_on_small %}</span>
 					<span class="comment-likes hidden-xs"
 						data-liked-by=\'{{ JSON.stringify(data._liked_by) }}\'>
@@ -117,7 +117,7 @@
 				<div class="timeline-item-content">
 					{% if data.show_subject %}
 						<p class="text-muted small">
-							<b>{{ __("Subject") }}:</b> {{ data.subject }}</p>
+							<b>{{ __("Title") }}:</b> {{ data.subject }}</p>
 						<hr>
 					{% endif %}
 
