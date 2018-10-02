@@ -166,8 +166,8 @@ class HelpDatabase(object):
 				docs_app=docs_app, web_folder=web_folder)
 			if os.path.exists(docs_folder):
 				app_name = getattr(frappe.get_module(app), '__title__', None) or app.title()
-				doc_contents += '<li><a data-path="/{docs_app}/index">{app_name}</a></li>'.format(
-					docs_app=docs_app, app_name=app_name)
+				doc_contents += '<li><a data-path="/{app}/index">{app_name}</a></li>'.format(
+					app=app, app_name=app_name)
 
 				for basepath, folders, files in os.walk(docs_folder):
 					files = self.reorder_files(files)
