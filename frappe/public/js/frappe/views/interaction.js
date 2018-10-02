@@ -49,7 +49,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 		let me = this;
 		let interaction_docs = Object.keys(get_doc_mappings());
 
-		let fields= [
+		let fields = [
 			{label:__("Reference"), fieldtype:"Select",
 				fieldname:"interaction_type", options: interaction_docs,
 				reqd: 1,
@@ -85,7 +85,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 		];
 
 		return fields;
-		
+
 	}
 
 	get_event_categories() {
@@ -128,8 +128,8 @@ frappe.views.InteractionComposer = class InteractionComposer {
 				from_form: 1,
 				folder:"Home/Attachments"
 			},
-			callback: function(attachment){ 
-				me.attachments.push(attachment); 
+			callback: function(attachment){
+				me.attachments.push(attachment);
 			},
 			max_width: null,
 			max_height: null
@@ -224,12 +224,12 @@ frappe.views.InteractionComposer = class InteractionComposer {
 		Object.keys(form_values).forEach(value => {
 			interaction_values[field_map[form_values.interaction_type]["field_map"][value]] = form_values[value];
 		});
-		
+
 		if ("event_type" in interaction_values){
 			interaction_values["event_type"] = (form_values.public == 1) ? "Public" : "Private";
 		}
 		if (interaction_values["doctype"] == "Event") {
-			interaction_values["event_participants"] = [{"reference_doctype": form_values.reference_doctype, 
+			interaction_values["event_participants"] = [{"reference_doctype": form_values.reference_doctype,
 				"reference_docname": form_values.reference_document}];
 		}
 		if (!("owner" in interaction_values)){
@@ -292,7 +292,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 				}
 			});
 		}
-		
+
 	}
 
 	add_attachments(doc, attachments) {
