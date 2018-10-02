@@ -36,6 +36,13 @@ const Post = {
 		PostAction,
 		PostReply
 	},
+	mounted() {
+		this.$el.querySelectorAll('img').forEach((img) => {
+			img.addEventListener('click', () => {
+				this.$root.$emit('show_preview', img.src);
+			})
+		});
+	},
 	data() {
 		return {
 			user_avatar: frappe.avatar(this.post.owner, 'avatar-medium'),
@@ -44,7 +51,7 @@ const Post = {
 			reply_count: 0,
 			replies: [],
 			show_replies: false,
-			is_pinnable: frappe.user_roles.includes('System Manager')
+			is_pinnable: !this.post.reply_to && frappe.user_roles.includes('System Manager')
 		}
 	},
 	computed: {
@@ -57,7 +64,7 @@ const Post = {
 	},
 	created() {
 		frappe.db.get_list('Post', {
-			fields: ['name', 'content', 'owner', 'creation', 'liked_by', 'is_pinned'],
+			fields: ['name', 'content', 'owner', 'creation', 'liked_by', 'is_pinned', 'reply_to'],
 			order_by: 'creation desc',
 			filters: {
 				reply_to: this.post.name

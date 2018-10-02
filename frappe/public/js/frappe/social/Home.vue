@@ -1,6 +1,7 @@
 <template>
 	<div class="social">
 		<component :is="current_page"></component>
+		<image-viewer :src="preview_image_src" v-if="show_preview"></image-viewer>
 	</div>
 </template>
 
@@ -9,6 +10,7 @@
 import Wall from './pages/Wall.vue';
 import Profile from './pages/Profile.vue';
 import NotFound from './components/NotFound.vue';
+import ImageViewer from './components/ImageViewer.vue';
 
 function get_route_map() {
 	return {
@@ -18,10 +20,25 @@ function get_route_map() {
 }
 
 export default {
+	components: {
+		ImageViewer
+	},
 	data() {
 		return {
-			current_page: this.get_current_page()
+			current_page: this.get_current_page(),
+			show_preview: false,
+			preview_image_src: ''
 		}
+	},
+	created() {
+		this.$root.$on('show_preview', (src) => {
+			this.preview_image_src = src;
+			this.show_preview = true;
+		})
+		this.$root.$on('hide_preview', () => {
+			this.preview_image_src = '';
+			this.show_preview = false;
+		})
 	},
 	mounted() {
 		frappe.route.on('change', () => {
@@ -43,7 +60,7 @@ export default {
 			} else {
 				return route_map[route.substring(0, route.lastIndexOf('/'))] || NotFound
 			}
-		}
+		},
 	}
 }
 </script>

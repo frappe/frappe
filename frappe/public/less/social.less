@@ -1,4 +1,5 @@
 @import "variables.less";
+@import (reference) 'common.less';
 
 body[data-route*="social"] {
 	.layout-main-section {
@@ -14,7 +15,7 @@ body[data-route*="social"] {
 		display: flex;
 		flex-direction: column;
 		width: 500px;
-		margin: 0 10px;
+		margin: 0 20px;
 		.new_posts_count {
 			cursor: pointer;
 			text-align: center;
@@ -26,7 +27,7 @@ body[data-route*="social"] {
 	}
 }
 
-.post-card {
+.generic-card() {
 	margin-bottom: 10px;
 	max-width: 500px;
 	max-height: 500px;
@@ -35,6 +36,27 @@ body[data-route*="social"] {
 	border: 1px solid @border-color;
 	border-radius: 3px;
 	padding: 10px 10px 5px 10px;
+	.content {
+		font-size: 14px;
+		img, iframe {
+			border-radius: 5px;
+			border: none;
+		}
+		img {
+			&:hover {
+				opacity: 0.7;
+				cursor: pointer;
+			}
+		}
+	}
+}
+
+.event-card {
+	.generic-card();
+}
+
+.post-card {
+	.generic-card();
 	.user-name {
 		font-weight: 400;
 	}
@@ -54,32 +76,16 @@ body[data-route*="social"] {
 	}
 	.content {
 		margin-left: 58px;
-		font-size: 14px;
-		img, iframe {
-			border-radius: 5px;
-			border: none;
-		}
 	}
 	.post-reply {
 		margin-left: 20px;
 	}
 }
 
-.event-card {
-	margin-bottom: 10px;
-	max-width: 500px;
-	max-height: 500px;
-	min-height: 70px;
-	overflow: scroll;
-	text-align: center;
-	border: 1px solid @border-color;
-	border-radius: 3px;
-	padding: 10px 10px 5px 10px;
-	.content {
-		font-size: 14px;
-		img, iframe {
-			border-radius: 5px;
-			border: none;
-		}
-	}
+.muted-title {
+	&:extend(.text-muted);
+	padding: 10px;
+	text-transform: uppercase;
+	font-size: 10px;
+	font-weight: 600;
 }
