@@ -32,7 +32,8 @@ export default {
 	data() {
 		return {
 			'posts': [],
-			'new_posts_count': 0
+			'new_posts_count': 0,
+			'user': ''
 		}
 	},
 	created() {
