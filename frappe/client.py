@@ -35,7 +35,8 @@ def get_list(doctype, fields=None, filters=None, order_by=None,
 
 @frappe.whitelist()
 def get_count(doctype, filters=None, debug=False, cache=False):
-	return frappe.db.count(doctype, filters, debug, cache)
+
+	return frappe.db.count(doctype, json.loads(filters), debug, cache)
 
 @frappe.whitelist()
 def get(doctype, name=None, filters=None, parent=None):
