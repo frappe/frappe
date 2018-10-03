@@ -172,6 +172,8 @@ class Meta(Document):
 			else:
 				self._valid_columns = self.default_fields + \
 					[df.fieldname for df in self.get("fields") if df.fieldtype in type_map]
+				if self.get("is_submittable", False):
+					self._valid_columns += ["submission_date", "submitted_by"]
 
 		return self._valid_columns
 

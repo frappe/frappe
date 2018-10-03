@@ -268,6 +268,7 @@ class Document(BaseDocument):
 
 		:param ignore_permissions: Do not check permissions if True.
 		:param ignore_version: Do not save version if True."""
+
 		if self.flags.in_print:
 			return
 
@@ -835,9 +836,9 @@ class Document(BaseDocument):
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
 		self.docstatus = 1
+		self.submission_date = now()
+		self.submitted_by = frappe.session.user
 		self.save()
-		self.db_set("submission_date", now())
-		self.db_set("submitted_by", frappe.session.user)
 
 	@whitelist.__func__
 	def _cancel(self):
@@ -992,7 +993,7 @@ class Document(BaseDocument):
 			frappe.db.commit()
 
 	def db_get(self, fieldname):
-		'''get database vale for this fieldname'''
+		'''get database value for this fieldname'''
 		return frappe.db.get_value(self.doctype, self.name, fieldname)
 
 	def check_no_back_links_exist(self):
