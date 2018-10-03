@@ -68,7 +68,7 @@ def make_administrative_areas():
 		make_fixture_record(country_record)
 
 		"""
-		for an entry in india.json like 
+		for an entry in india.json like
 		{"administrative_area_type": "city","parent": ["Telangana","Medak"],"title": "Zaheerabad"}
 
 		parent_unique_name will be TelanganaMedak
@@ -108,7 +108,7 @@ def get_parent_name(country, record, administrative_areas):
 				return parent_details[0]["name"]
 			except KeyError:
 				frappe.throw("parent occurs after child in json file")
-			
+				
 
 def make_fixture_record(record):
 	record_to_insert = copy.deepcopy(record)
