@@ -9,6 +9,8 @@ from frappe import _
 import json
 import copy
 
+from frappe.utils.nestedset import rebuild_tree
+
 def install():
 	update_genders_and_salutations()
 	make_administrative_area_fixtures()
@@ -42,44 +44,6 @@ def make_administrative_area_fixtures():
 		enqueue_after_commit=True,
 	)
 
-def bulid_administrative_area_tree(administrative_areas, country):
-	administrative_states = [area for area in administrative_areas if area['administrative_area_type'] == "state"]
-	lft = 1
-	for state in administrative_states:
-		all_children = [area for area in administrative_areas if area['parent_unique_name'].startswith(state['self_unique_name'])]
-		all_county_children = [area for area in administrative_areas if area['parent_unique_name'] == state['self_unique_name']]
-		rgt = lft + 2*len(all_children) + 1
-		state.update({"lft": lft, "rgt": rgt})
-		if (rgt - lft) == 1:
-			lft = lft + 2
-		else:
-			lft = lft + 1
-			for county in all_county_children:
-				all_children = [area for area in administrative_areas if area['parent_unique_name'].startswith(county['self_unique_name'])]
-				all_city_children = [area for area in administrative_areas if area['parent_unique_name'] == county['self_unique_name']]
-				rgt = lft + 2*len(all_children) + 1
-				county.update({"lft": lft, "rgt": rgt})
-				if (rgt - lft) == 1:
-					lft = lft + 2
-				else:
-					lft = lft + 1
-					for city in all_city_children:
-						all_children = [area for area in administrative_areas if city['self_unique_name'] in area['parent_unique_name']]
-						all_pincode_children = [area for area in administrative_areas if area['parent_unique_name'] == city['self_unique_name']]
-						rgt = lft + 2*len(all_children) + 1
-						city.update({"lft": lft, "rgt": rgt})
-						if (rgt - lft) == 1:
-							lft = lft + 2
-						else:
-							lft = lft + 1
-							for pincode in all_pincode_children:
-								pincode.update({"lft": lft, "rgt": lft + 1})
-								lft = lft + 2
-							lft = lft + 1
-					lft = lft + 1
-			lft = lft + 1
-
-
 def make_administrative_areas():
 	"""
 	ASSUMPTIONS: 1. Administrative_areas.json file does not have complete duplicates
@@ -97,52 +61,65 @@ def make_administrative_areas():
 			"title": country,
 			"administrative_area_type": "country",
 			"is_group": 1,
-			"lft": 0,
-			"rgt": 2*len(administrative_areas) + 1
+			"parent": "",
+			"parent_unique_name": "",
+			"self_unique_name": country.title()
 		}
 		make_fixture_record(country_record)
+
+		"""
+		for an entry in india.json like 
+		{"administrative_area_type": "city","parent": ["Telangana","Medak"],"title": "Zaheerabad"}
+
+		parent_unique_name will be TelanganaMedak
+		self_unique_name will be TelanganaMedakZaheerabad
+		"""
+
 		for record in administrative_areas:
 			record.update({
 				"parent_unique_name": "".join(record['parent']),
 				"self_unique_name": "".join(record['parent']) + "" + record['title']
 			})
 
-		# Calculate lft, rgt and later use db_insert() to speed up
-		bulid_administrative_area_tree(administrative_areas, country)
-
-		# add other administrative areas for the country selected in setup if data available in aa.jaon file
-
-		administrative_areas_copy = copy.deepcopy(administrative_areas)  # copy by value
 		for record in administrative_areas:
 			record.update({
 				"doctype": "Administrative Area",
-				"parent_administrative_area": get_parent_name(country, record, administrative_areas, administrative_areas_copy),
+				"parent_administrative_area": get_parent_name(country, record, administrative_areas),
 				"is_group": 1
 			})
-			del record['parent']
-			del record['parent_unique_name']
-			del record['self_unique_name']
+
 			make_fixture_record(record)
 
+		# use rebuild_tree function from nestedset to calculate lft, rgt for all nodes
+		rebuild_tree("Administrative Area", "parent_administrative_area")
 
-def get_parent_name(country, record, administrative_areas, administrative_areas_copy):
+
+def get_parent_name(country, record, administrative_areas):
 	if record['parent_unique_name'] == "":
 		return country.title()
 	else:
-		parent_details = [area for area in administrative_areas_copy if area['self_unique_name'] == record['parent_unique_name']]
+		parent_details = [area for area in administrative_areas if area['self_unique_name'] == record['parent_unique_name']]
 		if len(parent_details) == 0:
 			frappe.throw("wrong parent hierarchy")
 		elif len(parent_details) > 1:
 			frappe.throw("duplicate entry")
 		else:
-			parent_name = [admin_area for admin_area in administrative_areas if parent_details[0]['lft'] == admin_area['lft'] and parent_details[0]['rgt'] == admin_area['rgt'] and parent_details[0]['title'] == admin_area['title']]
-			return parent_name[0]['name']
-
+			try:
+				return parent_details[0]["name"]
+			except KeyError:
+				frappe.throw("parent occurs after child in json file")
+			
 
 def make_fixture_record(record):
+	record_to_insert = copy.deepcopy(record)
+	# create a copy and delete keys which are not docfields
+	del record_to_insert['parent']
+	del record_to_insert['parent_unique_name']
+	del record_to_insert['self_unique_name']
+	
 	from frappe.modules import scrub
-	doc = frappe.new_doc(record.get("doctype"))
-	doc.update(record)
+	doc = frappe.new_doc(record_to_insert.get("doctype"))
+	doc.update(record_to_insert)
 	# ignore mandatory for root
 	parent_link_field = ("parent_" + scrub(doc.doctype))
 	if doc.meta.get_field(parent_link_field) and not doc.get(parent_link_field):
