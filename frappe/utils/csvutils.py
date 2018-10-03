@@ -147,6 +147,8 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 			doc.update(d)
 			if d.get("docstatus") == 1:
 				doc.update_after_submit()
+			elif d.get("docstatus") == 0 and submit:
+				doc.submit()
 			else:
 				doc.save()
 			return 'Updated row (#%d) %s' % (row_idx + 1, getlink(doctype, d['name']))
