@@ -1,6 +1,6 @@
 <template>
 	<div class="wall-container">
-		<post-sidebar class="col-md-3" :user=user></post-sidebar>
+		<post-sidebar class="col-md-3 hidden-xs" :user=user></post-sidebar>
 		<div class="post-container">
 			<div class="new_posts_count" @click="load_new_posts()" v-if='new_posts_count'>
 				{{ new_posts_count + ' new post'}}
@@ -10,7 +10,7 @@
 				<event-card  v-else :event="post"></event-card>
 			</div>
 		</div>
-		<div class="action-card-container col-md-4">
+		<div class="action-card-container col-md-4 hidden-xs">
 			<div class="muted-title padding"><i class="fa fa-thumb-tack">&nbsp;</i> Pinned Posts </div>
 			<div v-for="post in pinned_posts" :key="post.name">
 				<post :post="post"></post>
