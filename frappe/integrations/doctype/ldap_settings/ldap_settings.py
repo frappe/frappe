@@ -88,7 +88,7 @@ def authenticate_ldap_user(user=None, password=None):
 			# set TLS settings for secure connection
 			if settings.ssl_tls_mode == 'StartTLS':
 				conn.set_option(ldap.OPT_X_TLS_DEMAND, True)
-				if self.require_trusted_certificate == 'Yes':
+				if settings.require_trusted_certificate == 'Yes':
 					conn.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
 				conn.start_tls_s()
 		except:

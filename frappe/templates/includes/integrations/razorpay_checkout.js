@@ -5,6 +5,7 @@ $(document).ready(function(){
 			"amount": cint({{ amount }} * 100), // 2000 paise = INR 20
 			"name": "{{ title }}",
 			"description": "{{ description }}",
+			"subscription_id": "{{ subscription_id }}",
 			"handler": function (response){
 				razorpay.make_payment_log(response, options, "{{ reference_doctype }}", "{{ reference_docname }}", "{{ token }}");
 			},

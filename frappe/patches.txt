@@ -20,6 +20,7 @@ frappe.patches.v8_0.update_records_in_global_search #11-05-2017
 frappe.patches.v8_0.update_published_in_global_search
 frappe.patches.v11_0.replicate_old_user_permissions
 frappe.patches.v11_0.drop_column_apply_user_permissions
+frappe.patches.v11_0.change_email_signature_fieldtype
 execute:frappe.reload_doc('core', 'doctype', 'activity_log')
 execute:frappe.reload_doc('core', 'doctype', 'deleted_document')
 execute:frappe.reload_doc('core', 'doctype', 'domain_settings')
@@ -225,3 +226,5 @@ frappe.patches.v11_0.get_docs_apps_if_not_present
 frappe.patches.v10_0.set_default_locking_time
 frappe.patches.v11_0.rename_google_maps_doctype
 frappe.patches.v10_0.modify_smallest_currency_fraction
+frappe.patches.v10_0.enhance_security
+frappe.patches.v11_0.multiple_references_in_events
