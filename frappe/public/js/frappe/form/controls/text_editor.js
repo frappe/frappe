@@ -34,6 +34,30 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		$(this.quill.root).on('drop', (e) => {
 			e.stopPropagation();
 		});
+
+		// paste images
+		$(this.quill.root).on('paste', (e) => {
+			const clipboardData = e.originalEvent.clipboardData;
+			const files = clipboardData.files;
+			if (files.length > 0) {
+
+				Array.from(files).forEach(file => {
+					if (!file.type.match(/^image\/(gif|jpe?g|a?png|svg|webp|bmp|vnd\.microsoft\.icon)/i)) {
+						// file is not an image
+						// Note that some file formats such as psd start with image/* but are not readable
+						return;
+					}
+
+					frappe.dom.file_to_base64(file)
+						.then(data_url => {
+							setTimeout(() => {
+								const index = (this.quill.getSelection() || {}).index || this.quill.getLength();
+								this.quill.insertEmbed(index, 'image', data_url, 'user');
+							});
+						})
+				});
+			}
+		});
 	},
 
 	get_quill_options() {
