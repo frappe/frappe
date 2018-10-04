@@ -29,4 +29,5 @@ def execute():
 	if cint(doc.allow_consecutive_login_attempts) <= 3:
 		doc.allow_consecutive_login_attempts = 3
 
+	doc.flags.ignore_mandatory = True
 	doc.save()
