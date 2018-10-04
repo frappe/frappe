@@ -45,6 +45,8 @@ function get_rollup_options_for_js(output_file, input_files) {
 		multi_entry(),
 		// .html -> .js
 		frappe_html(),
+		// ignore css imports
+		ignore_css(),
 		// .vue -> .js
 		vue.default(),
 		// ES6 -> ES5
@@ -162,6 +164,21 @@ function get_options_for(app) {
 		})
 		.filter(Boolean);
 }
+
+function ignore_css() {
+	return {
+		name: 'ignore-css',
+		transform(code, id) {
+			if (!['.css', '.scss', '.sass', '.less'].some(ext => id.endsWith(ext))) {
+				return null;
+			}
+
+			return `
+				// ignored ${id}
+			`;
+		}
+	};
+};
 
 module.exports = {
 	get_options_for
