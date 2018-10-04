@@ -11,8 +11,8 @@ app_color = "orange"
 source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 
-develop_version = '11.x.x-develop'
-staging_version = '11.0.2'
+develop_version = '12.x.x-develop'
+staging_version = '11.0.3-beta.1'
 
 app_email = "info@frappe.io"
 
@@ -102,7 +102,8 @@ has_permission = {
 	"Contact": "frappe.contacts.address_and_contact.has_permission",
 	"Address": "frappe.contacts.address_and_contact.has_permission",
 	"Communication": "frappe.core.doctype.communication.communication.has_permission",
-	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.has_permission"
+	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.has_permission",
+	"File": "frappe.core.doctype.file.file.has_permission"
 }
 
 has_website_permission = {
@@ -125,7 +126,10 @@ doc_events = {
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
 		],
-		"on_trash": "frappe.desk.notifications.clear_doctype_notifications",
+		"on_trash": [
+			"frappe.desk.notifications.clear_doctype_notifications",
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
+		],
 		"on_change": [
 			"frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request",
 		]

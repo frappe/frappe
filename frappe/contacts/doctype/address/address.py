@@ -251,9 +251,8 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 		limit %(start)s, %(page_len)s """.format(
 			mcond=get_match_cond(doctype),
 			key=searchfield,
-			condition=condition or ""),
-		{
-			'txt': frappe.db.escape('%' + txt + '%'),
+			condition=condition or ""), {
+			'txt': '%' + txt + '%',
 			'_txt': txt.replace("%", ""),
 			'start': start,
 			'page_len': page_len,

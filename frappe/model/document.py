@@ -14,7 +14,6 @@ from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields
 from frappe.model.workflow import validate_workflow
-from frappe.utils.file_manager import save_url
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
 
@@ -322,7 +321,15 @@ class Document(BaseDocument):
 		for attach_item in get_attachments(self.doctype, self.amended_from):
 
 			#save attachments to new doc
-			save_url(attach_item.file_url, attach_item.file_name, self.doctype, self.name, "Home/Attachments", attach_item.is_private)
+			_file = frappe.get_doc({
+				"doctype": "File",
+				"file_url": attach_item.file_url,
+				"file_name": attach_item.file_name,
+				"attached_to_name": self.name,
+				"attached_to_doctype": self.doctype,
+				"folder": "Home/Attachments"})
+			_file.save()
+
 
 	def update_children(self):
 		'''update child tables'''
@@ -458,13 +465,12 @@ class Document(BaseDocument):
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
 			d._save_passwords()
-
-		self.validate_set_only_once()
-
 		if self.is_new():
 			# don't set fields like _assign, _comments for new doc
 			for fieldname in optional_fields:
 				self.set(fieldname, None)
+		else:
+			self.validate_set_only_once()
 
 	def validate_workflow(self):
 		'''Validate if the workflow transition is valid'''
@@ -577,7 +583,7 @@ class Document(BaseDocument):
 		if not df:
 			df = self.meta.get_field(fieldname)
 
-		return df.permlevel in self.get_permlevel_access()
+		return df.permlevel in self.get_permlevel_access(permission_type)
 
 	def get_permissions(self):
 		if self.meta.istable:

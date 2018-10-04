@@ -13,9 +13,10 @@ from six import string_types
 @frappe.whitelist()
 def remove_attach():
 	"""remove attachment"""
-	import frappe.utils.file_manager
 	fid = frappe.form_dict.get('fid')
-	return frappe.utils.file_manager.remove_file(fid)
+	file_name = frappe.form_dict.get('file_name')
+	frappe.delete_doc('File', fid)
+
 
 @frappe.whitelist()
 def validate_link():

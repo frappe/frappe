@@ -7,7 +7,6 @@ import frappe, json, os
 from frappe.utils import strip, cint
 from frappe.translate import (set_default_language, get_dict, send_translations)
 from frappe.geo.country_info import get_country_info
-from frappe.utils.file_manager import save_file
 from frappe.utils.password import update_password
 from werkzeug.useragents import UserAgent
 from . import install_fixtures
@@ -187,7 +186,15 @@ def update_user_name(args):
 		attach_user = args.get("attach_user").split(",")
 		if len(attach_user)==3:
 			filename, filetype, content = attach_user
-			fileurl = save_file(filename, content, "User", args.get("name"), decode=True).file_url
+			_file = frappe.get_doc({
+				"doctype": "File",
+				"file_name": filename,
+				"attached_to_doctype": "User",
+				"attached_to_name": args.get("name"),
+				"content": content,
+				"decode": True})
+			_file.save()
+			fileurl = _file.file_url
 			frappe.db.set_value("User", args.get("name"), "user_image", fileurl)
 
 	if args.get('name'):

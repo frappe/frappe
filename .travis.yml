@@ -20,10 +20,9 @@ addons:
     - test_site_postgres
 
 matrix:
-  allow_failures:
+  exclude:
   - python: 2.7
     env: DB=postgres
-  fast_finish: true
 
 install:
   - $TRAVIS_BUILD_DIR/.travis/install.sh

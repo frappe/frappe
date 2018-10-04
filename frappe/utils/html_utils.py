@@ -33,7 +33,7 @@ def clean_email_html(html):
 			'font-size', 'font-weight', 'font-family', 'text-decoration',
 			'line-height', 'text-align', 'vertical-align'
 		],
-		protocols=['cid', 'http', 'https', 'mailto'],
+		protocols=['cid', 'http', 'https', 'mailto', 'data'],
 		strip=True, strip_comments=True)
 
 def clean_script_and_style(html):

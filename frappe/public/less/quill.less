@@ -1,0 +1,73 @@
+@import "variables.less";
+@import (less) "quill/dist/quill.snow.css";
+@import (less) "quill/dist/quill.bubble.css";
+@import (less) "quill-mention/src/quill.mention.css";
+
+.ql-toolbar.ql-snow, .ql-container.ql-snow {
+    border-color: @border-color;
+    font-family: inherit;
+}
+
+.ql-toolbar.ql-snow {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    background-color: @panel-bg;
+    padding-bottom: 0;
+}
+
+.ql-container.ql-snow {
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.ql-snow .ql-editor {
+    min-height: 400px;
+    max-height: 600px;
+}
+
+.ql-snow .ql-picker {
+	font-size: 12px;
+}
+
+.ql-snow .ql-picker-label {
+    outline: none;
+}
+
+.ql-formats {
+    margin-bottom: 8px;
+}
+
+.ql-bubble .ql-editor {
+    min-height: 100px;
+    max-height: 300px;
+    border: 1px solid @light-border-color;
+    border-radius: 4px;
+}
+
+.ql-mention-list-container {
+    z-index: 1;
+}
+
+.ql-mention-list {
+    border-radius: 4px;
+}
+
+.ql-mention-list-item {
+    font-size: @text-small;
+    padding: 10px 12px;
+    height: initial;
+    line-height: initial;
+
+    &.selected {
+        background-color: @btn-bg;
+    }
+}
+
+.ql-editor .mention {
+    height: auto;
+    width: auto;
+    border-radius: 10px;
+    border: 1px solid @light-border-color;
+    padding: 2px 3px;
+    background-color: @btn-bg;
+}

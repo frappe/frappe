@@ -11,7 +11,6 @@ from frappe.email.email_body import get_email, get_formatted_html, add_attachmen
 from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
 from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails, cstr, cint
-from frappe.utils.file_manager import get_file
 from rq.timeouts import JobTimeoutException
 from frappe.utils.scheduler import log
 from six import text_type, string_types
@@ -88,6 +87,13 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 		unsubscribed = []
 
 	recipients = [r for r in list(set(recipients)) if r and r not in unsubscribed]
+
+	if cc:
+		cc = [r for r in list(set(cc)) if r and r not in unsubscribed]
+
+	if not recipients and not cc:
+		# Recipients may have been unsubscribed, exit quietly
+		return
 
 	email_text_context = text_content
 
@@ -531,9 +537,10 @@ def prepare_message(email, recipient, recipients_list):
 
 		fid = attachment.get("fid")
 		if fid:
-			fname, fcontent = get_file(fid)
+			_file = frappe.get_doc("File", {"file_name": fid})
+			fcontent = _file.get_content()
 			attachment.update({
-				'fname': fname,
+				'fname': _file.file_name,
 				'fcontent': fcontent,
 				'parent': msg_obj
 			})

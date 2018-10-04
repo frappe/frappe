@@ -605,7 +605,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let subject_field = this.columns[0].df;
 		let value = doc[subject_field.fieldname] || doc.name;
 		let subject = strip_html(value);
-		let escaped_subject = frappe.utils.escape_html(value);
+		let escaped_subject = frappe.utils.escape_html(subject);
 
 		const liked_by = JSON.parse(doc._liked_by || '[]');
 		let heart_class = liked_by.includes(user) ?

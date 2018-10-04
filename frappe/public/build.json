@@ -42,7 +42,8 @@
 		"public/js/frappe/model/perm.js",
 
 		"website/js/website.js",
-		"public/js/frappe/misc/rating_icons.html"
+		"public/js/frappe/misc/rating_icons.html",
+		"public/js/frappe/socketio_client.js"
 	],
 	"js/control.min.js": [
 		"public/js/frappe/ui/capture.js",
@@ -62,6 +63,7 @@
 		"public/js/frappe/form/controls/text.js",
 		"public/js/frappe/form/controls/code.js",
 		"public/js/frappe/form/controls/text_editor.js",
+		"public/js/frappe/form/controls/comment.js",
 		"public/js/frappe/form/controls/check.js",
 		"public/js/frappe/form/controls/image.js",
 		"public/js/frappe/form/controls/attach.js",
@@ -91,7 +93,6 @@
 		"public/js/frappe/ui/dialog.js"
 	],
 	"css/desk.min.css": [
-		"public/js/lib/summernote/summernote.css",
 		"public/js/lib/leaflet/leaflet.css",
 		"public/js/lib/leaflet/leaflet.draw.css",
 		"public/js/lib/leaflet/L.Control.Locate.css",
@@ -124,7 +125,6 @@
 		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",
 		"public/js/lib/jquery/jquery.hotkeys.js",
-		"public/js/lib/summernote/summernote.js",
 		"public/js/lib/bootstrap.min.js",
 		"node_modules/moment/min/moment-with-locales.min.js",
 		"node_modules/moment-timezone/builds/moment-timezone-with-data.min.js",
@@ -325,6 +325,7 @@
 		"public/js/frappe/list/header_select_all_like_filter.html",
 		"public/js/frappe/list/item_assigned_to_comment_count.html",
 		"public/js/frappe/views/treeview.js",
+		"public/js/frappe/views/interaction.js",
 
 		"public/js/frappe/views/image/image_view_item_row.html",
 		"public/js/frappe/views/image/photoswipe_dom.html",
@@ -352,14 +353,13 @@
 	"js/web_form.min.js": [
 		"public/js/frappe/misc/datetime.js",
 		"website/js/web_form.js",
-		"public/js/lib/summernote/summernote.js",
 		"public/js/lib/datepicker/datepicker.min.js",
 		"public/js/lib/datepicker/datepicker.en.js"
 	],
 	"css/web_form.css": [
 		"public/less/list.less",
 		"website/css/web_form.css",
-		"public/js/lib/summernote/summernote.css"
+		"public/less/quill.less"
 	],
 	"js/print_format_v3.min.js": [
 		"public/js/legacy/layout.js",

@@ -24,16 +24,17 @@ def get_permission_query_conditions(user):
 
 	return "(`tabWorkflow Action`.`user`='{user}')".format(user=user)
 
-
 def has_permission(doc, user):
 	if user not in ['Administrator', doc.user]:
 		return False
 
-
 def process_workflow_actions(doc, state):
-
 	workflow = get_workflow_name(doc.get('doctype'))
 	if not workflow: return
+
+	if state == "on_trash":
+		clear_workflow_actions(doc.get('doctype'), doc.get('name'))
+		return
 
 	if is_workflow_action_already_created(doc): return
 
@@ -53,7 +54,6 @@ def process_workflow_actions(doc, state):
 
 	if send_email_alert(workflow):
 		enqueue(send_workflow_action_email, queue='short', users_data=list(user_data_map.values()), doc=doc)
-
 
 @frappe.whitelist(allow_guest=True)
 def apply_action(action, doctype, docname, current_state, user=None, last_modified=None):
@@ -233,6 +233,14 @@ def is_workflow_action_already_created(doc):
 		'reference_name': doc.get('name'),
 		'workflow_state': get_doc_workflow_state(doc)
 	})
+
+def clear_workflow_actions(doctype, name):
+	if not (doctype and name):
+		return
+
+	frappe.db.sql('''delete from `tabWorkflow Action`
+		where reference_doctype=%s and reference_name=%s''',
+		(doctype, name))
 
 def get_doc_workflow_state(doc):
 	workflow_name = get_workflow_name(doc.get('doctype'))
