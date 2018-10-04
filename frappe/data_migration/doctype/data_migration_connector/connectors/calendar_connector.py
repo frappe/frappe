@@ -101,11 +101,11 @@ class CalendarConnector(BaseConnection):
 		events = {"items": []}
 		while True:
 			try:
-				events = self.gcalendar.events().list(calendarId=self.account.gcalendar_id, maxResults=page_length, 
+				events = self.gcalendar.events().list(calendarId=self.account.gcalendar_id, maxResults=page_length,
 					singleEvents=False, showDeleted=True, syncToken=self.account.next_sync_token or None).execute()
 			except HttpError as err:
 				if err.resp.status in [410]:
-					events = self.gcalendar.events().list(calendarId=self.account.gcalendar_id, maxResults=page_length, 
+					events = self.gcalendar.events().list(calendarId=self.account.gcalendar_id, maxResults=page_length,
 						singleEvents=False, showDeleted=True, timeMin=add_years(None, -1).strftime('%Y-%m-%dT%H:%M:%SZ')).execute()
 				else:
 					frappe.log_error(err.resp, "GCalendar Events Fetch Error")
