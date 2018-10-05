@@ -331,23 +331,50 @@ def convert_rupee_to_paisa(**kwargs):
 
 	frappe.conf.converted_rupee_to_paisa = True
 
-
 @frappe.whitelist(allow_guest=True)
 def razorpay_subscription_callback():
-	data = frappe.local.form_dict
-	data.update({
-		"payment_gateway": "Razorpay"
-	})
+	try:
+		data = frappe.local.form_dict
 
-	doc = frappe.get_doc({
-		"data": json.dumps(frappe.local.form_dict),
-		"doctype": "Integration Request",
-		"status": "Subscription Notification"
-	}).insert(ignore_permissions=True)
-	frappe.db.commit()
+		validate_payment_callback()
 
-	frappe.enqueue(method='frappe.integrations.doctype.razorpay_settings.razorpay_settings.handle_subscription_notification',
-		queue='long', timeout=600, is_async=True, **{"doctype": "Integration Request", "docname":  doc.name})
+		data.update({
+			"payment_gateway": "Razorpay"
+		})
+
+		doc = frappe.get_doc({
+			"data": json.dumps(frappe.local.form_dict),
+			"doctype": "Integration Request",
+			"status": "Subscription Notification"
+		}).insert(ignore_permissions=True)
+		frappe.db.commit()
+
+		frappe.enqueue(method='frappe.integrations.doctype.razorpay_settings.razorpay_settings.handle_subscription_notification',
+			queue='long', timeout=600, is_async=True, **{"doctype": "Integration Request", "docname":  doc.name})
+
+	except frappe.InvalidStatusError:
+		pass
+	except Exception as e:
+		frappe.log(frappe.log_error(title=e))
+
+def validate_payment_callback(data):
+	def _throw():
+		frappe.throw(_("Invalid Subscription"), exc=frappe.InvalidStatusError)
+
+	subscription_id = data.get('payload').get("subscription").get("entity").get("id")
+
+	if not(subscription_id):
+		_throw()
+
+	controller = frappe.get_doc("Razorpay Settings")
+
+	settings = controller.get_settings(data)
+
+	resp = make_get_request("https://api.razorpay.com/v1/subscriptions/{0}".format(subscription_id),
+		auth=(settings.api_key, settings.api_secret))
+
+	if resp.get("status") != "active":
+		_throw()
 
 def handle_subscription_notification(doctype, docname):
 	call_hook_method("handle_subscription_notification", doctype=doctype, docname=docname)
