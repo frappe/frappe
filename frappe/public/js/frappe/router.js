@@ -8,9 +8,23 @@ frappe.re_route = {"#login": ""};
 frappe.route_titles = {};
 frappe.route_flags = {};
 frappe.route_history = [];
+frappe.route_history_queue = [];
 frappe.view_factory = {};
 frappe.view_factories = [];
 frappe.route_options = null;
+
+frappe.save_routes = frappe.utils.debounce(() => {
+	const routes = frappe.route_history_queue;
+	frappe.route_history_queue = [];
+	frappe.xcall('frappe.desk.doctype.route_history.route_history.save_route_history', {
+		routes: routes
+	}).then(()=> {
+		console.log('routes saved!');
+	}).catch(()=> {
+		frappe.route_history_queue.concat(routes)
+	});
+}, 30000);
+
 
 frappe.route = function() {
 	if(frappe.re_route[window.location.hash] !== undefined) {
@@ -37,10 +51,14 @@ frappe.route = function() {
 		return;
 	}
 
-	if (route[0] === 'List' && route[1]) {
-		frappe.model.user_settings.get('Route').then((data)=> {
-			frappe.model.user_settings.save('Route', 'route_history', data.route_history + '\n' + route[1]);
+	if (route[1]) {
+		frappe.route_history_queue.push({
+			'user': frappe.session.user,
+			'creation': frappe.datetime.now_datetime(),
+			'route': frappe.get_route_str()
 		});
+
+		frappe.save_routes();
 	}
 
 	frappe.route_history.push(route);
