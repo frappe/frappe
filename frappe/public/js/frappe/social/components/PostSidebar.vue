@@ -5,7 +5,7 @@
 			Frequently Visited Links
 		</div>
 		<div class="flex flex-column">
-			<a @click.prevent="goto_list(doctype)" v-for="doctype in frequently_visited_list" :key="doctype">{{doctype}}</a>
+			<a @click.prevent="goto_list(route_obj.route)" v-for="route_obj in frequently_visited_list" :key="route_obj.route">{{route_obj.route}}</a>
 		</div>
 	</div>
 </template>
@@ -21,26 +21,12 @@ export default {
 		this.set_frequently_visited_list()
 	},
 	methods: {
-		goto_list(doctype) {
-			frappe.set_route('List', doctype);
+		goto_list(route) {
+			frappe.set_route(route);
 		},
 		set_frequently_visited_list() {
-			frappe.model.user_settings.get('Route').then(data => {
-				let obj = {}
-				let route_history = data.route_history || ''
-				route_history = data.route_history.split('\n');
-				route_history.forEach(element => {
-					if (element === "") return
-					if (!obj[element]) {
-						obj[element] = 1;
-					} else {
-						obj[element]++;
-					}
-				});
-				let list = Object.keys(obj).sort((a, b) => {
-					return obj[b] - obj[a];
-				});
-				this.frequently_visited_list = list;
+			frappe.xcall('frappe.social.doctype.post.post.frequently_visited_links').then(data => {
+				this.frequently_visited_list = data;
 			})
 		}
 	}

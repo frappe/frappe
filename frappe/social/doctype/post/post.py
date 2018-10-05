@@ -32,4 +32,8 @@ def toggle_like(post_name, user=None):
 	frappe.db.set_value('Post', post_name, 'liked_by', liked_by)
 	frappe.publish_realtime('update_liked_by' + post_name, liked_by, after_commit=True)
 
-
+@frappe.whitelist()
+def frequently_visited_links():
+	return frappe.get_all('Route History', fields=['route', 'count(name) as count'], filters={
+		'user': frappe.session.user
+	}, group_by="route", order_by="count desc", limit=10)
