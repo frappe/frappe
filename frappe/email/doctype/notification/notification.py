@@ -133,15 +133,15 @@ def get_context(context):
 			subject = frappe.render_template(self.subject, context)
 
 		attachments = self.get_attachment(doc)
-		send_to = self.get_list_of_recipients(doc, context)
+		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
 		sender = None
 		if self.sender and self.sender_email:
 			sender = formataddr((self.sender, self.sender_email))
-		frappe.sendmail(recipients = send_to["recipients"],
+		frappe.sendmail(recipients = recipients,
 			subject = subject,
 			sender = sender,
-			cc = send_to["cc"],
-			bcc = send_to["bcc"],
+			cc = cc,
+			bcc = bcc,
 			message = frappe.render_template(self.message, context),
 			reference_doctype = doc.doctype,
 			reference_name = doc.name,
@@ -194,8 +194,8 @@ def get_context(context):
 					recipients = recipients + email.split("\n")
 
 		if not recipients and not cc and not bcc:
-			return
-		return {"recipients" : list(set(recipients)), "cc" : list(set(cc)), "bcc" : list(set(bcc))}
+			return None, None, None
+		return list(set(recipients)), list(set(cc)), list(set(bcc))
 
 	def get_attachment(self, doc):
 		""" check print settings are attach the pdf """
