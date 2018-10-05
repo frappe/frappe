@@ -3,6 +3,11 @@ import { ImageDrop } from 'quill-image-drop-module';
 
 Quill.register('modules/imageDrop', ImageDrop);
 
+// replace <p> tag with <div>
+const Block = Quill.import('blots/block');
+Block.tagName = 'DIV';
+Quill.register(Block, true);
+
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_input() {
 		this.has_input = true;
@@ -17,10 +22,10 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	},
 
 	bind_events() {
-		this.quill.on('text-change', frappe.utils.debounce(() => {
-			const input_value = this.get_input_value();
-			if (this.value === input_value) return;
+		this.quill.on('text-change', frappe.utils.debounce((delta, oldDelta, source) => {
+			if (!this.is_quill_dirty(source)) return;
 
+			const input_value = this.get_input_value();
 			this.parse_validate_and_set_in_model(input_value);
 		}, 300));
 
@@ -60,6 +65,12 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		});
 	},
 
+	is_quill_dirty(source) {
+		if (source === 'api') return false;
+		let input_value = this.get_input_value();
+		return this.value !== input_value;
+	},
+
 	get_quill_options() {
 		return {
 			modules: {
@@ -91,9 +102,10 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	},
 
 	set_formatted_input(value) {
-		if (!this.quill) return;
+		if (!(this.quill && value)) return;
 		if (value === this.get_input_value()) return;
-		this.quill.setContents(this.quill.clipboard.convert(value));
+		this.quill.setText('');
+		this.quill.clipboard.dangerouslyPasteHTML(0, value);
 	},
 
 	get_input_value() {
