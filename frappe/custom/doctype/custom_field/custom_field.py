@@ -104,15 +104,11 @@ def create_custom_field(doctype, df, ignore_validate=False):
 		custom_field = frappe.get_doc({
 			"doctype":"Custom Field",
 			"dt": doctype,
-			"permlevel": df.permlevel or 0,
-			"label": df.label,
-			"fieldname": df.fieldname,
-			"fieldtype": df.fieldtype or 'Data',
-			"options": df.options,
-			"insert_after": df.insert_after,
-			"print_hide": df.print_hide,
-			"hidden": df.hidden or 0
+			"permlevel": 0,
+			"fieldtype": 'Data',
+			"hidden": 0
 		})
+		custom_field.update(df)
 		custom_field.flags.ignore_validate = ignore_validate
 		custom_field.insert()
 

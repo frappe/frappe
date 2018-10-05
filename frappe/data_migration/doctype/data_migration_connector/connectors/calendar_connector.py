@@ -6,7 +6,7 @@ import google.oauth2.credentials
 from googleapiclient.errors import HttpError
 import time
 from datetime import datetime
-from frappe.utils import add_days
+from frappe.utils import add_days, add_years
 
 class CalendarConnector(BaseConnection):
 	def __init__(self, connector):
@@ -98,8 +98,17 @@ class CalendarConnector(BaseConnection):
 	def get_events(self, remote_objectname, filters, page_length):
 		page_token = None
 		results = []
+		events = {"items": []}
 		while True:
-			events = self.gcalendar.events().list(calendarId=self.account.gcalendar_id, maxResults=page_length, singleEvents=False, showDeleted=True).execute()
+			try:
+				events = self.gcalendar.events().list(calendarId=self.account.gcalendar_id, maxResults=page_length,
+					singleEvents=False, showDeleted=True, syncToken=self.account.next_sync_token or None).execute()
+			except HttpError as err:
+				if err.resp.status in [410]:
+					events = self.gcalendar.events().list(calendarId=self.account.gcalendar_id, maxResults=page_length,
+						singleEvents=False, showDeleted=True, timeMin=add_years(None, -1).strftime('%Y-%m-%dT%H:%M:%SZ')).execute()
+				else:
+					frappe.log_error(err.resp, "GCalendar Events Fetch Error")
 			for event in events['items']:
 				event.update({'account': self.account.name})
 				event.update({'calendar_tz': events['timeZone']})
@@ -107,6 +116,8 @@ class CalendarConnector(BaseConnection):
 
 			page_token = events.get('nextPageToken')
 			if not page_token:
+				if events.get('nextSyncToken'):
+					frappe.db.set_value("GCalendar Account", self.connector.username, "next_sync_token", events.get('nextSyncToken'))
 				break
 		return list(results)
 
@@ -176,26 +187,26 @@ class CalendarConnector(BaseConnection):
 			doc.end_datetime = doc.start_datetime
 		if doc.all_day == 1:
 			return {
-						'start': {
-							'date': doc.start_datetime.date().isoformat(),
-							'timeZone': timezone,
-						},
-						'end': {
-							'date': doc.start_datetime.date().isoformat(),
-							'timeZone': timezone,
-						}
-					}
+				'start': {
+					'date': doc.start_datetime.date().isoformat(),
+					'timeZone': timezone,
+				},
+				'end': {
+					'date': add_days(doc.end_datetime.date(), 1).isoformat(),
+					'timeZone': timezone,
+				}
+			}
 		else:
 			return {
-						'start': {
-							'dateTime': doc.start_datetime.isoformat(),
-							'timeZone': timezone,
-						},
-						'end': {
-							'dateTime': doc.end_datetime.isoformat(),
-							'timeZone': timezone,
-						}
-					}
+				'start': {
+					'dateTime': doc.start_datetime.isoformat(),
+					'timeZone': timezone,
+				},
+				'end': {
+					'dateTime': doc.end_datetime.isoformat(),
+					'timeZone': timezone,
+				}
+			}
 
 	def return_recurrence(self, doctype, doc):
 		e = frappe.get_doc(doctype, doc.name)

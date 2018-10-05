@@ -76,6 +76,14 @@ function get_rollup_options_for_js(output_file, input_files) {
 				// skip warnings
 				if (['EVAL', 'SOURCEMAP_BROKEN', 'NAMESPACE_CONFLICT'].includes(code)) return;
 
+				if ('UNRESOLVED_IMPORT' === code) {
+					log(chalk.yellow.underline(code), ':', message);
+					const command = chalk.yellow('bench setup requirements');
+					log(`Cannot find some dependencies. You may have to run "${command}" to install them.`);
+					log();
+					return;
+				}
+
 				if (loc) {
 					log(`${loc.file} (${loc.line}:${loc.column}) ${message}`);
 					if (frame) log(frame);
