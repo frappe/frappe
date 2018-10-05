@@ -37,6 +37,12 @@ frappe.route = function() {
 		return;
 	}
 
+	if (route[0] === 'List' && route[1]) {
+		frappe.model.user_settings.get('Route').then((data)=> {
+			frappe.model.user_settings.save('Route', 'route_history', data.route_history + '\n' + route[1]);
+		});
+	}
+
 	frappe.route_history.push(route);
 
 	if(route[0] && route[1] && frappe.views[route[0] + "Factory"]) {
