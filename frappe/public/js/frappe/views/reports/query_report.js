@@ -50,7 +50,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		// Setup buttons
 		this.primary_action = null;
 		this.secondary_action = {
-			label: __('Refresh'),
+			label: __('Run Report'),
 			action: () => this.refresh()
 		};
 
@@ -81,7 +81,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.load_report();
 		} else {
 			// same report
-			this.refresh_report();
+			// this.refresh_report();
 		}
 	}
 
@@ -117,7 +117,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			() => this.set_route_filters(),
 			() => this.report_settings.onload && this.report_settings.onload(this),
 			() => this.get_user_settings(),
-			() => this.refresh()
+			// () => this.refresh()
 		]);
 	}
 
@@ -176,7 +176,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						this.reset_report_view();
 					}
 					else if (!this._no_refresh) {
-						this.refresh();
+						// this.refresh();
 					}
 				}
 			};
@@ -339,7 +339,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			treeView: this.tree_report,
 			layout: 'fixed'
 		};
-		
+
 		if (this.report_settings.get_datatable_options) {
 			datatable_options = this.report_settings.get_datatable_options(datatable_options);
 		}
@@ -762,7 +762,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	get_menu_items() {
 		return [
 			{
-				label: __('Refresh'),
+				label: __('Run Report'),
 				action: () => this.refresh(),
 				class: 'visible-xs'
 			},
@@ -855,7 +855,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	toggle_loading(flag) {
-		this.toggle_message(flag, __('Loading') + '...');
+		this.toggle_message(flag, __('Please click Run Report button to load report') + '...');
 	}
 
 
