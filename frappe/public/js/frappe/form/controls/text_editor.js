@@ -3,6 +3,11 @@ import { ImageDrop } from 'quill-image-drop-module';
 
 Quill.register('modules/imageDrop', ImageDrop);
 
+// replace <p> tag with <div>
+const Block = Quill.import('blots/block');
+Block.tagName = 'DIV';
+Quill.register(Block, true);
+
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_input() {
 		this.has_input = true;
