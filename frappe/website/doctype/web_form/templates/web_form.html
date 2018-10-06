@@ -17,7 +17,7 @@
 	{% if not read_only and has_header %}
 	<div style="padding-bottom: 15px;">
 	    {% if login_required -%}
-		<a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
+		<a href="/{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
 	    	{{ _("Cancel") }}</a>
 		{%- endif %}
 		{% if not is_list %}
