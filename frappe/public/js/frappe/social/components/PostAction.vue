@@ -1,8 +1,11 @@
 <template>
 	<div class="post-action-container text-muted">
-		<div class="pin" v-if="is_pinnable">
-			<i class="fa fa-thumb-tack" :class="{'pinned': is_pinned}" @click="$emit('toggle_pin')"></i>
+		<div class="pin" v-if="is_globally_pinnable">
+			<i class="fa fa-thumb-tack" :class="{'pinned': is_globally_pinned}" @click="$emit('toggle_global_pin')"></i>
 		</div>
+		<div class="pin" v-else-if="is_pinnable">
+			<i class="fa fa-thumb-tack" :class="{'pinned': is_pinned}" @click="$emit('toggle_pin')"></i>
+		</div>	
 		<div class="reply">
 			<i class="fa fa-reply" @click="$emit('new_reply')"></i>
 			<span @click="$emit('toggle_reply')">{{ reply_count }}</span>
@@ -31,9 +34,17 @@ export default {
 			'type': Number,
 			'default': 0,
 		},
+		'is_globally_pinnable': {
+			'type': Boolean,
+			'default': false
+		},
 		'is_pinnable': {
 			'type': Boolean,
 			'default': false
+		},
+		'is_globally_pinned': {
+			'type': Number,
+			'default': 0
 		},
 		'is_pinned': {
 			'type': Number,

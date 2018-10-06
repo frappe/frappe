@@ -4,23 +4,37 @@
 		<div class="user-details">
 			<h3>{{ user.fullname }}</h3>
 			<p class="text-muted">{{ user.bio }}</p>
-		</div>
-		<div class="stats">
-			<div class="muted-title">
-				Posts
-			</div>
-			<div class="text-large">
-				{{ post_count }}
+			<p class="text-muted">{{user.location}}</p>
+			
+			<h5>Interest</h5>
+			<p class="text-muted">{{user.interest}}</p>
+
+			<div class="stats">
+				<div @click="change_list('posts')">
+				<h5 >Posts</h5>
+				<p>{{ post_count }}</p> 
+				</div>
+				<div @click="change_list('likes')">
+					<h5 >Likes</h5>
+					<p>{{likes_count}}</p> 
+				</div>
 			</div>
 		</div>
 	</div>
 </template>
 <script>
 export default {
-	props: ['user_id'],
+	props: {
+		'user_id': String,
+		'my_posts': Array ,
+		'my_liked_posts': Array,
+		'isActive' : Boolean
+	},
 	data() {
 		return {
-			'post_count': 0
+			'post_count': 0,
+			'likes_count': 0,
+			'isUser': false
 		}
 	},
 	created() {
@@ -29,9 +43,21 @@ export default {
 				'owner': this.user_id
 			}
 		}).then(count => {
-			console.log(count);
 			this.post_count = count
+		}),
+		frappe.db.count('Post', {
+			'filters': {
+				liked_by: ['like', '%'+this.user_id+'%']
+			}
+		}).then(count => {
+			this.likes_count = count
 		})
+		
+	},
+	methods: {
+		change_list: function(name){
+			this.$emit('change_list',name)
+		}
 	},
 	computed: {
 		user_avatar() {
@@ -39,10 +65,14 @@ export default {
 		},
 		user() {
 			return frappe.user_info(this.user_id)
-		}
+		},
+		check_user_perm()
+		{	this.isUser = this.user_id == frappe.session.user? true:false; 
+		}	
 	}
 }
 </script>
+
 <style lang="less" scoped>
 .profile-sidebar {
 	padding-top: 10px
@@ -50,4 +80,5 @@ export default {
 .user-details {
 	min-height: 150px
 }
+	
 </style>

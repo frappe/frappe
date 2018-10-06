@@ -6,7 +6,7 @@
 				{{ new_posts_count + ' new post'}}
 			</div>
 			<div v-for="post in user_posts" :key="post.name">
-				<post v-if="post.type == 'post' && !post.is_pinned" :post="post"></post>
+				<post v-if="post.type == 'post' && !post.is_globally_pinned" :post="post"></post>
 				<event-card  v-else :event="post"></event-card>
 			</div>
 			<div v-show="loading_old_posts" class="text-center padding">Loading old posts</div>
@@ -53,10 +53,10 @@ export default {
 	},
 	computed: {
 		pinned_posts() {
-			return this.posts.filter((post) => post.is_pinned)
+			return this.posts.filter((post) => post.is_globally_pinned)
 		},
 		user_posts() {
-			return this.posts.filter((post) => !post.is_pinned)
+			return this.posts.filter((post) => !post.is_globally_pinned)
 		}
 	},
 	methods: {
@@ -71,7 +71,7 @@ export default {
 				filters.creation = ['<', lastpost.creation]
 			}
 			frappe.db.get_list('Post', {
-				fields: ['name', 'content', 'owner', 'creation', 'type', 'liked_by', 'is_pinned'],
+				fields: ['name', 'content', 'owner', 'creation', 'type', 'liked_by', 'is_globally_pinned'],
 				filters: filters,
 				order_by: 'creation desc',
 			}).then((res) => {
