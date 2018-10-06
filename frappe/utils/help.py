@@ -160,7 +160,7 @@ class HelpDatabase(object):
 									content = frappe.utils.md_to_html(content)
 									title = self.make_title(basepath, fname, content)
 									intro = self.make_intro(content)
-									content = self.make_content(content, fpath, relpath, app)
+									content = self.make_content(content, fpath, relpath, app, docs_app)
 									self.db.sql('''INSERT INTO `help`(`path`, `content`, `title`, `intro`, `full_path`)
 										VALUES (%s, %s, %s, %s, %s)''', (relpath, content, title, intro, fpath))
 								except jinja2.exceptions.TemplateSyntaxError:
