@@ -12,18 +12,19 @@ frappe.route_history_queue = [];
 frappe.view_factory = {};
 frappe.view_factories = [];
 frappe.route_options = null;
+const routes_to_skip = ['Form'];
 
-frappe.save_routes = frappe.utils.debounce(() => {
+const save_routes = frappe.utils.debounce(() => {
 	const routes = frappe.route_history_queue;
 	frappe.route_history_queue = [];
 	frappe.xcall('frappe.desk.doctype.route_history.route_history.save_route_history', {
 		routes: routes
-	}).then(()=> {
+	}).then(() => {
 		console.log('routes saved!');
-	}).catch(()=> {
-		frappe.route_history_queue.concat(routes)
+	}).catch(() => {
+		frappe.route_history_queue.concat(routes);
 	});
-}, 30000);
+}, 5000);
 
 
 frappe.route = function() {
@@ -51,14 +52,14 @@ frappe.route = function() {
 		return;
 	}
 
-	if (route[1]) {
+	if (route[1] && routes_to_skip.includes(route[0])) {
 		frappe.route_history_queue.push({
 			'user': frappe.session.user,
 			'creation': frappe.datetime.now_datetime(),
 			'route': frappe.get_route_str()
 		});
 
-		frappe.save_routes();
+		save_routes();
 	}
 
 	frappe.route_history.push(route);
