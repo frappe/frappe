@@ -336,7 +336,7 @@ def razorpay_subscription_callback():
 	try:
 		data = frappe.local.form_dict
 
-		validate_payment_callback()
+		validate_payment_callback(data)
 
 		data.update({
 			"payment_gateway": "Razorpay"
