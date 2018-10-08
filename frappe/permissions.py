@@ -330,7 +330,7 @@ def get_valid_perms(doctype=None, user=None):
 	perms = get_perms_for(roles)
 	custom_perms = get_perms_for(roles, 'Custom DocPerm')
 
-	doctypes_with_custom_perms = list(set([d.parent for d in custom_perms]))
+	doctypes_with_custom_perms = get_doctypes_with_custom_docperms()
 	for p in perms:
 		if not p.parent in doctypes_with_custom_perms:
 			custom_perms.append(p)
@@ -374,11 +374,18 @@ def get_roles(user=None, with_standard=True):
 
 def get_perms_for(roles, perm_doctype='DocPerm'):
 	'''Get perms for given roles'''
-	return frappe.db.sql("""
-		select * from `tab{doctype}` where docstatus=0
-		and ifnull(permlevel,0)=0
-		and role in ({roles})""".format(doctype = perm_doctype,
-			roles=", ".join(["%s"]*len(roles))), tuple(roles), as_dict=1)
+	filters = {
+		'permlevel': 0,
+		'docstatus': 0,
+		'role': ['in', roles]
+	}
+	return frappe.db.get_all(perm_doctype, fields=['*'], filters=filters)
+
+def get_doctypes_with_custom_docperms():
+	'''Returns all the doctypes with Custom Docperms'''
+
+	doctypes = frappe.db.get_all('Custom DocPerm', fields=['parent'], distinct=1)
+	return [d.parent for d in doctypes]
 
 def can_set_user_permissions(doctype, docname=None):
 	# System Manager can always set user permissions
