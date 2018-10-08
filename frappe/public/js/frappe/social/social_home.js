@@ -2,10 +2,7 @@ import Vue from 'vue/dist/vue.js';
 
 // components
 import Home from './Home.vue';
-import EventEmitter from './event_emitter';
 frappe.provide('frappe.social');
-
-$.extend(frappe.route, EventEmitter.prototype);
 
 frappe.social.Home = class SocialHome {
 	constructor({ parent }) {
