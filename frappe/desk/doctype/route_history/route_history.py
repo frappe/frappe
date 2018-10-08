@@ -10,30 +10,6 @@ import json
 class RouteHistory(Document):
 	pass
 
-@frappe.whitelist()
-def save_route_history(routes):
-	frappe.cache().rpush('route_history', routes)
-
-def save_route_history_to_db():
-	values = []
-	while frappe.cache().llen('route_history') > 0:
-		routes = frappe.cache().lpop('route_history')
-		routes = json.loads(routes)
-		for route_obj in routes:
-			route_obj['name'] = frappe.generate_hash('Route History', 10)
-			route_obj['modified'] = frappe.utils.now()
-			values.append("('{user}', '{name}', '{route}', '{creation}', '{modified}')"
-				.format(**route_obj))
-
-	if not values: return
-
-	frappe.db.sql('''
-		INSERT INTO `tabRoute History` (`user`, `name`, `route`, `creation`, `modified`)
-		VALUES {0}
-	'''.format(", ".join(values)), debug=1)
-
-	frappe.db.commit()
-
 def flush_old_route_records():
 	"""Deletes all route records except last 500 records per user"""
 

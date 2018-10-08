@@ -17,14 +17,15 @@ const routes_to_skip = ['Form'];
 const save_routes = frappe.utils.debounce(() => {
 	const routes = frappe.route_history_queue;
 	frappe.route_history_queue = [];
-	frappe.xcall('frappe.desk.doctype.route_history.route_history.save_route_history', {
-		routes: routes
+	frappe.xcall('frappe.deferred_insert.deferred_insert', {
+		'doctype': 'Route History',
+		'records': routes
 	}).then(() => {
-		console.log('routes saved!');
+		console.log('Routes saved!');
 	}).catch(() => {
 		frappe.route_history_queue.concat(routes);
 	});
-}, 5000);
+}, 10000);
 
 
 frappe.route = function() {
