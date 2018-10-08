@@ -179,7 +179,7 @@ def get_user_permissions(user):
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 	return get_user_permissions(user)
 
-def has_user_permission(doc, user=None, verbose=False):
+def has_user_permission(doc, user=None, verbose=True):
 	'''Returns True if User is allowed to view considering User Permissions'''
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 	user_permissions = get_user_permissions(user)
@@ -218,7 +218,7 @@ def has_user_permission(doc, user=None, verbose=False):
 				if not d.get(field.fieldname) in user_permissions.get(field.options, {}).get("docs", []):
 					if d.get('parentfield'):
 						# "Not allowed for Company = Restricted Company in Row 3"
-						msg = _('Not allowed for {0} = {1} in Row {2}').format(_(field.options), d[field.fieldname], d.idx)
+						msg = _('Not allowed for {0} = {1} in Row {2}').format(_(field.options), d.get(field.fieldname), d.idx)
 					else:
 						# "Not allowed for Company = Restricted Company"
 						msg = _('Not allowed for {0} = {1}').format(_(field.options), d.get(field.fieldname))
