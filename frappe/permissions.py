@@ -118,7 +118,8 @@ def get_doc_permissions(doc, verbose=False, user=None, ptype=None):
 
 			permissions = permissions.get("if_owner")
 			# if_owner does not come with create rights...
-			permissions['create'] = 0
+			if not permissions.get("create"):
+				permissions['create'] = 0
 		else:
 			permissions = {}
 
