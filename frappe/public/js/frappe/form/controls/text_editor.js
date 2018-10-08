@@ -102,8 +102,14 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	},
 
 	set_formatted_input(value) {
-		if (!(this.quill && value)) return;
+		if (!this.quill) return;
 		if (value === this.get_input_value()) return;
+		if (!value) {
+			// clear contents for falsy values like '', undefined or null
+			this.quill.setText('');
+			return;
+		}
+
 		this.quill.setText('');
 		this.quill.clipboard.dangerouslyPasteHTML(0, value);
 	},
