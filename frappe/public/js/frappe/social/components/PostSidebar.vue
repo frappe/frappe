@@ -47,6 +47,7 @@ export default {
 <style lang="less" scoped>
 .route-link {
 	margin: 10px;
+	margin-left: 0;
 	text-transform: capitalize;
 }
 .stats {

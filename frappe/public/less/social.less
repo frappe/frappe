@@ -12,10 +12,13 @@ body[data-route*="social"] {
 		}
 	}
 	.wall-container {
-		padding: 10px;
 		display: flex;
 		font-size: 12px;
+		.post-sidebar {
+			flex: 20%
+		}
 		.post-container {
+			padding-top: 10px;
 			display: flex;
 			flex-direction: column;
 			width: 500px;
@@ -27,7 +30,8 @@ body[data-route*="social"] {
 			}
 		}
 		.action-card-container {
-			padding: 0px
+			padding: 0px;
+			flex: 35%
 		}
 	}
 
@@ -60,7 +64,8 @@ body[data-route*="social"] {
 	.event-card {
 		.generic-card();
 		.content {
-			text-align: center
+			text-align: center;
+			clear: both;
 		}
 	}
 

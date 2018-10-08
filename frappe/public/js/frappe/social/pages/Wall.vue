@@ -1,6 +1,6 @@
 <template>
 	<div class="wall-container">
-		<post-sidebar class="col-md-3 hidden-xs" :user=user></post-sidebar>
+		<post-sidebar class="post-sidebar hidden-xs" :user=user></post-sidebar>
 		<div class="post-container">
 			<div class="new_posts_count" @click="load_new_posts()" v-if='new_posts_count'>
 				{{ new_posts_count + ' new post'}}
@@ -12,7 +12,7 @@
 			<div v-show="loading_old_posts" class="text-center padding">Loading old posts</div>
 			<div v-show="!more_posts_available" class="text-center padding">That's all folks</div>
 		</div>
-		<div class="action-card-container col-md-4 hidden-xs">
+		<div class="action-card-container hidden-xs">
 			<div class="muted-title padding"><i class="fa fa-thumb-tack">&nbsp;</i> Pinned Posts </div>
 			<div v-for="post in pinned_posts" :key="post.name">
 				<post :post="post"></post>
@@ -22,14 +22,12 @@
 </template>
 <script>
 import Post from '../components/Post.vue';
-import ActionCard from '../components/ActionCard.vue';
 import EventCard from '../components/EventCard.vue';
 import PostSidebar from '../components/PostSidebar.vue';
 
 export default {
 	components: {
 		Post,
-		ActionCard,
 		EventCard,
 		PostSidebar
 	},
