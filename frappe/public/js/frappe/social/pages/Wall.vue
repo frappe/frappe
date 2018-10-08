@@ -42,8 +42,12 @@ export default {
 	},
 	created() {
 		this.get_posts()
-		frappe.realtime.on('new_post', (post_name) => {
-			this.new_posts_count += 1;
+		frappe.realtime.on('new_post', (post_owner) => {
+			if (post_owner === frappe.session.user) {
+				this.load_new_posts()
+			} else {
+				this.new_posts_count += 1;
+			}
 		})
 		window.addEventListener('scroll', this.handleScroll);
 	},

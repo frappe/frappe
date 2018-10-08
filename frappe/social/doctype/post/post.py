@@ -15,7 +15,7 @@ class Post(Document):
 		if self.reply_to:
 			frappe.publish_realtime('new_post_reply' + self.reply_to, self, after_commit=True)
 		else:
-			frappe.publish_realtime('new_post', self, after_commit=True)
+			frappe.publish_realtime('new_post', self.owner, after_commit=True)
 
 @frappe.whitelist()
 def toggle_like(post_name, user=None):
