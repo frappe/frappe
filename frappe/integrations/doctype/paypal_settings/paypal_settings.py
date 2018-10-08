@@ -381,7 +381,8 @@ def ipn_handler():
 		doc = frappe.get_doc({
 			"data": json.dumps(frappe.local.form_dict),
 			"doctype": "Integration Request",
-			"status": "Subscription Notification"
+			"integration_type": "Subscription Notification",
+			"status": "Queued"
 		}).insert(ignore_permissions=True)
 		frappe.db.commit()
 
