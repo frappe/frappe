@@ -53,7 +53,7 @@ frappe.route = function() {
 		return;
 	}
 
-	if (route[1] && routes_to_skip.includes(route[0])) {
+	if (route[1] && !routes_to_skip.includes(route[0])) {
 		frappe.route_history_queue.push({
 			'user': frappe.session.user,
 			'creation': frappe.datetime.now_datetime(),

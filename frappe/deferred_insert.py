@@ -1,5 +1,7 @@
-import frappe
 import json
+import frappe
+
+from frappe.utils import cstr
 
 queue_prefix = 'insert_queue_for_'
 
@@ -23,8 +25,10 @@ def save_to_db():
 				record_count += 1
 				insert_record(record, doctype)
 
+	frappe.db.commit()
+
 def insert_record(record, doctype):
-	if not record['doctype']:
+	if not record.get('doctype'):
 		record['doctype'] = doctype
 	try:
 		doc = frappe.get_doc(record)
@@ -33,10 +37,10 @@ def insert_record(record, doctype):
 		print(e, doctype)
 
 def get_key_name(key):
-	return key.split('|')[1]
+	return cstr(key).split('|')[1]
 
 def get_doctype_name(key):
-	return key.split(queue_prefix)[1]
+	return cstr(key).split(queue_prefix)[1]
 
 
 # def save_to_db(doctype):
