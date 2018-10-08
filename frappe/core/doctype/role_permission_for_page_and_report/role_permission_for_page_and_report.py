@@ -61,10 +61,11 @@ class RolePermissionforPageandReport(Document):
 	def get_roles(self):
 		roles = []
 		for data in self.roles:
-			roles.append({
-				'role': data.role,
-				'parenttype': 'Custom Role'
-			})
+			if data.role != "All":
+				roles.append({
+					'role': data.role,
+					'parenttype': 'Custom Role'
+				})
 		return roles
 
 	def update_status(self):

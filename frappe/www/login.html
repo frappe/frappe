@@ -8,6 +8,7 @@
 
 {% block page_content %}
 <!-- {{ for_test }} -->
+<div style='min-height: 360px'>
 <section class='for-login'>
 	<div class="login-content page-card" style="margin-top: 30px;">
 		<form class="form-signin form-login" role="form">
@@ -16,7 +17,8 @@
 			</div>
 
 			<input type="text" id="login_email"
-				class="form-control" placeholder="{{ login_name_placeholder  }}"
+				class="form-control"
+				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _("Email address") }}{% endif %}"
 				required autofocus>
 
 
@@ -26,7 +28,7 @@
 			<button class="btn btn-sm btn-primary btn-block btn-login" type="submit">
 				{{ _("Sign in") }}</button>
 
-			{% if ldap_settings.enabled %}
+			{% if ldap_settings and ldap_settings.enabled %}
 			<button class="btn btn-sm btn-default btn-block btn-login btn-ldap-login">
 				{{ _("Login with LDAP") }}</button>
 			{% endif %}
@@ -49,11 +51,11 @@
 			</div>
 
 	{%- if not disable_signup -%}
-		<p class="text-center">
+		<p class="text-center sign-up-message">
 			<a href="#signup" style="margin-top: -2px;">{{ _("Don't have an account? Sign up") }}</a>
 		</p>
 	{%- endif -%}
-	<p class="text-center">
+	<p class="text-center forgot-password-message">
 		<a href="#forgot">{{ _("Forgot Password?") }}</a></p>
 	</div>
 </section>
@@ -89,6 +91,7 @@
 		<a href="#login">{{ _("Back to Login") }}</a>
 	</div>
 </section>
+</div>
 {% endblock %}
 
 {% block script %}

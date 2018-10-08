@@ -1,3 +1,9 @@
+@import "variables.less";
+@import "mixins.less";
+@import "common.less";
+@import "awesomplete.less";
+@import "datepicker.less";
+
 .unit-checkbox {
 	color: #36414c;
 	margin-top: 5px;
@@ -17,6 +23,24 @@
 	}
 }
 
-.frappe-control .select-all {
-	margin-right: 5px;
+.frappe-control .bulk-select-options {
+	margin: 10px 0;
+	.select-all {
+		margin-right: 5px;
+	}
 }
+
+.frappe-control .control-value {
+	overflow-wrap: break-word;
+}
+
+.link-btn {
+	position: absolute;
+	top: 3px;
+	right: 4px;
+	border-radius: 2px;
+	padding: 3px;
+	display: none;
+	z-index: 3;
+}
+

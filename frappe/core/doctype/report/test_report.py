@@ -17,15 +17,15 @@ class TestReport(unittest.TestCase):
 
 		report = frappe.get_doc('Report', 'User Activity Report')
 		columns, data = report.get_data()
-		self.assertEquals(columns[0].get('label'), 'ID')
-		self.assertEquals(columns[1].get('label'), 'User Type')
+		self.assertEqual(columns[0].get('label'), 'ID')
+		self.assertEqual(columns[1].get('label'), 'User Type')
 		self.assertTrue('Administrator' in [d[0] for d in data])
 
 	def test_query_report(self):
 		report = frappe.get_doc('Report', 'Permitted Documents For User')
 		columns, data = report.get_data(filters={'user': 'Administrator', 'doctype': 'DocType'})
-		self.assertEquals(columns[0].get('label'), 'Name')
-		self.assertEquals(columns[1].get('label'), 'Module')
+		self.assertEqual(columns[0].get('label'), 'Name')
+		self.assertEqual(columns[1].get('label'), 'Module')
 		self.assertTrue('User' in [d[0] for d in data])
 
 	def test_report_permisisons(self):

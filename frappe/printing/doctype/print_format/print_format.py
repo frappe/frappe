@@ -31,7 +31,7 @@ class PrintFormat(Document):
 			validate_template(self.html)
 
 	def extract_images(self):
-		from frappe.utils.file_manager import extract_images_from_html
+		from frappe.core.doctype.file.file import extract_images_from_html
 		if self.format_data:
 			data = json.loads(self.format_data)
 			for df in data:

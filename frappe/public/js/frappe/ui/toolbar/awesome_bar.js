@@ -233,7 +233,7 @@ frappe.search.AwesomeBar = Class.extend({
 				value: __('Find {0} in {1}', [txt, __(route[1])]),
 				route_options: options,
 				onclick: function() {
-					cur_list.refresh();
+					cur_list.show();
 				},
 				index: 90,
 				default: "Current",

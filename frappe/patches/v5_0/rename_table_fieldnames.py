@@ -20,7 +20,7 @@ rename_map = {
 
 def execute():
 	frappe.reload_doc("custom", "doctype", "customize_form")
-	frappe.reload_doc("email", "doctype", "email_alert")
+	frappe.reload_doc("email", "doctype", "notification")
 	frappe.reload_doc("desk", "doctype", "event")
 	frappe.reload_doc("workflow", "doctype", "workflow")
 

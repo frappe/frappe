@@ -73,6 +73,9 @@ class Report(Document):
 			return True
 
 	def update_report_json(self):
+		if not self.json:
+			self.json = '{}'
+
 		if self.json:
 			data = json.loads(self.json)
 			data["add_total_row"] = self.add_total_row
@@ -121,7 +124,15 @@ class Report(Document):
 		else:
 			# standard report
 			params = json.loads(self.json)
-			columns = params.get('columns')
+
+			if params.get('columns'):
+				columns = params.get('columns')
+			else:
+				columns = [['name', self.ref_doctype]]
+				for df in frappe.get_meta(self.ref_doctype).fields:
+					if df.in_list_view:
+						columns.append([df.fieldname, self.ref_doctype])
+
 			_filters = params.get('filters') or []
 
 			if filters:
@@ -135,7 +146,11 @@ class Report(Document):
 				# sort by is saved as DocType.fieldname, covert it to sql
 				return '`tab{0}`.`{1}`'.format(*parts)
 
-			order_by = _format(params.get('sort_by').split('.')) + ' ' + params.get('sort_order')
+			if params.get('sort_by'):
+				order_by = _format(params.get('sort_by').split('.')) + ' ' + params.get('sort_order')
+			else:
+				order_by = _format(self.ref_doctype, 'modified') + ' desc'
+
 			if params.get('sort_by_next'):
 				order_by += ', ' + _format(params.get('sort_by_next').split('.')) + ' ' + params.get('sort_order_next')
 
@@ -159,10 +174,14 @@ class Report(Document):
 		if as_dict:
 			data = []
 			for row in out:
-				_row = frappe._dict()
+				if isinstance(row, (list, tuple)):
+					_row = frappe._dict()
+					for i, val in enumerate(row):
+						_row[columns[i].get('fieldname')] = val
+				elif isinstance(row, dict):
+					# no need to convert from dict to dict
+					_row = frappe._dict(row)
 				data.append(_row)
-				for i, val in enumerate(row):
-					_row[columns[i].get('fieldname')] = val
 		else:
 			data = out
 		return columns, data

@@ -4,6 +4,14 @@ function get_url_arg(name) {
 	return get_query_params()[name] || "";
 }
 
+function get_query_string(url) {
+	if(url.includes("?")) {
+		return url.slice(url.indexOf("?")+1);
+	}else {
+		return "";
+	}
+}
+
 function get_query_params(query_string) {
 	var query_params = {};
 	if (!query_string) {
@@ -61,6 +69,7 @@ function make_query_string(obj, encode=true) {
 
 Object.assign(frappe.utils, {
 	get_url_arg,
+	get_query_string,
 	get_query_params,
 	make_query_string
 });

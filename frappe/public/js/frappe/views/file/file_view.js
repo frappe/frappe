@@ -11,6 +11,10 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		return false;
 	}
 
+	get view_name() {
+		return 'File';
+	}
+
 	setup_view() {
 		this.setup_events();
 	}

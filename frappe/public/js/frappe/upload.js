@@ -53,7 +53,7 @@ frappe.upload = {
 			}
 		});
 		// end dropzone
-		
+
 		$upload.append($dropzone);
 
 		$file_input.on("change", function() {
@@ -310,29 +310,42 @@ frappe.upload = {
 
 		const file_not_big_enough = fileobj.size <= 24576;
 
-		if (opts.no_socketio || frappe.flags.no_socketio || file_not_big_enough) {
+		if (!frappe.socketio || opts.no_socketio ||
+				frappe.flags.no_socketio || file_not_big_enough) {
 			upload_with_filedata();
 			return;
+		} else {
+			args.file_size = fileobj.size;
+			frappe.call({
+				method: 'frappe.core.doctype.file.file.validate_filename',
+				args: {"filename": args.filename},
+				callback: function(r) {
+					args.filename = r.message;
+					upload_through_socketio();
+				}
+			});
 		}
 
-		frappe.socketio.uploader.start({
-			file: fileobj,
-			filename: args.filename,
-			is_private: args.is_private,
-			fallback: () => {
-				// if fails, use old filereader
-				upload_with_filedata();
-			},
-			callback: (data) => {
-				args.file_url = data.file_url;
-				frappe.upload._upload_file(fileobj, args, opts);
-			},
-			on_progress: (percent_complete) => {
-				let increment = (flt(percent_complete) / frappe.upload.total_files);
-				frappe.show_progress(__('Uploading'),
-					start_complete + increment);
-			}
-		});
+		var upload_through_socketio = function() {
+			frappe.socketio.uploader.start({
+				file: fileobj,
+				filename: args.filename,
+				is_private: args.is_private,
+				fallback: () => {
+					// if fails, use old filereader
+					upload_with_filedata();
+				},
+				callback: (data) => {
+					args.file_url = data.file_url;
+					frappe.upload._upload_file(fileobj, args, opts);
+				},
+				on_progress: (percent_complete) => {
+					let increment = (flt(percent_complete) / frappe.upload.total_files);
+					frappe.show_progress(__('Uploading'),
+						start_complete + increment);
+				}
+			});
+		}
 	},
 
 	upload_to_server: function(file, args, opts) {
@@ -355,7 +368,7 @@ frappe.upload = {
 				}
 				var attachment = r.message;
 				opts.loopcallback && opts.loopcallback();
-				opts.callback && opts.callback(attachment, r);
+				opts.callback && opts.callback(attachment, r, args);
 				$(document).trigger("upload_complete", attachment);
 			},
 			error: function(r) {

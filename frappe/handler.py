@@ -5,9 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 import frappe.utils
-import frappe.async
 import frappe.sessions
-import frappe.utils.file_manager
 import frappe.desk.form.run_method
 from frappe.utils.response import build_response
 from werkzeug.wrappers import Response
@@ -21,7 +19,8 @@ def handle():
 	if cmd!='login':
 		data = execute_cmd(cmd)
 
-	if data:
+	# data can be an empty string or list which are valid responses
+	if data is not None:
 		if isinstance(data, Response):
 			# method returns a response object, pass it on
 			return data
@@ -40,8 +39,11 @@ def execute_cmd(cmd, from_async=False):
 
 	try:
 		method = get_attr(cmd)
-	except:
-		frappe.respond_as_web_page(title='Invalid Method', html='Method not found',
+	except Exception as e:
+		if frappe.local.conf.developer_mode:
+			raise e
+		else:
+			frappe.respond_as_web_page(title='Invalid Method', html='Method not found',
 			indicator_color='red', http_status_code=404)
 		return
 
@@ -103,10 +105,23 @@ def run_custom_method(doctype, name, custom_method):
 
 @frappe.whitelist()
 def uploadfile():
+	ret = None
+
 	try:
 		if frappe.form_dict.get('from_form'):
 			try:
-				ret = frappe.utils.file_manager.upload()
+				ret = frappe.get_doc({
+					"doctype": "File",
+					"attached_to_name": frappe.form_dict.docname,
+					"attached_to_doctype": frappe.form_dict.doctype,
+					"attached_to_field": frappe.form_dict.docfield,
+					"file_url": frappe.form_dict.file_url,
+					"file_name": frappe.form_dict.filename,
+					"is_private": frappe.utils.cint(frappe.form_dict.is_private),
+					"content": frappe.form_dict.filedata,
+					"decode": True
+				})
+				ret.save()
 			except frappe.DuplicateEntryError:
 				# ignore pass
 				ret = None
@@ -133,6 +148,6 @@ def get_attr(cmd):
 	frappe.log("method:" + cmd)
 	return method
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest = True)
 def ping():
 	return "pong"

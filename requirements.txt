@@ -3,7 +3,7 @@ chardet
 dropbox==7.3.1
 gunicorn
 jinja2
-markdown2
+markdown2==2.3.5
 PyMySQL
 maxminddb-geolite2
 python-dateutil
@@ -15,7 +15,6 @@ rauth>=0.6.2
 requests
 redis
 selenium
--e git+https://github.com/frappe/python-pdfkit.git#egg=pdfkit
 babel
 ipython
 html2text==2016.9.19
@@ -23,11 +22,11 @@ email_reply_parser
 click
 num2words==0.5.5
 watchdog==0.8.0
-bleach
+bleach==2.1.4
 bleach-whitelist
 Pillow
 beautifulsoup4
-rq
+rq==0.12.0
 schedule
 cryptography
 pyopenssl
@@ -36,6 +35,7 @@ pyasn1
 zxcvbn-python
 unittest-xml-reporting
 oauthlib
+pdfkit
 PyJWT
 PyPDF2
 openpyxl
@@ -45,5 +45,14 @@ pypng
 premailer
 croniter
 googlemaps
-mycli
-dill
+braintree
+future
+passlib
+google-api-python-client
+google-auth
+google-auth-httplib2
+google-auth-oauthlib
+faker
+stripe
+psycopg2-binary
+coverage

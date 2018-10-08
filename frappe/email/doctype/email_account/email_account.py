@@ -22,6 +22,8 @@ from frappe.utils.user import get_system_managers
 from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts
 from frappe.utils.scheduler import log
+from frappe.utils.html_utils import clean_email_html
+
 
 class SentEmailInInbox(Exception): pass
 
@@ -50,7 +52,7 @@ class EmailAccount(Document):
 			"name": ("!=", self.name)
 		})
 		if duplicate_email_account:
-			frappe.throw(_("Email id must be unique, Email Account is already exist \
+			frappe.throw(_("Email ID must be unique, Email Account already exists \
 				for {0}".format(frappe.bold(self.email_id))))
 
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
@@ -86,7 +88,7 @@ class EmailAccount(Document):
 
 	def on_update(self):
 		"""Check there is only one default of each type."""
-		from frappe.core.doctype.user.user import ask_pass_update, setup_user_email_inbox
+		from frappe.core.doctype.user.user import setup_user_email_inbox
 
 		self.there_must_be_only_one_default()
 		setup_user_email_inbox(email_account=self.name, awaiting_password=self.awaiting_password,
@@ -340,9 +342,10 @@ class EmailAccount(Document):
 			raise SentEmailInInbox
 
 		if email.message_id:
-			names = frappe.db.sql("""select distinct name from tabCommunication
-				where message_id='{message_id}'
-				order by creation desc limit 1""".format(
+			# https://stackoverflow.com/a/18367248
+			names = frappe.db.sql("""SELECT DISTINCT `name`, `creation` FROM `tabCommunication`
+				WHERE `message_id`='{message_id}'
+				ORDER BY `creation` DESC LIMIT 1""".format(
 					message_id=email.message_id
 				), as_dict=True)
 
@@ -351,6 +354,9 @@ class EmailAccount(Document):
 				# email is already available update communication uid instead
 				frappe.db.set_value("Communication", name, "uid", uid, update_modified=False)
 				return
+
+		if email.content_type == 'text/html':
+			email.content = clean_email_html(email.content)
 
 		communication = frappe.get_doc({
 			"doctype": "Communication",
@@ -457,7 +463,7 @@ class EmailAccount(Document):
 				# try and match by subject and sender
 				# if sent by same sender with same subject,
 				# append it to old coversation
-				subject = frappe.as_unicode(strip(re.sub("(^\s*(fw|fwd|wg)[^:]*:|\s*(re|aw)[^:]*:\s*)*",
+				subject = frappe.as_unicode(strip(re.sub(r"(^\s*(fw|fwd|wg)[^:]*:|\s*(re|aw)[^:]*:\s*)*",
 					"", email.subject, 0, flags=re.IGNORECASE)))
 
 				parent = frappe.db.get_all(self.append_to, filters={
@@ -491,6 +497,9 @@ class EmailAccount(Document):
 
 		if self.sender_field:
 			parent.set(self.sender_field, frappe.as_unicode(email.from_email))
+
+		if parent.meta.has_field("email_account"):
+			parent.email_account = self.name
 
 		parent.flags.ignore_mandatory = True
 
@@ -596,7 +605,7 @@ class EmailAccount(Document):
 			return
 
 		flags = frappe.db.sql("""select name, communication, uid, action from
-			`tabEmail Flag Queue` where is_completed=0 and email_account='{email_account}'
+			`tabEmail Flag Queue` where is_completed=0 and email_account={email_account}
 			""".format(email_account=frappe.db.escape(self.name)), as_dict=True)
 
 		uid_list = { flag.get("uid", None): flag.get("action", "Read") for flag in flags }
@@ -658,14 +667,14 @@ def notify_unreplied():
 		if email_account.append_to:
 
 			# get open communications younger than x mins, for given doctype
-			for comm in frappe.get_all("Communication", "name", filters={
-					"sent_or_received": "Received",
-					"reference_doctype": email_account.append_to,
-					"unread_notification_sent": 0,
-					"email_account":email_account.name,
-					"creation": ("<", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60)),
-					"creation": (">", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3))
-				}):
+			for comm in frappe.get_all("Communication", "name", filters=[
+					{"sent_or_received": "Received"},
+					{"reference_doctype": email_account.append_to},
+					{"unread_notification_sent": 0},
+					{"email_account":email_account.name},
+					{"creation": ("<", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60))},
+					{"creation": (">", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3))}
+				]):
 				comm = frappe.get_doc("Communication", comm.name)
 
 				if frappe.db.get_value(comm.reference_doctype, comm.reference_name, "status")=="Open":
@@ -714,10 +723,10 @@ def get_max_email_uid(email_account):
 		"communication_medium": "Email",
 		"sent_or_received": "Received",
 		"email_account": email_account
-	}, fields=["ifnull(max(uid), 0) as uid"])
+	}, fields=["max(uid) as uid"])
 
 	if not result:
 		return 1
 	else:
-		max_uid = int(result[0].get("uid", 0)) + 1
+		max_uid = cint(result[0].get("uid", 0)) + 1
 		return max_uid

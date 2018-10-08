@@ -4,8 +4,8 @@ var io = require('socket.io')(server);
 var cookie = require('cookie')
 var fs = require('fs');
 var path = require('path');
-var redis = require("redis");
 var request = require('superagent');
+var { get_conf, get_redis_subscriber } = require('./node_utils');
 
 var conf = get_conf();
 var flags = {};
@@ -19,16 +19,11 @@ var files_struct = {
 	is_private: 0
 };
 
-var subscriber = redis.createClient(conf.redis_socketio || conf.redis_async_broker_port);
+var subscriber = get_redis_subscriber();
 
 // serve socketio
 server.listen(conf.socketio_port, function () {
 	console.log('listening on *:', conf.socketio_port); //eslint-disable-line
-});
-
-// test route
-app.get('/', function (req, res) {
-	res.sendfile('index.html');
 });
 
 // on socket connection
@@ -46,49 +41,8 @@ io.on('connection', function (socket) {
 		return;
 	}
 
-	// firefox reconnects multiple times on boot, so allow a few
-	// rapid reconnections
-	if (flags[sid] && flags[sid] > 4) {
-		// throttle this function
-		return;
-	} else {
-		flags[sid] = 1;
-	}
-
-	flags[sid] += 1;
-	setTimeout(function () {
-		flags[sid] = null;
-	}, 10000);
-
 	socket.user = cookie.parse(socket.request.headers.cookie).user_id;
 	socket.files = {};
-
-	// frappe namespace (temporary till webpack comes in, we can then reuse).
-	const frappe = { };
-	frappe._     = { };
-
-	frappe._.compact = function (arr) { return arr.filter(Boolean) }
-
-	// frappe.model
-	// Realtime Database Updates FTW!
-	function get_model_room (doctype, name, field) {
-		const site = get_site_name(socket)
-		const room = frappe._.compact([site, doctype, name, field]).join(":")
-
-		return room
-	}
-
-	socket.on('frappe.model:subscribe', function (params) {
-		const doctype = params.doctype
-		const name    = params.name
-		const field   = params.field
-
-		const room    = get_model_room(doctype, name, field)
-
-		console.log('frappe.model: Subscribing ' + socket.user + ' to room ' + room);
-		socket.join(room);
-	})
-	// end frappe.model
 
 	// frappe.chat
 	socket.on("frappe.chat.room:subscribe", function (rooms) {
@@ -104,6 +58,7 @@ io.on('connection', function (socket) {
 			socket.join(room);
 		}
 	});
+
 	socket.on("frappe.chat.message:typing", function (data) {
 		const user = data.user;
 		const room = get_chat_room(socket, data.room);
@@ -117,7 +72,7 @@ io.on('connection', function (socket) {
 	});
 	// end frappe.chat
 
-	request.get(get_url(socket, '/api/method/frappe.async.get_user_info'))
+	request.get(get_url(socket, '/api/method/frappe.realtime.get_user_info'))
 		.type('form')
 		.query({
 			sid: sid
@@ -133,8 +88,6 @@ io.on('connection', function (socket) {
 				socket.join(get_site_room(socket));
 			}
 		});
-
-
 
 	socket.on('disconnect', function () {
 		delete socket.files;
@@ -253,8 +206,13 @@ io.on('connection', function (socket) {
 });
 
 subscriber.on("message", function (channel, message, room) {
-	message = JSON.parse(message)
-	io.to(message.room).emit(message.event, message.message)
+	message = JSON.parse(message);
+
+	if (message.room) {
+		io.to(message.room).emit(message.event, message.message);
+	} else {
+		io.emit(message.event, message.message);
+	}
 });
 
 
@@ -333,7 +291,7 @@ function get_url(socket, path) {
 function can_subscribe_doc(args) {
 	if (!args) return;
 	if (!args.doctype || !args.docname) return;
-	request.get(get_url(args.socket, '/api/method/frappe.async.can_subscribe_doc'))
+	request.get(get_url(args.socket, '/api/method/frappe.realtime.can_subscribe_doc'))
 		.type('form')
 		.query({
 			sid: args.sid,
@@ -391,34 +349,4 @@ function send_viewers(args) {
 		docname: args.docname,
 		viewers: viewers
 	});
-}
-
-function get_conf() {
-	// defaults
-	var conf = {
-		redis_async_broker_port: 12311,
-		socketio_port: 3000
-	};
-
-	var read_config = function (path) {
-		if (fs.existsSync(path)) {
-			var bench_config = JSON.parse(fs.readFileSync(path));
-			for (var key in bench_config) {
-				if (bench_config[key]) {
-					conf[key] = bench_config[key];
-				}
-			}
-		}
-	}
-
-	// get ports from bench/config.json
-	read_config('config.json');
-	read_config('sites/common_site_config.json');
-
-	// detect current site
-	if (fs.existsSync('sites/currentsite.txt')) {
-		conf.default_site = fs.readFileSync('sites/currentsite.txt').toString().trim();
-	}
-
-	return conf;
 }

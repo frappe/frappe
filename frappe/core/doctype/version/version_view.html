@@ -45,7 +45,7 @@
 				<td>{{ frappe.meta.get_label(doc.ref_doctype, item[0]) }}</td>
 				<td class="{{
 					key==="added" ? __("success") : __("danger") }}">
-					{% var item_keys = keys(item[1]).sort(); %}
+					{% var item_keys = Object.keys(item[1]).sort(); %}
 					<table class="table table-bordered">
 						<tbody>
 							{% for row_key in item_keys %}

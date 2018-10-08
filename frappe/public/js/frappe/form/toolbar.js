@@ -217,8 +217,7 @@ frappe.ui.form.Toolbar = Class.extend({
 	can_cancel: function() {
 		return this.get_docstatus()===1
 			&& this.frm.perm[0].cancel
-			&& !this.read_only
-			&& !this.has_workflow();
+			&& !this.read_only;
 	},
 	can_amend: function() {
 		return this.get_docstatus()===2

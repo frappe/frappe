@@ -21,7 +21,7 @@ class TestChatProfile(unittest.TestCase):
 	# 	if not user.chat_profile:
 	# 		chat_profile.create(user.name)
 	# 		prof = chat_profile.get(user.name)
-	# 		self.assertEquals(prof.status, 'Online')
+	# 		self.assertEqual(prof.status, 'Online')
 	# 	else:
 	# 		with self.assertRaises(frappe.ValidationError):
 	# 			chat_profile.create(user.name)
@@ -33,11 +33,11 @@ class TestChatProfile(unittest.TestCase):
 	# 	self.assertNotEquals(len(prof), 1)
 
 	# 	prof = chat_profile.get(user, fields = ['status'])
-	# 	self.assertEquals(len(prof), 1)
-	# 	self.assertEquals(prof.status, 'Online')
+	# 	self.assertEqual(len(prof), 1)
+	# 	self.assertEqual(prof.status, 'Online')
 
 	# 	prof = chat_profile.get(user, fields = ['status', 'chat_bg'])
-	# 	self.assertEquals(len(prof), 2)
+	# 	self.assertEqual(len(prof), 2)
 
 	# def test_update(self):
 	# 	user = test_user
@@ -53,7 +53,7 @@ class TestChatProfile(unittest.TestCase):
 	# 		status = 'Offline'
 	# 	))
 	# 	prof = chat_profile.get(user.name)
-	# 	self.assertEquals(prof.status, 'Offline')
+	# 	self.assertEqual(prof.status, 'Offline')
 	# 	# revert
 	# 	chat_profile.update(user.name, data = dict(
 	# 		status = prev.status

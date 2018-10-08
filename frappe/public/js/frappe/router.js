@@ -72,7 +72,7 @@ frappe.get_route = function(route) {
 	var parts = route[route.length - 1].split("?");
 	route[route.length - 1] = parts[0];
 	if (parts.length > 1) {
-		var query_params = get_query_params(parts[1]);
+		var query_params = frappe.utils.get_query_params(parts[1]);
 		frappe.route_options = $.extend(frappe.route_options || {}, query_params);
 	}
 
@@ -133,7 +133,8 @@ frappe.set_route = function() {
 				frappe.route_options = a;
 				return null;
 			} else {
-				if (a.match(/[%'"]/)) {
+				a = String(a);
+				if (a && a.match(/[%'"]/)) {
 					// if special chars, then encode
 					a = encodeURIComponent(a);
 				}
@@ -170,10 +171,13 @@ $(window).on('hashchange', function() {
 		return;
 
 	// hide open dialog
-	if(cur_dialog && cur_dialog.hide_on_page_refresh) {
+	if(window.cur_dialog && cur_dialog.hide_on_page_refresh) {
 		cur_dialog.hide();
 	}
 
 	frappe.route();
 
+	frappe.route.trigger('change');
 });
+
+frappe.utils.make_event_emitter(frappe.route);

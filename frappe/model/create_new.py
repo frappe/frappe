@@ -6,11 +6,11 @@ from __future__ import unicode_literals
 Create a new document with defaults set
 """
 
-import frappe
-from frappe.utils import nowdate, nowtime, now_datetime
-import frappe.defaults
-from frappe.model.db_schema import type_map
 import copy
+import frappe
+import frappe.defaults
+from frappe.model import data_fieldtypes
+from frappe.utils import nowdate, nowtime, now_datetime
 from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 
 def get_new_doc(doctype, parent_doc = None, parentfield = None, as_dict=False):
@@ -52,7 +52,7 @@ def set_user_and_static_default_values(doc):
 	defaults = frappe.defaults.get_defaults()
 
 	for df in doc.meta.get("fields"):
-		if df.fieldtype in type_map:
+		if df.fieldtype in data_fieldtypes:
 			user_default_value = get_user_default_value(df, defaults, user_permissions)
 			if user_default_value is not None:
 				doc.set(df.fieldname, user_default_value)
@@ -70,8 +70,8 @@ def get_user_default_value(df, defaults, user_permissions):
 		# We don't want to include permissions of transactions to be used for defaults.
 		if (frappe.get_meta(df.options).document_type=="Setup"
 			and user_permissions_exist(df, user_permissions)
-			and len(user_permissions[df.options])==1):
-			return user_permissions[df.options][0]
+			and len(user_permissions[df.options].get("docs", []))==1):
+			return user_permissions[df.options].get("docs")[0]
 
 		# 2 - Look in user defaults
 		user_default = defaults.get(df.fieldname)
@@ -139,7 +139,7 @@ def get_default_based_on_another_field(df, user_permissions, parent_doc):
 
 	default_value = frappe.db.get_value(ref_doctype, reference_name, df.fieldname)
 	is_allowed_default_value = (not user_permissions_exist(df, user_permissions) or
-		(default_value in user_permissions.get(df.options, [])))
+		(default_value in user_permissions.get(df.options).get('docs', [])))
 
 	# is this allowed as per user permissions
 	if is_allowed_default_value:

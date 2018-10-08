@@ -12,15 +12,12 @@ frappe.ui.form.on("Workflow", {
 	},
 	update_field_options: function(frm) {
 		var doc = frm.doc;
-		if(doc.document_type) {
-			frappe.model.with_doctype(doc.document_type, function() {
-				var fields = $.map(frappe.get_doc("DocType",
-					frm.doc.document_type).fields, function(d) {
-					return frappe.model.no_value_type.indexOf(d.fieldtype)===-1 ? d.fieldname : null;
+		if (doc.document_type) {
+			const get_field_method = 'frappe.workflow.doctype.workflow.workflow.get_fieldnames_for';
+			frappe.xcall(get_field_method, { doctype: doc.document_type })
+				.then(resp => {
+					frappe.meta.get_docfield("Workflow Document State", "update_field", frm.doc.name).options = [""].concat(resp);
 				})
-				frappe.meta.get_docfield("Workflow Document State", "update_field", frm.doc.name).options
-					= [""].concat(fields);
-			});
 		}
 	}
 })

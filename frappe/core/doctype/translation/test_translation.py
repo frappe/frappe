@@ -22,12 +22,12 @@ class TestTranslation(unittest.TestCase):
 			frappe.local.lang = key
 			frappe.local.lang_full_dict=None
 			translation = create_translation(key, val)
-			self.assertEquals(_(val[0]), val[1])
+			self.assertEqual(_(val[0]), val[1])
 
 			frappe.delete_doc('Translation', translation.name)
 			frappe.local.lang_full_dict=None
 
-			self.assertEquals(_(val[0]), val[0])
+			self.assertEqual(_(val[0]), val[0])
 
 	def test_parent_language(self):
 		data = [

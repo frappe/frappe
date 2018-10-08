@@ -12,10 +12,10 @@ def get_notification_config():
 			"ToDo": "frappe.core.notifications.get_things_todo",
 			"Event": "frappe.core.notifications.get_todays_events",
 			"Error Snapshot": {"seen": 0, "parent_error_snapshot": None},
+			"Workflow Action": {"status": 'Open'}
 		},
 		"for_other": {
 			"Likes": "frappe.core.notifications.get_unseen_likes",
-			"Chat": "frappe.core.notifications.get_unread_messages",
 			"Email": "frappe.core.notifications.get_unread_emails",
 		}
 	}
@@ -42,24 +42,12 @@ def get_todays_events(as_list=False):
 	events = get_events(today, today)
 	return events if as_list else len(events)
 
-def get_unread_messages():
-	"returns unread (docstatus-0 messages for a user)"
-	return frappe.db.sql("""\
-		SELECT count(*)
-		FROM `tabCommunication`
-		WHERE communication_type in ('Chat', 'Notification')
-		AND reference_doctype = 'User'
-		AND reference_name = %s
-		and modified >= DATE_SUB(NOW(),INTERVAL 1 YEAR)
-		AND seen=0
-		""", (frappe.session.user,))[0][0]
-
 def get_unseen_likes():
 	"""Returns count of unseen likes"""
 	return frappe.db.sql("""select count(*) from `tabCommunication`
 		where
 			communication_type='Comment'
-			and modified >= DATE_SUB(NOW(),INTERVAL 1 YEAR)
+			and modified >= (NOW() - INTERVAL '1' YEAR)
 			and comment_type='Like'
 			and owner is not null and owner!=%(user)s
 			and reference_owner=%(user)s
@@ -72,11 +60,12 @@ def get_unread_emails():
 		SELECT count(*)
 		FROM `tabCommunication`
 		WHERE communication_type='Communication'
-		AND communication_medium="Email"
-		AND email_status not in ("Spam", "Trash")
+		AND communication_medium='Email'
+		AND sent_or_received='Received'
+		AND email_status not in ('Spam', 'Trash')
 		AND email_account in (
 			SELECT distinct email_account from `tabUser Email` WHERE parent=%(user)s
 		)
-		AND modified >= DATE_SUB(NOW(),INTERVAL 1 YEAR)
+		AND modified >= (NOW() - INTERVAL '1' YEAR)
 		AND seen=0
 		""", {"user": frappe.session.user})[0][0]

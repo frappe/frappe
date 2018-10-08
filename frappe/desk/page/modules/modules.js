@@ -31,7 +31,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 	};
 
 	let get_module_sidebar_item = (item) => `<li class="strong module-sidebar-item">
-		<a class="module-link" data-name="${item.module_name}" href="#modules/${item.module_name}">
+		<a class="module-link" data-name="${item.module_name}" href="#${item.link}">
 			<i class="fa fa-chevron-right pull-right" style="display: none;"></i>
 			<span>${item._label}</span>
 		</a>
@@ -183,4 +183,3 @@ frappe.pages['modules'].on_page_show = function(wrapper) {
 		frappe.modules_page.activate_link(frappe.modules_page.sidebar.find('.module-link:first'));
 	}
 };
-

@@ -8,7 +8,7 @@ import json
 from frappe.core.doctype.user.user import extract_mentions
 from frappe.utils import get_fullname, get_link_to_form
 from frappe.website.render import clear_cache
-from frappe.model.db_schema import add_column
+from frappe.database.schema import add_column
 from frappe.exceptions import ImplicitCommitError
 
 def on_trash(doc):
@@ -92,11 +92,10 @@ def notify_mentions(doc):
 			parent_doc_label = "{0}: {1}".format(_(doc.reference_doctype),
 				doc.reference_name)
 
-		subject = _("{0} mentioned you in a comment").format(sender_fullname)
+		subject = _("{0} mentioned you in a comment in {1}").format(sender_fullname, parent_doc_label)
 
-		recipients = [frappe.db.get_value("User", {"enabled": 1, "username": username, "user_type": "System User"})
-			for username in mentions]
-
+		recipients = [frappe.db.get_value("User", {"enabled": 1, "name": name, "user_type": "System User"}, "email")
+			for name in mentions]
 		frappe.sendmail(
 			recipients=recipients,
 			sender=frappe.session.user,
@@ -115,9 +114,7 @@ def get_comments_from_parent(doc):
 		_comments = frappe.db.get_value(doc.reference_doctype, doc.reference_name, "_comments") or "[]"
 
 	except Exception as e:
-		if e.args[0] in (1146, 1054):
-			# 1146 = no table
-			# 1054 = missing column
+		if frappe.db.is_missing_table_or_column(e):
 			_comments = "[]"
 
 		else:
@@ -141,7 +138,7 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 			"%s", "%s"), (json.dumps(_comments), reference_name))
 
 	except Exception as e:
-		if e.args[0] == 1054 and getattr(frappe.local, 'request', None):
+		if frappe.db.is_column_missing(e) and getattr(frappe.local, 'request', None):
 			# missing column and in request, add column and update after commit
 			frappe.local._comments = (getattr(frappe.local, "_comments", [])
 				+ [(reference_doctype, reference_name, _comments)])

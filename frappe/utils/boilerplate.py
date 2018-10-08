@@ -3,6 +3,8 @@
 
 from __future__ import unicode_literals, print_function
 
+from six.moves import input
+
 import frappe, os, re
 from frappe.utils import touch_file, encode, cstr
 
@@ -25,7 +27,7 @@ def make_boilerplate(dest, app_name):
 		hook_key = key.split(" (")[0].lower().replace(" ", "_")
 		hook_val = None
 		while not hook_val:
-			hook_val = cstr(raw_input(key + ": "))
+			hook_val = cstr(input(key + ": "))
 
 			if not hook_val:
 				defaults = {
@@ -61,40 +63,40 @@ def make_boilerplate(dest, app_name):
 		"js"))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"), "w") as f:
-		f.write(encode(init_template))
+		f.write(frappe.as_unicode(init_template))
 
 	with open(os.path.join(dest, hooks.app_name, "MANIFEST.in"), "w") as f:
-		f.write(encode(manifest_template.format(**hooks)))
+		f.write(frappe.as_unicode(manifest_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, ".gitignore"), "w") as f:
-		f.write(encode(gitignore_template.format(app_name = hooks.app_name)))
+		f.write(frappe.as_unicode(gitignore_template.format(app_name = hooks.app_name)))
 
 	with open(os.path.join(dest, hooks.app_name, "setup.py"), "w") as f:
-		f.write(encode(setup_template.format(**hooks)))
+		f.write(frappe.as_unicode(setup_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, "requirements.txt"), "w") as f:
 		f.write("frappe")
 
 	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
-		f.write(encode("## {0}\n\n{1}\n\n#### License\n\n{2}".format(hooks.app_title,
+		f.write(frappe.as_unicode("## {0}\n\n{1}\n\n#### License\n\n{2}".format(hooks.app_title,
 			hooks.app_description, hooks.app_license)))
 
 	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
-		f.write(encode("License: " + hooks.app_license))
+		f.write(frappe.as_unicode("License: " + hooks.app_license))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
-		f.write(encode(hooks.app_title))
+		f.write(frappe.as_unicode(hooks.app_title))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "hooks.py"), "w") as f:
-		f.write(encode(hooks_template.format(**hooks)))
+		f.write(frappe.as_unicode(hooks_template.format(**hooks)))
 
 	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "patches.txt"))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "desktop.py"), "w") as f:
-		f.write(encode(desktop_template.format(**hooks)))
+		f.write(frappe.as_unicode(desktop_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "docs.py"), "w") as f:
-		f.write(encode(docs_template.format(**hooks)))
+		f.write(frappe.as_unicode(docs_template.format(**hooks)))
 
 	print("'{app}' created at {path}".format(app=app_name, path=os.path.join(dest, app_name)))
 
@@ -267,17 +269,17 @@ def get_data():
 
 setup_template = """# -*- coding: utf-8 -*-
 from setuptools import setup, find_packages
-from pip.req import parse_requirements
 import re, ast
+
+with open('requirements.txt') as f:
+	install_requires = f.read().strip().split('\\n')
 
 # get version from __version__ variable in {app_name}/__init__.py
 _version_re = re.compile(r'__version__\s+=\s+(.*)')
 
 with open('{app_name}/__init__.py', 'rb') as f:
-    version = str(ast.literal_eval(_version_re.search(
-        f.read().decode('utf-8')).group(1)))
-
-requirements = parse_requirements("requirements.txt", session="")
+	version = str(ast.literal_eval(_version_re.search(
+		f.read().decode('utf-8')).group(1)))
 
 setup(
 	name='{app_name}',
@@ -288,8 +290,7 @@ setup(
 	packages=find_packages(),
 	zip_safe=False,
 	include_package_data=True,
-	install_requires=[str(ir.req) for ir in requirements],
-	dependency_links=[str(ir._link) for ir in requirements if ir._link]
+	install_requires=install_requires
 )
 """
 

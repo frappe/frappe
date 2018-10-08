@@ -33,7 +33,8 @@
 					    {%= __("Set Desktop Icons") %}</a></li>
 					<li><a href="#Form/User/{%= encodeURIComponent(frappe.session.user) %}">
 					    {%= __("My Settings") %}</a></li>
-					<li><a href="#" onclick="return frappe.ui.toolbar.clear_cache();">
+					<li class="navbar-reload">
+						<a href="#" onclick="return frappe.ui.toolbar.clear_cache();">
 					    {%= __("Reload") %}</a></li>
 					<li><a href="/index" target="_blank" rel="noopener noreferrer">
 						{%= __("View Website") %}</a></li>

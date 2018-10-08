@@ -13,6 +13,7 @@ from frappe.utils import cint
 from frappe.model.document import Document
 from frappe.model import no_value_fields
 from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
+from frappe.model.docfield import supports_translation
 
 doctype_properties = {
 	'search_fields': 'Data',
@@ -36,6 +37,7 @@ docfield_properties = {
 	'label': 'Data',
 	'fieldtype': 'Select',
 	'options': 'Text',
+	'fetch_from': 'Small Text',
 	'permlevel': 'Int',
 	'width': 'Data',
 	'print_width': 'Data',
@@ -53,6 +55,7 @@ docfield_properties = {
 	'print_hide_if_no_value': 'Check',
 	'report_hide': 'Check',
 	'allow_on_submit': 'Check',
+	'translatable': 'Check',
 	'depends_on': 'Data',
 	'description': 'Text',
 	'default': 'Text',
@@ -146,8 +149,7 @@ class CustomizeForm(Document):
 		validate_fields_for_doctype(self.doc_type)
 
 		if self.flags.update_db:
-			from frappe.model.db_schema import updatedb
-			updatedb(self.doc_type)
+			frappe.db.updatedb(self.doc_type)
 
 		if not hasattr(self, 'hide_success') or not self.hide_success:
 			frappe.msgprint(_("{0} updated").format(_(self.doc_type)))
@@ -180,7 +182,7 @@ class CustomizeForm(Document):
 						continue
 
 					elif property == "reqd" and \
-						((frappe.db.get_value("DocField", 
+						((frappe.db.get_value("DocField",
 							{"parent":self.doc_type,"fieldname":df.fieldname}, "reqd") == 1) \
 							and (df.get(property) == 0)):
 						frappe.msgprint(_("Row {0}: Not allowed to disable Mandatory for standard fields")\
@@ -208,6 +210,10 @@ class CustomizeForm(Document):
 
 					elif property == "options" and df.get("fieldtype") not in allowed_fieldtype_for_options_change:
 						frappe.msgprint(_("You can't set 'Options' for field {0}").format(df.label))
+						continue
+
+					elif property == 'translatable' and not supports_translation(df.get('fieldtype')):
+						frappe.msgprint(_("You can't set 'Translatable' for field {0}").format(df.label))
 						continue
 
 					self.make_property_setter(property=property, value=df.get(property),
@@ -315,7 +321,7 @@ class CustomizeForm(Document):
 			try:
 				property_value = frappe.db.get_value("DocType", self.doc_type, property_name)
 			except Exception as e:
-				if e.args[0]==1054:
+				if frappe.db.is_column_missing(e):
 					property_value = None
 				else:
 					raise
@@ -335,7 +341,8 @@ class CustomizeForm(Document):
 		if not self.doc_type:
 			return
 
-		frappe.db.sql("""delete from `tabProperty Setter` where doc_type=%s
-			and !(`field_name`='naming_series' and `property`='options')""", self.doc_type)
+		frappe.db.sql("""DELETE FROM `tabProperty Setter` WHERE doc_type=%s
+			and `field_name`!='naming_series'
+			and `property`!='options'""", self.doc_type)
 		frappe.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()

@@ -38,6 +38,13 @@ def get_data():
 				},
 				{
 					"type": "doctype",
+					"name": "User Permission",
+					"label": _("User Permissions"),
+					"icon": "fa fa-lock",
+					"description": _("Restrict user for specific document")
+				},
+				{
+					"type": "doctype",
 					"name": "Role Permission for Page and Report",
 					"description": _("Set custom roles for page and report")
 				},
@@ -95,9 +102,16 @@ def get_data():
 				{
 					"type": "doctype",
 					"name": "Data Import",
-					"label": _("Import / Export Data"),
+					"label": _("Import Data"),
 					"icon": "octicon octicon-cloud-upload",
-					"description": _("Import / Export Data from CSV and Excel files.")
+					"description": _("Import Data from CSV / Excel files.")
+				},
+				{
+					"type": "doctype",
+					"name": "Data Export",
+					"label": _("Export Data"),
+					"icon": "octicon octicon-cloud-upload",
+					"description": _("Export Data in CSV / Excel format.")
 				},
 				{
 					"type": "doctype",
@@ -150,13 +164,13 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Email Alert",
-					"description": _("Setup Email Alert based on various criteria.")
+					"name": "Notification",
+					"description": _("Setup Notifications based on various criteria.")
 				},
 				{
 					"type": "doctype",
-					"name": "Standard Reply",
-					"description": _("Standard replies to common queries.")
+					"name": "Email Template",
+					"description": _("Email Templates for common queries.")
 				},
 				{
 					"type": "doctype",

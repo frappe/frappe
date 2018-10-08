@@ -9,7 +9,10 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 			timeFormat: "hh:ii:ss",
 			startDate: frappe.datetime.now_time(true),
 			onSelect: function() {
-				me.$input.trigger('change');
+				// ignore micro seconds
+				if (moment(me.get_value(), 'hh:mm:ss').format('HH:mm:ss') != moment(me.value, 'hh:mm:ss').format('HH:mm:ss')) {
+					me.$input.trigger('change');
+				}				
 			},
 			onShow: function() {
 				$('.datepicker--button:visible').text(__('Now'));
@@ -31,7 +34,7 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 			&& ((this.last_value && this.last_value !== this.value)
 				|| (!this.datepicker.selectedDates.length))) {
 
-			var date_obj = frappe.datetime.moment_to_date_obj(moment(value, 'hh:mm:ss'));
+			var date_obj = frappe.datetime.moment_to_date_obj(moment(value, 'HH:mm:ss'));
 			this.datepicker.selectDate(date_obj);
 		}
 	},

@@ -127,12 +127,14 @@ def add_user_icon(_doctype, _report=None, label=None, link=None, type='link', st
 			frappe.session.user)[0][0] or \
 			frappe.db.sql('select count(*) from `tabDesktop Icon` where standard=1')[0][0]
 
-		module = frappe.db.get_value('DocType', _doctype, 'module')
-		module_icon = frappe.get_value('Desktop Icon', {'standard':1, 'module_name':module},
-			['name', 'icon', 'color', 'reverse'], as_dict=True)
-
 		if not frappe.db.get_value("Report", _report):
 			_report = None
+			userdefined_icon = frappe.db.get_value('DocType', _doctype, ['icon','color','module'], as_dict=True)
+		else:
+			userdefined_icon = frappe.db.get_value('Report', _report, ['icon','color','module'], as_dict=True)
+
+		module_icon = frappe.get_value('Desktop Icon', {'standard':1, 'module_name':userdefined_icon.module},
+			['name', 'icon', 'color', 'reverse'], as_dict=True)
 
 		if not module_icon:
 			module_icon = frappe._dict()
@@ -149,8 +151,8 @@ def add_user_icon(_doctype, _report=None, label=None, link=None, type='link', st
 				'type': type,
 				'_doctype': _doctype,
 				'_report': _report,
-				'icon': module_icon.icon,
-				'color': module_icon.color,
+				'icon': userdefined_icon.icon or module_icon.icon,
+				'color': userdefined_icon.color or module_icon.color,
 				'reverse': module_icon.reverse,
 				'idx': idx + 1,
 				'custom': 1,
@@ -352,7 +354,10 @@ def sync_from_app(app):
 			m['_doctype'] = m.pop('doctype')
 
 		desktop_icon.update(m)
-		desktop_icon.save()
+		try:
+			desktop_icon.save()
+		except frappe.exceptions.UniqueValidationError:
+			pass
 
 	return modules_list
 

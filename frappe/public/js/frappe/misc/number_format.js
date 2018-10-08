@@ -84,7 +84,8 @@ window.format_number = function (v, format, decimals) {
 
 	v = flt(v, decimals, format);
 
-	if (v < 0) var is_negative = true;
+	let is_negative = false;
+	if (v < 0) is_negative = true;
 	v = Math.abs(v);
 
 	v = v.toFixed(decimals);
@@ -240,3 +241,19 @@ function round_based_on_smallest_currency_fraction(value, currency, precision) {
 	}
 	return value;
 }
+
+Object.assign(window, {
+	flt,
+	cint,
+	strip_number_groups,
+	format_currency,
+	get_currency_symbol,
+	get_number_format,
+	get_number_format_info,
+	_round,
+	roundNumber,
+	precision,
+	remainder,
+	round_based_on_smallest_currency_fraction,
+	in_list
+});

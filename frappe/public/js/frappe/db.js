@@ -17,6 +17,7 @@ frappe.db = {
 			frappe.call({
 				method: 'frappe.model.db_query.get_list',
 				args: args,
+				type: 'GET',
 				callback: function(r) {
 					resolve(r.message);
 				}
@@ -33,6 +34,7 @@ frappe.db = {
 	get_value: function(doctype, filters, fieldname, callback) {
 		return frappe.call({
 			method: "frappe.client.get_value",
+			type: 'GET',
 			args: {
 				doctype: doctype,
 				fieldname: fieldname,
@@ -45,8 +47,11 @@ frappe.db = {
 	},
 	get_single_value: (doctype, field) => {
 		return new Promise(resolve => {
-			frappe.call('frappe.client.get_single_value', { doctype, field })
-				.then(r => resolve(r ? r.message : null));
+			frappe.call({
+				method: 'frappe.client.get_single_value',
+				args: { doctype, field },
+				type: 'GET',
+			}).then(r => resolve(r ? r.message : null));
 		});
 	},
 	set_value: function(doctype, docname, fieldname, value, callback) {
@@ -64,12 +69,32 @@ frappe.db = {
 		});
 	},
 	get_doc: function(doctype, name, filters = null) {
-		return new Promise(resolve => {
+		return new Promise((resolve, reject) => {
 			frappe.call({
 				method: "frappe.client.get",
+				type: 'GET',
 				args: { doctype, name, filters },
 				callback: r => resolve(r.message)
-			});
+			}).fail(reject);
+		});
+	},
+	insert: function(doc) {
+		return new Promise(resolve => {
+			frappe.call('frappe.client.insert', { doc }, r => resolve(r.message));
+		});
+	},
+	delete_doc: function(doctype, name) {
+		return new Promise(resolve => {
+			frappe.call('frappe.client.delete', { doctype, name }, r => resolve(r.message));
+		});
+	},
+	count: function(doctype, args={}) {
+		return new Promise(resolve => {
+			frappe.call({
+				method: 'frappe.client.get_count',
+				type: 'GET',
+				args: Object.assign(args, { doctype })
+			}).then(r => resolve(r.message));
 		});
 	}
 };

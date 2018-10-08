@@ -2,17 +2,46 @@ import frappe
 import json, re
 import bleach, bleach_whitelist.bleach_whitelist as bleach_whitelist
 from six import string_types
+from bs4 import BeautifulSoup
 
 def clean_html(html):
 	if not isinstance(html, string_types):
 		return html
 
-	return bleach.clean(html,
+	return bleach.clean(clean_script_and_style(html),
 		tags=['div', 'p', 'br', 'ul', 'ol', 'li', 'b', 'i', 'em',
-			'table', 'thead', 'tbody', 'td', 'tr'],
+                'table', 'thead', 'tbody', 'td', 'tr'],
 		attributes=[],
 		styles=['color', 'border', 'border-color'],
 		strip=True, strip_comments=True)
+
+def clean_email_html(html):
+	if not isinstance(html, string_types):
+		return html
+
+	return bleach.clean(clean_script_and_style(html),
+		tags=['div', 'p', 'br', 'ul', 'ol', 'li', 'b', 'i', 'em', 'a',
+			'table', 'thead', 'tbody', 'td', 'tr', 'th', 'pre', 'code',
+			'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'button', 'img'],
+		attributes=['border', 'colspan', 'rowspan',
+			'src', 'href', 'style', 'id'],
+		styles=['color', 'border-color', 'width', 'height', 'max-width',
+			'background-color', 'border-collapse', 'border-radius',
+			'border', 'border-top', 'border-bottom', 'border-left', 'border-right',
+			'margin', 'margin-top', 'margin-bottom', 'margin-left', 'margin-right',
+			'padding', 'padding-top', 'padding-bottom', 'padding-left', 'padding-right',
+			'font-size', 'font-weight', 'font-family', 'text-decoration',
+			'line-height', 'text-align', 'vertical-align'
+		],
+		protocols=['cid', 'http', 'https', 'mailto', 'data'],
+		strip=True, strip_comments=True)
+
+def clean_script_and_style(html):
+	# remove script and style
+	soup = BeautifulSoup(html, 'html5lib')
+	for s in soup(['script', 'style']):
+		s.decompose()
+	return frappe.as_unicode(soup)
 
 def sanitize_html(html, linkify=False):
 	"""
@@ -34,7 +63,8 @@ def sanitize_html(html, linkify=False):
 	strip_comments = False
 
 	# retuns html with escaped tags, escaped orphan >, <, etc.
-	escaped_html = bleach.clean(html, tags=tags, attributes=attributes, styles=styles, strip_comments=strip_comments)
+	escaped_html = bleach.clean(html, tags=tags, attributes=attributes, styles=styles,
+		strip_comments=strip_comments, protocols=['cid', 'http', 'https', 'mailto'])
 
 	if linkify:
 		escaped_html = bleach.linkify(escaped_html, callbacks=[])

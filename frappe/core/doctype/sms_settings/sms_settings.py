@@ -18,7 +18,7 @@ def validate_receiver_nos(receiver_list):
 	validated_receiver_list = []
 	for d in receiver_list:
 		# remove invalid character
-		for x in [' ', '+', '-', '(', ')']:
+		for x in [' ','-', '(', ')']:
 			d = d.replace(x, '')
 
 		validated_receiver_list.append(d)

@@ -19,11 +19,13 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 		this.set_options();
 		this.bind_checkboxes();
 		this.refresh_input();
+		this._super();
 	},
 
 	refresh_input() {
 		this.select_options(this.selected_options);
 	},
+
 
 	set_options() {
 		this.$load_state.show();
@@ -64,7 +66,10 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 		this.$load_state.hide();
 		this.$checkbox_area.empty();
 		this.options.forEach(option => {
-			this.get_checkbox_element(option).appendTo(this.$checkbox_area);
+			let checkbox = this.get_checkbox_element(option).appendTo(this.$checkbox_area);
+			if (option.danger) {
+				checkbox.find('.label-area').addClass('text-danger');
+			}
 		});
 		if(this.df.select_all) {
 			this.setup_select_all();
@@ -77,6 +82,7 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 			const $checkbox = $(e.target);
 			const option_name = $checkbox.attr("data-unit");
 			if($checkbox.is(':checked')) {
+				if(this.selected_options.includes(option_name)) return;
 				this.selected_options.push(option_name);
 			} else {
 				let index = this.selected_options.indexOf(option_name);
@@ -139,10 +145,16 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 	},
 
 	get_select_buttons() {
-		return $(`<div><button class="btn btn-xs btn-default select-all">
-			${__("Select All")}</button>
+		return $(`
+		<div class="bulk-select-options">
+			<button class="btn btn-xs btn-default select-all">
+				${__("Select All")}
+			</button>
 			<button class="btn btn-xs btn-default deselect-all">
-		${__("Unselect All")}</button></div>`);
+			${__("Unselect All")}
+			</button>
+		</div>
+		`);
 	},
 
 	get_column_size() {

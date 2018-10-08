@@ -94,7 +94,7 @@ frappe.get_gravatar = function(email_id, size = 0) {
 
 // string commons
 
-function repl(s, dict) {
+window.repl =function repl(s, dict) {
 	if(s==null)return '';
 	for(var key in dict) {
 		s = s.split("%("+key+")s").join(dict[key]);
@@ -102,15 +102,15 @@ function repl(s, dict) {
 	return s;
 }
 
-function replace_all(s, t1, t2) {
+window.replace_all = function(s, t1, t2) {
 	return s.split(t1).join(t2);
 }
 
-function strip_html(txt) {
+window.strip_html = function(txt) {
 	return txt.replace(/<[^>]*>/g, "");
 }
 
-var strip = function(s, chars) {
+window.strip = function(s, chars) {
 	if (s) {
 		var s= lstrip(s, chars)
 		s = rstrip(s, chars);
@@ -118,7 +118,7 @@ var strip = function(s, chars) {
 	}
 }
 
-var lstrip = function(s, chars) {
+window.lstrip = function lstrip(s, chars) {
 	if(!chars) chars = ['\n', '\t', ' '];
 	// strip left
 	var first_char = s.substr(0,1);
@@ -129,7 +129,7 @@ var lstrip = function(s, chars) {
 	return s;
 }
 
-var rstrip = function(s, chars) {
+window.rstrip = function(s, chars) {
 	if(!chars) chars = ['\n', '\t', ' '];
 	var last_char = s.substr(s.length-1);
 	while(in_list(chars, last_char)) {
@@ -139,13 +139,11 @@ var rstrip = function(s, chars) {
 	return s;
 }
 
-function getCookie(name) {
-	return getCookies()[name];
+frappe.get_cookie = function getCookie(name) {
+	return frappe.get_cookies()[name];
 }
 
-frappe.get_cookie = getCookie;
-
-function getCookies() {
+frappe.get_cookies = function getCookies() {
 	var c = document.cookie, v = 0, cookies = {};
 	if (document.cookie.match(/^\s*\$Version=(?:"1"|1);\s*(.*)/)) {
 		c = RegExp.$1;
@@ -172,26 +170,6 @@ function getCookies() {
 	}
 	return cookies;
 }
-
-if (typeof String.prototype.trimLeft !== "function") {
-	String.prototype.trimLeft = function() {
-		return this.replace(/^\s+/, "");
-	};
-}
-if (typeof String.prototype.trimRight !== "function") {
-	String.prototype.trimRight = function() {
-		return this.replace(/\s+$/, "");
-	};
-}
-if (typeof Array.prototype.map !== "function") {
-	Array.prototype.map = function(callback, thisArg) {
-		for (var i=0, n=this.length, a=[]; i<n; i++) {
-			if (i in this) a[i] = callback.call(thisArg, this[i]);
-		}
-		return a;
-	};
-}
-
 
 frappe.palette = [
 	['#FFC4C4', 0],

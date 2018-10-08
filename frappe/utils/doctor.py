@@ -56,7 +56,7 @@ def get_jobs_by_queue(site=None):
 		consolidated_methods = {}
 
 		for method in jobs_per_queue[queue]:
-			if method not in consolidated_methods.keys():
+			if method not in list(consolidated_methods):
 				consolidated_methods[method] = 1
 			else:
 				consolidated_methods[method] += 1

@@ -29,47 +29,47 @@ class TestDesktopIcon(unittest.TestCase):
 		return None
 
 	def test_get_standard_desktop_icon_for_user(self):
-		self.assertEquals(self.get_icon('Desk').standard, 1)
+		self.assertEqual(self.get_icon('Desk').standard, 1)
 
 	def test_add_desktop_icon(self):
-		self.assertEquals(self.get_icon('User'), None)
+		self.assertEqual(self.get_icon('User'), None)
 		add_user_icon('User')
 
 		icon = self.get_icon('User')
-		self.assertEquals(icon.custom, 1)
-		self.assertEquals(icon.standard, 0)
+		self.assertEqual(icon.custom, 1)
+		self.assertEqual(icon.standard, 0)
 
 	def test_hide_desktop_icon(self):
 		set_hidden_list(["Desk"], 'test@example.com')
 
 		icon = self.get_icon('Desk')
-		self.assertEquals(icon.hidden, 1)
-		self.assertEquals(icon.standard, 0)
+		self.assertEqual(icon.hidden, 1)
+		self.assertEqual(icon.standard, 0)
 
 	def test_remove_custom_desktop_icon_on_hidden(self):
 		self.test_add_desktop_icon()
 		set_hidden_list(['User'], 'test@example.com')
 
 		icon = self.get_icon('User')
-		self.assertEquals(icon, None)
+		self.assertEqual(icon, None)
 
 	def test_show_desktop_icon(self):
 		self.test_hide_desktop_icon()
 		set_hidden_list([], 'test@example.com')
 
 		icon = self.get_icon('Desk')
-		self.assertEquals(icon.hidden, 0)
-		self.assertEquals(icon.standard, 0)
+		self.assertEqual(icon.hidden, 0)
+		self.assertEqual(icon.standard, 0)
 
 	def test_globally_hidden_desktop_icon(self):
 		set_hidden_list(["Desk"])
 
 		icon = self.get_icon('Desk')
-		self.assertEquals(icon.hidden, 1)
+		self.assertEqual(icon.hidden, 1)
 
 		frappe.set_user('test1@example.com')
 		icon = self.get_icon('Desk')
-		self.assertEquals(icon.hidden, 1)
+		self.assertEqual(icon.hidden, 1)
 
 	def test_re_order_desktop_icons(self):
 		icons = [d.module_name for d in get_desktop_icons()]
@@ -80,8 +80,8 @@ class TestDesktopIcon(unittest.TestCase):
 		icons = [d.module_name for d in get_desktop_icons()]
 
 		# check switched order
-		self.assertEquals(icons[0], m1)
-		self.assertEquals(icons[1], m0)
+		self.assertEqual(icons[0], m1)
+		self.assertEqual(icons[1], m0)
 
 	def test_block_desktop_icons_for_user(self):
 		def test_unblock():
@@ -90,7 +90,7 @@ class TestDesktopIcon(unittest.TestCase):
 			user.save(ignore_permissions = 1)
 
 			icon = self.get_icon('Desk')
-			self.assertEquals(icon.hidden, 0)
+			self.assertEqual(icon.hidden, 0)
 
 		test_unblock()
 
@@ -100,7 +100,7 @@ class TestDesktopIcon(unittest.TestCase):
 		clear_desktop_icons_cache(user.name)
 
 		icon = self.get_icon('Desk')
-		self.assertEquals(icon.hidden, 1)
+		self.assertEqual(icon.hidden, 1)
 
 		test_unblock()
 

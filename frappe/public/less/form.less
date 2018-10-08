@@ -352,6 +352,12 @@ h6.uppercase, .h6.uppercase {
 	}
 }
 
+.timeline-item[data-communication-type="Comment"] {
+	.reply {
+		background-color: @light-yellow;
+	}
+}
+
 .timeline-items {
 	position: relative;
 }
@@ -378,6 +384,10 @@ h6.uppercase, .h6.uppercase {
 	.timeline::before {
 		bottom: -64px;
 	}
+}
+
+.timeline-item .media-body {
+	max-width: 100%;
 }
 
 .timeline-item.user-content {
@@ -602,6 +612,10 @@ h6.uppercase, .h6.uppercase {
 	}
 }
 
+.timeline-futur span{
+	color: @orange !important;
+}
+
 .signature-field {
 	min-height: 300px;
 	background: #fff;
@@ -671,7 +685,7 @@ h6.uppercase, .h6.uppercase {
 
 .disabled-check {
 	color: @navbar-bg;
-	margin-right: 3px;
+	margin-right: 5px;
 	margin-bottom: -2px;
 }
 

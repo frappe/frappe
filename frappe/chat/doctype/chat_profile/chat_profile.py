@@ -76,9 +76,15 @@ def create(user, exists_ok = False, fields = None):
 
     exists_ok, fields = safe_json_loads(exists_ok, fields)
 
-    if frappe.db.exists('Chat Profile', user):
+    result = frappe.db.sql("""
+        SELECT *
+        FROM `tabChat Profile`
+        WHERE `user` = '{user}'
+    """.format(user = user))
+
+    if result:
         if not exists_ok:
-            frappe.throw(_('Chat Profile for User {user} exists.'.format(user = user)))
+            frappe.throw(_('Chat Profile for User {0} exists.').format(user))
     else:
         dprof      = frappe.new_doc('Chat Profile')
         dprof.user = user

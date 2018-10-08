@@ -26,13 +26,14 @@ Design:
 """
 
 import frappe
+from frappe.utils.global_search import update_global_search
 
 def check_user_tags(dt):
 	"if the user does not have a tags column, then it creates one"
 	try:
 		frappe.db.sql("select `_user_tags` from `tab%s` limit 1" % dt)
 	except Exception as e:
-		if e.args[0] == 1054:
+		if frappe.db.is_column_missing(e):
 			DocTags(dt).setup()
 
 @frappe.whitelist()
@@ -61,11 +62,11 @@ def get_tags(doctype, txt, cat_tags):
 	try:
 		for _user_tags in frappe.db.sql_list("""select DISTINCT `_user_tags`
 			from `tab{0}`
-			where _user_tags like '%{1}%'
-			limit 50""".format(frappe.db.escape(doctype), frappe.db.escape(txt))):
+			where _user_tags like {1}
+			limit 50""".format(doctype, frappe.db.escape('%' + txt + '%'))):
 			tags.extend(_user_tags[1:].split(","))
 	except Exception as e:
-		if e.args[0]!=1054: raise
+		if not frappe.db.is_column_missing(e): raise
 	return sorted(filter(lambda t: t and txt.lower() in t.lower(), list(set(tags))))
 
 class DocTags:
@@ -108,8 +109,10 @@ class DocTags:
 		try:
 			frappe.db.sql("update `tab%s` set _user_tags=%s where name=%s" % \
 				(self.dt,'%s','%s'), (tags , dn))
+			doc= frappe.get_doc(self.dt, dn)
+			update_global_search(doc)
 		except Exception as e:
-			if e.args[0]==1054:
+			if frappe.db.is_column_missing(e):
 				if not tags:
 					# no tags, nothing to do
 					return
@@ -120,5 +123,5 @@ class DocTags:
 
 	def setup(self):
 		"""adds the _user_tags column if not exists"""
-		from frappe.model.db_schema import add_column
+		from frappe.database.schema import add_column
 		add_column(self.dt, "_user_tags", "Data")

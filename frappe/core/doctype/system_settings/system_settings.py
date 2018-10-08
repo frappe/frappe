@@ -33,6 +33,7 @@ class SystemSettings(Document):
 			toggle_two_factor_auth(True, roles=['All'])
 		else:
 			self.bypass_2fa_for_retricted_ip_users = 0
+			self.bypass_restrict_ip_check_if_2fa_enabled = 0
 
 	def on_update(self):
 		for df in self.meta.get("fields"):

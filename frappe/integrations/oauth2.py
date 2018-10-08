@@ -130,7 +130,7 @@ def get_token(*args, **kwargs):
 			}
 			import jwt
 			id_token_encoded = jwt.encode(id_token, client_secret, algorithm='HS256', headers=id_token_header)
-			out.update({"id_token":id_token_encoded})
+			out.update({"id_token":str(id_token_encoded)})
 		frappe.local.response = out
 
 	except FatalClientError as e:

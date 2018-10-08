@@ -71,8 +71,8 @@
 		 	$("#comment-form").toggle();
             var full_name = "", user_id = "";
             if(frappe.is_user_logged_in()) {
-                full_name = getCookie("full_name");
-                user_id = getCookie("user_id");
+                full_name = frappe.get_cookie("full_name");
+                user_id = frappe.get_cookie("user_id");
                 if(user_id != "Guest") {
         			$("[name='comment_by']").val(user_id);
         			$("[name='comment_by_fullname']").val(full_name);
@@ -97,7 +97,7 @@
 				return false;
 			}
 
-			if (args.comment_by!=='Administrator' && !valid_email(args.comment_by)) {
+			if (args.comment_by!=='Administrator' && !validate_email(args.comment_by)) {
 				frappe.msgprint("{{ _("Please enter a valid email address.") }}");
 				return false;
 			}

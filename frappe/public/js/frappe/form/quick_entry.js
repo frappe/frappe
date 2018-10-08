@@ -38,9 +38,15 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 	},
 
 	set_meta_and_mandatory_fields: function(){
-		// prepare a list of mandatory and bold fields
-		this.mandatory = $.map(frappe.get_meta(this.doctype).fields,
-			function(d) { return (d.reqd || d.bold && !d.read_only) ? $.extend({}, d) : null; });
+		let fields = frappe.get_meta(this.doctype).fields;
+		if (fields.length < 7) {
+			// if less than 7 fields, then show everything
+			this.mandatory = fields;
+		} else {
+			// prepare a list of mandatory and bold fields
+			this.mandatory = $.map(fields,
+				function(d) { return ((d.reqd || d.bold || d.allow_in_quick_entry) && !d.read_only) ? $.extend({}, d) : null; });
+		}
 		this.meta = frappe.get_meta(this.doctype);
 		if (!this.doc) {
 			this.doc = frappe.model.get_new_doc(this.doctype, null, null, true);
@@ -54,7 +60,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 
 		this.validate_for_prompt_autoname();
 
-		if (this.too_many_mandatory_fields() || this.has_child_table()
+		if (this.has_child_table()
 			|| !this.mandatory.length) {
 			return false;
 		}
@@ -128,7 +134,10 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 
 			if(data) {
 				me.dialog.working = true;
-				me.insert();
+				me.dialog.set_message(__('Saving...'));
+				me.insert().then(() => {
+					me.dialog.clear_message();
+				});
 			}
 		});
 	},
@@ -183,8 +192,13 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		var me = this;
 		var data = this.dialog.get_values(true);
 		$.each(data, function(key, value) {
-			if(!is_null(value)) {
-				me.dialog.doc[key] = value;
+			if(key==='__newname') {
+				me.dialog.doc.name = value;
+			}
+			else {
+				if(!is_null(value)) {
+					me.dialog.doc[key] = value;
+				}
 			}
 		});
 		return this.dialog.doc;
@@ -198,7 +212,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 
 	render_edit_in_full_page_link: function(){
 		var me = this;
-		var $link = $('<div style="padding-left: 7px; padding-top: 15px; padding-bottom: 10px;">' +
+		var $link = $('<div style="padding-left: 7px; padding-top: 30px; padding-bottom: 10px;">' +
 			'<button class="edit-full btn-default btn-sm">' + __("Edit in full page") + '</button></div>').appendTo(this.dialog.body);
 
 		$link.find('.edit-full').on('click', function() {

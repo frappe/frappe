@@ -61,7 +61,7 @@ $.extend(frappe.model, {
 		if(frappe.route_options && !doc.parent) {
 			$.each(frappe.route_options, function(fieldname, value) {
 				var df = frappe.meta.has_field(doctype, fieldname);
-				if(df && in_list(['Link', 'Data', 'Select'], df.fieldtype) && !df.no_copy) {
+				if(df && in_list(['Link', 'Data', 'Select', 'Dynamic Link'], df.fieldtype) && !df.no_copy) {
 					doc[fieldname]=value;
 				}
 			});
@@ -137,8 +137,8 @@ $.extend(frappe.model, {
 			// 1 - look in user permissions for document_type=="Setup".
 			// We don't want to include permissions of transactions to be used for defaults.
 			if (df.linked_document_type==="Setup"
-				&& has_user_permissions && user_permissions[df.options].length===1) {
-				return user_permissions[df.options][0];
+				&& has_user_permissions && user_permissions[df.options].docs.length===1) {
+				return user_permissions[df.options].docs[0];
 			}
 
 			if(!df.ignore_user_permissions) {
@@ -159,7 +159,7 @@ $.extend(frappe.model, {
 			}
 
 			var is_allowed_user_default = user_default &&
-				(!has_user_permissions || user_permissions[df.options].indexOf(user_default)!==-1);
+				(!has_user_permissions || user_permissions[df.options].docs.indexOf(user_default)!==-1);
 
 			// is this user default also allowed as per user permissions?
 			if (is_allowed_user_default) {
@@ -184,7 +184,7 @@ $.extend(frappe.model, {
 
 			} else if (df["default"][0]===":") {
 				var boot_doc = frappe.model.get_default_from_boot_docs(df, doc, parent_doc);
-				var is_allowed_boot_doc = !has_user_permissions || user_permissions[df.options].indexOf(boot_doc)!==-1;
+				var is_allowed_boot_doc = !has_user_permissions || user_permissions[df.options].docs.indexOf(boot_doc)!==-1;
 
 				if (is_allowed_boot_doc) {
 					return boot_doc;
@@ -195,7 +195,7 @@ $.extend(frappe.model, {
 			}
 
 			// is this default value is also allowed as per user permissions?
-			var is_allowed_default = !has_user_permissions || user_permissions[df.options].indexOf(df["default"])!==-1;
+			var is_allowed_default = !has_user_permissions || user_permissions[df.options].docs.indexOf(df["default"])!==-1;
 			if (df.fieldtype!=="Link" || df.options==="User" || is_allowed_default) {
 				return df["default"];
 			}
@@ -301,6 +301,7 @@ $.extend(frappe.model, {
 			args: {
 				method: opts.method,
 				source_name: opts.source_name,
+				args: opts.args || null,
 				selected_children: opts.frm ? opts.frm.get_selected() : null
 			},
 			freeze: true,
