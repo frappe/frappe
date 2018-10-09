@@ -84,6 +84,9 @@ const Post = {
 		})
 		frappe.realtime.on('update_liked_by' + this.post.name, this.update_liked_by)
 
+		this.$root.$on('user_image_updated', () => {
+			this.user_avatar = frappe.avatar(this.post.owner, 'avatar-medium')
+		})
 	},
 	methods: {
 		goto_profile(user) {

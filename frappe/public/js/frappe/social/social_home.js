@@ -79,11 +79,13 @@ frappe.social.update_user_image = new frappe.ui.Dialog({
 			default: frappe.user.image()
 		},
 	],
-	primary_action_label: __('Upload'),
+	primary_action_label: __('Set Image'),
 	primary_action: () => {
 		const values = frappe.social.update_user_image.get_values();
 		frappe.db.set_value('User', frappe.session.user, 'user_image', values.image)
-			.then(() => {
+			.then((resp) => {
+				frappe.boot.user_info[frappe.session.user].image = resp.message.user_image;
+				frappe.app_updates.trigger('user_image_updated');
 				frappe.social.update_user_image.clear();
 				frappe.social.update_user_image.hide();
 			})
@@ -92,3 +94,7 @@ frappe.social.update_user_image = new frappe.ui.Dialog({
 			});
 	}
 });
+
+frappe.provide('frappe.app_updates');
+
+frappe.utils.make_event_emitter(frappe.app_updates);

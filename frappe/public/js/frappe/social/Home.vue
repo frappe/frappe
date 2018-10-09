@@ -35,9 +35,14 @@ export default {
 			this.preview_image_src = src;
 			this.show_preview = true;
 		})
+
 		this.$root.$on('hide_preview', () => {
 			this.preview_image_src = '';
 			this.show_preview = false;
+		})
+
+		frappe.app_updates.on('user_image_updated', () => {
+			this.$root.$emit('user_image_updated')
 		})
 	},
 	mounted() {

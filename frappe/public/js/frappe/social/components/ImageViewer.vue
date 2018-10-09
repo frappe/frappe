@@ -1,6 +1,10 @@
 <template>
 	<div class="backdrop">
-		<img :src="src" :class="{'psuedo-zoom': full_size}" @dblclick="full_size = !full_size">
+		<img
+			:src="src"
+			:class="{'psuedo-zoom': full_size}"
+			@dblclick="full_size = !full_size"
+		/>
 		<i class="fa fa-close close" @click="$root.$emit('hide_preview')"></i>
 	</div>
 </template>
