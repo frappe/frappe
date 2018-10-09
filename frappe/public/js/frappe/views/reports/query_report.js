@@ -318,6 +318,11 @@ frappe.views.QueryReport = Class.extend({
 				if(df.get_query) f.get_query = df.get_query;
 				if(df.on_change) f.on_change = df.on_change;
 				df.onchange = () => {
+					if (me.previous_filters 
+						&& (JSON.stringify(me.previous_filters) == JSON.stringify(me.get_values()))) {
+						return;
+					}
+					me.previous_filters = me.get_values();
 					if(!me.flags.filters_set) {
 						// don't trigger change while setting filters
 						return;
