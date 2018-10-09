@@ -67,3 +67,28 @@ frappe.social.post_reply_dialog.set_primary_action(__('Reply'), () => {
 		frappe.social.post_reply_dialog.hide();
 	});
 });
+
+frappe.social.update_user_image = new frappe.ui.Dialog({
+	title: __("User Image"),
+	fields: [
+		{
+			fieldtype: "Attach Image",
+			fieldname: "image",
+			label: __("Image"),
+			reqd: 1,
+			default: frappe.user.image()
+		},
+	],
+	primary_action_label: __('Upload'),
+	primary_action: () => {
+		const values = frappe.social.update_user_image.get_values();
+		frappe.db.set_value('User', frappe.session.user, 'user_image', values.image)
+			.then(() => {
+				frappe.social.update_user_image.clear();
+				frappe.social.update_user_image.hide();
+			})
+			.fail((err) => {
+				frappe.msgprint(err);
+			});
+	}
+});
