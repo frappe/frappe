@@ -63,6 +63,38 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				});
 			}
 		});
+
+		// table commands
+		this.$wrapper.on('click', '.ql-table .ql-picker-item', (e) => {
+			const $target = $(e.currentTarget);
+			const action = $target.data().value;
+			e.preventDefault();
+
+			const table = this.quill.getModule('table');
+			if (action === 'insert-table') {
+				table.insertTable(2, 2);
+			} else if (action === 'insert-row-above') {
+				table.insertRowAbove();
+			} else if (action === 'insert-row-below') {
+				table.insertRowBelow();
+			} else if (action === 'insert-column-left') {
+				table.insertColumnLeft();
+			} else if (action === 'insert-column-right') {
+				table.insertColumnRight();
+			} else if (action === 'delete-row') {
+				table.deleteRow();
+			} else if (action === 'delete-column') {
+				table.deleteColumn();
+			} else if (action === 'delete-table') {
+				table.deleteTable();
+			}
+
+			if (action !== 'delete-row') {
+				table.balanceTables();
+			}
+
+			e.preventDefault();
+		})
 	},
 
 	is_quill_dirty(source) {
@@ -75,7 +107,8 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		return {
 			modules: {
 				toolbar: this.get_toolbar_options(),
-				imageDrop: true
+				imageDrop: true,
+				table: true
 			},
 			theme: 'snow'
 		};
@@ -90,6 +123,16 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			[{ 'list': 'ordered' }, { 'list': 'bullet' }],
 			[{ 'align': [] }],
 			[{ 'indent': '-1'}, { 'indent': '+1' }],
+			[{'table': [
+				'insert-table',
+				'insert-row-above',
+				'insert-row-below',
+				'insert-column-right',
+				'insert-column-left',
+				'delete-row',
+				'delete-column',
+				'delete-table',
+			]}],
 			['clean']
 		];
 	},

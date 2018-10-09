@@ -71,3 +71,40 @@
     padding: 2px 3px;
     background-color: @btn-bg;
 }
+
+// table
+
+.ql-table {
+    width: 66px;
+
+    .ql-picker-label::before {
+        content: 'Table';
+    }
+
+    .ql-picker-options {
+        [data-value='insert-table']::before {
+            content: 'Insert Table';
+        }
+        [data-value='insert-row-above']::before {
+            content: 'Insert Row Above';
+        }
+        [data-value='insert-row-below']::before {
+            content: 'Insert Row Below';
+        }
+        [data-value='insert-column-right']::before {
+            content: 'Insert Column Right';
+        }
+        [data-value='insert-column-left']::before {
+            content: 'Insert Column Left';
+        }
+        [data-value='delete-row']::before {
+            content: 'Delete Row';
+        }
+        [data-value='delete-column']::before {
+            content: 'Delete Column';
+        }
+        [data-value='delete-table']::before {
+            content: 'Delete Table';
+        }
+    }
+}

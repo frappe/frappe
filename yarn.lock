@@ -1011,6 +1011,11 @@ eventemitter3@^2.0.3:
   resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-2.0.3.tgz#b5e1079b59fb5e1ba2771c0a993be060a58c99ba"
   integrity sha1-teEHm1n7XhuidxwKmTvgYKWMmbo=
 
+eventemitter3@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-3.1.0.tgz#090b4d6cdbd645ed10bf750d4b5407942d7ba163"
+  integrity sha512-ivIvhpq/Y0uSjcHDcOIccjmYjGLcP09MFGE7ysAwkAvkXfpZlC985pH2/ui64DKazbTW/4kN3yqozUxlXzI6cA==
+
 execa@^0.7.0:
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/execa/-/execa-0.7.0.tgz#944becd34cc41ee32a63a9faf27ad5a65fc59777"
@@ -2459,6 +2464,10 @@ parchment@^1.1.4:
   resolved "https://registry.yarnpkg.com/parchment/-/parchment-1.1.4.tgz#aeded7ab938fe921d4c34bc339ce1168bc2ffde5"
   integrity sha512-J5FBQt/pM2inLzg4hEWmzQx/8h8D0CiDxaG3vyp9rKrQRSDgBlhjdP5jQGgosEajXPSQouXGHOmVdgo7QmJuOg==
 
+parchment@quilljs/parchment#487850f7eb030a6c4e750ba809e58b09444e0bdb:
+  version "2.0.0-dev"
+  resolved "https://codeload.github.com/quilljs/parchment/tar.gz/487850f7eb030a6c4e750ba809e58b09444e0bdb"
+
 parse-glob@^3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/parse-glob/-/parse-glob-3.0.4.tgz#b2c376cfb11f35513badd173ef0bb6e3a388391c"
@@ -3034,7 +3043,19 @@ quill-mention@^2.0.2:
   dependencies:
     quill "^1.3.4"
 
-quill@^1.2.2, quill@^1.3.4, quill@^1.3.6:
+quill@2.0.0-dev.2:
+  version "2.0.0-dev.2"
+  resolved "https://registry.yarnpkg.com/quill/-/quill-2.0.0-dev.2.tgz#0f8bc962da28e3ebbb856f246200e7d32e39fc9f"
+  integrity sha512-jqP2ar0EaPZLLyeYmyJ01l07+l3NKjUiq79i7OQiYv7Rm3wHTaejgq2oIqmXUCZjGQd2f5jlFUABkf8quZVcIw==
+  dependencies:
+    clone "^2.1.1"
+    deep-equal "^1.0.1"
+    eventemitter3 "^3.1.0"
+    extend "^3.0.1"
+    parchment quilljs/parchment#487850f7eb030a6c4e750ba809e58b09444e0bdb
+    quill-delta "^3.6.2"
+
+quill@^1.2.2, quill@^1.3.4:
   version "1.3.6"
   resolved "https://registry.yarnpkg.com/quill/-/quill-1.3.6.tgz#99f4de1fee85925a0d7d4163b6d8328f23317a4d"
   integrity sha512-K0mvhimWZN6s+9OQ249CH2IEPZ9JmkFuCQeHAOQax3EZ2nDJ3wfGh59mnlQaZV2i7u8eFarx6wAtvQKgShojug==
