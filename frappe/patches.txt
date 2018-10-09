@@ -228,3 +228,4 @@ frappe.patches.v11_0.rename_google_maps_doctype
 frappe.patches.v10_0.modify_smallest_currency_fraction
 frappe.patches.v10_0.enhance_security
 frappe.patches.v11_0.multiple_references_in_events
+frappe.patches.v11_0.set_allow_self_approval_in_workflow
