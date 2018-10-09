@@ -8,6 +8,25 @@ const Block = Quill.import('blots/block');
 Block.tagName = 'DIV';
 Quill.register(Block, true);
 
+// table
+const Table = Quill.import('formats/table-container');
+Table.className = 'table';
+Quill.register(Table, true);
+
+// inline style
+const BackgroundStyle = Quill.import('attributors/style/background');
+const ColorStyle = Quill.import('attributors/style/color');
+const SizeStyle = Quill.import('attributors/style/size');
+const FontStyle = Quill.import('attributors/style/font');
+const AlignStyle = Quill.import('attributors/style/align');
+const DirectionStyle = Quill.import('attributors/style/direction');
+Quill.register(BackgroundStyle, true);
+Quill.register(ColorStyle, true);
+Quill.register(SizeStyle, true);
+Quill.register(FontStyle, true);
+Quill.register(AlignStyle, true);
+Quill.register(DirectionStyle, true);
+
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_input() {
 		this.has_input = true;
@@ -94,7 +113,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			}
 
 			e.preventDefault();
-		})
+		});
 	},
 
 	is_quill_dirty(source) {
