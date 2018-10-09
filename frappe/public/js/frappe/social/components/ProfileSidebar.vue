@@ -4,19 +4,19 @@
 		<div class="user-details">
 			<h3>{{ user.fullname }}</h3>
 			<p class="text-muted">{{ user.bio }}</p>
-			<p class="text-muted">{{user.location}}</p>
+			<p class="text-muted">{{ user.location }}</p>
 			
 			<h5>Interest</h5>
-			<p class="text-muted">{{user.interest}}</p>
+			<p class="text-muted">{{ user.interest }}</p>
 
 			<div class="stats">
 				<div @click="change_list('posts')">
 				<h5 >Posts</h5>
 				<p>{{ post_count }}</p> 
 				</div>
-				<div @click="change_list('likes')">
+				<div v-if='is_own_profile' @click="change_list('likes')">
 					<h5 >Likes</h5>
-					<p>{{likes_count}}</p> 
+					<p>{{ likes_count }}</p> 
 				</div>
 			</div>
 		</div>
@@ -26,15 +26,14 @@
 export default {
 	props: {
 		'user_id': String,
-		'my_posts': Array ,
 		'my_liked_posts': Array,
-		'isActive' : Boolean
+		'my_posts': Array 
 	},
 	data() {
 		return {
 			'post_count': 0,
 			'likes_count': 0,
-			'isUser': false
+			'is_own_profile': this.user_id === frappe.session.user
 		}
 	},
 	created() {
@@ -65,9 +64,6 @@ export default {
 		},
 		user() {
 			return frappe.user_info(this.user_id)
-		},
-		check_user_perm()
-		{	this.isUser = this.user_id == frappe.session.user? true:false; 
 		}	
 	}
 }

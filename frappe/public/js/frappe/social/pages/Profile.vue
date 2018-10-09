@@ -6,18 +6,17 @@
 			class="col-md-3">	
 		</profile-sidebar>
 
-	
 		<div class="post-container col-md-5">
 			<div v-if="current_list === 'posts'">
-				<h3>{{current_list}}</h3>	
+				<h3>{{ current_list }}</h3>	
 				<div v-for="post in get_posts" :key="post.name" > 
-					<post v-if="!post.is_pinned" :post="post"></post>
+					<post v-if="is_own_pinned(post)" :post="post"></post>
 				</div>
 			</div>
 			<div v-else-if="current_list === 'likes'">
-				<h3>{{current_list}}</h3>	
+				<h3>{{ current_list }}</h3>	
 				<div v-for="post in get_liked_posts" :key="post.name" >
-					<post v-if="!post.is_pinned" :post="post"></post>
+					<post v-if="is_own_pinned(post)" :post="post"></post>
 				</div>
 			</div>	
 		</div>
@@ -41,44 +40,45 @@ export default {
 	data() {
 		return {
 			user_id: '',
-			posts: [],
-			current_list: 'posts'
-			
+			current_list: 'posts',
+			profile_data: {}
 		}
 	},
 	created() {
 		this.user_id = frappe.get_route()[2];
-		this.set_user_posts();
+		this.get_profile_data();
 	},
 	computed: {
-		pinned_posts() {
-		 	return this.posts.filter((post) => post.is_pinned&&post.owner===this.user_id)
-		},
-		get_posts(){
-			return this.posts.filter((post) => post.owner === this.user_id)
+		get_posts() {
+			return this.profile_data.user_posts
 		}, 
+		pinned_posts() {
+			const posts = this.profile_data.user_posts || [];
+			return posts.filter((post) => post.is_pinned && post.owner === this.user_id)
+		},
 		get_liked_posts(){
-			return this.posts.filter((post) => post.liked_by.includes(this.user_id))
+			return this.profile_data.liked_posts
 		}
 		
 	},
 	methods: {
-		set_user_posts() {
-			frappe.db.get_list('Post', {
-				fields: ['name', 'content', 'owner', 'creation', 'liked_by', 'is_pinned'],
-				order_by: 'creation desc',
-			}).then((posts) => {
-				this.posts = posts;
+		get_profile_data() {
+			frappe.xcall('frappe.social.doctype.post.post.set_profile_data', {
+				post_user: this.user_id
+			}).then(posts_obj => {
+				this.profile_data = posts_obj;
 			})
 		},
-		switch_list(name){
-			this.current_list = name;
-		},
+		is_own_pinned(post) {
+			return !(post.is_pinned && post.owner === this.user_id);
+		},	
+		switch_list(name) {
+			this.current_list = name;	
+		}				
+
 	}
 }
 </script>
-<<<<<<< HEAD
-=======
 <style lang="less" scoped>
 .post-container {
 	padding: 10px;
@@ -91,4 +91,3 @@ export default {
 
 </style>
 
->>>>>>> profile: likes, post and pinned post
