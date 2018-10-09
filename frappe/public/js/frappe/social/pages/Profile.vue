@@ -1,11 +1,12 @@
 <template>
-	<div>
-		<profile-sidebar :user_id="user_id" class="col-md-3"></profile-sidebar>
-		<div class="col-md-5 post-container">
+	<div class="profile-container">
+		<profile-sidebar class="profile-sidebar" :user_id="user_id"></profile-sidebar>
+		<div class="post-container">
 			<div v-for="post in my_posts" :key="post.name">
 				<post :post="post"></post>
 			</div>
 		</div>
+		<div class="pinned-posts"></div>
 	</div>
 </template>
 <script>
@@ -46,9 +47,3 @@ export default {
 	}
 }
 </script>
-<style lang="less" scoped>
-.post-container {
-	padding: 10px;
-}
-</style>
-

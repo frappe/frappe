@@ -12,7 +12,7 @@
 			<div v-show="loading_old_posts" class="text-center padding">Loading old posts</div>
 			<div v-show="!more_posts_available" class="text-center padding">That's all folks</div>
 		</div>
-		<div class="action-card-container hidden-xs">
+		<div class="pinned-posts hidden-xs">
 			<div class="muted-title padding"><i class="fa fa-thumb-tack">&nbsp;</i> Pinned Posts </div>
 			<div v-for="post in pinned_posts" :key="post.name">
 				<post :post="post"></post>
