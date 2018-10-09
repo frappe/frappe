@@ -84,7 +84,7 @@ frappe.call = function(opts) {
 		btn: opts.btn,
 		freeze: opts.freeze,
 		freeze_message: opts.freeze_message,
-		headers: opts.headers,
+		headers: opts.headers || {},
 		// show_spinner: !opts.no_spinner,
 		async: opts.async,
 		url: opts.url || frappe.request.url,
@@ -186,7 +186,7 @@ frappe.request.call = function(opts) {
 		type: opts.type,
 		dataType: opts.dataType || 'json',
 		async: opts.async,
-		headers: $.extend({
+		headers: Object.assign({
 			"X-Frappe-CSRF-Token": frappe.csrf_token,
 			"Accept": "application/json"
 		}, opts.headers),
