@@ -54,7 +54,7 @@ const Post = {
 			replies: [],
 			show_replies: false,
 			is_globally_pinnable: !this.post.reply_to && frappe.user_roles.includes('System Manager'),
-			is_pinnable: !this.post.reply_to && this.post.owner === frappe.session.user
+			is_pinnable: !this.post.reply_to && frappe.get_route()[2] === frappe.session.user
 
 		}
 	},
