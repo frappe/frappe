@@ -117,9 +117,7 @@ frappe.ready(function() {
 			callback: function(data) {
 				if(!data.exc) {
 					frappe.doc_name = data.message.name;
-					if(!frappe.login_required) {
-						show_success_message();
-					}
+					show_success_message();
 
 					if(frappe.is_new && frappe.login_required) {
 						// reload page (with ID)
