@@ -129,7 +129,7 @@ def get_items(parentfield):
 		where parent='Website Settings' and parentfield= %s
 		order by idx asc""", parentfield, as_dict=1)
 
-	top_items = [d for d in all_top_items if not d['parent_label']]
+	top_items = [d for d in all_top_items]
 
 	# attach child items to top bar
 	for d in all_top_items:
