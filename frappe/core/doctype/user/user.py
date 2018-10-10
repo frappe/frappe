@@ -15,6 +15,7 @@ import re
 from frappe.limits import get_limits
 from frappe.website.utils import is_signup_enabled
 from frappe.utils.background_jobs import enqueue
+from six import string_types
 
 STANDARD_USERS = ("Guest", "Administrator")
 
@@ -801,9 +802,8 @@ def reset_password(user, send_email=True):
 	if user=="Administrator":
 		return 'not allowed'
 
-	if isinstance(send_email, unicode) or isinstance(send_email, basestring):
-		if send_email=='false':
-			send_email = False
+	if isinstance(send_email, string_types):
+		if send_email=='false': send_email = False
 
 	try:
 		user = frappe.get_doc("User", user)
