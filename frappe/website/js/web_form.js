@@ -117,9 +117,11 @@ frappe.ready(function() {
 			callback: function(data) {
 				if(!data.exc) {
 					frappe.doc_name = data.message.name;
-					show_success_message();
+					if(!frappe.login_required || frappe.route_to_success_link) {
+						show_success_message();
+					}
 
-					if(frappe.is_new && frappe.login_required) {
+					if(frappe.is_new && frappe.login_required && !frappe.route_to_success_link) {
 						// reload page (with ID)
 						window.location.href = window.location.pathname + "?name=" + frappe.doc_name;
 					}
