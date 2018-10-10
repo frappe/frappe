@@ -12,7 +12,7 @@ class Post(Document):
 			frappe.publish_realtime('toggle_global_pin' + self.name, self.is_globally_pinned, after_commit=True)
 		if (self.get_doc_before_save().is_pinned != self.is_pinned):
 			frappe.publish_realtime('toggle_pin' + self.name, self.is_pinned, after_commit=True)
-		
+
 
 	def after_insert(self):
 		if self.reply_to:
@@ -21,15 +21,15 @@ class Post(Document):
 			frappe.publish_realtime('new_post', self.owner, after_commit=True)
 
 @frappe.whitelist()
-def set_profile_data(post_user):
+def get_profile_data(post_user):
 	liked_post = frappe.db.get_list(
-	 		'Post', 
-	 		fields=['name', 'content', 'owner', 'creation', 'liked_by', 'is_pinned'], 
-	 		filters={"liked_by": ['like',"%"+post_user+"%"]}
+	 		'Post',
+	 		fields=['name', 'content', 'owner', 'creation', 'liked_by', 'is_pinned'],
+	 		filters={"liked_by": ['like',"%" + post_user + "%"]}
 		)
 	user_post = frappe.db.get_list(
-	 		'Post', 
-	 		fields=['name', 'content', 'owner', 'creation', 'liked_by', 'is_pinned'], 
+	 		'Post',
+	 		fields=['name', 'content', 'owner', 'creation', 'liked_by', 'is_pinned'],
 	 		filters={"owner":['like',post_user]}
 		)
 	return {
