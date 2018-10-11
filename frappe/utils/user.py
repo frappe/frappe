@@ -343,3 +343,15 @@ def reset_simultaneous_sessions(user_limit):
 		else:
 			frappe.db.set_value("User", user.name, "simultaneous_sessions", 1)
 			user_limit = user_limit - 1
+
+def get_link_to_reset_password(user):
+	link = ''
+
+	if not cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
+		user = frappe.get_doc("User", user)
+		link = user.reset_password(send_email=False)
+		frappe.db.commit()
+
+	return {
+		'link': link
+	}
