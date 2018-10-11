@@ -170,6 +170,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			getEditor: this.get_editing_object.bind(this),
 			dynamicRowHeight: !this.fixed_row_height.get_value(),
 			checkboxColumn: true,
+			cellHeight: 37,
 			events: {
 				onRemoveColumn: (column) => {
 					this.remove_column_from_datatable(column);

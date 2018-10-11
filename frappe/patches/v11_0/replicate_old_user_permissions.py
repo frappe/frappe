@@ -1,68 +1,75 @@
 import frappe
 import json
+from frappe.utils import cint
 from frappe.permissions import get_valid_perms, get_linked_doctypes
 
 def execute():
-    user_permissions = frappe.get_all('User Permission', fields=['allow', 'name', 'user'])
+	frappe.reload_doctype("User Permission")
+	user_permissions = frappe.get_all('User Permission', fields=['allow', 'name', 'user'])
 
-    doctype_to_skip_map = {}
+	doctype_to_skip_map = {}
 
-    for permission in user_permissions:
-        doctype_to_skip_map[permission.name] = get_doctypes_to_skip(permission.allow, permission.user)
+	for permission in user_permissions:
+		if (permission.allow, permission.user) not in doctype_to_skip_map:
+			doctype_to_skip_map[(permission.allow, permission.user)] = get_doctypes_to_skip(permission.allow, permission.user)
 
-    if not doctype_to_skip_map: return
-
-    for perm_name, doctype_to_skip in doctype_to_skip_map.items():
-        if not doctype_to_skip: continue
-        doctype_to_skip = '\n'.join(doctype_to_skip)
-        frappe.db.set_value('User Permission', perm_name, 'skip_for_doctype', doctype_to_skip)
+	if not doctype_to_skip_map: return
+	for key, doctype_to_skip in doctype_to_skip_map.items():
+		if not doctype_to_skip: continue
+		doctype_to_skip = '\n'.join(doctype_to_skip)
+		frappe.db.sql("""
+			update `tabUser Permission`
+			set skip_for_doctype = %s
+			where user=%s and allow=%s
+		""", (doctype_to_skip, key[1], key[0]))
 
 
 def get_doctypes_to_skip(doctype, user):
-    ''' Returns doctypes to be skipped from user permission check'''
-    doctypes_to_skip = []
-    valid_perms = get_user_valid_perms(user) or []
+	''' Returns doctypes to be skipped from user permission check'''
+	doctypes_to_skip = []
+	valid_perms = get_user_valid_perms(user) or []
+	for perm in valid_perms:
+		parent_doctype = perm.parent
+		try:
+			linked_doctypes = get_linked_doctypes(parent_doctype)
+			child_doctypes = [d.options for d in frappe.get_meta(parent_doctype).get_table_fields()]
+			for child_dt in child_doctypes:
+				linked_doctypes += get_linked_doctypes(child_dt)
+			if doctype not in linked_doctypes: continue
+		except frappe.DoesNotExistError:
+			# if doctype not found (may be due to rename) it should not be considered for skip
+			continue
 
-    for perm in valid_perms:
+		if not cint(perm.apply_user_permissions):
+			# add doctype to skip list if any of the perm does not apply user permission
+			doctypes_to_skip.append(parent_doctype)
 
-        parent_doctype = perm.parent
 
-        try:
-            if doctype not in get_linked_doctypes(parent_doctype): continue
-        except frappe.DoesNotExistError:
-            # if doctype not found (may be due to rename) it should not be considered for skip
-            continue
+		elif parent_doctype not in doctypes_to_skip:
 
-        if not perm.apply_user_permission:
-            # add doctype to skip list if any of the perm does not apply user permission
-            doctypes_to_skip.append(doctype)
+			user_permission_doctypes = get_user_permission_doctypes(perm)
 
-        elif parent_doctype not in doctypes_to_skip:
+			# "No doctypes present" indicates that user permission will be applied to each link field
+			if not user_permission_doctypes: continue
 
-            user_permission_doctypes = get_user_permission_doctypes(perm)
+			elif doctype in user_permission_doctypes: continue
 
-            # "No doctypes present" indicates that user permission will be applied to each link field
-            if not user_permission_doctypes: continue
+			else: doctypes_to_skip.append(parent_doctype)
+	# to remove possible duplicates
+	doctypes_to_skip = list(set(doctypes_to_skip))
 
-            elif doctype in user_permission_doctypes: continue
-
-            else: doctypes_to_skip.append(doctype)
-
-    # to remove possible duplicates
-    doctypes_to_skip = list(set(doctypes_to_skip))
-
-    return doctypes_to_skip
+	return doctypes_to_skip
 
 # store user's valid perms to avoid repeated query
 user_valid_perm = {}
 
 def get_user_valid_perms(user):
-    if not user_valid_perm.get(user):
-        user_valid_perm[user] = get_valid_perms(user=user)
-    return user_valid_perm.get(user)
+	if not user_valid_perm.get(user):
+		user_valid_perm[user] = get_valid_perms(user=user)
+	return user_valid_perm.get(user)
 
 def get_user_permission_doctypes(perm):
-    try:
-        return json.loads(perm.user_permission_doctypes or '[]')
-    except ValueError:
-        return []
+	try:
+		return json.loads(perm.user_permission_doctypes or '[]')
+	except ValueError:
+		return []
