@@ -9,9 +9,9 @@ frappe.ui.form.ControlHTMLEditor = frappe.ui.form.ControlCode.extend({
 		this.html_preview_container = $('<div>').appendTo(this.input_area).addClass('html-preview-container');
 		this.preview_label = $('<div>').appendTo(this.html_preview_container).addClass('html-preview-label');
 		this.html_preview_area = $('<div>').appendTo(this.html_preview_container).addClass('html-preview-area');
-		this.$input.on('change keyup paste', () => {
+		this.$input.on('change keyup paste', frappe.utils.debounce(() => {
 			this.build_preview();
-		});
+		}, 300));
 	},
 
 	set_formatted_input(value) {
