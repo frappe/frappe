@@ -180,7 +180,7 @@ def run(report_name, filters=None, user=None):
 
 def get_prepared_report_result(report, filters, dn=""):
 	latest_report_data = {}
-	doc_list = frappe.get_list("Prepared Report", filters={"status": "Completed", "report_name": report.name})
+	doc_list = frappe.get_all("Prepared Report", filters={"status": "Completed", "report_name": report.name})
 	doc = None
 	if len(doc_list):
 		if dn:
