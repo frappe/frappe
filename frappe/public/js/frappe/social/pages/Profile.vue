@@ -90,6 +90,6 @@ export default {
 	height: 200px;
 }
 .profile-sidebar {
-	margin-top: 40px;
+	margin-top: 50px;
 }
 </style>

@@ -37,21 +37,23 @@ export default {
 </script>
 <style lang="less" scoped>
 .banner {
-	background-position: center;
-	background-repeat: no-repeat;
-	background-size: cover;
-	position: absolute;
 	top: 0;
 	left: 0;
 	width: 100%;
 	height: 300px;
 	z-index: 101;
+	position: absolute;
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
 	.user-avatar {
 		position: relative;
 		/deep/ .avatar {
+			height: 150px;
+			width: 150px;
 			background: white;
 			position: absolute !important;
-			top: 245px;
+			top: 220px;
 			left: 10px;
 		}
 	}
