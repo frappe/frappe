@@ -14,6 +14,7 @@
 				<post :post="post" v-for="post in current_list" :key="post.name"/>
 			</div>
 			<div class="pinned-posts hidden-xs">
+				<div class="muted-title padding"><i class="fa fa-thumb-tack">&nbsp;</i> Pinned Posts </div>
 				<div v-for="post in pinned_posts" :key="post.name">
 					<post :post="post"></post>
 				</div>
@@ -91,5 +92,8 @@ export default {
 }
 .profile-sidebar {
 	margin-top: 50px;
+}
+.pinned-posts {
+	margin-top: 5px;
 }
 </style>

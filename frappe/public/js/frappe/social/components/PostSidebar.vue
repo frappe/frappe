@@ -15,7 +15,7 @@
 				@click.prevent="goto_list(route_obj.route)"
 				v-for="route_obj in frequently_visited_list"
 				:key="route_obj.route">
-				{{route_obj.route}}
+				{{ get_label(route_obj.route) }}
 			</a>
 		</div>
 	</div>
@@ -40,6 +40,9 @@ export default {
 				.then(data => {
 					this.frequently_visited_list = data;
 				})
+		},
+		get_label(route) {
+			return frappe.utils.get_route_label(route);
 		}
 	}
 }

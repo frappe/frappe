@@ -49,12 +49,13 @@ export default {
 	.user-avatar {
 		position: relative;
 		/deep/ .avatar {
-			height: 150px;
-			width: 150px;
-			background: white;
-			position: absolute !important;
 			top: 220px;
 			left: 10px;
+			width: 150px;
+			height: 150px;
+			border-radius: 4px;
+			background: white;
+			position: absolute !important;
 		}
 	}
 	.editable-image {

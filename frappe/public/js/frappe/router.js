@@ -12,7 +12,6 @@ frappe.route_history_queue = [];
 frappe.view_factory = {};
 frappe.view_factories = [];
 frappe.route_options = null;
-const routes_to_skip = ['Form'];
 
 const save_routes = frappe.utils.debounce(() => {
 	const routes = frappe.route_history_queue;
@@ -53,7 +52,7 @@ frappe.route = function() {
 		return;
 	}
 
-	if (route[1] && !routes_to_skip.includes(route[0])) {
+	if (is_route_useful(route)) {
 		frappe.route_history_queue.push({
 			'user': frappe.session.user,
 			'creation': frappe.datetime.now_datetime(),
@@ -207,3 +206,15 @@ $(window).on('hashchange', function() {
 });
 
 frappe.utils.make_event_emitter(frappe.route);
+
+const routes_to_skip = ['Form', 'Social'];
+
+function is_route_useful(route) {
+	if (!route[1]) {
+		return false
+	} else if ((route[0] === 'List' && !route[2]) || routes_to_skip.includes(route[0])) {
+		return false
+	} else {
+		return true
+	}
+}
