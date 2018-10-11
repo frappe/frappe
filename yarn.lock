@@ -534,11 +534,6 @@ clone@^2.1.1:
   resolved "https://registry.yarnpkg.com/clone/-/clone-2.1.2.tgz#1b7f4b9f591f1e8f83670401600345a02887435f"
   integrity sha1-G39Ln1kfHo+DZwQBYANFoCiHQ18=
 
-clusterize.js@^0.18.0:
-  version "0.18.1"
-  resolved "https://registry.yarnpkg.com/clusterize.js/-/clusterize.js-0.18.1.tgz#a286a9749bd1fa9c2fe21b7fabd8780a590dd836"
-  integrity sha512-UsLhW2lG3TaTnE8LI7ninvovua3FLrlsbksb9uzx0fVzzV2WFScO5FU/4yFwdM8RW8iuYVWFraBpDjsosReFlg==
-
 co@^4.6.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/co/-/co-4.6.0.tgz#6ea6bdf3d853ae54ccb8e47bfa0bf3f9031fb184"
@@ -1224,12 +1219,12 @@ forwarded@~0.1.2:
   resolved "https://registry.yarnpkg.com/forwarded/-/forwarded-0.1.2.tgz#98c23dab1175657b8c0573e8ceccd91b0ff18c84"
   integrity sha1-mMI9qxF1ZXuMBXPozszZGw/xjIQ=
 
-frappe-datatable@^1.3.2:
-  version "1.3.2"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.3.2.tgz#0c4a5cb3e169962dc6b05f023b97b817006590a8"
-  integrity sha512-c7l4T7F1FFrHgLxlBoCdaV0/AFBFASLbdw5TH/lSoh6rlUqYGIsaqpF4Nr7j/9ItG4WbNRrjGCrYnMiy44ijnw==
+frappe-datatable@^1.4.2:
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.4.2.tgz#1b6dc401cf3aa72a9b6d12547d4f2aa0b6a95ab3"
+  integrity sha512-+V2+rD3tpciWmAzor6Mu/tl9nlgg0Y1VajNwWKkM5q0degmSVyS9moC5IzmlmgPogBWlYF6XOUC/xHKrHJij1A==
   dependencies:
-    clusterize.js "^0.18.0"
+    hyperlist "^1.0.0-beta"
     lodash "^4.17.5"
     sortablejs "^1.7.0"
 
@@ -1559,6 +1554,11 @@ http-signature@~1.2.0:
     assert-plus "^1.0.0"
     jsprim "^1.2.2"
     sshpk "^1.7.0"
+
+hyperlist@^1.0.0-beta:
+  version "1.0.0-beta"
+  resolved "https://registry.yarnpkg.com/hyperlist/-/hyperlist-1.0.0-beta.tgz#2cbbd77f4498c2ecc290b7f3c6745b3f0288247e"
+  integrity sha1-LLvXf0SYwuzCkLfzxnRbPwKIJH4=
 
 iconv-lite@0.4.19:
   version "0.4.19"
