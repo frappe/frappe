@@ -117,8 +117,6 @@ def get_doc_permissions(doc, verbose=False, user=None, ptype=None):
 		if(doc.owner == frappe.session.user):
 
 			permissions = permissions.get("if_owner")
-			# if_owner does not come with create rights...
-			permissions['create'] = 0
 		else:
 			permissions = {}
 
