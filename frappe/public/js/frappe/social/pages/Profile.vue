@@ -1,27 +1,22 @@
 <template>
-	<div class="profile-container">
-		<profile-sidebar
-			:user_id="user_id"
-			v-on:change_list="switch_list($event)"
-			class="profile-sidebar"
-		/>
-		<div class="post-container">
-			<div class="flex padding">
-				<div class="padding cursor-pointer" @click="show_list = 'user_posts'">
-					<span>Posts</span>
-					<span class="text-muted" >{{ user_posts.length }}</span>
-				</div>
-				<div class="padding cursor-pointer" @click="show_list = 'liked_posts'">
-					<span>Likes</span>
-					<span class="text-muted">{{ liked_posts.length }}</span>
-				</div>
-			</div>
-			<post :post="post" v-for="post in current_list" :key="post.name"/>
+	<div>
+		<div class="profile-head">
+			<profile-banner :user_id="user_id"></profile-banner>
 		</div>
-		<div class="pinned-posts hidden-xs">
-			<div class="muted-title padding"><i class="fa fa-thumb-tack">&nbsp;</i> Your Pinned Posts</div>
-			<div v-for="post in pinned_posts" :key="post.name">
-				<post :post="post"></post>
+		<div class="profile-container">
+			<profile-sidebar
+				:user_id="user_id"
+				v-on:change_list="switch_list($event)"
+				class="profile-sidebar"
+			/>
+			<div class="post-container">
+				<profile-nav @set_list="set_list"></profile-nav>
+				<post :post="post" v-for="post in current_list" :key="post.name"/>
+			</div>
+			<div class="pinned-posts hidden-xs">
+				<div v-for="post in pinned_posts" :key="post.name">
+					<post :post="post"></post>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -29,10 +24,14 @@
 <script>
 import Post from '../components/Post.vue';
 import ProfileSidebar from '../components/ProfileSidebar.vue';
+import ProfileBanner from '../components/ProfileBanner.vue';
+import ProfileNav from '../components/ProfileNav.vue';
 export default {
 	components: {
 		Post,
-		ProfileSidebar
+		ProfileSidebar,
+		ProfileBanner,
+		ProfileNav
 	},
 	data() {
 		return {
@@ -79,7 +78,18 @@ export default {
 				},
 				fields: ['*']
 			})
+		},
+		set_list(list_name) {
+			this.show_list = list_name
 		}
 	}
 }
 </script>
+<style lang="less" scoped>
+.profile-head {
+	height: 200px;
+}
+.profile-sidebar {
+	margin-top: 40px;
+}
+</style>

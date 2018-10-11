@@ -50,6 +50,7 @@ export default {
 			if (frappe.get_route()[0] === 'social') {
 				this.set_current_page();
 				frappe.utils.scroll_to(0);
+				$("body").attr("data-route", frappe.get_route_str());
 			}
 		});
 		frappe.ui.setup_like_popover($(this.$refs.social), '.likes', false);

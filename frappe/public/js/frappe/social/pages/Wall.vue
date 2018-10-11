@@ -49,7 +49,7 @@ export default {
 				this.new_posts_count += 1;
 			}
 		})
-		window.addEventListener('scroll', this.handleScroll);
+		window.addEventListener('scroll', this.handle_scroll);
 	},
 	computed: {
 		pinned_posts() {
@@ -92,7 +92,7 @@ export default {
 			this.get_posts(true)
 			this.new_posts_count = 0;
 		},
-		handleScroll: frappe.utils.debounce(function() {
+		handle_scroll: frappe.utils.debounce(function() {
 			const screen_bottom = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
 			if (screen_bottom && this.more_posts_available) {
 				if (this.more_posts_available && !this.loading_old_posts) {
@@ -103,7 +103,7 @@ export default {
 		}, 500)
 	},
 	destroyed() {
-		window.removeEventListener('scroll', this.handleScroll);
+		window.removeEventListener('scroll', this.handle_scroll);
 	}
 };
 </script>
