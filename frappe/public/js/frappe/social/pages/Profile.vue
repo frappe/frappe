@@ -10,7 +10,22 @@
 				class="profile-sidebar"
 			/>
 			<div class="post-container">
-				<profile-nav @set_list="set_list"></profile-nav>
+				<div class="list-options">
+					<div
+						class="option"
+						:class="{'bold': show_list === 'user_posts'}"
+						@click="show_list = 'user_posts'">
+						<span>Posts</span>
+						<span>({{ user_posts.length }})</span>
+					</div>
+					<div
+						class="option"
+						:class="{'bold': show_list === 'liked_posts'}"
+						@click="show_list = 'liked_posts'">
+						<span>Likes</span>
+						<span>({{ liked_posts.length }})</span>
+					</div>
+				</div>
 				<post :post="post" v-for="post in current_list" :key="post.name"/>
 			</div>
 			<div class="pinned-posts hidden-xs">
@@ -26,17 +41,15 @@
 import Post from '../components/Post.vue';
 import ProfileSidebar from '../components/ProfileSidebar.vue';
 import ProfileBanner from '../components/ProfileBanner.vue';
-import ProfileNav from '../components/ProfileNav.vue';
 export default {
+	props: ['user_id'],
 	components: {
 		Post,
 		ProfileSidebar,
-		ProfileBanner,
-		ProfileNav
+		ProfileBanner
 	},
 	data() {
 		return {
-			user_id: '',
 			show_list: 'user_posts',
 			user_posts: [],
 			liked_posts: [],
@@ -55,7 +68,6 @@ export default {
 		}
 	},
 	created() {
-		this.user_id = frappe.get_route()[2];
 		this.get_user_posts().then(posts => {
 			this.user_posts = posts
 		})
@@ -80,9 +92,6 @@ export default {
 				fields: ['*']
 			})
 		},
-		set_list(list_name) {
-			this.show_list = list_name
-		}
 	}
 }
 </script>
@@ -95,5 +104,12 @@ export default {
 }
 .pinned-posts {
 	margin-top: 5px;
+}
+.list-options {
+	display: flex;
+	.option {
+		cursor: pointer;
+		padding: 10px 10px 10px 0
+	}
 }
 </style>

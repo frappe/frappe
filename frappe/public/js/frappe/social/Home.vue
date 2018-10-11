@@ -1,6 +1,6 @@
 <template>
 	<div ref="social" class="social">
-		<component :is="current_page"></component>
+		<component :is="current_page.component" v-bind="current_page.props"></component>
 		<image-viewer :src="preview_image_src" v-if="show_preview"></image-viewer>
 	</div>
 </template>
@@ -14,8 +14,20 @@ import ImageViewer from './components/ImageViewer.vue';
 
 function get_route_map() {
 	return {
-		'social/home': Wall,
-		'social/profile': Profile
+		'social/home': {
+			'component': Wall,
+			'props': {}
+		},
+		'social/profile/*': {
+			'component': Profile,
+			'props': {
+				'user_id': frappe.get_route()[2],
+				'key': frappe.get_route()[2]
+			}
+		},
+		'not_found': {
+			'component': NotFound,
+		}
 	}
 }
 
@@ -65,7 +77,7 @@ export default {
 			if (route_map[route]) {
 				return route_map[route];
 			} else {
-				return route_map[route.substring(0, route.lastIndexOf('/'))] || NotFound
+				return route_map[route.substring(0, route.lastIndexOf('/')) + '/*'] || route_map['not_found']
 			}
 		},
 	}

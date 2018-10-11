@@ -2,10 +2,13 @@
 	<div class="profile-sidebar flex flex-column">
 		<div class="user-details">
 			<h3>{{ user.fullname }}</h3>
-			<p class="text-muted">{{ user.bio }}</p>
-			<p class="text-muted">{{ user.location }}</p>
-			<h5>Interest</h5>
-			<p class="text-muted">{{ user.interest }}</p>
+			<p>{{ user.bio }}</p>
+			<div class="location" v-if="user.location !== ''">
+				<span class="text-muted"><i class="fa fa-map-marker">&nbsp;</i>{{ user.location }}</span>
+			</div>
+			<div class="interest" v-if="user.interest !== ''">
+				<span class="text-muted"><i class="fa fa-gratipay">&nbsp;</i>{{ user.interest }}</span>
+			</div>
 		</div>
 	</div>
 </template>
@@ -27,7 +30,10 @@ export default {
 	padding-top: 10px
 }
 .user-details {
-	min-height: 150px
+	min-height: 150px;
+	.location, .interest {
+		margin-bottom: 10px;
+	}
 }
 .stats {
 	display: flex;
