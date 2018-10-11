@@ -78,8 +78,14 @@ frappe.views.CommunicationComposer = Class.extend({
 			{label:__("Subject"), fieldtype:"Data", reqd: 1,
 				fieldname:"subject", length:524288},
 			{fieldtype: "Section Break"},
-			{label:__("Message"), fieldtype:"Text Editor", reqd: 1,
-				fieldname:"content"},
+			{
+				label:__("Message"),
+				fieldtype:"Text Editor", reqd: 1,
+				fieldname:"content",
+				onchange: frappe.utils.debounce(this.save_as_draft.bind(this), 300),
+				default: localStorage.getItem(this.frm.doctype + this.frm.docname) || ''
+			},
+
 			{fieldtype: "Section Break"},
 			{fieldtype: "Column Break"},
 			{label:__("Send me a copy"), fieldtype:"Check",
@@ -113,7 +119,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 	prepare: function() {
 		this.setup_subject_and_recipients();
-		this.setup_print_language()
+		this.setup_print_language();
 		this.setup_print();
 		this.setup_attach();
 		this.setup_email();
@@ -128,7 +134,10 @@ frappe.views.CommunicationComposer = Class.extend({
 			this.dialog.fields_dict.sender.set_value(this.sender || '');
 		}
 		this.dialog.fields_dict.subject.set_value(this.subject || '');
-		this.setup_earlier_reply();
+
+		if(!localStorage.getItem(this.frm.doctype + this.frm.docname)) {
+			this.setup_earlier_reply();
+		}
 	},
 
 	setup_subject_and_recipients: function() {
@@ -488,6 +497,18 @@ frappe.views.CommunicationComposer = Class.extend({
 		return form_values;
 	},
 
+	save_as_draft: function() {
+		if (this.dialog) {
+			try {
+				localStorage.setItem(this.frm.doctype + this.frm.docname, this.dialog.get_value('content'));
+			} catch (e) {
+				// silently fail
+				console.log(e);
+				console.warn('[Communication] localStorage is full. Cannot save message as draft');
+			}
+		}
+	},
+
 	send_email: function(btn, form_values, selected_attachments, print_html, print_format) {
 		var me = this;
 		me.dialog.hide();
@@ -547,6 +568,16 @@ frappe.views.CommunicationComposer = Class.extend({
 						// clear input
 						cur_frm.timeline.input && cur_frm.timeline.input.val("");
 						cur_frm.reload_doc();
+					}
+
+					if (localStorage.getItem(this.frm.doctype + this.frm.docname)) {
+						try {
+							localStorage.removeItem(this.frm.doctype + this.frm.docname);
+						} catch (e) {
+							// silently fail
+							console.log(e);
+							console.warn('[Communication] Failed to delete draft.');
+						}
 					}
 
 					// try the success callback if it exists
