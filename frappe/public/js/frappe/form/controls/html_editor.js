@@ -21,10 +21,10 @@ frappe.ui.form.ControlHTMLEditor = frappe.ui.form.ControlCode.extend({
 
 	build_preview() {
 		if (this.get_value() == '') {
-			this.preview_label.text('No Preview available');
+			this.preview_label.text(__('No Preview available'));
 			this.html_preview_area.hide();
 		} else {
-			this.preview_label.text('Preview');
+			this.preview_label.text(__('Preview'));
 			this.html_preview_area.show();
 			this.html_preview_area.html(this.get_value());
 		}
