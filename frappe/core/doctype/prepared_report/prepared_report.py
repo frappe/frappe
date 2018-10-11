@@ -36,7 +36,7 @@ class PreparedReport(Document):
 def run_background(instance):
 	report = frappe.get_doc("Report", instance.ref_report_doctype)
 	result = generate_report_result(report, filters=json.loads(instance.filters), user=instance.owner)
-	create_csv_file(remove_header_meta(result['columns']), result['result'], 'Prepared Report', instance.name)
+	create_csv_file(result['columns'], result['result'], 'Prepared Report', instance.name)
 
 	instance.status = "Completed"
 	instance.report_end_time = frappe.utils.now()
@@ -63,11 +63,20 @@ def create_csv_file(columns, data, dt, dn):
 	rows = []
 
 	if data:
+		columns_without_meta = remove_header_meta(columns)
+
 		row = data[0]
 		if type(row) == list:
-			rows = [tuple(columns)] + data
+			rows = [tuple(columns_without_meta)] + data
 		else:
-			rows = [tuple(columns)] + [row.values() for row in data]
+			for row in data:
+				new_row = []
+				for col in columns:
+					key = col.get('fieldname') or col.get('label')
+					new_row.append(frappe.format(row.get(key, ''), col))
+				rows.append(new_row)
+
+			rows = [tuple(columns_without_meta)] + rows
 
 	encoded = base64.b64encode(frappe.safe_encode(to_csv(rows)))
 	# Call save_file function to upload and attach the file
