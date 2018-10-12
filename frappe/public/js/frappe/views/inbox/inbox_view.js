@@ -84,10 +84,10 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 			email.css_seen = "seen";
 
 		const columns_html = `
-			<div class="list-row-col list-subject level">
+			<div class="list-row-col list-subject level ellipsis">
 				<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${email.name}">
 				<span class="level-item">
-					<a class="${ email.seen ? 'seen' : ''} ellipsis" href="${this.get_form_link(email)}">
+					<a class="${ email.seen ? '' : 'bold'} ellipsis" href="${this.get_form_link(email)}">
 						${email.subject}
 					</a>
 				</span>
