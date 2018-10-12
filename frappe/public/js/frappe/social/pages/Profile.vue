@@ -59,9 +59,12 @@ export default {
 		pinned_posts() {
 			return this.user_posts.filter(post => post.is_pinned)
 		},
+		other_posts() {
+			return this.user_posts.filter(post => !post.is_pinned)
+		},
 		current_list() {
 			if(this.show_list == 'user_posts') {
-				return this.user_posts;
+				return this.other_posts;
 			} else {
 				return this.liked_posts;
 			}

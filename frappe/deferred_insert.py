@@ -19,6 +19,7 @@ def save_to_db():
 			records = frappe.cache().lpop(queue_key)
 			records = json.loads(records)
 			if isinstance(records, dict):
+				record_count += 1
 				insert_record(records, doctype)
 				continue
 			for record in records:
@@ -41,28 +42,3 @@ def get_key_name(key):
 
 def get_doctype_name(key):
 	return cstr(key).split(queue_prefix)[1]
-
-
-# def save_to_db(doctype):
-# 	values=[]
-# 	queue_key = 'deferred_insert_queue_for' + doctype
-# 	value_key = ''
-# 	while frappe.cache().llen(queue_key) > 0:
-# 		records = frappe.cache().lpop(queue_key)
-# 		records = json.loads(records)
-# 		if not value_key: value_key = list(records[0].keys())
-# 		value_template = "('{" + "}', '{".join(value_key) + "}')"
-# 		for record in records:
-# 			if value_key != list(record.keys()):
-# 				print('Keys should match for all records', value_key, list(record.keys()))
-# 				continue
-# 			values.append(value_template.format(**record))
-
-# 	if not values: return
-
-# 	frappe.db.sql('''
-# 		INSERT INTO `tab{doctype}` (`{keys}`)
-# 		VALUES {values}
-# 	'''.format(doctype=doctype, keys="`, `".join(value_key), values=", ".join(values)), debug=1)
-
-# 	frappe.db.commit()

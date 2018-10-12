@@ -207,7 +207,7 @@ $(window).on('hashchange', function() {
 
 frappe.utils.make_event_emitter(frappe.route);
 
-const routes_to_skip = ['Form', 'Social'];
+const routes_to_skip = ['Form', 'social'];
 
 function is_route_useful(route) {
 	if (!route[1]) {
