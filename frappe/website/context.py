@@ -93,6 +93,13 @@ def build_context(context):
 			if not prop in context:
 				context[prop] = getattr(context.doc, prop, False)
 
+		# extend controller context via hooks
+		controller_context_hooks = frappe.get_hooks("controller_context") or {}
+		for doctype, custom_contexts in controller_context_hooks.items():
+			if context.doctype == doctype:
+				for custom_context in custom_contexts:
+					update_controller_context(context, custom_context)
+
 	elif context.controller:
 		# controller based context
 		update_controller_context(context, context.controller)
