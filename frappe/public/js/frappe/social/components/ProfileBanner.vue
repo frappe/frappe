@@ -11,7 +11,7 @@ export default {
 			is_own_profile: this.user_id === frappe.session.user,
 			user_avatar: frappe.avatar(this.user_id, 'avatar-xl'),
 			background_style: {
-				'background': 'black'
+				'background': '#262626'
 			}
 		}
 	},
