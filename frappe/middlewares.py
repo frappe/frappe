@@ -25,3 +25,21 @@ class StaticDataMiddleware(SharedDataMiddleware):
 				# return None, None
 
 		return loader
+
+
+class RecorderMiddleware(object):
+	def __init__(self, app):
+		self._app = app
+
+	def __call__(self, environ, start_response):
+		response_body = []
+
+		def catching_start_response(status, headers, exc_info=None):
+			start_response(status, headers, exc_info)
+			return response_body.append
+
+		appiter = self._app(environ, catching_start_response)
+		response_body.extend(appiter)
+		if hasattr(appiter, 'close'):
+			appiter.close()
+		return [b''.join(response_body)]
