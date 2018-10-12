@@ -20,7 +20,7 @@ import frappe.api
 import frappe.utils.response
 import frappe.website.render
 from frappe.utils import get_site_name
-from frappe.middlewares import StaticDataMiddleware
+from frappe.middlewares import RecorderMiddleware, StaticDataMiddleware
 from frappe.utils.error import make_error_snapshot
 from frappe.core.doctype.communication.comment import update_comments_in_parent_after_request
 from frappe import _
@@ -208,7 +208,7 @@ def after_request(rollback):
 
 application = local_manager.make_middleware(application)
 
-def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=None, sites_path='.'):
+def serve(port=8000, profile=False, record=False, no_reload=False, no_threading=False, site=None, sites_path='.'):
 	global application, _site, _sites_path
 	_site = site
 	_sites_path = sites_path
@@ -217,6 +217,9 @@ def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=No
 
 	if profile:
 		application = ProfilerMiddleware(application, sort_by=('cumtime', 'calls'))
+
+	if record:
+		application = RecorderMiddleware(application)
 
 	if not os.environ.get('NO_STATICS'):
 		application = SharedDataMiddleware(application, {

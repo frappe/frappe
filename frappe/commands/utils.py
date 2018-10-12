@@ -501,10 +501,11 @@ def run_setup_wizard_ui_test(context, app=None, profile=False):
 @click.command('serve')
 @click.option('--port', default=8000)
 @click.option('--profile', is_flag=True, default=False)
+@click.option('--record', is_flag=True, default=False)
 @click.option('--noreload', "no_reload", is_flag=True, default=False)
 @click.option('--nothreading', "no_threading", is_flag=True, default=False)
 @pass_context
-def serve(context, port=None, profile=False, no_reload=False, no_threading=False, sites_path='.', site=None):
+def serve(context, port=None, profile=False, record=False, no_reload=False, no_threading=False, sites_path='.', site=None):
 	"Start development web server"
 	import frappe.app
 
@@ -513,7 +514,7 @@ def serve(context, port=None, profile=False, no_reload=False, no_threading=False
 	else:
 		site = context.sites[0]
 
-	frappe.app.serve(port=port, profile=profile, no_reload=no_reload, no_threading=no_threading, site=site, sites_path='.')
+	frappe.app.serve(port=port, profile=profile, record=record, no_reload=no_reload, no_threading=no_threading, site=site, sites_path='.')
 
 @click.command('request')
 @click.option('--args', help='arguments like `?cmd=test&key=value` or `/api/request/method?..`')
