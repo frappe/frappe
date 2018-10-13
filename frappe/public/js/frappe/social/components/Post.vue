@@ -94,8 +94,7 @@ const Post = {
 			frappe.set_route('social', 'profile/' + user)
 		},
 		create_new_reply() {
-			frappe.social.post_reply_dialog.set_value('reply_to', this.post.name);
-			frappe.social.post_reply_dialog.show()
+			frappe.social.post_dialog.open(__('Reply'), __('Reply'), this.post.name);
 		},
 		toggle_reply() {
 			this.show_replies = !this.show_replies
