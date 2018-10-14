@@ -802,9 +802,6 @@ def reset_password(user):
 	if user=="Administrator":
 		return 'not allowed'
 
-	if isinstance(send_email, string_types):
-		if send_email=='false': send_email = False
-
 	try:
 		user = frappe.get_doc("User", user)
 		if not user.enabled:
