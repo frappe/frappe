@@ -213,9 +213,9 @@ def formatdate(string_date=None, format_string=None):
 
 		 Examples:
 
-		 * dd-mm-yyyy
-		 * mm-dd-yyyy
-		 * dd/mm/yyyy
+		 * dd-MM-yyyy
+		 * MM-dd-yyyy
+		 * dd/MM/yyyy
 	"""
 
 	if not string_date:
