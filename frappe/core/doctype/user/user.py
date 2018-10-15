@@ -798,12 +798,13 @@ def sign_up(email, full_name, redirect_to):
 			return 2, _("Please ask your administrator to verify your sign-up")
 
 @frappe.whitelist(allow_guest=True)
-def reset_password(user):
+def reset_password(user, send_email = 'true'):
 	if user=="Administrator":
 		return 'not allowed'
 
 	if isinstance(send_email, string_types):
 		if send_email=='false': send_email = False
+		elif send_email=='true': send_email = True
 
 	try:
 		user = frappe.get_doc("User", user)
