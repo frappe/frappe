@@ -455,10 +455,12 @@ _f.Frm.prototype.set_indicator_formatter = function(fieldname, get_color, get_te
 					label = value;
 				}
 
+				const escaped_name = encodeURIComponent(value);
+
 				return repl('<a class="indicator %(color)s" href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
 					color: get_color(doc || {}),
 					doctype: df.options,
-					name: value,
+					name: escaped_name,
 					label: label
 				});
 			} else {

@@ -10,7 +10,7 @@ def execute():
 		if event.ref_type and event.ref_name:
 			try:
 				e = frappe.get_doc('Event', event.name)
-				e.append('participants', {"reference_doctype": event.ref_type, "reference_docname": event.ref_name})
+				e.append('event_participants', {"reference_doctype": event.ref_type, "reference_docname": event.ref_name})
 				e.flags.ignore_mandatory   = True
 				e.flags.ignore_permissions = True
 				e.save()
