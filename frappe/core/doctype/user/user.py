@@ -798,7 +798,7 @@ def sign_up(email, full_name, redirect_to):
 			return 2, _("Please ask your administrator to verify your sign-up")
 
 @frappe.whitelist(allow_guest=True)
-def reset_password(user, send_email=False):
+def reset_password(user, send_email=True):
 	if user=="Administrator":
 		return 'not allowed'
 	
