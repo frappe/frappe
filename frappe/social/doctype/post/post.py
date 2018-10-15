@@ -15,10 +15,7 @@ class Post(Document):
 
 
 	def after_insert(self):
-		if self.reply_to:
-			frappe.publish_realtime('new_post_reply' + self.reply_to, self, after_commit=True)
-		else:
-			frappe.publish_realtime('new_post', self.owner, after_commit=True)
+		frappe.publish_realtime('new_post', self.owner, after_commit=True)
 
 @frappe.whitelist()
 def get_profile_data(post_user):
@@ -30,7 +27,7 @@ def get_profile_data(post_user):
 	user_post = frappe.db.get_list(
 	 		'Post',
 	 		fields=['name', 'content', 'owner', 'creation', 'liked_by', 'is_pinned'],
-	 		filters={"owner":['like',post_user]}
+	 		filters={"owner":['like', post_user]}
 		)
 	return {
 		'liked_posts': liked_post,

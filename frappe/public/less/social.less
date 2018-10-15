@@ -2,6 +2,10 @@
 @import (reference) 'common.less';
 
 body[data-route*="social"] {
+	.page-container {
+		background: #FAFBFC;
+	}
+
 	.layout-main-section {
 		border: none;
 	}
@@ -16,15 +20,18 @@ body[data-route*="social"] {
 	.wall-container {
 		display: flex;
 		font-size: 12px;
+		.no-post {
+			.icon {
+				font-size: 40px;
+			}
+		}
 		.post-sidebar {
 			flex: 20%
 		}
 		.post-container {
-			width: 500px;
+			flex: 45%;
 			display: flex;
-			margin: 0 20px;
-			margin-top: 24px;
-			padding-top: 10px;
+			padding: 20px;
 			flex-direction: column;
 			.new_posts_count {
 				cursor: pointer;
@@ -33,7 +40,7 @@ body[data-route*="social"] {
 				margin-bottom: 10px;
 			}
 		}
-		.pinned-posts {
+		.right-sidebar {
 			padding: 0px;
 			flex: 35%
 		}
@@ -47,27 +54,25 @@ body[data-route*="social"] {
 		.post-container {
 			flex: 45%
 		}
-		.pinned-posts {
+		.right-sidebar {
 			padding: 0px;
 			flex: 35%
 		}
 	}
 
 	.generic-card() {
+		background: white;
 		font-size: 12px;
 		margin-bottom: 10px;
-		max-width: 500px;
-		max-height: 500px;
 		min-height: 70px;
 		overflow: scroll;
 		border: 1px solid @border-color;
-		border-radius: 3px;
-		padding: 10px 10px 5px 10px;
+		border-radius: 4px;
 		.content {
 			font-size: 14px;
 			img, iframe {
 				border-radius: 5px;
-				border: none;
+				border: 1px solid @light-border-color;
 				margin: 5px 0;
 			}
 			img {
@@ -79,41 +84,28 @@ body[data-route*="social"] {
 		}
 	}
 
-	.event-card {
-		.generic-card();
-		.content {
-			text-align: center;
-			clear: both;
-		}
-	}
-
 	.post-card {
 		.generic-card();
-		.user-name {
-			font-weight: 400;
-		}
-		.user-avatar {
-			float: left;
-			margin-right: 5px;
-			.avatar {
-				width: 48px;
-				height: 48px;
+		.post-body {
+			padding: 10px;
+			.user-name {
+				font-weight: 500;
 			}
-			.avatar-frame, .standard-image {
-				border-radius: 50%;
+			.user-avatar {
+				float: left;
+				margin-right: 5px;
+			}
+			.user-avatar, .user-name {
+				cursor: pointer;
+			}
+			.content {
+				margin: 10px 0 0 46px;
 			}
 		}
-		.user-name {
-			margin-bottom: 5px;
-		}
-		.user-avatar, .user-name {
-			cursor: pointer;
-		}
-		.content {
-			margin-left: 58px;
-		}
-		.post-reply {
-			margin-left: 20px;
+		.post-action-container {
+			padding-left: 46px;
+			background-color: #F6F6F6;
+			border-top: 1px solid @border-color;
 		}
 	}
 

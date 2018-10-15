@@ -28,12 +28,7 @@
 				</div>
 				<post :post="post" v-for="post in current_list" :key="post.name"/>
 			</div>
-			<div class="pinned-posts hidden-xs">
-				<div class="muted-title padding"><i class="fa fa-thumb-tack">&nbsp;</i> Pinned Posts </div>
-				<div v-for="post in pinned_posts" :key="post.name">
-					<post :post="post"></post>
-				</div>
-			</div>
+			<div class="right-sidebar"></div>
 		</div>
 	</div>
 </template>
@@ -56,15 +51,9 @@ export default {
 		}
 	},
 	computed: {
-		pinned_posts() {
-			return this.user_posts.filter(post => post.is_pinned)
-		},
-		other_posts() {
-			return this.user_posts.filter(post => !post.is_pinned)
-		},
 		current_list() {
 			if(this.show_list == 'user_posts') {
-				return this.other_posts;
+				return this.user_posts;
 			} else {
 				return this.liked_posts;
 			}
@@ -105,7 +94,7 @@ export default {
 .profile-sidebar {
 	margin-top: 50px;
 }
-.pinned-posts {
+.right-sidebar {
 	margin-top: 5px;
 }
 .list-options {

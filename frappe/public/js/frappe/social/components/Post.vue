@@ -1,42 +1,42 @@
 <template>
 	<div class="post-card">
 		<div class="post-body">
-			<div class="pull-right text-muted" v-html="post_time"></div>
+			<div
+				class="text-muted pull-right"
+				v-if="post.is_pinned || post.is_globally_pinned">
+				{{ post.is_globally_pinned ? 'Globally ': ''}} Pinned
+			</div>
 			<div class="user-avatar" v-html="user_avatar" @click="goto_profile(post.owner)"></div>
-			<div class="user-name text-muted" @click="goto_profile(post.owner)">{{ user_name }}</div>
+			<div class="user-name" @click="goto_profile(post.owner)">{{ user_name }}</div>
+			<div class="text-muted" v-html="post_time"></div>
 			<div class="content" v-html="post.content"></div>
 		</div>
 		<post-action
-			:is_globally_pinnable="is_globally_pinnable"
 			:is_pinnable="is_pinnable"
-			:is_globally_pinned="post.is_globally_pinned"
 			:is_pinned="post.is_pinned"
 			:liked_by="post.liked_by"
-			:reply_count="replies.length"
-			@toggle_reply="toggle_reply"
-			@new_reply="create_new_reply"
+			:comment_count="comments.length"
+			@toggle_comment="toggle_comment"
 			@toggle_like="toggle_like"
-			@toggle_global_pin="toggle_global_pin"
 			@toggle_pin="toggle_pin"
 		/>
-		<post-reply
-			class="post-reply"
-			v-if="show_replies"
-			:replies="replies"
-		/>
+		<post-comment
+			v-if="show_comments"
+			class="post-comments"
+			:comments="comments"
+			@create_comment="create_comment">
+		</post-comment>
 	</div>
 </template>
 <script>
-import PostReply from './PostReply.vue';
 import PostAction from './PostAction.vue';
+import PostComment from './PostComment.vue';
 
-frappe.provide('frappe.social');
-
-const Post = {
+export default {
 	props: ['post'],
 	components: {
 		PostAction,
-		PostReply
+		PostComment
 	},
 	mounted() {
 		this.$el.querySelectorAll('img').forEach((img) => {
@@ -50,32 +50,32 @@ const Post = {
 			user_avatar: frappe.avatar(this.post.owner, 'avatar-medium'),
 			post_time: comment_when(this.post.creation),
 			user_name: frappe.user_info(this.post.owner).fullname,
-			reply_count: 0,
-			replies: [],
-			show_replies: false,
-			is_globally_pinnable: !this.post.reply_to && frappe.user_roles.includes('System Manager'),
-			is_pinnable: !this.post.reply_to
+			comment_count: 0,
+			comments: [],
+			show_comments: false,
+			is_globally_pinnable: !this.post.comment_to && frappe.user_roles.includes('System Manager'),
+			is_pinnable: !this.post.comment_to
 				&& frappe.session.user === this.post.owner
 				&& frappe.get_route()[2] === frappe.session.user
 		}
 	},
 	created() {
-		frappe.db.get_list('Post', {
-			fields: ['name', 'content', 'owner', 'creation', 'liked_by', 'is_globally_pinned', 'is_pinned', 'reply_to'],
+		frappe.db.get_list('Post Comment', {
+			fields: ['name', 'content', 'owner', 'creation'],
 			order_by: 'creation desc',
 			filters: {
-				reply_to: this.post.name
+				parent: this.post.name
 			}
-		}).then(replies => {
-			this.replies = replies;
+		}).then(comments => {
+			this.comments = comments;
 		})
 
 		if (!this.post.liked_by) {
 			this.$set(this.post, 'liked_by', '')
 		}
 
-		frappe.realtime.on('new_post_reply' + this.post.name, (post) => {
-			this.replies.push(post);
+		frappe.realtime.on('new_post_comment' + this.post.name, (comment) => {
+			this.comments = [comment].concat(this.comments);
 		})
 		frappe.realtime.on('toggle_global_pin' + this.post.name, (is_globally_pinned) => {
 			this.post.is_globally_pinned = cint(is_globally_pinned);
@@ -88,16 +88,14 @@ const Post = {
 		this.$root.$on('user_image_updated', () => {
 			this.user_avatar = frappe.avatar(this.post.owner, 'avatar-medium')
 		})
+
 	},
 	methods: {
 		goto_profile(user) {
 			frappe.set_route('social', 'profile/' + user)
 		},
-		create_new_reply() {
-			frappe.social.post_dialog.open(__('Reply'), __('Reply'), this.post.name);
-		},
-		toggle_reply() {
-			this.show_replies = !this.show_replies
+		toggle_comment() {
+			this.show_comments = !this.show_comments
 		},
 		update_liked_by(liked_by) {
 			this.post.liked_by = liked_by;
@@ -112,11 +110,21 @@ const Post = {
 		},
 		toggle_pin() {
 			frappe.db.set_value('Post', this.post.name, 'is_pinned', cint(!this.post.is_pinned))
+		},
+		create_comment(content) {
+			const comment = frappe.model.get_new_doc('Post Comment');
+			comment.content = content
+			comment.parent = this.post.name;
+			frappe.db.insert(comment);
 		}
 	}
 }
-
-frappe.social.Post = Post;
-
-export default Post;
 </script>
+<style lang="less" scoped>
+.post-comments {
+	padding: 10px 46px;
+	padding-top: 0px;
+	background: #F6F6F6;
+}
+</style>
+

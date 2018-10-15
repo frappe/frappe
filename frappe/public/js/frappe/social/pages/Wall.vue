@@ -6,17 +6,18 @@
 				{{ new_posts_count + ' new post'}}
 			</div>
 			<div v-for="post in user_posts" :key="post.name">
-				<post v-if="post.type == 'post' && !post.is_globally_pinned" :post="post"></post>
-				<event-card  v-else :event="post"></event-card>
+				<post :post="post"></post>
+			</div>
+			<div v-if="!user_posts.length" class="no-post text-center text-muted">
+				No Posts Yet !
+				<div class="icon">
+					<i class="fa fa-frown-o"></i>
+				</div>
 			</div>
 			<div v-show="loading_old_posts" class="text-center padding">Loading old posts</div>
 			<div v-show="!more_posts_available" class="text-center padding">That's all folks</div>
 		</div>
-		<div class="pinned-posts hidden-xs">
-			<div class="muted-title padding"><i class="fa fa-thumb-tack">&nbsp;</i> Pinned Posts </div>
-			<div v-for="post in pinned_posts" :key="post.name">
-				<post :post="post"></post>
-			</div>
+		<div class="right-sidebar hidden-xs">
 		</div>
 	</div>
 </template>
@@ -56,7 +57,7 @@ export default {
 			return this.posts.filter((post) => post.is_globally_pinned)
 		},
 		user_posts() {
-			return this.posts.filter((post) => !post.is_globally_pinned)
+			return this.posts;
 		}
 	},
 	methods: {

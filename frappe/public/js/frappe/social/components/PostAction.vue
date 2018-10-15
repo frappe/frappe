@@ -2,25 +2,20 @@
 	<div class="post-action-container text-muted">
 		<div class="pin" v-if="is_pinnable">
 			<i class="fa fa-thumb-tack" :class="{'pinned': is_pinned}" @click="$emit('toggle_pin')"></i>
-		</div>	
+		</div>
 		<div class="pin" v-else-if="is_globally_pinnable">
 			<i class="fa fa-thumb-tack" :class="{'pinned': is_globally_pinned}" @click="$emit('toggle_global_pin')"></i>
 		</div>
-		<div class="reply">
-			<i class="fa fa-reply" @click="$emit('new_reply')"></i>
-			<span @click="$emit('toggle_reply')">{{ reply_count }}</span>
+		<div class="like" :class="{'liked': post_liked}" @click="$emit('toggle_like')">
+				Like
 		</div>
-		<div class="like">
-			<i
-				class="fa fa-heart"
-				@click="$emit('toggle_like')"
-				:class="{'liked': post_liked}">
-			</i>
-			<span
-				class="likes"
-				:data-liked-by="JSON.stringify(split_string(liked_by))">
-				{{ like_count }}
-			</span>
+		<div class="comment" @click="$emit('toggle_comment')">
+			Comment
+		</div>
+		<div >
+			<span class="likes" :data-liked-by="JSON.stringify(split_string(liked_by))">{{ like_count }} likes</span>
+			.
+			<span>{{ comment_count }} comments</span>
 		</div>
 	</div>
 </template>
@@ -30,7 +25,7 @@ export default {
 		'liked_by': {
 			'type': String,
 		},
-		'reply_count': {
+		'comment_count': {
 			'type': Number,
 			'default': 0,
 		},
@@ -68,12 +63,12 @@ export default {
 </script>
 <style lang='less' scoped>
 .post-action-container {
-	clear: both;
 	display: flex;
-	justify-content: flex-end;
-	.reply, .like, .pin {
+	background-color: #F6F6F6;
+	padding: 10px;
+	.comment, .like, .pin {
+		padding-right: 20px;
 		cursor: pointer;
-		padding: 10px;
 		span {
 			padding-left: 5px;
 		}
@@ -81,10 +76,13 @@ export default {
 			color: black;
 		}
 	}
+	.likes {
+		cursor: pointer;
+	}
 	.liked {
-		color: red;
+		color: #7F7FFF;
 		&:hover {
-			color: lighten(red, 20%) !important;
+			color: lighten(#7F7FFF, 10%) !important;
 		}
 	}
 	.pinned {
