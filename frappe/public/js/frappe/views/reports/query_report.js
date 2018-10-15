@@ -169,6 +169,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (df.on_change) f.on_change = df.on_change;
 
 			df.onchange = () => {
+				if (this.previous_filters
+					&& (JSON.stringify(this.previous_filters) == JSON.stringify(this.get_filter_values()))) {
+					// filter values have not changed
+					return;
+				}
+				this.previous_filters = this.get_filter_values();
+
+				// clear previous_filters after 3 seconds, to allow refresh for new data
+				setTimeout(() => this.previous_filters = null, 3000);
+
 				if (f.on_change) {
 					f.on_change(this);
 				} else {

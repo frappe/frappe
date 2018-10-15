@@ -8,6 +8,25 @@ const Block = Quill.import('blots/block');
 Block.tagName = 'DIV';
 Quill.register(Block, true);
 
+// table
+const Table = Quill.import('formats/table-container');
+Table.className = 'table';
+Quill.register(Table, true);
+
+// inline style
+const BackgroundStyle = Quill.import('attributors/style/background');
+const ColorStyle = Quill.import('attributors/style/color');
+const SizeStyle = Quill.import('attributors/style/size');
+const FontStyle = Quill.import('attributors/style/font');
+const AlignStyle = Quill.import('attributors/style/align');
+const DirectionStyle = Quill.import('attributors/style/direction');
+Quill.register(BackgroundStyle, true);
+Quill.register(ColorStyle, true);
+Quill.register(SizeStyle, true);
+Quill.register(FontStyle, true);
+Quill.register(AlignStyle, true);
+Quill.register(DirectionStyle, true);
+
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_input() {
 		this.has_input = true;
@@ -63,6 +82,38 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 				});
 			}
 		});
+
+		// table commands
+		this.$wrapper.on('click', '.ql-table .ql-picker-item', (e) => {
+			const $target = $(e.currentTarget);
+			const action = $target.data().value;
+			e.preventDefault();
+
+			const table = this.quill.getModule('table');
+			if (action === 'insert-table') {
+				table.insertTable(2, 2);
+			} else if (action === 'insert-row-above') {
+				table.insertRowAbove();
+			} else if (action === 'insert-row-below') {
+				table.insertRowBelow();
+			} else if (action === 'insert-column-left') {
+				table.insertColumnLeft();
+			} else if (action === 'insert-column-right') {
+				table.insertColumnRight();
+			} else if (action === 'delete-row') {
+				table.deleteRow();
+			} else if (action === 'delete-column') {
+				table.deleteColumn();
+			} else if (action === 'delete-table') {
+				table.deleteTable();
+			}
+
+			if (action !== 'delete-row') {
+				table.balanceTables();
+			}
+
+			e.preventDefault();
+		});
 	},
 
 	is_quill_dirty(source) {
@@ -75,7 +126,8 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		return {
 			modules: {
 				toolbar: this.get_toolbar_options(),
-				imageDrop: true
+				imageDrop: true,
+				table: true
 			},
 			theme: 'snow'
 		};
@@ -90,6 +142,16 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			[{ 'list': 'ordered' }, { 'list': 'bullet' }],
 			[{ 'align': [] }],
 			[{ 'indent': '-1'}, { 'indent': '+1' }],
+			[{'table': [
+				'insert-table',
+				'insert-row-above',
+				'insert-row-below',
+				'insert-column-right',
+				'insert-column-left',
+				'delete-row',
+				'delete-column',
+				'delete-table',
+			]}],
 			['clean']
 		];
 	},
