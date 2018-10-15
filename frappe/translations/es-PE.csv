@@ -22,7 +22,7 @@ DocType: Workflow State,th-large,-ésimo gran
 DocType: User,Email Settings,Configuración del correo electrónico
 DocType: User,Send Password Update Notification,Enviar contraseña Notificación de actualización
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +49,Select Document Type,Seleccionar el tipo de documento
-apps/frappe/frappe/public/js/frappe/request.js +167,Server Error: Please check your server logs or contact tech support.,Error de servidor : Se recomienda consultar los registros del servidor o contacte con Soporte técnico.
+apps/frappe/frappe/public/js/frappe/request.js +169,Server Error: Please check your server logs or contact tech support.,Error de servidor : Se recomienda consultar los registros del servidor o contacte con Soporte técnico.
 DocType: Website Settings,Website Theme Image Link,Sitio web Imagen por tema Enlace
 DocType: Custom DocPerm,Role and Level,Función y Nivel
 DocType: Contact Us Settings,Send enquiries to this email address,Puede enviar sus preguntas a la siguiente dirección de correo electrónico
@@ -43,7 +43,7 @@ apps/frappe/frappe/config/setup.py +119,Set numbering series for transactions.,E
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Presentar un problema
 DocType: Currency,Symbol,Símbolo
 DocType: Workflow Document State,Update Field,Actualizar Campos
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +492,Make ,Hacer
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +493,Make ,Hacer
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +17,"You can change Submitted documents by cancelling them and then, amending them.","Puede cambiar los documentos Enviados cancelándolos y luego, haciendo los cambios pertinentes."
 DocType: About Us Settings,Team Members Heading,Miembros del Equipo Lider
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +54,Scheduled to send to {0} recipients,Programado para enviar a {0} destinatarios
@@ -81,7 +81,7 @@ DocType: Communication,Email,Correo electrónico
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +127,Help on Search,Ayuda en la búsqueda
 DocType: Web Page,Left,Izquierda
 DocType: SMS Settings,"Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)","Introduzca los parámetros de URL estáticas aquí (Ej. sender = ERPNext , nombre de usuario = ERPNext , contraseña = 1234 etc )"
-apps/frappe/frappe/core/doctype/user/user.py +191,Sorry! Sharing with Website User is prohibited.,¡Lo siento! Compartir con los del Sitio Web está prohibido.
+apps/frappe/frappe/core/doctype/user/user.py +192,Sorry! Sharing with Website User is prohibited.,¡Lo siento! Compartir con los del Sitio Web está prohibido.
 DocType: Custom Script,Script,Guión
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +71,Refresh Form,Formulario de actualización
 apps/frappe/frappe/templates/emails/new_user.html +2,A new account has been created for you at {0},Una nueva cuenta ha sido creada para ti en {0}
@@ -350,7 +350,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16
 apps/frappe/frappe/public/js/frappe/views/pageview.js +104,Sorry! I could not find what you were looking for.,¡Lo siento! No pude encontrar lo que estabas buscando.
 DocType: Workflow State,remove-sign,Eliminar el efecto de signo
 apps/frappe/frappe/public/js/frappe/form/controls/select.js +61,Please attach a file first.,Adjunte un archivo primero .
-apps/frappe/frappe/public/js/frappe/request.js +385,Report this issue,Reportar Incidencia
+apps/frappe/frappe/public/js/frappe/request.js +387,Report this issue,Reportar Incidencia
 apps/frappe/frappe/public/js/frappe/views/treeview.js +242,New {0},Nuevo {0}
 DocType: Workflow Action,Workflow Action,Acciones de los flujos de trabajo
 DocType: Custom Script,Script Type,Guión Tipo
@@ -431,7 +431,7 @@ apps/frappe/frappe/public/js/frappe/roles_editor.js +194,Role Permissions,Permis
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_field.html +21,Edit HTML,Edición de HTML
 apps/frappe/frappe/public/js/frappe/form/save.js +12,Submitting,Presentar
 DocType: Dropbox Settings,Dropbox Access Secret,Acceso Secreto de Dropbox
-apps/frappe/frappe/core/doctype/user/user.py +189,Sorry! User should have complete access to their own record.,¡Lo siento! El usuario debe tener acceso completo a su propio récord.
+apps/frappe/frappe/core/doctype/user/user.py +190,Sorry! User should have complete access to their own record.,¡Lo siento! El usuario debe tener acceso completo a su propio récord.
 apps/frappe/frappe/core/doctype/doctype/doctype.py +355,DocType can not be merged,El DocType no se puede fusionar
 DocType: DocField,Allow on Submit,Permitir en Enviar
 apps/frappe/frappe/public/js/frappe/views/communication.js +91,Select Print Format,Seleccionar el formato de impresión
