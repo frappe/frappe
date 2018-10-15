@@ -774,8 +774,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		const width = (docfield ? cint(docfield.width) : null) || null;
 
+		// child table column
+		const id = doctype !== this.doctype ? `${doctype}:${fieldname}` : fieldname;
+
 		return {
-			id: fieldname,
+			id: id,
 			field: fieldname,
 			name: title,
 			content: title,
