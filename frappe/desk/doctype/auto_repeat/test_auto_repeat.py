@@ -7,7 +7,7 @@ import unittest
 
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-from frappe.desk.doctype.auto_repeat.auto_repeat import make_auto_repeat_entry, disable_auto_repeat
+from frappe.desk.doctype.auto_repeat.auto_repeat import get_auto_repeat_entries, create_repeated_entries, disable_auto_repeat
 from frappe.utils import today, add_days, getdate
 
 
@@ -29,7 +29,8 @@ class TestAutoRepeat(unittest.TestCase):
 
 		doc = make_auto_repeat(reference_document=todo.name)
 		self.assertEqual(doc.next_schedule_date, today())
-		make_auto_repeat_entry()
+		for data in get_auto_repeat_entries(today()):
+			create_repeated_entries(data)
 		frappe.db.commit()
 
 		todo = frappe.get_doc(doc.reference_doctype, doc.reference_document)
@@ -62,7 +63,8 @@ class TestAutoRepeat(unittest.TestCase):
 
 		disable_auto_repeat(doc)
 
-		make_auto_repeat_entry()
+		for data in get_auto_repeat_entries(today()):
+			create_repeated_entries(data)
 		docnames = frappe.get_all(doc.reference_doctype, {'auto_repeat': doc.name})
 		self.assertEqual(len(docnames), 1)
 
@@ -70,7 +72,8 @@ class TestAutoRepeat(unittest.TestCase):
 		doc.db_set('disabled', 0)
 
 		months = get_months(getdate(start_date), getdate(today()))
-		make_auto_repeat_entry()
+		for data in get_auto_repeat_entries(today()):
+			create_repeated_entries(data)
 
 		docnames = frappe.get_all(doc.reference_doctype, {'auto_repeat': doc.name})
 		self.assertEqual(len(docnames), months)
