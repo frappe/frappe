@@ -31,14 +31,15 @@ frappe.db = {
 			});
 		});
 	},
-	get_value: function(doctype, filters, fieldname, callback) {
+	get_value: function(doctype, filters, fieldname, callback, parent_doc) {
 		return frappe.call({
 			method: "frappe.client.get_value",
 			type: 'GET',
 			args: {
 				doctype: doctype,
 				fieldname: fieldname,
-				filters: filters
+				filters: filters,
+				parent: parent_doc
 			},
 			callback: function(r) {
 				callback && callback(r.message);
