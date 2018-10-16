@@ -2,9 +2,6 @@
 @import (reference) 'common.less';
 
 body[data-route*="social"] {
-	.page-container {
-		background: #FAFBFC;
-	}
 
 	.layout-main-section {
 		border: none;
@@ -18,56 +15,47 @@ body[data-route*="social"] {
 	}
 
 	.wall-container {
-		display: flex;
-		font-size: 12px;
-		.no-post {
-			.icon {
-				font-size: 40px;
-			}
-		}
-		.post-sidebar {
-			flex: 20%
-		}
 		.post-container {
-			flex: 45%;
-			display: flex;
-			padding: 20px;
-			flex-direction: column;
 			.new_posts_count {
 				cursor: pointer;
 				text-align: center;
 				padding: 5px;
-				margin-bottom: 10px;
+				margin-bottom: 15px;
 			}
-		}
-		.right-sidebar {
-			padding: 0px;
-			flex: 35%
 		}
 	}
 
-	.profile-container {
+	.wall-container, .profile-container {
 		display: flex;
-		.profile-sidebar {
-			flex: 20%;
+		font-size: 12px;
+		.post-sidebar {
+			padding-top: 20px;
+			flex: 20%
 		}
 		.post-container {
-			flex: 45%
+			flex: 55%;
+			display: flex;
+			padding: 15px;
+			flex-direction: column;
 		}
-		.right-sidebar {
-			padding: 0px;
-			flex: 35%
+		.activity-sidebar {
+			padding: 15px;
+			flex: 25%;
+			.event {
+				margin: 15px 0;
+			}
 		}
 	}
 
 	.generic-card() {
 		background: white;
 		font-size: 12px;
-		margin-bottom: 10px;
+		margin-bottom: 15px;
 		min-height: 70px;
 		overflow: scroll;
 		border: 1px solid @border-color;
 		border-radius: 4px;
+		box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
 		.content {
 			font-size: 14px;
 			img, iframe {
@@ -87,7 +75,7 @@ body[data-route*="social"] {
 	.post-card {
 		.generic-card();
 		.post-body {
-			padding: 10px;
+			padding: 15px;
 			.user-name {
 				font-weight: 500;
 			}
@@ -99,11 +87,11 @@ body[data-route*="social"] {
 				cursor: pointer;
 			}
 			.content {
-				margin: 10px 0 0 46px;
+				margin: 15px 0 0 46px;
 			}
 		}
 		.post-action-container {
-			padding-left: 46px;
+			padding-left: 56px;
 			background-color: #F6F6F6;
 			border-top: 1px solid @border-color;
 		}
@@ -111,7 +99,7 @@ body[data-route*="social"] {
 
 	.muted-title {
 		&:extend(.text-muted);
-		padding: 10px 10px 10px 0;
+		margin-bottom: 15px;
 		text-transform: uppercase;
 		font-size: 10px;
 		font-weight: 600;

@@ -1,51 +1,21 @@
 <template>
-	<div class="post-action-container text-muted">
-		<div class="pin" v-if="is_pinnable">
-			<i class="fa fa-thumb-tack" :class="{'pinned': is_pinned}" @click="$emit('toggle_pin')"></i>
-		</div>
-		<div class="pin" v-else-if="is_globally_pinnable">
-			<i class="fa fa-thumb-tack" :class="{'pinned': is_globally_pinned}" @click="$emit('toggle_global_pin')"></i>
-		</div>
-		<div class="like" :class="{'liked': post_liked}" @click="$emit('toggle_like')">
-				Like
+	<div class="post-action-container">
+		<div class="like" @click="$emit('toggle_like')">
+			<i class="octicon octicon-heart" :class="{'liked': post_liked}"></i>
+			<span class="likes" :data-liked-by="JSON.stringify(split_string(liked_by))">{{ like_count }}</span>
 		</div>
 		<div class="comment" @click="$emit('toggle_comment')">
-			Comment
-		</div>
-		<div >
-			<span class="likes" :data-liked-by="JSON.stringify(split_string(liked_by))">{{ like_count }} likes</span>
-			.
-			<span>{{ comment_count }} comments</span>
+			<i class="octicon octicon-comment"></i>
+			<span class="comment_count">{{ comment_count }}</span>
 		</div>
 	</div>
 </template>
 <script>
 export default {
-	props: {
-		'liked_by': {
-			'type': String,
-		},
-		'comment_count': {
-			'type': Number,
-			'default': 0,
-		},
-		'is_globally_pinnable': {
-			'type': Boolean,
-			'default': false
-		},
-		'is_pinnable': {
-			'type': Boolean,
-			'default': false
-		},
-		'is_globally_pinned': {
-			'type': Number,
-			'default': 0
-		},
-		'is_pinned': {
-			'type': Number,
-			'default': 0
-		}
-	},
+	props: [
+		'liked_by',
+		'comment_count',
+	],
 	computed: {
 		like_count() {
 			return this.split_string(this.liked_by).length;
@@ -66,23 +36,26 @@ export default {
 	display: flex;
 	background-color: #F6F6F6;
 	padding: 10px;
-	.comment, .like, .pin {
+	.comment, .like {
 		padding-right: 20px;
 		cursor: pointer;
 		span {
 			padding-left: 5px;
 		}
-		i:hover, span:hover {
-			color: black;
+		&:hover {
+			color: #8d99a6;
 		}
+	}
+	.like {
+		color: #8d99a6;
 	}
 	.likes {
 		cursor: pointer;
 	}
 	.liked {
-		color: #7F7FFF;
+		color: #fc4f51;
 		&:hover {
-			color: lighten(#7F7FFF, 10%) !important;
+			color: lighten(#fc4f51, 10%) !important;
 		}
 	}
 	.pinned {

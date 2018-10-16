@@ -9,7 +9,7 @@
 			<div class="comment" v-for="comment in comments" :key="comment.name">
 				<span class="pull-right text-muted" v-html="get_time(comment.creation)"></span>
 				<span v-html="get_avatar(comment.owner)"></span>
-				<span>{{comment.content}}</span>
+				<span>{{ comment.content }}</span>
 			</div>
 		</div>
 	</div>
@@ -27,7 +27,7 @@ export default {
 			return frappe.avatar(user)
 		},
 		get_time(timestamp) {
-			return comment_when(timestamp)
+			return comment_when(timestamp, true)
 		},
 	}
 }
@@ -44,7 +44,7 @@ export default {
 		border: none;
 		margin-bottom: 5px;
 		clear: both;
-		height: 40px;
+		height: 60px;
 		padding: 5px;
 		border: 1px solid #d1d8dd;
 	}

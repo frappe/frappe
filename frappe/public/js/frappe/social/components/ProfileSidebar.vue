@@ -33,6 +33,9 @@ export default {
 	min-height: 150px;
 	.location, .interest {
 		margin-bottom: 10px;
+		i {
+			margin-right: 5px;
+		}
 	}
 }
 .stats {

@@ -1,48 +1,37 @@
 <template>
 	<div class="wall-container">
-		<post-sidebar class="post-sidebar hidden-xs" :user=user></post-sidebar>
+		<post-sidebar class="post-sidebar hidden-xs"></post-sidebar>
 		<div class="post-container">
-			<div class="new_posts_count" @click="load_new_posts()" v-if='new_posts_count'>
+			<div
+				class="new_posts_count"
+				@click="load_new_posts"
+				v-show='new_posts_count'>
 				{{ new_posts_count + ' new post'}}
 			</div>
-			<div v-for="post in user_posts" :key="post.name">
-				<post :post="post"></post>
-			</div>
-			<div v-if="!user_posts.length" class="no-post text-center text-muted">
-				No Posts Yet !
-				<div class="icon">
-					<i class="fa fa-frown-o"></i>
-				</div>
-			</div>
-			<div v-show="loading_old_posts" class="text-center padding">Loading old posts</div>
-			<div v-show="!more_posts_available" class="text-center padding">That's all folks</div>
+			<post-loader :post_list_filter="{}"></post-loader>
 		</div>
-		<div class="right-sidebar hidden-xs">
-		</div>
+		<activity-sidebar class="activity-sidebar"></activity-sidebar>
 	</div>
 </template>
 <script>
-import Post from '../components/Post.vue';
-import EventCard from '../components/EventCard.vue';
+import PostLoader from '../components/PostLoader.vue';
 import PostSidebar from '../components/PostSidebar.vue';
+import ActivitySidebar from '../components/ActivitySidebar.vue';
 
 export default {
 	components: {
-		Post,
-		EventCard,
-		PostSidebar
+		PostLoader,
+		PostSidebar,
+		ActivitySidebar
 	},
 	data() {
 		return {
 			'posts': [],
+			'events': [],
 			'new_posts_count': 0,
-			'user': '',
-			'more_posts_available': true,
-			'loading_old_posts': false,
 		}
 	},
 	created() {
-		this.get_posts()
 		frappe.realtime.on('new_post', (post_owner) => {
 			if (post_owner === frappe.session.user) {
 				this.load_new_posts()
@@ -50,61 +39,12 @@ export default {
 				this.new_posts_count += 1;
 			}
 		})
-		window.addEventListener('scroll', this.handle_scroll);
-	},
-	computed: {
-		pinned_posts() {
-			return this.posts.filter((post) => post.is_globally_pinned)
-		},
-		user_posts() {
-			return this.posts;
-		}
 	},
 	methods: {
-		get_posts(load_new=false, load_old=false) {
-			const filters = {
-				'reply_to': ''
-			};
-			if (load_new && this.posts[0]) {
-				filters.creation = ['>', this.posts[0].creation]
-			} else if (load_old && this.posts.length) {
-				const lastpost = [...this.posts].pop()
-				filters.creation = ['<', lastpost.creation]
-			}
-			frappe.db.get_list('Post', {
-				fields: ['name', 'content', 'owner', 'creation', 'type', 'liked_by', 'is_globally_pinned'],
-				filters: filters,
-				order_by: 'creation desc',
-			}).then((res) => {
-				if (load_new) {
-					this.posts = res.concat(this.posts);
-				} else if (load_old) {
-					if (!res.length) {
-						this.more_posts_available = false;
-					}
-					this.loading_old_posts = false;
-					this.posts = this.posts.concat(res);
-				} else {
-					this.posts = res;
-				}
-			});
-		},
 		load_new_posts() {
-			this.get_posts(true)
+			this.$emit('load_new_posts');
 			this.new_posts_count = 0;
-		},
-		handle_scroll: frappe.utils.debounce(function() {
-			const screen_bottom = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
-			if (screen_bottom && this.more_posts_available) {
-				if (this.more_posts_available && !this.loading_old_posts) {
-					this.loading_old_posts = true;
-					this.get_posts(false, true);
-				}
-			}
-		}, 500)
-	},
-	destroyed() {
-		window.removeEventListener('scroll', this.handle_scroll);
+		}
 	}
 };
 </script>

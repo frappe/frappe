@@ -6,7 +6,6 @@
 		<div class="profile-container">
 			<profile-sidebar
 				:user_id="user_id"
-				v-on:change_list="switch_list($event)"
 				class="profile-sidebar"
 			/>
 			<div class="post-container">
@@ -16,74 +15,74 @@
 						:class="{'bold': show_list === 'user_posts'}"
 						@click="show_list = 'user_posts'">
 						<span>Posts</span>
-						<span>({{ user_posts.length }})</span>
+						<span>({{ user_posts_count }})</span>
 					</div>
 					<div
 						class="option"
 						:class="{'bold': show_list === 'liked_posts'}"
 						@click="show_list = 'liked_posts'">
 						<span>Likes</span>
-						<span>({{ liked_posts.length }})</span>
+						<span>({{ liked_posts_count }})</span>
 					</div>
 				</div>
-				<post :post="post" v-for="post in current_list" :key="post.name"/>
+				<post-loader :post_list_filter="post_list_filter"></post-loader>
 			</div>
-			<div class="right-sidebar"></div>
+			<activity-sidebar class="activity-sidebar"></activity-sidebar>
 		</div>
 	</div>
 </template>
 <script>
-import Post from '../components/Post.vue';
+import PostLoader from '../components/PostLoader.vue';
 import ProfileSidebar from '../components/ProfileSidebar.vue';
+import ActivitySidebar from	'../components/ActivitySidebar.vue';
 import ProfileBanner from '../components/ProfileBanner.vue';
 export default {
 	props: ['user_id'],
 	components: {
-		Post,
+		PostLoader,
 		ProfileSidebar,
-		ProfileBanner
+		ProfileBanner,
+		ActivitySidebar
 	},
 	data() {
 		return {
 			show_list: 'user_posts',
-			user_posts: [],
-			liked_posts: [],
+			post_list_filter : null,
+			user_posts_count: 0,
+			liked_posts_count: 0,
 		}
 	},
-	computed: {
-		current_list() {
-			if(this.show_list == 'user_posts') {
-				return this.user_posts;
-			} else {
-				return this.liked_posts;
+	watch: {
+		show_list() {
+			if (this.show_list == 'user_posts') {
+				this.post_list_filter = this.get_user_posts_filter();
+			} else if (this.show_list == 'liked_posts') {
+				this.post_list_filter = this.get_liked_posts_filter();
 			}
 		}
 	},
 	created() {
-		this.get_user_posts().then(posts => {
-			this.user_posts = posts
-		})
-		this.get_liked_posts().then(posts => {
-			this.liked_posts = posts
-		})
+		this.post_list_filter = this.get_user_posts_filter();
+		this.set_post_count()
 	},
 	methods: {
-		get_user_posts() {
-			return frappe.db.get_list('Post', {
-				'filters': {
-					'owner': this.user_id
-				},
-				fields: ['*']
-			})
+		get_user_posts_filter() {
+			return {
+				'owner': this.user_id
+			}
 		},
-		get_liked_posts() {
-			return frappe.db.get_list('Post', {
-				'filters': {
-					'liked_by': ['like', '%' + this.user_id + '%']
-				},
-				fields: ['*']
-			})
+		get_liked_posts_filter() {
+			return {
+				'liked_by': ['like', '%' + this.user_id + '%']
+			}
 		},
+		set_post_count() {
+			frappe.db.count('Post', { filters: this.get_user_posts_filter() })
+				.then(count => this.user_posts_count = count)
+
+			frappe.db.count('Post', { filters: this.get_liked_posts_filter() })
+				.then(count => this.liked_posts_count = count)
+		}
 	}
 }
 </script>
@@ -93,6 +92,7 @@ export default {
 }
 .profile-sidebar {
 	margin-top: 50px;
+	flex: 20%;
 }
 .right-sidebar {
 	margin-top: 5px;
