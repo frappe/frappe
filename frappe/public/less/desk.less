@@ -1,6 +1,7 @@
 @import "variables.less";
 @import "mixins.less";
 @import "common.less";
+@import "quill.less";
 
 .nav-pills a, .nav-pills a:hover {
 	border-bottom: none;
@@ -516,63 +517,6 @@ li.user-progress {
 	margin-bottom: 24px;
 }
 
-// summernote editor
-.note-editor {
-	margin-top: 5px;
-
-	&.note-frame {
-		border-color: @border-color;
-	}
-
-	.btn {
-		outline: none !important;
-	}
-
-	.dropdown-style > li > a > * {
-		margin: 0;
-	}
-	.fa.fa-check {
-		color: @text-color !important;
-	}
-	.dropdown-menu {
-		z-index: 100;
-		max-height: 300px;
-		overflow: auto;
-	}
-	.note-image-input {
-		height: auto;
-	}
-}
-
-// hide some buttons in modal
-.modal .note-editor {
-	.note-btn-italic,
-	.note-btn-underline,
-	[data-original-title="Font Size"],
-	[data-original-title="Video"],
-	[data-original-title="Table"] {
-		display: none;
-	}
-}
-
-.note-hint-popover {
-	border-radius: 3px;
-	border-color: @border-color;
-	padding: 0;
-
-	.popover-content {
-		padding: 0;
-	}
-
-	.note-hint-item {
-		color: @text-color !important;
-		padding: 5px 8.8px !important;
-	}
-	.note-hint-item.active {
-		background-color: @btn-bg !important;
-	}
-}
-
 .search-dialog {
 	.modal-dialog {
 		width: 768px;
@@ -810,10 +754,6 @@ li.user-progress {
 			display: none;
 		}
 	}
-}
-
-.note-editor.note-frame .note-editing-area .note-editable {
-	color: @text-color;
 }
 
 .input-area input[type=checkbox] {

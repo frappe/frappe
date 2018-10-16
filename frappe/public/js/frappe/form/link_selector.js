@@ -1,4 +1,4 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.ui.form.LinkSelector = Class.extend({
@@ -140,6 +140,11 @@ frappe.ui.form.LinkSelector = Class.extend({
 					]);
 				}
 			}, __("Set Quantity"), __("Set"));
+		} else if (me.dynamic_link_field) { 
+			var d = me.target.add_new_row();
+			frappe.model.set_value(d.doctype, d.name, me.dynamic_link_field, me.dynamic_link_reference);
+			frappe.model.set_value(d.doctype, d.name, me.fieldname, value);
+			frappe.show_alert(__("{0} {1} added", [me.dynamic_link_reference, value]));
 		} else {
 			var d = me.target.add_new_row();
 			frappe.model.set_value(d.doctype, d.name, me.fieldname, value);

@@ -45,6 +45,8 @@ function get_rollup_options_for_js(output_file, input_files) {
 		multi_entry(),
 		// .html -> .js
 		frappe_html(),
+		// ignore css imports
+		ignore_css(),
 		// .vue -> .js
 		vue.default(),
 		// ES6 -> ES5
@@ -73,6 +75,14 @@ function get_rollup_options_for_js(output_file, input_files) {
 			onwarn({ code, message, loc, frame }) {
 				// skip warnings
 				if (['EVAL', 'SOURCEMAP_BROKEN', 'NAMESPACE_CONFLICT'].includes(code)) return;
+
+				if ('UNRESOLVED_IMPORT' === code) {
+					log(chalk.yellow.underline(code), ':', message);
+					const command = chalk.yellow('bench setup requirements');
+					log(`Cannot find some dependencies. You may have to run "${command}" to install them.`);
+					log();
+					return;
+				}
 
 				if (loc) {
 					log(`${loc.file} (${loc.line}:${loc.column}) ${message}`);
@@ -162,6 +172,21 @@ function get_options_for(app) {
 		})
 		.filter(Boolean);
 }
+
+function ignore_css() {
+	return {
+		name: 'ignore-css',
+		transform(code, id) {
+			if (!['.css', '.scss', '.sass', '.less'].some(ext => id.endsWith(ext))) {
+				return null;
+			}
+
+			return `
+				// ignored ${id}
+			`;
+		}
+	};
+};
 
 module.exports = {
 	get_options_for

@@ -495,7 +495,13 @@ frappe.ui.form.Layout = Class.extend({
 
 		var parent = this.frm ? this.frm.doc : null;
 
-		if(expression.substr(0,5)=='eval:') {
+		if(typeof(expression) === 'boolean') {
+			out = expression;
+
+		} else if(typeof(expression) === 'function') {
+			out = expression(doc);
+			
+		} else if(expression.substr(0,5)=='eval:') {
 			try {
 				out = eval(expression.substr(5));
 			} catch(e) {

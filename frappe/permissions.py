@@ -161,7 +161,7 @@ def get_role_permissions(doctype_meta, user=None, verbose=False):
 		def has_permission_without_if_owner_enabled(ptype):
 			return any(p.get(ptype, 0) and not p.get('if_owner', 0) for p in applicable_permissions)
 
-		applicable_permissions = list(filter(is_perm_applicable, doctype_meta.permissions))
+		applicable_permissions = list(filter(is_perm_applicable, getattr(doctype_meta, 'permissions', [])))
 		has_if_owner_enabled = any(p.get('if_owner', 0) for p in applicable_permissions)
 
 		for ptype in rights:
@@ -179,7 +179,7 @@ def get_user_permissions(user):
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 	return get_user_permissions(user)
 
-def has_user_permission(doc, user=None, verbose=False):
+def has_user_permission(doc, user=None, verbose=True):
 	'''Returns True if User is allowed to view considering User Permissions'''
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 	user_permissions = get_user_permissions(user)
@@ -218,7 +218,7 @@ def has_user_permission(doc, user=None, verbose=False):
 				if not d.get(field.fieldname) in user_permissions.get(field.options, {}).get("docs", []):
 					if d.get('parentfield'):
 						# "Not allowed for Company = Restricted Company in Row 3"
-						msg = _('Not allowed for {0} = {1} in Row {2}').format(_(field.options), d[field.fieldname], d.idx)
+						msg = _('Not allowed for {0} = {1} in Row {2}').format(_(field.options), d.get(field.fieldname), d.idx)
 					else:
 						# "Not allowed for Company = Restricted Company"
 						msg = _('Not allowed for {0} = {1}').format(_(field.options), d.get(field.fieldname))
@@ -265,7 +265,7 @@ def get_valid_perms(doctype=None, user=None):
 	perms = get_perms_for(roles)
 	custom_perms = get_perms_for(roles, 'Custom DocPerm')
 
-	doctypes_with_custom_perms = list(set([d.parent for d in custom_perms]))
+	doctypes_with_custom_perms = get_doctypes_with_custom_docperms()
 	for p in perms:
 		if not p.parent in doctypes_with_custom_perms:
 			custom_perms.append(p)
@@ -312,11 +312,18 @@ def get_roles(user=None, with_standard=True):
 
 def get_perms_for(roles, perm_doctype='DocPerm'):
 	'''Get perms for given roles'''
-	return frappe.db.sql("""
-		select * from `tab{doctype}` where docstatus=0
-		and ifnull(permlevel,0)=0
-		and role in ({roles})""".format(doctype = perm_doctype,
-			roles=", ".join(["%s"]*len(roles))), tuple(roles), as_dict=1)
+	filters = {
+		'permlevel': 0,
+		'docstatus': 0,
+		'role': ['in', roles]
+	}
+	return frappe.db.get_all(perm_doctype, fields=['*'], filters=filters)
+
+def get_doctypes_with_custom_docperms():
+	'''Returns all the doctypes with Custom Docperms'''
+
+	doctypes = frappe.db.get_all('Custom DocPerm', fields=['parent'], distinct=1)
+	return [d.parent for d in doctypes]
 
 def can_set_user_permissions(doctype, docname=None):
 	# System Manager can always set user permissions

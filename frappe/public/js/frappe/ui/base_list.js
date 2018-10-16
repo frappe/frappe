@@ -265,6 +265,7 @@ frappe.ui.BaseList = Class.extend({
 
 	clear: function () {
 		this.data = [];
+		this.wrapper.find('.list-select-all').prop('checked', false);
 		this.wrapper.find('.result-list').empty();
 		this.wrapper.find('.result').show();
 		this.wrapper.find('.no-result').hide();
