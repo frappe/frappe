@@ -55,3 +55,4 @@ google-auth-oauthlib
 faker
 stripe
 coverage
+GitPython==2.1.11
