@@ -1,4 +1,7 @@
+// import Quill from 'quill/dist/quill';
 import 'quill-mention';
+
+// Quill.register('modules/mention', QuillMention);
 
 frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 	make_wrapper() {
@@ -68,9 +71,9 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 		const options = this._super();
 		return Object.assign(options, {
 			theme: 'bubble',
-			// modules: Object.assign(options.modules, {
-			// 	mention: this.get_mention_options()
-			// })
+			modules: Object.assign(options.modules, {
+				mention: this.get_mention_options()
+			})
 		});
 	},
 
