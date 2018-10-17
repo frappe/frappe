@@ -799,8 +799,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			const totals = this.get_columns_totals(data);
 			const totals_row = this.columns.map((col, i) => {
 				return {
-					name: 'Totals Row',
-					content: totals[col.field],
+					name: __('Totals Row'),
+					content: totals[col.id],
 					format: value => {
 						return frappe.format(value, col.docfield, { always_show_decimals: true });
 					}
@@ -942,13 +942,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		this.columns.forEach((col, i) => {
 			const totals = data.reduce((totals, d) => {
-				if (col.field in d && frappe.model.is_numeric_field(col.docfield)) {
-					totals += flt(d[col.field]);
+				if (col.id in d && frappe.model.is_numeric_field(col.docfield)) {
+					totals += flt(d[col.id]);
 					return totals;
 				}
 			}, 0);
 
-			row_totals[col.field] = totals;
+			row_totals[col.id] = totals;
 		});
 
 		return row_totals;
