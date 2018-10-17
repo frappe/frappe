@@ -11,6 +11,7 @@ import subprocess # nosec
 from frappe.utils import cstr
 from frappe.utils.gitutils import get_app_last_commit_ref, get_app_branch
 from frappe import _, safe_decode
+import git
 
 def get_change_log(user=None):
 	if not user: user = frappe.session.user
@@ -103,9 +104,13 @@ def get_versions():
 		}
 
 		if versions[app]['branch'] != 'master':
-			branch_version = app_hooks.get('{0}_version'.format(versions[app]['branch']))
+			try:
+				app_repo = git.Repo(os.path.join('..', 'apps', '{}'.format(app)))
+				branch_version = '-'.join(app_repo.git.describe().split('-')[:2])
+			except:
+				branch_version = app_hooks.get('{0}_version'.format(versions[app]['branch']))
 			if branch_version:
-				versions[app]['branch_version'] = branch_version[0] + ' ({0})'.format(get_app_last_commit_ref(app))
+				versions[app]['branch_version'] = branch_version + ' ({0})'.format(get_app_last_commit_ref(app))
 
 		try:
 			versions[app]["version"] = frappe.get_attr(app + ".__version__")
