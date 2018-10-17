@@ -133,6 +133,9 @@ class RedisWrapper(redis.Redis):
 	def llen(self, key):
 		return super(redis.Redis, self).llen(self.make_key(key))
 
+	def lrange(self, key, start, end):
+		return super(redis.Redis, self).lrange(self.make_key(key), start, end)
+
 	def hset(self, name, key, value, shared=False):
 		_name = self.make_key(name, shared=shared)
 
