@@ -169,6 +169,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (df.on_change) f.on_change = df.on_change;
 
 			df.onchange = () => {
+				if (this.previous_filters
+					&& (JSON.stringify(this.previous_filters) == JSON.stringify(this.get_filter_values()))) {
+					// filter values have not changed
+					return;
+				}
+				this.previous_filters = this.get_filter_values();
+
+				// clear previous_filters after 3 seconds, to allow refresh for new data
+				setTimeout(() => this.previous_filters = null, 3000);
+
 				if (f.on_change) {
 					f.on_change(this);
 				} else {
@@ -228,7 +238,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	refresh() {
 		this.toggle_message(true);
 		let filters = this.get_filter_values(true);
-
 		let query = frappe.utils.get_query_string(frappe.get_route_str());
 
 		if(query) {
@@ -236,15 +245,22 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			filters = Object.assign(filters || {}, obj);
 		}
 
-		return new Promise(resolve => frappe.call({
-			method: 'frappe.desk.query_report.run',
-			type: 'GET',
-			args: {
-				report_name: this.report_name,
-				filters: filters,
-			},
-			callback: resolve
-		})).then(r => {
+		// only one refresh at a time
+		if (this.last_ajax) {
+			this.last_ajax.abort();
+		}
+
+		return new Promise(resolve => {
+			this.last_ajax = frappe.call({
+				method: 'frappe.desk.query_report.run',
+				type: 'GET',
+				args: {
+					report_name: this.report_name,
+					filters: filters,
+				},
+				callback: resolve
+			})
+		}).then(r => {
 			let data = r.message;
 
 			this.hide_status();
@@ -328,17 +344,25 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	render_datatable() {
 		if (this.datatable) {
+			this.datatable.options.treeView = this.tree_report;
 			this.datatable.refresh(this.data, this.columns);
 			return;
 		}
 
-		this.datatable = new DataTable(this.$report[0], {
+		let datatable_options = {
 			columns: this.columns,
 			data: this.data,
 			inlineFilters: true,
 			treeView: this.tree_report,
-			layout: 'fixed'
-		});
+			layout: 'fixed',
+			cellHeight: 33
+		};
+
+		if (this.report_settings.get_datatable_options) {
+			datatable_options = this.report_settings.get_datatable_options(datatable_options);
+		}
+
+		this.datatable = new DataTable(this.$report[0], datatable_options);
 	}
 
 	get_chart_options(data) {
@@ -573,9 +597,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	get_filter_values(raise) {
 		const mandatory = this.filters.filter(f => f.df.reqd);
 		const missing_mandatory = mandatory.filter(f => !f.get_value());
-
 		if (raise && missing_mandatory.length > 0) {
-			return;
+			let message = __('Please set filters');
+			this.toggle_message(raise, message);
+			throw "Filter missing";
 		}
 
 		const filters = this.filters
@@ -593,7 +618,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				Object.assign(acc, f);
 				return acc;
 			}, {});
-
 		return filters;
 	}
 

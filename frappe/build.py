@@ -84,7 +84,16 @@ def make_asset_dirs(make_copy=False, restore=False):
 
 		symlinks = []
 		symlinks.append([os.path.join(app_base_path, 'public'), os.path.join(assets_path, app_name)])
-		symlinks.append([os.path.join(app_base_path, 'docs'), os.path.join(assets_path, app_name + '_docs')])
+
+		app_doc_path = None
+		if os.path.isdir(os.path.join(app_base_path, 'docs')):
+			app_doc_path = os.path.join(app_base_path, 'docs')
+
+		elif os.path.isdir(os.path.join(app_base_path, 'www', 'docs')):
+			app_doc_path = os.path.join(app_base_path, 'www', 'docs')
+
+		if app_doc_path:
+			symlinks.append([app_doc_path, os.path.join(assets_path, app_name + '_docs')])
 
 		for source, target in symlinks:
 			source = os.path.abspath(source)
