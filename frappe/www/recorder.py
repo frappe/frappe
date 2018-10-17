@@ -4,6 +4,8 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 
 def get_context(context):
-	return context
+	result = frappe.cache().lrange("recorder-sql", 0, -1)
+	return {"result": result}
