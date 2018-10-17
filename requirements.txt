@@ -50,3 +50,4 @@ premailer
 croniter
 googlemaps
 urllib3==1.23
+GitPython==2.1.11
