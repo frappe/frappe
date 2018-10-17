@@ -3,6 +3,7 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
+import json
 import os
 from six import iteritems
 import logging
@@ -41,6 +42,30 @@ class RequestContext(object):
 	def __exit__(self, type, value, traceback):
 		frappe.destroy()
 
+def recorder(function):
+	def wrapper(*args, **kwargs):
+		def dumps(entry):
+			# Attempt to convert entry to JSON
+			try:
+				return json.dumps(entry)
+			except:
+				pass
+
+		# Execute wrapped function as is
+		# Record arguments as well as return value
+		result = function(*args, **kwargs)
+		data = {
+			"function": function.__name__,
+			"args": dumps(args),
+			"kwargs": dumps(kwargs),
+			"result": dumps(result),
+		}
+		# All calls can be recorded during request and then be pushed
+		# all at once in the end
+		# For now it isn't what we really need
+		frappe.cache().rpush("recorder-sql", json.dumps(data))
+		return result
+	return wrapper
 
 @Request.application
 def application(request):
@@ -50,6 +75,7 @@ def application(request):
 		rollback = True
 
 		init_request(request)
+		frappe.db.sql = recorder(frappe.db.sql)
 
 		if frappe.local.form_dict.cmd:
 			response = frappe.handler.handle()
