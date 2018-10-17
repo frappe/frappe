@@ -282,13 +282,12 @@ class RazorpaySettings(Document):
 			})
 
 		return settings
-	
-	
+
 	def cancel_subscription(self, subscription_id):
-		settings = self.get_settings()
-		
+		settings = self.get_settings({})
+
 		try:
-			resp = make_get_request("https://api.razorpay.com/v1/subscriptions/{0}/cancel"
+			resp = make_post_request("https://api.razorpay.com/v1/subscriptions/{0}/cancel"
 				.format(subscription_id), auth=(settings.api_key,
 					settings.api_secret))
 		except Exception:
