@@ -56,3 +56,4 @@ faker
 stripe
 coverage
 GitPython==2.1.11
+urllib3==1.23
