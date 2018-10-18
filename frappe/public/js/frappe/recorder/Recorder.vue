@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<ol>
-			<li v-for="path in paths" :key="path">{{ path }}</li>
+			<li v-for="path in paths" :key="path.path">{{ path.path }} {{ path.count }}</li>
 		</ol>
 	</div>
 </template>
