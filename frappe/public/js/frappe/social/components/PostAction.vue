@@ -39,15 +39,13 @@ export default {
 	.comment, .like {
 		padding-right: 20px;
 		cursor: pointer;
+		color: #8d99a6;
 		span {
 			padding-left: 5px;
 		}
 		&:hover {
-			color: #8d99a6;
+			color: darken(#8d99a6, 10%);
 		}
-	}
-	.like {
-		color: #8d99a6;
 	}
 	.likes {
 		cursor: pointer;

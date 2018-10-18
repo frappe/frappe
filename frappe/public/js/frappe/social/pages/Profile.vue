@@ -88,10 +88,10 @@ export default {
 </script>
 <style lang="less" scoped>
 .profile-head {
-	height: 200px;
+	height: 190px;
 }
 .profile-sidebar {
-	margin-top: 50px;
+	margin-top: 60px;
 	flex: 20%;
 }
 .right-sidebar {
@@ -101,7 +101,7 @@ export default {
 	display: flex;
 	.option {
 		cursor: pointer;
-		padding: 10px 10px 10px 0
+		padding: 0px 10px 10px 0;
 	}
 }
 </style>

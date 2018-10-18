@@ -30,37 +30,33 @@ export default {
 		this.$parent.$on('load_new_posts', () => {
 			this.update_posts()
 		})
+		frappe.realtime.on('global_pin', () => {
+			this.update_posts()
+		})
 	},
 	watch: {
-		post_list_filter() {
-			this.update_posts()
+		post_list_filter(old_val, new_val) {
+			if (JSON.stringify(old_val) !== JSON.stringify(new_val)){
+				this.update_posts()
+			}
 		}
 	},
 	methods: {
-		get_posts(filters) {
+		get_posts(filters, load_old) {
 			return frappe.db.get_list('Post', {
 				fields: ['name', 'content', 'owner', 'creation', 'liked_by', 'is_pinned', 'is_globally_pinned'],
 				filters: filters,
-				order_by: 'creation desc',
+				limit_start: load_old ? this.posts.length : 0,
+				order_by: 'is_globally_pinned desc, creation desc',
 			})
 		},
-		update_posts(load_new=false, load_old=false) {
+		update_posts(load_old=false) {
 			if (!this.post_list_filter) return
 
 			const filters = Object.assign({}, this.post_list_filter);
 
-			if (load_new && this.posts[0]) {
-				filters.creation = ['>', this.posts[0].creation]
-			} else if (load_old && this.posts.length) {
-				const lastpost = [...this.posts].pop()
-				filters.creation = ['<', lastpost.creation]
-				this.loading_posts = true;
-			}
-
-			this.get_posts(filters).then((res) => {
-				if (load_new) {
-					this.posts = res.concat(this.posts);
-				} else if (load_old) {
+			this.get_posts(filters, load_old).then((res) => {
+				if (load_old) {
 					if (!res.length) {
 						this.more_posts_available = false;
 					}
@@ -76,7 +72,7 @@ export default {
 			if (screen_bottom && this.more_posts_available) {
 				if (this.more_posts_available && !this.loading_posts) {
 					this.loading_posts = true;
-					this.update_posts(false, true);
+					this.update_posts(true);
 				}
 			}
 		}, 500),

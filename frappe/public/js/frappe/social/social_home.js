@@ -77,6 +77,20 @@ frappe.social.update_user_image = new frappe.ui.Dialog({
 	}
 });
 
+frappe.social.is_home_page = () => {
+	return frappe.get_route()[0] === 'social' && frappe.get_route()[1] === 'home';
+};
+
+frappe.social.is_profile_page = (user) => {
+	return frappe.get_route()[0] === 'social'
+		&& frappe.get_route()[1] === 'profile'
+		&& (user ? frappe.get_route()[2] === user : true);
+};
+
+frappe.social.is_session_user_page = () => {
+	return frappe.social.is_profile_page() && frappe.get_route()[2] === frappe.session.user;
+};
+
 frappe.provide('frappe.app_updates');
 
 frappe.utils.make_event_emitter(frappe.app_updates);

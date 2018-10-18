@@ -1,10 +1,13 @@
 <template>
 	<div class="post-card">
-		<div class="post-body">
-			<div
-				class="text-muted pull-right"
-				v-if="post.is_pinned || post.is_globally_pinned">
-				{{ post.is_globally_pinned ? 'Globally ': ''}} Pinned
+		<div class="post-body" :class="{'pinned ': is_pinned}">
+			<div class="pull-right">
+				<div
+					class="pin-option"
+					@click="toggle_pin"
+					v-if="can_pin || is_pinned">
+					<i class="octicon octicon-pin"></i>
+				</div>
 			</div>
 			<div class="user-avatar" v-html="user_avatar" @click="goto_profile(post.owner)"></div>
 			<div class="user-name" @click="goto_profile(post.owner)">{{ user_name }}</div>
@@ -12,20 +15,16 @@
 			<div class="content" v-html="post.content"></div>
 		</div>
 		<post-action
-			:is_pinnable="is_pinnable"
-			:is_pinned="post.is_pinned"
 			:liked_by="post.liked_by"
 			:comment_count="comments.length"
 			@toggle_comment="toggle_comment"
 			@toggle_like="toggle_like"
-			@toggle_pin="toggle_pin"
 		/>
 		<post-comment
 			v-if="show_comments"
 			class="post-comments"
 			:comments="comments"
-			@create_comment="create_comment">
-		</post-comment>
+			@create_comment="create_comment"/>
 	</div>
 </template>
 <script>
@@ -53,10 +52,17 @@ export default {
 			comment_count: 0,
 			comments: [],
 			show_comments: false,
-			is_globally_pinnable: !this.post.comment_to && frappe.user_roles.includes('System Manager'),
-			is_pinnable: !this.post.comment_to
-				&& frappe.session.user === this.post.owner
-				&& frappe.get_route()[2] === frappe.session.user
+			is_globally_pinnable: frappe.user_roles.includes('System Manager') && frappe.social.is_home_page(),
+			is_pinnable: frappe.session.user === this.post.owner && frappe.social.is_session_user_page()
+		}
+	},
+	computed: {
+		can_pin() {
+			return this.is_globally_pinnable || this.is_pinnable
+		},
+		is_pinned() {
+			return this.post.is_pinned && frappe.social.is_profile_page(this.post.owner)
+				|| this.post.is_globally_pinned && frappe.social.is_home_page()
 		}
 	},
 	created() {
@@ -76,12 +82,6 @@ export default {
 
 		frappe.realtime.on('new_post_comment' + this.post.name, (comment) => {
 			this.comments = [comment].concat(this.comments);
-		})
-		frappe.realtime.on('toggle_global_pin' + this.post.name, (is_globally_pinned) => {
-			this.post.is_globally_pinned = cint(is_globally_pinned);
-		})
-		frappe.realtime.on('toggle_pin' + this.post.name, (is_pinned) => {
-			this.post.is_pinned = cint(is_pinned);
 		})
 		frappe.realtime.on('update_liked_by' + this.post.name, this.update_liked_by)
 
@@ -105,11 +105,15 @@ export default {
 				post_name: this.post.name,
 			})
 		},
-		toggle_global_pin() {
-			frappe.db.set_value('Post', this.post.name, 'is_globally_pinned', cint(!this.post.is_globally_pinned))
-		},
 		toggle_pin() {
-			frappe.db.set_value('Post', this.post.name, 'is_pinned', cint(!this.post.is_pinned))
+			if (this.is_globally_pinnable) {
+				frappe.db.set_value('Post', this.post.name, 'is_globally_pinned', cint(!this.is_pinned))
+					.then(res => this.post.is_globally_pinned = cint(res.message.is_globally_pinned))
+			}
+			if (this.is_pinnable) {
+				frappe.db.set_value('Post', this.post.name, 'is_pinned', cint(!this.is_pinned))
+					.then(res => this.post.is_pinned = cint(res.message.is_pinned))
+			}
 		},
 		create_comment(content) {
 			const comment = frappe.model.get_new_doc('Post Comment');
@@ -122,9 +126,12 @@ export default {
 </script>
 <style lang="less" scoped>
 .post-comments {
-	padding: 10px 46px;
+	padding: 15px 46px;
 	padding-top: 0px;
 	background: #F6F6F6;
+}
+.pin-option {
+
 }
 </style>
 

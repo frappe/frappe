@@ -90,6 +90,24 @@ body[data-route*="social"] {
 				margin: 15px 0 0 46px;
 			}
 		}
+		.pin-option {
+			.text-extra-muted;
+			cursor: pointer;
+			display: none;
+		}
+		.pinned {
+			background: #fefdf2;
+			.pin-option {
+				.text-muted;
+				display: block;
+				cursor: pointer;
+			}
+		}
+		&:hover {
+			.pin-option {
+				display: block;
+			}
+		}
 		.post-action-container {
 			padding-left: 56px;
 			background-color: #F6F6F6;

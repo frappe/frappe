@@ -8,31 +8,12 @@ from frappe.model.document import Document
 
 class Post(Document):
 	def on_update(self):
-		if (self.get_doc_before_save().is_globally_pinned != self.is_globally_pinned):
-			frappe.publish_realtime('toggle_global_pin' + self.name, self.is_globally_pinned, after_commit=True)
-		if (self.get_doc_before_save().is_pinned != self.is_pinned):
-			frappe.publish_realtime('toggle_pin' + self.name, self.is_pinned, after_commit=True)
-
+		if (self.is_globally_pinned):
+			print('inn')
+			frappe.publish_realtime('global_pin', after_commit=True)
 
 	def after_insert(self):
 		frappe.publish_realtime('new_post', self.owner, after_commit=True)
-
-@frappe.whitelist()
-def get_profile_data(post_user):
-	liked_post = frappe.db.get_list(
-	 		'Post',
-	 		fields=['name', 'content', 'owner', 'creation', 'liked_by', 'is_pinned'],
-	 		filters={"liked_by": ['like',"%" + post_user + "%"]}
-		)
-	user_post = frappe.db.get_list(
-	 		'Post',
-	 		fields=['name', 'content', 'owner', 'creation', 'liked_by', 'is_pinned'],
-	 		filters={"owner":['like', post_user]}
-		)
-	return {
-		'liked_posts': liked_post,
-		'user_posts': user_post
-	}
 
 @frappe.whitelist()
 def toggle_like(post_name, user=None):

@@ -74,9 +74,9 @@ def get_data():
 		{
 			"module_name": 'Social',
 			"label": _('Social'),
-			"icon": "fa fa-users",
+			"icon": "octicon octicon-heart",
 			"type": 'link',
 			"link": 'social/home',
-			"color": '#00253E'
+			"color": '#FF4136'
 		}
 	]

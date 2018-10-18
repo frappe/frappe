@@ -1,11 +1,11 @@
 <template>
 	<div>
-		<div class="comment-box">
+		<div class="comment-box flex-column">
 			<div class="text-muted comment-label">Add a comment</div>
 			<textarea v-model="comment_content"></textarea>
-			<button class="pull-right btn btn-primary btn-sm" @click="$emit('create_comment', comment_content); comment_content = ''">Comment</button>
+			<button :disabled="comment_content === ''" class="btn btn-primary btn-sm" @click="create_comment">Comment</button>
 		</div>
-		<div class="comment-list">
+		<div v-if="comments.length" class="comment-list">
 			<div class="comment" v-for="comment in comments" :key="comment.name">
 				<span class="pull-right text-muted" v-html="get_time(comment.creation)"></span>
 				<span v-html="get_avatar(comment.owner)"></span>
@@ -29,6 +29,10 @@ export default {
 		get_time(timestamp) {
 			return comment_when(timestamp, true)
 		},
+		create_comment() {
+			this.$emit('create_comment', this.comment_content);
+			this.comment_content = '';
+		}
 	}
 }
 </script>
@@ -42,20 +46,20 @@ export default {
 		border-radius: 4px;
 		outline: none;
 		border: none;
-		margin-bottom: 5px;
-		clear: both;
+		margin-bottom: 15px;
 		height: 60px;
 		padding: 5px;
 		border: 1px solid #d1d8dd;
+		resize: none;
 	}
 	button {
 		padding: 2px 5px;
 		font-size: 10px;
+		align-self: flex-end;
 	}
 }
 .comment-list {
-	margin-top: 30px;
-	clear: both;
+	margin-top: 10px;
 	.comment {
 		padding: 5px 0;
 	}
