@@ -15,6 +15,8 @@ develop_version = '10.x.x-develop'
 
 app_email = "info@frappe.io"
 
+docs_app = "frappe_io"
+
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
 
