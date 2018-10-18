@@ -128,20 +128,21 @@ export default {
 			frappe.db.insert(comment);
 		},
 		generate_preview(link_element) {
-			// TODO: create meta parse and move the code to separate component
-			fetch(`https://opengraph.io/api/1.1/site/${link_element.href}?app_id=5bc7fee2a2677843003b8bba`).then(res => {
-				res.json().then(data => {
-					const og = data['openGraph']
+			// TODO: move the code to separate component
+			frappe.xcall('frappe.social.doctype.post.post.get_link_info', {
+				'url': link_element.href
+			}).then(info => {
+				if (info['og:title'] || info['title']) {
 					link_element.insertAdjacentHTML('afterend', `
-						<div class="preview-card" class="flex">
-							<img class="user-avatar" src="${og.image.url}"/>
+						<a href="${info['og:url']}" target="blank" class="preview-card" class="flex">
+							<img src="${info['og:image']}"/>
 							<div class="flex-column">
-								<h5>${og.title}</h5>
-								<p>${og.description}</p>
+								<h5>${info['og:title'] || info['title']}</h5>
+								<p class="text-muted">${info['og:description'] || info['description']}</p>
 							</div>
-						</div>
+						</a>
 					` );
-				});
+				}
 			})
 			.catch(console.error)
 		}

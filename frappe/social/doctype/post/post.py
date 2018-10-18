@@ -34,3 +34,30 @@ def frequently_visited_links():
 	return frappe.get_all('Route History', fields=['route', 'count(name) as count'], filters={
 		'user': frappe.session.user
 	}, group_by="route", order_by="count desc", limit=10)
+
+@frappe.whitelist()
+def get_link_info(url):
+	cached_link_info = frappe.cache().hget("link_info", url)
+	if cached_link_info:
+		return cached_link_info
+
+	from bs4 import BeautifulSoup
+	import requests
+	try:
+		page = requests.get(url)
+	except:
+		frappe.cache().hset("link_info", url, {})
+		return {}
+
+	soup = BeautifulSoup(page.text)
+
+	meta_obj = {}
+	for meta in soup.findAll('meta'):
+		meta_name = meta.get('property') or meta.get('name', '').lower()
+		if meta_name:
+			meta_obj[meta_name] = meta.get('content')
+
+	frappe.cache().hset("link_info", url, meta_obj)
+
+	return meta_obj
+

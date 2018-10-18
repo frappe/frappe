@@ -74,6 +74,7 @@ body[data-route*="social"] {
 
 	.post-card {
 		.generic-card();
+		max-width: 600px;
 		.post-body {
 			padding: 15px;
 			.user-name {
@@ -114,16 +115,21 @@ body[data-route*="social"] {
 			border-top: 1px solid @border-color;
 		}
 		.preview-card {
+			text-decoration: none;
 			height: 150px;
 			border: 1px solid @light-border-color;
 			border-radius: 5px;
 			margin-top: 15px;
 			padding-right: 10px;
 			background: white;
+			display: flex;
 			img {
-				height: 100%;
 				border: none;
-				margin-left: 10px;
+				margin: 0 10px;
+				max-width: 150px;
+				height: auto;
+				max-height: 90%;
+				align-self: center;
 			}
 		}
 	}
