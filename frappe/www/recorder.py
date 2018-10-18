@@ -13,3 +13,22 @@ def get_context(context):
 	for line in result:
 		paths.setdefault(line["path"], []).append(line)
 	return {"result": paths}
+
+
+@frappe.whitelist()
+def get_paths():
+	paths = frappe.cache().zrange("recorder-paths", 0, -1, desc=True)
+	paths = list(map(lambda path: path.decode(), paths))
+	return paths
+
+@frappe.whitelist()
+def get_requests(path):
+	requests = frappe.cache().lrange("recorder-requests-{}".format(path), 0, -1)
+	requests = list(map(lambda request: request.decode(), requests))
+	return requests
+
+@frappe.whitelist()
+def get_calls(uuid):
+	calls = frappe.cache().lrange("recorder-calls-{}".format(uuid), 0, -1)
+	calls = list(map(lambda call: call.decode(), calls))
+	return calls
