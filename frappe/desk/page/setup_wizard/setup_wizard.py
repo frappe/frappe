@@ -54,8 +54,11 @@ def setup_complete(args):
 	and clears cache. If wizard breaks, calls `setup_wizard_exception` hook"""
 
 	# Setup complete: do not throw an exception, let the user continue to desk
-	if cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
+	if (frappe.cache().hget("setup_wizard", "in_setup") or
+		cint(frappe.db.get_single_value('System Settings', 'setup_complete'))):
 		return
+
+	frappe.cache().hset("setup_wizard", "in_setup", True)
 
 	args = parse_args(args)
 
@@ -70,17 +73,19 @@ def setup_complete(args):
 			for task in stage.get('tasks'):
 				current_task = task
 				task.get('fn')(task.get('args'))
-
 	except Exception:
 		handle_setup_exception(args)
 		return {'status': 'fail', 'fail': current_task.get('fail_msg')}
 	else:
 		run_setup_success(args)
 		return {'status': 'ok'}
+	finally:
+		frappe.cache().hdel("setup_wizard", "in_setup")
 
 def update_global_settings(args):
-	if args.language and args.language != "english":
+	if args.language and args.language != "English":
 		set_default_language(get_language_code(args.lang))
+		frappe.db.commit()
 	frappe.clear_cache()
 
 	update_system_settings(args)
@@ -236,6 +241,7 @@ def load_messages(language):
 	javascript files"""
 	frappe.clear_cache()
 	set_default_language(get_language_code(language))
+	frappe.db.commit()
 	m = get_dict("page", "setup-wizard")
 
 	for path in frappe.get_hooks("setup_wizard_requires"):
