@@ -70,6 +70,49 @@ def recorder(function):
 	wrapper.path = frappe.request.path
 	return wrapper
 
+def persist(function):
+	"""Stores recorded requests and calls in redis cache with following hierarchy
+
+	recorder-paths -> ["Path1", "Path2", ... ,"Path3"]
+
+	recorder-paths is a sorted set, Paths have non decreasing score,
+	Highest score means recently visited
+
+	recorder-requests-[path] -> ["UUID3", "UUID2", ...]
+	recorder-requests-[path] is a list of UUIDs of requests made on that path
+	in reverse chronological order
+
+	recorder-requests-[uuid] -> ["Call1", "Call2"]
+	recorder-requests-[uuid] is a list of calls made during that request
+	in chronological order
+	"""
+	path = function.path
+	uuid = function.uuid
+	calls = function.calls
+
+	# Redis Sorted Set -> Ordered set (Ordereed by `score`)
+	# Elements are ordered from low to high score
+
+	# Get the highest score from our set
+	highest_score = frappe.cache().zrange("recorder-paths", -1, -1, withscores=True)
+
+	# In the begning we might not even have a highest score
+	# We have to start somewhere, 0 seems like a safe bet
+	highest_score = highest_score[0][1] if highest_score else 0
+
+	# Now insert `path` with score highest + 1
+	# Effectively giving `path` the highest score
+	# Note: Iff these two operations are done consequtively
+	# Note: score can grow exponentially, Will probably need a fix
+	frappe.cache().zincrby("recorder-paths", path, amount=float(highest_score)+1)
+
+	# LPUSH -> Reverse chronological order for requests
+	frappe.cache().lpush("recorder-requests-{}".format(path), uuid)
+
+	# LPUSH -> Chronological order for calls
+	# Since every request uuid is unique, no need for any heirarchy
+	frappe.cache().rpush("recorder-calls-{}".format(uuid), calls)
+
 @Request.application
 def application(request):
 	response = None
@@ -120,6 +163,7 @@ def application(request):
 		if response and hasattr(frappe.local, 'cookie_manager'):
 			frappe.local.cookie_manager.flush_cookies(response=response)
 
+		persist(frappe.db.sql)
 		frappe.destroy()
 
 	return response
