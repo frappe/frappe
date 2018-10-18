@@ -61,6 +61,7 @@ def recorder(function):
 		# Record arguments as well as return value
 		result = function(*args, **kwargs)
 		data = {
+			"path": frappe.request.path,
 			"function": function.__name__,
 			"args": dumps(args),
 			"kwargs": dumps(kwargs),

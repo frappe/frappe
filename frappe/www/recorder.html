@@ -7,6 +7,20 @@
 	<div>
 		<h3>Recorder</h3>
 	</div>
-	<div>{{ result }}</div>
+	<div>
+	{% for path, lines in result.items() %}
+		<div>{{ path }}</div>
+		<div>
+		{% for line in lines %}
+			<div>
+				<div>{{ line.function }}</div>
+				<div>{{ line.args }}</div>
+				<div>{{ line.kwargs }}</div>
+				<div>{{ line.result }}</div>
+			</div>
+		{% endfor %}
+		</div>
+	{% endfor %}
+	</div>
 </div>
 {% endblock %}
