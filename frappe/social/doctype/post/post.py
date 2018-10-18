@@ -9,7 +9,6 @@ from frappe.model.document import Document
 class Post(Document):
 	def on_update(self):
 		if (self.is_globally_pinned):
-			print('inn')
 			frappe.publish_realtime('global_pin', after_commit=True)
 
 	def after_insert(self):

@@ -12,7 +12,7 @@
 			<div class="user-avatar" v-html="user_avatar" @click="goto_profile(post.owner)"></div>
 			<div class="user-name" @click="goto_profile(post.owner)">{{ user_name }}</div>
 			<div class="text-muted" v-html="post_time"></div>
-			<div class="content" v-html="post.content"></div>
+			<div ref="content" class="content" v-html="post.content"></div>
 		</div>
 		<post-action
 			:liked_by="post.liked_by"
@@ -90,6 +90,12 @@ export default {
 		})
 
 	},
+	mounted() {
+		Array.from(this.$refs['content'].getElementsByTagName("a"))
+			.forEach((link_element)=> {
+				this.generate_preview(link_element);
+			})
+	},
 	methods: {
 		goto_profile(user) {
 			frappe.set_route('social', 'profile/' + user)
@@ -120,6 +126,24 @@ export default {
 			comment.content = content
 			comment.parent = this.post.name;
 			frappe.db.insert(comment);
+		},
+		generate_preview(link_element) {
+			// TODO: create meta parse and move the code to separate component
+			fetch(`https://opengraph.io/api/1.1/site/${link_element.href}?app_id=5bc7fee2a2677843003b8bba`).then(res => {
+				res.json().then(data => {
+					const og = data['openGraph']
+					link_element.insertAdjacentHTML('afterend', `
+						<div class="preview-card" class="flex">
+							<img class="user-avatar" src="${og.image.url}"/>
+							<div class="flex-column">
+								<h5>${og.title}</h5>
+								<p>${og.description}</p>
+							</div>
+						</div>
+					` );
+				});
+			})
+			.catch(console.error)
 		}
 	}
 }
@@ -129,9 +153,6 @@ export default {
 	padding: 15px 46px;
 	padding-top: 0px;
 	background: #F6F6F6;
-}
-.pin-option {
-
 }
 </style>
 
