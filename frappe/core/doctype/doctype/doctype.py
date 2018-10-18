@@ -584,7 +584,7 @@ def validate_fields(meta):
 						group by `{fieldname}` having count(*) > 1 limit 1""".format(
 						doctype=d.parent, fieldname=d.fieldname))
 
-				except frappe.db.InternalError as e:
+				except (frappe.db.InternalError, frappe.db.SQLError) as e:
 					if frappe.db.is_missing_column(e):
 						# ignore if missing column, else raise
 						# this happens in case of Custom Field
