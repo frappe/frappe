@@ -21,6 +21,9 @@
 	"js/frappe-vue.min.js": [
 		"public/js/frappe_vue.js"
 	],
+	"js/frappe-recorder.min.js": [
+		"public/js/frappe/recorder/recorder.js"
+	],
 	"js/frappe-web.min.js": [
 		"public/js/frappe/class.js",
 		"public/js/frappe/polyfill.js",
