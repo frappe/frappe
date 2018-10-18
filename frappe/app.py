@@ -106,6 +106,9 @@ def persist(function):
 	# Note: score can grow exponentially, Will probably need a fix
 	frappe.cache().zincrby("recorder-paths", path, amount=float(highest_score)+1)
 
+	# Also record number of times each URL was hit
+	frappe.cache().hincrby("recorder-paths-counts", path, 1)
+
 	# LPUSH -> Reverse chronological order for requests
 	frappe.cache().lpush("recorder-requests-{}".format(path), uuid)
 
