@@ -234,3 +234,9 @@ class RedisWrapper(redis.Redis):
 		"""Return all members of the set"""
 		return super(RedisWrapper, self).smembers(self.make_key(name))
 
+	def zincrby(self, name, value, amount=1):
+		return super(redis.Redis, self).zincrby(self.make_key(name), value, amount=amount)
+
+	def zrange(self, name, start, end, desc=False, withscores=False):
+		return super(redis.Redis, self).zrange(self.make_key(name), start, end, desc=desc, withscores=withscores)
+
