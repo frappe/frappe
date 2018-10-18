@@ -50,28 +50,24 @@ class RequestContext(object):
 
 def recorder(function):
 	def wrapper(*args, **kwargs):
-		def dumps(entry):
-			# Attempt to convert entry to JSON
-			try:
-				return json.dumps(entry)
-			except:
-				pass
-
 		# Execute wrapped function as is
 		# Record arguments as well as return value
 		result = function(*args, **kwargs)
 		data = {
-			"path": frappe.request.path,
 			"function": function.__name__,
-			"args": dumps(args),
-			"kwargs": dumps(kwargs),
-			"result": dumps(result),
+			"args": args,
+			"kwargs": kwargs,
+			"result": result,
 		}
-		# All calls can be recorded during request and then be pushed
-		# all at once in the end
-		# For now it isn't what we really need
-		frappe.cache().rpush("recorder-sql", json.dumps(data))
+
+		# Record all calls, Will be later stored in cache
+		wrapper.calls.append(data)
 		return result
+
+	import uuid
+	wrapper.uuid = str(uuid.uuid1())
+	wrapper.calls = list()
+	wrapper.path = frappe.request.path
 	return wrapper
 
 @Request.application
