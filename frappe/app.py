@@ -121,6 +121,10 @@ def application(request):
 		rollback = True
 
 		init_request(request)
+
+		# Need to record all calls to frappe.db.sql
+		# Should be done after frappe.db refers to an instance of Database
+		# Now is a good time
 		frappe.db.sql = recorder(frappe.db.sql)
 
 		if frappe.local.form_dict.cmd:
@@ -163,6 +167,8 @@ def application(request):
 		if response and hasattr(frappe.local, 'cookie_manager'):
 			frappe.local.cookie_manager.flush_cookies(response=response)
 
+		# Recorded calls need to be stored in cache
+		# This looks like a terribe syntax, Because it actually is
 		persist(frappe.db.sql)
 		frappe.destroy()
 
