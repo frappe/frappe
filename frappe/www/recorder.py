@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 import json
+import redis
 
 def get_context(context):
 	pass
@@ -13,7 +14,10 @@ def get_context(context):
 @frappe.whitelist()
 def get_paths():
 	paths = frappe.cache().zrange("recorder-paths", 0, -1, desc=True)
-	paths = list(map(lambda path: path.decode(), paths))
+	counts = super(redis.Redis, frappe.cache()).hgetall(frappe.cache().make_key("recorder-paths-counts"))
+
+	paths = [{"path": path.decode(), "count": int(counts[path])} for path in paths]
+	print(counts, paths)
 	return paths
 
 @frappe.whitelist()
