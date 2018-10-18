@@ -3,24 +3,8 @@
 {% block title %}{{ heading or "Recorder"}}{% endblock %}
 
 {% block page_content %}
-<div class="recorder-content">
-	<div>
-		<h3>Recorder</h3>
-	</div>
-	<div>
-	{% for path, lines in result.items() %}
-		<div>{{ path }}</div>
-		<div>
-		{% for line in lines %}
-			<div>
-				<div>{{ line.function }}</div>
-				<div>{{ line.args }}</div>
-				<div>{{ line.kwargs }}</div>
-				<div>{{ line.result }}</div>
-			</div>
-		{% endfor %}
-		</div>
-	{% endfor %}
-	</div>
-</div>
+
+<div id="recorder"></div>
+<script type="text/javascript" src="/assets/js/frappe-recorder.min.js"></script>
+
 {% endblock %}
