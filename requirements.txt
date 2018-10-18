@@ -27,7 +27,7 @@ email_reply_parser
 click
 num2words==0.5.5
 watchdog==0.8.0
-bleach
+bleach==2.1.4
 bleach-whitelist
 Pillow
 beautifulsoup4
@@ -49,3 +49,4 @@ pypng
 premailer
 croniter
 googlemaps
+urllib3==1.23
