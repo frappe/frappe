@@ -9,6 +9,7 @@ from frappe import _, throw, msgprint
 from frappe.utils import nowdate
 
 from frappe.model.document import Document
+import six
 from six import string_types
 
 class SMSSettings(Document):
@@ -53,7 +54,7 @@ def send_sms(receiver_list, msg, sender_name = '', success_msg = True):
 
 	arg = {
 		'receiver_list' : receiver_list,
-		'message'		: unicode(msg).encode('utf-8'),
+		'message'		: frappe.safe_decode(msg).encode('utf-8'),
 		'success_msg'	: success_msg
 	}
 

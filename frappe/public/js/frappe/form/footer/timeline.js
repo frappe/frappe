@@ -310,9 +310,10 @@ frappe.ui.form.Timeline = class Timeline {
 				c["edit"] = '<a class="edit-comment text-muted" title="Edit" href="#">Edit</a>';
 			}
 		}
-		c.comment_on_small = comment_when(c.communication_date, true);
-		c.comment_on = comment_when(c.communication_date);
-		c.futur_date = c.communication_date > frappe.datetime.now_datetime() ? true : false;
+		let communication_date = c.communication_date || c.creation;
+		c.comment_on_small = comment_when(communication_date, true);
+		c.comment_on = comment_when(communication_date);
+		c.futur_date = communication_date > frappe.datetime.now_datetime() ? true : false;
 		if(!c.fullname) {
 			c.fullname = c.sender_full_name || frappe.user.full_name(c.sender);
 		}
