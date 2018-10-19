@@ -2,10 +2,14 @@
 	<div>
 		<post :post="post" v-for="post in posts" :key="post.name"></post>
 		<div v-if="!loading_posts && !posts.length" class="no-post text-center text-muted">
-			No Posts Yet !
+			{{ __('No posts yet') }}
 		</div>
-		<div v-show="loading_posts" class="text-center padding">Loading posts...</div>
-		<div v-show="posts.length && !more_posts_available" class="text-center padding">That's all folks</div>
+		<div v-show="loading_posts" class="text-center padding">{{ __('Loading posts...') }}</div>
+		<div
+			v-show="posts.length && !more_posts_available"
+			class="text-center padding">
+			{{ __("That's all folks") }}
+		</div>
 	</div>
 </template>
 <script>

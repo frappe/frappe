@@ -2,7 +2,7 @@
 	<div class="post-action-container">
 		<div class="like" @click="$emit('toggle_like')">
 			<i class="octicon octicon-heart" :class="{'liked': post_liked}"></i>
-			<span class="likes" :data-liked-by="JSON.stringify(split_string(liked_by))">{{ like_count }}</span>
+			<span class="likes" :data-liked-by="liked_by_data">{{ like_count }}</span>
 		</div>
 		<div class="comment" @click="$emit('toggle_comment')">
 			<i class="octicon octicon-comment"></i>
@@ -22,6 +22,9 @@ export default {
 		},
 		post_liked() {
 			return this.split_string(this.liked_by).includes(frappe.session.user);
+		},
+		liked_by_data() {
+			return JSON.stringify(this.split_string(this.liked_by));
 		}
 	},
 	methods: {

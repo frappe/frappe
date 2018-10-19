@@ -6,7 +6,7 @@
 		</div>
 		<div class="links">
 			<div class="muted-title">
-				Frequently Visited Links
+				{{ __('Frequently Visited Links') }}
 			</div>
 			<div class="flex flex-column">
 				<a class="route-link"

@@ -1,6 +1,11 @@
 <template>
 	<div ref="banner" class="banner" :style="background_style">
-		<div class="user-avatar container" :class="{'editable-image': is_own_profile}" @click="update_image" v-html="user_avatar"></div>
+		<div
+			class="user-avatar container"
+			:class="{'editable-image': is_own_profile}"
+			@click="update_image"
+			v-html="user_avatar">
+		</div>
 	</div>
 </template>
 <script>

@@ -1,9 +1,14 @@
 <template>
 	<div>
 		<div class="comment-box flex-column">
-			<div class="text-muted comment-label">Add a comment</div>
+			<div class="text-muted comment-label">{{ __('Add a comment') }}</div>
 			<textarea v-model="comment_content"></textarea>
-			<button :disabled="comment_content === ''" class="btn btn-primary btn-sm" @click="create_comment">Comment</button>
+			<button
+				:disabled="comment_content === ''"
+				class="btn btn-primary btn-sm"
+				@click="create_comment">
+				{{ __('Comment') }}
+			</button>
 		</div>
 		<div v-if="comments.length" class="comment-list">
 			<div class="comment" v-for="comment in comments" :key="comment.name">

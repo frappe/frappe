@@ -24,7 +24,8 @@
 			v-if="show_comments"
 			class="post-comments"
 			:comments="comments"
-			@create_comment="create_comment"/>
+			@create_comment="create_comment"
+		/>
 	</div>
 </template>
 <script>

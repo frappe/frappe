@@ -1,7 +1,9 @@
 import Vue from 'vue/dist/vue.js';
 
-// components
+// page
 import Home from './Home.vue';
+
+Vue.prototype.__ = window.__;
 frappe.provide('frappe.social');
 
 frappe.social.Home = class SocialHome {
