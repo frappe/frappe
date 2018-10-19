@@ -77,6 +77,8 @@ def get_data():
 			"icon": "octicon octicon-heart",
 			"type": 'link',
 			"link": 'social/home',
-			"color": '#FF4136'
+			"color": '#FF4136',
+			'standard': 1,
+			'idx': 15
 		}
 	]
