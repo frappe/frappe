@@ -10,6 +10,7 @@
 				<span class="text-muted"><i class="fa fa-gratipay">&nbsp;</i>{{ user.interest }}</span>
 			</div>
 		</div>
+		<a @click="go_to_home()"> ← Back To Home</a>
 	</div>
 </template>
 <script>
@@ -22,6 +23,11 @@ export default {
 			'user': frappe.user_info(this.user_id)
 		}
 	},
+	methods: {
+		go_to_home() {
+			frappe.set_route('social', 'home');
+		}
+	}
 }
 </script>
 

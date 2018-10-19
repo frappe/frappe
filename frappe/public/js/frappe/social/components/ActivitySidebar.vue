@@ -3,7 +3,10 @@
 		<div class="muted-title">Upcoming Events</div>
 		<div class="event" v-for="event in events" :key="event.name">
 			<span class="bold">{{ get_time(event.starts_on) }}</span>
-			<span> {{ event.subject }}</span>
+			<a @click="open_event(event)"> {{ event.subject }}</a>
+		</div>
+		<div class="event" v-if="!events.length">
+			No upcoming events
 		</div>
 		<div class="muted-title">Chat</div>
 		<a @click="open_chat">
@@ -32,11 +35,14 @@ export default {
 			})
 		},
 		open_chat() {
-			frappe.chat.widget.toggle();
+			setTimeout(frappe.chat.widget.toggle);
 		},
 		get_time(timestamp) {
 			return frappe.datetime.get_time(timestamp)
 		},
+		open_event(event) {
+			frappe.set_route('Form', 'Event', event.name);
+		}
 	}
 }
 </script>
