@@ -307,14 +307,3 @@ class HelpDatabase(object):
 		if pos:
 			files[0], files[pos] = files[pos], files[0]
 		return files
-
-def setup_apps_for_docs(app):
-	docs_app = frappe.get_hooks('docs_app', app, app)[0]
-
-	if docs_app and not os.path.exists(frappe.get_app_path(app)):
-		print("Getting {docs_app} required by {app}".format(docs_app=docs_app, app=app))
-		subprocess.check_output(['bench', 'get-app', docs_app], cwd = '..')
-	else:
-		if docs_app:
-			print("{docs_app} required by {app} already present".format(docs_app=docs_app, app=app))
-
