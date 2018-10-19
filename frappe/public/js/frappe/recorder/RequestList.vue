@@ -1,14 +1,17 @@
 <template>
 	<div>
 		<ol>
-			<li v-for="request in requests" :key="request.uuid">{{ request.uuid }}</li>
+			<li v-for="request in requests" :key="request.uuid">
+				<request-list-item v-bind="request"/>
+			</li>
 		</ol>
 	</div>
 </template>
 
 <script>
+import RequestListItem from "./RequestListItem.vue"
 export default {
-	name: "recorder-path",
+	name: "RequestList",
 	data() {
 		return {
 			requests: [],
@@ -23,6 +26,9 @@ export default {
 		}).then( r => {
 			this.requests = r.message
 		})
+	},
+	components: {
+		RequestListItem,
 	}
 };
 </script>
