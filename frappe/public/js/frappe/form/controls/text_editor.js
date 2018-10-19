@@ -1,5 +1,8 @@
-import Quill from 'quill/dist/quill';
+import Quill from 'quill';
 import { ImageDrop } from 'quill-image-drop-module';
+
+// required for quill-mention
+window.Quill = Quill;
 
 Quill.register('modules/imageDrop', ImageDrop);
 
@@ -10,7 +13,13 @@ Quill.register(Block, true);
 
 // table
 const Table = Quill.import('formats/table-container');
-Table.className = 'table';
+const superCreate = Table.create.bind(Table);
+Table.create = (value) => {
+	const node = superCreate(value);
+	node.classList.add('table');
+	node.classList.add('table-bordered');
+	return node;
+}
 Quill.register(Table, true);
 
 // inline style

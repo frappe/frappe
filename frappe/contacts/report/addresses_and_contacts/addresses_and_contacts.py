@@ -91,7 +91,7 @@ def get_reference_details(reference_doctype, reference_list, doctype, reference_
 
 	records = frappe.get_list(doctype, filters=filters, fields=fields, as_list=True)
 	for d in records:
-		details = reference_details.get(d[0])
+		details = reference_details.get(d[0]) or {}
 		details.setdefault(frappe.scrub(doctype), []).append(d[1:])
 
 	return reference_details
