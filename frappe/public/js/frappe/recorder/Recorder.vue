@@ -12,7 +12,6 @@ export default {
 	data() {
 		return {
 			paths: [],
-			id: "Hello, Vue.js !!!"
 		};
 	},
 	mounted() {
