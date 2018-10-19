@@ -1,10 +1,12 @@
 import Vue from 'vue/dist/vue.js'
-import Recorder from "./Recorder.vue"
+import RecorderRoot from "./RecorderRoot.vue"
 
 frappe.ready(function() {
 	new Vue({
 		el: "#recorder",
-		template: "<recorder-app/>",
-		components: { recorderApp: Recorder }
+		template: "<recorder-root/>",
+		components: {
+			RecorderRoot,
+		}
 	})
 })
