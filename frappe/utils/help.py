@@ -182,7 +182,7 @@ class HelpDatabase(object):
 			intro = "Help Video: " + intro
 		return intro
 
-	def make_content(self, html, path, relpath):
+	def make_content(self, html, path, relpath, app_name, doc_app):
 		if '<h1>' in html:
 			html = html.split('</h1>', 1)[1]
 
@@ -190,13 +190,12 @@ class HelpDatabase(object):
 			html = html.replace('{next}', '')
 
 		target = path.split('/', 3)[-1]
-		app_name = path.split('/', 3)[2]
 		html += get_improve_page_html(app_name, target)
 
 		soup = BeautifulSoup(html, 'html.parser')
 
 		self.fix_links(soup, app_name)
-		self.fix_images(soup, app_name)
+		self.fix_images(soup, doc_app)
 
 		parent = self.get_parent(relpath)
 		if parent:
