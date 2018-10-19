@@ -28,7 +28,7 @@
     "moment-timezone": "^0.5.21",
     "quill": "2.0.0-dev.2",
     "quill-image-drop-module": "^1.0.3",
-    "quill-mention": "^2.0.2",
+    "quill-mention": "https://github.com/netchampfaris/quill-mention",
     "redis": "^2.8.0",
     "showdown": "^1.8.6",
     "socket.io": "^2.0.4",

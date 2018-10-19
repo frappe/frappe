@@ -89,6 +89,9 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 	if not perm:
 		perm = false_if_not_shared()
 
+	if perm and frappe.message_log:
+		frappe.message_log.pop()
+
 	if verbose: print("Final Permission: {0}".format(perm))
 	return perm
 

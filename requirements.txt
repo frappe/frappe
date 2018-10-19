@@ -56,3 +56,5 @@ faker
 stripe
 psycopg2-binary
 coverage
+urllib3==1.23
+GitPython==2.1.11

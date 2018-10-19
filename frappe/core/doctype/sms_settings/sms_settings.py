@@ -52,11 +52,9 @@ def send_sms(receiver_list, msg, sender_name = '', success_msg = True):
 
 	receiver_list = validate_receiver_nos(receiver_list)
 
-	if six.PY3: unicode = str
-
 	arg = {
 		'receiver_list' : receiver_list,
-		'message'		: unicode(msg).encode('utf-8'),
+		'message'		: frappe.safe_decode(msg).encode('utf-8'),
 		'success_msg'	: success_msg
 	}
 
