@@ -53,7 +53,7 @@ export default {
 			comments: [],
 			show_comments: false,
 			is_globally_pinnable: frappe.user_roles.includes('System Manager') && frappe.social.is_home_page(),
-			is_pinnable: frappe.session.user === this.post.owner && frappe.social.is_session_user_page()
+			is_pinnable: false
 		}
 	},
 	computed: {
@@ -61,7 +61,7 @@ export default {
 			return this.is_globally_pinnable || this.is_pinnable
 		},
 		is_pinned() {
-			return this.post.is_pinned && frappe.social.is_profile_page(this.post.owner)
+			return false && frappe.social.is_profile_page(this.post.owner)
 				|| this.post.is_globally_pinned && frappe.social.is_home_page()
 		}
 	},
