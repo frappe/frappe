@@ -17,8 +17,10 @@ def flush_old_route_records():
 		SELECT `user`
 		FROM `tabRoute History`
 		GROUP BY `user`
-		HAVING count(`name`) > {limit}
-	'''.format(limit=records_to_keep_limit))
+		HAVING count(`name`) > %(limit)s
+	''', {
+		"limit": records_to_keep_limit
+	})
 
 	for user in users:
 		user = user[0]
@@ -34,5 +36,8 @@ def flush_old_route_records():
 		frappe.db.sql('''
 			DELETE
 			FROM `tabRoute History`
-			WHERE `modified` <= '{modified}' and `user`='{user}'
-		'''.format(modified=last_record_to_keep[0].modified, user=user))
+			WHERE `modified` <= %(modified)s and `user`=%(modified)s
+		''', {
+			"modified": last_record_to_keep[0].modified,
+			"user": user
+		})
