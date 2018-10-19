@@ -147,6 +147,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			var args = {
 				'txt': term,
 				'doctype': doctype,
+				'reference_doctype': me.doctype,
 				'ignore_user_permissions': me.df.ignore_user_permissions
 			};
 

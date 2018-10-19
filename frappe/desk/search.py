@@ -49,14 +49,20 @@ def sanitize_searchfield(searchfield):
 
 # this is called by the Link Field
 @frappe.whitelist()
-def search_link(doctype, txt, query=None, filters=None, page_length=20, searchfield=None, ignore_user_permissions=False):
-	search_widget(doctype, txt, query, searchfield=searchfield, page_length=page_length, filters=filters, ignore_user_permissions=ignore_user_permissions)
+def search_link(doctype, txt, query=None, filters=None, page_length=20, searchfield=None, reference_doctype=None, ignore_user_permissions=False):
+	search_widget(doctype, txt, query,
+		searchfield=searchfield,
+		page_length=page_length,
+		reference_doctype=reference_doctype,
+		filters=filters,
+		ignore_user_permissions=ignore_user_permissions)
+
 	frappe.response['results'] = build_for_autosuggest(frappe.response["values"])
 	del frappe.response["values"]
 
 # this is called by the search box
 @frappe.whitelist()
-def search_widget(doctype, txt, query=None, searchfield=None, start=0,
+def search_widget(doctype, txt, query=None, searchfield=None, reference_doctype=None, start=0,
 	page_length=10, filters=None, filter_fields=None, as_dict=False, ignore_user_permissions=False):
 	if isinstance(filters, string_types):
 		filters = json.loads(filters)
@@ -136,6 +142,14 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			order_by = "if(_relevance, _relevance, 99999), {0}, `tab{1}`.idx desc".format(order_by_based_on_meta, doctype)
 
 			ignore_permissions = True if doctype == "DocType" else (cint(ignore_user_permissions) and has_permission(doctype))
+
+			from frappe.core.doctype.user_permission.user_permission import get_user_permissions
+			user_permissions = get_user_permissions()
+
+			# ignore_permission if reference doctype is in skip_for_doctype of user permission
+			if not ignore_permissions and reference_doctype:
+				if reference_doctype in user_permissions.get(doctype, {}).get("skip_for_doctype", []):
+					ignore_permissions = True
 
 			if doctype in UNTRANSLATED_DOCTYPES:
 				page_length = None
