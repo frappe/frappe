@@ -159,6 +159,7 @@
 		"public/js/frappe/misc/utils.js",
 		"public/js/frappe/event_emitter.js",
 		"public/js/frappe/router.js",
+		"public/js/frappe/router_history.js",
 		"public/js/frappe/defaults.js",
 		"public/js/frappe/roles_editor.js",
 		"public/js/lib/microtemplate.js",

@@ -8,24 +8,9 @@ frappe.re_route = {"#login": ""};
 frappe.route_titles = {};
 frappe.route_flags = {};
 frappe.route_history = [];
-frappe.route_history_queue = [];
 frappe.view_factory = {};
 frappe.view_factories = [];
 frappe.route_options = null;
-
-const save_routes = frappe.utils.debounce(() => {
-	const routes = frappe.route_history_queue;
-	frappe.route_history_queue = [];
-	frappe.xcall('frappe.deferred_insert.deferred_insert', {
-		'doctype': 'Route History',
-		'records': routes
-	}).then(() => {
-		console.log('Routes saved!');
-	}).catch(() => {
-		frappe.route_history_queue.concat(routes);
-	});
-}, 10000);
-
 
 frappe.route = function() {
 	if(frappe.re_route[window.location.hash] !== undefined) {
@@ -50,16 +35,6 @@ frappe.route = function() {
 	var route = frappe.get_route();
 	if (route === false) {
 		return;
-	}
-
-	if (is_route_useful(route)) {
-		frappe.route_history_queue.push({
-			'user': frappe.session.user,
-			'creation': frappe.datetime.now_datetime(),
-			'route': frappe.get_route_str()
-		});
-
-		save_routes();
 	}
 
 	frappe.route_history.push(route);
@@ -206,15 +181,3 @@ $(window).on('hashchange', function() {
 });
 
 frappe.utils.make_event_emitter(frappe.route);
-
-const routes_to_skip = ['Form', 'social'];
-
-function is_route_useful(route) {
-	if (!route[1]) {
-		return false
-	} else if ((route[0] === 'List' && !route[2]) || routes_to_skip.includes(route[0])) {
-		return false
-	} else {
-		return true
-	}
-}

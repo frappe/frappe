@@ -1,6 +1,4 @@
 import Vue from 'vue/dist/vue.js';
-
-// page
 import Home from './Home.vue';
 
 Vue.prototype.__ = window.__;
