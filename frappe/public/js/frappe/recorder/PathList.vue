@@ -1,14 +1,17 @@
 <template>
 	<div>
 		<ol>
-			<li v-for="path in paths" :key="path.path">{{ path.path }} {{ path.count }}</li>
+			<li v-for="path in paths" :key="path.path">
+				<path-list-item v-bind="path"/>
+			</li>
 		</ol>
 	</div>
 </template>
 
 <script>
+import PathListItem from "./PathListItem.vue"
 export default {
-	name: "recorder-app",
+	name: "PathList",
 	data() {
 		return {
 			paths: [],
@@ -18,6 +21,9 @@ export default {
 		frappe.call("frappe.www.recorder.get_paths").then( r => {
 			this.paths = r.message
 		})
+	},
+	components: {
+		PathListItem,
 	}
 };
 </script>
