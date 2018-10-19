@@ -195,7 +195,7 @@ class HelpDatabase(object):
 		soup = BeautifulSoup(html, 'html.parser')
 
 		self.fix_links(soup, app_name)
-		self.fix_images(soup, doc_app)
+		self.fix_images(soup, app_name)
 
 		parent = self.get_parent(relpath)
 		if parent:
