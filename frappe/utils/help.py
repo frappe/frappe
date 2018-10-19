@@ -188,7 +188,7 @@ class HelpDatabase(object):
 		target = path.split('/', 3)[-1]
 
 		if app_name != doc_app:
-    		target = target.replace(app_name, doc_app + '/www')
+			target = target.replace(app_name, doc_app + '/www')
 		app_name = path.split('/', 3)[2]
 		html += get_improve_page_html(app_name, target)
 
