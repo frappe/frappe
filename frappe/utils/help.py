@@ -38,7 +38,7 @@ def get_help_content(path):
 def get_improve_page_html(app_name, target):
 	docs_config = frappe.get_module(app_name + ".config.docs")
 	source_link = docs_config.source_link
-	branch = getattr(docs_config, "branch", "develop")
+	branch = getattr(docs_config, "branch", "master")
 	html = '''<div class="page-container">
 				<div class="page-content">
 				<div class="edit-container text-center">
@@ -186,6 +186,10 @@ class HelpDatabase(object):
 			html = html.replace('{next}', '')
 
 		target = path.split('/', 3)[-1]
+
+		if app_name != doc_app:
+    		target = target.replace(app_name, doc_app + '/www')
+		app_name = path.split('/', 3)[2]
 		html += get_improve_page_html(app_name, target)
 
 		soup = BeautifulSoup(html, 'html.parser')
