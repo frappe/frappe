@@ -116,7 +116,7 @@ body[data-route*="social"] {
 		}
 		.preview-card {
 			text-decoration: none;
-			height: 150px;
+			max-height: 150px;
 			border: 1px solid @light-border-color;
 			border-radius: 5px;
 			margin-top: 15px;
@@ -125,11 +125,14 @@ body[data-route*="social"] {
 			display: flex;
 			img {
 				border: none;
-				margin: 0 10px;
-				max-width: 150px;
-				height: auto;
-				max-height: 90%;
+				margin: 10px;
+				max-width: 160px;
+				max-height: 140px;
 				align-self: center;
+			}
+			p {
+				overflow: hidden;
+				.text-medium
 			}
 		}
 	}
