@@ -35,7 +35,7 @@ frappe.ui.keys.get_key = function(e) {
 	}
 	if (e.altKey && e.ctrlKey) {
 		// add alt+ctrl+ the key or single key e.g f1,f2,etc..
-		key = key;
+		return key.toLowerCase();
 	}
 	return key.toLowerCase();
 }
