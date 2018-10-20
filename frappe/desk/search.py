@@ -3,12 +3,13 @@
 
 # Search
 from __future__ import unicode_literals
+import re
+from frappe import _
 import frappe, json
+from six import string_types
 from frappe.utils import cstr, unique, cint
 from frappe.permissions import has_permission
-from frappe import _
-from six import string_types
-import re
+from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 
 UNTRANSLATED_DOCTYPES = ["DocType", "Role"]
 
@@ -143,11 +144,10 @@ def search_widget(doctype, txt, query=None, searchfield=None, reference_doctype=
 
 			ignore_permissions = True if doctype == "DocType" else (cint(ignore_user_permissions) and has_permission(doctype))
 
-			from frappe.core.doctype.user_permission.user_permission import get_user_permissions
-			user_permissions = get_user_permissions()
 
 			# ignore_permission if reference doctype is in skip_for_doctype of user permission
 			if not ignore_permissions and reference_doctype:
+				user_permissions = get_user_permissions()
 				if reference_doctype in user_permissions.get(doctype, {}).get("skip_for_doctype", []):
 					ignore_permissions = True
 
