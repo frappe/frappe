@@ -30,13 +30,13 @@ frappe.ui.keys.get_key = function(e) {
 		key = 'shift+' + key;
 	}
 	if (e.altKey) {
-            // add alt+ the key
-            key = 'alt+' + key;
-        }
-        if (e.altKey && e.ctrlKey) {
-            // add alt+ctrl+ the key or single key e.g f1,f2,etc..
-            key = key;
-        }
+		// add alt+ the key
+		key = 'alt+' + key;
+	}
+	if (e.altKey && e.ctrlKey) {
+		// add alt+ctrl+ the key or single key e.g f1,f2,etc..
+		key = key;
+	}
 	return key.toLowerCase();
 }
 
@@ -111,10 +111,10 @@ frappe.ui.keys.key_map = {
 	40: 'down',
 	32: 'space',
 	112: 'f1',
-        113: 'f2',
-        114: 'f3',
-        115: 'f4',
-        116: 'f5'
+	113: 'f2',
+	114: 'f3',
+	115: 'f4',
+	116: 'f5'
 }
 
 // keyCode map
