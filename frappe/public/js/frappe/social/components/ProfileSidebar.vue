@@ -59,7 +59,7 @@ export default {
 	.location, .interest {
 		margin-bottom: 10px;
 		i {
-			margin-right: 5px;
+			width: 15px;
 		}
 	}
 	.home-link {
