@@ -94,7 +94,9 @@ export default {
 	},
 	mounted() {
 		Array.from(this.$refs['content'].getElementsByTagName("a"))
-			.forEach((link_element)=> {
+			.forEach(link_element => {
+				// to open link in new tab
+				link_element.target = 'blank';
 				this.generate_preview(link_element);
 			})
 	},
