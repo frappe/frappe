@@ -45,7 +45,7 @@ def get_link_info(url):
 
 	try:
 		page = requests.get(url)
-	except requests.exceptions.MissingSchema, requests.exceptions.ConnectionError:
+	except (requests.exceptions.MissingSchema, requests.exceptions.ConnectionError):
 		frappe.cache().hset("link_info", url, {})
 		return {}
 
