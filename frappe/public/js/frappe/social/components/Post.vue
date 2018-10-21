@@ -4,13 +4,14 @@
 			<div class="pull-right">
 				<div
 					class="pin-option"
+					:class="{'cursor-pointer': can_pin}"
 					@click="toggle_pin"
 					v-if="can_pin || is_pinned">
 					<i class="octicon octicon-pin"></i>
 				</div>
 			</div>
 			<div class="user-avatar" v-html="user_avatar" @click="goto_profile(post.owner)"></div>
-			<div class="user-name" @click="goto_profile(post.owner)">{{ user_name }}</div>
+			<a class="user-name" @click="goto_profile(post.owner)">{{ user_name }}</a>
 			<div class="text-muted" v-html="post_time"></div>
 			<div ref="content" class="content" v-html="post.content"></div>
 		</div>
