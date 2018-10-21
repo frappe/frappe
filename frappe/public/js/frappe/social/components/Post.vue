@@ -133,13 +133,18 @@ export default {
 			frappe.xcall('frappe.social.doctype.post.post.get_link_info', {
 				'url': link_element.href
 			}).then(info => {
-				if (info['og:title'] || info['title']) {
+				const title = frappe.ellipsis(info['og:title'] || info['title'], 60)
+				const description = frappe.ellipsis(info['og:description'] || info['description'], 280)
+				const image = info['og:image'];
+				const url = info['og:url'];
+
+				if (title) {
 					link_element.insertAdjacentHTML('afterend', `
-						<a href="${info['og:url']}" target="blank" class="preview-card" class="flex">
-							<img src="${info['og:image']}"/>
+						<a href="${url}" target="blank" class="preview-card" class="flex">
+							<img src="${image}"/>
 							<div class="flex-column">
-								<h5>${info['og:title'] || info['title']}</h5>
-								<p class="text-muted">${info['og:description'] || info['description']}</p>
+								<h5>${title}</h5>
+								<p class="text-muted">${description}</p>
 							</div>
 						</a>
 					` );
