@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<post :post="post" v-for="post in posts" :key="post.name"></post>
-		<div v-if="!loading_posts && !posts.length" class="no-post text-center text-muted">
+		<div v-if="!loading_posts && !posts.length" class="no-post-message text-muted">
 			{{ __('No posts yet') }}
 		</div>
 		<div v-show="loading_posts" class="text-center padding">{{ __('Loading posts...') }}</div>
@@ -86,4 +86,11 @@ export default {
 	}
 }
 </script>
-
+<style lang="less" scoped>
+.no-post-message {
+	height: 200px;
+	text-align: center;
+	vertical-align: middle;
+	line-height: 200px;
+}
+</style>
