@@ -12,8 +12,15 @@
 		</div>
 		<div v-if="comments.length" class="comment-list">
 			<div class="comment" v-for="comment in comments" :key="comment.name">
-				<span class="pull-right text-muted" v-html="get_time(comment.creation)"></span>
-				<span v-html="get_avatar(comment.owner)"></span>
+				<span
+					class="pull-right text-muted"
+					v-html="get_time(comment.creation)">
+				</span>
+				<span
+					class="cursor-pointer"
+					@click="go_to_profile_page(comment.owner)"
+					v-html="get_avatar(comment.owner)">
+				</span>
 				<span>{{ comment.content }}</span>
 			</div>
 		</div>
@@ -37,6 +44,9 @@ export default {
 		create_comment() {
 			this.$emit('create_comment', this.comment_content);
 			this.comment_content = '';
+		},
+		go_to_profile_page(user) {
+			frappe.set_route('social', 'profile', user)
 		}
 	}
 }
