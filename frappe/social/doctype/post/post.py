@@ -4,6 +4,8 @@
 
 from __future__ import unicode_literals
 import frappe
+import requests
+from bs4 import BeautifulSoup
 from frappe.model.document import Document
 
 class Post(Document):
@@ -41,11 +43,9 @@ def get_link_info(url):
 	if cached_link_info:
 		return cached_link_info
 
-	from bs4 import BeautifulSoup
-	import requests
 	try:
 		page = requests.get(url)
-	except (requests.exceptions.MissingSchema, requests.exceptions.ConnectionError) as e:
+	except requests.exceptions.MissingSchema, requests.exceptions.ConnectionError:
 		frappe.cache().hset("link_info", url, {})
 		return {}
 
