@@ -3,14 +3,15 @@
 		<div class="user-details">
 			<h3>{{ user.fullname }}</h3>
 			<p>{{ user.bio }}</p>
-			<div class="location" v-if="user.location !== ''">
+			<div class="location" v-if="user.location">
 				<span class="text-muted"><i class="fa fa-map-marker">&nbsp;</i>{{ user.location }}</span>
 			</div>
-			<div class="interest" v-if="user.interest !== ''">
-				<span class="text-muted"><i class="fa fa-gratipay">&nbsp;</i>{{ user.interest }}</span>
+			<div class="interest" v-if="user.interest">
+				<span class="text-muted"><i class="fa fa-puzzle-piece">&nbsp;</i>{{ user.interest }}</span>
 			</div>
+			<a v-if="show_add_info_link" @click="go_to_user_settings">{{ __('Add your information') }}</a>
 		</div>
-		<a @click="go_to_home()"> ← Back To Home</a>
+		<a class="home-link" @click="go_to_home()"> ← {{ __('Back To Home') }}</a>
 	</div>
 </template>
 <script>
@@ -20,12 +21,30 @@ export default {
 	},
 	data() {
 		return {
-			'user': frappe.user_info(this.user_id)
+			'user': frappe.user_info(this.user_id),
+			'show_add_info_link': false
+		}
+	},
+	created() {
+		if (frappe.social.is_session_user_page() && this.is_info_missing()) {
+			this.show_add_info_link = true;
 		}
 	},
 	methods: {
+		is_info_missing() {
+			return !this.user.location || !this.user.interest || !this.user.bio;
+		},
 		go_to_home() {
 			frappe.set_route('social', 'home');
+		},
+		go_to_user_settings() {
+			frappe.set_route('Form', 'User', this.user_id).then(()=> {
+				setTimeout(() => {
+					const more_info_section = $('a:contains("More Information")');
+					frappe.ui.scroll(more_info_section.parent().parent());
+					more_info_section.click()
+				}, 100)
+			})
 		}
 	}
 }
@@ -43,12 +62,8 @@ export default {
 			margin-right: 5px;
 		}
 	}
-}
-.stats {
-	display: flex;
-	.like_count, .post_count {
-		padding: 10px 20px 10px 0;
-		cursor: pointer;
+	.home-link {
+		margin-top: 15px;
 	}
 }
 </style>

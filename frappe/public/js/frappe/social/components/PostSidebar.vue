@@ -4,7 +4,7 @@
 			<div class="user-avatar" v-html="user_avatar"></div>
 			<a class="user_name" @click="go_to_profile_page()">{{ user.fullname }}</a>
 		</div>
-		<div class="links">
+		<div class="links" v-if="frequently_visited_list.length">
 			<div class="muted-title">
 				{{ __('Frequently Visited Links') }}
 			</div>
