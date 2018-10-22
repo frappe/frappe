@@ -56,11 +56,13 @@ def recorder(function):
 		# Assumes that function refers to frappe.db.sql
 		# __self__ will refer to frappe.db
 		# Rest is trivial
+		query = function.__self__._cursor._executed
 		data = {
 			"function": function.__name__,
 			"args": args,
 			"kwargs": kwargs,
 			"result": result,
+			"query": query,
 			"stack": stack
 		}
 
