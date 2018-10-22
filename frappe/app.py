@@ -64,6 +64,9 @@ def recorder(function):
 	wrapper.path = frappe.request.path
 	return wrapper
 
+def dumps(stuff):
+	return json.dumps(stuff, default=lambda x: str(x))
+
 def persist(function):
 	"""Stores recorded requests and calls in redis cache with following hierarchy
 
@@ -108,7 +111,11 @@ def persist(function):
 
 	# LPUSH -> Chronological order for calls
 	# Since every request uuid is unique, no need for any heirarchy
-	frappe.cache().rpush("recorder-calls-{}".format(uuid), calls)
+
+	# Datetime objects cannot be used with json.dumps
+	# str() seems to work with them
+	calls = map(dumps, calls)
+	frappe.cache().rpush("recorder-calls-{}".format(uuid), *calls)
 
 @Request.application
 def application(request):
