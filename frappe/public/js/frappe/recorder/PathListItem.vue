@@ -1,7 +1,9 @@
 <template>
-	<div>
-		{{ path }} {{ count }}
-	</div>
+	<a :href="'#Path/' + path ">
+		<div>
+			{{ path }} {{ count }}
+		</div>
+	</a>
 </template>
 
 <script>
