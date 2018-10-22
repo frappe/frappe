@@ -8,6 +8,7 @@
 
 import RecorderDetail from "./RecorderDetail.vue"
 import PathDetail from "./PathDetail.vue"
+import RequestDetail from "./RequestDetail.vue"
 
 export default {
 	name: "RecorderRoot",
@@ -25,6 +26,7 @@ export default {
 			var routes = {
 				"#": RecorderDetail,
 				"#Path": PathDetail,
+				"#Request": RequestDetail,
 			}
 			var route = this.get_route()
 			this.current_component = routes[route.route]
