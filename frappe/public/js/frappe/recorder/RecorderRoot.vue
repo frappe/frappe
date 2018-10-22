@@ -5,6 +5,8 @@
 </template>
 
 <script>
+import Vue from 'vue/dist/vue.js'
+Vue.prototype.$route = { param: null }
 
 import RecorderDetail from "./RecorderDetail.vue"
 import PathDetail from "./PathDetail.vue"
@@ -29,6 +31,7 @@ export default {
 				"#Request": RequestDetail,
 			}
 			var route = this.get_route()
+			this.$route.param = route.param
 			this.current_component = routes[route.route]
 		},
 		get_route: function () {
