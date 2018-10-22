@@ -82,7 +82,7 @@ class TestAutoRepeat(unittest.TestCase):
 		todo = frappe.get_doc(
 			dict(doctype='ToDo', description='Test recurring notification attachment', assigned_by='Administrator')).insert()
 
-		doc = make_auto_repeat(reference_document=todo.name, notify=1, recipients="test@domain.com", subject="New ToDo", 
+		doc = make_auto_repeat(reference_document=todo.name, notify=1, recipients="test@domain.com", subject="New ToDo",
 			message="A new ToDo has just been created for you")
 		for data in get_auto_repeat_entries(today()):
 			create_repeated_entries(data)
