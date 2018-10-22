@@ -17,7 +17,6 @@ def get_paths():
 	counts = super(redis.Redis, frappe.cache()).hgetall(frappe.cache().make_key("recorder-paths-counts"))
 
 	paths = [{"path": path.decode(), "count": int(counts[path])} for path in paths]
-	print(counts, paths)
 	return paths
 
 @frappe.whitelist()
@@ -29,5 +28,5 @@ def get_requests(path):
 @frappe.whitelist()
 def get_calls(uuid):
 	calls = frappe.cache().lrange("recorder-calls-{}".format(uuid), 0, -1)
-	calls = list(map(lambda call: call.decode(), calls))
+	calls = list(map(lambda call: json.loads(call.decode()), calls))
 	return calls

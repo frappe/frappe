@@ -1,6 +1,8 @@
 <template>
 	<div>
-		{{ calls }}
+		<div v-for="call in calls" :key="call.function">
+			{{ call }}
+		</div>
 	</div>
 </template>
 
