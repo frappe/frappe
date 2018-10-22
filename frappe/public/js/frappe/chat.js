@@ -1762,7 +1762,7 @@ class extends Component {
 		if ( props.target )
 			$(props.target).click(() => this.toggle())
 
-		frappe.chat.widget = this;
+		frappe.chat.widget = this
 	}
 
 	toggle  (active) {
