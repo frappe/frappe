@@ -53,11 +53,21 @@ def recorder(function):
 		# Execute wrapped function as is
 		# Record arguments as well as return value
 		result = function(*args, **kwargs)
+
+		import traceback
+		stack = "".join(traceback.format_stack())
+
+		# Big hack here
+		# PyMysql stores exact DB query in cursor._executed
+		# Assumes that function refers to frappe.db.sql
+		# __self__ will refer to frappe.db
+		# Rest is trivial
 		data = {
 			"function": function.__name__,
 			"args": args,
 			"kwargs": kwargs,
 			"result": result,
+			"stack": stack
 		}
 
 		# Record all calls, Will be later stored in cache
