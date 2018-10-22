@@ -21,7 +21,7 @@ export default {
 		frappe.call({
 			method: "frappe.www.recorder.get_requests",
 			args: {
-				path: "/recorder"
+				path: this.$route.param
 			}
 		}).then( r => {
 			this.requests = r.message
