@@ -78,6 +78,23 @@ class TestAutoRepeat(unittest.TestCase):
 		docnames = frappe.get_all(doc.reference_doctype, {'auto_repeat': doc.name})
 		self.assertEqual(len(docnames), months)
 
+	def test_notification_is_attached(self):
+		todo = frappe.get_doc(
+			dict(doctype='ToDo', description='Test recurring notification attachment', assigned_by='Administrator')).insert()
+
+		doc = make_auto_repeat(reference_document=todo.name, notify=1, recipients="test@domain.com", subject="New ToDo", 
+			message="A new ToDo has just been created for you")
+		print(doc.__dict__)
+		for data in get_auto_repeat_entries(today()):
+			create_repeated_entries(data)
+		frappe.db.commit()
+
+		new_todo = frappe.db.get_value('ToDo',
+			{'auto_repeat': doc.name, 'name': ('!=', todo.name)}, 'name')
+
+		linked_comm = frappe.db.exists("Communication", dict(reference_doctype="ToDo", reference_name=new_todo))
+		self.assertTrue(linked_comm)
+
 
 def make_auto_repeat(**args):
 	args = frappe._dict(args)
@@ -88,7 +105,11 @@ def make_auto_repeat(**args):
 		'frequency': args.frequency or 'Daily',
 		'start_date': args.start_date or add_days(today(), -1),
 		'end_date': args.end_date or add_days(today(), 1),
-		'submit_on_creation': args.submit_on_creation or 0
+		'submit_on_creation': args.submit_on_creation or 0,
+		'notify_by_email': args.notify or 0,
+		'recipients': args.recipients or "",
+		'subject': args.subject or "",
+		'message': args.message or ""
 	}).insert(ignore_permissions=True)
 
 	if not args.do_not_submit:
