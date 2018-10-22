@@ -2,6 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+import uuid
 
 import frappe
 import os
@@ -38,8 +39,17 @@ class RecorderMiddleware(object):
 			start_response(status, headers, exc_info)
 			return response_body.append
 
-		appiter = self._app(environ, catching_start_response)
-		response_body.extend(appiter)
-		if hasattr(appiter, 'close'):
-			appiter.close()
-		return [b''.join(response_body)]
+		def runapp():
+			appiter = self._app(environ, catching_start_response)
+			response_body.extend(appiter)
+			if hasattr(appiter, 'close'):
+				appiter.close()
+
+		# Every request is assigned a uuid here,
+		# uuid is available to everyone as frappe.request.environ["uuid"]
+		# SQL calls and profile details can't be recorded and accessed without this
+		environ["uuid"] = str(uuid.uuid1())
+
+		runapp()
+		body = [b''.join(response_body)]
+		return body
