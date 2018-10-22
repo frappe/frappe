@@ -647,6 +647,15 @@ frappe.utils = {
 			return `<a href="${route}">${name}</a>`;
 		}
 		return route;
+	},
+	get_route_label(route_str) {
+		let route = route_str.split('/');
+		if (['List', 'modules'].includes(route[0])){
+			return `${route[1]} ${route[2] || route[0]}`;
+		} else {
+			return `${route[0]} ${route[1]}`;
+		}
+
 	}
 };
 
