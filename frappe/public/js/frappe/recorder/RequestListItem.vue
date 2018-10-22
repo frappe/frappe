@@ -1,7 +1,9 @@
 <template>
-	<div>
-		{{ uuid }}
-	</div>
+	<a :href="'#Request/' + uuid ">
+		<div>
+			{{ uuid }}
+		</div>
+	</a>
 </template>
 
 <script>
