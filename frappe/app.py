@@ -64,8 +64,6 @@ def recorder(function):
 		wrapper.calls.append(data)
 		return result
 
-	import uuid
-	wrapper.uuid = str(uuid.uuid1())
 	wrapper.calls = list()
 	wrapper.path = frappe.request.path
 	return wrapper
@@ -90,8 +88,11 @@ def persist(function):
 	in chronological order
 	"""
 	path = function.path
-	uuid = function.uuid
 	calls = function.calls
+
+	# RecorderMiddleware creates a uuid for every request and
+	# stores it in request environ
+	uuid = frappe.request.environ["uuid"]
 
 	# Redis Sorted Set -> Ordered set (Ordereed by `score`)
 	# Elements are ordered from low to high score
