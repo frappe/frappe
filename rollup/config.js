@@ -53,7 +53,8 @@ function get_rollup_options_for_js(output_file, input_files) {
 		buble({
 			objectAssign: 'Object.assign',
 			transforms: {
-				dangerousForOf: true
+				dangerousForOf: true,
+				classes: false
 			},
 			exclude: [path.resolve(bench_path, '**/*.css'), path.resolve(bench_path, '**/*.less')]
 		}),
