@@ -41,6 +41,7 @@ class TestScheduler(TestCase):
 		last_event = now_datetime().replace(hour=0, minute=0, second=0, microsecond=0)
 		next_event = last_event + relativedelta(hours=2)
 
+		frappe.flags.ran_schedulers = []
 		enqueue_applicable_events(frappe.local.site, next_event, last_event)
 		self.assertTrue("all" in frappe.flags.ran_schedulers)
 		self.assertTrue("hourly" in frappe.flags.ran_schedulers)
@@ -56,6 +57,7 @@ class TestScheduler(TestCase):
 		next_event = now_datetime().replace(hour=0, minute=0, second=0, microsecond=0)
 		last_event = next_event - relativedelta(hours=2)
 
+		frappe.flags.ran_schedulers = []
 		enqueue_applicable_events(frappe.local.site, next_event, last_event)
 		self.assertTrue("all" in frappe.flags.ran_schedulers)
 		self.assertFalse("hourly" in frappe.flags.ran_schedulers)

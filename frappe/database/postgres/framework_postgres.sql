@@ -173,10 +173,9 @@ CREATE TABLE "tabDocType" (
 DROP TABLE IF EXISTS "tabSeries";
 CREATE TABLE "tabSeries" (
   "name" varchar(100) DEFAULT NULL,
-  "current" bigint NOT NULL DEFAULT 0
+  "current" bigint NOT NULL DEFAULT 0,
+  PRIMARY KEY ("name")
 ) ;
-
-create index on "tabSeries" ("name");
 
 --
 -- Table structure for table "tabSessions"
@@ -276,4 +275,3 @@ CREATE TABLE "tabDefaultValue" (
 
 create index on "tabDefaultValue" ("parent");
 create index on "tabDefaultValue" ("parent", "defkey");
-
