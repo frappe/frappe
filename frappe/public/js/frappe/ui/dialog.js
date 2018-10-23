@@ -9,11 +9,11 @@ frappe.ui.open_dialogs = [];
 
 frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	constructor(opts) {
+		super();
 		this.display = false;
 		this.is_dialog = true;
 
 		$.extend(this, { animate: true, size: null }, opts);
-		super();
 		this.make();
 	}
 
