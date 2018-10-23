@@ -14,6 +14,7 @@ DocType: Print Settings,Print Style Preview,Vista previa de Estilo de impresión
 DocType: Customize Form,Enter Form Type,Introduzca Tipo de Formulario
 apps/frappe/frappe/public/js/frappe/form/controls/attach.js +58,Select from existing attachments,Seleccione de archivos adjuntos existentes
 DocType: Notification Recipient,Email By Document Field,Email Por Campo Documento
+DocType: User,Banner Image,Imagen del banner
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +276,New {0}: #{1},Nuevo {0}: # {1}
 apps/frappe/frappe/public/js/frappe/ui/messages.js +68,Enter Value,Introducir valor
 apps/frappe/frappe/core/doctype/doctype/doctype.py +820,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: no se puede Presentar, Cancelar y Corregir sin Guardar"
@@ -22,7 +23,7 @@ DocType: Workflow State,th-large,-ésimo gran
 DocType: User,Email Settings,Configuración del correo electrónico
 DocType: User,Send Password Update Notification,Enviar contraseña Notificación de actualización
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +49,Select Document Type,Seleccionar el tipo de documento
-apps/frappe/frappe/public/js/frappe/request.js +167,Server Error: Please check your server logs or contact tech support.,Error de servidor : Se recomienda consultar los registros del servidor o contacte con Soporte técnico.
+apps/frappe/frappe/public/js/frappe/request.js +169,Server Error: Please check your server logs or contact tech support.,Error de servidor : Se recomienda consultar los registros del servidor o contacte con Soporte técnico.
 DocType: Website Settings,Website Theme Image Link,Sitio web Imagen por tema Enlace
 DocType: Custom DocPerm,Role and Level,Función y Nivel
 DocType: Contact Us Settings,Send enquiries to this email address,Puede enviar sus preguntas a la siguiente dirección de correo electrónico
@@ -43,7 +44,7 @@ apps/frappe/frappe/config/setup.py +119,Set numbering series for transactions.,E
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Presentar un problema
 DocType: Currency,Symbol,Símbolo
 DocType: Workflow Document State,Update Field,Actualizar Campos
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +492,Make ,Hacer
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +503,Make ,Hacer
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +17,"You can change Submitted documents by cancelling them and then, amending them.","Puede cambiar los documentos Enviados cancelándolos y luego, haciendo los cambios pertinentes."
 DocType: About Us Settings,Team Members Heading,Miembros del Equipo Lider
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +54,Scheduled to send to {0} recipients,Programado para enviar a {0} destinatarios
@@ -149,7 +150,7 @@ DocType: Integration Request,Reference DocName,Referencia DocNombre
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +790,Saved,Guardado
 DocType: System Settings,Security,Seguridad
 DocType: Communication,Read,Lectura
-apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +279,use % as wildcard,Use% como comodín
+apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +281,use % as wildcard,Use% como comodín
 apps/frappe/frappe/model/delete_doc.py +171,User not allowed to delete {0}: {1},El usuario no puede eliminar {0}: {1}
 apps/frappe/frappe/desk/query_report.py +52,Query must be a SELECT,Debe seleccionar la Consulta
 DocType: DocShare,Document Name,Nombre del documento
@@ -235,7 +236,7 @@ DocType: System Settings,Session Expiry Mobile,Vencimiento de sesión en disposi
 DocType: Web Form,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,El texto que se muestra para enlazar a la página Web si esta forma dispone de una página web. Ruta Enlace automáticamente se genera en base a `page_name` y` parent_website_route`
 ,Setup Wizard,Asistente de configuración
 DocType: Print Settings,Send Email Print Attachments as PDF (Recommended),Enviar Emails con adjuntos en formato PDF (recomendado)
-apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +155,Field {0} is not selectable.,El campo {0} no se puede seleccionar .
+apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +157,Field {0} is not selectable.,El campo {0} no se puede seleccionar .
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +821,Select To Download:,Seleccione la descarga :
 apps/frappe/frappe/public/js/frappe/upload.js +246,Please attach a file or set a URL,"Por favor, adjuntar un archivo o defina una URL"
 DocType: Contact,Is Primary Contact,Es Contacto principal
@@ -305,7 +306,7 @@ apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layou
 DocType: Currency,"Sub-currency. For e.g. ""Cent""","Sub-moneda, por ejemplo, ""Centavo"""
 DocType: Workflow State,exclamation-sign,signo de exclamación
 DocType: Desktop Icon,List,Vista de árbol
-apps/frappe/frappe/public/js/frappe/views/communication.js +562,There were errors while sending email. Please try again.,"Hubo errores al enviar el correo electrónico. Por favor, inténtelo de nuevo."
+apps/frappe/frappe/public/js/frappe/views/communication.js +593,There were errors while sending email. Please try again.,"Hubo errores al enviar el correo electrónico. Por favor, inténtelo de nuevo."
 apps/frappe/frappe/core/doctype/system_settings/system_settings.py +27,Session Expiry must be in format {0},Vencimiento de sesión debe estar en formato {0}
 DocType: User,Stores the JSON of last known versions of various installed apps. It is used to show release notes.,Almacena el JSON de las últimas versiones conocidas de diferentes aplicaciones instaladas. Se utiliza para mostrar notas de la versión.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","Significado de Enviar, Cancelar, Corregir"
@@ -350,7 +351,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16
 apps/frappe/frappe/public/js/frappe/views/pageview.js +104,Sorry! I could not find what you were looking for.,¡Lo siento! No pude encontrar lo que estabas buscando.
 DocType: Workflow State,remove-sign,Eliminar el efecto de signo
 apps/frappe/frappe/public/js/frappe/form/controls/select.js +61,Please attach a file first.,Adjunte un archivo primero .
-apps/frappe/frappe/public/js/frappe/request.js +385,Report this issue,Reportar Incidencia
+apps/frappe/frappe/public/js/frappe/request.js +387,Report this issue,Reportar Incidencia
 apps/frappe/frappe/public/js/frappe/views/treeview.js +242,New {0},Nuevo {0}
 DocType: Workflow Action,Workflow Action,Acciones de los flujos de trabajo
 DocType: Custom Script,Script Type,Guión Tipo
@@ -373,7 +374,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +138,Open a module
 apps/frappe/frappe/public/js/legacy/form.js +136,Please save before attaching.,"Por favor, guarde los cambios antes de conectar"
 apps/frappe/frappe/core/doctype/data_import/importer.py +27,Parent Table,Tabla de Padres
 DocType: Dropbox Settings,Dropbox Access Key,Clave de Acceso de Dropbox
-apps/frappe/frappe/public/js/frappe/ui/field_group.js +91,Missing Values Required,Valores perdidos requeridos
+apps/frappe/frappe/public/js/frappe/ui/field_group.js +97,Missing Values Required,Valores perdidos requeridos
 DocType: User,Third Party Authentication,Autenticación de socios
 DocType: Activity Log,Subject,Sujeto
 apps/frappe/frappe/utils/nestedset.py +80,Nested set error. Please contact the Administrator.,"Error de conjunto anidado . Por favor, póngase en contacto con el Administrador."
@@ -388,7 +389,7 @@ DocType: Workflow,Rules defining transition of state in the workflow.,Reglas que
 DocType: Workflow State,align-right,alinear a la derecha
 DocType: Workflow State,italic,itálico
 DocType: Workflow State,shopping-cart,carro de la compra
-apps/frappe/frappe/utils/data.py +550,only.,exactos.
+apps/frappe/frappe/utils/data.py +551,only.,exactos.
 apps/frappe/frappe/model/naming.py +85,Naming Series mandatory,Las secuencias son obligatorias
 DocType: DocType,Sort Order,Orden de Clasificación
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +249,Hide field in form,Ocultar campo en forma
@@ -410,7 +411,7 @@ DocType: Website Settings,Banner is above the Top Menu Bar.,El Banner está por 
 apps/frappe/frappe/templates/includes/comments/comments.py +50,View it in your browser,Véalo en su navegador
 apps/frappe/frappe/core/doctype/doctype/doctype.py +639,Title field must be a valid fieldname,Campo Título debe ser un nombre de campo válido
 DocType: SMS Settings,Enter url parameter for receiver nos,Introduzca el parámetro url para el receptor no
-apps/frappe/frappe/client.py +114,Cannot edit standard fields,No se puede editar campos estándar
+apps/frappe/frappe/client.py +115,Cannot edit standard fields,No se puede editar campos estándar
 apps/frappe/frappe/config/website.py +78,Settings for Contact Us Page.,Ajustes para la página de contacto.
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +49,1 hour ago,Hace 1 hora
 DocType: Workflow State,th-list,th -list
@@ -434,7 +435,7 @@ DocType: Dropbox Settings,Dropbox Access Secret,Acceso Secreto de Dropbox
 apps/frappe/frappe/core/doctype/user/user.py +189,Sorry! User should have complete access to their own record.,¡Lo siento! El usuario debe tener acceso completo a su propio récord.
 apps/frappe/frappe/core/doctype/doctype/doctype.py +355,DocType can not be merged,El DocType no se puede fusionar
 DocType: DocField,Allow on Submit,Permitir en Enviar
-apps/frappe/frappe/public/js/frappe/views/communication.js +91,Select Print Format,Seleccionar el formato de impresión
+apps/frappe/frappe/public/js/frappe/views/communication.js +97,Select Print Format,Seleccionar el formato de impresión
 DocType: DocField,"For Links, enter the DocType as range.
 For Select, enter list of Options, each on a new line.","Para enlaces, introduzca el DocType como rango. para seleccionar, ingrese lista de opciones, cada uno en una nueva línea."
 DocType: Workflow State,eye-open,- ojo abierto
