@@ -54,11 +54,8 @@ def setup_complete(args):
 	and clears cache. If wizard breaks, calls `setup_wizard_exception` hook"""
 
 	# Setup complete: do not throw an exception, let the user continue to desk
-	if (frappe.cache().hget("setup_wizard", "in_setup") or
-		cint(frappe.db.get_single_value('System Settings', 'setup_complete'))):
+	if cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
 		return
-
-	frappe.cache().hset("setup_wizard", "in_setup", True)
 
 	args = parse_args(args)
 
@@ -79,8 +76,6 @@ def setup_complete(args):
 	else:
 		run_setup_success(args)
 		return {'status': 'ok'}
-	finally:
-		frappe.cache().hdel("setup_wizard", "in_setup")
 
 def update_global_settings(args):
 	if args.language and args.language != "English":
