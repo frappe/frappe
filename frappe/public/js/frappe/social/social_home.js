@@ -64,9 +64,14 @@ frappe.social.update_user_image = new frappe.ui.Dialog({
 	],
 	primary_action_label: __('Set Image'),
 	primary_action: (values) => {
-		frappe.db.set_value('User', frappe.session.user, 'user_image', values.image)
+		// TODO: check for a better fix
+		if (!frappe.session.user) {
+			frappe.session.user = frappe.boot.user.name;
+		}
+		const user = frappe.session.user;
+		frappe.db.set_value('User', user, 'user_image', values.image)
 			.then((resp) => {
-				frappe.boot.user_info[frappe.session.user].image = resp.message.user_image;
+				frappe.boot.user_info[user].image = resp.message.user_image;
 				frappe.app_updates.trigger('user_image_updated');
 				frappe.social.update_user_image.clear();
 				frappe.social.update_user_image.hide();

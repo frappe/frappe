@@ -39,13 +39,6 @@ export default {
 		PostAction,
 		PostComment
 	},
-	mounted() {
-		this.$el.querySelectorAll('img').forEach((img) => {
-			img.addEventListener('click', () => {
-				this.$root.$emit('show_preview', img.src);
-			})
-		});
-	},
 	data() {
 		return {
 			user_avatar: frappe.avatar(this.post.owner, 'avatar-medium'),
@@ -93,12 +86,17 @@ export default {
 
 	},
 	mounted() {
-		Array.from(this.$refs['content'].getElementsByTagName("a"))
-			.forEach(link_element => {
-				// to open link in new tab
-				link_element.target = 'blank';
-				this.generate_preview(link_element);
+		this.$refs['content'].querySelectorAll('img').forEach((img) => {
+			img.addEventListener('click', () => {
+				this.$root.$emit('show_preview', img.src);
 			})
+		});
+
+		this.$refs['content'].querySelectorAll('a').forEach(link_element => {
+			// to open link in new tab
+			link_element.target = 'blank';
+			this.generate_preview(link_element);
+		})
 	},
 	methods: {
 		goto_profile(user) {
