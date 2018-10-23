@@ -1,3 +1,4 @@
+/* eslint-disable */
 const Keys = {
   TAB: 'Tab',
   ENTER: 'Enter',

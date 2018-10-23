@@ -1,3 +1,4 @@
+/* eslint-disable */
 import Quill from 'quill';
 
 const Embed = Quill.import('blots/embed');
