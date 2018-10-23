@@ -38,7 +38,7 @@ def get_help_content(path):
 def get_improve_page_html(app_name, target):
 	docs_config = frappe.get_module(app_name + ".config.docs")
 	source_link = docs_config.source_link
-	branch = getattr(docs_config, "branch", "develop")
+	branch = getattr(docs_config, "branch", "master")
 	html = '''<div class="page-container">
 				<div class="page-content">
 				<div class="edit-container text-center">
@@ -125,6 +125,9 @@ class HelpDatabase(object):
 		apps = os.listdir('../apps') if self.global_help_setup else frappe.get_installed_apps()
 
 		for app in apps:
+			# Expect handling of cloning docs apps in bench
+			docs_app = frappe.get_hooks('docs_app', app, app)[0]
+
 			docs_folder = '../apps/{app}/{app}/docs/user'.format(app=app)
 			self.out_base_path = '../apps/{app}/{app}/docs'.format(app=app)
 			if os.path.exists(docs_folder):
@@ -147,7 +150,7 @@ class HelpDatabase(object):
 									content = markdown(content)
 									title = self.make_title(basepath, fname, content)
 									intro = self.make_intro(content)
-									content = self.make_content(content, fpath, relpath)
+									content = self.make_content(content, fpath, relpath, app, docs_app)
 									self.db.sql('''insert into help(path, content, title, intro, full_path)
 										values (%s, %s, %s, %s, %s)''', (relpath, content, title, intro, fpath))
 								except jinja2.exceptions.TemplateSyntaxError:
@@ -175,7 +178,7 @@ class HelpDatabase(object):
 			intro = "Help Video: " + intro
 		return intro
 
-	def make_content(self, html, path, relpath):
+	def make_content(self, html, path, relpath, app_name, doc_app):
 		if '<h1>' in html:
 			html = html.split('</h1>', 1)[1]
 
@@ -183,6 +186,9 @@ class HelpDatabase(object):
 			html = html.replace('{next}', '')
 
 		target = path.split('/', 3)[-1]
+
+		if app_name != doc_app:
+			target = target.replace(app_name, doc_app + '/www')
 		app_name = path.split('/', 3)[2]
 		html += get_improve_page_html(app_name, target)
 
