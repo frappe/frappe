@@ -1,24 +1,49 @@
-def log_insert(doc):
-    make_log(doc.doctype, doc.name, 'INSERT')
+import frappe
+import json
+from six import string_types
+import traceback
 
-def log_update(doc):
-    make_log(doc.doctype, doc.name, 'UPDATE')
+federation_master_data = None
+
+def get_federation_master_doctypes():
+    global federation_master_data
+    if not federation_master_data:
+        federation_master_data = frappe.get_hooks('federation_master_data')
+    return federation_master_data
+
+def log_insert(doctype, name=None):
+    if not isinstance(doctype, string_types):
+        name = doctype.name
+        doctype = doctype.doctype
+    if doctype in get_federation_master_doctypes():
+        make_log(doctype, name, 'INSERT')
+
+def log_update(doctype, name=None):
+    if not isinstance(doctype, string_types):
+        name = doctype.name
+        doctype = doctype.doctype
+    if doctype in get_federation_master_doctypes():
+        print('\n\n\n\n\n==================================\n\n\n\n\n\n\n')
+        traceback.print_stack()
+        make_log(doctype, name, 'UPDATE')
 
 def log_rename(doctype, old, new, merge):
-    make_log(doctype, old, 'RENAME', json.dumps({
-        'new_name': new,
-        'merge': merge,
-    }))
+    if doctype in get_federation_master_doctypes():
+        make_log(doctype, old, 'RENAME', json.dumps({
+            'new_name': new,
+            'merge': merge,
+        }))
 
 def log_delete(doctype, name, **kwargs):
-    make_log(doctype, name, 'DELETE', json.dumps(kwargs))
+    if doctype in get_federation_master_doctypes():
+        make_log(doctype, name, 'DELETE', json.dumps(kwargs))
 
-def make_log(doctype, name, action, actiondata=''):
+def make_log(doctype, docname, action, actiondata=''):
     frappe.db.sql('''
         INSERT
             into
-        `tabTransaction Log`(
-            `doctype`
+        `tabFederation Master Log`(
+            `doctype`,
             `docname`,
             `action`,
             `actiondata`
@@ -30,7 +55,7 @@ def make_log(doctype, name, action, actiondata=''):
         )
     ''', {
         'doctype': doctype,
-        'name': name,
+        'docname': docname,
         'action': action,
         'actiondata': actiondata,
     })
