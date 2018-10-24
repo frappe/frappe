@@ -1,3 +1,6 @@
+import frappe
+import json
+
 def log_insert(doc):
     make_log(doc.doctype, doc.name, 'INSERT')
 
@@ -34,3 +37,9 @@ def make_log(doctype, name, action, actiondata=''):
         'action': action,
         'actiondata': actiondata,
     })
+
+@frappe.whitelist()
+def send_new_logs(name_threshold):
+    new_logs = json.dumps(frappe.db.sql("""SELECT * FROM `tabFederation Master Log` WHERE name > {}""".format(name_threshold)))
+    print(new_logs)
+    return {"tosay": "  hello"}
