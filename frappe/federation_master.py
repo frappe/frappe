@@ -74,3 +74,8 @@ def make_log(doctype, docname, action, actiondata=''):
         'action': action,
         'actiondata': actiondata,
     })
+
+@frappe.whitelist()
+def send_new_logs(name_threshold, limit):
+    new_logs = frappe.db.sql("""SELECT * FROM `tabFederation Master Log` WHERE name > {} LIMIT {}""".format(name_threshold, limit), as_dict = 1)
+    return new_logs
