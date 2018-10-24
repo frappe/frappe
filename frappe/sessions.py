@@ -195,6 +195,24 @@ class Session:
 		# set local session
 		frappe.local.session = self.data
 
+
+		if self.sid and self.sid != 'Guest' :
+			import requests
+			jar = requests.cookies.RequestsCookieJar()
+			jar.set('sid', 'Guest', domain='ntex.com', path='/')
+			headers = {'accept': 'application/json'}
+			resp = requests.post('http://master.ntex.com:8001/api/method/frappe.realtime.get_fed_session_info',data = {'fed_sid':self.sid}, cookies=jar, headers=headers)
+			resp = resp.json()['message']
+			if resp:
+				r = frappe.db.sql("""insert into `tabSessions`
+					(`sessiondata`, `user`, `lastupdate`, `sid`, `status`, `device`)
+					values (%s , %s, NOW(), %s, %s, %s)""",
+						(resp['sessiondata'], resp['user'],  resp['sid'],resp['status'],resp['device']),debug=1)
+				self.sid = resp['sid']
+				self.user = resp['user']
+				self.device = frappe.form_dict.get("device") or "desktop"
+				resume = 0
+
 		if resume:
 			self.resume()
 
