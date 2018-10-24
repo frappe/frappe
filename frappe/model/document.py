@@ -16,7 +16,7 @@ from frappe.model import optional_fields
 from frappe.model.workflow import validate_workflow
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
-from frappe.transaction_log import log_insert, log_update
+from frappe.federation_master import log_insert, log_update
 
 # once_only validation
 # methods

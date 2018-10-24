@@ -9,7 +9,7 @@ from frappe.model.naming import validate_name
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.utils.password import rename_password
 from frappe.model.utils.user_settings import sync_user_settings, update_user_settings_data
-from frappe.transaction_log import log_rename
+from frappe.federation_master import log_rename
 
 @frappe.whitelist()
 def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False, ignore_if_exists=False):
