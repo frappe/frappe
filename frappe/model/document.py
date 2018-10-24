@@ -16,6 +16,7 @@ from frappe.model import optional_fields
 from frappe.model.workflow import validate_workflow
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
+from frappe.federation_master import log_insert, log_update
 
 # once_only validation
 # methods
@@ -252,6 +253,8 @@ class Document(BaseDocument):
 		if hasattr(self, "__islocal"):
 			delattr(self, "__islocal")
 
+		log_insert(self)
+
 		return self
 
 	def save(self, *args, **kwargs):
@@ -310,6 +313,7 @@ class Document(BaseDocument):
 
 		self.update_children()
 		self.run_post_save_methods()
+		log_update(self)
 
 		return self
 

@@ -9,6 +9,7 @@ from frappe.model.naming import validate_name
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.utils.password import rename_password
 from frappe.model.utils.user_settings import sync_user_settings, update_user_settings_data
+from frappe.federation_master import log_rename
 
 @frappe.whitelist()
 def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False, ignore_if_exists=False):
@@ -16,6 +17,10 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 		Renames a doc(dt, old) to doc(dt, new) and
 		updates all linked fields of type "Link"
 	"""
+	currently_renaming_doctypes = frappe.flags.setdefault('currently_renaming', {})
+	currently_renaming_docs = currently_renaming_doctypes.setdefault(doctype, set())
+	currently_renaming_docs.add(old)
+	currently_renaming_docs.add(new)
 	if not frappe.db.exists(doctype, old):
 		return
 
@@ -80,6 +85,16 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	if merge:
 		frappe.delete_doc(doctype, old)
+
+	currently_renaming_docs.remove(old)
+	currently_renaming_docs.remove(new)
+	if not currently_renaming_docs:
+		del currently_renaming_doctypes[doctype]
+
+	if not currently_renaming_doctypes:
+		del frappe.flags['currently_renaming']
+
+	log_rename(doctype, old, new, merge)
 
 	frappe.clear_cache()
 

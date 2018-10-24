@@ -271,3 +271,16 @@ CREATE TABLE `tabDefaultValue` (
   KEY `parent` (`parent`),
   KEY `defaultvalue_parent_defkey_index` (`parent`,`defkey`)
 ) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+--
+--
+DROP TABLE IF EXISTS `tabFederation Master Log`;
+CREATE TABLE `tabFederation Master Log` (
+  `name` bigint AUTO_INCREMENT,
+  `doctype` varchar(140),
+  `docname` varchar(140),
+  `action` varchar(140),
+  `actiondata` longtext,
+  PRIMARY KEY (`name`),
+  KEY `quick_lookup_doc` (`doctype`, `docname`)
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
