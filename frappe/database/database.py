@@ -18,7 +18,7 @@ from time import time
 from frappe.utils import now, getdate, cast_fieldtype
 from frappe.utils.background_jobs import execute_job, get_queue
 from frappe.model.utils.link_count import flush_local_link_count
-from frappe.federation_master import log_update
+from frappe.federation_master import log_set_value
 
 # imports - compatibility imports
 from six import (
@@ -649,7 +649,7 @@ class Database(object):
 		if dt in self.value_cache:
 			del self.value_cache[dt]
 
-		log_update(dt, dn)
+		log_set_value(dt, dn)
 
 		frappe.clear_document_cache(dt, dn)
 

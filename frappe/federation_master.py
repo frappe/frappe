@@ -23,9 +23,21 @@ def log_update(doctype, name=None):
         name = doctype.name
         doctype = doctype.doctype
     if doctype in get_federation_master_doctypes():
-        print('\n\n\n\n\n==================================\n\n\n\n\n\n\n')
-        traceback.print_stack()
         make_log(doctype, name, 'UPDATE')
+
+def is_being_renamed(doctype, name):
+    currently_renaming = frappe.flags.currently_renaming
+    currently_renaming_docs = currently_renaming and currently_renaming.get(doctype)
+    if currently_renaming_docs:
+        if name in currently_renaming_docs:
+            return True
+
+def log_set_value(doctype, name):
+    if doctype not in get_federation_master_doctypes():
+        return
+    if is_being_renamed(doctype, name):
+        return
+    make_log(doctype, name, 'UPDATE')
 
 def log_rename(doctype, old, new, merge):
     if doctype in get_federation_master_doctypes():
@@ -35,10 +47,13 @@ def log_rename(doctype, old, new, merge):
         }))
 
 def log_delete(doctype, name, **kwargs):
+    if is_being_renamed(doctype, name):
+        return
     if doctype in get_federation_master_doctypes():
         make_log(doctype, name, 'DELETE', json.dumps(kwargs))
 
 def make_log(doctype, docname, action, actiondata=''):
+    # print('Making Log for ', doctype, docname, 'of type', action, 'with actiondata', actiondata)
     frappe.db.sql('''
         INSERT
             into
