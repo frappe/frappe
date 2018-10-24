@@ -8,6 +8,7 @@ import frappe.model.meta
 from frappe.model.dynamic_links import get_dynamic_link_map
 import frappe.defaults
 from frappe.core.doctype.file.file import remove_all
+from frappe.transaction_log import log_delete
 from frappe.utils.password import delete_all_passwords_for
 from frappe import _
 from frappe.model.naming import revert_series_if_last
@@ -108,6 +109,17 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 			# delete user_permissions
 			frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
+	log_delete(
+		doctype=doctype,
+		name=name,
+		force=force,
+		ignore_doctypes=ignore_doctypes,
+		for_reload=for_reload,
+		ignore_permissions=ignore_permissions,
+		flags=flags,
+		ignore_on_trash=ignore_on_trash,
+		ignore_missing=ignore_missing
+	)
 
 def add_to_deleted_document(doc):
 	'''Add this document to Deleted Document table. Called after delete'''
