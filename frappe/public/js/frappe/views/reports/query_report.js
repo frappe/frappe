@@ -46,14 +46,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	setup_defaults() {
 		this.route = frappe.get_route();
 		this.page_name = frappe.get_route_str();
-
+		
 		// Setup buttons
 		this.primary_action = null;
 		this.secondary_action = {
 			label: __('Refresh'),
 			action: () => this.refresh()
 		};
-
 		// throttle refresh for 300ms
 		this.refresh = frappe.utils.throttle(this.refresh, 300);
 
@@ -83,6 +82,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			// same report
 			this.refresh_report();
 		}
+
 	}
 
 	load_report() {
@@ -96,11 +96,22 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		frappe.run_serially([
 			() => this.get_report_doc(),
+			() => this.update_secondary_action(),
 			() => this.get_report_settings(),
 			() => this.setup_page_head(),
 			() => this.refresh_report(),
 			() => this.add_make_chart_button()
 		]);
+	}
+
+	update_secondary_action() {
+		const is_explicit_load = this.report_doc.is_explicit_load;
+
+		console.log('is_explicit_load', is_explicit_load, this.report_doc)
+
+		const secondary_action_label = is_explicit_load ? __('Run Report') : __('Refresh');
+
+		this.secondary_action.label = secondary_action_label;
 	}
 
 	add_make_chart_button(){
@@ -112,13 +123,24 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	refresh_report() {
 		this.toggle_message(true);
 
-		return frappe.run_serially([
-			() => this.setup_filters(),
-			() => this.set_route_filters(),
-			() => this.report_settings.onload && this.report_settings.onload(this),
-			() => this.get_user_settings(),
-			() => this.refresh()
-		]);
+		if(!this.report_doc.is_explicit_load){
+			return frappe.run_serially([
+				() => this.setup_filters(),
+				() => this.set_route_filters(),
+				() => this.report_settings.onload && this.report_settings.onload(this),
+				() => this.get_user_settings(),
+				() => this.refresh()
+			]);
+		}
+		else{
+			return frappe.run_serially([
+				() => this.setup_filters(),
+				() => this.set_route_filters(),
+				() => this.report_settings.onload && this.report_settings.onload(this),
+				() => this.get_user_settings(),
+				// () => this.refresh()
+			]);			
+		}
 	}
 
 	get_report_doc() {
@@ -169,16 +191,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (df.on_change) f.on_change = df.on_change;
 
 			df.onchange = () => {
-				if (this.previous_filters
-					&& (JSON.stringify(this.previous_filters) == JSON.stringify(this.get_filter_values()))) {
-					// filter values have not changed
-					return;
-				}
-				this.previous_filters = this.get_filter_values();
-
-				// clear previous_filters after 3 seconds, to allow refresh for new data
-				setTimeout(() => this.previous_filters = null, 10000);
-
 				if (f.on_change) {
 					f.on_change(this);
 				} else {
@@ -186,7 +198,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						this.reset_report_view();
 					}
 					else if (!this._no_refresh) {
-						this.refresh();
+						// this.refresh();
 					}
 				}
 			};
@@ -354,8 +366,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			data: this.data,
 			inlineFilters: true,
 			treeView: this.tree_report,
-			layout: 'fixed',
-			cellHeight: 33
+			layout: 'fixed'
 		};
 
 		if (this.report_settings.get_datatable_options) {
@@ -780,7 +791,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	get_menu_items() {
 		return [
 			{
-				label: __('Refresh'),
+				label: 1 ? __('Run Report') : __('Refresh'),
 				action: () => this.refresh(),
 				class: 'visible-xs'
 			},
@@ -799,7 +810,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						this.report_doc.letter_head
 					);
 				},
-				condition: () => frappe.model.can_print(this.report_doc.ref_doctype),
+				condition: () => {
+					frappe.model.can_print(this.report_doc.ref_doctype)
+				},
 				standard: true
 			},
 			{
