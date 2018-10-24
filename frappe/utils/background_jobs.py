@@ -11,15 +11,19 @@ from six import string_types
 
 # imports - third-party imports
 
-default_timeout = 300
-queue_timeout = {
-	'background': 2500,
-	'long': 1500,
-	'default': 300,
-	'short': 300
-}
-
 redis_connection = None
+queue_timeout  = {}
+
+def get_queues_and_timeout():
+	site_config = frappe.get_site_config(sites_path=".")
+	global queue_timeout
+
+	if queue_timeout:
+		return queue_timeout
+
+	for key, value in site_config["queues"].items():
+		queue_timeout[key] = value["timeout"]
+	return queue_timeout
 
 def enqueue(method, queue='default', timeout=None, event=None,
 	is_async=True, job_name=None, now=False, enqueue_after_commit=False, **kwargs):
@@ -45,7 +49,7 @@ def enqueue(method, queue='default', timeout=None, event=None,
 
 	q = get_queue(queue, is_async=is_async)
 	if not timeout:
-		timeout = queue_timeout.get(queue) or 300
+		timeout = get_queues_and_timeout().get(queue) or 300
 	queue_args = {
 		"site": frappe.local.site,
 		"user": frappe.session.user,
@@ -184,7 +188,7 @@ def get_jobs(site=None, queue=None, key='method'):
 
 def get_queue_list(queue_list=None):
 	'''Defines possible queues. Also wraps a given queue in a list after validating.'''
-	default_queue_list = list(queue_timeout)
+	default_queue_list = get_queues_and_timeout().keys()
 	if queue_list:
 		if isinstance(queue_list, string_types):
 			queue_list = [queue_list]
@@ -210,8 +214,8 @@ def get_queue(queue, is_async=True):
 
 def validate_queue(queue, default_queue_list=None):
 	if not default_queue_list:
-		default_queue_list = list(queue_timeout)
-
+		default_queue_list = get_queues_and_timeout().keys()
+		
 	if queue not in default_queue_list:
 		frappe.throw(_("Queue should be one of {0}").format(', '.join(default_queue_list)))
 
