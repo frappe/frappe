@@ -27,17 +27,23 @@ def log_update(doctype, name=None):
     if doctype in get_master_doctypes():
         make_log(doctype, name, 'UPDATE')
 
+def is_being_inserted(doctype, name):
+    return is_being_used('currently_inserting', doctype, name)
+
 def is_being_renamed(doctype, name):
-    currently_renaming = frappe.flags.currently_renaming
-    currently_renaming_docs = currently_renaming and currently_renaming.get(doctype)
-    if currently_renaming_docs:
-        if name in currently_renaming_docs:
+    return is_being_used('currently_renaming', doctype, name)
+
+def is_being_used(flag, doctype, name):
+    currently_used = frappe.flags.get(flag)
+    currently_used_docs = currently_used and currently_used.get(doctype)
+    if currently_used_docs:
+        if name in currently_used_docs:
             return True
 
 def log_set_value(doctype, name):
     if doctype not in get_master_doctypes():
         return
-    if is_being_renamed(doctype, name):
+    if is_being_renamed(doctype, name) or is_being_inserted(doctype, name):
         return
     make_log(doctype, name, 'UPDATE')
 
