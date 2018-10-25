@@ -191,6 +191,7 @@ class Session:
 		self.full_name = full_name
 		self.data = frappe._dict({'data': frappe._dict({})})
 		self.time_diff = None
+		self.cid = frappe.db.get_value('User',user,'cluster')
 
 		# set local session
 		frappe.local.session = self.data
@@ -204,10 +205,11 @@ class Session:
 			jar.set('sid', 'Guest', domain='ntex.com', path='/')
 			headers = {'accept': 'application/json'}
 			path = config.master_path + '/api/method/frappe.realtime.get_fed_session_info'
-			print ("FINAL PATH",path)
-			resp = requests.post( path, data = {'fed_sid':self.sid}, cookies=jar, headers=headers)
-			resp = resp.json()['message']
-			if resp:
+			resp_data = requests.post( path, data = {'fed_sid':self.sid}, cookies=jar, headers=headers)
+			resp_data = resp_data.json()['message']
+			if resp_data:
+				resp = resp_data['session_data']
+				cid = resp_data['cluster']
 				r = frappe.db.sql("""insert into `tabSessions`
 					(`sessiondata`, `user`, `lastupdate`, `sid`, `status`, `device`)
 					values (%s , %s, NOW(), %s, %s, %s)""",
@@ -215,6 +217,7 @@ class Session:
 				self.sid = resp['sid']
 				self.user = resp['user']
 				self.device = frappe.form_dict.get("device") or "desktop"
+				self.cid = cid
 				resume = 0
 
 		if resume:
