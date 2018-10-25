@@ -79,6 +79,8 @@ def make_log(doctype, docname, action, actiondata=''):
 
 @frappe.whitelist()
 def send_new_logs(name_threshold, limit):
+    if not unicode(limit).isnumeric():
+        frappe.throw("Limit must be Numeric")
     new_logs = frappe.db.sql('''
         SELECT
             `name`,
@@ -90,9 +92,8 @@ def send_new_logs(name_threshold, limit):
             `tabFederation Master Log`
         WHERE
             name > %(name_threshold)s
-        LIMIT %(limit)s
-    ''', {
-        'name_threshold': name_threshold,
-        'limit': limit,
+        LIMIT {}
+    '''.format(limit), {
+        'name_threshold': name_threshold
     }, as_dict=1)
     return new_logs
