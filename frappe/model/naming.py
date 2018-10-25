@@ -250,6 +250,10 @@ def append_number_if_name_exists(doctype, value, fieldname='name', separator='-'
 
 
 def _set_amended_name(doc):
+
+	if frappe.get_meta(doc.doctype).autoname == "autoincrement":
+		return None
+
 	am_id = 1
 	am_prefix = doc.amended_from
 	if frappe.db.get_value(doc.doctype, doc.amended_from, "amended_from"):

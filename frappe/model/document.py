@@ -237,6 +237,8 @@ class Document(BaseDocument):
 
 		# children
 		for d in self.get_all_children():
+			d.parent = self.name
+			d.parenttype = self.doctype
 			d.db_insert()
 
 		self.run_method("after_insert")
@@ -763,10 +765,7 @@ class Document(BaseDocument):
 			value = self.get(df.fieldname)
 			if isinstance(value, list):
 				ret.extend(value)
-			if ret and self.meta.autoname == "autoincrement":
-				for row in ret:
-					row.parent = self.name
-					row.parenttype = self.doctype
+
 		return ret
 
 	def run_method(self, method, *args, **kwargs):

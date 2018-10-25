@@ -45,7 +45,6 @@ class DocType(Document):
 		self.check_developer_mode()
 		self.validate_autoname()
 		self.validate_name()
-		# self.validate_child_table_autoincrement()
 
 		if self.issingle:
 			self.allow_import = 0
@@ -63,6 +62,9 @@ class DocType(Document):
 		self.validate_series()
 		self.validate_document_type()
 		validate_fields(self)
+
+		if self.autoname == "autoincrement":
+			self.allow_rename = 0
 
 		if self.istable:
 			# no permission records for child table
@@ -160,15 +162,6 @@ class DocType(Document):
 		if not self.is_new():
 			if (self.get("autoname") == "autoincrement" and self.get_doc_before_save().get("autoname") != "autoincrement") or (self.get("autoname") != "autoincrement" and self.get_doc_before_save().get("autoname") == "autoincrement"):
 				frappe.throw("Can not change autoname <b>{0}</b> to <b>{1}</b>".format(self.get_doc_before_save().get("autoname"), self.get("autoname")))
-
-	def validate_child_table_autoincrement(self):
-		errors = []
-		if self.autoname == "autoincrement":
-			error_fields = self.get('fields', {'fieldtype': 'Table'})
-			for row in error_fields:
-				errors.append("Autoincrement naming does not support child table, please rectify row {0}".format(row.idx))
-		if errors:
-			frappe.throw(errors)
 
 	def validate_document_type(self):
 		if self.document_type=="Transaction":
