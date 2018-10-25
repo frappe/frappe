@@ -27,6 +27,8 @@ def get_requests(path):
 
 @frappe.whitelist()
 def get_calls(uuid):
-	calls = frappe.cache().lrange("recorder-calls-{}".format(uuid), 0, -1)
-	calls = list(map(lambda call: json.loads(call.decode()), calls))
+	calls = frappe.cache().get("recorder-calls-{}".format(uuid))
+	calls = json.loads(calls.decode())
+	for index, call in enumerate(calls):
+		call["index"] = index
 	return calls

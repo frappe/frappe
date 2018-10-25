@@ -143,8 +143,7 @@ def persist(function):
 
 	# Datetime objects cannot be used with json.dumps
 	# str() seems to work with them
-	calls = map(dumps, calls)
-	frappe.cache().rpush("recorder-calls-{}".format(uuid), *calls)
+	frappe.cache().set("recorder-calls-{}".format(uuid), dumps(calls))
 
 @Request.application
 def application(request):
