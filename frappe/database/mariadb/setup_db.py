@@ -23,6 +23,7 @@ def setup_database(force, source_sql, verbose):
 	if verbose: print("Created database %s" % db_name)
 
 	dbman.grant_all_privileges(db_name, db_name)
+	dbman.grant_file_privileges(db_name, frappe.conf.db_password)
 	dbman.flush_privileges()
 	if verbose: print("Granted privileges to user %s and database %s" % (db_name, db_name))
 

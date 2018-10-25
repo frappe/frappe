@@ -50,6 +50,41 @@ class DbManager:
 
 		self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target, user, host))
 
+	def grant_file_privileges(self, user, password, host=None):
+        """
+        Apparmor config is specific to Ubuntu/Debian,
+
+        Apparmor has to be given permission on the folder from where we wish to load the file
+        reference:
+            https://stackoverflow.com/questions/4215231/load-data-infile-error-code-13
+
+        In UBUNTU:
+		For ex:
+		To load file from tmp folder
+        /tmp/** rwk, to be added to /etc/apparmor.d/usr.sbin.mysqld
+        then link is as below:
+
+        sudo ln -s /etc/apparmor.d/usr.sbin.mysqld /etc/apparmor.d/disable/usr.sbin.mysqld
+
+        Reload apparmor:
+            sudo /etc/init.d/apparmor reload
+
+        File permission has to be granted to the user for loading the data.
+		Why grant file ??
+		Refer:
+			https://stackoverflow.com/questions/13552206/grant-file-on-just-one-database
+
+		Since Grant all was done on a database, file privileges will not be set.
+		It being a global privilege, has to be set seperately
+        """
+		if not host:
+			host = self.get_current_host()
+
+        query = "GRANT FILE ON *.* TO '{0}'@'{1}' IDENTIFIED BY '{2}'".format(
+            user, host, password
+        )
+		self.db.sql(query)
+
 	def flush_privileges(self):
 		self.db.sql("FLUSH PRIVILEGES")
 
