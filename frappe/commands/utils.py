@@ -9,6 +9,7 @@ from frappe.commands import pass_context, get_site
 from frappe.utils import update_progress_bar, get_bench_path
 from frappe.utils.response import json_handler
 from coverage import Coverage
+from frappe.defaults import add_default
 
 @click.command('build')
 @click.option('--app', help='Build assets for app')
@@ -705,6 +706,7 @@ def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
 @click.argument('setuptype')
 @pass_context
 def setup_federation(context, setuptype):
+	from frappe.installer import update_site_config		
 	site = get_site(context)
 	frappe.init(site=site)
 	frappe.connect()
@@ -712,41 +714,52 @@ def setup_federation(context, setuptype):
 	
 	if setuptype == "Master":
 		frappe.db.sql('''CREATE TABLE `tabDocument Change Log` (
-  `name` bigint AUTO_INCREMENT,
-  `doctype` varchar(140),
-  `docname` varchar(140),
-  `action` varchar(140),
-  `actiondata` longtext,
-  PRIMARY KEY (`name`),
-  KEY `quick_lookup_doc` (`doctype`, `docname`)
-) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+			`name` bigint AUTO_INCREMENT,
+			`doctype` varchar(140),
+			`docname` varchar(140),
+			`action` varchar(140),
+			`actiondata` longtext,
+			PRIMARY KEY (`name`),
+			KEY `quick_lookup_doc` (`doctype`, `docname`)
+			) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 ''')	
-		from frappe.installer import update_site_config
 		update_site_config("master", 1, validate=False)
+		update_site_config("consolidation_doctypes", [], validate=False)
+		
+		print("Update Consolidation doctypes in site_config.json")
 		print("Successfully Setup Federation Master")
 	elif setuptype == "Client":
 		import getpass
 		master_node = click.prompt("Enter hostname of master node")
 		master_user = click.prompt("Enter Username of Master node")
 		master_password = getpass.getpass("Enter Password for {0}: ".format(master_user))
-		from frappe.installer import update_site_config
 		update_site_config("master", 0, validate=False)
 		update_site_config("master_node", master_node, validate=False)
 		update_site_config("master_user", master_user, validate=False)
 		update_site_config("master_pass", master_password, validate=False)
+		update_site_config("master_doctypes", [], validate=False)
+		
+		add_default("client_sync_pos", 0, "__default")
+		add_default("client_sync_running", "Inactive", "__default")
+		
+		print("Update Master Doctypes in site_config.json")
 		print("Successfully Setup Federation Client")
 	elif setuptype == "Collator":
 		import getpass
 		master_node = click.prompt("Enter hostname of master node")
 		master_user = click.prompt("Enter Username of Master node")
 		master_password = getpass.getpass("Enter Password for {0}: ".format(master_user))
-		from frappe.installer import update_site_config
 		update_site_config("master", 0, validate=False)
 		update_site_config("master_node", master_node, validate=False)
 		update_site_config("master_user", master_user, validate=False)
 		update_site_config("master_pass", master_password, validate=False)
 		update_site_config("consolidation_enabled", 1, validate=False)
+		update_site_config("master_doctypes", [], validate=False)
+		
+		print("Update Consolidation Doctypes in site_config.json")
 		print("Successfully Setup Federation Collator")
+
+	frappe.db.commit()
 
 commands = [
 	build,
