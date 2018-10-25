@@ -194,13 +194,16 @@ def has_user_permission(doc, user=None, verbose=False):
 
 	apply_strict_user_permissions = frappe.get_system_settings('apply_strict_user_permissions')
 
-	if doc.get('doctype') in user_permissions:
-		if (doc.get('name')
-			not in user_permissions[doc.get('doctype')].get("docs", [])
-			and not doc.get('doctype') in user_permissions[doc.get('doctype')].get("skip_for_doctype", [])):
+	doctype = doc.get('doctype')
+	docname = doc.get('name')
+
+	if doctype in user_permissions:
+		user_permission_for_doc = (permission for permission in user_permissions[doctype] if permission['doc'] == docname).next()
+		if (not user_permission_for_doc
+			or not doctype in user_permission_for_doc.get("skip_for_doctype", [])):
 			# don't have user permissions on the doc itself!
 			if verbose:
-				msgprint(_('Not allowed for {0} = {1}').format(_(doc.get('doctype')), doc.get('name')))
+				msgprint(_('Not allowed for {0} = {1}').format(_(doctype), docname))
 			return False
 
 	def check_user_permission(d):
@@ -208,17 +211,25 @@ def has_user_permission(doc, user=None, verbose=False):
 
 		# check all link fields for user permissions
 		for field in meta.get_link_fields():
-			# if this type is restricted
+
 			if field.ignore_user_permissions: continue
 
-			if (field.options in user_permissions
-				and not d.get("doctype") in user_permissions[field.options].get("skip_for_doctype", [])):
-				if not apply_strict_user_permissions:
-					# ignore if link is not set
-					if not d.get(field.fieldname):
-						continue
+			if not d.get(field.fieldname) and not apply_strict_user_permissions:
+				continue
 
-				if not d.get(field.fieldname) in user_permissions.get(field.options, {}).get("docs", []):
+			user_permissions_on_link_field = user_permissions[field.options] or []
+
+			if user_permissions_on_link_field:
+
+				docs = [perm.doc for perm in user_permissions_on_link_field]
+
+				# and not d.get("doctype") in user_permissions[field.options].get("skip_for_doctype", [])):
+				# if not apply_strict_user_permissions:
+				# 	# ignore if link is not set
+				# 	if not d.get(field.fieldname):
+				# 		continue
+
+				if not d.get(field.fieldname) in docs:
 					if d.get('parentfield'):
 						# "Not allowed for Company = Restricted Company in Row 3"
 						msg = _('Not allowed for {0} = {1} in Row {2}').format(_(field.options), d.get(field.fieldname), d.idx)
@@ -229,6 +240,7 @@ def has_user_permission(doc, user=None, verbose=False):
 					if verbose: msgprint(msg)
 
 					return False
+
 		return True
 
 	result = check_user_permission(doc)

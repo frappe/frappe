@@ -513,20 +513,27 @@ class DatabaseQuery(object):
 				doctype=self.doctype, fieldname=df.get('fieldname')
 			)
 
-			if (user_permission_values.get("docs", [])
-				and not self.doctype in user_permission_values.get("skip_for_doctype", [])):
+			if user_permission_values:
+				docs = []
 				if frappe.get_system_settings("apply_strict_user_permissions"):
 					condition = ""
 				else:
 					condition = empty_value_condition + " or "
 
-				condition += """`tab{doctype}`.`{fieldname}` in ({values})""".format(
-					doctype=self.doctype, fieldname=df.get('fieldname'),
-					values=", ".join([('"'+frappe.db.escape(v, percent=False)+'"')
-						for v in user_permission_values.get("docs")]))
+				for permission in user_permission_values:
+					if self.doctype not in permission.get("skip_for_doctype", []):
+						docs.append(permission.doc)
 
-				match_conditions.append("({condition})".format(condition=condition))
-				match_filters[df.get('options')] = user_permission_values.get("docs")
+				if docs:
+					condition += "`tab{doctype}`.`{fieldname}` in ({values})".format(
+						doctype=self.doctype,
+						fieldname=df.get('fieldname'),
+						values=", ".join(
+							[('"' + frappe.db.escape(doc, percent=False) + '"') for doc in docs])
+						)
+
+					match_conditions.append("({condition})".format(condition=condition))
+					match_filters[df.get('options')] = docs
 
 		if match_conditions:
 			self.match_conditions.append(" and ".join(match_conditions))

@@ -44,19 +44,30 @@ def get_user_permissions(user=None):
 		return cached_user_permissions
 
 	out = {}
+
+	def add_doc_to_perm(perm, doc=None):
+		if not doc:
+			doc = perm.for_value
+
+		if not out[perm.allow]:
+			out[perm.allow] = []
+
+		out[perm.allow].append({
+			'doc': doc,
+			'skip_for_doctype': perm.skip_for_doctype.split("\n") if perm.skip_for_doctype else []
+		})
+
 	try:
 		for perm in frappe.get_all('User Permission',
 			fields=['allow', 'for_value', 'skip_for_doctype'], filters=dict(user=user)):
 			meta = frappe.get_meta(perm.allow)
-			if not perm.allow in out:
-				out[perm.allow] = {
-					"docs": [],
-					"skip_for_doctype": perm.skip_for_doctype.split("\n") if perm.skip_for_doctype else []
-				}
-			out[perm.allow]["docs"].append(perm.for_value)
+			add_doc_to_perm(perm)
 
 			if meta.is_nested_set():
-				out[perm.allow]["docs"].extend(frappe.db.get_descendants(perm.allow, perm.for_value))
+				decendants = frappe.db.get_descendants(perm.allow, perm.for_value)
+				for doc in decendants:
+					add_doc_to_perm(perm, doc)
+
 		frappe.cache().hset("user_permissions", user, out)
 	except frappe.SQLError as e:
 		if e.args[0]==1146:
