@@ -83,7 +83,7 @@ def make_log(doctype, docname, action, actiondata=''):
     })
 
 @frappe.whitelist()
-def send_new_logs(name_threshold, limit):
+def get_change_logs(name_threshold, limit):
     if not unicode(limit).isnumeric():
         frappe.throw("Limit must be Numeric")
     new_logs = frappe.db.sql('''
