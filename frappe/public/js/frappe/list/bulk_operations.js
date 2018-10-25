@@ -90,7 +90,7 @@ export default class BulkOperations {
 
 	assign(docnames, done) {
 		if (docnames.length > 0) {
-			const dialog = new frappe.ui.form.AssignToDialog({
+			const assign_to = new frappe.ui.form.AssignToDialog({
 				obj: this,
 				method: 'frappe.desk.form.assign_to.add_multiple',
 				doctype: this.doctype,
@@ -99,8 +99,8 @@ export default class BulkOperations {
 				re_assign: true,
 				callback: done
 			});
-			dialog.clear();
-			dialog.show();
+			assign_to.dialog.clear();
+			assign_to.dialog.show();
 		} else {
 			frappe.msgprint(__('Select records for assignment'));
 		}
