@@ -204,7 +204,7 @@ class Session:
 			jar = requests.cookies.RequestsCookieJar()
 			jar.set('sid', 'Guest', domain='ntex.com', path='/')
 			headers = {'accept': 'application/json'}
-			path = config.master_path + '/api/method/frappe.realtime.get_fed_session_info'
+			path = config.master_node + '/api/method/frappe.realtime.get_fed_session_info'
 			resp_data = requests.post( path, data = {'fed_sid':self.sid}, cookies=jar, headers=headers)
 			resp_data = resp_data.json()['message']
 			if resp_data:

@@ -12,7 +12,7 @@ def get_remote_logs():
 		where
 			defkey=%s and parent=%s
 		for update''', ("client_sync_running", "__default"), as_dict = True)
-    
+
     if sync_status[0]["defValue"] == "Active":
         return
 
@@ -29,7 +29,11 @@ def get_remote_logs():
     print("lild", last_inserted_logid)
     current_working_logid = int(last_inserted_logid)
 
-    master_setup = FrappeClient(frappe.local.conf.federation_master_hostname,frappe.local.conf.federation_master_user, frappe.local.conf.federation_master_password)
+    # master_setup = FrappeClient(frappe.local.conf.federation_master_hostname,frappe.local.conf.federation_master_user, frappe.local.conf.federation_master_password)
+    master_setup = FrappeClient(frappe.local.conf.master_node,
+            frappe.local.conf.master_user,
+            frappe.local.conf.master_pass)
+            
     new_master_logs = master_setup.post_request({
         "cmd": "frappe.federation_master.send_new_logs",
         "name_threshold": current_working_logid,
@@ -60,5 +64,3 @@ def get_remote_logs():
 
     set_default("client_sync_pos", current_working_logid, "__default")
     set_default("client_sync_running", "Inactive", "__default")
-    
-
