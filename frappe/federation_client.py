@@ -1,4 +1,4 @@
-import frappe
+sync_master_dataimport frappe
 from frappe.frappeclient import FrappeClient
 from frappe.defaults import set_global_default
 from frappe.defaults import add_default
@@ -59,6 +59,9 @@ def sync_master_data():
         "limit": 100
     })
 
+    if not change_log_from_master:
+        return;
+
     for change_log in change_log_from_master:
         if change_log["action"] == "INSERT":
             insert_new_doc(connection, change_log)
@@ -71,6 +74,7 @@ def sync_master_data():
 
         elif master_log["action"] == "DELETE":
             delete_doc(connection, change_log)
+
 
 
     set_global_default(job_name, change_log["name"])
