@@ -67,8 +67,8 @@ def wrap_cache():
 
 			data = {
 				"function": function.__name__,
-				"args": args,
-				"kwargs": kwargs,
+				#"args": args,
+				#"kwargs": kwargs,
 				# result is sometimes a nested dict, those can't be sometimes JSON serialized.
 				# pickle.dumps seems like a nice way to go., but JS can't understand pickle.
 				# Skip result for now
