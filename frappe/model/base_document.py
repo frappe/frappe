@@ -317,8 +317,8 @@ class BaseDocument(object):
 				if self.meta.autoname=="hash":
 					# hash collision? try again
 					self.name = None
-					return self.db_insert()
-					# return
+					self.db_insert()
+					return
 
 				frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
 				raise frappe.DuplicateEntryError(self.doctype, self.name, e)
@@ -331,7 +331,6 @@ class BaseDocument(object):
 				raise
 
 		self.set("__islocal", False)
-		return self
 
 	def db_update(self):
 		if self.get("__islocal") or not self.name:
