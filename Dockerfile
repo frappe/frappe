@@ -41,7 +41,7 @@ RUN cd /tmp \
   && cp wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf \
   && chmod o+x /usr/local/bin/wkhtmltopdf
 
-RUN git clone https://github.com/revant/bench.git /home/frappe/.bench -b docker \
+RUN git clone https://github.com/frappe/bench.git /home/frappe/.bench -b master \
   && pip install -e /home/frappe/.bench \
   && chown -R frappe:frappe /home/frappe
 
