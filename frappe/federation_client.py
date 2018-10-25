@@ -72,7 +72,7 @@ def chain_all(fns):
             fn = frappe.get_attr(fn)
         chain.append(fn)
 
-    def chained_fn(_, doc):
+    def chained_fn(doc):
         for fn in chain:
             if not fn(doc):
                 return
@@ -89,12 +89,10 @@ def get_transactional_documents():
     transactional_doctypes = {
         dt: (sync_rules or {}).get(dt, {}) for dt in transactional_doctypes
     }
-    print('transaction_doctypes =', transactional_doctypes)
     transactional_doctypes = [
         (dt, chain_all(value.get('is_new')), chain_all(value.get('preprocess')), chain_all(value.get('postprocess')))
             for dt, value in iteritems(transactional_doctypes)
     ]
-    print('transaction_doctypes =', transactional_doctypes)
 
     if not transactional_doctypes:
         return
@@ -132,20 +130,19 @@ def sync_doctype(doctype, cluster, is_new, preprocess, postprocess):
     else:
         last_sync_pos = last_sync_pos[0]
 
-    print('last_sync_pos=', last_sync_pos)
-    doc_list = clusterclient.get_list(doctype, filters={
-        'modified': ('>', last_sync_pos),
-        'modified': ('<=', now),
-    }, limit_page_length=sync_queue_length, fields=['name', 'modified'])
+    doc_list = clusterclient.get_list(doctype, filters=[
+        [doctype, 'modified', '>', last_sync_pos],
+        [doctype, 'modified', '<=', now],
+    ], limit_page_length=sync_queue_length, fields=['name', 'modified'])
     if not doc_list:
-        print('No Items to sync')
         return
+
     max_modified = max(doc.get('modified') for doc in doc_list)
 
     for doc in doc_list:
-        remote_doc = client.get_doc(doctype, doc.get(name))
+        remote_doc = clusterclient.get_doc(doctype, doc.get('name'))
         remote_doc['doctype'] = doctype
-        local_doc = frappe.get_doc(doc)
+        local_doc = frappe.get_doc(remote_doc)
         if not is_new(local_doc):
             continue
         preprocess(local_doc)
