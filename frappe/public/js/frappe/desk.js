@@ -295,6 +295,10 @@ frappe.Application = Class.extend({
 		frappe.session.user = frappe.boot.user.name;
 		frappe.session.user_email = frappe.boot.user.email;
 		frappe.session.user_fullname = frappe.user_info().fullname;
+		frappe.session.user_nav = frappe.boot.user.desk_navigation;
+		frappe.session.user_homepage = frappe.boot.user.homepage;
+		frappe.session.full_width_desk = frappe.boot.user.full_width_desk;
+		frappe.session.app_container_class = frappe.boot.user.full_width_desk ? "container-fluid container-margin-10" : "container";
 
 		frappe.user_defaults = frappe.boot.user.defaults;
 		frappe.user_roles = frappe.boot.user.roles;

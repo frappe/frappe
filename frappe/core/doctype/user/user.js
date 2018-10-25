@@ -53,6 +53,20 @@ frappe.ui.form.on('User', {
 				frm.roles_editor.show();
 			}
 		}
+
+		cur_frm.set_query("homepage", function() {
+			if(frm.doc.desk_navigation == "Desktop") return {};
+			return {
+				"filters": [
+					["Page", "name", "!=", "desktop"]
+				]
+			};
+		});
+
+		if(frm.doc.desk_navigation == "Sidebar") {
+			frm.set_df_property('homepage', 'reqd', 1);
+			frm.set_df_property("full_width_desk", "read_only", 1);
+		}
 	},
 	refresh: function(frm) {
 		var doc = frm.doc;
@@ -202,6 +216,29 @@ frappe.ui.form.on('User', {
 				}
 			}
 		})
+	},
+	desk_navigation: function(frm){
+		if(frm.doc.desk_navigation == "Sidebar"){
+			frm.set_df_property('homepage', 'reqd', 1);
+			frm.set_df_property("full_width_desk", "read_only", 1);
+			frm.set_value("full_width_desk", 1);
+			if(frm.doc.homepage == "desktop") {
+				frm.set_value("homepage", null);
+			}
+		} else {
+			frm.set_df_property('homepage', 'reqd', 0);
+			frm.set_df_property("full_width_desk", "read_only", 0);
+		}
+	},
+	homepage: function(frm){
+		if(frm.doc.desk_navigation == "Sidebar" && frm.doc.homepage == "desktop"){
+			frm.set_value("homepage", null);
+		}
+	},
+	after_save: function(frm){
+		if(frappe.session.user == frm.doc.name) {
+			frappe.desk_sidebar.get_desk_navigation_settings();
+		}
 	}
 })
 

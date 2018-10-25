@@ -70,12 +70,11 @@ body {
 		padding: 8px 0px !important;
 	}
 
-	.navbar > .container > .navbar-header {
+	.navbar > .container-fluid > .navbar-header, .navbar > .container > .navbar-header {
 		float: left;
-		width: 80%;
 	}
 
-	.navbar > .container > .navbar-right {
+	.navbar > .container-fluid > .navbar-right, .navbar > .container > .navbar-right {
 		float: right;
 	}
 
@@ -217,9 +216,6 @@ body {
 	body[data-sidebar="0"] {
 		.toggle-sidebar {
 			display: none !important;
-		}
-		#navbar-breadcrumbs, .navbar-home {
-			margin-left: 15px !important;
 		}
 	}
 }

@@ -106,6 +106,7 @@
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
 		"public/less/desk.less",
+		"public/less/desk_sidebar.less",
 		"public/less/flex.less",
 		"public/less/indicator.less",
 		"public/less/avatar.less",
@@ -238,6 +239,7 @@
 
 		"public/js/frappe/change_log.html",
 		"public/js/frappe/desk.js",
+		"public/js/frappe/desk_sidebar.js",
 		"public/js/frappe/query_string.js",
 
 		"public/js/frappe/ui/comment.js",
