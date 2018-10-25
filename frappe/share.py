@@ -86,12 +86,14 @@ def set_permission(doctype, name, user, permission_to, value=1, everyone=0):
 @frappe.whitelist()
 def get_users(doctype, name):
 	"""Get list of users with which this document is shared"""
-	return frappe.db.sql("""select
+	return frappe.db.sql("""
+		select
 			`name`, `user`, `read`, `write`, `share`, `everyone`
 		from
 			tabDocShare
 		where
-			share_doctype=%s and share_name=%s""",
+			share_doctype=%s and share_name=%s
+		limit 20""",
 		(doctype, name), as_dict=True)
 
 def get_shared(doctype, user=None, rights=None):
