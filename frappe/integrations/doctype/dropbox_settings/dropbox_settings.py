@@ -24,6 +24,10 @@ class DropboxSettings(Document):
 		if not self.app_access_key and frappe.conf.dropbox_access_key:
 			self.set_onload("dropbox_setup_via_site_config", 1)
 
+	def validate(self):
+		if self.enabled and self.limit_no_of_backups and self.no_of_backups < 1:
+			frappe.throw(_('Number of DB backups cannot be less than 1'))
+
 @frappe.whitelist()
 def take_backup():
 	"Enqueue longjob for taking backup to dropbox"
@@ -110,6 +114,10 @@ def backup_to_dropbox(upload_db_backup=True):
 		backup = new_backup(ignore_files=True)
 		filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
 		upload_file_to_dropbox(filename, "/database", dropbox_client)
+
+		# delete older databases
+		if dropbox_settings['no_of_backups']:
+			delete_older_backups(dropbox_client, "/database", dropbox_settings['no_of_backups'])
 
 	# upload files to files folder
 	did_not_upload = []
@@ -235,7 +243,8 @@ def get_dropbox_settings(redirect_uri=False):
 			if settings.dropbox_access_token else '',
 		'access_key': settings.get_password('dropbox_access_key', raise_exception=False),
 		'access_secret': settings.get_password('dropbox_access_secret', raise_exception=False),
-		'file_backup':settings.file_backup
+		'file_backup':settings.file_backup,
+		'no_of_backups': settings.no_of_backups if settings.limit_no_of_backups else None
 	}
 
 	if redirect_uri:
@@ -250,6 +259,20 @@ def get_dropbox_settings(redirect_uri=False):
 		raise Exception(_("Please set Dropbox access keys in your site config"))
 
 	return app_details
+
+def delete_older_backups(dropbox_client, folder_path, to_keep):
+	res = dropbox_client.files_list_folder(path=folder_path)
+	files = []
+	for f in res.entries:
+		if isinstance(f, dropbox.files.FileMetadata) and 'sql' in f.name:
+			files.append(f)
+
+	if len(files) <= to_keep:
+		return
+
+	files.sort(key=lambda item:item.client_modified, reverse=True)
+	for f in files[to_keep:]:
+		dropbox_client.files_delete(os.path.join(folder_path, f.name))
 
 @frappe.whitelist()
 def get_redirect_url():
