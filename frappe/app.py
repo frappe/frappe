@@ -43,6 +43,87 @@ class RequestContext(object):
 	def __exit__(self, type, value, traceback):
 		frappe.destroy()
 
+def wrap_cache():
+	def cache_recorder(function):
+		def wrapper(*args, **kwargs):
+			# There should be a better way to record time in ms
+			# For now we're recording time in ns and then dividing it by one million
+			one_million = 1000000
+
+			start_time_ns = time.perf_counter_ns()
+			result = function(*args, **kwargs)
+			end_time_ns = time.perf_counter_ns()
+
+			import traceback
+			# Some elementary analysis shows that following lines are a little time consuming
+			# These can be made optional.
+			stack = "".join(traceback.format_stack())
+
+			data = {
+				"function": function.__name__,
+				"args": args,
+				"kwargs": kwargs,
+				# result is sometimes a nested dict, those can't be sometimes JSON serialized.
+				# pickle.dumps seems like a nice way to go., but JS can't understand pickle.
+				# Skip result for now
+				# "result": result,
+				"stack": stack,
+				# Exact redis query is not available for now
+				# Regenerate equivalent function call instead.
+				"call": "{}(*{},**{})".format(function.__name__, args, kwargs),
+				"time": {
+					"start": start_time_ns / one_million,
+					"end": end_time_ns / one_million,
+					"total": (end_time_ns - start_time_ns) / one_million,
+				},
+			}
+
+			wrapper.calls.append(data)
+			return result
+		wrapper.calls = list()
+		return wrapper
+
+	# frappe.cache() will provide an instance of RedisWrapper
+	# Selected methods of this class are used to do cache operations
+	# Recording activity of these methods will give a nice picture of cache activity
+
+	# cache_methods lists all interesting cache methods
+	# Override these methods with the use of wrapper function
+	# that records each call along with some suplimentary data
+	redis_server = frappe.cache()
+	cache_methods = [
+		"set_value", "get_value",
+		"get_all", "get_keys",
+		"delete_keys", "delete_key", "delete_value",
+		"lpush", "rpush", "lpop", "llen", "lrange",
+		"hset", "hgetall", "hincrby", "hget", "hdel", "hdel_keys", "hkeys",
+		"sadd", "srem", "sismember", "spop", "srandmember", "smembers",
+		"zincrby", "zrange"
+	]
+
+	# cache_methods will be needed again while storing recorded calls in cache
+	# Store cache_methods list in cache_methods attribute of wrap_cache
+	wrap_cache.cache_methods = cache_methods
+	for method in cache_methods:
+		# For now assume that all these methods exist on RedisWrapper instance
+		original = getattr(redis_server, method)
+		modified = cache_recorder(original)
+		setattr(redis_server, method, modified)
+
+def persist_cache():
+	redis_server = frappe.cache()
+	cache_methods = wrap_cache.cache_methods
+	calls = []
+	uuid = frappe.request.environ["uuid"]
+	for method in cache_methods:
+		# Assumes that the method exists on RedisWrapper instance
+		# and function.calls also exists
+		function = getattr(redis_server, method)
+		calls.extend(function.calls)
+
+	# Record all calls in cache
+	frappe.cache().set("recorder-calls-cache-{}".format(uuid), dumps(calls))
+
 def recorder(function):
 	def wrapper(*args, **kwargs):
 		# Execute wrapped function as is
@@ -151,6 +232,7 @@ def application(request):
 		# Need to record all calls to frappe.db.sql
 		# Should be done after frappe.db refers to an instance of Database
 		# Now is a good time
+		wrap_cache()
 		frappe.db.sql = recorder(frappe.db.sql)
 
 		if frappe.local.form_dict.cmd:
@@ -195,6 +277,7 @@ def application(request):
 
 		# Recorded calls need to be stored in cache
 		# This looks like a terribe syntax, Because it actually is
+		persist_cache()
 		persist(frappe.db.sql)
 		frappe.destroy()
 
