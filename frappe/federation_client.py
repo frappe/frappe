@@ -1,65 +1,79 @@
 import frappe
 from frappe.frappeclient import FrappeClient
 from frappe.defaults import set_global_default
+from frappe.defaults import add_default
 from six import string_types, iteritems
 import json
 
-def get_remote_logs():
-    sync_status = frappe.db.sql('''
-    SELECT
-        defkey, defValue
-    from
-        `tabDefaultValue`
+def start_job(job_name):
+
+    status = frappe.db.sql_list('''
+    SELECT defValue
+        FROM `tabDefaultValue`
     where
-        defkey=%s and parent=%s
-        for update''', ("client_sync_running", "__default"), as_dict = True)
+        defkey=%s and parent='__default'
+        for update''', (job_name))
 
-    if sync_status[0]["defValue"] == "Active":
-        return
+    if not status:
+        add_default(job_name, 0, '__default')
+        frappe.db.commit()
+        return start_job(job_name)
 
-    sync_pos = frappe.db.sql('''
-    SELECT
-        defkey, defValue
-    from
-        `tabDefaultValue`
-    where
-        defkey=%s and parent=%s
-        for update''', ("client_sync_pos", "__default"), as_dict = True)
+    return int(status [0]);
 
-    last_inserted_logid = sync_pos[0]["defValue"]
-    current_working_logid = int(last_inserted_logid)
+def insert_new_doc(connection, change_log):
+    original_doc = connection.get_doc(change_log["doctype"], change_log["docname"])
+    new_doc = frappe.get_doc(original_doc)
+    new_doc.__override_name = original_doc["name"]
+    new_doc.insert()
+
+def change_doc(connection, change_log):
+    updated_doc = connection.get_doc(master_log["doctype"], change_log["docname"])
+    original_doc = frappe.get_doc(master_log["doctype"], change_log["docname"])
+    for fieldname in updated_doc.keys():
+        original_doc.set(fieldname, updated_doc.get(fieldname))
+    original_doc.save()
+
+def rename_doc(connection, change_log):
+    frappe.rename_doc(change_log["doctype"], change_log["docname"], change_log["actiondata"])
+
+def delete_doc(connection, change_log):
+    frappe.delete_doc_if_exists(change_log["doctype"], change_log["docname"])
+
+def sync_master_data():
+    job_name = 'sync-master-data'
+
+    last_synced_record = start_job(job_name)
 
     # master_setup = FrappeClient(frappe.local.conf.federation_master_hostname,frappe.local.conf.federation_master_user, frappe.local.conf.federation_master_password)
-    master_setup = FrappeClient(frappe.local.conf.master_node,
+
+    connection = FrappeClient(frappe.local.conf.master_node,
             frappe.local.conf.master_user,
             frappe.local.conf.master_pass)
 
-    new_master_logs = master_setup.post_request({
-        "cmd": "frappe.federation_master.send_new_logs",
-        "name_threshold": current_working_logid,
+    print (frappe.local.conf.master_node, frappe.local.conf.master_pass)
+
+    change_log_from_master = connection.post_request({
+        "cmd": "frappe.federation_master.get_change_logs",
+        "name_threshold": last_synced_record,
         "limit": 100
     })
-    for master_log in new_master_logs:
-        if master_log["action"] == "INSERT":
-            original_doc = master_setup.get_doc(master_log["doctype"], master_log["docname"])
-            new_doc = frappe.get_doc(original_doc)
-            new_doc.name = original_doc["name"]
-            new_doc.insert()
+
+    for change_log in change_log_from_master:
+        if change_log["action"] == "INSERT":
+            insert_new_doc(connection, change_log)
+
         elif master_log["action"] == "UPDATE":
-            updated_doc = master_setup.get_doc(master_log["doctype"], master_log["docname"])
-            original_doc = frappe.get_doc(master_log["doctype"], master_log["docname"])
-            for fieldname in updated_doc.keys():
-                original_doc.set(fieldname, updated_doc.get(fieldname))
-            original_doc.save()
+            update_doc(connection, change_log)
+
         elif master_log["action"] == "RENAME":
-            frappe.rename_doc(master_log["doctype"], master_log["docname"], master_log["actiondata"])
+            rename_doc(connection, change_log)
+
         elif master_log["action"] == "DELETE":
-            frappe.delete_doc_if_exists(master_log["doctype"], master_log["docname"])
+            delete_doc(connection, change_log)
 
-        current_working_logid = current_working_logid + 1
 
-    set_global_default("client_sync_pos", current_working_logid)
-    set_global_default("client_sync_running", "Inactive")
+    set_global_default(job_name, change_log["name"])
 
 
 def chain_all(fns):

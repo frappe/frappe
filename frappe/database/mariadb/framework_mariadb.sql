@@ -274,8 +274,8 @@ CREATE TABLE `tabDefaultValue` (
 --
 --
 --
-DROP TABLE IF EXISTS `tabFederation Master Log`;
-CREATE TABLE `tabFederation Master Log` (
+DROP TABLE IF EXISTS `tabDocument Change Log`;
+CREATE TABLE `tabDocument Change Log` (
   `name` bigint AUTO_INCREMENT,
   `doctype` varchar(140),
   `docname` varchar(140),
