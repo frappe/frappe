@@ -106,12 +106,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	update_secondary_action() {
 		const is_explicit_load = this.report_doc.is_explicit_load;
-
-		console.log('is_explicit_load', is_explicit_load, this.report_doc)
-
 		const secondary_action_label = is_explicit_load ? __('Run Report') : __('Refresh');
-
 		this.secondary_action.label = secondary_action_label;
+		let message = __('Please click Run Report button to load report ...');
+		this.toggle_message(true, message);
 	}
 
 	add_make_chart_button(){
