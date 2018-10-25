@@ -642,7 +642,7 @@ frappe.ui.FieldSelect = Class.extend({
 
 		// child tables
 		$.each(me.table_fields, function(i, table_df) {
-			if(table_df.options) {
+			if(table_df.options && !table_df.hidden) {
 				var child_table_fields = [].concat(frappe.meta.docfield_list[table_df.options]);
 				$.each(frappe.utils.sort(child_table_fields, "label", "string"), function(i, df) {
 					// show fields where user has read access and if report hide flag is not set
@@ -664,7 +664,7 @@ frappe.ui.FieldSelect = Class.extend({
 			var table = df.parent;
 		}
 		if(frappe.model.no_value_type.indexOf(df.fieldtype) == -1 &&
-			!(me.fields_by_name[df.parent] && me.fields_by_name[df.parent][df.fieldname])) {
+			!(me.fields_by_name[df.parent] && me.fields_by_name[df.parent][df.fieldname]) && !df.hidden) {
 			this.options.push({
 				label: label,
 				value: table + "." + df.fieldname,
