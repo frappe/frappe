@@ -7,6 +7,7 @@ import json
 import os
 from six import iteritems
 import logging
+import time
 
 from werkzeug.wrappers import Request
 from werkzeug.local import LocalManager
@@ -46,7 +47,11 @@ def recorder(function):
 	def wrapper(*args, **kwargs):
 		# Execute wrapped function as is
 		# Record arguments as well as return value
+		# Record start and end time as well
+		one_million = 1000000
+		start_time_ns = time.perf_counter_ns()
 		result = function(*args, **kwargs)
+		end_time_ns = time.perf_counter_ns()
 
 		import traceback
 		stack = "".join(traceback.format_stack())
@@ -63,7 +68,12 @@ def recorder(function):
 			"kwargs": kwargs,
 			"result": result,
 			"query": query,
-			"stack": stack
+			"stack": stack,
+			"time": {
+				"start": start_time_ns / one_million,
+				"end": end_time_ns / one_million,
+				"total": (end_time_ns - start_time_ns) / one_million,
+			},
 		}
 
 		# Record all calls, Will be later stored in cache
