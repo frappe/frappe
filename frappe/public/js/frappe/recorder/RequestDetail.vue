@@ -2,15 +2,15 @@
 	<div>
 		<div id="accordion-sql">
 			<div v-for="call in calls" :key="call.index" class="card">
-				<div class="card-header" :id="'heading-' + call.index ">
+				<div class="card-header" :id="'heading-sql-' + call.index ">
 					<h5 class="mb-0">
-						<button class="btn btn-link" data-toggle="collapse" :data-target="'#collapse-' + call.index ">
+						<button class="btn btn-link" data-toggle="collapse" :data-target="'#collapse-sql-' + call.index ">
 							{{ call.query }}
 							{{ call.time.total }}
 						</button>
 					</h5>
 				</div>
-				<div :id="'collapse-' + call.index " class="collapse" data-parent="#accordion-sql">
+				<div :id="'collapse-sql-' + call.index " class="collapse" data-parent="#accordion-sql">
 					<div class="card-body">
 						<div><pre>{{ call.stack }}</pre></div>
 						<div><pre>{{ call.query }}</pre></div>
@@ -21,15 +21,15 @@
 
 		<div id="accordion-cache">
 			<div v-for="call in cache" :key="call.index" class="card">
-				<div class="card-header" :id="'heading-' + call.index ">
+				<div class="card-header" :id="'heading-cache-' + call.index ">
 					<h5 class="mb-0">
-						<button class="btn btn-link" data-toggle="collapse" :data-target="'#collapse-' + call.index ">
+						<button class="btn btn-link" data-toggle="collapse" :data-target="'#collapse-cache-' + call.index ">
 							{{ call.call }}
 							{{ call.time.total }}
 						</button>
 					</h5>
 				</div>
-				<div :id="'collapse-' + call.index " class="collapse" data-parent="#accordion-cache">
+				<div :id="'collapse-cache-' + call.index " class="collapse" data-parent="#accordion-cache">
 					<div class="card-body">
 						<div><pre>{{ call.stack }}</pre></div>
 						<div><pre>{{ call.call }}</pre></div>
