@@ -59,7 +59,7 @@ def make_log(doctype, docname, action, actiondata=''):
     frappe.db.sql('''
         INSERT
             into
-        `tabFederation Master Log`(
+        `tabDocument Change Log`(
             `doctype`,
             `docname`,
             `action`,
