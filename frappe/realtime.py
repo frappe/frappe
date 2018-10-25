@@ -211,8 +211,10 @@ def get_fed_session_info(fed_sid=None):
 	if fed_sid:
 		session_data = frappe.db.sql('SELECT * FROM `tabSessions` WHERE `sid`=%s', fed_sid,as_dict=1)
 		if session_data:
+			final_data = {}
 			session_data = session_data[0]
-			user_data = frappe.get_doc('User',session_data.user)
-			# final_data['user_data'] = user_data
-			return session_data
+			# user_data = frappe.get_doc('User',session_data.user)
+			final_data['session_data'] = session_data
+			final_data['cluster'] = frappe.db.get_value('User',session_data.user,'cluster')
+			return final_data
 	return {}

@@ -701,6 +701,53 @@ def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
 	else:
 		print('No Updates')
 
+@click.command('setup-federation')
+@click.argument('setuptype')
+@pass_context
+def setup_federation(context, setuptype):
+	site = get_site(context)
+	frappe.init(site=site)
+	frappe.connect()
+	frappe.db.sql('''DROP TABLE IF EXISTS `tabDocument Change Log`''')
+	
+	if setuptype == "Master":
+		frappe.db.sql('''CREATE TABLE `tabDocument Change Log` (
+  `name` bigint AUTO_INCREMENT,
+  `doctype` varchar(140),
+  `docname` varchar(140),
+  `action` varchar(140),
+  `actiondata` longtext,
+  PRIMARY KEY (`name`),
+  KEY `quick_lookup_doc` (`doctype`, `docname`)
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+''')	
+		from frappe.installer import update_site_config
+		update_site_config("master", 1, validate=False)
+		print("Successfully Setup Federation Master")
+	elif setuptype == "Client":
+		import getpass
+		master_node = click.prompt("Enter hostname of master node")
+		master_user = click.prompt("Enter Username of Master node")
+		master_password = getpass.getpass("Enter Password for {0}: ".format(master_user))
+		from frappe.installer import update_site_config
+		update_site_config("master", 0, validate=False)
+		update_site_config("master_node", master_node, validate=False)
+		update_site_config("master_user", master_user, validate=False)
+		update_site_config("master_pass", master_password, validate=False)
+		print("Successfully Setup Federation Client")
+	elif setuptype == "Collator":
+		import getpass
+		master_node = click.prompt("Enter hostname of master node")
+		master_user = click.prompt("Enter Username of Master node")
+		master_password = getpass.getpass("Enter Password for {0}: ".format(master_user))
+		from frappe.installer import update_site_config
+		update_site_config("master", 0, validate=False)
+		update_site_config("master_node", master_node, validate=False)
+		update_site_config("master_user", master_user, validate=False)
+		update_site_config("master_pass", master_password, validate=False)
+		update_site_config("consolidation_enabled", 1, validate=False)
+		print("Successfully Setup Federation Collator")
+
 commands = [
 	build,
 	clear_cache,
@@ -734,5 +781,6 @@ commands = [
 	setup_global_help,
 	setup_help,
 	rebuild_global_search,
-	auto_deploy
+	auto_deploy,
+	setup_federation
 ]
