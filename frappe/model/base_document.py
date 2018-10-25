@@ -292,7 +292,7 @@ class BaseDocument(object):
 
 	def db_insert(self):
 		"""INSERT the document (with valid columns) in the database."""
-		if not self.name:
+		if not self.name and self.meta.autoname != "autoincrement":
 			# name will be set by document class in most cases
 			set_new_name(self)
 
@@ -310,13 +310,15 @@ class BaseDocument(object):
 					columns = ", ".join(["`"+c+"`" for c in columns]),
 					values = ", ".join(["%s"] * len(columns))
 				), list(d.values()))
+			if self.meta.autoname == "autoincrement":
+				self.name = frappe.db.sql("SELECT last_insert_id() as name;", as_dict=1)[0].name
 		except Exception as e:
 			if frappe.db.is_primary_key_violation(e):
 				if self.meta.autoname=="hash":
 					# hash collision? try again
 					self.name = None
-					self.db_insert()
-					return
+					return self.db_insert()
+					# return
 
 				frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
 				raise frappe.DuplicateEntryError(self.doctype, self.name, e)
@@ -329,6 +331,7 @@ class BaseDocument(object):
 				raise
 
 		self.set("__islocal", False)
+		return self
 
 	def db_update(self):
 		if self.get("__islocal") or not self.name:
@@ -415,7 +418,7 @@ class BaseDocument(object):
 				missing.append((df.fieldname, get_msg(df)))
 
 		# check for missing parent and parenttype
-		if self.meta.istable:
+		if self.meta.istable and self.meta.parenttype and frappe.get_meta(self.meta.parenttype).autoname != "autoincrement":
 			for fieldname in ("parent", "parenttype"):
 				if not self.get(fieldname):
 					missing.append((fieldname, get_msg(frappe._dict(label=fieldname))))

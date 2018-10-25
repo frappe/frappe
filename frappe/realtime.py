@@ -10,7 +10,7 @@ import os
 import time
 import redis
 from io import FileIO
-from frappe.utils import get_site_path
+from frappe.utils import get_site_path, cstr
 from frappe import conf
 
 END_LINE = '<!-- frappe: end-file -->'
@@ -188,7 +188,7 @@ def get_user_info(sid):
 	}
 
 def get_doc_room(doctype, docname):
-	return ''.join([frappe.local.site, ':doc:', doctype, '/', docname])
+	return ''.join([frappe.local.site, ':doc:', doctype, '/', cstr(docname)])
 
 def get_user_room(user):
 	return ''.join([frappe.local.site, ':user:', user])

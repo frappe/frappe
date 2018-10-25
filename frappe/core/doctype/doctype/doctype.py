@@ -29,6 +29,10 @@ class DocType(Document):
 	def get_feed(self):
 		return self.name
 
+	def before_insert(self):
+		if self.istable and not self.autoname:
+			self.autoname = "autoincrement"
+
 	def validate(self):
 		"""Validate DocType before saving.
 
@@ -39,8 +43,9 @@ class DocType(Document):
 		- Add `amended_from` and `amended_by` if Amendable"""
 
 		self.check_developer_mode()
-
+		self.validate_autoname()
 		self.validate_name()
+		# self.validate_child_table_autoincrement()
 
 		if self.issingle:
 			self.allow_import = 0
@@ -151,6 +156,20 @@ class DocType(Document):
 			for query in self.flags.update_fields_to_fetch_queries:
 				frappe.db.sql(query)
 
+	def validate_autoname(self):
+		if not self.is_new():
+			if (self.get("autoname") == "autoincrement" and self.get_doc_before_save().get("autoname") != "autoincrement") or (self.get("autoname") != "autoincrement" and self.get_doc_before_save().get("autoname") == "autoincrement"):
+				frappe.throw("Can not change autoname <b>{0}</b> to <b>{1}</b>".format(self.get_doc_before_save().get("autoname"), self.get("autoname")))
+
+	def validate_child_table_autoincrement(self):
+		errors = []
+		if self.autoname == "autoincrement":
+			error_fields = self.get('fields', {'fieldtype': 'Table'})
+			for row in error_fields:
+				errors.append("Autoincrement naming does not support child table, please rectify row {0}".format(row.idx))
+		if errors:
+			frappe.throw(errors)
+
 	def validate_document_type(self):
 		if self.document_type=="Transaction":
 			self.document_type = "Document"
@@ -237,7 +256,8 @@ class DocType(Document):
 			and (not autoname.startswith('eval:')) \
 			and (not autoname.lower() in ('prompt', 'hash')) \
 			and (not autoname.startswith('naming_series:')) \
-			and (not autoname.startswith('format:')):
+			and (not autoname.startswith('format:')) \
+			and (not autoname.startswith('autoincrement')):
 
 			prefix = autoname.split('.')[0]
 			used_in = frappe.db.sql("""

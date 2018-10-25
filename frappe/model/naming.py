@@ -48,7 +48,7 @@ def set_new_name(doc):
 		frappe.throw(_("{0} is required").format(doc.meta.get_label(fieldname)))
 
 	# at this point, we fall back to name generation with the hash option
-	if not doc.name or autoname == 'hash':
+	if (not doc.name and autoname != "autoincrement" ) or autoname == 'hash':
 		doc.name = make_autoname('hash', doc.doctype)
 
 	doc.name = validate_name(
@@ -75,6 +75,8 @@ def set_name_from_naming_options(autoname, doc):
 		doc.name = _format_autoname(autoname, doc)
 	elif '#' in autoname:
 		doc.name = make_autoname(autoname, doc=doc)
+	elif _autoname.startswith('autoincrement'):
+		doc.name = None
 
 def set_name_by_naming_series(doc):
 	"""Sets name by the `naming_series` property"""
@@ -196,6 +198,8 @@ def get_default_naming_series(doctype):
 
 
 def validate_name(doctype, name, case=None, merge=False):
+	if not name and frappe.get_meta(doctype).autoname == "autoincrement":
+		return
 	if not name:
 		return 'No Name Specified for %s' % doctype
 	if name.startswith('New '+doctype):

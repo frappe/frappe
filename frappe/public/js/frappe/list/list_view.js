@@ -836,6 +836,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						// this doc was changed and should not be visible
 						// in the listview according to filters applied
 						// let's remove it manually
+						this.data = this.data.map(doc => {
+							doc.name = cstr(doc.name)
+							return doc
+						})
 						this.data = this.data.filter(d => d.name !== name);
 						this.render();
 						return;

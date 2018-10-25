@@ -373,7 +373,10 @@ frappe.views.BaseList = class BaseList {
 	prepare_data(r) {
 		let data = r.message || {};
 		data = !Array.isArray(data) ? frappe.utils.dict(data.keys, data.values) : data;
-
+		data = data.map(doc => {
+			doc.name = cstr(doc.name)
+			return doc
+		})
 		if (this.start === 0) {
 			this.data = data;
 		} else {

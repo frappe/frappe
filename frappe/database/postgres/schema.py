@@ -7,6 +7,10 @@ class PostgresTable(DBTable):
 	def create(self):
 		add_text = ''
 
+		name_str = "name varchar({varchar_len}) not null primary key,".format(varchar_len=frappe.db.VARCHAR_LEN)
+		if self.meta.autoname and self.meta.autoname == "autoincrement":
+			name_str = "name SERIAL not null primary key,"
+
 		# columns
 		column_defs = self.get_column_definitions()
 		if column_defs: add_text += ',\n'.join(column_defs)
@@ -16,7 +20,7 @@ class PostgresTable(DBTable):
 		# TODO: set docstatus length
 		# create table
 		frappe.db.sql("""create table `%s` (
-			name varchar({varchar_len}) not null primary key,
+			{name_str}
 			creation timestamp(6),
 			modified timestamp(6),
 			modified_by varchar({varchar_len}),
@@ -26,7 +30,7 @@ class PostgresTable(DBTable):
 			parentfield varchar({varchar_len}),
 			parenttype varchar({varchar_len}),
 			idx bigint not null default '0',
-			%s)""".format(varchar_len=frappe.db.VARCHAR_LEN) % (self.table_name, add_text))
+			%s)""".format(name_str=name_str, varchar_len=frappe.db.VARCHAR_LEN) % (self.table_name, add_text))
 
 		frappe.db.commit()
 

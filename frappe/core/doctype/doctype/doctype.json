@@ -546,7 +546,7 @@
    "bold": 0, 
    "collapsible": 0, 
    "columns": 0, 
-   "description": "Naming Options:\n<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>", 
+   "description": "Naming Options:\n<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li><li><b>autoincrement</b> uses database auto increment feature</li></ol>", 
    "fieldname": "autoname", 
    "fieldtype": "Data", 
    "hidden": 0, 

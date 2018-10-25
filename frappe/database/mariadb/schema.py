@@ -8,6 +8,10 @@ class MariaDBTable(DBTable):
 	def create(self):
 		add_text = ''
 
+		name_str = "name varchar({varchar_len}) not null primary key,".format(varchar_len=frappe.db.VARCHAR_LEN)
+		if self.meta.autoname and self.meta.autoname == "autoincrement":
+			name_str = "name BIGINT not null AUTO_INCREMENT primary key,"
+
 		# columns
 		column_defs = self.get_column_definitions()
 		if column_defs: add_text += ',\n'.join(column_defs) + ',\n'
@@ -18,7 +22,7 @@ class MariaDBTable(DBTable):
 
 		# create table
 		frappe.db.sql("""create table `%s` (
-			name varchar({varchar_len}) not null primary key,
+			{name_str}
 			creation datetime(6),
 			modified datetime(6),
 			modified_by varchar({varchar_len}),
@@ -33,10 +37,11 @@ class MariaDBTable(DBTable):
 			ENGINE={engine}
 			ROW_FORMAT=COMPRESSED
 			CHARACTER SET=utf8mb4
-			COLLATE=utf8mb4_unicode_ci""".format(varchar_len=frappe.db.VARCHAR_LEN,
+			COLLATE=utf8mb4_unicode_ci""".format(name_str=name_str, varchar_len=frappe.db.VARCHAR_LEN,
 				engine=self.meta.get("engine") or 'InnoDB') % (self.table_name, add_text))
 
 	def alter(self):
+
 		for col in self.columns.values():
 			col.build_for_alter_table(self.current_columns.get(col.fieldname.lower()))
 
