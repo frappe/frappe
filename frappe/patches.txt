@@ -230,4 +230,4 @@ frappe.patches.v10_0.modify_naming_series_table
 frappe.patches.v10_0.enhance_security
 frappe.patches.v11_0.multiple_references_in_events
 frappe.patches.v11_0.set_allow_self_approval_in_workflow
-frappe.patches.v11_0.move_skip_for_doctype_to_applicable_for_in_user_permission
+frappe.patches.v11_0.remove_skip_for_doctype

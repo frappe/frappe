@@ -10,9 +10,8 @@ import frappe
 # one record is created
 
 def execute():
-	frappe.db.reload_doctype('User Permission')
-	for user_permission in frappe.get_all('User Permission',
-		fields=['name', 'user', 'allow', 'for_value', 'skip_for_doctype']):
+	frappe.reload_doctype('User Permission')
+	for user_permission in frappe.get_all('User Permission', fields=['*']):
 		skip_for_doctype = user_permission.skip_for_doctype.split('\n')
 		if skip_for_doctype:
 			# only specific doctypes are selected
@@ -24,5 +23,6 @@ def execute():
 				if doctype:
 					new_user_permission = frappe.new_doc('User Permission')
 					new_user_permission.update(user_permission)
+					print(test)
 					new_user_permission.applicable_for = doctype
 					new_user_permission.db_insert()
