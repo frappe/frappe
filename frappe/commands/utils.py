@@ -725,8 +725,9 @@ def setup_federation(context, setuptype):
 ''')	
 		update_site_config("master", 1, validate=False)
 		update_site_config("consolidation_doctypes", [], validate=False)
+		update_site_config("master_doctypes", [], validate=False)
 		
-		print("Update Consolidation doctypes in site_config.json")
+		print("Update Consolidation and Master doctypes in site_config.json")
 		print("Successfully Setup Federation Master")
 	elif setuptype == "Client":
 		import getpass
