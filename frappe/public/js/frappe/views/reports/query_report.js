@@ -177,7 +177,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.previous_filters = this.get_filter_values();
 
 				// clear previous_filters after 3 seconds, to allow refresh for new data
-				setTimeout(() => this.previous_filters = null, 3000);
+				setTimeout(() => this.previous_filters = null, 10000);
 
 				if (f.on_change) {
 					f.on_change(this);

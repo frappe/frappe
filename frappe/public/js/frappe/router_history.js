@@ -1,3 +1,4 @@
+frappe.provide('frappe.route');
 frappe.route_history_queue = [];
 const routes_to_skip = ['Form', 'social'];
 
