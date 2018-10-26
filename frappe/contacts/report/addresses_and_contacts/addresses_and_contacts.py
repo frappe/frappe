@@ -91,7 +91,7 @@ def get_party_details(party_type, party_list, doctype, party_details):
 
 	records = frappe.get_list(doctype, filters=filters, fields=fields, as_list=True)
 	for d in records:
-		details = party_details.get(d[0])
+		details = party_details.get(d[0]) or {}
 		details.setdefault(frappe.scrub(doctype), []).append(d[1:])
 
 	return party_details
