@@ -5,6 +5,5 @@
 
 '''
 import frappe
-import re
 def execute():
         frappe.db.sql(""" ALTER TABLE `tabSeries` MODIFY current BIGINT """)
