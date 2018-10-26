@@ -625,7 +625,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return this.settings.get_form_link(doc);
 		}
 
-		const docname = doc.name.match(/[%'"]/)
+		const docname = cstr(doc.name).match(/[%'"]/)
 			? encodeURIComponent(doc.name)
 			: doc.name;
 
@@ -636,7 +636,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let user = frappe.session.user;
 		let subject_field = this.columns[0].df;
 		let value = doc[subject_field.fieldname] || doc.name;
-		let subject = strip_html(value);
+		let subject = strip_html(cstr(value));
 		let escaped_subject = frappe.utils.escape_html(subject);
 
 		const liked_by = JSON.parse(doc._liked_by || '[]');
