@@ -177,7 +177,7 @@ frappe.request.call = function(opts) {
 			opts.error_callback && opts.error_callback();
 		},
 		502: function(xhr) {
-			frappe.msgprint("Internal Server Error");
+			frappe.msgprint(__("Internal Server Error"));
 		}
 	};
 
