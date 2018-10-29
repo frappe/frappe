@@ -411,7 +411,7 @@ DocType: Website Settings,Banner is above the Top Menu Bar.,El Banner está por 
 apps/frappe/frappe/templates/includes/comments/comments.py +50,View it in your browser,Véalo en su navegador
 apps/frappe/frappe/core/doctype/doctype/doctype.py +639,Title field must be a valid fieldname,Campo Título debe ser un nombre de campo válido
 DocType: SMS Settings,Enter url parameter for receiver nos,Introduzca el parámetro url para el receptor no
-apps/frappe/frappe/client.py +115,Cannot edit standard fields,No se puede editar campos estándar
+apps/frappe/frappe/client.py +106,Cannot edit standard fields,No se puede editar campos estándar
 apps/frappe/frappe/config/website.py +78,Settings for Contact Us Page.,Ajustes para la página de contacto.
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +49,1 hour ago,Hace 1 hora
 DocType: Workflow State,th-list,th -list

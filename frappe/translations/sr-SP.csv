@@ -81,7 +81,7 @@ apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py +166,Desktop Icon a
 DocType: Communication,Attachment Removed,Prilog uklonjen
 DocType: Chat Room,Users,Korisnici
 DocType: Data Import,Import Log,Log uvoza
-apps/frappe/frappe/public/js/frappe/form/controls/comment.js +8,Add a comment,Dodaj komentar
+apps/frappe/frappe/public/js/frappe/form/controls/comment.js +11,Add a comment,Dodaj komentar
 apps/frappe/frappe/public/js/frappe/model/model.js +518,Permanently delete {0}?,Trajno obriši dokument {0} ?
 DocType: Custom DocPerm,Export,Izvezi
 DocType: Communication,Cancelled,Otkazan
@@ -214,7 +214,7 @@ apps/frappe/frappe/public/js/frappe/ui/upload.html +12,Web Link,Url adresa
 DocType: Web Form,Amount,Vrijednost
 ,Address and Contacts,Adresa i kontakti
 apps/frappe/frappe/config/desk.py +26,Event and other calendars.,Događaji i ostali kalendari.
-apps/frappe/frappe/public/js/frappe/form/controls/comment.js +16,Ctrl+Enter to add comment,Ctrl + enter da dodate komentar
+apps/frappe/frappe/public/js/frappe/form/controls/comment.js +19,Ctrl+Enter to add comment,Ctrl + enter da dodate komentar
 DocType: Workflow State,Comment,Komentar
 DocType: User,Timezone,Vremenska zona
 DocType: Workflow State,Refresh,Osvježi

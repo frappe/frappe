@@ -8,7 +8,7 @@ DocType: System Settings,Note: Multiple sessions will be allowed in case of mobi
 apps/frappe/frappe/email/queue.py +258,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,Não é possível enviar este email. Você excedeu o limite de envio de {0} emails para este mês.
 apps/frappe/frappe/public/js/legacy/form.js +779,Permanently Submit {0}?,Confirmar Permanentemente {0} ?
 DocType: Workflow,If Checked workflow status will not override status in list view,Uma vez selecionado o status do fluxo de trabalho não sobrescreverá o status do documentos na visualização da lista
-apps/frappe/frappe/client.py +311,Invalid file path: {0},Caminho de arquivo inválido: {0}
+apps/frappe/frappe/client.py +302,Invalid file path: {0},Caminho de arquivo inválido: {0}
 DocType: Workflow State,eye-open,olho aberto
 apps/frappe/frappe/core/doctype/file/file.py +326,Please select a file or url,"Por favor, selecione um arquivo ou url"
 apps/frappe/frappe/public/js/frappe/views/treeview.js +89,{0} Tree,Árvore de {0}
@@ -176,7 +176,7 @@ DocType: Event,Repeat Till,Repita até que
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.html +11,Loading...,Carregando...
 apps/frappe/frappe/utils/response.py +185,Your system is being updated. Please refresh again after a few moments,"Seu sistema está sendo atualizado. Por favor, atualize a página em alguns instantes"
 DocType: Auto Email Report,Day of Week,Dia da Semana
-apps/frappe/frappe/public/js/frappe/form/controls/comment.js +16,Ctrl+Enter to add comment,Ctrl+Enter para adicionar comentário
+apps/frappe/frappe/public/js/frappe/form/controls/comment.js +19,Ctrl+Enter to add comment,Ctrl+Enter para adicionar comentário
 DocType: File,File URL,URL do arquivo
 apps/frappe/frappe/email/doctype/email_group/email_group.js +28,Add Subscribers,Adicionar Inscritos
 DocType: Notification Recipient,Email By Document Field,Email por Campo do Documento
@@ -465,7 +465,7 @@ apps/frappe/frappe/utils/nestedset.py +241,Multiple root nodes not allowed.,"Vá
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +542,ID field is required to edit values using Report. Please select the ID field using the Column Picker,"Campo ID é necessária para editar valores usando Report. Por favor, selecione o campo ID usando o seletor de Coluna"
 apps/frappe/frappe/www/login.html +59,Forgot Password?,Esqueceu a senha?
 DocType: System Settings,yyyy-mm-dd,dd/mm/yyyy
-apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +193,Server Error,Erro de Servidor
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +192,Server Error,Erro de Servidor
 apps/frappe/frappe/email/doctype/email_account/email_account.py +46,Login Id is required,ID de login é necessária
 DocType: Website Slideshow,Website Slideshow,Slideshow do Site
 DocType: Website Settings,"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Link da home page do site. Links padrão (index, login, products, blog, about, contact)"
@@ -1454,7 +1454,7 @@ DocType: Event,Send an email reminder in the morning,Enviar um email lembrete na
 DocType: Blog Post,Published On,Publicado no
 apps/frappe/frappe/website/doctype/web_form/web_form.py +350,Mandatory Information missing:,Informações obrigatórias ausente:
 apps/frappe/frappe/core/doctype/doctype/doctype.py +598,Field '{0}' cannot be set as Unique as it has non-unique values,"O campo &#39;{0}&#39; não pode ser definido como único, pois tem valores não-exclusivos"
-apps/frappe/frappe/client.py +169,Only 200 inserts allowed in one request,São permitidas somente 200 inserções por solicitação
+apps/frappe/frappe/client.py +160,Only 200 inserts allowed in one request,São permitidas somente 200 inserções por solicitação
 DocType: Event,Repeat On,Repetir em
 DocType: Communication,Marked As Spam,Marcado como spam
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +26,Tree,Árvore
