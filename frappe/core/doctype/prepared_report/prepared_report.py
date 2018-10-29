@@ -39,6 +39,7 @@ def run_background(instance):
 	create_csv_file(result['columns'], result['result'], 'Prepared Report', instance.name)
 
 	instance.status = "Completed"
+	instance.columns = json.dumps(result["columns"])
 	instance.report_end_time = frappe.utils.now()
 	instance.save()
 
