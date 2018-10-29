@@ -29,7 +29,11 @@ function get_query_params(query_string) {
 		var value = pair[1];
 		if (typeof value === "string") {
 			value = value.replace(/\+/g, "%20");
-			value = decodeURIComponent(value);
+			try {
+				value = decodeURIComponent(value);
+			} catch(e) {
+				// if value contains %, it fails
+			}
 		}
 
 		if (key in query_params) {
