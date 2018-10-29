@@ -85,8 +85,8 @@ frappe.ui.form.AssignTo = Class.extend({
 			return;
 		}
 
-		if(!me.dialog) {
-			me.dialog = new frappe.ui.form.AssignToDialog({
+		if(!me.assign_to) {
+			me.assign_to = new frappe.ui.form.AssignToDialog({
 				obj: me,
 				method: 'frappe.desk.form.assign_to.add',
 				doctype: me.frm.doctype,
@@ -96,13 +96,13 @@ frappe.ui.form.AssignTo = Class.extend({
 				}
 			});
 		}
-		me.dialog.clear();
+		me.assign_to.dialog.clear();
 
 		if(me.frm.meta.title_field) {
-			me.dialog.set_value("description", me.frm.doc[me.frm.meta.title_field])
+			me.assign_to.dialog.set_value("description", me.frm.doc[me.frm.meta.title_field])
 		}
 
-		me.dialog.show();
+		me.assign_to.dialog.show();
 	},
 	remove: function(owner) {
 		var me = this;
@@ -130,7 +130,7 @@ frappe.ui.form.AssignTo = Class.extend({
 frappe.ui.form.AssignToDialog = Class.extend({
 	init: function(opts){
 		var me = this
-		$.extend(me, new frappe.ui.Dialog({
+		var dialog = new frappe.ui.Dialog({
 			title: __('Add to To Do'),
 			fields: [
 				{fieldtype: 'Link', fieldname:'assign_to', options:'User',
@@ -152,11 +152,14 @@ frappe.ui.form.AssignToDialog = Class.extend({
 			],
 			primary_action: function() { frappe.ui.add_assignment(opts, me) },
 			primary_action_label: __("Add")
-		}));
+		})
+		$.extend(me, dialog);
 
-		me.fields_dict.assign_to.get_query = "frappe.core.doctype.user.user.user_query";
+		me.dialog = dialog;
 
-		var myself = me.get_input("myself").on("click", function() {
+		me.dialog.fields_dict.assign_to.get_query = "frappe.core.doctype.user.user.user_query";
+
+		var myself = me.dialog.get_input("myself").on("click", function() {
 			me.toggle_myself(this);
 		});
 		me.toggle_myself(myself);
@@ -164,14 +167,14 @@ frappe.ui.form.AssignToDialog = Class.extend({
 	toggle_myself: function(myself) {
 		var me = this;
 		if($(myself).prop("checked")) {
-			me.set_value("assign_to", frappe.session.user);
-			me.set_value("notify", 0);
-			me.get_field("notify").$wrapper.toggle(false);
-			me.get_field("assign_to").$wrapper.toggle(false);
+			me.dialog.set_value("assign_to", frappe.session.user);
+			me.dialog.set_value("notify", 0);
+			me.dialog.get_field("notify").$wrapper.toggle(false);
+			me.dialog.get_field("assign_to").$wrapper.toggle(false);
 		} else {
-			me.set_value("assign_to", "");
-			me.get_field("notify").$wrapper.toggle(true);
-			me.get_field("assign_to").$wrapper.toggle(true);
+			me.dialog.set_value("assign_to", "");
+			me.dialog.get_field("notify").$wrapper.toggle(true);
+			me.dialog.get_field("assign_to").$wrapper.toggle(true);
 		}
 	},
 

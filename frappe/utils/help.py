@@ -40,7 +40,7 @@ def get_help_content(path):
 def get_improve_page_html(app_name, target):
 	docs_config = frappe.get_module(app_name + ".config.docs")
 	source_link = docs_config.source_link
-	branch = getattr(docs_config, "branch", "develop")
+	branch = getattr(docs_config, "branch", "master")
 	html = '''<div class="page-container">
 				<div class="page-content">
 				<div class="edit-container text-center">

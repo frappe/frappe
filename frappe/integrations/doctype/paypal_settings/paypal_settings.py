@@ -68,10 +68,10 @@ import frappe
 import json
 from frappe import _
 from datetime import datetime
-from frappe.utils import get_url, call_hook_method, cint, get_timestamp, cstr, now, date_diff, get_datetime
 from six.moves.urllib.parse import urlencode
 from frappe.model.document import Document
 from frappe.integrations.utils import create_request_log, make_post_request, create_payment_gateway
+from frappe.utils import get_url, call_hook_method, cint, get_timestamp, cstr, now, date_diff, get_datetime
 
 
 api_path = '/api/method/frappe.integrations.doctype.paypal_settings.paypal_settings'
@@ -367,3 +367,53 @@ def manage_recurring_payment_profile_status(profile_id, action, args, url):
 	if response.get("ACK")[0] != "Success":
 		frappe.throw(_("Failed while amending subscription"))
 
+@frappe.whitelist(allow_guest=True)
+def ipn_handler():
+	try:
+		data = frappe.local.form_dict
+
+		validate_ipn_request(data)
+
+		data.update({
+			"payment_gateway": "PayPal"
+		})
+
+		doc = frappe.get_doc({
+			"data": json.dumps(frappe.local.form_dict),
+			"doctype": "Integration Request",
+			"integration_type": "Subscription Notification",
+			"status": "Queued"
+		}).insert(ignore_permissions=True)
+		frappe.db.commit()
+
+		frappe.enqueue(method='frappe.integrations.doctype.paypal_settings.paypal_settings.handle_subscription_notification',
+			queue='long', timeout=600, is_async=True, **{"doctype": "Integration Request", "docname":  doc.name})
+
+	except frappe.InvalidStatusError:
+		pass
+	except Exception as e:
+		frappe.log(frappe.log_error(title=e))
+
+def validate_ipn_request(data):
+	def _throw():
+		frappe.throw(_("In Valid Request"), exc=frappe.InvalidStatusError)
+
+	if not data.get("recurring_payment_id"):
+		_throw()
+
+	doc = frappe.get_doc("PayPal Settings")
+	params, url = doc.get_paypal_params_and_url()
+
+	params.update({
+		"METHOD": "GetRecurringPaymentsProfileDetails",
+		"PROFILEID": data.get("recurring_payment_id")
+	})
+
+	params = urlencode(params)
+	res = make_post_request(url=url, data=params.encode("utf-8"))
+
+	if res['ACK'][0] != 'Success':
+		_throw()
+
+def handle_subscription_notification(doctype, docname):
+	call_hook_method("handle_subscription_notification", doctype=doctype, docname=docname)

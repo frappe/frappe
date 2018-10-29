@@ -126,6 +126,8 @@ def set_default(key, value, parent, parenttype="__default"):
 				defkey=%s and parent=%s""", (key, parent))
 	if value != None:
 		add_default(key, value, parent)
+	else:
+		_clear_cache(parent)
 
 def add_default(key, value, parent, parenttype=None):
 	d = frappe.get_doc({

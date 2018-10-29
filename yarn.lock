@@ -1001,11 +1001,6 @@ etag@~1.8.1:
   resolved "https://registry.yarnpkg.com/etag/-/etag-1.8.1.tgz#41ae2eeb65efa62268aebfea83ac7d79299b0887"
   integrity sha1-Qa4u62XvpiJorr/qg6x9eSmbCIc=
 
-eventemitter3@^2.0.3:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-2.0.3.tgz#b5e1079b59fb5e1ba2771c0a993be060a58c99ba"
-  integrity sha1-teEHm1n7XhuidxwKmTvgYKWMmbo=
-
 eventemitter3@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-3.1.0.tgz#090b4d6cdbd645ed10bf750d4b5407942d7ba163"
@@ -1224,10 +1219,10 @@ forwarded@~0.1.2:
   resolved "https://registry.yarnpkg.com/forwarded/-/forwarded-0.1.2.tgz#98c23dab1175657b8c0573e8ceccd91b0ff18c84"
   integrity sha1-mMI9qxF1ZXuMBXPozszZGw/xjIQ=
 
-frappe-datatable@^1.4.2:
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.4.2.tgz#1b6dc401cf3aa72a9b6d12547d4f2aa0b6a95ab3"
-  integrity sha512-+V2+rD3tpciWmAzor6Mu/tl9nlgg0Y1VajNwWKkM5q0degmSVyS9moC5IzmlmgPogBWlYF6XOUC/xHKrHJij1A==
+frappe-datatable@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.5.0.tgz#eea78a87e799876b71e58dbdc128fd9badb5e2c6"
+  integrity sha512-h9yP33UqRcEfcs5FVSFFUigya/KT5qFrB1vOqayhxqPoxdVH2pGKi+Qh/BO5KRNd6uVk8rVwXMhA8A9TU+2uEg==
   dependencies:
     hyperlist "^1.0.0-beta"
     lodash "^4.17.5"
@@ -2459,11 +2454,6 @@ p-try@^1.0.0:
   resolved "https://registry.yarnpkg.com/p-try/-/p-try-1.0.0.tgz#cbc79cdbaf8fd4228e13f621f2b1a237c1b207b3"
   integrity sha1-y8ec26+P1CKOE/Yh8rGiN8GyB7M=
 
-parchment@^1.1.4:
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/parchment/-/parchment-1.1.4.tgz#aeded7ab938fe921d4c34bc339ce1168bc2ffde5"
-  integrity sha512-J5FBQt/pM2inLzg4hEWmzQx/8h8D0CiDxaG3vyp9rKrQRSDgBlhjdP5jQGgosEajXPSQouXGHOmVdgo7QmJuOg==
-
 parchment@quilljs/parchment#487850f7eb030a6c4e750ba809e58b09444e0bdb:
   version "2.0.0-dev"
   resolved "https://codeload.github.com/quilljs/parchment/tar.gz/487850f7eb030a6c4e750ba809e58b09444e0bdb"
@@ -3029,20 +3019,6 @@ quill-delta@^3.6.2:
     extend "^3.0.2"
     fast-diff "1.1.2"
 
-quill-image-drop-module@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/quill-image-drop-module/-/quill-image-drop-module-1.0.3.tgz#0e5ec8329dd67a12126f166b191bf64d2057a7d3"
-  integrity sha1-Dl7IMp3WehISbxZrGRv2TSBXp9M=
-  dependencies:
-    quill "^1.2.2"
-
-quill-mention@^2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/quill-mention/-/quill-mention-2.0.2.tgz#8e89e1d6b625d2df1b5a04af9338e35b18e91fce"
-  integrity sha512-G6VDFWVXO4ERuPamZEk+2VLvngZV18OxEzjPXsSayQij6K/s3RziiLEQ9MmRAr4umQVJ85W2VB7l4dX2qIW0MQ==
-  dependencies:
-    quill "^1.3.4"
-
 quill@2.0.0-dev.2:
   version "2.0.0-dev.2"
   resolved "https://registry.yarnpkg.com/quill/-/quill-2.0.0-dev.2.tgz#0f8bc962da28e3ebbb856f246200e7d32e39fc9f"
@@ -3053,18 +3029,6 @@ quill@2.0.0-dev.2:
     eventemitter3 "^3.1.0"
     extend "^3.0.1"
     parchment quilljs/parchment#487850f7eb030a6c4e750ba809e58b09444e0bdb
-    quill-delta "^3.6.2"
-
-quill@^1.2.2, quill@^1.3.4:
-  version "1.3.6"
-  resolved "https://registry.yarnpkg.com/quill/-/quill-1.3.6.tgz#99f4de1fee85925a0d7d4163b6d8328f23317a4d"
-  integrity sha512-K0mvhimWZN6s+9OQ249CH2IEPZ9JmkFuCQeHAOQax3EZ2nDJ3wfGh59mnlQaZV2i7u8eFarx6wAtvQKgShojug==
-  dependencies:
-    clone "^2.1.1"
-    deep-equal "^1.0.1"
-    eventemitter3 "^2.0.3"
-    extend "^3.0.1"
-    parchment "^1.1.4"
     quill-delta "^3.6.2"
 
 randomatic@^1.1.3:
