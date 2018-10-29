@@ -215,7 +215,7 @@ def get_queue(queue, is_async=True):
 
 def validate_queue(queue, default_queue_list=None):
 	if not default_queue_list:
-		default_queue_list = list(get_queues_and_timeout)
+		default_queue_list = list(get_queues_and_timeout())
 
 	if queue not in default_queue_list:
 		frappe.throw(_("Queue should be one of {0}").format(', '.join(default_queue_list)))
