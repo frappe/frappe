@@ -784,6 +784,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_realtime_updates() {
 		frappe.realtime.on('list_update', data => {
+			if (this.filter_area.is_being_edited()) {
+				return;
+			}
+
 			const { doctype, name } = data;
 			if (doctype !== this.doctype) return;
 
