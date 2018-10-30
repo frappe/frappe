@@ -521,8 +521,9 @@ class DatabaseQuery(object):
 					condition = empty_value_condition + " or "
 
 				for permission in user_permission_values:
-					if self.doctype not in permission.get("skip_for_doctype", []):
-						docs.append(permission.doc)
+					if (not permission.get('applicable_for')  # if applicable for all doctypes
+						or self.doctype==permission.get('applicable_for')):
+						docs.append(permission.get('doc'))
 
 				if docs:
 					condition += "`tab{doctype}`.`{fieldname}` in ({values})".format(

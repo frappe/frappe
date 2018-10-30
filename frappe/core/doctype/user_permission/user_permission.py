@@ -45,23 +45,27 @@ def get_user_permissions(user=None):
 
 	out = {}
 
-	def add_doc_to_perm(perm, doc=None):
-		if not doc:
-			doc = perm.for_value
-
-		if not out[perm.allow]:
+	def add_doc_to_perm(perm, doc_name):
+		# group rules for each type
+		# for example if allow is "Customer", then build all allowed customers
+		# in a list
+		if not out.get(perm.allow):
 			out[perm.allow] = []
 
 		out[perm.allow].append({
-			'doc': doc,
-			'skip_for_doctype': perm.skip_for_doctype.split("\n") if perm.skip_for_doctype else []
+			'doc': doc_name,
+			'applicable_for': perm.get('applicable_for')
 		})
 
 	try:
 		for perm in frappe.get_all('User Permission',
-			fields=['allow', 'for_value', 'skip_for_doctype'], filters=dict(user=user)):
+			fields=['allow', 'for_value', 'applicable_for'],
+			filters=dict(user=user)):
+
+			print(perm)
+
 			meta = frappe.get_meta(perm.allow)
-			add_doc_to_perm(perm)
+			add_doc_to_perm(perm, perm.for_value)
 
 			if meta.is_nested_set():
 				decendants = frappe.db.get_descendants(perm.allow, perm.for_value)
@@ -69,9 +73,20 @@ def get_user_permissions(user=None):
 					add_doc_to_perm(perm, doc)
 
 		frappe.cache().hset("user_permissions", user, out)
+
 	except frappe.SQLError as e:
 		if e.args[0]==1146:
 			# called from patch
 			pass
 
 	return out
+
+def user_permission_exists(user, allow, for_value, applicable_for=None):
+	'''Checks if similar user permission already exists'''
+	user_permissions = get_user_permissions(user).get(allow, [])
+	if not user_permissions: return None
+
+	has_same_user_permission = (perm for perm in user_permissions if perm['doc'] == for_value and perm['applicable_for'] == applicable_for).next()
+
+	return has_same_user_permission
+
