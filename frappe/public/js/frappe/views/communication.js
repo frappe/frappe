@@ -570,9 +570,9 @@ frappe.views.CommunicationComposer = Class.extend({
 						cur_frm.reload_doc();
 					}
 
-					if (localStorage.getItem(this.frm.doctype + this.frm.docname)) {
+					if (localStorage.getItem(cur_frm.doctype + cur_frm.docname)) {
 						try {
-							localStorage.removeItem(this.frm.doctype + this.frm.docname);
+							localStorage.removeItem(cur_frm.doctype + cur_frm.docname);
 						} catch (e) {
 							// silently fail
 							console.log(e);
