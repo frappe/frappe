@@ -187,7 +187,9 @@ def has_user_permission(doc, user=None, verbose=False):
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 	user_permissions = get_user_permissions(user)
 
-	if not user_permissions: return True
+	if not user_permissions:
+		# no user permission rules specified for this doctype
+		return True
 
 	# user can create own role permissions, so nothing applies
 	if get_role_permissions('User Permission', user=user).get('write'): return True
@@ -197,16 +199,30 @@ def has_user_permission(doc, user=None, verbose=False):
 	doctype = doc.get('doctype')
 	docname = doc.get('name')
 
+	# STEP 1: ---------------------
+	# check user permissions on self
 	if doctype in user_permissions:
-		user_permission_for_doc = (permission for permission in user_permissions[doctype] if permission['doc'] == docname).next()
-		if (not user_permission_for_doc
-			or not doctype in user_permission_for_doc.get("skip_for_doctype", [])):
-			# don't have user permissions on the doc itself!
-			if verbose:
-				msgprint(_('Not allowed for {0} = {1}').format(_(doctype), docname))
-			return False
+		for user_permission in user_permissions[doctype]:
+			if user_permission.get('doc') == docname:
+				if (not user_permission.get('applicable_for') or
+					user_permission.get('applicable_for') == doctype):
+					# doc has user permission to view itself!
+					return True
 
-	def check_user_permission(d):
+		# no user permissions for this doc specified
+		if verbose:
+			msgprint(_('Not allowed for {0} = {1}').format(_(doctype), docname))
+		return False
+
+	# STEP 2: ---------------------------------
+	# check user permissions in all link fields
+
+	def check_user_permission_on_link_fields(d):
+		# check user permissions for all the link fields of the given
+		# document object d
+		#
+		# called for both parent and child records
+
 		meta = frappe.get_meta(d.get("doctype"))
 
 		# check all link fields for user permissions
@@ -214,41 +230,43 @@ def has_user_permission(doc, user=None, verbose=False):
 
 			if field.ignore_user_permissions: continue
 
+			# empty value, do you still want to apply user permissions?
 			if not d.get(field.fieldname) and not apply_strict_user_permissions:
+				# nah, not strict
 				continue
 
+			# get the list of all allowed values for this link
 			user_permissions_on_link_field = user_permissions[field.options] or []
 
 			if user_permissions_on_link_field:
+				for user_permission_for_doc in user_permissions_on_link_field:
+					if not user_permission_for_doc.get('doc') == d.name:
+						# yes, permission rule found!
+						if (not user_permission_for_doc.get('applicable_for') # no restrictions
+						or user_permission_for_doc.get('applicable_for')==d.doctype):
+							return True
 
-				docs = [perm.doc for perm in user_permissions_on_link_field]
+				# restricted for this link field, and no matching values foumd
+				# make the right message and exit
 
-				# and not d.get("doctype") in user_permissions[field.options].get("skip_for_doctype", [])):
-				# if not apply_strict_user_permissions:
-				# 	# ignore if link is not set
-				# 	if not d.get(field.fieldname):
-				# 		continue
+				if d.get('parentfield'):
+					# "Not allowed for Company = Restricted Company in Row 3"
+					msg = _('Not allowed for {0} = {1} in Row {2}').format(_(field.options), d.get(field.fieldname), d.idx)
+				else:
+					# "Not allowed for Company = Restricted Company"
+					msg = _('Not allowed for {0} = {1}').format(_(field.options), d.get(field.fieldname))
 
-				if not d.get(field.fieldname) in docs:
-					if d.get('parentfield'):
-						# "Not allowed for Company = Restricted Company in Row 3"
-						msg = _('Not allowed for {0} = {1} in Row {2}').format(_(field.options), d.get(field.fieldname), d.idx)
-					else:
-						# "Not allowed for Company = Restricted Company"
-						msg = _('Not allowed for {0} = {1}').format(_(field.options), d.get(field.fieldname))
+				if verbose: msgprint(msg)
 
-					if verbose: msgprint(msg)
-
-					return False
+				return False
 
 		return True
 
-	result = check_user_permission(doc)
-	if not result:
+	if not check_user_permission_on_link_fields(doc):
 		return False
 
 	for d in doc.get_all_children():
-		if not check_user_permission(d):
+		if not check_user_permission_on_link_fields(d):
 			return False
 
 	return True
@@ -361,10 +379,11 @@ def set_user_permission_if_allowed(doctype, name, user, with_message=False):
 	if get_role_permissions(frappe.get_meta(doctype), user).set_user_permissions!=1:
 		add_user_permission(doctype, name, user)
 
-def add_user_permission(doctype, name, user, ignore_permissions=False):
+def add_user_permission(doctype, name, user, ignore_permissions=False, applicable_for=None):
 	'''Add user permission'''
-	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
-	if name not in get_user_permissions(user).get(doctype, {}).get('docs', []):
+	from frappe.core.doctype.user_permission.user_permission import user_permission_exists
+
+	if user_permission_exists(user, doctype, name, applicable_for):
 		if not frappe.db.exists(doctype, name):
 			frappe.throw(_("{0} {1} not found").format(_(doctype), name), frappe.DoesNotExistError)
 
@@ -372,7 +391,8 @@ def add_user_permission(doctype, name, user, ignore_permissions=False):
 			doctype='User Permission',
 			user=user,
 			allow=doctype,
-			for_value=name
+			for_value=name,
+			applicable_for=applicable_for,
 		)).insert(ignore_permissions=ignore_permissions)
 
 def remove_user_permission(doctype, name, user):
