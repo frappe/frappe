@@ -12,6 +12,8 @@ from dateutil.relativedelta import relativedelta
 from frappe.utils.user import get_system_managers
 from frappe.utils import cstr, getdate, split_emails, add_days, today, get_last_day, get_first_day
 from frappe.model.document import Document
+from frappe.core.doctype.communication.email import make
+from frappe.utils.background_jobs import get_jobs
 
 month_map = {'Monthly': 1, 'Quarterly': 3, 'Half-yearly': 6, 'Yearly': 12}
 
@@ -143,16 +145,23 @@ def get_next_schedule_date(start_date, frequency, repeat_on_day):
 	return next_date
 
 def make_auto_repeat_entry(date=None):
-	date = date or today()
-	for data in get_auto_repeat_entries(date):
+	enqueued_method = 'frappe.desk.doctype.auto_repeat.auto_repeat.create_repeated_entries'
+	jobs = get_jobs()
 
-		schedule_date = getdate(data.next_schedule_date)
-		while schedule_date <= getdate(today()):
-			create_documents(data, schedule_date)
-			schedule_date = get_next_schedule_date(schedule_date, data.frequency, data.repeat_on_day)
+	if not jobs or enqueued_method not in jobs[frappe.local.site]:
+		date = date or today()
+		for data in get_auto_repeat_entries(date):
+			frappe.enqueue(enqueued_method, data=data)
+
+def create_repeated_entries(data):
+	schedule_date = getdate(data.next_schedule_date)
+	while schedule_date <= getdate(today()) and not frappe.db.get_value('Auto Repeat', data.name, 'disabled'):
+		create_documents(data, schedule_date)
+		schedule_date = get_next_schedule_date(schedule_date, data.frequency, data.repeat_on_day)
 
 		if schedule_date and not frappe.db.get_value('Auto Repeat', data.name, 'disabled'):
 			frappe.db.set_value('Auto Repeat', data.name, 'next_schedule_date', schedule_date)
+			frappe.db.commit()
 
 def get_auto_repeat_entries(date):
 	return frappe.db.sql(""" select * from `tabAuto Repeat`
@@ -172,7 +181,7 @@ def create_documents(data, schedule_date):
 	except Exception:
 		frappe.db.rollback()
 		frappe.db.begin()
-		frappe.log_error(frappe.get_traceback())
+		frappe.log_error(frappe.get_traceback(), _("Recurring document creation failure"))
 		disable_auto_repeat(data)
 		frappe.db.commit()
 		if data.reference_document and not frappe.flags.in_test:
@@ -283,10 +292,10 @@ def send_notification(new_rv, auto_repeat_doc, print_format='Standard'):
 		message = frappe.render_template(auto_repeat_doc.message, {'doc': new_rv})
 
 	attachments = [frappe.attach_print(new_rv.doctype, new_rv.name,
-									   file_name=new_rv.name, print_format=print_format)]
+						file_name=new_rv.name, print_format=print_format)]
 
-	frappe.sendmail(auto_repeat_doc.recipients,
-					subject=subject, message=message, attachments=attachments)
+	make(doctype=new_rv.doctype, name=new_rv.name, recipients=auto_repeat_doc.recipients,
+					subject=subject, content=message, attachments=attachments, send_email=1)
 
 def notify_errors(doc, doctype, party, owner, name):
 	recipients = get_system_managers(only_name=True)
@@ -298,8 +307,10 @@ def notify_errors(doc, doctype, party, owner, name):
 						"party": party or "",
 						"auto_repeat": name
 					}))
-
-	assign_task_to_owner(name, "Recurring Documents Failed", recipients)
+	try:
+		assign_task_to_owner(name, _("Recurring Documents Failed"), recipients)
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), _("Recurring Documents Failed"))
 
 def assign_task_to_owner(name, msg, users):
 	for d in users:
