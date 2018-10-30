@@ -193,7 +193,7 @@ def get_prepared_report_result(report, filters, dn=""):
 		data = read_csv_content_from_attached_file(doc)
 		if data:
 			latest_report_data = {
-				"columns": data[0],
+				"columns": json.loads(doc.columns) if doc.columns else data[0],
 				"result": data[1:]
 			}
 
