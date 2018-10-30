@@ -623,7 +623,7 @@ export default class Grid {
 			// upload
 			frappe.flags.no_socketio = true;
 			$(this.wrapper).find(".grid-upload").removeClass("hide").on("click", function() {
-				frappe.prompt({fieldtype:"Attach", label:"Upload File"},
+				frappe.prompt({fieldtype:"Attach", label:"Upload File", fieldname: "upload_file"},
 					function(data) {
 						var data = frappe.utils.csv_to_array(frappe.upload.get_string(data.upload_file));
 						// row #2 contains fieldnames;
