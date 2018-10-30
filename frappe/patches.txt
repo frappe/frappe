@@ -206,3 +206,4 @@ frappe.patches.v10_0.set_no_copy_to_workflow_state
 frappe.patches.v10_0.increase_single_table_column_length
 frappe.patches.v10_0.set_default_locking_time
 frappe.patches.v10_0.modify_smallest_currency_fraction
+frappe.patches.v10_0.modify_naming_series_table
