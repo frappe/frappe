@@ -17,7 +17,7 @@ apps/frappe/frappe/public/js/legacy/form.js +779,Permanently Submit {0}?,Kuwasil
 apps/frappe/frappe/desk/page/backups/backups.js +12,Download Files Backup,Pakua Backup ya Files
 DocType: Address,County,Kata
 DocType: Workflow,If Checked workflow status will not override status in list view,Ikiwa hali ya kazi ya Checked haifanyiri hali katika mtazamo wa orodha
-apps/frappe/frappe/client.py +311,Invalid file path: {0},Njia ya faili batili: {0}
+apps/frappe/frappe/client.py +302,Invalid file path: {0},Njia ya faili batili: {0}
 DocType: Workflow State,eye-open,jicho-wazi
 DocType: Email Queue,Send After,Tuma baada
 apps/frappe/frappe/core/doctype/file/file.py +326,Please select a file or url,Tafadhali chagua faili au url
@@ -31,7 +31,7 @@ DocType: GSuite Settings,Run Script Test,Tumia mtihani wa script
 DocType: Data Import,Total Rows,Jumla ya mistari
 DocType: Contact,Department,Idara
 DocType: DocField,Options,Chaguo
-apps/frappe/frappe/client.py +115,Cannot edit standard fields,Haiwezi kuhariri mashamba
+apps/frappe/frappe/client.py +106,Cannot edit standard fields,Haiwezi kuhariri mashamba
 DocType: Print Format,Print Format Builder,Muundo wa Wajumbe wa Kuchapa
 DocType: GCalendar Account,Calendar Name,Jina la Kalenda
 DocType: Report,Report Manager,Meneja wa Ripoti
@@ -111,7 +111,6 @@ DocType: DocType,Default Print Format,Mpangilio wa Chaguo-msingi
 DocType: Workflow State,Tags,Vitambulisho
 apps/frappe/frappe/public/js/frappe/form/workflow.js +35,None: End of Workflow,Hapana: Mwisho wa Kazi ya Kazi
 apps/frappe/frappe/model/db_schema.py +358,"{0} field cannot be set as unique in {1}, as there are non-unique existing values","{0} shamba haliwezi kuweka kama ya kipekee katika {1}, kwa kuwa kuna maadili yasiyo ya kipekee yaliyopo"
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions,Kuweka&gt; Vyeti vya Mtumiaji
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +48,Document Types,Aina za Hati
 DocType: Address,Jammu and Kashmir,Jammu na Kashmir
 DocType: Workflow,Workflow State Field,Field Field State
@@ -169,6 +168,7 @@ DocType: Print Format,Helvetica,Helvetica
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +82,Cannot delete {0},Haiwezi kufuta {0}
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html +20,Not Ancestors Of,Si Ancestors Of
 DocType: Address,Jharkhand,Jharkhand
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Setup&gt; Mtumiaji
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +40,Newsletter has already been sent,Jarida tayari limepelekwa
 apps/frappe/frappe/twofactor.py +133,"Login session expired, refresh page to retry","Kipindi cha kuingia kimekamilika, furahisha ukurasa ili ujaribu tena"
 DocType: Communication,BCC,BCC
@@ -200,7 +200,6 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,
 apps/frappe/frappe/public/js/frappe/views/communication.js +528,You are not allowed to send emails related to this document,Huruhusiwi kupeleka barua pepe zinazohusiana na waraka huu
 apps/frappe/frappe/model/db_query.py +614,Please select atleast 1 column from {0} to sort/group,Tafadhali chagua safu ya safu ya 1 kutoka {0} ili kutatua / kikundi
 DocType: PayPal Settings,Check this if you are testing your payment using the Sandbox API,Angalia hii ikiwa unapima malipo yako kwa kutumia Sandbox API
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Setup&gt; Mtumiaji
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30,You are not allowed to delete a standard Website Theme,Huruhusiwi kufuta Mandhari ya Tovuti ya kawaida
 DocType: Data Import,Log Details,Maelezo ya Ingia
 DocType: Feedback Trigger,Example,Mfano
@@ -394,7 +393,7 @@ apps/frappe/frappe/utils/response.py +185,Your system is being updated. Please r
 DocType: Blogger,Will be used in url (usually first name).,Itatumika katika url (kwa kawaida jina la kwanza).
 DocType: Auto Email Report,Day of Week,Siku ya Juma
 DocType: Note,Expire Notification On,Zisha Arifa Kisha
-apps/frappe/frappe/public/js/frappe/form/controls/comment.js +16,Ctrl+Enter to add comment,Ctrl + Ingiza kuongeza maoni
+apps/frappe/frappe/public/js/frappe/form/controls/comment.js +19,Ctrl+Enter to add comment,Ctrl + Ingiza kuongeza maoni
 apps/frappe/frappe/public/js/frappe/socketio_client.js +282,File Upload in Progress. Please try again in a few moments.,Weka Pakia katika Maendeleo. Tafadhali jaribu tena kwa muda mfupi.
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html +8,Edit Heading,Badilisha kichwa
 DocType: File,File URL,Futa URL
@@ -448,6 +447,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js +281,"Your download is
 apps/frappe/frappe/public/js/frappe/ui/filters/filter_list.js +144,Add Filter,Ongeza Filter
 apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py +87,SMS sent to following numbers: {0},SMS imetumwa kwa nambari zifuatazo: {0}
 apps/frappe/frappe/www/feedback.html +23,Your rating: ,Ukadiriaji wako:
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions,Kuweka&gt; Vyeti vya Mtumiaji
 apps/frappe/frappe/utils/data.py +657,{0} and {1},{0} na {1}
 apps/frappe/frappe/public/js/frappe/chat.js +2151,Start a conversation.,Anza mazungumzo.
 DocType: Print Settings,"Always add ""Draft"" Heading for printing draft documents",Daima uongeze kichwa cha &quot;Rasimu&quot; cha hati za uchapishaji
@@ -469,6 +469,7 @@ DocType: Print Settings,Send document web view link in email,Tuma kiungo cha hat
 apps/frappe/frappe/www/feedback.html +114,Your Feedback for document {0} is saved successfully,Maoni yako kwa waraka {0} imehifadhiwa kwa ufanisi
 apps/frappe/frappe/public/js/frappe/ui/slides.js +321,Previous,Kabla
 apps/frappe/frappe/email/doctype/email_account/email_account.py +566,Re:,Re:
+apps/frappe/frappe/contacts/doctype/address/address.py +194,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Hakuna Kigezo cha Anwani ya Kichwa kilichopatikana. Tafadhali fanya moja mpya kutoka kwa Usanidi&gt; Uchapishaji na Branding&gt; Kigezo cha Anwani.
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +586,{0} rows for {1},{0} safu kwa {1}
 DocType: Currency,"Sub-currency. For e.g. ""Cent""",Sub-sarafu. Kwa mfano &quot;Cent&quot;
 apps/frappe/frappe/data_migration/doctype/data_migration_connector/data_migration_connector.js +15,Connection Name,Jina la Kuunganisha
@@ -549,7 +550,6 @@ apps/frappe/frappe/public/js/frappe/model/model.js +544,Rename,Badilisha tena
 DocType: Print Format,Format Data,Weka Data
 DocType: List Filter,Filter Name,Jina la Filter
 apps/frappe/frappe/utils/bot.py +91,Like,Kama
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} miaka (s) zilizopita
 DocType: Customize Form Field,Customize Form Field,Tengeneza Fomu ya Fomu
 DocType: Website Settings,Chat Room Name,Jina la Chumba cha Ongea
 DocType: OAuth Client,Grant Type,Aina ya Ruzuku
@@ -1062,7 +1062,7 @@ apps/frappe/frappe/public/js/frappe/dom.js +283,Confirm,Thibitisha
 apps/frappe/frappe/www/login.html +59,Forgot Password?,Umesahau nywila?
 DocType: System Settings,yyyy-mm-dd,yyyy-mm-dd
 apps/frappe/frappe/desk/report/todo/todo.py +19,ID,Kitambulisho
-apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +193,Server Error,Hitilafu ya Seva
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +192,Server Error,Hitilafu ya Seva
 apps/frappe/frappe/email/doctype/email_account/email_account.py +46,Login Id is required,Id Idisho inahitajika
 DocType: Website Slideshow,Website Slideshow,Tovuti ya Slideshow
 apps/frappe/frappe/public/js/frappe/form/grid.js +58,No Data,Hakuna Data
@@ -1285,7 +1285,7 @@ DocType: Workflow Transition,Next State,Hali inayofuata
 DocType: User,Block Modules,Piga Moduli
 apps/frappe/frappe/model/db_schema.py +152,Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.,Inarudi urefu kwa {0} kwa &#39;{1}&#39; katika &#39;{2}&#39;; Kuweka urefu kama {3} kutasababisha truncation ya data.
 DocType: Print Format,Custom CSS,Desturi CSS
-apps/frappe/frappe/public/js/frappe/form/controls/comment.js +8,Add a comment,Ongeza maoni
+apps/frappe/frappe/public/js/frappe/form/controls/comment.js +11,Add a comment,Ongeza maoni
 DocType: Webhook,on_update,on_update
 apps/frappe/frappe/model/rename_doc.py +428,Ignored: {0} to {1},Alipuuza: {0} kwa {1}
 DocType: Address,Gujarat,Gujarat
@@ -1492,6 +1492,7 @@ apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +380,Unable to up
 apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +134,Payment Complete,Malipo Imekamilishwa
 apps/frappe/frappe/twofactor.py +213,Verification code has been sent to your registered email address.,Nambari ya uthibitisho imetumwa kwa anwani yako ya barua pepe iliyosajiliwa.
 apps/frappe/frappe/core/doctype/user/user.py +1027,Throttled,Wamepigwa
+apps/frappe/frappe/email/smtp.py +191,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Akaunti ya barua pepe sio kuanzisha. Tafadhali fungua Akaunti mpya ya barua pepe kutoka kwa Usanidi&gt; Barua pepe&gt; Akaunti ya Barua pepe
 apps/frappe/frappe/utils/data.py +829,"Filter must have 4 values (doctype, fieldname, operator, value): {0}","Filter lazima iwe na maadili 4 (doctype, jina la uwanja, operator, thamani): {0}"
 apps/frappe/frappe/utils/bot.py +89,show,onyesha
 apps/frappe/frappe/utils/data.py +881,Invalid field name {0},Jina la uwanja batili {0}
@@ -1537,6 +1538,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +380,Search the docs,Ta
 DocType: OAuth Authorization Code,Valid,Halali
 apps/frappe/frappe/public/js/frappe/form/controls/link.js +16,Open Link,Fungua Kiungo
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +357,Your Language,Lugha yako
+apps/frappe/frappe/email/smtp.py +85,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Tafadhali kuanzisha Akaunti ya barua pepe ya default kutoka kwa Usanidi&gt; Barua pepe&gt; Akaunti ya Barua pepe
 apps/frappe/frappe/public/js/frappe/form/grid.js +72,Add Row,Ongeza Mstari
 DocType: Tag Category,Doctypes,Doctypes
 apps/frappe/frappe/desk/query_report.py +52,Query must be a SELECT,Swala lazima iwe SELECT
@@ -1625,11 +1627,12 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +19
 apps/frappe/frappe/core/doctype/data_export/data_export.js +40,Atleast one field of Parent Document Type is mandatory,Atleast shamba moja la Aina ya Kumbukumbu ya Mzazi ni lazima
 apps/frappe/frappe/config/setup.py +178,Setup Reports to be emailed at regular intervals,Ripoti za Kuanzisha ili kutumwa barua pepe kwa vipindi vya kawaida
 DocType: Workflow Document State,0 - Draft; 1 - Submitted; 2 - Cancelled,Mchapishaji; 1 - Iliyotolewa; 2 - Imefunguliwa
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,Setup &gt; Customize Form,Kuweka&gt; Customize Fomu
 DocType: File,Attached To DocType,Iliyoambatana na DocType
 apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +27,StartTLS is not supported,StartTLS haijaungwa mkono
 DocType: DocField,Int,Int
 DocType: Error Log,Title,Kichwa
-apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +193,"Seems issue with server's razorpay config. Don't worry, in case of failure amount will get refunded to your account.","Inaonekana suala la usanidi wa razorpay wa seva. Usijali, ikiwa kuna kiasi cha kushindwa kitarejeshwa kwenye akaunti yako."
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +192,"Seems issue with server's razorpay config. Don't worry, in case of failure amount will get refunded to your account.","Inaonekana suala la usanidi wa razorpay wa seva. Usijali, ikiwa kuna kiasi cha kushindwa kitarejeshwa kwenye akaunti yako."
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +171,Customize,Customize
 apps/frappe/frappe/core/doctype/user/user.js +87,View Permitted Documents,Angalia Nyaraka zilizoruhusiwa
 apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html +11,Your connection request to Google Calendar was successfully accepted,Usaidizi wako wa kuomba kwa Kalenda ya Google ilikubaliwa kwa ufanisi
@@ -1651,7 +1654,6 @@ DocType: Customize Form,"Fields separated by comma (,) will be included in the "
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +35,Please Duplicate this Website Theme to customize.,Tafadhali Dupisha hii Mandhari ya Website ili uifanye.
 apps/frappe/frappe/core/page/usage_info/usage_info.html +47,Space,Nafasi
 DocType: Address,Meghalaya,Meghalaya
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,Setup &gt; Customize Form,Kuweka&gt; Customize Fomu
 DocType: DocField,Text Editor,Mhariri wa Nakala
 apps/frappe/frappe/config/website.py +73,Settings for About Us Page.,Mipangilio kwa ajili yetu Kuhusu Ukurasa.
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +1,Recurring,Inaendelea
@@ -1676,7 +1678,6 @@ apps/frappe/frappe/email/doctype/email_group/email_group.js +13,Import Email Fro
 apps/frappe/frappe/contacts/doctype/contact/contact.js +20,Invite as User,Paribisha kama Mtumiaji
 apps/frappe/frappe/integrations/doctype/google_maps_settings/google_maps_settings.py +18,Home Address is required,Anwani ya nyumbani inahitajika
 DocType: Data Migration Run,Started,Ilianza
-apps/frappe/frappe/contacts/doctype/address/address.py +194,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Hakuna Kigezo cha Anwani ya Kichwa kilichopatikana. Tafadhali fanya moja mpya kutoka kwa Usanidi&gt; Uchapishaji na Branding&gt; Kigezo cha Anwani.
 DocType: Data Migration Run,End Time,Muda wa Mwisho
 apps/frappe/frappe/public/js/frappe/views/interaction.js +83,Select Attachments,Chagua Vifungo
 apps/frappe/frappe/model/naming.py +113, for {0},kwa {0}
@@ -1712,6 +1713,7 @@ apps/frappe/frappe/www/third_party_apps.html +51,Revoke,Futa
 DocType: Contact,Replied,Alijibu
 DocType: Newsletter,Test,Mtihani
 DocType: Custom Field,Default Value,Thamani ya Hitilafu
+apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} miaka (s) zilizopita
 apps/frappe/frappe/public/js/frappe/ui/messages.js +230,Verify,Thibitisha
 DocType: Workflow Document State,Update Field,Sasisha Field
 DocType: Chat Profile,Enable Chat,Wezesha Chat
@@ -1787,6 +1789,7 @@ apps/frappe/frappe/templates/emails/recurring_document_failed.html +4,This could
 DocType: Address,Fax,Faksi
 apps/frappe/frappe/config/setup.py +263,Custom Tags,Tags Custom
 DocType: Communication,Submitted,Iliwasilishwa
+apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +399,In Valid Request,Katika Ombi Sahihi
 DocType: System Settings,Email Footer Address,Anwani ya barua pepe ya barua pepe
 apps/frappe/frappe/public/js/frappe/form/grid.js +665,Table updated,Jedwali limewekwa
 DocType: Activity Log,Timeline DocType,DocType ya Muda
@@ -1813,6 +1816,7 @@ apps/frappe/frappe/core/doctype/communication/communication.js +253,Email has be
 DocType: Report,Report Builder,Mjenzi wa Ripoti
 DocType: Async Task,Task Name,Jina la Task
 apps/frappe/frappe/app.py +151,"Your session has expired, please login again to continue.","Kipindi chako kimekamilika, tafadhali ingia tena ili uendelee."
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +362,Invalid Subscription,Usajili usio sahihi
 DocType: Communication,Workflow,Kazi ya kazi
 DocType: Website Settings,Welcome Message,Karibu Ujumbe
 DocType: Webhook,Webhook Headers,Viongozi wa Mtandao
@@ -2870,7 +2874,6 @@ DocType: Workflow Transition,Workflow Transition,Mpito wa Kazi ya Kazi
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,{0} months ago,Miezi {0} iliyopita
 apps/frappe/frappe/public/js/frappe/model/model.js +18,Created By,Imetengenezwa na
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +312,Dropbox Setup,Uwekaji wa Dropbox
-apps/frappe/frappe/email/smtp.py +191,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Akaunti ya barua pepe sio kuanzisha. Tafadhali fungua Akaunti mpya ya barua pepe kutoka kwa Usanidi&gt; Barua pepe&gt; Akaunti ya Barua pepe
 DocType: Workflow State,resize-horizontal,resize-usawa
 DocType: Chat Message,Content,Maudhui
 DocType: Data Migration Run,Push Insert,Push Ingia
@@ -2894,7 +2897,6 @@ DocType: Data Migration Run,Remote ID,Kitambulisho cha mbali
 apps/frappe/frappe/model/meta.py +204,No Label,Hakuna Lebo
 DocType: System Settings,Use socketio to upload file,Tumia socketio kupakia faili
 apps/frappe/frappe/public/js/frappe/list/list_view.js +273,Refreshing,Inafariji
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +361,<p>No results found for '</p>,<p> Hakuna matokeo yaliyopatikana kwa &#39; </p>
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py +77,Modified By,Ilibadilishwa na
 DocType: Address,Tripura,Tripura
 DocType: About Us Settings,"""Company History""",&quot;Historia ya Kampuni&quot;
@@ -3029,9 +3031,9 @@ apps/frappe/frappe/www/printview.py +211,Print Format {0} is disabled,Aina ya ku
 ,Address and Contacts,Anwani na Mawasiliano
 DocType: Notification,Send days before or after the reference date,Tuma siku kabla au baada ya tarehe ya kumbukumbu
 DocType: User,Allow user to login only after this hour (0-24),Ruhusu mtumiaji kuingia tu baada ya saa hii (0-24)
+DocType: Integration Request,Subscription Notification,Arifa ya Usajili
 DocType: Auto Repeat,Start Date,Tarehe ya Mwanzo
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +22,Value,Thamani
-apps/frappe/frappe/email/smtp.py +85,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Tafadhali kuanzisha Akaunti ya barua pepe ya default kutoka kwa Usanidi&gt; Barua pepe&gt; Akaunti ya Barua pepe
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +191,Click here to verify,Bofya hapa ili kuthibitisha
 apps/frappe/frappe/utils/password_strength.py +202,Predictable substitutions like '@' instead of 'a' don't help very much.,Kubadilishana kutabirika kama &#39;@&#39; badala ya &#39;a&#39; sio kusaidia sana.
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +21,Assigned By Me,Iliyopewa na Mimi
@@ -3155,14 +3157,14 @@ DocType: Web Page,Insert Code,Weka Msimbo
 DocType: Data Migration Run,Current Mapping Type,Aina ya Ramani ya Sasa
 DocType: ToDo,Low,Chini
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +697,You can add dynamic properties from the document by using Jinja templating.,Unaweza kuongeza mali ya nguvu kutoka kwenye hati kwa kutumia template ya Jinja.
-apps/frappe/frappe/commands/site.py +458,Invalid limit {0},Kikomo batili {0}
+apps/frappe/frappe/commands/site.py +460,Invalid limit {0},Kikomo batili {0}
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +134,List a document type,Andika orodha ya hati
 apps/frappe/frappe/core/doctype/data_import/exporter.py +65,"If you are uploading new records, leave the ""name"" (ID) column blank.","Ikiwa unapakia rekodi mpya, chagua safu &quot;jina&quot; (ID) tupu."
 DocType: Data Migration Run,Current Mapping Delete Start,Ramani ya Sasa Futa Mwanzo
 apps/frappe/frappe/config/core.py +47,Errors in Background Events,Hitilafu katika Matukio ya Chanzo
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +399,No of Columns,Hakuna nguzo
 DocType: Workflow State,Calendar,Kalenda
-apps/frappe/frappe/client.py +54,No document found for given filters,Hakuna hati iliyopatikana kwa filters zilizotolewa
+apps/frappe/frappe/client.py +53,No document found for given filters,Hakuna hati iliyopatikana kwa filters zilizotolewa
 apps/frappe/frappe/model/rename_doc.py +161,"Another {0} with name {1} exists, select another name","Mwingine {0} na jina {1} lipo, chagua jina lingine"
 DocType: DocType,Custom?,Desturi?
 DocType: Website Settings,Website Theme Image,Website Theme Image
@@ -3288,7 +3290,7 @@ DocType: Contact,Gender,Jinsia
 apps/frappe/frappe/website/doctype/web_form/web_form.py +350,Mandatory Information missing:,Maelezo ya lazima ya kukosa:
 apps/frappe/frappe/core/doctype/doctype/doctype.py +598,Field '{0}' cannot be set as Unique as it has non-unique values,Shamba &#39;{0}&#39; haiwezi kuweka kama ya kipekee kama ina maadili yasiyo ya kipekee
 apps/frappe/frappe/integrations/doctype/webhook/webhook.py +37,Check Request URL,Angalia URL ya Ombi
-apps/frappe/frappe/client.py +169,Only 200 inserts allowed in one request,Kuingiza 200 tu kuruhusiwa katika ombi moja
+apps/frappe/frappe/client.py +160,Only 200 inserts allowed in one request,Kuingiza 200 tu kuruhusiwa katika ombi moja
 DocType: Footer Item,URL,URL
 apps/frappe/frappe/www/qrcode.html +15,Return to the Verification screen and enter the code displayed by your authentication app,Rudi kwenye skrini ya uthibitisho na uingie msimbo unaonyeshwa na programu yako ya kuthibitisha
 DocType: ToDo,Reference Type,Aina ya Kumbukumbu
@@ -3441,6 +3443,7 @@ DocType: User,Background Style,Sinema ya asili
 DocType: System Settings,Bypass Two Factor Auth for users who login from restricted IP Address,Weka Aux Factor Auth kwa watumiaji ambao wanaingia kwenye Anwani ya IP iliyozuiliwa
 apps/frappe/frappe/email/queue.py +276,{0} to stop receiving emails of this type,{0} kuacha kupokea barua pepe za aina hii
 apps/frappe/frappe/www/qrcode.html +13,Open your authentication app on your mobile phone.,Fungua programu yako ya kuthibitisha kwenye simu yako ya mkononi.
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +361,<p>No results found for '</p>,<p> Hakuna matokeo yaliyopatikana kwa &#39; </p>
 apps/frappe/frappe/model/rename_doc.py +77,merged {0} into {1},iliunganishwa {0} katika {1}
 DocType: System Settings,mm-dd-yyyy,mm-dd-yyyy
 apps/frappe/frappe/data_migration/doctype/data_migration_connector/data_migration_connector.js +7,New Connection,Uunganisho mpya

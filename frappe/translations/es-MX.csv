@@ -2,7 +2,6 @@ DocType: Currency,Smallest circulating fraction unit (coin). For e.g. 1 cent for
 DocType: Data Migration Plan,Postprocess Method,Método de Postproceso
 DocType: System Settings,"If Apply Strict User Permission is checked and User Permission is defined for a DocType for a User, then all the documents where value of the link is blank, will not be shown to that User","Si está activado Aplicar Permiso de Usuario Estricto y se ha definido el Permiso de Usuario para un DocType para un Usuario, todos los documentos en los que el valor del enlace esté en blanco no se mostrarán a ese Usuario"
 DocType: Website Settings,&lt;head&gt; HTML,&lt;head&gt; HTML
-DocType: Data Migration Plan,Preprocess Method,Método de Preproceso
 apps/frappe/frappe/core/doctype/system_settings/system_settings.py +19,Please select Minimum Password Score,Por favor selecciona la Puntuación Mínima de la Contraseña
 DocType: Currency,Smallest Currency Fraction Value,Valor de la fracción de moneda más pequeña
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +229,Permissions can be managed via Setup &gt; Role Permissions Manager,Los permisos se pueden gestionar a través de Configuración &gt; Administrador de permisos

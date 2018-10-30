@@ -10,7 +10,7 @@ DocType: System Settings,Note: Multiple sessions will be allowed in case of mobi
 apps/frappe/frappe/email/queue.py +258,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,לא ניתן לשלוח דוא&quot;ל זה. אתה חצית את גבול השליחה של {0} מיילים לחודש זה.
 apps/frappe/frappe/public/js/legacy/form.js +779,Permanently Submit {0}?,באופן קבוע שלח {0}?
 DocType: Address,County,מָחוֹז
-apps/frappe/frappe/client.py +311,Invalid file path: {0},דרך לא חוקית קובץ: {0}
+apps/frappe/frappe/client.py +302,Invalid file path: {0},דרך לא חוקית קובץ: {0}
 DocType: Workflow State,eye-open,עין-פתוחה
 DocType: Email Queue,Send After,שלח אחרי
 apps/frappe/frappe/core/doctype/file/file.py +326,Please select a file or url,אנא בחר קובץ או כתובת אתר
@@ -19,7 +19,7 @@ DocType: User,Username,שֵׁם מִשׁתַמֵשׁ
 DocType: DocField,DocField,DocField
 DocType: Contact,Department,מחלקה
 DocType: DocField,Options,אפשרויות
-apps/frappe/frappe/client.py +115,Cannot edit standard fields,לא ניתן לערוך שדות סטנדרטיים
+apps/frappe/frappe/client.py +106,Cannot edit standard fields,לא ניתן לערוך שדות סטנדרטיים
 DocType: Print Format,Print Format Builder,Builder פורמט הדפסה
 DocType: Report,Report Manager,"דו""ח מנהל"
 DocType: Workflow,Document States,מסמך הברית
@@ -754,7 +754,7 @@ DocType: Workflow Transition,Next State,המדינה הבאה
 DocType: User,Block Modules,מודולים בלוק
 apps/frappe/frappe/model/db_schema.py +152,Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.,החזרה למצב אורך {0} עבור &#39;{1}&#39; ב &#39;{2}&#39;; הגדרת האורך כמו {3} תגרום עיצור של נתונים.
 DocType: Print Format,Custom CSS,CSS המותאם אישית
-apps/frappe/frappe/public/js/frappe/form/controls/comment.js +8,Add a comment,הוסף ביקורת
+apps/frappe/frappe/public/js/frappe/form/controls/comment.js +11,Add a comment,הוסף ביקורת
 apps/frappe/frappe/model/rename_doc.py +428,Ignored: {0} to {1},להתעלם ממנו: {0} {1}
 apps/frappe/frappe/config/setup.py +82,Log of error on automated events (scheduler).,יומן רישום של שגיאה על אירועים אוטומטיים (מתזמן).
 apps/frappe/frappe/utils/csvutils.py +82,Not a valid Comma Separated Value (CSV File),לא ערך פסיק תקף פרוד (קובץ CSV)
