@@ -177,6 +177,9 @@ frappe.request.call = function(opts) {
 		504: function(xhr) {
 			frappe.msgprint(__("Request Timed Out"))
 			opts.error_callback && opts.error_callback();
+		},
+		502: function(xhr) {
+			frappe.msgprint(__("Internal Server Error"));
 		}
 	};
 

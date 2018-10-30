@@ -153,7 +153,7 @@ class HelpDatabase(object):
 							with io.open(fpath, 'r', encoding = 'utf-8') as f:
 								try:
 									content = frappe.render_template(f.read(),
-										{'docs_base_url': '/assets/{docs_app}_docs'.format(docs_app=docs_app)})
+										{'docs_base_url': '/assets/{app}_docs'.format(app=app)}, safe_render=False)
 
 									relpath = self.get_out_path(fpath)
 									relpath = relpath.replace("user", app)
