@@ -47,15 +47,11 @@ $.extend(frappe.perm, {
 		let meta = frappe.get_doc("DocType", doctype);
 		const user  = frappe.session.user;
 
-		if (!meta) return perm;
-
 		if (user === "Administrator" || frappe.user_roles.includes("Administrator")) {
 			perm[0].read = 1;
 		}
 
-		if (!meta) {
-			return perm;
-		}
+		if (!meta) return perm;
 
 		frappe.perm.build_role_permissions(perm, meta);
 
@@ -155,9 +151,14 @@ $.extend(frappe.perm, {
 			let rules = {};
 			let fields_to_check = frappe.meta.get_fields_to_check_permissions(doctype);
 			$.each(fields_to_check, (i, df) => {
-				if (user_permissions[df.options]
-					&& !(user_permissions[df.options].skip_for_doctype || []).includes(doctype)) {
-					rules[df.label] = user_permissions[df.options].docs;
+				if (user_permissions[df.options]) {
+					const user_permissions_for_doctype = user_permissions[df.options];
+					rules[df.label] = [];
+					user_permissions_for_doctype.map(permission => {
+						if (!permission.applicable_for_doctype || permission.applicable_for_doctype === doctype) {
+							rules[df.label].push(permission.doc);
+						}
+					});
 				}
 			});
 			if (!$.isEmptyObject(rules)) {
