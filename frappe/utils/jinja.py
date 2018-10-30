@@ -57,6 +57,8 @@ def render_template(template, context, is_path=None):
 	:param context: dict of properties to pass to the template
 	:param is_path: (optional) assert that the `template` parameter is a path'''
 
+	from frappe import throw
+
 	if not template:
 		return ""
 
@@ -66,6 +68,8 @@ def render_template(template, context, is_path=None):
 		or (template.endswith('.html') and '\n' not in template)):
 		return get_jenv().get_template(template).render(context)
 	else:
+		if ".__" in template:
+			throw("Illegal template")
 		return get_jenv().from_string(template).render(context)
 
 def get_allowed_functions_for_jenv():
