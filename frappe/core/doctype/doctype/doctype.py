@@ -147,7 +147,7 @@ class DocType(Document):
 
 	def update_fields_to_fetch(self):
 		'''Update fetch values based on queries setup'''
-		if self.flags.update_fields_to_fetch_queries:
+		if self.flags.update_fields_to_fetch_queries and not self.issingle:
 			for query in self.flags.update_fields_to_fetch_queries:
 				frappe.db.sql(query)
 
