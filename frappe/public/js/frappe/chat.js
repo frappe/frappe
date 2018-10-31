@@ -1404,6 +1404,11 @@ class extends Component {
 	constructor (props) {
 		super (props)
 
+		this.setup(props)
+		this.make()
+	}
+
+	setup (props) {
 		// room actions
 		this.room           = { }
 		this.room.add       = rooms => {
@@ -1483,8 +1488,6 @@ class extends Component {
 		}
 
 		this.state = { ...frappe.Chat.Widget.defaultState, ...props }
-
-		this.make()
 	}
 
 	make ( ) {
@@ -1755,6 +1758,10 @@ class extends Component {
 	constructor (props) {
 		super (props)
 
+		this.setup(props);
+	}
+
+	setup (props) {
 		this.toggle = this.toggle.bind(this)
 
 		this.state  = frappe.Chat.Widget.Popper.defaultState
