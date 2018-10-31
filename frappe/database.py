@@ -183,7 +183,7 @@ class Database:
 				if not isinstance(values, (dict, tuple, list)):
 					values = (values,)
 
-				if debug and query.lower().startswith('select'):
+				if debug and query.strip().lower().startswith('select'):
 					try:
 						if explain:
 							self.explain_query(query, values)
@@ -818,6 +818,7 @@ class Database:
 
 	def rollback(self):
 		"""`ROLLBACK` current transaction."""
+		
 		self.sql("rollback")
 		self.begin()
 		for obj in frappe.local.rollback_observers:
