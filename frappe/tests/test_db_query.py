@@ -123,6 +123,15 @@ class TestReportview(unittest.TestCase):
 		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
 			fields=["name", "issingle,'"],limit_start=0, limit_page_length=1)
 
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+			fields=["name", "select * from tabSessions"],limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+			fields=["name", "issingle from --"],limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+			fields=["name", "issingle from tabDocType order by 2 --"],limit_start=0, limit_page_length=1)
+
 		data = DatabaseQuery("DocType").execute(fields=["name", "issingle", "count(name)"],
 			limit_start=0, limit_page_length=1)
 		self.assertTrue('count(name)' in data[0])
