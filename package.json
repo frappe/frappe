@@ -3,7 +3,7 @@
   "scripts": {
     "build": "node rollup/build.js",
     "production": "FRAPPE_ENV=production node rollup/build.js",
-    "watch": "node rollup/watch.js"
+    "watch": "node rollup/watch.js --max-old-space-size=4076"
   },
   "repository": {
     "type": "git",
@@ -47,7 +47,7 @@
     "rollup-plugin-node-resolve": "^3.0.2",
     "rollup-plugin-postcss": "^1.4.0",
     "rollup-plugin-uglify": "^3.0.0",
-    "rollup-plugin-vue": "^4.3.2",
+    "rollup-plugin-vue": "4.2.0",
     "vue-template-compiler": "^2.5.17"
   }
 }
