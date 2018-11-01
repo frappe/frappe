@@ -17,6 +17,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			fields: this.get_fields(),
 			primary_action_label: __("Send"),
 			primary_action: function() {
+				me.delete_saved_draft();
 				me.send_action();
 			}
 		});
@@ -506,6 +507,12 @@ frappe.views.CommunicationComposer = Class.extend({
 				console.log(e);
 				console.warn('[Communication] localStorage is full. Cannot save message as draft');
 			}
+		}
+	},
+
+	delete_saved_draft() {
+		if (this.dialog) {
+			localStorage.removeItem(this.frm.doctype + this.frm.docname);
 		}
 	},
 
