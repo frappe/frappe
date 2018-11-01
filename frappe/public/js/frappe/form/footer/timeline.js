@@ -92,8 +92,9 @@ frappe.ui.form.Timeline = class Timeline {
 						subject: __("Re: {0}", [me.frm.doc.subject]),
 					});
 				} else {
+					const comment_value = frappe.markdown(me.comment_area.get_value());
 					$.extend(args, {
-						txt: frappe.markdown(me.comment_area.get_value())
+						txt: strip_html(comment_value) ? comment_value : ''
 					});
 				}
 				new frappe.views.CommunicationComposer(args)
