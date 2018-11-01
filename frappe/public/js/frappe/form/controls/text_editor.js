@@ -150,8 +150,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			return;
 		}
 
-		this.quill.setText('');
-		this.quill.clipboard.dangerouslyPasteHTML(0, value);
+		this.quill.root.innerHTML = value;
 	},
 
 	get_input_value() {
