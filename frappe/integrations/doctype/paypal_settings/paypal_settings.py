@@ -206,7 +206,7 @@ def setup_redirect(data, redirect_url, custom_redirect_to=None, redirect=True):
 		redirect_url += '&' + urlencode({'redirect_to': redirect_to})
 	if redirect_message:
 		redirect_url += '&' + urlencode({'redirect_message': redirect_message})
-	frappe.flags.message= "Thank you for subscribing ERPNext"
+
 	# this is done so that functions called via hooks can update flags.redirect_to
 	if redirect:
 		frappe.local.response["type"] = "redirect"
