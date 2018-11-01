@@ -17,6 +17,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			fields: this.get_fields(),
 			primary_action_label: __("Send"),
 			primary_action: function() {
+				me.delete_saved_draft();
 				me.send_action();
 			}
 		});
@@ -82,8 +83,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				label:__("Message"),
 				fieldtype:"Text Editor", reqd: 1,
 				fieldname:"content",
-				onchange: frappe.utils.debounce(this.save_as_draft.bind(this), 300),
-				default: localStorage.getItem(this.frm.doctype + this.frm.docname) || ''
+				onchange: frappe.utils.debounce(this.save_as_draft.bind(this), 300)
 			},
 
 			{fieldtype: "Section Break"},
@@ -135,9 +135,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 		this.dialog.fields_dict.subject.set_value(this.subject || '');
 
-		if(!localStorage.getItem(this.frm.doctype + this.frm.docname)) {
-			this.setup_earlier_reply();
-		}
+		this.setup_earlier_reply();
 	},
 
 	setup_subject_and_recipients: function() {
@@ -509,6 +507,12 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 	},
 
+	delete_saved_draft() {
+		if (this.dialog) {
+			localStorage.removeItem(this.frm.doctype + this.frm.docname);
+		}
+	},
+
 	send_email: function(btn, form_values, selected_attachments, print_html, print_format) {
 		var me = this;
 		me.dialog.hide();
@@ -629,6 +633,9 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		if(this.txt) {
 			this.message = this.txt + (this.message ? ("<br><br>" + this.message) : "");
+		} else {
+			// saved draft in localStorage
+			this.message = localStorage.getItem(this.frm.doctype + this.frm.docname) || '';
 		}
 
 		if(this.real_name) {
