@@ -635,7 +635,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			this.message = this.txt + (this.message ? ("<br><br>" + this.message) : "");
 		} else {
 			// saved draft in localStorage
-			this.message = localStorage.getItem(this.frm.doctype + this.frm.docname) || ''
+			this.message = localStorage.getItem(this.frm.doctype + this.frm.docname) || '';
 		}
 
 		if(this.real_name) {
