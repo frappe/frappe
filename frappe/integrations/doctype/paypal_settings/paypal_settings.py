@@ -203,10 +203,10 @@ def setup_redirect(data, redirect_url, custom_redirect_to=None, redirect=True):
 		redirect_to = custom_redirect_to
 
 	if redirect_to:
-		redirect_url += '?' + urlencode({'redirect_to': redirect_to})
+		redirect_url += '&' + urlencode({'redirect_to': redirect_to})
 	if redirect_message:
 		redirect_url += '&' + urlencode({'redirect_message': redirect_message})
-
+	frappe.flags.message= "Thank you for subscribing ERPNext"
 	# this is done so that functions called via hooks can update flags.redirect_to
 	if redirect:
 		frappe.local.response["type"] = "redirect"
@@ -274,7 +274,7 @@ def confirm_payment(token):
 					data.get("reference_docname")).run_method("on_payment_authorized", "Completed")
 				frappe.db.commit()
 
-			redirect_url = '/integrations/payment-success'
+			redirect_url = '/integrations/payment-success?doctype={0}&docname={1}'.format(data.get("reference_doctype"), data.get("reference_docname"))
 		else:
 			redirect_url = "/integrations/payment-failed"
 
@@ -332,7 +332,7 @@ def create_recurring_profile(token, payerid):
 					data.get("reference_docname")).run_method("on_payment_authorized", status_changed_to)
 				frappe.db.commit()
 
-			redirect_url = '/integrations/payment-success'
+			redirect_url = '/integrations/payment-success?doctype={0}&docname={1}'.format(data.get("reference_doctype"), data.get("reference_docname"))
 		else:
 			redirect_url = "/integrations/payment-failed"
 
