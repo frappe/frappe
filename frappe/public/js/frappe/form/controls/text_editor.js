@@ -16,6 +16,10 @@ Table.create = (value) => {
 }
 Quill.register(Table, true);
 
+// image uploader
+const Uploader = Quill.import('modules/uploader');
+Uploader.DEFAULTS.mimetypes.push('image/gif');
+
 // inline style
 const BackgroundStyle = Quill.import('attributors/style/background');
 const ColorStyle = Quill.import('attributors/style/color');
