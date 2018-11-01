@@ -155,10 +155,13 @@ $.extend(frappe.perm, {
 					const user_permissions_for_doctype = user_permissions[df.options];
 					rules[df.label] = [];
 					user_permissions_for_doctype.map(permission => {
-						if (!permission.applicable_for_doctype || permission.applicable_for_doctype === doctype) {
+						if (!permission.applicable_for || permission.applicable_for === doctype) {
 							rules[df.label].push(permission.doc);
 						}
 					});
+					if (!rules[df.label].length) {
+						rules[df.label].push(__('Not allowed'));
+					}
 				}
 			});
 			if (!$.isEmptyObject(rules)) {

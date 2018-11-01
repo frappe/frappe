@@ -143,11 +143,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				// immediately show from cache
 				me.awesomplete.list = me.$input.cache[doctype][term];
 			}
-
 			var args = {
 				'txt': term,
 				'doctype': doctype,
-				'ignore_user_permissions': me.df.ignore_user_permissions
+				'ignore_user_permissions': me.df.ignore_user_permissions,
+				'reference_doctype': me.doctype
 			};
 
 			me.set_custom_query(args);

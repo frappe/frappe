@@ -91,8 +91,13 @@ frappe.defaults = {
 	},
 
 	not_in_user_permission: function(key, value) {
-		let user_permission = this.get_user_permissions()[frappe.model.unscrub(key)];
-		return user_permission && !user_permission["docs"].includes(value);
+		let user_permission = this.get_user_permissions()[frappe.model.unscrub(key)] || [];
+
+		let result = user_permission.some(perm => {
+			perm.doc === value;
+		});
+
+		return result;
 	},
 
 	get_user_permissions: function() {

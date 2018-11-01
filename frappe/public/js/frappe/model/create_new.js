@@ -137,8 +137,8 @@ $.extend(frappe.model, {
 			// 1 - look in user permissions for document_type=="Setup".
 			// We don't want to include permissions of transactions to be used for defaults.
 			if (df.linked_document_type==="Setup"
-				&& has_user_permissions && user_permissions[df.options].docs.length===1) {
-				return user_permissions[df.options].docs[0];
+				&& has_user_permissions && user_permissions[df.options].length===1) {
+				return user_permissions[df.options][0].doc;
 			}
 
 			if(!df.ignore_user_permissions) {
