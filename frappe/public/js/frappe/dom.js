@@ -220,8 +220,20 @@ frappe.dom = {
 			};
 			reader.readAsDataURL(file_obj);
 		});
+	},
+	scroll_to_section(section_name) {
+		setTimeout(() => {
+			const section = $(`a:contains("${section_name}")`);
+			if (section.length) {
+				if(section.parent().hasClass('collapsed')) {
+					// opens the section
+					section.click();
+				}
+				frappe.ui.scroll(section.parent().parent());
+			}
+		}, 200);
 	}
-}
+};
 
 frappe.ellipsis = function(text, max) {
 	if(!max) max = 20;
