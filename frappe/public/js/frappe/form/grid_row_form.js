@@ -50,6 +50,12 @@ export default class GridRowForm {
 					<button class="btn btn-default btn-xs pull-right grid-insert-row-below hidden-xs"
 						style="margin-left: 7px;">
 						${ __("Insert Below") }</button>
+					<button class="btn btn-default btn-xs pull-right grid-duplicate-row hidden-xs"
+						style="margin-left: 7px;">
+						${ __("Duplicate Above") }</button>
+					<button class="btn btn-default btn-xs pull-right grid-duplicate-row-below hidden-xs"
+						style="margin-left: 7px;">
+						${ __("Duplicate Below") }</button>
 					<button class="btn btn-danger btn-xs pull-right grid-delete-row">
 						<i class="octicon octicon-trashcan"
 							style="padding-bottom: 2px; margin-top: 1px;"></i>
@@ -88,6 +94,14 @@ export default class GridRowForm {
 		this.wrapper.find(".grid-insert-row-below")
 			.on('click', function() {
 				me.row.insert(true, true); return false;
+			});
+		this.wrapper.find(".grid-duplicate-row")
+			.on('click', function() {
+				me.row.insert(true, false, true); return false;
+			});
+		this.wrapper.find(".grid-duplicate-row-below")
+			.on('click', function() {
+				me.row.insert(true, true, true); return false;
 			});
 		this.wrapper.find(".grid-append-row")
 			.on('click', function() {
