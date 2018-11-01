@@ -7,6 +7,7 @@ import frappe, json
 from frappe.model.document import Document
 from frappe.permissions import (get_valid_perms, update_permission_property)
 from frappe import _
+from frappe.core.utils import find
 
 class UserPermission(Document):
 	def validate(self):
@@ -62,8 +63,6 @@ def get_user_permissions(user=None):
 			fields=['allow', 'for_value', 'applicable_for'],
 			filters=dict(user=user)):
 
-			print(perm)
-
 			meta = frappe.get_meta(perm.allow)
 			add_doc_to_perm(perm, perm.for_value)
 
@@ -85,8 +84,7 @@ def user_permission_exists(user, allow, for_value, applicable_for=None):
 	'''Checks if similar user permission already exists'''
 	user_permissions = get_user_permissions(user).get(allow, [])
 	if not user_permissions: return None
-
-	has_same_user_permission = (perm for perm in user_permissions if perm['doc'] == for_value and perm['applicable_for'] == applicable_for).next()
+	has_same_user_permission = find(user_permissions, lambda perm:perm["doc"] == for_value and perm.get('applicable_for') == applicable_for)
 
 	return has_same_user_permission
 

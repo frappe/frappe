@@ -236,11 +236,11 @@ def has_user_permission(doc, user=None, verbose=False):
 				continue
 
 			# get the list of all allowed values for this link
-			user_permissions_on_link_field = user_permissions[field.options] or []
+			user_permissions_on_link_field = user_permissions.get(field.options) or []
 
 			if user_permissions_on_link_field:
 				for user_permission_for_doc in user_permissions_on_link_field:
-					if not user_permission_for_doc.get('doc') == d.name:
+					if user_permission_for_doc.get('doc') == d.get(field.fieldname):
 						# yes, permission rule found!
 						if (not user_permission_for_doc.get('applicable_for') # no restrictions
 						or user_permission_for_doc.get('applicable_for')==d.doctype):
@@ -383,7 +383,7 @@ def add_user_permission(doctype, name, user, ignore_permissions=False, applicabl
 	'''Add user permission'''
 	from frappe.core.doctype.user_permission.user_permission import user_permission_exists
 
-	if user_permission_exists(user, doctype, name, applicable_for):
+	if not user_permission_exists(user, doctype, name, applicable_for):
 		if not frappe.db.exists(doctype, name):
 			frappe.throw(_("{0} {1} not found").format(_(doctype), name), frappe.DoesNotExistError)
 
