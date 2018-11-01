@@ -15,9 +15,7 @@ from frappe.permissions import (add_user_permission, remove_user_permission,
 from frappe.core.page.permission_manager.permission_manager import update, reset
 from frappe.test_runner import make_test_records_for_doctype
 
-test_records = frappe.get_test_records('Blog Post')
-
-test_dependencies = ["User", "Contact", "Salutation"]
+test_dependencies = ['Blogger', 'Blog Post', "User", "Contact", "Salutation"]
 
 class TestPermissions(unittest.TestCase):
 	def setUp(self):
@@ -349,3 +347,31 @@ class TestPermissions(unittest.TestCase):
 
 		frappe.set_user("Administrator")
 		user.remove_roles("Blogger")
+
+	def test_contextual_user_permission(self):
+		# should be applicable for across all doctypes
+		add_user_permission('Blogger', '_Test Blogger', 'test2@example.com')
+		# should be applicable only while accessing Blog Post
+		add_user_permission('Blogger', '_Test Blogger 1', 'test2@example.com', applicable_for='Blog Post')
+		# should be applicable only while accessing User
+		add_user_permission('Blogger', '_Test Blogger 2', 'test2@example.com', applicable_for='User')
+
+		posts = frappe.get_all('Blog Post', fields=['name', 'blogger'])
+
+		# Get all posts for admin
+		self.assertEqual(len(posts), 5)
+
+		frappe.set_user('test2@example.com')
+
+		posts = frappe.get_list('Blog Post', fields=['name', 'blogger'])
+
+		# Should get only posts with allowed blogger via user permission
+		# only '_Test Blogger', '_Test Blogger 1' are allowed
+		self.assertEqual(len(posts), 4)
+
+		for post in posts:
+			self.assertIn(post.blogger, ['_Test Blogger', '_Test Blogger 1'], 'A post from {} is not expected.'.format(post.blogger))
+
+
+
+
