@@ -158,7 +158,7 @@ acceptable_attributes = [
 	'step', 'style', 'summary', 'suppress', 'tabindex', 'target',
 	'template', 'title', 'toppadding', 'type', 'unselectable', 'usemap',
 	'urn', 'valign', 'value', 'variable', 'volume', 'vspace', 'vrml',
-	'width', 'wrap', 'xml:lang'
+	'width', 'wrap', 'xml:lang', 'data-row'
 ]
 
 mathml_attributes = [
