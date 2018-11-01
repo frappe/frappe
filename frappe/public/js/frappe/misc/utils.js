@@ -3,7 +3,7 @@
 
 frappe.provide('frappe.utils');
 
-frappe.utils = {
+Object.assign(frappe.utils, {
 	get_random: function(len) {
 		var text = "";
 		var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -648,7 +648,7 @@ frappe.utils = {
 		}
 		return route;
 	}
-};
+});
 
 // Array de duplicate
 if (!Array.prototype.uniqBy) {
