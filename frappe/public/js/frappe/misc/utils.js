@@ -92,6 +92,15 @@ Object.assign(frappe.utils, {
 		return txt.toLowerCase().substr(0,7)=='http://'
 			|| txt.toLowerCase().substr(0,8)=='https://'
 	},
+	to_title_case: function(string, with_space=false) {
+		let titlecased_string = string.toLowerCase().replace(/(?:^|[\s-/])\w/g, function (match) {
+			return match.toUpperCase();
+		});
+
+		let replace_with = with_space ? ' ' : '';
+
+		return titlecased_string.replace(/-|_/g, replace_with);
+	},
 	toggle_blockquote: function(txt) {
 		if (!txt) return txt;
 
