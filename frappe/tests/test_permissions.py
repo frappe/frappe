@@ -366,7 +366,7 @@ class TestPermissions(unittest.TestCase):
 		posts = frappe.get_list('Blog Post', fields=['name', 'blogger'])
 
 		# Should get only posts with allowed blogger via user permission
-		# only '_Test Blogger', '_Test Blogger 1' are allowed
+		# only '_Test Blogger', '_Test Blogger 1' are allowed in Blog Post
 		self.assertEqual(len(posts), 4)
 
 		for post in posts:
