@@ -53,7 +53,7 @@
 }
 .filter-box .filter_field {
   padding-right: 15px;
-  width: calc(64%);
+  width: calc(100% - 36px);
 }
 .filter-box .filter_field .frappe-control {
   position: relative;
