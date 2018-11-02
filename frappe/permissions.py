@@ -116,6 +116,8 @@ def get_doc_permissions(doc, verbose=False, user=None, ptype=None):
 
 	if not has_user_permission(doc, user):
 		if not permissions.get("if_owner"): return {}
+
+		if not frappe.session.user or not doc.owner: return {}
 		# apply owner permissions on top of existing permissions
 		if(doc.owner.lower() == frappe.session.user.lower()):
 
