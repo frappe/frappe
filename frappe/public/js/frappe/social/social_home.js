@@ -42,11 +42,15 @@ frappe.social.post_dialog = new frappe.ui.Dialog({
 	],
 	primary_action_label: __('Post'),
 	primary_action: (values) => {
+		frappe.social.post_dialog.disable_primary_action();
 		const post = frappe.model.get_new_doc('Post');
 		post.content = values.content;
 		frappe.db.insert(post).then(() => {
 			frappe.social.post_dialog.clear();
 			frappe.social.post_dialog.hide();
+			frappe.social.post_dialog.enable_primary_action();
+		}).catch(() => {
+			frappe.social.post_dialog.enable_primary_action();
 		});
 	}
 });
