@@ -48,8 +48,7 @@ frappe.social.post_dialog = new frappe.ui.Dialog({
 		frappe.db.insert(post).then(() => {
 			frappe.social.post_dialog.clear();
 			frappe.social.post_dialog.hide();
-			frappe.social.post_dialog.enable_primary_action();
-		}).catch(() => {
+		}).finally(() => {
 			frappe.social.post_dialog.enable_primary_action();
 		});
 	}
