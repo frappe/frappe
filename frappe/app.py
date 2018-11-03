@@ -7,7 +7,6 @@ import json
 import os
 from six import iteritems
 import logging
-import time
 
 from werkzeug.wrappers import Request
 from werkzeug.local import LocalManager
