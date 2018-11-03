@@ -15,7 +15,7 @@ from frappe.model.document import Document
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate, get_doc_path
-from frappe.database.schema import validate_column_name, validate_column_length
+from frappe.database.schema import validate_column_name, validate_column_length, type_map
 from frappe.model.docfield import supports_translation
 import frappe.website.render
 
