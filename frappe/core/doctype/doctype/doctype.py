@@ -289,16 +289,15 @@ class DocType(Document):
 		clear_linked_doctype_cache()
 
 	def delete_duplicate_custom_fields(self):
-		if not (frappe.db.table_exists(self.name) and frappe.db.table_exists("Custom Field")):
-			return
-
-		fields = [d.fieldname for d in self.fields if d.fieldtype in data_fieldtypes]
-
-		frappe.db.sql('''delete from
-				`tabCustom Field`
-			where
-				 dt = {0} and fieldname in ({1})
-		'''.format('%s', ', '.join(['%s'] * len(fields))), tuple([self.name] + fields), as_dict=True)
+                if not (frappe.db.table_exists(self.name) and frappe.db.table_exists("Custom Field")):
+                        return
+                fields = [d.fieldname for d in self.fields if d.fieldtype in type_map]
+                if len(fields) < 0:
+                        frappe.db.sql('''delete from
+                                        `tabCustom Field`
+                                where
+                                         dt = {0} and fieldname in ({1})
+                        '''.format('%s', ', '.join(['%s'] * len(fields))), tuple([self.name] + fields), as_dict=True)
 
 	def sync_global_search(self):
 		'''If global search settings are changed, rebuild search properties for this table'''
