@@ -7,16 +7,15 @@ import json
 import time
 import frappe
 
+def time_ms():
+	return time.time() * 1000
+
 def wrap_cache():
 	def cache_recorder(function):
 		def wrapper(*args, **kwargs):
-			# There should be a better way to record time in ms
-			# For now we're recording time in ns and then dividing it by one million
-			one_million = 1000000
-
-			start_time_ns = time.perf_counter_ns()
+			start_time_ms = time_ms()
 			result = function(*args, **kwargs)
-			end_time_ns = time.perf_counter_ns()
+			end_time_ms = time_ms()
 
 			import traceback
 			# Some elementary analysis shows that following lines are a little time consuming
@@ -36,9 +35,9 @@ def wrap_cache():
 				# Regenerate equivalent function call instead.
 				"call": "{}(*{},**{})".format(function.__name__, args, kwargs),
 				"time": {
-					"start": start_time_ns / one_million,
-					"end": end_time_ns / one_million,
-					"total": (end_time_ns - start_time_ns) / one_million,
+					"start": start_time_ms,
+					"end": end_time_ms,
+					"total": end_time_ms - start_time_ms,
 				},
 			}
 
@@ -93,10 +92,9 @@ def recorder(function):
 		# Execute wrapped function as is
 		# Record arguments as well as return value
 		# Record start and end time as well
-		one_million = 1000000
-		start_time_ns = time.perf_counter_ns()
+		start_time_ms = time_ms()
 		result = function(*args, **kwargs)
-		end_time_ns = time.perf_counter_ns()
+		end_time_ms = time_ms()
 
 		import traceback
 		stack = "".join(traceback.format_stack())
@@ -115,9 +113,9 @@ def recorder(function):
 			"query": query,
 			"stack": stack,
 			"time": {
-				"start": start_time_ns / one_million,
-				"end": end_time_ns / one_million,
-				"total": (end_time_ns - start_time_ns) / one_million,
+				"start": start_time_ms,
+				"end": end_time_ms,
+				"total": end_time_ms - start_time_ms,
 			},
 		}
 
