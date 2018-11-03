@@ -120,12 +120,19 @@ def recorder(function):
 		# __self__ will refer to frappe.db
 		# Rest is trivial
 		query = function.__self__._cursor._executed
+
+		# Built in profiler is already turned on
+		# Now fetch the profile data for last query
+		# This must be done after collecting query from _cursor._executed
+		profile_result = function("SHOW PROFILE ALL")
+
 		data = {
 			"function": function.__name__,
 			"args": args,
 			"kwargs": kwargs,
 			"result": result,
 			"query": query,
+			"profile_result": profile_result,
 			"stack": stack,
 			"time": {
 				"start": start_time_ms,
@@ -140,6 +147,10 @@ def recorder(function):
 
 	wrapper.calls = list()
 	wrapper.path = frappe.request.path
+
+	# Enable MariaDB's builtin query profiler.
+	# Profile data can be collected after each query.
+	function("SET profiling = 1")
 	return wrapper
 
 def dumps(stuff):
