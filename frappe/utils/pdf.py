@@ -62,6 +62,7 @@ def prepare_options(html, options):
 		'background': None,
 		'images': None,
 		'quiet': None,
+		'disable-smart-shrinking': None,
 		# 'no-outline': None,
 		'encoding': "UTF-8",
 		#'load-error-handling': 'ignore',
@@ -93,7 +94,10 @@ def read_options_from_html(html):
 	toggle_visible_pdf(soup)
 
 	# use regex instead of soup-parser
-	for attr in ("margin-top", "margin-bottom", "margin-left", "margin-right", "page-size", "header-spacing"):
+	for attr in [
+		"margin-top", "margin-bottom", "margin-left", "margin-right", "header-spacing",
+		"page-size", "page-width", "page-height", "orientation"
+	]:
 		try:
 			pattern = re.compile(r"(\.print-format)([\S|\s][^}]*?)(" + str(attr) + r":)(.+)(mm;)")
 			match = pattern.findall(html)
