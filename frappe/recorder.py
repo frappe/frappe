@@ -7,6 +7,22 @@ import json
 import time
 import frappe
 
+def recorder_start():
+		# Need to record all calls to frappe.db.sql
+		# Should be done after frappe.db refers to an instance of Database
+		# Now is a good time
+		# If uuid is not set then RecorderMiddleware isn't active
+		if "uuid" in frappe.request.environ:
+			wrap_cache()
+			frappe.db.sql = recorder(frappe.db.sql)
+
+def recorder_stop():
+		# Recorded calls need to be stored in cache
+		# This looks like a terribe syntax, Because it actually is
+		if "uuid" in frappe.request.environ:
+			persist_cache()
+			persist(frappe.db.sql)
+
 def time_ms():
 	return time.time() * 1000
 

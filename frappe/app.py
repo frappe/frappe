@@ -25,7 +25,7 @@ from frappe.middlewares import RecorderMiddleware, StaticDataMiddleware
 from frappe.utils.error import make_error_snapshot
 from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
 from frappe import _
-from frappe.recorder import persist, persist_cache, recorder, wrap_cache
+from frappe.recorder import recorder_start, recorder_stop
 
 local_manager = LocalManager([frappe.local])
 
@@ -52,11 +52,7 @@ def application(request):
 
 		init_request(request)
 
-		# Need to record all calls to frappe.db.sql
-		# Should be done after frappe.db refers to an instance of Database
-		# Now is a good time
-		wrap_cache()
-		frappe.db.sql = recorder(frappe.db.sql)
+		recorder_start()
 
 		if frappe.local.form_dict.cmd:
 			response = frappe.handler.handle()
@@ -98,10 +94,7 @@ def application(request):
 		if response and hasattr(frappe.local, 'cookie_manager'):
 			frappe.local.cookie_manager.flush_cookies(response=response)
 
-		# Recorded calls need to be stored in cache
-		# This looks like a terribe syntax, Because it actually is
-		persist_cache()
-		persist(frappe.db.sql)
+		recorder_stop()
 		frappe.destroy()
 
 	return response
