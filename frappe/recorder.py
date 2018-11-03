@@ -126,12 +126,20 @@ def recorder(function):
 		# This must be done after collecting query from _cursor._executed
 		profile_result = function("SHOW PROFILE ALL")
 
+		# Collect EXPLAIN for executed query
+		if query.lower().strip()[0] in ("select", "update", "delete"):
+			# Only SELECT/UPDATE/DELETE queries can be "EXPLAIN"ed
+			explain_result = function("EXPLAIN EXTENDED {}".format(query))
+		else:
+			explain_result = ""
+
 		data = {
 			"function": function.__name__,
 			"args": args,
 			"kwargs": kwargs,
 			"result": result,
 			"query": query,
+			"explain_result": explain_result,
 			"profile_result": profile_result,
 			"stack": stack,
 			"time": {
