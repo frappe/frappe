@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import json
 import time
+import traceback
 import frappe
 
 def recorder_start():
@@ -33,7 +34,6 @@ def wrap_cache():
 			result = function(*args, **kwargs)
 			end_time_ms = time_ms()
 
-			import traceback
 			# Some elementary analysis shows that following lines are a little time consuming
 			# These can be made optional.
 			stack = "".join(traceback.format_stack())
@@ -112,7 +112,6 @@ def recorder(function):
 		result = function(*args, **kwargs)
 		end_time_ms = time_ms()
 
-		import traceback
 		stack = "".join(traceback.format_stack())
 
 		# Big hack here
