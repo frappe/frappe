@@ -13,6 +13,10 @@ frappe.view_factories = [];
 frappe.route_options = null;
 
 frappe.route = function() {
+
+	// Application is not yet initiated
+	if (!frappe.app) return;
+
 	if(frappe.re_route[window.location.hash] !== undefined) {
 		// after saving a doc, for example,
 		// "New DocType 1" and the renamed "TestDocType", both exist in history
