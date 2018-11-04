@@ -67,7 +67,7 @@
 									var indicator_class = "green";
 								} else if (data.delivery_status === "Sending") {
 									var indicator_class = "orange";
-								} else if (in_list("Opened", "Read", data.delivery_status)) {
+								} else if (in_list(["Opened", "Read"], data.delivery_status)) {
 									var indicator_class = "blue";
 								} else {
 									var indicator_class = "red";
