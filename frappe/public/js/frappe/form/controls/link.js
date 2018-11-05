@@ -51,7 +51,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		return this.df.options;
 	},
 	get_reference_doctype() {
-		// this is used to get the context of in which link field is loaded
+		// this is used to get the context in which link field is loaded
 		return this.doctype || frappe.get_route()[0] === 'List' ? frappe.get_route()[1] : null;
 	},
 	setup_buttons: function() {
