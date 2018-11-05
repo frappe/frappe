@@ -116,7 +116,7 @@ frappe.get_raw_route_str = function(route) {
 }
 
 frappe.get_route_str = function(route) {
-	var rawRoute = frappe.get_raw_route_str()
+	var rawRoute = frappe.get_raw_route_str(route);
 	route = $.map(rawRoute.split('/'), frappe._decode_str).join('/');
 
 	return route;
