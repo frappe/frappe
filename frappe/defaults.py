@@ -61,9 +61,11 @@ def not_in_user_permission(key, value, user=None):
 	user_permission = get_user_permissions(user).get(frappe.unscrub(key)) or []
 
 	for perm in user_permission:
-		if perm.get('doc') == value: return True
+		# doc found in user permission
+		if perm.get('doc') == value: return False
 
-	return False
+	# return true only if user_permission exists
+	return user_permission and True
 
 def get_user_permissions(user=None):
 	from frappe.core.doctype.user_permission.user_permission \
