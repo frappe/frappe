@@ -694,7 +694,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_list_click() {
-		this.$result.on('click', '.list-row', (e) => {
+		this.$result.on('click', '.list-row, .image-view-header', (e) => {
 			const $target = $(e.target);
 			// tick checkbox if Ctrl/Meta key is pressed
 			if (e.ctrlKey || e.metaKey && !$target.is('a')) {
