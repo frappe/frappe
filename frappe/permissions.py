@@ -114,12 +114,22 @@ def get_doc_permissions(doc, verbose=False, user=None, ptype=None):
 	if not cint(meta.allow_import):
 		permissions["import"] = 0
 
-	if not has_user_permission(doc, user):
-		if not permissions.get("if_owner"): return {}
-		# apply owner permissions on top of existing permissions
-		if(doc.owner == frappe.session.user):
+	def is_user_owner():
+		doc_owner = doc.get('owner') or ''
+		doc_owner = doc_owner.lower()
+		session_user = frappe.session.user.lower()
+		return doc_owner == session_user
 
-			permissions = permissions.get("if_owner")
+	if is_user_owner():
+		# apply owner permissions on top of existing permissions
+		# some access might be only for the owner
+		# eg. everyone might have read access but only owner can delete
+		permissions.update(permissions.get("if_owner", {}))
+
+	if not has_user_permission(doc, user):
+		if is_user_owner():
+			# replace with owner permissions
+			permissions = permissions.get("if_owner", {})
 			# if_owner does not come with create rights...
 			permissions['create'] = 0
 		else:
@@ -169,13 +179,18 @@ def get_role_permissions(doctype_meta, user=None, verbose=False):
 
 		for ptype in rights:
 			pvalue = any(p.get(ptype, 0) for p in applicable_permissions)
-			perms[ptype] = cint(pvalue) # check if any perm object allows perm type
+			# check if any perm object allows perm type
+			perms[ptype] = cint(pvalue)
 			if (pvalue
 				and has_if_owner_enabled
-				and not has_permission_without_if_owner_enabled(ptype)):
+				and not has_permission_without_if_owner_enabled(ptype)
+				and ptype != 'create'):
 				perms['if_owner'][ptype] = 1
+				# has no access if not owner
+				perms[ptype] = 0
 
 		frappe.local.role_permissions[cache_key] = perms
+
 	return frappe.local.role_permissions[cache_key]
 
 def get_user_permissions(user):
@@ -451,7 +466,7 @@ def add_permission(doctype, role, permlevel=0):
 	setup_custom_perms(doctype)
 
 	if frappe.db.get_value('Custom DocPerm', dict(parent=doctype, role=role,
-		permlevel=permlevel)):
+		permlevel=permlevel, if_owner=0)):
 		return
 
 	custom_docperm = frappe.get_doc({
