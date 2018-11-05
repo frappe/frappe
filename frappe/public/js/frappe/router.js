@@ -4,6 +4,7 @@
 // route urls to their virtual pages
 
 // re-route map (for rename)
+frappe.provide('frappe.views');
 frappe.re_route = {"#login": ""};
 frappe.route_titles = {};
 frappe.route_flags = {};
@@ -49,7 +50,9 @@ frappe.route = function() {
 	} else {
 		// show page
 		const route_name = frappe.utils.xss_sanitise(route[0]);
-		frappe.views.pageview.show(route_name);
+		if (frappe.views.pageview) {
+			frappe.views.pageview.show(route_name);
+		}
 	}
 
 
@@ -146,9 +149,10 @@ frappe.set_route = function() {
 		window.location.hash = route;
 
 		// Set favicon (app.js)
+		frappe.provide('frappe.app');
 		frappe.app.set_favicon && frappe.app.set_favicon();
 		setTimeout(() => {
-			frappe.after_ajax(() => {
+			frappe.after_ajax && frappe.after_ajax(() => {
 				resolve();
 			});
 		}, 100);
