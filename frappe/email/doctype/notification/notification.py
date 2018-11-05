@@ -137,14 +137,16 @@ def get_context(context):
 			subject = frappe.render_template(self.subject, context)
 
 		attachments = self.get_attachment(doc)
-		recipients = self.get_list_of_recipients(doc, context)
+		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
 		sender = None
 		if self.sender and self.sender_email:
 			sender = formataddr((self.sender, self.sender_email))
-
-		frappe.sendmail(recipients=recipients, subject=subject,
-			sender=sender,
-			message= frappe.render_template(self.message, context),
+		frappe.sendmail(recipients = recipients,
+			subject = subject,
+			sender = sender,
+			cc = cc,
+			bcc = bcc,
+			message = frappe.render_template(self.message, context),
 			reference_doctype = doc.doctype,
 			reference_name = doc.name,
 			attachments = attachments,
@@ -160,6 +162,8 @@ def get_context(context):
 
 	def get_list_of_recipients(self, doc, context):
 		recipients = []
+		cc = []
+		bcc = []
 		for recipient in self.recipients:
 			if recipient.condition:
 				if not frappe.safe_eval(recipient.condition, None, context):
@@ -177,7 +181,14 @@ def get_context(context):
 
 			if recipient.cc:
 				recipient.cc = recipient.cc.replace(",", "\n")
-				recipients = recipients + recipient.cc.split("\n")
+				cc = cc + recipient.cc.split("\n")
+
+			if recipient.bcc and "{" in recipient.bcc:
+				recipient.bcc = frappe.render_template(recipient.bcc, context)
+
+			if recipient.bcc:
+				recipient.bcc = recipient.bcc.replace(",", "\n")
+				bcc = bcc + recipient.bcc.split("\n")
 
 			#For sending emails to specified role
 			if recipient.email_by_role:
@@ -186,10 +197,9 @@ def get_context(context):
 				for email in emails:
 					recipients = recipients + email.split("\n")
 
-		if not recipients:
-			return
-
-		return list(set(recipients))
+		if not recipients and not cc and not bcc:
+			return None, None, None
+		return list(set(recipients)), list(set(cc)), list(set(bcc))
 
 	def get_attachment(self, doc):
 		""" check print settings are attach the pdf """
@@ -295,7 +305,6 @@ def evaluate_alert(doc, alert, event):
 			# reload the doc for the latest values & comments,
 			# except for validate type event.
 			doc = frappe.get_doc(doc.doctype, doc.name)
-
 		alert.send(doc)
 	except TemplateError:
 		frappe.throw(_("Error while evaluating Notification {0}. Please fix your template.").format(alert))
