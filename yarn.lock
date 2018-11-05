@@ -1219,10 +1219,10 @@ forwarded@~0.1.2:
   resolved "https://registry.yarnpkg.com/forwarded/-/forwarded-0.1.2.tgz#98c23dab1175657b8c0573e8ceccd91b0ff18c84"
   integrity sha1-mMI9qxF1ZXuMBXPozszZGw/xjIQ=
 
-frappe-datatable@^1.5.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.5.0.tgz#eea78a87e799876b71e58dbdc128fd9badb5e2c6"
-  integrity sha512-h9yP33UqRcEfcs5FVSFFUigya/KT5qFrB1vOqayhxqPoxdVH2pGKi+Qh/BO5KRNd6uVk8rVwXMhA8A9TU+2uEg==
+frappe-datatable@^1.5.3:
+  version "1.5.3"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.5.3.tgz#f60e619a92b77b60cdbb8376e521398a2933995a"
+  integrity sha512-1sEcnOUxN+vI5BgrPJPNJNc72kAX4RQRNBJjR2RWVotczIE+YJZ4e8M1k6d4xXFWOj687qD9wha7uveSKy2jkQ==
   dependencies:
     hyperlist "^1.0.0-beta"
     lodash "^4.17.5"
