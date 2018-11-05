@@ -192,8 +192,7 @@ class DatabaseQuery(object):
 		'''
 
 		sub_query_regex = re.compile("^.*[,();].*")
-		blacklisted_keywords = ['select', 'create', 'insert', 'delete', 'drop', 'update', 'case',
-			'from', 'group', 'order', 'by']
+		blacklisted_keywords = ['select', 'create', 'insert', 'delete', 'drop', 'update', 'case']
 		blacklisted_functions = ['concat', 'concat_ws', 'if', 'ifnull', 'nullif', 'coalesce',
 			'connection_id', 'current_user', 'database', 'last_insert_id', 'session_user',
 			'system_user', 'user', 'version']
