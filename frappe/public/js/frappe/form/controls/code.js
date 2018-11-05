@@ -1,8 +1,78 @@
 frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
-	make_input: function() {
-		this._super();
-		$(this.input_area).find("textarea")
-			.allowTabs()
-			.addClass('control-code');
+	make_input() {
+		if (this.editor) return;
+		this.load_lib().then(() => this.make_ace_editor());
+	},
+
+	make_ace_editor() {
+		const ace_editor_target = $('<div class="ace-editor-target"></div>')
+			.appendTo(this.input_area);
+
+		// styling
+		ace_editor_target.addClass('border rounded');
+		ace_editor_target.css('height', 300);
+
+		// initialize
+		this.editor = ace.edit(ace_editor_target.get(0));
+		this.editor.setTheme('ace/theme/tomorrow');
+		this.set_language();
+
+		// events
+		this.editor.session.on('change', frappe.utils.debounce((delta) => {
+			const input_value = this.get_input_value();
+			this.parse_validate_and_set_in_model(input_value);
+		}, 300));
+	},
+
+	set_language() {
+		const language_map = {
+			'Javascript': 'ace/mode/javascript',
+			'HTML': 'ace/mode/html',
+			'CSS': 'ace/mode/css'
+		}
+		const language = this.df.options;
+
+		const valid_languages = Object.keys(language_map);
+		if (!valid_languages.includes(language)) {
+			console.warn(`Invalid language option provided for field "${this.df.label}". Valid options are ${valid_languages.join(', ')}.`);
+		}
+
+		const ace_language_mode = language_map[language] || '';
+		this.editor.session.setMode(ace_language_mode);
+	},
+
+	parse(value) {
+		if (value == null) {
+			value = "";
+		}
+		return value;
+	},
+
+	set_formatted_input(value) {
+		this.library_loaded.then(() => {
+			if (value === this.get_input_value()) return;
+			this.editor.session.setValue(value);
+		});
+	},
+
+	get_input_value() {
+		return this.editor ? this.editor.session.getValue() : '';
+	},
+
+	load_lib() {
+		if (frappe.boot.developer_mode) {
+			this.root_lib_path = '/assets/frappe/js/lib/ace-builds/src-noconflict/';
+		} else {
+			this.root_lib_path = '/assets/frappe/js/lib/ace-builds/src-min-noconflict/';
+		}
+
+		this.library_loaded = new Promise(resolve => {
+			frappe.require(this.root_lib_path + 'ace.js', () => {
+				window.ace.config.set('basePath', this.root_lib_path);
+				resolve();
+			});
+		});
+
+		return this.library_loaded;
 	}
 });
