@@ -275,10 +275,7 @@ def get_unsubscribe_message(unsubscribe_message, expose_recipients):
 			target="_blank">{0}</a>'''.format(_('Unsubscribe'))
 		unsubscribe_html = _("{0} to stop receiving emails of this type").format(unsubscribe_link)
 
-	html = """<div class="email-pixel">
-			<!--email open check-->
-		</div>
-		<div class="email-unsubscribe">
+	html = """<div class="email-unsubscribe">
 			<!--cc message-->
 			<div>
 				{0}

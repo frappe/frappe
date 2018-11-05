@@ -36,7 +36,8 @@ frappe.ui.Tags = class {
 	bind() {
 		this.$input.keypress((e) => {
 			if(e.which == 13 || e.keyCode == 13) {
-				this.addTag(this.$input.val());
+				const tagValue = frappe.utils.xss_sanitise(this.$input.val());
+				this.addTag(tagValue);
 				this.$input.val('');
 			}
 		});

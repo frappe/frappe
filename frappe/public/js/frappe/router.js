@@ -52,7 +52,8 @@ frappe.route = function() {
 		frappe.view_factory[route[0]].show();
 	} else {
 		// show page
-		frappe.views.pageview.show(route[0]);
+		const route_name = frappe.utils.xss_sanitise(route[0]);
+		frappe.views.pageview.show(route_name);
 	}
 
 

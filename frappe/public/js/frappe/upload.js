@@ -41,6 +41,11 @@ frappe.upload = {
 		$upload.find(".btn-browse").on("click",
 			function() { $file_input.click(); });
 
+		// restrict to images
+		if (opts.restrict_to_images) {
+			$file_input.prop('accept', 'image/*');
+		}
+
 		// dropzone upload
 		const $dropzone = $('<div style="padding: 20px 10px 0px 10px;"/>');
 		new frappe.ui.DropZone($dropzone, {
