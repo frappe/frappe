@@ -619,6 +619,7 @@ def get_order_by(doctype, meta):
 def get_list(doctype, *args, **kwargs):
 	'''wrapper for DatabaseQuery'''
 	kwargs.pop('cmd', None)
+	kwargs.pop('ignore_permissions', None)
 	return DatabaseQuery(doctype).execute(None, *args, **kwargs)
 
 def is_parent_only_filter(doctype, filters):
