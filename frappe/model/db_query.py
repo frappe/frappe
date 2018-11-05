@@ -103,6 +103,9 @@ class DatabaseQuery(object):
 		args = self.prepare_args()
 		args.limit = self.add_limit()
 
+		if self.return_empty:
+			return () if self.as_list else []
+
 		if args.conditions:
 			args.conditions = "where " + args.conditions
 
@@ -552,13 +555,12 @@ class DatabaseQuery(object):
 
 					match_conditions.append("({condition})".format(condition=condition))
 
-				elif user_permission_values:
-					# this
-					condition += "`tab{doctype}`.`{fieldname}` in ('undefined')".format(
-						doctype=self.doctype,
-						fieldname=df.get('fieldname')
-					)
-					match_conditions.append("({condition})".format(condition=condition))
+				else:
+					# this condition states that even though there are user permissions,
+					# no docs are allowed under the reference doctype passed.
+					# hence the response should be empty.
+					self.return_empty = True
+
 
 		if match_conditions:
 			self.match_conditions.append(" and ".join(match_conditions))
