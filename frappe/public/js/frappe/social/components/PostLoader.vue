@@ -1,10 +1,12 @@
 <template>
 	<div>
-		<post :post="post" v-for="post in posts" :key="post.name"></post>
+		<transition-group name="flip-list">
+			<post :post="post" v-for="post in posts" :key="post.name"></post>
+		</transition-group>
 		<div v-if="!loading_posts && !posts.length" class="no-post-message text-muted">
 			{{ __('No posts yet') }}
 		</div>
-		<div v-show="loading_posts" class="text-center padding">{{ __('Loading posts...') }}</div>
+		<div v-show="loading_posts" class="text-center padding">{{ __('Fetching posts...') }}</div>
 		<div
 			v-show="posts.length && !more_posts_available"
 			class="text-center padding">
@@ -54,8 +56,9 @@ export default {
 				order_by: 'is_globally_pinned desc, creation desc',
 			})
 		},
-		update_posts(load_old=false) {
+		update_posts(load_old = false) {
 			if (!this.post_list_filter) return
+			this.loading_posts = true;
 
 			const filters = Object.assign({}, this.post_list_filter);
 
@@ -68,14 +71,14 @@ export default {
 				} else {
 					this.posts = res;
 				}
+			}).finally(() => {
 				this.loading_posts = false;
 			});
 		},
 		handle_scroll: frappe.utils.debounce(function() {
 			const screen_bottom = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
 			if (screen_bottom && this.more_posts_available) {
-				if (this.more_posts_available && !this.loading_posts) {
-					this.loading_posts = true;
+				if (!this.loading_posts) {
 					this.update_posts(true);
 				}
 			}
@@ -92,5 +95,8 @@ export default {
 	text-align: center;
 	vertical-align: middle;
 	line-height: 200px;
+}
+.flip-list-move {
+	transition: transform 0.3s;
 }
 </style>
