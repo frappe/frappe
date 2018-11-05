@@ -299,17 +299,13 @@ frappe.ui.get_print_settings = function (pdf, callback, letter_head) {
 		depends_on: "with_letter_head",
 		options: $.map(frappe.boot.letter_heads, function (i, d) { return d }),
 		default: letter_head || default_letter_head
+	}, {
+		fieldtype: "Select",
+		fieldname: "orientation",
+		label: __("Orientation"),
+		options: "Landscape\nPortrait",
+		default: "Landscape"
 	}];
-
-	if (pdf) {
-		columns.push({
-			fieldtype: "Select",
-			fieldname: "orientation",
-			label: __("Orientation"),
-			options: "Landscape\nPortrait",
-			default: "Landscape"
-		})
-	}
 
 	frappe.prompt(columns, function (data) {
 		var data = $.extend(print_settings, data);
