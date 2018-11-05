@@ -209,7 +209,6 @@ class EMail:
 			"To":             ', '.join(self.recipients) if self.expose_recipients=="header" else "<!--recipient-->",
 			"Date":           email.utils.formatdate(),
 			"Reply-To":       self.reply_to if self.reply_to else None,
-			"Bcc":            ', '.join(self.bcc) if self.bcc else None,
 			"CC":             ', '.join(self.cc) if self.cc and self.expose_recipients=="header" else None,
 			'X-Frappe-Site':  get_url(),
 		}
