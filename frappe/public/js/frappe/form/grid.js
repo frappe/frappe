@@ -470,7 +470,9 @@ export default class Grid {
 		if(this.is_editable()) {
 			if(this.frm) {
 				var d = frappe.model.add_child(this.frm.doc, this.df.options, this.df.fieldname, idx);
-				d = this.duplicate_row(d, copy_doc);
+				if(copy_doc) {
+					d = this.duplicate_row(d, copy_doc);
+				}
 				d.__unedited = true;
 				this.frm.script_manager.trigger(this.df.fieldname + "_add", d.doctype, d.name);
 				this.refresh();
@@ -498,14 +500,12 @@ export default class Grid {
 	}
 
 	duplicate_row(d, copy_doc) {
-		if(copy_doc) {
-			$.each(copy_doc, function(key, value) {
-				if(!["creation", "modified", "modified_by", "idx", "owner",
-					"parent", "doctype", "name", "parentield"].includes(key)) {
-					d[key] = value;
-				}
-			});
-		}
+		$.each(copy_doc, function(key, value) {
+			if(!["creation", "modified", "modified_by", "idx", "owner",
+				"parent", "doctype", "name", "parentield"].includes(key)) {
+				d[key] = value;
+			}
+		});
 
 		return d;
 	}
