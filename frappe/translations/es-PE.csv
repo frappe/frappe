@@ -15,7 +15,7 @@ DocType: Customize Form,Enter Form Type,Introduzca Tipo de Formulario
 apps/frappe/frappe/public/js/frappe/form/controls/attach.js +58,Select from existing attachments,Seleccione de archivos adjuntos existentes
 DocType: Notification Recipient,Email By Document Field,Email Por Campo Documento
 DocType: User,Banner Image,Imagen del banner
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +276,New {0}: #{1},Nuevo {0}: # {1}
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +285,New {0}: #{1},Nuevo {0}: # {1}
 apps/frappe/frappe/public/js/frappe/ui/messages.js +68,Enter Value,Introducir valor
 apps/frappe/frappe/core/doctype/doctype/doctype.py +820,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: no se puede Presentar, Cancelar y Corregir sin Guardar"
 DocType: Web Page,Insert Style,Inserte Estilo
@@ -150,7 +150,7 @@ DocType: Integration Request,Reference DocName,Referencia DocNombre
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +790,Saved,Guardado
 DocType: System Settings,Security,Seguridad
 DocType: Communication,Read,Lectura
-apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +281,use % as wildcard,Use% como comodín
+apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +283,use % as wildcard,Use% como comodín
 apps/frappe/frappe/model/delete_doc.py +171,User not allowed to delete {0}: {1},El usuario no puede eliminar {0}: {1}
 apps/frappe/frappe/desk/query_report.py +52,Query must be a SELECT,Debe seleccionar la Consulta
 DocType: DocShare,Document Name,Nombre del documento
@@ -238,7 +238,7 @@ DocType: Web Form,Text to be displayed for Link to Web Page if this form has a w
 DocType: Print Settings,Send Email Print Attachments as PDF (Recommended),Enviar Emails con adjuntos en formato PDF (recomendado)
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +157,Field {0} is not selectable.,El campo {0} no se puede seleccionar .
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +821,Select To Download:,Seleccione la descarga :
-apps/frappe/frappe/public/js/frappe/upload.js +246,Please attach a file or set a URL,"Por favor, adjuntar un archivo o defina una URL"
+apps/frappe/frappe/public/js/frappe/upload.js +251,Please attach a file or set a URL,"Por favor, adjuntar un archivo o defina una URL"
 DocType: Contact,Is Primary Contact,Es Contacto principal
 ,Permitted Documents For User,Documentos permitidos para los usuarios
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +132,Make a new record,Hacer un Nuevo Registro
@@ -259,7 +259,7 @@ DocType: Communication,Unread Notification Sent,Notificación No leído Enviado
 apps/frappe/frappe/public/js/frappe/views/treeview.js +234,Select a group node first.,Seleccione un nodo de grupo primero.
 DocType: Workflow State,"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Estilo representa el color del botón : Éxito - Verde , Peligro - Rojo , Inverso - Negro , Primaria - Azul Oscuro , Info - Azul Claro, Advertencia - Orange"
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +291,Users with role {0}:,Los usuarios con función {0}:
-apps/frappe/frappe/core/doctype/file/file.py +194,Same file has already been attached to the record,El mismo archivo ya se ha adjuntado al registro
+apps/frappe/frappe/core/doctype/file/file.py +195,Same file has already been attached to the record,El mismo archivo ya se ha adjuntado al registro
 apps/frappe/frappe/core/doctype/doctype/doctype.py +817,{0}: Cannot set Cancel without Submit,{0}: no se puede 'Cancelar' sin presentarlo
 DocType: Address,Address Title,Dirección Título
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +241,Mark the field as Mandatory,Marque el campo como obligatorio
@@ -306,7 +306,7 @@ apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layou
 DocType: Currency,"Sub-currency. For e.g. ""Cent""","Sub-moneda, por ejemplo, ""Centavo"""
 DocType: Workflow State,exclamation-sign,signo de exclamación
 DocType: Desktop Icon,List,Vista de árbol
-apps/frappe/frappe/public/js/frappe/views/communication.js +593,There were errors while sending email. Please try again.,"Hubo errores al enviar el correo electrónico. Por favor, inténtelo de nuevo."
+apps/frappe/frappe/public/js/frappe/views/communication.js +597,There were errors while sending email. Please try again.,"Hubo errores al enviar el correo electrónico. Por favor, inténtelo de nuevo."
 apps/frappe/frappe/core/doctype/system_settings/system_settings.py +27,Session Expiry must be in format {0},Vencimiento de sesión debe estar en formato {0}
 DocType: User,Stores the JSON of last known versions of various installed apps. It is used to show release notes.,Almacena el JSON de las últimas versiones conocidas de diferentes aplicaciones instaladas. Se utiliza para mostrar notas de la versión.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","Significado de Enviar, Cancelar, Corregir"
@@ -351,7 +351,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16
 apps/frappe/frappe/public/js/frappe/views/pageview.js +104,Sorry! I could not find what you were looking for.,¡Lo siento! No pude encontrar lo que estabas buscando.
 DocType: Workflow State,remove-sign,Eliminar el efecto de signo
 apps/frappe/frappe/public/js/frappe/form/controls/select.js +61,Please attach a file first.,Adjunte un archivo primero .
-apps/frappe/frappe/public/js/frappe/request.js +387,Report this issue,Reportar Incidencia
+apps/frappe/frappe/public/js/frappe/request.js +390,Report this issue,Reportar Incidencia
 apps/frappe/frappe/public/js/frappe/views/treeview.js +242,New {0},Nuevo {0}
 DocType: Workflow Action,Workflow Action,Acciones de los flujos de trabajo
 DocType: Custom Script,Script Type,Guión Tipo
