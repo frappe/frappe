@@ -13,12 +13,13 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 		ace_editor_target.css('height', 300);
 
 		// initialize
+		const ace = window.ace;
 		this.editor = ace.edit(ace_editor_target.get(0));
 		this.editor.setTheme('ace/theme/tomorrow');
 		this.set_language();
 
 		// events
-		this.editor.session.on('change', frappe.utils.debounce((delta) => {
+		this.editor.session.on('change', frappe.utils.debounce(() => {
 			const input_value = this.get_input_value();
 			this.parse_validate_and_set_in_model(input_value);
 		}, 300));
@@ -30,11 +31,12 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 			'JS': 'ace/mode/javascript',
 			'HTML': 'ace/mode/html',
 			'CSS': 'ace/mode/css'
-		}
+		};
 		const language = this.df.options;
 
 		const valid_languages = Object.keys(language_map);
 		if (!valid_languages.includes(language)) {
+			// eslint-disable-next-line
 			console.warn(`Invalid language option provided for field "${this.df.label}". Valid options are ${valid_languages.join(', ')}.`);
 		}
 
@@ -51,6 +53,7 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 
 	set_formatted_input(value) {
 		this.library_loaded.then(() => {
+			if (!value) value = '';
 			if (value === this.get_input_value()) return;
 			this.editor.session.setValue(value);
 		});
