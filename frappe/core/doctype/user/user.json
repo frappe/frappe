@@ -1,5 +1,6 @@
 {
  "allow_copy": 0, 
+ "allow_events_in_timeline": 0, 
  "allow_guest_to_view": 0, 
  "allow_import": 1, 
  "allow_rename": 1, 
@@ -252,7 +253,7 @@
    "columns": 0, 
    "fieldname": "full_name", 
    "fieldtype": "Data", 
-   "hidden": 1, 
+   "hidden": 0, 
    "ignore_user_permissions": 0, 
    "ignore_xss_filter": 0, 
    "in_filter": 0, 
@@ -266,7 +267,7 @@
    "precision": "", 
    "print_hide": 0, 
    "print_hide_if_no_value": 0, 
-   "read_only": 0, 
+   "read_only": 1, 
    "remember_last_selected_value": 0, 
    "report_hide": 0, 
    "reqd": 0, 
@@ -2206,7 +2207,7 @@
  "istable": 0, 
  "max_attachments": 5, 
  "menu_index": 0, 
- "modified": "2018-09-28 16:34:06.215199", 
+ "modified": "2018-11-06 12:41:33.864058", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "User", 
@@ -2259,5 +2260,6 @@
  "sort_order": "DESC", 
  "title_field": "full_name", 
  "track_changes": 1, 
- "track_seen": 0
+ "track_seen": 0, 
+ "track_views": 0
 }
