@@ -645,27 +645,10 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		var reply = (this.message || "")
 			+ (signature ? ("<br>" + signature) : "");
-		var content = '';
 
-		if(last_email) {
-			var last_email_content = last_email.original_comment || last_email.content;
+		// why do we append the last email in the reply?
+		var content = "<div><br></div>" + reply;
 
-			last_email_content = last_email_content
-				.replace(/&lt;meta[\s\S]*meta&gt;/g, '') // remove <meta> tags
-				.replace(/&lt;style[\s\S]*&lt;\/style&gt;/g, ''); // // remove <style> tags
-
-			var communication_date = last_email.communication_date || last_email.creation;
-			content = '<div><br></div>'
-				+ reply
-				+ "<br><!-- original-reply --><br>"
-				+ '<blockquote>' +
-					'<p>' + __("On {0}, {1} wrote:",
-					[frappe.datetime.global_date_format(communication_date) , last_email.sender]) + '</p>' +
-					last_email_content +
-				'<blockquote>';
-		} else {
-			content = "<div><br></div>" + reply;
-		}
 		fields.content.set_value(content);
 	}
 });
