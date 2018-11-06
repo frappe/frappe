@@ -7,6 +7,10 @@ import frappe
 from frappe.model.document import Document
 
 class EmailGroupMember(Document):
+	def after_insert(self):
+		email_group = frappe.get_doc("Email Group", self.email_group)
+		email_group.update_total_subscribers()
+
 	def on_trash(self):
 		email_group = frappe.get_doc("Email Group",self.email_group)
 		total_subscribers = frappe.db.sql("""select count(*) from `tabEmail Group Member`
