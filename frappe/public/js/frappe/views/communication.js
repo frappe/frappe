@@ -657,7 +657,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			var communication_date = last_email.communication_date || last_email.creation;
 			content = '<div><br></div>'
 				+ reply
-				+ "<br><!-- original-reply --><br>"
+				+ "<div data-comment='original-reply'></div>"
 				+ '<blockquote>' +
 					'<p>' + __("On {0}, {1} wrote:",
 					[frappe.datetime.global_date_format(communication_date) , last_email.sender]) + '</p>' +
