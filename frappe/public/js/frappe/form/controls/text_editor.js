@@ -16,6 +16,24 @@ Table.create = (value) => {
 }
 Quill.register(Table, true);
 
+// hidden blot
+const Block = Quill.import('blots/block');
+class HiddenBlock extends Block {
+	static create(value) {
+		const node = super.create(value);
+		node.setAttribute('data-comment', value);
+		node.classList.add('hidden');
+		return node;
+	}
+
+	static formats(node) {
+		return node.getAttribute('data-comment');
+	}
+}
+HiddenBlock.blotName = 'hiddenblot';
+HiddenBlock.tagName = 'DIV';
+Quill.register(HiddenBlock, true);
+
 // image uploader
 const Uploader = Quill.import('modules/uploader');
 Uploader.DEFAULTS.mimetypes.push('image/gif');
