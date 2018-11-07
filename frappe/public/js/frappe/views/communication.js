@@ -513,7 +513,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				localStorage.removeItem(this.frm.doctype + this.frm.docname);
 			} catch (e) {
 				console.log(e);
-				console.warn('[Communication] Cannot delete localStorage item');
+				console.warn('[Communication] Cannot delete localStorage item'); // eslint-disable-line
 			}
 		}
 	},
