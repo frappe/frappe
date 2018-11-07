@@ -80,6 +80,11 @@ frappe.Application = Class.extend({
 
 		this.show_update_available();
 
+		if(frappe.ui.startup_setup_dialog) {
+			frappe.ui.startup_setup_dialog.pre_show();
+			frappe.ui.startup_setup_dialog.show();
+		}
+
 		// listen to csrf_update
 		frappe.realtime.on("csrf_generated", function(data) {
 			// handles the case when a user logs in again from another tab
