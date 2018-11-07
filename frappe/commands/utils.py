@@ -4,7 +4,11 @@ import json, os, sys
 from distutils.spawn import find_executable
 import frappe
 from frappe.commands import pass_context, get_site
-from frappe.utils import update_progress_bar
+from frappe.utils import update_progress_bar, get_bench_path
+from frappe.utils.response import json_handler
+from coverage import Coverage
+import cProfile, pstats
+from six import StringIO
 
 @click.command('build')
 @click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
@@ -93,8 +97,9 @@ def reset_perms(context):
 @click.argument('method')
 @click.option('--args')
 @click.option('--kwargs')
+@click.option('--profile', is_flag=True, default=False)
 @pass_context
-def execute(context, method, args=None, kwargs=None):
+def execute(context, method, args=None, kwargs=None, profile=False):
 	"Execute a function"
 	for site in context.sites:
 		try:
@@ -114,7 +119,17 @@ def execute(context, method, args=None, kwargs=None):
 			else:
 				kwargs = {}
 
+			if profile:
+				pr = cProfile.Profile()
+				pr.enable()
+
 			ret = frappe.get_attr(method)(*args, **kwargs)
+
+			if profile:
+				pr.disable()
+				s = StringIO()
+				ps = pstats.Stats(pr, stream=s).sort_stats('cumulative').print_stats(.5)
+				print(s.getvalue())
 
 			if frappe.db:
 				frappe.db.commit()

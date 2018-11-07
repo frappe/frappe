@@ -36,8 +36,9 @@ def after_install():
 	# update admin password
 	update_password("Administrator", get_admin_password())
 
-	# setup wizard now in frappe
-	frappe.db.set_default('desktop:home_page', 'setup-wizard')
+	# setup_conf = frappe._dict(frappe.local.conf.setup)
+	# if setup_conf and not setup_conf.skip_setup_wizard:
+	# 	frappe.db.set_default('desktop:home_page', 'setup-wizard')
 
 	frappe.db.commit()
 

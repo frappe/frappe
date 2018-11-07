@@ -17,6 +17,15 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 	},
 	make: function() {
 		this.$wrapper = frappe.get_modal("", "");
+
+		if(this.static) {
+			this.$wrapper.modal({
+				backdrop: 'static',
+				keyboard: false
+			});
+			this.get_close_btn().hide();
+		}
+
 		this.wrapper = this.$wrapper.find('.modal-dialog')
 			.get(0);
 		this.make_head();

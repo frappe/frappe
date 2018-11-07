@@ -349,3 +349,71 @@ def enable_twofactor_all_roles():
 	all_role.two_factor_auth = True
 	all_role.save(ignore_permissions=True)
 
+def make_records(records, debug=False):
+	from frappe import _dict
+	from frappe.modules import scrub
+	from time import time
+
+	root_time_start = time()
+
+	# LOG every success and failure
+	for record in records:
+
+		doctype = record.get("doctype")
+		condition = record.get('__condition')
+
+		if condition and not condition():
+			continue
+
+		doc = frappe.new_doc(doctype)
+		doc.update(record)
+
+		# ignore mandatory for root
+		parent_link_field = ("parent_" + scrub(doc.doctype))
+		if doc.meta.get_field(parent_link_field) and not doc.get(parent_link_field):
+			doc.flags.ignore_mandatory = True
+
+		try:
+			if debug:
+				time_start = time()
+
+			doc.insert(ignore_permissions=True)
+
+			exec_time_str = ""
+			if debug:
+				time_end = time()
+				exec_time_str = ": {0} sec".format(round(time_end - time_start, 2))
+
+			print("Inserted {0} {1}".format(doctype, doc.name) + exec_time_str)
+
+		except frappe.DuplicateEntryError as e:
+			print("Failed to insert duplicate {0} {1}".format(doctype, doc.name))
+
+			# pass DuplicateEntryError and continue
+			if e.args and e.args[0]==doc.doctype and e.args[1]==doc.name:
+				# make sure DuplicateEntryError is for the exact same doc and not a related doc
+				pass
+			else:
+				raise
+
+		except Exception as e:
+			print("Failed to insert {0} {1}".format(doctype, doc.name))
+
+			exception = record.get('__exception')
+			if exception:
+				config = _dict(exception)
+				if type(e) == config.exception:
+					config.handler()
+				else:
+					show_document_insert_error()
+			else:
+				show_document_insert_error()
+
+		finally:
+			root_time_end = time()
+			total_time = round(root_time_end - root_time_start, 2)
+			print("Completion: {0} sec".format(total_time))
+
+def show_document_insert_error():
+	print("Document Insert Error")
+	print(frappe.get_traceback())
