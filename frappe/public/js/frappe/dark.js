@@ -1,11 +1,9 @@
 frappe.set_dark_mode = function() {
     if(frappe.get_cookie("DarkMode") == "True" || frappe.get_cookie("DarkMode") == undefined){
-        console.log("False Set");
         document.cookie = "DarkMode=False";
         frappe.dark_mode();
     }
-    else{ // if(frappe.get_cookie("DarkMode") == "False")
-        console.log("True Set");
+    else{
         document.cookie = "DarkMode=True";
         frappe.dark_mode();
     }
