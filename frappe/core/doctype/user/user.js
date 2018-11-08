@@ -153,6 +153,11 @@ frappe.ui.form.on('User', {
 			frm.roles_editor.set_roles_in_table()
 		}
 	},
+	after_save: function(frm){
+		if(frappe.session.user == frm.doc.name) {
+			frappe.app.get_desk_navigation_settings();
+		}
+	},
 	enabled: function(frm) {
 		var doc = frm.doc;
 		if(!frm.is_new() && has_access_to_edit_user()) {

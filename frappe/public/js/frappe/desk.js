@@ -290,6 +290,7 @@ frappe.Application = Class.extend({
 		frappe.session.user = frappe.boot.user.name;
 		frappe.session.user_email = frappe.boot.user.email;
 		frappe.session.user_fullname = frappe.user_info().fullname;
+		frappe.session.user_homepage = frappe.boot.user.homepage;
 
 		frappe.user_defaults = frappe.boot.user.defaults;
 		frappe.user_roles = frappe.boot.user.roles;
@@ -443,6 +444,24 @@ frappe.Application = Class.extend({
 	},
 	redirect_to_login: function() {
 		window.location.href = '/';
+	},
+	update_reroute(){
+		if(frappe.re_route[""]) delete frappe.re_route[""];
+		if(frappe.session.user_homepage && frappe.session.user_homepage != "desktop"){
+			frappe.re_route[""] = frappe.session.user_homepage;
+		}
+	},
+	get_desk_navigation_settings(){
+		frappe.call({
+			method: "frappe.utils.user.get_desk_navigation_settings"
+		}).done((r) => {
+			if(r.message){
+				frappe.session.user_homepage = r.message.homepage;
+				this.update_reroute();
+			}
+		}).fail((f) => {
+			console.log(f);
+		});
 	},
 	set_favicon: function() {
 		var link = $('link[type="image/x-icon"]').remove().attr("href");

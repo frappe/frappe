@@ -198,7 +198,8 @@ class UserPermissions:
 	def load_user(self):
 		d = frappe.db.sql("""select email, first_name, last_name, creation,
 			email_signature, user_type, language, background_image, background_style,
-			mute_sounds, send_me_a_copy from tabUser where name = %s""", (self.name,), as_dict=1)[0]
+			mute_sounds, send_me_a_copy, homepage from
+			tabUser where name = %s""", (self.name,), as_dict=1)[0]
 
 		if not self.can_read:
 			self.build_permissions()
@@ -374,3 +375,8 @@ def get_link_to_reset_password(user):
 	return {
 		'link': link
 	}
+
+@frappe.whitelist()
+def get_desk_navigation_settings():
+	homepage = frappe.db.get_value("User", frappe.session.user, ["homepage"])
+	return {"homepage": homepage}

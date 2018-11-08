@@ -63,5 +63,25 @@
     "role": "System Manager"
    }
   ]
+ },
+ {
+  "doctype": "User",
+  "email": "testhomepage@example.com",
+  "enabled": 1,
+  "first_name": "_Test Homepage",
+  "new_password": "Eastern_43A1W",
+  "homepage": "modules",
+  "roles": [
+   {
+    "doctype": "Has Role",
+    "parentfield": "roles",
+    "role": "_Test Role 2"
+   },
+   {
+    "doctype": "Has Role",
+    "parentfield": "roles",
+    "role": "System Manager"
+   }
+  ]
  }
 ]
