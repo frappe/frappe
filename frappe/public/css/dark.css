@@ -1,1 +1,267 @@
 /*Dark Theme CSS*/
+*{
+    color: white !important;
+}
+/* Navbar and Dropdown */
+.navbar, .navbar-default{
+    background-color: rgba(66, 66, 66, 1) !important;
+    border-color: rgba(66, 66, 66, 1) !important;
+}
+.navbar a{
+    color: white !important;
+}
+#navbar-search{
+    background-color: rgba(33, 33, 33, 1) !important;
+    border: 1px solid rgba(80, 80, 80, 1) !important;
+    color: white !important;
+}
+.awesomplete {
+    border-color: rgba(80, 80, 80, 1) !important; 
+}
+.awesomplete > ul > li, .awesomplete > ul{
+    background-color: rgba(33, 33, 33, 1) !important;
+    color: white !important;
+}
+.awesomplete > ul{
+    background-color: rgba(33, 33, 33, 1) !important;
+    border-color: rgba(80, 80, 80, 1) !important;
+    color: white !important;
+}
+.awesomplete > ul > li[aria-selected=true], .awesomplete > ul > li:hover{
+    background-color:  rgba(80, 80, 80, 1) !important;
+    color: white !important;
+}
+.standard-image{
+    background-color: rgba(33, 33, 33, 1) !important;
+}
+.navbar-default .navbar-nav > .open > a:active{
+    background-color: rgba(33, 33, 33, 1) !important;
+}
+.nav > li >a:hover{
+    background-color: rgba(80, 80, 80, 1) !important;
+}
+/* Main Section */
+.content, .page-content, .hero-and-content{
+    background-color: rgba(33, 33, 33, 1) !important;
+}
+.page-head{
+    background-color: rgba(33, 33, 33, 1) !important;
+    border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+}
+.module-sidebar-item:active{
+    background-color: rgba(48, 48, 48, 1) !important;
+    border-color: rgba(48, 48, 48, 1) !important;
+}
+.module-section:nth-child(even) {
+    background-color: rgba(66, 66, 66, 1) !important;
+}
+.module-section {
+    border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+}
+.navbar-default .navbar-nav > li > a, .navbar-default .navbar-brand{
+    color: white !important;
+}
+.layout-main-section, .form-inner-toolbar {
+    background-color: rgba(33, 33, 33, 1) !important;
+    border: 1px solid rgba(80, 80, 80, 1) !important;
+}
+.dropdown-menu > li > a, .dropdown-toggle {
+    color: white !important;
+}
+.form-section:not(:last-child), .form-inner-toolbar {
+    border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+}
+.input-with-feedback, .form-control, .input-sm, .like-disabled-input, #input-help{
+    background-color: rgba(66, 66, 66, 1) !important;
+    border-color: rgba(80, 80, 80, 1) !important;
+    color: white !important;
+}
+.dropdown-menu, .input-group{
+    background-color: rgba(33, 33, 33, 1) !important;
+    border: 1px solid rgba(80, 80, 80, 1) !important;
+}
+.dropdown-menu > li > a, .title-text, .a, .p, .h4, .h3, .h2, .h1 {
+    color: white !important;
+}
+.dropdown-menu > li:hover, .dropdown-menu > li > a:hover, .navbar-nav > li > .dropdown-menu > li > a:hover {
+    background-color: rgba(80, 80, 80, 1) !important;
+    color: white !important;
+}
+.divider{
+    background-color: rgba(80, 80, 80, 1) !important;
+}
+a.grey, .sidebar-section a, .control-value a, .data-row a{
+    color: white !important;
+}
+.a, .module-section, .module-section-link {
+    color: white !important;
+}
+.form-dashboard{
+    background-color: rgba(66, 66, 66, 1) !important;
+    color: white !important;
+}
+.editable-title .title-text:hover {
+    background-color: rgba(80, 80, 80, 1) !important;
+    color: white !important;
+}
+/* Left Side List and Button Background */
+.nav-pills > li.active > a, .nav-pills > li.active > a:hover, .nav-pills > li.active > a:focus {
+    background-color: rgba(66, 66, 66, 1) !important;
+    color: white !important;
+}
+.btn, .btn-sm ,.btn-action ,.btn-default{
+    background-color: rgba(66, 66, 66, 1) !important;
+    border-color: rgba(80, 80, 80, 1) !important;
+    color: white !important;
+}
+.btn-group{
+    color: white !important;
+}
+.strong, .sidebar-comments, .badge-hover{
+    color: white !important;
+}
+.module-link {
+    color: white !important;
+}
+.layout-side-section .sidebar-menu > li > a {
+    color: white !important;
+}
+.sidebar-menu .badge, .badge {
+    background-color: rgba(66, 66, 66, 1) !important;
+}
+/* filter list */
+.filter-list {
+    background-color: rgba(66, 66, 66, 1) !important;
+    /*border-bottom: 1px solid rgba(80, 80, 80, 1) !important;*/
+}
+.page-form{
+    background-color: rgba(66, 66, 66, 1) !important;
+    border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+}
+.list-link, .ellipsis, .small{
+    color: white !important;
+}
+.list-row-container {
+    border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+}
+.list-row:hover, .list-row-container > div > div:hover {
+    background-color: rgba(66, 66, 66, 1) !important;
+}
+.list-row-head {
+    background-color: rgba(33, 33, 33, 1) !important;
+    border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+    color: white !important; 
+}
+.tag-filters-area {
+    border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+}
+.list-paging-area, .footnote-area {
+    border-top: 1px solid rgba(80, 80, 80, 1) !important;
+}
+/* Frappe Chat */
+.panel-default > .panel-heading {
+    color: white !important;
+    background-color: rgba(66, 66, 66, 1) !important;
+    border-color: rgba(80, 80, 80, 1) !important;
+}
+.frappe-chat > .frappe-chat-popper > .frappe-chat-popper-collapse > .panel{
+    background-color: rgba(66, 66, 66, 1) !important;
+    border-color: rgba(66, 66, 66, 1) !important;
+}
+.frappe-chat-popper-collapse > .panel > .panel-heading {
+    background-color: rgba(33, 33, 33, 1) !important;
+}
+/* Timeline */
+.timeline-head, .comment-input-header, .comment-input-container {
+    background-color: rgba(33, 33, 33, 1) !important;
+    border: 1px solid rgba(80, 80, 80, 1) !important;
+}
+.ql-bubble .ql-editor {
+    border-color: rgba(80, 80, 80, 1) !important;
+}
+.timeline-item.notification-content::before, .timeline-new-email::before{
+    background-color: rgba(80, 80, 80, 1) !important;
+}
+/* Scroll to top */
+.scroll-to-top {
+    background-color: #fafbfc;
+}
+/* Modal */
+.modal-header {
+    border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+}
+.modal-content {
+    background-color: rgba(33, 33, 33, 1) !important;
+}
+.modal-title, .msgprint {
+    color: white !important;
+}
+.msgprint pre{
+    background-color: rgba(66, 66, 66, 1) !important;
+    color: white !important;
+}
+kbd {
+    background-color: rgba(80, 80, 80, 1) !important;
+    color: white !important;
+}
+/* Child Table */
+.grid-row, .grid-row > .row .col {
+    background-color: rgba(66, 66, 66, 1) !important;
+    color: white !important;
+    border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+}
+.grid-row > .row .col {
+    background-color: rgba(66, 66, 66, 1) !important;
+    color: white !important;
+}
+.grid-row-open, .form-in-grid{
+    background-color: rgba(33, 33, 33, 1) !important;
+    color: white !important;
+    border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+}
+.grid-footer{
+    background-color: rgba(66, 66, 66, 1) !important;
+    color: white !important;
+}
+.form-grid{
+    border: 1px solid rgba(80, 80, 80, 1) !important;
+}
+.grid-empty, .list-loading{
+    background-color: rgba(66, 66, 66, 1) !important;
+    color: white !important;
+}
+/* Alert */
+.alert-message{
+    background-color: rgba(66, 66, 66, 1) !important;
+    border-color: rgba(80, 80, 80, 1) !important;
+    color: white !important;
+}
+/* Toolbar */
+.ql-toolbar.ql-snow {
+    background-color: rgba(80, 80, 80, 1) !important;
+    color: white !important;
+}
+.note-editor{
+    border-color: rgba(80, 80, 80, 1) !important;
+}
+/* Setup Page*/
+.setup-wizard-slide {
+    border-color: rgba(80, 80, 80, 1) !important;
+}
+.missing-image {
+    background-color: rgba(80, 80, 80, 1) !important;
+}
+/* Datatable */
+.dt-cell__content{
+    background-color: rgba(66, 66, 66, 1) !important;
+    color: white !important;
+}
+.data-row{
+    background-color: rgba(66, 66, 66, 1) !important;
+    border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+    color: white !important;
+}
+/* Graphs */
+.chart-container .axis{
+    fill: white !important;
+}
