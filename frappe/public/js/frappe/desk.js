@@ -113,6 +113,8 @@ frappe.Application = Class.extend({
 			}
 		}
 
+		frappe.dark_mode();
+
 	},
 	set_password: function(user) {
 		var me=this;
