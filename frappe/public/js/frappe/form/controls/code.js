@@ -65,9 +65,9 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 
 	load_lib() {
 		if (frappe.boot.developer_mode) {
-			this.root_lib_path = '/assets/frappe/js/lib/ace-builds/src-noconflict/';
+			this.root_lib_path = '/assets/frappe/node_modules/ace-builds/src-noconflict/';
 		} else {
-			this.root_lib_path = '/assets/frappe/js/lib/ace-builds/src-min-noconflict/';
+			this.root_lib_path = '/assets/frappe/node_modules/ace-builds/src-min-noconflict/';
 		}
 
 		this.library_loaded = new Promise(resolve => {
