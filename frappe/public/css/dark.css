@@ -262,6 +262,6 @@ kbd {
     color: white !important;
 }
 /* Graphs */
-.chart-container .axis{
+.chart-container .axis, .chart-container .chart-label{
     fill: white !important;
 }
