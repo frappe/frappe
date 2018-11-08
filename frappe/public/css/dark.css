@@ -34,10 +34,10 @@
 .standard-image{
     background-color: rgba(33, 33, 33, 1) !important;
 }
-.navbar-default .navbar-nav > .open > a:active{
+.navbar-default .navbar-nav > .open > a, .navbar-default .navbar-nav > .open > a:active, .navbar-default .navbar-nav > .open > a:focus, .navbar-default .navbar-nav > .open > a:hover{
     background-color: rgba(33, 33, 33, 1) !important;
 }
-.nav > li >a:hover{
+.nav > li >a:hover, .nav > li >a:focus{
     background-color: rgba(80, 80, 80, 1) !important;
 }
 /* Main Section */
