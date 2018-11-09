@@ -676,14 +676,15 @@ def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
 	subprocess.check_output(['git', 'fetch', remote, branch], cwd = app_path)
 
 	# get diff
-	if subprocess.check_output(['git', 'diff', '{0}..upstream/{0}'.format(branch)], cwd = app_path):
+	if subprocess.check_output(['git', 'diff', '{0}..{1}/{0}'.format(branch, remote)], cwd = app_path):
 		print('Updates found for {0}'.format(app))
 		if app=='frappe':
 			# run bench update
-			subprocess.check_output(['bench', 'update', '--no-backup'], cwd = '..')
+			import shlex
+			subprocess.check_output(shlex.split('bench update --no-backup'), cwd = '..')
 		else:
 			updated = False
-			subprocess.check_output(['git', 'pull', '--rebase', 'upstream', branch],
+			subprocess.check_output(['git', 'pull', '--rebase', remote, branch],
 				cwd = app_path)
 			# find all sites with that app
 			for site in get_sites():
@@ -696,7 +697,7 @@ def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
 						subprocess.check_output(['bench', '--site', site, 'migrate'], cwd = '..')
 				frappe.destroy()
 
-			if updated and restart:
+			if updated or restart:
 				subprocess.check_output(['bench', 'restart'], cwd = '..')
 	else:
 		print('No Updates')
