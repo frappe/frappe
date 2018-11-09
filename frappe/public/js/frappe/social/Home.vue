@@ -1,6 +1,8 @@
 <template>
 	<div ref="social" class="social">
-		<component :is="current_page.component" v-bind="current_page.props"></component>
+		<keep-alive>
+			<component :is="current_page.component" v-bind="current_page.props"></component>
+		</keep-alive>
 		<image-viewer :src="preview_image_src" v-if="show_preview"></image-viewer>
 	</div>
 </template>
