@@ -38,9 +38,10 @@ class File(NestedSet):
 		self.set_folder_name()
 
 	def get_name_based_on_parent_folder(self):
-		path = get_breadcrumbs(self.folder)
-		folder_name = frappe.get_value("File", self.folder, "file_name")
-		return "/".join([d.file_name for d in path] + [folder_name, self.file_name])
+		if self.folder:
+			path = get_breadcrumbs(self.folder)
+			folder_name = frappe.get_value("File", self.folder, "file_name")
+			return "/".join([d.file_name for d in path] + [folder_name, self.file_name])
 
 	def autoname(self):
 		"""Set name for folder"""

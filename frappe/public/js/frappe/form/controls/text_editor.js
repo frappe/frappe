@@ -1,12 +1,56 @@
-import Quill from 'quill/dist/quill';
-import { ImageDrop } from 'quill-image-drop-module';
-
-Quill.register('modules/imageDrop', ImageDrop);
+import Quill from 'quill';
 
 // replace <p> tag with <div>
 const Block = Quill.import('blots/block');
 Block.tagName = 'DIV';
 Quill.register(Block, true);
+
+// table
+const Table = Quill.import('formats/table-container');
+const superCreate = Table.create.bind(Table);
+Table.create = (value) => {
+	const node = superCreate(value);
+	node.classList.add('table');
+	node.classList.add('table-bordered');
+	return node;
+}
+Quill.register(Table, true);
+
+// hidden blot
+const Block = Quill.import('blots/block');
+class HiddenBlock extends Block {
+	static create(value) {
+		const node = super.create(value);
+		node.setAttribute('data-comment', value);
+		node.classList.add('hidden');
+		return node;
+	}
+
+	static formats(node) {
+		return node.getAttribute('data-comment');
+	}
+}
+HiddenBlock.blotName = 'hiddenblot';
+HiddenBlock.tagName = 'DIV';
+Quill.register(HiddenBlock, true);
+
+// image uploader
+const Uploader = Quill.import('modules/uploader');
+Uploader.DEFAULTS.mimetypes.push('image/gif');
+
+// inline style
+const BackgroundStyle = Quill.import('attributors/style/background');
+const ColorStyle = Quill.import('attributors/style/color');
+const SizeStyle = Quill.import('attributors/style/size');
+const FontStyle = Quill.import('attributors/style/font');
+const AlignStyle = Quill.import('attributors/style/align');
+const DirectionStyle = Quill.import('attributors/style/direction');
+Quill.register(BackgroundStyle, true);
+Quill.register(ColorStyle, true);
+Quill.register(SizeStyle, true);
+Quill.register(FontStyle, true);
+Quill.register(AlignStyle, true);
+Quill.register(DirectionStyle, true);
 
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_input() {
@@ -40,28 +84,36 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			e.stopPropagation();
 		});
 
-		// paste images
-		$(this.quill.root).on('paste', (e) => {
-			const clipboardData = e.originalEvent.clipboardData;
-			const files = clipboardData.files;
-			if (files.length > 0) {
+		// table commands
+		this.$wrapper.on('click', '.ql-table .ql-picker-item', (e) => {
+			const $target = $(e.currentTarget);
+			const action = $target.data().value;
+			e.preventDefault();
 
-				Array.from(files).forEach(file => {
-					if (!file.type.match(/^image\/(gif|jpe?g|a?png|svg|webp|bmp|vnd\.microsoft\.icon)/i)) {
-						// file is not an image
-						// Note that some file formats such as psd start with image/* but are not readable
-						return;
-					}
-
-					frappe.dom.file_to_base64(file)
-						.then(data_url => {
-							setTimeout(() => {
-								const index = (this.quill.getSelection() || {}).index || this.quill.getLength();
-								this.quill.insertEmbed(index, 'image', data_url, 'user');
-							});
-						})
-				});
+			const table = this.quill.getModule('table');
+			if (action === 'insert-table') {
+				table.insertTable(2, 2);
+			} else if (action === 'insert-row-above') {
+				table.insertRowAbove();
+			} else if (action === 'insert-row-below') {
+				table.insertRowBelow();
+			} else if (action === 'insert-column-left') {
+				table.insertColumnLeft();
+			} else if (action === 'insert-column-right') {
+				table.insertColumnRight();
+			} else if (action === 'delete-row') {
+				table.deleteRow();
+			} else if (action === 'delete-column') {
+				table.deleteColumn();
+			} else if (action === 'delete-table') {
+				table.deleteTable();
 			}
+
+			if (action !== 'delete-row') {
+				table.balanceTables();
+			}
+
+			e.preventDefault();
 		});
 	},
 
@@ -75,7 +127,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		return {
 			modules: {
 				toolbar: this.get_toolbar_options(),
-				imageDrop: true
+				table: true
 			},
 			theme: 'snow'
 		};
@@ -90,6 +142,16 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			[{ 'list': 'ordered' }, { 'list': 'bullet' }],
 			[{ 'align': [] }],
 			[{ 'indent': '-1'}, { 'indent': '+1' }],
+			[{'table': [
+				'insert-table',
+				'insert-row-above',
+				'insert-row-below',
+				'insert-column-right',
+				'insert-column-left',
+				'delete-row',
+				'delete-column',
+				'delete-table',
+			]}],
 			['clean']
 		];
 	},
@@ -110,8 +172,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			return;
 		}
 
-		this.quill.setText('');
-		this.quill.clipboard.dangerouslyPasteHTML(0, value);
+		this.quill.root.innerHTML = value;
 	},
 
 	get_input_value() {

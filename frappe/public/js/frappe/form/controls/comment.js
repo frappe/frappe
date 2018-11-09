@@ -1,4 +1,7 @@
-import 'quill-mention';
+import Quill from 'quill';
+import Mention from './quill-mention/quill.mention';
+
+Quill.register('modules/mention', Mention);
 
 frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 	make_wrapper() {
@@ -90,7 +93,7 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 			allowedChars: /^[A-Za-z0-9_]*$/,
 			mentionDenotationChars: ["@"],
 			isolateCharacter: true,
-			source: function(searchTerm, renderList, mentionChar) {
+			source: function (searchTerm, renderList, mentionChar) {
 				let values;
 
 				if (mentionChar === "@") {

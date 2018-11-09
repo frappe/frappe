@@ -42,6 +42,14 @@ $(document).ready(function() {
 				})
 			});
 		});
+
+		instance.on('paymentMethodRequestable', function (event) {
+			button.removeAttribute('disabled');
+		});
+
+		instance.on('noPaymentMethodRequestable', function () {
+			button.setAttribute('disabled', true);
+		});
 	});
 
 })

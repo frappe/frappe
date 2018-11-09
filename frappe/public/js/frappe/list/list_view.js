@@ -34,14 +34,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return;
 		}
 
-		this.init().then(() => {
-			if (frappe.route_options) {
-				this.set_filters_from_route_options();
-				return;
-			} else {
-				this.refresh();
-			}
-		});
+		this.init().then(() => this.refresh());
 	}
 
 	get view_name() {
@@ -54,12 +47,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_defaults() {
 		super.setup_defaults();
-		// initialize with saved filters
-		const saved_filters = this.view_user_settings.filters;
-		if (saved_filters) {
+
+		if (frappe.route_options) {
+			// Priority 1: route filters
+			this.filters = this.parse_filters_from_route_options();
+		} else if (this.view_user_settings.filters) {
+			// Priority 2: saved filters
+			const saved_filters = this.view_user_settings.filters;
 			this.filters = this.validate_filters(saved_filters);
 		} else {
-			// filters in listview_settings
+			// Priority 3: filters in listview_settings
 			const filters = (this.settings.filters || []).map(f => {
 				if (f.length === 3) {
 					f = [this.doctype, f[0], f[1], f[2]];
@@ -69,6 +66,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			this.filters = filters;
 		}
+
 		// initialize with saved order by
 		this.sort_by = this.view_user_settings.sort_by || 'modified';
 		this.sort_order = this.view_user_settings.sort_order || 'desc';
@@ -170,7 +168,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	set_primary_action() {
 		if (this.can_create) {
 			this.page.set_primary_action(__('New'), () => {
-				this.make_new_doc();
+				if (this.settings.primary_action) {
+					this.settings.primary_action();
+				} else {
+					this.make_new_doc();
+				}
 			}, 'octicon octicon-plus');
 		} else {
 			this.page.clear_primary_action();
@@ -784,6 +786,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_realtime_updates() {
 		frappe.realtime.on('list_update', data => {
+			if (this.filter_area.is_being_edited()) {
+				return;
+			}
+
 			const { doctype, name } = data;
 			if (doctype !== this.doctype) return;
 
@@ -882,6 +888,38 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	}
 
+	get_share_url() {
+		const query_params = this.get_filters_for_args().map(filter => {
+			filter[3] = encodeURIComponent(filter[3]);
+			if (filter[2] === '=') {
+				return `${filter[1]}=${filter[3]}`;
+			}
+			return [filter[1], '=', JSON.stringify([filter[2], filter[3]])].join('');
+		}).join('&');
+
+		let full_url = window.location.href;
+		if (query_params) {
+			full_url += '?' + query_params;
+		}
+		return full_url;
+	}
+
+	share_url() {
+		const d = new frappe.ui.Dialog({
+			title: __('Share URL'),
+			fields: [
+				{
+					fieldtype: 'Code',
+					fieldname: 'url',
+					label: 'URL',
+					default: this.get_share_url(),
+					read_only: 1
+				}
+			]
+		});
+		d.show();
+	}
+
 	get_menu_items() {
 		const doctype = this.doctype;
 		const items = [];
@@ -927,6 +965,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		items.push({
 			label: __('Toggle Sidebar'),
 			action: () => this.toggle_side_bar(),
+			standard: true
+		});
+
+		items.push({
+			label: __('Share URL'),
+			action: () => this.share_url(),
 			standard: true
 		});
 
@@ -1075,11 +1119,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return actions_menu_items;
 	}
 
-	set_filters_from_route_options() {
+	parse_filters_from_route_options() {
 		const filters = [];
+
 		for (let field in frappe.route_options) {
-			var value = frappe.route_options[field];
-			var doctype = null;
+
+			let doctype = null;
+			let value = frappe.route_options[field];
+
+			if (value.startsWith('[') && value.endsWith(']')) {
+				value = JSON.parse(value);
+			}
 
 			// if `Child DocType.fieldname`
 			if (field.includes('.')) {
@@ -1106,10 +1156,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 		frappe.route_options = null;
 
-		this.filter_area.clear(false)
-			.then(() => {
-				this.filter_area.add(filters);
-			});
+		return filters;
 	}
 
 	static trigger_list_update(data) {

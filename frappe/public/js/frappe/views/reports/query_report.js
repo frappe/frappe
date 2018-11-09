@@ -169,6 +169,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (df.on_change) f.on_change = df.on_change;
 
 			df.onchange = () => {
+				if (this.previous_filters
+					&& (JSON.stringify(this.previous_filters) == JSON.stringify(this.get_filter_values()))) {
+					// filter values have not changed
+					return;
+				}
+				this.previous_filters = this.get_filter_values();
+
+				// clear previous_filters after 3 seconds, to allow refresh for new data
+				setTimeout(() => this.previous_filters = null, 10000);
+
 				if (f.on_change) {
 					f.on_change(this);
 				} else {
@@ -654,12 +664,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	print_report(print_settings) {
 		const custom_format = this.report_settings.html_format || null;
 		const filters_html = this.get_filters_html_for_print();
+		const landscape = print_settings.orientation == 'Landscape';
 
 		frappe.render_grid({
 			template: custom_format,
 			title: __(this.report_name),
 			subtitle: filters_html,
 			print_settings: print_settings,
+			landscape: landscape,
 			filters: this.get_filter_values(),
 			data: custom_format ? this.data : this.get_data_for_print(),
 			columns: custom_format ? this.columns : this.get_columns_for_print(),

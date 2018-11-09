@@ -92,8 +92,9 @@ frappe.ui.form.Timeline = class Timeline {
 						subject: __("Re: {0}", [me.frm.doc.subject]),
 					});
 				} else {
+					const comment_value = frappe.markdown(me.comment_area.get_value());
 					$.extend(args, {
-						txt: frappe.markdown(me.comment_area.get_value())
+						txt: strip_html(comment_value) ? comment_value : ''
 					});
 				}
 				new frappe.views.CommunicationComposer(args)
@@ -335,7 +336,7 @@ frappe.ui.form.Timeline = class Timeline {
 			});
 		} else {
 			if(c.communication_type=="Communication" && c.communication_medium=="Email") {
-				c.content = c.content.split("<!-- original-reply -->")[0];
+				c.content = c.content.split('<div data-comment="original-reply">')[0];
 				c.content = frappe.utils.strip_original_content(c.content);
 
 				c.original_content = c.content;
