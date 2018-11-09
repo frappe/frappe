@@ -86,6 +86,11 @@ def get_data():
 					"type": "doctype",
 					"name": "Portal Settings",
 					"label": _("Portal Settings"),
+				},
+				{
+					"type": "doctype",
+					"name": "Products Settings",
+					"label": _("Products Settings"),
 				}
 			]
 		},
