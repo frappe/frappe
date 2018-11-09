@@ -168,7 +168,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	set_primary_action() {
 		if (this.can_create) {
 			this.page.set_primary_action(__('New'), () => {
-				this.make_new_doc();
+				if (this.settings.primary_action) {
+					this.settings.primary_action();
+				} else {
+					this.make_new_doc();
+				}
 			}, 'octicon octicon-plus');
 		} else {
 			this.page.clear_primary_action();
