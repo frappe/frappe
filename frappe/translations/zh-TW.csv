@@ -18,7 +18,7 @@ DocType: Workflow,If Checked workflow status will not override status in list vi
 apps/frappe/frappe/client.py +302,Invalid file path: {0},無效的文件路徑：{0}
 DocType: Workflow State,eye-open,眼開
 DocType: Email Queue,Send After,發送後
-apps/frappe/frappe/core/doctype/file/file.py +326,Please select a file or url,請選擇一個文件或URL
+apps/frappe/frappe/core/doctype/file/file.py +327,Please select a file or url,請選擇一個文件或URL
 apps/frappe/frappe/public/js/frappe/views/treeview.js +89,{0} Tree,{0}樹
 DocType: User,User Emails,用戶電子郵件
 DocType: User,Username,用戶名
@@ -51,6 +51,7 @@ apps/frappe/frappe/www/feedback.html +93,Please give a fullname.,請給一個全
 apps/frappe/frappe/model/document.py +1075,Beginning with,開頭
 apps/frappe/frappe/core/doctype/data_import/exporter.py +53,Data Import Template,數據導入模板
 apps/frappe/frappe/public/js/frappe/model/model.js +33,Parent,親
+apps/frappe/frappe/contacts/doctype/address/address.py +194,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,找不到默認地址模板。請從“設置”&gt;“打印和品牌”&gt;“地址模板”中創建一個新的。
 DocType: System Settings,"If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong.",如果啟用，密碼強度將根據最低密碼分數值執行。值2為中等強度，4為非常強。
 DocType: System Settings,"If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong.",如果啟用，密碼強度將根據最低密碼分數值執行。值2為中等強度，4為非常強。
 DocType: About Us Settings,"""Team Members"" or ""Management""",“團隊成員”或“管理”
@@ -71,7 +72,7 @@ DocType: Note,Seen By,看到通過
 apps/frappe/frappe/public/js/frappe/form/grid.js +69,Add Multiple,添加多個
 apps/frappe/frappe/core/doctype/user/user.py +87,Not a valid User Image.,不是有效的用戶映像。
 DocType: Success Action,First Success Message,第一個成功消息
-apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +13,Not Like,不喜歡
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +512,Not Like,不喜歡
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +214,Set the display label for the field,設置顯示的標籤的字段
 apps/frappe/frappe/model/document.py +1092,Incorrect value: {0} must be {1} {2},不正確的值：{0}必須是{1} {2}
 apps/frappe/frappe/config/setup.py +237,"Change field properties (hide, readonly, permission etc.)",更改欄位屬性（隱藏，唯讀權限等）
@@ -80,7 +81,7 @@ apps/frappe/frappe/config/website.py +78,Settings for Contact Us Page.,設定「
 apps/frappe/frappe/core/doctype/user/user.py +918,Administrator Logged In,管理員登錄
 DocType: Contact Us Settings,"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.",聯絡人選項，如“銷售查詢，支持查詢”等每一個新行或以逗號分隔。
 apps/frappe/frappe/public/js/frappe/ui/tag_editor.js +34,Add a tag ...,添加標籤...
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +276,New {0}: #{1},新{0}：＃{1}
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +285,New {0}: #{1},新{0}：＃{1}
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +22,Select {0},選擇{0}
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py +24,Please enter Base URL,請輸入基本網址
 DocType: Auto Repeat,Repeat on Day,一天重複
@@ -131,10 +132,11 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.js +9,Send,發送
 DocType: Workflow Action Master,Workflow Action Name,工作流程執行名稱
 apps/frappe/frappe/core/doctype/doctype/doctype.py +355,DocType can not be merged,DocType文檔類型不能合併
 DocType: Web Form Field,Fieldtype,FIELDTYPE
-apps/frappe/frappe/core/doctype/file/file.py +284,Not a zip file,沒有一個zip文件
+apps/frappe/frappe/core/doctype/file/file.py +285,Not a zip file,沒有一個zip文件
 DocType: Auto Repeat,"To add dynamic subject, use jinja tags like
 
 <div><pre><code>New {{ doc.doctype }} #{{ doc.name }}</code></pre></div>",要添加動態主題，請使用jinja標籤<div><pre> <code>New {{ doc.doctype }} #{{ doc.name }}</code> </pre> </div>
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +361,<p>No results found for '</p>,<p>找不到符合條件的結果</p>
 apps/frappe/frappe/public/js/frappe/form/save.js +147,"Mandatory fields required in table {0}, Row {1}",在表{0}需要強制字段，行{1}
 apps/frappe/frappe/utils/password_strength.py +196,Capitalization doesn't help very much.,資本沒有太大幫助。
 DocType: Error Snapshot,Friendly Title,友情標題
@@ -150,7 +152,6 @@ apps/frappe/frappe/public/js/frappe/list/list_filter.js +22,Save Filter,保存�
 DocType: Print Format,Helvetica,黑體
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +82,Cannot delete {0},無法刪除{0}
 DocType: Address,Jharkhand,恰爾肯德邦
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,設置&gt;用戶
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +40,Newsletter has already been sent,新聞已發送
 apps/frappe/frappe/twofactor.py +133,"Login session expired, refresh page to retry",登錄會話過期，刷新頁面重試
 DocType: Email Unsubscribe,Email Unsubscribe,電子郵件退訂
@@ -174,11 +175,11 @@ apps/frappe/frappe/public/js/frappe/form/print.js +102,Start,開始
 DocType: Contact,First Name,名字
 DocType: LDAP Settings,LDAP Username Field,LDAP用戶名字段
 DocType: Portal Settings,Standard Sidebar Menu,標準工具欄菜單
-apps/frappe/frappe/core/doctype/file/file.py +215,Cannot delete Home and Attachments folders,無法刪除首頁和附件的文件夾
+apps/frappe/frappe/core/doctype/file/file.py +216,Cannot delete Home and Attachments folders,無法刪除首頁和附件的文件夾
 apps/frappe/frappe/config/desk.py +19,Files,檔
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,Permissions get applied on Users based on what Roles they are assigned.,套用於用戶的權限設定是根據該用戶被指定的角色而定。
-apps/frappe/frappe/public/js/frappe/views/communication.js +528,You are not allowed to send emails related to this document,你不被允許發送與此相關的文檔的電子郵件
-apps/frappe/frappe/model/db_query.py +614,Please select atleast 1 column from {0} to sort/group,請選擇從{0}進行排序/組ATLEAST 1柱
+apps/frappe/frappe/public/js/frappe/views/communication.js +532,You are not allowed to send emails related to this document,你不被允許發送與此相關的文檔的電子郵件
+apps/frappe/frappe/model/db_query.py +624,Please select atleast 1 column from {0} to sort/group,請選擇從{0}進行排序/組ATLEAST 1柱
 DocType: PayPal Settings,Check this if you are testing your payment using the Sandbox API,檢查這個，如果你正在測試使用沙盒API付款
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30,You are not allowed to delete a standard Website Theme,你不允許刪除標準的網站主題
 DocType: Data Import,Log Details,日誌詳情
@@ -199,7 +200,7 @@ DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaS
 DocType: Workflow State,chevron-up,人字形-上
 DocType: DocType,Allow Guest to View,允許訪客查看
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +65,Documentation,文檔
-apps/frappe/frappe/public/js/frappe/list/list_view.js +992,Delete {0} items permanently?,刪除{0}項目永久？
+apps/frappe/frappe/public/js/frappe/list/list_view.js +1043,Delete {0} items permanently?,刪除{0}項目永久？
 apps/frappe/frappe/core/doctype/user/user.py +106,Not Allowed,不允許
 DocType: DocShare,Internal record of document shares,文件股內部記錄
 DocType: Workflow State,Comment,評論
@@ -244,6 +245,7 @@ apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permiss
 DocType: Workflow,Transition Rules,過渡規則
 DocType: Workflow,Defines workflow states and rules for a document.,定義文檔工作流狀態和規則。
 DocType: Workflow State,Filter,過濾器
+apps/frappe/frappe/public/js/frappe/request.js +182,Internal Server Error,內部服務器錯誤
 apps/frappe/frappe/config/setup.py +133,Update many values at one time.,同時更新多個值。
 apps/frappe/frappe/model/document.py +646,Error: Document has been modified after you have opened it,錯誤：你已經打開了它之後，文件已被修改
 apps/frappe/frappe/core/doctype/activity_log/feed.py +56,{0} logged out: {1},{0}登出：{1}
@@ -254,12 +256,12 @@ DocType: Salutation,Administrator,管理員
 DocType: Activity Log,Closed,關閉
 DocType: Blog Settings,Blog Title,部落格標題
 apps/frappe/frappe/core/doctype/role/role.py +20,Standard roles cannot be disabled,標準的角色不能被禁用
-apps/frappe/frappe/public/js/frappe/chat.js +1603,Chat Type,聊天類型
+apps/frappe/frappe/public/js/frappe/chat.js +1606,Chat Type,聊天類型
 DocType: Newsletter,Newsletter,新聞
-apps/frappe/frappe/model/db_query.py +605,Cannot use sub-query in order by,不能使用子查詢，以便
+apps/frappe/frappe/model/db_query.py +615,Cannot use sub-query in order by,不能使用子查詢，以便
 DocType: Web Form,Button Help,按鈕幫助
 DocType: About Us Settings,Team Members,團隊成員
-apps/frappe/frappe/public/js/frappe/upload.js +246,Please attach a file or set a URL,請附上一個文件或設置一個URL
+apps/frappe/frappe/public/js/frappe/upload.js +251,Please attach a file or set a URL,請附上一個文件或設置一個URL
 DocType: Chat Message,System Manager,系統管理器
 DocType: Custom DocPerm,Permissions,權限
 apps/frappe/frappe/config/integrations.py +83,Slack Webhooks for internal integration,Slack Webhooks用於內部集成
@@ -273,9 +275,9 @@ DocType: Workflow State,plus-sign,加號
 apps/frappe/frappe/__init__.py +994,App {0} is not installed,未安裝應用程序{0}
 DocType: Workflow State,Refresh,重新載入
 DocType: Event,Public,公開
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +881,Nothing to show,沒有顯示
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +883,Nothing to show,沒有顯示
 DocType: System Settings,Enable Two Factor Auth,啟用雙因素認證
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +294,[Urgent] Error while creating recurring %s for %s,[緊急] 為%s 建立定期%s 時出錯
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +303,[Urgent] Error while creating recurring %s for %s,[緊急] 為%s 建立定期%s 時出錯
 DocType: Post,Liked By,喜歡通過
 DocType: DocField,Print Hide If No Value,打印隱藏如果沒有值
 DocType: Kanban Board Column,yellow,黃色
@@ -288,7 +290,7 @@ apps/frappe/frappe/www/contact.html +34,Your email address,您的電子郵件地
 DocType: Desktop Icon,Module,模組
 DocType: Notification,Send Alert On,發送警示在
 DocType: Customize Form,"Customize Label, Print Hide, Default etc.",自定義標籤，列印隱藏，預設值等。
-apps/frappe/frappe/core/doctype/communication/communication.py +83,Please make sure the Reference Communication Docs are not circularly linked.,請確保參考通信文檔不是循環鏈接的。
+apps/frappe/frappe/core/doctype/communication/communication.py +84,Please make sure the Reference Communication Docs are not circularly linked.,請確保參考通信文檔不是循環鏈接的。
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_start.html +16,Create a New Format,建立新格式
 apps/frappe/frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.py +39,Unable to create bucket: {0}. Change it to a more unique name.,無法創建存儲桶：{0}。將其更改為更獨特的名稱。
 DocType: Webhook,Request URL,請求URL
@@ -301,7 +303,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +359,Global Search,全�
 apps/frappe/frappe/templates/emails/new_user.html +2,A new account has been created for you at {0},已經在{0}為您創建一個新的帳戶
 apps/frappe/frappe/templates/includes/login/login.js +193,Instructions Emailed,電子郵件說明
 apps/frappe/frappe/templates/includes/login/login.js +193,Instructions Emailed,電子郵件說明
-apps/frappe/frappe/public/js/frappe/views/communication.js +517,Enter Email Recipient(s),輸入電子郵件收件人
+apps/frappe/frappe/public/js/frappe/views/communication.js +521,Enter Email Recipient(s),輸入電子郵件收件人
 DocType: Print Format,Verdana,宋體
 DocType: Email Flag Queue,Email Flag Queue,電子郵件標誌隊列
 apps/frappe/frappe/config/setup.py +205,Stylesheets for Print Formats,打印格式樣式表
@@ -364,7 +366,7 @@ apps/frappe/frappe/utils/nestedset.py +223,Merging is only possible between Grou
 apps/frappe/frappe/templates/includes/search_template.html +45,No matching records. Search something new,沒有符合條件的記錄。搜索新的東西
 DocType: Chat Profile,Away,遠
 DocType: Currency,Fraction Units,部分單位
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +521,{0} from {1} to {2},{0}從{1}到{2}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +522,{0} from {1} to {2},{0}從{1}到{2}
 apps/frappe/frappe/public/js/frappe/ui/toolbar/user_progress_dialog.js +116,Mark as Done,標為已完成
 DocType: Chat Message,Type,類型
 DocType: Activity Log,Subject,主題
@@ -375,13 +377,14 @@ DocType: DocField,Hidden,隱藏
 DocType: Web Form,Allow Incomplete Forms,允許不完整的表格
 apps/frappe/frappe/utils/print_format.py +126,PDF generation failed,PDF生成失敗
 apps/frappe/frappe/model/base_document.py +448,{0} must be set first,{0}必須先設定
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +311,Recurring Documents Failed,重複出現的文件失敗
 apps/frappe/frappe/utils/password_strength.py +38,"Use a few words, avoid common phrases.",用幾個字，避免常用短語。
 DocType: Workflow State,plane,飛機
 apps/frappe/frappe/core/doctype/data_import/exporter.py +66,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.",如果您上傳新的記錄，“命名系列”變成強制性的，如果存在的話。
 apps/frappe/frappe/email/doctype/notification/notification.js +97,Get Alerts for Today,買到今天通知
 apps/frappe/frappe/core/doctype/doctype/doctype.py +349,DocType can only be renamed by Administrator,DocType只能由管理員進行重命名
 apps/frappe/frappe/utils/oauth.py +146,Email not verified with {0},電子郵件未通過{0}驗證
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +532,changed value of {0},的改變後的值{0}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +533,changed value of {0},的改變後的值{0}
 DocType: User,"If the user has any role checked,then the user becomes a ""System User"". ""System User"" has access to the desktop",如果用戶檢查了任何角色，則用戶變成“系統用戶”。 “系統用戶”可以訪問桌面
 apps/frappe/frappe/core/doctype/user/user.py +795,Please check your email for verification,請檢查您的電子郵件驗證
 apps/frappe/frappe/core/doctype/doctype/doctype.py +615,Fold can not be at the end of the form,折疊不能在表單的端
@@ -395,8 +398,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js +281,"Your download is
 apps/frappe/frappe/public/js/frappe/ui/filters/filter_list.js +144,Add Filter,新增過濾器
 apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py +87,SMS sent to following numbers: {0},短信發送至以下號碼：{0}
 apps/frappe/frappe/www/feedback.html +23,Your rating: ,你的評分：
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions,設置&gt;用戶權限
-apps/frappe/frappe/public/js/frappe/chat.js +2151,Start a conversation.,開始對話。
+apps/frappe/frappe/public/js/frappe/chat.js +2158,Start a conversation.,開始對話。
 DocType: Print Settings,"Always add ""Draft"" Heading for printing draft documents",隨時添加“草案”標題打印文件草案
 DocType: Data Migration Run,Current Mapping Start,當前映射開始
 apps/frappe/frappe/core/doctype/communication/communication.js +240,Email has been marked as spam,電子郵件已被標記為垃圾郵件
@@ -415,15 +417,14 @@ apps/frappe/frappe/core/doctype/user/user.py +935,Invalid Password: ,無效的�
 DocType: Print Settings,Send document web view link in email,發送電子郵件文件Web視圖鏈接
 apps/frappe/frappe/www/feedback.html +114,Your Feedback for document {0} is saved successfully,您的文檔反饋{0}保存成功
 apps/frappe/frappe/public/js/frappe/ui/slides.js +321,Previous,上一筆
-apps/frappe/frappe/contacts/doctype/address/address.py +194,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,找不到默認地址模板。請從“設置”&gt;“打印和品牌”&gt;“地址模板”中創建一個新的。
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +586,{0} rows for {1},{0}的行{1}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +587,{0} rows for {1},{0}的行{1}
 DocType: Currency,"Sub-currency. For e.g. ""Cent""",子貨幣。如「美分」
 apps/frappe/frappe/data_migration/doctype/data_migration_connector/data_migration_connector.js +15,Connection Name,連接名稱
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +211,Select uploaded file,選擇上傳的文件
 DocType: Letter Head,Check this to make this the default letter head in all prints,勾選後，以本項作為所有列印的預設信頭
 DocType: Print Format,Server,服務器
 DocType: Desktop Icon,Link,鏈接
-apps/frappe/frappe/core/doctype/file/file.py +454,No file attached,沒有附加的文件
+apps/frappe/frappe/core/doctype/file/file.py +455,No file attached,沒有附加的文件
 DocType: S3 Backup Settings,Endpoint URL,端點URL
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +56,Charts,圖表
 DocType: User,Fill Screen,全螢幕
@@ -433,6 +434,7 @@ apps/frappe/frappe/public/js/frappe/form/grid.js +667,Edit via Upload,通過上�
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +135,"document type..., e.g. customer",文檔類型...，如客戶
 apps/frappe/frappe/core/doctype/feedback_trigger/feedback_trigger.py +29,The Condition '{0}' is invalid,條件“{0}”無效
 DocType: Workflow State,barcode,條碼
+apps/frappe/frappe/model/db_query.py +201,Use of sub-query or function is restricted,子查詢或功能的使用受到限制
 apps/frappe/frappe/config/setup.py +249,Add your own translations,添加您自己的翻譯
 DocType: Country,Country Name,國家名稱
 DocType: About Us Team Member,About Us Team Member,關於我們的團隊成員
@@ -464,10 +466,10 @@ DocType: Print Settings,Font Size,字體大小
 DocType: System Settings,Disable Standard Email Footer,禁用標準電子郵件頁尾
 DocType: Workflow State,facetime-video,FaceTime的視頻
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +78,1 comment,1條評論
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +484,viewed,觀看
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +485,viewed,觀看
 DocType: Notification,Days Before,前幾天
 DocType: Workflow State,volume-down,容積式
-apps/frappe/frappe/desk/reportview.py +267,No Tags,沒有標籤
+apps/frappe/frappe/desk/reportview.py +269,No Tags,沒有標籤
 DocType: DocType,List View Settings,列表視圖設置
 DocType: Email Account,Send Notification to,通知發送到
 DocType: DocField,Collapsible,可折疊
@@ -484,13 +486,13 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +697,Sort field {0} must be a
 DocType: Contact,Sales Manager,銷售經理
 DocType: Print Format,Format Data,格式數據
 DocType: List Filter,Filter Name,過濾器名稱
-apps/frappe/frappe/utils/bot.py +91,Like,包含
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +512,Like,包含
 DocType: Customize Form Field,Customize Form Field,自定義表單域
 DocType: Website Settings,Chat Room Name,聊天室名稱
 DocType: OAuth Client,Grant Type,格蘭特類型
 apps/frappe/frappe/config/setup.py +57,Check which Documents are readable by a User,勾選那些文件是用戶可讀取的
 DocType: Deleted Document,Hub Sync ID,集線器同步ID
-apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +281,use % as wildcard,使用％作為通配符
+apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +283,use % as wildcard,使用％作為通配符
 DocType: Auto Repeat,Quarterly,每季
 apps/frappe/frappe/email/doctype/email_account/email_account.js +151,"Email Domain not configured for this account, Create one?",電子郵件域名未配置此帳戶，創建一個嗎？
 DocType: User,Reset Password Key,重設密碼鍵值
@@ -509,7 +511,7 @@ DocType: DocType,Fields,欄位
 DocType: System Settings,Your organization name and address for the email footer.,您的組織名稱和地址為電子郵件的頁尾。
 apps/frappe/frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.js +18,S3 Backup complete!,S3備份完成！
 apps/frappe/frappe/config/desktop.py +60,Developer,開發者
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +170,Created,創建
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +171,Created,創建
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +38,{0} in row {1} cannot have both URL and child items,第{1}行的{0}不能同時有URL和子項
 apps/frappe/frappe/utils/nestedset.py +196,Root {0} cannot be deleted,root{0}無法刪除
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +75,No comments yet,還沒有評論
@@ -541,7 +543,7 @@ DocType: Address,Nagaland,那加蘭邦
 apps/frappe/frappe/core/doctype/user/user.py +417,Username {0} already exists,用戶名{0}已存在
 apps/frappe/frappe/core/doctype/doctype/doctype.py +849,{0}: Cannot set import as {1} is not importable,{0} ：無法設定導入，因為{1}不是可導入的
 apps/frappe/frappe/contacts/doctype/address/address.py +114,There is an error in your Address Template {0},有一個在你的地址模板錯誤{0}
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +83,{0} is an invalid email address in 'Recipients',{0}是“收件人”中的無效電子郵件地址
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +85,{0} is an invalid email address in 'Recipients',{0}是“收件人”中的無效電子郵件地址
 DocType: User,Allow Desktop Icon,允許桌面圖標
 DocType: Footer Item,"target = ""_blank""",目標=“_blank”
 DocType: Workflow State,hdd,硬盤
@@ -552,7 +554,7 @@ apps/frappe/frappe/core/doctype/user/user.py +1018,OTP Secret has been reset. Re
 DocType: Communication,From Full Name,從全名
 apps/frappe/frappe/desk/query_report.py +23,You don't have access to Report: {0},您沒有訪問報告：{0}
 DocType: User,Send Welcome Email,發送歡迎電子郵件
-apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +267,Remove Filter,刪除過濾器
+apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +269,Remove Filter,刪除過濾器
 DocType: Web Form Field,Show in filter,在過濾器中顯示
 DocType: Address,Daman and Diu,達曼和迪烏
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +226,Project,專案
@@ -568,13 +570,15 @@ apps/frappe/frappe/desk/page/backups/backups.py +79,File backup is ready,文件�
 DocType: DocField,In Global Search,在全球搜索
 DocType: System Settings,Brute Force Security,蠻力安全
 DocType: Workflow State,indent-left,左邊縮排
-apps/frappe/frappe/core/doctype/file/file.py +694,It is risky to delete this file: {0}. Please contact your System Manager.,刪除這個文件是有風險的：{0}。請聯絡您的系統管理員。
+apps/frappe/frappe/core/doctype/file/file.py +695,It is risky to delete this file: {0}. Please contact your System Manager.,刪除這個文件是有風險的：{0}。請聯絡您的系統管理員。
 DocType: Currency,Currency Name,貨幣名稱
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +175,No Emails,沒有電子郵件
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +121,Link Expired,鏈接已過期
 apps/frappe/frappe/database/schema.py +175,"Reverting length to {0} for '{1}' in '{2}';
 							Setting the length as {3} will cause truncation of data.",將“{2}”中的“{1}”的長度恢復為{0};將長度設置為{3}將導致數據截斷。
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +733,Select File Format,選擇文件格式
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions,設置&gt;用戶權限
+apps/frappe/frappe/email/smtp.py +85,Please setup default Email Account from Setup &gt; Email &gt; Email Account,請從設置&gt;電子郵件&gt;電子郵件帳戶設置默認電子郵件帳戶
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +735,Select File Format,選擇文件格式
 DocType: File,Content Hash,內容Hash值
 DocType: User,Stores the JSON of last known versions of various installed apps. It is used to show release notes.,儲存最後安裝版本之應用程式的JSON。用來顯示發行說明。
 DocType: Website Theme,Google Font (Text),谷歌字體（文本）
@@ -623,7 +627,7 @@ apps/frappe/frappe/public/js/frappe/form/grid.js +683,Do not edit headers which 
 apps/frappe/frappe/twofactor.py +225,Login Verification Code from {},登錄驗證碼從{}
 DocType: Address,Pondicherry,本地治裡
 DocType: Data Import,Import Status,導入狀態
-apps/frappe/frappe/public/js/frappe/upload.js +420,Make file(s) private or public?,製作文件（S）的私人或公共？
+apps/frappe/frappe/public/js/frappe/upload.js +426,Make file(s) private or public?,製作文件（S）的私人或公共？
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +35,Scheduled to send to {0},要寄送給{0}的排程
 DocType: DocShare,Everyone,大家
 DocType: Workflow State,backward,落後
@@ -635,7 +639,7 @@ apps/frappe/frappe/config/setup.py +119,Set numbering series for transactions.,�
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +61,Configure Charts,配置圖表
 apps/frappe/frappe/desk/like.py +38,You cannot like something that you created,你可以不喜歡你創造的東西
 DocType: User,Last IP,最後一個IP
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +392,Please add a subject to your email,請在您的電子郵件中添加主題
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +403,Please add a subject to your email,請在您的電子郵件中添加主題
 apps/frappe/frappe/core/page/usage_info/usage_info.js +20,Renew / Upgrade,更新/升級
 apps/frappe/frappe/share.py +154,A new document {0} has been shared by with you {1}.,與您分享了新的文檔{0} {1}。
 DocType: Data Migration Connector,Data Migration Connector,數據遷移連接器
@@ -647,10 +651,10 @@ apps/frappe/frappe/data_migration/doctype/data_migration_connector/data_migratio
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +46,Fieldname not set for Custom Field,自定義欄位之欄位名稱未設定
 apps/frappe/frappe/public/js/frappe/model/model.js +22,Last Updated By,最後更新人
 apps/frappe/frappe/email/doctype/email_group/email_group.js +6,View Subscribers,查看訂閱
-apps/frappe/frappe/core/doctype/file/file.py +759,Cannot delete file as it belongs to {0} {1} for which you do not have permissions,無法刪除屬於您沒有權限的{0} {1}的文件
+apps/frappe/frappe/core/doctype/file/file.py +760,Cannot delete file as it belongs to {0} {1} for which you do not have permissions,無法刪除屬於您沒有權限的{0} {1}的文件
 DocType: Website Theme,Custom JS,自定義JS
 DocType: Website Theme,Background Color,背景顏色
-apps/frappe/frappe/public/js/frappe/views/communication.js +593,There were errors while sending email. Please try again.,還有在發送電子郵件是錯誤的。請再試一次。
+apps/frappe/frappe/public/js/frappe/views/communication.js +597,There were errors while sending email. Please try again.,還有在發送電子郵件是錯誤的。請再試一次。
 DocType: Portal Settings,Portal Settings,門戶網站設置
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.js +24,Cannot update {0},無法更新{0}
 DocType: Data Migration Mapping,Mapping,製圖
@@ -704,6 +708,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +349,Configure 
 apps/frappe/frappe/public/js/frappe/form/form_viewers.js +55,{0} are currently viewing this document,{0}正在查看該文檔
 DocType: ToDo,Assigned By Full Name,分配者姓名
 apps/frappe/frappe/core/doctype/doctype/doctype.py +831,Report cannot be set for Single types,報告不能單類型設置
+apps/frappe/frappe/public/js/frappe/list/list_view.js +916,Share URL,分享網址
 DocType: System Settings,Allow Consecutive Login Attempts ,允許連續登錄嘗試
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html +50,An error occured during the payment process. Please contact us.,付款過程中發生錯誤。請聯繫我們。
 DocType: Email Account,Awaiting Password,等待密碼
@@ -724,7 +729,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +503,Make ,使
 DocType: Footer Item,Link to the page you want to open. Leave blank if you want to make it a group parent.,鏈接到你想打開的頁面。如果你想使之成為集團母公司留空。
 DocType: DocType,Is Single,單人
 apps/frappe/frappe/core/doctype/user/user.py +758,Sign Up is disabled,註冊被禁用
-apps/frappe/frappe/email/queue.py +337,{0} has left the conversation in {1} {2},{0}已經離開聊天室{1} {2}
+apps/frappe/frappe/email/queue.py +334,{0} has left the conversation in {1} {2},{0}已經離開聊天室{1} {2}
 DocType: Blogger,User ID of a Blogger,一個博客的用戶ID
 apps/frappe/frappe/core/doctype/user/user.py +299,There should remain at least one System Manager,應該保持至少一個系統管理器
 DocType: GCalendar Account,Authorization Code,授權碼
@@ -766,9 +771,9 @@ DocType: System Settings,OTP Issuer Name,OTP發行人名稱
 DocType: OAuth Bearer Token,OAuth Bearer Token,OAuth的承載令牌
 apps/frappe/frappe/public/js/legacy/print_format.js +124,No document selected,沒有選定的文檔
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Dr,博士
-apps/frappe/frappe/public/js/frappe/dom.js +310,You are connected to internet.,你連接到互聯網。
+apps/frappe/frappe/public/js/frappe/dom.js +322,You are connected to internet.,你連接到互聯網。
 DocType: Social Login Key,Enable Social Login,啟用社交登錄
-apps/frappe/frappe/public/js/frappe/views/communication.js +655,"On {0}, {1} wrote:",在{0}，{1}中寫道：
+apps/frappe/frappe/public/js/frappe/views/communication.js +662,"On {0}, {1} wrote:",在{0}，{1}中寫道：
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +133,Cannot delete standard field. You can hide it if you want,無法刪除標準的現場。你可以將其隱藏，如果你想
 DocType: Top Bar Item,For top bar,對於頂端選單
 DocType: Social Login Key,Auth URL Data,身份驗證URL數據
@@ -800,7 +805,7 @@ DocType: Dropbox Settings,File Backup,文件備份
 apps/frappe/frappe/desk/form/utils.py +67,This method can only be used to create a Comment,這種方法只能用於創建註釋
 apps/frappe/frappe/public/js/frappe/list/list_renderer.js +629,No {0} found,沒有找到{0}
 apps/frappe/frappe/config/setup.py +259,Add custom forms.,添加自定義表單。
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +509,submitted this document,提交這份文件
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +510,submitted this document,提交這份文件
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,The system provides many pre-defined roles. You can add new roles to set finer permissions.,該系統提供了許多預先定義的角色。您可以添加新的角色設定更精細的權限。
 DocType: Communication,CC,CC
 DocType: Data Migration Run,Trigger Name,觸發器名稱
@@ -837,7 +842,7 @@ DocType: User Email,User Email,用戶電子郵件
 DocType: User,Represents a User in the system.,表示系統中一個用戶。
 DocType: Communication,Label,標籤
 apps/frappe/frappe/desk/form/assign_to.py +155,"The task {0}, that you assigned to {1}, has been closed.",任務{0}，您分配給{1}，已關閉。
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +293,Please close this window,請關閉此窗口
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +316,Please close this window,請關閉此窗口
 DocType: Print Format,Print Format Type,列印格式類型
 DocType: Newsletter,A Lead with this Email Address should exist,與此電子郵件地址的鉛應存在
 apps/frappe/frappe/public/js/frappe/ui/toolbar/about.js +7,Open Source Applications for the Web,開源網路應用程式
@@ -885,8 +890,8 @@ apps/frappe/frappe/limits.py +77,Your subscription will expire tomorrow.,您的�
 apps/frappe/frappe/email/doctype/notification/notification.py +207,Error in Notification,通知錯誤
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Master,主
 DocType: DocType,User Cannot Create,無法建立使用者
-apps/frappe/frappe/core/doctype/file/file.py +585,Folder {0} does not exist,文件夾{0}不存在
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +318,Dropbox access is approved!,Dropbox的訪問被批准！
+apps/frappe/frappe/core/doctype/file/file.py +586,Folder {0} does not exist,文件夾{0}不存在
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +341,Dropbox access is approved!,Dropbox的訪問被批准！
 DocType: Customize Form,Enter Form Type,輸入表單類型
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +13,Missing parameter Kanban Board Name,缺少參數看板名稱
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html +5,No records tagged.,沒有記錄標記。
@@ -901,7 +906,7 @@ DocType: Custom DocPerm,Additional Permissions,額外的權限
 DocType: Email Account,Always use Account's Email Address as Sender,始終使用帳戶的電子郵件地址作為發件人
 apps/frappe/frappe/templates/includes/comments/comments.html +21,Login to comment,登錄發表評論
 apps/frappe/frappe/core/doctype/data_import/importer.py +25,Start entering data below this line,開始輸入數據低於此線
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +564,changed values for {0},用於改變的值{0}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +565,changed values for {0},用於改變的值{0}
 apps/frappe/frappe/email/doctype/email_account/email_account.py +55,"Email ID must be unique, Email Account already exists \
 				for {0}",電子郵件ID必須唯一，電子郵件帳戶已存在\ {0}
 DocType: Workflow State,retweet,轉推
@@ -911,7 +916,7 @@ DocType: File,Uploaded To Dropbox,上傳到Dropbox
 DocType: Workflow State,eye-close,眼睛閉
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth的提供商設置
 apps/frappe/frappe/config/setup.py +271,Applications,應用
-apps/frappe/frappe/public/js/frappe/request.js +387,Report this issue,報告此問題
+apps/frappe/frappe/public/js/frappe/request.js +390,Report this issue,報告此問題
 DocType: Custom Script,Adds a custom script (client or server) to a DocType,增加了一個自定義腳本（客戶端或服務器），以一個DOCTYPE
 DocType: Address,City/Town,市/鎮
 DocType: Data Migration Connector,Connector Name,連接器名稱
@@ -930,7 +935,7 @@ apps/frappe/frappe/email/receive.py +60,Invalid Mail Server. Please rectify and 
 DocType: DocField,"For Links, enter the DocType as range.
 For Select, enter list of Options, each on a new line.",對於鏈接，輸入文檔類型的範圍。對於選擇，輸入選項列表，每一個新的生產線。
 DocType: Workflow State,film,影片
-apps/frappe/frappe/model/db_query.py +466,No permission to read {0},沒有權限讀取{0}
+apps/frappe/frappe/model/db_query.py +476,No permission to read {0},沒有權限讀取{0}
 apps/frappe/frappe/utils/password_strength.py +134,Avoid recent years.,避免最近幾年。
 apps/frappe/frappe/utils/nestedset.py +241,Multiple root nodes not allowed.,不允許多個根節點。
 DocType: Note,"If enabled, users will be notified every time they login. If not enabled, users will only be notified once.",如果啟用，用戶每次登錄時都會收到通知。如果沒有啟用，用戶只會收到一次通知。
@@ -939,7 +944,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +707,Invalid {0} condition,{0
 DocType: OAuth Client,"If checked, users will not see the Confirm Access dialog.",如果選中，用戶不會看到確認Access對話框。
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +542,ID field is required to edit values using Report. Please select the ID field using the Column Picker,當使用報表編輯數據時，ID欄位是必須的。請使用行列選擇器來選擇ID欄位。
 DocType: Post,Comments,評論
-apps/frappe/frappe/public/js/frappe/dom.js +283,Confirm,確認
+apps/frappe/frappe/public/js/frappe/dom.js +295,Confirm,確認
 apps/frappe/frappe/www/login.html +59,Forgot Password?,忘了密碼？
 DocType: System Settings,yyyy-mm-dd,年 - 月 - 日
 apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +192,Server Error,服務器錯誤
@@ -952,9 +957,9 @@ DocType: User,Banner Image,橫幅圖片
 DocType: Custom Field,Custom Field,自定義欄位
 apps/frappe/frappe/email/doctype/notification/notification.py +32,Please specify which date field must be checked,請指定必須檢查哪些日期欄位
 DocType: Custom DocPerm,Set User Permissions,設定用戶權限
-apps/frappe/frappe/permissions.py +203,Not allowed for {0} = {1},不允許{0} = {1}
+apps/frappe/frappe/permissions.py +205,Not allowed for {0} = {1},不允許{0} = {1}
 DocType: Email Account,Email Account Name,電子郵件帳戶名稱
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +268,Something went wrong while generating dropbox access token. Please check error log for more details.,在生成dropbox訪問令牌時發生錯誤。請檢查錯誤日誌以獲取更多詳細信息。
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +291,Something went wrong while generating dropbox access token. Please check error log for more details.,在生成dropbox訪問令牌時發生錯誤。請檢查錯誤日誌以獲取更多詳細信息。
 DocType: File,old_parent,old_parent
 apps/frappe/frappe/config/desk.py +54,"Newsletters to contacts, leads.",通訊，聯絡人，線索。
 DocType: Email Account,"e.g. ""Support"", ""Sales"", ""Jerry Yang""",例如“支持“，”銷售“，”傑里楊“
@@ -1001,8 +1006,8 @@ apps/frappe/frappe/public/js/frappe/views/file/file_view.js +51,Cut,切
 apps/frappe/frappe/model/rename_doc.py +79,renamed from {0} to {1},從更名{0}到{1}
 DocType: Currency,**Currency** Master,** 主要貨幣 **
 DocType: Email Account,No of emails remaining to be synced,沒有剩餘的電子郵件進行同步
-apps/frappe/frappe/public/js/frappe/upload.js +226,Uploading,上傳
-apps/frappe/frappe/public/js/frappe/upload.js +226,Uploading,上傳
+apps/frappe/frappe/public/js/frappe/upload.js +231,Uploading,上傳
+apps/frappe/frappe/public/js/frappe/upload.js +231,Uploading,上傳
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +84,Please save the document before assignment,請保存轉讓前的文件
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +16,Click here to post bugs and suggestions,點擊這裡發布錯誤和建議
 DocType: Website Settings,Address and other legal information you may want to put in the footer.,地址和其他法律資訊，您可能要放在頁腳。
@@ -1045,7 +1050,7 @@ DocType: Website Settings,Hide Footer Signup,隱藏頁腳註冊
 apps/frappe/frappe/core/doctype/report/report.js +16,Write a Python file in the same folder where this is saved and return column and result.,寫一個Python文件，在這個被保存在同一文件夾中，並返回列和結果。
 DocType: DocType,Sort Field,排序欄位
 DocType: Razorpay Settings,Razorpay Settings,Razorpay設置
-apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +264,Edit Filter,編輯過濾器
+apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +266,Edit Filter,編輯過濾器
 apps/frappe/frappe/core/doctype/doctype/doctype.py +518,Field {0} of type {1} cannot be mandatory,域{0}類型{1}不能強制
 DocType: System Settings,Session Expiry Mobile,會話過期移動
 apps/frappe/frappe/utils/password.py +66,Incorrect User or Password,不正確的用戶或密碼
@@ -1086,6 +1091,7 @@ DocType: Address,Contacts,往來
 DocType: System Settings,Setup Complete,安裝完成
 apps/frappe/frappe/config/setup.py +64,Report of all document shares,所有的文件共享報告
 apps/frappe/frappe/www/update-password.html +18,New Password,新密碼
+apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +77,Filter {0} missing,過濾器{0}丟失
 apps/frappe/frappe/core/doctype/activity_log/activity_log.py +29,Sorry! You cannot delete auto-generated comments,抱歉!不能刪除自動生成的註釋
 DocType: Website Theme,Style using CSS,使用CSS樣式
 DocType: View log,Reference DocType,DocType參照
@@ -1121,8 +1127,8 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.py +114,Permission Error,
 apps/frappe/frappe/model/naming.py +210,Name of {0} cannot be {1},{0}的名稱不能為{1}
 apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +33,From Date,從日期
 apps/frappe/frappe/public/js/frappe/feedback.js +95,Feedback Request for {0} is sent to {1},反饋請求{0}被發送到{1}
-apps/frappe/frappe/public/js/frappe/desk.js +396,Session Expired,會話已過期
-apps/frappe/frappe/public/js/frappe/desk.js +396,Session Expired,會話已過期
+apps/frappe/frappe/public/js/frappe/desk.js +397,Session Expired,會話已過期
+apps/frappe/frappe/public/js/frappe/desk.js +397,Session Expired,會話已過期
 apps/frappe/frappe/utils/password_strength.py +98,Straight rows of keys are easy to guess,鍵的直排容易被猜中
 DocType: Communication,Phone No.,電話號碼
 DocType: Workflow State,fire,火
@@ -1150,7 +1156,7 @@ apps/frappe/frappe/core/doctype/user/user.py +763,Registered but disabled,註冊
 DocType: DocType,Hide Copy,隱藏副本
 apps/frappe/frappe/model/base_document.py +373,{0} must be unique,{0}必須是獨特的
 apps/frappe/frappe/public/js/frappe/list/list_renderer.js +554,Row,列
-apps/frappe/frappe/public/js/frappe/views/communication.js +72,"CC, BCC & Email Template",CC，BCC＆電子郵件模板
+apps/frappe/frappe/public/js/frappe/views/communication.js +73,"CC, BCC & Email Template",CC，BCC＆電子郵件模板
 DocType: Data Migration Mapping Detail,Local Fieldname,本地字段名稱
 DocType: User Permission,Linked Doctypes,鏈接的文檔類型
 DocType: DocType,Track Changes,跟踪變化
@@ -1192,14 +1198,14 @@ DocType: Data Migration Mapping,Page Length,頁面長度
 apps/frappe/frappe/email/doctype/email_account/email_account.py +62,Append To is mandatory for incoming mails,追加到是強制性的傳入郵件
 DocType: Contact,Salutation,招呼
 DocType: Communication,Rejected,拒絕
-apps/frappe/frappe/public/js/frappe/ui/tags.js +112,Remove Tag,刪除標籤
+apps/frappe/frappe/public/js/frappe/ui/tags.js +113,Remove Tag,刪除標籤
 DocType: Chat Room User,Admin,管理員
 DocType: Report,Query Report,查詢報表
 DocType: User,Set New Password,設定新密碼
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +49,"%s is not a valid report format. Report format should \
 				one of the following %s",％s不是一個有效的報告格式。報告格式應\下面％S之一
 apps/frappe/frappe/core/doctype/doctype/doctype.py +511,Fieldname {0} appears multiple times in rows {1},列{1}中多次出現欄位名稱{0}
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +550,{0} from {1} to {2} in row #{3},{0}從{1}到{2}中的行＃{3}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +551,{0} from {1} to {2} in row #{3},{0}從{1}到{2}中的行＃{3}
 DocType: Communication,Expired,過期
 apps/frappe/frappe/templates/pages/integrations/razorpay_checkout.py +34,Seems token you are using is invalid!,似乎你使用的令牌是無效的！
 DocType: Customize Form Field,Number of columns for a field in a Grid (Total Columns in a grid should be less than 11),對於一個場的列在網格數（在網格總列應小於11）
@@ -1253,9 +1259,9 @@ apps/frappe/frappe/core/doctype/system_settings/system_settings.py +27,Session E
 DocType: Chat Message,Group,組
 DocType: Footer Item,"Select target = ""_blank"" to open in a new page.","選擇target = ""_blank""以在新頁面中打開。"
 apps/frappe/frappe/core/page/usage_info/usage_info.html +60,Database Size:,數據庫大小：
-apps/frappe/frappe/public/js/frappe/social/social_home.js +65,Set Image,設置圖像
+apps/frappe/frappe/public/js/frappe/social/social_home.js +68,Set Image,設置圖像
 apps/frappe/frappe/public/js/frappe/model/model.js +518,Permanently delete {0}?,永久刪除{0} ？
-apps/frappe/frappe/core/doctype/file/file.py +194,Same file has already been attached to the record,相同的文件已經附加到記錄
+apps/frappe/frappe/core/doctype/file/file.py +195,Same file has already been attached to the record,相同的文件已經附加到記錄
 apps/frappe/frappe/model/workflow.py +126,{0} is not a valid Workflow State. Please update your Workflow and try again.,{0}不是有效的工作流程狀態。請更新您的工作流程，然後重試。
 DocType: Workflow State,wrench,扳手
 DocType: Website Settings,Disable Signup,禁止註冊
@@ -1287,7 +1293,7 @@ apps/frappe/frappe/public/js/frappe/form/script_manager.js +163,Error in Custom 
 apps/frappe/frappe/public/js/frappe/form/quick_entry.js +90,{0} Name,{0}名稱
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +171,No Permissions set for this criteria.,沒有權限設置此標準。
 DocType: Auto Email Report,Auto Email Report,自動電子郵件報告
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +654,Delete comment?,刪除評論？
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +655,Delete comment?,刪除評論？
 DocType: Address Template,This format is used if country specific format is not found,此格式用於如果找不到特定國家的格式
 DocType: System Settings,Allow Login using Mobile Number,允許使用手機號登錄
 apps/frappe/frappe/public/js/frappe/request.js +137,You do not have enough permissions to access this resource. Please contact your manager to get access.,您沒有足夠的權限來訪問該資源。請聯繫您的經理，以獲得訪問權。
@@ -1310,13 +1316,13 @@ DocType: Auto Email Report,Report Filters,報告過濾器
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +16,now,現在
 DocType: Workflow State,step-backward,往後退
 apps/frappe/frappe/utils/boilerplate.py +265,{app_title},{ app_title }
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +250,Please set Dropbox access keys in your site config,請在您的網站配置設定Dropbox的存取碼
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +259,Please set Dropbox access keys in your site config,請在您的網站配置設定Dropbox的存取碼
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +16,Delete this record to allow sending to this email address,刪除此記錄允許發送此郵件地址
 apps/frappe/frappe/core/doctype/data_import/exporter.py +67,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,只有必填字段所必需的新記錄。如果你願意，你可以刪除非強制性列。
+apps/frappe/frappe/email/smtp.py +191,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,電子郵件帳戶未設置。請從設置&gt;電子郵件&gt;電子郵件帳戶創建新的電子郵件帳戶
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +380,Unable to update event,無法更新事件
 apps/frappe/frappe/twofactor.py +213,Verification code has been sent to your registered email address.,驗證碼已發送到您註冊的電子郵件地址。
 apps/frappe/frappe/core/doctype/user/user.py +1027,Throttled,節流
-apps/frappe/frappe/email/smtp.py +191,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,電子郵件帳戶未設置。請從設置&gt;電子郵件&gt;電子郵件帳戶創建新的電子郵件帳戶
 apps/frappe/frappe/utils/data.py +829,"Filter must have 4 values (doctype, fieldname, operator, value): {0}",過濾器必須有4個值（doctype，fieldname，operator，value）：{0}
 apps/frappe/frappe/utils/bot.py +89,show,顯示
 apps/frappe/frappe/utils/data.py +881,Invalid field name {0},字段名稱{0}無效
@@ -1332,7 +1338,7 @@ apps/frappe/frappe/utils/password_strength.py +143,Avoid dates and years that ar
 DocType: Custom DocPerm,Amend,修改
 DocType: File,Is Attachments Folder,是附件文件夾
 apps/frappe/frappe/public/js/frappe/views/treeview.js +75,Expand All,展開全部
-apps/frappe/frappe/public/js/frappe/chat.js +2160,Select a chat to start messaging.,選擇一個聊天開始消息。
+apps/frappe/frappe/public/js/frappe/chat.js +2167,Select a chat to start messaging.,選擇一個聊天開始消息。
 apps/frappe/frappe/public/js/frappe/form/controls/table.js +85,Processing,處理
 apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.js +20,Please select Entity Type first,請先選擇實體類型
 apps/frappe/frappe/templates/includes/login/login.js +52,Valid Login id required.,有效的登錄ID必需的。
@@ -1355,7 +1361,6 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +380,Search the docs,�
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +380,Search the docs,搜索文檔
 apps/frappe/frappe/public/js/frappe/form/controls/link.js +16,Open Link,打開鏈接
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +357,Your Language,你的語言
-apps/frappe/frappe/email/smtp.py +85,Please setup default Email Account from Setup &gt; Email &gt; Email Account,請從設置&gt;電子郵件&gt;電子郵件帳戶設置默認電子郵件帳戶
 DocType: Tag Category,Doctypes,文檔類型
 apps/frappe/frappe/desk/query_report.py +52,Query must be a SELECT,查詢必須是一個SELECT
 DocType: Data Export,Select DocType,選擇DocType
@@ -1395,6 +1400,7 @@ apps/frappe/frappe/email/doctype/email_account/email_account_list.js +6,Default 
 DocType: System Settings,OTP App,OTP應用程序
 DocType: Dropbox Settings,Send Email for Successful Backup,發送電子郵件以成功備份
 apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +21,Document ID,文件編號
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,Setup &gt; Customize Form,設置&gt;自定義表單
 DocType: DocType,"Naming Options:
 <ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>
 <li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>",命名選項： <ol><li> <b>字段：[fieldname]</b> - 按字段</li><li> <b>naming_series：</b> - 通過命名系列（必須存在名為naming_series的字段</li><li> <b>提示</b> - 提示用戶輸入名稱</li><li> <b>[系列]</b> - 前綴系列（以點分隔）;例如PRE。##### </li><li> <b>格式：示例 -  {MM} morewords {fieldname1}  -  {fieldname2}  -  {#####}</b> - 將所有支撐的單詞（字段名，日期字（DD，MM，YY），系列）替換為其值。在大括號外，可以使用任何字符。 </li></ol>
@@ -1429,7 +1435,6 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +19
 apps/frappe/frappe/core/doctype/data_export/data_export.js +40,Atleast one field of Parent Document Type is mandatory,家長文件類型的至少一個字段是強制性的
 apps/frappe/frappe/config/setup.py +178,Setup Reports to be emailed at regular intervals,設置報告到定期通過電子郵件發送
 DocType: Workflow Document State,0 - Draft; 1 - Submitted; 2 - Cancelled,0 - 草案; 1 - 已呈交; 2 - 已取消
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,Setup &gt; Customize Form,設置&gt;自定義表單
 DocType: File,Attached To DocType,附加於 DocType
 DocType: DocField,Int,詮釋
 DocType: Error Log,Title,標題
@@ -1443,7 +1448,7 @@ DocType: Currency,"1 Currency = [?] Fraction
 For e.g. 1 USD = 100 Cent",1 貨幣= [？]  如：1美元= 100美分
 apps/frappe/frappe/core/doctype/user/user.py +771,"Too many users signed up recently, so the registration is disabled. Please try back in an hour",太多用戶簽約近日，所以報名無效。請嘗試一小時後回來
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +368,Add New Permission Rule,添加新的權限規則
-apps/frappe/frappe/public/js/frappe/upload.js +293,"Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed",只有（.gif注意，.JPG，.JPEG，.TIFF，.PNG，.SVG）允許的圖片擴展
+apps/frappe/frappe/public/js/frappe/upload.js +298,"Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed",只有（.gif注意，.JPG，.JPEG，.TIFF，.PNG，.SVG）允許的圖片擴展
 DocType: Address,Manipur,曼尼普爾邦
 DocType: Web Form Field,Allow Read On All Link Options,允許讀取所有鏈接選項
 DocType: DocType,Database Engine,資料庫引擎
@@ -1569,6 +1574,7 @@ DocType: Communication,Submitted,提交
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +399,In Valid Request,非法請求
 DocType: System Settings,Email Footer Address,電子郵件地址頁尾
 DocType: Activity Log,Timeline DocType,時間軸的DocType
+DocType: Success Action,Action Timeout (Seconds),動作超時（秒）
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js +14,Default Sending,預設發送
 DocType: Workflow State,volume-off,體積過
 apps/frappe/frappe/public/js/frappe/form/footer/timeline_item.html +184,Liked by {0},由喜歡{0}
@@ -1643,7 +1649,7 @@ DocType: Data Migration Connector,Database Name,數據庫名稱
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +71,Refresh Form,更新表格
 DocType: DocField,Select,選擇
 apps/frappe/frappe/utils/csvutils.py +29,File not attached,文件未附
-apps/frappe/frappe/public/js/frappe/dom.js +317,Connection lost. Some features might not work.,連接丟失。某些功能可能無法使用。
+apps/frappe/frappe/public/js/frappe/dom.js +329,Connection lost. Some features might not work.,連接丟失。某些功能可能無法使用。
 apps/frappe/frappe/utils/password_strength.py +115,"Repeats like ""aaa"" are easy to guess",像“AAA”重複很容易被猜到
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.",如果您設定此項，這個項目會存在於選定的父物件的下拉選單中。
 DocType: Print Format,Show Section Headings,顯示部分標題
@@ -1656,7 +1662,7 @@ DocType: DocType,Has Web View,具有Web視圖
 apps/frappe/frappe/core/doctype/doctype/doctype.py +478,"DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores",DocType的名稱應以字母開始，它只能由字母，數字，空格和下劃線組成。
 DocType: Communication,Spam,垃圾郵件
 DocType: Integration Request,Integration Request,集成請求
-apps/frappe/frappe/public/js/frappe/views/communication.js +635,Dear,親愛
+apps/frappe/frappe/public/js/frappe/views/communication.js +642,Dear,親愛
 DocType: Address,Maharashtra,馬哈拉施特拉邦
 DocType: Address,Accounts User,會計人員
 DocType: Web Page,HTML for header section. Optional,標題區塊的HTML。可選
@@ -1731,6 +1737,7 @@ apps/frappe/frappe/core/doctype/communication/communication.js +42,Close,關閉
 apps/frappe/frappe/model/document.py +672,Cannot change docstatus from 0 to 2,不能改變docstatus 0-2
 DocType: File,Attached To Field,附在田地上
 DocType: User Permission for Page and Report,Roles Permission,角色權限
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,設置&gt;用戶
 DocType: Transaction Log,Transaction Hash,事務哈希
 DocType: Error Snapshot,Snapshot View,快照視圖
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +106,Please save the Newsletter before sending,請在發送之前保存信件
@@ -1749,6 +1756,7 @@ apps/frappe/frappe/core/doctype/user_permission/user_permission.py +20,User perm
 apps/frappe/frappe/config/integrations.py +63,Register OAuth Client App,註冊OAuth客戶端應用程序
 DocType: Data Migration Connector,Authentication Credentials,身份驗證憑據
 DocType: Role,Two Factor Authentication,雙因素認證
+apps/frappe/frappe/templates/pages/integrations/braintree_checkout.html +29,Pay,付
 DocType: SMS Settings,SMS Gateway URL,短信閘道的URL
 apps/frappe/frappe/model/base_document.py +518,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""",{0} {1} 不能為“{2}”。它應該是“{3}”的其中一個
 apps/frappe/frappe/core/doctype/user/user.py +249,Password Update,密碼更新
@@ -1787,7 +1795,7 @@ apps/frappe/frappe/geo/doctype/currency/currency.js +7,This Currency is disabled
 DocType: Desktop Icon,Blocked,受阻
 DocType: Contact Us Settings,"Default: ""Contact Us""",預設：“聯絡我們”
 DocType: Contact,Purchase Manager,採購經理
-apps/frappe/frappe/public/js/frappe/ui/tags.js +108,toggle Tag,切換標籤
+apps/frappe/frappe/public/js/frappe/ui/tags.js +109,toggle Tag,切換標籤
 DocType: Custom Script,Sample,樣品
 DocType: Braintree Settings,Private Key,私鑰
 DocType: Event,Every Week,每一周
@@ -1809,7 +1817,7 @@ apps/frappe/frappe/public/js/frappe/socketio_client.js +295,Socketio is not conn
 DocType: Website Settings,Website Settings,網站設定
 DocType: Email Account,ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> to send document reference,ProTip：添加<code>Reference: {{ reference_doctype }} {{ reference_name }}</code>發送文檔引用
 apps/frappe/frappe/modules/utils.py +204,App not found,未找到應用程式
-apps/frappe/frappe/core/doctype/communication/communication.py +70,Cannot create a {0} against a child document: {1},無法創建{0}針對兒童的文檔：{1}
+apps/frappe/frappe/core/doctype/communication/communication.py +71,Cannot create a {0} against a child document: {1},無法創建{0}針對兒童的文檔：{1}
 DocType: Social Login Key,Social Login Key,社交登錄密鑰
 DocType: Portal Settings,Custom Sidebar Menu,自定義工具欄菜單
 DocType: Workflow State,pencil,鉛筆
@@ -1886,6 +1894,7 @@ apps/frappe/frappe/email/smtp.py +27,Invalid recipient address,無效的收件�
 DocType: Workflow State,step-forward,往前進
 DocType: System Settings,Allow Login After Fail,允許在失敗後登錄
 apps/frappe/frappe/limits.py +69,Your subscription has expired.,您的訂購已過期。
+DocType: Role Permission for Page and Report,Set Role For,集角色
 DocType: GCalendar Account,The name that will appear in Google Calendar,將顯示在Google日曆中的名稱
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +65,Direct room with {0} already exists.,已存在{0}的直接房間。
 apps/frappe/frappe/core/doctype/user/user.js +67,Refreshing...,更新中...
@@ -1894,7 +1903,7 @@ DocType: System Settings,System Settings,系統設置
 DocType: GCalendar Settings,Google API Credentials,Google API憑證
 apps/frappe/frappe/public/js/frappe/desk.js +36,Session Start Failed,會話開始失敗
 apps/frappe/frappe/public/js/frappe/desk.js +36,Session Start Failed,會話開始失敗
-apps/frappe/frappe/email/queue.py +517,This email was sent to {0} and copied to {1},此電子郵件發送到{0}，並複製到{1}
+apps/frappe/frappe/email/queue.py +514,This email was sent to {0} and copied to {1},此電子郵件發送到{0}，並複製到{1}
 DocType: Workflow State,th,日
 DocType: Social Login Key,Provider Name,提供者名稱
 apps/frappe/frappe/public/js/frappe/form/controls/link.js +172,Create a new {0},建立一個新的{0}
@@ -1950,7 +1959,7 @@ DocType: OAuth Client,App Client ID,應用程序客戶端ID
 DocType: Kanban Board,Kanban Board Name,看板名稱
 DocType: Notification Recipient,"Expression, Optional",表達，可選
 DocType: GSuite Settings,Copy and paste this code into and empty Code.gs in your project at script.google.com,將該代碼複製並粘貼到script.google.com中的項目中的Code.gs並將其清空
-apps/frappe/frappe/email/queue.py +519,This email was sent to {0},這封電子郵件被發送到{0}
+apps/frappe/frappe/email/queue.py +516,This email was sent to {0},這封電子郵件被發送到{0}
 DocType: System Settings,Hide footer in auto email reports,在自動電子郵件報告中隱藏頁腳
 DocType: DocField,Remember Last Selected Value,記得去年選定的值
 DocType: Email Account,Check this to pull emails from your mailbox,勾選此選項，則從你的郵箱取出電子郵件地址
@@ -1985,7 +1994,7 @@ apps/frappe/frappe/utils/data.py +842,Operator must be one of {0},運算符必�
 DocType: Dropbox Settings,Dropbox Access Token,Dropbox訪問令牌
 DocType: Workflow State,align-right,靠右對齊
 DocType: Auto Email Report,Email To,發送電子郵件給
-apps/frappe/frappe/core/doctype/file/file.py +267,Folder {0} is not empty,文件夾{0}非空
+apps/frappe/frappe/core/doctype/file/file.py +268,Folder {0} is not empty,文件夾{0}非空
 apps/frappe/frappe/model/base_document.py +409,Error: Value missing for {0}: {1},錯誤：{0}缺少值：{1}
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +157,Field {0} is not selectable.,欄位{0}是不可選擇的。
 DocType: Webhook,Webhook,網絡掛接
@@ -2004,7 +2013,7 @@ apps/frappe/frappe/utils/password_strength.py +173,This is a top-10 common passw
 DocType: User,User Defaults,使用者預設
 apps/frappe/frappe/public/js/frappe/views/treeview.js +253,Create New,新建立
 DocType: Workflow State,chevron-down,人字形-下
-apps/frappe/frappe/public/js/frappe/views/communication.js +560,Email not sent to {0} (unsubscribed / disabled),電子郵件不會被發送到{0}（退訂/禁用）
+apps/frappe/frappe/public/js/frappe/views/communication.js +564,Email not sent to {0} (unsubscribed / disabled),電子郵件不會被發送到{0}（退訂/禁用）
 DocType: Currency,Smallest Currency Fraction Value,最小的貨幣分數值
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +137,Assign To,指派給
 DocType: Workflow State,th-list,日列表
@@ -2031,7 +2040,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager.js +145,Loadi
 apps/frappe/frappe/config/integrations.py +53,"Enter keys to enable login via Facebook, Google, GitHub.",Enter鍵啟用透過Facebook、Google、GitHub登錄。
 DocType: Event,Sent/Received Email,已發送/已接收電子郵件
 DocType: Data Import,Insert new records,插入新記錄
-apps/frappe/frappe/core/doctype/file/file.py +642,Unable to read file format for {0},無法讀取{0}的文件格式
+apps/frappe/frappe/core/doctype/file/file.py +643,Unable to read file format for {0},無法讀取{0}的文件格式
 DocType: Auto Email Report,Filter Data,過濾數據
 apps/frappe/frappe/public/js/frappe/form/controls/select.js +61,Please attach a file first.,請先加上附檔。
 apps/frappe/frappe/model/naming.py +202,"There were some errors setting the name, please contact the administrator",有一些錯誤設定的名稱，請與管理員聯絡
@@ -2082,13 +2091,14 @@ apps/frappe/frappe/public/js/frappe/form/print.js +102,New Custom Print Format,�
 DocType: Custom DocPerm,Create,建立
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +199,Invalid Filter: {0},無效的過濾器： {0}
 DocType: Email Account,no failed attempts,沒有失敗的嘗試
+DocType: GSuite Settings,refresh_token,refresh_token
 DocType: Dropbox Settings,App Access Key,應用程序訪問密鑰
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +3,An error occured while creating recurring,創建循環時出現錯誤
 DocType: Chat Room,Last Message,最後的消息
 DocType: OAuth Bearer Token,Access Token,存取 Token
 DocType: About Us Settings,Org History,組織歷史
 apps/frappe/frappe/core/page/usage_info/usage_info.html +66,Backup Size:,備份大小：
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +328,Auto Repeat has been {0},自動重複已經{0}
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +339,Auto Repeat has been {0},自動重複已經{0}
 DocType: Auto Repeat,Next Schedule Date,下一個附表日期
 DocType: Workflow,Workflow Name,工作流程名稱
 DocType: DocShare,Notify by Email,通過電子郵件通知
@@ -2137,7 +2147,7 @@ apps/frappe/frappe/model/document.py +1228,This document is currently queued for
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +411,Remove Section,刪除部分
 DocType: User,Change Password,更改密碼
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +352,X Axis Field,X軸場
-apps/frappe/frappe/public/js/frappe/form/controls/data.js +121,Invalid Email: {0},無效的電子郵件： {0}
+apps/frappe/frappe/public/js/frappe/form/controls/data.js +124,Invalid Email: {0},無效的電子郵件： {0}
 apps/frappe/frappe/config/integrations.py +13,Braintree payment gateway settings,Braintree支付網關設置
 apps/frappe/frappe/desk/doctype/event/event.py +25,Event end must be after start,活動必須在開始後才能結束
 apps/frappe/frappe/www/third_party_apps.html +27,This will log out {0} from all other devices,這將從所有其他設備註銷{0}
@@ -2202,7 +2212,7 @@ apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +1
 DocType: Workflow State,font,字形
 apps/frappe/frappe/utils/password_strength.py +175,This is a top-100 common password.,這是一個頂100公共密碼。
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +30,Please enable pop-ups,請啟用彈出窗口
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +60,End date must be greater than start date,結束日期必須大於開始日期
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +62,End date must be greater than start date,結束日期必須大於開始日期
 DocType: Contact,Mobile No,手機號碼
 DocType: Communication,Text Content,文本內容
 DocType: Customize Form Field,Is Custom Field,是自定義字段
@@ -2252,7 +2262,7 @@ apps/frappe/frappe/core/doctype/data_import/exporter.py +270,Mandatory:,強制�
 DocType: Chat Profile,Conversation Tones,對話音
 DocType: Property Setter,New value to be set,被設定的新值
 DocType: Notification,Days Before or After,日前或後
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +73,Next Date's day and Repeat on Day of Month must be equal,下一個日期的一天，重複上月的天必須相等
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +75,Next Date's day and Repeat on Day of Month must be equal,下一個日期的一天，重複上月的天必須相等
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +34,Select Document Types to set which User Permissions are used to limit access.,選擇文件類型來設置該用戶的權限來限制訪問。
 DocType: Website Settings,HTML Header & Robots,HTML頁眉和機器人
 DocType: User Permission,User Permission,用戶權限
@@ -2299,11 +2309,10 @@ apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +636,Cannot rem
 apps/frappe/frappe/core/doctype/doctype/doctype.py +845,{0}: Cannot set Assign Amend if not Submittable,{0} ：如果不可提交的話，便無法設為指定修改
 DocType: Address,Bihar,比哈爾邦
 DocType: Activity Log,Link DocType,連接 DocType
-apps/frappe/frappe/public/js/frappe/chat.js +1696,You don't have any messages yet.,你還沒有任何消息。
+apps/frappe/frappe/public/js/frappe/chat.js +1699,You don't have any messages yet.,你還沒有任何消息。
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +76,Remove all customizations?,刪除所有自定義？
 DocType: Website Slideshow,Slideshow Name,幻燈片放映名稱
 DocType: DocType,Allow Rename,允許重新命名
-apps/frappe/frappe/model/db_query.py +201,Cannot use sub-query or function in fields,不能在字段中使用子查詢或功能
 apps/frappe/frappe/public/js/frappe/list/list_filter.js +102,Duplicate Filter Name,重複的過濾器名稱
 DocType: DocType,Child Tables are shown as a Grid in other DocTypes.,子表在其他文件類型中顯示為Grid。
 DocType: Chat Room User,Chat Room User,聊天室用戶
@@ -2316,6 +2325,7 @@ DocType: Event,Event Category,活動類別
 DocType: DocType,Name Case,案例名稱
 apps/frappe/frappe/public/js/frappe/form/share.js +27,Shared with everyone,的所有人共享
 apps/frappe/frappe/model/base_document.py +402,Data missing in table,在表中的數據丟失
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +29,Number of DB backups cannot be less than 1,數據庫備份數不能少於1
 DocType: Workflow Document State,Only Allow Edit For,只允許編輯
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js +108,Mandatory field: {0},強制字段：{0}
 apps/frappe/frappe/templates/includes/comments/comments.html +35,Your Name,你的名字
@@ -2361,7 +2371,7 @@ DocType: Report,Letter Head,信頭
 DocType: DocType,Quick Entry,快速入門
 DocType: Web Form,Button Label,按鈕標籤
 DocType: Website Theme,UPPERCASE,大寫字母
-apps/frappe/frappe/public/js/frappe/list/list_view.js +856,{0} items selected,選擇{0}項目
+apps/frappe/frappe/public/js/frappe/list/list_view.js +869,{0} items selected,選擇{0}項目
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js +16,Suspend Sending,暫停發送
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html +3,Drag elements from the sidebar to add. Drag them back to trash.,從側邊欄拖動的元素添加。他們拖回到垃圾桶。
 DocType: Workflow State,resize-small,調整大小－小
@@ -2395,7 +2405,7 @@ DocType: Address,Telangana,特蘭伽納
 apps/frappe/frappe/core/doctype/doctype/doctype.py +565,Default for {0} must be an option,預設為{0}必須是一種選項
 DocType: Tag Doc Category,Tag Doc Category,標籤單據類別
 DocType: User,User Image,使用者圖片
-apps/frappe/frappe/email/queue.py +347,Emails are muted,電子郵件是靜音模式
+apps/frappe/frappe/email/queue.py +344,Emails are muted,電子郵件是靜音模式
 apps/frappe/frappe/config/integrations.py +88,Google Services,Google服務
 DocType: Website Theme,Heading Style,標題樣式
 apps/frappe/frappe/utils/data.py +641,1 weeks ago,1週前
@@ -2428,7 +2438,7 @@ apps/frappe/frappe/model/rename_doc.py +430,** Failed: {0} to {1}: {2},**失敗�
 DocType: Data Migration Mapping,Mapping Type,映射類型
 apps/frappe/frappe/public/js/frappe/ui/upload.html +4,Browse,瀏覽
 apps/frappe/frappe/utils/password_strength.py +39,"No need for symbols, digits, or uppercase letters.",無需符號，數字和大寫字母。
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +56,Add custom field Auto Repeat in the doctype {0},在文檔類型{0}中添加自定義字段自動重複
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +58,Add custom field Auto Repeat in the doctype {0},在文檔類型{0}中添加自定義字段自動重複
 DocType: DocField,Currency,貨幣
 apps/frappe/frappe/templates/includes/comments/comments.py +50,View it in your browser,在瀏覽器查看
 DocType: Async Task,Running,運行
@@ -2440,7 +2450,7 @@ DocType: Data Import,If you are updating/overwriting already created records.,�
 apps/frappe/frappe/public/js/frappe/list/list_filter.js +35,Is Global,是全球性的
 apps/frappe/frappe/public/js/frappe/views/interaction.js +287,The document could not be correctly assigned,無法正確分配文檔
 apps/frappe/frappe/public/js/frappe/form/layout.js +508,"Invalid ""depends_on"" expression",“depends_on”表達式無效
-apps/frappe/frappe/public/js/frappe/chat.js +1617,Group Name,團隊名字
+apps/frappe/frappe/public/js/frappe/chat.js +1620,Group Name,團隊名字
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +82,Select Print Format to Edit,選擇編輯的列印格式
 DocType: Address,Shipping,航運
 DocType: Workflow State,circle-arrow-down,圓圈箭頭向下
@@ -2453,7 +2463,7 @@ DocType: Workflow State,arrow-right,箭頭向右
 DocType: Workflow State,Workflow state represents the current state of a document.,工作流狀態表示文檔的當前狀態。
 apps/frappe/frappe/utils/oauth.py +173,Token is missing,令牌丟失
 apps/frappe/frappe/public/js/frappe/misc/utils.js +526,Note: Changing the Page Name will break previous URL to this page.,注意：更改頁面名稱將會破壞此頁面的上一個URL。
-apps/frappe/frappe/core/doctype/file/file.py +220,Removed {0},刪除{0}
+apps/frappe/frappe/core/doctype/file/file.py +221,Removed {0},刪除{0}
 DocType: SMS Settings,SMS Settings,簡訊設定
 DocType: Company History,Highlight,突出
 DocType: DocField,Fold,折
@@ -2468,7 +2478,7 @@ apps/frappe/frappe/core/doctype/file/file.js +27,Unzip,拉開拉鍊
 apps/frappe/frappe/model/document.py +1090,Incorrect value in row {0}: {1} must be {2} {3},不正確的值在列{0} ： {1}必須是{2} {3}
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +74,Submitted Document cannot be converted back to draft. Transition row {0},提交的文件不能被轉換回起草。
 apps/frappe/frappe/config/integrations.py +98,Configure your google calendar integration,配置你的谷歌日曆集成
-apps/frappe/frappe/desk/reportview.py +225,Deleting {0},刪除{0}
+apps/frappe/frappe/desk/reportview.py +226,Deleting {0},刪除{0}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_start.html +2,Select an existing format to edit or start a new format.,選擇現有格式來編輯或開始一個新的格式。
 DocType: System Settings,Bypass restricted IP Address check If Two Factor Auth Enabled,繞過受限制的IP地址檢查如果雙因素驗證啟用
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +40,Created Custom Field {0} in {1},創建自定義欄位{0} {1}
@@ -2486,6 +2496,7 @@ DocType: OAuth Provider Settings,Auto,汽車
 DocType: System Settings,User can login using Email id or User Name,用戶可以使用電子郵件ID或用戶名登錄
 DocType: Workflow State,question-sign,問號
 apps/frappe/frappe/core/doctype/doctype/doctype.py +165,"Field ""route"" is mandatory for Web Views",Web視圖必須使用字段“路由”
+DocType: Dropbox Settings,Number of DB Backups,數據庫備份數
 DocType: Email Account,Add Signature,添加簽名
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +38,Left this conversation,離開了這個談話
 ,Background Jobs,後台作業
@@ -2514,13 +2525,13 @@ DocType: Desktop Icon,Page,頁面
 apps/frappe/frappe/config/website.py +93,Knowledge Base,知識庫
 apps/frappe/frappe/model/document.py +500,Value cannot be changed for {0},值不能被改變為{0}
 DocType: Feedback Request,Is Manual,為手動
-apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +281,Please find attached {0} #{1},隨函附上{0}＃{1}
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +290,Please find attached {0} #{1},隨函附上{0}＃{1}
 DocType: Workflow State,"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange",風格代表按鈕的顏色：成功 - 綠色，危險 - 紅，逆 - 黑色，主要 - 深藍色，資訊 - 淺藍，警告 - 橙
 apps/frappe/frappe/core/doctype/data_import/log_details.html +6,Row Status,行狀態
 DocType: Workflow Transition,Workflow Transition,工作流程轉換
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +54,{0} months ago,{0}個月前
 apps/frappe/frappe/public/js/frappe/model/model.js +18,Created By,建立者
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +312,Dropbox Setup,Dropbox的設置
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +335,Dropbox Setup,Dropbox的設置
 DocType: Workflow State,resize-horizontal,調整大小－水平
 DocType: Chat Message,Content,內容
 apps/frappe/frappe/public/js/frappe/views/treeview.js +294,Group Node,組節點
@@ -2539,7 +2550,7 @@ apps/frappe/frappe/config/setup.py +37,Set Permissions on Document Types and Rol
 DocType: Data Migration Run,Remote ID,遠程ID
 apps/frappe/frappe/model/meta.py +204,No Label,無標籤
 DocType: System Settings,Use socketio to upload file,使用socketio上傳文件
-apps/frappe/frappe/public/js/frappe/list/list_view.js +273,Refreshing,清爽
+apps/frappe/frappe/public/js/frappe/list/list_view.js +282,Refreshing,清爽
 DocType: About Us Settings,"""Company History""",“公司歷史”
 apps/frappe/frappe/www/confirm_workflow_action.html +8,This document has been modified after the email was sent.,發送電子郵件後，此文檔已被修改。
 apps/frappe/frappe/core/doctype/prepared_report/prepared_report.js +34,Show Report,顯示報告
@@ -2575,7 +2586,7 @@ apps/frappe/frappe/core/doctype/data_import/exporter.py +72,"If you are updating
 DocType: DocField,Translatable,可翻譯
 DocType: Letter Head,Letter Head in HTML,信頭中的HTML
 DocType: Web Form,Web Form,網頁表單
-apps/frappe/frappe/public/js/frappe/form/controls/date.js +128,Date {0} must be in format: {1},日期{0}必須採用格式：{1}
+apps/frappe/frappe/public/js/frappe/form/controls/date.js +132,Date {0} must be in format: {1},日期{0}必須採用格式：{1}
 DocType: About Us Settings,Org History Heading,組織歷史航向
 apps/frappe/frappe/core/doctype/user/user.py +483,Sorry. You have reached the maximum user limit for your subscription. You can either disable an existing user or buy a higher subscription plan.,抱歉。您已經達到了您訂閱的最大用戶限制。您可以禁用現有用戶或購買更高的訂閱計劃。
 DocType: Print Settings,Allow Print for Cancelled,允許打印為已取消
@@ -2743,7 +2754,7 @@ DocType: User,Third Party Authentication,第三方認證
 DocType: Website Settings,Banner is above the Top Menu Bar.,橫幅位於選單欄上方。
 DocType: User,API Secret,API揭秘
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +29,{0} Calendar,{0}日曆
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +762,Export Report: ,導出報告：
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +764,Export Report: ,導出報告：
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +10,in the Auto Repeat document,在“自動重複”文檔中
 DocType: Print Format,Arial,Arial
 apps/frappe/frappe/auth.py +201,Incomplete login details,登錄詳細信息不完整
@@ -2751,11 +2762,12 @@ apps/frappe/frappe/config/core.py +12,Models (building blocks) of the Applicatio
 DocType: Website Slideshow,Slideshow like display for the website,幻燈片一樣顯示的網站
 apps/frappe/frappe/config/setup.py +168,Setup Notifications based on various criteria.,基於各種標準的設置通知。
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +105,Select Module,選擇模塊
-apps/frappe/frappe/public/js/frappe/chat.js +1591,Search or Create a New Chat,搜索或創建一個新的聊天
+apps/frappe/frappe/public/js/frappe/chat.js +1594,Search or Create a New Chat,搜索或創建一個新的聊天
 apps/frappe/frappe/sessions.py +29,Cache Cleared,快取已清除
 apps/frappe/frappe/public/js/frappe/views/communication.js +15,New Email,新的電子郵件
 DocType: Custom DocPerm,Export,出口
 DocType: Dropbox Settings,Dropbox Settings,Dropbox的設置
+apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +184,Recurring document creation failure,重複出現文檔創建失敗
 DocType: About Us Settings,More content for the bottom of the page.,更多的內容的頁面的底部。
 DocType: Workflow,DocType on which this Workflow is applicable.,DocType文檔類型上這個工作流是適用的。
 DocType: Feedback Trigger,Enabled,啟用
@@ -2798,7 +2810,7 @@ DocType: Print Settings,Send Print as PDF,發送列印為PDF
 DocType: Web Form,Amount,量
 DocType: Workflow Transition,Allowed,允許的
 apps/frappe/frappe/core/doctype/doctype/doctype.py +608,There can be only one Fold in a form,只能有一個折疊的形式
-apps/frappe/frappe/core/doctype/file/file.py +254,Unable to write file format for {0},無法寫入{0}的文件格式
+apps/frappe/frappe/core/doctype/file/file.py +255,Unable to write file format for {0},無法寫入{0}的文件格式
 apps/frappe/frappe/website/doctype/portal_settings/portal_settings.js +20,Restore to default settings?,恢復到默認設置？
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +23,Invalid Home Page,無效的主頁
 apps/frappe/frappe/templates/includes/login/login.js +222,Invalid Login. Try again.,登錄無效。再試一次。
@@ -2845,7 +2857,7 @@ DocType: Property Setter,Set Value,設定值
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +249,Hide field in form,隱藏表單域
 DocType: Webhook,Webhook Data,Webhook數據
 apps/frappe/frappe/public/js/frappe/views/treeview.js +269,Creating {0},創建{0}
-apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +313,Illegal Access Token. Please try again,非法訪問令牌。請再試一次
+apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +336,Illegal Access Token. Please try again,非法訪問令牌。請再試一次
 apps/frappe/frappe/public/js/frappe/desk.js +94,"The application has been updated to a new version, please refresh this page",該應用程序已被更新到新版本，請刷新本頁面
 apps/frappe/frappe/core/doctype/communication/communication.js +35,Resend,重發
 DocType: Feedback Trigger,Optional: The alert will be sent if this expression is true,可選：警報會在這個表達式為true發送
@@ -2856,6 +2868,7 @@ apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +105,Select records 
 DocType: ToDo,Assigned By,由....指派
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,You can use Customize Form to set levels on fields.,您可以使用自定義表格中的字段設置的水平。
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +384,Select Your Region,選擇您的地區
+DocType: Dropbox Settings,Limit Number of DB Backups,限制數據庫備份數量
 DocType: Custom DocPerm,Level,級別
 DocType: Custom DocPerm,Report,報告
 apps/frappe/frappe/website/doctype/web_form/web_form.py +61,Amount must be greater than 0.,量必須大於0。
@@ -2906,7 +2919,7 @@ DocType: Event,Repeat On,重複在
 DocType: SMS Parameter,SMS Parameter,短信參數
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +5,for the,為了
 DocType: Communication,Marked As Spam,標記為垃圾郵件
-apps/frappe/frappe/core/doctype/file/file.py +387,There is some problem with the file url: {0},有一些問題與文件的URL：{0}
+apps/frappe/frappe/core/doctype/file/file.py +388,There is some problem with the file url: {0},有一些問題與文件的URL：{0}
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html +26,Tree,樹
 apps/frappe/frappe/public/js/frappe/views/treeview.js +319,You are not allowed to print this report,您不允許打印此報告
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +30,User Permissions,用戶權限
@@ -2945,7 +2958,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +135,Please save
 apps/frappe/frappe/email/doctype/email_group/email_group.py +42,{0} subscribers added,{0}用戶已新增
 DocType: Workflow State,star,星號
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +237,Hub,樞紐
-apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +280,values separated by commas,用逗號分隔的值
+apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +282,values separated by commas,用逗號分隔的值
 apps/frappe/frappe/core/doctype/doctype/doctype.py +543,Max width for type Currency is 100px in row {0},{0}列內的貨幣類型的最大寬度為100px
 apps/frappe/frappe/www/feedback.html +68,Please share your feedback for {0},請分享您的反饋{0}
 apps/frappe/frappe/config/website.py +13,Content web page.,內容的網頁。
@@ -2962,8 +2975,8 @@ DocType: Address,Office,辦公室
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +219,This Kanban Board will be private,這看板私會
 apps/frappe/frappe/desk/moduleview.py +94,Standard Reports,標準報告
 DocType: User,Email Settings,電子郵件設定
-apps/frappe/frappe/public/js/frappe/desk.js +400,Please Enter Your Password to Continue,請輸入您的密碼以繼續
-apps/frappe/frappe/public/js/frappe/desk.js +400,Please Enter Your Password to Continue,請輸入您的密碼以繼續
+apps/frappe/frappe/public/js/frappe/desk.js +401,Please Enter Your Password to Continue,請輸入您的密碼以繼續
+apps/frappe/frappe/public/js/frappe/desk.js +401,Please Enter Your Password to Continue,請輸入您的密碼以繼續
 apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +116,Not a valid LDAP user,不是有效的LDAP用戶
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +64,{0} not a valid State,{0}不是有效的國家
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +101,Please select another payment method. PayPal does not support transactions in currency '{0}',請選擇其他付款方式。貝寶不支持貨幣交易“{0}”
@@ -3028,7 +3041,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +738,Export Repo
 DocType: Auto Email Report,Filter Meta,過濾元
 DocType: Web Form,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,要顯示的文本鏈接網頁，如果這種形式有一個網頁。線路路由會自動生成基於`page_name`和`parent_website_route`
 DocType: Feedback Request,Feedback Trigger,反饋觸發
-apps/frappe/frappe/permissions.py +224,Not allowed for {0} = {1} in Row {2},對於{2}行中的{0} = {1}不允許
+apps/frappe/frappe/permissions.py +226,Not allowed for {0} = {1} in Row {2},對於{2}行中的{0} = {1}不允許
 DocType: S3 Backup Settings,Backup Limit,備份限制
 DocType: Unhandled Email,Message-id,郵件ID
 DocType: Patch Log,Patch,補丁
@@ -3038,7 +3051,6 @@ DocType: User,Background Style,背景樣式
 DocType: System Settings,Bypass Two Factor Auth for users who login from restricted IP Address,為受限IP地址登錄的用戶繞過雙因素身份驗證
 apps/frappe/frappe/email/queue.py +276,{0} to stop receiving emails of this type,{0}停止接收此類型的電子郵件
 apps/frappe/frappe/www/qrcode.html +13,Open your authentication app on your mobile phone.,在您的手機上打開您的認證應用程序。
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +361,<p>No results found for '</p>,<p>找不到符合條件的結果</p>
 apps/frappe/frappe/model/rename_doc.py +77,merged {0} into {1},{0}合併為{1}
 DocType: System Settings,mm-dd-yyyy,mm-dd-yyyy
 apps/frappe/frappe/data_migration/doctype/data_migration_connector/data_migration_connector.js +7,New Connection,新的連接

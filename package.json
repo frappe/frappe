@@ -16,10 +16,11 @@
   },
   "homepage": "https://frappe.io",
   "dependencies": {
+    "ace-builds": "^1.4.1",
     "awesomplete": "^1.1.2",
     "cookie": "^0.3.1",
     "express": "^4.16.2",
-    "frappe-datatable": "^1.5.0",
+    "frappe-datatable": "^1.5.3",
     "frappe-gantt": "^0.1.0",
     "fuse.js": "^3.2.0",
     "highlight.js": "^9.12.0",
