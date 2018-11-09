@@ -184,11 +184,12 @@ frappe.upload = {
 		});
 	},
 	make_file_row: function(file, { show_private } = {}) {
+		const safe_file_name = frappe.utils.xss_sanitise(file.name);
 		var template = `
-			<div class="list-item-container" data-filename="${file.name}">
+			<div class="list-item-container" data-filename="${safe_file_name}">
 				<div class="list-item">
 					<div class="list-item__content list-item__content--flex-2 ellipsis">
-						<span>${file.name}</span>
+						<span>${safe_file_name}</span>
 						<span style="margin-top: 1px; margin-left: 5px;"
 							class="fa fa-fw text-warning ${file.is_private ? 'fa-lock': 'fa-unlock-alt'}">
 						</span>
