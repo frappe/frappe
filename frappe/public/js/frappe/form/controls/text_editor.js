@@ -17,7 +17,6 @@ Table.create = (value) => {
 Quill.register(Table, true);
 
 // hidden blot
-const Block = Quill.import('blots/block');
 class HiddenBlock extends Block {
 	static create(value) {
 		const node = super.create(value);
