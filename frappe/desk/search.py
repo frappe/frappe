@@ -58,9 +58,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 	page_length=10, filters=None, filter_fields=None, as_dict=False):
 	if isinstance(filters, string_types):
 		filters = json.loads(filters)
-
-	meta = frappe.get_meta(doctype)
-
+	
 	if searchfield:
 		sanitize_searchfield(searchfield)
 
@@ -78,6 +76,8 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 		search_widget(doctype, txt, standard_queries[doctype][0],
 			searchfield, start, page_length, filters)
 	else:
+		meta = frappe.get_meta(doctype)
+
 		if query:
 			frappe.throw(_("This query style is discontinued"))
 			# custom query
