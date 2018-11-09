@@ -258,7 +258,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					report_name: this.report_name,
 					filters: filters,
 				},
-				callback: resolve
+				callback: resolve,
+				always: () => this.page.btn_secondary.prop('disabled', false)
 			})
 		}).then(r => {
 			let data = r.message;
