@@ -551,7 +551,7 @@ def browse(context, site):
 	site = context.sites[0] if context.sites else site
 
 	if not site:
-		print('''\nPlease provide site name\nUsage:\n\tbench browse [site-name]\nor\n\tbench --site [site-name] browse\n''')
+		click.echo('''Please provide site name\n\nUsage:\n\tbench browse [site-name]\nor\n\tbench --site [site-name] browse''')
 		return
 
 	site = site.lower()
@@ -562,7 +562,7 @@ def browse(context, site):
 			port=frappe.get_conf(site).webserver_port
 		), new=2)
 	else:
-		print("\nSite named \033[1m{}\033[0m doesn't exist\n".format(site))
+		click.echo("\nSite named \033[1m{}\033[0m doesn't exist\n".format(site))
 
 commands = [
 	add_system_manager,
