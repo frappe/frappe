@@ -543,17 +543,26 @@ def publish_realtime(context, event, message, room, user, doctype, docname, afte
 			frappe.destroy()
 
 @click.command('browse')
-@click.argument('site')
-def browse(site):
+@click.argument('site', required=False)
+@pass_context
+def browse(context, site):
+	'''Opens the site on web browser'''
 	import webbrowser
+	site = context.sites[0] if context.sites else site
+
+	if not site:
+		print('''\nPlease provide site name\nUsage:\n\tbench browse [site-name]\nor\n\tbench --site [site-name] browse\n''')
+		return
+
 	site = site.lower()
+
 	if site in frappe.utils.get_sites():
 		webbrowser.open('http://{site}:{port}'.format(
 			site=site,
 			port=frappe.get_conf(site).webserver_port
 		), new=2)
 	else:
-		print("Site named \033[1m{}\033[0m doesn't exist".format(site))
+		print("\nSite named \033[1m{}\033[0m doesn't exist\n".format(site))
 
 commands = [
 	add_system_manager,
