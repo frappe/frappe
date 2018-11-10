@@ -67,12 +67,6 @@ export default {
 		},
 		options() {
 			const options = []
-			if (this.is_user_post_owner) {
-				options.push({
-					'label': __('Delete'),
-					'action': this.delete_post
-				})
-			}
 			if (this.can_pin) {
 				if (this.is_pinned) {
 					options.push({
@@ -85,6 +79,12 @@ export default {
 						'action': this.toggle_pin
 					})
 				}
+			}
+			if (this.is_user_post_owner) {
+				options.push({
+					'label': __('Delete'),
+					'action': this.delete_post
+				})
 			}
 			return options;
 		}
