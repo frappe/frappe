@@ -553,7 +553,7 @@ def browse(site):
 			port=frappe.get_conf(site).webserver_port
 		), new=2)
 	else:
-		print("Site named \033[1m{}\033[0m doesn't exists".format(site))
+		print("Site named \033[1m{}\033[0m doesn't exist".format(site))
 
 commands = [
 	add_system_manager,
