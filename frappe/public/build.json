@@ -381,6 +381,6 @@
 		"public/js/frappe/dark.js"
 	],
 	"css/dark.css": [
-		"public/css/dark.css"
+		"public/css/dark.less"
 	]
 }
