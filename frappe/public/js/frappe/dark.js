@@ -3,11 +3,20 @@ frappe.dark_mode = {
 	set_mode: function() {
 		var date = new Date;
 		date.setDate(date.getDate() + 180);
+		console.log(frappe.get_cookie("dark_mode"));
 		if(frappe.get_cookie("dark_mode") == undefined){	//  Dark Mode is undefined, Set it to Off
 			document.cookie = "dark_mode=False; expires="+ date +"";
 			frappe.dark_mode.check_mode();
 		}
-		else if(frappe.get_cookie("dark_mode") == "True"){	//  Dark Mode is On, Set it to Off
+		else{
+			frappe.dark_mode.check_mode();
+		}
+	},
+
+	toggle_mode: function(){
+		var date = new Date;
+		date.setDate(date.getDate() + 180);
+		if(frappe.get_cookie("dark_mode") == "True"){	//  Dark Mode is On, Set it to Off
 			document.cookie = "dark_mode=False; expires="+ date +"";
 			frappe.dark_mode.check_mode();
 		}
