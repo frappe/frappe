@@ -445,20 +445,19 @@ frappe.Application = Class.extend({
 	redirect_to_login: function() {
 		window.location.href = '/';
 	},
-	update_reroute(){
+	update_reroute: function() {
 		if(frappe.re_route[""]) delete frappe.re_route[""];
 		if(frappe.session.user_homepage && frappe.session.user_homepage != "desktop"){
 			frappe.re_route[""] = frappe.session.user_homepage;
 		}
 	},
-	get_desk_navigation_settings(){
+	get_desk_navigation_settings: function() {
 		frappe.call({
-			method: "frappe.utils.user.get_desk_navigation_settings"
+			method: "frappe.client.get_value",
+			args: {"doctype": "User", "filters":{"name": frappe.session.user}, "fieldname": "homepage"}
 		}).done((r) => {
-			if(r.message){
-				frappe.session.user_homepage = r.message.homepage;
-				this.update_reroute();
-			}
+			frappe.session.user_homepage = r.message.homepage;
+			this.update_reroute();
 		}).fail((f) => {
 			console.log(f);
 		});
