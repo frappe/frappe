@@ -249,7 +249,7 @@ def has_user_permission(doc, user=None, verbose=False):
 				# nah, not strict
 				continue
 
-			if doctype not in user_permissions:
+			if field.options not in user_permissions:
 				continue
 
 			# get the list of all allowed values for this link
