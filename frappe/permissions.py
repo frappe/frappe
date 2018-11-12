@@ -516,4 +516,4 @@ def allow_everything():
 def get_allowed_docs_for_doctype(user_permissions, doctype):
 	'''Returns all the docs from the passed user_permission
 		that are allowed under provide doctype'''
-	return [d.doc for d in user_permissions if not d.get('applicable_for') or d.get('applicable_for') == doctype]
+	return [d.get('doc') for d in user_permissions if not d.get('applicable_for') or d.get('applicable_for') == doctype]
