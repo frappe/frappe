@@ -1,0 +1,95 @@
+@import "variables";
+@import "~bootstrap/scss/bootstrap";
+@import "multilevel-dropdown";
+
+
+body {
+	font-size: 16px;
+}
+
+.navbar.bg-dark {
+	.dropdown-menu {
+		font-size: .75rem;
+		background-color: $dark;
+		border-radius: 0;
+	}
+
+	.nav-link {
+		white-space: nowrap;
+		color: $light;
+
+		&:hover {
+			color: $primary;
+		}
+	}
+
+	.nav-item {
+		padding: 0rem 1rem;
+	}
+
+	.dropdown-item {
+		color: $light;
+
+		&:hover {
+			background-color: $dark;
+			color: $primary;
+		}
+	}
+}
+
+
+.input-dark {
+	background-color: $dark;
+	border-color: darken($primary, 40%);
+	color: $light;
+}
+
+.breadcrumb {
+	font-size: 0.75rem;
+}
+
+a.card {
+	text-decoration: none;
+}
+
+img {
+	max-width: 100%;
+}
+
+.hidden {
+	@extend .d-none;
+}
+
+.video-background {
+	width: 100vw;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: -1;
+
+	&-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		width: 100%;
+		height: 100%;
+		background-color: var(--dark);
+		opacity: 0.4;
+	}
+}
+
+.hero-section {
+	background-image: url("/assets/rigpl_theme/images/hero-image.jpg");
+	background-size: cover;
+	background-position-y: 15%;
+	background-position-y: 27%;
+}
+
+.btn-primary {
+	color: $white;
+}
+
+.text-underline {
+	text-decoration: underline;
+}

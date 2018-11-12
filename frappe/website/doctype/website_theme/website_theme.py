@@ -63,8 +63,7 @@ def use_theme(theme):
 	website_settings.save()
 
 def add_website_theme(context):
-	bootstrap = frappe.get_hooks("bootstrap")[0]
-	bootstrap = [bootstrap]
+	custom_bootstrap_theme = []
 	context.theme = frappe._dict()
 
 	if not context.disable_website_theme:
@@ -73,11 +72,11 @@ def add_website_theme(context):
 
 		if website_theme:
 			if website_theme.bootstrap:
-				bootstrap.append(website_theme.bootstrap)
+				custom_bootstrap_theme.append(website_theme.bootstrap)
 
 			context.web_include_css = context.web_include_css + ["website_theme.css"]
 
-	context.web_include_css = bootstrap + context.web_include_css
+	context.web_include_css = custom_bootstrap_theme + context.web_include_css
 
 def get_active_theme():
 	website_theme = frappe.db.get_value("Website Settings", "Website Settings", "website_theme")

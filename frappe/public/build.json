@@ -11,6 +11,9 @@
 		"public/less/form_grid.less",
 		"node_modules/frappe-datatable/dist/frappe-datatable.css"
 	],
+	"css/bootstrap-4-web.css": [
+		"public/scss/bootstrap-4.scss"
+	],
 	"concat:js/moment-bundle.min.js": [
 		"node_modules/moment/min/moment-with-locales.min.js",
 		"node_modules/moment-timezone/builds/moment-timezone-with-data.min.js"
@@ -44,6 +47,9 @@
 		"website/js/website.js",
 		"public/js/frappe/misc/rating_icons.html",
 		"public/js/frappe/socketio_client.js"
+	],
+	"js/bootstrap-4-web.min.js": [
+		"website/js/bootstrap-4.js"
 	],
 	"js/control.min.js": [
 		"public/js/frappe/ui/capture.js",
