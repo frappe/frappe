@@ -14,7 +14,9 @@ def execute():
 	frappe.reload_doctype('User Permission')
 	linked_with_map = {}
 	for user_permission in frappe.get_all('User Permission', fields=['*']):
-		if not user_permission.skip_for_doctype: continue
+		if not user_permission.skip_for_doctype:
+			frappe.db.set_value('User Permission', user_permission.name, 'apply_to_all_doctypes', 1)
+			continue
 		skip_for_doctype = user_permission.skip_for_doctype.split('\n')
 		if skip_for_doctype:
 			# only specific doctypes are selected
