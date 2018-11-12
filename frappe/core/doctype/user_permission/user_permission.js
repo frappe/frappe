@@ -11,19 +11,39 @@ frappe.ui.form.on('User Permission', {
 				}
 			};
 		});
+
+		frm.set_query('applicable_for', () => {
+			return {
+				'query': 'frappe.core.doctype.user_permission.user_permission.get_applicable_for_doctype_list',
+				'doctype': frm.doc.allow
+			};
+		});
+
 	},
 
 	refresh: frm => {
 		frm.add_custom_button(__('View Permitted Documents'),
 			() => frappe.set_route('query-report', 'Permitted Documents For User',
 				{ user: frm.doc.user }));
-		frm.trigger('set_linked_doctype_multicheck');
+		frm.trigger('set_applicable_for_constraint');
 	},
 
 	allow: frm => {
-		frm.trigger('set_linked_doctype_multicheck');
 		if(frm.doc.for_value) {
-			cur_frm.fields_dict.for_value.set_input(null);
+			frm.set_value('for_value', null);
+		}
+	},
+
+	apply_to_all_doctypes: frm => {
+		frm.trigger('set_applicable_for_constraint');
+	},
+
+	set_applicable_for_constraint: frm => {
+		frm.toggle_reqd('applicable_for', !frm.doc.apply_to_all_doctypes);
+		if (frm.doc.apply_to_all_doctypes) {
+			frm.set_value('applicable_for', null);
 		}
 	}
+
+
 });

@@ -8,6 +8,7 @@ from frappe.model.document import Document
 from frappe.permissions import (get_valid_perms, update_permission_property)
 from frappe import _
 from frappe.core.utils import find
+from frappe.desk.form.linked_with import get_linked_doctypes
 
 class UserPermission(Document):
 	def validate(self):
@@ -88,3 +89,15 @@ def user_permission_exists(user, allow, for_value, applicable_for=None):
 
 	return has_same_user_permission
 
+def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, filters):
+	linked_doctypes = get_linked_doctypes(doctype, True).keys()
+	if txt:
+		linked_doctypes = [d for d in linked_doctypes if txt in d.lower()]
+
+	linked_doctypes.sort()
+
+	return_list = []
+	for doctype in linked_doctypes[start:page_len]:
+		return_list.append([doctype])
+
+	return return_list
