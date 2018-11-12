@@ -132,7 +132,6 @@ a.grey, .sidebar-section a, .control-value a, .data-row a{
 /* filter list */
 .filter-list {
     background-color: rgba(66, 66, 66, 1) !important;
-    /*border-bottom: 1px solid rgba(80, 80, 80, 1) !important;*/
 }
 .page-form{
     background-color: rgba(66, 66, 66, 1) !important;
@@ -208,7 +207,6 @@ kbd {
 .grid-row, .grid-row > .row .col {
     background-color: rgba(66, 66, 66, 1) !important;
     color: white !important;
-    border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
 }
 .grid-row > .row .col {
     background-color: rgba(66, 66, 66, 1) !important;
@@ -264,4 +262,23 @@ kbd {
 /* Graphs */
 .chart-container .axis, .chart-container .chart-label{
     fill: white !important;
+}
+/* Date Picker */
+.datepicker{
+    background-color: rgba(66, 66, 66, 1) !important;
+    border: 1px solid rgba(80, 80, 80, 1) !important;
+    color: white !important;
+}
+.-bottom-left- .datepicker--pointer, .-top-left- .datepicker--pointer{
+    background-color: rgba(66, 66, 66, 1) !important;
+}
+.datepicker--pointer{
+    border-top: 1px solid rgba(80, 80, 80, 1) !important;
+    border-right: 1px solid rgba(80, 80, 80, 1) !important;
+}
+.datepicker--nav-action:hover, .datepicker--nav-title:hover, .datepicker--button:hover{
+    background-color: rgba(33, 33, 33, 1) !important;
+}
+.-focus-{
+    background-color: rgba(33, 33, 33, 1) !important;
 }

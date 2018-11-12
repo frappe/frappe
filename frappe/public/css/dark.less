@@ -1,95 +1,118 @@
+/*Dark Theme CSS*/
+/* Left Side List and Button Background */
+/* filter list */
+/* Frappe Chat */
+/* Timeline */
+/* Scroll to top */
+/* Modal */
+/* Child Table */
+/* Alert */
+/* Toolbar */
+/* Setup Page*/
+/* Datatable */
+
+@import "variables.less";
+
+@dark-primary-dark : rgba(33, 33, 33, 1);
+@dark-primary : rgba(48, 48, 48, 1);
+@dark-primary-light : rgba(66, 66, 66, 1);
+@dark-border : rgba(79, 79, 79, 1);
+@dark-text : white;
+
 * {
-	color: white !important;
+	color: @dark-text !important;
 }
+/* Navbar and Dropdown */
 .navbar {
-	background-color: rgba(66, 66, 66, 1) !important;
-	border-color: rgba(66, 66, 66, 1) !important;
+	background-color: @dark-primary-light !important;
+	border-color: @dark-primary-light !important;
 	a {
-		color: white !important;
+		color: @dark-text !important;
 	}
 }
 .navbar-default {
-	background-color: rgba(66, 66, 66, 1) !important;
-	border-color: rgba(66, 66, 66, 1) !important;
+	background-color: @dark-primary-light !important;
+	border-color: @dark-primary-light !important;
 	.navbar-nav {
 		>.open {
 			>a {
-				background-color: rgba(33, 33, 33, 1) !important;
+				background-color: @dark-primary-dark !important;
 				&:active {
-					background-color: rgba(33, 33, 33, 1) !important;
+					background-color: @dark-primary-dark !important;
 				}
 				&:focus {
-					background-color: rgba(33, 33, 33, 1) !important;
+					background-color: @dark-primary-dark !important;
 				}
 				&:hover {
-					background-color: rgba(33, 33, 33, 1) !important;
+					background-color: @dark-primary-dark !important;
 				}
 			}
 		}
 		>li {
 			>a {
-				color: white !important;
+				color: @dark-text !important;
 			}
 		}
 	}
 	.navbar-brand {
-		color: white !important;
+		color: @dark-text !important;
 	}
 }
 #navbar-search {
-	background-color: rgba(33, 33, 33, 1) !important;
-	border: 1px solid rgba(80, 80, 80, 1) !important;
-	color: white !important;
+	background-color: @dark-primary-dark !important;
+	border: 1px solid @dark-border !important;
+	color: @dark-text !important;
 }
 .awesomplete {
-	border-color: rgba(80, 80, 80, 1) !important;
+	border-color: @dark-border !important;
 	>ul {
 		>li {
-			background-color: rgba(33, 33, 33, 1) !important;
-			color: white !important;
+			background-color: @dark-primary-dark !important;
+			color: @dark-text !important;
 			&:hover {
-				background-color: rgba(80, 80, 80, 1) !important;
-				color: white !important;
+				background-color: @dark-border !important;
+				color: @dark-text !important;
 			}
 		}
-		background-color: rgba(33, 33, 33, 1) !important;
-		color: white !important;
-		background-color: rgba(33, 33, 33, 1) !important;
-		border-color: rgba(80, 80, 80, 1) !important;
-		color: white !important;
+		background-color: @dark-primary-dark !important;
+		color: @dark-text !important;
+		background-color: @dark-primary-dark !important;
+		border-color: @dark-border !important;
+		color: @dark-text !important;
 		>li[aria-selected=true] {
-			background-color: rgba(80, 80, 80, 1) !important;
-			color: white !important;
+			background-color: @dark-border !important;
+			color: @dark-text !important;
 		}
 	}
 }
 .standard-image {
-	background-color: rgba(33, 33, 33, 1) !important;
+	background-color: @dark-primary-dark !important;
 }
 .nav {
 	>li {
 		>a {
 			&:hover {
-				background-color: rgba(80, 80, 80, 1) !important;
+				background-color: @dark-border !important;
 			}
 			&:focus {
-				background-color: rgba(80, 80, 80, 1) !important;
+				background-color: @dark-border !important;
 			}
 		}
 	}
 }
+/* Main Section */
 .content {
-	background-color: rgba(33, 33, 33, 1) !important;
+	background-color: @dark-primary-dark !important;
 }
 .page-content {
-	background-color: rgba(33, 33, 33, 1) !important;
+	background-color: @dark-primary-dark !important;
 }
 .hero-and-content {
-	background-color: rgba(33, 33, 33, 1) !important;
+	background-color: @dark-primary-dark !important;
 }
 .page-head {
-	background-color: rgba(33, 33, 33, 1) !important;
-	border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+	background-color: @dark-primary-dark !important;
+	border-bottom: 1px solid @dark-border !important;
 }
 .module-sidebar-item {
 	&:active {
@@ -99,96 +122,96 @@
 }
 .module-section {
 	&:nth-child(even) {
-		background-color: rgba(66, 66, 66, 1) !important;
+		background-color: @dark-primary-light !important;
 	}
-	border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
-	color: white !important;
+	border-bottom: 1px solid @dark-border !important;
+	color: @dark-text !important;
 }
 .layout-main-section {
-	background-color: rgba(33, 33, 33, 1) !important;
-	border: 1px solid rgba(80, 80, 80, 1) !important;
+	background-color: @dark-primary-dark !important;
+	border: 1px solid @dark-border !important;
 }
 .form-inner-toolbar {
-	background-color: rgba(33, 33, 33, 1) !important;
-	border: 1px solid rgba(80, 80, 80, 1) !important;
-	border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+	background-color: @dark-primary-dark !important;
+	border: 1px solid @dark-border !important;
+	border-bottom: 1px solid @dark-border !important;
 }
 .dropdown-menu {
 	>li {
 		>a {
-			color: white !important;
-			color: white !important;
+			color: @dark-text !important;
+			color: @dark-text !important;
 			&:hover {
-				background-color: rgba(80, 80, 80, 1) !important;
-				color: white !important;
+				background-color: @dark-border !important;
+				color: @dark-text !important;
 			}
 		}
 		&:hover {
-			background-color: rgba(80, 80, 80, 1) !important;
-			color: white !important;
+			background-color: @dark-border !important;
+			color: @dark-text !important;
 		}
 	}
-	background-color: rgba(33, 33, 33, 1) !important;
-	border: 1px solid rgba(80, 80, 80, 1) !important;
+	background-color: @dark-primary-dark !important;
+	border: 1px solid @dark-border !important;
 }
 .dropdown-toggle {
-	color: white !important;
+	color: @dark-text !important;
 }
 .form-section {
 	&:not(:last-child) {
-		border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+		border-bottom: 1px solid @dark-border !important;
 	}
 }
 .input-with-feedback {
-	background-color: rgba(66, 66, 66, 1) !important;
-	border-color: rgba(80, 80, 80, 1) !important;
-	color: white !important;
+	background-color: @dark-primary-light !important;
+	border-color: @dark-border !important;
+	color: @dark-text !important;
 }
 .form-control {
-	background-color: rgba(66, 66, 66, 1) !important;
-	border-color: rgba(80, 80, 80, 1) !important;
-	color: white !important;
+	background-color: @dark-primary-light !important;
+	border-color: @dark-border !important;
+	color: @dark-text !important;
 }
 .input-sm {
-	background-color: rgba(66, 66, 66, 1) !important;
-	border-color: rgba(80, 80, 80, 1) !important;
-	color: white !important;
+	background-color: @dark-primary-light !important;
+	border-color: @dark-border !important;
+	color: @dark-text !important;
 }
 .like-disabled-input {
-	background-color: rgba(66, 66, 66, 1) !important;
-	border-color: rgba(80, 80, 80, 1) !important;
-	color: white !important;
+	background-color: @dark-primary-light !important;
+	border-color: @dark-border !important;
+	color: @dark-text !important;
 }
 #input-help {
-	background-color: rgba(66, 66, 66, 1) !important;
-	border-color: rgba(80, 80, 80, 1) !important;
-	color: white !important;
+	background-color: @dark-primary-light !important;
+	border-color: @dark-border !important;
+	color: @dark-text !important;
 }
 .input-group {
-	background-color: rgba(33, 33, 33, 1) !important;
-	border: 1px solid rgba(80, 80, 80, 1) !important;
+	background-color: @dark-primary-dark !important;
+	border: 1px solid @dark-border !important;
 }
 .title-text {
-	color: white !important;
+	color: @dark-text !important;
 }
 .a {
-	color: white !important;
-	color: white !important;
+	color: @dark-text !important;
+	color: @dark-text !important;
 }
 .p {
-	color: white !important;
+	color: @dark-text !important;
 }
 .h4 {
-	color: white !important;
+	color: @dark-text !important;
 }
 .h3 {
-	color: white !important;
+	color: @dark-text !important;
 }
 .h2 {
-	color: white !important;
+	color: @dark-text !important;
 }
 .h1 {
-	color: white !important;
+	color: @dark-text !important;
 }
 .navbar-nav {
 	>li {
@@ -196,8 +219,8 @@
 			>li {
 				>a {
 					&:hover {
-						background-color: rgba(80, 80, 80, 1) !important;
-						color: white !important;
+						background-color: @dark-border !important;
+						color: @dark-text !important;
 					}
 				}
 			}
@@ -205,170 +228,170 @@
 	}
 }
 .divider {
-	background-color: rgba(80, 80, 80, 1) !important;
+	background-color: @dark-border !important;
 }
 a.grey {
-	color: white !important;
+	color: @dark-text !important;
 }
 .sidebar-section {
 	a {
-		color: white !important;
+		color: @dark-text !important;
 	}
 }
 .control-value {
 	a {
-		color: white !important;
+		color: @dark-text !important;
 	}
 }
 .data-row {
 	a {
-		color: white !important;
+		color: @dark-text !important;
 	}
-	background-color: rgba(66, 66, 66, 1) !important;
-	border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
-	color: white !important;
+	background-color: @dark-primary-light !important;
+	border-bottom: 1px solid @dark-border !important;
+	color: @dark-text !important;
 }
 .module-section-link {
-	color: white !important;
+	color: @dark-text !important;
 }
 .form-dashboard {
-	background-color: rgba(66, 66, 66, 1) !important;
-	color: white !important;
+	background-color: @dark-primary-light !important;
+	color: @dark-text !important;
 }
 .editable-title {
 	.title-text {
 		&:hover {
-			background-color: rgba(80, 80, 80, 1) !important;
-			color: white !important;
+			background-color: @dark-border !important;
+			color: @dark-text !important;
 		}
 	}
 }
 .nav-pills {
 	>li.active {
 		>a {
-			background-color: rgba(66, 66, 66, 1) !important;
-			color: white !important;
+			background-color: @dark-primary-light !important;
+			color: @dark-text !important;
 			&:hover {
-				background-color: rgba(66, 66, 66, 1) !important;
-				color: white !important;
+				background-color: @dark-primary-light !important;
+				color: @dark-text !important;
 			}
 			&:focus {
-				background-color: rgba(66, 66, 66, 1) !important;
-				color: white !important;
+				background-color: @dark-primary-light !important;
+				color: @dark-text !important;
 			}
 		}
 	}
 }
 .btn {
-	background-color: rgba(66, 66, 66, 1) !important;
-	border-color: rgba(80, 80, 80, 1) !important;
-	color: white !important;
+	background-color: @dark-primary-light !important;
+	border-color: @dark-border !important;
+	color: @dark-text !important;
 }
 .btn-sm {
-	background-color: rgba(66, 66, 66, 1) !important;
-	border-color: rgba(80, 80, 80, 1) !important;
-	color: white !important;
+	background-color: @dark-primary-light !important;
+	border-color: @dark-border !important;
+	color: @dark-text !important;
 }
 .btn-action {
-	background-color: rgba(66, 66, 66, 1) !important;
-	border-color: rgba(80, 80, 80, 1) !important;
-	color: white !important;
+	background-color: @dark-primary-light !important;
+	border-color: @dark-border !important;
+	color: @dark-text !important;
 }
 .btn-default {
-	background-color: rgba(66, 66, 66, 1) !important;
-	border-color: rgba(80, 80, 80, 1) !important;
-	color: white !important;
+	background-color: @dark-primary-light !important;
+	border-color: @dark-border !important;
+	color: @dark-text !important;
 }
 .btn-group {
-	color: white !important;
+	color: @dark-text !important;
 }
 .strong {
-	color: white !important;
+	color: @dark-text !important;
 }
 .sidebar-comments {
-	color: white !important;
+	color: @dark-text !important;
 }
 .badge-hover {
-	color: white !important;
+	color: @dark-text !important;
 }
 .module-link {
-	color: white !important;
+	color: @dark-text !important;
 }
 .layout-side-section {
 	.sidebar-menu {
 		>li {
 			>a {
-				color: white !important;
+				color: @dark-text !important;
 			}
 		}
 	}
 }
 .sidebar-menu {
 	.badge {
-		background-color: rgba(66, 66, 66, 1) !important;
+		background-color: @dark-primary-light !important;
 	}
 }
 .badge {
-	background-color: rgba(66, 66, 66, 1) !important;
+	background-color: @dark-primary-light !important;
 }
 .filter-list {
-	background-color: rgba(66, 66, 66, 1) !important;
+	background-color: @dark-primary-light !important;
 }
 .page-form {
-	background-color: rgba(66, 66, 66, 1) !important;
-	border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+	background-color: @dark-primary-light !important;
+	border-bottom: 1px solid @dark-border !important;
 }
 .list-link {
-	color: white !important;
+	color: @dark-text !important;
 }
 .ellipsis {
-	color: white !important;
+	color: @dark-text !important;
 }
 .small {
-	color: white !important;
+	color: @dark-text !important;
 }
 .list-row-container {
-	border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+	border-bottom: 1px solid @dark-border !important;
 	>div {
 		>div {
 			&:hover {
-				background-color: rgba(66, 66, 66, 1) !important;
+				background-color: @dark-primary-light !important;
 			}
 		}
 	}
 }
 .list-row {
 	&:hover {
-		background-color: rgba(66, 66, 66, 1) !important;
+		background-color: @dark-primary-light !important;
 	}
 }
 .list-row-head {
-	background-color: rgba(33, 33, 33, 1) !important;
-	border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
-	color: white !important;
+	background-color: @dark-primary-dark !important;
+	border-bottom: 1px solid @dark-border !important;
+	color: @dark-text !important;
 }
 .tag-filters-area {
-	border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+	border-bottom: 1px solid @dark-border !important;
 }
 .list-paging-area {
-	border-top: 1px solid rgba(80, 80, 80, 1) !important;
+	border-top: 1px solid @dark-border !important;
 }
 .footnote-area {
-	border-top: 1px solid rgba(80, 80, 80, 1) !important;
+	border-top: 1px solid @dark-border !important;
 }
 .panel-default {
 	>.panel-heading {
-		color: white !important;
-		background-color: rgba(66, 66, 66, 1) !important;
-		border-color: rgba(80, 80, 80, 1) !important;
+		color: @dark-text !important;
+		background-color: @dark-primary-light !important;
+		border-color: @dark-border !important;
 	}
 }
 .frappe-chat {
 	>.frappe-chat-popper {
 		>.frappe-chat-popper-collapse {
 			>.panel {
-				background-color: rgba(66, 66, 66, 1) !important;
-				border-color: rgba(66, 66, 66, 1) !important;
+				background-color: @dark-primary-light !important;
+				border-color: @dark-primary-light !important;
 			}
 		}
 	}
@@ -376,126 +399,163 @@ a.grey {
 .frappe-chat-popper-collapse {
 	>.panel {
 		>.panel-heading {
-			background-color: rgba(33, 33, 33, 1) !important;
+			background-color: @dark-primary-dark !important;
 		}
 	}
 }
 .timeline-head {
-	background-color: rgba(33, 33, 33, 1) !important;
-	border: 1px solid rgba(80, 80, 80, 1) !important;
+	background-color: @dark-primary-dark !important;
+	border: 1px solid @dark-border !important;
 }
 .comment-input-header {
-	background-color: rgba(33, 33, 33, 1) !important;
-	border: 1px solid rgba(80, 80, 80, 1) !important;
+	background-color: @dark-primary-dark !important;
+	border: 1px solid @dark-border !important;
 }
 .comment-input-container {
-	background-color: rgba(33, 33, 33, 1) !important;
-	border: 1px solid rgba(80, 80, 80, 1) !important;
+	background-color: @dark-primary-dark !important;
+	border: 1px solid @dark-border !important;
 }
 .ql-bubble {
 	.ql-editor {
-		border-color: rgba(80, 80, 80, 1) !important;
+		border-color: @dark-border !important;
 	}
 }
 .timeline-item.notification-content {
 	&::before {
-		background-color: rgba(80, 80, 80, 1) !important;
+		background-color: @dark-border !important;
 	}
 }
 .timeline-new-email {
 	&::before {
-		background-color: rgba(80, 80, 80, 1) !important;
+		background-color: @dark-border !important;
 	}
 }
 .scroll-to-top {
 	background-color: #fafbfc;
 }
 .modal-header {
-	border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+	border-bottom: 1px solid @dark-border !important;
 }
 .modal-content {
-	background-color: rgba(33, 33, 33, 1) !important;
+	background-color: @dark-primary-dark !important;
 }
 .modal-title {
-	color: white !important;
+	color: @dark-text !important;
 }
 .msgprint {
-	color: white !important;
+	color: @dark-text !important;
 	pre {
-		background-color: rgba(66, 66, 66, 1) !important;
-		color: white !important;
+		background-color: @dark-primary-light !important;
+		color: @dark-text !important;
 	}
 }
 kbd {
-	background-color: rgba(80, 80, 80, 1) !important;
-	color: white !important;
+	background-color: @dark-border !important;
+	color: @dark-text !important;
 }
 .grid-row {
-	background-color: rgba(66, 66, 66, 1) !important;
-	color: white !important;
-	border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+	background-color: @dark-primary-light !important;
+	color: @dark-text !important;
 	>.row {
 		.col {
-			background-color: rgba(66, 66, 66, 1) !important;
-			color: white !important;
-			border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
-			background-color: rgba(66, 66, 66, 1) !important;
-			color: white !important;
+			background-color: @dark-primary-light !important;
+			color: @dark-text !important;
+			background-color: @dark-primary-light !important;
+			color: @dark-text !important;
 		}
 	}
 }
 .grid-row-open {
-	background-color: rgba(33, 33, 33, 1) !important;
-	color: white !important;
-	border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+	background-color: @dark-primary-dark !important;
+	color: @dark-text !important;
+	border-bottom: 1px solid @dark-border !important;
 }
 .form-in-grid {
-	background-color: rgba(33, 33, 33, 1) !important;
-	color: white !important;
-	border-bottom: 1px solid rgba(80, 80, 80, 1) !important;
+	background-color: @dark-primary-dark !important;
+	color: @dark-text !important;
+	border-bottom: 1px solid @dark-border !important;
 }
 .grid-footer {
-	background-color: rgba(66, 66, 66, 1) !important;
-	color: white !important;
+	background-color: @dark-primary-light !important;
+	color: @dark-text !important;
 }
 .form-grid {
-	border: 1px solid rgba(80, 80, 80, 1) !important;
+	border: 1px solid @dark-border !important;
 }
 .grid-empty {
-	background-color: rgba(66, 66, 66, 1) !important;
-	color: white !important;
+	background-color: @dark-primary-light !important;
+	color: @dark-text !important;
 }
 .list-loading {
-	background-color: rgba(66, 66, 66, 1) !important;
-	color: white !important;
+	background-color: @dark-primary-light !important;
+	color: @dark-text !important;
 }
 .alert-message {
-	background-color: rgba(66, 66, 66, 1) !important;
-	border-color: rgba(80, 80, 80, 1) !important;
-	color: white !important;
+	background-color: @dark-primary-light !important;
+	border-color: @dark-border !important;
+	color: @dark-text !important;
 }
 .ql-toolbar.ql-snow {
-	background-color: rgba(80, 80, 80, 1) !important;
-	color: white !important;
+	background-color: @dark-border !important;
+	color: @dark-text !important;
 }
 .note-editor {
-	border-color: rgba(80, 80, 80, 1) !important;
+	border-color: @dark-border !important;
 }
 .setup-wizard-slide {
-	border-color: rgba(80, 80, 80, 1) !important;
+	border-color: @dark-border !important;
 }
 .missing-image {
-	background-color: rgba(80, 80, 80, 1) !important;
+	background-color: @dark-border !important;
 }
 .dt-cell__content {
-	background-color: rgba(66, 66, 66, 1) !important;
-	color: white !important;
+	background-color: @dark-primary-light !important;
+	color: @dark-text !important;
 }
+/* Graphs */
 .chart-container {
 	.axis {
-		fill: white !important;
+		fill: @dark-text !important;
 	}
 	.chart-label {
-		fill: white !important;
+		fill: @dark-text !important;
 	}
+}
+/* Date Picker */
+.datepicker {
+	background-color: @dark-primary-light !important;
+	border: 1px solid @dark-border !important;
+	color: @dark-text !important;
+}
+.-bottom-left- {
+	.datepicker--pointer {
+		background-color: @dark-primary-light !important;
+	}
+}
+.-top-left- {
+	.datepicker--pointer {
+		background-color: @dark-primary-light !important;
+	}
+}
+.datepicker--pointer {
+	border-top: 1px solid @dark-border !important;
+	border-right: 1px solid @dark-border !important;
+}
+.datepicker--nav-action {
+	&:hover {
+		background-color: @dark-primary-dark !important;
+	}
+}
+.datepicker--nav-title {
+	&:hover {
+		background-color: @dark-primary-dark !important;
+	}
+}
+.datepicker--button {
+	&:hover {
+		background-color: @dark-primary-dark !important;
+	}
+}
+.-focus- {
+	background-color: @dark-primary-dark !important;
 }
