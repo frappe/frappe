@@ -376,5 +376,11 @@
 	],
 	"js/social.min.js": [
 		"public/js/frappe/social/social_home.js"
+	],
+	"js/dark.js": [
+		"public/js/frappe/dark.js"
+	],
+	"css/dark.css": [
+		"public/css/dark.less"
 	]
 }
