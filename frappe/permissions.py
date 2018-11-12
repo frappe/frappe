@@ -217,17 +217,16 @@ def has_user_permission(doc, user=None, verbose=False):
 	# STEP 1: ---------------------
 	# check user permissions on self
 	if doctype in user_permissions:
-		for user_permission in user_permissions[doctype]:
-			if user_permission.get('doc') == docname:
-				if (not user_permission.get('applicable_for') or
-					user_permission.get('applicable_for') == doctype):
-					# doc has user permission to view itself!
-					return True
+		allowed_docs = get_allowed_docs_for_doctype(user_permissions[doctype], doctype)
 
-		# no user permissions for this doc specified
-		if verbose:
-			msgprint(_('Not allowed for {0} = {1}').format(_(doctype), docname))
-		return False
+		# if allowed_docs is empty it states that there is no applicable permission under the current doctype
+
+		# only check if allowed_docs is not empty
+		if allowed_docs and docname not in allowed_docs:
+			# no user permissions for this doc specified
+			if verbose:
+				msgprint(_('Not allowed for {0} = {1}').format(_(doctype), docname))
+			return False
 
 	# STEP 2: ---------------------------------
 	# check user permissions in all link fields
@@ -250,20 +249,15 @@ def has_user_permission(doc, user=None, verbose=False):
 				# nah, not strict
 				continue
 
+			if doctype not in user_permissions:
+				continue
+
 			# get the list of all allowed values for this link
-			user_permissions_on_link_field = user_permissions.get(field.options) or []
+			allowed_docs = get_allowed_docs_for_doctype(user_permissions[field.options], doctype)
 
-			if user_permissions_on_link_field:
-				for user_permission_for_doc in user_permissions_on_link_field:
-					if user_permission_for_doc.get('doc') == d.get(field.fieldname):
-						# yes, permission rule found!
-						if (not user_permission_for_doc.get('applicable_for') # no restrictions
-						or user_permission_for_doc.get('applicable_for')==d.doctype):
-							return True
-
-				# restricted for this link field, and no matching values foumd
+			if allowed_docs and d.get(field.fieldname) not in allowed_docs:
+				# restricted for this link field, and no matching values found
 				# make the right message and exit
-
 				if d.get('parentfield'):
 					# "Not allowed for Company = Restricted Company in Row 3"
 					msg = _('Not allowed for {0} = {1} in Row {2}').format(_(field.options), d.get(field.fieldname), d.idx)
@@ -518,3 +512,8 @@ def allow_everything():
 	'''
 	perm = {ptype: 1 for ptype in rights}
 	return perm
+
+def get_allowed_docs_for_doctype(user_permissions, doctype):
+	'''Returns all the docs from the passed user_permission
+		that are allowed under provide doctype'''
+	return [d.doc for d in user_permissions if not d.allowed_for or d.allowed_for == doctype]
