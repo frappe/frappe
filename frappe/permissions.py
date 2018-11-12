@@ -217,7 +217,7 @@ def has_user_permission(doc, user=None, verbose=False):
 	# STEP 1: ---------------------
 	# check user permissions on self
 	if doctype in user_permissions:
-		allowed_docs = get_allowed_docs_for_doctype(user_permissions[doctype], doctype)
+		allowed_docs = get_allowed_docs_for_doctype(user_permissions.get(doctype, []), doctype)
 
 		# if allowed_docs is empty it states that there is no applicable permission under the current doctype
 
@@ -253,7 +253,7 @@ def has_user_permission(doc, user=None, verbose=False):
 				continue
 
 			# get the list of all allowed values for this link
-			allowed_docs = get_allowed_docs_for_doctype(user_permissions[field.options], doctype)
+			allowed_docs = get_allowed_docs_for_doctype(user_permissions.get(field.options, []), doctype)
 
 			if allowed_docs and d.get(field.fieldname) not in allowed_docs:
 				# restricted for this link field, and no matching values found
