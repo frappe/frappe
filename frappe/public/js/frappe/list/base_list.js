@@ -479,7 +479,7 @@ class FilterArea {
 		const fields_dict = this.list_view.page.fields_dict;
 		if (f[2] === '=' && f[1] in fields_dict) {
 			const value = fields_dict[f[1]].get_value();
-			if (value) {
+			if (value === f[3]) {
 				exists = true;
 			}
 		}
