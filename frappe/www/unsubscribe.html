@@ -1,0 +1,68 @@
+{% extends "templates/web.html" %}
+
+{% block title %} {{_("Reset Password")}} {% endblock %}
+
+{% block page_content %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script>
+$(document).ready(function(){
+	$("#select").click(function(){
+		if($("#select").prop("checked") == true){
+			$(".group").prop('checked', true);
+		}
+		else{
+			$(".group").prop('checked', false);
+		}
+	});
+});
+</script>
+<div class="page-card">
+	<div class='page-card-head'>
+		<span class='indicator blue'>Unsubscribe from Newsletter</span>
+	</div>
+	<div><b>
+		Do you want to unsubscribe from these Email group?</b>
+	</div>
+<hr>
+	<form id="reset-password">
+		<div class="checkbox">
+			<label><input type="checkbox" id="select">Select all</label>
+		</div>
+		{% for group in email_groups %}
+		{% if current_group[0].email_group == group.email_group %}
+		<div class="checkbox">
+			<label><input type="checkbox" checked class="group" name='{{group.email_group}}'>{{group.email_group}}</label>
+		</div>
+		{% else %}
+		<div class="checkbox">
+				<label><input type="checkbox" class="group" name='{{group.email_group}}'name='{{group.email_group}}'>{{group.email_group}}</label>
+		</div>
+		{% endif %}
+		{% endfor %}
+		<p class='password-strength-message text-muted small hidden'></p>
+		<button type="submit" id="unsubscribe"
+			class="btn btn-primary">Unsubscribe</button>
+	</form>
+</div>
+<style>
+.hero-and-content {
+	background-color: #f5f7fa;
+}
+</style>
+{% endblock %}
+
+{% block style %}
+<style>
+	.password-strength-indicator {
+		float: right;
+		padding: 15px;
+		margin-top: -38px;
+		margin-right: -7px;
+	}
+
+	.password-strength-message {
+		margin-top: -10px;
+	}
+	{% include "templates/styles/card_style.css" %}
+</style>
+{% endblock %}

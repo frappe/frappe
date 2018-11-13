@@ -85,7 +85,7 @@ class Newsletter(WebsiteGenerator):
 			subject = self.subject, message = self.message,
 			reference_doctype = self.doctype, reference_name = self.name,
 			add_unsubscribe_link = self.send_unsubscribe_link, attachments=attachments,
-			unsubscribe_method = "/api/method/frappe.email.doctype.newsletter.newsletter.unsubscribe",
+			unsubscribe_method = "/unsubscribe",
 			unsubscribe_params = {"name": self.name},
 			send_priority = 0, queue_separately=True)
 
