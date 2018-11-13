@@ -185,7 +185,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		var me = this;
 		// show / hide new buttons (if allowed)
 		this.links_area.find('.btn-new').each(function() {
-			if(me.frm.can_create($(this).attr('data-doctype'))) {
+			if(frappe.model.can_create($(this).attr('data-doctype'))) {
 				$(this).removeClass('hidden');
 			}
 		});
