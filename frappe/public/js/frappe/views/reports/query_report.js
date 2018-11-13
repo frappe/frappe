@@ -177,7 +177,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.previous_filters = this.get_filter_values();
 
 				// clear previous_filters after 3 seconds, to allow refresh for new data
-				setTimeout(() => this.previous_filters = null, 3000);
+				setTimeout(() => this.previous_filters = null, 10000);
 
 				if (f.on_change) {
 					f.on_change(this);
@@ -258,7 +258,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					report_name: this.report_name,
 					filters: filters,
 				},
-				callback: resolve
+				callback: resolve,
+				always: () => this.page.btn_secondary.prop('disabled', false)
 			})
 		}).then(r => {
 			let data = r.message;
@@ -664,12 +665,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	print_report(print_settings) {
 		const custom_format = this.report_settings.html_format || null;
 		const filters_html = this.get_filters_html_for_print();
+		const landscape = print_settings.orientation == 'Landscape';
 
 		frappe.render_grid({
 			template: custom_format,
 			title: __(this.report_name),
 			subtitle: filters_html,
 			print_settings: print_settings,
+			landscape: landscape,
 			filters: this.get_filter_values(),
 			data: custom_format ? this.data : this.get_data_for_print(),
 			columns: custom_format ? this.columns : this.get_columns_for_print(),

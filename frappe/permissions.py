@@ -89,6 +89,9 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 	if not perm:
 		perm = false_if_not_shared()
 
+	if perm and frappe.message_log:
+		frappe.message_log.pop()
+
 	if verbose: print("Final Permission: {0}".format(perm))
 	return perm
 
@@ -179,7 +182,7 @@ def get_user_permissions(user):
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 	return get_user_permissions(user)
 
-def has_user_permission(doc, user=None, verbose=True):
+def has_user_permission(doc, user=None, verbose=False):
 	'''Returns True if User is allowed to view considering User Permissions'''
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 	user_permissions = get_user_permissions(user)

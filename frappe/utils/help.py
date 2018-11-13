@@ -40,7 +40,7 @@ def get_help_content(path):
 def get_improve_page_html(app_name, target):
 	docs_config = frappe.get_module(app_name + ".config.docs")
 	source_link = docs_config.source_link
-	branch = getattr(docs_config, "branch", "develop")
+	branch = getattr(docs_config, "branch", "master")
 	html = '''<div class="page-container">
 				<div class="page-content">
 				<div class="edit-container text-center">
@@ -177,7 +177,7 @@ class HelpDatabase(object):
 							with io.open(fpath, 'r', encoding = 'utf-8') as f:
 								try:
 									content = frappe.render_template(f.read(),
-										{'docs_base_url': '/assets/{docs_app}_docs'.format(docs_app=docs_app)})
+										{'docs_base_url': '/assets/{app}_docs'.format(app=app)}, safe_render=False)
 
 									relpath = self.get_out_path(fpath)
 									relpath = relpath.replace("user", app)

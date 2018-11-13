@@ -96,10 +96,12 @@ frappe.render_grid = function(opts) {
 	}
 
 	// show landscape view if columns more than 10
-	if (opts.columns && opts.columns.length > 10) {
-		opts.landscape = true;
-	} else {
-		opts.landscape = false;
+	if (opts.landscape == null) {
+		if(opts.columns && opts.columns.length > 10) {
+			opts.landscape = true;
+		} else {
+			opts.landscape = false;
+		}
 	}
 
 	// render content

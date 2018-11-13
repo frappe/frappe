@@ -97,8 +97,8 @@ frappe.slickgrid_tools = {
 		var res = [];
 		var col_map = $.map(columns, function(v) { return v.field; });
 
-		for (var i=0, len=dataView.getLength(); i<len; i++) {
-			var d = dataView.getItem(i);
+		for (var i=0, len=dataView.length; i<len; i++) {
+			var d = dataView[i];
 			var row = [];
 			$.each(col_map, function(i, col) {
 				var val = d[col];

@@ -10,6 +10,7 @@ from frappe.core.doctype.communication.comment import (notify_mentions,
 	update_comment_in_doc, on_trash)
 from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_mins_to_first_response)
+from frappe.core.utils import get_parent_doc, set_timeline_doc
 from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr
 
@@ -241,34 +242,6 @@ class Communication(Document):
 			if commit:
 				frappe.db.commit()
 
-def get_parent_doc(doc):
-	"""Returns document of `reference_doctype`, `reference_doctype`"""
-	if not hasattr(doc, "parent_doc"):
-		if doc.reference_doctype and doc.reference_name:
-			doc.parent_doc = frappe.get_doc(doc.reference_doctype, doc.reference_name)
-		else:
-			doc.parent_doc = None
-	return doc.parent_doc
-
-def set_timeline_doc(doc):
-	"""Set timeline_doctype and timeline_name"""
-	parent_doc = get_parent_doc(doc)
-	if (doc.timeline_doctype and doc.timeline_name) or not parent_doc:
-		return
-
-	timeline_field = parent_doc.meta.timeline_field
-	if not timeline_field:
-		return
-
-	doctype = parent_doc.meta.get_link_doctype(timeline_field)
-	name = parent_doc.get(timeline_field)
-
-	if doctype and name:
-		doc.timeline_doctype = doctype
-		doc.timeline_name = name
-
-	else:
-		return
 
 def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""
