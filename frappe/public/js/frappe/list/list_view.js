@@ -320,6 +320,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			sort_by: this.sort_selector.sort_by,
 			sort_order: this.sort_selector.sort_order
 		});
+
+		if(frappe.route_options) {
+			let filters = this.parse_filters_from_route_options();
+			if(filters.length && !this.filter_area.exists(filters)) {
+				this.filters = filters;
+				this.filter_area.set(this.filters);
+			}
+		}
 	}
 
 	render() {
