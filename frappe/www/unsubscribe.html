@@ -24,7 +24,9 @@ $(document).ready(function(){
 		Do you want to unsubscribe from these Email group?</b>
 	</div>
 <hr>
-	<form id="reset-password">
+	<form method="POST" action="unsubscribed">
+			<input type="hidden" name="user_email" value="{{email}}">
+			<div class="checkbox">
 		<div class="checkbox">
 			<label><input type="checkbox" id="select">Select all</label>
 		</div>
@@ -35,7 +37,7 @@ $(document).ready(function(){
 		</div>
 		{% else %}
 		<div class="checkbox">
-				<label><input type="checkbox" class="group" name='{{group.email_group}}'name='{{group.email_group}}'>{{group.email_group}}</label>
+				<label><input type="checkbox" class="group" name='{{group.email_group}}'>{{group.email_group}}</label>
 		</div>
 		{% endif %}
 		{% endfor %}

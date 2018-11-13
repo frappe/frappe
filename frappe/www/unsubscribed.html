@@ -1,0 +1,25 @@
+{% extends "templates/web.html" %}
+
+{% block title %} {{_("Reset Password")}} {% endblock %}
+
+{% block page_content %}
+<div class="page-card">
+	<div class='page-card-head'>
+		<span class='indicator blue'>Unsubscribe from Newsletter</span>
+	</div>
+	<div><b>
+		Do you want to unsubscribe from these Email group?</b>
+	</div>
+</div>
+<style>
+.hero-and-content {
+	background-color: #f5f7fa;
+}
+</style>
+{% endblock %}
+
+{% block style %}
+<style>
+	{% include "templates/styles/card_style.css" %}
+</style>
+{% endblock %}
