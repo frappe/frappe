@@ -171,7 +171,9 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			return;
 		}
 
-		this.quill.clipboard.dangerouslyPasteHTML(value);
+		// set html without triggering a focus
+		const delta = this.quill.clipboard.convert({ html: value, text: '' });
+		this.quill.setContents(delta);
 	},
 
 	get_input_value() {
