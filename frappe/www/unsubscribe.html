@@ -3,6 +3,7 @@
 {% block title %} {{_("Reset Password")}} {% endblock %}
 
 {% block page_content %}
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script>
 $(document).ready(function(){
@@ -16,6 +17,7 @@ $(document).ready(function(){
 	});
 });
 </script>
+{% if valid is  not defined %}
 <div class="page-card">
 	<div class='page-card-head'>
 		<span class='indicator blue'>Unsubscribe from Newsletter</span>
@@ -46,6 +48,14 @@ $(document).ready(function(){
 			class="btn btn-primary">Unsubscribe</button>
 	</form>
 </div>
+{% else %}
+<div class="page-card">
+	<div class='page-card-head'>
+		<span class='indicator blue'>Unsubscribe from Newsletter</span>
+	</div>
+	<b>Invalid Request</b>
+</div>
+{% endif %}
 <style>
 .hero-and-content {
 	background-color: #f5f7fa;
@@ -68,3 +78,4 @@ $(document).ready(function(){
 	{% include "templates/styles/card_style.css" %}
 </style>
 {% endblock %}
+
