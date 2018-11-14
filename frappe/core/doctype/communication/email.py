@@ -417,6 +417,13 @@ def filter_email_list(doc, email_list, exclude, is_cc=False, is_bcc=False):
 		email_address = (parse_addr(email)[1] or "").lower()
 		if not email_address:
 			continue
+		is_user_global_excluded = frappe.db.get_value(
+			"User",
+			email_address,
+			"email_notification_exclude"
+		)
+		if is_user_global_excluded:
+			continue
 
 		# this will be used to eventually find email addresses that aren't sent to
 		doc.all_email_addresses.append(email_address)
@@ -546,4 +553,3 @@ def mark_email_as_seen(name=None):
 		frappe.response["type"] = 'binary'
 		frappe.response["filename"] = "imaginary_pixel.png"
 		frappe.response["filecontent"] = buffered_obj.getvalue()
-
