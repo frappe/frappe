@@ -143,8 +143,12 @@ def unsubscribe(email, name):
 
 @frappe.whitelist(allow_guest=True)
 def confirmed_unsubscribe(email, group):
-	frappe.db.sql('''update `tabEmail Group Member` set unsubscribed=1 where email=%s and email_group=%s''',(email, group))
-	frappe.db.commit()
+	doc = frappe.get_all('Email Group Member', filters={"email": email, "email_group": group}, fields=['name','unsubscribed'], ignore_permissions = True)
+	if doc[0].unsubscribed != 1:
+		data = frappe.get_doc('Email Group Member', doc[0].name)
+		data.unsubscribed = 1
+		data.save()
+		frappe.db.commit()
 
 def return_confirmation_page(email, name, primary_action):
 	frappe.respond_as_web_page(_("Unsubscribe from Newsletter"),_("Do you want to unsubscribe from this mailing list?"),
