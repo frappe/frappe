@@ -41,6 +41,11 @@ frappe.upload = {
 		$upload.find(".btn-browse").on("click",
 			function() { $file_input.click(); });
 
+		// restrict to images
+		if (opts.restrict_to_images) {
+			$file_input.prop('accept', 'image/*');
+		}
+
 		// dropzone upload
 		const $dropzone = $('<div style="padding: 20px 10px 0px 10px;"/>');
 		new frappe.ui.DropZone($dropzone, {
@@ -179,11 +184,12 @@ frappe.upload = {
 		});
 	},
 	make_file_row: function(file, { show_private } = {}) {
+		const safe_file_name = frappe.utils.xss_sanitise(file.name);
 		var template = `
-			<div class="list-item-container" data-filename="${file.name}">
+			<div class="list-item-container" data-filename="${safe_file_name}">
 				<div class="list-item">
 					<div class="list-item__content list-item__content--flex-2 ellipsis">
-						<span>${file.name}</span>
+						<span>${safe_file_name}</span>
 						<span style="margin-top: 1px; margin-left: 5px;"
 							class="fa fa-fw text-warning ${file.is_private ? 'fa-lock': 'fa-unlock-alt'}">
 						</span>
@@ -310,8 +316,7 @@ frappe.upload = {
 
 		const file_not_big_enough = fileobj.size <= 24576;
 
-		if (!frappe.socketio || opts.no_socketio ||
-				frappe.flags.no_socketio || file_not_big_enough) {
+		if (!frappe.socketio || opts.no_socketio || frappe.flags.no_socketio || frappe.boot.disable_async || file_not_big_enough) {
 			upload_with_filedata();
 			return;
 		} else {
@@ -327,24 +332,26 @@ frappe.upload = {
 		}
 
 		var upload_through_socketio = function() {
-			frappe.socketio.uploader.start({
-				file: fileobj,
-				filename: args.filename,
-				is_private: args.is_private,
-				fallback: () => {
-					// if fails, use old filereader
-					upload_with_filedata();
-				},
-				callback: (data) => {
-					args.file_url = data.file_url;
-					frappe.upload._upload_file(fileobj, args, opts);
-				},
-				on_progress: (percent_complete) => {
-					let increment = (flt(percent_complete) / frappe.upload.total_files);
-					frappe.show_progress(__('Uploading'),
-						start_complete + increment);
-				}
-			});
+			if (frappe.socketio.socket) {
+				frappe.socketio.uploader.start({
+					file: fileobj,
+					filename: args.filename,
+					is_private: args.is_private,
+					fallback: () => {
+						// if fails, use old filereader
+						upload_with_filedata();
+					},
+					callback: (data) => {
+						args.file_url = data.file_url;
+						frappe.upload._upload_file(fileobj, args, opts);
+					},
+					on_progress: (percent_complete) => {
+						let increment = (flt(percent_complete) / frappe.upload.total_files);
+						frappe.show_progress(__('Uploading'),
+							start_complete + increment);
+					}
+				});
+			}
 		}
 	},
 

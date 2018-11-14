@@ -9,9 +9,9 @@ import frappe
 import requests
 import subprocess # nosec
 from frappe.utils import cstr
-from frappe.utils.gitutils import get_app_last_commit_ref, get_app_branch
-import subprocess # nosec
+from frappe.utils.gitutils import get_app_branch
 from frappe import _, safe_decode
+import git
 
 def get_change_log(user=None):
 	if not user: user = frappe.session.user
@@ -104,7 +104,12 @@ def get_versions():
 		}
 
 		if versions[app]['branch'] != 'master':
-			branch_version = app_hooks.get('{0}_version'.format(versions[app]['branch']))
+			try:
+				app_repo = git.Repo(os.path.join('..', 'apps', '{}'.format(app)))
+				branch_version = '-'.join(app_repo.git.describe().split('-')[:2])
+				branch_version = [branch_version.strip('v')]
+			except:
+				branch_version = app_hooks.get('{0}_version'.format(versions[app]['branch']))
 			if branch_version:
 				versions[app]['branch_version'] = branch_version[0] + ' ({0})'.format(get_app_last_commit_ref(app))
 
@@ -146,7 +151,7 @@ def check_for_update():
 
 		github_version, org_name = app_details
 		# Get local instance's current version or the app
-		instance_version = Version(apps[app]['version'])
+		instance_version = Version(apps[app]['branch_version'].split(' ')[0])
 		# Compare and popup update message
 		for update_type in updates:
 			if github_version.__dict__[update_type] > instance_version.__dict__[update_type]:
@@ -158,8 +163,23 @@ def check_for_update():
 					title             = apps[app]['title'],
 				))
 				break
+			if github_version.__dict__[update_type] < instance_version.__dict__[update_type]: break
 
 	add_message_to_redis(updates)
+
+def parse_latest_non_beta_release(response):
+	"""
+	Pasrses the response JSON for all the releases and returns the latest non prerelease
+
+	Parameters
+	response (list): response object returned by github
+
+	Returns
+	json   : json object pertaining to the latest non-beta release
+	"""
+	for release in response:
+		if release['prerelease'] == True: continue
+		return release
 
 def check_release_on_github(app):
 	# Check if repo remote is on github
@@ -183,8 +203,8 @@ def check_release_on_github(app):
 	org_name = remote_url.split('/')[3]
 	r = requests.get('https://api.github.com/repos/{}/{}/releases'.format(org_name, app))
 	if r.status_code == 200 and r.json():
-		# 0 => latest release
-		return Version(r.json()[0]['tag_name'].strip('v')), org_name
+		lastest_non_beta_release = parse_latest_non_beta_release(r.json())
+		return Version(lastest_non_beta_release['tag_name'].strip('v')), org_name
 	else:
 		# In case of an improper response or if there are no releases
 		return None
@@ -208,6 +228,7 @@ def show_update_popup():
 		return
 
 	updates = json.loads(update_info)
+	current_versions = get_versions()
 
 	# Check if user is int the set of users to send update message to
 	update_message = ""
@@ -223,7 +244,7 @@ def show_update_popup():
 					title             = app.title
 				)
 			if release_links:
-				update_message += _("New {} releases for the following apps are available".format(update_type)) + ":<br><br>{}<hr>".format(release_links)
+				update_message += _("New {} releases for the following apps are available".format(update_type)) + ":<br><br>{}".format(release_links)
 
 	if update_message:
 		frappe.msgprint(update_message, title=_("New updates are available"), indicator='green')

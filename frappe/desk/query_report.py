@@ -180,7 +180,7 @@ def run(report_name, filters=None, user=None):
 
 def get_prepared_report_result(report, filters, dn=""):
 	latest_report_data = {}
-	doc_list = frappe.get_list("Prepared Report", filters={"status": "Completed", "report_name": report.name})
+	doc_list = frappe.get_all("Prepared Report", filters={"status": "Completed", "report_name": report.name})
 	doc = None
 	if len(doc_list):
 		if dn:
@@ -191,10 +191,11 @@ def get_prepared_report_result(report, filters, dn=""):
 			doc = frappe.get_doc("Prepared Report", doc_list[0])
 
 		data = read_csv_content_from_attached_file(doc)
-		latest_report_data = {
-			"columns": data[0],
-			"result": data[1:]
-		}
+		if data:
+			latest_report_data = {
+				"columns": json.loads(doc.columns) if doc.columns else data[0],
+				"result": data[1:]
+			}
 
 	latest_report_data.update({
 		"prepared_report": True,

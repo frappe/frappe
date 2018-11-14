@@ -54,9 +54,10 @@ class File(NestedSet):
 			self.save_file(content=self.content, decode=self.decode)
 
 	def get_name_based_on_parent_folder(self):
-		path = get_breadcrumbs(self.folder)
-		folder_name = frappe.get_value("File", self.folder, "file_name")
-		return "/".join([d.file_name for d in path] + [folder_name, self.file_name])
+		if self.folder:
+			path = get_breadcrumbs(self.folder)
+			folder_name = frappe.get_value("File", self.folder, "file_name")
+			return "/".join([d.file_name for d in path] + [folder_name, self.file_name])
 
 	def autoname(self):
 		"""Set name for folder"""
@@ -542,7 +543,7 @@ class File(NestedSet):
 			if has_permission(self, 'read'):
 				return True
 
-		raise frappe.PermissionError
+			raise frappe.PermissionError
 
 	def get_extension(self):
 		'''returns split filename and extension'''
@@ -741,7 +742,7 @@ def remove_all(dt, dn, from_delete=False):
 	except Exception as e:
 		if e.args[0]!=1054: raise # (temp till for patched)
 
-      
+
 def has_permission(doc, ptype=None, user=None):
 	permission = True
 

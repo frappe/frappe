@@ -1,6 +1,6 @@
 boto3
 chardet
-dropbox==7.3.1
+dropbox==9.1.0
 gunicorn
 jinja2
 markdown2==2.3.5
@@ -56,3 +56,5 @@ faker
 stripe
 psycopg2-binary
 coverage
+urllib3==1.23
+GitPython==2.1.11

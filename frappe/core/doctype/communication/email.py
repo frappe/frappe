@@ -408,7 +408,6 @@ def add_attachments(name, attachments):
 				"folder": "Home/Attachments"})
 			_file.save(ignore_permissions=True)
 
-
 def filter_email_list(doc, email_list, exclude, is_cc=False, is_bcc=False):
 	# temp variables
 	filtered = []

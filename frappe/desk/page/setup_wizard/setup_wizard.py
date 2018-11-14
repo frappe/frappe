@@ -69,7 +69,6 @@ def setup_complete(args):
 			for task in stage.get('tasks'):
 				current_task = task
 				task.get('fn')(task.get('args'))
-
 	except Exception:
 		handle_setup_exception(args)
 		return {'status': 'fail', 'fail': current_task.get('fail_msg')}
@@ -78,8 +77,9 @@ def setup_complete(args):
 		return {'status': 'ok'}
 
 def update_global_settings(args):
-	if args.language and args.language != "english":
+	if args.language and args.language != "English":
 		set_default_language(get_language_code(args.lang))
+		frappe.db.commit()
 	frappe.clear_cache()
 
 	update_system_settings(args)
@@ -243,6 +243,7 @@ def load_messages(language):
 	javascript files"""
 	frappe.clear_cache()
 	set_default_language(get_language_code(language))
+	frappe.db.commit()
 	m = get_dict("page", "setup-wizard")
 
 	for path in frappe.get_hooks("setup_wizard_requires"):

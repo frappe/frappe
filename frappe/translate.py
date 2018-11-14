@@ -72,7 +72,8 @@ def get_lang_code(lang):
 
 def set_default_language(lang):
 	"""Set Global default language"""
-	frappe.db.set_default("lang", lang)
+	if frappe.db.get_default("lang") != lang:
+		frappe.db.set_default("lang", lang)
 	frappe.local.lang = lang
 
 def get_all_languages():

@@ -4,6 +4,7 @@ import frappe
 from datetime import datetime
 from dateutil.parser import parse
 from pytz import timezone
+from frappe.utils import add_days
 
 
 def pre_process(events):
@@ -17,7 +18,7 @@ def pre_process(events):
 		if 'date' in events["start"]:
 			datevar = 'date'
 			start_dt = parse(events["start"]['date'])
-			end_dt = parse(events["end"]['date'])
+			end_dt = add_days(parse(events["end"]['date']), -1)
 		elif 'dateTime' in events["start"]:
 			datevar = 'dateTime'
 			start_dt = parse(events["start"]['dateTime'])

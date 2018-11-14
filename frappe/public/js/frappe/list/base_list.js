@@ -664,6 +664,12 @@ class FilterArea {
 			on_change: () => this.refresh_list_view()
 		});
 	}
+
+	is_being_edited() {
+		// returns true if user is currently editing filters
+		return this.filter_list &&
+			this.filter_list.wrapper.find('.filter-box:visible').length > 0;
+	}
 }
 
 // utility function to validate view modes

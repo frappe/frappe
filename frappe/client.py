@@ -35,7 +35,7 @@ def get_list(doctype, fields=None, filters=None, order_by=None,
 
 @frappe.whitelist()
 def get_count(doctype, filters=None, debug=False, cache=False):
-	return frappe.db.count(doctype, filters, debug, cache)
+	return frappe.db.count(doctype, get_safe_filters(filters), debug, cache)
 
 @frappe.whitelist()
 def get(doctype, name=None, filters=None, parent=None):
@@ -71,15 +71,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 	if not frappe.has_permission(doctype):
 		frappe.throw(_("No permission for {0}".format(doctype)), frappe.PermissionError)
 
-	try:
-		filters = json.loads(filters)
-
-		if isinstance(filters, (integer_types, float)):
-			filters = frappe.as_unicode(filters)
-
-	except (TypeError, ValueError):
-		# filters are not passesd, not json
-		pass
+	filters = get_safe_filters(filters)
 
 	try:
 		fieldname = json.loads(fieldname)
@@ -374,3 +366,16 @@ def check_parent_permission(parent):
 			return
 	# Either parent not passed or the user doesn't have permission on parent doctype of child table!
 	raise frappe.PermissionError
+
+def get_safe_filters(filters):
+	try:
+		filters = json.loads(filters)
+
+		if isinstance(filters, (integer_types, float)):
+			filters = frappe.as_unicode(filters)
+
+	except (TypeError, ValueError):
+		# filters are not passesd, not json
+		pass
+
+	return filters

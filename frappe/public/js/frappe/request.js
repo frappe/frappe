@@ -36,7 +36,8 @@ frappe.call = function(opts) {
 		opts = {
 			method: arguments[0],
 			args: arguments[1],
-			callback: arguments[2]
+			callback: arguments[2],
+			headers: arguments[3]
 		}
 	}
 
@@ -83,6 +84,7 @@ frappe.call = function(opts) {
 		btn: opts.btn,
 		freeze: opts.freeze,
 		freeze_message: opts.freeze_message,
+		headers: opts.headers || {},
 		// show_spinner: !opts.no_spinner,
 		async: opts.async,
 		url: opts.url || frappe.request.url,
@@ -175,6 +177,9 @@ frappe.request.call = function(opts) {
 		504: function(xhr) {
 			frappe.msgprint(__("Request Timed Out"))
 			opts.error_callback && opts.error_callback();
+		},
+		502: function(xhr) {
+			frappe.msgprint(__("Internal Server Error"));
 		}
 	};
 
@@ -184,10 +189,10 @@ frappe.request.call = function(opts) {
 		type: opts.type,
 		dataType: opts.dataType || 'json',
 		async: opts.async,
-		headers: { 
+		headers: Object.assign({
 			"X-Frappe-CSRF-Token": frappe.csrf_token,
 			"Accept": "application/json"
-		},
+		}, opts.headers),
 		cache: false
 	};
 

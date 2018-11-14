@@ -62,5 +62,9 @@ frappe.ui.form.ControlAttachImage = frappe.ui.form.ControlAttach.extend({
 			this.img_container.toggle(false);
 			this.remove_image_link.toggle(false);
 		}
+	},
+	set_upload_options() {
+		this._super();
+		this.upload_options.restrict_to_images = true;
 	}
 });

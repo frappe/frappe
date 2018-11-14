@@ -453,8 +453,10 @@ def _set_limits(context, site, limits):
 		frappe.connect()
 		new_limits = {}
 		for limit, value in limits:
-			if limit not in ('daily_emails', 'emails', 'space', 'users', 'email_group',
-				'expiry', 'support_email', 'support_chat', 'upgrade_url'):
+			if limit not in ('daily_emails', 'emails', 'space', 'users', 'email_group', 'currency',
+				'expiry', 'support_email', 'support_chat', 'upgrade_url', 'subscription_id',
+				'subscription_type', 'current_plan', 'subscription_base_price', 'upgrade_plan',
+				'upgrade_base_price'):
 				frappe.throw(_('Invalid limit {0}').format(limit))
 
 			if limit=='expiry' and value:
@@ -463,7 +465,7 @@ def _set_limits(context, site, limits):
 				except ValueError:
 					raise ValueError("Incorrect data format, should be YYYY-MM-DD")
 
-			elif limit=='space':
+			elif limit in ('space', 'subscription_base_price', 'upgrade_base_price'):
 				value = float(value)
 
 			elif limit in ('users', 'emails', 'email_group', 'daily_emails'):
@@ -540,6 +542,28 @@ def publish_realtime(context, event, message, room, user, doctype, docname, afte
 		finally:
 			frappe.destroy()
 
+@click.command('browse')
+@click.argument('site', required=False)
+@pass_context
+def browse(context, site):
+	'''Opens the site on web browser'''
+	import webbrowser
+	site = context.sites[0] if context.sites else site
+
+	if not site:
+		click.echo('''Please provide site name\n\nUsage:\n\tbench browse [site-name]\nor\n\tbench --site [site-name] browse''')
+		return
+
+	site = site.lower()
+
+	if site in frappe.utils.get_sites():
+		webbrowser.open('http://{site}:{port}'.format(
+			site=site,
+			port=frappe.get_conf(site).webserver_port
+		), new=2)
+	else:
+		click.echo("\nSite named \033[1m{}\033[0m doesn't exist\n".format(site))
+
 commands = [
 	add_system_manager,
 	backup,
@@ -563,4 +587,5 @@ commands = [
 	_use,
 	set_last_active_for_user,
 	publish_realtime,
+	browse
 ]

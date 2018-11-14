@@ -111,6 +111,7 @@ def save_report():
 	return d.name
 
 @frappe.whitelist()
+@frappe.read_only()
 def export_query():
 	"""export from report builder"""
 	form_params = get_form_params()
@@ -212,7 +213,7 @@ def delete_items():
 	"""delete selected items"""
 	import json
 
-	il = json.loads(frappe.form_dict.get('items'))
+	il = sorted(json.loads(frappe.form_dict.get('items')), reverse=True)
 	doctype = frappe.form_dict.get('doctype')
 
 	failed = []
@@ -241,6 +242,7 @@ def get_sidebar_stats(stats, doctype, filters=[]):
 	return {"defined_cat":cat_tags, "stats":get_stats(stats, doctype, filters)}
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_stats(stats, doctype, filters=[]):
 	"""get tag info"""
 	import json

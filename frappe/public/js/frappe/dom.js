@@ -211,8 +211,29 @@ frappe.dom = {
 	scroll_to_bottom(container) {
 		const $container = $(container);
 		$container.scrollTop($container[0].scrollHeight);
+	},
+	file_to_base64(file_obj) {
+		return new Promise(resolve => {
+			const reader = new FileReader();
+			reader.onload = function() {
+				resolve(reader.result);
+			};
+			reader.readAsDataURL(file_obj);
+		});
+	},
+	scroll_to_section(section_name) {
+		setTimeout(() => {
+			const section = $(`a:contains("${section_name}")`);
+			if (section.length) {
+				if(section.parent().hasClass('collapsed')) {
+					// opens the section
+					section.click();
+				}
+				frappe.ui.scroll(section.parent().parent());
+			}
+		}, 200);
 	}
-}
+};
 
 frappe.ellipsis = function(text, max) {
 	if(!max) max = 20;

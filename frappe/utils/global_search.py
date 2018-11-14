@@ -290,7 +290,7 @@ def get_formatted_value(value, field):
 
 	if getattr(field, 'fieldtype', None) in ["Text", "Text Editor"]:
 		h = HTMLParser()
-		value = h.unescape(value)
+		value = h.unescape(frappe.safe_decode(value))
 		value = (re.subn(r'<[\s]*(script|style).*?</\1>(?s)', '', text_type(value))[0])
 		value = ' '.join(value.split())
 	return field.label + " : " + strip_html_tags(text_type(value))

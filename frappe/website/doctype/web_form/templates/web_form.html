@@ -17,7 +17,7 @@
 	{% if not read_only and has_header %}
 	<div style="padding-bottom: 15px;">
 	    {% if login_required -%}
-		<a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
+		<a href="/{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
 	    	{{ _("Cancel") }}</a>
 		{%- endif %}
 		{% if not is_list %}
@@ -213,6 +213,7 @@ window.web_form_settings = {
 	is_read_only: 		{{ 1 if read_only else 0 }},
 	doc_name: 			"{{ frappe.form_dict.name or "" }}",
 	login_required: 	{{ 1 if login_required else 0 }},
+	route_to_success_link: 	{{ 1 if route_to_success_link else 0 }},
 	max_attachment_size:{{ max_attachment_size }},
 	moment_date_format: "{{ frappe.date_format.upper() }}",
 	is_list: {{ frappe.utils.cint(is_list) }}

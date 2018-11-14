@@ -207,7 +207,7 @@ def after_request(rollback):
 
 application = local_manager.make_middleware(application)
 
-def serve(port=8000, profile=False, site=None, sites_path='.'):
+def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=None, sites_path='.'):
 	global application, _site, _sites_path
 	_site = site
 	_sites_path = sites_path
@@ -219,11 +219,11 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 
 	if not os.environ.get('NO_STATICS'):
 		application = SharedDataMiddleware(application, {
-			'/assets': os.path.join(sites_path, 'assets'),
+			str('/assets'): str(os.path.join(sites_path, 'assets'))
 		})
 
 		application = StaticDataMiddleware(application, {
-			'/files': os.path.abspath(sites_path)
+			str('/files'): str(os.path.abspath(sites_path))
 		})
 
 	application.debug = True
@@ -237,7 +237,7 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 		log.setLevel(logging.ERROR)
 
 	run_simple('0.0.0.0', int(port), application,
-		use_reloader=not in_test_env,
+		use_reloader=False if in_test_env else not no_reload,
 		use_debugger=not in_test_env,
 		use_evalex=not in_test_env,
-		threaded=True)
+		threaded=not no_threading)

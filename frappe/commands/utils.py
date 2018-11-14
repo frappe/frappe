@@ -488,8 +488,10 @@ def run_setup_wizard_ui_test(context, app=None, profile=False):
 @click.command('serve')
 @click.option('--port', default=8000)
 @click.option('--profile', is_flag=True, default=False)
+@click.option('--noreload', "no_reload", is_flag=True, default=False)
+@click.option('--nothreading', "no_threading", is_flag=True, default=False)
 @pass_context
-def serve(context, port=None, profile=False, sites_path='.', site=None):
+def serve(context, port=None, profile=False, no_reload=False, no_threading=False, sites_path='.', site=None):
 	"Start development web server"
 	import frappe.app
 
@@ -498,7 +500,7 @@ def serve(context, port=None, profile=False, sites_path='.', site=None):
 	else:
 		site = context.sites[0]
 
-	frappe.app.serve(port=port, profile=profile, site=site, sites_path='.')
+	frappe.app.serve(port=port, profile=profile, no_reload=no_reload, no_threading=no_threading, site=site, sites_path='.')
 
 @click.command('request')
 @click.option('--args', help='arguments like `?cmd=test&key=value` or `/api/request/method?..`')
@@ -674,14 +676,15 @@ def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
 	subprocess.check_output(['git', 'fetch', remote, branch], cwd = app_path)
 
 	# get diff
-	if subprocess.check_output(['git', 'diff', '{0}..upstream/{0}'.format(branch)], cwd = app_path):
+	if subprocess.check_output(['git', 'diff', '{0}..{1}/{0}'.format(branch, remote)], cwd = app_path):
 		print('Updates found for {0}'.format(app))
 		if app=='frappe':
 			# run bench update
-			subprocess.check_output(['bench', 'update', '--no-backup'], cwd = '..')
+			import shlex
+			subprocess.check_output(shlex.split('bench update --no-backup'), cwd = '..')
 		else:
 			updated = False
-			subprocess.check_output(['git', 'pull', '--rebase', 'upstream', branch],
+			subprocess.check_output(['git', 'pull', '--rebase', remote, branch],
 				cwd = app_path)
 			# find all sites with that app
 			for site in get_sites():
@@ -694,7 +697,7 @@ def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
 						subprocess.check_output(['bench', '--site', site, 'migrate'], cwd = '..')
 				frappe.destroy()
 
-			if updated and restart:
+			if updated or restart:
 				subprocess.check_output(['bench', 'restart'], cwd = '..')
 	else:
 		print('No Updates')

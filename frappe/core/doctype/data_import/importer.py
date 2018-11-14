@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
@@ -433,7 +435,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				error_link = get_url_to_form("Error Log", error_log_doc.name)
 			else:
 				error_link = None
-			log(**{"row": row_idx + 1, "title":'Error for row %s' % (len(row)>1 and row[1] or ""), "message": err_msg,
+			log(**{"row": row_idx + 1, "title":'Error for row %s' % (len(row)>1 and frappe.safe_decode(row[1]) or ""), "message": err_msg,
 				"indicator": "red", "link":error_link})
 			# data with error to create a new file
 			# include the errored data in the last row as last_error_row_idx will not be updated for the last row
