@@ -98,7 +98,6 @@
 		"public/js/lib/leaflet/leaflet.draw.css",
 		"public/js/lib/leaflet/L.Control.Locate.css",
 		"public/js/lib/leaflet/easy-button.css",
-		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
 		"public/less/desk.less",
@@ -117,6 +116,9 @@
 		"public/less/chat.less",
 		"public/less/filters.less",
 		"public/less/social.less"
+	],
+	"css/bootstrap.css": [
+		"public/less/bootstrap/bootstrap.less"
 	],
 	"css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",
