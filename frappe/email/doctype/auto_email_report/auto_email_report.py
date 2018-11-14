@@ -12,8 +12,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import (format_time, get_link_to_form, get_url_to_report,
-						global_date_format, now, now_datetime,
-						validate_email_add)
+	global_date_format, now, now_datetime, validate_email_add)
 from frappe.utils.csvutils import to_csv
 from frappe.utils.xlsxutils import make_xlsx
 
@@ -176,8 +175,7 @@ def send_daily():
 
 	current_day = calendar.day_name[now_datetime().weekday()]
 	enabled_reports = frappe.get_all('Auto Email Report',
-									filters={'enabled': 1,
-											'frequency': ('in', ('Daily', 'Weekdays', 'Weekly'))})
+		filters={'enabled': 1, 'frequency': ('in', ('Daily', 'Weekdays', 'Weekly'))})
 
 	for report in enabled_reports:
 		auto_email_report = frappe.get_doc('Auto Email Report', report.name)
