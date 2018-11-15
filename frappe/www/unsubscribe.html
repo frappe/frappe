@@ -20,16 +20,16 @@
 {% if status == "confirmation page" %}
 	<div class="page-card">
 		<div class='page-card-head'>
-			<span class='indicator blue'>Unsubscribe from Newsletter</span>
+			<span class='indicator blue'>Unsubscribe from mailing list</span>
 		</div>
-		<div><b>
-			Do you want to unsubscribe from these Email group?</b>
+		<div>
+			Select group to unsubscribe.
 		</div>
-		<hr style="margin-top: 0px">
+		
 		<form method="post">
 				<input type="hidden" name="user_email" value="{{email}}">
 				<div class="checkbox">
-			<div class="checkbox">
+			<div class="checkbox" style="margin-top: 10px">
 				<label><input type="checkbox" id="select"><span style="padding-left: 20px">Select all</span></label>
 			</div>
 			<hr style="margin-top: -10px">
@@ -52,14 +52,14 @@
 {% elif status == "Unsubscribed page" %}
 	<div class="page-card">
 		<div class='page-card-head'>
-			<span class='indicator blue'>Unsubscribe from Newsletter</span>
+			<span class='indicator blue'>Unsubscribe from mailing list</span>
 		</div>
-		<b>You have been unsubscribed from selected mailing list.</b>
+		You have been unsubscribed from selected mailing list.
 	</div>
 {%else %}
 	<div class="page-card">
 		<div class='page-card-head'>
-			<span class='indicator blue'>Unsubscribe from Newsletter</span>
+			<span class='indicator red'>Unsubscribe from mailing list</span>
 		</div>
 		<b>Invalid Request.</b>
 	</div>

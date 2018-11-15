@@ -26,7 +26,7 @@ def get_context(context):
 		context.status = "not valid"
 
 def get_email_groups(user_email):
-	return frappe.get_all("Email Group Member", fields = ["email_group"], filters = {"email": user_email}, ignore_permissions=True )
+	return frappe.get_all("Email Group Member", fields = ["email_group"], filters = {"email": user_email, "unsubscribed": 0}, ignore_permissions=True )
 
 def get_current_groups(name):
 	return frappe.db.get_all("Newsletter Email Group", ["email_group"],{"parent":name, "parenttype":"Newsletter"}, ignore_permissions=True)
