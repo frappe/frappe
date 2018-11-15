@@ -1,6 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 /* eslint-disable no-console */
+
 frappe.start_app = function() {
 	if(!frappe.Application)
 		return;
