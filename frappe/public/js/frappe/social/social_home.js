@@ -12,10 +12,11 @@ frappe.social.Home = class SocialHome {
 	}
 	make_body() {
 		this.$social_container = this.$parent.find('.layout-main');
-
-		new Vue({
-			el: this.$social_container[0],
-			render: h => h(Home)
+		frappe.require('assets/js/frappe-vue.js', () => {
+			new Vue({
+				el: this.$social_container[0],
+				render: h => h(Home)
+			});
 		});
 	}
 	setup_header() {
