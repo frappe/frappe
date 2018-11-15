@@ -206,8 +206,9 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 
 	except frappe.InvalidEmailAddressError:
 		# bad Email Address - don't add to queue
-		frappe.log_error('Invalid Email ID Sender: {0}, Recipients: {1}'.format(mail.sender,
-			', '.join(mail.recipients)), 'Email Not Sent')
+		import traceback
+		frappe.log_error('Invalid Email ID Sender: {0}, Recipients: {1}, \nTraceback: {2} '.format(mail.sender,
+			', '.join(mail.recipients), traceback.format_exc()), 'Email Not Sent')
 
 	recipients = list(set(recipients + kwargs.get('cc', []) + kwargs.get('bcc', [])))
 	e.set_recipients(recipients)
