@@ -18,7 +18,6 @@ $(document).ready(function() {
 		});
 	}
 	frappe.start_app();
-	frappe.setup_vue();
 });
 
 frappe.Application = Class.extend({
