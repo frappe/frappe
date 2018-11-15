@@ -20,3 +20,4 @@ rm $TRAVIS_BUILD_DIR/.git/shallow
 cd ~/ && bench init frappe-bench --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
 cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
 cp -r $TRAVIS_BUILD_DIR/test_sites/test_site_postgres ~/frappe-bench/sites/
+cp -r $TRAVIS_BUILD_DIR/test_sites/test_site_ui ~/frappe-bench/sites/

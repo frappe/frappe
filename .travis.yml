@@ -18,6 +18,7 @@ addons:
   hosts:
     - test_site
     - test_site_postgres
+    - test_site_ui
 
 matrix:
   exclude:
@@ -25,6 +26,7 @@ matrix:
     env: DB=postgres
 
 install:
+  - nvm install 8 && nvm use 8
   - $TRAVIS_BUILD_DIR/.travis/install.sh
 
 before_script:
