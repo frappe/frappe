@@ -18,6 +18,7 @@
 	</script>
 
 	{% if status == "confirmation page" %}
+	<!-- confirmation page to select the group for unsubscription -->
 		<div class="page-card">
 			<div class='page-card-head'>
 				<span class='indicator blue'>Unsubscribe from mailing list</span>
@@ -54,6 +55,7 @@
 		</div>
 
 	{% elif status == "Unsubscribed page" %}
+	<!-- Unsubscribed page comes after submission -->
 		<div class="page-card">
 			<div class='page-card-head'>
 				<span class='indicator blue'>Unsubscribe from mailing list</span>
@@ -62,6 +64,7 @@
 		</div>
 
 	{% else %}
+	<!-- For invalid and unsigned request -->
 		<div class="page-card">
 			<div class='page-card-head'>
 				<span class='indicator red'>Unsubscribe from mailing list</span>
