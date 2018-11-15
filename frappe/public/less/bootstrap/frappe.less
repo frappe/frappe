@@ -1,0 +1,118 @@
+// Navbar collapse (body)
+//
+// Group your navbar content into this for easy collapsing and expanding across
+// various device sizes. By default, this content is collapsed when <768px, but
+// will expand past that for a horizontal display.
+//
+// To start (on mobile devices) the navbar links, forms, and buttons are stacked
+// vertically and include a `max-height` to overflow in case you have too much
+// content for the user's viewport.
+.navbar-collapse {
+    @media (min-width: @grid-float-breakpoint) {
+
+        &.collapse {
+            visibility: visible !important;
+        }
+    }
+}
+
+// Navbar form
+//
+// Extension of the `.form-inline` with some extra flavor for optimum display in
+// our navbars.
+.navbar-form {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    .form-group {
+        @media (max-width: @grid-float-breakpoint-max) {
+            display: inline-block;
+            margin-bottom: 0;
+            vertical-align: middle;
+        }
+    }
+    .form-control {
+        @media (max-width: @grid-float-breakpoint-max) {
+            display: inline-block;
+            width: auto;
+            vertical-align: middle;
+        }
+    }
+    .form-control-static {
+        display: inline-block;
+    }
+    .input-group {
+        display: inline-table;
+        vertical-align: middle;
+
+        .input-group-addon,
+        .input-group-btn,
+        .form-control{
+            width: auto;
+        }
+        > .form-control{
+            width: 100%;
+        }
+    }
+    .control-label {
+        margin-bottom: 0;
+        vertical-align: middle;
+    }
+    .radio,
+    .checkbox {
+        display: inline-block;
+        margin-top: 0;
+        margin-bottom: 0;
+        vertical-align: middle;
+    }
+    .radio label,
+    .checkbox label {
+        padding-left: 0;
+    }
+    .radio input[type="radio"],
+    .checkbox input[type="checkbox"] {
+        position: relative;
+        margin-left: 0;
+    }
+    .has-feedback .form-control-feedback {
+        top: 0;
+    }
+}
+
+// Dropdown menus
+// Menu position and menu carets
+.navbar-nav > li > .dropdown-menu {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+// Menu position and menu caret support for dropups via extra dropup class
+.navbar-fixed-bottom .navbar-nav > li > .dropdown-menu {
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+// Buttons in navbars
+//
+// Vertically center a button within a navbar (when *not* in a form).
+.navbar-btn {
+    margin-top: 5px;
+    margin-bottom: 5px;
+  
+    &.btn-sm {
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+    &.btn-xs {
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+}
+
+// Alternate navbars
+// --------------------------------------------------
+// Default navbar
+.navbar-default {
+    .navbar-collapse,
+    .navbar-form {
+        border-color: #ebeff2;
+    }
+}
