@@ -147,7 +147,7 @@ def confirmed_unsubscribe(email, group):
 	if doc[0].unsubscribed != 1:
 		data = frappe.get_doc('Email Group Member', doc[0].name)
 		data.unsubscribed = 1
-		data.save()
+		data.save(ignore_permissions=True)
 		frappe.db.commit()
 
 def return_confirmation_page(email, name, primary_action):
