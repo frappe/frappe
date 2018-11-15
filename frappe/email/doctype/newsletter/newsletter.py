@@ -143,6 +143,7 @@ def unsubscribe(email, name):
 
 @frappe.whitelist(allow_guest=True)
 def confirmed_unsubscribe(email, group):
+	frappe.flags.ignore_permissions=True
 	doc = frappe.get_all('Email Group Member', filters={"email": email, "email_group": group}, fields=['name','unsubscribed'], ignore_permissions = True)
 	if doc[0].unsubscribed != 1:
 		data = frappe.get_doc('Email Group Member', doc[0].name)
