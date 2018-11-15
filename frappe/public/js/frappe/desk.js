@@ -1,6 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 /* eslint-disable no-console */
+import Vue from 'vue/dist/vue.js';
 
 frappe.start_app = function() {
 	if(!frappe.Application)
@@ -8,6 +9,14 @@ frappe.start_app = function() {
 	frappe.assets.check();
 	frappe.provide('frappe.app');
 	frappe.app = new frappe.Application();
+};
+
+frappe.setup_vue = () => {
+	if (!window.Vue) {
+		Vue.prototype.__ = window.__;
+		Vue.prototype.frappe = window.frappe;
+		window.Vue = Vue;
+	}
 };
 
 $(document).ready(function() {
@@ -19,6 +28,7 @@ $(document).ready(function() {
 		});
 	}
 	frappe.start_app();
+	frappe.setup_vue();
 });
 
 frappe.Application = Class.extend({
