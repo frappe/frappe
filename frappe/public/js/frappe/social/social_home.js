@@ -12,7 +12,7 @@ frappe.social.Home = class SocialHome {
 	}
 	make_body() {
 		this.$social_container = this.$parent.find('.layout-main');
-		frappe.require('assets/js/frappe-vue.min.js', () => {
+		frappe.require('/assets/js/frappe-vue.min.js', () => {
 			new Vue({
 				el: this.$social_container[0],
 				render: h => h(Home)
