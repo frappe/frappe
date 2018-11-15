@@ -52,7 +52,8 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 	},
 
 	set_formatted_input(value) {
-		this.library_loaded.then(() => {
+		this.load_lib().then(() => {
+			if (!this.editor) return;
 			if (!value) value = '';
 			if (value === this.get_input_value()) return;
 			this.editor.session.setValue(value);
@@ -64,6 +65,8 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 	},
 
 	load_lib() {
+		if (this.library_loaded) return this.library_loaded;
+
 		if (frappe.boot.developer_mode) {
 			this.root_lib_path = '/assets/frappe/node_modules/ace-builds/src-noconflict/';
 		} else {
