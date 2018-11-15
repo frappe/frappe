@@ -132,17 +132,8 @@ def get_email_groups(name):
 
 
 @frappe.whitelist(allow_guest=True)
-def unsubscribe(email, name):
-	if not verify_request():
-		return
-
-	primary_action = frappe.utils.get_url() + "/api/method/frappe.email.doctype.newsletter.newsletter.confirmed_unsubscribe"+\
-		"?" + get_signed_params({"email": email, "name":name})
-	return_confirmation_page(email, name, primary_action)
-
-
-@frappe.whitelist(allow_guest=True)
 def confirmed_unsubscribe(email, group):
+	""" unsubscribe the email(user) from the mailing list(email_group) """
 	frappe.flags.ignore_permissions=True
 	doc = frappe.get_all('Email Group Member', filters={"email": email, "email_group": group}, fields=['name','unsubscribed'], ignore_permissions = True)
 	if doc[0].unsubscribed != 1:
@@ -150,14 +141,6 @@ def confirmed_unsubscribe(email, group):
 		data.unsubscribed = 1
 		data.save(ignore_permissions=True)
 		frappe.db.commit()
-
-def return_confirmation_page(email, name, primary_action):
-	frappe.respond_as_web_page(_("Unsubscribe from Newsletter"),_("Do you want to unsubscribe from this mailing list?"),
-		indicator_color="blue", primary_label = _("Unsubscribe"), primary_action=primary_action)
-
-def return_unsubscribed_page(email, name):
-	frappe.respond_as_web_page(_("Unsubscribed from Newsletter"),
-		_("<b>{0}</b> has been successfully unsubscribed from this mailing list.").format(email, name), indicator_color='green')
 
 def create_lead(email_id):
 	"""create a lead if it does not exist"""
