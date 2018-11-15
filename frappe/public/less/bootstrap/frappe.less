@@ -1,3 +1,91 @@
+// Links
+a {
+    &:focus {
+        outline: thin dotted;    
+    }
+}
+
+// Headings
+// -------------------------
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  line-height: 1.3em;
+  color: inherit;
+}
+
+// Emphasis & misc
+// -------------------------
+small,
+.small {
+  font-size: 85%;
+}
+
+mark,
+.mark {
+  background-color: transparent;
+}
+
+// Contextual colors
+.text-primary {
+    a&:hover {
+        color: #2b33ff;
+    }
+}
+.text-success {
+    a&:hover {
+        color: @state-success-text-hover;
+    }
+}
+.text-info {
+    a&:hover {
+        color: @state-info-text-hover;
+    }
+}
+.text-warning {
+    a&:hover {
+        color: @state-warning-text-hover;
+    }
+}
+.text-danger {
+    a&:hover {
+        color: @state-danger-text-hover;
+    }
+}
+
+// Contextual backgrounds
+// For now we'll leave these alongside the text classes until v4 when we can
+// safely shift things around (per SemVer rules).
+.bg-primary {
+    background-color: transparent;
+    a&:hover{
+        background-color: #2b33ff;
+    }    
+}
+.bg-success {
+    background-color: transparent;
+    a&:hover{
+        background-color: rgba(0, 0, 0, 0); 
+    }
+}
+.bg-info {
+    background-color: transparent;
+    a&:hover{
+        background-color: rgba(0, 0, 0, 0);
+    }
+}
+.bg-warning {
+    background-color: transparent;
+    a&:hover{
+        background-color: rgba(0, 0, 0, 0);
+    }
+}
+.bg-danger {
+    background-color: transparent;
+    a&:hover{
+        background-color: rgba(0, 0, 0, 0);
+    }
+}
+  
 // Navbar collapse (body)
 //
 // Group your navbar content into this for easy collapsing and expanding across
