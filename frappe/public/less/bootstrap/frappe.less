@@ -85,7 +85,68 @@ mark,
         background-color: rgba(0, 0, 0, 0);
     }
 }
+
+// Baseline styles
+
+.table {
+    // Account for multiple tbody instances
+    > tbody + tbody {
+      border-top: 2px solid #d1d8dd;
+    }
   
+    // Nesting
+    .table {
+      background-color: @body-bg;
+    }
+}
+
+// Radios and checkboxes on same line
+.radio-inline,
+.checkbox-inline {
+    display: inline-block;
+    padding-left: 20px;
+    margin-bottom: 0;
+    font-weight: normal;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+// Help text
+//
+// Apply to any element you wish to create light text for placement immediately
+// below a form control. Use for general help, formatting, or instructional text.
+.help-block {
+    color: #6b8196;
+}
+
+//
+// Buttons
+// --------------------------------------------------
+// Base styles
+// --------------------------------------------------
+.btn {  
+    &,
+    &:active,
+    &.active {
+      &:focus,
+      &.focus {
+        outline: thin dotted;
+      }
+    }
+}
+// Link buttons
+// -------------------------
+
+// Make a button look and behave like a link
+.btn-link {
+    &:hover,
+    &:focus {
+      color: #161b1f;
+      text-decoration: underline;
+      background-color: transparent;
+    }
+}
+
 // Navbar collapse (body)
 //
 // Group your navbar content into this for easy collapsing and expanding across
