@@ -10,7 +10,7 @@ import unittest
 
 
 class TestDocType(unittest.TestCase):
-	def new_doctype(self, name, unique=0, depends_on=''):
+	def new_doctype(self, name, unique=0, depends_on='', autoname=None):
 		return frappe.get_doc({
 			"doctype": "DocType",
 			"module": "Core",
@@ -26,7 +26,8 @@ class TestDocType(unittest.TestCase):
 				"role": "System Manager",
 				"read": 1
 			}],
-			"name": name
+			"name": name,
+			"autoname": autoname
 		})
 
 	def test_validate_name(self):
@@ -65,6 +66,10 @@ class TestDocType(unittest.TestCase):
 		doc2.delete()
 
 	def test_validate_search_fields(self):
+
+		if frappe.db.exists("DocType", "Test Search Fields"):
+			frappe.delete_doc("DocType", "Test Search Fields")
+
 		doc = self.new_doctype("Test Search Fields")
 		doc.search_fields = "some_fieldname"
 		doc.insert()
@@ -83,6 +88,10 @@ class TestDocType(unittest.TestCase):
 		self.assertRaises(frappe.ValidationError, doc.save)
 
 	def test_depends_on_fields(self):
+
+		if frappe.db.exists("DocType", "Test Depends On"):
+			frappe.delete_doc("DocType", "Test Depends On")
+
 		doc = self.new_doctype("Test Depends On", depends_on="eval:doc.__islocal == 0")
 		doc.insert()
 
@@ -105,3 +114,67 @@ class TestDocType(unittest.TestCase):
 				condition = field.get(depends_on)
 				if condition:
 					self.assertFalse(re.match(pattern, condition))
+
+	def test_autoincrement_doctype(self):
+
+		if frappe.db.exists("DocType", "Test Auto Increment"):
+			frappe.delete_doc("DocType", "Test Auto Increment")
+
+		doc = self.new_doctype("Test Auto Increment", autoname="autoincrement")
+		doc.insert()
+		tab_desc = frappe.db.sql("DESC `tabTest Auto Increment`", as_dict=1)
+		for row in tab_desc:
+			if row.Field == "name":
+				self.assertTrue(row.Extra == "auto_increment")
+
+		frappe.delete_doc("DocType", "Test Auto Increment")
+
+	def test_autoincrement_curd(self):
+
+		if frappe.db.exists("DocType", "Test Auto Increment"):
+			frappe.delete_doc("DocType", "Test Auto Increment")
+
+		doc = self.new_doctype("Test Auto Increment", autoname="autoincrement")
+		doc.insert()
+		prev = None
+
+		# insert test
+		for i in range(5):
+			item = frappe.get_doc({
+				'doctype': 'Test Auto Increment',
+				'some_fieldname': i
+			}).insert()
+
+			# check for sequential number
+			if prev:
+				self.assertTrue((item.name-prev) == 1)
+			prev = item.name
+			item.delete()
+
+		# update test
+		item = frappe.get_doc({
+			'doctype': 'Test Auto Increment',
+			'some_fieldname': "test"
+		}).insert()
+		# update field
+		item.some_fieldname = "hello"
+		item.save()
+		# validate
+		self.assertTrue(frappe.get_value('Test Auto Increment', item.name, 'some_fieldname') == "hello")
+		item.delete()
+
+		frappe.delete_doc("DocType", "Test Auto Increment")
+
+	def test_naming_series(self):
+
+		if frappe.db.exists("DocType", "Test Naming Series"):
+			frappe.delete_doc("DocType", "Test Naming Series")
+
+		doc = self.new_doctype("Test Naming Series", autoname="AUTO-INC-.######")
+		doc.insert()
+		tab_desc = frappe.db.sql("DESC `tabTest Naming Series`", as_dict=1)
+		for row in tab_desc:
+			if row.Field == "name":
+				self.assertFalse(row.Extra == "auto_increment")
+
+		frappe.delete_doc("DocType", "Test Naming Series")
