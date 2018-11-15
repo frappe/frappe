@@ -6,7 +6,11 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	show() {
-		this.init().then(() => this.refresh());
+		frappe.run_serially([
+			() => this.init(),
+			() => this.before_refresh(),
+			() => this.refresh()
+		]);
 	}
 
 	init() {
@@ -342,6 +346,11 @@ frappe.views.BaseList = class BaseList {
 			freeze: this.freeze_on_refresh || false,
 			freeze_message: this.freeze_message || (__('Loading') + '...')
 		};
+	}
+
+	before_refresh() {
+		// modify args here just before making the request
+		// see list_view.js
 	}
 
 	refresh() {
