@@ -195,7 +195,10 @@ def create(kind, owner, users = None, name = None):
 
 		for user in dsettings.chat_operators:
 			if user.user not in users:
-				room.append('users', user)
+				# appending user to room.users will remove the user from chat_operators
+				# this is undesirable, create a new Chat Room User instead
+				chat_room_user = {"doctype": "Chat Room User", "user": user.user}
+				room.append('users', chat_room_user)
 
 	room.save(ignore_permissions = True)
 
