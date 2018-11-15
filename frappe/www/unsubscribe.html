@@ -5,6 +5,7 @@
 {% block page_content %}
 
 	<script>
+
 		frappe.ready(function(){
 			$("#select").click(function(){
 				if($("#select").prop("checked") == true){
@@ -21,20 +22,20 @@
 	<!-- confirmation page to select the group for unsubscription -->
 		<div class="page-card">
 			<div class='page-card-head'>
-				<span class='indicator blue'>Unsubscribe from mailing list</span>
+				<span class='indicator blue'>Unsubscribe</span>
 			</div>
 			<div>
-				<b>{{email}}</b> select group to unsubscribe.
+				 Select groups you wish to unsubscribe from.
+				<span class="text-muted">mishranaman123@gmail.com</span>
 			</div>
 			
 			<form method="post">
 					<input type="hidden" name="user_email" value="{{email}}">
 					<input type="hidden" name="csrf_token" value="{{ frappe.session.csrf_token }}">
 					<div class="checkbox">
-				<div class="checkbox" style="margin-top: 10px">
+				<div class="checkbox" style="margin-top: 10px; padding-bottom: 10px;">
 					<label><input type="checkbox" id="select"><span style="padding-left: 20px">Select all</span></label>
 				</div>
-				<hr style="margin-top: 0px">
 				{% for group in email_groups %}
 				{% if current_group[0].email_group == group.email_group %}
 					<div class="checkbox">
@@ -47,10 +48,8 @@
 				{% endif %}
 				{% endfor %}
 				<p class='password-strength-message text-muted small hidden'></p>
-				<center>
 				<button type="submit" id="unsubscribe"
 					class="btn btn-primary">Unsubscribe</button>
-				</center>	
 			</form>
 		</div>
 
@@ -58,7 +57,7 @@
 	<!-- Unsubscribed page comes after submission -->
 		<div class="page-card">
 			<div class='page-card-head'>
-				<span class='indicator blue'>Unsubscribe from mailing list</span>
+				<span class='indicator green'>Unsubscribed</span>
 			</div>
 			You have been unsubscribed from selected mailing list.
 		</div>
@@ -67,7 +66,7 @@
 	<!-- For invalid and unsigned request -->
 		<div class="page-card">
 			<div class='page-card-head'>
-				<span class='indicator red'>Unsubscribe from mailing list</span>
+				<span class='indicator red'>Unsubscribe</span>
 			</div>
 			<b>Invalid Request.</b>
 		</div>
