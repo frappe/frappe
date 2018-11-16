@@ -33,12 +33,12 @@
 					<input type="hidden" name="user_email" value="{{email}}">
 					<input type="hidden" name="csrf_token" value="{{ frappe.session.csrf_token }}">
 					<div class="checkbox">
-				<div class="checkbox" style="margin-top: 10px; padding-bottom: 10px;">
+				<div class="checkbox" style="margin-top: 10px; border-bottom:2px solid #D3D3D3; border-width: 1px">
 					<label><input type="checkbox" id="select"><span style="padding-left: 20px">Select all</span></label>
 				</div>
 				{% for group in email_groups %}
 				{% if current_group[0].email_group == group.email_group %}
-					<div class="checkbox">
+					<div class="checkbox"  style='padding-top: 10px;'>
 						<label><input type="checkbox" checked class="group" name='{{group.email_group}}'><span style="padding-left: 20px">{{group.email_group}}</span></label>
 					</div>
 				{% else %}
