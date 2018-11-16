@@ -40,7 +40,7 @@ context('Awesome Bar', () => {
         cy.get('#navbar-search')
             .type('new blog post{downarrow}{enter}', { delay: 100 })
 
-        cy.get('h1 .title-text').contains('New Blog Post 1')
+        cy.get('.title-text:visible').should('have.text', 'New Blog Post 1')
     })
 
     it('calculates math expressions', () => {
