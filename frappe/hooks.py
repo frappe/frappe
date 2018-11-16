@@ -48,7 +48,7 @@ web_include_js = [
 	"website_script.js"
 ]
 
-bootstrap = "assets/frappe/css/bootstrap.css"
+bootstrap = "assets/css/bootstrap.css"
 web_include_css = [
 	"assets/css/frappe-web.css"
 ]
