@@ -9,6 +9,7 @@ python:
 env:
   - DB=mariadb
   - DB=postgres
+  - TEST_TYPE=ui
 
 services:
   - mysql
@@ -21,8 +22,17 @@ addons:
     - test_site_ui
 
 matrix:
-  exclude:
+  include:
   - python: 2.7
+    env: TEST_TYPE=ui
+
+  - python: 2.7
+    env: DB=mariadb
+
+  - python: 3.6
+    env: DB=mariadb
+
+  - python: 3.6
     env: DB=postgres
 
 install:
