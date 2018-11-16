@@ -1,4 +1,3 @@
-
 frappe.dark_mode = {
 	set_mode: function() {
 		var date = new Date;
