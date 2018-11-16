@@ -7,7 +7,7 @@
 
 .print-preview-wrapper {
 	padding: 30px 0px;
-	background-color: @navbar-bg;
+	background-color: @print-preview;
 }
 
 .print-toolbar {
@@ -310,7 +310,7 @@ h6.uppercase, .h6.uppercase {
 }
 
 .badge-important {
-	background-color: #e74c3c;
+	background-color: @badge-import;
 }
 
 .address-box {
@@ -489,7 +489,7 @@ h6.uppercase, .h6.uppercase {
 			}
 
 			&:hover, &:focus {
-				color: #000;
+				color: @sidebar-close;
 			}
 		}
 	}
@@ -511,7 +511,7 @@ h6.uppercase, .h6.uppercase {
 
 	.media-body:after {
 		border-color: rgba(136, 183, 213, 0);
-		border-right-color: #fafbfc;
+		border-right-color: @light-bg;
 		border-width: 6px;
 		margin-top: -6px;
 	}
@@ -618,7 +618,7 @@ h6.uppercase, .h6.uppercase {
 
 .signature-field {
 	min-height: 300px;
-	background: #fff;
+	background: @white;
 	border: 1px solid @border-color;
 	border-radius: 3px;
 	position: relative;
@@ -626,7 +626,7 @@ h6.uppercase, .h6.uppercase {
 }
 .signature-display {
 	margin: 7px 0px;
-	background: #fff;
+	background: @white;
 }
 .signature-btn-row {
 	position: absolute;
@@ -641,7 +641,7 @@ h6.uppercase, .h6.uppercase {
 }
 
 .signature-img {
-	background: #fff;
+	background: @white;
 	border-radius: 3px;
 	margin-top: 5px;
 	max-height: 150px;
@@ -678,13 +678,13 @@ h6.uppercase, .h6.uppercase {
 	border-radius: 3px;
 	min-height: 30px;
 	font-weight: bold;
-	background-color: @navbar-bg;
+	background-color: @disabled-input;
 	padding: 5px 10px;
 	border-radius: 3px;
 }
 
 .disabled-check {
-	color: @navbar-bg;
+	color: @disabled-input;
 	margin-right: 5px;
 	margin-bottom: -2px;
 }
@@ -740,7 +740,7 @@ select.form-control {
 }
 
 .form-control.bold {
-	color: #000;
+	color: @sidebar-close;
 	font-weight: bold;
 	background-color: @extra-light-yellow;
 }
@@ -911,11 +911,11 @@ select.form-control {
 
 /* goals */
 .goals-page-container {
-	background-color: #fafbfc;
+	background-color: @light-bg;
 	padding-top: 1px;
 
 	.goal-container {
-		background-color: #fff;
+		background-color: @goal-container-bg;
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 		border-radius: 2px;
 		padding: 10px;

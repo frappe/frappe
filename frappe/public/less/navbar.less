@@ -1,11 +1,11 @@
-@import "variables.less";
-@import "mixins.less";
-
 .navbar-fixed-top {
 	left: 0px;
 	right: 0px;
 }
-
+.navbar-default {
+	background-color: @navbar-default-bg;
+	border-color: @navbar-default-border;
+}
 .navbar {
 	a {
 		font-size: 12px;
@@ -87,7 +87,7 @@
 		background: transparent;
 	}
 	.modal-header {
-		background: #fff;
+		background: @modal-header;
 		width: 100%;
 
 		form {
@@ -121,7 +121,7 @@
 
 	.input-group {
 		width: 100%;
-		background-color: #f5f7fa;
+		background-color: @navbar-default-bg;
 		padding: 8px 12px;
 	}
 
@@ -130,12 +130,12 @@
 		padding: 5px 10px;
 		outline: none;
 		border-radius: 3px 0 0 3px;
-		border: 1px solid #d1d8dd;
+		border: 1px solid @border-color;
 		opacity: 0.9;
 		line-height: 1.5;
 	}
 	button {
-		border: 1px solid #d1d8dd;
+		border: 1px solid @border-color;
 
 		&.loading {
 
@@ -152,9 +152,9 @@
 @media (max-width: 767px) {
 	.dropdown-mobile.open .dropdown-menu {
 		position: absolute;
-		border-top: 1px solid rgba(0, 0, 0, 0.14902);
-		box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
-		background-color: #fff;
+		border-top: 1px solid @dropdown-border;
+		box-shadow: 0 6px 12px @dropdown-box-shadow;
+		background-color: @dropdown-background;
 		right: 0;
 		left: auto;
 
@@ -172,7 +172,7 @@
 	min-width: 24px;
 	height: 24px;
 	border-radius: 4px;
-	color: #fff;
+	color: @white;
 	text-align: center;
 	padding: 2px 5px;
 	background-color: @indicator-darkgrey;
@@ -197,7 +197,7 @@
 
 #navbar-search {
 	width: 100%;
-	background-color: rgba(255, 255, 255, 0.9);
+	background-color: @navbar-search-bg;
 }
 
 #navbar-search-results {

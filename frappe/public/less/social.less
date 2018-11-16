@@ -1,6 +1,3 @@
-@import "variables.less";
-@import (reference) 'common.less';
-
 body[data-route*="social"] {
 
 	.layout-main-section {
@@ -50,7 +47,7 @@ body[data-route*="social"] {
 	}
 
 	.generic-card() {
-		background: white;
+		background: @generic-card-bg;
 		font-size: 12px;
 		margin-bottom: 15px;
 		min-height: 70px;
@@ -102,7 +99,7 @@ body[data-route*="social"] {
 			display: none;
 		}
 		.pinned {
-			background: #fefdf2;
+			background: @pinned-post;
 			.pin-option {
 				display: block;
 			}
@@ -114,7 +111,7 @@ body[data-route*="social"] {
 		}
 		.post-action-container {
 			padding-left: 56px;
-			background-color: #F6F6F6;
+			background-color: @post-action-container;
 			border-top: 1px solid @border-color;
 		}
 		.preview-card {
@@ -124,7 +121,7 @@ body[data-route*="social"] {
 			border-radius: 5px;
 			margin-top: 15px;
 			padding-right: 10px;
-			background: white;
+			background: @white;
 			display: flex;
 			img {
 				border: none;

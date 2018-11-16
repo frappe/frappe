@@ -3,9 +3,21 @@
 @import "common.less";
 @import "quill.less";
 
-#page-desktop {
-	background-color: @page-desktop;
-}
+@import "flex.less";//
+@import "indicator.less";//
+@import "avatar.less";//
+@import "navbar.less";//
+@import "sidebar.less";
+@import "page.less";//
+@import "tree.less";
+@import "desktop.less";//
+@import "form.less";//
+@import "mobile.less";
+@import "kanban.less";
+@import "controls.less";
+@import "chat.less";
+@import "filters.less";
+@import "social.less";//
 
 .nav-pills a, .nav-pills a:hover {
 	border-bottom: none;
@@ -213,9 +225,9 @@ textarea.form-control {
 }
 
 .btn-primary.disabled {
-	background-color: #b1bdca;
-	color: #fff;
-	border-color: #b1bdca;
+	background-color: @setup-wizard-button;
+	color: @white;
+	border-color: @setup-wizard-button;
 }
 
 .form-control {
@@ -263,11 +275,11 @@ textarea.form-control {
 	position:relative;
 	left: 2px;
 	display:inline-block;
-	background:#ff5858;
+	background:@indicator-red;
 	font-size: @text-medium;
 	line-height:20px;
 	padding:0 8px;
-	color:#fff;
+	color:@white;
 	border-radius:10px;
 	cursor: pointer;
 	margin-right: 10px;
@@ -286,7 +298,7 @@ a.progress-small {
 
 	.progress-bar {
 		transition: unset;
-		background-color: #98d85b;
+		background-color: @indicator-green;
 	}
 }
 
@@ -298,13 +310,13 @@ li.user-progress {
 
 	.progress {
 		margin-bottom: 0;
-		background-color: #fff;
-		border: 1px solid #e5e7e9;
+		background-color: @white;
+		border: 1px solid @desk-progress;
 	}
 
 	.progress-bar {
 		transition: unset;
-		background-color: #98d85b;
+		background-color: @indicator-green;
 	}
 }
 
@@ -449,7 +461,7 @@ li.user-progress {
 
 .breadcrumb {
 	font-size: 12px;
-	background-color: #fff;
+	background-color: @white;
 }
 
 .breadcrumb.for-file-list {
@@ -538,7 +550,7 @@ li.user-progress {
 	}
 
 	.empty-state {
-		color: #d4d9dd;
+		color: @search-empty;
 		height: 500px;
 		display: flex;
 		justify-content: center;
@@ -557,7 +569,7 @@ li.user-progress {
 		}
 
 		.cover {
-			color: white;
+			color: @white;
 			font-size: 6px;
 			position: absolute;
 		}
@@ -634,7 +646,7 @@ li.user-progress {
 				align-items: center;
 				justify-content: space-between;
 				padding-left: 20px;
-				background-color: #ffffff;
+				background-color: @white;
 
 				i {
 					visibility: hidden;
@@ -646,14 +658,14 @@ li.user-progress {
 			}
 
 			.select a, a:hover {
-				background-color: #f7fafc;
+				background-color: @panel-bg;
 			}
 		}
 	}
 
 	.results-area {
 		.single-link a {
-			color: #36414c;
+			color: @text-color;
 		}
 	}
 
@@ -684,7 +696,7 @@ li.user-progress {
 		}
 
 		.result-with-subtype {
-			border-bottom: 1px solid #d1d8dd;
+			border-bottom: 1px solid @border-color;
 			margin-top: 10px;
 		}
 
@@ -719,7 +731,7 @@ li.user-progress {
 			margin-right: 10px;
 			height: 60px;
 			width: 60px;
-			background-color: #fafbfc;
+			background-color: @light-bg;
 
 			.flex-text {
 				display: flex;
@@ -854,7 +866,7 @@ input[type="checkbox"] {
 	.color-picker-pallete {
 		border-radius: 4px;
 		box-shadow: 0 4px 12px rgba(0,0,0,.15);
-		background: #fff;
+		background: @white;
 		border: 1px solid @border-color;
 		width: 290px;
 		height: 106px;
@@ -877,7 +889,7 @@ input[type="checkbox"] {
 		}
 		&:after {
 			border-color: rgba(255, 255, 255, 0);
-			border-bottom-color: #fff;
+			border-bottom-color: @white;
 			border-width: 8px;
 			margin-left: -8px;
 		}
@@ -908,7 +920,7 @@ input[type="checkbox"] {
 		font-size: 10px;
 		margin: 0px 2px;
 		&.active {
-			color: #5e64ff;
+			color: @brand-primary;
 		}
 		&.link {
 			cursor: pointer;
@@ -942,7 +954,7 @@ input[type="checkbox"] {
 	.next-steps-links {
 		.title {
 			text-transform: uppercase;
-			color: #8D99A6;
+			color: @chat-notification;
 			font-size: 11px;
 		}
 
@@ -959,9 +971,9 @@ input[type="checkbox"] {
 		}
 
 		a.make-btn.disabled {
-			background-color: #b1bdca;
-			color: #fff;
-			border-color: #b1bdca;
+			background-color: @setup-wizard-button;
+			color: @white;
+			border-color: @setup-wizard-button;
 		}
 	}
 }

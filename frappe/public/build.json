@@ -103,22 +103,7 @@
 		"public/js/lib/leaflet/easy-button.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
-		"public/less/desk.less",
-		"public/less/flex.less",
-		"public/less/indicator.less",
-		"public/less/avatar.less",
-		"public/less/navbar.less",
-		"public/less/sidebar.less",
-		"public/less/page.less",
-		"public/less/tree.less",
-		"public/less/desktop.less",
-		"public/less/form.less",
-		"public/less/mobile.less",
-		"public/less/kanban.less",
-		"public/less/controls.less",
-		"public/less/chat.less",
-		"public/less/filters.less",
-		"public/less/social.less"
+		"public/less/desk.less"
 	],
 	"css/bootstrap.css": [
 		"public/less/bootstrap/bootstrap.less"

@@ -1,6 +1,3 @@
-@import "variables.less";
-@import "mixins.less";
-
 .page-container {
 	margin-top: 40px;
 }
@@ -13,7 +10,7 @@
 	right: 0;
 	top: 41px;
 	margin: auto;
-	background-color: #fff;
+	background-color: @page-header;
 	z-index: 101;
 }
 
@@ -62,7 +59,7 @@
 		background-repeat: no-repeat;
 		background-position: center center;
 		border-radius: 4px;
-		color: #fff;
+		color: @page-header;
 		text-align: center;
 		line-height: 0;
 		float: left;
@@ -207,7 +204,7 @@ select.input-sm {
 .setup-wizard-slide {
 	margin: 60px auto;
 	padding: 10px 50px;
-	border: 1px solid #d1d8dd;
+	border: 1px solid @border-color;
 	box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
 
 	.slides-progress {
@@ -216,7 +213,7 @@ select.input-sm {
 
 	.lead {
 		margin: 30px;
-		color: #777777;
+		color: @setup-wizard-lead;
 		text-align: center;
 		font-size: 24px;
 	}
@@ -239,7 +236,7 @@ select.input-sm {
 	}
 
 	.form-control.bold {
-		background-color: #fff;
+		background-color: @setup-wizard-button-disbaled;
 	}
 
 	.add-more {
@@ -251,15 +248,15 @@ select.input-sm {
 	}
 
 	a.next-btn.disabled {
-		background-color: #b1bdca;
-		color: #fff;
-		border-color: #b1bdca;
+		background-color: @setup-wizard-button;
+		color: @setup-wizard-button-disbaled;
+		border-color: @setup-wizard-button;
 	}
 
 	a.complete-btn.disabled {
-		background-color: #b1bdca;
-		color: #fff;
-		border-color: #b1bdca;
+		background-color: @setup-wizard-button;
+		color: @setup-wizard-button-disbaled;
+		border-color: @setup-wizard-button;
 	}
 
 	.fa-fw {
@@ -268,7 +265,7 @@ select.input-sm {
 	}
 
 	.fa-fw.active {
-		color: #5e64ff;
+		color: @brand-primary;
 	}
 
 	.icon-circle-blank {
@@ -296,7 +293,7 @@ select.input-sm {
 		display: block;
 		position: relative;
 		border-radius: 4px;
-		border: 1px solid #d1d8dd;
+		border: 1px solid @border-color;
 		border-radius: 6px;
 		box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
 		.octicon {
@@ -321,7 +318,7 @@ select.input-sm {
 		align-items: center;
 		justify-content: center;
 		position: relative;
-		border: 1px solid #d1d8dd;
+		border: 1px solid @border-color;
 		border-radius: 6px;
 		box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
 	}
@@ -333,7 +330,7 @@ select.input-sm {
 		position: absolute;
 		width: 100%;
 		height: 100%;
-		color: #777777;
+		color: @setup-wizard-lead;
 		background-color: rgba(255, 255, 255, 0.7);
 		opacity: 0;
 		&:hover {
@@ -343,7 +340,7 @@ select.input-sm {
 	}
 
 	.progress-bar {
-		background-color: #5e64ff;
+		background-color: @brand-primary;
 	}
 }
 
@@ -355,16 +352,16 @@ select.input-sm {
 	max-width: 360px;
 	margin: 70px auto;
     padding: 15px;
-    border: 1px solid #d1d8dd;
+    border: 1px solid @setup-wizard-button;
     border-radius: 4px;
-    background-color: #fff;
+    background-color: @setup-wizard-button-disbaled;
     box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
 
 	.page-card-head {
 		padding: 10px 15px;
 		margin: -15px;
 		margin-bottom: 15px;
-		border-bottom: 1px solid #d1d8dd;
+		border-bottom: 1px solid @setup-wizard-button;
 	}
 
 	.btn {
@@ -385,5 +382,3 @@ select.input-sm {
 	justify-content: center;
 	align-items: center;
 }
-
-

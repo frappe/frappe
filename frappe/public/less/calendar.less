@@ -12,7 +12,7 @@
 
 th.fc-widget-header {
 	background-color: @panel-bg;
-	color: #8C99A5;
+	color: @chat-notification;
 }
 
 .fc-unthemed th,
@@ -26,13 +26,13 @@ th.fc-widget-header {
 }
 
 .fc-unthemed .fc-today {
-	background-color: #FFF !important;
+	background-color: @calender-bg !important;
 
 	.fc-day-number {
 		background-color: @brand-primary;
 		min-width: 20px;
 		border-radius: 50%;
-		color: #fff;
+		color: @calender-bg;
 		text-align: center;
 	}
 }
@@ -42,8 +42,8 @@ th.fc-widget-header {
 }
 
 .fc-event {
-	border: 1px solid #E8DDFF; /* default BORDER color */
-	background-color: #E8DDFF;
+	border: 1px solid @calender-border; /* default BORDER color */
+	background-color: @calender-border;
 }
 
 @media (max-width: @screen-xs) {
@@ -86,7 +86,7 @@ th.fc-day-header {
 
 .fc-state-active {
 	box-shadow: none !important;
-	background: #cfdce5 !important;
+	background: @calender-bg !important;
 }
 
 .fc-day-grid-event {
