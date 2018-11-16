@@ -23,17 +23,18 @@ addons:
 
 matrix:
   include:
-  - python: 2.7
-    env: TEST_TYPE=ui
-
-  - python: 2.7
+  - name: "Python 2.7 with MariaDB"
+    python: 2.7
     env: DB=mariadb
-
-  - python: 3.6
+  - name: "Python 3.6 with MariaDB"
+    python: 3.6
     env: DB=mariadb
-
-  - python: 3.6
+  - name: "Python 3.6 with Postgres"
+    python: 3.6
     env: DB=postgres
+  - name: "UI Tests on Python 2.7 and MariaDB"
+    python: 2.7
+    env: TEST_TYPE=ui
 
 install:
   - nvm install 8 && nvm use 8
