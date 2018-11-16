@@ -43,7 +43,7 @@ app_include_css = [
 	"assets/css/form.min.css",
 	"assets/css/report.min.css",
 	"assets/css/module.min.css",
-	"assets/css/dark.css"
+	"assets/css/desk_dark.css"
 ]
 
 web_include_js = [

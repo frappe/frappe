@@ -28,7 +28,7 @@ frappe.dark_mode = {
 		if(frappe.get_cookie("dark_mode") == "False"){
 			var styleSheets = document.styleSheets;
 			for (var i = 0; i < styleSheets.length; i++) {
-				if (styleSheets[i].href.indexOf("dark.css") != -1) {
+				if (styleSheets[i].href.indexOf("desk_dark.css") != -1) {
 					styleSheets[i].disabled = true;
 					$('#dark_mode').prop('checked', false);
 					break;
@@ -38,7 +38,7 @@ frappe.dark_mode = {
 		else{
 			var styleSheets = document.styleSheets;
 			for (var i = 0; i < styleSheets.length; i++) {
-				if (styleSheets[i].href.indexOf("dark.css") != -1) {
+				if (styleSheets[i].href.indexOf("desk_dark.css") != -1) {
 					$('#dark_mode').prop('checked', true);
 					styleSheets[i].disabled = false;
 					break;
