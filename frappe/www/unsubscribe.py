@@ -7,7 +7,7 @@ no_cache = True
 
 def get_context(context):
 	frappe.flags.ignore_permissions = True
-	# Called for confirmation. 
+	# Called for confirmation.
 	if "email" in frappe.form_dict:
 		if verify_request():
 			user_email = frappe.form_dict["email"]
@@ -26,14 +26,14 @@ def get_context(context):
 			if group.email_group in frappe.form_dict:
 				confirmed_unsubscribe(email, group.email_group)
 
-	# Called on Invalid or unsigned request. 
+	# Called on Invalid or unsigned request.
 	else:
 		context.status = "not valid"
 
 def get_email_groups(user_email):
-	# Return the all email_groups in which the email has been registered 
+	# Return the all email_groups in which the email has been registered.
 	return frappe.get_all("Email Group Member", fields = ["email_group"], filters = {"email": user_email, "unsubscribed": 0}, ignore_permissions=True)
 
 def get_current_groups(name):
-	# Return current group by which the mail has been sent
+	# Return current group by which the mail has been sent.
 	return frappe.db.get_all("Newsletter Email Group", ["email_group"],{"parent":name, "parenttype":"Newsletter"}, ignore_permissions=True)
