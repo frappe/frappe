@@ -22,13 +22,11 @@ addons:
     - test_site_ui
 
 matrix:
-  include:
-  - name: "UI Tests on Python 2.7 and MariaDB"
-    python: 2.7
-    env: TEST_TYPE=ui
   exclude:
   - python: 2.7
     env: DB=postgres
+  - python: 3.6
+    env: TEST_TYPE=ui
 
 install:
   - nvm install 8 && nvm use 8
