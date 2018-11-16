@@ -11,6 +11,7 @@ context('Awesome Bar', () => {
     it('create a new form', () => {
         cy.visit('/desk#Form/ToDo/New ToDo 1')
         cy.fill_field('description', 'this is a test todo', 'Text Editor')
+        cy.scrollTo(0, 0)
         cy.get('.primary-action').click()
         cy.visit('/desk#List/ToDo')
         cy.location('hash').should('eq', '#List/ToDo/List')
