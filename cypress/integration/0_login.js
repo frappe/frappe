@@ -25,7 +25,7 @@ context('Login', () => {
 
         cy.get('.btn-login').click()
         cy.location('pathname').should('eq', '/desk')
-        cy.location('hash').should('eq', '')
+        cy.window().its('frappe.session.user').should('eq', 'Administrator');
     })
 
     it('shows invalid login if incorrect credentials', () => {
