@@ -18,7 +18,8 @@ if [[ $DB == 'mariadb' ]]; then
 
 elif [[ $TEST_TYPE == 'ui' ]]; then
     setup_mariadb_env 'test_site_ui'
-    bench --site test_site_ui reinstall --yes
+    bench --site test_site_ui --force restore ./apps/frappe/test_sites/test_site_ui/20181116_225029-test_site_ui-database.sql.gz
+    bench --site test_site_ui migrate
     bench --site test_site_ui setup-help
     bench setup-global-help --root_password travis
     bench --site test_site_ui scheduler disable
