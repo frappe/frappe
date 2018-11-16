@@ -1,4 +1,5 @@
 {
+ "developer_mode": 1,
  "db_name": "test_site_ui",
  "db_password": "test_site_ui",
  "db_type": "mariadb",
