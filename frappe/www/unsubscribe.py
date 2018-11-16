@@ -32,8 +32,8 @@ def get_context(context):
 
 def get_email_groups(user_email):
 	# Return the all email_groups in which the email has been registered.
-	return frappe.get_all("Email Group Member", fields = ["email_group"], filters = {"email": user_email, "unsubscribed": 0}, ignore_permissions=True)
+	return frappe.get_all("Email Group Member", fields = ["email_group"], filters = {"email": user_email, "unsubscribed": 0})
 
 def get_current_groups(name):
 	# Return current group by which the mail has been sent.
-	return frappe.db.get_all("Newsletter Email Group", ["email_group"],{"parent":name, "parenttype":"Newsletter"}, ignore_permissions=True)
+	return frappe.db.get_all("Newsletter Email Group", ["email_group"],{"parent":name, "parenttype":"Newsletter"})
