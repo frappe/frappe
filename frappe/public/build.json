@@ -301,6 +301,7 @@
 		"public/js/frappe/ui/like.js",
 		"public/js/frappe/ui/liked_by.html",
 		"public/html/print_template.html",
+		"public/js/frappe/ui/base_list.js",
 
 		"public/js/frappe/list/base_list.js",
 		"public/js/frappe/list/list_view.js",
