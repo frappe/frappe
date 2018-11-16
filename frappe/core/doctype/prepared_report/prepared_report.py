@@ -5,14 +5,14 @@
 
 from __future__ import unicode_literals
 import base64
+import gzip
 import json
 
 import frappe
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
-from frappe.desk.query_report import generate_report_result, get_columns_dict
+from frappe.desk.query_report import generate_report_result
 from frappe.utils.file_manager import save_file, remove_all
-from frappe.utils.csvutils import to_csv, read_csv_content_from_attached_file
 from frappe.desk.form.load import get_attachments
 from frappe.utils.file_manager import download_file
 
@@ -36,7 +36,7 @@ class PreparedReport(Document):
 def run_background(instance):
 	report = frappe.get_doc("Report", instance.ref_report_doctype)
 	result = generate_report_result(report, filters=json.loads(instance.filters), user=instance.owner)
-	create_csv_file(result['columns'], result['result'], 'Prepared Report', instance.name)
+	create_json_gz_file(result['result'], 'Prepared Report', instance.name)
 
 	instance.status = "Completed"
 	instance.columns = json.dumps(result["columns"])
@@ -50,57 +50,21 @@ def run_background(instance):
 	)
 
 
-def remove_header_meta(columns):
-	column_list = []
-	columns_header = get_columns_dict(columns)
-	for idx in range(len(columns)):
-		column_list.append(columns_header[idx]['label'])
-	return column_list
+def create_json_gz_file(data, dt, dn):
+	# Storing data in CSV file causes information loss
+	# Reports like P&L Statement were completely unsuable because of this
+	json_filename = '{0}.json.gz'.format(frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H:M"))
+	encoded_content = frappe.safe_encode(json.dumps(data))
 
-
-def create_csv_file(columns, data, dt, dn):
-	csv_filename = '{0}.csv'.format(frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H:M"))
-
-	rows = []
-
-	if data:
-		columns_without_meta = remove_header_meta(columns)
-
-		row = data[0]
-		if type(row) == list:
-			rows = [tuple(columns_without_meta)] + data
-		else:
-			for row in data:
-				new_row = []
-				for col in columns:
-					key = col.get('fieldname') or col.get('label')
-					new_row.append(row.get(key, ''))
-				rows.append(new_row)
-
-			rows = [tuple(columns_without_meta)] + rows
-
-	encoded = base64.b64encode(frappe.safe_encode(to_csv(rows)))
-	# Call save_file function to upload and attach the file
+	# GZip compression seems to reduce storage requirements by 80-90%
+	compressed_content = gzip.compress(encoded_content)
 	save_file(
-		fname=csv_filename,
-		content=encoded,
+		fname=json_filename,
+		content=compressed_content,
 		dt=dt,
 		dn=dn,
 		folder=None,
-		decode=True,
 		is_private=False)
-
-
-@frappe.whitelist()
-def get_report_attachment_data(dn):
-
-	doc = frappe.get_doc("Prepared Report", dn)
-	data = read_csv_content_from_attached_file(doc)
-
-	return {
-		'columns': data[0],
-		'result': data[1:]
-	}
 
 
 @frappe.whitelist()
