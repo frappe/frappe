@@ -35,6 +35,18 @@ Cypress.Commands.add('login', (email, password) => {
     })
 })
 
-Cypress.Commands.add('fill_field', (fieldname, value, input='input', sub_selector='') => {
-    cy.get(`${input}[data-fieldname="${fieldname}"] ${sub_selector}`).type(value)
+Cypress.Commands.add('fill_field', (fieldname, value, fieldtype='Data') => {
+    let selector = `.form-control[data-fieldname="${fieldname}"]`
+
+    if (fieldtype === 'Text Editor') {
+        selector = `[data-fieldname="${fieldname}"] .ql-editor`
+    }
+
+    cy.get(selector).as('input')
+
+    if (fieldtype === 'Select') {
+        cy.get('@input').select(value)
+    } else {
+        cy.get('@input').type(value)
+    }
 })
