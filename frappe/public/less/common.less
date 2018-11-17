@@ -33,7 +33,7 @@ p {
 }
 
 .text-muted {
-	color: #8D99A6 !important;
+	color: @text-muted !important;
 }
 
 .text-extra-muted {
@@ -52,7 +52,7 @@ a,
 
 a.disabled,
 a.disabled:hover {
-	color: #888;
+	color: @link-disabled;
 	cursor: default;
 	text-decoration: none;
 }
@@ -137,7 +137,7 @@ a.badge-hover& {
 	&:hover .badge,
 	&:focus .badge,
 	&:active .badge {
-		background-color: #d8dfe5;
+		background-color: @link-badge;
 	}
 }
 
@@ -232,7 +232,7 @@ a.badge-hover& {
 
 #freeze.dark {
 	// same as modal backdrop;
-	background-color: #334143;
+	background-color: @freeze-bg-color;
 }
 
 #freeze.in {

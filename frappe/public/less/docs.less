@@ -4,7 +4,7 @@
 body {
 	font-size: 16px;
 	line-height: 1.65em;
-	 color: #454e57;
+	 color: @body-color;
  // position: relative;
 	 -webkit-font-smoothing: antialiased;
 
@@ -101,18 +101,18 @@ img {
 
 body[data-path="index"] {
     .navbar .toggle-sidebar i {
-   		color: #fff;
+   		color: @navbar-link-color;
     }
 }
 
 code{
-  color: #e66a12;
-  background: #fff6df;
+  color: @code-color;
+  background: @code-bg-color;
 }
 
 pre {
-  background:#fafbfc;
-  border: 1px solid #e1e9f0;
+  background:@pre-bg-color;
+  border: 1px solid @pre-border-color;
   border-radius:2px;
 }
 
@@ -120,7 +120,7 @@ pre {
   background:transparent;
   border:none;
   padding:1.2em 1.5em 1.5em;
-  color:#454e57;
+  color: @hljs-color;
 }
 
 .hljs-keyword, .hljs-tag, .css .hljs-class, .css .hljs-id, .lisp .hljs-title, .nginx .hljs-title, .hljs-request, .hljs-status, .clojure .hljs-attribute{
@@ -167,7 +167,7 @@ pre {
 .navbar a {
 	font-size: 16px;
 	font-weight: normal;
-	color: #fff !important;
+	color: @navbar-link-color !important;
  &.navbar-brand{
   font-weight: bold;
  }
@@ -200,7 +200,7 @@ pre {
 .breadcrumb a:hover,
 .breadcrumb a:focus,
 .breadcrumb a:visited {
-  color:#7575ff;
+  color: @breadcrumb-link;
   font-size: 16px;
 }
 
@@ -215,9 +215,9 @@ pre {
 }
 
 a.btn-primary& {
-	color: #7575ff;
+	color: @breadcrumb-link;
 	&:hover, &:focus, &:visited {
-		color: #7575ff;;
+		color: @breadcrumb-link;;
 	}
 }
 
@@ -275,7 +275,7 @@ p {
  img.frappe-bird {
   width:40px;
   height:40px;
-  background:#fff;
+  background:@frappe-bird-bg;
   margin-bottom:10px;
   padding:5px;
  }
@@ -295,7 +295,7 @@ p {
 // fake frames
 .browser-image {
 	min-height: 200px;
-	border: 1px solid #d1d8dd;
+	border: 1px solid @browser-img-border;
 	border-bottom: 0px;
 }
 
@@ -312,8 +312,8 @@ p {
 	top: -24px;
 	left: 0px;
 	right: 0px;
-	border: 1px solid #d1d8dd;
-	background: #f5f7fa;
+	border: 1px solid @browser-img-border;
+	background: @fake-browser-frame;
 	border-bottom: none;
 	border-top-left-radius: 4px;
 	border-top-right-radius: 4px;
@@ -322,7 +322,7 @@ p {
 .fake-browser-frame::after {
 	content: '\f111 \00a0\00a0 \f111 \00a0\00a0 \f111';
 	position: absolute;
-	color: #d1d8dd;
+	color: @browser-img-border;
 	top: -15px;
 	left: 8px;
 
@@ -346,14 +346,14 @@ p {
 .fake-iphone-frame {
 	position: relative;
 	padding: 40px 8px;
-	border: 1px solid #d1d8dd;
+	border: 1px solid @browser-img-border;
 	border-radius: 15px;
 }
 
 .fake-ipad-frame {
 	position: relative;
 	padding: 8px 40px;
-	border: 1px solid #d1d8dd;
+	border: 1px solid @browser-img-border;
 	border-radius: 15px;
 }
 
@@ -364,11 +364,11 @@ hr {
 .edit {
   // padding-left: 20px;
   // background:url('/assets/img/smiley.png') 0% 50% no-repeat;
-  color: #8d99a6;
+  color: @edit;
   // display: block;
 }
 a.edit, a.edit:hover, a.edit:focus, a.edit:visited, .edit-container .icon {
- color:#8d99a6;
+ color:@edit;
 }
 
 .btn-next {
@@ -386,7 +386,7 @@ a.edit, a.edit:hover, a.edit:focus, a.edit:visited, .edit-container .icon {
  font-weight:normal;
  background:transparent;
  font-family:"Helvetica Neue", Helvetica, Arial, "Open Sans", sans-serif;
- color:#454e57;
+ color: @current-td-code;
  font-size:16px;
 }
 
@@ -402,5 +402,3 @@ a.edit, a.edit:hover, a.edit:focus, a.edit:visited, .edit-container .icon {
 		display: none;
 	}
 }
-
-
