@@ -4,35 +4,11 @@
 
 @import "common.less";
 @import "flex.less";
-
-// Typography
-@font-weight-bold:								700;
-@font-weight-heavy:								900;
-
-@chat-toggle-height:							40px;
-
-@fab-box-shadow:                                0 5px 15px rgba(0, 0, 0, .25);
-@fab-size:                                      48px;
-@fab-size-lg:                                   56px;
-@fab-margin:                                    20px;
-
-@chat-popper-margin:							@fab-margin;
-@chat-popper-panel-width:						350px;
-@chat-popper-panel-height:						500px;
-// z-index greater than FAB, lesser than modal.
-@chat-popper-z-index:							1035;
-
-// BS modal's box-shadow
-@chat-popper-panel-box-shadow:					@fab-box-shadow;
+@import "variables.less";
 
 // https://github.com/twbs/bootstrap/blob/v3.3.7/less/variables.less#L278
 // Keep z-index of the ChatPopper higher than others, lower than modal background.
 
-@chat-room-list-content-max-width:				180px;
-
-@chat-form-font-size:							12px;
-@chat-form-menu-border-radius:					4px;
-@chat-form-list-group-height:					150px; // Hints
 
 // Typography
 .font-bold  { font-weight: @font-weight-bold;  }
@@ -218,45 +194,6 @@
     }
 }
 
-@chat-color-grey:                        #8D99A6;
-
-@chat-base-font-size:                    12px;
-@chat-base-font-size-lg:                 14px;
-
-@chat-base-spacing:                      5px;
-
-// ChatForm
-@chat-form-border:                       1px solid #D1D8DD;
-
-// ChatList
-@chat-list-bg-color:                     #FAFBFC;
-
-// ChatList.Item
-@chat-list-item-padding:                 @chat-base-spacing @chat-base-spacing * 2;
-
-// ChatBubble
-@chat-bubble-padding:					@chat-base-spacing @chat-base-spacing * 2;
-@chat-bubble-min-width:                  25%;
-@chat-bubble-max-width:                  75%;
-
-@chat-bubble-box-shadow:                 0px 0.1px 0.5px 0px rgba(0,0,0,0.5);
-
-@chat-bubble-border-size:                1px;
-@chat-bubble-border-radius:				@chat-base-spacing;
-
-@chat-bubble-l-color:			 	  #EBEFF2;
-@chat-bubble-r-color:				  #EBF7CF;
-
-@chat-bubble-l-groupable-margin-left:    40px;
-
-@chat-bubble-author-font-size:           @chat-base-font-size;
-
-@chat-bubble-content-margin-bottom:      @chat-base-spacing;
-
-@chat-bubble-meta-font-size:             @chat-base-spacing * 2;
-
-@chat-bubble-check-font-size:            @chat-base-font-size;
-
 .frappe-chat-popper-collapse
 {
     & > .panel
@@ -430,7 +367,7 @@
 
 .chat-list-notification-content
 {
-    color: @modal-header;
+    color: @chat-list-notification-color;
     background-color: @chat-notification;
     display: inline-block;
     /* padding: 5px; */
