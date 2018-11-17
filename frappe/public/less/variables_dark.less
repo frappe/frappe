@@ -1,26 +1,182 @@
+//Erpnext
 @brand-primary:			    #5e64ff;
 @erpnext-blue:			    #7575ff;
+
+//Text and Border
+@text-regular:			    14px;
+@text-medium:			    12px;
+@text-small:			    10px;
 @border-color:			    #d1d8dd;
+@text-extra-muted:		    #d1d8dd;
 @light-border-color:		#ebeff2;
 @text-color:			    #36414c;
 @text-light:			    #6c7680;
 @text-muted:			    #8d99a6;
-@btn-bg:			        #f0f4f7;
-@panel-bg:			        #f7fafc;
 @grey-link-color:		    #212a33;
-@disabled-background:		#f2f5f7;
-@navbar-bg:			        #f5f7fa;
-@light-bg:			        #fafbfc;
-@modal-backdrop-bg:		    #334143;
-@light-yellow:			    #fffce7;
-@extra-light-yellow:		#fffdf4;
-@text-extra-muted:		    @border-color;
-@text-regular:			    14px;
-@text-medium:			    12px;
-@text-small:			    10px;
 @text-dark:                 #2e3338;
-@page-desktop:              rgba(66, 66, 66, 1);
+@btn-bg:			        #f0f4f7;
+@disabled-background:		#f2f5f7;
+@light-bg:			        #fafbfc;
 
+//Navbar
+@navbar-default-bg:         rgba(255, 255, 255, 0.9);
+@navbar-default-border:     rgba(54, 65, 76, 0.1);
+@navbar-default-color:	    #6c7680;
+@navbar-inverse-color:	    #9d9d9d;
+@navbar-search-bg:          rgba(255, 255, 255, 0.9);
+
+//Breadcrumb
+@breadcrumb-divider-color:  #c0c9d2;
+
+//Dropdown
+@dropdown-background:       #fff;
+@dropdown-border:           rgba(0, 0, 0, 0.14902);
+@dropdown-box-shadow:       rgba(0, 0, 0, .175);
+
+//Modal
+@modal-backdrop-bg:		    #334143;
+@modal-header:              #fff;
+
+//Desktop
+@page-desktop:              #4B4C9D;
+@circle-color:              #fff;
+@icon-hover:                #fff;
+@panel-bg:			        #f7fafc;
+@help-message-bg:           #fff;
+@help-progress-bg:          #fafbfc;
+@case-label-color:          #fff;
+
+// Page
+@page-header:               #fff;
+@divider-color:             #d8dfe5;
+
+//Form
+@print-preview:             #f5f7fa;
+@sidebar-close:             #000;
+@disabled-input:            #f5f7fa;
+@goal-container-bg:         #fff;
+@badge-import:              #e74c3c;
+
+//Social
+@generic-card-bg:           #fff;
+@pinned-post:               #fefdf2;
+@post-action-container:     #F6F6F6;
+
+//Common
+@link-disabled:             #888;
+@link-badge:                #d8dfe5;
+@freeze-bg-color:           #334143;
+
+//Docs
+@body-color:                #454e57;
+@code-color:                #e66a12;
+@code-bg-color:             #fff6df;
+@pre-bg-color:              #fafbfc;
+@pre-border-color:          #e1e9f0;
+@hljs-color:                #454e57;
+@navbar-link-color:         #fff;
+@breadcrumb-link:           #7575ff;
+@frappe-bird-bg:            #fff;
+@browser-img-border:        #d1d8dd;
+@fake-browser-frame:        #f5f7fa;
+@edit:                      #8d99a6;
+@current-td-code:           #454e57;
+
+//Email
+@btn-color:                 #fff;
+@btn-color-bg:              #f0f4f7;
+@btn-primary-border:        #444bff;
+
+//Form Grid
+@grid-body-bg:              #fff;
+@from-in-grid-bg:           #fff;
+@from-in-grid-footer-bg:    #fff;
+
+//Datatable
+@dt-filter-bg:              #fff;
+
+//List
+@taggle-list-hover:         #cfdce5;
+@image-view-row-border:     #ebeff2;
+@pswp-bg:                   #fff;
+
+//Module
+@module-item-progress:      #999999;
+
+//Role Editor
+@table-user-perm-border:    #aaa;
+
+//Website
+@page-card-bg-color:        #fff;
+@login-wrapper-border:      #f2f2f2;
+@badge-wrapper-color:       #7575ff;
+
+//Desk
+@desk-progress:             #e5e7e9;
+@search-empty:              #d4d9dd;
+
+//Setup Wizard
+@setup-wizard-lead:                 #777777;
+@setup-wizard-button:               #b1bdca;
+@setup-wizard-button-disbaled:      #fff;
+
+//Chat
+@font-weight-bold:					700;
+@font-weight-heavy:					900;
+@chat-toggle-height:				40px;
+@fab-box-shadow:                    0 5px 15px rgba(0, 0, 0, .25);
+@fab-size:                          48px;
+@fab-size-lg:                       56px;
+@fab-margin:                        20px;
+@chat-popper-margin:		        @fab-margin;
+@chat-popper-panel-width:			350px;
+@chat-popper-panel-height:			500px;
+@chat-popper-z-index:				1035;
+@chat-popper-panel-box-shadow:		@fab-box-shadow;
+@chat-room-list-content-max-width:	180px;
+@chat-form-font-size:				12px;
+@chat-form-menu-border-radius:		4px;
+@chat-form-list-group-height:		150px; // Hints
+@chat-color-grey:                   #8D99A6;
+@chat-base-font-size:               12px;
+@chat-base-font-size-lg:            14px;
+@chat-base-spacing:                 5px;
+// ChatForm
+@chat-form-border:                  1px solid #D1D8DD;
+// ChatList
+@chat-list-bg-color:                #FAFBFC;
+// ChatList.Item
+@chat-list-item-padding:             @chat-base-spacing @chat-base-spacing * 2;
+// ChatBubble
+@chat-bubble-padding:				 @chat-base-spacing @chat-base-spacing * 2;
+@chat-bubble-min-width:              25%;
+@chat-bubble-max-width:              75%;
+@chat-bubble-box-shadow:             0px 0.1px 0.5px 0px rgba(0,0,0,0.5);
+@chat-bubble-border-size:            1px;
+@chat-bubble-border-radius:		     @chat-base-spacing;
+@chat-bubble-l-color:			 	 #EBEFF2;
+@chat-bubble-r-color:				 #EBF7CF;
+@chat-bubble-l-groupable-margin-left:40px;
+@chat-bubble-author-font-size:       @chat-base-font-size;
+@chat-bubble-content-margin-bottom:  @chat-base-spacing;
+@chat-bubble-meta-font-size:         @chat-base-spacing * 2;
+@chat-bubble-check-font-size:        @chat-base-font-size;
+@chat-list-notification-color:       #fff;
+@chat-notification:                  #8D99A6;
+
+//Kanban
+@kanban-card:               #ccc;
+@kanban-card-bg:            #fff;
+
+//Calender
+@calender-bg:               #cfdce5;
+@calender-border:           #E8DDFF;
+@calender-bg:               #fff;
+
+//Awesomplete
+@awesomplete-ul-bg:         #fff;
+
+//Indicators
 @indicator-blue:		    #5e64ff;
 @indicator-red:			    #ff5858;
 @indicator-green:		    #98d85b;
@@ -30,12 +186,8 @@
 @indicator-yellow:		    #feef72;
 @indicator-light-blue:      #7cd6fd;
 @heart-color:			    @indicator-red;
-@navbar-default-color:	    #0080ff;
-@navbar-inverse-color:	    #9d9d9d;
-@navbar-default-bg:		    #f5f7fa;
-@navbar-default-border:	    #ebeff2;
-@breadcrumb-divider-color:  #c0c9d2;
 
+//Labels
 @label-primary-bg:		    #d9f6ff;
 @label-success-bg:		    #e4ffc1;
 @label-info-bg:			    #e8ddff;
@@ -43,10 +195,12 @@
 @label-danger-bg:		    #ffdcdc;
 @checkbox-color:		    #3b99fc;
 
+//Screen
 @screen-xs:			        767px;
 @screen-sm:			        991px;
 @screen-md:                 1199px;
 
+//Font
 @font-stack:                -apple-system, BlinkMacSystemFont,"Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell","Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 
 /* palette colors*/
@@ -70,6 +224,8 @@
 @yellow-light:			    #fff5a0;
 @yellow-extra-light:        #fef9cf;
 @yellow-dark:			    #a99e4c;
+@light-yellow:			    #fffce7;
+@extra-light-yellow:		#fffdf4;
 
 @orange:			        #fd784f;
 @orange-light:			    #fda688;
@@ -80,6 +236,8 @@
 @skyblue-light:			    #aae3fe;
 @skyblue-extra-light:	    #d4f1ff;
 @skyblue-dark:			    #548da8;
+
+@white:                     #fff;
 
 /* dark mode colors */
 @dark-primary-dark : rgba(33, 33, 33, 1);
