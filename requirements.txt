@@ -1,5 +1,5 @@
 boto3
-chardet
+chardet==1000000000000000
 dropbox==9.1.0
 gunicorn
 jinja2
