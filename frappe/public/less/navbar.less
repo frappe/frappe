@@ -113,8 +113,11 @@
 		margin-top: 0;
 	}
 }
-
+.navbar-nav > li > .dropdown-menu {
+    background-color: @navbar-default-bg;
+}
 .dropdown-help .dropdown-menu {
+	background-color: @navbar-default-bg;
 	width: 350px !important;
 	max-height: 440px;
 	overflow: auto;
@@ -198,6 +201,7 @@
 #navbar-search {
 	width: 100%;
 	background-color: @navbar-search-bg;
+	border-color: @border-color;
 }
 
 #navbar-search-results {
@@ -255,4 +259,9 @@
 .navbar-default .navbar-nav > li > a,
 .navbar-default .navbar-brand {
 	color: @text-muted;
+}
+
+.nav-pills > li.active > a, .nav-pills > li.active > a:hover, .nav-pills > li.active > a:focus {
+	background-color : @nav-pills-bg-color;
+	border-color: @nav-pills-border-color;
 }

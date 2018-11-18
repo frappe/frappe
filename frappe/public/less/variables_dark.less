@@ -13,9 +13,9 @@
 @text-regular:			    14px;
 @text-medium:			    12px;
 @text-small:			    10px;
-@border-color:			    #d1d8dd;
+@border-color:			    @dark-border;
 @text-extra-muted:		    #d1d8dd;
-@light-border-color:		#ebeff2;
+@light-border-color:		@dark-border;
 @text-color:			    #36414c;
 @text-light:			    #6c7680;
 @text-muted:			    #8d99a6;
@@ -23,14 +23,13 @@
 @text-dark:                 #2e3338;
 @btn-bg:			        #f0f4f7;
 @disabled-background:		#f2f5f7;
-@light-bg:			        #fafbfc;
 
 //Navbar
 @navbar-default-bg:         @dark-primary-light;
 @navbar-default-border:     @dark-primary-light;
 @navbar-default-color:	    @dark-primary-light;
 @navbar-inverse-color:	    @dark-primary-light;
-@navbar-search-bg:          rgba(255, 255, 255, 0.9);
+@navbar-search-bg:          @dark-primary-dark;
 
 //Breadcrumb
 @breadcrumb-divider-color:  #c0c9d2;
@@ -42,20 +41,22 @@
 
 //Modal
 @modal-backdrop-bg:		    #334143;
+@modal-bg-color:            @dark-primary-dark;
 @modal-header:              #fff;
 
 //Desktop
-@page-desktop:              #212121;
+@page-desktop:              @dark-primary-dark;
 @circle-color:              #fff;
 @icon-hover:                #fff;
-@panel-bg:			        #f7fafc;
 @help-message-bg:           #fff;
 @help-progress-bg:          #fafbfc;
 @case-label-color:          #fff;
 
-// Page
-@page-header:               #fff;
-@divider-color:             #d8dfe5;
+//Page
+@page-header:               @dark-primary-dark;
+@page-container:            @dark-primary-dark;
+@panel-bg:			        @dark-primary-light;
+@divider-color:             @border-color;
 
 //Form
 @print-preview:             #f5f7fa;
@@ -101,6 +102,8 @@
 
 //Datatable
 @dt-filter-bg:              #fff;
+@datatable-bg-color:        @dark-primary-light;
+@datatable-border-color:    @dark-border;
 
 //List
 @taggle-list-hover:         #cfdce5;
@@ -109,6 +112,7 @@
 
 //Module
 @module-item-progress:      #999999;
+@light-bg:			        @dark-primary-light;
 
 //Role Editor
 @table-user-perm-border:    #aaa;
@@ -140,6 +144,9 @@
 @chat-popper-panel-height:			500px;
 @chat-popper-z-index:				1035;
 @chat-popper-panel-box-shadow:		@fab-box-shadow;
+@chat-bg:                           @dark-primary-light;
+@chat-panel-bg:                     @dark-primary-light;
+@chat-border:                       @dark-border;
 @chat-room-list-content-max-width:	180px;
 @chat-form-font-size:				12px;
 @chat-form-menu-border-radius:		4px;
@@ -179,6 +186,10 @@
 @calender-bg:               #cfdce5;
 @calender-border:           #E8DDFF;
 @calender-bg:               #fff;
+
+//Nav Pills
+@nav-pills-bg-color:        @dark-primary-light;
+@nav-pills-border-color:    @dark-primary-light;
 
 //Awesomplete
 @awesomplete-ul-bg:         #fff;

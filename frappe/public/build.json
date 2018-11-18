@@ -98,7 +98,9 @@
 		"public/js/lib/leaflet/easy-button.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
-		"public/less/desk.less"
+		"public/less/desk.less",
+		"node_modules/frappe-datatable/dist/frappe-datatable.css",
+		"public/css/tree_grid.css"
 	],
 	"css/bootstrap.css": [
 		"public/less/bootstrap/bootstrap.less"
@@ -230,12 +232,6 @@
 
 		"public/js/frappe/social/social_factory.js"
 	],
-	"css/module.min.css": [
-		"public/less/module.less"
-	],
-	"css/form.min.css": [
-		"public/less/form_grid.less"
-	],
 	"js/form.min.js": [
 		"public/js/frappe/form/templates/print_layout.html",
 		"public/js/frappe/form/templates/users_in_sidebar.html",
@@ -320,11 +316,6 @@
 		"public/js/frappe/views/kanban/kanban_column.html",
 		"public/js/frappe/views/kanban/kanban_card.html"
 	],
-	"css/report.min.css": [
-		"public/less/report-min.less",
-		"node_modules/frappe-datatable/dist/frappe-datatable.css",
-		"public/css/tree_grid.css"
-	],
 	"js/report.min.js": [
 		"public/js/lib/clusterize.min.js",
 		"public/js/frappe/views/reports/report_factory.js",
@@ -359,7 +350,7 @@
 	"js/dark.js": [
 		"public/js/frappe/dark.js"
 	],
-	"css/desk_dark.css": [
+	"css/desk_dark.min.css": [
 		"public/less/desk_dark.less"
 	]
 }
