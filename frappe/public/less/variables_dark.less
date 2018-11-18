@@ -1,3 +1,10 @@
+/* dark mode colors */
+@dark-primary-dark : rgba(33, 33, 33, 1);
+@dark-primary : rgba(48, 48, 48, 1);
+@dark-primary-light : rgba(66, 66, 66, 1);
+@dark-border : rgba(79, 79, 79, 1);
+@dark-text : white;
+
 //Erpnext
 @brand-primary:			    #5e64ff;
 @erpnext-blue:			    #7575ff;
@@ -19,10 +26,10 @@
 @light-bg:			        #fafbfc;
 
 //Navbar
-@navbar-default-bg:         rgba(255, 255, 255, 0.9);
-@navbar-default-border:     rgba(54, 65, 76, 0.1);
-@navbar-default-color:	    #6c7680;
-@navbar-inverse-color:	    #9d9d9d;
+@navbar-default-bg:         @dark-primary-light;
+@navbar-default-border:     @dark-primary-light;
+@navbar-default-color:	    @dark-primary-light;
+@navbar-inverse-color:	    @dark-primary-light;
 @navbar-search-bg:          rgba(255, 255, 255, 0.9);
 
 //Breadcrumb
@@ -38,7 +45,7 @@
 @modal-header:              #fff;
 
 //Desktop
-@page-desktop:              #4B4C9D;
+@page-desktop:              @dark-primary-dark;
 @circle-color:              #fff;
 @icon-hover:                #fff;
 @panel-bg:			        #f7fafc;
@@ -238,10 +245,3 @@
 @skyblue-dark:			    #548da8;
 
 @white:                     #fff;
-
-/* dark mode colors */
-@dark-primary-dark : rgba(33, 33, 33, 1);
-@dark-primary : rgba(48, 48, 48, 1);
-@dark-primary-light : rgba(66, 66, 66, 1);
-@dark-border : rgba(79, 79, 79, 1);
-@dark-text : white;

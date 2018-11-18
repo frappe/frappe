@@ -1,0 +1,545 @@
+@import "variables.less";
+
+* {
+	color: @dark-text ;
+}
+#page-desktop {
+	background-color: @dark-primary-dark;
+}
+/* Navbar and Dropdown */
+.navbar {
+	background-color: @dark-primary-light ;
+	border-color: @dark-primary-light ;
+	a {
+		color: @dark-text ;
+	}
+}
+.navbar-default {
+	background-color: @dark-primary-light ;
+	border-color: @dark-primary-light ;
+	.navbar-nav {
+		>.open {
+			>a {
+				background-color: @dark-primary-dark ;
+				&:active {
+					background-color: @dark-primary-dark ;
+				}
+				&:focus {
+					background-color: @dark-primary-dark ;
+				}
+				&:hover {
+					background-color: @dark-primary-dark ;
+				}
+			}
+		}
+		>li {
+			>a {
+				color: @dark-text ;
+			}
+		}
+	}
+	.navbar-brand {
+		color: @dark-text ;
+	}
+}
+#navbar-search {
+	background-color: @dark-primary-dark ;
+	border: 1px solid @dark-border ;
+	color: @dark-text ;
+}
+.awesomplete {
+	border-color: @dark-border ;
+	>ul {
+		>li {
+			background-color: @dark-primary-dark ;
+			color: @dark-text ;
+			&:hover {
+				background-color: @dark-border ;
+				color: @dark-text ;
+			}
+		}
+		background-color: @dark-primary-dark ;
+		color: @dark-text ;
+		background-color: @dark-primary-dark ;
+		border-color: @dark-border ;
+		color: @dark-text ;
+		>li[aria-selected=true] {
+			background-color: @dark-border ;
+			color: @dark-text ;
+		}
+	}
+}
+.standard-image {
+	background-color: @dark-primary-dark ;
+}
+.nav {
+	>li {
+		>a {
+			&:hover {
+				background-color: @dark-border ;
+			}
+			&:focus {
+				background-color: @dark-border ;
+			}
+		}
+	}
+}
+/* Main Section */
+.content {
+	background-color: @dark-primary-dark ;
+}
+.page-content {
+	background-color: @dark-primary-dark ;
+}
+.hero-and-content {
+	background-color: @dark-primary-dark ;
+}
+.page-head {
+	background-color: @dark-primary-dark ;
+	border-bottom: 1px solid @dark-border ;
+}
+.module-sidebar-item {
+	&:active {
+		background-color: rgba(48, 48, 48, 1) ;
+		border-color: rgba(48, 48, 48, 1) ;
+	}
+}
+.module-section {
+	&:nth-child(even) {
+		background-color: @dark-primary-light ;
+	}
+	border-bottom: 1px solid @dark-border ;
+	color: @dark-text ;
+}
+.layout-main-section {
+	background-color: @dark-primary-dark ;
+	border: 1px solid @dark-border ;
+}
+.form-inner-toolbar {
+	background-color: @dark-primary-dark ;
+	border: 1px solid @dark-border ;
+	border-bottom: 1px solid @dark-border ;
+}
+.dropdown-menu {
+	>li {
+		>a {
+			color: @dark-text ;
+			color: @dark-text ;
+			&:hover {
+				background-color: @dark-border ;
+				color: @dark-text ;
+			}
+		}
+		&:hover {
+			background-color: @dark-border ;
+			color: @dark-text ;
+		}
+	}
+	background-color: @dark-primary-dark ;
+	border: 1px solid @dark-border ;
+}
+.dropdown-toggle {
+	color: @dark-text ;
+}
+.form-section {
+	&:not(:last-child) {
+		border-bottom: 1px solid @dark-border ;
+	}
+}
+.input-with-feedback {
+	background-color: @dark-primary-light ;
+	border-color: @dark-border ;
+	color: @dark-text ;
+}
+.form-control {
+	background-color: @dark-primary-light ;
+	border-color: @dark-border ;
+	color: @dark-text ;
+}
+.input-sm {
+	background-color: @dark-primary-light ;
+	border-color: @dark-border ;
+	color: @dark-text ;
+}
+.like-disabled-input {
+	background-color: @dark-primary-light ;
+	border-color: @dark-border ;
+	color: @dark-text ;
+}
+#input-help {
+	background-color: @dark-primary-light ;
+	border-color: @dark-border ;
+	color: @dark-text ;
+}
+.input-group {
+	background-color: @dark-primary-dark ;
+	border: 1px solid @dark-border ;
+}
+.title-text {
+	color: @dark-text ;
+}
+.a {
+	color: @dark-text ;
+	color: @dark-text ;
+}
+.p {
+	color: @dark-text ;
+}
+.h4 {
+	color: @dark-text ;
+}
+.h3 {
+	color: @dark-text ;
+}
+.h2 {
+	color: @dark-text ;
+}
+.h1 {
+	color: @dark-text ;
+}
+.navbar-nav {
+	>li {
+		>.dropdown-menu {
+			>li {
+				>a {
+					&:hover {
+						background-color: @dark-border ;
+						color: @dark-text ;
+					}
+				}
+			}
+		}
+	}
+}
+.divider {
+	background-color: @dark-border ;
+}
+a.grey {
+	color: @dark-text ;
+}
+.sidebar-section {
+	a {
+		color: @dark-text ;
+	}
+}
+.control-value {
+	a {
+		color: @dark-text ;
+	}
+}
+.data-row {
+	a {
+		color: @dark-text ;
+	}
+	background-color: @dark-primary-light ;
+	border-bottom: 1px solid @dark-border ;
+	color: @dark-text ;
+}
+.module-section-link {
+	color: @dark-text ;
+}
+.form-dashboard {
+	background-color: @dark-primary-light ;
+	color: @dark-text ;
+}
+.editable-title {
+	.title-text {
+		&:hover {
+			background-color: @dark-border ;
+			color: @dark-text ;
+		}
+	}
+}
+.nav-pills {
+	>li.active {
+		>a {
+			background-color: @dark-primary-light ;
+			color: @dark-text ;
+			&:hover {
+				background-color: @dark-primary-light ;
+				color: @dark-text ;
+			}
+			&:focus {
+				background-color: @dark-primary-light ;
+				color: @dark-text ;
+			}
+		}
+	}
+}
+.btn {
+	background-color: @dark-primary-light ;
+	border-color: @dark-border ;
+	color: @dark-text ;
+}
+.btn-sm {
+	background-color: @dark-primary-light ;
+	border-color: @dark-border ;
+	color: @dark-text ;
+}
+.btn-action {
+	background-color: @dark-primary-light ;
+	border-color: @dark-border ;
+	color: @dark-text ;
+}
+.btn-default {
+	background-color: @dark-primary-light ;
+	border-color: @dark-border ;
+	color: @dark-text ;
+}
+.btn-group {
+	color: @dark-text ;
+}
+.strong {
+	color: @dark-text ;
+}
+.sidebar-comments {
+	color: @dark-text ;
+}
+.badge-hover {
+	color: @dark-text ;
+}
+.module-link {
+	color: @dark-text ;
+}
+.layout-side-section {
+	.sidebar-menu {
+		>li {
+			>a {
+				color: @dark-text ;
+			}
+		}
+	}
+}
+.sidebar-menu {
+	.badge {
+		background-color: @dark-primary-light ;
+	}
+}
+.badge {
+	background-color: @dark-primary-light ;
+}
+.filter-list {
+	background-color: @dark-primary-light ;
+}
+.page-form {
+	background-color: @dark-primary-light ;
+	border-bottom: 1px solid @dark-border ;
+}
+.list-link {
+	color: @dark-text ;
+}
+.ellipsis {
+	color: @dark-text ;
+}
+.small {
+	color: @dark-text ;
+}
+.list-row-container {
+	border-bottom: 1px solid @dark-border ;
+	>div {
+		>div {
+			&:hover {
+				background-color: @dark-primary-light ;
+			}
+		}
+	}
+}
+.list-row {
+	&:hover {
+		background-color: @dark-primary-light ;
+	}
+}
+.list-row-head {
+	background-color: @dark-primary-dark ;
+	border-bottom: 1px solid @dark-border ;
+	color: @dark-text ;
+}
+.tag-filters-area {
+	border-bottom: 1px solid @dark-border ;
+}
+.list-paging-area {
+	border-top: 1px solid @dark-border ;
+}
+.footnote-area {
+	border-top: 1px solid @dark-border ;
+}
+.panel-default {
+	>.panel-heading {
+		color: @dark-text ;
+		background-color: @dark-primary-light ;
+		border-color: @dark-border ;
+	}
+}
+.frappe-chat {
+	>.frappe-chat-popper {
+		>.frappe-chat-popper-collapse {
+			>.panel {
+				background-color: @dark-primary-light ;
+				border-color: @dark-primary-light ;
+			}
+		}
+	}
+}
+.frappe-chat-popper-collapse {
+	>.panel {
+		>.panel-heading {
+			background-color: @dark-primary-dark ;
+		}
+	}
+}
+.timeline-head {
+	background-color: @dark-primary-dark ;
+	border: 1px solid @dark-border ;
+}
+.comment-input-header {
+	background-color: @dark-primary-dark ;
+	border: 1px solid @dark-border ;
+}
+.comment-input-container {
+	background-color: @dark-primary-dark ;
+	border: 1px solid @dark-border ;
+}
+.ql-bubble {
+	.ql-editor {
+		border-color: @dark-border ;
+	}
+}
+.timeline-item.notification-content {
+	&::before {
+		background-color: @dark-border ;
+	}
+}
+.timeline-new-email {
+	&::before {
+		background-color: @dark-border ;
+	}
+}
+.scroll-to-top {
+	background-color: #fafbfc;
+}
+.modal-header {
+	border-bottom: 1px solid @dark-border ;
+}
+.modal-content {
+	background-color: @dark-primary-dark ;
+}
+.modal-title {
+	color: @dark-text ;
+}
+.msgprint {
+	color: @dark-text ;
+	pre {
+		background-color: @dark-primary-light ;
+		color: @dark-text ;
+	}
+}
+kbd {
+	background-color: @dark-border ;
+	color: @dark-text ;
+}
+.grid-row {
+	background-color: @dark-primary-light ;
+	color: @dark-text ;
+	>.row {
+		.col {
+			background-color: @dark-primary-light ;
+			color: @dark-text ;
+			background-color: @dark-primary-light ;
+			color: @dark-text ;
+		}
+	}
+}
+.grid-row-open {
+	background-color: @dark-primary-dark ;
+	color: @dark-text ;
+	border-bottom: 1px solid @dark-border ;
+}
+.form-in-grid {
+	background-color: @dark-primary-dark ;
+	color: @dark-text ;
+	border-bottom: 1px solid @dark-border ;
+}
+.grid-footer {
+	background-color: @dark-primary-light ;
+	color: @dark-text ;
+}
+.form-grid {
+	border: 1px solid @dark-border ;
+}
+.grid-empty {
+	background-color: @dark-primary-light ;
+	color: @dark-text ;
+}
+.list-loading {
+	background-color: @dark-primary-light ;
+	color: @dark-text ;
+}
+.alert-message {
+	background-color: @dark-primary-light ;
+	border-color: @dark-border ;
+	color: @dark-text ;
+}
+.ql-toolbar.ql-snow {
+	background-color: @dark-border ;
+	color: @dark-text ;
+}
+.note-editor {
+	border-color: @dark-border ;
+}
+.setup-wizard-slide {
+	border-color: @dark-border ;
+}
+.missing-image {
+	background-color: @dark-border ;
+}
+.dt-cell__content {
+	background-color: @dark-primary-light ;
+	color: @dark-text ;
+}
+/* Graphs */
+.chart-container {
+	.axis {
+		fill: @dark-text ;
+	}
+	.chart-label {
+		fill: @dark-text ;
+	}
+}
+/* Date Picker */
+.datepicker {
+	background-color: @dark-primary-light ;
+	border: 1px solid @dark-border ;
+	color: @dark-text ;
+}
+.-bottom-left- {
+	.datepicker--pointer {
+		background-color: @dark-primary-light ;
+	}
+}
+.-top-left- {
+	.datepicker--pointer {
+		background-color: @dark-primary-light ;
+	}
+}
+.datepicker--pointer {
+	border-top: 1px solid @dark-border ;
+	border-right: 1px solid @dark-border ;
+}
+.datepicker--nav-action {
+	&:hover {
+		background-color: @dark-primary-dark ;
+	}
+}
+.datepicker--nav-title {
+	&:hover {
+		background-color: @dark-primary-dark ;
+	}
+}
+.datepicker--button {
+	&:hover {
+		background-color: @dark-primary-dark ;
+	}
+}
+.-focus- {
+	background-color: @dark-primary-dark ;
+}

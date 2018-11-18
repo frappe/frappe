@@ -2,13 +2,8 @@
 	"css/frappe-web.css": [
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
-		"public/less/website.less",
-		"public/less/avatar.less",
+		"public/less/frappe-web.less",
 		"node_modules/highlight.js/styles/zenburn.css",
-		"public/less/form.less",
-		"public/less/controls.less",
-		"public/less/chat.less",
-		"public/less/form_grid.less",
 		"node_modules/frappe-datatable/dist/frappe-datatable.css"
 	],
 	"concat:js/moment-bundle.min.js": [
@@ -276,11 +271,7 @@
 		"public/js/frappe/form/success_action.js"
 	],
 	"css/list.min.css": [
-		"public/less/list.less",
-		"public/less/calendar.less",
-		"public/less/role_editor.less",
-		"public/less/gantt.less",
-		"public/less/tags.less"
+		"public/less/list-min.less"
 	],
 	"js/list.min.js": [
 		"public/js/frappe/ui/listing.html",
@@ -330,9 +321,8 @@
 		"public/js/frappe/views/kanban/kanban_card.html"
 	],
 	"css/report.min.css": [
-		"public/less/report.less",
+		"public/less/report-min.less",
 		"node_modules/frappe-datatable/dist/frappe-datatable.css",
-		"public/less/frappe-datatable.less",
 		"public/css/tree_grid.css"
 	],
 	"js/report.min.js": [
@@ -352,9 +342,8 @@
 		"public/js/lib/datepicker/datepicker.en.js"
 	],
 	"css/web_form.css": [
-		"public/less/list.less",
-		"website/css/web_form.css",
-		"public/less/quill.less"
+		"public/less/web_form.less",
+		"website/css/web_form.css"
 	],
 	"js/print_format_v3.min.js": [
 		"public/js/legacy/layout.js",
