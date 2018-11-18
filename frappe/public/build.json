@@ -98,7 +98,7 @@
 		"public/js/lib/leaflet/easy-button.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
-		"public/less/desk.less",
+		"public/less/desk-min.less",
 		"node_modules/frappe-datatable/dist/frappe-datatable.css",
 		"public/css/tree_grid.css"
 	],
@@ -350,7 +350,7 @@
 	"js/dark.js": [
 		"public/js/frappe/dark.js"
 	],
-	"css/desk_dark.min.css": [
+	"css/desk_dark.css": [
 		"public/less/desk_dark.less"
 	]
 }

@@ -31,6 +31,7 @@
 		padding: 0;
 		margin: 0;
 		background: @awesomplete-ul-bg;
+		color: @text-color;
 		transition: none;
 		background-color: @awesomplete-ul-bg;
 		max-height: 200px;
@@ -44,7 +45,6 @@
 
 		li[aria-selected="true"] mark, mark {
 			padding: 0px;
-			background-color: inherit;
 		}
 
 		&> li {
@@ -58,13 +58,15 @@
 		}
 
 		&> li:hover, &> li[aria-selected=true] {
-			background-color: @btn-bg;
+			background-color: @awesomplete-ul-bg-selected;
 			color: @text-color;
 			text-shadow: none;
 		}
 
 		a:hover {
 			text-decoration: none;
+			background-color: @awesomplete-ul-bg-selected;
+			color: @text-color;
 		}
 
 		p {
