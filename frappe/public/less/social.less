@@ -5,6 +5,12 @@ body[data-route*="social"] {
 	}
 	a {
 		transition: none;
+		color: @text-color;
+
+		&.hover{
+			color: @text-hover-color;
+			text-decoration: underline;
+		}
 	}
 	.liked-by-popover {
 		font-size: @text-small;
@@ -42,6 +48,7 @@ body[data-route*="social"] {
 			flex: 25%;
 			.event {
 				margin: 15px 0;
+				color: @text-color;
 			}
 		}
 	}

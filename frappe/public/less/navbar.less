@@ -5,7 +5,33 @@
 .navbar-default {
 	background-color: @navbar-default-bg;
 	border-color: @navbar-default-border;
+	.navbar-nav {
+		>.open {
+			>a {
+				background-color: @dropdown-active-bg;
+				color: @text-color;
+				&:active {
+					background-color: @dropdown-active-bg;
+					color: @text-color;
+				}
+				&:focus {
+					background-color: @dropdown-active-bg;
+					color: @text-color;
+				}
+				&:hover {
+					background-color: @dropdown-active-bg;
+					color: @text-color;
+				}
+			}
+		}
+		>li {
+			>a {
+				color: @text-color ;
+			}
+		}
+	}
 }
+
 .navbar {
 	a {
 		font-size: 12px;
@@ -20,6 +46,15 @@
 	// instead of changes within BS3 itself
 	.nav > li > a {
 		padding: 8px 10px;
+
+		&:hover{
+			background-color : @nav-pills-bg-hover-color;
+			color: @text-color;
+		}
+		&:focus{
+			background-color : @nav-pills-bg-hover-color;
+			color: @text-color;
+		}
 	}
 
 	.navbar-search-icon {
@@ -126,6 +161,7 @@
 		width: 100%;
 		background-color: @navbar-default-bg;
 		padding: 8px 12px;
+		border-bottom: 1px solid @border-color;
 	}
 
 	input {
@@ -256,13 +292,30 @@
 	margin-right: 10px;
 }
 
-.navbar-default .navbar-nav > li > a,
-.navbar-default .navbar-brand {
-	color: @text-muted;
-}
-
-.nav-pills > li.active > a, .nav-pills > li.active > a:hover, .nav-pills > li.active > a:focus {
+.nav-pills > li.active > a {
 	background-color : @nav-pills-bg-color;
 	border-color: @nav-pills-border-color;
 	color: @text-color;
+
+	&:hover{
+		background-color : @nav-pills-bg-hover-color;
+		color: @text-color;
+	}
+	&:focus{
+		background-color : @nav-pills-bg-hover-color;
+		color: @text-color;
+	}
+}
+
+.nav {
+	li{
+		a{
+			&.hover{
+				background-color: @nav-pills-bg-hover-color !important;
+			}
+			&.focus{
+				background-color: @nav-pills-bg-hover-color !important;
+			}
+		}
+	}
 }

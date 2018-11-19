@@ -266,9 +266,6 @@
 		"public/js/frappe/form/quick_entry.js",
 		"public/js/frappe/form/success_action.js"
 	],
-	"css/list.min.css": [
-		"public/less/list-min.less"
-	],
 	"js/list.min.js": [
 		"public/js/frappe/ui/listing.html",
 

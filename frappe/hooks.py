@@ -39,8 +39,6 @@ app_include_js = [
 app_include_css = [
 	"assets/css/bootstrap.css",
 	"assets/css/desk.min.css",
-	"assets/css/list.min.css",
-	"assets/css/module.min.css",
 	"assets/css/desk_dark.css"
 ]
 

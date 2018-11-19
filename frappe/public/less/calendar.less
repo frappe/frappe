@@ -1,6 +1,9 @@
 .fc-toolbar {
 	padding: 15px;
 	margin-bottom: 0px !important;
+	.fc-left {
+		color: @text-color;
+	}
 }
 
 .fc-view-container {
@@ -91,6 +94,27 @@ th.fc-day-header {
 	border: none !important;
 	margin: 5px 4px 0 !important;
 	padding: 1px 5px !important;
+}
+
+.fc-ltr {
+	.fc-basic-view {
+		.fc-day-top {
+			.fc-day-number {
+				color: @text-color;
+			}
+		}
+	}
+	.fc-axis{
+		color: @text-color;
+	}
+}
+
+.fc-time-grid {
+	.fc-slats {
+		td {
+			color: @text-color;
+		}
+	}
 }
 
 .fc-bg-color(@color) {

@@ -5,12 +5,19 @@ body {
 a {
 	cursor: pointer;
 	color: @text-color;
+	outline: 0;
+	
+	&.hover,
+	&.active,
+	&.focus {
+		outline: 0;
+	}
 }
 
-a,
-a:hover,
-a:active,
-a:focus,
+a:hover{
+	text-decoration: underline;
+}
+
 .btn,
 .btn:hover,
 .btn:active,
@@ -20,6 +27,13 @@ a:focus,
 
 img {
 	max-width: 100%;
+}
+
+small, .small {
+	color: @text-color;
+	&.hover{
+		color: @text-hover-color;
+	}
 }
 
 p {
@@ -109,6 +123,12 @@ kbd {
 .dropdown-menu > li > a {
 	padding: 14px;
 	white-space: normal;
+	color: @text-color;
+
+	&:hover{
+		color: @text-color;
+		background-color: @dropdown-hover;
+	}
 }
 
 .dropdown-menu {
@@ -130,6 +150,7 @@ kbd {
 
 .dropdown-menu .divider {
 	margin: 0px;
+	background-color: @border-color;
 }
 
 a.badge-hover& {
