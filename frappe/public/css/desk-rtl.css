@@ -1,0 +1,110 @@
+.navbar .navbar-search-icon{
+  right: auto;
+  left: 24px;
+}
+.navbar > .container > .navbar-header{
+  float: right !important;
+}
+body[data-sidebar="0"] .navbar-home {
+  margin-left: auto !important;
+  margin-right: 15px !important;
+}
+.navbar-desk ~ ul > li {
+  float: right !important;
+}
+body.no-breadcrumbs .navbar .navbar-home:before {
+  margin-right: auto;
+  margin-left: 10px !important;
+  -ms-transform:rotate(180deg);     /* Internet Explorer 9 */
+  -webkit-transform:rotate(180deg); /* Chrome, Safari, Opera */
+  transform:rotate(180deg);         /* Standard syntax */
+}
+.layout-side-section .overlay-sidebar {
+  left: auto !important;
+  right: 0 !important;
+}
+.layout-side-section .overlay-sidebar.opened {
+  transform:translateX(0) !important;
+}
+.navbar-right {
+  float: left !important;
+}
+#navbar-breadcrumbs > li > a:before {
+  margin-right: auto;
+  margin-left: 10px;
+  top: 6px;
+  -ms-transform:rotate(180deg);     /* Internet Explorer 9 */
+  -webkit-transform:rotate(180deg); /* Chrome, Safari, Opera */
+  transform:rotate(180deg);         /* Standard syntax */
+}
+.case-wrapper {
+  float: right;
+}
+.link-btn {
+  right: auto;
+  left:  4px;
+  transform:rotate(180deg);         /* Rotate icon*/
+}
+.sidebar-menu .badge {
+  right: auto;
+  left: 0px;
+}
+.indicator::before {
+  margin: 0 0 0 4px;
+}
+.pull-left {
+  float: right !important;
+}
+.grid-row > .row .col:last-child {
+  margin-right: auto;
+  margin-left: -10px;
+}
+.text-right {
+  text-align: left;
+}
+.list-row-head .octicon-heart {
+  margin-right: auto;
+  margin-left: 13px;
+}
+.list-id {
+  margin-left: 7px !important;
+}
+.avatar-small .avatar-sm {
+  margin-left: 5px;
+  margin-right: auto;
+}
+.list-row-right .list-row-modified {
+  margin-right: auto;
+  margin-left: 9px;
+}
+.list-comment-count {
+  text-align: right;
+}
+ul.tree-children {
+  padding-right: 20px;
+  padding-left: inherit !important;
+}
+.balance-area {
+  float: left !important;
+}
+.tree.opened::before, .tree-node.opened::before, .tree:last-child::after, .tree-node:last-child::after {
+  left: inherit !important;
+  right: 8px;
+}
+.tree.opened > .tree-children > .tree-node > .tree-link::before, .tree-node.opened > .tree-children > .tree-node > .tree-link::before {
+  left: inherit !important;
+  right: -11px;
+}
+.tree:last-child::after, .tree-node:last-child::after {
+  right: -13px !important;
+}
+.tree.opened::before {
+  left: auto !important;
+  right: 23px;
+}
+.results {
+  direction: ltr;
+}
+.data-table {
+  direction: ltr;
+}

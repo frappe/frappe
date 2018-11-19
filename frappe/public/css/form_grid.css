@@ -1,0 +1,219 @@
+/* the element that this class is applied to, should have a max width for this to work*/
+.form-grid {
+  border: 1px solid #d1d8dd;
+  border-radius: 3px;
+}
+.form-grid.error {
+  border-color: #ff5858;
+}
+.grid-heading-row {
+  border-bottom: 1px solid #d1d8dd;
+  background-color: #F7FAFC;
+  font-weight: bold;
+}
+.grid-row {
+  padding: 0px 15px;
+  border-bottom: 1px solid #d1d8dd;
+  -webkit-transition: 0.2s;
+  -o-transition: 0.2s;
+  transition: 0.2s;
+}
+.grid-row:last-child {
+  border: none;
+}
+.rows .grid-row .data-row,
+.rows .grid-row .grid-footer-toolbar,
+.grid-form-heading {
+  cursor: pointer;
+}
+.data-row textarea {
+  height: 40px;
+}
+.grid-body {
+  background-color: #fff;
+}
+.form-grid .data-row.highlight {
+  background-color: #fffdf4;
+}
+.form-grid .data-row.sortable-handle {
+  cursor: move;
+}
+.form-column.col-sm-6 .form-grid .row-index > span {
+  display: none;
+}
+.form-grid .template-row {
+  padding: 8px 15px;
+}
+.grid-body .data-row {
+  font-size: 12px;
+}
+.grid-empty,
+.list-loading {
+  padding: 10px 15px;
+  color: #d1d8dd;
+}
+.grid-static-col,
+.row-index {
+  height: 39px;
+  padding: 10px 15px;
+  max-height: 200px;
+  border-right: 1px solid #d1d8dd;
+}
+.editable-form .grid-static-col.bold {
+  font-weight: bold;
+  background-color: #fffdf4;
+}
+.validated-form .grid-static-col.error {
+  background-color: #FFDCDC;
+}
+.grid-static-col input[type="checkbox"] {
+  margin-left: -16px !important;
+}
+.row-index {
+  text-align: right;
+}
+.grid-row > .row .col:last-child {
+  margin-right: -10px;
+}
+.grid-row > .row .col {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.grid-body .btn-open-row {
+  padding-top: 5px;
+}
+.grid-body .editable-row .grid-static-col {
+  padding: 0px !important;
+}
+.grid-body .editable-row .checkbox {
+  margin: 0px;
+  text-align: center;
+  margin-top: 9px;
+}
+.grid-body .editable-row textarea {
+  height: 38px !important;
+}
+.grid-body .editable-row .form-control {
+  border-radius: 0px;
+  border: 0px;
+  padding-top: 8px;
+  padding-bottom: 9px;
+  height: 38px;
+}
+.grid-body .editable-row .link-btn {
+  top: 8px;
+}
+.grid-body .editable-row .form-control:focus {
+  border-color: #8D99A6;
+  z-index: 2;
+}
+.grid-body .editable-row .has-error .form-control {
+  z-index: 1;
+}
+.grid-body .editable-row .has-error .form-control:focus {
+  border-color: #ff5858;
+}
+.grid-body .editable-row input[data-fieldtype="Int"],
+.grid-body .editable-row input[data-fieldtype="Float"],
+.grid-body .editable-row input[data-fieldtype="Currency"] {
+  text-align: right;
+}
+.grid-body .grid-static-col[data-fieldtype="Button"] .field-area {
+  margin-top: 5px;
+  margin-left: 5px;
+}
+.grid-body .grid-static-col[data-fieldtype="Button"] .field-area button {
+  height: 27px;
+}
+.grid-body .grid-static-col[data-fieldtype="Code"] {
+  overflow: hidden;
+}
+.grid-body .grid-static-col[data-fieldtype="Code"] .static-area {
+  margin-top: -5px;
+}
+.grid-body .grid-static-col[data-fieldtype="Code"] .static-area pre {
+  background: none;
+  border: none;
+}
+.grid-body .grid-static-col[data-fieldtype="Text Editor"] {
+  overflow: hidden;
+}
+@media (max-width: 767px) {
+  .grid-body .btn-open-row {
+    margin-top: 0px;
+    padding: 0px;
+  }
+  .editable-row .frappe-control {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    margin-left: -5px !important;
+    margin-right: -5px !important;
+  }
+}
+.row-data > .row {
+  margin-left: 15px;
+}
+.grid-row td {
+  vertical-align: top;
+}
+.grid-row p {
+  margin-bottom: 5px;
+}
+.grid-row .frappe-control {
+  margin-bottom: 0px;
+  position: relative;
+}
+.grid-row .col-sm-6 .editor-toolbar-text-group,
+.grid-row .col-sm-6 .editor-toolbar-align-group {
+  display: none;
+}
+.grid-row .col-sm-6 .text-editor {
+  height: 200px;
+}
+.grid-row .col-sm-6 .markdown-text-editor {
+  height: 251px;
+}
+.form-in-grid {
+  background-color: white;
+  z-index: 1021;
+  position: relative;
+  overflow: hidden;
+  height: 0;
+  opacity: 0;
+  -webkit-transition: opacity 0.2s ease;
+  -o-transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease;
+}
+.grid-row-open .form-in-grid {
+  opacity: 1;
+  height: auto;
+  overflow: visible;
+  margin: 0px -15px;
+}
+.grid-form-heading {
+  padding: 10px 15px;
+  font-size: 120%;
+  border-bottom: 1px solid #d1d8dd;
+}
+.grid-footer {
+  background-color: #fff;
+}
+.grid-footer-toolbar {
+  padding: 10px 15px;
+  border-top: 1px solid #d1d8dd;
+}
+.grid-overflow-no-ellipsis {
+  word-wrap: break-word;
+  overflow: hidden;
+  padding-right: 0px;
+}
+.grid-overflow-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 0px;
+}
+.grid-label {
+  margin-right: 8px;
+  margin-bottom: 4px;
+}

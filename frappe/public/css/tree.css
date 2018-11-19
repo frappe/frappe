@@ -1,0 +1,95 @@
+.tree {
+  padding: 15px;
+}
+.tree li {
+  list-style: none;
+  margin: 2px 0px;
+}
+ul.tree-children {
+  padding-left: 20px;
+}
+.tree-link {
+  cursor: pointer;
+  display: inline-block;
+  padding: 1px;
+}
+.tree-link .node-parent {
+  color: #8D99A6;
+  font-size: 14px;
+  width: 10px;
+  text-align: center;
+}
+.tree-link .node-leaf {
+  color: #d1d8dd;
+}
+.tree-link .node-parent,
+.tree-link .node-leaf {
+  margin-right: 5px;
+}
+.tree-link.active i {
+  color: #5e64ff;
+}
+.tree-link.active a {
+  color: #8D99A6;
+}
+.tree-hover {
+  background-color: #F7FAFC;
+  min-height: 20px;
+  border: 1px solid #d1d8dd;
+}
+.tree-node-toolbar {
+  display: inline-block;
+  padding: 0px 5px;
+  margin-left: 15px;
+  margin-bottom: -4px;
+  margin-top: -8px;
+}
+@media (max-width: 767px) {
+  ul.tree-children {
+    padding-left: 10px;
+  }
+}
+.tree.with-skeleton,
+.tree.with-skeleton .tree-node {
+  position: relative;
+}
+.tree.with-skeleton.opened::before,
+.tree.with-skeleton .tree-node.opened::before,
+.tree.with-skeleton:last-child::after,
+.tree.with-skeleton .tree-node:last-child::after {
+  content: '';
+  position: absolute;
+  top: 16px;
+  left: 8px;
+  height: calc(100% - 26px);
+  width: 1px;
+  background: #d1d8dd;
+  z-index: -1;
+}
+.tree.with-skeleton:last-child::after,
+.tree.with-skeleton .tree-node:last-child::after {
+  top: 11px;
+  left: -13px;
+  height: calc(100% - 15px);
+  width: 3px;
+  background: #fff;
+}
+.tree.with-skeleton.opened > .tree-children > .tree-node > .tree-link::before,
+.tree.with-skeleton .tree-node.opened > .tree-children > .tree-node > .tree-link::before {
+  content: '';
+  position: absolute;
+  width: 15px;
+  height: 1px;
+  top: 10px;
+  left: -11px;
+  z-index: -1;
+  background: #d1d8dd;
+}
+.tree.with-skeleton.opened::before {
+  left: 23px;
+  top: 33px;
+  height: calc(100% - 67px);
+}
+.tree-link.active ~ .balance-area {
+  color: #36414C !important;
+}

@@ -1,0 +1,121 @@
+.fc-toolbar {
+  padding: 15px;
+  margin-bottom: 0px !important;
+}
+.fc-view-container {
+  margin-left: -1px;
+  margin-right: -1px;
+}
+th.fc-widget-header {
+  background-color: #F7FAFC;
+  color: #8C99A5;
+}
+.fc-unthemed th,
+.fc-unthemed td,
+.fc-unthemed hr,
+.fc-unthemed thead,
+.fc-unthemed tbody,
+.fc-unthemed .fc-row,
+.fc-unthemed .fc-popover {
+  border-color: #d1d8dd !important;
+}
+.fc-unthemed .fc-today {
+  background-color: #FFF !important;
+}
+.fc-unthemed .fc-today .fc-day-number {
+  background-color: #5E64FF;
+  min-width: 20px;
+  border-radius: 50%;
+  color: #fff;
+  text-align: center;
+}
+.fc-highlight {
+  background-color: #fffce7 !important;
+}
+.fc-event {
+  border: 1px solid #E8DDFF;
+  /* default BORDER color */
+  background-color: #E8DDFF;
+}
+@media (max-width: 767px) {
+  .fc-scroller {
+    height: auto !important;
+  }
+}
+.fc-day-top {
+  padding: 12px 12px 0 0 !important;
+}
+th.fc-day-header {
+  text-align: right !important;
+  padding: 10px 12px 10px 0 !important;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+.fc.fc-unthemed .fc-toolbar {
+  padding: 15px;
+}
+.fc-event-container .fc-content {
+  padding: 3px;
+}
+.fc-left h2 {
+  font-size: 14px;
+}
+.fc button {
+  height: auto !important;
+  font-size: 12px !important;
+  outline: none !important;
+}
+.fc button .fc-icon {
+  top: -1px !important;
+}
+.fc-state-active {
+  box-shadow: none !important;
+  background: #cfdce5 !important;
+}
+.fc-day-grid-event {
+  border: none !important;
+  margin: 5px 4px 0 !important;
+  padding: 1px 5px !important;
+}
+.fc-bg-orange {
+  background-color: #FDD2C2 !important;
+  color: #A64F33 !important;
+}
+.fc-bg-orange.fc-start {
+  border-left: 3px solid #FDA688 !important;
+}
+.fc-bg-red {
+  background-color: #FEC3C5 !important;
+  color: #A63336 !important;
+}
+.fc-bg-red.fc-start {
+  border-left: 3px solid #FD8B8B !important;
+}
+.fc-bg-skyblue {
+  background-color: #D4F1FF !important;
+  color: #548DA8 !important;
+}
+.fc-bg-skyblue.fc-start {
+  border-left: 3px solid #AAE3FE !important;
+}
+.fc-bg-green {
+  background-color: #EBF7CF !important;
+  color: #7C9142 !important;
+}
+.fc-bg-green.fc-start {
+  border-left: 3px solid #D9F29E !important;
+}
+.fc-bg-blue {
+  background-color: #D1D3FC !important;
+  color: #4C51A2 !important;
+}
+.fc-bg-blue.fc-start {
+  border-left: 3px solid #A3A5FC !important;
+}
+.fc-bg-yellow {
+  background-color: #FEF9CF !important;
+  color: #A99E4C !important;
+}
+.fc-bg-yellow.fc-start {
+  border-left: 3px solid #FFF5A0 !important;
+}

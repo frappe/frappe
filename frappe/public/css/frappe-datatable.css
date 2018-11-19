@@ -1,0 +1,58 @@
+.data-table {
+  margin-left: -1px;
+  margin-top: -1px;
+  font-size: 12px;
+}
+.data-table .data-table-col .edit-cell {
+  padding: 0;
+}
+.data-table .data-table-col .edit-cell input {
+  font-size: inherit;
+  height: 34px;
+}
+.data-table .frappe-control {
+  margin: 0;
+}
+.data-table .form-group {
+  margin: 0;
+}
+.data-table .form-control {
+  border-radius: 0px;
+  border: none;
+}
+.data-table .link-btn {
+  top: 6px;
+}
+.data-table select {
+  height: 34px;
+}
+.data-table .checkbox {
+  margin: 7px 0 7px 8px;
+}
+.data-table [data-fieldtype="Color"] .control-input {
+  overflow: hidden;
+}
+.data-table .body-scrollable::-webkit-scrollbar {
+  display: none;
+}
+.data-table .data-table-header {
+  background-color: #F7FAFC;
+  color: #8D99A6;
+}
+.data-table .data-table-row.row-update {
+  animation: 500ms breathe forwards;
+}
+.data-table .data-table-row.row-highlight {
+  background-color: #fffdf4;
+}
+@keyframes breathe {
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: #fffdf4;
+  }
+  100% {
+    background-color: transparent;
+  }
+}

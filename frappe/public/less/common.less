@@ -1,5 +1,6 @@
 body {
 	font-family: @font-stack;
+	background-color: @body-bg;
 }
 
 a {
@@ -14,8 +15,9 @@ a {
 	}
 }
 
-a:hover{
+a:hover{	//Sorta hack as above a:hover doesn't seem to work
 	text-decoration: underline;
+	color: @text-hover-color;
 }
 
 .btn,
@@ -137,6 +139,8 @@ kbd {
 	font-size: @text-medium;
 	max-height: 400px;
 	overflow: auto;
+	background-color: @dropdown-background;
+	color: @text-color;
 	// only rounded bottoms
 	border-radius: 0px 0px 4px 4px;
 }

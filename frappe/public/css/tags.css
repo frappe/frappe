@@ -1,0 +1,19 @@
+.tags-list {
+  float: left;
+  width: 100%;
+  padding-left: 3px;
+}
+.tags-input {
+  width: 100px;
+  font-size: 11px;
+  border: none;
+  outline: none;
+}
+.tags-list-item {
+  display: inline-block;
+  margin: 0px 3px;
+}
+.tags-placeholder {
+  display: inline-block;
+  font-size: 11px;
+}

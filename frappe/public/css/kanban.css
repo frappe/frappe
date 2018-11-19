@@ -1,0 +1,147 @@
+.kanban {
+  min-height: calc(100vh - 252px);
+  background-color: #fafbfc;
+  display: flex;
+  overflow: auto;
+}
+.kanban .kanban-column {
+  flex: 0 0 230px;
+  max-width: 230px;
+  background-color: #fafbfc;
+  border-right: 1px solid #d1d8dd;
+  padding: 15px;
+}
+.kanban .kanban-column.add-new-column {
+  order: 1;
+  border-right: none;
+}
+.kanban .kanban-column-title {
+  margin-top: 0;
+  margin-bottom: 15px;
+  position: relative;
+  font-weight: bold;
+  font-size: 12px;
+}
+.kanban .kanban-column-title .column-options .button-group {
+  display: flex;
+  padding: 12px 14px;
+}
+.kanban .kanban-column-title .column-options .button-group .btn.indicator {
+  flex: 1;
+}
+.kanban .kanban-column-title .column-options .indicator::before {
+  margin: 0;
+}
+.kanban .kanban-column-title:hover {
+  cursor: pointer;
+}
+.kanban .sortable-ghost > .kanban-card:not(.add-card) {
+  background: #ccc !important;
+  color: transparent;
+}
+.kanban .sortable-ghost > .kanban-card:not(.add-card) * {
+  background: transparent !important;
+  color: transparent !important;
+}
+.kanban .kanban-card {
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border-radius: 2px;
+  padding: 6px 6px 6px 8px;
+  margin-top: 10px;
+}
+.kanban .kanban-card.add-card {
+  background-color: transparent;
+  box-shadow: none;
+  color: #8D99A6;
+}
+.kanban .kanban-card.add-card:hover {
+  box-shadow: none;
+  color: #36414C;
+  cursor: pointer;
+}
+.kanban .kanban-card.add-card .octicon-plus {
+  top: -1px;
+  font-size: 1em;
+  margin-right: 5px;
+  position: relative;
+}
+.kanban .kanban-card-wrapper {
+  position: relative;
+}
+.kanban .kanban-card:hover,
+.kanban .new-card-area,
+.kanban .edit-card-area {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+.kanban .kanban-card-wrapper:hover {
+  cursor: pointer;
+  text-decoration: none;
+}
+.kanban .kanban-card-wrapper:hover .kanban-card-edit {
+  opacity: 1;
+}
+.kanban .kanban-card-title {
+  max-width: 90%;
+  font-size: 12px;
+}
+.kanban .kanban-card-edit {
+  position: absolute;
+  right: 10px;
+  opacity: 0;
+  transition: 0.2s ease;
+}
+.kanban .new-card-area,
+.kanban .edit-card-area {
+  margin-bottom: 10px;
+}
+.kanban .new-card-area textarea,
+.kanban .edit-card-area textarea {
+  font-size: 12px;
+  resize: none;
+  border: none;
+  background: none;
+  overflow: hidden;
+  word-wrap: break-word;
+  width: 100%;
+}
+.kanban .new-card-area textarea:focus,
+.kanban .edit-card-area textarea:focus {
+  outline: none;
+}
+.kanban .compose-column-form .new-column-title {
+  background: transparent;
+  border: none;
+  outline: none;
+}
+.kanban .add-new-column a:hover {
+  color: #36414C !important;
+}
+.kanban .kanban-card-meta {
+  margin-top: 8px;
+  text-align: right;
+}
+.kanban .kanban-card-meta .avatar {
+  width: 16px;
+  height: 16px;
+}
+.kanban .kanban-empty-state {
+  width: 100%;
+  line-height: 400px;
+}
+body[data-route*="Kanban"] .modal .add-assignment:hover i {
+  color: #36414C !important;
+}
+.edit-card-title .h4 {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+.edit-card-title span:hover {
+  background-color: #fffce7;
+  cursor: pointer;
+}
+.edit-card-title input {
+  border: none;
+  outline: none;
+  width: 100%;
+}

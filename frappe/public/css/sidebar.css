@@ -1,0 +1,298 @@
+/* the element that this class is applied to, should have a max width for this to work*/
+html {
+  min-height: 100%;
+}
+body {
+  height: 100%;
+  margin: 0px;
+  padding: 0px !important;
+}
+html,
+body {
+  overflow-x: hidden;
+}
+.hide-form-sidebar .form-sidebar {
+  display: none !important;
+}
+.sidebar-padding {
+  padding: 12px 14px;
+}
+body[data-route=""] .main-menu .desk-sidebar,
+body[data-route="desk"] .main-menu .desk-sidebar {
+  display: block !important;
+}
+body[data-route=""] .main-menu .form-sidebar,
+body[data-route="desk"] .main-menu .form-sidebar {
+  display: none !important;
+}
+body[data-route^="List"] .main-menu .list-sidebar {
+  display: block !important;
+}
+body[data-route^="List"] .main-menu .form-sidebar {
+  display: none !important;
+}
+body[data-route^="Module"] .main-menu .module-sidebar {
+  display: block !important;
+}
+body[data-route^="Module"] .main-menu .form-sidebar {
+  display: none !important;
+}
+.layout-side-section {
+  font-size: 12px;
+  padding-right: 0px;
+}
+.layout-side-section > .divider {
+  display: none !important;
+}
+.layout-side-section .sidebar-menu > li > a {
+  display: inline-block;
+}
+.layout-side-section .sidebar-menu {
+  margin: 30px 0px;
+}
+.layout-side-section .sidebar-menu > li > a:hover,
+.layout-side-section .sidebar-menu > li > a:focus,
+.layout-side-section .sidebar-menu > li > a:active {
+  text-decoration: underline;
+}
+.sidebar-menu .badge {
+  position: absolute;
+  font-weight: normal;
+  right: 0px;
+  top: 0px;
+  padding-bottom: 4px;
+}
+.sidebar-menu .octicon {
+  font-size: 12px;
+}
+.sidebar-menu h6,
+.sidebar-menu .h6 {
+  text-transform: uppercase;
+  color: #8D99A6;
+  font-size: 10px;
+  margin-top: 0px;
+}
+.sidebar-menu > li {
+  position: relative;
+  margin-bottom: 7px;
+}
+.form-sidebar .form-tags .tag-area {
+  margin-top: -3px;
+  margin-left: -4px;
+}
+.form-sidebar .form-tags input {
+  font-size: 12px !important;
+  color: #36414C !important;
+  font-style: italic;
+}
+.form-sidebar .form-tags .tagit-new {
+  clear: both;
+  margin-top: 2px;
+  margin-bottom: -1px;
+}
+.form-sidebar a.close {
+  position: absolute;
+  right: 5px;
+}
+.form-sidebar .form-shared .share-doc-btn,
+.form-sidebar .form-viewers .share-doc-btn {
+  cursor: pointer;
+}
+.form-sidebar .form-shared .octicon,
+.form-sidebar .form-viewers .octicon {
+  position: relative;
+  top: 2px;
+  left: 7px;
+}
+.form-sidebar .form-shared .avatar,
+.form-sidebar .form-viewers .avatar {
+  margin-top: 5px;
+}
+.form-sidebar .form-shared .shared-with-everyone,
+.form-sidebar .form-viewers .shared-with-everyone {
+  border-style: solid;
+  border-color: #F0F4F7;
+  background-color: #F0F4F7;
+}
+.form-sidebar .form-shared .shared-with-everyone .octicon,
+.form-sidebar .form-viewers .shared-with-everyone .octicon {
+  color: #36414C !important;
+}
+.form-sidebar .liked-by {
+  margin-left: -4px;
+}
+.form-sidebar .liked-by .octicon-heart {
+  font-size: 16px;
+  cursor: pointer;
+}
+.form-sidebar .sidebar-image-section {
+  margin-top: 15px;
+  margin-bottom: 0px;
+  cursor: pointer;
+}
+.form-sidebar .sidebar-image-section .sidebar-image {
+  width: 100%;
+  height: 0;
+  padding-bottom: 100%;
+  border-radius: 6px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.form-sidebar .sidebar-image-section .standard-image {
+  font-size: 72px;
+  border-radius: 6px;
+}
+.form-sidebar .sidebar-image-section .sidebar-image-wrapper:after {
+  content: '\A';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: #fff;
+  opacity: 0;
+  transition: all 0.5s;
+  -webkit-transition: all 0.6s;
+}
+.form-sidebar .sidebar-image-section .sidebar-image-wrapper:hover:after {
+  opacity: 0.5;
+}
+.form-sidebar .form-shared .share-doc-btn:hover,
+.form-sidebar .form-shared .share-doc-btn:focus,
+.form-sidebar .form-shared .share-doc-btn:active {
+  background-color: #F0F4F7;
+}
+.form-sidebar .form-shared .share-doc-btn:hover .octicon-plus,
+.form-sidebar .form-shared .share-doc-btn:focus .octicon-plus,
+.form-sidebar .form-shared .share-doc-btn:active .octicon-plus {
+  color: #36414C !important;
+}
+.sidebar-left .form-sidebar .form-tags,
+.sidebar-left .form-sidebar .assignment-row,
+.sidebar-left .form-sidebar .form-shared,
+.sidebar-left .form-sidebar .liked-by,
+.sidebar-left .form-sidebar .modified-by,
+.sidebar-left .form-sidebar .created-by,
+.sidebar-left .form-sidebar .tags-label,
+.sidebar-left .form-sidebar .shared-with-label,
+.sidebar-left .form-sidebar .form-viewers,
+.sidebar-left .form-sidebar .viewers-label {
+  padding: 12px 14px;
+}
+.sidebar-left .form-sidebar .assigned-to-label,
+.sidebar-left .form-sidebar .attachments-label,
+.sidebar-left .form-sidebar .tags-label,
+.sidebar-left .form-sidebar .shared-with-label,
+.sidebar-left .form-sidebar .viewers-label {
+  padding: 12px 14px;
+  margin-bottom: 0px;
+}
+.sidebar-left .form-sidebar .assigned-to-label,
+.sidebar-left .form-sidebar .tags-label,
+.sidebar-left .form-sidebar .attachments-label.has-attachments,
+.sidebar-left .form-sidebar .shared-with-label,
+.sidebar-left .form-sidebar .viewers-label {
+  padding-bottom: 0px;
+}
+.sidebar-left .form-sidebar a.close {
+  right: 5px;
+}
+.sidebar-left .form-sidebar .assignment-row a.close {
+  margin-top: -12px;
+}
+.layout-side-section .form-sidebar .modified-by,
+.layout-side-section .form-sidebar .created-by {
+  margin: 30px 0px;
+}
+.layout-side-section .list-sidebar {
+  margin-top: -15px;
+}
+@media (max-width: 991px) {
+  .layout-side-section .overlay-sidebar {
+    margin-top: 0 !important;
+    position: fixed;
+    background: white;
+    top: 0;
+    left: 0;
+    transform: translateX(-110%);
+    z-index: 9999;
+    box-shadow: 5px 0 25px 0px rgba(0, 0, 0, 0.3);
+    height: 100%;
+    width: 40%;
+    display: block !important;
+    transition: transform 200ms ease-in-out;
+  }
+  .layout-side-section .overlay-sidebar.opened {
+    transform: translateX(0);
+    overflow-y: auto;
+  }
+  .layout-side-section .overlay-sidebar .divider {
+    height: 1px;
+    background-color: #d8dfe5;
+    opacity: 0.7;
+  }
+  .layout-side-section .overlay-sidebar li:not(.divider):not(.tagit-new):not(.module-sidebar-item) {
+    padding: 10px 15px;
+  }
+  .layout-side-section .overlay-sidebar .modified-by,
+  .layout-side-section .overlay-sidebar .created-by {
+    margin: 0;
+  }
+  .layout-side-section .overlay-sidebar .badge {
+    top: 9px;
+    right: 15px;
+  }
+  .layout-side-section .overlay-sidebar .reports-dropdown {
+    margin-top: 10px;
+    margin-bottom: -10px;
+  }
+  .layout-side-section .overlay-sidebar .reports-dropdown li:not(.divider) {
+    padding: 12.5px 0 !important;
+  }
+  .layout-side-section .overlay-sidebar .reports-dropdown li.divider {
+    height: 0;
+  }
+}
+@media (max-width: 767px) {
+  .layout-side-section .overlay-sidebar {
+    width: 70%;
+  }
+}
+.layout-side-section div.close-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  opacity: 0.3;
+  background: #000;
+  z-index: 1041;
+  height: 100%;
+  width: 100%;
+}
+@media (max-width: 991px) {
+  .layout-side-section .sidebar-menu {
+    margin: 0;
+  }
+}
+@media (max-width: 991px) {
+  .layout-side-section .module-sidebar-nav {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .layout-side-section .module-sidebar-nav .module-link {
+    padding: 15px 15px 15px 25px;
+  }
+}
+.sidebar-left .list-sidebar .stat-label,
+.sidebar-left .list-sidebar .stat-no-records {
+  padding: 12px 14px;
+}
+.sidebar-left .list-sidebar .stat-label {
+  margin-bottom: -10px;
+}
+.layout-side-section .module-sidebar-nav {
+  margin-top: 15px;
+}
+.assignment-row {
+  margin-bottom: 5px;
+}

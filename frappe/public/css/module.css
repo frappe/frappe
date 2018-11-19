@@ -1,0 +1,113 @@
+.module-head {
+  padding: 15px 30px;
+  border-bottom: 1px solid #EBEFF2;
+}
+.module-head h1 {
+  padding: 0px;
+  margin: 0px;
+}
+.module-body {
+  padding: 0px 15px;
+}
+.module-body .section-head {
+  margin-bottom: 15px;
+  margin-top: 0px;
+}
+.module-section {
+  border-bottom: 1px solid #EBEFF2;
+}
+.module-section .module-section-link {
+  line-height: 1.5em;
+}
+.module-section-column {
+  padding: 30px;
+}
+@media (min-width: 767px) {
+  .module-section:nth-child(even) {
+    background-color: #fafbfc;
+  }
+  .module-section:last-child {
+    border-bottom: none;
+  }
+}
+@media (max-width: 991px) {
+  .module-body {
+    margin-top: 15px;
+    border-top: 1px solid #d1d8dd;
+  }
+}
+@media (max-width: 767px) {
+  .module-body {
+    margin-top: 0;
+    border-top: 1px solid transparent;
+  }
+}
+@media (max-width: 767px) {
+  .module-section {
+    border: none;
+  }
+  .module-section-column {
+    border-bottom: 1px solid #EBEFF2;
+  }
+  .module-section-column:nth-child(even) {
+    background-color: #fafbfc;
+  }
+  .module-section:last-child .module-section-column:last-child {
+    border-bottom: none;
+  }
+}
+.module-item {
+  margin: 0px;
+  padding: 7px;
+  font-weight: 400;
+  border-bottom: 1px solid #d1d8dd;
+  cursor: pointer;
+  transition: 0.2s;
+  -webkit-transition: 0.2s;
+}
+.module-item h4 {
+  display: inline-block;
+}
+.module-item .module-item-description {
+  margin-top: -5px;
+}
+.module-item .badge {
+  margin-top: -2px;
+  margin-left: 3px;
+}
+.module-item:hover,
+.module-item:focus {
+  background-color: #F7FAFC;
+}
+.module-item:last-child {
+  border: none;
+}
+.module-link.active .icon-chevron-right {
+  margin-top: 4px;
+  display: block !important;
+}
+.module-item-progress {
+  margin-bottom: 10px;
+  height: 17px;
+}
+.module-item-progress-total {
+  height: 7px;
+  background-color: #999999;
+  width: 0px;
+}
+.module-item-progress-open {
+  height: 7px;
+  background-color: red;
+  width: 0px;
+}
+@media (max-width: 767px) {
+  body[data-route^="Module"] .page-title {
+    width: 100%;
+  }
+  body[data-route^="Module"] .page-actions {
+    display: none !important;
+  }
+  body[data-route^="Module"] .layout-main-section {
+    border-bottom: 0px;
+  }
+}

@@ -1,0 +1,292 @@
+body[data-route=""] .navbar-default,
+body[data-route="desktop"] .navbar-default {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(54, 65, 76, 0.1);
+}
+#page-desktop {
+  min-width: 100%;
+  margin-top: 0px;
+  border: 0px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  overflow: auto;
+}
+.case-wrapper {
+  position: relative;
+  margin: 0px;
+  float: left;
+  width: 138px;
+  height: 140px;
+}
+.case-label {
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.4px;
+  color: #fff;
+  text-align: center;
+  margin-top: 10px;
+  transition: 0.2s;
+  -webkit-transition: 0.2s;
+  text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5), 0px 1px 5px rgba(0, 0, 0, 0.5);
+}
+.app-icon {
+  padding: 20px;
+  display: inline-block;
+  margin: auto;
+  text-align: center;
+  border-radius: 16px;
+  cursor: pointer;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+}
+.app-icon .inner,
+.app-icon i {
+  font-size: 32px;
+  min-width: 32px;
+  color: #fafbfc;
+  display: inline-block;
+  transition: 0.2s;
+  -webkit-transition: 0.2s;
+  text-shadow: -1px 1px 5px rgba(0, 0, 0, 0.15);
+}
+.app-icon .inner {
+  line-height: 32px;
+  font-weight: bold;
+}
+.app-icon svg,
+.app-icon img {
+  height: 32px;
+  width: 32px;
+}
+.app-icon path {
+  transition: 0.2s;
+  -webkit-transition: 0.2s;
+}
+@-webkit-keyframes wiggle {
+  0% {
+    -webkit-transform: rotate(3deg);
+  }
+  50% {
+    -webkit-transform: rotate(-3deg);
+  }
+  100% {
+    -webkit-transform: rotate(3deg);
+  }
+}
+@-moz-keyframes wiggle {
+  0% {
+    -moz-transform: rotate(3deg);
+  }
+  50% {
+    -moz-transform: rotate(-3deg);
+  }
+  100% {
+    -moz-transform: rotate(3deg);
+  }
+}
+@keyframes wiggle {
+  0% {
+    transform: rotate(3deg);
+  }
+  50% {
+    transform: rotate(-3deg);
+  }
+  100% {
+    transform: rotate(3deg);
+  }
+}
+.wiggle {
+  -webkit-animation: wiggle 0.2s linear infinite;
+  -moz-animation: wiggle 0.2s linear infinite;
+  animation: wiggle 0.2s linear infinite;
+}
+.circle {
+  position: absolute;
+  right: 20px;
+  top: -10px;
+  color: #fff;
+  background-color: #ff5858;
+  padding: 6px;
+  font-size: 12px;
+  line-height: 1;
+  border-radius: 25px;
+  min-width: 25px;
+  height: 25px;
+  text-align: center;
+  text-shadow: none;
+  letter-spacing: normal;
+  cursor: pointer;
+}
+.app-icon:hover i,
+.app-icon:hover {
+  color: #fff;
+}
+.app-icon-small {
+  padding: 12px;
+}
+.app-icon-img.app-icon-small {
+  padding: 0px;
+  height: 54px;
+  width: 54px;
+}
+.app-icon-img {
+  padding: 0px;
+  height: 70px;
+  width: 70px;
+}
+.app-icon-img img {
+  width: 100%;
+  height: 100%;
+}
+.rtl {
+  direction: rtl;
+}
+#icon-grid {
+  padding-top: 15px;
+  padding-bottom: 30px;
+  max-width: 970px;
+  margin: auto;
+}
+@media (min-width: 768px) and (max-width: 991px) {
+  #icon-grid {
+    max-width: 690px;
+  }
+}
+@media (max-width: 767px) {
+  #icon-grid {
+    max-width: 320px;
+  }
+  .case-wrapper {
+    width: 80px;
+    height: 90px;
+  }
+  .case-label {
+    font-size: 80%;
+    font-weight: normal;
+    margin-top: 7px;
+  }
+  .app-icon {
+    padding: 10px;
+    border-radius: 12px;
+  }
+  .app-icon i {
+    font-size: 32px;
+    min-width: 32px;
+  }
+  .app-icon svg,
+  .app-icon img {
+    height: 32px;
+    width: 32px;
+  }
+  .circle {
+    right: 0px;
+  }
+}
+@media (max-width: 320px) {
+  #icon-grid {
+    max-width: 280px;
+  }
+  .case-wrapper {
+    width: 70px;
+    height: 90px;
+  }
+}
+.all-applications-dialog .desktop-app-search {
+  margin-bottom: 15px;
+}
+.all-applications-dialog hr {
+  margin: 10px -15px;
+}
+.all-applications-dialog .checkbox {
+  margin-top: 3px;
+  margin-bottom: 3px;
+}
+.desktop-list-item {
+  padding: 10px 15px;
+  border-bottom: 1px solid #d1d8dd;
+  cursor: pointer;
+}
+.desktop-list-item:hover,
+.desktop-list-item:focus {
+  background-color: #F7FAFC;
+}
+.desktop-list-item h4 {
+  display: inline-block;
+}
+.navbar-set-desktop-icons {
+  display: none;
+}
+body[data-route=""] .navbar-set-desktop-icons,
+body[data-route="desktop"] .navbar-set-desktop-icons {
+  display: block;
+}
+.help-message-wrapper {
+  position: fixed;
+  bottom: 30px;
+  width: 100%;
+  padding: 0px 10px;
+}
+.help-message-wrapper .help-message-container {
+  position: relative;
+  text-align: left;
+  margin: auto;
+  max-width: 500px;
+  background-color: #fff;
+  padding: 10px 15px 15px 15px;
+  border-radius: 3px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+}
+.help-message-wrapper h5 {
+  margin-top: 5px;
+}
+.help-message-wrapper .help-message-item {
+  font-size: 12px;
+}
+.help-message-wrapper .octicon {
+  color: #8D99A6;
+  cursor: pointer;
+  width: 20px;
+}
+.help-message-wrapper .octicon.disabled {
+  color: #d1d8dd;
+}
+.help-message-wrapper .octicon:hover {
+  color: #36414C;
+  text-decoration: none;
+}
+.help-message-wrapper .left-arrow {
+  position: absolute;
+  right: 30px;
+  bottom: 15px;
+  text-align: left;
+}
+.help-message-wrapper .right-arrow {
+  position: absolute;
+  right: 15px;
+  bottom: 15px;
+  text-align: right;
+}
+.help-message-wrapper .indicator {
+  color: #36414C;
+}
+.help-message-wrapper .help-progress {
+  display: inline-block;
+  margin-left: 10px;
+  height: 4px;
+  background-color: #fafbfc;
+}
+.help-message-wrapper .help-progress {
+  display: inline-block;
+  margin-left: 10px;
+  height: 4px;
+  width: 100px;
+  background-color: #f5f7fa;
+  border-radius: 2px;
+}
+.help-message-wrapper .help-progress-bar {
+  display: inline-block;
+  height: 4px;
+  background-color: #5E64FF;
+  float: left;
+  border-radius: 2px;
+}

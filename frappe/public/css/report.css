@@ -1,0 +1,59 @@
+.grid-report .plot {
+  margin: 15px;
+  display: none;
+  height: 300px !important;
+  width: 97% !important;
+}
+.grid-report .ui-widget {
+  border: none !important;
+  outline: none !important;
+  border-top: 1px solid #d1d8dd !important;
+  background-color: #fafbfc !important;
+}
+.grid-report .show-zero {
+  margin: 10px;
+  display: none;
+}
+.column-picker-dialog .column-list {
+  margin: 15px 0;
+  border: 1px solid #d1d8dd;
+}
+.column-picker-dialog .column-list .column-list-item {
+  padding: 10px;
+  border-bottom: 1px solid #d1d8dd;
+}
+.column-picker-dialog .column-list .column-list-item:last-child {
+  border-bottom: none;
+}
+.column-picker-dialog .column-list .sortable-handle {
+  cursor: move;
+}
+.column-picker-dialog .column-list .sortable-chosen {
+  background-color: #fffce7;
+}
+.column-picker-dialog .column-list .fa-sort {
+  margin: 0px 7px;
+  margin-top: 9px;
+  margin-right: -15px;
+}
+.column-picker-dialog .column-list .form-control {
+  display: inline-block;
+  width: 89%;
+}
+@media (max-width: 767px) {
+  .column-picker-dialog .column-list .form-control {
+    width: 77%;
+  }
+}
+.column-picker-dialog .column-list .close {
+  margin: 2px 7px 0px;
+}
+.column-picker-dialog .add-btn {
+  margin-bottom: 2px;
+}
+.data-table .edit-popup .frappe-control {
+  padding: 0;
+}
+.data-table .edit-popup .frappe-control .form-group {
+  margin: 0;
+}
