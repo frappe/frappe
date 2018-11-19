@@ -131,7 +131,7 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 			if profile:
 				pr.disable()
 				s = StringIO()
-				ps = pstats.Stats(pr, stream=s).sort_stats('cumulative').print_stats(.5)
+				pstats.Stats(pr, stream=s).sort_stats('cumulative').print_stats(.5)
 				print(s.getvalue())
 
 			if frappe.db:

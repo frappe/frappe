@@ -402,7 +402,7 @@ def make_records(records, debug=False):
 			exception = record.get('__exception')
 			if exception:
 				config = _dict(exception)
-				if type(e) == config.exception:
+				if isinstance(e, config.exception):
 					config.handler()
 				else:
 					show_document_insert_error()

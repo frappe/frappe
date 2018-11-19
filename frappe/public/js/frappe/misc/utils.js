@@ -93,7 +93,7 @@ Object.assign(frappe.utils, {
 			|| txt.toLowerCase().substr(0,8)=='https://'
 	},
 	to_title_case: function(string, with_space=false) {
-		let titlecased_string = string.toLowerCase().replace(/(?:^|[\s-/])\w/g, function (match) {
+		let titlecased_string = string.toLowerCase().replace(/(?:^|[\s-/])\w/g, function(match) {
 			return match.toUpperCase();
 		});
 
