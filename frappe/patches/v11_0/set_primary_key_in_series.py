@@ -9,7 +9,7 @@ def execute():
         from
             `tabSeries`
         where
-            name in (Select name from `tabSeries` group by name having count(name) > 2)
+            name in (Select name from `tabSeries` group by name having count(name) > 1)
     ''', as_dict=True)
     for row in duplicate_keys:
         if row.name in keys_encountered:
