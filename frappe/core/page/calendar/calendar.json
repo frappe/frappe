@@ -1,0 +1,23 @@
+{
+ "content": null, 
+ "creation": "2018-11-19 14:39:07.687227", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "idx": 0, 
+ "modified": "2018-11-19 14:43:01.420600", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "calendar", 
+ "owner": "Administrator", 
+ "page_name": "Calendar", 
+ "roles": [
+  {
+   "role": "All"
+  }
+ ], 
+ "script": null, 
+ "standard": "Yes", 
+ "style": null, 
+ "system_page": 1, 
+ "title": "Calendar"
+}
