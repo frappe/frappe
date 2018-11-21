@@ -162,7 +162,9 @@ frappe.ui.Filter = class {
 		let df = copy_dict(original_docfield);
 
 		// filter field shouldn't be read only or hidden
-		df.read_only = 0; df.hidden = 0;
+		df.read_only = 0;
+		df.hidden = 0;
+		df.is_filter = true;
 
 		let c = condition ? condition : this.utils.get_default_condition(df);
 		this.set_condition(c);

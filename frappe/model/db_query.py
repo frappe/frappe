@@ -199,8 +199,7 @@ class DatabaseQuery(object):
 		'''
 
 		sub_query_regex = re.compile("^.*[,();].*")
-		blacklisted_keywords = ['select', 'create', 'insert', 'delete', 'drop', 'update', 'case',
-			'from', 'group', 'order', 'by']
+		blacklisted_keywords = ['select', 'create', 'insert', 'delete', 'drop', 'update', 'case']
 		blacklisted_functions = ['concat', 'concat_ws', 'if', 'ifnull', 'nullif', 'coalesce',
 			'connection_id', 'current_user', 'database', 'last_insert_id', 'session_user',
 			'system_user', 'user', 'version']
@@ -694,6 +693,7 @@ def get_order_by(doctype, meta):
 def get_list(doctype, *args, **kwargs):
 	'''wrapper for DatabaseQuery'''
 	kwargs.pop('cmd', None)
+	kwargs.pop('ignore_permissions', None)
 	return DatabaseQuery(doctype).execute(None, *args, **kwargs)
 
 def is_parent_only_filter(doctype, filters):

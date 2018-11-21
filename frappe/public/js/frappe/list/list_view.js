@@ -34,7 +34,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return;
 		}
 
-		this.init().then(() => this.refresh());
+		super.show();
 	}
 
 	get view_name() {
@@ -47,36 +47,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_defaults() {
 		super.setup_defaults();
-
-		if (frappe.route_options) {
-			// Priority 1: route filters
-			let filters = [];
-			for (let key in frappe.route_options) {
-				let value = frappe.route_options[key];
-				if (value.startsWith('[') && value.endsWith(']')) {
-					value = JSON.parse(value);
-				} else {
-					value = ['=', value];
-				}
-				filters.push([this.doctype, key, ...value])
-			}
-			this.filters = filters;
-			frappe.route_options = null;
-		} else if (this.view_user_settings.filters) {
-			// Priority 2: saved filters
-			const saved_filters = this.view_user_settings.filters;
-			this.filters = this.validate_filters(saved_filters);
-		} else {
-			// Priority 3: filters in listview_settings
-			const filters = (this.settings.filters || []).map(f => {
-				if (f.length === 3) {
-					f = [this.doctype, f[0], f[1], f[2]];
-				}
-				return f;
-			});
-
-			this.filters = filters;
-		}
 
 		// initialize with saved order by
 		this.sort_by = this.view_user_settings.sort_by || 'modified';
@@ -179,7 +149,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	set_primary_action() {
 		if (this.can_create) {
 			this.page.set_primary_action(__('New'), () => {
-				this.make_new_doc();
+				if (this.settings.primary_action) {
+					this.settings.primary_action();
+				} else {
+					this.make_new_doc();
+				}
 			}, 'octicon octicon-plus');
 		} else {
 			this.page.clear_primary_action();
@@ -288,6 +262,32 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return Object.assign(args, {
 			with_comment_count: true
 		});
+	}
+
+	before_refresh() {
+		if (frappe.route_options) {
+			// Priority 1: route filters
+			this.filters = this.parse_filters_from_route_options();
+		} else if (this.view_user_settings.filters) {
+			// Priority 2: saved filters
+			const saved_filters = this.view_user_settings.filters;
+			this.filters = this.validate_filters(saved_filters);
+		} else {
+			// Priority 3: filters in listview_settings
+			this.filters = (this.settings.filters || []).map(f => {
+				if (f.length === 3) {
+					f = [this.doctype, f[0], f[1], f[2]];
+				}
+				return f;
+			});
+		}
+
+		if (this.filters.length) {
+			return this.filter_area.clear(false)
+				.then(() => this.filter_area.set(this.filters));
+		}
+
+		return Promise.resolve();
 	}
 
 	toggle_result_area() {
@@ -1126,11 +1126,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return actions_menu_items;
 	}
 
-	set_filters_from_route_options() {
+	parse_filters_from_route_options() {
 		const filters = [];
+
 		for (let field in frappe.route_options) {
-			var value = frappe.route_options[field];
-			var doctype = null;
+
+			let doctype = null;
+			let value = frappe.route_options[field];
+
+			if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
+				value = JSON.parse(value);
+			}
 
 			// if `Child DocType.fieldname`
 			if (field.includes('.')) {
@@ -1157,10 +1163,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 		frappe.route_options = null;
 
-		this.filter_area.clear(false)
-			.then(() => {
-				this.filter_area.add(filters);
-			});
+		return filters;
 	}
 
 	static trigger_list_update(data) {

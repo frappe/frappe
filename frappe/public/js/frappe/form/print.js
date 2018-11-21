@@ -158,35 +158,25 @@ frappe.ui.form.PrintPreview = Class.extend({
 		let print_server ;
 		var me = this;
 		frappe.call({
-			async: false,
-			"method": "frappe.client.get",
-			args: {
-				doctype: "Print Settings",
-				name: "enable_print_server"
-			},
+			method: "frappe.printing.doctype.print_settings.print_settings.is_print_server_enabled",
 			callback: function (data) {
-				print_server = data.message.enable_print_server;
+				if (data.message) {
+					frappe.call({
+						"method": "frappe.utils.print_format.print_by_server",
+						args: {
+							doctype: me.frm.doc.doctype,
+							name: me.frm.doc.name,
+							print_format:  me.selected_format(),
+							no_letterhead: me.with_letterhead()
+						},
+						callback: function (data) {
+						}
+					});
+				} else {
+					me.new_page_preview(true);
+				}
 			}
 		});
-
-		if(print_server){
-			frappe.call({
-				async: false,
-				"method": "frappe.utils.print_format.print_by_server",
-				args: {
-					doctype: me.frm.doc.doctype,
-					name: me.frm.doc.name,
-					print_format:  me.selected_format(),
-					no_letterhead: me.with_letterhead()
-				},
-				callback: function (data) {
-				}
-			});
-
-		}else{
-		this.new_page_preview(true);
-		}
-
 	},
 	new_page_preview: function (printit) {
 		var me = this;
@@ -299,17 +289,13 @@ frappe.ui.get_print_settings = function (pdf, callback, letter_head) {
 		depends_on: "with_letter_head",
 		options: $.map(frappe.boot.letter_heads, function (i, d) { return d }),
 		default: letter_head || default_letter_head
+	}, {
+		fieldtype: "Select",
+		fieldname: "orientation",
+		label: __("Orientation"),
+		options: "Landscape\nPortrait",
+		default: "Landscape"
 	}];
-
-	if (pdf) {
-		columns.push({
-			fieldtype: "Select",
-			fieldname: "orientation",
-			label: __("Orientation"),
-			options: "Landscape\nPortrait",
-			default: "Landscape"
-		})
-	}
 
 	frappe.prompt(columns, function (data) {
 		var data = $.extend(print_settings, data);

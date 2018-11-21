@@ -509,7 +509,12 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	delete_saved_draft() {
 		if (this.dialog) {
-			localStorage.removeItem(this.frm.doctype + this.frm.docname);
+			try {
+				localStorage.removeItem(this.frm.doctype + this.frm.docname);
+			} catch (e) {
+				console.log(e);
+				console.warn('[Communication] Cannot delete localStorage item'); // eslint-disable-line
+			}
 		}
 	},
 
@@ -574,16 +579,6 @@ frappe.views.CommunicationComposer = Class.extend({
 						cur_frm.reload_doc();
 					}
 
-					if (localStorage.getItem(this.frm.doctype + this.frm.docname)) {
-						try {
-							localStorage.removeItem(this.frm.doctype + this.frm.docname);
-						} catch (e) {
-							// silently fail
-							console.log(e);
-							console.warn('[Communication] Failed to delete draft.');
-						}
-					}
-
 					// try the success callback if it exists
 					if (me.success) {
 						try {
@@ -635,7 +630,10 @@ frappe.views.CommunicationComposer = Class.extend({
 			this.message = this.txt + (this.message ? ("<br><br>" + this.message) : "");
 		} else {
 			// saved draft in localStorage
-			this.message = localStorage.getItem(this.frm.doctype + this.frm.docname) || '';
+			const { doctype, docname } = this.frm || {};
+			if (doctype && docname) {
+				this.message = localStorage.getItem(doctype + docname) || '';
+			}
 		}
 
 		if(this.real_name) {
@@ -657,7 +655,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			var communication_date = last_email.communication_date || last_email.creation;
 			content = '<div><br></div>'
 				+ reply
-				+ "<br><!-- original-reply --><br>"
+				+ "<div data-comment='original-reply'></div>"
 				+ '<blockquote>' +
 					'<p>' + __("On {0}, {1} wrote:",
 					[frappe.datetime.global_date_format(communication_date) , last_email.sender]) + '</p>' +

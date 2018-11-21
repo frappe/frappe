@@ -336,7 +336,7 @@ frappe.ui.form.Timeline = class Timeline {
 			});
 		} else {
 			if(c.communication_type=="Communication" && c.communication_medium=="Email") {
-				c.content = c.content.split("<!-- original-reply -->")[0];
+				c.content = c.content.split('<div data-comment="original-reply">')[0];
 				c.content = frappe.utils.strip_original_content(c.content);
 
 				c.original_content = c.content;
