@@ -1,5 +1,7 @@
 .nav-pills a, .nav-pills a:hover {
 	border-bottom: none;
+	border-bottom-color: @nav-pills-bg-hover-color;
+	color: @text-color;
 }
 
 a.form-link {
@@ -625,7 +627,11 @@ li.user-progress {
 				align-items: center;
 				justify-content: space-between;
 				padding-left: 20px;
-				background-color: @white;
+				background-color: @nav-pills-bg-color;
+
+				&.hover{
+					text-decoration: underline;
+				}
 
 				i {
 					visibility: hidden;
@@ -637,7 +643,7 @@ li.user-progress {
 			}
 
 			.select a, a:hover {
-				background-color: @panel-bg;
+				background-color: @nav-pills-bg-hover-color;
 			}
 		}
 	}

@@ -149,10 +149,12 @@
 	}
 }
 .navbar-nav > li > .dropdown-menu {
-    background-color: @navbar-dropdown-bg;
+	background-color: @dropdown-background;
+	color: @text-color;
+	border-color: @border-color;
 }
 .dropdown-help .dropdown-menu {
-	background-color: @navbar-dropdown-bg;
+	background-color: @dropdown-background;
 	width: 350px !important;
 	max-height: 440px;
 	overflow: auto;
@@ -237,6 +239,7 @@
 #navbar-search {
 	width: 100%;
 	background-color: @navbar-search-bg;
+	color: @text-color;
 	border-color: @border-color;
 }
 
@@ -304,18 +307,5 @@
 	&:focus{
 		background-color : @nav-pills-bg-hover-color;
 		color: @text-color;
-	}
-}
-
-.nav {
-	li{
-		a{
-			&.hover{
-				background-color: @nav-pills-bg-hover-color !important;
-			}
-			&.focus{
-				background-color: @nav-pills-bg-hover-color !important;
-			}
-		}
 	}
 }

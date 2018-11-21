@@ -83,7 +83,6 @@
 	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
-
 		"public/js/frappe/form/formatters.js",
 		"public/js/frappe/form/layout.js",
 		"public/js/frappe/ui/field_group.js",
@@ -348,6 +347,14 @@
 		"public/js/frappe/dark.js"
 	],
 	"css/desk_dark.css": [
-		"public/less/desk_dark.less"
+		"public/js/lib/leaflet/leaflet.css",
+		"public/js/lib/leaflet/leaflet.draw.css",
+		"public/js/lib/leaflet/L.Control.Locate.css",
+		"public/js/lib/leaflet/easy-button.css",
+		"public/css/font-awesome.css",
+		"public/css/octicons/octicons.css",
+		"public/less/desk_dark.less",
+		"node_modules/frappe-datatable/dist/frappe-datatable.css",
+		"public/css/tree_grid.css"
 	]
 }

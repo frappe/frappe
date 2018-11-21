@@ -120,6 +120,36 @@ kbd {
 	display: inline-block;
 }
 
+.nav {
+	> li{
+		&.hover{
+			background-color: @nav-pills-bg-hover-color !important;
+		}
+		&.focus{
+			background-color: @nav-pills-bg-hover-color !important;
+		}
+		> a{
+			&.hover{
+				background-color: @nav-pills-bg-hover-color !important;
+			}
+			&.focus{
+				background-color: @nav-pills-bg-hover-color !important;
+			}
+		}
+	}
+}
+
+/* Help on Search */
+
+.search-dialog {
+	input {
+		background-color : @help-input-bg;
+		color: @text-color;
+		//border : none;
+		//border-left-color: none;
+	}
+}
+
 /* dropdowns */
 
 .dropdown-menu > li > a {
@@ -140,6 +170,7 @@ kbd {
 	max-height: 400px;
 	overflow: auto;
 	background-color: @dropdown-background;
+	border-color: @border-color;
 	color: @text-color;
 	// only rounded bottoms
 	border-radius: 0px 0px 4px 4px;
