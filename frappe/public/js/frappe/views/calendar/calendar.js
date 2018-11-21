@@ -32,7 +32,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 	}
 
 	setup_view() {
-
+		
 	}
 
 	before_render() {
@@ -123,12 +123,13 @@ frappe.views.Calendar = Class.extend({
 		me.page.clear_user_actions();
 		$.each(frappe.boot.calendars, function(i, doctype) {
 			if(frappe.model.can_read(doctype)) {
-				me.page.add_menu_item(__(doctype), function() {
-					frappe.set_route("List", doctype, "Calendar");
-				});
+				me.page.add_sidebar_check(doctype);
+				//me.page.add_menu_item(__(doctype), function() {
+					//frappe.set_route("List", doctype, "Calendar");
+				//});
 			}
 		});
-
+		me.page.add_button("Apply", function(){ debugger; frappe.set_route("List", "Event", "Calendar");});
 		$(this.parent).on("show", function() {
 			me.$cal.fullCalendar("refetchEvents");
 		});
