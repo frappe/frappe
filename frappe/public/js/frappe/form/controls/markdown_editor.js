@@ -1,53 +1,40 @@
 frappe.ui.form.ControlMarkdownEditor = frappe.ui.form.ControlCode.extend({
-	make_input() {
+	make_ace_editor() {
 		this._super();
-		this.$input.height(300);
-		this.text_area = this.$input.first();
+
+		this.ace_editor_target.wrap('<div class="markdown-container">');
+		this.markdown_container = this.$input_wrapper.find('.markdown-container');
+
 		this.showing_preview = false;
+		this.preview_toggle_btn = $(`<button class="btn btn-default btn-xs markdown-toggle">${__('Preview')}</button>`)
+			.click(e => {
+				if (!this.showing_preview) {
+					this.update_preview();
+				}
 
-		this.make_preview_container();
-		this.make_preview_button();
+				const $btn = $(e.target);
+				this.markdown_preview.toggle(!this.showing_preview);
+				this.ace_editor_target.toggle(this.showing_preview);
+
+				this.showing_preview = !this.showing_preview;
+
+				$btn.text(this.showing_preview ? __('Edit') : __('Preview'));
+
+
+			});
+		this.markdown_container.prepend(this.preview_toggle_btn);
+
+		this.markdown_preview = $('<div class="markdown-preview border rounded">').hide();
+		this.markdown_container.append(this.markdown_preview);
 	},
 
-	set_disp_area(value) {
-		value = value || "";
-		this.value = frappe.markdown(value);
+	set_language() {
+		this.df.options = 'Markdown';
 		this._super();
 	},
 
-	set_formatted_input(value) {
-		this._super(value);
-		this.build_preview();
-	},
-
-	make_preview_button() {
-		this.switch_button = $(`<button class="btn btn-default btn-add btn-xs"></button>`).appendTo(this.input_area);
-		this.switch_button.html(__("Show Preview"));
-
-		this.switch_button.click( () => {
-			this.html_preview_area.toggle();
-			this.text_area.toggle();
-			this.showing_preview = !this.showing_preview;
-			if (this.showing_preview) {
-				this.switch_button.html(__("Show Markdown"));
-			} else {
-				this.switch_button.html(__("Show Preview"));
-			}
-		});
-	},
-
-	make_preview_container() {
-		this.html_preview_container = $('<div>').appendTo(this.input_area).addClass('html-preview-container');
-		this.html_preview_area = $('<div>').appendTo(this.html_preview_container).addClass('html-preview-area');
-		this.html_preview_area.hide();
-
-		this.text_area.on('change keyup paste', frappe.utils.debounce(() => {
-			this.build_preview();
-		}, 300));
-	},
-
-	build_preview() {
-		var value = this.get_value() || "";
-		this.html_preview_area.html(frappe.markdown(value));
+	update_preview() {
+		const value = this.get_value() || "";
+		this.markdown_preview.html(frappe.markdown(value));
 	}
 });
