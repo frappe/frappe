@@ -1161,7 +1161,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				}
 			}
 		}
-		frappe.route_options = null;
 
 		return filters;
 	}
