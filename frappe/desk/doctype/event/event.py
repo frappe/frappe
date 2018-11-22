@@ -252,7 +252,6 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 
 	return events
 
-@frappe.whitelist()
 def delete_events(ref_type, ref_name, delete_event=False):
 	participations = frappe.get_all("Event Participants", filters={"reference_doctype": ref_type, "reference_docname": ref_name,
 		"parenttype": "Event"}, fields=["parent", "name"])
@@ -265,6 +264,6 @@ def delete_events(ref_type, ref_name, delete_event=False):
 				total_participants = frappe.get_all("Event Participants", filters={"parenttype": "Event", "parent": participation.parent})
 
 				if len(total_participants) <= 1:
-					frappe.db.sql("delete from `tabEvent` where name='%s'" % participation.parent)
+					frappe.db.sql("DELETE FROM `tabEvent` WHERE `name` = %(name)s", {'name': participation.parent})
 
-				frappe.db.sql("delete from `tabEvent Participants` where name='%s'" % participation.name)
+				frappe.db.sql("DELETE FROM `tabEvent Participants ` WHERE `name` = %(name)s", {'name': participation.name})
