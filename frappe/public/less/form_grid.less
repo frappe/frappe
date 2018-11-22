@@ -10,6 +10,7 @@
 .grid-heading-row {
 	border-bottom: 1px solid @border-color;
 	background-color: @panel-bg;
+	color: @text-color;
 	font-weight: bold;
 }
 
@@ -25,6 +26,8 @@
 
 .rows .grid-row .data-row, .rows .grid-row .grid-footer-toolbar, .grid-form-heading {
 	cursor: pointer;
+	background-color: @grid-bg;
+	color: @text-color;
 }
 
 .data-row textarea {
@@ -278,4 +281,10 @@
 
 .grid-label {
 	margin-right: 8px; margin-bottom: 4px;
+}
+
+//Form Section
+.form-section:not(:last-child), .form-section{
+	background-color: @form-section-bg;
+	color: @text-color;
 }

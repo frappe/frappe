@@ -120,23 +120,9 @@ kbd {
 	display: inline-block;
 }
 
-.nav {
-	> li{
-		&.hover{
-			background-color: @nav-pills-bg-hover-color !important;
-		}
-		&.focus{
-			background-color: @nav-pills-bg-hover-color !important;
-		}
-		> a{
-			&.hover{
-				background-color: @nav-pills-bg-hover-color !important;
-			}
-			&.focus{
-				background-color: @nav-pills-bg-hover-color !important;
-			}
-		}
-	}
+.nav > li > a:hover, .nav > li > a:focus {
+	background-color: @nav-pills-bg-hover-color !important;
+	color: @text-color;
 }
 
 /* Help on Search */
