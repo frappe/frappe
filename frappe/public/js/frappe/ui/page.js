@@ -442,10 +442,10 @@ frappe.ui.Page = Class.extend({
 		}
 		return link;
 	},
-	add_sidebar_check: function(label, action) {
+	add_sidebar_check: function(label, id, checked, action) {
 
 		var parent = this.sidebar.find(".sidebar-menu.list-filters");
-		var check = $("<input class='check' type='checkbox' style='margin-left : 5px;'>").on("click", action);
+		var check = $("<input class='check' type='checkbox' id='"+ id +"'style='margin-left : 5px;'>").on("click", action).prop('checked', checked);
 		var label = $("<label></label>").html(label);
 		var container = $("<li class='checkbox'></li>");
 		check.appendTo(container);
