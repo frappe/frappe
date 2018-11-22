@@ -32,7 +32,14 @@ def get_context(context):
 
 def get_email_groups(user_email):
 	# Return the all email_groups in which the email has been registered.
-	return frappe.get_all("Email Group Member", fields = ["email_group"], filters = {"email": user_email, "unsubscribed": 0})
+	data = frappe.get_all("Email Group Member", fields = ["email_group"], filters = {"email": user_email, "unsubscribed": 0})
+	print("-----------hrello----------------")
+	if data:
+		print("------------have vALUE-----------------")
+	else:
+		data = "none"
+	return data
+
 
 def get_current_groups(name):
 	# Return current group by which the mail has been sent.
