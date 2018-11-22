@@ -643,7 +643,7 @@ frappe.search.utils = {
 	},
 	make_function_searchable(_function, label=null) {
 		if (typeof _function !== 'function') {
-			throw new Error('First Argument should be a function');
+			throw new Error('First argument should be a function');
 		}
 
 		this.searchable_functions.push({
