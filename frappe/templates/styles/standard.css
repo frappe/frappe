@@ -150,7 +150,9 @@ table td div {
 
 /* hack for webkit specific browser */
 @media (-webkit-min-device-pixel-ratio:0) {
-	thead, tfoot { display: table-row-group; }
+	thead, tfoot {
+		display: table-header-group;
+	}
 }
 
 [document-status] {
