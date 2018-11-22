@@ -78,6 +78,7 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 		frappe.delete_doc(doctype, old)
 
 	frappe.clear_cache()
+	frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=doctype)
 
 	return new
 
