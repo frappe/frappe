@@ -11,6 +11,7 @@ from frappe.auth import LoginManager
 from frappe.integrations.doctype.ldap_settings.ldap_settings import get_ldap_settings
 from frappe.utils.password import get_decrypted_password
 from frappe.utils.html_utils import get_icon_html
+from frappe.website.utils import get_website_name
 
 no_cache = True
 
@@ -24,7 +25,7 @@ def get_context(context):
 	context.for_test = 'login.html'
 	context["title"] = "Login"
 	context["provider_logins"] = []
-	context["disable_signup"] = frappe.utils.cint(frappe.db.get_value("Website Settings", "Website Settings", "disable_signup"))
+	context["disable_signup"] = frappe.utils.cint(frappe.db.get_value('Website', get_website_name(), "disable_signup"))
 	providers = [i.name for i in frappe.get_all("Social Login Key", filters={"enable_social_login":1})]
 	for provider in providers:
 		client_id, base_url = frappe.get_value("Social Login Key", provider, ["client_id", "base_url"])

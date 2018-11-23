@@ -32,6 +32,23 @@ def can_cache(no_cache=False):
 		return False
 	return not no_cache
 
+def get_website_name():
+	from frappe.utils import get_site_name
+
+	hostname = get_site_name(frappe.request.host)
+	if can_cache():
+		cached_website = frappe.cache().hget('website_name', hostname)
+		if cached_website:
+			return cached_website
+
+	website_name = frappe.db.get_value('Website Hostname', 
+		filters={'hostname': hostname}, fieldname='parent')
+	if not website_name:
+		website_name = frappe.db.get_value('Website', {'is_default': 1}, 'name')
+	
+	frappe.cache().hset('website_name', hostname, website_name)
+	return website_name
+
 def get_comment_list(doctype, name):
 	return frappe.db.sql("""select
 		content, sender_full_name, creation, sender
@@ -69,7 +86,7 @@ def get_home_page():
 				home_page = home_page[-1]
 
 		if not home_page:
-			home_page = frappe.db.get_value("Website Settings", None, "home_page") or "login"
+			home_page = frappe.db.get_value('Website', get_website_name(), "home_page") or "login"
 
 		home_page = home_page.strip('/')
 
@@ -80,8 +97,8 @@ def get_home_page():
 def is_signup_enabled():
 	if getattr(frappe.local, "is_signup_enabled", None) is None:
 		frappe.local.is_signup_enabled = True
-		if frappe.utils.cint(frappe.db.get_value("Website Settings",
-			"Website Settings", "disable_signup")):
+		if frappe.utils.cint(frappe.db.get_value('Website', get_website_name(),
+			"disable_signup")):
 				frappe.local.is_signup_enabled = False
 
 	return frappe.local.is_signup_enabled

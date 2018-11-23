@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe, os, json
 
-from frappe.website.doctype.website_settings.website_settings import get_website_settings
+from frappe.website.doctype.website.website import get_website_context
 from frappe.website.router import get_page_context
 from frappe.model.document import Document
 
@@ -72,7 +72,7 @@ def build_context(context):
 	# for backward compatibility
 	context.docs_base_url = '/docs'
 
-	context.update(get_website_settings())
+	context.update(get_website_context())
 	context.update(frappe.local.conf.get("website_context") or {})
 
 	# provide doc

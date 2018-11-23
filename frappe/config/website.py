@@ -54,18 +54,13 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
-					"name": "Website Settings",
+					"name": "Website",
 					"description": _("Setup of top navigation bar, footer and logo."),
 				},
 				{
 					"type": "doctype",
 					"name": "Website Theme",
 					"description": _("List of themes for Website."),
-				},
-				{
-					"type": "doctype",
-					"name": "Website Script",
-					"description": _("Javascript to append to the head section of the page."),
 				},
 				{
 					"type": "doctype",

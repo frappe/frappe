@@ -1,13 +1,14 @@
 import frappe
-from   frappe.chat.util import filter_dict, safe_json_loads
+from frappe.chat.util     import filter_dict, safe_json_loads
 
-from   frappe.sessions  import get_geo_ip_country
+from frappe.sessions      import get_geo_ip_country
+from frappe.website.utils import get_website_name
 
 @frappe.whitelist(allow_guest = True)
 def settings(fields = None):
     fields    = safe_json_loads(fields)
 
-    dsettings = frappe.get_single('Website Settings')
+    dsettings = frappe.get_doc('Website', get_website_name())
     response  = dict(
         socketio         = dict(
             port         = frappe.conf.socketio_port

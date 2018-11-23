@@ -10,13 +10,14 @@ import frappe
 from frappe.chat 						 import authenticate
 from frappe.core.doctype.version.version import get_diff
 from frappe.chat.doctype.chat_message	 import chat_message
-from frappe.chat.util import (
+from frappe.chat.util                    import (
 	safe_json_loads,
 	dictify,
 	listify,
 	squashify,
 	get_if_empty
 )
+from frappe.website.utils                import get_website_name
 
 session = frappe.session
 
@@ -188,7 +189,7 @@ def create(kind, owner, users = None, name = None):
 
 			room.users = dusers
 	else:
-		dsettings	   = frappe.get_single('Website Settings')
+		dsettings	   = frappe.get_doc('Website', get_website_name())
 		room.room_name = dsettings.chat_room_name
 
 		users          = [user for user in room.users] if hasattr(room, 'users') else [ ]

@@ -8,6 +8,7 @@ import json, jwt
 from frappe import _
 from frappe.utils.password import get_decrypted_password
 from six import string_types
+from frappe.website.utils import get_website_name
 
 class SignupDisabledError(frappe.PermissionError): pass
 
@@ -216,7 +217,7 @@ def update_oauth_user(user, data, provider):
 	if not frappe.db.exists("User", user):
 
 		# is signup disabled?
-		if frappe.utils.cint(frappe.db.get_single_value("Website Settings", "disable_signup")):
+		if frappe.utils.cint(frappe.db.get_value('Website', get_website_name(), "disable_signup")):
 			raise SignupDisabledError
 
 		save = True
