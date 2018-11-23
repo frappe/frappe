@@ -140,14 +140,23 @@ def update_completed_workflow_actions(doc, user=None):
 
 def get_next_possible_transitions(workflow_name, state):
 	return frappe.get_all('Workflow Transition',
-		fields=['allowed', 'action', 'state', 'allow_self_approval'],
+		fields=['allowed', 'action', 'state', 'allow_self_approval', \
+			"email_based_on", "docfield_name", "user"],
 		filters=[['parent', '=', workflow_name],
 		['state', '=', state]])
 
 def get_users_next_action_data(transitions, doc):
 	user_data_map = {}
 	for transition in transitions:
-		users = get_users_with_role(transition.allowed)
+		users = []
+		if transition.get("email_based_on") == "Role":
+			users = get_users_with_role(transition.allowed)
+		elif transition.get("email_based_on") == "DocField" and \
+			transition.get("docfield_name"):
+			users.append(doc.get(transition.get("docfield_name")))
+		elif transition.get("email_based_on") == "User" and \
+			transition.get("user"):
+			users.append(transition.get("user"))
 		filtered_users = filter_allowed_users(users, doc, transition)
 		for user in filtered_users:
 			if not user_data_map.get(user):
