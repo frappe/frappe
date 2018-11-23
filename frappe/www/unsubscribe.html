@@ -29,6 +29,8 @@
 					Select groups you wish to unsubscribe from.
 					<span class="text-muted">{{ email }}</span>
 				</div>
+				<!-- Select or unselect Button shows if only groups are greater than 5 -->
+				<!--Automatic breaks into column if groups are greater than 20 -->
 				{% if email_groups|length > 5 %}
 					<button id="select"class="small-btn">Select All</button>
 					<button id="unselect"class="small-btn">Reset</button>
