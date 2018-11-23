@@ -420,17 +420,18 @@ frappe.ui.form.Dashboard = Class.extend({
 		}
 	},
 
-	add_indicator: function(label, color) {
+	add_indicator: function(label, color, colspan) {
 		this.show();
 		this.stats_area.removeClass('hidden');
 
-
-		// set colspan
 		var indicators = this.stats_area_row.find('.indicator-column');
-		var n_indicators = indicators.length + 1;
-		var colspan;
-		if(n_indicators > 4) { colspan = 4 }
-		else { colspan = 12 / n_indicators; }
+		// set colspan
+		if(!colspan){
+			var n_indicators = indicators.length + 1;
+			var colspan;
+			if(n_indicators > 4) { colspan = 3 }
+			else { colspan = 12 / n_indicators; }
+		}
 
 		// reset classes in existing indicators
 		if(indicators.length) {
