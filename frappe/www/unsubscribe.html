@@ -8,54 +8,62 @@
 
 		frappe.ready(function(){
 			$("#select").click(function(){
-				if($("#select").prop("checked") == true){
 					$(".group").prop('checked', true);
-				}
-				else{
+				
+			});
+			$("#unselect").click(function(){
 					$(".group").prop('checked', false);
-				}
+				
 			});
 		});
 	</script>
 
 	{% if status == "confirmation page" %}
 	<!-- confirmation page to select the group for unsubscription -->
-		<div class="page-card">
+		<div class="page-card ">
 			<div class='page-card-head'>
 				<span class='indicator blue'>Unsubscribe</span>
 			</div>
 			{% if email_groups != "none" %}
 				<div>
 					Select groups you wish to unsubscribe from.
-					<span class="text-muted">mishranaman123@gmail.com</span>
+					<span class="text-muted">{{ email }}</span>
 				</div>
+				{% if email_groups|length > 5 %}
+					<button id="select"class="small-btn">Select All</button>
+					<button id="unselect"class="small-btn">Reset</button>
+				{% endif %}
 				<form method="post">
-						<input type="hidden" name="user_email" value="{{email}}">
-						<input type="hidden" name="csrf_token" value="{{ frappe.session.csrf_token }}">
-						<div class="checkbox">
-					<div class="checkbox" style="margin-top: 10px; border-bottom:2px solid #D3D3D3; border-width: 1px">
-						<label><input type="checkbox" id="select"><span style="padding-left: 20px">Select all</span></label>
+					<input type="hidden" name="user_email" value="{{ email }}">
+					<input type="hidden" name="csrf_token" value="{{ frappe.session.csrf_token }}">
+					<div class="checkbox-container {% if email_groups|length > 20 %} row {% endif %}">
+						{% for group in email_groups %}
+							{% if current_group[0].email_group == group.email_group %}
+								<div class="checkbox {% if email_groups|length > 20 %} col-sm-6 {% endif %}">
+									<label><input type="checkbox" checked class="group" name='{{group.email_group}}'><span style="padding-left: 10px">{{group.email_group}}</span></label>
+								</div>
+							{% else %}
+								<div class="checkbox {% if email_groups|length > 20 %} col-sm-6 {% endif %}">
+									<label>
+										<input type="checkbox" class="group" name='{{group.email_group}}'>
+										<span style="padding-left: 10px">{{group.email_group}}</span>
+									</label>
+								</div>
+							{% endif %}
+						{% endfor %}
 					</div>
-					{% for group in email_groups %}
-					{% if current_group[0].email_group == group.email_group %}
-						<div class="checkbox">
-							<label><input type="checkbox" checked class="group" name='{{group.email_group}}'><span style="padding-left: 20px">{{group.email_group}}</span></label>
-						</div>
-					{% else %}
-						<div class="checkbox">
-								<label><input type="checkbox" class="group" name='{{group.email_group}}'><span style="padding-left: 20px">{{group.email_group}}</span></label>
-						</div>
-					{% endif %}
-					{% endfor %}
-					<p class='password-strength-message text-muted small hidden'></p>
-					<button type="submit" id="unsubscribe"
-						class="btn btn-primary">Unsubscribe</button>
+						<button 
+							type="submit" 
+							id="unsubscribe"
+							class="btn btn-primary">
+							Unsubscribe
+						</button>
 				</form>
 			{% else %}
 				<div>
 					You are not registered to any mailing list.
-				<span class="text-muted">mishranaman123@gmail.com</span>
-			</div>
+					<span class="text-muted">{{ email }}</span>
+				</div>
 			{% endif %}
 		</div>
 
@@ -88,6 +96,23 @@
 {% block style %}
 	<style>
 		{% include "templates/styles/card_style.css" %}
+		.small-btn {
+			padding: 1px 5px;
+			font-size: 12px;
+			line-height: 1.5;
+			border-radius: 3px;
+			color: inherit;
+			background-color: #f0f4f7;
+			border-color: transparent;
+			margin: 15px 5px 0 0;
+		}
+		.checkbox-container {
+			margin-top: 20px;
+		}
+		.main-div{
+			width: 500px;
+			height: auto;
+		}
 	</style>
 {% endblock %}
 
