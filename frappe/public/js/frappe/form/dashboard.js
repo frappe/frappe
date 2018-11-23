@@ -428,7 +428,6 @@ frappe.ui.form.Dashboard = Class.extend({
 		// set colspan
 		if(!colspan){
 			var n_indicators = indicators.length + 1;
-			var colspan;
 			if(n_indicators > 4) { colspan = 3 }
 			else { colspan = 12 / n_indicators; }
 		}
