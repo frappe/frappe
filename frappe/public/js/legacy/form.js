@@ -496,29 +496,25 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 		// clear layout message
 		this.layout.show_message();
 
-		// header must be refreshed before client methods
-		// because add_custom_button
-		this.refresh_header(is_a_different_doc);
-
-		// call trigger
-		this.script_manager.trigger("refresh");
-
-		// trigger global trigger
-		// to use this
-		$(document).trigger('form-refresh', [this]);
-
-		// fields
-		this.refresh_fields();
-
-
-		// call onload post render for callbacks to be fired
-		if(this.cscript.is_onload) {
-			this.script_manager.trigger("onload_post_render");
-		}
-
-		// update dashboard after refresh
-		frappe.timeout(0.1).then(() => this.dashboard.after_refresh());
-
+		frappe.run_serially([
+			// header must be refreshed before client methods
+			// because add_custom_button
+			() => this.refresh_header(is_a_different_doc),
+			// call trigger
+			() => this.script_manager.trigger("refresh"),
+			// trigger global trigger
+			// to use this
+			() => $(document).trigger('form-refresh', [this]),
+			// fields
+			() => this.refresh_fields(),
+			// call onload post render for callbacks to be fired
+			() => {
+				if(this.cscript.is_onload) {
+					return this.script_manager.trigger("onload_post_render");
+				}
+			},
+			() => this.dashboard.after_refresh()
+		]);
 		// focus on first input
 
 		if(this.is_new()) {

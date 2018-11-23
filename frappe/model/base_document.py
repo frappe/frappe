@@ -474,7 +474,8 @@ class BaseDocument(object):
 					setattr(self, df.fieldname, values.name)
 
 					for _df in fields_to_fetch:
-						setattr(self, _df.fieldname, values[_df.fetch_from.split('.')[-1]])
+						if self.docstatus != 1 or _df.allow_on_submit:
+							setattr(self, _df.fieldname, values[_df.fetch_from.split('.')[-1]])
 
 					notify_link_count(doctype, docname)
 
