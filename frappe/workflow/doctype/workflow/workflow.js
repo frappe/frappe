@@ -1,38 +1,37 @@
 frappe.provide("frappe.core")
 
-frappe.ui.form.on("Workflow", {
-	onload: function(frm) {
-		frm.set_query("document_type", {"issingle": 0, "istable": 0});
+frappe.core.Workflow = Class.extend({
+	init: function(args){
+		$.extend(this, args);
 	},
-	refresh: function(frm) {
-		frm.events.update_field_options(frm);
+	onload: function(doc) {
+		this.frm.set_query("document_type", {"issingle": 0, "istable": 0});
 	},
-	document_type: function(frm) {
-		frm.events.update_field_options(frm);
+	refresh: function(doc) {
+		this.update_field_options(doc);
 	},
-	update_field_options: function(frm) {
-		var doc = frm.doc;
+	document_type: function(doc) {
+		this.update_field_options(doc);
+	},
+	update_field_options: function(doc) {
 		if (doc.document_type) {
 			const get_field_method = 'frappe.workflow.doctype.workflow.workflow.get_fieldnames_for';
 			frappe.xcall(get_field_method, { doctype: doc.document_type })
 				.then(resp => {
-					frappe.meta.get_docfield("Workflow Document State", "update_field", frm.doc.name).options = [""].concat(resp);
+					frappe.meta.get_docfield("Workflow Document State", "update_field", doc.name).options = [""].concat(resp);
 				})
 		}
-	}
-})
-
-frappe.ui.form.on("Workflow Transition", {
-
-	"email_based_on": function(frm, cdt, cdn){
+	},
+	email_based_on: function(doc, cdt, cdn){
 		var c_doc = frappe.get_doc(cdt, cdn);
-		var doc = frm.doc;
 		if(c_doc.email_based_on==="DocField"){
 			const get_field_method = 'frappe.workflow.doctype.workflow.workflow.get_email_fieldnames';
 			frappe.xcall(get_field_method, { doctype: doc.document_type })
 				.then(resp => {
-					frappe.meta.get_docfield("Workflow Transition", "docfield_name", frm.doc.name).options = [""].concat(resp);
+					frappe.meta.get_docfield("Workflow Transition", "docfield_name", doc.name).options = [""].concat(resp);
 				});
 		}
 	}
 });
+
+cur_frm.script_manager.make(frappe.core.Workflow);
