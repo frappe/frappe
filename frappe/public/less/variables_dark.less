@@ -1,3 +1,39 @@
+/* palette colors*/
+
+@red:				        #fc4f51;
+@red-light:			        #fd8b8b;
+@red-extra-light:		    #fec3c5;
+@red-dark: 			        #a63336;
+
+@blue:		                #7679fc;
+@blue-light:			    #a3a5fc;
+@blue-extra-light:		    #d1d3fc;
+@blue-dark:			        #4c51a2;
+
+@green:				        #c6ea6c;
+@green-light:			    #d9f29e;
+@green-extra-light: 	    #ebf7cf;
+@green-dark:			    #7c9142;
+
+@yellow:			        #feef72;
+@yellow-light:			    #fff5a0;
+@yellow-extra-light:        #fef9cf;
+@yellow-dark:			    #a99e4c;
+@light-yellow:			    #fffce7;
+@extra-light-yellow:		#fffdf4;
+
+@orange:			        #fd784f;
+@orange-light:			    #fda688;
+@orange-extra-light:        #fdd2c2;
+@orange-dark:			    #a64f33;
+
+@skyblue:			        #7bd7fc;
+@skyblue-light:			    #aae3fe;
+@skyblue-extra-light:	    #d4f1ff;
+@skyblue-dark:			    #548da8;
+
+@white:                     #fff;
+
 /* dark mode colors */
 @dark-primary-dark :    #212121;
 @dark-primary :         #303030;
@@ -21,7 +57,7 @@
 @text-muted:			    #8d99a6;
 @grey-link-color:		    #212a33;
 @text-dark:                 #2e3338;
-@btn-bg:			        #f0f4f7;
+@btn-bg:			        @border-color;
 @disabled-background:		#f2f5f7;
 @text-hover-color:          @dark-text;
 
@@ -30,6 +66,7 @@
 @navbar-default-border:     @dark-primary-light;
 @navbar-default-color:	    @dark-primary-light;
 @navbar-inverse-color:	    @dark-primary-light;
+@navbar-text-muted:         #d3d3d3;
 @navbar-search-bg:          @dark-primary-dark;
 
 //Breadcrumb
@@ -64,6 +101,11 @@
 @page-container:            @dark-primary-dark;
 @panel-bg:			        @dark-primary-light;
 @divider-color:             @border-color;
+@title-hover:               @border-color;
+@input-bg-color:            @border-color;
+@input-bg-dark-color:       @dark-primary-dark;
+@timeline-comment-bg:       @dark-primary;
+@ql-background:             @border-color;
 
 //Form
 @print-preview:             #f5f7fa;
@@ -99,8 +141,8 @@
 @current-td-code:           #454e57;
 
 //Email
-@btn-color:                 #fff;
-@btn-color-bg:              #f0f4f7;
+@btn-color:                 @dark-text;
+@btn-color-bg:              @dark-border;
 @btn-primary-border:        #444bff;
 
 //Form Grid
@@ -109,6 +151,7 @@
 @from-in-grid-footer-bg:    #fff;
 @grid-bg:                   @dark-primary;
 @form-section-bg:           @dark-primary-dark;
+@grid-bg-highlight:         @dark-primary;
 
 //Datatable
 @dt-filter-bg:              #fff;
@@ -234,39 +277,3 @@
 
 //Font
 @font-stack:                -apple-system, BlinkMacSystemFont,"Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell","Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-
-/* palette colors*/
-
-@red:				        #fc4f51;
-@red-light:			        #fd8b8b;
-@red-extra-light:		    #fec3c5;
-@red-dark: 			        #a63336;
-
-@blue:		                #7679fc;
-@blue-light:			    #a3a5fc;
-@blue-extra-light:		    #d1d3fc;
-@blue-dark:			        #4c51a2;
-
-@green:				        #c6ea6c;
-@green-light:			    #d9f29e;
-@green-extra-light: 	    #ebf7cf;
-@green-dark:			    #7c9142;
-
-@yellow:			        #feef72;
-@yellow-light:			    #fff5a0;
-@yellow-extra-light:        #fef9cf;
-@yellow-dark:			    #a99e4c;
-@light-yellow:			    #fffce7;
-@extra-light-yellow:		#fffdf4;
-
-@orange:			        #fd784f;
-@orange-light:			    #fda688;
-@orange-extra-light:        #fdd2c2;
-@orange-dark:			    #a64f33;
-
-@skyblue:			        #7bd7fc;
-@skyblue-light:			    #aae3fe;
-@skyblue-extra-light:	    #d4f1ff;
-@skyblue-dark:			    #548da8;
-
-@white:                     #fff;

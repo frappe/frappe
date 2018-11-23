@@ -26,7 +26,11 @@
 		}
 		>li {
 			>a {
-				color: @text-color ;
+				color: @navbar-text-muted ;
+
+				&.hover{
+					color: @text-color;
+				}
 			}
 		}
 	}
@@ -161,7 +165,7 @@
 
 	.input-group {
 		width: 100%;
-		background-color: @navbar-default-bg;
+		background-color: @dropdown-background;
 		padding: 8px 12px;
 		border-bottom: 1px solid @border-color;
 	}
@@ -174,6 +178,7 @@
 		border: 1px solid @border-color;
 		opacity: 0.9;
 		line-height: 1.5;
+		background-color: @input-bg-color;
 	}
 	button {
 		border: 1px solid @border-color;
