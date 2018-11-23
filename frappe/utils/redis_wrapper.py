@@ -122,16 +122,16 @@ class RedisWrapper(redis.Redis):
 				pass
 
 	def lpush(self, key, value):
-		super(redis.Redis, self).lpush(self.make_key(key), value)
+		super(RedisWrapper, self).lpush(self.make_key(key), value)
 
 	def rpush(self, key, value):
-		super(redis.Redis, self).rpush(self.make_key(key), value)
+		super(RedisWrapper, self).rpush(self.make_key(key), value)
 
 	def lpop(self, key):
-		return super(redis.Redis, self).lpop(self.make_key(key))
+		return super(RedisWrapper, self).lpop(self.make_key(key))
 
 	def llen(self, key):
-		return super(redis.Redis, self).llen(self.make_key(key))
+		return super(RedisWrapper, self).llen(self.make_key(key))
 
 	def hset(self, name, key, value, shared=False):
 		_name = self.make_key(name, shared=shared)
@@ -143,14 +143,14 @@ class RedisWrapper(redis.Redis):
 
 		# set in redis
 		try:
-			super(redis.Redis, self).hset(_name,
+			super(RedisWrapper, self).hset(_name,
 				key, pickle.dumps(value))
 		except redis.exceptions.ConnectionError:
 			pass
 
 	def hgetall(self, name):
 		return {key: pickle.loads(value) for key, value in
-			iteritems(super(redis.Redis, self).hgetall(self.make_key(name)))}
+			iteritems(super(RedisWrapper, self).hgetall(self.make_key(name)))}
 
 	def hget(self, name, key, generator=None, shared=False):
 		_name = self.make_key(name, shared=shared)
@@ -162,7 +162,7 @@ class RedisWrapper(redis.Redis):
 
 		value = None
 		try:
-			value = super(redis.Redis, self).hget(_name, key)
+			value = super(RedisWrapper, self).hget(_name, key)
 		except redis.exceptions.ConnectionError:
 			pass
 
@@ -184,7 +184,7 @@ class RedisWrapper(redis.Redis):
 			if key in frappe.local.cache[_name]:
 				del frappe.local.cache[_name][key]
 		try:
-			super(redis.Redis, self).hdel(_name, key)
+			super(RedisWrapper, self).hdel(_name, key)
 		except redis.exceptions.ConnectionError:
 			pass
 
@@ -196,31 +196,31 @@ class RedisWrapper(redis.Redis):
 
 	def hkeys(self, name):
 		try:
-			return super(redis.Redis, self).hkeys(self.make_key(name))
+			return super(RedisWrapper, self).hkeys(self.make_key(name))
 		except redis.exceptions.ConnectionError:
 			return []
 
 	def sadd(self, name, *values):
 		"""Add a member/members to a given set"""
-		super(redis.Redis, self).sadd(self.make_key(name), *values)
+		super(RedisWrapper, self).sadd(self.make_key(name), *values)
 
 	def srem(self, name, *values):
 		"""Remove a specific member/list of members from the set"""
-		super(redis.Redis, self).srem(self.make_key(name), *values)
+		super(RedisWrapper, self).srem(self.make_key(name), *values)
 
 	def sismember(self, name, value):
 		"""Returns True or False based on if a given value is present in the set"""
-		return super(redis.Redis, self).sismember(self.make_key(name), value)
+		return super(RedisWrapper, self).sismember(self.make_key(name), value)
 
 	def spop(self, name):
 		"""Removes and returns a random member from the set"""
-		return super(redis.Redis, self).spop(self.make_key(name))
+		return super(RedisWrapper, self).spop(self.make_key(name))
 
 	def srandmember(self, name, count=None):
 		"""Returns a random member from the set"""
-		return super(redis.Redis, self).srandmember(self.make_key(name))
+		return super(RedisWrapper, self).srandmember(self.make_key(name))
 
 	def smembers(self, name):
 		"""Return all members of the set"""
-		return super(redis.Redis, self).smembers(self.make_key(name))
+		return super(RedisWrapper, self).smembers(self.make_key(name))
 
