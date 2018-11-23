@@ -22,3 +22,17 @@ frappe.ui.form.on("Workflow", {
 	}
 })
 
+frappe.ui.form.on("Workflow Transition", {
+
+	"email_based_on": function(frm, cdt, cdn){
+		var c_doc = frappe.get_doc(cdt, cdn);
+		var doc = frm.doc;
+		if(c_doc.email_based_on==="DocField"){
+			const get_field_method = 'frappe.workflow.doctype.workflow.workflow.get_email_fieldnames';
+			frappe.xcall(get_field_method, { doctype: doc.document_type })
+				.then(resp => {
+					frappe.meta.get_docfield("Workflow Transition", "docfield_name", frm.doc.name).options = [""].concat(resp);
+				});
+		}
+	}
+});
