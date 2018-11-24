@@ -346,14 +346,14 @@
 	"js/dark.js": [
 		"public/js/frappe/dark.js"
 	],
-	"css/desk_dark.css": [
+	"css/desk-dark.min.css": [
 		"public/js/lib/leaflet/leaflet.css",
 		"public/js/lib/leaflet/leaflet.draw.css",
 		"public/js/lib/leaflet/L.Control.Locate.css",
 		"public/js/lib/leaflet/easy-button.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
-		"public/less/desk_dark.less",
+		"public/less/desk-dark.less",
 		"node_modules/frappe-datatable/dist/frappe-datatable.css",
 		"public/css/tree_grid.css"
 	]
