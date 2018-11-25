@@ -26,21 +26,23 @@ frappe.dark_mode = {
 
 	check_mode: function(){
 		if(frappe.get_cookie("dark_mode") == "False"){
-			var styleSheets = document.styleSheets;
-			for (var i = 0; i < styleSheets.length; i++) {
-				if (styleSheets[i].href.indexOf("desk-dark") != -1) {
-					styleSheets[i].disabled = true;
+			var StyleSheets = document.styleSheets;
+			var StyleSheet;
+			for (StyleSheet in StyleSheets) {
+				if (StyleSheets[StyleSheet].href.indexOf("desk-dark") != -1) {
+					StyleSheets[StyleSheet].disabled = true;
 					$('#dark_mode').prop('checked', false);
 					break;
 				}
 			}
 		}
 		else{
-			var styleSheets = document.styleSheets;
-			for (var i = 0; i < styleSheets.length; i++) {
-				if (styleSheets[i].href.indexOf("desk-dark") != -1) {
+			var StyleSheets = document.styleSheets;
+			var StyleSheet;
+			for (StyleSheet in StyleSheets) {
+				if (StyleSheets[StyleSheet].href.indexOf("desk-dark") != -1) {
+					StyleSheets[StyleSheet].disabled = false;
 					$('#dark_mode').prop('checked', true);
-					styleSheets[i].disabled = false;
 					break;
 				}
 			}
