@@ -3,6 +3,16 @@
 .datepicker {
 	font-family: inherit;
 	z-index: 9999 !important;
+	background-color: @datepicker-bg;
+	border: @border-color;
+
+	&--nav-title {
+		color: @text-color;
+
+		&.hover {
+			background-color: @datepicker-hover !important;
+		}
+	}
 
 	&--time-current-hours, &--time-current-minutes, &--time-current-seconds {
 		font-family: inherit;
@@ -13,6 +23,8 @@
 	}
 
 	&--cell {
+		color: @text-color;
+
 		&.-current- {
 			color: @brand-primary;
 
@@ -58,4 +70,8 @@
 
 .datepicker--button {
 	color: @brand-primary;
+
+	&.hover {
+		background-color: @datepicker-button-bg;
+	}
 }
