@@ -1,5 +1,6 @@
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +21,Assigned By Me,Dodijelio drugima
 apps/frappe/frappe/desk/doctype/note/note_list.js +3,Notes,Bilješke
+DocType: Desktop Icon,_doctype,_doctype
 DocType: Desktop Icon,List,Lista
 DocType: Report,Report Type,Vrsta izvještaja
 DocType: System Settings,Session Expiry,Sesija ističe
@@ -68,7 +69,7 @@ DocType: Workflow State,Tags,Tagovi
 apps/frappe/frappe/patches/v6_19/comment_feed_communication.py +131,Assignment,Dodjeljivanje
 DocType: Workflow State,move,Kretanje
 DocType: Language,Language,Jezik
-apps/frappe/frappe/public/js/legacy/form.js +779,Permanently Submit {0}?,Trajno potvrdi {0} ?
+apps/frappe/frappe/public/js/legacy/form.js +775,Permanently Submit {0}?,Trajno potvrdi {0} ?
 DocType: Address,Maintenance User,Korisnik održavanja
 DocType: Contact,Image,Slika
 apps/frappe/frappe/public/js/frappe/model/model.js +538,Rename {0},Preimenuj {0}
@@ -154,7 +155,7 @@ apps/frappe/frappe/core/doctype/data_import/data_import.js +43,Attach File,Prilo
 DocType: ToDo,High,Visok
 apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +134,Payment Complete,Plaćanje zaključeno
 apps/frappe/frappe/www/printview.py +199,No {0} permission,{0} Nema dozvolu
-apps/frappe/frappe/public/js/frappe/list/list_view.js +1036,Delete {0} items permanently?,Trajno obriši stavke{0} ?
+apps/frappe/frappe/public/js/frappe/list/list_view.js +1043,Delete {0} items permanently?,Trajno obriši stavke{0} ?
 DocType: Address,Postal Code,Poštanski broj
 apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js +7,Not active,Nije aktivna
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_column.html +19,Add,Dodaj
@@ -262,7 +263,7 @@ apps/frappe/frappe/public/js/frappe/views/interaction.js +156,Add Attachment,Dod
 apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +144,Week,Nedelja
 DocType: Activity Log,Full Name,Puno ime
 apps/frappe/frappe/public/js/frappe/form/quick_entry.js +216,Edit in full page,Izmijeni u punoj strani
-apps/frappe/frappe/public/js/legacy/form.js +813,Permanently Cancel {0}?,Trajno otkaži {0} ?
+apps/frappe/frappe/public/js/legacy/form.js +809,Permanently Cancel {0}?,Trajno otkaži {0} ?
 apps/frappe/frappe/core/doctype/data_import/exporter.py +62,Notes:,Bilješke :
 DocType: Notification,Save,Sačuvaj
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js +38,File Manager,Fajlovi
@@ -339,7 +340,7 @@ apps/frappe/frappe/desk/query_report.py +322,Total,Ukupno
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +614,Show Totals,Prikaži ukupno
 apps/frappe/frappe/public/js/frappe/ui/messages.js +215,Enter your password,Unesite lozinku
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +512,Like,Kao
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +765,Export Report: ,Izvoz izvještaja:
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +777,Export Report: ,Izvoz izvještaja:
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +193,New Kanban Board,Nova Kanban prikaz
 DocType: DocType,Image View,Prikaz slike
 apps/frappe/frappe/desk/doctype/event/event.py +121,Events In Today's Calendar,Događaji u kalendaru na današnji dan.
@@ -387,7 +388,7 @@ apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.html +4,Add a colu
 DocType: Activity Log,Login,Prijava
 DocType: Chat Message,Chat,Poruke
 apps/frappe/frappe/config/setup.py +146,Deleted Documents,Obrisana dokumenta
-apps/frappe/frappe/public/js/frappe/form/print.js +294,With Letter head,Sa zaglavljem
+apps/frappe/frappe/public/js/frappe/form/print.js +284,With Letter head,Sa zaglavljem
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +512,Not Like,Nije kao
 DocType: DocType,Setup,Podešavanje
 DocType: Data Import,Import Status,Status uvoza
@@ -420,7 +421,7 @@ apps/frappe/frappe/public/js/frappe/list/list_filter.js +102,Duplicate Filter Na
 apps/frappe/frappe/public/js/frappe/desk.js +397,Session Expired,Sesija je istekla
 DocType: Communication,Received,Primljeno
 DocType: User,Login After,Prijava nakon
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +809,PDF,PDF
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +832,PDF,PDF
 DocType: Contact,Mobile No,Mobilni br.
 apps/frappe/frappe/public/js/frappe/ui/sort_selector.js +182,Most Used,Najviše korišćeno
 apps/frappe/frappe/email/doctype/email_account/email_account.js +183,"You are selecting Sync Option as ALL, It will resync all \

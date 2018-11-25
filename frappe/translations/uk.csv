@@ -12,8 +12,8 @@ apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +33,Seems
 DocType: About Us Settings,Website,Веб-сайт
 apps/frappe/frappe/www/me.py +14,You need to be logged in to access this page,"Ви повинні бути зареєстровані, щоб відкрити цю сторінку"
 DocType: System Settings,Note: Multiple sessions will be allowed in case of mobile device,Примітка: Декілька сесій буде дозволено в разі мобільного пристрою
-apps/frappe/frappe/email/queue.py +258,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,Не можете відправити цей лист. Ви перейшли ліміт відправки {0} листів в цьому місяці.
-apps/frappe/frappe/public/js/legacy/form.js +779,Permanently Submit {0}?,Остаточно провести {0}?
+apps/frappe/frappe/email/queue.py +259,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,Не можете відправити цей лист. Ви перейшли ліміт відправки {0} листів в цьому місяці.
+apps/frappe/frappe/public/js/legacy/form.js +775,Permanently Submit {0}?,Остаточно провести {0}?
 apps/frappe/frappe/desk/page/backups/backups.js +12,Download Files Backup,Завантажте резервні копії файлів
 DocType: Address,County,Область
 DocType: Workflow,If Checked workflow status will not override status in list view,Якщо прапорець встановлений статус робочого процесу не скасовує статус у вигляді списку
@@ -72,7 +72,7 @@ DocType: Workflow State,th-large,й за величиною
 DocType: Communication,Unread Notification Sent,"Непрочитана повідомлення, направленого"
 apps/frappe/frappe/public/js/frappe/misc/tools.js +10,Export not allowed. You need {0} role to export.,Експорт не допускаються. Ви повинні {0} роль експорту.
 DocType: System Settings,In seconds,Через кілька секунд
-apps/frappe/frappe/public/js/frappe/list/list_view.js +1049,Cancel {0} documents?,Скасувати {0} документи?
+apps/frappe/frappe/public/js/frappe/list/list_view.js +1056,Cancel {0} documents?,Скасувати {0} документи?
 DocType: DocType,Is Published Field,Є Опубліковано поле
 DocType: GCalendar Settings,GCalendar Settings,Налаштування GCalendar
 DocType: Email Group,Email Group,E-mail Група
@@ -227,7 +227,7 @@ DocType: Workflow State,chevron-up,шеврона до
 DocType: DocType,Allow Guest to View,"Дозволити для гостей, щоб подивитися"
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +65,Documentation,Документація
 DocType: Webhook,on_change,on_change
-apps/frappe/frappe/public/js/frappe/list/list_view.js +1036,Delete {0} items permanently?,Видалити {0} елементи назавжди?
+apps/frappe/frappe/public/js/frappe/list/list_view.js +1043,Delete {0} items permanently?,Видалити {0} елементи назавжди?
 apps/frappe/frappe/core/doctype/user/user.py +106,Not Allowed,Не дозволено
 DocType: DocShare,Internal record of document shares,Внутрішній запис оприлюднення документів
 DocType: Workflow State,Comment,Коментар
@@ -312,7 +312,7 @@ DocType: Data Migration Plan,Mappings,Зображень
 DocType: Notification Recipient,Notification Recipient,Одержувач сповіщення
 DocType: Workflow State,Refresh,Оновити
 DocType: Event,Public,Громадської
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +884,Nothing to show,Порожньо
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +907,Nothing to show,Порожньо
 DocType: System Settings,Enable Two Factor Auth,Увімкнути двофакторний аут
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +303,[Urgent] Error while creating recurring %s for %s,[Терміново] Помилка при створенні повторюваних% s для% s
 DocType: Post,Liked By,Вподобане
@@ -544,7 +544,7 @@ DocType: DocField,Collapsible,Складаний
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +790,Saved,Збережені
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +58,What do you need help with?,З чим вам допомогти?
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,Options for select. Each option on a new line.,Варіанти вибору. Кожен варіант з нового рядка.
-apps/frappe/frappe/public/js/legacy/form.js +813,Permanently Cancel {0}?,Постійно Скасувати {0}?
+apps/frappe/frappe/public/js/legacy/form.js +809,Permanently Cancel {0}?,Постійно Скасувати {0}?
 DocType: Workflow State,music,музика
 DocType: Website Theme,Text Styles,Стилі тексту
 apps/frappe/frappe/www/qrcode.html +3,QR Code,QR-код
@@ -600,9 +600,9 @@ DocType: Data Migration Mapping,Remote Objectname,Віддалений об&#39;
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +11,"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","У кращої практики, не може привласнити цей набір правило введене в різних ролей. Замість цього, встановити кілька ролей одному користувачеві."
 apps/frappe/frappe/www/confirm_workflow_action.html +4,Please confirm your action to {0} this document.,"Будь ласка, підтвердьте свою дію на {0} цього документа."
 DocType: Success Action,Next Actions HTML,Наступні дії HTML
-apps/frappe/frappe/public/js/frappe/social/social_home.js +34,Create Post,Створити публікацію
+apps/frappe/frappe/public/js/frappe/social/social_home.js +33,Create Post,Створити публікацію
 apps/frappe/frappe/desk/doctype/event/event.js +24,Add Participants,Додати учасників
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +43,Only {0} emailed reports are allowed per user,Тільки {0} по електронній пошті звіти кожному користувачеві дозволено
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +48,Only {0} emailed reports are allowed per user,Тільки {0} по електронній пошті звіти кожному користувачеві дозволено
 DocType: Address,Address Title,Назва адреси
 DocType: Website Settings,Footer Items,Footer товари
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +188,Request Feedback,Запит Зворотній зв&#39;язок
@@ -660,7 +660,7 @@ apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +175,No Emails,Н�
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +121,Link Expired,Посилання закінчився
 apps/frappe/frappe/database/schema.py +175,"Reverting length to {0} for '{1}' in '{2}';
 							Setting the length as {3} will cause truncation of data.",Повернення довжини до {0} для &#39;{1}&#39; в &#39;{2}&#39;; Встановлення тривалості як {3} призведе до скорочення даних.
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +736,Select File Format,Виберіть формат файлу
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +737,Select File Format,Виберіть формат файлу
 DocType: Report,Javascript,Javascript
 DocType: File,Content Hash,Вміст хеша
 DocType: User,Stores the JSON of last known versions of various installed apps. It is used to show release notes.,"Зберігає JSON з останніх відомих версій різних встановлених додатків. Він використовується, щоб показати примітки до випуску."
@@ -692,7 +692,7 @@ apps/frappe/frappe/core/doctype/has_role/has_role.py +12,User '{0}' already has 
 DocType: System Settings,Two Factor Authentication method,Два методу автентифікації факторів
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js +7,First set the name and save the record.,Спочатку встановіть ім&#39;я та збережіть запис.
 apps/frappe/frappe/public/js/frappe/form/share.js +36,Shared with {0},Оприлюднено для {0}
-apps/frappe/frappe/email/queue.py +275,Unsubscribe,Відмовитися від підписки
+apps/frappe/frappe/email/queue.py +276,Unsubscribe,Відмовитися від підписки
 DocType: View log,Reference Name,Ім&#39;я посилання
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js +13,Update Translations,Оновити переклади
 DocType: Error Snapshot,Exception,Виняток
@@ -704,7 +704,6 @@ DocType: DocType,Single Types have only one record no tables associated. Values 
 DocType: System Settings,Enable Password Policy,Включення політики паролів
 DocType: System Settings,Enable Password Policy,Включення політики паролів
 DocType: Web Form,"List as [{""label"": _(""Jobs""), ""route"":""jobs""}]","Список як [{ &quot;етикетка&quot;: _ ( &quot;Робота&quot;), &quot;маршрут&quot;: &quot;робота&quot;}]"
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Налаштування&gt; Користувач
 apps/frappe/frappe/custom/doctype/property_setter/property_setter.py +28,Field type cannot be changed for {0},Тип поля не може бути змінений для {0}
 DocType: Workflow,Rules defining transition of state in the workflow.,"Правила, що визначають переходи станів в робочому процесі."
 DocType: File,Folder,Тека
@@ -747,7 +746,6 @@ apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +46,Fieldname not
 apps/frappe/frappe/public/js/frappe/model/model.js +22,Last Updated By,Оновлене До
 apps/frappe/frappe/email/doctype/email_group/email_group.js +6,View Subscribers,Подивитися Передплатники
 DocType: Webhook,after_insert,after_insert
-apps/frappe/frappe/email/smtp.py +85,Please setup default Email Account from Setup &gt; Email &gt; Email Account,"Будь-ласка, налаштуйте обліковий запис електронної пошти за умовчанням з Налаштування&gt; Електронна пошта&gt; Електронна пошта"
 apps/frappe/frappe/core/doctype/file/file.py +760,Cannot delete file as it belongs to {0} {1} for which you do not have permissions,"Неможливо видалити файл, оскільки він належить {0} {1}, для якого у вас немає дозволів"
 DocType: Website Theme,Custom JS,Користувальницький JS
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Ms,Місс
@@ -812,7 +810,7 @@ apps/frappe/frappe/public/js/frappe/form/form_viewers.js +55,{0} are currently v
 DocType: ToDo,Assigned By Full Name,Присвоюється Повне ім&#39;я
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +155,{0} updated,{0} оновлений
 apps/frappe/frappe/core/doctype/doctype/doctype.py +820,Report cannot be set for Single types,Звіт не може бути встановлений на окремі типи
-apps/frappe/frappe/public/js/frappe/list/list_view.js +909,Share URL,Надіслати URL-адресу
+apps/frappe/frappe/public/js/frappe/list/list_view.js +916,Share URL,Надіслати URL-адресу
 DocType: System Settings,Allow Consecutive Login Attempts ,Дозволити послідовні вхідні спроби
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html +50,An error occured during the payment process. Please contact us.,"Під час здійснення платежу сталася помилка. Будь ласка, зв&#39;яжіться з нами."
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +52,{0} days ago,{0} днів тому
@@ -840,7 +838,7 @@ DocType: Workflow State,Stop,Стоп
 DocType: Footer Item,Link to the page you want to open. Leave blank if you want to make it a group parent.,"Посилання на сторінку ви хочете відкрити. Залиште порожнім, якщо ви хочете, щоб зробити це група з батьків."
 DocType: DocType,Is Single,Самотній
 apps/frappe/frappe/core/doctype/user/user.py +758,Sign Up is disabled,Реєстрація відключена
-apps/frappe/frappe/email/queue.py +334,{0} has left the conversation in {1} {2},{0} залишив розмову в {1} {2}
+apps/frappe/frappe/email/queue.py +335,{0} has left the conversation in {1} {2},{0} залишив розмову в {1} {2}
 DocType: Blogger,User ID of a Blogger,Ідентифікатор користувача в Blogger
 apps/frappe/frappe/core/doctype/user/user.py +299,There should remain at least one System Manager,Там повинно залишатися принаймні один диспетчер
 DocType: GCalendar Account,Authorization Code,код авторизації
@@ -918,7 +916,7 @@ DocType: Property Setter,Property Setter,Нерухомість сетер
 DocType: Web Form,Allow Print,дозволити друк
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +241,Mark the field as Mandatory,Відзначити поле Обов&#39;язкове
 DocType: Communication,Clicked,Натиснув
-apps/frappe/frappe/public/js/legacy/form.js +995,No permission to '{0}' {1},Немає доступу для &#39;{0}&#39; {1}
+apps/frappe/frappe/public/js/legacy/form.js +991,No permission to '{0}' {1},Немає доступу для &#39;{0}&#39; {1}
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +38,Scheduled to send,планується відправити
 DocType: DocType,Track Seen,трек відвідування
 DocType: Dropbox Settings,File Backup,Файл резервного копіювання
@@ -1178,7 +1176,7 @@ DocType: Page,Icon,Значок
 apps/frappe/frappe/core/doctype/user/user.py +934,"Hint: Include symbols, numbers and capital letters in the password","Підказка: Увімкніть символи, цифри і великі літери в паролі"
 apps/frappe/frappe/core/doctype/user/user.py +934,"Hint: Include symbols, numbers and capital letters in the password","Підказка: Увімкніть символи, цифри і великі літери в паролі"
 DocType: DocField,Allow in Quick Entry,Дозволити в &quot;Швидкому вході&quot;
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +809,PDF,PDF
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +832,PDF,PDF
 DocType: System Settings,dd/mm/yyyy,дд / мм / рррр
 apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.js +32,GSuite script test,Тестовий скрипт GSuite
 DocType: System Settings,Backups,резервні копії
@@ -1379,7 +1377,7 @@ DocType: Chat Room User,Admin,Адміністратор
 DocType: Website Settings,Brand,Бренд
 DocType: Report,Query Report,Запит Повідомити
 DocType: User,Set New Password,Встановити новий пароль
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +49,"%s is not a valid report format. Report format should \
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +54,"%s is not a valid report format. Report format should \
 				one of the following %s",% S не є допустимим форматом звіту. Формат звіту повинен \ одну з таких дій% з
 DocType: Chat Message,Chat,Чат
 apps/frappe/frappe/core/doctype/doctype/doctype.py +511,Fieldname {0} appears multiple times in rows {1},Fieldname {0} з&#39;являється кілька разів на рядків {1}
@@ -1445,7 +1443,7 @@ apps/frappe/frappe/core/doctype/system_settings/system_settings.py +27,Session E
 DocType: Chat Message,Group,Група
 DocType: Footer Item,"Select target = ""_blank"" to open in a new page.","Виберіть мету = &quot;_blank&quot;, щоб відкрити на новій сторінці."
 apps/frappe/frappe/core/page/usage_info/usage_info.html +60,Database Size:,Розмір бази даних:
-apps/frappe/frappe/public/js/frappe/social/social_home.js +68,Set Image,Встановити зображення
+apps/frappe/frappe/public/js/frappe/social/social_home.js +67,Set Image,Встановити зображення
 apps/frappe/frappe/public/js/frappe/model/model.js +518,Permanently delete {0}?,Назавжди видалити {0}?
 apps/frappe/frappe/core/doctype/file/file.py +195,Same file has already been attached to the record,Те ж файл вже був приєднаний до запису
 apps/frappe/frappe/model/workflow.py +126,{0} is not a valid Workflow State. Please update your Workflow and try again.,{0} не є дійсним стан робочого процесу. Оновіть свій робочий процес і повторіть спробу.
@@ -1510,7 +1508,6 @@ DocType: Notification,Slack Channel,Слаковий канал
 DocType: About Us Team Member,Image Link,Посилання на зображення
 DocType: Auto Email Report,Report Filters,фільтри звітів
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +16,now,в даний час
-apps/frappe/frappe/contacts/doctype/address/address.py +194,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,"Шаблон адреси замовчуванням не знайдено. Будь-ласка, створіть новий з Налаштування&gt; Друк та брендінг&gt; Шаблон адреси."
 DocType: Workflow State,step-backward,крок назад
 apps/frappe/frappe/utils/boilerplate.py +265,{app_title},{} App_title
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +259,Please set Dropbox access keys in your site config,"Будь ласка, встановіть ключі доступу Dropbox у конфігурації вашого сайту"
@@ -1710,7 +1707,7 @@ apps/frappe/frappe/model/naming.py +113, for {0},для {0}
 apps/frappe/frappe/website/js/web_form.js +140,There were errors. Please report this.,"Трапились помилки. Будь ласка, повідомте про це."
 apps/frappe/frappe/public/js/legacy/form.js +173,You are not allowed to print this document,Ви не можете надрукувати цей документ
 apps/frappe/frappe/data_migration/doctype/data_migration_run/data_migration_run.js +11,Currently updating {0},В даний час оновлення {0}
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +121,Please set filters value in Report Filter table.,"Будь ласка, встановіть значення фільтрів в Report Filter таблиці."
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +124,Please set filters value in Report Filter table.,"Будь ласка, встановіть значення фільтрів в Report Filter таблиці."
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +284,Loading Report,Завантаження звіту
 apps/frappe/frappe/limits.py +74,Your subscription will expire today.,Ваша підписка закінчується сьогодні.
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1055,Export All {0} rows?,Експортувати всі {0} рядки?
@@ -1862,6 +1859,7 @@ DocType: Web Page,Text Align,Text Align
 apps/frappe/frappe/model/naming.py +215,Name cannot contain special characters like {0},"Ім'я не може містити спеціальні символи, як-от {0}"
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +29,Print Documents,Друк документів
 DocType: Contact Us Settings,Forward To Email Address,Переслати на адресу електронної пошти
+DocType: Auto Email Report,Weekdays,Будні дні
 apps/frappe/frappe/public/js/frappe/views/reports/reportview_footer.html +9,Show all data,Показати всі дані
 apps/frappe/frappe/core/doctype/doctype/doctype.py +628,Title field must be a valid fieldname,Назва поля повинно бути дійсним ім&#39;я_поля
 DocType: Post Comment,Post Comment,Опублікувати коментар
@@ -1987,7 +1985,7 @@ DocType: Web Form,Success Message,Повідомлення успішного з
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +84,Export Customizations,експорт адаптацій
 apps/frappe/frappe/website/doctype/web_page/web_page.py +136,End Date cannot be before Start Date!,Дата завершення не може бути до дати початку!
 DocType: DocType,User Cannot Search,Користувач не може Пошук
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +84,Invalid Output Format,Невірний формат вихідного
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +89,Invalid Output Format,Невірний формат вихідного
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.js +54,Restart,Перезапустити
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +125,Cannot {0} {1},Не можу {0} {1}
 DocType: Custom DocPerm,Apply this rule if the User is the Owner,"Застосувати це правило, якщо Користувач є власником"
@@ -2055,7 +2053,7 @@ DocType: System Settings,Expiry time of QR Code Image Page,Час закінче
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +614,Show Totals,Показати підсумки
 DocType: Error Snapshot,Relapses,Рецидиви
 DocType: Address,Preferred Shipping Address,Основна адреса доставки
-apps/frappe/frappe/public/js/frappe/form/print.js +294,With Letter head,З головою Лист
+apps/frappe/frappe/public/js/frappe/form/print.js +284,With Letter head,З головою Лист
 apps/frappe/frappe/public/js/frappe/form/form_sidebar.js +62,{0} created this {1},{0} створено цей {1}
 DocType: Data Import,"If this is checked, rows with valid data will be imported and invalid rows will be dumped into a new file for you to import later.","Якщо це буде позначено, буде імпортовано рядки з дійсними даними, а недійсні рядки будуть скинуті до нового файлу для імпорту пізніше."
 apps/frappe/frappe/public/js/frappe/form/workflow.js +38,Document is only editable by users of role,Документ може редагуватись лише користувачами ролі
@@ -2150,7 +2148,6 @@ apps/frappe/frappe/public/js/frappe/model/model.js +27,Document Status,Стан 
 apps/frappe/frappe/core/page/desktop/desktop_help_message.html +5,You have made {0} of {1},Ви зробили {0} з {1}
 DocType: OAuth Authorization Code,OAuth Authorization Code,Код авторизації OAuth
 apps/frappe/frappe/core/doctype/data_import/importer.py +324,Not allowed to Import,Чи не дозволяється імпортувати
-apps/frappe/frappe/email/smtp.py +191,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Електронна пошта не налаштована. Створіть нову обліковий запис електронної пошти з Налаштування&gt; Електронна пошта&gt; Електронна пошта
 DocType: Deleted Document,Deleted DocType,видаляється DocType
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +22,Permission Levels,Рівні дозволів
 DocType: Workflow State,Warning,Попередження
@@ -2166,7 +2163,7 @@ apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +150,Hide Weekend
 DocType: Workflow State,info-sign,"Інформація, знак"
 apps/frappe/frappe/model/base_document.py +226,Value for {0} cannot be a list,Значення {0} не може бути списком
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults","Як має бути відформатована валюта? Якщо не встановлено, будуть використовуватись системні значення за замовчуванням"
-apps/frappe/frappe/public/js/frappe/list/list_view.js +1063,Submit {0} documents?,Надіслати {0} документи?
+apps/frappe/frappe/public/js/frappe/list/list_view.js +1070,Submit {0} documents?,Надіслати {0} документи?
 apps/frappe/frappe/utils/response.py +142,You need to be logged in and have System Manager Role to be able to access backups.,"Ви повинні бути зареєстровані і мати роль адміністратора системи, щоб мати можливість отримати доступ до копії."
 apps/frappe/frappe/public/js/legacy/form.js +136,Please save before attaching.,"Будь ласка, збережіть перед установкою."
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +125,Added {0} ({1}),Додано {0} ({1})
@@ -2192,13 +2189,12 @@ DocType: Role Permission for Page and Report,Set Role For,Встановити �
 DocType: GCalendar Account,The name that will appear in Google Calendar,"Назва, яка з&#39;явиться в Календарі Google"
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +65,Direct room with {0} already exists.,Пряма кімната з {0} вже існує.
 apps/frappe/frappe/core/doctype/user/user.js +67,Refreshing...,Оновлюється…
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions,Налаштування&gt; Права користувача
 DocType: Event,Starts on,Починається на
 DocType: System Settings,System Settings,Системні налаштування
 DocType: GCalendar Settings,Google API Credentials,Перелік повноважень Google API
 apps/frappe/frappe/public/js/frappe/desk.js +36,Session Start Failed,Session Не вдається запустити
 apps/frappe/frappe/public/js/frappe/desk.js +36,Session Start Failed,Session Не вдається запустити
-apps/frappe/frappe/email/queue.py +514,This email was sent to {0} and copied to {1},Цей лист був відправлений на адресу {0} і скопіювати в {1}
+apps/frappe/frappe/email/queue.py +515,This email was sent to {0} and copied to {1},Цей лист був відправлений на адресу {0} і скопіювати в {1}
 DocType: Workflow State,th,ї
 DocType: Social Login Key,Provider Name,Ім&#39;я провайдера
 apps/frappe/frappe/public/js/frappe/form/controls/link.js +172,Create a new {0},Створити нову {0}
@@ -2221,7 +2217,7 @@ DocType: Address,Andaman and Nicobar Islands,Андаманські і Ніко�
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +239,GSuite Document,GSuite документів
 apps/frappe/frappe/email/doctype/notification/notification.py +35,Please specify which value field must be checked,"Вкажіть, будь ласка, поля значення, що повинні бути позначені"
 apps/frappe/frappe/core/doctype/data_import/exporter.py +71,"""Parent"" signifies the parent table in which this row must be added","""Батько"" означає батьківську таблицю, в якій повинен бути доданий цей ряд"
-apps/frappe/frappe/email/queue.py +248,Cannot send this email. You have crossed the sending limit of {0} emails for this day.,Не вдається надіслати цей електронний лист. Ви переправили ліміт відправлення {0} електронних листів на цей день.
+apps/frappe/frappe/email/queue.py +249,Cannot send this email. You have crossed the sending limit of {0} emails for this day.,Не вдається надіслати цей електронний лист. Ви переправили ліміт відправлення {0} електронних листів на цей день.
 DocType: Website Theme,Apply Style,Застосувати стиль
 DocType: Feedback Request,Feedback Rating,Відгуки Рейтинг
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +63,Shared With,Оприлюднено для
@@ -2260,7 +2256,7 @@ DocType: OAuth Client,App Client ID,App ID клієнта
 DocType: Kanban Board,Kanban Board Name,Ім&#39;я канбан Board
 DocType: Notification Recipient,"Expression, Optional","Вираз, Додатковий"
 DocType: GSuite Settings,Copy and paste this code into and empty Code.gs in your project at script.google.com,Скопіюйте та вставте цей код в порожній і Code.gs в проекті в script.google.com
-apps/frappe/frappe/email/queue.py +516,This email was sent to {0},Цей лист був відправлений на адресу {0}
+apps/frappe/frappe/email/queue.py +517,This email was sent to {0},Цей лист був відправлений на адресу {0}
 DocType: System Settings,Hide footer in auto email reports,Приховати нижній колонтитул у звітах про автоматичну електронну пошту
 DocType: DocField,Remember Last Selected Value,Пам&#39;ятайте Останнє вибране значення
 DocType: Email Account,Check this to pull emails from your mailbox,"Перевірте це, щоб витягнути листи з поштової скриньки"
@@ -2540,7 +2536,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager.py +91,There 
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +67,Get Items,Отримати товари
 DocType: Contact,Image,Зображення
 DocType: Workflow State,remove-sign,видалити знак-
-apps/frappe/frappe/printing/doctype/print_settings/print_settings.py +30,Failed to connect to server,Не вдалося підключитися до сервера
+apps/frappe/frappe/printing/doctype/print_settings/print_settings.py +31,Failed to connect to server,Не вдалося підключитися до сервера
 apps/frappe/frappe/core/doctype/data_export/exporter.py +100,There is no data to be exported,Немає даних для експорту
 DocType: Domain Settings,Domains HTML,Домени HTML
 apps/frappe/frappe/templates/includes/search_template.html +47,Type something in the search box to search,Введіть щось в поле пошуку для пошуку
@@ -2736,7 +2732,7 @@ DocType: Report,Letter Head,Фірмовий заголовок
 DocType: DocType,Quick Entry,Швидкий доступ
 DocType: Web Form,Button Label,кнопка Етикетка
 DocType: Website Theme,UPPERCASE,ВЕРХНІЙ
-apps/frappe/frappe/public/js/frappe/list/list_view.js +862,{0} items selected,{0} вибрані товари
+apps/frappe/frappe/public/js/frappe/list/list_view.js +869,{0} items selected,{0} вибрані товари
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js +16,Suspend Sending,призупинити Відправка
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html +3,Drag elements from the sidebar to add. Drag them back to trash.,"Перетягніть елементи з бічної панелі, щоб додати. Перетягніть їх назад у відро для сміття."
 DocType: Workflow State,resize-small,розмір-мала
@@ -2772,7 +2768,7 @@ DocType: Address,Telangana,Telangana
 apps/frappe/frappe/core/doctype/doctype/doctype.py +565,Default for {0} must be an option,За замовчуванням для {0} повинен бути варіант
 DocType: Tag Doc Category,Tag Doc Category,Tag Doc Категорія
 DocType: User,User Image,Користувач Зображення
-apps/frappe/frappe/email/queue.py +344,Emails are muted,Листи приглушені
+apps/frappe/frappe/email/queue.py +345,Emails are muted,Листи приглушені
 apps/frappe/frappe/config/integrations.py +88,Google Services,Служби Google
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +67,Ctrl + Up,Ctrl +
 DocType: Website Theme,Heading Style,Тема Стиль
@@ -2880,7 +2876,6 @@ DocType: System Settings,User can login using Email id or User Name,"Корис�
 DocType: Workflow State,question-sign,Питання-знак
 apps/frappe/frappe/core/doctype/doctype/doctype.py +165,"Field ""route"" is mandatory for Web Views",Поле &quot;route&quot; є обов&#39;язковим для Web Views
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +221,Insert Column Before {0},Вставити колонку до {0}
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,Setup &gt; Customize Form,Налаштування&gt; Налаштувати форму
 DocType: Dropbox Settings,Number of DB Backups,Кількість резервних копій DB
 DocType: Email Account,Add Signature,Додати підпис
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +38,Left this conversation,Ліва цю розмову
@@ -2944,7 +2939,7 @@ apps/frappe/frappe/config/setup.py +37,Set Permissions on Document Types and Rol
 DocType: Data Migration Run,Remote ID,Віддалений ідентифікатор
 apps/frappe/frappe/model/meta.py +204,No Label,ні Етикетка
 DocType: System Settings,Use socketio to upload file,Використовуйте socketio для завантаження файлу
-apps/frappe/frappe/public/js/frappe/list/list_view.js +275,Refreshing,Освіжаючий
+apps/frappe/frappe/public/js/frappe/list/list_view.js +256,Refreshing,Освіжаючий
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py +77,Modified By,змінено
 DocType: Address,Tripura,Tripura
 DocType: About Us Settings,"""Company History""",&quot;Історія компанії&quot;
@@ -3018,7 +3013,7 @@ apps/frappe/frappe/desk/moduleview.py +37,Custom Reports,Настроювані 
 DocType: Website Script,Website Script,Сценарій веб-сайту
 DocType: GSuite Settings,If you aren't using own publish Google Apps Script webapp you can use the default https://script.google.com/macros/s/AKfycbxIFOx3301xwtF2IFPJ4pUQGqkNF3hBiBebppWkeKn6fKZRQvk/exec ,Якщо ви не використовуєте власні публікації веб-додаток Google Apps Script ви можете використовувати за замовчуванням https://script.google.com/macros/s/AKfycbxIFOx3301xwtF2IFPJ4pUQGqkNF3hBiBebppWkeKn6fKZRQvk/exec
 apps/frappe/frappe/config/setup.py +200,Customized HTML Templates for printing transactions.,Індивідуальні шаблони HTML для друкованих операцій.
-apps/frappe/frappe/public/js/frappe/form/print.js +305,Orientation,орієнтація
+apps/frappe/frappe/public/js/frappe/form/print.js +295,Orientation,орієнтація
 DocType: Workflow,Is Active,Активний
 apps/frappe/frappe/desk/form/utils.py +114,No further records,Ніяких додаткових записів
 DocType: DocField,Long Text,Довгий текст
@@ -3116,7 +3111,7 @@ DocType: SMS Settings,Use POST,Використовуйте POST
 DocType: Communication,SMS,СМС
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js +14,Fetch Images,Завантажте зображення
 DocType: DocType,Web View,Web View
-apps/frappe/frappe/public/js/frappe/form/print.js +226,Warning: This Print Format is in old style and cannot be generated via the API.,"Попередження: Цей формат друку застарілий, і не може бути згенерований за допомогою API."
+apps/frappe/frappe/public/js/frappe/form/print.js +216,Warning: This Print Format is in old style and cannot be generated via the API.,"Попередження: Цей формат друку застарілий, і не може бути згенерований за допомогою API."
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +810,Totals,Загальні дані
 DocType: DocField,Print Width,Ширина друку
 ,Setup Wizard,Майстер установки
@@ -3168,7 +3163,7 @@ DocType: User,Third Party Authentication,Стороння аутентифіка
 DocType: Website Settings,Banner is above the Top Menu Bar.,Банер вище верхнього рядка меню.
 DocType: User,API Secret,API Секретний
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +29,{0} Calendar,{0} Календар
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +765,Export Report: ,Експорт звіту:
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +777,Export Report: ,Експорт звіту:
 DocType: Data Migration Run,Push Update,Натисніть оновлення
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +10,in the Auto Repeat document,в документі Auto Repeat
 DocType: Email Account,Port,Порт
@@ -3399,7 +3394,6 @@ apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +135,Please save
 apps/frappe/frappe/email/doctype/email_group/email_group.py +42,{0} subscribers added,{0} додано абонентів
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +15,Not In,Не в
 DocType: Workflow State,star,зірка
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +361,<p>No results found for '</p>,<p> Не знайдено результатів для &#39; </p>
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +237,Hub,Концентратор
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +282,values separated by commas,"значень, розділених комами"
 apps/frappe/frappe/core/doctype/doctype/doctype.py +543,Max width for type Currency is 100px in row {0},Максимальна ширина для тип валюти 100px в рядку {0}
@@ -3462,7 +3456,6 @@ DocType: Print Settings,Print Style,Друк Стиль
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +52,Not Linked to any record,Чи не пов&#39;язаний із записом
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +52,Not Linked to any record,Чи не пов&#39;язаний із записом
 DocType: Custom DocPerm,Import,Імпорт
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} рік тому
 DocType: User,Social Logins,Соціальні логіни
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +180,Row {0}: Not allowed to enable Allow on Submit for standard fields,Ряд {0}: Чи не дозволяється включити Дозволити на Надіслати на стандартних полів
 apps/frappe/frappe/core/doctype/role/role.py +12,Standard roles cannot be renamed,Стандартні ролі не можуть бути перейменовані
@@ -3502,7 +3495,7 @@ DocType: Activity Log,Failed,Не вдалося
 DocType: Web Form,Allow Comments,Дозволити коментарі
 DocType: User,Background Style,Стиль фону
 DocType: System Settings,Bypass Two Factor Auth for users who login from restricted IP Address,"Обхід двох факторів Auth для користувачів, які входять з обмеженої IP-адреси"
-apps/frappe/frappe/email/queue.py +276,{0} to stop receiving emails of this type,"{0}, щоб більше не отримувати електронні листи цього типу"
+apps/frappe/frappe/email/queue.py +277,{0} to stop receiving emails of this type,"{0}, щоб більше не отримувати електронні листи цього типу"
 apps/frappe/frappe/www/qrcode.html +13,Open your authentication app on your mobile phone.,Відкрийте додаток для автентифікації на своєму мобільному телефоні.
 apps/frappe/frappe/model/rename_doc.py +77,merged {0} into {1},об&#39;єднані {0} в {1}
 DocType: System Settings,mm-dd-yyyy,мм-дд-рррр
