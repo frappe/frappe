@@ -7,6 +7,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const route = frappe.get_route();
 		const doctype = route[1];
 
+		if(frappe.route_options) {
+			return false;
+		}
 		if (route.length === 2) {
 			// List/{doctype} => List/{doctype}/{last_view} or List
 			const user_settings = frappe.get_user_settings(doctype);
