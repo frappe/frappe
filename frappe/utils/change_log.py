@@ -102,12 +102,7 @@ def get_versions():
 		}
 
 		if versions[app]['branch'] != 'master':
-			try:
-				app_repo = git.Repo(os.path.join('..', 'apps', '{}'.format(app)))
-				branch_version = '-'.join(app_repo.git.describe().split('-')[:2])
-				branch_version = [branch_version.strip('v')]
-			except:
-				branch_version = app_hooks.get('{0}_version'.format(versions[app]['branch']))
+			branch_version = app_hooks.get('{0}_version'.format(versions[app]['branch']))
 			if branch_version:
 				versions[app]['branch_version'] = branch_version[0] + ' ({0})'.format(get_app_last_commit_ref(app))
 
