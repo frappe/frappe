@@ -84,7 +84,6 @@ def get_fieldnames_for(doctype):
 		if f.fieldname not in no_value_fields]
 
 @frappe.whitelist()
-def get_email_fieldnames(doctype, fieldtypes=[]):
+def get_email_fieldnames(doctype):
 	return [f.fieldname for f in frappe.get_meta(doctype).fields \
-		if f.fieldtype in ['Link', 'Data'] and f.options in ['Email', 'User']
-		]
+		if f.fieldtype in ['Link', 'Data'] and f.options in ['Email', 'User']]
