@@ -72,7 +72,7 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 
 				var html =
 					`<h5>${task.name}</h5>
-					<p>${task._start.format('MMM D')} - ${task._end.format('MMM D')}</p>`;
+					<p>${moment(task._start).format('MMM D')} - ${moment(task._end).format('MMM D')}</p>`;
 
 				// custom html in doctype settings
 				var custom = me.settings.gantt_custom_popup_html;
@@ -237,6 +237,6 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 	set_columns: function() {},
 	required_libs: [
 		"assets/frappe/js/lib/snap.svg-min.js",
-		"assets/frappe/js/lib/frappe-gantt/frappe-gantt.js"
+		"assets/frappe/js/lib/frappe-gantt/frappe-gantt.min.js"
 	]
 });
