@@ -94,8 +94,8 @@ class Communication(Document):
 		if self.communication_type in ("Communication", "Comment"):
 			# send new comment to listening clients
 			frappe.publish_realtime('new_communication', self.as_dict(),
-			    doctype=self.reference_doctype, docname=self.reference_name,
-			    after_commit=True)
+				doctype=self.reference_doctype, docname=self.reference_name,
+				after_commit=True)
 
 			if self.communication_type == "Comment":
 				notify_mentions(self)
@@ -108,7 +108,7 @@ class Communication(Document):
 			else:
 				# reference_name contains the user who is addressed in the messages' page comment
 				frappe.publish_realtime('new_message', self.as_dict(),
-				    user=self.reference_name, after_commit=True)
+					user=self.reference_name, after_commit=True)
 
 	def on_update(self):
 		"""Update parent status as `Open` or `Replied`."""
