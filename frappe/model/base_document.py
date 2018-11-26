@@ -432,7 +432,7 @@ class BaseDocument(object):
 		cancelled_links = []
 
 		for df in (self.meta.get_link_fields()
-				 + self.meta.get("fields", {"fieldtype": ('=', "Dynamic Link")})):
+				+ self.meta.get("fields", {"fieldtype": ('=', "Dynamic Link")})):
 			docname = self.get(df.fieldname)
 
 			if docname:
