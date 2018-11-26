@@ -12,6 +12,9 @@ def execute():
 
     for report_name in reports:
         settings = frappe.db.get_value('Report', report_name, 'json')
+        if not settings:
+            continue
+
         settings = frappe._dict(json.loads(settings))
 
         # columns -> fields
