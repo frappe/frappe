@@ -12,8 +12,8 @@ apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +33,Seems
 DocType: About Us Settings,Website,เว็บไซต์
 apps/frappe/frappe/www/me.py +14,You need to be logged in to access this page,คุณต้องเข้าสู่ระบบเพื่อเข้าถึงหน้านี้
 DocType: System Settings,Note: Multiple sessions will be allowed in case of mobile device,หมายเหตุ: หลายครั้งจะได้รับอนุญาตในกรณีของโทรศัพท์มือถือ
-apps/frappe/frappe/email/queue.py +258,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,ไม่สามารถส่งอีเมล์นี้ คุณได้ข้ามขีด จำกัด การส่ง {0} อีเมลสำหรับเดือนนี้
-apps/frappe/frappe/public/js/legacy/form.js +779,Permanently Submit {0}?,อย่างถาวร ส่ง {0}?
+apps/frappe/frappe/email/queue.py +259,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,ไม่สามารถส่งอีเมล์นี้ คุณได้ข้ามขีด จำกัด การส่ง {0} อีเมลสำหรับเดือนนี้
+apps/frappe/frappe/public/js/legacy/form.js +775,Permanently Submit {0}?,อย่างถาวร ส่ง {0}?
 apps/frappe/frappe/desk/page/backups/backups.js +12,Download Files Backup,ดาวน์โหลดไฟล์สำรอง
 DocType: Address,County,เขต/อำเภอ
 DocType: Workflow,If Checked workflow status will not override status in list view,ถ้าสถานะเวิร์กโฟลว์การยืมจะไม่แทนที่สถานะในมุมมองรายการ
@@ -72,7 +72,7 @@ DocType: Workflow State,th-large,-th ใหญ่
 DocType: Communication,Unread Notification Sent,แจ้งส่งยังไม่ได้อ่าน
 apps/frappe/frappe/public/js/frappe/misc/tools.js +10,Export not allowed. You need {0} role to export.,ส่งออก ไม่ได้รับอนุญาต คุณต้อง {0} บทบาท ในการส่งออก
 DocType: System Settings,In seconds,ภายในไม่กี่วินาที
-apps/frappe/frappe/public/js/frappe/list/list_view.js +1049,Cancel {0} documents?,ยกเลิกเอกสาร {0} หรือไม่?
+apps/frappe/frappe/public/js/frappe/list/list_view.js +1056,Cancel {0} documents?,ยกเลิกเอกสาร {0} หรือไม่?
 DocType: DocType,Is Published Field,มีการเผยแพร่สนาม
 DocType: GCalendar Settings,GCalendar Settings,การตั้งค่า GCalendar
 DocType: Email Group,Email Group,กลุ่มอีเมล์
@@ -227,7 +227,7 @@ DocType: Workflow State,chevron-up,บั้งขึ้น
 DocType: DocType,Allow Guest to View,อนุญาตให้ผู้เยี่ยมชมเพื่อดู
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +65,Documentation,เอกสาร
 DocType: Webhook,on_change,on_change
-apps/frappe/frappe/public/js/frappe/list/list_view.js +1036,Delete {0} items permanently?,ลบ {0} รายการอย่างถาวร?
+apps/frappe/frappe/public/js/frappe/list/list_view.js +1043,Delete {0} items permanently?,ลบ {0} รายการอย่างถาวร?
 apps/frappe/frappe/core/doctype/user/user.py +106,Not Allowed,ไม่อนุญาต
 DocType: DocShare,Internal record of document shares,บันทึกของหุ้นเอกสารภายใน
 DocType: Workflow State,Comment,ความเห็น
@@ -312,7 +312,7 @@ DocType: Data Migration Plan,Mappings,แมป
 DocType: Notification Recipient,Notification Recipient,ผู้รับการแจ้ง
 DocType: Workflow State,Refresh,รีเฟรช
 DocType: Event,Public,สาธารณะ
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +884,Nothing to show,ไม่มีอะไรที่จะแสดง
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +907,Nothing to show,ไม่มีอะไรที่จะแสดง
 DocType: System Settings,Enable Two Factor Auth,เปิดใช้ Auth Factor 2 ตัว
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +303,[Urgent] Error while creating recurring %s for %s,[Urgent] เกิดข้อผิดพลาดขณะสร้าง% s ที่เกิดซ้ำสำหรับ% s
 DocType: Post,Liked By,ชอบโดย
@@ -544,7 +544,7 @@ DocType: DocField,Collapsible,พับ
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +790,Saved,ที่บันทึกไว้
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +58,What do you need help with?,สิ่งใดที่คุณต้องการความช่วยเหลือ?
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,Options for select. Each option on a new line.,ตัวเลือกสำหรับการเลือก ตัวเลือกในบรรทัดใหม่แต่ละ
-apps/frappe/frappe/public/js/legacy/form.js +813,Permanently Cancel {0}?,อย่างถาวร ยกเลิก {0}?
+apps/frappe/frappe/public/js/legacy/form.js +809,Permanently Cancel {0}?,อย่างถาวร ยกเลิก {0}?
 DocType: Workflow State,music,เพลง
 DocType: Website Theme,Text Styles,ลักษณะข้อความ
 apps/frappe/frappe/www/qrcode.html +3,QR Code,คิวอาร์โค้ด
@@ -600,9 +600,9 @@ DocType: Data Migration Mapping,Remote Objectname,Remote Objectname
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +11,"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",ในฐานะที่เป็น วิธีที่ดีที่สุด ไม่ได้กำหนด ชุดเดียวกัน ของ กฎ อนุญาตให้ บทบาท ที่แตกต่างกัน แต่ กำหนด บทบาท หลายผู้ใช้ เดียวกัน
 apps/frappe/frappe/www/confirm_workflow_action.html +4,Please confirm your action to {0} this document.,โปรดยืนยันการกระทำของคุณต่อ {0} เอกสารนี้
 DocType: Success Action,Next Actions HTML,การดำเนินการต่อไป HTML
-apps/frappe/frappe/public/js/frappe/social/social_home.js +34,Create Post,สร้างโพสต์
+apps/frappe/frappe/public/js/frappe/social/social_home.js +33,Create Post,สร้างโพสต์
 apps/frappe/frappe/desk/doctype/event/event.js +24,Add Participants,เพิ่มผู้เข้าร่วม
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +43,Only {0} emailed reports are allowed per user,เพียง {0} ส่งอีเมลรายงานที่ได้รับอนุญาตต่อผู้ใช้
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +48,Only {0} emailed reports are allowed per user,เพียง {0} ส่งอีเมลรายงานที่ได้รับอนุญาตต่อผู้ใช้
 DocType: Address,Address Title,หัวข้อที่อยู่
 DocType: Website Settings,Footer Items,รายการส่วนท้าย
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +188,Request Feedback,ขอความคิดเห็น
@@ -660,7 +660,7 @@ apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +175,No Emails,ไ
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +121,Link Expired,ลิงก์หมดอายุแล้ว
 apps/frappe/frappe/database/schema.py +175,"Reverting length to {0} for '{1}' in '{2}';
 							Setting the length as {3} will cause truncation of data.",กำลังย้อนกลับไปที่ {0} สำหรับ &quot;{1}&quot; ใน &quot;{2}&quot;; การตั้งค่าความยาวเป็น {3} จะทำให้การตัดทอนข้อมูล
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +736,Select File Format,เลือกรูปแบบไฟล์
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +737,Select File Format,เลือกรูปแบบไฟล์
 DocType: Report,Javascript,จาวาสคริปต์
 DocType: File,Content Hash,แฮ เนื้อหา
 DocType: User,Stores the JSON of last known versions of various installed apps. It is used to show release notes.,ร้านค้า JSON รุ่นที่รู้จักกันครั้งสุดท้ายของปพลิเคชันที่ติดตั้งต่างๆ มันถูกใช้เพื่อแสดงบันทึกประจำรุ่น
@@ -692,7 +692,7 @@ apps/frappe/frappe/core/doctype/has_role/has_role.py +12,User '{0}' already has 
 DocType: System Settings,Two Factor Authentication method,วิธีการตรวจสอบความถูกต้องของปัจจัยสองตัว
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js +7,First set the name and save the record.,ก่อนตั้งชื่อและบันทึกข้อมูล
 apps/frappe/frappe/public/js/frappe/form/share.js +36,Shared with {0},ร่วมกับ {0}
-apps/frappe/frappe/email/queue.py +275,Unsubscribe,ยกเลิกการรับข่าวสาร
+apps/frappe/frappe/email/queue.py +276,Unsubscribe,ยกเลิกการรับข่าวสาร
 DocType: View log,Reference Name,ชื่ออ้างอิง
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js +13,Update Translations,อัปเดตการแปล
 DocType: Error Snapshot,Exception,ข้อยกเว้น
@@ -704,7 +704,6 @@ DocType: DocType,Single Types have only one record no tables associated. Values 
 DocType: System Settings,Enable Password Policy,เปิดใช้นโยบายรหัสผ่าน
 DocType: System Settings,Enable Password Policy,เปิดใช้นโยบายรหัสผ่าน
 DocType: Web Form,"List as [{""label"": _(""Jobs""), ""route"":""jobs""}]","รายการเป็น [{ &quot;label&quot;: _ ( &quot;งาน&quot;), &quot;เส้นทาง&quot;: &quot;งาน&quot;}]"
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,ตั้งค่า&gt; ผู้ใช้
 apps/frappe/frappe/custom/doctype/property_setter/property_setter.py +28,Field type cannot be changed for {0},ประเภทฟิลด์ไม่สามารถเปลี่ยนแปลงได้สำหรับ {0}
 DocType: Workflow,Rules defining transition of state in the workflow.,กฎการกำหนดเปลี่ยนแปลงของรัฐในเวิร์กโฟลว์
 DocType: File,Folder,โฟลเดอร์
@@ -747,7 +746,6 @@ apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +46,Fieldname not
 apps/frappe/frappe/public/js/frappe/model/model.js +22,Last Updated By,แก้ไขล่าสุดโดย
 apps/frappe/frappe/email/doctype/email_group/email_group.js +6,View Subscribers,ดูสมาชิก
 DocType: Webhook,after_insert,after_insert
-apps/frappe/frappe/email/smtp.py +85,Please setup default Email Account from Setup &gt; Email &gt; Email Account,โปรดตั้งค่าบัญชีอีเมลเริ่มต้นจากตั้งค่า&gt; อีเมล&gt; บัญชีอีเมล
 apps/frappe/frappe/core/doctype/file/file.py +760,Cannot delete file as it belongs to {0} {1} for which you do not have permissions,ไม่สามารถลบไฟล์ที่เป็นของ {0} {1} ที่คุณไม่มีสิทธิ์
 DocType: Website Theme,Custom JS,Custom JS
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Ms,นางสาว / นาง
@@ -812,7 +810,7 @@ apps/frappe/frappe/public/js/frappe/form/form_viewers.js +55,{0} are currently v
 DocType: ToDo,Assigned By Full Name,ได้รับมอบหมายจากชื่อเต็ม
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +155,{0} updated,{0} ได้รับการแก้ไขแล้ว
 apps/frappe/frappe/core/doctype/doctype/doctype.py +820,Report cannot be set for Single types,รายงาน ไม่สามารถตั้งค่า สำหรับชนิด เดี่ยว
-apps/frappe/frappe/public/js/frappe/list/list_view.js +909,Share URL,แชร์ URL
+apps/frappe/frappe/public/js/frappe/list/list_view.js +916,Share URL,แชร์ URL
 DocType: System Settings,Allow Consecutive Login Attempts ,อนุญาตให้มีการเข้าสู่ระบบที่ต่อเนื่อง
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html +50,An error occured during the payment process. Please contact us.,เกิดข้อผิดพลาดระหว่างการชำระเงิน กรุณาติดต่อเรา.
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +52,{0} days ago,{0} วันที่ผ่านมา
@@ -840,7 +838,7 @@ DocType: Workflow State,Stop,หยุด
 DocType: Footer Item,Link to the page you want to open. Leave blank if you want to make it a group parent.,เชื่อมโยงไปยังหน้าเว็บที่คุณต้องการที่จะเปิด ปล่อยว่างไว้ถ้าคุณต้องการที่จะให้มันผู้ปกครองกลุ่ม
 DocType: DocType,Is Single,เป็นโสด
 apps/frappe/frappe/core/doctype/user/user.py +758,Sign Up is disabled,Sign Up ถูกปิดใช้งาน
-apps/frappe/frappe/email/queue.py +334,{0} has left the conversation in {1} {2},{0} ได้ออกจากการสนทนาใน {1} {2}
+apps/frappe/frappe/email/queue.py +335,{0} has left the conversation in {1} {2},{0} ได้ออกจากการสนทนาใน {1} {2}
 DocType: Blogger,User ID of a Blogger,ชื่อผู้ใช้ ID ของ Blogger
 apps/frappe/frappe/core/doctype/user/user.py +299,There should remain at least one System Manager,ควรยังคงอยู่อย่างน้อยหนึ่งตัวจัดการระบบ
 DocType: GCalendar Account,Authorization Code,รหัสอนุมัติ
@@ -918,7 +916,7 @@ DocType: Property Setter,Property Setter,สถานที่ให้บริ
 DocType: Web Form,Allow Print,อนุญาตให้พิมพ์
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +241,Mark the field as Mandatory,ทำเครื่องหมายฟิลด์เป็นข้อบังคับ
 DocType: Communication,Clicked,คลิก
-apps/frappe/frappe/public/js/legacy/form.js +995,No permission to '{0}' {1},ไม่ อนุญาตให้ ' {0} ' {1}
+apps/frappe/frappe/public/js/legacy/form.js +991,No permission to '{0}' {1},ไม่ อนุญาตให้ ' {0} ' {1}
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +38,Scheduled to send,การกำหนดตารางเวลาในการส่ง
 DocType: DocType,Track Seen,ติดตามการกระทำ
 DocType: Dropbox Settings,File Backup,การสำรองข้อมูลไฟล์
@@ -1178,7 +1176,7 @@ DocType: Page,Icon,ไอคอน
 apps/frappe/frappe/core/doctype/user/user.py +934,"Hint: Include symbols, numbers and capital letters in the password",คำแนะนำ: รวมสัญลักษณ์ตัวเลขและตัวพิมพ์ใหญ่ในรหัสผ่าน
 apps/frappe/frappe/core/doctype/user/user.py +934,"Hint: Include symbols, numbers and capital letters in the password",คำแนะนำ: รวมสัญลักษณ์ตัวเลขและตัวพิมพ์ใหญ่ในรหัสผ่าน
 DocType: DocField,Allow in Quick Entry,อนุญาตใน Quick Entry
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +809,PDF,รูปแบบไฟล์ PDF
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +832,PDF,รูปแบบไฟล์ PDF
 DocType: System Settings,dd/mm/yyyy,วัน / เดือน / ปี
 apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.js +32,GSuite script test,การทดสอบสคริปต์ GSuite
 DocType: System Settings,Backups,การสำรองข้อมูล
@@ -1379,7 +1377,7 @@ DocType: Chat Room User,Admin,ผู้ดูแลระบบ
 DocType: Website Settings,Brand,ยี่ห้อ
 DocType: Report,Query Report,รายงานแบบสอบถาม
 DocType: User,Set New Password,ตั้งรหัสผ่านใหม่
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +49,"%s is not a valid report format. Report format should \
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +54,"%s is not a valid report format. Report format should \
 				one of the following %s",%s ไม่ใช่รูปแบบรายงานที่ถูกต้อง รูปแบบรายงานควรเป็น \ หนึ่งใน %s ต่อไปนี้
 DocType: Chat Message,Chat,พูดคุย
 apps/frappe/frappe/core/doctype/doctype/doctype.py +511,Fieldname {0} appears multiple times in rows {1},fieldname {0} ปรากฏขึ้น หลายครั้งใน แถว {1}
@@ -1445,7 +1443,7 @@ apps/frappe/frappe/core/doctype/system_settings/system_settings.py +27,Session E
 DocType: Chat Message,Group,กลุ่ม
 DocType: Footer Item,"Select target = ""_blank"" to open in a new page.","เลือก target = ""_blank"" จะเปิดใน หน้าใหม่"
 apps/frappe/frappe/core/page/usage_info/usage_info.html +60,Database Size:,ขนาดฐานข้อมูล:
-apps/frappe/frappe/public/js/frappe/social/social_home.js +68,Set Image,ตั้งค่ารูปภาพ
+apps/frappe/frappe/public/js/frappe/social/social_home.js +67,Set Image,ตั้งค่ารูปภาพ
 apps/frappe/frappe/public/js/frappe/model/model.js +518,Permanently delete {0}?,ลบ {0}?
 apps/frappe/frappe/core/doctype/file/file.py +195,Same file has already been attached to the record,ไฟล์เดียวกันได้ถูกแนบมากับบันทึก
 apps/frappe/frappe/model/workflow.py +126,{0} is not a valid Workflow State. Please update your Workflow and try again.,{0} ไม่ใช่สถานะเวิร์กโฟลว์ที่ถูกต้อง โปรดอัปเดตเวิร์กโฟลว์และลองอีกครั้ง
@@ -1510,7 +1508,6 @@ DocType: Notification,Slack Channel,Slack Channel
 DocType: About Us Team Member,Image Link,ลิงก์รูปภาพ
 DocType: Auto Email Report,Report Filters,ตัวกรองรายงาน
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +16,now,ตอนนี้
-apps/frappe/frappe/contacts/doctype/address/address.py +194,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,ไม่พบแม่แบบที่อยู่เริ่มต้น โปรดสร้างใหม่จากการตั้งค่า&gt; การพิมพ์และการสร้างแบรนด์&gt; เทมเพลตที่อยู่
 DocType: Workflow State,step-backward,ขั้นตอนย้อนหลัง
 apps/frappe/frappe/utils/boilerplate.py +265,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +259,Please set Dropbox access keys in your site config,โปรดตั้งค่า คีย์ การเข้าถึง Dropbox ใน การตั้งค่า เว็บไซต์ของคุณ
@@ -1711,7 +1708,7 @@ apps/frappe/frappe/model/naming.py +113, for {0},สำหรับ {0}
 apps/frappe/frappe/website/js/web_form.js +140,There were errors. Please report this.,มีข้อผิดพลาดอยู่ กรุณารายงาน
 apps/frappe/frappe/public/js/legacy/form.js +173,You are not allowed to print this document,คุณยังไม่ได้ รับอนุญาตให้ พิมพ์เอกสาร นี้
 apps/frappe/frappe/data_migration/doctype/data_migration_run/data_migration_run.js +11,Currently updating {0},ขณะนี้กำลังอัปเดต {0}
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +121,Please set filters value in Report Filter table.,กรุณาตั้งค่าฟิลเตอร์กรองในตารางรายงาน
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +124,Please set filters value in Report Filter table.,กรุณาตั้งค่าฟิลเตอร์กรองในตารางรายงาน
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +284,Loading Report,โหลดรายงาน
 apps/frappe/frappe/limits.py +74,Your subscription will expire today.,การสมัครของคุณจะหมดอายุในวันนี้
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1055,Export All {0} rows?,ส่งออกทั้งหมด {0} แถว?
@@ -1863,6 +1860,7 @@ DocType: Web Page,Text Align,ข้อความตําแหน่ง
 apps/frappe/frappe/model/naming.py +215,Name cannot contain special characters like {0},ชื่อไม่สามารถมีตัวอักษรพิเศษเช่น {0}
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +29,Print Documents,พิมพ์เอกสาร
 DocType: Contact Us Settings,Forward To Email Address,ไปข้างหน้า เพื่อ ที่อยู่อีเมล์
+DocType: Auto Email Report,Weekdays,วันธรรมดา
 apps/frappe/frappe/public/js/frappe/views/reports/reportview_footer.html +9,Show all data,แสดงข้อมูลทั้งหมด
 apps/frappe/frappe/core/doctype/doctype/doctype.py +628,Title field must be a valid fieldname,ฟิลด์ จะต้องfieldname ถูกต้อง
 DocType: Post Comment,Post Comment,เขียนความคิดเห็น
@@ -1988,7 +1986,7 @@ DocType: Web Form,Success Message,ข้อความที่ประสบ�
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +84,Export Customizations,การปรับแต่งการส่งออก
 apps/frappe/frappe/website/doctype/web_page/web_page.py +136,End Date cannot be before Start Date!,วันที่สิ้นสุดต้องเป็นวันที่เริ่มต้น!
 DocType: DocType,User Cannot Search,ผู้ใช้ไม่สามารถค้นหา
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +84,Invalid Output Format,รูปแบบเอาต์พุตที่ไม่ถูกต้อง
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +89,Invalid Output Format,รูปแบบเอาต์พุตที่ไม่ถูกต้อง
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.js +54,Restart,เริ่มต้นใหม่
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +125,Cannot {0} {1},ไม่สามารถ {0} {1}
 DocType: Custom DocPerm,Apply this rule if the User is the Owner,ใช้กฎนี้ถ้าผู้ใช้เป็นเจ้าของ
@@ -2056,7 +2054,7 @@ DocType: System Settings,Expiry time of QR Code Image Page,เวลาหมด
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +614,Show Totals,แสดงผลรวม
 DocType: Error Snapshot,Relapses,อาการกำเริบ
 DocType: Address,Preferred Shipping Address,ที่อยู่การจัดส่งสินค้าที่ต้องการ
-apps/frappe/frappe/public/js/frappe/form/print.js +294,With Letter head,ที่มีหัวจดหมาย
+apps/frappe/frappe/public/js/frappe/form/print.js +284,With Letter head,ที่มีหัวจดหมาย
 apps/frappe/frappe/public/js/frappe/form/form_sidebar.js +62,{0} created this {1},{0} ได้สร้าง {1} นี้
 DocType: Data Import,"If this is checked, rows with valid data will be imported and invalid rows will be dumped into a new file for you to import later.",หากเลือกช่องนี้แถวที่มีข้อมูลที่ถูกต้องจะถูกนำเข้าและแถวที่ไม่ถูกต้องจะถูกทิ้งลงในไฟล์ใหม่เพื่อให้คุณนำเข้าภายหลัง
 apps/frappe/frappe/public/js/frappe/form/workflow.js +38,Document is only editable by users of role,เอกสารเป็นเพียงแก้ไขได้โดยผู้ใช้ของบทบาท
@@ -2150,7 +2148,6 @@ apps/frappe/frappe/public/js/frappe/model/model.js +27,Document Status,สถา
 apps/frappe/frappe/core/page/desktop/desktop_help_message.html +5,You have made {0} of {1},คุณได้ทำ {0} ของ {1}
 DocType: OAuth Authorization Code,OAuth Authorization Code,OAuth รหัสอนุมัติ
 apps/frappe/frappe/core/doctype/data_import/importer.py +324,Not allowed to Import,ได้รับอนุญาตให้ นำเข้า
-apps/frappe/frappe/email/smtp.py +191,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,ไม่ได้ตั้งค่าบัญชีอีเมล โปรดสร้างบัญชีอีเมลใหม่จากตั้งค่า&gt; อีเมล&gt; บัญชีอีเมล
 DocType: Deleted Document,Deleted DocType,DocType ที่ถูกลบ
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +22,Permission Levels,ระดับสิทธิ์
 DocType: Workflow State,Warning,คำเตือน
@@ -2166,7 +2163,7 @@ apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +150,Hide Weekend
 DocType: Workflow State,info-sign,ข้อมูลการเข้าสู่ระบบ
 apps/frappe/frappe/model/base_document.py +226,Value for {0} cannot be a list,ราคา {0} ไม่สามารถเป็นรายการ
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults",วิธีการที่ควรสกุลเงินนี้จะจัดรูปแบบ? ถ้าไม่ตั้งจะใช้เริ่มต้นของระบบ
-apps/frappe/frappe/public/js/frappe/list/list_view.js +1063,Submit {0} documents?,ส่ง {0} เอกสาร?
+apps/frappe/frappe/public/js/frappe/list/list_view.js +1070,Submit {0} documents?,ส่ง {0} เอกสาร?
 apps/frappe/frappe/utils/response.py +142,You need to be logged in and have System Manager Role to be able to access backups.,คุณจะต้อง เข้าสู่ระบบและ มี บทบาท ผู้จัดการ ระบบ เพื่อให้สามารถ เข้าถึง การสำรองข้อมูล
 apps/frappe/frappe/public/js/legacy/form.js +136,Please save before attaching.,กรุณาบันทึกก่อนที่จะติด
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +125,Added {0} ({1}),เพิ่ม {0} ({1})
@@ -2192,13 +2189,12 @@ DocType: Role Permission for Page and Report,Set Role For,ตั้งบทบ�
 DocType: GCalendar Account,The name that will appear in Google Calendar,ชื่อที่จะปรากฏใน Google ปฏิทิน
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +65,Direct room with {0} already exists.,ห้องที่ตรงกับ {0} มีอยู่แล้ว
 apps/frappe/frappe/core/doctype/user/user.js +67,Refreshing...,กำลังปรับปรุง...
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions,ตั้งค่า&gt; สิทธิ์ผู้ใช้
 DocType: Event,Starts on,เริ่มเมื่อ
 DocType: System Settings,System Settings,การตั้งค่าระบบ
 DocType: GCalendar Settings,Google API Credentials,ข้อมูลรับรอง Google API
 apps/frappe/frappe/public/js/frappe/desk.js +36,Session Start Failed,เซสชันเริ่มล้มเหลว
 apps/frappe/frappe/public/js/frappe/desk.js +36,Session Start Failed,เซสชันเริ่มล้มเหลว
-apps/frappe/frappe/email/queue.py +514,This email was sent to {0} and copied to {1},อีเมลนี้จะถูกส่งไปที่ {0} และคัดลอกไปยัง {1}
+apps/frappe/frappe/email/queue.py +515,This email was sent to {0} and copied to {1},อีเมลนี้จะถูกส่งไปที่ {0} และคัดลอกไปยัง {1}
 DocType: Workflow State,th,th
 DocType: Social Login Key,Provider Name,ชื่อผู้ให้บริการ
 apps/frappe/frappe/public/js/frappe/form/controls/link.js +172,Create a new {0},สร้างใหม่ {0}
@@ -2221,7 +2217,7 @@ DocType: Address,Andaman and Nicobar Islands,หมู่เกาะอัน�
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +239,GSuite Document,เอกสาร GSuite
 apps/frappe/frappe/email/doctype/notification/notification.py +35,Please specify which value field must be checked,กรุณาระบุว่าเขตข้อมูลค่าจะต้องตรวจสอบ
 apps/frappe/frappe/core/doctype/data_import/exporter.py +71,"""Parent"" signifies the parent table in which this row must be added",“ตารางหลัก” หมายถึงตารางหลักที่แถวนี้จะต้องเพิ่ม
-apps/frappe/frappe/email/queue.py +248,Cannot send this email. You have crossed the sending limit of {0} emails for this day.,ไม่สามารถส่งอีเมลนี้ คุณข้ามขีด จำกัด การส่ง {0} อีเมลสำหรับวันนี้แล้ว
+apps/frappe/frappe/email/queue.py +249,Cannot send this email. You have crossed the sending limit of {0} emails for this day.,ไม่สามารถส่งอีเมลนี้ คุณข้ามขีด จำกัด การส่ง {0} อีเมลสำหรับวันนี้แล้ว
 DocType: Website Theme,Apply Style,สมัคร สไตล์
 DocType: Feedback Request,Feedback Rating,ผลตอบรับการจัดอันดับ
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +63,Shared With,ที่ใช้ร่วมกันด้วย
@@ -2260,7 +2256,7 @@ DocType: OAuth Client,App Client ID,App รหัสลูกค้า
 DocType: Kanban Board,Kanban Board Name,ชื่อกระดานคันบัน
 DocType: Notification Recipient,"Expression, Optional",การแสดงออกที่เป็นตัวเลือก
 DocType: GSuite Settings,Copy and paste this code into and empty Code.gs in your project at script.google.com,คัดลอกและวางรหัสนี้ลงในและว่าง Code.gs ในโครงการของคุณที่ script.google.com
-apps/frappe/frappe/email/queue.py +516,This email was sent to {0},อีเมลนี้จะถูกส่งไปที่ {0}
+apps/frappe/frappe/email/queue.py +517,This email was sent to {0},อีเมลนี้จะถูกส่งไปที่ {0}
 DocType: System Settings,Hide footer in auto email reports,ซ่อนส่วนท้ายในรายงานอีเมลอัตโนมัติ
 DocType: DocField,Remember Last Selected Value,โปรดจำไว้ว่าที่เลือกล่าสุดราคา
 DocType: Email Account,Check this to pull emails from your mailbox,ตรวจสอบนี้จะดึงอีเมลจากกล่องจดหมายของคุณ
@@ -2539,7 +2535,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager.py +91,There 
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +67,Get Items,รับสินค้า
 DocType: Contact,Image,รูปภาพ
 DocType: Workflow State,remove-sign,ลบเซ็น
-apps/frappe/frappe/printing/doctype/print_settings/print_settings.py +30,Failed to connect to server,ล้มเหลวในการเชื่อมต่อกับเซิร์ฟเวอร์
+apps/frappe/frappe/printing/doctype/print_settings/print_settings.py +31,Failed to connect to server,ล้มเหลวในการเชื่อมต่อกับเซิร์ฟเวอร์
 apps/frappe/frappe/core/doctype/data_export/exporter.py +100,There is no data to be exported,ไม่มีข้อมูลที่จะส่งออก
 DocType: Domain Settings,Domains HTML,โดเมน HTML
 apps/frappe/frappe/templates/includes/search_template.html +47,Type something in the search box to search,พิมพ์สิ่งที่อยู่ในกล่องค้นหาเพื่อค้นหา
@@ -2736,7 +2732,7 @@ DocType: Report,Letter Head,หัวจดหมาย
 DocType: DocType,Quick Entry,รายการด่วน
 DocType: Web Form,Button Label,ปุ่มฉลาก
 DocType: Website Theme,UPPERCASE,พิมพ์ใหญ่
-apps/frappe/frappe/public/js/frappe/list/list_view.js +862,{0} items selected,{0} รายการถูกเลือก
+apps/frappe/frappe/public/js/frappe/list/list_view.js +869,{0} items selected,{0} รายการถูกเลือก
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js +16,Suspend Sending,ระงับการส่ง
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html +3,Drag elements from the sidebar to add. Drag them back to trash.,องค์ประกอบลากจากแถบด้านข้างเพื่อเพิ่ม ลากพวกเขากลับไปยังถังขยะ
 DocType: Workflow State,resize-small,ปรับขนาดเล็ก
@@ -2772,7 +2768,7 @@ DocType: Address,Telangana,พรรคเตลัง
 apps/frappe/frappe/core/doctype/doctype/doctype.py +565,Default for {0} must be an option,เริ่มต้นสำหรับ {0} จะต้องเป็นตัวเลือก
 DocType: Tag Doc Category,Tag Doc Category,แท็ก Doc หมวดหมู่
 DocType: User,User Image,รูปภาพของผู้ใช้
-apps/frappe/frappe/email/queue.py +344,Emails are muted,อีเมลเป็น เงียบ
+apps/frappe/frappe/email/queue.py +345,Emails are muted,อีเมลเป็น เงียบ
 apps/frappe/frappe/config/integrations.py +88,Google Services,บริการของ Google
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +67,Ctrl + Up,Ctrl + ขึ้น
 DocType: Website Theme,Heading Style,สไตล์มุ่งหน้าไป
@@ -2880,7 +2876,6 @@ DocType: System Settings,User can login using Email id or User Name,ผู้ใ
 DocType: Workflow State,question-sign,คำถามการลงชื่อเข้าใช้
 apps/frappe/frappe/core/doctype/doctype/doctype.py +165,"Field ""route"" is mandatory for Web Views",ฟิลด์ &quot;เส้นทาง&quot; เป็นสิ่งที่บังคับสำหรับมุมมองเว็บ
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +221,Insert Column Before {0},แทรกคอลัมน์ก่อน {0}
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,Setup &gt; Customize Form,ตั้งค่า&gt; กำหนดรูปแบบ
 DocType: Dropbox Settings,Number of DB Backups,จำนวนสำรองข้อมูล DB
 DocType: Email Account,Add Signature,เพิ่มลายเซ็น
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +38,Left this conversation,ออกจากการสนทนานี้
@@ -2944,7 +2939,7 @@ apps/frappe/frappe/config/setup.py +37,Set Permissions on Document Types and Rol
 DocType: Data Migration Run,Remote ID,ID ระยะไกล
 apps/frappe/frappe/model/meta.py +204,No Label,ไม่มีฉลาก
 DocType: System Settings,Use socketio to upload file,ใช้ซ็อกเก็ตเพื่ออัปโหลดไฟล์
-apps/frappe/frappe/public/js/frappe/list/list_view.js +275,Refreshing,รวย
+apps/frappe/frappe/public/js/frappe/list/list_view.js +256,Refreshing,รวย
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py +77,Modified By,แก้ไขโดย
 DocType: Address,Tripura,ตริปุระ
 DocType: About Us Settings,"""Company History""","""ประวัติบริษัท"""
@@ -3017,7 +3012,7 @@ apps/frappe/frappe/desk/moduleview.py +37,Custom Reports,รายงานท�
 DocType: Website Script,Website Script,สคริปต์เว็บไซต์
 DocType: GSuite Settings,If you aren't using own publish Google Apps Script webapp you can use the default https://script.google.com/macros/s/AKfycbxIFOx3301xwtF2IFPJ4pUQGqkNF3hBiBebppWkeKn6fKZRQvk/exec ,หากคุณไม่ได้ใช้เว็บแอ็พพลิเคชัน Google Apps Script เผยแพร่เองคุณสามารถใช้ https://script.google.com/macros/s/AKfycbxIFOx3301xwtF2IFPJ4pUQGqkNF3hBiBebppWkeKn6fKZRQvk/exec เป็นค่าเริ่มต้น
 apps/frappe/frappe/config/setup.py +200,Customized HTML Templates for printing transactions.,แม่แบบ HTML ที่กำหนดเองสำหรับการทำธุรกรรมการพิมพ์
-apps/frappe/frappe/public/js/frappe/form/print.js +305,Orientation,ปฐมนิเทศ
+apps/frappe/frappe/public/js/frappe/form/print.js +295,Orientation,ปฐมนิเทศ
 DocType: Workflow,Is Active,มีการใช้งาน
 apps/frappe/frappe/desk/form/utils.py +114,No further records,ไม่มีระเบียนใด
 DocType: DocField,Long Text,ข้อความยาว
@@ -3126,7 +3121,7 @@ DocType: SMS Settings,Use POST,ใช้ POST
 DocType: Communication,SMS,ข้อความ
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js +14,Fetch Images,ดึงข้อมูลรูปภาพ
 DocType: DocType,Web View,ดูเว็บ
-apps/frappe/frappe/public/js/frappe/form/print.js +226,Warning: This Print Format is in old style and cannot be generated via the API.,คำเตือน: พิมพ์รูปแบบนี้อยู่ในรูปแบบเก่าและไม่สามารถสร้างขึ้นผ่านทาง
+apps/frappe/frappe/public/js/frappe/form/print.js +216,Warning: This Print Format is in old style and cannot be generated via the API.,คำเตือน: พิมพ์รูปแบบนี้อยู่ในรูปแบบเก่าและไม่สามารถสร้างขึ้นผ่านทาง
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +810,Totals,ผลรวม
 DocType: DocField,Print Width,ความกว้างพิมพ์
 ,Setup Wizard,ตัวช่วยสร้าง การติดตั้ง
@@ -3178,7 +3173,7 @@ DocType: User,Third Party Authentication,การตรวจสอบ บุ�
 DocType: Website Settings,Banner is above the Top Menu Bar.,แบนเนอร์บนแถบเมนูด้านบน
 DocType: User,API Secret,API ลับ
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +29,{0} Calendar,{0} ปฏิทิน
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +765,Export Report: ,รายงานการส่งออก:
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +777,Export Report: ,รายงานการส่งออก:
 DocType: Data Migration Run,Push Update,อัปเดต Push
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +10,in the Auto Repeat document,ในเอกสาร Auto Repeat
 DocType: Email Account,Port,พอร์ต
@@ -3410,7 +3405,6 @@ apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +135,Please save
 apps/frappe/frappe/email/doctype/email_group/email_group.py +42,{0} subscribers added,{0} สมาชิกถูกเพิ่มแล้ว
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +15,Not In,ไม่อยู่ใน
 DocType: Workflow State,star,ดาว
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +361,<p>No results found for '</p>,<p> ไม่พบผลลัพธ์สำหรับ &#39; </p>
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +237,Hub,ดุม
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +282,values separated by commas,ค่าที่คั่นด้วยเครื่องหมายจุลภาค
 apps/frappe/frappe/core/doctype/doctype/doctype.py +543,Max width for type Currency is 100px in row {0},ความกว้าง สูงสุด สำหรับประเภท สกุลเงิน เป็น 100px ในแถว {0}
@@ -3473,7 +3467,6 @@ DocType: Print Settings,Print Style,รูปแบบการพิมพ์
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +52,Not Linked to any record,ไม่เชื่อมโยงกับระเบียนใด ๆ
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +52,Not Linked to any record,ไม่เชื่อมโยงกับระเบียนใด ๆ
 DocType: Custom DocPerm,Import,นำเข้า
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} ปีที่ผ่านมา
 DocType: User,Social Logins,การเข้าสู่ระบบโซเชียล
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +180,Row {0}: Not allowed to enable Allow on Submit for standard fields,แถว {0}: ไม่อนุญาตให้เปิดใช้งานการอนุญาตในการส่งสำหรับเขตข้อมูลมาตรฐาน
 apps/frappe/frappe/core/doctype/role/role.py +12,Standard roles cannot be renamed,บทบาทมาตรฐานไม่สามารถเปลี่ยนชื่อ
@@ -3514,7 +3507,7 @@ DocType: Activity Log,Failed,ล้มเหลว
 DocType: Web Form,Allow Comments,อนุญาตให้แสดงความคิดเห็น
 DocType: User,Background Style,รูปแบบพื้นหลัง
 DocType: System Settings,Bypass Two Factor Auth for users who login from restricted IP Address,เลี่ยงผ่านสองปัจจัย Auth สำหรับผู้ใช้ที่เข้าสู่ระบบจากที่อยู่ IP จำกัด
-apps/frappe/frappe/email/queue.py +276,{0} to stop receiving emails of this type,{0} เพื่อหยุดรับอีเมลประเภทนี้
+apps/frappe/frappe/email/queue.py +277,{0} to stop receiving emails of this type,{0} เพื่อหยุดรับอีเมลประเภทนี้
 apps/frappe/frappe/www/qrcode.html +13,Open your authentication app on your mobile phone.,เปิดแอปพลิเคชันการตรวจสอบความถูกต้องบนโทรศัพท์มือถือของคุณ
 apps/frappe/frappe/model/rename_doc.py +77,merged {0} into {1},รวม {0} เข้าไป {1}
 DocType: System Settings,mm-dd-yyyy,วว-ดด-ปป
