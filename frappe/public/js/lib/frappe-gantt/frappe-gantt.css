@@ -66,7 +66,8 @@
   transition: opacity .3s ease; }
 
 .gantt .bar-wrapper {
-  cursor: pointer; }
+  cursor: pointer;
+  outline: none; }
   .gantt .bar-wrapper:hover .bar {
     fill: #a9b5c1; }
   .gantt .bar-wrapper:hover .bar-progress {
