@@ -4,7 +4,7 @@ frappe.core.Workflow = Class.extend({
 	init: function(args){
 		$.extend(this, args);
 	},
-	onload: function(doc) {
+	onload: function() {
 		this.frm.set_query("document_type", {"issingle": 0, "istable": 0});
 	},
 	refresh: function(doc) {
