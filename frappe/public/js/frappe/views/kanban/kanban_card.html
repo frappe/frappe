@@ -1,6 +1,12 @@
 <div class="kanban-card-wrapper" data-name="{{name}}">
 	<div class="kanban-card content">
 		<div class="kanban-card-title">
+			<!-- Hack to retrieve task document number,
+				since TASK00001 looks bad on the card -->
+			<div class="text-muted">
+				<span>#{{ flt(name.split("TASK")[1]) }}</span>
+				<span class="pull-right">{{ doc.exp_end_date }}</span>
+			</div>
 			{{ title }}
 		</div>
 		<div class="kanban-card-meta">
