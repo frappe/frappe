@@ -205,7 +205,7 @@ class DatabaseQuery(object):
 			if re.compile("^(select|delete|update|drop|create)\s").match(field):
 				_raise_exception()
 
-			elif re.compile("\s*[a-zA-z]*\s*( from | group by | order by | where | join )").match(field):
+			elif re.compile("\s*[0-9a-zA-z]*\s*( from | group by | order by | where | join )").match(field):
 				_raise_exception()
 
 		for field in self.fields:
@@ -219,10 +219,10 @@ class DatabaseQuery(object):
 				if any("{0}(".format(keyword) in field.lower() for keyword in blacklisted_functions):
 					_raise_exception()
 
-			if re.compile("[a-zA-Z]+\s*'").match(field):
+			if re.compile("[0-9a-zA-Z]+\s*'").match(field):
 				_raise_exception()
 
-			if re.compile('[a-zA-Z]+\s*,').match(field):
+			if re.compile('[0-9a-zA-Z]+\s*,').match(field):
 				_raise_exception()
 
 			_is_query(field)

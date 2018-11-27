@@ -132,6 +132,9 @@ class TestReportview(unittest.TestCase):
 		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
 			fields=["name", "issingle from tabDocType order by 2 --"],limit_start=0, limit_page_length=1)
 
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+			fields=["name", "1' UNION SELECT * FROM __Auth --"],limit_start=0, limit_page_length=1)
+
 		data = DatabaseQuery("DocType").execute(fields=["name", "issingle", "count(name)"],
 			limit_start=0, limit_page_length=1)
 		self.assertTrue('count(name)' in data[0])
