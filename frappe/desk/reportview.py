@@ -82,7 +82,7 @@ def compress(data, args = {}):
 	for row in data:
 		new_row = []
 		for key in keys:
-			new_row.append(row[key])
+			new_row.append(row.get(key))
 		values.append(new_row)
 
 	if args.get("add_total_row"):
