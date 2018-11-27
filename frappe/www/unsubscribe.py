@@ -33,10 +33,6 @@ def get_context(context):
 def get_email_groups(user_email):
 	# Return the all email_groups in which the email has been registered.
 	data = frappe.get_all("Email Group Member", fields = ["email_group"], filters = {"email": user_email, "unsubscribed": 0})
-	if data:
-		pass
-	else:
-		data = "none"
 	return data
 
 

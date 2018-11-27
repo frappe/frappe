@@ -24,7 +24,7 @@
 			<div class='page-card-head'>
 				<span class='indicator blue'>Unsubscribe</span>
 			</div>
-			{% if email_groups != "none" %}
+			{% if email_groups %}
 				<div>
 					Select groups you wish to unsubscribe from.
 					<span class="text-muted">{{ email }}</span>
@@ -33,7 +33,7 @@
 				<!--Automatic breaks into column if groups are greater than 20 -->
 				{% if email_groups|length > 5 %}
 					<button id="select"class="small-btn">Select All</button>
-					<button id="unselect"class="small-btn">Reset</button>
+					<button id="unselect"class="small-btn">Unselect All</button>
 				{% endif %}
 				<form method="post">
 					<input type="hidden" name="user_email" value="{{ email }}">
@@ -41,17 +41,17 @@
 					<div class="checkbox-container {% if email_groups|length > 10 %} row {% endif %}">
 						{% for group in email_groups %}
 						<div class="checkbox {% if email_groups|length > 10 %} col-sm-6 {% endif %}">
-							{% if current_group[0].email_group == group.email_group %}
-								<label>
-									<input type="checkbox" checked class="group" name='{{ group.email_group }}'>
-									<span style="padding-left: 10px">{{group.email_group}}</span>
-								</label>
-							{% else %}
-									<label>
-										<input type="checkbox" class="group" name='{{ group.email_group }}'>
-										<span style="padding-left: 10px">{{ group.email_group }}</span>
-									</label>
-							{% endif %}
+							
+							<label>
+								<input 
+								type="checkbox" 
+								{% if current_group[0].email_group == group.email_group %} checked {% endif %} 
+								class="group" 
+								name='{{ group.email_group }}'>
+								<span style="padding-left: 10px">{{ group.email_group }}</span>
+							</label>
+							
+							
 						</div>
 						{% endfor %}
 					</div>
