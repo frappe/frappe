@@ -542,25 +542,28 @@ frappe.provide("frappe.views");
 
 			// Add estimated due date to the card
 			if (card.doc.exp_end_date) {
-				day_diff = frappe.datetime.get_day_diff(card.doc.exp_end_date, frappe.datetime.get_today());
+				let day_diff = frappe.datetime.get_day_diff(card.doc.exp_end_date, frappe.datetime.get_today());
+				let due_date_text = "";
 
 				if (day_diff >= 0) {
 					if (day_diff == 0) {
 						due_date_text = "Due today";
 					} else if (day_diff == 1) {
-						due_date_text = "Due in a day";
+						due_date_text = "Due tomorrow";
 					} else {
 						due_date_text = `Due in ${day_diff} days`;
 					}
 				} else {
 					if (day_diff == -1) {
-						due_date_text = "Overdue since a day";
+						due_date_text = "Overdue since yesterday";
 					} else {
 						due_date_text = `Overdue since ${-day_diff} days`;
 					}
 				}
 
-				html += `<span class="pull-left small text-muted">${due_date_text}</span><br>`;
+				if (due_date_text) {
+					html += `<span class="pull-left small text-muted">${due_date_text}</span><br>`;
+				}
 			}
 
 			// Add comment count to the card
