@@ -138,7 +138,7 @@ def confirmed_unsubscribe(email, group):
 	doc = frappe.get_doc('Email Group Member', {"email": email, "email_group": group})
 	if doc.unsubscribed != 1:
 		doc.unsubscribed = 1
-		doc.save()
+		doc.save(ignore_permissions = True)
 
 def create_lead(email_id):
 	"""create a lead if it does not exist"""

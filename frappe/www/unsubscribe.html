@@ -40,18 +40,19 @@
 					<input type="hidden" name="csrf_token" value="{{ frappe.session.csrf_token }}">
 					<div class="checkbox-container {% if email_groups|length > 10 %} row {% endif %}">
 						{% for group in email_groups %}
+						<div class="checkbox {% if email_groups|length > 10 %} col-sm-6 {% endif %}">
 							{% if current_group[0].email_group == group.email_group %}
-								<div class="checkbox {% if email_groups|length > 10 %} col-sm-6 {% endif %}">
-									<label><input type="checkbox" checked class="group" name='{{group.email_group}}'><span style="padding-left: 10px">{{group.email_group}}</span></label>
-								</div>
+								<label>
+									<input type="checkbox" checked class="group" name='{{ group.email_group }}'>
+									<span style="padding-left: 10px">{{group.email_group}}</span>
+								</label>
 							{% else %}
-								<div class="checkbox {% if email_groups|length > 20 %} col-sm-6 {% endif %}">
 									<label>
-										<input type="checkbox" class="group" name='{{group.email_group}}'>
-										<span style="padding-left: 10px">{{group.email_group}}</span>
+										<input type="checkbox" class="group" name='{{ group.email_group }}'>
+										<span style="padding-left: 10px">{{ group.email_group }}</span>
 									</label>
-								</div>
 							{% endif %}
+						</div>
 						{% endfor %}
 					</div>
 						<button 
@@ -88,11 +89,6 @@
 		</div>
 	{% endif %}
 
-	<style>
-	.hero-and-content {
-		background-color: #f5f7fa;
-	}
-	</style>
 {% endblock %}
 
 {% block style %}
@@ -111,7 +107,7 @@
 		.checkbox-container {
 			margin-top: 20px;
 		}
-		.main-div{
+		.main-div {
 			width: 500px;
 			height: auto;
 		}
