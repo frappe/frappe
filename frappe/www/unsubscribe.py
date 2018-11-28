@@ -12,14 +12,14 @@ def get_context(context):
 		if verify_request():
 			user_email = frappe.form_dict["email"]
 			context.email = user_email
-			tittle = frappe.form_dict["name"]
+			title = frappe.form_dict["name"]
 			context.email_groups = get_email_groups(user_email)
-			context.current_group = get_current_groups(tittle)
-			context.status = "confirmation page"
+			context.current_group = get_current_groups(title)
+			context.status = "waiting_for_confirmation"
 
 	# Called when form is submitted.
 	elif "user_email" in frappe.form_dict:
-		context.status = "Unsubscribed page"
+		context.status = "unsubscribed"
 		email = frappe.form_dict['user_email']
 		email_group = get_email_groups(email)
 		for group in email_group:
@@ -28,14 +28,17 @@ def get_context(context):
 
 	# Called on Invalid or unsigned request.
 	else:
-		context.status = "not valid"
+		context.status = "invalid"
 
 def get_email_groups(user_email):
 	# Return the all email_groups in which the email has been registered.
-	data = frappe.get_all("Email Group Member", fields = ["email_group"], filters = {"email": user_email, "unsubscribed": 0})
-	return data
+	return frappe.get_all("Email Group Member",
+		fields=["email_group"],
+		filters={"email": user_email, "unsubscribed": 0})
 
 
 def get_current_groups(name):
 	# Return current group by which the mail has been sent.
-	return frappe.db.get_all("Newsletter Email Group", ["email_group"],{"parent":name, "parenttype":"Newsletter"})
+	return frappe.db.get_all("Newsletter Email Group",
+		fields=["email_group"],
+		filters={"parent":name, "parenttype":"Newsletter"})
