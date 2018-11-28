@@ -357,7 +357,7 @@ frappe.search.SearchDialog = Class.extend({
 			no_results_status: (keyword) => __("<p>No results found for '" + keyword + "' in Global Search</p>"),
 
 			get_results: function(keywords, callback) {
-				var start = 0, limit = 100;
+				var start = 0, limit = 1000;
 				var results = frappe.search.utils.get_nav_results(keywords);
 				frappe.search.utils.get_global_results(keywords, start, limit)
 					.then(function(global_results) {
