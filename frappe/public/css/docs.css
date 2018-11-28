@@ -181,7 +181,7 @@
   font-style: normal;
   text-decoration: inherit;
   -webkit-font-smoothing: antialiased;
-  *margin-right: .3em;
+  *margin-right: 0.3em;
   display: inline-block;
   speak: none;
   font-size: 24px;
