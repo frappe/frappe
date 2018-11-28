@@ -434,7 +434,7 @@ class BaseDocument(object):
 		cancelled_links = []
 
 		for df in (self.meta.get_link_fields()
-				 + self.meta.get("fields", {"fieldtype": ('=', "Dynamic Link")})):
+				+ self.meta.get("fields", {"fieldtype": ('=', "Dynamic Link")})):
 			docname = self.get(df.fieldname)
 
 			if docname:
@@ -476,7 +476,7 @@ class BaseDocument(object):
 					setattr(self, df.fieldname, values.name)
 
 					for _df in fields_to_fetch:
-						if self.docstatus != 1 or _df.allow_on_submit:
+						if self.is_new() or self.docstatus != 1 or _df.allow_on_submit:
 							setattr(self, _df.fieldname, values[_df.fetch_from.split('.')[-1]])
 
 					notify_link_count(doctype, docname)

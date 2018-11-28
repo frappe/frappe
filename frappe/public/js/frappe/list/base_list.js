@@ -9,7 +9,8 @@ frappe.views.BaseList = class BaseList {
 		frappe.run_serially([
 			() => this.init(),
 			() => this.before_refresh(),
-			() => this.refresh()
+			() => this.refresh(),
+			() => frappe.route_options = null
 		]);
 	}
 
