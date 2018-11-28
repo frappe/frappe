@@ -54,6 +54,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.save_report_settings();
 	}
 
+	get_filters_to_apply() {
+		if (this.report_doc) {
+			return this.report_doc.json.filters;
+		}
+
+		return super.get_filters_to_apply();
+	}
+
 	save_report_settings() {
 		frappe.model.user_settings.save(this.doctype, 'last_view', this.view_name);
 
