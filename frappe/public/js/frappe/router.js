@@ -42,17 +42,7 @@ frappe.route = function() {
 		return;
 	}
 	frappe.route_history.push(route);
-	if (route[0] === 'calendar') {
-		console.log(route[0]);
-		debugger;
-			if(!frappe.view_factory[route[0]]) {
-				frappe.view_factory[route[0]] = new frappe.views["calendarFactory"]();
-		}
-
-		frappe.view_factory[route[0]].show();
-
-	}
-	else if(route[0] && route[1] && frappe.views[route[0] + "Factory"]) {
+	if(route[0] && route[1] && frappe.views[route[0] + "Factory"]) {
 		// has a view generator, generate!
 		if(!frappe.view_factory[route[0]]) {
 			frappe.view_factory[route[0]] = new frappe.views[route[0] + "Factory"]();
