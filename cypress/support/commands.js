@@ -45,8 +45,8 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype='Data') => {
     cy.get(selector).as('input')
 
     if (fieldtype === 'Select') {
-        cy.get('@input').select(value)
+        return cy.get('@input').select(value)
     } else {
-        cy.get('@input').type(value)
+        return cy.get('@input').type(value)
     }
 })

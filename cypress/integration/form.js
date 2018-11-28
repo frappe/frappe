@@ -6,8 +6,7 @@ context('Form', () => {
 
     it('create a new form', () => {
         cy.visit('/desk#Form/ToDo/New ToDo 1')
-        cy.get('[data-fieldname="description"] .ql-editor').type('this is a test todo', { delay: 50 })
-        cy.scrollTo(0, 0)
+        cy.fill_field('description', 'this is a test todo', 'Text Editor').blur()
         cy.get('.primary-action').click()
         cy.visit('/desk#List/ToDo')
         cy.location('hash').should('eq', '#List/ToDo/List')
