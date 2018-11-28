@@ -384,10 +384,10 @@ def make_records(records, debug=False):
 				time_end = time()
 				exec_time_str = ": {0} sec".format(round(time_end - time_start, 2))
 
-			print("Inserted {0} {1}".format(doctype, doc.name) + exec_time_str)
+			# print("Inserted {0} {1}".format(doctype, doc.name) + exec_time_str)
 
 		except frappe.DuplicateEntryError as e:
-			print("Failed to insert duplicate {0} {1}".format(doctype, doc.name))
+			# print("Failed to insert duplicate {0} {1}".format(doctype, doc.name))
 
 			# pass DuplicateEntryError and continue
 			if e.args and e.args[0]==doc.doctype and e.args[1]==doc.name:
@@ -397,7 +397,7 @@ def make_records(records, debug=False):
 				raise
 
 		except Exception as e:
-			print("Failed to insert {0} {1}".format(doctype, doc.name))
+			# print("Failed to insert {0} {1}".format(doctype, doc.name))
 
 			exception = record.get('__exception')
 			if exception:
