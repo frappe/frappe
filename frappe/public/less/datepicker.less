@@ -13,7 +13,7 @@
 			background-color: @datepicker-hover !important;
 		}
 	}
-
+	.datepicker--cell-day.-other-month-, .datepicker--cell-year.-other-decade-
 	&--time-current-hours, &--time-current-minutes, &--time-current-seconds {
 		font-family: inherit;
 	}
@@ -24,6 +24,17 @@
 
 	&--cell {
 		color: @text-color;
+
+		&.-focus-{
+			background-color: @datepicker-hover;
+		}
+
+		&.-day{
+
+			&.-other-month-{
+				color: @datepicker-muted;
+			}
+		}
 
 		&.-current- {
 			color: @brand-primary;
@@ -72,6 +83,7 @@
 	color: @brand-primary;
 
 	&.hover {
-		background-color: @datepicker-button-bg;
+		color: @text-color;
+		background-color: @datepicker-button-bg !important;
 	}
 }
