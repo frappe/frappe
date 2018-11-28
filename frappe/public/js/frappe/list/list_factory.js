@@ -6,7 +6,6 @@ frappe.provide('frappe.views.list_view');
 window.cur_list = null;
 frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 	make (route) {
-		if(route[1].indexOf(",") == -1){
 			var me = this;
 			var doctype = route[1];
 
@@ -39,11 +38,6 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 					me.set_cur_list();
 				}
 			});
-		}
-		else{
-			var doctypes = route[1].split(',');
-			console.log(doctypes);	
-		}	
 	}
 
 	show() {
