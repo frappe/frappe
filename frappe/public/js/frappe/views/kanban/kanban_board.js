@@ -531,7 +531,8 @@ frappe.provide("frappe.views");
 		function make_dom() {
 			var opts = {
 				name: card.name,
-				title: remove_img_tags(card.title)
+				title: remove_img_tags(card.title),
+				doc: card.doc
 			};
 			self.$card = $(frappe.render_template('kanban_card', opts))
 				.appendTo(wrapper);
