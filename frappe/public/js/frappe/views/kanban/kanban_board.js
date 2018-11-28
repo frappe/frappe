@@ -546,7 +546,8 @@ frappe.provide("frappe.views");
 			var opts = {
 				name: card.name,
 				title: remove_img_tags(card.title),
-				disable_click: card._disable_click ? 'disable-click' : ''
+				disable_click: card._disable_click ? 'disable-click' : '',
+				doc: card.doc
 			};
 			self.$card = $(frappe.render_template('kanban_card', opts))
 				.appendTo(wrapper);
