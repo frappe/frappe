@@ -14,6 +14,7 @@ import frappe.permissions
 from frappe.utils import flt, cint, getdate, get_datetime, get_time, make_filter_tuple, get_filter, add_to_date
 from frappe import _
 from frappe.model import optional_fields
+from frappe.client import check_parent_permission
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from datetime import datetime
 
@@ -203,7 +204,7 @@ class DatabaseQuery(object):
 			if re.compile("^(select|delete|update|drop|create)\s").match(field):
 				_raise_exception()
 
-			elif re.compile("\s*[a-zA-z]*\s*( from | group by | order by | where | join )").match(field):
+			elif re.compile("\s*[0-9a-zA-z]*\s*( from | group by | order by | where | join )").match(field):
 				_raise_exception()
 
 		for field in self.fields:
@@ -217,10 +218,10 @@ class DatabaseQuery(object):
 				if any("{0}(".format(keyword) in field.lower() for keyword in blacklisted_functions):
 					_raise_exception()
 
-			if re.compile("[a-zA-Z]+\s*'").match(field):
+			if re.compile("[0-9a-zA-Z]+\s*'").match(field):
 				_raise_exception()
 
-			if re.compile('[a-zA-Z]+\s*,').match(field):
+			if re.compile('[0-9a-zA-Z]+\s*,').match(field):
 				_raise_exception()
 
 			_is_query(field)
@@ -659,6 +660,19 @@ def get_list(doctype, *args, **kwargs):
 	'''wrapper for DatabaseQuery'''
 	kwargs.pop('cmd', None)
 	kwargs.pop('ignore_permissions', None)
+
+	# If doctype is child table
+	if frappe.is_table(doctype):
+		# Example frappe.db.get_list('Purchase Receipt Item', {'parent': 'Purchase Receipt'})
+		# Here purchase receipt is the parent doctype of the child doctype Purchase Receipt Item
+
+		if not kwargs.get('parent'):
+			frappe.flags.error_message = _('Parent is required to get child table data')
+			raise frappe.PermissionError(doctype)
+
+		check_parent_permission(kwargs.get('parent'), doctype)
+		del kwargs['parent']
+
 	return DatabaseQuery(doctype).execute(None, *args, **kwargs)
 
 def is_parent_only_filter(doctype, filters):

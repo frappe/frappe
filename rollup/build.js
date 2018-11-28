@@ -63,7 +63,13 @@ function build_assets(app) {
 function build(inputOptions, outputOptions) {
 	return rollup.rollup(inputOptions)
 		.then(bundle => bundle.write(outputOptions))
-		.catch(err => log(chalk.red(err)));
+		.catch(err => {
+			log(chalk.red(err));
+			// Kill process to fail in a CI environment
+			if (process.env.CI) {
+				process.kill(process.pid)
+			}
+		});
 }
 
 function concatenate_files() {

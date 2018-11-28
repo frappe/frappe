@@ -177,6 +177,11 @@ def get_data():
 					"name": "Auto Email Report",
 					"description": _("Setup Reports to be emailed at regular intervals"),
 				},
+				{
+					"type": "doctype",
+					"name": "Newsletter",
+					"description": _("Create and manage newsletter")
+				}
 			]
 		},
 		{
