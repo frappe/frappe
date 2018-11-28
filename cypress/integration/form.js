@@ -1,16 +1,12 @@
-context('Awesome Bar', () => {
+context('Form', () => {
     before(() => {
         cy.login('Administrator', 'qwe')
         cy.visit('/desk')
     })
 
-    beforeEach(() => {
-        cy.get('.navbar-home').click()
-    })
-
     it('create a new form', () => {
         cy.visit('/desk#Form/ToDo/New ToDo 1')
-        cy.fill_field('description', 'this is a test todo', 'Text Editor')
+        cy.get('[data-fieldname="description"] .ql-editor').type('this is a test todo')
         cy.scrollTo(0, 0)
         cy.get('.primary-action').click()
         cy.visit('/desk#List/ToDo')
