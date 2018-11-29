@@ -1565,7 +1565,7 @@ class extends Component {
 
 				const  alert   = // TODO: ellipses content
 				`
-				<span data-action="show-message">
+				<span data-action="show-message" class="cursor-pointer">
 					<span class="indicator yellow"/> <b>${frappe.user.first_name(r.user)}</b>: ${r.content}
 				</span>
 				`
