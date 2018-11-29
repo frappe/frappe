@@ -85,7 +85,7 @@ class Newsletter(WebsiteGenerator):
 			subject = self.subject, message = self.message,
 			reference_doctype = self.doctype, reference_name = self.name,
 			add_unsubscribe_link = self.send_unsubscribe_link, attachments=attachments,
-			unsubscribe_method = "/api/method/frappe.email.doctype.newsletter.newsletter.unsubscribe",
+			unsubscribe_method = "/unsubscribe",
 			unsubscribe_params = {"name": self.name},
 			send_priority = 0, queue_separately=True)
 
@@ -132,33 +132,13 @@ def get_email_groups(name):
 
 
 @frappe.whitelist(allow_guest=True)
-def unsubscribe(email, name):
-	if not verify_request():
-		return
-
-	primary_action = frappe.utils.get_url() + "/api/method/frappe.email.doctype.newsletter.newsletter.confirmed_unsubscribe"+\
-		"?" + get_signed_params({"email": email, "name":name})
-	return_confirmation_page(email, name, primary_action)
-
-
-@frappe.whitelist(allow_guest=True)
-def confirmed_unsubscribe(email, name):
-	if not verify_request():
-		return
-
-	for email_group in get_email_groups(name):
-		frappe.db.sql('''update `tabEmail Group Member` set unsubscribed=1 where email=%s and email_group=%s''',(email, email_group.email_group))
-
-	frappe.db.commit()
-	return_unsubscribed_page(email, name)
-
-def return_confirmation_page(email, name, primary_action):
-	frappe.respond_as_web_page(_("Unsubscribe from Newsletter"),_("Do you want to unsubscribe from this mailing list?"),
-		indicator_color="blue", primary_label = _("Unsubscribe"), primary_action=primary_action)
-
-def return_unsubscribed_page(email, name):
-	frappe.respond_as_web_page(_("Unsubscribed from Newsletter"),
-		_("<b>{0}</b> has been successfully unsubscribed from this mailing list.").format(email, name), indicator_color='green')
+def confirmed_unsubscribe(email, group):
+	""" unsubscribe the email(user) from the mailing list(email_group) """
+	frappe.flags.ignore_permissions=True
+	doc = frappe.get_doc("Email Group Member", {"email": email, "email_group": group})
+	if not doc.unsubscribed:
+		doc.unsubscribed = 1
+		doc.save(ignore_permissions = True)
 
 def create_lead(email_id):
 	"""create a lead if it does not exist"""
