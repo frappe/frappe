@@ -4,24 +4,47 @@
 	font-family: inherit;
 	z-index: 9999 !important;
 	background-color: @datepicker-bg;
-	border: @border-color;
+	border-color: @border-color;
 
-	&--nav-title {
-		color: @text-color;
-
+	&--pointer {
+		border-color: @border-color;
+		background-color: @datepicker-bg;
+	}
+	&--nav{
+		border-color: @border-color;
+		&-title {
+			color: @text-color;
+			&.hover {
+				background-color: @datepicker-hover !important;
+			}
+		}
+		&-action {
+			&.hover {
+				background-color: @datepicker-hover !important;
+			}
+		}
+	}
+	&--buttons {
+		border-color: @border-color;
+	}
+	&--button {
+		color: @brand-primary;
 		&.hover {
+			color: @text-color;
 			background-color: @datepicker-hover !important;
 		}
 	}
+
 	.datepicker--cell-day.-other-month-, .datepicker--cell-year.-other-decade-
 	&--time-current-hours, &--time-current-minutes, &--time-current-seconds {
 		font-family: inherit;
 	}
-
-	&--day-name {
-		color: @text-color;
+	
+	&--day{
+		&-name {
+			color: @text-color;
+		}
 	}
-
 	&--cell {
 		color: @text-color;
 
@@ -29,9 +52,9 @@
 			background-color: @datepicker-hover;
 		}
 
-		&.-day{
+		&-day{
 
-			&.-other-month-{
+			&-other-month-{
 				color: @datepicker-muted;
 			}
 		}
@@ -77,13 +100,4 @@
     &--time-row:first-child {
         margin: 0;
     }
-}
-
-.datepicker--button {
-	color: @brand-primary;
-
-	&.hover {
-		color: @text-color;
-		background-color: @datepicker-button-bg !important;
-	}
 }
