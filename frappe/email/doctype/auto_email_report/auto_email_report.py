@@ -111,7 +111,7 @@ class AutoEmailReport(Document):
 			new_row = []
 			out.append(new_row)
 			for df in columns:
-				if not row.get(df.fieldname): continue
+				if df.fieldname not in row: continue
 				new_row.append(frappe.format(row[df.fieldname], df, row))
 
 		return out
