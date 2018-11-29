@@ -352,6 +352,8 @@ def search(text, start=0, limit=20, doctype=""):
 	:return: Array of result objects
 	"""
 
+	start, limit = _sanitize_parameters(start, limit)
+
 	text = "+" + text + "*"
 	if not doctype:
 		results = frappe.db.sql('''
@@ -393,6 +395,7 @@ def web_search(text, start=0, limit=20):
 	:return: Array of result objects
 	"""
 
+	start, limit = _sanitize_parameters(start, limit)
 	text = "+" + text + "*"
 	results = frappe.db.sql('''
 		select
@@ -405,3 +408,9 @@ def web_search(text, start=0, limit=20):
 		limit {start}, {limit}'''.format(start=start, limit=limit),
 		text, as_dict=True)
 	return results
+
+def _sanitize_parameters(start, limit):
+	start = 0 if isinstance(start, text_type) else cint(start)
+	limit = 20 if isinstance(limit, text_type) else cint(limit)
+
+	return start, limit
