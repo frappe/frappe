@@ -347,6 +347,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (this.datatable) {
 			this.datatable.options.treeView = this.tree_report;
 			this.datatable.refresh(this.data, this.columns);
+			$(this.datatable.wrapper).find(".dt-row-0").find('input[type=checkbox]').click();
 			return;
 		}
 
