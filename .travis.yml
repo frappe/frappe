@@ -29,7 +29,6 @@ matrix:
     env: TEST_TYPE=ui
 
 install:
-  - nvm install 8 && nvm use 8
   - $TRAVIS_BUILD_DIR/.travis/install.sh
 
 before_script:
