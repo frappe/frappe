@@ -65,10 +65,10 @@
 {% else %}
 <br>
 
-{%- macro properties(field) %}
+{%- macro properties(field, is_grid = False) %}
 		name="{{ field.fieldname }}" data-fieldname="{{ field.fieldname }}"
 		{% if field.placeholder -%} placeholder="{{ _(field.placeholder) }}" {%- endif %}
-		data-label="{{ _(field.label) }}" data-fieldtype="{{ field.fieldtype }}"
+		data-label="{{ _(field.label) }}" data-fieldtype="{{ 'Small Text' if is_grid else field.fieldtype }}"
 		data-doctype="{{ field.parent }}" data-default="{{ field.default or "" }}"
 		{{ field.reqd and "data-reqd=1" or "" }}
 		{{ (read_only or field.read_only) and "disabled" or "" }}
@@ -94,7 +94,7 @@
 				{{ _(field.label) }}</label>
 {% endmacro %}
 
-{% macro render_field(field, _doc=None, with_label=True) %}
+{% macro render_field(field, _doc=None, with_label=True, is_grid=False) %}
 	{% if field.hidden %}
 	<input type="hidden" data-doctype="{{ field.parent }}"
 		name="{{ field.fieldname }}" value="{{ value(field, _doc) }}">
@@ -136,12 +136,12 @@
 		</select>
 		{{ help(field) }}
 	</div>
-	{% elif field.fieldtype in ("Text", "Small Text") %}
+	{% elif field.fieldtype in ("Text", "Small Text") or (is_grid and field.fieldtype == 'Text Editor') %}
 	<div class="form-group{% if field.reqd %} has-error{% endif %}">
 		{% if with_label %}{{ label(field) }}{% endif %}
 		{{ help(field) }}
 		<textarea class="form-control" style="height: {% if field.fieldtype=="Small Text" %}150px{% else %}300px;{% endif %}"
-		{{ properties(field) }}>{{ value(field, _doc) }}</textarea>
+		{{ properties(field, is_grid) }}>{{ value(field, _doc) }}</textarea>
 	</div>
 	{% elif field.fieldtype == "Text Editor" %}
 	<div class="form-group{% if field.reqd %} has-error{% endif %}">
@@ -196,7 +196,8 @@
 		{% if df.in_list_view %}
 		<{{ 'th' if d==None else 'td' }} style="width: {{ (df.columns or 2) * 8.3333 }}%;">
 			{% if d!=None %}
-				{{ render_field(df, d, False) }}
+				{% set is_grid = True if df.fieldtype == 'Text Editor' else False %}
+				{{ render_field(df, d, False, is_grid ) }}
 			{% else %}
 				<span class='text-muted small'>{{ _(df.label) }}</span>
 			{% endif %}
