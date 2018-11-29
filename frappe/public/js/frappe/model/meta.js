@@ -242,10 +242,10 @@ $.extend(frappe.meta, {
 				currency = cur_frm.doc[df.options];
 			}
 			else {
-					frappe.db.get_value(df.parent, doc.name, 'currency').then(data => {
-						currency = data.message.currency;
-					}
-				)
+				frappe.db.get_value(df.parent, doc.name, 'currency').then(data => {
+				currency = data.message.currency;
+				}
+			);
 			}
 		}
 		return currency;
