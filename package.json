@@ -4,7 +4,7 @@
     "build": "node rollup/build.js",
     "production": "FRAPPE_ENV=production node rollup/build.js",
     "watch": "node rollup/watch.js",
-    "cypress:run": "cypress run --record --key 5b458554-f46d-4dad-a816-b52aa9cd95f8",
+    "cypress:run": "cypress run --record --key 14ddd919-b01f-4d5f-b9d1-5af54d34c7f3",
     "cypress:open": "cypress open"
   },
   "repository": {
