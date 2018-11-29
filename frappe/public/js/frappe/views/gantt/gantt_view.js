@@ -72,7 +72,7 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 
 				var html =
 					`<h5>${task.name}</h5>
-					<p>${task._start.format('MMM D')} - ${task._end.format('MMM D')}</p>`;
+					<p>${moment(task._start).format('MMM D')} - ${moment(task._end).format('MMM D')}</p>`;
 
 				// custom html in doctype settings
 				var custom = me.settings.gantt_custom_popup_html;
@@ -89,7 +89,7 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 
 	render_dropdown: function() {
 		var me = this;
-		var view_modes = this.gantt.config.view_modes || [];
+		var view_modes = this.gantt.options.view_modes || [];
 		var dropdown = "<div class='dropdown pull-right'>" +
 			"<a class='text-muted dropdown-toggle' data-toggle='dropdown'>" +
 			"<span class='dropdown-text'>"+__(this.gantt_view_mode)+"</span><i class='caret'></i></a>" +
@@ -206,8 +206,8 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 				args: {
 					doctype: task.doctype,
 					name: task.id,
-					start: start.format('YYYY-MM-DD'),
-					end: end.format('YYYY-MM-DD')
+					start: moment(start).format('YYYY-MM-DD'),
+					end: moment(end).format('YYYY-MM-DD')
 				},
 				field_map: field_map
 			},
@@ -237,6 +237,7 @@ frappe.views.GanttView = frappe.views.ListRenderer.extend({
 	set_columns: function() {},
 	required_libs: [
 		"assets/frappe/js/lib/snap.svg-min.js",
-		"assets/frappe/js/lib/frappe-gantt/frappe-gantt.js"
+		"assets/frappe/js/lib/frappe-gantt/frappe-gantt.css",
+		"assets/frappe/js/lib/frappe-gantt/frappe-gantt.min.js"
 	]
 });
