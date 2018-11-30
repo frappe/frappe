@@ -135,13 +135,11 @@ frappe.views.Calendar = Class.extend({
 				//});
 			}
 		});
-		var car=["hello","hi"]
 		me.page.add_button("Apply", function(){
 			var checked = [];
             $.each($("input[class='check']:checked"), function(){            
                 checked.push($(this).attr("id"));
             });
-            console.log(checked);
             frappe.set_route("List", checked, "Calendar");
         });
 		$(this.parent).on("show", function() {
