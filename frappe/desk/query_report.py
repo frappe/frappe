@@ -169,7 +169,7 @@ def run(report_name, filters=None, user=None):
 			dn = filters.get("prepared_report_name")
 		else:
 			dn = ""
-		result = get_prepared_report_result(report, filters, dn)
+		result = get_prepared_report_result(report, filters, dn, user)
 	else:
 		result = generate_report_result(report, filters, user)
 
@@ -178,9 +178,10 @@ def run(report_name, filters=None, user=None):
 	return result
 
 
-def get_prepared_report_result(report, filters, dn=""):
+def get_prepared_report_result(report, filters, dn="", user=None):
 	latest_report_data = {}
-	doc_list = frappe.get_all("Prepared Report", filters={"status": "Completed", "report_name": report.name})
+	# Only look for completed prepared reports with given filters.
+	doc_list = frappe.get_all("Prepared Report", filters={"status": "Completed", "report_name": report.name, "filters": json.dumps(filters), "owner": user})
 	doc = None
 	if len(doc_list):
 		if dn:
