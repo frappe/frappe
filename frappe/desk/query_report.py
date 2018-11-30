@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 
 import frappe
 import os, json, datetime
-import gzip
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
@@ -17,6 +16,7 @@ from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
 from datetime import timedelta
 from frappe.utils.file_manager import get_file
+from frappe.utils import gzip_decompress
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
@@ -194,7 +194,7 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 		# Prepared Report data is stored in a GZip compressed JSON file
 		attached_file_name = frappe.db.get_value("File", {"attached_to_doctype": doc.doctype, "attached_to_name":doc.name}, "name")
 		compressed_content = get_file(attached_file_name)[1]
-		uncompressed_content = gzip.decompress(compressed_content)
+		uncompressed_content = gzip_decompress(compressed_content)
 		data = json.loads(uncompressed_content)
 		if data:
 			latest_report_data = {

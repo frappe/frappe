@@ -5,7 +5,6 @@
 
 from __future__ import unicode_literals
 import base64
-import gzip
 import json
 
 import frappe
@@ -15,7 +14,7 @@ from frappe.desk.query_report import generate_report_result
 from frappe.utils.file_manager import save_file, remove_all
 from frappe.desk.form.load import get_attachments
 from frappe.utils.file_manager import download_file
-
+from frappe.utils import gzip_compress
 
 class PreparedReport(Document):
 
@@ -57,7 +56,7 @@ def create_json_gz_file(data, dt, dn):
 	encoded_content = frappe.safe_encode(json.dumps(data))
 
 	# GZip compression seems to reduce storage requirements by 80-90%
-	compressed_content = gzip.compress(encoded_content)
+	compressed_content = gzip_compress(encoded_content)
 	save_file(
 		fname=json_filename,
 		content=compressed_content,
