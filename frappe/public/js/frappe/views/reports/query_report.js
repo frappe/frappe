@@ -347,24 +347,25 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (this.datatable) {
 			this.datatable.options.treeView = this.tree_report;
 			this.datatable.refresh(this.data, this.columns);
-			$(this.datatable.wrapper).find(".dt-row-0").find('input[type=checkbox]').click();
-			return;
+		} else {
+			let datatable_options = {
+				columns: this.columns,
+				data: this.data,
+				inlineFilters: true,
+				treeView: this.tree_report,
+				layout: 'fixed',
+				cellHeight: 33
+			};
+
+			if (this.report_settings.get_datatable_options) {
+				datatable_options = this.report_settings.get_datatable_options(datatable_options);
+			}
+			this.datatable = new DataTable(this.$report[0], datatable_options);
 		}
 
-		let datatable_options = {
-			columns: this.columns,
-			data: this.data,
-			inlineFilters: true,
-			treeView: this.tree_report,
-			layout: 'fixed',
-			cellHeight: 33
-		};
-
-		if (this.report_settings.get_datatable_options) {
-			datatable_options = this.report_settings.get_datatable_options(datatable_options);
+		if (this.report_settings.after_datatable_render) {
+			this.report_settings.after_datatable_render(this.datatable);
 		}
-
-		this.datatable = new DataTable(this.$report[0], datatable_options);
 	}
 
 	get_chart_options(data) {
