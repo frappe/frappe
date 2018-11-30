@@ -356,7 +356,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			inlineFilters: true,
 			treeView: this.tree_report,
 			layout: 'fixed',
-			cellHeight: 33
+			cellHeight: 33,
+			showTotalRow: this.raw_data.add_total_row
 		};
 
 		if (this.report_settings.get_datatable_options) {
