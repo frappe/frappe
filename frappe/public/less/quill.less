@@ -12,6 +12,15 @@
     border-top-right-radius: 4px;
     background-color: @panel-bg;
     padding-bottom: 0;
+    .ql-picker.ql-expanded {
+        .ql-picker-label{
+            border-color: @ql-stroke;
+            color: @ql-stroke;
+        }
+    }
+    .ql-picker-label{
+        color: @ql-stroke;
+    }
 }
 
 .ql-container.ql-snow {
@@ -111,4 +120,10 @@
 
 .ql-editor td {
     border: 1px solid @border-color;
+}
+
+.ql-snow{
+    .ql-stroke{
+        stroke : @ql-stroke;
+    }
 }
