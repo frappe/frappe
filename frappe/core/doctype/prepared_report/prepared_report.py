@@ -35,7 +35,7 @@ class PreparedReport(Document):
 
 def run_background(instance):
 	report = frappe.get_doc("Report", instance.ref_report_doctype)
-	result = generate_report_result(report, filters=json.loads(instance.filters), user=instance.owner)
+	result = generate_report_result(report, filters=instance.filters, user=instance.owner)
 	create_json_gz_file(result['result'], 'Prepared Report', instance.name)
 
 	instance.status = "Completed"
