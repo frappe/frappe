@@ -245,6 +245,7 @@ frappe.views.Calendar = Class.extend({
 					callback: function(r) {
 						var events = r.message || [];
 						events = me.prepare_events(events);
+						console.log(events);
 						callback(events);
 					}
 				});
