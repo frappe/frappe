@@ -25,7 +25,6 @@ context('Awesome Bar', () => {
 	});
 
 	it('find text in doctype list', () => {
-		cy.visit('/desk');
 		cy.get('#navbar-search')
 			.type('test in todo{downarrow}{enter}', { delay: 100 });
 
