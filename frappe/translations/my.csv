@@ -12,8 +12,8 @@ apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +33,Seems
 DocType: About Us Settings,Website,website
 apps/frappe/frappe/www/me.py +14,You need to be logged in to access this page,သင်ဤစာမကျြနှာကိုဝင်ရောက်ဖို့အတွက် logged ခံရဖို့လိုအပ်
 DocType: System Settings,Note: Multiple sessions will be allowed in case of mobile device,မှတ်ချက်: အကွိမျမြားစှာအစည်းအဝေးများမိုဘိုင်း device ကို၏အမှု၌ခွင့်ပြုလိမ့်မည်
-apps/frappe/frappe/email/queue.py +258,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,ဤအီးမေးလ်မပို့နိုင်ပါ။ သင်သည်ဤတစ်လ {0} အီးမေးလ်များပေးပို့န့်သတ်ချက်ကိုကူးကြပါပြီ။
-apps/frappe/frappe/public/js/legacy/form.js +779,Permanently Submit {0}?,အမြဲတမ်း {0} Submit?
+apps/frappe/frappe/email/queue.py +259,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,ဤအီးမေးလ်မပို့နိုင်ပါ။ သင်သည်ဤတစ်လ {0} အီးမေးလ်များပေးပို့န့်သတ်ချက်ကိုကူးကြပါပြီ။
+apps/frappe/frappe/public/js/legacy/form.js +775,Permanently Submit {0}?,အမြဲတမ်း {0} Submit?
 apps/frappe/frappe/desk/page/backups/backups.js +12,Download Files Backup,ဖိုင်တွေကို Backup ကို Download လုပ်ပါ
 DocType: Address,County,ကောင်တီ
 DocType: Workflow,If Checked workflow status will not override status in list view,Checked လုပ်ငန်းအသွားအလာအဆင့်အတန်းစာရင်းမြင်ကွင်းထဲမှာ status ကို override မည်မဟုတ်ခဲ့လျှင်
@@ -72,7 +72,7 @@ DocType: Workflow State,th-large,ကြိမ်မြောက်-ကြီး�
 DocType: Communication,Unread Notification Sent,ဖတ်ဖြစ်သောအသိပေးခြင်း Sent
 apps/frappe/frappe/public/js/frappe/misc/tools.js +10,Export not allowed. You need {0} role to export.,ပို့ကုန်ခွင့်မပြု။ သင်တို့ကိုတင်ပို့ဖို့ {0} အခန်းကဏ္ဍထားဖို့လိုပါမယ်။
 DocType: System Settings,In seconds,စက္ကန့်အတွင်း
-apps/frappe/frappe/public/js/frappe/list/list_view.js +1049,Cancel {0} documents?,{0} စာရွက်စာတမ်းများ Cancel?
+apps/frappe/frappe/public/js/frappe/list/list_view.js +1056,Cancel {0} documents?,{0} စာရွက်စာတမ်းများ Cancel?
 DocType: DocType,Is Published Field,ဖျော်ဖြေမှု Published ဖြစ်ပါတယ်
 DocType: GCalendar Settings,GCalendar Settings,GCalendar Settings များ
 DocType: Email Group,Email Group,အီးမေးလ်အုပ်စု
@@ -227,7 +227,7 @@ DocType: Workflow State,chevron-up,Chevron-up က
 DocType: DocType,Allow Guest to View,ဧည့်သည် View မှ Allow
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +65,Documentation,မှတ်တမ်း
 DocType: Webhook,on_change,on_change
-apps/frappe/frappe/public/js/frappe/list/list_view.js +1036,Delete {0} items permanently?,အမြဲတမ်း {0} ပစ္စည်းများကိုဖျက်မလား?
+apps/frappe/frappe/public/js/frappe/list/list_view.js +1043,Delete {0} items permanently?,အမြဲတမ်း {0} ပစ္စည်းများကိုဖျက်မလား?
 apps/frappe/frappe/core/doctype/user/user.py +106,Not Allowed,ခွင့်မပြု
 DocType: DocShare,Internal record of document shares,စာရွက်စာတမ်းရှယ်ယာ internal စံချိန်တင်
 DocType: Workflow State,Comment,မှတ်ချက်
@@ -312,7 +312,7 @@ DocType: Data Migration Plan,Mappings,မြေပုံချထားပုံ
 DocType: Notification Recipient,Notification Recipient,သတိပေးချက်လက်ခံသူ
 DocType: Workflow State,Refresh,အားဖြည့်
 DocType: Event,Public,ပြည်သူ့ကျန်းမာရေး
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +884,Nothing to show,ပြသရန်ဘယ်အရာမှ
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +907,Nothing to show,ပြသရန်ဘယ်အရာမှ
 DocType: System Settings,Enable Two Factor Auth,နှစ်ဦး Factor Auth Enable
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +303,[Urgent] Error while creating recurring %s for %s,ထပ်တလဲလဲကို% s% များအတွက် s ကိုဖန်တီးနေချိန်တွင် [အရေးပေါ်] မှားယွင်းနေသည်
 DocType: Post,Liked By,အားဖြင့်ကြိုက်တယ်
@@ -544,7 +544,7 @@ DocType: DocField,Collapsible,ခေါက်
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +790,Saved,Saved
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +58,What do you need help with?,သင်တို့နှင့်အတူကူညီအဘယျသို့လိုအပ်သလဲ?
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,Options for select. Each option on a new line.,ကိုရွေးပါရွေးစရာ။ အသစ်တစ်ခုကိုလိုင်းပေါ်တွင်အသီးအသီး option ကို။
-apps/frappe/frappe/public/js/legacy/form.js +813,Permanently Cancel {0}?,အမြဲတမ်း {0} Cancel?
+apps/frappe/frappe/public/js/legacy/form.js +809,Permanently Cancel {0}?,အမြဲတမ်း {0} Cancel?
 DocType: Workflow State,music,ဂီတ
 DocType: Website Theme,Text Styles,စာသားမ Styles
 apps/frappe/frappe/www/qrcode.html +3,QR Code,QR Code ကို
@@ -600,9 +600,9 @@ DocType: Data Migration Mapping,Remote Objectname,ဝေးလံခေါင်
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +11,"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",အကောင်းဆုံးအလေ့အကျင့်အဖြစ်ကွဲပြားခြားနားအခန်းကဏ္ဍမှခွင့်ပြုချက်အုပ်ချုပ်၏တူညီသော set ကို assign ကြဘူး။ အဲဒီအစားအတူတူအသုံးပြုသူမှအများအပြားရာထူးတာဝန်ထား၏။
 apps/frappe/frappe/www/confirm_workflow_action.html +4,Please confirm your action to {0} this document.,{0} ဤစာရွက်စာတမ်းရန်သင့်အရေးယူအတည်ပြုပေးပါ။
 DocType: Success Action,Next Actions HTML,Next ကိုလုပ်ဆောင်ချက်များက HTML
-apps/frappe/frappe/public/js/frappe/social/social_home.js +34,Create Post,Post ကို Create
+apps/frappe/frappe/public/js/frappe/social/social_home.js +33,Create Post,Post ကို Create
 apps/frappe/frappe/desk/doctype/event/event.js +24,Add Participants,သင်တန်းသားများ Add
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +43,Only {0} emailed reports are allowed per user,{0} မေးလ်ပို့ပေးအစီရင်ခံစာများအသုံးပြုသူတစ်ဦးလျှင်ခွင့်ပြုမှသာ
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +48,Only {0} emailed reports are allowed per user,{0} မေးလ်ပို့ပေးအစီရင်ခံစာများအသုံးပြုသူတစ်ဦးလျှင်ခွင့်ပြုမှသာ
 DocType: Address,Address Title,လိပ်စာခေါင်းစဉ်
 DocType: Website Settings,Footer Items,footer ပစ္စည်းများ
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +188,Request Feedback,တောင်းဆိုမှုတုံ့ပြန်ချက်
@@ -660,7 +660,7 @@ apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +175,No Emails,အ
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +121,Link Expired,link ကို Expired
 apps/frappe/frappe/database/schema.py +175,"Reverting length to {0} for '{1}' in '{2}';
 							Setting the length as {3} will cause truncation of data.",&#39;&#39; {1} &#39;အဘို့ {0} မှအရှည်သို့ပြန်သွားခြင်း&#39; &#39;{2}&#39; ၌; {3} အချက်အလက်များ၏ခြင်းကိုဖြစ်ပေါ်စေပါလိမ့်မယ်အဖြစ်အရှည်ချိန်ညှိခြင်း။
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +736,Select File Format,File Format ကိုရွေးချယ်ပါ
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +737,Select File Format,File Format ကိုရွေးချယ်ပါ
 DocType: Report,Javascript,Javascript ကို
 DocType: File,Content Hash,content Hash
 DocType: User,Stores the JSON of last known versions of various installed apps. It is used to show release notes.,စတိုးဆိုင်အမျိုးမျိုးထည့်သွင်း apps များ၏နောက်ဆုံးသိရဗားရှင်း၏ JSON ။ ဒါဟာလွှတ်ပေးရန်မှတ်စုများကိုပြရာတွင်အသုံးပြုသည်။
@@ -692,7 +692,7 @@ apps/frappe/frappe/core/doctype/has_role/has_role.py +12,User '{0}' already has 
 DocType: System Settings,Two Factor Authentication method,နှစ်ဦးက factor authentication နည်းလမ်း
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js +7,First set the name and save the record.,ပထမဦးစွာနာမကိုမသတ်မှတ်နှင့်စံချိန်သိမ်းဆည်းပါ။
 apps/frappe/frappe/public/js/frappe/form/share.js +36,Shared with {0},{0} နှင့်အတူ shared
-apps/frappe/frappe/email/queue.py +275,Unsubscribe,စာရင်းဖျက်ရန်
+apps/frappe/frappe/email/queue.py +276,Unsubscribe,စာရင်းဖျက်ရန်
 DocType: View log,Reference Name,ကိုးကားစရာအမည်
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js +13,Update Translations,Update ကိုဘာသာပြန်ချက်များ
 DocType: Error Snapshot,Exception,ချွင်းချက်
@@ -704,7 +704,6 @@ DocType: DocType,Single Types have only one record no tables associated. Values 
 DocType: System Settings,Enable Password Policy,Password ကိုပေါ်လစီ Enable
 DocType: System Settings,Enable Password Policy,Password ကိုပေါ်လစီ Enable
 DocType: Web Form,"List as [{""label"": _(""Jobs""), ""route"":""jobs""}]","အဖြစ်စာရင်း [{: _ ( &quot;ဂျော့&quot;), &quot;လမ်းကြောင်း&quot;: &quot;တံဆိပ်&quot; &quot;အလုပ်အကိုင်&quot;}]"
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup &gt; User,Setup ကို&gt; အသုံးပြုသူ
 apps/frappe/frappe/custom/doctype/property_setter/property_setter.py +28,Field type cannot be changed for {0},field type ကို {0} ဘို့မပြောင်းနိုင်ပါ
 DocType: Workflow,Rules defining transition of state in the workflow.,အဆိုပါလုပ်ငန်းအသွားအလာအတွက်ပြည်နယ်၏အကူးအပြောင်း defining နည်းဥပဒေများ။
 DocType: File,Folder,Folder ကို
@@ -747,7 +746,6 @@ apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +46,Fieldname not
 apps/frappe/frappe/public/js/frappe/model/model.js +22,Last Updated By,နောက်ဆုံးအားဖြင့် Updated
 apps/frappe/frappe/email/doctype/email_group/email_group.js +6,View Subscribers,view Subscribers
 DocType: Webhook,after_insert,after_insert
-apps/frappe/frappe/email/smtp.py +85,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Setup ကို&gt; အီးမေးလ်&gt; အီးမေးလ်အကောင့်ကနေ ကျေးဇူးပြု. setup ကို default အနေနဲ့အီးမေးလ်အကောင့်ကို
 apps/frappe/frappe/core/doctype/file/file.py +760,Cannot delete file as it belongs to {0} {1} for which you do not have permissions,က {0} {1} သင်ခွင့်ပြုချက်မရှိပါဖို့ရာဘို့ပိုင်အဖြစ်ဖိုင်ကိုမဖျက်နိုင်ပါ
 DocType: Website Theme,Custom JS,custom JS
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Ms,ဒေါ်
@@ -812,7 +810,7 @@ apps/frappe/frappe/public/js/frappe/form/form_viewers.js +55,{0} are currently v
 DocType: ToDo,Assigned By Full Name,အပြည့်အဝအမည်အားဖြင့်တာဝန်ပေးအပ်
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +155,{0} updated,{0} updated
 apps/frappe/frappe/core/doctype/doctype/doctype.py +820,Report cannot be set for Single types,အစီရင်ခံစာလူပျိုအမျိုးအစားများဘို့ရာခန့်ထားသောမရနိုင်ပါ
-apps/frappe/frappe/public/js/frappe/list/list_view.js +909,Share URL,ဝေမျှမယ် URL ကို
+apps/frappe/frappe/public/js/frappe/list/list_view.js +916,Share URL,ဝေမျှမယ် URL ကို
 DocType: System Settings,Allow Consecutive Login Attempts ,Allow ဆက်တိုက်ဝင်မည်ကြိုးစားခြင်း
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html +50,An error occured during the payment process. Please contact us.,အမှားငွေပေးချေမှုလုပ်ငန်းစဉ်အတွင်းကြုံခဲ့ရသည်။ ကျွန်တော်တို့ကိုဆက်သွယ်ပါ။
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +52,{0} days ago,လွန်ခဲ့တဲ့ {0} ရက်ပတ်လုံး
@@ -840,7 +838,7 @@ DocType: Workflow State,Stop,ရပ်
 DocType: Footer Item,Link to the page you want to open. Leave blank if you want to make it a group parent.,သင်ဖွင့်ချင်တဲ့စာမျက်နှာမှ link ။ သင်ကအုပ်စုတစုမိဘလုပ်လိုလျှင်အလွတ်ချန်ထားပါ။
 DocType: DocType,Is Single,လူပျိုဖြစ်
 apps/frappe/frappe/core/doctype/user/user.py +758,Sign Up is disabled,Up ကို Sign ကိုပိတ်ထားသည်
-apps/frappe/frappe/email/queue.py +334,{0} has left the conversation in {1} {2},{0} {1} {2} အတွက်စကားပြောဆိုထွက်ခွာသွားခဲ့သည်
+apps/frappe/frappe/email/queue.py +335,{0} has left the conversation in {1} {2},{0} {1} {2} အတွက်စကားပြောဆိုထွက်ခွာသွားခဲ့သည်
 DocType: Blogger,User ID of a Blogger,တစ်ဘလော့ဂါ၏အသုံးပြုသူ ID
 apps/frappe/frappe/core/doctype/user/user.py +299,There should remain at least one System Manager,အနည်းဆုံးတဦးအတွက် System Manager ကကျန်ကြွင်းသင့်ပါတယ်
 DocType: GCalendar Account,Authorization Code,ခွင့်ပြုချက် Code ကို
@@ -919,7 +917,7 @@ DocType: Property Setter,Property Setter,အိမ်ခြံမြေ Setter
 DocType: Web Form,Allow Print,ပုံနှိပ်ပါ Allow
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +241,Mark the field as Mandatory,လယ်ပြင်အဖြစ်မသင်မနေရမာကု
 DocType: Communication,Clicked,နှိပ်လိုက်
-apps/frappe/frappe/public/js/legacy/form.js +995,No permission to '{0}' {1},မှ &#39;&#39; {0} {1} မရှိပါခွင့်ပြုချက်
+apps/frappe/frappe/public/js/legacy/form.js +991,No permission to '{0}' {1},မှ &#39;&#39; {0} {1} မရှိပါခွင့်ပြုချက်
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +38,Scheduled to send,ပေးပို့ဖို့စီစဉ်ထား
 DocType: DocType,Track Seen,Track မွငျ
 DocType: Dropbox Settings,File Backup,file ကို Backup ကို
@@ -1179,7 +1177,7 @@ DocType: Page,Icon,icon
 apps/frappe/frappe/core/doctype/user/user.py +934,"Hint: Include symbols, numbers and capital letters in the password","အရိပ်အမြွက်: စကားဝှက်အတွက်သင်္ကေတများ, နံပါတ်နှင့်အရင်းအနှီးအက္ခရာများ Include"
 apps/frappe/frappe/core/doctype/user/user.py +934,"Hint: Include symbols, numbers and capital letters in the password","အရိပ်အမြွက်: စကားဝှက်အတွက်သင်္ကေတများ, နံပါတ်နှင့်အရင်းအနှီးအက္ခရာများ Include"
 DocType: DocField,Allow in Quick Entry,လျင်မြန်စွာ Entry အတွက် Allow
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +809,PDF,PDF ဖိုင်ရယူရန်
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +832,PDF,PDF ဖိုင်ရယူရန်
 DocType: System Settings,dd/mm/yyyy,dd / မီလီမီတာ / yyyy
 apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.js +32,GSuite script test,GSuite script ကိုစမ်းသပ်
 DocType: System Settings,Backups,Backup တွေကို
@@ -1380,7 +1378,7 @@ DocType: Chat Room User,Admin,အဒ်မင်
 DocType: Website Settings,Brand,ကုန်အမှတ်တံဆိပ်
 DocType: Report,Query Report,query အစီရင်ခံစာ
 DocType: User,Set New Password,နယူး Password ကို Set
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +49,"%s is not a valid report format. Report format should \
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +54,"%s is not a valid report format. Report format should \
 				one of the following %s",ကို% s ခိုင်လုံသောအစီရင်ခံစာပုံစံမဟုတ်ပါဘူး။ အစီရင်ခံစာပုံစံကိုအောက်ပါ% s ကိုများထဲမှ \ သင့်တယ်
 DocType: Chat Message,Chat,chat
 apps/frappe/frappe/core/doctype/doctype/doctype.py +511,Fieldname {0} appears multiple times in rows {1},Fieldname {0} တန်းစီ {1} အတွက်အကြိမ်ပေါင်းများစွာပုံပေါ်
@@ -1446,7 +1444,7 @@ apps/frappe/frappe/core/doctype/system_settings/system_settings.py +27,Session E
 DocType: Chat Message,Group,အစု
 DocType: Footer Item,"Select target = ""_blank"" to open in a new page.",သစ်တစ်ခုစာမျက်နှာဖွင့်လှစ်ဖို့ကို Select လုပ်ပါပစ်မှတ် = &quot;_blank&quot; ။
 apps/frappe/frappe/core/page/usage_info/usage_info.html +60,Database Size:,ဒေတာဘေ့စ Size:
-apps/frappe/frappe/public/js/frappe/social/social_home.js +68,Set Image,set ပုံရိပ်
+apps/frappe/frappe/public/js/frappe/social/social_home.js +67,Set Image,set ပုံရိပ်
 apps/frappe/frappe/public/js/frappe/model/model.js +518,Permanently delete {0}?,အမြဲတမ်း {0} delete?
 apps/frappe/frappe/core/doctype/file/file.py +195,Same file has already been attached to the record,ဖိုင်နဲ့အတူတူဖြစ်တယ်ထားပြီးစံချိန်တွဲခဲ့
 apps/frappe/frappe/model/workflow.py +126,{0} is not a valid Workflow State. Please update your Workflow and try again.,{0} ခိုင်လုံသောလုပ်ငန်းအသွားအလာပြည်နယ်မဟုတ်ပါဘူး။ သင့်ရဲ့လုပ်ငန်းအသွားအလာကို update များနှင့်ထပ်ကြိုးစားပါ။
@@ -1511,7 +1509,6 @@ DocType: Notification,Slack Channel,ပျင်းရိ Channel ကို
 DocType: About Us Team Member,Image Link,image ကို Link ကို
 DocType: Auto Email Report,Report Filters,အစီရင်ခံစာစိစစ်မှုများ
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +16,now,ယခု
-apps/frappe/frappe/contacts/doctype/address/address.py +194,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,မျှမတွေ့ default အနေနဲ့လိပ်စာ Template ။ Setup ကို&gt; ပုံနှိပ်ခြင်းနှင့်တံဆိပ်တပ်&gt; လိပ်စာ Template ကနေအသစ်တခုဖန်တီးပေးပါ။
 DocType: Workflow State,step-backward,ခြေလှမ်း-နောက်ပြန်
 apps/frappe/frappe/utils/boilerplate.py +265,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +259,Please set Dropbox access keys in your site config,သင့်ရဲ့ site ကို config ကိုအတွက် Dropbox ကို access ကိုသော့ထားပေးပါ
@@ -1711,7 +1708,7 @@ apps/frappe/frappe/model/naming.py +113, for {0},{0} သည်
 apps/frappe/frappe/website/js/web_form.js +140,There were errors. Please report this.,အမှားအယွင်းများရှိခဲ့သည်။ ဒီအစီရင်ခံတင်ပြပေးပါ။
 apps/frappe/frappe/public/js/legacy/form.js +173,You are not allowed to print this document,သင်သည်ဤစာရွက်စာတမ်း print ထုတ်ခွင့်မပြုခဲ့ကြသည်
 apps/frappe/frappe/data_migration/doctype/data_migration_run/data_migration_run.js +11,Currently updating {0},လောလောဆယ် {0} ကို update
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +121,Please set filters value in Report Filter table.,အစီရင်ခံစာ Filter ကို table ထဲမှာ filter များတန်ဖိုးကိုသတ်မှတ်ပါ။
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +124,Please set filters value in Report Filter table.,အစီရင်ခံစာ Filter ကို table ထဲမှာ filter များတန်ဖိုးကိုသတ်မှတ်ပါ။
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +284,Loading Report,loading အစီရင်ခံစာ
 apps/frappe/frappe/limits.py +74,Your subscription will expire today.,သင့်စာရင်းပေးသွင်းယနေ့သက်တမ်းကုန်ဆုံးမည်ဖြစ်သည်။
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1055,Export All {0} rows?,အားလုံး {0} အတန်းတင်ပို့?
@@ -1863,6 +1860,7 @@ DocType: Web Page,Text Align,text align
 apps/frappe/frappe/model/naming.py +215,Name cannot contain special characters like {0},Name ကို {0} တူအထူးအက္ခရာများဆံ့မခံနိုင်သည်
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +29,Print Documents,ပုံနှိပ်ပါစာရွက်စာတမ်းများ
 DocType: Contact Us Settings,Forward To Email Address,Forward Email လိပ်စာရန်
+DocType: Auto Email Report,Weekdays,ကြားရက်များ
 apps/frappe/frappe/public/js/frappe/views/reports/reportview_footer.html +9,Show all data,ဒေတာအားလုံးပြရန်
 apps/frappe/frappe/core/doctype/doctype/doctype.py +628,Title field must be a valid fieldname,ခေါင်းစဉ်လယ်တရားဝင် fieldname ဖြစ်ရမည်
 DocType: Post Comment,Post Comment,post ကိုမှတ်ချက်
@@ -1988,7 +1986,7 @@ DocType: Web Form,Success Message,အောင်မြင်မှုဆို�
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +84,Export Customizations,ပို့ကုန်အကောက်ခွန်
 apps/frappe/frappe/website/doctype/web_page/web_page.py +136,End Date cannot be before Start Date!,အဆုံးနေ့စွဲ Start ကိုနေ့စွဲမတိုင်မီမဖွစျနိုငျ!
 DocType: DocType,User Cannot Search,အသုံးပြုသူရှာရန်မရပါ
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +84,Invalid Output Format,မှားနေသော Output Format ကို
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +89,Invalid Output Format,မှားနေသော Output Format ကို
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.js +54,Restart,ပြန်စတင်သည်
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +125,Cannot {0} {1},နိုင်သလားမဟုတ် {0} {1}
 DocType: Custom DocPerm,Apply this rule if the User is the Owner,အသုံးပြုသူကိုပိုင်ရှင်ဖြစ်လျှင်ဤနည်းဥပဒေ Apply
@@ -2056,7 +2054,7 @@ DocType: System Settings,Expiry time of QR Code Image Page,QR Code ကို Ima
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +614,Show Totals,show ကိုစုစုပေါင်းမှတ်တမ်း
 DocType: Error Snapshot,Relapses,Relapses
 DocType: Address,Preferred Shipping Address,ပိုဦးစားပေးသည် Shipping လိပ်စာ
-apps/frappe/frappe/public/js/frappe/form/print.js +294,With Letter head,ပေးစာဦးခေါင်းနှင့်အတူ
+apps/frappe/frappe/public/js/frappe/form/print.js +284,With Letter head,ပေးစာဦးခေါင်းနှင့်အတူ
 apps/frappe/frappe/public/js/frappe/form/form_sidebar.js +62,{0} created this {1},{0} {1} ဒီနေသူများကဖန်တီး
 DocType: Data Import,"If this is checked, rows with valid data will be imported and invalid rows will be dumped into a new file for you to import later.",ဒီ check လုပ်ထားလျှင်ခိုင်လုံသောဒေတာနှင့်အတူတန်းစီတင်သွင်းမည်ဖြစ်ပြီးမမှန်ကန်တဲ့အတန်းကိုသင်နောက်ပိုင်းတွင်တင်သွင်းဖို့အတှကျဖိုင်အသစ်တစ်ခုသို့စွန့်ပစ်လိမ့်မည်။
 apps/frappe/frappe/public/js/frappe/form/workflow.js +38,Document is only editable by users of role,စာရွက်စာတမ်းအခန်းကဏ္ဍ၏အသုံးပြုသူများသာတည်းဖြတ်မှု
@@ -2151,7 +2149,6 @@ apps/frappe/frappe/public/js/frappe/model/model.js +27,Document Status,စာရ
 apps/frappe/frappe/core/page/desktop/desktop_help_message.html +5,You have made {0} of {1},သငျသညျ {0} {1} ၏ရာ၌ခန့်ထားပြီ
 DocType: OAuth Authorization Code,OAuth Authorization Code,OAuth ခွင့်ပြုချက် Code ကို
 apps/frappe/frappe/core/doctype/data_import/importer.py +324,Not allowed to Import,သွင်းကုန်ခွင့်မပြုခဲ့
-apps/frappe/frappe/email/smtp.py +191,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,အီးမေးလ်အကောင့်မပေး setup ကို။ Setup ကို&gt; အီးမေးလ်&gt; အီးမေးလ်အကောင့်ကနေအသစ်တခုအီးမေးလ်အကောင့်ကိုဖန်တီးပေးပါ
 DocType: Deleted Document,Deleted DocType,Deleted DOCTYPE
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +22,Permission Levels,ခွင့်ပြုချက် Levels
 DocType: Workflow State,Warning,သတိပေးခြင်း
@@ -2167,7 +2164,7 @@ apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +150,Hide Weekend
 DocType: Workflow State,info-sign,info-နိမိတ်လက္ခဏာ
 apps/frappe/frappe/model/base_document.py +226,Value for {0} cannot be a list,{0} ဘို့ Value ကိုစာရင်းတစ်ခုမဖွစျနိုငျ
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults",ဒီငွေကြေး format ချရမည်လော ထားမသွားဘူးဆိုရင် system ကို default အတိုင်းအသုံးပြုလိမ့်မည်
-apps/frappe/frappe/public/js/frappe/list/list_view.js +1063,Submit {0} documents?,{0} စာရွက်စာတမ်းများ Submit?
+apps/frappe/frappe/public/js/frappe/list/list_view.js +1070,Submit {0} documents?,{0} စာရွက်စာတမ်းများ Submit?
 apps/frappe/frappe/utils/response.py +142,You need to be logged in and have System Manager Role to be able to access backups.,သင်တို့အထဲ၌ logged ရန်လိုခြင်းနှင့်စနစ် Manager ကအခန်းက္ပရန်သင့်သိမ်းဆည်းချက်တွေကိုဝင်ရောက်ကြည့်ရှုနိုင်မှရှိသည်။
 apps/frappe/frappe/public/js/legacy/form.js +136,Please save before attaching.,တွဲထားခင်ကိုကယ်တင်ပေးပါ။
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +125,Added {0} ({1}),Added {0} ({1})
@@ -2193,13 +2190,12 @@ DocType: Role Permission for Page and Report,Set Role For,သည် set အခ�
 DocType: GCalendar Account,The name that will appear in Google Calendar,Google ကပြက္ခဒိန်၌ထင်ရှားလတံ့သောအမည်ဖြင့်
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +65,Direct room with {0} already exists.,{0} ပြီးသားတည်ရှိနှင့်အတူတိုက်ရိုက်အခန်းထဲမှာ။
 apps/frappe/frappe/core/doctype/user/user.js +67,Refreshing...,လန်းဆန်း ...
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup &gt; User Permissions,Setup ကို&gt; အသုံးပြုသူခွင့်ပြုချက်များ
 DocType: Event,Starts on,အပေါ်စတင်
 DocType: System Settings,System Settings,System Settings
 DocType: GCalendar Settings,Google API Credentials,Google က API ကိုသံတမန်ဆောင်ဧည်
 apps/frappe/frappe/public/js/frappe/desk.js +36,Session Start Failed,session Start ကို Failed
 apps/frappe/frappe/public/js/frappe/desk.js +36,Session Start Failed,session Start ကို Failed
-apps/frappe/frappe/email/queue.py +514,This email was sent to {0} and copied to {1},ဤအီးမေးလ် {0} မှစေလွှတ် {1} မှကူးယူခဲ့ပါတယ်
+apps/frappe/frappe/email/queue.py +515,This email was sent to {0} and copied to {1},ဤအီးမေးလ် {0} မှစေလွှတ် {1} မှကူးယူခဲ့ပါတယ်
 DocType: Workflow State,th,ကြိမ်မြောက်
 DocType: Social Login Key,Provider Name,provider အမည်
 apps/frappe/frappe/public/js/frappe/form/controls/link.js +172,Create a new {0},သစ်တစ်ခု {0} Create
@@ -2222,7 +2218,7 @@ DocType: Address,Andaman and Nicobar Islands,ကပ္ပလီနှင့်�
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +239,GSuite Document,GSuite စာရွက်စာတမ်း
 apps/frappe/frappe/email/doctype/notification/notification.py +35,Please specify which value field must be checked,checked ရမည်ဖြစ်သည့်တန်ဖိုးကလယ်ပြင်ကိုသတ်မှတ်ပေးပါ
 apps/frappe/frappe/core/doctype/data_import/exporter.py +71,"""Parent"" signifies the parent table in which this row must be added",&quot;မိဘ&quot; ဒီအတန်းကဆက်ပြောသည်ရမည်ဖြစ်သည့်အတွက်မိဘစားပွဲပေါ်မှာနေတဲ့အကြောင်းအချက်ပြ
-apps/frappe/frappe/email/queue.py +248,Cannot send this email. You have crossed the sending limit of {0} emails for this day.,ဒီအီးမေးလ်ကိုမပို့နိုင်ပါ။ သငျသညျဤသည်နေ့ရက်သည် {0} အီးမေးလ်ပေးပို့န့်သတ်ချက်ကိုကူးကြပါပြီ။
+apps/frappe/frappe/email/queue.py +249,Cannot send this email. You have crossed the sending limit of {0} emails for this day.,ဒီအီးမေးလ်ကိုမပို့နိုင်ပါ။ သငျသညျဤသည်နေ့ရက်သည် {0} အီးမေးလ်ပေးပို့န့်သတ်ချက်ကိုကူးကြပါပြီ။
 DocType: Website Theme,Apply Style,စတိုင် Apply
 DocType: Feedback Request,Feedback Rating,တုံ့ပြန်ချက်ခဲ့သည် Rating
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +63,Shared With,အတူ shared
@@ -2261,7 +2257,7 @@ DocType: OAuth Client,App Client ID,App ကိုလိုင်း ID ကို
 DocType: Kanban Board,Kanban Board Name,Kanban ဘုတ်အဖွဲ့အမည်
 DocType: Notification Recipient,"Expression, Optional","expression, မလုပ်မဖြစ်"
 DocType: GSuite Settings,Copy and paste this code into and empty Code.gs in your project at script.google.com,Copy ကူးခြင်းနှင့် script.google.com မှာသင့်ရဲ့စီမံကိန်းတွင် Code.gs သို့နှင့်ဗလာဒီ code ကို paste
-apps/frappe/frappe/email/queue.py +516,This email was sent to {0},{0} အားဤအီးမေးလ်ကိုစလှေတျခဲ့
+apps/frappe/frappe/email/queue.py +517,This email was sent to {0},{0} အားဤအီးမေးလ်ကိုစလှေတျခဲ့
 DocType: System Settings,Hide footer in auto email reports,အော်တိုအီးမေးလ်ကအစီရင်ခံစာများတွင်အောက်ခြေ Hide
 DocType: DocField,Remember Last Selected Value,နောက်ဆုံး Selected Value ကိုအောကျမေ့
 DocType: Email Account,Check this to pull emails from your mailbox,သင့်ရဲ့စာတိုက်ပုံးထဲကနေအီးမေးလ်များကိုဆွဲရန်ဤစစ်ဆေး
@@ -2541,7 +2537,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager.py +91,There 
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +67,Get Items,ပစ္စည်းများ Get
 DocType: Contact,Image,image
 DocType: Workflow State,remove-sign,ဖယ်ရှားရန်-နိမိတ်လက္ခဏာ
-apps/frappe/frappe/printing/doctype/print_settings/print_settings.py +30,Failed to connect to server,ဆာဗာချိတ်ဆက်ရန်မအောင်မြင်ခဲ့ပါ
+apps/frappe/frappe/printing/doctype/print_settings/print_settings.py +31,Failed to connect to server,ဆာဗာချိတ်ဆက်ရန်မအောင်မြင်ခဲ့ပါ
 apps/frappe/frappe/core/doctype/data_export/exporter.py +100,There is no data to be exported,တင်ပို့ခံရဖို့အဘယ်သူမျှမဒေတာရှိပါတယ်
 DocType: Domain Settings,Domains HTML,domains က HTML
 apps/frappe/frappe/templates/includes/search_template.html +47,Type something in the search box to search,ရှာဖွေရှာဖွေရေး box ထဲမှာတစ်ခုခုရိုက်ထည့်ပါ
@@ -2737,7 +2733,7 @@ DocType: Report,Letter Head,ပေးစာဌာနမှူး
 DocType: DocType,Quick Entry,လျင်မြန်စွာ Entry &#39;
 DocType: Web Form,Button Label,button ကိုတံဆိပ်တပ်ရန်
 DocType: Website Theme,UPPERCASE,ကြီး
-apps/frappe/frappe/public/js/frappe/list/list_view.js +862,{0} items selected,ရှေးခယျြထား {0} ပစ္စည်းများ
+apps/frappe/frappe/public/js/frappe/list/list_view.js +869,{0} items selected,ရှေးခယျြထား {0} ပစ္စည်းများ
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js +16,Suspend Sending,ပေးပို့ခြင်းကိုရပ်ဆိုင်း
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html +3,Drag elements from the sidebar to add. Drag them back to trash.,add ဖို့ sidebar မှာရှိတဲ့ element တွေကိုဆွဲယူပါ။ နောက်ကျောအမှိုက်မှသူတို့ကိုဆွဲယူပါ။
 DocType: Workflow State,resize-small,အရွယ်အစားသေးငယ်တဲ့-
@@ -2773,7 +2769,7 @@ DocType: Address,Telangana,Telangana
 apps/frappe/frappe/core/doctype/doctype/doctype.py +565,Default for {0} must be an option,{0} သည် default option တစ်ခုဖြစ်ရပါမည်
 DocType: Tag Doc Category,Tag Doc Category,Tag ကို Doc Category:
 DocType: User,User Image,"အသုံးပြုသူသင်ခန်းစာများ,"
-apps/frappe/frappe/email/queue.py +344,Emails are muted,အီးမေးလ်များကိုအသံတိတ်များမှာ
+apps/frappe/frappe/email/queue.py +345,Emails are muted,အီးမေးလ်များကိုအသံတိတ်များမှာ
 apps/frappe/frappe/config/integrations.py +88,Google Services,Google ဝန်ဆောင်မှုများ
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +67,Ctrl + Up,ပြီးရင် Ctrl + Up ကို
 DocType: Website Theme,Heading Style,ပုံစံဦးတည်
@@ -2881,7 +2877,6 @@ DocType: System Settings,User can login using Email id or User Name,အသုံ
 DocType: Workflow State,question-sign,မေးခွန်း-နိမိတ်လက္ခဏာ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +165,"Field ""route"" is mandatory for Web Views",field &quot;လမ်းကြောင်း&quot; web Views စာတွေအတွက်မဖြစ်မနေဖြစ်ပါသည်
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +221,Insert Column Before {0},{0} ခင်မှာကော်လံထည့်ပါ
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,Setup &gt; Customize Form,Setup ကို&gt; Customize Form ကို
 DocType: Dropbox Settings,Number of DB Backups,DB Backups တွေကိုအရေအတွက်
 DocType: Email Account,Add Signature,ထိုးမြဲလက်မှတ် Add
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +38,Left this conversation,ဒီစကားပြောဆို left
@@ -2945,7 +2940,7 @@ apps/frappe/frappe/config/setup.py +37,Set Permissions on Document Types and Rol
 DocType: Data Migration Run,Remote ID,ဝေးလံခေါင်သီ ID ကို
 apps/frappe/frappe/model/meta.py +204,No Label,အဘယ်သူမျှမတံဆိပ်
 DocType: System Settings,Use socketio to upload file,file ကို upload တင်ပေးရန် socketio ကိုသုံးပါ
-apps/frappe/frappe/public/js/frappe/list/list_view.js +275,Refreshing,လန်းဆန်း
+apps/frappe/frappe/public/js/frappe/list/list_view.js +256,Refreshing,လန်းဆန်း
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py +77,Modified By,အားဖြင့်ပြင်ဆင်ထားသော
 DocType: Address,Tripura,Tripura
 DocType: About Us Settings,"""Company History""",&quot;ကုမ္ပဏီသမိုင်း&quot;
@@ -3019,7 +3014,7 @@ apps/frappe/frappe/desk/moduleview.py +37,Custom Reports,custom အစီရင�
 DocType: Website Script,Website Script,website Script ကို
 DocType: GSuite Settings,If you aren't using own publish Google Apps Script webapp you can use the default https://script.google.com/macros/s/AKfycbxIFOx3301xwtF2IFPJ4pUQGqkNF3hBiBebppWkeKn6fKZRQvk/exec ,သငျသညျကိုယ်ပိုင်ထုတ်ဝေ Google Apps Script webapp အသုံးမပြုနေတယ်ဆိုရင်သင်က default https://script.google.com/macros/s/AKfycbxIFOx3301xwtF2IFPJ4pUQGqkNF3hBiBebppWkeKn6fKZRQvk/exec ကိုသုံးနိုင်သည်
 apps/frappe/frappe/config/setup.py +200,Customized HTML Templates for printing transactions.,ပုံနှိပ်လုပ်ငန်းတွေအတွက်စိတ်ကြိုက်က HTML template ။
-apps/frappe/frappe/public/js/frappe/form/print.js +305,Orientation,အရှေ့တိုင်းဆန်
+apps/frappe/frappe/public/js/frappe/form/print.js +295,Orientation,အရှေ့တိုင်းဆန်
 DocType: Workflow,Is Active,Active ဖြစ်ပါတယ်
 apps/frappe/frappe/desk/form/utils.py +114,No further records,အဘယ်သူမျှမကနောက်ထပ်မှတ်တမ်းများ
 DocType: DocField,Long Text,Long ကစာသား
@@ -3117,7 +3112,7 @@ DocType: SMS Settings,Use POST,POST ကိုသုံးပါ
 DocType: Communication,SMS,စာတို
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js +14,Fetch Images,Images ကိုဆွဲယူ
 DocType: DocType,Web View,Web ကိုကြည့်ရန်
-apps/frappe/frappe/public/js/frappe/form/print.js +226,Warning: This Print Format is in old style and cannot be generated via the API.,သတိပေးချက်: ဒီပုံနှိပ်စီစဉ်ဖွဲ့စည်းမှုပုံစံအဟောင်းစတိုင်နှင့် API ကိုကနေတဆင့် generated မရနိုင်ပါ။
+apps/frappe/frappe/public/js/frappe/form/print.js +216,Warning: This Print Format is in old style and cannot be generated via the API.,သတိပေးချက်: ဒီပုံနှိပ်စီစဉ်ဖွဲ့စည်းမှုပုံစံအဟောင်းစတိုင်နှင့် API ကိုကနေတဆင့် generated မရနိုင်ပါ။
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +810,Totals,စုစုပေါင်း
 DocType: DocField,Print Width,ပုံနှိပ်အကျယ်
 ,Setup Wizard,Setup Wizard
@@ -3169,7 +3164,7 @@ DocType: User,Third Party Authentication,တတိယပါတီ Authentication
 DocType: Website Settings,Banner is above the Top Menu Bar.,Banner ကိုထိပ်တန်း Menu ကိုဘားအထက်ဖြစ်ပါတယ်။
 DocType: User,API Secret,API ကိုလြှို့ဝှကျ
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +29,{0} Calendar,{0} ပြက္ခဒိန်
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +765,Export Report: ,ပို့ကုန်အစီရင်ခံစာ:
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +777,Export Report: ,ပို့ကုန်အစီရင်ခံစာ:
 DocType: Data Migration Run,Push Update,Update ကို Push
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +10,in the Auto Repeat document,ယင်းအော်တိုထပ်ခါတလဲလဲစာရွက်စာတမ်းအတွက်
 DocType: Email Account,Port,ဆိပ်ကမ်း
@@ -3401,7 +3396,6 @@ apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +135,Please save
 apps/frappe/frappe/email/doctype/email_group/email_group.py +42,{0} subscribers added,ကဆက်ပြောသည် {0} လစဉ်ကြေး ပေး.
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +15,Not In,မခုနှစ်တွင်
 DocType: Workflow State,star,ကြယ်
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +361,<p>No results found for '</p>,<p> ရလဒ်တွေကို &#39;&#39; အဘို့မျှမတွေ့ </p>
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +237,Hub,hub
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +282,values separated by commas,ကော်မာ separated တန်ဖိုးများ
 apps/frappe/frappe/core/doctype/doctype/doctype.py +543,Max width for type Currency is 100px in row {0},အမျိုးအစားငွေကြေးစနစ်များအတွက် max ကို width ကိုအတန်းအတွက် 100px {0} သည်
@@ -3463,7 +3457,6 @@ apps/frappe/frappe/core/doctype/data_import/importer.py +304,Cannot change heade
 DocType: Print Settings,Print Style,ပုံနှိပ်ပုံစံ
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +52,Not Linked to any record,မည်သည့်စံချိန်တင်ဖို့လင့်ခ်လုပ်ထားသောမဟုတ်
 DocType: Custom DocPerm,Import,တင်သွင်း
-apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +55,&gt; {0} year(s) ago,&gt; {0} တစ်နှစ် (s) ကိုလွန်ခဲ့သည့်
 DocType: User,Social Logins,လူမှု login
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +180,Row {0}: Not allowed to enable Allow on Submit for standard fields,row {0}: စံလယ်ယာ Submit အပေါ် Allow ကိုဖွင့်ခွင့်ပြုမ
 apps/frappe/frappe/core/doctype/role/role.py +12,Standard roles cannot be renamed,စံအခန်းကဏ္ဍအမည်ပြောင်းမရနိုငျ
@@ -3503,7 +3496,7 @@ DocType: Activity Log,Failed,Failed
 DocType: Web Form,Allow Comments,မှတ်ချက်များ Allow
 DocType: User,Background Style,နောက်ခံသမိုင်းကြောင်းပုံစံ
 DocType: System Settings,Bypass Two Factor Auth for users who login from restricted IP Address,ကန့်သတ်သည် IP Address ကိုကနေ login သူကိုအသုံးပြုသူများအတွက် Bypass လုပ်ရနှစ်ဦး Factor Auth
-apps/frappe/frappe/email/queue.py +276,{0} to stop receiving emails of this type,{0} ဒီအမျိုးအစားအီးမေးလ်များကိုလက်ခံရရှိရပ်တန့်ရန်
+apps/frappe/frappe/email/queue.py +277,{0} to stop receiving emails of this type,{0} ဒီအမျိုးအစားအီးမေးလ်များကိုလက်ခံရရှိရပ်တန့်ရန်
 apps/frappe/frappe/www/qrcode.html +13,Open your authentication app on your mobile phone.,သင့်ရဲ့စစ်မှန်ကြောင်းအထောက်အထားပြသခြင်း app ကိုသင့်မိုဘိုင်းဖုန်းပေါ်မှာဖွင့်ပါ။
 apps/frappe/frappe/model/rename_doc.py +77,merged {0} into {1},ပေါင်းစည်း {0} {1} သို့
 DocType: System Settings,mm-dd-yyyy,မီလီမီတာ-dd-yyyy

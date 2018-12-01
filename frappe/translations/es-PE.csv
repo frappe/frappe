@@ -60,7 +60,7 @@ apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +6
 apps/frappe/frappe/templates/emails/password_update.html +2,Your password has been updated. Here is your new password,Su contraseña se ha actualizado. Aquí está tu nueva contraseña
 DocType: Role,Role Name,Nombre de la Función
 DocType: DocField,Report Hide,Ocultar Informe
-apps/frappe/frappe/public/js/frappe/form/print.js +226,Warning: This Print Format is in old style and cannot be generated via the API.,Advertencia: Este formato de impresión es de estilo antiguo y no se puede generar a través de la API.
+apps/frappe/frappe/public/js/frappe/form/print.js +216,Warning: This Print Format is in old style and cannot be generated via the API.,Advertencia: Este formato de impresión es de estilo antiguo y no se puede generar a través de la API.
 apps/frappe/frappe/core/doctype/data_import/exporter.py +66,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","Si va a cargar nuevos registros, ""Secuencias"" se convierte en obligatoria, si está presente."
 DocType: Report,Letter Head,Membretes
 DocType: Custom DocPerm,Role,Función
@@ -476,7 +476,7 @@ DocType: DocField,Section Break,Salto de sección
 DocType: Print Settings,PDF Settings,Configuración de PDF
 apps/frappe/frappe/templates/includes/login/login.js +223,Oops! Something went wrong,Oups! Algo salió mal
 DocType: Data Export,Select DocType,Seleccione tipo de documento
-apps/frappe/frappe/public/js/legacy/form.js +779,Permanently Submit {0}?,Presentar permanentemente {0}?
+apps/frappe/frappe/public/js/legacy/form.js +775,Permanently Submit {0}?,Presentar permanentemente {0}?
 DocType: Email Account,"e.g. ""Support"", ""Sales"", ""Jerry Yang""","por ejemplo ""Soporte "","" Ventas "","" Jerry Yang """
 apps/frappe/frappe/config/setup.py +226,"Actions for workflow (e.g. Approve, Cancel).","Acciones para los flujos de trabajo (por ejemplo: Aprobar, Cancelar)."
 DocType: Communication,Feedback,Comentarios

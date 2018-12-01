@@ -94,7 +94,7 @@ def notify_mentions(doc):
 
 		subject = _("{0} mentioned you in a comment in {1}").format(sender_fullname, parent_doc_label)
 
-		recipients = [frappe.db.get_value("User", {"enabled": 1, "name": name, "user_type": "System User"}, "email")
+		recipients = [frappe.db.get_value("User", {"enabled": 1, "name": name, "user_type": "System User", "allowed_in_mentions": 1}, "email")
 			for name in mentions]
 		frappe.sendmail(
 			recipients=recipients,
