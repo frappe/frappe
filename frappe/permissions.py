@@ -518,6 +518,6 @@ def get_allowed_docs_for_doctype(user_permissions, doctype):
 		that are allowed under provide doctype'''
 	return [d.get('doc') for d in user_permissions if not d.get('applicable_for') or d.get('applicable_for') == doctype]
 
-def push_perm_check_log(log, verbose=True):
+def push_perm_check_log(log):
 	if frappe.flags.get('has_permission_check_logs') == None: return
 	frappe.flags.get('has_permission_check_logs').append(log)
