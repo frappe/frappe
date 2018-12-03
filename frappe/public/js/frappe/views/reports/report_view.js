@@ -54,14 +54,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.save_report_settings();
 	}
 
-	get_filters_to_apply() {
-		if (this.report_doc) {
-			return this.report_doc.json.filters;
-		}
-
-		return super.get_filters_to_apply();
-	}
-
 	save_report_settings() {
 		frappe.model.user_settings.save(this.doctype, 'last_view', this.view_name);
 
@@ -125,6 +117,16 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			} else {
 				// refresh
 				this.refresh();
+			}
+		}
+	}
+
+	on_filter_change() {
+		if (this.report_doc) {
+			if (JSON.stringify(this.filters) !== JSON.stringify(this.filter_area.get())) {
+				this.page.set_indicator(__('Not Saved'), 'orange');
+			} else {
+				this.page.clear_indicator();
 			}
 		}
 	}
@@ -907,6 +909,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					if(r.message != this.report_name) {
 						frappe.set_route('List', this.doctype, 'Report', r.message);
 					}
+
+					// reset dirty state
+					this.filters = this.filter_area.get();
+					this.on_filter_change();
 				}
 			});
 

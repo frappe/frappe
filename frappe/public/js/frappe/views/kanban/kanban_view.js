@@ -42,16 +42,17 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return this.get_board();
 	}
 
-	get_filters_to_apply() {
-		return this.board.filters_array;
-	}
-
 	get_board() {
 		return frappe.db.get_doc('Kanban Board', this.board_name)
 			.then(board => {
 				this.board = board;
 				this.board.filters_array = JSON.parse(this.board.filters || '[]');
+				this.filters = this.board.filters_array;
 			});
+	}
+
+	before_refresh() {
+
 	}
 
 	setup_view() {
@@ -70,12 +71,22 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		});
 	}
 
+	on_filter_change() {
+		if (JSON.stringify(this.board.filters_array) !== JSON.stringify(this.filter_area.get())) {
+			this.page.set_indicator(__('Not Saved'), 'orange');
+		} else {
+			this.page.clear_indicator();
+		}
+	}
+
 	save_kanban_board_filters() {
+		const filters = this.filter_area.get();
+
 		frappe.call({
 			method: 'frappe.desk.doctype.kanban_board.kanban_board.save_filters',
 			args: {
 				board_name: this.board_name,
-				filters: this.filter_area.get()
+				filters: filters
 			}
 		}).then(r => {
 			if (r.exc) {
@@ -89,6 +100,9 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				indicator: 'green',
 				message: __('Filters saved')
 			});
+
+			this.board.filters_array = filters;
+			this.on_filter_change();
 		});
 	}
 
