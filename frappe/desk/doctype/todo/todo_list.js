@@ -1,11 +1,12 @@
 frappe.listview_settings['ToDo'] = {
 	onload: function(me) {
-		frappe.route_options = {
-			"owner": frappe.session.user,
-			"status": "Open"
-		};
+		if (!frappe.route_options) {
+			frappe.route_options = {
+				"owner": frappe.session.user,
+				"status": "Open"
+			};
+		}
 		me.page.set_title(__("To Do"));
-
 	},
 	hide_name_column: true,
 	refresh: function(me) {

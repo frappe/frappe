@@ -68,6 +68,7 @@ class WebsiteGenerator(Document):
 		return title_field
 
 	def clear_cache(self):
+		super(WebsiteGenerator, self).clear_cache()
 		clear_cache(self.route)
 
 	def scrub(self, text):
