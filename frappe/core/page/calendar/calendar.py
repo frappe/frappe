@@ -3,39 +3,42 @@
 
 from __future__ import unicode_literals
 import frappe
+from pprint import pprint
 import json
-from frappe.desk.doctype.event.event import get_events as default_event
-from erpnext.selling.doctype.sales_order.sales_order import get_events as sales_order_event
-from frappe.desk.calendar import get_events as task_event
-from erpnext.hr.doctype.holiday_list.holiday_list import get_events as holiday
 
 @frappe.whitelist()
 def get_master_calendar_events(doctypeinfo):
+	import os
+	current_path = os.path.dirname(__file__)
+	with open(current_path + '/calendar_map.json') as f:
+		data = json.load(f)
+
 	doctypes=frappe.get_hooks("calendars")
 	words = doctypeinfo.split(",")
 	master_events = []
 	for info in words:
 		if(info in doctypes):
-			if(info == "Event"):
-				events = default_event("2018-10-28 00:00:00", "2018-12-09 00:00:00")
-				for event in events:
-					master_events.append({'start': event.starts_on, 'end': event.ends_on, "title" : 'Event', "color": "yellow"})
+			field_map = frappe._dict(data[info]["field_map"])
+			fields=[field_map.start, field_map.end, field_map.title, 'name']
 
-			if info == "Task":
-				events = frappe.get_list("Task" ,fields=['*'])
-				print(events)
-				for event in events:
-					master_events.append({'start': event.exp_start_date, 'end': event.exp_end_date, "title" : 'Task'})
+			if field_map.color:
+				fields.append(field_map.color)
 
-			if info == "Sales Order":
-				events = sales_order_event("2018-10-28 00:00:00","2018-12-09 00:00:00")
-				for event in events:
-					master_events.append({'start': event.delivery_date, "title" : 'Sales Order', "color": "orange"})
+			events = frappe.get_list(info ,fields=fields)
+			for event in events:
+					color = "#D2D1FB"
 
-			if info == "Holiday List":
-				events = holiday("2018-10-28 00:00:00","2018-12-09 00:00:00")
-				print(events)
+					if field_map.color in event:
+						color = event[field_map.color] if event[field_map.color] else "#D2D1FB"
 
+					master_events.append({'start': str(event[field_map.start]),
+											'end': str(event[field_map.end]),
+											"title" : str(info) +": "+ str(event[field_map.title]),
+											"id" : str(event['name']),
+											"color": str(color),
+											"doctype" : str(info),
+											"textColor": "#4D4DA8"
+										})
 
 	return master_events
 

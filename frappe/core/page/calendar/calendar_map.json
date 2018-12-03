@@ -1,0 +1,60 @@
+{
+		"Holiday List": {
+				"field_map": {
+						"start": "from_date",
+						"end": "to_date",
+						"id": "name",
+						"title": "name",
+						"allDay": "allDay"
+				}
+		},
+		"Event":{
+				"field_map": {
+					"start": "starts_on",
+					"end": "ends_on",
+					"id": "name",
+					"allDay": "all_day",
+					"title": "subject",
+					"status": "event_type",
+					"color": "color"
+				}
+		},
+		"Leave Application":{
+				"field_map": {
+					"start": "from_date",
+					"end": "to_date",
+					"id": "name",
+					"title": "name",
+					"docstatus": 1
+			}
+		},
+		"Sales Order":{
+			"field_map": {
+				"start": "delivery_date",
+				"end": "delivery_date",
+				"id": "name",
+				"title": "customer_name",
+				"allDay": "allDay"
+			}
+		},
+		"Task":{
+			"field_map": {
+				"start": "exp_start_date",
+				"end": "exp_end_date",
+				"id": "name",
+				"title": "subject",
+				"allDay": "allDay",
+				"progress": "progress"
+			}
+		},
+		"Work Order":{
+			"field_map": {
+				"start": "planned_start_date",
+				"end": "planned_end_date",
+				"id": "name",
+				"title": "name",
+				"allDay": "allDay"
+			}
+		}
+
+}
