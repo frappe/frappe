@@ -57,6 +57,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		this.actions_menu_items = this.get_actions_menu_items();
 
+		if (this.view_user_settings.filters && this.view_user_settings.filters.length) {
+			// Priority 1: saved filters
+			const saved_filters = this.view_user_settings.filters;
+			this.filters = this.validate_filters(saved_filters);
+		} else {
+			// Priority 2: filters in listview_settings
+			this.filters = (this.settings.filters || []).map(f => {
+				if (f.length === 3) {
+					f = [this.doctype, f[0], f[1], f[2]];
+				}
+				return f;
+			});
+		}
+
 		this.patch_refresh_and_load_lib();
 	}
 
@@ -266,23 +280,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	before_refresh() {
 		if (frappe.route_options) {
-			// Priority 1: route filters
 			this.filters = this.parse_filters_from_route_options();
-		} else if (this.view_user_settings.filters && this.view_user_settings.filters.length) {
-			// Priority 2: saved filters
-			const saved_filters = this.view_user_settings.filters;
-			this.filters = this.validate_filters(saved_filters);
-		} else {
-			// Priority 3: filters in listview_settings
-			this.filters = (this.settings.filters || []).map(f => {
-				if (f.length === 3) {
-					f = [this.doctype, f[0], f[1], f[2]];
-				}
-				return f;
-			});
-		}
-
-		if (this.filters.length) {
 			return this.filter_area.clear(false)
 				.then(() => this.filter_area.set(this.filters));
 		}
