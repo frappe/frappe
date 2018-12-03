@@ -116,8 +116,9 @@ def init_request(request):
 def make_form_dict(request):
 	import json
 
-	if 'application/json' in (request.content_type or '') and request.data:
-		args = json.loads(request.data)
+	request_data = request.get_data(as_text=True)
+	if 'application/json' in (request.content_type or '') and request_data:
+		args = json.loads(request_data)
 	else:
 		args = request.form or request.args
 

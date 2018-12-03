@@ -614,19 +614,14 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	setup_earlier_reply: function() {
-		var fields = this.dialog.fields_dict,
-			signature = frappe.boot.user.email_signature || "",
-			last_email = this.last_email;
-
-		if(!last_email) {
-			last_email = this.frm && this.frm.timeline.get_last_email(true);
-		}
+		let fields = this.dialog.fields_dict;
+		let signature = frappe.boot.user.email_signature || "";
 
 		if(!frappe.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");
 		}
 
-		if(this.txt) {
+		if (this.txt) {
 			this.message = this.txt + (this.message ? ("<br><br>" + this.message) : "");
 		} else {
 			// saved draft in localStorage
@@ -641,31 +636,8 @@ frappe.views.CommunicationComposer = Class.extend({
 				+ this.real_name + ",</p><!-- salutation-ends --><br>" + (this.message || "");
 		}
 
-		var reply = (this.message || "")
-			+ (signature ? ("<br>" + signature) : "");
+		var reply = (this.message || "") + (signature ? ("<br>" + signature) : "");
 
-		// why do we append the last email in the reply?
-		var content = "<div><br></div>" + reply;
-
-		if(last_email) {
-			var last_email_content = last_email.original_comment || last_email.content;
-
-			last_email_content = last_email_content
-				.replace(/&lt;meta[\s\S]*meta&gt;/g, '') // remove <meta> tags
-				.replace(/&lt;style[\s\S]*&lt;\/style&gt;/g, ''); // // remove <style> tags
-
-			var communication_date = last_email.communication_date || last_email.creation;
-			content = '<div><br></div>'
-				+ reply
-				+ "<div data-comment='original-reply'></div>"
-				+ '<blockquote>' +
-					'<p>' + __("On {0}, {1} wrote:",
-					[frappe.datetime.global_date_format(communication_date) , last_email.sender]) + '</p>' +
-					last_email_content +
-				'<blockquote>';
-		} else {
-			content = "<div><br></div>" + reply;
-		}
-		fields.content.set_value(content);
+		fields.content.set_value(reply);
 	}
 });

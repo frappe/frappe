@@ -176,7 +176,7 @@ frappe.ui.form.on("Communication", {
 	reply_all: function(frm) {
 		var args = frm.events.get_mail_args(frm)
 		$.extend(args, {
-			subject: __("Re: {0}", [frm.doc.subject]),
+			subject: __("Res: {0}", [frm.doc.subject]),
 			recipients: frm.doc.sender,
 			cc: frm.doc.cc
 		})

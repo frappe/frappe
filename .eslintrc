@@ -137,6 +137,12 @@
 		"JsBarcode": true,
 		"L": true,
 		"Chart": true,
-		"DataTable": true
+		"DataTable": true,
+		"Cypress": true,
+		"cy": true,
+		"it": true,
+		"context": true,
+		"before": true,
+		"beforeEach": true
 	}
 }
