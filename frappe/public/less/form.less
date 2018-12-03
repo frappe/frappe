@@ -739,11 +739,18 @@ select.form-control {
 	appearance: none;
 }
 
-.form-control.bold {
-	color: @text-color;
-	font-weight: bold;
+.form-control{
+	position: relative;
 	background-color: @input-bg-color;
+	color: @text-color;
 	border-color: @border-color;
+
+	&.bold {
+		color: @text-color;
+		font-weight: bold;
+		background-color: @input-bg-color;
+		border-color: @border-color;
+	}
 }
 
 .form-control[data-fieldtype="Password"] {
