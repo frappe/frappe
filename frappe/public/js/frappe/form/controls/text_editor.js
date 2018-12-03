@@ -30,7 +30,7 @@ class HiddenBlock extends Block {
 	}
 }
 HiddenBlock.blotName = 'hiddenblot';
-HiddenBlock.tagName = 'DIV';
+HiddenBlock.tagName = 'SPAN';
 Quill.register(HiddenBlock, true);
 
 // image uploader
