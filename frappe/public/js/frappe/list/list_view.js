@@ -290,6 +290,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return Promise.resolve();
 	}
 
+	parse_filters_from_settings() {
+		return (this.settings.filters || []).map(f => {
+			if (f.length === 3) {
+				f = [this.doctype, f[0], f[1], f[2]];
+			}
+			return f;
+		});
+	}
+
 	toggle_result_area() {
 		super.toggle_result_area();
 		this.toggle_actions_menu_button(

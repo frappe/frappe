@@ -392,6 +392,10 @@ frappe.views.BaseList = class BaseList {
 		// for child classes
 	}
 
+	on_filter_change() {
+		// fired when filters are added or removed
+	}
+
 	toggle_result_area() {
 		this.$result.toggle(this.data.length > 0);
 		this.$paging_area.toggle(this.data.length > 0);
@@ -480,6 +484,7 @@ class FilterArea {
 		if (this.trigger_refresh) {
 			this.list_view.start = 0;
 			this.list_view.refresh();
+			this.list_view.on_filter_change();
 		}
 	}
 
