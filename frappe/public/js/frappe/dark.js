@@ -27,6 +27,7 @@ frappe.dark_mode = {
 				if (StyleSheets[StyleSheet].href.indexOf("desk-dark") != -1) {
 					StyleSheets[StyleSheet].disabled = true;
 					$('#dark_mode').prop('checked', false);
+					frappe.set_route(frappe.get_route_str());
 					break;
 				}
 			}
@@ -35,6 +36,7 @@ frappe.dark_mode = {
 				if (StyleSheets[StyleSheet].href.indexOf("desk-dark") != -1) {
 					StyleSheets[StyleSheet].disabled = false;
 					$('#dark_mode').prop('checked', true);
+					frappe.set_route(frappe.get_route_str());
 					break;
 				}
 			}
