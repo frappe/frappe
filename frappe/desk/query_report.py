@@ -240,8 +240,11 @@ def export_query():
 				# only rows which are visible in the report
 				if row and (i in visible_idx):
 					row_list = []
-					for idx in range(len(data.columns)):
-						row_list.append(row.get(columns[idx]["fieldname"],""))
+					if isinstance(row, list):
+						row_list = row
+					else:
+						for idx in range(len(data.columns)):
+							row_list.append(row.get(columns[idx]["fieldname"],""))
 					result.append(row_list)
 				elif not row:
 					result.append([])
