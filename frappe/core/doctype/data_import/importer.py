@@ -285,7 +285,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 		if file_extension == '.xlsx' and from_data_import == 'Yes':
 			from frappe.utils.xlsxutils import read_xlsx_file_from_attached_file
-			rows = read_xlsx_file_from_attached_file(file_id=data_import_doc.import_file)
+			rows = read_xlsx_file_from_attached_file(file_url=data_import_doc.import_file)
 
 		elif file_extension == '.csv':
 			from frappe.utils.csvutils import read_csv_content
