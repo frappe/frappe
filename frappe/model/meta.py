@@ -69,7 +69,7 @@ def load_doctype_from_file(doctype):
 class Meta(Document):
 	_metaclass = True
 	default_fields = list(default_fields)[1:]
-	special_doctypes = ("DocField", "DocPerm", "Role", "DocType", "Module Def")
+	special_doctypes = ("DocField", "DocPerm","Doctype Authorization Object", "Role", "DocType", "Module Def")
 
 	def __init__(self, doctype):
 		self._fields = {}
@@ -166,7 +166,7 @@ class Meta(Document):
 
 	def get_valid_columns(self):
 		if not hasattr(self, "_valid_columns"):
-			if self.name in ("DocType", "DocField", "DocPerm", "Property Setter"):
+			if self.name in ("DocType", "DocField", "DocPerm","Doctype Authorization Object", "Property Setter"):
 				self._valid_columns = get_table_columns(self.name)
 			else:
 				self._valid_columns = self.default_fields + \
@@ -175,7 +175,8 @@ class Meta(Document):
 		return self._valid_columns
 
 	def get_table_field_doctype(self, fieldname):
-		return { "fields": "DocField", "permissions": "DocPerm"}.get(fieldname)
+		return { "fields": "DocField", "permissions": "DocPerm",
+			"authorization_objects":"Doctype Authorization Object"}.get(fieldname)
 
 	def get_field(self, fieldname):
 		'''Return docfield from meta'''
@@ -439,7 +440,8 @@ class Meta(Document):
 
 doctype_table_fields = [
 	frappe._dict({"fieldname": "fields", "options": "DocField"}),
-	frappe._dict({"fieldname": "permissions", "options": "DocPerm"})
+	frappe._dict({"fieldname": "permissions", "options": "DocPerm"},
+	frappe._dict({"fieldname": "authorization_objects", "options": "Doctype Authorization Object"})
 ]
 
 #######
