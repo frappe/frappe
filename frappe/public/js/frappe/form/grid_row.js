@@ -349,7 +349,13 @@ export default class GridRow {
 		if (df.fieldtype=='Text Editor') {
 			df.fieldtype = 'Text';
 		}
-
+		var with_link_btn = true;
+		if (df.fieldtype =='Data' && df.options){
+			df.fieldtype='Link';
+			df.ignore_link_validation= true;
+			df.only_select = true;
+			with_link_btn = false;
+		}
 		var field = frappe.ui.form.make_control({
 			df: df,
 			parent: parent,
