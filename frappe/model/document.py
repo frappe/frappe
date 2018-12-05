@@ -529,26 +529,13 @@ class Document(BaseDocument):
 
 	def apply_fieldlevel_read_permissions(self):
 		'''Remove values the user is not allowed to read (called when loading in desk)'''
-		has_higher_permlevel = False
-		for p in self.get_permissions():
-			if p.permlevel > 0:
-				has_higher_permlevel = True
-				break
+		from frappe.authorizations import auth_check_doc_fields
 
-		if not has_higher_permlevel:
-			return
-
-		has_access_to = self.get_permlevel_access('read')
-
-		for df in self.meta.fields:
-			if df.permlevel and not df.permlevel in has_access_to:
-				self.set(df.fieldname, None)
-
+		auth_check_doc_fields(self)
 		for table_field in self.meta.get_table_fields():
-			for df in frappe.get_meta(table_field.options).fields or []:
-				if df.permlevel and not df.permlevel in has_access_to:
-					for child in self.get(table_field.fieldname) or []:
-						child.set(df.fieldname, None)
+			if frappe.get_meta(table_field.options).has_field_auth_obj:
+				for child in self.get(table_field.fieldname) or []:
+					auth_check_doc_fields(child)
 
 	def validate_higher_perm_levels(self):
 		"""If the user does not have permissions at permlevel > 0, then reset the values to original / default"""
