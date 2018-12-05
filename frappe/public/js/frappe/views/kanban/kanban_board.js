@@ -547,7 +547,7 @@ frappe.provide("frappe.views");
 				let due_date_text = day_diff > 0 ? "Due" : "Overdue since";
 				due_date_text += ` ${comment_when(card.doc.exp_end_date)}`;
 
-				html += `<span class="pull-left small text-muted">${due_date_text}</span><br>`;
+				html += `<span class="pull-left small text-muted">${__(due_date_text)}</span><br>`;
 			}
 
 			// Add comment count to the card
@@ -652,7 +652,7 @@ frappe.provide("frappe.views");
 			assigned_list: card.assigned_list || assigned_list,
 			comment_count: card.comment_count || comment_count,
 			color: card.color || null,
-			doc: doc || card
+			doc: doc || card  // doc can be undefined; pick up card if that's the case
 		};
 	}
 
