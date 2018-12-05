@@ -17,6 +17,7 @@ from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate, get_doc_path
 from frappe.database.schema import validate_column_name, validate_column_length
 from frappe.model.docfield import supports_translation
+from frappe.authorizations import validate_auth_field
 import frappe.website.render
 
 class InvalidFieldNameError(frappe.ValidationError): pass
@@ -76,6 +77,17 @@ class DocType(Document):
 
 		if self.default_print_format and not self.custom:
 			frappe.throw(_('Standard DocType cannot have default print format, use Customize Form'))
+			
+		for f in self.authorization_objects:
+			invalid_fields = validate_auth_field(self.name, f.authorization_object)
+			if invalid_fields:
+				frappe.throw(_('auth fields: %s in auth obj: %s is not valid field in this doctype'
+					 %(','.join(invalid_fields), f.authorization_object)))
+		if len(self.authorization_objects)>4:
+			frappe.throw(_('For performance and easy maintenane consideration, no more than 4 objs'))
+
+		self.has_field_auth_obj = bool([f.fieldname for f in self.fields if f.authorization_object])
+			
 
 	def set_default_in_list_view(self):
 		'''Set default in-list-view for first 4 mandatory fields'''
@@ -755,6 +767,14 @@ def clear_permissions_cache(doctype):
 		AND `tabDocPerm`.`role` = `tabHas Role`.`role`
 		""", doctype):
 		frappe.clear_cache(user=user)
+		
+	for user in frappe.db.sql_list("""select distinct role.parent	from `tabHas Role` role 
+        	 inner join `tabRole Authorization` auth on role.role = auth.parent  
+        	 inner join `tabDoctype Authorization Object` obj on
+        	 auth.authorization_object= obj.authorization_object
+        	 where obj.parent = %s  and role.parenttype="User" """, doctype):
+		frappe.clear_cache(user=user)
+		
 
 def validate_permissions(doctype, for_remove=False):
 	permissions = doctype.get("permissions")
@@ -894,3 +914,26 @@ def check_if_fieldname_conflicts_with_methods(doctype, fieldname):
 
 def clear_linked_doctype_cache():
 	frappe.cache().delete_value('linked_doctypes_without_ignore_user_permissions_enabled')
+
+def get_authorization_object(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
+	"""exclude auth objs with auth fields not in current doctype
+	   exclude already selected auth obj in the current doctype """
+	conditions = []
+	meta= frappe.get_meta(doctype)
+	s_doctype = filters.get('s_doctype')
+	auth_objs = filters.get('auth_objs')
+	filters = {'name': ('not in', auth_objs)} if auth_objs else []
+	fcond=get_filters_cond(doctype, filters, conditions)
+	if frappe.db.has_column(doctype, '_user_tags'):
+		user_tag = ' or _user_tags like %(txt)s '
+	else:
+		user_tag = ' '
+	auth_objs = frappe.db.sql( """select name from `tabAuthorization Object` where name LIKE %(txt)s {user_tag}
+		{fcond} limit %(start)s, %(page_len)s """.format(fcond=fcond.replace('%', '%%'), user_tag= user_tag),
+		{"txt": "%%%s%%" % txt, "start": start,"page_len": page_len})
+	result = []
+	for auth_obj in auth_objs or []:
+		check = validate_auth_field(s_doctype, auth_obj[0])
+		if not check:
+			result.append(auth_obj)
+	return result
