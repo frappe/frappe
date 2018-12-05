@@ -12,6 +12,23 @@
 // })
 
 frappe.ui.form.on('DocType', {
+	onload: function(frm) {
+		frm.set_query("authorization_object", "authorization_objects", function() {
+			var auth_objs = []
+			$.each(frm.doc.authorization_objects, function(key, value){
+						if (value.authorization_object != undefined)
+							auth_objs.push(value.authorization_object)
+							}) 
+			return {
+				query: "frappe.core.doctype.doctype.doctype.get_authorization_object",
+				filters: {
+					s_doctype:frm.docname,
+					auth_objs: auth_objs
+				}
+			}
+		});
+	},
+	
 	refresh: function(frm) {
 		if(frappe.session.user !== "Administrator" || !frappe.boot.developer_mode) {
 			if(frm.is_new()) {
