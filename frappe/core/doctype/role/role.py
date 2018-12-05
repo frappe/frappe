@@ -21,6 +21,14 @@ class Role(Document):
 			else:
 				frappe.db.sql("delete from `tabHas Role` where role = %s", self.name)
 				frappe.clear_cache()
+				
+	def on_change(self):
+		if not hasattr(self,'_doc_before_save') or (hasattr(self,'_doc_before_save') and 
+			self._doc_before_save and self._doc_before_save.authorization != self.authorization):
+			for user in frappe.db.sql_list("""select parent from `tabHas Role`
+				 where role = %s  and parenttype="User" """, self.name):
+				frappe.clear_cache(user=user)
+				
 
 # Get email addresses of all users that have been assigned this role
 def get_emails_from_role(role):
@@ -35,3 +43,16 @@ def get_emails_from_role(role):
 			emails.append(user_email)
 
 	return emails
+
+def get_auth_field(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
+	"""restrict by auth objs """
+	conditions = []		
+	fcond=get_filters_cond(doctype, filters, conditions)
+	if frappe.db.has_column(doctype, '_user_tags'):
+		user_tag = ' or ( _user_tags like %(txt)s ' + fcond + ')'
+	else:
+		user_tag = ' '
+	result = frappe.db.sql( """select fieldname from `tabAuthorization Field` where name LIKE %(txt)s 
+		{fcond} {user_tag} limit %(start)s, %(page_len)s """.format(fcond=fcond.replace('%', '%%'), user_tag= user_tag),
+		{"txt": "%%%s%%" % txt, "start": start,"page_len": page_len})
+	return result
