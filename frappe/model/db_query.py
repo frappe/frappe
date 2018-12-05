@@ -129,10 +129,12 @@ class DatabaseQuery(object):
 		# query dict
 		args.tables = self.tables[0]
 
-		# left join parent, child tables
+		# left join parent, child, link tables
 		for child in self.tables[1:]:
-			args.tables += " {join} {child} on ({child}.parent = {main}.name)".format(join=self.join,
-				child=child, main=self.tables[0])
+			table1_alias = child[4]
+			table2_alias = child[5]
+			args.tables += " {join} {table2} {table2_alias} on ({table1_alias}.{field1} = {table2_alias}.{field2})".format(join=self.join,
+				table1=child[0],field1=child[1],table2=child[2],field2=child[3], table1_alias = table1_alias,table2_alias = table2_alias)
 
 		if self.grouped_or_conditions:
 			self.conditions.append("({0})".format(" or ".join(self.grouped_or_conditions)))
@@ -233,24 +235,59 @@ class DatabaseQuery(object):
 		self.tables = ['`tab' + self.doctype + '`']
 
 		# add tables from fields
-		if self.fields:
-			for f in self.fields:
-				if ( not ("tab" in f and "." in f) ) or ("locate(" in f) or ("strpos(" in f) or ("count(" in f):
+		if self.fields:			
+			for idx, f in enumerate(self.fields):
+				if ("locate(" in f) or ("count(" in f):
 					continue
+				if  "." in f and  not ("tab" in f ):
+					doctype, field, table_alias  = self.process_sub_field(f)
+					if doctype:
+						self.fields[idx] = '%s.%s' %(table_alias, field)
+				elif "." in f and  ("tab" in f ):	# dynamic linked tables
+					table_name = f.split('.')[0]
+					if table_name.lower().startswith('group_concat('):
+						table_name = table_name[13:]
+					if table_name.lower().startswith('ifnull('):
+						table_name = table_name[7:]
+					if not table_name[0]=='`':
+						table_name = '`' + table_name + '`'
+					table = [self.tables[0], "name", table_name, "parent", self.tables[0], table_name]
+					self.append_table(table)
 
-				table_name = f.split('.')[0]
-				if table_name.lower().startswith('group_concat('):
-					table_name = table_name[13:]
-				if table_name.lower().startswith('ifnull('):
-					table_name = table_name[7:]
-				if not table_name[0]=='`':
-					table_name = '`' + table_name + '`'
-				if not table_name in self.tables:
-					self.append_table(table_name)
-
-	def append_table(self, table_name):
-		self.tables.append(table_name)
-		doctype = table_name[4:-1]
+	def process_sub_field(self, f, doctype=None):
+		result = (doctype, f, None)
+		if "." in f:
+			doctype = self.doctype
+			table2_alias = None 
+			fields = f.split('.')[0:-1]
+			for field in fields:
+				table1_alias = table2_alias if table2_alias else '`tab%s`' %(doctype)	# the previous 2 sub field
+				table2_alias = '`%s_%s`' %(doctype, field)
+				if field in ['owner','modified_by']:	#std field owner excluded from meta.get_field
+					table = ["`tab%s`" %(doctype), field, "`tabUser`" , "name", table1_alias,table2_alias]
+					doctype = 'User'
+				else:
+					parent_field = frappe.get_meta(doctype).get_field(field)
+					if parent_field is not None:
+						parent_field_type = parent_field.fieldtype
+						if parent_field_type == 'Link':
+							table = ["`tab%s`" %(doctype), field, "`tab%s`" % (parent_field.options), "name", table1_alias, table2_alias]
+						elif parent_field_type == 'Table':
+							table =["`tab%s`" %(doctype), "name", "`tab%s`" % (parent_field.options), "parent", table1_alias, table2_alias]
+						else:
+							frappe.throw(_("Only support sub field under link and table parent field "))
+						doctype = parent_field.options
+					else:
+						frappe.throw(_("Parent field:{0} is not valid").format(field))
+				self.append_table(table)
+			result =  (doctype, f.split('.')[-1], table2_alias)
+		return result
+					
+					
+	def append_table(self, table):
+		if (not table in self.tables) and table[2] != self.tables[0] and table[0] != table[2]:
+			self.tables.append(table)
+		doctype = table[2][4:-1]
 		if (not self.flags.ignore_permissions) and (not frappe.has_permission(doctype)):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(doctype))
 			raise frappe.PermissionError(doctype)
@@ -326,10 +363,14 @@ class DatabaseQuery(object):
 		"""
 
 		f = get_filter(self.doctype, f)
-
-		tname = ('`tab' + f.doctype + '`')
-		if not tname in self.tables:
-			self.append_table(tname)
+		# used field from child table or dynamic link fields in filter
+		if self.doctype != f.doctype:
+			tname = '`tab' + f.doctype + '`'
+			if not self.tables: self.tables = ['`tab' + self.doctype + '`']
+			table = [self.tables[0], "name", tname, "parent", self.tables[0], tname]
+			self.append_table(table)
+		f.doctype, f.fieldname, table_alias = self.process_sub_field(f.fieldname, f.doctype)
+		tname = table_alias if table_alias else ('`tab' + f.doctype + '`')
 
 		if 'ifnull(' in f.fieldname:
 			column_name = f.fieldname
@@ -456,58 +497,17 @@ class DatabaseQuery(object):
 
 	def build_match_conditions(self, as_condition=True):
 		"""add match conditions if applicable"""
-		self.match_filters = []
-		self.match_conditions = []
-		only_if_shared = False
-		if not self.user:
-			self.user = frappe.session.user
-
-		if not self.tables: self.extract_tables()
-
-		meta = frappe.get_meta(self.doctype)
-		role_permissions = frappe.permissions.get_role_permissions(meta, user=self.user)
-		self.shared = frappe.share.get_shared(self.doctype, self.user)
-
-		if (not meta.istable and
-			not role_permissions.get("read") and
-			not self.flags.ignore_permissions and
-			not has_any_user_permission_for_doctype(self.doctype, self.user)):
-			only_if_shared = True
-			if not self.shared:
-				frappe.throw(_("No permission to read {0}").format(self.doctype), frappe.PermissionError)
-			else:
-				self.conditions.append(self.get_share_condition())
-
-		else:
-			#if has if_owner permission skip user perm check
-			if role_permissions.get("if_owner", {}).get("read"):
-				self.match_conditions.append("`tab{0}`.`owner` = {1}".format(self.doctype,
-					frappe.db.escape(self.user, percent=False)))
-			# add user permission only if role has read perm
-			elif role_permissions.get("read"):
-				# get user permissions
-				user_permissions = frappe.permissions.get_user_permissions(self.user)
-				self.add_user_permissions(user_permissions)
-
+		from frappe.authorizations import get_match_conditions
+		conditions = ""		
+		condition = get_match_conditions(self.doctype, tables = self.tables)
+		if condition: conditions = condition
+		for table in self.tables[1:]:
+			child_doctype = table[2][4:-1]	# extract doctype '`tabSales Order`' => Sales Order
+			condition = get_match_conditions(child_doctype, tables= self.tables, parent_doctype=self.doctype)
+			if condition:
+				conditions += (' and ' + condition) if condition else condition
 		if as_condition:
-			conditions = ""
-			if self.match_conditions:
-				# will turn out like ((blog_post in (..) and blogger in (...)) or (blog_category in (...)))
-				conditions = "((" + ") or (".join(self.match_conditions) + "))"
-
-			doctype_conditions = self.get_permission_query_conditions()
-			if doctype_conditions:
-				conditions += (' and ' + doctype_conditions) if conditions else doctype_conditions
-
-			# share is an OR condition, if there is a role permission
-			if not only_if_shared and self.shared and conditions:
-				conditions =  "({conditions}) or ({shared_condition})".format(
-					conditions=conditions, shared_condition=self.get_share_condition())
-
 			return conditions
-
-		else:
-			return self.match_filters
 
 	def get_share_condition(self):
 		return """`tab{0}`.name in ({1})""".format(self.doctype, ", ".join(["%s"] * len(self.shared))) % \
