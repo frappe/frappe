@@ -360,7 +360,7 @@ export default class GridRow {
 			df: df,
 			parent: parent,
 			only_input: true,
-			with_link_btn: true,
+			with_link_btn: with_link_btn,
 			doc: this.doc,
 			doctype: this.doc.doctype,
 			docname: this.doc.name,
