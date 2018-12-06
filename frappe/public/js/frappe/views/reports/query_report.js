@@ -63,9 +63,17 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	setup_events() {
 		frappe.realtime.on("report_generated", (data) => {
 			if(data.report_name) {
-				let alert_message = `Report ${this.report_name} generated.
-					<a target='_blank' href="#query-report/${this.report_name}/?prepared_report_name=${data.name}">View</a>`;
-				frappe.show_alert({message: alert_message, indicator: 'orange'});
+				this.prepared_report_action = "Rebuild";
+				// If generated report and currently active Prepared Report has same fiters
+				// then refresh the Prepared Report
+				// Otherwise show alert with the link to the Prepared Report
+				if(data.name == this.prepared_report_doc_name) {
+					this.refresh();
+				} else {
+					let alert_message = `Report ${this.report_name} generated.
+						<a target='_blank' href="#query-report/${this.report_name}/?prepared_report_name=${data.name}">View</a>`;
+					frappe.show_alert({message: alert_message, indicator: 'orange'});
+				}
 			}
 		});
 	}
@@ -93,6 +101,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.page_title = __(this.report_name);
 		this.menu_items = this.get_menu_items();
 		this.datatable = null;
+		this.prepared_report_action = "New";
 
 		frappe.run_serially([
 			() => this.get_report_doc(),
@@ -273,7 +282,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				// If query_string contains prepared_report_name then set filters
 				// to match the mentioned prepared report doc and disable editing
 				if(query_params.prepared_report_name) {
-					this.render_prepared_report_doc = true;
+					this.prepared_report_action = "Edit";
 					const filters_from_report = JSON.parse(data.doc.filters);
 					Object.values(this.filters).forEach(function(field) {
 						if (filters_from_report[field.fieldname]) {
@@ -311,25 +320,38 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						+"dn="+encodeURIComponent(doc.name)));
 			});
 
-			this.show_status(__(`
-				<span class="indicator orange">This report was <a href=#Form/Prepared%20Report/${doc.name}>generated</a>
-				on ${frappe.datetime.convert_to_user_tz(doc.report_end_time)}.
-				<a href=#List/Prepared%20Report>See all past reports</a>.</span>
-			`));
+			const part1 = __('This report was generated {0}.', [frappe.datetime.comment_when(doc.report_end_time)]);
+			const part2 = __('To get the updated report, click on {0}.', [__('Rebuild')]);
+			const part3 = __('See all past reports.');
+
+			this.show_status(`
+				<span class="indicator orange">
+					${part1}
+					${part2}
+					<a href="#List/Prepared%20Report?report_name=${this.report_name}">${part3}</a>
+				</span>
+			`);
 		};
 
-		// if query_string has prepared_report_name then change primary action to create
-		// a new prepared report
-		if(this.render_prepared_report_doc) {
+		// Three cases
+		// 1. First time with given filters, no data.
+		// 2. Showing data from specific report
+		// 3. Showing data from an old report without specific report name
+		if(this.prepared_report_action == "New") {
 			this.page.set_primary_action(
-				__("New"),
+				__("Generate New Report"),
 				() => {
-					this.render_prepared_report_doc = false;
-					frappe.set_route(frappe.get_route());
-					this.add_prepared_report_buttons();
+					this.generate_background_report();
 				}
 			);
-		} else {
+		} else if(this.prepared_report_action == "Edit") {
+			this.page.set_primary_action(
+				__("Edit"),
+				() => {
+					frappe.set_route(frappe.get_route());
+				}
+			);
+		} else if(this.prepared_report_action == "Rebuild"){
 			this.page.set_primary_action(
 				__("Rebuild"),
 				this.generate_background_report.bind(this)
@@ -352,6 +374,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				callback: resolve
 			})).then(r => {
 				const data = r.message;
+				// Rememeber the name of Prepared Report doc
+				this.prepared_report_doc_name = data.name
 				let alert_message = `Report initiated. You can track its status
 					<a class='text-info' target='_blank' href=${data.redirect_url}>here</a>`;
 				frappe.show_alert({message: alert_message, indicator: 'orange'});
@@ -923,6 +947,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	reset_report_view() {
 		this.hide_status();
 		this.toggle_nothing_to_show(true);
+		this.refresh();
 	}
 
 	toggle_loading(flag) {
@@ -937,6 +962,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				Please set the appropriate filters and then generate a new one.`);
 		}
 		this.toggle_message(flag, message);
+		if(flag){
+			this.prepared_report_action = "New";
+		}
+		this.add_prepared_report_buttons();
 	}
 
 	toggle_message(flag, message) {
