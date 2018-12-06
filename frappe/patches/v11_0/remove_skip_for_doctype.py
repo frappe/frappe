@@ -23,12 +23,14 @@ def execute():
 	user_permissions_to_delete = []
 
 	for user_permission in frappe.get_all('User Permission', fields=['*']):
+		skip_for_doctype = []
+
+		# while migrating from v11 -> v11
 		if has_skip_for_doctype:
 			if not user_permission.skip_for_doctype:
-				frappe.db.set_value('User Permission', user_permission.name, 'apply_to_all_doctypes', 1)
 				continue
 			skip_for_doctype = user_permission.skip_for_doctype.split('\n')
-		else:
+		else: # while migrating from v10 -> v11
 			if skip_for_doctype_map[(user_permission.allow, user_permission.user)] == None:
 				skip_for_doctype = get_doctypes_to_skip(user_permission.allow, user_permission.user)
 				# cache skip for doctype for same user and doctype
@@ -47,20 +49,27 @@ def execute():
 			user_permission.skip_for_doctype = None
 			for doctype in applicable_for_doctypes:
 				if doctype:
-					# Maintain sequence (name, user, allow, for_Value, applicable_for)
+					# Maintain sequence (name, user, allow, for_value, applicable_for, apply_to_all_doctypes)
 					new_user_permissions_list.append((
 						frappe.generate_hash("", 10),
 						user_permission.user,
 						user_permission.allow,
 						user_permission.for_value,
-						doctype
+						doctype,
+						0
 					))
-
+		else:
+			# No skip_for_doctype found! Just update apply_to_all_doctypes.
+			frappe.db.set_value('User Permission', user_permission.name, 'apply_to_all_doctypes', 1)
 
 	if new_user_permissions_list:
 		print(len(new_user_permissions_list))
-		frappe.db.sql('INSERT INTO `tabUser Permission` (`name`, `user`, `allow`, `for_value`, `applicable_for`) VALUES {}'.format(
-			','.join(['%s'] * len(new_user_permissions_list))
+		frappe.db.sql('''
+			INSERT INTO `tabUser Permission`
+			(`name`, `user`, `allow`, `for_value`, `applicable_for`, `apply_to_all_doctypes`)
+			VALUES {}
+		'''.format(
+			', '.join(['%s'] * len(new_user_permissions_list))
 		), tuple(new_user_permissions_list))
 
 	if user_permissions_to_delete:
