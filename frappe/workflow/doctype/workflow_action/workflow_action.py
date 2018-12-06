@@ -151,7 +151,7 @@ def get_users_next_action_data(transitions, doc):
 		users = []
 		if transition.get("email_based_on") == "Role":
 			users = get_users_with_role(transition.allowed)
-		elif transition.get("email_based_on") == "DocField" and \
+		elif transition.get("email_based_on") == "Value" and \
 			transition.get("docfield_name"):
 			users.append(doc.get(transition.get("docfield_name")))
 		elif transition.get("email_based_on") == "User" and \
