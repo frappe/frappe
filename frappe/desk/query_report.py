@@ -100,7 +100,7 @@ def background_enqueue_run(report_name, filters=None, user=None):
 		frappe.get_doc({
 			"doctype": "Prepared Report",
 			"report_name": report_name,
-			# This looks like an insanity but, without this it'd be very hard to find Prepared Reports matvhing given condition
+			# This looks like an insanity but, without this it'd be very hard to find Prepared Reports matching given condition
 			# We're ensuring that spacing is consistent. e.g. JS seems to put no spaces after ":", Python on the other hand does.
 			"filters": json.dumps(json.loads(filters)),
 			"ref_report_doctype": report_name,
