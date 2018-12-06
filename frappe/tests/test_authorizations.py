@@ -23,11 +23,16 @@ class TestAuthorizations(unittest.TestCase):
                 frappe.delete_doc('User', user.get('email'), force=1, ignore_permissions=1)
                 frappe.get_doc(user).insert(ignore_permissions=1)
             except:
-                pass
+                pass              
+        frappe.delete_doc('Authorization Object', 's_doctype', force=1, ignore_permissions=1)
+        frappe.get_doc({'doctype': 'Authorization Object', 'description': 's_doctype',
+                        'auth_field': [{'fieldname': 'act'},
+                                       {'fieldname': 's_doctype'}]}).insert(ignore_permissions=1)      
 
     def tearDown(self):
         frappe.delete_doc('User', 'test11@b.c', force=1, ignore_permissions=1)
         frappe.delete_doc('User', 'test12@b.c', force=1, ignore_permissions=1)
+        frappe.delete_doc('Authorization Object', 's_doctype', force=1, ignore_permissions=1)
 
     def test_basic_authorization(self):
         item = frappe.get_doc({'doctype': 'Item', 'item_code': 'test-item1', 'item_group': 'Products'})
