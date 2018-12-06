@@ -18,6 +18,10 @@ def execute():
 	has_skip_for_doctype = frappe.db.has_column("User Permission", "skip_for_doctype")
 	skip_for_doctype_map = {}
 
+	new_user_permissions_list = []
+
+	user_permissions_to_delete = []
+
 	for user_permission in frappe.get_all('User Permission', fields=['*']):
 		if has_skip_for_doctype:
 			if not user_permission.skip_for_doctype:
@@ -38,12 +42,30 @@ def execute():
 			linked_doctypes = get_linked_doctypes(user_permission.allow, True).keys()
 			applicable_for_doctypes = list(set(linked_doctypes) - set(skip_for_doctype))
 
-			frappe.db.sql('DELETE FROM `tabUser Permission` WHERE `name`=%s', user_permission.name)
+			user_permissions_to_delete.append(user_permission.name)
 			user_permission.name = None
 			user_permission.skip_for_doctype = None
 			for doctype in applicable_for_doctypes:
 				if doctype:
-					new_user_permission = frappe.new_doc('User Permission')
-					new_user_permission.update(user_permission)
-					new_user_permission.applicable_for = doctype
-					new_user_permission.db_insert()
+					# Maintain sequence (name, user, allow, for_Value, applicable_for)
+					new_user_permissions_list.append(tuple(
+						frappe.generate_hash("", 10),
+						user_permission.user,
+						user_permission.allow,
+						user_permission.for_value,
+						doctype
+					))
+
+
+	if new_user_permissions_list:
+		print(len(new_user_permissions_list))
+		frappe.db.sql('INSERT INTO `tabUser Permission` (`name`, `user`, `allow`, `for_value`, `applicable_for`) VALUES {}'.format(
+			','.join(['%s'] * len(new_user_permissions_list))
+		), tuple(new_user_permissions_list))
+
+	if user_permissions_to_delete:
+		print(len(user_permissions_to_delete))
+		frappe.db.sql('DELETE FROM `tabUser Permission` WHERE `name` in ({})'
+			.format(','.join(['%s'] * len(user_permissions_to_delete))),
+			tuple(user_permissions_to_delete)
+		)
