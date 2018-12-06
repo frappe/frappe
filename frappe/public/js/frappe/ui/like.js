@@ -85,26 +85,30 @@ frappe.ui.click_toggle_like = function() {
 	return false;
 }
 
-frappe.ui.setup_like_popover = function($parent, selector, check_not_liked=true) {
+frappe.ui.setup_like_popover = ($parent, selector, check_not_liked=true) => {
 	if (frappe.dom.is_touchscreen()) {
 		return;
 	}
 
-	$parent.on("mouseover", selector, function() {
-		var $wrapper = $(this);
-
-		$wrapper.popover({
+	$parent.on('mouseover', selector, function() {
+		const target_element = $(this);
+		target_element.popover({
 			animation: true,
-			placement: "right",
-			content: function() {
-				var liked_by = $wrapper.attr('data-liked-by');
+			placement: 'right',
+			trigger: 'manual',
+			template:`<div class="liked-by-popover popover">
+				<div class="arrow"></div>
+				<div class="popover-content"></div>
+			</div>`,
+			content: () => {
+				let liked_by = target_element.attr('data-liked-by');
 				liked_by = liked_by ? decodeURI(liked_by) : '[]';
 				liked_by = JSON.parse(liked_by);
 
-				var user = frappe.session.user;
+				const user = frappe.session.user;
 				// hack
 				if (check_not_liked) {
-					if ($wrapper.find(".not-liked").length) {
+					if (target_element.find(".not-liked").length) {
 						if (liked_by.indexOf(user)!==-1) {
 							liked_by.splice(liked_by.indexOf(user), 1);
 						}
@@ -118,16 +122,25 @@ frappe.ui.setup_like_popover = function($parent, selector, check_not_liked=true)
 				if (!liked_by.length) {
 					return "";
 				}
-				return frappe.render_template("liked_by", {"liked_by": liked_by});
+				return frappe.render_template('liked_by', {'liked_by': liked_by});
 			},
 			html: true,
 			container: 'body'
 		});
 
-		$wrapper.popover('show');
+		target_element.popover('show');
+
+		$(".popover").on("mouseleave", () => {
+			target_element.popover('hide');
+		});
+
+		target_element.on('mouseout', () => {
+			setTimeout(() => {
+				if (!$('.popover:hover').length) {
+					target_element.popover('hide');
+				}
+			}, 100);
+		});
 	});
 
-	$parent.on("mouseout", selector, function() {
-		$(this).popover('destroy');
-	});
-}
+};
