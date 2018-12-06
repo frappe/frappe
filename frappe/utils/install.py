@@ -59,6 +59,10 @@ def install_basic_docs():
 		},
 		{'doctype': "Role", "role_name": "Report Manager"},
 		{'doctype': "Role", "role_name": "Translator"},
+		{'doctype': 'Authorization Object', 'description': 's_doctype',
+				   'auth_field':[{'fieldname':'act'},
+					 {'fieldname': 's_doctype'}]
+		},
 		{'doctype': "Workflow State", "workflow_state_name": "Pending",
 			"icon": "question-sign", "style": ""},
 		{'doctype': "Workflow State", "workflow_state_name": "Approved",
