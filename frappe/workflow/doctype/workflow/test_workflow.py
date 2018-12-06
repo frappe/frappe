@@ -34,13 +34,13 @@ class TestWorkflow(unittest.TestCase):
 					state = 'Rejected', allow_edit = 'Test Approver'
 				))
 				self.workflow.append('transitions', dict(
-					state = 'Pending', action='Approve', next_state = 'Approved', allowed='Test Approver', allow_self_approval= 1
+					state = 'Pending', action='Approve', next_state = 'Approved', allowed='Test Approver', allow_self_approval= 1, email_based_on="Role"
 				))
 				self.workflow.append('transitions', dict(
-					state = 'Pending', action='Reject', next_state = 'Rejected', allowed='Test Approver', allow_self_approval= 1
+					state = 'Pending', action='Reject', next_state = 'Rejected', allowed='Test Approver', allow_self_approval= 1, email_based_on="User", user="test2@example.com"
 				))
 				self.workflow.append('transitions', dict(
-					state = 'Rejected', action='Review', next_state = 'Pending', allowed='All', allow_self_approval= 1
+					state = 'Rejected', action='Review', next_state = 'Pending', allowed='All', allow_self_approval= 1, email_based_on="Value", docfield_name="owner"
 				))
 				self.workflow.insert()
 		frappe.set_user('Administrator')
