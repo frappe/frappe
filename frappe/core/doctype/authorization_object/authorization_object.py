@@ -9,9 +9,9 @@ from frappe.authorizations import validate_auth_field
 from frappe import _
 
 class AuthorizationObject(Document):
-	
+
 	def on_update(self):
-		if not hasattr(self,'_doc_before_save') or (hasattr(self,'_doc_before_save') and 
+		if not hasattr(self,'_doc_before_save') or (hasattr(self,'_doc_before_save') and
 				self._doc_before_save and self._doc_before_save.auth_field != self.auth_field):
 			auth_key = 'get_auth_objs|%s|%s' % ('auth_obj', self.name)
 			frappe.cache().hdel('auth_objs', auth_key)
@@ -27,7 +27,7 @@ class AuthorizationObject(Document):
 	        	 where authorization_object = %s """, self.name):
 			invalid_fields = validate_auth_field(doctype, self)
 			if invalid_fields:
-				frappe.throw(_('auth fields: %s is not valid field in assigned doctype'
+				frappe.throw(_('auth fields: %s is not valid field in assigned doctype: %s'
 					 %(','.join(invalid_fields), doctype)))
 
 
