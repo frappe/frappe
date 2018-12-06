@@ -13,8 +13,8 @@ from frappe.utils.background_jobs import enqueue
 from frappe.desk.query_report import generate_report_result
 from frappe.utils.file_manager import save_file, remove_all
 from frappe.desk.form.load import get_attachments
-from frappe.utils.file_manager import download_file
-from frappe.utils import gzip_compress
+from frappe.utils.file_manager import get_file
+from frappe.utils import gzip_compress, gzip_decompress
 
 class PreparedReport(Document):
 
@@ -69,4 +69,6 @@ def create_json_gz_file(data, dt, dn):
 @frappe.whitelist()
 def download_attachment(dn):
 	attachment = get_attachments("Prepared Report", dn)[0]
-	download_file(attachment.file_url)
+	frappe.local.response.filename = attachment.file_name[:-2]
+	frappe.local.response.filecontent = gzip_decompress(get_file(attachment.name)[1])
+	frappe.local.response.type = "binary"
