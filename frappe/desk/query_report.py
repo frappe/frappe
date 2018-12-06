@@ -167,6 +167,7 @@ def run(report_name, filters=None, user=None):
 				filters = json.loads(filters)
 
 			dn = filters.get("prepared_report_name")
+			filters.pop("prepared_report_name", None)
 		else:
 			dn = ""
 		result = get_prepared_report_result(report, filters, dn, user)

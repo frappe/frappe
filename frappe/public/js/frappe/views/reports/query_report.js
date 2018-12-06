@@ -268,7 +268,21 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			if (data.prepared_report){
 				this.prepared_report = true;
-				this.add_prepared_report_buttons(data.doc);
+				var query_string = frappe.utils.get_query_string(frappe.get_route_str())
+				var query_params = frappe.utils.get_query_params(query_string)
+				// If query_string contains prepared_report_name then set filters
+				// to match the mentioned prepared report doc and disable editing
+				if(query_params.prepared_report_name) {
+					this.render_prepared_report_doc = true
+					var filters_from_report = JSON.parse(data.doc.filters);
+					Object.values(this.filters).forEach(function(field) {
+						if (filters_from_report[field.fieldname]) {
+							field.set_input(filters_from_report[field.fieldname]);
+						}
+						field.input.disabled = true;
+					});
+				}
+				this.add_prepared_report_buttons(data.doc, );
 			}
 			this.toggle_message(false);
 
@@ -304,12 +318,23 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			`));
 		};
 
-		// if
-
-		this.page.set_primary_action(
-			__("Generate New Report"),
-			this.generate_background_report.bind(this)
-		);
+		// if query_string has prepared_report_name then change primary action to create
+		// a new prepared report
+		if(this.render_prepared_report_doc) {
+			this.page.set_primary_action(
+				__("New"),
+				() => {
+					this.render_prepared_report_doc = false
+					frappe.set_route(frappe.get_route())
+					this.add_prepared_report_buttons()
+				}
+			);
+		} else {
+			this.page.set_primary_action(
+				__("Rebuild"),
+				this.generate_background_report.bind(this)
+			);
+		}
 	}
 
 	generate_background_report() {
