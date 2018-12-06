@@ -375,7 +375,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			})).then(r => {
 				const data = r.message;
 				// Rememeber the name of Prepared Report doc
-				this.prepared_report_doc_name = data.name
+				this.prepared_report_doc_name = data.name;
 				let alert_message = `Report initiated. You can track its status
 					<a class='text-info' target='_blank' href=${data.redirect_url}>here</a>`;
 				frappe.show_alert({message: alert_message, indicator: 'orange'});
