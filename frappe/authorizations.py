@@ -6,7 +6,6 @@ from six import string_types
 import frappe, copy, json
 from frappe import _, msgprint
 from frappe.utils import cint
-from frappe.database import Database
 import frappe.share
 import operator
 
