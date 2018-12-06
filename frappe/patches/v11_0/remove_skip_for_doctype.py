@@ -48,7 +48,7 @@ def execute():
 			for doctype in applicable_for_doctypes:
 				if doctype:
 					# Maintain sequence (name, user, allow, for_Value, applicable_for)
-					new_user_permissions_list.append(tuple(
+					new_user_permissions_list.append((
 						frappe.generate_hash("", 10),
 						user_permission.user,
 						user_permission.allow,
