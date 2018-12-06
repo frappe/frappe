@@ -200,7 +200,7 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 		if data:
 			latest_report_data = {
 				"columns": json.loads(doc.columns) if doc.columns else data[0],
-				"result": data[1:]
+				"result": data
 			}
 
 	latest_report_data.update({
