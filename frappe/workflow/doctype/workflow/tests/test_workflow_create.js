@@ -33,19 +33,24 @@ QUnit.test("Test Workflow", function(assert) {
 						{state: 'Pending'},
 						{action: 'Review'},
 						{next_state: 'Pending'},
-						{allowed: 'Administrator'}
+						{allowed: 'Administrator'},
+						{email_based_on: "Role"}
 					],
 					[
 						{state: 'Pending'},
 						{action: 'Approve'},
 						{next_state: 'Approved'},
-						{allowed: 'Administrator'}
+						{allowed: 'Administrator'},
+						{email_based_on: "User"},
+						{user: "Administrator"}
 					],
 					[
 						{state: 'Approved'},
 						{action: 'Reject'},
 						{next_state: 'Rejected'},
-						{allowed: 'Administrator'}
+						{allowed: 'Administrator'},
+						{email_based_on: "Value"},
+						{docfield_name: "owner"}
 					],
 				]},
 				{workflow_state_field: 'workflow_state'}
