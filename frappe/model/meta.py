@@ -440,7 +440,7 @@ class Meta(Document):
 
 doctype_table_fields = [
 	frappe._dict({"fieldname": "fields", "options": "DocField"}),
-	frappe._dict({"fieldname": "permissions", "options": "DocPerm"},
+	frappe._dict({"fieldname": "permissions", "options": "DocPerm"}),
 	frappe._dict({"fieldname": "authorization_objects", "options": "Doctype Authorization Object"})
 ]
 
