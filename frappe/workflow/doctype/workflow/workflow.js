@@ -24,7 +24,7 @@ frappe.core.Workflow = Class.extend({
 	},
 	email_based_on: function(doc, cdt, cdn){
 		var c_doc = frappe.get_doc(cdt, cdn);
-		if(c_doc.email_based_on==="DocField"){
+		if(c_doc.email_based_on==="Value"){
 			const get_field_method = 'frappe.workflow.doctype.workflow.workflow.get_email_fieldnames';
 			frappe.xcall(get_field_method, { doctype: doc.document_type })
 				.then(resp => {
