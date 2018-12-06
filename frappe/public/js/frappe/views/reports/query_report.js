@@ -64,7 +64,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		frappe.realtime.on("report_generated", (data) => {
 			if(data.report_name) {
 				let alert_message = `Report ${this.report_name} generated.
-					<a target='_blank' href="#query-report/${this.report_name}">View</a>`;
+					<a target='_blank' href="#query-report/${this.report_name}/?prepared_report_name=${data.name}">View</a>`;
 				frappe.show_alert({message: alert_message, indicator: 'orange'});
 			}
 		});
