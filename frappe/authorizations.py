@@ -544,7 +544,7 @@ def get_match_conditions(doctype, act='read', user=None, tables=[], parent_docty
         return condition
 
     if not user: user = frappe.session.user
-    if user == 'Administrator:
+    if user == 'Administrator':
         return ''
     if not parent_doctype:
         parent_doctype = ''
