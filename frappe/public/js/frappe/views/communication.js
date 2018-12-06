@@ -669,16 +669,17 @@ frappe.views.CommunicationComposer = Class.extend({
 			}
 
 			var communication_date = last_email.communication_date || last_email.creation;
-			content = '<div><br></div>'
-				+ reply
-				+ '<div class="ql-collapse" data-collapse="true">'
-				+ "<span data-comment='original-reply'>Reply To</span>"
-				+ '<blockquote>' +
-					'<p>' + __("On {0}, {1} wrote:",
-					[frappe.datetime.global_date_format(communication_date) , last_email.sender]) + '</p>' +
-					last_email_content +
-				'</blockquote>'
-				+ '</div>';
+			content = `
+				<div><br></div>
+				${reply}
+				<div class="ql-collapse" data-collapse="true">
+					<span data-comment='original-reply'>Reply To</span>
+					<blockquote>
+					<p>${__("On {0}, {1} wrote:", [frappe.datetime.global_date_format(communication_date) , last_email.sender])}</p>
+					${last_email_content}
+					</blockquote>
+				</div>
+			`;
 		} else {
 			content = "<div><br></div>" + reply;
 		}
