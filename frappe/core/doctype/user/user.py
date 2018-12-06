@@ -97,7 +97,7 @@ class User(Document):
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
 		if not hasattr(self,'_doc_before_save') or (hasattr(self, '_doc_before_save') and 
-			self._doc_before_save.roles != self.roles):
+			self._doc_before_save and self._doc_before_save.roles != self.roles):
 			print('user on update, user:', self.name, ' cacahe cleared')
 			frappe.clear_cache(user=self.name)			
 
