@@ -1,9 +1,5 @@
 <template>
 	<div class="flex flex-column">
-		<div class="user-details">
-			<div class="user-avatar" v-html="user_avatar"></div>
-			<a class="user_name" @click="go_to_profile_page()">{{ user.fullname }}</a>
-		</div>
 		<div class="links" v-if="frequently_visited_list.length">
 			<div class="muted-title">
 				{{ __('Frequently Visited Links') }}
@@ -24,8 +20,6 @@ export default {
 	data() {
 		return {
 			frequently_visited_list: [],
-			user: frappe.user_info(frappe.session.user),
-			user_avatar: frappe.avatar(this.user_id, 'avatar-xl')
 		}
 	},
 	created() {
@@ -45,7 +39,7 @@ export default {
 			return frappe.utils.get_route_label(route);
 		},
 		go_to_profile_page() {
-			frappe.set_route('social', 'profile', this.user.name)
+			frappe.set_route('social', 'profile', frappe.session.user)
 		}
 	}
 }
@@ -57,9 +51,6 @@ export default {
 }
 .stats {
 	min-height: 150px
-}
-.links {
-	margin-top: 20px;
 }
 .user-details {
 	.user-avatar {
