@@ -60,6 +60,7 @@
 	"root": true,
 	"globals": {
 		"frappe": true,
+		"Vue": true,
 		"__": true,
 		"_p": true,
 		"_f": true,
