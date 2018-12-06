@@ -280,7 +280,7 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 				# is it a filename?
 				try:
 					# keep this for error handling
-					_file = frappe.get_doc("File", {"file_name": a})
+					_file = frappe.get_doc("File", a)
 					_file.get_content()
 					# these attachments will be attached on-demand
 					# and won't be stored in the message

@@ -537,7 +537,7 @@ def prepare_message(email, recipient, recipients_list):
 
 		fid = attachment.get("fid")
 		if fid:
-			_file = frappe.get_doc("File", {"file_name": fid})
+			_file = frappe.get_doc("File", fid)
 			fcontent = _file.get_content()
 			attachment.update({
 				'fname': _file.file_name,
