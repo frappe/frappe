@@ -266,15 +266,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			this.hide_status();
 
-			if (data.prepared_report){
+			if (data.prepared_report) {
 				this.prepared_report = true;
-				var query_string = frappe.utils.get_query_string(frappe.get_route_str())
-				var query_params = frappe.utils.get_query_params(query_string)
+				const query_string = frappe.utils.get_query_string(frappe.get_route_str());
+				const query_params = frappe.utils.get_query_params(query_string);
 				// If query_string contains prepared_report_name then set filters
 				// to match the mentioned prepared report doc and disable editing
 				if(query_params.prepared_report_name) {
-					this.render_prepared_report_doc = true
-					var filters_from_report = JSON.parse(data.doc.filters);
+					this.render_prepared_report_doc = true;
+					const filters_from_report = JSON.parse(data.doc.filters);
 					Object.values(this.filters).forEach(function(field) {
 						if (filters_from_report[field.fieldname]) {
 							field.set_input(filters_from_report[field.fieldname]);
@@ -282,7 +282,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						field.input.disabled = true;
 					});
 				}
-				this.add_prepared_report_buttons(data.doc, );
+				this.add_prepared_report_buttons(data.doc);
 			}
 			this.toggle_message(false);
 
@@ -324,9 +324,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.page.set_primary_action(
 				__("New"),
 				() => {
-					this.render_prepared_report_doc = false
-					frappe.set_route(frappe.get_route())
-					this.add_prepared_report_buttons()
+					this.render_prepared_report_doc = false;
+					frappe.set_route(frappe.get_route());
+					this.add_prepared_report_buttons();
 				}
 			);
 		} else {
