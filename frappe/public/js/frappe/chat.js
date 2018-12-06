@@ -1565,12 +1565,16 @@ class extends Component {
 
 				const  alert   = // TODO: ellipses content
 				`
-				<span>
+				<span data-action="show-message" class="cursor-pointer">
 					<span class="indicator yellow"/> <b>${frappe.user.first_name(r.user)}</b>: ${r.content}
 				</span>
 				`
-
-				frappe.show_alert(alert, 3)
+				frappe.show_alert(alert, 3, {
+					"show-message": function (r) {
+						this.room.select(r.room)
+						this.base.firstChild._component.toggle()
+					}.bind(this, r)
+				})
 			}
 
 			if ( r.room === state.room.name ) {
