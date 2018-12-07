@@ -103,7 +103,7 @@ CREATE TABLE `tabDocPerm` (
 
 DROP TABLE IF EXISTS `tabDocType`;
 CREATE TABLE `tabDocType` (
-  `name` varchar(255) NOT NULL DEFAULT '',
+  `name` varchar(255) NOT NULL,
   `creation` datetime(6) DEFAULT NULL,
   `modified` datetime(6) DEFAULT NULL,
   `modified_by` varchar(255) DEFAULT NULL,
@@ -172,7 +172,7 @@ CREATE TABLE `tabDocType` (
 
 DROP TABLE IF EXISTS `tabSeries`;
 CREATE TABLE `tabSeries` (
-  `name` varchar(100) DEFAULT NULL,
+  `name` varchar(100) NOT NULL,
   `current` int(10) NOT NULL DEFAULT 0,
   PRIMARY KEY(`name`)
 ) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
