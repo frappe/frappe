@@ -175,7 +175,11 @@ class File(NestedSet):
 		TODO: validate for private file
 		"""
 		full_path = self.get_full_path()
+		print full_path
 
+		if full_path.startswith("http"):
+			return
+			
 		if not os.path.exists(full_path):
 			frappe.throw(_("File {0} does not exist").format(self.file_url), IOError)
 
@@ -374,6 +378,7 @@ class File(NestedSet):
 		"""Returns file path from given file name"""
 
 		file_path = self.file_url or self.file_name
+		print("file_path " + file_path)
 
 		if "/" not in file_path:
 			file_path = "/files/" + file_path
@@ -384,6 +389,9 @@ class File(NestedSet):
 		elif file_path.startswith("/files/"):
 			file_path = get_files_path(*file_path.split("/files/", 1)[1].split("/"))
 
+		elif file_path.startswith("http"):
+			# file_path = get_files_path(*file_path.split("/files/", 1)[1].split("/"))
+			file_path = file_path
 		else:
 			frappe.throw(_("There is some problem with the file url: {0}").format(file_path))
 
