@@ -6,10 +6,10 @@ import frappe, json, os
 from frappe.website.website_generator import WebsiteGenerator
 from frappe import _, scrub
 from frappe.utils import cstr
-from frappe.utils.file_manager import save_file, remove_file_by_url
 from frappe.website.utils import get_comment_list
 from frappe.custom.doctype.customize_form.customize_form import docfield_properties
-from frappe.utils.file_manager import get_max_file_size
+from frappe.core.doctype.file.file import get_max_file_size
+from frappe.core.doctype.file.file import remove_file_by_url
 from frappe.modules.utils import export_module_json, get_doc_module
 from six.moves.urllib.parse import urlencode
 from frappe.integrations.utils import get_payment_gateway_controller
@@ -165,7 +165,7 @@ def get_context(context):
 
 		if context.success_message:
 			context.success_message = frappe.db.escape(context.success_message.replace("\n",
-				"<br>"))
+				"<br>")).strip("'")
 
 		self.add_custom_context_and_script(context)
 		if not context.max_attachment_size:
@@ -186,6 +186,10 @@ def get_context(context):
 
 			context.reference_doctype = context.doc.doctype
 			context.reference_name = context.doc.name
+
+			if self.show_attachments:
+			    context.attachments = frappe.get_all('File', filters= {"attached_to_name": context.reference_name, "attached_to_doctype": context.reference_doctype, "is_private": 0},
+					fields=['file_name','file_url', 'file_size'])
 
 			if self.allow_comments:
 				context.comment_list = get_comment_list(context.doc.doctype,
@@ -416,22 +420,29 @@ def accept(web_form, data, for_payment=False):
 
 			# remove earlier attached file (if exists)
 			if doc.get(fieldname):
-				remove_file_by_url(doc.get(fieldname), doc.doctype, doc.name)
+				remove_file_by_url(doc.get(fieldname), doctype=doc.doctype, name=doc.name)
 
 			# save new file
 			filename, dataurl = filedata.split(',', 1)
-			filedoc = save_file(filename, dataurl,
-				doc.doctype, doc.name, decode=True)
+			_file = frappe.get_doc({
+				"doctype": "File",
+				"file_name": filename,
+				"attached_to_doctype": doc.doctype,
+				"attached_to_name": doc.name,
+				"content": dataurl,
+				"decode": True})
+			_file.save()
 
 			# update values
-			doc.set(fieldname, filedoc.file_url)
+			doc.set(fieldname, _file.file_url)
 
 		doc.save(ignore_permissions = True)
 
 	if files_to_delete:
 		for f in files_to_delete:
 			if f:
-				remove_file_by_url(f, doc.doctype, doc.name)
+				remove_file_by_url(doc.get(fieldname), doctype=doc.doctype, name=doc.name)
+
 
 	frappe.flags.web_form_doc = doc
 
@@ -539,7 +550,11 @@ def get_form_data(doctype, docname=None, web_form_name=None):
 
 		if field.fieldtype == "Link":
 			field.fieldtype = "Autocomplete"
-			field.options = get_link_options(web_form_name, field.options)
+			field.options = get_link_options(
+				web_form_name,
+				field.options,
+				field.allow_read_on_all_link_options
+			)
 
 	return out
 
@@ -548,7 +563,7 @@ def get_in_list_view_fields(doctype):
 	return [df.as_dict() for df in frappe.get_meta(doctype).fields if df.in_list_view]
 
 @frappe.whitelist(allow_guest=True)
-def get_link_options(web_form_name, doctype):
+def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=False):
 	web_form_doc = frappe.get_doc("Web Form", web_form_name)
 	doctype_validated = False
 	limited_to_user   = False
@@ -556,7 +571,10 @@ def get_link_options(web_form_name, doctype):
 		# check if frappe session user is not guest or admin
 		if frappe.session.user != 'Guest':
 			doctype_validated = True
-			limited_to_user   = True
+
+			if not allow_read_on_all_link_options:
+				limited_to_user   = True
+
 	else:
 		for field in web_form_doc.web_form_fields:
 			if field.options == doctype:
@@ -564,10 +582,13 @@ def get_link_options(web_form_name, doctype):
 				break
 
 	if doctype_validated:
+		link_options = []
 		if limited_to_user:
-			return "\n".join([doc.name for doc in frappe.get_all(doctype, filters = {"owner":frappe.session.user})])
+			link_options = "\n".join([doc.name for doc in frappe.get_all(doctype, filters = {"owner":frappe.session.user})])
 		else:
-			return "\n".join([doc.name for doc in frappe.get_all(doctype)])
+			link_options = "\n".join([doc.name for doc in frappe.get_all(doctype)])
+
+		return link_options
 
 	else:
 		raise frappe.PermissionError('Not Allowed, {0}'.format(doctype))

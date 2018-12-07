@@ -7,7 +7,7 @@ import frappe
 import frappe.model.meta
 from frappe.model.dynamic_links import get_dynamic_link_map
 import frappe.defaults
-from frappe.utils.file_manager import remove_all
+from frappe.core.doctype.file.file import remove_all
 from frappe.utils.password import delete_all_passwords_for
 from frappe import _
 from frappe.model.naming import revert_series_if_last
@@ -131,9 +131,9 @@ def update_naming_series(doc):
 
 def delete_from_table(doctype, name, ignore_doctypes, doc):
 	if doctype!="DocType" and doctype==name:
-		frappe.db.sql("delete from `tabSingles` where doctype=%s", name)
+		frappe.db.sql("delete from `tabSingles` where `doctype`=%s", name)
 	else:
-		frappe.db.sql("delete from `tab{0}` where name=%s".format(doctype), name)
+		frappe.db.sql("delete from `tab{0}` where `name`=%s".format(doctype), name)
 
 	# get child tables
 	if doc:
@@ -233,8 +233,8 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 				raise_link_exists_exception(doc, df.parent, df.parent)
 		else:
 			# dynamic link in table
-			df["table"] = ", parent, parenttype, idx" if meta.istable else ""
-			for refdoc in frappe.db.sql("""select name, docstatus{table} from `tab{parent}` where
+			df["table"] = ", `parent`, `parenttype`, `idx`" if meta.istable else ""
+			for refdoc in frappe.db.sql("""select `name`, `docstatus` {table} from `tab{parent}` where
 				{options}=%s and {fieldname}=%s""".format(**df), (doc.doctype, doc.name), as_dict=True):
 
 				if ((method=="Delete" and refdoc.docstatus < 2) or (method=="Cancel" and refdoc.docstatus==1)):

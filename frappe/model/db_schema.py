@@ -34,6 +34,8 @@ type_map = {
 	'Long Text':		('longtext', ''),
 	'Code':			('longtext', ''),
 	'Text Editor':		('longtext', ''),
+	'HTML Editor':		('longtext', ''),
+	'Markdown Editor':	('longtext', ''),
 	'Date':			('date', ''),
 	'Datetime':		('datetime', '6'),
 	'Time':			('time', '6'),
@@ -556,7 +558,7 @@ class DbManager:
 	def restore_database(self,target,source,user,password):
 		from frappe.utils import make_esc
 		esc = make_esc('$ ')
-		
+
 		from distutils.spawn import find_executable
 		pipe = find_executable('pv')
 		if pipe:
@@ -580,7 +582,7 @@ class DbManager:
 			target   = esc(target),
 			source   = source
 		)
-		os.system(command)	
+		os.system(command)
 
 	def drop_table(self,table_name):
 		"""drop table if exists"""

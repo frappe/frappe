@@ -20,6 +20,7 @@ function setup_list_filters() {
 					fieldtype: df.fieldtype,
 					label: df.label,
 					options: df.options,
+					is_filter: true,
 					change: (e) => {
 						const query_params = Object.assign(frappe.utils.get_query_params(), {
 							[df.fieldname]: f.get_value()

@@ -20,7 +20,7 @@ def sanitize_searchfield(searchfield):
 
 	if len(searchfield) == 1:
 		# do not allow special characters to pass as searchfields
-		regex = re.compile('^.*[=;*,\'"$\-+%#@()_].*')
+		regex = re.compile(r'^.*[=;*,\'"$\-+%#@()_].*')
 		if regex.match(searchfield):
 			_raise_exception(searchfield)
 
@@ -43,7 +43,7 @@ def sanitize_searchfield(searchfield):
 			_raise_exception(searchfield)
 
 		else:
-			regex = re.compile('^.*[=;*,\'"$\-+%#@()].*')
+			regex = re.compile(r'^.*[=;*,\'"$\-+%#@()].*')
 			if any(regex.match(f) for f in searchfield.split()):
 				_raise_exception(searchfield)
 
@@ -60,9 +60,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 	page_length=10, filters=None, filter_fields=None, as_dict=False, ignore_user_permissions=False):
 	if isinstance(filters, string_types):
 		filters = json.loads(filters)
-
-	meta = frappe.get_meta(doctype)
-
+	
 	if searchfield:
 		sanitize_searchfield(searchfield)
 
@@ -80,6 +78,8 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 		search_widget(doctype, txt, standard_queries[doctype][0],
 			searchfield, start, page_length, filters)
 	else:
+		meta = frappe.get_meta(doctype)
+
 		if query:
 			frappe.throw(_("This query style is discontinued"))
 			# custom query
@@ -126,14 +126,15 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			formatted_fields = ['`tab%s`.`%s`' % (meta.name, f.strip()) for f in fields]
 
 			# find relevance as location of search term from the beginning of string `name`. used for sorting results.
-			formatted_fields.append("""locate("{_txt}", `tab{doctype}`.`name`) as `_relevance`""".format(
-				_txt=frappe.db.escape((txt or "").replace("%", "")), doctype=frappe.db.escape(doctype)))
+			formatted_fields.append("""locate({_txt}, `tab{doctype}`.`name`) as `_relevance`""".format(
+				_txt=frappe.db.escape((txt or "").replace("%", "")), doctype=doctype))
 
 
 			# In order_by, `idx` gets second priority, because it stores link count
 			from frappe.model.db_query import get_order_by
 			order_by_based_on_meta = get_order_by(doctype, meta)
-			order_by = "if(_relevance, _relevance, 99999), {0}, `tab{1}`.idx desc".format(order_by_based_on_meta, doctype)
+			# 2 is the index of _relevance column
+			order_by = "2 , {0}, `tab{1}`.idx desc".format(order_by_based_on_meta, doctype)
 
 			ignore_permissions = True if doctype == "DocType" else (cint(ignore_user_permissions) and has_permission(doctype))
 

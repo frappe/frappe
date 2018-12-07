@@ -18,9 +18,13 @@ def get(args=None):
 
 	get_docinfo(frappe.get_doc(args.get("doctype"), args.get("name")))
 
-	return frappe.db.sql("""select owner, description from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
-		order by modified desc limit 5""", args, as_dict=True)
+	return frappe.db.sql("""SELECT `owner`, `description`
+		FROM `tabToDo`
+		WHERE reference_type=%(doctype)s
+		AND reference_name=%(name)s
+		AND status='Open'
+		ORDER BY modified DESC
+		LIMIT 5""", args, as_dict=True)
 
 @frappe.whitelist()
 def add(args=None):
@@ -36,9 +40,12 @@ def add(args=None):
 	if not args:
 		args = frappe.local.form_dict
 
-	if frappe.db.sql("""select owner from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
-		and owner=%(assign_to)s""", args):
+	if frappe.db.sql("""SELECT `owner`
+		FROM `tabToDo`
+		WHERE `reference_type`=%(doctype)s
+		AND `reference_name`=%(name)s
+		AND `status`='Open'
+		AND `owner`=%(assign_to)s""", args):
 		frappe.throw(_("Already in user's To Do list"), DuplicateToDoError)
 
 	else:
@@ -48,7 +55,7 @@ def add(args=None):
 		# 	remove_from_todo_if_already_assigned(args['doctype'], args['name'])
 
 		if not args.get('description'):
-			args['description'] = _('Assignment')
+			args['description'] = _('Assignment for {0} {1}'.format(args['doctype'], args['name']))
 
 		d = frappe.get_doc({
 			"doctype":"ToDo",

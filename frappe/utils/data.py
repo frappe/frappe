@@ -35,8 +35,8 @@ def getdate(string_date=None):
 	elif isinstance(string_date, datetime.date):
 		return string_date
 
-	# dateutil parser does not agree with dates like 0000-00-00
-	if not string_date or string_date=="0000-00-00":
+	# dateutil parser does not agree with dates like 0001-01-01
+	if not string_date or string_date=="0001-01-01":
 		return None
 	return parser.parse(string_date).date()
 
@@ -53,8 +53,8 @@ def get_datetime(datetime_str=None):
 	elif isinstance(datetime_str, datetime.date):
 		return datetime.datetime.combine(datetime_str, datetime.time())
 
-	# dateutil parser does not agree with dates like 0000-00-00
-	if not datetime_str or (datetime_str or "").startswith("0000-00-00"):
+	# dateutil parser does not agree with dates like 0001-01-01
+	if not datetime_str or (datetime_str or "").startswith("0001-01-01"):
 		return None
 
 	try:
@@ -223,7 +223,8 @@ def formatdate(string_date=None, format_string=None):
 
 	date = getdate(string_date)
 	if not format_string:
-		format_string = get_user_format().replace("mm", "MM")
+		format_string = get_user_format()
+	format_string = format_string.replace("mm", "MM")
 	try:
 		formatted_date = babel.dates.format_date(date, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
 	except UnknownLocaleError:
@@ -728,7 +729,7 @@ def get_url(uri=None, full_address=False):
 
 	port = frappe.conf.http_port or frappe.conf.webserver_port
 
-	if frappe.conf.developer_mode and host_name and not url_contains_port(host_name) and port:
+	if not (frappe.conf.restart_supervisor_on_update or frappe.conf.restart_systemd_on_update) and host_name and not url_contains_port(host_name) and port:
 		host_name = host_name + ':' + str(port)
 
 	url = urljoin(host_name, uri) if uri else host_name

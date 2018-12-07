@@ -59,7 +59,7 @@ def logout_feed(user, reason):
 def get_feed_match_conditions(user=None, force=True):
 	if not user: user = frappe.session.user
 
-	conditions = ['`tabCommunication`.owner="{user}" or `tabCommunication`.reference_owner="{user}"'.format(user=frappe.db.escape(user))]
+	conditions = ['`tabCommunication`.owner={user} or `tabCommunication`.reference_owner={user}'.format(user=frappe.db.escape(user))]
 
 	user_permissions = frappe.permissions.get_user_permissions(user)
 	can_read = frappe.get_user().get_can_read()
@@ -76,7 +76,7 @@ def get_feed_match_conditions(user=None, force=True):
 			can_read_docs = []
 			for doctype, obj in user_permissions.items():
 				for n in obj.get("docs", []):
-					can_read_docs.append('"{}|{}"'.format(doctype, frappe.db.escape(n)))
+					can_read_docs.append('{}|{}'.format(doctype, frappe.db.escape(n)))
 
 			if can_read_docs:
 				conditions.append("concat_ws('|', `tabCommunication`.reference_doctype, `tabCommunication`.reference_name) in ({})".format(

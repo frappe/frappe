@@ -59,11 +59,11 @@ def generate_report_result(report, filters=None, user=None):
 			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
 			threshold = 10
 			res = []
-			
+
 			start_time = datetime.datetime.now()
 			# The JOB
 			res = frappe.get_attr(method_name)(frappe._dict(filters))
-			
+
 			end_time = datetime.datetime.now()
 
 			if (end_time - start_time).seconds > threshold and not report.prepared_report:
@@ -79,9 +79,6 @@ def generate_report_result(report, filters=None, user=None):
 
 	if result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
-
-	if cint(report.add_total_row) and result:
-		result = add_total_row(result, columns)
 
 	return {
 		"result": result,
@@ -159,6 +156,8 @@ def run(report_name, filters=None, user=None):
 		frappe.msgprint(_("Must have report permission to access this report."),
 			raise_exception=True)
 
+	result = None
+
 	if report.prepared_report:
 		if filters:
 			if isinstance(filters, string_types):
@@ -167,14 +166,18 @@ def run(report_name, filters=None, user=None):
 			dn = filters.get("prepared_report_name")
 		else:
 			dn = ""
-		return get_prepared_report_result(report, filters, dn)
+		result = get_prepared_report_result(report, filters, dn)
 	else:
-		return generate_report_result(report, filters, user)
+		result = generate_report_result(report, filters, user)
+
+	result["add_total_row"] = report.add_total_row
+
+	return result
 
 
 def get_prepared_report_result(report, filters, dn=""):
 	latest_report_data = {}
-	doc_list = frappe.get_list("Prepared Report", filters={"status": "Completed", "report_name": report.name})
+	doc_list = frappe.get_all("Prepared Report", filters={"status": "Completed", "report_name": report.name})
 	doc = None
 	if len(doc_list):
 		if dn:
@@ -185,10 +188,11 @@ def get_prepared_report_result(report, filters, dn=""):
 			doc = frappe.get_doc("Prepared Report", doc_list[0])
 
 		data = read_csv_content_from_attached_file(doc)
-		latest_report_data = {
-			"columns": data[0],
-			"result": data[1:]
-		}
+		if data:
+			latest_report_data = {
+				"columns": json.loads(doc.columns) if doc.columns else data[0],
+				"result": data[1:]
+			}
 
 	latest_report_data.update({
 		"prepared_report": True,

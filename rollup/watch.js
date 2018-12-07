@@ -92,7 +92,7 @@ ${error.toString()}
 
 ${error.frame ? error.frame : ''}
 		`
-	}
+	};
 
 	subscriber.publish('events', JSON.stringify(payload));
 }

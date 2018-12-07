@@ -15,8 +15,8 @@ def read_csv_content_from_uploaded_file(ignore_encoding=False):
 		with open(frappe.uploaded_file, "r") as upfile:
 			fcontent = upfile.read()
 	else:
-		from frappe.utils.file_manager import get_uploaded_content
-		fname, fcontent = get_uploaded_content()
+		_file = frappe.new_doc("File")
+		fcontent = _file.get_uploaded_content()
 	return read_csv_content(fcontent, ignore_encoding)
 
 def read_csv_content_from_attached_file(doc):
@@ -30,8 +30,8 @@ def read_csv_content_from_attached_file(doc):
 		raise Exception
 
 	try:
-		from frappe.utils.file_manager import get_file
-		fname, fcontent = get_file(fileid)
+		_file = frappe.get_doc("File", fileid)
+		fcontent = _file.get_content()
 		return read_csv_content(fcontent, frappe.form_dict.get('ignore_encoding_errors'))
 	except Exception:
 		frappe.throw(_("Unable to open attached file. Did you export it as CSV?"), title=_('Invalid CSV Format'))
@@ -147,6 +147,8 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 			doc.update(d)
 			if d.get("docstatus") == 1:
 				doc.update_after_submit()
+			elif d.get("docstatus") == 0 and submit:
+				doc.submit()
 			else:
 				doc.save()
 			return 'Updated row (#%d) %s' % (row_idx + 1, getlink(doctype, d['name']))

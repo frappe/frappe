@@ -17,7 +17,6 @@ from werkzeug.local import LocalProxy
 from werkzeug.wsgi import wrap_file
 from werkzeug.wrappers import Response
 from werkzeug.exceptions import NotFound, Forbidden
-from frappe.core.doctype.file.file import check_file_permission
 from frappe.website.render import render
 from frappe.utils import cint
 from six import text_type
@@ -39,6 +38,7 @@ def build_response(response_type=None):
 
 	response_type_map = {
 		'csv': as_csv,
+		'txt': as_txt,
 		'download': as_raw,
 		'json': as_json,
 		'page': as_page,
@@ -53,6 +53,14 @@ def as_csv():
 	response.mimetype = 'text/csv'
 	response.charset = 'utf-8'
 	response.headers["Content-Disposition"] = ("attachment; filename=\"%s.csv\"" % frappe.response['doctype'].replace(' ', '_')).encode("utf-8")
+	response.data = frappe.response['result']
+	return response
+
+def as_txt():
+	response = Response()
+	response.mimetype = 'text'
+	response.charset = 'utf-8'
+	response.headers["Content-Disposition"] = ("attachment; filename=\"%s.txt\"" % frappe.response['doctype'].replace(' ', '_')).encode("utf-8")
 	response.data = frappe.response['result']
 	return response
 
@@ -147,7 +155,8 @@ def download_backup(path):
 def download_private_file(path):
 	"""Checks permissions and sends back private file"""
 	try:
-		check_file_permission(path)
+		_file = frappe.get_doc("File", {"file_url": path})
+		_file.is_downloadable()
 
 	except frappe.PermissionError:
 		raise Forbidden(_("You don't have permission to access this file"))

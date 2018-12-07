@@ -14,14 +14,14 @@ class ErrorLog(Document):
 
 def set_old_logs_as_seen():
 	# set logs as seen
-	frappe.db.sql("""update `tabError Log` set seen=1
-		where seen=0 and datediff(curdate(), creation) > 7""")
+	frappe.db.sql("""UPDATE `tabError Log` SET `seen`=1
+		WHERE `seen`=0 AND `creation` < (NOW() - INTERVAL '7' DAY)""")
 
 	# clear old logs
-	frappe.db.sql("""delete from `tabError Log` where datediff(curdate(), creation) > 30""")
+	frappe.db.sql("""DELETE FROM `tabError Log` WHERE `creation` < (NOW() - INTERVAL '30' DAY)""")
 
 @frappe.whitelist()
 def clear_error_logs():
 	'''Flush all Error Logs'''
 	frappe.only_for('System Manager')
-	frappe.db.sql('''delete from `tabError Log`''')
+	frappe.db.sql('''DELETE FROM `tabError Log`''')

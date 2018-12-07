@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 """Allow adding of likes to documents"""
 
 import frappe, json
-from frappe.model.db_schema import add_column
+from frappe.database.schema import add_column
 from frappe import _
 from frappe.utils import get_link_to_form
 
@@ -54,8 +54,8 @@ def _toggle_like(doctype, name, add, user=None):
 
 		frappe.db.set_value(doctype, name, "_liked_by", json.dumps(liked_by), update_modified=False)
 
-	except Exception as e:
-		if isinstance(e.args, (tuple, list)) and e.args and e.args[0]==1054:
+	except frappe.db.ProgrammingError as e:
+		if frappe.db.is_column_missing(e):
 			add_column(doctype, "_liked_by", "Text")
 			_toggle_like(doctype, name, add, user)
 		else:

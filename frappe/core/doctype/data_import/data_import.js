@@ -17,6 +17,9 @@ frappe.ui.form.on('Data Import', {
 			};
 		});
 
+		// should never check public
+		frm.fields_dict["import_file"].df.is_private = 1;
+
 		frappe.realtime.on("data_import_progress", function(data) {
 			if (data.data_import === frm.doc.name) {
 				if (data.reload && data.reload === true) {
@@ -198,6 +201,13 @@ frappe.data_import.download_dialog = function(frm) {
 			"default": "Excel"
 		},
 		{
+			"label": __("Download with Data"),
+			"fieldname": "with_data",
+			"fieldtype": "Check",
+			"hidden": !frm.doc.overwrite,
+			"default": 1
+		},
+		{
 			"label": __("Select All"),
 			"fieldname": "select_all",
 			"fieldtype": "Button",
@@ -267,7 +277,7 @@ frappe.data_import.download_dialog = function(frm) {
 						doctype: frm.doc.reference_doctype,
 						parent_doctype: frm.doc.reference_doctype,
 						select_columns: JSON.stringify(columns),
-						with_data: frm.doc.overwrite,
+						with_data: frm.doc.overwrite && data.with_data,
 						all_doctypes: true,
 						file_type: data.file_type,
 						template: true

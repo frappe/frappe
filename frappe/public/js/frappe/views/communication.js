@@ -1,4 +1,4 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+// Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 frappe.last_edited_communication = {};
@@ -17,6 +17,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			fields: this.get_fields(),
 			primary_action_label: __("Send"),
 			primary_action: function() {
+				me.delete_saved_draft();
 				me.send_action();
 			}
 		});
@@ -78,22 +79,19 @@ frappe.views.CommunicationComposer = Class.extend({
 			{label:__("Subject"), fieldtype:"Data", reqd: 1,
 				fieldname:"subject", length:524288},
 			{fieldtype: "Section Break"},
-			{label:__("Message"), fieldtype:"Text Editor", reqd: 1,
-				fieldname:"content"},
+			{
+				label:__("Message"),
+				fieldtype:"Text Editor", reqd: 1,
+				fieldname:"content",
+				onchange: frappe.utils.debounce(this.save_as_draft.bind(this), 300)
+			},
+
 			{fieldtype: "Section Break"},
 			{fieldtype: "Column Break"},
-			{label:__("Send As Email"), fieldtype:"Check",
-				fieldname:"send_email"},
 			{label:__("Send me a copy"), fieldtype:"Check",
 				fieldname:"send_me_a_copy", 'default': frappe.boot.user.send_me_a_copy},
 			{label:__("Send Read Receipt"), fieldtype:"Check",
 				fieldname:"send_read_receipt"},
-			{label:__("Communication Medium"), fieldtype:"Select",
-				options: ["Phone", "Chat", "Email", "SMS", "Visit", "Other"],
-				fieldname:"communication_medium"},
-			{label:__("Sent or Received"), fieldtype:"Select",
-				options: ["Received", "Sent"],
-				fieldname:"sent_or_received"},
 			{label:__("Attach Document Print"), fieldtype:"Check",
 				fieldname:"attach_document_print"},
 			{label:__("Select Print Format"), fieldtype:"Select",
@@ -121,7 +119,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 	prepare: function() {
 		this.setup_subject_and_recipients();
-		this.setup_print_language()
+		this.setup_print_language();
 		this.setup_print();
 		this.setup_attach();
 		this.setup_email();
@@ -136,6 +134,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			this.dialog.fields_dict.sender.set_value(this.sender || '');
 		}
 		this.dialog.fields_dict.subject.set_value(this.subject || '');
+
 		this.setup_earlier_reply();
 	},
 
@@ -436,26 +435,12 @@ frappe.views.CommunicationComposer = Class.extend({
 			$(fields.select_print_format.wrapper).toggle(true);
 		}
 
-		$(fields.send_email.input).prop("checked", true);
-
 		$(fields.send_me_a_copy.input).on('click', () => {
 			// update send me a copy (make it sticky)
 			let val = fields.send_me_a_copy.get_value();
 			frappe.db.set_value('User', frappe.session.user, 'send_me_a_copy', val);
 			frappe.boot.user.send_me_a_copy = val;
 		});
-
-		// toggle print format
-		$(fields.send_email.input).click(function() {
-			$(fields.communication_medium.wrapper).toggle(!!!$(this).prop("checked"));
-			$(fields.sent_or_received.wrapper).toggle(!!!$(this).prop("checked"));
-			$(fields.send_read_receipt.wrapper).toggle($(this).prop("checked"));
-			me.dialog.get_primary_btn().html($(this).prop("checked") ? "Send" : "Add Communication");
-		});
-
-		// select print format
-		$(fields.communication_medium.wrapper).toggle(false);
-		$(fields.sent_or_received.wrapper).toggle(false);
 
 	},
 
@@ -510,11 +495,34 @@ frappe.views.CommunicationComposer = Class.extend({
 		return form_values;
 	},
 
+	save_as_draft: function() {
+		if (this.dialog) {
+			try {
+				localStorage.setItem(this.frm.doctype + this.frm.docname, this.dialog.get_value('content'));
+			} catch (e) {
+				// silently fail
+				console.log(e);
+				console.warn('[Communication] localStorage is full. Cannot save message as draft');
+			}
+		}
+	},
+
+	delete_saved_draft() {
+		if (this.dialog) {
+			try {
+				localStorage.removeItem(this.frm.doctype + this.frm.docname);
+			} catch (e) {
+				console.log(e);
+				console.warn('[Communication] Cannot delete localStorage item'); // eslint-disable-line
+			}
+		}
+	},
+
 	send_email: function(btn, form_values, selected_attachments, print_html, print_format) {
 		var me = this;
 		me.dialog.hide();
 
-		if((form_values.send_email || form_values.communication_medium === "Email") && !form_values.recipients) {
+		if(!form_values.recipients) {
 			frappe.msgprint(__("Enter Email Recipient(s)"));
 			return;
 		}
@@ -524,15 +532,12 @@ frappe.views.CommunicationComposer = Class.extend({
 			print_format = null;
 		}
 
-		if(form_values.send_email) {
-			if(cur_frm && !frappe.model.can_email(me.doc.doctype, cur_frm)) {
-				frappe.msgprint(__("You are not allowed to send emails related to this document"));
-				return;
-			}
 
-			form_values.communication_medium = "Email";
-			form_values.sent_or_received = "Sent";
+		if(cur_frm && !frappe.model.can_email(me.doc.doctype, cur_frm)) {
+			frappe.msgprint(__("You are not allowed to send emails related to this document"));
+			return;
 		}
+
 
 		return frappe.call({
 			method:"frappe.core.doctype.communication.email.make",
@@ -544,12 +549,10 @@ frappe.views.CommunicationComposer = Class.extend({
 				content: form_values.content,
 				doctype: me.doc.doctype,
 				name: me.doc.name,
-				send_email: form_values.send_email,
+				send_email: 1,
 				print_html: print_html,
 				send_me_a_copy: form_values.send_me_a_copy,
 				print_format: print_format,
-				communication_medium: form_values.communication_medium,
-				sent_or_received: form_values.sent_or_received,
 				sender: form_values.sender,
 				sender_full_name: form_values.sender?frappe.user.full_name():undefined,
 				attachments: selected_attachments,
@@ -562,7 +565,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				if(!r.exc) {
 					frappe.utils.play_sound("email");
 
-					if(form_values.send_email && r.message["emails_not_sent_to"]) {
+					if(r.message["emails_not_sent_to"]) {
 						frappe.msgprint(__("Email not sent to {0} (unsubscribed / disabled)",
 							[ frappe.utils.escape_html(r.message["emails_not_sent_to"]) ]) );
 					}
@@ -611,20 +614,21 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	setup_earlier_reply: function() {
-		var fields = this.dialog.fields_dict,
-			signature = frappe.boot.user.email_signature || "",
-			last_email = this.last_email;
-
-		if(!last_email) {
-			last_email = this.frm && this.frm.timeline.get_last_email(true);
-		}
+		let fields = this.dialog.fields_dict;
+		let signature = frappe.boot.user.email_signature || "";
 
 		if(!frappe.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");
 		}
 
-		if(this.txt) {
+		if (this.txt) {
 			this.message = this.txt + (this.message ? ("<br><br>" + this.message) : "");
+		} else {
+			// saved draft in localStorage
+			const { doctype, docname } = this.frm || {};
+			if (doctype && docname) {
+				this.message = localStorage.getItem(doctype + docname) || '';
+			}
 		}
 
 		if(this.real_name) {
@@ -632,29 +636,8 @@ frappe.views.CommunicationComposer = Class.extend({
 				+ this.real_name + ",</p><!-- salutation-ends --><br>" + (this.message || "");
 		}
 
-		var reply = (this.message || "")
-			+ (signature ? ("<br>" + signature) : "");
-		var content = '';
+		var reply = (this.message || "") + (signature ? ("<br>" + signature) : "");
 
-		if(last_email) {
-			var last_email_content = last_email.original_comment || last_email.content;
-
-			last_email_content = last_email_content
-				.replace(/&lt;meta[\s\S]*meta&gt;/g, '') // remove <meta> tags
-				.replace(/&lt;style[\s\S]*&lt;\/style&gt;/g, ''); // // remove <style> tags
-
-			var communication_date = last_email.communication_date || last_email.creation;
-			content = '<div><br></div>'
-				+ reply
-				+ "<br><!-- original-reply --><br>"
-				+ '<blockquote>' +
-					'<p>' + __("On {0}, {1} wrote:",
-					[frappe.datetime.global_date_format(communication_date) , last_email.sender]) + '</p>' +
-					last_email_content +
-				'<blockquote>';
-		} else {
-			content = "<div><br></div>" + reply;
-		}
-		fields.content.set_value(content);
+		fields.content.set_value(reply);
 	}
 });

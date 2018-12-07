@@ -63,8 +63,7 @@ class CustomField(Document):
 		if not frappe.db.get_value('DocType', self.dt, 'issingle'):
 			if (self.fieldname not in frappe.db.get_table_columns(self.dt)
 				or getattr(self, "_old_fieldtype", None) != self.fieldtype):
-				from frappe.model.db_schema import updatedb
-				updatedb(self.dt)
+				frappe.db.updatedb(self.dt)
 
 	def on_trash(self):
 		# delete property setter entries
@@ -105,15 +104,11 @@ def create_custom_field(doctype, df, ignore_validate=False):
 		custom_field = frappe.get_doc({
 			"doctype":"Custom Field",
 			"dt": doctype,
-			"permlevel": df.permlevel or 0,
-			"label": df.label,
-			"fieldname": df.fieldname,
-			"fieldtype": df.fieldtype or 'Data',
-			"options": df.options,
-			"insert_after": df.insert_after,
-			"print_hide": df.print_hide,
-			"hidden": df.hidden or 0
+			"permlevel": 0,
+			"fieldtype": 'Data',
+			"hidden": 0
 		})
+		custom_field.update(df)
 		custom_field.flags.ignore_validate = ignore_validate
 		custom_field.insert()
 

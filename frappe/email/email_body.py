@@ -144,12 +144,12 @@ class EMail:
 
 	def attach_file(self, n):
 		"""attach a file from the `FileData` table"""
-		from frappe.utils.file_manager import get_file
-		res = get_file(n)
-		if not res:
+		_file = frappe.get_doc("File", {"file_name": n})
+		content = _file.get_content()
+		if not content:
 			return
 
-		self.add_attachment(res[0], res[1])
+		self.add_attachment(_file.file_name, content)
 
 	def add_attachment(self, fname, fcontent, content_type=None,
 		parent=None, content_id=None, inline=False):
@@ -209,7 +209,6 @@ class EMail:
 			"To":             ', '.join(self.recipients) if self.expose_recipients=="header" else "<!--recipient-->",
 			"Date":           email.utils.formatdate(),
 			"Reply-To":       self.reply_to if self.reply_to else None,
-			"Bcc":            ', '.join(self.bcc) if self.bcc else None,
 			"CC":             ', '.join(self.cc) if self.cc and self.expose_recipients=="header" else None,
 			'X-Frappe-Site':  get_url(),
 		}

@@ -93,10 +93,10 @@ frappe.datetime.datetime = class {
 	 * @description Frappe's datetime Class's constructor.
 	 */
 	constructor (instance, format = null) {
-		if ( typeof moment === undefined )
+		if ( typeof moment === 'undefined' )
 			throw new frappe.ImportError(`Moment.js not installed.`)
 
-		this.moment      = instance ? moment(instance, format) : moment()
+		this.moment = instance ? moment(instance, format) : moment()
 	}
 
 	/**
@@ -1404,6 +1404,11 @@ class extends Component {
 	constructor (props) {
 		super (props)
 
+		this.setup(props)
+		this.make()
+	}
+
+	setup (props) {
 		// room actions
 		this.room           = { }
 		this.room.add       = rooms => {
@@ -1483,8 +1488,6 @@ class extends Component {
 		}
 
 		this.state = { ...frappe.Chat.Widget.defaultState, ...props }
-
-		this.make()
 	}
 
 	make ( ) {
@@ -1562,12 +1565,16 @@ class extends Component {
 
 				const  alert   = // TODO: ellipses content
 				`
-				<span>
+				<span data-action="show-message" class="cursor-pointer">
 					<span class="indicator yellow"/> <b>${frappe.user.first_name(r.user)}</b>: ${r.content}
 				</span>
 				`
-
-				frappe.show_alert(alert, 3)
+				frappe.show_alert(alert, 3, {
+					"show-message": function (r) {
+						this.room.select(r.room)
+						this.base.firstChild._component.toggle()
+					}.bind(this, r)
+				})
 			}
 
 			if ( r.room === state.room.name ) {
@@ -1755,12 +1762,18 @@ class extends Component {
 	constructor (props) {
 		super (props)
 
+		this.setup(props);
+	}
+
+	setup (props) {
 		this.toggle = this.toggle.bind(this)
 
 		this.state  = frappe.Chat.Widget.Popper.defaultState
 
 		if ( props.target )
 			$(props.target).click(() => this.toggle())
+
+		frappe.chat.widget = this
 	}
 
 	toggle  (active) {
@@ -2655,7 +2668,7 @@ frappe.chat.render = (render = true, force = false) =>
 	// Avoid re-renders. Once is enough.
 	if ( !frappe.chatter || force ) {
 		frappe.chatter = new frappe.Chat({
-			target: desk ? '.navbar .frappe-chat-toggle' : null
+			target: desk ? '.frappe-chat-toggle' : null
 		})
 
 		if ( render ) {

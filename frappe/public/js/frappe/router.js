@@ -4,6 +4,7 @@
 // route urls to their virtual pages
 
 // re-route map (for rename)
+frappe.provide('frappe.views');
 frappe.re_route = {"#login": ""};
 frappe.route_titles = {};
 frappe.route_flags = {};
@@ -13,6 +14,10 @@ frappe.view_factories = [];
 frappe.route_options = null;
 
 frappe.route = function() {
+
+	// Application is not yet initiated
+	if (!frappe.app) return;
+
 	if(frappe.re_route[window.location.hash] !== undefined) {
 		// after saving a doc, for example,
 		// "New DocType 1" and the renamed "TestDocType", both exist in history
@@ -48,7 +53,10 @@ frappe.route = function() {
 		frappe.view_factory[route[0]].show();
 	} else {
 		// show page
-		frappe.views.pageview.show(route[0]);
+		const route_name = frappe.utils.xss_sanitise(route[0]);
+		if (frappe.views.pageview) {
+			frappe.views.pageview.show(route_name);
+		}
 	}
 
 
@@ -116,7 +124,7 @@ frappe.get_raw_route_str = function(route) {
 }
 
 frappe.get_route_str = function(route) {
-	var rawRoute = frappe.get_raw_route_str()
+	var rawRoute = frappe.get_raw_route_str(route);
 	route = $.map(rawRoute.split('/'), frappe._decode_str).join('/');
 
 	return route;
@@ -145,9 +153,10 @@ frappe.set_route = function() {
 		window.location.hash = route;
 
 		// Set favicon (app.js)
+		frappe.provide('frappe.app');
 		frappe.app.set_favicon && frappe.app.set_favicon();
 		setTimeout(() => {
-			frappe.after_ajax(() => {
+			frappe.after_ajax && frappe.after_ajax(() => {
 				resolve();
 			});
 		}, 100);

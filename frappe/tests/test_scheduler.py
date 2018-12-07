@@ -19,6 +19,7 @@ def test_timeout():
 class TestScheduler(TestCase):
 	def setUp(self):
 		frappe.db.set_global('enabled_scheduler_events', "")
+		frappe.flags.ran_schedulers = []
 
 	def test_all_events(self):
 		last = now_datetime() - relativedelta(hours=2)
@@ -26,7 +27,8 @@ class TestScheduler(TestCase):
 		self.assertTrue("all" in frappe.flags.ran_schedulers)
 
 	def test_enabled_events(self):
-		frappe.flags.enabled_events = ["hourly", "hourly_long", "daily", "daily_long", "weekly", "weekly_long", "monthly", "monthly_long"]
+		frappe.flags.enabled_events = ["hourly", "hourly_long", "daily", "daily_long",
+			"weekly", "weekly_long", "monthly", "monthly_long"]
 
 		# maintain last_event and next_event on the same day
 		last_event = now_datetime().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -39,6 +41,7 @@ class TestScheduler(TestCase):
 		last_event = now_datetime().replace(hour=0, minute=0, second=0, microsecond=0)
 		next_event = last_event + relativedelta(hours=2)
 
+		frappe.flags.ran_schedulers = []
 		enqueue_applicable_events(frappe.local.site, next_event, last_event)
 		self.assertTrue("all" in frappe.flags.ran_schedulers)
 		self.assertTrue("hourly" in frappe.flags.ran_schedulers)
@@ -46,13 +49,15 @@ class TestScheduler(TestCase):
 		frappe.flags.enabled_events = None
 
 	def test_enabled_events_day_change(self):
-		val = json.dumps(["daily", "daily_long", "weekly", "weekly_long", "monthly", "monthly_long"])
+		val = json.dumps(["daily", "daily_long", "weekly", "weekly_long",
+			"monthly", "monthly_long"])
 		frappe.db.set_global('enabled_scheduler_events', val)
 
 		# maintain last_event and next_event on different days
 		next_event = now_datetime().replace(hour=0, minute=0, second=0, microsecond=0)
 		last_event = next_event - relativedelta(hours=2)
 
+		frappe.flags.ran_schedulers = []
 		enqueue_applicable_events(frappe.local.site, next_event, last_event)
 		self.assertTrue("all" in frappe.flags.ran_schedulers)
 		self.assertFalse("hourly" in frappe.flags.ran_schedulers)
@@ -61,7 +66,7 @@ class TestScheduler(TestCase):
 	def test_restrict_scheduler_events(self):
 		frappe.set_user("Administrator")
 		dormant_date = add_days(today(), -5)
-		frappe.db.sql('update tabUser set last_active=%s', dormant_date)
+		frappe.db.sql('UPDATE `tabUser` SET `last_active`=%s', dormant_date)
 
 		restrict_scheduler_events_if_dormant()
 		frappe.local.conf = _dict(frappe.get_site_config())

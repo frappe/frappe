@@ -1,6 +1,6 @@
 boto3
 chardet
-dropbox==7.3.1
+dropbox==9.1.0
 gunicorn
 jinja2
 markdown2==2.3.5
@@ -13,7 +13,7 @@ werkzeug
 semantic_version
 rauth>=0.6.2
 requests
-redis
+redis==2.10.6
 selenium
 babel
 ipython
@@ -22,7 +22,7 @@ email_reply_parser
 click
 num2words==0.5.5
 watchdog==0.8.0
-bleach
+bleach==2.1.4
 bleach-whitelist
 Pillow
 beautifulsoup4
@@ -55,3 +55,7 @@ google-auth-oauthlib
 faker
 stripe
 coverage
+urllib3==1.23
+GitPython==2.1.11
+psycopg2==2.7.5
+psycopg2-binary==2.7.5

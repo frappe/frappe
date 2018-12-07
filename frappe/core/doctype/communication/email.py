@@ -10,7 +10,6 @@ from email.utils import formataddr
 from frappe.core.utils import get_parent_doc
 from frappe.utils import (get_url, get_formatted_email, cint,
   validate_email_add, split_emails, time_diff_in_seconds, parse_addr, get_datetime)
-from frappe.utils.file_manager import get_file
 from frappe.email.queue import check_email_limit
 from frappe.utils.scheduler import log
 from frappe.email.email_body import get_message_id
@@ -18,10 +17,6 @@ import frappe.email.smtp
 import time
 from frappe import _
 from frappe.utils.background_jobs import enqueue
-
-# imports - third-party imports
-import pymysql
-from pymysql.constants import ER
 
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
@@ -285,7 +280,8 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 				# is it a filename?
 				try:
 					# keep this for error handling
-					file = get_file(a)
+					_file = frappe.get_doc("File", {"file_name": a})
+					_file.get_content()
 					# these attachments will be attached on-demand
 					# and won't be stored in the message
 					doc.attachments.append({"fid": a})
@@ -397,8 +393,6 @@ def get_bcc(doc, recipients=None, fetched_from_email_account=False):
 
 def add_attachments(name, attachments):
 	'''Add attachments to the given Communiction'''
-	from frappe.utils.file_manager import save_url
-
 	# loop through attachments
 	for a in attachments:
 		if isinstance(a, string_types):
@@ -406,8 +400,13 @@ def add_attachments(name, attachments):
 				["file_name", "file_url", "is_private"], as_dict=1)
 
 			# save attachments to new doc
-			save_url(attach.file_url, attach.file_name, "Communication", name,
-				"Home/Attachments", attach.is_private)
+			_file = frappe.get_doc({
+				"doctype": "File",
+				"file_url": attach.file_url,
+				"attached_to_doctype": "Communication",
+				"attached_to_name": name,
+				"folder": "Home/Attachments"})
+			_file.save(ignore_permissions=True)
 
 def filter_email_list(doc, email_list, exclude, is_cc=False, is_bcc=False):
 	# temp variables
@@ -491,9 +490,9 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 					recipients=recipients, cc=cc, bcc=bcc)
 
-			except pymysql.InternalError as e:
+			except frappe.db.InternalError:
 				# deadlock, try again
-				if e.args[0] == ER.LOCK_DEADLOCK:
+				if frappe.db.is_deadlocked():
 					frappe.db.rollback()
 					time.sleep(1)
 					continue

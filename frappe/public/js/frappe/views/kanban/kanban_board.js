@@ -604,7 +604,7 @@ frappe.provide("frappe.views");
 		}
 
 		function show_assign_to_dialog() {
-			self.dialog = new frappe.ui.form.AssignToDialog({
+			self.assign_to = new frappe.ui.form.AssignToDialog({
 				obj: self,
 				method: 'frappe.desk.form.assign_to.add',
 				doctype: card.doctype,
@@ -616,7 +616,7 @@ frappe.provide("frappe.views");
 					refresh_dialog();
 				}
 			});
-			self.assign_to_dialog = self.dialog;
+			self.assign_to_dialog = self.assign_to.dialog;
 			self.assign_to_dialog.show();
 		}
 

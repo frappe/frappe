@@ -33,7 +33,7 @@ def clean_email_html(html):
 			'font-size', 'font-weight', 'font-family', 'text-decoration',
 			'line-height', 'text-align', 'vertical-align'
 		],
-		protocols=['cid', 'http', 'https', 'mailto'],
+		protocols=['cid', 'http', 'https', 'mailto', 'data'],
 		strip=True, strip_comments=True)
 
 def clean_script_and_style(html):
@@ -158,7 +158,9 @@ acceptable_attributes = [
 	'step', 'style', 'summary', 'suppress', 'tabindex', 'target',
 	'template', 'title', 'toppadding', 'type', 'unselectable', 'usemap',
 	'urn', 'valign', 'value', 'variable', 'volume', 'vspace', 'vrml',
-	'width', 'wrap', 'xml:lang'
+	'width', 'wrap', 'xml:lang', 'data-row', 'data-list', 'data-language',
+	'data-value', 'role', 'frameborder', 'allowfullscreen', 'spellcheck',
+	'data-mode', 'data-gramm', 'data-placeholder', 'data-comment'
 ]
 
 mathml_attributes = [

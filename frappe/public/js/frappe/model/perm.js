@@ -53,6 +53,10 @@ $.extend(frappe.perm, {
 			perm[0].read = 1;
 		}
 
+		if (!meta) {
+			return perm;
+		}
+
 		frappe.perm.build_role_permissions(perm, meta);
 
 		if (doc) {
@@ -115,6 +119,7 @@ $.extend(frappe.perm, {
 				let permlevel = cint(p.permlevel);
 				if (!perm[permlevel]) {
 					perm[permlevel] = {};
+					perm[permlevel]["permlevel"] = permlevel
 				}
 
 				$.each(frappe.perm.rights, (i, key) => {

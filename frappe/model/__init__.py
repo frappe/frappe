@@ -6,6 +6,36 @@ from __future__ import unicode_literals
 import frappe
 import json
 
+data_fieldtypes = (
+	'Currency',
+	'Int',
+	'Long Int',
+	'Float',
+	'Percent',
+	'Check',
+	'Small Text',
+	'Long Text',
+	'Code',
+	'Text Editor',
+	'Markdown Editor',
+	'HTML Editor',
+	'Date',
+	'Datetime',
+	'Time',
+	'Text',
+	'Data',
+	'Link',
+	'Dynamic Link',
+	'Password',
+	'Select',
+	'Read Only',
+	'Attach',
+	'Attach Image',
+	'Signature',
+	'Color',
+	'Barcode',
+	'Geolocation'
+)
 
 no_value_fields = ('Section Break', 'Column Break', 'HTML', 'Table', 'Button', 'Image',
 	'Fold', 'Heading')
@@ -14,31 +44,12 @@ default_fields = ('doctype','name','owner','creation','modified','modified_by',
 	'parent','parentfield','parenttype','idx','docstatus')
 optional_fields = ("_user_tags", "_comments", "_assign", "_liked_by", "_seen")
 
-def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfields=[]):
-	if not tarfields:
-		tarfields = srcfields
-	l = []
-	data = src.get(srcfield)
-	for d in data:
-		newrow = tar.append(tarfield)
-		newrow.idx = d.idx
-
-		for i in range(len(srcfields)):
-			newrow.set(tarfields[i], d.get(srcfields[i]))
-
-		l.append(newrow)
-	return l
-
-def db_exists(dt, dn):
-	return frappe.db.exists(dt, dn)
-
 def delete_fields(args_dict, delete=0):
 	"""
 		Delete a field.
 		* Deletes record from `tabDocField`
 		* If not single doctype: Drops column from table
 		* If single, deletes record from `tabSingles`
-
 		args_dict = { dt: [field names] }
 	"""
 	import frappe.utils

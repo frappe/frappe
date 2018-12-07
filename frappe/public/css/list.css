@@ -73,7 +73,7 @@
 }
 .filter-box .filter-field {
   padding-right: 15px;
-  width: calc(64%);
+  width: calc(100% - 36px);
 }
 .filter-box .filter-field .frappe-control {
   position: relative;
@@ -233,7 +233,7 @@ input.list-row-checkbox {
 .taggle_list .taggle:hover {
   padding: 2px 15px 2px 4px;
   background: #cfdce5;
-  transition: all .2s;
+  transition: all 0.2s;
 }
 .taggle_list li {
   margin-bottom: 0;

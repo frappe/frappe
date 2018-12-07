@@ -3,17 +3,13 @@
 
 from __future__ import unicode_literals, print_function
 
+import io
 import frappe
 import hashlib
 
-from frappe.model.db_schema import DbManager
-from frappe.installer import get_root_connection
-from frappe.database import Database
 import os, subprocess
-from bs4 import BeautifulSoup
 import jinja2.exceptions
-
-import io
+from bs4 import BeautifulSoup
 
 def sync():
 	# make table
@@ -40,7 +36,7 @@ def get_help_content(path):
 def get_improve_page_html(app_name, target):
 	docs_config = frappe.get_module(app_name + ".config.docs")
 	source_link = docs_config.source_link
-	branch = getattr(docs_config, "branch", "develop")
+	branch = getattr(docs_config, "branch", "master")
 	html = '''<div class="page-container">
 				<div class="page-content">
 				<div class="edit-container text-center">
@@ -59,47 +55,24 @@ class HelpDatabase(object):
 		self.global_help_setup = frappe.conf.get('global_help_setup')
 		if self.global_help_setup:
 			bench_name = os.path.basename(os.path.abspath(frappe.get_app_path('frappe')).split('/apps/')[0])
-			self.help_db_name = hashlib.sha224(bench_name.encode('utf-8')).hexdigest()[:15]
+			self.help_db_name = 'd' + hashlib.sha224(bench_name.encode('utf-8')).hexdigest()[:15]
 
 	def make_database(self):
 		'''make database for global help setup'''
 		if not self.global_help_setup:
 			return
+		frappe.database.setup_help_database(self.help_db_name)
 
-		dbman = DbManager(get_root_connection())
-		dbman.drop_database(self.help_db_name)
-
-		# make database
-		if not self.help_db_name in dbman.get_database_list():
-			try:
-				dbman.create_user(self.help_db_name, self.help_db_name)
-			except Exception as e:
-				# user already exists
-				if e.args[0] != 1396: raise
-			dbman.create_database(self.help_db_name)
-			dbman.grant_all_privileges(self.help_db_name, self.help_db_name)
-			dbman.flush_privileges()
 
 	def connect(self):
 		if self.global_help_setup:
-			self.db = Database(user=self.help_db_name, password=self.help_db_name)
+			self.db = frappe.database.get_db(user=self.help_db_name, password=self.help_db_name)
 		else:
 			self.db = frappe.db
 
 	def make_table(self):
 		if not 'help' in self.db.get_tables():
-			self.db.sql('''create table help(
-				path varchar(255),
-				content text,
-				title text,
-				intro text,
-				full_path text,
-				fulltext(title),
-				fulltext(content),
-				index (path))
-				COLLATE=utf8mb4_unicode_ci
-				ENGINE=MyISAM
-				CHARACTER SET=utf8mb4''')
+			self.db.create_help_table()
 
 	def search(self, words):
 		self.connect()
@@ -137,8 +110,11 @@ class HelpDatabase(object):
 
 	def get_content(self, path):
 		self.connect()
-		query = '''select title, content from help
-			where path like "{path}%" order by path desc limit 1'''
+		query = '''SELECT `title`, `content`
+			FROM `help`
+			WHERE `path` LIKE '{path}%'
+			ORDER BY `path` DESC
+			LIMIT 1'''
 		result = None
 
 		if not path.endswith('index'):
@@ -166,8 +142,8 @@ class HelpDatabase(object):
 				docs_app=docs_app, web_folder=web_folder)
 			if os.path.exists(docs_folder):
 				app_name = getattr(frappe.get_module(app), '__title__', None) or app.title()
-				doc_contents += '<li><a data-path="/{docs_app}/index">{app_name}</a></li>'.format(
-					docs_app=docs_app, app_name=app_name)
+				doc_contents += '<li><a data-path="/{app}/index">{app_name}</a></li>'.format(
+					app=app, app_name=app_name)
 
 				for basepath, folders, files in os.walk(docs_folder):
 					files = self.reorder_files(files)
@@ -177,16 +153,16 @@ class HelpDatabase(object):
 							with io.open(fpath, 'r', encoding = 'utf-8') as f:
 								try:
 									content = frappe.render_template(f.read(),
-										{'docs_base_url': '/assets/{app}_docs'.format(app=app)})
+										{'docs_base_url': '/assets/{app}_docs'.format(app=app)}, safe_render=False)
 
 									relpath = self.get_out_path(fpath)
 									relpath = relpath.replace("user", app)
 									content = frappe.utils.md_to_html(content)
 									title = self.make_title(basepath, fname, content)
 									intro = self.make_intro(content)
-									content = self.make_content(content, fpath, relpath, app)
-									self.db.sql('''insert into help(path, content, title, intro, full_path)
-										values (%s, %s, %s, %s, %s)''', (relpath, content, title, intro, fpath))
+									content = self.make_content(content, fpath, relpath, app, docs_app)
+									self.db.sql('''INSERT INTO `help`(`path`, `content`, `title`, `intro`, `full_path`)
+										VALUES (%s, %s, %s, %s, %s)''', (relpath, content, title, intro, fpath))
 								except jinja2.exceptions.TemplateSyntaxError:
 									print("Invalid Jinja Template for {0}. Skipping".format(fpath))
 
@@ -212,7 +188,7 @@ class HelpDatabase(object):
 			intro = "Help Video: " + intro
 		return intro
 
-	def make_content(self, html, path, relpath, app_name):
+	def make_content(self, html, path, relpath, app_name, doc_app):
 		if '<h1>' in html:
 			html = html.split('</h1>', 1)[1]
 
@@ -222,7 +198,7 @@ class HelpDatabase(object):
 		soup = BeautifulSoup(html, 'html.parser')
 
 		self.fix_links(soup, app_name)
-		self.fix_images(soup, app_name)
+		self.fix_images(soup, doc_app)
 
 		parent = self.get_parent(relpath)
 		if parent:

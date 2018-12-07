@@ -7,7 +7,7 @@ import unittest
 
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-from frappe.desk.doctype.auto_repeat.auto_repeat import make_auto_repeat_entry, disable_auto_repeat
+from frappe.desk.doctype.auto_repeat.auto_repeat import get_auto_repeat_entries, create_repeated_entries, disable_auto_repeat
 from frappe.utils import today, add_days, getdate
 
 
@@ -20,7 +20,7 @@ def add_custom_fields():
 
 class TestAutoRepeat(unittest.TestCase):
 	def setUp(self):
-		if not frappe.db.sql('select name from `tabCustom Field` where name="auto_repeat"'):
+		if not frappe.db.sql("SELECT `name` FROM `tabCustom Field` WHERE `name`='auto_repeat'"):
 			add_custom_fields()
 
 	def test_daily_auto_repeat(self):
@@ -29,7 +29,8 @@ class TestAutoRepeat(unittest.TestCase):
 
 		doc = make_auto_repeat(reference_document=todo.name)
 		self.assertEqual(doc.next_schedule_date, today())
-		make_auto_repeat_entry()
+		for data in get_auto_repeat_entries(today()):
+			create_repeated_entries(data)
 		frappe.db.commit()
 
 		todo = frappe.get_doc(doc.reference_doctype, doc.reference_document)
@@ -62,7 +63,8 @@ class TestAutoRepeat(unittest.TestCase):
 
 		disable_auto_repeat(doc)
 
-		make_auto_repeat_entry()
+		for data in get_auto_repeat_entries(today()):
+			create_repeated_entries(data)
 		docnames = frappe.get_all(doc.reference_doctype, {'auto_repeat': doc.name})
 		self.assertEqual(len(docnames), 1)
 
@@ -70,10 +72,27 @@ class TestAutoRepeat(unittest.TestCase):
 		doc.db_set('disabled', 0)
 
 		months = get_months(getdate(start_date), getdate(today()))
-		make_auto_repeat_entry()
+		for data in get_auto_repeat_entries(today()):
+			create_repeated_entries(data)
 
 		docnames = frappe.get_all(doc.reference_doctype, {'auto_repeat': doc.name})
 		self.assertEqual(len(docnames), months)
+
+	def test_notification_is_attached(self):
+		todo = frappe.get_doc(
+			dict(doctype='ToDo', description='Test recurring notification attachment', assigned_by='Administrator')).insert()
+
+		doc = make_auto_repeat(reference_document=todo.name, notify=1, recipients="test@domain.com", subject="New ToDo",
+			message="A new ToDo has just been created for you")
+		for data in get_auto_repeat_entries(today()):
+			create_repeated_entries(data)
+		frappe.db.commit()
+
+		new_todo = frappe.db.get_value('ToDo',
+			{'auto_repeat': doc.name, 'name': ('!=', todo.name)}, 'name')
+
+		linked_comm = frappe.db.exists("Communication", dict(reference_doctype="ToDo", reference_name=new_todo))
+		self.assertTrue(linked_comm)
 
 
 def make_auto_repeat(**args):
@@ -85,7 +104,11 @@ def make_auto_repeat(**args):
 		'frequency': args.frequency or 'Daily',
 		'start_date': args.start_date or add_days(today(), -1),
 		'end_date': args.end_date or add_days(today(), 1),
-		'submit_on_creation': args.submit_on_creation or 0
+		'submit_on_creation': args.submit_on_creation or 0,
+		'notify_by_email': args.notify or 0,
+		'recipients': args.recipients or "",
+		'subject': args.subject or "",
+		'message': args.message or ""
 	}).insert(ignore_permissions=True)
 
 	if not args.do_not_submit:
