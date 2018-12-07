@@ -485,7 +485,8 @@ def save_check_log(check_log):
                 rec[fieldname[i]] = auth[i]
             recs.append(rec)
         check_log['authorizations'] = recs
-    auth_check_log = frappe.get_doc(check_log)    
+    auth_check_log = frappe.get_doc(check_log)
+    auth_check_log.flags.ignore_links = True
     frappe.local.rollback_observers.append(auth_check_log)
     auth_check_log.insert(ignore_permissions=1)
     
