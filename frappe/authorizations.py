@@ -475,7 +475,7 @@ def _auth_check(doctype=None, act='read', doc=None, user=None, auth_obj=None, ve
 
 def save_check_log(check_log):
     if frappe.flags.in_test:
-	return
+        return
     auths = check_log.get('authorizations')
     if auths:
         auths = sorted(auths, key=operator.itemgetter(0))	  # sort by auth_id column for better readability
