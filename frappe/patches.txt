@@ -231,3 +231,4 @@ frappe.patches.v10_0.enhance_security
 frappe.patches.v11_0.multiple_references_in_events
 frappe.patches.v11_0.set_allow_self_approval_in_workflow
 frappe.patches.v11_0.migrate_report_settings_for_new_listview
+frappe.patches.v11_0.delete_all_prepared_reports
