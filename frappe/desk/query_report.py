@@ -81,6 +81,9 @@ def generate_report_result(report, filters=None, user=None):
 	if result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
 
+	if cint(report.add_total_row) and result:
+		result = add_total_row(result, columns)
+
 	return {
 		"result": result,
 		"columns": columns,
