@@ -292,7 +292,7 @@ def get_descendants(doctype, field, field_value):
 def auth_check(doctype=None, act='read', doc=None, user=None, auth_obj=None, verbose=None):
     """cached version/wrapper of _auth_check"""
     if not user: user = frappe.session.user
-    if user == 'Administrator':
+    if user=="Administrator":
         return True
     act = rights_map.get(act) if act in rights_map.keys() else '11'
     if not doc and hasattr(doctype, 'doctype'):
@@ -546,7 +546,7 @@ def get_match_conditions(doctype, act='read', user=None, tables=[], parent_docty
         return condition
 
     if not user: user = frappe.session.user
-    if user == 'Administrator':
+    if user=="Administrator":
         return ''
     if not parent_doctype:
         parent_doctype = ''
