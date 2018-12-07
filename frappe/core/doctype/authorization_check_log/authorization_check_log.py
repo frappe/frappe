@@ -10,5 +10,8 @@ class AuthorizationCheckLog(Document):
 
 	def on_rollback(self):
 		"""in case log insert rolled back due to raise except, then insert back here"""
-		self.insert(ignore_permissions=1)
-		frappe.db.commit()
+		try:
+			self.insert(ignore_permissions=1)
+			frappe.db.commit()
+		except:
+			pass
