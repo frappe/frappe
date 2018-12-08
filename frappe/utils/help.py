@@ -188,7 +188,7 @@ class HelpDatabase(object):
 			intro = "Help Video: " + intro
 		return intro
 
-	def make_content(self, html, path, relpath, app_name, doc_app):
+	def make_content(self, html, path, relpath, app_name, doc_app=None):
 		if '<h1>' in html:
 			html = html.split('</h1>', 1)[1]
 
