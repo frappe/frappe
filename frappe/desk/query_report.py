@@ -15,7 +15,6 @@ import frappe.desk.reportview
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
 from datetime import timedelta
-from frappe.utils.file_manager import get_file
 from frappe.utils import gzip_decompress
 
 def get_report_doc(report_name):
@@ -497,3 +496,24 @@ def get_user_match_filters(doctypes, user):
 			match_filters[dt] = filter_list
 
 	return match_filters
+
+def get_file(fname):
+	"""Returns [`file_name`, `content`] for given file name `fname`"""
+	_file = frappe.get_doc("File", {"file_name": fname})
+	file_path = _file.get_full_path()
+
+	# read the file
+	if PY2:
+		with open(encode(file_path)) as f:
+			content = f.read()
+	else:
+		with io.open(encode(file_path), mode='rb') as f:
+			content = f.read()
+			try:
+				# for plain text files
+				content = content.decode()
+			except UnicodeDecodeError:
+				# for .png, .jpg, etc
+				pass
+
+	return [file_path.rsplit("/", 1)[-1], content]
