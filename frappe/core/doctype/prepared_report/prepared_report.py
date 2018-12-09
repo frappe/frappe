@@ -15,7 +15,6 @@ from frappe.desk.query_report import generate_report_result, get_columns_dict
 from frappe.core.doctype.file.file import remove_all
 from frappe.utils.csvutils import to_csv, read_csv_content_from_attached_file
 from frappe.desk.form.load import get_attachments
-from frappe.core.doctype.file.file import download_file
 from frappe.utils import gzip_compress, gzip_decompress
 from six import PY2
 from frappe.utils import encode
@@ -74,26 +73,6 @@ def create_json_gz_file(data, dt, dn):
 def download_attachment(dn):
 	attachment = get_attachments("Prepared Report", dn)[0]
 	frappe.local.response.filename = attachment.file_name[:-2]
-	frappe.local.response.filecontent = gzip_decompress(get_file(attachment.name)[1])
+	attached_file = frappe.get_doc('File', attachment.name)
+	frappe.local.response.filecontent = gzip_decompress(attached_file.get_content())
 	frappe.local.response.type = "binary"
-
-def get_file(fname):
-	"""Returns [`file_name`, `content`] for given file name `fname`"""
-	_file = frappe.get_doc("File", {"file_name": fname})
-	file_path = _file.get_full_path()
-
-	# read the file
-	if PY2:
-		with open(encode(file_path)) as f:
-			content = f.read()
-	else:
-		with io.open(encode(file_path), mode='rb') as f:
-			content = f.read()
-			try:
-				# for plain text files
-				content = content.decode()
-			except UnicodeDecodeError:
-				# for .png, .jpg, etc
-				pass
-
-	return [file_path.rsplit("/", 1)[-1], content]
