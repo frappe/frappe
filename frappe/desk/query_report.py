@@ -328,10 +328,7 @@ def add_total_row(result, columns, meta = None):
 		first_col_fieldtype = columns[0].get("fieldtype")
 
 	if first_col_fieldtype not in ["Currency", "Int", "Float", "Percent", "Date"]:
-		if first_col_fieldtype == "Link":
-			total_row[0] = "'" + _("Total") + "'"
-		else:
-			total_row[0] = _("Total")
+		total_row[0] = _("Total")
 
 	result.append(total_row)
 	return result
