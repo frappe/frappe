@@ -135,7 +135,7 @@ $.extend(frappe.model, {
 		function is_doc_allowed(doctype, docname) {
 			return user_permissions[doctype].some(perm => {
 				return perm.doc === docname && (perm.applicable_for === doc.doctype || !perm.applicable_for);
-			})
+			});
 		}
 
 		// don't set defaults for "User" link field using User Permissions!
