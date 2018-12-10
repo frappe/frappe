@@ -1,12 +1,15 @@
 {
 		"Holiday List": {
 				"field_map": {
-						"start": "from_date",
-						"end": "to_date",
+						"start": "holiday_date",
+						"end": "holiday_date",
 						"id": "name",
 						"title": "name",
-						"allDay": "allDay"
-				}
+						"allDay": "allDay",
+						"color": "color",
+						"description" :"description"
+				},
+				"get_events_method": "erpnext.hr.doctype.holiday_list.holiday_list.get_events"
 		},
 		"Event":{
 				"field_map": {
@@ -16,8 +19,10 @@
 					"allDay": "all_day",
 					"title": "subject",
 					"status": "event_type",
-					"color": "color"
-				}
+					"color": "color",
+					"description" :"description"
+				},
+				"get_events_method": "frappe.desk.doctype.event.event.get_events"
 		},
 		"Leave Application":{
 				"field_map": {
@@ -25,8 +30,12 @@
 					"end": "to_date",
 					"id": "name",
 					"title": "name",
-					"docstatus": 1
-			}
+					"docstatus": 1,
+					"color": "color",
+					"description" :"description"
+
+			},
+			"get_events_method": "erpnext.hr.doctype.leave_application.leave_application.get_events"
 		},
 		"Sales Order":{
 			"field_map": {
@@ -34,8 +43,10 @@
 				"end": "delivery_date",
 				"id": "name",
 				"title": "customer_name",
-				"allDay": "allDay"
-			}
+				"allDay": "allDay",
+				"description" :"status"
+			},
+			"get_events_method": "erpnext.selling.doctype.sales_order.sales_order.get_events"
 		},
 		"Task":{
 			"field_map": {
@@ -44,7 +55,9 @@
 				"id": "name",
 				"title": "subject",
 				"allDay": "allDay",
-				"progress": "progress"
+				"progress": "progress",
+				"color": "color",
+				"description" :"description"
 			}
 		},
 		"Work Order":{
@@ -53,7 +66,8 @@
 				"end": "planned_end_date",
 				"id": "name",
 				"title": "name",
-				"allDay": "allDay"
+				"allDay": "allDay",
+				"description" :"status"
 			}
 		}
 
