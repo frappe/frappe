@@ -31,7 +31,7 @@ def execute():
 				continue
 			skip_for_doctype = user_permission.skip_for_doctype.split('\n')
 		else: # while migrating from v10 -> v11
-			if skip_for_doctype_map[(user_permission.allow, user_permission.user)] == None:
+			if skip_for_doctype_map.get((user_permission.allow, user_permission.user)) == None:
 				skip_for_doctype = get_doctypes_to_skip(user_permission.allow, user_permission.user)
 				# cache skip for doctype for same user and doctype
 				skip_for_doctype_map[(user_permission.allow, user_permission.user)] = skip_for_doctype
@@ -63,7 +63,6 @@ def execute():
 			frappe.db.set_value('User Permission', user_permission.name, 'apply_to_all_doctypes', 1)
 
 	if new_user_permissions_list:
-		print(len(new_user_permissions_list))
 		frappe.db.sql('''
 			INSERT INTO `tabUser Permission`
 			(`name`, `user`, `allow`, `for_value`, `applicable_for`, `apply_to_all_doctypes`)
@@ -73,7 +72,6 @@ def execute():
 		), tuple(new_user_permissions_list))
 
 	if user_permissions_to_delete:
-		print(len(user_permissions_to_delete))
 		frappe.db.sql('DELETE FROM `tabUser Permission` WHERE `name` in ({})'
 			.format(','.join(['%s'] * len(user_permissions_to_delete))),
 			tuple(user_permissions_to_delete)
