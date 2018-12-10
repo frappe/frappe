@@ -5,6 +5,10 @@ const Block = Quill.import('blots/block');
 Block.tagName = 'DIV';
 Quill.register(Block, true);
 
+const CodeBlockContainer = Quill.import('formats/code-block-container');
+CodeBlockContainer.tagName = 'PRE';
+Quill.register(CodeBlockContainer, true);
+
 // table
 const Table = Quill.import('formats/table-container');
 const superCreate = Table.create.bind(Table);
