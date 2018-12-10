@@ -190,7 +190,7 @@ $.extend(frappe.model, {
 
 			} else if (df["default"][0]===":") {
 				var boot_doc = frappe.model.get_default_from_boot_docs(df, doc, parent_doc);
-				var is_allowed_boot_doc = !has_user_permissions || is_doc_allowed(df.options, boot_doc)!==-1;
+				var is_allowed_boot_doc = !has_user_permissions || is_doc_allowed(df.options, boot_doc);
 
 				if (is_allowed_boot_doc) {
 					return boot_doc;
@@ -201,7 +201,7 @@ $.extend(frappe.model, {
 			}
 
 			// is this default value is also allowed as per user permissions?
-			var is_allowed_default = !has_user_permissions || is_doc_allowed(df.options, df.default) !==-1;
+			var is_allowed_default = !has_user_permissions || is_doc_allowed(df.options, df.default);
 			if (df.fieldtype!=="Link" || df.options==="User" || is_allowed_default) {
 				return df["default"];
 			}
