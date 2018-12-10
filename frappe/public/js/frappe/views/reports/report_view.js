@@ -121,6 +121,16 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 	}
 
+	on_filter_change() {
+		if (this.report_doc) {
+			if (JSON.stringify(this.filters) !== JSON.stringify(this.filter_area.get())) {
+				this.page.set_indicator(__('Not Saved'), 'orange');
+			} else {
+				this.page.clear_indicator();
+			}
+		}
+	}
+
 	update_row(doc, flash_row) {
 		const to_refresh = [];
 
@@ -899,6 +909,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					if(r.message != this.report_name) {
 						frappe.set_route('List', this.doctype, 'Report', r.message);
 					}
+
+					// reset dirty state
+					this.filters = this.filter_area.get();
+					this.on_filter_change();
 				}
 			});
 
