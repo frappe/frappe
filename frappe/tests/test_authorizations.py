@@ -17,8 +17,8 @@ test_records = frappe.get_test_records('Blog Post')
 class TestAuthorizations(unittest.TestCase):
     def setUp(self):
         frappe.set_user('Administrator')
-        test_users = [{'doctype': 'User', 'first_name': 'test-user1', 'email': 'test11@b.c'},
-                      {'doctype': 'User', 'first_name': 'test-user2', 'email': 'test12@b.c'}]
+        test_users = [{'doctype': 'User', 'first_name': 'test-user1', 'email': 'test11@b.c', 'gender':'Male'},
+                      {'doctype': 'User', 'first_name': 'test-user2', 'email': 'test12@b.c', 'gender':'Female'}]
         for user in test_users:
             try:
                 frappe.delete_doc('User', user.get('email'), force=1, ignore_permissions=1)
@@ -198,60 +198,36 @@ class TestAuthorizations(unittest.TestCase):
         user.remove_roles('test-role-multi_or_fields')
         frappe.delete_doc('Role', 'test-role-multi_or_fields', ignore_permissions=1, force=1)
 
-    def erpnextonlytest_sub_fields(self):
+    def test_sub_fields(self):
         frappe.set_user('Administrator')
-        frappe.get_doc(
-            {'doctype': 'Customer', 'customer_name': 'test-customer1', 'customer_group': 'Commercial'}).insert(
-            ignore_permissions=1)
-        frappe.get_doc(
-            {'doctype': 'Customer', 'customer_name': 'test-customer2', 'customer_group': 'Individual'}).insert(
-            ignore_permissions=1)
-        frappe.db.sql('delete from tabItem where name=%(item)s', {'item': 'test-item1'})
-        frappe.get_doc(
-            {'doctype': 'Item', 'item_code': 'test-item1', 'item_group': 'Services', 'is_stock_item': 0}).insert(
-            ignore_permissions=1)
-        so1 = frappe.get_doc({'doctype': 'Sales Order', 'customer': 'test-customer1', 'delivery_date': nowdate(),
-                              'items': [{'item_code': 'test-item1'}]})
-        so2 = frappe.get_doc({'doctype': 'Sales Order', 'customer': 'test-customer2', 'delivery_date': nowdate(),
-                              'items': [{'item_code': 'test-item1'}]})
-        frappe.get_doc({'doctype': 'Sales Order', 'customer': 'test-customer2', 'delivery_date': nowdate(),
-                        'items': [{'item_code': 'test-item1'}]})
+        frappe.db.set_value("Blog Category", "_Test Blog Category", "published", 0)
+        frappe.db.set_value("Blog Category", "_Test Blog Category 1", "published", 1)        
+        post1 = frappe.get_doc("Blog Post", "-test-blog-post")
+        post2 = frappe.get_doc("Blog Post", "-test-blog-post-1")
 
         frappe.delete_doc('Authorization Object', 'test-sub_fields', ignore_permissions=1, force=1)
         frappe.get_doc({'doctype': 'Authorization Object', 'description': 'test-sub_fields',
                         'auth_field': [{'fieldname': 'act'},
-                                       {'fieldname': 'customer.customer_group'}]}).insert(ignore_permissions=1)
-        doctype_so = frappe.get_doc('DocType', 'Sales Order')
-        doctype_so.set('authorization_objects', [{'authorization_object': 'test-sub_fields'}])
-        doctype_so.save(ignore_permissions=1)
+                                       {'fieldname': 'blog_category.published'}]}).insert(ignore_permissions=1)
+        doctype_blog = frappe.get_doc('DocType', 'Blog')
+        doctype_blog.set('authorization_objects', [{'authorization_object': 'test-sub_fields'}])
+        doctype_blog.save(ignore_permissions=1)
         frappe.delete_doc('Role', 'test-role-sub_fields', ignore_permissions=1, force=1)
         frappe.get_doc({'doctype': 'Role', 'role_name': 'test-role-sub_fields',
                         'authorization': [
                             {'authorization_object': 'test-sub_fields', 'auth_field': 'act', 'value_from': '11'},
-                            {'authorization_object': 'test-sub_fields', 'auth_field': 'customer.customer_group',
-                             'value_from': 'Commercial'}]
+                            {'authorization_object': 'test-sub_fields', 'auth_field': 'blog_category.published',
+                             'value_from': '0'}]
                         }).insert(ignore_permissions=1)
         user = frappe.get_doc('User', 'test11@b.c')
         user.flags.ignore_permissions = 1
         user.add_roles('test-role-sub_fields')
 
         frappe.set_user('test11@b.c')
-        print('test sub_fields---')
-        print('sales order 1 read:')
-        self.assertTrue(so1.has_permission("read"))
+        self.assertTrue(post1.has_permission("read"))
+        self.assertFalse(post2.has_permission("read"))
 
-        print('sales order 2 read:')
-        self.assertFalse(so2.has_permission("read"))
-
-        frappe.db.sql('delete from `tabSales Order` where customer =%(customer1)s  or customer=%(customer2)s',
-                      {'customer1': 'test-customer1', 'customer2': 'test-customer2'})
-        so1.insert(ignore_permissions=1)
-        so2.insert(ignore_permissions=1)
-        print('get_list return 1 record:')
-        self.assertTrue(len(frappe.get_list('Sales Order')) == 1)
-        frappe.db.sql('delete from `tabSales Order` where customer =%(customer1)s  or customer=%(customer2)s',
-                      {'customer1': 'test-customer1', 'customer2': 'test-customer2'})
-
+        self.assertTrue(len(frappe.get_list('Blog Post')) == 1)
         frappe.set_user('Administrator')
         doctype_so.set('authorization_objects', [])
         doctype_so.save(ignore_permissions=1)
