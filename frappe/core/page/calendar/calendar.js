@@ -11,12 +11,34 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 		'assets/frappe/js/lib/bootstrap.min.js',
 		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js'], function() {
 			const me = this;
+			window.x = page
+			window.this = this
 			this.$nav = page.sidebar.html(`<ul class="module-sidebar-nav overlay-sidebar nav nav-pills nav-stacked"></ul>`);
 			this.$sidebar_list = page.sidebar.find('ul');
 			// list of all standrd calendars
 			$(`<li class="text-muted" style="padding-bottom: 10px">
-				Standard Calendars:
-				</li>`).appendTo(this.$sidebar_list);
+			Standard Calendars:
+			</li>`).appendTo(this.$sidebar_list);
+
+			var li=$("<li>").appendTo(this.$sidebar_list);
+			var div=$("<div class ='row'>").appendTo(li)
+
+			//select all button
+			$("<div class='col-sm-6'><button class='btn btn-default btn-xs' >Select All</button></div>").on("click",function(){
+				$('.checkbox > input').each(function() {
+					$(this).prop("checked", true);
+					me.$cal.fullCalendar("refetchEvents");
+				});
+			}).appendTo(div);
+
+			//Unselct all btn
+			$("<div class='col-sm-6'><button class='btn btn-default btn-xs' >Unselect All</button></div>").on("click",function(){
+				$('.checkbox > input').each(function() {
+					$(this).prop("checked", false);
+					me.$cal.fullCalendar("refetchEvents");
+				});
+			}).appendTo(div)
+
 			//fetching and creating checkboxes
 			$.each(frappe.boot.calendars, function(i, doctype) {
 				if(frappe.model.can_read(doctype)) {
@@ -40,15 +62,11 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 
 			// list of custom calendar covered soon
 
-			/*$(`<li class="text-muted">
+			$(`<li class="text-muted">
 				Custom Calendars:
-				</li>`).appendTo(this.$sidebar_list);*/
+				</li>`).appendTo(this.$sidebar_list);
 
 		var calendar_opts = {
-			//day click action
-			dayClick: function(date) {
-				alert(date);
-			},
 
 			//header region which contains monlty,weekly,and daily views 
 			header: {
@@ -65,6 +83,9 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 
 			// for mapping events into calendar
 			events: function(start, end, timezone, callback) {
+				start_param = get_system_datetime(start);
+				end_param = get_system_datetime(end)
+
 				var docinfo = '';
 				$('.module-sidebar-nav input:checked').each(function() {
 					docinfo += $(this).attr('value')+',';
@@ -74,7 +95,9 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 					method: "frappe.core.page.calendar.calendar.get_master_calendar_events",
 					type: "GET",
 					args : {
-						'doctypeinfo': docinfo
+						'doctypeinfo': docinfo,
+						'start' : start_param,
+						'end': end_param
 					}
 				}).then(r => {
 					var events = [];
@@ -86,8 +109,10 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 								end: r["message"][event].end,
 								id: r["message"][event].id,
 								title: r["message"][event].title,
+								doctype: r["message"][event].doctype,
 								color: r["message"][event].color, 
-								textColor: r["message"][event].textColor
+								textColor: r["message"][event].textColor,
+								description: r["message"][event].description
 							});
 						}
 					}
@@ -99,7 +124,8 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 			select: function(startDate, endDate, jsEvent, view) {
 				var checkboxes = $('.module-sidebar-nav input:checked');
 				var interval = endDate-startDate;
-				//console.log(this.el.position().top)
+
+				//identifying single day event
 				if(interval > 86400000){
 					if (checkboxes.length == 1){
 						frappe.new_doc(checkboxes[0].value);
@@ -110,7 +136,7 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 							options += '\n'+$(this).attr('value');
 						});
 						
-						
+						//select doctype to create event
 						frappe.prompt([
 							{'fieldname': 'Doctype', 'fieldtype': 'Select', 'options': options,'label': 'Doctype', 'reqd': 1}  
 						],
@@ -131,7 +157,11 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 
 			//Event click action 
 			eventClick: function(event,jsEvent) {
+				//removing popover if present
+				$(".popover.fade.bottom.in").remove();
+
 				var t = $(jsEvent.target)
+				// creating time html
 				if(event.allDay){
 					var timeHtml = "All Day"
 				}
@@ -145,18 +175,38 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 					var timeHtml = event.start.format('Do MMMM')+" to "+ event.end.format('Do MMMM')
 				}
 
-				timing = "<div class='mt-5'><div class='text-muted col-sm-2' style='padding-right: 0; margin-top: 6px;'><i class='fa fa-clock-o' aria-hidden='true'></i></div> <div class='col-sm-10' style='padding-left: 0; margin-top: 5px;'>" + timeHtml + "</div></div>"
+				timing = "<div class='mt-5'>" +
+							"<div class='text-muted col-sm-2' style='padding-right: 0; margin-top: 6px;'>"+
+								"<i class='fa fa-clock-o' aria-hidden='true'></i>"+
+							"</div> "+
+							"<div class='col-sm-9' style='padding-left: 0; margin-top: 5px;'>" + 
+								timeHtml + 
+							"</div>"+
+						"</div>"
 
-				var descr = "Contact Anurag, to talk about the big fixes for v11"
-				description = "<div class='mt-5'><div class='text-muted col-sm-2' style='padding-right: 0; margin-top: 6px;'><i class='fa fa-align-left' aria-hidden='true'></i></div> <div class='col-sm-10' style='padding-left: 0; margin-top: 5px;'>" + descr + "</div></div>"
+				var descr = event.description
+				description = "<div class='mt-5'>"+
+								"<div class='text-muted col-sm-2' style='padding-right: 0; margin-top: 6px; '>"+
+									"<i class='fa fa-align-left' aria-hidden='true'></i>"+
+								"</div> "+
+								"<div class='col-sm-10' style='padding-left: 0; margin-top: 5px;'>" + 
+									descr + 
+								"</div>"+
+							"</div>"
 
-				var htmlContent = "<div class='row'>" + description +"<div class='mt-5'></div>"+ timing + "</ul>"
-				window.t = event
+				//popover content
+				var htmlContent = "<div class='row'>" +
+									description +
+								"</div>"+
+								"<div class='row'>"+
+									timing +
+								"</div>"
+
+
 				t.attr("data-toggle", "popover")
 				t.attr("data-placement", "bottom")
 				t.attr("title", event.title)
 				t.attr("data-container", "body")
-				t.attr("style", "")
 				t.attr("data-trigger", "focus")
 				t.attr("z-index", 2000)
 				t.popover({
@@ -165,13 +215,28 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 				}
 				);
 				t.popover("show");
+				$(".popover.fade.bottom.in").css("min-width", "200px")
+
+				//Edit buuton and its action
+				$("<span ><button class='btn btn-default btn-sm btn-modal-close' style='margin-top:15px'>Edit</button></span>").on("click",function(){
+					$(".popover.fade.bottom.in").remove();
+					frappe.set_route("Form", event.doctype, event.id);
+				}).appendTo($(".popover-content"));
 			
-			}
+			},
+			eventDrop: function( event, delta, revertFunc, jsEvent, ui, view ) {
+				update_event(event)
+			 },
+			 eventResize: function(event, delta, revertFunc) {
+				update_event(event)
+			},
+			
 		}
 
+		//showing calendar 
 		this.$cal = $("<div>").appendTo(page.body);
-		
 		this.$cal.fullCalendar( calendar_opts );
+
 		// button for hiding and showing the weekends days
 		var btnTitle = (calendar_opts.weekends) ? __('Hide Weekends') : __('Show Weekends');
 		var btn = $(`<button class="btn btn-default btn-xs btn-weekend">${btnTitle}</button>`).on("click", function(){
@@ -183,7 +248,7 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 			$cal.fullCalendar('option', 'weekends', calendar_opts.weekends);
 
 		});
-
+		//creating footnote
 		this.footnote_area = frappe.utils.set_footnote(this.footnote_area, page.body,
 			__("Select or drag across time slots to create a new event."));
 		this.footnote_area.css({"border-top": "0px"});
@@ -191,4 +256,35 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 
 		frappe.require('assets/frappe/js/lib/fullcalendar/locale-all.js');
 	});
+
+	$('body').on('click', function (e) {
+		//popover hiddingon putside click.
+		if ($(e.target).data('toggle') !== 'popover'
+			&& $(e.target).parents('.popover.in').length === 0) { 
+			$('[data-toggle="popover"]').popover('hide');
+		}
+	});
+
+	 function get_system_datetime(date) {
+		date._offset = moment.user_utc_offset;
+		return d= frappe.datetime.convert_to_system_tz(date);
+	}
+	
+	function update_event(event){
+		start = get_system_datetime(event.start)
+		end = get_system_datetime(event.end)
+		frappe.call({
+			method: "frappe.core.page.calendar.calendar.update_event",
+			type: "POST",
+			args : {
+				'start' : start,
+				'end': end,
+				'doctype': event.doctype,
+				'name': event.id
+			}
+		}).then(r => {
+			console.log(r);
+		});
+	}
+	
 }
