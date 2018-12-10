@@ -20,14 +20,14 @@ How it works
 	    1.1.1 special auth field: act, corresponding to user operation on the doc, such as New,change, delete, cancel etc
 	    1.1.2 optionally add other to be auth checked fields, multi fields can be assigned per auth object
 	    1.1.3 combine multi fields by "|" (OR), e.g owner|approver means user can check leave applications which he is owner or approver
-      1.1.4 combine multi fields by "." (subfield), e.g customer.customer_group restricts sales order by customer's customer group
-	1.2 assign authorizaiton objects to doctype
+            1.1.4 combine multi fields by "." (subfield), e.g customer.customer_group restricts sales order by customer's customer group
+  1.2 assign authorizaiton objects to doctype
     1.2.1 common authorization object s_doctype with two auth fields: act and s_doctype is implicitly assigned to all doctypes
-		1.2.2 multi auth objects can be assigned to same doctype
-		1.2.3 mandatory: if checked, authorization records for this auth object is mandatory for user to access docs of this doctype,
+    1.2.2 multi auth objects can be assigned to same doctype
+    1.2.3 mandatory: if checked, authorization records for this auth object is mandatory for user to access docs of this doctype,
           if not checked, users without authorization records for this auth obj can access the docs if authorized by common
           object s_doctype
-	1.3 assigned authorization object to doctype field(optional), for protecting sensitive fields in the doctype
+  1.3 assigned authorization object to doctype field(optional), for protecting sensitive fields in the doctype
     1.3.1 only one authorization object can be assigned per doctype field
     1.3.2 same authorization object can be assigned to different doctype field under the same doctype
     1.3.3 currently only applicable to get_doc in frappe.desk.form, if not authorized, the field content will be reset to None
@@ -37,11 +37,11 @@ How it works
 	  2.1.1 select auth object, select auth field, assign authorized values to the authorization field
 	  2.1.2 authorized value rules
 		  2.1.2.1 wild card *, which means full authorization on this field
-		  2.2.2 single fixed value
-		  2.2.3 single partial fixed value combined with wildcard, e.g Task*
-		  2.2.4 single variable value link to user master field, using $user. as prefix
-		  2.2.5 single fixed value for field with descendants, which means it includes all its descendants
-		  2.2.6 fixed value with range, value from and value to
+		  2.1.2.2 single fixed value
+		  2.1.2.3 single partial fixed value combined with wildcard, e.g Task*
+		  2.1.2.4 single variable value link to user master field, using $user. as prefix
+		  2.1.2.5 single fixed value for field with descendants, which means it includes all its descendants
+		  2.1.2.6 fixed value with range, value from and value to
 	  2.1.3 authorizations/authorization ID: each authorization(authorized value for all auth fields in the auth object
     is identified by the authorization ID), Multi auth IDs allowed per auth object in the same role    
  2.2 assign roles to user
@@ -51,11 +51,10 @@ How it works
 
 3. Run time checking logic  
 	3.1 bypass auth check if ignore_permission is set or user is Administrator
-	4.2 auth check is auto triggerred when user do operation(action) on the target document
-		4.2.1 implicit check the relevant doc field by the assigned authorization object
-	4.3 auth check is auto triggerred when implicitely call db_query.build_match_conditions for listing/report view, fetch for 
-    link field etc, system converts user's authorized values (authorizations) as filtering condition and append to
-    the SQL where clause
+	3.2 auth check is auto triggerred when user do operation(action) on the target document
+		3.2.1 implicit check the relevant doc field by the assigned authorization object
+	3.3 auth check is auto triggerred when implicitely call db_query.build_match_conditions for listing/report view, fetch for 
+    link field etc, system converts user's authorized values (authorizations) as filtering condition and append to SQL where clause
 
 Use cases:
 1. user can display/edit leave applications which he/her is the owner or approver
@@ -149,7 +148,6 @@ def get_user_authorizations(user=None):
     user_authorizations = frappe.cache().hget('user:'+user, 'get_user_authorizations', lambda: _get_user_authorizations(user))
     return user_authorizations
 
-
 def _get_user_authorizations(user=None):
     if not user: user = frappe.session.user
     sql = """select concat(auth.parent,'-',auth.authorization_object,'-',auth.authorization_id),
@@ -159,13 +157,11 @@ def _get_user_authorizations(user=None):
     result = frappe.db.sql(sql, user)
     return result
 
-
 def get_authorizations(doctype, act='11', user=None, usage='doc', auth_obj=None):
     if not user: user = frappe.session.user
     act = rights_map.get(act) if act in rights_map.keys() else act
     auth_key = 'get_authorizations|%s|%s|%s|%s' % (doctype, act, usage, auth_obj or '')
     return frappe.cache().hget('user:'+user, auth_key, lambda: _get_authorizations(doctype, act, user, usage, auth_obj=auth_obj))
-
 
 def _get_authorizations(doctype, act='11', user=None, usage='doc', auth_obj=None):
     """get authorization records list for the doctype
@@ -281,19 +277,19 @@ def get_auth_key(act, doc='', doctype='', auth_obj=None, as_list=None):
             auth_key = '%s|%s|%s' % (doc.get('doctype'), '|'.join(doc_for_auth.values()), act)
     return auth_key
 
-
 def get_descendants(doctype, field, field_value):
     """ support using parent value on the value from """
     f = frappe.get_meta(doctype).get_field(field)
     if f and f.fieldtype == 'Link' and frappe.get_meta(f.options).is_nested_set():
         return frappe.db.get_descendants(f.options, field_value)
 
+def get_doc_name(doc):
+	if not doc: return None
+	return doc if isinstance(doc, string_types) else doc.name
 
-def auth_check(doctype=None, act='read', doc=None, user=None, auth_obj=None, verbose=None):
-    """cached version/wrapper of _auth_check"""
+def auth_check(doctype=None, act='read', doc=None, user=None, auth_obj=None, verbose=0):
     if not user: user = frappe.session.user
-    if user=="Administrator":
-        return True
+    ptype = act
     act = rights_map.get(act) if act in rights_map.keys() else '11'
     if not doc and hasattr(doctype, 'doctype'):
         # first argument can be doc or doctype
@@ -308,9 +304,32 @@ def auth_check(doctype=None, act='read', doc=None, user=None, auth_obj=None, ver
         return False
     auth_key = get_auth_key(act, doc, doctype, auth_obj)
     auth_key = 'auth_check|%s' % auth_key
-    return frappe.cache().hget('user:'+user, auth_key,
+    result = frappe.cache().hget('user:'+user, auth_key,
         lambda: _auth_check(doctype=doctype, act=act, doc=doc, user=user, auth_obj=auth_obj, verbose=verbose))
 
+    def false_if_not_shared():
+        if ptype in ("read", "write", "share", "email", "print"):
+            shared = frappe.share.get_shared(doctype, user,
+                ["read" if ptype in ("email", "print") else ptype])
+
+            if doc:
+                doc_name = get_doc_name(doc)
+                if doc_name in shared:
+                    if verbose: print("Shared")
+                    if ptype in ("read", "write", "share") or meta.permissions[0].get(ptype):
+                        if verbose: print("Is shared")
+                        return True
+            elif shared:
+                # if atleast one shared doc of that type, then return True
+                # this is used in db_query to check if permission on DocType
+                if verbose: print("Has a shared document")
+                return True
+        if verbose: print("Not Shared")
+        return False
+
+    if not result and ptype in ("read", "write", "share", "email", "print"):
+        result = false_if_not_shared()
+    return result
 
 def match(first, second):
     """# Python program to match wild card characters
@@ -342,7 +361,6 @@ def match(first, second):
 
     return False
 
-
 def check_field(doctype, field, field_value, value_from, value_to=None, user=None):
     """ checking doc field against user's assigned authorizations(via role): value from/value to
 		1. wildcard * matches all
@@ -372,8 +390,7 @@ def check_field(doctype, field, field_value, value_from, value_to=None, user=Non
     else:
         return value_from <= field_value <= value_to
 
-
-def _auth_check(doctype=None, act='read', doc=None, user=None, auth_obj=None, verbose=None):
+def _auth_check(doctype=None, act='read', doc=None, user=None, auth_obj=None, verbose=1):
     """1.doctype level check:only act field is relevant
        2.doc level check:
             2.1 at least one valid auth records exists, to support adding more auth objs later for new user only,
@@ -388,54 +405,55 @@ def _auth_check(doctype=None, act='read', doc=None, user=None, auth_obj=None, ve
     if not user: user = frappe.session.user
     check_log = {'doc_type': doctype, 'doctype': 'Authorization Check Log', 'act': act}
     if doc:
-        check_log.update({'doc_name': doc.get('name'),'auth_doc': get_auth_key('', doc,as_list=1)})
+        check_log['doc_name'] = doc.get('name')
     if verbose: print('_auth_check parameter:%s:%s:%s:%s:%s' % (doctype, act, doc, user, auth_obj))
     result = []
     auth_objs = get_auth_objs(doctype, auth_obj)
     if verbose: print('auth check, auth_objs:', auth_objs)
     if not doc and not auth_obj:  # doctype level check
         auths = get_authorizations(doctype, act, user, usage='doctype')
-        mandatory_auth_objs = [obj for obj in auth_objs or [] if obj[2]]
-        mandatory_auths = not mandatory_auth_objs or [auth for auth in auths or [] if auth[2] in mandatory_auth_objs]
-        if verbose: print('auth check,doctype auths:', auths)
-        result = bool(auths) and bool(mandatory_auths)
-        if not result:
-            check_log.update({'authorization_object': auth_objs[0][0] if auth_objs else 's_doctype',
-                              'authorization_field': auth_objs[0][1] if auth_objs else 's_doctype',
-                               'reason': 'no authorizations record'})
-            save_check_log(check_log)
-        return result
+        if verbose: print('auth_check,by doctype, auths:', auths)
+        if not auths:
+            check_log['reason'] = 'no valid authorizations record for s_doctype'
+            auth_obj_recs = [['s_doctype', 's_doctype']]
+            save_check_log(check_log, user, auth_obj_recs)
+            return False
+        mandatory_objs = [obj for obj in auth_objs or [] if obj[2]]
+        mandatory_auths = bool([a for a in auths or [] if a[2] in mandatory_objs]) if mandatory_objs else True 
+        if not mandatory_auths:
+            check_log['reason'] = 'no authorizations record for mandatory auth objs'
+            save_check_log(check_log, user, mandatory_auth_objs)
+            return False
+	return True
     else:
         auths = get_authorizations(doctype, act, user, usage='doc', auth_obj=auth_obj)
         if not auths:
-            check_log.update({'authorization_object': auth_objs[0][0] if auth_objs else 's_doctype',
-                              'authorization_field': auth_objs[0][1] if auth_objs else 's_doctype',
-			       'reason': 'no authorizations'})
-            save_check_log(check_log)
+	    auth_obj_recs = list(auth_objs)
+            auth_obj_recs.append(['s_doctype', 's_doctype'])		
+            check_log['reason'] = 'no valid authorizations for doc'
+            save_check_log(check_log, user, auth_obj_recs, doc)
             if verbose: print('auth check, no authorizations')
             return False
-        check_log['authorizations'] = auths
         if verbose: print('auth check doc or auth obj auths:', auths, 'doctype:', doctype)
         auth_objs = [i for i in auth_objs if i[1] != 'act']
         if verbose: print('auth_objs records excludes auth_field=act:', auth_objs)
         if not auth_objs:  # only act auth field defined for the auth obj or common auth obj s_doctype exist
-            if verbose:
-                print("Check OK for auth objs with only act auth field, or only auth obj s_doctype")
+            if verbose: print("Check OK for auth objs with only act auth field, or only auth obj s_doctype")
             return True
         else:
             pre_auth_obj = ''
             for (auth_obj, auth_field, mandatory) in auth_objs:
                 # multi auth objs to be checked by AND logic in SQL where clause
-                check_log.update({'authorization_object': auth_obj, 'authorization_field': auth_field})
+                auth_obj_recs = [[auth_obj, auth_field]]
+                # check_log.update({'authorization_object': auth_obj, 'authorization_field': auth_field})
                 if auth_obj != pre_auth_obj:
                     result = []
-                else:
                     pre_auth_obj = auth_obj
-                obj_auths = [auth for auth in auths if auth[1] == auth_obj and auth[2] != 'act']
+                    obj_auths = [auth for auth in auths if auth[1] == auth_obj and auth[2] != 'act']
                 if not obj_auths:  # handle mandatory or optional auth obj for doctype
                     if mandatory:
                         check_log['reason'] = 'no authorizations for mandatory auth object'
-                        save_check_log(check_log)
+                        save_check_log(check_log, user, auth_obj_recs, doc)
                         return False
                     else:
                         result = True
@@ -448,7 +466,7 @@ def _auth_check(doctype=None, act='read', doc=None, user=None, auth_obj=None, ve
                     link_field_value = doc.get(link_field)
                     check_value = frappe.get_doc(link_doctype, link_field_value).get(sub_field)
                 else:
-                    check_value = doc.get(auth_field)
+                    check_value = doc.get(auth_field)  # act if auth_field=='act' else
                 if not check_value:  # bypass checking empty to be checked doc field
                     auth = [i[0] for i in obj_auths if i[2] == auth_field]
                 else:
@@ -458,25 +476,32 @@ def _auth_check(doctype=None, act='read', doc=None, user=None, auth_obj=None, ve
                     if verbose: print('auth_obj:', auth_obj, 'auth_field:', auth_field, 'doc field/check_value:',
                                       check_value, 'authorzied value for auth_obj:', obj_auths)
                     check_log['reason'] = 'not authorized for this auth field'
-                    save_check_log(check_log)
+                    save_check_log(check_log, user, auth_obj_recs, doc)
                     return False
                 else:
                     result = set(result) & set(auth) if result else set(auth)
                 if not result:
                     if verbose: print('auth check,individual authorization not in same auth ID', result, auth)
                     check_log['reason'] = 'not authorized for multi auth fields'
-                    save_check_log(check_log)
+                    save_check_log(check_log, user, auth_obj_recs, doc)
                     return False
         if verbose: print('_auth_check, result:', result)
         if not bool(result):
             check_log['reason'] = 'not authorized for multi auth objs'
-            save_check_log(check_log)
+            save_check_log(check_log, user)
     return bool(result)
 
-def save_check_log(check_log):
-    if frappe.flags.in_test:
-        return
-    auths = check_log.get('authorizations')
+def save_check_log(check_log, user, auth_obj_recs=None, doc=None):
+    if doc:
+        auth_doc = get_auth_key('', doc, as_list=1)
+    else:
+        auth_doc = [{'auth_obj': rec[0], 'auth_field': rec[1]} for rec in auth_obj_recs or []]
+    check_log['auth_doc'] = auth_doc
+    if auth_obj_recs:
+        check_log['authorization_object'] = auth_obj_recs[0][0]
+        check_log['authorization_field'] = auth_obj_recs[0][1]
+    auth_objs = [rec[0] for rec in auth_obj_recs]
+    auths = [auth for auth in get_user_authorizations(user) or [] if auth[1] in auth_objs]
     if auths:
         auths = sorted(auths, key=operator.itemgetter(0))	  # sort by auth_id column for better readability
         fieldname = ['authorization_id', 'authorization_object', 'authorization_field', 'value_from', 'value_to', 'role']
@@ -485,13 +510,15 @@ def save_check_log(check_log):
             rec = {}
             for i in range(len(auth)):
                 rec[fieldname[i]] = auth[i]
+                if i == 0:
+                    rec[fieldname[i]] = rec[fieldname[i]].split('-', 1)[0]   # extract auth_id
             recs.append(rec)
         check_log['authorizations'] = recs
     auth_check_log = frappe.get_doc(check_log)
-    auth_check_log.flags.ignore_links = True
     frappe.local.rollback_observers.append(auth_check_log)
+    old_name = '%s-%s' % (user, check_log.get('doc_type'))
+    frappe.delete_doc('Authorization Check Log', old_name, force=1, ignore_permissions=1)
     auth_check_log.insert(ignore_permissions=1)
-    
     
 def auth_check_doc_fields(doc, user=None):
     if not user: user = frappe.session.user
@@ -508,7 +535,6 @@ def auth_check_doc_fields(doc, user=None):
             doc.set(fieldname, None)
             result = False
     return result
-
 
 def get_match_conditions(doctype, act='read', user=None, tables=[], parent_doctype=None, verbose=None):
     """ apply auth relevant restriction to db_query's where condition, which is called by via get_list/get_all or report query
@@ -622,3 +648,34 @@ def get_match_conditions(doctype, act='read', user=None, tables=[], parent_docty
 
     if verbose: print('final match condition:', result)
     return result
+
+def can_import(doctype, raise_exception=False):
+    if not ("System Manager" in frappe.get_roles() or auth_check(doctype, "import")):
+        if raise_exception:
+            raise frappe.PermissionError("You are not allowed to import: {doctype}".format(doctype=doctype))
+        else:
+            return False
+    return True
+
+def can_export(doctype, raise_exception=False):
+    if not ("System Manager" in frappe.get_roles() or auth_check(doctype, "export")):
+        if raise_exception:
+            raise frappe.PermissionError("You are not allowed to export: {doctype}".format(doctype=doctype))
+        else:
+            return False
+    return True
+
+def get_doc_authorizations(doc, verbose=False, user=None, ptype=None):
+    """Returns a dict of evaluated permissions for given `doc` like `{"read":1, "write":1}`"""
+    if not user: user = frappe.session.user
+    if frappe.is_table(doc.doctype): return {"read": 1, "write": 1}
+    if not has_controller_permissions(doc, ptype, user=user):
+        return {ptype: 0}
+    auths = {}
+    if ptype:
+        auths[ptype] = auth_check('',ptype, doc, verbose=verbose)
+    else:
+        for k, v in rights_map.items():
+            auths[k] = auth_check('', v, doc, verbose=verbose)
+
+    return auths
