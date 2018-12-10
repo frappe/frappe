@@ -70,7 +70,7 @@ class TestAuthorizations(unittest.TestCase):
         frappe.get_doc({'doctype': 'Authorization Object', 'description': 'test-blog_category',
                         'auth_field': [{'fieldname': 'act'},
                                        {'fieldname': 'blog_category'}]}).insert(ignore_permissions=1)
-        doctype_blog = frappe.get_doc('DocType', 'Blog')
+        doctype_blog = frappe.get_doc('DocType', 'Blog Post')
         doctype_blog.set('authorization_objects', [{'authorization_object': 'test-blog_category'}])
         doctype_blog.save(ignore_permissions=1)
         frappe.delete_doc('Role', 'test-role-multi_action', force=1, ignore_permissions=1)
@@ -109,7 +109,7 @@ class TestAuthorizations(unittest.TestCase):
         frappe.get_doc({'doctype': 'Authorization Object', 'description': 'test-blog_category',
                         'auth_field': [{'fieldname': 'act'},
                                        {'fieldname': 'blog_category'}]}).insert(ignore_permissions=1)
-        doctype_blog = frappe.get_doc('DocType', 'Blog')
+        doctype_blog = frappe.get_doc('DocType', 'Blog Post')
         doctype_blog.set('authorization_objects', [{'authorization_object': 'test-blog_category', 'mandatory': '1'}])
         doctype_blog.save(ignore_permissions=1)
         frappe.delete_doc('Role', 'test-role-mandatory', ignore_permissions=1, force=1)
@@ -173,7 +173,9 @@ class TestAuthorizations(unittest.TestCase):
                         'authorization': [
                             {'authorization_object': 'test-multi_or_fields', 'auth_field': 'act', 'value_from': '11'},
                             {'authorization_object': 'test-multi_or_fields', 'auth_field': 'owner|assigned_by',
-                             'value_from': '$user.name'}]
+                             'value_from': '$user.name'},
+			    {'authorization_object': 's_doctype', 'auth_field': 'act', 'value_from': '11'},
+                               {'authorization_object': 's_doctype', 'auth_field': 's_doctype', 'value_from': 'ToDo'}]
                         }).insert(ignore_permissions=1)
         user = frappe.get_doc('User', 'test11@b.c')
         user.flags.ignore_permissions = 1
@@ -209,7 +211,7 @@ class TestAuthorizations(unittest.TestCase):
         frappe.get_doc({'doctype': 'Authorization Object', 'description': 'test-sub_fields',
                         'auth_field': [{'fieldname': 'act'},
                                        {'fieldname': 'blog_category.published'}]}).insert(ignore_permissions=1)
-        doctype_blog = frappe.get_doc('DocType', 'Blog')
+        doctype_blog = frappe.get_doc('DocType', 'Blog Post')
         doctype_blog.set('authorization_objects', [{'authorization_object': 'test-sub_fields'}])
         doctype_blog.save(ignore_permissions=1)
         frappe.delete_doc('Role', 'test-role-sub_fields', ignore_permissions=1, force=1)
@@ -217,7 +219,9 @@ class TestAuthorizations(unittest.TestCase):
                         'authorization': [
                             {'authorization_object': 'test-sub_fields', 'auth_field': 'act', 'value_from': '11'},
                             {'authorization_object': 'test-sub_fields', 'auth_field': 'blog_category.published',
-                             'value_from': '0'}]
+                             'value_from': '0'},
+			     {'authorization_object': 's_doctype', 'auth_field': 'act', 'value_from': '11'},
+                                {'authorization_object': 's_doctype', 'auth_field': 's_doctype', 'value_from': '*'}]
                         }).insert(ignore_permissions=1)
         user = frappe.get_doc('User', 'test11@b.c')
         user.flags.ignore_permissions = 1
@@ -229,8 +233,8 @@ class TestAuthorizations(unittest.TestCase):
 
         self.assertTrue(len(frappe.get_list('Blog Post')) == 1)
         frappe.set_user('Administrator')
-        doctype_so.set('authorization_objects', [])
-        doctype_so.save(ignore_permissions=1)
+        doctype_blog.set('authorization_objects', [])
+        doctype_blog.save(ignore_permissions=1)
         frappe.delete_doc('Authorization Object', 'test-sub_fields', ignore_permissions=1, force=1)
         user = frappe.get_doc('User', 'test11@b.c')
         user.flags.ignore_permissions = 1
@@ -246,11 +250,11 @@ class TestAuthorizations(unittest.TestCase):
         frappe.get_doc({'doctype': 'Authorization Object', 'description': 'test-field_level',
                         'auth_field': [{'fieldname': 'act'},
                                        {'fieldname': 'blog_category'}]}).insert(ignore_permissions=1)
-        doctype_blog = frappe.get_doc('DocType', 'Blog')
-        for field in doctype_emp.get('fields'):
+        doctype_blog = frappe.get_doc('DocType', 'Blog Post')
+        for field in doctype_blog.get('fields'):
             if field.fieldname in ['blogger', 'content']:
                 field.authorization_object = 'test-field_level'
-        doctype_emp.save(ignore_permissions=1)
+        doctype_blog.save(ignore_permissions=1)
         frappe.delete_doc('Role', 'test-role-field_level', ignore_permissions=1, force=1)
         frappe.get_doc({'doctype': 'Role', 'role_name': 'test-role-field_level',
                         'authorization': [
@@ -274,7 +278,7 @@ class TestAuthorizations(unittest.TestCase):
         for field in doctype_blog.get('fields'):
             if field.fieldname in ['blogger', 'content']:
                 field.authorization_object = ''
-        doctype_emp.save(ignore_permissions=1)
+        doctype_blog.save(ignore_permissions=1)
         user = frappe.get_doc('User', 'test11@b.c')
         user.flags.ignore_permissions = 1
         user.remove_roles('test-role-field_level')
