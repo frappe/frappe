@@ -132,6 +132,12 @@ $.extend(frappe.model, {
 			&& df.ignore_user_permissions != 1
 			&& user_permissions[df.options]);
 
+		function is_doc_allowed(doctype, docname) {
+			return user_permissions[doctype].some(perm => {
+				return perm.doc === docname && (perm.applicable_for === doc.doctype || !perm.applicable_for);
+			})
+		}
+
 		// don't set defaults for "User" link field using User Permissions!
 		if (df.fieldtype==="Link" && df.options!=="User") {
 			// 1 - look in user permissions for document_type=="Setup".
@@ -159,7 +165,7 @@ $.extend(frappe.model, {
 			}
 
 			var is_allowed_user_default = user_default &&
-				(!has_user_permissions || user_permissions[df.options].docs.indexOf(user_default)!==-1);
+				(!has_user_permissions || is_doc_allowed(df.options, user_default));
 
 			// is this user default also allowed as per user permissions?
 			if (is_allowed_user_default) {
@@ -184,7 +190,7 @@ $.extend(frappe.model, {
 
 			} else if (df["default"][0]===":") {
 				var boot_doc = frappe.model.get_default_from_boot_docs(df, doc, parent_doc);
-				var is_allowed_boot_doc = !has_user_permissions || user_permissions[df.options].docs.indexOf(boot_doc)!==-1;
+				var is_allowed_boot_doc = !has_user_permissions || is_doc_allowed(df.options, boot_doc)!==-1;
 
 				if (is_allowed_boot_doc) {
 					return boot_doc;
@@ -195,7 +201,7 @@ $.extend(frappe.model, {
 			}
 
 			// is this default value is also allowed as per user permissions?
-			var is_allowed_default = !has_user_permissions || user_permissions[df.options].docs.indexOf(df["default"])!==-1;
+			var is_allowed_default = !has_user_permissions || is_doc_allowed(df.options, df.default) !==-1;
 			if (df.fieldtype!=="Link" || df.options==="User" || is_allowed_default) {
 				return df["default"];
 			}
