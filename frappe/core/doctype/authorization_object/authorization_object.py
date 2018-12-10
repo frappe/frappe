@@ -11,7 +11,7 @@ from frappe import _
 class AuthorizationObject(Document):
 
 	def on_update(self):
-		if not hasattr(self,'_doc_before_save') or (hasattr(self,'_doc_before_save') and
+		if self.is_new() or (hasattr(self,'_doc_before_save') and
 				self._doc_before_save and self._doc_before_save.auth_field != self.auth_field):
 			auth_key = 'get_auth_objs|%s|%s' % ('auth_obj', self.name)
 			frappe.cache().hdel('auth_objs', auth_key)
