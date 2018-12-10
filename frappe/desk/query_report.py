@@ -81,6 +81,9 @@ def generate_report_result(report, filters=None, user=None):
 	if result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
 
+	if cint(report.add_total_row) and result:
+		result = add_total_row(result, columns)
+
 	return {
 		"result": result,
 		"columns": columns,
@@ -325,10 +328,7 @@ def add_total_row(result, columns, meta = None):
 		first_col_fieldtype = columns[0].get("fieldtype")
 
 	if first_col_fieldtype not in ["Currency", "Int", "Float", "Percent", "Date"]:
-		if first_col_fieldtype == "Link":
-			total_row[0] = "'" + _("Total") + "'"
-		else:
-			total_row[0] = _("Total")
+		total_row[0] = _("Total")
 
 	result.append(total_row)
 	return result
