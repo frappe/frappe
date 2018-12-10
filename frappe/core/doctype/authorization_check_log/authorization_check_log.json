@@ -5,7 +5,7 @@
  "allow_import": 0, 
  "allow_rename": 0, 
  "authorization_objects": [], 
- "autoname": "format:{YY}{MM}{DD}-{#####}", 
+ "autoname": "format:{owner}-{doc_type}", 
  "beta": 0, 
  "creation": "2018-10-21 19:09:43.672255", 
  "custom": 0, 
