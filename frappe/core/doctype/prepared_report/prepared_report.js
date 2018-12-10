@@ -15,7 +15,7 @@ frappe.ui.form.on('Prepared Report', {
 			<tbody></tbody>
 		</table>`);
 
-		const filters = JSON.parse(JSON.parse(frm.doc.filters));
+		const filters = JSON.parse(frm.doc.filters);
 
 		Object.keys(filters).forEach(key => {
 			const filter_row = $(`<tr>
