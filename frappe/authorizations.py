@@ -150,7 +150,7 @@ def get_user_authorizations(user=None):
 
 def _get_user_authorizations(user=None):
     if not user: user = frappe.session.user
-    sql = """select concat(auth.parent,'-',auth.authorization_object,'-',auth.authorization_id),
+    sql = """select concat(auth.parent,'-',auth.authorization_object,':',auth.authorization_id),
         auth.authorization_object,auth.auth_field,auth.value_from,auth.value_to,auth.parent
         from `tabHas Role` role inner join `tabRole Authorization` auth on 
         role.role = auth.parent  where role.parent = %s and auth.auth_field is not Null order by auth.authorization_id"""
@@ -508,10 +508,8 @@ def save_check_log(check_log, user, auth_obj_recs=None, doc=None):
         recs = []
         for auth in (auths or []):
             rec = {}
-            for i in range(len(auth)):
-                rec[fieldname[i]] = auth[i]
-                if i == 0:
-                    rec[fieldname[i]] = rec[fieldname[i]].split('-', 1)[0]   # extract auth_id
+            for i in range(len(auth)):	# extract concatenated auth ID's ID 
+                rec[fieldname[i]] = auth[i].split(':')[-1] if i == 0 else auth[i]
             recs.append(rec)
         check_log['authorizations'] = recs
     auth_check_log = frappe.get_doc(check_log)
