@@ -520,4 +520,4 @@ def get_allowed_docs_for_doctype(user_permissions, doctype):
 
 def push_perm_check_log(log):
 	if frappe.flags.get('has_permission_check_logs') == None: return
-	frappe.flags.get('has_permission_check_logs').append(log)
+	frappe.flags.get('has_permission_check_logs').append(_(log))
