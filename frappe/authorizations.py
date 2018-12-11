@@ -427,7 +427,7 @@ def _auth_check(doctype=None, act='read', doc=None, user=None, auth_obj=None, ve
             check_log['reason'] = 'no authorizations record for mandatory auth objs'
             save_check_log(check_log, user, mandatory_auth_objs)
             return False
-	return True
+        return True
     else:
         auths = get_authorizations(doctype, act, user, usage='doc', auth_obj=auth_obj)
         if not auths:
