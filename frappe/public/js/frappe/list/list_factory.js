@@ -6,38 +6,38 @@ frappe.provide('frappe.views.list_view');
 window.cur_list = null;
 frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 	make (route) {
-			var me = this;
-			var doctype = route[1];
+		var me = this;
+		var doctype = route[1];
 
-			frappe.model.with_doctype(doctype, function () {
-				if (locals['DocType'][doctype].issingle) {
-					frappe.set_re_route('Form', doctype);
-				} else {
-					// List / Gantt / Kanban / etc
-					// File is a special view
-					const view_name = doctype !== 'File' ? route[2] : 'File';
-					let view_class = frappe.views[view_name + 'View'];
-					if (!view_class) view_class = frappe.views.ListView;
+		frappe.model.with_doctype(doctype, function () {
+			if (locals['DocType'][doctype].issingle) {
+				frappe.set_re_route('Form', doctype);
+			} else {
+				// List / Gantt / Kanban / etc
+				// File is a special view
+				const view_name = doctype !== 'File' ? route[2] : 'File';
+				let view_class = frappe.views[view_name + 'View'];
+				if (!view_class) view_class = frappe.views.ListView;
 
-					if (view_class && view_class.load_last_view && view_class.load_last_view()) {
-						// view can have custom routing logic
-						return;
-					}
-
-					frappe.provide('frappe.views.list_view.' + doctype);
-					const page_name = frappe.get_route_str();
-
-					if (!frappe.views.list_view[page_name]) {
-						frappe.views.list_view[page_name] = new view_class({
-							doctype: doctype,
-							parent: me.make_page(true, page_name)
-						});
-					} else {
-						frappe.container.change_to(page_name);
-					}
-					me.set_cur_list();
+				if (view_class && view_class.load_last_view && view_class.load_last_view()) {
+					// view can have custom routing logic
+					return;
 				}
-			});
+
+				frappe.provide('frappe.views.list_view.' + doctype);
+				const page_name = frappe.get_route_str();
+
+				if (!frappe.views.list_view[page_name]) {
+					frappe.views.list_view[page_name] = new view_class({
+						doctype: doctype,
+						parent: me.make_page(true, page_name)
+					});
+				} else {
+					frappe.container.change_to(page_name);
+				}
+				me.set_cur_list();
+			}
+		});
 	}
 
 	show() {
