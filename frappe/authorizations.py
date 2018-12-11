@@ -290,8 +290,8 @@ def get_doc_name(doc):
 def auth_check(doctype=None, act='read', doc=None, user=None, auth_obj=None, verbose=0):
     if not user: user = frappe.session.user
     if user=="Administrator" or frappe.flags.in_install:
-	if verbose: print("Allowing Administrator")
-	return True	
+        if verbose: print("Allowing Administrator")
+        return True	
     ptype = act
     act = rights_map.get(act) if act in rights_map.keys() else '11'
     if not doc and hasattr(doctype, 'doctype'):
