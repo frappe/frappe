@@ -51,12 +51,12 @@ frappe.route = function() {
 			frappe.view_factory[title_cased_route].show();
 		} else {
 			// show page
-			frappe.views.pageview.show(route[0]);
+			const route_name = frappe.utils.xss_sanitise(route[0]);
+			frappe.views.pageview.show(route_name);
 		}
 	} else {
-		// show page
-		const route_name = frappe.utils.xss_sanitise(route[0]);
-		frappe.views.pageview.show(route_name);
+		// Show desk
+		frappe.views.pageview.show('');
 	}
 
 
