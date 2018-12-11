@@ -289,6 +289,9 @@ def get_doc_name(doc):
 
 def auth_check(doctype=None, act='read', doc=None, user=None, auth_obj=None, verbose=0):
     if not user: user = frappe.session.user
+    if user=="Administrator" or frappe.flags.in_install:
+	if verbose: print("Allowing Administrator")
+	return True	
     ptype = act
     act = rights_map.get(act) if act in rights_map.keys() else '11'
     if not doc and hasattr(doctype, 'doctype'):
@@ -513,6 +516,7 @@ def save_check_log(check_log, user, auth_obj_recs=None, doc=None):
             recs.append(rec)
         check_log['authorizations'] = recs
     auth_check_log = frappe.get_doc(check_log)
+    auth_check_log.flags.ignore_links = True	# to improve performance
     frappe.local.rollback_observers.append(auth_check_log)
     old_name = '%s-%s' % (user, check_log.get('doc_type'))
     frappe.delete_doc('Authorization Check Log', old_name, force=1, ignore_permissions=1)
