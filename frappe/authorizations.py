@@ -332,6 +332,7 @@ def auth_check(doctype=None, act='read', doc=None, user=None, auth_obj=None, ver
 
     if not result and ptype in ("read", "write", "share", "email", "print"):
         result = false_if_not_shared()
+    if not result: print('auth_check failure, user=', user, 'act=', act, 'doctype=', doctype)
     return result
 
 def match(first, second):
