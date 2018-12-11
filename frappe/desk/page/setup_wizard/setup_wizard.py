@@ -379,10 +379,10 @@ def make_records(records, debug=False):
 
 			doc.insert(ignore_permissions=True)
 
-			exec_time_str = ""
-			if debug:
-				time_end = time()
-				exec_time_str = ": {0} sec".format(round(time_end - time_start, 2))
+			# exec_time_str = ""
+			# if debug:
+			# 	time_end = time()
+			# 	exec_time_str = ": {0} sec".format(round(time_end - time_start, 2))
 
 			# print("Inserted {0} {1}".format(doctype, doc.name) + exec_time_str)
 
@@ -412,7 +412,7 @@ def make_records(records, debug=False):
 		finally:
 			root_time_end = time()
 			total_time = round(root_time_end - root_time_start, 2)
-			print("Completion: {0} sec".format(total_time))
+			# print("Completion: {0} sec".format(total_time))
 
 def show_document_insert_error():
 	print("Document Insert Error")
