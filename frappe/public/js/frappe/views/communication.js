@@ -616,8 +616,8 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	setup_earlier_reply: function() {
-		var fields = this.dialog.fields_dict,
-			signature = frappe.boot.user.email_signature || "";
+		let fields = this.dialog.fields_dict;
+		let signature = frappe.boot.user.email_signature || "";
 
 		if(!frappe.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");
