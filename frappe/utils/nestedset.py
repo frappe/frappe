@@ -237,7 +237,7 @@ class NestedSet(Document):
 		if not self.get(self.nsm_parent_field):
 			if frappe.db.sql("""select count(*) from `tab%s` where
 				ifnull(%s, '')=''""" % (self.doctype, self.nsm_parent_field))[0][0] > 1:
-				frappe.throw(_("""Multiple root nodes not allowed."""), NestedSetMultipleRootsError)
+				frappe.throw(_("""Multiple root nodes not allowed: {0} {1}""".format(self.doctype, self.nsm_parent_field)), NestedSetMultipleRootsError)
 
 	def validate_ledger(self, group_identifier="is_group"):
 		if hasattr(self, group_identifier) and not bool(self.get(group_identifier)):
