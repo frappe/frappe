@@ -17,8 +17,8 @@ test_records = frappe.get_test_records('Blog Post')
 class TestAuthorizations(unittest.TestCase):
     def setUp(self):
         frappe.set_user('Administrator')
-        test_users = [{'doctype': 'User', 'first_name': 'test-user1', 'email': 'test11@b.c', 'gender':'Male'},
-                      {'doctype': 'User', 'first_name': 'test-user2', 'email': 'test12@b.c', 'gender':'Female'}]
+        test_users = [{'doctype': 'User', 'first_name': 'test-user1', 'email': 'test11@b.c', 'send_welcome_email': 0,'gender':'Male'},
+                      {'doctype': 'User', 'first_name': 'test-user2', 'email': 'test12@b.c', 'send_welcome_email': 0,'gender':'Female'}]
         for user in test_users:
             try:
                 frappe.delete_doc('User', user.get('email'), force=1, ignore_permissions=1)
