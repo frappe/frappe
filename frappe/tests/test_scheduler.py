@@ -53,6 +53,9 @@ class TestScheduler(TestCase):
 			"monthly", "monthly_long"])
 		frappe.db.set_global('enabled_scheduler_events', val)
 
+		# TEMP for debug: this test fails randomly
+		print('Setting enabled_scheduler_events {0}'.format(val))
+
 		# maintain last_event and next_event on different days
 		next_event = now_datetime().replace(hour=0, minute=0, second=0, microsecond=0)
 		last_event = next_event - relativedelta(hours=2)
