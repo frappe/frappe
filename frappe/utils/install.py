@@ -82,6 +82,14 @@ def install_basic_docs():
 			frappe.get_doc(d).insert()
 		except frappe.NameError:
 			pass
+	authorization = [{'authorization_id':1, 'authorization_object': 's_doctype', 'auth_field': 'act', 'value_from': '*'},
+                         {'authorization_id':1, 'authorization_object': 's_doctype', 'auth_field': 's_doctype', 'value_from': '*'}]
+	try:
+		role = frappe.get_doc('Role','System Manager')
+		role.set('authorization', authorization)
+		role.save(ignore_permissions=1)
+	except:
+		pass
 
 def get_admin_password():
 	def ask_admin_password():
