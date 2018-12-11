@@ -524,10 +524,11 @@ def save_check_log(check_log, user, auth_obj_recs=None, doc=None):
     
 def auth_check_doc_fields(doc, user=None):
     if not user: user = frappe.session.user
+    if user=="Administrator" or frappe.flags.in_install:        
+        return True	
     auth_objs = get_docfield_auth_objs(doc.doctype)
     prev_auth_obj = ''
     result = True
-    print('auth_check_doc_fields:', doc.doctype, doc.name)
     auth_check_result = True
     for (auth_obj, fieldname) in auth_objs:
         if auth_obj != prev_auth_obj:
