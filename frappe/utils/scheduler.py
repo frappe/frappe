@@ -218,7 +218,9 @@ def get_enabled_scheduler_events():
 		return frappe.flags.enabled_events
 
 	enabled_events = frappe.db.get_global("enabled_scheduler_events")
-	print('found enabled_scheduler_events {0}'.format(enabled_events))
+	if frappe.flags.in_test:
+		# TEMP for debug: this test fails randomly
+		print('found enabled_scheduler_events {0}'.format(enabled_events))
 
 	if enabled_events:
 		if isinstance(enabled_events, string_types):
