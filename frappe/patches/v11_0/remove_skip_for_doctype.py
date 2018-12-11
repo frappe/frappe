@@ -42,6 +42,10 @@ def execute():
 			# only specific doctypes are selected
 			# split this into multiple records and delete
 			linked_doctypes = get_linked_doctypes(user_permission.allow, True).keys()
+
+			# append the doctype for which we have build the user permission
+			linked_doctypes += [user_permission.allow]
+
 			applicable_for_doctypes = list(set(linked_doctypes) - set(skip_for_doctype))
 
 			user_permissions_to_delete.append(user_permission.name)
