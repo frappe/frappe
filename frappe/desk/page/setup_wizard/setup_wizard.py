@@ -352,9 +352,9 @@ def enable_twofactor_all_roles():
 def make_records(records, debug=False):
 	from frappe import _dict
 	from frappe.modules import scrub
-	from time import time
 
-	root_time_start = time()
+	if debug:
+		print("make_records: in DEBUG mode")
 
 	# LOG every success and failure
 	for record in records:
@@ -374,17 +374,7 @@ def make_records(records, debug=False):
 			doc.flags.ignore_mandatory = True
 
 		try:
-			if debug:
-				time_start = time()
-
 			doc.insert(ignore_permissions=True)
-
-			# exec_time_str = ""
-			# if debug:
-			# 	time_end = time()
-			# 	exec_time_str = ": {0} sec".format(round(time_end - time_start, 2))
-
-			# print("Inserted {0} {1}".format(doctype, doc.name) + exec_time_str)
 
 		except frappe.DuplicateEntryError as e:
 			# print("Failed to insert duplicate {0} {1}".format(doctype, doc.name))
@@ -397,8 +387,6 @@ def make_records(records, debug=False):
 				raise
 
 		except Exception as e:
-			# print("Failed to insert {0} {1}".format(doctype, doc.name))
-
 			exception = record.get('__exception')
 			if exception:
 				config = _dict(exception)
@@ -409,10 +397,6 @@ def make_records(records, debug=False):
 			else:
 				show_document_insert_error()
 
-		finally:
-			root_time_end = time()
-			total_time = round(root_time_end - root_time_start, 2)
-			# print("Completion: {0} sec".format(total_time))
 
 def show_document_insert_error():
 	print("Document Insert Error")
