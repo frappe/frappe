@@ -432,7 +432,7 @@ def _auth_check(doctype=None, act='read', doc=None, user=None, auth_obj=None, ve
     else:
         auths = get_authorizations(doctype, act, user, usage='doc', auth_obj=auth_obj)
         if not auths:
-	    auth_obj_recs = list(auth_objs)
+            auth_obj_recs = list(auth_objs)
             auth_obj_recs.append(['s_doctype', 's_doctype'])		
             check_log['reason'] = 'no valid authorizations for doc'
             save_check_log(check_log, user, auth_obj_recs, doc)
