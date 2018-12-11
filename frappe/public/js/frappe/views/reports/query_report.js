@@ -937,6 +937,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.$status = $(`<div class="form-message text-muted small"></div>`)
 			.hide().insertAfter(page_form);
 
+		this.show_tip();
 		this.$chart = $('<div class="chart-wrapper">').hide().appendTo(this.page.main);
 		this.$report = $('<div class="report-wrapper">').appendTo(this.page.main);
 		this.$message = $(this.message_div('')).hide().appendTo(this.page.main);
@@ -948,6 +949,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	hide_status() {
 		this.$status.hide();
+	}
+
+	show_tip() {
+		const part1 = __('For comparative filters, start with ">" or "<" or "=", e.g. >5 or =324');
+		const part2 = __('For ranges use ":", e.g. "5:10" (to filter values between 5 & 10');
+		this.page.footer.removeClass('hide').addClass('text-muted text-center').html(`
+			<p>${part1}</p>
+			<p>${part2}</p>
+		`);
 	}
 
 	message_div(message) {
