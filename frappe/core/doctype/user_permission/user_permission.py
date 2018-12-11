@@ -16,6 +16,8 @@ class UserPermission(Document):
 			'allow': self.allow,
 			'for_value': self.for_value,
 			'user': self.user,
+			'applicable_for': self.applicable_for,
+			'apply_to_all_doctypes': self.apply_to_all_doctypes,
 			'name': ['!=', self.name]
 		}, limit=1)
 		if duplicate_exists:
