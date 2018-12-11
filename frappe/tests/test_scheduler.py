@@ -51,10 +51,11 @@ class TestScheduler(TestCase):
 	def test_enabled_events_day_change(self):
 		val = json.dumps(["daily", "daily_long", "weekly", "weekly_long",
 			"monthly", "monthly_long"])
-		frappe.db.set_global('enabled_scheduler_events', val)
 
 		# TEMP for debug: this test fails randomly
 		print('Setting enabled_scheduler_events {0}'.format(val))
+
+		frappe.db.set_global('enabled_scheduler_events', val)
 
 		# maintain last_event and next_event on different days
 		next_event = now_datetime().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -64,7 +65,6 @@ class TestScheduler(TestCase):
 		enqueue_applicable_events(frappe.local.site, next_event, last_event)
 		self.assertTrue("all" in frappe.flags.ran_schedulers)
 		self.assertFalse("hourly" in frappe.flags.ran_schedulers)
-
 
 	def test_restrict_scheduler_events(self):
 		frappe.set_user("Administrator")
