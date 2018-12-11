@@ -41,7 +41,9 @@ frappe.route = function() {
 	if (route === false) {
 		return;
 	}
+
 	frappe.route_history.push(route);
+
 	if(route[0] && route[1] && frappe.views[route[0] + "Factory"]) {
 		// has a view generator, generate!
 		if(!frappe.view_factory[route[0]]) {

@@ -442,17 +442,6 @@ frappe.ui.Page = Class.extend({
 		}
 		return link;
 	},
-	add_sidebar_check: function(label, id, checked, action) {
-
-		var parent = this.sidebar.find(".sidebar-menu.list-filters");
-		var check = $("<input class='check' type='checkbox' id='"+ id +"'style='margin-left : 5px;'>").on("click", action).prop('checked', checked);
-		var label = $("<label></label>").html(label);
-		var container = $("<li class='checkbox'></li>");
-		check.appendTo(container);
-		label.appendTo(container);
-		container.appendTo(parent);
-		//return check;
-	},
 
 	//---//
 
@@ -495,12 +484,8 @@ frappe.ui.Page = Class.extend({
 		//
 	},
 
-	add_button: function(label, action, icon, is_title) {
-		var parent = this.sidebar.find(".sidebar-menu.list-filters");
-		var btn = $("<button type='button' class='btn btn-secondary btn-default btn-sm hidden-xs'></button>").on("click",action).html(label);
-		var li = $("<li></li>")
-		btn.appendTo(li);
-		li.appendTo(parent);
+	add_button: function(label, click, icon, is_title) {
+		//
 	},
 
 	add_dropdown_button: function(parent, label, click, icon) {
