@@ -22,7 +22,7 @@ test_dependencies = ["User", "Contact", "Salutation"]
 class TestPermissions(unittest.TestCase):
 	def setUp(self):
 		frappe.clear_cache(doctype="Blog Post")
-
+                frappe.set_user("Administrator")		
 		if not frappe.flags.permission_user_setup_done:
 			user = frappe.get_doc("User", "test1@example.com")
 			user.add_roles("Website Manager")
