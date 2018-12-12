@@ -81,7 +81,7 @@ class DatabaseQuery(object):
 
 		# for contextual user permission check
 		# to determine which user permission is applicable on link field of specific doctype
-		self.reference_doctype = reference_doctype or doctype
+		self.reference_doctype = reference_doctype or self.doctype
 
 		if user_settings:
 			self.user_settings = json.loads(user_settings)
