@@ -952,12 +952,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	show_tip() {
-		const part1 = __('For comparative filters, start with ">" or "<" or "=", e.g. >5 or =324');
-		const part2 = __('For ranges use ":", e.g. "5:10" (to filter values between 5 & 10');
-		this.page.footer.removeClass('hide').addClass('text-muted text-center').html(`
-			<p>${part1}</p>
-			<p>${part2}</p>
-		`);
+		const message = __('For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).');
+		this.page.footer.removeClass('hide').addClass('text-muted text-center').html(`<p>${message}</p>`);
 	}
 
 	message_div(message) {
