@@ -27,7 +27,6 @@ class DatabaseQuery(object):
 		self.fields = None
 		self.user = user or frappe.session.user
 		self.ignore_ifnull = False
-		self.return_empty = False
 		self.flags = frappe._dict()
 
 	def execute(self, query=None, fields=None, filters=None, or_filters=None,
@@ -82,7 +81,7 @@ class DatabaseQuery(object):
 
 		# for contextual user permission check
 		# to determine which user permission is applicable on link field of specific doctype
-		self.reference_doctype = reference_doctype
+		self.reference_doctype = reference_doctype or self.doctype
 
 		if user_settings:
 			self.user_settings = json.loads(user_settings)
@@ -104,9 +103,6 @@ class DatabaseQuery(object):
 	def build_and_run(self):
 		args = self.prepare_args()
 		args.limit = self.add_limit()
-
-		if self.return_empty:
-			return () if self.as_list else []
 
 		if args.conditions:
 			args.conditions = "where " + args.conditions
@@ -209,10 +205,10 @@ class DatabaseQuery(object):
 			frappe.throw(_('Use of sub-query or function is restricted'), frappe.DataError)
 
 		def _is_query(field):
-			if re.compile("^(select|delete|update|drop|create)\s").match(field):
+			if re.compile(r"^(select|delete|update|drop|create)\s").match(field):
 				_raise_exception()
 
-			elif re.compile("\s*[0-9a-zA-z]*\s*( from | group by | order by | where | join )").match(field):
+			elif re.compile(r"\s*[0-9a-zA-z]*\s*( from | group by | order by | where | join )").match(field):
 				_raise_exception()
 
 		for field in self.fields:
@@ -460,7 +456,7 @@ class DatabaseQuery(object):
 		if (not meta.istable and
 			not role_permissions.get("read") and
 			not self.flags.ignore_permissions and
-			not has_any_user_permission_for_doctype(self.doctype, self.user)):
+			not has_any_user_permission_for_doctype(self.doctype, self.user, self.reference_doctype)):
 			only_if_shared = True
 			if not self.shared:
 				frappe.throw(_("No permission to read {0}").format(self.doctype), frappe.PermissionError)
@@ -546,22 +542,14 @@ class DatabaseQuery(object):
 					elif permission.get('applicable_for') == self.doctype:
 						docs.append(permission.get('doc'))
 
-				if docs:
-					condition += "`tab{doctype}`.`{fieldname}` in ({values})".format(
-						doctype=self.doctype,
-						fieldname=df.get('fieldname'),
-						values=", ".join(
-							[('"' + frappe.db.escape(doc, percent=False) + '"') for doc in docs])
-						)
+				condition += "`tab{doctype}`.`{fieldname}` in ({values})".format(
+					doctype=self.doctype,
+					fieldname=df.get('fieldname'),
+					values=", ".join(
+						[('"' + frappe.db.escape(doc, percent=False) + '"') for doc in docs])
+					)
 
-					match_conditions.append("({condition})".format(condition=condition))
-
-				else:
-					# this condition states that even though there are user permissions,
-					# no docs are allowed under the reference doctype passed.
-					# hence the response should be empty.
-					self.return_empty = True
-
+				match_conditions.append("({condition})".format(condition=condition))
 
 		if match_conditions:
 			self.match_conditions.append(" and ".join(match_conditions))
@@ -723,9 +711,15 @@ def is_parent_only_filter(doctype, filters):
 
 	return only_parent_doctype
 
-def has_any_user_permission_for_doctype(doctype, user):
+def has_any_user_permission_for_doctype(doctype, user, applicable_for):
 	user_permissions = frappe.permissions.get_user_permissions(user=user)
-	return	user_permissions and user_permissions.get(doctype)
+	doctype_user_permissions = user_permissions.get(doctype)
+
+	for permission in doctype_user_permissions:
+		if not permission.applicable_for or permission.applicable_for == applicable_for:
+			return True
+
+	return False
 
 def get_between_date_filter(value, df=None):
 	'''
