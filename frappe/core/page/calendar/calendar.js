@@ -13,60 +13,97 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 			const me = this;
 			window.x = page
 			window.this = this
-			this.$nav = page.sidebar.html(`<ul class="module-sidebar-nav overlay-sidebar nav nav-pills nav-stacked"></ul>`);
+			this.$nav = page.sidebar.html(`<ul class="module-sidebar-nav overlay-sidebar nav nav-pills nav-stacked"></ul><div></div>`);
 			this.$sidebar_list = page.sidebar.find('ul');
 			// list of all standrd calendars
-			$(`<li class="text-muted" style="padding-bottom: 10px">
-			Standard Calendars:
-			</li>`).appendTo(this.$sidebar_list);
+			var head_li = $(`<li class="text-muted checkbox">`).appendTo(this.$sidebar_list);
+			var check = $('<input type="checkbox">').appendTo(head_li).on("click",function(){
+				if($(this).prop("checked")){
+					$('.checkbox > input').each(function() {
+						$(this).prop("checked", true);
+					});
+					me.$cal.fullCalendar("refetchEvents");
+				}
+				else{
+					$('.checkbox > input').each(function() {
+						$(this).prop("checked", false);
+					});
+					me.$cal.fullCalendar("refetchEvents");
+				}
+			});
+			var label = $('<label>').html("Standard Calendars").appendTo(head_li);
 
+			//window.x = this.$more = page.sidebar.find("div");
+			
+			/*select all button
 			var li=$("<li>").appendTo(this.$sidebar_list);
 			var div=$("<div class ='row'>").appendTo(li)
-
-			//select all button
+			
 			$("<div class='col-sm-6'><button class='btn btn-default btn-xs' >Select All</button></div>").on("click",function(){
 				$('.checkbox > input').each(function() {
 					$(this).prop("checked", true);
 					me.$cal.fullCalendar("refetchEvents");
 				});
 			}).appendTo(div);
-
+			
 			//Unselct all btn
 			$("<div class='col-sm-6'><button class='btn btn-default btn-xs' >Unselect All</button></div>").on("click",function(){
 				$('.checkbox > input').each(function() {
 					$(this).prop("checked", false);
 					me.$cal.fullCalendar("refetchEvents");
 				});
-			}).appendTo(div)
-
+			}).appendTo(div)*/
+			
 			//fetching and creating checkboxes
 			$.each(frappe.boot.calendars, function(i, doctype) {
-				if(frappe.model.can_read(doctype)) {
-					var li = $(`<li class="checkbox" style="padding-top: 0px">`);
-					if(doctype == "Event"){
-						
-						var check = $('<input type="checkbox" checked value="'+doctype+'">').appendTo(li).on("click",function(){
-							me.$cal.fullCalendar("refetchEvents")
-						});
-					}
-					else{
-					var check = $('<input type="checkbox" value="'+doctype+'">').appendTo(li).on("click",function(){
-						me.$cal.fullCalendar("refetchEvents")
+				var li = $(`<li class="checkbox" style="padding-top: 0px">`);
+				if(doctype == "Event"){
 					
+					var check = $('<input type="checkbox" class="cal" checked value="'+doctype+'">').appendTo(li).on("click",function(){
+						me.$cal.fullCalendar("refetchEvents")
+					});
+				}
+				else{
+					var check = $('<input type="checkbox" class="cal" value="'+doctype+'">').appendTo(li).on("click",function(){
+						me.$cal.fullCalendar("refetchEvents")
+						
 					});}
 					var label = $('<label>').html(doctype).appendTo(li);
 					li.appendTo(me.$sidebar_list);
-					
-				}
+				});
+
+				//dropdown for more calendars
+				var caret=$(
+					"<span class='text-muted cursor-pointer'>"+
+						"More Calendars<span class='caret'></span>"+
+					"</span>").appendTo(page.sidebar.find('div')).on("click",function(){
+					span = $(this)
+					return frappe.call({
+						method: "frappe.core.page.calendar.calendar.get_all_calendars",
+						type: "GET"
+					}).then(r => {
+						if($(".checkbox.custom").length == 0){
+							for (doctype in r["message"]){
+								if ($.inArray(r["message"][doctype],frappe.boot.calendars) == -1){
+									var li = $(`<li class="checkbox custom" style="padding-top: 0px">`);
+									var check = $('<input type="checkbox" class="cal" value="'+r["message"][doctype]+'">').appendTo(li).on("click",function(){
+										me.$cal.fullCalendar("refetchEvents")
+									})
+									var label = $('<label>').html(r["message"][doctype]).appendTo(li);
+									li.appendTo(me.$sidebar_list);
+								}
+							}
+							span.html("Less Calendars<span class='caret caret-up'></span>");
+						}
+						else{
+							$(".checkbox.custom").remove()
+							span.html("More Calendars<span class='caret '></span>")
+							me.$cal.fullCalendar("refetchEvents")
+						}
+				})
 			});
-
-			// list of custom calendar covered soon
-
-			$(`<li class="text-muted">
-				Custom Calendars:
-				</li>`).appendTo(this.$sidebar_list);
-
-		var calendar_opts = {
+				
+				var calendar_opts = {
 
 			//header region which contains monlty,weekly,and daily views 
 			header: {
@@ -85,11 +122,11 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 			events: function(start, end, timezone, callback) {
 				start_param = get_system_datetime(start);
 				end_param = get_system_datetime(end)
-
-				var docinfo = '';
-				$('.module-sidebar-nav input:checked').each(function() {
-					docinfo += $(this).attr('value')+',';
+				var docinfo = [];
+				$('.cal:checked').each(function() {
+					docinfo.push($(this).attr('value'));
 				});
+
 				//methd for fetching the events.
 				return frappe.call({
 					method: "frappe.core.page.calendar.calendar.get_master_calendar_events",
@@ -102,13 +139,19 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 				}).then(r => {
 					var events = [];
 					for (event in r["message"]){
+						if ($('.cal:checked').length == 1){
+							var heading = r["message"][event].title
+						}
+						else{
+							var heading = r["message"][event].doctype+": "+r["message"][event].title
+						}
 						//after fetching pushing and maping events on calendar
 						if($("input[value='"+r["message"][event].doctype+"']").prop("checked")){
 							events.push({
 								start: r["message"][event].start,
 								end: r["message"][event].end,
 								id: r["message"][event].id,
-								title: r["message"][event].title,
+								title: heading,
 								doctype: r["message"][event].doctype,
 								color: r["message"][event].color, 
 								textColor: r["message"][event].textColor,
@@ -225,10 +268,10 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 			
 			},
 			eventDrop: function( event, delta, revertFunc, jsEvent, ui, view ) {
-				update_event(event)
+				update_event(event,revertFunc)
 			 },
 			 eventResize: function(event, delta, revertFunc) {
-				update_event(event)
+				update_event(event,revertFunc)
 			},
 			
 		}
@@ -283,7 +326,10 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 				'name': event.id
 			}
 		}).then(r => {
-			console.log(r);
+			if(r["message"] == 0){
+				frappe.msgprint("Unable to update the Event")
+				revertFunc();
+			}
 		});
 	}
 	
