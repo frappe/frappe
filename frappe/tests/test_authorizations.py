@@ -91,6 +91,7 @@ class TestAuthorizations(unittest.TestCase):
         frappe.set_user('test11@b.c')
 
         self.assertTrue(post.has_permission("read"))
+        print('94 post,' post.as_dict())	
         self.assertTrue(post1.has_permission("read"))
         self.assertFalse(post.has_permission("create"))
         self.assertTrue(post1.has_permission("create"))
@@ -134,6 +135,7 @@ class TestAuthorizations(unittest.TestCase):
         user.add_roles('test-role-s_doctype')
 
         frappe.set_user('test11@b.c')
+        print('138 post=', post.as_dict())	
         self.assertTrue(post.has_permission("read"))
 
         frappe.set_user('test12@b.c')        
@@ -187,7 +189,8 @@ class TestAuthorizations(unittest.TestCase):
 
         frappe.db.sql('delete from tabToDo where owner =%(user)s  or assigned_by=%(user)s', {'user': 'test11@b.c'})
         todo1.insert(ignore_permissions=1)
-        todo2.insert(ignore_permissions=1)        
+        todo2.insert(ignore_permissions=1)
+        print('193 count=', len(frappe.get_list('ToDo')))	
         self.assertTrue(len(frappe.get_list('ToDo')) == 2)
         frappe.db.sql('delete from tabToDo where owner =%(user)s  or assigned_by=%(user)s', {'user': 'test11@b.c'})
 
@@ -229,6 +232,7 @@ class TestAuthorizations(unittest.TestCase):
 
         frappe.set_user('test11@b.c')
         self.assertTrue(post1.has_permission("read"))
+        print('235, post2=' post2.as_dict())	
         self.assertFalse(post2.has_permission("read"))
 
         self.assertTrue(len(frappe.get_list('Blog Post')) == 1)
