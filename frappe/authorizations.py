@@ -287,7 +287,7 @@ def get_doc_name(doc):
 	if not doc: return None
 	return doc if isinstance(doc, string_types) else doc.name
 
-def auth_check(doctype=None, act='read', doc=None, user=None, auth_obj=None, verbose=0):
+def auth_check(doctype=None, act='read', doc=None, user=None, auth_obj=None, verbose=1):
     if not user: user = frappe.session.user
     if user=="Administrator" or frappe.flags.in_install:
         if verbose: print("Allowing Administrator")
