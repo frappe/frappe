@@ -11,8 +11,8 @@ from frappe.permissions import add_user_permission, clear_user_permissions_for_d
 test_dependencies = ["User"]
 
 class TestReportview(unittest.TestCase):
-        def setUp(self):
-            frappe.set_user("Administrator")
+	def setUp(self):
+		frappe.set_user("Administrator")
 
 	def test_basic(self):
 		self.assertTrue({"name":"DocType"} in DatabaseQuery("DocType").execute(limit_page_length=None))
