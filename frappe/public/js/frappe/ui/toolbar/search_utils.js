@@ -234,7 +234,7 @@ frappe.search.utils = {
 				value: __("Open {0}", [__(target)]),
 				index: me.fuzzy_search(keywords, 'Calendar'),
 				match: target,
-				route: ['List', 'Event', target],
+				route: ['calendar'],
 			});
 		}
 		target = 'Hub';

@@ -29,7 +29,6 @@ frappe.views.ListSidebar = class ListSidebar {
 		this.setup_assigned_to_me();
 		this.setup_views();
 		this.setup_kanban_boards();
-		this.setup_calendar_view();
 		this.setup_email_inbox();
 
 		let limits = frappe.boot.limits;
@@ -41,12 +40,27 @@ frappe.views.ListSidebar = class ListSidebar {
 
 	setup_views() {
 		var show_list_link = false;
+		var cur_doc=this.doctype
+		var check = false
+		frappe.call({
+			method: "frappe.core.page.calendar.calendar.get_all_calendars",
+			type: "GET"
+		}).then(r => {
+			$.each(r["message"], function( index, value ) {
+				if(cur_doc == value){
+					check = true;
+					break;
+				}
+			  });
+			if (check) {
+				this.sidebar.find('.list-link[data-view="Calendar"]').removeClass("hide");
+				this.sidebar.find('.list-link[data-view="Gantt"]').removeClass('hide');
+				show_list_link = true;
+				this.setup_calendar_view();
+			}
+		})
 
-		if (frappe.views.calendar[this.doctype]) {
-			this.sidebar.find('.list-link[data-view="Calendar"]').removeClass("hide");
-			this.sidebar.find('.list-link[data-view="Gantt"]').removeClass('hide');
-			show_list_link = true;
-		}
+
 		//show link for kanban view
 		this.sidebar.find('.list-link[data-view="Kanban"]').removeClass('hide');
 		if (this.doctype === "Communication" && frappe.boot.email_accounts.length) {
@@ -157,16 +171,16 @@ frappe.views.ListSidebar = class ListSidebar {
 			let default_link = '';
 			if (frappe.views.calendar[this.doctype]) {
 				// has standard calendar view
-				default_link = `<li><a href="#List/${doctype}/Calendar/Default">
-					${ __("Default") }</a></li>`;
+				default_link = `<li><a href="#calendar">
+					${ __("Calendar") }</a></li>`;
 			}
-			const other_links = calendar_views.map(
+		/*	const other_links = calendar_views.map(
 				calendar_view => `<li><a href="#List/${doctype}/Calendar/${calendar_view.name}">
 					${ __(calendar_view.name) }</a>
 				</li>`
-			).join('');
+			).join('');*/
 
-			const dropdown_html = `
+			/*const dropdown_html = `
 				<div class="btn-group">
 					<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						${ __("Calendar") } <span class="caret"></span>
@@ -176,9 +190,14 @@ frappe.views.ListSidebar = class ListSidebar {
 						${other_links}
 					</ul>
 				</div>
-			`;
+			`;*/
+
+			const html =`<div class="btn-group">
+							${default_link}
+						</div>`;
+
 			$link_calendar.removeClass('hide');
-			$link_calendar.html(dropdown_html);
+			$link_calendar.html(html);
 		});
 	}
 
