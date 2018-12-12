@@ -151,17 +151,16 @@ $.extend(frappe.perm, {
 			let rules = {};
 			let fields_to_check = frappe.meta.get_fields_to_check_permissions(doctype);
 			$.each(fields_to_check, (i, df) => {
-				if (user_permissions[df.options]) {
-					const user_permissions_for_doctype = user_permissions[df.options];
+				const user_permissions_for_doctype = user_permissions[df.options];
+				// check if there are any user permission applicable for parent doctype
+				const has_user_permission = user_permissions_for_doctype.some(perm => !perm.applicable_for || perm.applicable_for === doctype);
+				if (user_permissions_for_doctype && has_user_permission) {
 					rules[df.label] = [];
 					user_permissions_for_doctype.map(permission => {
 						if (!permission.applicable_for || permission.applicable_for === doctype) {
 							rules[df.label].push(permission.doc);
 						}
 					});
-					if (!rules[df.label].length) {
-						rules[df.label].push(__('Not allowed'));
-					}
 				}
 			});
 			if (!$.isEmptyObject(rules)) {

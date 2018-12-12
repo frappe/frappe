@@ -81,7 +81,7 @@ class DatabaseQuery(object):
 
 		# for contextual user permission check
 		# to determine which user permission is applicable on link field of specific doctype
-		self.reference_doctype = reference_doctype or self.doctype
+		self.reference_doctype = reference_doctype or doctype
 
 		if user_settings:
 			self.user_settings = json.loads(user_settings)
@@ -542,14 +542,15 @@ class DatabaseQuery(object):
 					elif permission.get('applicable_for') == self.doctype:
 						docs.append(permission.get('doc'))
 
-				condition += "`tab{doctype}`.`{fieldname}` in ({values})".format(
-					doctype=self.doctype,
-					fieldname=df.get('fieldname'),
-					values=", ".join(
-						[('"' + frappe.db.escape(doc, percent=False) + '"') for doc in docs])
-					)
+				if docs:
+					condition += "`tab{doctype}`.`{fieldname}` in ({values})".format(
+						doctype=self.doctype,
+						fieldname=df.get('fieldname'),
+						values=", ".join(
+							[('"' + frappe.db.escape(doc, percent=False) + '"') for doc in docs])
+						)
 
-				match_conditions.append("({condition})".format(condition=condition))
+					match_conditions.append("({condition})".format(condition=condition))
 
 		if match_conditions:
 			self.match_conditions.append(" and ".join(match_conditions))
