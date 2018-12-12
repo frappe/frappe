@@ -28,6 +28,7 @@ class DatabaseQuery(object):
 		self.user = user or frappe.session.user
 		self.ignore_ifnull = False
 		self.flags = frappe._dict()
+		self.reference_doctype = None
 
 	def execute(self, query=None, fields=None, filters=None, or_filters=None,
 		docstatus=None, group_by=None, order_by=None, limit_start=False,
