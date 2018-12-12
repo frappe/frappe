@@ -125,7 +125,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 
 				var html =
 					`<h5>${task.name}</h5>
-					<p>${task._start.format('MMM D')} - ${task._end.format('MMM D')}</p>`;
+					<p>${moment(task._start).format('MMM D')} - ${moment(task._end).format('MMM D')}</p>`;
 
 				// custom html in doctype settings
 				var custom = me.settings.gantt_custom_popup_html;
@@ -207,3 +207,4 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		];
 	}
 };
+

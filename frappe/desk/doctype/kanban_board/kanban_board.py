@@ -137,7 +137,8 @@ def quick_kanban_board(doctype, board_name, field_name, project=None):
 			'label': 'Kanban Column',
 			'fieldname': 'kanban_column',
 			'fieldtype': 'Select',
-			'hidden': 1
+			'hidden': 1,
+			'owner': 'Administrator'
 		})
 
 	meta = frappe.get_meta(doctype)
