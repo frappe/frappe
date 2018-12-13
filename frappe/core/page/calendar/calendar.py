@@ -40,20 +40,20 @@ def get_master_calendar_events(doctypeinfo, start, end):
 				frappe.throw("Something  when wrong")
 
 		for event in events:
-				color = "#D2D1FB"
+			color = "#D2D1FB"
 
-				if field_map.color in event:
-					color = event[field_map.color] if event[field_map.color] else "#D2D1FB"
+			if field_map.color in event:
+				color = event[field_map.color] if event[field_map.color] else "#D2D1FB"
 
-				master_events.append({'start': str(event[field_map.start]),
-										'end': str(event[field_map.end]),
-										"title" : str(event[field_map.title]),
-										"id" : str(event['name']),
-										"description": str(event[field_map.description]),
-										"color": str(color),
-										"doctype" : str(info),
-										"textColor": "#4D4DA8"
-									})
+			master_events.append({'start': str(event[field_map.start]),
+									'end': str(event[field_map.end]),
+									"title" : str(event[field_map.title]),
+									"id" : str(event['name']),
+									"description": str(event[field_map.description]),
+									"color": str(color),
+									"doctype" : str(info),
+									"textColor": "#4D4DA8"
+								})
 
 	return master_events
 
