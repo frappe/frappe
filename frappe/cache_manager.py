@@ -17,6 +17,10 @@ def clear_user_cache(user=None):
 		"defaults", "user_permissions", "home_page", "linked_with",
 		"desktop_icons", 'portal_menu_items')
 
+	# this will automatically reload the global cache
+	# so it is important to clear this first
+	clear_notifications(user)
+
 	if user:
 		for name in groups:
 			cache.hdel(name, user)
@@ -27,8 +31,6 @@ def clear_user_cache(user=None):
 			cache.delete_key(name)
 		clear_defaults_cache()
 		clear_global_cache()
-
-	clear_notifications(user)
 
 def clear_global_cache():
 	from frappe.website.render import clear_cache as clear_website_cache
