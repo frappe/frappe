@@ -185,30 +185,9 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 				//removing popover if present
 				
 				$(".popover.fade.bottom.in").remove();
-
 				var t = $(jsEvent.target)
-				// creating time html
-				if(event.allDay){
-					var timeHtml = "All Day"
-				}
-				else if(event.start.isSame(event.end, 'date', 'month', 'year')) {
-					var timeHtml = event.start.format('LT')+" to "+event.end.format('LT')
-				}
-				else if(event.start.isSame(event.end, 'month', 'year')){
-					var timeHtml = event.start.format("MMMM, ") + event.start.format('D')+" to "+ event.end.format('D')
-				}
-				else {
-					var timeHtml = event.start.format('Do MMMM')+" to "+ event.end.format('Do MMMM')
-				}
 
-				timing = "<div class='mt-5'>" +
-							"<div class='text-muted col-sm-2' style='padding-right: 0; margin-top: 6px;'>"+
-								"<i class='fa fa-clock-o' aria-hidden='true'></i>"+
-							"</div> "+
-							"<div class='col-sm-9' style='padding-left: 0; margin-top: 5px;'>" + 
-								timeHtml + 
-							"</div>"+
-						"</div>"
+				timing = get_timeHtml(event)
 
 				var descr = event.description
 				description = "<div class='mt-5'>"+
@@ -396,6 +375,33 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 			btn_group.find(".btn").removeClass("active");
 			$(this).addClass("active");
 		});
+	}
+
+	function get_timeHtml(event){
+		// creating time html
+		if(event.allDay){
+			var timeHtml = "All Day"
+		}
+		else if(event.start.isSame(event.end, 'date', 'month', 'year')) {
+			var timeHtml = event.start.format('LT')+" to "+event.end.format('LT')
+		}
+		else if(event.start.isSame(event.end, 'month', 'year')){
+			var timeHtml = event.start.format("MMMM, ") + event.start.format('D')+" to "+ event.end.format('D')
+		}
+		else {
+			var timeHtml = event.start.format('Do MMMM')+" to "+ event.end.format('Do MMMM')
+		}
+
+		timing = "<div class='mt-5'>" +
+					"<div class='text-muted col-sm-2' style='padding-right: 0; margin-top: 6px;'>"+
+						"<i class='fa fa-clock-o' aria-hidden='true'></i>"+
+					"</div> "+
+					"<div class='col-sm-9' style='padding-left: 0; margin-top: 5px;'>" + 
+						timeHtml + 
+					"</div>"+
+				"</div>"
+
+		return timing;
 	}
 
 }
