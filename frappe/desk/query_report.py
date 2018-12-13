@@ -12,10 +12,11 @@ from frappe.utils import flt, cint, get_html_format, cstr, get_url_to_form
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
-from frappe.utils.csvutils import read_csv_content_from_attached_file
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
 from datetime import timedelta
+from frappe.utils.file_manager import get_file
+from frappe.utils import gzip_decompress
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
@@ -102,7 +103,9 @@ def background_enqueue_run(report_name, filters=None, user=None):
 		frappe.get_doc({
 			"doctype": "Prepared Report",
 			"report_name": report_name,
-			"filters": json.dumps(filters),
+			# This looks like an insanity but, without this it'd be very hard to find Prepared Reports matching given condition
+			# We're ensuring that spacing is consistent. e.g. JS seems to put no spaces after ":", Python on the other hand does.
+			"filters": json.dumps(json.loads(filters)),
 			"ref_report_doctype": report_name,
 			"report_type": report.report_type,
 			"query": report.query,
@@ -111,6 +114,7 @@ def background_enqueue_run(report_name, filters=None, user=None):
 	track_instance.insert(ignore_permissions=True)
 	frappe.db.commit()
 	return {
+		"name": track_instance.name,
 		"redirect_url": get_url_to_form("Prepared Report", track_instance.name)
 	}
 
@@ -167,9 +171,10 @@ def run(report_name, filters=None, user=None):
 				filters = json.loads(filters)
 
 			dn = filters.get("prepared_report_name")
+			filters.pop("prepared_report_name", None)
 		else:
 			dn = ""
-		result = get_prepared_report_result(report, filters, dn)
+		result = get_prepared_report_result(report, filters, dn, user)
 	else:
 		result = generate_report_result(report, filters, user)
 
@@ -178,9 +183,10 @@ def run(report_name, filters=None, user=None):
 	return result
 
 
-def get_prepared_report_result(report, filters, dn=""):
+def get_prepared_report_result(report, filters, dn="", user=None):
 	latest_report_data = {}
-	doc_list = frappe.get_all("Prepared Report", filters={"status": "Completed", "report_name": report.name})
+	# Only look for completed prepared reports with given filters.
+	doc_list = frappe.get_all("Prepared Report", filters={"status": "Completed", "report_name": report.name, "filters": json.dumps(filters), "owner": user})
 	doc = None
 	if len(doc_list):
 		if dn:
@@ -190,11 +196,15 @@ def get_prepared_report_result(report, filters, dn=""):
 			# Get latest
 			doc = frappe.get_doc("Prepared Report", doc_list[0])
 
-		data = read_csv_content_from_attached_file(doc)
+		# Prepared Report data is stored in a GZip compressed JSON file
+		attached_file_name = frappe.db.get_value("File", {"attached_to_doctype": doc.doctype, "attached_to_name":doc.name}, "name")
+		compressed_content = get_file(attached_file_name)[1]
+		uncompressed_content = gzip_decompress(compressed_content)
+		data = json.loads(uncompressed_content)
 		if data:
 			latest_report_data = {
 				"columns": json.loads(doc.columns) if doc.columns else data[0],
-				"result": data[1:]
+				"result": data
 			}
 
 	latest_report_data.update({
@@ -321,10 +331,7 @@ def add_total_row(result, columns, meta = None):
 		first_col_fieldtype = columns[0].get("fieldtype")
 
 	if first_col_fieldtype not in ["Currency", "Int", "Float", "Percent", "Date"]:
-		if first_col_fieldtype == "Link":
-			total_row[0] = "'" + _("Total") + "'"
-		else:
-			total_row[0] = _("Total")
+		total_row[0] = _("Total")
 
 	result.append(total_row)
 	return result
