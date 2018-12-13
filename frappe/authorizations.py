@@ -153,7 +153,7 @@ def _get_user_authorizations(user=None):
     sql = """select concat(auth.parent,'-',auth.authorization_object,':',auth.authorization_id),
         auth.authorization_object,auth.auth_field,auth.value_from,auth.value_to,auth.parent
         from `tabHas Role` role inner join `tabRole Authorization` auth on 
-        role.role = auth.parent  where role.parent = %s and auth.auth_field is not Null order by auth.authorization_id"""
+        role.role = auth.parent  where role.parent = %s and auth.auth_field is not Null order by 1, 3"""
     result = frappe.db.sql(sql, user)
     return result
 
