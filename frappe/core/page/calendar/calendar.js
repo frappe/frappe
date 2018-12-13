@@ -2,7 +2,7 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 	
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
-		title: 'Master Calendar',
+		title: 'Calendar',
 		single_column: false
 		
 	});
@@ -31,7 +31,7 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 					me.$cal.fullCalendar("refetchEvents");
 				}
 			});
-			var label = $('<label>').html("Standard Calendars").appendTo(head_li);
+			var label = $('<label>').html("All").appendTo(head_li);
 
 			//window.x = this.$more = page.sidebar.find("div");
 			
@@ -93,7 +93,7 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 									li.appendTo(me.$sidebar_list);
 								}
 							}
-							span.html("Less Calendars<span class='caret caret-up'></span>");
+							span.html("Less Calendars<span class='dropup'><span class='caret'></span></span>");
 						}
 						else{
 							$(".checkbox.custom").remove()
@@ -175,7 +175,7 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 					}
 					else if (checkboxes.length > 1){
 						options = '';
-						$('.module-sidebar-nav input:checked').each(function() {
+						$('.cal:checked').each(function() {
 							options += '\n'+$(this).attr('value');
 						});
 						
