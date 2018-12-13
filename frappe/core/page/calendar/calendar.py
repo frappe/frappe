@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import importlib
 import frappe
 import os
-from pprint import pprint
 import json
 
 
@@ -13,11 +12,9 @@ import json
 def get_master_calendar_events(doctypeinfo, start, end):
 	data = get_field_map()
 	# frappe calendar
-	print(doctypeinfo)
 	doctypes=json.loads(doctypeinfo)
 	master_events = []
 	for info in doctypes:
-		print("------------------------------------------->>>>>"+info)
 		field_map = frappe._dict(data[info]["field_map"])
 		fields=[field_map.start, field_map.end, field_map.title, field_map.description, 'name']
 		if field_map.color:
@@ -25,7 +22,6 @@ def get_master_calendar_events(doctypeinfo, start, end):
 		if "get_events_method" in data[info]:
 			try:
 				events = frappe.call(data[info]["get_events_method"], start, end)
-				print(events)
 			except:
 				frappe.throw("some thing went wrong")
 
