@@ -47,7 +47,6 @@ frappe.views.ListSidebar = class ListSidebar {
 			type: "GET"
 		}).then(r => {
 			$.each(r["message"], function( index, value ) {
-				console.log(value)
 				if(cur_doc == value){
 					check = true;
 					return false
@@ -172,7 +171,7 @@ frappe.views.ListSidebar = class ListSidebar {
 			let default_link = '';
 			if (frappe.views.calendar[this.doctype]) {
 				// has standard calendar view
-				default_link = `<li><a href="#calendar">
+				default_link = `<li><a href="#calendar/`+this.doctype+`">
 					${ __("Calendar") }</a></li>`;
 			}
 		/*	const other_links = calendar_views.map(

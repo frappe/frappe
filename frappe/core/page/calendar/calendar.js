@@ -11,8 +11,6 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 		'assets/frappe/js/lib/bootstrap.min.js',
 		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js'], function() {
 			const me = this;
-			window.x = page
-			window.this = this
 			this.$nav = page.sidebar.html(`<ul class="module-sidebar-nav overlay-sidebar nav nav-pills nav-stacked"></ul><div></div>`);
 			this.$sidebar_list = page.sidebar.find('ul');
 			// list of all standrd calendars
@@ -57,8 +55,14 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 			//fetching and creating checkboxes
 			$.each(frappe.boot.calendars, function(i, doctype) {
 				var li = $(`<li class="checkbox" style="padding-top: 0px">`);
-				if(doctype == "Event"){
+				var default_doctype=frappe.get_route()
+				if(default_doctype[1] == doctype){
 					
+					var check = $('<input type="checkbox" class="cal" checked value="'+doctype+'">').appendTo(li).on("click",function(){
+						me.$cal.fullCalendar("refetchEvents")
+					});
+				}
+				else if(!default_doctype[1] && doctype == "Event"){
 					var check = $('<input type="checkbox" class="cal" checked value="'+doctype+'">').appendTo(li).on("click",function(){
 						me.$cal.fullCalendar("refetchEvents")
 					});
@@ -120,6 +124,7 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 
 			// for mapping events into calendar
 			events: function(start, end, timezone, callback) {
+				$(".popover.fade.bottom.in").remove();
 				start_param = get_system_datetime(start);
 				end_param = get_system_datetime(end)
 				var docinfo = [];
@@ -165,42 +170,20 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 
 			//Drag event (to create new Event)modal fade in
 			select: function(startDate, endDate, jsEvent, view) {
-				var checkboxes = $('.module-sidebar-nav input:checked');
+				$(".popover.fade.bottom.in").remove();
 				var interval = endDate-startDate;
 
 				//identifying single day event
 				if(interval > 86400000){
-					if (checkboxes.length == 1){
-						frappe.new_doc(checkboxes[0].value);
-					}
-					else if (checkboxes.length > 1){
-						options = '';
-						$('.cal:checked').each(function() {
-							options += '\n'+$(this).attr('value');
-						});
-						
-						//select doctype to create event
-						frappe.prompt([
-							{'fieldname': 'Doctype', 'fieldtype': 'Select', 'options': options,'label': 'Doctype', 'reqd': 1}  
-						],
-						function(values){
-							frappe.new_doc(values.Doctype);
-							
-						},
-						'Select Doctype',
-						'Submit'
-						)
-			
-					}
-					else{
-						frappe.msgprint("Select doctype to create calendar event")
-					}
+					create_event(startDate,endDate)
 				}
+				
 			},
 
 			//Event click action 
 			eventClick: function(event,jsEvent) {
 				//removing popover if present
+				
 				$(".popover.fade.bottom.in").remove();
 
 				var t = $(jsEvent.target)
@@ -259,6 +242,12 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 				);
 				t.popover("show");
 				$(".popover.fade.bottom.in").css("min-width", "200px")
+				$(".popover.fade.bottom.in").css("z-index", 2)
+				
+			
+				//console.log(pageX)
+				$('.popover.fade.bottom.in').css('left', jsEvent.pageX - $(".popover.fade.bottom.in").width()/2 +'px');
+				$('.popover.fade.bottom.in').css('top', jsEvent.pageY +'px');
 
 				//Edit buuton and its action
 				$("<span ><button class='btn btn-default btn-sm btn-modal-close' style='margin-top:15px'>Edit</button></span>").on("click",function(){
@@ -273,12 +262,20 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 			 eventResize: function(event, delta, revertFunc) {
 				update_event(event,revertFunc)
 			},
+			viewRender: function(view, element) {
+				$(".popover.fade.bottom.in").remove();
+			},
+			eventAfterAllRender: function(view){
+				$(".fc-scroller").removeAttr("style");
+				set_css(me.$cal)
+			}
 			
 		}
-
+		
 		//showing calendar 
 		this.$cal = $("<div>").appendTo(page.body);
 		this.$cal.fullCalendar( calendar_opts );
+		
 
 		// button for hiding and showing the weekends days
 		var btnTitle = (calendar_opts.weekends) ? __('Hide Weekends') : __('Show Weekends');
@@ -332,5 +329,73 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 			}
 		});
 	}
+
+	function create_event(start, end){
+		
+		frappe.call({
+			method: "frappe.core.page.calendar.calendar.get_field_map",
+			type: "GET"
+		}).then(r => {
+			start_param = get_system_datetime(start);
+			end_param = get_system_datetime(end)
+			var x = r["message"];
+			var checkboxes = $('.cal:checked');
+			if (checkboxes.length == 1){
+				var event = frappe.model.get_new_doc(checkboxes[0].value);
+				event[x[checkboxes[0].value]["field_map"]["start"]] = start_param;
+				event[x[checkboxes[0].value]["field_map"]["end"]] = end_param;
+				frappe.set_route("Form", checkboxes[0].value, event.name);
+			}
+			else if (checkboxes.length > 1){
+				options = '';
+				$('.cal:checked').each(function() {
+					options += '\n'+$(this).attr('value');
+				});
+				
+				//select doctype to create event
+				frappe.prompt([
+					{'fieldname': 'Doctype', 'fieldtype': 'Select', 'options': options,'label': 'Type', 'reqd': 1}  
+				],
+				function(values){
+					var event = frappe.model.get_new_doc(values.Doctype);
+					event[x[values.Doctype]["field_map"]["start"]] = start_param;
+					event[x[values.Doctype]["field_map"]["end"]] = end_param;
+					frappe.set_route("Form", values.Doctype, event.name);
+					
+				},
+				'Select Document type',
+				'Submit'
+				)
 	
+			}
+			else{
+				frappe.msgprint("Select document type to create calendar event")
+			}
+		});
+
+	}
+
+	function set_css(cal) {
+		// flatify buttons
+		window.cal = cal
+		cal.find("button.fc-state-default")
+			.removeClass("fc-state-default")
+			.addClass("btn btn-default");
+
+		cal.find(".fc-button-group").addClass("btn-group");
+
+		cal.find('.fc-prev-button span')
+			.attr('class', '').addClass('fa fa-chevron-left');
+		cal.find('.fc-next-button span')
+			.attr('class', '').addClass('fa fa-chevron-right');
+
+		var btn_group = cal.find(".fc-button-group");
+		btn_group.find(".fc-state-active").addClass("active");
+
+		btn_group.find(".btn").on("click", function() {
+			btn_group.find(".btn").removeClass("active");
+			$(this).addClass("active");
+		});
+	}
+
 }
