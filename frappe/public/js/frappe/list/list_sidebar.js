@@ -47,9 +47,10 @@ frappe.views.ListSidebar = class ListSidebar {
 			type: "GET"
 		}).then(r => {
 			$.each(r["message"], function( index, value ) {
+				console.log(value)
 				if(cur_doc == value){
 					check = true;
-					break;
+					return false
 				}
 			  });
 			if (check) {

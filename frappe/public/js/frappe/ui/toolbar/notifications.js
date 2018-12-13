@@ -3,7 +3,7 @@ frappe.provide("frappe.ui.notifications");
 frappe.ui.notifications = {
 	config: {
 		"ToDo": { label: __("To Do") },
-		"Event": { label: __("Calendar"), route: "List/Event/Calendar" },
+		"Event": { label: __("Calendar"), route: "calendar" },
 		"Email": { label: __("Email"), route: "List/Communication/Inbox" },
 		"Likes": { label: __("Likes"),
 			click: function() {

@@ -4,7 +4,7 @@
  "docstatus": 0, 
  "doctype": "Page", 
  "idx": 0, 
- "modified": "2018-11-28 11:06:07.730197", 
+ "modified": "2018-12-12 18:12:45.683384", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "calendar", 
@@ -19,5 +19,5 @@
  "standard": "Yes", 
  "style": null, 
  "system_page": 1, 
- "title": "Master Calendar"
+ "title": "Calendar"
 }

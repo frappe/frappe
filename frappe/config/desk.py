@@ -22,7 +22,7 @@ def get_data():
 					"type": "doctype",
 					"name": "Event",
 					"label": _("Calendar"),
-					"link": "List/Event/Calendar",
+					"link": "calendar",
 					"description": _("Event and other calendars."),
 				},
 				{
