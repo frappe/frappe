@@ -983,7 +983,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if(flag){
 			this.prepared_report_action = "New";
 		}
-		this.add_prepared_report_buttons();
+		if(this.prepared_report) {
+			this.add_prepared_report_buttons();
+		}
 	}
 
 	toggle_message(flag, message) {
