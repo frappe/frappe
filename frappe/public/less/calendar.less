@@ -73,6 +73,7 @@ th.fc-day-header {
 
 .fc-left h2 {
 	font-size: 14px;
+
 }
 
 .fc button {
@@ -125,4 +126,25 @@ th.fc-day-header {
 }
 .fc-bg-yellow {
 	.fc-bg-color(yellow);
+}
+//changed during master-calendar
+
+th.fc-future > span, th.fc-past > span , th.fc-today > span{
+	text-align: center;
+	width: min-intrinsic;
+	width: -webkit-min-content;
+	width: -moz-min-content;
+	width: min-content;
+	display: table-caption;
+	-ms-grid-columns: min-content;
+
+}
+th.fc-future > span::first-line, th.fc-past > span::first-line , th.fc-today > span::first-line{
+	font-size: 140%; 
+}
+td.fc-axis.fc-widget-content > span{
+
+	text-transform: capitalize;
+	font-weight: 500 !important
+
 }
