@@ -6,7 +6,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<meta name="generator" content="frappe">
 
-	{% block meta_block %}{% endblock %}
+	{% block meta_block %}
+		{% include "templates/includes/meta_block.html" %}
+	{% endblock %}
 
 	<title>{% block title %} {{ title | striptags }} {% endblock %}</title>
 
