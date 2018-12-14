@@ -149,7 +149,7 @@ class Report(Document):
 			if params.get('sort_by'):
 				order_by = _format(params.get('sort_by').split('.')) + ' ' + params.get('sort_order')
 			else:
-				order_by = _format(self.ref_doctype, 'modified') + ' desc'
+				order_by = _format([self.ref_doctype, 'modified']) + ' desc'
 
 			if params.get('sort_by_next'):
 				order_by += ', ' + _format(params.get('sort_by_next').split('.')) + ' ' + params.get('sort_order_next')
