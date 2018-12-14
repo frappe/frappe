@@ -520,7 +520,7 @@ def save_check_log(check_log, user, auth_obj_recs=None, doc=None):
     auth_check_log.flags.ignore_links = True	# to improve performance
     frappe.local.rollback_observers.append(auth_check_log)
     old_name = '%s-%s' % (user, check_log.get('doc_type'))
-    frappe.delete_doc('Authorization Check Log', old_name, force=1, ignore_permissions=1)
+    frappe.delete_doc('Authorization Check Log', old_name, force=1, ignore_permissions=1, for_reload=1)
     auth_check_log.insert(ignore_permissions=1)
     
 def auth_check_doc_fields(doc, user=None):
