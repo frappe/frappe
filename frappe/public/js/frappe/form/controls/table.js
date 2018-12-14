@@ -30,7 +30,7 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			var row_idx = locals[cur_doctype][cur_row_docname].idx;
 			var clipboardData, pastedData;
 			// Get pasted data via clipboard API
-			clipboardData = event.clipboardData || window.clipboardData || event.originalEvent.clipboardData;
+			clipboardData = e.clipboardData || window.clipboardData || e.originalEvent.clipboardData;
 			pastedData = clipboardData.getData('Text');
 			if (!pastedData) return;
 			var data = frappe.utils.csv_to_array(pastedData,'\t');
