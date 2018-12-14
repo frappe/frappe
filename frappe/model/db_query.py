@@ -505,7 +505,7 @@ class DatabaseQuery(object):
 			child_doctype = table[2][4:-1]	# extract doctype '`tabSales Order`' => Sales Order
 			condition = get_match_conditions(child_doctype, tables= self.tables, parent_doctype=self.doctype)
 			if condition:
-				conditions += (' and ' + condition) if condition else condition
+				conditions += ' and ' + condition if conditions else condition
 		if as_condition:
 			return conditions
 
