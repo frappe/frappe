@@ -5,16 +5,16 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 	},
 
 	make_ace_editor() {
-		const ace_editor_target = $('<div class="ace-editor-target"></div>')
+		this.ace_editor_target = $('<div class="ace-editor-target"></div>')
 			.appendTo(this.input_area);
 
 		// styling
-		ace_editor_target.addClass('border rounded');
-		ace_editor_target.css('height', 300);
+		this.ace_editor_target.addClass('border rounded');
+		this.ace_editor_target.css('height', 300);
 
 		// initialize
 		const ace = window.ace;
-		this.editor = ace.edit(ace_editor_target.get(0));
+		this.editor = ace.edit(this.ace_editor_target.get(0));
 		this.editor.setTheme('ace/theme/tomorrow');
 		this.set_language();
 
@@ -30,7 +30,8 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 			'Javascript': 'ace/mode/javascript',
 			'JS': 'ace/mode/javascript',
 			'HTML': 'ace/mode/html',
-			'CSS': 'ace/mode/css'
+			'CSS': 'ace/mode/css',
+			'Markdown': 'ace/mode/markdown'
 		};
 		const language = this.df.options;
 
@@ -52,7 +53,8 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 	},
 
 	set_formatted_input(value) {
-		this.library_loaded.then(() => {
+		this.load_lib().then(() => {
+			if (!this.editor) return;
 			if (!value) value = '';
 			if (value === this.get_input_value()) return;
 			this.editor.session.setValue(value);
@@ -64,10 +66,12 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 	},
 
 	load_lib() {
+		if (this.library_loaded) return this.library_loaded;
+
 		if (frappe.boot.developer_mode) {
-			this.root_lib_path = '/assets/frappe/js/lib/ace-builds/src-noconflict/';
+			this.root_lib_path = '/assets/frappe/node_modules/ace-builds/src-noconflict/';
 		} else {
-			this.root_lib_path = '/assets/frappe/js/lib/ace-builds/src-min-noconflict/';
+			this.root_lib_path = '/assets/frappe/node_modules/ace-builds/src-min-noconflict/';
 		}
 
 		this.library_loaded = new Promise(resolve => {

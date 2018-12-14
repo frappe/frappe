@@ -9,6 +9,8 @@ from frappe.commands import pass_context, get_site
 from frappe.utils import update_progress_bar, get_bench_path
 from frappe.utils.response import json_handler
 from coverage import Coverage
+import cProfile, pstats
+from six import StringIO
 
 @click.command('build')
 @click.option('--app', help='Build assets for app')
@@ -114,8 +116,9 @@ def reset_perms(context):
 @click.argument('method')
 @click.option('--args')
 @click.option('--kwargs')
+@click.option('--profile', is_flag=True, default=False)
 @pass_context
-def execute(context, method, args=None, kwargs=None):
+def execute(context, method, args=None, kwargs=None, profile=False):
 	"Execute a function"
 	for site in context.sites:
 		try:
@@ -135,7 +138,17 @@ def execute(context, method, args=None, kwargs=None):
 			else:
 				kwargs = {}
 
+			if profile:
+				pr = cProfile.Profile()
+				pr.enable()
+
 			ret = frappe.get_attr(method)(*args, **kwargs)
+
+			if profile:
+				pr.disable()
+				s = StringIO()
+				pstats.Stats(pr, stream=s).sort_stats('cumulative').print_stats(.5)
+				print(s.getvalue())
 
 			if frappe.db:
 				frappe.db.commit()
@@ -676,14 +689,15 @@ def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
 	subprocess.check_output(['git', 'fetch', remote, branch], cwd = app_path)
 
 	# get diff
-	if subprocess.check_output(['git', 'diff', '{0}..upstream/{0}'.format(branch)], cwd = app_path):
+	if subprocess.check_output(['git', 'diff', '{0}..{1}/{0}'.format(branch, remote)], cwd = app_path):
 		print('Updates found for {0}'.format(app))
 		if app=='frappe':
 			# run bench update
-			subprocess.check_output(['bench', 'update', '--no-backup'], cwd = '..')
+			import shlex
+			subprocess.check_output(shlex.split('bench update --no-backup'), cwd = '..')
 		else:
 			updated = False
-			subprocess.check_output(['git', 'pull', '--rebase', 'upstream', branch],
+			subprocess.check_output(['git', 'pull', '--rebase', remote, branch],
 				cwd = app_path)
 			# find all sites with that app
 			for site in get_sites():
@@ -696,7 +710,7 @@ def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
 						subprocess.check_output(['bench', '--site', site, 'migrate'], cwd = '..')
 				frappe.destroy()
 
-			if updated and restart:
+			if updated or restart:
 				subprocess.check_output(['bench', 'restart'], cwd = '..')
 	else:
 		print('No Updates')

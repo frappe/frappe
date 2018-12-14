@@ -32,10 +32,14 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		this.page_title = this.board_name;
 		this.card_meta = this.get_card_meta();
 
-		return this.get_board()
-			.then(() => {
-				this.filters = this.board.filters_array;
-			});
+		this.menu_items.push({
+			label: __('Save filters'),
+			action: () => {
+				this.save_kanban_board_filters();
+			}
+		});
+
+		return this.get_board();
 	}
 
 	get_board() {
@@ -43,7 +47,12 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			.then(board => {
 				this.board = board;
 				this.board.filters_array = JSON.parse(this.board.filters || '[]');
+				this.filters = this.board.filters_array;
 			});
+	}
+
+	before_refresh() {
+
 	}
 
 	setup_view() {
@@ -60,13 +69,40 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		this.save_view_user_settings({
 			last_kanban_board: this.board_name
 		});
+	}
+
+	on_filter_change() {
+		if (JSON.stringify(this.board.filters_array) !== JSON.stringify(this.filter_area.get())) {
+			this.page.set_indicator(__('Not Saved'), 'orange');
+		} else {
+			this.page.clear_indicator();
+		}
+	}
+
+	save_kanban_board_filters() {
+		const filters = this.filter_area.get();
 
 		frappe.call({
 			method: 'frappe.desk.doctype.kanban_board.kanban_board.save_filters',
 			args: {
 				board_name: this.board_name,
-				filters: this.filter_area.get()
+				filters: filters
 			}
+		}).then(r => {
+			if (r.exc) {
+				frappe.show_alert({
+					indicator: 'red',
+					message: __('There was an error saving filters')
+				});
+				return;
+			}
+			frappe.show_alert({
+				indicator: 'green',
+				message: __('Filters saved')
+			});
+
+			this.board.filters_array = filters;
+			this.on_filter_change();
 		});
 	}
 

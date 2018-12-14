@@ -5,6 +5,10 @@ const Block = Quill.import('blots/block');
 Block.tagName = 'DIV';
 Quill.register(Block, true);
 
+const CodeBlockContainer = Quill.import('formats/code-block-container');
+CodeBlockContainer.tagName = 'PRE';
+Quill.register(CodeBlockContainer, true);
+
 // table
 const Table = Quill.import('formats/table-container');
 const superCreate = Table.create.bind(Table);
@@ -15,6 +19,23 @@ Table.create = (value) => {
 	return node;
 }
 Quill.register(Table, true);
+
+// hidden blot
+class HiddenBlock extends Block {
+	static create(value) {
+		const node = super.create(value);
+		node.setAttribute('data-comment', value);
+		node.classList.add('hidden');
+		return node;
+	}
+
+	static formats(node) {
+		return node.getAttribute('data-comment');
+	}
+}
+HiddenBlock.blotName = 'hiddenblot';
+HiddenBlock.tagName = 'SPAN';
+Quill.register(HiddenBlock, true);
 
 // image uploader
 const Uploader = Quill.import('modules/uploader');
@@ -154,7 +175,9 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			return;
 		}
 
-		this.quill.root.innerHTML = value;
+		// set html without triggering a focus
+		const delta = this.quill.clipboard.convert({ html: value, text: '' });
+		this.quill.setContents(delta);
 	},
 
 	get_input_value() {

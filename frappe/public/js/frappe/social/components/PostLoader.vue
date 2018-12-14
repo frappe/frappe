@@ -1,14 +1,24 @@
 <template>
 	<div>
+		<post-skeleton v-for="index in 5" :key="index" v-if="loading_posts && !posts.length"/>
 		<transition-group name="flip-list">
-			<post :post="post" v-for="post in posts" :key="post.name"></post>
+			<post
+				:post="post"
+				v-for="(post, index) in posts"
+				:key="post.name"
+				@delete-post="delete_post(index)"
+			/>
 		</transition-group>
 		<div v-if="!loading_posts && !posts.length" class="no-post-message text-muted">
 			{{ __('No posts yet') }}
 		</div>
-		<div v-show="loading_posts" class="text-center padding">{{ __('Fetching posts...') }}</div>
 		<div
-			v-show="posts.length && !more_posts_available"
+			v-show="loading_posts && posts.length"
+			class="text-center padding">
+			{{ __('Fetching posts...') }}
+		</div>
+		<div
+			v-show="posts.length && !loading_posts && !more_posts_available"
 			class="text-center padding">
 			{{ __("That's all folks") }}
 		</div>
@@ -16,11 +26,13 @@
 </template>
 <script>
 import Post from './Post.vue';
+import PostSkeleton from './PostSkeleton.vue';
 
 export default {
 	props: ['post_list_filter'],
 	components: {
-		Post
+		Post,
+		PostSkeleton
 	},
 	data() {
 		return {
@@ -83,6 +95,9 @@ export default {
 				}
 			}
 		}, 500),
+		delete_post(index) {
+			this.posts.splice(index, 1);
+		},
 	},
 	destroyed() {
 		window.removeEventListener('scroll', this.handle_scroll);
@@ -96,7 +111,7 @@ export default {
 	vertical-align: middle;
 	line-height: 200px;
 }
-.flip-list-move {
+.flip-list-move, .flip-list-to {
 	transition: transform 0.3s;
 }
 </style>

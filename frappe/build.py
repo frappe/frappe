@@ -77,13 +77,15 @@ def make_asset_dirs(make_copy=False, restore=False):
 		if not os.path.exists(dir_path):
 			os.makedirs(dir_path)
 
-	# symlink app/public > assets/app
 	for app_name in frappe.get_all_apps(True):
 		pymodule = frappe.get_module(app_name)
 		app_base_path = os.path.abspath(os.path.dirname(pymodule.__file__))
 
 		symlinks = []
+		# app/public > assets/app
 		symlinks.append([os.path.join(app_base_path, 'public'), os.path.join(assets_path, app_name)])
+		# app/node_modules > assets/app/node_modules
+		symlinks.append([os.path.join(app_base_path, '..', 'node_modules'), os.path.join(assets_path, app_name, 'node_modules')])
 
 		app_doc_path = None
 		if os.path.isdir(os.path.join(app_base_path, 'docs')):

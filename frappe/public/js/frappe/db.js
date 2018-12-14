@@ -80,9 +80,7 @@ frappe.db = {
 		});
 	},
 	insert: function(doc) {
-		return new Promise(resolve => {
-			frappe.call('frappe.client.insert', { doc }, r => resolve(r.message));
-		});
+		return frappe.xcall('frappe.client.insert', { doc });
 	},
 	delete_doc: function(doctype, name) {
 		return new Promise(resolve => {

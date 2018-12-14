@@ -21,6 +21,9 @@
 	"js/chat.js": [
 		"public/js/frappe/chat.js"
 	],
+	"js/frappe-vue.min.js": [
+		"public/js/frappe_vue.js"
+	],
 	"js/frappe-web.min.js": [
 		"public/js/frappe/class.js",
 		"public/js/frappe/polyfill.js",
@@ -81,6 +84,7 @@
 		"public/js/frappe/form/controls/read_only.js",
 		"public/js/frappe/form/controls/button.js",
 		"public/js/frappe/form/controls/html.js",
+		"public/js/frappe/form/controls/markdown_editor.js",
 		"public/js/frappe/form/controls/html_editor.js",
 		"public/js/frappe/form/controls/heading.js",
 		"public/js/frappe/form/controls/autocomplete.js",

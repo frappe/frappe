@@ -160,7 +160,7 @@ acceptable_attributes = [
 	'urn', 'valign', 'value', 'variable', 'volume', 'vspace', 'vrml',
 	'width', 'wrap', 'xml:lang', 'data-row', 'data-list', 'data-language',
 	'data-value', 'role', 'frameborder', 'allowfullscreen', 'spellcheck',
-	'data-mode', 'data-gramm', 'data-placeholder'
+	'data-mode', 'data-gramm', 'data-placeholder', 'data-comment'
 ]
 
 mathml_attributes = [

@@ -78,10 +78,17 @@ frappe.ui.form.Timeline = class Timeline {
 		var selector = this.frm.doctype === "Communication"? ".btn-reply-email": ".btn-new-email";
 		this.email_button = this.wrapper.find(selector)
 			.on("click", function() {
+				const $btn = $(this);
+				let is_a_reply = true;
+				if ($btn.is('.btn-new-email')) {
+					is_a_reply = false;
+				}
+
 				var args = {
 					doc: me.frm.doc,
 					frm: me.frm,
-					recipients: me.get_recipient()
+					recipients: me.get_recipient(),
+					is_a_reply
 				}
 
 				if(me.frm.doctype === "Communication") {
@@ -286,7 +293,8 @@ frappe.ui.form.Timeline = class Timeline {
 				txt: "",
 				title: __('Reply'),
 				frm: me.frm,
-				last_email: last_email
+				last_email: last_email,
+				is_a_reply: true
 			});
 		});
 	}
@@ -336,7 +344,7 @@ frappe.ui.form.Timeline = class Timeline {
 			});
 		} else {
 			if(c.communication_type=="Communication" && c.communication_medium=="Email") {
-				c.content = c.content.split("<!-- original-reply -->")[0];
+				c.content = c.content.split('<span data-comment="original-reply" class="hidden">Reply To</span>')[0];
 				c.content = frappe.utils.strip_original_content(c.content);
 
 				c.original_content = c.content;
@@ -730,7 +738,8 @@ frappe.ui.form.Timeline = class Timeline {
 	get_names_for_mentions() {
 		var valid_users = Object.keys(frappe.boot.user_info)
 			.filter(user => !["Administrator", "Guest"].includes(user));
-
+		valid_users = valid_users
+			.filter(user => frappe.boot.user_info[user].allowed_in_mentions==1);
 		return valid_users.map(user => frappe.boot.user_info[user].name);
 	}
 
