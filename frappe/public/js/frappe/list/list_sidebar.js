@@ -40,8 +40,8 @@ frappe.views.ListSidebar = class ListSidebar {
 
 	setup_views() {
 		var show_list_link = false;
-		var cur_doc=this.doctype
-		var check = false
+		var cur_doc=this.doctype;
+		var check = false;
 		frappe.call({
 			method: "frappe.core.page.calendar.calendar.get_all_calendars",
 			type: "GET"
@@ -49,16 +49,16 @@ frappe.views.ListSidebar = class ListSidebar {
 			$.each(r["message"], function( index, value ) {
 				if(cur_doc == value){
 					check = true;
-					return false
+					return false;
 				}
-			  });
+			});
 			if (check) {
 				this.sidebar.find('.list-link[data-view="Calendar"]').removeClass("hide");
 				this.sidebar.find('.list-link[data-view="Gantt"]').removeClass('hide');
 				show_list_link = true;
 				this.setup_calendar_view();
 			}
-		})
+		});
 
 
 		//show link for kanban view
@@ -174,7 +174,7 @@ frappe.views.ListSidebar = class ListSidebar {
 				default_link = `<li><a href="#calendar/`+this.doctype+`">
 					${ __("Calendar") }</a></li>`;
 			}
-		/*	const other_links = calendar_views.map(
+			/*const other_links = calendar_views.map(
 				calendar_view => `<li><a href="#List/${doctype}/Calendar/${calendar_view.name}">
 					${ __(calendar_view.name) }</a>
 				</li>`

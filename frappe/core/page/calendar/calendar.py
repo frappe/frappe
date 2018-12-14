@@ -2,7 +2,6 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import importlib
 import frappe
 import os
 import json
@@ -72,18 +71,14 @@ def update_event(start, end, doctype, name):
 
 @frappe.whitelist()
 def get_all_calendars():
-	
 	data = get_field_map()
-
 	more_cal = []
 	for key in data:
 		more_cal.append(key)
-	
 	return more_cal
 
 @frappe.whitelist()
 def get_field_map():
-
 	all_apps =frappe.get_all_apps() 
 	data = {}
 	for app in all_apps:
