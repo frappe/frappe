@@ -236,7 +236,7 @@ class TestAuthorizations(unittest.TestCase):
         frappe.clear_cache('test11@b.c')	
         print('238, post2=', post2.as_dict())
         self.assertFalse(post2.has_permission("read"))
-
+        frappe.db.sql('delete from `tabBlog Post` where name not in ("-test-blog-post","-test-blog-post-1")')
         self.assertTrue(len(frappe.get_list('Blog Post')) == 1)
         frappe.set_user('Administrator')
         doctype_blog.set('authorization_objects', [])
