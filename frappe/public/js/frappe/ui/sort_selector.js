@@ -187,7 +187,6 @@ frappe.ui.SortSelector = Class.extend({
 	},
 	get_sql_string: function() {
 		// build string like `tabTask`.`subject` desc
-		let sort_by = this.sort_by.replace(this.doctype+'.', '');
-		return '`tab' + this.doctype + '`.`' + sort_by + '` ' +  this.sort_order;
+		return '`tab' + this.doctype + '`.`' + this.sort_by + '` ' +  this.sort_order;
 	}
 })
