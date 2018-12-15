@@ -117,7 +117,11 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			} else {
 				var invalid_email = false;
 				email_list.forEach(function(email) {
-					if (!validate_email(email)) {
+					// If email contains sender name and email address, just use email address for validation by
+					// grabbing the value inside of the carets.
+					// I.e. if email is John Smith <John@Smith.com>, only validate John@Smith.com
+					let email_addr = email.match("\<(.*?)\>") ? email.match("\<(.*?)\>")[1] : email;
+					if (!validate_email(email_addr)) {
 						frappe.msgprint(__("Invalid Email: {0}", [email]));
 						invalid_email = true;
 					}

@@ -157,14 +157,14 @@ def make_lead_from_communication(communication, ignore_communication_links=False
 	return lead_name
 
 @frappe.whitelist()
-def make_opportunity_from_communication(communication_name, ignore_communication_links=False):
-	comm = frappe.get_doc("Communication", communication_name)
+def make_opportunity_from_communication(communication, ignore_communication_links=False):
+	comm_doc = frappe.get_doc("Communication", communication)
 
-	lead = comm.reference_name if comm.reference_doctype == "Lead" else None
-	customer = comm.reference_name if comm.reference_doctype == "Customer" else None
+	lead_name = comm_doc.reference_name if comm_doc.reference_doctype == "Lead" else None
+	customer_name = comm_doc.reference_name if comm_doc.reference_doctype == "Customer" else None
 
-	if not (lead or customer):
-		# Try to get a Customer from either the email or phone number
+	if not (lead_name or customer_name):
+		# Try to get a Customer from a Contact that has either the email or phone number
 		customer_results = frappe.db.sql("""select
 						distinct `tabDynamic Link`.link_name as customer
 						from
@@ -177,24 +177,23 @@ def make_opportunity_from_communication(communication_name, ignore_communication
 							ifnull(`tabDynamic Link`.link_name, '')<>''
 						and
 							`tabDynamic Link`.link_doctype='Customer'
-					""".format(comm.sender, comm.phone_no), as_dict=True)
-		customer = customer_results[0].customer if (customer_results and customer_results[0]) else None
+					""".format(comm_doc.sender, comm_doc.phone_no), as_dict=True)
+		customer_name = customer_results[0].customer if (customer_results and customer_results[0]) else None
 		# If no Customer Found, fall back to working with a Lead
-		if not customer:
-			lead = make_lead_from_communication(comm, ignore_communication_links=True)
-			customer = None
+		lead_name = make_lead_from_communication(comm_doc, ignore_communication_links=True) if not customer_name else None
 
 	opportunity = frappe.get_doc({
 		"doctype": "Opportunity",
-		"enquiry_from": "Customer" if customer else "Lead",
-		"customer_name": customer if customer else lead,
-		"customer": customer,
-		"lead": lead,
-		"contact_email": comm.sender,
-		"contact_mobile": comm.phone_no,
-		"contact_display": comm.sender_full_name
+		"enquiry_from": "Customer" if customer_name else "Lead",
+		"transaction_date": comm_doc.communication_date,
+		"customer_name": customer_name if customer_name else lead_name,
+		"customer": customer_name,
+		"lead": lead_name,
+		"contact_email": comm_doc.sender,
+		"contact_mobile": comm_doc.phone_no,
+		"contact_display": comm_doc.sender_full_name
 	}).insert(ignore_permissions=True)
 
-	link_communication_to_document(comm, "Opportunity", opportunity.name, ignore_communication_links)
+	link_communication_to_document(comm_doc, "Opportunity", opportunity.name, ignore_communication_links)
 
 	return opportunity.name
