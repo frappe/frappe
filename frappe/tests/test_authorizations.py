@@ -83,7 +83,9 @@ class TestAuthorizations(unittest.TestCase):
                             {'authorization_id': '2', 'authorization_object': 'test-blog_category',
                              'auth_field': 'act', 'value_from': '21'},
                             {'authorization_id': '2', 'authorization_object': 'test-blog_category',
-                             'auth_field': 'blog_category', 'value_from': '_Test Blog Category 1'}]}
+                             'auth_field': 'blog_category', 'value_from': '_Test Blog Category 1'}, 
+			     {'authorization_object': 's_doctype', 'auth_field': 'act', 'value_from': '11'},
+                            {'authorization_object': 's_doctype', 'auth_field': 's_doctype', 'value_from': '*'}]}
                        ).insert(ignore_permissions=1)
         user = frappe.get_doc('User', 'test11@b.c')
         user.flags.ignore_permissions = 1
@@ -118,7 +120,9 @@ class TestAuthorizations(unittest.TestCase):
                         'authorization': [
                             {'authorization_object': 'test-blog_category', 'auth_field': 'act', 'value_from': '11'},
                             {'authorization_object': 'test-blog_category', 'auth_field': 'blog_category',
-                             'value_from': '*'}]
+                             'value_from': '*'},
+                            {'authorization_object': 's_doctype', 'auth_field': 'act', 'value_from': '11'},
+                            {'authorization_object': 's_doctype', 'auth_field': 's_doctype', 'value_from': '*'}]
                         }).insert(ignore_permissions=1)
         frappe.delete_doc('Role', 'test-role-s_doctype', ignore_permissions=1, force=1)
         frappe.get_doc({'doctype': 'Role', 'role_name': 'test-role-s_doctype',
@@ -190,7 +194,9 @@ class TestAuthorizations(unittest.TestCase):
         frappe.db.sql('delete from tabToDo where owner =%(user)s  or assigned_by=%(user)s', {'user': 'test11@b.c'})
         todo1.insert(ignore_permissions=1)
         todo2.insert(ignore_permissions=1)
-        frappe.set_user('test11@b.c')	
+        frappe.set_user('test11@b.c')
+        from frappe.authorizations import get_match_conditions
+	print('193 get_match_conditions:', get_match_conditions('ToDo',tables=['`tabToDo`'], parent_doctype='ToDo', verbose=1)
         print('193 user=', frappe.session.user, 'getlist=', frappe.get_list('ToDo', fields=['name','owner','assigned_by']))	
         self.assertTrue(len(frappe.get_list('ToDo')) == 2)
         frappe.db.sql('delete from tabToDo where owner =%(user)s  or assigned_by=%(user)s', {'user': 'test11@b.c'})
