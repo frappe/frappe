@@ -307,9 +307,9 @@ def auth_check(doctype=None, act='read', doc=None, user=None, auth_obj=None, ver
         return False
     auth_key = get_auth_key(act, doc, doctype, auth_obj)
     auth_key = 'auth_check|%s' % auth_key
-    result = frappe.cache().hget('user:'+user, auth_key,
-        lambda: _auth_check(doctype=doctype, act=act, doc=doc, user=user, auth_obj=auth_obj, verbose=verbose))
-
+    #result = frappe.cache().hget('user:'+user, auth_key,
+    #    lambda: _auth_check(doctype=doctype, act=act, doc=doc, user=user, auth_obj=auth_obj, verbose=verbose))
+    result = _auth_check(doctype=doctype, act=act, doc=doc, user=user, auth_obj=auth_obj, verbose=verbose)
     def false_if_not_shared():
         if ptype in ("read", "write", "share", "email", "print"):
             shared = frappe.share.get_shared(doctype, user,
@@ -540,7 +540,7 @@ def auth_check_doc_fields(doc, user=None):
             result = False
     return result
 
-def get_match_conditions(doctype, act='read', user=None, tables=[], parent_doctype=None, verbose=None):
+def get_match_conditions(doctype, act='read', user=None, tables=None, parent_doctype=None, verbose=None):
     """ apply auth relevant restriction to db_query's where condition, which is called by via get_list/get_all or report query
 		for logic details, please check the _auth_check documentation
 	tables:[table1,field1,table2,field2,table1_alias,table2_alias] from db_query
