@@ -157,21 +157,44 @@ def make_lead_from_communication(communication, ignore_communication_links=False
 	return lead_name
 
 @frappe.whitelist()
-def make_opportunity_from_communication(communication, ignore_communication_links=False):
-	doc = frappe.get_doc("Communication", communication)
+def make_opportunity_from_communication(communication_name, ignore_communication_links=False):
+	comm = frappe.get_doc("Communication", communication_name)
 
-	lead = doc.reference_name if doc.reference_doctype == "Lead" else None
-	if not lead:
-		lead = make_lead_from_communication(communication, ignore_communication_links=True)
+	lead = comm.reference_name if comm.reference_doctype == "Lead" else None
+	customer = comm.reference_name if comm.reference_doctype == "Customer" else None
 
-	enquiry_from = "Lead"
+	if not (lead or customer):
+		# Try to get a Customer from either the email or phone number
+		customer_results = frappe.db.sql("""select
+						distinct `tabDynamic Link`.link_name as customer
+						from
+							`tabContact`,
+							`tabDynamic Link`
+						where (`tabContact`.email_id = '{0}' || `tabContact`.mobile_no = '{1}' || `tabContact`.phone = '{1}')
+						and
+							`tabContact`.name=`tabDynamic Link`.parent
+						and
+							ifnull(`tabDynamic Link`.link_name, '')<>''
+						and
+							`tabDynamic Link`.link_doctype='Customer'
+					""".format(comm.sender, comm.phone_no), as_dict=True)
+		customer = customer_results[0].customer if (customer_results and customer_results[0]) else None
+		# If no Customer Found, fall back to working with a Lead
+		if not customer:
+			lead = make_lead_from_communication(comm, ignore_communication_links=True)
+			customer = None
 
 	opportunity = frappe.get_doc({
 		"doctype": "Opportunity",
-		"enquiry_from": enquiry_from,
-		"lead": lead
+		"enquiry_from": "Customer" if customer else "Lead",
+		"customer_name": customer if customer else lead,
+		"customer": customer,
+		"lead": lead,
+		"contact_email": comm.sender,
+		"contact_mobile": comm.phone_no,
+		"contact_display": comm.sender_full_name
 	}).insert(ignore_permissions=True)
 
-	link_communication_to_document(doc, "Opportunity", opportunity.name, ignore_communication_links)
+	link_communication_to_document(comm, "Opportunity", opportunity.name, ignore_communication_links)
 
 	return opportunity.name
