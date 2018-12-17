@@ -1,4 +1,4 @@
-frappe.pages['calendar'].on_page_load = function (wrapper) {
+frappe.pages['calendar'].on_page_load = function (wrapper){
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: 'Calendar',
@@ -12,7 +12,7 @@ frappe.pages['calendar'].on_page_load = function (wrapper) {
 		'assets/frappe/js/lib/bootstrap.min.js',
 		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js',
 		'assets/frappe/js/lib/fullcalendar/locale-all.js'
-	], function () {
+	], function (){
 		const me = this;
 		this.$cal = page.body.find('div');
 
