@@ -3,6 +3,7 @@
 // http://codeguide.co - @mdo (Author of Bootstrap)
 
 @import "flex.less";
+@import {reference} "common.less";
 
 // Typography
 @font-weight-bold:								700;
@@ -150,7 +151,7 @@
                     {
                         .media-heading, .media-subtitle
                         {
-                            text-overflow: ellipsis;
+                            .ellipsis;
                             max-width: @chat-room-list-content-max-width;
                         }
                     }
