@@ -1,4 +1,4 @@
-apps/frappe/frappe/utils/change_log.py +247,New {} releases for the following apps are available,Nieuwe {} releases voor de volgende apps zijn beschikbaar
+apps/frappe/frappe/utils/change_log.py +242,New {} releases for the following apps are available,Nieuwe {} releases voor de volgende apps zijn beschikbaar
 apps/frappe/frappe/website/doctype/web_form/web_form.py +59,Please select a Amount Field.,Selecteer een veld Aantal.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +284,Press Esc to close,Druk op Esc om te sluiten
 apps/frappe/frappe/desk/form/assign_to.py +168,"A new task, {0}, has been assigned to you by {1}. {2}","Een nieuwe taak, {0}, is aan u toegewezen door {1}. {2}"
@@ -25,7 +25,7 @@ apps/frappe/frappe/public/js/frappe/views/treeview.js +89,{0} Tree,{0} Boom
 DocType: User,User Emails,gebruiker Emails
 DocType: User,Username,Gebruikersnaam
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js +90,Import Zip,Zip importeren
-apps/frappe/frappe/model/base_document.py +564,Value too big,Waarde te groot
+apps/frappe/frappe/model/base_document.py +565,Value too big,Waarde te groot
 DocType: DocField,DocField,DocField
 DocType: GSuite Settings,Run Script Test,Run Script Test
 DocType: Data Import,Total Rows,Totale rijen
@@ -51,7 +51,7 @@ DocType: Activity Log,Reference Owner,eigenaar ref
 DocType: User,"If enabled, user can login from any IP Address using Two Factor Auth, this can also be set for all users in System Settings","Indien ingeschakeld, kan de gebruiker inloggen vanaf elk IP-adres met behulp van Two Factor Auth, dit kan ook worden ingesteld voor alle gebruikers in Systeeminstellingen"
 DocType: Currency,Smallest circulating fraction unit (coin). For e.g. 1 cent for USD and it should be entered as 0.01,"Kleinste circulerende fractie eenheid (munt). Voor bijvoorbeeld 1 cent voor USD en het moet worden ingevoerd als 0,01"
 DocType: Social Login Key,GitHub,GitHub
-apps/frappe/frappe/model/base_document.py +558,"{0}, Row {1}","{0}, Rij {1}"
+apps/frappe/frappe/model/base_document.py +559,"{0}, Row {1}","{0}, Rij {1}"
 apps/frappe/frappe/www/feedback.html +93,Please give a fullname.,Geef een volledige naam.
 apps/frappe/frappe/model/document.py +1075,Beginning with,beginnend met
 apps/frappe/frappe/core/doctype/data_import/exporter.py +53,Data Import Template,Data Import Sjabloon
@@ -72,7 +72,7 @@ DocType: Workflow State,th-large,th-large
 DocType: Communication,Unread Notification Sent,Melding 'Ongelezen' verstuurd
 apps/frappe/frappe/public/js/frappe/misc/tools.js +10,Export not allowed. You need {0} role to export.,Exporteren niet toegestaan. Je hebt rol {0} nodig om te kunnen exporteren .
 DocType: System Settings,In seconds,In seconden
-apps/frappe/frappe/public/js/frappe/list/list_view.js +1056,Cancel {0} documents?,{0} documenten annuleren?
+apps/frappe/frappe/public/js/frappe/list/list_view.js +1079,Cancel {0} documents?,{0} documenten annuleren?
 DocType: DocType,Is Published Field,Wordt gepubliceerd Field
 DocType: GCalendar Settings,GCalendar Settings,GCalendar-instellingen
 DocType: Email Group,Email Group,E-mail Group
@@ -83,7 +83,7 @@ DocType: Success Action,First Success Message,Eerste succesbericht
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +512,Not Like,Niet zoals
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +214,Set the display label for the field,Stel het display label voor het veld
 apps/frappe/frappe/model/document.py +1092,Incorrect value: {0} must be {1} {2},Onjuiste waarde: {0}  moet zijn {1} {2}
-apps/frappe/frappe/config/setup.py +237,"Change field properties (hide, readonly, permission etc.)","Wijzig veldeigenschappen (verberg, alleen-lezen, toestemming, etc. )"
+apps/frappe/frappe/config/setup.py +242,"Change field properties (hide, readonly, permission etc.)","Wijzig veldeigenschappen (verberg, alleen-lezen, toestemming, etc. )"
 DocType: Workflow State,lock,slot
 apps/frappe/frappe/config/website.py +78,Settings for Contact Us Page.,Instellingen voor Contact Pagina.
 apps/frappe/frappe/core/doctype/user/user.py +918,Administrator Logged In,Administrator Gelogd In
@@ -111,7 +111,7 @@ apps/frappe/frappe/config/integrations.py +78,Webhooks calling API requests into
 DocType: DocType,Default Print Format,Standaard Print Format
 DocType: Workflow State,Tags,labels
 apps/frappe/frappe/public/js/frappe/form/workflow.js +35,None: End of Workflow,Geen: Einde van de Workflow
-apps/frappe/frappe/model/db_schema.py +358,"{0} field cannot be set as unique in {1}, as there are non-unique existing values","{0} veld kan niet worden ingesteld als uniek {1}, omdat er niet uniek bestaande waarden"
+apps/frappe/frappe/model/db_schema.py +359,"{0} field cannot be set as unique in {1}, as there are non-unique existing values","{0} veld kan niet worden ingesteld als uniek {1}, omdat er niet uniek bestaande waarden"
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +48,Document Types,Document Types
 DocType: Address,Jammu and Kashmir,Jammu and Kashmir
 DocType: Workflow,Workflow State Field,Workflow Status Veld
@@ -131,7 +131,7 @@ DocType: LDAP Settings,LDAP Search String,LDAP Search String
 DocType: Translation,Translation,Vertaling
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Mr,De heer
 DocType: Custom Script,Client,Klant
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +215,Select Column,Selecteer Kolom
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +261,Select Column,Selecteer Kolom
 apps/frappe/frappe/public/js/legacy/form.js +476,This form has been modified after you have loaded it,Dit formulier is gewijzigd nadat u het hebt geladen
 DocType: User Permission for Page and Report,User Permission for Page and Report,Toestemming van de gebruiker voor de pagina en het verslag
 DocType: Address,Himachal Pradesh,Himachal Pradesh
@@ -152,7 +152,7 @@ apps/frappe/frappe/public/js/frappe/form/save.js +147,"Mandatory fields required
 apps/frappe/frappe/utils/password_strength.py +196,Capitalization doesn't help very much.,Kapitalisatie helpt niet veel.
 DocType: Error Snapshot,Friendly Title,Vriendelijke Titel
 DocType: Newsletter,Email Sent?,E-mail verzonden?
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +992,Toggle Chart,Wissel diagram
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1036,Toggle Chart,Wissel diagram
 apps/frappe/frappe/desk/form/save.py +50,Did not cancel,Niet geannuleerd
 DocType: Social Login Key,Client Information,Klanteninformatie
 DocType: Workflow State,plus,plus
@@ -198,8 +198,8 @@ DocType: Portal Settings,Standard Sidebar Menu,Standard Sidebar Menu
 apps/frappe/frappe/core/doctype/file/file.py +216,Cannot delete Home and Attachments folders,Kan home en bijlagenmappen niet verwijderen
 apps/frappe/frappe/config/desk.py +19,Files,bestanden
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,Permissions get applied on Users based on what Roles they are assigned.,"Machtigingen worden toegepast op Gebruikers, gebaseerd op de toegewezen rollen."
-apps/frappe/frappe/public/js/frappe/views/communication.js +537,You are not allowed to send emails related to this document,U bent niet bevoegd om e-mails met betrekking tot dit document te versturen
-apps/frappe/frappe/model/db_query.py +624,Please select atleast 1 column from {0} to sort/group,Selecteer tenminste 1 kolom {0} sorteren / groeperen
+apps/frappe/frappe/public/js/frappe/views/communication.js +539,You are not allowed to send emails related to this document,U bent niet bevoegd om e-mails met betrekking tot dit document te versturen
+apps/frappe/frappe/model/db_query.py +625,Please select atleast 1 column from {0} to sort/group,Selecteer tenminste 1 kolom {0} sorteren / groeperen
 DocType: PayPal Settings,Check this if you are testing your payment using the Sandbox API,Controleer dit als u het testen van uw betaling via de Sandbox API
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30,You are not allowed to delete a standard Website Theme,Het is niet toegestaan om een standaard website thema verwijderen
 DocType: Data Import,Log Details,Log Details
@@ -209,7 +209,7 @@ DocType: Print Settings,Print Server,Printserver
 DocType: Workflow State,gift,gift
 DocType: Workflow Action,Completed By,Afgemaakt door
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +240,Reqd,Benodigd
-apps/frappe/frappe/core/doctype/communication/email.py +289,Unable to find attachment {0},Kan bijlage {0} niet vinden
+apps/frappe/frappe/core/doctype/communication/email.py +285,Unable to find attachment {0},Kan bijlage {0} niet vinden
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +228,Assign a permission level to the field.,Wijs een machtigingsniveau naar het veld.
 apps/frappe/frappe/core/page/permission_manager/permission_manager.py +91,Cannot Remove,Kan niet verwijderen
 apps/frappe/frappe/public/js/frappe/request.js +111,The resource you are looking for is not available,De bron die u zoekt is niet beschikbaar
@@ -225,9 +225,9 @@ DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaS
 DocType: Bulk Update,Bulk Update,bulk-update
 DocType: Workflow State,chevron-up,chevron-up
 DocType: DocType,Allow Guest to View,Laat Gast te bekijken
-apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +65,Documentation,Documentatie
+apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +58,Documentation,Documentatie
 DocType: Webhook,on_change,on_change
-apps/frappe/frappe/public/js/frappe/list/list_view.js +1043,Delete {0} items permanently?,Verwijder {0} items definitief?
+apps/frappe/frappe/public/js/frappe/list/list_view.js +1066,Delete {0} items permanently?,Verwijder {0} items definitief?
 apps/frappe/frappe/core/doctype/user/user.py +106,Not Allowed,Niet Toegestaan
 DocType: DocShare,Internal record of document shares,Interne record van document aandelen
 DocType: Workflow State,Comment,Reactie
@@ -275,7 +275,7 @@ DocType: Workflow,Transition Rules,Overgang Regels
 apps/frappe/frappe/core/doctype/report/report.js +11,Example:,Voorbeeld:
 DocType: Workflow,Defines workflow states and rules for a document.,Definieert workflow-staten en regels voor een document.
 DocType: Workflow State,Filter,filter
-apps/frappe/frappe/model/db_schema.py +597,Fieldname {0} cannot have special characters like {1},"Veldnaam {0} kan geen speciale tekens, zoals hebben {1}"
+apps/frappe/frappe/model/db_schema.py +598,Fieldname {0} cannot have special characters like {1},"Veldnaam {0} kan geen speciale tekens, zoals hebben {1}"
 apps/frappe/frappe/public/js/frappe/request.js +182,Internal Server Error,Interne Server Fout
 apps/frappe/frappe/config/setup.py +133,Update many values at one time.,Meerdere waarden tegelijkertijd aanpassen.
 apps/frappe/frappe/model/document.py +646,Error: Document has been modified after you have opened it,Fout: Document is gewijzigd nadat u het hebt geopend
@@ -289,10 +289,10 @@ DocType: Salutation,Administrator,Beheerder
 DocType: Activity Log,Closed,Gesloten
 DocType: Blog Settings,Blog Title,Blog Titel
 apps/frappe/frappe/core/doctype/role/role.py +20,Standard roles cannot be disabled,Standard rollen kan niet worden uitgeschakeld
-apps/frappe/frappe/public/js/frappe/chat.js +1606,Chat Type,Chat Type
+apps/frappe/frappe/public/js/frappe/chat.js +1610,Chat Type,Chat Type
 DocType: Address,Mizoram,Mizoram
 DocType: Newsletter,Newsletter,Nieuwsbrief
-apps/frappe/frappe/model/db_query.py +615,Cannot use sub-query in order by,Kan geen gebruik maken van sub-query in bestelling door
+apps/frappe/frappe/model/db_query.py +616,Cannot use sub-query in order by,Kan geen gebruik maken van sub-query in bestelling door
 DocType: Web Form,Button Help,knop Help
 DocType: Kanban Board Column,purple,Purper
 DocType: About Us Settings,Team Members,Teamleden
@@ -312,7 +312,7 @@ DocType: Data Migration Plan,Mappings,mappings
 DocType: Notification Recipient,Notification Recipient,Melding Ontvanger
 DocType: Workflow State,Refresh,Verversen
 DocType: Event,Public,Publiek
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +907,Nothing to show,Niets te tonen
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +977,Nothing to show,Niets te tonen
 DocType: System Settings,Enable Two Factor Auth,Schakel twee factoren automatisch in
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +303,[Urgent] Error while creating recurring %s for %s,[Urgent] Fout bij het maken van terugkerende% s voor% s
 DocType: Post,Liked By,Vond Door
@@ -342,10 +342,10 @@ DocType: Email Account,SparkPost,SparkPost
 apps/frappe/frappe/templates/emails/new_user.html +2,A new account has been created for you at {0},Een nieuw account is aangemaakt voor u op {0}
 apps/frappe/frappe/templates/includes/login/login.js +193,Instructions Emailed,Instructies geüpload
 apps/frappe/frappe/templates/includes/login/login.js +193,Instructions Emailed,Instructies geüpload
-apps/frappe/frappe/public/js/frappe/views/communication.js +526,Enter Email Recipient(s),Voer E-mail ontvanger (s)
+apps/frappe/frappe/public/js/frappe/views/communication.js +528,Enter Email Recipient(s),Voer E-mail ontvanger (s)
 DocType: Print Format,Verdana,Verdana
 DocType: Email Flag Queue,Email Flag Queue,E-mail Flag Queue
-apps/frappe/frappe/config/setup.py +205,Stylesheets for Print Formats,Stylesheets voor afdrukformaten
+apps/frappe/frappe/config/setup.py +210,Stylesheets for Print Formats,Stylesheets voor afdrukformaten
 apps/frappe/frappe/utils/bot.py +83,Can't identify open {0}. Try something else.,Kan open {0} niet identificeren. Probeer iets anders.
 DocType: Auto Repeat,Reference Party,Referentie partij
 apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +208,Your information has been submitted,Uw informatie is ingediend
@@ -360,9 +360,9 @@ DocType: Auto Repeat,Yearly,Jaarlijks
 DocType: Communication,Message ID,Message ID
 DocType: Property Setter,Field Name,Veldnaam
 apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.py +20,Google GSuite is not configured.,Google GSuite is niet geconfigureerd.
-apps/frappe/frappe/public/js/frappe/misc/utils.js +162,or,of
+apps/frappe/frappe/public/js/frappe/misc/utils.js +171,or,of
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +139,module name...,module naam ...
-apps/frappe/frappe/templates/pages/integrations/payment-success.html +13,Continue,Voortzetten
+apps/frappe/frappe/templates/pages/integrations/payment-success.html +17,Continue,Voortzetten
 DocType: Custom Field,Fieldname,Veldnaam
 DocType: Workflow State,certificate,certificaat
 DocType: User,Tile,Tegel
@@ -373,7 +373,7 @@ DocType: Workflow State,Print,afdruk
 DocType: User,Restrict IP,Beperken IP
 apps/frappe/frappe/public/js/frappe/form/layout.js +108,Dashboard,Dashboard
 apps/frappe/frappe/email/smtp.py +234,Unable to send emails at this time,Niet in staat om e-mails te verzenden op dit moment
-apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +94,Search or type a command,Zoek of typ een opdracht
+apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +87,Search or type a command,Zoek of typ een opdracht
 DocType: Activity Log,Timeline Name,Timeline Naam
 DocType: Email Account,e.g. smtp.gmail.com,bv smtp.gmail.com
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +364,Add A New Rule,Voeg een nieuwe regel toe
@@ -397,7 +397,7 @@ apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.py +82,P
 DocType: Google Maps Settings,Google Maps Settings,Google Maps-instellingen
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.html +11,Loading...,Laden ...
 DocType: DocField,Password,Wachtwoord
-apps/frappe/frappe/utils/response.py +185,Your system is being updated. Please refresh again after a few moments,Het systeem wordt bijgewerkt. Vernieuw opnieuw na enkele ogenblikken
+apps/frappe/frappe/utils/response.py +194,Your system is being updated. Please refresh again after a few moments,Het systeem wordt bijgewerkt. Vernieuw opnieuw na enkele ogenblikken
 DocType: Blogger,Will be used in url (usually first name).,Wordt gebruikt in url (meestal voornaam).
 DocType: Auto Email Report,Day of Week,Dag van de week
 DocType: Note,Expire Notification On,Verlopen Notification On
@@ -420,7 +420,7 @@ apps/frappe/frappe/integrations/doctype/gsuite_templates/gsuite_templates.py +38
 apps/frappe/frappe/templates/includes/search_template.html +45,No matching records. Search something new,Geen overeenkomende records. Zoek iets nieuws
 DocType: Chat Profile,Away,Weg
 DocType: Currency,Fraction Units,Fractie Units
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +522,{0} from {1} to {2},{0} van {1} tot {2}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +530,{0} from {1} to {2},{0} van {1} tot {2}
 apps/frappe/frappe/public/js/frappe/ui/toolbar/user_progress_dialog.js +116,Mark as Done,Markeer als gedaan
 DocType: Chat Message,Type,Type
 DocType: Activity Log,Subject,Onderwerp
@@ -439,7 +439,7 @@ apps/frappe/frappe/email/doctype/notification/notification.js +97,Get Alerts for
 apps/frappe/frappe/core/doctype/doctype/doctype.py +349,DocType can only be renamed by Administrator,DocType kan alleen worden hernoemd door Administrator
 DocType: Chat Message,Chat Message,Chatbericht
 apps/frappe/frappe/utils/oauth.py +146,Email not verified with {0},E-mail niet geverifieerd met {0}
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +533,changed value of {0},veranderde waarde van {0}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +541,changed value of {0},veranderde waarde van {0}
 DocType: User,"If the user has any role checked,then the user becomes a ""System User"". ""System User"" has access to the desktop","Als de gebruiker een rol heeft aangevinkt, wordt de gebruiker een &quot;Systeemgebruiker&quot;. &quot;Systeemgebruiker&quot; heeft toegang tot de desktop"
 DocType: Report,JSON,JSON
 apps/frappe/frappe/core/doctype/user/user.py +795,Please check your email for verification,Controleer uw e-mail voor verificatie
@@ -452,12 +452,12 @@ DocType: Data Migration Run,Pull Update,Trek aan update
 DocType: Auto Email Report,No of Rows (Max 500),Geen van Rijen (Max 500)
 DocType: Language,Language Code,taalcode
 DocType: Dropbox Settings,Note: By default emails for failed backups are sent.,Opmerking: standaard worden e-mails voor mislukte back-ups verzonden.
-apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js +281,"Your download is being built, this may take a few moments...","Uw download wordt gegenereerd, dit kan enige tijd duren..."
+apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js +256,"Your download is being built, this may take a few moments...","Uw download wordt gegenereerd, dit kan enige tijd duren..."
 apps/frappe/frappe/public/js/frappe/ui/filters/filter_list.js +144,Add Filter,Filter toevoegen
 apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py +87,SMS sent to following numbers: {0},SMS verzonden naar volgende nummers: {0}
 apps/frappe/frappe/www/feedback.html +23,Your rating: ,Uw cijfer:
 apps/frappe/frappe/utils/data.py +657,{0} and {1},{0} en {1}
-apps/frappe/frappe/public/js/frappe/chat.js +2158,Start a conversation.,Een gesprek beginnen.
+apps/frappe/frappe/public/js/frappe/chat.js +2162,Start a conversation.,Een gesprek beginnen.
 DocType: Print Settings,"Always add ""Draft"" Heading for printing draft documents",Voeg altijd &quot;Concept&quot; Heading for printing conceptdocumenten
 DocType: Data Migration Run,Current Mapping Start,Huidige toewijzingstart
 apps/frappe/frappe/core/doctype/communication/communication.js +240,Email has been marked as spam,E-mail is gemarkeerd als spam
@@ -478,13 +478,13 @@ DocType: Print Settings,Send document web view link in email,Stuur document web 
 apps/frappe/frappe/www/feedback.html +114,Your Feedback for document {0} is saved successfully,Uw feedback voor document {0} is succesvol opgeslagen
 apps/frappe/frappe/public/js/frappe/ui/slides.js +321,Previous,vorig
 apps/frappe/frappe/email/doctype/email_account/email_account.py +566,Re:,Re:
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +587,{0} rows for {1},{0} rijen voor {1}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +595,{0} rows for {1},{0} rijen voor {1}
 DocType: Currency,"Sub-currency. For e.g. ""Cent""",Sub-valuta. Voor bijvoorbeeld &quot;Cent&quot;
 apps/frappe/frappe/data_migration/doctype/data_migration_connector/data_migration_connector.js +15,Connection Name,Verbindingsnaam
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +211,Select uploaded file,Selecteer geüploade bestand
 DocType: Letter Head,Check this to make this the default letter head in all prints,Aanvinken om dit de standaard briefhoofding te maken in alle afdrukken
 DocType: Print Format,Server,Server
-apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +193,New Kanban Board,Nieuwe Kanban Board
+apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +229,New Kanban Board,Nieuwe Kanban Board
 DocType: Desktop Icon,Link,Link
 apps/frappe/frappe/core/doctype/file/file.py +455,No file attached,Geen bestand bijgevoegd
 DocType: Version,Version,Versie
@@ -497,8 +497,8 @@ apps/frappe/frappe/public/js/frappe/form/grid.js +681,Edit via Upload,Bewerken v
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +135,"document type..., e.g. customer","documenttype ..., bijvoorbeeld klant"
 apps/frappe/frappe/core/doctype/feedback_trigger/feedback_trigger.py +29,The Condition '{0}' is invalid,De voorwaarde &#39;{0}&#39; is ongeldig
 DocType: Workflow State,barcode,barcode
-apps/frappe/frappe/model/db_query.py +201,Use of sub-query or function is restricted,Het gebruik van subvragen of functies is beperkt
-apps/frappe/frappe/config/setup.py +249,Add your own translations,Voeg je eigen vertalingen
+apps/frappe/frappe/model/db_query.py +202,Use of sub-query or function is restricted,Het gebruik van subvragen of functies is beperkt
+apps/frappe/frappe/config/setup.py +254,Add your own translations,Voeg je eigen vertalingen
 DocType: Country,Country Name,Naam van het land
 DocType: About Us Team Member,About Us Team Member,Over ons Teamlid
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5,"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Machtigingen zijn ingesteld op Rollen en documenttypen (de zogenaamde DocTypes ) door het instellen van rechten zoals Lezen , schrijven , maken, verwijderen , indienen, annuleren , wijzigen , rapporteren , importeren, exporteren, afdrukken , e-mailen en instellen machtigingen."
@@ -525,7 +525,7 @@ DocType: SMS Settings,Receiver Parameter,Receiver Parameter
 DocType: Data Migration Mapping Detail,Remote Fieldname,Remote Fieldname
 DocType: Communication,To,naar
 DocType: Kanban Board Column,darkgrey,donker grijs
-apps/frappe/frappe/model/rename_doc.py +425,Successful: {0} to {1},Succesvolle: {0} tot {1}
+apps/frappe/frappe/model/rename_doc.py +426,Successful: {0} to {1},Succesvolle: {0} tot {1}
 apps/frappe/frappe/core/doctype/user/user.py +106,Cannot change user details in demo. Please signup for a new account at https://erpnext.com,Kan de gebruikersgegevens niet wijzigen in demo. Meld u alstublieft in voor een nieuw account op https://erpnext.com
 apps/frappe/frappe/printing/doctype/print_format/print_format.js +18,Please duplicate this to make changes,Gelieve een tweede om wijzigingen aan te brengen
 apps/frappe/frappe/public/js/frappe/list/list_filter.js +99,Press Enter to save,Druk op Enter om te bewaren
@@ -534,7 +534,7 @@ DocType: Print Settings,Font Size,Tekengrootte
 DocType: System Settings,Disable Standard Email Footer,Uitschakelen Standard Email Footer
 DocType: Workflow State,facetime-video,FaceTime-video
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +78,1 comment,1 reactie
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +485,viewed,bekeken
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +493,viewed,bekeken
 DocType: Notification,Days Before,Dagen voor
 DocType: Workflow State,volume-down,volume-omlaag
 apps/frappe/frappe/desk/reportview.py +269,No Tags,No Tags
@@ -542,7 +542,7 @@ DocType: DocType,List View Settings,List View Settings
 DocType: Email Account,Send Notification to,Stuur Kennisgeving aan
 DocType: DocField,Collapsible,Inklapbaar
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +790,Saved,Opgeslagen
-apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +58,What do you need help with?,Waarmee heb je hulp nodig?
+apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +51,What do you need help with?,Waarmee heb je hulp nodig?
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,Options for select. Each option on a new line.,Opties voor het selecteren. Elke optie op een nieuwe regel.
 apps/frappe/frappe/public/js/legacy/form.js +809,Permanently Cancel {0}?,Definitief {0} annuleren?
 DocType: Workflow State,music,muziek
@@ -551,7 +551,7 @@ apps/frappe/frappe/www/qrcode.html +3,QR Code,QR code
 apps/frappe/frappe/email/doctype/notification/notification.js +34,Last Modified Date,Laatst gewijzigde datum
 DocType: Chat Profile,Settings,Instellingen
 DocType: Print Format,Style Settings,Stijlinstellingen
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +359,Y Axis Fields,Y-asvelden
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +405,Y Axis Fields,Y-asvelden
 apps/frappe/frappe/core/doctype/doctype/doctype.py +686,Sort field {0} must be a valid fieldname,Sorteer veld {0} moet een geldige veldnaam te zijn
 apps/frappe/frappe/public/js/frappe/ui/base_list.js +81,More,Meer
 DocType: Contact,Sales Manager,Verkoopsmanager
@@ -585,7 +585,7 @@ DocType: System Settings,Your organization name and address for the email footer
 apps/frappe/frappe/core/doctype/data_import/importer.py +27,Parent Table,Parent Table
 apps/frappe/frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.js +18,S3 Backup complete!,S3 Back-up voltooid!
 apps/frappe/frappe/config/desktop.py +60,Developer,Ontwikkelaar
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +171,Created,Gemaakt
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +178,Created,Gemaakt
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +38,{0} in row {1} cannot have both URL and child items,{0} in rij {1} kan niet zowel URL en onderliggende items bevatten
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +22,Ancestors Of,Voorouders van
 apps/frappe/frappe/utils/nestedset.py +196,Root {0} cannot be deleted,Root {0} kan niet worden verwijderd
@@ -620,7 +620,7 @@ DocType: Address,Nagaland,Nagaland
 DocType: Slack Webhook URL,Webhook URL,Webhook-URL
 apps/frappe/frappe/core/doctype/user/user.py +417,Username {0} already exists,Gebruikersnaam {0} bestaat al
 apps/frappe/frappe/core/doctype/doctype/doctype.py +838,{0}: Cannot set import as {1} is not importable,{0} : Kan niet Importeren omdat {1} niet importeerbaar is
-apps/frappe/frappe/contacts/doctype/address/address.py +114,There is an error in your Address Template {0},Er is een fout in uw Address Template {0}
+apps/frappe/frappe/contacts/doctype/address/address.py +115,There is an error in your Address Template {0},Er is een fout in uw Address Template {0}
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +85,{0} is an invalid email address in 'Recipients',{0} is een ongeldig e-mailadres in &#39;Ontvangers&#39;
 DocType: User,Allow Desktop Icon,Bureaubladpictogram toestaan
 DocType: Footer Item,"target = ""_blank""",target = &quot;_blank&quot;
@@ -638,7 +638,7 @@ DocType: User,Send Welcome Email,Stuur Welkom Email
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +269,Remove Filter,Verwijder filter
 DocType: Web Form Field,Show in filter,Toon in filter
 DocType: Address,Daman and Diu,Daman en Diu
-apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +226,Project,Project
+apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +262,Project,Project
 DocType: Address,Personal,Persoonlijk
 apps/frappe/frappe/config/setup.py +125,Bulk Rename,Bulk Hernoemen
 DocType: Email Queue,Show as cc,Toon als cc
@@ -660,7 +660,7 @@ apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +175,No Emails,gee
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py +121,Link Expired,Link verlopen
 apps/frappe/frappe/database/schema.py +175,"Reverting length to {0} for '{1}' in '{2}';
 							Setting the length as {3} will cause truncation of data.","De lengte terugzetten naar {0} voor &#39;{1}&#39; in &#39;{2}&#39;; Als u de lengte instelt op {3}, worden de gegevens afgekapt."
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +737,Select File Format,Selecteer Bestandsformaat
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +795,Select File Format,Selecteer Bestandsformaat
 DocType: Report,Javascript,Javascript
 DocType: File,Content Hash,Content Hash
 DocType: User,Stores the JSON of last known versions of various installed apps. It is used to show release notes.,Slaat de JSON van de laatst bekende versies van de verschillende geïnstalleerde apps. Het wordt gebruikt om de release notes zien.
@@ -711,7 +711,7 @@ DocType: Email Group,Newsletter Manager,Nieuwsbrief Manager
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,Option 1,Optie 1
 apps/frappe/frappe/public/js/frappe/form/formatters.js +135,{0} to {1},{0} tot {1}
 apps/frappe/frappe/config/setup.py +87,Log of error during requests.,Log van fout tijdens verzoeken.
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +219,{0} has been successfully added to the Email Group.,{0} is succesvol toegevoegd aan de e-mail Group.
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +199,{0} has been successfully added to the Email Group.,{0} is succesvol toegevoegd aan de e-mail Group.
 apps/frappe/frappe/public/js/frappe/form/grid.js +697,Do not edit headers which are preset in the template,Bewerk geen kopteksten die vooraf zijn ingesteld in de sjabloon
 apps/frappe/frappe/twofactor.py +225,Login Verification Code from {},Inlogverificatiecode van {}
 DocType: Address,Uttar Pradesh,Uttar Pradesh
@@ -749,7 +749,7 @@ apps/frappe/frappe/core/doctype/file/file.py +760,Cannot delete file as it belon
 DocType: Website Theme,Custom JS,Aangepaste JS
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Ms,Mevrouw
 DocType: Website Theme,Background Color,Achtergrondkleur
-apps/frappe/frappe/public/js/frappe/views/communication.js +592,There were errors while sending email. Please try again.,Er zijn fouten opgetreden tijdens het versturen van e-mail. Probeer het opnieuw .
+apps/frappe/frappe/public/js/frappe/views/communication.js +594,There were errors while sending email. Please try again.,Er zijn fouten opgetreden tijdens het versturen van e-mail. Probeer het opnieuw .
 DocType: Portal Settings,Portal Settings,portal Instellingen
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.js +24,Cannot update {0},Kan {0} niet updaten
 DocType: Data Migration Mapping,Mapping,In kaart brengen
@@ -795,7 +795,7 @@ DocType: Feedback Trigger,Check Communication,Controleer Communicatie
 DocType: Address,Rajasthan,Rajasthan
 DocType: Email Template,Email Reply Help,Email Reply Help
 apps/frappe/frappe/core/doctype/report/report.js +5,Report Builder reports are managed directly by the report builder. Nothing to do.,Rapport Bouwer rapporten worden rechtstreeks beheerd door de Rapport Bouwer. Niets te doen. Domtidomtidom.
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +189,Please verify your Email Address,Verifieer uw email adres alstublieft
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +169,Please verify your Email Address,Verifieer uw email adres alstublieft
 apps/frappe/frappe/model/document.py +1074,none of,geen van
 apps/frappe/frappe/public/js/frappe/views/communication.js +91,Send Me A Copy,Stuur mij een kopie
 DocType: Dropbox Settings,App Secret Key,App Secret Key
@@ -804,12 +804,12 @@ apps/frappe/frappe/config/website.py +7,Web Site,Website
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +8,Checked items will be shown on desktop,Aangevinkte items zullen op het bureaublad worden weergegeven
 apps/frappe/frappe/core/doctype/doctype/doctype.py +828,{0} cannot be set for Single types,{0} kan niet worden ingesteld voor Enkele types
 DocType: Data Import,Data Import,Gegevens importeren
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +349,Configure Chart,Grafiek configureren
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +395,Configure Chart,Grafiek configureren
 apps/frappe/frappe/public/js/frappe/form/form_viewers.js +55,{0} are currently viewing this document,{0} bekijkt momenteel dit document
 DocType: ToDo,Assigned By Full Name,In opdracht van volledige naam
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +155,{0} updated,{0} bijgewerkt
 apps/frappe/frappe/core/doctype/doctype/doctype.py +820,Report cannot be set for Single types,Rapport kan niet worden ingesteld voor Single types
-apps/frappe/frappe/public/js/frappe/list/list_view.js +916,Share URL,Deel URL
+apps/frappe/frappe/public/js/frappe/list/list_view.js +939,Share URL,Deel URL
 DocType: System Settings,Allow Consecutive Login Attempts ,Sta opeenvolgende inlogpogingen toe
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html +50,An error occured during the payment process. Please contact us.,Er is een fout opgetreden tijdens het betalingsproces. Contacteer ons alsjeblieft.
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +52,{0} days ago,{0} dagen geleden
@@ -820,7 +820,7 @@ DocType: Custom DocPerm,Role,Rol
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html +21,Settings...,Instellingen ...
 apps/frappe/frappe/utils/data.py +521,Cent,Cent
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +176,Compose Email,Email opstellen
-apps/frappe/frappe/config/setup.py +221,"States for workflow (e.g. Draft, Approved, Cancelled).","Statussen voor workflow ( bijv. Draft , Goedgekeurd , Cancelled) ."
+apps/frappe/frappe/config/setup.py +226,"States for workflow (e.g. Draft, Approved, Cancelled).","Statussen voor workflow ( bijv. Draft , Goedgekeurd , Cancelled) ."
 DocType: Print Settings,Allow Print for Draft,Laat Print voor Draft
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +142,Set Quantity,Stel Hoeveelheid
 apps/frappe/frappe/public/js/legacy/form.js +348,Submit this document to confirm,Verzend dit document om te bevestigen
@@ -831,7 +831,7 @@ apps/frappe/frappe/public/js/frappe/misc/rating_icons.html +2,Rating: ,Beoordeli
 apps/frappe/frappe/email/receive.py +196,Can not find UIDVALIDITY in imap status response,Kan UIDVALIDITY niet vinden in imap-status reactie
 DocType: Address,Dadra and Nagar Haveli,Dadra en Nagar Haveli
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +419,Attach Your Picture,Voeg uw foto toe
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +504,Make ,Maken
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +562,Make ,Maken
 apps/frappe/frappe/core/doctype/version/version_view.html +69,Row Values Changed,Rijwaarden Changed
 DocType: Workflow State,Stop,stoppen
 DocType: Footer Item,Link to the page you want to open. Leave blank if you want to make it a group parent.,Link naar de pagina die u wilt openen. Laat leeg als u wilt dat een groep ouders te maken.
@@ -885,7 +885,7 @@ apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py +16,Dr,Dr
 apps/frappe/frappe/public/js/frappe/dom.js +322,You are connected to internet.,Je bent verbonden met internet.
 DocType: Social Login Key,Enable Social Login,Schakel sociale login in
 DocType: Communication,Event,Evenement
-apps/frappe/frappe/public/js/frappe/views/communication.js +662,"On {0}, {1} wrote:","Op {0}, {1} schreef:"
+apps/frappe/frappe/public/js/frappe/views/communication.js +677,"On {0}, {1} wrote:","Op {0}, {1} schreef:"
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +133,Cannot delete standard field. You can hide it if you want,Kan standaardveld niet verwijderen. U kunt het verbergen als u dit wilt
 DocType: Top Bar Item,For top bar,Voor bovenste balk
 DocType: Social Login Key,Auth URL Data,Auth URL-gegevens
@@ -922,9 +922,9 @@ DocType: Dropbox Settings,File Backup,Bestandsback-up
 apps/frappe/frappe/desk/form/utils.py +67,This method can only be used to create a Comment,Deze methode kan alleen gebruikt worden om een reactie te creëren
 DocType: Kanban Board Column,orange,oranje
 apps/frappe/frappe/public/js/frappe/list/list_renderer.js +629,No {0} found,Geen {0} gevonden
-apps/frappe/frappe/config/setup.py +259,Add custom forms.,Voeg aangepaste formulieren.
+apps/frappe/frappe/config/setup.py +264,Add custom forms.,Voeg aangepaste formulieren.
 apps/frappe/frappe/desk/like.py +84,{0}: {1} in {2},{0}: {1} van {2}
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +510,submitted this document,dit document ingediend
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +518,submitted this document,dit document ingediend
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,The system provides many pre-defined roles. You can add new roles to set finer permissions.,Het systeem biedt een groot aantal vooraf gedefinieerde rollen . U kunt nieuwe rollen toevoegen om specifiekere machtigingen in te stellen .
 DocType: Communication,CC,CC
 DocType: Country,Geo,Geo-
@@ -1026,25 +1026,25 @@ apps/frappe/frappe/public/js/frappe/request.js +31,You are not connected to Inte
 DocType: User,Send Password Update Notification,Stuur wachtwoord-update
 apps/frappe/frappe/public/js/legacy/form.js +62,"Allowing DocType, DocType. Be careful!","Het toestaan DocType , DocType . Wees voorzichtig !"
 apps/frappe/frappe/config/core.py +32,"Customized Formats for Printing, Email","Aangepaste Formaten voor afdrukken, e-mail"
-apps/frappe/frappe/public/js/frappe/desk.js +478,Updated To New Version,Geupdate naar nieuwe versie
+apps/frappe/frappe/public/js/frappe/desk.js +483,Updated To New Version,Geupdate naar nieuwe versie
 DocType: Custom Field,Depends On,Hangt af van
 DocType: Kanban Board Column,Green,Groen
 DocType: Custom DocPerm,Additional Permissions,Additionele Machtigingen
 DocType: Email Account,Always use Account's Email Address as Sender,Gebruik altijd Account E-mailadres als afzender
 apps/frappe/frappe/templates/includes/comments/comments.html +21,Login to comment,Log in om commentaar
 apps/frappe/frappe/core/doctype/data_import/importer.py +25,Start entering data below this line,Beginnen met het invoeren onder deze lijn
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +565,changed values for {0},veranderde waarden voor {0}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +573,changed values for {0},veranderde waarden voor {0}
 apps/frappe/frappe/email/doctype/email_account/email_account.py +55,"Email ID must be unique, Email Account already exists \
 				for {0}","E-mail-ID moet uniek zijn, e-mailaccount bestaat al \ voor {0}"
 DocType: Workflow State,retweet,retweet
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html +23,Customize...,Aanpassen...
 DocType: Print Format,Align Labels to the Right,Richt Labels naar rechts
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +223,Specify the value of the field,Geef de waarde van het veld
-DocType: Report,Disabled,Uitgeschakeld
+DocType: Address,Disabled,Uitgeschakeld
 DocType: File,Uploaded To Dropbox,Geupload naar Dropbox
 DocType: Workflow State,eye-close,oog-gesloten
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth Provider Instellingen
-apps/frappe/frappe/config/setup.py +271,Applications,toepassingen
+apps/frappe/frappe/config/setup.py +276,Applications,toepassingen
 apps/frappe/frappe/public/js/frappe/request.js +390,Report this issue,Meld dit issue
 DocType: Custom Script,Adds a custom script (client or server) to a DocType,Voegt een maatwerk script (client of server) toe aan een DocType
 DocType: Address,City/Town,Stad / Plaats
@@ -1066,7 +1066,7 @@ apps/frappe/frappe/email/receive.py +60,Invalid Mail Server. Please rectify and 
 DocType: DocField,"For Links, enter the DocType as range.
 For Select, enter list of Options, each on a new line.","Voor Links, voer de DocType als bereik. Voor Selecteren, voer de lijst van opties, die elk op een nieuwe regel."
 DocType: Workflow State,film,film
-apps/frappe/frappe/model/db_query.py +476,No permission to read {0},Geen toestemming om te lezen {0}
+apps/frappe/frappe/model/db_query.py +477,No permission to read {0},Geen toestemming om te lezen {0}
 apps/frappe/frappe/config/desktop.py +8,Tools,Tools
 apps/frappe/frappe/utils/password_strength.py +134,Avoid recent years.,Vermijd de afgelopen jaren.
 apps/frappe/frappe/utils/nestedset.py +241,Multiple root nodes not allowed.,Meerdere hoofdnodes niet toegestaan .
@@ -1111,7 +1111,7 @@ apps/frappe/frappe/templates/emails/new_message.html +4,Login and view in Browse
 DocType: Event,Every Day,Elke Dag
 DocType: LDAP Settings,Password for Base DN,Wachtwoord voor Base DN
 apps/frappe/frappe/core/doctype/version/version_view.html +73,Table Field,tabelveld
-apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +242,Columns based on,Columns gebaseerd op
+apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +278,Columns based on,Columns gebaseerd op
 apps/frappe/frappe/config/integrations.py +108,Enter keys to enable integration with Google GSuite,Voer de toetsen in om integratie met Google GSuite mogelijk te maken
 DocType: Workflow State,move,Verhuizing
 apps/frappe/frappe/model/document.py +1272,Action Failed,Actie is mislukt
@@ -1126,7 +1126,7 @@ apps/frappe/frappe/core/doctype/user/user.py +770,Temperorily Disabled,Temperori
 apps/frappe/frappe/contacts/doctype/contact/contact.py +85,Please set Email Address,Stel e-mailadres
 DocType: System Settings,Date and Number Format,Datum en Nummer Formaat
 apps/frappe/frappe/model/document.py +1073,one of,Een van de
-apps/frappe/frappe/public/js/frappe/desk.js +156,Checking one moment,Het controleren van het ene moment
+apps/frappe/frappe/public/js/frappe/desk.js +161,Checking one moment,Het controleren van het ene moment
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html +21,Show Tags,Show-tags
 DocType: DocField,HTML Editor,HTML-editor
 DocType: System Settings,"If Apply Strict User Permission is checked and User Permission is defined for a DocType for a User, then all the documents where value of the link is blank, will not be shown to that User","Als Strikt Gebruiker Toestemming is aangevinkt en Gebruikers Toestemming is gedefinieerd voor een DocType voor een gebruiker, worden alle documenten waar de waarde van de link leeg is, niet getoond aan die gebruiker"
@@ -1138,7 +1138,7 @@ DocType: User,Middle Name (Optional),Tussenvoegsel (optioneel)
 apps/frappe/frappe/public/js/frappe/request.js +120,Not Permitted,Niet toegestaan
 apps/frappe/frappe/public/js/frappe/ui/field_group.js +98,Following fields have missing values:,Volgende gebieden ontbrekende waarden:
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py +29,First Transaction,Eerste transactie
-apps/frappe/frappe/app.py +157,You do not have enough permissions to complete the action,Je hebt niet genoeg rechten om de actie te voltooien
+apps/frappe/frappe/app.py +158,You do not have enough permissions to complete the action,Je hebt niet genoeg rechten om de actie te voltooien
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +103,No Results,geen resultaten
 DocType: System Settings,Security,Beveiliging
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +54,Scheduled to send to {0} recipients,Gepland om te sturen naar {0} ontvangers
@@ -1174,7 +1174,7 @@ DocType: Page,Icon,pictogram
 apps/frappe/frappe/core/doctype/user/user.py +934,"Hint: Include symbols, numbers and capital letters in the password","Hint: Inclusief symbolen, cijfers en hoofdletters in het wachtwoord"
 apps/frappe/frappe/core/doctype/user/user.py +934,"Hint: Include symbols, numbers and capital letters in the password","Hint: Inclusief symbolen, cijfers en hoofdletters in het wachtwoord"
 DocType: DocField,Allow in Quick Entry,Toestaan bij snel invoeren
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +832,PDF,PDF
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +895,PDF,PDF
 DocType: System Settings,dd/mm/yyyy,dd/mm/jjjj
 apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.js +32,GSuite script test,GSuite script test
 DocType: System Settings,Backups,Backups
@@ -1191,12 +1191,12 @@ apps/frappe/frappe/model/workflow.py +73,Not a valid Workflow Action,Geen geldig
 DocType: Footer Item,Target,Doel
 DocType: System Settings,Number of Backups,Aantal Backups
 DocType: Website Settings,Copyright,Copyright
-apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +59,Go,Gaan
+apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +52,Go,Gaan
 DocType: OAuth Authorization Code,Invalid,Ongeldig
 DocType: ToDo,Due Date,Vervaldatum
 apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +145,Quarter Day,Quarter Day
 DocType: Website Settings,Hide Footer Signup,Verberg Footer Inschrijven
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +512,cancelled this document,geannuleerd dit document
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +520,cancelled this document,geannuleerd dit document
 apps/frappe/frappe/core/doctype/report/report.js +16,Write a Python file in the same folder where this is saved and return column and result.,Schrijf een Python bestand in dezelfde map waarin deze is opgeslagen en geef kolom en resultaat.
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js +31,Add to table,Voeg toe aan tabel
 DocType: DocType,Sort Field,Sorteren Veld
@@ -1221,7 +1221,7 @@ apps/frappe/frappe/www/login.html +72,Sign up,Aanmelden
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +188,Row {0}: Not allowed to disable Mandatory for standard fields,Rij {0}: niet toegestaan verplicht voor standaardvelden uitschakelen
 DocType: Test Runner,Output,uitgang
 DocType: Notification,Set Property After Alert,Eigenschap instellen na alarmering
-apps/frappe/frappe/config/setup.py +243,Add fields to forms.,Voeg velden toe aan formulieren
+apps/frappe/frappe/config/setup.py +248,Add fields to forms.,Voeg velden toe aan formulieren
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +173,Looks like something is wrong with this site's Paypal configuration.,Het lijkt erop dat er iets mis is met de Paypal-configuratie van deze site.
 DocType: File,rgt,RGT
 DocType: Email Account,Sendgrid,SendGrid
@@ -1289,8 +1289,8 @@ apps/frappe/frappe/model/naming.py +210,Name of {0} cannot be {1},Naam van {0} k
 apps/frappe/frappe/core/report/feedback_ratings/feedback_ratings.js +33,From Date,Van Datum
 apps/frappe/frappe/core/doctype/version/version_view.html +47,Success,Succes
 apps/frappe/frappe/public/js/frappe/feedback.js +95,Feedback Request for {0} is sent to {1},Terugkoppeling Verzoek om {0} wordt verzonden naar {1}
-apps/frappe/frappe/public/js/frappe/desk.js +397,Session Expired,Sessie verlopen
-apps/frappe/frappe/public/js/frappe/desk.js +397,Session Expired,Sessie verlopen
+apps/frappe/frappe/public/js/frappe/desk.js +402,Session Expired,Sessie verlopen
+apps/frappe/frappe/public/js/frappe/desk.js +402,Session Expired,Sessie verlopen
 DocType: Kanban Board Column,Kanban Board Column,Kanban Board Column
 apps/frappe/frappe/utils/password_strength.py +98,Straight rows of keys are easy to guess,Rechte rijen van de toetsen zijn makkelijk te raden
 DocType: Communication,Phone No.,Telefoonnummer
@@ -1305,11 +1305,11 @@ DocType: Print Format,Custom HTML Help,Aangepaste HTML Help
 apps/frappe/frappe/website/doctype/contact_us_settings/contact_us_settings.js +3,See on Website,Zie op de website
 DocType: Workflow Transition,Next State,Volgend Stadium
 DocType: User,Block Modules,Block Modules
-apps/frappe/frappe/model/db_schema.py +152,Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.,Terugdraaien lengte {0} voor &#39;{1}&#39; in &#39;{2}&#39;; Het instellen van de lengte als {3} zal afkappen van gegevens veroorzaken.
+apps/frappe/frappe/model/db_schema.py +153,Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.,Terugdraaien lengte {0} voor &#39;{1}&#39; in &#39;{2}&#39;; Het instellen van de lengte als {3} zal afkappen van gegevens veroorzaken.
 DocType: Print Format,Custom CSS,Aangepaste CSS
 apps/frappe/frappe/public/js/frappe/form/controls/comment.js +11,Add a comment,Voeg een reactie toe
 DocType: Webhook,on_update,on_update
-apps/frappe/frappe/model/rename_doc.py +428,Ignored: {0} to {1},Genegeerd: {0} tot {1}
+apps/frappe/frappe/model/rename_doc.py +429,Ignored: {0} to {1},Genegeerd: {0} tot {1}
 DocType: Address,Gujarat,Gujarat
 apps/frappe/frappe/config/setup.py +82,Log of error on automated events (scheduler).,Log van fout op geautomatiseerde evenementen ( scheduler ) .
 apps/frappe/frappe/utils/csvutils.py +82,Not a valid Comma Separated Value (CSV File),Geen geldige waarde ( CSV-file )
@@ -1348,10 +1348,10 @@ DocType: Print Settings,PDF Page Size,PDF-paginaformaat
 DocType: Data Import,Attach file for Import,Bestand bijvoegen voor importeren
 DocType: Communication,Recipient Unsubscribed,Ontvanger Uitgeschreven
 DocType: Feedback Request,Is Sent,Is verstuurd
-apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +69,About,Over
+apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +62,About,Over
 apps/frappe/frappe/core/doctype/data_import/exporter.py +68,"For updating, you can update only selective columns.","Voor het bijwerken, kunt u alleen selectieve kolommen te werken."
 DocType: Chat Token,Country,Land
-apps/frappe/frappe/contacts/doctype/address/address.py +136,Addresses,Adressen
+apps/frappe/frappe/contacts/doctype/address/address.py +137,Addresses,Adressen
 DocType: Communication,Shared,gedeelde
 apps/frappe/frappe/public/js/frappe/views/communication.js +95,Attach Document Print,Bevestig Document Print
 DocType: Bulk Update,Field,Veld
@@ -1379,7 +1379,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +54,"%s 
 				one of the following %s",%s is geen geldig rapport formaat. Rapport formaat moet \ een van de volgende %s
 DocType: Chat Message,Chat,Chat
 apps/frappe/frappe/core/doctype/doctype/doctype.py +511,Fieldname {0} appears multiple times in rows {1},Veldnaam {0} verschijnt meerdere keren in rijen {1}
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +551,{0} from {1} to {2} in row #{3},{0} van {1} tot {2} in rij # {3}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +559,{0} from {1} to {2} in row #{3},{0} van {1} tot {2} in rij # {3}
 DocType: Communication,Expired,Verlopen
 apps/frappe/frappe/templates/pages/integrations/razorpay_checkout.py +34,Seems token you are using is invalid!,Het lijkt erop dat het token dat u gebruikt ongeldig is!
 DocType: Customize Form Field,Number of columns for a field in a Grid (Total Columns in a grid should be less than 11),Aantal kolommen voor een veld in een raster (Total kolommen in een raster moet minder dan 11 zijn)
@@ -1409,7 +1409,6 @@ DocType: Social Login Key,Social Login Provider,Social Login Provider
 apps/frappe/frappe/templates/includes/comments/comments.html +119,Add Another Comment,Nog een reactie toevoegen
 apps/frappe/frappe/core/doctype/data_import/importer.py +81,No data found in the file. Please reattach the new file with data.,Geen gegevens gevonden in het bestand. Maak het nieuwe bestand opnieuw vast met gegevens.
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +179,Edit DocType,bewerken DocType
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +160,Unsubscribed from Newsletter,Afgemeld Nieuwsbrief
 apps/frappe/frappe/core/doctype/doctype/doctype.py +602,Fold must come before a Section Break,Vouw moet voor een sectie Break komen
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +13,Under Development,In ontwikkeling
 apps/frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py +25,Go to the document,Ga naar het document
@@ -1431,7 +1430,7 @@ DocType: Kanban Board Column,Red,Rood
 DocType: Workflow State,Tag,Tag
 DocType: Custom Script,Script,Script
 apps/frappe/frappe/core/doctype/data_import/log_details.html +30,Document can't saved.,Document kan niet worden opgeslagen.
-apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +35,My Settings,Mijn instellingen
+apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +28,My Settings,Mijn instellingen
 DocType: Website Theme,Text Color,Tekst Kleur
 apps/frappe/frappe/desk/page/backups/backups.py +72,Backup job is already queued. You will receive an email with the download link,Backup-taak is al in de rij. U ontvangt een email met de downloadlink
 DocType: Desktop Icon,Force Show,Force Show
@@ -1460,15 +1459,16 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +774,{0}: No basic permission
 apps/frappe/frappe/limits.py +80,Your subscription will expire on {0}.,Uw abonnement verloopt op {0}.
 apps/frappe/frappe/utils/backups.py +166,Download link for your backup will be emailed on the following email address: {0},Download link voor uw back-up zal worden gemaild op het volgende e-mailadres: {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","Betekenis van Indienen, Annuleren, Wijzigen"
-apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,Actie
+apps/frappe/frappe/desk/doctype/todo/todo_list.js +9,To Do,Actie
 DocType: Test Runner,Module Path,Module Pad
 DocType: Social Login Key,Identity Details,Identiteitsdetails
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +671,Then By (optional),Vervolgens op (optioneel)
 apps/frappe/frappe/desk/form/assign_to.py +197,New Message,Nieuw bericht
 DocType: File,Preview HTML,Preview HTML
 DocType: Desktop Icon,query-report,vraag-rapport
+apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +101,Filters saved,filters gered
 DocType: DocField,Percent,Percentage
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +602,Please set filters,Stel filters
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +660,Please set filters,Stel filters
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +28,Linked With,Linked Met
 apps/frappe/frappe/templates/emails/auto_email_report.html +53,Edit Auto Email Report Settings,Bewerk instellingen voor automatische e-mailberichten
 DocType: Chat Room,Message Count,Aantal berichten
@@ -1479,7 +1479,7 @@ apps/frappe/frappe/public/js/frappe/form/script_manager.js +163,Error in Custom 
 apps/frappe/frappe/public/js/frappe/form/quick_entry.js +90,{0} Name,{0} Naam
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js +171,No Permissions set for this criteria.,Geen Machtigingen ingesteld voor deze criteria.
 DocType: Auto Email Report,Auto Email Report,Auto Email Report
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +655,Delete comment?,Reactie verwijderen?
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +663,Delete comment?,Reactie verwijderen?
 DocType: Address Template,This format is used if country specific format is not found,Dit formaat wordt gebruikt als landspecifiek formaat niet kan worden gevonden
 DocType: System Settings,Allow Login using Mobile Number,Log in met Mobielnummer
 apps/frappe/frappe/public/js/frappe/request.js +137,You do not have enough permissions to access this resource. Please contact your manager to get access.,Je hoeft niet voldoende rechten om deze bron te hebben. Neem contact op met uw manager om toegang te krijgen.
@@ -1498,7 +1498,7 @@ DocType: DocPerm,DocPerm,DocPerm
 DocType: Print Settings,Fonts,Fonts
 apps/frappe/frappe/core/doctype/doctype/doctype.py +569,Precision should be between 1 and 6,Precision moet tussen 1 en 6
 apps/frappe/frappe/core/doctype/communication/communication.js +190,Fw: {0},Fw: {0}
-apps/frappe/frappe/public/js/frappe/misc/utils.js +165,and,en
+apps/frappe/frappe/public/js/frappe/misc/utils.js +174,and,en
 apps/frappe/frappe/templates/emails/auto_email_report.html +47,This report was generated on {0},Dit rapport is gegenereerd op {0}
 DocType: Error Snapshot,Frames,Frames
 apps/frappe/frappe/patches/v6_19/comment_feed_communication.py +131,Assignment,toewijzing
@@ -1534,11 +1534,11 @@ DocType: Data Import,Generated File,Gegenereerd bestand
 DocType: Transaction Log,Previous Hash,Vorige hasj
 DocType: File,Is Attachments Folder,Is Attachments Folder
 apps/frappe/frappe/public/js/frappe/views/treeview.js +75,Expand All,Alles uitvouwen
-apps/frappe/frappe/public/js/frappe/chat.js +2167,Select a chat to start messaging.,Selecteer een chat om berichten te verzenden.
+apps/frappe/frappe/public/js/frappe/chat.js +2171,Select a chat to start messaging.,Selecteer een chat om berichten te verzenden.
 apps/frappe/frappe/public/js/frappe/form/controls/table.js +85,Processing,Verwerken
 apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.js +20,Please select Entity Type first,Selecteer eerst entiteitstype
 apps/frappe/frappe/templates/includes/login/login.js +52,Valid Login id required.,Geldige login vereist.
-apps/frappe/frappe/model/rename_doc.py +412,Please select a valid csv file with data,Selecteer een geldig CSV-bestand met gegevens
+apps/frappe/frappe/model/rename_doc.py +413,Please select a valid csv file with data,Selecteer een geldig CSV-bestand met gegevens
 apps/frappe/frappe/core/doctype/docshare/docshare.py +56,{0} un-shared this document with {1},{0} maakte de deling van dit document met {1} ongedaan
 DocType: DocType,"Make ""name"" searchable in Global Search",Maak &quot;naam&quot; doorzoekbaar in Global Search
 apps/frappe/frappe/core/doctype/version/version_view.html +74,Row # ,Rij #
@@ -1643,7 +1643,6 @@ DocType: DocShare,DocShare,DocShare
 DocType: Event,Friday,Vrijdag
 apps/frappe/frappe/public/js/frappe/form/quick_entry.js +216,Edit in full page,Bewerken in volledige pagina
 DocType: Report,Add Total Row,Voeg Totaal Rij toe
-apps/frappe/frappe/public/js/frappe/form/controls/html_editor.js +24,No Preview available,Geen voorbeeld beschikbaar
 apps/frappe/frappe/twofactor.py +210,Please check your registered email address for instructions on how to proceed. Do not close this window as you will have to return to it.,"Controleer alstublieft uw geregistreerde e-mailadres voor instructies over hoe u doorgaat. Sluit dit venster niet aan, daar moet je terugkeren."
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +19,For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,Bijvoorbeeld als u annuleert en INV004 amenderen zal een nieuw document INV004-1 geworden. Dit helpt u om bij te houden van elke wijziging te houden.
 apps/frappe/frappe/core/doctype/data_export/data_export.js +40,Atleast one field of Parent Document Type is mandatory,Ten minste één veld van bovenliggend documenttype is verplicht
@@ -1684,7 +1683,7 @@ DocType: Error Snapshot,Error Snapshot,Fout Snapshot
 DocType: Data Migration Mapping,Remote Primary Key,Primaire sleutel op afstand
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js +512,In,in
 DocType: Notification,Value Change,Waarde Veranderen
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +363,Showing only Numeric fields from Report,Alleen Numerieke velden uit rapport weergeven
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +409,Showing only Numeric fields from Report,Alleen Numerieke velden uit rapport weergeven
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +235,Width of the input box,Breedte van het invoerveld
 DocType: Address,Subsidiary,Dochteronderneming
 DocType: System Settings,In Hours,In Hours
@@ -1709,7 +1708,7 @@ apps/frappe/frappe/data_migration/doctype/data_migration_run/data_migration_run.
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +124,Please set filters value in Report Filter table.,Stel filters waarde in Report Filter tabel.
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +284,Loading Report,Laden Rapport
 apps/frappe/frappe/limits.py +74,Your subscription will expire today.,Uw abonnement wordt vandaag vervallen.
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1055,Export All {0} rows?,Alle {0} rijen exporteren?
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1099,Export All {0} rows?,Alle {0} rijen exporteren?
 DocType: Page,Standard,Standaard
 apps/frappe/frappe/core/doctype/data_import/data_import.js +43,Attach File,Bijlage
 DocType: Data Migration Plan,Preprocess Method,Preprocess-methode
@@ -1743,7 +1742,7 @@ apps/frappe/frappe/integrations/doctype/google_maps_settings/google_maps_setting
 apps/frappe/frappe/core/doctype/communication/email.py +151,Leave this conversation,Laat dit gesprek
 apps/frappe/frappe/model/base_document.py +444,Options not set for link field {0},Opties niet ingesteld voor link veld {0}
 DocType: Customize Form,"Must be of type ""Attach Image""",Moet van het type zijn &quot;Attach Image&quot;
-apps/frappe/frappe/core/doctype/data_import/data_import.js +213,Unselect All,Selectie ongedaan maken
+apps/frappe/frappe/core/doctype/data_import/data_import.js +220,Unselect All,Selectie ongedaan maken
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +208,You cannot unset 'Read Only' for field {0},Je kan  'Alleen lezen' niet uitschakelen voor het veld {0}
 DocType: Auto Email Report,Zero means send records updated at anytime,Nul betekent dat u op elk gewenst moment de gegevens bijwerkt
 DocType: Auto Email Report,Zero means send records updated at anytime,Nul betekent dat u op elk gewenst moment de gegevens bijwerkt
@@ -1759,7 +1758,6 @@ apps/frappe/frappe/templates/includes/login/login.js +191,Not Allowed: Disabled 
 DocType: Social Login Key,Google,Google
 DocType: Email Domain,Example Email Address,Voorbeeld E-mailadres
 apps/frappe/frappe/public/js/frappe/ui/sort_selector.js +182,Most Used,Meest gebruikt
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +156,Unsubscribe from Newsletter,Afmelden voor nieuwsbrief
 apps/frappe/frappe/www/login.html +84,Forgot Password,Wachtwoord vergeten
 DocType: Dropbox Settings,Backup Frequency,Backup Frequentie
 DocType: Workflow State,Inverse,Omgekeerde
@@ -1794,7 +1792,7 @@ DocType: S3 Backup Settings,None,Geen
 apps/frappe/frappe/core/doctype/doctype/doctype.py +671,Timeline field must be a valid fieldname,Timeline veld moet een geldige veldnaam te zijn
 DocType: GCalendar Account,Session Token,Session Token
 DocType: Currency,Symbol,Symbool
-apps/frappe/frappe/model/base_document.py +514,Row #{0}:,Rij # {0}:
+apps/frappe/frappe/model/base_document.py +515,Row #{0}:,Rij # {0}:
 apps/frappe/frappe/core/doctype/user/user.py +157,New password emailed,Nieuw wachtwoord verstuurd
 apps/frappe/frappe/auth.py +286,Login not allowed at this time,Inloggen niet toegestaan op dit moment
 DocType: Data Migration Run,Current Mapping Action,Huidige toewijzingsactie
@@ -1810,7 +1808,7 @@ apps/frappe/frappe/desk/form/assign_to.py +49,Already in user's To Do list,Reeds
 DocType: User Email,Enable Outgoing,Inschakelen Uitgaand
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +4,This could be because of some invalid Email Addresses in the,Dit kan zijn door sommige ongeldige e-mailadressen in de
 DocType: Address,Fax,Fax
-apps/frappe/frappe/config/setup.py +263,Custom Tags,Custom Tags
+apps/frappe/frappe/config/setup.py +268,Custom Tags,Custom Tags
 DocType: Communication,Submitted,Ingediend
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +399,In Valid Request,Ongeldig verzoek
 DocType: System Settings,Email Footer Address,Email Footer Adres
@@ -1840,7 +1838,7 @@ apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.js +9,Show Relapse
 apps/frappe/frappe/core/doctype/communication/communication.js +253,Email has been moved to trash,E-mail is verplaatst naar de prullenbak
 DocType: Report,Report Builder,Rapport Bouwer
 DocType: Async Task,Task Name,Taaknaam
-apps/frappe/frappe/app.py +151,"Your session has expired, please login again to continue.","Uw sessie is verlopen, log opnieuw in om door te gaan."
+apps/frappe/frappe/app.py +152,"Your session has expired, please login again to continue.","Uw sessie is verlopen, log opnieuw in om door te gaan."
 apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py +362,Invalid Subscription,Ongeldig abonnement
 DocType: Communication,Workflow,Workflow
 DocType: Website Settings,Welcome Message,Welkoms bericht
@@ -1849,7 +1847,7 @@ DocType: Workflow State,Upload,uploaden
 DocType: User Permission,Advanced Control,Geavanceerde besturing
 DocType: System Settings,Date Format,Datumnotatie
 apps/frappe/frappe/website/doctype/blog_post/blog_post_list.js +7,Not Published,Niet gepubliceerd
-apps/frappe/frappe/config/setup.py +226,"Actions for workflow (e.g. Approve, Cancel).","Acties voor workflow ( bijv. goedkeuren , Annuleren) ."
+apps/frappe/frappe/config/setup.py +231,"Actions for workflow (e.g. Approve, Cancel).","Acties voor workflow ( bijv. goedkeuren , Annuleren) ."
 DocType: Data Import,Skip rows with errors,Sla rijen met fouten over
 DocType: Workflow State,flag,vlag
 apps/frappe/frappe/core/doctype/feedback_trigger/feedback_trigger.py +57,Feedback Request is already sent to user,Feedback Vraag is al verstuurd naar gebruiker
@@ -1898,7 +1896,7 @@ apps/frappe/frappe/templates/emails/feedback_request_url.html +8,1 star being lo
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html +35,john@doe.com,john@doe.com
 DocType: Web Page,Center,Centreren
 DocType: Notification,Value To Be Set,Waarde om te worden ingesteld
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +484,Edit {0},Bewerk {0}
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +530,Edit {0},Bewerk {0}
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js +11,First Level,Eerste Niveau
 DocType: Workflow Document State,Represents the states allowed in one document and role assigned to change the state.,Vertegenwoordigt de staten toegestaan in één document en de rol toegewezen aan de staat te veranderen.
 DocType: Data Migration Connector,Database Name,Database naam
@@ -1907,7 +1905,7 @@ DocType: DocField,Select,Kiezen
 apps/frappe/frappe/utils/csvutils.py +29,File not attached,Bestand niet bijgevoegd
 apps/frappe/frappe/public/js/frappe/dom.js +329,Connection lost. Some features might not work.,Verbinding verbroken. Sommige functies werken mogelijk niet.
 apps/frappe/frappe/utils/password_strength.py +115,"Repeats like ""aaa"" are easy to guess",Herhalingen als &quot;aaa&quot; zijn makkelijk te raden
-apps/frappe/frappe/public/js/frappe/chat.js +1603,New Chat,Nieuw gesprek
+apps/frappe/frappe/public/js/frappe/chat.js +1607,New Chat,Nieuw gesprek
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.","Als u dit instelt , zal deze post in een drop -down onder de gekozen basismotor ."
 DocType: Print Format,Show Section Headings,Show koppen
 DocType: Bulk Update,Limit,Begrenzing
@@ -1922,12 +1920,12 @@ DocType: DocType,Has Web View,Heeft Webweergave
 apps/frappe/frappe/core/doctype/doctype/doctype.py +478,"DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores","naam DocType zou moeten beginnen met een letter en het kan alleen bestaan uit letters, cijfers, spaties en underscores"
 DocType: Communication,Spam,Spam
 DocType: Integration Request,Integration Request,integratie Request
-apps/frappe/frappe/public/js/frappe/views/communication.js +640,Dear,Geachte
+apps/frappe/frappe/public/js/frappe/views/communication.js +637,Dear,Geachte
 DocType: Address,Maharashtra,Maharashtra
 DocType: Address,Accounts User,Gebruikersaccounts
 DocType: Web Page,HTML for header section. Optional,HTML voor header sectie . facultatief
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +13,This feature is brand new and still experimental,Deze functie is nieuw en nog steeds experimenteel
-apps/frappe/frappe/model/rename_doc.py +417,Maximum {0} rows allowed,Maximum {0} rijen toegestaan
+apps/frappe/frappe/model/rename_doc.py +418,Maximum {0} rows allowed,Maximum {0} rijen toegestaan
 DocType: Email Unsubscribe,Global Unsubscribe,Global Afmelden
 apps/frappe/frappe/utils/password_strength.py +177,This is a very common password.,Dit is een veel voorkomende wachtwoord.
 apps/frappe/frappe/email/doctype/email_group/email_group.js +9,View,Uitzicht
@@ -1935,9 +1933,9 @@ DocType: Communication,Assigned,toegewezen
 DocType: Print Format,Js,Js
 apps/frappe/frappe/public/js/frappe/views/communication.js +97,Select Print Format,Selecteer Print Formaat
 apps/frappe/frappe/utils/password_strength.py +90,Short keyboard patterns are easy to guess,Kort toetsenbord patronen zijn makkelijk te raden
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +310,Generate New Report,Genereer nieuw rapport
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +342,Generate New Report,Genereer nieuw rapport
 DocType: Portal Settings,Portal Menu,portal Menu
-apps/frappe/frappe/model/db_schema.py +123,Length of {0} should be between 1 and 1000,Lengte van {0} moet tussen 1 en 1000
+apps/frappe/frappe/model/db_schema.py +124,Length of {0} should be between 1 and 1000,Lengte van {0} moet tussen 1 en 1000
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js +360,Search for anything,Zoeken naar iets
 DocType: Data Migration Connector,Hostname,hostname
 DocType: Data Migration Mapping,Condition Detail,Conditiedetail
@@ -1949,7 +1947,7 @@ DocType: Web Page,Style,Stijl
 DocType: Prepared Report,Report End Time,Eindtijd melden
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,e.g.:,bijvoorbeeld:
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py +80,{0} comments,{0} opmerkingen
-apps/frappe/frappe/public/js/frappe/desk.js +96,Version Updated,Versie bijgewerkt
+apps/frappe/frappe/public/js/frappe/desk.js +101,Version Updated,Versie bijgewerkt
 DocType: Customize Form Field,Label and Type,Label en Type
 DocType: Workflow State,forward,vooruit
 apps/frappe/frappe/public/js/frappe/form/form_sidebar.js +59,{0} edited this {1},{0} bewerkt deze {1}
@@ -1961,10 +1959,10 @@ DocType: Website Settings,Sub-domain provided by erpnext.com,Subdomein aangeleve
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +270,Setting up your system,Uw systeem instellen
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +21,Descendants Of,Nakomelingen van
 DocType: System Settings,dd-mm-yyyy,dd-mm-jjjj
-apps/frappe/frappe/desk/query_report.py +159,Must have report permission to access this report.,"Moet rapport toestemming hebben, om toegang tot dit rapport te krijgen."
+apps/frappe/frappe/desk/query_report.py +162,Must have report permission to access this report.,"Moet rapport toestemming hebben, om toegang tot dit rapport te krijgen."
 apps/frappe/frappe/core/doctype/system_settings/system_settings.py +19,Please select Minimum Password Score,Selecteer alstublieft de minimum wachtwoordcijfer
 apps/frappe/frappe/core/doctype/system_settings/system_settings.py +19,Please select Minimum Password Score,Selecteer alstublieft de minimum wachtwoordcijfer
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +571,Added,Toegevoegd
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +579,Added,Toegevoegd
 apps/frappe/frappe/core/page/usage_info/usage_info.html +7,You have subscribed for one user free plan,U heeft zich aangemeld voor één gebruikersvrij abonnement
 DocType: Auto Repeat,Half-yearly,Halfjaarlijks
 apps/frappe/frappe/templates/emails/upcoming_events.html +8,Daily Event Digest is sent for Calendar Events where reminders are set.,Dagelijkse gebeurtenis Digest wordt gestuurd voor Agenda Events waar herinneringen worden ingesteld.
@@ -1974,8 +1972,8 @@ DocType: Web Form,Message to be displayed on successful completion (only for Gue
 DocType: Workflow State,remove,Verwijderen
 DocType: Email Domain,If non standard port (e.g. 587),Als niet-standaard poort (bijv. 587)
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +153,Reload,Herladen
-apps/frappe/frappe/config/setup.py +265,Add your own Tag Categories,Voeg je eigen Tag Categorieën
-apps/frappe/frappe/desk/query_report.py +322,Total,Totaal
+apps/frappe/frappe/config/setup.py +270,Add your own Tag Categories,Voeg je eigen Tag Categorieën
+apps/frappe/frappe/desk/query_report.py +331,Total,Totaal
 DocType: Event,Participants,Deelnemers
 DocType: Integration Request,Reference DocName,Referentie DocName
 DocType: Web Form,Success Message,Succes Bericht
@@ -1990,7 +1988,7 @@ apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +422,Will be your logi
 ,Lead Conversion Time,Lead Conversion Time
 apps/frappe/frappe/desk/page/activity/activity.js +45,Build Report,Maak Rapport
 DocType: Note,Notify users with a popup when they log in,Houd gebruikers met een pop-up wanneer deze zich aanmeldt
-apps/frappe/frappe/model/rename_doc.py +154,"{0} {1} does not exist, select a new target to merge","{0} {1} bestaat niet, kies een nieuw doel om samen te voegen"
+apps/frappe/frappe/model/rename_doc.py +155,"{0} {1} does not exist, select a new target to merge","{0} {1} bestaat niet, kies een nieuw doel om samen te voegen"
 DocType: Data Migration Connector,Python Module,Python-module
 DocType: GSuite Settings,Google Credentials,Google-referenties
 apps/frappe/frappe/www/qrcode.html +6,QR Code for Login Verification,QR-code voor inloggen verificatie
@@ -2028,7 +2026,7 @@ DocType: Data Migration Connector,Authentication Credentials,Verificatiegegevens
 DocType: Role,Two Factor Authentication,Twee Factor Authentication
 apps/frappe/frappe/templates/pages/integrations/braintree_checkout.html +29,Pay,Betalen
 DocType: SMS Settings,SMS Gateway URL,SMS Gateway URL
-apps/frappe/frappe/model/base_document.py +518,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} kan niet ""{2}"" worden. Het moet één zijn van ""{3}"""
+apps/frappe/frappe/model/base_document.py +519,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} kan niet ""{2}"" worden. Het moet één zijn van ""{3}"""
 apps/frappe/frappe/utils/data.py +654,{0} or {1},{0} of {1}
 apps/frappe/frappe/core/doctype/user/user.py +249,Password Update,Wachtwoord bijwerken
 DocType: Workflow State,trash,prullenbak
@@ -2037,7 +2035,7 @@ apps/frappe/frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.py
 DocType: Post,Is Globally Pinned,Is wereldwijd gepind
 DocType: Workflow Transition,Conditions,Voorwaarden
 DocType: Event,Leave blank to repeat always,Laat leeg om altijd te herhalen
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +218,Confirmed,Bevestigd
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +198,Confirmed,Bevestigd
 DocType: Event,Ends on,Eindigt op
 DocType: Payment Gateway,Gateway,Poort
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +104,Not enough permission to see links,Niet genoeg toestemming om links te zien
@@ -2099,7 +2097,7 @@ DocType: Workflow State,pencil,potlood
 apps/frappe/frappe/config/desk.py +32,Chat messages and other notifications.,Chatberichten en andere meldingen.
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +84,Insert After cannot be set as {0},Steek Na kan niet worden ingesteld als {0}
 apps/frappe/frappe/public/js/frappe/form/share.js +57,Share {0} with,Delen {0} met
-apps/frappe/frappe/public/js/frappe/desk.js +139,Email Account setup please enter your password for: ,Email Account setup geef je je wachtwoord in te voeren:
+apps/frappe/frappe/public/js/frappe/desk.js +144,Email Account setup please enter your password for: ,Email Account setup geef je je wachtwoord in te voeren:
 DocType: Workflow State,hand-up,hand-op
 DocType: Blog Settings,Writers Introduction,Schrijvers Introductie
 DocType: Address,Phone,Telefoon
@@ -2154,14 +2152,14 @@ apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +788,"Ignoring 
 apps/frappe/frappe/core/doctype/data_import/data_import.js +67,Help,Help
 DocType: User,Login Before,Login Voor
 DocType: Web Page,Insert Style,Stijl invoegen
-apps/frappe/frappe/config/setup.py +276,Application Installer,Application Installer
+apps/frappe/frappe/config/setup.py +281,Application Installer,Application Installer
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +788,New Report name,Nieuwe naam Report
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +150,Hide Weekends,Weekends verbergen
 DocType: Workflow State,info-sign,info-teken
 apps/frappe/frappe/model/base_document.py +226,Value for {0} cannot be a list,Waar voor {0} kan geen lijst worden
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults","Hoe moet deze valuta worden geformatteerd? Indien niet ingesteld, dan zal gebruik gemaakt wroden van de systeem standaard"
-apps/frappe/frappe/public/js/frappe/list/list_view.js +1070,Submit {0} documents?,{0} documenten verzenden?
-apps/frappe/frappe/utils/response.py +142,You need to be logged in and have System Manager Role to be able to access backups.,U moet ingelogd zijn en de  System Manager Rol hebben om toegang te krijgen tot back-ups.
+apps/frappe/frappe/public/js/frappe/list/list_view.js +1093,Submit {0} documents?,{0} documenten verzenden?
+apps/frappe/frappe/utils/response.py +151,You need to be logged in and have System Manager Role to be able to access backups.,U moet ingelogd zijn en de  System Manager Rol hebben om toegang te krijgen tot back-ups.
 apps/frappe/frappe/public/js/legacy/form.js +136,Please save before attaching.,Gelieve opslaan voordat het bevestigen.
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +125,Added {0} ({1}),Toegevoegd {0} ({1})
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js +20,Default theme is set in {0},Standaardthema bevindt zich in {0}
@@ -2172,7 +2170,7 @@ apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py +20,Cancell
 DocType: Data Migration Run,Start Time,Starttijd
 apps/frappe/frappe/model/delete_doc.py +259,Cannot delete or cancel because {0} {1} is linked with {2} {3} {4},Kan niet verwijderen of annuleren omdat {0} {1} is gekoppeld aan {2} {3} {4}
 apps/frappe/frappe/public/js/frappe/form/templates/set_sharing.html +5,Can Read,Kan lezen
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +308,{0} Chart,{0} Grafiek
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +354,{0} Chart,{0} Grafiek
 DocType: Custom Role,Response,Antwoord
 DocType: DocField,Geolocation,Geolocation
 DocType: Workflow,Emails will be sent with next possible workflow actions,E-mails worden verzonden met de volgende mogelijke workflow-acties
@@ -2196,7 +2194,7 @@ DocType: Social Login Key,Provider Name,Provider naam
 apps/frappe/frappe/public/js/frappe/form/controls/link.js +172,Create a new {0},Maak een nieuwe {0}
 DocType: GCalendar Account,GCalendar Account,GCalendar Account
 DocType: Email Rule,Is Spam,is Spam
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +193,Report {0},Report {0}
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +197,Report {0},Report {0}
 apps/frappe/frappe/public/js/frappe/form/templates/form_links.html +13,Open {0},Open {0}
 DocType: OAuth Client,Default Redirect URI,Standaard Redirect URI
 DocType: Auto Repeat,Recipients,Ontvangers
@@ -2231,7 +2229,7 @@ DocType: User,Location,Locatie
 apps/frappe/frappe/core/doctype/docshare/docshare.py +40,"You need to have ""Share"" permission","U hebt de ""Delen"" machtiging nodig."
 DocType: Communication,Assignment Completed,opdracht voltooid
 apps/frappe/frappe/public/js/frappe/form/grid.js +692,Bulk Edit {0},Bulk Bewerken {0}
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +293,Download Report,Rapport downloaden
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +316,Download Report,Rapport downloaden
 apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js +7,Not active,Niet actief
 DocType: About Us Settings,Settings for the About Us Page,Instellingen voor de pagina Over ons
 apps/frappe/frappe/config/integrations.py +28,Stripe payment gateway settings,Strip-gateway instellingen
@@ -2283,9 +2281,9 @@ DocType: Contact,All,Alle
 DocType: Email Queue,Recipient,Ontvanger
 DocType: Communication,Has  Attachment,Heeft bijlage
 DocType: Address,Sales User,Sales Gebruiker
-apps/frappe/frappe/config/setup.py +190,Drag and Drop tool to build and customize Print Formats.,Drag and Drop tool om op te bouwen en aan te passen Print Formaten.
+apps/frappe/frappe/config/setup.py +195,Drag and Drop tool to build and customize Print Formats.,Drag and Drop tool om op te bouwen en aan te passen Print Formaten.
 DocType: Address,Sikkim,Sikkim
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +107,Set Chart,Grafiek instellen
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +116,Set Chart,Grafiek instellen
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +142,Set,Instellen
 apps/frappe/frappe/desk/search.py +84,This query style is discontinued,Deze zoekopdrachtstijl is beëindigd
 DocType: Notification,Trigger Method,Trigger Methode
@@ -2314,7 +2312,7 @@ apps/frappe/frappe/utils/password_strength.py +173,This is a top-10 common passw
 DocType: User,User Defaults,Gebruiker Standaardwaarden
 apps/frappe/frappe/public/js/frappe/views/treeview.js +253,Create New,Maak nieuw
 DocType: Workflow State,chevron-down,chevron-down
-apps/frappe/frappe/public/js/frappe/views/communication.js +569,Email not sent to {0} (unsubscribed / disabled),Geen e-mail verstuurd naar {0} (uitgeschreven / uitgeschakeld)
+apps/frappe/frappe/public/js/frappe/views/communication.js +571,Email not sent to {0} (unsubscribed / disabled),Geen e-mail verstuurd naar {0} (uitgeschreven / uitgeschakeld)
 DocType: Async Task,Traceback,Herleiden
 DocType: Currency,Smallest Currency Fraction Value,Kleinste Valuta fractiewaarde
 apps/frappe/frappe/public/js/frappe/form/footer/assign_to.js +137,Assign To,Toewijzen aan
@@ -2325,12 +2323,12 @@ DocType: User,Restrict user from this IP address only. Multiple IP addresses can
 DocType: Communication,From,Van
 DocType: Website Theme,Google Font (Heading),Google Font (Hoofding)
 apps/frappe/frappe/public/js/frappe/views/treeview.js +234,Select a group node first.,Selecteer eerst een groep knooppunt.
-apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +232,Find {0} in {1},Zoek {0} van {1}
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +233,Find {0} in {1},Zoek {0} van {1}
 DocType: OAuth Client,Implicit,stilzwijgend
 DocType: Email Account,"Append as communication against this DocType (must have fields, ""Status"", ""Subject"")","Voegen als communicatie tegen deze DocType (moet velden, ""Status"" hebben, ""Onderwerp"")"
 DocType: OAuth Client,"URIs for receiving authorization code once the user allows access, as well as failure responses. Typically a REST endpoint exposed by the Client App.
 <br>e.g. http://hostname//api/method/frappe.www.login.login_via_facebook","URI voor het opnemen autorisatiecode nadat de gebruiker toegang verleent, en falen reacties. Typisch een REST eindpunt blootgesteld door de Cliënt App. <br> bijvoorbeeld http: //hostname//api/method/frappe.www.login.login_via_facebook"
-apps/frappe/frappe/model/base_document.py +585,Not allowed to change {0} after submission,Niet toegestaan om {0} te veranderen na indienen
+apps/frappe/frappe/model/base_document.py +586,Not allowed to change {0} after submission,Niet toegestaan om {0} te veranderen na indienen
 DocType: Data Migration Mapping,Migration ID Field,Migration ID Field
 DocType: Communication,Comment Type,Reactie Type
 DocType: OAuth Client,OAuth Client,OAuth Client
@@ -2363,7 +2361,7 @@ apps/frappe/frappe/core/doctype/user/user.py +691,Enabled email inbox for user {
 DocType: Data Migration Run,Data Migration Run,Data Migration Run
 DocType: Blog Post,Email Sent,E-mail verzonden
 DocType: DocField,Ignore XSS Filter,Negeer XSS-filter
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +571,removed,verwijderd
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +579,removed,verwijderd
 apps/frappe/frappe/config/integrations.py +38,Dropbox backup settings,Dropbox back-instellingen
 DocType: Website Theme,Link Color,Link Color
 apps/frappe/frappe/core/doctype/user/user.py +114,User {0} cannot be disabled,Gebruiker {0} kan niet worden uitgeschakeld
@@ -2379,7 +2377,7 @@ apps/frappe/frappe/config/integrations.py +58,LDAP Settings,LDAP-instellingen
 apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.js +15,Entity Name,Entiteit Naam
 apps/frappe/frappe/public/js/frappe/form/save.js +14,Amending,Wijziging
 apps/frappe/frappe/config/integrations.py +18,PayPal payment gateway settings,PayPal betaling gateway-instellingen
-apps/frappe/frappe/model/base_document.py +563,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}","{0}: {1} &#39;({3}) zal afgekapt krijgen, als maximum toegestane tekens is {2}"
+apps/frappe/frappe/model/base_document.py +564,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}","{0}: {1} &#39;({3}) zal afgekapt krijgen, als maximum toegestane tekens is {2}"
 DocType: OAuth Client,Response Type,response Type
 DocType: Contact Us Settings,Send enquiries to this email address,Stuur uw vragen naar dit e-mailadres
 DocType: Letter Head,Letter Head Name,Brief Hoofd Naam
@@ -2389,7 +2387,7 @@ DocType: Workflow State,file,bestand
 apps/frappe/frappe/www/login.html +91,Back to Login,Terug naar Inloggen
 DocType: Data Migration Mapping,Local DocType,Lokaal DocType
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +147,{0} {1} added,{0} {1} toegevoegd
-apps/frappe/frappe/model/rename_doc.py +164,You need write permission to rename,U hebt moet een schrijf-machtiging hebben om te kunnen hernoemen.
+apps/frappe/frappe/model/rename_doc.py +165,You need write permission to rename,U hebt moet een schrijf-machtiging hebben om te kunnen hernoemen.
 DocType: Email Account,Use ASCII encoding for password,Gebruik ASCII-codering voor wachtwoord
 DocType: User,Karma,Karma
 DocType: DocField,Table,Tabel
@@ -2424,7 +2422,7 @@ DocType: Web Form,Allow Edit,Laat bewerken
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js +58,Paste,Plakken
 DocType: Webhook,Doc Events,Doc Events
 DocType: Auto Email Report,Based on Permissions For User,Op basis van de machtigingen voor de gebruiker
-apps/frappe/frappe/workflow/doctype/workflow/workflow.py +71,Cannot change state of Cancelled Document. Transition row {0},Status van het geannuleerde document kan niet veranderd worden. Overgang rij {0}
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +72,Cannot change state of Cancelled Document. Transition row {0},Status van het geannuleerde document kan niet veranderd worden. Overgang rij {0}
 DocType: Workflow,"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Regels voor de manier waarop stadia overgaan, zoals 'volgend stadium' en welke rol dit stadium mag veranderen, etc."
 apps/frappe/frappe/desk/form/save.py +25,{0} {1} already exists,{0} {1} bestaat al
 apps/frappe/frappe/email/doctype/email_account/email_account.py +87,Append To can be one of {0},Toevoegen aan kan een van {0}
@@ -2452,9 +2450,8 @@ DocType: Address,Purchase User,Aankoop Gebruiker
 DocType: Data Migration Run,Push Failed,Push mislukt
 DocType: Workflow,"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Verschillende ""stadia"" waar dit document uit kan bestaan, bijvoorbeeld ""Open"", ""In afwachting van goedkeuring"", enz."
 apps/frappe/frappe/utils/verified_command.py +45,This link is invalid or expired. Please make sure you have pasted correctly.,Deze koppeling is ongeldig of verlopen. Zorg ervoor dat u correct hebt geplakt.
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +161,<b>{0}</b> has been successfully unsubscribed from this mailing list.,<b>{0}</b> is met succes afgemeld voor deze mailinglijst.
 DocType: Web Page,Slideshow,Diashow
-apps/frappe/frappe/contacts/doctype/address_template/address_template.py +31,Default Address Template cannot be deleted,Standaard Adres Sjabloon kan niet worden verwijderd
+apps/frappe/frappe/contacts/doctype/address_template/address_template.py +33,Default Address Template cannot be deleted,Standaard Adres Sjabloon kan niet worden verwijderd
 DocType: Contact,Maintenance Manager,Maintenance Manager
 DocType: Workflow State,Search,Zoek
 apps/frappe/frappe/integrations/doctype/braintree_settings/braintree_settings.py +50,Please select another payment method. Stripe does not support transactions in currency '{0}',Selecteer een andere betaalmethode. Stripe ondersteunt geen transacties in valuta &#39;{0}&#39;
@@ -2468,7 +2465,7 @@ apps/frappe/frappe/model/document.py +1228,This document is currently queued for
 apps/frappe/frappe/core/doctype/file/file.py +670,File '{0}' not found,Bestand &#39;{0}&#39; niet gevonden
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +411,Remove Section,Verwijder Sectie
 DocType: User,Change Password,Verander wachtwoord
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +352,X Axis Field,X-as veld
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +398,X Axis Field,X-as veld
 apps/frappe/frappe/public/js/frappe/form/controls/data.js +124,Invalid Email: {0},Ongeldig E-mail : {0}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +352,Hello!,Hallo!
 apps/frappe/frappe/config/integrations.py +13,Braintree payment gateway settings,Braintree betalingsgateway-instellingen
@@ -2516,10 +2513,9 @@ apps/frappe/frappe/public/js/frappe/form/controls/attach.js +58,Select from exis
 DocType: Custom Field,Field Description,Veld Omschrijving
 apps/frappe/frappe/model/naming.py +276,Name not set via Prompt,Naam niet ingesteld via Prompt
 DocType: User,"Enter default value fields (keys) and values. If you add multiple values for a field,the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields,go to ""Customize Form"".","Voer velden met standaardwaarden (sleutels) en waarden in. Als u meerdere waarden voor een veld toevoegt, wordt de eerste geselecteerd. Deze standaardwaarden worden ook gebruikt om toestemmingsregels voor overeenkomsten in te stellen. Ga naar &#39;Formulier aanpassen&#39; om de lijst met velden te bekijken."
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +246,Email Inbox,E-mail Postvak IN
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +250,Email Inbox,E-mail Postvak IN
 DocType: Auto Email Report,Filters Display,filters weergeven
 DocType: Website Theme,Top Bar Color,Top Bar Color
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +156,Do you want to unsubscribe from this mailing list?,Wilt u afmelden voor deze mailing list?
 DocType: Address,Plant,Fabriek
 apps/frappe/frappe/core/doctype/communication/communication.js +65,Reply All,Allen beantwoorden
 DocType: DocType,Setup,Instellingen
@@ -2536,7 +2532,7 @@ apps/frappe/frappe/printing/doctype/print_settings/print_settings.py +31,Failed 
 apps/frappe/frappe/core/doctype/data_export/exporter.py +100,There is no data to be exported,Er zijn geen gegevens om te exporteren
 DocType: Domain Settings,Domains HTML,Domeinen HTML
 apps/frappe/frappe/templates/includes/search_template.html +47,Type something in the search box to search,Typ iets in het zoekvak om te zoeken
-apps/frappe/frappe/config/setup.py +216,Define workflows for forms.,Definieer workflows voor schermen.
+apps/frappe/frappe/config/setup.py +221,Define workflows for forms.,Definieer workflows voor schermen.
 apps/frappe/frappe/integrations/doctype/gcalendar_settings/gcalendar_settings.py +38,GCalendar is not configured.,GCalendar is niet geconfigureerd.
 DocType: Address,Other,Ander
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py +26,Please enter Authorize URL,Voer alstublieft URL autoriseren in
@@ -2554,7 +2550,7 @@ apps/frappe/frappe/core/doctype/report/report.js +10,[Label]:[Field Type]/[Optio
 DocType: Workflow State,folder-close,map-close
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +15,Report:,Verslag doen van:
 DocType: Print Settings,Print taxes with zero amount,Afdrukbelasting met nulbedrag
-apps/frappe/frappe/model/rename_doc.py +167,{0} not allowed to be renamed,{0} mag niet worden hernoemd
+apps/frappe/frappe/model/rename_doc.py +168,{0} not allowed to be renamed,{0} mag niet worden hernoemd
 DocType: Custom Script,Custom Script,Aangepaste Script
 DocType: Address,Address Line 2,Adres Lijn 2
 DocType: Address,Reference,Referentie
@@ -2588,10 +2584,10 @@ DocType: DocField,In List View,In lijstweergave
 DocType: Email Account,Use TLS,gebruik TLS
 apps/frappe/frappe/email/smtp.py +24,Invalid login or password,Ongeldige login of wachtwoord
 apps/frappe/frappe/core/doctype/data_import/data_import.js +72,Download Template,Download Template
-apps/frappe/frappe/config/setup.py +254,Add custom javascript to forms.,Voeg aangepaste javascript toe aan formulieren.
+apps/frappe/frappe/config/setup.py +259,Add custom javascript to forms.,Voeg aangepaste javascript toe aan formulieren.
 ,Role Permissions Manager,Rol Machtigingen Manager
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +117,Name of the new Print Format,Naam van de nieuwe Print Format
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +996,Toggle Sidebar,Zijbalk verschuiven
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1040,Toggle Sidebar,Zijbalk verschuiven
 DocType: Data Migration Run,Pull Insert,Pull Insert
 apps/frappe/frappe/public/js/frappe/form/controls/attach.js +60,Clear Attachment,Clear Attachment
 apps/frappe/frappe/core/doctype/data_import/exporter.py +270,Mandatory:,Verplicht:
@@ -2606,6 +2602,7 @@ DocType: Website Settings,HTML Header & Robots,HTML Header &amp; Robots
 DocType: User Permission,User Permission,Gebruikersmachtiging
 apps/frappe/frappe/config/website.py +32,Blog,Blog
 apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +37,LDAP Not Installed,LDAP niet geïnstalleerd
+apps/frappe/frappe/core/doctype/data_import/data_import.js +204,Download with data,Download met data
 DocType: Workflow State,hand-right,hand-rechts
 DocType: Website Settings,Subdomain,Subdomein
 apps/frappe/frappe/config/integrations.py +68,Settings for OAuth Provider,Instellingen voor OAuth Provider
@@ -2649,11 +2646,11 @@ apps/frappe/frappe/core/doctype/report/report.js +9,"To format columns, give col
 DocType: Has Domain,Has Domain,Heeft domein
 apps/frappe/frappe/core/page/desktop/desktop.js +190,Hide,Verbergen
 apps/frappe/frappe/www/login.html +55,Don't have an account? Sign up,Heb je nog geen account? Aanmelden
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +636,Cannot remove ID field,Kan ID-veld niet verwijderen
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +682,Cannot remove ID field,Kan ID-veld niet verwijderen
 apps/frappe/frappe/core/doctype/doctype/doctype.py +834,{0}: Cannot set Assign Amend if not Submittable,{0}: Kan wijziging niet doorvoeren indien niet indienbaar
 DocType: Address,Bihar,Bihar
 DocType: Activity Log,Link DocType,Link DocType
-apps/frappe/frappe/public/js/frappe/chat.js +1699,You don't have any messages yet.,Je hebt nog geen berichten.
+apps/frappe/frappe/public/js/frappe/chat.js +1703,You don't have any messages yet.,Je hebt nog geen berichten.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +76,Remove all customizations?,Verwijder alle aanpassingen?
 DocType: Website Slideshow,Slideshow Name,Diashow Naam
 DocType: Address,Andhra Pradesh,Andhra Pradesh
@@ -2676,7 +2673,6 @@ apps/frappe/frappe/model/base_document.py +402,Data missing in table,Data ontbre
 DocType: Web Form,Success URL,Succes URL
 DocType: Email Account,Append To,Toevoegen aan
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +29,Number of DB backups cannot be less than 1,Het aantal DB-back-ups mag niet minder zijn dan 1
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +855,Fixed height,Vaste hoogte
 DocType: Workflow Document State,Only Allow Edit For,Sta alleen Bewerken toe voor
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js +108,Mandatory field: {0},Verplichte velden: {0}
 apps/frappe/frappe/templates/includes/comments/comments.html +35,Your Name,Uw naam
@@ -2699,9 +2695,9 @@ apps/frappe/frappe/templates/includes/contact.js +15,"Please enter both your ema
 				can get back to you. Thanks!","Voer beide uw e-mail en bericht zodat wij \
  kan naar u terug te krijgen. Bedankt!"
 apps/frappe/frappe/email/smtp.py +203,Could not connect to outgoing email server,Kan niet verbinden met uitgaande e-mailserver
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +188,Thank you for your interest in subscribing to our updates,Dank u voor uw interesse in een abonnement op onze updates
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +168,Thank you for your interest in subscribing to our updates,Dank u voor uw interesse in een abonnement op onze updates
 DocType: Braintree Settings,Payment Gateway Name,Payment Gateway Name
-apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +252,Custom Column,Custom Column
+apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +288,Custom Column,Custom Column
 DocType: Workflow State,resize-full,resize-full
 DocType: Workflow State,off,uit
 apps/frappe/frappe/public/js/frappe/ui/capture.js +168,Retake,heroveren
@@ -2729,7 +2725,7 @@ DocType: Report,Letter Head,Brief Hoofd
 DocType: DocType,Quick Entry,Snelle invoer
 DocType: Web Form,Button Label,knoplabel
 DocType: Website Theme,UPPERCASE,HOOFDLETTERS
-apps/frappe/frappe/public/js/frappe/list/list_view.js +869,{0} items selected,{0} items geselecteerd
+apps/frappe/frappe/public/js/frappe/list/list_view.js +892,{0} items selected,{0} items geselecteerd
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js +16,Suspend Sending,opschorten verzenden
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html +3,Drag elements from the sidebar to add. Drag them back to trash.,Sleep elementen uit de zijbalk toe te voegen. Sleep ze terug naar de prullenbak.
 DocType: Workflow State,resize-small,resize-small
@@ -2747,7 +2743,7 @@ DocType: Communication,Keep a track of all communications,Houd een track van all
 apps/frappe/frappe/desk/form/save.py +34,Did not save,Niet bewaard
 DocType: Property Setter,Property,Eigendom
 DocType: Email Account,Yandex.Mail,Yandex.Mail
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +367,Chart Type,Diagramtype
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +413,Chart Type,Diagramtype
 DocType: Website Slideshow,"Note: For best results, images must be of the same size and width must be greater than height.","Opmerking: Voor de beste resultaten, moeten beelden van dezelfde grootte zijn. De breedte moet groter zijn dan de hoogte."
 DocType: DocType,Auto Name,Auto Naam
 apps/frappe/frappe/utils/password_strength.py +125,Avoid sequences like abc or 6543 as they are easy to guess,Vermijd sequenties zoals abc of 6543 zoals ze zijn makkelijk te raden
@@ -2777,7 +2773,7 @@ DocType: Data Import,Ignore encoding errors,Coderingsfouten negeren
 DocType: Chat Profile,Notifications,meldingen
 DocType: DocField,Column Break,Column Break
 DocType: Event,Thursday,Donderdag
-apps/frappe/frappe/utils/response.py +153,You don't have permission to access this file,U hebt geen toestemming om dit bestand te openen
+apps/frappe/frappe/utils/response.py +162,You don't have permission to access this file,U hebt geen toestemming om dit bestand te openen
 apps/frappe/frappe/core/doctype/user/user.js +201,Save API Secret: ,Save API Secret:
 apps/frappe/frappe/model/document.py +753,Cannot link cancelled document: {0},Kan het geannuleerde document niet koppelen: {0}
 apps/frappe/frappe/core/doctype/report/report.py +30,Cannot edit a standard report. Please duplicate and create a new report,Kan een standaard rapport niet bewerken. Gelieve te dupliceren en maak een nieuw rapport
@@ -2801,7 +2797,7 @@ DocType: User,These values will be automatically updated in transactions and als
 apps/frappe/frappe/twofactor.py +316,Verfication Code,Verfication Code
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +10,for generating the recurring,voor het genereren van de terugkerende
 DocType: Webhook,Webhook Request,Webhook aanvraag
-apps/frappe/frappe/model/rename_doc.py +430,** Failed: {0} to {1}: {2},** Mislukt: {0} tot {1}: {2}
+apps/frappe/frappe/model/rename_doc.py +431,** Failed: {0} to {1}: {2},** Mislukt: {0} tot {1}: {2}
 DocType: Data Migration Mapping,Mapping Type,Mapping Type
 apps/frappe/frappe/public/js/frappe/ui/upload.html +4,Browse,Bladeren
 apps/frappe/frappe/utils/password_strength.py +39,"No need for symbols, digits, or uppercase letters.","Geen behoefte aan symbolen, cijfers of hoofdletters."
@@ -2821,7 +2817,7 @@ DocType: Email Account,Use SSL,Gebruik SSL
 DocType: Workflow State,play-circle,play-cirkel
 apps/frappe/frappe/public/js/frappe/views/interaction.js +287,The document could not be correctly assigned,Het document kan niet correct worden toegewezen
 apps/frappe/frappe/public/js/frappe/form/layout.js +508,"Invalid ""depends_on"" expression",Ongeldige &quot;depends_on&quot; -uitdrukking
-apps/frappe/frappe/public/js/frappe/chat.js +1620,Group Name,Groepsnaam
+apps/frappe/frappe/public/js/frappe/chat.js +1624,Group Name,Groepsnaam
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +82,Select Print Format to Edit,Selecteer Print Format naar Bewerken
 DocType: Address,Shipping,Logistiek
 DocType: Workflow State,circle-arrow-down,circle-arrow-down
@@ -2833,7 +2829,8 @@ apps/frappe/frappe/templates/includes/comments/comments.html +101,Please enter a
 DocType: Workflow State,arrow-right,pijl-rechts
 DocType: Workflow State,Workflow state represents the current state of a document.,Workflow status vertegenwoordigt de huidige toestand van een document.
 apps/frappe/frappe/utils/oauth.py +173,Token is missing,Token ontbreekt
-apps/frappe/frappe/public/js/frappe/misc/utils.js +526,Note: Changing the Page Name will break previous URL to this page.,Opmerking: de paginanaam verandert zal de vorige URL naar deze pagina breken.
+apps/frappe/frappe/www/update-password.html +9,Set Password,Wachtwoord instellen
+apps/frappe/frappe/public/js/frappe/misc/utils.js +535,Note: Changing the Page Name will break previous URL to this page.,Opmerking: de paginanaam verandert zal de vorige URL naar deze pagina breken.
 apps/frappe/frappe/core/doctype/file/file.py +221,Removed {0},Verwijderd {0}
 DocType: SMS Settings,SMS Settings,SMS-instellingen
 DocType: Company History,Highlight,Markeer
@@ -2847,15 +2844,15 @@ DocType: Communication,Bot,Bot
 DocType: Help Article,Help Article,Help Artikel
 DocType: Page,Page Name,Page Name
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +206,Help: Field Properties,Help: Veld Eigenschappen
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +626,Also adding the dependent currency field {0},Ook het afhankelijke valutaveld {0} toevoegen
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +672,Also adding the dependent currency field {0},Ook het afhankelijke valutaveld {0} toevoegen
 apps/frappe/frappe/core/doctype/file/file.js +27,Unzip,Uitpakken
 apps/frappe/frappe/model/document.py +1090,Incorrect value in row {0}: {1} must be {2} {3},Onjuiste waarde in rij {0} : {1} moet zijn {2} {3}
-apps/frappe/frappe/workflow/doctype/workflow/workflow.py +74,Submitted Document cannot be converted back to draft. Transition row {0},Ingediend Document kan niet teruggezet worden naar Draft. Transitie rij {0}
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +75,Submitted Document cannot be converted back to draft. Transition row {0},Ingediend Document kan niet teruggezet worden naar Draft. Transitie rij {0}
 apps/frappe/frappe/config/integrations.py +98,Configure your google calendar integration,Configureer uw Google Agenda-integratie
 apps/frappe/frappe/desk/reportview.py +226,Deleting {0},Het verwijderen van {0}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_start.html +2,Select an existing format to edit or start a new format.,Selecteer een bestaande indeling te bewerken of start een nieuwe indeling.
 DocType: System Settings,Bypass restricted IP Address check If Two Factor Auth Enabled,Bypass beperkte IP-adrescontrole Als twee factoren geactiveerd zijn
-apps/frappe/frappe/workflow/doctype/workflow/workflow.py +40,Created Custom Field {0} in {1},Aangepast veld {0} van {1} gemaakt
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +41,Created Custom Field {0} in {1},Aangepast veld {0} van {1} gemaakt
 DocType: System Settings,Time Zone,Tijdzone
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +51,Special Characters are not allowed,Speciale karakters zijn niet toegestaan
 DocType: Communication,Relinked,Relinked
@@ -2866,13 +2863,13 @@ DocType: SMS Settings,Enter url parameter for receiver nos,Voer URL-parameter vo
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +6,and uncheck Disabled in the Auto Repeat document,en schakel het vakje Uitgeschakeld in het document Automatische herhaling uit
 DocType: Chat Profile,Online,Online
 apps/frappe/frappe/email/doctype/email_queue/email_queue.py +26,Only Administrator can delete Email Queue,Alleen beheerder kan e-mail wachtrij verwijderen
-apps/frappe/frappe/contacts/doctype/address_template/address_template.py +20,Setting this Address Template as default as there is no other default,Dit adres Template instellen als standaard als er geen andere standaard
+apps/frappe/frappe/contacts/doctype/address_template/address_template.py +22,Setting this Address Template as default as there is no other default,Dit adres Template instellen als standaard als er geen andere standaard
 DocType: Workflow State,Home,Thuis
 DocType: OAuth Provider Settings,Auto,Auto
 DocType: System Settings,User can login using Email id or User Name,Gebruiker kan inloggen met e-mail id of gebruikersnaam
 DocType: Workflow State,question-sign,vraagteken
 apps/frappe/frappe/core/doctype/doctype/doctype.py +165,"Field ""route"" is mandatory for Web Views",Veld &quot;route&quot; is verplicht voor webweergaven
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +221,Insert Column Before {0},Kolom invoegen vóór {0}
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +267,Insert Column Before {0},Kolom invoegen vóór {0}
 DocType: Dropbox Settings,Number of DB Backups,Aantal DB-back-ups
 DocType: Email Account,Add Signature,Handtekening toevoegen
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +38,Left this conversation,Links dit gesprek
@@ -2929,14 +2926,14 @@ apps/frappe/frappe/public/js/frappe/model/meta.js +182,Last Modified On,Laatst g
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +24,"Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.","Machtigingen op niveau 0 zijn Document Level permissies, dwz ze zijn primair voor toegang tot het document."
 DocType: Auto Repeat,Print Format,Print Formaat
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js +83,Toggle Grid View,Schakelen tussen rasterweergave
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +456,Make Chart,Grafiek maken
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +514,Make Chart,Grafiek maken
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +134,Invalid payment gateway credentials,Ongeldige betaling gateway geloofsbrieven
 DocType: Data Import,This is the template file generated with only the rows having some error. You should use this file for correction and import.,Dit is het sjabloonbestand dat is gegenereerd met alleen de rijen die een fout bevatten. U zou dit bestand moeten gebruiken voor correctie en import.
 apps/frappe/frappe/config/setup.py +37,Set Permissions on Document Types and Roles,Instellen Machtigingen op Document Types en Rollen
 DocType: Data Migration Run,Remote ID,Remote ID
 apps/frappe/frappe/model/meta.py +204,No Label,Geen label
 DocType: System Settings,Use socketio to upload file,Gebruik socketio om een bestand te uploaden
-apps/frappe/frappe/public/js/frappe/list/list_view.js +256,Refreshing,Verfrissend
+apps/frappe/frappe/public/js/frappe/list/list_view.js +285,Refreshing,Verfrissend
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py +77,Modified By,Aangepast door
 DocType: Address,Tripura,Tripura
 DocType: About Us Settings,"""Company History""","""Bedrijfsgeschiedenis"""
@@ -2988,7 +2985,7 @@ DocType: Communication,Integrations can use this field to set email delivery sta
 DocType: Web Form,Web Page Link Text,Webpagina linktekst
 DocType: Page,System Page,Systeempagina
 DocType: Page,System Page,Systeempagina
-apps/frappe/frappe/config/setup.py +195,"Set default format, page size, print style etc.","Instellen standaard formaat, paginaformaat, printstijl, enz."
+apps/frappe/frappe/config/setup.py +200,"Set default format, page size, print style etc.","Instellen standaard formaat, paginaformaat, printstijl, enz."
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js +67,ESC,ESC
 apps/frappe/frappe/modules/utils.py +73,Customizations for <b>{0}</b> exported to:<br>{1},Aanpassingen voor <b>{0}</b> geëxporteerd naar: <br> {1}
 DocType: Website Settings,Include Search in Top Bar,Inclusief Zoeken in Top Bar
@@ -2996,8 +2993,8 @@ DocType: GSuite Settings,Allow GSuite access,GSuite toegang verlenen
 DocType: DocType,DESC,DESC
 DocType: DocType,Naming,Benaming
 DocType: Event,Every Year,Elk jaar
-apps/frappe/frappe/core/doctype/data_import/data_import.js +204,Select All,Alles selecteren
-apps/frappe/frappe/config/setup.py +247,Custom Translations,Aangepaste vertalingen
+apps/frappe/frappe/core/doctype/data_import/data_import.js +211,Select All,Alles selecteren
+apps/frappe/frappe/config/setup.py +252,Custom Translations,Aangepaste vertalingen
 apps/frappe/frappe/public/js/frappe/socketio_client.js +46,Progress,Vooruitgang
 apps/frappe/frappe/public/js/frappe/form/workflow.js +34, by Role ,per rol
 apps/frappe/frappe/public/js/frappe/form/save.js +157,Missing Fields,ontbrekende velden
@@ -3009,7 +3006,7 @@ DocType: File,Thumbnail URL,Miniatuur URL
 apps/frappe/frappe/desk/moduleview.py +37,Custom Reports,Aangepaste rapporten
 DocType: Website Script,Website Script,Website Script
 DocType: GSuite Settings,If you aren't using own publish Google Apps Script webapp you can use the default https://script.google.com/macros/s/AKfycbxIFOx3301xwtF2IFPJ4pUQGqkNF3hBiBebppWkeKn6fKZRQvk/exec ,"Als u geen eigen publicatie van Google Apps Script-webapp gebruikt, kunt u de standaard https://script.google.com/macros/s/AKfycbxIFOx3301xwtF2IFPJ4pUQGqkNF3hBiBebppWkeKn6fKZRQvk/exec gebruiken"
-apps/frappe/frappe/config/setup.py +200,Customized HTML Templates for printing transactions.,Aangepaste HTML sjablonen voor het afdrukken van transacties.
+apps/frappe/frappe/config/setup.py +205,Customized HTML Templates for printing transactions.,Aangepaste HTML sjablonen voor het afdrukken van transacties.
 apps/frappe/frappe/public/js/frappe/form/print.js +295,Orientation,oriëntering
 DocType: Workflow,Is Active,Is actief
 apps/frappe/frappe/desk/form/utils.py +114,No further records,Geen verdere gegevens
@@ -3017,7 +3014,7 @@ DocType: DocField,Long Text,Lange tekst
 DocType: Workflow State,Primary,Primair
 apps/frappe/frappe/core/doctype/data_import/importer.py +77,Please do not change the rows above {0},Pas aub de rijen boven {0} niet aan.
 DocType: Web Form,Go to this URL after completing the form (only for Guest users),Ga naar deze URL na het invullen van het formulier (alleen voor gastengebruikers)
-apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +107,(Ctrl + G),(Ctrl + G)
+apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +100,(Ctrl + G),(Ctrl + G)
 DocType: Contact,More Information,Meer informatie
 DocType: Data Migration Mapping,Field Maps,Veldkaarten
 DocType: Desktop Icon,Desktop Icon,Bureaubladicoon
@@ -3077,10 +3074,10 @@ DocType: Workflow Document State,Workflow Document State,Workflow Document Statu
 apps/frappe/frappe/public/js/frappe/request.js +148,File too big,Bestand te groot
 apps/frappe/frappe/core/doctype/user/user.py +491,Email Account added multiple times,E-mail account meerdere keren toegevoegd
 DocType: Payment Gateway,Payment Gateway,Payment Gateway
-apps/frappe/frappe/utils/change_log.py +250,New updates are available,Nieuwe updates zijn beschikbaar
+apps/frappe/frappe/utils/change_log.py +245,New updates are available,Nieuwe updates zijn beschikbaar
 DocType: Portal Settings,Hide Standard Menu,Hide Standard Menu
 apps/frappe/frappe/config/setup.py +163,Add / Manage Email Domains.,Toevoegen / Beheren Email Domeinen.
-apps/frappe/frappe/workflow/doctype/workflow/workflow.py +77,Cannot cancel before submitting. See Transition {0},Opzeggen kan niet vóór de indiening. Zie overgang {0}
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +78,Cannot cancel before submitting. See Transition {0},Opzeggen kan niet vóór de indiening. Zie overgang {0}
 apps/frappe/frappe/www/printview.py +211,Print Format {0} is disabled,Print Formaat {0} is uitgeschakeld
 ,Address and Contacts,Adres en Contacten
 DocType: Notification,Send days before or after the reference date,Stuur dagen voor of na de peildatum
@@ -3088,9 +3085,9 @@ DocType: User,Allow user to login only after this hour (0-24),Gebruiker mag alle
 DocType: Integration Request,Subscription Notification,Abonnementsmelding
 DocType: Auto Repeat,Start Date,Startdatum
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +22,Value,Waarde
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +191,Click here to verify,Klik hier om te verifiëren
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +171,Click here to verify,Klik hier om te verifiëren
 apps/frappe/frappe/utils/password_strength.py +202,Predictable substitutions like '@' instead of 'a' don't help very much.,Voorspelbare vervangingen als &#39;@&#39; in plaats van &#39;a&#39; niet helpen heel veel.
-apps/frappe/frappe/desk/doctype/todo/todo_list.js +21,Assigned By Me,Toegewezen By Me
+apps/frappe/frappe/desk/doctype/todo/todo_list.js +22,Assigned By Me,Toegewezen By Me
 apps/frappe/frappe/utils/data.py +542,Zero,Nul
 apps/frappe/frappe/core/doctype/doctype/doctype.py +102,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,Niet in Developer Mode! Stel in site_config.json of maak DocType 'Aangepast'.
 DocType: Workflow State,globe,wereldbol
@@ -3120,7 +3117,7 @@ DocType: Communication,SMS,sms
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js +14,Fetch Images,Afbeeldingen ophalen
 DocType: DocType,Web View,Webweergave
 apps/frappe/frappe/public/js/frappe/form/print.js +216,Warning: This Print Format is in old style and cannot be generated via the API.,Waarschuwing: Dit Afdrukformaat is in oude stijl en niet kan worden gegenereerd via de API.
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +810,Totals,Totalen
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +856,Totals,Totalen
 DocType: DocField,Print Width,Afdrukbreedte
 ,Setup Wizard,Instellingen Wizard
 DocType: Address,GST State Number,GST-nummer
@@ -3171,7 +3168,7 @@ DocType: User,Third Party Authentication,Third Party Authentication
 DocType: Website Settings,Banner is above the Top Menu Bar.,Banner is boven de top menubalk.
 DocType: User,API Secret,API Secret
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +29,{0} Calendar,{0} Kalender
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +777,Export Report: ,Rapport exporteren:
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +840,Export Report: ,Rapport exporteren:
 DocType: Data Migration Run,Push Update,Druk op Update
 apps/frappe/frappe/templates/emails/recurring_document_failed.html +10,in the Auto Repeat document,in het document Auto Repeat
 DocType: Email Account,Port,haven
@@ -3182,7 +3179,7 @@ DocType: Website Slideshow,Slideshow like display for the website,Diashow als di
 apps/frappe/frappe/config/setup.py +168,Setup Notifications based on various criteria.,Meldingen instellen op basis van verschillende criteria.
 DocType: Communication,Updated,Bijgewerkt
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +105,Select Module,Select Module
-apps/frappe/frappe/public/js/frappe/chat.js +1594,Search or Create a New Chat,Zoek of maak een nieuwe chat
+apps/frappe/frappe/public/js/frappe/chat.js +1598,Search or Create a New Chat,Zoek of maak een nieuwe chat
 apps/frappe/frappe/sessions.py +29,Cache Cleared,Cache Gewist
 DocType: Email Account,UIDVALIDITY,UIDVALIDITY
 apps/frappe/frappe/public/js/frappe/views/communication.js +15,New Email,nieuwe e-mail
@@ -3213,7 +3210,7 @@ DocType: Web Page,Insert Code,Code invoegen
 DocType: Data Migration Run,Current Mapping Type,Huidige toewijzingstype
 DocType: ToDo,Low,Laag
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +697,You can add dynamic properties from the document by using Jinja templating.,U kunt de dynamische eigenschappen van het document toevoegen met behulp van Jinja template.
-apps/frappe/frappe/commands/site.py +460,Invalid limit {0},Ongeldige limiet {0}
+apps/frappe/frappe/commands/site.py +465,Invalid limit {0},Ongeldige limiet {0}
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +134,List a document type,Lijst een documenttype
 apps/frappe/frappe/core/doctype/data_import/exporter.py +65,"If you are uploading new records, leave the ""name"" (ID) column blank.","Als u het uploaden van nieuwe records, laat de ""naam"" (ID) kolom leeg."
 DocType: Data Migration Run,Current Mapping Delete Start,Huidige toewijzing Start verwijderen
@@ -3221,7 +3218,7 @@ apps/frappe/frappe/config/core.py +47,Errors in Background Events,Fouten in Acht
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +399,No of Columns,Geen van Zuilen
 DocType: Workflow State,Calendar,Agenda
 apps/frappe/frappe/client.py +53,No document found for given filters,Geen document gevonden voor gegeven filters
-apps/frappe/frappe/model/rename_doc.py +161,"Another {0} with name {1} exists, select another name","Een ander {0} met de naam {1} bestaat, selecteert u een andere naam"
+apps/frappe/frappe/model/rename_doc.py +162,"Another {0} with name {1} exists, select another name","Een ander {0} met de naam {1} bestaat, selecteert u een andere naam"
 DocType: DocType,Custom?,Aangepast?
 DocType: Website Settings,Website Theme Image,Website Theme Afbeelding
 DocType: Workflow State,road,weg
@@ -3243,13 +3240,13 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py +523,Options required for Lin
 apps/frappe/frappe/core/doctype/doctype/doctype.py +523,Options required for Link or Table type field {0} in row {1},Opties die nodig zijn voor Link of Tabel type veld {0} in rij {1}
 DocType: Auto Email Report,Send only if there is any data,Stuur alleen als er geen gegevens
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +169,Reset Filters,Reset Filters
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +802,Totals Row,Totalen rij
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +848,Totals Row,Totalen rij
 apps/frappe/frappe/core/doctype/doctype/doctype.py +799,{0}: Permission at level 0 must be set before higher levels are set,{0}: Toestemming op niveau 0 moet worden ingesteld voordat hogere niveaus worden ingesteld
 apps/frappe/frappe/desk/doctype/todo/todo.py +34,Assignment closed by {0},Opdracht gesloten door {0}
 DocType: Integration Request,Remote,afgelegen
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +140,Calculate,Bereken
 apps/frappe/frappe/printing/doctype/print_format/print_format.js +28,Please select DocType first,Selecteer DocType eerste
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py +199,Confirm Your Email,Bevestig uw e-mail
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py +179,Confirm Your Email,Bevestig uw e-mail
 apps/frappe/frappe/www/login.html +41,Or login with,Of log in met
 DocType: Error Snapshot,Locals,Locals
 apps/frappe/frappe/desk/page/activity/activity_row.html +19,Communicated via {0} on {1}: {2},Gecommuniceerd via {0} on {1}: {2}
@@ -3291,7 +3288,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +249,Hide fie
 DocType: Webhook,Webhook Data,Webhook Data
 apps/frappe/frappe/public/js/frappe/views/treeview.js +269,Creating {0},{0} maken
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py +336,Illegal Access Token. Please try again,Illegale Access Token. Probeer het opnieuw
-apps/frappe/frappe/public/js/frappe/desk.js +94,"The application has been updated to a new version, please refresh this page","De applicatie is bijgewerkt naar een nieuwe versie, gelieve deze pagina te vernieuwen"
+apps/frappe/frappe/public/js/frappe/desk.js +99,"The application has been updated to a new version, please refresh this page","De applicatie is bijgewerkt naar een nieuwe versie, gelieve deze pagina te vernieuwen"
 apps/frappe/frappe/core/doctype/communication/communication.js +35,Resend,Opnieuw verzenden
 DocType: Feedback Trigger,Optional: The alert will be sent if this expression is true,Optioneel: De Alert zal worden verzonden als deze expressie waar is
 DocType: Data Migration Plan,Plan Name,Plan naam
@@ -3307,7 +3304,7 @@ DocType: Custom DocPerm,Report,Rapport
 apps/frappe/frappe/website/doctype/web_form/web_form.py +61,Amount must be greater than 0.,Het bedrag moet groter zijn dan 0.
 apps/frappe/frappe/desk/reportview.py +110,{0} is saved,{0} is opgeslagen
 apps/frappe/frappe/core/doctype/user/user.py +339,User {0} cannot be renamed,Gebruiker {0} kan niet worden hernoemd
-apps/frappe/frappe/model/db_schema.py +115,Fieldname is limited to 64 characters ({0}),Veldnaam is beperkt tot 64 tekens ({0})
+apps/frappe/frappe/model/db_schema.py +116,Fieldname is limited to 64 characters ({0}),Veldnaam is beperkt tot 64 tekens ({0})
 apps/frappe/frappe/config/desk.py +59,Email Group List,E-mail Group List
 DocType: Website Settings,An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [favicon-generator.org],Een icoon bestand met de extensie .ico. Moet 16 x 16 px. Gegenereerd met behulp van een favicon generator. [favicon-generator.org]
 DocType: Auto Email Report,Format,Formaat
@@ -3331,7 +3328,7 @@ DocType: Workflow State,chevron-left,chevron-links
 DocType: Communication,Sending,Verzenden
 apps/frappe/frappe/auth.py +272,Not allowed from this IP Address,Niet toegestaan vanaf dit IP -adres
 DocType: Website Slideshow,This goes above the slideshow.,Dit staat boven de diavoorstelling.
-apps/frappe/frappe/config/setup.py +277,Install Applications.,Installeer Toepassingen .
+apps/frappe/frappe/config/setup.py +282,Install Applications.,Installeer Toepassingen .
 DocType: Contact,Last Name,Achternaam
 DocType: Event,Private,Prive-
 apps/frappe/frappe/email/doctype/notification/notification.js +107,No alerts for today,Geen waarschuwingen voor vandaag
@@ -3376,7 +3373,7 @@ DocType: Bulk Update,Update Value,Waarde bijwerken
 apps/frappe/frappe/core/doctype/communication/communication.js +73,Mark as {0},Markeer als {0}
 apps/frappe/frappe/model/rename_doc.py +26,Please select a new name to rename,Selecteer een nieuwe naam om de naam te wijzigen
 apps/frappe/frappe/model/rename_doc.py +26,Please select a new name to rename,Selecteer een nieuwe naam om de naam te wijzigen
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +228,Invalid column,Ongeldige kolom
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +274,Invalid column,Ongeldige kolom
 DocType: Data Migration Connector,Data Migration,Data migratie
 DocType: User,API Key cannot be  regenerated,API-sleutel kan niet worden geregenereerd
 apps/frappe/frappe/public/js/frappe/request.js +169,Something went wrong,Er ging iets mis
@@ -3398,12 +3395,12 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +90,Sync on M
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +68,Currently Viewing,Momenteel wordt bekeken
 DocType: DocField,Default,Standaard
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +151,{0} added,{0} toegevoegd
-apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +212,Search for '{0}',Zoek naar &#39;{0}&#39;
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +213,Search for '{0}',Zoek naar &#39;{0}&#39;
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +135,Please save the report first,Sla het rapport eerst
 apps/frappe/frappe/email/doctype/email_group/email_group.py +42,{0} subscribers added,{0} abonnees toegevoegd
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +15,Not In,Niet In
 DocType: Workflow State,star,ster
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +237,Hub,Naaf
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +241,Hub,Naaf
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +282,values separated by commas,waarden gescheiden door komma's
 apps/frappe/frappe/core/doctype/doctype/doctype.py +543,Max width for type Currency is 100px in row {0},Max. breedte voor het type Valuta is 100px in rij {0}
 apps/frappe/frappe/www/feedback.html +68,Please share your feedback for {0},Deel uw feedback voor {0}
@@ -3419,13 +3416,13 @@ DocType: Webhook,on_trash,on_trash
 apps/frappe/frappe/core/doctype/user_permission/user_permission_help.html +2,Records for following doctypes will be filtered,Records voor het volgen van doctypes zullen worden gefilterd
 DocType: Blog Settings,Blog Introduction,Blog Inleiding
 DocType: Address,Office,Kantoor
-apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +219,This Kanban Board will be private,Dit Kanban Board is privé
+apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js +255,This Kanban Board will be private,Dit Kanban Board is privé
 apps/frappe/frappe/desk/moduleview.py +94,Standard Reports,Standaard rapporten
 DocType: User,Email Settings,E-mail Instellingen
-apps/frappe/frappe/public/js/frappe/desk.js +401,Please Enter Your Password to Continue,Voer uw wachtwoord in om verder te gaan
-apps/frappe/frappe/public/js/frappe/desk.js +401,Please Enter Your Password to Continue,Voer uw wachtwoord in om verder te gaan
+apps/frappe/frappe/public/js/frappe/desk.js +406,Please Enter Your Password to Continue,Voer uw wachtwoord in om verder te gaan
+apps/frappe/frappe/public/js/frappe/desk.js +406,Please Enter Your Password to Continue,Voer uw wachtwoord in om verder te gaan
 apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +116,Not a valid LDAP user,Geen geldige LDAP-gebruiker
-apps/frappe/frappe/workflow/doctype/workflow/workflow.py +64,{0} not a valid State,{0} geen geldig Status
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +65,{0} not a valid State,{0} geen geldig Status
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +101,Please select another payment method. PayPal does not support transactions in currency '{0}',Selecteer een andere betaalmethode. PayPal biedt geen ondersteuning voor transacties in valuta &#39;{0}&#39;
 DocType: Chat Message,Room Type,Kamertype
 apps/frappe/frappe/core/doctype/doctype/doctype.py +620,Search field {0} is not valid,Search veld {0} is niet geldig
