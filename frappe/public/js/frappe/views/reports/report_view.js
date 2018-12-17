@@ -1056,7 +1056,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 								fields = fields.concat(values[cdt].map(f => [f, cdt]));
 							}
 
-							this.fields = fields;
+							this.fields = [["name", this.doctype], ...fields];
 
 							this.fields.map(f => this.add_currency_column(f[0], f[1]));
 
