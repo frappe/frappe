@@ -613,7 +613,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 				});
 			}, true);
 		}
-		if (frappe.user_roles.includes('System Manager')) {
+		if (frappe.user_roles.includes('System Manager') && (this.meta && !this.meta.custom)) {
 			this.page.add_menu_item(__('Role Permissions Manager'), function () {
 				frappe.set_route('permission-manager', {
 					doctype: me.doctype
