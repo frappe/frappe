@@ -82,6 +82,11 @@ class CustomField(Document):
 
 @frappe.whitelist()
 def get_fields_label(doctype=None):
+	meta = frappe.get_meta(doctype)
+
+	if meta.custom:
+		return frappe.msgprint(_("Custom Fields can only be added to a standard DocType."))
+
 	return [{"value": df.fieldname or "", "label": _(df.label or "")}
 		for df in frappe.get_meta(doctype).get("fields")]
 

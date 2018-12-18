@@ -33,14 +33,20 @@ frappe.ui.form.on('Custom Field', {
 			method: 'frappe.custom.doctype.custom_field.custom_field.get_fields_label',
 			args: { doctype: frm.doc.dt, fieldname: frm.doc.fieldname },
 			callback: function(r, rt) {
-				set_field_options('insert_after', r.message);
-				var fieldnames = $.map(r.message, function(v) { return v.value; });
+				if(r) {
+					if(r._server_messages && r._server_messages.length) {
+						frm.set_value("dt", "");
+					} else {
+						set_field_options('insert_after', r.message);
+						var fieldnames = $.map(r.message, function(v) { return v.value; });
 
-				if(insert_after==null || !in_list(fieldnames, insert_after)) {
-					insert_after = fieldnames[-1];
+						if(insert_after==null || !in_list(fieldnames, insert_after)) {
+							insert_after = fieldnames[-1];
+						}
+
+						frm.set_value('insert_after', insert_after);
+					}
 				}
-
-				frm.set_value('insert_after', insert_after);
 			}
 		});
 
