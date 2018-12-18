@@ -2,6 +2,10 @@
 
 {%- block header -%} {{ header or "" }} {%- endblock -%}
 
+{% block meta_block %}
+	{% include "templates/includes/meta_block.html" %}
+{% endblock %}
+
 {% block hero %}{{ hero or "" }}{% endblock %}
 
 {% block breadcrumbs %}

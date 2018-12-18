@@ -29,7 +29,7 @@ def get_notifications():
 			notification_count[name] = count
 
 	return {
-		"open_count_doctype": {},
+		"open_count_doctype": get_notifications_for_doctypes(config, notification_count),
 		"open_count_module": get_notifications_for_modules(config, notification_count),
 		"open_count_other": get_notifications_for_other(config, notification_count),
 		"targets": get_notifications_for_targets(config, notification_percent),
