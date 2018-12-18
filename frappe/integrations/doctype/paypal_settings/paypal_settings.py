@@ -68,11 +68,10 @@ import frappe
 import json
 import pytz
 from frappe import _
-from datetime import datetime
 from six.moves.urllib.parse import urlencode
 from frappe.model.document import Document
 from frappe.integrations.utils import create_request_log, make_post_request, create_payment_gateway
-from frappe.utils import get_url, call_hook_method, cint, get_timestamp, cstr, now, date_diff, get_datetime
+from frappe.utils import get_url, call_hook_method, cint, get_datetime
 
 
 api_path = '/api/method/frappe.integrations.doctype.paypal_settings.paypal_settings'
