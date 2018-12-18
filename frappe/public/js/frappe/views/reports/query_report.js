@@ -393,17 +393,24 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	render_datatable() {
+		let data = this.data;
+		if (this.raw_data.add_total_row) {
+			data = data.slice();
+			data.splice(-1, 1);
+		}
+
 		if (this.datatable) {
 			this.datatable.options.treeView = this.tree_report;
-			this.datatable.refresh(this.data, this.columns);
+			this.datatable.refresh(data, this.columns);
 		} else {
 			let datatable_options = {
 				columns: this.columns,
-				data: this.data,
+				data: data,
 				inlineFilters: true,
 				treeView: this.tree_report,
 				layout: 'fixed',
-				cellHeight: 33
+				cellHeight: 33,
+				showTotalRow: this.raw_data.add_total_row
 			};
 
 			if (this.report_settings.get_datatable_options) {
@@ -815,12 +822,17 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					filters = Object.assign(frappe.urllib.get_dict("prepared_report_name"), filters);
 				}
 
+				const visible_idx = this.datatable.datamanager.getFilteredRowIndices();
+				if (visible_idx.length + 1 === this.data.length) {
+					visible_idx.push(visible_idx.length);
+				}
+
 				const args = {
 					cmd: 'frappe.desk.query_report.export_query',
 					report_name: this.report_name,
 					file_format_type: file_format,
 					filters: filters,
-					visible_idx: this.datatable.datamanager.getFilteredRowIndices(),
+					visible_idx: visible_idx,
 				};
 
 				open_url_post(frappe.request.url, args);
@@ -925,6 +937,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.$status = $(`<div class="form-message text-muted small"></div>`)
 			.hide().insertAfter(page_form);
 
+		this.show_tip();
 		this.$chart = $('<div class="chart-wrapper">').hide().appendTo(this.page.main);
 		this.$report = $('<div class="report-wrapper">').appendTo(this.page.main);
 		this.$message = $(this.message_div('')).hide().appendTo(this.page.main);
@@ -936,6 +949,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	hide_status() {
 		this.$status.hide();
+	}
+
+	show_tip() {
+		const message = __('For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).');
+		this.page.footer.removeClass('hide').addClass('text-muted text-center').html(`<p>${message}</p>`);
 	}
 
 	message_div(message) {
@@ -956,16 +974,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 
 	toggle_nothing_to_show(flag) {
-		let message = __('Nothing to show');
-		if(this.prepared_report) {
-			message = __(`This is a background report.
-				Please set the appropriate filters and then generate a new one.`);
-		}
+		let message = this.prepared_report
+			? __('This is a background report. Please set the appropriate filters and then generate a new one.')
+			: __('Nothing to show')
+
 		this.toggle_message(flag, message);
-		if(flag){
+
+		if (flag && this.prepared_report) {
 			this.prepared_report_action = "New";
+			this.add_prepared_report_buttons();
 		}
-		this.add_prepared_report_buttons();
 	}
 
 	toggle_message(flag, message) {
