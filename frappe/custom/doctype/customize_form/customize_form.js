@@ -38,9 +38,15 @@ frappe.ui.form.on("Customize Form", {
 				method: "fetch_to_customize",
 				doc: frm.doc,
 				freeze: true,
-				callback: function(r) {
-					frm.refresh();
-					frm.trigger("setup_sortable");
+				callback: function(r, rt) {
+					if(r) {
+						if(r._server_messages && r._server_messages.length) {
+							frm.set_value("doc_type", "");
+						} else {
+							frm.refresh();
+							frm.trigger("setup_sortable");
+						}
+					}
 				}
 			});
 		} else {

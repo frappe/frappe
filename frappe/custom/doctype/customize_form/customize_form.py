@@ -82,6 +82,9 @@ class CustomizeForm(Document):
 
 		meta = frappe.get_meta(self.doc_type)
 
+		if meta.custom:
+			return frappe.msgprint(_("Only standard DocTypes are allowed to be customized from Customize Form."))
+
 		# doctype properties
 		for property in doctype_properties:
 			self.set(property, meta.get(property))
