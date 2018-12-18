@@ -1984,18 +1984,27 @@ class extends Component {
 			}
 		}
 
-		if ( props.last_message )
+		let is_unread = false
+		if ( props.last_message ) {
 			item.timestamp = frappe.chat.pretty_datetime(props.last_message.creation)
+			is_unread = !props.last_message.seen.includes(frappe.session.user)
+		}
 
 		return (
 			h("li", null,
-				h("a", { class: props.active ? "active": "", onclick: () => props.click(props) },
+				h("a", { class: props.active ? "active": "", onclick: () => {
+					props.last_message.seen.push(frappe.session.user)
+					props.click(props)
+				} },
 					h("div", { class: "row" },
 						h("div", { class: "col-xs-9" },
 							h(frappe.Chat.Widget.MediaProfile, { ...item })
 						),
 						h("div", { class: "col-xs-3 text-right" },
-							h("div", { class: "text-muted", style: { "font-size": "9px" } }, item.timestamp)
+							[
+								h("div", { class: "text-muted", style: { "font-size": "9px" } }, item.timestamp),
+								is_unread ? h("span", { class: "indicator red" }) : null
+							]
 						),
 					)
 				)

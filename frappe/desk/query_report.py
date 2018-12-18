@@ -314,7 +314,7 @@ def add_total_row(result, columns, meta = None):
 
 
 		if fieldtype=="Link" and options == "Currency":
-			total_row[i] = result[0][i]
+			total_row[i] = result[0].get(fieldname) if isinstance(result[0], dict) else result[0][i]
 
 	for i in has_percent:
 		total_row[i] = flt(total_row[i]) / len(result)

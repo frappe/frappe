@@ -125,8 +125,11 @@ frappe.views.ListSidebar = class ListSidebar {
 			add_reports(this.list_view.settings.reports);
 		}
 
+		// Sort reports alphabetically
+		var reports = Object.values(frappe.boot.user.all_reports).sort((a,b) => a.title.localeCompare(b.title)) || [];
+
 		// from specially tagged reports
-		add_reports(frappe.boot.user.all_reports || []);
+		add_reports(reports);
 	}
 
 	setup_list_filter() {

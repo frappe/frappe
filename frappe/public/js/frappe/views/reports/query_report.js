@@ -952,12 +952,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	show_tip() {
-		const part1 = __('For comparative filters, start with ">" or "<" or "=", e.g. >5 or =324');
-		const part2 = __('For ranges use ":", e.g. "5:10" (to filter values between 5 & 10');
-		this.page.footer.removeClass('hide').addClass('text-muted text-center').html(`
-			<p>${part1}</p>
-			<p>${part2}</p>
-		`);
+		const message = __('For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).');
+		this.page.footer.removeClass('hide').addClass('text-muted text-center').html(`<p>${message}</p>`);
 	}
 
 	message_div(message) {
@@ -978,16 +974,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 
 	toggle_nothing_to_show(flag) {
-		let message = __('Nothing to show');
-		if(this.prepared_report) {
-			message = __(`This is a background report.
-				Please set the appropriate filters and then generate a new one.`);
-		}
+		let message = this.prepared_report
+			? __('This is a background report. Please set the appropriate filters and then generate a new one.')
+			: __('Nothing to show')
+
 		this.toggle_message(flag, message);
-		if(flag){
+
+		if (flag && this.prepared_report) {
 			this.prepared_report_action = "New";
+			this.add_prepared_report_buttons();
 		}
-		this.add_prepared_report_buttons();
 	}
 
 	toggle_message(flag, message) {

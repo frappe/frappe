@@ -1,6 +1,26 @@
+@import "variables.less";
+@import "common.less";
+@import "avatar.less";
+@import "indicator.less";
+
+html, body {
+	height: 100%;
+	margin: 0; padding: 0;  /* to avoid scrollbars */
+}
+
 body {
 	font-family: @font-stack;
 	color: @text-color;
+}
+
+.main-section {
+	display: flex;
+	min-height: 100%;
+	flex-direction: column; 
+}
+
+.wrapper {
+	flex: 1;
 }
 
 a& {
