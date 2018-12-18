@@ -9,6 +9,11 @@ frappe.ui.form.on('Custom Field', {
 		frm.set_query('dt', function(doc) {
 			var filters = [
 				['DocType', 'issingle', '=', 0],
+				['DocType', 'custom', '=', 0],
+				['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, User, Role, Has Role, \
+					Page, Has Role, Module Def, Print Format, Report, Customize Form, \
+					Customize Form Field, Property Setter, Custom Field, Custom Script'],
+				['DocType', 'restrict_to_domain', 'in', frappe.boot.active_domains]
 			];
 			if(frappe.session.user!=="Administrator") {
 				filters.push(['DocType', 'module', 'not in', ['Core', 'Custom']])
