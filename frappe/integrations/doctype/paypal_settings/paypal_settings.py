@@ -66,6 +66,7 @@ More Details:
 from __future__ import unicode_literals
 import frappe
 import json
+import pytz
 from frappe import _
 from datetime import datetime
 from six.moves.urllib.parse import urlencode
@@ -309,8 +310,10 @@ def create_recurring_profile(token, payerid):
 			"INITAMT": data.get("upfront_amount")
 		})
 
-		starts_at = get_datetime(subscription_details.get("start_date")) or frappe.utils.now_datetime()
 		status_changed_to = 'Completed' if data.get("starting_immediately") or updating else 'Verified'
+
+		starts_at = get_datetime(subscription_details.get("start_date")) or frappe.utils.now_datetime()
+		starts_at = starts_at.replace(tzinfo=pytz.timezone(frappe.utils.get_time_zone())).astimezone(pytz.utc)
 
 		#"PROFILESTARTDATE": datetime.utcfromtimestamp(get_timestamp(starts_at)).isoformat()
 		params.update({
