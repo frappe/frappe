@@ -1,4 +1,4 @@
-frappe.pages['calendar'].on_page_load = function (wrapper){
+frappe.pages['calendar'].on_page_load = function(wrapper){
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: 'Calendar',
@@ -19,7 +19,7 @@ frappe.pages['calendar'].on_page_load = function (wrapper){
 		//showing calendar 
 		this.$cal.fullCalendar(calendar_option);
 
-		hide_show_weekends(calendar_option, page);
+		hide_show_weekends(calendar_option, page, $cal);
 	});
 }
 
@@ -39,7 +39,7 @@ frappe.pages['calendar'].on_page_show = (wrapper) => {
 	get_more_calendars(this.$sidebar_list, this.$cal, wrapper.page);
 }
 
-$('body').on('click', function (e){
+$('body').on('click', function(e){
 	//popover hiddingon putside click.
 	if ($(e.target).data('toggle') !== 'popover' &&
 		$(e.target).parents('.popover.in').length === 0) {
@@ -96,7 +96,7 @@ function create_event(start, end){
 				'label': 'Type',
 				'reqd': 1
 			}],
-			function (values){
+			function(values){
 				var event = frappe.model.get_new_doc(values.Doctype);
 				event[x[values.Doctype]["field_map"]["start"]] = get_system_datetime(start);
 				event[x[values.Doctype]["field_map"]["end"]] = get_system_datetime(end);
@@ -143,7 +143,7 @@ function select_all(sidebar, cal){
 			});
 			cal.fullCalendar("refetchEvents");
 		} else {
-			$('.checkbox > input').each(function (){
+			$('.checkbox > input').each(function(){
 				$(this).prop("checked", false);
 			});
 			cal.fullCalendar("refetchEvents");
@@ -181,29 +181,29 @@ function get_more_calendars(sidebar, cal, page){
 	$("<span class='text-muted cursor-pointer'>" +
 	"More Calendars<span class='caret'></span>" +
 	"</span>").appendTo(page.sidebar.find('div')).on("click", function(){
-	var span = $(this);
-	return frappe.call({
-		method: "frappe.core.page.calendar.calendar.get_all_calendars",
-		type: "GET"
-	}).then(r => {
-		if ($(".checkbox.custom").length == 0) {
-			for (doctype in r["message"]) {
-				if ($.inArray(r["message"][doctype], frappe.boot.calendars) == -1) {
-					$(`<li class="checkbox custom" style="padding-top: 0px">`);
-					$('<input type="checkbox" class="cal" value="' + r["message"][doctype] + '">').appendTo(li).on("click", function() {
-						cal.fullCalendar("refetchEvents");
-					})
-					$('<label>').html(r["message"][doctype]).appendTo(li);
-					li.appendTo(sidebar);
+		var span = $(this);
+		return frappe.call({
+			method: "frappe.core.page.calendar.calendar.get_all_calendars",
+			type: "GET"
+		}).then(r => {
+			if ($(".checkbox.custom").length == 0) {
+				for (doctype in r["message"]) {
+					if ($.inArray(r["message"][doctype], frappe.boot.calendars) == -1) {
+						var li = $(`<li class="checkbox custom" style="padding-top: 0px">`);
+						$('<input type="checkbox" class="cal" value="' + r["message"][doctype] + '">').appendTo(li).on("click", function() {
+							cal.fullCalendar("refetchEvents");
+						})
+						$('<label>').html(r["message"][doctype]).appendTo(li);
+						li.appendTo(sidebar);
+					}
 				}
+				span.html("Less Calendars<span class='dropup'><span class='caret'></span></span>");
+			} else {
+				$(".checkbox.custom").remove();
+				span.html("More Calendars<span class='caret '></span>");
+				cal.fullCalendar("refetchEvents");
 			}
-			span.html("Less Calendars<span class='dropup'><span class='caret'></span></span>");
-		} else {
-			$(".checkbox.custom").remove();
-			span.html("More Calendars<span class='caret '></span>");
-			cal.fullCalendar("refetchEvents");
-		}
-	})
+		});
 	});
 }
 
@@ -219,7 +219,7 @@ function get_time_Html(event) {
 		var timeHtml = event.start.format('Do MMMM') + " to " + event.end.format('Do MMMM');
 	}
 
-	timing = "<div class='mt-5'>" +
+	var timing = "<div class='mt-5'>" +
 		"<div class='text-muted col-sm-2' style='padding-right: 0; margin-top: 6px;'>" +
 		"<i class='fa fa-clock-o' aria-hidden='true'></i>" +
 		"</div> " +
@@ -233,14 +233,12 @@ function get_time_Html(event) {
 
 function create_popover(event, jsEvent) {
 	$(".popover.fade.bottom.in").remove();
-
-	var descr = event.description;
-	description = "<div class='mt-5'>" +
+	var description = "<div class='mt-5'>" +
 		"<div class='text-muted col-sm-2' style='padding-right: 0; margin-top: 6px; '>" +
 		"<i class='fa fa-align-left' aria-hidden='true'></i>" +
 		"</div> " +
 		"<div class='col-sm-10' style='padding-left: 0; margin-top: 5px;'>" +
-		descr +
+		event.description +
 		"</div>" +
 		"</div>";
 
@@ -279,7 +277,7 @@ function create_popover(event, jsEvent) {
 
 }
 
-function hide_show_weekends(calendar_option, page) {
+function hide_show_weekends(calendar_option, page, $cal) {
 	// button for hiding and showing the weekends days
 	var btnTitle = (calendar_option.weekends) ? __('Hide Weekends') : __('Show Weekends');
 	var btn = $(`<button class="btn btn-default btn-xs btn-weekend">${btnTitle}</button>`).on("click", function(){
@@ -289,7 +287,6 @@ function hide_show_weekends(calendar_option, page) {
 		localStorage.removeItem('cal_weekends');
 		localStorage.setItem('cal_weekends', calendar_option.weekends);
 		$cal.fullCalendar('option', 'weekends', calendar_option.weekends);
-
 	});
 	//creating footnote
 	this.footnote_area = frappe.utils.set_footnote(this.footnote_area, page.body,
@@ -314,35 +311,35 @@ function get_calendar_options(me){
 		forceEventDuration: true,
 		nowIndicator: true,
 		// for mapping events into calendar
-		events: function (start, end, timezone, callback){
+		events: function(start, end, timezone, callback){
 			var docinfo = [];
-			$('.cal:checked').each(function (){
+			$('.cal:checked').each(function(){
 				docinfo.push($(this).attr('value'));
 			});
 			prepare_event(docinfo, get_system_datetime(start), get_system_datetime(end), callback);
 		},
 		//Drag event (to create new Event)modal fade in
-		select: function (startDate, endDate, jsEvent, view){
+		select: function(startDate, endDate){
 			var interval = endDate - startDate;
 			if (interval > 86400000){
 				create_event(startDate, endDate);
 			}
 		},
 		//Event click action 
-		eventClick: function (event, jsEvent){
+		eventClick: function(event, jsEvent){
 			//removing popover if present
 			create_popover(event, jsEvent);
 		},
-		eventDrop: function (event, delta, revertFunc, jsEvent, ui, view){
+		eventDrop: function(event, delta, revertFunc){
 			update_event(event, revertFunc);
 		},
-		eventResize: function (event, delta, revertFunc){
+		eventResize: function(event, revertFunc){
 			update_event(event, revertFunc);
 		},
-		viewRender: function (view, element){
+		viewRender: function(){
 			$(".popover.fade.bottom.in").remove();
 		},
-		eventAfterAllRender: function (view, b, c){
+		eventAfterAllRender: function(){
 			$(".fc-scroller").removeAttr("style");
 			set_css(me.$cal);
 		}
@@ -361,7 +358,7 @@ function prepare_event(docinfo, start_param, end_param, callback){
 		}
 	}).then(r => {
 		var events = [];
-		for (event in r["message"]){
+		for(event in r["message"]){
 			if ($('.cal:checked').length == 1){
 				var heading = r["message"][event].title;
 			} else{
