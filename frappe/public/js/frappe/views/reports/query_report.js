@@ -974,16 +974,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 
 	toggle_nothing_to_show(flag) {
-		let message = __('Nothing to show');
-		if(this.prepared_report) {
-			message = __(`This is a background report.
-				Please set the appropriate filters and then generate a new one.`);
-		}
+		let message = this.prepared_report
+			? __('This is a background report. Please set the appropriate filters and then generate a new one.')
+			: __('Nothing to show')
+
 		this.toggle_message(flag, message);
-		if(flag){
+
+		if (flag && this.prepared_report) {
 			this.prepared_report_action = "New";
+			this.add_prepared_report_buttons();
 		}
-		this.add_prepared_report_buttons();
 	}
 
 	toggle_message(flag, message) {
