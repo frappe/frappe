@@ -26,7 +26,6 @@ def get_master_calendar_events(doctypeinfo, start, end):
 					frappe.throw("some thing went wrong")
 
 			else:
-				
 				start_date = "ifnull(%s, '0001-01-01 00:00:00')" % field_map.start
 				end_date = "ifnull(%s, '2199-12-31 00:00:00')" % field_map.end
 
