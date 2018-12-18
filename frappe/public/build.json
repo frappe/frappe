@@ -270,7 +270,6 @@
 		"public/js/frappe/list/list_sidebar_group_by.js",
 		"public/js/frappe/list/list_view_permission_restrictions.html",
 
-		"public/js/frappe/calendar/calendar_factory.js",
 		
 		"public/js/frappe/views/gantt/gantt_view.js",
 		"public/js/frappe/views/calendar/calendar.js",

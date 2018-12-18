@@ -14,45 +14,46 @@ def get_master_calendar_events(doctypeinfo, start, end):
 	doctypes=json.loads(doctypeinfo)
 	master_events = []
 	for info in doctypes:
-		field_map = frappe._dict(data[info]["field_map"])
-		fields=[field_map.start, field_map.end, field_map.title, field_map.description, 'name']
-		if field_map.color:
-			fields.append(field_map.color)
-		if "get_events_method" in data[info]:
-			try:
-				events = frappe.call(data[info]["get_events_method"], start, end)
-			except:
-				frappe.throw("some thing went wrong")
+		if frappe.has_permission(info):
+			field_map = frappe._dict(data[info]["field_map"])
+			fields=[field_map.start, field_map.end, field_map.title, field_map.description, 'name']
+			if field_map.color:
+				fields.append(field_map.color)
+			if "get_events_method" in data[info]:
+				try:
+					events = frappe.call(data[info]["get_events_method"], start, end)
+				except:
+					frappe.throw("some thing went wrong")
 
-		else:
-			
-			start_date = "ifnull(%s, '0001-01-01 00:00:00')" % field_map.start
-			end_date = "ifnull(%s, '2199-12-31 00:00:00')" % field_map.end
+			else:
+				
+				start_date = "ifnull(%s, '0001-01-01 00:00:00')" % field_map.start
+				end_date = "ifnull(%s, '2199-12-31 00:00:00')" % field_map.end
 
-			filters = [
-				[info, start_date, '<=', end],
-				[info, end_date, '>=', start],
-			]
-			try:
-				events = frappe.get_list(info ,fields=fields,filters=filters)
-			except:
-				frappe.throw("Something  when wrong")
+				filters = [
+					[info, start_date, '<=', end],
+					[info, end_date, '>=', start],
+				]
+				try:
+					events = frappe.get_list(info ,fields=fields,filters=filters)
+				except:
+					frappe.throw("Something  when wrong")
 
-		for event in events:
-			color = "#D2D1FB"
+			for event in events:
+				color = "#D2D1FB"
 
-			if field_map.color in event:
-				color = event[field_map.color] if event[field_map.color] else "#D2D1FB"
+				if field_map.color in event:
+					color = event[field_map.color] if event[field_map.color] else "#D2D1FB"
 
-			master_events.append({'start': str(event[field_map.start]),
-									'end': str(event[field_map.end]),
-									"title" : str(event[field_map.title]),
-									"id" : str(event['name']),
-									"description": str(event[field_map.description]),
-									"color": str(color),
-									"doctype" : str(info),
-									"textColor": "#4D4DA8"
-								})
+				master_events.append({'start': str(event[field_map.start]),
+										'end': str(event[field_map.end]),
+										"title" : str(event[field_map.title]),
+										"id" : str(event['name']),
+										"description": str(event[field_map.description]),
+										"color": str(color),
+										"doctype" : str(info),
+										"textColor": "#4D4DA8"
+									})
 
 	return master_events
 
@@ -79,7 +80,7 @@ def get_all_calendars():
 
 @frappe.whitelist()
 def get_field_map():
-	all_apps =frappe.get_all_apps() 
+	all_apps =frappe.get_all_apps()
 	data = {}
 	for app in all_apps:
 		app_path =frappe.get_app_path(app)

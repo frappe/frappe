@@ -8,11 +8,9 @@ frappe.pages['calendar'].on_page_load = function (wrapper){
 
 	frappe.require([
 		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
-		'assets/frappe/js/lib/fullcalendar/fullcalendar.css',
-		'assets/frappe/js/lib/bootstrap.min.js',
 		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.js',
 		'assets/frappe/js/lib/fullcalendar/locale-all.js'
-	], function (){
+	], function(){
 		const me = this;
 		this.$cal = page.body.find('div');
 
@@ -51,10 +49,10 @@ $('body').on('click', function (e){
 
 function get_system_datetime(date){
 	date._offset = moment.user_utc_offset;
-	return d = frappe.datetime.convert_to_system_tz(date);
+	return frappe.datetime.convert_to_system_tz(date);
 }
 
-function update_event(event){
+function update_event(event, revertFunc){
 	frappe.call({
 		method: "frappe.core.page.calendar.calendar.update_event",
 		type: "POST",
@@ -92,22 +90,22 @@ function create_event(start, end){
 
 			//select doctype to create event
 			frappe.prompt([{
-					'fieldname': 'Doctype',
-					'fieldtype': 'Select',
-					'options': options,
-					'label': 'Type',
-					'reqd': 1
-				}],
-				function (values){
-					var event = frappe.model.get_new_doc(values.Doctype);
-					event[x[values.Doctype]["field_map"]["start"]] = get_system_datetime(start);
-					event[x[values.Doctype]["field_map"]["end"]] = get_system_datetime(end);
-					frappe.set_route("Form", values.Doctype, event.name);
+				'fieldname': 'Doctype',
+				'fieldtype': 'Select',
+				'options': options,
+				'label': 'Type',
+				'reqd': 1
+			}],
+			function (values){
+				var event = frappe.model.get_new_doc(values.Doctype);
+				event[x[values.Doctype]["field_map"]["start"]] = get_system_datetime(start);
+				event[x[values.Doctype]["field_map"]["end"]] = get_system_datetime(end);
+				frappe.set_route("Form", values.Doctype, event.name);
 
-				},
-				'Select Document type',
-				'Submit'
-			)
+			},
+			'Select Document type',
+			'Submit'
+			);
 		} else {
 			frappe.msgprint("Select document type to create calendar event");
 		}
@@ -130,7 +128,7 @@ function set_css(cal){
 	var btn_group = cal.find(".fc-button-group");
 	btn_group.find(".fc-state-active").addClass("active");
 
-	btn_group.find(".btn").on("click", function (){
+	btn_group.find(".btn").on("click", function(){
 		btn_group.find(".btn").removeClass("active");
 		$(this).addClass("active");
 	});
@@ -138,7 +136,7 @@ function set_css(cal){
 
 function select_all(sidebar, cal){
 	var head_li = $(`<li class="text-muted checkbox">`).appendTo(sidebar);
-	var check = $('<input type="checkbox">').appendTo(head_li).on("click", function (){
+	$('<input type="checkbox">').appendTo(head_li).on("click", function(){
 		if ($(this).prop("checked")){
 			$('.checkbox > input').each(function (){
 				$(this).prop("checked", true);
@@ -151,66 +149,65 @@ function select_all(sidebar, cal){
 			cal.fullCalendar("refetchEvents");
 		}
 	});
-	var label = $('<label>').html("All").appendTo(head_li);
+	$('<label>').html("All").appendTo(head_li);
 }
 
 function create_checkboxes(sidebar, cal){
 	//fetching and creating checkboxes
 	var default_doctype = frappe.get_route();
-	$.each(frappe.boot.calendars, function (i, doctype){
+	$.each(frappe.boot.calendars, function(i, doctype){
 		var li = $(`<li class="checkbox" style="padding-top: 0px">`);
 		if (default_doctype[1] === doctype){
 
-			var check = $('<input type="checkbox" class="cal" checked value="' + doctype + '">').appendTo(li).on("click", function (){
+			$('<input type="checkbox" class="cal" checked value="' + doctype + '">').appendTo(li).on("click", function(){
 				cal.fullCalendar("refetchEvents");
 			});
 		} else if (!default_doctype[1] && doctype === "Event"){
-			var check = $('<input type="checkbox" class="cal" checked value="' + doctype + '">').appendTo(li).on("click", function (){
+			$('<input type="checkbox" class="cal" checked value="' + doctype + '">').appendTo(li).on("click", function(){
 				cal.fullCalendar("refetchEvents");
 			});
 		} else{
-			var check = $('<input type="checkbox" class="cal" value="' + doctype + '">').appendTo(li).on("click", function (){
+			$('<input type="checkbox" class="cal" value="' + doctype + '">').appendTo(li).on("click", function(){
 				cal.fullCalendar("refetchEvents");
 			});
 		}
-		var label = $('<label>').html(doctype).appendTo(li);
+		$('<label>').html(doctype).appendTo(li);
 		li.appendTo(sidebar);
 	});
 }
 
 function get_more_calendars(sidebar, cal, page){
 	//dropdown for more calendars
-	var caret = $(
-		"<span class='text-muted cursor-pointer'>" +
-		"More Calendars<span class='caret'></span>" +
-		"</span>").appendTo(page.sidebar.find('div')).on("click", function (){
-		span = $(this);
-		return frappe.call({
-			method: "frappe.core.page.calendar.calendar.get_all_calendars",
-			type: "GET"
-		}).then(r => {
-			if ($(".checkbox.custom").length == 0) {
-				for (doctype in r["message"]) {
-					if ($.inArray(r["message"][doctype], frappe.boot.calendars) == -1) {
-						var li = $(`<li class="checkbox custom" style="padding-top: 0px">`);
-						var check = $('<input type="checkbox" class="cal" value="' + r["message"][doctype] + '">').appendTo(li).on("click", function () {
-							cal.fullCalendar("refetchEvents");
-						})
-						var label = $('<label>').html(r["message"][doctype]).appendTo(li);
-						li.appendTo(sidebar);
-					}
+	$("<span class='text-muted cursor-pointer'>" +
+	"More Calendars<span class='caret'></span>" +
+	"</span>").appendTo(page.sidebar.find('div')).on("click", function(){
+	var span = $(this);
+	return frappe.call({
+		method: "frappe.core.page.calendar.calendar.get_all_calendars",
+		type: "GET"
+	}).then(r => {
+		if ($(".checkbox.custom").length == 0) {
+			for (doctype in r["message"]) {
+				if ($.inArray(r["message"][doctype], frappe.boot.calendars) == -1) {
+					$(`<li class="checkbox custom" style="padding-top: 0px">`);
+					$('<input type="checkbox" class="cal" value="' + r["message"][doctype] + '">').appendTo(li).on("click", function() {
+						cal.fullCalendar("refetchEvents");
+					})
+					$('<label>').html(r["message"][doctype]).appendTo(li);
+					li.appendTo(sidebar);
 				}
-				span.html("Less Calendars<span class='dropup'><span class='caret'></span></span>");
-			} else {
-				$(".checkbox.custom").remove();
-				span.html("More Calendars<span class='caret '></span>");
-				cal.fullCalendar("refetchEvents");
 			}
-		})
+			span.html("Less Calendars<span class='dropup'><span class='caret'></span></span>");
+		} else {
+			$(".checkbox.custom").remove();
+			span.html("More Calendars<span class='caret '></span>");
+			cal.fullCalendar("refetchEvents");
+		}
+	})
 	});
 }
 
-function get_timeHtml(event) {
+function get_time_Html(event) {
 	// creating time html
 	if (event.allDay) {
 		var timeHtml = "All Day";
@@ -252,7 +249,7 @@ function create_popover(event, jsEvent) {
 		description +
 		"</div>" +
 		"<div class='row'>" +
-		get_timeHtml(event) +
+		get_time_Html(event) +
 		"</div>";
 
 
@@ -275,7 +272,7 @@ function create_popover(event, jsEvent) {
 	$('.popover.fade.bottom.in').css('top', jsEvent.pageY + 'px');
 
 	//Edit buuton and its action
-	$("<span ><button class='btn btn-default btn-sm btn-modal-close' style='margin-top:15px'>Edit</button></span>").on("click", function (){
+	$("<span ><button class='btn btn-default btn-sm btn-modal-close' style='margin-top:15px'>Edit</button></span>").on("click", function(){
 		$(".popover.fade.bottom.in").remove();
 		frappe.set_route("Form", event.doctype, event.id);
 	}).appendTo($(".popover-content"));
@@ -285,7 +282,7 @@ function create_popover(event, jsEvent) {
 function hide_show_weekends(calendar_option, page) {
 	// button for hiding and showing the weekends days
 	var btnTitle = (calendar_option.weekends) ? __('Hide Weekends') : __('Show Weekends');
-	var btn = $(`<button class="btn btn-default btn-xs btn-weekend">${btnTitle}</button>`).on("click", function (){
+	var btn = $(`<button class="btn btn-default btn-xs btn-weekend">${btnTitle}</button>`).on("click", function(){
 		calendar_option.weekends = !calendar_option.weekends;
 		var btnTitle = (calendar_option.weekends) ? __('Hide Weekends') : __('Show Weekends');
 		$(".btn-weekend").html(btnTitle);
