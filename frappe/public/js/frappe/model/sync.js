@@ -15,7 +15,6 @@ $.extend(frappe.model, {
 		if(isPlain) r.docs = [r.docs];
 
 		if(r.docs) {
-			var last_parent_name = null;
 
 			for(var i=0, l=r.docs.length; i<l; i++) {
 				var d = r.docs[i];
@@ -52,11 +51,11 @@ $.extend(frappe.model, {
 
 		// set docinfo (comments, assign, attachments)
 		if(r.docinfo) {
+			var doc;
 			if(r.docs) {
-				var doc = r.docs[0];
+				doc = r.docs[0];
 			} else {
-				if(cur_frm)
-					var doc = cur_frm.doc;
+				if(cur_frm) doc = cur_frm.doc;
 			}
 			if(doc) {
 				if(!frappe.model.docinfo[doc.doctype])
@@ -90,7 +89,7 @@ $.extend(frappe.model, {
 					for (var x=0, y=value.length; x < y; x++) {
 						var d = value[x];
 
-						if(!d.parent)
+						if(typeof d=='object' && !d.parent)
 							d.parent = doc.name;
 
 						frappe.model.add_to_locals(d);

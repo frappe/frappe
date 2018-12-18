@@ -26,7 +26,7 @@ class TestNewsletter(unittest.TestCase):
 		name = self.send_newsletter()
 
 		email_queue_list = [frappe.get_doc('Email Queue', e.name) for e in frappe.get_all("Email Queue")]
-		self.assertEquals(len(email_queue_list), 4)
+		self.assertEqual(len(email_queue_list), 4)
 		recipients = [e.recipients[0].recipient for e in email_queue_list]
 		for email in emails:
 			self.assertTrue(email in recipients)
@@ -43,7 +43,7 @@ class TestNewsletter(unittest.TestCase):
 		name = self.send_newsletter()
 
 		email_queue_list = [frappe.get_doc('Email Queue', e.name) for e in frappe.get_all("Email Queue")]
-		self.assertEquals(len(email_queue_list), 3)
+		self.assertEqual(len(email_queue_list), 3)
 		recipients = [e.recipients[0].recipient for e in email_queue_list]
 		for email in emails:
 			if email != to_unsubscribe:
@@ -72,7 +72,7 @@ class TestNewsletter(unittest.TestCase):
 		frappe.set_user("test1@example.com")
 		from frappe.email.doctype.newsletter.newsletter import get_newsletter_list
 		newsletters = get_newsletter_list("Newsletter", None, None, 0)
-		self.assertEquals(len(newsletters), 1)
+		self.assertEqual(len(newsletters), 1)
 
 	def test_newsletter_context(self):
 		context = frappe._dict()
@@ -80,8 +80,8 @@ class TestNewsletter(unittest.TestCase):
 		frappe.set_user("test2@example.com")
 		doc = frappe.get_doc("Newsletter", newsletter_name)
 		doc.get_context(context)
-		self.assertEquals(context.no_cache, 1)
-		self.assertTrue("attachments" not in context.keys())
+		self.assertEqual(context.no_cache, 1)
+		self.assertTrue("attachments" not in list(context))
 
 
 test_dependencies = ["Email Group"]

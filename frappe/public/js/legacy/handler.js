@@ -1,5 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
+/* eslint-disable no-console */
 
 function $c(command, args, callback, error, no_spinner, freeze_msg, btn) {
 	console.warn("This function '$c' has been deprecated and will be removed soon.");
@@ -11,7 +12,7 @@ function $c(command, args, callback, error, no_spinner, freeze_msg, btn) {
 		btn: btn,
 		freeze: freeze_msg,
 		show_spinner: !no_spinner
-	})
+	});
 }
 
 // For calling an object
@@ -29,7 +30,7 @@ function $c_obj(doc, method, arg, callback, no_spinner, freeze_msg, btn) {
 	if(typeof doc=='string') {
 		args.doctype = doc;
 	} else {
-		args.docs = doc
+		args.docs = doc;
 	}
 
 	return frappe.request.call({
@@ -47,7 +48,7 @@ function $c_obj_csv(doc, method, arg) {
 	console.warn("This function '$c_obj_csv' has been deprecated and will be removed soon.");
 	// single
 
-	var args = {}
+	var args = {};
 	args.cmd = 'runserverobj';
 	args.as_csv = 1;
 	args.method = method;
@@ -62,7 +63,7 @@ function $c_obj_csv(doc, method, arg) {
 	open_url_post(frappe.request.url, args);
 }
 
-function open_url_post(URL, PARAMS, new_window) {
+window.open_url_post = function open_url_post(URL, PARAMS, new_window) {
 	if (window.cordova) {
 		let url = URL + 'api/method/' + PARAMS.cmd + frappe.utils.make_query_string(PARAMS, false);
 		window.location.href = url;
@@ -70,7 +71,7 @@ function open_url_post(URL, PARAMS, new_window) {
 		// call a url as POST
 		_open_url_post(URL, PARAMS, new_window);
 	}
-}
+};
 
 function _open_url_post(URL, PARAMS, new_window) {
 	var temp=document.createElement("form");
@@ -94,3 +95,7 @@ function _open_url_post(URL, PARAMS, new_window) {
 	temp.submit();
 	return temp;
 }
+
+Object.assign(window, {
+	$c, $c_obj, $c_obj_csv
+});

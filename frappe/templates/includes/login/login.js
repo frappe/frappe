@@ -33,9 +33,9 @@ login.bind_events = function() {
 		var args = {};
 		args.cmd = "frappe.core.doctype.user.user.sign_up";
 		args.email = ($("#signup_email").val() || "").trim();
-		args.redirect_to = get_url_arg("redirect-to") || '';
+		args.redirect_to = frappe.utils.get_url_arg("redirect-to") || '';
 		args.full_name = ($("#signup_fullname").val() || "").trim();
-		if(!args.email || !valid_email(args.email) || !args.full_name) {
+		if(!args.email || !validate_email(args.email) || !args.full_name) {
 			login.set_indicator("{{ _("Valid email and name required") }}", 'red');
 			return false;
 		}
@@ -56,19 +56,21 @@ login.bind_events = function() {
 		return false;
 	});
 
-	$(".btn-ldap-login").on("click", function(){
-		var args = {};
-		args.cmd = "{{ ldap_settings.method }}";
-		args.usr = ($("#login_email").val() || "").trim();
-		args.pwd = $("#login_password").val();
-		args.device = "desktop";
-		if(!args.usr || !args.pwd) {
-			login.set_indicator("{{ _("Both login and password required") }}", 'red');
+	{% if ldap_settings %}
+		$(".btn-ldap-login").on("click", function(){
+			var args = {};
+			args.cmd = "{{ ldap_settings.method }}";
+			args.usr = ($("#login_email").val() || "").trim();
+			args.pwd = $("#login_password").val();
+			args.device = "desktop";
+			if(!args.usr || !args.pwd) {
+				login.set_indicator("{{ _("Both login and password required") }}", 'red');
+				return false;
+			}
+			login.call(args);
 			return false;
-		}
-		login.call(args);
-		return false;
-	});
+		});
+	{% endif %}
 }
 
 
@@ -114,6 +116,7 @@ login.signup = function() {
 // Login
 login.call = function(args, callback) {
 	login.set_indicator("{{ _('Verifying...') }}", 'blue');
+
 	return frappe.call({
 		type: "POST",
 		args: args,
@@ -160,13 +163,13 @@ login.login_handlers = (function() {
 		200: function(data) {
 			if(data.message == 'Logged In'){
 				login.set_indicator("{{ _("Success") }}", 'green');
-				window.location.href = get_url_arg("redirect-to") || data.home_page;
+				window.location.href = frappe.utils.get_url_arg("redirect-to") || data.home_page;
 			} else if(data.message=="No App") {
 				login.set_indicator("{{ _("Success") }}", 'green');
 				if(localStorage) {
 					var last_visited =
 						localStorage.getItem("last_visited")
-						|| get_url_arg("redirect-to");
+						|| frappe.utils.get_url_arg("redirect-to");
 					localStorage.removeItem("last_visited");
 				}
 

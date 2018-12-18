@@ -11,7 +11,7 @@ from frappe.utils.bot import BotReply
 class TestBot(unittest.TestCase):
 	def test_hello(self):
 		reply = BotReply().get_reply('hello')
-		self.assertEquals(reply, 'Hello Administrator')
+		self.assertEqual(reply, 'Hello Administrator')
 
 	def test_open_notifications(self):
 		reply = BotReply().get_reply('whatsup')

@@ -14,10 +14,8 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 
 	// menu
 	page.add_menu_item(__('Set Desktop Icons'), function() {
-		frappe.route_options = {
-			"user": frappe.session.user
-		};
-		frappe.set_route("modules_setup");
+		frappe.frappe_toolbar.modules_select
+			.show(frappe.session.user);
 	});
 
 	if(frappe.user.has_role('System Manager')) {
@@ -33,7 +31,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 	};
 
 	let get_module_sidebar_item = (item) => `<li class="strong module-sidebar-item">
-		<a class="module-link" data-name="${item.module_name}" href="#modules/${item.module_name}">
+		<a class="module-link" data-name="${item.module_name}" href="#${item.link}">
 			<i class="fa fa-chevron-right pull-right" style="display: none;"></i>
 			<span>${item._label}</span>
 		</a>
@@ -143,7 +141,7 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 						item.route="query-report/" + item.name;
 					}
 					else if(item.type==="report") {
-						item.route="Report/" + item.doctype + "/" + item.name;
+						item.route="List/" + item.doctype + "/Report/" + item.name;
 					}
 					else if(item.type==="page") {
 						item.route=item.name;
@@ -185,4 +183,3 @@ frappe.pages['modules'].on_page_show = function(wrapper) {
 		frappe.modules_page.activate_link(frappe.modules_page.sidebar.find('.module-link:first'));
 	}
 };
-

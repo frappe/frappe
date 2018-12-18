@@ -43,6 +43,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
@@ -176,6 +177,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
@@ -252,6 +254,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
@@ -817,6 +820,7 @@
  },
  "Ethiopia": {
   "code": "et",
+  "currency": "ETB",
   "currency_fraction": "Santim",
   "currency_fraction_units": 100,
   "currency_name": "Ethiopian Birr",
@@ -859,6 +863,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
@@ -870,6 +875,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
   "number_format": "# ###,##",
   "date_format": "dd/mm/yyyy",
@@ -936,6 +942,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
@@ -970,6 +977,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
@@ -1194,6 +1202,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
@@ -1227,6 +1236,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
   "number_format": "#.###,##",
   "date_format": "dd/mm/yyyy",
@@ -1462,6 +1472,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
@@ -1641,6 +1652,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
@@ -1667,6 +1679,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
@@ -1755,6 +1768,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
@@ -1977,6 +1991,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
@@ -2109,6 +2124,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
@@ -2202,6 +2218,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
@@ -2213,6 +2230,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [
@@ -2278,6 +2296,7 @@
   "currency": "EUR",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
   "currency_symbol": "\u20ac",
   "number_format": "#,###.##",
   "timezones": [

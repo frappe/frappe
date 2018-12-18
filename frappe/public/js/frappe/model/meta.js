@@ -105,16 +105,11 @@ $.extend(frappe.meta, {
 			function(d) { return d.fieldtype=="Link" ? d.options : null; });
 	},
 
-	get_fields_to_check_permissions: function(doctype, name, user_permission_doctypes) {
+	get_fields_to_check_permissions: function(doctype) {
 		var fields = $.map(frappe.meta.get_docfields(doctype, name), function(df) {
-			return (df.fieldtype==="Link" && df.ignore_user_permissions!==1 &&
-				user_permission_doctypes.indexOf(df.options)!==-1) ? df : null;
+			return (df.fieldtype==="Link" && df.ignore_user_permissions!==1) ? df : null;
 		});
-
-		if (user_permission_doctypes.indexOf(doctype)!==-1) {
-			fields = fields.concat({label: "Name", fieldname: name, options: doctype});
-		}
-
+		fields = fields.concat({label: "Name", fieldname: name, options: doctype});
 		return fields;
 	},
 

@@ -1,6 +1,6 @@
 from __future__ import unicode_literals, absolute_import, print_function
 import click
-import hashlib, os, sys, compileall
+import hashlib, os, sys, compileall, re
 import frappe
 from frappe import _
 from frappe.commands import pass_context, get_site
@@ -101,7 +101,7 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 	if not os.path.exists(sql_file_path):
 		sql_file_path = '../' + sql_file_path
 		if not os.path.exists(sql_file_path):
-			print('Invalid path {0}' + sql_file_path[3:])
+			print('Invalid path {0}'.format(sql_file_path[3:]))
 			sys.exit(1)
 
 	if sql_file_path.endswith('sql.gz'):
@@ -125,14 +125,16 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 
 @click.command('reinstall')
 @click.option('--admin-password', help='Administrator Password for reinstalled site')
+@click.option('--mariadb-root-username', help='Root username for MariaDB')
+@click.option('--mariadb-root-password', help='Root password for MariaDB')
 @click.option('--yes', is_flag=True, default=False, help='Pass --yes to skip confirmation')
 @pass_context
-def reinstall(context, admin_password=None, yes=False):
+def reinstall(context, admin_password=None, mariadb_root_username=None, mariadb_root_password=None, yes=False):
 	"Reinstall site ie. wipe all data and start over"
 	site = get_site(context)
-	_reinstall(site, admin_password, yes, verbose=context.verbose)
+	_reinstall(site, admin_password, mariadb_root_username, mariadb_root_password, yes, verbose=context.verbose)
 
-def _reinstall(site, admin_password=None, yes=False, verbose=False):
+def _reinstall(site, admin_password=None, mariadb_root_username=None, mariadb_root_password=None, yes=False, verbose=False):
 	if not yes:
 		click.confirm('This will wipe your database. Are you sure you want to reinstall?', abort=True)
 	try:
@@ -149,8 +151,9 @@ def _reinstall(site, admin_password=None, yes=False, verbose=False):
 		frappe.destroy()
 
 	frappe.init(site=site)
-	_new_site(frappe.conf.db_name, site, verbose=verbose, force=True, reinstall=True,
-		install_apps=installed, admin_password=admin_password)
+	_new_site(frappe.conf.db_name, site, verbose=verbose, force=True, reinstall=True, install_apps=installed,
+		mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password,
+		admin_password=admin_password)
 
 @click.command('install-app')
 @click.argument('app')
@@ -180,15 +183,17 @@ def list_apps(context):
 @click.argument('email')
 @click.option('--first-name')
 @click.option('--last-name')
+@click.option('--password')
 @click.option('--send-welcome-email', default=False, is_flag=True)
 @pass_context
-def add_system_manager(context, email, first_name, last_name, send_welcome_email):
+def add_system_manager(context, email, first_name, last_name, send_welcome_email, password):
 	"Add a new system manager to a site"
 	import frappe.utils.user
 	for site in context.sites:
 		frappe.connect(site=site)
 		try:
-			frappe.utils.user.add_system_manager(email, first_name, last_name, send_welcome_email)
+			frappe.utils.user.add_system_manager(email, first_name, last_name,
+				send_welcome_email, password)
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
@@ -223,7 +228,7 @@ def migrate(context, rebuild_website=False):
 		finally:
 			frappe.destroy()
 
-	compileall.compile_dir('../apps', quiet=1)
+	compileall.compile_dir('../apps', quiet=1, rx=re.compile('.*node_modules.*'))
 
 @click.command('run-patch')
 @click.argument('module')
@@ -277,8 +282,11 @@ def _use(site, sites_path='.'):
 	use(site, sites_path=sites_path)
 
 def use(site, sites_path='.'):
-	with open(os.path.join(sites_path,  "currentsite.txt"), "w") as sitefile:
-		sitefile.write(site)
+	if os.path.exists(os.path.join(sites_path, site)):
+		with open(os.path.join(sites_path,  "currentsite.txt"), "w") as sitefile:
+			sitefile.write(site)
+	else:
+		print("{} does not exist".format(site))
 
 @click.command('backup')
 @click.option('--with-files', default=False, is_flag=True, help="Take backup with files")

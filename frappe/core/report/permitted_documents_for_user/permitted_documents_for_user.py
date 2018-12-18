@@ -10,7 +10,7 @@ from frappe.model.db_schema import type_map
 
 def execute(filters=None):
 	user, doctype, show_permissions = filters.get("user"), filters.get("doctype"), filters.get("show_permissions")
-	validate(user, doctype)
+	if not validate(user, doctype): return [], []
 
 	columns, fields = get_columns_and_fields(doctype)
 	data = frappe.get_list(doctype, fields=fields, as_list=True, user=user)
@@ -28,12 +28,7 @@ def execute(filters=None):
 def validate(user, doctype):
 	# check if current user is System Manager
 	check_admin_or_system_manager()
-
-	if not user:
-		throw(_("Please specify user"))
-
-	if not doctype:
-		throw(_("Please specify doctype"))
+	return user and doctype
 
 def get_columns_and_fields(doctype):
 	columns = ["Name:Link/{}:200".format(doctype)]

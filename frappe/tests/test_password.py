@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 import frappe
 import unittest
-from frappe.utils.password import update_password, check_password
+from frappe.utils.password import update_password, check_password, passlibctx
 
 class TestPassword(unittest.TestCase):
 	def setUp(self):
@@ -17,7 +17,7 @@ class TestPassword(unittest.TestCase):
 		doc.password = new_password
 		doc.save()
 
-		self.assertEquals(doc.password, '*'*len(new_password))
+		self.assertEqual(doc.password, '*'*len(new_password))
 
 		auth_password = frappe.db.sql('''select `password` from `__Auth`
 			where doctype=%(doctype)s and name=%(name)s and fieldname="password"''', doc.as_dict())[0][0]
@@ -26,7 +26,7 @@ class TestPassword(unittest.TestCase):
 		self.assertTrue(auth_password != new_password)
 
 		# decrypted
-		self.assertEquals(doc.get_password(), new_password)
+		self.assertEqual(doc.get_password(), new_password)
 
 		return doc, new_password
 
@@ -52,14 +52,14 @@ class TestPassword(unittest.TestCase):
 
 		update_password(user, new_password)
 
-		auth = frappe.db.sql('''select `password`, `salt` from `__Auth`
+		auth = frappe.db.sql('''select `password` from `__Auth`
 			where doctype='User' and name=%s and fieldname="password"''', user, as_dict=True)[0]
 
+		# is not plain text
 		self.assertTrue(auth.password != new_password)
-		self.assertTrue(auth.salt)
 
-		# stored password = password(plain_text_password + salt)
-		self.assertEquals(frappe.db.sql('select password(concat(%s, %s))', (new_password, auth.salt))[0][0], auth.password)
+		# is valid hashing
+		self.assertTrue(passlibctx.verify(new_password, auth.password))
 
 		self.assertTrue(check_password(user, new_password))
 
@@ -82,7 +82,7 @@ class TestPassword(unittest.TestCase):
 		frappe.rename_doc(doc.doctype, old_name, new_name)
 
 		new_doc = frappe.get_doc(doc.doctype, new_name)
-		self.assertEquals(new_doc.get_password(), password)
+		self.assertEqual(new_doc.get_password(), password)
 		self.assertTrue(not frappe.db.sql('''select `password` from `__Auth`
 			where doctype=%s and name=%s and fieldname="password"''', (doc.doctype, doc.name)))
 

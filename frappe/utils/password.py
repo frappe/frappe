@@ -2,10 +2,41 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+import string
 import frappe
 from frappe import _
 from frappe.utils import cstr, encode
-from cryptography.fernet import Fernet, InvalidToken 
+from cryptography.fernet import Fernet, InvalidToken
+from passlib.hash import pbkdf2_sha256, mysql41
+from passlib.registry import register_crypt_handler
+from passlib.context import CryptContext
+
+
+class LegacyPassword(pbkdf2_sha256):
+	name = "frappe_legacy"
+	ident = "$frappel$"
+
+	def _calc_checksum(self, secret):
+		# check if this is a mysql hash
+		# it is possible that we will generate a false positive if the users password happens to be 40 hex chars proceeded
+		# by an * char, but this seems highly unlikely
+		if not (secret[0] == "*" and len(secret) == 41 and all(c in string.hexdigits for c in secret[1:])):
+			secret = mysql41.hash(secret + self.salt.decode('utf-8'))
+		return super(LegacyPassword, self)._calc_checksum(secret)
+
+
+register_crypt_handler(LegacyPassword, force=True)
+passlibctx = CryptContext(
+	schemes=[
+		"pbkdf2_sha256",
+		"argon2",
+		"frappe_legacy",
+	],
+	deprecated=[
+		"frappe_legacy",
+	],
+)
+
 
 def get_decrypted_password(doctype, name, fieldname='password', raise_exception=True):
 	auth = frappe.db.sql('''select `password` from `__Auth`
@@ -27,24 +58,19 @@ def set_encrypted_password(doctype, name, pwd, fieldname='password'):
 def check_password(user, pwd, doctype='User', fieldname='password'):
 	'''Checks if user and password are correct, else raises frappe.AuthenticationError'''
 
-	auth = frappe.db.sql("""select name, `password`, salt from `__Auth`
-		where doctype=%(doctype)s and name=%(name)s and fieldname=%(fieldname)s and encrypted=0
-		and (
-			(salt is null and `password`=password(%(pwd)s))
-			or `password`=password(concat(%(pwd)s, salt))
-		)""",{ 'doctype': doctype, 'name': user, 'fieldname': fieldname, 'pwd': pwd }, as_dict=True)
+	auth = frappe.db.sql("""select name, `password` from `__Auth`
+		where doctype=%(doctype)s and name=%(name)s and fieldname=%(fieldname)s and encrypted=0""",
+		{'doctype': doctype, 'name': user, 'fieldname': fieldname}, as_dict=True)
 
-	if not auth:
-		raise frappe.AuthenticationError('Incorrect User or Password')
-
-	salt = auth[0].salt
-	if not salt:
-		# sets salt and updates password
-		update_password(user, pwd, doctype, fieldname)
+	if not auth or not passlibctx.verify(pwd, auth[0].password):
+		raise frappe.AuthenticationError(_('Incorrect User or Password'))
 
 	# lettercase agnostic
 	user = auth[0].name
 	delete_login_failed_cache(user)
+
+	if not passlibctx.needs_update(auth[0].password):
+		update_password(user, pwd, doctype, fieldname)
 
 	return user
 
@@ -63,13 +89,12 @@ def update_password(user, pwd, doctype='User', fieldname='password', logout_all_
 		:param fieldname: fieldname (in given doctype) (for encryption)
 		:param logout_all_session: delete all other session
 	'''
-
-	salt = frappe.generate_hash()
-	frappe.db.sql("""insert into __Auth (doctype, name, fieldname, `password`, salt, encrypted)
-		values (%(doctype)s, %(name)s, %(fieldname)s, password(concat(%(pwd)s, %(salt)s)), %(salt)s, 0)
+	hashPwd = passlibctx.hash(pwd)
+	frappe.db.sql("""insert into __Auth (doctype, name, fieldname, `password`, encrypted)
+		values (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 0)
 		on duplicate key update
-			`password`=password(concat(%(pwd)s, %(salt)s)), salt=%(salt)s, encrypted=0""",
-		{ 'doctype': doctype, 'name': user, 'fieldname': fieldname, 'pwd': pwd, 'salt': salt })
+			`password`=%(pwd)s, encrypted=0""",
+		{'doctype': doctype, 'name': user, 'fieldname': fieldname, 'pwd': hashPwd})
 
 	# clear all the sessions except current
 	if logout_all_sessions:
@@ -102,7 +127,6 @@ def create_auth_table():
 			`name` VARCHAR(255) NOT NULL,
 			`fieldname` VARCHAR(140) NOT NULL,
 			`password` VARCHAR(255) NOT NULL,
-			`salt` VARCHAR(140),
 			`encrypted` INT(1) NOT NULL DEFAULT 0,
 			PRIMARY KEY (`doctype`, `name`, `fieldname`)
 		) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci""")

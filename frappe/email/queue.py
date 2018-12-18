@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from six.moves import html_parser as HTMLParser
 import smtplib, quopri, json
-from frappe import msgprint, throw, _
+from frappe import msgprint, throw, _, safe_decode
 from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html, add_attachment
 from frappe.utils.verified_command import get_signed_params, verify_request
@@ -395,6 +395,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 	if frappe.are_emails_muted():
 		frappe.msgprint(_("Emails are muted"))
 		return
+
 	if cint(frappe.defaults.get_defaults().get("hold_queue"))==1 :
 		return
 
@@ -402,7 +403,6 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 		# rollback to release lock and return
 		frappe.db.rollback()
 		return
-
 
 	frappe.db.sql("""update `tabEmail Queue` set status='Sending', modified=%s where name=%s""",
 		(now_datetime(), email.name), auto_commit=auto_commit)
@@ -487,6 +487,15 @@ def prepare_message(email, recipient, recipients_list):
 	if not message:
 		return ""
 
+	# Parse "Email Account" from "Email Sender"
+	email_account = get_outgoing_email_account(raise_exception_not_set=False, sender=email.sender)
+	if frappe.conf.use_ssl and email_account.track_email_status:
+		# Using SSL => Publically available domain => Email Read Reciept Possible
+		message = message.replace("<!--email open check-->", quopri.encodestring('<img src="https://{}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={}"/>'.format(frappe.local.site, email.communication).encode()).decode())
+	else:
+		# No SSL => No Email Read Reciept
+		message = message.replace("<!--email open check-->", quopri.encodestring("".encode()).decode())
+
 	if email.add_unsubscribe_link and email.reference_doctype: # is missing the check for unsubscribe message but will not add as there will be no unsubscribe url
 		unsubscribe_url = get_unsubcribed_url(email.reference_doctype, email.reference_name, recipient,
 		email.unsubscribe_method, email.unsubscribe_params)
@@ -511,6 +520,7 @@ def prepare_message(email, recipient, recipients_list):
 		message = message.replace("<!--recipient-->", recipient)
 
 	message = (message and message.encode('utf8')) or ''
+	message = safe_decode(message)
 	if not email.attachments:
 		return message
 

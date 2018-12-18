@@ -18,7 +18,7 @@ def execute(filters=None):
 
 def get_columns(filters):
 	return [
-		"{party_type}:Link/{party_type}".format(party_type=filters.get("party_type")),
+		"{reference_doctype}:Link/{reference_doctype}".format(reference_doctype=filters.get("reference_doctype")),
 		"Address Line 1",
 		"Address Line 2",
 		"City",
@@ -36,34 +36,34 @@ def get_columns(filters):
 
 def get_data(filters):
 	data = []
-	party_type = filters.get("party_type")
-	party = filters.get("party_name")
+	reference_doctype = filters.get("reference_doctype")
+	reference_name = filters.get("reference_name")
 
-	return get_party_addresses_and_contact(party_type, party)
+	return get_reference_addresses_and_contact(reference_doctype, reference_name)
 
-def get_party_addresses_and_contact(party_type, party):
+def get_reference_addresses_and_contact(reference_doctype, reference_name):
 	data = []
 	filters = None
-	party_details = frappe._dict()
+	reference_details = frappe._dict()
 
-	if not party_type:
+	if not reference_doctype:
 		return []
 
-	if party:
-		filters = { "name": party }
+	if reference_name:
+		filters = { "name": reference_name }
 
-	party_list = [d[0] for d in frappe.get_list(party_type, filters=filters, fields=["name"], as_list=True)]
-	for d in party_list:
-		party_details.setdefault(d, frappe._dict())
+	reference_list = [d[0] for d in frappe.get_list(reference_doctype, filters=filters, fields=["name"], as_list=True)]
+	for d in reference_list:
+		reference_details.setdefault(d, frappe._dict())
 
-	party_details = get_party_details(party_type, party_list, "Address", party_details)
-	party_details = get_party_details(party_type, party_list, "Contact", party_details)
+	reference_details = get_reference_details(reference_doctype, reference_list, "Address", reference_details)
+	reference_details = get_reference_details(reference_doctype, reference_list, "Contact", reference_details)
 
-	for party, details in iteritems(party_details):
+	for reference_name, details in iteritems(reference_details):
 		addresses = details.get("address", [])
 		contacts  = details.get("contact", [])
 		if not any([addresses, contacts]):
-			result = [party]
+			result = [reference_name]
 			result.extend(add_blank_columns_for("Contact"))
 			result.extend(add_blank_columns_for("Address"))
 			data.append(result)
@@ -73,7 +73,7 @@ def get_party_addresses_and_contact(party_type, party):
 
 			max_length = max(len(addresses), len(contacts))
 			for idx in range(0, max_length):
-				result = [party]
+				result = [reference_name]
 				address = addresses[idx] if idx < len(addresses) else add_blank_columns_for("Address")
 				contact = contacts[idx] if idx < len(contacts) else add_blank_columns_for("Contact")
 				result.extend(address)
@@ -82,19 +82,19 @@ def get_party_addresses_and_contact(party_type, party):
 				data.append(result)
 	return data
 
-def get_party_details(party_type, party_list, doctype, party_details):
+def get_reference_details(reference_doctype, reference_list, doctype, reference_details):
 	filters =  [
-		["Dynamic Link", "link_doctype", "=", party_type],
-		["Dynamic Link", "link_name", "in", party_list]
+		["Dynamic Link", "link_doctype", "=", reference_doctype],
+		["Dynamic Link", "link_name", "in", reference_list]
 	]
 	fields = ["`tabDynamic Link`.link_name"] + field_map.get(doctype, [])
 
 	records = frappe.get_list(doctype, filters=filters, fields=fields, as_list=True)
 	for d in records:
-		details = party_details.get(d[0]) or {}
+		details = reference_details.get(d[0]) or {}
 		details.setdefault(frappe.scrub(doctype), []).append(d[1:])
 
-	return party_details
+	return reference_details
 
 def add_blank_columns_for(doctype):
 	return ["" for field in field_map.get(doctype, [])]

@@ -1,2 +1,0 @@
-import-large-csv-file
-using-data-migration-tool

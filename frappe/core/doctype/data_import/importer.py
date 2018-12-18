@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
@@ -7,7 +9,6 @@ from six.moves import range
 import requests
 import frappe, json, os
 import frappe.permissions
-import frappe.async
 
 from frappe import _
 
@@ -39,6 +40,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 	# for translations
 	if user:
+		frappe.cache().hdel("lang", user)
 		frappe.set_user_lang(user)
 
 	if data_import_doc and isinstance(data_import_doc, string_types):
@@ -115,7 +117,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		dt = None
 		for i, d in enumerate(doctype_row[1:]):
 			if d not in ("~", "-"):
-				if d and doctype_row[i] in (None, '' ,'~', '-', 'DocType:'):
+				if d and doctype_row[i] in (None, '' ,'~', '-', _("DocType") + ":"):
 					dt, parentfield = d, None
 					# xls format truncates the row, so it may not have more columns
 					if len(doctype_row) > i+2:
@@ -196,14 +198,14 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		else:
 			doc = frappe._dict(zip(columns, rows[start_idx][1:]))
 			doc['doctype'] = doctype
-			return doc
+			return doc, [], None
 
 	# used in testing whether a row is empty or parent row or child row
 	# checked only 3 first columns since first two columns can be blank for example the case of
 	# importing the item variant where item code and item name will be blank.
 	def main_doc_empty(row):
 		if row:
-			for i in xrange(3,1,-1):
+			for i in range(3,0,-1):
 				if len(row) > i and row[i]:
 					return False
 		return True
@@ -426,7 +428,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				error_link = get_url_to_form("Error Log", error_log_doc.name)
 			else:
 				error_link = None
-			log(**{"row": row_idx + 1, "title":'Error for row %s' % (len(row)>1 and row[1] or ""), "message": err_msg,
+			log(**{"row": row_idx + 1, "title":'Error for row %s' % (len(row)>1 and frappe.safe_decode(row[1]) or ""), "message": err_msg,
 				"indicator": "red", "link":error_link})
 			# data with error to create a new file
 			# include the errored data in the last row as last_error_row_idx will not be updated for the last row

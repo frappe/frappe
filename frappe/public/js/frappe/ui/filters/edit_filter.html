@@ -1,6 +1,6 @@
 <div class="filter-box">
 	<div class="list_filter row">
-		<div class="fieldname_select_area col-sm-4 form-group ui-front"></div>
+		<div class="fieldname-select-area col-sm-4 form-group ui-front"></div>
 		<div class="col-sm-2 form-group">
 			<select class="condition form-control">
 				<option value="=">{%= __("Equals") %}</option>
@@ -14,10 +14,14 @@
 				<option value=">=">{%= __(">=") %}</option>
 				<option value="<=">{%= __("<=") %}</option>
 				<option value="Between">{%= __("Between") %}</option>
+				<option value="descendants of">{%= __("Descendants Of") %}</option>
+				<option value="not descendants of">{%= __("Not Descendants Of") %}</option>
+				<option value="ancestors of">{%= __("Ancestors Of") %}</option>
+				<option value="not ancestors of">{%= __("Not Ancestors Of") %}</option>
 			</select>
 		</div>
 		<div class="col-sm-6 col-xs-12">
-			<div class="filter_field pull-left" style="width: calc(100% - 70px)"></div>
+			<div class="filter-field pull-left" style="width: calc(100% - 70px)"></div>
 			<div class="filter-actions pull-left">
 				<a class="set-filter-and-run btn btn-sm btn-primary pull-left">
 					<i class=" fa fa-check visible-xs"></i>

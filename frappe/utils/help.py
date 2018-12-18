@@ -9,11 +9,9 @@ import hashlib
 from frappe.model.db_schema import DbManager
 from frappe.installer import get_root_connection
 from frappe.database import Database
-import os
-from markdown2 import markdown
+import os, subprocess
 from bs4 import BeautifulSoup
 import jinja2.exceptions
-from six import text_type
 
 import io
 
@@ -30,6 +28,10 @@ def sync():
 @frappe.whitelist()
 def get_help(text):
 	return HelpDatabase().search(text)
+
+@frappe.whitelist()
+def get_installed_app_help(text):
+	return HelpDatabase().app_docs_search(text)
 
 @frappe.whitelist()
 def get_help_content(path):
@@ -105,6 +107,34 @@ class HelpDatabase(object):
 			select title, intro, path from help where title like %s union
 			select title, intro, path from help where match(content) against (%s) limit 10''', ('%'+words+'%', words))
 
+	def app_docs_search(self, words):
+		self.connect()
+		frappe_path = '%' + 'apps/frappe' + '%'
+		return self.db.sql('''
+			select
+				title, intro, full_path
+			from
+				help
+			where
+				title like %s
+				and
+				full_path not like %s
+
+			union
+
+			select
+				title, intro, full_path
+			from
+				help
+			where
+				match(content) against (%s)
+				and
+				full_path not like %s
+			limit
+				10
+
+		''', ('%'+words+'%', frappe_path, words, frappe_path))
+
 	def get_content(self, path):
 		self.connect()
 		query = '''select title, content from help
@@ -128,8 +158,12 @@ class HelpDatabase(object):
 			# Expect handling of cloning docs apps in bench
 			docs_app = frappe.get_hooks('docs_app', app, app)[0]
 
-			docs_folder = '../apps/{app}/{app}/docs/user'.format(app=app)
-			self.out_base_path = '../apps/{app}/{app}/docs'.format(app=app)
+			web_folder = 'www/' if docs_app != app else ''
+
+			docs_folder = '../apps/{docs_app}/{docs_app}/{web_folder}docs/user'.format(
+				docs_app=docs_app, web_folder=web_folder)
+			self.out_base_path = '../apps/{docs_app}/{docs_app}/{web_folder}docs'.format(
+				docs_app=docs_app, web_folder=web_folder)
 			if os.path.exists(docs_folder):
 				app_name = getattr(frappe.get_module(app), '__title__', None) or app.title()
 				doc_contents += '<li><a data-path="/{app}/index">{app_name}</a></li>'.format(
@@ -147,7 +181,7 @@ class HelpDatabase(object):
 
 									relpath = self.get_out_path(fpath)
 									relpath = relpath.replace("user", app)
-									content = markdown(content)
+									content = frappe.utils.md_to_html(content)
 									title = self.make_title(basepath, fname, content)
 									intro = self.make_intro(content)
 									content = self.make_content(content, fpath, relpath, app, docs_app)
@@ -185,17 +219,10 @@ class HelpDatabase(object):
 		if '{next}' in html:
 			html = html.replace('{next}', '')
 
-		target = path.split('/', 3)[-1]
-
-		if app_name != doc_app:
-			target = target.replace(app_name, doc_app + '/www')
-		app_name = path.split('/', 3)[2]
-		html += get_improve_page_html(app_name, target)
-
 		soup = BeautifulSoup(html, 'html.parser')
 
 		self.fix_links(soup, app_name)
-		self.fix_images(soup, app_name)
+		self.fix_images(soup, doc_app)
 
 		parent = self.get_parent(relpath)
 		if parent:
@@ -307,3 +334,13 @@ class HelpDatabase(object):
 		if pos:
 			files[0], files[pos] = files[pos], files[0]
 		return files
+
+def setup_apps_for_docs(app):
+	docs_app = frappe.get_hooks('docs_app', app, app)[0]
+
+	if docs_app and not os.path.exists(frappe.get_app_path(app)):
+		print("Getting {docs_app} required by {app}".format(docs_app=docs_app, app=app))
+		subprocess.check_output(['bench', 'get-app', docs_app], cwd = '..')
+	else:
+		if docs_app:
+			print("{docs_app} required by {app} already present".format(docs_app=docs_app, app=app))

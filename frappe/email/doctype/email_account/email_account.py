@@ -22,6 +22,8 @@ from frappe.utils.user import get_system_managers
 from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts
 from frappe.utils.scheduler import log
+from frappe.utils.html_utils import clean_email_html
+
 
 class SentEmailInInbox(Exception): pass
 
@@ -50,7 +52,7 @@ class EmailAccount(Document):
 			"name": ("!=", self.name)
 		})
 		if duplicate_email_account:
-			frappe.throw(_("Email id must be unique, Email Account is already exist \
+			frappe.throw(_("Email ID must be unique, Email Account already exists \
 				for {0}".format(frappe.bold(self.email_id))))
 
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
@@ -86,7 +88,7 @@ class EmailAccount(Document):
 
 	def on_update(self):
 		"""Check there is only one default of each type."""
-		from frappe.core.doctype.user.user import ask_pass_update, setup_user_email_inbox
+		from frappe.core.doctype.user.user import setup_user_email_inbox
 
 		self.there_must_be_only_one_default()
 		setup_user_email_inbox(email_account=self.name, awaiting_password=self.awaiting_password,
@@ -351,6 +353,9 @@ class EmailAccount(Document):
 				# email is already available update communication uid instead
 				frappe.db.set_value("Communication", name, "uid", uid, update_modified=False)
 				return
+
+		if email.content_type == 'text/html':
+			email.content = clean_email_html(email.content)
 
 		communication = frappe.get_doc({
 			"doctype": "Communication",
@@ -661,14 +666,14 @@ def notify_unreplied():
 		if email_account.append_to:
 
 			# get open communications younger than x mins, for given doctype
-			for comm in frappe.get_all("Communication", "name", filters={
-					"sent_or_received": "Received",
-					"reference_doctype": email_account.append_to,
-					"unread_notification_sent": 0,
-					"email_account":email_account.name,
-					"creation": ("<", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60)),
-					"creation": (">", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3))
-				}):
+			for comm in frappe.get_all("Communication", "name", filters=[
+					{"sent_or_received": "Received"},
+					{"reference_doctype": email_account.append_to},
+					{"unread_notification_sent": 0},
+					{"email_account":email_account.name},
+					{"creation": ("<", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60))},
+					{"creation": (">", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3))}
+				]):
 				comm = frappe.get_doc("Communication", comm.name)
 
 				if frappe.db.get_value(comm.reference_doctype, comm.reference_name, "status")=="Open":

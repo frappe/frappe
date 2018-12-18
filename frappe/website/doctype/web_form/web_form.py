@@ -171,6 +171,8 @@ def get_context(context):
 		if not context.max_attachment_size:
 			context.max_attachment_size = get_max_file_size() / 1024 / 1024
 
+		context.show_in_grid = self.show_in_grid
+
 	def load_document(self, context):
 		'''Load document `doc` and `layout` properties for template'''
 		if frappe.form_dict.name or frappe.form_dict.new:
@@ -255,7 +257,7 @@ def get_context(context):
 
 			js_path = os.path.join(os.path.dirname(self.web_form_module.__file__), scrub(self.name) + '.js')
 			if os.path.exists(js_path):
-				context.script = frappe.render_template(open(js_path, 'r').read().decode('utf-8'), context)
+				context.script = frappe.render_template(open(js_path, 'r').read(), context)
 
 			css_path = os.path.join(os.path.dirname(self.web_form_module.__file__), scrub(self.name) + '.css')
 			if os.path.exists(css_path):
@@ -273,7 +275,8 @@ def get_context(context):
 
 		def add_section(df=None):
 			new_section = {'columns': []}
-			layout[-1]['sections'].append(new_section)
+			if layout:
+				layout[-1]['sections'].append(new_section)
 			if df and df.fieldtype=='Section Break':
 				new_section.update(df.as_dict())
 
@@ -281,7 +284,8 @@ def get_context(context):
 
 		def add_column(df=None):
 			new_col = []
-			layout[-1]['sections'][-1]['columns'].append(new_col)
+			if layout:
+				layout[-1]['sections'][-1]['columns'].append(new_col)
 
 			return new_col
 
@@ -358,6 +362,7 @@ def accept(web_form, data, for_payment=False):
 		frappe.throw(_("You are not allowed to update this Web Form Document"))
 
 	frappe.flags.in_web_form = True
+	meta = frappe.get_meta(data.doctype)
 
 	if data.name:
 		# update
@@ -367,18 +372,20 @@ def accept(web_form, data, for_payment=False):
 		doc = frappe.new_doc(data.doctype)
 
 	# set values
-	for fieldname, value in iteritems(data):
-		if value and isinstance(value, dict):
-			try:
-				if "__file_attachment" in value:
-					files.append((fieldname, value))
-					continue
-				if '__no_attachment' in value:
-					files_to_delete.append(doc.get(fieldname))
-					value = ''
+	for field in web_form.web_form_fields:
+		fieldname = field.fieldname
+		df = meta.get_field(fieldname)
+		value = data.get(fieldname, None)
 
-			except ValueError:
-				pass
+		if df and df.fieldtype in ('Attach', 'Attach Image'):
+			if value and 'data:' and 'base64' in value:
+				files.append((fieldname, value))
+				if not doc.name:
+					doc.set(fieldname, '')
+				continue
+
+			elif not value and doc.get(fieldname):
+				files_to_delete.append(doc.get(fieldname))
 
 		doc.set(fieldname, value)
 
@@ -398,7 +405,9 @@ def accept(web_form, data, for_payment=False):
 		if web_form.login_required and frappe.session.user=="Guest":
 			frappe.throw(_("You must login to submit this form"))
 
-		doc.insert(ignore_permissions = True)
+		ignore_mandatory = True if files else False
+
+		doc.insert(ignore_permissions = True, ignore_mandatory = ignore_mandatory)
 
 	# add files
 	if files:
@@ -410,13 +419,14 @@ def accept(web_form, data, for_payment=False):
 				remove_file_by_url(doc.get(fieldname), doc.doctype, doc.name)
 
 			# save new file
-			filedoc = save_file(filedata["filename"], filedata["dataurl"],
+			filename, dataurl = filedata.split(',', 1)
+			filedoc = save_file(filename, dataurl,
 				doc.doctype, doc.name, decode=True)
 
 			# update values
 			doc.set(fieldname, filedoc.file_url)
 
-		doc.save()
+		doc.save(ignore_permissions = True)
 
 	if files_to_delete:
 		for f in files_to_delete:
@@ -428,17 +438,41 @@ def accept(web_form, data, for_payment=False):
 	if for_payment:
 		return web_form.get_payment_gateway_url(doc)
 	else:
-		return doc.name
+		return doc.as_dict()
 
 @frappe.whitelist()
-def delete(web_form, name):
-	web_form = frappe.get_doc("Web Form", web_form)
+def delete(web_form_name, docname):
+	web_form = frappe.get_doc("Web Form", web_form_name)
 
-	owner = frappe.db.get_value(web_form.doc_type, name, "owner")
+	owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
 	if frappe.session.user == owner and web_form.allow_delete:
-		frappe.delete_doc(web_form.doc_type, name, ignore_permissions=True)
+		frappe.delete_doc(web_form.doc_type, docname, ignore_permissions=True)
 	else:
 		raise frappe.PermissionError("Not Allowed")
+
+
+@frappe.whitelist()
+def delete_multiple(web_form_name, docnames):
+	web_form = frappe.get_doc("Web Form", web_form_name)
+
+	docnames = json.loads(docnames)
+
+	allowed_docnames = []
+	restricted_docnames = []
+
+	for docname in docnames:
+		owner = frappe.db.get_value(web_form.doc_type, docname, "owner")
+		if frappe.session.user == owner and web_form.allow_delete:
+			allowed_docnames.append(docname)
+		else:
+			restricted_docnames.append(docname)
+
+	for docname in allowed_docnames:
+		frappe.delete_doc(web_form.doc_type, docname, ignore_permissions=True)
+
+	if restricted_docnames:
+		raise frappe.PermissionError("You do not have permisssion to delete " + ", ".join(restricted_docnames))
+
 
 def has_web_form_permission(doctype, name, ptype='read'):
 	if frappe.session.user=="Guest":
@@ -483,3 +517,68 @@ def make_route_string(parameters):
 				route_string += route_string + delimeter + key + "=" + cstr(parameters[key])
 				delimeter = '&'
 	return (route_string, delimeter)
+
+@frappe.whitelist(allow_guest=True)
+def get_form_data(doctype, docname=None, web_form_name=None):
+	out = frappe._dict()
+
+	if docname:
+		doc = frappe.get_doc(doctype, docname)
+		if has_web_form_permission(doctype, docname, ptype='read'):
+			out.doc = doc
+		else:
+			frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+	out.web_form = frappe.get_doc('Web Form', web_form_name)
+
+	# For Table fields, server-side processing for meta
+	for field in out.web_form.web_form_fields:
+		if field.fieldtype == "Table":
+			field.fields = get_in_list_view_fields(field.options)
+			out.update({field.fieldname: field.fields})
+
+		if field.fieldtype == "Link":
+			field.fieldtype = "Autocomplete"
+			field.options = get_link_options(
+				web_form_name,
+				field.options,
+				field.allow_read_on_all_link_options
+			)
+
+	return out
+
+@frappe.whitelist()
+def get_in_list_view_fields(doctype):
+	return [df.as_dict() for df in frappe.get_meta(doctype).fields if df.in_list_view]
+
+@frappe.whitelist(allow_guest=True)
+def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=False):
+	web_form_doc = frappe.get_doc("Web Form", web_form_name)
+	doctype_validated = False
+	limited_to_user   = False
+	if web_form_doc.login_required:
+		# check if frappe session user is not guest or admin
+		if frappe.session.user != 'Guest':
+			doctype_validated = True
+
+			if not allow_read_on_all_link_options:
+				limited_to_user   = True
+
+	else:
+		for field in web_form_doc.web_form_fields:
+			if field.options == doctype:
+				doctype_validated = True
+				break
+
+	if doctype_validated:
+		link_options = []
+		if limited_to_user:
+			link_options = "\n".join([doc.name for doc in frappe.get_all(doctype, filters = {"owner":frappe.session.user})])
+		else:
+			link_options = "\n".join([doc.name for doc in frappe.get_all(doctype)])
+
+		return link_options
+
+	else:
+		raise frappe.PermissionError('Not Allowed, {0}'.format(doctype))
+

@@ -85,6 +85,9 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		return val==null ? "" : val;
 	},
 	validate: function(v) {
+		if(this.df.is_filter) {
+			return v;
+		}
 		if(this.df.options == 'Phone') {
 			if(v+''=='') {
 				return '';

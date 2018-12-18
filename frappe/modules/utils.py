@@ -224,7 +224,7 @@ def make_boilerplate(template, doc, opts=None):
 		with open(target_file_path, 'w') as target:
 			with open(os.path.join(get_module_path("core"), "doctype", scrub(doc.doctype),
 				"boilerplate", template), 'r') as source:
-				target.write(frappe.utils.encode(
+				target.write(frappe.as_unicode(
 					frappe.utils.cstr(source.read()).format(
 						app_publisher=app_publisher,
 						year=frappe.utils.nowdate()[:4],

@@ -3,16 +3,21 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe, json
+
+import calendar
+import json
+from datetime import timedelta
+
+import frappe
 from frappe import _
 from frappe.model.document import Document
-from datetime import timedelta
-import frappe.utils
-from frappe.utils import now, global_date_format, format_time
-from frappe.utils.xlsxutils import make_xlsx
+from frappe.utils import (format_time, get_link_to_form, get_url_to_report,
+	global_date_format, now, now_datetime, validate_email_add)
 from frappe.utils.csvutils import to_csv
+from frappe.utils.xlsxutils import make_xlsx
 
-max_reports_per_user = 3
+max_reports_per_user = frappe.local.conf.max_reports_per_user or 3
+
 
 class AutoEmailReport(Document):
 	def autoname(self):
@@ -31,7 +36,7 @@ class AutoEmailReport(Document):
 		valid = []
 		for email in self.email_to.split():
 			if email:
-				frappe.utils.validate_email_add(email, True)
+				validate_email_add(email, True)
 				valid.append(email)
 
 		self.email_to = '\n'.join(valid)
@@ -55,7 +60,7 @@ class AutoEmailReport(Document):
 
 		if self.report_type=='Report Builder' and self.data_modified_till:
 			self.filters = json.loads(self.filters) if self.filters else {}
-			self.filters['modified'] = ('>', frappe.utils.now_datetime() - timedelta(hours=self.data_modified_till))
+			self.filters['modified'] = ('>', now_datetime() - timedelta(hours=self.data_modified_till))
 
 		columns, data = report.get_data(limit=self.no_of_rows or 100, user = self.user,
 			filters = self.filters, as_dict=True)
@@ -94,11 +99,9 @@ class AutoEmailReport(Document):
 			'date_time': date_time,
 			'columns': columns,
 			'data': data,
-			'report_url': frappe.utils.get_url_to_report(self.report,
-				self.report_type, report_doctype),
+			'report_url': get_url_to_report(self.report, self.report_type, report_doctype),
 			'report_name': self.report,
-			'edit_report_settings': frappe.utils.get_link_to_form('Auto Email Report',
-				self.name)
+			'edit_report_settings': get_link_to_form('Auto Email Report', self.name)
 		})
 
 	@staticmethod
@@ -108,7 +111,7 @@ class AutoEmailReport(Document):
 			new_row = []
 			out.append(new_row)
 			for df in columns:
-				if not row.has_key(df.fieldname): continue
+				if df.fieldname not in row: continue
 				new_row.append(frappe.format(row[df.fieldname], df, row))
 
 		return out
@@ -169,15 +172,20 @@ def send_now(name):
 
 def send_daily():
 	'''Check reports to be sent daily'''
-	now = frappe.utils.now_datetime()
-	for report in frappe.get_all('Auto Email Report',
-		{'enabled': 1, 'frequency': ('in', ('Daily', 'Weekly'))}):
+
+	current_day = calendar.day_name[now_datetime().weekday()]
+	enabled_reports = frappe.get_all('Auto Email Report',
+		filters={'enabled': 1, 'frequency': ('in', ('Daily', 'Weekdays', 'Weekly'))})
+
+	for report in enabled_reports:
 		auto_email_report = frappe.get_doc('Auto Email Report', report.name)
 
 		# if not correct weekday, skip
-		if auto_email_report.frequency=='Weekly':
-			if now.weekday()!={'Monday':0,'Tuesday':1,'Wednesday':2,
-				'Thursday':3,'Friday':4,'Saturday':5,'Sunday':6}[auto_email_report.day_of_week]:
+		if auto_email_report.frequency == "Weekdays":
+			if current_day in ("Saturday", "Sunday"):
+				continue
+		elif auto_email_report.frequency == 'Weekly':
+			if auto_email_report.day_of_week != current_day:
 				continue
 
 		auto_email_report.send()

@@ -9,7 +9,7 @@ import openpyxl
 import re
 from openpyxl.styles import Font
 from openpyxl import load_workbook
-from six import StringIO, string_types
+from six import StringIO, BytesIO, string_types
 
 ILLEGAL_CHARACTERS_RE = re.compile(r'[\000-\010]|[\013-\014]|[\016-\037]')
 # return xlsx file object
@@ -26,7 +26,7 @@ def make_xlsx(data, sheet_name, wb=None):
 	for row in data:
 		clean_row = []
 		for item in row:
-			if isinstance(item, string_types) and sheet_name != "Data Import Template":
+			if isinstance(item, string_types) and (sheet_name not in ['Data Import Template', 'Data Export']):
 				value = handle_html(item)
 			else:
 				value = item
@@ -39,13 +39,15 @@ def make_xlsx(data, sheet_name, wb=None):
 
 		ws.append(clean_row)
 
-	xlsx_file = StringIO()
+	xlsx_file = BytesIO()
 	wb.save(xlsx_file)
 	return xlsx_file
 
 
 def handle_html(data):
 	# return if no html tags found
+	data = frappe.as_unicode(data)
+
 	if '<' not in data:
 		return data
 	if '>' not in data:
@@ -66,13 +68,15 @@ def handle_html(data):
 	value = ", ".join(value.split('# '))
 	return value
 
-def read_xlsx_file_from_attached_file(file_id=None, fcontent=None):
+def read_xlsx_file_from_attached_file(file_id=None, fcontent=None, filepath=None):
 	if file_id:
 		from frappe.utils.file_manager import get_file_path
 		filename = get_file_path(file_id)
 	elif fcontent:
 		from io import BytesIO
 		filename = BytesIO(fcontent)
+	elif filepath:
+		filename = filepath
 	else:
 		return
 

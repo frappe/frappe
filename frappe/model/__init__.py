@@ -42,7 +42,7 @@ def delete_fields(args_dict, delete=0):
 		args_dict = { dt: [field names] }
 	"""
 	import frappe.utils
-	for dt in args_dict.keys():
+	for dt in list(args_dict):
 		fields = args_dict[dt]
 		if not fields: continue
 

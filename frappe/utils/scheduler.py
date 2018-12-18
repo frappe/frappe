@@ -76,6 +76,11 @@ def enqueue_events_for_all_sites():
 			print(frappe.get_traceback())
 
 def enqueue_events_for_site(site, queued_jobs):
+	def log_and_raise():
+		frappe.logger(__name__).error('Exception in Enqueue Events for Site {0}'.format(site) +
+			'\n' + frappe.get_traceback())
+		raise # pylint: disable=misplaced-bare-raise
+
 	try:
 		frappe.init(site=site)
 		if frappe.local.conf.maintenance_mode:
@@ -91,11 +96,13 @@ def enqueue_events_for_site(site, queued_jobs):
 		enqueue_events(site=site, queued_jobs=queued_jobs)
 
 		frappe.logger(__name__).debug('Queued events for site {0}'.format(site))
-
+	except pymysql.OperationalError as e:
+		if e.args[0]==ER.ACCESS_DENIED_ERROR:
+			frappe.logger(__name__).debug('Access denied for site {0}'.format(site))
+		else:
+			log_and_raise()
 	except:
-		frappe.logger(__name__).error('Exception in Enqueue Events for Site {0}'.format(site) +
-			'\n' + frappe.get_traceback())
-		raise
+		log_and_raise()
 
 	finally:
 		frappe.destroy()
@@ -207,14 +214,17 @@ def log(method, message=None):
 	return message
 
 def get_enabled_scheduler_events():
-	if 'enabled_events' in frappe.flags:
+	if 'enabled_events' in frappe.flags and frappe.flags.enabled_events:
 		return frappe.flags.enabled_events
 
 	enabled_events = frappe.db.get_global("enabled_scheduler_events")
+	if frappe.flags.in_test:
+		# TEMP for debug: this test fails randomly
+		print('found enabled_scheduler_events {0}'.format(enabled_events))
+
 	if enabled_events:
 		if isinstance(enabled_events, string_types):
 			enabled_events = json.loads(enabled_events)
-
 		return enabled_events
 
 	return ["all", "hourly", "hourly_long", "daily", "daily_long",
@@ -285,7 +295,9 @@ def scheduler_task(site, event, handler, now=False):
 def reset_enabled_scheduler_events(login_manager):
 	if login_manager.info.user_type == "System User":
 		try:
-			frappe.db.set_global('enabled_scheduler_events', None)
+			if frappe.db.get_global('enabled_scheduler_events'):
+				# clear restricted events, someone logged in!
+				frappe.db.set_global('enabled_scheduler_events', None)
 		except pymysql.InternalError as e:
 			if e.args[0]==ER.LOCK_WAIT_TIMEOUT:
 				frappe.log_error(frappe.get_traceback(), "Error in reset_enabled_scheduler_events")
@@ -310,7 +322,11 @@ def restrict_scheduler_events(*args, **kwargs):
 	frappe.db.set_global('enabled_scheduler_events', val)
 
 def is_dormant(since = 345600):
-	last_active = get_datetime(get_last_active())
+	last_user_activity = get_last_active()
+	if not last_user_activity:
+		# no user has ever logged in, so not yet used
+		return False
+	last_active = get_datetime(last_user_activity)
 	# Get now without tz info
 	now = now_datetime().replace(tzinfo=None)
 	time_since_last_active = now - last_active
@@ -319,7 +335,7 @@ def is_dormant(since = 345600):
 	return False
 
 def get_last_active():
-	return frappe.db.sql("""select max(ifnull(last_active, "2000-01-01 00:00:00")) from `tabUser`
+	return frappe.db.sql("""select max(last_active) from `tabUser`
 		where user_type = 'System User' and name not in ({standard_users})"""\
 		.format(standard_users=", ".join(["%s"]*len(STANDARD_USERS))),
 		STANDARD_USERS)[0][0]
