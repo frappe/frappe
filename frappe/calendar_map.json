@@ -1,5 +1,5 @@
 {
-	"Event":{
+	"Event": {
 			"field_map": {
 				"start": "starts_on",
 				"end": "ends_on",

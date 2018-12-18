@@ -324,7 +324,6 @@
 		"public/js/frappe/list/list_item_subject.html",
 		"public/js/frappe/list/list_view_permission_restrictions.html",
 
-		"public/js/frappe/calendar/calendar_factory.js",
 		
 		"public/js/frappe/views/gantt/gantt_view.js",
 		"public/js/frappe/views/calendar/calendar.js",
