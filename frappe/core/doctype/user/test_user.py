@@ -266,3 +266,10 @@ class TestUser(unittest.TestCase):
 		self.assertEqual(extract_mentions(user_name)[0], "test-user")
 		user_name = "Testing comment, @test.user@example.com please check."
 		self.assertEqual(extract_mentions(user_name)[0], "test.user@example.com")
+		user_name = "<div>@test_user@example.com and @test.again@example1.com</div><div>This is a test.</div>"
+		self.assertEqual(extract_mentions(user_name)[0], "test_user@example.com")
+		self.assertEqual(extract_mentions(user_name)[1], "test.again@example1.com")
+		user_name = "<div>@user@example.com</a> Test @test-comment@xyz.com</div><div>Test for comment mentions @test@abc.com</div>"
+		self.assertEqual(extract_mentions(user_name)[0], "user@example.com")
+		self.assertEqual(extract_mentions(user_name)[1], "test-comment@xyz.com")
+		self.assertEqual(extract_mentions(user_name)[2], "test@abc.com")
