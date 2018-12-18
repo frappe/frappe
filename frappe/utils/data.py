@@ -569,7 +569,7 @@ def in_words(integer, in_million=True):
 
 def is_html(text):
 	out = False
-	for key in ["<br>", "<p", "<img", "<div"]:
+	for key in ["<br>", "<p", "<img", "<div", "<h"]:
 		if key in text:
 			out = True
 			break
