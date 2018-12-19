@@ -23,7 +23,9 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
     parse(value) {
         const values = Array.from(this.$input_area
             .find('.tb-selected-value'))
-            .map((target) => $(target).text());
+            .map((target) => {
+                return decodeURIComponent($(target).data().value);
+            });
 
         values.push(value);
 
@@ -88,6 +90,12 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
         this.$input_area.prepend(html);
     },
     get_pill_html(value) {
-        return `<span class="tb-selected-value">${__(value)}</span>`
+        const encoded_value = encodeURIComponent(value);
+        return `<div class="btn-group tb-selected-value" data-value="${encoded_value}">
+            <button class="btn btn-default btn-xs">${__(value)}</button>
+            <button class="btn btn-default btn-xs btn-remove">
+                <i class="fa fa-remove text-muted"></i>
+            </button>
+        </div>`
     }
 });
