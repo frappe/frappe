@@ -9,6 +9,13 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
         this.$input.on("awesomplete-selectcomplete", () => {
             this.$input.val('');
         });
+
+        this.$input_area.on('click', '.btn-remove', (e) => {
+            const $target = $(e.currentTarget);
+            const $pill = $target.closest('.tb-selected-value');
+            $pill.remove();
+            this.parse_validate_and_set_in_model('');
+        });
 	},
     get_options() {
 		return (this.get_link_field() || {}).options;
