@@ -76,6 +76,16 @@ class TestTranslation(unittest.TestCase):
 		"""
 
 		create_translation('es', [source, target])
+
+		source = """
+			<span style="font-family: &quot;Amazon Ember&quot;, Arial, sans-serif; font-size:
+			small; color: rgb(51, 51, 51);">MacBook Air lasts up to an incredible 12 hours between charges. So from your morning coffee to
+			your evening commute, you can work unplugged. When it’s time to kick back and relax,
+			you can get up to 12 hours of iTunes movie playback. And with up to 30 days of standby time,
+			you can go away for weeks and pick up where you left off.Whatever the task,
+			fifth-generation Intel Core i5 and i7 processors with Intel HD Graphics 6000 are up to it.</span><br>
+		"""
+
 		self.assertTrue(_(source), target)
 
 def get_translation_data():
