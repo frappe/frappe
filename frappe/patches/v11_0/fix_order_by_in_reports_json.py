@@ -7,6 +7,9 @@ def execute():
 
 	for d in reports_data:
 		doc = frappe.get_doc('Report', d.get('name'))
+
+		if not doc.get('json'): continue
+
 		json_data = json.loads(doc.get('json'))
 
 		parts = []
