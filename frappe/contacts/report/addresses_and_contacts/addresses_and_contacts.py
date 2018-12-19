@@ -70,8 +70,8 @@ def get_reference_addresses_and_contact(reference_doctype, reference_name):
 		else:
 			max_length = max(len(addresses), len(contacts))
 			result = [reference_name]
-			result.extend(list(addresses))
-			result.extend(list(contacts))
+			result.extend(list(addresses) or add_blank_columns_for("Address"))
+			result.extend(list(contacts) or add_blank_columns_for("Contact"))
 			data.append(result)
 	
 	return data
