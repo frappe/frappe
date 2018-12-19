@@ -104,3 +104,7 @@ def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, 
 		return_list.append([doctype])
 
 	return return_list
+
+def get_permitted_documents(doctype):
+	return [d.get('doc') for d in get_user_permissions().get(doctype, []) \
+		if d.get('doc')]
