@@ -715,9 +715,6 @@ def rename_language(old_name, new_name):
 
 @frappe.whitelist()
 def update_translations_for_source(source=None, translation_dict=None):
-	if is_html(source):
-		source = strip_html_tags(source)
-
 	if not (source and translation_dict):
 		return
 
