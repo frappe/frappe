@@ -17,6 +17,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			fields: this.get_fields(),
 			primary_action_label: __("Send"),
 			primary_action: function() {
+				me.delete_saved_draft();
 				me.send_action();
 			}
 		});
@@ -82,8 +83,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				label:__("Message"),
 				fieldtype:"Text Editor", reqd: 1,
 				fieldname:"content",
-				onchange: frappe.utils.debounce(this.save_as_draft.bind(this), 300),
-				default: localStorage.getItem(this.frm.doctype + this.frm.docname) || ''
+				onchange: frappe.utils.debounce(this.save_as_draft.bind(this), 300)
 			},
 
 			{fieldtype: "Section Break"},
@@ -135,9 +135,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 		this.dialog.fields_dict.subject.set_value(this.subject || '');
 
-		if(!localStorage.getItem(this.frm.doctype + this.frm.docname)) {
-			this.setup_earlier_reply();
-		}
+		this.setup_earlier_reply();
 	},
 
 	setup_subject_and_recipients: function() {
@@ -500,11 +498,24 @@ frappe.views.CommunicationComposer = Class.extend({
 	save_as_draft: function() {
 		if (this.dialog) {
 			try {
-				localStorage.setItem(this.frm.doctype + this.frm.docname, this.dialog.get_value('content'));
+				let message = this.dialog.get_value('content');
+				message = message.split('<span data-comment="original-reply" class="hidden">Reply To</span>')[0];
+				localStorage.setItem(this.frm.doctype + this.frm.docname, message);
 			} catch (e) {
 				// silently fail
 				console.log(e);
 				console.warn('[Communication] localStorage is full. Cannot save message as draft');
+			}
+		}
+	},
+
+	delete_saved_draft() {
+		if (this.dialog) {
+			try {
+				localStorage.removeItem(this.frm.doctype + this.frm.docname);
+			} catch (e) {
+				console.log(e);
+				console.warn('[Communication] Cannot delete localStorage item'); // eslint-disable-line
 			}
 		}
 	},
@@ -570,16 +581,6 @@ frappe.views.CommunicationComposer = Class.extend({
 						cur_frm.reload_doc();
 					}
 
-					if (localStorage.getItem(this.frm.doctype + this.frm.docname)) {
-						try {
-							localStorage.removeItem(this.frm.doctype + this.frm.docname);
-						} catch (e) {
-							// silently fail
-							console.log(e);
-							console.warn('[Communication] Failed to delete draft.');
-						}
-					}
-
 					// try the success callback if it exists
 					if (me.success) {
 						try {
@@ -615,13 +616,8 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	setup_earlier_reply: function() {
-		var fields = this.dialog.fields_dict,
-			signature = frappe.boot.user.email_signature || "",
-			last_email = this.last_email;
-
-		if(!last_email) {
-			last_email = this.frm && this.frm.timeline.get_last_email(true);
-		}
+		let fields = this.dialog.fields_dict;
+		let signature = frappe.boot.user.email_signature || "";
 
 		if(!frappe.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");
@@ -629,6 +625,12 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		if(this.txt) {
 			this.message = this.txt + (this.message ? ("<br><br>" + this.message) : "");
+		} else {
+			// saved draft in localStorage
+			const { doctype, docname } = this.frm || {};
+			if (doctype && docname) {
+				this.message = localStorage.getItem(doctype + docname) || '';
+			}
 		}
 
 		if(this.real_name) {
@@ -636,26 +638,47 @@ frappe.views.CommunicationComposer = Class.extend({
 				+ this.real_name + ",</p><!-- salutation-ends --><br>" + (this.message || "");
 		}
 
-		var reply = (this.message || "")
-			+ (signature ? ("<br>" + signature) : "");
-		var content = '';
+		let reply = (this.message || "") + (signature ? ("<br>" + signature) : "");
+		let content = '';
 
-		if(last_email) {
-			var last_email_content = last_email.original_comment || last_email.content;
+		if (this.is_a_reply === 'undefined') {
+			this.is_a_reply = true;
+		}
+
+		if (this.is_a_reply) {
+			let last_email = this.last_email;
+
+			if (!last_email) {
+				last_email = this.frm && this.frm.timeline.get_last_email(true);
+			}
+
+			if (!last_email) return;
+
+			let last_email_content = last_email.original_comment || last_email.content;
 
 			last_email_content = last_email_content
 				.replace(/&lt;meta[\s\S]*meta&gt;/g, '') // remove <meta> tags
 				.replace(/&lt;style[\s\S]*&lt;\/style&gt;/g, ''); // // remove <style> tags
 
-			var communication_date = last_email.communication_date || last_email.creation;
-			content = '<div><br></div>'
-				+ reply
-				+ "<br><!-- original-reply --><br>"
-				+ '<blockquote>' +
-					'<p>' + __("On {0}, {1} wrote:",
-					[frappe.datetime.global_date_format(communication_date) , last_email.sender]) + '</p>' +
-					last_email_content +
-				'<blockquote>';
+			// clip last email for a maximum of 20k characters
+			// to prevent the email content from getting too large
+			if (last_email_content.length > 20 * 1024) {
+				last_email_content += '<div>' + __('Message clipped') + '</div>' + last_email_content;
+				last_email_content = last_email_content.slice(0, 20 * 1024);
+			}
+
+			let communication_date = last_email.communication_date || last_email.creation;
+			content = `
+				<div><br></div>
+				${reply}
+				<div class="ql-collapse" data-collapse="true">
+					<span data-comment='original-reply'>Reply To</span>
+					<blockquote>
+					<p>${__("On {0}, {1} wrote:", [frappe.datetime.global_date_format(communication_date) , last_email.sender])}</p>
+					${last_email_content}
+					</blockquote>
+				</div>
+			`;
 		} else {
 			content = "<div><br></div>" + reply;
 		}

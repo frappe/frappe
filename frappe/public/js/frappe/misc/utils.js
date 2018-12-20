@@ -3,7 +3,7 @@
 
 frappe.provide('frappe.utils');
 
-frappe.utils = {
+Object.assign(frappe.utils, {
 	get_random: function(len) {
 		var text = "";
 		var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -91,6 +91,15 @@ frappe.utils = {
 	is_url: function(txt) {
 		return txt.toLowerCase().substr(0,7)=='http://'
 			|| txt.toLowerCase().substr(0,8)=='https://'
+	},
+	to_title_case: function(string, with_space=false) {
+		let titlecased_string = string.toLowerCase().replace(/(?:^|[\s-/])\w/g, function(match) {
+			return match.toUpperCase();
+		});
+
+		let replace_with = with_space ? ' ' : '';
+
+		return titlecased_string.replace(/-|_/g, replace_with);
 	},
 	toggle_blockquote: function(txt) {
 		if (!txt) return txt;
@@ -657,7 +666,7 @@ frappe.utils = {
 		}
 
 	}
-};
+});
 
 // Array de duplicate
 if (!Array.prototype.uniqBy) {

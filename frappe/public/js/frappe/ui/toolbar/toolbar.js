@@ -22,8 +22,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		this.setup_sidebar();
 		this.setup_help();
 
-		this.setup_modules_dialog();
-		this.setup_progress_dialog();
 		this.bind_events();
 
 		$(document).trigger('toolbar_setup');
@@ -48,7 +46,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		});
 
 		//focus search-modal on show in mobile view
-		$('#search-modal').on('shown.bs.modal', function () {
+		$('#search-modal').on('shown.bs.modal', function() {
 			var search_modal = $(this);
 			setTimeout(function() {
 				search_modal.find('#modal-search').focus();
@@ -56,9 +54,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		});
 	},
 
-	setup_sidebar: function () {
+	setup_sidebar: function() {
 		var header = $('header');
-		header.find(".toggle-sidebar").on("click", function () {
+		header.find(".toggle-sidebar").on("click", function() {
 			var layout_side_section = $('.layout-side-section');
 			var overlay_sidebar = layout_side_section.find('.overlay-sidebar');
 
@@ -92,7 +90,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		});
 	},
 
-	setup_help: function () {
+	setup_help: function() {
 		frappe.provide('frappe.help');
 		frappe.help.show_results = show_results;
 
@@ -100,15 +98,15 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		frappe.provide('frappe.searchdialog');
 		frappe.searchdialog.search = this.search;
 
-		$(".dropdown-help .dropdown-toggle").on("click", function () {
+		$(".dropdown-help .dropdown-toggle").on("click", function() {
 			$(".dropdown-help input").focus();
 		});
 
-		$(".dropdown-help .dropdown-menu").on("click", "input, button", function (e) {
+		$(".dropdown-help .dropdown-menu").on("click", "input, button", function(e) {
 			e.stopPropagation();
 		});
 
-		$("#input-help").on("keydown", function (e) {
+		$("#input-help").on("keydown", function(e) {
 			if(e.which == 13) {
 				var keywords = $(this).val();
 				show_help_results(keywords);
@@ -116,13 +114,13 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			}
 		});
 
-		$("#input-help + span").on("click", function () {
+		$("#input-help + span").on("click", function() {
 			var keywords = $("#input-help").val();
 			show_help_results(keywords);
 			$(this).val("");
 		});
 
-		$(document).on("page-change", function () {
+		$(document).on("page-change", function() {
 			var $help_links = $(".dropdown-help #help-links");
 			$help_links.html("");
 
@@ -139,8 +137,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 			if(links.length === 0) {
 				$help_links.next().hide();
-			}
-			else {
+			} else {
 				$help_links.next().show();
 			}
 
@@ -189,7 +186,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 					args: {
 						path: path
 					},
-					callback: function (r) {
+					callback: function(r) {
 						if(r.message && r.message.title) {
 							$result_modal.find('.modal-title').html("<span>"
 								+ r.message.title + "</span>");
@@ -200,40 +197,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				});
 			}
 		}
-	},
-
-	setup_progress_dialog: function() {
-		var me = this;
-		frappe.call({
-			method: "frappe.desk.user_progress.get_user_progress_slides",
-			callback: function(r) {
-				if(r.message) {
-					let slides = r.message;
-					if(slides.length && slides.map(s => parseInt(s.done)).includes(0)) {
-						frappe.require("assets/frappe/js/frappe/ui/toolbar/user_progress_dialog.js", function() {
-							me.progress_dialog = new frappe.setup.UserProgressDialog({
-								slides: slides
-							});
-							$('.user-progress').removeClass('hide');
-							$('.user-progress .dropdown-toggle').on('click', () => {
-								me.progress_dialog.show();
-							});
-
-							if (cint(frappe.boot.sysdefaults.is_first_startup)) {
-								me.progress_dialog.show();
-								frappe.call({
-									method: "frappe.desk.page.setup_wizard.setup_wizard.reset_is_first_startup",
-									args: {},
-									callback: () => {}
-								});
-							}
-
-						});
-					}
-				}
-			},
-			freeze: false
-		});
 	}
 });
 
@@ -260,6 +223,18 @@ $.extend(frappe.ui.toolbar, {
 			frappe.ui.toolbar.get_menu(menu) : menu;
 
 		$('<li class="divider custom-menu"></li>').prependTo(menu);
+	},
+	add_icon_link(route, icon, index, class_name) {
+		let parent_element = $(".navbar-right").get(0);
+		let new_element = $(`<li class="${class_name}">
+			<a class="btn" href="${route}" title="${frappe.utils.to_title_case(class_name, true)}" aria-haspopup="true" aria-expanded="true">
+				<div>
+					<i class="octicon ${icon}"></i>
+				</div>
+			</a>
+		</li>`).get(0);
+
+		parent_element.insertBefore(new_element, parent_element.children[index]);
 	}
 });
 
@@ -273,22 +248,21 @@ frappe.ui.toolbar.clear_cache = function() {
 				location.reload(true);
 			}
 		}
-	})
+	});
 	return false;
-}
+};
 
 frappe.ui.toolbar.download_backup = function() {
 	frappe.msgprint(__("Your download is being built, this may take a few moments..."));
 	$c('frappe.utils.backups.get_backup',{},function(r,rt) {});
 	return false;
-}
+};
 
 frappe.ui.toolbar.show_about = function() {
 	try {
 		frappe.ui.misc.about();
-	}
-	catch(e) {
+	} catch(e) {
 		console.log(e);
 	}
 	return false;
-}
+};

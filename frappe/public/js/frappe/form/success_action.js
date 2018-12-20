@@ -48,8 +48,8 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 				frappe.show_alert({
 					message: message,
 					body: html,
-					indicator: 'green'
-				});
+					indicator: 'green',
+				}, setting.action_timeout);
 			});
 	}
 

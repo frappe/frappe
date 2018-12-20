@@ -35,6 +35,7 @@ class Workflow(Document):
 				"no_copy": 1,
 				"fieldtype": "Link",
 				"options": "Workflow State",
+				"owner": "Administrator"
 			}).save()
 
 			frappe.msgprint(_("Created Custom Field {0} in {1}").format(self.workflow_state_field,

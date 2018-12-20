@@ -80,7 +80,7 @@ def compress(data, args = {}):
 	for row in data:
 		new_row = []
 		for key in keys:
-			new_row.append(row[key])
+			new_row.append(row.get(key))
 		values.append(new_row)
 
 	if args.get("add_total_row"):
@@ -111,6 +111,7 @@ def save_report():
 	return d.name
 
 @frappe.whitelist()
+@frappe.read_only()
 def export_query():
 	"""export from report builder"""
 	form_params = get_form_params()
@@ -241,6 +242,7 @@ def get_sidebar_stats(stats, doctype, filters=[]):
 	return {"defined_cat":cat_tags, "stats":get_stats(stats, doctype, filters)}
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_stats(stats, doctype, filters=[]):
 	"""get tag info"""
 	import json

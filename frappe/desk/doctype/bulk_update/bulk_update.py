@@ -54,11 +54,12 @@ def submit_cancel_or_update_docs(doctype, docnames, action='submit', data=None):
 				message = _('Updating {0}').format(doctype)
 			else:
 				failed.append(d)
-
+			frappe.db.commit()
 			show_progress(docnames, message, i, d)
 
 		except Exception:
 			failed.append(d)
+			frappe.db.rollback()
 
 	return failed
 

@@ -90,20 +90,26 @@ body[data-route*="social"] {
 			.content {
 				margin: 15px 0 0 46px;
 			}
+			.post-dropdown-menu {
+				display: none;
+				padding-left: 10px;
+				line-height: 1;
+			}
 		}
 		.pin-option {
-			.text-extra-muted;
+			.text-muted;
+			text-transform: uppercase;
+			font-size: @text-small;
 			display: none;
 		}
 		.pinned {
 			background: #fefdf2;
 			.pin-option {
-				.text-muted;
 				display: block;
 			}
 		}
 		&:hover {
-			.pin-option {
+			.post-dropdown-menu {
 				display: block;
 			}
 		}

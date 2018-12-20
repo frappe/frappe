@@ -158,6 +158,8 @@ def get():
 	bootinfo["lang"] = frappe.translate.get_user_lang()
 	bootinfo["disable_async"] = frappe.conf.disable_async
 
+	bootinfo["setup_complete"] = cint(frappe.db.get_single_value('System Settings', 'setup_complete'))
+
 	# limits
 	bootinfo.limits = get_limits()
 	bootinfo.expiry_message = get_expiry_message()

@@ -1,8 +1,8 @@
 frappe.provide('frappe.utils');
 /**
- * Simple EventEmitter which uses jQuery's event system
+ * Simple EventEmitterMixin which uses jQuery's event system
  */
-const event_emitter = {
+const EventEmitterMixin = {
 	init() {
 		this.jq = jQuery(this);
 	},
@@ -29,8 +29,8 @@ const event_emitter = {
 }
 
 frappe.utils.make_event_emitter = function(object) {
-	Object.assign(object, event_emitter);
+	Object.assign(object, EventEmitterMixin);
 	return object;
 };
 
-export default event_emitter;
+export default EventEmitterMixin;

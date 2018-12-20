@@ -39,11 +39,7 @@ export default {
 		},
 		go_to_user_settings() {
 			frappe.set_route('Form', 'User', this.user_id).then(()=> {
-				setTimeout(() => {
-					const more_info_section = $('a:contains("More Information")');
-					frappe.ui.scroll(more_info_section.parent().parent());
-					more_info_section.click()
-				}, 100)
+				frappe.dom.scroll_to_section('More Information');
 			})
 		}
 	}

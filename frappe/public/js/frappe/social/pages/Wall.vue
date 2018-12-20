@@ -10,7 +10,7 @@
 			</div>
 			<post-loader :post_list_filter="{}"></post-loader>
 		</div>
-		<activity-sidebar class="activity-sidebar"></activity-sidebar>
+		<activity-sidebar class="activity-sidebar hidden-xs"/>
 	</div>
 </template>
 <script>

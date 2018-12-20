@@ -80,6 +80,11 @@ frappe.Application = Class.extend({
 
 		this.show_update_available();
 
+		if(frappe.ui.startup_setup_dialog && !frappe.boot.setup_complete) {
+			frappe.ui.startup_setup_dialog.pre_show();
+			frappe.ui.startup_setup_dialog.show();
+		}
+
 		// listen to csrf_update
 		frappe.realtime.on("csrf_generated", function(data) {
 			// handles the case when a user logs in again from another tab
@@ -252,6 +257,7 @@ frappe.Application = Class.extend({
 		var me = this;
 		if(frappe.session_alive && frappe.boot && frappe.boot.home_page !== 'setup-wizard') {
 			return frappe.call({
+				type: 'GET',
 				method: "frappe.desk.notifications.get_notifications",
 				callback: function(r) {
 					if(r.message) {

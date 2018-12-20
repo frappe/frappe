@@ -22,7 +22,7 @@
 @media (min-width: 767px) {
   .page-body {
     overflow-x: hidden;
-    min-height: calc(60vh);
+    min-height: calc(100vh - 40px);
   }
 }
 .page-title {

@@ -1,4 +1,4 @@
-frappe.views.socialFactory = class socialFactory extends frappe.views.Factory {
+frappe.views.SocialFactory = class SocialFactory extends frappe.views.Factory {
 	show() {
 		if (frappe.pages.social) {
 			frappe.container.change_to('social');

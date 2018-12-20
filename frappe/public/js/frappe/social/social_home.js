@@ -1,7 +1,5 @@
-import Vue from 'vue/dist/vue.js';
 import Home from './Home.vue';
 
-Vue.prototype.__ = window.__;
 frappe.provide('frappe.social');
 
 frappe.social.Home = class SocialHome {
@@ -14,10 +12,11 @@ frappe.social.Home = class SocialHome {
 	}
 	make_body() {
 		this.$social_container = this.$parent.find('.layout-main');
-
-		new Vue({
-			el: this.$social_container[0],
-			render: h => h(Home)
+		frappe.require('/assets/js/frappe-vue.min.js', () => {
+			new Vue({
+				el: this.$social_container[0],
+				render: h => h(Home)
+			});
 		});
 	}
 	setup_header() {
@@ -42,11 +41,14 @@ frappe.social.post_dialog = new frappe.ui.Dialog({
 	],
 	primary_action_label: __('Post'),
 	primary_action: (values) => {
+		frappe.social.post_dialog.disable_primary_action();
 		const post = frappe.model.get_new_doc('Post');
 		post.content = values.content;
 		frappe.db.insert(post).then(() => {
 			frappe.social.post_dialog.clear();
 			frappe.social.post_dialog.hide();
+		}).finally(() => {
+			frappe.social.post_dialog.enable_primary_action();
 		});
 	}
 });
@@ -64,10 +66,6 @@ frappe.social.update_user_image = new frappe.ui.Dialog({
 	],
 	primary_action_label: __('Set Image'),
 	primary_action: (values) => {
-		// TODO: check for a better fix
-		if (!frappe.session.user) {
-			frappe.session.user = frappe.boot.user.name;
-		}
 		const user = frappe.session.user;
 		frappe.db.set_value('User', user, 'user_image', values.image)
 			.then((resp) => {

@@ -4,6 +4,7 @@
 // route urls to their virtual pages
 
 // re-route map (for rename)
+frappe.provide('frappe.views');
 frappe.re_route = {"#login": ""};
 frappe.route_titles = {};
 frappe.route_flags = {};
@@ -13,6 +14,10 @@ frappe.view_factories = [];
 frappe.route_options = null;
 
 frappe.route = function() {
+
+	// Application is not yet initiated
+	if (!frappe.app) return;
+
 	if(frappe.re_route[window.location.hash] !== undefined) {
 		// after saving a doc, for example,
 		// "New DocType 1" and the renamed "TestDocType", both exist in history
@@ -39,16 +44,24 @@ frappe.route = function() {
 
 	frappe.route_history.push(route);
 
-	if(route[0] && route[1] && frappe.views[route[0] + "Factory"]) {
-		// has a view generator, generate!
-		if(!frappe.view_factory[route[0]]) {
-			frappe.view_factory[route[0]] = new frappe.views[route[0] + "Factory"]();
-		}
+	if(route[0]) {
+		const title_cased_route = frappe.utils.to_title_case(route[0]);
 
-		frappe.view_factory[route[0]].show();
+		if(route[1] && frappe.views[title_cased_route + "Factory"]) {
+			// has a view generator, generate!
+			if(!frappe.view_factory[title_cased_route]) {
+				frappe.view_factory[title_cased_route] = new frappe.views[title_cased_route + "Factory"]();
+			}
+
+			frappe.view_factory[title_cased_route].show();
+		} else {
+			// show page
+			const route_name = frappe.utils.xss_sanitise(route[0]);
+			frappe.views.pageview.show(route_name);
+		}
 	} else {
-		// show page
-		frappe.views.pageview.show(route[0]);
+		// Show desk
+		frappe.views.pageview.show('');
 	}
 
 
@@ -116,7 +129,7 @@ frappe.get_raw_route_str = function(route) {
 }
 
 frappe.get_route_str = function(route) {
-	var rawRoute = frappe.get_raw_route_str()
+	var rawRoute = frappe.get_raw_route_str(route);
 	route = $.map(rawRoute.split('/'), frappe._decode_str).join('/');
 
 	return route;
@@ -145,9 +158,10 @@ frappe.set_route = function() {
 		window.location.hash = route;
 
 		// Set favicon (app.js)
+		frappe.provide('frappe.app');
 		frappe.app.set_favicon && frappe.app.set_favicon();
 		setTimeout(() => {
-			frappe.after_ajax(() => {
+			frappe.after_ajax && frappe.after_ajax(() => {
 				resolve();
 			});
 		}, 100);

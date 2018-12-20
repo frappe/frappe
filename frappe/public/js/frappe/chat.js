@@ -93,10 +93,10 @@ frappe.datetime.datetime = class {
 	 * @description Frappe's datetime Class's constructor.
 	 */
 	constructor (instance, format = null) {
-		if ( typeof moment === undefined )
+		if ( typeof moment === 'undefined' )
 			throw new frappe.ImportError(`Moment.js not installed.`)
 
-		this.moment      = instance ? moment(instance, format) : moment()
+		this.moment = instance ? moment(instance, format) : moment()
 	}
 
 	/**
@@ -1404,6 +1404,11 @@ class extends Component {
 	constructor (props) {
 		super (props)
 
+		this.setup(props)
+		this.make()
+	}
+
+	setup (props) {
 		// room actions
 		this.room           = { }
 		this.room.add       = rooms => {
@@ -1483,8 +1488,6 @@ class extends Component {
 		}
 
 		this.state = { ...frappe.Chat.Widget.defaultState, ...props }
-
-		this.make()
 	}
 
 	make ( ) {
@@ -1562,12 +1565,16 @@ class extends Component {
 
 				const  alert   = // TODO: ellipses content
 				`
-				<span>
+				<span data-action="show-message" class="cursor-pointer">
 					<span class="indicator yellow"/> <b>${frappe.user.first_name(r.user)}</b>: ${r.content}
 				</span>
 				`
-
-				frappe.show_alert(alert, 3)
+				frappe.show_alert(alert, 3, {
+					"show-message": function (r) {
+						this.room.select(r.room)
+						this.base.firstChild._component.toggle()
+					}.bind(this, r)
+				})
 			}
 
 			if ( r.room === state.room.name ) {
@@ -1755,6 +1762,10 @@ class extends Component {
 	constructor (props) {
 		super (props)
 
+		this.setup(props);
+	}
+
+	setup (props) {
 		this.toggle = this.toggle.bind(this)
 
 		this.state  = frappe.Chat.Widget.Popper.defaultState
@@ -1973,18 +1984,27 @@ class extends Component {
 			}
 		}
 
-		if ( props.last_message )
+		let is_unread = false
+		if ( props.last_message ) {
 			item.timestamp = frappe.chat.pretty_datetime(props.last_message.creation)
+			is_unread = !props.last_message.seen.includes(frappe.session.user)
+		}
 
 		return (
 			h("li", null,
-				h("a", { class: props.active ? "active": "", onclick: () => props.click(props) },
+				h("a", { class: props.active ? "active": "", onclick: () => {
+					props.last_message.seen.push(frappe.session.user)
+					props.click(props)
+				} },
 					h("div", { class: "row" },
 						h("div", { class: "col-xs-9" },
 							h(frappe.Chat.Widget.MediaProfile, { ...item })
 						),
 						h("div", { class: "col-xs-3 text-right" },
-							h("div", { class: "text-muted", style: { "font-size": "9px" } }, item.timestamp)
+							[
+								h("div", { class: "text-muted", style: { "font-size": "9px" } }, item.timestamp),
+								is_unread ? h("span", { class: "indicator red" }) : null
+							]
 						),
 					)
 				)

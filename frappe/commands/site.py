@@ -126,14 +126,16 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 
 @click.command('reinstall')
 @click.option('--admin-password', help='Administrator Password for reinstalled site')
+@click.option('--mariadb-root-username', help='Root username for MariaDB')
+@click.option('--mariadb-root-password', help='Root password for MariaDB')
 @click.option('--yes', is_flag=True, default=False, help='Pass --yes to skip confirmation')
 @pass_context
-def reinstall(context, admin_password=None, yes=False):
+def reinstall(context, admin_password=None, mariadb_root_username=None, mariadb_root_password=None, yes=False):
 	"Reinstall site ie. wipe all data and start over"
 	site = get_site(context)
-	_reinstall(site, admin_password, yes, verbose=context.verbose)
+	_reinstall(site, admin_password, mariadb_root_username, mariadb_root_password, yes, verbose=context.verbose)
 
-def _reinstall(site, admin_password=None, yes=False, verbose=False):
+def _reinstall(site, admin_password=None, mariadb_root_username=None, mariadb_root_password=None, yes=False, verbose=False):
 	if not yes:
 		click.confirm('This will wipe your database. Are you sure you want to reinstall?', abort=True)
 	try:
@@ -150,8 +152,9 @@ def _reinstall(site, admin_password=None, yes=False, verbose=False):
 		frappe.destroy()
 
 	frappe.init(site=site)
-	_new_site(frappe.conf.db_name, site, verbose=verbose, force=True, reinstall=True,
-		install_apps=installed, admin_password=admin_password)
+	_new_site(frappe.conf.db_name, site, verbose=verbose, force=True, reinstall=True, install_apps=installed,
+		mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password,
+		admin_password=admin_password)
 
 @click.command('install-app')
 @click.argument('app')
@@ -181,15 +184,17 @@ def list_apps(context):
 @click.argument('email')
 @click.option('--first-name')
 @click.option('--last-name')
+@click.option('--password')
 @click.option('--send-welcome-email', default=False, is_flag=True)
 @pass_context
-def add_system_manager(context, email, first_name, last_name, send_welcome_email):
+def add_system_manager(context, email, first_name, last_name, send_welcome_email, password):
 	"Add a new system manager to a site"
 	import frappe.utils.user
 	for site in context.sites:
 		frappe.connect(site=site)
 		try:
-			frappe.utils.user.add_system_manager(email, first_name, last_name, send_welcome_email)
+			frappe.utils.user.add_system_manager(email, first_name, last_name,
+				send_welcome_email, password)
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
@@ -453,8 +458,10 @@ def _set_limits(context, site, limits):
 		frappe.connect()
 		new_limits = {}
 		for limit, value in limits:
-			if limit not in ('daily_emails', 'emails', 'space', 'users', 'email_group',
-				'expiry', 'support_email', 'support_chat', 'upgrade_url'):
+			if limit not in ('daily_emails', 'emails', 'space', 'users', 'email_group', 'currency',
+				'expiry', 'support_email', 'support_chat', 'upgrade_url', 'subscription_id',
+				'subscription_type', 'current_plan', 'subscription_base_price', 'upgrade_plan',
+				'upgrade_base_price', 'cancellation_url'):
 				frappe.throw(_('Invalid limit {0}').format(limit))
 
 			if limit=='expiry' and value:
@@ -463,7 +470,7 @@ def _set_limits(context, site, limits):
 				except ValueError:
 					raise ValueError("Incorrect data format, should be YYYY-MM-DD")
 
-			elif limit=='space':
+			elif limit in ('space', 'subscription_base_price', 'upgrade_base_price'):
 				value = float(value)
 
 			elif limit in ('users', 'emails', 'email_group', 'daily_emails'):
@@ -476,7 +483,7 @@ def _set_limits(context, site, limits):
 @click.command('clear-limits')
 @click.option('--site', help='site name')
 @click.argument('limits', nargs=-1, type=click.Choice(['emails', 'space', 'users', 'email_group',
-	'expiry', 'support_email', 'support_chat', 'upgrade_url', 'daily_emails']))
+	'expiry', 'support_email', 'support_chat', 'upgrade_url', 'daily_emails', 'cancellation_url']))
 @pass_context
 def clear_limits(context, site, limits):
 	"""Clears given limit from the site config, and removes limit from site config if its empty"""
@@ -540,6 +547,28 @@ def publish_realtime(context, event, message, room, user, doctype, docname, afte
 		finally:
 			frappe.destroy()
 
+@click.command('browse')
+@click.argument('site', required=False)
+@pass_context
+def browse(context, site):
+	'''Opens the site on web browser'''
+	import webbrowser
+	site = context.sites[0] if context.sites else site
+
+	if not site:
+		click.echo('''Please provide site name\n\nUsage:\n\tbench browse [site-name]\nor\n\tbench --site [site-name] browse''')
+		return
+
+	site = site.lower()
+
+	if site in frappe.utils.get_sites():
+		webbrowser.open('http://{site}:{port}'.format(
+			site=site,
+			port=frappe.get_conf(site).webserver_port
+		), new=2)
+	else:
+		click.echo("\nSite named \033[1m{}\033[0m doesn't exist\n".format(site))
+
 commands = [
 	add_system_manager,
 	backup,
@@ -563,4 +592,5 @@ commands = [
 	_use,
 	set_last_active_for_user,
 	publish_realtime,
+	browse
 ]

@@ -12,7 +12,6 @@ execute:frappe.reload_doc('core', 'doctype', 'docperm') #2018-05-29
 frappe.patches.v8_0.drop_is_custom_from_docperm
 execute:frappe.reload_doc('core', 'doctype', 'module_def') #2017-09-22
 execute:frappe.reload_doc('core', 'doctype', 'version') #2017-04-01
-frappe.patches.v11_0.copy_fetch_data_from_options
 frappe.patches.v7_1.rename_scheduler_log_to_error_log
 frappe.patches.v6_1.rename_file_data
 frappe.patches.v7_0.re_route #2016-06-27
@@ -20,6 +19,7 @@ frappe.patches.v8_0.update_records_in_global_search #11-05-2017
 frappe.patches.v8_0.update_published_in_global_search
 frappe.patches.v11_0.replicate_old_user_permissions
 frappe.patches.v11_0.drop_column_apply_user_permissions
+frappe.patches.v11_0.copy_fetch_data_from_options
 frappe.patches.v11_0.change_email_signature_fieldtype
 execute:frappe.reload_doc('core', 'doctype', 'activity_log')
 execute:frappe.reload_doc('core', 'doctype', 'deleted_document')
@@ -226,7 +226,11 @@ frappe.patches.v11_0.get_docs_apps_if_not_present
 frappe.patches.v10_0.set_default_locking_time
 frappe.patches.v11_0.rename_google_maps_doctype
 frappe.patches.v10_0.modify_smallest_currency_fraction
+frappe.patches.v10_0.modify_naming_series_table
 frappe.patches.v10_0.enhance_security
 frappe.patches.v11_0.multiple_references_in_events
 frappe.patches.v11_0.set_allow_self_approval_in_workflow
 execute:frappe.db.sql('ALTER table `tabSeries` ADD PRIMARY KEY IF NOT EXISTS (name)')
+frappe.patches.v11_0.migrate_report_settings_for_new_listview
+frappe.patches.v11_0.delete_all_prepared_reports
+frappe.patches.v11_0.fix_order_by_in_reports_json

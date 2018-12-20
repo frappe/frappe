@@ -1,13 +1,13 @@
 import Quill from 'quill';
-import { ImageDrop } from 'quill-image-drop-module';
-
-
-Quill.register('modules/imageDrop', ImageDrop);
 
 // replace <p> tag with <div>
 const Block = Quill.import('blots/block');
 Block.tagName = 'DIV';
 Quill.register(Block, true);
+
+const CodeBlockContainer = Quill.import('formats/code-block-container');
+CodeBlockContainer.tagName = 'PRE';
+Quill.register(CodeBlockContainer, true);
 
 // table
 const Table = Quill.import('formats/table-container');
@@ -19,6 +19,27 @@ Table.create = (value) => {
 	return node;
 }
 Quill.register(Table, true);
+
+// hidden blot
+class HiddenBlock extends Block {
+	static create(value) {
+		const node = super.create(value);
+		node.setAttribute('data-comment', value);
+		node.classList.add('hidden');
+		return node;
+	}
+
+	static formats(node) {
+		return node.getAttribute('data-comment');
+	}
+}
+HiddenBlock.blotName = 'hiddenblot';
+HiddenBlock.tagName = 'SPAN';
+Quill.register(HiddenBlock, true);
+
+// image uploader
+const Uploader = Quill.import('modules/uploader');
+Uploader.DEFAULTS.mimetypes.push('image/gif');
 
 // inline style
 const BackgroundStyle = Quill.import('attributors/style/background');
@@ -66,30 +87,6 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			e.stopPropagation();
 		});
 
-		// paste images
-		$(this.quill.root).on('paste', (e) => {
-			const clipboardData = e.originalEvent.clipboardData;
-			const files = clipboardData.files;
-			if (files.length > 0) {
-
-				Array.from(files).forEach(file => {
-					if (!file.type.match(/^image\/(gif|jpe?g|a?png|svg|webp|bmp|vnd\.microsoft\.icon)/i)) {
-						// file is not an image
-						// Note that some file formats such as psd start with image/* but are not readable
-						return;
-					}
-
-					frappe.dom.file_to_base64(file)
-						.then(data_url => {
-							setTimeout(() => {
-								const index = (this.quill.getSelection() || {}).index || this.quill.getLength();
-								this.quill.insertEmbed(index, 'image', data_url, 'user');
-							});
-						})
-				});
-			}
-		});
-
 		// table commands
 		this.$wrapper.on('click', '.ql-table .ql-picker-item', (e) => {
 			const $target = $(e.currentTarget);
@@ -133,7 +130,6 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		return {
 			modules: {
 				toolbar: this.get_toolbar_options(),
-				imageDrop: true,
 				table: true
 			},
 			theme: 'snow'
@@ -179,8 +175,9 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			return;
 		}
 
-		this.quill.setText('');
-		this.quill.clipboard.dangerouslyPasteHTML(0, value);
+		// set html without triggering a focus
+		const delta = this.quill.clipboard.convert({ html: value, text: '' });
+		this.quill.setContents(delta);
 	},
 
 	get_input_value() {
