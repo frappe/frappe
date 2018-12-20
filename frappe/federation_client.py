@@ -1,4 +1,4 @@
-sync_master_dataimport frappe
+import frappe
 from frappe.frappeclient import FrappeClient
 from frappe.defaults import set_global_default
 from frappe.defaults import add_default
@@ -44,8 +44,6 @@ def sync_master_data():
     job_name = 'sync-master-data'
 
     last_synced_record = start_job(job_name)
-
-    # master_setup = FrappeClient(frappe.local.conf.federation_master_hostname,frappe.local.conf.federation_master_user, frappe.local.conf.federation_master_password)
 
     connection = FrappeClient(frappe.local.conf.master_node,
             frappe.local.conf.master_user,

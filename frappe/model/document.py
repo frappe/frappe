@@ -16,7 +16,6 @@ from frappe.model import optional_fields
 from frappe.model.workflow import validate_workflow
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
-from frappe.federation_master import log_insert, log_update
 
 # once_only validation
 # methods
@@ -215,10 +214,6 @@ class Document(BaseDocument):
 		self.run_method("before_insert")
 		self.set_new_name()
 
-		currently_inserting_doctypes = frappe.flags.setdefault('currently_inserting', {})
-		currently_inserting_docs = currently_inserting_doctypes.setdefault(self.doctype, set())
-		currently_inserting_docs.add(self.name)
-
 		self.set_parent_in_children()
 		self.validate_higher_perm_levels()
 
@@ -245,8 +240,6 @@ class Document(BaseDocument):
 		for d in self.get_all_children():
 			d.db_insert()
 
-		log_insert(self)
-
 		self.run_method("after_insert")
 		self.flags.in_insert = True
 
@@ -255,13 +248,6 @@ class Document(BaseDocument):
 
 		self.run_post_save_methods()
 		self.flags.in_insert = False
-
-		currently_inserting_docs.remove(self.name)
-		if not currently_inserting_docs:
-			del currently_inserting_doctypes[self.doctype]
-
-		if not currently_inserting_doctypes:
-			del frappe.flags['currently_inserting']
 
 		# delete __islocal
 		if hasattr(self, "__islocal"):
@@ -323,8 +309,6 @@ class Document(BaseDocument):
 			self.update_single(self.get_valid_dict())
 		else:
 			self.db_update()
-
-		log_update(self)
 
 		self.update_children()
 		self.run_post_save_methods()
