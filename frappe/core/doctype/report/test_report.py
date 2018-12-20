@@ -61,6 +61,8 @@ class TestReport(unittest.TestCase):
 		with open(os.path.join(os.path.dirname(__file__), 'user_activity_report_without_sort.json'), 'r') as f:
 			frappe.get_doc(json.loads(f.read())).insert()
 
+		report = frappe.get_doc('Report', 'User Activity Report Without Sort')
+		# this would raise an error without the fix added along with this test case
 		columns, data = report.get_data()
 
 		self.assertEqual(columns[0].get('label'), 'ID')
