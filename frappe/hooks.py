@@ -140,6 +140,10 @@ doc_events = {
 
 }
 
+cron = {
+	"* * * * *": ["frappe.federation_client.sync_master_data"]
+}
+
 scheduler_events = {
 	"all": [
 		"frappe.email.queue.flush",
@@ -149,7 +153,8 @@ scheduler_events = {
 		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
 		"frappe.twofactor.delete_all_barcodes_for_users",
 		"frappe.integrations.doctype.gcalendar_settings.gcalendar_settings.sync",
-		"frappe.website.doctype.web_page.web_page.check_publish_status"
+		"frappe.website.doctype.web_page.web_page.check_publish_status",
+		"frappe.federation_client.sync_master_data"
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
