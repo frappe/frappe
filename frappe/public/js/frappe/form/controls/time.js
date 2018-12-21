@@ -32,7 +32,7 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 			keyboardNav: false,
 			todayButton: true
 		};
-        },
+	},
 	set_input: function(value) {
 		this._super(value);
 		if(value
