@@ -74,8 +74,8 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		if(!this.frm) return;
 		// show datepicker above or below the input
 		// based on scroll position
-		const scroll_limit = $(window).scrollTop() + $(window).height()
-		const picker_bottom = this.$input.offset().top + this.$input.outerHeight() + 12 + this.datepicker.$datepicker.outerHeight()
+		const scroll_limit = $(window).scrollTop() + $(window).height();
+		const picker_bottom = this.$input.offset().top + this.$input.outerHeight() + 12 + this.datepicker.$datepicker.outerHeight();
 
 		var position = 'bottom left';
 		//if (picker_top > scroll_limit + window_scroll) {

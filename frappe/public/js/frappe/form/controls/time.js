@@ -2,7 +2,7 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		this._super();
 		this.set_time_options();
-                this.set_datepicker();
+		this.set_datepicker();
 		this.refresh();
 	},
 	set_time_options: function() {
@@ -62,14 +62,14 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 			$tp.$secondsText.prev().css('display', 'none');
 		} else {
 			this.noSeconds = false;
-                }
-        },
+		}
+	},
 	update_datepicker_position: function() {
 		if(!this.frm) return;
 		// show datepicker above or below the input
 		// based on scroll position
-		const scroll_limit = $(window).scrollTop() + $(window).height()
-		const picker_bottom = this.$input.offset().top + this.$input.outerHeight() + 12 + this.datepicker.$datepicker.outerHeight()
+		const scroll_limit = $(window).scrollTop() + $(window).height();
+		const picker_bottom = this.$input.offset().top + this.$input.outerHeight() + 12 + this.datepicker.$datepicker.outerHeight();
 
 		var position = 'bottom left';
 		//if (picker_top > scroll_limit + window_scroll) {
@@ -111,7 +111,7 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 			let sysdefaults = frappe.sys_defaults;
 			let time_format = sysdefaults && sysdefaults.time_format
 				? sysdefaults.time_format : 'HH:mm:ss';
-			frappe.msgprint(__("Date {0} must be in format: {1}", [value, date_format]));
+			frappe.msgprint(__("Time {0} must be in format: {1}", [value, time_format]));
 			return '';
 		}
 		return value;
