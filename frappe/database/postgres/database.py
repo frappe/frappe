@@ -293,6 +293,10 @@ class PostgresDatabase(Database):
 	def get_database_list(self, target):
 		return [d[0] for d in self.sql("SELECT datname FROM pg_database;")]
 
+	def get_last_insert_id(self):
+		return frappe.db.sql("SELECT LASTVAL() as name;", as_dict=1)[0].name
+
+
 def modify_query(query):
 	""""Modifies query according to the requirements of postgres"""
 	# replace ` with " for definitions

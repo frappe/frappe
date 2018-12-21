@@ -282,3 +282,6 @@ class MariaDBDatabase(Database):
 
 	def get_database_list(self, target):
 		return [d[0] for d in self.sql("SHOW DATABASES;")]
+
+	def get_last_insert_id(self):
+		return frappe.db.sql("SELECT last_insert_id() as name;", as_dict=1)[0].name

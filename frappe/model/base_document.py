@@ -311,7 +311,7 @@ class BaseDocument(object):
 					values = ", ".join(["%s"] * len(columns))
 				), list(d.values()))
 			if self.meta.autoname == "autoincrement":
-				self.name = frappe.db.sql("SELECT last_insert_id() as name;", as_dict=1)[0].name
+				self.name = frappe.db.get_last_insert_id()
 		except Exception as e:
 			if frappe.db.is_primary_key_violation(e):
 				if self.meta.autoname=="hash":
