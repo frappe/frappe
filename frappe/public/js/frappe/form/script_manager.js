@@ -179,7 +179,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 		// setup add fetch
 		$.each(this.frm.fields, function(i, field) {
 			setup_add_fetch(field.df);
-			if(field.df.fieldtype==="Table") {
+			if(frappe.model.table_fields.includes(field.df.fieldtype)) {
 				$.each(frappe.meta.get_docfields(field.df.options, me.frm.docname), function(i, df) {
 					setup_add_fetch(df);
 				});

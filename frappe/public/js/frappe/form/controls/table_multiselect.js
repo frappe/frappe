@@ -106,3 +106,5 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
         </div>`
     }
 });
+
+//TODO: add local docs using frappe.model.add_child

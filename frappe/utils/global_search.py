@@ -75,7 +75,7 @@ def rebuild_for_doctype(doctype):
 	meta = frappe.get_meta(doctype)
 	if cint(meta.istable) == 1:
 		parent_doctypes = frappe.get_all("DocField", fields="parent", filters={
-			"fieldtype": "Table",
+			"fieldtype": ["in", frappe.model.table_fields],
 			"options": doctype
 		})
 		for p in parent_doctypes:
@@ -229,7 +229,7 @@ def update_global_search(doc):
 
 	content = []
 	for field in doc.meta.get_global_search_fields():
-		if doc.get(field.fieldname) and field.fieldtype != "Table":
+		if doc.get(field.fieldname) and field.fieldtype not in frappe.model.table_fields:
 			content.append(get_formatted_value(doc.get(field.fieldname), field))
 
 	tags = (doc.get('_user_tags') or '').strip()

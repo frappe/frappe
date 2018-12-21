@@ -138,7 +138,7 @@ $.extend(frappe.meta, {
 
 	get_table_fields: function(dt) {
 		return $.map(frappe.meta.docfield_list[dt], function(d) {
-			return d.fieldtype==='Table' ? d : null});
+			return frappe.model.table_fields.includes(d.fieldtype) ? d : null});
 	},
 
 	get_doctype_for_field: function(doctype, key) {
@@ -168,8 +168,8 @@ $.extend(frappe.meta, {
 	},
 
 	get_parentfield: function(parent_dt, child_dt) {
-		var df = (frappe.get_doc("DocType", parent_dt).fields || []).filter(function(d)
-			{ return d.fieldtype==="Table" && d.options===child_dt })
+		var df = (frappe.get_doc("DocType", parent_dt).fields || [])
+			.filter(df => frappe.model.table_fields.includes(df.fieldtype) && df.options===child_dt)
 		if(!df.length)
 			throw "parentfield not found for " + parent_dt + ", " + child_dt;
 		return df[0].fieldname;

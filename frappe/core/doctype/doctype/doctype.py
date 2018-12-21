@@ -10,7 +10,7 @@ import frappe
 from frappe import _
 
 from frappe.utils import now, cint
-from frappe.model import no_value_fields, default_fields, data_fieldtypes
+from frappe.model import no_value_fields, default_fields, data_fieldtypes, table_fields
 from frappe.model.document import Document
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.notifications import delete_notification_count_for
@@ -82,7 +82,7 @@ class DocType(Document):
 		if not [d.fieldname for d in self.fields if d.in_list_view]:
 			cnt = 0
 			for d in self.fields:
-				if d.reqd and not d.hidden and not d.fieldtype == "Table":
+				if d.reqd and not d.hidden and not d.fieldtype in table_fields:
 					d.in_list_view = 1
 					cnt += 1
 					if cnt == 4: break
@@ -171,7 +171,8 @@ class DocType(Document):
 		"""Change the timestamp of parent DocType if the current one is a child to clear caches."""
 		if frappe.flags.in_import:
 			return
-		parent_list = frappe.db.get_all('DocField', 'parent', dict(fieldtype='Table', options=self.name))
+		parent_list = frappe.db.get_all('DocField', 'parent',
+			dict(fieldtype=['in', frappe.model.table_fields], options=self.name))
 		for p in parent_list:
 			frappe.db.sql('UPDATE `tabDocType` SET modified=%s WHERE `name`=%s', (now(), p.parent))
 
@@ -514,11 +515,11 @@ def validate_fields(meta):
 		validate_column_length(fieldname)
 
 	def check_illegal_mandatory(d):
-		if (d.fieldtype in no_value_fields) and d.fieldtype!="Table" and d.reqd:
+		if (d.fieldtype in no_value_fields) and d.fieldtype not in table_fields and d.reqd:
 			frappe.throw(_("Field {0} of type {1} cannot be mandatory").format(d.label, d.fieldtype))
 
 	def check_link_table_options(d):
-		if d.fieldtype in ("Link", "Table"):
+		if d.fieldtype in ("Link",) + table_fields:
 			if not d.options:
 				frappe.throw(_("Options required for Link or Table type field {0} in row {1}").format(d.label, d.idx))
 			if d.options=="[Select]" or d.options==d.parent:
@@ -705,7 +706,7 @@ def validate_fields(meta):
 
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
-		if d.fieldtype != "Table": d.allow_bulk_edit = 0
+		if d.fieldtype not in table_fields: d.allow_bulk_edit = 0
 		if d.fieldtype == "Barcode": d.ignore_xss_filter = 1
 		if not d.fieldname:
 			d.fieldname = d.fieldname.lower()
