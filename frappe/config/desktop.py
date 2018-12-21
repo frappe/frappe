@@ -70,5 +70,12 @@ def get_data():
 			"icon": "octicon octicon-book",
 			"color": '#FFAEDB',
 			"hidden": 1,
+		},
+		{
+			"module_name": 'Settings',
+			"color": "#bdc3c7",
+			"reverse": 1,
+			"icon": "octicon octicon-settings",
+			"type": "module"
 		}
 	]
