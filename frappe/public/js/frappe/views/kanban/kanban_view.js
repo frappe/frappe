@@ -290,7 +290,7 @@ frappe.views.KanbanView.setup_dropdown_in_sidebar = function(doctype, $dropdown)
 						</a>
 					</div>
 				`
-			}]
+			}];
 		}
 
 		return fields;
