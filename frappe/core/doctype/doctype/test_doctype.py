@@ -122,7 +122,7 @@ class TestDocType(unittest.TestCase):
 
 		doc = self.new_doctype("Test Auto Increment", autoname="autoincrement")
 		doc.insert()
-		tab_desc = frappe.db.sql("DESC `tabTest Auto Increment`", as_dict=1)
+		tab_desc = frappe.db.get_table_columns_description("tabTest Auto Increment")
 		for row in tab_desc:
 			if row.Field == "name":
 				self.assertTrue(row.Extra == "auto_increment")
@@ -172,7 +172,7 @@ class TestDocType(unittest.TestCase):
 
 		doc = self.new_doctype("Test Naming Series", autoname="AUTO-INC-.######")
 		doc.insert()
-		tab_desc = frappe.db.sql("DESC `tabTest Naming Series`", as_dict=1)
+		tab_desc = frappe.db.get_table_columns_description("tabTest Naming Series")
 		for row in tab_desc:
 			if row.Field == "name":
 				self.assertFalse(row.Extra == "auto_increment")
