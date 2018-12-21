@@ -269,7 +269,7 @@ def format_datetime(datetime_string, format_string=None):
 	if not format_string:
 		format_string = (
 			get_user_date_format().replace("mm", "MM")
-			+ get_user_time_format())
+			+ ' ' + get_user_time_format())
 
 	try:
 		formatted_datetime = babel.dates.format_datetime(datetime, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
