@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 context('User', () => {
 	before(() => {
 		cy.login('Administrator', 'qwe');
@@ -22,7 +23,7 @@ context('User', () => {
 		cy.get('#desk_sidebar_div').should('be.visible');
 
 		// ensure layout is full width when sidebar is active
-		cy.get('.app-container').each(($div, i, $divs) => {
+		cy.get('.app-container').each(($div) => {
 			expect($div).to.have.class('container-fluid');
 		});
 

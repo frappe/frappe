@@ -64,14 +64,14 @@
    }
   ]
  },
- {
+	{
 		"doctype": "User",
 		"email": "testhomepage@example.com",
 		"enabled": 1,
 		"first_name": "_Test Homepage",
 		"new_password": "Eastern_43A1W",
 		"homepage": "modules",
-  "desk_navigation": "Sidebar",
+		"desk_navigation": "Sidebar",
 		"roles": [
 			{
 				"doctype": "Has Role",

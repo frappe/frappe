@@ -1,8 +1,8 @@
+/* eslint-disable no-console */
 frappe.provide("frappe.ui");
 frappe.ui.DeskSidebar = class DeskSidebar {
 
 	constructor() {
-
 		this.update_reroute();
 
 		this.container = $("#desk_sidebar_div");
@@ -226,13 +226,12 @@ frappe.ui.DeskSidebar = class DeskSidebar {
 						method: 'frappe.desk.doctype.desktop_icon.desktop_icon.hide',
 						args: { name: name },
 						freeze: true,
-						callback: (response) =>
-						{
+						callback: (response) => {
 							if ( response.message ) {
 								location.reload();
 							}
 						}
-					})
+					});
 
 					dialog.hide();
 
