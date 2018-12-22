@@ -544,6 +544,12 @@ export default class GridRow {
 			}
 		}
 
+		if (df.fieldtype == 'Text' || df.fieldtype == 'Text Editor') {
+			var div = document.createElement("div");
+			div.innerHTML = txt;
+			this.doc[df.fieldname] = div.textContent || div.innerText || "";
+		}
+
 		if(txt===undefined && this.frm) {
 			var txt = frappe.format(this.doc[fieldname], df,
 				null, this.frm.doc);
