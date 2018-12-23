@@ -129,7 +129,7 @@ frappe.search.AwesomeBar = Class.extend({
 			default: "Help",
 			onclick: function() {
 				var txt = '<table class="table table-bordered">\
-					<tr><td style="width: 50%">'+__("Make a new record")+'</td><td>'+
+					<tr><td style="width: 50%">'+__('Create a new record')+'</td><td>'+
 						__("new type of document")+'</td></tr>\
 					<tr><td>'+__("List a document type")+'</td><td>'+
 						__("document type..., e.g. customer")+'</td></tr>\

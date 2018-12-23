@@ -1644,7 +1644,7 @@ class extends Component {
 							 ],
 							action: {
 								primary: {
-									   label: __("Create"),
+									   label: __('Create'),
 									onsubmit: (values) => {
 										if ( values.type === "Group" ) {
 											if ( !frappe._.is_empty(values.users) ) {
