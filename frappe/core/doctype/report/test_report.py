@@ -29,7 +29,7 @@ class TestReport(unittest.TestCase):
 		self.assertTrue('User' in [d[0] for d in data])
 
 	def test_report_permisisons(self):
-		frappe.db.sql("""delete from `tabHas Role` where parent = %s 
+		frappe.db.sql("""delete from `tabHas Role` where parent = %s
 			and role = 'Test Has Role'""", frappe.session.user, auto_commit=1)
 
 		if not frappe.db.exists('Role', 'Test Has Role'):
@@ -61,6 +61,7 @@ class TestReport(unittest.TestCase):
 		with open(os.path.join(os.path.dirname(__file__), 'user_activity_report_without_sort.json'), 'r') as f:
 			frappe.get_doc(json.loads(f.read())).insert()
 
+		report = frappe.get_doc('Report', 'User Activity Report Without Sort')
 		columns, data = report.get_data()
 
 		self.assertEqual(columns[0].get('label'), 'ID')
