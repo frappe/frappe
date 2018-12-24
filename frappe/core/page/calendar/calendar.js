@@ -10,12 +10,25 @@ frappe.pages['calendar'].on_page_load = function (wrapper) {
 
 frappe.pages['calendar'].on_page_show = (wrapper) => {
 	var route = frappe.get_route()
-	if(route[1]){
-		console.log("init")
-		console.log(frappe.pages.calendar.loaded)
+	if (frappe.pages.calendar.loaded) {
+		var cur_cal;
+		var side = frappe.pages.calendar.page.sidebar
+		Object.values(side.find("ul > li > input:checked")).map((f)=>{ 
+			if (f.value){
+				side.find("ul > li > input[value = '"+f.value+"']").prop("checked",false)
+			}
+		});
+		if (route[1]){
+			side.find("ul > li > input[value = '"+route[1]+"']").prop("checked",true)
+			var cal = wrapper.page.body.find(".cal-div")
+			cal.fullCalendar("refetchEvents");
+		}else{
+			side.find("ul > li >input[value = 'Event']").prop("checked",true)
+			var cal = wrapper.page.body.find(".cal-div")
+			cal.fullCalendar("refetchEvents");
+		}
+		return;
 	}
-
-	if (frappe.pages.calendar.loaded && !route[1]) return;
 
 	frappe.require([
 		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
@@ -23,21 +36,23 @@ frappe.pages['calendar'].on_page_show = (wrapper) => {
 		'assets/frappe/js/lib/fullcalendar/locale-all.js'
 	], function (){
 		frappe.pages.calendar.loaded = true;
-		console.log("inside-require")
 		this.$nav = wrapper.page.sidebar.html(`
 				<ul class="module-sidebar-nav overlay-sidebar nav nav-pills nav-stacked"></ul>
 				<div></div>
 			`);
 		this.$sidebar_list = wrapper.page.sidebar.find('ul');
-		this.$cal = $("<div>").appendTo(wrapper.page.body);
-		this.$cal = wrapper.page.body.find('div')
+		this.$cal = $("<div class='cal-div'>").appendTo(wrapper.page.body);
+
 		
 		select_all(this.$sidebar_list,this.$cal);
 		create_checkboxes(this.$sidebar_list, this.$cal);
 		get_more_calendars(this.$sidebar_list, this.$cal, wrapper.page)
 		const calendar_option = get_calendar_options(this)
-		
+
+	
+
 		this.$cal.fullCalendar(calendar_option);
+
 		set_css(this.$cal);
 		hide_show_weekends(calendar_option, wrapper.page);
 	});
@@ -327,6 +342,7 @@ function get_calendar_options(me){
 		editable: true,
 		selectable: true,
 		forceEventDuration: true,
+		lazyFetching: true,
 		nowIndicator: true,
 
 		events: function(start, end, timezone, callback){
@@ -337,9 +353,8 @@ function get_calendar_options(me){
 			$('.cal:checked').each(function () {
 				docinfo.push($(this).attr('value'));
 			});
-			console.log("hello")
 			//methd for fetching the events.
-			return frappe.call({
+			frappe.call({
 				method: "frappe.core.page.calendar.calendar.get_master_calendar_events",
 				type: "GET",
 				args: {
@@ -369,8 +384,9 @@ function get_calendar_options(me){
 						});
 					}
 				}
-				callback(events)
-			});
+				if(events)
+					callback(events)
+				});
 			//prepare_event(docinfo, get_system_datetime(start), get_system_datetime(end), callback);
 		},
 
