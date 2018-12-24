@@ -14,7 +14,7 @@ class Translation(Document):
 			self.remove_html_from_source()
 
 	def remove_html_from_source(self):
-		self.source_name = strip_html_tags(self.source_name)
+		self.source_name = strip_html_tags(self.source_name).strip()
 
 	def on_update(self):
 		clear_cache()
