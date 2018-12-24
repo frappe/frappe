@@ -656,9 +656,9 @@ frappe.views.CommunicationComposer = Class.extend({
 
 			let last_email_content = last_email.original_comment || last_email.content;
 
-			last_email_content = last_email_content
-				.replace(/&lt;meta[\s\S]*meta&gt;/g, '') // remove <meta> tags
-				.replace(/&lt;style[\s\S]*&lt;\/style&gt;/g, ''); // // remove <style> tags
+			// convert the email context to text as we are enclosing
+			// this inside <blockquote>
+			last_email_content = frappe.html2text(last_email_content);
 
 			// clip last email for a maximum of 20k characters
 			// to prevent the email content from getting too large
@@ -685,3 +685,10 @@ frappe.views.CommunicationComposer = Class.extend({
 		fields.content.set_value(content);
 	}
 });
+
+frappe.html2text = function html2text(html) {
+	// convert HTML to text and try and preserve whitespace
+	var d = document.createElement( 'div' );
+	d.innerHTML = html.replace(/<\/div>/g, '<br></div>').replace(/<br>/g, '\n');
+	return d.textContent;
+}
