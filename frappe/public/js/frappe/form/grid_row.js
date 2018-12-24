@@ -544,7 +544,7 @@ export default class GridRow {
 			}
 		}
 
-		//hide div tags in Text Area
+		//hide html tags in Text Area
 		if (df.fieldtype == 'Text' || df.fieldtype == 'Text Editor') {
 			var column =  this.columns[df.fieldname]
 			column.field_area.css("display", "none");
