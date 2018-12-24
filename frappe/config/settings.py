@@ -46,25 +46,6 @@ def get_data():
 				"label": _("SMS Settings"),
 				"description": _("SMS Gateway URL, Message & Receiver Parameter"),
 				"hide_count": True
-			},
-			{
-				"type": "doctype",
-				"name": "POS Settings",
-				"label": _("POS Settings"),
-				"description": _("Enable / Disable Offline POS"),
-				"hide_count": True
-			},
-			{
-				"type": "doctype",
-				"name": "Blog Settings",
-				"label": _("Blog Settings"),
-				"hide_count": True
-			},
-			{
-				"type": "doctype",
-				"name": "LDAP Settings",
-				"label": _("LDAP Settings"),
-				"hide_count": True
 			}
 		]
 	}]
