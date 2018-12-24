@@ -14,20 +14,57 @@ def get_data():
 			},
 			{
 				"type": "doctype",
-				"name": "Error Log",
-				"description": _("Log of error on automated events (scheduler).")
-			},
-			{
-				"type": "doctype",
-				"name": "Error Snapshot",
-				"description": _("Log of error during requests.")
-			},
-			{
-				"type": "doctype",
 				"name": "Domain Settings",
 				"label": _("Domain Settings"),
 				"description": _("Enable / Disable Domains"),
 				"hide_count": True
 			},
+			{
+				"type": "doctype",
+				"name": "Print Settings",
+				"label": _("Print Settings"),
+				"description": _("Print Style, PDF Size"),
+				"hide_count": True
+			},
+			{
+				"type": "doctype",
+				"name": "Website Settings",
+				"label": _("Website Settings"),
+				"description": _("Landing Page, Website Theme, Brand Setup and more"),
+				"hide_count": True
+			},
+			{
+				"type": "doctype",
+				"name": "S3 Backup Settings",
+				"label": _("S3 Backup Settings"),
+				"description": _("Enable / Disable Backup, Backup Frequency"),
+				"hide_count": True
+			},
+			{
+				"type": "doctype",
+				"name": "SMS Settings",
+				"label": _("SMS Settings"),
+				"description": _("SMS Gateway URL, Message & Receiver Parameter"),
+				"hide_count": True
+			},
+			{
+				"type": "doctype",
+				"name": "POS Settings",
+				"label": _("POS Settings"),
+				"description": _("Enable / Disable Offline POS"),
+				"hide_count": True
+			},
+			{
+				"type": "doctype",
+				"name": "Blog Settings",
+				"label": _("Blog Settings"),
+				"hide_count": True
+			},
+			{
+				"type": "doctype",
+				"name": "LDAP Settings",
+				"label": _("LDAP Settings"),
+				"hide_count": True
+			}
 		]
 	}]
