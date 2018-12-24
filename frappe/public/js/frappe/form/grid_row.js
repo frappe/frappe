@@ -544,10 +544,11 @@ export default class GridRow {
 			}
 		}
 
+		//hide div tags in Text Area
 		if (df.fieldtype == 'Text' || df.fieldtype == 'Text Editor') {
-			var div = document.createElement("div");
-			div.innerHTML = txt;
-			this.doc[df.fieldname] = div.textContent || div.innerText || "";
+			var column =  this.columns[df.fieldname]
+			column.field_area.css("display", "none");
+			column.static_area.css({"display":"block"}).addClass("input-sm");
 		}
 
 		if(txt===undefined && this.frm) {
