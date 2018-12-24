@@ -11,6 +11,8 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 	make: function() {
 		var me = this;
+		this.separator_element = '<div>---</div>';
+
 		this.dialog = new frappe.ui.Dialog({
 			title: (this.title || this.subject || __("New Email")),
 			no_submit_on_enter: true,
@@ -499,7 +501,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		if (this.dialog) {
 			try {
 				let message = this.dialog.get_value('content');
-				message = message.split('<span data-comment="original-reply" class="hidden">Reply To</span>')[0];
+				message = message.split(this.separator_element)[0];
 				localStorage.setItem(this.frm.doctype + this.frm.docname, message);
 			} catch (e) {
 				// silently fail
@@ -618,6 +620,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	setup_earlier_reply: function() {
 		let fields = this.dialog.fields_dict;
 		let signature = frappe.boot.user.email_signature || "";
+		let me = this;
 
 		if(!frappe.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");
@@ -658,7 +661,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 			// convert the email context to text as we are enclosing
 			// this inside <blockquote>
-			last_email_content = frappe.html2text(last_email_content);
+			last_email_content = frappe.html2text(last_email_content).replace(/\n/g, '<br>');
 
 			// clip last email for a maximum of 20k characters
 			// to prevent the email content from getting too large
@@ -671,13 +674,11 @@ frappe.views.CommunicationComposer = Class.extend({
 			content = `
 				<div><br></div>
 				${reply}
-				<div class="ql-collapse" data-collapse="true">
-					<span data-comment='original-reply'>Reply To</span>
-					<blockquote>
-					<p>${__("On {0}, {1} wrote:", [frappe.datetime.global_date_format(communication_date) , last_email.sender])}</p>
-					${last_email_content}
-					</blockquote>
-				</div>
+				${this.separator_element}
+				<p>${__("On {0}, {1} wrote:", [frappe.datetime.global_date_format(communication_date) , last_email.sender])}</p>
+				<blockquote>
+				${last_email_content}
+				</blockquote>
 			`;
 		} else {
 			content = "<div><br></div>" + reply;
@@ -689,6 +690,11 @@ frappe.views.CommunicationComposer = Class.extend({
 frappe.html2text = function html2text(html) {
 	// convert HTML to text and try and preserve whitespace
 	var d = document.createElement( 'div' );
-	d.innerHTML = html.replace(/<\/div>/g, '<br></div>').replace(/<br>/g, '\n');
-	return d.textContent;
-}
+	d.innerHTML = html.replace(/<\/div>/g, '<br></div>')  // replace end of blocks
+		.replace(/<\/p>/g, '<br></p>') // replace end of paragraphs
+		.replace(/<br>/g, '\n');
+	let text = d.textContent;
+
+	// replace multiple empty lines with just one
+	return text.replace(/\n{3,}/g, '\n\n');
+};
