@@ -76,12 +76,12 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 
 		return validate_promise.then(validated_value => {
 			if (validated_value === link_value) {
-				return rows
+				return rows;
 			} else {
 				rows.pop();
 				return rows;
 			}
-		})
+		});
 	},
 	set_formatted_input(value) {
 		this.rows = value || [];
@@ -114,7 +114,7 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 			const meta = frappe.get_meta(this.df.options);
 			this._link_field = meta.fields.find(df => df.fieldtype === 'Link');
 			if (!this._link_field) {
-				throw new Error('Table MultiSelect requires a Table with atleast one Link field')
+				throw new Error('Table MultiSelect requires a Table with atleast one Link field');
 			}
 		}
 		return this._link_field;
