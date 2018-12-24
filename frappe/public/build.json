@@ -13,6 +13,12 @@
 	"js/frappe-recorder.min.js": [
 		"public/js/frappe/recorder/recorder.js"
 	],
+	"js/fullcalendar.js": [
+		"public/js/frappe/fullcalendar.js"
+	],
+	"js/frappe-vue.min.js": [
+		"public/js/frappe_vue.js"
+	],
 	"js/frappe-web.min.js": [
 		"public/js/frappe/class.js",
 		"public/js/frappe/polyfill.js",
@@ -270,7 +276,7 @@
 		"public/js/frappe/list/list_sidebar_group_by.js",
 		"public/js/frappe/list/list_view_permission_restrictions.html",
 
-		
+
 		"public/js/frappe/views/gantt/gantt_view.js",
 		"public/js/frappe/views/calendar/calendar.js",
 		"public/js/frappe/views/image/image_view.js",
