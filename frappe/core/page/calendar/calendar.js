@@ -10,6 +10,7 @@ frappe.pages['calendar'].on_page_load = function (wrapper) {
 
 frappe.pages['calendar'].on_page_show = (wrapper) => {
 	var route = frappe.get_route()
+
 	if (frappe.pages.calendar.loaded) {
 		var cur_cal;
 		var side = frappe.pages.calendar.page.sidebar
@@ -347,47 +348,12 @@ function get_calendar_options(me){
 
 		events: function(start, end, timezone, callback){
 			$(".popover.fade.bottom.in").remove();
-			start_param = get_system_datetime(start);
-			end_param = get_system_datetime(end)
 			var docinfo = [];
 			$('.cal:checked').each(function () {
 				docinfo.push($(this).attr('value'));
 			});
-			//methd for fetching the events.
-			frappe.call({
-				method: "frappe.core.page.calendar.calendar.get_master_calendar_events",
-				type: "GET",
-				args: {
-					'doctypeinfo': docinfo,
-					'start': start_param,
-					'end': end_param
-				}
-			}).then(r => {
-				var events = [];
-				for (event in r["message"]) {
-					if ($('.cal:checked').length == 1) {
-						var heading = r["message"][event].title
-					} else {
-						var heading = r["message"][event].doctype + ": " + r["message"][event].title
-					}
-					//after fetching pushing and maping events on calendar
-					if ($("input[value='" + r["message"][event].doctype + "']").prop("checked")) {
-						events.push({
-							start: r["message"][event].start,
-							end: r["message"][event].end,
-							id: r["message"][event].id,
-							title: heading,
-							doctype: r["message"][event].doctype,
-							color: r["message"][event].color,
-							textColor: r["message"][event].textColor,
-							description: r["message"][event].description
-						});
-					}
-				}
-				if(events)
-					callback(events)
-				});
-			//prepare_event(docinfo, get_system_datetime(start), get_system_datetime(end), callback);
+			
+			prepare_event(docinfo, get_system_datetime(start), get_system_datetime(end), callback);
 		},
 
 		select: function(startDate, endDate){
@@ -426,7 +392,6 @@ function prepare_event(docinfo, start_param, end_param, callback){
 			'end': end_param
 		}
 	}).then(r => {
-		debugger;
 		var events = [];
 		for(event in r["message"]){
 			if ($('.cal:checked').length == 1){
