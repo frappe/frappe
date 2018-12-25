@@ -4,7 +4,7 @@ context('Login', () => {
 	});
 
 	it('greets with login screen', () => {
-		cy.get('.page-card-head').contains('Login');
+		cy.get('.page-card-head').contains('Login to start your session');
 	});
 
 	it('validates password', () => {
