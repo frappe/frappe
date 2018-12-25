@@ -48,9 +48,9 @@ function update_event(event, revertFunc) {
 			'name': event.id
 		}
 	}).then(r => {
-		if (r["message"] == 0){
-			frappe.msgprint("Unable to update the Event");
+		if (!r.message) {
 			revertFunc();
+			frappe.throw("Unable to update the Event");
 		}
 	});
 }
@@ -94,7 +94,7 @@ function get_field_map(doctype) {
 	return new Promise(resolve => {
 		frappe.call('frappe.core.page.calendar.calendar.get_field_map', { doctype })
 			.then(r => resolve(r.message));
-		});
+	});
 }
 
 function get_checked_calendars() {
@@ -327,7 +327,6 @@ function get_calendar_options() {
 		weekends: true,
 		selectable: true,
 		editable: true,
-		selectable: true,
 		forceEventDuration: true,
 		lazyFetching: true,
 		nowIndicator: true,
