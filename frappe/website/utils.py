@@ -284,6 +284,9 @@ def extract_title(source, path):
 
 	if "<!-- title:" in source:
 		title = re.findall('<!-- title:([^>]*) -->', source)[0].strip()
+		if '{{' in title:
+			title = re.findall(r'\{{(.*?)\}}', title)[0].strip()
+			title = eval(title)
 	elif "<h1>" in source:
 		match = re.findall('<h1>([^<]*)', source)
 		title = match[0].strip()[:300]
