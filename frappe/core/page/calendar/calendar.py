@@ -9,13 +9,10 @@ import json
 
 @frappe.whitelist()
 def get_master_calendar_events(doctypeinfo, start, end):
-	print("-------------------------------called")
 	data = get_field_map()
 	doctypes=json.loads(doctypeinfo)
 	master_events = []
 	for info in doctypes:
-		print("----------------------------------------------->>>>>>>>inside",info,doctypeinfo)
-		
 		if frappe.has_permission(info):
 			field_map = frappe._dict(data[info]["field_map"])
 			fields=[field_map.start, field_map.end, field_map.title, field_map.description, 'name']
