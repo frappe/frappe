@@ -61,16 +61,12 @@ def get_master_calendar_events(doctype_list, start=None, end=None):
 
 @frappe.whitelist()
 def update_event(start, end, doctype, name):
-	try:
-		data = get_field_map()
-		field_map = frappe._dict(data[doctype]["field_map"])
-		doc = frappe.get_doc(doctype, name)
-		doc.set(field_map.start, start)
-		doc.set(field_map.end, end)
-		doc.save()
-		return 1
-	except:
-		return 0
+	data = get_field_map()
+	field_map = frappe._dict(data[doctype]["field_map"])
+	doc = frappe.get_doc(doctype, name)
+	doc.set(field_map.start, start)
+	doc.set(field_map.end, end)
+	doc.save()
 
 @frappe.whitelist()
 def get_all_calendars():

@@ -26,9 +26,6 @@ def create_test_calendar_events():
 			"subject" : doc.subject
 		}]
 
-
-
-
 class TestCalendar(unittest.TestCase):
 
 	def test_calendar(self):
