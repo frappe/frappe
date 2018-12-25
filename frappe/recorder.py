@@ -124,12 +124,12 @@ def recorder(function):
 		# Built in profiler is already turned on
 		# Now fetch the profile data for last query
 		# This must be done after collecting query from _cursor._executed
-		profile_result = function("SHOW PROFILE ALL")
+		profile_result = function("SHOW PROFILE ALL", as_dict=True)
 
 		# Collect EXPLAIN for executed query
 		if query.lower().strip().split()[0] in ("select", "update", "delete"):
 			# Only SELECT/UPDATE/DELETE queries can be "EXPLAIN"ed
-			explain_result = function("EXPLAIN EXTENDED {}".format(query))
+			explain_result = function("EXPLAIN EXTENDED {}".format(query), as_dict=True)
 		else:
 			explain_result = ""
 
