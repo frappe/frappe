@@ -127,7 +127,7 @@ def recorder(function):
 		profile_result = function("SHOW PROFILE ALL")
 
 		# Collect EXPLAIN for executed query
-		if query.lower().strip()[0] in ("select", "update", "delete"):
+		if query.lower().strip().split()[0] in ("select", "update", "delete"):
 			# Only SELECT/UPDATE/DELETE queries can be "EXPLAIN"ed
 			explain_result = function("EXPLAIN EXTENDED {}".format(query))
 		else:
