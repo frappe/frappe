@@ -32,13 +32,7 @@ def get_request_data(uuid):
 	for index, call in enumerate(calls):
 		call["index"] = index
 
-	cache = frappe.cache().get("recorder-calls-cache-{}".format(uuid))
-	cache = json.loads(cache.decode())
-	for index, call in enumerate(cache):
-		call["index"] = index
-
 	return {
-		"cache": cache,
 		"calls": calls,
 	}
 
