@@ -214,10 +214,10 @@ function get_more_calendars(sidebar, cal, page){
 function create_popover(event, jsEvent) {
 	$(".popover.fade.bottom.in").remove();
 
-	var htmlContent = "<div class='row'>" +
+	var htmlContent = "<div>" +
 	get_description_html(event)+
 	"</div>" +
-	"<div class='row'>" +
+	"<div>" +
 	get_time_Html(event) +
 	"</div>";
 
@@ -236,11 +236,8 @@ function create_popover(event, jsEvent) {
 }
 
 function get_description_html(event){
-	return "<div class='mt-5'>" +
-	"<div class='text-muted col-sm-2' style='padding-right: 0; margin-top: 6px; '>" +
-	"<i class='fa fa-align-left' aria-hidden='true'></i>" +
-	"</div> " +
-	"<div class='col-sm-10' style='padding-left: 0; margin-top: 5px;'>" +
+	return "<div class><h3 class='indicator red'>hello</h3>" +
+	"<div class='col-sm-12 text-medium text-muted' style='padding-left: 0; margin-top: 5px;'>" +
 	event.description +
 	"</div>" +
 	"</div>";
@@ -259,10 +256,7 @@ function get_time_Html(event) {
 	}
 
 	var timing = "<div class='mt-5'>" +
-	"<div class='text-muted col-sm-2' style='padding-right: 0; margin-top: 6px;'>" +
-	"<i class='fa fa-clock-o' aria-hidden='true'></i>" +
-	"</div> " +
-	"<div class='col-sm-9' style='padding-left: 0; margin-top: 5px;'>" +
+	"<div class='col-sm-12' style='padding-left: 0; margin-top: 5px;'>" +
 	timeHtml +
 	"</div>" +
 	"</div>";
@@ -293,7 +287,7 @@ function set_popover_css(e) {
 
 function popover_edit_button(event) {
 	//Edit buuton and its action
-	$("<span ><button class='btn btn-default btn-sm btn-modal-close' style='margin-top:15px'>Edit</button></span>").on("click", function(){
+	$("<div><span ><button class='btn btn-default btn-sm' style='margin-top:15px'>Edit</button></span></div>").on("click", function(){
 		$(".popover.fade.bottom.in").remove();
 		frappe.set_route("Form", event.doctype, event.id);
 	}).appendTo($(".popover-content"));
