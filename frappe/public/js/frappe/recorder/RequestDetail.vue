@@ -37,13 +37,6 @@
 				</div>
 			</div>
 		</div>
-
-
-		<div>
-			<div v-for="stat in stats" :key="stat.name">
-				{{ stat }}<br/>
-			</div>
-		</div>
 	</div>
 </template>
 
@@ -54,7 +47,6 @@ export default {
 		return {
 			cache: [],
 			calls: [],
-			stats: [],
 		};
 	},
 	mounted() {
@@ -66,7 +58,6 @@ export default {
 		}).then( r => {
 			this.cache = r.message.cache
 			this.calls = r.message.calls
-			this.stats = r.message.stats
 		})
 	},
 };

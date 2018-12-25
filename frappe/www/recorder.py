@@ -32,9 +32,6 @@ def get_request_data(uuid):
 	for index, call in enumerate(calls):
 		call["index"] = index
 
-	stats = frappe.cache().get("recorder-stats-{}".format(uuid))
-	mapper = lambda stat: {"name": stat[0], "numbers": stat[1][:4], "callers": stat[1][4] if len(stat[1]) == 5 else []}
-
 	cache = frappe.cache().get("recorder-calls-cache-{}".format(uuid))
 	cache = json.loads(cache.decode())
 	for index, call in enumerate(cache):
@@ -43,6 +40,5 @@ def get_request_data(uuid):
 	return {
 		"cache": cache,
 		"calls": calls,
-		"stats": list(map(mapper, json.loads(stats).items())),
 	}
 

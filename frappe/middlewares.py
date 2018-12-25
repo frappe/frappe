@@ -38,16 +38,6 @@ class RecorderMiddleware(object):
 	def __call__(self, environ, start_response):
 		response_body = []
 
-		def persist(uuid, stats):
-			# Keys of stats.stats are tuples, JSON doesn't like that, str(key) works
-			# First four entries in values are interesting numbers
-			# Last value is a dictionary of mapping of callers to tuple of number same four numbers
-			# We don't actually need this redundancy
-			_stats = {
-				str(key): value[:4] + tuple(value[4]) for key, value in stats.stats.items()
-			}
-			frappe.cache().set("recorder-stats-{}".format(uuid), json.dumps(_stats))
-
 		def catching_start_response(status, headers, exc_info=None):
 			start_response(status, headers, exc_info)
 			return response_body.append
@@ -63,11 +53,7 @@ class RecorderMiddleware(object):
 		# SQL calls and profile details can't be recorded and accessed without this
 		environ["uuid"] = str(uuid.uuid1())
 
-		profile = Profile()
-		profile.runcall(runapp)
+		runapp()
 		body = [b''.join(response_body)]
-		stats = Stats(profile)
-
-		persist(environ["uuid"], stats)
 
 		return body
