@@ -57,7 +57,6 @@ frappe.pages['calendar'].on_page_show = (wrapper) => {
 
 
 $('body').on('click', function(e){
-	//popover hidding on outside click.
 	if ($(e.target).data('toggle') !== 'popover' &&
 		$(e.target).parents('.popover.in').length === 0){
 		$('[data-toggle="popover"]').popover('hide');
@@ -88,7 +87,6 @@ function update_event(event, revertFunc){
 }
 
 function create_event(start, end){
-	//create event
 	frappe.call({
 		method: "frappe.core.page.calendar.calendar.get_field_map",
 		type: "GET"
