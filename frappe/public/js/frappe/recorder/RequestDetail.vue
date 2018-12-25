@@ -18,25 +18,6 @@
 				</div>
 			</div>
 		</div>
-
-		<div id="accordion-cache">
-			<div v-for="call in cache" :key="call.index" class="card">
-				<div class="card-header" :id="'heading-cache-' + call.index ">
-					<h5 class="mb-0">
-						<button class="btn btn-link" data-toggle="collapse" :data-target="'#collapse-cache-' + call.index ">
-							{{ call.call }}
-							{{ call.time.total }}
-						</button>
-					</h5>
-				</div>
-				<div :id="'collapse-cache-' + call.index " class="collapse" data-parent="#accordion-cache">
-					<div class="card-body">
-						<div><pre>{{ call.stack }}</pre></div>
-						<div><pre>{{ call.call }}</pre></div>
-					</div>
-				</div>
-			</div>
-		</div>
 	</div>
 </template>
 
@@ -56,7 +37,6 @@ export default {
 				uuid: this.$route.param
 			}
 		}).then( r => {
-			this.cache = r.message.cache
 			this.calls = r.message.calls
 		})
 	},
