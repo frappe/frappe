@@ -22,8 +22,8 @@ def get_paths():
 @frappe.whitelist()
 def get_requests(path):
 	requests = frappe.cache().lrange("recorder-requests-{}".format(path), 0, -1)
-	requests = list(map(lambda request: request.decode(), requests))
-	return [{"uuid": request} for request in requests]
+	requests = list(map(lambda request: json.loads(request.decode()), requests))
+	return requests
 
 @frappe.whitelist()
 def get_request_data(uuid):
