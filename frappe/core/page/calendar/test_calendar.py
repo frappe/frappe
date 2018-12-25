@@ -33,7 +33,7 @@ class TestCalendar(unittest.TestCase):
 
 	def test_calendar(self):
 		doc = create_test_calendar_events()
-		start = datetime.datetime.now() 
+		start = datetime.datetime.now()
 		end = datetime.datetime.now() + datetime.timedelta(days= 3)
 
 		events = cal.get_master_calendar_events('["Event"]',start.strftime("%Y-%m-%d 00:00:00"),end.strftime("%Y-%m-%d 00:00:00"))
