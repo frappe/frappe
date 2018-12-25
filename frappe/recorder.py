@@ -156,6 +156,7 @@ def recorder(function):
 
 	wrapper.calls = list()
 	wrapper.path = frappe.request.path
+	wrapper.cmd = frappe.local.form_dict.cmd
 
 	# Enable MariaDB's builtin query profiler.
 	# Profile data can be collected after each query.
@@ -182,6 +183,7 @@ def persist(function):
 	in chronological order
 	"""
 	path = function.path
+	cmd = function.cmd
 	calls = function.calls
 
 	# RecorderMiddleware creates a uuid for every request and
@@ -208,7 +210,7 @@ def persist(function):
 	frappe.cache().hincrby("recorder-paths-counts", path, 1)
 
 	# LPUSH -> Reverse chronological order for requests
-	frappe.cache().lpush("recorder-requests-{}".format(path), uuid)
+	frappe.cache().lpush("recorder-requests-{}".format(path), json.dumps({"uuid": uuid, "cmd": cmd}))
 
 	# LPUSH -> Chronological order for calls
 	# Since every request uuid is unique, no need for any heirarchy

@@ -1,7 +1,7 @@
 <template>
 	<a :href="'#Request/' + uuid ">
 		<div>
-			{{ uuid }}
+			{{ uuid }} - {{ cmd }}
 		</div>
 	</a>
 </template>
@@ -9,6 +9,6 @@
 <script>
 export default {
 	name: "RequestListItem",
-	props: ["uuid"]
+	props: ["uuid", "cmd"]
 };
 </script>
