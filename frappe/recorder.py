@@ -7,6 +7,7 @@ import json
 import time
 import traceback
 import frappe
+import sqlparse
 
 def recorder_start():
 		# Need to record all calls to frappe.db.sql
@@ -138,7 +139,7 @@ def recorder(function):
 			"args": args,
 			"kwargs": kwargs,
 			"result": result,
-			"query": query,
+			"query": sqlparse.format(query, keyword_case="upper", reindent=True),
 			"explain_result": explain_result,
 			"profile_result": profile_result,
 			"stack": stack,
