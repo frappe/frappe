@@ -1,5 +1,5 @@
 
-frappe.pages['calendar'].on_page_load = function (wrapper){
+frappe.pages['calendar'].on_page_load = function(wrapper){
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: 'Calendar',
@@ -53,7 +53,7 @@ frappe.pages['calendar'].on_page_show = (wrapper) => {
 		set_css(this.$cal);
 		hide_show_weekends(calendar_option, wrapper.page);
 	});
-}
+};
 
 
 $('body').on('click', function(e){
@@ -214,7 +214,7 @@ function get_more_calendars(sidebar, cal, page){
 			console.log(c)*/
 
 			if ($(".checkbox.custom").length == 0) {
-				var doctype
+				var doctype;
 				for(doctype in r["message"]){
 					if ($.inArray(r["message"][doctype], frappe.boot.calendars) == -1) {
 						var li = $(`<li class="checkbox custom" style="padding-top: 0px">`);
@@ -242,7 +242,7 @@ function get_more_calendars(sidebar, cal, page){
 }
 
 function get_time_Html(event) {
-	var timeHtml
+	var timeHtml;
 	if (event.allDay) {
 		timeHtml = "All Day";
 	} else if (event.start.isSame(event.end, 'date', 'month', 'year')) {
@@ -330,7 +330,7 @@ function hide_show_weekends(calendar_option, page, $cal) {
 	this.footnote_area.append(btn);
 }
 
-function get_calendar_options(me){
+function get_calendar_options(){
 	var calendar_option ={
 		header: {
 			left: 'title',
@@ -390,6 +390,7 @@ function prepare_event(docinfo, start_param, end_param, callback){
 		}
 	}).then(r => {
 		var events = [];
+		var event;
 		for(event in r["message"]){
 			var heading;
 			if ($('.cal:checked').length == 1){
