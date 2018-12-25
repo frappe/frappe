@@ -359,10 +359,10 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 	error_flag = rollback_flag = False
 
-	batch_size = 1000
+	batch_size = frappe.conf.data_import_batch_size or 1000
 
-	for field in range(0, total, batch_size):
-		batch = data[field:field + batch_size]
+	for batch_start in range(0, total, batch_size):
+		batch = data[batch_start:batch_start + batch_size]
 
 		for i, row in enumerate(batch):
 			# bypass empty rows
