@@ -8,19 +8,23 @@ import json
 
 
 @frappe.whitelist()
-def get_master_calendar_events(doctypeinfo, start, end):
+def get_master_calendar_events(doctype_list, start=None, end=None):
+
+	if isinstance(doctype_list, frappe.string_types):
+		doctype_list = json.loads(doctype_list)
+
 	data = get_field_map()
-	doctypes=json.loads(doctypeinfo)
+
 	master_events = []
-	for info in doctypes:
-		if frappe.has_permission(info):
-			field_map = frappe._dict(data[info]["field_map"])
+	for doctype in doctype_list:
+		if frappe.has_permission(doctype):
+			field_map = frappe._dict(data[doctype]["field_map"])
 			fields=[field_map.start, field_map.end, field_map.title, field_map.description, 'name']
 			if field_map.color:
 				fields.append(field_map.color)
-			if "get_events_method" in data[info]:
+			if "get_events_method" in data[doctype]:
 				try:
-					events = frappe.call(data[info]["get_events_method"], start, end)
+					events = frappe.call(data[doctype]["get_events_method"], start, end)
 				except:
 					frappe.throw("some thing went wrong")
 
@@ -29,11 +33,11 @@ def get_master_calendar_events(doctypeinfo, start, end):
 				end_date = "ifnull(%s, '2199-12-31 00:00:00')" % field_map.end
 
 				filters = [
-					[info, start_date, '<=', end],
-					[info, end_date, '>=', start],
+					[doctype, start_date, '<=', end],
+					[doctype, end_date, '>=', start],
 				]
 				try:
-					events = frappe.get_list(info ,fields=fields,filters=filters)
+					events = frappe.get_list(doctype ,fields=fields,filters=filters)
 				except:
 					frappe.throw("Something  when wrong")
 
@@ -49,7 +53,7 @@ def get_master_calendar_events(doctypeinfo, start, end):
 					"id" : str(event['name']),
 					"description": str(event[field_map.description]),
 					"color": str(color),
-					"doctype" : str(info),
+					"doctype" : str(doctype),
 					"textColor": "#4D4DA8"
 				})
 
@@ -78,18 +82,19 @@ def get_all_calendars():
 	return allowed_cal
 
 @frappe.whitelist()
-def get_field_map():
-	all_apps =frappe.get_all_apps()
+def get_field_map(doctype=None):
+	all_apps = frappe.get_all_apps()
 	data = {}
 	for app in all_apps:
-		app_path =frappe.get_app_path(app)
+		app_path = frappe.get_app_path(app)
 		map_path = app_path + '/calendar_map.json'
 		if os.path.exists(map_path):
 			with open(map_path) as f:
 				d = json.load(f)
 				fm = frappe._dict(d)
 				data.update(fm)
-	return data
+
+	return data[doctype] if doctype else data
 
 
 
