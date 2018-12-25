@@ -1,6 +1,6 @@
 
-frappe.pages['calendar'].on_page_load = function (wrapper) {
-	var page = frappe.ui.make_app_page({
+frappe.pages['calendar'].on_page_load = function (wrapper){
+	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: 'Calendar',
 		single_column: false
@@ -9,23 +9,21 @@ frappe.pages['calendar'].on_page_load = function (wrapper) {
 }
 
 frappe.pages['calendar'].on_page_show = (wrapper) => {
-	var route = frappe.get_route()
+	var route = frappe.get_route();
 
 	if (frappe.pages.calendar.loaded) {
-		var cur_cal;
-		var side = frappe.pages.calendar.page.sidebar
+		var side = frappe.pages.calendar.page.sidebar;
 		Object.values(side.find("ul > li > input:checked")).map((f)=>{ 
 			if (f.value){
-				side.find("ul > li > input[value = '"+f.value+"']").prop("checked",false)
+				side.find("ul > li > input[value = '"+f.value+"']").prop("checked",false);
 			}
 		});
+		var cal = wrapper.page.body.find(".cal-div");
 		if (route[1]){
-			side.find("ul > li > input[value = '"+route[1]+"']").prop("checked",true)
-			var cal = wrapper.page.body.find(".cal-div")
+			side.find("ul > li > input[value = '"+route[1]+"']").prop("checked",true);
 			cal.fullCalendar("refetchEvents");
 		}else{
-			side.find("ul > li >input[value = 'Event']").prop("checked",true)
-			var cal = wrapper.page.body.find(".cal-div")
+			side.find("ul > li >input[value = 'Event']").prop("checked",true);
 			cal.fullCalendar("refetchEvents");
 		}
 		return;
@@ -35,7 +33,7 @@ frappe.pages['calendar'].on_page_show = (wrapper) => {
 		'assets/frappe/js/lib/fullcalendar/fullcalendar.min.css',
 		'/assets/js/fullcalendar.js',
 		'assets/frappe/js/lib/fullcalendar/locale-all.js'
-	], function (){
+	], function(){
 		frappe.pages.calendar.loaded = true;
 		this.$nav = wrapper.page.sidebar.html(`
 				<ul class="module-sidebar-nav overlay-sidebar nav nav-pills nav-stacked"></ul>
@@ -47,10 +45,8 @@ frappe.pages['calendar'].on_page_show = (wrapper) => {
 		
 		select_all(this.$sidebar_list,this.$cal);
 		create_checkboxes(this.$sidebar_list, this.$cal);
-		get_more_calendars(this.$sidebar_list, this.$cal, wrapper.page)
-		const calendar_option = get_calendar_options(this)
-
-	
+		get_more_calendars(this.$sidebar_list, this.$cal, wrapper.page);
+		const calendar_option = get_calendar_options(this);
 
 		this.$cal.fullCalendar(calendar_option);
 
@@ -63,7 +59,7 @@ frappe.pages['calendar'].on_page_show = (wrapper) => {
 $('body').on('click', function(e){
 	//popover hidding on outside click.
 	if ($(e.target).data('toggle') !== 'popover' &&
-		$(e.target).parents('.popover.in').length === 0) {
+		$(e.target).parents('.popover.in').length === 0){
 		$('[data-toggle="popover"]').popover('hide');
 	}
 });
@@ -104,7 +100,7 @@ function create_event(start, end){
 			event[x[$('.cal:checked')[0].value]["field_map"]["end"]] = get_system_datetime(end);
 			frappe.set_route("Form", $('.cal:checked')[0].value, event.name);
 		} else if ($('.cal:checked').length > 1){
-			options = '';
+			var options = '';
 			$('.cal:checked').each(function(){
 				options += '\n' + $(this).attr('value');
 			});
@@ -134,7 +130,7 @@ function create_event(start, end){
 
 function set_css(cal){
 	// flatify buttons
-	cal.find("fc-right").addClass("float-right")
+	cal.find("fc-right").addClass("float-right");
 	cal.find("button.fc-state-default")
 		.removeClass("fc-state-default")
 		.addClass("btn btn-default");
@@ -218,10 +214,11 @@ function get_more_calendars(sidebar, cal, page){
 			console.log(c)*/
 
 			if ($(".checkbox.custom").length == 0) {
+				var doctype
 				for(doctype in r["message"]){
 					if ($.inArray(r["message"][doctype], frappe.boot.calendars) == -1) {
 						var li = $(`<li class="checkbox custom" style="padding-top: 0px">`);
-						$('<input type="checkbox" class="cal more" value="' + r["message"][doctype] + '">').appendTo(li).on("click", function() {
+						$('<input type="checkbox" class="cal more" value="' + r["message"][doctype] + '">').appendTo(li).on("click", function(){
 							cal.fullCalendar("refetchEvents");
 						});
 						$('<label>').html(r["message"][doctype]).appendTo(li);
@@ -245,14 +242,15 @@ function get_more_calendars(sidebar, cal, page){
 }
 
 function get_time_Html(event) {
+	var timeHtml
 	if (event.allDay) {
-		var timeHtml = "All Day";
+		timeHtml = "All Day";
 	} else if (event.start.isSame(event.end, 'date', 'month', 'year')) {
-		var timeHtml = event.start.format('LT') + " to " + event.end.format('LT');
+		timeHtml = event.start.format('LT') + " to " + event.end.format('LT');
 	} else if (event.start.isSame(event.end, 'month', 'year')) {
-		var timeHtml = event.start.format("MMMM, ") + event.start.format('D') + " to " + event.end.format('D');
+		timeHtml = event.start.format("MMMM, ") + event.start.format('D') + " to " + event.end.format('D');
 	} else {
-		var timeHtml = event.start.format('Do MMMM') + " to " + event.end.format('Do MMMM');
+		timeHtml = event.start.format('Do MMMM') + " to " + event.end.format('Do MMMM');
 	}
 
 	var timing = "<div class='mt-5'>" +
@@ -347,9 +345,8 @@ function get_calendar_options(me){
 		nowIndicator: true,
 
 		events: function(start, end, timezone, callback){
-			$(".popover.fade.bottom.in").remove();
 			var docinfo = [];
-			$('.cal:checked').each(function () {
+			$('.cal:checked').each(function(){
 				docinfo.push($(this).attr('value'));
 			});
 			
@@ -394,10 +391,11 @@ function prepare_event(docinfo, start_param, end_param, callback){
 	}).then(r => {
 		var events = [];
 		for(event in r["message"]){
+			var heading;
 			if ($('.cal:checked').length == 1){
-				var heading = r["message"][event].title;
+				heading = r["message"][event].title;
 			} else{
-				var heading = r["message"][event].doctype + ": " + r["message"][event].title;
+				heading = r["message"][event].doctype + ": " + r["message"][event].title;
 			}
 			//after fetching pushing and maping events on calendar
 			if ($("input[value='" + r["message"][event].doctype + "']").prop("checked")){
