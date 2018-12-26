@@ -323,7 +323,7 @@ $.extend(frappe.desktop, {
 
 			// if module found
 			if(module._id.indexOf('/')===-1 && !module._report) {
-				var notifier = $(".module-count-" + module._id);
+				var notifier = $(".module-count-" + frappe.scrub(module._id));
 				if(notifier.length) {
 					notifier.toggle(sum ? true : false);
 					var circle = notifier.find(".circle-text");

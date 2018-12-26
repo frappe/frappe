@@ -568,12 +568,7 @@ def in_words(integer, in_million=True):
 	return ret.replace('-', ' ')
 
 def is_html(text):
-	out = False
-	for key in ["<br>", "<p", "<img", "<div"]:
-		if key in text:
-			out = True
-			break
-	return out
+	return re.search('<[^>]+>', text)
 
 def is_image(filepath):
 	from mimetypes import guess_type
@@ -824,7 +819,8 @@ def get_filter(doctype, f):
 
 	if len(f) == 3:
 		f = (doctype, f[0], f[1], f[2])
-
+	elif len(f) > 4:
+		f = f[0:4]
 	elif len(f) != 4:
 		frappe.throw(frappe._("Filter must have 4 values (doctype, fieldname, operator, value): {0}").format(str(f)))
 

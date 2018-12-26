@@ -2,7 +2,7 @@
 	data-name="{{ module_name }}" data-link="{{ link }}" title="{{ _label }}">
 	{{ app_icon }}
 	<div class="case-label ellipsis">
-		<div class="circle module-count-{{ _id }}" data-doctype="{{ _doctype }}" style="display: none;">
+		<div class="circle module-count-{{ frappe.scrub(_id) }}" data-doctype="{{ _doctype }}" style="display: none;">
 			<span class="circle-text"></span>
 		</div>
 		<!-- <span id="module-count-{{ _id }}" class="octicon octicon-primitive-dot circle" style="display: None"></span> -->
