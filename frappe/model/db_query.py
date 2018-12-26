@@ -715,7 +715,7 @@ def is_parent_only_filter(doctype, filters):
 
 def has_any_user_permission_for_doctype(doctype, user, applicable_for):
 	user_permissions = frappe.permissions.get_user_permissions(user=user)
-	doctype_user_permissions = user_permissions.get(doctype)
+	doctype_user_permissions = user_permissions.get(doctype, [])
 
 	for permission in doctype_user_permissions:
 		if not permission.applicable_for or permission.applicable_for == applicable_for:
