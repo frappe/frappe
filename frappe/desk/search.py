@@ -20,7 +20,7 @@ def sanitize_searchfield(searchfield):
 
 	if len(searchfield) == 1:
 		# do not allow special characters to pass as searchfields
-		regex = re.compile('^.*[=;*,\'"$\-+%#@()_].*')
+		regex = re.compile(r'^.*[=;*,\'"$\-+%#@()_].*')
 		if regex.match(searchfield):
 			_raise_exception(searchfield)
 
@@ -43,21 +43,21 @@ def sanitize_searchfield(searchfield):
 			_raise_exception(searchfield)
 
 		else:
-			regex = re.compile('^.*[=;*,\'"$\-+%#@()].*')
+			regex = re.compile(r'^.*[=;*,\'"$\-+%#@()].*')
 			if any(regex.match(f) for f in searchfield.split()):
 				_raise_exception(searchfield)
 
 # this is called by the Link Field
 @frappe.whitelist()
-def search_link(doctype, txt, query=None, filters=None, page_length=20, searchfield=None, ignore_user_permissions=False):
-	search_widget(doctype, txt, query, searchfield=searchfield, page_length=page_length, filters=filters, ignore_user_permissions=ignore_user_permissions)
+def search_link(doctype, txt, query=None, filters=None, page_length=20, searchfield=None, reference_doctype=None, ignore_user_permissions=False):
+	search_widget(doctype, txt, query, searchfield=searchfield, page_length=page_length, filters=filters, reference_doctype=reference_doctype, ignore_user_permissions=ignore_user_permissions)
 	frappe.response['results'] = build_for_autosuggest(frappe.response["values"])
 	del frappe.response["values"]
 
 # this is called by the search box
 @frappe.whitelist()
 def search_widget(doctype, txt, query=None, searchfield=None, start=0,
-	page_length=10, filters=None, filter_fields=None, as_dict=False, ignore_user_permissions=False):
+	page_length=10, filters=None, filter_fields=None, as_dict=False, reference_doctype=None, ignore_user_permissions=False):
 	if isinstance(filters, string_types):
 		filters = json.loads(filters)
 	
@@ -141,11 +141,14 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				page_length = None
 
 			values = frappe.get_list(doctype,
-				filters=filters, fields=formatted_fields,
-				or_filters = or_filters, limit_start = start,
+				filters=filters,
+				fields=formatted_fields,
+				or_filters=or_filters,
+				limit_start=start,
 				limit_page_length=page_length,
 				order_by=order_by,
-				ignore_permissions = ignore_permissions,
+				ignore_permissions=ignore_permissions,
+				reference_doctype=reference_doctype,
 				as_list=not as_dict)
 
 			if doctype in UNTRANSLATED_DOCTYPES:

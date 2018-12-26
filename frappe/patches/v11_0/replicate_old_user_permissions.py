@@ -1,7 +1,7 @@
 import frappe
 import json
 from frappe.utils import cint
-from frappe.permissions import get_valid_perms, get_linked_doctypes
+from frappe.permissions import get_valid_perms
 
 def execute():
 	frappe.reload_doctype("User Permission")
@@ -16,12 +16,14 @@ def execute():
 	if not doctype_to_skip_map: return
 	for key, doctype_to_skip in doctype_to_skip_map.items():
 		if not doctype_to_skip: continue
-		doctype_to_skip = '\n'.join(doctype_to_skip)
-		frappe.db.sql("""
-			update `tabUser Permission`
-			set skip_for_doctype = %s
-			where user=%s and allow=%s
-		""", (doctype_to_skip, key[1], key[0]))
+		if not frappe.db.has_column("User Permission", "applicable_for") \
+			and frappe.db.has_column("User Permission", "skip_for_doctype"):
+			doctype_to_skip = '\n'.join(doctype_to_skip)
+			frappe.db.sql("""
+				update `tabUser Permission`
+				set skip_for_doctype = %s
+				where user=%s and allow=%s
+			""", (doctype_to_skip, key[1], key[0]))
 
 
 def get_doctypes_to_skip(doctype, user):
@@ -32,9 +34,6 @@ def get_doctypes_to_skip(doctype, user):
 		parent_doctype = perm.parent
 		try:
 			linked_doctypes = get_linked_doctypes(parent_doctype)
-			child_doctypes = [d.options for d in frappe.get_meta(parent_doctype).get_table_fields()]
-			for child_dt in child_doctypes:
-				linked_doctypes += get_linked_doctypes(child_dt)
 			if doctype not in linked_doctypes: continue
 		except frappe.DoesNotExistError:
 			# if doctype not found (may be due to rename) it should not be considered for skip
@@ -73,3 +72,11 @@ def get_user_permission_doctypes(perm):
 		return json.loads(perm.user_permission_doctypes or '[]')
 	except ValueError:
 		return []
+
+def get_linked_doctypes(doctype):
+	from frappe.permissions import get_linked_doctypes
+	linked_doctypes = get_linked_doctypes(doctype)
+	child_doctypes = [d.options for d in frappe.get_meta(doctype).get_table_fields()]
+	for child_dt in child_doctypes:
+		linked_doctypes += get_linked_doctypes(child_dt)
+	return linked_doctypes
