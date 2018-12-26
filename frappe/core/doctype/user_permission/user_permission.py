@@ -92,6 +92,7 @@ def user_permission_exists(user, allow, for_value, applicable_for=None):
 
 def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, filters):
 	linked_doctypes = get_linked_doctypes(doctype, True).keys()
+	linked_doctypes = list(linked_doctypes)
 	linked_doctypes += [doctype]
 	if txt:
 		linked_doctypes = [d for d in linked_doctypes if txt in d.lower()]
