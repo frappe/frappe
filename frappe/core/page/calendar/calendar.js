@@ -215,10 +215,10 @@ function create_popover(event, jsEvent) {
 	$(".popover.fade.bottom.in").remove();
 
 	var htmlContent = "<div>" +
-	get_description_html(event)+
+	get_time_Html(event)+
 	"</div>" +
 	"<div>" +
-	get_time_Html(event) +
+	get_description_html(event)+
 	"</div>";
 
 	get_popover_attr(jsEvent.target);
@@ -236,8 +236,7 @@ function create_popover(event, jsEvent) {
 }
 
 function get_description_html(event){
-	return "<div class><h3 class='indicator red'>hello</h3>" +
-	"<div class='col-sm-12 text-medium text-muted' style='padding-left: 0; margin-top: 5px;'>" +
+	return "<div class='col-sm-12 text-medium text-muted' style='padding-left: 0; margin-top: 5px;'>" +
 	event.description +
 	"</div>" +
 	"</div>";
@@ -255,10 +254,13 @@ function get_time_Html(event) {
 		timeHtml = event.start.format('Do MMMM') + " to " + event.end.format('Do MMMM');
 	}
 
-	var timing = "<div class='mt-5'>" +
-	"<div class='col-sm-12' style='padding-left: 0; margin-top: 5px;'>" +
-	timeHtml +
-	"</div>" +
+	var timing = "<div class='mt-5'>"+
+		"<h3 class='indicator red'>"+event.title+"</h3>" +
+		"<div class='col-sm-12' style='margin-top: 0; padding-left: 0;'>"+
+			"<h6 class='text-medium text-muted'>" +
+			timeHtml +
+			"</h6>"+
+		"</div>" +
 	"</div>";
 
 	return timing;
