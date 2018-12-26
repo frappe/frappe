@@ -569,7 +569,7 @@ class DatabaseQuery(object):
 						doctype=self.doctype,
 						fieldname=df.get('fieldname'),
 						values=", ".join(
-							[('"' + frappe.db.escape(doc, percent=False) + '"') for doc in docs])
+							[(frappe.db.escape(doc, percent=False)) for doc in docs])
 						)
 
 					match_conditions.append("({condition})".format(condition=condition))
