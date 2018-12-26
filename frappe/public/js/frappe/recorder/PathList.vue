@@ -1,11 +1,15 @@
 <template>
-	<div>
-		<ol>
-			<li v-for="path in paths" :key="path.path">
-				<path-list-item v-bind="path"/>
-			</li>
-		</ol>
-	</div>
+	<table class="table table-hover">
+		<thead>
+			<tr>
+				<th>Path</th>
+				<th>Count</th>
+			</tr>
+		</thead>
+		<tbody>
+			<path-list-item v-for="path in paths" :key="path.path" v-bind="path"/>
+		</tbody>
+	</table>
 </template>
 
 <script>
