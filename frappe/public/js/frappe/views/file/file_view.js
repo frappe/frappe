@@ -48,6 +48,12 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	file_menu_items() {
 		const items = [
 			{
+				label: __('Home'),
+				action: () => {
+					frappe.set_route('List', 'File', 'Home');
+				},
+			},
+			{
 				label: __('Cut'),
 				action: () => {
 					frappe.file_manager.cut(this.get_checked_items(), this.current_folder);
