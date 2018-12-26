@@ -12,6 +12,17 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlCode.extend({
 		);
 		this.map_area.prependTo($input_wrapper);
 		this.$wrapper.find('.control-input').addClass("hidden");
+
+		if ($input_wrapper.is(':visible')) {
+			this.make_map();
+		} else {
+			$(document).on('quick-entry-dialog-open', () => {
+				this.make_map();
+			});
+		}
+	},
+
+	make_map() {
 		this.bind_leaflet_map();
 		this.bind_leaflet_draw_control();
 		this.bind_leaflet_locate_control();
@@ -19,6 +30,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlCode.extend({
 	},
 
 	format_for_input(value) {
+		if (!this.map) return;
 		// render raw value from db into map
 		this.clear_editable_layers();
 		if(value) {
@@ -52,7 +64,6 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlCode.extend({
 	},
 
 	bind_leaflet_map() {
-
 		var circleToGeoJSON = L.Circle.prototype.toGeoJSON;
 		L.Circle.include({
 			toGeoJSON: function() {
