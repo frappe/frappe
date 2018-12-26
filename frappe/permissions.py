@@ -27,7 +27,7 @@ def print_has_permission_check_logs(func):
 		# print only if access denied
 		if not result:
 			msgprint(('<br>').join(frappe.flags['has_permission_check_logs']))
-		del frappe.flags['has_permission_check_logs']
+		frappe.flags.pop('has_permission_check_logs', None)
 		return result
 	return inner
 
