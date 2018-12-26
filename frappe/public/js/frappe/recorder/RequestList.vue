@@ -1,11 +1,15 @@
 <template>
-	<div>
-		<ol>
-			<li v-for="request in requests" :key="request.uuid">
-				<request-list-item v-bind="request"/>
-			</li>
-		</ol>
-	</div>
+	<table class="table table-hover">
+		<thead>
+			<tr>
+				<th>UUID</th>
+				<th>CMD</th>
+			</tr>
+		</thead>
+		<tbody>
+			<request-list-item v-for="request in requests" :key="request.uuid" v-bind="request"/>
+		</tbody>
+	</table>
 </template>
 
 <script>

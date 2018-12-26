@@ -1,9 +1,12 @@
 <template>
-	<a :href="'#Request/' + uuid ">
-		<div>
-			{{ uuid }} - {{ cmd }}
-		</div>
-	</a>
+	<tr>
+		<td>
+			<a :href="'#Request/' + uuid ">{{ uuid }}</a>
+		</td>
+		<td>
+			{{ cmd }}
+		</td>
+	</tr>
 </template>
 
 <script>
