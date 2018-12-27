@@ -12,22 +12,15 @@ def get_context(context):
 
 
 @frappe.whitelist()
-def get_paths():
-	paths = frappe.cache().zrange("recorder-paths", 0, -1, desc=True)
-	counts = super(redis.Redis, frappe.cache()).hgetall(frappe.cache().make_key("recorder-paths-counts"))
-
-	paths = [{"path": path.decode(), "count": int(counts[path])} for path in paths]
-	return paths
-
-@frappe.whitelist()
-def get_requests(path):
-	requests = frappe.cache().lrange("recorder-requests-{}".format(path), 0, -1)
+def get_requests():
+	requests = frappe.cache().lrange("recorder-requests", 0, -1)
 	requests = list(map(lambda request: json.loads(request.decode()), requests))
 	return requests
 
+
 @frappe.whitelist()
 def get_request_data(uuid):
-	calls = frappe.cache().get("recorder-calls-{}".format(uuid))
+	calls = frappe.cache().get("recorder-request-{}".format(uuid))
 	calls = json.loads(calls.decode())
 	for index, call in enumerate(calls):
 		call["index"] = index

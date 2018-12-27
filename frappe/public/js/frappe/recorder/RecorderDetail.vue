@@ -2,17 +2,21 @@
 	<table class="table table-hover">
 		<thead>
 			<tr>
+				<th>UUID</th>
 				<th>Path</th>
-				<th>Count</th>
+				<th>CMD</th>
 			</tr>
 		</thead>
 		<tbody>
-			<tr v-for="path in paths" :key="path.path" v-bind="path">
+			<tr v-for="request in requests" :key="request.uuid" v-bind="request">
 				<td>
-					<a :href="'#Path/' + path.path ">{{ path.path }}</a>
+					<a :href="'#Request/' + request.uuid ">{{ request.uuid }}</a>
 				</td>
 				<td>
-					{{ path.count }}
+					{{ request.path }}
+				</td>
+				<td>
+					{{ request.cmd }}
 				</td>
 			</tr>
 		</tbody>
@@ -24,12 +28,12 @@ export default {
 	name: "RecorderDetail",
 	data() {
 		return {
-			paths: [],
+			requests: [],
 		};
 	},
 	mounted() {
-		frappe.call("frappe.www.recorder.get_paths").then( r => {
-			this.paths = r.message
+		frappe.call("frappe.www.recorder.get_requests").then( r => {
+			this.requests = r.message
 		})
 	},
 };
