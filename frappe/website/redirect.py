@@ -31,7 +31,7 @@ def resolve_redirect(path):
 	for rule in redirects:
 		pattern = rule['source'].strip('/ ') + '$'
 		if re.match(pattern, path):
-			redirect_to = re.sub(pattern, rule['target'].replace('\\', '\\\\'), path)
+			redirect_to = re.sub(pattern, rule['target'], path)
 			frappe.flags.redirect_location = redirect_to
 			frappe.cache().hset('website_redirects', path, redirect_to)
 			raise frappe.Redirect
