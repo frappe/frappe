@@ -693,6 +693,19 @@ def validate_fields(meta):
 				re.match("""[\w\.:_]+\s*={1}\s*[\w\.@'"]+""", depends_on):
 				frappe.throw(_("Invalid {0} condition").format(frappe.unscrub(field)), frappe.ValidationError)
 
+	def check_table_multiselect_option(docfield):
+		'''check if the doctype provided in Option has atleast 1 Link field'''
+		if not docfield.fieldtype == 'Table MultiSelect': return
+
+		doctype = docfield.options
+		meta = frappe.get_meta(doctype)
+		link_field = [df for df in meta.fields if df.fieldtype == 'Link']
+
+		if not link_field:
+			frappe.throw(_('DocType <b>{0}</b> provided for the field <b>{1}</b> must have atleast one Link field')
+				.format(doctype, docfield.fieldname), frappe.ValidationError)
+
+
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -720,6 +733,7 @@ def validate_fields(meta):
 		check_illegal_default(d)
 		check_unique_and_text(d)
 		check_illegal_depends_on_conditions(d)
+		check_table_multiselect_option(d)
 
 	check_fold(fields)
 	check_search_fields(meta, fields)
