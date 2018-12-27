@@ -9,7 +9,6 @@ import Vue from 'vue/dist/vue.js'
 Vue.prototype.$route = { param: null }
 
 import RecorderDetail from "./RecorderDetail.vue"
-import PathDetail from "./PathDetail.vue"
 import RequestDetail from "./RequestDetail.vue"
 
 export default {
@@ -27,7 +26,6 @@ export default {
 		set_component: function () {
 			var routes = {
 				"#": RecorderDetail,
-				"#Path": PathDetail,
 				"#Request": RequestDetail,
 			}
 			var route = this.get_route()
