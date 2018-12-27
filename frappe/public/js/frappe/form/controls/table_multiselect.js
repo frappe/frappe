@@ -97,17 +97,6 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 		const values = this.rows.map(row => row[link_field.fieldname]);
 		this.set_pill_html(values);
 	},
-	set_disp_area: function(value) {
-		const rows = this.value || value || [];
-		const link_field = this.get_link_field();
-
-		const formatted_values = rows.map(row => {
-			const value = row[link_field.fieldname];
-			return frappe.format(value, link_field, {no_icon:true, inline:true}, row);
-		});
-
-		this.disp_area && $(this.disp_area).html(formatted_values.join(', '));
-	},
 	set_pill_html(values) {
 		const html = values
 			.map(value => this.get_pill_html(value))
