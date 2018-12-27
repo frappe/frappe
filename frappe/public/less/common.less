@@ -375,9 +375,22 @@ hr {
 	background-color: @ace-gutter-active-bg !important;
 	color: @text-color !important;
 }
+.table {
+	border-color: @border-color;
+}
 .table > tbody > tr > td.danger {
 	background-color: @danger-bg-color;
+	border-color: @border-color;
 }
 .table-bordered > tbody > tr > td {
 	border-color: @border-color;
+}
+.table > thead:first-child > tr:first-child > th {
+	color: @text-color;
+}
+.table-bordered {
+	border-color: @border-color;
+}
+.table .td .div{
+	color: @text-color;
 }
