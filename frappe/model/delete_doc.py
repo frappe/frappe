@@ -144,8 +144,8 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 			return [r[0] for r in frappe.get_all(field_doctype,
 				fields='options',
 				filters={
-				'fieldtype': ['in', frappe.model.table_fields],
-				'parent': doctype
+					'fieldtype': ['in', frappe.model.table_fields],
+					'parent': doctype
 				},
 				as_list=1
 			)]
