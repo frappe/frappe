@@ -70,8 +70,8 @@ def get_user_default_value(df, defaults, user_permissions):
 		# We don't want to include permissions of transactions to be used for defaults.
 		if (frappe.get_meta(df.options).document_type=="Setup"
 			and user_permissions_exist(df, user_permissions)
-			and len(user_permissions[df.options].get("docs", []))==1):
-			return user_permissions[df.options].get("docs")[0]
+			and len(user_permissions.get(df.options))==1):
+			return user_permissions.get(df.options)[0].get("doc")
 
 		# 2 - Look in user defaults
 		user_default = defaults.get(df.fieldname)
