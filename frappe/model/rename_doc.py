@@ -179,8 +179,6 @@ def rename_doctype(doctype, old, new, force=False):
 	for fieldtype in fields_with_options:
 		update_options_for_fieldtype(fieldtype, old, new)
 
-	update_user_permissions(old, new)
-
 	# change options where select options are hardcoded i.e. listed
 	select_fields = get_select_fields(old, new)
 	update_link_field_values(select_fields, old, new, doctype)
@@ -287,15 +285,6 @@ def update_options_for_fieldtype(fieldtype, old, new):
 
 	frappe.db.sql("""update `tabProperty Setter` set value=%s
 		where property='options' and value=%s""", (new, old))
-
-def update_user_permissions(old_doctype_name, new_doctype_name):
-	user_perms = frappe.get_all('User Permission', fields=['name','skip_for_doctype'])
-	for perm in user_perms:
-		doctype_list = perm.skip_for_doctype.split("\n") if perm.skip_for_doctype else []
-		if old_doctype_name in doctype_list:
-			new_list = [new_doctype_name if dt==old_doctype_name else dt for dt in doctype_list]
-			new_string = "\n".join(new_list)
-			frappe.db.set_value('User Permission', perm.name, 'skip_for_doctype', new_string)
 
 def get_select_fields(old, new):
 	"""

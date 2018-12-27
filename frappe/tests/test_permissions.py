@@ -15,9 +15,7 @@ from frappe.permissions import (add_user_permission, remove_user_permission,
 from frappe.core.page.permission_manager.permission_manager import update, reset
 from frappe.test_runner import make_test_records_for_doctype
 
-test_records = frappe.get_test_records('Blog Post')
-
-test_dependencies = ["User", "Contact", "Salutation"]
+test_dependencies = ['Blogger', 'Blog Post', "User", "Contact", "Salutation"]
 
 class TestPermissions(unittest.TestCase):
 	def setUp(self):
@@ -266,6 +264,10 @@ class TestPermissions(unittest.TestCase):
 		self.assertTrue(doc.has_permission("write"))
 		self.assertFalse(doc.has_permission("create"))
 
+		# delete created record
+		frappe.set_user("Administrator")
+		frappe.delete_doc('Blog Post', '-test-blog-post-title')
+
 	def test_ignore_user_permissions_if_missing(self):
 		"""If there are no user permissions, then allow as per role"""
 
@@ -349,3 +351,70 @@ class TestPermissions(unittest.TestCase):
 
 		frappe.set_user("Administrator")
 		user.remove_roles("Blogger")
+
+	def test_contextual_user_permission(self):
+		# should be applicable for across all doctypes
+		add_user_permission('Blogger', '_Test Blogger', 'test2@example.com')
+		# should be applicable only while accessing Blog Post
+		add_user_permission('Blogger', '_Test Blogger 1', 'test2@example.com', applicable_for='Blog Post')
+		# should be applicable only while accessing User
+		add_user_permission('Blogger', '_Test Blogger 2', 'test2@example.com', applicable_for='User')
+
+		posts = frappe.get_all('Blog Post', fields=['name', 'blogger'])
+
+		# Get all posts for admin
+		self.assertEqual(len(posts), 4)
+
+		frappe.set_user('test2@example.com')
+
+		posts = frappe.get_list('Blog Post', fields=['name', 'blogger'])
+
+		# Should get only posts with allowed blogger via user permission
+		# only '_Test Blogger', '_Test Blogger 1' are allowed in Blog Post
+		self.assertEqual(len(posts), 3)
+
+		for post in posts:
+			self.assertIn(post.blogger, ['_Test Blogger', '_Test Blogger 1'], 'A post from {} is not expected.'.format(post.blogger))
+
+	def test_if_owner_permission_overrides_properly(self):
+		# check if user is not granted access if the user is not the owner of the doc
+		# Blogger has only read access on the blog post unless he is the owner of the blog
+		update('Blog Post', 'Blogger', 0, 'if_owner', 1)
+		update('Blog Post', 'Blogger', 0, 'read', 1)
+		update('Blog Post', 'Blogger', 0, 'write', 1)
+		update('Blog Post', 'Blogger', 0, 'delete', 1)
+		# creates a custom docperm with just read access
+		add_permission('Blog Post', 'Blogger')
+		frappe.clear_cache(doctype="Blog Post")
+
+		frappe.delete_doc('Blog Post', '-test-blog-post-title')
+
+		frappe.set_user("test1@example.com")
+
+		doc = frappe.get_doc({
+			"doctype": "Blog Post",
+			"blog_category": "_Test Blog Category",
+			"blogger": "_Test Blogger 1",
+			"title": "_Test Blog Post Title",
+			"content": "_Test Blog Post Content"
+		})
+
+		doc.insert()
+
+		frappe.set_user("test2@example.com")
+		doc = frappe.get_doc(doc.doctype, doc.name)
+
+		self.assertTrue(doc.has_permission("read"))
+		self.assertFalse(doc.has_permission("write"))
+		self.assertFalse(doc.has_permission("delete"))
+
+		# check if owner of the doc has the access that is available only for the owner of the doc
+		frappe.set_user("test1@example.com")
+		doc = frappe.get_doc(doc.doctype, doc.name)
+
+		self.assertTrue(doc.has_permission("read"))
+		self.assertTrue(doc.has_permission("write"))
+		self.assertTrue(doc.has_permission("delete"))
+
+		# delete the created doc
+		frappe.delete_doc('Blog Post', '-test-blog-post-title')

@@ -220,7 +220,6 @@ frappe.patches.v11_0.update_list_user_settings
 frappe.patches.v11_0.rename_workflow_action_to_workflow_action_master #13-06-2018
 frappe.patches.v11_0.rename_email_alert_to_notification #13-06-2018
 frappe.patches.v11_0.delete_duplicate_user_permissions
-frappe.patches.v11_0.replicate_old_user_permissions
 frappe.patches.v11_0.set_dropbox_file_backup
 frappe.patches.v11_0.get_docs_apps_if_not_present
 frappe.patches.v10_0.set_default_locking_time
@@ -231,6 +230,7 @@ frappe.patches.v10_0.enhance_security
 frappe.patches.v11_0.multiple_references_in_events
 frappe.patches.v11_0.set_allow_self_approval_in_workflow
 execute:frappe.db.sql('ALTER table `tabSeries` ADD PRIMARY KEY IF NOT EXISTS (name)')
+frappe.patches.v11_0.remove_skip_for_doctype
 frappe.patches.v11_0.migrate_report_settings_for_new_listview
 frappe.patches.v11_0.delete_all_prepared_reports
 frappe.patches.v11_0.fix_order_by_in_reports_json

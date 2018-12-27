@@ -21,6 +21,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 	make: function() {
 		this.setup_sidebar();
 		this.setup_help();
+		this.setup_modules_dialog();
 
 		this.bind_events();
 
