@@ -23,10 +23,8 @@ def get_master_calendar_events(doctype_list, start=None, end=None):
 			if field_map.color:
 				fields.append(field_map.color)
 			if "get_events_method" in data[doctype]:
-				try:
-					events = frappe.call(data[doctype]["get_events_method"], start, end)
-				except:
-					frappe.throw("some thing went wrong")
+				events = frappe.call(data[doctype]["get_events_method"], start, end)
+
 
 			else:
 				start_date = "ifnull(%s, '0001-01-01 00:00:00')" % field_map.start
@@ -36,10 +34,8 @@ def get_master_calendar_events(doctype_list, start=None, end=None):
 					[doctype, start_date, '<=', end],
 					[doctype, end_date, '>=', start],
 				]
-				try:
-					events = frappe.get_list(doctype ,fields=fields,filters=filters)
-				except:
-					frappe.throw("Something  when wrong")
+
+				events = frappe.get_list(doctype ,fields=fields,filters=filters)
 
 			for event in events:
 				color = "#D2D1FB"
