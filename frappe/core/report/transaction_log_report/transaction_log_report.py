@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 import hashlib
 from frappe import _
+from frappe.utils import format_datetime
 
 def execute(filters=None):
 	columns, data = get_columns(filters), get_data(filters)
@@ -24,9 +25,9 @@ def get_data(filters=None):
 			else:
 				integrity = check_data_integrity(l.chaining_hash, l.transaction_hash, l.previous_hash, previous_hash[0][0])
 
-			result.append([_(str(integrity)), _(l.reference_doctype), l.document_name, l.owner, l.modified_by, l.timestamp])
+			result.append([_(str(integrity)), _(l.reference_doctype), l.document_name, l.owner, l.modified_by, format_datetime(l.timestamp, "YYYYMMDDHHmmss")])
 		else:
-			result.append([_("First Transaction"), _(l.reference_doctype), l.document_name, l.owner, l.modified_by, l.timestamp])
+			result.append([_("First Transaction"), _(l.reference_doctype), l.document_name, l.owner, l.modified_by, format_datetime(l.timestamp, "YYYYMMDDHHmmss")])
 
 	return result
 
