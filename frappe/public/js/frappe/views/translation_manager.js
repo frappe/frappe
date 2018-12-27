@@ -60,7 +60,7 @@ frappe.views.TranslationManager = class TranslationManager {
 					{
 						label: 'Translation',
 						fieldname: 'translation',
-						fieldtype: 'Data',
+						fieldtype: 'Text',
 						in_list_view: 1,
 						columns: 7
 					}
@@ -78,7 +78,7 @@ frappe.views.TranslationManager = class TranslationManager {
 		return frappe.db.get_list('Translation', {
 			fields: ['name', 'language', 'target_name as translation'],
 			filters: {
-				source_name: this.source_name
+				source_name: strip_html(this.source_name)
 			}
 		});
 	}
