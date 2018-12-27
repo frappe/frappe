@@ -215,9 +215,8 @@ function create_popover(event, jsEvent) {
 	$(".popover.fade.bottom.in").remove();
 
 	var htmlContent = "<div>" +
+	"<h4>"+event.title+"</h4>" +
 	get_time_Html(event)+
-	"</div>" +
-	"<div>" +
 	get_description_html(event)+
 	"</div>";
 
@@ -236,9 +235,8 @@ function create_popover(event, jsEvent) {
 }
 
 function get_description_html(event){
-	return "<div class='col-sm-12 text-medium text-muted' style='padding-left: 0; margin-top: 5px;'>" +
+	return "<div class='text-muted text-meduim'>"+
 	event.description +
-	"</div>" +
 	"</div>";
 }
 
@@ -254,15 +252,9 @@ function get_time_Html(event) {
 		timeHtml = event.start.format('Do MMMM') + " to " + event.end.format('Do MMMM');
 	}
 
-	var timing = "<div class='mt-5'>"+
-		"<h3 class='indicator blue'>"+event.title+"</h3>" +
-		"<div class='col-sm-12' style='margin-top: 0; padding-left: 0;'>"+
-			"<h6 class='text-medium text-muted'>" +
+	var timing = "<h6 class=''>" +
 			timeHtml +
-			"</h6>"+
-		"</div>" +
-	"</div>";
-
+			"</h6>";
 	return timing;
 }
 
@@ -280,7 +272,8 @@ function get_popover_attr(e) {
 
 function set_popover_css(e) {
 	$(".popover.fade.bottom.in").css({
-		"min-width": "200px",
+		"min-width": "100px",
+		"padding": "15px",
 		"z-index": 2,
 		'left': e.pageX - $(".popover.fade.bottom.in").width() / 2 + 'px',
 		'top': e.pageY + 'px'
@@ -290,7 +283,7 @@ function set_popover_css(e) {
 
 function popover_edit_button(event) {
 	//Edit buuton and its action
-	$("<div><span ><button class='btn btn-default btn-sm' style='margin-top:15px'>Edit</button></span></div>").on("click", function(){
+	$("<div><span ><button class='btn btn-default btn-xs' style='margin-top:15px'>Edit</button></span></div>").on("click", function(){
 		$(".popover.fade.bottom.in").remove();
 		frappe.set_route("Form", event.doctype, event.id);
 	}).appendTo($(".popover-content"));
