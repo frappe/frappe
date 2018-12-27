@@ -5,7 +5,7 @@ import unittest
 from frappe.contacts.report.addresses_and_contacts.addresses_and_contacts import get_data
 
 def get_custom_linked_doctype():
-    if bool(frappe.get_list("Doctype", filters={'name':'Test Custom Doctype'})):
+    if bool(frappe.get_all("DocType", filters={'name':'Test Custom Doctype'})):
         return
 	
     doc = frappe.get_doc({
@@ -36,12 +36,11 @@ def get_custom_linked_doctype():
 	
     return doc
 
-def get_custom_doc_for_address_and_contacts(name):
+def get_custom_doc_for_address_and_contacts():
 	custom_doctype = get_custom_linked_doctype()
 	linked_doc = frappe.get_doc({
 		"doctype": "Test Custom Doctype",
 		"test_field": "Hello",
-		"name": name
 		}).insert()
 	return linked_doc
 
@@ -98,7 +97,7 @@ def create_linked_contact(link_list):
 
 class TestAddressesAndContacts(unittest.TestCase):
     def test_get_data(self):
-        linked_docs = [get_custom_doc_for_address_and_contacts("test"), get_custom_doc_for_address_and_contacts("test"), get_custom_doc_for_address_and_contacts("test")]
+        linked_docs = [get_custom_doc_for_address_and_contacts(), get_custom_doc_for_address_and_contacts(), get_custom_doc_for_address_and_contacts()]
         links_list = [item.name for item in linked_docs]
         contact = create_linked_contact(links_list)
         address = create_linked_address(links_list)
