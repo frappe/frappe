@@ -34,10 +34,8 @@ def get_custom_linked_doctype():
 		"name": "Test Custom Doctype",
 	}).insert()
 
-	return doc
-
 def get_custom_doc_for_address_and_contacts():
-	custom_doctype = get_custom_linked_doctype()
+	get_custom_linked_doctype()
 	linked_doc = frappe.get_doc({
 		"doctype": "Test Custom Doctype",
 		"test_field": "Hello",
@@ -66,8 +64,6 @@ def create_linked_address(link_list):
 
 	address.insert()
 	frappe.flags.test_address_created = True
-	return address
-
 
 def create_linked_contact(link_list):
 	if frappe.flags.test_contact_created:
@@ -92,15 +88,14 @@ def create_linked_contact(link_list):
 
 	contact.insert()
 	frappe.flags.test_contact_created = True
-	return contact
 
 
 class TestAddressesAndContacts(unittest.TestCase):
 	def test_get_data(self):
 		linked_docs = [get_custom_doc_for_address_and_contacts(), get_custom_doc_for_address_and_contacts(), get_custom_doc_for_address_and_contacts()]
 		links_list = [item.name for item in linked_docs]
-		contact = create_linked_contact(links_list)
-		address = create_linked_address(links_list)
+		create_linked_contact(links_list)
+		create_linked_address(links_list)
 		report_data = get_data({"reference_doctype": "Test Custom Doctype"})
 		for link in links_list:
 			test_item = [link, 'test address line 1', 'test address line 2', 'Milan', None, None, 'Italy', 0, '_Test First Name', '_Test Last Name', '+91 0000000000', None, 'test_contact@example.com', 1]

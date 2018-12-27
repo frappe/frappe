@@ -2,7 +2,6 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-from six.moves import range
 from six import iteritems
 import frappe
 
@@ -53,7 +52,7 @@ def get_reference_addresses_and_contact(reference_doctype, reference_name):
 		filters = { "name": reference_name }
 
 	reference_list = [d[0] for d in frappe.get_list(reference_doctype, filters=filters, fields=["name"], as_list=True)]
-	
+
 	for d in reference_list:
 		reference_details.setdefault(d, frappe._dict())
 	reference_details = get_reference_details(reference_doctype, "Address", reference_list, reference_details)
@@ -68,12 +67,11 @@ def get_reference_addresses_and_contact(reference_doctype, reference_name):
 			result.extend(add_blank_columns_for("Address"))
 			data.append(result)
 		else:
-			max_length = max(len(addresses), len(contacts))
 			result = [reference_name]
 			result.extend(list(addresses) or add_blank_columns_for("Address"))
 			result.extend(list(contacts) or add_blank_columns_for("Contact"))
 			data.append(result)
-	
+
 	return data
 
 def get_reference_details(reference_doctype, doctype, reference_list, reference_details):
