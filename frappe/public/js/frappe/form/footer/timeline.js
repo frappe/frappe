@@ -2,6 +2,7 @@
 // MIT License. See license.txt
 
 frappe.provide('frappe.timeline');
+frappe.separator_element = '<div>---</div>';
 
 frappe.ui.form.Timeline = class Timeline {
 	constructor(opts) {
@@ -344,7 +345,7 @@ frappe.ui.form.Timeline = class Timeline {
 			});
 		} else {
 			if(c.communication_type=="Communication" && c.communication_medium=="Email") {
-				c.content = c.content.split('<span data-comment="original-reply" class="hidden">Reply To</span>')[0];
+				c.content = c.content.split(frappe.separator_element)[0];
 				c.content = frappe.utils.strip_original_content(c.content);
 
 				c.original_content = c.content;
