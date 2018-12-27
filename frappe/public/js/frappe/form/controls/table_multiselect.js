@@ -22,6 +22,14 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 
 			this.parse_validate_and_set_in_model('');
 		});
+		this.$input_area.on('click', '.btn-link-to-form', (e) => {
+			const $target = $(e.currentTarget);
+			const $value = $target.closest('.tb-selected-value');
+
+			const value = decodeURIComponent($value.data().value);
+			const link_field = this.get_link_field();
+			frappe.set_route('Form', link_field.options, value);
+		});
 	},
 	setup_buttons() {
 		this.$input_area.find('.link-btn').remove();
@@ -89,6 +97,17 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 		const values = this.rows.map(row => row[link_field.fieldname]);
 		this.set_pill_html(values);
 	},
+	set_disp_area: function(value) {
+		const rows = this.value || value;
+		const link_field = this.get_link_field();
+
+		const formatted_values = rows.map(row => {
+			const value = row[link_field.fieldname];
+			return frappe.format(value, link_field, {no_icon:true, inline:true}, row);
+		});
+
+		this.disp_area && $(this.disp_area).html(formatted_values.join(', '));
+	},
 	set_pill_html(values) {
 		const html = values
 			.map(value => this.get_pill_html(value))
@@ -100,7 +119,7 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 	get_pill_html(value) {
 		const encoded_value = encodeURIComponent(value);
 		return `<div class="btn-group tb-selected-value" data-value="${encoded_value}">
-			<button class="btn btn-default btn-xs">${__(value)}</button>
+			<button class="btn btn-default btn-xs btn-link-to-form">${__(value)}</button>
 			<button class="btn btn-default btn-xs btn-remove">
 				<i class="fa fa-remove text-muted"></i>
 			</button>
