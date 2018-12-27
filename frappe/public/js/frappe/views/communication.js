@@ -11,6 +11,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 	make: function() {
 		var me = this;
+
 		this.dialog = new frappe.ui.Dialog({
 			title: (this.title || this.subject || __("New Email")),
 			no_submit_on_enter: true,
@@ -499,7 +500,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		if (this.dialog) {
 			try {
 				let message = this.dialog.get_value('content');
-				message = message.split('<span data-comment="original-reply" class="hidden">Reply To</span>')[0];
+				message = message.split(frappe.separator_element)[0];
 				localStorage.setItem(this.frm.doctype + this.frm.docname, message);
 			} catch (e) {
 				// silently fail
@@ -656,9 +657,9 @@ frappe.views.CommunicationComposer = Class.extend({
 
 			let last_email_content = last_email.original_comment || last_email.content;
 
-			last_email_content = last_email_content
-				.replace(/&lt;meta[\s\S]*meta&gt;/g, '') // remove <meta> tags
-				.replace(/&lt;style[\s\S]*&lt;\/style&gt;/g, ''); // // remove <style> tags
+			// convert the email context to text as we are enclosing
+			// this inside <blockquote>
+			last_email_content = this.html2text(last_email_content).replace(/\n/g, '<br>');
 
 			// clip last email for a maximum of 20k characters
 			// to prevent the email content from getting too large
@@ -671,17 +672,27 @@ frappe.views.CommunicationComposer = Class.extend({
 			content = `
 				<div><br></div>
 				${reply}
-				<div class="ql-collapse" data-collapse="true">
-					<span data-comment='original-reply'>Reply To</span>
-					<blockquote>
-					<p>${__("On {0}, {1} wrote:", [frappe.datetime.global_date_format(communication_date) , last_email.sender])}</p>
-					${last_email_content}
-					</blockquote>
-				</div>
+				${frappe.separator_element}
+				<p>${__("On {0}, {1} wrote:", [frappe.datetime.global_date_format(communication_date) , last_email.sender])}</p>
+				<blockquote>
+				${last_email_content}
+				</blockquote>
 			`;
 		} else {
 			content = "<div><br></div>" + reply;
 		}
 		fields.content.set_value(content);
+	},
+	html2text: function(html) {
+		// convert HTML to text and try and preserve whitespace
+		var d = document.createElement( 'div' );
+		d.innerHTML = html.replace(/<\/div>/g, '<br></div>')  // replace end of blocks
+			.replace(/<\/p>/g, '<br></p>') // replace end of paragraphs
+			.replace(/<br>/g, '\n');
+		let text = d.textContent;
+
+		// replace multiple empty lines with just one
+		return text.replace(/\n{3,}/g, '\n\n');
 	}
 });
+
