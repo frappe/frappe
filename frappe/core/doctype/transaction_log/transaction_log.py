@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, now_datetime, format_datetime
+from frappe.utils import cint, now_datetime
 import hashlib
 
 class TransactionLog(Document):
