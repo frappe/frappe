@@ -98,7 +98,7 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 		this.set_pill_html(values);
 	},
 	set_disp_area: function(value) {
-		const rows = this.value || value;
+		const rows = this.value || value || [];
 		const link_field = this.get_link_field();
 
 		const formatted_values = rows.map(row => {
