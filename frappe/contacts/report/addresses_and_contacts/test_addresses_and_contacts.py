@@ -32,7 +32,8 @@ def get_custom_linked_doctype():
 			"read": 1
 		}],
 		"name": "Test Custom Doctype",
-	}).insert()
+	})
+	doc.insert()
 
 def get_custom_doc_for_address_and_contacts():
 	get_custom_linked_doctype()
