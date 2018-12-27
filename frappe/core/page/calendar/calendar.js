@@ -255,7 +255,7 @@ function get_time_Html(event) {
 	}
 
 	var timing = "<div class='mt-5'>"+
-		"<h3 class='indicator red'>"+event.title+"</h3>" +
+		"<h3 class='indicator blue'>"+event.title+"</h3>" +
 		"<div class='col-sm-12' style='margin-top: 0; padding-left: 0;'>"+
 			"<h6 class='text-medium text-muted'>" +
 			timeHtml +
@@ -270,8 +270,9 @@ function get_popover_attr(e) {
 	$(e).attr({
 		"data-toggle": "popover",
 		"data-placement": "bottom",
-		"title": event.title,
+		"title": event.id,
 		"data-container": "body",
+		"data-animation": true,
 		"data-trigger": "focus",
 		"z-index": 2000
 	});
