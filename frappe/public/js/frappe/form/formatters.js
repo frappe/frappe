@@ -240,8 +240,8 @@ frappe.form.formatters = {
 		return value;
 	},
 	TableMultiSelect: function(rows, df, options) {
-		rows = rows || []
-		const meta = frappe.get_meta(df.options)
+		rows = rows || [];
+		const meta = frappe.get_meta(df.options);
 		const link_field = meta.fields.find(df => df.fieldtype === 'Link');
 		const formatted_values = rows.map(row => {
 			const value = row[link_field.fieldname];
