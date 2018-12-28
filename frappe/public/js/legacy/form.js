@@ -213,7 +213,9 @@ _f.Frm.prototype.watch_model_updates = function() {
 	});
 
 	// on table fields
-	var table_fields = frappe.get_children("DocType", me.doctype, "fields", {fieldtype:"Table"});
+	var table_fields = frappe.get_children("DocType", me.doctype, "fields", {
+		fieldtype: ["in", frappe.model.table_fields]
+	});
 
 	// using $.each to preserve df via closure
 	$.each(table_fields, function(i, df) {

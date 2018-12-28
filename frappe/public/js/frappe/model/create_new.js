@@ -266,7 +266,7 @@ $.extend(frappe.model, {
 				&& !(df && (!from_amend && cint(df.no_copy) == 1))) {
 
 				var value = doc[key] || [];
-				if (df.fieldtype === "Table") {
+				if (frappe.model.table_fields.includes(df.fieldtype)) {
 					for (var i = 0, j = value.length; i < j; i++) {
 						var d = value[i];
 						frappe.model.copy_doc(d, from_amend, newdoc, df.fieldname);

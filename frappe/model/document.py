@@ -12,7 +12,7 @@ from frappe.model.naming import set_new_name
 from six import iteritems, string_types
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
-from frappe.model import optional_fields
+from frappe.model import optional_fields, table_fields
 from frappe.model.workflow import validate_workflow
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
@@ -489,7 +489,7 @@ class Document(BaseDocument):
 				value = self.get(field.fieldname)
 				original_value = self._doc_before_save.get(field.fieldname)
 
-				if field.fieldtype=='Table':
+				if field.fieldtype in table_fields:
 					fail = not self.is_child_table_same(field.fieldname)
 				elif field.fieldtype in ('Date', 'Datetime', 'Time'):
 					fail = str(value) != str(original_value)
@@ -756,7 +756,7 @@ class Document(BaseDocument):
 	def get_all_children(self, parenttype=None):
 		"""Returns all children documents from **Table** type field in a list."""
 		ret = []
-		for df in self.meta.get("fields", {"fieldtype": "Table"}):
+		for df in self.meta.get("fields", {"fieldtype": ['in', table_fields]}):
 			if parenttype:
 				if df.options==parenttype:
 					return self.get(df.fieldname)
