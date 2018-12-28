@@ -150,7 +150,7 @@ frappe.ui.form.AssignToDialog = Class.extend({
 						{value:'High', label:__('High')}],
 					'default':'Medium'},
 			],
-			primary_action: function() { frappe.ui.add_assignment(opts, me) },
+			primary_action: function() { frappe.ui.add_assignment(opts, this) },
 			primary_action_label: __("Add")
 		})
 		$.extend(me, dialog);
@@ -194,6 +194,7 @@ frappe.ui.add_assignment = function(opts, dialog) {
 				re_assign: opts.re_assign || false
 			}),
 			callback: function(r,rt) {
+				console.log(dialog);
 				if(!r.exc) {
 					if(opts.callback){
 						opts.callback(r);
