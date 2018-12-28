@@ -13,7 +13,7 @@ def set_request(**kwargs):
 class TestWebsite(unittest.TestCase):
 
 	def test_page_load(self):
-		frappe.session.user = 'Guest'
+		frappe.set_user('Guest')
 		set_request(method='POST', path='login')
 		response = render.render()
 
@@ -21,9 +21,10 @@ class TestWebsite(unittest.TestCase):
 
 		html = frappe.safe_decode(response.get_data())
 
-		# self.assertTrue('/* login-css */' in html)
+		self.assertTrue('/* login-css */' in html)
 		self.assertTrue('// login.js' in html)
 		self.assertTrue('<!-- login.html -->' in html)
+		frappe.set_user('Administrator')
 
 	def test_redirect(self):
 		import frappe.hooks
