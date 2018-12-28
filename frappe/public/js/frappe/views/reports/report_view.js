@@ -836,7 +836,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				const d = row.reduce((acc, curr) => {
 					if (!curr.column.docfield) return acc;
 					acc[curr.column.docfield.fieldname] = curr.content;
-					return acc
+					return acc;
 				}, {});
 
 				return frappe.format(value, column.docfield, { always_show_decimals: true }, d);
