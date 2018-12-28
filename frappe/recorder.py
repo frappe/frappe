@@ -8,6 +8,7 @@ import time
 import traceback
 import frappe
 import sqlparse
+from frappe.utils import now
 
 def recorder_start():
 		# Need to record all calls to frappe.db.sql
@@ -80,6 +81,8 @@ def recorder(function):
 	wrapper.calls = list()
 	wrapper.path = frappe.request.path
 	wrapper.cmd = frappe.local.form_dict.cmd
+	wrapper.time = now()
+	wrapper.method = frappe.request.method
 
 	# Enable MariaDB's builtin query profiler.
 	# Profile data can be collected after each query.
@@ -92,6 +95,8 @@ def dumps(stuff):
 def persist(function):
 	path = function.path
 	cmd = function.cmd
+	time = function.time
+	method = function.method
 	calls = function.calls
 
 	# RecorderMiddleware creates a uuid for every request and
@@ -99,7 +104,16 @@ def persist(function):
 	uuid = frappe.request.environ["uuid"]
 
 	# LPUSH -> Reverse chronological order for requests
-	frappe.cache().lpush("recorder-requests".format(path), json.dumps({"path":path, "uuid": uuid, "cmd": cmd}))
+	frappe.cache().lpush(
+		"recorder-requests".format(path),
+		json.dumps({
+			"uuid": uuid,
+			"path":path,
+			"cmd": cmd,
+			"time": time,
+			"method": method,
+		})
+	)
 
 	# LPUSH -> Chronological order for calls
 

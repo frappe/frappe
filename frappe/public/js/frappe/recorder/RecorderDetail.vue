@@ -5,6 +5,8 @@
 				<th>UUID</th>
 				<th>Path</th>
 				<th>CMD</th>
+				<th>Time</th>
+				<th>Method</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -17,6 +19,12 @@
 				</td>
 				<td>
 					{{ request.cmd }}
+				</td>
+				<td>
+					{{ request.time }}
+				</td>
+				<td>
+					{{ request.method }}
 				</td>
 			</tr>
 		</tbody>
