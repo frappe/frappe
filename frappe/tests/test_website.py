@@ -31,7 +31,7 @@ class TestWebsite(unittest.TestCase):
 		frappe.hooks.website_redirects = [
 			dict(source=r'/testfrom', target=r'://testto1'),
 			dict(source=r'/testfromregex.*', target=r'://testto2'),
-			dict(source=r'/(^[a-z]+)/(.*)', target=r'://testto3/\2')
+			dict(source=r'/testsub/(.*)', target=r'://testto3/\1')
 		]
 		frappe.cache().delete_key('app_hooks')
 		frappe.cache().delete_key('website_redirects')
