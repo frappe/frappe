@@ -194,7 +194,6 @@ frappe.ui.add_assignment = function(opts, dialog) {
 				re_assign: opts.re_assign || false
 			}),
 			callback: function(r,rt) {
-				console.log(dialog);
 				if(!r.exc) {
 					if(opts.callback){
 						opts.callback(r);
