@@ -8,9 +8,11 @@ frappe.defaults = {
 		if(!d && frappe.defaults.is_a_user_permission_key(key))
 			d = defaults[frappe.model.scrub(key)];
 		if($.isArray(d)) d = d[0];
-		if(frappe.defaults.not_in_user_permission(key, d)) {
+
+		if(!frappe.defaults.in_user_permission(key, d)) {
 			return;
 		}
+
 		return d;
 	},
 	get_user_defaults: function(key) {
@@ -29,7 +31,7 @@ frappe.defaults = {
 
 		// filter out values which are not permitted to the user
 		d.filter(item => {
-			if(!frappe.defaults.not_in_user_permission(key, item)) {
+			if(frappe.defaults.in_user_permission(key, item)) {
 				return item;
 			}
 		});
@@ -73,7 +75,7 @@ frappe.defaults = {
 			}
 		}
 
-		if(frappe.defaults.not_in_user_permission(key, value)) {
+		if(!frappe.defaults.in_user_permission(key, value)) {
 			return;
 		}
 
@@ -90,14 +92,22 @@ frappe.defaults = {
 		return key.indexOf(":")===-1 && key !== frappe.model.scrub(key);
 	},
 
-	not_in_user_permission: function(key, value) {
-		let user_permission = this.get_user_permissions()[frappe.model.unscrub(key)] || [];
+	in_user_permission: function(key, value) {
+		let user_permission = this.get_user_permissions()[frappe.model.unscrub(key)];
 
-		let doc_found = user_permission.some(perm => {
-			perm.doc === value;
-		});
+		if (user_permission && user_permission.length) {
 
-		return !doc_found;
+			let doc_found = user_permission.some(perm => {
+				return perm.doc === value;
+			});
+			return doc_found;
+
+		} else {
+			// there is no user permission for this doctype
+			// so we can allow this doc i.e., value
+			return true;
+		}
+
 	},
 
 	get_user_permissions: function() {

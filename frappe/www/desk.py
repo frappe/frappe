@@ -70,8 +70,13 @@ def get_desk_assets(build_version):
 				pass
 
 		for path in data["include_css"]:
-			with open(os.path.join(frappe.local.sites_path, path) ,"r") as f:
-				assets[1]["data"] = assets[1]["data"] + "\n" + frappe.safe_decode(f.read(), "utf-8")
+			if path.startswith('/assets/'):
+				path = path.replace('/assets/', 'assets/')
+			try:
+				with open(os.path.join(frappe.local.sites_path, path) ,"r") as f:
+					assets[1]["data"] = assets[1]["data"] + "\n" + frappe.safe_decode(f.read(), "utf-8")
+			except IOError:
+				pass
 
 	return {
 		"build_version": data["build_version"],
