@@ -146,14 +146,6 @@ def update_autoname_field(doctype, new, meta):
 		if field and field[0] == "field":
 			frappe.db.sql("UPDATE `tab{0}` SET `{1}`={2} WHERE `name`={2}".format(doctype, field[1], '%s'), (new, new))
 
-def update_child_autoname_field(doctype, link_field, new, old, meta):
-	# update child name value if autoname is set with link field
-	# example autoname is field:user and user is renamed
-	if meta.get('autoname'):
-		field = meta.get('autoname').split(':')
-		if field and field[0] == "field" and field[1] == link_field:
-			frappe.db.sql("UPDATE `tab{0}` SET `name`=%s WHERE `name`=%s".format(doctype), (new, old))
-
 def validate_rename(doctype, new, meta, merge, force, ignore_permissions):
 	# using for update so that it gets locked and someone else cannot edit it while this rename is going on!
 	exists = frappe.db.sql("select name from `tab{doctype}` where name=%s for update".format(doctype=doctype), new)
@@ -228,6 +220,14 @@ def update_link_field_values(link_fields, old, new, doctype):
 		# update cached link_fields as per new
 		if doctype=='DocType' and field['parent'] == old:
 			field['parent'] = new
+
+def update_child_autoname_field(doctype, link_field, new, old, meta):
+	# update child name value if autoname is set with link field
+	# example autoname is field:user and user is renamed
+	if meta.get('autoname'):
+		field = meta.get('autoname').split(':')
+		if field and field[0] == "field" and field[1] == link_field:
+			frappe.db.sql("UPDATE `tab{0}` SET `name`=%s WHERE `name`=%s".format(doctype), (new, old))
 
 def get_link_fields(doctype):
 	# get link fields from tabDocField
