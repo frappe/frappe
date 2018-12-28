@@ -247,9 +247,9 @@ function get_time_Html(event) {
 	} else if (event.start.isSame(event.end, 'date', 'month', 'year')) {
 		timeHtml = event.start.format('LT') + " to " + event.end.format('LT');
 	} else if (event.start.isSame(event.end, 'month', 'year')) {
-		timeHtml = event.start.format("MMMM, ") + event.start.format('D') + " to " + event.end.format('D');
+		timeHtml = event.start.format("DD-MM-YYYY") + " to " + event.end.format('DD-MM-YYYY');
 	} else {
-		timeHtml = event.start.format('Do MMMM') + " to " + event.end.format('Do MMMM');
+		timeHtml = event.start.format('DD-MM-YYYY') + " to " + event.end.format('DD-MM-YYYY');
 	}
 
 	var timing = "<h6 class=''>" +
