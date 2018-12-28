@@ -2,16 +2,13 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-from cProfile import Profile
-from pstats import Stats
-import json
-import uuid
 
 import frappe
 import os
 from werkzeug.exceptions import NotFound
 from werkzeug.wsgi import SharedDataMiddleware
 from frappe.utils import get_site_name, get_site_path, get_site_base_path, get_path, cstr
+from frappe.recorder import Recorder
 
 class StaticDataMiddleware(SharedDataMiddleware):
 	def __call__(self, environ, start_response):
@@ -48,12 +45,11 @@ class RecorderMiddleware(object):
 			if hasattr(appiter, 'close'):
 				appiter.close()
 
-		# Every request is assigned a uuid here,
-		# uuid is available to everyone as frappe.request.environ["uuid"]
-		# SQL calls and profile details can't be recorded and accessed without this
-		environ["uuid"] = str(uuid.uuid1())
+		recorder = Recorder()
 
 		runapp()
 		body = [b''.join(response_body)]
+
+		recorder.dump()
 
 		return body

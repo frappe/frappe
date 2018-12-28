@@ -25,7 +25,7 @@ from frappe.middlewares import RecorderMiddleware, StaticDataMiddleware
 from frappe.utils.error import make_error_snapshot
 from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
 from frappe import _
-from frappe.recorder import recorder_start, recorder_stop
+import frappe.recorder
 
 local_manager = LocalManager([frappe.local])
 
@@ -52,7 +52,7 @@ def application(request):
 
 		init_request(request)
 
-		recorder_start()
+		frappe.recorder.record()
 
 		if frappe.local.form_dict.cmd:
 			response = frappe.handler.handle()
@@ -94,7 +94,8 @@ def application(request):
 		if response and hasattr(frappe.local, 'cookie_manager'):
 			frappe.local.cookie_manager.flush_cookies(response=response)
 
-		recorder_stop()
+		frappe.recorder.dump()
+
 		frappe.destroy()
 
 	return response
