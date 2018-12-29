@@ -21,10 +21,15 @@ class TestDocument(unittest.TestCase):
 		self.assertTrue(filter(lambda d: d.fieldname=="email", d.fields))
 
 	def test_load_single(self):
-		d = frappe.get_doc("Website Settings", "Website Settings")
-		self.assertEqual(d.name, "Website Settings")
-		self.assertEqual(d.doctype, "Website Settings")
-		self.assertTrue(d.disable_signup in (0, 1))
+		d = frappe.get_doc("Print Settings", "Print Settings")
+		self.assertEqual(d.name, "Print Settings")
+		self.assertEqual(d.doctype, "Print Settings")
+		self.assertTrue(d.send_print_as_pdf in (0, 1))
+
+	def test_set_value_single(self):
+		frappe.db.set_value("Print Settings", "Print Settings", "_test", "_test_val")
+		self.assertEqual(frappe.db.get_value("Print Settings", None, "_test"), "_test_val")
+		self.assertEqual(frappe.db.get_value("Print Settings", "Print Settings", "_test"), "_test_val")
 
 	def test_insert(self):
 		d = frappe.get_doc({
@@ -82,11 +87,11 @@ class TestDocument(unittest.TestCase):
 		self.assertRaises(frappe.TimestampMismatchError, d2.save)
 
 	def test_confict_validation_single(self):
-		d1 = frappe.get_doc("Website Settings", "Website Settings")
-		d1.home_page = "test-web-page-1"
+		d1 = frappe.get_doc("Print Settings", "Print Settings")
+		d1.pdf_page_size = "A4"
 
-		d2 = frappe.get_doc("Website Settings", "Website Settings")
-		d2.home_page = "test-web-page-1"
+		d2 = frappe.get_doc("Print Settings", "Print Settings")
+		d2.pdf_page_size = "Letter"
 
 		d1.save()
 		self.assertRaises(frappe.TimestampMismatchError, d2.save)
@@ -98,7 +103,7 @@ class TestDocument(unittest.TestCase):
 
 	def test_permission_single(self):
 		frappe.set_user("Guest")
-		d = frappe.get_doc("Website Settings", "Website Settigns")
+		d = frappe.get_doc("Print Settings", "Print Settings")
 		self.assertRaises(frappe.PermissionError, d.save)
 		frappe.set_user("Administrator")
 

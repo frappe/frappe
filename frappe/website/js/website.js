@@ -417,7 +417,7 @@ $(document).on("page-change", function() {
 
 frappe.ready(function() {
 	frappe.call({
-		method: 'frappe.website.doctype.website_settings.website_settings.is_chat_enabled',
+		method: 'frappe.website.doctype.website.website.is_chat_enabled',
 		callback: (r) => {
 			if (r.message) {
 				frappe.require('/assets/js/moment-bundle.min.js', () => {

@@ -1,10 +1,7 @@
-frappe.ui.form.on('Website Settings', {
-	refresh: function(frm) {
-		frm.add_custom_button(__('View Website'), () => {
-			window.open('/', '_blank');
-		});
-	},
+// Copyright (c) 2018, Frappe Technologies and contributors
+// For license information, please see license.txt
 
+frappe.ui.form.on('Website', {
 	set_banner_from_image: function(frm) {
 		if (!frm.doc.banner_image) {
 			frappe.msgprint(__("Select a Brand Image first."));
@@ -37,10 +34,9 @@ frappe.ui.form.on('Website Settings', {
 
 	set_parent_options: function(frm, doctype, name) {
 		var item = frappe.get_doc(doctype, name);
-		if(item.parentfield === "top_bar_items") {
+		if (item.parentfield === "top_bar_items") {
 			frm.trigger('set_parent_label_options');
-		}
-		else if (item.parentfield === "footer_items") {
+		} else if (item.parentfield === "footer_items") {
 			frm.trigger('set_parent_label_options_footer');
 		}
 	},

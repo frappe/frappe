@@ -7,24 +7,6 @@ import frappe
 from frappe.utils import now
 from frappe import _
 
-def get_context(context):
-	doc = frappe.get_doc("Contact Us Settings", "Contact Us Settings")
-
-	if doc.query_options:
-		query_options = [opt.strip() for opt in doc.query_options.replace(",", "\n").split("\n") if opt]
-	else:
-		query_options = ["Sales", "Support", "General"]
-
-	out = {
-		"query_options": query_options,
-		"parents": [
-			{ "name": _("Home"), "route": "/" }
-		]
-	}
-	out.update(doc.as_dict())
-
-	return out
-
 max_communications_per_hour = 1000
 
 @frappe.whitelist(allow_guest=True)

@@ -13,7 +13,7 @@ import frappe.permissions
 import frappe.share
 import re
 from frappe.limits import get_limits
-from frappe.website.utils import is_signup_enabled
+from frappe.website.utils import is_signup_enabled, get_website_settings
 from frappe.utils.background_jobs import enqueue
 
 STANDARD_USERS = ("Guest", "Administrator")
@@ -783,8 +783,9 @@ def sign_up(email, full_name, redirect_to):
 		user.flags.ignore_permissions = True
 		user.insert()
 
-		# set default signup role as per Portal Settings
-		default_role = frappe.db.get_value("Portal Settings", None, "default_role")
+		# set default signup role as per Portal
+		default_role = frappe.db.get_value("Portal",
+			get_website_settings('portal'), "default_role")
 		if default_role:
 			user.add_roles(default_role)
 

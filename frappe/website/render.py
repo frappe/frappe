@@ -271,7 +271,7 @@ def clear_cache(path=None):
 		'website_full_index'):
 		frappe.cache().delete_value(key)
 
-	frappe.cache().delete_value("website_404")
+	frappe.cache().delete_value(("website_404", "website_name"))
 	if path:
 		frappe.cache().hdel('website_redirects', path)
 		delete_page_cache(path)

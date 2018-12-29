@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 import urllib
 from frappe.utils import escape_html, get_request_site_address, now, cstr
+from frappe.website.utils import get_website_settings
 from six.moves.urllib.parse import quote, urljoin
 
 no_cache = 1
@@ -30,7 +31,7 @@ def get_context(context):
 	else:
 		modified = now()
 
-	blog_settings = frappe.get_doc('Blog Settings', 'Blog Settings')
+	blog_settings = get_website_settings(['blog_title', 'blog_introduction'])
 
 	context = {
 		'title': blog_settings.blog_title or "Blog",

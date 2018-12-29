@@ -88,8 +88,6 @@ def install_app(name, verbose=False, set_as_patched=True):
 
 	add_to_installed_apps(name)
 
-	frappe.get_doc('Portal Settings', 'Portal Settings').sync_menu()
-
 	if set_as_patched:
 		set_all_patches_as_completed(name)
 

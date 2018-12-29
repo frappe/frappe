@@ -1,0 +1,73 @@
+<style>
+	.address {
+		line-height: 1.7em;
+	}
+</style>
+<div class="contact-content">
+	{% if doc.introduction %}
+	<div>
+		{{ doc.introduction or "" }}<br>
+	</div>
+	{% endif %}
+	<div class="row">
+		<div class="col-md-8">
+			<p id="contact-alert" class="alert alert-warning"
+				style="display: none;">&nbsp;</p>
+			<div class="form-group">
+				<select name="subject" class="form-control">
+				{% if doc.query_options -%}
+					{% for option in doc.query_options -%}
+					<option value="{{ option }}">{{ option }}</option>
+					{%- endfor %}
+				{% else %}
+					<option value="General">General</option>
+				{% endif %}
+				</select>
+			</div>
+			<div class="form-group">
+				<input class="form-control" name="email" type="text"
+				placeholder="{{ _('Your email address') }}" />
+			</div>
+			<div class="form-group">
+				<textarea rows="10" name="message" class="form-control"></textarea>
+			</div>
+			<div class="form-group">
+				<button class="btn btn-primary btn-send">{{ _("Send") }}</button>
+			</div>
+		</div>
+		{% if doc.address_title %}
+		<div class="col-md-3 col-md-offset-1 address"
+				itemscope itemtype="http://schema.org/PostalAddress">
+			<h4 style="margin-top: 0px;"><i class="fa fa-map-marker"></i> {{ doc.address_title }}</h4>
+			{% if doc.address_line1 %}
+				<span itemprop="streetAddress">{{ doc.address_line1 }}</span><br>
+			{% endif %}
+			{% if doc.address_line2 %}
+				<span itemprop="streetAddress">{{ doc.address_line2 }}</span><br>
+			{% endif %}
+			{% if doc.city %}
+				<span itemprop="addressLocality">{{ doc.city }}</span><br>
+			{% endif %}
+			{% if doc.state %}
+				<span itemprop="addressRegion">{{ doc.state }}</span><br>
+			{% endif %}
+			{% if doc.pincode %}
+				<span itemprop="postalCode">{{ doc.pincode }}</span><br>
+			{% endif %}
+			{% if doc.country %}
+				<span itemprop="addressCountry">{{ doc.country }}</span><br><br>
+			{% endif %}
+			{% if doc.phone %}
+				<i class='fa fa-phone'></i> <span itemprop="telephone">{{ doc.phone }}</span><br>
+			{% endif %}
+			{% if doc.email_id %}
+				<i class='fa fa-envelope'></i> <span itemprop="email">{{ doc.email_id }}</span><br>
+			{% endif %}
+			{% if doc.skype %}
+				<i class='fa fa-skype'></i> <span itemprop="email">{{ doc.skype }}</span><br>
+			{% endif %}
+
+		</div>
+		{% endif %}
+	</div>
+</div>

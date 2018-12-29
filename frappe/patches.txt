@@ -61,7 +61,6 @@ frappe.patches.v4_0.rename_profile_to_user
 frappe.patches.v4_0.deprecate_control_panel
 frappe.patches.v4_0.remove_old_parent
 frappe.patches.v4_0.rename_sitemap_to_route
-frappe.patches.v4_0.website_sitemap_hierarchy
 frappe.patches.v4_0.remove_index_sitemap
 frappe.patches.v4_0.set_website_route_idx
 frappe.patches.v4_0.add_delete_permission
@@ -234,3 +233,4 @@ execute:frappe.db.sql('ALTER table `tabSeries` ADD PRIMARY KEY IF NOT EXISTS (na
 frappe.patches.v11_0.migrate_report_settings_for_new_listview
 frappe.patches.v11_0.delete_all_prepared_reports
 frappe.patches.v11_0.fix_order_by_in_reports_json
+frappe.patches.v12_0.multi_website

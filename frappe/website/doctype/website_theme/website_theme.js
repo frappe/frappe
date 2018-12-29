@@ -17,9 +17,6 @@ frappe.ui.form.on("Website Theme", "onload_post_render", function(frm) {
 });
 
 frappe.ui.form.on("Website Theme", "refresh", function(frm) {
-	frm.set_intro(__('Default theme is set in {0}', ['<a href="#Form/Website Settings">'
-		+ __('Website Settings') + '</a>']));
-
 	frm.toggle_display(["module", "custom"], !frappe.boot.developer_mode);
 
 	if (!frm.doc.custom && !frappe.boot.developer_mode) {

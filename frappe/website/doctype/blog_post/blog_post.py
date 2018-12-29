@@ -8,7 +8,7 @@ from frappe import _
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import clear_cache
 from frappe.utils import today, cint, global_date_format, get_fullname, strip_html_tags, markdown
-from frappe.website.utils import find_first_image, get_comment_list
+from frappe.website.utils import find_first_image, get_comment_list, get_website_settings
 
 class BlogPost(WebsiteGenerator):
 	website = frappe._dict(
@@ -115,7 +115,7 @@ def get_list_context(context=None):
 	else:
 		list_context.parents = [{"name": _("Home"), "route": "/"}]
 
-	list_context.update(frappe.get_doc("Blog Settings", "Blog Settings").as_dict(no_default_fields=True))
+	list_context.update(get_website_settings(['blog_title', 'blog_introduction']))
 	return list_context
 
 def get_children():

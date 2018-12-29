@@ -7,6 +7,7 @@ import frappe
 
 from frappe.model.document import Document
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+from frappe.website.utils import get_website_settings
 
 class Domain(Document):
 	'''Domain documents are created automatically when DocTypes
@@ -86,8 +87,8 @@ class Domain(Document):
 	def set_default_portal_role(self):
 		'''Set default portal role based on domain'''
 		if self.data.get('default_portal_role'):
-			frappe.db.set_value('Portal Settings', None, 'default_role',
-				self.data.get('default_portal_role'))
+			frappe.db.set_value('Portal', get_website_settings('portal'),
+				'default_role', self.data.get('default_portal_role'))
 
 	def setup_desktop_icons(self):
 		'''set desktop icons form `data.desktop_icons`'''

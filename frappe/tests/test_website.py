@@ -4,7 +4,9 @@ import frappe, unittest
 from werkzeug.wrappers import Request
 from werkzeug.test import EnvironBuilder
 
+from frappe.utils import cint
 from frappe.website import render
+from frappe.website.utils import get_website_settings
 
 def set_request(**kwargs):
 	builder = EnvironBuilder(**kwargs)
@@ -56,3 +58,26 @@ class TestWebsite(unittest.TestCase):
 		delattr(frappe.hooks, 'website_redirects')
 		frappe.cache().delete_key('app_hooks')
 
+	def test_multi_website(self):
+		# Try removing is_default
+		site1 = get_website_settings()
+		site1.is_default = 0
+		self.assertRaises(frappe.ValidationError, site1.save)
+
+		# Create new site, set as default, change homepage
+		site2 = frappe.new_doc('Website')
+		site2.website_name = 'Test Site 2'
+		site2.is_default = 1
+		site2.home_page = 'blog'
+		site2.save()
+		self.assertEqual(cint(frappe.db.get_value('Website', site1.name, 'is_default')), 0)
+
+		# Homepage must be 'blog'
+		self.assertEqual(get_website_settings('home_page'), 'blog')
+
+		# Reset defaults
+		site1 = frappe.get_doc('Website', site1.name)
+		site1.is_default = 1
+		site1.save()
+		self.assertEqual(get_website_settings('home_page'), site1.home_page)
+		

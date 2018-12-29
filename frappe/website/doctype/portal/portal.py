@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2018, Frappe Technologies and contributors
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 
-class PortalSettings(Document):
+class Portal(Document):
 	def add_item(self, item):
 		'''insert new portal menu item if route is not set, or role is different'''
 		exists = [d for d in self.get('menu', []) if d.get('route')==item.get('route')]
@@ -24,13 +24,13 @@ class PortalSettings(Document):
 		self.menu = []
 		self.sync_menu()
 
-	def sync_menu(self):
+	def sync_menu(self, save=False):
 		'''Sync portal menu items'''
 		dirty = False
 		for item in frappe.get_hooks('standard_portal_menu_items'):
 			if item.get('role') and not frappe.db.exists("Role", item.get('role')):
 				frappe.get_doc({"doctype": "Role", "role_name": item.get('role'), "desk_access": 0}).insert()
-			if self.add_item(item):
+			if self.add_item(item) and save:
 				dirty = True
 
 		if dirty:
@@ -49,4 +49,3 @@ class PortalSettings(Document):
 
 		# clears role based home pages
 		frappe.clear_cache()
-

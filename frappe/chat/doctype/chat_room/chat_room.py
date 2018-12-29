@@ -2,14 +2,14 @@
 import json
 
 # imports - module imports
-from   frappe.model.document import Document
-from   frappe import _
+from frappe.model.document import Document
+from frappe import _
 import frappe
 
 # imports - frappe module imports
-from frappe.chat 						 import authenticate
+from frappe.chat import authenticate
 from frappe.core.doctype.version.version import get_diff
-from frappe.chat.doctype.chat_message	 import chat_message
+from frappe.chat.doctype.chat_message import chat_message
 from frappe.chat.util import (
 	safe_json_loads,
 	dictify,
@@ -17,6 +17,7 @@ from frappe.chat.util import (
 	squashify,
 	get_if_empty
 )
+from frappe.website.utils import get_website_settings
 
 session = frappe.session
 
@@ -188,7 +189,7 @@ def create(kind, owner, users = None, name = None):
 
 			room.users = dusers
 	else:
-		dsettings	   = frappe.get_single('Website Settings')
+		dsettings	   = get_website_settings()
 		room.room_name = dsettings.chat_room_name
 
 		users          = [user for user in room.users] if hasattr(room, 'users') else [ ]

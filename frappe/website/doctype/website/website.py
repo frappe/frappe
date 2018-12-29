@@ -1,27 +1,68 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt
+# -*- coding: utf-8 -*-
+# Copyright (c) 2018, Frappe Technologies and contributors
+# For license information, please see license.txt
 
 from __future__ import unicode_literals
+
+from six.moves.urllib.parse import quote
+from werkzeug.wrappers import Request
+from werkzeug.test import EnvironBuilder
+
 import frappe
 from frappe import _
-from frappe.utils import get_request_site_address, encode
 from frappe.model.document import Document
-from six.moves.urllib.parse import quote
+from frappe.utils import encode, get_request_site_address
+from frappe.website.doctype.website_theme.website_theme import \
+    add_website_theme
 from frappe.website.router import resolve_route
-from frappe.website.doctype.website_theme.website_theme import add_website_theme
+from frappe.website.utils import get_website_settings
 
-class WebsiteSettings(Document):
+class Website(Document):
 	def validate(self):
+		if not self.is_default:
+			self.validate_previously_default()
+			self.validate_hostnames()
+		else:
+			self.hostnames = []
+
 		self.validate_top_bar_items()
 		self.validate_footer_items()
 		self.validate_home_page()
 
+	def validate_hostnames(self):
+		if not self.hostnames:
+			frappe.msgprint(_('Warning: No hostnames were added to website.'))
+			return
+
+		for d in self.hostnames:
+			existing = frappe.get_all('Website Hostname', fields='parent',
+				filters={"hostname": d.hostname, "name": ("!=", d.name)})
+			if existing:
+				frappe.throw(_("Hostname {0} already exists in Website {1}").format(
+					d.hostname, existing[0].get('parent')))
+
+	def validate_previously_default(self):
+			if frappe.db.get_value(self.doctype, self.name, 'is_default'):
+				frappe.throw(_('At least one website must be default. \
+					Please set another website as default first.'))
+
 	def validate_home_page(self):
 		if frappe.flags.in_install:
 			return
-		if self.home_page and not resolve_route(self.home_page):
-			frappe.msgprint(_("Invalid Home Page") + " (Standard pages - index, login, products, blog, about, contact)")
+
+		if not self.home_page:
 			self.home_page = ''
+			return
+
+		if self.home_page.startswith('/'):
+			self.home_page = self.home_page[1:]
+
+		if not resolve_route(self.home_page):
+			set_request(method='GET', path=self.home_page)
+			res = frappe.website.render.render()
+			if not res.status_code == 200:
+				frappe.msgprint(_("Invalid Home Page: The route you entered does not exist."))
+				self.home_page = ''
 
 	def validate_top_bar_items(self):
 		"""validate url in top bar items"""
@@ -54,7 +95,17 @@ class WebsiteSettings(Document):
 						footer_item.idx))
 
 	def on_update(self):
+		if self.is_default:
+			self.remove_default_from_other_sites()
 		self.clear_cache()
+
+	def remove_default_from_other_sites(self):
+		for website in frappe.get_all('Website',
+			{'is_default': 1, 'name': ("!=", self.name)}):
+				frappe.db.set_value('Website', website.name, 'is_default', 0)
+				frappe.msgprint(_('Website {0} is no longer default, please add \
+					hostnames for it.').format(
+						'<strong>' + website.name + '</strong>'))
 
 	def clear_cache(self):
 		# make js and css
@@ -67,11 +118,17 @@ class WebsiteSettings(Document):
 		# clears role based home pages
 		frappe.clear_cache()
 
-def get_website_settings():
+	def on_trash(self):
+		if self.is_default:
+			frappe.throw(_('Default Website cannot be deleted'))
+
+def get_website_context():
 	hooks = frappe.get_hooks()
+	website = get_website_settings()
+
 	context = frappe._dict({
-		'top_bar_items': get_items('top_bar_items'),
-		'footer_items': get_items('footer_items'),
+		'top_bar_items': get_items('top_bar_items', website.name),
+		'footer_items': get_items('footer_items', website.name),
 		"post_login": [
 			{"label": _("My Account"), "url": "/me"},
 #			{"class": "divider"},
@@ -79,16 +136,15 @@ def get_website_settings():
 		]
 	})
 
-	settings = frappe.get_single("Website Settings")
 	for k in ["banner_html", "brand_html", "copyright", "twitter_share_via",
 		"facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup", "hide_footer_signup", "head_html", "title_prefix",
 		"navbar_search"]:
-		if hasattr(settings, k):
-			context[k] = settings.get(k)
+		if hasattr(website, k):
+			context[k] = website.get(k)
 
-	if settings.address:
-		context["footer_address"] = settings.address
+	if website.address:
+		context["footer_address"] = website.address
 
 	for k in ["facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup"]:
@@ -118,16 +174,16 @@ def get_website_settings():
 	if not context.get("favicon"):
 		context["favicon"] = "/assets/frappe/images/favicon.png"
 
-	if settings.favicon and settings.favicon != "attach_files:":
-		context["favicon"] = settings.favicon
+	if website.favicon and website.favicon != "attach_files:":
+		context["favicon"] = website.favicon
 
 	return context
 
-def get_items(parentfield):
+def get_items(parentfield, website_name):
 	all_top_items = frappe.db.sql("""\
 		select * from `tabTop Bar Item`
-		where parent='Website Settings' and parentfield= %s
-		order by idx asc""", parentfield, as_dict=1)
+		where parent=%s and parentfield= %s
+		order by idx asc""", (website_name, parentfield), as_dict=1)
 
 	top_items = [d for d in all_top_items if not d['parent_label']]
 
@@ -144,4 +200,8 @@ def get_items(parentfield):
 
 @frappe.whitelist(allow_guest=True)
 def is_chat_enabled():
-	return bool(frappe.db.get_single_value('Website Settings', 'chat_enable'))
+	return bool(get_website_settings('chat_enable'))
+
+def set_request(**kwargs):
+	builder = EnvironBuilder(**kwargs)
+	frappe.local.request = Request(builder.get_environ())

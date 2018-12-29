@@ -18,6 +18,12 @@ def after_install():
 
 	install_basic_docs()
 
+	# create portal and add to website
+	portal = frappe.new_doc('Portal')
+	portal.sync_menu()
+	portal.save()
+	frappe.db.set_value('Website', 'Default', 'portal', portal.name)
+
 	from frappe.core.doctype.file.file import make_home_folder
 	make_home_folder()
 
@@ -58,6 +64,7 @@ def install_basic_docs():
 		},
 		{'doctype': "Role", "role_name": "Report Manager"},
 		{'doctype': "Role", "role_name": "Translator"},
+		{'doctype': "Website", "website_name": "Default", "is_default": 1},
 		{'doctype': "Workflow State", "workflow_state_name": "Pending",
 			"icon": "question-sign", "style": ""},
 		{'doctype': "Workflow State", "workflow_state_name": "Approved",

@@ -45,7 +45,9 @@ def migrate(verbose=True, rebuild_website=False):
 	sync_desktop_icons()
 	sync_languages()
 
-	frappe.get_doc('Portal Settings', 'Portal Settings').sync_menu()
+	# sync menu for all portals
+	for portal in frappe.get_all('Portal'):
+		frappe.get_doc('Portal', portal.name).sync_menu(save=True)
 
 	# syncs statics
 	render.clear_cache()

@@ -16,6 +16,7 @@ from six.moves.urllib.parse import quote, urljoin
 from html2text import html2text
 from markdown2 import markdown, MarkdownError
 from six import iteritems, text_type, string_types, integer_types
+from frappe.website.utils import get_website_settings
 
 DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
@@ -715,8 +716,7 @@ def get_url(uri=None, full_address=False):
 			host_name = protocol + frappe.local.site
 
 		else:
-			host_name = frappe.db.get_value("Website Settings", "Website Settings",
-				"subdomain")
+			host_name = get_website_settings('subdomain')
 
 			if not host_name:
 				host_name = "http://localhost"

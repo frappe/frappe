@@ -1,6 +1,3 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt
-
 frappe.ready(function() {
 
 	if(frappe.utils.get_url_arg('subject')) {

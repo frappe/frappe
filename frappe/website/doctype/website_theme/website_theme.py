@@ -2,9 +2,11 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.website.utils import get_website_settings
 
 class WebsiteTheme(Document):
 	def validate(self):
@@ -47,20 +49,11 @@ class WebsiteTheme(Document):
 
 
 	def clear_cache_if_current_theme(self):
-		if frappe.flags.in_install == 'frappe': return
-		website_settings = frappe.get_doc("Website Settings", "Website Settings")
-		if getattr(website_settings, "website_theme", None) == self.name:
-			website_settings.clear_cache()
+		if not hasattr(frappe.local, 'request'):
+			return
 
-	def use_theme(self):
-		use_theme(self.name)
-
-@frappe.whitelist()
-def use_theme(theme):
-	website_settings = frappe.get_doc("Website Settings", "Website Settings")
-	website_settings.website_theme = theme
-	website_settings.ignore_validate = True
-	website_settings.save()
+		if get_website_settings('website_theme') == self.name:
+			website.clear_cache()
 
 def add_website_theme(context):
 	bootstrap = frappe.get_hooks("bootstrap")[0]
@@ -80,7 +73,7 @@ def add_website_theme(context):
 	context.web_include_css = bootstrap + context.web_include_css
 
 def get_active_theme():
-	website_theme = frappe.db.get_value("Website Settings", "Website Settings", "website_theme")
+	website_theme = get_website_settings('website_theme')
 	if website_theme:
 		try:
 			return frappe.get_doc("Website Theme", website_theme)
