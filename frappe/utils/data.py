@@ -743,6 +743,11 @@ def get_link_to_form(doctype, name, label=None):
 
 	return """<a href="{0}">{1}</a>""".format(get_url_to_form(doctype, name), label)
 
+def get_link_to_report(name, label=None, report_type=None, doctype=None):
+	if not label: label = name
+
+	return """<a href="{0}">{1}</a>""".format(get_url_to_report(name, report_type, doctype), label)
+
 def get_url_to_form(doctype, name):
 	return get_url(uri = "desk#Form/{0}/{1}".format(quoted(doctype), quoted(name)))
 
