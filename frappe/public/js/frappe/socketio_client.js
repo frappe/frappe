@@ -287,7 +287,7 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 			{'name': 'System Settings'},
 			'use_socketio_to_upload_file',
 			function(d) {
-				if (d.use_socketio_to_upload_file==1){
+				if (d.use_socketio_to_upload_file==0){
 					if (fallback) {
 						fallback();
 						return;
