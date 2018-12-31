@@ -38,7 +38,7 @@ context('Login', () => {
 	it("drag the event", () =>{
 		cy.visit('/desk#calendar');
 		cy.get('.fc-day-grid-event')
-			.trigger('mousedown', {pageX: 349, pageY: 341, which: 1});
+			.trigger('mousedown', {pageX: 349, pageY: 341, which: 1, force: true});
 		cy.get(".fc-day[data-date='2018-12-14']")
 			.trigger("mousemove", {pageX: 459, pageY: 459, which: 1, force: true});
 		cy.get(".fc-day[data-date='2018-12-14']")
