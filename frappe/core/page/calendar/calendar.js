@@ -1,4 +1,3 @@
-
 frappe.pages['calendar'].on_page_load = function(wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
@@ -176,7 +175,7 @@ function get_more_calendars(sidebar, cal, page){
 	$(`<span class='text-muted cursor-pointer'>
 	${more_calendar_text}
 	<span class='caret'></span>
-	</span>`).appendTo(page.sidebar.find('div')).on("click", function(){
+	</span>`).appendTo(page.sidebar.find('div > div')).css("padding-left", "13px").on("click", function(){
 		var span = $(this);
 		return frappe.call({
 			method: "frappe.core.page.calendar.calendar.get_all_calendars",
@@ -408,11 +407,12 @@ function update_calendar(side,wrapper,route) {
 
 function create_calendar(wrapper) {
 	frappe.pages.calendar.loaded = true;
-	this.$nav = wrapper.page.sidebar.html(`
-			<ul class="module-sidebar-nav overlay-sidebar nav nav-pills nav-stacked"></ul>
+	this.$nav = wrapper.page.sidebar.html(`<div class="module-sidebar-nav overlay-sidebar nav nav-pills nav-stacked">
+			<ul></ul>
 			<div></div>
+			</div>
 		`);
-	this.$sidebar_list = wrapper.page.sidebar.find('ul');
+	this.$sidebar_list = wrapper.page.sidebar.find('div > ul').css('padding', 0);
 	this.$cal = $("<div class='cal-div'>").appendTo(wrapper.page.body);
 
 
