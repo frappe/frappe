@@ -74,6 +74,12 @@ class AutoEmailReport(Document):
 			return None
 
 		if self.format == 'HTML':
+
+			for col in columns:
+				if column.fieldtype == 'Link':
+					for row in data:
+						row[col.fieldname] = get_link_to_form(col.options, row[col.fieldname])
+
 			return self.get_html_table(columns, data)
 
 		elif self.format == 'XLSX':
