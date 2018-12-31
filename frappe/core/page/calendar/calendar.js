@@ -47,7 +47,6 @@ function update_event(event, revertFunc) {
 			'name': event.id
 		}
 	}).then(r => {
-		console.log(r.message)
 		if (r.message) {
 			revertFunc();
 			frappe.throw("Unable to update the Event");
