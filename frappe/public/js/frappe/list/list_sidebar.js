@@ -169,7 +169,6 @@ frappe.views.ListSidebar = class ListSidebar {
 
 	setup_calendar_view() {
 		const doctype = this.doctype;
-
 		frappe.db.get_list('Calendar View', {
 			filters: {
 				reference_doctype: doctype
@@ -180,7 +179,7 @@ frappe.views.ListSidebar = class ListSidebar {
 			let default_link = '';
 			if (frappe.views.calendar[this.doctype]) {
 				// has standard calendar view
-				default_link = `<li><a href="#calendar/`+this.doctype+`">
+				default_link = `<li><a class="cal" href="#calendar/`+this.doctype+`">
 					${ __("Calendar") }</a></li>`;
 			}
 			const html =`<div class="btn-group">
