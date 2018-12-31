@@ -8,7 +8,6 @@ import json
 from frappe import _
 from frappe.model.document import Document
 from six import iteritems
-from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 
 
 class KanbanBoard(Document):
@@ -130,17 +129,8 @@ def update_order(board_name, order):
 @frappe.whitelist()
 def quick_kanban_board(doctype, board_name, field_name, project=None):
 	'''Create new KanbanBoard quickly with default options'''
+
 	doc = frappe.new_doc('Kanban Board')
-
-	if field_name == 'kanban_column':
-		create_custom_field(doctype, {
-			'label': 'Kanban Column',
-			'fieldname': 'kanban_column',
-			'fieldtype': 'Select',
-			'hidden': 1,
-			'owner': 'Administrator'
-		})
-
 	meta = frappe.get_meta(doctype)
 
 	options = ''
