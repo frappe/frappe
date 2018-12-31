@@ -27,7 +27,7 @@ context('Login', () => {
 	it("drag n create event", () =>{
 		cy.visit("/desk#calendar");
 		cy.get(".fc-day[data-date='2018-12-13']")
-			.trigger('mousedown', {pageX: 691, pageY: 421, which: 1});
+			.trigger('mousedown', {pageX: 691, pageY: 421, which: 1, force: true});
 		cy.get(".fc-day[data-date='2018-12-14']")
 			.trigger("mousemove", {pageX: 802, pageY: 421, which: 1, force: true});
 		cy.get(".fc-day[data-date='2018-12-14']")
