@@ -47,7 +47,8 @@ function update_event(event, revertFunc) {
 			'name': event.id
 		}
 	}).then(r => {
-		if (!r.message) {
+		console.log(r.message)
+		if (r.message) {
 			revertFunc();
 			frappe.throw("Unable to update the Event");
 		}
@@ -277,7 +278,15 @@ function set_popover_css(e) {
 		'left': e.pageX - $(".popover.fade.bottom.in").width() / 2 + 'px',
 		'top': e.pageY + 'px'
 	});
-
+	$(".popover-content").css({
+		"padding": "0 0 0 0"
+	})
+	$(".popover-content > div > h4").css({
+		"margin-top": "0"
+	})
+	$(".popover-content > div > h6").css({
+		"margin-top": "-10px"
+	})
 }
 
 function popover_edit_button(event) {

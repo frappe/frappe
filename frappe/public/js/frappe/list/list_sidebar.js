@@ -165,33 +165,13 @@ frappe.views.ListSidebar = class ListSidebar {
 			}
 		}).then(result => {
 			if (!result) return;
-			const calendar_views = result;
 			const $link_calendar = this.sidebar.find('.list-link[data-view="Calendar"]');
-
 			let default_link = '';
 			if (frappe.views.calendar[this.doctype]) {
 				// has standard calendar view
 				default_link = `<li><a href="#calendar/`+this.doctype+`">
 					${ __("Calendar") }</a></li>`;
 			}
-			/*const other_links = calendar_views.map(
-				calendar_view => `<li><a href="#List/${doctype}/Calendar/${calendar_view.name}">
-					${ __(calendar_view.name) }</a>
-				</li>`
-			).join('');*/
-
-			/*const dropdown_html = `
-				<div class="btn-group">
-					<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						${ __("Calendar") } <span class="caret"></span>
-					</a>
-					<ul class="dropdown-menu calendar-dropdown" style="max-height: 300px; overflow-y: auto;">
-						${default_link}
-						${other_links}
-					</ul>
-				</div>
-			`;*/
-
 			const html =`<div class="btn-group">
 							${default_link}
 						</div>`;
