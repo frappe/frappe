@@ -568,6 +568,8 @@ def in_words(integer, in_million=True):
 	return ret.replace('-', ' ')
 
 def is_html(text):
+	if not isinstance(text, frappe.string_types):
+		return False
 	return re.search('<[^>]+>', text)
 
 def is_image(filepath):
