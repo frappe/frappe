@@ -70,7 +70,8 @@ def clear_doctype_cache(doctype=None):
 
 		# clear all parent doctypes
 
-		for dt in frappe.db.get_all('DocField', 'parent', dict(fieldtype='Table', options=doctype)):
+		for dt in frappe.db.get_all('DocField', 'parent',
+			dict(fieldtype=['in', frappe.model.table_fields], options=doctype)):
 			clear_single(dt.parent)
 
 		# clear all notifications

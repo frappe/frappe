@@ -141,8 +141,14 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 
 	else:
 		def get_table_fields(field_doctype):
-			return frappe.db.sql_list("""select options from `tab{}` where fieldtype='Table'
-				and parent=%s""".format(field_doctype), doctype)
+			return [r[0] for r in frappe.get_all(field_doctype,
+				fields='options',
+				filters={
+					'fieldtype': ['in', frappe.model.table_fields],
+					'parent': doctype
+				},
+				as_list=1
+			)]
 
 		tables = get_table_fields("DocField")
 		if not frappe.flags.in_install=="frappe":

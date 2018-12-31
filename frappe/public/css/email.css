@@ -77,6 +77,7 @@ hr {
 .table {
   width: 100%;
   border-collapse: collapse;
+  border-color: #d1d8dd;
 }
 .table td,
 .table th {
