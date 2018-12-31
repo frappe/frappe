@@ -75,7 +75,7 @@ def get_all_calendars():
 
 @frappe.whitelist()
 def get_field_map(doctype=None):
-	all_apps = frappe.get_all_apps()
+	all_apps = frappe.get_installed_apps()
 	data = {}
 	for app in all_apps:
 		app_path = frappe.get_app_path(app)
