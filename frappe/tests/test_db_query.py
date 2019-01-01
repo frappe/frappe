@@ -15,10 +15,10 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue({"name":"DocType"} in DatabaseQuery("DocType").execute(limit_page_length=None))
 
 	def test_build_match_conditions(self):
+		clear_user_permissions_for_doctype('Blog Post', 'test2@example.com')
+
 		test2user = frappe.get_doc('User', 'test2@example.com')
 		test2user.add_roles('Blogger')
-
-		clear_user_permissions_for_doctype('Blog Post', 'test2@example.com')
 		frappe.set_user('test2@example.com')
 
 		# this will get match conditions for Blog Post
@@ -36,7 +36,6 @@ class TestReportview(unittest.TestCase):
 		# After applying user permission
 		# get as filters
 		self.assertTrue({'Blog Post': ['-test-blog-post', 'welcome']} in build_match_conditions(as_condition=False))
-
 		# get as conditions
 		self.assertEqual(build_match_conditions(as_condition=True),
 			"""(((ifnull(`tabBlog Post`.`name`, "")="" or `tabBlog Post`.`name` in ("-test-blog-post", "welcome"))))""")
