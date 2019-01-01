@@ -26,11 +26,11 @@ context('Login', () => {
 
 	it("drag n create event", () =>{
 		cy.visit("/desk#calendar");
-		cy.get(".fc-day[data-date='2018-12-13']")
+		cy.get(".fc-day[data-date='2019-01-13']")
 			.trigger('mousedown', {pageX: 691, pageY: 421, which: 1, force: true});
-		cy.get(".fc-day[data-date='2018-12-14']")
+		cy.get(".fc-day[data-date='2019-01-14']")
 			.trigger("mousemove", {pageX: 802, pageY: 421, which: 1, force: true});
-		cy.get(".fc-day[data-date='2018-12-14']")
+		cy.get(".fc-day[data-date='2019-01-14']")
 			.trigger("mouseup", {pageX: 802, pageY: 421, which: 1, force: true});
 		cy.location("hash").should("eq", "#Form/Event/New%20Event%201");
 	});
@@ -39,9 +39,9 @@ context('Login', () => {
 		cy.visit('/desk#calendar');
 		cy.get('.fc-day-grid-event')
 			.trigger('mousedown', {pageX: 349, pageY: 341, which: 1, force: true});
-		cy.get(".fc-day[data-date='2018-12-14']")
+		cy.get(".fc-day[data-date='2019-01-14']")
 			.trigger("mousemove", {pageX: 459, pageY: 459, which: 1, force: true});
-		cy.get(".fc-day[data-date='2018-12-14']")
+		cy.get(".fc-day[data-date='2019-01-14']")
 			.trigger("mouseup", {pageX: 459, pageY: 459, which: 1, force: true});
 
 	});
