@@ -40,6 +40,8 @@ class TestReportview(unittest.TestCase):
 		self.assertEqual(build_match_conditions(as_condition=True),
 			"""(((ifnull(`tabBlog Post`.`name`, "")="" or `tabBlog Post`.`name` in ("-test-blog-post-1", "-test-blog-post"))))""")
 
+		frappe.set_user('Administrator')
+
 	def test_fields(self):
 		self.assertTrue({"name":"DocType", "issingle":0} \
 			in DatabaseQuery("DocType").execute(fields=["name", "issingle"], limit_page_length=None))
