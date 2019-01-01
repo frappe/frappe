@@ -22,7 +22,7 @@ class TestReportview(unittest.TestCase):
 		frappe.set_user('test2@example.com')
 
 		# this will get match conditions for Blog Post
-		build_match_conditions = DatabaseQuery("Blog Post").build_match_conditions
+		build_match_conditions = DatabaseQuery('Blog Post').build_match_conditions
 
 		# Before any user permission is applied
 		# get as filters
