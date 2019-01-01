@@ -8,9 +8,38 @@ from frappe.model.db_query import DatabaseQuery
 from frappe.desk.reportview import get_filters_cond
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 
+test_dependencies = ['User', 'Blog Post']
+
 class TestReportview(unittest.TestCase):
 	def test_basic(self):
 		self.assertTrue({"name":"DocType"} in DatabaseQuery("DocType").execute(limit_page_length=None))
+
+	def test_build_match_conditions(self):
+		test2user = frappe.get_doc('User', 'test2@example.com')
+		test2user.add_roles('Blogger')
+
+		clear_user_permissions_for_doctype('Blog Post', 'test2@example.com')
+		frappe.set_user('test2@example.com')
+
+		# this will get match conditions for Blog Post
+		build_match_conditions = DatabaseQuery("Blog Post").build_match_conditions
+
+		# Before any user permission is applied
+		# get as filters
+		self.assertEqual(build_match_conditions(as_condition=False), [])
+		# get as as conditions
+		self.assertEqual(build_match_conditions(as_condition=True), "")
+
+		add_user_permission('Blog Post', 'welcome', 'test2@example.com', True)
+		add_user_permission('Blog Post', '-test-blog-post', 'test2@example.com', True)
+
+		# After applying user permission
+		# get as filters
+		self.assertTrue({'Blog Post': ['-test-blog-post', 'welcome']} in build_match_conditions(as_condition=False))
+
+		# get as as conditions
+		self.assertEqual(build_match_conditions(as_condition=True),
+			"""(((ifnull(`tabBlog Post`.`name`, "")="" or `tabBlog Post`.`name` in ("-test-blog-post", "welcome"))))""")
 
 	def test_fields(self):
 		self.assertTrue({"name":"DocType", "issingle":0} \
