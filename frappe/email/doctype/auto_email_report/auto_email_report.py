@@ -74,11 +74,7 @@ class AutoEmailReport(Document):
 			return None
 
 		if self.format == 'HTML':
-
-			for col in columns:
-				if col.fieldtype == 'Link':
-					for row in data:
-						row[col.fieldname] = get_link_to_form(col.options, row[col.fieldname])
+			columns, data = make_links(columns, data)
 
 			return self.get_html_table(columns, data)
 
@@ -201,3 +197,15 @@ def send_monthly():
 	'''Check reports to be sent monthly'''
 	for report in frappe.get_all('Auto Email Report', {'enabled': 1, 'frequency': 'Monthly'}):
 		frappe.get_doc('Auto Email Report', report.name).send()
+
+def make_links(columns, data):
+	for row in data:
+		for col in columns:
+			if col.fieldtype == "Link":
+				if col.options and row[col.fieldname]:
+					row[col.fieldname] = get_link_to_form(col.options, row[col.fieldname])
+			elif col.fieldtype == "Dynamic Link":
+				if col.options and row[col.fieldname]:
+					row[col.fieldname] = get_link_to_form(row[col.options], row[col.fieldname])
+
+	return columns, data
