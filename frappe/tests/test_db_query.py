@@ -30,15 +30,15 @@ class TestReportview(unittest.TestCase):
 		# get as conditions
 		self.assertEqual(build_match_conditions(as_condition=True), "")
 
-		add_user_permission('Blog Post', 'welcome', 'test2@example.com', True)
 		add_user_permission('Blog Post', '-test-blog-post', 'test2@example.com', True)
+		add_user_permission('Blog Post', '-test-blog-post-1', 'test2@example.com', True)
 
 		# After applying user permission
 		# get as filters
-		self.assertTrue({'Blog Post': ['-test-blog-post', 'welcome']} in build_match_conditions(as_condition=False))
+		self.assertTrue({'Blog Post': ['-test-blog-post-1', '-test-blog-post']} in build_match_conditions(as_condition=False))
 		# get as conditions
 		self.assertEqual(build_match_conditions(as_condition=True),
-			"""(((ifnull(`tabBlog Post`.`name`, "")="" or `tabBlog Post`.`name` in ("-test-blog-post", "welcome"))))""")
+			"""(((ifnull(`tabBlog Post`.`name`, "")="" or `tabBlog Post`.`name` in ("-test-blog-post-1", "-test-blog-post"))))""")
 
 	def test_fields(self):
 		self.assertTrue({"name":"DocType", "issingle":0} \
