@@ -60,7 +60,7 @@ DocType: System Settings,"If enabled, the password strength will be enforced bas
 DocType: System Settings,"If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong.","இயக்கப்பட்டால், கடவுச்சொல்லை வலிமை குறைந்தபட்ச கடவுச்சொல் ஸ்கோர் மதிப்பு அடிப்படையில் வைக்கமுடியும். 2 ஒரு மதிப்பு நடுத்தர வலுவான இருப்பது மற்றும் 4 மிக வலுவான இருப்பது."
 DocType: About Us Settings,"""Team Members"" or ""Management""","""
 குழு உறுப்பினர்கள்"" அல்லது ""நிர்வாகம்"""
-apps/frappe/frappe/core/doctype/doctype/doctype.py +563,Default for 'Check' type of field must be either '0' or '1',துறையில் 'பாருங்கள்' வகை இயல்புநிலை அல்லது '0' அல்லது '1' இருக்க வேண்டும்
+apps/frappe/frappe/core/doctype/doctype/doctype.py +560,Default for 'Check' type of field must be either '0' or '1',துறையில் 'பாருங்கள்' வகை இயல்புநிலை அல்லது '0' அல்லது '1' இருக்க வேண்டும்
 apps/frappe/frappe/public/js/frappe/misc/pretty_date.js +51,Yesterday,நேற்று
 DocType: Contact,Designation,பதவி
 DocType: Test Runner,Test Runner,டெஸ்ட் ரன்னர்
@@ -184,7 +184,7 @@ apps/frappe/frappe/integrations/doctype/webhook/webhook.py +29,DocType must be S
 DocType: Workflow State,circle-arrow-up,வட்டத்தை-அம்பு அப்
 DocType: Email Domain,Email Domain,மின்னஞ்சல் களம்
 DocType: Workflow State,italic,(அச்செழுத்துக்கள் வலப்பக்கம்) சாய்ந்துள்ள
-apps/frappe/frappe/core/doctype/doctype/doctype.py +813,{0}: Cannot set Import without Create,{0} : உருவாக்கு இல்லாமல் இறக்குமதி அமைக்க முடியாது
+apps/frappe/frappe/core/doctype/doctype/doctype.py +810,{0}: Cannot set Import without Create,{0} : உருவாக்கு இல்லாமல் இறக்குமதி அமைக்க முடியாது
 DocType: SMS Settings,Enter url parameter for message,செய்தி இணைய அளவுரு உள்ளிடவும்
 apps/frappe/frappe/templates/emails/auto_email_report.html +50,View report in your browser,உங்கள் உலாவியில் அறிக்கை காண்க
 apps/frappe/frappe/config/desk.py +26,Event and other calendars.,நிகழ்வு மற்றும் பிற நாள்காட்டி.
@@ -282,7 +282,7 @@ apps/frappe/frappe/config/setup.py +133,Update many values at one time.,ஒர�
 apps/frappe/frappe/model/document.py +646,Error: Document has been modified after you have opened it,பிழை: நீங்கள் அதை திறந்து பின் ஆவண மாற்றம்
 apps/frappe/frappe/core/doctype/activity_log/feed.py +56,{0} logged out: {1},{0} வெளியேற்றப்படுவீர்கள்: {1}
 DocType: Address,West Bengal,மேற்கு வங்காளம்
-apps/frappe/frappe/core/doctype/doctype/doctype.py +832,{0}: Cannot set Assign Submit if not Submittable,{0} : ஒதுக்கு சமர்ப்பிக்கவும் அமைக்க முடியாது சமர்ப்பிக்கவும் இல்லை என்றால்
+apps/frappe/frappe/core/doctype/doctype/doctype.py +829,{0}: Cannot set Assign Submit if not Submittable,{0} : ஒதுக்கு சமர்ப்பிக்கவும் அமைக்க முடியாது சமர்ப்பிக்கவும் இல்லை என்றால்
 DocType: Transaction Log,Row Index,வரிசை அட்டவணை
 DocType: Social Login Key,Facebook,முகபுத்தகம்
 apps/frappe/frappe/www/list.py +41,"Filtered by ""{0}""","""{0}""  மூலம் வடிகட்டி"
@@ -314,13 +314,13 @@ DocType: Data Migration Plan,Mappings,மேப்பிங்க்ஸ்
 DocType: Notification Recipient,Notification Recipient,அறிவிப்பு பெறுநர்
 DocType: Workflow State,Refresh,இளைப்பா (ற்) று
 DocType: Event,Public,பொது
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +977,Nothing to show,காண்பிக்க எதுவும்
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +979,Nothing to show,காண்பிக்க எதுவும்
 DocType: System Settings,Enable Two Factor Auth,இரு காரணி அங்கீகாரத்தை இயக்கு
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +303,[Urgent] Error while creating recurring %s for %s,% S க்கான% s ஐ மீண்டும் உருவாக்கும்போது [Urgent] பிழை
 DocType: Post,Liked By,பிடித்திருக்கிறது
 DocType: DocField,Print Hide If No Value,அச்சு மறை என்றால் இல்லை மதிப்பு
 DocType: Kanban Board Column,yellow,மஞ்சள்
-apps/frappe/frappe/core/doctype/doctype/doctype.py +664,Is Published Field must be a valid fieldname,களம் வேண்டும் வெளியிடப்பட்ட சரியான FIELDNAME இருக்க
+apps/frappe/frappe/core/doctype/doctype/doctype.py +661,Is Published Field must be a valid fieldname,களம் வேண்டும் வெளியிடப்பட்ட சரியான FIELDNAME இருக்க
 apps/frappe/frappe/public/js/frappe/upload.js +26,Upload Attachment,இணைப்பு பதிவேற்று
 DocType: Block Module,Block Module,பிளாக் தொகுதி
 apps/frappe/frappe/core/doctype/version/version_view.html +14,New Value,புதிய மதிப்பு
@@ -445,7 +445,7 @@ apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +541,changed value o
 DocType: User,"If the user has any role checked,then the user becomes a ""System User"". ""System User"" has access to the desktop","பயனர் எந்த பாத்திரமும் சரிபார்க்கப்பட்டால், பயனர் &quot;கணினி பயனர்&quot; ஆக மாறுவார். &quot;கணினி பயனர்&quot; டெஸ்க்டாப்பில் அணுகும்"
 DocType: Report,JSON,JSON
 apps/frappe/frappe/core/doctype/user/user.py +795,Please check your email for verification,சரிபார்ப்புக்காக உங்கள் மின்னஞ்சலைப் பார்க்கவும்
-apps/frappe/frappe/core/doctype/doctype/doctype.py +604,Fold can not be at the end of the form,அயல் வடிவம் முடிவில் இருக்க முடியாது
+apps/frappe/frappe/core/doctype/doctype/doctype.py +601,Fold can not be at the end of the form,அயல் வடிவம் முடிவில் இருக்க முடியாது
 DocType: Communication,Bounced,பவுன்ஸ்டு
 DocType: Deleted Document,Deleted Name,நீக்கப்பட்ட பெயர்
 apps/frappe/frappe/config/setup.py +14,System and Website Users,கணினி மற்றும் இணைய பயனர்கள்
@@ -459,7 +459,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filter_list.js +144,Add Filter,�
 apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py +87,SMS sent to following numbers: {0},எஸ்எம்எஸ் எண்களில் அனுப்பப்பட்டது: {0}
 apps/frappe/frappe/www/feedback.html +23,Your rating: ,உங்கள் மதிப்பீடு:
 apps/frappe/frappe/utils/data.py +657,{0} and {1},{0} மற்றும் {1}
-apps/frappe/frappe/public/js/frappe/chat.js +2162,Start a conversation.,உரையாடலைத் தொடங்கவும்.
+apps/frappe/frappe/public/js/frappe/chat.js +2171,Start a conversation.,உரையாடலைத் தொடங்கவும்.
 DocType: Print Settings,"Always add ""Draft"" Heading for printing draft documents",எப்போதும் அச்சிடும் வரைவு ஆவணங்களை தலைப்பு &quot;வரைவு&quot; சேர்க்க
 DocType: Data Migration Run,Current Mapping Start,தற்போதைய மேப்பிங் தொடக்கம்
 apps/frappe/frappe/core/doctype/communication/communication.js +240,Email has been marked as spam,மின்னஞ்சல் ஸ்பேம் என்று குறிக்கப்பட்டுள்ளது
@@ -472,7 +472,7 @@ apps/frappe/frappe/model/document.py +1229,Document Queued,ஆவண Queued
 DocType: GSuite Templates,Destination ID,இலக்கு ஐடி
 DocType: Desktop Icon,List,பட்டியலில்
 DocType: Activity Log,Link Name,இணைப்பு பெயர்
-apps/frappe/frappe/core/doctype/doctype/doctype.py +539,Field {0} in row {1} cannot be hidden and mandatory without default,புலம் {0} வரிசையில் {1} இயல்புநிலை இல்லாமல் மறைத்து மற்றும் கட்டாய முடியாது
+apps/frappe/frappe/core/doctype/doctype/doctype.py +536,Field {0} in row {1} cannot be hidden and mandatory without default,புலம் {0} வரிசையில் {1} இயல்புநிலை இல்லாமல் மறைத்து மற்றும் கட்டாய முடியாது
 DocType: System Settings,mm/dd/yyyy,dd / mm / yyyy
 apps/frappe/frappe/core/doctype/user/user.py +935,Invalid Password: ,தவறான கடவுச்சொல்:
 apps/frappe/frappe/core/doctype/user/user.py +935,Invalid Password: ,தவறான கடவுச்சொல்:
@@ -505,7 +505,7 @@ DocType: Country,Country Name,நாட்டின் பெயர்
 DocType: About Us Team Member,About Us Team Member,எங்களை குழு உறுப்பினர் பற்றி
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5,"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","அனுமதிகள் அறிக்கை , இறக்குமதி , ஏற்றுமதி, அச்சு, மின்னஞ்சல் மற்றும் அமை பயனர் அனுமதிகள் , திருத்தவோ, ரத்து , சமர்ப்பிக்க , நீக்கு , உருவாக்க , வாசிக்க, எழுத, போன்ற உரிமைகள் அமைப்பு மூலம் பங்களிப்பு மற்றும் ஆவண வகைகள் ( டாக்டைப்கள் அழைக்கப்படுகிறது) அமைக்கப்படுகின்றன ."
 DocType: Event,Wednesday,புதன்கிழமை
-apps/frappe/frappe/core/doctype/doctype/doctype.py +655,Image field must be a valid fieldname,"பட புலத்தில் செல்லுபடியாகும்   
+apps/frappe/frappe/core/doctype/doctype/doctype.py +652,Image field must be a valid fieldname,"பட புலத்தில் செல்லுபடியாகும்   
 துறையில் பெயர்  இருக்க வேண்டும்"
 DocType: Chat Token,Token,டோக்கன்
 DocType: Property Setter,ID (name) of the entity whose property is to be set,அதன் சொத்து அமைக்க வேண்டும் நிறுவனம் ஐடி (பெயர்)
@@ -518,7 +518,7 @@ apps/frappe/frappe/printing/doctype/print_settings/print_settings.js +12,No Prev
 DocType: Workflow State,exclamation-sign,ஆச்சரியக்குறி-அறிகுறி
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.js +30,Show Permissions,அனுமதிகள் காட்டு
 DocType: Data Import,New data will be inserted.,புதிய தரவு செருகப்படும்.
-apps/frappe/frappe/core/doctype/doctype/doctype.py +675,Timeline field must be a Link or Dynamic Link,காலக்கெடு துறையில் ஒரு இணைப்பு அல்லது டைனமிக் லிங்க் இருக்க வேண்டும்
+apps/frappe/frappe/core/doctype/doctype/doctype.py +672,Timeline field must be a Link or Dynamic Link,காலக்கெடு துறையில் ஒரு இணைப்பு அல்லது டைனமிக் லிங்க் இருக்க வேண்டும்
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js +53,Date Range,தேதி வரம்பு
 apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js +10,Gantt,காண்ட்
 apps/frappe/frappe/public/html/print_template.html +27,Page {0} of {1},பக்கம் {0} {1}
@@ -556,7 +556,7 @@ apps/frappe/frappe/email/doctype/notification/notification.js +34,Last Modified 
 DocType: Chat Profile,Settings,அமைப்புகள்
 DocType: Print Format,Style Settings,உடை அமைப்புகள்
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +405,Y Axis Fields,Y அச்சு புலங்கள்
-apps/frappe/frappe/core/doctype/doctype/doctype.py +686,Sort field {0} must be a valid fieldname,வரிசைப்படுத்த துறையில் {0} சரியான FIELDNAME இருக்க வேண்டும்
+apps/frappe/frappe/core/doctype/doctype/doctype.py +683,Sort field {0} must be a valid fieldname,வரிசைப்படுத்த துறையில் {0} சரியான FIELDNAME இருக்க வேண்டும்
 apps/frappe/frappe/public/js/frappe/ui/base_list.js +81,More,அதிக
 DocType: Contact,Sales Manager,விற்பனை மேலாளர்
 apps/frappe/frappe/public/js/frappe/model/model.js +544,Rename,மறுபெயரிடு
@@ -622,7 +622,7 @@ DocType: Email Queue Recipient,Email Queue Recipient,மின்னஞ்சல
 DocType: Address,Nagaland,நாகாலாந்து
 DocType: Slack Webhook URL,Webhook URL,Webhook URL
 apps/frappe/frappe/core/doctype/user/user.py +417,Username {0} already exists,பயனர் பெயர் {0} ஏற்கனவே உள்ளது
-apps/frappe/frappe/core/doctype/doctype/doctype.py +838,{0}: Cannot set import as {1} is not importable,{0} {1} importable அல்ல இறக்குமதி அமைக்க முடியாது
+apps/frappe/frappe/core/doctype/doctype/doctype.py +835,{0}: Cannot set import as {1} is not importable,{0} {1} importable அல்ல இறக்குமதி அமைக்க முடியாது
 apps/frappe/frappe/contacts/doctype/address/address.py +115,There is an error in your Address Template {0},உங்கள் முகவரி டெம்ப்ளேட் பிழை உள்ளது {0}
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py +85,{0} is an invalid email address in 'Recipients',{0} என்பது &#39;பெறுநர்கள்&#39; இன் தவறான மின்னஞ்சல் முகவரி.
 DocType: User,Allow Desktop Icon,டெஸ்க்டாப் ஐகானை அனுமதி
@@ -678,7 +678,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js +33,Send
 apps/frappe/frappe/core/doctype/doctype/doctype.py +78,"Standard DocType cannot have default print format, use Customize Form","ஸ்டாண்டர்ட் DOCTYPE, இயல்புநிலை அச்சு வடிவமைப்பைக் கொண்டிருக்கவில்லை முடியும் தனிப்பயனாக்கு படிவம் பயன்படுத்த"
 DocType: Report,Query,வினா
 DocType: DocType,Sort Order,வரிசையை
-apps/frappe/frappe/core/doctype/doctype/doctype.py +547,'In List View' not allowed for type {0} in row {1},' பட்டியல் பார்வையில் ' அனுமதி இல்லை வகை {0} வரிசையில் {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +544,'In List View' not allowed for type {0} in row {1},' பட்டியல் பார்வையில் ' அனுமதி இல்லை வகை {0} வரிசையில் {1}
 DocType: Custom Field,Select the label after which you want to insert new field.,நீங்கள் புதிய துறையில் சேர்க்க வேண்டும் பின்னர் லேபிள் தேர்வு.
 ,Document Share Report,ஆவண பகிர் அறிக்கை
 DocType: Social Login Key,Base URL,அடிப்படை URL
@@ -726,7 +726,7 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.py +35,Scheduled to send 
 DocType: Kanban Board Column,Indicator,காட்டி
 DocType: DocShare,Everyone,அனைவரும்
 DocType: Workflow State,backward,பின்னோக்கி
-apps/frappe/frappe/core/doctype/doctype/doctype.py +787,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: இதே பாத்திரம், நிலை மற்றும் அனுமதி ஒரே ஆட்சி {1}"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +784,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: இதே பாத்திரம், நிலை மற்றும் அனுமதி ஒரே ஆட்சி {1}"
 DocType: Email Queue,Add Unsubscribe Link,குழுவிலகல் இணைப்பு சேர்
 apps/frappe/frappe/templates/includes/comments/comments.html +7,No comments yet. Start a new discussion.,இதுவரை இல்லை. ஒரு புதிய விவாதத்தை தொடங்க.
 DocType: Workflow State,share,பங்கு
@@ -804,13 +804,13 @@ DocType: Dropbox Settings,App Secret Key,ஆப் இரகசிய விச�
 DocType: Webhook,on_submit,on_submit
 apps/frappe/frappe/config/website.py +7,Web Site,வலைத்தளம்
 apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +8,Checked items will be shown on desktop,டிக் பொருட்களை டெஸ்க்டாப் காட்டப்படும்
-apps/frappe/frappe/core/doctype/doctype/doctype.py +828,{0} cannot be set for Single types,{0} ஒற்றை வகையான அமைக்க முடியாது
+apps/frappe/frappe/core/doctype/doctype/doctype.py +825,{0} cannot be set for Single types,{0} ஒற்றை வகையான அமைக்க முடியாது
 DocType: Data Import,Data Import,தரவு இறக்குமதி
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +395,Configure Chart,விளக்கப்படம் கட்டமைக்கவும்
 apps/frappe/frappe/public/js/frappe/form/form_viewers.js +55,{0} are currently viewing this document,{0} தற்போது இந்த ஆவணத்தைத்
 DocType: ToDo,Assigned By Full Name,முழு பெயர் ஒதுக்கப்படுகின்றன
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +155,{0} updated,{0} மேம்படுத்தப்பட்டது
-apps/frappe/frappe/core/doctype/doctype/doctype.py +820,Report cannot be set for Single types,அறிக்கை ஒற்றை வகையான அமைக்க முடியாது
+apps/frappe/frappe/core/doctype/doctype/doctype.py +817,Report cannot be set for Single types,அறிக்கை ஒற்றை வகையான அமைக்க முடியாது
 apps/frappe/frappe/public/js/frappe/list/list_view.js +939,Share URL,URL ஐப் பகிர்
 DocType: System Settings,Allow Consecutive Login Attempts ,தொடர்ந்து உள்நுழைவு முயற்சிகளை அனுமதி
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html +50,An error occured during the payment process. Please contact us.,கட்டணம் செயல்பாட்டின் போது ஒரு பிழை ஏற்பட்டது. தயவு செய்து எங்களை தொடர்பு கொள்ளவும்.
@@ -1075,7 +1075,7 @@ apps/frappe/frappe/utils/password_strength.py +134,Avoid recent years.,சமீ
 apps/frappe/frappe/utils/nestedset.py +241,Multiple root nodes not allowed.,பல ரூட் முனைகளில் அனுமதி இல்லை .
 DocType: Note,"If enabled, users will be notified every time they login. If not enabled, users will only be notified once.","இயக்கப்பட்டால், பயனர் அவர்கள் உள்நுழைய ஒவ்வொரு முறையும் அறிவிக்கப்படும். இயக்கப்படவில்லை, பயனர்கள் ஒரு முறை மட்டுமே அறிவிக்கப்படும்."
 DocType: Note,"If enabled, users will be notified every time they login. If not enabled, users will only be notified once.","இயக்கப்பட்டால், பயனர் அவர்கள் உள்நுழைய ஒவ்வொரு முறையும் அறிவிக்கப்படும். இயக்கப்படவில்லை, பயனர்கள் ஒரு முறை மட்டுமே அறிவிக்கப்படும்."
-apps/frappe/frappe/core/doctype/doctype/doctype.py +696,Invalid {0} condition,தவறான {0} நிலை
+apps/frappe/frappe/core/doctype/doctype/doctype.py +693,Invalid {0} condition,தவறான {0} நிலை
 DocType: OAuth Client,"If checked, users will not see the Confirm Access dialog.","தேர்ந்தெடுக்கப்பட்டால், பயனர்கள் அணுகலை உறுதிப்படுத்த உரையாடல் பார்க்க முடியாது."
 apps/frappe/frappe/public/js/frappe/views/reports/reportview.js +542,ID field is required to edit values using Report. Please select the ID field using the Column Picker,ஐடி துறையில் அறிக்கை பயன்படுத்தி மதிப்புகள் திருத்த வேண்டும். வரிசை தேர்வி பயன்படுத்தி ஐடி துறையில் தேர்ந்தெடுக்கவும்
 DocType: Post,Comments,கருத்துகள்
@@ -1206,7 +1206,7 @@ apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js +31,Ad
 DocType: DocType,Sort Field,அண்மையில்
 DocType: Razorpay Settings,Razorpay Settings,Razorpay அமைப்புகள்
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +266,Edit Filter,வடிகட்டி திருத்து
-apps/frappe/frappe/core/doctype/doctype/doctype.py +518,Field {0} of type {1} cannot be mandatory,புலம் {0} வகை {1} கட்டாயமாக இருக்க முடியாது
+apps/frappe/frappe/core/doctype/doctype/doctype.py +515,Field {0} of type {1} cannot be mandatory,புலம் {0} வகை {1} கட்டாயமாக இருக்க முடியாது
 apps/frappe/frappe/public/js/frappe/ui/slides.js +29,Add More,கூடுதலாக சேர்
 DocType: System Settings,Session Expiry Mobile,அமர்வு காலாவதியாகும் மொபைல்
 apps/frappe/frappe/utils/password.py +66,Incorrect User or Password,தவறான பயனர் அல்லது கடவுச்சொல்
@@ -1382,7 +1382,7 @@ DocType: User,Set New Password,புதிய கடவுச்சொல்
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +54,"%s is not a valid report format. Report format should \
 				one of the following %s",% S செல்லுபடியாகும் அறிக்கை வடிவில் இல்லை. அறிக்கை வடிவம் பின்வரும்% கள் ஒரு \ வேண்டும்
 DocType: Chat Message,Chat,அரட்டை
-apps/frappe/frappe/core/doctype/doctype/doctype.py +511,Fieldname {0} appears multiple times in rows {1},புலம் பெயர்  {0} வரிசைகளில் பல முறை தோன்றும் {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +508,Fieldname {0} appears multiple times in rows {1},புலம் பெயர்  {0} வரிசைகளில் பல முறை தோன்றும் {1}
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +559,{0} from {1} to {2} in row #{3},{0} இலிருந்து {1} {2} இல் வரிசையில் # க்கு {3}
 DocType: Communication,Expired,காலாவதியான
 apps/frappe/frappe/templates/pages/integrations/razorpay_checkout.py +34,Seems token you are using is invalid!,நீங்கள் பயன்படுத்தும் டோக்கன் தவறானது!
@@ -1401,7 +1401,7 @@ DocType: Website Settings,Top Bar,மேல் பட்டை
 DocType: GSuite Settings,Script Code,ஸ்கிரிப்ட் குறியீடு
 apps/frappe/frappe/core/doctype/user/user.js +136,Create User Email,பயனர் மின்னஞ்சல் உருவாக்கவும்
 apps/frappe/frappe/core/doctype/user/user.js +136,Create User Email,பயனர் மின்னஞ்சல் உருவாக்கவும்
-apps/frappe/frappe/core/doctype/doctype/doctype.py +762,No Permissions Specified,அனுமதிகள் எதுவும் குறிப்பிடப்படவில்லை
+apps/frappe/frappe/core/doctype/doctype/doctype.py +759,No Permissions Specified,அனுமதிகள் எதுவும் குறிப்பிடப்படவில்லை
 apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py +299,{0} not found,{0} காணப்படவில்லை
 DocType: Custom Role,Custom Role,விருப்ப பங்கு
 apps/frappe/frappe/core/doctype/file/test_file.py +217,Home/Test Folder 2,முகப்பு / டெஸ்ட் அடைவு 2
@@ -1412,14 +1412,14 @@ DocType: Social Login Key,Social Login Provider,சமூக உள்நுழ�
 apps/frappe/frappe/templates/includes/comments/comments.html +119,Add Another Comment,மற்றொரு கருத்து சேர்
 apps/frappe/frappe/core/doctype/data_import/importer.py +81,No data found in the file. Please reattach the new file with data.,கோப்பில் தரவு எதுவும் இல்லை. தரவுடன் புதிய கோப்பை மீண்டும் இணைக்கவும்.
 apps/frappe/frappe/public/js/frappe/form/toolbar.js +179,Edit DocType,ஆவண வகை  திருத்து
-apps/frappe/frappe/core/doctype/doctype/doctype.py +602,Fold must come before a Section Break,ஒரு பகுதி உடைக்க முன்பு வர வேண்டும் மடி
+apps/frappe/frappe/core/doctype/doctype/doctype.py +599,Fold must come before a Section Break,ஒரு பகுதி உடைக்க முன்பு வர வேண்டும் மடி
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html +13,Under Development,அபிவிருத்தி கீழ்
 apps/frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py +25,Go to the document,ஆவணம் செல்க
 apps/frappe/frappe/public/js/frappe/model/meta.js +185,Last Modified By,மூலம் கடைசியாக மாற்றிய
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +179,Customizations Reset,தனிப்பயனாக்கங்கள் மீட்டமைக்கப்படும்
 DocType: Workflow State,hand-down,கை கீழே
 DocType: Address,GST State,ஜிஎஸ்டி மாநிலம்
-apps/frappe/frappe/core/doctype/doctype/doctype.py +806,{0}: Cannot set Cancel without Submit,{0} : அமைக்க முடியாது சமர்ப்பிக்கவும் இல்லாமல் ரத்து
+apps/frappe/frappe/core/doctype/doctype/doctype.py +803,{0}: Cannot set Cancel without Submit,{0} : அமைக்க முடியாது சமர்ப்பிக்கவும் இல்லாமல் ரத்து
 DocType: Website Theme,Theme,தீம்
 DocType: OAuth Authorization Code,Redirect URI Bound To Auth Code,URI இனை அங்கீகார குறியீடு திருப்பி கட்டுண்ட
 DocType: DocType,Is Submittable,சமர்ப்பிக்க
@@ -1458,7 +1458,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,
 apps/frappe/frappe/templates/includes/comments/comments.html +25,Add Comment,கருத்து சேர்
 DocType: DocField,Mandatory,அதிகாரம் சார்ந்த
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +88,Module to Export,தொகுதி ஏற்றுமதி
-apps/frappe/frappe/core/doctype/doctype/doctype.py +774,{0}: No basic permissions set,{0} : இல்லை அடிப்படை அனுமதிகளை தொகுப்பு
+apps/frappe/frappe/core/doctype/doctype/doctype.py +771,{0}: No basic permissions set,{0} : இல்லை அடிப்படை அனுமதிகளை தொகுப்பு
 apps/frappe/frappe/limits.py +80,Your subscription will expire on {0}.,உங்கள் சந்தா அன்று காலாவதியாகும் {0}.
 apps/frappe/frappe/utils/backups.py +166,Download link for your backup will be emailed on the following email address: {0},உங்கள் காப்பு இணைப்பு பதிவிறக்க பின்வரும் மின்னஞ்சல் முகவரியை மின்னஞ்சலில் {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","திருத்தி, ரத்து, சமர்ப்பி அர்த்தம்"
@@ -1499,7 +1499,7 @@ DocType: Letter Head,Printing,அச்சிடுதல்
 DocType: Workflow State,thumbs-up,கட்டைவிரலை அப்
 DocType: DocPerm,DocPerm,DocPerm
 DocType: Print Settings,Fonts,எழுத்துருக்கள்
-apps/frappe/frappe/core/doctype/doctype/doctype.py +569,Precision should be between 1 and 6,துல்லிய 1 மற்றும் 6 ம் இருக்க வேண்டும்
+apps/frappe/frappe/core/doctype/doctype/doctype.py +566,Precision should be between 1 and 6,துல்லிய 1 மற்றும் 6 ம் இருக்க வேண்டும்
 apps/frappe/frappe/core/doctype/communication/communication.js +190,Fw: {0},முன்: {0}
 apps/frappe/frappe/public/js/frappe/misc/utils.js +174,and,மற்றும்
 apps/frappe/frappe/templates/emails/auto_email_report.html +47,This report was generated on {0},இந்த அறிக்கை {0}
@@ -1518,9 +1518,9 @@ apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js +380,Unable to up
 apps/frappe/frappe/website/doctype/web_form/templates/web_form.html +134,Payment Complete,கொடுப்பனவு முழுமையான
 apps/frappe/frappe/twofactor.py +213,Verification code has been sent to your registered email address.,உங்கள் பதிவு மின்னஞ்சல் முகவரிக்கு சரிபார்ப்புக் குறியீடு அனுப்பப்பட்டுள்ளது.
 apps/frappe/frappe/core/doctype/user/user.py +1027,Throttled,நிறுத்தப்பட்டுள்ளது
-apps/frappe/frappe/utils/data.py +829,"Filter must have 4 values (doctype, fieldname, operator, value): {0}","வடிகட்டி 4 மதிப்புகள் (டாக்டைப்பின், FIELDNAME, ஆபரேட்டர், மதிப்பு இருக்க வேண்டும்): {0}"
+apps/frappe/frappe/utils/data.py +830,"Filter must have 4 values (doctype, fieldname, operator, value): {0}","வடிகட்டி 4 மதிப்புகள் (டாக்டைப்பின், FIELDNAME, ஆபரேட்டர், மதிப்பு இருக்க வேண்டும்): {0}"
 apps/frappe/frappe/utils/bot.py +89,show,நிகழ்ச்சி
-apps/frappe/frappe/utils/data.py +881,Invalid field name {0},செல்லுபடியாகாத புலம் பெயர் {0}
+apps/frappe/frappe/utils/data.py +882,Invalid field name {0},செல்லுபடியாகாத புலம் பெயர் {0}
 DocType: Address Template,Address Template,முகவரி டெம்ப்ளேட்
 DocType: Workflow State,text-height,உரை உயரம்
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,தரவு இடம்பெயர்வு திட்ட வரைபடம்
@@ -1537,7 +1537,7 @@ DocType: Data Import,Generated File,உருவாக்கப்பட்ட �
 DocType: Transaction Log,Previous Hash,முந்தைய ஹாஷ்
 DocType: File,Is Attachments Folder,இணைப்புகள் அடைவு
 apps/frappe/frappe/public/js/frappe/views/treeview.js +75,Expand All,எல்லாவற்றையும் விரிவாக்கு
-apps/frappe/frappe/public/js/frappe/chat.js +2171,Select a chat to start messaging.,செய்தி தொடங்குவதற்கு அரட்டை ஒன்றைத் தேர்ந்தெடுக்கவும்.
+apps/frappe/frappe/public/js/frappe/chat.js +2180,Select a chat to start messaging.,செய்தி தொடங்குவதற்கு அரட்டை ஒன்றைத் தேர்ந்தெடுக்கவும்.
 apps/frappe/frappe/public/js/frappe/form/controls/table.js +85,Processing,செயலாக்க
 apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.js +20,Please select Entity Type first,முதலில் நிறுவன வகை தேர்ந்தெடுக்கவும்
 apps/frappe/frappe/templates/includes/login/login.js +52,Valid Login id required.,செல்லுபடியாகும் உள்நுழைவு ஐடி தேவைப்படுகிறது.
@@ -1615,7 +1615,7 @@ DocType: DocType,"Naming Options:
 <ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>
 <li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>","பெயரிடும் விருப்பங்கள்: <ol><li> <b>புலம்: [</b> புலம் பெயர் <b>]</b> - புலம் மூலம் </li><li> <b>naming_series:</b> - தொடர் பெயரிடும் (naming_series என்றழைக்கப்படும் புலம் </li><li> <b>உடனடியாக</b> - ஒரு பெயரை கேட்கும் பயனர் </li><li> <b>[தொடர்]</b> - முன்னோடி மூலம் வரிசை (ஒரு புள்ளி மூலம் பிரிக்கப்பட்ட); உதாரணமாக PRE ##### </li><li> <b>வடிவம்: EXAMPLE- {MM} மேலதிக எழுத்துகள் {fieldname1} - {fieldname2} - {#####}</b> - அனைத்து மதிப்புடைய சொற்களையும் (புலங்கள், தேதி வார்த்தைகள் (DD, MM, YY), தொடர்) அவற்றின் மதிப்புடன் மாற்றவும். வெளிப்புற ப்ரேஸ், எந்த கதாபாத்திரங்களும் பயன்படுத்தப்படலாம். </li></ol>"
 apps/frappe/frappe/public/js/frappe/views/interaction.js +261,There were errors while creating the document. Please try again.,ஆவணத்தை உருவாக்கும்போது பிழைகள் இருந்தன. தயவு செய்து மீண்டும் முயற்சிக்கவும்.
-apps/frappe/frappe/core/doctype/doctype/doctype.py +657,Image field must be of type Attach Image,இணை பட துறையில் வகை இருக்க வேண்டும் பட
+apps/frappe/frappe/core/doctype/doctype/doctype.py +654,Image field must be of type Attach Image,இணை பட துறையில் வகை இருக்க வேண்டும் பட
 DocType: DocField,Columns,பத்திகள்
 apps/frappe/frappe/desk/form/assign_to.py +81,Shared with user {0} with read access,படிப்பு அணுகலுடன் பயனர் {0} உடன் பகிரப்பட்டது
 DocType: GCalendar Account,Next Sync Token,அடுத்த ஒத்திசைவு டோக்கன்
@@ -1711,7 +1711,7 @@ apps/frappe/frappe/data_migration/doctype/data_migration_run/data_migration_run.
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py +124,Please set filters value in Report Filter table.,அறிக்கை வடிகட்டி அட்டவணையில் வடிகட்டிகள் மதிப்பு அமைக்கவும்.
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +284,Loading Report,ஏற்றுகிறது அறிக்கை
 apps/frappe/frappe/limits.py +74,Your subscription will expire today.,உங்கள் சந்தா இன்று காலாவதியாகிவிடும்.
-apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1099,Export All {0} rows?,அனைத்து {0} வரிசைகளையும் ஏற்றுமதி செய்கிறீர்களா?
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +1100,Export All {0} rows?,அனைத்து {0} வரிசைகளையும் ஏற்றுமதி செய்கிறீர்களா?
 DocType: Page,Standard,நிலையான
 apps/frappe/frappe/core/doctype/data_import/data_import.js +43,Attach File,கோப்பினை இணைக்கவும்
 DocType: Data Migration Plan,Preprocess Method,முன்னுரிமை முறை
@@ -1792,7 +1792,7 @@ apps/frappe/frappe/www/qrcode.html +19,Authentication Apps you can use are: ,ந
 apps/frappe/frappe/public/js/frappe/form/controls/data.js +46,{0} already exists. Select another name,{0} ஏற்கனவே உள்ளது. மற்றொரு பெயரைத் தேர்ந்தெடுக்கவும்
 apps/frappe/frappe/core/doctype/feedback_trigger/feedback_trigger.py +137,Feedback conditions do not match,கருத்து நிலைமைகள் பொருந்தவில்லை
 DocType: S3 Backup Settings,None,யாரும்
-apps/frappe/frappe/core/doctype/doctype/doctype.py +671,Timeline field must be a valid fieldname,காலக்கெடு புலத்தில் செல்லுபடியாகும் FIELDNAME இருக்க வேண்டும்
+apps/frappe/frappe/core/doctype/doctype/doctype.py +668,Timeline field must be a valid fieldname,காலக்கெடு புலத்தில் செல்லுபடியாகும் FIELDNAME இருக்க வேண்டும்
 DocType: GCalendar Account,Session Token,அமர்வு டோக்கன்
 DocType: Currency,Symbol,அடையாளம்
 apps/frappe/frappe/model/base_document.py +515,Row #{0}:,ரோ # {0}:
@@ -1813,7 +1813,7 @@ apps/frappe/frappe/templates/emails/recurring_document_failed.html +4,This could
 DocType: Address,Fax,தொலைநகல்
 apps/frappe/frappe/config/setup.py +268,Custom Tags,விருப்ப குறிச்சொற்கள்
 DocType: Communication,Submitted,சமர்ப்பிக்கப்பட்டது
-apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +399,In Valid Request,தவறான கோரிக்கை
+apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +401,In Valid Request,தவறான கோரிக்கை
 DocType: System Settings,Email Footer Address,மின்னஞ்சல் அடிக்குறிப்பு முகவரி
 apps/frappe/frappe/public/js/frappe/form/grid.js +679,Table updated,அட்டவணை மேம்படுத்தப்பட்டது
 DocType: Activity Log,Timeline DocType,காலக்கெடு DOCTYPE
@@ -1861,7 +1861,7 @@ apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +29,Print Documents,
 DocType: Contact Us Settings,Forward To Email Address,முன்னோக்கி மின்னஞ்சல் முகவரியை
 DocType: Auto Email Report,Weekdays,வார
 apps/frappe/frappe/public/js/frappe/views/reports/reportview_footer.html +9,Show all data,எல்லா தரவையும் காட்டு
-apps/frappe/frappe/core/doctype/doctype/doctype.py +628,Title field must be a valid fieldname,தலைப்பு துறையில் ஒரு செல்லுபடியாகும் FIELDNAME இருக்க வேண்டும்
+apps/frappe/frappe/core/doctype/doctype/doctype.py +625,Title field must be a valid fieldname,தலைப்பு துறையில் ஒரு செல்லுபடியாகும் FIELDNAME இருக்க வேண்டும்
 DocType: Post Comment,Post Comment,கருத்து தெரிவி
 apps/frappe/frappe/config/core.py +7,Documents,ஆவணங்கள்
 DocType: Social Login Key,Custom Base URL,தனிப்பயன் அடிப்படை URL
@@ -1922,7 +1922,7 @@ DocType: Chat Room,Avatar,சின்னம்
 DocType: Blogger,Posts,பதிவுகள்
 DocType: Social Login Key,Salesforce,விற்பனைக்குழு
 DocType: DocType,Has Web View,இணையப் பார்வை உள்ளது
-apps/frappe/frappe/core/doctype/doctype/doctype.py +478,"DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores","DOCTYPE பெயர் ஒரு கடிதம் தொடங்க வேண்டும் மற்றும் அது எழுத்துக்கள், எண்கள், இடைவெளிகள் மற்றும் அடிக்கோடு கொண்டுள்ளன முடியும்"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +475,"DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores","DOCTYPE பெயர் ஒரு கடிதம் தொடங்க வேண்டும் மற்றும் அது எழுத்துக்கள், எண்கள், இடைவெளிகள் மற்றும் அடிக்கோடு கொண்டுள்ளன முடியும்"
 DocType: Communication,Spam,பழுதான
 DocType: Integration Request,Integration Request,ஒருங்கிணைப்பு வேண்டுகோள்
 apps/frappe/frappe/public/js/frappe/views/communication.js +637,Dear,அன்புக்குரிய
@@ -2013,7 +2013,7 @@ DocType: Transaction Log,Transaction Hash,பரிவர்த்தனை ஹ�
 DocType: Error Snapshot,Snapshot View,நொடிப்பு காண்க
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +106,Please save the Newsletter before sending,"அனுப்பும் முன் செய்திமடல் சேமிக்க , தயவு செய்து"
 apps/frappe/frappe/config/integrations.py +103,Configure accounts for google calendar,Google காலெண்டருக்கான கணக்குகளை கட்டமைக்கவும்
-apps/frappe/frappe/core/doctype/doctype/doctype.py +529,Options must be a valid DocType for field {0} in row {1},விருப்பங்கள் {0} வரிசையில் {1} துறையில் ஒரு சரியான DOCTYPE இருக்க வேண்டும்
+apps/frappe/frappe/core/doctype/doctype/doctype.py +526,Options must be a valid DocType for field {0} in row {1},விருப்பங்கள் {0} வரிசையில் {1} துறையில் ஒரு சரியான DOCTYPE இருக்க வேண்டும்
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js +167,Edit Properties,பண்புகள் தொகு
 DocType: Patch Log,List of patches executed,இணைப்பினை பட்டியல் தூக்கிலிடப்பட்டார்
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py +21,{0} already unsubscribed,{0} ஏற்கனவே குழுவிலகியுள்ளீர்கள்
@@ -2142,7 +2142,7 @@ DocType: Property Setter,Property Type,சொத்து வகை
 DocType: Workflow State,screenshot,திரை
 apps/frappe/frappe/core/doctype/report/report.py +33,Only Administrator can save a standard report. Please rename and save.,ஒரே நிர்வாகி ஒரு தரமான அறிக்கையை சேமிக்க முடியும். மறுபெயர் காப்பாற்றுங்கள்.
 DocType: System Settings,Background Workers,பின்னணி தொழிலாளர்
-apps/frappe/frappe/core/doctype/doctype/doctype.py +893,Fieldname {0} conflicting with meta object,FIELDNAME {0} மெட்டா பொருள் முரண்படுவதாக
+apps/frappe/frappe/core/doctype/doctype/doctype.py +890,Fieldname {0} conflicting with meta object,FIELDNAME {0} மெட்டா பொருள் முரண்படுவதாக
 DocType: Deleted Document,Data,தரவு
 apps/frappe/frappe/public/js/frappe/model/model.js +27,Document Status,ஆவண நிலைமை
 apps/frappe/frappe/core/page/desktop/desktop_help_message.html +5,You have made {0} of {1},நீங்கள் செய்த {0} {1}
@@ -2280,7 +2280,7 @@ DocType: Website Settings,Brand Image,பிராண்ட் இமேஜ்
 DocType: Print Settings,A4,ஏ 4
 apps/frappe/frappe/config/website.py +58,"Setup of top navigation bar, footer and logo.","மேல் திசை பட்டையில், பூட்டர் மற்றும் லோகோ அமைப்பு."
 DocType: Web Form Field,Max Value,அதிகபட்சம் மதிப்பு
-apps/frappe/frappe/core/doctype/doctype/doctype.py +770,For {0} at level {1} in {2} in row {3},இதற்காக {0} மட்டத்தில் {1} ல் {2} வரிசையில் {3}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +767,For {0} at level {1} in {2} in row {3},இதற்காக {0} மட்டத்தில் {1} ல் {2} வரிசையில் {3}
 DocType: Auto Repeat,Preview Message,முன்னோட்ட செய்தி
 DocType: User Social Login,User Social Login,பயனர் சமூக தேதி
 DocType: Contact,All,அனைத்து
@@ -2293,7 +2293,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/query_report.js +116,Set Chart
 apps/frappe/frappe/public/js/frappe/form/link_selector.js +142,Set,அமை
 apps/frappe/frappe/desk/search.py +84,This query style is discontinued,இந்த கேள்வி பாணி நிறுத்தப்படும்போது
 DocType: Notification,Trigger Method,தூண்டிவிடும் முறை
-apps/frappe/frappe/utils/data.py +842,Operator must be one of {0},ஆபரேட்டர் ஒன்றாக இருக்க வேண்டும் {0}
+apps/frappe/frappe/utils/data.py +843,Operator must be one of {0},ஆபரேட்டர் ஒன்றாக இருக்க வேண்டும் {0}
 DocType: Dropbox Settings,Dropbox Access Token,டிராப்பாக்ஸ் அணுகல் டோக்கன்
 DocType: Workflow State,align-right,சீரமை வலது
 DocType: Auto Email Report,Email To,மின்னஞ்சல்
@@ -2439,7 +2439,7 @@ apps/frappe/frappe/public/js/frappe/form/controls/password.js +46,"Include symbo
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +80,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist","துறையில் &#39;{0}&#39; விருப்ப துறையில் குறிப்பிடப்பட்டுள்ளது பிறகு நுழைக்க &#39;{1}&#39;, லேபிளை &#39;{2}&#39;, இல்லை"
 apps/frappe/frappe/www/search_docs.py +19,Docs Search,டாக்ஸ் தேடல்
 DocType: List Filter,List Filter,பட்டியல் வடிகட்டி
-apps/frappe/frappe/core/doctype/doctype/doctype.py +531,Options {0} must be the same as doctype name {1} for the field {2},புலம் {0} க்கான {0} விருப்பங்கள் doctype name {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +528,Options {0} must be the same as doctype name {1} for the field {2},புலம் {0} க்கான {0} விருப்பங்கள் doctype name {1}
 DocType: Workflow State,signal,அடையாளம்
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js +105,Has Attachments,இணைப்புகள் உள்ளன
 DocType: DocType,Show Print First,காட்டு முதலில் அச்சிடவும்
@@ -2573,7 +2573,7 @@ DocType: Data Import,If you don't want to create any new records while updating 
 apps/frappe/frappe/core/doctype/data_import/exporter.py +272,Info:,தகவல்:
 DocType: Custom Field,Permission Level,அனுமதி நிலை
 DocType: User,Send Notifications for Transactions I Follow,நான் பின்பற்றவும் பரிவர்த்தனைகள் அறிவிப்புகள் அனுப்பவும்
-apps/frappe/frappe/core/doctype/doctype/doctype.py +809,"{0}: Cannot set Submit, Cancel, Amend without Write","{0} : எழுது இல்லாமல் , திருத்தவோ, ரத்து , சமர்ப்பி அமைக்க முடியாது"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +806,"{0}: Cannot set Submit, Cancel, Amend without Write","{0} : எழுது இல்லாமல் , திருத்தவோ, ரத்து , சமர்ப்பி அமைக்க முடியாது"
 DocType: Google Maps Settings,Client Key,வாடிக்கையாளர் விசை
 apps/frappe/frappe/public/js/frappe/form/footer/attachments.js +78,Are you sure you want to delete the attachment?,நீங்கள் இணைப்பு நீக்க வேண்டும் நீங்கள் உறுதியாக இருக்கிறீர்களா?
 apps/frappe/frappe/__init__.py +1178,Thank you,நன்றி
@@ -2632,7 +2632,7 @@ apps/frappe/frappe/public/js/frappe/list/list_renderer.js +570,2 days ago,2 ந�
 apps/frappe/frappe/config/website.py +47,Categorize blog posts.,இடுகைகள் வகைப்படுத்தவும்.
 DocType: Workflow State,Time,காலம்
 DocType: DocField,Attach,இணைக்கவும்
-apps/frappe/frappe/core/doctype/doctype/doctype.py +640,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} ஒரு செல்லுபடியாகும் FIELDNAME முறை அல்ல. அது இருக்க வேண்டும் {{FIELD_NAME}}.
+apps/frappe/frappe/core/doctype/doctype/doctype.py +637,{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} ஒரு செல்லுபடியாகும் FIELDNAME முறை அல்ல. அது இருக்க வேண்டும் {{FIELD_NAME}}.
 DocType: Feedback Trigger,Send Feedback Request only if there is at least one communication is available for the document.,குறைந்தது ஒரு தகவல்தொடர்பு ஆவணம் கிடைக்கும் இல்லாமலிருந்தால் மட்டுமே கருத்து வேண்டுகோள் அனுப்ப.
 DocType: Custom Role,Permission Rules,அனுமதி விதிமுறைகள்
 DocType: Braintree Settings,Public Key,பொது விசை
@@ -2655,7 +2655,7 @@ DocType: Has Domain,Has Domain,டொமைன் உள்ளது
 apps/frappe/frappe/core/page/desktop/desktop.js +190,Hide,மறை
 apps/frappe/frappe/www/login.html +55,Don't have an account? Sign up,ஒரு கணக்கு இல்லையா? பதிவு
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +682,Cannot remove ID field,ID களத்தை அகற்ற முடியவில்லை
-apps/frappe/frappe/core/doctype/doctype/doctype.py +834,{0}: Cannot set Assign Amend if not Submittable,{0} : ஒதுக்கு திருத்தம் அமைக்க முடியாது சமர்ப்பிக்கவும் இல்லை என்றால்
+apps/frappe/frappe/core/doctype/doctype/doctype.py +831,{0}: Cannot set Assign Amend if not Submittable,{0} : ஒதுக்கு திருத்தம் அமைக்க முடியாது சமர்ப்பிக்கவும் இல்லை என்றால்
 DocType: Address,Bihar,பீகார்
 DocType: Activity Log,Link DocType,"இணைப்பு 
 ஆவண வகை"
@@ -2768,7 +2768,7 @@ apps/frappe/frappe/core/doctype/data_import/importer.py +106,Please make sure th
 apps/frappe/frappe/utils/oauth.py +184,Please ensure that your profile has an email address,உங்கள் சுயவிவர ஒரு மின்னஞ்சல் முகவரியை உள்ளது என்பதை உறுதி செய்து கொள்ளவும்
 apps/frappe/frappe/public/js/frappe/model/create_new.js +288,You have unsaved changes in this form. Please save before you continue.,நீங்கள் இந்த படிவத்தை சேமிக்கப்படாத மாற்றங்கள் உள்ளன .
 DocType: Address,Telangana,தெலுங்கானா
-apps/frappe/frappe/core/doctype/doctype/doctype.py +565,Default for {0} must be an option,{0} ஒரு விருப்பத்தை இருக்க வேண்டும் இயல்புநிலை
+apps/frappe/frappe/core/doctype/doctype/doctype.py +562,Default for {0} must be an option,{0} ஒரு விருப்பத்தை இருக்க வேண்டும் இயல்புநிலை
 DocType: Tag Doc Category,Tag Doc Category,டேக் டாக் பகுப்பு
 DocType: User,User Image,பயனர் படம்
 apps/frappe/frappe/email/queue.py +345,Emails are muted,மின்னஞ்சல்கள் முடக்கியது
@@ -2821,7 +2821,7 @@ apps/frappe/frappe/core/doctype/user/user.js +94,Reset Password,கடவுச�
 apps/frappe/frappe/email/doctype/email_group/email_group.py +102,Please Upgrade to add more than {0} subscribers,மேற்பட்ட {0} சந்தாதாரர்களை சேர்க்க மேம்படுத்தவும்
 DocType: Workflow State,hand-left,கையை இடது
 DocType: Data Import,If you are updating/overwriting already created records.,நீங்கள் முன்பே உருவாக்கிய பதிவுகளை புதுப்பித்துக்கொள்வதன் / மீட்டெடுத்தால்.
-apps/frappe/frappe/core/doctype/doctype/doctype.py +578,Fieldtype {0} for {1} cannot be unique,"துறை வகை  {0} {1} தனிப்பட்ட இருக்க முடியவில்லை,"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +575,Fieldtype {0} for {1} cannot be unique,"துறை வகை  {0} {1} தனிப்பட்ட இருக்க முடியவில்லை,"
 apps/frappe/frappe/public/js/frappe/list/list_filter.js +35,Is Global,உலகளாவியது
 DocType: Email Account,Use SSL,SSL பயன்படுத்த
 DocType: Workflow State,play-circle,விளையாட்டு வட்டம்
@@ -2891,7 +2891,7 @@ DocType: Chat Token,IP Address,ஐபி முகவரி
 DocType: Data Import,Submit after importing,இறக்குமதி செய்த பின் சமர்ப்பிக்கவும்
 apps/frappe/frappe/www/login.html +33,Login with LDAP,LDAP உடன் உள்நுழைய
 DocType: Web Form,Breadcrumbs,நனைக்கப்பட்டு
-apps/frappe/frappe/core/doctype/doctype/doctype.py +782,If Owner,உரிமையாளர் என்றால்
+apps/frappe/frappe/core/doctype/doctype/doctype.py +779,If Owner,உரிமையாளர் என்றால்
 DocType: Data Migration Mapping,Push,புஷ்
 DocType: OAuth Authorization Code,Expiration time,காலாவதியாகும் நேரம்
 DocType: Web Page,Website Sidebar,இணையத்தளம் பக்கப்பட்டி
@@ -3163,9 +3163,9 @@ DocType: Workflow,Allow approval for creator of the document,ஆவணத்த�
 DocType: Webhook,on_cancel,on_cancel
 DocType: Social Login Key,API Endpoint Args,API முடிப்பு Args
 apps/frappe/frappe/core/doctype/user/user.py +913,Administrator accessed {0} on {1} via IP Address {2}.,நிர்வாகி அணுகப்பட்டது {0} ம் {1} ஐபி முகவரி வழியாக {2}.
-apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +368,Failed while amending subscription,சந்தாவை மாற்றும்போது தோல்வியடைந்தது
+apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +370,Failed while amending subscription,சந்தாவை மாற்றும்போது தோல்வியடைந்தது
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +10,Equals,சமங்களின்
-apps/frappe/frappe/core/doctype/doctype/doctype.py +559,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',துறையில் விருப்பங்கள் 'டைனமிக் லிங்க்' வகை 'DOCTYPE' என விருப்பங்கள் மற்றொரு இணைப்பு துறையில் சுட்டி வேண்டும்
+apps/frappe/frappe/core/doctype/doctype/doctype.py +556,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',துறையில் விருப்பங்கள் 'டைனமிக் லிங்க்' வகை 'DOCTYPE' என விருப்பங்கள் மற்றொரு இணைப்பு துறையில் சுட்டி வேண்டும்
 DocType: About Us Settings,Team Members Heading,குழு உறுப்பினர் தலைப்பு
 apps/frappe/frappe/utils/csvutils.py +37,Invalid CSV Format,தவறான CSV வடிவத்தில்
 apps/frappe/frappe/desk/page/backups/backups.js +8,Set Number of Backups,காப்பு எண்ணிக்கை அமை
@@ -3206,7 +3206,7 @@ DocType: Print Settings,PDF Settings,PDF அமைப்புகள்
 DocType: Kanban Board Column,Column Name,வரிசை பெயர்
 DocType: Language,Based On,அடிப்படையில்
 apps/frappe/frappe/printing/doctype/print_format/print_format.js +34,Make Default,முன்னிருப்பாக்கு
-apps/frappe/frappe/core/doctype/doctype/doctype.py +590,Fieldtype {0} for {1} cannot be indexed,"துறை வகை {0} {1} சட்டிகளை முடியாது என்பதால்,"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +587,Fieldtype {0} for {1} cannot be indexed,"துறை வகை {0} {1} சட்டிகளை முடியாது என்பதால்,"
 DocType: Communication,Email Account,மின்னஞ்சல் கணக்கு
 DocType: Workflow State,Download,பதிவிறக்கம்
 DocType: Blog Post,Blog Intro,வலைப்பதிவு அறிமுகம்
@@ -3241,17 +3241,17 @@ apps/frappe/frappe/email/doctype/email_group/email_group.js +45,New Newsletter,�
 DocType: Print Settings,Send Print as PDF,என அச்சு அனுப்பவும் PDF
 DocType: Web Form,Amount,தொகை
 DocType: Workflow Transition,Allowed,அனுமதித்த
-apps/frappe/frappe/core/doctype/doctype/doctype.py +597,There can be only one Fold in a form,ஒரு வடிவத்தில் ஒரே ஒரு அயல் இருக்க முடியாது
+apps/frappe/frappe/core/doctype/doctype/doctype.py +594,There can be only one Fold in a form,ஒரு வடிவத்தில் ஒரே ஒரு அயல் இருக்க முடியாது
 apps/frappe/frappe/core/doctype/file/file.py +255,Unable to write file format for {0},கோப்பு வடிவம் எழுத முடியவில்லை {0}
 apps/frappe/frappe/website/doctype/portal_settings/portal_settings.js +20,Restore to default settings?,இயல்புநிலை அமைப்புகளை மீட்டமை?
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py +23,Invalid Home Page,செல்லாத முகப்பு பக்கம்
 apps/frappe/frappe/templates/includes/login/login.js +222,Invalid Login. Try again.,தவறான புகுபதிவு. மீண்டும் முயற்சி செய்.
-apps/frappe/frappe/core/doctype/doctype/doctype.py +523,Options required for Link or Table type field {0} in row {1},வரிசையில் இணைப்பு அல்லது அட்டவணை வகைப் புலம் {0} தேவையான விருப்பங்கள் {1}
-apps/frappe/frappe/core/doctype/doctype/doctype.py +523,Options required for Link or Table type field {0} in row {1},வரிசையில் இணைப்பு அல்லது அட்டவணை வகைப் புலம் {0} தேவையான விருப்பங்கள் {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +520,Options required for Link or Table type field {0} in row {1},வரிசையில் இணைப்பு அல்லது அட்டவணை வகைப் புலம் {0} தேவையான விருப்பங்கள் {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +520,Options required for Link or Table type field {0} in row {1},வரிசையில் இணைப்பு அல்லது அட்டவணை வகைப் புலம் {0} தேவையான விருப்பங்கள் {1}
 DocType: Auto Email Report,Send only if there is any data,எந்த தரவு இருந்தால் மட்டுமே அனுப்பவும்
 apps/frappe/frappe/public/js/frappe/views/reports/grid_report.js +169,Reset Filters,வடிகட்டிகள் மீட்டமை
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +848,Totals Row,மொத்தம் வரிசை
-apps/frappe/frappe/core/doctype/doctype/doctype.py +799,{0}: Permission at level 0 must be set before higher levels are set,{0}: முன் அதிக அளவு அமைக்கப்படுகின்றன நிலை 0 மணிக்கு அனுமதி அமைக்க வேண்டும்
+apps/frappe/frappe/core/doctype/doctype/doctype.py +796,{0}: Permission at level 0 must be set before higher levels are set,{0}: முன் அதிக அளவு அமைக்கப்படுகின்றன நிலை 0 மணிக்கு அனுமதி அமைக்க வேண்டும்
 apps/frappe/frappe/desk/doctype/todo/todo.py +34,Assignment closed by {0},வேலையை மூலம் மூடப்பட்டது {0}
 DocType: Integration Request,Remote,தொலை
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js +140,Calculate,கணக்கிடுங்கள்
@@ -3273,8 +3273,8 @@ apps/frappe/frappe/desk/doctype/event/event.py +121,Events In Today's Calendar,�
 DocType: Web Page,Web Page,வலை பக்கம்
 DocType: Workflow Document State,Next Action Email Template,அடுத்த அதிரடி மின்னஞ்சல் டெம்ப்ளேட்
 DocType: Blog Category,Blogger,பதிவர்
-apps/frappe/frappe/core/doctype/doctype/doctype.py +551,'In Global Search' not allowed for type {0} in row {1},'முழுமையான தேடல்' வகை அனுமதி இல்லை {0} வரிசையில் {1}
-apps/frappe/frappe/core/doctype/doctype/doctype.py +551,'In Global Search' not allowed for type {0} in row {1},'முழுமையான தேடல்' வகை அனுமதி இல்லை {0} வரிசையில் {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +548,'In Global Search' not allowed for type {0} in row {1},'முழுமையான தேடல்' வகை அனுமதி இல்லை {0} வரிசையில் {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +548,'In Global Search' not allowed for type {0} in row {1},'முழுமையான தேடல்' வகை அனுமதி இல்லை {0} வரிசையில் {1}
 apps/frappe/frappe/public/js/frappe/views/treeview.js +342,View List,காண்க பட்டியல்
 DocType: Workflow,Don't Override Status,நிலைமை புறக்கணிக்க வேண்டாம்
 apps/frappe/frappe/www/feedback.html +90,Please give a rating.,ஒரு மதிப்பீடு கொடுக்க கொள்ளவும்.
@@ -3326,7 +3326,7 @@ DocType: Website Theme,Background,பின்னணி
 DocType: Report,Ref DocType,Ref டாக்டைப்பின்
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py +32,Please enter Client ID before social login is enabled,சமூக உள்நுழைவு செயல்படுத்தப்படுவதற்கு முன்னர் கிளையன்ட் ஐடி உள்ளிடவும்
 apps/frappe/frappe/www/feedback.py +42,Please add a rating,ஒரு மதிப்பீடு சேர்க்கவும்
-apps/frappe/frappe/core/doctype/doctype/doctype.py +811,{0}: Cannot set Amend without Cancel,{0} : அமைக்க முடியவில்லை ரத்து இல்லாமல் திருத்தம்
+apps/frappe/frappe/core/doctype/doctype/doctype.py +808,{0}: Cannot set Amend without Cancel,{0} : அமைக்க முடியவில்லை ரத்து இல்லாமல் திருத்தம்
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html +25,Full Page,முழு பக்கம்
 DocType: DocType,Is Child Table,குழந்தைகள் அட்டவணை உள்ளது
 apps/frappe/frappe/utils/csvutils.py +132,{0} must be one of {1},{0} {1} ஒன்றாக இருக்க வேண்டும்
@@ -3354,7 +3354,7 @@ DocType: Event,Send an email reminder in the morning,காலையில் �
 DocType: Blog Post,Published On,ம் தேதி வெளியிடப்பட்ட
 DocType: Contact,Gender,பாலினம்
 apps/frappe/frappe/website/doctype/web_form/web_form.py +350,Mandatory Information missing:,காணாமல் கட்டாய தகவல்:
-apps/frappe/frappe/core/doctype/doctype/doctype.py +587,Field '{0}' cannot be set as Unique as it has non-unique values,களம் &#39;{0}&#39; அது அல்லாத தனிப்பட்ட மதிப்புகள் உள்ளது என தனித்த அமைக்க
+apps/frappe/frappe/core/doctype/doctype/doctype.py +584,Field '{0}' cannot be set as Unique as it has non-unique values,களம் &#39;{0}&#39; அது அல்லாத தனிப்பட்ட மதிப்புகள் உள்ளது என தனித்த அமைக்க
 apps/frappe/frappe/integrations/doctype/webhook/webhook.py +37,Check Request URL,கோரிக்கை URL ஐ சரிபார்க்கவும்
 apps/frappe/frappe/client.py +160,Only 200 inserts allowed in one request,செருகி 200 கோரிக்கை அனுமதி
 DocType: Footer Item,URL,URL ஐ
@@ -3412,7 +3412,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +15,Not In,இல்ல
 DocType: Workflow State,star,நட்சத்திரம்
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js +241,Hub,மையம்
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js +282,values separated by commas,பிரிக்கப்பட்ட மதிப்புகள்
-apps/frappe/frappe/core/doctype/doctype/doctype.py +543,Max width for type Currency is 100px in row {0},வகை நாணய அதிகபட்சம்  அகலம் வரிசையில் 100px {0}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +540,Max width for type Currency is 100px in row {0},வகை நாணய அதிகபட்சம்  அகலம் வரிசையில் 100px {0}
 apps/frappe/frappe/www/feedback.html +68,Please share your feedback for {0},உங்கள் கருத்தைப் பகிர கொள்ளவும் {0}
 apps/frappe/frappe/config/website.py +13,Content web page.,உள்ளடக்கத்தை வலைப்பக்கத்தில்.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,Add a New Role,ஒரு புதிய பங்கு சேர்
@@ -3435,7 +3435,7 @@ apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py +116,Not 
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py +65,{0} not a valid State,{0} தவறான நிலை
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py +101,Please select another payment method. PayPal does not support transactions in currency '{0}',மற்றொரு கட்டண முறையை தேர்ந்தெடுக்கவும். பேபால் நாணய பரிவர்த்தனைகள் ஆதரிக்கவில்லை &#39;{0}&#39;
 DocType: Chat Message,Room Type,அறையின் வகை
-apps/frappe/frappe/core/doctype/doctype/doctype.py +620,Search field {0} is not valid,தேடல் துறையில் {0} தவறானது
+apps/frappe/frappe/core/doctype/doctype/doctype.py +617,Search field {0} is not valid,தேடல் துறையில் {0} தவறானது
 DocType: Workflow State,ok-circle,"சரி, வட்டம்"
 apps/frappe/frappe/utils/bot.py +150,You can find things by asking 'find orange in customers',நீங்கள் கேட்டு &#39;வாடிக்கையாளர்கள் ஆரஞ்சு கண்டுபிடிக்க&#39; மூலம் விஷயங்களை கண்டுபிடிக்க முடியும்
 apps/frappe/frappe/core/doctype/user/user.py +189,Sorry! User should have complete access to their own record.,மன்னிக்கவும்! பயனர் தங்களுடைய சொந்த இசைப்பதிவு முழுமையாக அணுக வேண்டும்.

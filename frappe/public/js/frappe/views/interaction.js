@@ -15,7 +15,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 			title: (me.title || me.subject || __("New Activity")),
 			no_submit_on_enter: true,
 			fields: me.get_fields(),
-			primary_action_label: __("Create"),
+			primary_action_label: __('Create'),
 			primary_action: function() {
 				me.create_action();
 			}
