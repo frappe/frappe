@@ -220,7 +220,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 	'''Raise `frappe.LinkExistsError` if the document is dynamically linked'''
 	for df in get_dynamic_link_map().get(doc.doctype, []):
-		if df.parent in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", 'File', 'Version', 'View log'):
+		if df.parent in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", 'File', 'Version', 'View Log'):
 			# don't check for communication and todo!
 			continue
 
@@ -287,7 +287,7 @@ def delete_dynamic_links(doctype, name):
 			and reference_doctype=%s and reference_name=%s""", (doctype, name))
 
 	# delete view logs
-	frappe.db.sql("""delete from `tabView log`
+	frappe.db.sql("""delete from `tabView Log`
 		where reference_doctype=%s and reference_name=%s""", (doctype, name))
 
 	# unlink communications
