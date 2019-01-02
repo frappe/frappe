@@ -62,11 +62,13 @@ def sql(*args, **kwargs):
 
 
 def record():
-	frappe.local._recorder = Recorder()
+	if frappe.cache().get("recorder-intercept"):
+		frappe.local._recorder = Recorder()
 
 
 def dump():
-	frappe.local._recorder.dump()
+	if hasattr(frappe.local, "_recorder"):
+		frappe.local._recorder.dump()
 
 
 class Recorder():
