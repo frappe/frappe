@@ -201,7 +201,7 @@ def send_monthly():
 def make_links(columns, data):
 	for row in data:
 		for col in columns:
-			if col.fieldtype == "Link":
+			if col.fieldtype == "Link" and col.options != "Currency":
 				if col.options and row[col.fieldname]:
 					row[col.fieldname] = get_link_to_form(col.options, row[col.fieldname])
 			elif col.fieldtype == "Dynamic Link":
