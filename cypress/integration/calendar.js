@@ -50,5 +50,5 @@ context('Login', () => {
 		cy.visit('desk#modules/Desk');
 		cy.get("a:contains('Calendar')").click({ force: true });
 		cy.location("hash").should("eq", '#calendar');
-	})
+	});
 });
