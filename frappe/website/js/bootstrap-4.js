@@ -34,10 +34,14 @@ frappe.get_modal = function(title, content) {
 						${content}
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+						<button type="button" class="btn btn-primary"></button>
 					</div>
 				</div>
 			</div>
 		</div>`
 	);
 };
+
+frappe.ui.Dialog.prototype.get_primary_btn = function() {
+	return this.$wrapper.find(".modal-footer .btn-primary");
+}
