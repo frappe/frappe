@@ -213,7 +213,7 @@ def after_request(rollback):
 
 application = local_manager.make_middleware(application)
 
-def serve(port=8000, profile=False, record=False, no_reload=False, no_threading=False, site=None, sites_path='.'):
+def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=None, sites_path='.'):
 	global application, _site, _sites_path
 	_site = site
 	_sites_path = sites_path
