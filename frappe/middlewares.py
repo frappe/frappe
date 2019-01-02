@@ -8,7 +8,6 @@ import os
 from werkzeug.exceptions import NotFound
 from werkzeug.wsgi import SharedDataMiddleware
 from frappe.utils import get_site_name, get_site_path, get_site_base_path, get_path, cstr
-from frappe.recorder import Recorder
 
 class StaticDataMiddleware(SharedDataMiddleware):
 	def __call__(self, environ, start_response):
@@ -26,30 +25,3 @@ class StaticDataMiddleware(SharedDataMiddleware):
 				# return None, None
 
 		return loader
-
-
-class RecorderMiddleware(object):
-	def __init__(self, app):
-		self._app = app
-
-	def __call__(self, environ, start_response):
-		response_body = []
-
-		def catching_start_response(status, headers, exc_info=None):
-			start_response(status, headers, exc_info)
-			return response_body.append
-
-		def runapp():
-			appiter = self._app(environ, catching_start_response)
-			response_body.extend(appiter)
-			if hasattr(appiter, 'close'):
-				appiter.close()
-
-		recorder = Recorder()
-
-		runapp()
-		body = [b''.join(response_body)]
-
-		recorder.dump()
-
-		return body
