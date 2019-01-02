@@ -15,8 +15,8 @@ from frappe.utils.html_utils import get_icon_html
 no_cache = True
 
 def get_context(context):
-	if frappe.session.user != "Guest" and frappe.session.data.user_type=="System User":
-		frappe.local.flags.redirect_location = "/desk"
+	if frappe.session.user != "Guest":
+		frappe.local.flags.redirect_location = "/" if frappe.session.data.user_type=="Website User" else "/desk"
 		raise frappe.Redirect
 
 	# get settings from site config

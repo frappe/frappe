@@ -67,6 +67,9 @@ def render(path=None, http_status_code=None):
 			except frappe.PermissionError as e:
 				data, http_status_code = render_403(e, path)
 
+			except frappe.Redirect as e:
+				raise e
+
 			except Exception:
 				path = "error"
 				data = render_page(path)
