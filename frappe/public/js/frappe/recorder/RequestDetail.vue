@@ -34,7 +34,7 @@ export default {
 		frappe.call({
 			method: "frappe.www.recorder.get_request_data",
 			args: {
-				uuid: this.$route.param
+				uuid: this.$route.params.request_uuid
 			}
 		}).then( r => {
 			this.calls = r.message.calls
