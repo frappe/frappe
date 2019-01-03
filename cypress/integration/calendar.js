@@ -31,7 +31,7 @@ context('Calendar', () => {
 		// 	.type("This is Jsfoo event");
 		cy.get(".btn.btn-primary.btn-sm.primary-action:not(.hide)").click();
 
-		cy.location('hash').should('eq', '#Form/Event/New%20Event%201');
+		cy.location('hash').should('eq', '#Form/Event/EV00001');
 	});
 
 	it('click to event and edit', () => {
