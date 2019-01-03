@@ -12,7 +12,7 @@
 		<tbody>
 			<tr v-for="request in requests" :key="request.uuid" v-bind="request">
 				<td>
-					<a :href="'#Request/' + request.uuid ">{{ request.uuid }}</a>
+					<router-link :to="{name: 'request-detail', params: {request_uuid: request.uuid}} ">{{ request.uuid }}</router-link>
 				</td>
 				<td>
 					{{ request.path }}
