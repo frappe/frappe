@@ -136,7 +136,7 @@ def get_app_last_commit_ref(app):
 def check_for_update():
 	updates = frappe._dict(major=[], minor=[], patch=[])
 	apps = get_versions()
-	print(apps)
+
 	for app in apps:
 		app_details = check_release_on_github(app)
 		if not app_details: continue
