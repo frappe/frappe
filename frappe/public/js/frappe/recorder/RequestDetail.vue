@@ -1,24 +1,31 @@
 <template>
-	<div>
-		<div id="accordion-sql">
-			<div v-for="call in calls" :key="call.index" class="card">
-				<div class="card-header" :id="'heading-sql-' + call.index ">
-					<h5 class="mb-0">
-						<button class="btn btn-link" data-toggle="collapse" :data-target="'#collapse-sql-' + call.index ">
-							{{ call.query }}
-							{{ call.time.total }}
-						</button>
-					</h5>
-				</div>
-				<div :id="'collapse-sql-' + call.index " class="collapse" data-parent="#accordion-sql">
-					<div class="card-body">
-						<div><pre>{{ call.stack }}</pre></div>
-						<div><pre>{{ call.query }}</pre></div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+	<table class="table table-hover">
+		<thead>
+			<tr>
+				<th>Index</th>
+				<th>Query</th>
+				<th>Time</th>
+				<th>Execution Time</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr v-for="call in calls" :key="call.index" v-bind="call">
+				<td>
+					<router-link :to="{name: 'sql-detail', params: {call_index: call.index}} ">{{ call.index }}</router-link>
+				</td>
+				<td>
+					{{ call.query }}
+				</td>
+				<td>
+					{{ call.time.start }}
+				</td>
+				<td>
+					{{ call.time.total }}
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
 </template>
 
 <script>
