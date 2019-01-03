@@ -6,14 +6,14 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import now, cint
+from frappe.utils import cint, now_datetime
 import hashlib
 
 class TransactionLog(Document):
 	def before_insert(self):
 		index = get_current_index()
 		self.row_index = index
-		self.timestamp = now()
+		self.timestamp = now_datetime()
 		if index != 1:
 			prev_hash = frappe.db.sql(
 				"SELECT `chaining_hash` FROM `tabTransaction Log` WHERE `row_index` = '{0}'".format(index - 1))
@@ -25,7 +25,7 @@ class TransactionLog(Document):
 			self.previous_hash = self.hash_line()
 		self.transaction_hash = self.hash_line()
 		self.chaining_hash = self.hash_chain()
-		self.checksum_version = "v1.0.0"
+		self.checksum_version = "v1.0.1"
 
 	def hash_line(self):
 		sha = hashlib.sha256()
