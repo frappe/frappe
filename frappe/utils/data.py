@@ -743,10 +743,19 @@ def get_link_to_form(doctype, name, label=None):
 
 	return """<a href="{0}">{1}</a>""".format(get_url_to_form(doctype, name), label)
 
-def get_link_to_report(name, label=None, report_type=None, doctype=None):
+def get_link_to_report(name, label=None, report_type=None, doctype=None, filters=None):
 	if not label: label = name
 
-	return """<a href="{0}">{1}</a>""".format(get_url_to_report(name, report_type, doctype), label)
+	if filters:
+		conditions = []
+		for k,v in iteritems(filters):
+			conditions.append(str(k)+"="+str(v))
+
+		filters = "&".join(conditions)
+
+		return """<a href="{0}">{1}</a>""".format(get_url_to_report_with_filters(name, filters, report_type, doctype), label)
+	else:
+		return """<a href="{0}">{1}</a>""".format(get_url_to_report(name, report_type, doctype), label)
 
 def get_url_to_form(doctype, name):
 	return get_url(uri = "desk#Form/{0}/{1}".format(quoted(doctype), quoted(name)))
@@ -759,6 +768,12 @@ def get_url_to_report(name, report_type = None, doctype = None):
 		return get_url(uri = "desk#Report/{0}/{1}".format(quoted(doctype), quoted(name)))
 	else:
 		return get_url(uri = "desk#query-report/{0}".format(quoted(name)))
+
+def get_url_to_report_with_filters(name, filters, report_type = None, doctype = None):
+	if report_type == "Report Builder":
+		return get_url(uri = "desk#Report/{0}/{1}?{2}".format(quoted(doctype), quoted(name), filters))
+	else:
+		return get_url(uri = "desk#query-report/{0}?{1}".format(quoted(name), filters))
 
 operator_map = {
 	# startswith
