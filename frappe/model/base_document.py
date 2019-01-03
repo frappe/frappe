@@ -7,7 +7,7 @@ from six import iteritems, string_types
 import frappe
 import datetime
 from frappe import _
-from frappe.model import default_fields
+from frappe.model import default_fields, table_fields
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
@@ -222,7 +222,7 @@ class BaseDocument(object):
 					# unique empty field should be set to None
 					d[fieldname] = None
 
-				if isinstance(d[fieldname], list) and df.fieldtype != 'Table':
+				if isinstance(d[fieldname], list) and df.fieldtype not in table_fields:
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
 				if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time, datetime.timedelta)):
@@ -398,7 +398,7 @@ class BaseDocument(object):
 	def _get_missing_mandatory_fields(self):
 		"""Get mandatory fields that do not have any values"""
 		def get_msg(df):
-			if df.fieldtype == "Table":
+			if df.fieldtype in table_fields:
 				return "{}: {}: {}".format(_("Error"), _("Data missing in table"), _(df.label))
 
 			elif self.parentfield:
@@ -573,7 +573,7 @@ class BaseDocument(object):
 			db_value = db_values.get(key)
 
 			if df and not df.allow_on_submit and (self.get(key) or db_value):
-				if df.fieldtype=="Table":
+				if df.fieldtype in table_fields:
 					# just check if the table size has changed
 					# individual fields will be checked in the loop for children
 					self_value = len(self.get(key))

@@ -67,6 +67,9 @@ def render(path=None, http_status_code=None):
 			except frappe.PermissionError as e:
 				data, http_status_code = render_403(e, path)
 
+			except frappe.Redirect as e:
+				raise e
+
 			except Exception:
 				path = "error"
 				data = render_page(path)
@@ -173,9 +176,6 @@ def build_page(path):
 		frappe.local.path = path
 
 	context = get_context(path)
-	if context.title and "{{" in cstr(context.title):
-		title_template = context.pop('title')
-		context.title = frappe.render_template(title_template, context)
 
 	if context.source:
 		html = frappe.render_template(context.source, context)
