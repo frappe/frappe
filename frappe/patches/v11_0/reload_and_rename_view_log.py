@@ -16,10 +16,10 @@ def execute():
 
 		# reloading view log doctype to create `tabView Log` table
 		frappe.reload_doc('core', 'doctype', 'view_log')
-		frappe.db.commit()
 
 		# Move the data to newly created `tabView Log` table
 		frappe.db.sql("INSERT INTO `tabView Log` SELECT * FROM `ViewLogTemp`")
+		frappe.db.commit()
 
 		# Delete temporary table
 		frappe.db.sql("DROP table `ViewLogTemp`")
