@@ -187,7 +187,9 @@ def get_role_permissions(doctype_meta, user=None):
 				and ptype != 'create'):
 				perms['if_owner'][ptype] = 1
 				# has no access if not owner
-				perms[ptype] = 0
+				# only provide read access so that user is able to at-least access list
+				# (and the documents will be filtered based on owner sin further checks)
+				perms[ptype] = 1 if ptype == 'read' else 0
 
 		frappe.local.role_permissions[cache_key] = perms
 
