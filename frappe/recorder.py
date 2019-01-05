@@ -31,6 +31,7 @@ def sql(*args, **kwargs):
 	# __self__ will refer to frappe.db
 	# Rest is trivial
 	query = frappe.db._cursor._executed
+	compressed_result = compress(result)
 
 	# Built in profiler is already turned on
 	# Now fetch the profile data for last query
@@ -46,7 +47,7 @@ def sql(*args, **kwargs):
 
 	query = sqlparse.format(query.strip(), keyword_case="upper", reindent=True)
 	data = {
-		"result": result,
+		"result": compressed_result,
 		"query": query,
 		"highlighted_query": highlight(query, MySqlLexer(), HtmlFormatter()),
 		"explain_result": compress(explain_result),
@@ -115,10 +116,14 @@ class Recorder():
 
 def compress(data):
 	if data:
-		values = list()
-		keys = list(data[0].keys())
-		for row in data:
-			values.append([row.get(key) for key in keys])
+		if isinstance(data[0], dict):
+			keys = list(data[0].keys())
+			values = list()
+			for row in data:
+				values.append([row.get(key) for key in keys])
+		else:
+			keys = [column[0] for column in frappe.db._cursor.description]
+			values = data
 	else:
 		keys, values = [], []
 	return {"keys": keys, "values": values}

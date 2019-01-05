@@ -29,8 +29,13 @@
 			</tbody>
 		</table>
 		<table class="table table-striped" >
+			<thead>
+				<tr>
+					<th v-for="(key, index) in call.result.keys" :key="index" v-bind="call">{{ key }}</th>
+				</tr>
+			</thead>
 			<tbody>
-				<tr v-for="(row, index) in call.result" :key="index" v-bind="call">
+				<tr v-for="(row, index) in call.result.values" :key="index" v-bind="call">
 					<td v-for="(value, index) in row" :key="index" v-bind="call">{{ value }}</td>
 				</tr>
 			</tbody>
