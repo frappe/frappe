@@ -10,9 +10,9 @@
 			</tr>
 		</thead>
 		<tbody>
-			<tr v-for="request in requests" :key="request.uuid" v-bind="request">
+			<router-link style="cursor: pointer" :to="{name: 'request-detail', params: {request_uuid: request.uuid}}" tag="tr"  v-for="request in requests" :key="request.uuid" v-bind="request">
 				<td>
-					<router-link :to="{name: 'request-detail', params: {request_uuid: request.uuid}} ">{{ request.uuid }}</router-link>
+					{{ request.uuid }}
 				</td>
 				<td>
 					{{ request.path }}
@@ -26,7 +26,7 @@
 				<td>
 					{{ request.method }}
 				</td>
-			</tr>
+			</router-link>
 		</tbody>
 	</table>
 </template>
