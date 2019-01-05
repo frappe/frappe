@@ -44,10 +44,11 @@ def sql(*args, **kwargs):
 	else:
 		explain_result = ""
 
+	query = sqlparse.format(query.strip(), keyword_case="upper", reindent=True)
 	data = {
-		"args": args,
-		"kwargs": kwargs,
 		"result": result,
+		"query": query,
+		"highlighted_query": highlight(query, MySqlLexer(), HtmlFormatter()),
 		"explain_result": compress(explain_result),
 		"profile_result": compress(profile_result),
 		"stack": stack,
