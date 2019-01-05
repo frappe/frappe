@@ -11,6 +11,9 @@ import sqlparse
 import uuid
 import datetime
 
+from pygments import highlight
+from pygments.lexers import MySqlLexer
+from pygments.formatters import HtmlFormatter
 
 def sql(*args, **kwargs):
 	# Execute wrapped function as is
@@ -45,9 +48,7 @@ def sql(*args, **kwargs):
 		"args": args,
 		"kwargs": kwargs,
 		"result": result,
-		"query": sqlparse.format(query, keyword_case="upper", reindent=True),
-		"explain_result": explain_result,
-		"profile_result": profile_result,
+		"highlighted_query": highlight(sqlparse.format(query.strip(), keyword_case="upper", reindent=True), MySqlLexer(), HtmlFormatter()),
 		"stack": stack,
 		"time": {
 			"start": start_time,

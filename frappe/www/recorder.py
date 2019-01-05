@@ -6,9 +6,10 @@ from __future__ import unicode_literals
 import frappe
 import json
 import redis
+from pygments.formatters import HtmlFormatter
 
 def get_context(context):
-	pass
+	return {"highlight": HtmlFormatter().get_style_defs()}
 
 
 @frappe.whitelist()

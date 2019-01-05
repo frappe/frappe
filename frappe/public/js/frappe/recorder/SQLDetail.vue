@@ -3,7 +3,7 @@
 		<div>{{ call.time.start }}</div>
 		<div>{{ call.time.end }}</div>
 		<div>{{ call.time.total }}</div>
-		<div><pre>{{ call.query }}</pre></div>
+		<div v-html="call.highlighted_query"></div>
 		<div><pre>{{ call.stack }}</pre></div>
 	</div>
 </template>
