@@ -16,6 +16,9 @@ def do_not_record():
 
 def get_context(context):
 	do_not_record()
+	if frappe.request.path[-1] != "/":
+		frappe.local.flags.redirect_location = "recorder/"
+		raise frappe.Redirect
 	return {"highlight": HtmlFormatter().get_style_defs()}
 
 
