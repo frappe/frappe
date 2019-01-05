@@ -8,12 +8,20 @@ import json
 import redis
 from pygments.formatters import HtmlFormatter
 
+def do_not_record():
+	if hasattr(frappe.local, "_recorder"):
+		del frappe.local._recorder
+		frappe.db.sql = frappe.db._sql
+
+
 def get_context(context):
+	do_not_record()
 	return {"highlight": HtmlFormatter().get_style_defs()}
 
 
 @frappe.whitelist()
 def get_requests():
+	do_not_record()
 	requests = frappe.cache().lrange("recorder-requests", 0, -1)
 	requests = list(map(lambda request: json.loads(request.decode()), requests))
 	return requests
@@ -21,6 +29,7 @@ def get_requests():
 
 @frappe.whitelist()
 def get_request_data(uuid):
+	do_not_record()
 	calls = frappe.cache().get("recorder-request-{}".format(uuid))
 	calls = json.loads(calls.decode())
 	for index, call in enumerate(calls):
