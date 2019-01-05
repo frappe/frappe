@@ -28,8 +28,8 @@ frappe.ready(function() {
 	  ]
 
 	const router = new VueRouter({
-		mode: 'history',
-		base: "/recorder",
+		mode: 'hash',
+		base: "/recorder/",
 		routes: routes,
 	})
 
