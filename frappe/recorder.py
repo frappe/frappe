@@ -48,7 +48,8 @@ def sql(*args, **kwargs):
 		"args": args,
 		"kwargs": kwargs,
 		"result": result,
-		"highlighted_query": highlight(sqlparse.format(query.strip(), keyword_case="upper", reindent=True), MySqlLexer(), HtmlFormatter()),
+		"explain_result": compress(explain_result),
+		"profile_result": compress(profile_result),
 		"stack": stack,
 		"time": {
 			"start": start_time,
@@ -105,3 +106,11 @@ class Recorder():
 	def _patch(self):
 		frappe.db._sql = frappe.db.sql
 		frappe.db.sql = sql
+
+def compress(data):
+	if data:
+		values = list()
+		keys = list(data[0].keys())
+		for row in data:
+			values.append([row.get(key) for key in keys])
+		return {"keys": keys, "values": values}
