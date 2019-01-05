@@ -107,6 +107,7 @@ class Recorder():
 	def _patch(self):
 		frappe.db._sql = frappe.db.sql
 		frappe.db.sql = sql
+		frappe.db._sql("SET PROFILING = 1")
 
 def compress(data):
 	if data:
