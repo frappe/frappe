@@ -383,7 +383,17 @@ class TestPermissions(unittest.TestCase):
 		update('Blog Post', 'Blogger', 0, 'read', 1)
 		update('Blog Post', 'Blogger', 0, 'write', 1)
 		update('Blog Post', 'Blogger', 0, 'delete', 1)
+
+		# currently test2 user has not created any document
+		# still he should be able to do get_list query which should
+		# not raise permission error but simply return empty list
+		frappe.set_user("test2@example.com")
+		self.assertEqual(frappe.get_list('Blog Post'), [])
+
+		frappe.set_user("Administrator")
+
 		# creates a custom docperm with just read access
+		# now any user can read any blog post (but other rights are limited to the blog post owner)
 		add_permission('Blog Post', 'Blogger')
 		frappe.clear_cache(doctype="Blog Post")
 
