@@ -119,4 +119,6 @@ def compress(data):
 		keys = list(data[0].keys())
 		for row in data:
 			values.append([row.get(key) for key in keys])
-		return {"keys": keys, "values": values}
+	else:
+		keys, values = [], []
+	return {"keys": keys, "values": values}
