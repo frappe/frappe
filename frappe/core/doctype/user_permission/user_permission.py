@@ -56,10 +56,10 @@ def get_user_permissions(user=None):
 		if not out.get(perm.allow):
 			out[perm.allow] = []
 
-		out[perm.allow].append({
+		out[perm.allow].append(frappe._dict({
 			'doc': doc_name,
 			'applicable_for': perm.get('applicable_for')
-		})
+		}))
 
 	try:
 		for perm in frappe.get_all('User Permission',
@@ -74,6 +74,7 @@ def get_user_permissions(user=None):
 				for doc in decendants:
 					add_doc_to_perm(perm, doc)
 
+		out = frappe._dict(out)
 		frappe.cache().hset("user_permissions", user, out)
 
 	except frappe.SQLError as e:
