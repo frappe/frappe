@@ -35,7 +35,7 @@ def sql(*args, **kwargs):
 	# Built in profiler is already turned on
 	# Now fetch the profile data for last query
 	# This must be done after collecting query from _cursor._executed
-	profile_result = frappe.db._sql("SHOW PROFILE ALL", as_dict=True)
+	profile_result = frappe.db._sql("SHOW PROFILE", as_dict=True)
 
 	# Collect EXPLAIN for executed query
 	if query.lower().strip().split()[0] in ("select", "update", "delete"):
@@ -83,6 +83,10 @@ class Recorder():
 		self.cmd = frappe.local.form_dict.cmd
 		self.method = frappe.request.method
 
+		self.request = {
+			"headers": dict(frappe.local.request.headers),
+			"data": frappe.local.form_dict,
+		}
 		self._patch()
 
 	def register(self, data):
