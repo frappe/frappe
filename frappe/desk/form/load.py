@@ -219,7 +219,7 @@ def get_view_logs(doctype, docname):
 	""" get and return the latest view logs if available """
 	logs = []
 	if hasattr(frappe.get_meta(doctype), 'track_views') and frappe.get_meta(doctype).track_views:
-		view_logs = frappe.get_all("View log", filters={
+		view_logs = frappe.get_all("View Log", filters={
 			"reference_doctype": doctype,
 			"reference_name": docname,
 		}, fields=["name", "creation"], order_by="creation desc")
