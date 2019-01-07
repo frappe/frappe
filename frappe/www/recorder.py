@@ -27,6 +27,8 @@ def get_requests():
 	do_not_record()
 	requests = frappe.cache().lrange("recorder-requests", 0, -1)
 	requests = list(map(lambda request: json.loads(request.decode()), requests))
+	for index, request in enumerate(requests, start=1):
+		request["index"] = index
 	return requests
 
 
