@@ -31,7 +31,7 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 			frappe.set_route('Form', link_field.options, value);
 		});
 		this.$input.on('keydown', e => {
-			// if backspace on empty input, delete last value
+			// if backspace key pressed on empty input, delete last value
 			if (e.keyCode == frappe.ui.keyCode.BACKSPACE && e.target.value === '') {
 				this.rows = this.rows.slice(0, this.rows.length - 1);
 				this.parse_validate_and_set_in_model('');
