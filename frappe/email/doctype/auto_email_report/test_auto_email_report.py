@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest, json
-from frappe.utils import get_link_to_form, cstr
+from frappe.utils import get_link_to_form
 
 # test_records = frappe.get_test_records('Auto Email Report')
 
