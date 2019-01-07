@@ -2,11 +2,11 @@
 	<table class="table table-hover">
 		<thead>
 			<tr>
-				<th>Index<button v-on:click=" key='index'">Sort</button></th>
-				<th>Time<button v-on:click=" key='time'">Sort</button></th>
-				<th>Method<button v-on:click=" key='method'">Sort</button></th>
-				<th>Path<button v-on:click=" key='path'">Sort</button></th>
-				<th>CMD<button v-on:click=" key='cmd'">Sort</button></th>
+				<th>Index<button @click=" sort('index') ">Sort</button></th>
+				<th>Time<button @click=" sort('time') ">Sort</button></th>
+				<th>Method<button @click=" sort('method') ">Sort</button></th>
+				<th>Path<button @click=" sort('path') ">Sort</button></th>
+				<th>CMD<button @click=" sort('cmd') ">Sort</button></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -27,7 +27,10 @@ export default {
 	data() {
 		return {
 			requests: [],
-			key: "index",
+			query: {
+				sort: "index",
+				order: "asc",
+			},
 		};
 	},
 	mounted() {
@@ -37,8 +40,21 @@ export default {
 	},
 	computed: {
 		sortedRequests: function() {
-			return this.requests.sort((a,b) => (a[this.key] > b[this.key]) ? 1 : -1)
+			const order = (this.query.order == "asc") ? 1 : -1
+			const sort = this.query.sort
+			return this.requests.sort((a,b) => (a[sort] > b[sort]) ? order : -order)
 		}
 	},
+	methods: {
+		sort: function(key) {
+			if(key == this.query.sort) {
+				this.query.order = (this.query.order == "asc") ? "desc" : "asc"
+			}
+			else {
+				this.query.order = "asc"
+			}
+			this.query.sort = key
+		}
+	}
 };
 </script>
