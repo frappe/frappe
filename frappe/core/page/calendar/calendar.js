@@ -227,6 +227,7 @@ function create_popover(event, jsEvent) {
 	});
 	$(jsEvent.target).popover("show");
 	popover_edit_button(event);
+	$(".popover.fade.bottom.in").css("padding","0px")
 
 }
 
