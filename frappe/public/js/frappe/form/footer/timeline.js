@@ -491,7 +491,7 @@ frappe.ui.form.Timeline = class Timeline {
 			me = this,
 			out = [];
 		for(let c of docinfo.views){
-			c.content = `<a href="#Form/View log/${c.name}"> ${__("viewed")}</a>`;
+			c.content = `<a href="#Form/View Log/${c.name}"> ${__("viewed")}</a>`;
 			c.comment_type = "Info";
 			out.push(c);
 		};

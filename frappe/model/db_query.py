@@ -573,6 +573,7 @@ class DatabaseQuery(object):
 						)
 
 					match_conditions.append("({condition})".format(condition=condition))
+					match_filters[df.get('options')] = docs
 
 		if match_conditions:
 			self.match_conditions.append(" and ".join(match_conditions))
