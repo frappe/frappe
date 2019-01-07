@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest, json
+from frappe.utils import get_link_to_form, cstr
 
 # test_records = frappe.get_test_records('Auto Email Report')
 
@@ -25,8 +26,9 @@ class TestAutoEmailReport(unittest.TestCase):
 		)).insert()
 
 		data = auto_email_report.get_report_content()
-		self.assertTrue('<td>DocShare</td>' in data)
-		self.assertTrue('<td>Core</td>' in data)
+
+		self.assertTrue('<td>'+get_link_to_form('DocType', 'Designation')+'</td>' in data)
+		self.assertTrue('<td>'+str(get_link_to_form('Module Def', 'Core'))+'</td>' in data)
 
 		auto_email_report.format = 'CSV'
 
