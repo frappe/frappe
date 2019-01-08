@@ -10,13 +10,19 @@ frappe.upload = {
 			opts.allow_multiple = 1
 		}
 
-		// whether to show public/private checkbox or not
-		opts.show_private = !("is_private" in opts);
-
-		// make private by default
-		if (!("options" in opts) || ("options" in opts &&
-			(opts.options && !opts.options.toLowerCase()=="public" && !opts.options.toLowerCase()=="image"))) {
+		if (frappe.sys_defaults.force_all_attachments_private) {
+			opts.show_private = 0;
 			opts.is_private = 1;
+		} else {
+
+			// whether to show public/private checkbox or not
+			opts.show_private = !("is_private" in opts);
+
+			// make private by default
+			if (!("options" in opts) || ("options" in opts &&
+				(opts.options && !opts.options.toLowerCase()=="public" && !opts.options.toLowerCase()=="image"))) {
+				opts.is_private = 1;
+			}
 		}
 
 		var d = null;
