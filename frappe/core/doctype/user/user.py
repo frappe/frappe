@@ -893,7 +893,7 @@ def get_permission_query_conditions(user):
 		return ""
 	else:
 		return """(`tabUser`.name not in ({standard_users}))""".format(
-			standard_users="'" + "', '".join(STANDARD_USERS) + "'")
+			standard_users = ", ".join(frappe.db.escape(user) for user in STANDARD_USERS))
 
 def has_permission(doc, user):
 	if (user != "Administrator") and (doc.name in STANDARD_USERS):
