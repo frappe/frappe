@@ -2,7 +2,6 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-from six.moves import range
 from six import iteritems
 import frappe
 
@@ -53,11 +52,11 @@ def get_reference_addresses_and_contact(reference_doctype, reference_name):
 		filters = { "name": reference_name }
 
 	reference_list = [d[0] for d in frappe.get_list(reference_doctype, filters=filters, fields=["name"], as_list=True)]
+
 	for d in reference_list:
 		reference_details.setdefault(d, frappe._dict())
-
-	reference_details = get_reference_details(reference_doctype, reference_list, "Address", reference_details)
-	reference_details = get_reference_details(reference_doctype, reference_list, "Contact", reference_details)
+	reference_details = get_reference_details(reference_doctype, "Address", reference_list, reference_details)
+	reference_details = get_reference_details(reference_doctype, "Contact", reference_list, reference_details)
 
 	for reference_name, details in iteritems(reference_details):
 		addresses = details.get("address", [])
@@ -68,21 +67,14 @@ def get_reference_addresses_and_contact(reference_doctype, reference_name):
 			result.extend(add_blank_columns_for("Address"))
 			data.append(result)
 		else:
-			addresses = map(list, addresses)
-			contacts = map(list, contacts)
+			result = [reference_name]
+			result.extend(list(addresses) or add_blank_columns_for("Address"))
+			result.extend(list(contacts) or add_blank_columns_for("Contact"))
+			data.append(result)
 
-			max_length = max(len(addresses), len(contacts))
-			for idx in range(0, max_length):
-				result = [reference_name]
-				address = addresses[idx] if idx < len(addresses) else add_blank_columns_for("Address")
-				contact = contacts[idx] if idx < len(contacts) else add_blank_columns_for("Contact")
-				result.extend(address)
-				result.extend(contact)
-
-				data.append(result)
 	return data
 
-def get_reference_details(reference_doctype, reference_list, doctype, reference_details):
+def get_reference_details(reference_doctype, doctype, reference_list, reference_details):
 	filters =  [
 		["Dynamic Link", "link_doctype", "=", reference_doctype],
 		["Dynamic Link", "link_name", "in", reference_list]
@@ -91,9 +83,7 @@ def get_reference_details(reference_doctype, reference_list, doctype, reference_
 
 	records = frappe.get_list(doctype, filters=filters, fields=fields, as_list=True)
 	for d in records:
-		details = reference_details.get(d[0]) or {}
-		details.setdefault(frappe.scrub(doctype), []).append(d[1:])
-
+		reference_details[d[0]][frappe.scrub(doctype)] = d[1:]
 	return reference_details
 
 def add_blank_columns_for(doctype):

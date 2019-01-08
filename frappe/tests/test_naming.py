@@ -62,9 +62,12 @@ class TestNaming(unittest.TestCase):
 			month=now_datetime().strftime('%m'), status=todo.status, series=series))
 
 	def test_revert_series(self):
-		series = 'TEST-2018-'
+		from datetime import datetime
+		year = datetime.now().year
+
+		series = 'TEST-{}-'.format(year)
 		key = 'TEST-.YYYY.-'
-		name = 'TEST-2018-00001'
+		name = 'TEST-{}-00001'.format(year)
 		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 1)""", (series,))
 		revert_series_if_last(key, name)
 		count = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
@@ -72,9 +75,9 @@ class TestNaming(unittest.TestCase):
 		self.assertEqual(count.get('current'), 0)
 		frappe.db.sql("""delete from `tabSeries` where name = %s""", series)
 
-		series = 'TEST-2018-'
+		series = 'TEST-{}-'.format(year)
 		key = 'TEST-.YYYY.-.#####'
-		name = 'TEST-2018-00002'
+		name = 'TEST-{}-00002'.format(year)
 		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 2)""", (series,))
 		revert_series_if_last(key, name)
 		count = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]

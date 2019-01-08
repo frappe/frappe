@@ -1644,7 +1644,7 @@ class extends Component {
 							 ],
 							action: {
 								primary: {
-									   label: __("Create"),
+									   label: __('Create'),
 									onsubmit: (values) => {
 										if ( values.type === "Group" ) {
 											if ( !frappe._.is_empty(values.users) ) {
@@ -1993,7 +1993,9 @@ class extends Component {
 		return (
 			h("li", null,
 				h("a", { class: props.active ? "active": "", onclick: () => {
-					props.last_message.seen.push(frappe.session.user)
+					if (props.last_message) {
+						props.last_message.seen(frappe.session.user);
+					}
 					props.click(props)
 				} },
 					h("div", { class: "row" },

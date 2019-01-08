@@ -65,8 +65,8 @@ def create_json_gz_file(data, dt, dn):
 		"file_name": json_filename,
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
-		"content": compressed_content,
-		"decode": True})
+		"content": compressed_content
+	})
 	_file.save()
 
 @frappe.whitelist()

@@ -410,7 +410,7 @@ def get_user_icons(user):
 			add = False
 
 		if not icon.custom:
-			if icon.module_name=='Learn':
+			if icon.module_name==['Help', 'Settings']:
 				pass
 
 			elif icon.type=="page" and icon.link not in allowed_pages:
