@@ -12,7 +12,6 @@ def create_test_calendar_events():
 	if len(doc) != 0:
 		return doc
 	else:
-		print("created")
 		doc = frappe.get_doc({
 			"doctype": "Event",
 			"subject":"_Test_Cal Event 1",
