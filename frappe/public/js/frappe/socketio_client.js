@@ -282,11 +282,11 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 			frappe.throw(__('File Upload in Progress. Please try again in a few moments.'));
 		}
 
-		if (!frappe.boot.sysdefaults.use_socketio_to_upload_file) {
-			return fallback();
+		function fallback_required() {
+			return !frappe.boot.sysdefaults.use_socketio_to_upload_file || !frappe.socketio.socket.connected;
 		}
 
-		if (!frappe.socketio.socket.connected) {
+		if (fallback_required()) {
 			return fallback ? fallback() : frappe.throw(__('Socketio is not connected. Cannot upload'));
 		}
 
