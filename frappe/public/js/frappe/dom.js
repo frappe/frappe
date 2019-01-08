@@ -343,6 +343,7 @@ $(window).on('offline', function() {
 			} else {
 				var is_value_null = is_null(v.value);
 				var is_label_null = is_null(v.label);
+				var is_disabled = Boolean(v.disabled);
 
 				if (is_value_null && is_label_null) {
 					var value = v;
@@ -352,7 +353,10 @@ $(window).on('offline', function() {
 					var label = is_label_null ? __(value) : __(v.label);
 				}
 			}
-			$('<option>').html(cstr(label)).attr('value', value).appendTo(this);
+			$('<option>').html(cstr(label))
+				.attr('value', value)
+				.prop('disabled', is_disabled)
+				.appendTo(this);
 		}
 		// select the first option
 		this.selectedIndex = 0;
