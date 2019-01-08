@@ -27,7 +27,6 @@ class TestAutoEmailReport(unittest.TestCase):
 
 		data = auto_email_report.get_report_content()
 
-		self.assertTrue('<td>'+str(get_link_to_form('DocType', 'Designation'))+'</td>' in data)
 		self.assertTrue('<td>'+str(get_link_to_form('Module Def', 'Core'))+'</td>' in data)
 
 		auto_email_report.format = 'CSV'
