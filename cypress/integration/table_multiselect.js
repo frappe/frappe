@@ -5,13 +5,13 @@ context('Table MultiSelect', () => {
 
 	it('select value from multiselect dropdown', () => {
 		cy.visit('/desk#Form/ToDo/New ToDo 1');
+		cy.fill_field('description', 'asdf', 'Text Editor').blur();
 		cy.get('input[data-fieldname="assign_to"]').focus().as('input');
 		cy.get('input[data-fieldname="assign_to"] + ul').should('be.visible');
 		cy.get('@input').type('faris{enter}', { delay: 100 });
 		cy.get('.frappe-control[data-fieldname="assign_to"] .form-control .tb-selected-value')
 			.first().as('selected-value');
 		cy.get('@selected-value').should('contain', 'faris@erpnext.com');
-		cy.fill_field('description', 'asdf', 'Text Editor');
 
 		cy.server();
 		cy.route('POST', '/').as('save_form');
