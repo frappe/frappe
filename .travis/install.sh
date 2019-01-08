@@ -11,10 +11,9 @@ nvm install v8.10.0
 
 pip install python-coveralls
 
-wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
-
-sudo python install.py --develop --user travis --without-bench-setup
-sudo pip install -e ~/bench
+python $TRAVIS_BUILD_DIR/.travis/install.py --develop --user travis --without-bench-setup
+deactivate
+pip install --user -e ~/bench
 
 rm $TRAVIS_BUILD_DIR/.git/shallow
 cd ~/ && bench init frappe-bench --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
