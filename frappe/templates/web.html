@@ -12,15 +12,17 @@
 	</div>
 
 	<main class="container">
-		<div class="page-header">
-			{% block header %}{% endblock %}
-		</div>
+		<div class="d-flex justify-content-between align-items-center">
+			<div class="page-header">
+				{% block header %}{% endblock %}
+			</div>
 
-		{% if self.header_actions() %}
-		<div class="page-header-actions-block">
-			{% block header_actions %}{% endblock %}
+			{% if self.header_actions() %}
+			<div class="page-header-actions-block">
+				{% block header_actions %}{% endblock %}
+			</div>
+			{% endif %}
 		</div>
-		{% endif %}
 
 		<div class="page_content">
 			{%- block page_content -%}{%- endblock -%}
