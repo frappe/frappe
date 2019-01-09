@@ -19,16 +19,18 @@ frappe.ui.Filter = class {
 			["<=", "<="],
 			["Between", __("Between")],
 			["descendants of", __("Descendants Of")],
-			["ancestors of", __("Ancestors Of")]
+			["ancestors of", __("Ancestors Of")],
+			["Previous", __("Previous")],
+			["Next", __("Next")]
 		];
 		this.invalid_condition_map = {
 			Date: ['like', 'not like'],
 			Datetime: ['like', 'not like'],
-			Data: ['Between'],
-			Select: ["Between", "<=", ">=", "<", ">"],
-			Link: ["Between"],
-			Currency: ["Between"],
-			Color: ["Between"]
+			Data: ['Between', 'Previous', 'Next'],
+			Select: ['like', 'not like'],
+			Link: ["Between", 'Previous', 'Next'],
+			Currency: ["Between", 'Previous', 'Next'],
+			Color: ["Between", 'Previous', 'Next']
 		};
 		this.make();
 		this.make_select();
@@ -181,7 +183,16 @@ frappe.ui.Filter = class {
 		// clear field area and make field
 		this.fieldselect.selected_doctype = doctype;
 		this.fieldselect.selected_fieldname = fieldname;
-
+		if(["Previous", "Next"].includes(condition) && ['Date', 'Datetime', 'DateRange', 'Select'].includes(this.field.df.fieldtype)) {
+			df.fieldtype = 'Select'
+			df.options = [
+				'1 week',
+				'1 month',
+				'3 months',
+				'6 months',
+				'1 year'
+			]
+		}
 		this.make_field(df, cur.fieldtype);
 	}
 
