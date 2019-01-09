@@ -16,6 +16,7 @@ from frappe.model import optional_fields
 from frappe.model.workflow import validate_workflow
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
+from frappe.doc_subscription import add_subcription
 
 # once_only validation
 # methods
@@ -1014,6 +1015,8 @@ class Document(BaseDocument):
 		version = frappe.new_doc('Version')
 		if version.set_diff(self._doc_before_save, self):
 			version.insert(ignore_permissions=True)
+			print("---------------------------------->>>>>>>>changes made")
+			add_subcription(self.doctype, self.name, frappe.session.user)
 
 	@staticmethod
 	def whitelist(f):

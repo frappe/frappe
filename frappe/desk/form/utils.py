@@ -6,6 +6,7 @@ import frappe, json
 import frappe.desk.form.meta
 import frappe.desk.form.load
 from frappe.utils.html_utils import clean_email_html
+from frappe.doc_subscription import add_subcription
 
 from frappe import _
 from six import string_types
@@ -68,6 +69,8 @@ def add_comment(doc):
 
 	doc.insert(ignore_permissions=True)
 
+	print("--------------------------------------------------------->>>>>>>>>inside add_comment")
+	add_subcription(doc.reference_doctype, doc.reference_name, frappe.session.user)
 	return doc.as_dict()
 
 @frappe.whitelist()
