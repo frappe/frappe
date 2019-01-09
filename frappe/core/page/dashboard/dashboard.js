@@ -11,17 +11,30 @@ frappe.pages['dashboard'].on_page_load = function(wrapper) {
 	</div>`).appendTo(this.page.main)
 
 	this.timespans = ["Last Week", "Last Month", "Last Quarter", "Last Year"];
+	this.timegrains = ["Daily", "Weekly", "Monthly", "Quarterly"];
 	this.filters = {
-		timespan: "Week",
+		timespan: "Last Week",
+		timegrain: "Daily",
 	}
-	this.timespan_select = this.page.add_select(__("Timespan"),
+	this.timespan_select = this.page.add_select(__("Time Span"),
 		this.timespans.map(d => {
+			return {"label": __(d), value: d }
+		})
+	)
+
+	this.timegrain_select = this.page.add_select(__("Time Grain"),
+		this.timegrains.map(d => {
 			return {"label": __(d), value: d }
 		})
 	)
 
 	this.timespan_select.on("change", function() {
 		me.filters.timespan = this.value
+		me.create_chart()
+	});
+
+	this.timegrain_select.on("change", function() {
+		me.filters.timegrain = this.value
 		me.create_chart()
 	});
 
