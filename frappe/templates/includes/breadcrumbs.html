@@ -1,5 +1,5 @@
+{% if not no_breadcrumbs and parents %}
 <div class="container mt-3">
-	{% if not no_breadcrumbs and parents %}
 	<nav aria-label="breadcrumb">
 		<ol class="breadcrumb" itemscope itemtype="http://data-vocabulary.org/Breadcrumb">
 			{%- set parents = parents[-3:] %}
@@ -15,5 +15,5 @@
 			</li>
 		</ol>
 	</nav>
-	{% endif %}
 </div>
+{% endif %}
