@@ -166,3 +166,6 @@ table td div {
 	max-height: 150px;
 }
 
+.print-format li[data-list="bullet"] {
+	list-style-type: disc;
+}
