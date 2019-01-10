@@ -616,15 +616,6 @@ class FilterArea {
 			};
 		}));
 
-		if (fields.length > 3) {
-			fields = fields.map((df, i) => {
-				if (i >= 3) {
-					df.input_class = 'hidden-sm hidden-xs';
-				}
-				return df;
-			});
-		}
-
 		fields.map(df => this.list_view.page.add_field(df));
 
 		// search icon in name filter
