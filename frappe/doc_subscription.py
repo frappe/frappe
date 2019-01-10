@@ -45,7 +45,7 @@ def get_message(doc_name, doctype):
 		if changed_fields != "":
 			html += '\n<h4>Changed fields</h4>\n' + changed_fields
 
-	doc = frappe.get_doc(doctype, doc_name )
+	doc = frappe.get_doc(doctype, doc_name)
 	if doc._comments:
 		html += "<h4>Comments</h4>\n"
 		com = json.loads(doc._comments)
