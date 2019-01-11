@@ -11,4 +11,4 @@ context('Relative Timeframe', () => {
     cy.get('select.input-with-feedback.form-control').select("1 month")
     cy.get('set-filter-and-run.btn.btn-sm.btn-primary.pull-left').click()
   });
-}
+});

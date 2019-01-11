@@ -404,9 +404,9 @@ class DatabaseQuery(object):
 
 			if f.operator.lower() in ('previous', 'next'):
 				if f.operator.lower() == "previous":
-					if f.value == "week":
+					if f.value == "1 week":
 						date_range = [add_to_date(nowdate(), days=-7), nowdate()]
-					elif f.value == "month":
+					elif f.value == "1 month":
 						date_range = [add_to_date(nowdate(), months=-1), nowdate()]
 					elif f.value == "3 months":
 						date_range = [add_to_date(nowdate(), months=-3), nowdate()]
@@ -415,9 +415,9 @@ class DatabaseQuery(object):
 					elif f.value == "1 year":
 						date_range = [add_to_date(nowdate(), years=-1), nowdate()]
 				elif f.operator.lower() == "next":
-					if f.value == "week":
+					if f.value == "1 week":
 						date_range = [nowdate(), add_to_date(nowdate(), days=7)]
-					elif f.value == "month":
+					elif f.value == "1 month":
 						date_range = [nowdate(), add_to_date(nowdate(), months=1)]
 					elif f.value == "3 months":
 						date_range = [nowdate(), add_to_date(nowdate(), months=3)]
