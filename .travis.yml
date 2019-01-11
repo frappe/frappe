@@ -29,6 +29,7 @@ matrix:
     env: TEST_TYPE=ui
 
 install:
+    kuch bhi
   - $TRAVIS_BUILD_DIR/.travis/install.sh
 
 before_script:
