@@ -89,7 +89,7 @@ def sending_mail():
 			if content != '':
 				message += """<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
 				<div style='margin-bottom: 20px; background-color: #fff; border: 1px solid transparent; border-radius: 4px; -webkit-box-shadow: 0 1px 1px rgba(0,0,0,.05); box-shadow: 0 1px 1px rgba(0,0,0,.05); border-color: #ddd;'>
-					<div style='color: #333; background-color: #f5f5f5; border-color: #ddd; padding: 10px 15px; border-bottom: 1px solid transparent; border-top-left-radius: 3px; border-top-right-radius: 3px; color:#8d99a6!important'>{0} : {1} <button>Unsubscribe</button></div>
+					<div style='color: #333; background-color: #f5f5f5; border-color: #ddd; padding: 10px 15px; border-bottom: 1px solid transparent; border-top-left-radius: 3px; border-top-right-radius: 3px; color:#8d99a6!important'>{0} : {1} </div>
 					<div style='padding: 15px; color:#36414C!important'> {2} </div>
 				</div>""".format(d2.ref_doctype, d2.ref_docname, content)
 
