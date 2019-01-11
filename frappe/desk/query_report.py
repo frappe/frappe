@@ -242,6 +242,10 @@ def get_filtered_data(ref_doctype, columns, data, user):
 	role_permissions = get_role_permissions(frappe.get_meta(ref_doctype), user)
 	if_owner = role_permissions.get("if_owner", {}).get("report")
 
+	user_col = linked_doctypes.get("User")
+	check_owner = role_permissions.get("if_owner", {}).get("read")\
+		and user_col is not None and columns_dict[user_col] == columns_dict.get("owner")
+
 	if match_filters_per_doctype:
 		for row in data:
 			# Why linked_doctypes.get(ref_doctype)? because if column is empty, linked_doctypes[ref_doctype] is removed
@@ -249,7 +253,8 @@ def get_filtered_data(ref_doctype, columns, data, user):
 				result.append(row)
 
 			elif has_match(row, linked_doctypes, match_filters_per_doctype, ref_doctype, if_owner, columns_dict, user):
-				result.append(row)
+				if not check_owner or row[user_col] == user:
+					result.append(row)
 	else:
 		result = list(data)
 
