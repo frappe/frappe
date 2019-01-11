@@ -82,7 +82,6 @@ def sending_mail():
 	users = frappe.get_all("Document Follow", distinct=1, fields=["user"])
 	#data = frappe.get_list("Document Follow", fields = ["user"])
 	for d in users:
-		print("----------------------->>>>>",d.user)
 		data = frappe.get_all("Document Follow", filters={"user" : d.user}, distinct=1, fields=["ref_doctype","ref_docname"])
 		message = ""
 		for d2 in data:
