@@ -3,12 +3,35 @@ context('Relative Timeframe', () => {
 		cy.login('Administrator', 'qwe');
 		cy.visit('/desk');
 	});
-  it('set relative filter and check list', () =>{
-		cy.visit('/desk#List/Sales%20Order/List');
-    cy.get('btn.btn-default.btn-xs.add-filter.text-muted:contains("Add Filter")').click()
-    cy.get('input.form-control').type("Delivery Date").blur()
-    cy.get('select.condition.form-control').select("Next")
-    cy.get('select.input-with-feedback.form-control').select("1 month")
-    cy.get('set-filter-and-run.btn.btn-sm.btn-primary.pull-left').click()
+	before(() => {
+		cy.login('Administrator', 'qwe');
+		cy.visit('/desk');
+		cy.window().its('frappe').then(frappe => {
+			frappe.call("frappe.tests.test_utils.create_todo_records")
+		});
+	});
+  it('set relative filter and check list', () => {
+		cy.visit('/desk#List/ToDo/List');
+		cy.get('.list-row:contains("this is fourth todo")').should('exist');
+    cy.get('.tag-filters-area .btn:contains("Add Filter")').click();
+		cy.get('.fieldname-select-area').should('exist');
+    cy.get('.fieldname-select-area input').type("Due Date{enter}", { delay: 100 });
+    cy.get('select.condition.form-control').select("Previous");
+    cy.get('.filter-field select.input-with-feedback.form-control').select("1 week");
+    cy.get('.filter-box .btn:contains("Apply")').click();
+		cy.get('.list-row').should('contain', 'this is first todo');
+		cy.get('.remove-filter.btn').click();
   });
+
+	it('set relative filter and check list', () => {
+		cy.visit('/desk#List/ToDo/List');
+		cy.get('.list-row:contains("this is fourth todo")').should('exist');
+		cy.get('.tag-filters-area .btn:contains("Add Filter")').click();
+    cy.get('.fieldname-select-area input').type("Due Date{enter}", { delay: 100 });
+    cy.get('select.condition.form-control').select("Next");
+    cy.get('.filter-field select.input-with-feedback.form-control').select("1 week");
+    cy.get('.filter-box .btn:contains("Apply")').click();
+		cy.get('.list-row').should('contain', 'this is second todo');
+		cy.get('.remove-filter.btn').click();
+	})
 });

@@ -3,9 +3,9 @@
 from __future__ import unicode_literals
 
 import unittest
-
+import frappe
 from frappe.utils import evaluate_filters, money_in_words, scrub_urls, get_url
-from frappe.utils import ceil, floor
+from frappe.utils import ceil, floor, now, add_to_date
 
 class TestFilters(unittest.TestCase):
 	def test_simple_dict(self):
@@ -122,3 +122,26 @@ class TestHTMLUtils(unittest.TestCase):
 		clean = clean_email_html(sample)
 		self.assertTrue('<h1>Hello</h1>' in clean)
 		self.assertTrue('<a href="http://test.com">text</a>' in clean)
+
+@frappe.whitelist()
+def create_todo_records():
+	t1 = frappe.get_doc({
+		"doctype": "ToDo",
+		"date": add_to_date(now(), days=3),
+		"description": "this is first todo"
+	}).insert()
+	t2 = frappe.get_doc({
+		"doctype": "ToDo",
+		"date": add_to_date(now(), days=-3),
+		"description": "this is second todo"
+	}).insert()
+	t3 = frappe.get_doc({
+		"doctype": "ToDo",
+		"date": add_to_date(now(), months=2),
+		"description": "this is third todo"
+	}).insert()
+	t1 = frappe.get_doc({
+		"doctype": "ToDo",
+		"date": add_to_date(now(), months=-2),
+		"description": "this is fourth todo"
+	}).insert()
