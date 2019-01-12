@@ -16,7 +16,7 @@ frappe.listview_settings['User Permission'] = {
 							.then((data) => {
 								dialog.hide();
 								frappe.show_alert({
-									message: __('{0} records deleted', [data]),
+									message: __('{0} records deleted', [data == '0' ? 'No': data]),
 									indicator: 'green'
 								});
 								listview.refresh();
