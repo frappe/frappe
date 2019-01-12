@@ -431,30 +431,29 @@ class TestPermissions(unittest.TestCase):
 		frappe.delete_doc('Blog Post', '-test-blog-post-title')
 
 	def test_clear_user_permissions(self):
+		frappe.set_user('Administrator')
 		clear_user_permissions_for_doctype('Blog Category', 'test2@example.com')
 		clear_user_permissions_for_doctype('Blog Post', 'test2@example.com')
-
-		print(frappe.get_all('Blog Post'))
 
 		add_user_permission("Blog Category", '_Test Blog Category 1', 'test2@example.com')
 
 		add_user_permission('Blog Post', '-test-blog-post-1', 'test2@example.com')
 		add_user_permission('Blog Post', '-test-blog-post-2', 'test2@example.com')
 
-		deleted_user_permission_count = clear_user_permissions('test2example.com', 'Blog Post')
+		deleted_user_permission_count = clear_user_permissions('test2@example.com', 'Blog Post')
 
 		self.assertEqual(deleted_user_permission_count, 2)
 
 		blog_post_user_permission_count = frappe.db.count('User Permission', filters={
-			'user': 'test2@erpnext.com',
-			'doctype': 'Blog Post'
+			'user': 'test2@example.com',
+			'allow': 'Blog Post'
 		})
 
 		self.assertEqual(blog_post_user_permission_count, 0)
 
 		blog_category_user_permission_count = frappe.db.count('User Permission', filters={
-			'user': 'test2@erpnext.com',
-			'doctype': 'Blog Category'
+			'user': 'test2@example.com',
+			'allow': 'Blog Category'
 		})
 
 		self.assertEqual(blog_category_user_permission_count, 1)
