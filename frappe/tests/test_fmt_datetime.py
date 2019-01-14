@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import datetime
 
 import frappe
-from frappe import _
 from frappe.utils import (
 	getdate, get_datetime, get_time,
 	get_user_date_format, get_user_time_format,
@@ -34,13 +33,26 @@ class TestFmtDatetime(unittest.TestCase):
 	formats.
 	"""
 
+	# Set up and tidy up routines
+
+	def setUp(self):
+		# create test domain
+		self.pre_test_date_format = frappe.db.get_default("date_format")
+		self.pre_test_time_format = frappe.db.get_default("time_format")
+
+	def tearDown(self):
+		frappe.db.set_default("date_format", self.pre_test_date_format)
+		frappe.db.set_default("time_format", self.pre_test_time_format)
+
 	# Test utility functions
 
-	def test_invalid_date_format(self):
-		frappe.db.set_default("date_format", "XXXXX")
+	def test_set_default_date_format(self):
+		frappe.db.set_default("date_format", "ZYX321")
+		self.assertEqual(frappe.db.get_default("date_format"), "ZYX321")
 
-	def test_invalid_time_format(self):
-		frappe.db.set_default("time_format", "XXXXX")
+	def test_set_default_time_format(self):
+		frappe.db.set_default("time_format", "XYZ123")
+		self.assertEqual(frappe.db.get_default("time_format"), "XYZ123")
 
 	def test_get_functions(self):
 		# Test round-trip through getdate, get_datetime and get_time
