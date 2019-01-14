@@ -431,14 +431,14 @@ class TestPermissions(unittest.TestCase):
 		frappe.delete_doc('Blog Post', '-test-blog-post-title')
 
 	def test_clear_user_permissions(self):
+		current_user = frappe.session.user
 		frappe.set_user('Administrator')
 		clear_user_permissions_for_doctype('Blog Category', 'test2@example.com')
 		clear_user_permissions_for_doctype('Blog Post', 'test2@example.com')
 
-		add_user_permission("Blog Category", '_Test Blog Category 1', 'test2@example.com')
-
 		add_user_permission('Blog Post', '-test-blog-post-1', 'test2@example.com')
 		add_user_permission('Blog Post', '-test-blog-post-2', 'test2@example.com')
+		add_user_permission("Blog Category", '_Test Blog Category 1', 'test2@example.com')
 
 		deleted_user_permission_count = clear_user_permissions('test2@example.com', 'Blog Post')
 
@@ -460,3 +460,6 @@ class TestPermissions(unittest.TestCase):
 
 		# undo all changes
 		frappe.db.rollback()
+
+		# reset the user
+		frappe.set_user(current_user)
