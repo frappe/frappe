@@ -37,7 +37,7 @@ def enqueue(method, queue='default', timeout=None, event=None,
 	'''
 	# To handle older implementations
 	if 'async' in kwargs:
-		is_async = True
+		is_async = kwargs.get('async')
 		del kwargs['async']
 
 	if now or frappe.flags.in_migrate:
