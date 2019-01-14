@@ -625,7 +625,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					const keywordValue = frappe.datetime.user_to_obj(keyword);
 					const cellValue = frappe.datetime.str_to_obj(cell.content);
 					return [+cellValue, +keywordValue];
-				}
+				};
 			}
 
 			return Object.assign(column, {
