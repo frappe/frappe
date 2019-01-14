@@ -36,10 +36,8 @@ def enqueue(method, queue='default', timeout=None, event=None,
 		:param kwargs: keyword arguments to be passed to the method
 	'''
 	# To handle older implementations
-	if 'async' in kwargs:
-		is_async = kwargs.get('async')
-		del kwargs['async']
-
+	is_async = kwargs.pop('async', is_async)
+	
 	if now or frappe.flags.in_migrate:
 		return frappe.call(method, **kwargs)
 
