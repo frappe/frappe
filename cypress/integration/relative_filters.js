@@ -7,10 +7,10 @@ context('Relative Timeframe', () => {
 		cy.login('Administrator', 'qwe');
 		cy.visit('/desk');
 		cy.window().its('frappe').then(frappe => {
-			frappe.call("frappe.tests.test_utils.create_todo_records")
+			frappe.call("frappe.tests.test_utils.create_todo_records");
 		});
 	});
-  it('set relative filter and check list', () => {
+	it('set relative filter for Previous and check list', () => {
 		cy.visit('/desk#List/ToDo/List');
 		cy.get('.list-row:contains("this is fourth todo")').should('exist');
     cy.get('.tag-filters-area .btn:contains("Add Filter")').click();
@@ -21,9 +21,8 @@ context('Relative Timeframe', () => {
     cy.get('.filter-box .btn:contains("Apply")').click();
 		cy.get('.list-row').should('contain', 'this is first todo');
 		cy.get('.remove-filter.btn').click();
-  });
-
-	it('set relative filter and check list', () => {
+	});
+	it('set relative filter for Next and check list', () => {
 		cy.visit('/desk#List/ToDo/List');
 		cy.get('.list-row:contains("this is fourth todo")').should('exist');
 		cy.get('.tag-filters-area .btn:contains("Add Filter")').click();
@@ -33,5 +32,5 @@ context('Relative Timeframe', () => {
     cy.get('.filter-box .btn:contains("Apply")').click();
 		cy.get('.list-row').should('contain', 'this is second todo');
 		cy.get('.remove-filter.btn').click();
-	})
+	});
 });

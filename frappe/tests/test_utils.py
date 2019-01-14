@@ -125,22 +125,22 @@ class TestHTMLUtils(unittest.TestCase):
 
 @frappe.whitelist()
 def create_todo_records():
-	t1 = frappe.get_doc({
+	frappe.get_doc({
 		"doctype": "ToDo",
 		"date": add_to_date(now(), days=3),
 		"description": "this is first todo"
 	}).insert()
-	t2 = frappe.get_doc({
+	frappe.get_doc({
 		"doctype": "ToDo",
 		"date": add_to_date(now(), days=-3),
 		"description": "this is second todo"
 	}).insert()
-	t3 = frappe.get_doc({
+	frappe.get_doc({
 		"doctype": "ToDo",
 		"date": add_to_date(now(), months=2),
 		"description": "this is third todo"
 	}).insert()
-	t1 = frappe.get_doc({
+	frappe.get_doc({
 		"doctype": "ToDo",
 		"date": add_to_date(now(), months=-2),
 		"description": "this is fourth todo"

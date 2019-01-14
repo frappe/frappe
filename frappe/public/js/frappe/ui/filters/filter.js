@@ -184,14 +184,14 @@ frappe.ui.Filter = class {
 		this.fieldselect.selected_doctype = doctype;
 		this.fieldselect.selected_fieldname = fieldname;
 		if(["Previous", "Next"].includes(condition) && ['Date', 'Datetime', 'DateRange', 'Select'].includes(this.field.df.fieldtype)) {
-			df.fieldtype = 'Select'
+			df.fieldtype = 'Select';
 			df.options = [
 				'1 week',
 				'1 month',
 				'3 months',
 				'6 months',
 				'1 year'
-			]
+			];
 		}
 		this.make_field(df, cur.fieldtype);
 	}
