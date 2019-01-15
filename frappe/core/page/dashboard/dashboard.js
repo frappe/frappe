@@ -77,6 +77,4 @@ frappe.pages['dashboard'].on_page_load = function(wrapper) {
 			}
 		})
 	}
-
-	this.create_chart()
 }
