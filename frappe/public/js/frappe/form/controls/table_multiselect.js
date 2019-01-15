@@ -6,7 +6,7 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 		this.$input.removeClass('form-control');
 
 		this.$input.on("awesomplete-selectcomplete", () => {
-			this.$input.val('');
+			this.$input.val('').focus();
 		});
 
 		// used as an internal model to store values
@@ -30,6 +30,13 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 			const link_field = this.get_link_field();
 			frappe.set_route('Form', link_field.options, value);
 		});
+		this.$input.on('keydown', e => {
+			// if backspace key pressed on empty input, delete last value
+			if (e.keyCode == frappe.ui.keyCode.BACKSPACE && e.target.value === '') {
+				this.rows = this.rows.slice(0, this.rows.length - 1);
+				this.parse_validate_and_set_in_model('');
+			}
+		});
 	},
 	setup_buttons() {
 		this.$input_area.find('.link-btn').remove();
@@ -41,6 +48,7 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 			if (this.frm) {
 				const new_row = frappe.model.add_child(this.frm.doc, this.df.options, this.df.fieldname);
 				new_row[link_field.fieldname] = value;
+				this.rows = this.frm.doc[this.df.fieldname];
 			} else {
 				this.rows.push({
 					[link_field.fieldname]: value
