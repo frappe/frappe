@@ -84,17 +84,14 @@ img {
     font-size: inherit;
 }
 
-// .standard-image {
-// 	width: 100%;
-// 	height: 0;
-// 	padding: 50% 0;
-// 	display: inline-block;
-// 	text-align: center;
-// 	border-radius: 4px;
-// 	font-size: 14px;
-// 	line-height: 0px;
-// 	color: #d1d8dd;
-// 	border: 1px solid #d1d8dd;
-// 	font-weight: normal;
-// 	margin-top: -1px;
-// }
+.standard-image {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $border-radius;
+    border: 1px solid $border-color;
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+
