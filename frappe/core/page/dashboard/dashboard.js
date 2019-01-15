@@ -35,6 +35,10 @@ frappe.pages['dashboard'].on_page_load = function(wrapper) {
 				filters: filters,
 			},
 			callback: function(message) {
+				const chart_type_map = {
+					"Line": "line",
+					"Bar": "bar",
+				}
 				const data = message.message
 				var chart_args = {
 					title: chart.chart_name,
@@ -42,7 +46,7 @@ frappe.pages['dashboard'].on_page_load = function(wrapper) {
 						datasets: data.datasets,
 						labels: data.labels,
 					},
-					type: chart.chart_type,
+					type: chart_type_map[chart.chart_type],
 				}
 				new Chart(wrapper, chart_args)
 			}
