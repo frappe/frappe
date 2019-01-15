@@ -17,7 +17,15 @@ frappe.pages['dashboard'].on_page_load = function(wrapper) {
 
 		this.charts.map((chart) => {
 			var id = `dashboard-chart-${chart.name}`
-			var chart_wrapper = $(`<div id="${id}" class="col-sm-6"></div>`).appendTo($("#dashboard-graph"))
+
+			const column_width_map = {
+				"Half": "6",
+				"Full": "12",
+			}
+			var columns = column_width_map[chart.chart_width]
+			var chart_wrapper = $(`<div class="col-sm-${columns}"><div id="${id}"></div></div>`)
+			chart_wrapper.appendTo($("#dashboard-graph"))
+
 			this.create_chart(`#${id}`, chart, JSON.parse(chart.chart_filters_json))
 		})
 
