@@ -37,6 +37,7 @@ frappe.pages['dashboard'].on_page_load = function(wrapper) {
 			callback: function(message) {
 				const data = message.message
 				var chart_args = {
+					title: chart.chart_name,
 					data: {
 						datasets: data.datasets,
 						labels: data.labels,
