@@ -176,6 +176,9 @@ class File(NestedSet):
 		"""
 		full_path = self.get_full_path()
 
+		if full_path.startswith('http'):
+			return True
+
 		if not os.path.exists(full_path):
 			frappe.throw(_("File {0} does not exist").format(self.file_url), IOError)
 
