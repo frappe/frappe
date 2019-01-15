@@ -1,14 +1,16 @@
 frappe.pages['dashboard'].on_page_load = function(wrapper) {
 	var me = this
-	var page = frappe.ui.make_app_page({
-		parent: wrapper,
-		title: 'Dashboard',
-		single_column: true
-	})
 
 	this.route = frappe.get_route()
 	this.dashboard_name = this.route.slice(-1)[0]
 	this.dashboard_doc = null
+
+	var page = frappe.ui.make_app_page({
+		parent: wrapper,
+		title: this.dashboard_name,
+		single_column: true
+	})
+
 	frappe.model.with_doc('Dashboard', this.dashboard_name).then((doc) => {
 		this.dashboard_doc = doc
 		this.charts = this.dashboard_doc.charts
