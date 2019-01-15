@@ -6,8 +6,23 @@ frappe.pages['dashboard'].on_page_load = function(wrapper) {
 		single_column: true
 	})
 
+	this.route = frappe.get_route()
+	this.dashboard_name = this.route.slice(-1)[0]
+	this.dashboard_doc = null
+	frappe.model.with_doc('Dashboard', this.dashboard_name).then((doc) => {
+		this.dashboard_doc = doc
+		this.charts = this.dashboard_doc.charts
+
+		this.charts.map((chart) => {
+			var id = `dashboard-chart-${chart.name}`
+			var chart_wrapper = $(`<div id="${id}" class="col-sm-6"></div>`).appendTo($("#dashboard-graph"))
+			this.create_chart(`#${id}`, chart, JSON.parse(chart.chart_filters_json))
+		})
+
+	})
+
 	$(`<div class="dashboard page-main-content">
-		<div id="dashboard-graph"></div>
+		<div id="dashboard-graph" class="row"></div>
 	</div>`).appendTo(this.page.main)
 
 	this.timespans = ["Last Week", "Last Month", "Last Quarter", "Last Year"];
@@ -57,12 +72,12 @@ frappe.pages['dashboard'].on_page_load = function(wrapper) {
 		me.create_chart()
 	});
 
-	this.create_chart = function() {
+	this.create_chart = function(wrapper, chart, filters) {
 		frappe.call({
 			method: "frappe.core.page.dashboard.dashboard.get_data",
 			args: {
-				dashboard_name: "erpnext.accounts.dashboard.get",
-				filters: this.filters,
+				dashboard_name: chart.chart_path,
+				filters: filters,
 			},
 			callback: function(message) {
 				const data = message.message
@@ -71,9 +86,9 @@ frappe.pages['dashboard'].on_page_load = function(wrapper) {
 						datasets: data.datasets,
 						labels: data.labels,
 					},
-					type: 'line',
+					type: chart.chart_type,
 				}
-				new Chart('#dashboard-graph', chart_args)
+				new Chart(wrapper, chart_args)
 			}
 		})
 	}
