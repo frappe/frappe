@@ -383,7 +383,8 @@ class File(NestedSet):
 
 		elif file_path.startswith("/files/"):
 			file_path = get_files_path(*file_path.split("/files/", 1)[1].split("/"))
-
+		elif file_path.startswith("http"):
+			pass
 		else:
 			frappe.throw(_("There is some problem with the file url: {0}").format(file_path))
 
