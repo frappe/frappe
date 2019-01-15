@@ -12,8 +12,8 @@
 		"node_modules/frappe-datatable/dist/frappe-datatable.css"
     ],
     "css/frappe-web-b4.css": [
-        "public/scss/website.scss",
-        "public/less/indicator.less"
+        "public/less/indicator.less",
+        "public/scss/website.scss"
     ],
 	"concat:js/moment-bundle.min.js": [
 		"node_modules/moment/min/moment-with-locales.min.js",
