@@ -1,0 +1,42 @@
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+	<tr>
+		<h3>Document Follow Notification</h3>
+	</tr>
+</table>
+{% for doc in docinfo%}
+<table class="panel-header" border="0" cellpadding="0" cellspacing="0" width="100%">
+	<tr height="10"></tr>
+	<tr>
+		<td width="15"></td>
+		<td>
+			<div class="text-medium text-muted">
+				<span>{{ doc.ref_doctype }}: {{doc.ref_docname }}</span>
+			</div>
+		</td>
+		<td width="15"></td>
+	</tr>
+	<tr height="10"></tr>
+</table>
+<table class="panel-body" border="0" cellpadding="0" cellspacing="0" width="100%">
+	<tr height="10"></tr>
+	<tr>
+		<td width="15"></td>
+		<td>
+			<div>
+				<ul class="list-unstyled" style="line-height: 1.6">
+					{% for data in timeline %}
+						{% if (data.doctype == doc.ref_doctype and data.doc_name == doc.ref_docname) %}
+							{{data.content}}
+						{% endif %}
+					{% endfor %}
+				</ul>
+			</div>
+		</td>
+		<td width="15"></td>
+	</tr>
+	<tr height="10"></tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+	<tr height="20"></tr>
+</table>
+{% endfor %}
