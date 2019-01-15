@@ -2,8 +2,7 @@
 @import "~bootstrap/scss/_variables";
 
 // Convert SASS variables to CSS Variables
-$border-color: var(--border-color, $border-color);
-$input-border-color: var(--input-border-color, $input-border-color);
+// @import "css_variables.scss";
 
 @import "~bootstrap/scss/_mixins";
 @import "~bootstrap/scss/_root";
