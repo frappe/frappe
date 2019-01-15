@@ -48,7 +48,6 @@ def _toggle_like(doctype, name, add, user=None):
 				liked_by.append(user)
 				add_comment(doctype, name)
 				add_subcription(doctype, name, user)
-				print("------------------>>>liked")
 		else:
 			if user in liked_by:
 				liked_by.remove(user)

@@ -69,7 +69,6 @@ def add_comment(doc):
 
 	doc.insert(ignore_permissions=True)
 
-	print("--------------------------------------------------------->>>>>>>>>inside add_comment")
 	add_subcription(doc.reference_doctype, doc.reference_name, frappe.session.user)
 	return doc.as_dict()
 

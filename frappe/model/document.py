@@ -1015,7 +1015,6 @@ class Document(BaseDocument):
 		version = frappe.new_doc('Version')
 		if version.set_diff(self._doc_before_save, self):
 			version.insert(ignore_permissions=True)
-			print("---------------------------------->>>>>>>>changes made")
 			add_subcription(self.doctype, self.name, frappe.session.user)
 
 	@staticmethod
