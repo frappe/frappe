@@ -62,8 +62,8 @@ class DashboardChart {
 	show() {
 		this.prepare_chart_object();
 		this.prepare_container();
-
 		this.fetch().then((data) => {
+			this.update_last_synced();
 			this.data = data;
 			this.render();
 		});
@@ -114,8 +114,8 @@ class DashboardChart {
 				action: "force-refresh",
 				handler: () => {
 					this.fetch(true).then(data => {
+						this.update_chart_object();
 						this.data = data;
-						this.chart_doc.last_synced_on = new Date();
 						this.render();
 					})
 				}
@@ -152,7 +152,6 @@ class DashboardChart {
 	}
 
 	render() {
-		this.update_last_synced();
 		const chart_type_map = {
 			"Line": "line",
 			"Bar": "bar",
@@ -180,6 +179,7 @@ class DashboardChart {
 		frappe.db.get_doc("Dashboard Chart", this.chart_doc.name).then(doc => {
 			this.chart_doc = doc;
 			this.prepare_chart_object();
+			this.update_last_synced();
 		});
 	}
 
