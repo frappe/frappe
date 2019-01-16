@@ -41,113 +41,135 @@ class Dashboard {
 			this.dashboard_doc = doc
 			this.charts = this.dashboard_doc.charts
 
-			this.charts.map((chart) => {
-				this.fetch_and_render_chart(chart);
-				chart.filters_json = JSON.parse(chart.filters_json || '{}')
-				chart.filter_fields = JSON.parse(chart.filter_fields || '[]')
+			this.charts.map((chart_doc) => {
+				let chart_container = $("<div><div>")
+				chart_container.appendTo(this.container)
+
+				let dashboard_chart = new DashboardChart(chart_doc, chart_container)
+				dashboard_chart.show()
 			})
 		})
-	}
-
-	fetch_and_render_chart(chart) {
-		this.fetch_chart(chart).then((data) => this.render_chart(chart, data))
 	}
 
 	get_dashboard_doc() {
 		return frappe.model.with_doc('Dashboard', this.dashboard_name)
 	}
+}
 
-	fetch_chart(chart, refresh=false) {
+class DashboardChart {
+	constructor(chart_doc, chart_container) {
+		this.chart_doc = chart_doc
+		this.container = chart_container
+	}
+
+	show() {
+		this.filters = JSON.parse(this.chart_doc.filters_json || '{}')
+		this.filter_fields = JSON.parse(this.chart_doc.filter_fields || '[]')
+
+		this.prepare_container()
+
+		this.fetch().then((data) => {
+			this.data = data
+			this.render()
+		})
+	}
+
+	prepare_container() {
+		const column_width_map = {
+			"Half": "6",
+			"Full": "12",
+		}
+		let columns = column_width_map[this.chart_doc.width]
+		this.chart_container = $(`<div class="col-sm-${columns} chart-column-container">
+			<div class="chart-wrapper"></div>
+		</div>`)
+		this.chart_container.appendTo(this.container)
+	}
+
+	fetch(refresh=false) {
 		return frappe.xcall(
 			"frappe.core.page.dashboard.dashboard.get_data",
 			{
-				chart_name: chart.name,
+				chart_name: this.chart_doc.name,
 				refresh: refresh,
 			}
 		)
 	}
 
-	render_chart(chart, data) {
-		const column_width_map = {
-			"Half": "6",
-			"Full": "12",
-		};
-		let columns = column_width_map[chart.width];
-		var me = this
-		let actions = [
-			{
-				label: __("Set Filters"),
-				action: "set-filters",
-				handler() {
-					const d = new frappe.ui.Dialog({
-						title: __('Set Filters'),
-						fields: chart.filter_fields,
-						primary_action: function() {
-							const values = this.get_values()
-							if (!Object.entries(chart.filters_json).map(e => values[e[0]] === e[1]).every(Boolean)) {
-								frappe.db.set_value("Dashboard Chart", chart.name, "filters_json", JSON.stringify(values)).then(() => {
-									me.fetch_chart(chart).then(data => {
-										me.charts[chart.name].update(data)
-									})
-								})
-							}
-							this.hide()
-						},
-						primary_action_label: __('Save Filters')
-					})
-					d.set_values(chart.filters_json)
-					d.show();
-				}
-			},
-			{
-				label: __("Force Refresh"),
-				action: "force-refresh",
-				handler() {
-					me.fetch_chart(chart, true).then(data => {
-						me.charts[chart.name].update(data)
-					})
-				}
-			}
-		]
+	render() {
 
-		let last_synced_text = $(`<span class="text-muted last-synced-text">${__("Last synced {0}", [comment_when(chart.last_synced_on)])}</span>`)
-		let chart_action = $(`<div class="chart-actions btn-group dropdown pull-right">
-			<a class="dropdown-toggle" data-toggle="dropdown"
-				aria-haspopup="true" aria-expanded="false"> <button class="btn btn-default btn-xs"><span class="caret"></span></button>
-			</a>
-			<ul class="dropdown-menu" style="max-height: 300px; overflow-y: auto;">
-				${actions.map(action => `<li><a data-action="${action.action}">${action.label}</a></li>`).join('')}
-			</ul>
-		</div>
-		`);
+		// var me = this
+		// let actions = [
+		// 	{
+		// 		label: __("Set Filters"),
+		// 		action: "set-filters",
+		// 		handler() {
+		// 			const d = new frappe.ui.Dialog({
+		// 				title: __('Set Filters'),
+		// 				fields: chart.filter_fields,
+		// 				primary_action: function() {
+		// 					const values = this.get_values()
+		// 					if (!Object.entries(chart.filters_json).map(e => values[e[0]] === e[1]).every(Boolean)) {
+		// 						frappe.db.set_value("Dashboard Chart", chart.name, "filters_json", JSON.stringify(values)).then(() => {
+		// 							me.fetch_chart(chart).then(data => {
+		// 								me.charts[chart.name].update(data)
+		// 							})
+		// 						})
+		// 					}
+		// 					this.hide()
+		// 				},
+		// 				primary_action_label: __('Save Filters')
+		// 			})
+		// 			d.set_values(chart.filters_json)
+		// 			d.show();
+		// 		}
+		// 	},
+		// 	{
+		// 		label: __("Force Refresh"),
+		// 		action: "force-refresh",
+		// 		handler() {
+		// 			me.fetch_chart(chart, true).then(data => {
+		// 				me.charts[chart.name].update(data)
+		// 			})
+		// 		}
+		// 	}
+		// ]
 
-		chart_action.find("a[data-action]").each((i, o) => {
-			const action = o.dataset.action
-			$(o).click(actions.find(a => a.action === action))
-		})
+		// let last_synced_text = $(`<span class="text-muted last-synced-text">${__("Last synced {0}", [comment_when(chart.last_synced_on)])}</span>`)
+		// let chart_action = $(`<div class="chart-actions btn-group dropdown pull-right">
+		// 	<a class="dropdown-toggle" data-toggle="dropdown"
+		// 		aria-haspopup="true" aria-expanded="false"> <button class="btn btn-default btn-xs"><span class="caret"></span></button>
+		// 	</a>
+		// 	<ul class="dropdown-menu" style="max-height: 300px; overflow-y: auto;">
+		// 		${actions.map(action => `<li><a data-action="${action.action}">${action.label}</a></li>`).join('')}
+		// 	</ul>
+		// </div>
+		// `);
+
+		// chart_action.find("a[data-action]").each((i, o) => {
+		// 	const action = o.dataset.action
+		// 	$(o).click(actions.find(a => a.action === action))
+		// })
 
 
-		let chart_container = $(`<div class="col-sm-${columns} chart-column-container">
-			<div class="chart-wrapper"></div>
-		</div>`);
-		chart_action.prependTo(chart_container)
-		last_synced_text.prependTo(chart_container)
-		chart_container.appendTo(this.container);
 
+		// chart_action.prependTo(chart_container)
+		// last_synced_text.prependTo(chart_container)
 
 		const chart_type_map = {
 			"Line": "line",
 			"Bar": "bar",
-		};
+		}
 		let chart_args = {
-			title: chart.chart_name,
+			title: this.chart_doc.chart_name,
 			data: {
-				datasets: data.datasets,
-				labels: data.labels,
+				datasets: this.data.datasets,
+				labels: this.data.labels,
 			},
-			type: chart_type_map[chart.type],
-			colors: [chart.color || "light-blue"],
+			type: chart_type_map[this.chart_doc.type],
+			colors: [this.chart_doc.color || "light-blue"],
 		};
-		this.charts[chart.name] = new Chart(chart_container.find(".chart-wrapper")[0], chart_args);
+		this.chart = new Chart(this.chart_container.find(".chart-wrapper")[0], chart_args);
 	}
+
 }
