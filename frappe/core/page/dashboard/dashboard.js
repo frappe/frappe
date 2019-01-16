@@ -91,7 +91,9 @@ class Dashboard {
 				label: __("Force Refresh"),
 				action: "force-refresh",
 				handler() {
-					me.fetch_chart(chart, true).then(data => {console.log(data);me.charts[chart.name].update(data)})
+					me.fetch_chart(chart, true).then(data => {
+						me.charts[chart.name].update(data)
+					})
 				}
 			}
 		]
