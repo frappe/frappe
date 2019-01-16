@@ -9,22 +9,21 @@ import json
 
 @frappe.whitelist()
 def get_master_calendar_events(doctype_list, start=None, end=None):
-
-	if isinstance(doctype_list, frappe.string_types):
-		doctype_list = json.loads(doctype_list)
-
+	doctype_list = frappe.parse_json(doctype_list)
 	data = get_field_map()
 
 	master_events = []
+
 	for doctype in doctype_list:
 		if frappe.has_permission(doctype):
 			field_map = frappe._dict(data[doctype]["field_map"])
-			fields=[field_map.start, field_map.end, field_map.title, field_map.description, 'name']
+			fields = [field_map.start, field_map.end, field_map.title, field_map.description, 'name']
+
 			if field_map.color:
 				fields.append(field_map.color)
+
 			if "get_events_method" in data[doctype]:
 				events = frappe.call(data[doctype]["get_events_method"], start, end)
-
 
 			else:
 				start_date = "ifnull(%s, '0001-01-01 00:00:00')" % field_map.start
@@ -35,7 +34,7 @@ def get_master_calendar_events(doctype_list, start=None, end=None):
 					[doctype, end_date, '>=', start],
 				]
 
-				events = frappe.get_list(doctype ,fields=fields,filters=filters)
+				events = frappe.get_list(doctype, fields=fields, filters=filters)
 
 			for event in events:
 				color = "#D2D1FB"
@@ -43,8 +42,9 @@ def get_master_calendar_events(doctype_list, start=None, end=None):
 				if field_map.color in event:
 					color = event[field_map.color] if event[field_map.color] else "#D2D1FB"
 
-				master_events.append({'start': str(event[field_map.start]),
-					'end': str(event[field_map.end]),
+				master_events.append({
+					"start": str(event[field_map.start]),
+					"end": str(event[field_map.end]),
 					"title" : str(event[field_map.title]),
 					"id" : str(event['name']),
 					"description": str(event[field_map.description]),
@@ -87,12 +87,3 @@ def get_field_map(doctype=None):
 				data.update(fm)
 
 	return data[doctype] if doctype else data
-
-
-
-
-
-
-
-
-
