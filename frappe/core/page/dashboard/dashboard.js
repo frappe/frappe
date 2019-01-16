@@ -58,8 +58,8 @@ class Dashboard {
 		return frappe.xcall(
 			"frappe.core.page.dashboard.dashboard.get_data",
 			{
-				dashboard_name: chart.chart_path,
-				filters: JSON.parse(chart.chart_filters_json),
+				dashboard_name: chart.method_path,
+				filters: JSON.parse(chart.filters_json),
 			}
 		)
 	}
@@ -69,7 +69,7 @@ class Dashboard {
 			"Half": "6",
 			"Full": "12",
 		};
-		let columns = column_width_map[chart.chart_width];
+		let columns = column_width_map[chart.width];
 		let chart_container = $(`<div class="col-sm-${columns}"><div class="chart-wrapper"></div></div>`);
 		chart_container.appendTo(this.container);
 
@@ -84,7 +84,8 @@ class Dashboard {
 				datasets: data.datasets,
 				labels: data.labels,
 			},
-			type: chart_type_map[chart.chart_type],
+			type: chart_type_map[chart.type],
+			colors: [chart.color || "light-blue"],
 		};
 		new Chart(chart_container.find(".chart-wrapper")[0], chart_args);
 	}
