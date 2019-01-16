@@ -9,7 +9,7 @@ frappe.pages['dashboard'].on_page_load = function(wrapper) {
 	$(wrapper).bind('show', function() {
 		frappe.dashboard.show();
 	});
-}
+};
 
 class Dashboard {
 	constructor(wrapper) {
@@ -45,7 +45,7 @@ class Dashboard {
 				let dashboard_chart = new DashboardChart(chart_doc, chart_container);
 				dashboard_chart.show();
 			});
-		})
+		});
 	}
 
 	get_dashboard_doc() {
@@ -103,11 +103,11 @@ class DashboardChart {
 									this.update_chart_object();
 									this.data = data;
 									this.render();
-								})
+								});
 							});
 						}
 						d.hide();
-					}
+					};
 
 					this.filter_fields.map(field => field.onchange = e => {
 						if(e) {
@@ -124,10 +124,10 @@ class DashboardChart {
 						this.update_chart_object();
 						this.data = data;
 						this.render();
-					})
+					});
 				}
 			}
-		]
+		];
 
 		this.chart_actions = $(`<div class="chart-actions btn-group dropdown pull-right">
 			<a class="dropdown-toggle" data-toggle="dropdown"
@@ -171,8 +171,7 @@ class DashboardChart {
 		};
 		if(!this.chart) {
 			this.chart = new Chart(this.chart_container.find(".chart-wrapper")[0], chart_args);
-		}
-		else {
+		} else {
 			this.chart.update(this.data);
 		}
 	}
