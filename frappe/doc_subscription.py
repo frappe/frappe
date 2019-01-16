@@ -9,7 +9,7 @@ from frappe.utils.background_jobs import enqueue
 from frappe import _
 from pprint import pprint
 
-
+@frappe.whitelist()
 def add_subcription(doctype, doc_name, user_email):
 	if len(frappe.get_list("Document Follow", filters={'ref_doctype': doctype, 'ref_docname': doc_name, 'user': user_email})) == 0:
 		if user_email != "Administrator":
@@ -47,6 +47,7 @@ def sent_email_alert(doc_name, doctype, receiver, docinfo,timeline):
 def sending_mail():
 	users = frappe.get_all("Document Follow", distinct=1, fields=["user"])
 	message = []
+	info = []
 	for d in users:
 		data = frappe.get_all("Document Follow", filters={"user" : d.user}, distinct=1, fields=["ref_doctype","ref_docname","user"])
 		message = []
@@ -54,9 +55,10 @@ def sending_mail():
 			content = get_message(d2.ref_docname, d2.ref_doctype)
 			if content != []:
 				message = message + content
+				info.append({'ref_docname': d2.ref_docname, 'ref_doctype': d2.ref_doctype, 'user': d.user})
 
 		if message != []:
-			sent_email_alert(d2.ref_docname, d2.ref_doctype, d.user, data, message)
+			sent_email_alert(d2.ref_docname, d2.ref_doctype, d.user, info, message)
 
 def get_version(doctype,doc_name):
 	timeline = []
@@ -117,7 +119,7 @@ def get_comments(doctype, doc_name):
 				time = frappe.utils.format_datetime(modified,"hh:mm a")
 				timeline.append({
 					"time": modified,
-					"content": "<li><span style ='color:#8d99a6!important'>" +time +": </span><b>"+cleantext(dictio.comment)+ "</b>commented By: <b>" + dictio.by + "</b></li>",
+					"content": "<li><span style ='color:#8d99a6!important'>" +time +': </span><b>"'+cleantext(dictio.comment)+ '"</b> commented By: <b>' + dictio.by + "</b></li>",
 					"doctype" : doctype,
 					"doc_name" : doc_name
 				})
