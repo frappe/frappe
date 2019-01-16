@@ -186,10 +186,10 @@
  "issingle": 0,
  "istable": 0,
  "max_attachments": 0,
- "modified": "2019-01-15 14:46:06.870884",
+ "modified": "2019-01-16 13:34:58.802451",
  "modified_by": "Administrator",
- "module": "Core",
- "name": "Chart",
+ "module": "Desk",
+ "name": "Dashboard Chart",
  "name_case": "",
  "owner": "Administrator",
  "permissions": [
