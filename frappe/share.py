@@ -41,7 +41,6 @@ def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=No
 
 	doc.save(ignore_permissions=True)
 	notify_assignment(user, doctype, name, description=None, notify=notify)
-	print("------------------------>>>>share",user)
 
 	add_subcription(doctype, name, user)
 

@@ -9,7 +9,7 @@ from frappe.utils.background_jobs import enqueue
 from frappe import _
 from pprint import pprint
 
-@frappe.whitelist()
+
 def add_subcription(doctype, doc_name, user_email):
 	if len(frappe.get_list("Document Follow", filters={'ref_doctype': doctype, 'ref_docname': doc_name, 'user': user_email})) == 0:
 		if user_email != "Administrator":
@@ -20,22 +20,13 @@ def add_subcription(doctype, doc_name, user_email):
 				"user": user_email
 			})
 			doc.save()
+			return doc
 
-@frappe.whitelist()
 def get_message(doc_name, doctype):
 	html = get_version(doctype, doc_name) + get_comments(doctype, doc_name)
 	t = sorted(html, key=lambda k: k['time'], reverse=True)
 	return t
-#	for data in t:
-#		mess += data['content']
-#	if html != "":
-#		message += "<ul style='list-style-type: none;'>" + mess+ '</ul>'
-#		message = message.replace("</div>"," ")
-#		message = message.replace("<div>"," ")
 
-#	return message
-
-@frappe.whitelist()
 def sent_email_alert(doc_name, doctype, receiver, docinfo,timeline):
 	if receiver:
 		email_args = {
@@ -63,11 +54,7 @@ def sending_mail():
 			content = get_message(d2.ref_docname, d2.ref_doctype)
 			if content != []:
 				message = message + content
-				#message += """<div style='margin-bottom: 20px; background-color: #fff; border: 1px solid transparent; border-radius: 4px; -webkit-box-shadow: 0 1px 1px rgba(0,0,0,.05); box-shadow: 0 1px 1px rgba(0,0,0,.05); border-color: #ddd;'>
-				#	<div style='color: #333; background-color: #f5f5f5; border-color: #ddd; padding: 10px 15px; border-bottom: 1px solid transparent; border-top-left-radius: 3px; border-top-right-radius: 3px; color:#8d99a6!important'>{0}: {1} </div>
-				#	<div style='padding: 15px; color:#36414C!important'> {2} </div>
-				#</div>""".format(d2.ref_doctype, d2.ref_docname, content)
-		#if message != "":
+
 		if message != []:
 			sent_email_alert(d2.ref_docname, d2.ref_doctype, d.user, data, message)
 
@@ -130,7 +117,7 @@ def get_comments(doctype, doc_name):
 				time = frappe.utils.format_datetime(modified,"hh:mm a")
 				timeline.append({
 					"time": modified,
-					"content": "<li><span style ='color:#8d99a6!important'>" +time +": </span>"+cleantext(dictio.comment)+ "comment By: " + dictio.by + "</li>",
+					"content": "<li><span style ='color:#8d99a6!important'>" +time +": </span><b>"+cleantext(dictio.comment)+ "</b>commented By: <b>" + dictio.by + "</b></li>",
 					"doctype" : doctype,
 					"doc_name" : doc_name
 				})
