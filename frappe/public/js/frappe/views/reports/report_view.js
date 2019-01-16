@@ -823,6 +823,19 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		// child table column
 		const id = doctype !== this.doctype ? `${doctype}:${fieldname}` : fieldname;
 
+		let compareFn = null;
+		if (docfield.fieldtype === 'Date') {
+			compareFn = (cell, keyword) => {
+				if (!cell.content) return null;
+				if (keyword.length !== 'YYYY-MM-DD'.length) return null;
+
+				const keywordValue = frappe.datetime.user_to_obj(keyword);
+				const cellValue = frappe.datetime.str_to_obj(cell.content);
+				return [+cellValue, +keywordValue];
+			}
+		}
+
+
 		return {
 			id: id,
 			field: fieldname,
@@ -832,6 +845,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			width,
 			editable,
 			align,
+			compareValue: compareFn,
 			format: (value, row, column, data) => {
 				const d = row.reduce((acc, curr) => {
 					if (!curr.column.docfield) return acc;
