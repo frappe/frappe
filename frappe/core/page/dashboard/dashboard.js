@@ -91,22 +91,29 @@ class DashboardChart {
 					const d = new frappe.ui.Dialog({
 						title: __('Set Filters'),
 						fields: this.filter_fields,
-						primary_action: () => {
-							const values = d.get_values();
-							if (!Object.entries(this.filters).map(e => values[e[0]] === e[1]).every(Boolean)) {
-								frappe.db.set_value("Dashboard Chart", this.chart_doc.name, "filters_json", JSON.stringify(values)).then(() => {
-									this.fetch().then(data => {
-										this.data = data;
-										this.render();
-									})
-								});
-							}
-							d.hide();
-						},
-						primary_action_label: __('Save Filters');
-					})
+					});
 					d.set_values(this.filters);
 					d.show();
+
+					const set_filters = () => {
+						const values = d.get_values();
+						if (!Object.entries(this.filters).map(e => values[e[0]] === e[1]).every(Boolean)) {
+							frappe.db.set_value("Dashboard Chart", this.chart_doc.name, "filters_json", JSON.stringify(values)).then(() => {
+								this.fetch().then(data => {
+									this.update_chart_object();
+									this.data = data;
+									this.render();
+								})
+							});
+						}
+						d.hide();
+					}
+
+					this.filter_fields.map(field => field.onchange = e => {
+						if(e) {
+							d.set_primary_action(__('Save Filters'), set_filters);
+						}
+					});
 				}
 			},
 			{
