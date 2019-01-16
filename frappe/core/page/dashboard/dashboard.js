@@ -81,7 +81,19 @@ class Dashboard {
 				handler() {
 					const d = new frappe.ui.Dialog({
 						title: __('Set Filters'),
-						fields: chart.filter_fields
+						fields: chart.filter_fields,
+						primary_action: function() {
+							const values = this.get_values()
+							if (!Object.entries(chart.filters_json).map(e => values[e[0]] === e[1]).every(Boolean)) {
+								frappe.db.set_value("Dashboard Chart", chart.name, "filters_json", JSON.stringify(values)).then(() => {
+									me.fetch_chart(chart).then(data => {
+										me.charts[chart.name].update(data)
+									})
+								})
+							}
+							this.hide()
+						},
+						primary_action_label: __('Save Filters')
 					})
 					d.set_values(chart.filters_json)
 					d.show();
