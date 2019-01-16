@@ -5,86 +5,86 @@ frappe.pages['dashboard'].on_page_load = function(wrapper) {
 		parent: wrapper,
 		title: __("Dashboard"),
 		single_column: true
-	})
+	});
 
-	frappe.dashboard = new Dashboard(wrapper)
+	frappe.dashboard = new Dashboard(wrapper);
 	$(wrapper).bind('show', function() {
-		frappe.dashboard.show()
-	})
+		frappe.dashboard.show();
+	});
 
 }
 
 class Dashboard {
 	constructor(wrapper) {
-		this.wrapper = $(wrapper)
+		this.wrapper = $(wrapper);
 		$(`<div class="dashboard">
 			<div class="dashboard-graph" class="row"></div>
-		</div>`).appendTo(this.wrapper.find(".page-content").empty())
-		this.container = this.wrapper.find(".dashboard-graph")
-		this.page = wrapper.page
+		</div>`).appendTo(this.wrapper.find(".page-content").empty());
+		this.container = this.wrapper.find(".dashboard-graph");
+		this.page = wrapper.page;
 	}
 
 	show() {
-		this.route = frappe.get_route()
-		const current_dashboard_name = this.route.slice(-1)[0]
+		this.route = frappe.get_route();
+		const current_dashboard_name = this.route.slice(-1)[0];
 
 		if(this.dashboard_name !== current_dashboard_name) {
-			this.dashboard_name = current_dashboard_name
-			this.page.set_title(this.dashboard_name)
-			this.refresh()
+			this.dashboard_name = current_dashboard_name;
+			this.page.set_title(this.dashboard_name);
+			this.refresh();
 		}
-		this.charts = {}
+		this.charts = {};
 	}
 
 	refresh() {
 		this.get_dashboard_doc().then((doc) => {
-			this.dashboard_doc = doc
-			this.charts = this.dashboard_doc.charts
+			this.dashboard_doc = doc;
+			this.charts = this.dashboard_doc.charts;
 
 			this.charts.map((chart_doc) => {
-				let chart_container = $("<div><div>")
-				chart_container.appendTo(this.container)
+				let chart_container = $("<div><div>");
+				chart_container.appendTo(this.container);
 
-				let dashboard_chart = new DashboardChart(chart_doc, chart_container)
-				dashboard_chart.show()
-			})
+				let dashboard_chart = new DashboardChart(chart_doc, chart_container);
+				dashboard_chart.show();
+			});
 		})
 	}
 
 	get_dashboard_doc() {
-		return frappe.model.with_doc('Dashboard', this.dashboard_name)
+		return frappe.model.with_doc('Dashboard', this.dashboard_name);
 	}
 }
 
 class DashboardChart {
 	constructor(chart_doc, chart_container) {
-		this.chart_doc = chart_doc
-		this.container = chart_container
+		this.chart_doc = chart_doc;
+		this.container = chart_container;
 	}
 
 	show() {
-		this.prepare_chart_object()
-		this.prepare_container()
+		this.prepare_chart_object();
+		this.prepare_container();
 
 		this.fetch().then((data) => {
-			this.data = data
-			this.render()
-		})
+			this.data = data;
+			this.render();
+		});
 	}
 
 	prepare_container() {
 		const column_width_map = {
 			"Half": "6",
 			"Full": "12",
-		}
-		let columns = column_width_map[this.chart_doc.width]
+		};
+		let columns = column_width_map[this.chart_doc.width];
 		this.chart_container = $(`<div class="col-sm-${columns} chart-column-container">
 			<div class="chart-wrapper"></div>
-		</div>`)
-		this.chart_container.appendTo(this.container)
+		</div>`);
+		this.chart_container.appendTo(this.container);
 
-		let last_synced_text = $(`<span class="text-muted last-synced-text"></span>`)
-		last_synced_text.prependTo(this.chart_container)
+		let last_synced_text = $(`<span class="text-muted last-synced-text"></span>`);
+		last_synced_text.prependTo(this.chart_container);
 
 		let actions = [
 			{
@@ -95,20 +95,20 @@ class DashboardChart {
 						title: __('Set Filters'),
 						fields: this.filter_fields,
 						primary_action: () => {
-							const values = d.get_values()
+							const values = d.get_values();
 							if (!Object.entries(this.filters).map(e => values[e[0]] === e[1]).every(Boolean)) {
 								frappe.db.set_value("Dashboard Chart", this.chart_doc.name, "filters_json", JSON.stringify(values)).then(() => {
 									this.fetch().then(data => {
-										this.data = data
-										this.render()
+										this.data = data;
+										this.render();
 									})
-								})
+								});
 							}
-							d.hide()
+							d.hide();
 						},
-						primary_action_label: __('Save Filters')
+						primary_action_label: __('Save Filters');
 					})
-					d.set_values(this.filters)
+					d.set_values(this.filters);
 					d.show();
 				}
 			},
@@ -117,9 +117,9 @@ class DashboardChart {
 				action: "force-refresh",
 				handler: () => {
 					this.fetch(true).then(data => {
-						this.data = data
-						this.chart_doc.last_synced_on = new Date()
-						this.render()
+						this.data = data;
+						this.chart_doc.last_synced_on = new Date();
+						this.render();
 					})
 				}
 			}
@@ -136,11 +136,11 @@ class DashboardChart {
 		`);
 
 		this.chart_actions.find("a[data-action]").each((i, o) => {
-			const action = o.dataset.action
-			$(o).click(actions.find(a => a.action === action))
-		})
+			const action = o.dataset.action;
+			$(o).click(actions.find(a => a.action === action));
+		});
 
-		this.chart_actions.prependTo(this.chart_container)
+		this.chart_actions.prependTo(this.chart_container);
 
 	}
 
@@ -151,15 +151,15 @@ class DashboardChart {
 				chart_name: this.chart_doc.name,
 				refresh: refresh,
 			}
-		)
+		);
 	}
 
 	render() {
-		this.update_last_synced()
+		this.update_last_synced();
 		const chart_type_map = {
 			"Line": "line",
 			"Bar": "bar",
-		}
+		};
 		let chart_args = {
 			title: this.chart_doc.chart_name,
 			data: this.data,
@@ -170,24 +170,24 @@ class DashboardChart {
 			this.chart = new Chart(this.chart_container.find(".chart-wrapper")[0], chart_args);
 		}
 		else {
-			this.chart.update(this.data)
+			this.chart.update(this.data);
 		}
 	}
 
 	update_last_synced() {
-		let last_synced_text = __("Last synced {0}", [comment_when(this.chart_doc.last_synced_on)])
-		this.container.find(".last-synced-text").html(last_synced_text)
+		let last_synced_text = __("Last synced {0}", [comment_when(this.chart_doc.last_synced_on)]);
+		this.container.find(".last-synced-text").html(last_synced_text);
 	}
 
 	update_chart_object() {
 		frappe.db.get_doc("Dashboard Chart", this.chart_doc.name).then(doc => {
-			this.chart_doc = doc
-			this.prepare_chart_object()
-		})
+			this.chart_doc = doc;
+			this.prepare_chart_object();
+		});
 	}
 
 	prepare_chart_object() {
-		this.filters = JSON.parse(this.chart_doc.filters_json || '{}')
-		this.filter_fields = JSON.parse(this.chart_doc.filter_fields || '[]')
+		this.filters = JSON.parse(this.chart_doc.filters_json || '{}');
+		this.filter_fields = JSON.parse(this.chart_doc.filter_fields || '[]');
 	}
 }
