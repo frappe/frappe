@@ -63,9 +63,7 @@ class DashboardChart {
 	}
 
 	show() {
-		this.filters = JSON.parse(this.chart_doc.filters_json || '{}')
-		this.filter_fields = JSON.parse(this.chart_doc.filter_fields || '[]')
-
+		this.prepare_chart_object()
 		this.prepare_container()
 
 		this.fetch().then((data) => {
@@ -84,6 +82,66 @@ class DashboardChart {
 			<div class="chart-wrapper"></div>
 		</div>`)
 		this.chart_container.appendTo(this.container)
+
+		let last_synced_text = $(`<span class="text-muted last-synced-text"></span>`)
+		last_synced_text.prependTo(this.chart_container)
+
+		let actions = [
+			{
+				label: __("Set Filters"),
+				action: "set-filters",
+				handler: () => {
+					const d = new frappe.ui.Dialog({
+						title: __('Set Filters'),
+						fields: this.filter_fields,
+						primary_action: () => {
+							const values = d.get_values()
+							if (!Object.entries(this.filters).map(e => values[e[0]] === e[1]).every(Boolean)) {
+								frappe.db.set_value("Dashboard Chart", this.chart_doc.name, "filters_json", JSON.stringify(values)).then(() => {
+									this.fetch().then(data => {
+										this.data = data
+										this.render()
+									})
+								})
+							}
+							d.hide()
+						},
+						primary_action_label: __('Save Filters')
+					})
+					d.set_values(this.filters)
+					d.show();
+				}
+			},
+			{
+				label: __("Force Refresh"),
+				action: "force-refresh",
+				handler: () => {
+					this.fetch(true).then(data => {
+						this.data = data
+						this.chart_doc.last_synced_on = new Date()
+						this.render()
+					})
+				}
+			}
+		]
+
+		this.chart_actions = $(`<div class="chart-actions btn-group dropdown pull-right">
+			<a class="dropdown-toggle" data-toggle="dropdown"
+				aria-haspopup="true" aria-expanded="false"> <button class="btn btn-default btn-xs"><span class="caret"></span></button>
+			</a>
+			<ul class="dropdown-menu" style="max-height: 300px; overflow-y: auto;">
+				${actions.map(action => `<li><a data-action="${action.action}">${action.label}</a></li>`).join('')}
+			</ul>
+		</div>
+		`);
+
+		this.chart_actions.find("a[data-action]").each((i, o) => {
+			const action = o.dataset.action
+			$(o).click(actions.find(a => a.action === action))
+		})
+
+		this.chart_actions.prependTo(this.chart_container)
+
 	}
 
 	fetch(refresh=false) {
@@ -97,79 +155,39 @@ class DashboardChart {
 	}
 
 	render() {
-
-		// var me = this
-		// let actions = [
-		// 	{
-		// 		label: __("Set Filters"),
-		// 		action: "set-filters",
-		// 		handler() {
-		// 			const d = new frappe.ui.Dialog({
-		// 				title: __('Set Filters'),
-		// 				fields: chart.filter_fields,
-		// 				primary_action: function() {
-		// 					const values = this.get_values()
-		// 					if (!Object.entries(chart.filters_json).map(e => values[e[0]] === e[1]).every(Boolean)) {
-		// 						frappe.db.set_value("Dashboard Chart", chart.name, "filters_json", JSON.stringify(values)).then(() => {
-		// 							me.fetch_chart(chart).then(data => {
-		// 								me.charts[chart.name].update(data)
-		// 							})
-		// 						})
-		// 					}
-		// 					this.hide()
-		// 				},
-		// 				primary_action_label: __('Save Filters')
-		// 			})
-		// 			d.set_values(chart.filters_json)
-		// 			d.show();
-		// 		}
-		// 	},
-		// 	{
-		// 		label: __("Force Refresh"),
-		// 		action: "force-refresh",
-		// 		handler() {
-		// 			me.fetch_chart(chart, true).then(data => {
-		// 				me.charts[chart.name].update(data)
-		// 			})
-		// 		}
-		// 	}
-		// ]
-
-		// let last_synced_text = $(`<span class="text-muted last-synced-text">${__("Last synced {0}", [comment_when(chart.last_synced_on)])}</span>`)
-		// let chart_action = $(`<div class="chart-actions btn-group dropdown pull-right">
-		// 	<a class="dropdown-toggle" data-toggle="dropdown"
-		// 		aria-haspopup="true" aria-expanded="false"> <button class="btn btn-default btn-xs"><span class="caret"></span></button>
-		// 	</a>
-		// 	<ul class="dropdown-menu" style="max-height: 300px; overflow-y: auto;">
-		// 		${actions.map(action => `<li><a data-action="${action.action}">${action.label}</a></li>`).join('')}
-		// 	</ul>
-		// </div>
-		// `);
-
-		// chart_action.find("a[data-action]").each((i, o) => {
-		// 	const action = o.dataset.action
-		// 	$(o).click(actions.find(a => a.action === action))
-		// })
-
-
-
-		// chart_action.prependTo(chart_container)
-		// last_synced_text.prependTo(chart_container)
-
+		this.update_last_synced()
 		const chart_type_map = {
 			"Line": "line",
 			"Bar": "bar",
 		}
 		let chart_args = {
 			title: this.chart_doc.chart_name,
-			data: {
-				datasets: this.data.datasets,
-				labels: this.data.labels,
-			},
+			data: this.data,
 			type: chart_type_map[this.chart_doc.type],
 			colors: [this.chart_doc.color || "light-blue"],
 		};
-		this.chart = new Chart(this.chart_container.find(".chart-wrapper")[0], chart_args);
+		if(!this.chart) {
+			this.chart = new Chart(this.chart_container.find(".chart-wrapper")[0], chart_args);
+		}
+		else {
+			this.chart.update(this.data)
+		}
 	}
 
+	update_last_synced() {
+		let last_synced_text = __("Last synced {0}", [comment_when(this.chart_doc.last_synced_on)])
+		this.container.find(".last-synced-text").html(last_synced_text)
+	}
+
+	update_chart_object() {
+		frappe.db.get_doc("Dashboard Chart", this.chart_doc.name).then(doc => {
+			this.chart_doc = doc
+			this.prepare_chart_object()
+		})
+	}
+
+	prepare_chart_object() {
+		this.filters = JSON.parse(this.chart_doc.filters_json || '{}')
+		this.filter_fields = JSON.parse(this.chart_doc.filter_fields || '[]')
+	}
 }
