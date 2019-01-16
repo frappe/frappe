@@ -33,6 +33,7 @@ class Dashboard {
 			this.page.set_title(this.dashboard_name)
 			this.refresh()
 		}
+		this.charts = {}
 	}
 
 	refresh() {
@@ -42,6 +43,8 @@ class Dashboard {
 
 			this.charts.map((chart) => {
 				this.fetch_and_render_chart(chart);
+				chart.filters_json = JSON.parse(chart.filters_json || '{}')
+				chart.filter_fields = JSON.parse(chart.filter_fields || '[]')
 			})
 		})
 	}
@@ -54,25 +57,23 @@ class Dashboard {
 		return frappe.model.with_doc('Dashboard', this.dashboard_name)
 	}
 
-	fetch_chart(chart) {
+	fetch_chart(chart, refresh=false) {
 		return frappe.xcall(
 			"frappe.core.page.dashboard.dashboard.get_data",
 			{
-				dashboard_name: chart.method_path,
-				filters: JSON.parse(chart.filters_json),
+				chart_name: chart.name,
+				refresh: refresh,
 			}
 		)
 	}
 
 	render_chart(chart, data) {
-		chart.filter_fields = JSON.parse(chart.filter_fields || '[]')
-		chart.filters_json = JSON.parse(chart.filters_json || '{}')
-
 		const column_width_map = {
 			"Half": "6",
 			"Full": "12",
 		};
 		let columns = column_width_map[chart.width];
+		var me = this
 		let actions = [
 			{
 				label: __("Set Filters"),
@@ -87,13 +88,15 @@ class Dashboard {
 				}
 			},
 			{
-				label: __("Refresh Chart"),
-				action: "refresh-chart",
+				label: __("Force Refresh"),
+				action: "force-refresh",
 				handler() {
+					me.fetch_chart(chart, true).then(data => {console.log(data);me.charts[chart.name].update(data)})
 				}
 			}
 		]
 
+		let last_synced_text = $(`<span class="text-muted last-synced-text">${__("Last synced {0}", [comment_when(chart.last_synced_on)])}</span>`)
 		let chart_action = $(`<div class="chart-actions btn-group dropdown pull-right">
 			<a class="dropdown-toggle" data-toggle="dropdown"
 				aria-haspopup="true" aria-expanded="false"> <button class="btn btn-default btn-xs"><span class="caret"></span></button>
@@ -114,6 +117,7 @@ class Dashboard {
 			<div class="chart-wrapper"></div>
 		</div>`);
 		chart_action.prependTo(chart_container)
+		last_synced_text.prependTo(chart_container)
 		chart_container.appendTo(this.container);
 
 
@@ -130,6 +134,6 @@ class Dashboard {
 			type: chart_type_map[chart.type],
 			colors: [chart.color || "light-blue"],
 		};
-		new Chart(chart_container.find(".chart-wrapper")[0], chart_args);
+		this.charts[chart.name] = new Chart(chart_container.find(".chart-wrapper")[0], chart_args);
 	}
 }

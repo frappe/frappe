@@ -14,3 +14,10 @@
 .chart-column-container {
     position: relative;
 }
+
+.last-synced-text {
+    position: absolute;
+    top: 34px;
+    right: 60px;
+    font-size: 10px;
+}
