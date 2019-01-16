@@ -75,8 +75,8 @@ class Dashboard {
 		let columns = column_width_map[chart.width];
 		let actions = [
 			{
-				label: __("More"),
-				action: "more",
+				label: __("Set Filters"),
+				action: "set-filters",
 				handler() {
 					const d = new frappe.ui.Dialog({
 						title: __('Set Filters'),
