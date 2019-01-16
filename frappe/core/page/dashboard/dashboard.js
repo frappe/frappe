@@ -1,7 +1,5 @@
 frappe.pages['dashboard'].on_page_load = function(wrapper) {
-
-
-	let page = frappe.ui.make_app_page({
+	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __("Dashboard"),
 		single_column: true
@@ -11,7 +9,6 @@ frappe.pages['dashboard'].on_page_load = function(wrapper) {
 	$(wrapper).bind('show', function() {
 		frappe.dashboard.show();
 	});
-
 }
 
 class Dashboard {
