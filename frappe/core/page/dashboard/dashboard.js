@@ -65,12 +65,49 @@ class Dashboard {
 	}
 
 	render_chart(chart, data) {
+		chart.filter_fields = JSON.parse(chart.filter_fields || '[]')
+		chart.filters_json = JSON.parse(chart.filters_json || '{}')
+
 		const column_width_map = {
 			"Half": "6",
 			"Full": "12",
 		};
 		let columns = column_width_map[chart.width];
-		let chart_container = $(`<div class="col-sm-${columns}"><div class="chart-wrapper"></div></div>`);
+		let actions = [
+			{
+				label: __("More"),
+				action: "more",
+				handler() {
+					const d = new frappe.ui.Dialog({
+						title: __('Set Filters'),
+						fields: chart.filter_fields
+					})
+					d.set_values(chart.filters_json)
+					d.show();
+				}
+			}
+		]
+
+		let chart_action = $(`<div class="chart-actions btn-group dropdown pull-right">
+			<a class="dropdown-toggle" data-toggle="dropdown"
+				aria-haspopup="true" aria-expanded="false"> <button class="btn btn-default btn-xs"><span class="caret"></span></button>
+			</a>
+			<ul class="dropdown-menu" style="max-height: 300px; overflow-y: auto;">
+				${actions.map(action => `<li><a data-action="${action.action}">${action.label}</a></li>`).join('')}
+			</ul>
+		</div>
+		`);
+
+		chart_action.find("a[data-action]").each((i, o) => {
+			const action = o.dataset.action
+			$(o).click(actions.find(a => a.action === action))
+		})
+
+
+		let chart_container = $(`<div class="col-sm-${columns} chart-column-container">
+			<div class="chart-wrapper"></div>
+		</div>`);
+		chart_action.prependTo(chart_container)
 		chart_container.appendTo(this.container);
 
 

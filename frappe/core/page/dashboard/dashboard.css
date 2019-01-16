@@ -4,3 +4,13 @@
     margin: 15px 0;
     padding: 15px;
 }
+
+.chart-actions {
+    position: absolute;
+    right: 30px;
+    top: 30px;
+}
+
+.chart-column-container {
+    position: relative;
+}
