@@ -85,6 +85,12 @@ class Dashboard {
 					d.set_values(chart.filters_json)
 					d.show();
 				}
+			},
+			{
+				label: __("Refresh Chart"),
+				action: "refresh-chart",
+				handler() {
+				}
 			}
 		]
 
