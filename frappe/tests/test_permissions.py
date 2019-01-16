@@ -458,8 +458,5 @@ class TestPermissions(unittest.TestCase):
 
 		self.assertEqual(blog_category_user_permission_count, 1)
 
-		# undo all changes
-		frappe.db.rollback()
-
 		# reset the user
 		frappe.set_user(current_user)
