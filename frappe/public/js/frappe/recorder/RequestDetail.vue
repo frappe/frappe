@@ -10,18 +10,10 @@
 		</thead>
 		<tbody>
 			<router-link style="cursor: pointer" :to="{name: 'sql-detail', params: {call_index: call.index}}" tag="tr" v-for="call in calls" :key="call.index" v-bind="call">
-				<td>
-					{{ call.index }}
-				</td>
-				<td>
-					{{ call.query }}
-				</td>
-				<td>
-					{{ call.time.start }}
-				</td>
-				<td>
-					{{ call.time.total }}
-				</td>
+				<td>{{ call.index }}</td>
+				<td>{{ call.query }}</td>
+				<td>{{ call.time.start }}</td>
+				<td>{{ call.time.total }}</td>
 			</router-link>
 		</tbody>
 	</table>
