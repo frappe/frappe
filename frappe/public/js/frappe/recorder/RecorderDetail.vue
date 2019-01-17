@@ -33,6 +33,11 @@
 		</table>
 		<nav>
 			<ul class="pagination">
+				<li class="page-item" :class="query.pagination.limit == page ? 'active' : ''" v-for="(page, index) in [10,20,50,100,200,500]" :key="index">
+					<a class="page-link" @click="query.pagination.limit = page">{{ page }}</a>
+				</li>
+			</ul>
+			<ul class="pagination" style="float:right">
 				<li class="page-item" :class="page.status" v-for="(page, index) in pages" :key="index">
 					<a class="page-link" @click="query.pagination.page = page.number ">{{ page.label }}</a>
 				</li>
