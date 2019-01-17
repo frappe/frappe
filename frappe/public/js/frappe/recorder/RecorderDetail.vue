@@ -9,12 +9,19 @@
 				<tr>
 					<th>Index<i @click="sort('index')" class="glyphicon" :class="glyphicon('index')"></i></th>
 					<th>Time<i @click="sort('time')" class="glyphicon" :class="glyphicon('time')"></i></th>
-					<th>Method<i @click="sort('method')" class="glyphicon" :class="glyphicon('method')"></i><input v-model="query.filters.method"/></th>
-					<th>Path<i @click="sort('path')" class="glyphicon" :class="glyphicon('path')"></i><input v-model="query.filters.path"/></th>
-					<th>CMD<i @click="sort('cmd')" class="glyphicon" :class="glyphicon('cmd')"></i><input v-model="query.filters.cmd"/></th>
+					<th>Method<i @click="sort('method')" class="glyphicon" :class="glyphicon('method')"></i></th>
+					<th>Path<i @click="sort('path')" class="glyphicon" :class="glyphicon('path')"></i></th>
+					<th>CMD<i @click="sort('cmd')" class="glyphicon" :class="glyphicon('cmd')"></i></th>
 				</tr>
 			</thead>
 			<tbody>
+				<tr>
+					<td></td>
+					<td></td>
+					<td><input v-model="query.filters.method"/></td>
+					<td><input v-model="query.filters.path"/></td>
+					<td><input v-model="query.filters.cmd"/></td>
+				</tr>
 				<router-link style="cursor: pointer" :to="{name: 'request-detail', params: {request_uuid: request.uuid}}" tag="tr"  v-for="request in paginated(sorted(filtered(requests)))" :key="request.index" v-bind="request">
 					<td>{{ request.index }}</td>
 					<td>{{ request.time }}</td>
