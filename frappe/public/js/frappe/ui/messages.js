@@ -94,15 +94,20 @@ frappe.msgprint = function(msg, title) {
 		}
 	}
 
-	if(!data.indicator) {
-		data.indicator = 'blue';
-	}
-
 	if(data.message instanceof Array) {
 		data.message.forEach(function(m) {
 			frappe.msgprint(m);
 		});
+
+		if(data.title && data.indicator) {
+			msg_dialog.set_title(data.title);
+			msg_dialog.header.find('.indicator').removeClass().addClass('indicator ' + data.indicator);
+		}
 		return;
+	}
+
+	if(!data.indicator) {
+		data.indicator = 'blue';
 	}
 
 	if(data.alert) {
