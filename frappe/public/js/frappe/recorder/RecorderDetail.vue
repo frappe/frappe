@@ -38,7 +38,7 @@
 				</li>
 			</ul>
 		</nav>
-		<select class="custom-select" v-model="query.pagination.limit">
+		<select class="custom-select" v-model.number="query.pagination.limit">
 			<option value="10">10</option>
 			<option value="20">20</option>
 			<option value="50">50</option>
