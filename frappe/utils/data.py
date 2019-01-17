@@ -753,9 +753,9 @@ def get_link_to_report(name, label=None, report_type=None, doctype=None, filters
 		for k,v in iteritems(filters):
 			if isinstance(v, list):
 				for value in v:
-					conditions.append(frappe.safe_encode(k)+'='+'["'+frappe.safe_encode(value[0]+'"'+','+'"'+frappe.safe_encode(str(value[1]))+'"]'))
+					conditions.append(frappe.safe_encode(str(k)+'='+'["'+str(value[0]+'"'+','+'"'+str(value[1])+'"]')))
 			else:
-				conditions.append(frappe.safe_encode(k)+"="+frappe.safe_encode(str(v)))
+				conditions.append(frappe.safe_encode(str(k)+"="+str(v)))
 
 		filters = "&".join(conditions)
 
