@@ -1,5 +1,9 @@
 <template>
 	<div>
+		<h1>
+			<span>Recorder</span>
+			<span class="indicator" :class="status.color">{{ status.label }}</span>
+		</h1>
 		<table class="table table-hover">
 			<thead>
 				<tr>
@@ -52,9 +56,16 @@ export default {
 					total: 0,
 				}
 			},
+			status: {
+				color: "grey",
+				label: "Unknown",
+			}
 		};
 	},
 	mounted() {
+		frappe.call("frappe.www.recorder.get_status").then( r => {
+			this.status = r.message
+		})
 		frappe.call("frappe.www.recorder.get_requests").then( r => {
 			this.requests = r.message
 		})
