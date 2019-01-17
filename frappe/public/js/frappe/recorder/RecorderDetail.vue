@@ -7,11 +7,11 @@
 		<table class="table table-hover">
 			<thead>
 				<tr>
-					<th>Index<button @click=" sort('index') ">Sort</button></th>
-					<th>Time<button @click=" sort('time') ">Sort</button></th>
-					<th>Method<button @click=" sort('method') ">Sort</button><input v-model="query.filters.method"/></th>
-					<th>Path<button @click=" sort('path') ">Sort</button><input v-model="query.filters.path"/></th>
-					<th>CMD<button @click=" sort('cmd') ">Sort</button><input v-model="query.filters.cmd"/></th>
+					<th>Index<i @click="sort('index')" class="glyphicon" :class="glyphicon('index')"></i></th>
+					<th>Time<i @click="sort('time')" class="glyphicon" :class="glyphicon('time')"></i></th>
+					<th>Method<i @click="sort('method')" class="glyphicon" :class="glyphicon('method')"></i><input v-model="query.filters.method"/></th>
+					<th>Path<i @click="sort('path')" class="glyphicon" :class="glyphicon('path')"></i><input v-model="query.filters.path"/></th>
+					<th>CMD<i @click="sort('cmd')" class="glyphicon" :class="glyphicon('cmd')"></i><input v-model="query.filters.cmd"/></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -119,6 +119,14 @@ export default {
 				this.query.order = "asc"
 			}
 			this.query.sort = key
+		},
+		glyphicon: function(key) {
+			if(key == this.query.sort) {
+				return (this.query.order == "asc") ? "glyphicon-sort-by-attributes" : "glyphicon-sort-by-attributes-alt"
+			}
+			else {
+				return "glyphicon-sort"
+			}
 		}
 	}
 };
