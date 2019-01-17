@@ -24,7 +24,7 @@
 				</tr>
 				<router-link style="cursor: pointer" :to="{name: 'request-detail', params: {request_uuid: request.uuid}}" tag="tr"  v-for="request in paginated(sorted(filtered(requests)))" :key="request.index" v-bind="request">
 					<td>{{ request.index }}</td>
-					<td>{{ request.time }}</td>
+					<td v-html="comment_when(request.time)"></td>
 					<td>{{ request.method }}</td>
 					<td>{{ request.path | elipsize }}</td>
 					<td>{{ request.cmd | elipsize }}</td>
@@ -96,6 +96,9 @@ export default {
 		}
 	},
 	methods: {
+		comment_when(value) {
+			return comment_when(value)
+		},
 		filtered: function(requests) {
 			requests = requests.slice()
 			const filters = Object.entries(this.query.filters)
