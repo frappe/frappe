@@ -2,7 +2,7 @@
 	<div>
 		<h1>
 			<span>Recorder</span>
-			<span class="indicator" :class="status.color">{{ status.label }}</span>
+			<span class="indicator" :class="status.color">{{ status.status }}</span>
 		</h1>
 		<table class="table table-hover">
 			<thead>
@@ -38,7 +38,7 @@
 				</li>
 			</ul>
 		</nav>
-		<select class="custom-select" v-model.number="query.pagination.limit">
+		<select v-model.number="query.pagination.limit">
 			<option value="10">10</option>
 			<option value="20">20</option>
 			<option value="50">50</option>
