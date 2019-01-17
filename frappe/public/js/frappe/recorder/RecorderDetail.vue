@@ -7,11 +7,11 @@
 		<table class="table table-hover">
 			<thead>
 				<tr>
-					<th>Index<i @click="sort('index')" class="glyphicon" :class="glyphicon('index')"></i></th>
-					<th>Time<i @click="sort('time')" class="glyphicon" :class="glyphicon('time')"></i></th>
-					<th>Method<i @click="sort('method')" class="glyphicon" :class="glyphicon('method')"></i></th>
-					<th>Path<i @click="sort('path')" class="glyphicon" :class="glyphicon('path')"></i></th>
-					<th>CMD<i @click="sort('cmd')" class="glyphicon" :class="glyphicon('cmd')"></i></th>
+					<th><span style="margin-right:5px">Index</span><i @click="sort('index')" class="glyphicon" :class="glyphicon('index')"></i></th>
+					<th><span style="margin-right:5px">Time</span><i @click="sort('time')" class="glyphicon" :class="glyphicon('time')"></i></th>
+					<th><span style="margin-right:5px">Method</span><i @click="sort('method')" class="glyphicon" :class="glyphicon('method')"></i></th>
+					<th><span style="margin-right:5px">Path</span><i @click="sort('path')" class="glyphicon" :class="glyphicon('path')"></i></th>
+					<th><span style="margin-right:5px">CMD</span><i @click="sort('cmd')" class="glyphicon" :class="glyphicon('cmd')"></i></th>
 				</tr>
 			</thead>
 			<tbody>
