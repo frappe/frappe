@@ -47,8 +47,8 @@ context('Calendar', () => {
 
 	it('drag the event', () => {
 		cy.visit('/desk#calendar');
-		cy.get(`.fc-day-grid-event:contains("${event_name}")`).as('event-bar')
-		cy.get('@event-bar').parent().as('event-parent')
+		cy.get(`.fc-day-grid-event:contains("${event_name}")`).as('event-bar');
+		cy.get('@event-bar').parent().as('event-parent');
 
 		cy.get('@event-bar')
 			.trigger('mousedown', {pageX: 349, pageY: 341, which: 1, force: true});
