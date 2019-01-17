@@ -719,7 +719,7 @@ def has_any_user_permission_for_doctype(doctype, user, applicable_for):
 	doctype_user_permissions = user_permissions.get(doctype, [])
 
 	for permission in doctype_user_permissions:
-		if not permission.applicable_for or permission.applicable_for == applicable_for:
+		if not permission.get('applicable_for') or permission.get('applicable_for') == applicable_for:
 			return True
 
 	return False
