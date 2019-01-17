@@ -1157,14 +1157,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			let doctype = null;
 			let value = frappe.route_options[field];
 
-			let value_array
+			let value_array;
 			if ($.isArray(value) && value.length>1) {
-				value_array = []
+				value_array = [];
 				for(var i=0; i<value.length; i++) {
 					value_array.push(JSON.parse(value[i]));
 				}
-			}
-			else if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
+			} else if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
 				value = JSON.parse(value);
 			}
 
@@ -1185,11 +1184,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			if (doctype) {
 				if (value_array) {
-					for(var i=0; i<value_array.length; i++){
+					for(var j=0; j<value_array.length; j++){
 						if ($.isArray(value_array[i])) {
-							filters.push([doctype, field, value_array[i][0], value_array[i][1]]);
+							filters.push([doctype, field, value_array[j][0], value_array[j][1]]);
 						} else {
-							filters.push([doctype, field, "=", value_array[i]]);
+							filters.push([doctype, field, "=", value_array[j]]);
 						}
 					}
 				}else if ($.isArray(value)) {
