@@ -26,8 +26,8 @@
 					<td>{{ request.index }}</td>
 					<td>{{ request.time }}</td>
 					<td>{{ request.method }}</td>
-					<td>{{ request.path }}</td>
-					<td>{{ request.cmd }}</td>
+					<td>{{ request.path | elipsize }}</td>
+					<td>{{ request.cmd | elipsize }}</td>
 				</router-link>
 			</tbody>
 		</table>
@@ -134,6 +134,14 @@ export default {
 			else {
 				return "glyphicon-sort"
 			}
+		}
+	},
+	filters: {
+		elipsize: function (value) {
+			if (!value) return ''
+			if (value.length > 30)
+				return value.substring(0, 30-3)+'...';
+			return value
 		}
 	}
 };
