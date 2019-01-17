@@ -21,6 +21,13 @@ def get_context(context):
 		raise frappe.Redirect
 	return {"highlight": HtmlFormatter().get_style_defs()}
 
+@frappe.whitelist()
+def get_status():
+	do_not_record()
+	if frappe.cache().get("recorder-intercept"):
+		return {"status": "Active", "color": "green"}
+	return {"status": "Inactive", "color": "red"}
+
 
 @frappe.whitelist()
 def get_requests():
