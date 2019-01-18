@@ -170,11 +170,16 @@ class SMTPServer:
 		self.email_account = get_outgoing_email_account(raise_exception_not_set=False, append_to=append_to, sender=sender)
 		if self.email_account:
 			self.server = self.email_account.smtp_server
-			self.login = getattr(self.email_account, "login_id", None) or self.email_account.email_id
-			if self.email_account.ascii_encode_password:
-				self.password = frappe.safe_encode(self.email_account.password, 'ascii')
+			self.authenticate = not getattr(self.email_account, "no_smtp_authentication", False)
+			if self.authenticate:
+				self.login = (getattr(self.email_account, "login_id", None) or self.email_account.email_id)
+				if self.email_account.ascii_encode_password:
+					self.password = frappe.safe_encode(self.email_account.password, 'ascii')
+				else:
+					self.password = self.email_account.password
 			else:
-				self.password = self.email_account.password
+				self.login = None
+				self.password = None
 			self.port = self.email_account.smtp_port
 			self.use_tls = self.email_account.use_tls
 			self.sender = self.email_account.email_id

@@ -128,14 +128,21 @@ class EmailAccount(Document):
 			if not self.smtp_server:
 				frappe.throw(_("{0} is required").format("SMTP Server"))
 
-			server = SMTPServer(login = getattr(self, "login_id", None) \
-					or self.email_id,
+			authenticate = not getattr(self, "no_smtp_authentication", False)
+			if authenticate:
+				login = getattr(self, "login_id", None) or self.email_id
+				if self.password:
+					password = self.get_password()
+			else:
+				login = None
+				password = None
+
+			server = SMTPServer(login = login,
+				password = password,
 				server = self.smtp_server,
 				port = cint(self.smtp_port),
 				use_tls = cint(self.use_tls)
 			)
-			if self.password:
-				server.password = self.get_password()
 			server.sess
 
 	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
@@ -143,19 +150,26 @@ class EmailAccount(Document):
 		if frappe.cache().get_value("workers:no-internet") == True:
 			return None
 
+		authenticate = not getattr(self, "no_smtp_authentication", False)
+		if authenticate:
+			login = getattr(self, "login_id", None) or self.email_id
+			if self.password:
+				password = self.get_password()
+		else:
+			login = None
+			password = None
+
 		args = frappe._dict({
 			"email_account":self.name,
 			"host": self.email_server,
 			"use_ssl": self.use_ssl,
-			"username": getattr(self, "login_id", None) or self.email_id,
+			"username": login,
+			"password": password,
 			"use_imap": self.use_imap,
 			"email_sync_rule": email_sync_rule,
 			"uid_validity": self.uidvalidity,
 			"initial_sync_count": self.initial_sync_count or 100
 		})
-
-		if self.password:
-			args.password = self.get_password()
 
 		if not args.get("host"):
 			frappe.throw(_("{0} is required").format("Email Server"))
@@ -729,3 +743,5 @@ def get_max_email_uid(email_account):
 	else:
 		max_uid = cint(result[0].get("uid", 0)) + 1
 		return max_uid
+										       
+
