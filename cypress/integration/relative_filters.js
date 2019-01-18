@@ -18,8 +18,15 @@ context('Relative Timeframe', () => {
 		cy.get('.fieldname-select-area input').type("Due Date{enter}", { delay: 100 });
 		cy.get('select.condition.form-control').select("Previous");
 		cy.get('.filter-field select.input-with-feedback.form-control').select("1 week");
+		cy.server();
+		cy.route({
+			method: 'POST',
+			url: '/'
+		}).as('applyFilter');
 		cy.get('.filter-box .btn:contains("Apply")').click();
-		cy.get('.list-row').should('contain', 'this is first todo');
+		cy.wait('@applyFilter');
+		cy.get('.list-row-container').its('length').should('eq', 1);
+		cy.get('.list-row-container').should('contain', 'this is second todo');
 		cy.get('.remove-filter.btn').click();
 	});
 	it('set relative filter for Next and check list', () => {
@@ -29,8 +36,15 @@ context('Relative Timeframe', () => {
 		cy.get('.fieldname-select-area input').type("Due Date{enter}", { delay: 100 });
 		cy.get('select.condition.form-control').select("Next");
 		cy.get('.filter-field select.input-with-feedback.form-control').select("1 week");
+		cy.server();
+		cy.route({
+			method: 'POST',
+			url: '/'
+		}).as('applyFilter');
 		cy.get('.filter-box .btn:contains("Apply")').click();
-		cy.get('.list-row').should('contain', 'this is second todo');
+		cy.wait('@applyFilter');
+		cy.get('.list-row-container').its('length').should('eq', 1);
+		cy.get('.list-row').should('contain', 'this is first todo');
 		cy.get('.remove-filter.btn').click();
 	});
 });
