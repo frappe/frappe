@@ -49,6 +49,10 @@ def clear_defaults_cache(user=None):
 	elif frappe.flags.in_install!="frappe":
 		frappe.cache().delete_key("defaults")
 
+def clear_document_cache():
+	frappe.local.document_cache = {}
+	frappe.cache().delete_key("document_cache")
+
 def clear_doctype_cache(doctype=None):
 	cache = frappe.cache()
 
@@ -81,4 +85,7 @@ def clear_doctype_cache(doctype=None):
 		# clear all
 		for name in groups:
 			cache.delete_value(name)
+
+	# Clear all document's cache. To clear documents of a specific DocType document_cache should be restructured
+	clear_document_cache()
 

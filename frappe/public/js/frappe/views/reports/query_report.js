@@ -616,11 +616,24 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					{for_print: false, always_show_decimals: true}, data);
 			};
 
+			let compareFn = null;
+			if (column.fieldtype === 'Date') {
+				compareFn = (cell, keyword) => {
+					if (!cell.content) return null;
+					if (keyword.length !== 'YYYY-MM-DD'.length) return null;
+
+					const keywordValue = frappe.datetime.user_to_obj(keyword);
+					const cellValue = frappe.datetime.str_to_obj(cell.content);
+					return [+cellValue, +keywordValue];
+				};
+			}
+
 			return Object.assign(column, {
 				id: column.fieldname,
 				name: column.label,
 				width: parseInt(column.width) || null,
 				editable: false,
+				compareValue: compareFn,
 				format: (value, row, column, data) => {
 					if (this.report_settings.formatter) {
 						return this.report_settings.formatter(value, row, column, data, format_cell);
