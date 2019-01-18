@@ -122,7 +122,28 @@ frappe.ui.setup_like_popover = ($parent, selector, check_not_liked=true) => {
 				if (!liked_by.length) {
 					return "";
 				}
-				return frappe.render_template('liked_by', {'liked_by': liked_by});
+
+				let liked_by_list = $(`<ul class="list-unstyled"></ul>`);
+
+				// to show social profile of the user
+				let link_base = '#social/profile/';
+
+				liked_by.forEach(user => {
+					// append user list item
+					liked_by_list.append(`
+						<li data-user=${user}>${frappe.avatar(user)}
+							<span>${frappe.user.full_name(user)}</span>
+						</li>
+					`);
+				});
+
+				liked_by_list.children('li').click(ev => {
+					let user = ev.currentTarget.dataset.user;
+					target_element.popover('hide');
+					frappe.set_route(link_base + user);
+				});
+
+				return liked_by_list;
 			},
 			html: true,
 			container: 'body'

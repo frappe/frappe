@@ -463,9 +463,17 @@ li.user-progress {
 		max-height: 150px;
 	}
 	min-width: 100px;
-	li {
-		margin: 10px;
+	ul {
+		margin: 0px;
+		li {
+			padding: 10px;
+			cursor: pointer;
+			&:hover {
+				background: @btn-bg;
+			}
+		}
 	}
+
 }
 
 .screenshot {
