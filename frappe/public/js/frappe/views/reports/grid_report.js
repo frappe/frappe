@@ -421,7 +421,8 @@ frappe.views.GridReport = Class.extend({
 					data.checked = Boolean(checked);
 
 					this.setup_chart && this.setup_chart();
-				}
+				},
+				accumulator: (acc, cell, row, row_count) => frappe.utils.report_accumulator(acc, cell, row, row_count)
 			}
 		});
 

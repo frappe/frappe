@@ -656,6 +656,18 @@ Object.assign(frappe.utils, {
 			return `<a href="${route}">${name}</a>`;
 		}
 		return route;
+	},
+
+	report_accumulator: function(acc, cell, row, row_count) {
+		if (typeof cell.content === 'number') {
+			acc.content += cell.content;
+
+			if (cell.column.fieldtype == "Percent" && cell.rowIndex === row_count-1) {
+				acc.content /= row_count;
+			}
+		} else {
+			return false;
+		}
 	}
 });
 
