@@ -813,7 +813,7 @@ def download_file(file_url):
 	"""
 	file_doc = frappe.get_doc("File", {"file_url": file_url})
 	file_doc.check_permission("read")
-	
+
 	frappe.local.response.filename = os.path.basename(file_url)
 	frappe.local.response.filecontent = file_doc.get_content()
 	frappe.local.response.type = "download"
