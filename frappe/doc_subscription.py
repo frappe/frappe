@@ -11,6 +11,7 @@ from pprint import pprint
 
 @frappe.whitelist()
 def add_subcription(doctype, doc_name, user_email):
+	print("---------------------inside")
 	if len(frappe.get_list("Document Follow", filters={'ref_doctype': doctype, 'ref_docname': doc_name, 'user': user_email})) == 0:
 		if user_email != "Administrator":
 			doc = frappe.new_doc("Document Follow")
@@ -21,6 +22,17 @@ def add_subcription(doctype, doc_name, user_email):
 			})
 			doc.save()
 			return doc
+
+@frappe.whitelist()
+def Unfollow(doctype, doc_name, user_email):
+	print("---------------------inside unfollow",doctype, doc_name, user_email)
+	doc = frappe.get_list("Document Follow", filters={'ref_doctype': doctype, 'ref_docname': doc_name, 'user': user_email}, fields=["name"])
+	print(doc,"---------------------")
+	if len(doc) != 0:
+		print("deleting...")
+		frappe.delete_doc("Document Follow",doc[0].name)
+		print("deleted!")
+		return 1
 
 def get_message(doc_name, doctype):
 	html = get_version(doctype, doc_name) + get_comments(doctype, doc_name)
@@ -124,6 +136,13 @@ def get_comments(doctype, doc_name):
 					"doc_name" : doc_name
 				})
 	return timeline
+
+@frappe.whitelist()
+def check(doctype, doc_name, user):
+	if len(frappe.get_list("Document Follow", filters={'ref_doctype': doctype, 'ref_docname': doc_name, 'user': user})) == 0:
+		return 1
+	else:
+		return 0
 
 def cleantext(s):
 	s = s.replace("<div>"," ")

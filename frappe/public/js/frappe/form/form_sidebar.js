@@ -23,6 +23,7 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.make_viewers();
 		this.make_tags();
 		this.make_like();
+		this.make_follow();
 
 		this.bind_events();
 		frappe.ui.form.setup_user_image_event(this.frm);
@@ -131,7 +132,57 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.like_count = this.sidebar.find(".liked-by .likes-count");
 		frappe.ui.setup_like_popover(this.sidebar.find(".liked-by-parent"), ".liked-by");
 	},
+	make_follow: function(){
+		this.check_subscription().then(subs =>{
+			if(subs == 0){
+				$('.anchor-document-follow > span').html("Unfollow")
 
+			}else{
+				$('.anchor-document-follow > span').html("Follow")
+			}
+		});
+
+		this.follow_anchor = this.sidebar.find(".anchor-document-follow");
+		this.follow_span = this.sidebar.find(".anchor-document-follow > span");
+				if (frappe.session.user == "Administrator"){
+					this.follow_anchor.addClass("hidden");
+				}else{
+					this.follow_anchor.on("click", function(){
+						if($('.anchor-document-follow > span').text() == "Follow"){
+							frappe.call({
+								method: 'frappe.doc_subscription.add_subcription',
+								args: {
+									'doctype': cur_frm.doctype,
+									'doc_name': cur_frm.doc.name,
+									'user_email': frappe.session.user
+								},
+								callback: function(r) {
+									if(r){
+										show_alert({message:__("You are now following this document"), indicator:'orange'});
+										$('.anchor-document-follow > span').html("Unfollow")
+									}
+								}
+							});
+
+						}else{
+							frappe.call({
+								method: 'frappe.doc_subscription.Unfollow',
+								args: {
+									'doctype': cur_frm.doctype,
+									'doc_name': cur_frm.doc.name,
+									'user_email': frappe.session.user
+								},
+								callback: function(r) {
+									if(r){
+										show_alert({message:__("You Unfollowed this document"), indicator:'red'});
+										$('.anchor-document-follow > span').html("Follow")
+									}
+								}
+							});
+						}
+					});
+			}
+	},
 	refresh_like: function() {
 		if (!this.like_icon) {
 			return;
@@ -148,6 +199,18 @@ frappe.ui.form.Sidebar = Class.extend({
 	},
 
 	refresh_image: function() {
+	},
+	check_subscription: function() {
+		return new Promise(resolve => {
+			frappe.call({
+				method: 'frappe.doc_subscription.check',
+				args: {
+					'doctype': cur_frm.doctype,
+					'doc_name': cur_frm.doc.name,
+					'user': frappe.session.user
+				},
+			}).then(r => resolve(r.message))
+		});
 	},
 
 	setup_ratings: function() {
