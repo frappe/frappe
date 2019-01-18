@@ -13,12 +13,12 @@ context('Relative Timeframe', () => {
 	it('set relative filter for Previous and check list', () => {
 		cy.visit('/desk#List/ToDo/List');
 		cy.get('.list-row:contains("this is fourth todo")').should('exist');
-    cy.get('.tag-filters-area .btn:contains("Add Filter")').click();
+		cy.get('.tag-filters-area .btn:contains("Add Filter")').click();
 		cy.get('.fieldname-select-area').should('exist');
-    cy.get('.fieldname-select-area input').type("Due Date{enter}", { delay: 100 });
-    cy.get('select.condition.form-control').select("Previous");
-    cy.get('.filter-field select.input-with-feedback.form-control').select("1 week");
-    cy.get('.filter-box .btn:contains("Apply")').click();
+		cy.get('.fieldname-select-area input').type("Due Date{enter}", { delay: 100 });
+		cy.get('select.condition.form-control').select("Previous");
+		cy.get('.filter-field select.input-with-feedback.form-control').select("1 week");
+		cy.get('.filter-box .btn:contains("Apply")').click();
 		cy.get('.list-row').should('contain', 'this is first todo');
 		cy.get('.remove-filter.btn').click();
 	});
@@ -26,10 +26,10 @@ context('Relative Timeframe', () => {
 		cy.visit('/desk#List/ToDo/List');
 		cy.get('.list-row:contains("this is fourth todo")').should('exist');
 		cy.get('.tag-filters-area .btn:contains("Add Filter")').click();
-    cy.get('.fieldname-select-area input').type("Due Date{enter}", { delay: 100 });
-    cy.get('select.condition.form-control').select("Next");
-    cy.get('.filter-field select.input-with-feedback.form-control').select("1 week");
-    cy.get('.filter-box .btn:contains("Apply")').click();
+		cy.get('.fieldname-select-area input').type("Due Date{enter}", { delay: 100 });
+		cy.get('select.condition.form-control').select("Next");
+		cy.get('.filter-field select.input-with-feedback.form-control').select("1 week");
+		cy.get('.filter-box .btn:contains("Apply")').click();
 		cy.get('.list-row').should('contain', 'this is second todo');
 		cy.get('.remove-filter.btn').click();
 	});
