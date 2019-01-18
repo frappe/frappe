@@ -43,6 +43,7 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.like_icon.on("click", function() {
 			frappe.ui.toggle_like(me.like_icon, me.frm.doctype, me.frm.doc.name, function() {
 				me.refresh_like();
+				me.set_follow();
 			});
 		})
 	},
@@ -132,7 +133,7 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.like_count = this.sidebar.find(".liked-by .likes-count");
 		frappe.ui.setup_like_popover(this.sidebar.find(".liked-by-parent"), ".liked-by");
 	},
-	make_follow: function(){
+	set_follow: function(){
 		this.check_subscription().then(subs =>{
 			if(subs == 0){
 				$('.anchor-document-follow > span').html("Unfollow")
@@ -141,7 +142,9 @@ frappe.ui.form.Sidebar = Class.extend({
 				$('.anchor-document-follow > span').html("Follow")
 			}
 		});
-
+	},
+	make_follow: function(){
+		this.set_follow()
 		this.follow_anchor = this.sidebar.find(".anchor-document-follow");
 		this.follow_span = this.sidebar.find(".anchor-document-follow > span");
 				if (frappe.session.user == "Administrator"){
@@ -157,14 +160,16 @@ frappe.ui.form.Sidebar = Class.extend({
 									'user_email': frappe.session.user
 								},
 								callback: function(r) {
-									if(r){
-										show_alert({message:__("You are now following this document"), indicator:'orange'});
+									if (r) {
+										frappe.show_alert({
+											message: __('You are now following this document. You will receive daily updates via email. You can change this in User Settings.'),
+											indicator: 'orange'
+										});
 										$('.anchor-document-follow > span').html("Unfollow")
 									}
 								}
 							});
-
-						}else{
+						} else {
 							frappe.call({
 								method: 'frappe.doc_subscription.Unfollow',
 								args: {
