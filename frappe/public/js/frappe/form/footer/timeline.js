@@ -296,7 +296,7 @@ frappe.ui.form.Timeline = class Timeline {
 				frm: this.frm,
 				last_email,
 				is_a_reply: true
-			}
+			};
 
 			if ($target.is('.reply-link-all')) {
 				if (last_email) {
@@ -826,4 +826,4 @@ $.extend(frappe.timeline, {
 
 		return index;
 	}
-})
+});
