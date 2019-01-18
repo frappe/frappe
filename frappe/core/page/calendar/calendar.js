@@ -201,8 +201,7 @@ function get_more_calendars(sidebar, cal, page){
 					if($(".cal").length > 5){
 						$('.all').parent().show();
 					}
-				}
-				else {
+				} else {
 					custom_calendars.remove();
 					span.html("More Calendars<span class='caret '></span>");
 					cal.fullCalendar("refetchEvents");
