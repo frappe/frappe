@@ -171,49 +171,48 @@ function create_checkboxes(sidebar, cal){
 
 function get_more_calendars(sidebar, cal, page){
 	//dropdown for more calendars
-	get_allowed_calendar()
-		.then(allowed_cal => {
-			$.each(frappe.boot.calendars, function(i, doctype){
-				allowed_cal = $.grep(allowed_cal, function(value) {
-					return value != doctype;
-				});
+	get_allowed_calendar().then(allowed_cal => {
+		$.each(frappe.boot.calendars, function(i, doctype){
+			allowed_cal = $.grep(allowed_cal, function(value) {
+				return value != doctype;
 			});
-
-			if(allowed_cal.length != 0){
-				const more_calendar_text = __('More Calendars');
-				$(`<span class='text-muted cursor-pointer'>
-				${more_calendar_text}
-				<span class='caret'></span>
-				</span>`).appendTo(page.sidebar.find('div > div')).css("padding-left", "13px").on("click", function(){
-					var span = $(this);
-
-					var custom_calendars = $(".checkbox.custom");
-					if (custom_calendars.length == 0) {
-						var doctype;
-						for(doctype in allowed_cal){
-								var li = $(`<li class="checkbox custom" style="padding-top: 0px">`);
-								$('<input type="checkbox" class="cal more" value="' + allowed_cal[doctype] + '">').appendTo(li).on("click", function(){
-									cal.fullCalendar("refetchEvents");
-								});
-								$('<label>').html(allowed_cal[doctype] ).appendTo(li);
-								li.appendTo(sidebar);
-						}
-						span.html("Less Calendars<span class='dropup'><span class='caret'></span></span>");
-						if($(".cal").length > 5){
-							$('.all').parent().show();
-						}
-					}
-					else {
-						custom_calendars.remove();
-						span.html("More Calendars<span class='caret '></span>");
-						cal.fullCalendar("refetchEvents");
-						if($('.cal').length < 5){
-							$('.all').parent().hide();
-						}
-					}
-				});
-			}
 		});
+
+		if(allowed_cal.length != 0){
+			const more_calendar_text = __('More Calendars');
+			$(`<span class='text-muted cursor-pointer'>
+			${more_calendar_text}
+			<span class='caret'></span>
+			</span>`).appendTo(page.sidebar.find('div > div')).css("padding-left", "13px").on("click", function(){
+				var span = $(this);
+
+				var custom_calendars = $(".checkbox.custom");
+				if (custom_calendars.length == 0) {
+					var doctype;
+					for(doctype in allowed_cal){
+						var li = $(`<li class="checkbox custom" style="padding-top: 0px">`);
+						$('<input type="checkbox" class="cal more" value="' + allowed_cal[doctype] + '">').appendTo(li).on("click", function(){
+							cal.fullCalendar("refetchEvents");
+						});
+						$('<label>').html(allowed_cal[doctype] ).appendTo(li);
+						li.appendTo(sidebar);
+					}
+					span.html("Less Calendars<span class='dropup'><span class='caret'></span></span>");
+					if($(".cal").length > 5){
+						$('.all').parent().show();
+					}
+				}
+				else {
+					custom_calendars.remove();
+					span.html("More Calendars<span class='caret '></span>");
+					cal.fullCalendar("refetchEvents");
+					if($('.cal').length < 5){
+						$('.all').parent().hide();
+					}
+				}
+			});
+		}
+	});
 }
 
 function create_popover(event, jsEvent) {
