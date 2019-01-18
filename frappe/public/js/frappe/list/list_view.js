@@ -1158,7 +1158,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			let value = frappe.route_options[field];
 
 			let value_array;
-			if ($.isArray(value) && value.length>1) {
+			if ($.isArray(value) && value[0].startsWith('[') && value[0].endsWith(']')) {
 				value_array = [];
 				for(var i=0; i<value.length; i++) {
 					value_array.push(JSON.parse(value[i]));
