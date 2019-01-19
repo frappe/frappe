@@ -36,8 +36,8 @@ export default {
 				uuid: this.$route.params.request_uuid
 			}
 		}).then( r => {
-			this.calls = r.message.calls
-		})
+			this.calls = r.message.calls;
+		});
 	},
 };
 </script>

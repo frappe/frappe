@@ -31,7 +31,7 @@ frappe.ready(function() {
 		mode: 'hash',
 		base: "/recorder/",
 		routes: routes,
-	})
+	});
 
 	new Vue({
 		el: "#recorder",
@@ -40,5 +40,5 @@ frappe.ready(function() {
 		components: {
 			RecorderRoot,
 		}
-	})
-})
+	});
+});
