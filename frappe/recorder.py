@@ -53,11 +53,8 @@ def sql(*args, **kwargs):
 		"explain_result": compress(explain_result),
 		"profile_result": compress(profile_result),
 		"stack": stack,
-		"time": {
-			"start": start_time,
-			"end": end_time,
-			"total": float("{:.3f}".format((end_time - start_time) * 1000)),
-		},
+		"time": start_time,
+		"duration": float("{:.3f}".format((end_time - start_time) * 1000)),
 	}
 
 	# Record all calls, Will be later stored in cache
