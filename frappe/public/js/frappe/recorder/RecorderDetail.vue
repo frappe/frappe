@@ -37,7 +37,7 @@
 		</table>
 		<nav>
 			<ul class="pagination">
-				<li class="page-item" :class="query.pagination.limit == page ? 'active' : ''" v-for="(page, index) in [10,20,50,100,200,500]" :key="index">
+				<li class="page-item" :class="query.pagination.limit == page ? 'active' : ''" v-for="(page, index) in [20, 100, 500]" :key="index">
 					<a class="page-link" @click="query.pagination.limit = page">{{ page }}</a>
 				</li>
 			</ul>
@@ -61,7 +61,7 @@ export default {
 				order: "asc",
 				filters: {},
 				pagination: {
-					limit: 10,
+					limit: 20,
 					page: 1,
 					total: 0,
 				}
