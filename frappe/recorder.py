@@ -82,7 +82,7 @@ class Recorder():
 		self.time = datetime.datetime.now()
 		self.calls = []
 		self.path = frappe.request.path
-		self.cmd = frappe.local.form_dict.cmd
+		self.cmd = frappe.local.form_dict.cmd or ""
 		self.method = frappe.request.method
 
 		self.request = {
