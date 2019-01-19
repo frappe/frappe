@@ -3,6 +3,17 @@
 		<h1>
 			<span>Recorder</span>
 			<span class="indicator" :class="status.color">{{ status.status }}</span>
+			<span class="chart-actions btn-group dropdown pull-right" style="float:right; margin-left:15px">
+				<a class="dropdown-toggle" data-toggle="dropdown">
+					<button class="btn btn-default btn-xs"><span class="caret"></span></button>
+				</a>
+				<ul class="dropdown-menu" style="max-height: 300px; overflow-y: auto;">
+					<li><a @click="refresh()">Refresh</a></li>
+					<li v-if="status.status == 'Inactive'" @click="record(true)"><a>Start Recording</a></li>
+					<li v-if="status.status == 'Active'" @click="record(false)"><a>Stop Recording</a></li>
+				</ul>
+			</span>
+			<span class="text-muted" style="font-size:12px; float:right" v-html="'Last synced ' + comment_when(last_fetched)"></span>
 		</h1>
 		<table class="table table-hover">
 			<thead>
@@ -64,17 +75,13 @@ export default {
 			},
 			status: {
 				color: "grey",
-				label: "Unknown",
-			}
+				status: "Unknown",
+			},
+			last_fetched: null,
 		};
 	},
 	mounted() {
-		frappe.call("frappe.www.recorder.get_status").then( r => {
-			this.status = r.message
-		})
-		frappe.call("frappe.www.recorder.get_requests").then( r => {
-			this.requests = r.message
-		})
+		this.refresh()
 	},
 	computed: {
 		pages: function() {
@@ -136,6 +143,23 @@ export default {
 			else {
 				return "glyphicon-sort"
 			}
+		},
+		refresh: function(){
+			frappe.call("frappe.www.recorder.get_status").then( r => {
+				this.status = r.message
+			})
+			frappe.call("frappe.www.recorder.get_requests").then( r => {
+				this.requests = r.message
+				this.last_fetched = new Date()
+			})
+		},
+		record: function(should_record) {
+			frappe.call({
+				method: "frappe.www.recorder.set_recorder_state",
+				args: {
+					should_record: should_record
+				}
+			}).then(r => this.refresh())
 		}
 	},
 	filters: {

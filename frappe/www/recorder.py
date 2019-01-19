@@ -30,6 +30,16 @@ def get_status():
 
 
 @frappe.whitelist()
+def set_recorder_state(should_record):
+	print(should_record)
+	do_not_record()
+	if should_record == "true":
+		frappe.cache().set("recorder-intercept", 1)
+	else:
+		frappe.cache().delete("recorder-intercept")
+
+
+@frappe.whitelist()
 def get_requests():
 	do_not_record()
 	requests = frappe.cache().lrange("recorder-requests", 0, -1)
