@@ -1,11 +1,11 @@
-import Vue from 'vue/dist/vue.js'
-import VueRouter from 'vue-router/dist/vue-router.js'
+import Vue from 'vue/dist/vue.js';
+import VueRouter from 'vue-router/dist/vue-router.js';
 
-import RecorderRoot from "./RecorderRoot.vue"
+import RecorderRoot from "./RecorderRoot.vue";
 
-import RecorderDetail from "./RecorderDetail.vue"
-import RequestDetail from "./RequestDetail.vue"
-import SQLDetail from "./SQLDetail.vue"
+import RecorderDetail from "./RecorderDetail.vue";
+import RequestDetail from "./RequestDetail.vue";
+import SQLDetail from "./SQLDetail.vue";
 
 frappe.ready(function() {
 	Vue.use(VueRouter)
@@ -25,7 +25,7 @@ frappe.ready(function() {
 			path: '/request/:request_uuid/sql/:call_index',
 			component: SQLDetail,
 		},
-	  ]
+	];
 
 	const router = new VueRouter({
 		mode: 'hash',

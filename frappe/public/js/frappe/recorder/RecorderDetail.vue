@@ -9,7 +9,7 @@
 				<button v-if="status.status == 'Active'" class="btn btn-default btn-primary" @click="record(false)">Stop</button>
 			</span>
 		</h1>
-		<table class="table table-hover">
+		<table class="table table-hover table-condensed">
 			<thead>
 				<tr>
 					<th style="width:10%"><span style="margin-right:5px">Index</span><i @click="sort('index')" class="glyphicon" :class="glyphicon('index')"></i></th>
