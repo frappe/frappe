@@ -59,8 +59,8 @@ export default {
 				uuid: this.$route.params.request_uuid
 			}
 		}).then( r => {
-			this.call = r.message.calls[this.$route.params.call_index]
-		})
+			this.call = r.message.calls[this.$route.params.call_index];
+		});
 	},
 };
 </script>
