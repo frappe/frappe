@@ -13,15 +13,17 @@
 			<thead>
 				<tr>
 					<th style="width:8%"><span style="margin-right:5px">Index</span><i @click="sort('index')" class="glyphicon" :class="glyphicon('index')"></i></th>
-					<th style="width:24%"><span style="margin-right:5px">Time</span><i @click="sort('time')" class="glyphicon" :class="glyphicon('time')"></i></th>
-					<th style="width:10%"><span style="margin-right:5px">Duration</span><i @click="sort('duration')" class="glyphicon" :class="glyphicon('duration')"></i></th>
-					<th style="width:8%"><span>Method</span></th>
-					<th style="width:25%"><span style="margin-right:5px">Path</span><i @click="sort('path')" class="glyphicon" :class="glyphicon('path')"></i></th>
-					<th style="width:25%"><span style="margin-right:5px">CMD</span><i @click="sort('cmd')" class="glyphicon" :class="glyphicon('cmd')"></i></th>
+					<th style="width:22%"><span style="margin-right:5px">Time</span><i @click="sort('time')" class="glyphicon" :class="glyphicon('time')"></i></th>
+					<th style="width:9%"><span style="margin-right:5px">Duration</span><i @click="sort('duration')" class="glyphicon" :class="glyphicon('duration')"></i></th>
+					<th style="width:9%"><span style="margin-right:5px">Queries</span><i @click="sort('queries')" class="glyphicon" :class="glyphicon('queries')"></i></th>
+					<th style="width:7%"><span>Method</span></th>
+					<th style="width:24%"><span style="margin-right:5px">Path</span><i @click="sort('path')" class="glyphicon" :class="glyphicon('path')"></i></th>
+					<th style="width:24%"><span style="margin-right:5px">CMD</span><i @click="sort('cmd')" class="glyphicon" :class="glyphicon('cmd')"></i></th>
 				</tr>
 			</thead>
 			<tbody>
 				<tr>
+					<td></td>
 					<td></td>
 					<td></td>
 					<td></td>
@@ -33,6 +35,7 @@
 					<td>{{ request.index }}</td>
 					<td>{{ request.time }}</td>
 					<td>{{ request.duration }}</td>
+					<td>{{ request.queries }}</td>
 					<td>{{ request.method }}</td>
 					<td>{{ request.path | elipsize }}</td>
 					<td>{{ request.cmd | elipsize }}</td>
