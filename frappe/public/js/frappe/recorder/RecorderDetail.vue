@@ -14,6 +14,7 @@
 				<tr>
 					<th><span style="margin-right:5px">Index</span><i @click="sort('index')" class="glyphicon" :class="glyphicon('index')"></i></th>
 					<th><span style="margin-right:5px">Time</span><i @click="sort('time')" class="glyphicon" :class="glyphicon('time')"></i></th>
+					<th><span style="margin-right:5px">Duration</span><i @click="sort('duration')" class="glyphicon" :class="glyphicon('duration')"></i></th>
 					<th><span style="margin-right:5px">Method</span><i @click="sort('method')" class="glyphicon" :class="glyphicon('method')"></i></th>
 					<th><span style="margin-right:5px">Path</span><i @click="sort('path')" class="glyphicon" :class="glyphicon('path')"></i></th>
 					<th><span style="margin-right:5px">CMD</span><i @click="sort('cmd')" class="glyphicon" :class="glyphicon('cmd')"></i></th>
@@ -23,6 +24,7 @@
 				<tr>
 					<td></td>
 					<td></td>
+					<td></td>
 					<td><input v-model="query.filters.method"/></td>
 					<td><input v-model="query.filters.path"/></td>
 					<td><input v-model="query.filters.cmd"/></td>
@@ -30,6 +32,7 @@
 				<router-link style="cursor: pointer" :to="{name: 'request-detail', params: {request_uuid: request.uuid}}" tag="tr"  v-for="request in paginated(sorted(filtered(requests)))" :key="request.index" v-bind="request">
 					<td>{{ request.index }}</td>
 					<td>{{ request.time }}</td>
+					<td>{{ request.duration }}</td>
 					<td>{{ request.method }}</td>
 					<td>{{ request.path | elipsize }}</td>
 					<td>{{ request.cmd | elipsize }}</td>

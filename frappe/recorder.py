@@ -102,6 +102,7 @@ class Recorder():
 				"path": self.path,
 				"cmd": self.cmd,
 				"time": self.time,
+				"duration": float("{:0.3f}".format((datetime.datetime.now() - self.time).total_seconds() * 1000)),
 				"method": self.method,
 			}, default=lambda x: str(x))
 		)
