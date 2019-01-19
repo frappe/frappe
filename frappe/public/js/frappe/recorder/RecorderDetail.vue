@@ -4,16 +4,9 @@
 			<span>Recorder</span>
 			<span class="indicator" :class="status.color">{{ status.status }}</span>
 			<span class="chart-actions btn-group dropdown pull-right" style="float:right; margin-left:15px">
-				<a class="dropdown-toggle" data-toggle="dropdown">
-					<button class="btn btn-default btn-xs"><span class="caret"></span></button>
-				</a>
-				<ul class="dropdown-menu" style="max-height: 300px; overflow-y: auto;">
-					<li><a @click="refresh()">Refresh</a></li>
-					<li v-if="status.status == 'Inactive'" @click="record(true)"><a>Start Recording</a></li>
-					<li v-if="status.status == 'Active'" @click="record(false)"><a>Stop Recording</a></li>
-				</ul>
+				<button v-if="status.status == 'Inactive'" class="btn btn-default btn-primary" @click="record(true)">Start</button>
+				<button v-if="status.status == 'Active'" class="btn btn-default btn-primary" @click="record(false)">Stop</button>
 			</span>
-			<span class="text-muted" style="font-size:12px; float:right" v-html="'Last synced ' + comment_when(last_fetched)"></span>
 		</h1>
 		<table class="table table-hover">
 			<thead>
@@ -35,7 +28,7 @@
 				</tr>
 				<router-link style="cursor: pointer" :to="{name: 'request-detail', params: {request_uuid: request.uuid}}" tag="tr"  v-for="request in paginated(sorted(filtered(requests)))" :key="request.index" v-bind="request">
 					<td>{{ request.index }}</td>
-					<td v-html="comment_when(request.time)"></td>
+					<td>{{ request.time }}</td>
 					<td>{{ request.method }}</td>
 					<td>{{ request.path | elipsize }}</td>
 					<td>{{ request.cmd | elipsize }}</td>
@@ -81,7 +74,8 @@ export default {
 		};
 	},
 	mounted() {
-		this.refresh()
+		frappe.socketio.init(9000)
+		this.fetch_status()
 	},
 	computed: {
 		pages: function() {
@@ -103,9 +97,6 @@ export default {
 		}
 	},
 	methods: {
-		comment_when(value) {
-			return comment_when(value)
-		},
 		filtered: function(requests) {
 			requests = requests.slice()
 			const filters = Object.entries(this.query.filters)
@@ -144,10 +135,7 @@ export default {
 				return "glyphicon-sort"
 			}
 		},
-		refresh: function(){
-			frappe.call("frappe.www.recorder.get_status").then( r => {
-				this.status = r.message
-			})
+		refresh: function() {
 			frappe.call("frappe.www.recorder.get_requests").then( r => {
 				this.requests = r.message
 				this.last_fetched = new Date()
@@ -159,8 +147,20 @@ export default {
 				args: {
 					should_record: should_record
 				}
-			}).then(r => this.refresh())
-		}
+			}).then(r => this.update_status(r.message))
+		},
+		fetch_status: function() {
+			this.refresh()
+			frappe.call("frappe.www.recorder.get_status").then(r => this.update_status(r.message))
+		},
+		update_status: function(status) {
+			this.status = status
+			if(this.status.status == "Active") {
+				frappe.realtime.on("recorder-dump-event", this.refresh)
+			} else {
+				frappe.realtime.off("recorder-dump-event", this.refresh)
+			}
+		},
 	},
 	filters: {
 		elipsize: function (value) {

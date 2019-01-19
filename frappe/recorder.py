@@ -73,6 +73,7 @@ def record():
 def dump():
 	if hasattr(frappe.local, "_recorder"):
 		frappe.local._recorder.dump()
+		frappe.publish_realtime(event="recorder-dump-event")
 
 
 class Recorder():
