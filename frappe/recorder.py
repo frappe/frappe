@@ -89,7 +89,7 @@ class Recorder():
 			"headers": dict(frappe.local.request.headers),
 			"data": frappe.local.form_dict,
 		}
-		self._patch()
+		_patch()
 
 	def register(self, data):
 		self.calls.append(data)
@@ -104,17 +104,19 @@ class Recorder():
 				"time": self.time,
 				"duration": float("{:0.3f}".format((datetime.datetime.now() - self.time).total_seconds() * 1000)),
 				"method": self.method,
-			}, default=lambda x: str(x))
+			}, default=str)
 		)
 		frappe.cache().set(
 			"recorder-request-{}".format(self.uuid),
-			json.dumps(self.calls, default=lambda x: str(x))
+			json.dumps(self.calls, default=str)
 		)
 
-	def _patch(self):
-		frappe.db._sql = frappe.db.sql
-		frappe.db.sql = sql
-		frappe.db._sql("SET PROFILING = 1")
+
+def _patch():
+	frappe.db._sql = frappe.db.sql
+	frappe.db.sql = sql
+	frappe.db._sql("SET PROFILING = 1")
+
 
 def compress(data):
 	if data:

@@ -5,7 +5,6 @@
 from __future__ import unicode_literals
 import frappe
 import json
-import redis
 from pygments.formatters import HtmlFormatter
 
 def do_not_record():
