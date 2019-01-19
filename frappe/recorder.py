@@ -100,6 +100,7 @@ class Recorder():
 				"cmd": self.cmd,
 				"time": self.time,
 				"queries": len(self.calls),
+				"time_queries": float("{:0.3f}".format(sum(call["duration"] for call in self.calls))),
 				"duration": float("{:0.3f}".format((datetime.datetime.now() - self.time).total_seconds() * 1000)),
 				"method": self.method,
 			}, default=str)
