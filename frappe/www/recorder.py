@@ -51,6 +51,12 @@ def get_requests():
 
 
 @frappe.whitelist()
+def erase_requests():
+	do_not_record()
+	frappe.cache().delete_value("recorder-requests")
+
+
+@frappe.whitelist()
 def get_request_data(uuid):
 	do_not_record()
 	calls = frappe.cache().get("recorder-request-{}".format(uuid))

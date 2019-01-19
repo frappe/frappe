@@ -3,7 +3,8 @@
 		<h1>
 			<span>Recorder</span>
 			<span class="indicator" :class="status.color">{{ status.status }}</span>
-			<span class="chart-actions btn-group dropdown pull-right" style="float:right; margin-left:15px">
+			<span style="float:right; margin-left:15px">
+				<button v-if="requests" class="btn btn-default" @click="clear(true)">Clear</button>
 				<button v-if="status.status == 'Inactive'" class="btn btn-default btn-primary" @click="record(true)">Start</button>
 				<button v-if="status.status == 'Active'" class="btn btn-default btn-primary" @click="record(false)">Stop</button>
 			</span>
@@ -139,6 +140,10 @@ export default {
 				this.requests = r.message;
 				this.last_fetched = new Date();
 			});
+		},
+		clear: function() {
+			frappe.call("frappe.www.recorder.erase_requests");
+			this.refresh();
 		},
 		record: function(should_record) {
 			frappe.call({
