@@ -56,7 +56,7 @@ def sql(*args, **kwargs):
 		"time": {
 			"start": start_time,
 			"end": end_time,
-			"total": end_time - start_time,
+			"total": float("{:.3f}".format((end_time - start_time) * 1000)),
 		},
 	}
 
