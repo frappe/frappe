@@ -736,5 +736,3 @@ def get_max_email_uid(email_account):
 	else:
 		max_uid = cint(result[0].get("uid", 0)) + 1
 		return max_uid
-										       
-
