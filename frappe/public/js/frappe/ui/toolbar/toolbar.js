@@ -149,18 +149,10 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			for (var i = 0; i < links.length; i++) {
 				var link = links[i];
 				var url = link.url;
-				var app_name = url.split('//', 2)[1].split('/', 2)[1];
-				var data_path = url.slice(url.indexOf('/user'));
-				if(data_path.lastIndexOf('.')){
-					data_path = data_path.slice(0, data_path.lastIndexOf('.'));
-				}
-				data_path = data_path.replace('user', app_name);
-
 				$("<a>", {
 					href: link.url,
 					text: link.label,
-					target: "_blank",
-					"data-path": data_path
+					target: "_blank"
 				}).appendTo($help_links);
 			}
 
@@ -190,7 +182,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		}
 
 		function get_help_url(keyword) {
-			var base_url = "https://erpnext.org/";
+			var base_url = "https://erpnext.com/";
 			var search_url = "search_docs?q=";
 			return base_url + search_url + keyword;
 		}
