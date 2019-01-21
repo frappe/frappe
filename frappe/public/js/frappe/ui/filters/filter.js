@@ -19,7 +19,7 @@ frappe.ui.Filter = class {
 			["<=", "<="],
 			["Between", __("Between")],
 			["descendants of", __("Descendants Of")],
-			["ancestors of", __("Ancestors Of")].
+			["ancestors of", __("Ancestors Of")],
 			["Previous", __("Previous")],
 			["Next", __("Next")]
 		];
@@ -194,7 +194,7 @@ frappe.ui.Filter = class {
 				'1 year'
 			];
 		}
-		
+
 		this.make_field(df, cur.fieldtype);
 	}
 
