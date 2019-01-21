@@ -110,14 +110,17 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		$("#input-help").on("keydown", function (e) {
 			if(e.which == 13) {
 				var keywords = $(this).val();
-				show_help_results(keywords);
+				// show_help_results(keywords);
 				$(this).val("");
 			}
 		});
 
 		$("#input-help + span").on("click", function () {
 			var keywords = $("#input-help").val();
-			show_help_results(keywords);
+			console.log(keywords)
+			var url = get_help_url(keywords)
+			var win = window.open(url, '_blank');
+			// show_help_results(keywords);
 			$(this).val("");
 		});
 
@@ -183,21 +186,13 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			var path = $(e.target).attr("data-path");
 			if(path) {
 				e.preventDefault();
-				// frappe.call({
-				// 	method: "frappe.utils.help.get_help_content",
-				// 	args: {
-				// 		path: path
-				// 	},
-				// 	callback: function (r) {
-				// 		if(r.message && r.message.title) {
-				// 			$result_modal.find('.modal-title').html("<span>"
-				// 				+ r.message.title + "</span>");
-				// 			$result_modal.find('.modal-body').html(r.message.content);
-				// 			$result_modal.modal('show');
-				// 		}
-				// 	}
-				// });
 			}
+		}
+
+		function get_help_url(keyword) {
+			var base_url = "https://erpnext.org/";
+			var search_url = "search_docs?q=";
+			return base_url + search_url + keyword;
 		}
 	},
 
