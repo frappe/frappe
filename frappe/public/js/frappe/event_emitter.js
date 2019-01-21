@@ -4,7 +4,7 @@ frappe.provide('frappe.utils');
  */
 const EventEmitterMixin = {
 	init() {
-		this.jq = jQuery(this);
+		this.jq = jQuery({});
 	},
 
 	trigger(evt, data) {
