@@ -122,7 +122,7 @@ frappe.search.SearchDialog = Class.extend({
 		});
 
 		// Help results
-		this.$modal_body.on('click', 'a[data-path]', frappe.help.show_results);
+		// this.$modal_body.on('click', 'a[data-path]', frappe.help.show_results);
 		this.bind_keyboard_events();
 	},
 
@@ -366,35 +366,35 @@ frappe.search.SearchDialog = Class.extend({
 				frappe.search.utils.get_global_results(keywords, start, limit)
 					.then(function(global_results) {
 						results = results.concat(global_results);
-						return frappe.search.utils.get_help_results(keywords);
-					}).then(function(help_results) {
-						results = results.concat(help_results);
+					// 	return frappe.search.utils.get_help_results(keywords);
+					// }).then(function(help_results) {
+					// 	results = results.concat(help_results);
 						callback(results, keywords);
 					}, function (err) {
 						console.error(err);
 					});
 			}
 		},
-		help: {
-			input_placeholder: __("Search Help"),
-			empty_state_text: __("Search the docs"),
-			no_results_status: (keyword) => __("<p>No results found for '" + keyword +
-				"' in Help</p><p>Would you like to search <a class='switch-to-global-search text-muted' "+
-				"style='text-decoration: underline;'>globally</a>" +
-				" or the <a href='https://discuss.erpnext.com' class='forum-link text-muted' " +
-				"style='text-decoration: underline;'>forums</a> instead?</p>"),
+		// help: {
+		// 	input_placeholder: __("Search Help"),
+		// 	empty_state_text: __("Search the docs"),
+		// 	no_results_status: (keyword) => __("<p>No results found for '" + keyword +
+		// 		"' in Help</p><p>Would you like to search <a class='switch-to-global-search text-muted' "+
+		// 		"style='text-decoration: underline;'>globally</a>" +
+		// 		" or the <a href='https://discuss.erpnext.com' class='forum-link text-muted' " +
+		// 		"style='text-decoration: underline;'>forums</a> instead?</p>"),
 
-			get_results: function(keywords, callback) {
-				var results = [];
-				frappe.search.utils.get_help_results(keywords)
-					.then(function(help_results) {
-						results = results.concat(help_results);
-						callback(results, keywords);
-					}, function (err) {
-						console.error(err);
-					});
-			}
-		}
+		// 	get_results: function(keywords, callback) {
+		// 		var results = [];
+		// 		frappe.search.utils.get_help_results(keywords)
+		// 			.then(function(help_results) {
+		// 				results = results.concat(help_results);
+		// 				callback(results, keywords);
+		// 			}, function (err) {
+		// 				console.error(err);
+		// 			});
+		// 	}
+		// }
 	},
 
 });
