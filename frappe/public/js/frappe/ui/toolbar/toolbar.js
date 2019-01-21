@@ -169,10 +169,10 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 		$(document).on("click", ".help-modal a", show_results);
 
-		var me = this;
-		function show_help_results(keywords) {
-			me.search.init_search(keywords, "help");
-		}
+		// var me = this;
+		// function show_help_results(keywords) {
+		// 	me.search.init_search(keywords, "help");
+		// }
 
 		function show_results(e) {
 			//edit links
@@ -183,20 +183,20 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			var path = $(e.target).attr("data-path");
 			if(path) {
 				e.preventDefault();
-				frappe.call({
-					method: "frappe.utils.help.get_help_content",
-					args: {
-						path: path
-					},
-					callback: function (r) {
-						if(r.message && r.message.title) {
-							$result_modal.find('.modal-title').html("<span>"
-								+ r.message.title + "</span>");
-							$result_modal.find('.modal-body').html(r.message.content);
-							$result_modal.modal('show');
-						}
-					}
-				});
+				// frappe.call({
+				// 	method: "frappe.utils.help.get_help_content",
+				// 	args: {
+				// 		path: path
+				// 	},
+				// 	callback: function (r) {
+				// 		if(r.message && r.message.title) {
+				// 			$result_modal.find('.modal-title').html("<span>"
+				// 				+ r.message.title + "</span>");
+				// 			$result_modal.find('.modal-body').html(r.message.content);
+				// 			$result_modal.modal('show');
+				// 		}
+				// 	}
+				// });
 			}
 		}
 	},
