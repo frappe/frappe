@@ -79,6 +79,9 @@ def as_json():
 		response.status_code = frappe.local.response['http_status_code']
 		del frappe.local.response['http_status_code']
 
+	if frappe.local.flags.download_json:
+		response.headers["Content-Disposition"] = ("attachment; filename=\"%s.json\"" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
+
 	response.mimetype = 'application/json'
 	response.charset = 'utf-8'
 	response.data = json.dumps(frappe.local.response, default=json_handler, separators=(',',':'))
