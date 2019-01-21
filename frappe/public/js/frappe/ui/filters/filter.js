@@ -187,11 +187,26 @@ frappe.ui.Filter = class {
 		if(["Previous", "Next"].includes(condition) && ['Date', 'Datetime', 'DateRange', 'Select'].includes(this.field.df.fieldtype)) {
 			df.fieldtype = 'Select';
 			df.options = [
-				'1 week',
-				'1 month',
-				'3 months',
-				'6 months',
-				'1 year'
+				{
+					label: __('1 week'),
+					value: '1 week'
+				},
+				{
+					label: __('1 month'),
+					value: '1 month'
+				},
+				{
+					label: __('3 months'),
+					value: '3 months'
+				},
+				{
+					label: __('6 months'),
+					value: '6 months'
+				},
+				{
+					label: __('1 year'),
+					value: '1 year'
+				}
 			];
 		}
 
