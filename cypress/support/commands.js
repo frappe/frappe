@@ -23,6 +23,7 @@
 //
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... });
+
 Cypress.Commands.add('login', (email, password) => {
 	cy.request({
 		url: '/',
@@ -49,4 +50,32 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype='Data') => {
 	} else {
 		return cy.get('@input').type(value);
 	}
+});
+
+Cypress.Commands.add('get_field', (fieldname, fieldtype='Data') => {
+	let selector = `.form-control[data-fieldname="${fieldname}"]`;
+
+	if (fieldtype === 'Text Editor') {
+		selector = `[data-fieldname="${fieldname}"] .ql-editor`;
+        }
+
+	return cy.get('.page-container:visible ' + selector);
+});
+
+Cypress.Commands.add('open_section', (section_title) => {
+	// Case insensitive as section heads are CSS capitalized
+	let contains_regexp = new RegExp(
+		Cypress._.escapeRegExp(section_title), 'i');
+	cy.contains('.page-container:visible .section-head > a', contains_regexp)
+		.parent().as('section-head')
+	cy.get('@section-head').siblings('.section-body').as('section-body');
+
+	cy.get('@section-head').each(($section) => {
+		if ($section.hasClass('collapsed')) {
+			cy.log('doing a click');
+			cy.wrap($section).click();
+		}
+	});
+	cy.get('@section-head').should('not.have.class', 'collapsed');
+	cy.get('@section-body').should('not.have.class', 'hide');
 });
