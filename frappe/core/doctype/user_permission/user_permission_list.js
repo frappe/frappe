@@ -1,6 +1,6 @@
 frappe.listview_settings['User Permission'] = {
 	onload: function(list_view) {
-		list_view.page.add_inner_button(__("Clear User Permissions"), () => {
+		list_view.page.add_menu_item(__("Clear User Permissions"), () => {
 			const dialog = new frappe.ui.Dialog({
 				title: 'Clear User Permissions',
 				fields: [
