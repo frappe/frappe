@@ -5,13 +5,13 @@ from __future__ import unicode_literals
 import frappe
 import json
 import frappe.utils
+from itertools import groupby
 from frappe.utils.background_jobs import enqueue
 from frappe import _
 from pprint import pprint
 
 @frappe.whitelist()
 def add_subcription(doctype, doc_name, user_email):
-	print("---------------------inside")
 	if len(frappe.get_list("Document Follow", filters={'ref_doctype': doctype, 'ref_docname': doc_name, 'user': user_email})) == 0:
 		if user_email != "Administrator":
 			doc = frappe.new_doc("Document Follow")
@@ -25,9 +25,7 @@ def add_subcription(doctype, doc_name, user_email):
 
 @frappe.whitelist()
 def Unfollow(doctype, doc_name, user_email):
-	print("---------------------inside unfollow",doctype, doc_name, user_email)
 	doc = frappe.get_list("Document Follow", filters={'ref_doctype': doctype, 'ref_docname': doc_name, 'user': user_email}, fields=["name"])
-	print(doc,"---------------------")
 	if len(doc) != 0:
 		print("deleting...")
 		frappe.delete_doc("Document Follow",doc[0].name)
@@ -57,20 +55,23 @@ def sent_email_alert(doc_name, doctype, receiver, docinfo,timeline):
 	frappe.db.commit()
 
 def sending_mail():
-	users = frappe.get_all("Document Follow", distinct=1, fields=["user"])
-	message = []
-	info = []
-	for d in users:
-		data = frappe.get_all("Document Follow", filters={"user" : d.user}, distinct=1, fields=["ref_doctype","ref_docname","user"])
+	users = frappe.get_list("Document Follow", fields={"name","ref_doctype","ref_docname","user","last_sent"})
+	newlist = sorted(users, key=lambda k:k['user'])
+	dict123 = {}
+	for k,v in groupby(newlist, key=lambda k:k['user']):
+		dict123[k]=list(v)
+
+	for k in dict123:
 		message = []
-		for d2 in data:
-			content = get_message(d2.ref_docname, d2.ref_doctype)
+		info = []
+		for d in dict123[k]:
+			content = get_message(d.ref_docname, d.ref_doctype)
 			if content != []:
 				message = message + content
-				info.append({'ref_docname': d2.ref_docname, 'ref_doctype': d2.ref_doctype, 'user': d.user})
+				info.append({'ref_docname': d.ref_docname, 'ref_doctype': d.ref_doctype, 'user': k})
 
 		if message != []:
-			sent_email_alert(d2.ref_docname, d2.ref_doctype, d.user, info, message)
+			sent_email_alert(d.ref_docname, d.ref_doctype, k, info, message)
 
 def get_version(doctype,doc_name):
 	timeline = []
@@ -149,4 +150,6 @@ def cleantext(s):
 	s = s.replace("</div>"," ")
 	return s
 
+def get_follow_users():
+	return frappe.get_all("Document Follow", distinct=1, fields=["user"])
 

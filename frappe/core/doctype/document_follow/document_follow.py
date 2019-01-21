@@ -7,4 +7,6 @@ import frappe
 from frappe.model.document import Document
 
 class DocumentFollow(Document):
-	pass
+	def before_insert(self):
+		self.last_sent_on = frappe.utils.now_datetime()
+
