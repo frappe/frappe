@@ -201,6 +201,13 @@ frappe.data_import.download_dialog = function(frm) {
 			"default": "Excel"
 		},
 		{
+			"label": __("Download with Data"),
+			"fieldname": "with_data",
+			"fieldtype": "Check",
+			"hidden": !frm.doc.overwrite,
+			"default": 1
+		},
+		{
 			"label": __("Select All"),
 			"fieldname": "select_all",
 			"fieldtype": "Button",
@@ -270,7 +277,7 @@ frappe.data_import.download_dialog = function(frm) {
 						doctype: frm.doc.reference_doctype,
 						parent_doctype: frm.doc.reference_doctype,
 						select_columns: JSON.stringify(columns),
-						with_data: frm.doc.overwrite,
+						with_data: frm.doc.overwrite && data.with_data,
 						all_doctypes: true,
 						file_type: data.file_type,
 						template: true

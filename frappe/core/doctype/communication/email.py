@@ -279,12 +279,16 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 			if isinstance(a, string_types):
 				# is it a filename?
 				try:
-					# keep this for error handling
-					_file = frappe.get_doc("File", {"file_name": a})
+					# check for both filename and file id
+					file_id = frappe.db.get_list('File', or_filters={'file_name': a, 'name': a}, limit=1)
+					if not file_id:
+						frappe.throw(_("Unable to find attachment {0}").format(a))
+					file_id = file_id[0]['name']
+					_file = frappe.get_doc("File", file_id)
 					_file.get_content()
 					# these attachments will be attached on-demand
 					# and won't be stored in the message
-					doc.attachments.append({"fid": a})
+					doc.attachments.append({"fid": file_id})
 				except IOError:
 					frappe.throw(_("Unable to find attachment {0}").format(a))
 			else:

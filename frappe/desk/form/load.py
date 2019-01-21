@@ -80,7 +80,7 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 def get_meta_bundle(doctype):
 	bundle = [frappe.desk.form.meta.get_meta(doctype)]
 	for df in bundle[0].fields:
-		if df.fieldtype=="Table":
+		if df.fieldtype in frappe.model.table_fields:
 			bundle.append(frappe.desk.form.meta.get_meta(df.options, not frappe.conf.developer_mode))
 	return bundle
 
@@ -219,7 +219,7 @@ def get_view_logs(doctype, docname):
 	""" get and return the latest view logs if available """
 	logs = []
 	if hasattr(frappe.get_meta(doctype), 'track_views') and frappe.get_meta(doctype).track_views:
-		view_logs = frappe.get_all("View log", filters={
+		view_logs = frappe.get_all("View Log", filters={
 			"reference_doctype": doctype,
 			"reference_name": docname,
 		}, fields=["name", "creation"], order_by="creation desc")

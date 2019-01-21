@@ -1,0 +1,42 @@
+{
+ "db_name": "testdb",
+ "db_password": "password",
+ "mute_emails": true,
+ 
+  "limits": {
+  	"emails": 1500,
+	"space": 0.157,
+  	"expiry": "2016-07-25",
+  	"users": 1
+  },
+
+ "developer_mode": 1,
+ "auto_cache_clear": true,
+ "disable_website_cache": true,
+ "max_file_size": 1000000,
+
+ "mail_server": "localhost",
+ "mail_login": null,
+ "mail_password": null,
+ "mail_port": 25,
+ "use_ssl": 0,
+ "auto_email_id": "hello@example.com",
+
+ "google_login": {
+	 "client_id": "google_client_id",
+	 "client_secret": "google_client_secret"
+ },
+ "github_login": {
+	 "client_id": "github_client_id",
+	 "client_secret": "github_client_secret"
+ },
+ "facebook_login": {
+	 "client_id": "facebook_client_id",
+	 "client_secret": "facebook_client_secret"
+ },
+
+ "celery_broker": "redis://localhost",
+ "celery_result_backend": null,
+ "scheduler_interval": 300,
+ "celery_queue_per_site": true
+}

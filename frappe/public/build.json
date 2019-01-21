@@ -78,13 +78,15 @@
 		"public/js/frappe/form/controls/read_only.js",
 		"public/js/frappe/form/controls/button.js",
 		"public/js/frappe/form/controls/html.js",
+		"public/js/frappe/form/controls/markdown_editor.js",
 		"public/js/frappe/form/controls/html_editor.js",
 		"public/js/frappe/form/controls/heading.js",
 		"public/js/frappe/form/controls/autocomplete.js",
 		"public/js/frappe/form/controls/barcode.js",
 		"public/js/frappe/form/controls/geolocation.js",
 		"public/js/frappe/form/controls/multiselect.js",
-		"public/js/frappe/form/controls/multicheck.js"
+		"public/js/frappe/form/controls/multicheck.js",
+		"public/js/frappe/form/controls/table_multiselect.js"
 	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",

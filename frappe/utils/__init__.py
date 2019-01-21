@@ -14,6 +14,8 @@ from email.utils import parseaddr, formataddr
 from frappe.utils.data import *
 from six.moves.urllib.parse import quote
 from six import text_type, string_types
+import io
+from gzip import GzipFile
 
 default_fields = ['doctype', 'name', 'owner', 'creation', 'modified', 'modified_by',
 	'parent', 'parentfield', 'parenttype', 'idx', 'docstatus']
@@ -620,3 +622,21 @@ def call(fn, *args, **kwargs):
 			bench --site erpnext.local execute frappe.utils.call --args '''["frappe.get_all", "Activity Log"]''' --kwargs '''{"fields": ["user", "creation", "full_name"], "filters":{"Operation": "Login", "Status": "Success"}, "limit": "10"}'''
 	"""
 	return json.loads(frappe.as_json(frappe.call(fn, *args, **kwargs)))
+
+# Following methods are aken as-is from Python 3 codebase
+# since gzip.compress and gzip.decompress are not available in Python 2.7
+def gzip_compress(data, compresslevel=9):
+	"""Compress data in one shot and return the compressed string.
+	Optional argument is the compression level, in range of 0-9.
+	"""
+	buf = io.BytesIO()
+	with GzipFile(fileobj=buf, mode='wb', compresslevel=compresslevel) as f:
+		f.write(data)
+	return buf.getvalue()
+
+def gzip_decompress(data):
+	"""Decompress a gzip compressed string in one shot.
+	Return the decompressed string.
+	"""
+	with GzipFile(fileobj=io.BytesIO(data)) as f:
+		return f.read()

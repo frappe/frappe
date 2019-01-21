@@ -40,6 +40,8 @@ class PostgresDatabase(Database):
 			'Long Text':	('text', ''),
 			'Code':			('text', ''),
 			'Text Editor':	('text', ''),
+			'Markdown Editor':	('longtext', ''),
+			'HTML Editor':	('longtext', ''),
 			'Date':			('date', ''),
 			'Datetime':		('timestamp', None),
 			'Time':			('time', '6'),

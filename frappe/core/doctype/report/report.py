@@ -118,7 +118,7 @@ class Report(Document):
 							if fieldtype and '/' in fieldtype:
 								fieldtype, options = fieldtype.split('/')
 
-					columns.append(frappe._dict(label=parts[0], fieldtype=fieldtype, fieldname=parts[0]))
+					columns.append(frappe._dict(label=parts[0], fieldtype=fieldtype, fieldname=parts[0], options=options))
 
 			out += data.get('result')
 		else:

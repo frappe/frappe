@@ -20,7 +20,7 @@ from datetime import datetime
 from six.moves import range
 import frappe, json, os
 from frappe.utils import cstr, cint
-from frappe.model import default_fields, no_value_fields, optional_fields, data_fieldtypes
+from frappe.model import default_fields, no_value_fields, optional_fields, data_fieldtypes, table_fields
 from frappe.model.document import Document
 from frappe.model.base_document import BaseDocument
 from frappe.modules import load_doctype_module
@@ -150,7 +150,7 @@ class Meta(Document):
 	def get_table_fields(self):
 		if not hasattr(self, "_table_fields"):
 			if self.name!="DocType":
-				self._table_fields = self.get('fields', {"fieldtype":"Table"})
+				self._table_fields = self.get('fields', {"fieldtype": ['in', table_fields]})
 			else:
 				self._table_fields = doctype_table_fields
 
@@ -451,7 +451,7 @@ def is_single(doctype):
 		raise Exception('Cannot determine whether %s is single' % doctype)
 
 def get_parent_dt(dt):
-	parent_dt = frappe.db.get_all('DocField', 'parent', dict(fieldtype='Table', options=dt), limit=1)
+	parent_dt = frappe.db.get_all('DocField', 'parent', dict(fieldtype=['in', frappe.model.table_fields], options=dt), limit=1)
 	return parent_dt and parent_dt[0].parent or ''
 
 def set_fieldname(field_id, fieldname):

@@ -213,7 +213,9 @@ _f.Frm.prototype.watch_model_updates = function() {
 	});
 
 	// on table fields
-	var table_fields = frappe.get_children("DocType", me.doctype, "fields", {fieldtype:"Table"});
+	var table_fields = frappe.get_children("DocType", me.doctype, "fields", {
+		fieldtype: ["in", frappe.model.table_fields]
+	});
 
 	// using $.each to preserve df via closure
 	$.each(table_fields, function(i, df) {
@@ -500,13 +502,13 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 			// header must be refreshed before client methods
 			// because add_custom_button
 			() => this.refresh_header(is_a_different_doc),
-			// call trigger
-			() => this.script_manager.trigger("refresh"),
 			// trigger global trigger
 			// to use this
 			() => $(document).trigger('form-refresh', [this]),
 			// fields
 			() => this.refresh_fields(),
+			// call trigger
+			() => this.script_manager.trigger("refresh"),
 			// call onload post render for callbacks to be fired
 			() => {
 				if(this.cscript.is_onload) {
