@@ -128,18 +128,15 @@ class EmailAccount(Document):
 			if not self.smtp_server:
 				frappe.throw(_("{0} is required").format("SMTP Server"))
 
-			login = getattr(self, "login_id", None) or self.email_id
-			if self.password and not self.no_smtp_authentication:
-				password = self.get_password()
-			else:
-				password = None
-			
-			server = SMTPServer(login = login,
-				password = password,
+			server = SMTPServer(login = getattr(self, "login_id", None) \
+					or self.email_id,
 				server = self.smtp_server,
 				port = cint(self.smtp_port),
 				use_tls = cint(self.use_tls)
 			)
+			if self.password and not self.no_smtp_authentication:
+				server.password = self.get_password()
+
 			server.sess
 
 	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
