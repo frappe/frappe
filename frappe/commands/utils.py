@@ -571,54 +571,32 @@ def get_version():
 @click.command('setup-global-help')
 @click.option('--mariadb_root_password')
 def setup_global_help(mariadb_root_password=None):
-	'''setup help table in a separate database that will be
+	'''Deprecated: setup help table in a separate database that will be
 	shared by the whole bench and set `global_help_setup` as 1 in
 	common_site_config.json'''
 
-	from frappe.installer import update_site_config
-
-	frappe.local.flags = frappe._dict()
-	frappe.local.flags.in_setup_help = True
-	frappe.local.flags.in_install = True
-	frappe.local.lang = 'en'
-	frappe.local.conf = frappe.get_site_config(sites_path='.')
-
-	update_site_config('global_help_setup', 1,
-		site_config_path=os.path.join('.', 'common_site_config.json'))
-
-	if mariadb_root_password:
-		frappe.local.conf.root_password = mariadb_root_password
-
-	from frappe.utils.help import sync
-	sync()
+	print("In app help has been deprectated.\nYou can access the documentation on erpnext.com/docs or frappe.io/docs")
+	return
 
 @click.command('get-docs-app')
 @click.argument('app')
 def get_docs_app(app):
-	'''Get the docs app for given app'''
-	from frappe.utils.help import setup_apps_for_docs
-	setup_apps_for_docs(app)
+	'''Deprecated: Get the docs app for given app'''
+	print("In app help has been deprectated.\nYou can access the documentation on erpnext.com/docs or frappe.io/docs")
+	return
 
 @click.command('get-all-docs-apps')
 def get_all_docs_apps():
-	'''Get docs apps for all apps'''
-	from frappe.utils.help import setup_apps_for_docs
-	for app in frappe.get_installed_apps():
-		setup_apps_for_docs(app)
+	'''Deprecated: Get docs apps for all apps'''
+	print("In app help has been deprectated.\nYou can access the documentation on erpnext.com/docs or frappe.io/docs")
+	return
 
 @click.command('setup-help')
 @pass_context
 def setup_help(context):
-	'''Setup help table in the current site (called after migrate)'''
-	from frappe.utils.help import sync
-
-	for site in context.sites:
-		try:
-			frappe.init(site)
-			frappe.connect()
-			sync()
-		finally:
-			frappe.destroy()
+	'''Deprecated: Setup help table in the current site (called after migrate)'''
+	print("In app help has been deprectated.\nYou can access the documentation on erpnext.com/docs or frappe.io/docs")
+	return
 
 @click.command('rebuild-global-search')
 @pass_context
@@ -709,8 +687,6 @@ commands = [
 	watch,
 	_bulk_rename,
 	add_to_email_queue,
-	setup_global_help,
-	setup_help,
 	rebuild_global_search,
 	auto_deploy
 ]
