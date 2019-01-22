@@ -99,7 +99,7 @@ frappe.ui.form.Follow = Class.extend({
 				for (var d in r.message){
 					html += frappe.avatar(r.message[d].user,"avatar-small");
 				}
-				resolve(html)
+				resolve(html);
 			});
 		});
 	},
