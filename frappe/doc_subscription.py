@@ -53,7 +53,7 @@ def sent_email_alert(doc_name, doctype, receiver, docinfo,timeline):
 	frappe.db.commit()
 
 def sending_mail():
-	users = frappe.get_list("Document Follow", fields={"name","ref_doctype","ref_docname","user","last_sent"})
+	users = frappe.get_list("Document Follow", fields={"name","ref_doctype","ref_docname","user"})
 	newlist = sorted(users, key=lambda k:k['user'])
 	dict123 = {}
 	for k,v in groupby(newlist, key=lambda k:k['user']):
