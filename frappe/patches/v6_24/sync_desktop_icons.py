@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import frappe, json
 
 from frappe.desk.doctype.desktop_icon.desktop_icon import sync_from_app, get_user_copy
