@@ -4,7 +4,6 @@
 # model __init__.py
 from __future__ import unicode_literals
 import frappe
-import json
 
 
 no_value_fields = ('Section Break', 'Column Break', 'HTML', 'Table', 'Button', 'Image',

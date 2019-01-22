@@ -11,7 +11,7 @@ import subprocess # nosec
 from frappe.utils import cstr
 from frappe.utils.gitutils import get_app_branch
 from frappe import _, safe_decode
-import git
+
 
 def get_change_log(user=None):
 	if not user: user = frappe.session.user
