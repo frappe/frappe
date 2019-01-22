@@ -547,10 +547,16 @@ class BaseDocument(object):
 			# single doctype value type is mediumtext
 			return
 
+		column_types_to_check_length = ('varchar', 'int', 'bigint')
+
 		for fieldname, value in iteritems(self.get_valid_dict()):
 			df = self.meta.get_field(fieldname)
-			if df and df.fieldtype in type_map and type_map[df.fieldtype][0]=="varchar":
-				max_length = cint(df.get("length")) or cint(varchar_len)
+
+			column_type = type_map[df.fieldtype][0] or None
+			default_column_max_length = type_map[df.fieldtype][1] or None
+
+			if df and df.fieldtype in type_map and column_type in column_types_to_check_length:
+				max_length = cint(df.get("length")) or cint(default_column_max_length)
 
 				if len(cstr(value)) > max_length:
 					if self.parentfield and self.idx:
