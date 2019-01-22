@@ -153,6 +153,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.$wrapper.modal("show");
 		this.primary_action_fulfilled = false;
 		this.is_visible = true;
+		return this;
 	}
 	hide() {
 		this.$wrapper.modal("hide");
