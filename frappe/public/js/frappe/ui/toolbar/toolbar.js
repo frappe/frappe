@@ -115,14 +115,11 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			}
 		});
 
-		$("#input-help + span").on("click", function () {
-			var keywords = $("#input-help").val();
-			console.log(keywords)
-			var url = get_help_url(keywords)
-			var win = window.open(url, '_blank');
-			// show_help_results(keywords);
-			$(this).val("");
-		});
+		// $("#input-help + span").on("click", function () {
+		// 	var keywords = $("#input-help").val();
+		// 	show_help_results(keywords);
+		// 	$(this).val("");
+		// });
 
 		$(document).on("page-change", function () {
 			var $help_links = $(".dropdown-help #help-links");
@@ -179,12 +176,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			if(path) {
 				e.preventDefault();
 			}
-		}
-
-		function get_help_url(keyword) {
-			var base_url = "https://erpnext.com/";
-			var search_url = "search_docs?q=";
-			return base_url + search_url + keyword;
 		}
 	},
 
