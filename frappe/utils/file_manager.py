@@ -28,7 +28,6 @@ def upload():
 	# get record details
 	dt = frappe.form_dict.doctype
 	dn = frappe.form_dict.docname
-	df = frappe.form_dict.docfield
 	file_url = frappe.form_dict.file_url
 	filename = frappe.form_dict.filename
 	frappe.form_dict.is_private = cint(frappe.form_dict.is_private)

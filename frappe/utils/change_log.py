@@ -123,7 +123,7 @@ def get_app_branch(app):
 		result = safe_decode(result)
 		result = result.strip()
 		return result
-	except Exception as e:
+	except Exception:
 		return ''
 
 def get_app_last_commit_ref(app):
@@ -133,7 +133,7 @@ def get_app_last_commit_ref(app):
 		result = safe_decode(result)
 		result = result.strip()
 		return result
-	except Exception as e:
+	except Exception:
 		return ''
 
 def check_for_update():
@@ -222,7 +222,6 @@ def show_update_popup():
 		return
 
 	updates = json.loads(update_info)
-	current_versions = get_versions()
 
 	# Check if user is int the set of users to send update message to
 	update_message = ""

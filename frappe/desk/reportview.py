@@ -45,7 +45,6 @@ def get_form_params():
 	else:
 		data["save_user_settings"] = True
 
-	doctype = data["doctype"]
 	fields = data["fields"]
 
 	for field in fields:

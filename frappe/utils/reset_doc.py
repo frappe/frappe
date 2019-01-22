@@ -88,7 +88,7 @@ def make_custom_fields(doctype, local_doc, original_doc):
 
 	custom_docfield_properties, prev = get_custom_docfield_properties(), ""
 	for field, field_dict in local_fields:
-		df, doc = {}, {}
+		df = {}
 		if field not in original_fields:
 			for prop in field_dict:
 				if prop in custom_docfield_properties:
