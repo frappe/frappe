@@ -72,7 +72,7 @@ class EmailAccount(Document):
 				if self.enable_outgoing:
 					self.check_smtp()
 			else:
-				if  self.enable_incoming or (self.enable_outgoing and not self.no_smtp_authentication):
+				if self.enable_incoming or (self.enable_outgoing and not self.no_smtp_authentication):
 					frappe.throw(_("Password is required or select Awaiting Password"))
 
 		if self.notify_if_unreplied:
@@ -128,14 +128,12 @@ class EmailAccount(Document):
 			if not self.smtp_server:
 				frappe.throw(_("{0} is required").format("SMTP Server"))
 
-			if not self.no_smtp_authentication:
-				login = getattr(self, "login_id", None) or self.email_id
-				if self.password:
-					password = self.get_password()
+			login = getattr(self, "login_id", None) or self.email_id
+			if self.password and not self.no_smtp_authentication:
+				password = self.get_password()
 			else:
-				login = None
 				password = None
-
+			
 			server = SMTPServer(login = login,
 				password = password,
 				server = self.smtp_server,
