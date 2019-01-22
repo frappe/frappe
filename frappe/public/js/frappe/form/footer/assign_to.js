@@ -103,6 +103,7 @@ frappe.ui.form.AssignTo = Class.extend({
 		}
 
 		me.assign_to.dialog.show();
+		me.assign_to = null;
 	},
 	remove: function(owner) {
 		var me = this;
