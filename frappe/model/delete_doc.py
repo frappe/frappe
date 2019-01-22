@@ -272,6 +272,7 @@ def delete_dynamic_links(doctype, name):
 
 	frappe.db.sql('''delete from `tabEmail Unsubscribe`
 		where reference_doctype=%s and reference_name=%s''', (doctype, name))
+
 	# delete document follow
 	frappe.db.sql("""delete from `tabDocument Follow`
 		where ref_doctype=%s and ref_docname=%s""", (doctype, name))
