@@ -639,6 +639,10 @@ frappe.views.CommunicationComposer = Class.extend({
 				+ this.real_name + ",</p><!-- salutation-ends --><br>" + (this.message || "");
 		}
 
+		if(this.message && signature && this.message.includes(signature)) {
+			signature = "";
+		}
+
 		let reply = (this.message || "") + (signature ? ("<br>" + signature) : "");
 		let content = '';
 
