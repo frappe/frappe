@@ -9,7 +9,6 @@ const std_date_format = 'dd-mm-yyyy';
 const std_time_format = 'HH:mm:ss';
 const test_date1 = '06-02-1966';
 const test_date2 = '27-12-1987';
-const test_time1 = '01:23:45';
 
 // Formats: local fmt of test_date1, local data to enter, std format of that
 const date_formats = {
@@ -205,7 +204,7 @@ function test_datetime_format(date_format_key, time_format_key) {
 		test_dates[4] + ' ' + test_times[4]
 	];
 	let date_format = test_dates[0];
-        let time_format = test_times[0];
+	let time_format = test_times[0];
 
 	// Set the Web Page test-ui-datetime-webpage Start Date(time) (should be in standard format).
 	cy.log('Check and set the Web Page test-ui-datetime-webpage Start Date(time)');
@@ -284,7 +283,7 @@ context('Date tests', () => {
 		cy.frappe_desk_visit('Form/System Settings');
 		cy.open_section('DATE AND NUMBER FORMAT');
 		cy.fill_field('date_format', std_date_format, 'Select')
-			.should('have.value', std_date_format);;
+			.should('have.value', std_date_format);
 		cy.click_save_button();
 		cy.open_section('DATE AND NUMBER FORMAT');
 		cy.get_field('date_format').should('have.value', std_date_format);
@@ -321,7 +320,7 @@ context('Time tests', () => {
 	Object.keys(time_formats).forEach((time_format_key) => {
 		it('tests time format ' + time_format_key, function() {
 			test_time_format(time_format_key);
-                });
+		});
 	});
 
 });
@@ -336,7 +335,7 @@ context('Datetime tests', () => {
 			url: '/api/resource/Web Page/test-ui-datetime-webpage',
 			failOnStatusCode: false
 		}).then((response) => {
-			expect(response.status).be.oneOf([202,404]);
+			cy.expect(response.status).be.oneOf([202,404]);
 		});
 		cy.log('Creating a new test Web Page');
 		cy.request({

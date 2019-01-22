@@ -57,7 +57,7 @@ Cypress.Commands.add('get_field', (fieldname, fieldtype='Data') => {
 
 	if (fieldtype === 'Text Editor') {
 		selector = `[data-fieldname="${fieldname}"] .ql-editor`;
-        }
+	}
 
 	return cy.get('.page-container:visible ' + selector);
 });
@@ -67,7 +67,7 @@ Cypress.Commands.add('open_section', (section_title) => {
 	let contains_regexp = new RegExp(
 		Cypress._.escapeRegExp(section_title), 'i');
 	cy.contains('.page-container:visible .section-head > a', contains_regexp)
-		.parent().as('section-head')
+		.parent().as('section-head');
 	cy.get('@section-head').siblings('.section-body').as('section-body');
 
 	cy.get('@section-head').each(($section) => {
