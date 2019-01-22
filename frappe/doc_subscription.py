@@ -7,7 +7,6 @@ import json
 import frappe.utils
 from itertools import groupby
 from frappe.utils.background_jobs import enqueue
-from frappe import _
 
 @frappe.whitelist()
 def add_subcription(doctype, doc_name, user_email):
