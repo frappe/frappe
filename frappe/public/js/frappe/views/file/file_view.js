@@ -8,26 +8,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 			frappe.set_route('List', 'File', view_user_settings.last_folder || frappe.boot.home_folder);
 			return true;
 		}
-		// can't use instance method from static method
-		// please excuse this duplication
-		if (route[2] !== 'Home') {
-			// if the user somehow redirects to List/File/List
-			// redirect back to Home
-			frappe.set_route('List', 'File', 'Home')
-			return true
-		}
-		return false
-	}
-
-	redirect_to_home_if_invalid_route() {
-		const route = frappe.get_route();
-		if (route[2] !== 'Home') {
-			// if the user somehow redirects to List/File/List
-			// redirect back to Home
-			frappe.set_route('List', 'File', 'Home')
-			return true
-		}
-		return false
+		return redirect_to_home_if_invalid_route();
 	}
 
 	get view_name() {
@@ -35,7 +16,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	}
 
 	show() {
-		if (!this.redirect_to_home_if_invalid_route()) {
+		if (!redirect_to_home_if_invalid_route()) {
 			super.show();
 		}
 	}
@@ -237,22 +218,23 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		const route = frappe.get_route();
 		const folders = route.slice(2);
 
-		return folders.map((folder, i) => {
-			if (i === folders.length - 1) {
-				return `<span>${folder}</span>`;
-			}
-			const route = folders.reduce((acc, curr, j) => {
-				if (j <= i) {
-					acc += '/' + curr;
+		return folders
+			.map((folder, i) => {
+				if (i === folders.length - 1) {
+					return `<span>${folder}</span>`;
 				}
-				return acc;
-			}, '#List/File');
+				const route = folders.reduce((acc, curr, j) => {
+					if (j <= i) {
+						acc += '/' + curr;
+					}
+					return acc;
+				}, '#List/File');
 
-			return `<a href="${route}">${folder}</a>`
-		})
-		// only show last 3 breadcrumbs
-		.slice(-3)
-		.join('&nbsp;/&nbsp;');
+				return `<a href="${route}">${folder}</a>`;
+			})
+			// only show last 3 breadcrumbs
+			.slice(-3)
+			.join('&nbsp;/&nbsp;');
 	}
 
 	get_header_html() {
@@ -384,3 +366,14 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 };
 
 frappe.views.FileView.grid_view = frappe.get_user_settings('File').grid_view || false;
+
+function redirect_to_home_if_invalid_route() {
+	const route = frappe.get_route();
+	if (route[2] !== 'Home') {
+		// if the user somehow redirects to List/File/List
+		// redirect back to Home
+		frappe.set_route('List', 'File', 'Home');
+		return true;
+	}
+	return false;
+}
