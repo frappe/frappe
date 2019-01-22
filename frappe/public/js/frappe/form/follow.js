@@ -16,56 +16,55 @@ frappe.ui.form.Follow = Class.extend({
 		this.followed_by();
 	},
 	render_sidebar: function() {
-		console.log(this)
 		var me= this
 		this.set_follow()
-				if (frappe.session.user == "Administrator"){
-					this.anchor.addClass("hidden");
-				}else{
-					this.anchor.on("click", function(){
-						me.anchor.addClass("text-muted")
-						if(me.follow_span.text() == "Follow"){
-							frappe.call({
-								method: 'frappe.doc_subscription.add_subcription',
-								args: {
-									'doctype': cur_frm.doctype,
-									'doc_name': cur_frm.doc.name,
-									'user_email': frappe.session.user
-								},
-								callback: function(r) {
-									if (r) {
-										frappe.show_alert({
-											message: __('You are now following this document. You will receive daily updates via email. You can change this in User Settings.'),
-											indicator: 'orange'
-										});
-										me.anchor.removeClass("text-muted")
-										me.follow_span.html("Unfollow")
-										me.followed_by_label.removeClass("hide")
-										me.followed_by();
-									}
-								}
-							});
-						} else {
-							frappe.call({
-								method: 'frappe.doc_subscription.Unfollow',
-								args: {
-									'doctype': cur_frm.doctype,
-									'doc_name': cur_frm.doc.name,
-									'user_email': frappe.session.user
-								},
-								callback: function(r) {
-									if(r){
-										frappe.show_alert({message:__("You Unfollowed this document"), indicator:'red'});
-										me.anchor.removeClass("text-muted")
-										me.follow_span.html("Follow")
-										me.followed.empty()
-										me.followed_by_label.addClass("hide")
-									}
-								}
-							});
+		if (frappe.session.user == "Administrator"){
+			this.anchor.addClass("hidden");
+		}else{
+			this.anchor.on("click", function(){
+				me.anchor.addClass("text-muted")
+				if(me.follow_span.text() == "Follow"){
+					frappe.call({
+						method: 'frappe.doc_subscription.add_subcription',
+						args: {
+							'doctype': cur_frm.doctype,
+							'doc_name': cur_frm.doc.name,
+							'user_email': frappe.session.user
+						},
+						callback: function(r) {
+							if (r) {
+								frappe.show_alert({
+									message: __('You are now following this document. You will receive daily updates via email. You can change this in User Settings.'),
+									indicator: 'orange'
+								});
+								me.anchor.removeClass("text-muted")
+								me.follow_span.html("Unfollow")
+								me.followed_by_label.removeClass("hide")
+								me.followed_by();
+							}
 						}
 					});
-			}
+				} else {
+					frappe.call({
+						method: 'frappe.doc_subscription.Unfollow',
+						args: {
+							'doctype': cur_frm.doctype,
+							'doc_name': cur_frm.doc.name,
+							'user_email': frappe.session.user
+						},
+						callback: function(r) {
+							if(r){
+								frappe.show_alert({message:__("You Unfollowed this document"), indicator:'red'});
+								me.anchor.removeClass("text-muted")
+								me.follow_span.html("Follow")
+								me.followed.empty()
+								me.followed_by_label.addClass("hide")
+							}
+						}
+					});
+				}
+			});
+	}
 	},
 	set_follow: function(){
 		var subs= this.frm.get_docinfo().check_follow
@@ -75,18 +74,20 @@ frappe.ui.form.Follow = Class.extend({
 		}else{
 			this.follow_span.html("Follow")
 			this.followed_by_label.addClass("hide")
-			this.followed.addClass("hide")
+			this.followed.empty()
 		}
 	},
 	followed_by: function() {
 		var me = this
-		this.get_followed_user().then(user =>{
-			$(user).appendTo(me.followed)
-		})
+		if(this.follow_span.text() == "Unfollow"){
+			me.followed_by_label.removeClass("hide")
+			this.get_followed_user().then(user =>{
+				$(user).appendTo(me.followed)
+			})
+		}
 	},
 	get_followed_user: function(){
 		var html =''
-		console.log('inside_followed_user')
 		return new Promise(resolve => {
 			frappe.call({
 				method: 'frappe.doc_subscription.get_follow_users',
