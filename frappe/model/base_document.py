@@ -552,6 +552,10 @@ class BaseDocument(object):
 		for fieldname, value in iteritems(self.get_valid_dict()):
 			df = self.meta.get_field(fieldname)
 
+			if not df:
+				# skip standard fields
+				continue
+
 			column_type = type_map[df.fieldtype][0] or None
 			default_column_max_length = type_map[df.fieldtype][1] or None
 
