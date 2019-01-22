@@ -12,6 +12,15 @@
 					{{ get_label(route_obj.route) }}
 				</a>
 			</div>
+			<div class="muted-title">
+				{{ __('Find Users') }}
+			</div>
+			<div class="flex flex-column">
+				<a class="route-link"
+					@click.prevent="go_to_user_list()">
+					Find Users...
+				</a>
+			</div>
 		</div>
 	</div>
 </template>
@@ -40,6 +49,9 @@ export default {
 		},
 		go_to_profile_page() {
 			frappe.set_route('social', 'profile', frappe.session.user)
+		},
+		go_to_user_list() {
+			frappe.set_route('social', 'users')
 		}
 	}
 }

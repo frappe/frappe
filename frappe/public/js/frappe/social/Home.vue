@@ -11,6 +11,7 @@
 
 import Wall from './pages/Wall.vue';
 import Profile from './pages/Profile.vue';
+import UserList from './pages/UserList.vue';
 import NotFound from './components/NotFound.vue';
 import ImageViewer from './components/ImageViewer.vue';
 
@@ -26,6 +27,10 @@ function get_route_map() {
 				'user_id': frappe.get_route()[2],
 				'key': frappe.get_route()[2]
 			}
+		},
+		'social/users': {
+			'component': UserList,
+			'props': {}
 		},
 		'not_found': {
 			'component': NotFound,
