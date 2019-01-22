@@ -56,6 +56,7 @@ frappe.ui.form.Sidebar = Class.extend({
 			this.frm.assign_to.refresh();
 			this.frm.attachments.refresh();
 			this.frm.shared.refresh();
+			this.frm.follow.refresh();
 			this.frm.viewers.refresh();
 			this.frm.tags && this.frm.tags.refresh(this.frm.doc._user_tags);
 			this.sidebar.find(".modified-by").html(__("{0} edited this {1}",
@@ -133,60 +134,11 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.like_count = this.sidebar.find(".liked-by .likes-count");
 		frappe.ui.setup_like_popover(this.sidebar.find(".liked-by-parent"), ".liked-by");
 	},
-	set_follow: function(){
-		this.check_subscription().then(subs =>{
-			if(subs == 0){
-				$('.anchor-document-follow > span').html("Unfollow")
-
-			}else{
-				$('.anchor-document-follow > span').html("Follow")
-			}
-		});
-	},
 	make_follow: function(){
-		this.set_follow()
-		this.follow_anchor = this.sidebar.find(".anchor-document-follow");
-		this.follow_span = this.sidebar.find(".anchor-document-follow > span");
-				if (frappe.session.user == "Administrator"){
-					this.follow_anchor.addClass("hidden");
-				}else{
-					this.follow_anchor.on("click", function(){
-						if($('.anchor-document-follow > span').text() == "Follow"){
-							frappe.call({
-								method: 'frappe.doc_subscription.add_subcription',
-								args: {
-									'doctype': cur_frm.doctype,
-									'doc_name': cur_frm.doc.name,
-									'user_email': frappe.session.user
-								},
-								callback: function(r) {
-									if (r) {
-										frappe.show_alert({
-											message: __('You are now following this document. You will receive daily updates via email. You can change this in User Settings.'),
-											indicator: 'orange'
-										});
-										$('.anchor-document-follow > span').html("Unfollow")
-									}
-								}
-							});
-						} else {
-							frappe.call({
-								method: 'frappe.doc_subscription.Unfollow',
-								args: {
-									'doctype': cur_frm.doctype,
-									'doc_name': cur_frm.doc.name,
-									'user_email': frappe.session.user
-								},
-								callback: function(r) {
-									if(r){
-										show_alert({message:__("You Unfollowed this document"), indicator:'red'});
-										$('.anchor-document-follow > span').html("Follow")
-									}
-								}
-							});
-						}
-					});
-			}
+		this.frm.follow = new frappe.ui.form.Follow({
+			frm: this.frm,
+			parent: this.sidebar.find(".followed-by-section")
+		});
 	},
 	refresh_like: function() {
 		if (!this.like_icon) {
@@ -205,19 +157,6 @@ frappe.ui.form.Sidebar = Class.extend({
 
 	refresh_image: function() {
 	},
-	check_subscription: function() {
-		return new Promise(resolve => {
-			frappe.call({
-				method: 'frappe.doc_subscription.check',
-				args: {
-					'doctype': cur_frm.doctype,
-					'doc_name': cur_frm.doc.name,
-					'user': frappe.session.user
-				},
-			}).then(r => resolve(r.message))
-		});
-	},
-
 	setup_ratings: function() {
 		var _ratings = this.frm.get_docinfo().rating || 0;
 

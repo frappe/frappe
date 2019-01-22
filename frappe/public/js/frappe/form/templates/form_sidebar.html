@@ -68,21 +68,24 @@
 	<li class="h6 viewers-label">{%= __("Currently Viewing") %}</li>
 	<li class="form-viewers"></li>
 </ul>
-<ul class="list-unstyled sidebar-menu text-muted">
+<ul class="list-unstyled sidebar-menu">
 	<li class="liked-by-parent">
 		<span class="liked-by">
 			<i class="octicon octicon-heart like-action text-extra-muted fa-fw"></i>
 			<span class="likes-count"></span>
 		</span>
 	</li>
-	<li class="divider"></li>
+</ul>
+<ul class="list-unstyled sidebar-menu followed-by-section">
+	<li class="h6 followed-by-label text-medium">{%= __("Followed by") %}</li>
+	<li class="form-followed"></li>
 	<li class="document-follow">
 		<a class="strong badge-hover anchor-document-follow">
 			<span></span>
 		</a>
 	</li>
-	<li class="h6 followed-by-label">{%= __("Followed by") %}</li>
-	<li class="form-followed"></li>
+</ul>
+<ul class="list-unstyled sidebar-menu">
 	<li class="created-by"></li>
 </ul>
 {% if(frappe.get_form_sidebar_extension) { %}

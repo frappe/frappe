@@ -8,7 +8,6 @@ import frappe.utils
 from itertools import groupby
 from frappe.utils.background_jobs import enqueue
 from frappe import _
-from pprint import pprint
 
 @frappe.whitelist()
 def add_subcription(doctype, doc_name, user_email):
@@ -150,6 +149,7 @@ def cleantext(s):
 	s = s.replace("</div>"," ")
 	return s
 
-def get_follow_users():
-	return frappe.get_all("Document Follow", distinct=1, fields=["user"])
+@frappe.whitelist()
+def get_follow_users(doctype, doc_name, limit=4):
+	return frappe.get_all("Document Follow", filters={'ref_doctype': doctype,'ref_docname':doc_name}, fields=["user"], limit=limit)
 
