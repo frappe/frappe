@@ -12,7 +12,7 @@ source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 
 develop_version = '12.x.x-develop'
-staging_version = '11.0.3-beta.49'
+staging_version = '11.0.3-beta.50'
 
 app_email = "info@frappe.io"
 

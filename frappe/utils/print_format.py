@@ -106,7 +106,7 @@ def print_by_server(doctype, name, print_format=None, doc=None, no_letterhead=0)
 	print_settings = frappe.get_doc("Print Settings")
 	try:
 		import cups
-	except ModuleNotFoundError:
+	except ImportError:
 		frappe.throw("You need to install pycups to use this feature!")
 		return
 	try:
