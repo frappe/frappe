@@ -1,5 +1,9 @@
 <template>
 	<div class="flex flex-column">
+		<a class="route-link"
+			@click.prevent="go_to_user_list()">
+			{{ __('All Users') }}
+		</a>
 		<div class="links" v-if="frequently_visited_list.length">
 			<div class="muted-title">
 				{{ __('Frequently Visited Links') }}
@@ -10,15 +14,6 @@
 					v-for="route_obj in frequently_visited_list"
 					:key="route_obj.route">
 					{{ get_label(route_obj.route) }}
-				</a>
-			</div>
-			<div class="muted-title">
-				{{ __('Find Users') }}
-			</div>
-			<div class="flex flex-column">
-				<a class="route-link"
-					@click.prevent="go_to_user_list()">
-					Find Users...
 				</a>
 			</div>
 		</div>
