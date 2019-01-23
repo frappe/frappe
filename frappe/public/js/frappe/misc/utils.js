@@ -658,13 +658,11 @@ Object.assign(frappe.utils, {
 		return route;
 	},
 
-	report_accumulator: function(acc, cell, row, row_count) {
-		if (typeof cell.content === 'number') {
-			acc.content += cell.content;
-
-			if (cell.column.fieldtype == "Percent" && cell.rowIndex === row_count-1) {
-				acc.content /= row_count;
-			}
+	report_total_accumulator: function(column, values, type) {
+		if (column.fieldtype == "Percent" || type === "mean") {
+			return values.reduce((a, b) => ({content: a.content + flt(b.content)})).content / values.length;
+		} else if (frappe.model.is_numeric_field(column.fieldtype)) {
+			return values.reduce((a, b) => ({content: a.content + flt(b.content)})).content;
 		} else {
 			return false;
 		}

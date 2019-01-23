@@ -227,8 +227,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				onCheckRow: () => {
 					const checked_items = this.get_checked_items();
 					this.toggle_actions_menu_button(checked_items.length > 0);
-				},
-				accumulator: (acc, cell, row, row_count) => frappe.utils.report_accumulator(acc, cell, row, row_count)
+				}
+			},
+			hooks: {
+				totalAccumulator: frappe.utils.report_total_accumulator
 			},
 			headerDropdown: [{
 				label: __('Add Column'),
