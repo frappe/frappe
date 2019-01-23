@@ -16,7 +16,6 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.user_actions = this.sidebar.find(".user-actions");
 		this.image_section = this.sidebar.find(".sidebar-image-section");
 		this.image_wrapper = this.image_section.find('.sidebar-image-wrapper');
-		debugger
 		this.make_assignments();
 		this.make_attachments();
 		this.make_shared();
@@ -43,7 +42,7 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.like_icon.on("click", function() {
 			frappe.ui.toggle_like(me.like_icon, me.frm.doctype, me.frm.doc.name, function() {
 				me.refresh_like();
-				me.set_follow();
+	//			this.frm.follow.set_follow();
 			});
 		})
 	},
@@ -165,5 +164,5 @@ frappe.ui.form.Sidebar = Class.extend({
 			var rating_icons = frappe.render_template("rating_icons", {rating: _ratings, show_label: false});
 			this.ratings.find(".rating-icons").html(rating_icons);
 		}
-	}
+	},
 });
