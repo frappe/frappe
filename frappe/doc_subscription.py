@@ -10,8 +10,9 @@ from frappe.utils.background_jobs import enqueue
 
 @frappe.whitelist()
 def add_subcription(doctype, doc_name, user_email):
+	check = frappe.db.get_value("User", user_email, "enable_email_for_follow_documents")
 	if len(frappe.get_list("Document Follow", filters={'ref_doctype': doctype, 'ref_docname': doc_name, 'user': user_email})) == 0:
-		if user_email != "Administrator":
+		if user_email != "Administrator" and check == 1:
 			doc = frappe.new_doc("Document Follow")
 			doc.update({
 				"ref_doctype": doctype,

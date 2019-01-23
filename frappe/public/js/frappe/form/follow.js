@@ -16,9 +16,10 @@ frappe.ui.form.Follow = Class.extend({
 		this.followed_by();
 	},
 	render_sidebar: function() {
+		var check_enable= this.frm.get_docinfo().check;
 		var me= this;
 		this.set_follow();
-		if (frappe.session.user == "Administrator"){
+		if (frappe.session.user == "Administrator" || check_enable != 1){
 			this.anchor.addClass("hidden");
 		}else{
 			this.anchor.on("click", function(){
