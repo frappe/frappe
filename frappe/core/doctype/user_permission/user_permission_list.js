@@ -1,5 +1,46 @@
 frappe.listview_settings['User Permission'] = {
 	onload: function(list_view) {
+		list_view.page.add_menu_item(__("Add"), function() {
+			const dialog =new frappe.ui.Dialog({
+				title : __('Add'),
+				fields: [
+					{
+						'fieldname': 'user',
+						'label': __('For User'),
+						'fieldtype': 'Link',
+						'options': 'User',
+						'reqd': 1
+					},
+					{
+						'fieldname': 'doctype',
+						'label': __('Document Type'),
+						'fieldtype': 'Link',
+						'options': 'DocType',
+						'reqd': 1
+					},
+					{
+						'fieldname': 'docname',
+						'label': __('Document Name'),
+						'fieldtype': 'Link',
+						'options': 'doctype',
+						'reqd': 1
+					},
+					{
+						'fieldname': 'apply_to_all_doctypes',
+						'label': __('Apply to all Doctypes'),
+						'fieldtype': 'Check',
+						'default': 1,
+						'reqd': 1
+					},
+				],
+				primary_action: (data) => {
+					dialog.hide()
+				},
+				primary_action_label: __('Submit')
+			});
+			dialog.show();
+		});
+
 		list_view.page.add_menu_item(__("Clear User Permissions"), () => {
 			const dialog = new frappe.ui.Dialog({
 				title: __('Clear User Permissions'),
