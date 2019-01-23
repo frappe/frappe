@@ -144,8 +144,9 @@ def check(doctype, doc_name, user):
 		return 0
 
 def cleantext(s):
-	s = s.replace("<div>"," ")
-	s = s.replace("</div>"," ")
+	if (s.find("<div>") != -1 and s.find("</div>") != -1):
+		s = s.replace("<div>","")
+		s = s.replace("</div>","")
 	return s
 
 @frappe.whitelist()
