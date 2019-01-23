@@ -315,7 +315,6 @@ function get_calendar_options() {
 		},
 
 		select: function(startDate, endDate, jsEvent, view){
-			var interval = endDate - startDate;
 			if (view.name==="month" && (endDate - startDate)===86400000) {
 				// detect single day click in month view
 				return;
