@@ -37,12 +37,16 @@ class PropertySetter(Document):
 				and property = %(property)s""", self.get_valid_dict())
 
 	def get_property_list(self, dt):
-		return frappe.db.sql("""select fieldname, label, fieldtype
-		from tabDocField
-		where parent=%s
-		and fieldtype not in ('Section Break', 'Column Break', 'HTML', 'Read Only', 'Table', 'Fold')
-		and coalesce(fieldname, '') != ''
-		order by label asc""", dt, as_dict=1)
+		return frappe.db.get_all('DocField',
+			fields=['fieldname', 'label', 'fieldtype'],
+			filters={
+				'parent': dt,
+				'fieldtype': ['not in', ('Section Break', 'Column Break', 'HTML', 'Read Only', 'Fold') + frappe.model.table_fields],
+				'fieldname': ['!=', '']
+			},
+			order_by='label asc',
+			as_dict=1
+		)
 
 	def get_setup_data(self):
 		return {

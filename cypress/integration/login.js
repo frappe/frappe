@@ -1,10 +1,12 @@
 context('Login', () => {
 	beforeEach(() => {
+		cy.request('/api/method/logout');
 		cy.visit('/login');
+		cy.location().should('be', '/login');
 	});
 
 	it('greets with login screen', () => {
-		cy.get('.page-card-head').contains('Sign In');
+		cy.get('.page-card-head').contains('Login');
 	});
 
 	it('validates password', () => {

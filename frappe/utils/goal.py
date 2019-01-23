@@ -144,10 +144,12 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 				}
 			],
 			'labels': months,
-			'yMarkers': y_markers
 		},
 
 		'summary': summary_values,
 	}
+
+	if y_markers:
+		data["data"]["yMarkers"] = y_markers
 
 	return data

@@ -80,5 +80,12 @@ def get_data():
 			"color": '#FF4136',
 			'standard': 1,
 			'idx': 15
+		},
+		{
+			"module_name": 'Settings',
+			"color": "#bdc3c7",
+			"reverse": 1,
+			"icon": "octicon octicon-settings",
+			"type": "module"
 		}
 	]

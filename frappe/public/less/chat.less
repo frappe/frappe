@@ -2,8 +2,8 @@
 
 // http://codeguide.co - @mdo (Author of Bootstrap)
 
-@import "common.less";
 @import "flex.less";
+@import (reference) "common.less";
 
 // Typography
 @font-weight-bold:								700;
@@ -55,7 +55,7 @@
            margin: @fab-margin;
             width: @fab-size;
            height: @fab-size;
-    
+
     &.frappe-fab-lg
     {
             width: @fab-size-lg;
@@ -80,10 +80,10 @@
     {
          position: fixed;
            bottom: 0px;
-            right: 0px;	
+            right: 0px;
            margin: @chat-popper-margin;
           z-index: @chat-popper-z-index;
-            
+
         & > .frappe-chat-popper-collapse
         {
             & > .panel
@@ -175,7 +175,7 @@
                         right: 0px;
                      overflow: auto;
                 border-radius: 0px;
-        
+
                 .panel-heading
                 {
                     border-radius: 0px;
@@ -194,19 +194,19 @@
             {
                 font-size: @chat-form-font-size;
             }
-    
+
             .dropdown-menu
             {
                 border-radius: @chat-form-menu-border-radius;
             }
-    
+
             // Hints
             .hint-list.list-group
             {
                     margin: 0px;
                 max-height: @chat-form-list-group-height;
                 overflow-y: auto;
-                
+
                 .hint-list-item.list-group-item:first-child, .hint-list-item.list-group-item:last-child
                 {
                     border-radius: 0px !important;
@@ -269,7 +269,7 @@
             {
                 margin-right: @chat-base-spacing;
             }
-            
+
             .avatar
             {
                 width: 32px; height: 32px;
@@ -285,7 +285,7 @@
     .chat-form
     {
         border-top: @chat-form-border;
-    
+
         .input-group-btn
         {
             .btn
@@ -294,7 +294,7 @@
                 border-radius: 0px;
             }
         }
-    
+
         .form-control
         {
               line-height: 27px; // HACK: Makes input and placeholder centered within textarea. Also takes care of the input-btn
@@ -305,7 +305,7 @@
             padding-right: 0px;
                  overflow: hidden;
         }
-        
+
         .fa
         {
              font-size: @chat-base-font-size-lg;
@@ -317,7 +317,7 @@
 
 .chat-list
 {
-        height: 100%; 
+        height: 100%;
     // background: @chat-list-bg-color;
     overflow-y: scroll;
 
@@ -334,22 +334,22 @@
         }
 
         .cursor-pointer;
-        
+
             border: none !important;
            padding: @chat-list-item-padding;
         background: transparent;
-    
+
         .chat-bubble
         {
             max-width: @chat-bubble-max-width;
             display: inline-block;
             padding: @chat-bubble-padding;
             border-radius: @chat-bubble-border-radius;
-            
+
             -webkit-box-shadow: @chat-bubble-box-shadow;
             -moz-box-shadow: @chat-bubble-box-shadow;
             box-shadow: @chat-bubble-box-shadow;
-            
+
             @media (max-width : 768px) {
                 min-width: @chat-bubble-min-width;
             }
@@ -372,7 +372,7 @@
                     }
                 }
             }
-        
+
             &.chat-bubble-r
             {
                       text-align: right;
@@ -386,33 +386,33 @@
                     }
                 }
             }
-    
+
             .chat-bubble-author
             {
                 font-size: @chat-bubble-author-font-size;
-    
+
                 a
                 {
                     .font-bold;
-                    
+
                     text-decoration: none !important;
                 }
             }
-        
+
             .chat-bubble-content
             {
                 margin-bottom: @chat-bubble-content-margin-bottom;
                     word-wrap: break-word;
             }
-        
+
             .chat-bubble-meta
             {
                     font-size: @chat-bubble-meta-font-size;
-    
+
                 & > .chat-bubble-check
                 {
                     margin-left: @chat-base-spacing;
-    
+
                     i
                     {
                         font-size: @chat-bubble-check-font-size;

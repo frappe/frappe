@@ -568,12 +568,9 @@ def in_words(integer, in_million=True):
 	return ret.replace('-', ' ')
 
 def is_html(text):
-	out = False
-	for key in ["<br>", "<p", "<img", "<div"]:
-		if key in text:
-			out = True
-			break
-	return out
+	if not isinstance(text, frappe.string_types):
+		return False
+	return re.search('<[^>]+>', text)
 
 def is_image(filepath):
 	from mimetypes import guess_type
@@ -748,6 +745,24 @@ def get_link_to_form(doctype, name, label=None):
 
 	return """<a href="{0}">{1}</a>""".format(get_url_to_form(doctype, name), label)
 
+def get_link_to_report(name, label=None, report_type=None, doctype=None, filters=None):
+	if not label: label = name
+
+	if filters:
+		conditions = []
+		for k,v in iteritems(filters):
+			if isinstance(v, list):
+				for value in v:
+					conditions.append(str(k)+'='+'["'+str(value[0]+'"'+','+'"'+str(value[1])+'"]'))
+			else:
+				conditions.append(str(k)+"="+str(v))
+
+		filters = "&".join(conditions)
+
+		return """<a href='{0}'>{1}</a>""".format(get_url_to_report_with_filters(name, filters, report_type, doctype), label)
+	else:
+		return """<a href='{0}'>{1}</a>""".format(get_url_to_report(name, report_type, doctype), label)
+
 def get_url_to_form(doctype, name):
 	return get_url(uri = "desk#Form/{0}/{1}".format(quoted(doctype), quoted(name)))
 
@@ -759,6 +774,12 @@ def get_url_to_report(name, report_type = None, doctype = None):
 		return get_url(uri = "desk#Report/{0}/{1}".format(quoted(doctype), quoted(name)))
 	else:
 		return get_url(uri = "desk#query-report/{0}".format(quoted(name)))
+
+def get_url_to_report_with_filters(name, filters, report_type = None, doctype = None):
+	if report_type == "Report Builder":
+		return get_url(uri = "desk#Report/{0}?{1}".format(quoted(doctype), filters))
+	else:
+		return get_url(uri = "desk#query-report/{0}?{1}".format(quoted(name), filters))
 
 operator_map = {
 	# startswith
@@ -824,7 +845,8 @@ def get_filter(doctype, f):
 
 	if len(f) == 3:
 		f = (doctype, f[0], f[1], f[2])
-
+	elif len(f) > 4:
+		f = f[0:4]
 	elif len(f) != 4:
 		frappe.throw(frappe._("Filter must have 4 values (doctype, fieldname, operator, value): {0}").format(str(f)))
 
@@ -837,7 +859,7 @@ def get_filter(doctype, f):
 		f.operator = "="
 
 	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in",
-		"between", "descendants of", "ancestors of", "not descendants of", "not ancestors of")
+		"between", "descendants of", "ancestors of", "not descendants of", "not ancestors of", "previous", "next")
 	if f.operator.lower() not in valid_operators:
 		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
 

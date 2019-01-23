@@ -57,7 +57,7 @@ def generate_report_result(report, filters=None, user=None):
 		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
 		if report.is_standard == "Yes":
 			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
-			threshold = 10
+			threshold = 60
 			res = []
 
 			start_time = datetime.datetime.now()
@@ -79,6 +79,9 @@ def generate_report_result(report, filters=None, user=None):
 
 	if result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
+
+	if cint(report.add_total_row) and result:
+		result = add_total_row(result, columns)
 
 	return {
 		"result": result,
@@ -311,7 +314,7 @@ def add_total_row(result, columns, meta = None):
 
 
 		if fieldtype=="Link" and options == "Currency":
-			total_row[i] = result[0][i]
+			total_row[i] = result[0].get(fieldname) if isinstance(result[0], dict) else result[0][i]
 
 	for i in has_percent:
 		total_row[i] = flt(total_row[i]) / len(result)
@@ -325,10 +328,7 @@ def add_total_row(result, columns, meta = None):
 		first_col_fieldtype = columns[0].get("fieldtype")
 
 	if first_col_fieldtype not in ["Currency", "Int", "Float", "Percent", "Date"]:
-		if first_col_fieldtype == "Link":
-			total_row[0] = "'" + _("Total") + "'"
-		else:
-			total_row[0] = _("Total")
+		total_row[0] = _("Total")
 
 	result.append(total_row)
 	return result

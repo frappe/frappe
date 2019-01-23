@@ -115,7 +115,7 @@ frappe.setup.UserProgressDialog  = class UserProgressDialog {
 					.prepend($(`<a class="done-btn btn btn-default btn-sm">
 					${__("Mark as Done")}</a>`))
 					.append($(`<a class="make-btn btn btn-primary btn-sm primary action">
-					${__("Create")}</a>`));
+					${__('Create')}</a>`));
 			},
 			on_update: (completed, total) => {
 				let percent = completed * 100 / total;

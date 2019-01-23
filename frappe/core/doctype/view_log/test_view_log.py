@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 
-class TestViewlog(unittest.TestCase):
+class TestViewLog(unittest.TestCase):
 	def tearDown(self):
 		frappe.set_user('Administrator')
 
@@ -25,7 +25,7 @@ class TestViewlog(unittest.TestCase):
 		# load the form
 		getdoc('Event', ev.name)
 		a = frappe.get_value(
-			doctype="View log", 
+			doctype="View Log", 
 			filters={
 				"reference_doctype": "Event",
 				"reference_name": ev.name
