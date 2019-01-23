@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 import frappe
-from frappe import _
+
 
 def get_parent_doc(doc):
 	"""Returns document of `reference_doctype`, `reference_doctype`"""

@@ -6,7 +6,7 @@ import pdfkit, os, frappe
 from frappe.utils import scrub_urls
 from frappe import _
 from bs4 import BeautifulSoup
-from PyPDF2 import PdfFileWriter, PdfFileReader
+from PyPDF2 import PdfFileReader
 import re
 
 def get_pdf(html, options=None, output = None):

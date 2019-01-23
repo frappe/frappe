@@ -6,7 +6,7 @@ from six import iteritems, string_types
 import datetime
 import frappe, sys
 from frappe import _
-from frappe.utils import (cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta,
+from frappe.utils import (cint, flt, now, cstr, strip_html,
 	sanitize_html, sanitize_email, cast_fieldtype)
 from frappe.model import default_fields
 from frappe.model.naming import set_new_name
