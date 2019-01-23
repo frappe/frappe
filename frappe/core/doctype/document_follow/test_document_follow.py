@@ -50,6 +50,7 @@ def get_user():
 		doc.first_name = "Test"
 		doc.last_name = "User"
 		doc.send_welcome_email = 0
+		doc.enable_email_for_follow_documents = 1
 		doc.insert()
 		return doc
 
