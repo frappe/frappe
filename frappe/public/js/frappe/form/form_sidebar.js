@@ -16,7 +16,7 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.user_actions = this.sidebar.find(".user-actions");
 		this.image_section = this.sidebar.find(".sidebar-image-section");
 		this.image_wrapper = this.image_section.find('.sidebar-image-wrapper');
-
+		debugger
 		this.make_assignments();
 		this.make_attachments();
 		this.make_shared();

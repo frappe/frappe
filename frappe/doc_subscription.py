@@ -74,7 +74,11 @@ def sending_mail():
 
 def get_version(doctype,doc_name):
 	timeline = []
-	version = frappe.get_list("Version", filters = [["docname","=",doc_name],["modified","like","%"+frappe.utils.nowdate()+"%"]],fields=["ref_doctype","data","modified"])
+	version = frappe.get_list("Version", filters = [
+		["docname","=",doc_name],
+		["modified",">",frappe.utils.nowdate()],
+		["modified","<",frappe.utils.add_days(frappe.utils.nowdate(),1)]
+		],fields=["ref_doctype","data","modified"])
 	if version:
 		for d1 in version:
 			if isinstance(d1.data, frappe.string_types):
@@ -94,7 +98,7 @@ def get_version(doctype,doc_name):
 						d[0] = d[0] if d[0] else ' '
 						timeline.append({
 							"time": d1.modified,
-							"content" : "<li><span style ='color:#8d99a6!important'>" +time +": </span>Field: <b>"+cleantext(d[0])+'</b> changed from <b>"' + cleantext(d[1]) + '"</b>  to <b>"' +cleantext(d[2]) + '"</b> </li>',
+							"content" : "<li><span style ='color:#8d99a6!important'>" +time +": </span>Field: <b>"+d[0]+'</b> changed from <b>"' + cleantext(d[1]) + '"</b>  to <b>"' +cleantext(d[2]) + '"</b> </li>',
 							"doctype" : doctype,
 							"doc_name" : doc_name
 						})
@@ -105,7 +109,7 @@ def get_version(doctype,doc_name):
 						d[3][0][1] = d[3][0][1] if d[3][0][1] else ' '
 						timeline.append({
 							"time": d1.modified,
-							"content" : "<li><span style ='color:#8d99a6!important'>" +time +": </span> Table Field: <b>"+d[0]+"</b> Row# " + str(d[1]) + " Field: <b>" +cleantext(d[3][0][0]) + '</b> changed from <b>"' + cleantext(d[3][0][1]) + '"</b>  to <b>"' + cleantext(d[3][0][2]) + '"</b> </li>',
+							"content" : "<li><span style ='color:#8d99a6!important'>" +time +": </span> Table Field: <b>"+d[0]+"</b> Row# " + str(d[1]) + " Field: <b>" +d[3][0][0] + '</b> changed from <b>"' + cleantext(d[3][0][1]) + '"</b>  to <b>"' + cleantext(d[3][0][2]) + '"</b> </li>',
 							"doctype" : doctype,
 							"doc_name" : doc_name
 						})
@@ -126,7 +130,13 @@ def get_comments(doctype, doc_name):
 		com = json.loads(comments)
 		for comment in com:
 			dictio = frappe._dict(comment)
-			if len(frappe.get_list("Communication", filters = [["name","=",dictio.name],["modified","like","%"+frappe.utils.nowdate()+"%"]])) != 0:
+			check = frappe.get_list("Communication", filters = [
+				["name","=",dictio.name],
+				["modified",">",frappe.utils.nowdate()],
+				["modified","<",frappe.utils.add_days(frappe.utils.nowdate(),1)]
+				]
+			)
+			if len(check) != 0:
 				modified = frappe.db.get_value("Communication", dictio.name, "modified")
 				time = frappe.utils.format_datetime(modified,"hh:mm a")
 				timeline.append({
