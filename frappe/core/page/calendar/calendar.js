@@ -32,7 +32,7 @@ $('body').on('click', function(e) {
 });
 
 function get_system_datetime(date) {
-	date._offset = moment.user_utc_offset;
+	date._offset = moment(date).tz(frappe.sys_defaults.time_zone)._offset;
 	return frappe.datetime.convert_to_system_tz(date);
 }
 
@@ -300,7 +300,7 @@ function get_calendar_options() {
 	var calendar_option ={
 		header: {
 			left: 'title',
-			right: 'prev,today,next,agendaDay,agendaWeek,month'
+			right: 'prev,today,next,month,agendaWeek,agendaDay'
 		},
 		weekends: true,
 		selectable: true,
@@ -314,11 +314,13 @@ function get_calendar_options() {
 			prepare_event(docinfo, get_system_datetime(start), get_system_datetime(end), callback);
 		},
 
-		select: function(startDate, endDate){
+		select: function(startDate, endDate, jsEvent, view){
 			var interval = endDate - startDate;
-			if (interval > 86400000) {
-				create_event(startDate, endDate);
+			if (view.name==="month" && (endDate - startDate)===86400000) {
+				// detect single day click in month view
+				return;
 			}
+			create_event(startDate, endDate);
 		},
 
 		eventClick: function(event, jsEvent){
