@@ -43,6 +43,8 @@ class TestFmtDatetime(unittest.TestCase):
 	def tearDown(self):
 		frappe.db.set_default("date_format", self.pre_test_date_format)
 		frappe.db.set_default("time_format", self.pre_test_time_format)
+		frappe.local.user_date_format = None
+		frappe.local.user_time_format = None
 
 	# Test utility functions
 
