@@ -65,6 +65,20 @@ class TestWorkflow(unittest.TestCase):
 
 		return todo
 
+	def test_validate_email_notification(self):
+		''' 
+			Validate all the transitions Check 
+			all the transitions to have valid 
+			selection for Email notification
+		'''
+		for tran in self.workflow.transitions:
+			if tran.email_based_on == "Value":
+				self.assertTrue(tran.docfield_name, '')
+			elif tran.email_based_on == "Role":
+				self.assertTrue(tran.allowed, '')
+			elif tran.email_based_on == "User":
+				self.assertTrue(tran.user, '')
+	
 	def test_wrong_action(self):
 		'''Check illegal action (approve after reject)'''
 		todo = self.test_approve()
