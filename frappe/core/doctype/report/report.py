@@ -193,3 +193,14 @@ class Report(Document):
 	@Document.whitelist
 	def toggle_disable(self, disable):
 		self.db_set("disabled", cint(disable))
+
+@frappe.whitelist()
+def is_prepared_report(report):
+	if not hasattr(frappe.local, 'is_prepared_report'):
+		frappe.local.is_prepared_report = {}
+
+	if not report in frappe.local.is_prepared_report:
+		frappe.local.is_prepared_report[report] = frappe.db.get_value('Report',
+			report, 'prepared_report') or 0
+
+	return frappe.local.is_prepared_report[report]

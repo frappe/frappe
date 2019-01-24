@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe.core.doctype.report.report import is_prepared_report
 from frappe.model.document import Document
 
 class RolePermissionforPageandReport(Document):
@@ -19,7 +20,11 @@ class RolePermissionforPageandReport(Document):
 			roles = self.get_standard_roles()
 
 		self.set('roles', roles)
-		
+
+		if self.report:
+			prepared_report = is_prepared_report(self.report)
+			self.set('enable_prepared_report', prepared_report)
+
 	def get_standard_roles(self):
 		doctype = self.set_role_for
 		docname = self.page if self.set_role_for == 'Page' else self.report
@@ -49,6 +54,9 @@ class RolePermissionforPageandReport(Document):
 			custom_role.save()
 		else:
 			frappe.get_doc(args).insert()
+
+		if self.report:
+			frappe.db.set_value('Report', self.report, 'prepared_report', self.enable_prepared_report)
 
 	def get_args(self, row=None):
 		name = self.page if self.set_role_for == 'Page' else self.report
