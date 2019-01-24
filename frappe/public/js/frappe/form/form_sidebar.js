@@ -42,7 +42,6 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.like_icon.on("click", function() {
 			frappe.ui.toggle_like(me.like_icon, me.frm.doctype, me.frm.doc.name, function() {
 				me.refresh_like();
-	//			this.frm.follow.set_follow();
 			});
 		})
 	},
