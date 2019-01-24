@@ -112,7 +112,7 @@ function test_date_format(date_format_key) {
 	cy.frappe_desk_visit('Form/System Settings');
 	cy.open_section('DATE AND NUMBER FORMAT');
 	cy.fill_field('date_format', std_date_format, 'Select')
-		.should('have.value', std_date_format);;
+		.should('have.value', std_date_format);
 	cy.click_save_button();
 	cy.open_section('DATE AND NUMBER FORMAT');
 	cy.get_field('date_format').should('have.value', std_date_format);
@@ -301,7 +301,7 @@ context('Date tests', () => {
 context('Time tests', () => {
 	before(() => {
 		cy.login('Administrator', 'qwe');
-        });
+	});
 
 	beforeEach(() => {
 		cy.reload();
