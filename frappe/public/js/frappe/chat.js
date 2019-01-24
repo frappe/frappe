@@ -1994,7 +1994,7 @@ class extends Component {
 			h("li", null,
 				h("a", { class: props.active ? "active": "", onclick: () => {
 					if (props.last_message) {
-						props.last_message.seen(frappe.session.user);
+						frappe.chat.message.seen(props.last_message.name);
 					}
 					props.click(props)
 				} },

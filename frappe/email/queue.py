@@ -382,7 +382,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 	email = frappe.db.sql('''select
 			name, status, communication, message, sender, reference_doctype,
 			reference_name, unsubscribe_param, unsubscribe_method, expose_recipients,
-			show_as_cc, add_unsubscribe_link, attachments
+			show_as_cc, add_unsubscribe_link, attachments, retry
 		from
 			`tabEmail Queue`
 		where
@@ -464,12 +464,16 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 	except Exception as e:
 		frappe.db.rollback()
 
-		if any("Sent" == s.status for s in recipients_list):
-			frappe.db.sql("""update `tabEmail Queue` set status='Partially Errored', error=%s where name=%s""",
-				(text_type(e), email.name), auto_commit=auto_commit)
+		if email.retry < 3:
+			frappe.db.sql("""update `tabEmail Queue` set status='Not Sent', modified=%s, retry=retry+1 where name=%s""",
+				(now_datetime(), email.name), auto_commit=auto_commit)
 		else:
-			frappe.db.sql("""update `tabEmail Queue` set status='Error', error=%s
-where name=%s""", (text_type(e), email.name), auto_commit=auto_commit)
+			if any("Sent" == s.status for s in recipients_list):
+				frappe.db.sql("""update `tabEmail Queue` set status='Partially Errored', error=%s where name=%s""",
+					(text_type(e), email.name), auto_commit=auto_commit)
+			else:
+				frappe.db.sql("""update `tabEmail Queue` set status='Error', error=%s
+					where name=%s""", (text_type(e), email.name), auto_commit=auto_commit)
 
 		if email.communication:
 			frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
