@@ -35,7 +35,7 @@ frappe.ui.form.on('Custom Field', {
 		return frappe.call({
 			method: 'frappe.custom.doctype.custom_field.custom_field.get_fields_label',
 			args: { doctype: frm.doc.dt, fieldname: frm.doc.fieldname },
-			callback: function(r, rt) {
+			callback: function(r) {
 				if(r) {
 					if(r._server_messages && r._server_messages.length) {
 						frm.set_value("dt", "");
