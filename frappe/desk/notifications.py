@@ -13,7 +13,7 @@ import json
 def get_notifications():
 	if (frappe.flags.in_install or
 		not frappe.db.get_single_value('System Settings', 'setup_complete')):
-		return
+		return { }
 
 	config = get_notification_config()
 
