@@ -11,7 +11,8 @@ import json
 
 @frappe.whitelist()
 def get_notifications():
-	if frappe.flags.in_install:
+	if (frappe.flags.in_install or
+		not frappe.db.get_single_value('System Settings', 'setup_complete')):
 		return
 
 	config = get_notification_config()
