@@ -1,8 +1,8 @@
 frappe.listview_settings['User Permission'] = {
 	onload: function(list_view) {
-		list_view.page.add_menu_item(__("Add"), function() {
-			const dialog =new frappe.ui.Dialog({
-				title : __('Add'),
+		list_view.page.add_menu_item(__("Add User Permissions"), function() {
+			var dialog =new frappe.ui.Dialog({
+				title : __('Add User Permissions'),
 				fields: [
 					{
 						'fieldname': 'user',
@@ -16,21 +16,63 @@ frappe.listview_settings['User Permission'] = {
 						'label': __('Document Type'),
 						'fieldtype': 'Link',
 						'options': 'DocType',
-						'reqd': 1
+						'reqd': 1,
+						'onchange': function() {
+							dialog.set_df_property("docname", "get_data", function(){
+								var options = []
+								frappe.call({
+									method:"frappe.client.get_list",
+									async: false,
+									args: {
+										doctype: dialog.fields_dict.doctype.value,
+									},
+									callback: function(r) {
+										for(var d in r.message){
+											options.push(r.message[d].name)
+										}
+									}
+								});
+								return options
+							})
+						}
 					},
 					{
 						'fieldname': 'docname',
 						'label': __('Document Name'),
-						'fieldtype': 'Link',
-						'options': 'doctype',
-						'reqd': 1
+						'fieldtype': 'MultiSelect',
+						'reqd': 1,
 					},
 					{
 						'fieldname': 'apply_to_all_doctypes',
 						'label': __('Apply to all Doctypes'),
 						'fieldtype': 'Check',
 						'default': 1,
-						'reqd': 1
+						'onchange': function() {
+							if(dialog.fields_dict.apply_to_all_doctypes.get_value() == 0){
+								frappe.call({
+									method:'frappe.desk.form.linked_with.get_linked_doctypes',
+									async: false,
+									args: {
+										doctype: dialog.fields_dict.doctype.value,
+									},
+									callback: function(r) {
+										var options = []
+										for(var d in r.message){
+											options.push({ "label":d, "value": d })
+										}
+										dialog.set_df_property("aplicable_doctypes", "options", options)
+									}
+								});
+							}else{
+								dialog.set_df_property("aplicable_doctypes", "options", undefined)
+							}
+						}
+					},
+					{
+						"label": "Aplicable Doctypes",
+						"fieldname": "aplicable_doctypes",
+						"fieldtype": "MultiCheck",
+						"columns": 2
 					},
 				],
 				primary_action: (data) => {
@@ -39,6 +81,7 @@ frappe.listview_settings['User Permission'] = {
 				primary_action_label: __('Submit')
 			});
 			dialog.show();
+			dialog
 		});
 
 		list_view.page.add_menu_item(__("Clear User Permissions"), () => {
