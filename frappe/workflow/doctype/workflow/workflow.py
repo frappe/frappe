@@ -83,11 +83,8 @@ class Workflow(Document):
 def get_fieldnames_for(doctype):
 	return [f.fieldname for f in frappe.get_meta(doctype).fields \
 		if f.fieldname not in no_value_fields]
-<<<<<<< HEAD
 
 @frappe.whitelist()
 def get_email_fieldnames(doctype):
 	return [f.fieldname for f in frappe.get_meta(doctype).fields \
 		if f.fieldtype in ['Link', 'Data'] and f.options in ['Email', 'User']]
-=======
->>>>>>> 1212139117813987631fe7bd62a125d1d50b0ce9
