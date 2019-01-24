@@ -3,7 +3,6 @@ frappe.pages['calendar'].on_page_load = function(wrapper) {
 		parent: wrapper,
 		title: 'Calendar',
 		single_column: false
-
 	});
 };
 
@@ -56,7 +55,6 @@ function update_event(event, revertFunc) {
 
 function create_event(start, end) {
 	const enabled_doctypes = get_checked_calendars();
-
 	if (enabled_doctypes.length === 1) {
 		const doctype = enabled_doctypes[0];
 		create_new_event(doctype,start,end);
