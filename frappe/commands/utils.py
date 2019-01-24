@@ -574,29 +574,24 @@ def setup_global_help(mariadb_root_password=None):
 	'''Deprecated: setup help table in a separate database that will be
 	shared by the whole bench and set `global_help_setup` as 1 in
 	common_site_config.json'''
-
-	print("In app help has been deprectated.\nYou can access the documentation on erpnext.com/docs or frappe.io/docs")
-	return
+	print_in_an_help_deprecation()
 
 @click.command('get-docs-app')
 @click.argument('app')
 def get_docs_app(app):
 	'''Deprecated: Get the docs app for given app'''
-	print("In app help has been deprectated.\nYou can access the documentation on erpnext.com/docs or frappe.io/docs")
-	return
+	print_in_an_help_deprecation()
 
 @click.command('get-all-docs-apps')
 def get_all_docs_apps():
 	'''Deprecated: Get docs apps for all apps'''
-	print("In app help has been deprectated.\nYou can access the documentation on erpnext.com/docs or frappe.io/docs")
-	return
+	print_in_an_help_deprecation()
 
 @click.command('setup-help')
 @pass_context
 def setup_help(context):
 	'''Deprecated: Setup help table in the current site (called after migrate)'''
-	print("In app help has been deprectated.\nYou can access the documentation on erpnext.com/docs or frappe.io/docs")
-	return
+	print_in_an_help_deprecation()
 
 @click.command('rebuild-global-search')
 @pass_context
@@ -658,6 +653,10 @@ def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
 				subprocess.check_output(['bench', 'restart'], cwd = '..')
 	else:
 		print('No Updates')
+
+def print_in_an_help_deprecation():
+	print("In app help has been deprectated.\nYou can access the documentation on erpnext.com/docs or frappe.io/docs")
+	return
 
 commands = [
 	build,
