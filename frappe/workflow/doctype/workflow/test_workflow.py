@@ -77,7 +77,7 @@ class TestWorkflow(unittest.TestCase):
 				self.assertTrue(tran.allowed, '')
 			elif tran.email_based_on == "User":
 				self.assertTrue(tran.user, '')
-	
+
 	def test_wrong_action(self):
 		'''Check illegal action (approve after reject)'''
 		todo = self.test_approve()
