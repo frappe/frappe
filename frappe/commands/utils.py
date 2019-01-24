@@ -458,16 +458,13 @@ def setup_global_help(mariadb_root_password=None):
 	'''Deprecated: setup help table in a separate database that will be
 	shared by the whole bench and set `global_help_setup` as 1 in
 	common_site_config.json'''
-
-	print("In app help has been deprectated.\nYou can access the documentation on erpnext.com/docs or frappe.io/docs")
-	return
+	print_in_an_help_deprecation()
 
 @click.command('setup-help')
 @pass_context
 def setup_help(context):
 	'''Deprecated: Setup help table in the current site (called after migrate)'''
-	print("In app help has been deprectated.\nYou can access the documentation on erpnext.com/docs or frappe.io/docs")
-	return
+	print_in_an_help_deprecation()
 
 @click.command('rebuild-global-search')
 @pass_context
@@ -487,6 +484,10 @@ def rebuild_global_search(context):
 		finally:
 			frappe.destroy()
 
+
+def print_in_an_help_deprecation():
+	print("In app help has been deprectated.\nYou can access the documentation on erpnext.com/docs or frappe.io/docs")
+	return
 
 commands = [
 	build,
