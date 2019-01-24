@@ -425,8 +425,6 @@ class DatabaseQuery(object):
 						date_range = [nowdate(), add_to_date(nowdate(), months=6)]
 					elif f.value == "1 year":
 						date_range = [nowdate(), add_to_date(nowdate(), years=1)]
-				if df.fieldtype=="Datetime":
-					date_range = [frappe.db.format_datetime(date_range[0]), frappe.db.format_datetime(date_range[1])]
 				f.operator = "Between"
 				f.value = date_range
 				fallback = "'0001-01-01 00:00:00'"
