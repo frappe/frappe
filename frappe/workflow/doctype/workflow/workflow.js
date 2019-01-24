@@ -25,7 +25,7 @@ frappe.core.Workflow = Class.extend({
 	email_based_on: function(doc, cdt, cdn){
 		if(!doc.document_type){
 			frappe.msgprint(__("Select document type."));
-			return
+			return;
 		}
 		var c_doc = frappe.get_doc(cdt, cdn);
 		if(c_doc.email_based_on==="Value"){

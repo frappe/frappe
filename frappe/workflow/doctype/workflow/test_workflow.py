@@ -66,11 +66,9 @@ class TestWorkflow(unittest.TestCase):
 		return todo
 
 	def test_validate_email_notification(self):
-		''' 
-			Validate all the transitions Check 
-			all the transitions to have valid 
-			selection for Email notification
-		'''
+		# Validate all the transitions Check
+		# all the transitions to have valid
+		# selection for Email notification
 		for tran in self.workflow.transitions:
 			if tran.email_based_on == "Value":
 				self.assertTrue(tran.docfield_name, '')
