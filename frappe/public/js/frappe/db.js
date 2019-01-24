@@ -30,13 +30,14 @@ frappe.db = {
 			});
 		});
 	},
-	get_value: function(doctype, filters, fieldname, callback) {
+	get_value: function(doctype, filters, fieldname, callback, parent) {
 		return frappe.call({
 			method: "frappe.client.get_value",
 			args: {
 				doctype: doctype,
 				fieldname: fieldname,
-				filters: filters
+				filters: filters,
+				parent: parent
 			},
 			callback: function(r) {
 				callback && callback(r.message);

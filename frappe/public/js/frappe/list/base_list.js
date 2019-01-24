@@ -392,6 +392,10 @@ frappe.views.BaseList = class BaseList {
 		// for child classes
 	}
 
+	on_filter_change() {
+		// fired when filters are added or removed
+	}
+
 	toggle_result_area() {
 		this.$result.toggle(this.data.length > 0);
 		this.$paging_area.toggle(this.data.length > 0);
@@ -480,6 +484,7 @@ class FilterArea {
 		if (this.trigger_refresh) {
 			this.list_view.start = 0;
 			this.list_view.refresh();
+			this.list_view.on_filter_change();
 		}
 	}
 
@@ -610,15 +615,6 @@ class FilterArea {
 				onchange: () => this.refresh_list_view()
 			};
 		}));
-
-		if (fields.length > 3) {
-			fields = fields.map((df, i) => {
-				if (i >= 3) {
-					df.input_class = 'hidden-sm hidden-xs';
-				}
-				return df;
-			});
-		}
 
 		fields.map(df => this.list_view.page.add_field(df));
 

@@ -66,12 +66,12 @@ More Details:
 from __future__ import unicode_literals
 import frappe
 import json
+import pytz
 from frappe import _
-from datetime import datetime
 from six.moves.urllib.parse import urlencode
 from frappe.model.document import Document
 from frappe.integrations.utils import create_request_log, make_post_request, create_payment_gateway
-from frappe.utils import get_url, call_hook_method, cint, get_timestamp, cstr, now, date_diff, get_datetime
+from frappe.utils import get_url, call_hook_method, cint, get_datetime
 
 
 api_path = '/api/method/frappe.integrations.doctype.paypal_settings.paypal_settings'
@@ -203,7 +203,7 @@ def setup_redirect(data, redirect_url, custom_redirect_to=None, redirect=True):
 		redirect_to = custom_redirect_to
 
 	if redirect_to:
-		redirect_url += '?' + urlencode({'redirect_to': redirect_to})
+		redirect_url += '&' + urlencode({'redirect_to': redirect_to})
 	if redirect_message:
 		redirect_url += '&' + urlencode({'redirect_message': redirect_message})
 
@@ -274,7 +274,7 @@ def confirm_payment(token):
 					data.get("reference_docname")).run_method("on_payment_authorized", "Completed")
 				frappe.db.commit()
 
-			redirect_url = '/integrations/payment-success'
+			redirect_url = '/integrations/payment-success?doctype={0}&docname={1}'.format(data.get("reference_doctype"), data.get("reference_docname"))
 		else:
 			redirect_url = "/integrations/payment-failed"
 
@@ -309,8 +309,10 @@ def create_recurring_profile(token, payerid):
 			"INITAMT": data.get("upfront_amount")
 		})
 
-		starts_at = get_datetime(subscription_details.get("start_date")) or frappe.utils.now_datetime()
 		status_changed_to = 'Completed' if data.get("starting_immediately") or updating else 'Verified'
+
+		starts_at = get_datetime(subscription_details.get("start_date")) or frappe.utils.now_datetime()
+		starts_at = starts_at.replace(tzinfo=pytz.timezone(frappe.utils.get_time_zone())).astimezone(pytz.utc)
 
 		#"PROFILESTARTDATE": datetime.utcfromtimestamp(get_timestamp(starts_at)).isoformat()
 		params.update({
@@ -332,7 +334,7 @@ def create_recurring_profile(token, payerid):
 					data.get("reference_docname")).run_method("on_payment_authorized", status_changed_to)
 				frappe.db.commit()
 
-			redirect_url = '/integrations/payment-success'
+			redirect_url = '/integrations/payment-success?doctype={0}&docname={1}'.format(data.get("reference_doctype"), data.get("reference_docname"))
 		else:
 			redirect_url = "/integrations/payment-failed"
 

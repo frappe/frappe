@@ -186,6 +186,8 @@ def abs_url(path):
 		return
 	if path.startswith('http://') or path.startswith('https://'):
 		return path
+	if path.startswith('data:'):
+		return path
 	if not path.startswith("/"):
 		path = "/" + path
 	return path

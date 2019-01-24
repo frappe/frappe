@@ -568,12 +568,9 @@ def in_words(integer, in_million=True):
 	return ret.replace('-', ' ')
 
 def is_html(text):
-	out = False
-	for key in ["<br>", "<p", "<img", "<div"]:
-		if key in text:
-			out = True
-			break
-	return out
+	if not isinstance(text, frappe.string_types):
+		return False
+	return re.search('<[^>]+>', text)
 
 def is_image(filepath):
 	from mimetypes import guess_type
@@ -729,7 +726,7 @@ def get_url(uri=None, full_address=False):
 
 	port = frappe.conf.http_port or frappe.conf.webserver_port
 
-	if frappe.conf.developer_mode and host_name and not url_contains_port(host_name) and port:
+	if not (frappe.conf.restart_supervisor_on_update or frappe.conf.restart_systemd_on_update) and host_name and not url_contains_port(host_name) and port:
 		host_name = host_name + ':' + str(port)
 
 	url = urljoin(host_name, uri) if uri else host_name
@@ -824,7 +821,8 @@ def get_filter(doctype, f):
 
 	if len(f) == 3:
 		f = (doctype, f[0], f[1], f[2])
-
+	elif len(f) > 4:
+		f = f[0:4]
 	elif len(f) != 4:
 		frappe.throw(frappe._("Filter must have 4 values (doctype, fieldname, operator, value): {0}").format(str(f)))
 

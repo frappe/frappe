@@ -14,7 +14,7 @@ from six import iteritems, text_type, string_types, PY2
 
 import frappe, os, re, io, codecs, json
 from frappe.model.utils import render_include, InvalidIncludePath
-from frappe.utils import strip
+from frappe.utils import strip, strip_html_tags, is_html
 from jinja2 import TemplateError
 import itertools, operator
 
@@ -741,3 +741,15 @@ def update_translations_for_source(source=None, translation_dict=None):
 		doc.save()
 
 	return translation_records
+
+@frappe.whitelist()
+def get_translations(source_name):
+	if is_html(source_name):
+		source_name = strip_html_tags(source_name)
+
+	return frappe.db.get_list('Translation',
+		fields = ['name', 'language', 'target_name as translation'],
+		filters = {
+			'source_name': source_name
+		}
+	)

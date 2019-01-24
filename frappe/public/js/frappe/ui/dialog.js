@@ -20,6 +20,14 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	make() {
 		this.$wrapper = frappe.get_modal("", "");
 
+		if(this.static) {
+			this.$wrapper.modal({
+				backdrop: 'static',
+				keyboard: false
+			});
+			this.get_close_btn().hide();
+		}
+
 		this.wrapper = this.$wrapper.find('.modal-dialog')
 			.get(0);
 		if ( this.size == "small" )
@@ -145,6 +153,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.$wrapper.modal("show");
 		this.primary_action_fulfilled = false;
 		this.is_visible = true;
+		return this;
 	}
 	hide() {
 		this.$wrapper.modal("hide");

@@ -11,6 +11,7 @@ frappe.ready(function() {
 			pathname: location.pathname,
 		});
 		data.web_form_name = frappe.web_form_name;
+		data.pathname = location.pathname;
 		btn.prop("disabled", true);
 		return $.ajax({
 			url:"/api/method/frappe.www.list.get",

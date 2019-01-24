@@ -129,8 +129,9 @@ def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False)
 	for dt in list(ret):
 		try:
 			doctype_module = load_doctype_module(dt)
-		except ImportError:
+		except (ImportError, KeyError):
 			# in case of Custom DocType
+			# or in case of module rename eg. (Schools -> Education)
 			continue
 
 		if getattr(doctype_module, "exclude_from_linked_with", False):

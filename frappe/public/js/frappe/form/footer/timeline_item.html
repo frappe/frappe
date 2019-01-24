@@ -2,7 +2,7 @@
 	{% if (data.user_content) { %}
 	<span class="pull-left avatar avatar-medium hidden-xs" style="margin-top: 1px">
 		{% if(data.user_info.image) { %}
-		<div class="avatar-frame" style="background-image: url({%= data.user_info.image %})"></div>
+		<div class="avatar-frame" style="background-image: url(\'{%= data.user_info.image %}\')"></div>
 		{% } else { %}
 		<div class="standard-image" style="background-color: {{ data.user_info.color }}">
 			{{ data.user_info.abbr }}</div>
@@ -35,7 +35,7 @@
 			<div class="comment-header clearfix small {% if (data.edit || data.delete) { %} links-active {% } %}">
 				<span class="pull-left avatar avatar-small visible-xs">
 					{% if(data.user_info.image) { %}
-					<div class="avatar-frame" style="background-image: url({%= data.user_info.image %})"></div>
+					<div class="avatar-frame" style="background-image: url(\'{%= data.user_info.image %}\')"></div>
 					{% } else { %}
 					<div class="standard-image" style="background-color: {{ data.user_info.color }}">
 						{{ data.user_info.abbr }}</div>

@@ -301,7 +301,7 @@ frappe.ui.form.Dashboard = Class.extend({
 			}
 		}
 
-		frappe.set_route("List", doctype);
+		frappe.set_route("List", doctype, "List");
 	},
 	get_document_filter: function(doctype) {
 		// return the default filter for the given document

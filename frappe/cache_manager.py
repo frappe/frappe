@@ -17,6 +17,10 @@ def clear_user_cache(user=None):
 		"defaults", "user_permissions", "home_page", "linked_with",
 		"desktop_icons", 'portal_menu_items')
 
+	# this will automatically reload the global cache
+	# so it is important to clear this first
+	clear_notifications(user)
+
 	if user:
 		for name in groups:
 			cache.hdel(name, user)
@@ -27,8 +31,6 @@ def clear_user_cache(user=None):
 			cache.delete_key(name)
 		clear_defaults_cache()
 		clear_global_cache()
-
-	clear_notifications(user)
 
 def clear_global_cache():
 	from frappe.website.render import clear_cache as clear_website_cache
@@ -46,6 +48,10 @@ def clear_defaults_cache(user=None):
 			frappe.cache().hdel("defaults", p)
 	elif frappe.flags.in_install!="frappe":
 		frappe.cache().delete_key("defaults")
+
+def clear_document_cache():
+	frappe.local.document_cache = {}
+	frappe.cache().delete_key("document_cache")
 
 def clear_doctype_cache(doctype=None):
 	cache = frappe.cache()
@@ -78,4 +84,7 @@ def clear_doctype_cache(doctype=None):
 		# clear all
 		for name in groups:
 			cache.delete_value(name)
+
+	# Clear all document's cache. To clear documents of a specific DocType document_cache should be restructured
+	clear_document_cache()
 
