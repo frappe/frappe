@@ -3,21 +3,9 @@
 		<div class="fieldname-select-area col-sm-4 form-group ui-front"></div>
 		<div class="col-sm-2 form-group">
 			<select class="condition form-control">
-				<option value="=">{%= __("Equals") %}</option>
-				<option value="like">{%= __("Like") %}</option>
-				<option value="in">{%= __("In") %}</option>
-				<option value="not in">{%= __("Not In") %}</option>
-				<option value="!=">{%= __("Not Equals") %}</option>
-				<option value="not like">{%= __("Not Like") %}</option>
-				<option value=">">{%= __(">") %}</option>
-				<option value="<">{%= __("<") %}</option>
-				<option value=">=">{%= __(">=") %}</option>
-				<option value="<=">{%= __("<=") %}</option>
-				<option value="Between">{%= __("Between") %}</option>
-				<option value="descendants of">{%= __("Descendants Of") %}</option>
-				<option value="not descendants of">{%= __("Not Descendants Of") %}</option>
-				<option value="ancestors of">{%= __("Ancestors Of") %}</option>
-				<option value="not ancestors of">{%= __("Not Ancestors Of") %}</option>
+				{% for condition in conditions %}
+				<option value="{{condition[0]}}">{{ condition[1] }}</option>
+				{% endfor %}
 			</select>
 		</div>
 		<div class="col-sm-6 col-xs-12">

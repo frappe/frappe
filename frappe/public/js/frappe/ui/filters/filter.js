@@ -13,13 +13,16 @@ frappe.ui.Filter = class {
 			["not like", __("Not Like")],
 			["in", __("In")],
 			["not in", __("Not In")],
+			["is", __("Is")],
 			[">", ">"],
 			["<", "<"],
 			[">=", ">="],
 			["<=", "<="],
 			["Between", __("Between")],
 			["descendants of", __("Descendants Of")],
-			["ancestors of", __("Ancestors Of")]
+			["not descendants of", __("Not Descendants Of")],
+			["ancestors of", __("Ancestors Of")],
+			["not ancestors of", __("Not Ancestors Of")]
 		];
 		this.invalid_condition_map = {
 			Date: ['like', 'not like'],
@@ -37,7 +40,9 @@ frappe.ui.Filter = class {
 	}
 
 	make() {
-		this.filter_edit_area = $(frappe.render_template("edit_filter", {}))
+		this.filter_edit_area = $(frappe.render_template("edit_filter", {
+			conditions: this.conditions
+		}))
 			.appendTo(this.parent.find('.filter-edit-area'));
 	}
 
@@ -394,6 +399,13 @@ frappe.ui.filter_utils = {
 		}
 		if(condition == "Between" && (df.fieldtype == 'Date' || df.fieldtype == 'Datetime')){
 			df.fieldtype = 'DateRange';
+		}
+		if (condition === 'is') {
+			df.fieldtype = 'Select'
+			df.options = [
+				{ label: __('Set'), value: 'set' },
+				{ label: __('Not Set'), value: 'not set' },
+			]
 		}
 	}
 };
