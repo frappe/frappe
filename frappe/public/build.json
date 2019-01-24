@@ -248,7 +248,8 @@
 
 		"public/js/frappe/chat.js",
 
-		"public/js/frappe/social/social_factory.js"
+		"public/js/frappe/social/social_factory.js",
+		"public/js/frappe/modules/modules_factory.js"
 	],
 	"css/module.min.css": [
 		"public/less/module.less"
@@ -381,5 +382,8 @@
 	],
 	"js/social.min.js": [
 		"public/js/frappe/social/social_home.js"
+	],
+	"js/modules.min.js": [
+		"public/js/frappe/modules/modules_home.js"
 	]
 }
