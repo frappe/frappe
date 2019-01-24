@@ -401,11 +401,11 @@ frappe.ui.filter_utils = {
 			df.fieldtype = 'DateRange';
 		}
 		if (condition === 'is') {
-			df.fieldtype = 'Select'
+			df.fieldtype = 'Select';
 			df.options = [
 				{ label: __('Set'), value: 'set' },
 				{ label: __('Not Set'), value: 'not set' },
-			]
+			];
 		}
 	}
 };
