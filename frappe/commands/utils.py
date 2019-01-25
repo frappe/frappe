@@ -655,7 +655,7 @@ def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
 		print('No Updates')
 
 def print_in_an_help_deprecation():
-	print("In app help has been deprectated.\nYou can access the documentation on erpnext.com/docs or frappe.io/docs")
+	print("In app help has been deprecated.\nYou can access the documentation on erpnext.com/docs or frappe.io/docs")
 	return
 
 commands = [
