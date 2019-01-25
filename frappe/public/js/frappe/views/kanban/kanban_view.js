@@ -149,7 +149,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		// quick entry
 		var mandatory = meta.fields.filter((df) => df.reqd && !doc[df.fieldname]);
 
-		if (mandatory.some(df => df.fieldtype === 'Table') || mandatory.length > 1) {
+		if (mandatory.some(df => frappe.model.table_fields.includes(df.fieldtype)) || mandatory.length > 1) {
 			quick_entry = true;
 		}
 

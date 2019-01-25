@@ -47,7 +47,7 @@ def get_unseen_likes():
 	return frappe.db.sql("""select count(*) from `tabCommunication`
 		where
 			communication_type='Comment'
-			and modified >= DATE_SUB(NOW(),INTERVAL 1 YEAR)
+			and modified >= (NOW() - INTERVAL '1' YEAR)
 			and comment_type='Like'
 			and owner is not null and owner!=%(user)s
 			and reference_owner=%(user)s
@@ -60,12 +60,12 @@ def get_unread_emails():
 		SELECT count(*)
 		FROM `tabCommunication`
 		WHERE communication_type='Communication'
-		AND communication_medium="Email"
-		AND sent_or_received="Received"
-		AND email_status not in ("Spam", "Trash")
+		AND communication_medium='Email'
+		AND sent_or_received='Received'
+		AND email_status not in ('Spam', 'Trash')
 		AND email_account in (
 			SELECT distinct email_account from `tabUser Email` WHERE parent=%(user)s
 		)
-		AND modified >= DATE_SUB(NOW(),INTERVAL 1 YEAR)
+		AND modified >= (NOW() - INTERVAL '1' YEAR)
 		AND seen=0
 		""", {"user": frappe.session.user})[0][0]

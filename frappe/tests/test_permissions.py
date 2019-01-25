@@ -14,6 +14,7 @@ from frappe.permissions import (add_user_permission, remove_user_permission,
 	get_valid_perms)
 from frappe.core.page.permission_manager.permission_manager import update, reset
 from frappe.test_runner import make_test_records_for_doctype
+from frappe.core.doctype.user_permission.user_permission import clear_user_permissions
 
 test_dependencies = ['Blogger', 'Blog Post', "User", "Contact", "Salutation"]
 
@@ -298,7 +299,7 @@ class TestPermissions(unittest.TestCase):
 			doctype"""
 
 		frappe.set_user('Administrator')
-		frappe.db.sql('delete from tabContact')
+		frappe.db.sql('DELETE FROM `tabContact`')
 
 		reset('Salutation')
 		reset('Contact')
@@ -308,8 +309,8 @@ class TestPermissions(unittest.TestCase):
 		add_user_permission("Salutation", "Mr", "test3@example.com")
 		self.set_strict_user_permissions(0)
 
-		allowed_contact = frappe.get_doc('Contact', '_Test Contact for _Test Customer')
-		other_contact = frappe.get_doc('Contact', '_Test Contact for _Test Supplier')
+		allowed_contact = frappe.get_doc('Contact', '_Test Contact For _Test Customer')
+		other_contact = frappe.get_doc('Contact', '_Test Contact For _Test Supplier')
 
 		frappe.set_user("test3@example.com")
 		self.assertTrue(allowed_contact.has_permission('read'))
@@ -383,7 +384,17 @@ class TestPermissions(unittest.TestCase):
 		update('Blog Post', 'Blogger', 0, 'read', 1)
 		update('Blog Post', 'Blogger', 0, 'write', 1)
 		update('Blog Post', 'Blogger', 0, 'delete', 1)
+
+		# currently test2 user has not created any document
+		# still he should be able to do get_list query which should
+		# not raise permission error but simply return empty list
+		frappe.set_user("test2@example.com")
+		self.assertEqual(frappe.get_list('Blog Post'), [])
+
+		frappe.set_user("Administrator")
+
 		# creates a custom docperm with just read access
+		# now any user can read any blog post (but other rights are limited to the blog post owner)
 		add_permission('Blog Post', 'Blogger')
 		frappe.clear_cache(doctype="Blog Post")
 
@@ -418,3 +429,34 @@ class TestPermissions(unittest.TestCase):
 
 		# delete the created doc
 		frappe.delete_doc('Blog Post', '-test-blog-post-title')
+
+	def test_clear_user_permissions(self):
+		current_user = frappe.session.user
+		frappe.set_user('Administrator')
+		clear_user_permissions_for_doctype('Blog Category', 'test2@example.com')
+		clear_user_permissions_for_doctype('Blog Post', 'test2@example.com')
+
+		add_user_permission('Blog Post', '-test-blog-post-1', 'test2@example.com')
+		add_user_permission('Blog Post', '-test-blog-post-2', 'test2@example.com')
+		add_user_permission("Blog Category", '_Test Blog Category 1', 'test2@example.com')
+
+		deleted_user_permission_count = clear_user_permissions('test2@example.com', 'Blog Post')
+
+		self.assertEqual(deleted_user_permission_count, 2)
+
+		blog_post_user_permission_count = frappe.db.count('User Permission', filters={
+			'user': 'test2@example.com',
+			'allow': 'Blog Post'
+		})
+
+		self.assertEqual(blog_post_user_permission_count, 0)
+
+		blog_category_user_permission_count = frappe.db.count('User Permission', filters={
+			'user': 'test2@example.com',
+			'allow': 'Blog Category'
+		})
+
+		self.assertEqual(blog_category_user_permission_count, 1)
+
+		# reset the user
+		frappe.set_user(current_user)

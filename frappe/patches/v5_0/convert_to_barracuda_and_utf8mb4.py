@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 import frappe
-from frappe.installer import check_if_ready_for_barracuda
+from frappe.database.mariadb.setup_db import check_if_ready_for_barracuda
 from frappe.model.meta import trim_tables
 
 def execute():

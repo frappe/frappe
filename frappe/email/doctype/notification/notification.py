@@ -8,15 +8,11 @@ import json, os
 from frappe import _
 from frappe.model.document import Document
 from frappe.core.doctype.role.role import get_emails_from_role
-from frappe.utils import validate_email_add, nowdate, parse_val, is_html
+from frappe.utils import validate_email_add, nowdate, parse_val, is_html, add_to_date
 from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
 from six import string_types
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
-
-# imports - third-party imports
-import pymysql
-from pymysql.constants import ER
 
 class Notification(Document):
 	def onload(self):
@@ -91,11 +87,19 @@ def get_context(context):
 		if self.event=="Days After":
 			diff_days = -diff_days
 
-		for name in frappe.db.sql_list("""select name from `tab{0}` where
-			DATE(`{1}`) = ADDDATE(DATE(%s), INTERVAL %s DAY)""".format(self.document_type,
-				self.date_changed), (nowdate(), diff_days or 0)):
+		reference_date = add_to_date(nowdate(), days=diff_days)
+		reference_date_start = reference_date + ' 00:00:00.000000'
+		reference_date_end = reference_date + ' 23:59:59.000000'
 
-			doc = frappe.get_doc(self.document_type, name)
+		doc_list = frappe.get_all(self.document_type,
+			fields='name',
+			filters=[
+				{ self.date_changed: ('>=', reference_date_start) },
+				{ self.date_changed: ('<=', reference_date_end) }
+			])
+
+		for d in doc_list:
+			doc = frappe.get_doc(self.document_type, d.name)
 
 			if self.condition and not frappe.safe_eval(self.condition, None, get_context(doc)):
 				continue
@@ -257,9 +261,14 @@ def trigger_notifications(doc, method=None):
 		return
 
 	if method == "daily":
-		for alert in frappe.db.sql_list("""select name from `tabNotification`
-			where event in ('Days Before', 'Days After') and enabled=1"""):
-			alert = frappe.get_doc("Notification", alert)
+		doc_list = frappe.get_all('Notification',
+			filters={
+				'event': ('in', ('Days Before', 'Days After')),
+				'enabled': 1
+			})
+		for d in doc_list:
+			alert = frappe.get_doc("Notification", d.name)
+
 			for doc in alert.get_documents_for_today():
 				evaluate_alert(doc, alert, alert.event)
 				frappe.db.commit()
@@ -279,12 +288,13 @@ def evaluate_alert(doc, alert, event):
 		if event=="Value Change" and not doc.is_new():
 			try:
 				db_value = frappe.db.get_value(doc.doctype, doc.name, alert.value_changed)
-			except pymysql.InternalError as e:
-				if e.args[0]== ER.BAD_FIELD_ERROR:
+			except Exception as e:
+				if frappe.db.is_missing_column(e):
 					alert.db_set('enabled', 0)
 					frappe.log_error('Notification {0} has been disabled due to missing field'.format(alert.name))
 					return
-
+				else:
+					raise
 			db_value = parse_val(db_value)
 			if (doc.get(alert.value_changed) == db_value) or \
 				(not db_value and not doc.get(alert.value_changed)):

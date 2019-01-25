@@ -34,7 +34,8 @@ ndg-httpsclient
 pyasn1
 zxcvbn-python
 unittest-xml-reporting
-oauthlib
+oauthlib==2.1.0
+requests-oauthlib==1.1.0
 pdfkit
 PyJWT
 PyPDF2
@@ -57,3 +58,5 @@ stripe
 coverage
 urllib3==1.23
 GitPython==2.1.11
+psycopg2==2.7.5
+psycopg2-binary==2.7.5

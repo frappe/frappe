@@ -46,7 +46,7 @@ class UserPermissions:
 				pass
 			except Exception as e:
 				# install boo-boo
-				if e.args[0] != 1146: raise
+				if not frappe.db.is_table_missing(e): raise
 
 			return user
 
@@ -238,14 +238,21 @@ def get_system_managers(only_name=False):
 	"""returns all system manager's user details"""
 	import email.utils
 	from frappe.core.doctype.user.user import STANDARD_USERS
-	system_managers = frappe.db.sql("""select distinct name,
-		concat_ws(" ", if(first_name="", null, first_name), if(last_name="", null, last_name))
-		as fullname from tabUser p
-		where docstatus < 2 and enabled = 1
-		and name not in ({})
-		and exists (select * from `tabHas Role` ur
-			where ur.parent = p.name and ur.role="System Manager")
-		order by creation desc""".format(", ".join(["%s"]*len(STANDARD_USERS))),
+	system_managers = frappe.db.sql("""SELECT DISTINCT `name`, `creation`,
+		CONCAT_WS(' ',
+			CASE WHEN `first_name`= '' THEN NULL ELSE `first_name` END,
+			CASE WHEN `last_name`= '' THEN NULL ELSE `last_name` END
+		) AS fullname
+		FROM `tabUser` AS p
+		WHERE `docstatus` < 2
+		AND `enabled` = 1
+		AND `name` NOT IN ({})
+		AND exists
+			(SELECT *
+				FROM `tabHas Role` AS ur
+				WHERE ur.parent = p.name
+				AND ur.role='System Manager')
+		ORDER BY `creation` DESC""".format(", ".join(["%s"]*len(STANDARD_USERS))),
 			STANDARD_USERS, as_dict=True)
 
 	if only_name:
@@ -277,13 +284,25 @@ def add_system_manager(email, first_name=None, last_name=None, send_welcome_emai
 	user.insert()
 
 	# add roles
-	roles = frappe.db.sql_list("""select name from `tabRole`
-		where name not in ("Administrator", "Guest", "All")""")
+	roles = frappe.get_all('Role',
+		fields=['name'],
+		filters={
+			'name': ['not in', ('Administrator', 'Guest', 'All')]
+		}
+	)
+	roles = [role.name for role in roles]
 	user.add_roles(*roles)
 
 def get_enabled_system_users():
-	return frappe.db.sql("""select * from tabUser where
-		user_type='System User' and enabled=1 and name not in ('Administrator', 'Guest')""", as_dict=1)
+	# add more fields if required
+	return frappe.get_all('User',
+		fields=['email', 'language', 'name'],
+		filters={
+			'user_type': 'System User',
+			'enabled': 1,
+			'name': ['not in', ('Administrator', 'Guest')]
+		}
+	)
 
 def is_website_user():
 	return frappe.db.get_value('User', frappe.session.user, 'user_type') == "Website User"

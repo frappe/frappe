@@ -18,6 +18,9 @@
 	"js/chat.js": [
 		"public/js/frappe/chat.js"
 	],
+	"js/frappe-vue.min.js": [
+		"public/js/frappe_vue.js"
+	],
 	"js/frappe-web.min.js": [
 		"public/js/frappe/class.js",
 		"public/js/frappe/polyfill.js",
@@ -75,13 +78,15 @@
 		"public/js/frappe/form/controls/read_only.js",
 		"public/js/frappe/form/controls/button.js",
 		"public/js/frappe/form/controls/html.js",
+		"public/js/frappe/form/controls/markdown_editor.js",
 		"public/js/frappe/form/controls/html_editor.js",
 		"public/js/frappe/form/controls/heading.js",
 		"public/js/frappe/form/controls/autocomplete.js",
 		"public/js/frappe/form/controls/barcode.js",
 		"public/js/frappe/form/controls/geolocation.js",
 		"public/js/frappe/form/controls/multiselect.js",
-		"public/js/frappe/form/controls/multicheck.js"
+		"public/js/frappe/form/controls/multicheck.js",
+		"public/js/frappe/form/controls/table_multiselect.js"
 	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
@@ -115,7 +120,8 @@
 		"public/less/kanban.less",
 		"public/less/controls.less",
 		"public/less/chat.less",
-		"public/less/filters.less"
+		"public/less/filters.less",
+		"public/less/social.less"
 	],
 	"css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",
@@ -148,7 +154,6 @@
 		"public/js/frappe/format.js",
 		"public/js/frappe/form/formatters.js",
 		"public/js/frappe/dom.js",
-		"public/js/frappe/event_emitter.js",
 		"public/js/frappe/ui/messages.js",
 		"public/js/frappe/ui/keyboard.js",
 		"public/js/frappe/ui/colors.js",
@@ -156,7 +161,10 @@
 
 		"public/js/frappe/request.js",
 		"public/js/frappe/socketio_client.js",
+		"public/js/frappe/misc/utils.js",
+		"public/js/frappe/event_emitter.js",
 		"public/js/frappe/router.js",
+		"public/js/frappe/router_history.js",
 		"public/js/frappe/defaults.js",
 		"public/js/frappe/roles_editor.js",
 		"public/js/lib/microtemplate.js",
@@ -193,7 +201,6 @@
 		"public/js/frappe/misc/user.js",
 		"public/js/frappe/misc/common.js",
 		"public/js/frappe/misc/pretty_date.js",
-		"public/js/frappe/misc/utils.js",
 		"public/js/frappe/misc/test_utils.js",
 		"public/js/frappe/misc/tools.js",
 		"public/js/frappe/misc/datetime.js",
@@ -239,7 +246,9 @@
 
 		"public/js/frappe/feedback.js",
 
-		"public/js/frappe/chat.js"
+		"public/js/frappe/chat.js",
+
+		"public/js/frappe/social/social_factory.js"
 	],
 	"css/module.min.css": [
 		"public/less/module.less"
@@ -369,5 +378,8 @@
 	],
 	"frappe/css/email.css": [
 		"public/less/email.less"
+	],
+	"js/social.min.js": [
+		"public/js/frappe/social/social_home.js"
 	]
 }

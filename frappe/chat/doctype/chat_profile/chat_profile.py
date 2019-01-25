@@ -79,7 +79,7 @@ def create(user, exists_ok = False, fields = None):
     result = frappe.db.sql("""
         SELECT *
         FROM `tabChat Profile`
-        WHERE user = "{user}"
+        WHERE `user` = '{user}'
     """.format(user = user))
 
     if result:

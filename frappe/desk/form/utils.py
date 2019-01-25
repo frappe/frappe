@@ -13,9 +13,10 @@ from six import string_types
 @frappe.whitelist()
 def remove_attach():
 	"""remove attachment"""
-	import frappe.utils.file_manager
 	fid = frappe.form_dict.get('fid')
-	return frappe.utils.file_manager.remove_file(fid)
+	file_name = frappe.form_dict.get('file_name')
+	frappe.delete_doc('File', fid)
+
 
 @frappe.whitelist()
 def validate_link():
@@ -30,8 +31,7 @@ def validate_link():
 		frappe.response['message'] = 'Ok'
 		return
 
-	valid_value = frappe.db.sql("select name from `tab%s` where name=%s" % (frappe.db.escape(options),
-		'%s'), (value,))
+	valid_value = frappe.db.get_all(options, filters=dict(name=value), as_list=1, limit=1)
 
 	if valid_value:
 		valid_value = valid_value[0][0]
@@ -39,11 +39,11 @@ def validate_link():
 		# get fetch values
 		if fetch:
 			# escape with "`"
-			fetch = ", ".join(("`{0}`".format(frappe.db.escape(f.strip())) for f in fetch.split(",")))
+			fetch = ", ".join(("`{0}`".format(f.strip()) for f in fetch.split(",")))
 			fetch_value = None
 			try:
 				fetch_value = frappe.db.sql("select %s from `tab%s` where name=%s"
-					% (fetch, frappe.db.escape(options), '%s'), (value,))[0]
+					% (fetch, options, '%s'), (value,))[0]
 			except Exception as e:
 				error_message = str(e).split("Unknown column '")
 				fieldname = None if len(error_message)<=1 else error_message[1].split("'")[0]

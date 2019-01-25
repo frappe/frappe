@@ -15,7 +15,6 @@ import frappe.desk.reportview
 from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
 from datetime import timedelta
-from frappe.utils.file_manager import get_file
 from frappe.utils import gzip_decompress
 
 def get_report_doc(report_name):
@@ -58,7 +57,7 @@ def generate_report_result(report, filters=None, user=None):
 		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
 		if report.is_standard == "Yes":
 			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
-			threshold = 10
+			threshold = 60
 			res = []
 
 			start_time = datetime.datetime.now()
@@ -198,7 +197,8 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 
 		# Prepared Report data is stored in a GZip compressed JSON file
 		attached_file_name = frappe.db.get_value("File", {"attached_to_doctype": doc.doctype, "attached_to_name":doc.name}, "name")
-		compressed_content = get_file(attached_file_name)[1]
+		attached_file = frappe.get_doc('File', attached_file_name)
+		compressed_content = attached_file.get_content()
 		uncompressed_content = gzip_decompress(compressed_content)
 		data = json.loads(uncompressed_content)
 		if data:

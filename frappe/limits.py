@@ -173,7 +173,7 @@ def clear_limit(key):
 
 def validate_space_limit(file_size):
 	"""Stop from writing file if max space limit is reached"""
-	from frappe.utils.file_manager import MaxFileSizeReachedError
+	from frappe.core.doctype.file.file import MaxFileSizeReachedError
 
 	limits = get_limits()
 	if not limits.space:
@@ -207,7 +207,7 @@ def update_space_usage():
 	files_size += get_folder_size(frappe.get_site_path("private", "files"))
 
 	backup_size = get_folder_size(frappe.get_site_path("private", "backups"))
-	database_size = get_database_size()
+	database_size = frappe.db.get_database_size()
 
 	usage = {
 		'files_size': flt(files_size, 2),
@@ -225,13 +225,3 @@ def get_folder_size(path):
 	if os.path.exists(path):
 		return flt(subprocess.check_output(['du', '-ms', path]).split()[0], 2)
 
-def get_database_size():
-	'''Returns approximate database size in MB'''
-	db_name = frappe.conf.db_name
-
-	# This query will get the database size in MB
-	db_size = frappe.db.sql('''
-		SELECT table_schema "database_name", sum( data_length + index_length ) / 1024 / 1024 "database_size"
-		FROM information_schema.TABLES WHERE table_schema = %s GROUP BY table_schema''', db_name, as_dict=True)
-
-	return flt(db_size[0].get('database_size'), 2)

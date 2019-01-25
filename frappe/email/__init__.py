@@ -25,9 +25,11 @@ def get_contact_list(txt, page_length=20):
 			from tabContact
 			where name like %(txt)s
 			%(condition)s
-			limit %(page_length)s
-		""", {'txt': "%%%s%%" % frappe.db.escape(txt),
-			'condition': match_conditions, 'page_length': page_length}, as_dict=True)
+			limit %(page_length)s""", {
+				'txt': '%' + txt + '%',
+				'condition': match_conditions,
+				'page_length': page_length
+			}, as_dict=True)
 		out = filter(None, out)
 
 	except:

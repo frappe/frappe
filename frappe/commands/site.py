@@ -10,15 +10,10 @@ from frappe.installer import update_site_config
 from frappe.utils import touch_file, get_site_path
 from six import text_type
 
-# imports - third-party imports
-from pymysql.constants import ER
-
-# imports - module imports
-from frappe.exceptions import SQLError
-
 @click.command('new-site')
 @click.argument('site')
 @click.option('--db-name', help='Database name')
+@click.option('--db-type', default='mariadb', type=click.Choice(['mariadb', 'postgres']), help='Optional "postgres" or "mariadb". Default is "mariadb"')
 @click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')
 @click.option('--mariadb-root-password', help='Root password for MariaDB')
 @click.option('--admin-password', help='Administrator password for new site', default=None)
@@ -26,22 +21,27 @@ from frappe.exceptions import SQLError
 @click.option('--force', help='Force restore if site/database already exists', is_flag=True, default=False)
 @click.option('--source_sql', help='Initiate database with a SQL file')
 @click.option('--install-app', multiple=True, help='Install app after installation')
-def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None, verbose=False, install_apps=None, source_sql=None, force=None, install_app=None, db_name=None):
+def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None,
+	verbose=False, install_apps=None, source_sql=None, force=None, install_app=None,
+	db_name=None, db_type=None):
 	"Create a new site"
 	frappe.init(site=site, new_site=True)
 
-	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password,
-			verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force)
+	_new_site(db_name, site, mariadb_root_username=mariadb_root_username,
+			mariadb_root_password=mariadb_root_password, admin_password=admin_password,
+			verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force,
+			db_type = db_type)
 
 	if len(frappe.utils.get_sites()) == 1:
 		use(site)
 
-def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None,
-	verbose=False, install_apps=None, source_sql=None,force=False, reinstall=False):
+def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=None,
+	admin_password=None, verbose=False, install_apps=None, source_sql=None,force=False,
+	reinstall=False, db_type=None):
 	"""Install a new Frappe site"""
 
 	if not db_name:
-		db_name = hashlib.sha1(site.encode()).hexdigest()[:16]
+		db_name = '_' + hashlib.sha1(site.encode()).hexdigest()[:16]
 
 	from frappe.installer import install_db, make_site_dirs
 	from frappe.installer import install_app as _install_app
@@ -61,8 +61,9 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	try:
 		installing = touch_file(get_site_path('locks', 'installing.lock'))
 
-		install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name,
-			admin_password=admin_password, verbose=verbose, source_sql=source_sql,force=force, reinstall=reinstall)
+		install_db(root_login=mariadb_root_username, root_password=mariadb_root_password,
+			db_name=db_name, admin_password=admin_password, verbose=verbose,
+			source_sql=source_sql,force=force, reinstall=reinstall, db_type=db_type)
 
 		apps_to_install = ['frappe'] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
 		for app in apps_to_install:
@@ -352,8 +353,7 @@ def drop_site(site, root_login='root', root_password=None, archived_sites_path=N
 
 def _drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False):
 	"Remove site from database and filesystem"
-	from frappe.installer import get_root_connection
-	from frappe.model.db_schema import DbManager
+	from frappe.database import drop_user_and_database
 	from frappe.utils.backups import scheduled_backup
 
 	frappe.init(site=site)
@@ -361,25 +361,20 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 
 	try:
 		scheduled_backup(ignore_files=False, force=True)
-	except SQLError as err:
-		if err[0] == ER.NO_SUCH_TABLE:
-			if force:
-				pass
-			else:
-				click.echo("="*80)
-				click.echo("Error: The operation has stopped because backup of {s}'s database failed.".format(s=site))
-				click.echo("Reason: {reason}{sep}".format(reason=err[1], sep="\n"))
-				click.echo("Fix the issue and try again.")
-				click.echo(
-					"Hint: Use 'bench drop-site {s} --force' to force the removal of {s}".format(sep="\n", tab="\t", s=site)
-				)
-				sys.exit(1)
+	except Exception as err:
+		if force:
+			pass
+		else:
+			click.echo("="*80)
+			click.echo("Error: The operation has stopped because backup of {s}'s database failed.".format(s=site))
+			click.echo("Reason: {reason}{sep}".format(reason=err[1], sep="\n"))
+			click.echo("Fix the issue and try again.")
+			click.echo(
+				"Hint: Use 'bench drop-site {s} --force' to force the removal of {s}".format(sep="\n", tab="\t", s=site)
+			)
+			sys.exit(1)
 
-	db_name = frappe.local.conf.db_name
-	frappe.local.db = get_root_connection(root_login, root_password)
-	dbman = DbManager(frappe.local.db)
-	dbman.delete_user(db_name)
-	dbman.drop_database(db_name)
+	drop_user_and_database(frappe.conf.db_name, root_login, root_password)
 
 	if not archived_sites_path:
 		archived_sites_path = os.path.join(frappe.get_app_path('frappe'), '..', '..', '..', 'archived_sites')
@@ -552,6 +547,28 @@ def publish_realtime(context, event, message, room, user, doctype, docname, afte
 		finally:
 			frappe.destroy()
 
+@click.command('browse')
+@click.argument('site', required=False)
+@pass_context
+def browse(context, site):
+	'''Opens the site on web browser'''
+	import webbrowser
+	site = context.sites[0] if context.sites else site
+
+	if not site:
+		click.echo('''Please provide site name\n\nUsage:\n\tbench browse [site-name]\nor\n\tbench --site [site-name] browse''')
+		return
+
+	site = site.lower()
+
+	if site in frappe.utils.get_sites():
+		webbrowser.open('http://{site}:{port}'.format(
+			site=site,
+			port=frappe.get_conf(site).webserver_port
+		), new=2)
+	else:
+		click.echo("\nSite named \033[1m{}\033[0m doesn't exist\n".format(site))
+
 commands = [
 	add_system_manager,
 	backup,
@@ -575,4 +592,5 @@ commands = [
 	_use,
 	set_last_active_for_user,
 	publish_realtime,
+	browse
 ]

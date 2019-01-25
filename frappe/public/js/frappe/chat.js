@@ -93,10 +93,10 @@ frappe.datetime.datetime = class {
 	 * @description Frappe's datetime Class's constructor.
 	 */
 	constructor (instance, format = null) {
-		if ( typeof moment === undefined )
+		if ( typeof moment === 'undefined' )
 			throw new frappe.ImportError(`Moment.js not installed.`)
 
-		this.moment      = instance ? moment(instance, format) : moment()
+		this.moment = instance ? moment(instance, format) : moment()
 	}
 
 	/**
@@ -1644,7 +1644,7 @@ class extends Component {
 							 ],
 							action: {
 								primary: {
-									   label: __("Create"),
+									   label: __('Create'),
 									onsubmit: (values) => {
 										if ( values.type === "Group" ) {
 											if ( !frappe._.is_empty(values.users) ) {
@@ -1772,6 +1772,8 @@ class extends Component {
 
 		if ( props.target )
 			$(props.target).click(() => this.toggle())
+
+		frappe.chat.widget = this
 	}
 
 	toggle  (active) {
@@ -1991,7 +1993,9 @@ class extends Component {
 		return (
 			h("li", null,
 				h("a", { class: props.active ? "active": "", onclick: () => {
-					props.last_message.seen.push(frappe.session.user)
+					if (props.last_message) {
+						frappe.chat.message.seen(props.last_message.name);
+					}
 					props.click(props)
 				} },
 					h("div", { class: "row" },
@@ -2675,7 +2679,7 @@ frappe.chat.render = (render = true, force = false) =>
 	// Avoid re-renders. Once is enough.
 	if ( !frappe.chatter || force ) {
 		frappe.chatter = new frappe.Chat({
-			target: desk ? '.navbar .frappe-chat-toggle' : null
+			target: desk ? '.frappe-chat-toggle' : null
 		})
 
 		if ( render ) {

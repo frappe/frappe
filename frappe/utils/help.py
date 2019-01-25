@@ -3,17 +3,13 @@
 
 from __future__ import unicode_literals, print_function
 
+import io
 import frappe
 import hashlib
 
-from frappe.model.db_schema import DbManager
-from frappe.installer import get_root_connection
-from frappe.database import Database
 import os, subprocess
-from bs4 import BeautifulSoup
 import jinja2.exceptions
-
-import io
+from bs4 import BeautifulSoup
 
 def sync():
 	# make table
@@ -59,47 +55,24 @@ class HelpDatabase(object):
 		self.global_help_setup = frappe.conf.get('global_help_setup')
 		if self.global_help_setup:
 			bench_name = os.path.basename(os.path.abspath(frappe.get_app_path('frappe')).split('/apps/')[0])
-			self.help_db_name = hashlib.sha224(bench_name.encode('utf-8')).hexdigest()[:15]
+			self.help_db_name = 'd' + hashlib.sha224(bench_name.encode('utf-8')).hexdigest()[:15]
 
 	def make_database(self):
 		'''make database for global help setup'''
 		if not self.global_help_setup:
 			return
+		frappe.database.setup_help_database(self.help_db_name)
 
-		dbman = DbManager(get_root_connection())
-		dbman.drop_database(self.help_db_name)
-
-		# make database
-		if not self.help_db_name in dbman.get_database_list():
-			try:
-				dbman.create_user(self.help_db_name, self.help_db_name)
-			except Exception as e:
-				# user already exists
-				if e.args[0] != 1396: raise
-			dbman.create_database(self.help_db_name)
-			dbman.grant_all_privileges(self.help_db_name, self.help_db_name)
-			dbman.flush_privileges()
 
 	def connect(self):
 		if self.global_help_setup:
-			self.db = Database(user=self.help_db_name, password=self.help_db_name)
+			self.db = frappe.database.get_db(user=self.help_db_name, password=self.help_db_name)
 		else:
 			self.db = frappe.db
 
 	def make_table(self):
 		if not 'help' in self.db.get_tables():
-			self.db.sql('''create table help(
-				path varchar(255),
-				content text,
-				title text,
-				intro text,
-				full_path text,
-				fulltext(title),
-				fulltext(content),
-				index (path))
-				COLLATE=utf8mb4_unicode_ci
-				ENGINE=MyISAM
-				CHARACTER SET=utf8mb4''')
+			self.db.create_help_table()
 
 	def search(self, words):
 		self.connect()
@@ -137,8 +110,11 @@ class HelpDatabase(object):
 
 	def get_content(self, path):
 		self.connect()
-		query = '''select title, content from help
-			where path like "{path}%" order by path desc limit 1'''
+		query = '''SELECT `title`, `content`
+			FROM `help`
+			WHERE `path` LIKE '{path}%'
+			ORDER BY `path` DESC
+			LIMIT 1'''
 		result = None
 
 		if not path.endswith('index'):
@@ -185,8 +161,8 @@ class HelpDatabase(object):
 									title = self.make_title(basepath, fname, content)
 									intro = self.make_intro(content)
 									content = self.make_content(content, fpath, relpath, app, docs_app)
-									self.db.sql('''insert into help(path, content, title, intro, full_path)
-										values (%s, %s, %s, %s, %s)''', (relpath, content, title, intro, fpath))
+									self.db.sql('''INSERT INTO `help`(`path`, `content`, `title`, `intro`, `full_path`)
+										VALUES (%s, %s, %s, %s, %s)''', (relpath, content, title, intro, fpath))
 								except jinja2.exceptions.TemplateSyntaxError:
 									print("Invalid Jinja Template for {0}. Skipping".format(fpath))
 

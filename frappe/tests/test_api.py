@@ -16,7 +16,7 @@ class TestAPI(unittest.TestCase):
 			return
 		from frappe.frappeclient import FrappeClient
 
-		frappe.db.sql('delete from `tabToDo` where description like "Test API%"')
+		frappe.db.sql("DELETE FROM `tabToDo` WHERE `description` LIKE 'Test API%'")
 		frappe.db.commit()
 
 		server = FrappeClient(get_url(), "Administrator", "admin", verify=False)

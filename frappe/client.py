@@ -9,7 +9,6 @@ import frappe.utils
 import json, os
 
 from six import iteritems, string_types, integer_types
-from frappe.utils.file_manager import save_file
 
 '''
 Handle RESTful requests that are mapped to the `/api/resource` route.
@@ -36,7 +35,7 @@ def get_list(doctype, fields=None, filters=None, order_by=None,
 
 @frappe.whitelist()
 def get_count(doctype, filters=None, debug=False, cache=False):
-	return frappe.db.count(doctype, filters, debug, cache)
+	return frappe.db.count(doctype, get_safe_filters(filters), debug, cache)
 
 @frappe.whitelist()
 def get(doctype, name=None, filters=None, parent=None):
@@ -72,15 +71,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 	if not frappe.has_permission(doctype):
 		frappe.throw(_("No permission for {0}".format(doctype)), frappe.PermissionError)
 
-	try:
-		filters = json.loads(filters)
-
-		if isinstance(filters, (integer_types, float)):
-			filters = frappe.as_unicode(filters)
-
-	except (TypeError, ValueError):
-		# filters are not passesd, not json
-		pass
+	filters = get_safe_filters(filters)
 
 	try:
 		fieldname = json.loads(fieldname)
@@ -351,10 +342,20 @@ def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder
 	if not doc.has_permission():
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-	f = save_file(filename, filedata, doctype, docname, folder, decode_base64, is_private, docfield)
+	_file = frappe.get_doc({
+		"doctype": "File",
+		"file_name": filename,
+		"attached_to_doctype": doctype,
+		"attached_to_name": docname,
+		"attached_to_field": docfield,
+		"folder": folder,
+		"is_private": is_private,
+		"content": filedata,
+		"decode": decode_base64})
+	_file.save()
 
 	if docfield and doctype:
-		doc.set(docfield, f.file_url)
+		doc.set(docfield, _file.file_url)
 		doc.save()
 
 	return f.as_dict()
@@ -370,3 +371,16 @@ def check_parent_permission(parent, child_doctype):
 			return
 	# Either parent not passed or the user doesn't have permission on parent doctype of child table!
 	raise frappe.PermissionError
+
+def get_safe_filters(filters):
+	try:
+		filters = json.loads(filters)
+
+		if isinstance(filters, (integer_types, float)):
+			filters = frappe.as_unicode(filters)
+
+	except (TypeError, ValueError):
+		# filters are not passesd, not json
+		pass
+
+	return filters

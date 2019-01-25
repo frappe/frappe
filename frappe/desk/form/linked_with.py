@@ -42,9 +42,10 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 		link_meta_bundle = frappe.desk.form.load.get_meta_bundle(dt)
 		linkmeta = link_meta_bundle[0]
 		if not linkmeta.get("issingle"):
-			fields = [d.fieldname for d in linkmeta.get("fields", {"in_list_view":1,
-				"fieldtype": ["not in", ["Image", "HTML", "Button", "Table"]]})] \
-				+ ["name", "modified", "docstatus"]
+			fields = [d.fieldname for d in linkmeta.get("fields", {
+				"in_list_view": 1,
+				"fieldtype": ["not in", ("Image", "HTML", "Button") + frappe.model.table_fields]
+			})] + ["name", "modified", "docstatus"]
 
 			if link.get("add_fields"):
 				fields += link["add_fields"]
@@ -116,7 +117,7 @@ def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False)
 	ret.update(get_linked_fields(doctype, without_ignore_user_permissions_enabled))
 	ret.update(get_dynamic_linked_fields(doctype, without_ignore_user_permissions_enabled))
 
-	filters=[['fieldtype','=','Table'], ['options', '=', doctype]]
+	filters=[['fieldtype', 'in', frappe.model.table_fields], ['options', '=', doctype]]
 	if without_ignore_user_permissions_enabled: filters.append(['ignore_user_permissions', '!=', 1])
 	# find links of parents
 	links = frappe.get_all("DocField", fields=["parent as dt"], filters=filters)
@@ -159,7 +160,7 @@ def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 	for doctype_name in links_dict:
 		ret[doctype_name] = { "fieldname": links_dict.get(doctype_name) }
 	table_doctypes = frappe.get_all("DocType", filters=[["istable", "=", "1"], ["name", "in", tuple(links_dict)]])
-	child_filters = [['fieldtype','=', 'Table'], ['options', 'in', tuple(doctype.name for doctype in table_doctypes)]]
+	child_filters = [['fieldtype','in', frappe.model.table_fields], ['options', 'in', tuple(doctype.name for doctype in table_doctypes)]]
 	if without_ignore_user_permissions_enabled: child_filters.append(['ignore_user_permissions', '!=', 1])
 
 	# find out if linked in a child table

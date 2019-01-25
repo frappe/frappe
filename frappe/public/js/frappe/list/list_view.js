@@ -72,6 +72,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		this.actions_menu_items = this.get_actions_menu_items();
 
+		if (this.view_user_settings.filters && this.view_user_settings.filters.length) {
+			// Priority 1: saved filters
+			const saved_filters = this.view_user_settings.filters;
+			this.filters = this.validate_filters(saved_filters);
+		} else {
+			// Priority 2: filters in listview_settings
+			this.filters = (this.settings.filters || []).map(f => {
+				if (f.length === 3) {
+					f = [this.doctype, f[0], f[1], f[2]];
+				}
+				return f;
+			});
+		}
+
 		this.patch_refresh_and_load_lib();
 	}
 
@@ -258,7 +272,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_no_result_message() {
 		const new_button = this.can_create ?
 			`<p><button class="btn btn-primary btn-sm btn-new-doc">
-				${__('Make a new {0}', [__(this.doctype)])}
+				${__('Create a new {0}', [__(this.doctype)])}
 			</button></p>` : '';
 
 		return `<div class="msg-box no-border">
@@ -597,7 +611,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			args: {
 				doctype: this.doctype,
 				filters: this.get_filters_for_args(),
-				fields: [`count(${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`]
+				fields: [`count(distinct ${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`],
 			}
 		}).then(r => {
 			this.total_count = r.message.values[0][0] || current_count;
@@ -703,7 +717,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_list_click() {
-		this.$result.on('click', '.list-row', (e) => {
+		this.$result.on('click', '.list-row, .image-view-header', (e) => {
 			const $target = $(e.target);
 			// tick checkbox if Ctrl/Meta key is pressed
 			if (e.ctrlKey || e.metaKey && !$target.is('a')) {
@@ -1143,7 +1157,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			let doctype = null;
 			let value = frappe.route_options[field];
 
-			if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
+			let value_array;
+			if ($.isArray(value) && value[0].startsWith('[') && value[0].endsWith(']')) {
+				value_array = [];
+				for(var i=0; i<value.length; i++) {
+					value_array.push(JSON.parse(value[i]));
+				}
+			} else if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
 				value = JSON.parse(value);
 			}
 
@@ -1163,7 +1183,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			if (doctype) {
-				if ($.isArray(value)) {
+				if (value_array) {
+					for(var j=0; j<value_array.length; j++){
+						if ($.isArray(value_array[j])) {
+							filters.push([doctype, field, value_array[j][0], value_array[j][1]]);
+						} else {
+							filters.push([doctype, field, "=", value_array[j]]);
+						}
+					}
+				} else if ($.isArray(value)) {
 					filters.push([doctype, field, value[0], value[1]]);
 				} else {
 					filters.push([doctype, field, "=", value]);

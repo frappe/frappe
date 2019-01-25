@@ -23,12 +23,12 @@ DocType: Address Template,"<h4>Default Template</h4>
  {% if email_ID%} Email: {{email_ID}} &amp; lt; br &amp; gt ; {% endif -%} 
  <!-- code--> <!-- pre--></code></pre></h4>"
 apps/frappe/frappe/email/receive.py +196,Can not find UIDVALIDITY in imap status response,No se puede encontrar UIDVALIDITY en la respuesta de estado IMAP
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +511,changed values for {0},Valores modificados para {0}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +573,changed values for {0},Valores modificados para {0}
 DocType: Activity Log,Link DocType,Enlace DocType
 apps/frappe/frappe/desk/doctype/kanban_board/kanban_board.py +24,Column Name cannot be empty,El Nombre de la Columna no puede estar vacía
 ,Feedback Ratings,Ratings de Feedback
-apps/frappe/frappe/email/queue.py +252,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,No se puede enviar este correo electrónico. Usted ha cruzado el límite de envío de {0} mensajes de correo electrónico para este mes.
-apps/frappe/frappe/model/db_query.py +584,Cannot use sub-query in order by,No se puede utilizar una sub-consulta en order by
+apps/frappe/frappe/email/queue.py +259,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,No se puede enviar este correo electrónico. Usted ha cruzado el límite de envío de {0} mensajes de correo electrónico para este mes.
+apps/frappe/frappe/model/db_query.py +616,Cannot use sub-query in order by,No se puede utilizar una sub-consulta en order by
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +229,Permissions can be managed via Setup &gt; Role Permissions Manager,Los permisos se pueden gestionar a través de Configuración &gt; Administrador de permisos
 DocType: LDAP Settings,LDAP First Name Field,Campo de Primer Nombre LDAP
 DocType: Feedback Request,Feedback Rating,Rating de Feedback

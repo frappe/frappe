@@ -12,9 +12,8 @@ from frappe.model.naming import set_new_name
 from six import iteritems, string_types
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
-from frappe.model import optional_fields
+from frappe.model import optional_fields, table_fields
 from frappe.model.workflow import validate_workflow
-from frappe.utils.file_manager import save_url
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
 
@@ -322,7 +321,15 @@ class Document(BaseDocument):
 		for attach_item in get_attachments(self.doctype, self.amended_from):
 
 			#save attachments to new doc
-			save_url(attach_item.file_url, attach_item.file_name, self.doctype, self.name, "Home/Attachments", attach_item.is_private)
+			_file = frappe.get_doc({
+				"doctype": "File",
+				"file_url": attach_item.file_url,
+				"file_name": attach_item.file_name,
+				"attached_to_name": self.name,
+				"attached_to_doctype": self.doctype,
+				"folder": "Home/Attachments"})
+			_file.save()
+
 
 	def update_children(self):
 		'''update child tables'''
@@ -407,10 +414,10 @@ class Document(BaseDocument):
 
 	def update_single(self, d):
 		"""Updates values for Single type Document in `tabSingles`."""
-		frappe.db.sql("""delete from tabSingles where doctype=%s""", self.doctype)
+		frappe.db.sql("""delete from `tabSingles` where doctype=%s""", self.doctype)
 		for field, value in iteritems(d):
 			if field != "doctype":
-				frappe.db.sql("""insert into tabSingles(doctype, field, value)
+				frappe.db.sql("""insert into `tabSingles` (doctype, field, value)
 					values (%s, %s, %s)""", (self.doctype, field, value))
 
 		if self.doctype in frappe.db.value_cache:
@@ -467,6 +474,7 @@ class Document(BaseDocument):
 
 	def validate_workflow(self):
 		'''Validate if the workflow transition is valid'''
+		if frappe.flags.in_install == 'frappe': return
 		if self.meta.get_workflow():
 			validate_workflow(self)
 
@@ -481,7 +489,7 @@ class Document(BaseDocument):
 				value = self.get(field.fieldname)
 				original_value = self._doc_before_save.get(field.fieldname)
 
-				if field.fieldtype=='Table':
+				if field.fieldtype in table_fields:
 					fail = not self.is_child_table_same(field.fieldname)
 				elif field.fieldtype in ('Date', 'Datetime', 'Time'):
 					fail = str(value) != str(original_value)
@@ -748,7 +756,7 @@ class Document(BaseDocument):
 	def get_all_children(self, parenttype=None):
 		"""Returns all children documents from **Table** type field in a list."""
 		ret = []
-		for df in self.meta.get("fields", {"fieldtype": "Table"}):
+		for df in self.meta.get("fields", {"fieldtype": ['in', table_fields]}):
 			if parenttype:
 				if df.options==parenttype:
 					return self.get(df.fieldname)
@@ -873,9 +881,11 @@ class Document(BaseDocument):
 			return
 
 		if self._action=="save":
+			self.run_method("before_validate")
 			self.run_method("validate")
 			self.run_method("before_save")
 		elif self._action=="submit":
+			self.run_method("before_validate")
 			self.run_method("validate")
 			self.run_method("before_submit")
 		elif self._action=="cancel":
@@ -1158,7 +1168,7 @@ class Document(BaseDocument):
 
 		if hasattr(self.meta, 'track_views') and self.meta.track_views:
 			frappe.get_doc({
-				"doctype": "View log",
+				"doctype": "View Log",
 				"viewed_by": frappe.session.user,
 				"reference_doctype": self.doctype,
 				"reference_name": self.name,

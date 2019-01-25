@@ -6,10 +6,6 @@ from __future__ import unicode_literals
 # BEWARE don't put anything in this file except exceptions
 from werkzeug.exceptions import NotFound
 
-# imports - third-party imports
-from pymysql import ProgrammingError as SQLError, Error
-# from pymysql import OperationalError as DatabaseOperationalError
-
 class ValidationError(Exception):
 	http_status_code = 417
 
@@ -46,7 +42,7 @@ class Redirect(Exception):
 class CSRFTokenError(Exception):
 	http_status_code = 400
 
-class ImproperDBConfigurationError(Error):
+class ImproperDBConfigurationError(Exception):
 	"""
 	Used when frappe detects that database or tables are not properly
 	configured
@@ -84,3 +80,4 @@ class RetryBackgroundJobError(Exception): pass
 class DocumentLockedError(ValidationError): pass
 class CircularLinkingError(ValidationError): pass
 class SecurityException(Exception): pass
+class InvalidColumnName(ValidationError): pass

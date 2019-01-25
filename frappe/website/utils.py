@@ -41,7 +41,7 @@ def get_comment_list(doctype, name):
 			and reference_doctype=%s
 			and reference_name=%s
 			and (comment_type is null or comment_type in ('Comment', 'Communication'))
-			and modified >= DATE_SUB(NOW(),INTERVAL 1 YEAR)
+			and modified >= (NOW() - INTERVAL '1' YEAR)
 		order by creation""", (doctype, name), as_dict=1) or []
 
 def get_home_page():
@@ -185,6 +185,8 @@ def abs_url(path):
 	if not path:
 		return
 	if path.startswith('http://') or path.startswith('https://'):
+		return path
+	if path.startswith('data:'):
 		return path
 	if not path.startswith("/"):
 		path = "/" + path

@@ -80,7 +80,7 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 def get_meta_bundle(doctype):
 	bundle = [frappe.desk.form.meta.get_meta(doctype)]
 	for df in bundle[0].fields:
-		if df.fieldtype=="Table":
+		if df.fieldtype in frappe.model.table_fields:
 			bundle.append(frappe.desk.form.meta.get_meta(df.options, not frappe.conf.developer_mode))
 	return bundle
 
@@ -138,24 +138,22 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	group_by=None, as_dict=True):
 	'''Returns list of communications for a given document'''
 	if not fields:
-		fields = '''name, communication_type,
-			communication_medium, comment_type, communication_date,
-			content, sender, sender_full_name, creation, subject, delivery_status, _liked_by,
-			timeline_doctype, timeline_name,
-			reference_doctype, reference_name,
-			link_doctype, link_name, read_by_recipient,
-			rating, "Communication" as doctype'''
+		fields = '''`name`, `communication_type`,`communication_medium`, `comment_type`,
+			`communication_date`, `content`, `sender`, `sender_full_name`,
+			`creation`, `subject`, `delivery_status`, `_liked_by`,
+			`timeline_doctype`, `timeline_name`, `reference_doctype`, `reference_name`,
+			`link_doctype`, `link_name`, `read_by_recipient`, `rating` '''
 
-	conditions = '''communication_type in ("Communication", "Comment", "Feedback")
+	conditions = '''communication_type in ('Communication', 'Comment', 'Feedback')
 			and (
 				(reference_doctype=%(doctype)s and reference_name=%(name)s)
 				or (
 				(timeline_doctype=%(doctype)s and timeline_name=%(name)s)
 				and (
-				communication_type="Communication"
+				communication_type='Communication'
 				or (
-					communication_type="Comment"
-					and comment_type in ("Created", "Updated", "Submitted", "Cancelled", "Deleted")
+					communication_type='Comment'
+					and comment_type in ('Created', 'Updated', 'Submitted', 'Cancelled', 'Deleted')
 				)))
 			)'''
 
@@ -165,12 +163,12 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 		conditions+= ' and creation > {0}'.format(after)
 
 	if doctype=='User':
-		conditions+= ' and not (reference_doctype="User" and communication_type="Communication")'
+		conditions+= " and not (reference_doctype='User' and communication_type='Communication')"
 
 	communications = frappe.db.sql("""select {fields}
-		from tabCommunication
+		from `tabCommunication`
 		where {conditions} {group_by}
-		order by creation desc limit %(start)s, %(limit)s""".format(
+		order by creation desc LIMIT %(limit)s OFFSET %(start)s""".format(
 			fields = fields, conditions=conditions, group_by=group_by or ""),
 			{ "doctype": doctype, "name": name, "start": frappe.utils.cint(start), "limit": limit },
 			as_dict=as_dict)
@@ -178,8 +176,8 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	return communications
 
 def get_assignments(dt, dn):
-	cl = frappe.db.sql("""select name, owner, description from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
+	cl = frappe.db.sql("""select `name`, owner, description from `tabToDo`
+		where reference_type=%(doctype)s and reference_name=%(name)s and status='Open'
 		order by modified desc limit 5""", {
 			"doctype": dt,
 			"name": dn
@@ -221,7 +219,7 @@ def get_view_logs(doctype, docname):
 	""" get and return the latest view logs if available """
 	logs = []
 	if hasattr(frappe.get_meta(doctype), 'track_views') and frappe.get_meta(doctype).track_views:
-		view_logs = frappe.get_all("View log", filters={
+		view_logs = frappe.get_all("View Log", filters={
 			"reference_doctype": doctype,
 			"reference_name": docname,
 		}, fields=["name", "creation"], order_by="creation desc")

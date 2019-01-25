@@ -15,6 +15,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 
 	setup_view() {
 		this.setup_columns();
+		this.setup_check_events();
 	}
 
 	set_fields() {

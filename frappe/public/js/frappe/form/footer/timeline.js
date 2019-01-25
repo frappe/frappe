@@ -491,7 +491,7 @@ frappe.ui.form.Timeline = class Timeline {
 			me = this,
 			out = [];
 		for(let c of docinfo.views){
-			c.content = `<a href="#Form/View log/${c.name}"> ${__("viewed")}</a>`;
+			c.content = `<a href="#Form/View Log/${c.name}"> ${__("viewed")}</a>`;
 			c.comment_type = "Info";
 			out.push(c);
 		};
@@ -739,7 +739,8 @@ frappe.ui.form.Timeline = class Timeline {
 	get_names_for_mentions() {
 		var valid_users = Object.keys(frappe.boot.user_info)
 			.filter(user => !["Administrator", "Guest"].includes(user));
-
+		valid_users = valid_users
+			.filter(user => frappe.boot.user_info[user].allowed_in_mentions==1);
 		return valid_users.map(user => frappe.boot.user_info[user].name);
 	}
 

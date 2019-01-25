@@ -257,6 +257,7 @@ frappe.Application = Class.extend({
 		var me = this;
 		if(frappe.session_alive && frappe.boot && frappe.boot.home_page !== 'setup-wizard') {
 			return frappe.call({
+				type: 'GET',
 				method: "frappe.desk.notifications.get_notifications",
 				callback: function(r) {
 					if(r.message) {
@@ -617,7 +618,7 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 			//out = frappe.model.can_read(m._doctype);
 			out = frappe.boot.user.can_read.includes(m._doctype);
 		} else {
-			if(m.module_name==='Learn') {
+			if(['Help', 'Settings'].includes(m.module_name)) {
 				// no permissions necessary for learn
 				out = true;
 			} else if(m.module_name==='Setup' && frappe.user.has_role('System Manager')) {

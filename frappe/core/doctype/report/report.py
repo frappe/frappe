@@ -118,15 +118,19 @@ class Report(Document):
 							if fieldtype and '/' in fieldtype:
 								fieldtype, options = fieldtype.split('/')
 
-					columns.append(frappe._dict(label=parts[0], fieldtype=fieldtype, fieldname=parts[0]))
+					columns.append(frappe._dict(label=parts[0], fieldtype=fieldtype, fieldname=parts[0], options=options))
 
 			out += data.get('result')
 		else:
 			# standard report
 			params = json.loads(self.json)
 
-			if params.get('columns'):
+			if params.get('fields'):
+				columns = params.get('fields')
+			elif params.get('columns'):
 				columns = params.get('columns')
+			elif params.get('fields'):
+				columns = params.get('fields')
 			else:
 				columns = [['name', self.ref_doctype]]
 				for df in frappe.get_meta(self.ref_doctype).fields:
@@ -163,6 +167,7 @@ class Report(Document):
 				user=user)
 
 			_columns = []
+
 			for column in columns:
 				meta = frappe.get_meta(column[1])
 				field = [meta.get_field(column[0]) or frappe._dict(label=meta.get_label(column[0]), fieldname=column[0])]

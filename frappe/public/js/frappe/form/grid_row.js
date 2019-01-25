@@ -111,11 +111,12 @@ export default class GridRow {
 			}
 		}
 	}
-	insert(show, below) {
+	insert(show, below, duplicate) {
 		var idx = this.doc.idx;
+		var copy_doc = duplicate ? this.doc : null;
 		if(below) idx ++;
 		this.toggle_view(false);
-		this.grid.add_new_row(idx, null, show);
+		this.grid.add_new_row(idx, null, show, copy_doc);
 	}
 	refresh() {
 		if(this.frm && this.doc) {

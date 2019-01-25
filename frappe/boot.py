@@ -128,19 +128,19 @@ def get_user_pages_or_reports(parent):
 
 	standard_roles = frappe.db.sql("""
 		select distinct
-			tab{parent}.name,
-			tab{parent}.modified,
+			`tab{parent}`.name as name,
+			`tab{parent}`.modified,
 			{column}
 		from `tabHas Role`, `tab{parent}`
 		where
 			`tabHas Role`.role in ({roles})
 			and `tabHas Role`.parent = `tab{parent}`.name
-			and tab{parent}.name not in (
+			and `tab{parent}`.`name` not in (
 				select `tabCustom Role`.{field} from `tabCustom Role`
 				where `tabCustom Role`.{field} is not null)
 			{condition}
 		""".format(parent=parent, column=column, roles = ', '.join(['%s']*len(roles)),
-			field=parent.lower(), condition="and tabReport.disabled=0" if parent == "Report" else ""),
+			field=parent.lower(), condition="and `tabReport`.disabled=0" if parent == "Report" else ""),
 			roles, as_dict=True)
 
 	for p in standard_roles:
@@ -157,7 +157,7 @@ def get_user_pages_or_reports(parent):
 			from `tab{parent}`
 			where
 				(select count(*) from `tabHas Role`
-				where `tabHas Role`.parent=tab{parent}.name) = 0
+				where `tabHas Role`.parent=`tab{parent}`.`name`) = 0
 		""".format(parent=parent, column=column), as_dict=1)
 
 		for p in pages_with_no_roles:
@@ -173,7 +173,7 @@ def get_user_pages_or_reports(parent):
 def get_column(doctype):
 	column = "`tabPage`.title as title"
 	if doctype == "Report":
-		column = "`tabReport`.name as name, `tabReport`.name as title, `tabReport`.ref_doctype, `tabReport`.report_type"
+		column = "`tabReport`.`name` as title, `tabReport`.ref_doctype, `tabReport`.report_type"
 
 	return column
 
@@ -193,9 +193,9 @@ def load_translations(bootinfo):
 
 def get_fullnames():
 	"""map of user fullnames"""
-	ret = frappe.db.sql("""select name, full_name as fullname,
-			user_image as image, gender, email, username
-		from tabUser where enabled=1 and user_type!="Website User" """, as_dict=1)
+	ret = frappe.db.sql("""select `name`, full_name as fullname,
+		user_image as image, gender, email, username, bio, location, interest, banner_image, allowed_in_mentions
+		from tabUser where enabled=1 and user_type!='Website User'""", as_dict=1)
 
 	d = {}
 	for r in ret:
@@ -245,10 +245,10 @@ def load_print_css(bootinfo, print_settings):
 	bootinfo.print_css = frappe.www.printview.get_print_style(print_settings.print_style or "Modern", for_legacy=True)
 
 def get_unseen_notes():
-	return frappe.db.sql('''select name, title, content, notify_on_every_login from tabNote where notify_on_login=1
+	return frappe.db.sql('''select `name`, title, content, notify_on_every_login from `tabNote` where notify_on_login=1
 		and expire_notification_on > %s and %s not in
 			(select user from `tabNote Seen By` nsb
-				where nsb.parent=tabNote.name)''', (frappe.utils.now(), frappe.session.user), as_dict=True)
+				where nsb.parent=`tabNote`.name)''', (frappe.utils.now(), frappe.session.user), as_dict=True)
 
 def get_gsuite_status():
 	return (frappe.get_value('Gsuite Settings', None, 'enable') == '1')
