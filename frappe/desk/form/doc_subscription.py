@@ -83,60 +83,13 @@ def get_version(doctype, doc_name):
 				change = frappe._dict(json.loads(d1.data))
 				time = frappe.utils.format_datetime(d1.modified, "hh:mm a")
 				if change.comment:
-					timeline.append({
-							"time": d1.modified,
-							"data": {"time": time,
-									"activity": change.comment
-								},
-							"doctype": doctype,
-							"doc_name": doc_name,
-							"type": "activity"
-						})
+					get_activity(change.comment, timeline, time, doctype, doc_name, d1)
 				if change.changed:
-					for d in change.changed:
-						d[1] = d[1] if d[1] else ' '
-						d[2] = d[2] if d[2] else ' '
-						d[0] = d[0] if d[0] else ' '
-						timeline.append({
-							"time": d1.modified,
-							"data": {"time": time,
-									"field": d[0],
-									"from": frappe.utils.html2text(d[1]),
-									"to": frappe.utils.html2text(d[2])
-								},
-							"doctype": doctype,
-							"doc_name": doc_name,
-							"type": "field changed"
-						})
+					get_field_changed(change.changed, timeline, time, doctype, doc_name, d1)
 				if change.row_changed:
-					for d in change.row_changed:
-						d[2] = d[2] if d[2] else ' '
-						d[0] = d[0] if d[0] else ' '
-						d[3][0][1] = d[3][0][1] if d[3][0][1] else ' '
-						timeline.append({
-							"time": d1.modified,
-							"data": {"time": time,
-									"table_field": d[0],
-									"row": str(d[1]),
-									"field": d[3][0][0],
-									"from": frappe.utils.html2text(d[3][0][1]),
-									"to": frappe.utils.html2text(d[3][0][2])
-								},
-							"doctype": doctype,
-							"doc_name": doc_name,
-							"type": "row changed"
-						})
+					get_row_changed(change.row_changed, timeline, time, doctype, doc_name, d1)
 				if change.added:
-					for d in change.added:
-						timeline.append({
-							"time": d1.modified,
-							"data": {"to": d[0],
-									"time": time
-								},
-							"doctype": doctype,
-							"doc_name": doc_name,
-							"type": "row added"
-						})
+					get_added_row(change.added, timeline, time, doctype, doc_name, d1)
 	return timeline
 
 def get_comments(doctype, doc_name):
@@ -178,3 +131,62 @@ def check(doctype, doc_name, user):
 @frappe.whitelist()
 def get_follow_users(doctype, doc_name, limit=4):
 	return frappe.get_all("Document Follow", filters={'ref_doctype': doctype,'ref_docname':doc_name}, fields=["user"], limit=limit)
+
+def get_row_changed(row_changed, timeline, time, doctype, doc_name, d1):
+	for d in row_changed:
+		d[2] = d[2] if d[2] else ' '
+		d[0] = d[0] if d[0] else ' '
+		d[3][0][1] = d[3][0][1] if d[3][0][1] else ' '
+		timeline.append({
+			"time": d1.modified,
+			"data": {"time": time,
+					"table_field": d[0],
+					"row": str(d[1]),
+					"field": d[3][0][0],
+					"from": frappe.utils.html2text(d[3][0][1]),
+					"to": frappe.utils.html2text(d[3][0][2])
+				},
+			"doctype": doctype,
+			"doc_name": doc_name,
+			"type": "row changed"
+		})
+
+def get_added_row(added, timeline, time, doctype, doc_name, d1):
+	for d in added:
+		timeline.append({
+			"time": d1.modified,
+			"data": {"to": d[0],
+					"time": time
+				},
+			"doctype": doctype,
+			"doc_name": doc_name,
+			"type": "row added"
+		})
+
+def get_field_changed(changed, timeline, time, doctype, doc_name, d1):
+	for d in changed:
+		d[1] = d[1] if d[1] else ' '
+		d[2] = d[2] if d[2] else ' '
+		d[0] = d[0] if d[0] else ' '
+		timeline.append({
+			"time": d1.modified,
+			"data": {"time": time,
+					"field": d[0],
+					"from": frappe.utils.html2text(d[1]),
+					"to": frappe.utils.html2text(d[2])
+				},
+			"doctype": doctype,
+			"doc_name": doc_name,
+			"type": "field changed"
+		})
+
+def get_activity(comment, timeline, time, doctype, doc_name, d1):
+	timeline.append({
+		"time": d1.modified,
+		"data": {"time": time,
+				"activity": comment
+			},
+		"doctype": doctype,
+		"doc_name": doc_name,
+		"type": "activity"
+	})

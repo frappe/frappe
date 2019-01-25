@@ -34,14 +34,7 @@ frappe.ui.form.Follow = Class.extend({
 						},
 						callback: function(r) {
 							if (r) {
-								frappe.show_alert({
-									message: __('You are now following this document. You will receive daily updates via email. You can change this in User Settings.'),
-									indicator: 'orange'
-								});
-								me.anchor.removeClass("text-muted");
-								me.follow_span.html(__("Unfollow"));
-								me.followed_by_label.removeClass("hide");
-								me.followed_by();
+								me.follow_action(me)
 							}
 						}
 					});
@@ -55,11 +48,7 @@ frappe.ui.form.Follow = Class.extend({
 						},
 						callback: function(r) {
 							if(r){
-								frappe.show_alert({message:__("You Unfollowed this document"), indicator:'red'});
-								me.anchor.removeClass("text-muted");
-								me.follow_span.html(__("Follow"));
-								me.followed.empty();
-								me.followed_by_label.addClass("hide");
+								me.unfollow_action(me)
 							}
 						}
 					});
@@ -104,5 +93,22 @@ frappe.ui.form.Follow = Class.extend({
 			});
 		});
 	},
+	follow_action: function(me){
+		frappe.show_alert({
+			message: __('You are now following this document. You will receive daily updates via email. You can change this in User Settings.'),
+			indicator: 'orange'
+		});
+		me.anchor.removeClass("text-muted");
+		me.follow_span.html(__("Unfollow"));
+		me.followed_by_label.removeClass("hide");
+		me.followed_by();
+	},
+	unfollow_action: function(me){
+		frappe.show_alert({message:__("You Unfollowed this document"), indicator:'red'});
+		me.anchor.removeClass("text-muted");
+		me.follow_span.html(__("Follow"));
+		me.followed.empty();
+		me.followed_by_label.addClass("hide");
+	}
 });
 
