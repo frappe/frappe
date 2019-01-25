@@ -115,12 +115,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			}
 		});
 
-		// $("#input-help + span").on("click", function () {
-		// 	var keywords = $("#input-help").val();
-		// 	show_help_results(keywords);
-		// 	$(this).val("");
-		// });
-
 		$(document).on("page-change", function () {
 			var $help_links = $(".dropdown-help #help-links");
 			$help_links.html("");
@@ -160,11 +154,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		$result_modal.addClass("help-modal");
 
 		$(document).on("click", ".help-modal a", show_results);
-
-		// var me = this;
-		// function show_help_results(keywords) {
-		// 	me.search.init_search(keywords, "help");
-		// }
 
 		function show_results(e) {
 			//edit links
