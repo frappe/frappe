@@ -515,6 +515,5 @@ commands = [
 	watch,
 	_bulk_rename,
 	add_to_email_queue,
-	rebuild_global_search,
-	auto_deploy
+	rebuild_global_search
 ]
