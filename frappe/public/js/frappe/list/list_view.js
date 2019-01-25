@@ -619,11 +619,13 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 					doctype: me.doctype
 				});
 			}, true);
-			this.page.add_menu_item(__('Customize'), function () {
-				frappe.set_route('Form', 'Customize Form', {
-					doc_type: me.doctype
-				})
-			}, true);
+			if(this.meta && !this.meta.custom) {
+				this.page.add_menu_item(__('Customize'), function () {
+					frappe.set_route('Form', 'Customize Form', {
+						doc_type: me.doctype
+					})
+				}, true);
+			}
 		}
 
 		this.make_bulk_assignment();

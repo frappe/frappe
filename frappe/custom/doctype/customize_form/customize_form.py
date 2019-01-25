@@ -11,7 +11,7 @@ import frappe.translate
 from frappe import _
 from frappe.utils import cint
 from frappe.model.document import Document
-from frappe.model import no_value_fields
+from frappe.model import no_value_fields, core_doctypes_list
 from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
 doctype_properties = {
@@ -81,6 +81,12 @@ class CustomizeForm(Document):
 			return
 
 		meta = frappe.get_meta(self.doc_type)
+
+		if self.doc_type in core_doctypes_list:
+			return frappe.msgprint(_("Core DocTypes cannot be customized."))
+
+		if meta.custom:
+			return frappe.msgprint(_("Only standard DocTypes are allowed to be customized from Customize Form."))
 
 		# doctype properties
 		for property in doctype_properties:
