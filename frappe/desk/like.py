@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import frappe, json
 from frappe.database.schema import add_column
 from frappe import _
-from frappe.doc_subscription import add_subcription
+from frappe.desk.form.doc_subscription import add_subcription
 from frappe.utils import get_link_to_form
 
 @frappe.whitelist()

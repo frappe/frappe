@@ -6,7 +6,7 @@ import frappe, json
 import frappe.desk.form.meta
 import frappe.desk.form.load
 from frappe.utils.html_utils import clean_email_html
-from frappe.doc_subscription import add_subcription
+from frappe.desk.form.doc_subscription import add_subcription
 
 from frappe import _
 from six import string_types

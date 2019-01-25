@@ -16,7 +16,7 @@ from frappe.model import optional_fields, table_fields
 from frappe.model.workflow import validate_workflow
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
-from frappe.doc_subscription import add_subcription
+from frappe.desk.form.doc_subscription import add_subcription
 
 # once_only validation
 # methods

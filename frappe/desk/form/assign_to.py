@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 
 import frappe
 from frappe import _
-from frappe.doc_subscription import add_subcription
+from frappe.desk.form.doc_subscription import add_subcription
 from frappe.desk.form.load import get_docinfo
 import frappe.share
 

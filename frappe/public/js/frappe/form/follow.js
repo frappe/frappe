@@ -26,7 +26,7 @@ frappe.ui.form.Follow = Class.extend({
 				me.anchor.addClass("text-muted");
 				if(me.follow_span.text() == "Follow"){
 					frappe.call({
-						method: 'frappe.doc_subscription.add_subcription',
+						method: 'frappe.desk.form.doc_subscription.add_subcription',
 						args: {
 							'doctype': cur_frm.doctype,
 							'doc_name': cur_frm.doc.name,
@@ -39,7 +39,7 @@ frappe.ui.form.Follow = Class.extend({
 									indicator: 'orange'
 								});
 								me.anchor.removeClass("text-muted");
-								me.follow_span.html("Unfollow");
+								me.follow_span.html(__("Unfollow"));
 								me.followed_by_label.removeClass("hide");
 								me.followed_by();
 							}
@@ -47,7 +47,7 @@ frappe.ui.form.Follow = Class.extend({
 					});
 				} else {
 					frappe.call({
-						method: 'frappe.doc_subscription.Unfollow',
+						method: 'frappe.desk.form.doc_subscription.unfollow',
 						args: {
 							'doctype': cur_frm.doctype,
 							'doc_name': cur_frm.doc.name,
@@ -57,7 +57,7 @@ frappe.ui.form.Follow = Class.extend({
 							if(r){
 								frappe.show_alert({message:__("You Unfollowed this document"), indicator:'red'});
 								me.anchor.removeClass("text-muted");
-								me.follow_span.html("Follow");
+								me.follow_span.html(__("Follow"));
 								me.followed.empty();
 								me.followed_by_label.addClass("hide");
 							}
@@ -91,14 +91,14 @@ frappe.ui.form.Follow = Class.extend({
 		var html ='';
 		return new Promise(resolve => {
 			frappe.call({
-				method: 'frappe.doc_subscription.get_follow_users',
+				method: 'frappe.desk.form.doc_subscription.get_follow_users',
 				args: {
 					'doctype': cur_frm.doctype,
 					'doc_name': cur_frm.doc.name,
 				},
 			}).then(r => {
 				for (var d in r.message){
-					html += frappe.avatar(r.message[d].user,"avatar-small");
+					html += frappe.avatar(r.message[d].user, "avatar-small");
 				}
 				resolve(html);
 			});

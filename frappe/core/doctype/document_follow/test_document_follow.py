@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest
-import frappe.doc_subscription as doc_subscription
+import frappe.desk.form.doc_subscription as doc_subscription
 
 class TestDocumentFollow(unittest.TestCase):
 
