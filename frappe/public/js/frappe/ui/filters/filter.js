@@ -125,7 +125,9 @@ frappe.ui.Filter = class {
 
 	set_values(doctype, fieldname, condition, value) {
 		// presents given (could be via tags!)
-		this.set_field(doctype, fieldname);
+		if (this.set_field(doctype, fieldname) === false) {
+			return
+		}
 
 		if(this.field.df.original_type==='Check') {
 			value = (value==1) ? 'Yes' : 'No';
@@ -154,9 +156,9 @@ frappe.ui.Filter = class {
 
 		let original_docfield = (this.fieldselect.fields_by_name[doctype] || {})[fieldname];
 		if(!original_docfield) {
-			frappe.msgprint(__("Field {0} is not selectable.", [fieldname]));
+			console.warn(`Field ${fieldname} is not selectable.`);
 			this.remove();
-			return;
+			return false;
 		}
 
 		let df = copy_dict(original_docfield);
