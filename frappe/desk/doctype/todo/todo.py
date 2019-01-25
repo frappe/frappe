@@ -16,7 +16,6 @@ class ToDo(Document):
 	def validate(self):
 		self._assignment = None
 		if self.is_new():
-
 			if self.assigned_by == self.owner:
 				assignment_message = frappe._("{0} self assigned this task: {1}").format(get_fullname(self.assigned_by), self.description)
 			else:
@@ -40,6 +39,38 @@ class ToDo(Document):
 			self.add_assign_comment(**self._assignment)
 
 		self.update_in_reference()
+
+	def make_recurred_todo(self):
+		next_date = frappe.utils.data.today()
+
+		days_delta = 0
+		months_delta = 0
+
+		if self.recur_type in ["Workdays", "Daily"]:
+			days_delta = 1
+		elif self.recur_type == "Weekly":
+			days_delta = 7
+		elif self.recur_type == "Monthly":
+			months_delta = 1
+
+		while next_date < self.date:
+			next_date = frappe.utils.data.add_to_date(next_date, days=days_delta, months=months_delta)
+
+			if self.recur_type == "Workdays":
+				weekday = frappe.utils.data.getdate(next_date).weekday()
+
+				if weekday in [5, 6]:
+					continue
+
+			frappe.get_doc({
+				'doctype': 'ToDo',
+				'description': self.description,
+				'date': next_date
+			}).insert()
+
+	def before_save(self):
+		if self.flags.in_insert and self.is_recurring:
+			self.make_recurred_todo()
 
 	def on_trash(self):
 		# unlink todo from linked comments
