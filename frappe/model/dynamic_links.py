@@ -1,10 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
+from __future__ import unicode_literals
 import frappe
 
-# select doctypes that are accessed by the user (not read_only) first, so that the 
-# the validation message shows the user-facing doctype first. 
+# select doctypes that are accessed by the user (not read_only) first, so that the
+# the validation message shows the user-facing doctype first.
 # For example Journal Entry should be validated before GL Entry (which is an internal doctype)
 
 dynamic_link_queries =  [

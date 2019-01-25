@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import frappe
 import json, os
 from frappe.modules import scrub, get_module_path, utils

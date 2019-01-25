@@ -1,3 +1,4 @@
+from __future__ import print_function, unicode_literals
 from __future__ import print_function
 from frappe.utils.selenium_testdriver import TestDriver
 import unittest, os, frappe, time
