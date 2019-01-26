@@ -33,8 +33,8 @@ frappe.get_modal = function(title, content) {
 					<div class="modal-body py-4">
 						${content}
 					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-primary"></button>
+					<div class="modal-footer hidden">
+						<button type="button" class="btn btn-primary hidden"></button>
 					</div>
 				</div>
 			</div>
@@ -42,6 +42,14 @@ frappe.get_modal = function(title, content) {
 	);
 };
 
-frappe.ui.Dialog.prototype.get_primary_btn = function() {
-	return this.$wrapper.find(".modal-footer .btn-primary");
+frappe.ui.Dialog = class Dialog extends frappe.ui.Dialog {
+	get_primary_btn() {
+		return this.$wrapper.find(".modal-footer .btn-primary")
+	}
+
+	set_primary_action(label, click) {
+		this.$wrapper.find('.modal-footer').removeClass('hidden');
+		return super.set_primary_action(label, click)
+			.removeClass('hidden');
+	}
 }
