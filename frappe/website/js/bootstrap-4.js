@@ -52,4 +52,11 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.Dialog {
 		return super.set_primary_action(label, click)
 			.removeClass('hidden');
 	}
+
+	make() {
+		super.make();
+		if (this.fields) {
+			this.$wrapper.find('.section-body').addClass('w-100');
+		}
+	}
 }
