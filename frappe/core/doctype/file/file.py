@@ -813,12 +813,9 @@ def download_file(file_url):
 	"""
 	file_doc = frappe.get_doc("File", {"file_url": file_url})
 	file_doc.check_permission("read")
-	path = os.path.join(get_files_path(), os.path.basename(file_url))
 
-	with open(path, "rb") as fileobj:
-		filedata = fileobj.read()
 	frappe.local.response.filename = os.path.basename(file_url)
-	frappe.local.response.filecontent = filedata
+	frappe.local.response.filecontent = file_doc.get_content()
 	frappe.local.response.type = "download"
 
 def extract_images_from_doc(doc, fieldname):

@@ -751,13 +751,17 @@ def get_link_to_report(name, label=None, report_type=None, doctype=None, filters
 	if filters:
 		conditions = []
 		for k,v in iteritems(filters):
-			conditions.append(str(k)+"="+str(v))
+			if isinstance(v, list):
+				for value in v:
+					conditions.append(str(k)+'='+'["'+str(value[0]+'"'+','+'"'+str(value[1])+'"]'))
+			else:
+				conditions.append(str(k)+"="+str(v))
 
 		filters = "&".join(conditions)
 
-		return """<a href="{0}">{1}</a>""".format(get_url_to_report_with_filters(name, filters, report_type, doctype), label)
+		return """<a href='{0}'>{1}</a>""".format(get_url_to_report_with_filters(name, filters, report_type, doctype), label)
 	else:
-		return """<a href="{0}">{1}</a>""".format(get_url_to_report(name, report_type, doctype), label)
+		return """<a href='{0}'>{1}</a>""".format(get_url_to_report(name, report_type, doctype), label)
 
 def get_url_to_form(doctype, name):
 	return get_url(uri = "desk#Form/{0}/{1}".format(quoted(doctype), quoted(name)))
@@ -773,7 +777,7 @@ def get_url_to_report(name, report_type = None, doctype = None):
 
 def get_url_to_report_with_filters(name, filters, report_type = None, doctype = None):
 	if report_type == "Report Builder":
-		return get_url(uri = "desk#Report/{0}/{1}?{2}".format(quoted(doctype), quoted(name), filters))
+		return get_url(uri = "desk#Report/{0}?{1}".format(quoted(doctype), filters))
 	else:
 		return get_url(uri = "desk#query-report/{0}?{1}".format(quoted(name), filters))
 
@@ -855,7 +859,7 @@ def get_filter(doctype, f):
 		f.operator = "="
 
 	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in",
-		"between", "descendants of", "ancestors of", "not descendants of", "not ancestors of")
+		"between", "descendants of", "ancestors of", "not descendants of", "not ancestors of", "previous", "next")
 	if f.operator.lower() not in valid_operators:
 		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
 

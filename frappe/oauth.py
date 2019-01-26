@@ -5,7 +5,7 @@ import pytz
 from frappe import _
 from frappe.auth import LoginManager
 from oauthlib.oauth2.rfc6749.tokens import BearerToken
-from oauthlib.oauth2.rfc6749.grant_types import AuthorizationCodeGrant, ImplicitGrant, ResourceOwnerPasswordCredentialsGrant, ClientCredentialsGrant,  RefreshTokenGrant, OpenIDConnectAuthCode
+from oauthlib.oauth2.rfc6749.grant_types import AuthorizationCodeGrant, ImplicitGrant, ResourceOwnerPasswordCredentialsGrant, ClientCredentialsGrant,  RefreshTokenGrant
 from oauthlib.oauth2 import RequestValidator
 from oauthlib.oauth2.rfc6749.endpoints.authorization import AuthorizationEndpoint
 from oauthlib.oauth2.rfc6749.endpoints.token import TokenEndpoint
@@ -40,19 +40,12 @@ class WebApplicationServer(AuthorizationEndpoint, TokenEndpoint, ResourceEndpoin
 		implicit_grant = ImplicitGrant(request_validator)
 		auth_grant = AuthorizationCodeGrant(request_validator)
 		refresh_grant = RefreshTokenGrant(request_validator)
-		openid_connect_auth = OpenIDConnectAuthCode(request_validator)
 		resource_owner_password_credentials_grant = ResourceOwnerPasswordCredentialsGrant(request_validator)
 		bearer = BearerToken(request_validator, token_generator,
 							 token_expires_in, refresh_token_generator)
 		AuthorizationEndpoint.__init__(self, default_response_type='code',
 									   response_types={
 											'code': auth_grant,
-											'code+token': openid_connect_auth,
-											'code+id_token': openid_connect_auth,
-											'code+token+id_token': openid_connect_auth,
-											'code token': openid_connect_auth,
-											'code id_token': openid_connect_auth,
-											'code token id_token': openid_connect_auth,
 											'token': implicit_grant
 										},
 									   default_token_type=bearer)
