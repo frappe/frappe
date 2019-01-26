@@ -56,7 +56,7 @@ def render_template(template, context, is_path=None, safe_render=True):
 	:param template: path or HTML containing the jinja template
 	:param context: dict of properties to pass to the template
 	:param is_path: (optional) assert that the `template` parameter is a path
-	:param safe_render: (optional) prevent server side scripting via jinja templating 
+	:param safe_render: (optional) prevent server side scripting via jinja templating
 	'''
 
 	from frappe import throw
@@ -160,6 +160,7 @@ def get_allowed_functions_for_jenv():
 		out['frappe']['date_format'] = date_format
 		out['frappe']["db"] = {
 			"get_value": frappe.db.get_value,
+			"get_single_value": frappe.db.get_single_value,
 			"get_default": frappe.db.get_default,
 			"escape": frappe.db.escape,
 		}
