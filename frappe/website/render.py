@@ -221,7 +221,9 @@ def resolve_path(path):
 def resolve_from_map(path):
 	m = Map([Rule(r["from_route"], endpoint=r["to_route"], defaults=r.get("defaults"))
 		for r in get_website_rules()])
-	urls = m.bind_to_environ(frappe.local.request.environ)
+
+	if frappe.local.request:
+		urls = m.bind_to_environ(frappe.local.request.environ)
 	try:
 		endpoint, args = urls.match("/" + path)
 		path = endpoint
