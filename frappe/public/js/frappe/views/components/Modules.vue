@@ -1,6 +1,6 @@
 <template>
     <div class="modules-page-container">
-        <div v-if="route_str === 'home'" >
+        <div v-if="!route_str" >
              <div v-for="category in module_categories"
                 :key="category">
 

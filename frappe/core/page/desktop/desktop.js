@@ -1,19 +1,19 @@
 frappe.provide('frappe.desktop');
 
-frappe.pages['desktop'].on_page_load = function(wrapper) {
+// frappe.pages['desktop'].on_page_load = function(wrapper) {
 
-	// load desktop
-	if(!frappe.list_desktop) {
-		frappe.desktop.set_background();
-	}
-	frappe.desktop.refresh(wrapper);
-};
+// 	// load desktop
+// 	if(!frappe.list_desktop) {
+// 		frappe.desktop.set_background();
+// 	}
+// 	frappe.desktop.refresh(wrapper);
+// };
 
-frappe.pages['desktop'].on_page_show = function(wrapper) {
-	if(frappe.list_desktop) {
-		$("body").attr("data-route", "list-desktop");
-	}
-};
+// frappe.pages['desktop'].on_page_show = function(wrapper) {
+// 	if(frappe.list_desktop) {
+// 		$("body").attr("data-route", "list-desktop");
+// 	}
+// };
 
 $.extend(frappe.desktop, {
 	refresh: function(wrapper) {

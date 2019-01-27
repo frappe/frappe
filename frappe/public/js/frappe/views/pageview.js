@@ -1,6 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import Modules from './components/Modules.vue';
+
 frappe.provide('frappe.views.pageview');
 frappe.provide("frappe.standard_pages");
 
@@ -81,14 +83,23 @@ frappe.views.Page = Class.extend({
 			frappe.dom.set_style(this.pagedoc.style || '');
 		}
 
-		this.trigger_page_event('on_page_load');
-
-		// set events
-		$(this.wrapper).on('show', function() {
-			window.cur_frm = null;
-			me.trigger_page_event('on_page_show');
-			me.trigger_page_event('refresh');
-		});
+		if(this.name === "desktop") {
+			frappe.require('/assets/js/frappe-vue.min.js', () => {
+				Vue.prototype.__ = window.__; 
+				new Vue({
+					el: this.wrapper,
+					render: h => h(Modules)
+				});
+			});
+		} else {
+			this.trigger_page_event('on_page_load');
+				// set events
+			$(this.wrapper).on('show', function() {
+				window.cur_frm = null;
+				me.trigger_page_event('on_page_show');
+				me.trigger_page_event('refresh');
+			});
+		}
 	},
 	trigger_page_event: function(eventname) {
 		var me = this;
