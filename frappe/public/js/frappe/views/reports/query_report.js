@@ -966,7 +966,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	show_tip() {
 		const message = __('For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).');
-		this.page.footer.removeClass('hide').addClass('text-muted text-center').html(`<p>${message}</p>`);
+		this.page.wrapper.find(".layout-main-section-wrapper").css("margin-bottom", "5px");
+		this.page.wrapper.find(".page-body").removeClass('container').addClass('container-fluid');
+		this.page.footer.removeClass('hide').addClass('text-muted text-center').html(`${message}`);
 	}
 
 	message_div(message) {
