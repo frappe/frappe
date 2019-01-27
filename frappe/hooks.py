@@ -47,9 +47,7 @@ web_include_js = [
 	"website_script.js"
 ]
 
-web_include_css = [
-	"assets/css/frappe-web-b4.css"
-]
+web_include_css = []
 
 website_route_rules = [
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"},

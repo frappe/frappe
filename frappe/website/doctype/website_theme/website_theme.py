@@ -85,3 +85,16 @@ def get_active_theme():
 			return frappe.get_doc("Website Theme", website_theme)
 		except frappe.DoesNotExistError:
 			pass
+
+@frappe.whitelist()
+def generate_bootstrap_theme(website_theme):
+	doc = frappe.get_doc('Website Theme', website_theme)
+	file_name = frappe.scrub(doc.name) + '.css'
+	content = doc.customize_bootstrap_4
+	content = content.replace('\n', '\\n')
+
+	command = ['node', 'generate_bootstrap_theme.js', file_name, content]
+	frappe.commands.popen(command, cwd=frappe.get_app_path('frappe', '..'), shell=False)
+
+	doc.css_file_url = 'assets/frappe/website_theme/' + file_name
+	doc.save()
