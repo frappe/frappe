@@ -9,6 +9,7 @@ locale
 dist/
 build/
 frappe/docs/current
+frappe/public/website_theme
 .vscode
 node_modules
 .kdev4/
