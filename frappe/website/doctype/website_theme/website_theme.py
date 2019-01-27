@@ -59,11 +59,12 @@ class WebsiteTheme(Document):
 			website_settings.clear_cache()
 
 	def generate_bootstrap_theme(self):
+		from frappe.commands import popen
 		file_name = frappe.scrub(self.name) + '.css'
 		content = self.customize_bootstrap_4
 		content = content.replace('\n', '\\n')
 		command = ['node', 'generate_bootstrap_theme.js', file_name, content]
-		frappe.commands.popen(command, cwd=frappe.get_app_path('frappe', '..'), shell=False)
+		popen(command, cwd=frappe.get_app_path('frappe', '..'), shell=False)
 		self.css_file_url = '/assets/frappe/website_theme/' + file_name
 
 	def use_theme(self):
