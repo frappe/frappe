@@ -32,6 +32,8 @@ frappe.ui.form.on('Website Theme', {
 	generate_theme(frm) {
 		frappe.call('frappe.website.doctype.website_theme.website_theme.generate_bootstrap_theme', {
 			website_theme: frm.doc.name
-		})
+		}).then(r => {
+			frm.refresh();
+		});
 	}
 })
