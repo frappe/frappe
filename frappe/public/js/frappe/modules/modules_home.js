@@ -1,6 +1,6 @@
 import Modules from './Modules.vue';
 
-frappe.provide('frappe.social');
+frappe.provide('frappe.modules');
 
 frappe.modules.Home = class {
 	constructor({ parent }) {
@@ -12,8 +12,7 @@ frappe.modules.Home = class {
 	make_body() {
 		this.$modules_container = this.$parent.find('.layout-main');
 		frappe.require('/assets/js/frappe-vue.min.js', () => {
-			Vue.prototype.__ = window.__;
-			Vue.prototype.frappe = window.frappe;
+			Vue.prototype.__ = window.__; 
 			new Vue({
 				el: this.$modules_container[0],
 				render: h => h(Modules)

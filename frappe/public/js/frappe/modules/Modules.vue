@@ -11,15 +11,18 @@
                 <div class="modules-container">
                     <div v-for="module in modules_by_categories[category]"
                         :key="module.name"
-                        class="border module-box level"
+                        class="border module-box flush-top"
                         @click="update_state(module.module_name, module.label)"
                     >
                         <div class="icon-box">
                             <span><i class="icon text-extra-muted" :class="module.icon"></i></span>
                         </div>
                         <div class="module-box-content">
-                            <h4 class="h4"> {{ module.label }} </h4>
-                            <p class="small"> {{ module.description }} </p>
+                            <h4 class="h4"> 
+                                {{ module.label }} 
+                                <span class="indicator orange"></span>
+                            </h4>
+                            <p class="small text-muted"> {{ module.description }} </p>
                         </div>
                     </div>
                 </div>
@@ -84,8 +87,9 @@ export default {
     padding-bottom: 30px;
 }
 
-.module-category {
-    margin-top: 20px;
+.module-category {    
+    margin-top: 30px;
+    margin-bottom: 15px;
     border-bottom: 1px solid #d0d8dd;
 }
 
@@ -120,8 +124,8 @@ export default {
 }
 
 .icon-box {
-    padding: 0px 30px;
-    width: 62px;
+    padding: 15px;
+    width: 54px;
     display: flex;
     justify-content: center;
 }
