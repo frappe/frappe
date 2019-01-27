@@ -287,10 +287,12 @@ def setup_index(page_info):
 
 def load_properties(page_info):
 	'''Load properties like no_cache, title from raw'''
+
 	if not page_info.title:
 		page_info.title = extract_title(page_info.source, page_info.route)
 
 	custom_base_template = extract_comment_tag(page_info.source, 'base_template')
+
 	if custom_base_template:
 		page_info.source = '''{{% extends "{0}" %}}
 			{{% block page_content %}}{1}{{% endblock %}}'''.format(custom_base_template, page_info.source)
