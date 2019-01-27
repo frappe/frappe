@@ -28,12 +28,5 @@ frappe.ui.form.on('Website Theme', {
 		} else {
 			frm.enable_save();
 		}
-	},
-	generate_theme(frm) {
-		frappe.call('frappe.website.doctype.website_theme.website_theme.generate_bootstrap_theme', {
-			website_theme: frm.doc.name
-		}).then(r => {
-			frm.refresh();
-		});
 	}
 })

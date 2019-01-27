@@ -10,6 +10,7 @@ class WebsiteTheme(Document):
 	def validate(self):
 		self.validate_if_customizable()
 		self.validate_colors()
+		self.validate_custom_bootstrap_theme()
 
 	def on_update(self):
 		if (not self.custom
@@ -39,6 +40,11 @@ class WebsiteTheme(Document):
 			self.top_bar_color==self.top_bar_text_color:
 				frappe.throw(_("Top Bar Color and Text Color are the same. They should be have good contrast to be readable."))
 
+	def validate_custom_bootstrap_theme(self):
+		if self.customize_bootstrap_4:
+			doc_before_save = self.get_doc_before_save()
+			if self.customize_bootstrap_4 != doc_before_save.customize_bootstrap_4:
+				self.generate_bootstrap_theme()
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/website_theme/[name]/[name].json`."""
@@ -51,6 +57,14 @@ class WebsiteTheme(Document):
 		website_settings = frappe.get_doc("Website Settings", "Website Settings")
 		if getattr(website_settings, "website_theme", None) == self.name:
 			website_settings.clear_cache()
+
+	def generate_bootstrap_theme(self):
+		file_name = frappe.scrub(self.name) + '.css'
+		content = self.customize_bootstrap_4
+		content = content.replace('\n', '\\n')
+		command = ['node', 'generate_bootstrap_theme.js', file_name, content]
+		frappe.commands.popen(command, cwd=frappe.get_app_path('frappe', '..'), shell=False)
+		self.css_file_url = 'assets/frappe/website_theme/' + file_name
 
 	def use_theme(self):
 		use_theme(self.name)
@@ -85,16 +99,3 @@ def get_active_theme():
 			return frappe.get_doc("Website Theme", website_theme)
 		except frappe.DoesNotExistError:
 			pass
-
-@frappe.whitelist()
-def generate_bootstrap_theme(website_theme):
-	doc = frappe.get_doc('Website Theme', website_theme)
-	file_name = frappe.scrub(doc.name) + '.css'
-	content = doc.customize_bootstrap_4
-	content = content.replace('\n', '\\n')
-
-	command = ['node', 'generate_bootstrap_theme.js', file_name, content]
-	frappe.commands.popen(command, cwd=frappe.get_app_path('frappe', '..'), shell=False)
-
-	doc.css_file_url = 'assets/frappe/website_theme/' + file_name
-	doc.save()
