@@ -52,13 +52,13 @@ frappe.listview_settings['User Permission'] = {
 								if(applicable.length != 0 ){
 									me.get_multi_select_options(dialog, applicable).then(options =>{
 										dialog.set_df_property("apply_to_all_doctypes", "checked", 0)
-										dialog.set_df_property("aplicable_doctypes", "hidden", 0)
-										dialog.set_df_property("aplicable_doctypes", "options", options)
+										dialog.set_df_property("applicable_doctypes", "hidden", 0)
+										dialog.set_df_property("applicable_doctypes", "options", options)
 									})
 								}else{
 									dialog.set_value("apply_to_all_doctypes","checked",1)
-									dialog.set_df_property("aplicable_doctypes", "options", undefined)
-									dialog.set_df_property("aplicable_doctypes", "hidden", 1)
+									dialog.set_df_property("applicable_doctypes", "options", undefined)
+									dialog.set_df_property("applicable_doctypes", "hidden", 1)
 								}
 							})
 						}
@@ -74,11 +74,11 @@ frappe.listview_settings['User Permission'] = {
 								me.get_applicable_doctype(dialog).then(applicable => {
 									me.get_multi_select_options(dialog, applicable).then(options =>{
 									if(dialog.fields_dict.apply_to_all_doctypes.get_value() == 0){
-										dialog.set_df_property("aplicable_doctypes", "hidden", 0)
-										dialog.set_df_property("aplicable_doctypes", "options", options)
+										dialog.set_df_property("applicable_doctypes", "hidden", 0)
+										dialog.set_df_property("applicable_doctypes", "options", options)
 									}else{
-										dialog.set_df_property("aplicable_doctypes", "hidden", 1)
-										dialog.set_df_property("aplicable_doctypes", "options", undefined)
+										dialog.set_df_property("applicable_doctypes", "hidden", 1)
+										dialog.set_df_property("applicable_doctypes", "options", undefined)
 									}
 								})
 							})
@@ -86,14 +86,15 @@ frappe.listview_settings['User Permission'] = {
 					}
 					},
 					{
-						"label": __("Aplicable Doctypes"),
-						"fieldname": "aplicable_doctypes",
+						"label": __("Applicable Doctypes"),
+						"fieldname": "applicable_doctypes",
 						"fieldtype": "MultiCheck",
 						"columns": 2,
 						"hidden": 1
 					},
 				],
 				primary_action: (data) => {
+					console.log(data)
 					frappe.call({
 						async: false,
 						method: "frappe.core.doctype.user_permission.user_permission.add_user_permissions",

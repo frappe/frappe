@@ -139,7 +139,10 @@ def add_user_permissions(data):
 		data = json.loads(data)
 	data = frappe._dict(data)
 
+	d = check_applicable_doc_perm(data.user, data.doctype, data.docname)
+
 	if data.apply_to_all_doctypes == 1:
+		remove_applicable(d, data.user, data.doctype, data.docname)
 		user_perm = frappe.new_doc("User Permission")
 		user_perm.user = data.user
 		user_perm.allow = data.doctype
@@ -148,12 +151,8 @@ def add_user_permissions(data):
 		user_perm.insert()
 		return 1
 	else:
-		failed = "<b>"
-		d = check_applicable_doc_perm(data.user, data.doctype, data.docname)
-		for applicable in data.aplicable_doctypes :
-			if {'applicable_for': applicable} in d:
-				failed += applicable + ", "
-			else:
+		for applicable in data.applicable_doctypes :
+			if {'applicable_for': applicable} not in d:
 				user_perm = frappe.new_doc("User Permission")
 				user_perm.user = data.user
 				user_perm.allow = data.doctype
@@ -161,7 +160,11 @@ def add_user_permissions(data):
 				user_perm.apply_to_all_doctypes = 0
 				user_perm.applicable_for  = applicable
 				user_perm.insert()
-		frappe.msgprint(_("User Permission for applicable Doctypes: {0} </b> already exists").format(failed))
 		return 1
 
 	return 0
+
+def remove_applicable(d, user, doctype, docname):
+	for data in d:
+		print(data)
+		frappe.db.sql("delete from `tabUser Permission` where user='"+user+"' and applicable_for ='"+data.applicable_for+"' and allow='"+doctype+"' and for_value='"+docname+"';")
