@@ -152,3 +152,133 @@ def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, fil
 			valid_doctypes.append([doctype])
 
 	return sorted(valid_doctypes)
+
+# ADDRESS #
+@frappe.whitelist()
+def check_address_email_phone_fax_already_exist(email_id="", phone="", fax="", name=""):
+	'''Check when save an address if the email, phone number or fax is already registered in another address'''
+	email_id = email_id.strip()
+	phone = phone.strip()
+	fax = fax.strip()
+	name = name.strip()
+
+	email_id_address = check_address_email_already_exist(email_id, name)
+	phone_address = check_address_phone_number_already_exist(phone, name)
+	fax_address = check_address_fax_already_exist(fax, name)
+
+	# for cross checking on contact
+	email_id_contact = check_contact_email_already_exist(email_id, name)
+	phone_contact = check_contact_phone_number_already_exist(phone, name)
+	mobile_no_contact = check_contact_mobile_number_already_exist(fax, name)
+
+	return_addresses = email_id_address + email_id_contact + phone_address + phone_contact + fax_address + mobile_no_contact
+
+	if return_addresses != "":
+		return_addresses = return_addresses[:-1]
+
+	return return_addresses
+
+def check_address_email_already_exist(email_id="", name=""):
+	m_return = ""
+	if email_id != "":
+		addresses = frappe.db.sql("""select name from `tabAddress` where trim(email_id) = %s
+			and name <> %s""", (email_id, name), as_dict=True)
+		for address in addresses:
+			m_return += "Email ID/Email ID" + ":" + address.name + ";Address" + ","
+
+	return m_return
+
+def check_address_phone_number_already_exist(phone="", name=""):
+	m_return = ""
+	if phone != "":
+		addresses_phone = frappe.db.sql("""select name from `tabAddress` where replace(trim(phone), ' ', '') = %s and name <> %s""",
+		                          (phone.replace(" ", ""), name), as_dict=True)
+		for address_phone in addresses_phone:
+			m_return += "Phone/Phone" + ":" + address_phone.name + ";Address" + ","
+
+		addresses_fax = frappe.db.sql("""select name from `tabAddress` where replace(trim(fax), ' ', '') = %s and name <> %s""",
+		                          (phone.replace(" ", ""), name), as_dict=True)
+		for address_fax in addresses_fax:
+			m_return += "Phone/Fax" + ":" + address_fax.name + ";Address" + ","
+
+	return m_return
+
+def check_address_fax_already_exist(fax="", name=""):
+	m_return = ""
+	if fax != "":
+		addresses_fax = frappe.db.sql("""select name from `tabAddress` where replace(trim(fax), ' ', '') = %s and name <> %s""",
+		                          (fax.replace(" ", ""), name), as_dict=True)
+		for address_fax in addresses_fax:
+			m_return += "Fax/Fax" + ":" + address_fax.name + ";Address" + ","
+
+		addresses_phone = frappe.db.sql("""select name from `tabAddress` where replace(trim(phone), ' ', '') = %s and name <> %s""",
+		                          (fax.replace(" ", ""), name), as_dict=True)
+		for address_phone in addresses_phone:
+			m_return += "Fax/Phone" + ":" + address_phone.name + ";Address" + ","
+
+	return m_return
+
+# CONTACT #
+@frappe.whitelist()
+def check_contact_email_phone_mobile_number_already_exist(email_id="", phone="", mobile_no="", name=""):
+	'''Check when save a contact if the email, phone number or mobile number is already registered in another contact'''
+	email_id = email_id.strip()
+	phone = phone.strip()
+	mobile_no = mobile_no.strip()
+	name = name.strip()
+
+	email_id_contact = check_contact_email_already_exist(email_id, name)
+	phone_contact = check_contact_phone_number_already_exist(phone, name)
+	mobile_no_contact = check_contact_mobile_number_already_exist(mobile_no, name)
+
+	# for cross checking on address
+	email_id_address = check_address_email_already_exist(email_id, name)
+	phone_address = check_address_phone_number_already_exist(phone, name)
+	fax_address = check_address_fax_already_exist(mobile_no, name)
+
+	return_contacts = email_id_contact + email_id_address + phone_contact + phone_address + mobile_no_contact + fax_address
+
+	if return_contacts != "":
+		return_contacts = return_contacts[:-1]
+
+	return return_contacts
+
+def check_contact_email_already_exist(email_id="", name=""):
+	m_return = ""
+	if email_id != "":
+		contacts = frappe.db.sql("""select name from `tabContact` where trim(email_id) = %s and
+			name <> %s""", (email_id, name), as_dict=True)
+		for contact in contacts:
+			m_return += "Email ID/Email ID" + ":" + contact.name + ";Contact" + ","
+
+	return m_return
+
+def check_contact_phone_number_already_exist(phone="", name=""):
+	m_return = ""
+	if phone != "":
+		contacts_phone = frappe.db.sql("""select name from `tabContact` where replace(trim(phone), ' ', '') = %s and name <> %s""",
+		                         (phone.replace(" ", ""), name), as_dict=True)
+		for contact_phone in contacts_phone:
+			m_return += "Phone/Phone" + ":" + contact_phone.name + ";Contact" + ","
+
+		contacts_mobile_no = frappe.db.sql("""select name from `tabContact` where replace(trim(mobile_no), ' ', '') = %s and name <> %s""",
+		                         (phone.replace(" ", ""), name), as_dict=True)
+		for contact_mobile_no in contacts_mobile_no:
+			m_return += "Phone/Mobile Number" + ":" + contact_mobile_no.name + ";Contact" + ","
+
+	return m_return
+
+def check_contact_mobile_number_already_exist(mobile_no="", name=""):
+	m_return = ""
+	if mobile_no != "":
+		contacts_mobile_no = frappe.db.sql("""select name from `tabContact` where replace(trim(mobile_no), ' ', '') = %s and name <> %s""",
+		                         (mobile_no.replace(" ", ""), name), as_dict=True)
+		for contact_mobile_no in contacts_mobile_no:
+			m_return += "Mobile Number/Mobile Number" + ":" + contact_mobile_no.name + ";Contact" + ","
+
+		contacts_phone = frappe.db.sql("""select name from `tabContact` where replace(trim(phone), ' ', '') = %s and name <> %s""",
+		                         (mobile_no.replace(" ", ""), name), as_dict=True)
+		for contact_phone in contacts_phone:
+			m_return += "Mobile Number/Phone" + ":" + contact_phone.name + ";Contact" + ","
+
+	return m_return
