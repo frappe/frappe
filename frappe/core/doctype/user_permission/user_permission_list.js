@@ -1,5 +1,7 @@
 frappe.listview_settings['User Permission'] = {
+
 	onload: function(list_view) {
+		var me =this
 		list_view.page.add_menu_item(__("Add User Permissions"), function() {
 			var dialog =new frappe.ui.Dialog({
 				title : __('Add User Permissions'),
@@ -9,7 +11,7 @@ frappe.listview_settings['User Permission'] = {
 						'label': __('For User'),
 						'fieldtype': 'Link',
 						'options': 'User',
-						'reqd': 1
+						'reqd': 1,
 					},
 					{
 						'fieldname': 'doctype',
@@ -18,8 +20,8 @@ frappe.listview_settings['User Permission'] = {
 						'options': 'DocType',
 						'reqd': 1,
 						'onchange': function() {
-							dialog.set_df_property("docname", "get_data", function(){
-								var options = []
+							var options = []
+							if(dialog.fields_dict.doctype.value){
 								frappe.call({
 									method:"frappe.client.get_list",
 									async: false,
@@ -32,56 +34,88 @@ frappe.listview_settings['User Permission'] = {
 										}
 									}
 								});
-								return options
-							})
+							}
+							dialog.set_df_property("docname", "options", options)
+							dialog.set_df_property("docname", "hidden", 0)
+							dialog.set_df_property("docname", "reqd", 1)
+							dialog.set_df_property("apply_to_all_doctypes", "hidden", 0)
+							dialog.set_value("apply_to_all_doctypes","checked",1)
 						}
 					},
 					{
 						'fieldname': 'docname',
 						'label': __('Document Name'),
-						'fieldtype': 'MultiSelect',
-						'reqd': 1,
+						'fieldtype': 'Select',
+						'hidden': 1,
+						'onchange':  function(){
+							me.get_applicable_doctype(dialog).then(applicable => {
+								if(applicable.length != 0 ){
+									me.get_multi_select_options(dialog, applicable).then(options =>{
+										dialog.set_df_property("apply_to_all_doctypes", "checked", 0)
+										dialog.set_df_property("aplicable_doctypes", "hidden", 0)
+										dialog.set_df_property("aplicable_doctypes", "options", options)
+									})
+								}else{
+									dialog.set_value("apply_to_all_doctypes","checked",1)
+									dialog.set_df_property("aplicable_doctypes", "options", undefined)
+									dialog.set_df_property("aplicable_doctypes", "hidden", 1)
+								}
+							})
+						}
 					},
 					{
 						'fieldname': 'apply_to_all_doctypes',
 						'label': __('Apply to all Doctypes'),
 						'fieldtype': 'Check',
-						'default': 1,
+						'checked': 1,
+						'hidden': 1,
 						'onchange': function() {
-							if(dialog.fields_dict.apply_to_all_doctypes.get_value() == 0){
-								frappe.call({
-									method:'frappe.desk.form.linked_with.get_linked_doctypes',
-									async: false,
-									args: {
-										doctype: dialog.fields_dict.doctype.value,
-									},
-									callback: function(r) {
-										var options = []
-										for(var d in r.message){
-											options.push({ "label":d, "value": d })
-										}
+							if(dialog.fields_dict.doctype.value && dialog.fields_dict.docname.value && dialog.fields_dict.user.value){
+								me.get_applicable_doctype(dialog).then(applicable => {
+									me.get_multi_select_options(dialog, applicable).then(options =>{
+									if(dialog.fields_dict.apply_to_all_doctypes.get_value() == 0){
+										dialog.set_df_property("aplicable_doctypes", "hidden", 0)
 										dialog.set_df_property("aplicable_doctypes", "options", options)
+									}else{
+										dialog.set_df_property("aplicable_doctypes", "hidden", 1)
+										dialog.set_df_property("aplicable_doctypes", "options", undefined)
 									}
-								});
-							}else{
-								dialog.set_df_property("aplicable_doctypes", "options", undefined)
-							}
+								})
+							})
 						}
+					}
 					},
 					{
-						"label": "Aplicable Doctypes",
+						"label": __("Aplicable Doctypes"),
 						"fieldname": "aplicable_doctypes",
 						"fieldtype": "MultiCheck",
-						"columns": 2
+						"columns": 2,
+						"hidden": 1
 					},
 				],
 				primary_action: (data) => {
+					frappe.call({
+						async: false,
+						method: "frappe.core.doctype.user_permission.user_permission.add_user_permissions",
+						args: {
+							data : data
+						},
+						callback: function(r){
+							if (r.message == 1){
+								console.log("helloo")
+								frappe.show_alert({message:__("User Permissions Created Sucessfully"), indicator:'blue'});
+							}else{
+								frappe.show_alert({message:__("User Permissions Not Created"), indicator:'red'});
+
+							}
+						}
+					})
 					dialog.hide()
+					list_view.refresh();
 				},
 				primary_action_label: __('Submit')
 			});
 			dialog.show();
-			dialog
 		});
 
 		list_view.page.add_menu_item(__("Clear User Permissions"), () => {
@@ -132,5 +166,45 @@ frappe.listview_settings['User Permission'] = {
 
 			dialog.show();
 		});
+	},
+
+	get_applicable_doctype: function(dialog){
+		return new Promise(resolve => {
+			frappe.call({
+				method: 'frappe.core.doctype.user_permission.user_permission.check_applicable_doc_perm',
+				async: false,
+				args:{
+					user: dialog.fields_dict.user.value,
+					doctype: dialog.fields_dict.doctype.value,
+					docname: dialog.fields_dict.docname.value
+				}}).then(r => {
+					var applicable = []
+					for (var doc in r.message){
+						applicable.push(r.message[doc].applicable_for)
+					}
+					resolve(applicable)
+				})
+		})
+	},
+
+	get_multi_select_options: function(dialog, applicable){
+		return new Promise(resolve => {
+			frappe.call({
+				method: 'frappe.desk.form.linked_with.get_linked_doctypes',
+				async: false,
+				args:{
+					user: dialog.fields_dict.user.value,
+					doctype: dialog.fields_dict.doctype.value,
+					docname: dialog.fields_dict.docname.value
+				}}).then(r => {
+					var options = []
+					for(var d in r.message){
+						var checked = ($.inArray(d, applicable) != -1) ? 1 : 0;
+						options.push({ "label":d, "value": d , "checked": checked})
+					}
+					resolve(options)
+				})
+		})
 	}
+
 };

@@ -9,6 +9,7 @@ from frappe.permissions import (get_valid_perms, update_permission_property)
 from frappe import _
 from frappe.core.utils import find
 from frappe.desk.form.linked_with import get_linked_doctypes
+from pprint import pprint
 
 class UserPermission(Document):
 	def validate(self):
@@ -113,6 +114,16 @@ def get_permitted_documents(doctype):
 		if d.get('doc')]
 
 @frappe.whitelist()
+def check_applicable_doc_perm(user,doctype,docname):
+	return frappe.get_all('User Permission',
+			fields=['applicable_for'],
+			filters={"user": user,
+				"allow": doctype,
+				"for_value":docname,
+			})
+
+
+@frappe.whitelist()
 def clear_user_permissions(user, for_doctype):
 	frappe.only_for('System Manager')
 
@@ -121,3 +132,36 @@ def clear_user_permissions(user, for_doctype):
 		frappe.db.sql('DELETE FROM `tabUser Permission` WHERE user=%s AND allow=%s', (user, for_doctype))
 		frappe.clear_cache()
 	return total
+
+@frappe.whitelist()
+def add_user_permissions(data):
+	if isinstance(data, frappe.string_types):
+		data = json.loads(data)
+	data = frappe._dict(data)
+
+	if data.apply_to_all_doctypes == 1:
+		user_perm = frappe.new_doc("User Permission")
+		user_perm.user = data.user
+		user_perm.allow = data.doctype
+		user_perm.for_value = data.docname
+		user_perm.apply_to_all_doctypes = 1
+		user_perm.insert()
+		return 1
+	else:
+		failed = "<b>"
+		d = check_applicable_doc_perm(data.user, data.doctype, data.docname)
+		for applicable in data.aplicable_doctypes :
+			if {'applicable_for': applicable} in d:
+				failed += applicable + ", "
+			else:
+				user_perm = frappe.new_doc("User Permission")
+				user_perm.user = data.user
+				user_perm.allow = data.doctype
+				user_perm.for_value = data.docname
+				user_perm.apply_to_all_doctypes = 0
+				user_perm.applicable_for  = applicable
+				user_perm.insert()
+		frappe.msgprint(_("User Permission for applicable Doctypes: {0} </b> already exists").format(failed))
+		return 1
+
+	return 0
