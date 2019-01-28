@@ -88,7 +88,7 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None, sen
 		if email_account:
 			if email_account.enable_outgoing and not getattr(email_account, 'from_site_config', False):
 				raise_exception = True
-				if email_account.smtp_server in ['localhost','127.0.0.1']:
+				if email_account.smtp_server in ['localhost','127.0.0.1'] or email_account.no_smtp_authentication:
 					raise_exception = False
 				email_account.password = email_account.get_password(raise_exception=raise_exception)
 			email_account.default_sender = email.utils.formataddr((email_account.name, email_account.get("email_id")))
@@ -170,11 +170,14 @@ class SMTPServer:
 		self.email_account = get_outgoing_email_account(raise_exception_not_set=False, append_to=append_to, sender=sender)
 		if self.email_account:
 			self.server = self.email_account.smtp_server
-			self.login = getattr(self.email_account, "login_id", None) or self.email_account.email_id
-			if self.email_account.ascii_encode_password:
-				self.password = frappe.safe_encode(self.email_account.password, 'ascii')
+			self.login = (getattr(self.email_account, "login_id", None) or self.email_account.email_id)
+			if not self.email_account.no_smtp_authentication:
+				if self.email_account.ascii_encode_password:
+					self.password = frappe.safe_encode(self.email_account.password, 'ascii')
+				else:
+					self.password = self.email_account.password
 			else:
-				self.password = self.email_account.password
+				self.password = None
 			self.port = self.email_account.smtp_port
 			self.use_tls = self.email_account.use_tls
 			self.sender = self.email_account.email_id
