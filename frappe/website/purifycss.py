@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+from __future__ import print_funciton, unicode_literals
 '''
 Check for unused CSS Classes
 
@@ -8,7 +8,6 @@ sUpdate source and target apps below and run from CLI
 
 '''
 
-from __future__ import print_function
 import frappe, re, os
 
 source = frappe.get_app_path('frappe_theme', 'public', 'less', 'frappe_theme.less')
