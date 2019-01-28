@@ -1,38 +1,6 @@
 <template>
     <div class="modules-page-container">
-        <div v-if="!route_str" >
-             <div v-for="category in module_categories"
-                :key="category">
-
-                <div v-if="modules.filter(m => m.category === category).length" class="module-category h6 uppercase">
-                    {{ category }}
-                </div>
-
-                <div class="modules-container">
-                    <div v-for="module in modules.filter(m => m.category === category )"
-                        :key="module.name"
-                        class="border module-box flush-top"
-                        @click="update_state(module.module_name, module.label, module.type, module.link)"
-                    >
-                        <div class="icon-box">
-                            <span><i class="icon text-extra-muted" :class="module.icon"></i></span>
-                        </div>
-                        <div class="module-box-content">
-                            <h4 class="h4"> 
-                                {{ module.label }} 
-                                <span v-if="module.count" class="open-notification global">{{ module.count }}</span>
-                            </h4>
-                            <p class="small text-muted"> {{ module.description }} </p>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <keep-alive v-else-if="modules.map(m => m.module_name).includes(route_str)">
-            <module-detail :module_name="route_str"></module-detail>
-        </keep-alive>
+        <module-detail v-if="this.route && modules_list.map(m => m.module_name).includes(route[1])" :module_name="route[1]" :sections="current_module_sections"></module-detail>
     </div>
 </template>
 
@@ -45,95 +13,126 @@ export default {
     },
     data() {
         return {
-            route_str: frappe.get_route()[1],
-            module_label: '',
-            module_categories: ["Modules", "Domains", "Places", "Administration"],
-            modules: []
+            route: frappe.get_route(),
+            current_module_label: '',
+            current_module_sections: [], 
+            modules_data_cache: {},
+            modules_list: [],
         };
     },
     created() {
-        this.get_modules();
+        this.get_modules_list();
+        this.update_current_module();
     },
     mounted() {
         frappe.module_links = {};
         frappe.route.on('change', () => {
-            if(frappe.get_route()[0] === 'modules' || !frappe.get_route()[0]) {
-                let module = frappe.get_route()[1];
-                this.update_module(module);
-            }
+            this.update_current_module();
         });
     },
     methods: {
-        update_state(name, label, type, link) {
-            if(type === "module") {
-                this.module_label = label;
-                frappe.set_route(['modules', name]);
-            } else if(type === "link") {
-                frappe.set_route(link);
+        update_current_module() {
+            let route = frappe.get_route();
+            if(route[0] === 'modules' || !route[0]) {
+                this.route = route;
+                let module_name = route[1];
+                let title = this.current_module_label ? this.current_module_label : module_name;
+                title = module_name!=='home' ? title : 'Modules';
+
+                frappe.modules.home && frappe.modules.home.page.set_title(title);
+
+                if(module_name) {
+                    this.get_module_sections(module_name);
+                }
             }
         },
 
-        update_module(module) {
-            this.route_str = module;
-            let title = this.module_label ? this.module_label : module;
-            title = module!=='home' ? title : 'Modules';
-            frappe.modules.home.page.set_title(title);
-        },
+        get_modules_list() {
+            let res = frappe.call({
+                method: 'frappe.desk.doctype.desktop_icon.desktop_icon.get_modules_from_all_apps',
+            });
 
-        get_modules() {
-			let res = frappe.call({
-				method: 'frappe.desk.doctype.desktop_icon.desktop_icon.get_modules_from_all_apps',
-			});
-
-			res.then(r => {
-				if (r.message) {
+            res.then(r => {
+                if (r.message) {
                     let modules_list = r.message;
 
-                    modules_list = modules_list
+                    this.modules_list = modules_list
                         .filter(d => (d.type==='module' || d.category==='Places') && !d.blocked);
-
-                    modules_list.forEach(module => {
-                        module.count = this.get_module_count(module.module_name);
-                    });
-
-                    this.modules = modules_list;
                 }
             });
         },
 
-        get_module_count(module_name) {
-            var module_doctypes = frappe.boot.notification_info.module_doctypes[module_name];
-            var sum = 0;
-
-            if(module_doctypes && frappe.boot.notification_info.open_count_doctype) {
-                // sum all doctypes for a module
-                for (var j=0, k=module_doctypes.length; j < k; j++) {
-                    var doctype = module_doctypes[j];
-                    let count = (frappe.boot.notification_info.open_count_doctype[doctype] || 0);
-                    count = typeof count == "string" ? parseInt(count) : count;
-                    sum += count;
-                }
+        get_module_sections(module_name) {
+            let cache = this.modules_data_cache[module_name];
+            if(cache) {
+                this.current_module_sections = cache;
+            } else {
+                return frappe.call({
+                    method: "frappe.desk.moduleview.get",
+                    args: {
+                        module: module_name,
+                    },
+                    callback: (r) => {
+                        var m = frappe.get_module(module_name);
+                        this.current_module_sections = r.message.data;
+                        this.process_data(module_name, this.current_module_sections);
+                        this.modules_data_cache[module_name] = this.current_module_sections;
+                    },
+                    freeze: true,
+                });
             }
+        },
+        process_data(module_name, data) {
+            frappe.module_links[module_name] = [];
+            data.forEach(function(section) {
+                section.items.forEach(function(item) {
+                    item.style = '';
+                    if(item.type==="doctype") {
+                        item.doctype = item.name;
 
-            if(frappe.boot.notification_info.open_count_doctype
-                && frappe.boot.notification_info.open_count_doctype[module_name]!=null) {
-                // notification count explicitly for doctype
-                let count = frappe.boot.notification_info.open_count_doctype[module_name] || 0;
-                count = typeof count == "string" ? parseInt(count) : count;
-                sum += count;
-            }
+                        // map of doctypes that belong to a module
+                        frappe.module_links[module_name].push(item.name);
+                    }
+                    if(!item.route) {
+                        if(item.link) {
+                            item.route=strip(item.link, "#");
+                        }
+                        else if(item.type==="doctype") {
+                            if(frappe.model.is_single(item.doctype)) {
+                                item.route = 'Form/' + item.doctype;
+                            } else {
+                                if (item.filters) {
+                                    frappe.route_options=item.filters;
+                                }
+                                item.route="List/" + item.doctype;
+                                //item.style = 'font-weight: 500;';
+                            }
+                            // item.style = 'font-weight: bold;';
+                        }
+                        else if(item.type==="report" && item.is_query_report) {
+                            item.route="query-report/" + item.name;
+                        }
+                        else if(item.type==="report") {
+                            item.route="List/" + item.doctype + "/Report/" + item.name;
+                        }
+                        else if(item.type==="page") {
+                            item.route=item.name;
+                        }
 
-            if(frappe.boot.notification_info.open_count_module
-                && frappe.boot.notification_info.open_count_module[module_name]!=null) {
-                // notification count explicitly for module
-                let count = frappe.boot.notification_info.open_count_module[module_name] || 0;
-                count = typeof count == "string" ? parseInt(count) : count;
-                sum += count;
-            }
+                        item.route = '#' + item.route;
+                    }
 
-            sum = sum > 99 ? "99+" : sum;
+                    if(item.route_options) {
+                        item.route += "?" + $.map(item.route_options, function(value, key) {
+                            return encodeURIComponent(key) + "=" + encodeURIComponent(value); }).join('&');
+                    }
 
-            return sum;
+                    if(item.type==="page" || item.type==="help" || item.type==="report" ||
+                    (item.doctype && frappe.model.can_read(item.doctype))) {
+                        item.shown = true;
+                    }
+                });
+            });
         }
     }
 }
@@ -161,6 +160,7 @@ export default {
     border-radius: 4px;
     cursor: pointer;
     padding: 5px 0px;
+    display: block;
 }
 
 .module-box:hover {
@@ -193,4 +193,3 @@ export default {
 }
 
 </style>
-

@@ -99,7 +99,7 @@ def get_data():
 			"label": _('Social'),
 			"icon": "octicon octicon-heart",
 			"type": 'link',
-			"link": 'social/home',
+			"link": '#social/home',
 			"color": '#FF4136',
 			'standard': 1,
 			'idx': 15,

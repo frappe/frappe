@@ -381,5 +381,8 @@
 	],
 	"js/social.min.js": [
 		"public/js/frappe/social/social_home.js"
+	],
+	"js/modules.min.js": [
+		"public/js/frappe/views/modules_home.js"
 	]
 }
