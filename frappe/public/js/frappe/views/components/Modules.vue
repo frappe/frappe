@@ -4,15 +4,15 @@
              <div v-for="category in module_categories"
                 :key="category">
 
-                <div v-if="category.length" class="module-category h6 uppercase">
+                <div v-if="modules.filter(m => m.category === category).length" class="module-category h6 uppercase">
                     {{ category }}
                 </div>
 
                 <div class="modules-container">
-                    <div v-for="module in modules_by_categories[category]"
+                    <div v-for="module in modules.filter(m => m.category === category )"
                         :key="module.name"
                         class="border module-box flush-top"
-                        @click="update_state(module.module_name, module.label)"
+                        @click="update_state(module.module_name, module.label, module.type, module.link)"
                     >
                         <div class="icon-box">
                             <span><i class="icon text-extra-muted" :class="module.icon"></i></span>
@@ -20,7 +20,7 @@
                         <div class="module-box-content">
                             <h4 class="h4"> 
                                 {{ module.label }} 
-                                <span class="indicator orange"></span>
+                                <span v-if="module.count" class="open-notification global">{{ module.count }}</span>
                             </h4>
                             <p class="small text-muted"> {{ module.description }} </p>
                         </div>
@@ -47,35 +47,93 @@ export default {
         return {
             route_str: frappe.get_route()[1],
             module_label: '',
-            module_categories: ["", "Domains", "Places", "Administration"],
-            modules_by_categories: {},
-            modules: frappe.get_desktop_icons(true)
-                .filter(d => (d.type==='module' || d.category==='Places') && !d.blocked),
+            module_categories: ["Modules", "Domains", "Places", "Administration"],
+            modules: []
         };
     },
     created() {
-        this.module_categories.map(category => {
-            this.modules_by_categories[category] = this.modules.filter(m => m.category === category );
-        });
-        this.modules_by_categories[""] = this.modules.filter(m => !m.category);
+        this.get_modules();
     },
     mounted() {
         frappe.module_links = {};
         frappe.route.on('change', () => {
-            let module = frappe.get_route()[1];
-            this.update_module(module);
+            if(frappe.get_route()[0] === 'modules' || !frappe.get_route()[0]) {
+                let module = frappe.get_route()[1];
+                this.update_module(module);
+            }
         });
     },
     methods: {
-        update_state(name, label) {
-            this.module_label = label;
-            frappe.set_route(['modules', name]);
+        update_state(name, label, type, link) {
+            if(type === "module") {
+                this.module_label = label;
+                frappe.set_route(['modules', name]);
+            } else if(type === "link") {
+                frappe.set_route(link);
+            }
         },
+
         update_module(module) {
             this.route_str = module;
             let title = this.module_label ? this.module_label : module;
             title = module!=='home' ? title : 'Modules';
             frappe.modules.home.page.set_title(title);
+        },
+
+        get_modules() {
+			let res = frappe.call({
+				method: 'frappe.desk.doctype.desktop_icon.desktop_icon.get_modules_from_all_apps',
+			});
+
+			res.then(r => {
+				if (r.message) {
+                    let modules_list = r.message;
+
+                    modules_list = modules_list
+                        .filter(d => (d.type==='module' || d.category==='Places') && !d.blocked);
+
+                    modules_list.forEach(module => {
+                        module.count = this.get_module_count(module.module_name);
+                    });
+
+                    this.modules = modules_list;
+                }
+            });
+        },
+
+        get_module_count(module_name) {
+            var module_doctypes = frappe.boot.notification_info.module_doctypes[module_name];
+            var sum = 0;
+
+            if(module_doctypes && frappe.boot.notification_info.open_count_doctype) {
+                // sum all doctypes for a module
+                for (var j=0, k=module_doctypes.length; j < k; j++) {
+                    var doctype = module_doctypes[j];
+                    let count = (frappe.boot.notification_info.open_count_doctype[doctype] || 0);
+                    count = typeof count == "string" ? parseInt(count) : count;
+                    sum += count;
+                }
+            }
+
+            if(frappe.boot.notification_info.open_count_doctype
+                && frappe.boot.notification_info.open_count_doctype[module_name]!=null) {
+                // notification count explicitly for doctype
+                let count = frappe.boot.notification_info.open_count_doctype[module_name] || 0;
+                count = typeof count == "string" ? parseInt(count) : count;
+                sum += count;
+            }
+
+            if(frappe.boot.notification_info.open_count_module
+                && frappe.boot.notification_info.open_count_module[module_name]!=null) {
+                // notification count explicitly for module
+                let count = frappe.boot.notification_info.open_count_module[module_name] || 0;
+                count = typeof count == "string" ? parseInt(count) : count;
+                sum += count;
+            }
+
+            sum = sum > 99 ? "99+" : sum;
+
+            return sum;
         }
     }
 }
@@ -83,8 +141,7 @@ export default {
 
 <style lang="less" scoped>
 .modules-page-container {
-    padding: 15px 0px;
-    padding-bottom: 30px;
+    margin: 70px 85px;
 }
 
 .module-category {    
@@ -103,6 +160,7 @@ export default {
 .module-box {
     border-radius: 4px;
     cursor: pointer;
+    padding: 5px 0px;
 }
 
 .module-box:hover {

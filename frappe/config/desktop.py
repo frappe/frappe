@@ -28,52 +28,55 @@ def get_data():
 
 		# Administration
 		{
-			"module_name": 'Contacts',
-			"type": 'module',
-			"icon": "octicon octicon-book",
-			"color": '#ffaedb',
-			"category": "Administration",
-			"hidden": 1,
-			"description": "People Contacts and Address Book."
-		},
-		{
-			"module_name": "Setup",
-			"color": "#bdc3c7",
-			"reverse": 1,
-			"icon": "octicon octicon-settings",
-			"type": "module",
-			"category": "Administration",
-			"hidden": 1,
-			"description": "Configure your ERPNext account."
-		},
-		{
-			"module_name": "Integrations",
-			"color": "#16a085",
-			"icon": "octicon octicon-globe",
-			"type": "module",
-			"category": "Administration",
-			"hidden": 1,
-			"description": "DropBox, Woocomerce, AWS, Shopify and GoCardless."
-		},
-		{
 			"module_name": "Desk",
+			"category": "Administration",
 			"label": _("Tools"),
 			"color": "#FFF5A7",
 			"reverse": 1,
 			"icon": "octicon octicon-calendar",
 			"type": "module",
-			"category": "Administration",
 			"description": "Todos, Notes and other basic tools to help you track your work."
 		},
 		{
+			"module_name": "Settings",
+			"category": "Administration",
+			"label": _("Settings"),
+			"color": "#bdc3c7",
+			"reverse": 1,
+			"icon": "octicon octicon-settings",
+			"type": "module",
+			"hidden": 1,
+			"description": "Configure your ERPNext account."
+		},
+		{
+			"module_name": "Integrations",
+			"category": "Administration",
+			"label": _("Integrations"),
+			"color": "#16a085",
+			"icon": "octicon octicon-globe",
+			"type": "module",
+			"hidden": 1,
+			"description": "DropBox, Woocomerce, AWS, Shopify and GoCardless."
+		},
+		{
+			"module_name": 'Contacts',
+			"category": "Administration",
+			"label": _("Contacts"),
+			"type": 'module',
+			"icon": "octicon octicon-book",
+			"color": '#ffaedb',
+			"hidden": 1,
+			"description": "People Contacts and Address Book."
+		},
+		{
 			"module_name": "Core",
-			"label": "Developer",
+			"category": "Administration",
 			"_label": _("Developer"),
+			"label": "Developer",
 			"color": "#589494",
 			"icon": "octicon octicon-circuit-board",
 			"type": "module",
 			"system_manager": 1,
-			"category": "Administration",
 			"hidden": 1,
 			"description": "The Frappe innards of ERPNext. (Only active when developer mode is enabled)"
 		},
@@ -81,22 +84,24 @@ def get_data():
 		# Places
 		{
 			"module_name": "Website",
+			"category": "Places",
+			"label": _("Website"),
+			"_label": _("Website"),
 			"color": "#16a085",
 			"icon": "octicon octicon-globe",
 			"type": "module",
-			"category": "Places",
 			"hidden": 1,
 			"description": "Webpages and the Portal Side of Things."
 		},
 		{
 			"module_name": 'Social',
+			"category": "Places",
 			"label": _('Social'),
 			"icon": "octicon octicon-heart",
 			"type": 'link',
 			"link": 'social/home',
 			"color": '#FF4136',
 			'standard': 1,
-			"category": "Places",
 			'idx': 15,
 			"description": "Build your profile and share posts on the feed with other users."
 		},

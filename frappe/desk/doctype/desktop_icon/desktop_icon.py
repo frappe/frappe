@@ -487,3 +487,26 @@ def hide(name, user = None):
 		return False
 
 	return True
+
+@frappe.whitelist()
+def get_modules_from_all_apps():
+	modules_list = []
+	for app in frappe.get_installed_apps():
+		modules_list += get_modules_from_app(app)
+	return modules_list
+
+def get_modules_from_app(app):
+	try:
+		modules = frappe.get_attr(app + '.config.desktop.get_data')() or {}
+	except ImportError:
+		return []
+
+	if isinstance(modules, dict):
+		modules_list = []
+		for m, desktop_icon in iteritems(modules):
+			desktop_icon['module_name'] = m
+			modules_list.append(desktop_icon)
+	else:
+		modules_list = modules
+
+	return modules_list

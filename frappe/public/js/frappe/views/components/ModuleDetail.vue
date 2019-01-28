@@ -90,6 +90,8 @@ export default {
                         else if(item.type==="page") {
                             item.route=item.name;
                         }
+
+                        item.route = '#' + item.route;
                     }
 
                     if(item.route_options) {
@@ -103,7 +105,6 @@ export default {
                     }
                 });
             });
-            console.log('2', data);
         }
     }
 }
