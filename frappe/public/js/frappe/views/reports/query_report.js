@@ -410,7 +410,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				treeView: this.tree_report,
 				layout: 'fixed',
 				cellHeight: 33,
-				showTotalRow: this.raw_data.add_total_row
+				showTotalRow: this.raw_data.add_total_row,
+				hooks: {
+					totalAccumulator: frappe.utils.report_total_accumulator
+				}
 			};
 
 			if (this.report_settings.get_datatable_options) {
