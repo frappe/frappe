@@ -41,8 +41,8 @@ class TestCustomizeForm(unittest.TestCase):
 
 	def test_fetch_to_customize(self):
 		d = self.get_customize_form()
-		self.assertEquals(d.doc_type, None)
-		self.assertEquals(len(d.get("fields")), 0)
+		self.assertEqual(d.doc_type, None)
+		self.assertEqual(len(d.get("fields")), 0)
 
 		d = self.get_customize_form("Event")
 		self.assertEquals(d.doc_type, "Event")
@@ -51,7 +51,7 @@ class TestCustomizeForm(unittest.TestCase):
 		d = self.get_customize_form("Event")
 		self.assertEquals(d.doc_type, "Event")
 
-		self.assertEquals(len(d.get("fields")),
+		self.assertEqual(len(d.get("fields")),
 			len(frappe.get_doc("DocType", d.doc_type).fields) + 1)
 		self.assertEquals(d.get("fields")[-1].fieldname, "test_custom_field")
 		self.assertEquals(d.get("fields", {"fieldname": "event_type"})[0].in_list_view, 1)
@@ -130,7 +130,7 @@ class TestCustomizeForm(unittest.TestCase):
 		d.get("fields").remove(custom_field)
 		d.run_method("save_customization")
 
-		self.assertEquals(frappe.db.get_value("Custom Field", custom_field.name), None)
+		self.assertEqual(frappe.db.get_value("Custom Field", custom_field.name), None)
 
 		frappe.local.test_objects["Custom Field"] = []
 		make_test_records_for_doctype("Custom Field")
@@ -157,7 +157,7 @@ class TestCustomizeForm(unittest.TestCase):
 		self.assertEquals(d.get("fields", {"fieldname": "subject"})[0].allow_on_submit or 0, 0)
 
 		# allow for custom field
-		self.assertEquals(d.get("fields", {"fieldname": "test_custom_field"})[0].allow_on_submit, 1)
+		self.assertEqual(d.get("fields", {"fieldname": "test_custom_field"})[0].allow_on_submit, 1)
 
 	def test_title_field_pattern(self):
 		d = self.get_customize_form("Web Form")

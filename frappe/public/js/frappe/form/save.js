@@ -190,7 +190,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 
 		return frappe.call({
 			freeze: true,
-			freeze_message: opts.freeze_message,
+			// freeze_message: opts.freeze_message,
 			method: opts.method,
 			args: opts.args,
 			btn: opts.btn,

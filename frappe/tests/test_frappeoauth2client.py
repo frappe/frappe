@@ -16,8 +16,13 @@ class TestFrappeOAuth2Client(unittest.TestCase):
 		self.client_id = frappe.get_all("OAuth Client", fields=["*"])[0].get("client_id")
 
 		# Set Frappe server URL reqired for id_token generation
-		frappe.db.set_value("Social Login Keys", None, "frappe_server_url", "http://localhost:8000")
-		frappe.db.commit()
+		try:
+			frappe_login_key = frappe.get_doc("Social Login Key", "frappe")
+		except frappe.DoesNotExistError:
+			frappe_login_key = frappe.new_doc("Social Login Key")
+		frappe_login_key.get_social_login_provider("Frappe", initialize=True)
+		frappe_login_key.base_url = "http://localhost:8000"
+		frappe_login_key.save()
 
 	def test_insert_note(self):
 

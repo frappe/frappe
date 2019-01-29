@@ -9,6 +9,21 @@ from frappe.build import html_to_js_template
 import re
 from six import text_type
 
+import io
+
+STANDARD_FIELD_CONVERSION_MAP = {
+	'name': 'Link',
+	'owner': 'Data',
+	'idx': 'Int',
+	'creation': 'Data',
+	'modified': 'Data',
+	'modified_by': 'Data',
+	'_user_tags': 'Data',
+	'_liked_by': 'Data',
+	'_comments': 'Text',
+	'_assign': 'Text',
+	'docstatus': 'Int'
+}
 
 """
 Model utilities, unclassified functions
@@ -51,8 +66,8 @@ def render_include(content):
 
 			for path in paths:
 				app, app_path = path.split('/', 1)
-				with open(frappe.get_app_path(app, app_path), 'r') as f:
-					include = text_type(f.read(), 'utf-8')
+				with io.open(frappe.get_app_path(app, app_path), 'r', encoding = 'utf-8') as f:
+					include = f.read()
 					if path.endswith('.html'):
 						include = html_to_js_template(path, include)
 
@@ -75,7 +90,7 @@ def get_fetch_values(doctype, fieldname, value):
 	link_df = meta.get_field(fieldname)
 	for df in meta.get_fields_to_fetch(fieldname):
 		# example shipping_address.gistin
-		link_field, source_fieldname = df.options.split('.', 1)
+		link_field, source_fieldname = df.fetch_from.split('.', 1)
 		out[df.fieldname] = frappe.db.get_value(link_df.options, value, source_fieldname)
 
 	return out

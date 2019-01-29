@@ -39,11 +39,11 @@ def getdoc(doctype, name, user=None):
 		doc.apply_fieldlevel_read_permissions()
 
 		# add file list
+		doc.add_viewed()
 		get_docinfo(doc)
 
 	except Exception:
 		frappe.errprint(frappe.utils.get_traceback())
-		frappe.msgprint(_('Did not load'))
 		raise
 
 	if doc and not name.startswith('_'):
@@ -99,7 +99,8 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"assignments": get_assignments(doc.doctype, doc.name),
 		"permissions": get_doc_permissions(doc),
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
-		"rating": get_feedback_rating(doc.doctype, doc.name)
+		"rating": get_feedback_rating(doc.doctype, doc.name),
+		"views": get_view_logs(doc.doctype, doc.name)
 	}
 
 def get_attachments(dt, dn):
@@ -142,7 +143,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 			content, sender, sender_full_name, creation, subject, delivery_status, _liked_by,
 			timeline_doctype, timeline_name,
 			reference_doctype, reference_name,
-			link_doctype, link_name,
+			link_doctype, link_name, read_by_recipient,
 			rating, "Communication" as doctype'''
 
 	conditions = '''communication_type in ("Communication", "Comment", "Feedback")
@@ -214,3 +215,17 @@ def get_feedback_rating(doctype, docname):
 		return 0
 	else:
 		return rating[0][0]
+
+
+def get_view_logs(doctype, docname):
+	""" get and return the latest view logs if available """
+	logs = []
+	if hasattr(frappe.get_meta(doctype), 'track_views') and frappe.get_meta(doctype).track_views:
+		view_logs = frappe.get_all("View Log", filters={
+			"reference_doctype": doctype,
+			"reference_name": docname,
+		}, fields=["name", "creation"], order_by="creation desc")
+
+		if  view_logs:
+			logs = view_logs
+	return logs

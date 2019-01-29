@@ -9,7 +9,7 @@ from frappe.model import default_fields
 from six import string_types
 
 @frappe.whitelist()
-def make_mapped_doc(method, source_name, selected_children=None):
+def make_mapped_doc(method, source_name, selected_children=None, args=None):
 	'''Returns the mapped document calling the given mapper method.
 	Sets selected_children as flags for the `get_mapped_doc` method.
 
@@ -21,6 +21,9 @@ def make_mapped_doc(method, source_name, selected_children=None):
 
 	if selected_children:
 		selected_children = json.loads(selected_children)
+
+	if args:
+		frappe.flags.args = frappe._dict(json.loads(args))
 
 	frappe.flags.selected_children = selected_children or None
 
@@ -175,13 +178,13 @@ def map_fetch_fields(target_doc, df, no_copy_fields):
 	linked_doc = None
 
 	# options should be like "link_fieldname.fieldname_in_liked_doc"
-	for fetch_df in target_doc.meta.get("fields", {"options": "^{0}.".format(df.fieldname)}):
+	for fetch_df in target_doc.meta.get("fields", {"fetch_from": "^{0}.".format(df.fieldname)}):
 		if not (fetch_df.fieldtype == "Read Only" or fetch_df.read_only):
 			continue
 
 		if ((not target_doc.get(fetch_df.fieldname) or fetch_df.fieldtype == "Read Only")
 			and fetch_df.fieldname not in no_copy_fields):
-			source_fieldname = fetch_df.options.split(".")[1]
+			source_fieldname = fetch_df.fetch_from.split(".")[1]
 
 			if not linked_doc:
 				try:

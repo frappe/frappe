@@ -14,6 +14,9 @@ from frappe.utils.user import is_website_user
 from frappe.model.naming import make_autoname
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from six import iteritems, string_types
+from past.builtins import cmp
+
+import functools
 
 
 class Address(Document):
@@ -43,7 +46,7 @@ class Address(Document):
 		if not self.links and not self.is_your_company_address:
 			contact_name = frappe.db.get_value("Contact", {"email_id": self.owner})
 			if contact_name:
-				contact = frappe.get_doc('Contact', contact_name)
+				contact = frappe.get_cached_doc('Contact', contact_name)
 				for link in contact.links:
 					self.append('links', dict(link_doctype=link.link_doctype, link_name=link.link_name))
 				return True
@@ -78,19 +81,20 @@ class Address(Document):
 @frappe.whitelist()
 def get_default_address(doctype, name, sort_key='is_primary_address'):
 	'''Returns default Address name for the given doctype, name'''
-	out = frappe.db.sql('''select
-			parent,
-			(select `{0}` from tabAddress a where a.name=dl.parent) as `{0}`
-		from
-			`tabDynamic Link` dl
-		where
-			link_doctype=%s and
-			link_name=%s and
-			parenttype = "Address"
-		'''.format(sort_key), (doctype, name))
+	if sort_key not in ['is_shipping_address', 'is_primary_address']:
+		return None
+
+	out = frappe.db.sql(""" SELECT
+			addr.name, addr.%s
+		FROM
+			`tabAddress` addr, `tabDynamic Link` dl
+		WHERE
+			dl.parent = addr.name and dl.link_doctype = %s and
+			dl.link_name = %s and ifnull(addr.disabled, 0) = 0
+		""" %(sort_key, '%s', '%s'), (doctype, name))
 
 	if out:
-		return sorted(out, lambda x,y: cmp(y[1], x[1]))[0][0]
+		return sorted(out, key = functools.cmp_to_key(lambda x,y: cmp(y[1], x[1])))[0][0]
 	else:
 		return None
 
@@ -101,7 +105,7 @@ def get_address_display(address_dict):
 		return
 
 	if not isinstance(address_dict, dict):
-		address_dict = frappe.db.get_value("Address", address_dict, "*", as_dict=True) or {}
+		address_dict = frappe.db.get_value("Address", address_dict, "*", as_dict=True, cache=True) or {}
 
 	name, template = get_address_templates(address_dict)
 
@@ -117,13 +121,14 @@ def get_territory_from_address(address):
 		return
 
 	if isinstance(address, string_types):
-		address = frappe.get_doc("Address", address)
+		address = frappe.get_cached_doc("Address", address)
 
 	territory = None
 	for fieldname in ("city", "state", "country"):
-		territory = frappe.db.get_value("Territory", address.get(fieldname))
-		if territory:
-			break
+		if address.get(fieldname):
+			territory = frappe.db.get_value("Territory", address.get(fieldname))
+			if territory:
+				break
 
 	return territory
 
@@ -239,6 +244,7 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 			`tabDynamic Link`.parenttype = 'Address' and
 			`tabDynamic Link`.link_doctype = %(link_doctype)s and
 			`tabDynamic Link`.link_name = %(link_name)s and
+			ifnull(`tabAddress`.disabled, 0) = 0 and
 			`tabAddress`.`{key}` like %(txt)s
 			{mcond} {condition}
 		order by

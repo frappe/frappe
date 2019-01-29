@@ -5,7 +5,7 @@
 frappe.provide('frappe.pages');
 frappe.provide('frappe.views');
 
-var cur_page = null;
+window.cur_page = null;
 frappe.views.Container = Class.extend({
 	_intro: "Container contains pages inside `#container` and manages \
 			page creation, switching",
@@ -59,7 +59,7 @@ frappe.views.Container = Class.extend({
 		}
 
 		// hide dialog
-		if(cur_dialog && cur_dialog.display && !cur_dialog.keep_open) {
+		if(window.cur_dialog && cur_dialog.display && !cur_dialog.keep_open) {
 			cur_dialog.hide();
 		}
 

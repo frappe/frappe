@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import frappe
 from frappe.utils.global_search import get_doctypes_with_global_search, rebuild_for_doctype
 from frappe.utils import update_progress_bar

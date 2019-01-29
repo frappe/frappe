@@ -6,6 +6,7 @@ import frappe
 from frappe import msgprint, _
 import json
 import csv
+import six
 from six import StringIO, text_type, string_types
 from frappe.utils import encode, cstr, cint, flt, comma_or
 
@@ -49,18 +50,23 @@ def read_csv_content(fcontent, ignore_encoding=False):
 				continue
 
 		if not decoded:
-			frappe.msgprint(_("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."),
-				raise_exception=True)
+			frappe.msgprint(_("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."), raise_exception=True)
 
-	fcontent = fcontent.encode("utf-8").splitlines(True)
+	fcontent = fcontent.encode("utf-8")
+	content  = [ ]
+	for line in fcontent.splitlines(True):
+		if six.PY2:
+			content.append(line)
+		else:
+			content.append(frappe.safe_decode(line))
 
 	try:
 		rows = []
-		for row in csv.reader(fcontent):
+		for row in csv.reader(content):
 			r = []
 			for val in row:
 				# decode everything
-				val = text_type(val, "utf-8").strip()
+				val = val.strip()
 
 				if val=="":
 					# reason: in maraidb strict config, one cannot have blank strings for non string datatypes
@@ -102,7 +108,8 @@ class UnicodeWriter:
 		self.writer = csv.writer(self.queue, quoting=csv.QUOTE_NONNUMERIC)
 
 	def writerow(self, row):
-		row = encode(row, self.encoding)
+		if six.PY2:
+			row = encode(row, self.encoding)
 		self.writer.writerow(row)
 
 	def getvalue(self):

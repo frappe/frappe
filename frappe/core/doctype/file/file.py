@@ -19,7 +19,7 @@ import mimetypes, imghdr
 from frappe.utils.file_manager import delete_file_data_content, get_content_hash, get_random_filename
 from frappe import _
 from frappe.utils.nestedset import NestedSet
-from frappe.utils import strip, get_files_path, flt
+from frappe.utils import strip, get_files_path
 from PIL import Image, ImageOps
 from six import StringIO, string_types
 from six.moves.urllib.parse import unquote
@@ -111,7 +111,7 @@ class File(NestedSet):
 	def set_folder_size(self):
 		"""Set folder size if folder"""
 		if self.is_folder and not self.is_new():
-			self.file_size = self.get_folder_size()
+			self.file_size = frappe.utils.cint(self.get_folder_size())
 			self.db_set('file_size', self.file_size)
 
 			for folder in self.get_ancestors():
@@ -121,8 +121,9 @@ class File(NestedSet):
 		"""Returns folder size for current folder"""
 		if not folder:
 			folder = self.name
-		file_size =  flt(frappe.db.sql("""select sum(ifnull(file_size,0))
-			from tabFile where folder=%s """, (folder))[0][0])
+
+		file_size =  frappe.db.sql("""select ifnull(sum(file_size), 0)
+			from tabFile where folder=%s """, (folder))[0][0]
 
 		return file_size
 
@@ -173,7 +174,7 @@ class File(NestedSet):
 
 		if self.file_url.startswith("/files/"):
 			try:
-				with open(get_files_path(self.file_name.lstrip("/")), "r") as f:
+				with open(get_files_path(self.file_name.lstrip("/")), "rb") as f:
 					self.content_hash = get_content_hash(f.read())
 			except IOError:
 				frappe.msgprint(_("File {0} does not exist").format(self.file_url))
@@ -455,3 +456,6 @@ def get_attached_images(doctype, names):
 		out[i.docname].append(i.file_url)
 
 	return out
+
+def on_doctype_update():
+	frappe.db.add_index("File", ["lft", "rgt"])

@@ -1,4 +1,4 @@
-## Frappé framework includes these public works
+## Frappe framework includes these public works
 
 ### Javascript / CSS
 

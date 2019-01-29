@@ -6,6 +6,7 @@
 <h1>{{ _(title) }}</h1>
 {% endblock %}
 
+
 {% block breadcrumbs %}
 {% if has_header and login_required %}
 {% include "templates/includes/breadcrumbs.html" %}
@@ -29,10 +30,13 @@
 	<div style="padding-bottom: 15px;">
 	    <a href="/{{ pathname }}{{ delimeter }}new=1{{ params_from_form_dict}}" class="btn btn-primary btn-new btn-sm">
 	    {{ _("New") }}
-	    </a>
+		</a>
+		<button class="btn btn-danger btn-delete btn-sm">
+			{{ _("Delete") }}
+		</button>
 	</div>
 	{% endif %}
-	{%- if allow_print and not is_list and not _login_required -%}
+	{%- if allow_print and not is_list and not _login_required and doc.name -%}
 	<div class='text-right'>
 		<a class='text-muted small' href='/printview?doctype={{ doc.doctype}}&name={{ doc.name }}
 			{%- if print_format -%}&format={{ print_format }}{%- endif -%}' target="_blank" rel="noopener noreferrer">
@@ -48,6 +52,7 @@
 	{% endif %}
 </div>
 <div class="form-message hide"></div>
+
 {% if _login_required %}
 <div class="login-required">
 	<div class="text-muted">
@@ -60,179 +65,22 @@
 	</p>
 </div>
 {% elif is_list %}
-	{% include "templates/includes/list/list.html" %}
-	<script>{% include "templates/includes/list/list.js" %}</script>
+	<div class="list-filters row">
+		<script>{% include "templates/includes/list/filters.js" %}</script>
+	</div>
+	{% if show_in_grid %}
+		<div class="web-form-list">
+			<div class="results"></div>
+			<div class="more-block {% if not show_more -%} hide {%- endif %}">
+				<button class="btn btn-default btn-more btn-sm">{{ _("More") }}</button>
+			</div>
+		</div>
+	{% else %}
+		{% include "templates/includes/list/list.html" %}
+		<script>{% include "templates/includes/list/list.js" %}</script>
+	{% endif %}
 {% else %}
 <br>
-
-{%- macro properties(field, is_grid = False) %}
-		name="{{ field.fieldname }}" data-fieldname="{{ field.fieldname }}"
-		{% if field.placeholder -%} placeholder="{{ _(field.placeholder) }}" {%- endif %}
-		data-label="{{ _(field.label) }}" data-fieldtype="{{ 'Small Text' if is_grid else field.fieldtype }}"
-		data-doctype="{{ field.parent }}" data-default="{{ field.default or "" }}"
-		{{ field.reqd and "data-reqd=1" or "" }}
-		{{ (read_only or field.read_only) and "disabled" or "" }}
-{% endmacro -%}
-
-{%- macro value(field, _doc) -%}
-	{%- if _doc -%}
-		{%- set _value = _doc.get(field.fieldname) or frappe.form_dict.get(field.fieldname) -%}
-	{%- else -%}
-		{%- set _value = frappe.form_dict.get(field.fieldname) or field.default -%}
-	{%- endif -%}
-	{{ "" if _value==None else _value }}
-{%- endmacro -%}
-
-{%- macro help(field) -%}
-		{% if field.description -%}
-		<span class="help-block small text-muted">{{ _(field.description) }}</span>
-		{%- endif -%}
-{%- endmacro %}
-
-{% macro label(field) %}
-		<label for="{{ field.fieldname }}" class="control-label text-muted small">
-				{{ _(field.label) }}</label>
-{% endmacro %}
-
-{% macro render_field(field, _doc=None, with_label=True, is_grid=False) %}
-	{% if field.hidden %}
-	<input type="hidden" data-doctype="{{ field.parent }}"
-		name="{{ field.fieldname }}" value="{{ value(field, _doc) }}">
-	{% elif field.fieldtype == "HTML" %}
-	<div class="form-group" data-label="{{ field.label }}">
-		{% if field.options %}{{ field.options }}{% endif %}
-	</div>
-	{% elif field.fieldtype in ("Data", "Date", "Datetime", "Int", "Float") %}
-	<div class="form-group{% if field.reqd %} has-error{% endif %}">
-		{% if with_label %}{{ label(field) }}{% endif %}
-		<input type={{ "number" if field.fieldtype in ("Int", "Float") else "text" }}
-			class="form-control" {{ properties(field) }}
-			value="{{ value(field, _doc) }}"
-			{%- if field.fieldtype=="Int" %} pattern="[0-9]*"{% endif %}
-			{%- if field.max_length %} maxlength={{ field.max_length }}{% endif %}>
-		{{ help(field) }}
-	</div>
-	{% elif field.fieldtype=="Link" %}
-	<div class="form-group{% if field.reqd %} has-error{% endif %}">
-		{% if with_label %}{{ label(field) }}{% endif %}
-		<select class="form-control" {{ properties(field) }}>
-			{% for option in ([{"name":""}] + frappe.get_all(field.options)) -%}
-			<option value="{{ option.name }}"
-				{{ 'selected="selected"' if value(field, _doc)==option.name else '' }}>
-				{{ option.name }}</option>
-			{%- endfor %}
-		</select>
-		{{ help(field) }}
-	</div>
-	{% elif field.fieldtype=="Select" %}
-	<div class="form-group{% if field.reqd %} has-error{% endif %}">
-		{% if with_label %}{{ label(field) }}{% endif %}
-		<select class="form-control" {{ properties(field) }}>
-			{% for option in field.options.split("\n") -%}
-			<option value="{{ option }}"
-				{{ 'selected="selected"' if value(field, _doc)==option else '' }}>
-				{{ _(option) }}</option>
-			{%- endfor %}
-		</select>
-		{{ help(field) }}
-	</div>
-	{% elif field.fieldtype in ("Text", "Small Text") or (is_grid and field.fieldtype == 'Text Editor') %}
-	<div class="form-group{% if field.reqd %} has-error{% endif %}">
-		{% if with_label %}{{ label(field) }}{% endif %}
-		{{ help(field) }}
-		<textarea class="form-control" style="height: {% if field.fieldtype=="Small Text" %}150px{% else %}300px;{% endif %}"
-		{{ properties(field, is_grid) }}>{{ value(field, _doc) }}</textarea>
-	</div>
-	{% elif field.fieldtype == "Text Editor" %}
-	<div class="form-group{% if field.reqd %} has-error{% endif %}">
-		{% if with_label %}{{ label(field) }}{% endif %}
-		{{ help(field) }}
-		<div {{ properties(field) }}>{{ value(field, _doc) }}</div>
-	</div>
-	{% elif field.fieldtype=="Attach" %}
-	<div class="form-group">
-		{% if with_label %}{{ label(field) }}{% endif %}
-		{% if value(field, _doc) -%}
-		<p class="small">
-			<a href="{{ doc.get(field.fieldname) }}" target="blank">
-				{{ _doc.get(field.fieldname) }}
-			</a>
-			<br><button class="btn btn-small btn-default btn-xs
-                        	change-attach" style="margin-top: 5px;">{{ _("Change") }}</button>
-		</p>
-		{%- endif %}
-		<p class="{{ value(field, _doc) and 'hide' or '' }} attach-input-wrap">
-			<input type="file" style="margin-top: 7px;"
-				{{ properties(field) }}
-				{%- if value(field, _doc) -%} data-value="{{ value(field, _doc) }}"{%- endif -%}>
-			<p class='text-muted small' style='margin-bottom: 20px;'>
-				{{ _("Max attachment size is {0}MB").format(max_attachment_size) }}
-			</p>
-		</p>
-		{{ help(field) }}
-	</div>
-	{% elif field.fieldtype=="Check" %}
-	<div class="form-group">
-		<div class="checkbox">
-			{% if with_label %}
-			<label class='text-muted'>
-				<input type="checkbox" id="{{ field.fieldname }}"
-					{{ properties(field) }}
-					name="{{ field.fieldname }}" data-doctype="{{ field.parent }}"
-					{{ _doc and _doc.get(field.fieldname) and 'checked' or '' }}>
-					{{ _(field.label) }}
-			</label>
-			{% endif %}
-			{{ help(field) }}
-		</div>
-	</div>
-	{% endif %}
-{% endmacro %}
-
-{% macro render_row(field, d=None, hidden=False) %}
-<tr class="web-form-grid-row {% if hidden %}hidden{% endif %}"
-	{% if d != None %}data-name="{{ d.name or "" }}" data-child-row=1{% endif %}>
-	{% for df in frappe.get_meta(field.options).fields %}
-		{% if df.in_list_view %}
-		<{{ 'th' if d==None else 'td' }} style="width: {{ (df.columns or 2) * 8.3333 }}%;">
-			{% if d!=None %}
-				{% set is_grid = True if df.fieldtype == 'Text Editor' else False %}
-				{{ render_field(df, d, False, is_grid ) }}
-			{% else %}
-				<span class='text-muted small'>{{ _(df.label) }}</span>
-			{% endif %}
-		</{{ 'th' if d.name==None else 'td' }}>
-		{% endif %}
-	{% endfor %}
-	<td style="width: 8.3333%">
-	{% if d!=None %}
-		<button class='btn btn-default btn-sm btn-remove'><i class='fa fa-remove'></i></button>
-	{% endif %}
-	</td>
-</tr>
-{% endmacro %}
-
-{% macro render_table(field) %}
-	{{ label(field) }}
-	<div class='web-form-grid'
-		data-fieldname='{{ field.fieldname }}' data-doctype='{{ field.options }}'>
-		<table class='table table-bordered'>
-			<thead>
-				{{ render_row(field) }}
-			</thead>
-			<tbody>
-				{{ render_row(field, {}, True) }}
-				{% if doc and doc.get(field.fieldname) %}
-					{% for d in doc.get(field.fieldname) %}
-						{{ render_row(field, d) }}
-					{% endfor %}
-				{% endif %}
-			</tbody>
-		</table>
-	</div>
-	<p><button class='btn btn-default btn-sm btn-add-row'
-		data-fieldname='{{ field.fieldname }}'>{{ _("Add Row") }}</button></p>
-{% endmacro %}
 
 <!-- pagination -->
 {% if not frappe.form_dict.new and layout|len > 1 %}
@@ -245,7 +93,7 @@
 </div>
 {% endif %}
 
-<form role="form"
+<div role="form"
 	data-web-form="{{ name }}" data-owner="{{ doc.owner }}">
 	{% if frappe.form_dict.name and web_page_link_text %}
 	<div class="row">
@@ -271,29 +119,10 @@
 			<br>
 		{% endif %}
 
-		{% for section in page.sections %}
-		<div class="section">
-			{% if section.label %}
-			<h5 class='uppercase'>{{ _(section.label) }}</h5>
-			<span class="help-block small text-muted">{{ _(section.description) }}</span>
-			{% endif %}
-			<div class="row">
-					{% for column in section.columns %}
-					<div class="col-sm-{{ (12 / (section.columns|len))|int }}">
-							{% for field in column %}
-								{% if field.fieldtype=='Table' %}
-									{{ render_table(field) }}
-								{% else %}
-									{{ render_field(field, doc) }}
-								{% endif %}
-							{% endfor %}
-					</div>
-					{% endfor %}
-			</div>
-		</div>
-		{% endfor %}
+		<div class="webform-wrapper"></div>
+
 		{% if last_page and accept_payment %}
-		<div class="well payment-details">
+		<div class="well payment-details" style="margin-top: 15px">
 			{% if not doc.paid %}
 				{% if payment_button_help %}
 				<div class='text-muted' style='padding-bottom: 15px;'>
@@ -335,7 +164,7 @@
 	</div>
 	{% endfor %}
 
-</form>
+</div>
 
 {% if allow_comments and not frappe.form_dict.new -%}
 <div class="comments">
@@ -349,6 +178,9 @@
 {% endblock %}
 
 {% block script %}
+<script type="text/javascript" src="/assets/js/dialog.min.js"></script>
+<script type="text/javascript" src="/assets/js/control.min.js"></script>
+<script type="text/javascript" src="/assets/js/moment-bundle.min.js"></script>
 
 <script>
 window.web_form_settings = {
@@ -362,8 +194,18 @@ window.web_form_settings = {
 	doc_name: 			"{{ frappe.form_dict.name or "" }}",
 	login_required: 	{{ 1 if login_required else 0 }},
 	max_attachment_size:{{ max_attachment_size }},
-	moment_date_format: "{{ frappe.date_format.upper() }}"
+	moment_date_format: "{{ frappe.date_format.upper() }}",
+	is_list: {{ frappe.utils.cint(is_list) }}
 }
+frappe.boot = {
+	sysdefaults: {
+		float_precision: {{ frappe.get_system_settings('float_precision') or 3 }},
+		date_format: "{{ frappe.get_system_settings('date_format') or 'yyyy-mm-dd' }}",
+	}
+};
+
+// for backward compatibility of some libs
+frappe.sys_defaults = frappe.boot.sysdefaults;
 {% if row_template %}web_form_settings.web_form_row_template = "{{ row_template }}";{% endif %}
 </script>
 
@@ -371,6 +213,12 @@ window.web_form_settings = {
 <script>
 {% if script is defined %}
 {{ script }}
+{% endif %}
+
+{% if client_script %}
+frappe.init_client_script = () => {
+	{{ client_script }}
+}
 {% endif %}
 </script>
 {% endblock %}

@@ -30,7 +30,7 @@ def user_to_str(date, date_format=None):
 	try:
 		return datetime.datetime.strptime(date,
 			dateformats[date_format]).strftime('%Y-%m-%d')
-	except ValueError as e:
+	except ValueError:
 		raise ValueError("Date %s must be in format %s" % (date, date_format))
 
 def parse_date(date):
@@ -42,7 +42,7 @@ def parse_date(date):
 		date = date.split(" ")[0]
 
 	# why the sorting? checking should be done in a predictable order
-	check_formats = [None] + sorted(dateformats.keys(),
+	check_formats = [None] + sorted(list(dateformats),
 		reverse=not get_user_date_format().startswith("dd"))
 
 	for f in check_formats:
@@ -50,7 +50,7 @@ def parse_date(date):
 			parsed_date = user_to_str(date, f)
 			if parsed_date:
 				break
-		except ValueError as e:
+		except ValueError:
 			pass
 
 	if not parsed_date:

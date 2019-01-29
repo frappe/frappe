@@ -16,8 +16,14 @@ class ToDo(Document):
 	def validate(self):
 		self._assignment = None
 		if self.is_new():
+
+			if self.assigned_by == self.owner:
+				assignment_message = frappe._("{0} self assigned this task: {1}").format(get_fullname(self.assigned_by), self.description)
+			else:
+				assignment_message = frappe._("{0} assigned {1}: {2}").format(get_fullname(self.assigned_by), get_fullname(self.owner), self.description)
+
 			self._assignment = {
-				"text": frappe._("Assigned to {0}: {1}").format(get_fullname(self.owner), self.description),
+				"text": assignment_message,
 				"comment_type": "Assigned"
 			}
 

@@ -1,4 +1,0 @@
-tutorial
-bench
-guides
-videos

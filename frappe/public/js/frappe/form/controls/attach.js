@@ -31,7 +31,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			me.frm.attachments.remove_attachment_by_filename(me.value, function() {
 				me.parse_validate_and_set_in_model(null);
 				me.refresh();
-				me.frm.save();
+				me.frm.doc.docstatus == 1 ? me.frm.save('Update') : me.frm.save();
 			});
 		} else {
 			this.dataurl = null;
@@ -168,20 +168,16 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 	},
 
 	get_value: function() {
-		if(this.frm) {
-			return this.value;
-		} else {
-			if ( this.fileobj ) {
-				if ( this.fileobj.file_url ) {
-					return this.fileobj.file_url;
-				} else if ( this.fileobj.filename ) {
-					var dataURI = this.fileobj.filename + ',' + this.dataurl;
+		if ( this.fileobj ) {
+			if ( this.fileobj.file_url ) {
+				return this.fileobj.file_url;
+			} else if ( this.fileobj.filename ) {
+				var dataURI = this.fileobj.filename + ',' + this.dataurl;
 
-					return dataURI;
-				}
+				return dataURI;
 			}
-
-			return null;
+		} else {
+			return this.value || null;
 		}
 	},
 
@@ -190,7 +186,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			this.parse_validate_and_set_in_model(attachment.file_url);
 			this.refresh();
 			this.frm.attachments.update_attachment(attachment);
-			this.frm.save();
+			this.frm.doc.docstatus == 1 ? this.frm.save('Update') : this.frm.save();
 		} else {
 			this.value = this.get_value();
 			this.refresh();

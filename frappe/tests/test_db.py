@@ -9,16 +9,16 @@ import frappe
 
 class TestDB(unittest.TestCase):
 	def test_get_value(self):
-		self.assertEquals(frappe.db.get_value("User", {"name": ["=", "Administrator"]}), "Administrator")
-		self.assertEquals(frappe.db.get_value("User", {"name": ["like", "Admin%"]}), "Administrator")
+		self.assertEqual(frappe.db.get_value("User", {"name": ["=", "Administrator"]}), "Administrator")
+		self.assertEqual(frappe.db.get_value("User", {"name": ["like", "Admin%"]}), "Administrator")
 		self.assertNotEquals(frappe.db.get_value("User", {"name": ["!=", "Guest"]}), "Guest")
-		self.assertEquals(frappe.db.get_value("User", {"name": ["<", "B"]}), "Administrator")
-		self.assertEquals(frappe.db.get_value("User", {"name": ["<=", "Administrator"]}), "Administrator")
+		self.assertEqual(frappe.db.get_value("User", {"name": ["<", "B"]}), "Administrator")
+		self.assertEqual(frappe.db.get_value("User", {"name": ["<=", "Administrator"]}), "Administrator")
 
-		self.assertEquals(frappe.db.sql("""select name from `tabUser` where name > "s" order by modified desc""")[0][0],
+		self.assertEqual(frappe.db.sql("""select name from `tabUser` where name > "s" order by modified desc""")[0][0],
 			frappe.db.get_value("User", {"name": [">", "s"]}))
 
-		self.assertEquals(frappe.db.sql("""select name from `tabUser` where name >= "t" order by modified desc""")[0][0],
+		self.assertEqual(frappe.db.sql("""select name from `tabUser` where name >= "t" order by modified desc""")[0][0],
 			frappe.db.get_value("User", {"name": [">=", "t"]}))
 
 	def test_escape(self):

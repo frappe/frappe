@@ -1,0 +1,8 @@
+<p>{{ message }}</p>
+<div>
+	<p style="margin: 2em 0 !important">
+		{% for action in actions %}
+		<a class="btn" style="margin-right: 1em" href="{{ action.action_link }}">{{_(action.action_name)}}</a>
+		{% endfor %}
+	</p>
+</div>

@@ -42,8 +42,7 @@ class PortalSettings(Document):
 	def clear_cache(self):
 		# make js and css
 		# clear web cache (for menus!)
-		from frappe.sessions import clear_cache
-		clear_cache('Guest')
+		frappe.clear_cache(user='Guest')
 
 		from frappe.website.render import clear_cache
 		clear_cache()

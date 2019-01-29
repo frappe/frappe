@@ -17,7 +17,6 @@ from frappe.utils.change_log import get_versions
 from frappe.translate import get_lang_dict
 from frappe.email.inbox import get_email_accounts
 from frappe.core.doctype.feedback_trigger.feedback_trigger import get_enabled_feedback_trigger
-from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -32,12 +31,11 @@ def get_bootinfo():
 	# system info
 	bootinfo.sitename = frappe.local.site
 	bootinfo.sysdefaults = frappe.defaults.get_defaults()
-	bootinfo.user_permissions = get_user_permissions()
 	bootinfo.server_date = frappe.utils.nowdate()
 
 	if frappe.session['user'] != 'Guest':
 		bootinfo.user_info = get_fullnames()
-		bootinfo.sid = frappe.session['sid'];
+		bootinfo.sid = frappe.session['sid']
 
 	bootinfo.modules = {}
 	bootinfo.module_list = []
@@ -47,8 +45,8 @@ def get_bootinfo():
 	bootinfo.all_domains = [d.get("name") for d in frappe.get_all("Domain")]
 
 	bootinfo.module_app = frappe.local.module_app
-	bootinfo.single_types = frappe.db.sql_list("""select name from tabDocType
-		where issingle=1""")
+	bootinfo.single_types = [d.name for d in frappe.get_all('DocType', {'issingle': 1})]
+	bootinfo.nested_set_doctypes = [d.parent for d in frappe.get_all('DocField', {'fieldname': 'lft'}, ['parent'])]
 	add_home_page(bootinfo, doclist)
 	bootinfo.page_info = get_allowed_pages()
 	load_translations(bootinfo)
@@ -78,6 +76,7 @@ def get_bootinfo():
 	bootinfo.lang_dict = get_lang_dict()
 	bootinfo.feedback_triggers = get_enabled_feedback_trigger()
 	bootinfo.gsuite_enabled = get_gsuite_status()
+	bootinfo.success_action = get_success_action()
 	bootinfo.update(get_email_accounts(user=frappe.session.user))
 
 	return bootinfo
@@ -101,12 +100,12 @@ def load_desktop_icons(bootinfo):
 	bootinfo.desktop_icons = get_desktop_icons()
 
 def get_allowed_pages():
-	return get_user_page_or_report('Page')
+	return get_user_pages_or_reports('Page')
 
 def get_allowed_reports():
-	return get_user_page_or_report('Report')
+	return get_user_pages_or_reports('Report')
 
-def get_user_page_or_report(parent):
+def get_user_pages_or_reports(parent):
 	roles = frappe.get_roles()
 	has_role = {}
 	column = get_column(parent)
@@ -253,3 +252,6 @@ def get_unseen_notes():
 
 def get_gsuite_status():
 	return (frappe.get_value('Gsuite Settings', None, 'enable') == '1')
+
+def get_success_action():
+	return frappe.get_all("Success Action", fields=["*"])

@@ -6,7 +6,7 @@ import frappe, re, os
 from frappe.utils.pdf import get_pdf
 from frappe.email.smtp import get_outgoing_email_account
 from frappe.utils import (get_url, scrub_urls, strip, expand_relative_urls, cint,
-	split_emails, to_markdown, markdown, encode, random_string, parse_addr)
+	split_emails, to_markdown, markdown, random_string, parse_addr)
 import email.utils
 from six import iteritems, text_type, string_types
 from email.mime.multipart import MIMEMultipart
@@ -209,7 +209,6 @@ class EMail:
 			"To":             ', '.join(self.recipients) if self.expose_recipients=="header" else "<!--recipient-->",
 			"Date":           email.utils.formatdate(),
 			"Reply-To":       self.reply_to if self.reply_to else None,
-			"Bcc":            ', '.join(self.bcc) if self.bcc else None,
 			"CC":             ', '.join(self.cc) if self.cc and self.expose_recipients=="header" else None,
 			'X-Frappe-Site':  get_url(),
 		}

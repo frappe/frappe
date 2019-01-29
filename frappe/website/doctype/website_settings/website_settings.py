@@ -59,8 +59,7 @@ class WebsiteSettings(Document):
 	def clear_cache(self):
 		# make js and css
 		# clear web cache (for menus!)
-		from frappe.sessions import clear_cache
-		clear_cache('Guest')
+		frappe.clear_cache(user = 'Guest')
 
 		from frappe.website.render import clear_cache
 		clear_cache()
@@ -143,3 +142,6 @@ def get_items(parentfield):
 					break
 	return top_items
 
+@frappe.whitelist(allow_guest=True)
+def is_chat_enabled():
+	return bool(frappe.db.get_single_value('Website Settings', 'chat_enable'))

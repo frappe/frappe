@@ -39,7 +39,7 @@ frappe.template.compile = function(str, name) {
 		// {% endif %} --> {% } %}
 		str = str.replace(/{%\s?endfor\s?%}/g, "{% }; %}");
 
-		fn_str = "var _p=[],print=function(){_p.push.apply(_p,arguments)};" +
+		var fn_str = "var _p=[],print=function(){_p.push.apply(_p,arguments)};" +
 
 	        // Introduce the data as local variables using with(){}
 	        "with(obj){\n_p.push('" +
@@ -93,20 +93,20 @@ frappe.render_grid = function(opts) {
 		} else if(opts.grid) {
 			opts.data = opts.grid.getData().getItems();
 		}
-	} else {
-		opts.columns = [];
 	}
 
 	// show landscape view if columns more than 10
-	if (opts.columns && opts.columns.length > 10) {
-		opts.landscape = true;
-	} else {
-		opts.landscape = false;
+	if (opts.landscape == null) {
+		if(opts.columns && opts.columns.length > 10) {
+			opts.landscape = true;
+		} else {
+			opts.landscape = false;
+		}
 	}
 
 	// render content
 	if(!opts.content) {
-		opts.content = frappe.render_template("print_grid", opts);
+		opts.content = frappe.render_template(opts.template || "print_grid", opts);
 	}
 
 	// render HTML wrapper page
@@ -136,4 +136,32 @@ frappe.render_tree = function(opts) {
 
 	w.document.write(tree);
 	w.document.close();
+}
+frappe.render_pdf = function(html, opts = {}) {
+	//Create a form to place the HTML content
+	var formData = new FormData();
+
+	//Push the HTML content into an element
+	formData.append("html", html);
+	if (opts.orientation) {
+		formData.append("orientation", opts.orientation);
+	}
+	var blob = new Blob([], { type: "text/xml"});
+	formData.append("blob", blob);
+
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", '/api/method/frappe.utils.print_format.report_to_pdf');
+	xhr.setRequestHeader("X-Frappe-CSRF-Token", frappe.csrf_token);
+	xhr.responseType = "arraybuffer";
+
+	xhr.onload = function(success) {
+		if (this.status === 200) {
+			var blob = new Blob([success.currentTarget.response], {type: "application/pdf"});
+			var objectUrl = URL.createObjectURL(blob);
+
+			//Open report in a new window
+			window.open(objectUrl);
+		}
+	};
+	xhr.send(formData);
 }

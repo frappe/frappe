@@ -6,9 +6,9 @@ import frappe
 from frappe import _
 
 from frappe.model.document import Document
+from frappe.model import no_value_fields
 
 class Workflow(Document):
-
 	def validate(self):
 		self.set_active()
 		self.create_custom_field_for_workflow_state()
@@ -17,6 +17,7 @@ class Workflow(Document):
 
 	def on_update(self):
 		frappe.clear_cache(doctype=self.document_type)
+		frappe.cache().delete_key('workflow_' + self.name) # clear cache created in model/workflow.py
 
 	def create_custom_field_for_workflow_state(self):
 		frappe.clear_cache(doctype=self.document_type)
@@ -34,6 +35,7 @@ class Workflow(Document):
 				"no_copy": 1,
 				"fieldtype": "Link",
 				"options": "Workflow State",
+				"owner": "Administrator"
 			}).save()
 
 			frappe.msgprint(_("Created Custom Field {0} in {1}").format(self.workflow_state_field,
@@ -76,3 +78,8 @@ class Workflow(Document):
 			frappe.db.sql("""update tabWorkflow set is_active=0
 				where document_type=%s""",
 				self.document_type)
+
+@frappe.whitelist()
+def get_fieldnames_for(doctype):
+	return [f.fieldname for f in frappe.get_meta(doctype).fields \
+		if f.fieldname not in no_value_fields]

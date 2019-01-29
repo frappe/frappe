@@ -8,6 +8,7 @@ from frappe.utils import cint
 from frappe.model.naming import validate_name
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.utils.password import rename_password
+from frappe.model.utils.user_settings import sync_user_settings, update_user_settings_data
 
 @frappe.whitelist()
 def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False, ignore_if_exists=False):
@@ -47,6 +48,9 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	rename_dynamic_links(doctype, old, new)
 
+	# save the user settings in the db
+	update_user_settings(old, new, link_fields)
+
 	if doctype=='DocType':
 		rename_doctype(doctype, old, new, force)
 
@@ -81,6 +85,39 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 	frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=doctype)
 
 	return new
+
+
+def update_user_settings(old, new, link_fields):
+	'''
+		Update the user settings of all the linked doctypes while renaming.
+	'''
+
+	# store the user settings data from the redis to db
+	sync_user_settings()
+
+	if not link_fields: return
+
+	# find the user settings for the linked doctypes
+	linked_doctypes = set([d.parent for d in link_fields if not d.issingle])
+	user_settings_details = frappe.db.sql('''select user, doctype, data from `__UserSettings` where
+			data like "%%%s%%" and doctype in ({0})'''.format(", ".join(["%s"]*len(linked_doctypes))),
+		tuple([old] + list(linked_doctypes)), as_dict=1)
+
+	# create the dict using the doctype name as key and values as list of the user settings
+	from collections import defaultdict
+	user_settings_dict = defaultdict(list)
+	for user_setting in user_settings_details:
+		user_settings_dict[user_setting.doctype].append(user_setting)
+
+	# update the name in linked doctype whose user settings exists
+	for fields in link_fields:
+		user_settings = user_settings_dict.get(fields.parent)
+		if user_settings:
+			for user_setting in user_settings:
+				update_user_settings_data(user_setting, "value", old, new, "docfield", fields.fieldname)
+		else:
+			continue
+
 
 def update_attachments(doctype, old, new):
 	try:
@@ -180,6 +217,9 @@ def update_link_field_values(link_fields, old, new, doctype):
 				% (frappe.db.escape(parent), frappe.db.escape(field['fieldname']), '%s',
 					frappe.db.escape(field['fieldname']), '%s'),
 				(new, old))
+		# update cached link_fields as per new
+		if doctype=='DocType' and field['parent'] == old:
+			field['parent'] = new
 
 def get_link_fields(doctype):
 	# get link fields from tabDocField

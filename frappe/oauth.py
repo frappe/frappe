@@ -1,8 +1,9 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 import frappe
 import pytz
 
 from frappe import _
+from frappe.auth import LoginManager
 from oauthlib.oauth2.rfc6749.tokens import BearerToken
 from oauthlib.oauth2.rfc6749.grant_types import AuthorizationCodeGrant, ImplicitGrant, ResourceOwnerPasswordCredentialsGrant, ClientCredentialsGrant,  RefreshTokenGrant, OpenIDConnectAuthCode
 from oauthlib.oauth2 import RequestValidator
@@ -40,6 +41,7 @@ class WebApplicationServer(AuthorizationEndpoint, TokenEndpoint, ResourceEndpoin
 		auth_grant = AuthorizationCodeGrant(request_validator)
 		refresh_grant = RefreshTokenGrant(request_validator)
 		openid_connect_auth = OpenIDConnectAuthCode(request_validator)
+		resource_owner_password_credentials_grant = ResourceOwnerPasswordCredentialsGrant(request_validator)
 		bearer = BearerToken(request_validator, token_generator,
 							 token_expires_in, refresh_token_generator)
 		AuthorizationEndpoint.__init__(self, default_response_type='code',
@@ -58,6 +60,7 @@ class WebApplicationServer(AuthorizationEndpoint, TokenEndpoint, ResourceEndpoin
 							   grant_types={
 								   'authorization_code': auth_grant,
 								   'refresh_token': refresh_grant,
+								   'password': resource_owner_password_credentials_grant
 							   },
 							   default_token_type=bearer)
 		ResourceEndpoint.__init__(self, default_token='Bearer',
@@ -195,7 +198,7 @@ class OAuthWebRequestValidator(RequestValidator):
 	def validate_grant_type(self, client_id, grant_type, client, request, *args, **kwargs):
 		# Clients should only be allowed to use one type of grant.
 		# In this case, it must be "authorization_code" or "refresh_token"
-		return (grant_type in ["authorization_code", "refresh_token"])
+		return (grant_type in ["authorization_code", "refresh_token", "password"])
 
 	def save_bearer_token(self, token, request, *args, **kwargs):
 		# Remember to associate it with request.scopes, request.user and
@@ -387,10 +390,21 @@ class OAuthWebRequestValidator(RequestValidator):
 		    - OpenIDConnectImplicit
 		    - OpenIDConnectHybrid
 		"""
-		if id_token_hint and id_token_hint == frappe.get_value("User", frappe.session.user, "frappe_userid"):
+		if id_token_hint and id_token_hint == frappe.db.get_value("User Social Login", {"parent":frappe.session.user, "provider": "frappe"}, "userid"):
 			return True
 		else:
 			return False
+
+	def validate_user(self, username, password, client, request, *args, **kwargs):
+		"""Ensure the username and password is valid.
+
+        Method is used by:
+            - Resource Owner Password Credentials Grant
+        """
+		login_manager = LoginManager()
+		login_manager.authenticate(username, password)
+		request.user = login_manager.user
+		return True
 
 def get_cookie_dict_from_headers(r):
 	if r.headers.get('Cookie'):

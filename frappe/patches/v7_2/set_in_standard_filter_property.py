@@ -1,4 +1,6 @@
+from __future__ import unicode_literals
 import frappe
+import pymysql
 
 def execute():
 	frappe.reload_doc('custom', 'doctype', 'custom_field', force=True)
@@ -12,4 +14,6 @@ def execute():
 		try:
 			frappe.reload_doctype(doctype.name, force=True)
 		except KeyError:
+			pass
+		except pymysql.err.DataError:
 			pass

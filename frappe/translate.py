@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals, print_function
 
-from six import iteritems, text_type, string_types
+from six import iteritems, text_type, string_types, PY2
 
 """
 	frappe.translate
@@ -12,9 +12,9 @@ from six import iteritems, text_type, string_types
 	Translation tools for frappe
 """
 
-import frappe, os, re, codecs, json
+import frappe, os, re, io, codecs, json
 from frappe.model.utils import render_include, InvalidIncludePath
-from frappe.utils import strip
+from frappe.utils import strip, strip_html_tags, is_html
 from jinja2 import TemplateError
 import itertools, operator
 
@@ -340,11 +340,13 @@ def get_messages_from_doctype(name):
 	messages = [('DocType: ' + name, message) for message in messages if is_translatable(message)]
 
 	# extract from js, py files
-	doctype_file_path = frappe.get_module_path(meta.module, "doctype", meta.name, meta.name)
-	messages.extend(get_messages_from_file(doctype_file_path + ".js"))
-	messages.extend(get_messages_from_file(doctype_file_path + "_list.js"))
-	messages.extend(get_messages_from_file(doctype_file_path + "_list.html"))
-	messages.extend(get_messages_from_file(doctype_file_path + "_calendar.js"))
+	if not meta.custom:
+		doctype_file_path = frappe.get_module_path(meta.module, "doctype", meta.name, meta.name)
+		messages.extend(get_messages_from_file(doctype_file_path + ".js"))
+		messages.extend(get_messages_from_file(doctype_file_path + "_list.js"))
+		messages.extend(get_messages_from_file(doctype_file_path + "_list.html"))
+		messages.extend(get_messages_from_file(doctype_file_path + "_calendar.js"))
+		messages.extend(get_messages_from_file(doctype_file_path + "_dashboard.html"))
 
 	# workflow based on doctype
 	messages.extend(get_messages_from_workflow(doctype=name))
@@ -390,6 +392,7 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 			for action in actions if is_translatable(action['action'])])
 
 	return messages
+
 
 def get_messages_from_custom_fields(app_name):
 	fixtures = frappe.get_hooks('fixtures', app_name=app_name) or []
@@ -450,13 +453,14 @@ def get_server_messages(app):
 	"""Extracts all translatable strings (tagged with :func:`frappe._`) from Python modules
 		inside an app"""
 	messages = []
+	file_extensions = ('.py', '.html', '.js', '.vue')
 	for basepath, folders, files in os.walk(frappe.get_pymodule_path(app)):
 		for dontwalk in (".git", "public", "locale"):
 			if dontwalk in folders: folders.remove(dontwalk)
 
 		for f in files:
 			f = frappe.as_unicode(f)
-			if f.endswith(".py") or f.endswith(".html") or f.endswith(".js"):
+			if f.endswith(file_extensions):
 				messages.extend(get_messages_from_file(os.path.join(basepath, f)))
 
 	return messages
@@ -504,7 +508,7 @@ def extract_messages_from_code(code, is_py=False):
 	:param code: code from which translatable files are to be extracted
 	:param is_py: include messages in triple quotes e.g. `_('''message''')`"""
 	try:
-		code = render_include(code)
+		code = frappe.as_unicode(render_include(code))
 	except (TemplateError, ImportError, InvalidIncludePath):
 		# Exception will occur when it encounters John Resig's microtemplating code
 		pass
@@ -541,13 +545,19 @@ def read_csv_file(path):
 
 	:param path: File path"""
 	from csv import reader
-	with codecs.open(path, 'r', 'utf-8') as msgfile:
-		data = msgfile.read()
 
-		# for japanese! #wtf
-		data = data.replace(chr(28), "").replace(chr(29), "")
-		data = reader([r.encode('utf-8') for r in data.splitlines()])
-		newdata = [[text_type(val, 'utf-8') for val in row] for row in data]
+	if PY2:
+		with codecs.open(path, 'r', 'utf-8') as msgfile:
+			data = msgfile.read()
+
+			# for japanese! #wtf
+			data = data.replace(chr(28), "").replace(chr(29), "")
+			data = reader([r.encode('utf-8') for r in data.splitlines()])
+			newdata = [[text_type(val, 'utf-8') for val in row] for row in data]
+	else:
+		with io.open(path, mode='r', encoding='utf-8', newline='') as msgfile:
+			data = reader(msgfile)
+			newdata = [[ val for val in row ] for row in data]
 	return newdata
 
 def write_csv_file(path, app_messages, lang_dict):
@@ -702,3 +712,44 @@ def rename_language(old_name, new_name):
 
 	frappe.db.sql("""update `tabUser` set language=%(new_name)s where language=%(old_name)s""",
 		{ "old_name": old_name, "new_name": new_name })
+
+@frappe.whitelist()
+def update_translations_for_source(source=None, translation_dict=None):
+	if not (source and translation_dict):
+		return
+
+	translation_dict = json.loads(translation_dict)
+
+	# for existing records
+	translation_records = frappe.db.get_values('Translation', { 'source_name': source }, ['name', 'language'],  as_dict=1)
+	for d in translation_records:
+		if translation_dict.get(d.language, None):
+			doc = frappe.get_doc('Translation', d.name)
+			doc.target_name = translation_dict.get(d.language)
+			doc.save()
+			# done with this lang value
+			translation_dict.pop(d.language)
+		else:
+			frappe.delete_doc('Translation', d.name)
+
+	# remaining values are to be inserted
+	for lang, target_name in iteritems(translation_dict):
+		doc = frappe.new_doc('Translation')
+		doc.language = lang
+		doc.source_name = source
+		doc.target_name = target_name
+		doc.save()
+
+	return translation_records
+
+@frappe.whitelist()
+def get_translations(source_name):
+	if is_html(source_name):
+		source_name = strip_html_tags(source_name)
+
+	return frappe.db.get_list('Translation',
+		fields = ['name', 'language', 'target_name as translation'],
+		filters = {
+			'source_name': source_name
+		}
+	)
