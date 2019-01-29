@@ -18,8 +18,8 @@
                             <span><i class="icon text-extra-muted" :class="module.icon"></i></span>
                         </div>
                         <div class="module-box-content">
-                            <h4 class="h4"> 
-                                {{ module.label }} 
+                            <h4 class="h4">
+                                {{ module.label }}
                                 <span v-if="module.count" class="open-notification global">{{ module.count }}</span>
                             </h4>
                             <p class="small text-muted"> {{ module.description }} </p>
@@ -37,38 +37,21 @@
 
 export default {
     data() {
+        let modules_list = frappe.boot.allowed_modules
+            .filter(d => (d.type==='module' || d.category==='Places') && !d.blocked);
+
+        modules_list.forEach(module => {
+            module.count = this.get_module_count(module.module_name);
+        });
+
         return {
             route_str: frappe.get_route()[1],
             module_label: '',
             module_categories: ["Modules", "Domains", "Places", "Administration"],
-            modules: []
+            modules: modules_list
         };
     },
-    created() {
-        this.get_modules();
-    },
     methods: {
-        get_modules() {
-			let res = frappe.call({
-				method: 'frappe.desk.doctype.desktop_icon.desktop_icon.get_modules_from_all_apps',
-			});
-
-			res.then(r => {
-				if (r.message) {
-                    let modules_list = r.message;
-
-                    modules_list = modules_list
-                        .filter(d => (d.type==='module' || d.category==='Places') && !d.blocked);
-
-                    modules_list.forEach(module => {
-                        module.count = this.get_module_count(module.module_name);
-                    });
-
-                    this.modules = modules_list;
-                }
-            });
-        },
-
         get_module_count(module_name) {
             var module_doctypes = frappe.boot.notification_info.module_doctypes[module_name];
             var sum = 0;
@@ -112,7 +95,7 @@ export default {
     margin: 70px 0px;
 }
 
-.module-category {    
+.module-category {
     margin-top: 30px;
     margin-bottom: 15px;
     border-bottom: 1px solid #d0d8dd;

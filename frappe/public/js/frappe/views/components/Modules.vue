@@ -17,11 +17,11 @@ export default {
             current_module_label: '',
             current_module_sections: [],
             modules_data_cache: {},
-            modules_list: [],
+            modules_list: frappe.boot.allowed_modules
+                .filter(d => (d.type==='module' || d.category==='Places') && !d.blocked),
         };
     },
     created() {
-        this.get_modules_list();
         this.update_current_module();
     },
     mounted() {
@@ -50,21 +50,6 @@ export default {
                     this.get_module_sections(module_name);
                 }
             }
-        },
-
-        get_modules_list() {
-            let res = frappe.call({
-                method: 'frappe.desk.doctype.desktop_icon.desktop_icon.get_modules_from_all_apps',
-            });
-
-            res.then(r => {
-                if (r.message) {
-                    let modules_list = r.message;
-
-                    this.modules_list = modules_list
-                        .filter(d => (d.type==='module' || d.category==='Places') && !d.blocked);
-                }
-            });
         },
 
         get_module_sections(module_name) {

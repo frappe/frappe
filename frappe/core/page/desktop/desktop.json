@@ -1,0 +1,24 @@
+{
+ "content": null, 
+ "creation": "2019-01-29 13:11:48.872579", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "icon": "icon-th", 
+ "idx": 0, 
+ "modified": "2019-01-29 13:11:48.872579", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "desktop", 
+ "owner": "Administrator", 
+ "page_name": "desktop", 
+ "roles": [
+  {
+   "role": "All"
+  }
+ ], 
+ "script": null, 
+ "standard": "Yes", 
+ "style": null, 
+ "system_page": 0, 
+ "title": "Desktop"
+}

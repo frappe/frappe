@@ -236,5 +236,4 @@ frappe.patches.v11_0.fix_order_by_in_reports_json
 execute:frappe.delete_doc('Page', 'applications', ignore_missing=True)
 frappe.patches.v11_0.set_missing_creation_and_modified_value_for_user_permissions
 frappe.patches.v12_0.set_primary_key_in_series
-execute:frappe.delete_doc("Page", "desktop", ignore_missing=True)
 execute:frappe.delete_doc("Page", "modules", ignore_missing=True)
