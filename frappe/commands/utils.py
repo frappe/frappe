@@ -343,6 +343,7 @@ def mariadb(context):
 		frappe.conf.db_name,
 		'-h', frappe.conf.db_host or "localhost",
 		'--pager=less -SFX',
+		'--safe-updates',
 		"-A"])
 
 @click.command('postgres')
