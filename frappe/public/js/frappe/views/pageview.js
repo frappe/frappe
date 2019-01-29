@@ -46,8 +46,8 @@ frappe.views.pageview = {
 				let page = frappe.container.add_page('desktop');
 				frappe.container.change_to('desktop');
 
-				let container = $('<div></div>').appendTo(page);
-				container = $('<div class="layout-main-section"></div>').appendTo(container);
+				let container = $('<div class="container"></div>').appendTo(page);
+				container = $('<div></div>').appendTo(container);
 				
 				frappe.require('/assets/js/frappe-vue.min.js', () => {
 					Vue.prototype.__ = window.__; 

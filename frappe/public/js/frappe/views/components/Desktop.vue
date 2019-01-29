@@ -109,7 +109,7 @@ export default {
 
 <style lang="less" scoped>
 .modules-page-container {
-    margin: 70px 85px;
+    margin: 70px 0px;
 }
 
 .module-category {    
@@ -120,7 +120,7 @@ export default {
 
 .modules-container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     column-gap: 15px;
     row-gap: 15px;
 }

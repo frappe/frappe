@@ -67,6 +67,7 @@ export default {
             if(cache) {
                 this.current_module_sections = cache;
             } else {
+                this.current_module_sections = [];
                 return frappe.call({
                     method: "frappe.desk.moduleview.get",
                     args: {
@@ -140,56 +141,7 @@ export default {
 
 <style lang="less" scoped>
 .modules-page-container {
-    margin: 70px 85px;
-}
-
-.module-category {    
-    margin-top: 30px;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #d0d8dd;
-}
-
-.modules-container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    column-gap: 15px;
-    row-gap: 15px;
-}
-
-.module-box {
-    border-radius: 4px;
-    cursor: pointer;
-    padding: 5px 0px;
-    display: block;
-}
-
-.module-box:hover {
-    background-color: #fafbfc;
-}
-
-.module-box-content {
-    padding-right: 15px;
-    flex: 1;
-
-    h4 {
-        margin-bottom: 5px
-    }
-
-    p {
-        margin-top: 5px;
-        font-size: 80%;
-    }
-}
-
-.icon-box {
-    padding: 15px;
-    width: 54px;
-    display: flex;
-    justify-content: center;
-}
-
-.icon {
-    font-size: 24px;
+    margin: 15px 0px;
 }
 
 </style>
