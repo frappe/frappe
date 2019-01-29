@@ -109,7 +109,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 		$("#input-help").on("keydown", function (e) {
 			if(e.which == 13) {
-				var keywords = $(this).val();
 				$(this).val("");
 			}
 		});

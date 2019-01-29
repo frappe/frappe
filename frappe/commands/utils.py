@@ -571,7 +571,7 @@ def get_version():
 @click.command('setup-global-help')
 @click.option('--mariadb_root_password')
 def setup_global_help(mariadb_root_password=None):
-	'''Removed: setup help table in a separate database that will be
+	'''Deprecated: setup help table in a separate database that will be
 	shared by the whole bench and set `global_help_setup` as 1 in
 	common_site_config.json'''
 	print_in_app_help_deprecation()
@@ -579,18 +579,18 @@ def setup_global_help(mariadb_root_password=None):
 @click.command('get-docs-app')
 @click.argument('app')
 def get_docs_app(app):
-	'''Removed: Get the docs app for given app'''
+	'''Deprecated: Get the docs app for given app'''
 	print_in_app_help_deprecation()
 
 @click.command('get-all-docs-apps')
 def get_all_docs_apps():
-	'''Removed: Get docs apps for all apps'''
+	'''Deprecated: Get docs apps for all apps'''
 	print_in_app_help_deprecation()
 
 @click.command('setup-help')
 @pass_context
 def setup_help(context):
-	'''Removed: Setup help table in the current site (called after migrate)'''
+	'''Deprecated: Setup help table in the current site (called after migrate)'''
 	print_in_app_help_deprecation()
 
 @click.command('rebuild-global-search')
@@ -686,6 +686,5 @@ commands = [
 	watch,
 	_bulk_rename,
 	add_to_email_queue,
-	rebuild_global_search,
-	auto_deploy
+	rebuild_global_search
 ]
