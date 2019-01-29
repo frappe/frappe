@@ -3,13 +3,12 @@
 from __future__ import unicode_literals
 
 import frappe
-from frappe.utils import encode, cstr, cint, flt, comma_or
 
 import openpyxl
 import re
 from openpyxl.styles import Font
 from openpyxl import load_workbook
-from six import StringIO, BytesIO, string_types
+from six import BytesIO, string_types
 
 ILLEGAL_CHARACTERS_RE = re.compile(r'[\000-\010]|[\013-\014]|[\016-\037]')
 # return xlsx file object
@@ -53,7 +52,7 @@ def handle_html(data):
 	if '>' not in data:
 		return data
 
-	from html2text import unescape, HTML2Text
+	from html2text import HTML2Text
 
 	h = HTML2Text()
 	h.unicode_snob = True
