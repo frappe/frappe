@@ -14,6 +14,11 @@ def get_pdf(html, options=None, output = None):
 	html, options = prepare_options(html, options)
 	fname = os.path.join("/tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
 
+	options.update({
+		"disable-javascript": "",
+		"disable-local-file-access": "",
+	})
+
 	try:
 		pdfkit.from_string(html, fname, options=options or {})
 		if output:
