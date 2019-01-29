@@ -48,14 +48,11 @@ frappe.views.pageview = {
 
 				let container = $('<div class="container"></div>').appendTo(page);
 				container = $('<div></div>').appendTo(container);
-				
-				frappe.require('/assets/js/frappe-vue.min.js', () => {
-					Vue.prototype.__ = window.__; // eslint-disable-line
-					// eslint-disable-next-line
-					new Vue({
-						el: container[0],
-						render: h => h(Desktop)
-					});
+
+				Vue.prototype.__ = window.__;
+				new Vue({
+					el: container[0],
+					render: h => h(Desktop)
 				});
 				return;
 			}
@@ -185,5 +182,5 @@ frappe.views.ModulesFactory = class ModulesFactory extends frappe.views.Factory 
 		});
 	}
 };
-	
+
 
