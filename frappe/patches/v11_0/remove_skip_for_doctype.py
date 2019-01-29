@@ -65,8 +65,8 @@ def execute():
 						user_permission.for_value,
 						doctype,
 						0,
-						now(),
-						now()
+						user_permission.creation,
+						user_permission.modified
 					))
 		else:
 			# No skip_for_doctype found! Just update apply_to_all_doctypes.
