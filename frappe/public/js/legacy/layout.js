@@ -14,7 +14,7 @@
 				+ subrows
 
 */
-function Layout(parent, width) {
+window.Layout = function Layout(parent, width) {
 	if(parent&&parent.substr) { parent = $i(parent); }
 
 	this.wrapper = $a(parent, 'div', '', {display:'none'});

@@ -1,0 +1,104 @@
+@import "variables.less";
+
+.datatable {
+	margin-left: -1px;
+	margin-top: -1px;
+	font-size: @text-medium;
+
+	.frappe-control, .form-control {
+		margin: 0;
+		border-radius: 0px;
+		border: none;
+		background-color: transparent;
+	}
+
+	.form-group {
+		margin: 0;
+	}
+
+	.link-btn {
+		top: 6px;
+	}
+
+	select {
+		height: 27px;
+	}
+
+	.checkbox {
+		margin: 7px 0 7px 8px;
+	}
+
+	[data-fieldtype="Color"] .control-input {
+		overflow: hidden;
+	}
+}
+
+.dt-scrollable {
+	max-height: calc(100vh - 250px);
+}
+
+table td.dt-cell {
+	position: relative;
+}
+
+.dt-cell__edit {
+	padding: 0;
+
+	input {
+		font-size: inherit;
+		height: 27px;
+	}
+}
+
+.dt-header {
+	--dt-header-cell-bg: @panel-bg;
+	--dt-cell-bg: @panel-bg;
+	--dt-text-color: @text-muted;
+
+	.dt-row[data-is-filter] {
+		display: flex !important;
+	}
+}
+
+.dt-row.dt-row-totalRow {
+	font-weight: bold;
+}
+
+.dt-row.row-update {
+	animation: 500ms breathe forwards;
+}
+
+.report-action-checkbox {
+	margin: 0;
+	margin-left: 10px;
+
+	.checkbox {
+		margin: 0;
+	}
+
+	.help-box {
+		display: none;
+	}
+}
+
+.dt-filter {
+	border: 1px solid @light-border-color;
+	border-radius: 3px;
+	background-color: #fff;
+}
+
+.dt-tree-node__toggle + a {
+	margin-left: 4px;
+}
+
+@keyframes breathe {
+	0% {
+		background-color: transparent;
+	}
+	50% {
+		background-color: @extra-light-yellow;
+	}
+	100% {
+		background-color: transparent;
+	}
+}

@@ -3,8 +3,8 @@
 
 frappe.provide('frappe.views.formview');
 
-frappe.views.FormFactory = frappe.views.Factory.extend({
-	make: function(route) {
+frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
+	make(route) {
 		var me = this,
 			dt = route[1];
 
@@ -44,8 +44,9 @@ frappe.views.FormFactory = frappe.views.Factory.extend({
 
 
 		this.initialized = true;
-	},
-	show_doc: function(route) {
+	}
+
+	show_doc(route) {
 		var dt = route[1],
 			dn = route.slice(2).join("/"),
 			me = this;
@@ -77,10 +78,10 @@ frappe.views.FormFactory = frappe.views.Factory.extend({
 			}
 			me.load(dt, dn);
 		});
+	}
 
-	},
-	load: function(dt, dn) {
+	load(dt, dn) {
 		frappe.container.change_to("Form/" + dt);
 		frappe.views.formview[dt].frm.refresh(dn);
 	}
-});
+}

@@ -184,5 +184,9 @@ frappe.ui.SortSelector = Class.extend({
 			return this.labels[fieldname]
 				|| frappe.meta.get_label(this.doctype, fieldname);
 		}
+	},
+	get_sql_string: function() {
+		// build string like `tabTask`.`subject` desc
+		return '`tab' + this.doctype + '`.`' + this.sort_by + '` ' +  this.sort_order;
 	}
 })

@@ -340,7 +340,10 @@ h6.uppercase, .h6.uppercase {
 	}
 
 	blockquote {
-		font-size: inherit;
+		font-size: 14px;
+		padding-top: 0px;
+		padding-bottom: 0px;
+		margin: 0px;
 	}
 
 	.btn-more {
@@ -349,6 +352,12 @@ h6.uppercase, .h6.uppercase {
 
 	.gmail_extra {
 		display: none;
+	}
+}
+
+.timeline-item[data-communication-type="Comment"] {
+	.reply {
+		background-color: @light-yellow;
 	}
 }
 
@@ -378,6 +387,10 @@ h6.uppercase, .h6.uppercase {
 	.timeline::before {
 		bottom: -64px;
 	}
+}
+
+.timeline-item .media-body {
+	max-width: 100%;
 }
 
 .timeline-item.user-content {
@@ -600,6 +613,10 @@ h6.uppercase, .h6.uppercase {
 		border-right: none;
 		border-radius: 0px;
 	}
+}
+
+.timeline-futur span{
+	color: @orange !important;
 }
 
 .signature-field {

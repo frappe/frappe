@@ -2,7 +2,7 @@ frappe.socketio = {
 	open_tasks: {},
 	open_docs: [],
 	emit_queue: [],
-	init: function() {
+	init: function(port = 3000) {
 		if (frappe.boot.disable_async) {
 			return;
 		}
@@ -11,24 +11,19 @@ frappe.socketio = {
 			return;
 		}
 
-		if (frappe.boot.developer_mode) {
-			// File watchers for development
-			frappe.socketio.setup_file_watchers();
-		}
-
 		//Enable secure option when using HTTPS
 		if (window.location.protocol == "https:") {
-			frappe.socketio.socket = io.connect(frappe.socketio.get_host(), {secure: true});
+			frappe.socketio.socket = io.connect(frappe.socketio.get_host(port), {secure: true});
 		}
 		else if (window.location.protocol == "http:") {
-			frappe.socketio.socket = io.connect(frappe.socketio.get_host());
+			frappe.socketio.socket = io.connect(frappe.socketio.get_host(port));
 		}
 		else if (window.location.protocol == "file:") {
 			frappe.socketio.socket = io.connect(window.localStorage.server);
 		}
 
 		if (!frappe.socketio.socket) {
-			console.log("Unable to connect to " + frappe.socketio.get_host());
+			console.log("Unable to connect to " + frappe.socketio.get_host(port));
 			return;
 		}
 
@@ -48,7 +43,7 @@ frappe.socketio = {
 				if(data.percent==100) {
 					frappe.hide_progress();
 				} else {
-					frappe.show_progress(data.title || __("Progress"), data.percent, 100);
+					frappe.show_progress(data.title || __("Progress"), data.percent, 100, data.description);
 				}
 			}
 		});
@@ -101,11 +96,11 @@ frappe.socketio = {
 			}
 		}
 	},
-	get_host: function() {
+	get_host: function(port = 3000) {
 		var host = window.location.origin;
 		if(window.dev_server) {
 			var parts = host.split(":");
-			var port = frappe.boot.socketio_port || '3000';
+			port = frappe.boot.socketio_port || port.toString() || '3000';
 			if(parts.length > 2) {
 				host = parts[0] + ":" + parts[1];
 			}
@@ -163,6 +158,7 @@ frappe.socketio = {
 		// notify that the user has closed this doc
 		frappe.socketio.socket.emit('doc_close', doctype, docname);
 	},
+
 	setup_listeners: function() {
 		frappe.socketio.socket.on('task_status_change', function(data) {
 			frappe.socketio.process_response(data, data.status.toLowerCase());
@@ -194,47 +190,6 @@ frappe.socketio = {
 				}
 			}, 5000);
 		});
-	},
-	setup_file_watchers: function() {
-		var host = window.location.origin;
-		if(!window.dev_server) {
-			return;
-		}
-
-		var port = frappe.boot.file_watcher_port || 6787;
-		var parts = host.split(":");
-		// remove the port number from string if exists
-		if (parts.length > 2) {
-			host = host.split(':').slice(0, -1).join(":");
-		}
-		host = host + ':' + port;
-
-		frappe.socketio.file_watcher = io.connect(host);
-		// css files auto reload
-		frappe.socketio.file_watcher.on('reload_css', function(filename) {
-			let abs_file_path = "assets/" + filename;
-			const link = $(`link[href*="${abs_file_path}"]`);
-			abs_file_path = abs_file_path.split('?')[0] + '?v='+ moment();
-			link.attr('href', abs_file_path);
-			frappe.show_alert({
-				indicator: 'orange',
-				message: filename + ' reloaded'
-			}, 5);
-		});
-		// js files show alert
-
-		// commenting as this kills a branch change
-		// frappe.socketio.file_watcher.on('reload_js', function(filename) {
-		// 	filename = "assets/" + filename;
-		// 	var msg = $(`
-		// 		<span>${filename} changed <a data-action="reload">Click to Reload</a></span>
-		// 	`)
-		// 	msg.find('a').click(frappe.ui.toolbar.clear_cache);
-		// 	frappe.show_alert({
-		// 		indicator: 'orange',
-		// 		message: msg
-		// 	}, 5);
-		// });
 	},
 	process_response: function(data, method) {
 		if(!data) {
@@ -327,13 +282,12 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 			frappe.throw(__('File Upload in Progress. Please try again in a few moments.'));
 		}
 
-		if (!frappe.socketio.socket.connected) {
-			if (fallback) {
-				fallback();
-				return;
-			} else {
-				frappe.throw(__('Socketio is not connected. Cannot upload'));
-			}
+		function fallback_required() {
+			return !frappe.boot.sysdefaults.use_socketio_to_upload_file || !frappe.socketio.socket.connected;
+		}
+
+		if (fallback_required()) {
+			return fallback ? fallback() : frappe.throw(__('Socketio is not connected. Cannot upload'));
 		}
 
 		this.reader = new FileReader();
@@ -390,5 +344,4 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 			}
 		}
 	}
-
 }

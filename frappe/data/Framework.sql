@@ -27,6 +27,7 @@ CREATE TABLE `tabDocField` (
   `search_index` int(1) NOT NULL DEFAULT 0,
   `hidden` int(1) NOT NULL DEFAULT 0,
   `set_only_once` int(1) NOT NULL DEFAULT 0,
+  `allow_in_quick_entry` int(1) NOT NULL DEFAULT 0,
   `print_hide` int(1) NOT NULL DEFAULT 0,
   `report_hide` int(1) NOT NULL DEFAULT 0,
   `reqd` int(1) NOT NULL DEFAULT 0,
@@ -51,6 +52,7 @@ CREATE TABLE `tabDocField` (
   `read_only` int(1) NOT NULL DEFAULT 0,
   `precision` varchar(255) DEFAULT NULL,
   `length` int(11) NOT NULL DEFAULT 0,
+  `translatable` int(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`),
   KEY `label` (`label`),
@@ -144,6 +146,7 @@ CREATE TABLE `tabDocType` (
   `read_only_onload` int(1) NOT NULL DEFAULT 0,
   `document_type` varchar(255) DEFAULT NULL,
   `icon` varchar(255) DEFAULT NULL,
+  `color` varchar(255) DEFAULT NULL,
   `tag_fields` varchar(255) DEFAULT NULL,
   `subject` varchar(255) DEFAULT NULL,
   `_last_update` varchar(32) DEFAULT NULL,
@@ -213,7 +216,6 @@ CREATE TABLE `__Auth` (
 	`name` VARCHAR(255) NOT NULL,
 	`fieldname` VARCHAR(140) NOT NULL,
 	`password` VARCHAR(255) NOT NULL,
-	`salt` VARCHAR(140),
 	`encrypted` INT(1) NOT NULL DEFAULT 0,
 	PRIMARY KEY (`doctype`, `name`, `fieldname`)
 ) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

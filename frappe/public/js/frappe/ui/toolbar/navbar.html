@@ -11,13 +11,6 @@
 		<div class="navbar-center ellipsis" style="display: none;"></div>
 
 		<ul class="nav navbar-nav navbar-right">
-			<li class="user-progress hide" title="Your Setup Progress">
-				<a class="dropdown-toggle" data-toggle="dropdown" href="#" onclick="return false;"  style="height: 40px;">
-					<div class="progress-chart" style"width: 50px; margin-top: 8px;"><div class="progress">
-						<div class="progress-bar"></div>
-					</div></div>
-				</a>
-			</li>
 			<li class="visible-xs">
 				<a class="navbar-search-button" href="#" data-toggle="modal" data-target="#search-modal"><i class="octicon octicon-search"></i></a>
 			</li>
@@ -29,11 +22,12 @@
 					{%= frappe.user.full_name() %}</span>
                 <b class="caret hidden-xs hidden-sm"></b></a>
 				<ul class="dropdown-menu" id="toolbar-user" role="menu">
-					<li class="navbar-set-desktop-icons"><a href="#modules_setup">
+					<li class="navbar-set-desktop-icons"><a>
 					    {%= __("Set Desktop Icons") %}</a></li>
 					<li><a href="#Form/User/{%= encodeURIComponent(frappe.session.user) %}">
 					    {%= __("My Settings") %}</a></li>
-					<li><a href="#" onclick="return frappe.ui.toolbar.clear_cache();">
+					<li class="navbar-reload">
+						<a href="#" onclick="return frappe.ui.toolbar.clear_cache();">
 					    {%= __("Reload") %}</a></li>
 					<li><a href="/index" target="_blank" rel="noopener noreferrer">
 						{%= __("View Website") %}</a></li>
@@ -53,10 +47,6 @@
 						style="padding: 50% 7px; font-size: 17px; background-color: #fafbfc; font-weight: 100;">?</span>
 				</a>
 				<ul class="dropdown-menu" role="menu">
-					<!-- <div class="input-group" style="border-bottom: 1px solid #d1d8dd;">
-						<input id="input-help" type="text" placeholder="{{ __("What do you need help with?") }}" autofocus>
-						<span class="input-group-btn"><button class="btn btn-default">{{ __("Go") }}</button></span>
-					</div> -->
 					<li id="help-links"></li>
 					<li class="divider"></li>
 					<li class="divider documentation-links"></li>
@@ -64,6 +54,11 @@
 						{%= __("About") %}</a></li>
 				</ul>
 			</li>
+
+			<!-- frappe.chat -->
+			<!-- "placeholder, to display or not to display." -->
+			<li class="frappe-chat-dropdown"></li>
+			<!-- end frappe.chat -->
 
 			<li class="dropdown dropdown-navbar-new-comments dropdown-mobile">
 				<a class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">

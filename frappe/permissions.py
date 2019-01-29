@@ -2,7 +2,6 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals, print_function
-from six.moves import range
 from six import string_types
 import frappe, copy, json
 from frappe import _, msgprint
@@ -11,12 +10,28 @@ import frappe.share
 rights = ("read", "write", "create", "delete", "submit", "cancel", "amend",
 	"print", "email", "report", "import", "export", "set_user_permissions", "share")
 
+# TODO:
+
+# optimize: meta.get_link_map (check if the doctype link exists for the given permission type)
+
 def check_admin_or_system_manager(user=None):
 	if not user: user = frappe.session.user
 
 	if ("System Manager" not in frappe.get_roles(user)) and (user!="Administrator"):
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
+def print_has_permission_check_logs(func):
+	def inner(*args, **kwargs):
+		frappe.flags['has_permission_check_logs'] = []
+		result = func(*args, **kwargs)
+		# print only if access denied
+		if not result:
+			msgprint(('<br>').join(frappe.flags['has_permission_check_logs']))
+		frappe.flags.pop('has_permission_check_logs', None)
+		return result
+	return inner
+
+@print_has_permission_check_logs
 def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 	"""Returns True if user has permission `ptype` for given `doctype`.
 	If `doc` is passed, it also checks user, share and owner permissions.
@@ -25,26 +40,36 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 	"""
 	if not user: user = frappe.session.user
 
-	if verbose:
-		print('--- Checking for {0} {1} ---'.format(doctype, doc.name if doc else '-'))
+	if not doc and hasattr(doctype, 'doctype'):
+		# first argument can be doc or doctype
+		doc = doctype
+		doctype = doc.doctype
 
 	if frappe.is_table(doctype):
-		if verbose: print("Table type, always true")
+		return True
+
+	if user=="Administrator":
 		return True
 
 	meta = frappe.get_meta(doctype)
 
-	if ptype=="submit" and not cint(meta.is_submittable):
-		if verbose: print("Not submittable")
-		return False
+	if doc:
+		if isinstance(doc, string_types):
+			doc = frappe.get_doc(meta.name, doc)
+		perm = get_doc_permissions(doc, user=user, ptype=ptype).get(ptype)
+		if not perm: push_perm_check_log('User do not have document access')
+	else:
+		if ptype=="submit" and not cint(meta.is_submittable):
+			push_perm_check_log("Doctype is not submittable")
+			return False
 
-	if ptype=="import" and not cint(meta.allow_import):
-		if verbose: print("Not importable")
-		return False
+		if ptype=="import" and not cint(meta.allow_import):
+			push_perm_check_log("Doctype is not importable")
+			return False
 
-	if user=="Administrator":
-		if verbose: print("Allowing Administrator")
-		return True
+		role_permissions = get_role_permissions(meta, user=user)
+		perm = role_permissions.get(ptype)
+		if not perm: push_perm_check_log('User do not have doctype access via role permission')
 
 	def false_if_not_shared():
 		if ptype in ("read", "write", "share", "email", "print"):
@@ -52,202 +77,119 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 				["read" if ptype in ("email", "print") else ptype])
 
 			if doc:
-				doc_name = doc if isinstance(doc, string_types) else doc.name
+				doc_name = get_doc_name(doc)
 				if doc_name in shared:
-					if verbose: print("Shared")
 					if ptype in ("read", "write", "share") or meta.permissions[0].get(ptype):
-						if verbose: print("Is shared")
 						return True
 
 			elif shared:
 				# if atleast one shared doc of that type, then return True
 				# this is used in db_query to check if permission on DocType
-				if verbose: print("Has a shared document")
 				return True
 
-		if verbose: print("Not Shared")
 		return False
 
-	role_permissions = get_role_permissions(meta, user=user, verbose=verbose)
-
-	if not role_permissions.get(ptype):
-		return false_if_not_shared()
-
-	perm = True
-
-	if doc:
-		if isinstance(doc, string_types):
-			doc = frappe.get_doc(meta.name, doc)
-
-		owner_perm = user_perm = controller_perm = None
-
-		if role_permissions["if_owner"].get(ptype) and ptype!="create":
-			owner_perm = doc.owner == frappe.session.user
-			if verbose: print("Owner permission: {0}".format(owner_perm))
-
-		# check if user permission
-		if not owner_perm and role_permissions["apply_user_permissions"].get(ptype):
-			user_perm = user_has_permission(doc, verbose=verbose, user=user,
-				user_permission_doctypes=role_permissions.get("user_permission_doctypes", {}).get(ptype) or [])
-
-			if verbose: print("User permission: {0}".format(user_perm))
-
-		if not owner_perm and not user_perm:
-			controller_perm = has_controller_permissions(doc, ptype, user=user)
-
-			if verbose: print("Controller permission: {0}".format(controller_perm))
-
-		# permission true if any one condition is explicitly True or all permissions are undefined (None)
-		perm = any([owner_perm, user_perm, controller_perm]) or \
-			all([owner_perm==None, user_perm==None, controller_perm==None])
-
-		if not perm:
-			perm = false_if_not_shared()
-
-	if verbose: print("Final Permission: {0}".format(perm))
+	if not perm:
+		perm = false_if_not_shared()
 
 	return perm
 
-def get_doc_permissions(doc, verbose=False, user=None):
+def get_doc_permissions(doc, user=None, ptype=None):
 	"""Returns a dict of evaluated permissions for given `doc` like `{"read":1, "write":1}`"""
 	if not user: user = frappe.session.user
 
-	if frappe.is_table(doc.doctype):
-		return {"read":1, "write":1}
+	if frappe.is_table(doc.doctype): return {"read": 1, "write": 1}
 
 	meta = frappe.get_meta(doc.doctype)
 
-	role_permissions = copy.deepcopy(get_role_permissions(meta, user=user, verbose=verbose))
+	if has_controller_permissions(doc, ptype, user=user) == False :
+		push_perm_check_log('Not allowed via controller permission check')
+		return {ptype: 0}
+
+	permissions = copy.deepcopy(get_role_permissions(meta, user=user))
 
 	if not cint(meta.is_submittable):
-		role_permissions["submit"] = 0
+		permissions["submit"] = 0
 
 	if not cint(meta.allow_import):
-		role_permissions["import"] = 0
+		permissions["import"] = 0
 
-	if role_permissions.get("apply_user_permissions"):
-		# no user permissions, switch off all user-level permissions
-		for ptype in role_permissions:
-			if role_permissions["apply_user_permissions"].get(ptype) and not user_has_permission(doc, verbose=verbose, user=user,
-		user_permission_doctypes=role_permissions.get("user_permission_doctypes", {}).get(ptype) or []):
-				role_permissions[ptype] = 0
+	def is_user_owner():
+		doc_owner = doc.get('owner') or ''
+		doc_owner = doc_owner.lower()
+		session_user = frappe.session.user.lower()
+		return doc_owner == session_user
 
-	# apply owner permissions on top of existing permissions
-	if doc.owner == frappe.session.user:
-		role_permissions.update(role_permissions.if_owner)
+	if is_user_owner():
+		# apply owner permissions on top of existing permissions
+		# some access might be only for the owner
+		# eg. everyone might have read access but only owner can delete
+		permissions.update(permissions.get("if_owner", {}))
 
-	update_share_permissions(role_permissions, doc, user)
+	if not has_user_permission(doc, user):
+		if is_user_owner():
+			# replace with owner permissions
+			permissions = permissions.get("if_owner", {})
+			# if_owner does not come with create rights...
+			permissions['create'] = 0
+		else:
+			permissions = {}
 
-	return role_permissions
+	return permissions
 
-def update_share_permissions(role_permissions, doc, user):
-	"""Updates share permissions on `role_permissions` for given doc, if shared"""
-	share_ptypes = ("read", "write", "share")
-	permissions_by_share = frappe.db.get_value("DocShare",
-		{"share_doctype": doc.doctype, "share_name": doc.name, "user": user},
-		share_ptypes, as_dict=True)
-
-	if permissions_by_share:
-		for ptype in share_ptypes:
-			if permissions_by_share[ptype]:
-				role_permissions[ptype] = 1
-
-def get_role_permissions(meta, user=None, verbose=False):
-	"""Returns dict of evaluated role permissions like `{"read": True, "write":False}`
-
-	If user permissions are applicable, it adds a dict of user permissions like
-
+def get_role_permissions(doctype_meta, user=None):
+	"""
+	Returns dict of evaluated role permissions like
 		{
-			// user permissions will apply on these rights
-			"apply_user_permissions": {"read": 1, "write": 1},
-
-			// doctypes that will be applicable for each right
-			"user_permission_doctypes": {
-				"read": [
-					// AND between "DocType 1" and "DocType 2"
-					["DocType 1", "DocType 2"],
-
-					// OR
-
-					["DocType 3"]
-
-				]
-			}
-
-			"if_owner": {"read": 1, "write": 1}
+			"read": 1,
+			"write": 0,
+			// if "if_owner" is enabled
+			"if_owner":
+				{
+					"read": 1,
+					"write": 0
+				}
 		}
 	"""
+	if isinstance(doctype_meta, string_types):
+		doctype_meta = frappe.get_meta(doctype_meta) # assuming doctype name was passed
+
 	if not user: user = frappe.session.user
-	cache_key = (meta.name, user)
+
+	cache_key = (doctype_meta.name, user)
+
+	if user == 'Administrator':
+		return allow_everything()
 
 	if not frappe.local.role_permissions.get(cache_key):
 		perms = frappe._dict(
-			apply_user_permissions={},
-			user_permission_doctypes={},
 			if_owner={}
 		)
+
 		roles = frappe.get_roles(user)
-		dont_match = []
-		has_a_role_with_apply_user_permissions = False
 
-		for p in meta.permissions:
-			if cint(p.permlevel)==0 and (p.role in roles):
-				# apply only for level 0
+		def is_perm_applicable(perm):
+			return perm.role in roles and cint(perm.permlevel)==0
 
-				for ptype in rights:
-					# build if_owner dict if applicable for this right
-					perms[ptype] = perms.get(ptype, 0) or cint(p.get(ptype))
+		def has_permission_without_if_owner_enabled(ptype):
+			return any(p.get(ptype, 0) and not p.get('if_owner', 0) for p in applicable_permissions)
 
-					if ptype != "set_user_permissions" and p.get(ptype):
-						perms["apply_user_permissions"][ptype] = (perms["apply_user_permissions"].get(ptype, 1)
-							and p.get("apply_user_permissions"))
+		applicable_permissions = list(filter(is_perm_applicable, getattr(doctype_meta, 'permissions', [])))
+		has_if_owner_enabled = any(p.get('if_owner', 0) for p in applicable_permissions)
 
-					if p.if_owner and p.get(ptype):
-						perms["if_owner"][ptype] = 1
-
-					if p.get(ptype) and not p.if_owner and not p.get("apply_user_permissions"):
-						dont_match.append(ptype)
-
-				if p.apply_user_permissions:
-					has_a_role_with_apply_user_permissions = True
-
-					if p.user_permission_doctypes:
-						# set user_permission_doctypes in perms
-						try:
-							user_permission_doctypes = json.loads(p.user_permission_doctypes)
-						except ValueError:
-							user_permission_doctypes = []
-					else:
-						user_permission_doctypes = get_linked_doctypes(meta.name)
-
-					if user_permission_doctypes:
-						# perms["user_permission_doctypes"][ptype] would be a list of list like [["User", "Blog Post"], ["User"]]
-						for ptype in rights:
-							if p.get(ptype):
-								perms["user_permission_doctypes"].setdefault(ptype, []).append(user_permission_doctypes)
-
-		# if atleast one record having both Apply User Permission and If Owner unchecked is found,
-		# don't match for those rights
 		for ptype in rights:
-			if ptype in dont_match:
-				if perms["apply_user_permissions"].get(ptype):
-					del perms["apply_user_permissions"][ptype]
-
-				if perms["if_owner"].get(ptype):
-					del perms["if_owner"][ptype]
-
-		# if one row has only "Apply User Permissions" checked and another has only "If Owner" checked,
-		# set Apply User Permissions as checked
-		# i.e. the case when there is a role with apply_user_permissions as 1, but resultant apply_user_permissions is 0
-		if has_a_role_with_apply_user_permissions:
-			for ptype in rights:
-				if perms["if_owner"].get(ptype) and perms["apply_user_permissions"].get(ptype)==0:
-					perms["apply_user_permissions"][ptype] = 1
-
-		# delete 0 values
-		for key, value in list(perms.get("apply_user_permissions").items()):
-			if not value:
-				del perms["apply_user_permissions"][key]
+			pvalue = any(p.get(ptype, 0) for p in applicable_permissions)
+			# check if any perm object allows perm type
+			perms[ptype] = cint(pvalue)
+			if (pvalue
+				and has_if_owner_enabled
+				and not has_permission_without_if_owner_enabled(ptype)
+				and ptype != 'create'):
+				perms['if_owner'][ptype] = 1
+				# has no access if not owner
+				# only provide read access so that user is able to at-least access list
+				# (and the documents will be filtered based on owner sin further checks)
+				perms[ptype] = 1 if ptype == 'read' else 0
 
 		frappe.local.role_permissions[cache_key] = perms
 
@@ -257,51 +199,90 @@ def get_user_permissions(user):
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 	return get_user_permissions(user)
 
-def user_has_permission(doc, verbose=True, user=None, user_permission_doctypes=None):
+def has_user_permission(doc, user=None):
+	'''Returns True if User is allowed to view considering User Permissions'''
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 	user_permissions = get_user_permissions(user)
-	user_permission_doctypes = get_user_permission_doctypes(user_permission_doctypes, user_permissions)
 
-	def check_user_permission(d):
+	if not user_permissions:
+		# no user permission rules specified for this doctype
+		return True
+
+	# user can create own role permissions, so nothing applies
+	if get_role_permissions('User Permission', user=user).get('write'):
+		return True
+
+	apply_strict_user_permissions = frappe.get_system_settings('apply_strict_user_permissions')
+
+	doctype = doc.get('doctype')
+	docname = doc.get('name')
+
+	# STEP 1: ---------------------
+	# check user permissions on self
+	if doctype in user_permissions:
+		allowed_docs = get_allowed_docs_for_doctype(user_permissions.get(doctype, []), doctype)
+
+		# if allowed_docs is empty it states that there is no applicable permission under the current doctype
+
+		# only check if allowed_docs is not empty
+		if allowed_docs and docname not in allowed_docs:
+			# no user permissions for this doc specified
+			push_perm_check_log(_('Not allowed for {0}: {1}').format(_(doctype), docname))
+			return False
+
+	# STEP 2: ---------------------------------
+	# check user permissions in all link fields
+
+	def check_user_permission_on_link_fields(d):
+		# check user permissions for all the link fields of the given
+		# document object d
+		#
+		# called for both parent and child records
+
 		meta = frappe.get_meta(d.get("doctype"))
-		end_result = False
 
-		messages = {}
+		# check all link fields for user permissions
+		for field in meta.get_link_fields():
 
-		if not user_permission_doctypes:
-			# no doctypes restricted
-			end_result = True
+			if field.ignore_user_permissions: continue
 
-		# check multiple sets of user_permission_doctypes using OR condition
-		for doctypes in user_permission_doctypes:
-			result = True
+			# empty value, do you still want to apply user permissions?
+			if not d.get(field.fieldname) and not apply_strict_user_permissions:
+				# nah, not strict
+				continue
 
-			for df in meta.get_fields_to_check_permissions(doctypes):
-				if (d.get(df.fieldname)
-					and d.get(df.fieldname) not in user_permissions.get(df.options, [])):
-					result = False
+			if field.options not in user_permissions:
+				continue
 
-					if verbose:
-						msg = _("Not allowed to access {0} with {1} = {2}").format(df.options, _(df.label), d.get(df.fieldname))
-						if d.parentfield:
-							msg = "{doctype}, {row} #{idx}, ".format(doctype=_(d.doctype),
-								row=_("Row"), idx=d.idx) + msg
+			# get the list of all allowed values for this link
+			allowed_docs = get_allowed_docs_for_doctype(user_permissions.get(field.options, []), doctype)
 
-						messages[df.fieldname] = msg
+			if allowed_docs and d.get(field.fieldname) not in allowed_docs:
+				# restricted for this link field, and no matching values found
+				# make the right message and exit
+				if d.get('parentfield'):
+					# "Not allowed for Company = Restricted Company in Row 3. Restricted field: reference_type"
+					msg = _('Not allowed for {0}: {1} in Row {2}. Restricted field: {3}').format(
+						_(field.options), d.get(field.fieldname), d.idx, field.fieldname)
+				else:
+					# "Not allowed for Company = Restricted Company. Restricted field: reference_type"
+					msg = _('Not allowed for {0}: {1}. Restricted field: {2}').format(
+						_(field.options), d.get(field.fieldname), field.fieldname)
 
-			end_result = end_result or result
+				push_perm_check_log(msg)
 
-		if not end_result and messages:
-			for fieldname, msg in messages.items():
-				msgprint(msg)
+				return False
 
-		return end_result
+		return True
 
-	_user_has_permission = check_user_permission(doc)
+	if not check_user_permission_on_link_fields(doc):
+		return False
+
 	for d in doc.get_all_children():
-		_user_has_permission = check_user_permission(d) and _user_has_permission
+		if not check_user_permission_on_link_fields(d):
+			return False
 
-	return _user_has_permission
+	return True
 
 def has_controller_permissions(doc, ptype, user=None):
 	"""Returns controller permissions if defined. None if not defined"""
@@ -361,8 +342,11 @@ def get_roles(user=None, with_standard=True):
 		return ['Guest']
 
 	def get():
-		return [r[0] for r in frappe.db.sql("""select role from `tabHas Role`
-			where parent=%s and role not in ('All', 'Guest')""", (user,))] + ['All', 'Guest']
+		if user == 'Administrator':
+			return [r[0] for r in frappe.db.sql("select name from `tabRole`")] # return all available roles
+		else:
+			return [r[0] for r in frappe.db.sql("""select role from `tabHas Role`
+				where parent=%s and role not in ('All', 'Guest')""", (user,))] + ['All', 'Guest']
 
 	roles = frappe.cache().hget("roles", user, get)
 
@@ -406,12 +390,13 @@ def can_set_user_permissions(doctype, docname=None):
 
 def set_user_permission_if_allowed(doctype, name, user, with_message=False):
 	if get_role_permissions(frappe.get_meta(doctype), user).set_user_permissions!=1:
-		add_user_permission(doctype, name, user, with_message)
+		add_user_permission(doctype, name, user)
 
-def add_user_permission(doctype, name, user, apply=False):
+def add_user_permission(doctype, name, user, ignore_permissions=False, applicable_for=None):
 	'''Add user permission'''
-	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
-	if name not in get_user_permissions(user).get(doctype, []):
+	from frappe.core.doctype.user_permission.user_permission import user_permission_exists
+
+	if not user_permission_exists(user, doctype, name, applicable_for):
 		if not frappe.db.exists(doctype, name):
 			frappe.throw(_("{0} {1} not found").format(_(doctype), name), frappe.DoesNotExistError)
 
@@ -420,16 +405,19 @@ def add_user_permission(doctype, name, user, apply=False):
 			user=user,
 			allow=doctype,
 			for_value=name,
-			apply_for_all_roles=apply
-		)).insert()
+			applicable_for=applicable_for,
+		)).insert(ignore_permissions=ignore_permissions)
 
 def remove_user_permission(doctype, name, user):
 	user_permission_name = frappe.db.get_value('User Permission',
 		dict(user=user, allow=doctype, for_value=name))
 	frappe.delete_doc('User Permission', user_permission_name)
 
-def clear_user_permissions_for_doctype(doctype):
-	frappe.cache().delete_value('user_permissions')
+def clear_user_permissions_for_doctype(doctype, user=None):
+	user_permissions_for_doctype = frappe.db.get_list('User Permission',
+		dict(user=user, allow=doctype))
+	for d in user_permissions_for_doctype:
+		frappe.delete_doc('User Permission', d.name)
 
 def can_import(doctype, raise_exception=False):
 	if not ("System Manager" in frappe.get_roles() or has_permission(doctype, "import")):
@@ -446,40 +434,6 @@ def can_export(doctype, raise_exception=False):
 		else:
 			return False
 	return True
-
-def apply_user_permissions(doctype, ptype, user=None):
-	"""Check if apply_user_permissions is checked for a doctype, perm type, user combination"""
-	role_permissions = get_role_permissions(frappe.get_meta(doctype), user=user)
-	return role_permissions.get("apply_user_permissions", {}).get(ptype)
-
-def get_user_permission_doctypes(user_permission_doctypes, user_permissions):
-	"""returns a list of list like [["User", "Blog Post"], ["User"]]"""
-	if cint(frappe.get_system_settings('ignore_user_permissions_if_missing')):
-		# select those user permission doctypes for which user permissions exist!
-		user_permission_doctypes = [
-			list(set(doctypes).intersection(set(user_permissions.keys())))
-			for doctypes in user_permission_doctypes]
-
-	if len(user_permission_doctypes) > 1:
-		# OPTIMIZATION
-		# if intersection exists, use that to reduce the amount of querying
-		# for example, [["Blogger", "Blog Category"], ["Blogger"]], should only search in [["Blogger"]] as the first and condition becomes redundant
-
-		common = user_permission_doctypes[0]
-		for i in range(1, len(user_permission_doctypes), 1):
-			common = list(set(common).intersection(set(user_permission_doctypes[i])))
-			if not common:
-				break
-
-		if common:
-			# is common one of the user_permission_doctypes set?
-			for doctypes in user_permission_doctypes:
-				# are these lists equal?
-				if set(common) == set(doctypes):
-					user_permission_doctypes = [common]
-					break
-
-	return user_permission_doctypes
 
 def update_permission_property(doctype, role, permlevel, ptype, value=None, validate=True):
 	'''Update a property in Custom Perm'''
@@ -510,7 +464,7 @@ def add_permission(doctype, role, permlevel=0):
 	setup_custom_perms(doctype)
 
 	if frappe.db.get_value('Custom DocPerm', dict(parent=doctype, role=role,
-		permlevel=permlevel)):
+		permlevel=permlevel, if_owner=0)):
 		return
 
 	custom_docperm = frappe.get_doc({
@@ -551,3 +505,23 @@ def get_linked_doctypes(dt):
 		})
 	]))
 
+def get_doc_name(doc):
+	if not doc: return None
+	return doc if isinstance(doc, string_types) else doc.name
+
+def allow_everything():
+	'''
+	returns a dict with access to everything
+	eg. {"read": 1, "write": 1, ...}
+	'''
+	perm = {ptype: 1 for ptype in rights}
+	return perm
+
+def get_allowed_docs_for_doctype(user_permissions, doctype):
+	'''Returns all the docs from the passed user_permission
+		that are allowed under provide doctype'''
+	return [d.get('doc') for d in user_permissions if not d.get('applicable_for') or d.get('applicable_for') == doctype]
+
+def push_perm_check_log(log):
+	if frappe.flags.get('has_permission_check_logs') == None: return
+	frappe.flags.get('has_permission_check_logs').append(_(log))

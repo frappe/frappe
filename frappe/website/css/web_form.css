@@ -15,6 +15,23 @@ input[type='checkbox'] {
 	margin-top: 3px;
 }
 
+.page-header-actions-block .btn-delete {
+	display: none;
+	padding: 3px 10px;
+}
+
+.page-header-actions-block .btn-new {
+	display: inline;
+}
+
+.page-header-actions-block.actions-mode .btn-delete {
+	display: inline;
+}
+
+.page-header-actions-block.actions-mode .btn-new {
+	display: none;
+}
+
 .checkbox label {
 	font-size: 12px;
 }
@@ -49,4 +66,16 @@ input[type='checkbox'] {
 }
 .slide-progress .icon-circle {
 	font-size: 14px;
+}
+
+body {
+	display: none;
+}
+
+.modal-title {
+	margin-top: 5px;
+}
+
+.modal-header {
+	padding: 10px 15px;
 }

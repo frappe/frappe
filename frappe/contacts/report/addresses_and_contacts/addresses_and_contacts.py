@@ -17,7 +17,7 @@ def execute(filters=None):
 
 def get_columns(filters):
 	return [
-		"{party_type}:Link/{party_type}".format(party_type=filters.get("party_type")),
+		"{reference_doctype}:Link/{reference_doctype}".format(reference_doctype=filters.get("reference_doctype")),
 		"Address Line 1",
 		"Address Line 2",
 		"City",
@@ -34,12 +34,13 @@ def get_columns(filters):
 	]
 
 def get_data(filters):
-	party_type = filters.get("party_type")
-	party = filters.get("party_name")
+	data = []
+	reference_doctype = filters.get("reference_doctype")
+	reference_name = filters.get("reference_name")
 
-	return get_party_addresses_and_contact(party_type, party)
+	return get_reference_addresses_and_contact(reference_doctype, reference_name)
 
-def get_party_addresses_and_contact(reference_doctype, reference_name):
+def get_reference_addresses_and_contact(reference_doctype, reference_name):
 	data = []
 	filters = None
 	reference_details = frappe._dict()
@@ -51,11 +52,11 @@ def get_party_addresses_and_contact(reference_doctype, reference_name):
 		filters = { "name": reference_name }
 
 	reference_list = [d[0] for d in frappe.get_list(reference_doctype, filters=filters, fields=["name"], as_list=True)]
+
 	for d in reference_list:
 		reference_details.setdefault(d, frappe._dict())
-
-	reference_details = get_party_details(reference_doctype, "Address", reference_list, reference_details)
-	reference_details = get_party_details(reference_doctype, "Contact", reference_list, reference_details)
+	reference_details = get_reference_details(reference_doctype, "Address", reference_list, reference_details)
+	reference_details = get_reference_details(reference_doctype, "Contact", reference_list, reference_details)
 
 	for reference_name, details in iteritems(reference_details):
 		addresses = details.get("address", [])
@@ -73,7 +74,7 @@ def get_party_addresses_and_contact(reference_doctype, reference_name):
 
 	return data
 
-def get_party_details(reference_doctype, doctype, reference_list, reference_details):
+def get_reference_details(reference_doctype, doctype, reference_list, reference_details):
 	filters =  [
 		["Dynamic Link", "link_doctype", "=", reference_doctype],
 		["Dynamic Link", "link_name", "in", reference_list]
@@ -83,8 +84,7 @@ def get_party_details(reference_doctype, doctype, reference_list, reference_deta
 	records = frappe.get_list(doctype, filters=filters, fields=fields, as_list=True)
 	for d in records:
 		reference_details[d[0]][frappe.scrub(doctype)] = d[1:]
-
 	return reference_details
 
 def add_blank_columns_for(doctype):
-	return ["" for _ in field_map.get(doctype, [])]
+	return ["" for field in field_map.get(doctype, [])]

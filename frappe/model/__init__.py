@@ -4,7 +4,6 @@
 # model __init__.py
 from __future__ import unicode_literals
 import frappe
-import json
 
 
 no_value_fields = ('Section Break', 'Column Break', 'HTML', 'Table', 'Button', 'Image',
@@ -45,7 +44,7 @@ def delete_fields(args_dict, delete=0):
 		args_dict = { dt: [field names] }
 	"""
 	import frappe.utils
-	for dt in args_dict.keys():
+	for dt in list(args_dict):
 		fields = args_dict[dt]
 		if not fields: continue
 

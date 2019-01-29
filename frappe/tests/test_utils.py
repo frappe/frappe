@@ -104,3 +104,21 @@ class TestMathUtils(unittest.TestCase):
 		self.assertEqual(ceil('24.7'),          25)
 		self.assertEqual(ceil('26.7'),          27)
 		self.assertEqual(ceil(Decimal(29.45)),  30)
+
+class TestHTMLUtils(unittest.TestCase):
+	def test_clean_email_html(self):
+		from frappe.utils.html_utils import clean_email_html
+		sample = '''<script>a=b</script><h1>Hello</h1><p>Para</p>'''
+		clean = clean_email_html(sample)
+		self.assertFalse('<script>' in clean)
+		self.assertTrue('<h1>Hello</h1>' in clean)
+
+		sample = '''<style>body { font-family: Arial }</style><h1>Hello</h1><p>Para</p>'''
+		clean = clean_email_html(sample)
+		self.assertFalse('<style>' in clean)
+		self.assertTrue('<h1>Hello</h1>' in clean)
+
+		sample = '''<h1>Hello</h1><p>Para</p><a href="http://test.com">text</a>'''
+		clean = clean_email_html(sample)
+		self.assertTrue('<h1>Hello</h1>' in clean)
+		self.assertTrue('<a href="http://test.com">text</a>' in clean)

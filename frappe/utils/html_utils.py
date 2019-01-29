@@ -1,17 +1,48 @@
-import json
+from __future__ import unicode_literals
+import frappe
+import json, re
 import bleach, bleach_whitelist.bleach_whitelist as bleach_whitelist
 from six import string_types
+from bs4 import BeautifulSoup
 
 def clean_html(html):
 	if not isinstance(html, string_types):
 		return html
 
-	return bleach.clean(html,
+	return bleach.clean(clean_script_and_style(html),
 		tags=['div', 'p', 'br', 'ul', 'ol', 'li', 'b', 'i', 'em',
-			'table', 'thead', 'tbody', 'td', 'tr'],
+                'table', 'thead', 'tbody', 'td', 'tr'],
 		attributes=[],
 		styles=['color', 'border', 'border-color'],
 		strip=True, strip_comments=True)
+
+def clean_email_html(html):
+	if not isinstance(html, string_types):
+		return html
+
+	return bleach.clean(clean_script_and_style(html),
+		tags=['div', 'p', 'br', 'ul', 'ol', 'li', 'b', 'i', 'em', 'a',
+			'table', 'thead', 'tbody', 'td', 'tr', 'th', 'pre', 'code',
+			'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'button', 'img'],
+		attributes=['border', 'colspan', 'rowspan',
+			'src', 'href', 'style', 'id'],
+		styles=['color', 'border-color', 'width', 'height', 'max-width',
+			'background-color', 'border-collapse', 'border-radius',
+			'border', 'border-top', 'border-bottom', 'border-left', 'border-right',
+			'margin', 'margin-top', 'margin-bottom', 'margin-left', 'margin-right',
+			'padding', 'padding-top', 'padding-bottom', 'padding-left', 'padding-right',
+			'font-size', 'font-weight', 'font-family', 'text-decoration',
+			'line-height', 'text-align', 'vertical-align'
+		],
+		protocols=['cid', 'http', 'https', 'mailto', 'data'],
+		strip=True, strip_comments=True)
+
+def clean_script_and_style(html):
+	# remove script and style
+	soup = BeautifulSoup(html, 'html5lib')
+	for s in soup(['script', 'style']):
+		s.decompose()
+	return frappe.as_unicode(soup)
 
 def sanitize_html(html, linkify=False):
 	"""
@@ -33,7 +64,8 @@ def sanitize_html(html, linkify=False):
 	strip_comments = False
 
 	# retuns html with escaped tags, escaped orphan >, <, etc.
-	escaped_html = bleach.clean(html, tags=tags, attributes=attributes, styles=styles, strip_comments=strip_comments)
+	escaped_html = bleach.clean(html, tags=tags, attributes=attributes, styles=styles,
+		strip_comments=strip_comments, protocols=['cid', 'http', 'https', 'mailto'])
 
 	if linkify:
 		escaped_html = bleach.linkify(escaped_html, callbacks=[])
@@ -47,6 +79,28 @@ def is_json(text):
 		return False
 	else:
 		return True
+
+def get_icon_html(icon, small=False):
+	from frappe.utils import is_image
+
+	emoji_pattern = re.compile(
+		u"(\ud83d[\ude00-\ude4f])|"
+		u"(\ud83c[\udf00-\uffff])|"
+		u"(\ud83d[\u0000-\uddff])|"
+		u"(\ud83d[\ude80-\udeff])|"
+		u"(\ud83c[\udde0-\uddff])"
+		"+", flags=re.UNICODE)
+
+	if icon and emoji_pattern.match(icon):
+		return '<span class="text-muted">' + icon + '</span>'
+
+	if is_image(icon):
+		return \
+			'<img style="width: 16px; height: 16px;" src="{icon}">'.format(icon=icon) \
+				if small else \
+			'<img src="{icon}">'.format(icon=icon)
+	else:
+		return "<i class='{icon}'></i>".format(icon=icon)
 
 # adapted from https://raw.githubusercontent.com/html5lib/html5lib-python/4aa79f113e7486c7ec5d15a6e1777bfe546d3259/html5lib/sanitizer.py
 acceptable_elements = [
@@ -105,7 +159,9 @@ acceptable_attributes = [
 	'step', 'style', 'summary', 'suppress', 'tabindex', 'target',
 	'template', 'title', 'toppadding', 'type', 'unselectable', 'usemap',
 	'urn', 'valign', 'value', 'variable', 'volume', 'vspace', 'vrml',
-	'width', 'wrap', 'xml:lang'
+	'width', 'wrap', 'xml:lang', 'data-row', 'data-list', 'data-language',
+	'data-value', 'role', 'frameborder', 'allowfullscreen', 'spellcheck',
+	'data-mode', 'data-gramm', 'data-placeholder', 'data-comment'
 ]
 
 mathml_attributes = [

@@ -1,0 +1,33 @@
+.data-table {
+  font-size: 14px;
+}
+.data-table .frappe-control {
+  margin: 0;
+}
+.data-table .form-group {
+  margin: 0;
+}
+.data-table .form-control {
+  border-radius: 0px;
+  border: none;
+}
+.data-table .link-btn {
+  top: 9px;
+}
+.data-table select {
+  height: 36px;
+}
+.data-table .edit-cell {
+  border: 2px solid #7679FC;
+}
+.data-table .checkbox {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  margin-left: 8px;
+}
+.data-table [data-fieldtype="Color"] .control-input {
+  overflow: hidden;
+}
+.data-table .data-table-col.selected .content {
+  border-color: #7679FC;
+}

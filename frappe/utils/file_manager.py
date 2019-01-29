@@ -3,28 +3,31 @@
 
 from __future__ import unicode_literals
 import frappe
-import os, base64, re
+import os, base64, re, json
 import hashlib
 import mimetypes
+import io
 from frappe.utils import get_hook_method, get_files_path, random_string, encode, cstr, call_hook_method, cint
 from frappe import _
 from frappe import conf
 from copy import copy
 from six.moves.urllib.parse import unquote
-from six import text_type
+from six import text_type, PY2, string_types
 
-class MaxFileSizeReachedError(frappe.ValidationError): pass
+
+class MaxFileSizeReachedError(frappe.ValidationError):
+	pass
 
 
 def get_file_url(file_data_name):
 	data = frappe.db.get_value("File", file_data_name, ["file_name", "file_url"], as_dict=True)
 	return data.file_url or data.file_name
 
+
 def upload():
 	# get record details
 	dt = frappe.form_dict.doctype
 	dn = frappe.form_dict.docname
-	df = frappe.form_dict.docfield
 	file_url = frappe.form_dict.file_url
 	filename = frappe.form_dict.filename
 	frappe.form_dict.is_private = cint(frappe.form_dict.is_private)
@@ -66,6 +69,7 @@ def get_file_doc(dt=None, dn=None, folder=None, is_private=None, df=None):
 
 	if r.filedata:
 		file_doc = save_uploaded(dt, dn, folder, is_private, df)
+
 	elif r.file_url:
 		file_doc = save_url(r.file_url, r.filename, dt, dn, folder, is_private, df)
 
@@ -99,10 +103,11 @@ def save_url(file_url, filename, dt, dn, folder, is_private, df=None):
 	})
 	f.flags.ignore_permissions = True
 	try:
-		f.insert();
+		f.insert()
 	except frappe.DuplicateEntryError:
 		return frappe.get_doc("File", f.duplicate_entry)
 	return f
+
 
 def get_uploaded_content():
 	# should not be unicode when reading a file, hence using frappe.form
@@ -121,8 +126,8 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 		if isinstance(content, text_type):
 			content = content.encode("utf-8")
 
-		if "," in content:
-			content = content.split(",")[1]
+		if b"," in content:
+			content = content.split(b",")[1]
 		content = base64.b64decode(content)
 
 	file_size = check_max_file_size(content)
@@ -157,11 +162,13 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 
 	return f
 
+
 def get_file_data_from_hash(content_hash, is_private=0):
 	for name in frappe.db.sql_list("select name from `tabFile` where content_hash=%s and is_private=%s", (content_hash, is_private)):
 		b = frappe.get_doc('File', name)
-		return {k:b.get(k) for k in frappe.get_hooks()['write_file_keys']}
+		return {k: b.get(k) for k in frappe.get_hooks()['write_file_keys']}
 	return False
+
 
 def save_file_on_filesystem(fname, content, content_type=None, is_private=0):
 	fpath = write_file(content, fname, is_private)
@@ -176,8 +183,10 @@ def save_file_on_filesystem(fname, content, content_type=None, is_private=0):
 		'file_url': file_url
 	}
 
+
 def get_max_file_size():
 	return conf.get('max_file_size') or 10485760
+
 
 def check_max_file_size(content):
 	max_file_size = get_max_file_size()
@@ -189,6 +198,7 @@ def check_max_file_size(content):
 			raise_exception=MaxFileSizeReachedError)
 
 	return file_size
+
 
 def write_file(content, fname, is_private=0):
 	"""write file to disk with a random name (to compare)"""
@@ -204,6 +214,7 @@ def write_file(content, fname, is_private=0):
 
 	return get_files_path(fname, is_private=is_private)
 
+
 def remove_all(dt, dn, from_delete=False):
 	"""remove all files in a transaction"""
 	try:
@@ -212,6 +223,7 @@ def remove_all(dt, dn, from_delete=False):
 			remove_file(fid, dt, dn, from_delete)
 	except Exception as e:
 		if e.args[0]!=1054: raise # (temp till for patched)
+
 
 def remove_file_by_url(file_url, doctype=None, name=None):
 	if doctype and name:
@@ -222,6 +234,7 @@ def remove_file_by_url(file_url, doctype=None, name=None):
 
 	if fid:
 		return remove_file(fid)
+
 
 def remove_file(fid, attached_to_doctype=None, attached_to_name=None, from_delete=False):
 	"""Remove file and File entry"""
@@ -246,9 +259,11 @@ def remove_file(fid, attached_to_doctype=None, attached_to_name=None, from_delet
 
 	return comment
 
+
 def delete_file_data_content(doc, only_thumbnail=False):
 	method = get_hook_method('delete_file_data_content', fallback=delete_file_from_filesystem)
 	method(doc, only_thumbnail=only_thumbnail)
+
 
 def delete_file_from_filesystem(doc, only_thumbnail=False):
 	"""Delete file, thumbnail from File document"""
@@ -257,6 +272,7 @@ def delete_file_from_filesystem(doc, only_thumbnail=False):
 	else:
 		delete_file(doc.file_url)
 		delete_file(doc.thumbnail_url)
+
 
 def delete_file(path):
 	"""Delete file from `public folder`"""
@@ -275,15 +291,27 @@ def delete_file(path):
 		if os.path.exists(path):
 			os.remove(path)
 
+
 def get_file(fname):
 	"""Returns [`file_name`, `content`] for given file name `fname`"""
 	file_path = get_file_path(fname)
 
 	# read the file
-	with open(encode(file_path), 'r') as f:
-		content = f.read()
+	if PY2:
+		with open(encode(file_path)) as f:
+			content = f.read()
+	else:
+		with io.open(encode(file_path), mode='rb') as f:
+			content = f.read()
+			try:
+				# for plain text files
+				content = content.decode()
+			except UnicodeDecodeError:
+				# for .png, .jpg, etc
+				pass
 
 	return [file_path.rsplit("/", 1)[-1], content]
+
 
 def get_file_path(file_name):
 	"""Returns file path from given file name"""
@@ -308,10 +336,12 @@ def get_file_path(file_name):
 
 	return file_path
 
+
 def get_content_hash(content):
 	if isinstance(content, text_type):
 		content = content.encode()
 	return hashlib.md5(content).hexdigest()
+
 
 def get_file_name(fname, optional_suffix):
 	# convert to unicode
@@ -327,6 +357,7 @@ def get_file_name(fname, optional_suffix):
 		return '{partial}{suffix}{extn}'.format(partial=partial, extn=extn, suffix=optional_suffix)
 	return fname
 
+
 @frappe.whitelist()
 def download_file(file_url):
 	"""
@@ -339,10 +370,11 @@ def download_file(file_url):
 	"""
 	file_doc = frappe.get_doc("File", {"file_url":file_url})
 	file_doc.check_permission("read")
+	path = os.path.join(get_files_path(), os.path.basename(file_url))
 
-	with open(getattr(frappe.local, "site_path", None) + file_url, "rb") as fileobj:
+	with open(path, "rb") as fileobj:
 		filedata = fileobj.read()
-	frappe.local.response.filename = file_url[file_url.rfind("/")+1:]
+	frappe.local.response.filename = os.path.basename(file_url)
 	frappe.local.response.filecontent = filedata
 	frappe.local.response.type = "download"
 
@@ -351,6 +383,7 @@ def extract_images_from_doc(doc, fieldname):
 	content = extract_images_from_html(doc, content)
 	if frappe.flags.has_dataurl:
 		doc.set(fieldname, content)
+
 
 def extract_images_from_html(doc, content):
 	frappe.flags.has_dataurl = False
@@ -385,6 +418,7 @@ def extract_images_from_html(doc, content):
 
 	return content
 
+
 def get_random_filename(extn=None, content_type=None):
 	if extn:
 		if not extn.startswith("."):
@@ -401,3 +435,19 @@ def validate_filename(filename):
 	timestamp = now_datetime().strftime(" %Y-%m-%d %H:%M:%S")
 	fname = get_file_name(filename, timestamp)
 	return fname
+
+@frappe.whitelist()
+def add_attachments(doctype, name, attachments):
+	'''Add attachments to the given DocType'''
+	if isinstance(attachments, string_types):
+		attachments = json.loads(attachments)
+	# loop through attachments
+	files =[]
+	for a in attachments:
+		if isinstance(a, string_types):
+			attach = frappe.db.get_value("File", {"name":a}, ["file_name", "file_url", "is_private"], as_dict=1)
+			# save attachments to new doc
+			f = save_url(attach.file_url, attach.file_name, doctype, name, "Home/Attachments", attach.is_private)
+			files.append(f)
+
+	return files

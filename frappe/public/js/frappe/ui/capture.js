@@ -1,94 +1,204 @@
+// frappe.ui.Capture
+// Author - Achilles Rasquinha <achilles@frappe.io>
+
+/**
+ * @description Converts a canvas, image or a video to a data URL string.
+ * 
+ * @param 	{HTMLElement} element - canvas, img or video.
+ * @returns {string} 			  - The data URL string.
+ * 
+ * @example
+ * frappe._.get_data_uri(video)
+ * // returns "data:image/pngbase64,..."
+ */
+frappe._.get_data_uri = element =>
+{
+	const $element = $(element)
+	const width    = $element.width()
+	const height   = $element.height()
+
+	const $canvas     = $('<canvas/>')
+	$canvas[0].width  = width
+	$canvas[0].height = height
+
+	const context     = $canvas[0].getContext('2d')
+	context.drawImage($element[0], 0, 0, width, height)
+	
+	const data_uri = $canvas[0].toDataURL('image/png')
+
+	return data_uri
+}
+
+/**
+ * @description Frappe's Capture object.
+ * 
+ * @example
+ * const capture = frappe.ui.Capture()
+ * capture.show()
+ * 
+ * capture.click((data_uri) => {
+ * 	// do stuff
+ * })
+ * 
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Taking_still_photos
+ */
 frappe.ui.Capture = class
 {
 	constructor (options = { })
 	{
-		this.options = Object.assign({}, frappe.ui.Capture.DEFAULT_OPTIONS, options);
-		this.dialog = new frappe.ui.Dialog();
-		this.template = 
-		`
-			<div class="text-center">
-				<div class="img-thumbnail" style="border: none;">
-					<div id="frappe-capture"/>
-				</div>
-			</div>
-
-			<div id="frappe-capture-btn-toolbar" style="padding-top: 15px; padding-bottom: 15px;">
-				<div class="text-center">
-					<div id="frappe-capture-btn-toolbar-snap">
-						<a id="frappe-capture-btn-snap">
-							<i class="fa fa-fw fa-2x fa-circle-o"/>
-						</a>
-					</div>
-					<div class="btn-group" id="frappe-capture-btn-toolbar-knap">
-						<button class="btn btn-default" id="frappe-capture-btn-discard">
-							<i class="fa fa-fw fa-arrow-left"/>
-						</button>
-						<button class="btn btn-default" id="frappe-capture-btn-accept">
-							<i class="fa fa-fw fa-arrow-right"/>
-						</button>
-					</div>
-				</div>
-			</div>
-		`;
-		$(this.dialog.body).append(this.template);
-
-		this.$btnBarSnap = $(this.dialog.body).find('#frappe-capture-btn-toolbar-snap');
-		this.$btnBarKnap = $(this.dialog.body).find('#frappe-capture-btn-toolbar-knap');
-		this.$btnBarKnap.hide();
-
-		Webcam.set(this.options);
+		this.options = frappe.ui.Capture.OPTIONS
+		this.set_options(options)
 	}
-
-	open ( )
+	
+	set_options (options)
 	{
-		this.dialog.show();
-
-		Webcam.attach('#frappe-capture');
-	}
-
-	freeze ( )
-	{
-		this.$btnBarSnap.hide();
-		this.$btnBarKnap.show();
+		this.options = { ...frappe.ui.Capture.OPTIONS, ...options }
 		
-		Webcam.freeze();
+		return this
+	}
+	
+	render ( )
+	{
+		return navigator.mediaDevices.getUserMedia({ video: true }).then(stream =>
+		{
+			this.dialog 	 = new frappe.ui.Dialog({
+				  title: this.options.title,
+				animate: this.options.animate,
+				 action:
+				{
+					secondary:
+					{
+						label: "<b>&times</b>"
+					}
+				}
+			})
+	
+			const $e 		 = $(frappe.ui.Capture.TEMPLATE)
+			
+			const video      = $e.find('video')[0]
+			video.srcObject  = stream
+			video.play()
+			
+			const $container = $(this.dialog.body)
+			$container.html($e)
+			
+			$e.find('.fc-btf').hide()
+
+			$e.find('.fc-bcp').click(() =>
+			{
+				const data_url = frappe._.get_data_uri(video)
+				$e.find('.fc-p').attr('src', data_url)
+
+				$e.find('.fc-s').hide()
+				$e.find('.fc-p').show()
+
+				$e.find('.fc-btu').hide()
+				$e.find('.fc-btf').show()
+			})
+
+			$e.find('.fc-br').click(() =>
+			{
+				$e.find('.fc-p').hide()
+				$e.find('.fc-s').show()
+
+				$e.find('.fc-btf').hide()
+				$e.find('.fc-btu').show()
+			})
+
+			$e.find('.fc-bs').click(() =>
+			{
+				const data_url = frappe._.get_data_uri(video)
+				this.hide()
+				
+				if (this.callback)
+					this.callback(data_url)
+			})
+		})
 	}
 
-	unfreeze ( )
+	show ( )
 	{
-		this.$btnBarSnap.show();
-		this.$btnBarKnap.hide();
+		this.render().then(() =>
+		{
+			this.dialog.show()
+		}).catch(err => {
+			if ( this.options.error )
+			{
+				const alert = `<span class="indicator red"/> ${frappe.ui.Capture.ERR_MESSAGE}`
+				frappe.show_alert(alert, 3)
+			}
 
-		Webcam.unfreeze();
-	}
-
-	click (callback) 
-	{
-		$(this.dialog.body).find('#frappe-capture-btn-snap').click(() => {
-			this.freeze();
-
-			$(this.dialog.body).find('#frappe-capture-btn-discard').click(() => {
-				this.unfreeze();
-			});
-
-			$(this.dialog.body).find('#frappe-capture-btn-accept').click(() => {
-				Webcam.snap((data) => {
-					callback(data);
-				});
-
-				this.hide();
-			});
-		});
+			throw err
+		})
 	}
 
 	hide ( )
 	{
-		Webcam.reset();
-
-		$(this.dialog.$wrapper).remove();
+		if ( this.dialog )
+			this.dialog.hide()
 	}
-};
-frappe.ui.Capture.DEFAULT_OPTIONS = 
+
+	submit (fn)
+	{
+		this.callback = fn
+	}
+}
+frappe.ui.Capture.OPTIONS =
 {
-	width: 480, height: 320, flip_horiz: true
-};
+	  title: __(`Camera`),
+	animate: false,
+	  error: false,
+}
+frappe.ui.Capture.ERR_MESSAGE = __("Unable to load camera.")
+frappe.ui.Capture.TEMPLATE 	  =
+`
+<div class="frappe-capture">
+	<div class="panel panel-default">
+		<img class="fc-p img-responsive"/>
+		<div class="fc-s  embed-responsive embed-responsive-16by9">
+			<video class="embed-responsive-item">${frappe.ui.Capture.ERR_MESSAGE}</video>
+		</div>
+	</div>
+	<div>
+		<div class="fc-btf">
+			<div class="row">
+				<div class="col-md-6">
+					<div class="pull-left">
+						<button class="btn btn-default fc-br">
+							<small>${__('Retake')}</small>
+						</button>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="pull-right">
+						<button class="btn btn-primary fc-bs">
+							<small>${__('Submit')}</small>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="fc-btu">
+			<div class="row">
+				<div class="col-md-6">
+					${
+						''
+						// <div class="pull-left">
+						// 	<button class="btn btn-default">
+						// 		<small>${__('Take Video')}</small>
+						// 	</button>
+						// </div>
+					}
+				</div>
+				<div class="col-md-6">
+					<div class="pull-right">
+						<button class="btn btn-default fc-bcp">
+							<small>${__('Take Photo')}</small>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+`

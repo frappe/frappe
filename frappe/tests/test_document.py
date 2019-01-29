@@ -9,21 +9,21 @@ from frappe.model.naming import revert_series_if_last, make_autoname, parse_nami
 class TestDocument(unittest.TestCase):
 	def test_get_return_empty_list_for_table_field_if_none(self):
 		d = frappe.get_doc({"doctype":"User"})
-		self.assertEquals(d.get("roles"), [])
+		self.assertEqual(d.get("roles"), [])
 
 	def test_load(self):
 		d = frappe.get_doc("DocType", "User")
-		self.assertEquals(d.doctype, "DocType")
-		self.assertEquals(d.name, "User")
-		self.assertEquals(d.allow_rename, 1)
+		self.assertEqual(d.doctype, "DocType")
+		self.assertEqual(d.name, "User")
+		self.assertEqual(d.allow_rename, 1)
 		self.assertTrue(isinstance(d.fields, list))
 		self.assertTrue(isinstance(d.permissions, list))
 		self.assertTrue(filter(lambda d: d.fieldname=="email", d.fields))
 
 	def test_load_single(self):
 		d = frappe.get_doc("Website Settings", "Website Settings")
-		self.assertEquals(d.name, "Website Settings")
-		self.assertEquals(d.doctype, "Website Settings")
+		self.assertEqual(d.name, "Website Settings")
+		self.assertEqual(d.doctype, "Website Settings")
 		self.assertTrue(d.disable_signup in (0, 1))
 
 	def test_insert(self):
@@ -35,11 +35,11 @@ class TestDocument(unittest.TestCase):
 		})
 		d.insert()
 		self.assertTrue(d.name.startswith("EV"))
-		self.assertEquals(frappe.db.get_value("Event", d.name, "subject"),
+		self.assertEqual(frappe.db.get_value("Event", d.name, "subject"),
 			"test-doc-test-event 1")
 
 		# test if default values are added
-		self.assertEquals(d.send_reminder, 1)
+		self.assertEqual(d.send_reminder, 1)
 		return d
 
 	def test_insert_with_child(self):
@@ -51,7 +51,7 @@ class TestDocument(unittest.TestCase):
 		})
 		d.insert()
 		self.assertTrue(d.name.startswith("EV"))
-		self.assertEquals(frappe.db.get_value("Event", d.name, "subject"),
+		self.assertEqual(frappe.db.get_value("Event", d.name, "subject"),
 			"test-doc-test-event 2")
 
 	def test_update(self):
@@ -59,7 +59,7 @@ class TestDocument(unittest.TestCase):
 		d.subject = "subject changed"
 		d.save()
 
-		self.assertEquals(frappe.db.get_value(d.doctype, d.name, "subject"), "subject changed")
+		self.assertEqual(frappe.db.get_value(d.doctype, d.name, "subject"), "subject changed")
 
 	def test_mandatory(self):
 		frappe.delete_doc_if_exists("User", "test_mandatory@example.com")
@@ -72,7 +72,7 @@ class TestDocument(unittest.TestCase):
 
 		d.set("first_name", "Test Mandatory")
 		d.insert()
-		self.assertEquals(frappe.db.get_value("User", d.name), d.name)
+		self.assertEqual(frappe.db.get_value("User", d.name), d.name)
 
 	def test_confict_validation(self):
 		d1 = self.test_insert()
@@ -122,7 +122,7 @@ class TestDocument(unittest.TestCase):
 		})
 		d.insert()
 
-		self.assertEquals(frappe.db.get_value("User", d.name), d.name)
+		self.assertEqual(frappe.db.get_value("User", d.name), d.name)
 
 	def test_validate(self):
 		d = self.test_insert()
@@ -196,8 +196,7 @@ class TestDocument(unittest.TestCase):
 		doctype, name = 'User', 'test@example.com'
 
 		d = self.test_insert()
-		d.ref_type = doctype
-		d.ref_name = name
+		d.append('event_participants', {"reference_doctype": doctype, "reference_docname": name})
 
 		d.save()
 
@@ -209,7 +208,7 @@ class TestDocument(unittest.TestCase):
 		link_count = frappe.cache().get_value('_link_count') or {}
 		new_count = link_count.get((doctype, name)) or 0
 
-		self.assertEquals(old_count + 1, new_count)
+		self.assertEqual(old_count + 1, new_count)
 
 		before_update = frappe.db.get_value(doctype, name, 'idx')
 
@@ -217,7 +216,7 @@ class TestDocument(unittest.TestCase):
 
 		after_update = frappe.db.get_value(doctype, name, 'idx')
 
-		self.assertEquals(before_update + new_count, after_update)
+		self.assertEqual(before_update + new_count, after_update)
 
 	def test_naming_series(self):
 		data = ["TEST-", "TEST/17-18/.test_data./.####", "TEST.YYYY.MM.####"]
@@ -235,4 +234,4 @@ class TestDocument(unittest.TestCase):
 			revert_series_if_last(series, name)
 			new_current = cint(frappe.db.get_value('Series', prefix, "current", order_by="name"))
 
-			self.assertEquals(cint(old_current) - 1, new_current)
+			self.assertEqual(cint(old_current) - 1, new_current)

@@ -159,7 +159,6 @@ frappe.setup.UserProgressDialog  = class UserProgressDialog {
 		frappe.call({
 			method: "frappe.desk.user_progress.update_and_get_user_progress",
 			callback: function(r) {
-				// console.log("states", r.message);
 				let states = r.message;
 				let changed = 0;
 				let completed = 0;

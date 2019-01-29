@@ -1,0 +1,53 @@
+@import 'variables';
+
+.active-tag-filters {
+	.add-filter, .filter-tag {
+		margin: 0 10px 10px 0;
+	}
+}
+
+.active-tag-filters .btn-group {
+	white-space: nowrap;
+	font-size: 0;
+}
+
+.active-tag-filters .btn-group .btn-default {
+	background-color: transparent;
+	border: 1px solid @border-color;
+	color: @text-muted;
+	float: none;
+}
+
+.filter-box {
+	border-bottom: 1px solid @border-color;
+	padding: 10px 15px 3px;
+
+	.remove-filter {
+		margin-top: 6px;
+		margin-left: 15px;
+	}
+
+	.filter-field {
+		padding-right: 15px;
+		width: calc(100% - 36px);
+
+		.frappe-control {
+			position: relative;
+		}
+	}
+}
+
+// for sm and above
+@media (min-width: @screen-xs) {
+	.filter-box .row > div[class*="col-sm-"] {
+		padding-right: 0px;
+	}
+
+	.filter-field {
+		width: 65% !important;
+
+		.frappe-control {
+			position: relative;
+		}
+	}
+}

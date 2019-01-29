@@ -30,6 +30,7 @@ def setup_global_search_table():
 			ENGINE=MyISAM
 			CHARACTER SET=utf8mb4'''.format(varchar_len=varchar_len))
 
+
 def reset():
 	"""
 	Deletes all data in __global_search
@@ -243,6 +244,10 @@ def update_global_search(doc):
 		if doc.get(field.fieldname) and field.fieldtype != "Table":
 			content.append(get_formatted_value(doc.get(field.fieldname), field))
 
+	tags = (doc.get('_user_tags') or '').strip()
+	if tags:
+		content.extend(list(filter(lambda x: x, tags.split(','))))
+
 	# Get children
 	for child in doc.meta.get_table_fields():
 		for d in doc.get(child.fieldname):
@@ -269,6 +274,7 @@ def update_global_search(doc):
 				route=route
 			)
 		)
+
 		enqueue_global_search()
 
 
@@ -351,27 +357,34 @@ def search(text, start=0, limit=20, doctype=""):
 	:param limit: number of results to return, default 20
 	:return: Array of result objects
 	"""
-
-	text = "+" + text + "*"
-	if not doctype:
-		results = frappe.db.sql('''
-			select
-				doctype, name, content
-			from
-				__global_search
-			where
-				match(content) against (%s IN BOOLEAN MODE)
-			limit {start}, {limit}'''.format(start=start, limit=limit), text+"*", as_dict=True)
-	else:
-		results = frappe.db.sql('''
-			select
-				doctype, name, content
-			from
-				__global_search
-			where
-				doctype = %s AND
-				match(content) against (%s IN BOOLEAN MODE)
-			limit {start}, {limit}'''.format(start=start, limit=limit), (doctype, text), as_dict=True)
+	results = []
+	texts = text.split('&')
+	for text in texts:
+		text = "+" + text + "*"
+		if not doctype:
+			result = frappe.db.sql('''
+				select
+					doctype, name, content
+				from
+					__global_search
+				where
+					match(content) against (%s IN BOOLEAN MODE)
+				limit {start}, {limit}'''.format(start=start, limit=limit), text+"*", as_dict=True)
+		else:
+			result = frappe.db.sql('''
+				select
+					doctype, name, content
+				from
+					__global_search
+				where
+					doctype = %s AND
+					match(content) against (%s IN BOOLEAN MODE)
+				limit {start}, {limit}'''.format(start=start, limit=limit), (doctype, text), as_dict=True)
+		tmp_result=[]
+		for i in result:
+			if i in results or not results:
+				tmp_result.append(i)
+		results = tmp_result
 
 	for r in results:
 		try:
@@ -393,15 +406,25 @@ def web_search(text, start=0, limit=20):
 	:return: Array of result objects
 	"""
 
-	text = "+" + text + "*"
-	results = frappe.db.sql('''
-		select
-			doctype, name, content, title, route
-		from
-			__global_search
-		where
-			published = 1 and
-			match(content) against (%s IN BOOLEAN MODE)
-		limit {start}, {limit}'''.format(start=start, limit=limit),
-		text, as_dict=True)
+	results = []
+	texts = text.split('&')
+	for text in texts:
+		text = "+" + text + "*"
+		result = frappe.db.sql('''
+			select
+				doctype, name, content, title, route
+			from
+				__global_search
+			where
+				published = 1 and
+				match(content) against (%s IN BOOLEAN MODE)
+			limit {start}, {limit}'''.format(start=start, limit=limit),
+			text, as_dict=True)
+
+		tmp_result=[]
+		for i in result:
+			if i in results or not results:
+				tmp_result.append(i)
+		results = tmp_result
+
 	return results

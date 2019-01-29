@@ -1,19 +1,38 @@
 @import "variables.less";
 @import "mixins.less";
 
-.navbar .dropdown-toggle {
-	padding-top: 8px;
-	padding-bottom: 8px;
-}
-
 .navbar-fixed-top {
 	left: 0px;
 	right: 0px;
 }
 
-.navbar a {
-	font-size: 12px;
-	font-weight: bold;
+.navbar {
+	a {
+		font-size: 12px;
+		font-weight: bold;
+	}
+
+	.dropdown-toggle {
+		padding-top: 8px;
+		padding-bottom: 8px;
+	}
+
+	// instead of changes within BS3 itself
+	.nav > li > a {
+		padding: 8px 10px;
+	}
+
+	.navbar-search-icon {
+		color: @navbar-default-color;
+		font-size: inherit;
+		position: relative;
+		right: 24px;
+		top: 1px;
+	}
+
+	.badge {
+		font-weight: normal;
+	}
 }
 
 .navbar-icon-home {
@@ -179,18 +198,6 @@
 #navbar-search {
 	width: 100%;
 	background-color: rgba(255, 255, 255, 0.9);
-}
-
-.navbar .navbar-search-icon {
-	color: @navbar-default-color;
-	font-size: inherit;
-	position: relative;
-	right: 24px;
-	top: 1px;
-}
-
-.navbar .badge {
-	font-weight: normal;
 }
 
 #navbar-search-results {

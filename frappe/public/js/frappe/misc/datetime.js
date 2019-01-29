@@ -3,10 +3,10 @@
 
 frappe.provide('frappe.datetime');
 
-moment.defaultDateFormat = "YYYY-MM-DD";
-moment.defaultTimeFormat = "HH:mm:ss";
-moment.defaultDatetimeFormat = moment.defaultDateFormat + " " + moment.defaultTimeFormat;
-moment.defaultFormat = moment.defaultDateFormat;
+frappe.defaultDateFormat = "YYYY-MM-DD";
+frappe.defaultTimeFormat = "HH:mm:ss";
+frappe.defaultDatetimeFormat = frappe.defaultDateFormat + " " + frappe.defaultTimeFormat;
+moment.defaultFormat = frappe.defaultDateFormat;
 
 frappe.provide("frappe.datetime");
 
@@ -19,7 +19,7 @@ $.extend(frappe.datetime, {
 			var date_obj = moment(date);
 		}
 
-		return (format===false) ? date_obj : date_obj.format(moment.defaultDatetimeFormat);
+		return (format===false) ? date_obj : date_obj.format(frappe.defaultDatetimeFormat);
 	},
 
 	convert_to_system_tz: function(date, format) {
@@ -31,7 +31,7 @@ $.extend(frappe.datetime, {
 			var date_obj = moment(date);
 		}
 
-		return (format===false) ? date_obj : date_obj.format(moment.defaultDatetimeFormat);
+		return (format===false) ? date_obj : date_obj.format(frappe.defaultDatetimeFormat);
 	},
 
 	is_timezone_same: function() {
@@ -43,7 +43,7 @@ $.extend(frappe.datetime, {
 	},
 
 	str_to_obj: function(d) {
-		return moment(d, moment.defaultDatetimeFormat)._d;
+		return moment(d, frappe.defaultDatetimeFormat)._d;
 	},
 
 	obj_to_str: function(d) {
@@ -91,15 +91,15 @@ $.extend(frappe.datetime, {
 	},
 
 	get_user_fmt: function() {
-		return frappe.sys_defaults.date_format || "yyyy-mm-dd";
+		return frappe.sys_defaults && frappe.sys_defaults.date_format || "yyyy-mm-dd";
 	},
 
 	str_to_user: function(val, only_time = false) {
 		if(!val) return "";
 
 		if(only_time) {
-			return moment(val, moment.defaultTimeFormat)
-				.format(moment.defaultTimeFormat);
+			return moment(val, frappe.defaultTimeFormat)
+				.format(frappe.defaultTimeFormat);
 		}
 
 		var user_fmt = frappe.datetime.get_user_fmt().toUpperCase();
@@ -117,8 +117,8 @@ $.extend(frappe.datetime, {
 	user_to_str: function(val, only_time = false) {
 
 		if(only_time) {
-			return moment(val, moment.defaultTimeFormat)
-				.format(moment.defaultTimeFormat);
+			return moment(val, frappe.defaultTimeFormat)
+				.format(frappe.defaultTimeFormat);
 		}
 
 		var user_fmt = frappe.datetime.get_user_fmt().toUpperCase();
@@ -148,19 +148,19 @@ $.extend(frappe.datetime, {
 	},
 
 	now_date: function(as_obj = false) {
-		return frappe.datetime._date(moment.defaultDateFormat, as_obj);
+		return frappe.datetime._date(frappe.defaultDateFormat, as_obj);
 	},
 
 	now_time: function(as_obj = false) {
-		return frappe.datetime._date(moment.defaultTimeFormat, as_obj);
+		return frappe.datetime._date(frappe.defaultTimeFormat, as_obj);
 	},
 
 	now_datetime: function(as_obj = false) {
-		return frappe.datetime._date(moment.defaultDatetimeFormat, as_obj);
+		return frappe.datetime._date(frappe.defaultDatetimeFormat, as_obj);
 	},
 
 	_date: function(format, as_obj = false) {
-		const { time_zone } = frappe.sys_defaults;
+		const time_zone = frappe.sys_defaults && frappe.sys_defaults.time_zone;
 		let date;
 		if (time_zone) {
 			date = moment.tz(time_zone);
@@ -197,9 +197,9 @@ $.extend(frappe.datetime, {
 
 	validate: function(d) {
 		return moment(d, [
-			moment.defaultDateFormat,
-			moment.defaultDatetimeFormat,
-			moment.defaultTimeFormat
+			frappe.defaultDateFormat,
+			frappe.defaultDatetimeFormat,
+			frappe.defaultTimeFormat
 		], true).isValid();
 	},
 

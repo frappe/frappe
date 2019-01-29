@@ -3,7 +3,11 @@
 
 from __future__ import unicode_literals
 
-from zxcvbn import zxcvbn
+try:
+	from zxcvbn import zxcvbn
+except Exception:
+	import zxcvbn
+
 import frappe
 from frappe import _
 
@@ -106,7 +110,7 @@ def get_match_feedback(match, is_sole_match):
 				_("Try to avoid repeated words and characters")
 			],
 		}
-		if len(match.get("repeated_char")) == 1:
+		if match.get("repeated_char") and len(match.get("repeated_char")) == 1:
 			feedback = {
 				"warning": _('Repeats like "aaa" are easy to guess'),
 				"suggestions": [
