@@ -196,11 +196,5 @@ class Report(Document):
 
 @frappe.whitelist()
 def is_prepared_report_disabled(report):
-	if not hasattr(frappe.local, 'is_prepared_report_disabled'):
-		frappe.local.is_prepared_report_disabled = {}
-
-	if not report in frappe.local.is_prepared_report_disabled:
-		frappe.local.is_prepared_report_disabled[report] = frappe.db.get_value('Report',
-			report, 'disable_prepared_report') or 0
-
-	return frappe.local.is_prepared_report_disabled[report]
+	return frappe.db.get_value('Report',
+		report, 'disable_prepared_report') or 0

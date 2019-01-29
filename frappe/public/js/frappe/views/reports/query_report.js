@@ -167,13 +167,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	setup_progress_bar() {
-		let i = 0;
+		let seconds_elapsed = 0;
 		const execution_time = this.report_settings.execution_time < 10
 			? 10 : this.report_settings.execution_time;
 
 		this.interval = setInterval(function()  {
-			i += 1;
-			frappe.show_progress(__('Loading Data'), i, execution_time);
+			seconds_elapsed += 1;
+			frappe.show_progress(__('Preparing Report'), seconds_elapsed, execution_time);
 		}, 1000);
 	}
 
@@ -986,7 +986,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	show_footer_message() {
 		const message = __('For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).');
-		const execution_time_msg = __('Exection Time: {0} sec.', [this.execution_time || 0.1]);
+		const execution_time_msg = __('Exection Time: {0} sec', [this.execution_time || 0.1]);
 
 		this.page.footer.removeClass('hide').addClass('text-muted col-md-12')
 			.html(`<span class="text-left col-md-6">${message}</span><span class="text-right col-md-6">${execution_time_msg}</span>`);
