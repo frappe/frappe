@@ -686,5 +686,7 @@ commands = [
 	watch,
 	_bulk_rename,
 	add_to_email_queue,
+	setup_global_help,
+	setup_help,
 	rebuild_global_search
 ]
