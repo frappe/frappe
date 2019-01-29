@@ -14,9 +14,6 @@
 					class="border module-box"
 				>
 					<div class="flush-top">
-						<div class="icon-box">
-							<span><i class="icon text-extra-muted" :class="module.icon"></i></span>
-						</div>
 						<div class="module-box-content">
 							<h4 class="h4">
 								{{ module.label }}
@@ -111,7 +108,8 @@ export default {
 .module-box {
 	border-radius: 4px;
 	cursor: pointer;
-	padding: 5px 0px;
+	padding: 5px 15px;
+    padding-top: 3px;
 	display: block;
 }
 
@@ -142,6 +140,10 @@ export default {
 
 .icon {
 	font-size: 24px;
+}
+
+.open-notification {
+	top: -2px;
 }
 
 </style>

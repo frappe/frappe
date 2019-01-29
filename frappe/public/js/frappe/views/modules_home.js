@@ -18,8 +18,6 @@ frappe.modules.Home = class {
 		});
 	}
 	setup_header() {
-		this.page.set_title(__('Modules'));
-
 		// subtitle
 	}
 };

@@ -41,7 +41,7 @@ export default {
 }
 
 .section-box {
-	padding: 10px 20px;
+	padding: 5px 20px;
 	border-radius: 4px;
 
 	p {
