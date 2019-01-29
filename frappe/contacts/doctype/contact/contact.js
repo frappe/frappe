@@ -69,7 +69,7 @@ frappe.ui.form.on("Contact", {
 				mobile_no: frm.doc.mobile_no,
 				name: frm.doc.name
 			},
-			callback: function (r) {
+			callback: function(r) {
 				if (r.message) {
 					
 					var variant = r.message;
