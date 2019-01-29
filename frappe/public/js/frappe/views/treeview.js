@@ -234,7 +234,7 @@ frappe.views.TreeView = Class.extend({
 	},
 	new_node: function(node) {
 		var me = this;
-		var node = node || me.tree.get_selected_node();
+		node = node || me.tree.get_selected_node();
 
 		if(!(node && node.expandable)) {
 			frappe.msgprint(__("Select a group node first."));
