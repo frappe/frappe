@@ -219,6 +219,9 @@ frappe.views.TreeView = Class.extend({
 		]
 
 		if(this.opts.toolbar && this.opts.extend_toolbar) {
+			toolbar = toolbar.filter(btn => {
+				return !me.opts.toolbar.find(d => d["label"]==btn["label"]);
+			});
 			return toolbar.concat(this.opts.toolbar)
 		} else if (this.opts.toolbar && !this.opts.extend_toolbar) {
 			return this.opts.toolbar
