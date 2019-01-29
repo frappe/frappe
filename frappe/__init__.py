@@ -14,6 +14,12 @@ import os, sys, importlib, inspect, json
 from .exceptions import *
 from .utils.jinja import get_jenv, get_template, render_template, get_email_from_template
 
+# Hamless for Python 3
+# For Python 2 set default encoding to utf-8
+if sys.version[0] == '2':
+	reload(sys)
+	sys.setdefaultencoding("utf-8")
+
 __version__ = '10.1.71'
 __title__ = "Frappe Framework"
 
