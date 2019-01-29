@@ -54,7 +54,7 @@ frappe.ui.form.on("Address", {
 				fax: frm.doc.fax,
 				name: frm.doc.name
 			},
-			callback: function (r) {
+			callback: function(r) {
 				if (r.message) {
 					
 					var variant = r.message;
