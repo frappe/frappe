@@ -10,7 +10,8 @@ def execute():
 
 	if not user_permissions: return
 
-	frappe.db.sql('UPDATE `tabUser Permission` SET `modified`=%(timestamp)s AND `creation`=%(timestamp)s WHERE `name` IN ({})' # nosec
-			.format(','.join(['%s'] * len(user_permissions))),
-			dict(timestamp = now_datetime())
-		)
+	frappe.db.sql('''UPDATE `tabUser Permission`
+		SET `modified`=%(timestamp)s AND `creation`=%(timestamp)s
+		WHERE `name` IN ('{}')'''.format("', '".join(user_permissions)),  # nosec
+		dict(timestamp = now_datetime())
+	)
