@@ -14,7 +14,7 @@ frappe.modules.Home = class {
 		frappe.require('/assets/js/frappe-vue.min.js', () => {
 			Vue.prototype.__ = window.__; // eslint-disable-line
 			// eslint-disable-next-line
-			new Vue({ 
+			new Vue({
 				el: this.$modules_container[0],
 				render: h => h(Modules)
 			});
@@ -22,5 +22,7 @@ frappe.modules.Home = class {
 	}
 	setup_header() {
 		this.page.set_title(__('Modules'));
+
+		// subtitle
 	}
 };

@@ -15,7 +15,7 @@ export default {
         return {
             route: frappe.get_route(),
             current_module_label: '',
-            current_module_sections: [], 
+            current_module_sections: [],
             modules_data_cache: {},
             modules_list: [],
         };
