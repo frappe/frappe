@@ -1,4 +1,4 @@
-from __future__ import print_funciton, unicode_literals
+from __future__ import print_function, unicode_literals
 '''
 Check for unused CSS Classes
 
