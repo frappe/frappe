@@ -101,15 +101,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		$("#input-help").on("keydown", function (e) {
 			if(e.which == 13) {
 				var keywords = $(this).val();
-				show_help_results(keywords);
+				// show_help_results(keywords);
 				$(this).val("");
 			}
-		});
-
-		$("#input-help + span").on("click", function () {
-			var keywords = $("#input-help").val();
-			show_help_results(keywords);
-			$(this).val("");
 		});
 
 		$(document).on("page-change", function () {
@@ -137,18 +131,10 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			for (var i = 0; i < links.length; i++) {
 				var link = links[i];
 				var url = link.url;
-				var app_name = url.split('//', 2)[1].split('/', 2)[1];
-				var data_path = url.slice(url.indexOf('/user'));
-				if(data_path.lastIndexOf('.')){
-					data_path = data_path.slice(0, data_path.lastIndexOf('.'));
-				}
-				data_path = data_path.replace('user', app_name);
-
 				$("<a>", {
 					href: link.url,
 					text: link.label,
-					target: "_blank",
-					"data-path": data_path
+					target: "_blank"
 				}).appendTo($help_links);
 			}
 
@@ -160,11 +146,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 		$(document).on("click", ".help-modal a", show_results);
 
-		var me = this;
-		function show_help_results(keywords) {
-			me.search.init_search(keywords, "help");
-		}
-
 		function show_results(e) {
 			//edit links
 			var href = e.target.href;
@@ -175,20 +156,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			var path = $(e.target).attr("data-path");
 			if(path) {
 				e.preventDefault();
-				frappe.call({
-					method: "frappe.utils.help.get_help_content",
-					args: {
-						path: path
-					},
-					callback: function (r) {
-						if(r.message && r.message.title) {
-							$result_modal.find('.modal-title').html("<span>"
-								+ r.message.title + "</span>");
-							$result_modal.find('.modal-body').html(r.message.content);
-							$result_modal.modal('show');
-						}
-					}
-				});
 			}
 		}
 	},
