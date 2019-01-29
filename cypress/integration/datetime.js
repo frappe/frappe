@@ -31,7 +31,7 @@ let datetime_formats = [];
 Object.keys(date_formats).forEach((date_format) => {
 	Object.keys(time_formats).forEach((time_format) => {
 		datetime_formats.push([date_format, time_format]);
-        });
+	});
 });
 
 Cypress.Commands.add('click_save_button', () => {
@@ -273,7 +273,7 @@ function test_datetime_format(date_format_key, time_format_key) {
 context('Date tests', () => {
 	before(() => {
 		cy.login('Administrator', 'qwe');
-        });
+	});
 
 	beforeEach(() => {
 		cy.reload();
@@ -293,9 +293,8 @@ context('Date tests', () => {
 		// Loop over each date format and test.
 		it('tests date format ' + date_format_key, function() {
 			test_date_format(date_format_key);
-                });
+		});
 	});
-
 });
 
 context('Time tests', () => {
@@ -322,7 +321,6 @@ context('Time tests', () => {
 			test_time_format(time_format_key);
 		});
 	});
-
 });
 
 context('Datetime tests', () => {
@@ -344,7 +342,6 @@ context('Datetime tests', () => {
 			body: {title: "test-ui-datetime-webpage"},
 			failOnStatusCode: true
 		});
-
 	});
 
 	beforeEach(() => {
@@ -369,5 +366,4 @@ context('Datetime tests', () => {
 			test_datetime_format(datetime_format[0], datetime_format[1]);
 		});
 	});
-
 });
