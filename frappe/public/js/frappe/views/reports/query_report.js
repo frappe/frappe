@@ -52,7 +52,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.secondary_action = {
 			label: __('Refresh'),
 			action: () => {
-				this.setup_progress_bar();
+				if(this.execution_time > 2) {
+					this.setup_progress_bar();
+				}
+
 				this.refresh();
 			}
 		};
