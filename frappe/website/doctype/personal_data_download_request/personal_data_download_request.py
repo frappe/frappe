@@ -14,6 +14,7 @@ class PersonalDataDownloadRequest(Document):
 			frappe.throw(_("This user cannot request to download data"))
 		else:
 			personal_data = get_unlinked_user_data(self.user)
+			personal_data.update(get_linked_user_data(self.user))
 
 def get_unlinked_user_data(user):
 	""" returns user data not linked to User doctype """
@@ -23,4 +24,16 @@ def get_unlinked_user_data(user):
 		d = frappe.get_all(hook.get('doctype'), {hook.get('email_field'): user},["*"])
 		if d:
 			data.update({ hook.get('doctype'):d })	
+	return data
+
+def get_linked_user_data(user):
+	""" returns user data linked to the User doctype """
+	linked_doctypes = get_linked_doctypes("Customer")
+	data = {}
+	for doctype in linked_doctypes:
+		meta = frappe.get_meta(doctype)
+		if not meta.issingle:
+			d = frappe.get_all(doctype, {linked_doctypes.get(doctype).get('fieldname')[0]: user},["*"])
+			if d:
+				data.update({ doctype:d })
 	return data
