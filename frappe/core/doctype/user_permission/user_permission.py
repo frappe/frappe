@@ -114,13 +114,28 @@ def get_permitted_documents(doctype):
 		if d.get('doc')]
 
 @frappe.whitelist()
-def check_applicable_doc_perm(user,doctype,docname):
-	return frappe.get_all('User Permission',
+def check_applicable_doc_perm(user, doctype, docname):
+	applicable = []
+	all_perm =frappe.get_all('User Permission',
 			fields=['applicable_for'],
 			filters={"user": user,
 				"allow": doctype,
-				"for_value":docname,
-			})
+				"apply_to_all_doctypes":1,
+			},limit=1)
+	if len(all_perm) > 0:
+		data = get_linked_doctypes(doctype)
+		for key in data:
+			applicable.append(key)
+	else:
+		data = frappe.get_all('User Permission',
+				fields=['applicable_for'],
+				filters={"user": user,
+					"allow": doctype,
+					"for_value":docname,
+				})
+		for d in data:
+			applicable.append(d.applicable_for)
+	return applicable
 
 
 @frappe.whitelist()
@@ -151,8 +166,10 @@ def add_user_permissions(data):
 		user_perm.insert()
 		return 1
 	else:
+		remove_apply_to_all(data.user, data.doctype, data.docname)
+		update_applicable(d, data.applicable_doctypes, data.user, data.doctype, data.docname)
 		for applicable in data.applicable_doctypes :
-			if {'applicable_for': applicable} not in d:
+			if applicable not in d:
 				user_perm = frappe.new_doc("User Permission")
 				user_perm.user = data.user
 				user_perm.allow = data.doctype
@@ -166,5 +183,14 @@ def add_user_permissions(data):
 
 def remove_applicable(d, user, doctype, docname):
 	for data in d:
-		print(data)
-		frappe.db.sql("delete from `tabUser Permission` where user='"+user+"' and applicable_for ='"+data.applicable_for+"' and allow='"+doctype+"' and for_value='"+docname+"';")
+		frappe.db.sql("delete from `tabUser Permission` where user='"+user+"' and applicable_for ='"+data+"' and allow='"+doctype+"' and for_value='"+docname+"';")
+
+def remove_apply_to_all(user, doctype, docname):
+		frappe.db.sql("delete from `tabUser Permission` where user='"+user+"' and apply_to_all_doctypes =1 and allow='"+doctype+"' and for_value='"+docname+"';")
+
+def update_applicable(already_applied, to_apply, user, doctype, docname):
+	for applied in already_applied:
+		print(applied,to_apply)
+		if applied not in to_apply:
+			print("----------->>deleting",applied)
+			frappe.db.sql("delete from `tabUser Permission` where user='"+user+"' and applicable_for='"+ applied +"' and allow='"+doctype+"' and for_value='"+docname+"';")

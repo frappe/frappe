@@ -2,7 +2,7 @@ frappe.listview_settings['User Permission'] = {
 
 	onload: function(list_view) {
 		var me =this
-		list_view.page.add_menu_item(__("Add User Permissions"), function() {
+		list_view.page.add_menu_item(__("Create/Update User Permissions"), function() {
 			var dialog =new frappe.ui.Dialog({
 				title : __('Add User Permissions'),
 				fields: [
@@ -49,17 +49,28 @@ frappe.listview_settings['User Permission'] = {
 						'hidden': 1,
 						'onchange':  function(){
 							me.get_applicable_doctype(dialog).then(applicable => {
-								if(applicable.length != 0 ){
-									me.get_multi_select_options(dialog, applicable).then(options =>{
-										dialog.set_df_property("apply_to_all_doctypes", "checked", 0)
-										dialog.set_df_property("applicable_doctypes", "hidden", 0)
-										dialog.set_df_property("applicable_doctypes", "options", options)
-									})
+								me.get_multi_select_options(dialog, applicable).then(options =>{
+								if (options.length == applicable.length){
+									console.log("inside if")
+									dialog.set_primary_action("Update")
+									dialog.set_title("Update User Permissions")
+									dialog.set_value("apply_to_all_doctypes", "checked",1)
+									dialog.set_df_property("applicable_doctypes", "options", options)
+									dialog.set_df_property("applicable_doctypes", "hidden", 1)
+								}else if(applicable.length != 0 ){
+									console.log("inside elseif")
+									dialog.set_primary_action("Update")
+									dialog.set_title("Update User Permissions")
+									dialog.set_df_property("apply_to_all_doctypes", "checked", 0)
+									dialog.set_df_property("applicable_doctypes", "hidden", 0)
+									dialog.set_df_property("applicable_doctypes", "options", options)
 								}else{
-									dialog.set_value("apply_to_all_doctypes","checked",1)
-									dialog.set_df_property("applicable_doctypes", "options", undefined)
+									console.log("inside else")
+									dialog.set_value("apply_to_all_doctypes", "checked",1)
+									dialog.set_df_property("applicable_doctypes", "options", options)
 									dialog.set_df_property("applicable_doctypes", "hidden", 1)
 								}
+							})
 							})
 						}
 					},
@@ -78,7 +89,7 @@ frappe.listview_settings['User Permission'] = {
 										dialog.set_df_property("applicable_doctypes", "options", options)
 									}else{
 										dialog.set_df_property("applicable_doctypes", "hidden", 1)
-										dialog.set_df_property("applicable_doctypes", "options", undefined)
+										dialog.set_df_property("applicable_doctypes", "options", options)
 									}
 								})
 							})
@@ -89,29 +100,32 @@ frappe.listview_settings['User Permission'] = {
 						"label": __("Applicable Doctypes"),
 						"fieldname": "applicable_doctypes",
 						"fieldtype": "MultiCheck",
+						"options": [],
 						"columns": 2,
 						"hidden": 1
 					},
 				],
 				primary_action: (data) => {
-					console.log(data)
-					frappe.call({
-						async: false,
-						method: "frappe.core.doctype.user_permission.user_permission.add_user_permissions",
-						args: {
-							data : data
-						},
-						callback: function(r){
-							if (r.message == 1){
-								console.log("helloo")
-								frappe.show_alert({message:__("User Permissions Created Sucessfully"), indicator:'blue'});
-							}else{
-								frappe.show_alert({message:__("User Permissions Not Created"), indicator:'red'});
-
-							}
+						if(dialog.fields_dict.applicable_doctypes.get_unchecked_options().length == 0){
+							data.apply_to_all_doctypes = 1
+							data.applicable_doctypes = []
 						}
-					})
-					dialog.hide()
+						frappe.call({
+							async: false,
+							method: "frappe.core.doctype.user_permission.user_permission.add_user_permissions",
+							args: {
+								data : data
+							},
+							callback: function(r){
+								if (r.message == 1){
+									frappe.show_alert({message:__("User Permissions Created Sucessfully"), indicator:'blue'});
+								}else{
+									frappe.show_alert({message:__("User Permissions Not Created"), indicator:'red'});
+
+								}
+							}
+						})
+					dialog.hide();
 					list_view.refresh();
 				},
 				primary_action_label: __('Submit')
@@ -179,11 +193,7 @@ frappe.listview_settings['User Permission'] = {
 					doctype: dialog.fields_dict.doctype.value,
 					docname: dialog.fields_dict.docname.value
 				}}).then(r => {
-					var applicable = []
-					for (var doc in r.message){
-						applicable.push(r.message[doc].applicable_for)
-					}
-					resolve(applicable)
+					resolve(r.message)
 				})
 		})
 	},
