@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import now_datetime
+from frappe.utils import now
 
 def execute():
 	user_permissions = frappe.get_all('User Permission', filters={
@@ -11,7 +11,7 @@ def execute():
 	if not user_permissions: return
 
 	frappe.db.sql('''UPDATE `tabUser Permission`
-		SET `modified`=%(timestamp)s AND `creation`=%(timestamp)s
+		SET `modified`=%(timestamp)s, `creation`=%(timestamp)s
 		WHERE `name` IN ('{}')'''.format("', '".join(user_permissions)),  # nosec
-		dict(timestamp = now_datetime())
+		dict(timestamp=now())
 	)

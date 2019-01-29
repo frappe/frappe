@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import now_datetime
+from frappe.utils import now
 from frappe.desk.form.linked_with import get_linked_doctypes
 from frappe.patches.v11_0.replicate_old_user_permissions import get_doctypes_to_skip
 
@@ -65,8 +65,8 @@ def execute():
 						user_permission.for_value,
 						doctype,
 						0,
-						now_datetime(),
-						now_datetime()
+						now(),
+						now()
 					))
 		else:
 			# No skip_for_doctype found! Just update apply_to_all_doctypes.
