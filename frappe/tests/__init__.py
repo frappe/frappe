@@ -22,7 +22,7 @@ def insert_test_data(doctype, sort_fn=None):
 
 def get_test_doclist(doctype, name=None):
 	"""get test doclist, collection of doclists"""
-	import os, frappe
+	import os
 	from frappe import conf
 	from frappe.modules.utils import peval_doclist
 	from frappe.modules import scrub

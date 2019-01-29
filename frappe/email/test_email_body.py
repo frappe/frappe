@@ -2,7 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 from __future__ import unicode_literals
 
-import frappe, unittest, os, base64
+import unittest, os, base64
 from frappe.email.email_body import (replace_filename_with_cid,
 	get_email, inline_style_in_html, get_header)
 

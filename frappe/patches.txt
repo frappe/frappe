@@ -222,7 +222,6 @@ frappe.patches.v11_0.rename_workflow_action_to_workflow_action_master #13-06-201
 frappe.patches.v11_0.rename_email_alert_to_notification #13-06-2018
 frappe.patches.v11_0.delete_duplicate_user_permissions
 frappe.patches.v11_0.set_dropbox_file_backup
-frappe.patches.v11_0.get_docs_apps_if_not_present
 frappe.patches.v10_0.set_default_locking_time
 frappe.patches.v11_0.rename_google_maps_doctype
 frappe.patches.v10_0.modify_smallest_currency_fraction

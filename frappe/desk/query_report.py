@@ -254,7 +254,7 @@ def export_query():
 				if row and (i in visible_idx):
 					row_list = []
 					for idx in range(len(data.columns)):
-						row_list.append(row.get(columns[idx]["fieldname"],""))
+						row_list.append(row.get(columns[idx]["fieldname"], row.get(columns[idx]["label"], "")))
 					result.append(row_list)
 				elif not row:
 					result.append([])

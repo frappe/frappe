@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 # IMPORTANT: only import safe functions as this module will be included in jinja environment
 import frappe
 import operator
-import re, urllib, datetime, math, time
+import re, datetime, math, time
 import babel.dates
 from babel.core import UnknownLocaleError
 from dateutil import parser
@@ -858,7 +858,7 @@ def get_filter(doctype, f):
 		# if operator is missing
 		f.operator = "="
 
-	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in",
+	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in", "is",
 		"between", "descendants of", "ancestors of", "not descendants of", "not ancestors of", "previous", "next")
 	if f.operator.lower() not in valid_operators:
 		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))

@@ -410,7 +410,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				treeView: this.tree_report,
 				layout: 'fixed',
 				cellHeight: 33,
-				showTotalRow: this.raw_data.add_total_row
+				showTotalRow: this.raw_data.add_total_row,
+				hooks: {
+					totalAccumulator: frappe.utils.report_total_accumulator
+				}
 			};
 
 			if (this.report_settings.get_datatable_options) {
@@ -612,7 +615,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			}
 
 			const format_cell = (value, row, column, data) => {
-				return frappe.format(value || '', column,
+				return frappe.format(value == null ? '' : value, column,
 					{for_print: false, always_show_decimals: true}, data);
 			};
 
@@ -649,7 +652,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			let row_obj = {};
 			if (Array.isArray(row)) {
 				this.columns.forEach((column, i) => {
-					row_obj[column.id] = row[i] || null;
+					row_obj[column.id] = row[i];
 				});
 
 				return row_obj;

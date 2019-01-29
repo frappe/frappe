@@ -13,13 +13,16 @@ frappe.ui.Filter = class {
 			["not like", __("Not Like")],
 			["in", __("In")],
 			["not in", __("Not In")],
+			["is", __("Is")],
 			[">", ">"],
 			["<", "<"],
 			[">=", ">="],
 			["<=", "<="],
 			["Between", __("Between")],
 			["descendants of", __("Descendants Of")],
+			["not descendants of", __("Not Descendants Of")],
 			["ancestors of", __("Ancestors Of")],
+			["not ancestors of", __("Not Ancestors Of")],
 			["Previous", __("Previous")],
 			["Next", __("Next")]
 		];
@@ -39,7 +42,9 @@ frappe.ui.Filter = class {
 	}
 
 	make() {
-		this.filter_edit_area = $(frappe.render_template("edit_filter", {}))
+		this.filter_edit_area = $(frappe.render_template("edit_filter", {
+			conditions: this.conditions
+		}))
 			.appendTo(this.parent.find('.filter-edit-area'));
 	}
 
@@ -127,7 +132,9 @@ frappe.ui.Filter = class {
 
 	set_values(doctype, fieldname, condition, value) {
 		// presents given (could be via tags!)
-		this.set_field(doctype, fieldname);
+		if (this.set_field(doctype, fieldname) === false) {
+			return
+		}
 
 		if(this.field.df.original_type==='Check') {
 			value = (value==1) ? 'Yes' : 'No';
@@ -156,9 +163,9 @@ frappe.ui.Filter = class {
 
 		let original_docfield = (this.fieldselect.fields_by_name[doctype] || {})[fieldname];
 		if(!original_docfield) {
-			frappe.msgprint(__("Field {0} is not selectable.", [fieldname]));
+			console.warn(`Field ${fieldname} is not selectable.`);
 			this.remove();
-			return;
+			return false;
 		}
 
 		let df = copy_dict(original_docfield);
@@ -422,6 +429,13 @@ frappe.ui.filter_utils = {
 		}
 		if(condition == "Between" && (df.fieldtype == 'Date' || df.fieldtype == 'Datetime')){
 			df.fieldtype = 'DateRange';
+		}
+		if (condition === 'is') {
+			df.fieldtype = 'Select';
+			df.options = [
+				{ label: __('Set'), value: 'set' },
+				{ label: __('Not Set'), value: 'not set' },
+			];
 		}
 	}
 };
