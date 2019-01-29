@@ -62,6 +62,8 @@ def rebuild_for_doctype(doctype):
 	searchable fields
 	:param doctype: Doctype
 	"""
+	if frappe.local.conf.get('disable_global_search'):
+		return
 
 	def _get_filters():
 		filters = frappe._dict({ "docstatus": ["!=", 2] })
@@ -219,6 +221,8 @@ def update_global_search(doc):
 	`frappe.flags.update_global_search` from given doc
 	:param doc: Document to be added to global search
 	"""
+	if frappe.local.conf.get('disable_global_search'):
+		return
 
 	if doc.docstatus > 1 or (doc.meta.has_field("enabled") and not doc.get("enabled")) \
 		or doc.get("disabled"):
