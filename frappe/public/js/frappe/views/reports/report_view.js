@@ -1186,18 +1186,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					frappe.set_route('List', 'User Permission', args);
 				}
 			});
-		}
-
-		// add to desktop
-		items.push({
-			label: __('Add to Desktop'),
-			action: () => {
-				frappe.add_to_desktop(
-					this.report_name || __('{0} Report', [this.doctype]),
-					this.doctype, this.report_name
-				);
-			}
-		});
+		};
 
 		return items.map(i => Object.assign(i, { standard: true }));
 	}
