@@ -50,7 +50,8 @@ frappe.views.pageview = {
 				container = $('<div></div>').appendTo(container);
 				
 				frappe.require('/assets/js/frappe-vue.min.js', () => {
-					Vue.prototype.__ = window.__; 
+					Vue.prototype.__ = window.__; // eslint-disable-line
+					// eslint-disable-next-line
 					new Vue({
 						el: container[0],
 						render: h => h(Desktop)

@@ -12,8 +12,9 @@ frappe.modules.Home = class {
 	make_body() {
 		this.$modules_container = this.$parent.find('.layout-main');
 		frappe.require('/assets/js/frappe-vue.min.js', () => {
-			Vue.prototype.__ = window.__; 
-			new Vue({
+			Vue.prototype.__ = window.__; // eslint-disable-line
+			// eslint-disable-next-line
+			new Vue({ 
 				el: this.$modules_container[0],
 				render: h => h(Modules)
 			});

@@ -2,12 +2,12 @@
     <div>
         <div v-if="sections.length" class="sections-container">
             <div v-for="section in sections"
-                :key="section.name"
+                :key="section.label"
                 class="border section-box"
             >
                 <h4 class="h4"> {{ section.label }} </h4>
                 <p v-for="item in section.items" class="small"
-                    :key="section.name + item.name"
+                    :key="section.label + item.label"
                     :data-youtube-id="item.type==='help' ? item.youtube_id : false"
                 >
                     <a :href="item.route">{{ item.label || __(item.name) }}</a>

@@ -37,9 +37,14 @@ export default {
                 this.route = route;
                 let module_name = route[1];
                 let title = this.current_module_label ? this.current_module_label : module_name;
-                title = module_name!=='home' ? title : 'Modules';
 
                 frappe.modules.home && frappe.modules.home.page.set_title(title);
+
+                if(!frappe.modules.home) {
+                    setTimeout(() => {
+                        frappe.modules.home.page.set_title(title);
+                    }, 200);
+                }
 
                 if(module_name) {
                     this.get_module_sections(module_name);
