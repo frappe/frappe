@@ -501,12 +501,30 @@ def get_modules_from_app(app):
 	except ImportError:
 		return []
 
+	# Only newly formatted modules that have a category to be shown on desk
+	modules = [m for m in modules if m.get("category")]
+
+	active_domains = frappe.get_active_domains()
+
 	if isinstance(modules, dict):
-		modules_list = []
+		allowed_modules_list = []
 		for m, desktop_icon in iteritems(modules):
 			desktop_icon['module_name'] = m
-			modules_list.append(desktop_icon)
+			allowed_modules_list.append(desktop_icon)
 	else:
-		modules_list = modules
+		allowed_modules_list = []
+		for m in modules:
+			to_add = True
 
-	return modules_list
+			# Check Domain
+			if is_domain(m):
+				if m.get("module_name") not in active_domains:
+					to_add = False
+
+			if to_add:
+				allowed_modules_list.append(m)
+
+	return allowed_modules_list
+
+def is_domain(module):
+	return module.get("category") == "Domains"
