@@ -120,6 +120,7 @@ def check_applicable_doc_perm(user, doctype, docname):
 			fields=['applicable_for'],
 			filters={"user": user,
 				"allow": doctype,
+				"for_value": docname,
 				"apply_to_all_doctypes":1,
 			},limit=1)
 	if len(all_perm) > 0:
@@ -155,7 +156,8 @@ def add_user_permissions(data):
 	data = frappe._dict(data)
 
 	d = check_applicable_doc_perm(data.user, data.doctype, data.docname)
-
+	exists = frappe.db.exists("User Permission", {"user": data.user, "allow": data.doctype, "for_value": data.docname, "apply_to_all_doctypes": 1})
+	if exists: return 0
 	if data.apply_to_all_doctypes == 1:
 		remove_applicable(d, data.user, data.doctype, data.docname)
 		user_perm = frappe.new_doc("User Permission")
@@ -182,15 +184,28 @@ def add_user_permissions(data):
 	return 0
 
 def remove_applicable(d, user, doctype, docname):
-	for data in d:
-		frappe.db.sql("delete from `tabUser Permission` where user='"+user+"' and applicable_for ='"+data+"' and allow='"+doctype+"' and for_value='"+docname+"';")
+	for applicable_for in d:
+		frappe.db.sql("""DELETE FROM `tabUser Permission`
+			WHERE `user`=%s
+			AND `applicable_for`=%s
+			AND `allow`=%s
+			AND `for_value`=%s
+		""", (user, applicable_for, doctype, docname))
 
 def remove_apply_to_all(user, doctype, docname):
-		frappe.db.sql("delete from `tabUser Permission` where user='"+user+"' and apply_to_all_doctypes =1 and allow='"+doctype+"' and for_value='"+docname+"';")
+		frappe.db.sql("""DELETE from `tabUser Permission`
+			WHERE `user`=%s
+			AND `apply_to_all_doctypes`=1
+			AND `allow`=%s
+			AND `for_value`=%s
+		""",(user, doctype, docname))
 
 def update_applicable(already_applied, to_apply, user, doctype, docname):
 	for applied in already_applied:
-		print(applied,to_apply)
 		if applied not in to_apply:
-			print("----------->>deleting",applied)
-			frappe.db.sql("delete from `tabUser Permission` where user='"+user+"' and applicable_for='"+ applied +"' and allow='"+doctype+"' and for_value='"+docname+"';")
+			frappe.db.sql("""DELETE FROM `tabUser Permission`
+				WHERE `user`=%s
+				AND `applicable_for`=%s
+				AND `allow`=%s
+				AND `for_value`=%s
+			""",(user, applied, doctype, docname))
