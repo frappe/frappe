@@ -15,7 +15,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import now
+from frappe.utils import now, cint
 
 class NestedSetRecursionError(frappe.ValidationError): pass
 class NestedSetMultipleRootsError(frappe.ValidationError): pass
@@ -256,9 +256,10 @@ def get_root_of(doctype):
 		and t1.rgt > t1.lft""".format(doctype, doctype))
 	return result[0][0] if result else None
 
-def get_ancestors_of(doctype, name):
+def get_ancestors_of(doctype, name, order_by="lft desc", limit=None):
 	"""Get ancestor elements of a DocType with a tree structure"""
 	lft, rgt = frappe.db.get_value(doctype, name, ["lft", "rgt"])
+	limit = "limit %s" % cint(limit) if limit else ""
 	result = frappe.db.sql_list("""select name from `tab{0}`
-		where lft<%s and rgt>%s order by lft desc""".format(doctype), (lft, rgt))
+		where lft<%s and rgt>%s order by {1} {2}""".format(doctype, order_by, limit), (lft, rgt))
 	return result or []
