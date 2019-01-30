@@ -43,7 +43,6 @@ body {
 }
 
 .breadcrumb {
-    font-size: 0.75rem;
     padding-left: 0;
     padding-right: 0;
     background-color: white;
@@ -61,10 +60,6 @@ img {
 	@extend .d-none;
 }
 
-.btn-primary {
-	color: $white;
-}
-
 .text-underline {
 	text-decoration: underline;
 }
@@ -73,6 +68,14 @@ img {
 	padding: 5rem 0;
 	min-height: 140px;
 	border-top: 1px solid $border-color;
+}
+
+.footer-group-label {
+	color: $text-muted;
+}
+
+.footer-parent-item {
+	margin-bottom: 1rem;
 }
 
 .no-underline {
@@ -92,5 +95,3 @@ img {
     width: 1.5rem;
     height: 1.5rem;
 }
-
-

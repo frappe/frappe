@@ -70,7 +70,7 @@ class WebsiteTheme(Document):
 		stdout, stderr = process.communicate()
 
 		if stderr:
-			frappe.throw('<pre>{stderr}</pre>'.format(stderr=stderr))
+			frappe.throw('<pre>{stderr}</pre>'.format(stderr=frappe.safe_encode(stderr)))
 		else:
 			self.custom_theme_url = '/assets/frappe/website_theme/' + file_name
 

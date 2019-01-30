@@ -7,7 +7,7 @@
             {% if page.child_items %} onclick="return false;" {% endif %}
             {{ page.target or ''}}>
             {%- if page.child_items -%}
-                <div class="footer-group-label footer-parent-item text-muted mb-3">{{ page.label }}</div>
+                <div class="footer-group-label footer-parent-item">{{ page.label }}</div>
                 </a>
                 <ul class="list-unstyled">
                 {%- for child in page.child_items -%}
@@ -18,7 +18,7 @@
                 {%- endfor -%}
                 </ul>
             {%- else -%}
-            <div class="footer-group-label text-muted">{{ page.label }}<div>
+            <div class="footer-group-label">{{ page.label }}<div>
             </a>
             {%- endif -%}
             </div>
