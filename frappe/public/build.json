@@ -230,7 +230,6 @@
 		"public/js/frappe/ui/toolbar/about.js",
 		"public/js/frappe/ui/toolbar/navbar.html",
 		"public/js/frappe/ui/toolbar/toolbar.js",
-		"public/js/frappe/ui/toolbar/modules_select.js",
 		"public/js/frappe/ui/toolbar/notifications.js",
 		"public/js/frappe/views/communication.js",
 		"public/js/frappe/views/translation_manager.js",
