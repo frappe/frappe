@@ -156,6 +156,12 @@ frappe.views.TreeView = Class.extend({
 		});
 
 		cur_tree = this.tree;
+		this.post_render();
+	},
+
+	post_render: function() {
+		var me = this;
+		me.opts.post_render && me.opts.post_render(me);
 	},
 
 	select_node: function(node) {
