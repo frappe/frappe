@@ -451,3 +451,22 @@ def add_attachments(doctype, name, attachments):
 			files.append(f)
 
 	return files
+
+@frappe.whitelist()
+def download_zip(files, output_filename, public=False):
+	from zipfile import ZipFile
+
+	input_files = [filename for filename in files]
+	main_folder = 'public' if public else 'private'
+	output_path = frappe.get_site_path(main_folder, 'files', output_filename)
+
+	with ZipFile(output_path, 'w') as output_zip:
+		for input_file in input_files:
+			output_zip.write(input_file, arcname=os.path.basename(input_file))
+
+	with open(output_path, 'rb') as fileobj:
+		filedata = fileobj.read()
+
+	frappe.local.response.filename = output_filename
+	frappe.local.response.filecontent = filedata
+	frappe.local.response.type = "download"
