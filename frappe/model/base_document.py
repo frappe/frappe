@@ -754,7 +754,7 @@ class BaseDocument(object):
 				ref_doc = frappe.new_doc(self.doctype)
 			else:
 				# get values from old doc
-				if self.parent:
+				if self.get('parent_doc'):
 					self.parent_doc.get_latest()
 					ref_doc = [d for d in self.parent_doc.get(self.parentfield) if d.name == self.name][0]
 				else:
