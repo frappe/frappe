@@ -10,11 +10,23 @@
 					:key="section.label + item.label"
 					:data-youtube-id="item.type==='help' ? item.youtube_id : false"
 				>
-					<a class="indicator grey"
-						:href="item.route"
+					<span v-if="item.dependencies && item.incomplete_dependencies"
+						class="text-muted indicator grey"
 					>
 						{{ item.label || __(item.name) }}
-					</a>
+					</span>
+
+					<span v-else>
+						<a class="indicator"
+							:class="item.onboard && !item.count ? 'orange' : 'grey'"
+							:href="item.route"
+						>
+							{{ item.label || __(item.name) }}
+						</a>
+						<span class="open-notification global hide"
+							@click="item.doctype || item.name ? frappe.ui.notifications.show_open_count_list(item.doctype || item.name) : false"
+							:data-doctype="item.doctype || item.name"></span>
+					</span>
 				</p>
 			</div>
 		</div>
@@ -30,7 +42,7 @@ export default {
 	props: ['module_name', 'sections'],
 	updated() {
 		frappe.app.update_notification_count_in_modules();
-	}
+	},
 }
 </script>
 <style lang="less" scoped>
@@ -68,6 +80,10 @@ a:hover, a:focus {
 .indicator {
 	font-weight: inherit;
     color: inherit;
+}
+
+.disabled {
+	color: blue;
 }
 
 </style>

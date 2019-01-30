@@ -42,6 +42,34 @@ def get_data(module):
 
 	#set_last_modified(data)
 
+	exists_cache = {}
+
+	def exists(name):
+		exists = exists_cache.get(name)
+		if not exists:
+			exists = frappe.db.exists(name)
+			exists_cache[name] = exists
+		return exists
+
+	for section in data:
+		for item in section["items"]:
+			# Onboarding
+
+			# First disable based on exists of depends_on list
+			dependencies = item.get("dependencies") or None
+			if dependencies:
+				incomplete_dependencies = [d for d in dependencies if not exists(d)]
+				if len(incomplete_dependencies):
+					item["incomplete_dependencies"] = incomplete_dependencies
+
+			if item.get("onboard"):
+				# Mark Spotlights for initial
+				if item.get("type") == "doctype":
+					name = item.get("name")
+					count = exists(name)
+
+					item["count"] = count
+
 	return data
 
 def build_config_from_file(module):
