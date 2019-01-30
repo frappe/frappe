@@ -9,7 +9,6 @@ from frappe.permissions import (get_valid_perms, update_permission_property)
 from frappe import _
 from frappe.core.utils import find
 from frappe.desk.form.linked_with import get_linked_doctypes
-from pprint import pprint
 
 class UserPermission(Document):
 	def validate(self):
