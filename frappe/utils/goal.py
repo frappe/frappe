@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from six.moves import xrange
+
 
 def get_monthly_results(goal_doctype, goal_field, date_col, filter_str, aggregation = 'sum'):
 	'''Get monthly aggregation values for given field of doctype'''
@@ -81,10 +81,11 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 	months_formatted = []
 	values = []
 	values_formatted = []
-	for i in xrange(0, 12):
-		month_value = formatdate(add_months(today(), -i), "MM-yyyy")
-		month_word = getdate(month_value).strftime('%b')
-		month_year = getdate(month_value).strftime('%B') + ', ' + getdate(month_value).strftime('%Y')
+	for i in range(0, 12):
+		date_value = add_months(today(), -i)
+		month_value = formatdate(date_value, "MM-yyyy")
+		month_word = getdate(date_value).strftime('%b')
+		month_year = getdate(date_value).strftime('%B') + ', ' + getdate(date_value).strftime('%Y')
 		months.insert(0, month_word)
 		months_formatted.insert(0, month_year)
 		if month_value in month_to_value_dict:
@@ -94,7 +95,7 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 		values.insert(0, val)
 		values_formatted.insert(0, format_value(val, meta.get_field(goal_total_field), doc))
 
-	specific_values = []
+	y_markers = []
 	summary_values = [
 		{
 			'title': _("This month"),
@@ -104,10 +105,10 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 	]
 
 	if float(goal) > 0:
-		specific_values = [
+		y_markers = [
 			{
-				'title': _("Goal"),
-				'line_type': "dashed",
+				'label': _("Goal"),
+				'lineType': "dashed",
 				'value': goal
 			},
 		]
@@ -136,10 +137,12 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 				}
 			],
 			'labels': months,
-			'specific_values': specific_values,
 		},
 
-		'summary': summary_values
+		'summary': summary_values,
 	}
+
+	if y_markers:
+		data["data"]["yMarkers"] = y_markers
 
 	return data

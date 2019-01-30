@@ -1,3 +1,0 @@
-# Reports and Printing
-
-{index}

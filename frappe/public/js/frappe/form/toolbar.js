@@ -107,7 +107,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		var p = this.frm.perm[0];
 		var docstatus = cint(this.frm.doc.docstatus);
 		var is_submittable = frappe.model.is_submittable(this.frm.doc.doctype)
-
+		var issingle = this.frm.meta.issingle;
 		var print_settings = frappe.model.get_doc(":Print Settings", "Print Settings")
 		var allow_print_for_draft = cint(print_settings.allow_print_for_draft);
 		var allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
@@ -116,7 +116,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		if(!is_submittable || docstatus == 1  ||
 			(allow_print_for_cancelled && docstatus == 2)||
 			(allow_print_for_draft && docstatus == 0)) {
-			if(frappe.model.can_print(null, me.frm)) {
+			if(frappe.model.can_print(null, me.frm) && !issingle) {
 				this.page.add_menu_item(__("Print"), function() {
 					me.frm.print_doc();}, true);
 				this.print_icon = this.page.add_action_icon("fa fa-print", function() {
@@ -217,8 +217,7 @@ frappe.ui.form.Toolbar = Class.extend({
 	can_cancel: function() {
 		return this.get_docstatus()===1
 			&& this.frm.perm[0].cancel
-			&& !this.read_only
-			&& !this.has_workflow();
+			&& !this.read_only;
 	},
 	can_amend: function() {
 		return this.get_docstatus()===2

@@ -93,13 +93,11 @@ frappe.ui.form.on('Auto Email Report', {
 							this.hide();
 							frm.set_value('filters', JSON.stringify(values));
 							frm.trigger('show_filters');
-							frappe.query_report_filters_by_name = null;
 						}
 					}
 				});
 				dialog.show();
 				dialog.set_values(filters);
-				frappe.query_report_filters_by_name = dialog.fields_dict;
 			})
 		}
 	}

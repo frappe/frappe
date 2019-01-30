@@ -1,33 +1,34 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
+/* eslint-disable no-console */
 
 window.get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, call_back) {
 	console.warn("This function 'get_server_fields' has been deprecated and will be removed soon.");
 	frappe.dom.freeze();
 	if($.isPlainObject(arg)) arg = JSON.stringify(arg);
 	return $c('runserverobj', {'method': method, 'docs': JSON.stringify(doc), 'arg': arg },
-	function(r, rt) {
-		frappe.dom.unfreeze();
-		if (r.message)  {
-			var d = locals[dt][dn];
-			var field_dict = r.message;
-			for(var key in field_dict) {
-				d[key] = field_dict[key];
-				if (table_field)
-					refresh_field(key, d.name, table_field);
-				else
-					refresh_field(key);
+		function(r) {
+			frappe.dom.unfreeze();
+			if (r.message)  {
+				var d = locals[dt][dn];
+				var field_dict = r.message;
+				for(var key in field_dict) {
+					d[key] = field_dict[key];
+					if (table_field)
+						refresh_field(key, d.name, table_field);
+					else
+						refresh_field(key);
+				}
 			}
-		}
-		if(call_back){
-			doc = locals[doc.doctype][doc.name];
-			call_back(doc, dt, dn);
-		}
-	});
-}
+			if(call_back){
+				doc = locals[doc.doctype][doc.name];
+				call_back(doc, dt, dn);
+			}
+		});
+};
 
 
-window.set_multiple = function (dt, dn, dict, table_field) {
+window.set_multiple = function(dt, dn, dict, table_field) {
 	var d = locals[dt][dn];
 	for(var key in dict) {
 		d[key] = dict[key];
@@ -36,16 +37,16 @@ window.set_multiple = function (dt, dn, dict, table_field) {
 		else
 			refresh_field(key);
 	}
-}
+};
 
-window.refresh_many = function (flist, dn, table_field) {
+window.refresh_many = function(flist, dn, table_field) {
 	for(var i in flist) {
 		if (table_field)
 			refresh_field(flist[i], dn, table_field);
 		else
 			refresh_field(flist[i]);
 	}
-}
+};
 
 window.set_field_tip = function(n,txt) {
 	var df = frappe.meta.get_docfield(cur_frm.doctype, n, cur_frm.docname);
@@ -53,13 +54,13 @@ window.set_field_tip = function(n,txt) {
 
 	if(cur_frm && cur_frm.fields_dict) {
 		if(cur_frm.fields_dict[n])
-			cur_frm.fields_dict[n].comment_area.innerHTML = replace_newlines(txt);
+			cur_frm.fields_dict[n].comment_area.innerHTML = frappe.utils.replace_newlines(txt);
 		else
 			console.log('[set_field_tip] Unable to set field tip: ' + n);
 	}
-}
+};
 
-refresh_field = function(n, docname, table_field) {
+window.refresh_field = function(n, docname, table_field) {
 	// multiple
 	if(typeof n==typeof [])
 		refresh_many(n, docname, table_field);
@@ -78,50 +79,53 @@ refresh_field = function(n, docname, table_field) {
 			}
 		}
 	} else if(cur_frm) {
-		cur_frm.refresh_field(n)
+		cur_frm.refresh_field(n);
 	}
-}
+};
 
 window.set_field_options = function(n, txt) {
-	cur_frm.set_df_property(n, 'options', txt)
-}
+	cur_frm.set_df_property(n, 'options', txt);
+};
 
 window.set_field_permlevel = function(n, level) {
-	cur_frm.set_df_property(n, 'permlevel', level)
-}
+	cur_frm.set_df_property(n, 'permlevel', level);
+};
 
-toggle_field = function(n, hidden) {
+window.toggle_field = function(n, hidden) {
 	var df = frappe.meta.get_docfield(cur_frm.doctype, n, cur_frm.docname);
 	if(df) {
 		df.hidden = hidden;
 		refresh_field(n);
-	}
-	else {
+	} else {
 		console.log((hidden ? "hide_field" : "unhide_field") + " cannot find field " + n);
 	}
-}
+};
 
-hide_field = function(n) {
+window.hide_field = function(n) {
 	if(cur_frm) {
 		if(n.substr) toggle_field(n, 1);
-		else { for(var i in n) toggle_field(n[i], 1) }
+		else {
+			for(var i in n) toggle_field(n[i], 1);
+		}
 	}
-}
+};
 
-unhide_field = function(n) {
+window.unhide_field = function(n) {
 	if(cur_frm) {
 		if(n.substr) toggle_field(n, 0);
-		else { for(var i in n) toggle_field(n[i], 0) }
+		else {
+			for(var i in n) toggle_field(n[i], 0);
+		}
 	}
-}
+};
 
-get_field_obj = function(fn) {
+window.get_field_obj = function(fn) {
 	return cur_frm.fields_dict[fn];
-}
+};
 
 _f.Frm.prototype.get_doc = function() {
 	return locals[this.doctype][this.docname];
-}
+};
 
 _f.Frm.prototype.set_currency_labels = function(fields_list, currency, parentfield) {
 	// To set the currency in the label
@@ -129,13 +133,13 @@ _f.Frm.prototype.set_currency_labels = function(fields_list, currency, parentfie
 
 	var me = this;
 	var doctype = parentfield ? this.fields_dict[parentfield].grid.doctype : this.doc.doctype;
-	var field_label_map = {}
-	var grid_field_label_map = {}
+	var field_label_map = {};
+	var grid_field_label_map = {};
 
 	$.each(fields_list, function(i, fname) {
 		var docfield = frappe.meta.docfield_map[doctype][fname];
 		if(docfield) {
-			var label = __(docfield.label || "").replace(/\([^\)]*\)/g, "");
+			var label = __(docfield.label || "").replace(/\([^\)]*\)/g, ""); // eslint-disable-line
 			if(parentfield) {
 				grid_field_label_map[doctype + "-" + fname] =
 					label.trim() + " (" + __(currency) + ")";
@@ -154,7 +158,7 @@ _f.Frm.prototype.set_currency_labels = function(fields_list, currency, parentfie
 		var df = frappe.meta.get_docfield(fname[0], fname[1], me.doc.name);
 		if(df) df.label = label;
 	});
-}
+};
 
 _f.Frm.prototype.field_map = function(fnames, fn) {
 	if(typeof fnames==='string') {
@@ -172,7 +176,7 @@ _f.Frm.prototype.field_map = function(fnames, fn) {
 			this.refresh_field(fieldname);
 		}
 	}
-}
+};
 
 _f.Frm.prototype.get_docfield = function(fieldname1, fieldname2) {
 	if(fieldname2) {
@@ -183,45 +187,51 @@ _f.Frm.prototype.get_docfield = function(fieldname1, fieldname2) {
 		// for parent
 		return frappe.meta.get_docfield(this.doctype, fieldname1, this.docname);
 	}
-}
+};
 
 _f.Frm.prototype.set_df_property = function(fieldname, property, value, docname, table_field) {
+	var df;
 	if (!docname && !table_field){
-		var df = this.get_docfield(fieldname);
+		df = this.get_docfield(fieldname);
 	} else {
 		var grid = this.fields_dict[table_field].grid,
 			fname = frappe.utils.filter_dict(grid.docfields, {'fieldname': fieldname});
 		if (fname && fname.length)
-			var df = frappe.meta.get_docfield(fname[0].parent, fieldname, docname);
+			df = frappe.meta.get_docfield(fname[0].parent, fieldname, docname);
 	}
 	if(df && df[property] != value) {
 		df[property] = value;
 		refresh_field(fieldname, table_field);
 	}
-}
+};
 
 _f.Frm.prototype.toggle_enable = function(fnames, enable) {
 	this.field_map(fnames, function(field) {
-		field.read_only = enable ? 0 : 1; });
-}
+		field.read_only = enable ? 0 : 1;
+	});
+};
 
 _f.Frm.prototype.toggle_reqd = function(fnames, mandatory) {
-	this.field_map(fnames, function(field) { field.reqd = mandatory ? true : false; });
-}
+	this.field_map(fnames, function(field) {
+		field.reqd = mandatory ? true : false;
+	});
+};
 
 _f.Frm.prototype.toggle_display = function(fnames, show) {
-	this.field_map(fnames, function(field) { field.hidden = show ? 0 : 1; });
-}
+	this.field_map(fnames, function(field) {
+		field.hidden = show ? 0 : 1;
+	});
+};
 
 _f.Frm.prototype.call_server = function(method, args, callback) {
 	return $c_obj(this.doc, method, args, callback);
-}
+};
 
 _f.Frm.prototype.get_files = function() {
 	return this.attachments
 		? frappe.utils.sort(this.attachments.get_attachments(), "file_name", "string")
 		: [] ;
-}
+};
 
 _f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
 	if(opt2) {
@@ -235,15 +245,15 @@ _f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
 			this.fields_dict[fieldname].get_query = opt1;
 		}
 	}
-}
+};
 
 _f.Frm.prototype.set_value_if_missing = function(field, value) {
 	return this.set_value(field, value, true);
-}
+};
 
 _f.Frm.prototype.clear_table = function(fieldname) {
 	frappe.model.clear_table(this.doc, fieldname);
-}
+};
 
 _f.Frm.prototype.add_child = function(fieldname, values) {
 	var doc = frappe.model.add_child(this.doc, frappe.meta.get_docfield(this.doctype, fieldname).options, fieldname);
@@ -261,7 +271,7 @@ _f.Frm.prototype.add_child = function(fieldname, values) {
 		$.extend(doc, d);
 	}
 	return doc;
-}
+};
 
 _f.Frm.prototype.set_value = function(field, value, if_missing) {
 	var me = this;
@@ -290,10 +300,10 @@ _f.Frm.prototype.set_value = function(field, value, if_missing) {
 			frappe.msgprint(__("Field {0} not found.",[f]));
 			throw "frm.set_value";
 		}
-	}
+	};
 
 	if(typeof field=="string") {
-		return _set(field, value)
+		return _set(field, value);
 	} else if($.isPlainObject(field)) {
 		let tasks = [];
 		for (let f in field) {
@@ -304,7 +314,7 @@ _f.Frm.prototype.set_value = function(field, value, if_missing) {
 		}
 		return frappe.run_serially(tasks);
 	}
-}
+};
 
 _f.Frm.prototype.call = function(opts, args, callback) {
 	var me = this;
@@ -341,18 +351,18 @@ _f.Frm.prototype.call = function(opts, args, callback) {
 				}
 			}
 			opts.original_callback && opts.original_callback(r);
-		}
+		};
 	} else {
 		opts.original_callback = opts.callback;
 		opts.callback = function(r) {
 			if(!r.exc) me.refresh_fields();
 
 			opts.original_callback && opts.original_callback(r);
-		}
+		};
 
 	}
 	return frappe.call(opts);
-}
+};
 
 _f.Frm.prototype.get_field = function(field) {
 	return this.fields_dict[field];
@@ -367,7 +377,7 @@ _f.Frm.prototype.set_read_only = function() {
 		perm[p.permlevel || 0] = {read:1, print:1, cancel:1};
 	}
 	this.perm = perm;
-}
+};
 
 _f.Frm.prototype.trigger = function(event) {
 	return this.script_manager.trigger(event);
@@ -377,15 +387,15 @@ _f.Frm.prototype.get_formatted = function(fieldname) {
 	return frappe.format(this.doc[fieldname],
 		frappe.meta.get_docfield(this.doctype, fieldname, this.docname),
 		{no_icon:true}, this.doc);
-}
+};
 
 _f.Frm.prototype.open_grid_row = function() {
 	return frappe.ui.form.get_open_grid_form();
-}
+};
 
 _f.Frm.prototype.is_new = function() {
 	return this.doc.__islocal;
-}
+};
 
 _f.Frm.prototype.get_title = function() {
 	if(this.meta.title_field) {
@@ -393,7 +403,7 @@ _f.Frm.prototype.get_title = function() {
 	} else {
 		return this.doc.name;
 	}
-}
+};
 
 _f.Frm.prototype.get_selected = function() {
 	// returns list of children that are selected. returns [parentfield, name] for each
@@ -405,7 +415,7 @@ _f.Frm.prototype.get_selected = function() {
 		}
 	});
 	return selected;
-}
+};
 
 _f.Frm.prototype.has_mapper = function() {
 	// hackalert!
@@ -415,7 +425,7 @@ _f.Frm.prototype.has_mapper = function() {
 			true: false;
 	}
 	return this._has_mapper;
-}
+};
 
 _f.Frm.prototype.set_indicator_formatter = function(fieldname, get_color, get_text) {
 	// get doctype from parent
@@ -430,24 +440,33 @@ _f.Frm.prototype.set_indicator_formatter = function(fieldname, get_color, get_te
 			} else {
 				return true;
 			}
-		})
+		});
 	}
 
 	frappe.meta.docfield_map[doctype][fieldname].formatter =
 		function(value, df, options, doc) {
 			if(value) {
+				var label;
+				if(get_text) {
+					label = get_text(doc);
+				} else if(frappe.form.link_formatters[df.options]) {
+					label = frappe.form.link_formatters[df.options](value, doc);
+				} else {
+					label = value;
+				}
+
 				const escaped_name = encodeURIComponent(value);
 				return repl('<a class="indicator %(color)s" href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
 					color: get_color(doc || {}),
 					doctype: df.options,
 					name: escaped_name,
-					label: get_text ? get_text(doc) : value
+					label: label
 				});
 			} else {
 				return '';
 			}
 		};
-}
+};
 
 _f.Frm.prototype.can_create = function(doctype) {
 	// return true or false if the user can make a particlar doctype
@@ -473,7 +492,7 @@ _f.Frm.prototype.can_create = function(doctype) {
 			return true;
 		}
 	}
-}
+};
 
 _f.Frm.prototype.make_new = function(doctype) {
 	// make new doctype from the current form
@@ -499,7 +518,7 @@ _f.Frm.prototype.make_new = function(doctype) {
 			// frappe.set_route('Form', doctype, new_doc.name);
 		});
 	}
-}
+};
 
 _f.Frm.prototype.update_in_all_rows = function(table_fieldname, fieldname, value) {
 	// update the child value in all tables where it is missing
@@ -509,7 +528,7 @@ _f.Frm.prototype.update_in_all_rows = function(table_fieldname, fieldname, value
 		if(!cl[i][fieldname]) cl[i][fieldname] = value;
 	}
 	refresh_field("items");
-}
+};
 
 _f.Frm.prototype.get_sum = function(table_fieldname, fieldname) {
 	let sum = 0;

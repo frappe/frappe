@@ -3,13 +3,15 @@
 
 from __future__ import unicode_literals
 from six.moves import range
-import json, subprocess, os
+import json, os
 from semantic_version import Version
 import frappe
-from frappe.utils import cstr
 import requests
-from frappe import _
-import git
+import subprocess # nosec
+from frappe.utils import cstr
+from frappe.utils.gitutils import get_app_branch
+from frappe import _, safe_decode
+
 
 def get_change_log(user=None):
 	if not user: user = frappe.session.user
@@ -102,12 +104,7 @@ def get_versions():
 		}
 
 		if versions[app]['branch'] != 'master':
-			try:
-				app_repo = git.Repo(os.path.join('..', 'apps', '{}'.format(app)))
-				branch_version = '-'.join(app_repo.git.describe().split('-')[:2])
-				branch_version = [branch_version.strip('v')]
-			except:
-				branch_version = app_hooks.get('{0}_version'.format(versions[app]['branch']))
+			branch_version = app_hooks.get('{0}_version'.format(versions[app]['branch']))
 			if branch_version:
 				versions[app]['branch_version'] = branch_version[0] + ' ({0})'.format(get_app_last_commit_ref(app))
 
@@ -121,16 +118,22 @@ def get_versions():
 def get_app_branch(app):
 	'''Returns branch of an app'''
 	try:
-		return subprocess.check_output('cd ../apps/{0} && git rev-parse --abbrev-ref HEAD'.format(app),
-			shell=True).strip()
-	except Exception as e:
+		result = subprocess.check_output('cd ../apps/{0} && git rev-parse --abbrev-ref HEAD'.format(app),
+			shell=True)
+		result = safe_decode(result)
+		result = result.strip()
+		return result
+	except Exception:
 		return ''
 
 def get_app_last_commit_ref(app):
 	try:
-		return subprocess.check_output('cd ../apps/{0} && git rev-parse HEAD'.format(app),
-			shell=True).strip()[:7]
-	except Exception as e:
+		result = subprocess.check_output('cd ../apps/{0} && git rev-parse HEAD --short 7'.format(app),
+			shell=True)
+		result = safe_decode(result)
+		result = result.strip()
+		return result
+	except Exception:
 		return ''
 
 def check_for_update():
@@ -161,11 +164,25 @@ def check_for_update():
 
 	add_message_to_redis(updates)
 
+def parse_latest_non_beta_release(response):
+	"""
+	Pasrses the response JSON for all the releases and returns the latest non prerelease
+
+	Parameters
+	response (list): response object returned by github
+
+	Returns
+	json   : json object pertaining to the latest non-beta release
+	"""
+	for release in response:
+		if release['prerelease'] == True: continue
+		return release
+
 def check_release_on_github(app):
 	# Check if repo remote is on github
 	from subprocess import CalledProcessError
 	try:
-		remote_url = subprocess.check_output("cd ../apps/{} && git ls-remote --get-url".format(app), shell=True)
+		remote_url = subprocess.check_output("cd ../apps/{} && git ls-remote --get-url".format(app), shell=True).decode()
 	except CalledProcessError:
 		# Passing this since some apps may not have git initializaed in them
 		return None
@@ -180,8 +197,8 @@ def check_release_on_github(app):
 	org_name = remote_url.split('/')[3]
 	r = requests.get('https://api.github.com/repos/{}/{}/releases'.format(org_name, app))
 	if r.status_code == 200 and r.json():
-		# 0 => latest release
-		return Version(r.json()[0]['tag_name'].strip('v')), org_name
+		lastest_non_beta_release = parse_latest_non_beta_release(r.json())
+		return Version(lastest_non_beta_release['tag_name'].strip('v')), org_name
 	else:
 		# In case of an improper response or if there are no releases
 		return None
@@ -205,7 +222,6 @@ def show_update_popup():
 		return
 
 	updates = json.loads(update_info)
-	current_versions = get_versions()
 
 	# Check if user is int the set of users to send update message to
 	update_message = ""

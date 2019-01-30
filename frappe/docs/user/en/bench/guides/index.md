@@ -1,5 +1,0 @@
-# Guides
-
-
-
-{index}

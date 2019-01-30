@@ -45,7 +45,9 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 								if (val) {
 									this.set_description(__('{0} already exists. Select another name', [val.name]));
 								}
-							});
+							},
+							this.doc.parenttype
+						);
 						this.last_check = null;
 					}, 1000);
 					this.last_check = timeout;
@@ -85,6 +87,9 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		return val==null ? "" : val;
 	},
 	validate: function(v) {
+		if(this.df.is_filter) {
+			return v;
+		}
 		if(this.df.options == 'Phone') {
 			if(v+''=='') {
 				return '';

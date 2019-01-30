@@ -16,13 +16,11 @@ from frappe.modules.patch_handler import check_session_stopped
 from frappe.translate import get_lang_code
 from frappe.utils.password import check_password, delete_login_failed_cache
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
-from frappe.utils.background_jobs import enqueue
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,
 	confirm_otp_token, get_cached_user_pass)
 
 from six.moves.urllib.parse import quote
 
-import pyotp, base64, os
 
 class HTTPRequest:
 	def __init__(self):
@@ -113,9 +111,11 @@ class LoginManager:
 			try:
 				self.resume = True
 				self.make_session(resume=True)
+				self.get_user_info()
 				self.set_user_info(resume=True)
 			except AttributeError:
 				self.user = "Guest"
+				self.get_user_info()
 				self.make_session()
 				self.set_user_info()
 
@@ -134,18 +134,22 @@ class LoginManager:
 		self.run_trigger('on_login')
 		self.validate_ip_address()
 		self.validate_hour()
+		self.get_user_info()
 		self.make_session()
 		self.set_user_info()
+
+	def get_user_info(self, resume=False):
+		self.info = frappe.db.get_value("User", self.user,
+			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
+
+		self.user_type = self.info.user_type
 
 	def set_user_info(self, resume=False):
 		# set sid again
 		frappe.local.cookie_manager.init_cookies()
 
-		self.info = frappe.db.get_value("User", self.user,
-			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
 		self.full_name = " ".join(filter(None, [self.info.first_name,
 			self.info.last_name]))
-		self.user_type = self.info.user_type
 
 		if self.info.user_type=="Website User":
 			frappe.local.cookie_manager.set_cookie("system_user", "no")
@@ -247,15 +251,22 @@ class LoginManager:
 
 	def validate_ip_address(self):
 		"""check if IP Address is valid"""
-		ip_list = frappe.db.get_value('User', self.user, 'restrict_ip', ignore=True)
+		user = frappe.get_doc("User", self.user)
+		ip_list = user.get_restricted_ip_list()
 		if not ip_list:
 			return
 
-		ip_list = ip_list.replace(",", "\n").split('\n')
-		ip_list = [i.strip() for i in ip_list]
-
+		bypass_restrict_ip_check = 0
+		# check if two factor auth is enabled
+		enabled = int(frappe.get_system_settings('enable_two_factor_auth') or 0)
+		if enabled:
+			#check if bypass restrict ip is enabled for all users
+			bypass_restrict_ip_check = int(frappe.get_system_settings('bypass_restrict_ip_check_if_2fa_enabled') or 0)
+			if not bypass_restrict_ip_check:
+				#check if bypass restrict ip is enabled for login user
+				bypass_restrict_ip_check = int(frappe.db.get_value('User', self.user, 'bypass_restrict_ip_check_if_2fa_enabled') or 0)
 		for ip in ip_list:
-			if frappe.local.request_ip.startswith(ip):
+			if frappe.local.request_ip.startswith(ip) or bypass_restrict_ip_check:
 				return
 
 		frappe.throw(_("Not allowed from this IP Address"), frappe.AuthenticationError)
@@ -347,6 +358,8 @@ def get_website_user_home_page(user):
 	if home_page_method:
 		home_page = frappe.get_attr(home_page_method[-1])(user)
 		return '/' + home_page.strip('/')
+	elif frappe.get_hooks('website_user_home_page'):
+		return '/' + frappe.get_hooks('website_user_home_page')[-1].strip('/')
 	else:
 		return '/me'
 

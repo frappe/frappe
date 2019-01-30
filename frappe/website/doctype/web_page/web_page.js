@@ -29,3 +29,20 @@ $.extend(cur_frm.cscript, {
 		cur_frm.cscript.layout(doc);
 	}
 });
+
+frappe.ui.form.on("Web Page", {
+	published: function (frm) {
+		// If current date is before end date,
+		// and web page is manually unpublished,
+		// set end date to current date.
+		if (!frm.doc.published && frm.doc.end_date) {
+			var end_date = frappe.datetime.str_to_obj(frappe.datetime.now_datetime());
+
+			// Set date a few seconds in the future to avoid throwing
+			// start and end date validation error
+			end_date.setSeconds(end_date.getSeconds() + 5)
+
+			frm.set_value("end_date", end_date);
+		}
+	}
+})

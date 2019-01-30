@@ -6,6 +6,8 @@
 
 from __future__ import unicode_literals, print_function
 
+from six.moves import input
+
 import os, json, sys, subprocess, shutil
 import frappe
 import frappe.database
@@ -106,6 +108,8 @@ def get_root_connection(root_login='root', root_password=None):
 
 def install_app(name, verbose=False, set_as_patched=True):
 	frappe.flags.in_install = name
+	frappe.flags.ignore_in_install = False
+
 	frappe.clear_cache()
 	app_hooks = frappe.get_hooks(app_name=name)
 	installed_apps = frappe.get_installed_apps()
@@ -155,6 +159,9 @@ def install_app(name, verbose=False, set_as_patched=True):
 	sync_fixtures(name)
 	sync_customizations(name)
 
+	for after_sync in app_hooks.after_sync or []:
+		frappe.get_attr(after_sync)() #
+
 	frappe.flags.in_install = False
 
 def add_to_installed_apps(app_name, rebuild_website=True):
@@ -178,7 +185,7 @@ def remove_app(app_name, dry_run=False, yes=False):
 	"""Delete app and all linked to the app's module with the app."""
 
 	if not dry_run and not yes:
-		confirm = raw_input("All doctypes (including custom), modules related to this app will be deleted. Are you sure you want to continue (y/n) ? ")
+		confirm = input("All doctypes (including custom), modules related to this app will be deleted. Are you sure you want to continue (y/n) ? ")
 		if confirm!="y":
 			return
 
@@ -293,8 +300,8 @@ def update_site_config(key, value, validate=True, site_config_path=None):
 
 	with open(site_config_path, "w") as f:
 		f.write(json.dumps(site_config, indent=1, sort_keys=True))
-
-	if frappe.local.conf:
+	
+	if hasattr(frappe.local, "conf"):
 		frappe.local.conf[key] = value
 
 def get_site_config_path():
@@ -302,7 +309,7 @@ def get_site_config_path():
 
 def get_conf_params(db_name=None, db_password=None):
 	if not db_name:
-		db_name = raw_input("Database Name: ")
+		db_name = input("Database Name: ")
 		if not db_name:
 			raise Exception("Database Name Required")
 
@@ -366,10 +373,10 @@ def check_database(mariadb_variables, variables_dict):
 		if mariadb_variables.get(key) != value:
 			site = frappe.local.site
 			msg = ("Creation of your site - {x} failed because MariaDB is not properly {sep}"
-			       "configured to use the Barracuda storage engine. {sep}"
-			       "Please add the settings below to MariaDB's my.cnf, restart MariaDB then {sep}"
-			       "run `bench new-site {x}` again.{sep2}"
-			       "").format(x=site, sep2="\n"*2, sep="\n")
+				   "configured to use the Barracuda storage engine. {sep}"
+				   "Please add the settings below to MariaDB's my.cnf, restart MariaDB then {sep}"
+				   "run `bench new-site {x}` again.{sep2}"
+				   "").format(x=site, sep2="\n"*2, sep="\n")
 
 			if mariadb_minor_version < 3:
 				print_db_config(msg, expected_config_for_barracuda_2)

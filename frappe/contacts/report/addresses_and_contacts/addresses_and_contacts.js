@@ -5,28 +5,21 @@ frappe.query_reports["Addresses And Contacts"] = {
 	"filters": [
 		{
 			"reqd": 1,
-			"fieldname":"party_type",
-			"label": __("Party Type"),
+			"fieldname":"reference_doctype",
+			"label": __("Entity Type"),
 			"fieldtype": "Link",
 			"options": "DocType",
-			"get_query": function() {
-				return {
-					"filters": {
-						"name": ["in","Customer,Supplier,Sales Partner"],
-					}
-				}
-			}
 		},
 		{
-			"fieldname":"party_name",
-			"label": __("Party Name"),
+			"fieldname":"reference_name",
+			"label": __("Entity Name"),
 			"fieldtype": "Dynamic Link",
 			"get_options": function() {
-				let party_type = frappe.query_report_filters_by_name.party_type.get_value();
-				if(!party_type) {
-					frappe.throw(__("Please select Party Type first"));
+				let reference_doctype = frappe.query_report.get_filter_value('reference_doctype');
+				if(!reference_doctype) {
+					frappe.throw(__("Please select Entity Type first"));
 				}
-				return party_type;
+				return reference_doctype;
 			}
 		}
 	]

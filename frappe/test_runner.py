@@ -25,7 +25,8 @@ def xmlrunner_wrapper(output):
 	return _runner
 
 def main(app=None, module=None, doctype=None, verbose=False, tests=(),
-	force=False, profile=False, junit_xml_output=None, ui_tests=False, doctype_list_path=None):
+	force=False, profile=False, junit_xml_output=None, ui_tests=False,
+	doctype_list_path=None, skip_test_records=False, failfast=False):
 	global unittest_runner
 
 	if doctype_list_path:
@@ -55,17 +56,18 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 		frappe.utils.scheduler.disable_scheduler()
 		set_test_email_config()
 
-		if verbose:
-			print('Running "before_tests" hooks')
-		for fn in frappe.get_hooks("before_tests", app_name=app):
-			frappe.get_attr(fn)()
+		if not frappe.flags.skip_before_tests:
+			if verbose:
+				print('Running "before_tests" hooks')
+			for fn in frappe.get_hooks("before_tests", app_name=app):
+				frappe.get_attr(fn)()
 
 		if doctype:
 			ret = run_tests_for_doctype(doctype, verbose, tests, force, profile)
 		elif module:
 			ret = run_tests_for_module(module, verbose, tests, profile)
 		else:
-			ret = run_all_tests(app, verbose, profile, ui_tests)
+			ret = run_all_tests(app, verbose, profile, ui_tests, failfast=failfast)
 
 		frappe.db.commit()
 
@@ -88,7 +90,7 @@ def set_test_email_config():
 		"admin_password": "admin"
 	})
 
-def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False):
+def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False, failfast=False):
 	import os
 
 	apps = [app] if app else frappe.get_installed_apps()
@@ -113,7 +115,7 @@ def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False):
 		pr = cProfile.Profile()
 		pr.enable()
 
-	out = unittest_runner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+	out = unittest_runner(verbosity=1+(verbose and 1 or 0), failfast=failfast).run(test_suite)
 
 	if profile:
 		pr.disable()
@@ -191,6 +193,7 @@ def _run_unittest(modules, verbose=False, tests=(), profile=False):
 
 	out = unittest_runner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
 
+
 	if profile:
 		pr.disable()
 		s = StringIO()
@@ -199,7 +202,6 @@ def _run_unittest(modules, verbose=False, tests=(), profile=False):
 		print(s.getvalue())
 
 	return out
-
 
 def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 	import os
@@ -242,6 +244,9 @@ def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 def make_test_records(doctype, verbose=0, force=False):
 	if not frappe.db:
 		frappe.connect()
+
+	if frappe.flags.skip_test_records:
+		return
 
 	for options in get_dependencies(doctype):
 		if options == "[Select]":
@@ -286,6 +291,9 @@ def get_dependencies(doctype):
 	return options_list
 
 def make_test_records_for_doctype(doctype, verbose=0, force=False):
+	if not force and doctype in get_test_record_log():
+		return
+
 	module, test_module = get_modules(doctype)
 
 	if verbose:
@@ -305,6 +313,7 @@ def make_test_records_for_doctype(doctype, verbose=0, force=False):
 		elif verbose:
 			print_mandatory_fields(doctype)
 
+	add_to_test_record_log(doctype)
 
 def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 	'''Make test objects from given list of `test_records` or from `test_records.json`'''
@@ -362,7 +371,6 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 		records.append(d.name)
 
 		frappe.db.commit()
-
 	return records
 
 def print_mandatory_fields(doctype):
@@ -375,4 +383,22 @@ def print_mandatory_fields(doctype):
 		print(d.parent + ":" + d.fieldname + " | " + d.fieldtype + " | " + (d.options or ""))
 	print()
 
+def add_to_test_record_log(doctype):
+	'''Add `doctype` to site/.test_log
+	`.test_log` is a cache of all doctypes for which test records are created'''
+	test_record_log = get_test_record_log()
+	if not doctype in test_record_log:
+		frappe.flags.test_record_log.append(doctype)
+		with open(frappe.get_site_path('.test_log'), 'w') as f:
+			f.write('\n'.join(filter(None, frappe.flags.test_record_log)))
 
+def get_test_record_log():
+	'''Return the list of doctypes for which test records have been created'''
+	if 'test_record_log' not in frappe.flags:
+		if os.path.exists(frappe.get_site_path('.test_log')):
+			with open(frappe.get_site_path('.test_log'), 'r') as f:
+				frappe.flags.test_record_log = f.read().splitlines()
+		else:
+			frappe.flags.test_record_log = []
+
+	return frappe.flags.test_record_log

@@ -18,13 +18,14 @@
  "is_standard": 1, 
  "login_required": 1, 
  "max_attachment_size": 0, 
- "modified": "2017-07-24 12:14:04.039284", 
+ "modified": "2019-01-28 12:45:17.158069", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "edit-profile", 
  "owner": "Administrator", 
  "published": 1, 
  "route": "update-profile", 
+ "show_in_grid": 0, 
  "show_sidebar": 1, 
  "sidebar_items": [], 
  "success_message": "Profile updated successfully.", 
@@ -32,6 +33,7 @@
  "title": "Update Profile", 
  "web_form_fields": [
   {
+   "allow_read_on_all_link_options": 0, 
    "fieldname": "first_name", 
    "fieldtype": "Data", 
    "hidden": 0, 
@@ -39,9 +41,11 @@
    "max_length": 0, 
    "max_value": 0, 
    "read_only": 0, 
-   "reqd": 1
+   "reqd": 1, 
+   "show_in_filter": 0
   }, 
   {
+   "allow_read_on_all_link_options": 0, 
    "fieldname": "middle_name", 
    "fieldtype": "Data", 
    "hidden": 0, 
@@ -49,9 +53,11 @@
    "max_length": 0, 
    "max_value": 0, 
    "read_only": 0, 
-   "reqd": 0
+   "reqd": 0, 
+   "show_in_filter": 0
   }, 
   {
+   "allow_read_on_all_link_options": 0, 
    "fieldname": "last_name", 
    "fieldtype": "Data", 
    "hidden": 0, 
@@ -59,29 +65,35 @@
    "max_length": 0, 
    "max_value": 0, 
    "read_only": 0, 
-   "reqd": 0
+   "reqd": 0, 
+   "show_in_filter": 0
   }, 
   {
+   "allow_read_on_all_link_options": 0, 
    "description": "", 
    "fieldname": "user_image", 
-   "fieldtype": "Attach", 
+   "fieldtype": "Attach Image", 
    "hidden": 0, 
    "label": "User Image", 
    "max_length": 0, 
    "max_value": 0, 
    "read_only": 0, 
-   "reqd": 0
+   "reqd": 0, 
+   "show_in_filter": 0
   }, 
   {
+   "allow_read_on_all_link_options": 0, 
    "fieldtype": "Section Break", 
    "hidden": 0, 
    "label": "More Information", 
    "max_length": 0, 
    "max_value": 0, 
    "read_only": 0, 
-   "reqd": 0
+   "reqd": 0, 
+   "show_in_filter": 0
   }, 
   {
+   "allow_read_on_all_link_options": 0, 
    "fieldname": "phone", 
    "fieldtype": "Data", 
    "hidden": 0, 
@@ -89,9 +101,11 @@
    "max_length": 0, 
    "max_value": 0, 
    "read_only": 0, 
-   "reqd": 0
+   "reqd": 0, 
+   "show_in_filter": 0
   }, 
   {
+   "allow_read_on_all_link_options": 0, 
    "fieldname": "mobile_no", 
    "fieldtype": "Data", 
    "hidden": 0, 
@@ -99,9 +113,11 @@
    "max_length": 0, 
    "max_value": 0, 
    "read_only": 0, 
-   "reqd": 0
+   "reqd": 0, 
+   "show_in_filter": 0
   }, 
   {
+   "allow_read_on_all_link_options": 0, 
    "description": "", 
    "fieldname": "language", 
    "fieldtype": "Link", 
@@ -111,7 +127,8 @@
    "max_value": 0, 
    "options": "Language", 
    "read_only": 0, 
-   "reqd": 0
+   "reqd": 0, 
+   "show_in_filter": 0
   }
  ]
 }

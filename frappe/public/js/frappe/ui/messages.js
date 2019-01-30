@@ -1,7 +1,9 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.messages")
+frappe.provide("frappe.messages");
+
+import './dialog';
 
 frappe.messages.waiting = function(parent, msg) {
 	return $(frappe.messages.get_waiting_message(msg))
@@ -138,7 +140,7 @@ frappe.msgprint = function(msg, title) {
 	}
 
 	if(data.message.search(/<br>|<p>|<li>/)==-1) {
-		msg = replace_newlines(data.message);
+		msg = frappe.utils.replace_newlines(data.message);
 	}
 
 	var msg_exists = false;
@@ -180,13 +182,7 @@ frappe.msgprint = function(msg, title) {
 	return msg_dialog;
 }
 
-// Proxy for frappe.msgprint
-Object.defineProperty(window, 'msgprint', {
-	get: function() {
-		console.warn('Please use `frappe.msgprint` instead of `msgprint`. It will be deprecated soon.');
-		return frappe.msgprint;
-	}
-});
+window.msgprint = frappe.msgprint;
 
 frappe.hide_msgprint = function(instant) {
 	// clear msgprint
@@ -241,11 +237,12 @@ frappe.show_progress = function(title, count, total=100, description) {
 		var dialog = new frappe.ui.Dialog({
 			title: title,
 		});
-		dialog.progress = $(`<div class="progress">
-			<div class="progress-bar"></div>
+		dialog.progress = $(`<div>
+			<div class="progress">
+				<div class="progress-bar"></div>
+			</div>
 			<p class="description text-muted small"></p>
-		</div>`)
-			.appendTo(dialog.body);
+		</div`).appendTo(dialog.body);
 		dialog.progress_bar = dialog.progress.css({"margin-top": "10px"})
 			.find(".progress-bar");
 		dialog.$wrapper.removeClass("fade");
@@ -268,37 +265,49 @@ frappe.hide_progress = function() {
 }
 
 // Floating Message
-frappe.show_alert = function(message, seconds=7) {
+frappe.show_alert = function(message, seconds=7, actions={}) {
 	if(typeof message==='string') {
 		message = {
 			message: message
-		}
+		};
 	}
 	if(!$('#dialog-container').length) {
 		$('<div id="dialog-container"><div id="alert-container"></div></div>').appendTo('body');
 	}
 
-	var message_html;
-	if(message.indicator) {
-		message_html = $('<span class="indicator ' + message.indicator + '"></span>').append(message.message);
-	} else {
-		message_html = message.message;
+	let body_html;
+
+	if (message.body) {
+		body_html = message.body;
 	}
 
-	var div = $(`
+	const div = $(`
 		<div class="alert desk-alert">
-			<span class="alert-message"></span><a class="close">&times;</a>
+			<div class="alert-message"></div>
+			<div class="alert-body" style="display: none"></div>
+			<a class="close">&times;</a>
 		</div>`);
 
-	div.find('.alert-message').append(message_html);
+	div.find('.alert-message').append(message.message);
 
-	div.hide()
-		.appendTo("#alert-container")
-		.fadeIn(300);
+	if(message.indicator) {
+		div.find('.alert-message').addClass('indicator '+ message.indicator);
+	}
 
-	div.find('.close').click(function() {
-		$(this).parent().remove();
+	if (body_html) {
+		div.find('.alert-body').show().html(body_html);
+	}
+
+	div.hide().appendTo("#alert-container").show()
+		.css('transform', 'translateX(0)');
+
+	div.find('.close, button').click(function() {
+		div.remove();
 		return false;
+	});
+
+	Object.keys(actions).map(key => {
+		div.find(`[data-action=${key}]`).on('click', actions[key]);
 	});
 
 	div.delay(seconds * 1000).fadeOut(300);

@@ -14,6 +14,9 @@ class KanbanBoard(Document):
 	def validate(self):
 		self.validate_column_name()
 
+	def on_update(self):
+		frappe.clear_cache(doctype=self.reference_doctype)
+
 	def validate_column_name(self):
 		for column in self.columns:
 			if not column.column_name:
@@ -35,6 +38,14 @@ def has_permission(doc, ptype, user):
 		return True
 
 	return False
+
+@frappe.whitelist()
+def get_kanban_boards(doctype):
+	'''Get Kanban Boards for doctype to show in List View'''
+	return frappe.get_list('Kanban Board',
+		fields=['name', 'filters', 'reference_doctype', 'private'],
+		filters={ 'reference_doctype': doctype }
+	)
 
 @frappe.whitelist()
 def add_column(board_name, column_title):
@@ -118,8 +129,8 @@ def update_order(board_name, order):
 @frappe.whitelist()
 def quick_kanban_board(doctype, board_name, field_name, project=None):
 	'''Create new KanbanBoard quickly with default options'''
-	doc = frappe.new_doc('Kanban Board')
 
+	doc = frappe.new_doc('Kanban Board')
 	meta = frappe.get_meta(doctype)
 
 	options = ''

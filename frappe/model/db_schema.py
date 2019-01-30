@@ -34,6 +34,7 @@ type_map = {
 	'Long Text':		('longtext', ''),
 	'Code':			('longtext', ''),
 	'Text Editor':		('longtext', ''),
+	'HTML Editor':		('longtext', ''),
 	'Date':			('date', ''),
 	'Datetime':		('datetime', '6'),
 	'Time':			('time', '6'),
@@ -195,7 +196,7 @@ class DbTable:
 	def get_column_definitions(self):
 		column_list = [] + default_columns
 		ret = []
-		for k in self.columns.keys():
+		for k in list(self.columns):
 			if k not in column_list:
 				d = self.columns[k].get_definition()
 				if d:
@@ -235,7 +236,7 @@ class DbTable:
 					'fieldtype': 'Text'
 				})
 
-		if not frappe.flags.in_install_db and frappe.flags.in_install != "frappe":
+		if not frappe.flags.in_install_db and (frappe.flags.in_install != "frappe" or frappe.flags.ignore_in_install):
 			custom_fl = frappe.db.sql("""\
 				SELECT * FROM `tabCustom Field`
 				WHERE dt = %s AND docstatus < 2""", (self.doctype,), as_dict=1)
@@ -556,8 +557,31 @@ class DbManager:
 	def restore_database(self,target,source,user,password):
 		from frappe.utils import make_esc
 		esc = make_esc('$ ')
-		os.system("mysql -u %s -p%s -h%s %s < %s" % \
-			(esc(user), esc(password), esc(frappe.db.host), esc(target), source))
+
+		from distutils.spawn import find_executable
+		pipe = find_executable('pv')
+		if pipe:
+			pipe   = '{pipe} {source} |'.format(
+				pipe   = pipe,
+				source = source
+			)
+			source = ''
+		else:
+			pipe   = ''
+			source = '< {source}'.format(source = source)
+
+		if pipe:
+			print('Creating Database...')
+
+		command = '{pipe} mysql -u {user} -p{password} -h{host} {target} {source}'.format(
+			pipe = pipe,
+			user = esc(user),
+			password = esc(password),
+			host     = esc(frappe.db.host),
+			target   = esc(target),
+			source   = source
+		)
+		os.system(command)
 
 	def drop_table(self,table_name):
 		"""drop table if exists"""

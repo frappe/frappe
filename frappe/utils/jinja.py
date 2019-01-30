@@ -123,6 +123,7 @@ def get_allowed_functions_for_jenv():
 			"get_doc": frappe.get_doc,
 			"get_list": frappe.get_list,
 			"get_all": frappe.get_all,
+			'get_system_settings': frappe.get_system_settings,
 			"utils": datautils,
 			"user": user,
 			"get_fullname": frappe.utils.get_fullname,

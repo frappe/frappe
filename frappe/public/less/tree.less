@@ -19,8 +19,29 @@ ul.tree-children {
 	padding: 1px;
 }
 
-.tree-link.active i {
-	color: @indicator-blue !important;
+.tree-link .node-parent {
+	color: @text-muted;
+	font-size: 14px;
+	width: 10px;
+	text-align: center;
+}
+
+.tree-link .node-leaf {
+	color: @text-extra-muted;
+}
+
+.tree-link .node-parent, .tree-link .node-leaf {
+	margin-right: 5px;
+}
+
+.tree-link.active {
+	i {
+		color: @indicator-blue;
+	}
+
+	a {
+		color: @text-muted;
+	}
 }
 
 .tree-hover {
@@ -44,10 +65,10 @@ ul.tree-children {
 }
 
 // decoration
-
-.tree, .tree-node {
+// .tree, .tree-node {
+.tree.with-skeleton, .tree.with-skeleton .tree-node {
 	position: relative;
-	
+
 	&.opened::before, &:last-child::after {
 		content: '';
 		position: absolute;
@@ -66,7 +87,7 @@ ul.tree-children {
 		width: 3px;
 		background: #fff;
 	}
-	
+
 	&.opened > .tree-children > .tree-node > .tree-link::before {
 		content: '';
 		position: absolute;
@@ -79,7 +100,7 @@ ul.tree-children {
 	}
 }
 
-.tree.opened::before {
+.tree.with-skeleton.opened::before {
 	left: 23px;
 	top: 33px;
 	height: ~"calc(100% - 67px)";

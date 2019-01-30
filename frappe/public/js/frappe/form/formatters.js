@@ -23,7 +23,9 @@ frappe.form.formatters = {
 	},
 	Float: function(value, docfield, options, doc) {
 		// don't allow 0 precision for Floats, hence or'ing with null
-		var precision = docfield.precision || cint(frappe.boot.sysdefaults.float_precision) || null;
+		var precision = docfield.precision
+			|| cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision)
+			|| null;
 		if (docfield.options && docfield.options.trim()) {
 			// options points to a currency field, but expects precision of float!
 			docfield.precision = precision;
@@ -58,15 +60,15 @@ frappe.form.formatters = {
 		if (precision > 2) {
 			var parts	 = cstr(value).split("."); // should be minimum 2, comes from the DB
 			var decimals = parts.length > 1 ? parts[1] : ""; // parts.length == 2 ???
-			
+
 			if ( decimals.length < 3 || decimals.length < precision ) {
 				const fraction = frappe.model.get_value(":Currency", currency, "fraction_units") || 100; // if not set, minimum 2.
 				precision      = cstr(fraction).length - 1;
 			}
 		}
-		
-		value = (value == null || value == "") ? "" : format_currency(value, currency, precision);
-		
+
+		value = (value == null || value === "") ? "" : format_currency(value, currency, precision);
+
 		if ( options && options.only_value ) {
 			return value;
 		} else {
@@ -83,7 +85,7 @@ frappe.form.formatters = {
 	Link: function(value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
 		var original_value = value;
-		if(value && value.match(/^['"].*['"]$/)) {
+		if(value && value.match && value.match(/^['"].*['"]$/)) {
 			value.replace(/^.(.*).$/, "$1");
 		}
 
@@ -162,7 +164,7 @@ frappe.form.formatters = {
 			}
 
 			if(!match) {
-				value = replace_newlines(value);
+				value = frappe.utils.replace_newlines(value);
 			}
 		}
 
@@ -228,6 +230,14 @@ frappe.form.formatters = {
 	},
 	Email: function(value) {
 		return $("<div></div>").text(value).html();
+	},
+	FileSize: function(value) {
+		if(value > 1048576) {
+			value = flt(flt(value) / 1048576, 1) + "M";
+		} else if (value > 1024) {
+			value = flt(flt(value) / 1024, 1) + "K";
+		}
+		return value;
 	}
 }
 

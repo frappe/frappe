@@ -4,9 +4,9 @@
 
 from __future__ import unicode_literals
 import frappe
-import json
+import json,datetime
 from six.moves.urllib.parse import parse_qs
-from six import string_types
+from six import string_types, text_type
 from frappe.utils import get_request_session
 from frappe import _
 
@@ -35,7 +35,7 @@ def make_post_request(url, auth=None, headers=None, data=None):
 		data = {}
 	if not headers:
 		headers = {}
-		
+
 	try:
 		s = get_request_session()
 		frappe.flags.integration_request = s.post(url, data=data, auth=auth, headers=headers)
@@ -59,7 +59,7 @@ def create_request_log(data, integration_type, service_name, name=None):
 		"integration_request_service": service_name,
 		"reference_doctype": data.get("reference_doctype"),
 		"reference_docname": data.get("reference_docname"),
-		"data": json.dumps(data)
+		"data": json.dumps(data, default=json_handler)
 	})
 
 	if name:
@@ -72,10 +72,18 @@ def create_request_log(data, integration_type, service_name, name=None):
 
 def get_payment_gateway_controller(payment_gateway):
 	'''Return payment gateway controller'''
-	try:
-		return frappe.get_doc("{0} Settings".format(payment_gateway))
-	except Exception:
-		frappe.throw(_("{0} Settings not found".format(payment_gateway)))
+	gateway = frappe.get_doc("Payment Gateway", payment_gateway)
+	if gateway.gateway_controller is None:
+		try:
+			return frappe.get_doc("{0} Settings".format(payment_gateway))
+		except Exception:
+			frappe.throw(_("{0} Settings not found".format(payment_gateway)))
+	else:
+		try:
+			return frappe.get_doc(gateway.gateway_settings, gateway.gateway_controller)
+		except Exception:
+			frappe.throw(_("{0} Settings not found".format(payment_gateway)))
+
 
 @frappe.whitelist(allow_guest=True, xss_safe=True)
 def get_checkout_url(**kwargs):
@@ -91,11 +99,17 @@ def get_checkout_url(**kwargs):
 			indicator_color='red',
 			http_status_code=frappe.ValidationError.http_status_code)
 
-def create_payment_gateway(gateway):
+def create_payment_gateway(gateway, settings=None, controller=None):
 	# NOTE: we don't translate Payment Gateway name because it is an internal doctype
 	if not frappe.db.exists("Payment Gateway", gateway):
 		payment_gateway = frappe.get_doc({
 			"doctype": "Payment Gateway",
-			"gateway": gateway
+			"gateway": gateway,
+			"gateway_settings": settings,
+			"gateway_controller": controller
 		})
 		payment_gateway.insert(ignore_permissions=True)
+
+def json_handler(obj):
+	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
+		return text_type(obj)

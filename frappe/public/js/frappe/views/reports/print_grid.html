@@ -3,6 +3,10 @@
 <h2>{{ __(title) }}</h2>
 <hr>
 {% endif %}
+{% if subtitle %}
+{{ subtitle }}
+<hr>
+{% endif %}
 <table class="table table-bordered">
     <!-- heading -->
     <thead>
@@ -10,7 +14,7 @@
         {% for col in columns %}
             {% if col.name && col._id !== "_check" %}
             <th style="min-width: {{ col.minWidth }}px"
-                {% if col.docfield && in_list(["Float", "Currency", "Int"], col.docfield.fieldtype) %}
+                {% if col.docfield && frappe.model.is_numeric_field(col.docfield) %}
                     class="text-right"
                 {% endif %}>{{ __(col.name) }}</th>
             {% endif %}
@@ -24,11 +28,13 @@
             {% for col in columns %}
                 {% if col.name && col._id !== "_check" %}
 
-					{% var value = col.fieldname ? row[col.fieldname] : row[col.field]; %}
+                    {% var value = col.fieldname ? row[col.fieldname] : row[col.id]; %}
 
-                	<td>{{ col.formatter
+                    <td>
+                        {{ col.formatter
 	                        ? col.formatter(row._index, col._index, value, col, row, true)
-	                        : value }}</td>
+                            : (col.docfield ? frappe.format(value, col.docfield) : value) }}
+                    </td>
                 {% endif %}
             {% endfor %}
             </tr>
