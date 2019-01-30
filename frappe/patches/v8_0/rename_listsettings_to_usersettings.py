@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from frappe.installer import create_user_settings_table
 from frappe.model.utils.user_settings import update_user_settings
 import frappe, json

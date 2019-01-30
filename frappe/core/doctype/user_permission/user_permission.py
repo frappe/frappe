@@ -56,10 +56,10 @@ def get_user_permissions(user=None):
 		if not out.get(perm.allow):
 			out[perm.allow] = []
 
-		out[perm.allow].append({
+		out[perm.allow].append(frappe._dict({
 			'doc': doc_name,
 			'applicable_for': perm.get('applicable_for')
-		})
+		}))
 
 	try:
 		for perm in frappe.get_all('User Permission',
@@ -74,6 +74,7 @@ def get_user_permissions(user=None):
 				for doc in decendants:
 					add_doc_to_perm(perm, doc)
 
+		out = frappe._dict(out)
 		frappe.cache().hset("user_permissions", user, out)
 
 	except frappe.SQLError as e:
@@ -95,7 +96,7 @@ def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, 
 	linked_doctypes = get_linked_doctypes(doctype, True).keys()
 	linked_doctypes = list(linked_doctypes)
 	linked_doctypes += [doctype]
-	
+
 	if txt:
 		linked_doctypes = [d for d in linked_doctypes if txt in d.lower()]
 
@@ -110,3 +111,13 @@ def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, 
 def get_permitted_documents(doctype):
 	return [d.get('doc') for d in get_user_permissions().get(doctype, []) \
 		if d.get('doc')]
+
+@frappe.whitelist()
+def clear_user_permissions(user, for_doctype):
+	frappe.only_for('System Manager')
+
+	total = frappe.db.count('User Permission', filters = dict(user=user, allow=for_doctype))
+	if total:
+		frappe.db.sql('DELETE FROM `tabUser Permission` WHERE user=%s AND allow=%s', (user, for_doctype))
+		frappe.clear_cache()
+	return total

@@ -35,8 +35,6 @@ before_script:
   - cd ~/frappe-bench
   - bench use test_site
   - bench reinstall --yes
-  - bench setup-help
-  - bench setup-global-help --mariadb_root_password travis
   - bench scheduler disable
   - sed -i 's/9000/9001/g' sites/common_site_config.json
   - bench start &

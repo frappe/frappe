@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import frappe
 from frappe.utils.background_jobs import enqueue
 

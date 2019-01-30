@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 import frappe
 from datetime import datetime
 from dateutil.parser import parse
