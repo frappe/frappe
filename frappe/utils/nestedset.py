@@ -263,3 +263,11 @@ def get_ancestors_of(doctype, name, order_by="lft desc", limit=None):
 	result = frappe.db.sql_list("""select name from `tab{0}`
 		where lft<%s and rgt>%s order by {1} {2}""".format(doctype, order_by, limit), (lft, rgt))
 	return result or []
+
+def get_descendants_of(doctype, name, order_by="lft desc", limit=None):
+	'''Return descendants of the current record'''
+	lft, rgt = frappe.db.get_value(doctype, name, ['lft', 'rgt'])
+	limit = "limit %s" % cint(limit) if limit else ""
+	result = frappe.db.sql_list("""select name from `tab{0}`
+		where lft>%s and rgt<%s order by {1} {2}""".format(doctype, order_by, limit), (lft, rgt))
+	return result or []
