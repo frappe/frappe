@@ -41,9 +41,9 @@ class WebsiteTheme(Document):
 				frappe.throw(_("Top Bar Color and Text Color are the same. They should be have good contrast to be readable."))
 
 	def validate_custom_bootstrap_theme(self):
-		if self.customize_bootstrap_4:
+		if self.apply_custom_theme and self.custom_theme:
 			doc_before_save = self.get_doc_before_save()
-			if self.customize_bootstrap_4 != doc_before_save.customize_bootstrap_4:
+			if self.custom_theme != doc_before_save.custom_theme:
 				self.generate_bootstrap_theme()
 
 	def export_doc(self):
@@ -59,13 +59,22 @@ class WebsiteTheme(Document):
 			website_settings.clear_cache()
 
 	def generate_bootstrap_theme(self):
-		from frappe.commands import popen
+		from subprocess import Popen, PIPE
+
 		file_name = frappe.scrub(self.name) + '.css'
-		content = self.customize_bootstrap_4
+		content = self.custom_theme
 		content = content.replace('\n', '\\n')
 		command = ['node', 'generate_bootstrap_theme.js', file_name, content]
-		popen(command, cwd=frappe.get_app_path('frappe', '..'), shell=False)
-		self.css_file_url = '/assets/frappe/website_theme/' + file_name
+
+		process = Popen(command, cwd=frappe.get_app_path('frappe', '..'), stdout=PIPE, stderr=PIPE)
+		stdout, stderr = process.communicate()
+
+		if stderr:
+			frappe.throw('<pre>{stderr}</pre>'.format(stderr=stderr))
+		else:
+			self.custom_theme_url = '/assets/frappe/website_theme/' + file_name
+
+		frappe.msgprint(_('Compiled Successfully'), alert=True)
 
 	def use_theme(self):
 		use_theme(self.name)

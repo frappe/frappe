@@ -7,6 +7,7 @@ const node_modules_path = path.resolve(get_public_path('frappe'), 'node_modules'
 const scss_path = path.resolve(get_public_path('frappe'), 'scss');
 const website_theme_path = path.resolve(get_public_path('frappe'), 'website_theme');
 const custom_theme_name = process.argv[2];
+
 let scss_content = process.argv[3];
 scss_content = scss_content.replace(/\\n/g, '\n');
 
@@ -30,7 +31,7 @@ sass.render({
 	}
 }, function(err, result) {
 	if (err) {
-		console.error(err)
+		console.error(err.formatted)
 		return;
 	}
 
