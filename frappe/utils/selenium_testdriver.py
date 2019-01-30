@@ -38,7 +38,7 @@ class TestDriver(object):
 		self.driver = webdriver.Chrome(chrome_options=chrome_options,
 			desired_capabilities=capabilities, port=9515)
 
-		self.driver.set_window_size(1080,800)
+		# self.driver.set_window_size(1080,800)
 		self.cur_route = None
 		self.logged_in = False
 

@@ -86,3 +86,6 @@ def get_diff(old, new, for_child=False):
 
 	else:
 		return None
+
+def on_doctype_update():
+	frappe.db.add_index("Version", ["ref_doctype", "docname"])

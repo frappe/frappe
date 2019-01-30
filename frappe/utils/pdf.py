@@ -6,17 +6,23 @@ import pdfkit, os, frappe
 from frappe.utils import scrub_urls
 from frappe import _
 from bs4 import BeautifulSoup
-from PyPDF2 import PdfFileWriter, PdfFileReader
+from PyPDF2 import PdfFileReader
+import re
 
 def get_pdf(html, options=None, output = None):
 	html = scrub_urls(html)
 	html, options = prepare_options(html, options)
 	fname = os.path.join("/tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
 
+	options.update({
+		"disable-javascript": "",
+		"disable-local-file-access": "",
+	})
+
 	try:
 		pdfkit.from_string(html, fname, options=options or {})
 		if output:
-			append_pdf(PdfFileReader(file(fname,"rb")),output)
+			append_pdf(PdfFileReader(fname),output)
 		else:
 			with open(fname, "rb") as fileobj:
 				filedata = fileobj.read()
@@ -29,8 +35,11 @@ def get_pdf(html, options=None, output = None):
 
 			# allow pdfs with missing images if file got created
 			if os.path.exists(fname):
-				with open(fname, "rb") as fileobj:
-					filedata = fileobj.read()
+				if output:
+					append_pdf(PdfFileReader(file(fname,"rb")),output)
+				else:
+					with open(fname, "rb") as fileobj:
+						filedata = fileobj.read()
 
 			else:
 				frappe.throw(_("PDF generation failed because of broken image links"))
@@ -88,12 +97,13 @@ def read_options_from_html(html):
 
 	toggle_visible_pdf(soup)
 
-	# extract pdfkit options from html
-	for html_id in ("margin-top", "margin-bottom", "margin-left", "margin-right", "page-size"):
+	# use regex instead of soup-parser
+	for attr in ("margin-top", "margin-bottom", "margin-left", "margin-right", "page-size", "header-spacing"):
 		try:
-			tag = soup.find(id=html_id)
-			if tag and tag.contents:
-				options[html_id] = tag.contents
+			pattern = re.compile(r"(\.print-format)([\S|\s][^}]*?)(" + str(attr) + r":)(.+)(mm;)")
+			match = pattern.findall(html)
+			if match:
+				options[attr] = str(match[-1][3]).strip()
 		except:
 			pass
 
@@ -128,7 +138,7 @@ def prepare_header_footer(soup):
 
 			# create temp file
 			fname = os.path.join("/tmp", "frappe-pdf-{0}.html".format(frappe.generate_hash()))
-			with open(fname, "w") as f:
+			with open(fname, "wb") as f:
 				f.write(html.encode("utf-8"))
 
 			# {"header-html": "/tmp/frappe-pdf-random.html"}

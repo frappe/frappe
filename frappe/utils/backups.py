@@ -58,14 +58,12 @@ class BackupGenerator:
 			self.backup_path_private_files = last_private_file
 
 	def set_backup_file_name(self):
-		import random
-
 		todays_date = now_datetime().strftime('%Y%m%d_%H%M%S')
 		site = frappe.local.site or frappe.generate_hash(length=8)
 		site = site.replace('.', '_')
 
 		#Generate a random name using today's date and a 8 digit random number
-		for_db = todays_date + "-" + site + "-database.sql.gz"
+		for_db = todays_date + "-" + site + "-database.sql"
 		for_public_files = todays_date + "-" + site + "-files.tar"
 		for_private_files = todays_date + "-" + site + "-private-files.tar"
 		backup_path = get_backup_path()
@@ -112,8 +110,14 @@ class BackupGenerator:
 		# escape reserved characters
 		args = dict([item[0], frappe.utils.esc(item[1], '$ ')]
 			for item in self.__dict__.copy().items())
-		cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s | gzip -c > %(backup_path_db)s""" % args
+
+		cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s > %(backup_path_db)s """ % args
 		err, out = frappe.utils.execute_in_shell(cmd_string)
+
+		cmd_string = 'gzip %(backup_path_db)s '% args
+		err, out = frappe.utils.execute_in_shell(cmd_string)
+
+		self.backup_path_db = "{0}.gz".format(self.backup_path_db)
 
 	def send_email(self):
 		"""

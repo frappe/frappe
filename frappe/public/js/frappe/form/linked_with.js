@@ -22,7 +22,6 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 	}
 
 	make_dialog() {
-		var me = this;
 
 		this.dialog = new frappe.ui.Dialog({
 			hide_on_page_refresh: true,
@@ -38,38 +37,29 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 				.then(() => this.load_doctypes())
 				.then(() => this.links_not_permitted_or_missing())
 				.then(() => this.get_linked_docs())
-				.then(() => this.make_html())
-		}
+				.then(() => this.make_html());
+		};
 	}
 
 	make_html() {
 		const linked_docs = this.frm.__linked_docs;
 
-		let html;
+		let html = '';
 
-		if(Object.keys(linked_docs).length === 0) {
+		const linked_doctypes = Object.keys(linked_docs);
+
+		if (linked_doctypes.length === 0) {
 			html = __("Not Linked to any record");
 		} else {
-			html = Object.keys(linked_docs).map(dt => {
-				const list_renderer = new frappe.views.ListRenderer({
-					doctype: dt,
-					list_view: this
-				});
-				return `<div class="list-item-table" style="margin-bottom: 15px">
-					${this.make_doc_head(dt)}
-					${linked_docs[dt]
-						.map(value => {
-							// prepare data
-							value = list_renderer.prepare_data(value);
-							value._checkbox = 0;
-							value._hide_activity = 1;
-
-							const $item = $(list_renderer.get_item_html(value));
-							const $item_container = $('<div class="list-item-container">').append($item);
-							return $item_container[0].outerHTML;
-						}).join("")}
-				</div>`;
-			});
+			html = linked_doctypes.map(doctype => {
+				const docs = linked_docs[doctype];
+				return `
+					<div class="list-item-table margin-bottom">
+						${this.make_doc_head(doctype)}
+						${docs.map(doc => this.make_doc_row(doc, doctype)).join('')}
+					</div>
+				`;
+			}).join('');
 		}
 
 		$(this.dialog.body).html(html);
@@ -82,7 +72,7 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 		if (this.frm.__linked_doctypes) {
 			doctypes_to_load =
 				Object.keys(this.frm.__linked_doctypes)
-				.filter(doctype => !already_loaded.includes(doctype));
+					.filter(doctype => !already_loaded.includes(doctype));
 		}
 
 		// load all doctypes asynchronously using with_doctype
@@ -100,19 +90,17 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 	}
 
 	links_not_permitted_or_missing() {
-		var me = this;
 		let links = null;
 
 		if (this.frm.__linked_doctypes) {
 			links =
 				Object.keys(this.frm.__linked_doctypes)
-				.filter(frappe.model.can_get_report);
+					.filter(frappe.model.can_get_report);
 		}
 
 		let flag;
 		if(!links) {
-			$(this.dialog.body).html(
-			`${this.frm.__linked_doctypes
+			$(this.dialog.body).html(`${this.frm.__linked_doctypes
 				? __("Not enough permission to see links")
 				: __("Not Linked to any record")}`);
 			flag = true;
@@ -126,7 +114,7 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 	}
 
 	get_linked_doctypes() {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve) => {
 			if (this.frm.__linked_doctypes) {
 				resolve();
 			}
@@ -160,19 +148,20 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 	}
 
 	make_doc_head(heading) {
-		return `<div class="list-item list-item--head">
-		<div class="list-item__content">
-			${heading}
-		</div></div>`;
+		return `
+			<header class="level list-row list-row-head text-muted small">
+				<div>${__(heading)}</div>
+			</header>
+		`;
 	}
 
 	make_doc_row(doc, doctype) {
-		return `<div class="list-item-container">
-			<div class="list-item">
-				<div class="list-item__content bold">
+		return `<div class="list-row-container">
+			<div class="level list-row small">
+				<div class="level-left bold">
 					<a href="#Form/${doctype}/${doc.name}">${doc.name}</a>
 				</div>
 			</div>
 		</div>`;
 	}
-}
+};

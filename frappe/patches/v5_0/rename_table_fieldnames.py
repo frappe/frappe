@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
+from __future__ import unicode_literals
 import frappe
 from frappe.model.utils.rename_field import rename_field
 from frappe.modules import scrub, get_doctype_module
@@ -20,7 +21,7 @@ rename_map = {
 
 def execute():
 	frappe.reload_doc("custom", "doctype", "customize_form")
-	frappe.reload_doc("email", "doctype", "email_alert")
+	frappe.reload_doc("email", "doctype", "notification")
 	frappe.reload_doc("desk", "doctype", "event")
 	frappe.reload_doc("workflow", "doctype", "workflow")
 

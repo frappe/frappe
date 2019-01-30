@@ -17,7 +17,6 @@ import frappe
 import frappe.handler
 import frappe.auth
 import frappe.api
-import frappe.async
 import frappe.utils.response
 import frappe.website.render
 from frappe.utils import get_site_name
@@ -123,13 +122,16 @@ def init_request(request):
 def make_form_dict(request):
 	import json
 
-	if request.content_type == 'application/json':
+	if 'application/json' in (request.content_type or '') and request.data:
 		args = json.loads(request.data)
 	else:
 		args = request.form or request.args
 
-	frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
-		for k, v in iteritems(args) })
+	try:
+		frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
+			for k, v in iteritems(args) })
+	except IndexError:
+		frappe.local.form_dict = frappe._dict(args)
 
 	if "_" in frappe.local.form_dict:
 		# _ is passed by $.ajax so that the request is not cached by the browser. So, remove _ from form_dict
@@ -140,7 +142,7 @@ def handle_exception(e):
 	http_status_code = getattr(e, "http_status_code", 500)
 	return_as_message = False
 
-	if frappe.local.is_ajax or 'application/json' in frappe.get_request_header('Accept'):
+	if frappe.get_request_header('Accept') and (frappe.local.is_ajax or 'application/json' in frappe.get_request_header('Accept')):
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
 		response = frappe.utils.response.report_error(http_status_code)
@@ -211,7 +213,7 @@ def after_request(rollback):
 
 application = local_manager.make_middleware(application)
 
-def serve(port=8000, profile=False, site=None, sites_path='.'):
+def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=None, sites_path='.'):
 	global application, _site, _sites_path
 	_site = site
 	_sites_path = sites_path
@@ -241,7 +243,7 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 		log.setLevel(logging.ERROR)
 
 	run_simple('0.0.0.0', int(port), application,
-		use_reloader=not in_test_env,
+		use_reloader=False if in_test_env else not no_reload,
 		use_debugger=not in_test_env,
 		use_evalex=not in_test_env,
-		threaded=True)
+		threaded=not no_threading)

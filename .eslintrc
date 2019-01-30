@@ -4,12 +4,28 @@
 		"node": true,
 		"es6": true
 	},
+	"parserOptions": {
+		"ecmaVersion": 6,
+		"sourceType": "module"
+	},
 	"extends": "eslint:recommended",
 	"rules": {
 		"indent": [
 			"error",
 			"tab",
 			{ "SwitchCase": 1 }
+		],
+		"brace-style": [
+			"error",
+			"1tbs"
+		],
+		"space-before-function-paren": [
+			"error",
+			"never"
+		],
+		"space-unary-ops": [
+			"error",
+			{ "words": true }
 		],
 		"linebreak-style": [
 			"error",
@@ -44,21 +60,6 @@
 	"root": true,
 	"globals": {
 		"frappe": true,
-		"$": true,
-		"jQuery": true,
-		"moment": true,
-		"hljs": true,
-		"Awesomplete": true,
-		"Sortable": true,
-		"Showdown": true,
-		"Taggle": true,
-		"Gantt": true,
-		"Slick": true,
-		"Webcam": true,
-		"PhotoSwipe": true,
-		"PhotoSwipeUI_Default": true,
-		"fluxify": true,
-		"io": true,
 		"__": true,
 		"_p": true,
 		"_f": true,
@@ -82,7 +83,6 @@
 		"format_number": true,
 		"format_currency": true,
 		"comment_when": true,
-		"replace_newlines": true,
 		"open_url_post": true,
 		"toTitle": true,
 		"lstrip": true,
@@ -91,7 +91,6 @@
 		"replace_all": true,
 		"flt": true,
 		"precision": true,
-		"md5": true,
 		"CREATE": true,
 		"AMEND": true,
 		"CANCEL": true,
@@ -117,9 +116,27 @@
 		"getCookie": true,
 		"getCookies": true,
 		"get_url_arg": true,
+
+		"md5": true,
+		"$": true,
+		"jQuery": true,
+		"moment": true,
+		"hljs": true,
+		"Awesomplete": true,
+		"Sortable": true,
+		"Showdown": true,
+		"Taggle": true,
+		"Gantt": true,
+		"Slick": true,
+		"Webcam": true,
+		"PhotoSwipe": true,
+		"PhotoSwipeUI_Default": true,
+		"fluxify": true,
+		"io": true,
 		"QUnit": true,
 		"JsBarcode": true,
 		"L": true,
-		"Chart": true
+		"Chart": true,
+		"DataTable": true
 	}
 }

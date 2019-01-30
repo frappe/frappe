@@ -105,6 +105,7 @@ class setup_docs(object):
 		for basepath, folders, files in os.walk(self.docs_path): # pylint: disable=unused-variable
 			with open(os.path.join(basepath, '_sidebar.json'), 'w') as sidebarfile:
 				sidebarfile.write(frappe.as_json([
+					{"title": "Search Docs ...", "type": "input", "route": "/search_docs"},
 					{"title": "Docs Home", "route": "/docs"},
 					{"title": "User Guide", "route": "/docs/user"},
 					{"title": "Server API", "route": "/docs/current/api"},
@@ -167,7 +168,7 @@ class setup_docs(object):
 			html = frappe.render_template("templates/autodoc/license.html",
 				context = self.app_context)
 
-		with open(os.path.join(self.docs_path, "license.html"), "w") as license_file:
+		with open(os.path.join(self.docs_path, "license.html"), "wb") as license_file:
 			license_file.write(html.encode("utf-8"))
 
 		# contents
@@ -215,7 +216,7 @@ class setup_docs(object):
 
 				if not os.path.exists(module_doc_path):
 					print("Writing " + module_doc_path)
-					with open(module_doc_path, "w") as f:
+					with open(module_doc_path, "wb") as f:
 						context = {"name": self.app + "." + module_name}
 						context.update(self.app_context)
 						context['full_module_name'] = self.app + '.' + full_module_name
@@ -276,7 +277,7 @@ class setup_docs(object):
 
 				print("Writing " + model_path)
 
-				with open(model_path, "w") as f:
+				with open(model_path, "wb") as f:
 					context = {"doctype": doctype_real_name}
 					context.update(self.app_context)
 					f.write(frappe.render_template("templates/autodoc/doctype.html",
@@ -303,5 +304,5 @@ edit_link = '''
 def add_breadcrumbs_tag(path):
 	with open(path, 'r') as f:
 		content = frappe.as_unicode(f.read())
-	with open(path, 'w') as f:
+	with open(path, 'wb') as f:
 		f.write(('<!-- add-breadcrumbs -->\n' + content).encode('utf-8'))

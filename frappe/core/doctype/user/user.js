@@ -38,7 +38,7 @@ frappe.ui.form.on('User', {
 	},
 
 	onload: function(frm) {
-		frm.can_edit_roles = has_common(frappe.user_roles, ["Administrator", "System Manager"]);
+		frm.can_edit_roles = has_access_to_edit_user();
 
 		if(frm.can_edit_roles && !frm.is_new()) {
 			if(!frm.roles_editor) {
@@ -72,13 +72,10 @@ frappe.ui.form.on('User', {
 
 		if(!frm.is_new()) {
 			frm.add_custom_button(__("Set Desktop Icons"), function() {
-				frappe.route_options = {
-					"user": doc.name
-				};
-				frappe.set_route("modules_setup");
+				frappe.frappe_toolbar.modules_select.show(doc.name);
 			}, null, "btn-default")
 
-			if(has_common(frappe.user_roles, ["Administrator", "System Manager"])) {
+			if(has_access_to_edit_user()) {
 
 				frm.add_custom_button(__("Set User Permissions"), function() {
 					frappe.route_options = {
@@ -158,7 +155,7 @@ frappe.ui.form.on('User', {
 	},
 	enabled: function(frm) {
 		var doc = frm.doc;
-		if(!frm.is_new() && has_common(frappe.user_roles, ["Administrator", "System Manager"])) {
+		if(!frm.is_new() && has_access_to_edit_user()) {
 			frm.toggle_display(['sb1', 'sb3', 'modules_access'], doc.enabled);
 			frm.set_df_property('enabled', 'read_only', 0);
 		}
@@ -192,9 +189,31 @@ frappe.ui.form.on('User', {
 				}
 			}
 		})
+	},
+	generate_keys: function(frm){
+		frappe.call({
+			method: 'frappe.core.doctype.user.user.generate_keys',
+			args: {
+				user: frm.doc.name
+			},
+			callback: function(r){
+				if(r.message){
+					frappe.msgprint(__("Save API Secret: ") + r.message.api_secret);
+				}
+			}
+		})
 	}
 })
 
+function has_access_to_edit_user() {
+	return has_common(frappe.user_roles, get_roles_for_editing_user());
+}
+
+function get_roles_for_editing_user() {
+	return frappe.get_meta('User').permissions
+		.filter(perm => perm.permlevel >= 1 && perm.write)
+		.map(perm => perm.role) || ['System Manager'];
+}
 
 frappe.ModuleEditor = Class.extend({
 	init: function(frm, wrapper) {

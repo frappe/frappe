@@ -11,8 +11,9 @@ import frappe.translate
 from frappe import _
 from frappe.utils import cint
 from frappe.model.document import Document
-from frappe.model import no_value_fields
+from frappe.model import no_value_fields, core_doctypes_list
 from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
+from frappe.model.docfield import supports_translation
 
 doctype_properties = {
 	'search_fields': 'Data',
@@ -36,6 +37,7 @@ docfield_properties = {
 	'label': 'Data',
 	'fieldtype': 'Select',
 	'options': 'Text',
+	'fetch_from': 'Small Text',
 	'permlevel': 'Int',
 	'width': 'Data',
 	'print_width': 'Data',
@@ -53,6 +55,7 @@ docfield_properties = {
 	'print_hide_if_no_value': 'Check',
 	'report_hide': 'Check',
 	'allow_on_submit': 'Check',
+	'translatable': 'Check',
 	'depends_on': 'Data',
 	'description': 'Text',
 	'default': 'Text',
@@ -65,7 +68,7 @@ docfield_properties = {
 }
 
 allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
-	('Text', 'Data'), ('Text', 'Text Editor', 'Code', 'Signature'), ('Data', 'Select'),
+	('Text', 'Data'), ('Text', 'Text Editor', 'Code', 'Signature', 'HTML Editor'), ('Data', 'Select'),
 	('Text', 'Small Text'), ('Text', 'Data', 'Barcode'), ('Code', 'Geolocation'))
 
 allowed_fieldtype_for_options_change = ('Read Only', 'HTML', 'Select', 'Data')
@@ -81,6 +84,12 @@ class CustomizeForm(Document):
 			return
 
 		meta = frappe.get_meta(self.doc_type)
+
+		if self.doc_type in core_doctypes_list:
+			return frappe.msgprint(_("Core DocTypes cannot be customized."))
+
+		if meta.custom:
+			return frappe.msgprint(_("Only standard DocTypes are allowed to be customized from Customize Form."))
 
 		# doctype properties
 		for property in doctype_properties:
@@ -157,6 +166,7 @@ class CustomizeForm(Document):
 	def set_property_setters(self):
 		meta = frappe.get_meta(self.doc_type)
 		# doctype property setters
+
 		for property in doctype_properties:
 			if self.get(property) != meta.get(property):
 				self.make_property_setter(property=property, value=self.get(property),
@@ -177,6 +187,15 @@ class CustomizeForm(Document):
 						frappe.msgprint(_("Row {0}: Not allowed to enable Allow on Submit for standard fields")\
 							.format(df.idx))
 						continue
+
+					elif property == "reqd" and \
+						((frappe.db.get_value("DocField", 
+							{"parent":self.doc_type,"fieldname":df.fieldname}, "reqd") == 1) \
+							and (df.get(property) == 0)):
+						frappe.msgprint(_("Row {0}: Not allowed to disable Mandatory for standard fields")\
+								.format(df.idx))
+						continue
+
 					elif property == "in_list_view" and df.get(property) \
 						and df.fieldtype!="Attach Image" and df.fieldtype in no_value_fields:
 								frappe.msgprint(_("'In List View' not allowed for type {0} in row {1}")
@@ -198,6 +217,10 @@ class CustomizeForm(Document):
 
 					elif property == "options" and df.get("fieldtype") not in allowed_fieldtype_for_options_change:
 						frappe.msgprint(_("You can't set 'Options' for field {0}").format(df.label))
+						continue
+
+					elif property == 'translatable' and not supports_translation(df.get('fieldtype')):
+						frappe.msgprint(_("You can't set 'Translatable' for field {0}").format(df.label))
 						continue
 
 					self.make_property_setter(property=property, value=df.get(property),

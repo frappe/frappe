@@ -4,11 +4,12 @@ function prettyDate(time, mini) {
 	if (!time) {
 		time = new Date();
 	}
-	if (moment) {
+	if ('moment' in window) { // use frappe.ImportError ;)
+		let ret;
 		if (frappe.sys_defaults && frappe.sys_defaults.time_zone) {
-			var ret = moment.tz(time, frappe.sys_defaults.time_zone).locale(frappe.boot.lang).fromNow(mini);
+			ret = moment.tz(time, frappe.sys_defaults.time_zone).locale(frappe.boot.lang).fromNow(mini);
 		} else {
-			var ret = moment(time).locale(frappe.boot.lang).fromNow(mini);
+			ret = moment(time).locale(frappe.boot.lang).fromNow(mini);
 		}
 		if (mini) {
 			if (ret === moment().locale(frappe.boot.lang).fromNow(mini)) {
@@ -30,7 +31,7 @@ function prettyDate(time, mini) {
 		}
 		return ret;
 	} else {
-		if (!time) return ''
+		if (!time) return '';
 		var date = time;
 		if (typeof (time) == "string")
 			date = new Date((time || "").replace(/-/g, "/").replace(/[TZ]/g, " ").replace(/\.[0-9]*/, ""));
@@ -58,7 +59,8 @@ function prettyDate(time, mini) {
 }
 
 
-var comment_when = function (datetime, mini) {
+frappe.provide("frappe.datetime");
+window.comment_when = function(datetime, mini) {
 	var timestamp = frappe.datetime.str_to_user ?
 		frappe.datetime.str_to_user(datetime) : datetime;
 	return '<span class="frappe-timestamp '
@@ -66,14 +68,16 @@ var comment_when = function (datetime, mini) {
 		+ '" title="' + timestamp + '">'
 		+ prettyDate(datetime, mini) + '</span>';
 };
+frappe.datetime.comment_when = comment_when;
 
-frappe.provide("frappe.datetime");
-frappe.datetime.refresh_when = function () {
+frappe.datetime.refresh_when = function() {
 	if (jQuery) {
-		$(".frappe-timestamp").each(function () {
+		$(".frappe-timestamp").each(function() {
 			$(this).html(prettyDate($(this).attr("data-timestamp"), $(this).hasClass("mini")));
 		});
 	}
-}
+};
 
-setInterval(function () { frappe.datetime.refresh_when() }, 60000); // refresh every minute
+setInterval(function() {
+	frappe.datetime.refresh_when();
+}, 60000); // refresh every minute

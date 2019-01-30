@@ -1,6 +1,11 @@
 frappe.tests = {
 	data: {},
 	make: function(doctype, data) {
+		let dialog_is_active = () => {
+			return (
+				cur_dialog && (!cur_frm || cur_frm.doc.doctype != doctype)
+			);
+		};
 		return frappe.run_serially([
 			() => frappe.set_route('List', doctype),
 			() => frappe.new_doc(doctype),
@@ -8,14 +13,43 @@ frappe.tests = {
 				if (frappe.quick_entry) {
 					frappe.quick_entry.dialog.$wrapper.find('.edit-full').click();
 					return frappe.timeout(1);
+				} else {
+					let root_node;
+					if (cur_tree) {
+						for (const key in cur_tree.nodes) {
+							if (cur_tree.nodes[key].parent_label && cur_tree.nodes[key].expandable) {
+								root_node = cur_tree.nodes[key].label;
+								break;
+							}
+						}
+					}
+					if (root_node){
+						frappe.tests.open_add_child_dialog(root_node);
+						return frappe.timeout(1);
+					}
 				}
 			},
 			() => {
-				return frappe.tests.set_form_values(cur_frm, data);
+				if(dialog_is_active()) {
+					return frappe.tests.set_dialog_values(cur_dialog, data);
+				} else {
+					return frappe.tests.set_form_values(cur_frm, data);
+				}
 			},
-			() => frappe.timeout(1),
-			() => (frappe.quick_entry ? frappe.quick_entry.insert() : cur_frm.save())
+
+			() => {
+				if(dialog_is_active()) {
+					return cur_dialog.get_primary_btn().click();
+				} else {
+					return frappe.quick_entry ? frappe.quick_entry.insert() : cur_frm.save();
+				}
+			}
 		]);
+	},
+	open_add_child_dialog: (root_node) => {
+		frappe.tests.click_link(root_node);
+		frappe.timeout(1);
+		frappe.tests.click_button('Add Child');
 	},
 	set_form_values: (frm, data) => {
 		let tasks = [];
@@ -40,6 +74,23 @@ frappe.tests = {
 		// set values
 		return frappe.run_serially(tasks);
 
+	},
+	set_dialog_values: (dialog, data) => {
+		let tasks = [];
+
+		data.forEach(item => {
+			for (let key in item) {
+				let task = () => {
+					let value = item[key];
+					return dialog.set_value(key, value);
+				};
+				tasks.push(task);
+				tasks.push(frappe.after_ajax);
+				tasks.push(() => frappe.timeout(0.4));
+			}
+		});
+
+		return frappe.run_serially(tasks);
 	},
 	set_grid_values: (frm, key, value) => {
 		// set value in grid

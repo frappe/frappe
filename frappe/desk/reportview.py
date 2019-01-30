@@ -15,6 +15,7 @@ from six import text_type, string_types, StringIO
 import pymysql
 
 @frappe.whitelist()
+@frappe.read_only()
 def get():
 	args = get_form_params()
 
@@ -44,7 +45,6 @@ def get_form_params():
 	else:
 		data["save_user_settings"] = True
 
-	doctype = data["doctype"]
 	fields = data["fields"]
 
 	for field in fields:
@@ -78,11 +78,11 @@ def compress(data, args = {}):
 
 	if not data: return data
 	values = []
-	keys = data[0].keys()
+	keys = list(data[0])
 	for row in data:
 		new_row = []
 		for key in keys:
-			new_row.append(row[key])
+			new_row.append(row.get(key))
 		values.append(new_row)
 
 	if args.get("add_total_row"):
@@ -214,20 +214,25 @@ def delete_items():
 	"""delete selected items"""
 	import json
 
-	il = json.loads(frappe.form_dict.get('items'))
+	il = sorted(json.loads(frappe.form_dict.get('items')), reverse=True, key=frappe.safe_decode)
 	doctype = frappe.form_dict.get('doctype')
+
+	failed = []
 
 	for i, d in enumerate(il):
 		try:
 			frappe.delete_doc(doctype, d)
 			if len(il) >= 5:
 				frappe.publish_realtime("progress",
-					dict(progress=[i+1, len(il)], title=_('Deleting {0}').format(doctype)),
-					user=frappe.session.user)
+					dict(progress=[i+1, len(il)], title=_('Deleting {0}').format(doctype), description=d),
+						user=frappe.session.user)
 		except Exception:
-			pass
+			failed.append(d)
+
+	return failed
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_sidebar_stats(stats, doctype, filters=[]):
 	cat_tags = frappe.db.sql("""select tag.parent as category, tag.tag_name as tag
 		from `tabTag Doc Category` as docCat
@@ -337,8 +342,8 @@ def get_match_cond(doctype):
 	cond = DatabaseQuery(doctype).build_match_conditions()
 	return ((' and ' + cond) if cond else "").replace("%", "%%")
 
-def build_match_conditions(doctype, as_condition=True):
-	match_conditions =  DatabaseQuery(doctype).build_match_conditions(as_condition=as_condition)
+def build_match_conditions(doctype, user=None, as_condition=True):
+	match_conditions =  DatabaseQuery(doctype, user=user).build_match_conditions(as_condition=as_condition)
 	if as_condition:
 		return match_conditions.replace("%", "%%")
 	else:

@@ -3,18 +3,17 @@
 
 from __future__ import unicode_literals, print_function
 from frappe.utils.minify import JavascriptMinify
-import subprocess
 import warnings
 
 from six import iteritems, text_type
+import subprocess
+from distutils.spawn import find_executable
 
 """
 Build the `public` folders and setup languages
 """
 
 import os, frappe, json, shutil, re
-# from cssmin import cssmin
-
 
 app_paths = None
 def setup():
@@ -26,40 +25,47 @@ def setup():
 		except ImportError: pass
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
-def bundle(no_compress, make_copy=False, restore=False, verbose=False):
-	"""concat / minify js files"""
-	# build js files
-	setup()
+def get_node_pacman():
+	pacmans = ['yarn', 'npm']
+	for exec_ in pacmans:
+		exec_ = find_executable(exec_)
+		if exec_:
+			return exec_
+	raise ValueError('No Node.js Package Manager found.')
 
+def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False):
+	"""concat / minify js files"""
+	setup()
 	make_asset_dirs(make_copy=make_copy, restore=restore)
 
-	# new nodejs build system
-	command = 'node --use_strict ../apps/frappe/frappe/build.js --build'
-	if not no_compress:
-		command += ' --minify'
-	subprocess.call(command.split(' '))
+	pacman = get_node_pacman()
+	mode = 'build' if no_compress else 'production'
+	command = '{pacman} run {mode}'.format(pacman=pacman, mode=mode)
 
-	# build(no_compress, verbose)
+	if app:
+		command += ' --app {app}'.format(app=app)
+
+	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
+	check_yarn()
+	frappe.commands.popen(command, cwd=frappe_app_path)
 
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
+	setup()
 
-	# new nodejs file watcher
-	command = 'node --use_strict ../apps/frappe/frappe/build.js --watch'
-	subprocess.call(command.split(' '))
+	pacman = get_node_pacman()
 
-	# setup()
+	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
+	check_yarn()
+	frappe_app_path = frappe.get_app_path('frappe', '..')
+	frappe.commands.popen('{pacman} run watch'.format(pacman=pacman), cwd = frappe_app_path)
 
-	# import time
-	# compile_less()
-	# build(no_compress=True)
-
-	# while True:
-	# 	compile_less()
-	# 	if files_dirty():
-	# 		build(no_compress=True)
-
-	# 	time.sleep(3)
+def check_yarn():
+	from distutils.spawn import find_executable
+	if not find_executable('yarn'):
+		print('Please install yarn using below command and try again.')
+		print('npm install -g yarn')
+		return
 
 def make_asset_dirs(make_copy=False, restore=False):
 	# don't even think of making assets_path absolute - rm -rf ahead.
@@ -78,7 +84,16 @@ def make_asset_dirs(make_copy=False, restore=False):
 
 		symlinks = []
 		symlinks.append([os.path.join(app_base_path, 'public'), os.path.join(assets_path, app_name)])
-		symlinks.append([os.path.join(app_base_path, 'docs'), os.path.join(assets_path, app_name + '_docs')])
+
+		app_doc_path = None
+		if os.path.isdir(os.path.join(app_base_path, 'docs')):
+			app_doc_path = os.path.join(app_base_path, 'docs')
+
+		elif os.path.isdir(os.path.join(app_base_path, 'www', 'docs')):
+			app_doc_path = os.path.join(app_base_path, 'www', 'docs')
+
+		if app_doc_path:
+			symlinks.append([app_doc_path, os.path.join(assets_path, app_name + '_docs')])
 
 		for source, target in symlinks:
 			source = os.path.abspath(source)
@@ -103,7 +118,8 @@ def make_asset_dirs(make_copy=False, restore=False):
 							shutil.rmtree(target)
 					os.symlink(source, target)
 			else:
-				warnings.warn('Source {source} does not exists.'.format(source = source))
+				# warnings.warn('Source {source} does not exist.'.format(source = source))
+				pass
 
 def build(no_compress=False, verbose=False):
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
@@ -177,10 +193,6 @@ def pack(target, sources, no_compress, verbose):
 		except Exception:
 			print("--Error in:" + f + "--")
 			print(frappe.get_traceback())
-
-	if not no_compress and outtype == 'css':
-		pass
-		#outtxt = cssmin(outtxt)
 
 	with open(target, 'w') as f:
 		f.write(outtxt.encode("utf-8"))

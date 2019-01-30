@@ -1,0 +1,54 @@
+{% extends "templates/web.html" %}
+
+{% block title %} Payment {% endblock %}
+
+{%- block header -%}{% endblock %}
+
+{% block script %}
+<script src="https://js.braintreegateway.com/web/dropin/1.9.3/js/dropin.min.js"></script>
+<script>{% include "templates/includes/integrations/braintree_checkout.js" %}</script>
+{% endblock %}
+
+{%- block page_content -%}
+<div class="wrapper">
+	<div class="checkout container">
+
+		<header>
+			<div>
+				<img class="center" src="{{ header_img }}"></img>
+			</div>
+		</header>
+
+		<form id="payment-form">
+			<section>
+				<div class="bt-drop-in-wrapper">
+					<div id="bt-dropin"></div>
+				</div>
+			</section>
+
+			<button class="btn btn-primary" type="submit" id="submit-button" disabled><span>{{ _("Pay") }} {{ amount }} {{ currency }}</span></button>
+		</form>
+
+	</div>
+</div>
+
+<style>
+.checkout {
+	max-width: 60%;
+}
+
+.center {
+	margin:auto;
+	display: block;
+}
+
+#payment-form {
+	margin-top: 40px;
+}
+
+#submit-button {
+	float: right;
+}
+
+</style>
+{% endblock %}

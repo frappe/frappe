@@ -15,7 +15,6 @@ $.extend(frappe.model, {
 		if(isPlain) r.docs = [r.docs];
 
 		if(r.docs) {
-			var last_parent_name = null;
 
 			for(var i=0, l=r.docs.length; i<l; i++) {
 				var d = r.docs[i];
@@ -52,11 +51,11 @@ $.extend(frappe.model, {
 
 		// set docinfo (comments, assign, attachments)
 		if(r.docinfo) {
+			var doc;
 			if(r.docs) {
-				var doc = r.docs[0];
+				doc = r.docs[0];
 			} else {
-				if(cur_frm)
-					var doc = cur_frm.doc;
+				if(cur_frm) doc = cur_frm.doc;
 			}
 			if(doc) {
 				if(!frappe.model.docinfo[doc.doctype])
@@ -90,7 +89,7 @@ $.extend(frappe.model, {
 					for (var x=0, y=value.length; x < y; x++) {
 						var d = value[x];
 
-						if(!d.parent)
+						if(typeof d=='object' && !d.parent)
 							d.parent = doc.name;
 
 						frappe.model.add_to_locals(d);
@@ -127,11 +126,19 @@ $.extend(frappe.model, {
 					if (local_d) {
 						// deleted and added again
 						if (!locals[d.doctype]) locals[d.doctype] = {};
-						if (!d.name || !locals[d.doctype][d.name]) {
-							frappe.model.add_to_locals(d);
-							if (locals[d.doctype][local_d.name]) {
-								delete locals[d.doctype][local_d.name];
-							}
+
+						if (!d.name) {
+							// incoming row is new, find a new name
+							d.name = frappe.model.get_new_name(doc.doctype);
+						}
+
+						// if incoming row is not registered, register it
+						if (!locals[d.doctype][d.name]) {
+							// detach old key
+							delete locals[d.doctype][local_d.name];
+
+							// re-attach with new name
+							locals[d.doctype][d.name] = local_d;
 						}
 
 						// row exists, just copy the values

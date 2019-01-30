@@ -10,6 +10,7 @@ from frappe.core.doctype.communication.comment import (notify_mentions,
 	update_comment_in_doc, on_trash)
 from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_mins_to_first_response)
+from frappe.core.utils import get_parent_doc, set_timeline_doc
 from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr
 
@@ -42,14 +43,7 @@ class Communication(Document):
 			frappe.db.commit()
 
 	def validate(self):
-		if self.reference_doctype and self.reference_name:
-			if not self.reference_owner:
-				self.reference_owner = frappe.db.get_value(self.reference_doctype, self.reference_name, "owner")
-
-			# prevent communication against a child table
-			if frappe.get_meta(self.reference_doctype).istable:
-				frappe.throw(_("Cannot create a {0} against a child document: {1}")
-					.format(_(self.communication_type), _(self.reference_doctype)))
+		self.validate_reference()
 
 		if not self.user:
 			self.user = frappe.session.user
@@ -63,8 +57,31 @@ class Communication(Document):
 
 		self.set_status()
 		self.set_sender_full_name()
+
 		validate_email(self)
 		set_timeline_doc(self)
+
+	def validate_reference(self):
+		if self.reference_doctype and self.reference_name:
+			if not self.reference_owner:
+				self.reference_owner = frappe.db.get_value(self.reference_doctype, self.reference_name, "owner")
+
+			# prevent communication against a child table
+			if frappe.get_meta(self.reference_doctype).istable:
+				frappe.throw(_("Cannot create a {0} against a child document: {1}")
+					.format(_(self.communication_type), _(self.reference_doctype)))
+
+			# Prevent circular linking of Communication DocTypes
+			if self.reference_doctype == "Communication":
+				circular_linking = False
+				doc = get_parent_doc(self)
+				while doc.reference_doctype == "Communication":
+					if get_parent_doc(doc).name==self.name:
+						circular_linking = True
+						break
+					doc = get_parent_doc(doc)
+				if circular_linking:
+					frappe.throw(_("Please make sure the Reference Communication Docs are not circularly linked."), frappe.CircularLinkingError)
 
 	def after_insert(self):
 		if not (self.reference_doctype and self.reference_name):
@@ -77,8 +94,8 @@ class Communication(Document):
 		if self.communication_type in ("Communication", "Comment"):
 			# send new comment to listening clients
 			frappe.publish_realtime('new_communication', self.as_dict(),
-			    doctype=self.reference_doctype, docname=self.reference_name,
-			    after_commit=True)
+				doctype=self.reference_doctype, docname=self.reference_name,
+				after_commit=True)
 
 			if self.communication_type == "Comment":
 				notify_mentions(self)
@@ -91,7 +108,7 @@ class Communication(Document):
 			else:
 				# reference_name contains the user who is addressed in the messages' page comment
 				frappe.publish_realtime('new_message', self.as_dict(),
-				    user=self.reference_name, after_commit=True)
+					user=self.reference_name, after_commit=True)
 
 	def on_update(self):
 		"""Update parent status as `Open` or `Replied`."""
@@ -225,34 +242,6 @@ class Communication(Document):
 			if commit:
 				frappe.db.commit()
 
-def get_parent_doc(doc):
-	"""Returns document of `reference_doctype`, `reference_doctype`"""
-	if not hasattr(doc, "parent_doc"):
-		if doc.reference_doctype and doc.reference_name:
-			doc.parent_doc = frappe.get_doc(doc.reference_doctype, doc.reference_name)
-		else:
-			doc.parent_doc = None
-	return doc.parent_doc
-
-def set_timeline_doc(doc):
-	"""Set timeline_doctype and timeline_name"""
-	parent_doc = get_parent_doc(doc)
-	if (doc.timeline_doctype and doc.timeline_name) or not parent_doc:
-		return
-
-	timeline_field = parent_doc.meta.timeline_field
-	if not timeline_field:
-		return
-
-	doctype = parent_doc.meta.get_link_doctype(timeline_field)
-	name = parent_doc.get(timeline_field)
-
-	if doctype and name:
-		doc.timeline_doctype = doctype
-		doc.timeline_name = name
-
-	else:
-		return
 
 def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""
@@ -275,8 +264,6 @@ def has_permission(doc, ptype, user):
 				return True
 
 def get_permission_query_conditions_for_communication(user):
-	from frappe.email.inbox import get_email_accounts
-
 	if not user: user = frappe.session.user
 
 	roles = frappe.get_roles(user)

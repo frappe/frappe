@@ -94,8 +94,9 @@ def notify_mentions(doc):
 
 		subject = _("{0} mentioned you in a comment").format(sender_fullname)
 
-		recipients = [frappe.db.get_value("User", {"enabled": 1, "username": username, "user_type": "System User"})
-			for username in mentions]
+		recipients = [frappe.db.get_value("User", {"enabled": 1, "name": name, "user_type": "System User"}, "email")
+			for name in mentions]
+		link = get_link_to_form(doc.reference_doctype, doc.reference_name, label=parent_doc_label)
 
 		frappe.sendmail(
 			recipients=recipients,
@@ -103,9 +104,9 @@ def notify_mentions(doc):
 			subject=subject,
 			template="mentioned_in_comment",
 			args={
-				"sender_fullname": sender_fullname,
+				"body_content": _("{0} mentioned you in a comment in {1}").format(sender_fullname, link),
 				"comment": doc,
-				"link": get_link_to_form(doc.reference_doctype, doc.reference_name, label=parent_doc_label)
+				"link": link
 			},
 			header=[_('New Mention'), 'orange']
 		)

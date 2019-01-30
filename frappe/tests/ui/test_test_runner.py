@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 from frappe.utils.selenium_testdriver import TestDriver
 import unittest, os, frappe, time
 
@@ -34,15 +34,17 @@ class TestTestRunner(unittest.TestCase):
 			try:
 				driver.click_primary_action()
 				driver.wait_for('#frappe-qunit-done', timeout=timeout)
-
 				console = driver.get_console()
-				passed = 'Tests Passed' in console
+				passed  = 'Tests Passed' in console
 			finally:
+				console = driver.get_console()
+				passed  = 'Test Passed' in console
 				if frappe.flags.tests_verbose or not passed:
 					for line in console:
 						print(line)
 					print('-' * 40)
-				self.assertTrue(passed)
+				else:
+					self.assertTrue(passed)
 				time.sleep(1)
 		frappe.db.set_default('in_selenium', None)
 		driver.close()

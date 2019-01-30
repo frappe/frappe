@@ -78,7 +78,7 @@ class UserPermissions:
 		for r in get_valid_perms():
 			dt = r['parent']
 
-			if not dt in  self.perm_map:
+			if not dt in self.perm_map:
 				self.perm_map[dt] = {}
 
 			for k in frappe.permissions.rights:
@@ -96,9 +96,9 @@ class UserPermissions:
 		user_shared = frappe.share.get_shared_doctypes()
 		no_list_view_link = []
 		active_modules = get_active_modules() or []
-
 		for dt in self.doctype_map:
 			dtp = self.doctype_map[dt]
+
 			p = self.perm_map.get(dt, {})
 
 			if not p.get("read") and (dt in user_shared):
@@ -256,7 +256,7 @@ def get_system_managers(only_name=False):
 def add_role(user, role):
 	frappe.get_doc("User", user).add_roles(role)
 
-def add_system_manager(email, first_name=None, last_name=None, send_welcome_email=False):
+def add_system_manager(email, first_name=None, last_name=None, send_welcome_email=False, password=None):
 	# add user
 	user = frappe.new_doc("User")
 	user.update({
@@ -268,6 +268,11 @@ def add_system_manager(email, first_name=None, last_name=None, send_welcome_emai
 		"user_type": "System User",
 		"send_welcome_email": 1 if send_welcome_email else 0
 	})
+
+	if password:
+		user.update({
+			"new_password": password
+		})
 
 	user.insert()
 
@@ -343,3 +348,15 @@ def reset_simultaneous_sessions(user_limit):
 		else:
 			frappe.db.set_value("User", user.name, "simultaneous_sessions", 1)
 			user_limit = user_limit - 1
+
+def get_link_to_reset_password(user):
+	link = ''
+
+	if not cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
+		user = frappe.get_doc("User", user)
+		link = user.reset_password(send_email=False)
+		frappe.db.commit()
+
+	return {
+		'link': link
+	}

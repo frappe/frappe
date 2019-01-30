@@ -4,6 +4,8 @@
 // link validation
 // custom queries
 // add_fetches
+import Awesomplete from 'awesomplete';
+
 frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
@@ -47,6 +49,10 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	},
 	get_options: function() {
 		return this.df.options;
+	},
+	get_reference_doctype() {
+		// this is used to get the context in which link field is loaded
+		return this.doctype || frappe.get_route()[0] === 'List' ? frappe.get_route()[1] : null;
 	},
 	setup_buttons: function() {
 		if(this.only_input && !this.with_link_btn) {
@@ -128,7 +134,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			}
 		});
 
-		this.$input.on("input", function(e) {
+		this.$input.on("input", frappe.utils.debounce(function(e) {
 			var doctype = me.get_options();
 			if(!doctype) return;
 			if (!me.$input.cache[doctype]) {
@@ -141,10 +147,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				// immediately show from cache
 				me.awesomplete.list = me.$input.cache[doctype][term];
 			}
-
 			var args = {
 				'txt': term,
 				'doctype': doctype,
+				'ignore_user_permissions': me.df.ignore_user_permissions,
+				'reference_doctype': me.get_reference_doctype()
 			};
 
 			me.set_custom_query(args);
@@ -173,20 +180,24 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 							});
 						}
 						// advanced search
-						r.results.push({
-							label: "<span class='text-primary link-option'>"
-								+ "<i class='fa fa-search' style='margin-right: 5px;'></i> "
-								+ __("Advanced Search")
-								+ "</span>",
-							value: "advanced_search__link_option",
-							action: me.open_advanced_search
-						});
+
+						if (locals && locals['DocType']) {
+							// not applicable in web forms
+							r.results.push({
+								label: "<span class='text-primary link-option'>"
+									+ "<i class='fa fa-search' style='margin-right: 5px;'></i> "
+									+ __("Advanced Search")
+									+ "</span>",
+								value: "advanced_search__link_option",
+								action: me.open_advanced_search
+							});
+						}
 					}
 					me.$input.cache[doctype][term] = r.results;
 					me.awesomplete.list = me.$input.cache[doctype][term];
 				}
 			});
-		});
+		}, 618));
 
 		this.$input.on("blur", function() {
 			if(me.selected) {

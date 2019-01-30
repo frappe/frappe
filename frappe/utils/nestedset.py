@@ -194,11 +194,7 @@ class NestedSet(Document):
 			frappe.throw(_("Root {0} cannot be deleted").format(_(self.doctype)))
 
 		# cannot delete non-empty group
-		has_children = frappe.db.sql("""select count(name) from `tab{doctype}`
-			where `{nsm_parent_field}`=%s""".format(doctype=self.doctype, nsm_parent_field=self.nsm_parent_field),
-			(self.name,))[0][0]
-		if has_children:
-			frappe.throw(_("Cannot delete {0} as it has child nodes").format(self.name), NestedSetChildExistsError)
+		self.validate_if_child_exists()
 
 		self.set(self.nsm_parent_field, "")
 
@@ -210,6 +206,13 @@ class NestedSet(Document):
 				frappe.message_log.pop()
 			else:
 				raise
+
+	def validate_if_child_exists(self):
+		has_children = frappe.db.sql("""select count(name) from `tab{doctype}`
+			where `{nsm_parent_field}`=%s""".format(doctype=self.doctype, nsm_parent_field=self.nsm_parent_field),
+			(self.name,))[0][0]
+		if has_children:
+			frappe.throw(_("Cannot delete {0} as it has child nodes").format(self.name), NestedSetChildExistsError)
 
 	def before_rename(self, olddn, newdn, merge=False, group_fname="is_group"):
 		if merge and hasattr(self, group_fname):
@@ -234,10 +237,10 @@ class NestedSet(Document):
 		if not self.get(self.nsm_parent_field):
 			if frappe.db.sql("""select count(*) from `tab%s` where
 				ifnull(%s, '')=''""" % (self.doctype, self.nsm_parent_field))[0][0] > 1:
-				frappe.throw(_("""Multiple root nodes not allowed."""), NestedSetMultipleRootsError)
+				frappe.throw(_("""Multiple root nodes not allowed: {0} {1}""".format(self.doctype, self.nsm_parent_field)), NestedSetMultipleRootsError)
 
 	def validate_ledger(self, group_identifier="is_group"):
-		if self.get(group_identifier) == "No":
+		if hasattr(self, group_identifier) and not bool(self.get(group_identifier)):
 			if frappe.db.sql("""select name from `tab{0}` where {1}=%s and docstatus!=2"""
 				.format(self.doctype, self.nsm_parent_field), (self.name)):
 				frappe.throw(_("{0} {1} cannot be a leaf node as it has children").format(_(self.doctype), self.name))
@@ -249,7 +252,8 @@ def get_root_of(doctype):
 	"""Get root element of a DocType with a tree structure"""
 	result = frappe.db.sql("""select t1.name from `tab{0}` t1 where
 		(select count(*) from `tab{1}` t2 where
-			t2.lft < t1.lft and t2.rgt > t1.rgt) = 0""".format(doctype, doctype))
+			t2.lft < t1.lft and t2.rgt > t1.rgt) = 0
+		and t1.rgt > t1.lft""".format(doctype, doctype))
 	return result[0][0] if result else None
 
 def get_ancestors_of(doctype, name):

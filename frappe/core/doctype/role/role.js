@@ -9,7 +9,7 @@ frappe.ui.form.on('Role', {
 		});
 		frm.add_custom_button("Show Users", function() {
 			frappe.route_options = {"role": frm.doc.name};
-			frappe.set_route("Report", "User");
+			frappe.set_route("List", "User", "Report");
 		});
 	}
 });

@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe, json
 from frappe import _
 import frappe.permissions
-import re, csv, os
+import re, csv, os, sys
 from frappe.utils.csvutils import UnicodeWriter
 from frappe.utils import cstr, formatdate, format_datetime
 from frappe.core.doctype.data_import.importer import get_data_keys
@@ -289,6 +289,10 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 		with open(filename, 'wb') as f:
 			f.write(cstr(w.getvalue()).encode("utf-8"))
 		f = open(filename)
+
+		# increase the field limit in case of larger fields
+		# works for Python 2.x and 3.x
+		csv.field_size_limit(sys.maxsize)
 		reader = csv.reader(f)
 
 		from frappe.utils.xlsxutils import make_xlsx

@@ -8,21 +8,19 @@ from frappe import _
 import frappe
 import frappe.database
 import frappe.utils
-from frappe.utils import cint
+from frappe.utils import cint, flt, get_datetime, datetime
 import frappe.utils.user
 from frappe import conf
 from frappe.sessions import Session, clear_sessions, delete_session
 from frappe.modules.patch_handler import check_session_stopped
 from frappe.translate import get_lang_code
-from frappe.utils.password import check_password
+from frappe.utils.password import check_password, delete_login_failed_cache
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
-from frappe.utils.background_jobs import enqueue
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,
 	confirm_otp_token, get_cached_user_pass)
 
 from six.moves.urllib.parse import quote
 
-import pyotp, base64, os
 
 class HTTPRequest:
 	def __init__(self):
@@ -113,9 +111,11 @@ class LoginManager:
 			try:
 				self.resume = True
 				self.make_session(resume=True)
+				self.get_user_info()
 				self.set_user_info(resume=True)
 			except AttributeError:
 				self.user = "Guest"
+				self.get_user_info()
 				self.make_session()
 				self.set_user_info()
 
@@ -134,18 +134,22 @@ class LoginManager:
 		self.run_trigger('on_login')
 		self.validate_ip_address()
 		self.validate_hour()
+		self.get_user_info()
 		self.make_session()
 		self.set_user_info()
+
+	def get_user_info(self, resume=False):
+		self.info = frappe.db.get_value("User", self.user,
+			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
+
+		self.user_type = self.info.user_type
 
 	def set_user_info(self, resume=False):
 		# set sid again
 		frappe.local.cookie_manager.init_cookies()
 
-		self.info = frappe.db.get_value("User", self.user,
-			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
 		self.full_name = " ".join(filter(None, [self.info.first_name,
 			self.info.last_name]))
-		self.user_type = self.info.user_type
 
 		if self.info.user_type=="Website User":
 			frappe.local.cookie_manager.set_cookie("system_user", "no")
@@ -207,6 +211,10 @@ class LoginManager:
 
 	def check_if_enabled(self, user):
 		"""raise exception if user not enabled"""
+		doc = frappe.get_doc("System Settings")
+		if cint(doc.allow_consecutive_login_attempts) > 0:
+			check_consecutive_login_attempts(user, doc)
+
 		if user=='Administrator': return
 		if not cint(frappe.db.get_value('User', user, 'enabled')):
 			self.fail('User disabled or missing', user=user)
@@ -217,6 +225,7 @@ class LoginManager:
 			# returns user in correct case
 			return check_password(user, pwd)
 		except frappe.AuthenticationError:
+			self.update_invalid_login(user)
 			self.fail('Incorrect password', user=user)
 
 	def fail(self, message, user=None):
@@ -227,21 +236,37 @@ class LoginManager:
 		frappe.db.commit()
 		raise frappe.AuthenticationError
 
+	def update_invalid_login(self, user):
+		last_login_tried = get_last_tried_login_data(user)
+
+		failed_count = 0
+		if last_login_tried > get_datetime():
+			failed_count = get_login_failed_count(user)
+
+		frappe.cache().hset('login_failed_count', user, failed_count + 1)
+
 	def run_trigger(self, event='on_login'):
 		for method in frappe.get_hooks().get(event, []):
 			frappe.call(frappe.get_attr(method), login_manager=self)
 
 	def validate_ip_address(self):
 		"""check if IP Address is valid"""
-		ip_list = frappe.db.get_value('User', self.user, 'restrict_ip', ignore=True)
+		user = frappe.get_doc("User", self.user)
+		ip_list = user.get_restricted_ip_list()
 		if not ip_list:
 			return
 
-		ip_list = ip_list.replace(",", "\n").split('\n')
-		ip_list = [i.strip() for i in ip_list]
-
+		bypass_restrict_ip_check = 0
+		# check if two factor auth is enabled
+		enabled = int(frappe.get_system_settings('enable_two_factor_auth') or 0)
+		if enabled:
+			#check if bypass restrict ip is enabled for all users
+			bypass_restrict_ip_check = int(frappe.get_system_settings('bypass_restrict_ip_check_if_2fa_enabled') or 0)
+			if not bypass_restrict_ip_check:
+				#check if bypass restrict ip is enabled for login user
+				bypass_restrict_ip_check = int(frappe.db.get_value('User', self.user, 'bypass_restrict_ip_check_if_2fa_enabled') or 0)
 		for ip in ip_list:
-			if frappe.local.request_ip.startswith(ip):
+			if frappe.local.request_ip.startswith(ip) or bypass_restrict_ip_check:
 				return
 
 		frappe.throw(_("Not allowed from this IP Address"), frappe.AuthenticationError)
@@ -333,5 +358,39 @@ def get_website_user_home_page(user):
 	if home_page_method:
 		home_page = frappe.get_attr(home_page_method[-1])(user)
 		return '/' + home_page.strip('/')
+	elif frappe.get_hooks('website_user_home_page'):
+		return '/' + frappe.get_hooks('website_user_home_page')[-1].strip('/')
 	else:
 		return '/me'
+
+def get_last_tried_login_data(user, get_last_login=False):
+	locked_account_time = frappe.cache().hget('locked_account_time', user)
+	if get_last_login and locked_account_time:
+		return locked_account_time
+
+	last_login_tried = frappe.cache().hget('last_login_tried', user)
+	if not last_login_tried or last_login_tried < get_datetime():
+		last_login_tried = get_datetime() + datetime.timedelta(seconds=60)
+
+	frappe.cache().hset('last_login_tried', user, last_login_tried)
+
+	return last_login_tried
+
+def get_login_failed_count(user):
+	return cint(frappe.cache().hget('login_failed_count', user)) or 0
+
+def check_consecutive_login_attempts(user, doc):
+	login_failed_count = get_login_failed_count(user)
+	last_login_tried = (get_last_tried_login_data(user, True)
+		+ datetime.timedelta(seconds=doc.allow_login_after_fail))
+
+	if login_failed_count >= cint(doc.allow_consecutive_login_attempts):
+		locked_account_time = frappe.cache().hget('locked_account_time', user)
+		if not locked_account_time:
+			frappe.cache().hset('locked_account_time', user, get_datetime())
+
+		if last_login_tried > get_datetime():
+			frappe.throw(_("Your account has been locked and will resume after {0} seconds")
+				.format(doc.allow_login_after_fail), frappe.SecurityException)
+		else:
+			delete_login_failed_cache(user)

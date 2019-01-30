@@ -29,6 +29,14 @@ frappe.ui.keys.get_key = function(e) {
 		// add ctrl+ the key
 		key = 'shift+' + key;
 	}
+	if (e.altKey) {
+		// add alt+ the key
+		key = 'alt+' + key;
+	}
+	if (e.altKey && e.ctrlKey) {
+		// add alt+ctrl+ the key or single key e.g f1,f2,etc..
+		return key.toLowerCase();
+	}
 	return key.toLowerCase();
 }
 
@@ -69,7 +77,7 @@ frappe.ui.keys.on('esc', function(e) {
 });
 
 frappe.ui.keys.on('enter', function(e) {
-	if(cur_dialog && cur_dialog.confirm_dialog) {
+	if(window.cur_dialog && cur_dialog.confirm_dialog) {
 		cur_dialog.get_primary_btn().trigger('click');
 	}
 });
@@ -101,7 +109,12 @@ frappe.ui.keys.key_map = {
 	39: 'right',
 	38: 'up',
 	40: 'down',
-	32: 'space'
+	32: 'space',
+	112: 'f1',
+	113: 'f2',
+	114: 'f3',
+	115: 'f4',
+	116: 'f5'
 }
 
 // keyCode map
