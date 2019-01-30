@@ -229,6 +229,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					this.toggle_actions_menu_button(checked_items.length > 0);
 				}
 			},
+			hooks: {
+				totalAccumulator: frappe.utils.report_total_accumulator
+			},
 			headerDropdown: [{
 				label: __('Add Column'),
 				action: (datatabe_col) => {
