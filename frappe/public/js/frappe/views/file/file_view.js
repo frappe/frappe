@@ -8,14 +8,21 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 			frappe.set_route('List', 'File', view_user_settings.last_folder || frappe.boot.home_folder);
 			return true;
 		}
-		return false;
+		return redirect_to_home_if_invalid_route();
 	}
 
 	get view_name() {
 		return 'File';
 	}
 
+	show() {
+		if (!redirect_to_home_if_invalid_route()) {
+			super.show();
+		}
+	}
+
 	setup_view() {
+		this.render_header();
 		this.setup_events();
 	}
 
@@ -25,11 +32,10 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		const last_folder = route[route.length - 1];
 		if (last_folder === 'File') return;
 
-		const last_folder_route = '#' + route.join('/');
 		frappe.breadcrumbs.add({
 			type: 'Custom',
-			label: last_folder,
-			route: last_folder_route
+			label: __('Home'),
+			route: '#List/File/Home'
 		});
 	}
 
@@ -132,28 +138,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	prepare_data(data) {
 		super.prepare_data(data);
 
-		this.data = this.data.map(d => {
-			let icon_class = '';
-			if (d.is_folder) {
-				icon_class = "octicon octicon-file-directory";
-			} else if (frappe.utils.is_image_file(d.file_name)) {
-				icon_class = "octicon octicon-file-media";
-			} else {
-				icon_class = 'octicon octicon-file-text';
-			}
-
-			let title = d.file_name || d.file_url;
-			title = title.slice(0, 60);
-			d._title = title;
-			d.icon_class = icon_class;
-
-			d.subject_html = `
-				<i class="${icon_class} text-muted" style="width: 16px;"></i>
-				<span>${title}</span>
-				${d.is_private ? '<i class="fa fa-lock fa-fw text-warning"></i>' : ''}
-			`;
-			return d;
-		});
+		this.data = this.data.map(d => this.prepare_datum(d));
 
 		// Bring folders to the top
 		const { sort_by } = this.sort_selector;
@@ -168,6 +153,29 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 				return 0;
 			});
 		}
+	}
+
+	prepare_datum(d) {
+		let icon_class = '';
+		if (d.is_folder) {
+			icon_class = "octicon octicon-file-directory";
+		} else if (frappe.utils.is_image_file(d.file_name)) {
+			icon_class = "octicon octicon-file-media";
+		} else {
+			icon_class = 'octicon octicon-file-text';
+		}
+
+		let title = d.file_name || d.file_url;
+		title = title.slice(0, 60);
+		d._title = title;
+		d.icon_class = icon_class;
+
+		d.subject_html = `
+			<i class="${icon_class} text-muted" style="width: 16px;"></i>
+			<span>${title}</span>
+			${d.is_private ? '<i class="fa fa-lock fa-fw text-warning"></i>' : ''}
+		`;
+		return d;
 	}
 
 	before_render() {
@@ -206,17 +214,42 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		this.$result.html(html);
 	}
 
+	get_breadcrumbs_html() {
+		const route = frappe.get_route();
+		const folders = route.slice(2);
+
+		return folders
+			.map((folder, i) => {
+				if (i === folders.length - 1) {
+					return `<span>${folder}</span>`;
+				}
+				const route = folders.reduce((acc, curr, j) => {
+					if (j <= i) {
+						acc += '/' + curr;
+					}
+					return acc;
+				}, '#List/File');
+
+				return `<a href="${route}">${folder}</a>`;
+			})
+			// only show last 3 breadcrumbs
+			.slice(-3)
+			.join('&nbsp;/&nbsp;');
+	}
+
 	get_header_html() {
+		const breadcrumbs_html = this.get_breadcrumbs_html();
+
 		let subject_html = `
 			<div class="list-row-col list-subject level">
 				<input class="level-item list-check-all hidden-xs" type="checkbox" title="${__("Select All")}">
-				<span class="level-item">${__('File Name')}</span>
+				<span class="level-item">${breadcrumbs_html}</span>
 			</div>
 			<div class="list-row-col ellipsis hidden-xs">
-				<span>${__('File Size')}</span>
+				<span>${__('Size')}</span>
 			</div>
 			<div class="list-row-col ellipsis hidden-xs">
-				<span>${__('Created On')}</span>
+				<span>${__('Created')}</span>
 			</div>
 		`;
 
@@ -228,6 +261,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	}
 
 	get_left_html(file) {
+		file = this.prepare_datum(file);
 		const file_size = frappe.form.formatters.FileSize(file.file_size);
 		const route_url = this.get_route_url(file);
 
@@ -332,3 +366,14 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 };
 
 frappe.views.FileView.grid_view = frappe.get_user_settings('File').grid_view || false;
+
+function redirect_to_home_if_invalid_route() {
+	const route = frappe.get_route();
+	if (route[2] !== 'Home') {
+		// if the user somehow redirects to List/File/List
+		// redirect back to Home
+		frappe.set_route('List', 'File', 'Home');
+		return true;
+	}
+	return false;
+}

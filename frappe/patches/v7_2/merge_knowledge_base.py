@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import frappe
 
 from frappe.patches.v7_0.re_route import update_routes

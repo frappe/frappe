@@ -14,7 +14,7 @@ def insert_test_data(doctype, sort_fn=None):
 
 def get_test_doclist(doctype, name=None):
 	"""get test doclist, collection of doclists"""
-	import os, frappe
+	import os
 	from frappe import conf
 	from frappe.modules.utils import peval_doclist
 	from frappe.modules import scrub
@@ -22,17 +22,17 @@ def get_test_doclist(doctype, name=None):
 	doctype = scrub(doctype)
 	doctype_path = os.path.join(os.path.dirname(os.path.abspath(conf.__file__)),
 		conf.test_data_path, doctype)
-	
+
 	if name:
 		with open(os.path.join(doctype_path, scrub(name) + ".json"), 'r') as txtfile:
 			doclist = peval_doclist(txtfile.read())
 
 		return doclist
-		
+
 	else:
 		all_doclists = []
 		for fname in filter(lambda n: n.endswith(".json"), os.listdir(doctype_path)):
 			with open(os.path.join(doctype_path, scrub(fname)), 'r') as txtfile:
 				all_doclists.append(peval_doclist(txtfile.read()))
-		
+
 		return all_doclists

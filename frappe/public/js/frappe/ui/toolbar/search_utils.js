@@ -407,46 +407,6 @@ frappe.search.utils = {
 		});
 	},
 
-	get_help_results: function(keywords) {
-		function get_results_set(data) {
-			var result;
-			var set = {
-				title: "Help",
-				fetch_type: "Help",
-				results: []
-			}
-			data.forEach(function(d) {
-				// more properties
-				result = {
-					label: d[0],
-					value: d[0],
-					description: d[1],
-					data_path: d[2],
-					onclick: function() {
-
-					}
-				}
-				set.results.push(result);
-			});
-			return [set];
-		}
-		return new Promise(function(resolve, reject) {
-			frappe.call({
-				method: "frappe.utils.help.get_help",
-				args: {
-					text: keywords
-				},
-				callback: function(r) {
-					if(r.message) {
-						resolve(get_results_set(r.message));
-					} else {
-						resolve([]);
-					}
-				}
-			});
-		});
-	},
-
 	get_nav_results: function(keywords) {
 		function sort_uniques(array) {
 			var routes = [], out = [];
