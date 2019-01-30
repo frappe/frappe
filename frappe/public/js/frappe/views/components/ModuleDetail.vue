@@ -6,17 +6,28 @@
 				class="border section-box"
 			>
 				<h4 class="h4"> {{ section.label }} </h4>
-				<p v-for="item in section.items" class="small"
+				<div v-for="item in section.items" class="link-item small"
 					:key="section.label + item.label"
 					:data-youtube-id="item.type==='help' ? item.youtube_id : false"
 				>
-					<span v-if="item.dependencies && item.incomplete_dependencies"
+					<div v-if="item.dependencies && item.incomplete_dependencies"
+						@mouseover="item.hover = true" @mouseleave="item.hover = false"
 						class="text-muted indicator grey"
 					>
 						{{ item.label || __(item.name) }}
-					</span>
 
-					<span v-else>
+						<div v-show="item.hover"
+							class="popover fade top in" role="tooltip" id="popover515340" style="top: 221.562px; left: 581.914px; display: block;"
+						>
+
+							<div class="arrow" style="left: 50%;"></div>
+							<h3 class="popover-title" style="display: none;"></h3>
+							<div class="popover-content">{{ __("You need to create these first: " + item.incomplete_dependencies.join(", ")) }}</div>
+						</div>
+
+					</div>
+
+					<div v-else>
 						<a class="indicator"
 							:class="item.onboard && !item.count ? 'orange' : 'grey'"
 							:href="item.route"
@@ -26,8 +37,9 @@
 						<span class="open-notification global hide"
 							@click="item.doctype || item.name ? frappe.ui.notifications.show_open_count_list(item.doctype || item.name) : false"
 							:data-doctype="item.doctype || item.name"></span>
-					</span>
-				</p>
+					</div>
+
+				</div>
 			</div>
 		</div>
 
@@ -57,8 +69,9 @@ export default {
 	padding: 5px 20px;
 	border-radius: 4px;
 
-	p {
-		line-height: 1.5em;
+	.link-item {
+		position: relative;
+		margin: 10px 0px;
 	}
 }
 
