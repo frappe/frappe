@@ -9,10 +9,14 @@ frappe.ui.form.on('Role Permission for Page and Report', {
 	refresh: function(frm) {
 		frm.disable_save();
 		frm.role_area.hide();
-		frm.add_custom_button(__("Reset to defaults"),
-			function(){ frm.trigger("reset_roles") });
-		frm.add_custom_button(__("Update"),
-			function(){ frm.trigger("update_roles") }).addClass('btn-primary');
+
+		frm.add_custom_button(__("Reset to defaults"), function() {
+			frm.trigger("reset_roles");
+		});
+
+		frm.add_custom_button(__("Update"), function() {
+			frm.trigger("update_report_page_data");
+		}).addClass('btn-primary');
 	},
 	
 	onload: function(frm) {
@@ -45,22 +49,22 @@ frappe.ui.form.on('Role Permission for Page and Report', {
 
 	page: function(frm) {
 		if(frm.doc.page) {
-			frm.trigger("get_roles")
+			frm.trigger("set_report_page_data");
 		}
 	},
 
 	report: function(frm){
 		if(frm.doc.report) {
-			frm.trigger("get_roles")
+			frm.trigger("set_report_page_data");
 		}
 	},
 
-	get_roles: function(frm) {
+	set_report_page_data: function(frm) {
 		frm.toggle_display('roles_html', true)
 		frm.role_area.show();
 
 		return frm.call({
-			method:"get_custom_roles",
+			method:"set_report_page_data",
 			doc: frm.doc,
 			callback: function(r) {
 				refresh_field('roles')
@@ -69,14 +73,14 @@ frappe.ui.form.on('Role Permission for Page and Report', {
 		})
 	},
 
-	update_roles: function(frm) {
+	update_report_page_data: function(frm) {
 		frm.trigger("validate_mandatory_fields")
 		if(frm.roles_editor) {
 			frm.roles_editor.set_roles_in_table()
 		}
 
 		return frm.call({
-			method:"set_custom_roles",
+			method:"update_report_page_data",
 			doc: frm.doc,
 			callback: function(r) {
 				refresh_field('roles')

@@ -195,3 +195,8 @@ class Report(Document):
 	@Document.whitelist
 	def toggle_disable(self, disable):
 		self.db_set("disabled", cint(disable))
+
+@frappe.whitelist()
+def is_prepared_report_disabled(report):
+	return frappe.db.get_value('Report',
+		report, 'disable_prepared_report') or 0
