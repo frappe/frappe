@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 import re
+import redis
 import json
 from frappe.utils import cint, strip_html_tags
 from frappe.model.base_document import get_controller
@@ -262,15 +263,22 @@ def update_global_search(doc):
 		title = (doc.get_title() or '')[:int(varchar_len)]
 		route = doc.get('route') if doc else ''
 
-		# append to search queue
-		frappe.cache().lpush('global_search_queue', json.dumps(dict(
-				doctype=doc.doctype,
-				name=doc.name,
-				content=' ||| '.join(content or ''),
-				published=published,
-				title=title,
-				route=route
-			)))
+		value = dict(
+			doctype=doc.doctype,
+			name=doc.name,
+			content=' ||| '.join(content or ''),
+			published=published,
+			title=title,
+			route=route
+		)
+
+		try:
+			# append to search queue if connected
+			frappe.cache().lpush('global_search_queue', json.dumps(value))
+		except redis.exceptions.ConnectionError:
+			# not connected, sync directly
+			sync_value(value)
+
 
 def get_formatted_value(value, field):
 	"""
@@ -299,14 +307,21 @@ def sync_global_search():
 	"""
 	while frappe.cache().llen('global_search_queue') > 0:
 		value = json.loads(frappe.cache().lpop('global_search_queue'))
+		sync_value(value)
 
-		frappe.db.sql('''
-			insert into __global_search
-				(doctype, name, content, published, title, route)
-			values
-				(%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
-			on duplicate key update
-				content = %(content)s''', value)
+def sync_value(value):
+	'''
+	Sync a given document to global search
+
+	:param value: dict of { doctype, name, content, published, title, route }
+	'''
+	frappe.db.sql('''
+		insert into __global_search
+			(doctype, name, content, published, title, route)
+		values
+			(%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
+		on duplicate key update
+			content = %(content)s''', value)
 
 def delete_for_document(doc):
 	"""
