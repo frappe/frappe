@@ -115,6 +115,7 @@ export default {
 
 .module-box:hover {
 	background-color: #fafbfc;
+	text-decoration: none;
 }
 
 .module-box-content {

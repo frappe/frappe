@@ -10,10 +10,11 @@
 					:key="section.label + item.label"
 					:data-youtube-id="item.type==='help' ? item.youtube_id : false"
 				>
-					<a :href="item.route">{{ item.label || __(item.name) }}</a>
-					<span class="open-notification global hide"
-						@click="item.doctype || item.name ? frappe.ui.notifications.show_open_count_list(item.doctype || item.name) : false"
-						:data-doctype="item.doctype || item.name"></span>
+					<a class="indicator grey"
+						:href="item.route"
+					>
+						{{ item.label || __(item.name) }}
+					</a>
 				</p>
 			</div>
 		</div>
@@ -61,6 +62,12 @@ export default {
 
 a:hover, a:focus {
 	text-decoration: underline;
+}
+
+// Overriding indicator styles
+.indicator {
+	font-weight: inherit;
+    color: inherit;
 }
 
 </style>
