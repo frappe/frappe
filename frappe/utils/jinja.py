@@ -134,6 +134,7 @@ def get_allowed_functions_for_jenv():
 				'user': user,
 				'csrf_token': frappe.local.session.data.csrf_token if getattr(frappe.local, "session", None) else ''
 			},
+			"socketio_port": frappe.conf.socketio_port,
 		},
 		'style': {
 			'border_color': '#d1d8dd'
