@@ -458,7 +458,7 @@ class DatabaseQuery(object):
 					f.operator = '='
 
 				value = ""
-				fallback = '""'
+				fallback = "''"
 				can_be_null = True
 
 				if 'ifnull' not in column_name:
