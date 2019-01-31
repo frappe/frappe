@@ -28,5 +28,10 @@ frappe.ui.form.on('Website Theme', {
 		} else {
 			frm.enable_save();
 		}
+	},
+	apply_custom_theme(frm) {
+		if (frm.doc.apply_custom_theme && !frm.doc.custom_theme) {
+			frm.set_value('custom_theme', '$primary: #7575ff;\n\n@import "website";')
+		}
 	}
 })
