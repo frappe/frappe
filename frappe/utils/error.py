@@ -13,7 +13,6 @@ import traceback
 import linecache
 import pydoc
 import cgitb
-import types
 import datetime
 import json
 import six

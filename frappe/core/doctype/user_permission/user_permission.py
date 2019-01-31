@@ -117,6 +117,6 @@ def clear_user_permissions(user, for_doctype):
 
 	total = frappe.db.count('User Permission', filters = dict(user=user, allow=for_doctype))
 	if total:
-		frappe.db.sql('DELETE FROM `tabUser Permission` WHERE user=%s AND allow=%s', (user, for_doctype))
+		frappe.db.sql('DELETE FROM `tabUser Permission` WHERE `user`=%s AND `allow`=%s', (user, for_doctype))
 		frappe.clear_cache()
 	return total

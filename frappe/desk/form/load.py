@@ -226,8 +226,8 @@ def get_view_logs(doctype, docname):
 		view_logs = frappe.get_all("View Log", filters={
 			"reference_doctype": doctype,
 			"reference_name": docname,
-		}, fields=["name", "creation"], order_by="creation desc")
+		}, fields=["name", "creation", "owner"], order_by="creation desc")
 
-		if  view_logs:
+		if view_logs:
 			logs = view_logs
 	return logs

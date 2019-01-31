@@ -220,9 +220,6 @@ def runquery(q='', ret=0, from_export=0):
 def runquery_csv():
 	global out
 
-	# run query
-	res = runquery(from_export = 1)
-
 	q = frappe.form_dict.get('query')
 
 	rep_name = frappe.form_dict.get('report_name')
@@ -233,9 +230,6 @@ def runquery_csv():
 			rep_name = get_sql_tables(q)[0]
 
 	if not rep_name: rep_name = 'DataExport'
-
-	# Headings
-	heads = []
 
 	rows = [[rep_name], out['colnames']] + out['values']
 
