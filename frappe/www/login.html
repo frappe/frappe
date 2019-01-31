@@ -43,7 +43,7 @@
 				<p class="text-center" style="margin-top: 15px">
 				{% for provider in provider_logins %}
 					<a href="{{ provider.auth_url }}"
-						class="btn btn-default btn-xs btn-social btn-{{ provider.name }}">
+						class="btn btn-default btn-sm btn-social btn-{{ provider.name }}">
 							{{ provider.icon }} {{ provider.provider_name }}</a>
 				{% endfor %}
 				</p>
