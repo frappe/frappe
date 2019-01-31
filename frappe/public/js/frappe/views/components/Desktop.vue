@@ -16,8 +16,8 @@
 					<div class="flush-top">
 						<div class="module-box-content">
 							<h4 class="h4">
+								<span v-if="module.count" class="indicator orange"></span>
 								{{ module.label }}
-								<span v-if="module.count" class="open-notification global">{{ module.count }}</span>
 							</h4>
 							<p class="small text-muted"> {{ module.description }} </p>
 						</div>
