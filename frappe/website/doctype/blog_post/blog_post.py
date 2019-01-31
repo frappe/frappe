@@ -55,6 +55,7 @@ class BlogPost(WebsiteGenerator):
 
 		if self.blogger:
 			context.blogger_info = frappe.get_doc("Blogger", self.blogger).as_dict()
+			context.author = self.blogger
 
 		context.description = self.blog_intro or self.content[:140]
 

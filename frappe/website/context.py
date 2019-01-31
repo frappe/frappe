@@ -217,11 +217,28 @@ def add_metatags(context):
 	if tags:
 		if not "twitter:card" in tags:
 			tags["twitter:card"] = "summary_large_image"
+
 		if not "og:type" in tags:
 			tags["og:type"] = "article"
+
 		if tags.get("name"):
 			tags["og:title"] = tags["twitter:title"] = tags["name"]
+
 		if tags.get("description"):
 			tags["og:description"] = tags["twitter:description"] = tags["description"]
-		if tags.get("image"):
-			tags["og:image"] = tags["twitter:image:src"] = tags["image"] = frappe.utils.get_url(tags.get("image"))
+
+		image = tags.get('image', context.image or None)
+		if image:
+			tags["og:image"] = tags["twitter:image:src"] = tags["image"] = frappe.utils.get_url(image)
+
+		if context.path:
+			tags['og:url'] = frappe.utils.get_url(context.path)
+
+		if context.published_on:
+			tags['datePublished'] = context.published_on
+
+		if context.author:
+			tags['author'] = context.author
+
+		if context.description:
+			tags['description'] = context.description
