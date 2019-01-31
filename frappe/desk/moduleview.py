@@ -47,7 +47,10 @@ def get_data(module):
 	def exists(name):
 		exists = exists_cache.get(name)
 		if not exists:
-			exists = frappe.db.exists(name)
+			if not frappe.db.get_value('DocType', name, 'issingle'):
+				exists = frappe.db.count(name)
+			else:
+				exists = True
 			exists_cache[name] = exists
 		return exists
 

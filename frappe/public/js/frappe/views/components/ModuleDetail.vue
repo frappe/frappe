@@ -6,10 +6,11 @@
 				class="border section-box"
 			>
 				<h4 class="h4"> {{ section.label }} </h4>
-				<module-link-item v-for="item in section.items" class=" small"
+				<module-link-item v-for="item in section.items"
 					:key="section.label + item.label"
 					:data-youtube-id="item.type==='help' ? item.youtube_id : false"
 					v-bind="item"
+					:open_count="frappe.boot.notification_info.open_count_doctype[item.doctype]"
 				>
 				</module-link-item>
 			</div>
@@ -28,10 +29,7 @@ export default {
 	components: {
 		ModuleLinkItem
 	},
-	props: ['module_name', 'sections'],
-	updated() {
-		frappe.app.update_notification_count_in_modules();
-	},
+	props: ['module_name', 'sections']
 }
 </script>
 <style lang="less" scoped>

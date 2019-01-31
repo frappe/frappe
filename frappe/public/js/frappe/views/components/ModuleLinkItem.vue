@@ -1,56 +1,65 @@
 <template>
-    <div class="link-item">
-        <div v-if="dependencies && incomplete_dependencies"
-            @mouseover="hover = true" @mouseleave="hover = false"
-            class="disabled-link indicator grey"
+    <div class="link-item flush-top small"
+        :class="{'onboard-spotlight': onboard, 'disabled-link': disabled_dependent}"
+        @mouseover="hover = true" @mouseleave="hover = false"
+    >
+        <span :class="['indicator', indicator_color]"></span>
+
+        <span v-if="disabled_dependent" class="link-content text-muted">{{ label || __(name) }}</span>
+        <a v-else class="link-content" :href="route">{{ label || __(name) }}</a>
+
+        <div v-if="disabled_dependent" v-show="hover"
+            class="popover fade top in" role="tooltip"
         >
-            <span class="text-muted">{{ label || __(name) }}</span>
 
-            <div v-show="hover"
-                class="popover fade top in" role="tooltip"
-            >
-
-                <div class="arrow"></div>
-                <h3 class="popover-title" style="display: none;"></h3>
-                <div class="popover-content">
-                    <div class="small text-muted">{{ __("You need to create these first: ") }}</div>
-                    <div>{{ __(incomplete_dependencies.join(", ")) }}</div>
-                </div>
+            <div class="arrow"></div>
+            <h3 class="popover-title" style="display: none;"></h3>
+            <div class="popover-content">
+                <div class="small text-muted">{{ __("You need to create these first: ") }}</div>
+                <div>{{ __(incomplete_dependencies.join(", ")) }}</div>
             </div>
-
-        </div>
-
-        <div v-else>
-            <a class="indicator"
-                :class="onboard && !count ? 'orange' : 'grey'"
-                :href="route"
-            >
-                {{ label || __(name) }}
-            </a>
-            <span class="open-notification global hide"
-                @click="doctype || name ? frappe.ui.notifications.show_open_count_list(doctype || name) : false"
-                :data-doctype="doctype || name"></span>
         </div>
     </div>
 </template>
 
 <script>
 export default {
-    props: ['label', 'name', 'dependencies', 'incomplete_dependencies', 'onboard', 'count', 'route', 'doctype'],
+    props: ['label', 'name', 'dependencies', 'incomplete_dependencies', 'onboard', 'count', 'route', 'doctype', 'open_count'],
     data() {
         return {
             hover: false
         }
     },
+    computed: {
+        disabled_dependent() {
+            return this.dependencies && this.incomplete_dependencies;
+        },
+
+        indicator_color() {
+            if(this.open_count) {
+                return 'red';
+            }
+            if(this.onboard) {
+                return this.count ? 'blue' : 'orange';
+            };
+            return 'grey';
+        }
+    }
 }
 </script>
 
 
 <style lang="less" scoped>
 .link-item {
-		position: relative;
-		margin: 10px 0px;
-	}
+    position: relative;
+    margin: 10px 0px;
+}
+
+.onboard-spotlight {
+    .link-content {
+        font-weight: 600;
+    }
+}
 
 a:hover, a:focus {
 	text-decoration: underline;
@@ -58,12 +67,13 @@ a:hover, a:focus {
 
 // Overriding indicator styles
 .indicator {
-	font-weight: inherit;
+    margin-right: 5px;
     color: inherit;
+	font-weight: inherit;
 }
 
-.disabled-link > span {
-    margin-left: 4px;
+.link-content {
+    flex: 1;
 }
 
 .popover {
