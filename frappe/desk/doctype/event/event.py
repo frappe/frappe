@@ -92,7 +92,6 @@ def get_permission_query_conditions(user):
 		}
 
 def has_permission(doc, user):
-	frappe.log_error(doc.owner)
 	if doc.event_type=="Public" or doc.owner==user:
 		return True
 

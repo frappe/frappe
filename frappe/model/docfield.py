@@ -36,7 +36,7 @@ def update_table(f, new):
 
 def update_parent_field(f, new):
 	"""update 'parentfield' in tables"""
-	if f['fieldtype']=='Table':
+	if f['fieldtype'] in frappe.model.table_fields:
 		frappe.db.begin()
 		frappe.db.sql("""update `tab%s` set parentfield=%s where parentfield=%s""" \
 			% (f['options'], '%s', '%s'), (new, f['fieldname']))

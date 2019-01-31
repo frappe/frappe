@@ -23,3 +23,10 @@ class TestDB(unittest.TestCase):
 
 	def test_escape(self):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
+
+	def test_get_single_value(self):
+		frappe.db.set_value('System Settings', 'System Settings', 'backup_limit', 5)
+		frappe.db.commit()
+
+		limit = frappe.db.get_single_value('System Settings', 'backup_limit')
+		self.assertEqual(limit, 5)

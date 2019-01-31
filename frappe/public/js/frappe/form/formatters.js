@@ -238,6 +238,16 @@ frappe.form.formatters = {
 			value = flt(flt(value) / 1024, 1) + "K";
 		}
 		return value;
+	},
+	TableMultiSelect: function(rows, df, options) {
+		rows = rows || [];
+		const meta = frappe.get_meta(df.options);
+		const link_field = meta.fields.find(df => df.fieldtype === 'Link');
+		const formatted_values = rows.map(row => {
+			const value = row[link_field.fieldname];
+			return frappe.format(value, link_field, options, row);
+		});
+		return formatted_values.join(', ');
 	}
 }
 

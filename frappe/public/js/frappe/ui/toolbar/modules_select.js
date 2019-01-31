@@ -64,7 +64,7 @@ frappe.ui.toolbar.ModulesSelect = class {
 									resolve(icons
 										.map(icon => {
 											const uncheck = user ? icon.hidden : icon.blocked;
-											return { label: icon.value, value: icon.module_name, checked:!uncheck };
+											return { label: icon.label, value: icon.module_name, checked:!uncheck };
 										}).sort(function(a, b){
 											if(a.label < b.label) return -1;
 											if(a.label > b.label) return 1;

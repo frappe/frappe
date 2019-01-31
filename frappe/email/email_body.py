@@ -6,7 +6,7 @@ import frappe, re, os
 from frappe.utils.pdf import get_pdf
 from frappe.email.smtp import get_outgoing_email_account
 from frappe.utils import (get_url, scrub_urls, strip, expand_relative_urls, cint,
-	split_emails, to_markdown, markdown, encode, random_string, parse_addr)
+	split_emails, to_markdown, markdown, random_string, parse_addr)
 import email.utils
 from six import iteritems, text_type, string_types
 from email.mime.multipart import MIMEMultipart

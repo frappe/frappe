@@ -3,8 +3,6 @@
 
 from __future__ import unicode_literals
 
-import urllib
-import frappe
 from frappe.utils import get_request_site_address, get_datetime, nowdate
 from frappe.website.router import get_pages, get_all_page_context_from_doctypes
 from six import iteritems

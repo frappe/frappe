@@ -18,6 +18,7 @@ from time import time
 from frappe.utils import now, getdate, cast_fieldtype
 from frappe.utils.background_jobs import execute_job, get_queue
 from frappe.model.utils.link_count import flush_local_link_count
+from frappe.utils import cint
 
 # imports - compatibility imports
 from six import (
@@ -538,9 +539,9 @@ class Database(object):
 			`tabSingles` where `doctype`=%s and `field`=%s""", (doctype, fieldname))
 		val = val[0][0] if val else None
 
-		if val=="0" or val=="1":
-			# check type
-			val = int(val)
+		df = frappe.get_meta(doctype).get_field(fieldname)
+		if df.fieldtype in frappe.model.numeric_fieldtypes:
+			val = cint(val)
 
 		self.value_cache[doctype][fieldname] = val
 

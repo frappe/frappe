@@ -57,7 +57,7 @@ def generate_report_result(report, filters=None, user=None):
 		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
 		if report.is_standard == "Yes":
 			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
-			threshold = 10
+			threshold = 30
 			res = []
 
 			start_time = datetime.datetime.now()
@@ -66,8 +66,12 @@ def generate_report_result(report, filters=None, user=None):
 
 			end_time = datetime.datetime.now()
 
-			if (end_time - start_time).seconds > threshold and not report.prepared_report:
+			execution_time = (end_time - start_time).seconds
+
+			if execution_time > threshold and not report.prepared_report:
 				report.db_set('prepared_report', 1)
+
+			frappe.cache().hset('report_execution_time', report.name, execution_time)
 
 			columns, result = res[0], res[1]
 			if len(res) > 2:
@@ -89,7 +93,8 @@ def generate_report_result(report, filters=None, user=None):
 		"message": message,
 		"chart": chart,
 		"data_to_be_printed": data_to_be_printed,
-		"status": status
+		"status": status,
+		"execution_time": frappe.cache().hget('report_execution_time', report.name) or 0
 	}
 
 @frappe.whitelist()
@@ -147,7 +152,8 @@ def get_script(report_name):
 
 	return {
 		"script": render_include(script),
-		"html_format": html_format
+		"html_format": html_format,
+		"execution_time": frappe.cache().hget('report_execution_time', report_name) or 0
 	}
 
 
@@ -164,7 +170,7 @@ def run(report_name, filters=None, user=None):
 
 	result = None
 
-	if report.prepared_report:
+	if report.prepared_report and not report.disable_prepared_report:
 		if filters:
 			if isinstance(filters, string_types):
 				filters = json.loads(filters)
@@ -185,7 +191,9 @@ def run(report_name, filters=None, user=None):
 def get_prepared_report_result(report, filters, dn="", user=None):
 	latest_report_data = {}
 	# Only look for completed prepared reports with given filters.
-	doc_list = frappe.get_all("Prepared Report", filters={"status": "Completed", "report_name": report.name, "filters": json.dumps(filters), "owner": user})
+	doc_list = frappe.get_all("Prepared Report",
+		filters={"status": "Completed", "report_name": report.name, "filters": filters, "owner": user})
+
 	doc = None
 	if len(doc_list):
 		if dn:
@@ -254,7 +262,7 @@ def export_query():
 				if row and (i in visible_idx):
 					row_list = []
 					for idx in range(len(data.columns)):
-						row_list.append(row.get(columns[idx]["fieldname"],""))
+						row_list.append(row.get(columns[idx]["fieldname"], row.get(columns[idx]["label"], "")))
 					result.append(row_list)
 				elif not row:
 					result.append([])

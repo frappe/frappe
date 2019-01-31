@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import frappe, json
 from frappe.core.doctype.user.user import ask_pass_update, setup_user_email_inbox
 

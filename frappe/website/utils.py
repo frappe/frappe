@@ -186,6 +186,8 @@ def abs_url(path):
 		return
 	if path.startswith('http://') or path.startswith('https://'):
 		return path
+	if path.startswith('data:'):
+		return path
 	if not path.startswith("/"):
 		path = "/" + path
 	return path
@@ -280,17 +282,31 @@ def get_full_index(route=None, app=None):
 
 def extract_title(source, path):
 	'''Returns title from `&lt;!-- title --&gt;` or &lt;h1&gt; or path'''
-	title = ''
+	title = extract_comment_tag(source, 'title')
 
-	if "<!-- title:" in source:
-		title = re.findall('<!-- title:([^>]*) -->', source)[0].strip()
-	elif "<h1>" in source:
+	if not title and "<h1>" in source:
+		# extract title from h1
 		match = re.findall('<h1>([^<]*)', source)
 		title = match[0].strip()[:300]
+
 	if not title:
+		# make title from name
 		title = os.path.basename(path.rsplit('.', )[0].rstrip('/')).replace('_', ' ').replace('-', ' ').title()
 
 	return title
+
+def extract_comment_tag(source, tag):
+	'''Extract custom tags in comments from source.
+
+	:param source: raw template source in HTML
+	:param title: tag to search, example "title"
+	'''
+
+	if "<!-- {0}:".format(tag) in source:
+		return re.findall('<!-- {0}:([^>]*) -->'.format(tag), source)[0].strip()
+	else:
+		return None
+
 
 def add_missing_headers():
 	'''Walk and add missing headers in docs (to be called from bench execute)'''

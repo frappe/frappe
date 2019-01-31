@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from six.moves import xrange
+
 
 def get_monthly_results(goal_doctype, goal_field, date_col, filter_str, aggregation = 'sum'):
 	'''Get monthly aggregation values for given field of doctype'''
@@ -144,10 +144,12 @@ def get_monthly_goal_graph_data(title, doctype, docname, goal_value_field, goal_
 				}
 			],
 			'labels': months,
-			'yMarkers': y_markers
 		},
 
 		'summary': summary_values,
 	}
+
+	if y_markers:
+		data["data"]["yMarkers"] = y_markers
 
 	return data

@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe, unittest
 from frappe.desk.form.load import getdoctype, getdoc
 from frappe.core.page.permission_manager.permission_manager import update, reset
-from frappe.permissions import get_valid_perms
+
 
 class TestFormLoad(unittest.TestCase):
 	def test_load(self):
