@@ -454,11 +454,20 @@ def add_attachments(doctype, name, attachments):
 
 @frappe.whitelist()
 def download_zip(files, output_filename, public=False):
+	from werkzeug.exceptions import Forbidden
 	from zipfile import ZipFile
 
+	output_folder = 'public'
+	if not public:
+		try:
+			frappe.only_for(("System Manager", "Accounts Manager", "Administrator"))
+		except frappe.PermissionError:
+			raise Forbidden(_("You need to be logged in and have System Manager or Account Manager Role to be able to download this zip."))
+
+		output_folder = 'private'
+
 	input_files = [filename for filename in files]
-	main_folder = 'public' if public else 'private'
-	output_path = frappe.get_site_path(main_folder, 'files', output_filename)
+	output_path = frappe.get_site_path(output_folder, 'files', output_filename)
 
 	with ZipFile(output_path, 'w') as output_zip:
 		for input_file in input_files:
