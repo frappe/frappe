@@ -339,12 +339,12 @@ class TestReportview(unittest.TestCase):
 
 
 	def test_is_set_is_not_set(self):
-		res = DatabaseQuery("DocType").execute(filters={"autoname": ["is", "not set"]})
+		res = DatabaseQuery('DocType').execute(filters={'autoname': ['is', 'not set']})
 		self.assertTrue({'name': 'Integration Request'} in res)
 		self.assertTrue({'name': 'User'} in res)
 		self.assertFalse({'name': 'Blogger'} in res)
 
-		res = DatabaseQuery("DocType").execute(filters={"autoname": ["is", "set"]})
+		res = DatabaseQuery('DocType').execute(filters={'autoname': ['is', 'set']})
 		self.assertTrue({'name': 'DocField'} in res)
 		self.assertTrue({'name': 'Prepared Report'} in res)
 		self.assertFalse({'name': 'Property Setter'} in res)
