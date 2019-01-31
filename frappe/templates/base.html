@@ -52,6 +52,18 @@
 	</script>
 </head>
 <body data-path="{{ path }}">
+	{%- block banner -%}
+		{% include "templates/includes/banner_extension.html" ignore missing %}
+
+		{% if banner_html -%}
+		<div class="container">
+			<div class="banner">
+				{{ banner_html or "" }}
+			</div>
+		</div>
+		{%- endif %}
+	{%- endblock -%}
+
 	{%- block navbar -%}
 		{% include "templates/includes/navbar/navbar.html" %}
 	{%- endblock -%}
@@ -70,14 +82,6 @@
 	<script type="text/javascript" src="/assets/js/frappe-web.min.js"></script>
 	<script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
 	{% endblock %}
-
-	{%- if js_globals is defined %}
-	<script>
-		{%- for key, value in js_globals.iteritems() %}
-			window.{{ key }} = "{{ value[0] }}";
-		{%- endfor -%}
-	</script>
-	{% endif -%}
 
 	{%- for link in web_include_js %}
 	<script type="text/javascript" src="{{ link | abs_url }}"></script>
