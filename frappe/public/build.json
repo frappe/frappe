@@ -10,11 +10,11 @@
 		"public/less/chat.less",
 		"public/less/form_grid.less",
 		"node_modules/frappe-datatable/dist/frappe-datatable.css"
-    ],
-    "css/frappe-web-b4.css": [
-        "public/less/indicator.less",
+	],
+	"css/frappe-web-b4.css": [
+		"public/less/indicator.less",
 		"public/scss/website.scss"
-    ],
+	],
 	"concat:js/moment-bundle.min.js": [
 		"node_modules/moment/min/moment-with-locales.min.js",
 		"node_modules/moment-timezone/builds/moment-timezone-with-data.min.js"
