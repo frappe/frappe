@@ -139,7 +139,7 @@ class File(NestedSet):
 	def set_folder_size(self):
 		"""Set folder size if folder"""
 		if self.is_folder and not self.is_new():
-			self.file_size = frappe.utils.cint(self.get_folder_size())
+			self.file_size = cint(self.get_folder_size())
 			self.db_set('file_size', self.file_size)
 
 			for folder in self.get_ancestors():
