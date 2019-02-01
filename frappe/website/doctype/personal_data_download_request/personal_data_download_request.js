@@ -2,16 +2,7 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Personal Data Download Request', {
-	setup: function(frm) {
-		frm.set_query("user", function() {
-			return {
-				filters: {
-					"name": ("not in", ["Administrator", "Guest"])
-				}
-			}
-		});
+	onload: function(frm){
+		frm.doc.user = frappe.session.user;
 	},
-	refresh: function(frm) {
-
-	}
 });
