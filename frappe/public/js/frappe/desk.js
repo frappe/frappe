@@ -72,7 +72,7 @@ frappe.Application = Class.extend({
 			frappe.msgprint(frappe.boot.messages);
 		}
 
-		if (frappe.boot.change_log && frappe.boot.change_log.length) {
+		if (frappe.boot.change_log && frappe.boot.change_log.length && !frappe.boot.in_test) {
 			this.show_change_log();
 		} else {
 			this.show_notes();
