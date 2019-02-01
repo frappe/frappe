@@ -78,7 +78,6 @@ def get_bootinfo():
 	bootinfo.gsuite_enabled = get_gsuite_status()
 	bootinfo.success_action = get_success_action()
 	bootinfo.update(get_email_accounts(user=frappe.session.user))
-	bootinfo.in_test = frappe.flags.in_test
 
 	return bootinfo
 
