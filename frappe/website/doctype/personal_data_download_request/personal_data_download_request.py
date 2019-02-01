@@ -21,17 +21,18 @@ class PersonalDataDownloadRequest(Document):
 		user_name = self.user_name.replace(' ','-')
 		f = frappe.get_doc({
 			'doctype': 'File',
-			'file_name': 'Personal-Data-'+user_name+'-'+self.name+'.json',
+			'file_name': 'Personal-Data-'+user_name+'-'+self.name+'.txt',
 			"attached_to_doctype": 'Personal Data Download Request',
-			"attached_to_name": self,
+			"attached_to_name": self.name,
 			'content': str(personal_data),
 			'is_private': True
 		})
 		f.save()
 		frappe.sendmail(recipients= self.user,
-		subject=_("ERPNext: User Data"),
-		message= _("Your data is ready, <a href="+f.file_url+" download>Click here to download your data</a>"),
-		header=[_("ERPNext: User Data"), "green"])
+		subject=_("ERPNext: Download Your Data"),
+		template="download_data",
+		args={'user':self.user,'user_name':self.user_name,'link':"".join(f.file_url)},
+		header=[_("ERPNext: Download Your Data"), "green"])
 
 def get_user_data(user):
 	""" returns user data not linked to User doctype """
@@ -40,7 +41,7 @@ def get_user_data(user):
 	for hook in hooks:
 		d = []
 		for email_field in hook.get('email_field'):
-			d += frappe.get_all(hook.get('doctype'), {email_field: user},["*"])
+			d += frappe.get_all(hook.get('doctype'), {email_field: user}, ["*"])
 		if d:
 			data.update({ hook.get('doctype'):d })
 	return data
