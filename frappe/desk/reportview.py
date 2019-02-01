@@ -45,7 +45,6 @@ def get_form_params():
 	else:
 		data["save_user_settings"] = True
 
-	doctype = data["doctype"]
 	fields = data["fields"]
 
 	for field in fields:
@@ -215,7 +214,7 @@ def delete_items():
 	"""delete selected items"""
 	import json
 
-	il = sorted(json.loads(frappe.form_dict.get('items')), reverse=True, key=str)
+	il = sorted(json.loads(frappe.form_dict.get('items')), reverse=True, key=frappe.safe_decode)
 	doctype = frappe.form_dict.get('doctype')
 
 	failed = []

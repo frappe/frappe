@@ -18,7 +18,7 @@ class PrintSettings(Document):
 		printer_list = []
 		try:
 			import cups
-		except ModuleNotFoundError:
+		except ImportError:
 			frappe.throw("You need to install pycups to use this feature!")
 			return
 		try:

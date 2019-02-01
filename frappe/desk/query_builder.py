@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 import frappe
@@ -78,7 +78,7 @@ def add_match_conditions(q, tl):
 			q = q[0] + condition_st + '(' + ' OR '.join(sl) + ') ' + condition_end + q[1]
 		else:
 			q = q + condition_st + '(' + ' OR '.join(sl) + ')'
-	
+
 	return q
 
 def guess_type(m):
@@ -178,7 +178,7 @@ def runquery(q='', ret=0, from_export=0):
 		meta = get_sql_meta(tl)
 
 		q = add_match_conditions(q, tl)
-		
+
 		# replace special variables
 		q = q.replace('__user', frappe.session.user)
 		q = q.replace('__today', frappe.utils.nowdate())
@@ -223,9 +223,6 @@ def runquery(q='', ret=0, from_export=0):
 def runquery_csv():
 	global out
 
-	# run query
-	res = runquery(from_export = 1)
-
 	q = frappe.form_dict.get('query')
 
 	rep_name = frappe.form_dict.get('report_name')
@@ -236,9 +233,6 @@ def runquery_csv():
 			rep_name = get_sql_tables(q)[0]
 
 	if not rep_name: rep_name = 'DataExport'
-
-	# Headings
-	heads = []
 
 	rows = [[rep_name], out['colnames']] + out['values']
 
@@ -264,9 +258,9 @@ def add_limit_to_query(query, args):
 	if args.get('limit_page_length'):
 		query += """
 			limit %(limit_start)s, %(limit_page_length)s"""
-			
+
 		import frappe.utils
 		args['limit_start'] = frappe.utils.cint(args.get('limit_start'))
 		args['limit_page_length'] = frappe.utils.cint(args.get('limit_page_length'))
-	
+
 	return query, args

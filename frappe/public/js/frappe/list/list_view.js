@@ -971,9 +971,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			items.push({
 				label: __('Customize'),
-				action: () => frappe.set_route('Form', 'Customize Form', {
-					doc_type: doctype
-				}),
+				action: () => {
+					if(this.meta && !this.meta.custom) {
+						frappe.set_route('Form', 'Customize Form', {
+							doc_type: doctype
+						});
+					}
+				},
 				standard: true
 			});
 		}

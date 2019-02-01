@@ -656,6 +656,16 @@ Object.assign(frappe.utils, {
 			return `<a href="${route}">${name}</a>`;
 		}
 		return route;
+	},
+
+	report_total_accumulator: function(column, values, type) {
+		if (column.fieldtype == "Percent" || type === "mean") {
+			return values.reduce((a, b) => ({content: a.content + flt(b.content)})).content / values.length;
+		} else if (frappe.model.is_numeric_field(column.fieldtype)) {
+			return values.reduce((a, b) => ({content: a.content + flt(b.content)})).content;
+		} else {
+			return false;
+		}
 	}
 });
 

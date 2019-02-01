@@ -12,7 +12,6 @@ source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 
 develop_version = '12.x.x-develop'
-staging_version = '11.0.3-beta.50'
 
 app_email = "info@frappe.io"
 
@@ -148,7 +147,8 @@ scheduler_events = {
 		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
 		"frappe.twofactor.delete_all_barcodes_for_users",
 		"frappe.integrations.doctype.gcalendar_settings.gcalendar_settings.sync",
-		"frappe.website.doctype.web_page.web_page.check_publish_status"
+		"frappe.website.doctype.web_page.web_page.check_publish_status",
+		'frappe.utils.global_search.sync_global_search'
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
