@@ -7,12 +7,12 @@ frappe.listview_settings['User Permission'] = {
 				title : __('Add User Permissions'),
 				fields: [
 					{
-						'fieldname': 'user',
-						'label': __('For User'),
-						'fieldtype': 'Link',
-						'options': 'User',
-						'reqd': 1,
-						'onchange': function() {
+						fieldname: 'user',
+						label: __('For User'),
+						fieldtype: 'Link',
+						options: 'User',
+						reqd: 1,
+						onchange: function() {
 							dialog.fields_dict.doctype.set_input(undefined);
 							dialog.fields_dict.docname.set_input(undefined);
 							dialog.set_df_property("docname", "hidden", 1);
@@ -21,23 +21,23 @@ frappe.listview_settings['User Permission'] = {
 						}
 					},
 					{
-						'fieldname': 'doctype',
-						'label': __('Document Type'),
-						'fieldtype': 'Link',
-						'options': 'DocType',
-						'reqd': 1,
-						'onchange': function() {
+						fieldname: 'doctype',
+						label: __('Document Type'),
+						fieldtype: 'Link',
+						options: 'DocType',
+						reqd: 1,
+						onchange: function() {
 							me.get_docname_options(dialog).then(options => {
 								me.on_doctype_change(options, dialog);
 							});
 						}
 					},
 					{
-						'fieldname': 'docname',
-						'label': __('Document Name'),
-						'fieldtype': 'Select',
-						'hidden': 1,
-						'onchange':  function() {
+						fieldname: 'docname',
+						label: __('Document Name'),
+						fieldtype: 'Select',
+						hidden: 1,
+						onchange:  function() {
 							me.get_applicable_doctype(dialog).then(applicable => {
 								me.get_multi_select_options(dialog, applicable).then(options => {
 									me.on_docname_change(dialog, options, applicable);
@@ -46,12 +46,12 @@ frappe.listview_settings['User Permission'] = {
 						}
 					},
 					{
-						'fieldname': 'apply_to_all_doctypes',
-						'label': __('Apply to all Documents Type'),
-						'fieldtype': 'Check',
-						'checked': 1,
-						'hidden': 1,
-						'onchange': function() {
+						fieldname: 'apply_to_all_doctypes',
+						label: __('Apply to all Documents Type'),
+						fieldtype: 'Check',
+						checked: 1,
+						hidden: 1,
+						onchange: function() {
 							if(dialog.fields_dict.doctype.value && dialog.fields_dict.docname.value && dialog.fields_dict.user.value){
 								me.get_applicable_doctype(dialog).then(applicable => {
 									me.get_multi_select_options(dialog, applicable).then(options => {
@@ -62,12 +62,12 @@ frappe.listview_settings['User Permission'] = {
 						}
 					},
 					{
-						"label": __("Applicable Document Types"),
-						"fieldname": "applicable_doctypes",
-						"fieldtype": "MultiCheck",
-						"options": [],
-						"columns": 2,
-						"hidden": 1
+						label: __("Applicable Document Types"),
+						fieldname: "applicable_doctypes",
+						fieldtype: "MultiCheck",
+						options: [],
+						columns: 2,
+						hidden: 1
 					},
 				],
 				primary_action: (data) => {
@@ -80,7 +80,7 @@ frappe.listview_settings['User Permission'] = {
 						},
 						callback: function(r) {
 							if (r.message == 1) {
-								frappe.show_alert({message:__("User Permissions Created Sucessfully"), indicator:'blue'});
+								frappe.show_alert({message:__("User Permissions created sucessfully"), indicator:'blue'});
 							} else {
 								frappe.show_alert({message:__("Nothing to update"), indicator:'red'});
 
@@ -100,18 +100,18 @@ frappe.listview_settings['User Permission'] = {
 				title: __('Clear User Permissions'),
 				fields: [
 					{
-						'fieldname': 'user',
-						'label': __('For User'),
-						'fieldtype': 'Link',
-						'options': 'User',
-						'reqd': 1
+						fieldname: 'user',
+						label: __('For User'),
+						fieldtype: 'Link',
+						options: 'User',
+						reqd: 1
 					},
 					{
-						'fieldname': 'for_doctype',
-						'label': __('For Document Type'),
-						'fieldtype': 'Link',
-						'options': 'DocType',
-						'reqd': 1
+						fieldname: 'for_doctype',
+						label: __('For Document Type'),
+						fieldtype: 'Link',
+						options: 'DocType',
+						reqd: 1
 					},
 				],
 				primary_action: (data) => {

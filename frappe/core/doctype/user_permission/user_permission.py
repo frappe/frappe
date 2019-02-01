@@ -160,27 +160,27 @@ def add_user_permissions(data):
 	if exists: return 0
 	if data.apply_to_all_doctypes == 1:
 		remove_applicable(d, data.user, data.doctype, data.docname)
-		user_perm = frappe.new_doc("User Permission")
-		user_perm.user = data.user
-		user_perm.allow = data.doctype
-		user_perm.for_value = data.docname
-		user_perm.apply_to_all_doctypes = 1
-		user_perm.insert()
+		insert_user_perm(data.user, data.doctype, data.docname, apply_to_all = 1)
 		return 1
 	else:
 		remove_apply_to_all(data.user, data.doctype, data.docname)
 		update_applicable(d, data.applicable_doctypes, data.user, data.doctype, data.docname)
 		for applicable in data.applicable_doctypes :
 			if applicable not in d:
-				user_perm = frappe.new_doc("User Permission")
-				user_perm.user = data.user
-				user_perm.allow = data.doctype
-				user_perm.for_value = data.docname
-				user_perm.apply_to_all_doctypes = 0
-				user_perm.applicable_for  = applicable
-				user_perm.insert()
+				insert_user_perm(data.user, data.doctype, data.docname, applicable = applicable)
 		return 1
 	return 0
+
+def insert_user_perm(user, doctype, docname, apply_to_all=None, applicable=None):
+	user_perm = frappe.new_doc("User Permission")
+	user_perm.user = user
+	user_perm.allow = doctype
+	user_perm.for_value = docname
+	if apply_to_all:
+		user_perm.apply_to_all_doctypes = 1
+	if applicable:
+		user_perm.applicable_for  = applicable
+	user_perm.insert()
 
 def remove_applicable(d, user, doctype, docname):
 	for applicable_for in d:
