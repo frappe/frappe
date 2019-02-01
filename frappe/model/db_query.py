@@ -192,7 +192,6 @@ class DatabaseQuery(object):
 					field which may leads to sql injection.
 			example :
 				field = "`DocType`.`issingle`, version()"
-
 			As field contains `,` and mysql function `version()`, with the help of regex
 			the system will filter out this field.
 		'''
@@ -326,7 +325,6 @@ class DatabaseQuery(object):
 
 	def prepare_filter_condition(self, f):
 		"""Returns a filter condition in the format:
-
 				ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
 		"""
 
