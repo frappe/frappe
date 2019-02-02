@@ -67,7 +67,8 @@ class WebsiteTheme(Document):
 		command = ['node', 'generate_bootstrap_theme.js', file_name, content]
 
 		process = Popen(command, cwd=frappe.get_app_path('frappe', '..'), stdout=PIPE, stderr=PIPE)
-		stdout, stderr = process.communicate()
+
+		stderr = process.communicate()[1]
 
 		if stderr:
 			frappe.throw('<pre>{stderr}</pre>'.format(stderr=frappe.safe_encode(stderr)))
