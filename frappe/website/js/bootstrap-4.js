@@ -2,21 +2,20 @@ import 'bootstrap/dist/js/bootstrap.bundle';
 
 // multilevel dropdown
 $('.dropdown-menu a.dropdown-toggle').on('click', function (e) {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    if (!$(this).next().hasClass('show')) {
-        $(this).parents('.dropdown-menu').first().find('.show').removeClass("show");
-    }
-    var $subMenu = $(this).next(".dropdown-menu");
-    $subMenu.toggleClass('show');
+	e.preventDefault();
+	e.stopImmediatePropagation();
+	if (!$(this).next().hasClass('show')) {
+		$(this).parents('.dropdown-menu').first().find('.show').removeClass("show");
+	}
+	var $subMenu = $(this).next(".dropdown-menu");
+	$subMenu.toggleClass('show');
 
 
-    $(this).parents('li.nav-item.dropdown.show').on('hidden.bs.dropdown', function (e) {
-        $('.dropdown-submenu .show').removeClass("show");
-    });
+	$(this).parents('li.nav-item.dropdown.show').on('hidden.bs.dropdown', function () {
+		$('.dropdown-submenu .show').removeClass("show");
+	});
 
-
-    return false;
+	return false;
 });
 
 frappe.get_modal = function(title, content) {
@@ -44,7 +43,7 @@ frappe.get_modal = function(title, content) {
 
 frappe.ui.Dialog = class Dialog extends frappe.ui.Dialog {
 	get_primary_btn() {
-		return this.$wrapper.find(".modal-footer .btn-primary")
+		return this.$wrapper.find(".modal-footer .btn-primary");
 	}
 
 	set_primary_action(label, click) {
@@ -59,4 +58,4 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.Dialog {
 			this.$wrapper.find('.section-body').addClass('w-100');
 		}
 	}
-}
+};

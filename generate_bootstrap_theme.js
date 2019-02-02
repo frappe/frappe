@@ -17,27 +17,27 @@ sass.render({
 		node_modules_path,
 		scss_path
 	],
-	importer: function(url, prev, done) {
+	importer: function(url) {
 		if (url.startsWith('~')) {
 			// strip ~ so that it can resolve from node_modules
 			return {
 				file: url.slice(1)
-			}
+			};
 		}
 		// normal file, let it go
 		return {
 			file: url
-		}
+		};
 	}
 }, function(err, result) {
 	if (err) {
-		console.error(err.formatted)
+		console.error(err.formatted); // eslint-disable-line
 		return;
 	}
 
 	fs.writeFile(path.resolve(website_theme_path, custom_theme_name), result.css, function(err) {
 		if (!err) {
-			console.log(custom_theme_name)
+			console.log(custom_theme_name); // eslint-disable-line
 		}
 	});
 });
