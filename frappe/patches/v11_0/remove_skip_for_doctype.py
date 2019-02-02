@@ -43,9 +43,9 @@ def execute():
 			# only specific doctypes are selected
 			# split this into multiple records and delete
 			linked_doctypes = get_linked_doctypes(user_permission.allow, True).keys()
-			
+
 			linked_doctypes = list(linked_doctypes)
-			
+
 			# append the doctype for which we have build the user permission
 			linked_doctypes += [user_permission.allow]
 
@@ -56,14 +56,16 @@ def execute():
 			user_permission.skip_for_doctype = None
 			for doctype in applicable_for_doctypes:
 				if doctype:
-					# Maintain sequence (name, user, allow, for_value, applicable_for, apply_to_all_doctypes)
+					# Maintain sequence (name, user, allow, for_value, applicable_for, apply_to_all_doctypes, creation, modified)
 					new_user_permissions_list.append((
 						frappe.generate_hash("", 10),
 						user_permission.user,
 						user_permission.allow,
 						user_permission.for_value,
 						doctype,
-						0
+						0,
+						user_permission.creation,
+						user_permission.modified
 					))
 		else:
 			# No skip_for_doctype found! Just update apply_to_all_doctypes.
@@ -72,7 +74,7 @@ def execute():
 	if new_user_permissions_list:
 		frappe.db.sql('''
 			INSERT INTO `tabUser Permission`
-			(`name`, `user`, `allow`, `for_value`, `applicable_for`, `apply_to_all_doctypes`)
+			(`name`, `user`, `allow`, `for_value`, `applicable_for`, `apply_to_all_doctypes`, `creation`, `modified`)
 			VALUES {}
 		'''.format( # nosec
 			', '.join(['%s'] * len(new_user_permissions_list))
