@@ -70,7 +70,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 
 {%- macro render_field_with_label(df, doc) -%}
 		<div class="row {% if df.bold %}important{% endif %} data-field" {{ fieldmeta(df) }}>
-			<div class="col-{{ "9" if df.fieldtype=="Check" else "5" }}
+			<div class="col-xs-{{ "9" if df.fieldtype=="Check" else "5" }}
 				{%- if doc._align_labels_right %} text-right{%- endif -%}">
 
 				{% if df.fieldtype not in ("Image","HTML","Check") and
@@ -82,7 +82,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 				<label>{{ _(df.label) }}</label>
 				{% endif %}
 			</div>
-			<div class="col-{{ "3" if df.fieldtype=="Check" else "7" }}
+			<div class="col-xs-{{ "3" if df.fieldtype=="Check" else "7" }}
 			{{ get_align_class(df) }} value">
 				{% if doc.get(df.fieldname) != None -%}
 					{{ _(print_value(df, doc)) }}{% endif %}
