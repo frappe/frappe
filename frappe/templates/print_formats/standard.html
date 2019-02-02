@@ -27,7 +27,7 @@
 		<h4 class='col-sm-12'>{{ _(section.label) }}</h4>
 		{%- endif -%}
         {% for column in section.columns %}
-			<div class="col-{{ (12 / section.columns|len)|int }} column-break">
+			<div class="col-xs-{{ (12 / section.columns|len)|int }} column-break">
             {% for df in column.fields %}
                 {{ render_field(df, doc) }}
             {% endfor %}
