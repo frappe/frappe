@@ -4,7 +4,7 @@
 frappe.ui.form.on("Web Page", {
 	title: function(frm) {
 		if (frm.doc.title && !frm.doc.route) {
-			frm.set_value('route', frappe.scrub(frm.doc.title, '-'))
+			frm.set_value('route', frappe.scrub(frm.doc.title, '-'));
 		}
 	},
 	layout: function(frm) {
