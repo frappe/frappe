@@ -21,14 +21,14 @@ class TestRequestPersonalData(unittest.TestCase):
 		download_request = frappe.get_doc({"doctype": 'Personal Data Download Request', 'user': 'test_privacy@example.com'})
 		download_request.save(ignore_permissions=True)
 		
-		f = frappe.get_all('File', 
+		f = frappe.get_all('File',
 			{'attached_to_doctype':'Personal Data Download Request', 'attached_to_name': download_request.name}, 
 			['*'])
 		self.assertEqual(len(f), 1)
 
 		email_queue = frappe.db.sql("""select * from `tabEmail Queue`""", as_dict=True)
 		self.assertTrue("Subject: ERPNext: Download Your Data" in email_queue[0].message)
-		
+
 		frappe.db.sql("delete from `tabEmail Queue`")
 
 def create_user_if_not_exists(email, first_name = None):

@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.desk.form.linked_with import get_linked_doctypes
 
 class PersonalDataDownloadRequest(Document):
 	def after_insert(self):
@@ -25,7 +24,7 @@ class PersonalDataDownloadRequest(Document):
 			"attached_to_doctype": 'Personal Data Download Request',
 			"attached_to_name": self.name,
 			'content': str(personal_data),
-			'is_private': True
+			'is_private': 1
 		})
 		f.save()
 		frappe.sendmail(recipients= self.user,

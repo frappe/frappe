@@ -7,7 +7,6 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils.verified_command import get_signed_params, verify_request
-from frappe.website.doctype.personal_data_download_request.personal_data_download_request import get_user_data
 
 class PersonalDataDeleteRequest(Document):
 
@@ -32,9 +31,9 @@ class PersonalDataDeleteRequest(Document):
 		for ref_doc in privacy_docs:
 			for email_field in ref_doc.get('email_fields'):
 				frappe.db.sql("""UPDATE `tab{0}` 
-					SET `{1}` = '{2}', {3} 
-					WHERE `{1}` = %s """.format(ref_doc['doctype'], email_field, self.name,
-						', '.join(map(lambda u :'`'+ u+'`=\''+str(u)+'\'', ref_doc.get('personal_fields',[])))), (self.email))
+					SET `{1}` = '{2}', {3}
+					WHERE `{1}` = '{4}' """.format(ref_doc['doctype'], email_field, self.name,
+						', '.join(map(lambda u :'`'+ u+'`=\''+str(u)+'\'', ref_doc.get('personal_fields',[]))), self.email))
 
 @frappe.whitelist(allow_guest=True)
 def confirm_deletion(email):

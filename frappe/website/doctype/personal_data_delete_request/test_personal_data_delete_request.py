@@ -10,9 +10,9 @@ from frappe.website.doctype.personal_data_download_request.test_personal_data_do
 
 class TestPersonalDataDeleteRequest(unittest.TestCase):
 	def setUp(self):
-		create_user_if_not_exists(email='test_privacy@example.com')
-		frappe.set_user('test_privacy@example.com')
-		self.delete_request = frappe.get_doc({'doctype':'Personal Data Delete Request', 'email':'test_privacy@example.com'})
+		create_user_if_not_exists(email='test_delete@example.com')
+		frappe.set_user('test_delete@example.com')
+		self.delete_request = frappe.get_doc({'doctype':'Personal Data Delete Request', 'email':'test_delete@example.com'})
 		self.delete_request.save(ignore_permissions=True)
 		frappe.set_user('Administrator')
 
