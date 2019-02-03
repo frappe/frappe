@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 # imports - standard imports
 import unittest
 
@@ -16,7 +18,7 @@ class TestChatProfile(unittest.TestCase):
 	# def test_create(self):
 	# 	with self.assertRaises(frappe.ValidationError):
 	# 		chat_profile.create(test_user)
-		
+
 	# 	user = get_user_doc(session.user)
 	# 	if not user.chat_profile:
 	# 		chat_profile.create(user.name)
@@ -47,7 +49,7 @@ class TestChatProfile(unittest.TestCase):
 	# 		))
 
 	# 	user = get_user_doc(session.user)
-	# 	prev = chat_profile.get(user.name) 
+	# 	prev = chat_profile.get(user.name)
 
 	# 	chat_profile.update(user.name, data = dict(
 	# 		status = 'Offline'
