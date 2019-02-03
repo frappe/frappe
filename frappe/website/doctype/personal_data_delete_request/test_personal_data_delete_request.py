@@ -14,6 +14,7 @@ class TestPersonalDataDeleteRequest(unittest.TestCase):
 		frappe.set_user('test_privacy@example.com')
 		self.delete_request = frappe.get_doc({'doctype':'Personal Data Delete Request', 'email':'test_privacy@example.com'})
 		self.delete_request.save(ignore_permissions=True)
+		frappe.set_user('Administrator')
 
 	def test_delete_request(self):
 		self.assertEqual(self.delete_request.status, 'Pending Verification')
