@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import re
-import frappe
 from frappe.website.utils import get_shade
 from frappe.website.doctype.website_theme.website_theme import get_active_theme
 

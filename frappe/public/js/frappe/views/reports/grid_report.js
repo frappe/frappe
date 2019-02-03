@@ -422,6 +422,9 @@ frappe.views.GridReport = Class.extend({
 
 					this.setup_chart && this.setup_chart();
 				}
+			},
+			hooks: {
+				totalAccumulator: frappe.utils.report_total_accumulator
 			}
 		});
 

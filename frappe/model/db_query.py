@@ -409,6 +409,19 @@ class DatabaseQuery(object):
 				value = get_time(f.value).strftime("%H:%M:%S.%f")
 				fallback = "'00:00:00'"
 
+			elif f.operator.lower() == "is":
+				if f.value == 'set':
+					f.operator = '!='
+				elif f.value == 'not set':
+					f.operator = '='
+
+				value = ""
+				fallback = '""'
+				can_be_null = True
+
+				if 'ifnull' not in column_name:
+					column_name = 'ifnull({}, {})'.format(column_name, fallback)
+
 			elif f.operator.lower() in ("like", "not like") or (isinstance(f.value, string_types) and
 				(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
 					value = "" if f.value==None else f.value
@@ -417,7 +430,6 @@ class DatabaseQuery(object):
 					if f.operator.lower() in ("like", "not like") and isinstance(value, string_types):
 						# because "like" uses backslash (\) for escaping
 						value = value.replace("\\", "\\\\").replace("%", "%%")
-
 			else:
 				value = flt(f.value)
 				fallback = 0

@@ -17,7 +17,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 			return false;
 		}
 	}
-	
+
 	toggle_result_area() {}
 
 	get view_name() {
@@ -205,7 +205,7 @@ frappe.views.Calendar = Class.extend({
 		"default": "blue"
 	},
 	get_system_datetime: function(date) {
-		date._offset = moment.user_utc_offset;
+		date._offset = (moment(date).tz(frappe.sys_defaults.time_zone)._offset);
 		return frappe.datetime.convert_to_system_tz(date);
 	},
 	setup_options: function(defaults) {
