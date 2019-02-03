@@ -227,3 +227,6 @@ before_write_file = "frappe.limits.validate_space_limit"
 before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
 
 otp_methods = ['OTP App','Email','SMS']
+user_privacy_documents = [
+	{ 'doctype': 'Contact', 'email_fields': ['email_id'], 'personal_fields': ['first_name', 'last_name', 'phone', 'mobile_no'], 'action': 'delete'},
+]

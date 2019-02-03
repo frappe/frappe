@@ -28,17 +28,13 @@ class PersonalDataDeleteRequest(Document):
 		header=[_("ERPNext: Confirm Deletion of Data"), "green"])
 
 	def anonymize_data(self):
-		data = get_user_data(self.email)
-		hooks = frappe.get_hooks("user_privacy_documents")
-
-		for hook in hooks:
-			for doc in data.get(hook['doctype'],[]):
-				email_field = [hook for hook in hook['email_field'] if doc.get(hook) == self.email][0]
-				frappe.db.sql("""UPDATE `tab{0}`
-					SET `{1}`='{2}', `{3}'
-					WHERE name = %s
-					""".format(hook['doctype'], email_field, self.name,
-					'\', `'.join(map(lambda u : u+'`=\''+str(u), hook['personal_fields']))), (doc.get('name')))
+		privacy_docs = frappe.get_hooks("user_privacy_documents")
+		for ref_doc in privacy_docs:
+			for email_field in ref_doc.get('email_fields'):
+				frappe.db.sql("""UPDATE `tab{0}` 
+					SET `{1}` = '{2}', {3} 
+					WHERE `{1}` = %s """.format(ref_doc['doctype'], email_field, self.name,
+						', '.join(map(lambda u :'`'+ u+'`=\''+str(u)+'\'', ref_doc.get('personal_fields',[])))), (self.email))
 
 @frappe.whitelist(allow_guest=True)
 def confirm_deletion(email):

@@ -4,7 +4,7 @@
 frappe.ui.form.on('Personal Data Delete Request', {
 	refresh: function(frm) {
 		if(frappe.user.has_role('System Manager') && frm.doc.status == 'Pending Approval'){
-			frm.add_custom_button(__('Process Deletion'), function() {
+			frm.add_custom_button(__('Delete Data'), function() {
 				return frappe.call({
 					doc: frm.doc,
 					method: 'anonymize_data',
