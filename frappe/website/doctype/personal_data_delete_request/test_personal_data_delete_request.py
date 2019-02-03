@@ -5,18 +5,18 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest
-from erpnext.shopping_cart.test_shopping_cart import create_user_if_not_exists
 from frappe.website.doctype.personal_data_delete_request.personal_data_delete_request import PersonalDataDeleteRequest
+from frappe.website.doctype.personal_data_download_request.test_personal_data_download_request import create_user_if_not_exists
 
 class TestPersonalDataDeleteRequest(unittest.TestCase):
 	def setUp(self):
-		create_user_if_not_exists('test_delete@example.com')
-		frappe.set_user('test_delete@example.com')
-		self.delete_request = frappe.get_doc({'doctype':'Personal Data Delete Request', 'email':'test_delete@example.com'})
+		create_user_if_not_exists(email='test_privacy@example.com')
+		frappe.set_user('test_privacy@example.com')
+		self.delete_request = frappe.get_doc({'doctype':'Personal Data Delete Request', 'email':'test_privacy@example.com'})
 		self.delete_request.save(ignore_permissions=True)
 
 	def test_delete_request(self):
-		self.assertTrue(self.delete_request.status, 'Verification Pending')
+		self.assertEqual(self.delete_request.status, 'Pending Verification')
 
 		email_queue = frappe.db.sql("""select * from `tabEmail Queue`""", as_dict=True)
 		self.assertTrue("Subject: ERPNext: Confirm Deletion of Data" in email_queue[0].message)
@@ -25,6 +25,5 @@ class TestPersonalDataDeleteRequest(unittest.TestCase):
 
 	def test_anonymized_data(self):
 		PersonalDataDeleteRequest.anonymize_data(self.delete_request)
-		print(self.delete_request.name)
 		deleted_user = frappe.get_all('Contact', {'email_id': self.delete_request.name}, ['*'])
-		self.assertTrue(len(deleted_user), 1)
+		self.assertEqual(len(deleted_user), 1)

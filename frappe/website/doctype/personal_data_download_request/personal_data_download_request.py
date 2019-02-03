@@ -40,7 +40,7 @@ def get_user_data(user):
 	data = {}
 	for hook in hooks:
 		d = []
-		for email_field in hook.get('email_field'):
+		for email_field in hook.get('email_fields'):
 			d += frappe.get_all(hook.get('doctype'), {email_field: user}, ["*"])
 		if d:
 			data.update({ hook.get('doctype'):d })
