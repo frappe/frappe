@@ -162,10 +162,12 @@ def add_user_permissions(data):
 		insert_user_perm(data.user, data.doctype, data.docname, apply_to_all = 1)
 		return 1
 	else:
-		removed = remove_apply_to_all(data.user, data.doctype, data.docname)
+		remove_apply_to_all(data.user, data.doctype, data.docname)
 		update_applicable(d, data.applicable_doctypes, data.user, data.doctype, data.docname)
 		for applicable in data.applicable_doctypes :
-			if applicable not in d or removed:
+			if applicable not in d:
+				insert_user_perm(data.user, data.doctype, data.docname, applicable = applicable)
+			elif exists:
 				insert_user_perm(data.user, data.doctype, data.docname, applicable = applicable)
 		return 1
 	return 0
@@ -192,13 +194,12 @@ def remove_applicable(d, user, doctype, docname):
 		""", (user, applicable_for, doctype, docname))
 
 def remove_apply_to_all(user, doctype, docname):
-		frappe.db.sql("""DELETE from `tabUser Permission`
-			WHERE `user`=%s
-			AND `apply_to_all_doctypes`=1
-			AND `allow`=%s
-			AND `for_value`=%s
-		""",(user, doctype, docname))
-		return 1
+	q = frappe.db.sql("""DELETE from `tabUser Permission`
+		WHERE `user`=%s
+		AND `apply_to_all_doctypes`=1
+		AND `allow`=%s
+		AND `for_value`=%s
+	""",(user, doctype, docname))
 
 def update_applicable(already_applied, to_apply, user, doctype, docname):
 	for applied in already_applied:
