@@ -30,13 +30,7 @@ export default {
 	props: ['comments'],
 	mounted() {
 		this.make_comment_section();
-		Array.from(this.$refs['comments'].getElementsByClassName('mention'))
-			.forEach((mention) => {
-				mention.classList.add('cursor-pointer');
-				mention.addEventListener('click', () => {
-					this.go_to_profile_page(mention.dataset.value)
-				})
-			});
+		this.make_mentions_clickable(this.$refs['comments']);
 	},
 	methods: {
 		get_avatar(user) {
@@ -75,6 +69,15 @@ export default {
 			valid_users = valid_users
 				.filter(user => frappe.boot.user_info[user].allowed_in_mentions==1);
 			return valid_users.map(user => frappe.boot.user_info[user].name);
+		},
+		make_mentions_clickable(parent_element) {
+			Array.from(parent_element.getElementsByClassName('mention'))
+				.forEach((mention) => {
+					mention.classList.add('cursor-pointer');
+					mention.addEventListener('click', () => {
+						this.go_to_profile_page(mention.dataset.value)
+					})
+				});
 		}
 	}
 }
@@ -106,7 +109,8 @@ export default {
 		display: flex;
 		padding: 5px 0;
 		.content {
-			font-size: 10px;
+			align-self: center;
+			font-size: 12px;
 			flex: 1
 		}
 	}
