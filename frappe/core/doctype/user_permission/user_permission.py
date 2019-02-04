@@ -194,7 +194,7 @@ def remove_applicable(d, user, doctype, docname):
 		""", (user, applicable_for, doctype, docname))
 
 def remove_apply_to_all(user, doctype, docname):
-	q = frappe.db.sql("""DELETE from `tabUser Permission`
+	frappe.db.sql("""DELETE from `tabUser Permission`
 		WHERE `user`=%s
 		AND `apply_to_all_doctypes`=1
 		AND `allow`=%s
