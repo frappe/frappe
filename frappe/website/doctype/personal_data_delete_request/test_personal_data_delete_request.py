@@ -19,10 +19,10 @@ class TestPersonalDataDeleteRequest(unittest.TestCase):
 	def test_delete_request(self):
 		self.assertEqual(self.delete_request.status, 'Pending Verification')
 
-		email_queue = frappe.db.sql("""select * from `tabEmail Queue`""", as_dict=True)
+		email_queue = frappe.db.sql("""SELECT *
+			FROM `tabEmail Queue`
+			ORDER BY `creation` DESC""", as_dict=True)
 		self.assertTrue("Subject: ERPNext: Confirm Deletion of Data" in email_queue[0].message)
-
-		frappe.db.sql("delete from `tabEmail Queue`")
 
 	def test_anonymized_data(self):
 		PersonalDataDeleteRequest.anonymize_data(self.delete_request)

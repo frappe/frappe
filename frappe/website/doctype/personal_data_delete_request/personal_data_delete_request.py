@@ -18,7 +18,7 @@ class PersonalDataDeleteRequest(Document):
 
 	def send_verification_mail(self):
 		url = frappe.utils.get_url("/api/method/frappe.website.doctype.personal_data_delete_request.personal_data_delete_request.confirm_deletion") +\
-		"?" + get_signed_params({"email": self.email})
+		"?" + get_signed_params({"email": self.email, "name": self.name})
 
 		frappe.sendmail(recipients= self.email,
 		subject=_("ERPNext: Confirm Deletion of Data"),
@@ -30,17 +30,20 @@ class PersonalDataDeleteRequest(Document):
 		privacy_docs = frappe.get_hooks("user_privacy_documents")
 		for ref_doc in privacy_docs:
 			for email_field in ref_doc.get('email_fields'):
-				frappe.db.sql("""UPDATE `tab{0}` 
+				frappe.db.sql("""UPDATE `tab{0}`
 					SET `{1}` = '{2}', {3}
-					WHERE `{1}` = '{4}' """.format(ref_doc['doctype'], email_field, self.name,
+					WHERE `{1}` = '{4}' """.format(ref_doc['doctype'], email_field, self.name,#nosec
 						', '.join(map(lambda u :'`'+ u+'`=\''+str(u)+'\'', ref_doc.get('personal_fields',[]))), self.email))
 
 @frappe.whitelist(allow_guest=True)
-def confirm_deletion(email):
-	if not verify_request:
+def confirm_deletion(email, name):
+	if not verify_request():
 		return
-	frappe.set_value("Personal Data Delete Request", {'email':email}, 'status', 'Pending Approval')
-	frappe.db.commit()
+	doc  = frappe.get_doc("Personal Data Delete Request", name)
+	if doc.status != 'Pending Approval':
+		doc.status = 'Pending Approval'
+		doc.save(ignore_permissions=True)
+		frappe.db.commit()
 	frappe.respond_as_web_page(_("Confirmed"),
 		_("The process for deletion of ERPNext Data associated with {0} has been initiated.").format(email),
 		indicator_color='green')
