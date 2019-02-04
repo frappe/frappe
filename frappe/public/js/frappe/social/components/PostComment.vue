@@ -2,26 +2,25 @@
 	<div>
 		<div class="comment-box flex-column">
 			<div class="text-muted comment-label">{{ __('Add a comment') }}</div>
-			<textarea v-model="comment_content"></textarea>
+			<div ref="comment-section"></div>
 			<button
-				:disabled="comment_content === ''"
 				class="btn btn-primary btn-sm"
 				@click="create_comment">
 				{{ __('Comment') }}
 			</button>
 		</div>
-		<div v-if="comments.length" class="comment-list">
+		<div ref="comments" v-if="comments.length" class="comment-list">
 			<div class="comment" v-for="comment in comments" :key="comment.name">
-				<span
-					class="pull-right text-muted"
-					v-html="get_time(comment.creation)">
-				</span>
 				<span
 					class="cursor-pointer"
 					@click="go_to_profile_page(comment.owner)"
 					v-html="get_avatar(comment.owner)">
 				</span>
-				<span>{{ comment.content }}</span>
+				<span class="content" v-html="comment.content"/>
+				<span
+					class="text-muted"
+					v-html="get_time(comment.creation)">
+				</span>
 			</div>
 		</div>
 	</div>
@@ -29,10 +28,15 @@
 <script>
 export default {
 	props: ['comments'],
-	data() {
-		return {
-			comment_content: ''
-		}
+	mounted() {
+		this.make_comment_section();
+		Array.from(this.$refs['comments'].getElementsByClassName('mention'))
+			.forEach((mention) => {
+				mention.classList.add('cursor-pointer');
+				mention.addEventListener('click', () => {
+					this.go_to_profile_page(mention.dataset.value)
+				})
+			});
 	},
 	methods: {
 		get_avatar(user) {
@@ -41,12 +45,36 @@ export default {
 		get_time(timestamp) {
 			return comment_when(timestamp, true)
 		},
-		create_comment() {
-			this.$emit('create_comment', this.comment_content);
-			this.comment_content = '';
-		},
 		go_to_profile_page(user) {
 			frappe.set_route('social', 'profile', user)
+		},
+		make_comment_section() {
+			this.comment_section = frappe.ui.form.make_control({
+				parent: this.$refs['comment-section'],
+				only_input: true,
+				render_input: true,
+				no_wrapper: true,
+				mentions: this.get_names_for_mentions(),
+				df: {
+					fieldtype: 'Comment',
+					fieldname: 'comment'
+				},
+				on_submit: this.create_comment.bind(this)
+			});
+		},
+		create_comment() {
+			const message = this.comment_section.get_value().replace('<div><br></div>', '');
+			if (!strip_html(message)) return
+			frappe.utils.play_sound("click");
+			this.$emit('create_comment', message);
+			this.comment_section.clear();
+		},
+		get_names_for_mentions() {
+			var valid_users = Object.keys(frappe.boot.user_info)
+				.filter(user => !["Administrator", "Guest"].includes(user));
+			valid_users = valid_users
+				.filter(user => frappe.boot.user_info[user].allowed_in_mentions==1);
+			return valid_users.map(user => frappe.boot.user_info[user].name);
 		}
 	}
 }
@@ -56,16 +84,11 @@ export default {
 	.comment-label {
 		margin-bottom: 5px;
 	}
-	textarea {
-		width: 100%;
+	/deep/.ql-editor {
+		background: white;
 		border-radius: 4px;
-		outline: none;
-		border: none;
-		margin-bottom: 15px;
-		height: 60px;
-		padding: 5px;
+		min-height: 60px !important;
 		border: 1px solid #d1d8dd;
-		resize: none;
 	}
 	button {
 		padding: 2px 5px;
@@ -76,7 +99,16 @@ export default {
 .comment-list {
 	margin-top: 10px;
 	.comment {
+		.comment-input-wrapper {
+			margin-top: -6px;
+			font-size: 11px;
+		}
+		display: flex;
 		padding: 5px 0;
+		.content {
+			font-size: 10px;
+			flex: 1
+		}
 	}
 }
 </style>
