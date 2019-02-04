@@ -249,12 +249,6 @@ class Document(BaseDocument):
 		self.run_post_save_methods()
 		self.flags.in_insert = False
 
-		# document follow
-		if not (frappe.flags.in_migrate or frappe.local.flags.in_install):
-			doc = add_subcription(self.doctype, self.name, frappe.session.user)
-			if getattr(self.meta, 'track_changes', False) == 0 and doc:
-				frappe.msgprint("To Track Changes for Document enable track changes")
-
 		# delete __islocal
 		if hasattr(self, "__islocal"):
 			delattr(self, "__islocal")
