@@ -116,17 +116,15 @@ def get_permitted_documents(doctype):
 def check_applicable_doc_perm(user, doctype, docname):
 	frappe.only_for('System Manager')
 	applicable = []
-	all_perm = frappe.get_all('User Permission',
+	doc_exists = frappe.get_all('User Permission',
 		fields=['name'],
 		filters={"user": user,
 			"allow": doctype,
 			"for_value": docname,
 			"apply_to_all_doctypes":1,
 		}, limit=1)
-	if len(all_perm) > 0:
-		data = get_linked_doctypes(doctype)
-		for key in data:
-			applicable.append(key)
+	if doc_exists:
+		applicable = get_linked_doctypes(doctype).keys()
 	else:
 		data = frappe.get_all('User Permission',
 			fields=['applicable_for'],

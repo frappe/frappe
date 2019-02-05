@@ -20,7 +20,8 @@ class TestUserPermission(unittest.TestCase):
 	def test_for_applicables_on_update_from_apply_to_all(self):
 		user = get_user()
 		create = add_user_permissions({
-			"user": user.name, "doctype":"user",
+			"user": user.name,
+			"doctype":"User",
 			"docname":user.name ,
 			"apply_to_all_doctypes":0,
 			"applicable_doctypes":["Chat Room","Chat Message"]})

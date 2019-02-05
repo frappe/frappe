@@ -27,22 +27,23 @@ frappe.listview_settings['User Permission'] = {
 						options: 'DocType',
 						reqd: 1,
 						onchange: function() {
-							me.get_docname_options(dialog).then(options => {
-								me.on_doctype_change(options, dialog);
-							});
+							me.on_doctype_change(dialog);
 						}
 					},
 					{
 						fieldname: 'docname',
 						label: __('Document Name'),
-						fieldtype: 'Select',
+						fieldtype: 'Dynamic Link',
+						options: 'doctype',
 						hidden: 1,
 						onchange:  function() {
-							me.get_applicable_doctype(dialog).then(applicable => {
-								me.get_multi_select_options(dialog, applicable).then(options => {
-									me.on_docname_change(dialog, options, applicable);
+							if(dialog.fields_dict.doctype.value && dialog.fields_dict.docname.value && dialog.fields_dict.user.value){
+								me.get_applicable_doctype(dialog).then(applicable => {
+									me.get_multi_select_options(dialog, applicable).then(options => {
+										me.on_docname_change(dialog, options, applicable);
+									});
 								});
-							});
+							}
 						}
 					},
 					{
@@ -196,29 +197,7 @@ frappe.listview_settings['User Permission'] = {
 		});
 	},
 
-	get_docname_options: function(dialog) {
-		return new Promise(resolve => {
-			var options = [];
-			if(dialog.fields_dict.doctype.value){
-				frappe.call({
-					method:"frappe.client.get_list",
-					async: false,
-					args: {
-						doctype: dialog.fields_dict.doctype.value,
-					},
-					callback: function(r) {
-						for(var d in r.message) {
-							options.push(r.message[d].name);
-						}
-						resolve(options);
-					}
-				});
-			}
-		});
-	},
-
-	on_doctype_change: function(options, dialog) {
-		dialog.set_df_property("docname", "options", options);
+	on_doctype_change: function(dialog) {
 		dialog.set_df_property("docname", "hidden", 0);
 		dialog.set_df_property("docname", "reqd", 1);
 		dialog.set_df_property("apply_to_all_doctypes", "hidden", 0);
