@@ -1,6 +1,6 @@
 from __future__ import unicode_literals, absolute_import, print_function
 import click
-import json, sys
+import sys
 import frappe
 from frappe.utils import cint
 from frappe.commands import pass_context, get_site

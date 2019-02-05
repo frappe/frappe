@@ -20,7 +20,7 @@ function get_query_params(query_string) {
 
 	var query_list = query_string.split("&");
 	for (var i=0, l=query_list.length; i < l; i++ ){
-		var pair = query_list[i].split("=");
+		var pair = query_list[i].split(/=(.+)/);
 		var key = pair[0];
 		if (!key) {
 			continue;

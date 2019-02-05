@@ -621,7 +621,7 @@ frappe.views.ListRenderer = Class.extend({
 		var new_button = frappe.boot.user.can_create.includes(this.doctype)
 			? (`<p><button class='btn btn-primary btn-sm'
 				list_view_doc='${this.doctype}'>
-					${__('Make a new {0}', [__(this.doctype)])}
+					${__('Create a new {0}', [__(this.doctype)])}
 				</button></p>`)
 			: '';
 		var no_result_message =

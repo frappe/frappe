@@ -103,7 +103,7 @@ CREATE TABLE `tabDocPerm` (
 
 DROP TABLE IF EXISTS `tabDocType`;
 CREATE TABLE `tabDocType` (
-  `name` varchar(255) NOT NULL DEFAULT '',
+  `name` varchar(255) NOT NULL,
   `creation` datetime(6) DEFAULT NULL,
   `modified` datetime(6) DEFAULT NULL,
   `modified_by` varchar(255) DEFAULT NULL,

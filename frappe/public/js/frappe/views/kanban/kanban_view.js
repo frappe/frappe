@@ -149,7 +149,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		// quick entry
 		var mandatory = meta.fields.filter((df) => df.reqd && !doc[df.fieldname]);
 
-		if (mandatory.some(df => df.fieldtype === 'Table') || mandatory.length > 1) {
+		if (mandatory.some(df => frappe.model.table_fields.includes(df.fieldtype)) || mandatory.length > 1) {
 			quick_entry = true;
 		}
 
@@ -225,21 +225,18 @@ frappe.views.KanbanView.setup_dropdown_in_sidebar = function(doctype, $dropdown)
 
 		const fields = get_fields_for_dialog();
 
+		let primary_action_label = fields.length > 1 ? __('Save') : '';
+		let primary_action = fields.length > 1 ?
+			({ board_name, field_name, project }) => {
+				make_kanban_board(board_name, field_name, project)
+					.then(() => dialog.hide(), (err) => frappe.msgprint(err));
+			} : null;
+
 		dialog = new frappe.ui.Dialog({
 			title: __('New Kanban Board'),
-			fields: fields,
-
-			primary_action_label: __('Save'),
-			primary_action(values) {
-				const custom_column =
-					values.custom_column !== undefined ?
-						values.custom_column : 1;
-
-				let field_name = custom_column ? 'kanban_column' : values.field_name;
-
-				make_kanban_board(values.board_name, field_name, values.project)
-					.then(() => dialog.hide(), (err) => frappe.msgprint(err));
-			}
+			fields,
+			primary_action_label,
+			primary_action
 		});
 		return dialog;
 	}
@@ -272,26 +269,28 @@ frappe.views.KanbanView.setup_dropdown_in_sidebar = function(doctype, $dropdown)
 				});
 
 		if (select_fields.length > 0) {
-			fields = fields.concat([{
+			fields.push({
 				fieldtype: 'Select',
 				fieldname: 'field_name',
 				label: __('Columns based on'),
 				options: select_fields.map(df => ({label: df.label, value: df.fieldname})),
 				default: select_fields[0],
-				depends_on: 'eval:doc.custom_column===0',
-				reqd: 1
-			},
-
-			{
-				fieldtype: 'Check',
-				fieldname: 'custom_column',
-				label: __('Custom Column'),
-				default: 0,
-				onchange() {
-					const value = this.get_value();
-					this.layout.set_df_property('field_name', 'reqd', !value);
-				}
-			}]);
+				reqd: 1,
+			});
+		} else {
+			fields = [{
+				fieldtype: 'HTML',
+				options: `
+					<div>
+						<p class="text-medium">
+						${__('No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type "Select".')}
+						</p>
+						<a class="btn btn-xs btn-default" href="#Form/Customize Form?doc_type=${doctype}">
+							${__('Customize Form')}
+						</a>
+					</div>
+				`
+			}];
 		}
 
 		return fields;

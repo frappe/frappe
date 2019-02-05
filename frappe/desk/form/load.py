@@ -80,7 +80,7 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 def get_meta_bundle(doctype):
 	bundle = [frappe.desk.form.meta.get_meta(doctype)]
 	for df in bundle[0].fields:
-		if df.fieldtype=="Table":
+		if df.fieldtype in frappe.model.table_fields:
 			bundle.append(frappe.desk.form.meta.get_meta(df.options, not frappe.conf.developer_mode))
 	return bundle
 
@@ -142,7 +142,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 			`communication_date`, `content`, `sender`, `sender_full_name`,
 			`creation`, `subject`, `delivery_status`, `_liked_by`,
 			`timeline_doctype`, `timeline_name`, `reference_doctype`, `reference_name`,
-			`link_doctype`, `link_name`, `read_by_recipient`, `rating` '''
+			`link_doctype`, `link_name`, `read_by_recipient`, `rating`, 'Communication' AS `doctype`'''
 
 	conditions = '''communication_type in ('Communication', 'Comment', 'Feedback')
 			and (
@@ -219,11 +219,11 @@ def get_view_logs(doctype, docname):
 	""" get and return the latest view logs if available """
 	logs = []
 	if hasattr(frappe.get_meta(doctype), 'track_views') and frappe.get_meta(doctype).track_views:
-		view_logs = frappe.get_all("View log", filters={
+		view_logs = frappe.get_all("View Log", filters={
 			"reference_doctype": doctype,
 			"reference_name": docname,
-		}, fields=["name", "creation"], order_by="creation desc")
+		}, fields=["name", "creation", "owner"], order_by="creation desc")
 
-		if  view_logs:
+		if view_logs:
 			logs = view_logs
 	return logs

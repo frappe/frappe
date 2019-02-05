@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 try:
 	from zxcvbn import zxcvbn
-except Exception as e:
+except Exception:
 	import zxcvbn
 
 import frappe

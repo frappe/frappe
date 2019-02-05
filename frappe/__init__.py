@@ -17,7 +17,13 @@ from faker import Faker
 from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
 
-__version__ = '10.1.68'
+# Hamless for Python 3
+# For Python 2 set default encoding to utf-8
+if sys.version[0] == '2':
+	reload(sys)
+	sys.setdefaultencoding("utf-8")
+
+__version__ = '11.1.3'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -45,6 +51,7 @@ class _dict(dict):
 def _(msg, lang=None):
 	"""Returns translated string in current lang, if exists."""
 	from frappe.translate import get_full_dict
+	from frappe.utils import strip_html_tags, is_html
 
 	if not hasattr(local, 'lang'):
 		local.lang = lang or 'en'
@@ -52,11 +59,16 @@ def _(msg, lang=None):
 	if not lang:
 		lang = local.lang
 
+	non_translated_msg = msg
+
+	if is_html(msg):
+		msg = strip_html_tags(msg)
+
 	# msg should always be unicode
 	msg = as_unicode(msg).strip()
 
 	# return lang_full_dict according to lang passed parameter
-	return get_full_dict(lang).get(msg) or msg
+	return get_full_dict(lang).get(msg) or non_translated_msg
 
 def as_unicode(text, encoding='utf-8'):
 	'''Convert to unicode if required'''

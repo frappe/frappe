@@ -229,6 +229,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					this.toggle_actions_menu_button(checked_items.length > 0);
 				}
 			},
+			hooks: {
+				totalAccumulator: frappe.utils.report_total_accumulator
+			},
 			headerDropdown: [{
 				label: __('Add Column'),
 				action: (datatabe_col) => {
@@ -823,6 +826,19 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		// child table column
 		const id = doctype !== this.doctype ? `${doctype}:${fieldname}` : fieldname;
 
+		let compareFn = null;
+		if (docfield.fieldtype === 'Date') {
+			compareFn = (cell, keyword) => {
+				if (!cell.content) return null;
+				if (keyword.length !== 'YYYY-MM-DD'.length) return null;
+
+				const keywordValue = frappe.datetime.user_to_obj(keyword);
+				const cellValue = frappe.datetime.str_to_obj(cell.content);
+				return [+cellValue, +keywordValue];
+			}
+		}
+
+
 		return {
 			id: id,
 			field: fieldname,
@@ -832,8 +848,15 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			width,
 			editable,
 			align,
+			compareValue: compareFn,
 			format: (value, row, column, data) => {
-				return frappe.format(value, column.docfield, { always_show_decimals: true }, data);
+				const d = row.reduce((acc, curr) => {
+					if (!curr.column.docfield) return acc;
+					acc[curr.column.docfield.fieldname] = curr.content;
+					return acc;
+				}, {});
+
+				return frappe.format(value, column.docfield, { always_show_decimals: true }, d);
 			}
 		};
 	}
@@ -1055,7 +1078,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							for (let cdt in values) {
 								fields = fields.concat(values[cdt].map(f => [f, cdt]));
 							}
-							
+
 							// always keep name (ID) column
 							this.fields = [["name", this.doctype], ...fields];
 

@@ -72,7 +72,7 @@ frappe.Application = Class.extend({
 			frappe.msgprint(frappe.boot.messages);
 		}
 
-		if (frappe.boot.change_log && frappe.boot.change_log.length) {
+		if (frappe.boot.change_log && frappe.boot.change_log.length && !window.Cypress) {
 			this.show_change_log();
 		} else {
 			this.show_notes();
@@ -618,7 +618,7 @@ frappe.get_desktop_icons = function(show_hidden, show_global) {
 			//out = frappe.model.can_read(m._doctype);
 			out = frappe.boot.user.can_read.includes(m._doctype);
 		} else {
-			if(m.module_name==='Learn') {
+			if(['Help', 'Settings'].includes(m.module_name)) {
 				// no permissions necessary for learn
 				out = true;
 			} else if(m.module_name==='Setup' && frappe.user.has_role('System Manager')) {

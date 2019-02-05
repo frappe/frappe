@@ -1,13 +1,10 @@
 from __future__ import unicode_literals
 
-import frappe, os, copy, json, re
+import frappe, os
 from frappe import _
 
-from frappe.modules import get_doc_path
-from jinja2 import TemplateNotFound
-from frappe.utils import cint, strip_html
 from frappe.utils.pdf import get_pdf,cleanup
-from PyPDF2 import PdfFileWriter, PdfFileReader
+from PyPDF2 import PdfFileWriter
 
 no_cache = 1
 no_sitemap = 1
@@ -106,7 +103,7 @@ def print_by_server(doctype, name, print_format=None, doc=None, no_letterhead=0)
 	print_settings = frappe.get_doc("Print Settings")
 	try:
 		import cups
-	except ModuleNotFoundError:
+	except ImportError:
 		frappe.throw("You need to install pycups to use this feature!")
 		return
 	try:
