@@ -212,7 +212,7 @@ def delete_items():
 	"""delete selected items"""
 	import json
 
-	il = sorted(json.loads(frappe.form_dict.get('items')), reverse=True, key=frappe.safe_decode)
+	il = sorted(json.loads(frappe.form_dict.get('items')), reverse=True)
 	doctype = frappe.form_dict.get('doctype')
 
 	failed = []

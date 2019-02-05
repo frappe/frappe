@@ -303,7 +303,7 @@ def sync_global_search():
 	:return:
 	"""
 	while frappe.cache().llen('global_search_queue') > 0:
-		value = json.loads(frappe.cache().lpop('global_search_queue'))
+		value = json.loads(frappe.cache().lpop('global_search_queue').decode('utf-8'))
 		sync_value(value)
 
 def sync_value(value):
