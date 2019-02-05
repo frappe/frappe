@@ -176,7 +176,7 @@ function get_more_calendars(sidebar, cal, page){
 			});
 		});
 
-		if(allowed_cal.length != 0){
+		if(allowed_cal.length !== 0){
 			const more_calendar_text = __('More Calendars');
 			$(`<span class='text-muted cursor-pointer'>
 			${more_calendar_text}
@@ -185,9 +185,8 @@ function get_more_calendars(sidebar, cal, page){
 				var span = $(this);
 
 				var custom_calendars = $(".checkbox.custom");
-				if (custom_calendars.length == 0) {
-					var doctype;
-					for(doctype in allowed_cal){
+				if (custom_calendars.length === 0) {
+					for (var doctype in allowed_cal) {
 						var li = $(`<li class="checkbox custom" style="padding-top: 0px">`);
 						$('<input type="checkbox" class="cal more" value="' + allowed_cal[doctype] + '">').appendTo(li).on("click", function(){
 							cal.fullCalendar("refetchEvents");
@@ -350,10 +349,9 @@ function prepare_event(doctype_list, start, end, callback) {
 		}
 	}).then(r => {
 		var events = [];
-		var event;
-		for(event in r["message"]){
+		for(var event in r["message"]){
 			var heading;
-			if (get_checked_calendars().length == 1){
+			if (get_checked_calendars().length === 1) {
 				heading = r["message"][event].title;
 			} else{
 				heading = r["message"][event].doctype + ": " + r["message"][event].title;
