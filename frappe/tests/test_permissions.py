@@ -93,8 +93,8 @@ class TestPermissions(unittest.TestCase):
 		self.assertEqual(doc.get("blog_category"), "_Test Blog Category 1")
 
 		# Don't fetch default if user permissions is more than 1
-		add_user_permission("Blog Category", "_Test Blog Category 2", "test2@example.com")
-
+		add_user_permission("Blog Category", "_Test Blog Category", "test2@example.com", ignore_permissions=True)
+		frappe.clear_cache()
 		doc = frappe.new_doc("Blog Post")
 		self.assertFalse(doc.get("blog_category"))
 
@@ -372,7 +372,7 @@ class TestPermissions(unittest.TestCase):
 		posts = frappe.get_all('Blog Post', fields=['name', 'blogger'])
 
 		# Get all posts for admin
-		self.assertEqual(len(posts), 4)
+		self.assertEqual(len(posts), 5)
 
 		frappe.set_user('test2@example.com')
 
