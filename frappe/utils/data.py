@@ -745,6 +745,9 @@ def get_link_to_form(doctype, name, label=None):
 
 	return """<a href="{0}">{1}</a>""".format(get_url_to_form(doctype, name), label)
 
+def get_absolute_url(doctype, name):
+	return "desk#Form/{0}/{1}".format(quoted(doctype), quoted(name))
+
 def get_url_to_form(doctype, name):
 	return get_url(uri = "desk#Form/{0}/{1}".format(quoted(doctype), quoted(name)))
 
