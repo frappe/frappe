@@ -192,7 +192,9 @@ def run(report_name, filters=None, user=None):
 def get_prepared_report_result(report, filters, dn="", user=None):
 	latest_report_data = {}
 	# Only look for completed prepared reports with given filters.
-	doc_list = frappe.get_all("Prepared Report", filters={"status": "Completed", "report_name": report.name, "filters": json.dumps(filters), "owner": user})
+	doc_list = frappe.get_all("Prepared Report",
+		filters={"status": "Completed", "report_name": report.name, "filters": filters, "owner": user})
+
 	doc = None
 	if len(doc_list):
 		if dn:
