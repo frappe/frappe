@@ -97,7 +97,7 @@ class DashboardChart {
 			{
 				label: __("Set Filters"),
 				action: "set-filters",
-				handler: this.create_set_filters_dialog
+				handler: this.create_set_filters_dialog.bind(this)
 			},
 			{
 				label: __("Force Refresh"),
@@ -196,7 +196,7 @@ class DashboardChart {
 	create_set_filters_dialog() {
 		const d = new frappe.ui.Dialog({
 			title: __('Set Filters'),
-			fields: this.settings.filters,
+			fields: this.settings.filters
 		});
 		d.set_values(this.filters);
 		d.show();
