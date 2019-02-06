@@ -8,7 +8,7 @@ from frappe import _
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import clear_cache
 from frappe.utils import today, cint, global_date_format, get_fullname, strip_html_tags, markdown
-from frappe.website.utils import find_first_image, get_comment_list
+from frappe.website.utils import (find_first_image, get_comment_list, get_html_content_based_on_type)
 
 class BlogPost(WebsiteGenerator):
 	website = frappe._dict(
@@ -58,13 +58,12 @@ class BlogPost(WebsiteGenerator):
 
 		context.description = self.blog_intro or self.content[:140]
 
+		context.content = get_html_content_based_on_type(self, 'content', self.content_type)
+
 		context.metatags = {
 			"name": self.title,
 			"description": context.description,
 		}
-
-		if "<!-- markdown -->" in context.content:
-			context.content = markdown(context.content)
 
 		image = find_first_image(self.content)
 		if image:
