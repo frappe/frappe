@@ -7,11 +7,9 @@ from __future__ import unicode_literals
 import frappe
 import frappe.defaults
 import unittest
-import json
 import frappe.model.meta
 from frappe.permissions import (add_user_permission, remove_user_permission,
-	clear_user_permissions_for_doctype, get_doc_permissions, add_permission,
-	get_valid_perms)
+	clear_user_permissions_for_doctype, get_doc_permissions, add_permission)
 from frappe.core.page.permission_manager.permission_manager import update, reset
 from frappe.test_runner import make_test_records_for_doctype
 from frappe.core.doctype.user_permission.user_permission import clear_user_permissions

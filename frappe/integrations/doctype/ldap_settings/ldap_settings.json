@@ -397,7 +397,7 @@
  "issingle": 1, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2017-03-08 17:16:01.087365", 
+ "modified": "2019-01-30 11:02:41.011412", 
  "modified_by": "Administrator", 
  "module": "Integrations", 
  "name": "LDAP Settings", 

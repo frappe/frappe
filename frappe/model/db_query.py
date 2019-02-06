@@ -425,8 +425,6 @@ class DatabaseQuery(object):
 						date_range = [nowdate(), add_to_date(nowdate(), months=6)]
 					elif f.value == "1 year":
 						date_range = [nowdate(), add_to_date(nowdate(), years=1)]
-				if df.fieldtype=="Datetime":
-					date_range = [frappe.db.format_datetime(date_range[0]), frappe.db.format_datetime(date_range[1])]
 				f.operator = "Between"
 				f.value = date_range
 				fallback = "'0001-01-01 00:00:00'"
@@ -452,6 +450,19 @@ class DatabaseQuery(object):
 			elif df and df.fieldtype=="Time":
 				value = get_time(f.value).strftime("%H:%M:%S.%f")
 				fallback = "'00:00:00'"
+
+			elif f.operator.lower() == "is":
+				if f.value == 'set':
+					f.operator = '!='
+				elif f.value == 'not set':
+					f.operator = '='
+
+				value = ""
+				fallback = '""'
+				can_be_null = True
+
+				if 'ifnull' not in column_name:
+					column_name = 'ifnull({}, {})'.format(column_name, fallback)
 
 			elif f.operator.lower() in ("like", "not like") or (isinstance(f.value, string_types) and
 				(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
