@@ -293,10 +293,10 @@ def load_properties(page_info):
 
 	custom_base_template = extract_comment_tag(page_info.source, 'base_template')
 
-	page_info.meta = frappe._dict()
+	page_info.meta_tags = frappe._dict()
 
-	page_info.meta.name = extract_comment_tag(page_info.source, 'meta:name')
-	page_info.meta.description = extract_comment_tag(page_info.source, 'meta:description')
+	page_info.meta_tags.name = extract_comment_tag(page_info.source, 'meta:name')
+	page_info.meta_tags.description = extract_comment_tag(page_info.source, 'meta:description')
 
 	if custom_base_template:
 		page_info.source = '''{{% extends "{0}" %}}
