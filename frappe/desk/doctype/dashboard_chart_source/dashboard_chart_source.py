@@ -11,7 +11,7 @@ from frappe.modules.export_file import export_to_files
 class DashboardChartSource(Document):
 	def validate(self):
 		if frappe.session.user != "Administrator":
-			frappe.throw(_("Only Administrator allowed to create Dashboard Chart Sources"))
+			frappe.throw(_("Only Administrator is allowed to create Dashboard Chart Sources"))
 
 	def on_update(self):
 		export_to_files(record_list=[[self.doctype, self.name]], record_module=self.module, create_init=True)
