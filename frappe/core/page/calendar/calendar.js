@@ -294,7 +294,7 @@ function hide_show_weekends(calendar_option, page, $cal) {
 }
 
 function get_calendar_options() {
-	var calendar_option ={
+	var calendar_option = {
 		header: {
 			left: 'title',
 			right: 'prev,today,next,month,agendaWeek,agendaDay'
@@ -312,7 +312,8 @@ function get_calendar_options() {
 		},
 
 		select: function(startDate, endDate, jsEvent, view){
-			if (view.name==="month" && (endDate - startDate)===86400000) {
+			var day = endDate - startDate;
+			if (view.name === "month" && day === 86400000) {
 				// detect single day click in month view
 				return;
 			}
