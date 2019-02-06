@@ -16,7 +16,7 @@ import frappe, json, copy, re
 from frappe.model import optional_fields
 from frappe.client import check_parent_permission
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
-from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add_to_date, cstr
+from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add_to_date, cstr, nowdate
 
 class DatabaseQuery(object):
 	def __init__(self, doctype, user=None):
@@ -402,6 +402,33 @@ class DatabaseQuery(object):
 			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
 				can_be_null = False
 
+			if f.operator.lower() in ('previous', 'next'):
+				if f.operator.lower() == "previous":
+					if f.value == "1 week":
+						date_range = [add_to_date(nowdate(), days=-7), nowdate()]
+					elif f.value == "1 month":
+						date_range = [add_to_date(nowdate(), months=-1), nowdate()]
+					elif f.value == "3 months":
+						date_range = [add_to_date(nowdate(), months=-3), nowdate()]
+					elif f.value == "6 months":
+						date_range = [add_to_date(nowdate(), months=-6), nowdate()]
+					elif f.value == "1 year":
+						date_range = [add_to_date(nowdate(), years=-1), nowdate()]
+				elif f.operator.lower() == "next":
+					if f.value == "1 week":
+						date_range = [nowdate(), add_to_date(nowdate(), days=7)]
+					elif f.value == "1 month":
+						date_range = [nowdate(), add_to_date(nowdate(), months=1)]
+					elif f.value == "3 months":
+						date_range = [nowdate(), add_to_date(nowdate(), months=3)]
+					elif f.value == "6 months":
+						date_range = [nowdate(), add_to_date(nowdate(), months=6)]
+					elif f.value == "1 year":
+						date_range = [nowdate(), add_to_date(nowdate(), years=1)]
+				f.operator = "Between"
+				f.value = date_range
+				fallback = "'0001-01-01 00:00:00'"
+
 			if f.operator in ('>', '<') and (f.fieldname in ('creation', 'modified')):
 				value = cstr(f.value)
 				fallback = "NULL"
@@ -423,6 +450,19 @@ class DatabaseQuery(object):
 			elif df and df.fieldtype=="Time":
 				value = get_time(f.value).strftime("%H:%M:%S.%f")
 				fallback = "'00:00:00'"
+
+			elif f.operator.lower() == "is":
+				if f.value == 'set':
+					f.operator = '!='
+				elif f.value == 'not set':
+					f.operator = '='
+
+				value = ""
+				fallback = "''"
+				can_be_null = True
+
+				if 'ifnull' not in column_name:
+					column_name = 'ifnull({}, {})'.format(column_name, fallback)
 
 			elif f.operator.lower() in ("like", "not like") or (isinstance(f.value, string_types) and
 				(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):

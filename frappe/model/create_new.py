@@ -133,13 +133,14 @@ def user_permissions_exist(df, user_permissions):
 
 def get_default_based_on_another_field(df, user_permissions, parent_doc):
 	# default value based on another document
+	from frappe.permissions import get_allowed_docs_for_doctype
+
 	ref_doctype =  df.default[1:]
 	ref_fieldname = ref_doctype.lower().replace(" ", "_")
 	reference_name = parent_doc.get(ref_fieldname) if parent_doc else frappe.db.get_default(ref_fieldname)
-
 	default_value = frappe.db.get_value(ref_doctype, reference_name, df.fieldname)
 	is_allowed_default_value = (not user_permissions_exist(df, user_permissions) or
-		(default_value in user_permissions.get(df.options).get('docs', [])))
+		(default_value in get_allowed_docs_for_doctype(user_permissions[df.options], df.parent)))
 
 	# is this allowed as per user permissions
 	if is_allowed_default_value:

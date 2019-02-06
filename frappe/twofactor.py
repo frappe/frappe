@@ -50,8 +50,8 @@ def get_cached_user_pass():
 	user = pwd = None
 	tmp_id = frappe.form_dict.get('tmp_id')
 	if tmp_id:
-		user = frappe.cache().get(tmp_id+'_usr')
-		pwd = frappe.cache().get(tmp_id+'_pwd')
+		user = frappe.safe_decode(frappe.cache().get(tmp_id+'_usr'))
+		pwd = frappe.safe_decode(frappe.cache().get(tmp_id+'_pwd'))
 	return (user, pwd)
 
 def authenticate_for_2factor(user):

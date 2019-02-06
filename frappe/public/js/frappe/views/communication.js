@@ -92,7 +92,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			{label:__("Send me a copy"), fieldtype:"Check",
 				fieldname:"send_me_a_copy", 'default': frappe.boot.user.send_me_a_copy},
 			{label:__("Send Read Receipt"), fieldtype:"Check",
-				fieldname:"send_read_receipt"},
+				fieldname:"send_read_receipt", default: 1},
 			{label:__("Attach Document Print"), fieldtype:"Check",
 				fieldname:"attach_document_print"},
 			{label:__("Select Print Format"), fieldtype:"Select",
@@ -637,6 +637,10 @@ frappe.views.CommunicationComposer = Class.extend({
 		if(this.real_name) {
 			this.message = '<p>'+__('Dear') +' '
 				+ this.real_name + ",</p><!-- salutation-ends --><br>" + (this.message || "");
+		}
+
+		if(this.message && signature && this.message.includes(signature)) {
+			signature = "";
 		}
 
 		let reply = (this.message || "") + (signature ? ("<br>" + signature) : "");

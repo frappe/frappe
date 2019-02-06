@@ -16,9 +16,17 @@
     {% endblock %}
 	{%- block head -%}
 		{% block meta_block %}{% endblock %}
+
 		{% if head_html is defined -%}
 		{{ head_html or "" }}
 		{%- endif %}
+
+		{% if meta_tags %}
+			{% for key in meta_tags %}
+			{% if meta_tags[key] %}<meta name="{{ key }}" content="{{ meta_tags[key] }}" />{% endif %}
+			{% endfor %}
+		{% endif %}
+
 		{%- for link in web_include_css %}
 		<link type="text/css" rel="stylesheet" href="{{ link|abs_url }}">
 		{%- endfor -%}
@@ -32,6 +40,7 @@
 			frappe.ready_events.push(fn);
 		}
 		window.dev_server = {{ dev_server }};
+		window.socketio_port = {{ frappe.socketio_port }};
     </script>
 </head>
 {% block body %}

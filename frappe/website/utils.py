@@ -6,6 +6,7 @@ import functools
 import frappe, re, os
 from six import iteritems
 from past.builtins import cmp
+from frappe.utils import markdown
 
 def delete_page_cache(path):
 	cache = frappe.cache()
@@ -282,17 +283,31 @@ def get_full_index(route=None, app=None):
 
 def extract_title(source, path):
 	'''Returns title from `&lt;!-- title --&gt;` or &lt;h1&gt; or path'''
-	title = ''
+	title = extract_comment_tag(source, 'title')
 
-	if "<!-- title:" in source:
-		title = re.findall('<!-- title:([^>]*) -->', source)[0].strip()
-	elif "<h1>" in source:
+	if not title and "<h1>" in source:
+		# extract title from h1
 		match = re.findall('<h1>([^<]*)', source)
 		title = match[0].strip()[:300]
+
 	if not title:
+		# make title from name
 		title = os.path.basename(path.rsplit('.', )[0].rstrip('/')).replace('_', ' ').replace('-', ' ').title()
 
 	return title
+
+def extract_comment_tag(source, tag):
+	'''Extract custom tags in comments from source.
+
+	:param source: raw template source in HTML
+	:param title: tag to search, example "title"
+	'''
+
+	if "<!-- {0}:".format(tag) in source:
+		return re.findall('<!-- {0}:([^>]*) -->'.format(tag), source)[0].strip()
+	else:
+		return None
+
 
 def add_missing_headers():
 	'''Walk and add missing headers in docs (to be called from bench execute)'''
@@ -313,3 +328,18 @@ def add_missing_headers():
 						content = '# {0}\n\n'.format(h) + content
 						f.write(content.encode('utf-8'))
 
+def get_html_content_based_on_type(doc, fieldname, content_type):
+		'''
+		Set content based on content_type
+		'''
+		content = doc.get(fieldname)
+
+		if content_type == 'Markdown':
+			content = markdown(doc.get(fieldname + '_md'))
+		elif content_type == 'HTML':
+			content = doc.get(fieldname + '_html')
+
+		if content == None:
+			content = ''
+
+		return content

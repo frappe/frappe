@@ -57,7 +57,9 @@ frappe.route = function() {
 		} else {
 			// show page
 			const route_name = frappe.utils.xss_sanitise(route[0]);
-			frappe.views.pageview.show(route_name);
+			if (frappe.views.pageview) {
+				frappe.views.pageview.show(route_name);
+			}
 		}
 	} else {
 		// Show desk

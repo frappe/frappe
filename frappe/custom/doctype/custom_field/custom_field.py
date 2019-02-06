@@ -8,6 +8,7 @@ from frappe.utils import cstr
 from frappe import _
 from frappe.model.document import Document
 from frappe.model.docfield import supports_translation
+from frappe.model import core_doctypes_list
 
 class CustomField(Document):
 	def autoname(self):
@@ -85,6 +86,14 @@ class CustomField(Document):
 
 @frappe.whitelist()
 def get_fields_label(doctype=None):
+	meta = frappe.get_meta(doctype)
+
+	if doctype in core_doctypes_list:
+		return frappe.msgprint(_("Custom Fields cannot be added to core DocTypes."))
+
+	if meta.custom:
+		return frappe.msgprint(_("Custom Fields can only be added to a standard DocType."))
+
 	return [{"value": df.fieldname or "", "label": _(df.label or "")}
 		for df in frappe.get_meta(doctype).get("fields")]
 
