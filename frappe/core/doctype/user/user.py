@@ -358,6 +358,9 @@ class User(Document):
 					WHERE `%s` = %s""" %
 					(tab, field, '%s', field, '%s'), (new_name, old_name))
 
+		if frappe.db.exists("Chat Profile", old_name):
+			frappe.rename_doc("Chat Profile", old_name, new_name, force=True)
+
 		# set email
 		frappe.db.sql("""UPDATE `tabUser`
 			SET email = %s

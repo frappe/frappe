@@ -698,7 +698,7 @@ export default class Grid {
 			data.push(["------"]);
 			$.each(frappe.get_meta(me.df.options).fields, function(i, df) {
 				// don't include the read-only field in the template
-				if(frappe.model.is_value_type(df.fieldtype) && !df.read_only) {
+				if(frappe.model.is_value_type(df.fieldtype)) {
 					data[1].push(df.label);
 					data[2].push(df.fieldname);
 					let description = (df.description || "") + ' ';
