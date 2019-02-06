@@ -801,7 +801,9 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 			});
 
 			this.page.add_menu_item(__("Delete"), function() {
-				var delete_list = $.map(me.get_checked_items(), function(d) { return d.name; });
+				var delete_list = $.map(me.get_checked_items(), function(d) {
+					return d.name.toString();
+				});
 				if(!delete_list.length)
 					return;
 				if(frappe.confirm(__("This is PERMANENT action and you cannot undo. Continue?"),
