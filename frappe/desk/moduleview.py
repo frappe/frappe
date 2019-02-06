@@ -59,7 +59,12 @@ def get_data(module):
 			# Onboarding
 
 			# First disable based on exists of depends_on list
+			doctype = item.get("doctype")
 			dependencies = item.get("dependencies") or None
+			if not dependencies and doctype:
+				item["dependencies"] = [doctype]
+
+			dependencies = item.get("dependencies")
 			if dependencies:
 				incomplete_dependencies = [d for d in dependencies if not exists(d)]
 				if len(incomplete_dependencies):

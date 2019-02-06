@@ -1,22 +1,22 @@
 <template>
     <div class="link-item flush-top small"
         :class="{'onboard-spotlight': onboard, 'disabled-link': disabled_dependent}"
-        @mouseover="hover = true" @mouseleave="hover = false"
+        @mouseover="hover = true" @mouseleave="mouseleave"
     >
         <span :class="['indicator', indicator_color]"></span>
 
         <span v-if="disabled_dependent" class="link-content text-muted">{{ label || __(name) }}</span>
         <a v-else class="link-content" :href="route">{{ label || __(name) }}</a>
 
-        <div v-if="disabled_dependent" v-show="hover"
+        <div v-if="disabled_dependent" v-show="popover_active"
+            @mouseover="popover_hover = true" @mouseleave="popover_hover = false"
             class="popover fade top in" role="tooltip"
         >
-
             <div class="arrow"></div>
             <h3 class="popover-title" style="display: none;"></h3>
             <div class="popover-content">
                 <div class="small text-muted">{{ __("You need to create these first: ") }}</div>
-                <div>{{ __(incomplete_dependencies.join(", ")) }}</div>
+                <div class="small">{{ __(incomplete_dependencies.join(", ")) }}</div>
             </div>
         </div>
     </div>
@@ -24,10 +24,11 @@
 
 <script>
 export default {
-    props: ['label', 'name', 'dependencies', 'incomplete_dependencies', 'onboard', 'count', 'route', 'doctype', 'open_count'],
+    props: ['label', 'name', 'dependencies', 'incomplete_dependencies', 'onboard', 'count', 'route', 'doctype', 'open_count', 'popover_present'],
     data() {
         return {
-            hover: false
+            hover: false,
+            popover_hover: false,
         }
     },
     computed: {
@@ -43,6 +44,21 @@ export default {
                 return this.count ? 'blue' : 'orange';
             };
             return 'grey';
+        },
+
+        popover_active() {
+            return this.popover_hover || this.hover;
+        }
+    },
+    methods: {
+        mouseover() {
+            this.hover = true;
+        },
+
+        mouseleave() {
+            setTimeout(() => {
+                this.hover = false;
+            }, 100);
         }
     }
 }
@@ -53,6 +69,7 @@ export default {
 .link-item {
     position: relative;
     margin: 10px 0px;
+    cursor: default;
 }
 
 .onboard-spotlight {
