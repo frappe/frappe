@@ -150,6 +150,9 @@ class DashboardChart {
 			data: this.data,
 			type: chart_type_map[this.chart_doc.type],
 			colors: [this.chart_doc.color || "light-blue"],
+			axisOptions: {
+				xIsSeries: this.settings.is_time_series
+			},
 		};
 		if(!this.chart) {
 			this.chart = new Chart(this.chart_container.find(".chart-wrapper")[0], chart_args);
