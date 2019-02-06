@@ -23,7 +23,7 @@
 
 		{% if meta_tags %}
 			{% for key in meta_tags %}
-			{% if meta[key] %}<meta name="{{ key }}" content="{{ meta[key] }}" />{% endif %}
+			{% if meta_tags[key] %}<meta name="{{ key }}" content="{{ meta_tags[key] }}" />{% endif %}
 			{% endfor %}
 		{% endif %}
 
