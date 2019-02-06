@@ -37,12 +37,15 @@ frappe.listview_settings['User Permission'] = {
 						options: 'doctype',
 						hidden: 1,
 						onchange:  function() {
-							if(dialog.fields_dict.doctype.value && dialog.fields_dict.docname.value && dialog.fields_dict.user.value){
-								me.get_applicable_doctype(dialog).then(applicable => {
-									me.get_multi_select_options(dialog, applicable).then(options => {
-										me.on_docname_change(dialog, options, applicable);
+							let field = dialog.fields_dict["docname"];
+							if(field.value != field.last_value) {
+								if(dialog.fields_dict.doctype.value && dialog.fields_dict.docname.value && dialog.fields_dict.user.value){
+									me.get_applicable_doctype(dialog).then(applicable => {
+										me.get_multi_select_options(dialog, applicable).then(options => {
+											me.on_docname_change(dialog, options, applicable);
+										});
 									});
-								});
+								}
 							}
 						}
 					},
