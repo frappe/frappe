@@ -68,7 +68,7 @@ class DashboardChart {
 		this.get_settings().then(() => {
 			this.prepare_chart_object();
 			this.prepare_container();
-			this.fetch().then((data) => {
+			this.fetch(this.filters).then((data) => {
 				this.update_last_synced();
 				this.data = data;
 				this.render();
@@ -106,7 +106,7 @@ class DashboardChart {
 						const values = d.get_values();
 						if (!Object.entries(this.filters).map(e => values[e[0]] === e[1]).every(Boolean)) {
 							frappe.db.set_value("Dashboard Chart", this.chart_doc.name, "filters_json", JSON.stringify(values)).then(() => {
-								this.fetch().then(data => {
+								this.fetch(values, true).then(data => {
 									this.update_chart_object();
 									this.data = data;
 									this.render();
@@ -127,7 +127,7 @@ class DashboardChart {
 				label: __("Force Refresh"),
 				action: "force-refresh",
 				handler: () => {
-					this.fetch(true).then(data => {
+					this.fetch(this.filters, true).then(data => {
 						this.update_chart_object();
 						this.data = data;
 						this.render();
@@ -155,12 +155,12 @@ class DashboardChart {
 
 	}
 
-	fetch(refresh=false) {
+	fetch(filters, refresh=false) {
 		return frappe.xcall(
 			this.settings.method_path,
 			{
 				chart_name: this.chart_doc.name,
-				filters: this.filters,
+				filters: filters,
 				refresh: refresh,
 			}
 		);
