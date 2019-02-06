@@ -11,7 +11,7 @@ from jinja2.exceptions import TemplateSyntaxError
 
 import frappe
 from frappe import _
-from frappe.utils import get_datetime, now, strip_html, markdown
+from frappe.utils import get_datetime, now, strip_html
 from frappe.utils.jinja import render_template
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
 from frappe.website.router import resolve_route
