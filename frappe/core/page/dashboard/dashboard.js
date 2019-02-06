@@ -1,3 +1,8 @@
+// Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
+// MIT License. See license.txt
+
+frappe.provide("frappe.dashboard_chart_sources");
+
 frappe.pages['dashboard'].on_page_load = function(wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
@@ -60,12 +65,14 @@ class DashboardChart {
 	}
 
 	show() {
-		this.prepare_chart_object();
-		this.prepare_container();
-		this.fetch().then((data) => {
-			this.update_last_synced();
-			this.data = data;
-			this.render();
+		this.get_settings().then(() => {
+			this.prepare_chart_object();
+			this.prepare_container();
+			this.fetch().then((data) => {
+				this.update_last_synced();
+				this.data = data;
+				this.render();
+			});
 		});
 	}
 
@@ -90,7 +97,7 @@ class DashboardChart {
 				handler: () => {
 					const d = new frappe.ui.Dialog({
 						title: __('Set Filters'),
-						fields: this.filter_fields,
+						fields: this.settings.filters,
 					});
 					d.set_values(this.filters);
 					d.show();
@@ -109,7 +116,7 @@ class DashboardChart {
 						d.hide();
 					};
 
-					this.filter_fields.map(field => field.onchange = e => {
+					this.settings.filters.map(field => field.onchange = e => {
 						if(e) {
 							d.set_primary_action(__('Save Filters'), set_filters);
 						}
@@ -150,10 +157,9 @@ class DashboardChart {
 
 	fetch(refresh=false) {
 		return frappe.xcall(
-			"frappe.core.page.dashboard.dashboard.get_data",
+			this.settings.method_path,
 			{
-				chart_name: this.chart_doc.name,
-				refresh: refresh,
+				filters: this.filters,
 			}
 		);
 	}
@@ -191,6 +197,23 @@ class DashboardChart {
 
 	prepare_chart_object() {
 		this.filters = JSON.parse(this.chart_doc.filters_json || '{}');
-		this.filter_fields = JSON.parse(this.chart_doc.filter_fields || '[]');
+	}
+
+	get_settings() {
+		if (frappe.dashboard_chart_sources && frappe.dashboard_chart_sources[this.chart_doc.source]) {
+			return this._load_script;
+		}
+		this._load_script = new Promise(resolve => frappe.call({
+			method: 'frappe.core.page.dashboard.dashboard.get_script',
+			args: {
+				source_name: this.chart_doc.source
+			},
+			callback: result => {
+				frappe.dom.eval(result.message.script || '');
+				this.settings = frappe.dashboard_chart_sources[this.chart_doc.source];
+				resolve();
+			}
+		}));
+		return this._load_script;
 	}
 }
