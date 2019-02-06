@@ -68,6 +68,7 @@ class DashboardChart {
 		this.get_settings().then(() => {
 			this.prepare_chart_object();
 			this.prepare_container();
+			this.prepare_chart_actions();
 			this.fetch(this.filters).then((data) => {
 				this.update_last_synced();
 				this.data = data;
@@ -89,39 +90,14 @@ class DashboardChart {
 
 		let last_synced_text = $(`<span class="text-muted last-synced-text"></span>`);
 		last_synced_text.prependTo(this.chart_container);
+	}
 
+	prepare_chart_actions() {
 		let actions = [
 			{
 				label: __("Set Filters"),
 				action: "set-filters",
-				handler: () => {
-					const d = new frappe.ui.Dialog({
-						title: __('Set Filters'),
-						fields: this.settings.filters,
-					});
-					d.set_values(this.filters);
-					d.show();
-
-					const set_filters = () => {
-						const values = d.get_values();
-						if (!Object.entries(this.filters).map(e => values[e[0]] === e[1]).every(Boolean)) {
-							frappe.db.set_value("Dashboard Chart", this.chart_doc.name, "filters_json", JSON.stringify(values)).then(() => {
-								this.fetch(values, true).then(data => {
-									this.update_chart_object();
-									this.data = data;
-									this.render();
-								});
-							});
-						}
-						d.hide();
-					};
-
-					this.settings.filters.map(field => field.onchange = e => {
-						if(e) {
-							d.set_primary_action(__('Save Filters'), set_filters);
-						}
-					});
-				}
+				handler: this.create_set_filters_dialog
 			},
 			{
 				label: __("Force Refresh"),
@@ -150,9 +126,7 @@ class DashboardChart {
 			const action = o.dataset.action;
 			$(o).click(actions.find(a => a.action === action));
 		});
-
 		this.chart_actions.prependTo(this.chart_container);
-
 	}
 
 	fetch(filters, refresh=false) {
@@ -217,5 +191,34 @@ class DashboardChart {
 			}
 		}));
 		return this._load_script;
+	}
+
+	create_set_filters_dialog() {
+		const d = new frappe.ui.Dialog({
+			title: __('Set Filters'),
+			fields: this.settings.filters,
+		});
+		d.set_values(this.filters);
+		d.show();
+
+		const set_filters = () => {
+			const values = d.get_values();
+			if (!Object.entries(this.filters).map(e => values[e[0]] === e[1]).every(Boolean)) {
+				frappe.db.set_value("Dashboard Chart", this.chart_doc.name, "filters_json", JSON.stringify(values)).then(() => {
+					this.fetch(values, true).then(data => {
+						this.update_chart_object();
+						this.data = data;
+						this.render();
+					});
+				});
+			}
+			d.hide();
+		};
+
+		this.settings.filters.map(field => field.onchange = e => {
+			if(e) {
+				d.set_primary_action(__('Save Filters'), set_filters);
+			}
+		});
 	}
 }
