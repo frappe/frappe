@@ -8,30 +8,30 @@ from frappe.modules import get_module_path
 from frappe.model.utils import render_include
 
 
-@frappe.whitelist()
-def get_data(chart_name, refresh=False):
-	chart = frappe.get_doc("Dashboard Chart", chart_name)
-	filters = json.loads(chart.filters_json)
-	cache_key = json.dumps({
-		"name": chart.method_path,
-		"filters": filters
-	}, default=str)
-
-	if refresh == "true":
-		results = generate_and_cache_results(chart, filters, cache_key)
-	else:
-		cached_results = frappe.cache().get_value(cache_key)
-		if cached_results:
-			results = json.loads(frappe.safe_decode(cached_results))
+def cache_source(function):
+	def wrapper(*args, **kwargs):
+		filters = json.loads(kwargs.get("filters", "{}"))
+		chart_name = kwargs.get("chart_name")
+		cache_key = json.dumps({
+			"name": chart_name,
+			"filters": filters
+		}, default=str)
+		if kwargs.get("refresh") == "true":
+			results = generate_and_cache_results(chart_name, function, filters, cache_key)
 		else:
-			results = generate_and_cache_results(chart, filters, cache_key)
-	return results
+			cached_results = frappe.cache().get_value(cache_key)
+			if cached_results:
+				results = json.loads(frappe.safe_decode(cached_results))
+			else:
+				results = generate_and_cache_results(chart_name, function, filters, cache_key)
+		return results
+	return wrapper
 
 
-def generate_and_cache_results(chart, filters, cache_key):
-	results = frappe.get_attr(chart.method_path)(filters=frappe._dict(filters))
+def generate_and_cache_results(chart_name, function, filters, cache_key):
+	results = function(frappe._dict(filters))
 	frappe.cache().set_value(cache_key, json.dumps(results, default=str))
-	frappe.db.set_value("Dashboard Chart", chart.name, "last_synced_on", frappe.utils.now())
+	frappe.db.set_value("Dashboard Chart", chart_name, "last_synced_on", frappe.utils.now())
 	return results
 
 

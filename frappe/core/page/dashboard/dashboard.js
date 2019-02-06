@@ -159,7 +159,9 @@ class DashboardChart {
 		return frappe.xcall(
 			this.settings.method_path,
 			{
+				chart_name: this.chart_doc.name,
 				filters: this.filters,
+				refresh: refresh,
 			}
 		);
 	}
