@@ -32,6 +32,7 @@
 			frappe.ready_events.push(fn);
 		}
 		window.dev_server = {{ dev_server }};
+		window.socketio_port = {{ frappe.socketio_port }};
     </script>
 </head>
 {% block body %}

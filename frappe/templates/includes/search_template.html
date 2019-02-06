@@ -23,8 +23,8 @@
 	<form action='{{ route }}'>
 	<input name='q' class='form-control' type='text'
 		style='max-width: 400px; display: inline-block; margin-right: 10px;'
-		value='{{ frappe.form_dict.q or ''}}'
-		{% if not frappe.form_dict.q%}placeholder="{{ _("Search...") }}"{% endif %}>
+		value='{{ query or ''}}'
+		{% if not query %}placeholder="{{ _("Search...") }}"{% endif %}>
 	<input type='submit'
 		class='btn btn-sm btn-primary btn-search' value="{{ _("Search") }}">
 	</form>
@@ -41,7 +41,7 @@
 		{% endfor %}
 	</div>
 
-{% elif frappe.form_dict.q %}
+{% elif query %}
 	<p class='text-muted'>{{ _("No matching records. Search something new") }}
 {% else %}
 	<p class='text-muted'>{{ _("Type something in the search box to search") }}

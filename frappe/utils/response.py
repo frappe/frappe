@@ -42,6 +42,7 @@ def build_response(response_type=None):
 		'txt': as_txt,
 		'download': as_raw,
 		'json': as_json,
+		'pdf': as_pdf,
 		'page': as_page,
 		'redirect': redirect,
 		'binary': as_binary
@@ -82,6 +83,13 @@ def as_json():
 	response.mimetype = 'application/json'
 	response.charset = 'utf-8'
 	response.data = json.dumps(frappe.local.response, default=json_handler, separators=(',',':'))
+	return response
+
+def as_pdf():
+	response = Response()
+	response.mimetype = "application/pdf"
+	response.headers["Content-Disposition"] = ("filename=\"%s\"" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
+	response.data = frappe.response['filecontent']
 	return response
 
 def as_binary():

@@ -15,7 +15,7 @@
 <script>
 frappe.ready(function() {
 	if(frappe.utils.get_url_arg("search")) {
-		$(".item-search-results").html('{{ _("Search results for") + ": " + html2text(frappe.form_dict.search or "")|trim }}');
+		$(".item-search-results").html('{{ _("Search results for") + ": " + html2text(frappe.form_dict.search or "") | e | trim }}');
 		$(".item-search").toggle(false);
 		$(".clear").toggle(true);
 	}
