@@ -55,6 +55,8 @@ export default class WebForm {
 				df.default = query_params[df.fieldname];
 			}
 
+			df.is_web_form = true;
+
 			delete df.parent;
 			delete df.parentfield;
 			delete df.parenttype;
@@ -76,6 +78,7 @@ export default class WebForm {
 			this.field_group.set_values(doc);
 		}
 
+		// show imag previews
 		setTimeout(() => {
 			this.field_group.fields_list.forEach((field_instance) => {
 				let instance_value = field_instance.value;
@@ -84,6 +87,14 @@ export default class WebForm {
 				}
 			});
 		}, 500);
+
+		// call the onload method first time, if defined
+		if (!this.loaded_flag) {
+			if (this.onload) {
+				this.onload();
+			}
+			this.loaded_flag = true;
+		}
 	}
 
 	get_values() {
@@ -112,7 +123,7 @@ export default class WebForm {
 	}
 
 	get_value(fieldname) {
-		return this.fieldname.get_value(fieldname);
+		return this.get_field(fieldname).get_value();
 	}
 
 	set_value(fieldname, value) {

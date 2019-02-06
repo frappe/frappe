@@ -13,20 +13,44 @@ class TestWebPage(unittest.TestCase):
 		for t in test_records:
 			frappe.get_doc(t).insert()
 
+	def get_page_content(self, route):
+		set_request(method='GET', path = route)
+		response = frappe.website.render.render()
+		return frappe.as_unicode(response.data)
+
 	def test_check_sitemap(self):
 		resolve_route("test-web-page-1")
 		resolve_route("test-web-page-1/test-web-page-2")
 		resolve_route("test-web-page-1/test-web-page-3")
 
 	def test_base_template(self):
-		set_request(method='GET', path = '/_test/_test_custom_base.html')
-
-		response = frappe.website.render.render()
+		content = self.get_page_content('/_test/_test_custom_base.html')
 
 		# assert the text in base template is rendered
-		self.assertTrue('<h1>This is for testing</h1>' in frappe.as_unicode(response.data))
+		self.assertTrue('<h1>This is for testing</h1>' in frappe.as_unicode(content))
 
 		# assert template block rendered
-		self.assertTrue('<p>Test content</p>' in frappe.as_unicode(response.data))
+		self.assertTrue('<p>Test content</p>' in frappe.as_unicode(content))
+
+	def test_content_type(self):
+		web_page = frappe.get_doc(dict(
+			doctype = 'Web Page',
+			title = 'Test Content Type',
+			published = 1,
+			content_type = 'Rich Text',
+			main_section = 'rich text',
+			main_section_md = '# h1\n\markdown content',
+			main_section_html = '<div>html content</div>'
+		)).insert()
+
+		self.assertTrue('rich text' in self.get_page_content('/test-content-type'))
+
+		web_page.content_type = 'Markdown'
+		web_page.save()
+		self.assertTrue('markdown content' in self.get_page_content('/test-content-type'))
+
+		web_page.content_type = 'HTML'
+		web_page.save()
+		self.assertTrue('html content' in self.get_page_content('/test-content-type'))
 
 
