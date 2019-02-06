@@ -2,7 +2,7 @@ frappe.listview_settings['User Permission'] = {
 
 	onload: function(list_view) {
 		var me = this;
-		list_view.page.add_menu_item(__("Create/Update User Permissions"), function() {
+		list_view.page.add_inner_button( __("Create/Update User Permissions"), function() {
 			var dialog =new frappe.ui.Dialog({
 				title : __('Add User Permissions'),
 				fields: [
@@ -95,8 +95,7 @@ frappe.listview_settings['User Permission'] = {
 			});
 			dialog.show();
 		});
-
-		list_view.page.add_menu_item(__("Clear User Permissions"), () => {
+		list_view.page.add_inner_button( __("Clear User Permissions"), function() {
 			const dialog = new frappe.ui.Dialog({
 				title: __('Clear User Permissions'),
 				fields: [
