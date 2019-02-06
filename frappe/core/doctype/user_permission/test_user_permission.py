@@ -10,40 +10,19 @@ import unittest
 class TestUserPermission(unittest.TestCase):
 	def test_apply_to_all(self):
 		user = get_user()
-		created = add_user_permissions({
-			"user": user.name,
-			"doctype":"User",
-			"docname":user.name ,
-			"apply_to_all_doctypes":1})
+		param = get_params(user, apply = 1)
+		created = add_user_permissions(param)
 		self.assertEquals(created, 1)
 
 	def test_for_applicables_on_update_from_apply_to_all(self):
 		user = get_user()
-		create = add_user_permissions({
-			"user": user.name,
-			"doctype":"User",
-			"docname":user.name ,
-			"apply_to_all_doctypes":0,
-			"applicable_doctypes":["Chat Room","Chat Message"]})
+		param = get_params(user, applicable = ["Chat Room", "Chat Message"])
+		create = add_user_permissions(param)
 		frappe.db.commit()
 
-		removed_apply_to_all = frappe.db.exists("User Permission", {
-			"user": user.name,
-			"allow": "User",
-			"for_value": user.name,
-			"apply_to_all_doctypes": 1})
-		created_applicable_first = frappe.db.exists("User Permission", {
-			"user": user.name,
-			"allow": "User",
-			"for_value": user.name,
-			"apply_to_all_doctypes": 0,
-			"applicable_for": "Chat Room"})
-		created_applicable_second = frappe.db.exists("User Permission", {
-			"user": user.name,
-			"allow": "User",
-			"for_value": user.name,
-			"apply_to_all_doctypes": 0,
-			"applicable_for": "Chat Message"})
+		removed_apply_to_all = frappe.db.exists("User Permission", get_exists_param(user))
+		created_applicable_first = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Room"))
+		created_applicable_second = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Message"))
 
 		self.assertIsNone(removed_apply_to_all)
 		self.assertIsNotNone(created_applicable_first)
@@ -52,27 +31,11 @@ class TestUserPermission(unittest.TestCase):
 
 	def test_for_apply_to_all_on_update_from_applicables(self):
 		user = get_user()
-		created = add_user_permissions({
-			"user": user.name,
-			"doctype":"User",
-			"docname":user.name ,
-			"apply_to_all_doctypes":1})
-		created_apply_to_all = frappe.db.exists("User Permission", {
-			"user": user.name,
-			"allow": "User",
-			"for_value": user.name,
-			"apply_to_all_doctypes": 1})
-		removed_applicable_first = frappe.db.exists("User Permission", {
-			"user": user.name,
-			"allow": "User",
-			"for_value": user.name,
-			"apply_to_all_doctypes": 0,
-			"applicable_for": "Chat Room"})
-		removed_applicable_second = frappe.db.exists("User Permission", {
-			"user": user.name, "allow": "User",
-			"for_value": user.name,
-			"apply_to_all_doctypes": 0,
-			"applicable_for": "Chat Message"})
+		param = get_params(user, apply = 1)
+		created = add_user_permissions(param)
+		created_apply_to_all = frappe.db.exists("User Permission", get_exists_param(user))
+		removed_applicable_first = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Room"))
+		removed_applicable_second = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Message"))
 
 
 		self.assertIsNotNone(created_apply_to_all)
@@ -90,4 +53,28 @@ def get_user():
 		user.add_roles("System Manager")
 		return user
 
+def get_params(user, apply = None , applicable=  None):
+	param = {
+		"user": user.name,
+		"doctype":"User",
+		"docname":user.name
+	}
+	if apply:
+		param.update({"apply_to_all_doctypes": 1})
+		param.update({"applicable_doctypes": []})
+	if applicable:
+		param.update({"apply_to_all_doctypes": 0})
+		param.update({"applicable_doctypes": applicable})
+	return param
 
+def get_exists_param(user, applicable = None):
+	param = {
+		"user": user.name,
+		"allow": "User",
+		"for_value": user.name,
+	}
+	if applicable:
+		param.update({"applicable_for": applicable})
+	else:
+		param.update({"apply_to_all_doctypes": 1})
+	return param

@@ -3,7 +3,7 @@ frappe.listview_settings['User Permission'] = {
 	onload: function(list_view) {
 		var me = this;
 		list_view.page.add_inner_button( __("Create/Update User Permissions"), function() {
-			var dialog =new frappe.ui.Dialog({
+			let dialog =new frappe.ui.Dialog({
 				title : __('Add User Permissions'),
 				fields: [
 					{
@@ -208,7 +208,7 @@ frappe.listview_settings['User Permission'] = {
 			dialog.set_primary_action("Update");
 			dialog.set_title("Update User Permissions");
 			dialog.set_df_property("applicable_doctypes", "options", options);
-			if(dialog.fields_dict.applicable_doctypes.get_checked_options().length == options.length){
+			if(dialog.fields_dict.applicable_doctypes.get_checked_options().length == options.length) {
 				dialog.set_df_property("applicable_doctypes", "hidden", 1);
 				dialog.set_value("apply_to_all_doctypes", "checked", 1);
 			} else {
