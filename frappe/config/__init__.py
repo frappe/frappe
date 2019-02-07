@@ -34,9 +34,9 @@ def get_modules_from_app(app):
 
 	if isinstance(modules, dict):
 		active_modules_list = []
-		for m, desktop_icon in iteritems(modules):
-			desktop_icon['module_name'] = m
-			active_modules_list.append(desktop_icon)
+		for m, module in iteritems(modules):
+			module['module_name'] = m
+			active_modules_list.append(module)
 	else:
 		active_modules_list = []
 		for m in modules:
