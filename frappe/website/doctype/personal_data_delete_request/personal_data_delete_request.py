@@ -11,7 +11,7 @@ from frappe.utils.verified_command import get_signed_params, verify_request
 class PersonalDataDeleteRequest(Document):
 
 	def after_insert(self):
-		if frappe.session.user in ['Administrator', 'Guest']:
+		if self.email in ['Administrator', 'Guest']:
 			frappe.throw(_("This user's data cannot be requested for deletion"))
 		else:
 			self.send_verification_mail()
