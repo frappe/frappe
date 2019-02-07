@@ -148,6 +148,7 @@ def clear_user_permissions(user, for_doctype):
 
 @frappe.whitelist()
 def add_user_permissions(data):
+	''' Add and update the user permissions '''
 	frappe.only_for('System Manager')
 	if isinstance(data, frappe.string_types):
 		data = json.loads(data)

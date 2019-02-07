@@ -9,12 +9,14 @@ import unittest
 
 class TestUserPermission(unittest.TestCase):
 	def test_apply_to_all(self):
+		''' Create User permission for User having access to all applicable Doctypes'''
 		user = get_user()
 		param = get_params(user, apply = 1)
 		created = add_user_permissions(param)
 		self.assertEquals(created, 1)
 
-	def test_for_applicables_on_update_from_apply_to_all(self):
+	def test_for_applicable_on_update_from_apply_to_all(self):
+		''' Update User Permission from all to some applicable Doctypes'''
 		user = get_user()
 		param = get_params(user, applicable = ["Chat Room", "Chat Message"])
 		create = add_user_permissions(param)
@@ -29,7 +31,8 @@ class TestUserPermission(unittest.TestCase):
 		self.assertIsNotNone(created_applicable_second)
 		self.assertEquals(create, 1)
 
-	def test_for_apply_to_all_on_update_from_applicables(self):
+	def test_for_apply_to_all_on_update_from_applicable(self):
+		''' Update User Permission from some to all applicable Doctypes'''
 		user = get_user()
 		param = get_params(user, apply = 1)
 		created = add_user_permissions(param)
@@ -53,7 +56,8 @@ def get_user():
 		user.add_roles("System Manager")
 		return user
 
-def get_params(user, apply = None , applicable=  None):
+def get_params(user, apply = None , applicable = None):
+	''' Return param to insert '''
 	param = {
 		"user": user.name,
 		"doctype":"User",
@@ -68,6 +72,7 @@ def get_params(user, apply = None , applicable=  None):
 	return param
 
 def get_exists_param(user, applicable = None):
+	''' param to check existing Document '''
 	param = {
 		"user": user.name,
 		"allow": "User",
