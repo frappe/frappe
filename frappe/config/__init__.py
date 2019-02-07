@@ -27,9 +27,6 @@ def get_modules_from_app(app):
 	except ImportError:
 		return []
 
-	# Only newly formatted modules that have a category to be shown on desk
-	modules = [m for m in modules if m.get("category")]
-
 	active_domains = frappe.get_active_domains()
 
 	if isinstance(modules, dict):
@@ -38,7 +35,10 @@ def get_modules_from_app(app):
 			module['module_name'] = m
 			active_modules_list.append(module)
 	else:
+		# Only newly formatted modules that have a category to be shown on desk
+		modules = [m for m in modules if m.get("category")]
 		active_modules_list = []
+
 		for m in modules:
 			to_add = True
 			module_name = m.get("module_name")
