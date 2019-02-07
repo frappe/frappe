@@ -35,7 +35,8 @@ export default {
 			let route = frappe.get_route();
 			if(route[0] === 'modules' || !route[0]) {
 				this.route = route;
-				let module_name = route[1];
+				let module = this.modules_list.filter(m => m.module_name == route[1])[0];
+				let module_name = module && (module.label || module.module_name);
 				let title = this.current_module_label ? this.current_module_label : module_name;
 
 				frappe.modules.home && frappe.modules.home.page.set_title(title);
@@ -47,7 +48,7 @@ export default {
 				}
 
 				if(module_name) {
-					this.get_module_sections(module_name);
+					this.get_module_sections(module.module_name);
 				}
 			}
 		},

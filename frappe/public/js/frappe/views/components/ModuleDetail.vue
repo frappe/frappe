@@ -10,7 +10,7 @@
 					:key="section.label + item.label"
 					:data-youtube-id="item.type==='help' ? item.youtube_id : false"
 					v-bind="item"
-					:open_count="frappe.boot.notification_info.open_count_doctype[item.doctype]"
+					:open_count="item.type==='doctype' ? frappe.boot.notification_info.open_count_doctype[item.doctype] : false"
 				>
 				</module-link-item>
 			</div>

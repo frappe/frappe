@@ -47,6 +47,9 @@ def get_modules_from_app(app):
 				if module_name not in active_domains:
 					to_add = False
 
+			if "condition" in m and not m["condition"]:
+				to_add = False
+
 			if to_add:
 				active_modules_list.append(m)
 

@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+import frappe
 from frappe import _
 
 def get_data():
@@ -54,6 +55,7 @@ def get_data():
 			"icon": "octicon octicon-circuit-board",
 			"type": "module",
 			"system_manager": 1,
+			"condition": getattr(frappe.local.conf, 'developer_mode', 0),
 			"hidden": 1,
 			"description": "The Frappe innards of ERPNext. (Only active when developer mode is enabled)"
 		},
