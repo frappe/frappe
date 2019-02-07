@@ -30,20 +30,6 @@ export default {
 		ModuleLinkItem
 	},
 	props: ['module_name', 'sections'],
-	data() {
-		return {
-			popover_present: false
-		}
-	},
-	methods: {
-		popover_appeared() {
-			this.popover_present = true;
-		},
-
-		popover_disappeared() {
-			this.popover_present = false;
-		}
-	}
 }
 </script>
 <style lang="less" scoped>
