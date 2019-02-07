@@ -597,13 +597,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			args: {
 				doctype: this.doctype,
 				filters: this.get_filters_for_args(),
-				fields: [`count(${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`],
+				fields: this.get_fields_for_count_args(),
 			}
 		}).then(r => {
 			this.total_count = r.message.values[0][0] || current_count;
 			const str = __('{0} of {1}', [current_count, this.total_count]);
 			return str;
 		});
+	}
+
+	get_fields_for_count_args() {
+		return [`count(distinct ${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`];
 	}
 
 	get_form_link(doc) {

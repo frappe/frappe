@@ -152,6 +152,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			});
 	}
 
+	get_fields_for_count_args() {
+		return [`count(${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`, ...this.get_fields()]
+	}
+
 	on_update(data) {
 		if (this.doctype === data.doctype && data.name) {
 			// flash row when doc is updated by some other user
