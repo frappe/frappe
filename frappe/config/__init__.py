@@ -27,6 +27,8 @@ def get_modules_from_app(app):
 	except ImportError:
 		return []
 
+	if isinstance(modules, dict):
+		modules = [modules]
 	# Only newly formatted modules that have a category to be shown on desk
 	modules = [m for m in modules if m.get("category")]
 
