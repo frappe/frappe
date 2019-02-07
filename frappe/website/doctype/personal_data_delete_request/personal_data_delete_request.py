@@ -19,14 +19,18 @@ class PersonalDataDeleteRequest(Document):
 	def send_verification_mail(self):
 		url = frappe.utils.get_url("/api/method/frappe.website.doctype.personal_data_delete_request.personal_data_delete_request.confirm_deletion") +\
 		"?" + get_signed_params({"email": self.email, "name": self.name})
+		host_name = frappe.local.site
 
 		frappe.sendmail(recipients= self.email,
-		subject=_("ERPNext: Confirm Deletion of Data"),
+		subject=_("Confirm Deletion of Data"),
 		template="delete_data_confirmation",
-		args={'email':self.email, 'link':url},
-		header=[_("ERPNext: Confirm Deletion of Data"), "green"])
+		args={'email':self.email, 'link':url, 'host_name':host_name},
+		header=[_("Confirm Deletion of Data"), "green"])
 
 	def anonymize_data(self):
+		if 'System Manager' not in frappe.get_roles(frappe.session.user) and self.status != 'Pending Approval':
+			frappe.throw(_("You are not authorized to complete this action."))
+
 		privacy_docs = frappe.get_hooks("user_privacy_documents")
 		for ref_doc in privacy_docs:
 			for email_field in ref_doc.get('email_fields'):
@@ -44,6 +48,7 @@ def confirm_deletion(email, name):
 		doc.status = 'Pending Approval'
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
+	host_name = frappe.local.site
 	frappe.respond_as_web_page(_("Confirmed"),
-		_("The process for deletion of ERPNext Data associated with {0} has been initiated.").format(email),
+		_("The process for deletion of {0} Data associated with {1} has been initiated.").format(host_name, email),
 		indicator_color='green')
