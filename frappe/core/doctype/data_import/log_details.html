@@ -6,19 +6,19 @@
 					<th style="width:40%"> {{ __("Row Status") }} </th>
 					<th style="width:50%"> {{ __("Message") }} </th>
 				</tr>
-			
+
 			{% for row in data %}
 				{% if (!show_only_errors) || (show_only_errors && row.indicator == "red") %}
 				<tr>
 					<td>
-						<span>{{ row.row }} </span> 
+						<span>{{ row.row }} </span>
 					</td>
 					<td>
 						<span class="indicator {{ row.indicator }}"> {{ row.title }} </span>
 					</td>
 					<td>
 						{% if (import_status != "Failed" || (row.indicator == "red")) { %}
-							<span> {{ row.message }} </span>
+							<div>{{ row.message }}</div>
 							{% if row.link %}
 								<span style="width: 10%; float:right;">
 									<a class="btn-open no-decoration" title="Open Link" href="{{ row.link }}">
