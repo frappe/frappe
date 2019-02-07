@@ -4,7 +4,7 @@ import frappe
 
 def execute():
     for comment in frappe.get_all('Communication', fields = ['*'],
-        filters = dict(communication_type = 'Comment'))
+        filters = dict(communication_type = 'Comment')):
 
         new_comment = frappe.new_doc('Comment')
         new_comment.comment_type = comment.comment_type

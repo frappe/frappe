@@ -266,7 +266,7 @@ def raise_link_exists_exception(doc, reference_doctype, reference_docname, row='
 		.format(doc.doctype, doc_link, reference_doctype, reference_link, row), frappe.LinkExistsError)
 
 def delete_dynamic_links(doctype, name):
-	delete_references('ToDo', doctype, name)
+	delete_references('ToDo', doctype, name, 'reference_type')
 	delete_references('Email Unsubscribe', doctype, name)
 	delete_references('DocShare', doctype, name, 'share_doctype', 'share_name')
 	delete_references('Version', doctype, name, 'ref_doctype', 'docname')
