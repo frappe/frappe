@@ -29,7 +29,7 @@ class TestRequestPersonalData(unittest.TestCase):
 		email_queue = frappe.db.sql("""SELECT *
 			FROM `tabEmail Queue`
 			ORDER BY `creation` DESC""", as_dict=True)
-		self.assertTrue("Subject: ERPNext: Download Your Data" in email_queue[0].message)
+		self.assertTrue("Subject: Download Your Data" in email_queue[0].message)
 
 		frappe.db.sql("delete from `tabEmail Queue`")
 
