@@ -606,6 +606,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
+	get_fields_for_group_by() {
+		return frappe.model.get_full_column_name('name', this.doctype);
+	}
+
 	get_fields_for_count_args() {
 		return [`count(distinct ${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`];
 	}

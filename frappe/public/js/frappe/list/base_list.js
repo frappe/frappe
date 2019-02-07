@@ -334,6 +334,7 @@ frappe.views.BaseList = class BaseList {
 			fields: this.get_fields(),
 			filters: this.get_filters_for_args(),
 			order_by: this.sort_selector.get_sql_string(),
+			group_by: this.get_fields_for_group_by(),
 			start: this.start,
 			page_length: this.page_length
 		};
@@ -347,6 +348,10 @@ frappe.views.BaseList = class BaseList {
 			freeze: this.freeze_on_refresh || false,
 			freeze_message: this.freeze_message || (__('Loading') + '...')
 		};
+	}
+
+	get_fields_for_group_by() {
+
 	}
 
 	before_refresh() {
