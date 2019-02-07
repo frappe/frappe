@@ -145,11 +145,9 @@ frappe.patches.v6_16.feed_doc_owner
 frappe.patches.v6_21.print_settings_repeat_header_footer
 frappe.patches.v6_24.set_language_as_code
 frappe.patches.v6_20x.update_insert_after
-finally:frappe.patches.v6_24.sync_desktop_icons
 frappe.patches.v6_20x.set_allow_draft_for_print
 frappe.patches.v6_20x.remove_roles_from_website_user
 frappe.patches.v7_0.set_user_fullname
-frappe.patches.v7_0.desktop_icons_hidden_by_admin_as_blocked
 frappe.patches.v7_0.add_communication_in_doc
 frappe.patches.v7_0.update_send_after_in_bulk_email
 execute:frappe.db.sql('''delete from `tabSingles` where doctype="Email Settings"''') # 2016-06-13
@@ -183,15 +181,11 @@ frappe.patches.v8_0.deprecate_integration_broker
 frappe.patches.v8_0.update_gender_and_salutation
 frappe.patches.v8_0.setup_email_inbox #2017-03-29
 frappe.patches.v8_0.newsletter_childtable_migrate
-execute:frappe.db.sql("delete from `tabDesktop Icon` where module_name='Communication'")
-execute:frappe.db.sql("update `tabDesktop Icon` set type='list' where _doctype='Communication'")
-frappe.patches.v8_0.fix_non_english_desktop_icons # 2017-04-12
 frappe.patches.v8_0.set_doctype_values_in_custom_role
 frappe.patches.v8_0.install_new_build_system_requirements
 frappe.patches.v8_0.set_currency_field_precision	# 2017-05-09
 frappe.patches.v8_0.rename_print_to_printing
 frappe.patches.v7_1.disabled_print_settings_for_custom_print_format
-frappe.patches.v8_0.update_desktop_icons
 execute:frappe.db.sql('update tabReport set module="Desk" where name="ToDo"')
 frappe.patches.v8_1.enable_allow_error_traceback_in_system_settings
 frappe.patches.v8_1.update_format_options_in_auto_email_report
@@ -236,3 +230,4 @@ frappe.patches.v11_0.fix_order_by_in_reports_json
 execute:frappe.delete_doc('Page', 'applications', ignore_missing=True)
 frappe.patches.v11_0.set_missing_creation_and_modified_value_for_user_permissions
 frappe.patches.v12_0.set_primary_key_in_series
+execute:frappe.delete_doc("Page", "modules", ignore_missing=True)

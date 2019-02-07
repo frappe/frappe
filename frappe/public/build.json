@@ -133,6 +133,7 @@
 		"public/js/lib/Sortable.min.js",
 		"public/js/lib/jquery/jquery.hotkeys.js",
 		"public/js/lib/bootstrap.min.js",
+		"node_modules/vue/dist/vue.js",
 		"node_modules/moment/min/moment-with-locales.min.js",
 		"node_modules/moment-timezone/builds/moment-timezone-with-data.min.js",
 		"public/js/lib/socket.io.min.js",
@@ -229,7 +230,6 @@
 		"public/js/frappe/ui/toolbar/about.js",
 		"public/js/frappe/ui/toolbar/navbar.html",
 		"public/js/frappe/ui/toolbar/toolbar.js",
-		"public/js/frappe/ui/toolbar/modules_select.js",
 		"public/js/frappe/ui/toolbar/notifications.js",
 		"public/js/frappe/views/communication.js",
 		"public/js/frappe/views/translation_manager.js",
@@ -381,5 +381,8 @@
 	],
 	"js/social.min.js": [
 		"public/js/frappe/social/social_home.js"
+	],
+	"js/modules.min.js": [
+		"public/js/frappe/views/modules_home.js"
 	]
 }

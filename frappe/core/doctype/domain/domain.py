@@ -18,8 +18,7 @@ class Domain(Document):
 		self.setup_roles()
 		self.setup_properties()
 		self.set_values()
-		# always set the desktop icons while changing the domain settings
-		self.setup_desktop_icons()
+
 		if not int(frappe.defaults.get_defaults().setup_complete or 0):
 			# if setup not complete, setup desktop etc.
 			self.setup_sidebar_items()
@@ -88,12 +87,6 @@ class Domain(Document):
 		if self.data.get('default_portal_role'):
 			frappe.db.set_value('Portal Settings', None, 'default_role',
 				self.data.get('default_portal_role'))
-
-	def setup_desktop_icons(self):
-		'''set desktop icons form `data.desktop_icons`'''
-		from frappe.desk.doctype.desktop_icon.desktop_icon import set_desktop_icons
-		if self.data.desktop_icons:
-			set_desktop_icons(self.data.desktop_icons)
 
 	def setup_properties(self):
 		if self.data.properties:

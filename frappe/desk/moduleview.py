@@ -24,7 +24,7 @@ def hide_module(module):
 	set_hidden(module, frappe.session.user, 1)
 	clear_desktop_icons_cache()
 
-def get_data(module):
+def get_data(module, build=True):
 	"""Get module data for the module view `desk/#Module/[name]`"""
 	doctype_info = get_doctype_info(module)
 	data = build_config_from_file(module)
@@ -41,6 +41,43 @@ def get_data(module):
 	data = apply_permissions(data)
 
 	#set_last_modified(data)
+
+
+	if build:
+		exists_cache = {}
+		def exists(name):
+			exists = exists_cache.get(name)
+			if not exists:
+				if not frappe.db.get_value('DocType', name, 'issingle'):
+					exists = frappe.db.count(name)
+				else:
+					exists = True
+				exists_cache[name] = exists
+			return exists
+
+		for section in data:
+			for item in section["items"]:
+				# Onboarding
+
+				# First disable based on exists of depends_on list
+				doctype = item.get("doctype")
+				dependencies = item.get("dependencies") or None
+				if not dependencies and doctype:
+					item["dependencies"] = [doctype]
+
+				dependencies = item.get("dependencies")
+				if dependencies:
+					incomplete_dependencies = [d for d in dependencies if not exists(d)]
+					if len(incomplete_dependencies):
+						item["incomplete_dependencies"] = incomplete_dependencies
+
+				if item.get("onboard"):
+					# Mark Spotlights for initial
+					if item.get("type") == "doctype":
+						name = item.get("name")
+						count = exists(name)
+
+						item["count"] = count
 
 	return data
 

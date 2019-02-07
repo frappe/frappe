@@ -373,14 +373,6 @@ frappe.views.TreeView = Class.extend({
 				me.page.add_menu_item(menu_item["label"], menu_item["action"]);
 			}
 		});
-
-		// last menu item
-		me.page.add_menu_item(__('Add to Desktop'), () => {
-			const label = me.doctype === 'Account' ?
-				__('Chart of Accounts') :
-				__(me.doctype);
-			frappe.add_to_desktop(label, me.doctype);
-		});
 	}
 });
 
