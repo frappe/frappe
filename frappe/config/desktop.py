@@ -57,7 +57,7 @@ def get_data():
 			"system_manager": 1,
 			"condition": getattr(frappe.local.conf, 'developer_mode', 0),
 			"hidden": 1,
-			"description": "The Frappe innards of ERPNext. (Only active when developer mode is enabled)"
+			"description": "Doctypes, dev tools and logs. (Only active when developer mode is enabled)"
 		},
 
 		# Places
