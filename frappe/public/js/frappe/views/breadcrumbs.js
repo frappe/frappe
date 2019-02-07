@@ -40,7 +40,9 @@ frappe.breadcrumbs = {
 		var breadcrumbs = frappe.breadcrumbs.all[frappe.breadcrumbs.current_page()];
 
 		if(!frappe.visible_modules) {
-			frappe.visible_modules = $.map(frappe.boot.allowed_modules, (m) => { return m.module_name; });
+			frappe.visible_modules = $.map(frappe.boot.allowed_modules, (m) => {
+				return m.module_name;
+			});
 		}
 
 		var $breadcrumbs = $("#navbar-breadcrumbs").empty();

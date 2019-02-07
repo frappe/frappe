@@ -1186,7 +1186,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					frappe.set_route('List', 'User Permission', args);
 				}
 			});
-		};
+		}
 
 		return items.map(i => Object.assign(i, { standard: true }));
 	}
