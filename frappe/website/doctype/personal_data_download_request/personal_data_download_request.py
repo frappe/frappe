@@ -27,11 +27,13 @@ class PersonalDataDownloadRequest(Document):
 			'is_private': 1
 		})
 		f.save()
+
+		host_name = frappe.local.site
 		frappe.sendmail(recipients= self.user,
-		subject=_("ERPNext: Download Your Data"),
+		subject=_("Download Your Data"),
 		template="download_data",
-		args={'user':self.user,'user_name':self.user_name,'link':"".join(f.file_url)},
-		header=[_("ERPNext: Download Your Data"), "green"])
+		args={'user':self.user, 'user_name':self.user_name, 'link':"".join(f.file_url), 'host_name':host_name},
+		header=[_("Download Your Data"), "green"])
 
 def get_user_data(user):
 	""" returns user data not linked to User doctype """
