@@ -112,7 +112,12 @@
 						if(r._server_messages)
 							frappe.msgprint(r._server_messages);
 					} else {
-						frappe.msgprint('{{ _("Thank you for your comment. It will be published after approval") }}');
+						if (r.message) {
+							$(r.message).appendTo("#comment-list");
+						} else {
+							// probably spam
+							frappe.msgprint('{{ _("Thank you for your comment. It will be published after approval") }}');
+						}
 						$(".no-comment, .add-comment").toggle(false);
 						$("#comment-form").toggle();
 					}

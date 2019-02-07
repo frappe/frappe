@@ -39,7 +39,7 @@ def get_comment_list(doctype, name):
 			filters = dict(
 				reference_doctype = doctype,
 				reference_name = name,
-				comment_type = comment,
+				comment_type = 'Comment',
 				published = 1
 			),
 			order_by = 'creation asc')

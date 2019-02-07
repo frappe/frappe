@@ -494,9 +494,9 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 					recipients=recipients, cc=cc, bcc=bcc)
 
-			except frappe.db.InternalError:
+			except frappe.db.InternalError as e:
 				# deadlock, try again
-				if frappe.db.is_deadlocked():
+				if frappe.db.is_deadlocked(e):
 					frappe.db.rollback()
 					time.sleep(1)
 					continue
