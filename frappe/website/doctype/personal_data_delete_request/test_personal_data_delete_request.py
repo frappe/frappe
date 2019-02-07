@@ -26,8 +26,8 @@ class TestPersonalDataDeleteRequest(unittest.TestCase):
 
 	def test_anonymized_data(self):
 		PersonalDataDeleteRequest.anonymize_data(self.delete_request)
-		deleted_user = frappe.get_all('Contact', 
-			{'email_id': self.delete_request.name}, 
+		deleted_user = frappe.get_all('Contact',
+			{'email_id': self.delete_request.name},
 			['first_name', 'last_name', 'phone', 'mobile_no'])
 		self.assertEqual(len(deleted_user), 1)
 
