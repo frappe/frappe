@@ -173,6 +173,7 @@ scheduler_events = {
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.core.doctype.feedback_request.feedback_request.delete_feedback_request",
 		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs",
+		"frappe.website.doctype.personal_data_delete_request.personal_data_delete_request",
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
@@ -230,7 +231,7 @@ otp_methods = ['OTP App','Email','SMS']
 user_privacy_documents = [
 	{
 		'doctype': 'Contact',
-		'email_fields': ['email_id'],
+		'match_field': 'email_id',
 		'personal_fields': ['first_name', 'last_name', 'phone', 'mobile_no'],
 		'action': 'delete'
 	},
