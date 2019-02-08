@@ -16,15 +16,15 @@ def get_data():
 			"description": "Todos, Notes and other basic tools to help you track your work."
 		},
 		{
-			"module_name": "Settings",
+			"module_name": "Setup",
 			"category": "Administration",
-			"label": _("Settings"),
+			"label": _("Setup"),
 			"color": "#bdc3c7",
 			"reverse": 1,
 			"icon": "octicon octicon-settings",
 			"type": "module",
 			"hidden": 1,
-			"description": "Configure your ERPNext account."
+			"description": "Configure Users, Permissions, Printing, Email and Customization."
 		},
 		{
 			"module_name": "Integrations",
@@ -57,7 +57,7 @@ def get_data():
 			"system_manager": 1,
 			"condition": getattr(frappe.local.conf, 'developer_mode', 0),
 			"hidden": 1,
-			"description": "The Frappe innards of ERPNext. (Only active when developer mode is enabled)"
+			"description": "Doctypes, dev tools and logs. (Only active when developer mode is enabled)"
 		},
 
 		# Places

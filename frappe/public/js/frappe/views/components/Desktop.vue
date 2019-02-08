@@ -1,5 +1,6 @@
 <template>
 	<div class="modules-page-container">
+		<div class="toolbar-underlay"></div>
 		<div v-for="category in module_categories"
 			:key="category">
 
@@ -89,7 +90,11 @@ export default {
 
 <style lang="less" scoped>
 .modules-page-container {
-	margin: 70px 0px;
+	margin-bottom: 30px;
+}
+
+.toolbar-underlay{
+	margin: 70px;
 }
 
 .module-category {
