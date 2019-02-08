@@ -8,6 +8,9 @@ import json
 from frappe.model.document import Document
 from frappe.utils import get_fullname
 
+from frappe import _
+from frappe.utils.data import today, add_to_date, getdate
+
 subject_field = "description"
 sender_field = "sender"
 exclude_from_linked_with = True
@@ -41,32 +44,21 @@ class ToDo(Document):
 		self.update_in_reference()
 
 	def make_recurred_todo(self):
-		next_date = frappe.utils.data.today()
+		iterdate = today()
 
-		days_delta = 0
-		months_delta = 0
+		if self.date == iterdate:
+			frappe.throw(_("Due date should not be today"))
 
-		if self.recur_type in ["Workdays", "Daily"]:
-			days_delta = 1
-		elif self.recur_type == "Weekly":
-			days_delta = 7
-		elif self.recur_type == "Monthly":
-			months_delta = 1
+		days_interval = get_interval_days(self.frequency) if self.frequency != "Monthly" else 0
+		months_interval = 1 if self.frequency == "Monthly" else 0
 
-		while next_date < self.date:
-			next_date = frappe.utils.data.add_to_date(next_date, days=days_delta, months=months_delta)
-
-			if self.recur_type == "Workdays":
-				weekday = frappe.utils.data.getdate(next_date).weekday()
-
-				if weekday in [5, 6]:
-					continue
-
+		while iterdate <= self.date:
 			frappe.get_doc({
 				'doctype': 'ToDo',
 				'description': self.description,
-				'date': next_date
+				'date': iterdate
 			}).insert()
+			iterdate = add_to_date(iterdate, days=days_interval, months=months_interval)
 
 	def before_save(self):
 		if self.flags.in_insert and self.is_recurring:
@@ -133,6 +125,12 @@ def has_permission(doc, user):
 		return True
 	else:
 		return doc.owner==user or doc.assigned_by==user
+
+def get_interval_days(frequency):
+	if frequency in ("Daily", "Weekdays"):
+		return 1
+	elif frequency == "Weekly":
+		return 7
 
 @frappe.whitelist()
 def new_todo(description):
