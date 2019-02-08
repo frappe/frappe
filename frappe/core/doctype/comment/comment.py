@@ -26,7 +26,7 @@ class Comment(Document):
 			self.comment_email = frappe.session.user
 
 	def on_update(self):
-		self.update_comment_in_doc()
+		update_comment_in_doc(self)
 
 	def on_trash(self):
 		self.remove_comment_from_cache()
@@ -41,41 +41,6 @@ class Comment(Document):
 				_comments.remove(c)
 
 		update_comments_in_parent(self.reference_doctype, self.reference_name, _comments)
-
-	def update_comment_in_doc(self):
-		"""Updates `_comments` (JSON) property in parent Document.
-		Creates a column `_comments` if property does not exist.
-
-		Only user created comments Communication or Comment of type Comment are saved.
-
-		`_comments` format
-
-			{
-				"comment": [String],
-				"by": [user],
-				"name": [Comment Document name]
-			}"""
-
-		def get_truncated(content):
-			return (content[:97] + '...') if len(content) > 100 else content
-
-		if self.reference_doctype and self.reference_name and self.content:
-			_comments = self.get_comments_from_parent()
-
-			updated = False
-			for c in _comments:
-				if c.get("name")==self.name:
-					c["comment"] = get_truncated(self.content)
-					updated = True
-
-			if not updated:
-				_comments.append({
-					"comment": get_truncated(self.content),
-					"by": self.comment_email or self.owner,
-					"name": self.name
-				})
-
-			update_comments_in_parent(self.reference_doctype, self.reference_name, _comments)
 
 	def notify_mentions(self):
 		if self.reference_doctype and self.reference_name and self.content:
@@ -134,6 +99,46 @@ class Comment(Document):
 			return json.loads(_comments)
 		except ValueError:
 			return []
+
+def update_comment_in_doc(doc):
+	"""Updates `_comments` (JSON) property in parent Document.
+	Creates a column `_comments` if property does not exist.
+
+	Only user created comments Communication or Comment of type Comment are saved.
+
+	`_comments` format
+
+		{
+			"comment": [String],
+			"by": [user],
+			"name": [Comment Document name]
+		}"""
+
+	# only comments get updates, not likes, assignments etc.
+	if self.comment_type != 'Comment':
+		return
+
+	def get_truncated(content):
+		return (content[:97] + '...') if len(content) > 100 else content
+
+	if doc.reference_doctype and doc.reference_name and doc.content:
+		_comments = doc.get_comments_from_parent()
+
+		updated = False
+		for c in _comments:
+			if c.get("name")==doc.name:
+				c["comment"] = get_truncated(doc.content)
+				updated = True
+
+		if not updated:
+			_comments.append({
+				"comment": get_truncated(doc.content),
+				"by": doc.comment_email or doc.owner,
+				"name": doc.name
+			})
+
+		update_comments_in_parent(doc.reference_doctype, doc.reference_name, _comments)
+
 
 def update_comments_in_parent(reference_doctype, reference_name, _comments):
 	"""Updates `_comments` property in parent Document with given dict.

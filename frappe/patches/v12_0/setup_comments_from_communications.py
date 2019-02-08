@@ -10,6 +10,7 @@ def execute():
         new_comment.comment_type = comment.comment_type
         new_comment.comment_email = comment.sender
         new_comment.comment_by = comment.sender_full_name
+        new_comment.subject = comment.subject
         new_comment.reference_doctype = comment.reference_doctype
         new_comment.reference_name = comment.reference_name
         new_comment.link_doctype = comment.link_doctype
