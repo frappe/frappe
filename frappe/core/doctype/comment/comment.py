@@ -115,7 +115,7 @@ def update_comment_in_doc(doc):
 		}"""
 
 	# only comments get updates, not likes, assignments etc.
-	if self.comment_type != 'Comment':
+	if doc.comment_type != 'Comment':
 		return
 
 	def get_truncated(content):
