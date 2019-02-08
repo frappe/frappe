@@ -59,7 +59,7 @@ def get_modules_from_app(app):
 	return active_modules_list
 
 def show_onboard(module):
-	return module.get("type") == "module" and module.get("category") in ["Modules", "Domains"]
+	return module.get("type") == "module"
 
 def is_onboard_present(module):
 	print(module["module_name"])
