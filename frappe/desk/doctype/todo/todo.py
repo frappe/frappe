@@ -9,7 +9,7 @@ from frappe.model.document import Document
 from frappe.utils import get_fullname
 
 from frappe import _
-from frappe.utils.data import today, add_to_date, getdate
+from frappe.utils.data import add_to_date, getdate
 
 subject_field = "description"
 sender_field = "sender"
@@ -44,21 +44,33 @@ class ToDo(Document):
 		self.update_in_reference()
 
 	def make_recurred_todo(self):
-		iterdate = today()
+		startdate = getdate()
+		date = getdate(self.date)
 
-		if self.date == iterdate:
+		if date == startdate:
 			frappe.throw(_("Due date should not be today"))
+
+		if self.frequency == 'Weekly':
+			startdate = add_to_date(startdate, days=get_weekdate(startdate, self.day_of_week))
 
 		days_interval = get_interval_days(self.frequency) if self.frequency != "Monthly" else 0
 		months_interval = 1 if self.frequency == "Monthly" else 0
 
-		while iterdate <= self.date:
+		iterdate = startdate
+
+		while iterdate < date:
+			iterdate = add_to_date(iterdate, days=days_interval, months=months_interval)
+
+			if self.frequency == 'Weekdays' and is_weekend(iterdate):
+				continue
+
 			frappe.get_doc({
 				'doctype': 'ToDo',
 				'description': self.description,
 				'date': iterdate
 			}).insert()
-			iterdate = add_to_date(iterdate, days=days_interval, months=months_interval)
+
+		self.date = startdate
 
 	def before_save(self):
 		if self.flags.in_insert and self.is_recurring:
@@ -107,9 +119,11 @@ class ToDo(Document):
 			else:
 				raise
 
+
 # NOTE: todo is viewable if either owner or assigned_to or System Manager in roles
 def on_doctype_update():
 	frappe.db.add_index("ToDo", ["reference_type", "reference_name"])
+
 
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
@@ -120,17 +134,41 @@ def get_permission_query_conditions(user):
 		return """(tabToDo.owner = {user} or tabToDo.assigned_by = {user})"""\
 			.format(user=frappe.db.escape(user))
 
+
 def has_permission(doc, user):
 	if "System Manager" in frappe.get_roles(user):
 		return True
 	else:
-		return doc.owner==user or doc.assigned_by==user
+		return doc.owner == user or doc.assigned_by == user
+
 
 def get_interval_days(frequency):
 	if frequency in ("Daily", "Weekdays"):
 		return 1
 	elif frequency == "Weekly":
 		return 7
+
+
+def get_weekday(frequency):
+	weekdays = {
+		'Monday': 0,
+		'Tuesday': 1,
+		'Wednesday': 2,
+		'Thursday': 3,
+		'Friday': 4,
+		'Saturday': 5,
+		'Sunday': 6
+	}
+	return weekdays[frequency]
+
+
+def get_weekdate(date, day_of_week):
+	return ((7 - date.weekday()) + get_weekday(day_of_week)) % 7
+
+
+def is_weekend(date):
+	return date.weekday() in [5, 6]
+
 
 @frappe.whitelist()
 def new_todo(description):
