@@ -244,7 +244,6 @@ def export_query():
 		visible_idx = None
 
 	if file_format_type == "Excel":
-
 		data = run(report_name, filters)
 		data = frappe._dict(data)
 		columns = get_columns_dict(data.columns)
@@ -255,19 +254,22 @@ def export_query():
 		for idx in range(len(data.columns)):
 			result[0].append(columns[idx]["label"])
 
-		# build table from dict
-		if isinstance(data.result[0], dict):
-			for i,row in enumerate(data.result):
-				# only rows which are visible in the report
-				if row and (i in visible_idx):
-					row_list = []
+		# build table from result
+		for i, row in enumerate(data.result):
+			# only pick up rows that are visible in the report
+			if i in visible_idx:
+				row_data = []
+
+				if isinstance(row, list):
+					row_data = row
+				elif isinstance(row, dict) and row:
 					for idx in range(len(data.columns)):
-						row_list.append(row.get(columns[idx]["fieldname"], row.get(columns[idx]["label"], "")))
-					result.append(row_list)
-				elif not row:
-					result.append([])
-		else:
-			result = result + [d for i,d in enumerate(data.result) if (i in visible_idx)]
+						label = columns[idx]["label"]
+						fieldname = columns[idx]["fieldname"]
+
+						row_data.append(row.get(fieldname, row.get(label, "")))
+
+				result.append(row_data)
 
 		from frappe.utils.xlsxutils import make_xlsx
 		xlsx_file = make_xlsx(result, "Query Report")
