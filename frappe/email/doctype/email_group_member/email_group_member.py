@@ -8,12 +8,10 @@ from frappe.model.document import Document
 
 class EmailGroupMember(Document):
 	def after_delete(self):
-		print("*"*50, "delete")
 		email_group = frappe.get_doc('Email Group', self.email_group)
 		email_group.update_total_subscribers()
 
 	def after_insert(self):
-		print("*"*50, "add")
 		email_group = frappe.get_doc('Email Group', self.email_group)
 		email_group.update_total_subscribers()
 
