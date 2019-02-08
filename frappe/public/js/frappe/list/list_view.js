@@ -137,6 +137,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		);
 
 		fields.forEach(f => this._add_field(f));
+
+		this.fields.forEach(f => {
+			const df = frappe.meta.get_docfield(f[1], f[0]);
+			if (df && df.fieldtype === 'Currency' && df.options && !df.options.includes(':')) {
+				this._add_field(df.options);
+			}
+		});
 	}
 
 	patch_refresh_and_load_lib() {
