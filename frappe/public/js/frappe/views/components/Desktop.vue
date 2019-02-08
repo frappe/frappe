@@ -89,6 +89,10 @@ export default {
 </script>
 
 <style lang="less" scoped>
+.modules-page-container {
+	margin-bottom: 30px;
+}
+
 .toolbar-underlay{
 	margin: 70px;
 }
