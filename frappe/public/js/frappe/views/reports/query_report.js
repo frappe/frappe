@@ -992,7 +992,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	show_footer_message() {
 		const message = __('For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).');
-		const execution_time_msg = __('Exection Time: {0} sec', [this.execution_time || 0.1]);
+		const execution_time_msg = __('Execution Time: {0} sec', [this.execution_time || 0.1]);
 
 		this.page.footer.removeClass('hide').addClass('text-muted col-md-12')
 			.html(`<span class="text-left col-md-6">${message}</span><span class="text-right col-md-6">${execution_time_msg}</span>`);
