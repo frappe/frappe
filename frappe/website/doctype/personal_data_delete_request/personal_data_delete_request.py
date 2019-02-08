@@ -33,11 +33,14 @@ class PersonalDataDeleteRequest(Document):
 
 		privacy_docs = frappe.get_hooks("user_privacy_documents")
 		for ref_doc in privacy_docs:
-			for email_field in ref_doc.get('email_fields'):
+			for email_field in ref_doc.get('match_field'):
 				frappe.db.sql("""UPDATE `tab{0}`
 					SET `{1}` = '{2}', {3}
 					WHERE `{1}` = '{4}' """.format(ref_doc['doctype'], email_field, self.name,#nosec
 						', '.join(map(lambda u :'`'+ u+'`=\''+str(u)+'\'', ref_doc.get('personal_fields',[]))), self.email))
+
+def remove_unverified_record():
+	frappe.db.sql("""DELETE FROM `tabPersonal Data Delete Request` WHERE `status` = 'Pending Verification' and `creation` < (NOW() - INTERVAL '7' DAY)""")
 
 @frappe.whitelist(allow_guest=True)
 def confirm_deletion(email, name):
