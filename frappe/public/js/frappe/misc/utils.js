@@ -659,11 +659,9 @@ Object.assign(frappe.utils, {
 	},
 
 	report_column_total: function(values, column, type) {
-		console.log(column.column.fieldtype);
 		if (column.column.fieldtype == "Percent" || type === "mean") {
 			return values.reduce((a, b) => a + flt(b)) / values.length;
 		} else if (column.column.fieldtype == "Int") {
-			console.log("HI");
 			return values.reduce((a, b) => a + cint(b));
 		} else if (frappe.model.is_numeric_field(column.column.fieldtype)) {
 			return values.reduce((a, b) => a + flt(b));
