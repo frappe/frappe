@@ -3,8 +3,39 @@
 # See license.txt
 from __future__ import unicode_literals
 
-import frappe
+import frappe, json
 import unittest
 
 class TestComment(unittest.TestCase):
-	pass
+	def test_comment_creation(self):
+		test_doc = frappe.get_doc(dict(doctype = 'ToDo', description = 'test'))
+		test_doc.insert()
+		comment = test_doc.add_comment('Comment', 'test comment')
+
+		test_doc.reload()
+
+		# check if updated in _comments cache
+		comments = json.loads(test_doc.get('_comments'))
+		self.assertEqual(comments[0].get('name'), comment.name)
+		self.assertEqual(comments[0].get('comment'), comment.content)
+
+		# check document creation
+		comment_1 = frappe.get_all('Comment', fields = ['*'], filters = dict(
+			reference_doctype = test_doc.doctype,
+			reference_name = test_doc.name
+		))[0]
+
+		self.assertEqual(comment_1.content, 'test comment')
+
+	# test via blog
+	def test_public_comment(self):
+		from frappe.website.doctype.blog_post.test_blog_post import make_test_blog
+		test_blog = make_test_blog()
+
+		from frappe.templates.includes.comments.comments import add_comment
+		add_comment('hello', 'test@test.com', 'Good Tester',
+			'Blog Post', test_blog.name, test_blog.route)
+
+
+
+

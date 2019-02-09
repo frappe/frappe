@@ -24,7 +24,8 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 		comment.db_set('published', 1)
 
 	# since comments are embedded in the page, clear the web cache
-	clear_cache(route)
+	if route:
+		clear_cache(route)
 
 	content = (doc.content
 		+ "<p><a href='{0}/desk/#Form/Comment/{1}' style='font-size: 80%'>{2}</a></p>".format(frappe.utils.get_request_site_address(),
@@ -33,7 +34,7 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 
 	# notify creator
 	frappe.sendmail(
-		recipients = frappe.get_doc('User', doc.owner, 'email') or doc.owner,
+		recipients = frappe.db.get_value('User', doc.owner, 'email') or doc.owner,
 		subject = _('New Comment on {0}: {1}').format(doc.doctype, doc.name),
 		message = content,
 		reference_doctype=doc.doctype,

@@ -9,6 +9,7 @@ execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2017-09-22
 execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2018-02-20
 execute:frappe.reload_doc('core', 'doctype', 'custom_docperm')
 execute:frappe.reload_doc('core', 'doctype', 'docperm') #2018-05-29
+execute:frappe.reload_doc('core', 'doctype', 'comment')
 frappe.patches.v8_0.drop_is_custom_from_docperm
 execute:frappe.reload_doc('core', 'doctype', 'module_def') #2017-09-22
 execute:frappe.reload_doc('core', 'doctype', 'version') #2017-04-01
