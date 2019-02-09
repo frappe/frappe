@@ -30,7 +30,7 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 	content = (doc.content
 		+ "<p><a href='{0}/desk/#Form/Comment/{1}' style='font-size: 80%'>{2}</a></p>".format(frappe.utils.get_request_site_address(),
 			doc.name,
-			route, _("View Comment")))
+			_("View Comment")))
 
 	# notify creator
 	frappe.sendmail(
