@@ -1,13 +1,5 @@
 <template>
 	<div>
-		<h1>
-			<span class="indicator" :class="status.color">{{ status.status }}</span>
-			<span style="float:right; margin-left:15px">
-				<button v-if="requests.length > 0" class="btn btn-default" @click="clear(true)">Clear</button>
-				<button v-if="status.status == 'Inactive'" class="btn btn-default btn-primary" @click="record(true)">Start</button>
-				<button v-if="status.status == 'Active'" class="btn btn-default btn-primary" @click="record(false)">Stop</button>
-			</span>
-		</h1>
 		<div v-if="requests.length == 0" class="text-center" style="margin:15%">
 			<div><span class="text-muted">No Recorded Requests Found</span></div>
 			<div><button v-if="status.status == 'Inactive'" class="btn btn-default btn-primary" @click="record(true)" style="margin:15px">Start</button></div>
@@ -89,6 +81,10 @@ export default {
 		frappe.socketio.init(9000);
 		this.fetch_status();
 		this.refresh();
+		this.$root.page.set_secondary_action("Clear", () => {
+			this.clear();
+		});
+
 	},
 	computed: {
 		pages: function() {
@@ -177,10 +173,24 @@ export default {
 		},
 		update_status: function(status) {
 			this.status = status;
+			this.$root.page.set_indicator(this.status.status, this.status.color);
 			if(this.status.status == "Active") {
 				frappe.realtime.on("recorder-dump-event", this.refresh);
 			} else {
 				frappe.realtime.off("recorder-dump-event", this.refresh);
+			}
+
+			this.update_buttons();
+		},
+		update_buttons: function() {
+			if(this.status.status == "Active") {
+				this.$root.page.set_primary_action("Stop", () => {
+					this.record(false);
+				});
+			} else {
+				this.$root.page.set_primary_action("Start", () => {
+					this.record(true);
+				});
 			}
 		},
 	},

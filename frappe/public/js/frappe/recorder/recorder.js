@@ -35,6 +35,9 @@ const router = new VueRouter({
 new Vue({
 	el: ".recorder-container",
 	router: router,
+	data: {
+		page: cur_page.page.page
+	},
 	template: "<recorder-root/>",
 	components: {
 		RecorderRoot,

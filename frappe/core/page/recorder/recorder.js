@@ -19,4 +19,8 @@ class Recorder {
 		this.container = this.wrapper.find('.layout-main-section');
 		this.container.append($('<div class="recorder-container"></div>'));
 	}
+
+	show() {
+
+	}
 }
