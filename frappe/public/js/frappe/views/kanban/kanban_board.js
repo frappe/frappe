@@ -97,7 +97,7 @@ frappe.provide("frappe.views");
 				var doc_fields = {};
 				doc_fields[field.fieldname] = card_title;
 				doc_fields[this.board.field_name] = column_title;
-				this.board.filters_array.forEach(function(f) {
+				this.cur_list.filter_area.get().forEach(function(f) {
 					if (f[2] !== "=") return;
 					doc_fields[f[1]] = f[3];
 				});
