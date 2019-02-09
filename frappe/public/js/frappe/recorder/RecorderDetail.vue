@@ -1,59 +1,64 @@
 <template>
 	<div>
 		<h1>
-			<span>Recorder</span>
 			<span class="indicator" :class="status.color">{{ status.status }}</span>
 			<span style="float:right; margin-left:15px">
-				<button v-if="requests" class="btn btn-default" @click="clear(true)">Clear</button>
+				<button v-if="requests.length > 0" class="btn btn-default" @click="clear(true)">Clear</button>
 				<button v-if="status.status == 'Inactive'" class="btn btn-default btn-primary" @click="record(true)">Start</button>
 				<button v-if="status.status == 'Active'" class="btn btn-default btn-primary" @click="record(false)">Stop</button>
 			</span>
 		</h1>
-		<table class="table table-hover table-condensed">
-			<thead>
-				<tr>
-					<th style="width:8%"><span style="margin-right:5px">Index</span><i @click="sort('index')" class="glyphicon" :class="glyphicon('index')"></i></th>
-					<th style="width:22%"><span style="margin-right:5px">Time</span><i @click="sort('time')" class="glyphicon" :class="glyphicon('time')"></i></th>
-					<th style="width:9%"><span style="margin-right:5px">Duration</span><i @click="sort('duration')" class="glyphicon" :class="glyphicon('duration')"></i></th>
-					<th style="width:9%"><span style="margin-right:5px">Queries</span><i @click="sort('queries')" class="glyphicon" :class="glyphicon('queries')"></i></th>
-					<th style="width:9%"><span style="margin-right:5px">Query Duration</span><i @click="sort('time_queries')" class="glyphicon" :class="glyphicon('time_queries')"></i></th>
-					<th style="width:7%"><span>Method</span></th>
-					<th style="width:24%"><span style="margin-right:5px">Path</span><i @click="sort('path')" class="glyphicon" :class="glyphicon('path')"></i></th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td><input style="width:100%" v-model="query.filters.method"/></td>
-					<td><input style="width:100%" v-model="query.filters.path"/></td>
-				</tr>
-				<router-link style="cursor: pointer" :to="{name: 'request-detail', params: {request_uuid: request.uuid}}" tag="tr"  v-for="request in paginated(sorted(filtered(requests)))" :key="request.index" v-bind="request">
-					<td>{{ request.index }}</td>
-					<td>{{ request.time }}</td>
-					<td>{{ request.duration }}</td>
-					<td>{{ request.queries }}</td>
-					<td>{{ request.time_queries }}</td>
-					<td>{{ request.method }}</td>
-					<td>{{ request.path | elipsize }}</td>
-				</router-link>
-			</tbody>
-		</table>
-		<nav>
-			<ul class="pagination">
-				<li class="page-item" :class="query.pagination.limit == page ? 'active' : ''" v-for="(page, index) in [20, 100, 500]" :key="index">
-					<a class="page-link" @click="query.pagination.limit = page">{{ page }}</a>
-				</li>
-			</ul>
-			<ul class="pagination" style="float:right">
-				<li class="page-item" :class="page.status" v-for="(page, index) in pages" :key="index">
-					<a class="page-link" @click="query.pagination.page = page.number ">{{ page.label }}</a>
-				</li>
-			</ul>
-		</nav>
+		<div v-if="requests.length == 0" class="text-center" style="margin:15%">
+			<div><span class="text-muted">No Recorded Requests Found</span></div>
+			<div><button v-if="status.status == 'Inactive'" class="btn btn-default btn-primary" @click="record(true)" style="margin:15px">Start</button></div>
+		</div>
+		<div v-else>
+			<table class="table table-hover table-condensed">
+				<thead>
+					<tr>
+						<th style="width:8%"><span style="margin-right:5px">Index</span><i @click="sort('index')" class="glyphicon" :class="glyphicon('index')"></i></th>
+						<th style="width:22%"><span style="margin-right:5px">Time</span><i @click="sort('time')" class="glyphicon" :class="glyphicon('time')"></i></th>
+						<th style="width:9%"><span style="margin-right:5px">Duration</span><i @click="sort('duration')" class="glyphicon" :class="glyphicon('duration')"></i></th>
+						<th style="width:9%"><span style="margin-right:5px">Queries</span><i @click="sort('queries')" class="glyphicon" :class="glyphicon('queries')"></i></th>
+						<th style="width:9%"><span style="margin-right:5px">Query Duration</span><i @click="sort('time_queries')" class="glyphicon" :class="glyphicon('time_queries')"></i></th>
+						<th style="width:7%"><span>Method</span></th>
+						<th style="width:24%"><span style="margin-right:5px">Path</span><i @click="sort('path')" class="glyphicon" :class="glyphicon('path')"></i></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td><input style="width:100%" v-model="query.filters.method"/></td>
+						<td><input style="width:100%" v-model="query.filters.path"/></td>
+					</tr>
+					<router-link style="cursor: pointer" :to="{name: 'request-detail', params: {request_uuid: request.uuid}}" tag="tr"  v-for="request in paginated(sorted(filtered(requests)))" :key="request.index" v-bind="request">
+						<td>{{ request.index }}</td>
+						<td>{{ request.time }}</td>
+						<td>{{ request.duration }}</td>
+						<td>{{ request.queries }}</td>
+						<td>{{ request.time_queries }}</td>
+						<td>{{ request.method }}</td>
+						<td>{{ request.path | elipsize }}</td>
+					</router-link>
+				</tbody>
+			</table>
+			<nav>
+				<ul class="pagination">
+					<li class="page-item" :class="query.pagination.limit == page ? 'active' : ''" v-for="(page, index) in [20, 100, 500]" :key="index">
+						<a class="page-link" @click="query.pagination.limit = page">{{ page }}</a>
+					</li>
+				</ul>
+				<ul class="pagination" style="float:right">
+					<li class="page-item" :class="page.status" v-for="(page, index) in pages" :key="index">
+						<a class="page-link" @click="query.pagination.page = page.number ">{{ page.label }}</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
 	</div>
 </template>
 

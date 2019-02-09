@@ -92,23 +92,21 @@ class Recorder():
 		self.calls.append(data)
 
 	def dump(self):
-		frappe.cache().lpush(
-			"recorder-requests",
-			json.dumps({
-				"uuid": self.uuid,
-				"path": self.path,
-				"cmd": self.cmd,
-				"time": self.time,
-				"queries": len(self.calls),
-				"time_queries": float("{:0.3f}".format(sum(call["duration"] for call in self.calls))),
-				"duration": float("{:0.3f}".format((datetime.datetime.now() - self.time).total_seconds() * 1000)),
-				"method": self.method,
-			}, default=str)
-		)
-		frappe.cache().set(
-			"recorder-request-{}".format(self.uuid),
-			json.dumps(self.calls, default=str)
-		)
+		request_data = {
+			"uuid": self.uuid,
+			"path": self.path,
+			"cmd": self.cmd,
+			"time": self.time,
+			"queries": len(self.calls),
+			"time_queries": float("{:0.3f}".format(sum(call["duration"] for call in self.calls))),
+			"duration": float("{:0.3f}".format((datetime.datetime.now() - self.time).total_seconds() * 1000)),
+			"method": self.method,
+		}
+		frappe.cache().lpush("recorder-requests", json.dumps(request_data, default=str))
+
+		request_data["calls"] = self.calls
+		request_data["http"] = self.request
+		frappe.cache().set("recorder-request-{}".format(self.uuid), json.dumps(request_data, default=str))
 
 
 def _patch():

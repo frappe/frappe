@@ -58,12 +58,10 @@ def erase_requests():
 @frappe.whitelist()
 def get_request_data(uuid):
 	do_not_record()
-	calls = frappe.cache().get("recorder-request-{}".format(uuid))
-	calls = json.loads(calls.decode())
+	request = json.loads(frappe.cache().get("recorder-request-{}".format(uuid)).decode())
+	calls = request["calls"]
 	for index, call in enumerate(calls):
 		call["index"] = index
 
-	return {
-		"calls": calls,
-	}
+	return request
 

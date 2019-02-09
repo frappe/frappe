@@ -1,4 +1,6 @@
 <template>
+	<div>
+		<div><pre>{{ JSON.stringify(request.http.data,null,2) }}</pre></div>
 	<table class="table table-hover table-condensed">
 		<thead>
 			<tr>
@@ -13,14 +15,14 @@
 				<td><input style="width:100%" v-model="query.filters.query"/></td>
 				<td></td>
 			</tr>
-			<router-link style="cursor: pointer" :to="{name: 'sql-detail', params: {call_index: call.index}}" tag="tr" v-for="call in sorted(filtered(calls))" :key="call.index" v-bind="call">
+			<router-link style="cursor: pointer" :to="{name: 'sql-detail', params: {call_index: call.index}}" tag="tr" v-for="call in sorted(filtered(request.calls))" :key="call.index" v-bind="call">
 				<td>{{ call.index }}</td>
 				<td>{{ call.query }}</td>
 				<td>{{ call.duration }}</td>
 			</router-link>
 		</tbody>
 	</table>
-
+	</div>
 </template>
 
 <script>
@@ -28,7 +30,9 @@ export default {
 	name: "RequestDetail",
  	data() {
 		return {
-			calls: [],
+			request: {
+				calls: [],
+			},
 			query: {
 				sort: "index",
 				order: "asc",
@@ -43,7 +47,7 @@ export default {
 				uuid: this.$route.params.request_uuid
 			}
 		}).then( r => {
-			this.calls = r.message.calls;
+			this.request = r.message
 		});
 	},
 	methods: {
