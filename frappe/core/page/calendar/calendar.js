@@ -181,7 +181,7 @@ function get_more_calendars(sidebar, cal, page){
 			$(`<span class='text-muted cursor-pointer'>
 			${more_calendar_text}
 			<span class='caret'></span>
-			</span>`).appendTo(page.sidebar.find('div > div')).css("padding-left", "13px").on("click", function(){
+			</span>`).appendTo(page.sidebar.find('div > div')).on("click", function(){
 				var span = $(this);
 
 				var custom_calendars = $(".checkbox.custom");
@@ -214,10 +214,12 @@ function get_more_calendars(sidebar, cal, page){
 function create_popover(event, jsEvent) {
 	$(".popover.fade.bottom.in").remove();
 
-	var htmlContent = "<div>" +
-	"<h4>"+event.title+"</h4>" +
-	get_time_Html(event)+
-	get_description_html(event)+
+	var htmlContent = "<div style='padding: 14px 14px 12px 14px; border-bottom: 1px solid grey; border-color: #d1d8dd ;'>" +
+		'<div><strong>'+event.title+ '</strong></div>' +
+		'<div class="text-muted text-medium">'+get_time_Html(event)+'</div>'+
+	'</div>'+
+	'<div class="text-muted text-medium" style="padding: 12px 14px 5px 14px">'+
+		get_description_html(event)+
 	"</div>";
 
 	get_popover_attr(jsEvent.target);
@@ -231,9 +233,10 @@ function create_popover(event, jsEvent) {
 }
 
 function get_description_html(event){
-	return "<div class='text-muted text-meduim'>"+
-	event.description +
-	"</div>";
+	if (event.description == "None"){
+		event.description = '';
+	}
+	return event.description;
 }
 
 function get_time_Html(event) {
@@ -248,10 +251,7 @@ function get_time_Html(event) {
 		timeHtml = event.start.format('DD-MM-YYYY') + " to " + event.end.format('DD-MM-YYYY');
 	}
 
-	var timing = "<h6 class=''>" +
-			timeHtml +
-			"</h6>";
-	return timing;
+	return timeHtml;
 }
 
 function get_popover_attr(e) {
@@ -268,7 +268,7 @@ function get_popover_attr(e) {
 
 function popover_edit_button(event) {
 	//Edit buuton and its action
-	$(`<div><span><button class="btn btn-default btn-xs btn-edit margin-top">${__('Edit')}</button></span></div>`).on("click", function(){
+	$(`<div style="padding: 0px 14px 14px 14px"><span><button class="btn btn-default btn-xs btn-edit">${__('Edit')}</button></span></div>`).on("click", function(){
 		$(".popover.fade.bottom.in").remove();
 		frappe.set_route("Form", event.doctype, event.id);
 	}).appendTo($(".popover-content"));
@@ -317,6 +317,10 @@ function get_calendar_options() {
 				// detect single day click in month view
 				return;
 			}
+			if(view.name === "month"){
+				endDate.subtract(1, 'seconds');
+			}
+
 			create_event(startDate, endDate);
 		},
 
@@ -375,7 +379,7 @@ function prepare_event(doctype_list, start, end, callback) {
 	});
 }
 
-function update_calendar(side,wrapper,route) {
+function update_calendar(side, wrapper, route) {
 	Object.values(side.find("ul > li > input:checked")).map((f)=>{
 		if (f.value){
 			side.find("ul > li > input[value = '"+f.value+"']").prop("checked",false);
