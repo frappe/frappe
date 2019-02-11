@@ -45,7 +45,7 @@ frappe.listview_settings['User Permission'] = {
 											me.applicable_options = options;
 											me.on_docname_change(dialog, options, applicable);
 											if(options.length > 5){
-												dialog.fields_dict.applicable_doctypes.setup_select_all()
+												dialog.fields_dict.applicable_doctypes.setup_select_all();
 											}
 										});
 									});
@@ -63,7 +63,7 @@ frappe.listview_settings['User Permission'] = {
 							if(dialog.fields_dict.doctype.value && dialog.fields_dict.docname.value && dialog.fields_dict.user.value){
 								me.on_apply_to_all_doctypes_change(dialog, me.applicable_options);
 								if(me.applicable_options.length > 5){
-									dialog.fields_dict.applicable_doctypes.setup_select_all()
+									dialog.fields_dict.applicable_doctypes.setup_select_all();
 								}
 							}
 						}
