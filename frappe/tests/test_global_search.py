@@ -42,7 +42,9 @@ class TestGlobalSearch(unittest.TestCase):
 				repeat_on='Every Month',
 				starts_on=frappe.utils.now_datetime())).insert()
 
+		global_search.sync_global_search()
 		frappe.db.commit()
+
 
 	def test_search(self):
 		self.insert_test_events()
@@ -59,7 +61,7 @@ class TestGlobalSearch(unittest.TestCase):
 		event.subject = test_subject
 		event.save()
 		frappe.db.commit()
-
+		global_search.sync_global_search()
 		results = global_search.search('testing global search')
 
 		self.assertTrue('testing global search' in results[0].content)
@@ -85,6 +87,7 @@ class TestGlobalSearch(unittest.TestCase):
 		self.assertEquals(len(results), 1)
 
 		frappe.delete_doc('Event', event_name)
+		global_search.sync_global_search()
 
 		results = global_search.search(test_subject)
 		self.assertEquals(len(results), 0)
@@ -109,6 +112,7 @@ class TestGlobalSearch(unittest.TestCase):
 			})
 			doc.insert()
 
+		global_search.sync_global_search()
 		frappe.db.commit()
 
 	def test_get_field_value(self):
