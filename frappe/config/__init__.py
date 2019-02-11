@@ -35,6 +35,10 @@ def get_modules_from_app(app):
 			module['module_name'] = m
 			active_modules_list.append(module)
 	else:
+		for m in modules:
+			if m.get("type") == "module" and "category" not in m:
+				m["category"] = "Modules"
+
 		# Only newly formatted modules that have a category to be shown on desk
 		modules = [m for m in modules if m.get("category")]
 		active_modules_list = []
