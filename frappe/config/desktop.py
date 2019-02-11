@@ -16,15 +16,37 @@ def get_data():
 			"description": "Todos, Notes and other basic tools to help you track your work."
 		},
 		{
-			"module_name": "Setup",
+			"module_name": "Settings",
 			"category": "Administration",
-			"label": _("Setup"),
+			"label": _("Settings"),
 			"color": "#bdc3c7",
 			"reverse": 1,
 			"icon": "octicon octicon-settings",
 			"type": "module",
 			"hidden": 1,
-			"description": "Configure Users, Permissions, Printing, Email and Customization."
+			"description": "Configure Printing, Email and Customization."
+		},
+		{
+			"module_name": "Users and Permissions",
+			"category": "Administration",
+			"label": _("Users and Permissions"),
+			"color": "#bdc3c7",
+			"reverse": 1,
+			"icon": "octicon octicon-settings",
+			"type": "module",
+			"hidden": 1,
+			"description": "Setup roles and permissions for users on documents."
+		},
+		{
+			"module_name": "Customization",
+			"category": "Administration",
+			"label": _("Customization"),
+			"color": "#bdc3c7",
+			"reverse": 1,
+			"icon": "octicon octicon-settings",
+			"type": "module",
+			"hidden": 1,
+			"description": "Customize forms and add custom fields to suit your processes."
 		},
 		{
 			"module_name": "Integrations",

@@ -5,68 +5,7 @@ from frappe.desk.moduleview import add_setup_section
 def get_data():
 	data = [
 		{
-			"label": _("Users"),
-			"icon": "fa fa-group",
-			"items": [
-				{
-					"type": "doctype",
-					"name": "User",
-					"description": _("System and Website Users")
-				},
-				{
-					"type": "doctype",
-					"name": "Role",
-					"description": _("User Roles")
-				},
-				{
-					"type": "doctype",
-					"name": "Role Profile",
-					"description": _("Role Profile")
-				}
-			]
-		},
-		{
-			"label": _("Permissions"),
-			"icon": "fa fa-lock",
-			"items": [
-				{
-					"type": "page",
-					"name": "permission-manager",
-					"label": _("Role Permissions Manager"),
-					"icon": "fa fa-lock",
-					"description": _("Set Permissions on Document Types and Roles")
-				},
-				{
-					"type": "doctype",
-					"name": "User Permission",
-					"label": _("User Permissions"),
-					"icon": "fa fa-lock",
-					"description": _("Restrict user for specific document")
-				},
-				{
-					"type": "doctype",
-					"name": "Role Permission for Page and Report",
-					"description": _("Set custom roles for page and report")
-				},
-				{
-					"type": "report",
-					"is_query_report": True,
-					"doctype": "User",
-					"icon": "fa fa-eye-open",
-					"name": "Permitted Documents For User",
-					"description": _("Check which Documents are readable by a User")
-				},
-				{
-					"type": "report",
-					"doctype": "DocShare",
-					"icon": "fa fa-share",
-					"name": "Document Share Report",
-					"description": _("Report of all document shares")
-				}
-			]
-		},
-		{
-			"label": _("Settings"),
+			"label": _("Core"),
 			"icon": "fa fa-wrench",
 			"items": [
 				{
@@ -230,45 +169,6 @@ def get_data():
 					"name": "Workflow Action",
 					"description": _("Actions for workflow (e.g. Approve, Cancel).")
 				},
-			]
-		},
-		{
-			"label": _("Customize"),
-			"icon": "fa fa-glass",
-			"items": [
-				{
-					"type": "doctype",
-					"name": "Customize Form",
-					"description": _("Change field properties (hide, readonly, permission etc.)")
-				},
-				{
-					"type": "doctype",
-					"name": "Custom Field",
-					"description": _("Add fields to forms.")
-				},
-				{
-					"type": "doctype",
-					"label": _("Custom Translations"),
-					"name": "Translation",
-					"description": _("Add your own translations")
-				},
-				{
-					"type": "doctype",
-					"name": "Custom Script",
-					"description": _("Add custom javascript to forms.")
-				},
-				{
-					"type": "doctype",
-					"name": "DocType",
-					"description": _("Add custom forms.")
-				},
-				{
-					"type": "doctype",
-					"label": _("Custom Tags"),
-					"name": "Tag Category",
-					"description": _("Add your own Tag Categories")
-				}
-
 			]
 		},
 		{
