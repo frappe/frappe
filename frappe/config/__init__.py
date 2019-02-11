@@ -61,6 +61,10 @@ def get_modules_from_app(app):
 def show_onboard(module):
 	return module.get("type") == "module"
 
+def is_domain(module):
+	return module.get("category") == "Domains"
+
+@frappe.whitelist()
 def is_onboard_present(module):
 	print(module["module_name"])
 	exists_cache = {}
@@ -80,6 +84,3 @@ def is_onboard_present(module):
 			if exists(item.get("name"), item.get("type")):
 				return True
 	return False
-
-def is_domain(module):
-	return module.get("category") == "Domains"

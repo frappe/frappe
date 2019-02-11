@@ -35,7 +35,7 @@ export default {
 <style lang="less" scoped>
 .sections-container {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 	column-gap: 15px;
 	row-gap: 15px;
 }
