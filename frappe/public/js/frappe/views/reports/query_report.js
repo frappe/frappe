@@ -639,7 +639,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			}
 
 			const format_cell = (value, row, column, data) => {
-				return frappe.format(value == null ? '' : value, column,
+				return frappe.format(value, column,
 					{for_print: false, always_show_decimals: true}, data);
 			};
 
