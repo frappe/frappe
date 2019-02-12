@@ -13,7 +13,7 @@ def get_data():
 			"reverse": 1,
 			"icon": "octicon octicon-calendar",
 			"type": "module",
-			"description": "Todos, Notes and other basic tools to help you track your work."
+			"description": "Todos, notes, calendar and newsletter."
 		},
 		{
 			"module_name": "Settings",
@@ -24,7 +24,7 @@ def get_data():
 			"icon": "octicon octicon-settings",
 			"type": "module",
 			"hidden": 1,
-			"description": "Configure Printing, Email and Customization."
+			"description": "Data import, printing, email and workflows."
 		},
 		{
 			"module_name": "Users and Permissions",
@@ -46,7 +46,7 @@ def get_data():
 			"icon": "octicon octicon-settings",
 			"type": "module",
 			"hidden": 1,
-			"description": "Customize forms and add custom fields to suit your processes."
+			"description": "Customize forms, custom fields, scripts and translations."
 		},
 		{
 			"module_name": "Integrations",
@@ -79,7 +79,7 @@ def get_data():
 			"system_manager": 1,
 			"condition": getattr(frappe.local.conf, 'developer_mode', 0),
 			"hidden": 1,
-			"description": "Doctypes, dev tools and logs. (Only active when developer mode is enabled)"
+			"description": "Doctypes, dev tools and logs."
 		},
 
 		# Places
@@ -92,7 +92,7 @@ def get_data():
 			"icon": "octicon octicon-globe",
 			"type": "module",
 			"hidden": 1,
-			"description": "Webpages and the Portal Side of Things."
+			"description": "Webpages, webforms, blogs and website theme."
 		},
 		{
 			"module_name": 'Social',
@@ -104,6 +104,6 @@ def get_data():
 			"color": '#FF4136',
 			'standard': 1,
 			'idx': 15,
-			"description": "Build your profile and share posts on the feed with other users."
+			"description": "Build your profile and share posts with other users."
 		},
 	]
