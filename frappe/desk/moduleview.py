@@ -40,12 +40,11 @@ def get_data(module, build=True):
 	data = combine_common_sections(data)
 	data = apply_permissions(data)
 
-	#set_last_modified(data)
-
+	# set_last_modified(data)
 
 	if build:
 		exists_cache = {}
-		def exists(name):
+		def doctype_contains_a_record(name):
 			exists = exists_cache.get(name)
 			if not exists:
 				if not frappe.db.get_value('DocType', name, 'issingle'):
@@ -67,7 +66,7 @@ def get_data(module, build=True):
 
 				dependencies = item.get("dependencies")
 				if dependencies:
-					incomplete_dependencies = [d for d in dependencies if not exists(d)]
+					incomplete_dependencies = [d for d in dependencies if not doctype_contains_a_record(d)]
 					if len(incomplete_dependencies):
 						item["incomplete_dependencies"] = incomplete_dependencies
 
@@ -75,7 +74,7 @@ def get_data(module, build=True):
 					# Mark Spotlights for initial
 					if item.get("type") == "doctype":
 						name = item.get("name")
-						count = exists(name)
+						count = doctype_contains_a_record(name)
 
 						item["count"] = count
 
@@ -221,14 +220,17 @@ def get_config(app, module):
 	config = frappe.get_module("{app}.config.{module}".format(app=app, module=module))
 	config = config.get_data()
 
-	for section in config:
+	sections = [s for s in config if s.get("condition", True)]
+
+	for section in sections:
 		for item in section["items"]:
 			if item["type"]=="report" and frappe.db.get_value("Report", item["name"], "disabled")==1:
 				section["items"].remove(item)
 				continue
 			if not "label" in item:
 				item["label"] = _(item["name"])
-	return config
+
+	return sections
 
 def add_setup_section(config, app, module, label, icon):
 	"""Add common sections to `/desk#Module/Setup`"""
