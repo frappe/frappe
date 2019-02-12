@@ -13,13 +13,13 @@ class TestDocumentFollow(unittest.TestCase):
 		event_doc = get_event()
 		event_doc.description = "This is a test description"
 		event_doc.save()
-		version_document= doc_subscription.get_version("Event", event_doc.name)
+		version_document= doc_subscription.get_version("Event", event_doc.name, "Hourly")
 		self.assertEquals(version_document[0]['doc_name'],event_doc.name)
 
 	def test_get_comments(self):
 		event_doc = get_event()
 		event_doc.add_comment("Comment", "Test Comment for testing")
-		comments = doc_subscription.get_comments("Event", event_doc.name)
+		comments = doc_subscription.get_comments("Event", event_doc.name, "Hourly")
 		self.assertEquals(comments[0]['doc_name'],event_doc.name)
 
 	def test_add_subscription(self):
@@ -51,6 +51,7 @@ def get_user():
 		doc.last_name = "User"
 		doc.send_welcome_email = 0
 		doc.enable_email_for_follow_documents = 1
+		doc.frequency_for_follow_documents_email = "Hourly"
 		doc.insert()
 		return doc
 
