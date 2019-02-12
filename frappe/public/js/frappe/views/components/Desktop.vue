@@ -125,9 +125,6 @@ export default {
 }
 
 .module-box-content {
-	padding-right: 15px;
-	flex: 1;
-
 	h4 {
 		margin-bottom: 5px
 	}
