@@ -409,7 +409,13 @@ _f.Frm.prototype.get_selected = function() {
 	// returns list of children that are selected. returns [parentfield, name] for each
 	var selected = {}, me = this;
 	frappe.meta.get_table_fields(this.doctype).forEach(function(df) {
-		var _selected = me.fields_dict[df.fieldname].grid.get_selected();
+		// handle TableMultiselect child fields
+		let _selected = [];
+
+		if(me.fields_dict[df.fieldname].grid) {
+			_selected = me.fields_dict[df.fieldname].grid.get_selected();
+		}
+
 		if(_selected.length) {
 			selected[df.fieldname] = _selected;
 		}

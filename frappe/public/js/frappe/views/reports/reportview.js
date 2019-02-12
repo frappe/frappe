@@ -107,11 +107,6 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		this.set_tag_and_status_filter();
 		this.setup_listview_settings();
 
-		// add to desktop
-		this.page.add_menu_item(__("Add to Desktop"), function() {
-			frappe.add_to_desktop(me.docname || __('{0} Report', [me.doctype]), me.doctype, me.docname);
-		}, true);
-
 	},
 
 	make_new_and_refresh: function() {
@@ -801,7 +796,9 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 			});
 
 			this.page.add_menu_item(__("Delete"), function() {
-				var delete_list = $.map(me.get_checked_items(), function(d) { return d.name; });
+				var delete_list = $.map(me.get_checked_items(), function(d) {
+					return d.name.toString();
+				});
 				if(!delete_list.length)
 					return;
 				if(frappe.confirm(__("This is PERMANENT action and you cannot undo. Continue?"),

@@ -6,6 +6,7 @@ import functools
 import frappe, re, os
 from six import iteritems
 from past.builtins import cmp
+from frappe.utils import markdown
 
 def delete_page_cache(path):
 	cache = frappe.cache()
@@ -327,3 +328,18 @@ def add_missing_headers():
 						content = '# {0}\n\n'.format(h) + content
 						f.write(content.encode('utf-8'))
 
+def get_html_content_based_on_type(doc, fieldname, content_type):
+		'''
+		Set content based on content_type
+		'''
+		content = doc.get(fieldname)
+
+		if content_type == 'Markdown':
+			content = markdown(doc.get(fieldname + '_md'))
+		elif content_type == 'HTML':
+			content = doc.get(fieldname + '_html')
+
+		if content == None:
+			content = ''
+
+		return content

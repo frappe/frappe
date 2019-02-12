@@ -1,6 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import Desktop from './components/Desktop.vue';
+
 frappe.provide('frappe.views.pageview');
 frappe.provide("frappe.standard_pages");
 
@@ -39,6 +41,22 @@ frappe.views.pageview = {
 	show: function(name) {
 		if(!name) {
 			name = (frappe.boot ? frappe.boot.home_page : window.page_name);
+
+			if(name === "desktop") {
+				let page = frappe.container.add_page('desktop');
+				frappe.container.change_to('desktop');
+
+				let container = $('<div class="container"></div>').appendTo(page);
+				container = $('<div></div>').appendTo(container);
+
+				Vue.prototype.__ = window.__;
+				Vue.prototype.frappe = window.frappe;
+				new Vue({
+					el: container[0],
+					render: h => h(Desktop)
+				});
+				return;
+			}
 		}
 		frappe.model.with_doctype("Page", function() {
 			frappe.views.pageview.with_page(name, function(r) {
@@ -82,7 +100,6 @@ frappe.views.Page = Class.extend({
 		}
 
 		this.trigger_page_event('on_page_load');
-
 		// set events
 		$(this.wrapper).on('show', function() {
 			window.cur_frm = null;
@@ -144,3 +161,27 @@ frappe.show_message_page = function(opts) {
 
 	frappe.container.change_to(opts.page_name);
 };
+
+frappe.views.ModulesFactory = class ModulesFactory extends frappe.views.Factory {
+	show() {
+		if (frappe.pages.modules) {
+			frappe.container.change_to('modules');
+		} else {
+			this.make('modules');
+		}
+	}
+
+	make(page_name) {
+		const assets = [
+			'/assets/js/modules.min.js'
+		];
+
+		frappe.require(assets, () => {
+			frappe.modules.home = new frappe.modules.Home({
+				parent: this.make_page(true, page_name)
+			});
+		});
+	}
+};
+
+

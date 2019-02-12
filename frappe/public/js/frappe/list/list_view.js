@@ -1008,13 +1008,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			standard: true
 		});
 
-		// add to desktop
-		items.push({
-			label: __('Add to Desktop'),
-			action: () => frappe.add_to_desktop(doctype, doctype),
-			standard: true
-		});
-
 		if (frappe.user.has_role('System Manager') && frappe.boot.developer_mode === 1) {
 			// edit doctype
 			items.push({
