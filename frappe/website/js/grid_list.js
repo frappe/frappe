@@ -51,7 +51,7 @@ export default function make_datatable(container, doctype) {
 				.css({cursor: 'pointer'})
 				.click((e) => {
 					if ($(e.target).is('[type=checkbox]')) return
-					window.location.href = window.location.href + '?name=' + data[i].name;
+					window.location.href = window.location.origin + window.location.pathname + '?name=' + data[i].name;
 				});
 			for (let fieldname of colnames) {
 				let val = data[i][fieldname];
