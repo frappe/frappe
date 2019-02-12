@@ -200,21 +200,21 @@ def send_weekly_updates():
 def get_filters(search_by, name, frequency):
 	if frequency == "Weekly":
 		filters = [
-		[search_by, "=", name],
-		["modified", ">", frappe.utils.add_days(frappe.utils.nowdate(),-7)],
-		["modified", "<", frappe.utils.nowdate()]
+			[search_by, "=", name],
+			["modified", ">", frappe.utils.add_days(frappe.utils.nowdate(),-7)],
+			["modified", "<", frappe.utils.nowdate()]
 		]
 	elif frequency == "Daily":
 		filters = [
-		[search_by, "=", name],
-		["modified", ">", frappe.utils.add_days(frappe.utils.nowdate(),-1)],
-		["modified", "<", frappe.utils.nowdate()]
+			[search_by, "=", name],
+			["modified", ">", frappe.utils.add_days(frappe.utils.nowdate(),-1)],
+			["modified", "<", frappe.utils.nowdate()]
 		]
 	elif frequency == "Hourly":
 		filters = [
-		[search_by, "=", name],
-		["modified", ">", frappe.utils.add_to_date(frappe.utils.now_datetime(), 0, 0, 0, -1 )],
-		["modified", "<", frappe.utils.now_datetime()]
+			[search_by, "=", name],
+			["modified", ">", frappe.utils.add_to_date(frappe.utils.now_datetime(), 0, 0, 0, -1 )],
+			["modified", "<", frappe.utils.now_datetime()]
 		]
 
 	return filters
