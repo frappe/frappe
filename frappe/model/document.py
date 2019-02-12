@@ -313,15 +313,12 @@ class Document(BaseDocument):
 
 		return self
 
-	def get_attachments(self):
-		return frappe.get_all("File", fields=["name", "file_name", "file_url", "is_private"],
-			filters = {"attached_to_name": self.name, "attached_to_doctype": self.doctype})
-
-
 	def copy_attachments_from_amended_from(self):
 		'''Copy attachments from `amended_from`'''
+		from frappe.desk.form.load import get_attachments
+
 		#loop through attachments
-		for attach_item in self.get_attachments(self.doctype, self.amended_from):
+		for attach_item in get_attachments(self.doctype, self.amended_from):
 
 			#save attachments to new doc
 			_file = frappe.get_doc({
