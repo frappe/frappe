@@ -15,20 +15,21 @@ from frappe.utils import get_datetime, now, strip_html
 from frappe.utils.jinja import render_template
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
 from frappe.website.router import resolve_route
-from frappe.website.utils import extract_title, find_first_image, get_comment_list
+from frappe.website.utils import (extract_title, find_first_image, get_comment_list,
+	get_html_content_based_on_type)
 from frappe.website.website_generator import WebsiteGenerator
 
 
 class WebPage(WebsiteGenerator):
 	def validate(self):
 		self.validate_dates()
+		self.set_route()
 
 	def get_feed(self):
 		return self.title
 
 	def get_context(self, context):
-		if context.main_section == None:
-			context.main_section = ''
+		context.main_section = get_html_content_based_on_type(self, 'main_section', self.content_type)
 
 		# if static page, get static content
 		if context.slideshow:

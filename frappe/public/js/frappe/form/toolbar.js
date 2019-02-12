@@ -153,13 +153,6 @@ frappe.ui.form.Toolbar = Class.extend({
 		this.page.add_menu_item(__("Reload"), function() {
 			me.frm.reload_doc();}, true);
 
-		// add to desktop
-		if(me.frm.meta.issingle) {
-			this.page.add_menu_item(__('Add to Desktop'), function () {
-				frappe.add_to_desktop(me.frm.doctype, me.frm.doctype);
-			}, true);
-		}
-
 		// delete
 		if((cint(me.frm.doc.docstatus) != 1) && !me.frm.doc.__islocal
 			&& frappe.model.can_delete(me.frm.doctype)) {

@@ -194,7 +194,7 @@ frappe.Application = Class.extend({
 	load_bootinfo: function() {
 		if(frappe.boot) {
 			frappe.modules = {};
-			frappe.boot.desktop_icons.forEach(function(m) {
+			frappe.boot.allowed_modules.forEach(function(m) {
 				frappe.modules[m.module_name]=m;
 			});
 			frappe.model.sync(frappe.boot.docs);
@@ -264,9 +264,6 @@ frappe.Application = Class.extend({
 						$.extend(frappe.boot.notification_info, r.message);
 						$(document).trigger("notification-update");
 
-						// update in module views
-						me.update_notification_count_in_modules();
-
 						if(frappe.get_route()[0] != "messages") {
 							if(r.message.new_messages.length) {
 								frappe.utils.set_title_prefix("(" + r.message.new_messages.length + ")");
@@ -277,18 +274,6 @@ frappe.Application = Class.extend({
 				freeze: false
 			});
 		}
-	},
-
-	update_notification_count_in_modules: function() {
-		$.each(frappe.boot.notification_info.open_count_doctype, function(doctype, count) {
-			if(count) {
-				$('.open-notification.global[data-doctype="'+ doctype +'"]')
-					.removeClass("hide").html(count > 99 ? "99+" : count);
-			} else {
-				$('.open-notification.global[data-doctype="'+ doctype +'"]')
-					.addClass("hide");
-			}
-		});
 	},
 
 	set_globals: function() {
@@ -591,6 +576,7 @@ frappe.get_module = function(m, default_module) {
 
 	return module;
 };
+<<<<<<< HEAD
 
 frappe.get_desktop_icons = function(show_hidden, show_global) {
 	// filter valid icons
@@ -674,3 +660,5 @@ frappe.add_to_desktop = function(label, doctype, report) {
 		}
 	});
 };
+=======
+>>>>>>> upstream

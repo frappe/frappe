@@ -31,7 +31,7 @@ def get_desktop_icons(user=None):
 	user_icons = frappe.cache().hget('desktop_icons', user)
 
 	if not user_icons:
-		fields = ['module_name', 'hidden', 'label', 'link', 'type', 'icon', 'color',
+		fields = ['module_name', 'hidden', 'label', 'link', 'type', 'icon', 'color', 'description', 'category',
 			'_doctype', '_report', 'idx', 'force_show', 'reverse', 'custom', 'standard', 'blocked']
 
 		active_domains = frappe.get_active_domains()
