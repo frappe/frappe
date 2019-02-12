@@ -11,7 +11,7 @@ from frappe.model.document import Document
 class LetterHead(Document):
 	def before_insert(self):
 		# for better UX, let user set from attachment
-		self.set_from_attachment = 1
+		self.source = 'Image'
 
 	def validate(self):
 		self.set_image()
