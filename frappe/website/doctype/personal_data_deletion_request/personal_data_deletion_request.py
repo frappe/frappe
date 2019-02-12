@@ -8,8 +8,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils.verified_command import get_signed_params, verify_request
 
-class PersonalDataDeleteRequest(Document):
 
+class PersonalDataDeletionRequest(Document):
 	def after_insert(self):
 		if self.email in ['Administrator', 'Guest']:
 			frappe.throw(_("This user's data cannot be requested for deletion"))
@@ -30,17 +30,20 @@ class PersonalDataDeleteRequest(Document):
 	def anonymize_data(self):
 		if 'System Manager' not in frappe.get_roles(frappe.session.user) and self.status != 'Pending Approval':
 			frappe.throw(_("You are not authorized to complete this action."))
+		
+		scope = 'unrestricted' if 'Guest' in frappe.get_roles(self.email) else 'restricted'
 
 		privacy_docs = frappe.get_hooks("user_privacy_documents")
 		for ref_doc in privacy_docs:
-			for email_field in ref_doc.get('match_field'):
-				frappe.db.sql("""UPDATE `tab{0}`
-					SET `{1}` = '{2}', {3}
-					WHERE `{1}` = '{4}' """.format(ref_doc['doctype'], email_field, self.name,#nosec
-						', '.join(map(lambda u :'`'+ u+'`=\''+str(u)+'\'', ref_doc.get('personal_fields',[]))), self.email))
+			if ref_doc['action'] == 'skip' and scope == 'restricted':
+				continue
+			frappe.db.sql("""UPDATE `tab{0}`
+				SET `{1}` = '{2}' {3}
+				WHERE `{1}` = '{4}' """.format(ref_doc['doctype'], ref_doc['match_field'], self.name,#nosec
+					''.join(map(lambda u :', `'+ u+'`=\''+str(u)+'\'', ref_doc.get('personal_fields',[]))), self.email))
 
 def remove_unverified_record():
-	frappe.db.sql("""DELETE FROM `tabPersonal Data Delete Request` WHERE `status` = 'Pending Verification' and `creation` < (NOW() - INTERVAL '7' DAY)""")
+	frappe.db.sql("""DELETE FROM `tabPersonal Data Deletion Request` WHERE `status` = 'Pending Verification' and `creation` < (NOW() - INTERVAL '7' DAY)""")
 
 @frappe.whitelist(allow_guest=True)
 def confirm_deletion(email, name):

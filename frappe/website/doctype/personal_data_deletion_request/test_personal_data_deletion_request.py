@@ -5,14 +5,14 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest
-from frappe.website.doctype.personal_data_delete_request.personal_data_delete_request import PersonalDataDeleteRequest, remove_unverified_record
+from frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request import PersonalDataDeletionRequest, remove_unverified_record
 from frappe.website.doctype.personal_data_download_request.test_personal_data_download_request import create_user_if_not_exists
 from datetime import datetime, timedelta
 
-class TestPersonalDataDeleteRequest(unittest.TestCase):
+class TestPersonalDataDeletionRequest(unittest.TestCase):
 	def setUp(self):
 		create_user_if_not_exists(email='test_delete@example.com')
-		self.delete_request = frappe.get_doc({'doctype':'Personal Data Delete Request', 'email':'test_delete@example.com'})
+		self.delete_request = frappe.get_doc({'doctype':'Personal Data Deletion Request', 'email':'test_delete@example.com'})
 		self.delete_request.save(ignore_permissions=True)
 
 	def test_delete_request(self):
@@ -24,7 +24,7 @@ class TestPersonalDataDeleteRequest(unittest.TestCase):
 		self.assertTrue("Subject: Confirm Deletion of Data" in email_queue[0].message)
 
 	def test_anonymized_data(self):
-		PersonalDataDeleteRequest.anonymize_data(self.delete_request)
+		PersonalDataDeletionRequest.anonymize_data(self.delete_request)
 		deleted_user = frappe.get_all('Contact',
 			{'email_id': self.delete_request.name},
 			['first_name', 'last_name', 'phone', 'mobile_no'])
@@ -45,4 +45,4 @@ class TestPersonalDataDeleteRequest(unittest.TestCase):
 		self.status = 'Pending Verification'
 		self.delete_request.save()
 		remove_unverified_record()
-		self.assertFalse(frappe.db.exists("Personal Data Delete Request", self.delete_request.name))
+		self.assertFalse(frappe.db.exists("Personal Data Deletion Request", self.delete_request.name))
