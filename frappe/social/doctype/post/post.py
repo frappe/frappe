@@ -7,6 +7,7 @@ import frappe
 import requests
 from bs4 import BeautifulSoup
 from frappe.model.document import Document
+from frappe.core.doctype.user.user import extract_mentions
 
 class Post(Document):
 	def on_update(self):
@@ -14,6 +15,9 @@ class Post(Document):
 			frappe.publish_realtime('global_pin', after_commit=True)
 
 	def after_insert(self):
+		mentions = extract_mentions(self.content)
+		for mention in mentions:
+			frappe.publish_realtime('mention', "Someone mentioned you", user=mention, after_commit=True)
 		frappe.publish_realtime('new_post', self.owner, after_commit=True)
 
 @frappe.whitelist()
