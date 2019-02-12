@@ -106,6 +106,8 @@ frappe.Application = Class.extend({
 			dialog.get_close_btn().toggle(false);
 		});
 
+		this.setup_social_listeners();
+
 		// listen to build errors
 		this.setup_build_error_listener();
 
@@ -544,6 +546,12 @@ frappe.Application = Class.extend({
 				console.log(data);
 			});
 		}
+	},
+
+	setup_social_listeners() {
+		frappe.realtime.on('mention', (message) => {
+			frappe.show_alert(message);
+		});
 	}
 });
 
