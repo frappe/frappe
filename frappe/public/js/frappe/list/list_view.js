@@ -151,6 +151,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		);
 
 		fields.forEach(f => this._add_field(f));
+
+		this.fields.forEach(f => {
+			const df = frappe.meta.get_docfield(f[1], f[0]);
+			if (df && df.fieldtype === 'Currency' && df.options && !df.options.includes(':')) {
+				this._add_field(df.options);
+			}
+		});
 	}
 
 	patch_refresh_and_load_lib() {
@@ -611,7 +618,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			args: {
 				doctype: this.doctype,
 				filters: this.get_filters_for_args(),
-				fields: [`count(distinct ${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`],
+				fields: [`count(${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`],
 			}
 		}).then(r => {
 			this.total_count = r.message.values[0][0] || current_count;
