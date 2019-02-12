@@ -989,7 +989,7 @@ class Document(BaseDocument):
 			frappe.db.commit()
 
 	def db_get(self, fieldname):
-		'''get database vale for this fieldname'''
+		'''get database value for this fieldname'''
 		return frappe.db.get_value(self.doctype, self.name, fieldname)
 
 	def check_no_back_links_exist(self):
