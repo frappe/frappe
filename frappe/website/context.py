@@ -224,6 +224,9 @@ def add_metatags(context):
 		if tags.get("name"):
 			tags["og:title"] = tags["twitter:title"] = tags["name"]
 
+		if tags.get("title"):
+			tags["og:title"] = tags["twitter:title"] = tags["title"]
+
 		if tags.get("description"):
 			tags["og:description"] = tags["twitter:description"] = tags["description"]
 
@@ -232,7 +235,7 @@ def add_metatags(context):
 			tags["og:image"] = tags["twitter:image:src"] = tags["image"] = frappe.utils.get_url(image)
 
 		if context.path:
-			tags['og:url'] = frappe.utils.get_url(context.path)
+			tags['og:url'] = tags['url'] = frappe.utils.get_url(context.path)
 
 		if context.published_on:
 			tags['datePublished'] = context.published_on
@@ -242,3 +245,5 @@ def add_metatags(context):
 
 		if context.description:
 			tags['description'] = context.description
+
+		tags['language'] = frappe.local.lang or 'en'
