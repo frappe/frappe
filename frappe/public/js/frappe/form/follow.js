@@ -21,6 +21,9 @@ frappe.ui.form.Follow = Class.extend({
 		this.set_follow();
 		if (frappe.session.user == "Administrator" || check_enable != 1){
 			this.anchor.addClass("hidden");
+			this.followed.addClass("hidden");
+			this.follow_span.addClass("hidden");
+			this.followed_by_label.addClass("hidden");
 		}else{
 			this.anchor.on("click", function(){
 				me.anchor.addClass("text-muted");
