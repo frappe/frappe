@@ -23,6 +23,12 @@ frappe.pages['calendar'].on_page_show = (wrapper) => {
 	});
 };
 
+frappe.route.on('change', () => {
+	console.log("hello");
+	$('[data-toggle="popover"]').popover('hide');
+
+})
+
 $('body').on('click', function(e) {
 	if ($(e.target).data('toggle') !== 'popover' &&
 	$(e.target).parents('.popover.in').length === 0){
