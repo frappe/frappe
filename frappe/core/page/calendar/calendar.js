@@ -312,8 +312,8 @@ function get_calendar_options() {
 		},
 
 		select: function(startDate, endDate, jsEvent, view){
-			const single_day = 86400000;
-			if (view.name === "month" && (endDate - startDate) === single_day) {
+			const date_diff = endDate.diff(startDate, "days");
+			if (view.name === "month" && date_diff === 1) {
 				// detect single day click in month view
 				return;
 			}
