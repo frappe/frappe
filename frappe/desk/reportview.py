@@ -28,6 +28,8 @@ def get_form_params():
 	data = frappe._dict(frappe.local.form_dict)
 
 	del data["cmd"]
+	del data["data"]
+
 	if "csrf_token" in data:
 		del data["csrf_token"]
 
