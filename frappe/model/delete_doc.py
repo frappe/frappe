@@ -285,7 +285,7 @@ def delete_references(doctype, reference_doctype, reference_name,
 		reference_doctype_field = 'reference_doctype', reference_name_field = 'reference_name'):
 	frappe.db.sql('''delete from `tab{0}`
 		where {1}=%s and {2}=%s'''.format(doctype, reference_doctype_field, reference_name_field),
-		(reference_doctype, reference_name))
+		(reference_doctype, reference_name)) # nosec
 
 def clear_references(doctype, reference_doctype, reference_name,
 		reference_doctype_field = 'reference_doctype', reference_name_field = 'reference_name'):
@@ -295,7 +295,7 @@ def clear_references(doctype, reference_doctype, reference_name,
 			{1}=NULL, {2}=NULL
 		where
 			{1}=%s and {2}=%s'''.format(doctype, reference_doctype_field, reference_name_field),
-		(reference_doctype, reference_name))
+		(reference_doctype, reference_name)) # nosec
 
 
 def insert_feed(doc):

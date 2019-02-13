@@ -32,10 +32,26 @@ class TestComment(unittest.TestCase):
 		from frappe.website.doctype.blog_post.test_blog_post import make_test_blog
 		test_blog = make_test_blog()
 
+		frappe.db.sql("delete from `tabComment` where reference_doctype = 'Blog Post'")
+
 		from frappe.templates.includes.comments.comments import add_comment
 		add_comment('hello', 'test@test.com', 'Good Tester',
 			'Blog Post', test_blog.name, test_blog.route)
 
+		self.assertEqual(frappe.get_all('Comment', fields = ['*'], filters = dict(
+			reference_doctype = test_blog.doctype,
+			reference_name = test_blog.name
+		))[0].published, 1)
+
+		frappe.db.sql("delete from `tabComment` where reference_doctype = 'Blog Post'")
+
+		add_comment('pleez vizits my site http://mysite.com', 'test@test.com', 'bad commentor',
+			'Blog Post', test_blog.name, test_blog.route)
+
+		self.assertEqual(frappe.get_all('Comment', fields = ['*'], filters = dict(
+			reference_doctype = test_blog.doctype,
+			reference_name = test_blog.name
+		))[0].published, 0)
 
 
 
