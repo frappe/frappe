@@ -9,9 +9,16 @@ from frappe.model.document import Document
 
 class Language(Document):
 	def validate(self):
-		pattern = re.compile("^[a-zA-Z]+[-_]*[a-zA-Z]+$")
-		if self.language_code and not pattern.match(self.language_code):
-			frappe.throw(_("Language Code must begin and end with a letter and can only contain letters, hyphen or underscore."))
+		validate_with_regex(self.language_code, "Language Code")
+
+	def before_rename(self, old, new, merge=False):
+		validate_with_regex(new, "Name")
+
+def validate_with_regex(name, label):
+	pattern = re.compile("^[a-zA-Z]+[-_]*[a-zA-Z]+$")
+	if not pattern.match(name):
+		frappe.throw(_("""{0} must begin and end with a letter and can only contain letters,
+				hyphen or underscore.""").format(label))
 
 def export_languages_json():
 	'''Export list of all languages'''
