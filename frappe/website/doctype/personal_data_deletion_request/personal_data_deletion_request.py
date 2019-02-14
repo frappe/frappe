@@ -8,7 +8,6 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils.verified_command import get_signed_params, verify_request
 
-
 class PersonalDataDeletionRequest(Document):
 	def after_insert(self):
 		if self.email in ['Administrator', 'Guest']:
@@ -32,14 +31,27 @@ class PersonalDataDeletionRequest(Document):
 			frappe.throw(_("You are not authorized to complete this action."))
 
 		privacy_docs = frappe.get_hooks("user_privacy_documents")
+
+		anonymize_value_map = {
+			'Date': '1111-01-01',
+			'Int': 0,
+			'Code': 'http://xxxxx'}
+
 		for ref_doc in privacy_docs:
+			meta = frappe.get_meta(ref_doc['doctype'])
+			personal_fields = ref_doc.get('personal_fields', [])
+
 			if ref_doc.get('applies_to_website_user') and 'Guest' not in frappe.get_roles(self.email):
 				continue
+
+			anonymize_value = ''
+			for field in personal_fields:
+				anonymize_value += ', `{0}`= \'{1}\''.format(field, anonymize_value_map.get(meta.get_field(field).fieldtype, str(field)))
 
 			frappe.db.sql("""UPDATE `tab{0}`
 				SET `{1}` = '{2}' {3}
 				WHERE `{1}` = '{4}' """.format(ref_doc['doctype'], ref_doc['match_field'], self.name,#nosec
-					''.join(map(lambda u :', `'+ u+'`=\''+str(u)+'\'', ref_doc.get('personal_fields',[]))), self.email))
+					anonymize_value, self.email))
 
 def remove_unverified_record():
 	frappe.db.sql("""DELETE FROM `tabPersonal Data Deletion Request` WHERE `status` = 'Pending Verification' and `creation` < (NOW() - INTERVAL '7' DAY)""")
