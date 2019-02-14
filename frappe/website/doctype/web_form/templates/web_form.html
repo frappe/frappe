@@ -46,11 +46,13 @@
 {% endblock %}
 
 {% block page_content %}
-<div class="introduction">
-	{% if introduction_text %}
-	<p class="text-muted">{{ _(introduction_text) }}</p>
-	{% endif %}
-</div>
+{% if introduction_text %}
+	<div class="introduction">
+		<p class="text-muted">{{ _(introduction_text) }}</p>
+	</div>
+{% else %}
+	<hr style="margin-top: 0;">
+{% endif %}
 <div class="form-message hide"></div>
 
 {% if _login_required %}
