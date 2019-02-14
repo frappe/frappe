@@ -30,13 +30,12 @@ class PersonalDataDeletionRequest(Document):
 	def anonymize_data(self):
 		if 'System Manager' not in frappe.get_roles(frappe.session.user) and self.status != 'Pending Approval':
 			frappe.throw(_("You are not authorized to complete this action."))
-		
-		scope = 'unrestricted' if 'Guest' in frappe.get_roles(self.email) else 'restricted'
 
 		privacy_docs = frappe.get_hooks("user_privacy_documents")
 		for ref_doc in privacy_docs:
-			if ref_doc['action'] == 'skip' and scope == 'restricted':
+			if ref_doc.get('applies_to_website_user') and 'Guest' not in frappe.get_roles(self.email):
 				continue
+
 			frappe.db.sql("""UPDATE `tab{0}`
 				SET `{1}` = '{2}' {3}
 				WHERE `{1}` = '{4}' """.format(ref_doc['doctype'], ref_doc['match_field'], self.name,#nosec

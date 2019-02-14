@@ -15,11 +15,13 @@ class TestRequestPersonalData(unittest.TestCase):
 	def test_user_data(self):
 		user_data = get_user_data('test_privacy@example.com')
 		expected_data = {'Contact': frappe.get_all('Contact', {'email_id':'test_privacy@example.com'},["*"])}
-		self.assertEqual(user_data, expected_data)
+		self.assertEqual({'Contact': user_data['Contact']}, expected_data)
 
 	def test_file_and_email_creation(self):
+		frappe.set_user('test_privacy@example.com')
 		download_request = frappe.get_doc({"doctype": 'Personal Data Download Request', 'user': 'test_privacy@example.com'})
 		download_request.save(ignore_permissions=True)
+		frappe.set_user('Administrator')
 
 		f = frappe.get_all('File',
 			{'attached_to_doctype':'Personal Data Download Request', 'attached_to_name': download_request.name},

@@ -26,7 +26,7 @@ class PersonalDataDownloadRequest(Document):
 			'content': str(personal_data),
 			'is_private': 1
 		})
-		f.save()
+		f.save(ignore_permissions=True)
 
 		host_name = frappe.local.site
 		frappe.sendmail(recipients= frappe.session.user,
@@ -40,9 +40,8 @@ def get_user_data(user):
 	hooks = frappe.get_hooks("user_privacy_documents")
 	data = {}
 	for hook in hooks:
-		d = []
-		for email_field in hook.get('match_field'):
-			d += frappe.get_all(hook.get('doctype'), {email_field: user}, ["*"])
+		d = data.get(hook.get('doctype'),[])
+		d += frappe.get_all(hook.get('doctype'), {hook.get('match_field'): user}, ["*"])
 		if d:
 			data.update({ hook.get('doctype'):d })
 	return data

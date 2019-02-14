@@ -173,7 +173,7 @@ scheduler_events = {
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.core.doctype.feedback_request.feedback_request.delete_feedback_request",
 		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs",
-		"frappe.website.doctype.personal_data_delete_request.personal_data_delete_request",
+		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
@@ -230,9 +230,55 @@ before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migr
 otp_methods = ['OTP App','Email','SMS']
 user_privacy_documents = [
 	{
+		'doctype': 'User',
+		'match_field': 'email',
+		'personal_fields': ['first_name', 'middle_name', 'last_name', 'full_name', 'username', 'user_image', 'phone',
+			'mobile_no', 'location', 'banner_image', 'interest', 'bio', 'email_signature', 'background_image'],
+		'action': 'skip',
+		'applies_to_website_user': 1
+	},
+	{
+		'doctype': 'File',
+		'match_field': 'attached_to_name',
+		'personal_fields': ['file_name', 'file_url'],
+		'action': 'skip'
+	},
+	{
+		'doctype': 'Email Group Member',
+		'match_field': 'email',
+		'action': 'delete'
+	},
+	{
+		'doctype': 'Email Unsubscribe',
+		'match_field': 'email',
+		'action': 'delete'
+	},
+	{
+		'doctype': 'Email Queue',
+		'match_field': 'sender',
+		'action': 'delete'
+	},
+	{
+		'doctype': 'Email Queue Recipient',
+		'match_field': 'recipient',
+		'action': 'delete'
+	},
+	{
 		'doctype': 'Contact',
 		'match_field': 'email_id',
 		'personal_fields': ['first_name', 'last_name', 'phone', 'mobile_no'],
 		'action': 'delete'
 	},
+	{
+		'doctype': 'Communication',
+		'match_field': 'sender',
+		'personal_fields': ['sender_full_name', 'phone_no', 'content'],
+		'action': 'delete'
+	},
+	{
+		'doctype': 'Communication',
+		'match_field': 'recipients',
+		'action': 'delete'
+	},
+
 ]
