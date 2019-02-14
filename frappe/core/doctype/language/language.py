@@ -3,11 +3,15 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe, json
+import frappe, json, re
+from frappe import _
 from frappe.model.document import Document
 
 class Language(Document):
-	pass
+	def validate(self):
+		pattern = re.compile("^[a-zA-Z]+[-_]*[a-zA-Z]+$")
+		if self.language_code and not pattern.match(self.language_code):
+			frappe.throw(_("Language Code must begin and end with a letter and can only contain letters, hyphen or underscore."))
 
 def export_languages_json():
 	'''Export list of all languages'''
