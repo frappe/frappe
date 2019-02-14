@@ -191,19 +191,18 @@ def run(report_name, filters=None, user=None):
 
 def get_prepared_report_result(report, filters, dn="", user=None):
 	latest_report_data = {}
-	# Only look for completed prepared reports with given filters.
-	doc_list = frappe.get_all("Prepared Report",
-		filters={"status": "Completed", "report_name": report.name, "filters": json.dumps(filters), "owner": user})
-
 	doc = None
-	if len(doc_list):
-		if dn:
-			# Get specified dn
-			doc = frappe.get_doc("Prepared Report", dn)
-		else:
+	if dn:
+		# Get specified dn
+		doc = frappe.get_doc("Prepared Report", dn)
+	else:
+		# Only look for completed prepared reports with given filters.
+		doc_list = frappe.get_all("Prepared Report", filters={"status": "Completed", "filters": json.dumps(filters), "owner": user})
+		if doc_list:
 			# Get latest
 			doc = frappe.get_doc("Prepared Report", doc_list[0])
 
+	if doc:
 		# Prepared Report data is stored in a GZip compressed JSON file
 		attached_file_name = frappe.db.get_value("File", {"attached_to_doctype": doc.doctype, "attached_to_name":doc.name}, "name")
 		compressed_content = get_file(attached_file_name)[1]
