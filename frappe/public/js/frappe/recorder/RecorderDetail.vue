@@ -6,15 +6,35 @@
 				<div class="list-toolbar btn-group" style="display:inline-block; margin-right: 10px;"></div>
 			</div>
 			<div style="clear:both"></div>
+			<div class="filter-list">
+				<div class="tag-filters-area">
+					<div class="active-tag-filters">
+						<button class="btn btn-default btn-xs add-filter text-muted">
+							Add Filter
+						</button>
+					</div>
+				</div>
+				<div class="filter-edit-area"></div>
+				<div class="sort-selector">
+					<div class="dropdown"><a class="text-muted dropdown-toggle small" data-toggle="dropdown"><span class="dropdown-text">{{ columns.filter(c => c.slug == query.sort)[0].label }}</span></a>
+						<ul class="dropdown-menu">
+							<li v-for="(column, index) in columns.filter(c => c.sortable)" :key="index" @click="query.sort = column.slug"><a class="option">{{ column.label }}</a></li>
+						</ul>
+					</div>
+					<button class="btn btn-default btn-xs btn-order">
+						<span class="octicon text-muted" :class="query.order == 'asc' ? 'octicon-arrow-down' : 'octicon-arrow-up'"  @click="query.order = (query.order == 'asc') ? 'desc' : 'asc'"></span>
+					</button>
+				</div>
+			</div>
 			<div  v-if="requests.length != 0" class="result">
 				<div class="list-headers">
 					<header class="level list-row list-row-head text-muted small">
 						<div class="level-left list-header-subject">
 							<div class="list-row-col ellipsis list-subject level ">
-								<span class="level-item">Time</span>
+								<span class="level-item">{{ columns[0].label }}</span>
 							</div>
-							<div class="list-row-col ellipsis hidden-xs"  v-for="(column, index) in ['Duration', 'Time In Queries', 'Queries' , 'Method', 'Path']" :key="index">
-								<span>{{ column }}</span>
+							<div class="list-row-col ellipsis hidden-xs"  v-for="(column, index) in columns.slice(1)" :key="index">
+								<span>{{ column.label }}</span>
 							</div>
 						</div>
 					</header>
@@ -26,11 +46,11 @@
 							<div class="level-left ellipsis">
 								<div class="list-row-col ellipsis list-subject level ">
 									<span class="level-item bold ellipsis">
-										{{ request.time }}
+										{{ request[columns[0].slug] }}
 									</span>
 								</div>
-								<div class="list-row-col ellipsis" v-for="(column, index) in ['duration', 'time_queries', 'queries' , 'method', 'path']" :key="index">
-									<span class="ellipsis text-muted">{{ request[column] }}</span>
+								<div class="list-row-col ellipsis" v-for="(column, index) in columns.slice(1)" :key="index">
+									<span class="ellipsis text-muted">{{ request[column.slug] }}</span>
 								</div>
 							</div>
 						</div>
@@ -75,8 +95,16 @@ export default {
 	data() {
 		return {
 			requests: [],
+			columns: [
+				{label: "Time", slug: "time", sortable: true},
+				{label: "Duration", slug: "duration", sortable: true},
+				{label: "Time in Queries", slug: "time_queries", sortable: true},
+				{label: "Queries", slug: "queries", sortable: true},
+				{label: "Method", slug: "method"},
+				{label: "Path", slug: "path"}
+			],
 			query: {
-				sort: "index",
+				sort: "time",
 				order: "asc",
 				filters: {},
 				pagination: {
