@@ -203,16 +203,21 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 			doc = frappe.get_doc("Prepared Report", doc_list[0])
 
 	if doc:
-		# Prepared Report data is stored in a GZip compressed JSON file
-		attached_file_name = frappe.db.get_value("File", {"attached_to_doctype": doc.doctype, "attached_to_name":doc.name}, "name")
-		compressed_content = get_file(attached_file_name)[1]
-		uncompressed_content = gzip_decompress(compressed_content)
-		data = json.loads(uncompressed_content)
-		if data:
-			latest_report_data = {
-				"columns": json.loads(doc.columns) if doc.columns else data[0],
-				"result": data
-			}
+		try:
+			# Prepared Report data is stored in a GZip compressed JSON file
+			attached_file_name = frappe.db.get_value("File", {"attached_to_doctype": doc.doctype, "attached_to_name":doc.name}, "name")
+			compressed_content = get_file(attached_file_name)[1]
+			uncompressed_content = gzip_decompress(compressed_content)
+			data = json.loads(uncompressed_content)
+			if data:
+				latest_report_data = {
+					"columns": json.loads(doc.columns) if doc.columns else data[0],
+					"result": data
+				}
+		except:
+			doc = frappe.delete_doc("Prepared Report", doc.name)
+			frappe.db.commit()
+			doc = None
 
 	latest_report_data.update({
 		"prepared_report": True,
