@@ -25,7 +25,6 @@ frappe.pages['calendar'].on_page_show = (wrapper) => {
 
 frappe.route.on('change', () => {
 	$('[data-toggle="popover"]').popover('hide');
-
 });
 
 $('body').on('click', function(e) {
