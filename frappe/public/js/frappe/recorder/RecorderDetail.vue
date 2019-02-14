@@ -37,6 +37,9 @@
 								<span>{{ column.label }}</span>
 							</div>
 						</div>
+						<div class="level-right">
+							<span class="list-count"><span>{{ (query.pagination.page - 1) * (query.pagination.limit) + 1 }} - {{ Math.min(query.pagination.page * query.pagination.limit, requests.length) }} of {{ requests.length }}</span></span>
+						</div>
 					</header>
 
 				</div>
@@ -51,6 +54,13 @@
 								</div>
 								<div class="list-row-col ellipsis" v-for="(column, index) in columns.slice(1)" :key="index">
 									<span class="ellipsis text-muted">{{ request[column.slug] }}</span>
+								</div>
+							</div>
+							<div class="level-right ellipsis">
+								<div class="list-row-col ellipsis list-subject level ">
+									<span class="level-item ellipsis text-muted">
+										{{ request.path }}
+									</span>
 								</div>
 							</div>
 						</div>
@@ -101,7 +111,7 @@ export default {
 				{label: "Time in Queries", slug: "time_queries", sortable: true},
 				{label: "Queries", slug: "queries", sortable: true},
 				{label: "Method", slug: "method"},
-				{label: "Path", slug: "path"}
+
 			],
 			query: {
 				sort: "time",

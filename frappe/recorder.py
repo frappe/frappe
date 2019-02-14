@@ -75,7 +75,7 @@ def dump():
 
 class Recorder():
 	def __init__(self):
-		self.uuid = str(uuid.uuid1())
+		self.uuid = frappe.generate_hash(length=10)
 		self.time = datetime.datetime.now()
 		self.calls = []
 		self.path = frappe.request.path
