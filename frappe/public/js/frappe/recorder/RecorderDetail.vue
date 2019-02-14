@@ -1,55 +1,70 @@
 <template>
 	<div>
-		<div v-if="requests.length == 0" class="text-center" style="margin:15%">
-			<div><span class="text-muted">No Recorded Requests Found</span></div>
-			<div><button v-if="status.status == 'Inactive'" class="btn btn-default btn-primary" @click="record(true)" style="margin:15px">Start</button></div>
-		</div>
-		<div v-else>
-			<table class="table table-hover table-condensed">
-				<thead>
-					<tr>
-						<th style="width:8%"><span style="margin-right:5px">Index</span><i @click="sort('index')" class="glyphicon" :class="glyphicon('index')"></i></th>
-						<th style="width:22%"><span style="margin-right:5px">Time</span><i @click="sort('time')" class="glyphicon" :class="glyphicon('time')"></i></th>
-						<th style="width:9%"><span style="margin-right:5px">Duration</span><i @click="sort('duration')" class="glyphicon" :class="glyphicon('duration')"></i></th>
-						<th style="width:9%"><span style="margin-right:5px">Queries</span><i @click="sort('queries')" class="glyphicon" :class="glyphicon('queries')"></i></th>
-						<th style="width:9%"><span style="margin-right:5px">Query Duration</span><i @click="sort('time_queries')" class="glyphicon" :class="glyphicon('time_queries')"></i></th>
-						<th style="width:7%"><span>Method</span></th>
-						<th style="width:24%"><span style="margin-right:5px">Path</span><i @click="sort('path')" class="glyphicon" :class="glyphicon('path')"></i></th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td><input style="width:100%" v-model="query.filters.method"/></td>
-						<td><input style="width:100%" v-model="query.filters.path"/></td>
-					</tr>
-					<router-link style="cursor: pointer" :to="{name: 'request-detail', params: {request_uuid: request.uuid}}" tag="tr"  v-for="request in paginated(sorted(filtered(requests)))" :key="request.index" v-bind="request">
-						<td>{{ request.index }}</td>
-						<td>{{ request.time }}</td>
-						<td>{{ request.duration }}</td>
-						<td>{{ request.queries }}</td>
-						<td>{{ request.time_queries }}</td>
-						<td>{{ request.method }}</td>
-						<td>{{ request.path | elipsize }}</td>
-					</router-link>
-				</tbody>
-			</table>
-			<nav>
-				<ul class="pagination">
-					<li class="page-item" :class="query.pagination.limit == page ? 'active' : ''" v-for="(page, index) in [20, 100, 500]" :key="index">
-						<a class="page-link" @click="query.pagination.limit = page">{{ page }}</a>
-					</li>
-				</ul>
-				<ul class="pagination" style="float:right">
-					<li class="page-item" :class="page.status" v-for="(page, index) in pages" :key="index">
-						<a class="page-link" @click="query.pagination.page = page.number ">{{ page.label }}</a>
-					</li>
-				</ul>
-			</nav>
+		<div class="frappe-list">
+			<div class="list-filters"></div>
+			<div style="margin-bottom:9px" class="list-toolbar-wrapper hide">
+				<div class="list-toolbar btn-group" style="display:inline-block; margin-right: 10px;"></div>
+			</div>
+			<div style="clear:both"></div>
+			<div  v-if="requests.length != 0" class="result">
+				<div class="list-headers">
+					<header class="level list-row list-row-head text-muted small">
+						<div class="level-left list-header-subject">
+							<div class="list-row-col ellipsis list-subject level ">
+								<span class="level-item">Time</span>
+							</div>
+							<div class="list-row-col ellipsis hidden-xs"  v-for="(column, index) in ['Duration', 'Time In Queries', 'Queries' , 'Method', 'Path']" :key="index">
+								<span>{{ column }}</span>
+							</div>
+						</div>
+					</header>
+
+				</div>
+				<div class="result-list">
+					<div class="list-row-container" v-for="request in paginated(sorted(filtered(requests)))" :key="request.index">
+						<div class="level list-row small">
+							<div class="level-left ellipsis">
+								<div class="list-row-col ellipsis list-subject level ">
+									<span class="level-item bold ellipsis">
+										{{ request.time }}
+									</span>
+								</div>
+								<div class="list-row-col ellipsis" v-for="(column, index) in ['duration', 'time_queries', 'queries' , 'method', 'path']" :key="index">
+									<span class="ellipsis text-muted">{{ request[column] }}</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div v-if="requests.length == 0" class="no-result text-muted flex justify-center align-center" style="">
+				<div class="msg-box no-border" v-if="status.status == 'Inactive'" >
+					<p>Recorder is Inactive</p>
+					<p><button class="btn btn-primary btn-sm btn-new-doc" @click="record(true)">Start Recording</button></p>
+				</div>
+				<div class="msg-box no-border" v-if="status.status == 'Active'" >
+					<p>No Requests found</p>
+					<p>Go make some noise</p>
+				</div>
+			</div>
+			<div v-if="requests.length != 0" class="list-paging-area">
+				<div class="row">
+					<div class="col-xs-6">
+						<div class="btn-group btn-group-paging">
+							<button type="button" class="btn btn-default btn-sm" v-for="(limit, index) in [20, 100, 500]" :key="index" :class="query.pagination.limit == limit ? 'btn-info' : ''" @click="query.pagination.limit = limit">
+								{{ limit }}
+							</button>
+						</div>
+					</div>
+					<div class="col-xs-6 text-right">
+						<div class="btn-group btn-group-paging">
+							<button type="button" class="btn btn-default btn-sm" :class="page.status" v-for="(page, index) in pages" :key="index" @click="query.pagination.page = page.number">
+								{{ page.label }}
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -101,7 +116,7 @@ export default {
 			}, {
 				label: current_page,
 				number: current_page,
-				status: "active",
+				status: "btn-info",
 			}, {
 				label: "Next",
 				number: Math.min(current_page + 1, total_pages),
