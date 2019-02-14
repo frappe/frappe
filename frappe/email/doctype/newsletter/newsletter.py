@@ -137,7 +137,7 @@ def unsubscribe(email, name):
 		return
 
 	primary_action = frappe.utils.get_url() + "/api/method/frappe.email.doctype.newsletter.newsletter.confirmed_unsubscribe"+\
-		"?" + get_signed_params({"email": email, "name":name})
+		"?" + get_signed_params({"email": email, "name":name.encode('utf-8')})
 	return_confirmation_page(email, name, primary_action)
 
 

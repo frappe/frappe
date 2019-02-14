@@ -151,18 +151,10 @@ $.extend(frappe.perm, {
 			let rules = {};
 			let fields_to_check = frappe.meta.get_fields_to_check_permissions(doctype);
 			$.each(fields_to_check, (i, df) => {
-				const user_permissions_for_doctype = user_permissions[df.options];
-				// check if there are any user permission applicable for parent doctype
-				const has_user_permission = user_permissions_for_doctype ? user_permissions_for_doctype
-					.some(perm => !perm.applicable_for || perm.applicable_for === doctype) : false;
-
-				if (has_user_permission) {
-					rules[df.label] = [];
-					user_permissions_for_doctype.map(permission => {
-						if (!permission.applicable_for || permission.applicable_for === doctype) {
-							rules[df.label].push(permission.doc);
-						}
-					});
+				const user_permissions_for_doctype = user_permissions[df.options] || [];
+				const allowed_records = frappe.perm.get_allowed_docs_for_doctype(user_permissions_for_doctype, doctype);
+				if (allowed_records.length) {
+					rules[df.label] = allowed_records;
 				}
 			});
 			if (!$.isEmptyObject(rules)) {
@@ -260,4 +252,10 @@ $.extend(frappe.perm, {
 
 		return status === "None" ? false : true;
 	},
+
+	get_allowed_docs_for_doctype: (user_permissions, doctype) => {
+		return (user_permissions || []).filter(perm => {
+			return (perm.applicable_for === doctype || !perm.applicable_for);
+		}).map(perm => perm.doc);
+	}
 });
