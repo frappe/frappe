@@ -214,8 +214,8 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 					"columns": json.loads(doc.columns) if doc.columns else data[0],
 					"result": data
 				}
-		except:
-			doc = frappe.delete_doc("Prepared Report", doc.name)
+		except Exception:
+			frappe.delete_doc("Prepared Report", doc.name)
 			frappe.db.commit()
 			doc = None
 
