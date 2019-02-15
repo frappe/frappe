@@ -26,7 +26,7 @@
 									</div>
 									<div class="grid-body">
 										<div class="rows">
-											<div class="grid-row" :class="showing == index ? 'grid-row-open' : ''" @click="showing = index"  v-for="(call, index) in sorted(filtered(request.calls))" :key="call.index" v-bind="call">
+											<div class="grid-row" :class="showing == index ? 'grid-row-open' : ''" @click="showing = index"  v-for="(call, index) in request.calls" :key="call.index" v-bind="call">
 												<div class="data-row row" v-if="showing != index" style="display: block;">
 													<div class="row-index sortable-handle col col-xs-1">
 														<span>{{ call.index }}</span></div>
@@ -116,11 +116,6 @@ export default {
 			request: {
 				calls: [],
 			},
-			query: {
-				sort: "index",
-				order: "asc",
-				filters: {},
-			},
 		};
 	},
 	mounted() {
@@ -132,37 +127,6 @@ export default {
 		}).then( r => {
 			this.request = r.message
 		});
-	},
-	methods: {
-		filtered: function(calls) {
-			calls = calls.slice();
-			const filters = Object.entries(this.query.filters);
-			calls = calls.filter(
-				(r) => filters.map((f) => (r[f[0]] || "").match(f[1])).every(Boolean)
-			);
-			return calls;
-		},
-		sorted: function(calls) {
-			calls = calls.slice();
-			const order = (this.query.order == "asc") ? 1 : -1;
-			const sort = this.query.sort;
-			return calls.sort((a,b) => (a[sort] > b[sort]) ? order : -order);
-		},
-		sort: function(key) {
-			if(key == this.query.sort) {
-				this.query.order = (this.query.order == "asc") ? "desc" : "asc";
-			} else {
-				this.query.order = "asc";
-			}
-			this.query.sort = key;
-		},
-		glyphicon: function(key) {
-			if(key == this.query.sort) {
-				return (this.query.order == "asc") ? "glyphicon-sort-by-attributes" : "glyphicon-sort-by-attributes-alt";
-			} else {
-				return "glyphicon-sort";
-			}
-		},
 	}
 };
 </script>
