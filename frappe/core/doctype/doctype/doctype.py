@@ -56,7 +56,6 @@ class DocType(Document):
 			self.permissions = []
 
 		self.scrub_field_names()
-		self.scrub_options_in_select()
 		self.set_default_in_list_view()
 		self.set_default_translatable()
 		self.validate_series()
@@ -194,17 +193,6 @@ class DocType(Document):
 
 			# unique is automatically an index
 			if d.unique: d.search_index = 0
-
-	def scrub_options_in_select(self):
-		"""Strip options for whitespaces"""
-		for field in self.fields:
-			if field.fieldtype == "Select" and field.options is not None:
-				options_list = []
-				for i, option in enumerate(field.options.split("\n")):
-					_option = option.strip()
-					if i==0 or _option:
-						options_list.append(_option)
-				field.options = '\n'.join(options_list)
 
 	def validate_series(self, autoname=None, name=None):
 		"""Validate if `autoname` property is correctly set."""
@@ -693,6 +681,21 @@ def validate_fields(meta):
 				re.match("""[\w\.:_]+\s*={1}\s*[\w\.@'"]+""", depends_on):
 				frappe.throw(_("Invalid {0} condition").format(frappe.unscrub(field)), frappe.ValidationError)
 
+	def scrub_options_in_select(field):
+		"""Strip options for whitespaces"""
+
+		if field.fieldtype == "Select" and field.options is not None:
+			options_list = []
+			for i, option in enumerate(field.options.split("\n")):
+				_option = option.strip()
+				if i==0 or _option:
+					options_list.append(_option)
+			field.options = '\n'.join(options_list)
+
+	def scrub_fetch_from(field):
+		if hasattr(field, 'fetch_from') and getattr(field, 'fetch_from'):
+			field.fetch_from = field.fetch_from.strip('\n').strip()
+
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -720,6 +723,8 @@ def validate_fields(meta):
 		check_illegal_default(d)
 		check_unique_and_text(d)
 		check_illegal_depends_on_conditions(d)
+		scrub_options_in_select(d)
+		scrub_fetch_from(d)
 
 	check_fold(fields)
 	check_search_fields(meta, fields)

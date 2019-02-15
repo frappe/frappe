@@ -436,7 +436,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				cellHeight: 33,
 				showTotalRow: this.raw_data.add_total_row,
 				hooks: {
-					totalAccumulator: frappe.utils.report_total_accumulator
+					columnTotal: frappe.utils.report_column_total
 				}
 			};
 
