@@ -16,12 +16,12 @@ const routes = [
 	},
 	{
 		name: "request-detail",
-		path: '/desk#recorder/request/:request_uuid',
+		path: '/request/:request_uuid',
 		component: RequestDetail,
 	},
 	{
 		name: "sql-detail",
-		path: '/desk#recorder/request/:request_uuid/sql/:call_index',
+		path: '/request/:request_uuid/sql/:call_index',
 		component: SQLDetail,
 	},
 ];

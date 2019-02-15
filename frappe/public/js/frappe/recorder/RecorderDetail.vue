@@ -44,7 +44,7 @@
 
 				</div>
 				<div class="result-list">
-					<div class="list-row-container" v-for="request in paginated(sorted(filtered(requests)))" :key="request.index">
+					<router-link class="list-row-container" v-for="request in paginated(sorted(filtered(requests)))" :key="request.index" :to="{name: 'request-detail', params: {request_uuid: request.uuid}}" tag="div" v-bind="request">
 						<div class="level list-row small">
 							<div class="level-left ellipsis">
 								<div class="list-row-col ellipsis list-subject level ">
@@ -64,7 +64,7 @@
 								</div>
 							</div>
 						</div>
-					</div>
+					</router-link>
 				</div>
 			</div>
 			<div v-if="requests.length == 0" class="no-result text-muted flex justify-center align-center" style="">
