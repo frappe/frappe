@@ -379,7 +379,7 @@ frappe.request.report_error = function(xhr, request_opts) {
 		delete data.locals;
 	} else {
 		var exc = "";
-		var locals = "";
+		locals = "";
 	}
 
 	if (exc) {
