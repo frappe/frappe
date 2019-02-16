@@ -39,9 +39,7 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 			data = data.split(',').map(op => op.trim());
 			data = data.map(val => {
 				let option = this.df.options.find(op => op.label === val);
-				if(option) {
-					return option.value;
-				}
+				return option ? option.value : null;
 			}).filter(n => n != null).join(', ');
 		}
 		return data;
