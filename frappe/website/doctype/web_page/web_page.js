@@ -39,5 +39,9 @@ frappe.ui.form.on("Web Page", {
 
 			frm.set_value("end_date", end_date);
 		}
+	},
+
+	set_meta_tags(frm) {
+		frappe.utils.set_meta_tag(frm.doc.route);
 	}
 })

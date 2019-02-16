@@ -295,7 +295,8 @@
 		"public/js/frappe/form/footer/timeline.js",
 		"public/js/frappe/form/footer/assign_to.js",
 		"public/js/frappe/form/quick_entry.js",
-		"public/js/frappe/form/success_action.js"
+		"public/js/frappe/form/success_action.js",
+		"public/js/frappe/meta_tag.js"
 	],
 	"css/list.min.css": [
 		"public/less/list.less",

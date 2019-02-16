@@ -11,10 +11,12 @@ class WebsiteMetaTag(Document):
 		# can't have new lines in meta content
 		return (self.value or '').replace('\n', ' ')
 
-def set_metatags(meta_tags, context):
-	context.setdefault('metatags', frappe._dict({}))
+	def get_meta_dict(self):
+		return {
+			self.key: self.get_content()
+		}
 
-	for row in meta_tags:
-		context.metatags[row.key] = row.get_content()
-
-	return context
+	def set_in_context(self, context):
+		context.setdefault('metatags', frappe._dict({}))
+		context.metatags[self.key] = self.get_content()
+		return context

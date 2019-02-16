@@ -118,13 +118,9 @@ class WebPage(WebsiteGenerator):
 			raise frappe.Redirect
 
 	def set_metatags(self, context):
-		from frappe.website.doctype.website_meta_tag.website_meta_tag import set_metatags
 		context.metatags = {
 			"name": context.title
 		}
-
-		# set meta tags from Website Meta Tag child table
-		context = set_metatags(self.meta_tags, context)
 
 		image = find_first_image(context.main_section or "")
 		if image:
