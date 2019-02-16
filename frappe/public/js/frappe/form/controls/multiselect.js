@@ -46,7 +46,7 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 	},
 
 	set_formatted_input(value) {
-		if (!value) return
+		if (!value) return;
 		// find label of value from option list and set from it as input
 		if (this.df.options[0].label) {
 			value = value.split(',').map(d => d.trim()).map(val => {
