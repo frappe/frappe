@@ -77,8 +77,13 @@ frappe.get_route = function(route) {
 	// for app
 	route = frappe.get_raw_route_str(route).split('/');
 	route = $.map(route, frappe._decode_str);
-	var parts = route[route.length - 1].split("?");
-	route[route.length - 1] = parts[0];
+	if(route[route.length - 1].includes("?") && route[route.length - 1].includes("=")){
+		var parts = route[route.length - 1].split("?");
+		route[route.length - 1] = parts[0];
+	}
+	else{
+		var parts = route[route.length - 1];
+	}
 	if (parts.length > 1) {
 		var query_params = frappe.utils.get_query_params(parts[1]);
 		frappe.route_options = $.extend(frappe.route_options || {}, query_params);
