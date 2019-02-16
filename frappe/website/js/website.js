@@ -349,7 +349,7 @@ $.extend(frappe, {
 			$('.lazy-image').each((_, el) => {
 				replace_with_image(el);
 			});
-			return
+			return;
 		}
 
 		const io = new IntersectionObserver(
