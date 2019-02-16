@@ -1116,33 +1116,22 @@ class Document(BaseDocument):
 		"""Returns Desk URL for this document. `/desk#Form/{doctype}/{name}`"""
 		return "/desk#Form/{doctype}/{name}".format(doctype=self.doctype, name=self.name)
 
-	def add_comment(self, comment_type, text=None, comment_by=None, link_doctype=None, link_name=None):
+	def add_comment(self, comment_type='Comment', text=None, comment_email=None, link_doctype=None, link_name=None, comment_by=None):
 		"""Add a comment to this document.
 
 		:param comment_type: e.g. `Comment`. See Communication for more info."""
 
-		if comment_type=='Comment':
-			out = frappe.get_doc({
-				"doctype":"Communication",
-				"communication_type": "Comment",
-				"sender": comment_by or frappe.session.user,
-				"comment_type": comment_type,
-				"reference_doctype": self.doctype,
-				"reference_name": self.name,
-				"content": text or comment_type,
-				"link_doctype": link_doctype,
-				"link_name": link_name
-			}).insert(ignore_permissions=True)
-		else:
-			out = frappe.get_doc(dict(
-				doctype='Version',
-				ref_doctype= self.doctype,
-				docname= self.name,
-				data = frappe.as_json(dict(comment_type=comment_type, comment=text))
-			))
-			if comment_by:
-				out.owner = comment_by
-			out.insert(ignore_permissions=True)
+		out = frappe.get_doc({
+			"doctype":"Comment",
+			'comment_type': comment_type,
+			"comment_email": comment_email or frappe.session.user,
+			"comment_by": comment_by,
+			"reference_doctype": self.doctype,
+			"reference_name": self.name,
+			"content": text or comment_type,
+			"link_doctype": link_doctype,
+			"link_name": link_name
+		}).insert(ignore_permissions=True)
 		return out
 
 	def add_seen(self, user=None):

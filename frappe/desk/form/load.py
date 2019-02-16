@@ -94,6 +94,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 	frappe.response["docinfo"] = {
 		"attachments": get_attachments(doc.doctype, doc.name),
 		"communications": _get_communications(doc.doctype, doc.name),
+		'comments': get_comments(doc.doctype, doc.name),
 		'total_comments': len(json.loads(doc.get('_comments') or '[]')),
 		'versions': get_versions(doc),
 		"assignments": get_assignments(doc.doctype, doc.name),
@@ -120,6 +121,19 @@ def get_communications(doctype, name, start=0, limit=20):
 	return _get_communications(doctype, name, start, limit)
 
 
+def get_comments(doctype, name):
+	comments = frappe.get_all('Comment', fields = ['*'], filters = dict(
+		reference_doctype = doctype,
+		reference_name = name
+	))
+
+	# convert to markdown (legacy ?)
+	for c in comments:
+		if c.comment_type == 'Comment':
+			c.content = frappe.utils.markdown(c.content)
+
+	return comments
+
 def _get_communications(doctype, name, start=0, limit=20):
 	communications = get_communication_data(doctype, name, start, limit)
 	for c in communications:
@@ -130,8 +144,6 @@ def _get_communications(doctype, name, start=0, limit=20):
 					"attached_to_name": c.name}
 				))
 
-		elif c.communication_type=="Comment" and c.comment_type=="Comment":
-			c.content = frappe.utils.markdown(c.content)
 	return communications
 
 def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=None,
@@ -144,17 +156,13 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 			`timeline_doctype`, `timeline_name`, `reference_doctype`, `reference_name`,
 			`link_doctype`, `link_name`, `read_by_recipient`, `rating`, 'Communication' AS `doctype`'''
 
-	conditions = '''communication_type in ('Communication', 'Comment', 'Feedback')
+	conditions = '''communication_type in ('Communication', 'Feedback')
 			and (
 				(reference_doctype=%(doctype)s and reference_name=%(name)s)
 				or (
-				(timeline_doctype=%(doctype)s and timeline_name=%(name)s)
-				and (
-				communication_type='Communication'
-				or (
-					communication_type='Comment'
-					and comment_type in ('Created', 'Updated', 'Submitted', 'Cancelled', 'Deleted')
-				)))
+					(timeline_doctype=%(doctype)s and timeline_name=%(name)s)
+					and (communication_type='Communication')
+				)
 			)'''
 
 

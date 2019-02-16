@@ -88,6 +88,13 @@ Object.assign(frappe.utils, {
 	escape_html: function(txt) {
 		return $("<div></div>").text(txt || "").html();
 	},
+
+	html2text: function(html) {
+		let d = document.createElement('div');
+		d.innerHTML = html;
+		return d.textContent;
+	},
+
 	is_url: function(txt) {
 		return txt.toLowerCase().substr(0,7)=='http://'
 			|| txt.toLowerCase().substr(0,8)=='https://'

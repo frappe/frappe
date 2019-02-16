@@ -33,7 +33,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	:param sender: Communcation sender (default current user).
 	:param recipients: Communication recipients as list.
 	:param communication_medium: Medium of communication (default **Email**).
-	:param send_mail: Send via email (default **False**).
+	:param send_email: Send via email (default **False**).
 	:param print_html: HTML Print format to be sent as attachment.
 	:param print_format: Print Format name of parent document to be sent as attachment.
 	:param attachments: List of attachments as list of files or JSON string.
@@ -49,6 +49,9 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 
 	if not sender:
 		sender = get_formatted_email(frappe.session.user)
+
+	if isinstance(recipients, list):
+		recipients = ', '.join(recipients)
 
 	comm = frappe.get_doc({
 		"doctype":"Communication",
@@ -497,9 +500,9 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 					recipients=recipients, cc=cc, bcc=bcc)
 
-			except frappe.db.InternalError:
+			except frappe.db.InternalError as e:
 				# deadlock, try again
-				if frappe.db.is_deadlocked():
+				if frappe.db.is_deadlocked(e):
 					frappe.db.rollback()
 					time.sleep(1)
 					continue

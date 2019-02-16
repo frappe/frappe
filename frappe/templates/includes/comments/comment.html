@@ -1,11 +1,11 @@
 <div class="comment-row">
 	<div class="inline-block" style="vertical-align: top">
 		<div class="avatar avatar-medium" style="margin-top: 11px;">
-			<img itemprop="thumbnailUrl" src="{{ frappe.get_gravatar(comment.sender) }}" />
+			<img itemprop="thumbnailUrl" src="{{ frappe.get_gravatar(comment.comment_email) }}" />
 		</div>
 	</div>
 	<div class="inline-block" style="width: calc(100% - 50px)">
-		<h6 itemprop="name">{{ comment.sender_full_name }}
+		<h6 itemprop="name">{{ comment.comment_by }}
 			<span class="text-muted pull-right" itemprop="commentTime">
 				{{ comment.creation|global_date_format }}
 			</span>
