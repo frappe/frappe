@@ -1,12 +1,5 @@
 {%- if metatags -%}
 {%- for name in metatags %}
-<meta
-	{% if name.startswith('og:') %}
-	property="{{ name }}"
-	{% else %}
-	name="{{ name }}"
-	{% endif %}
-	content="{{ metatags[name] | striptags | escape }}"
->
+<meta {% if name.startswith('og:') %}property="{{ name }}"{% else %}name="{{ name }}"{% endif %} content="{{ metatags[name] | striptags | escape }}">
 {%- endfor -%}
 {%- endif -%}
