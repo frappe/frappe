@@ -6,7 +6,7 @@ import frappe, re, os
 from frappe.utils.pdf import get_pdf
 from frappe.email.smtp import get_outgoing_email_account
 from frappe.utils import (get_url, scrub_urls, strip, expand_relative_urls, cint,
-	split_emails, to_markdown, markdown, encode, random_string, parse_addr)
+	split_emails, to_markdown, markdown, random_string, parse_addr)
 import email.utils
 from six import iteritems, text_type, string_types
 from email.mime.multipart import MIMEMultipart
@@ -174,6 +174,7 @@ class EMail:
 		self.reply_to = validate_email_add(strip(self.reply_to) or self.sender, True)
 
 		self.replace_sender()
+		self.replace_sender_name()
 
 		self.recipients = [strip(r) for r in self.recipients]
 		self.cc = [strip(r) for r in self.cc]
@@ -187,6 +188,12 @@ class EMail:
 			self.set_header('X-Original-From', self.sender)
 			sender_name, sender_email = parse_addr(self.sender)
 			self.sender = email.utils.formataddr((str(Header(sender_name or self.email_account.name, 'utf-8')), self.email_account.email_id))
+
+	def replace_sender_name(self):
+		if cint(self.email_account.always_use_account_name_as_sender_name):
+			self.set_header('X-Original-From', self.sender)
+			sender_name, sender_email = parse_addr(self.sender)
+			self.sender = email.utils.formataddr((str(Header(self.email_account.name, 'utf-8')), sender_email))
 
 	def set_message_id(self, message_id, is_notification=False):
 		if message_id:
@@ -209,7 +216,6 @@ class EMail:
 			"To":             ', '.join(self.recipients) if self.expose_recipients=="header" else "<!--recipient-->",
 			"Date":           email.utils.formatdate(),
 			"Reply-To":       self.reply_to if self.reply_to else None,
-			"Bcc":            ', '.join(self.bcc) if self.bcc else None,
 			"CC":             ', '.join(self.cc) if self.cc and self.expose_recipients=="header" else None,
 			'X-Frappe-Site':  get_url(),
 		}

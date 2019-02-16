@@ -2,7 +2,7 @@
 # Copyright (c) 2017, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+from __future__ import print_function, unicode_literals
 import os
 import os.path
 import frappe
@@ -16,10 +16,13 @@ from botocore.exceptions import ClientError
 class S3BackupSettings(Document):
 
 	def validate(self):
+		if not self.endpoint_url:
+			self.endpoint_url = 'https://s3.amazonaws.com'
 		conn = boto3.client(
 			's3',
 			aws_access_key_id=self.access_key_id,
 			aws_secret_access_key=self.get_password('secret_access_key'),
+			endpoint_url=self.endpoint_url
 		)
 
 		bucket_lower = str(self.bucket)
@@ -106,6 +109,7 @@ def backup_to_s3():
 			's3',
 			aws_access_key_id=doc.access_key_id,
 			aws_secret_access_key=doc.get_password('secret_access_key'),
+			endpoint_url=doc.endpoint_url or 'https://s3.amazonaws.com'
 			)
 
 	backup = new_backup(ignore_files=False, backup_path_db=None,
@@ -125,11 +129,11 @@ def upload_file_to_s3(filename, folder, conn, bucket):
 
 	destpath = os.path.join(folder, os.path.basename(filename))
 	try:
-		print "Uploading file:", filename
+		print("Uploading file:", filename)
 		conn.upload_file(filename, bucket, destpath)
 
 	except Exception as e:
-		print "Error uploading: %s" % (e)
+		print("Error uploading: %s" % (e))
 
 
 def delete_old_backups(limit, bucket):
@@ -141,6 +145,7 @@ def delete_old_backups(limit, bucket):
 			's3',
 			aws_access_key_id=doc.access_key_id,
 			aws_secret_access_key=doc.get_password('secret_access_key'),
+			endpoint_url=doc.endpoint_url or 'https://s3.amazonaws.com'
 			)
 	bucket = s3.Bucket(bucket)
 	objects = bucket.meta.client.list_objects_v2(Bucket=bucket.name, Delimiter='/')
@@ -150,7 +155,7 @@ def delete_old_backups(limit, bucket):
 	oldest_backup = sorted(all_backups)[0]
 
 	if len(all_backups) > backup_limit:
-		print "Deleting Backup: {0}".format(oldest_backup)
+		print("Deleting Backup: {0}".format(oldest_backup))
 		for obj in bucket.objects.filter(Prefix=oldest_backup):
 			# delete all keys that are inside the oldest_backup
 			s3.Object(bucket.name, obj.key).delete()

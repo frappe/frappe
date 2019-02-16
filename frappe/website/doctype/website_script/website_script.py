@@ -9,11 +9,10 @@ import frappe
 from frappe.model.document import Document
 
 class WebsiteScript(Document):
-		
+
 	def on_update(self):
 		"""clear cache"""
-		from frappe.sessions import clear_cache
-		clear_cache('Guest')
+		frappe.clear_cache(user = 'Guest')
 
 		from frappe.website.render import clear_cache
 		clear_cache()

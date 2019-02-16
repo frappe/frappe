@@ -1,6 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import showdown from 'showdown';
+
 frappe.provide("frappe.tools");
 
 frappe.tools.downloadify = function(data, roles, title) {
@@ -34,7 +36,7 @@ frappe.tools.downloadify = function(data, roles, title) {
 
 frappe.markdown = function(txt) {
 	if(!frappe.md2html) {
-		frappe.md2html = new Showdown.converter();
+		frappe.md2html = new showdown.Converter();
 	}
 
 	while(txt.substr(0,1)==="\n") {
@@ -66,7 +68,8 @@ frappe.tools.to_csv = function(data) {
 	var res = [];
 	$.each(data, function(i, row) {
 		row = $.map(row, function(col) {
-			return typeof(col)==="string" ? ('"' + $('<i>').html(col.replace(/"/g, '""')).text() + '"') : col;
+			if (col === null || col === undefined) col = '';
+			return typeof col === "string" ? ('"' + $('<i>').html(col.replace(/"/g, '""')).text() + '"') : col;
 		});
 		res.push(row.join(","));
 	});
@@ -77,7 +80,7 @@ frappe.slickgrid_tools = {
 	get_filtered_items: function(dataView) {
 		var data = [];
 		for (var i=0, len=dataView.getLength(); i<len; i++) {
-			// remove single quotes at start and end of total labels when print/pdf 
+			// remove single quotes at start and end of total labels when print/pdf
 			var obj = dataView.getItem(i);
 			for (var item in obj) {
 				if(obj.hasOwnProperty(item) && typeof(obj[item]) == "string"
@@ -94,8 +97,8 @@ frappe.slickgrid_tools = {
 		var res = [];
 		var col_map = $.map(columns, function(v) { return v.field; });
 
-		for (var i=0, len=dataView.getLength(); i<len; i++) {
-			var d = dataView.getItem(i);
+		for (var i=0, len=dataView.length; i<len; i++) {
+			var d = dataView[i];
 			var row = [];
 			$.each(col_map, function(i, col) {
 				var val = d[col];

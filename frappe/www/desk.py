@@ -11,7 +11,6 @@ import os, re
 import frappe
 from frappe import _
 import frappe.sessions
-from six import text_type
 
 def get_context(context):
 	if (frappe.session.user == "Guest" or
@@ -66,13 +65,18 @@ def get_desk_assets(build_version):
 				path = path.replace('/assets/', 'assets/')
 			try:
 				with open(os.path.join(frappe.local.sites_path, path) ,"r") as f:
-					assets[0]["data"] = assets[0]["data"] + "\n" + text_type(f.read(), "utf-8")
+					assets[0]["data"] = assets[0]["data"] + "\n" + frappe.safe_decode(f.read(), "utf-8")
 			except IOError:
 				pass
 
 		for path in data["include_css"]:
-			with open(os.path.join(frappe.local.sites_path, path) ,"r") as f:
-				assets[1]["data"] = assets[1]["data"] + "\n" + text_type(f.read(), "utf-8")
+			if path.startswith('/assets/'):
+				path = path.replace('/assets/', 'assets/')
+			try:
+				with open(os.path.join(frappe.local.sites_path, path) ,"r") as f:
+					assets[1]["data"] = assets[1]["data"] + "\n" + frappe.safe_decode(f.read(), "utf-8")
+			except IOError:
+				pass
 
 	return {
 		"build_version": data["build_version"],
@@ -81,4 +85,9 @@ def get_desk_assets(build_version):
 	}
 
 def get_build_version():
-	return str(os.path.getmtime(os.path.join(frappe.local.sites_path, '.build')))
+	try:
+		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, '.build')))
+	except OSError:
+		# .build can sometimes not exist
+		# this is not a major problem so send fallback
+		return frappe.utils.random_string(8)

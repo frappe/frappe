@@ -119,7 +119,7 @@ $.extend(frappe.desktop, {
 				frappe.desktop.open_module($(this));
 			});
 		} else {
-			frappe.desktop.wrapper.on("click", ".app-icon", function() {
+			frappe.desktop.wrapper.on("click", ".app-icon, .app-icon-svg", function() {
 				if ( !frappe.desktop.wiggling ) {
 					frappe.desktop.open_module($(this).parent());
 				}
@@ -262,6 +262,7 @@ $.extend(frappe.desktop, {
 		}
 
 		new Sortable($("#icon-grid").get(0), {
+			animation: 150,
 			onUpdate: function(event) {
 				var new_order = [];
 				$("#icon-grid .case-wrapper").each(function(i, e) {
@@ -293,28 +294,36 @@ $.extend(frappe.desktop, {
 			var module_doctypes = frappe.boot.notification_info.module_doctypes[module.module_name];
 
 			var sum = 0;
-			if(module_doctypes) {
-				if(frappe.boot.notification_info.open_count_doctype) {
-					// sum all doctypes for a module
-					for (var j=0, k=module_doctypes.length; j < k; j++) {
-						var doctype = module_doctypes[j];
-						sum += (frappe.boot.notification_info.open_count_doctype[doctype] || 0);
-					}
+
+			if(module_doctypes && frappe.boot.notification_info.open_count_doctype) {
+				// sum all doctypes for a module
+				for (var j=0, k=module_doctypes.length; j < k; j++) {
+					var doctype = module_doctypes[j];
+					let count = (frappe.boot.notification_info.open_count_doctype[doctype] || 0);
+					count = typeof count == "string" ? parseInt(count) : count;
+					sum += count;
 				}
-			} else if(frappe.boot.notification_info.open_count_doctype
+			}
+
+			if(frappe.boot.notification_info.open_count_doctype
 				&& frappe.boot.notification_info.open_count_doctype[module.module_name]!=null) {
 				// notification count explicitly for doctype
-				sum = frappe.boot.notification_info.open_count_doctype[module.module_name];
+				let count = frappe.boot.notification_info.open_count_doctype[module.module_name] || 0;
+				count = typeof count == "string" ? parseInt(count) : count;
+				sum += count;
+			}
 
-			} else if(frappe.boot.notification_info.open_count_module
+			if(frappe.boot.notification_info.open_count_module
 				&& frappe.boot.notification_info.open_count_module[module.module_name]!=null) {
 				// notification count explicitly for module
-				sum = frappe.boot.notification_info.open_count_module[module.module_name];
+				let count = frappe.boot.notification_info.open_count_module[module.module_name] || 0;
+				count = typeof count == "string" ? parseInt(count) : count;
+				sum += count;
 			}
 
 			// if module found
 			if(module._id.indexOf('/')===-1 && !module._report) {
-				var notifier = $(".module-count-" + module._id);
+				var notifier = $(".module-count-" + frappe.scrub(module._id));
 				if(notifier.length) {
 					notifier.toggle(sum ? true : false);
 					var circle = notifier.find(".circle-text");

@@ -12,7 +12,7 @@ from frappe.utils.password import delete_all_passwords_for
 from frappe import _
 from frappe.model.naming import revert_series_if_last
 from frappe.utils.global_search import delete_for_document
-from six import string_types
+from six import string_types, integer_types
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
 	ignore_permissions=False, flags=None, ignore_on_trash=False, ignore_missing=True):
@@ -27,7 +27,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 		name = frappe.form_dict.get('dn')
 
 	names = name
-	if isinstance(name, string_types):
+	if isinstance(name, string_types) or isinstance(name, integer_types):
 		names = [name]
 
 	for name in names or []:
@@ -80,7 +80,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 					doc.run_method('on_change')
 
 				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links', doctype=doc.doctype, name=doc.name,
-					async=False if frappe.flags.in_test else True)
+					is_async=False if frappe.flags.in_test else True)
 
 				# check if links exist
 				if not force:
@@ -214,7 +214,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 	'''Raise `frappe.LinkExistsError` if the document is dynamically linked'''
 	for df in get_dynamic_link_map().get(doc.doctype, []):
-		if df.parent in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", 'File', 'Version'):
+		if df.parent in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", 'File', 'Version', 'View Log'):
 			# don't check for communication and todo!
 			continue
 
@@ -280,6 +280,10 @@ def delete_dynamic_links(doctype, name):
 			communication_type = 'Comment'
 			and reference_doctype=%s and reference_name=%s""", (doctype, name))
 
+	# delete view logs
+	frappe.db.sql("""delete from `tabView Log`
+		where reference_doctype=%s and reference_name=%s""", (doctype, name))
+
 	# unlink communications
 	frappe.db.sql("""update `tabCommunication`
 		set reference_doctype=null, reference_name=null
@@ -324,4 +328,3 @@ def insert_feed(doc):
 		"subject": "{0} {1}".format(_(doc.doctype), doc.name),
 		"full_name": get_fullname(doc.owner)
 	}).insert(ignore_permissions=True)
-

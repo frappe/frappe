@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 # IMPORTANT: only import safe functions as this module will be included in jinja environment
 import frappe
 import operator
-import re, urllib, datetime, math, time
+import re, datetime, math, time
 import babel.dates
 from babel.core import UnknownLocaleError
 from dateutil import parser
@@ -129,7 +129,7 @@ def get_eta(from_time, percent_complete):
 	return str(datetime.timedelta(seconds=(100 - percent_complete) / percent_complete * diff))
 
 def _get_time_zone():
-	return frappe.db.get_system_setting('time_zone') or 'Asia/Kolkata'
+	return frappe.db.get_system_setting('time_zone') or 'Asia/Kolkata' # Default to India ?!
 
 def get_time_zone():
 	if frappe.local.flags.in_test:
@@ -223,7 +223,8 @@ def formatdate(string_date=None, format_string=None):
 
 	date = getdate(string_date)
 	if not format_string:
-		format_string = get_user_format().replace("mm", "MM")
+		format_string = get_user_format()
+	format_string = format_string.replace("mm", "MM")
 	try:
 		formatted_date = babel.dates.format_date(date, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
 	except UnknownLocaleError:
@@ -252,10 +253,10 @@ def format_datetime(datetime_string, format_string=None):
 		formatted_datetime = datetime.strftime('%Y-%m-%d %H:%M:%S')
 	return formatted_datetime
 
-def global_date_format(date):
+def global_date_format(date, format="long"):
 	"""returns localized date in the form of January 1, 2012"""
 	date = getdate(date)
-	formatted_date = babel.dates.format_date(date, locale=(frappe.local.lang or "en").replace("-", "_"), format="long")
+	formatted_date = babel.dates.format_date(date, locale=(frappe.local.lang or "en").replace("-", "_"), format=format)
 	return formatted_date
 
 def has_common(l1, l2):
@@ -352,9 +353,22 @@ def remainder(numerator, denominator, precision=2):
 
 	return flt(_remainder, precision);
 
+def safe_div(numerator, denominator, precision=2):
+	"""
+	SafeMath division that returns zero when divided by zero.
+	"""
+	precision = cint(precision)
+
+	if denominator == 0:
+		_res = 0.0
+	else:
+		_res = float(numerator) / denominator
+
+	return flt(_res, precision)
+
 def round_based_on_smallest_currency_fraction(value, currency, precision=2):
 	smallest_currency_fraction_value = flt(frappe.db.get_value("Currency",
-		currency, "smallest_currency_fraction_value"))
+		currency, "smallest_currency_fraction_value", cache=True))
 
 	if smallest_currency_fraction_value:
 		remainder_val = remainder(value, smallest_currency_fraction_value, precision)
@@ -408,20 +422,26 @@ def fmt_money(amount, precision=None, currency=None):
 	# 40,000.00000 -> 40,000.00
 	# 40,000.23000 -> 40,000.23
 
+	if isinstance(amount, string_types):
+		amount = flt(amount, precision)
+
 	if decimal_str:
-		parts = str(amount).split(decimal_str)
-		decimals = parts[1] if len(parts) > 1 else ''
+		decimals_after = str(round(amount % 1, precision))
+		parts = decimals_after.split('.')
+		parts = parts[1] if len(parts) > 1 else parts[0]
+		decimals = parts
 		if precision > 2:
 			if len(decimals) < 3:
 				if currency:
-					fraction  = frappe.db.get_value("Currency", currency, "fraction_units") or 100
+					fraction  = frappe.db.get_value("Currency", currency, "fraction_units", cache=True) or 100
 					precision = len(cstr(fraction)) - 1
 				else:
 					precision = number_format_precision
 			elif len(decimals) < precision:
 				precision = len(decimals)
 
-	amount = '%.*f' % (precision, flt(amount))
+	amount = '%.*f' % (precision, round(flt(amount), precision))
+
 	if amount.find('.') == -1:
 		decimals = ''
 	else:
@@ -449,10 +469,11 @@ def fmt_money(amount, precision=None, currency=None):
 	parts.reverse()
 
 	amount = comma_str.join(parts) + ((precision and decimal_str) and (decimal_str + decimals) or "")
-	amount = minus + amount
+	if amount != '0':
+		amount = minus + amount
 
 	if currency and frappe.defaults.get_global_default("hide_currency_symbol") != "Yes":
-		symbol = frappe.db.get_value("Currency", currency, "symbol") or currency
+		symbol = frappe.db.get_value("Currency", currency, "symbol", cache=True) or currency
 		amount = symbol + " " + amount
 
 	return amount
@@ -497,7 +518,7 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	if not main_currency:
 		main_currency = d.get('currency', 'INR')
 	if not fraction_currency:
-		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction") or _("Cent")
+		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction", cache=True) or _("Cent")
 
 	number_format = frappe.db.get_value("Currency", main_currency, "number_format", cache=True) or \
 		frappe.db.get_default("number_format") or "#,###.##"
@@ -547,12 +568,9 @@ def in_words(integer, in_million=True):
 	return ret.replace('-', ' ')
 
 def is_html(text):
-	out = False
-	for key in ["<br>", "<p", "<img", "<div"]:
-		if key in text:
-			out = True
-			break
-	return out
+	if not isinstance(text, frappe.string_types):
+		return False
+	return re.search('<[^>]+>', text)
 
 def is_image(filepath):
 	from mimetypes import guess_type
@@ -706,12 +724,18 @@ def get_url(uri=None, full_address=False):
 	if not uri and full_address:
 		uri = frappe.get_request_header("REQUEST_URI", "")
 
-	if frappe.conf.http_port:
-		host_name = host_name + ':' + str(frappe.conf.http_port)
+	port = frappe.conf.http_port or frappe.conf.webserver_port
+
+	if not (frappe.conf.restart_supervisor_on_update or frappe.conf.restart_systemd_on_update) and host_name and not url_contains_port(host_name) and port:
+		host_name = host_name + ':' + str(port)
 
 	url = urljoin(host_name, uri) if uri else host_name
 
 	return url
+
+def url_contains_port(url):
+	parts = url.split(':')
+	return len(parts) > 2
 
 def get_host_name():
 	return get_url().rsplit("//", 1)[-1]
@@ -720,6 +744,9 @@ def get_link_to_form(doctype, name, label=None):
 	if not label: label = name
 
 	return """<a href="{0}">{1}</a>""".format(get_url_to_form(doctype, name), label)
+
+def get_absolute_url(doctype, name):
+	return "desk#Form/{0}/{1}".format(quoted(doctype), quoted(name))
 
 def get_url_to_form(doctype, name):
 	return get_url(uri = "desk#Form/{0}/{1}".format(quoted(doctype), quoted(name)))
@@ -797,7 +824,8 @@ def get_filter(doctype, f):
 
 	if len(f) == 3:
 		f = (doctype, f[0], f[1], f[2])
-
+	elif len(f) > 4:
+		f = f[0:4]
 	elif len(f) != 4:
 		frappe.throw(frappe._("Filter must have 4 values (doctype, fieldname, operator, value): {0}").format(str(f)))
 
@@ -809,7 +837,9 @@ def get_filter(doctype, f):
 		# if operator is missing
 		f.operator = "="
 
-	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in", "between")
+	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in",
+		"between", "descendants of", "ancestors of", "not descendants of", "not ancestors of", "is")
+
 	if f.operator.lower() not in valid_operators:
 		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
 
@@ -929,10 +959,21 @@ def to_markdown(html):
 
 	return text
 
-def to_html(markdown_text):
+def md_to_html(markdown_text):
+	extras = {
+		'fenced-code-blocks': None,
+		'tables': None,
+		'header-ids': None,
+		'highlightjs-lang': None,
+		'html-classes': {
+			'table': 'table table-bordered',
+			'img': 'screenshot'
+		}
+	}
+
 	html = None
 	try:
-		html = markdown(markdown_text)
+		html = markdown(markdown_text, extras=extras)
 	except MarkdownError:
 		pass
 
@@ -944,3 +985,7 @@ def get_source_value(source, key):
 		return source.get(key)
 	else:
 		return getattr(source, key)
+
+def is_subset(list_a, list_b):
+	'''Returns whether list_a is a subset of list_b'''
+	return len(list(set(list_a) & set(list_b))) == len(list_a)

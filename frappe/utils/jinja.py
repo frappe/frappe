@@ -56,7 +56,7 @@ def render_template(template, context, is_path=None, safe_render=True):
 	:param template: path or HTML containing the jinja template
 	:param context: dict of properties to pass to the template
 	:param is_path: (optional) assert that the `template` parameter is a path
-	:param safe_render: (optional) prevent server side scripting via jinja templating 
+	:param safe_render: (optional) prevent server side scripting via jinja templating
 	'''
 
 	from frappe import throw
@@ -117,22 +117,24 @@ def get_allowed_functions_for_jenv():
 			'date_format': date_format,
 			"format_date": frappe.utils.data.global_date_format,
 			"form_dict": getattr(frappe.local, 'form_dict', {}),
-			"local": frappe.local,
 			"get_hooks": frappe.get_hooks,
 			"get_meta": frappe.get_meta,
 			"get_doc": frappe.get_doc,
 			"get_list": frappe.get_list,
 			"get_all": frappe.get_all,
+			'get_system_settings': frappe.get_system_settings,
 			"utils": datautils,
 			"user": user,
 			"get_fullname": frappe.utils.get_fullname,
 			"get_gravatar": frappe.utils.get_gravatar_url,
 			"full_name": frappe.local.session.data.full_name if getattr(frappe.local, "session", None) else "Guest",
 			"render_template": frappe.render_template,
+			"request": getattr(frappe.local, 'request', {}),
 			'session': {
 				'user': user,
 				'csrf_token': frappe.local.session.data.csrf_token if getattr(frappe.local, "session", None) else ''
 			},
+			"socketio_port": frappe.conf.socketio_port,
 		},
 		'style': {
 			'border_color': '#d1d8dd'

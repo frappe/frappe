@@ -6,18 +6,23 @@ frappe.patches.v7_0.update_auth
 frappe.patches.v8_0.drop_in_dialog #2017-09-22
 frappe.patches.v7_2.remove_in_filter
 execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2017-09-22
-execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2017-03-03
-execute:frappe.reload_doc('core', 'doctype', 'docperm') #2017-03-03
+execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2018-02-20
+execute:frappe.reload_doc('core', 'doctype', 'custom_docperm')
+execute:frappe.reload_doc('core', 'doctype', 'docperm') #2018-05-29
 frappe.patches.v8_0.drop_is_custom_from_docperm
 execute:frappe.reload_doc('core', 'doctype', 'module_def') #2017-09-22
 execute:frappe.reload_doc('core', 'doctype', 'version') #2017-04-01
-execute:frappe.reload_doc('core', 'doctype', 'activity_log')
+frappe.patches.v11_0.replicate_old_user_permissions
+frappe.patches.v11_0.drop_column_apply_user_permissions
+frappe.patches.v11_0.reload_and_rename_view_log #2019-01-03
 frappe.patches.v7_1.rename_scheduler_log_to_error_log
 frappe.patches.v6_1.rename_file_data
 frappe.patches.v7_0.re_route #2016-06-27
 frappe.patches.v8_0.update_records_in_global_search #11-05-2017
 frappe.patches.v8_0.update_published_in_global_search
-execute:frappe.reload_doc('core', 'doctype', 'custom_docperm')
+frappe.patches.v11_0.copy_fetch_data_from_options
+frappe.patches.v11_0.change_email_signature_fieldtype
+execute:frappe.reload_doc('core', 'doctype', 'activity_log')
 execute:frappe.reload_doc('core', 'doctype', 'deleted_document')
 execute:frappe.reload_doc('core', 'doctype', 'domain_settings')
 frappe.patches.v8_0.rename_page_role_to_has_role #2017-03-16
@@ -168,7 +173,6 @@ frappe.patches.v8_0.drop_unwanted_indexes
 execute:frappe.db.sql("update tabCommunication set communication_date = creation where time(communication_date) = 0")
 frappe.patches.v7_2.fix_email_queue_recipient
 frappe.patches.v7_2.update_feedback_request # 2017-02-27
-execute:frappe.delete_doc("DocType", "Hub Settings", ignore_missing=True)
 execute:frappe.rename_doc('Country', 'Macedonia, Republic of', 'Macedonia', ignore_if_exists=True)
 execute:frappe.rename_doc('Country', 'Iran, Islamic Republic of', 'Iran', ignore_if_exists=True)
 execute:frappe.rename_doc('Country', 'Tanzania, United Republic of', 'Tanzania', ignore_if_exists=True)
@@ -202,8 +206,32 @@ frappe.patches.v9_1.revert_domain_settings
 frappe.patches.v9_1.move_feed_to_activity_log
 execute:frappe.delete_doc('Page', 'data-import-tool', ignore_missing=True)
 frappe.patches.v10_0.reload_countries_and_currencies
+frappe.patches.v10_0.refactor_social_login_keys
+frappe.patches.v10_0.enable_chat_by_default_within_system_settings
+frappe.patches.v10_0.remove_custom_field_for_disabled_domain
+execute:frappe.delete_doc("Page", "chat")
+frappe.patches.v10_0.migrate_passwords_passlib
+frappe.patches.v11_0.rename_standard_reply_to_email_template
+execute:frappe.delete_doc_if_exists('Page', 'user-permissions')
 frappe.patches.v10_0.set_no_copy_to_workflow_state
 frappe.patches.v10_0.increase_single_table_column_length
+frappe.patches.v11_0.create_contact_for_user
+frappe.patches.v11_0.sync_stripe_settings_before_migrate
+frappe.patches.v11_0.update_list_user_settings
+frappe.patches.v11_0.rename_workflow_action_to_workflow_action_master #13-06-2018
+frappe.patches.v11_0.rename_email_alert_to_notification #13-06-2018
+frappe.patches.v11_0.delete_duplicate_user_permissions
+frappe.patches.v11_0.set_dropbox_file_backup
 frappe.patches.v10_0.set_default_locking_time
+frappe.patches.v11_0.rename_google_maps_doctype
 frappe.patches.v10_0.modify_smallest_currency_fraction
 frappe.patches.v10_0.modify_naming_series_table
+frappe.patches.v10_0.enhance_security
+frappe.patches.v11_0.multiple_references_in_events
+frappe.patches.v11_0.set_allow_self_approval_in_workflow
+frappe.patches.v11_0.remove_skip_for_doctype
+frappe.patches.v11_0.migrate_report_settings_for_new_listview
+frappe.patches.v11_0.delete_all_prepared_reports
+frappe.patches.v11_0.fix_order_by_in_reports_json
+execute:frappe.delete_doc('Page', 'applications', ignore_missing=True)
+frappe.patches.v11_0.set_missing_creation_and_modified_value_for_user_permissions

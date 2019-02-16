@@ -9,6 +9,7 @@ import frappe.utils
 import json, os
 
 from six import iteritems, string_types, integer_types
+from frappe.utils.file_manager import save_file
 
 '''
 Handle RESTful requests that are mapped to the `/api/resource` route.
@@ -28,10 +29,14 @@ def get_list(doctype, fields=None, filters=None, order_by=None,
 	:param limit_start: Start at this index
 	:param limit_page_length: Number of records to be returned (default 20)'''
 	if frappe.is_table(doctype):
-		check_parent_permission(parent)
+		check_parent_permission(parent, doctype)
 
 	return frappe.get_list(doctype, fields=fields, filters=filters, order_by=order_by,
 		limit_start=limit_start, limit_page_length=limit_page_length, ignore_permissions=False)
+
+@frappe.whitelist()
+def get_count(doctype, filters=None, debug=False, cache=False):
+	return frappe.db.count(doctype, filters, debug, cache)
 
 @frappe.whitelist()
 def get(doctype, name=None, filters=None, parent=None):
@@ -41,7 +46,7 @@ def get(doctype, name=None, filters=None, parent=None):
 	:param name: return document of this `name`
 	:param filters: If name is not set, filter by these values and return the first match'''
 	if frappe.is_table(doctype):
-		check_parent_permission(parent)
+		check_parent_permission(parent, doctype)
 
 	if filters and not name:
 		name = frappe.db.get_value(doctype, json.loads(filters))
@@ -62,7 +67,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 	:param fieldname: Field to be returned (default `name`)
 	:param filters: dict or string for identifying the record'''
 	if frappe.is_table(doctype):
-		check_parent_permission(parent)
+		check_parent_permission(parent, doctype)
 
 	if not frappe.has_permission(doctype):
 		frappe.throw(_("No permission for {0}".format(doctype)), frappe.PermissionError)
@@ -89,6 +94,13 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 		filters = None
 
 	return frappe.db.get_value(doctype, filters, fieldname, as_dict=as_dict, debug=debug)
+
+@frappe.whitelist()
+def get_single_value(doctype, field):
+	if not frappe.has_permission(doctype):
+		frappe.throw(_("No permission for {0}").format(doctype), frappe.PermissionError)
+	value = frappe.db.get_single_value(doctype, field)
+	return value
 
 @frappe.whitelist()
 def set_value(doctype, name, fieldname, value=None):
@@ -177,7 +189,9 @@ def save(doc):
 	if isinstance(doc, string_types):
 		doc = json.loads(doc)
 
-	doc = frappe.get_doc(doc).save()
+	doc = frappe.get_doc(doc)
+	doc.save()
+
 	return doc.as_dict()
 
 @frappe.whitelist()
@@ -314,8 +328,44 @@ def get_time_zone():
 	'''Returns default time zone'''
 	return {"time_zone": frappe.defaults.get_defaults().get("time_zone")}
 
-def check_parent_permission(parent):
+@frappe.whitelist()
+def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder=None, decode_base64=False, is_private=None, docfield=None):
+	'''Attach a file to Document (POST)
+
+	:param filename: filename e.g. test-file.txt
+	:param filedata: base64 encode filedata which must be urlencoded
+	:param doctype: Reference DocType to attach file to
+	:param docname: Reference DocName to attach file to
+	:param folder: Folder to add File into
+	:param decode_base64: decode filedata from base64 encode, default is False
+	:param is_private: Attach file as private file (1 or 0)
+	:param docfield: file to attach to (optional)'''
+
+	request_method = frappe.local.request.environ.get("REQUEST_METHOD")
+
+	if request_method.upper() != "POST":
+		frappe.throw(_("Invalid Request"))
+
+	doc = frappe.get_doc(doctype, docname)
+
+	if not doc.has_permission():
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+	f = save_file(filename, filedata, doctype, docname, folder, decode_base64, is_private, docfield)
+
+	if docfield and doctype:
+		doc.set(docfield, f.file_url)
+		doc.save()
+
+	return f.as_dict()
+
+def check_parent_permission(parent, child_doctype):
 	if parent:
+		# User may pass fake parent and get the information from the child table
+		if child_doctype and not frappe.db.exists('DocField',
+			{'parent': parent, 'options': child_doctype}):
+			raise frappe.PermissionError
+
 		if frappe.permissions.has_permission(parent):
 			return
 	# Either parent not passed or the user doesn't have permission on parent doctype of child table!

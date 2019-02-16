@@ -13,9 +13,9 @@ import traceback
 import linecache
 import pydoc
 import cgitb
-import types
 import datetime
 import json
+import six
 
 def make_error_snapshot(exception):
 	if frappe.conf.disable_error_snapshot:
@@ -49,7 +49,7 @@ def get_snapshot(exception, context=10):
 	"""
 
 	etype, evalue, etb = sys.exc_info()
-	if isinstance(etype, types.ClassType):
+	if isinstance(etype, six.class_types):
 		etype = etype.__name__
 
 	# creates a snapshot dict with some basic information
@@ -156,7 +156,7 @@ def collect_error_snapshots():
 			fullpath = os.path.join(path, fname)
 
 			try:
-				with open(fullpath, 'rb') as filedata:
+				with open(fullpath, 'r') as filedata:
 					data = json.load(filedata)
 
 			except ValueError:
@@ -199,3 +199,14 @@ def clear_old_snapshots():
 
 def get_error_snapshot_path():
 	return frappe.get_site_path('error-snapshots')
+
+def get_frame_locals():
+	traceback = sys.exc_info()[2]
+	if traceback:
+		frames = inspect.getinnerframes(traceback, context=0)
+	_locals = ['Locals (most recent call last):']
+	for frame, filename, lineno, function, __, __ in frames:
+		if '/apps/' in filename:
+			_locals.append('File "{}", line {}, in {}\n{}'.format(filename, lineno, function, json.dumps(frame.f_locals, default=str, indent=4)))
+
+	return '\n'.join(_locals)

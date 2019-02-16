@@ -22,10 +22,17 @@
 			{% endif %}
 			{% for item in sidebar_items -%}
 			<li class="sidebar-item">
-				<a href="{{ item.route }}" class="gray {{ 'active' if pathname==item.route else '' }}"
-				{% if item.target %}target="{{ item.target }}"{% endif %}>
-				{{ _(item.title or item.label) }}
-				</a>
+				{% if item.type != 'input' %}
+					<a href="{{ item.route }}" class="gray {{ 'active' if pathname==item.route else '' }}"
+						{% if item.target %}target="{{ item.target }}"{% endif %}>
+						{{ _(item.title or item.label) }}
+					</a>
+				{% else %}
+					<form action='{{ item.route }}' style="margin-right: 15px;">
+						<input name='q' class='form-control' type='text' style="outline: none"
+							placeholder="{{ _(item.title or item.label) }}">
+					</form>
+				{% endif %}
 			</li>
 			{%- endfor %}
 			{% if frappe.user != 'Guest' %}
@@ -34,9 +41,8 @@
 			</li>
 			{% endif %}
 		</ul>
-		</div>
+	</div>
 </div>
-
 
 <script>
 frappe.ready(function() {

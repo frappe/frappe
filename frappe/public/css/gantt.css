@@ -4,3 +4,6 @@
 .gantt .bar-milestone .bar-progress {
   fill: #FC4F51;
 }
+.frappe-rtl .gantt {
+  direction: ltr;
+}

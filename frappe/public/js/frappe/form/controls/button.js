@@ -23,6 +23,9 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 			this.df.click();
 		}
 	},
+	hide() {
+		this.$input.hide();
+	},
 	set_input_areas: function() {
 		this._super();
 		$(this.disp_area).removeClass().addClass("hide");

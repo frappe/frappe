@@ -1,47 +1,85 @@
-$(document).ready(function(){
-	(function(e){
-		var handler = StripeCheckout.configure({
-			key: "{{ publishable_key }}",
-			token: function(token) {
-				// You can access the token ID with `token.id`.
-				// Get the token ID to your server-side code for use.
-				stripe.make_payment_log(token, {{ frappe.form_dict|json }}, "{{ reference_doctype }}", "{{ reference_docname }}");
-			}
-		});
-		
-		handler.open({
-			name: "{{payer_name}}",
-			description: "{{description}}",
-			amount: cint("{{ amount }}" * 100), // 2000 paise = INR 20
-			email: "{{payer_email}}",
-			currency: "{{currency}}"
-		});
-		
-	})();
-})
+var stripe = Stripe("{{ publishable_key }}");
 
-frappe.provide('stripe');
+var elements = stripe.elements();
 
-stripe.make_payment_log = function(token, data, doctype, docname){
-	$('.stripe-loading').addClass('hidden');
-	$('.stripe-confirming').removeClass('hidden');
-	frappe.call({
-		method:"frappe.templates.pages.integrations.stripe_checkout.make_payment",
-		freeze:true,
-		headers: {"X-Requested-With": "XMLHttpRequest"},
-		args: {
-			"stripe_token_id": token.id,
-			"data": JSON.stringify(data),
-			"reference_doctype": doctype,
-			"reference_docname": docname
-		},
-		callback: function(r){
-			if (r.message && r.message.status == 200) {
-				window.location.href = r.message.redirect_to
-			}
-			else if (r.message && ([401,400,500].indexOf(r.message.status) > -1)) {
-				window.location.href = r.message.redirect_to
-			}
+var style = {
+	base: {
+		color: '#32325d',
+		lineHeight: '18px',
+		fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+		fontSmoothing: 'antialiased',
+		fontSize: '16px',
+		'::placeholder': {
+			color: '#aab7c4'
 		}
-	})
+	},
+	invalid: {
+		color: '#fa755a',
+		iconColor: '#fa755a'
+	}
+};
+
+var card = elements.create('card', {
+	hidePostalCode: true,
+	style: style
+});
+
+card.mount('#card-element');
+
+function setOutcome(result) {
+
+	if (result.token) {
+		$('#submit').prop('disabled', true)
+		$('#submit').html(__('Processing...'))
+		frappe.call({
+			method:"frappe.templates.pages.integrations.stripe_checkout.make_payment",
+			freeze:true,
+			headers: {"X-Requested-With": "XMLHttpRequest"},
+			args: {
+				"stripe_token_id": result.token.id,
+				"data": JSON.stringify({{ frappe.form_dict|json }}),
+				"reference_doctype": "{{ reference_doctype }}",
+				"reference_docname": "{{ reference_docname }}"
+			},
+			callback: function(r) {
+				if (r.message.status == "Completed") {
+					$('#submit').hide()
+					$('.success').show()
+					setTimeout(function() {
+						window.location.href = r.message.redirect_to
+					}, 2000);
+				} else {
+					$('#submit').hide()
+					$('.error').show()
+					setTimeout(function() {
+						window.location.href = r.message.redirect_to
+					}, 2000);
+				}
+			}
+		});
+
+	} else if (result.error) {
+		$('.error').html(result.error.message);
+		$('.error').show()
+	}
 }
+
+card.on('change', function(event) {
+	var displayError = document.getElementById('card-errors');
+	if (event.error) {
+		displayError.textContent = event.error.message;
+	} else {
+		displayError.textContent = '';
+	}
+});
+
+frappe.ready(function() {
+	$('#submit').off("click").on("click", function(e) {
+		e.preventDefault();
+		var extraDetails = {
+			name: $('input[name=cardholder-name]').val(),
+			email: $('input[name=cardholder-email]').val()
+		}
+		stripe.createToken(card, extraDetails).then(setOutcome);
+	})
+});

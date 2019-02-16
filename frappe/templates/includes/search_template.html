@@ -1,0 +1,48 @@
+<h1>{{ title }}: "{{ query }}"</h1>
+
+{%- macro search_results_section(results, title, has_more) -%}
+	<div class='search-result col-sm-6'>
+		{% if title %}
+		<h3 style="margin-bottom: 30px">{{ title }}</h3>
+		{% endif %}
+
+		{% for d in results %}
+		<div class="search-result-item" style="padding-bottom: 15px;">
+			<a href="{{ d.route }}"><b>{{ d.title }}</b></a>
+			<p>{{ d.preview }}</p>
+		</div>
+		{% endfor %}
+		{% if has_more %}
+		<button class='btn btn-default btn-sm btn-more'>{{ _("More") }}</button>
+		{% endif %}
+		<hr>
+	</div>
+{%- endmacro %}
+
+<div style="margin-bottom: 30px">
+	<form action='{{ route }}'>
+	<input name='q' class='form-control' type='text'
+		style='max-width: 400px; display: inline-block; margin-right: 10px;'
+		value='{{ query or ''}}'
+		{% if not query %}placeholder="{{ _("Search...") }}"{% endif %}>
+	<input type='submit'
+		class='btn btn-sm btn-primary btn-search' value="{{ _("Search") }}">
+	</form>
+</div>
+
+{% if results %}
+	<div class="row">
+	{{ search_results_section(results, "", has_more) }}
+	</div>
+{% elif results_sections %}
+	<div class="row">
+		{% for section in results_sections %}
+			{{ search_results_section(section.results, section.title) }}
+		{% endfor %}
+	</div>
+
+{% elif query %}
+	<p class='text-muted'>{{ _("No matching records. Search something new") }}
+{% else %}
+	<p class='text-muted'>{{ _("Type something in the search box to search") }}
+{% endif %}

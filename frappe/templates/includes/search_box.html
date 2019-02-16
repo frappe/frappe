@@ -1,7 +1,7 @@
 <div class="item-search text-muted pull-right">
 	<div class='input-wrapper'>
-		<input type="text" class="item-search-input"
-                        placeholder="{{ _("Search") }}" autocomplete="off">
+		<input type="text" class="item-search-input form-control"
+			placeholder="{{ _("Search") }}" autocomplete="off">
 		<i class="octicon octicon-search pull-right" style='cursor: pointer;'></i>
 	</div>
 </div>
@@ -14,9 +14,8 @@
 
 <script>
 frappe.ready(function() {
-	if(get_url_arg("search")) {
-		var txt = get_url_arg("search");
-		$(".item-search-results").html("{{ _('Search results for') }}: " + encodeURIComponent(txt));
+	if(frappe.utils.get_url_arg("search")) {
+		$(".item-search-results").html('{{ _("Search results for") + ": " + html2text(frappe.form_dict.search or "") | e | trim }}');
 		$(".item-search").toggle(false);
 		$(".clear").toggle(true);
 	}

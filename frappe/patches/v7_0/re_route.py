@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import frappe
 from frappe.model.base_document import get_controller
 

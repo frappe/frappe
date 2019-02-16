@@ -11,7 +11,7 @@ app_color = "orange"
 source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 
-develop_version = '10.x.x-develop'
+develop_version = '12.x.x-develop'
 
 app_email = "info@frappe.io"
 
@@ -65,6 +65,8 @@ before_tests = "frappe.utils.install.before_tests"
 
 email_append_to = ["Event", "ToDo", "Communication"]
 
+get_rooms = 'frappe.chat.doctype.chat_room.chat_room.get_rooms'
+
 calendars = ["Event"]
 
 # login
@@ -86,7 +88,8 @@ permission_query_conditions = {
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.get_permission_query_conditions",
 	"Contact": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_contact",
 	"Address": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_address",
-	"Communication": "frappe.core.doctype.communication.communication.get_permission_query_conditions_for_communication"
+	"Communication": "frappe.core.doctype.communication.communication.get_permission_query_conditions_for_communication",
+	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.get_permission_query_conditions"
 }
 
 has_permission = {
@@ -98,6 +101,7 @@ has_permission = {
 	"Contact": "frappe.contacts.address_and_contact.has_permission",
 	"Address": "frappe.contacts.address_and_contact.has_permission",
 	"Communication": "frappe.core.doctype.communication.communication.has_permission",
+	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.has_permission"
 }
 
 has_website_permission = {
@@ -112,14 +116,21 @@ doc_events = {
 	"*": {
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.core.doctype.activity_log.feed.update_feed"
+			"frappe.core.doctype.activity_log.feed.update_feed",
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
 			"frappe.desk.notifications.clear_doctype_notifications",
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
 		],
-		"on_trash": "frappe.desk.notifications.clear_doctype_notifications",
-		"on_change": "frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request"
+		"on_trash": [
+			"frappe.desk.notifications.clear_doctype_notifications",
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
+		],
+		"on_change": [
+			"frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request",
+		]
 	},
 	"Email Group Member": {
 		"validate": "frappe.email.doctype.email_group.email_group.restrict_email_group"
@@ -134,14 +145,18 @@ scheduler_events = {
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
 		"frappe.oauth.delete_oauth2_data",
 		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
-		"frappe.twofactor.delete_all_barcodes_for_users"
+		"frappe.twofactor.delete_all_barcodes_for_users",
+		"frappe.integrations.doctype.gcalendar_settings.gcalendar_settings.sync",
+		"frappe.website.doctype.web_page.web_page.check_publish_status",
+		'frappe.utils.global_search.sync_global_search'
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
 		'frappe.model.utils.user_settings.sync_user_settings',
 		"frappe.utils.error.collect_error_snapshots",
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
-		"frappe.limits.update_space_usage"
+		"frappe.limits.update_space_usage",
+		"frappe.desk.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",
@@ -149,8 +164,8 @@ scheduler_events = {
 		"frappe.core.doctype.error_log.error_log.set_old_logs_as_seen",
 		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.sessions.clear_expired_sessions",
-		"frappe.email.doctype.email_alert.email_alert.trigger_daily_alerts",
-		"frappe.async.remove_old_task_logs",
+		"frappe.email.doctype.notification.notification.trigger_daily_alerts",
+		"frappe.realtime.remove_old_task_logs",
 		"frappe.utils.scheduler.disable_scheduler_on_expiry",
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
@@ -186,8 +201,13 @@ sounds = [
 	{"name": "delete", "src": "/assets/frappe/sounds/delete.mp3", "volume": 0.05},
 	{"name": "click", "src": "/assets/frappe/sounds/click.mp3", "volume": 0.05},
 	{"name": "error", "src": "/assets/frappe/sounds/error.mp3", "volume": 0.1},
-	# {"name": "alert", "src": "/assets/frappe/sounds/alert.mp3"},
+	{"name": "alert", "src": "/assets/frappe/sounds/alert.mp3", "volume": 0.2},
 	# {"name": "chime", "src": "/assets/frappe/sounds/chime.mp3"},
+
+	# frappe.chat sounds
+	{ "name": "chat-message", 	   "src": "/assets/frappe/sounds/chat-message.mp3",      "volume": 0.1 },
+	{ "name": "chat-notification", "src": "/assets/frappe/sounds/chat-notification.mp3", "volume": 0.1 }
+	# frappe.chat sounds
 ]
 
 bot_parsers = [
@@ -200,5 +220,7 @@ bot_parsers = [
 
 setup_wizard_exception = "frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception"
 before_write_file = "frappe.limits.validate_space_limit"
+
+before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
 
 otp_methods = ['OTP App','Email','SMS']

@@ -1,8 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
+from __future__ import unicode_literals
 import frappe
-from frappe import _
+
 
 def get_parent_doc(doc):
 	"""Returns document of `reference_doctype`, `reference_doctype`"""
@@ -30,5 +31,39 @@ def set_timeline_doc(doc):
 		doc.timeline_doctype = doctype
 		doc.timeline_name = name
 
-	else:	
+	else:
 		return
+
+def find(list_of_dict, match_function):
+	'''Returns a dict in a list of dicts on matching the conditions
+		provided in match function
+
+	Usage:
+		list_of_dict = [{'name': 'Suraj'}, {'name': 'Aditya'}]
+
+		required_dict = find(list_of_dict, lamda d: d['name'] == 'Aditya')
+	'''
+
+	for entry in list_of_dict:
+		if match_function(entry):
+			return entry
+	return None
+
+def find_all(list_of_dict, match_function):
+	'''Returns all matching dicts in a list of dicts.
+		Uses matching function to filter out the dicts
+
+	Usage:
+		colored_shapes = [
+			{'color': 'red', 'shape': 'square'},
+			{'color': 'red', 'shape': 'circle'},
+			{'color': 'blue', 'shape': 'triangle'}
+		]
+
+		red_shapes = find_all(colored_shapes, lamda d: d['color'] == 'red')
+	'''
+	found = []
+	for entry in list_of_dict:
+		if match_function(entry):
+			found.append(entry)
+	return found

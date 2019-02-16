@@ -1,0 +1,31 @@
+.hero-and-content {
+	background-color: #f5f7fa;
+}
+.page-card {
+	max-width: 360px;
+	padding: 15px;
+	margin: 70px auto;
+	border: 1px solid #d1d8dd;
+	border-radius: 4px;
+	background-color: #fff;
+	box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+}
+.page-card .page-card-head {
+	padding: 10px 15px;
+	margin: -15px;
+	margin-bottom: 15px;
+	border-bottom: 1px solid #d1d8dd;
+}
+.page-card .page-card-head .indicator {
+	color: #36414C;
+	font-size: 14px;
+}
+.page-card .page-card-head .indicator::before {
+	margin: 0 6px 0.5px 0px;
+}
+.page-card .btn {
+	margin-top: 30px;
+}
+.page-card p {
+	font-size: 14px;
+}

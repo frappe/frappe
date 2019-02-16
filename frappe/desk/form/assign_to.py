@@ -47,6 +47,9 @@ def add(args=None):
 		# if args.get("re_assign"):
 		# 	remove_from_todo_if_already_assigned(args['doctype'], args['name'])
 
+		if not args.get('description'):
+			args['description'] = _('Assignment')
+
 		d = frappe.get_doc({
 			"doctype":"ToDo",
 			"owner": args['assign_to'],
@@ -160,7 +163,30 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 			'notify': notify
 		}
 
-	arg["parenttype"] = "Assignment"
+	if arg and arg.get("notify"):
+		_notify(arg)
 
-	from frappe.desk.page.chat import chat
-	chat.post(**arg)
+def _notify(args):
+	from frappe.utils import get_fullname, get_url
+
+	args = frappe._dict(args)
+	contact = args.contact
+	txt = args.txt
+
+	try:
+		if not isinstance(contact, list):
+			contact = [frappe.db.get_value("User", contact, "email") or contact]
+
+		frappe.sendmail(\
+			recipients=contact,
+			sender= frappe.db.get_value("User", frappe.session.user, "email"),
+			subject=_("New message from {0}").format(get_fullname(frappe.session.user)),
+			template="new_message",
+			args={
+				"from": get_fullname(frappe.session.user),
+				"message": txt,
+				"link": get_url()
+			},
+			header=[_('New Message'), 'orange'])
+	except frappe.OutgoingEmailError:
+		pass

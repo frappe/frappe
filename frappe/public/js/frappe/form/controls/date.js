@@ -1,3 +1,5 @@
+
+
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		this._super();
@@ -21,6 +23,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 				const selected_date =
 					moment(this.datepicker.selectedDates[0])
 						.format(this.date_format);
+
 				should_refresh = selected_date !== value;
 			} else {
 				// if datepicker has no selected date, refresh
@@ -33,19 +36,27 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		}
 	},
 	set_date_options: function() {
-		var me = this;
-		var lang = frappe.boot.user.language;
+		// webformTODO:
+		let sysdefaults = frappe.boot.sysdefaults;
+
+		let lang = frappe.boot.user.language || 'en';
 		if(!$.fn.datepicker.language[lang]) {
 			lang = 'en';
 		}
+
+		let date_format = sysdefaults && sysdefaults.date_format
+			? sysdefaults.date_format : 'yyyy-mm-dd';
+
+		let now_date = new Date();
+
 		this.today_text = __("Today");
-		this.date_format = moment.defaultDateFormat;
+		this.date_format = frappe.defaultDateFormat;
 		this.datepicker_options = {
 			language: lang,
 			autoClose: true,
 			todayButton: true,
-			dateFormat: (frappe.boot.sysdefaults.date_format || 'yyyy-mm-dd'),
-			startDate: frappe.datetime.now_date(true),
+			dateFormat: date_format,
+			startDate: now_date,
 			keyboardNav: false,
 			onSelect: () => {
 				this.$input.trigger('change');
@@ -53,7 +64,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			onShow: () => {
 				this.datepicker.$datepicker
 					.find('.datepicker--button:visible')
-					.text(me.today_text);
+					.text(this.today_text);
 
 				this.update_datepicker_position();
 			}
@@ -115,7 +126,10 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	},
 	validate: function(value) {
 		if(value && !frappe.datetime.validate(value)) {
-			frappe.msgprint(__("Date must be in format: {0}", [frappe.sys_defaults.date_format || "yyyy-mm-dd"]));
+			let sysdefaults = frappe.sys_defaults;
+			let date_format = sysdefaults && sysdefaults.date_format
+				? sysdefaults.date_format : 'yyyy-mm-dd';
+			frappe.msgprint(__("Date {0} must be in format: {1}", [value, date_format]));
 			return '';
 		}
 		return value;

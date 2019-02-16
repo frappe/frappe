@@ -6,7 +6,6 @@
 from __future__ import unicode_literals, print_function
 from werkzeug.test import Client
 import os, re, sys, json, hashlib, requests, traceback
-from markdown2 import markdown as _markdown
 from .html_utils import sanitize_html
 import frappe
 from frappe.utils.identicon import Identicon
@@ -15,6 +14,8 @@ from email.utils import parseaddr, formataddr
 from frappe.utils.data import *
 from six.moves.urllib.parse import quote
 from six import text_type, string_types
+import io
+from gzip import GzipFile
 
 default_fields = ['doctype', 'name', 'owner', 'creation', 'modified', 'modified_by',
 	'parent', 'parentfield', 'parenttype', 'idx', 'docstatus']
@@ -53,12 +54,18 @@ def get_fullname(user=None):
 
 	return frappe.local.fullnames.get(user)
 
+def get_email_address(user=None):
+	"""get the email address of the user from User"""
+	if not user:
+		user = frappe.session.user
+
+	return frappe.db.get_value("User", user, ["email"], as_dict=True).get("email")
+
 def get_formatted_email(user):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
-	if user == "Administrator":
-		return user
 	fullname = get_fullname(user)
-	return formataddr((fullname, user))
+	mail = get_email_address(user)
+	return formataddr((fullname, mail))
 
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
@@ -151,7 +158,7 @@ def has_gravatar(email):
 		return ''
 
 def get_gravatar_url(email):
-	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(hash=hashlib.md5(email).hexdigest())
+	return "https://secure.gravatar.com/avatar/{hash}?d=mm&s=200".format(hash=hashlib.md5(email.encode('utf-8')).hexdigest())
 
 def get_gravatar(email):
 	gravatar_url = has_gravatar(email)
@@ -178,7 +185,7 @@ def dict_to_str(args, sep='&'):
 	Converts a dictionary to URL
 	"""
 	t = []
-	for k in args.keys():
+	for k in list(args):
 		t.append(str(k)+'='+quote(str(args[k] or '')))
 	return sep.join(t)
 
@@ -436,7 +443,7 @@ def watch(path, handler=None, debug=True):
 	observer.join()
 
 def markdown(text, sanitize=True, linkify=True):
-	html = _markdown(text)
+	html = frappe.utils.md_to_html(text)
 
 	if sanitize:
 		html = html.replace("<!-- markdown -->", "")
@@ -498,10 +505,13 @@ def get_name_from_email_string(email_string, email_id, name):
 
 def get_installed_apps_info():
 	out = []
-	for app in frappe.get_installed_apps():
+	from frappe.utils.change_log import get_versions
+
+	for app, version_details in iteritems(get_versions()):
 		out.append({
 			'app_name': app,
-			'version': getattr(frappe.get_module(app), '__version__', 'Unknown')
+			'version': version_details.get('branch_version') or version_details.get('version'),
+			'branch': version_details.get('branch')
 		})
 
 	return out
@@ -549,6 +559,36 @@ def get_site_info():
 	# dumps -> loads to prevent datatype conflicts
 	return json.loads(frappe.as_json(site_info))
 
+def parse_json(val):
+	"""
+	Parses json if string else return
+	"""
+	if isinstance(val, string_types):
+		return json.loads(val)
+	return val
+
+def cast_fieldtype(fieldtype, value):
+	if fieldtype in ("Currency", "Float", "Percent"):
+		value = flt(value)
+
+	elif fieldtype in ("Int", "Check"):
+		value = cint(value)
+
+	elif fieldtype in ("Data", "Text", "Small Text", "Long Text",
+		"Text Editor", "Select", "Link", "Dynamic Link"):
+		value = cstr(value)
+
+	elif fieldtype == "Date":
+		value = getdate(value)
+
+	elif fieldtype == "Datetime":
+		value = get_datetime(value)
+
+	elif fieldtype == "Time":
+		value = to_timedelta(value)
+
+	return value
+
 def get_db_count(*args):
 	"""
 	Pass a doctype or a series of doctypes to get the count of docs in them
@@ -582,3 +622,21 @@ def call(fn, *args, **kwargs):
 			bench --site erpnext.local execute frappe.utils.call --args '''["frappe.get_all", "Activity Log"]''' --kwargs '''{"fields": ["user", "creation", "full_name"], "filters":{"Operation": "Login", "Status": "Success"}, "limit": "10"}'''
 	"""
 	return json.loads(frappe.as_json(frappe.call(fn, *args, **kwargs)))
+
+# Following methods are aken as-is from Python 3 codebase
+# since gzip.compress and gzip.decompress are not available in Python 2.7
+def gzip_compress(data, compresslevel=9):
+	"""Compress data in one shot and return the compressed string.
+	Optional argument is the compression level, in range of 0-9.
+	"""
+	buf = io.BytesIO()
+	with GzipFile(fileobj=buf, mode='wb', compresslevel=compresslevel) as f:
+		f.write(data)
+	return buf.getvalue()
+
+def gzip_decompress(data):
+	"""Decompress a gzip compressed string in one shot.
+	Return the decompressed string.
+	"""
+	with GzipFile(fileobj=io.BytesIO(data)) as f:
+		return f.read()

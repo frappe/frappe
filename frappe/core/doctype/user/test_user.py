@@ -25,23 +25,28 @@ class TestUser(unittest.TestCase):
 	def test_user_type(self):
 		new_user = frappe.get_doc(dict(doctype='User', email='test-for-type@example.com',
 			first_name='Tester')).insert()
-		self.assertEquals(new_user.user_type, 'Website User')
+		self.assertEqual(new_user.user_type, 'Website User')
+
+		# social login userid for frappe
+		self.assertTrue(new_user.social_logins[0].userid)
+		self.assertEqual(new_user.social_logins[0].provider, "frappe")
 
 		# role with desk access
 		new_user.add_roles('_Test Role 2')
 		new_user.save()
-		self.assertEquals(new_user.user_type, 'System User')
+		self.assertEqual(new_user.user_type, 'System User')
 
 		# clear role
 		new_user.roles = []
 		new_user.save()
-		self.assertEquals(new_user.user_type, 'Website User')
+		self.assertEqual(new_user.user_type, 'Website User')
 
 		# role without desk access
 		new_user.add_roles('_Test Role 4')
 		new_user.save()
-		self.assertEquals(new_user.user_type, 'Website User')
+		self.assertEqual(new_user.user_type, 'Website User')
 
+		delete_contact(new_user.name)
 		frappe.delete_doc('User', new_user.name)
 
 
@@ -52,6 +57,7 @@ class TestUser(unittest.TestCase):
 		delete_doc("Role","_Test Role 2")
 
 		if frappe.db.exists("User", "_test@example.com"):
+			delete_contact("_test@example.com")
 			delete_doc("User", "_test@example.com")
 
 		user = frappe.copy_doc(test_records[1])
@@ -60,6 +66,7 @@ class TestUser(unittest.TestCase):
 
 		frappe.get_doc({"doctype": "ToDo", "description": "_Test"}).insert()
 
+		delete_contact("_test@example.com")
 		delete_doc("User", "_test@example.com")
 
 		self.assertTrue(not frappe.db.sql("""select * from `tabToDo` where owner=%s""",
@@ -69,26 +76,26 @@ class TestUser(unittest.TestCase):
 		frappe.copy_doc(role_records[1]).insert()
 
 	def test_get_value(self):
-		self.assertEquals(frappe.db.get_value("User", "test@example.com"), "test@example.com")
-		self.assertEquals(frappe.db.get_value("User", {"email":"test@example.com"}), "test@example.com")
-		self.assertEquals(frappe.db.get_value("User", {"email":"test@example.com"}, "email"), "test@example.com")
-		self.assertEquals(frappe.db.get_value("User", {"email":"test@example.com"}, ["first_name", "email"]),
+		self.assertEqual(frappe.db.get_value("User", "test@example.com"), "test@example.com")
+		self.assertEqual(frappe.db.get_value("User", {"email":"test@example.com"}), "test@example.com")
+		self.assertEqual(frappe.db.get_value("User", {"email":"test@example.com"}, "email"), "test@example.com")
+		self.assertEqual(frappe.db.get_value("User", {"email":"test@example.com"}, ["first_name", "email"]),
 			("_Test", "test@example.com"))
-		self.assertEquals(frappe.db.get_value("User",
+		self.assertEqual(frappe.db.get_value("User",
 			{"email":"test@example.com", "first_name": "_Test"},
 			["first_name", "email"]),
 				("_Test", "test@example.com"))
 
 		test_user = frappe.db.sql("select * from tabUser where name='test@example.com'",
 			as_dict=True)[0]
-		self.assertEquals(frappe.db.get_value("User", {"email":"test@example.com"}, "*", as_dict=True),
+		self.assertEqual(frappe.db.get_value("User", {"email":"test@example.com"}, "*", as_dict=True),
 			test_user)
 
-		self.assertEquals(frappe.db.get_value("User", "xxxtest@example.com"), None)
+		self.assertEqual(frappe.db.get_value("User", "xxxtest@example.com"), None)
 
 		frappe.db.set_value("Website Settings", "Website Settings", "_test", "_test_val")
-		self.assertEquals(frappe.db.get_value("Website Settings", None, "_test"), "_test_val")
-		self.assertEquals(frappe.db.get_value("Website Settings", "Website Settings", "_test"), "_test_val")
+		self.assertEqual(frappe.db.get_value("Website Settings", None, "_test"), "_test_val")
+		self.assertEqual(frappe.db.get_value("Website Settings", "Website Settings", "_test"), "_test_val")
 
 	def test_high_permlevel_validations(self):
 		user = frappe.get_meta("User")
@@ -124,6 +131,7 @@ class TestUser(unittest.TestCase):
 		self.assertRaises(MaxUsersReachedError, user.add_roles, 'System Manager')
 
 		if frappe.db.exists('User', 'test_max_users@example.com'):
+			delete_contact('test_max_users@example.com')
 			frappe.delete_doc('User', 'test_max_users@example.com')
 
 		# Clear the user limit
@@ -199,12 +207,12 @@ class TestUser(unittest.TestCase):
 	def test_delete_user(self):
 		new_user = frappe.get_doc(dict(doctype='User', email='test-for-delete@example.com',
 			first_name='Tester Delete User')).insert()
-		self.assertEquals(new_user.user_type, 'Website User')
+		self.assertEqual(new_user.user_type, 'Website User')
 
 		# role with desk access
 		new_user.add_roles('_Test Role 2')
 		new_user.save()
-		self.assertEquals(new_user.user_type, 'System User')
+		self.assertEqual(new_user.user_type, 'System User')
 
 		comm = frappe.get_doc({
 			"doctype":"Communication",
@@ -215,6 +223,7 @@ class TestUser(unittest.TestCase):
 		})
 		comm.insert(ignore_permissions=True)
 
+		delete_contact(new_user.name)
 		frappe.delete_doc('User', new_user.name)
 		self.assertFalse(frappe.db.exists('User', new_user.name))
 
@@ -232,6 +241,7 @@ class TestUser(unittest.TestCase):
 		self.assertEqual(frappe.db.get_value("User", "test_deactivate_additional_users@example.com", "enabled"), 0)
 
 		if frappe.db.exists("User", "test_deactivate_additional_users@example.com"):
+			delete_contact('test_deactivate_additional_users@example.com')
 			frappe.delete_doc('User', 'test_deactivate_additional_users@example.com')
 
 		# Clear the user limit
@@ -266,3 +276,13 @@ class TestUser(unittest.TestCase):
 		self.assertEqual(extract_mentions(user_name)[0], "test-user")
 		user_name = "Testing comment, @test.user@example.com please check."
 		self.assertEqual(extract_mentions(user_name)[0], "test.user@example.com")
+		user_name = "<div>@test_user@example.com and @test.again@example1.com</div><div>This is a test.</div>"
+		self.assertEqual(extract_mentions(user_name)[0], "test_user@example.com")
+		self.assertEqual(extract_mentions(user_name)[1], "test.again@example1.com")
+		user_name = "<div>@user@example.com</a> Test @test-comment@xyz.com</div><div>Test for comment mentions @test@abc.com</div>"
+		self.assertEqual(extract_mentions(user_name)[0], "user@example.com")
+		self.assertEqual(extract_mentions(user_name)[1], "test-comment@xyz.com")
+		self.assertEqual(extract_mentions(user_name)[2], "test@abc.com")
+
+def delete_contact(user):
+	frappe.db.sql("delete from tabContact where email_id='%s'" % frappe.db.escape(user))

@@ -8,8 +8,30 @@ frappe.request.url = '/';
 frappe.request.ajax_count = 0;
 frappe.request.waiting_for_ajax = [];
 
+frappe.xcall = function(method, params) {
+	return new Promise((resolve, reject) => {
+		frappe.call({
+			method: method,
+			args: params,
+			callback: (r) => {
+				resolve(r.message);
+			},
+			error: (r) => {
+				reject(r.message);
+			}
+		});
+	});
+};
+
 // generic server call (call page, object)
 frappe.call = function(opts) {
+	if (!frappe.is_online()) {
+		frappe.show_alert({
+			indicator: 'orange',
+			message: __('You are not connected to Internet. Retry after sometime.')
+		}, 3);
+		return;
+	}
 	if (typeof arguments[0]==='string') {
 		opts = {
 			method: arguments[0],
@@ -153,6 +175,9 @@ frappe.request.call = function(opts) {
 		504: function(xhr) {
 			frappe.msgprint(__("Request Timed Out"))
 			opts.error_callback && opts.error_callback();
+		},
+		502: function(xhr) {
+			frappe.msgprint(__("Internal Server Error"));
 		}
 	};
 
@@ -162,7 +187,10 @@ frappe.request.call = function(opts) {
 		type: opts.type,
 		dataType: opts.dataType || 'json',
 		async: opts.async,
-		headers: { "X-Frappe-CSRF-Token": frappe.csrf_token },
+		headers: {
+			"X-Frappe-CSRF-Token": frappe.csrf_token,
+			"Accept": "application/json"
+		},
 		cache: false
 	};
 
@@ -346,9 +374,12 @@ frappe.request.report_error = function(xhr, request_opts) {
 	var data = JSON.parse(xhr.responseText);
 	if (data.exc) {
 		var exc = (JSON.parse(data.exc) || []).join("\n");
+		var locals = (JSON.parse(data.locals) || []).join("\n");
 		delete data.exc;
+		delete data.locals;
 	} else {
 		var exc = "";
+		locals = "";
 	}
 
 	if (exc) {
@@ -362,7 +393,7 @@ frappe.request.report_error = function(xhr, request_opts) {
 
 		request_opts = frappe.request.cleanup_request_opts(request_opts);
 
-		msg_dialog = frappe.msgprint({message:error_message, indicator:'red'});
+		window.msg_dialog = frappe.msgprint({message:error_message, indicator:'red'});
 
 		msg_dialog.msg_area.find(".report-btn")
 			.toggle(error_report_email ? true : false)
@@ -379,6 +410,9 @@ frappe.request.report_error = function(xhr, request_opts) {
 					'<hr>',
 					'<h5>Error Report</h5>',
 					'<pre>' + exc + '</pre>',
+					'<hr>',
+					'<h5>Locals</h5>',
+					'<pre>' + locals + '</pre>',
 					'<hr>',
 					'<h5>Request Data</h5>',
 					'<pre>' + JSON.stringify(request_opts, null, "\t") + '</pre>',

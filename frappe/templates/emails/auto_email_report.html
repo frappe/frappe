@@ -1,11 +1,15 @@
 {% macro get_alignment(col) %}
 {%- if col.fieldtype in ('Int', 'Float', 'Currency', 'Check') %} class="text-right" {% endif -%}
 {% endmacro %}
-
-<table class="report-title" border="0" cellpadding="0" cellspacing="0" width="100%">
+{% if columns %}
+	{% set max_width = '100%' if columns|length > 3 else '600px' %}
+{% else %}
+	{% set max_width = '600px' %}
+{% endif %}
+<table class="report-title" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: {{ max_width }}">
 	<tr>
 		<td>
-			<b>{{ title }}</b> <span style="float: right">{{ date_time }}</span>
+			<b>{{ title }}</b>
 		</td>
 	</tr>
 	{% if description %}
@@ -15,7 +19,7 @@
 	{% endif %}
 </table>
 {% if data %}
-<table class="table table-bordered text-medium" cellpadding="0" cellspacing="0" border="0" width="100%">
+<table class="table table-bordered text-medium" cellpadding="0" cellspacing="0" border="0" style="max-width: {{ max_width }}">
 	<thead>
 		<tr>
 			{% for col in columns %}
@@ -38,10 +42,14 @@
 	</tbody>
 </table>
 {% endif %}
+
 {% if not frappe.db.get_value("System Settings", "System Settings", "hide_footer_in_auto_email_reports")|int %}
-<table class="more-info" border="0" cellpadding="0" cellspacing="0" width="100%">
+<table class="more-info" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: {{ max_width }}">
 	<tr>
 		<td>
+			<p>
+				{{ _("This report was generated on {0}".format(date_time)) }}
+			</p>
 			<p>
 				{{ _("View report in your browser") }}:
 				<a href= {{report_url}} target="_blank">{{report_name}}</a>

@@ -2,19 +2,18 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-
+import six
 from six import iteritems, text_type
 from six.moves import range
-import time, _socket, poplib, imaplib, email, email.utils, datetime, chardet, re, hashlib
+import time, _socket, poplib, imaplib, email, email.utils, datetime, chardet, re
 from email_reply_parser import EmailReplyParser
 from email.header import decode_header
 import frappe
-from frappe import _
+from frappe import _, safe_decode, safe_encode
 from frappe.utils import (extract_email_id, convert_utc_to_user_timezone, now,
 	cint, cstr, strip, markdown, parse_addr)
 from frappe.utils.scheduler import log
 from frappe.utils.file_manager import get_random_filename, save_file, MaxFileSizeReachedError
-import re
 
 class EmailSizeExceededError(frappe.ValidationError): pass
 class EmailTimeoutError(frappe.ValidationError): pass
@@ -226,7 +225,7 @@ class EmailServer:
 
 	def parse_imap_responce(self, cmd, responce):
 		pattern = r"(?<={cmd} )[0-9]*".format(cmd=cmd)
-		match = re.search(pattern, responce, re.U | re.I)
+		match = re.search(pattern, responce.decode('utf-8'), re.U | re.I)
 		if match:
 			return match.group(0)
 		else:
@@ -239,7 +238,7 @@ class EmailServer:
 
 			if cint(self.settings.use_imap):
 				status, message = self.imap.uid('fetch', message_meta, '(BODY.PEEK[] BODY.PEEK[HEADER] FLAGS)')
-				raw, header, ignore = message
+				raw = message[0]
 
 				self.get_email_seen_status(message_meta, raw[0])
 				self.latest_messages.append(raw[1])
@@ -284,7 +283,7 @@ class EmailServer:
 		flags = []
 		for flag in imaplib.ParseFlags(flag_string) or []:
 			pattern = re.compile("\w+")
-			match = re.search(pattern, flag)
+			match = re.search(pattern, frappe.as_unicode(flag))
 			flags.append(match.group(0))
 
 		if "Seen" in flags:
@@ -351,7 +350,7 @@ class EmailServer:
 			op = "+FLAGS" if operation == "Read" else "-FLAGS"
 			try:
 				self.imap.uid('STORE', uid, op, '(\\SEEN)')
-			except Exception as e:
+			except Exception:
 				continue
 
 class Email:
@@ -360,8 +359,9 @@ class Email:
 		"""Parses headers, content, attachments from given raw message.
 
 		:param content: Raw message."""
-		self.raw = content
+		self.raw = safe_encode(content) if six.PY2 else safe_decode(content)
 		self.mail = email.message_from_string(self.raw)
+
 
 		self.text_content = ''
 		self.html_content = ''
@@ -395,10 +395,10 @@ class Email:
 		_subject = decode_header(self.mail.get("Subject", "No Subject"))
 		self.subject = _subject[0][0] or ""
 		if _subject[0][1]:
-			self.subject = self.subject.decode(_subject[0][1])
+			self.subject = safe_decode(self.subject, _subject[0][1])
 		else:
 			# assume that the encoding is utf-8
-			self.subject = self.subject.decode("utf-8")[:140]
+			self.subject = safe_decode(self.subject)[:140]
 
 		if not self.subject:
 			self.subject = "No Subject"
@@ -426,7 +426,7 @@ class Email:
 			if encoding:
 				decoded += part.decode(encoding)
 			else:
-				decoded += part.decode('utf-8')
+				decoded += safe_decode(part)
 		return decoded
 
 	def set_content_and_type(self):
@@ -454,12 +454,17 @@ class Email:
 
 	def show_attached_email_headers_in_content(self, part):
 		# get the multipart/alternative message
+		try:
+		    from html import escape  # python 3.x
+		except ImportError:
+		    from cgi import escape  # python 2.x
+
 		message = list(part.walk())[1]
 		headers = []
 		for key in ('From', 'To', 'Subject', 'Date'):
 			value = cstr(message.get(key))
 			if value:
-				headers.append('{label}: {value}'.format(label=_(key), value=value))
+				headers.append('{label}: {value}'.format(label=_(key), value=escape(value)))
 
 		self.text_content += '\n'.join(headers)
 		self.html_content += '<hr>' + '\n'.join('<p>{0}</p>'.format(h) for h in headers)
@@ -542,6 +547,7 @@ class Email:
 
 # fix due to a python bug in poplib that limits it to 2048
 poplib._MAXLINE = 20480
+imaplib._MAXLINE = 20480
 
 class TimerMixin(object):
 	def __init__(self, *args, **kwargs):

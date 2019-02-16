@@ -1,8 +1,8 @@
-<div class="media timeline-item {% if (data.user_content) { %} user-content {% } else { %} notification-content {% } %}" data-doctype="{{ data.doctype }}" data-name="{%= data.name %}">
+<div class="media timeline-item {% if (data.user_content) { %} user-content {% } else { %} notification-content {% } %}" data-doctype="{{ data.doctype }}" data-name="{%= data.name %}" data-communication-type = "{{ data.communication_type }}">
 	{% if (data.user_content) { %}
 	<span class="pull-left avatar avatar-medium hidden-xs" style="margin-top: 1px">
 		{% if(data.user_info.image) { %}
-		<div class="avatar-frame" style="background-image: url({%= data.user_info.image %})"></div>
+		<div class="avatar-frame" style="background-image: url(\'{%= data.user_info.image %}\')"></div>
 		{% } else { %}
 		<div class="standard-image" style="background-color: {{ data.user_info.color }}">
 			{{ data.user_info.abbr }}</div>
@@ -35,7 +35,7 @@
 			<div class="comment-header clearfix small {% if (data.edit || data.delete) { %} links-active {% } %}">
 				<span class="pull-left avatar avatar-small visible-xs">
 					{% if(data.user_info.image) { %}
-					<div class="avatar-frame" style="background-image: url({%= data.user_info.image %})"></div>
+					<div class="avatar-frame" style="background-image: url(\'{%= data.user_info.image %}\')"></div>
 					{% } else { %}
 					<div class="standard-image" style="background-color: {{ data.user_info.color }}">
 						{{ data.user_info.abbr }}</div>
@@ -58,15 +58,17 @@
 					</span>
 						{% if(in_list(["Communication", "Feedback"], data.communication_type)) { %}
 							{% if (frappe.model.can_read(\'Communication\')) { %}
-							<a href="#Form/{%= data.doctype %}/{%= data.name %}"
+							<a href="#Form/Communication/{%= data.name %}"
 								class="text-muted">
 							{% } %}
 
 							{% if (data.delivery_status) {
-								if (in_list(["Sent", "Opened", "Clicked"], data.delivery_status)) {
+								if (in_list(["Sent", "Clicked"], data.delivery_status)) {
 									var indicator_class = "green";
 								} else if (data.delivery_status === "Sending") {
 									var indicator_class = "orange";
+								} else if (in_list(["Opened", "Read"], data.delivery_status)) {
+									var indicator_class = "blue";
 								} else {
 									var indicator_class = "red";
 								}
@@ -94,9 +96,9 @@
 								data-name="{%= data.name %}" title="{%= __("Reply") %}">{%= __("Reply") %}</a>
 							{% } %}
 						{% } %}
-					<span class="text-muted commented-on hidden-xs">
+					<span class="text-muted commented-on hidden-xs {% if (data.futur_date) { %}timeline-futur{% } %}">
 						&ndash; {%= data.comment_on %}</span>
-					<span class="text-muted commented-on-small">
+					<span class="text-muted commented-on-small {% if (data.futur_date) { %}timeline-futur{% } %}">
 						&ndash; {%= data.comment_on_small %}</span>
 					<span class="comment-likes hidden-xs"
 						data-liked-by=\'{{ JSON.stringify(data._liked_by) }}\'>
@@ -115,7 +117,7 @@
 				<div class="timeline-item-content">
 					{% if data.show_subject %}
 						<p class="text-muted small">
-							<b>{{ __("Subject") }}:</b> {{ data.subject }}</p>
+							<b>{{ __("Title") }}:</b> {{ data.subject }}</p>
 						<hr>
 					{% endif %}
 
@@ -126,6 +128,7 @@
 
 					{%= data.content_html %}
 				</div>
+				<div class="timeline-item-edit"></div>
 				{% if(data.attachments && data.attachments.length) { %}
 				<div style="margin: 10px 0px">
 					{% $.each(data.attachments, function(i, a) { %}

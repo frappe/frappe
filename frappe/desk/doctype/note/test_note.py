@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors and Contributors
 # See license.txt
 
+from __future__ import unicode_literals
 import frappe
 import unittest
 
@@ -37,13 +38,13 @@ class TestNote(unittest.TestCase):
 		version = frappe.get_doc('Version', dict(docname=note.name))
 		data = version.get_data()
 
-		self.assertEquals(len(data.get('added')), 1)
-		self.assertEquals(len(data.get('removed')), 0)
-		self.assertEquals(len(data.get('changed')), 0)
+		self.assertEqual(len(data.get('added')), 1)
+		self.assertEqual(len(data.get('removed')), 0)
+		self.assertEqual(len(data.get('changed')), 0)
 
 		for row in data.get('added'):
-			self.assertEquals(row[0], 'seen_by')
-			self.assertEquals(row[1]['user'], 'Administrator')
+			self.assertEqual(row[0], 'seen_by')
+			self.assertEqual(row[1]['user'], 'Administrator')
 
 		# test row change
 		note.seen_by[0].user = 'Guest'
@@ -52,12 +53,12 @@ class TestNote(unittest.TestCase):
 		version = frappe.get_doc('Version', dict(docname=note.name))
 		data = version.get_data()
 
-		self.assertEquals(len(data.get('row_changed')), 1)
+		self.assertEqual(len(data.get('row_changed')), 1)
 		for row in data.get('row_changed'):
-			self.assertEquals(row[0], 'seen_by')
-			self.assertEquals(row[1], 0)
-			self.assertEquals(row[2], note.seen_by[0].name)
-			self.assertEquals(row[3], [['user', 'Administrator', 'Guest']])
+			self.assertEqual(row[0], 'seen_by')
+			self.assertEqual(row[1], 0)
+			self.assertEqual(row[2], note.seen_by[0].name)
+			self.assertEqual(row[3], [['user', 'Administrator', 'Guest']])
 
 		# test remove
 		note.seen_by = []
@@ -66,10 +67,10 @@ class TestNote(unittest.TestCase):
 		version = frappe.get_doc('Version', dict(docname=note.name))
 		data = version.get_data()
 
-		self.assertEquals(len(data.get('removed')), 1)
+		self.assertEqual(len(data.get('removed')), 1)
 		for row in data.get('removed'):
-			self.assertEquals(row[0], 'seen_by')
-			self.assertEquals(row[1]['user'], 'Guest')
+			self.assertEqual(row[0], 'seen_by')
+			self.assertEqual(row[1]['user'], 'Guest')
 
 		# self.assertTrue(('title', 'test note', 'test note 1'), data['changed'])
 		# self.assertTrue(('content', 'test note content', '1'), data['changed'])

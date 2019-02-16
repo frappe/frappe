@@ -2,25 +2,48 @@
 	"css/frappe-web.css": [
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
-		"public/css/website.css",
-		"public/css/avatar.css"
+		"public/less/website.less",
+		"public/less/avatar.less",
+		"node_modules/highlight.js/styles/zenburn.css",
+		"public/less/form.less",
+		"public/less/controls.less",
+		"public/less/chat.less",
+		"public/less/form_grid.less",
+		"node_modules/frappe-datatable/dist/frappe-datatable.css"
+	],
+	"concat:js/moment-bundle.min.js": [
+		"node_modules/moment/min/moment-with-locales.min.js",
+		"node_modules/moment-timezone/builds/moment-timezone-with-data.min.js"
+	],
+	"js/chat.js": [
+		"public/js/frappe/chat.js"
 	],
 	"js/frappe-web.min.js": [
 		"public/js/frappe/class.js",
-		"public/js/lib/bootstrap.min.js",
+		"public/js/frappe/polyfill.js",
 		"public/js/lib/md5.min.js",
 		"public/js/frappe/provide.js",
 		"public/js/frappe/format.js",
 		"public/js/frappe/misc/number_format.js",
+		"public/js/frappe/misc/utils.js",
 		"public/js/frappe/misc/common.js",
+		"public/js/frappe/ui/messages.js",
 		"public/js/frappe/translate.js",
 		"public/js/frappe/misc/pretty_date.js",
-		"public/js/lib/moment/moment.min.js",
-		"public/js/lib/highlight.pack.js",
 		"public/js/lib/microtemplate.js",
 		"public/js/frappe/query_string.js",
+
+		"public/js/frappe/ui/dropzone.js",
+		"public/js/frappe/ui/upload.html",
+		"public/js/frappe/upload.js",
+
+		"public/js/frappe/model/meta.js",
+		"public/js/frappe/model/model.js",
+		"public/js/frappe/model/perm.js",
+
 		"website/js/website.js",
-		"public/js/frappe/misc/rating_icons.html"
+		"public/js/frappe/misc/rating_icons.html",
+		"public/js/frappe/socketio_client.js"
 	],
 	"js/control.min.js": [
 		"public/js/frappe/ui/capture.js",
@@ -40,6 +63,7 @@
 		"public/js/frappe/form/controls/text.js",
 		"public/js/frappe/form/controls/code.js",
 		"public/js/frappe/form/controls/text_editor.js",
+		"public/js/frappe/form/controls/comment.js",
 		"public/js/frappe/form/controls/check.js",
 		"public/js/frappe/form/controls/image.js",
 		"public/js/frappe/form/controls/attach.js",
@@ -51,6 +75,7 @@
 		"public/js/frappe/form/controls/read_only.js",
 		"public/js/frappe/form/controls/button.js",
 		"public/js/frappe/form/controls/html.js",
+		"public/js/frappe/form/controls/html_editor.js",
 		"public/js/frappe/form/controls/heading.js",
 		"public/js/frappe/form/controls/autocomplete.js",
 		"public/js/frappe/form/controls/barcode.js",
@@ -60,50 +85,15 @@
 	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
-		"public/js/frappe/ui/modal.html",
 
 		"public/js/frappe/form/formatters.js",
 		"public/js/frappe/form/layout.js",
 		"public/js/frappe/ui/field_group.js",
 		"public/js/frappe/form/link_selector.js",
 		"public/js/frappe/form/multi_select_dialog.js",
-		"public/js/frappe/ui/dialog.js",
-		"public/js/frappe/ui/capture.js",
-
-		"public/js/frappe/form/controls/base_control.js",
-		"public/js/frappe/form/controls/base_input.js",
-		"public/js/frappe/form/controls/data.js",
-		"public/js/frappe/form/controls/int.js",
-		"public/js/frappe/form/controls/float.js",
-		"public/js/frappe/form/controls/currency.js",
-		"public/js/frappe/form/controls/date.js",
-		"public/js/frappe/form/controls/time.js",
-		"public/js/frappe/form/controls/datetime.js",
-		"public/js/frappe/form/controls/date_range.js",
-		"public/js/frappe/form/controls/select.js",
-		"public/js/frappe/form/controls/link.js",
-		"public/js/frappe/form/controls/dynamic_link.js",
-		"public/js/frappe/form/controls/text.js",
-		"public/js/frappe/form/controls/code.js",
-		"public/js/frappe/form/controls/text_editor.js",
-		"public/js/frappe/form/controls/check.js",
-		"public/js/frappe/form/controls/image.js",
-		"public/js/frappe/form/controls/attach.js",
-		"public/js/frappe/form/controls/attach_image.js",
-		"public/js/frappe/form/controls/table.js",
-		"public/js/frappe/form/controls/color.js",
-		"public/js/frappe/form/controls/signature.js",
-		"public/js/frappe/form/controls/password.js",
-		"public/js/frappe/form/controls/read_only.js",
-		"public/js/frappe/form/controls/button.js",
-		"public/js/frappe/form/controls/html.js",
-		"public/js/frappe/form/controls/heading.js",
-		"public/js/frappe/form/controls/geolocation.js"
+		"public/js/frappe/ui/dialog.js"
 	],
 	"css/desk.min.css": [
-		"public/js/lib/datepicker/datepicker.min.css",
-		"public/js/lib/awesomplete/awesomplete.css",
-		"public/js/lib/summernote/summernote.css",
 		"public/js/lib/leaflet/leaflet.css",
 		"public/js/lib/leaflet/leaflet.draw.css",
 		"public/js/lib/leaflet/L.Control.Locate.css",
@@ -111,41 +101,40 @@
 		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
-		"public/css/desk.css",
-		"public/css/indicator.css",
-		"public/css/avatar.css",
-		"public/css/navbar.css",
-		"public/css/sidebar.css",
-		"public/css/page.css",
-		"public/css/tree.css",
-		"public/css/desktop.css",
-		"public/css/form.css",
-		"public/css/mobile.css",
-		"public/css/kanban.css",
-		"public/css/controls.css",
-		"public/css/tags.css"
+		"public/less/desk.less",
+		"public/less/flex.less",
+		"public/less/indicator.less",
+		"public/less/avatar.less",
+		"public/less/navbar.less",
+		"public/less/sidebar.less",
+		"public/less/page.less",
+		"public/less/tree.less",
+		"public/less/desktop.less",
+		"public/less/form.less",
+		"public/less/mobile.less",
+		"public/less/kanban.less",
+		"public/less/controls.less",
+		"public/less/chat.less",
+		"public/less/filters.less"
 	],
 	"css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",
 		"public/css/desk-rtl.css",
 		"public/css/report-rtl.css"
 	],
-	"js/libs.min.js": [
+	"concat:js/libs.min.js": [
 		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",
 		"public/js/lib/jquery/jquery.hotkeys.js",
-		"public/js/lib/summernote/summernote.js",
 		"public/js/lib/bootstrap.min.js",
-		"public/js/lib/moment/moment-with-locales.min.js",
-		"public/js/lib/moment/moment-timezone-with-data.min.js",
+		"node_modules/moment/min/moment-with-locales.min.js",
+		"node_modules/moment-timezone/builds/moment-timezone-with-data.min.js",
 		"public/js/lib/socket.io.min.js",
-		"public/js/lib/markdown.js",
 		"public/js/lib/jSignature.min.js",
 		"public/js/frappe/translate.js",
 		"public/js/lib/datepicker/datepicker.min.js",
 		"public/js/lib/datepicker/locale-all.js",
 		"public/js/lib/frappe-charts/frappe-charts.min.iife.js",
-		"public/js/lib/webcam.min.js",
 		"public/js/lib/leaflet/leaflet.js",
 		"public/js/lib/leaflet/leaflet.draw.js",
 		"public/js/lib/leaflet/L.Control.Locate.js",
@@ -153,15 +142,15 @@
 	],
 	"js/desk.min.js": [
 		"public/js/frappe/class.js",
+		"public/js/frappe/polyfill.js",
 		"public/js/frappe/provide.js",
 		"public/js/frappe/assets.js",
 		"public/js/frappe/format.js",
 		"public/js/frappe/form/formatters.js",
-		"public/js/frappe/ui/modal.html",
 		"public/js/frappe/dom.js",
+		"public/js/frappe/event_emitter.js",
 		"public/js/frappe/ui/messages.js",
 		"public/js/frappe/ui/keyboard.js",
-		"public/js/frappe/ui/emoji.js",
 		"public/js/frappe/ui/colors.js",
 		"public/js/frappe/ui/sidebar.js",
 
@@ -189,6 +178,7 @@
 		"public/js/frappe/ui/dialog.js",
 		"public/js/frappe/ui/capture.js",
 		"public/js/frappe/ui/app_icon.js",
+		"public/js/frappe/ui/dropzone.js",
 
 		"public/js/frappe/model/model.js",
 		"public/js/frappe/db.js",
@@ -212,6 +202,7 @@
 		"public/js/frappe/misc/help_links.js",
 		"public/js/frappe/misc/address_and_contact.js",
 		"public/js/frappe/misc/preview_email.js",
+		"public/js/frappe/misc/file_manager.js",
 
 		"public/js/frappe/ui/upload.html",
 		"public/js/frappe/upload.js",
@@ -231,8 +222,10 @@
 		"public/js/frappe/ui/toolbar/about.js",
 		"public/js/frappe/ui/toolbar/navbar.html",
 		"public/js/frappe/ui/toolbar/toolbar.js",
+		"public/js/frappe/ui/toolbar/modules_select.js",
 		"public/js/frappe/ui/toolbar/notifications.js",
 		"public/js/frappe/views/communication.js",
+		"public/js/frappe/views/translation_manager.js",
 
 		"public/js/frappe/ui/sort_selector.html",
 		"public/js/frappe/ui/sort_selector.js",
@@ -244,17 +237,17 @@
 		"public/js/frappe/ui/comment.js",
 		"public/js/frappe/misc/rating_icons.html",
 
-		"public/js/frappe/feedback.js"
+		"public/js/frappe/feedback.js",
+
+		"public/js/frappe/chat.js"
 	],
 	"css/module.min.css": [
-		"public/css/module.css"
+		"public/less/module.less"
 	],
 	"css/form.min.css": [
-		"public/css/form_grid.css"
+		"public/less/form_grid.less"
 	],
 	"js/form.min.js": [
-		"public/js/frappe/form/templates/grid_form.html",
-		"public/js/frappe/form/templates/grid_body.html",
 		"public/js/frappe/form/templates/print_layout.html",
 		"public/js/frappe/form/templates/users_in_sidebar.html",
 		"public/js/frappe/form/templates/set_sharing.html",
@@ -270,9 +263,6 @@
 		"public/js/frappe/form/document_flow.js",
 		"public/js/frappe/form/save.js",
 		"public/js/frappe/form/script_manager.js",
-		"public/js/frappe/form/grid.js",
-		"public/js/frappe/form/grid_row.js",
-		"public/js/frappe/form/grid_row_form.js",
 		"public/js/frappe/form/linked_with.js",
 		"public/js/frappe/form/workflow.js",
 		"public/js/frappe/form/print.js",
@@ -280,7 +270,7 @@
 		"public/js/frappe/form/user_image.js",
 		"public/js/frappe/form/share.js",
 		"public/js/frappe/form/form_viewers.js",
-
+		"public/js/frappe/form/footer/attachment.html",
 		"public/js/frappe/form/footer/form_footer.html",
 		"public/js/frappe/form/footer/timeline.html",
 		"public/js/frappe/form/footer/timeline_item.html",
@@ -288,21 +278,23 @@
 		"public/js/frappe/form/footer/attachments.js",
 		"public/js/frappe/form/footer/timeline.js",
 		"public/js/frappe/form/footer/assign_to.js",
-		"public/js/frappe/form/quick_entry.js"
+		"public/js/frappe/form/quick_entry.js",
+		"public/js/frappe/form/success_action.js"
 	],
 	"css/list.min.css": [
-		"public/css/list.css",
-		"public/css/calendar.css",
-		"public/css/role_editor.css",
-		"public/css/gantt.css"
+		"public/less/list.less",
+		"public/less/calendar.less",
+		"public/less/role_editor.less",
+		"public/less/gantt.less",
+		"public/less/tags.less"
 	],
 	"js/list.min.js": [
 		"public/js/frappe/ui/listing.html",
 
-		"public/js/frappe/ui/base_list.js",
-
 		"public/js/frappe/model/indicator.js",
-		"public/js/frappe/ui/filters/filters.js",
+		"public/js/frappe/ui/filters/filter.js",
+		"public/js/frappe/ui/filters/filter_list.js",
+		"public/js/frappe/ui/filters/field_select.js",
 		"public/js/frappe/ui/filters/edit_filter.html",
 		"public/js/frappe/ui/tags.js",
 		"public/js/frappe/ui/tag_editor.js",
@@ -310,7 +302,9 @@
 		"public/js/frappe/ui/liked_by.html",
 		"public/html/print_template.html",
 
+		"public/js/frappe/list/base_list.js",
 		"public/js/frappe/list/list_view.js",
+		"public/js/frappe/list/list_factory.js",
 
 		"public/js/frappe/list/list_sidebar.js",
 		"public/js/frappe/list/list_sidebar.html",
@@ -320,69 +314,60 @@
 		"public/js/frappe/list/list_item_main_head.html",
 		"public/js/frappe/list/list_item_row_head.html",
 		"public/js/frappe/list/list_item_subject.html",
-		"public/js/frappe/list/list_permission_footer.html",
+		"public/js/frappe/list/list_view_permission_restrictions.html",
 
-		"public/js/frappe/list/list_renderer.js",
 		"public/js/frappe/views/gantt/gantt_view.js",
 		"public/js/frappe/views/calendar/calendar.js",
 		"public/js/frappe/views/image/image_view.js",
 		"public/js/frappe/views/kanban/kanban_view.js",
 		"public/js/frappe/views/inbox/inbox_view.js",
+		"public/js/frappe/views/file/file_view.js",
 
 		"public/js/frappe/list/header_select_all_like_filter.html",
 		"public/js/frappe/list/item_assigned_to_comment_count.html",
 		"public/js/frappe/views/treeview.js",
+		"public/js/frappe/views/interaction.js",
 
 		"public/js/frappe/views/image/image_view_item_row.html",
 		"public/js/frappe/views/image/photoswipe_dom.html",
-
-		"public/js/frappe/views/inbox/inbox_no_result.html",
-		"public/js/frappe/views/inbox/inbox_view_item_row.html",
-		"public/js/frappe/views/inbox/inbox_view_item_main_head.html",
 
 		"public/js/frappe/views/kanban/kanban_board.html",
 		"public/js/frappe/views/kanban/kanban_column.html",
 		"public/js/frappe/views/kanban/kanban_card.html"
 	],
 	"css/report.min.css": [
-		"public/css/report.css",
-		"public/css/tree_grid.css",
-
-		"public/js/lib/slickgrid/slick.grid.css",
-		"public/js/lib/slickgrid/slick-default-theme.css",
-		"public/css/slickgrid.css"
+		"public/less/report.less",
+		"node_modules/frappe-datatable/dist/frappe-datatable.css",
+		"public/less/frappe-datatable.less",
+		"public/css/tree_grid.css"
 	],
 	"js/report.min.js": [
-		"public/js/frappe/views/reports/reportview.js",
+		"public/js/lib/clusterize.min.js",
+		"public/js/frappe/views/reports/report_factory.js",
+		"public/js/frappe/views/reports/report_view.js",
 		"public/js/frappe/views/reports/reportview_footer.html",
 		"public/js/frappe/views/reports/query_report.js",
 		"public/js/frappe/views/reports/grid_report.js",
 		"public/js/frappe/views/reports/print_grid.html",
-		"public/js/frappe/views/reports/print_tree.html",
-
-		"public/js/lib/slickgrid/jquery.event.drag.js",
-		"public/js/lib/slickgrid/plugins/slick.cellrangedecorator.js",
-		"public/js/lib/slickgrid/plugins/slick.cellrangeselector.js",
-		"public/js/lib/slickgrid/plugins/slick.cellselectionmodel.js",
-		"public/js/lib/slickgrid/plugins/slick.cellexternalcopymanager.js",
-		"public/js/lib/slickgrid/slick.core.js",
-		"public/js/lib/slickgrid/slick.grid.js",
-		"public/js/lib/slickgrid/slick.dataview.js"
+		"public/js/frappe/views/reports/print_tree.html"
 	],
 	"js/web_form.min.js": [
+		"public/js/frappe/misc/datetime.js",
 		"website/js/web_form.js",
-		"public/js/lib/summernote/summernote.js",
 		"public/js/lib/datepicker/datepicker.min.js",
 		"public/js/lib/datepicker/datepicker.en.js"
 	],
 	"css/web_form.css": [
+		"public/less/list.less",
 		"website/css/web_form.css",
-		"public/js/lib/summernote/summernote.css",
-		"public/js/lib/datepicker/datepicker.min.css"
+		"public/less/quill.less"
 	],
 	"js/print_format_v3.min.js": [
 		"public/js/legacy/layout.js",
 		"public/js/legacy/print_table.js",
 		"public/js/legacy/print_format.js"
+	],
+	"frappe/css/email.css": [
+		"public/less/email.less"
 	]
 }

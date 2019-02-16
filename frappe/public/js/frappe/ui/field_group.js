@@ -1,11 +1,11 @@
-// Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt
+import '../form/layout';
 
 frappe.provide('frappe.ui');
 
 frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 	init: function(opts) {
 		$.extend(this, opts);
+		this.dirty = false;
 		this._super();
 		$.each(this.fields || [], function(i, f) {
 			if(!f.fieldname && f.label) {
@@ -23,8 +23,16 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			this.refresh();
 			// set default
 			$.each(this.fields_list, function(i, field) {
-				if(field.df["default"]) {
-					field.set_input(field.df["default"]);
+				if (field.df["default"]) {
+					let def_value = field.df["default"];
+
+					if (def_value == 'Today' && field.df["fieldtype"] == 'Date') {
+						def_value = frappe.datetime.get_today();
+					}
+
+					field.set_input(def_value);
+					// if default and has depends_on, render its fields.
+					me.refresh_dependency();
 				}
 			})
 
@@ -32,7 +40,9 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 				this.catch_enter_as_submit();
 			}
 
-			$(this.body).find('input, select').on('change', function() {
+			$(this.wrapper).find('input, select').on('change', () => {
+				this.dirty = true;
+
 				frappe.run_serially([
 					() => frappe.timeout(0.1),
 					() => me.refresh_dependency()
@@ -129,4 +139,9 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			}
 		}
 	},
+	set_df_property: function (fieldname, prop, value) {
+		const field    = this.get_field(fieldname);
+		field.df[prop] = value;
+		field.refresh();
+	}
 });

@@ -13,6 +13,10 @@ $.extend(frappe.model, {
 		'_user_tags', '_comments', '_assign', '_liked_by', 'docstatus',
 		'parent', 'parenttype', 'parentfield', 'idx'],
 
+	core_doctypes_list: ['DocType', 'DocField', 'DocPerm', 'User', 'Role', 'Has Role',
+		'Page', 'Module Def', 'Print Format', 'Report', 'Customize Form',
+		'Customize Form Field', 'Property Setter', 'Custom Field', 'Custom Script'],
+
 	std_fields: [
 		{fieldname:'name', fieldtype:'Link', label:__('ID')},
 		{fieldname:'owner', fieldtype:'Link', label:__('Created By'), options: 'User'},
@@ -27,6 +31,8 @@ $.extend(frappe.model, {
 		{fieldname:'docstatus', fieldtype:'Int', label:__('Document Status')},
 	],
 
+	numeric_fieldtypes: ["Int", "Float", "Currency", "Percent"],
+
 	std_fields_table: [
 		{fieldname:'parent', fieldtype:'Data', label:__('Parent')},
 	],
@@ -39,8 +45,9 @@ $.extend(frappe.model, {
 		// setup refresh if the document is updated somewhere else
 		frappe.realtime.on("doc_update", function(data) {
 			// set list dirty
-			frappe.views.set_list_as_dirty(data.doctype);
+			frappe.views.ListView.trigger_list_update(data);
 			var doc = locals[data.doctype] && locals[data.doctype][data.name];
+
 			if(doc) {
 				// current document is dirty, show message if its not me
 				if(frappe.get_route()[0]==="Form" && cur_frm.doc.doctype===doc.doctype && cur_frm.doc.name===doc.name) {
@@ -61,7 +68,7 @@ $.extend(frappe.model, {
 		});
 
 		frappe.realtime.on("list_update", function(data) {
-			frappe.views.set_list_as_dirty(data.doctype);
+			frappe.views.ListView.trigger_list_update(data);
 		});
 
 	},
@@ -72,6 +79,10 @@ $.extend(frappe.model, {
 		}
 		// not in no-value type
 		return frappe.model.no_value_type.indexOf(fieldtype)===-1;
+	},
+
+	is_non_std_field: function(fieldname) {
+		return !frappe.model.std_fields_list.includes(fieldname);
 	},
 
 	get_std_field: function(fieldname) {
@@ -91,8 +102,11 @@ $.extend(frappe.model, {
 		} else {
 			var cached_timestamp = null;
 			if(localStorage["_doctype:" + doctype]) {
-				var cached_doc = JSON.parse(localStorage["_doctype:" + doctype]);
-				cached_timestamp = cached_doc.modified;
+				let cached_docs = JSON.parse(localStorage["_doctype:" + doctype]);
+				let cached_doc = cached_docs.filter(doc => doc.name === doctype)[0];
+				if(cached_doc) {
+					cached_timestamp = cached_doc.modified;
+				}
 			}
 			return frappe.call({
 				method:'frappe.desk.form.load.getdoctype',
@@ -147,21 +161,27 @@ $.extend(frappe.model, {
 	},
 
 	with_doc: function(doctype, name, callback) {
-		if(!name) name = doctype; // single type
-		if(locals[doctype] && locals[doctype][name] && frappe.model.get_docinfo(doctype, name)) {
-			callback(name);
-		} else {
-			return frappe.call({
-				method: 'frappe.desk.form.load.getdoc',
-				type: "GET",
-				args: {
-					doctype: doctype,
-					name: name
-				},
-				freeze: true,
-				callback: function(r) { callback(name, r); }
-			});
-		}
+		return new Promise(resolve => {
+			if(!name) name = doctype; // single type
+			if(locals[doctype] && locals[doctype][name] && frappe.model.get_docinfo(doctype, name)) {
+				callback && callback(name);
+				resolve(frappe.get_doc(doctype, name));
+			} else {
+				return frappe.call({
+					method: 'frappe.desk.form.load.getdoc',
+					type: "GET",
+					args: {
+						doctype: doctype,
+						name: name
+					},
+					freeze: true,
+					callback: function(r) {
+						callback && callback(name, r);
+						resolve(frappe.get_doc(doctype, name));
+					}
+				});
+			}
+		});
 	},
 
 	get_docinfo: function(doctype, name) {
@@ -220,9 +240,16 @@ $.extend(frappe.model, {
 		return frappe.boot.user.can_cancel.indexOf(doctype)!==-1;
 	},
 
+	has_workflow: function(doctype) {
+		return frappe.get_list('Workflow', {'document_type': doctype,
+			'is_active': 1}).length;
+	},
+
 	is_submittable: function(doctype) {
 		if(!doctype) return false;
-		return locals.DocType[doctype] && locals.DocType[doctype].is_submittable;
+		return locals.DocType[doctype]
+			&& locals.DocType[doctype].is_submittable
+			&& !this.has_workflow(doctype);
 	},
 
 	is_table: function(doctype) {
@@ -576,6 +603,19 @@ $.extend(frappe.model, {
 		}
 		return all;
 	},
+
+	get_full_column_name: function(fieldname, doctype) {
+		if (fieldname.includes('`tab')) return fieldname;
+		return '`tab' + doctype + '`.`' + fieldname + '`';
+	},
+
+	is_numeric_field: function(fieldtype) {
+		if (!fieldtype) return;
+		if (typeof fieldtype === 'object') {
+			fieldtype = fieldtype.fieldtype;
+		}
+		return frappe.model.numeric_fieldtypes.includes(fieldtype);
+	}
 });
 
 // legacy

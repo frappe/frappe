@@ -2,7 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 from __future__ import unicode_literals
 
-import frappe, unittest, os, base64
+import unittest, os, base64
 from frappe.email.email_body import (replace_filename_with_cid,
 	get_email, inline_style_in_html, get_header)
 
@@ -94,7 +94,7 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 				<img  />
 			</div>
 		'''.format(inline_images[0].get('content_id'))
-		self.assertEquals(message, processed_message)
+		self.assertEqual(message, processed_message)
 
 	def test_inline_styling(self):
 		html = '''

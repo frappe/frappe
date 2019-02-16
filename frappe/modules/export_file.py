@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 
-import frappe, os, json
+import frappe, os
 import frappe.model
 from frappe.modules import scrub, get_module_path, scrub_dt_dn
 

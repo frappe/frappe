@@ -1,6 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import DataTable from 'frappe-datatable';
 frappe.provide("frappe.report_dump");
 
 $.extend(frappe.report_dump, {
@@ -34,15 +35,15 @@ $.extend(frappe.report_dump, {
 									} else {
 										row[link_key] = null;
 									}
-								})
-							})
+								});
+							});
 						}
 					}
 				});
 
 				callback();
 			}
-		})
+		});
 	},
 	set_data: function(doctype, doctype_data) {
 		var data = [];
@@ -55,7 +56,7 @@ $.extend(frappe.report_dump, {
 			row.id = row.name;
 			row.doctype = doctype;
 			return row;
-		}
+		};
 		if(frappe.report_dump.last_modified[doctype]) {
 			// partial loading, make a name dict
 			$.each(doctype_data.data, function(i, d) {
@@ -79,7 +80,7 @@ $.extend(frappe.report_dump, {
 			// add new records
 			$.each(replace_dict, function(name, d) {
 				data.push(d);
-			})
+			});
 		} else {
 
 			// first loading
@@ -98,7 +99,6 @@ frappe.views.GridReport = Class.extend({
 		this.filter_inputs = {};
 		this.preset_checks = [];
 		this.tree_grid = {show: false};
-		var me = this;
 		$.extend(this, opts);
 
 		this.wrapper = $('<div class="grid-report"></div>').appendTo(this.page.main);
@@ -150,11 +150,9 @@ frappe.views.GridReport = Class.extend({
 		$.each(me.filter_inputs, function(i, v) {
 			var opts = v.get(0).opts;
 			if(opts.fieldtype == "Select" && in_list(me.doctypes, opts.link)) {
-				$(v).add_options($.map(frappe.report_dump.data[opts.link],
-					function(d) { return d.name; }));
+				$(v).add_options(frappe.report_dump.data[opts.link].map(d => d.name));
 			} else if(opts.fieldtype == "Link" && in_list(me.doctypes, opts.link)) {
-				opts.list = $.map(frappe.report_dump.data[opts.link],
-					function(d) { return d.name; });
+				opts.list = frappe.report_dump.data[opts.link].map(d => d.name);
 				me.set_autocomplete(v, opts.list);
 			}
 		});
@@ -185,10 +183,6 @@ frappe.views.GridReport = Class.extend({
 		this.filter_inputs.range && this.filter_inputs.range.on("change", function() {
 			me.refresh();
 		});
-
-		// chart check
-		if(this.setup_chart_check)
-			this.setup_chart_check();
 	},
 	set_filter: function(key, value) {
 		var filters = this.filter_inputs[key];
@@ -202,7 +196,7 @@ frappe.views.GridReport = Class.extend({
 				filters.val(value);
 			}
 		} else {
-			frappe.msgprint(__("Invalid Filter: {0}", [key]))
+			frappe.msgprint(__("Invalid Filter: {0}", [key]));
 		}
 	},
 	set_autocomplete: function($filter, list) {
@@ -217,7 +211,6 @@ frappe.views.GridReport = Class.extend({
 		});
 	},
 	init_filter_values: function() {
-		var me = this;
 		$.each(this.filter_inputs, function(key, filter) {
 			var opts = filter.get(0).opts;
 			if(frappe.sys_defaults[key]) {
@@ -238,13 +231,13 @@ frappe.views.GridReport = Class.extend({
 		var values = {
 			from_date: frappe.datetime.str_to_user(frappe.sys_defaults.year_start_date),
 			to_date: frappe.datetime.str_to_user(frappe.sys_defaults.year_end_date)
-		}
+		};
 
 		var me = this;
 		$.each(values, function(i, v) {
 			if(me.filter_inputs[i] && !me.filter_inputs[i].val())
 				me.filter_inputs[i].val(v);
-		})
+		});
 	},
 
 	make_filters: function() {
@@ -282,7 +275,7 @@ frappe.views.GridReport = Class.extend({
 					if(e.which==13) {
 						me.refresh();
 					}
-				})
+				});
 			}
 			me.filter_inputs[v.fieldname] = input;
 		});
@@ -318,7 +311,7 @@ frappe.views.GridReport = Class.extend({
 		key = key || "name";
 		$.each(data, function(i, v) {
 			map[v[key]] = v;
-		})
+		});
 		return map;
 	},
 
@@ -351,7 +344,7 @@ frappe.views.GridReport = Class.extend({
 		this.waiting.toggle(false);
 		if(!this.grid_wrapper)
 			this.make();
-		this.show_zero = $('.show-zero input:checked').length;
+		// this.show_zero = $('.show-zero input:checked').length;
 		this.load_filter_values();
 		this.setup_columns();
 		this.setup_dataview_columns();
@@ -365,27 +358,27 @@ frappe.views.GridReport = Class.extend({
 		this.setup_chart && this.setup_chart();
 	},
 	setup_dataview_columns: function() {
-		this.dataview_columns = $.map(this.columns, function(col) {
-			return !col.hidden ? col : null;
+		this.columns = this.columns.filter(col => !col.hidden);
+		this.datatable_columns = this.columns.map(column => {
+			return Object.assign(column, {
+				format: (value, row, column, data) => {
+					return column.formatter ?
+						column.formatter(row, {}, value, column, data) :
+						value || '';
+				}
+			});
 		});
 	},
 	make: function() {
-		var me = this;
-
 		// chart wrapper
 		this.chart_area = $('<div class="chart" style="padding-bottom: 1px"></div>').appendTo(this.wrapper);
 
-		this.page.add_menu_item(__("Export"), function() { return me.export(); }, true);
+		this.page.add_menu_item(__("Export"), () =>  this.export(), true);
 
 		// grid wrapper
-		this.grid_wrapper = $("<div style='height: 500px; border: 1px solid #aaa; \
-			background-color: #eee; '>")
+		this.grid_wrapper = $("<div style='height: 500px;'>")
 			.appendTo(this.wrapper);
 		this.id = frappe.dom.set_unique_id(this.grid_wrapper.get(0));
-		// zero-value check
-		$('<div class="checkbox show-zero">\
-				<label><input type="checkbox"> '+__('Show rows with zero values')
-			+'</label></div>').appendTo(this.wrapper);
 
 		this.bind_show();
 
@@ -412,40 +405,36 @@ frappe.views.GridReport = Class.extend({
 		enableColumnReorder: false
 	},
 	render: function() {
-		// new slick grid
-		this.grid = new Slick.Grid("#"+this.id, this.dataView, this.dataview_columns, this.options);
-		var me = this;
+		this.datatable = new DataTable('#' + this.id, {
+			columns: this.datatable_columns,
+			data: this.data,
+			layout: 'fixed',
+			inlineFilters: true,
+			treeView: true,
+			checkboxColumn: true,
+			checkedRowStatus: false,
+			events: {
+				onCheckRow: (row) => {
+					const rowIndex = row.meta.rowIndex;
+					const checked = this.datatable.rowmanager.checkMap[rowIndex];
+					const data = this.datatable.datamanager.getData(rowIndex);
+					data.checked = Boolean(checked);
 
-		if (!frappe.dom.is_touchscreen()) {
-			this.grid.setSelectionModel(new Slick.CellSelectionModel());
-			this.grid.registerPlugin(new Slick.CellExternalCopyManager({
-				dataItemColumnValueExtractor: function(item, columnDef, value) {
-					return item[columnDef.field];
+					this.setup_chart && this.setup_chart();
 				}
-			}));
-		}
-
-		// bind events
-		this.dataView.onRowsChanged.subscribe(function (e, args) {
-			me.grid.invalidateRows(args.rows);
-			me.grid.render();
+			},
+			hooks: {
+				columnTotal: frappe.utils.report_column_total
+			}
 		});
 
-		this.dataView.onRowCountChanged.subscribe(function (e, args) {
-			me.grid.updateRowCount();
-			me.grid.render();
+		this.data.forEach((d, i) => {
+			if (d.checked) {
+				this.datatable.rowmanager.checkRow(i, true);
+			}
 		});
-
-		this.tree_grid.show && this.add_tree_grid_events();
 	},
 	prepare_data_view: function() {
-		// initialize the model
-		this.dataView = new Slick.Data.DataView({ inlineFilters: true });
-		this.dataView.beginUpdate();
-		this.dataView.setItems(this.data);
-		if(this.dataview_filter) this.dataView.setFilter(this.dataview_filter);
-		if(this.tree_grid.show) this.dataView.setFilter(this.tree_dataview_filter);
-		this.dataView.endUpdate();
 	},
 	export: function() {
 		frappe.tools.downloadify(frappe.slickgrid_tools.get_view_data(this.columns, this.dataView),
@@ -501,10 +490,11 @@ frappe.views.GridReport = Class.extend({
 	is_default: function(fieldname) {
 		return this[fieldname]==this[fieldname + "_default"];
 	},
-	date_formatter: function(row, cell, value, columnDef, dataContext) {
+	date_formatter: function(row, cell, value) {
 		return frappe.datetime.str_to_user(value);
 	},
 	currency_formatter: function(row, cell, value, columnDef, dataContext) {
+		if (isNaN(value)) value = '';
 		return repl('<div style="text-align: right; %(_style)s">%(value)s</div>', {
 			_style: dataContext._style || "",
 			value: ((value==null || value==="") ? "" : format_number(value))
@@ -513,7 +503,7 @@ frappe.views.GridReport = Class.extend({
 	text_formatter: function(row, cell, value, columnDef, dataContext) {
 		return repl('<span style="%(_style)s" title="%(esc_value)s">%(value)s</span>', {
 			_style: dataContext._style || "",
-			esc_value: cstr(value).replace(/"/g, '\"'),
+			esc_value: cstr(value).replace(/"/g, '\\"'),
 			value: cstr(value)
 		});
 	},
@@ -522,11 +512,10 @@ frappe.views.GridReport = Class.extend({
 			class="chart-check" %(checked)s>', {
 				"id": dataContext.id,
 				"checked": dataContext.checked ? 'checked="checked"' : ""
-			})
+			});
 	},
 	apply_link_formatters: function() {
-		var me = this;
-		$.each(this.dataview_columns, function(i, col) {
+		$.each(this.columns, function(i, col) {
 			if(col.link_formatter) {
 				col.formatter = function(row, cell, value, columnDef, dataContext, for_print) {
 					// added link and open button to links
@@ -548,9 +537,10 @@ frappe.views.GridReport = Class.extend({
 					}
 
 					// make link to add a filter
+					var html;
 					var link_formatter = me.dataview_columns[cell].link_formatter;
 					if (link_formatter.filter_input) {
-						var html = repl('<a href="#" \
+						html = repl('<a href="#" \
 							onclick="frappe.cur_grid_report.set_filter(\'%(col_name)s\', \'%(value)s\'); \
 								frappe.cur_grid_report.refresh(); return false;">\
 							%(value)s</a>', {
@@ -559,7 +549,7 @@ frappe.views.GridReport = Class.extend({
 								page_name: frappe.container.page.page_name
 							});
 					} else {
-						var html = value;
+						html = value;
 					}
 
 					// make icon to open form
@@ -570,9 +560,9 @@ frappe.views.GridReport = Class.extend({
 						html += me.get_link_open_icon(doctype, value);
 					}
 					return html;
-				}
+				};
 			}
-		})
+		});
 	},
 	get_link_open_icon: function(doctype, name) {
 		return repl(' <a href="#Form/%(doctype)s/%(name)s">\
@@ -601,13 +591,13 @@ frappe.views.GridReport = Class.extend({
 				formatter: me.currency_formatter,
 				width: 100
 			});
-		}
+		};
 
 		var build_columns = function(condition) {
 			// add column for each date range
 			for(var i=0; i <= date_diff; i++) {
 				var date = frappe.datetime.add_days(me.from_date, i);
-				if(!condition) condition = function() { return true; }
+				if(!condition) condition = () => true;
 
 				if(condition(date)) add_column(date);
 				me.last_date = date;
@@ -616,7 +606,7 @@ frappe.views.GridReport = Class.extend({
 					me.column_map[date] = me.columns[me.columns.length-1];
 				}
 			}
-		}
+		};
 
 		// make columns for all date ranges
 		if(range=='Daily') {
@@ -624,17 +614,17 @@ frappe.views.GridReport = Class.extend({
 		} else if(range=='Weekly') {
 			build_columns(function(date) {
 				if(!me.last_date) return true;
-				return !(frappe.datetime.get_diff(date, me.from_date) % 7)
+				return !(frappe.datetime.get_diff(date, me.from_date) % 7);
 			});
 		} else if(range=='Monthly') {
 			build_columns(function(date) {
 				if(!me.last_date) return true;
-				return frappe.datetime.str_to_obj(me.last_date).getMonth() != frappe.datetime.str_to_obj(date).getMonth()
+				return frappe.datetime.str_to_obj(me.last_date).getMonth() != frappe.datetime.str_to_obj(date).getMonth();
 			});
 		} else if(range=='Quarterly') {
 			build_columns(function(date) {
 				if(!me.last_date) return true;
-				return frappe.datetime.str_to_obj(date).getDate()==1 && in_list([0,3,6,9], frappe.datetime.str_to_obj(date).getMonth())
+				return frappe.datetime.str_to_obj(date).getDate()==1 && in_list([0,3,6,9], frappe.datetime.str_to_obj(date).getMonth());
 			});
 		} else if(range=='Yearly') {
 			build_columns(function(date) {
@@ -665,7 +655,6 @@ frappe.views.GridReport = Class.extend({
 
 frappe.views.GridReportWithPlot = frappe.views.GridReport.extend({
 	setup_chart: function() {
-		var me = this;
 		if (in_list(["Daily", "Weekly"], this.filter_inputs.range.val())) {
 			this.chart_area.toggle(false);
 			return;
@@ -674,30 +663,11 @@ frappe.views.GridReportWithPlot = frappe.views.GridReport.extend({
 		}
 		var chart_data = this.get_chart_data ? this.get_chart_data() : null;
 
-		this.chart = new frappeChart.Chart(".chart", {
+		const parent = this.wrapper.find('.chart')[0];
+		this.chart = new Chart(parent, {
 			height: 200,
 			data: chart_data,
 			type: 'line'
-		});
-	},
-
-	setup_chart_check: function() {
-		var me = this;
-		me.wrapper.bind('make', function() {
-			me.wrapper.on("click", ".chart-check", function() {
-				var checked = $(this).prop("checked");
-				var id = $(this).attr("data-id");
-				if(me.item_by_name) {
-					if(me.item_by_name[id]) {
-						me.item_by_name[id].checked = checked ? true : false;
-					}
-				} else {
-					$.each(me.data, function(i, d) {
-						if(d.id==id) d.checked = checked;
-					});
-				}
-				me.setup_chart();
-			});
 		});
 	},
 
@@ -718,7 +688,7 @@ frappe.views.GridReportWithPlot = frappe.views.GridReport.extend({
 		$.each(this.data, function(i, item) {
 			if (item.checked) {
 				let dataset = {};
-				dataset.title = item.name;
+				dataset.name = item.name;
 				dataset.values = [];
 				$.each(plottable_cols, function(idx, col) {
 					dataset.values.push(item[col]);
@@ -752,7 +722,7 @@ frappe.views.TreeGridReport = frappe.views.GridReportWithPlot.extend({
 	},
 	add_tree_grid_events: function() {
 		var me = this;
-		this.grid.onClick.subscribe(function (e, args) {
+		this.grid.onClick.subscribe(function(e, args) {
 			if ($(e.target).hasClass("toggle")) {
 				var item = me.dataView.getItem(args.row);
 				if (item) {
@@ -768,7 +738,7 @@ frappe.views.TreeGridReport = frappe.views.GridReportWithPlot.extend({
 			}
 		});
 	},
-	tree_formatter: function (row, cell, value, columnDef, dataContext) {
+	tree_formatter: function(row, cell, value, columnDef, dataContext) {
 		var me = frappe.cur_grid_report;
 		var data = me.data;
 		var spacer = "<span style='display:inline-block;height:1px;width:" +
@@ -810,7 +780,8 @@ frappe.views.TreeGridReport = frappe.views.GridReportWithPlot.extend({
 		// prepare map with child in respective group
 		var me = this;
 		var item_group_map = {};
-		var group_ids = $.map(group_data, function(v) { return v.id; });
+		var group_ids = group_data.map(v => v.id);
+
 		$.each(item_data, function(i, item) {
 			var parent = item[me.tree_grid.parent_field];
 			if(!item_group_map[parent]) item_group_map[parent] = [];
@@ -862,7 +833,7 @@ frappe.views.TreeGridReport = frappe.views.GridReportWithPlot.extend({
 			var with_groups = $(msgbox.body).find("[name='with_groups']").prop("checked");
 			var with_ledgers = $(msgbox.body).find("[name='with_ledgers']").prop("checked");
 
-			var data = frappe.slickgrid_tools.get_view_data(me.columns, me.dataView,
+			var data = frappe.slickgrid_tools.get_view_data(me.columns, me.data,
 				function(row, item) {
 					if(with_groups) {
 						// add row
@@ -880,7 +851,7 @@ frappe.views.TreeGridReport = frappe.views.GridReportWithPlot.extend({
 
 			frappe.tools.downloadify(data, ["Report Manager", "System Manager"], me.title);
 			return false;
-		})
+		});
 
 		return false;
 	},
