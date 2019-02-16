@@ -918,11 +918,15 @@ def get_hooks(hook=None, default=None, app_name=None):
 					append_hook(hooks, key, getattr(app_hooks, key))
 		return hooks
 
+	no_cache = conf.developer_mode or False
 
 	if app_name:
 		hooks = _dict(load_app_hooks(app_name))
 	else:
-		hooks = _dict(cache().get_value("app_hooks", load_app_hooks))
+		if no_cache:
+			hooks = _dict(load_app_hooks())
+		else:
+			hooks = _dict(cache().get_value("app_hooks", load_app_hooks))
 
 	if hook:
 		return hooks.get(hook) or (default if default is not None else [])
