@@ -130,30 +130,26 @@ def compress(data):
 	return {"keys": keys, "values": values}
 
 
-def do_not_record():
-	if hasattr(frappe.local, "_recorder"):
-		del frappe.local._recorder
-		frappe.db.sql = frappe.db._sql
+def do_not_record(function):
+	def wrapper(*args, **kwargs):
+		if hasattr(frappe.local, "_recorder"):
+			del frappe.local._recorder
+			frappe.db.sql = frappe.db._sql
+		return function(*args, **kwargs)
+	return wrapper
 
-
-def get_context(context):
-	do_not_record()
-	if frappe.request.path[-1] != "/":
-		frappe.local.flags.redirect_location = "recorder/"
-		raise frappe.Redirect
-	return {"highlight": HtmlFormatter().get_style_defs()}
 
 @frappe.whitelist()
-def get_status():
-	do_not_record()
+@do_not_record
+def get_status(*args, **kwargs):
 	if frappe.cache().get("recorder-intercept"):
 		return {"status": "Active", "color": "green"}
 	return {"status": "Inactive", "color": "red"}
 
 
 @frappe.whitelist()
-def set_recorder_state(should_record):
-	do_not_record()
+@do_not_record
+def set_recorder_state(should_record, *args, **kwargs):
 	if should_record == "true":
 		frappe.cache().set("recorder-intercept", 1)
 		return {"status": "Active", "color": "green"}
@@ -163,8 +159,8 @@ def set_recorder_state(should_record):
 
 
 @frappe.whitelist()
-def get_requests():
-	do_not_record()
+@do_not_record
+def get_requests(*args, **kwargs):
 	requests = frappe.cache().lrange("recorder-requests", 0, -1)
 	requests = list(map(lambda request: json.loads(request.decode()), requests))
 	for index, request in enumerate(requests, start=1):
@@ -173,18 +169,17 @@ def get_requests():
 
 
 @frappe.whitelist()
-def erase_requests():
-	do_not_record()
+@do_not_record
+def erase_requests(*args, **kwargs):
 	frappe.cache().delete_value("recorder-requests")
 
 
 @frappe.whitelist()
-def get_request_data(uuid):
-	do_not_record()
+@do_not_record
+def get_request_data(uuid, *args, **kwargs):
 	request = json.loads(frappe.cache().get("recorder-request-{}".format(uuid)).decode())
 	calls = request["calls"]
 	for index, call in enumerate(calls):
 		call["index"] = index
 
 	return request
-
