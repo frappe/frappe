@@ -204,25 +204,25 @@ export default {
 			}
 		},
 		refresh: function() {
-			frappe.call("frappe.www.recorder.get_requests").then( r => {
+			frappe.call("frappe.recorder.get_requests").then( r => {
 				this.requests = r.message;
 				this.last_fetched = new Date();
 			});
 		},
 		clear: function() {
-			frappe.call("frappe.www.recorder.erase_requests");
+			frappe.call("frappe.recorder.erase_requests");
 			this.refresh();
 		},
 		record: function(should_record) {
 			frappe.call({
-				method: "frappe.www.recorder.set_recorder_state",
+				method: "frappe.recorder.set_recorder_state",
 				args: {
 					should_record: should_record
 				}
 			}).then(r => this.update_status(r.message));
 		},
 		fetch_status: function() {
-			frappe.call("frappe.www.recorder.get_status").then(r => this.update_status(r.message));
+			frappe.call("frappe.recorder.get_status").then(r => this.update_status(r.message));
 		},
 		update_status: function(status) {
 			this.status = status;

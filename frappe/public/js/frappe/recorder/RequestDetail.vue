@@ -206,7 +206,7 @@ export default {
 	},
 	mounted() {
 		frappe.call({
-			method: "frappe.www.recorder.get_request_data",
+			method: "frappe.recorder.get_request_data",
 			args: {
 				uuid: this.$route.params.request_uuid
 			}
