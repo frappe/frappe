@@ -15,7 +15,7 @@ const routes = [
 	},
 	{
 		name: "request-detail",
-		path: '/request/:request_uuid',
+		path: '/request/:id',
 		component: RequestDetail,
 	},
 ];

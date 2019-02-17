@@ -8,7 +8,6 @@ import time
 import traceback
 import frappe
 import sqlparse
-import uuid
 import datetime
 
 
@@ -55,7 +54,7 @@ def dump():
 
 class Recorder():
 	def __init__(self):
-		self.uuid = frappe.generate_hash(length=10)
+		self.id = frappe.generate_hash(length=10)
 		self.time = datetime.datetime.now()
 		self.calls = []
 		self.path = frappe.request.path
@@ -73,7 +72,7 @@ class Recorder():
 
 	def dump(self):
 		request_data = {
-			"uuid": self.uuid,
+			"id": self.id,
 			"path": self.path,
 			"cmd": self.cmd,
 			"time": self.time,
@@ -86,7 +85,7 @@ class Recorder():
 
 		request_data["calls"] = self.calls
 		request_data["http"] = self.request
-		frappe.cache().set("recorder-request-{}".format(self.uuid), json.dumps(request_data, default=str))
+		frappe.cache().set("recorder-request-{}".format(self.id), json.dumps(request_data, default=str))
 
 
 def _patch():
@@ -139,9 +138,9 @@ def set_recorder_state(should_record, *args, **kwargs):
 
 @frappe.whitelist()
 @do_not_record
-def get(uuid=None, *args, **kwargs):
-	if uuid:
-		result = json.loads(frappe.cache().get("recorder-request-{}".format(uuid)).decode())
+def get(id=None, *args, **kwargs):
+	if id:
+		result = json.loads(frappe.cache().get("recorder-request-{}".format(id)).decode())
 	else:
 		requests = frappe.cache().lrange("recorder-requests", 0, -1)
 		result = list(map(lambda request: json.loads(request.decode()), requests))

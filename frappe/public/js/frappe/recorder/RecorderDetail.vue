@@ -44,7 +44,7 @@
 
 				</div>
 				<div class="result-list">
-					<router-link class="list-row-container" v-for="(request, index) in paginated(sorted(filtered(requests)))" :key="index" :to="{name: 'request-detail', params: {request_uuid: request.uuid}}" tag="div" v-bind="request">
+					<router-link class="list-row-container" v-for="(request, index) in paginated(sorted(filtered(requests)))" :key="index" :to="{name: 'request-detail', params: {id: request.id}}" tag="div" v-bind="request">
 						<div class="level list-row small">
 							<div class="level-left ellipsis">
 								<div class="list-row-col ellipsis list-subject level ">
