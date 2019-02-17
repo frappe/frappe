@@ -1,5 +1,91 @@
 <template>
 	<div>
+		<div class="row form-section visible-section shaded-section">
+			<div class="section-body">
+				<div class="form-column col-sm-6">
+					<form>
+						<div class="frappe-control input-max-width" data-fieldtype="Data" data-fieldname="data_1" title="data_1">
+							<div class="form-group">
+								<div class="clearfix"> <label class="control-label" style="padding-right: 0px;">Path</label></div>
+								<div class="control-input-wrapper">
+									<div class="control-value like-disabled-input" style="">{{ request.path }}</div>
+								</div>
+							</div>
+						</div>
+						<div class="frappe-control input-max-width" data-fieldtype="Data" data-fieldname="data_2" title="data_2">
+							<div class="form-group">
+								<div class="clearfix"> <label class="control-label" style="padding-right: 0px;">CMD</label></div>
+								<div class="control-input-wrapper">
+									<div class="control-value like-disabled-input" style="">{{ request.cmd }}</div>
+								</div>
+							</div>
+						</div>
+						<div class="frappe-control input-max-width" data-fieldtype="Data" data-fieldname="data_3" title="data_3">
+							<div class="form-group">
+								<div class="clearfix"> <label class="control-label" style="padding-right: 0px;">Method</label></div>
+								<div class="control-input-wrapper">
+									<div class="control-value like-disabled-input" style="">{{ request.method }}</div>
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+				<div class="form-column col-sm-6">
+					<form>
+						<div class="frappe-control input-max-width" data-fieldtype="Data" data-fieldname="data_4" title="data_4">
+							<div class="form-group">
+								<div class="clearfix"> <label class="control-label" style="padding-right: 0px;">Duration</label>
+								</div>
+								<div class="control-input-wrapper">
+									<div class="control-value like-disabled-input" style="">{{ request.duration }}</div>
+								</div>
+							</div>
+						</div>
+						<div class="frappe-control input-max-width" data-fieldtype="Data" data-fieldname="queries_duration"
+							title="queries_duration">
+							<div class="form-group">
+								<div class="clearfix"> <label class="control-label" style="padding-right: 0px;">Queries Duration</label></div>
+								<div class="control-input-wrapper">
+									<div class="control-value like-disabled-input" style="">{{ request.time_queries }}</div>
+								</div>
+							</div>
+						</div>
+						<div class="frappe-control input-max-width" data-fieldtype="Data" data-fieldname="time" title="time">
+							<div class="form-group">
+								<div class="clearfix"> <label class="control-label" style="padding-right: 0px;">Time</label></div>
+								<div class="control-input-wrapper">
+									<div class="control-value like-disabled-input" style="">{{ request.time }}</div>
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="row form-section visible-section">
+			<div class="section-body">
+				<div class="form-column col-sm-12">
+					<form>
+						<div class="frappe-control" data-fieldtype="Small Text" data-fieldname="request_headers" title="request_headers">
+							<div class="form-group">
+								<div class="clearfix"> <label class="control-label" style="padding-right: 0px;">Request Headers</label></div>
+								<div class="control-input-wrapper">
+									<div class="control-value like-disabled-input for-description" style=""><pre>{{ JSON.stringify(request.http.headers, null, 1) }}</pre></div>
+								</div>
+							</div>
+						</div>
+						<div class="frappe-control" data-fieldtype="Small Text" data-fieldname="reponse_headers" title="reponse_headers">
+							<div class="form-group">
+								<div class="clearfix"> <label class="control-label" style="padding-right: 0px;">Form Dict</label></div>
+								<div class="control-input-wrapper">
+									<div class="control-value like-disabled-input for-description" style=""><pre>{{ JSON.stringify(request.http.data, null, 1) }}</pre></div>
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
 		<div class="row form-section visible-section">
 			<div class="col-sm-12">
 				<h6 class="form-section-heading uppercase">SQL Queries</h6>
