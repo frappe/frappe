@@ -863,7 +863,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						}
 						return return_value;
 					});
-
+					this.toggle_result_area();
 					this.render();
 				});
 		});
