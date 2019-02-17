@@ -103,6 +103,7 @@ frappe.ui.form.AssignTo = Class.extend({
 		}
 
 		me.assign_to.dialog.show();
+		me.assign_to = null;
 	},
 	remove: function(owner) {
 		var me = this;
@@ -150,7 +151,7 @@ frappe.ui.form.AssignToDialog = Class.extend({
 						{value:'High', label:__('High')}],
 					'default':'Medium'},
 			],
-			primary_action: function() { frappe.ui.add_assignment(opts, me) },
+			primary_action: function() { frappe.ui.add_assignment(opts, this) },
 			primary_action_label: __("Add")
 		})
 		$.extend(me, dialog);

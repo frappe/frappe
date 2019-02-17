@@ -157,8 +157,8 @@ class UserPermissions:
 				self.can_read.remove(dt)
 
 		if "System Manager" in self.get_roles():
-			self.can_import = filter(lambda d: d in self.can_create,
-				frappe.db.sql_list("""select name from `tabDocType` where allow_import = 1"""))
+			self.can_import = list(filter(lambda d: d in self.can_create,
+				frappe.db.sql_list("""select name from `tabDocType` where allow_import = 1""")))
 
 	def get_defaults(self):
 		import frappe.defaults
@@ -229,7 +229,7 @@ def get_fullname_and_avatar(user):
 	first_name, last_name, avatar, name = frappe.db.get_value("User",
 		user, ["first_name", "last_name", "user_image", "name"])
 	return _dict({
-		"fullname": " ".join(filter(None, [first_name, last_name])),
+		"fullname": " ".join(list(filter(None, [first_name, last_name]))),
 		"avatar": avatar,
 		"name": name
 	})
@@ -263,7 +263,7 @@ def get_system_managers(only_name=False):
 def add_role(user, role):
 	frappe.get_doc("User", user).add_roles(role)
 
-def add_system_manager(email, first_name=None, last_name=None, send_welcome_email=False):
+def add_system_manager(email, first_name=None, last_name=None, send_welcome_email=False, password=None):
 	# add user
 	user = frappe.new_doc("User")
 	user.update({
@@ -275,6 +275,11 @@ def add_system_manager(email, first_name=None, last_name=None, send_welcome_emai
 		"user_type": "System User",
 		"send_welcome_email": 1 if send_welcome_email else 0
 	})
+
+	if password:
+		user.update({
+			"new_password": password
+		})
 
 	user.insert()
 

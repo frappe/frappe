@@ -36,9 +36,9 @@ class User(Document):
 			self.name = self.email
 
 	def onload(self):
+		from frappe.config import get_modules_from_all_apps
 		self.set_onload('all_modules',
-			[m.module_name for m in frappe.db.get_all('Desktop Icon',
-				fields=['module_name'], filters={'standard': 1}, order_by="module_name")])
+			[m.get("module_name") for m in get_modules_from_all_apps()])
 
 	def before_insert(self):
 		self.flags.in_insert = True
@@ -357,6 +357,9 @@ class User(Document):
 					SET `%s` = %s
 					WHERE `%s` = %s""" %
 					(tab, field, '%s', field, '%s'), (new_name, old_name))
+
+		if frappe.db.exists("Chat Profile", old_name):
+			frappe.rename_doc("Chat Profile", old_name, new_name, force=True)
 
 		# set email
 		frappe.db.sql("""UPDATE `tabUser`
@@ -891,10 +894,9 @@ def get_active_website_users():
 def get_permission_query_conditions(user):
 	if user=="Administrator":
 		return ""
-
 	else:
 		return """(`tabUser`.name not in ({standard_users}))""".format(
-			standard_users='"' + '", "'.join(STANDARD_USERS) + '"')
+			standard_users = ", ".join(frappe.db.escape(user) for user in STANDARD_USERS))
 
 def has_permission(doc, user):
 	if (user != "Administrator") and (doc.name in STANDARD_USERS):
@@ -924,7 +926,7 @@ def notify_admin_access_to_system_manager(login_manager=None):
 def extract_mentions(txt):
 	"""Find all instances of @name in the string.
 	The mentions will be separated by non-word characters or may appear at the start of the string"""
-	txt = txt.replace("<br>", "<br> ")
+	txt = txt.replace("<div>", "<div> ")
 	txt = re.sub(r'(<[a-zA-Z\/][^>]*>)', '', txt)
 	return re.findall(r'(?:[^\w\.\-\@]|^)@([\w\.\-\@]*)', txt)
 
@@ -932,7 +934,7 @@ def handle_password_test_fail(result):
 	suggestions = result['feedback']['suggestions'][0] if result['feedback']['suggestions'] else ''
 	warning = result['feedback']['warning'] if 'warning' in result['feedback'] else ''
 	suggestions += "<br>" + _("Hint: Include symbols, numbers and capital letters in the password") + '<br>'
-	frappe.throw(_('Invalid Password: ' + ' '.join([warning, suggestions])))
+	frappe.throw(' '.join([_('Invalid Password:'), warning, suggestions]))
 
 def update_gravatar(name):
 	gravatar = has_gravatar(name)

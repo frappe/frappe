@@ -8,11 +8,39 @@ from frappe.model.db_query import DatabaseQuery
 from frappe.desk.reportview import get_filters_cond
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 
-test_dependencies = ["User"]
+test_dependencies = ['User', 'Blog Post']
 
 class TestReportview(unittest.TestCase):
 	def test_basic(self):
 		self.assertTrue({"name":"DocType"} in DatabaseQuery("DocType").execute(limit_page_length=None))
+
+	def test_build_match_conditions(self):
+		clear_user_permissions_for_doctype('Blog Post', 'test2@example.com')
+
+		test2user = frappe.get_doc('User', 'test2@example.com')
+		test2user.add_roles('Blogger')
+		frappe.set_user('test2@example.com')
+
+		# this will get match conditions for Blog Post
+		build_match_conditions = DatabaseQuery('Blog Post').build_match_conditions
+
+		# Before any user permission is applied
+		# get as filters
+		self.assertEqual(build_match_conditions(as_condition=False), [])
+		# get as conditions
+		self.assertEqual(build_match_conditions(as_condition=True), "")
+
+		add_user_permission('Blog Post', '-test-blog-post', 'test2@example.com', True)
+		add_user_permission('Blog Post', '-test-blog-post-1', 'test2@example.com', True)
+
+		# After applying user permission
+		# get as filters
+		self.assertTrue({'Blog Post': ['-test-blog-post-1', '-test-blog-post']} in build_match_conditions(as_condition=False))
+		# get as conditions
+		self.assertEqual(build_match_conditions(as_condition=True),
+			"""(((ifnull(`tabBlog Post`.`name`, '')='' or `tabBlog Post`.`name` in ('-test-blog-post-1', '-test-blog-post'))))""")
+
+		frappe.set_user('Administrator')
 
 	def test_fields(self):
 		self.assertTrue({"name":"DocType", "issingle":0} \
@@ -134,6 +162,9 @@ class TestReportview(unittest.TestCase):
 
 		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
 			fields=["name", "issingle from tabDocType order by 2 --"],limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+			fields=["name", "1' UNION SELECT * FROM __Auth --"],limit_start=0, limit_page_length=1)
 
 		data = DatabaseQuery("DocType").execute(fields=["count(`name`) as count"],
 			limit_start=0, limit_page_length=1)
@@ -306,6 +337,17 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue(len(data) == 0)
 		self.assertTrue(len(frappe.get_all('File', {'name': ('not ancestors of', 'Home')})) == len(frappe.get_all('File')))
 
+
+	def test_is_set_is_not_set(self):
+		res = DatabaseQuery("DocType").execute(filters={"autoname": ["is", "not set"]})
+		self.assertTrue({'name': 'Integration Request'} in res)
+		self.assertTrue({'name': 'User'} in res)
+		self.assertFalse({'name': 'Blogger'} in res)
+
+		res = DatabaseQuery("DocType").execute(filters={"autoname": ["is", "set"]})
+		self.assertTrue({'name': 'DocField'} in res)
+		self.assertTrue({'name': 'Prepared Report'} in res)
+		self.assertFalse({'name': 'Property Setter'} in res)
 
 
 def create_event(subject="_Test Event", starts_on=None):

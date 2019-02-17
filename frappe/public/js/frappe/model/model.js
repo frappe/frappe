@@ -4,7 +4,7 @@
 frappe.provide('frappe.model');
 
 $.extend(frappe.model, {
-	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table',
+	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table', 'Table MultiSelect',
 		'Button', 'Image', 'Fold', 'Heading'],
 
 	layout_fields: ['Section Break', 'Column Break', 'Fold'],
@@ -12,6 +12,10 @@ $.extend(frappe.model, {
 	std_fields_list: ['name', 'owner', 'creation', 'modified', 'modified_by',
 		'_user_tags', '_comments', '_assign', '_liked_by', 'docstatus',
 		'parent', 'parenttype', 'parentfield', 'idx'],
+
+	core_doctypes_list: ['DocType', 'DocField', 'DocPerm', 'User', 'Role', 'Has Role',
+		'Page', 'Module Def', 'Print Format', 'Report', 'Customize Form',
+		'Customize Form Field', 'Property Setter', 'Custom Field', 'Custom Script'],
 
 	std_fields: [
 		{fieldname:'name', fieldtype:'Link', label:__('ID')},
@@ -32,6 +36,8 @@ $.extend(frappe.model, {
 	std_fields_table: [
 		{fieldname:'parent', fieldtype:'Data', label:__('Parent')},
 	],
+
+	table_fields: ['Table', 'Table MultiSelect'],
 
 	new_names: {},
 	events: {},
@@ -96,10 +102,12 @@ $.extend(frappe.model, {
 		if(locals.DocType[doctype]) {
 			callback && callback();
 		} else {
-			var cached_timestamp = null;
+			let cached_timestamp = null;
+			let cached_doc = null;
+
 			if(localStorage["_doctype:" + doctype]) {
 				let cached_docs = JSON.parse(localStorage["_doctype:" + doctype]);
-				let cached_doc = cached_docs.filter(doc => doc.name === doctype)[0];
+				cached_doc = cached_docs.filter(doc => doc.name === doctype)[0];
 				if(cached_doc) {
 					cached_timestamp = cached_doc.modified;
 				}
@@ -304,7 +312,7 @@ $.extend(frappe.model, {
 		var val = locals[dt] && locals[dt][dn] && locals[dt][dn][fn];
 		var df = frappe.meta.get_docfield(dt, fn, dn);
 
-		if(df.fieldtype=='Table') {
+		if(frappe.model.table_fields.includes(df.fieldtype)) {
 			var ret = false;
 			$.each(locals[df.options] || {}, function(k,d) {
 				if(d.parent==dn && d.parenttype==dt && d.parentfield==df.fieldname) {

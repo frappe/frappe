@@ -94,7 +94,7 @@ class File(NestedSet):
 			self.validate_file_name()
 		self.validate_folder()
 
-		if not self.flags.ignore_file_validate:
+		if not self.file_url and not self.flags.ignore_file_validate:
 			if not self.is_folder:
 				self.validate_file()
 			self.generate_content_hash()
@@ -384,7 +384,7 @@ class File(NestedSet):
 		elif file_path.startswith("/files/"):
 			file_path = get_files_path(*file_path.split("/files/", 1)[1].split("/"))
 
-		else:
+		elif not self.file_url:
 			frappe.throw(_("There is some problem with the file url: {0}").format(file_path))
 
 		return file_path
@@ -813,12 +813,9 @@ def download_file(file_url):
 	"""
 	file_doc = frappe.get_doc("File", {"file_url": file_url})
 	file_doc.check_permission("read")
-	path = os.path.join(get_files_path(), os.path.basename(file_url))
 
-	with open(path, "rb") as fileobj:
-		filedata = fileobj.read()
 	frappe.local.response.filename = os.path.basename(file_url)
-	frappe.local.response.filecontent = filedata
+	frappe.local.response.filecontent = file_doc.get_content()
 	frappe.local.response.type = "download"
 
 def extract_images_from_doc(doc, fieldname):

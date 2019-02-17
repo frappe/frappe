@@ -11,6 +11,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 	make: function() {
 		var me = this;
+
 		this.dialog = new frappe.ui.Dialog({
 			title: (this.title || this.subject || __("New Email")),
 			no_submit_on_enter: true,
@@ -498,7 +499,9 @@ frappe.views.CommunicationComposer = Class.extend({
 	save_as_draft: function() {
 		if (this.dialog) {
 			try {
-				localStorage.setItem(this.frm.doctype + this.frm.docname, this.dialog.get_value('content'));
+				let message = this.dialog.get_value('content');
+				message = message.split(frappe.separator_element)[0];
+				localStorage.setItem(this.frm.doctype + this.frm.docname, message);
 			} catch (e) {
 				// silently fail
 				console.log(e);
@@ -614,13 +617,8 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	setup_earlier_reply: function() {
-		var fields = this.dialog.fields_dict,
-			signature = frappe.boot.user.email_signature || "",
-			last_email = this.last_email;
-
-		if(!last_email) {
-			last_email = this.frm && this.frm.timeline.get_last_email(true);
-		}
+		let fields = this.dialog.fields_dict;
+		let signature = frappe.boot.user.email_signature || "";
 
 		if(!frappe.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");
@@ -641,31 +639,64 @@ frappe.views.CommunicationComposer = Class.extend({
 				+ this.real_name + ",</p><!-- salutation-ends --><br>" + (this.message || "");
 		}
 
-		var reply = (this.message || "")
-			+ (signature ? ("<br>" + signature) : "");
+		if(this.message && signature && this.message.includes(signature)) {
+			signature = "";
+		}
 
-		// why do we append the last email in the reply?
-		var content = "<div><br></div>" + reply;
+		let reply = (this.message || "") + (signature ? ("<br>" + signature) : "");
+		let content = '';
 
-		if(last_email) {
-			var last_email_content = last_email.original_comment || last_email.content;
+		if (this.is_a_reply === 'undefined') {
+			this.is_a_reply = true;
+		}
 
-			last_email_content = last_email_content
-				.replace(/&lt;meta[\s\S]*meta&gt;/g, '') // remove <meta> tags
-				.replace(/&lt;style[\s\S]*&lt;\/style&gt;/g, ''); // // remove <style> tags
+		if (this.is_a_reply) {
+			let last_email = this.last_email;
 
-			var communication_date = last_email.communication_date || last_email.creation;
-			content = '<div><br></div>'
-				+ reply
-				+ "<div data-comment='original-reply'></div>"
-				+ '<blockquote>' +
-					'<p>' + __("On {0}, {1} wrote:",
-					[frappe.datetime.global_date_format(communication_date) , last_email.sender]) + '</p>' +
-					last_email_content +
-				'<blockquote>';
+			if (!last_email) {
+				last_email = this.frm && this.frm.timeline.get_last_email(true);
+			}
+
+			if (!last_email) return;
+
+			let last_email_content = last_email.original_comment || last_email.content;
+
+			// convert the email context to text as we are enclosing
+			// this inside <blockquote>
+			last_email_content = this.html2text(last_email_content).replace(/\n/g, '<br>');
+
+			// clip last email for a maximum of 20k characters
+			// to prevent the email content from getting too large
+			if (last_email_content.length > 20 * 1024) {
+				last_email_content += '<div>' + __('Message clipped') + '</div>' + last_email_content;
+				last_email_content = last_email_content.slice(0, 20 * 1024);
+			}
+
+			let communication_date = last_email.communication_date || last_email.creation;
+			content = `
+				<div><br></div>
+				${reply}
+				${frappe.separator_element}
+				<p>${__("On {0}, {1} wrote:", [frappe.datetime.global_date_format(communication_date) , last_email.sender])}</p>
+				<blockquote>
+				${last_email_content}
+				</blockquote>
+			`;
 		} else {
 			content = "<div><br></div>" + reply;
 		}
 		fields.content.set_value(content);
+	},
+	html2text: function(html) {
+		// convert HTML to text and try and preserve whitespace
+		var d = document.createElement( 'div' );
+		d.innerHTML = html.replace(/<\/div>/g, '<br></div>')  // replace end of blocks
+			.replace(/<\/p>/g, '<br></p>') // replace end of paragraphs
+			.replace(/<br>/g, '\n');
+		let text = d.textContent;
+
+		// replace multiple empty lines with just one
+		return text.replace(/\n{3,}/g, '\n\n');
 	}
 });
+

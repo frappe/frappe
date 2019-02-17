@@ -47,15 +47,11 @@ $.extend(frappe.perm, {
 		let meta = frappe.get_doc("DocType", doctype);
 		const user  = frappe.session.user;
 
-		if (!meta) return perm;
-
 		if (user === "Administrator" || frappe.user_roles.includes("Administrator")) {
 			perm[0].read = 1;
 		}
 
-		if (!meta) {
-			return perm;
-		}
+		if (!meta) return perm;
 
 		frappe.perm.build_role_permissions(perm, meta);
 
@@ -155,9 +151,10 @@ $.extend(frappe.perm, {
 			let rules = {};
 			let fields_to_check = frappe.meta.get_fields_to_check_permissions(doctype);
 			$.each(fields_to_check, (i, df) => {
-				if (user_permissions[df.options]
-					&& !(user_permissions[df.options].skip_for_doctype || []).includes(doctype)) {
-					rules[df.label] = user_permissions[df.options].docs;
+				const user_permissions_for_doctype = user_permissions[df.options] || [];
+				const allowed_records = frappe.perm.get_allowed_docs_for_doctype(user_permissions_for_doctype, doctype);
+				if (allowed_records.length) {
+					rules[df.label] = allowed_records;
 				}
 			});
 			if (!$.isEmptyObject(rules)) {
@@ -255,4 +252,10 @@ $.extend(frappe.perm, {
 
 		return status === "None" ? false : true;
 	},
+
+	get_allowed_docs_for_doctype: (user_permissions, doctype) => {
+		return (user_permissions || []).filter(perm => {
+			return (perm.applicable_for === doctype || !perm.applicable_for);
+		}).map(perm => perm.doc);
+	}
 });

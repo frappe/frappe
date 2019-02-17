@@ -44,19 +44,26 @@ frappe.route = function() {
 
 	frappe.route_history.push(route);
 
-	if(route[0] && route[1] && frappe.views[route[0] + "Factory"]) {
-		// has a view generator, generate!
-		if(!frappe.view_factory[route[0]]) {
-			frappe.view_factory[route[0]] = new frappe.views[route[0] + "Factory"]();
-		}
+	if(route[0]) {
+		const title_cased_route = frappe.utils.to_title_case(route[0]);
 
-		frappe.view_factory[route[0]].show();
-	} else {
-		// show page
-		const route_name = frappe.utils.xss_sanitise(route[0]);
-		if (frappe.views.pageview) {
-			frappe.views.pageview.show(route_name);
+		if(route[1] && frappe.views[title_cased_route + "Factory"]) {
+			// has a view generator, generate!
+			if(!frappe.view_factory[title_cased_route]) {
+				frappe.view_factory[title_cased_route] = new frappe.views[title_cased_route + "Factory"]();
+			}
+
+			frappe.view_factory[title_cased_route].show();
+		} else {
+			// show page
+			const route_name = frappe.utils.xss_sanitise(route[0]);
+			if (frappe.views.pageview) {
+				frappe.views.pageview.show(route_name);
+			}
 		}
+	} else {
+		// Show desk
+		frappe.views.pageview.show('');
 	}
 
 

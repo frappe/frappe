@@ -18,6 +18,9 @@
 	"js/chat.js": [
 		"public/js/frappe/chat.js"
 	],
+	"js/frappe-vue.min.js": [
+		"public/js/frappe_vue.js"
+	],
 	"js/frappe-web.min.js": [
 		"public/js/frappe/class.js",
 		"public/js/frappe/polyfill.js",
@@ -75,13 +78,15 @@
 		"public/js/frappe/form/controls/read_only.js",
 		"public/js/frappe/form/controls/button.js",
 		"public/js/frappe/form/controls/html.js",
+		"public/js/frappe/form/controls/markdown_editor.js",
 		"public/js/frappe/form/controls/html_editor.js",
 		"public/js/frappe/form/controls/heading.js",
 		"public/js/frappe/form/controls/autocomplete.js",
 		"public/js/frappe/form/controls/barcode.js",
 		"public/js/frappe/form/controls/geolocation.js",
 		"public/js/frappe/form/controls/multiselect.js",
-		"public/js/frappe/form/controls/multicheck.js"
+		"public/js/frappe/form/controls/multicheck.js",
+		"public/js/frappe/form/controls/table_multiselect.js"
 	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
@@ -130,6 +135,7 @@
 		"public/js/lib/Sortable.min.js",
 		"public/js/lib/jquery/jquery.hotkeys.js",
 		"public/js/lib/bootstrap.min.js",
+		"node_modules/vue/dist/vue.js",
 		"node_modules/moment/min/moment-with-locales.min.js",
 		"node_modules/moment-timezone/builds/moment-timezone-with-data.min.js",
 		"public/js/lib/socket.io.min.js",
@@ -226,7 +232,6 @@
 		"public/js/frappe/ui/toolbar/about.js",
 		"public/js/frappe/ui/toolbar/navbar.html",
 		"public/js/frappe/ui/toolbar/toolbar.js",
-		"public/js/frappe/ui/toolbar/modules_select.js",
 		"public/js/frappe/ui/toolbar/notifications.js",
 		"public/js/frappe/views/communication.js",
 		"public/js/frappe/views/translation_manager.js",
@@ -378,5 +383,8 @@
 	],
 	"js/social.min.js": [
 		"public/js/frappe/social/social_home.js"
+	],
+	"js/modules.min.js": [
+		"public/js/frappe/views/modules_home.js"
 	]
 }

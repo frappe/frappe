@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 # Settings saved per user basis
 # such as page_limit, filters, last_view
 

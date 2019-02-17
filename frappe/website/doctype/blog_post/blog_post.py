@@ -8,7 +8,8 @@ from frappe import _
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import clear_cache
 from frappe.utils import today, cint, global_date_format, get_fullname, strip_html_tags, markdown
-from frappe.website.utils import find_first_image, get_comment_list
+from frappe.website.utils import (find_first_image, get_html_content_based_on_type,
+	get_comment_list)
 
 class BlogPost(WebsiteGenerator):
 	website = frappe._dict(
@@ -58,19 +59,28 @@ class BlogPost(WebsiteGenerator):
 
 		context.description = self.blog_intro or self.content[:140]
 
+		context.content = get_html_content_based_on_type(self, 'content', self.content_type)
+
 		context.metatags = {
 			"name": self.title,
 			"description": context.description,
 		}
 
-		if "<!-- markdown -->" in context.content:
-			context.content = markdown(context.content)
-
 		image = find_first_image(self.content)
 		if image:
 			context.metatags["image"] = image
 
+		self.load_comments(context)
+
+		context.category = frappe.db.get_value("Blog Category",
+			context.doc.blog_category, ["title", "route"], as_dict=1)
+		context.parents = [{"name": _("Home"), "route":"/"},
+			{"name": "Blog", "route": "/blog"},
+			{"label": context.category.title, "route":context.category.route}]
+
+	def load_comments(self, context):
 		context.comment_list = get_comment_list(self.doctype, self.name)
+
 		if not context.comment_list:
 			context.comment_text = _('No comments yet')
 		else:
@@ -79,11 +89,6 @@ class BlogPost(WebsiteGenerator):
 			else:
 				context.comment_text = _('{0} comments').format(len(context.comment_list))
 
-		context.category = frappe.db.get_value("Blog Category",
-			context.doc.blog_category, ["title", "route"], as_dict=1)
-		context.parents = [{"name": _("Home"), "route":"/"},
-			{"name": "Blog", "route": "/blog"},
-			{"label": context.category.title, "route":context.category.route}]
 
 def get_list_context(context=None):
 	list_context = frappe._dict(
@@ -157,9 +162,8 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 				t1.content as content,
 				ifnull(t1.blog_intro, t1.content) as intro,
 				t2.full_name, t2.avatar, t1.blogger,
-				(select count(name) from `tabCommunication`
+				(select count(name) from `tabComment`
 					where
-						communication_type='Comment'
 						and comment_type='Comment'
 						and reference_doctype='Blog Post'
 						and reference_name=t1.name) as comments

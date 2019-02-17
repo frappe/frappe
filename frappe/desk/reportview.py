@@ -42,7 +42,6 @@ def get_form_params():
 	else:
 		data["save_user_settings"] = True
 
-	doctype = data["doctype"]
 	fields = data["fields"]
 
 	for field in fields:
@@ -80,7 +79,7 @@ def compress(data, args = {}):
 	for row in data:
 		new_row = []
 		for key in keys:
-			new_row.append(row[key])
+			new_row.append(row.get(key))
 		values.append(new_row)
 
 	if args.get("add_total_row"):
@@ -213,11 +212,16 @@ def delete_items():
 	"""delete selected items"""
 	import json
 
-	il = sorted(json.loads(frappe.form_dict.get('items')), reverse=True)
+	items = sorted(json.loads(frappe.form_dict.get('items')), reverse=True)
 	doctype = frappe.form_dict.get('doctype')
 
-	failed = []
+	if len(items) > 10:
+		frappe.enqueue('frappe.desk.reportview.delete_bulk',
+			doctype=doctype, items=items)
+	else:
+		delete_bulk(doctype, items)
 
+def delete_bulk(doctype, items):
 	for i, d in enumerate(il):
 		try:
 			frappe.delete_doc(doctype, d)
@@ -227,8 +231,6 @@ def delete_items():
 						user=frappe.session.user)
 		except Exception:
 			failed.append(d)
-
-	return failed
 
 @frappe.whitelist()
 @frappe.read_only()

@@ -11,11 +11,13 @@ def get_data():
 					"type": "doctype",
 					"name": "Web Page",
 					"description": _("Content web page."),
+					"onboard": 1,
 				},
 				{
 					"type": "doctype",
 					"name": "Web Form",
 					"description": _("User editable form on Website."),
+					"onboard": 1,
 				},
 				{
 					"type": "doctype",
@@ -35,6 +37,7 @@ def get_data():
 					"type": "doctype",
 					"name": "Blog Post",
 					"description": _("Single Post (article)."),
+					"onboard": 1,
 				},
 				{
 					"type": "doctype",
@@ -56,11 +59,13 @@ def get_data():
 					"type": "doctype",
 					"name": "Website Settings",
 					"description": _("Setup of top navigation bar, footer and logo."),
+					"onboard": 1,
 				},
 				{
 					"type": "doctype",
 					"name": "Website Theme",
 					"description": _("List of themes for Website."),
+					"onboard": 1,
 				},
 				{
 					"type": "doctype",
@@ -86,6 +91,7 @@ def get_data():
 					"type": "doctype",
 					"name": "Portal Settings",
 					"label": _("Portal Settings"),
+					"onboard": 1,
 				}
 			]
 		},

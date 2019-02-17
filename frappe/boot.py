@@ -96,8 +96,8 @@ def load_conf_settings(bootinfo):
 		if key in conf: bootinfo[key] = conf.get(key)
 
 def load_desktop_icons(bootinfo):
-	from frappe.desk.doctype.desktop_icon.desktop_icon import get_desktop_icons
-	bootinfo.desktop_icons = get_desktop_icons()
+	from frappe.config import get_modules_from_all_apps_for_user
+	bootinfo.allowed_modules = get_modules_from_all_apps_for_user()
 
 def get_allowed_pages():
 	return get_user_pages_or_reports('Page')
@@ -194,7 +194,7 @@ def load_translations(bootinfo):
 def get_fullnames():
 	"""map of user fullnames"""
 	ret = frappe.db.sql("""select `name`, full_name as fullname,
-		user_image as image, gender, email, username, bio, location, interest, banner_image
+		user_image as image, gender, email, username, bio, location, interest, banner_image, allowed_in_mentions
 		from tabUser where enabled=1 and user_type!='Website User'""", as_dict=1)
 
 	d = {}

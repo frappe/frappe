@@ -421,9 +421,12 @@ frappe.ready(function() {
 		callback: (r) => {
 			if (r.message) {
 				frappe.require('/assets/js/moment-bundle.min.js', () => {
-					frappe.require('/assets/js/chat.js');
+					frappe.require('/assets/js/chat.js', () => {
+						frappe.chat.setup();
+					});
 				});
 			}
 		}
-	})
+	});
+	frappe.socketio.init(window.socketio_port);
 });

@@ -40,7 +40,9 @@ frappe.breadcrumbs = {
 		var breadcrumbs = frappe.breadcrumbs.all[frappe.breadcrumbs.current_page()];
 
 		if(!frappe.visible_modules) {
-			frappe.visible_modules = $.map(frappe.get_desktop_icons(true), (m) => { return m.module_name; });
+			frappe.visible_modules = $.map(frappe.boot.allowed_modules, (m) => {
+				return m.module_name;
+			});
 		}
 
 		var $breadcrumbs = $("#navbar-breadcrumbs").empty();
@@ -88,7 +90,6 @@ frappe.breadcrumbs = {
 		}
 		if(breadcrumbs.doctype && frappe.get_route()[0]==="Form") {
 			if(breadcrumbs.doctype==="User"
-				&& frappe.user.is_module("Setup")===-1
 				|| frappe.get_doc('DocType', breadcrumbs.doctype).issingle) {
 				// no user listview for non-system managers and single doctypes
 			} else {

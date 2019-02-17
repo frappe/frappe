@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.core.doctype.feedback_request.feedback_request import is_valid_feedback_request

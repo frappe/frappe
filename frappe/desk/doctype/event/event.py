@@ -92,7 +92,6 @@ def get_permission_query_conditions(user):
 		}
 
 def has_permission(doc, user):
-	frappe.log_error(doc.owner)
 	if doc.event_type=="Public" or doc.owner==user:
 		return True
 
@@ -248,3 +247,19 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 			del e[w]
 
 	return events
+
+def delete_events(ref_type, ref_name, delete_event=False):
+	participations = frappe.get_all("Event Participants", filters={"reference_doctype": ref_type, "reference_docname": ref_name,
+		"parenttype": "Event"}, fields=["parent", "name"])
+
+	if participations:
+		for participation in participations:
+			if delete_event:
+				frappe.delete_doc("Event", participation.parent, for_reload=True)
+			else:
+				total_participants = frappe.get_all("Event Participants", filters={"parenttype": "Event", "parent": participation.parent})
+
+				if len(total_participants) <= 1:
+					frappe.db.sql("DELETE FROM `tabEvent` WHERE `name` = %(name)s", {'name': participation.parent})
+
+				frappe.db.sql("DELETE FROM `tabEvent Participants ` WHERE `name` = %(name)s", {'name': participation.name})

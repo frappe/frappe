@@ -2,6 +2,7 @@
 // MIT License. See license.txt
 
 frappe.provide('frappe.timeline');
+frappe.separator_element = '<div>---</div>';
 
 frappe.ui.form.Timeline = class Timeline {
 	constructor(opts) {
@@ -27,7 +28,7 @@ frappe.ui.form.Timeline = class Timeline {
 			render_input: true,
 			only_input: true,
 			on_submit: (val) => {
-				val && this.insert_comment("Comment", val, this.comment_area.button);
+				val && this.insert_comment(val, this.comment_area.button);
 			}
 		});
 
@@ -78,10 +79,17 @@ frappe.ui.form.Timeline = class Timeline {
 		var selector = this.frm.doctype === "Communication"? ".btn-reply-email": ".btn-new-email";
 		this.email_button = this.wrapper.find(selector)
 			.on("click", function() {
+				const $btn = $(this);
+				let is_a_reply = true;
+				if ($btn.is('.btn-new-email')) {
+					is_a_reply = false;
+				}
+
 				var args = {
 					doc: me.frm.doc,
 					frm: me.frm,
-					recipients: me.get_recipient()
+					recipients: me.get_recipient(),
+					is_a_reply
 				}
 
 				if(me.frm.doctype === "Communication") {
@@ -141,10 +149,17 @@ frappe.ui.form.Timeline = class Timeline {
 		this.wrapper.toggle(true);
 		this.list.empty();
 		this.comment_area.set_value('');
-		let communications = this.get_communications(true);
-		var views = this.get_view_logs();
 
+		// get all communications
+		let communications = this.get_communications(true);
+
+		// append views
+		var views = this.get_view_logs();
 		var timeline = communications.concat(views);
+
+		// append comments
+		timeline = timeline.concat(this.get_comments());
+		// sort
 		timeline
 			.filter(a => a.content)
 			.sort((b, c) => me.compare_dates(b, c))
@@ -286,7 +301,8 @@ frappe.ui.form.Timeline = class Timeline {
 				txt: "",
 				title: __('Reply'),
 				frm: me.frm,
-				last_email: last_email
+				last_email: last_email,
+				is_a_reply: true
 			});
 		});
 	}
@@ -303,7 +319,7 @@ frappe.ui.form.Timeline = class Timeline {
 		c["delete"] = "";
 		c["edit"] = "";
 		if(c.communication_type=="Comment" && (c.comment_type || "Comment") === "Comment") {
-			if(frappe.model.can_delete("Communication")) {
+			if(frappe.model.can_delete("Comment")) {
 				c["delete"] = '<a class="close delete-comment" title="Delete"  href="#"><i class="octicon octicon-x"></i></a>';
 			}
 
@@ -336,7 +352,7 @@ frappe.ui.form.Timeline = class Timeline {
 			});
 		} else {
 			if(c.communication_type=="Communication" && c.communication_medium=="Email") {
-				c.content = c.content.split('<div data-comment="original-reply">')[0];
+				c.content = c.content.split(frappe.separator_element)[0];
 				c.content = frappe.utils.strip_original_content(c.content);
 
 				c.original_content = c.content;
@@ -481,12 +497,28 @@ frappe.ui.form.Timeline = class Timeline {
 		var docinfo = this.frm.get_docinfo(),
 			me = this,
 			out = [];
-		for(let c of docinfo.views){
-			c.content = `<a href="#Form/View log/${c.name}"> ${__("viewed")}</a>`;
+		for (let c of docinfo.views){
+			c.content = `<a href="#Form/View Log/${c.name}"> ${__("viewed")}</a>`;
 			c.comment_type = "Info";
 			out.push(c);
 		};
 		return out;
+	}
+
+	get_comments() {
+		let docinfo = this.frm.get_docinfo();
+
+		for (let c of docinfo.comments) {
+			this.cast_comment_as_communication(c);
+		}
+
+		return docinfo.comments;
+	}
+
+	cast_comment_as_communication(c) {
+		c.sender = c.comment_email;
+		c.sender_full_name = c.comment_by;
+		c.communication_type = 'Comment';
 	}
 
 	build_version_comments(docinfo, out) {
@@ -521,8 +553,8 @@ frappe.ui.form.Timeline = class Timeline {
 							if(field_display_status === 'Read' || field_display_status === 'Write') {
 								parts.push(__('{0} from {1} to {2}', [
 									__(df.label),
-									(frappe.ellipsis(p[1], 40) || '""').bold(),
-									(frappe.ellipsis(p[2], 40) || '""').bold()
+									(frappe.ellipsis(frappe.utils.html2text(p[1]), 40) || '""').bold(),
+									(frappe.ellipsis(frappe.utils.html2text(p[2]), 40) || '""').bold()
 								]));
 							}
 						}
@@ -530,7 +562,7 @@ frappe.ui.form.Timeline = class Timeline {
 					return parts.length < 3;
 				});
 				if(parts.length) {
-					out.push(me.get_version_comment(version, __("changed value of {0}", [parts.join(', ')])));
+					out.push(me.get_version_comment(version, __("changed value of {0}", [parts.join(', ').bold()])));
 				}
 			}
 
@@ -607,20 +639,15 @@ frappe.ui.form.Timeline = class Timeline {
 		};
 	}
 
-	insert_comment(comment_type, comment, btn) {
+	insert_comment(comment, btn) {
 		var me = this;
 		return frappe.call({
 			method: "frappe.desk.form.utils.add_comment",
 			args: {
-				doc:{
-					doctype: "Communication",
-					communication_type: "Comment",
-					comment_type: comment_type || "Comment",
-					reference_doctype: this.frm.doctype,
-					reference_name: this.frm.docname,
-					content: comment,
-					sender: frappe.session.user
-				}
+				reference_doctype: this.frm.doctype,
+				reference_name: this.frm.docname,
+				content: comment,
+				comment_email: frappe.session.user
 			},
 			btn: btn,
 			callback: function(r) {
@@ -629,7 +656,7 @@ frappe.ui.form.Timeline = class Timeline {
 					frappe.utils.play_sound("click");
 
 					var comment = r.message;
-					var comments = me.get_communications();
+					var comments = me.get_comments();
 					var comment_exists = false;
 					for (var i=0, l=comments.length; i<l; i++) {
 						if (comments[i].name==comment.name) {
@@ -641,7 +668,7 @@ frappe.ui.form.Timeline = class Timeline {
 						return;
 					}
 
-					me.frm.get_docinfo().communications = comments.concat([r.message]);
+					me.frm.get_docinfo().comments = comments.concat([r.message]);
 					me.refresh(true);
 				}
 			}
@@ -656,7 +683,7 @@ frappe.ui.form.Timeline = class Timeline {
 			return frappe.call({
 				method: "frappe.client.delete",
 				args: {
-					doctype: "Communication",
+					doctype: "Comment",
 					name: name
 				},
 				callback: function(r) {
@@ -730,7 +757,8 @@ frappe.ui.form.Timeline = class Timeline {
 	get_names_for_mentions() {
 		var valid_users = Object.keys(frappe.boot.user_info)
 			.filter(user => !["Administrator", "Guest"].includes(user));
-
+		valid_users = valid_users
+			.filter(user => frappe.boot.user_info[user].allowed_in_mentions==1);
 		return valid_users.map(user => frappe.boot.user_info[user].name);
 	}
 

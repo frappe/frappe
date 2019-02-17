@@ -87,10 +87,8 @@ $.extend(frappe.model, {
 		var doctype = doc.doctype;
 		var docfields = frappe.meta.docfield_list[doctype] || [];
 		var updated = [];
-
 		for(var fid=0;fid<docfields.length;fid++) {
 			var f = docfields[fid];
-
 			if(!in_list(frappe.model.no_value_type, f.fieldtype) && doc[f.fieldname]==null) {
 				var v = frappe.model.get_default_value(f, doc, parent_doc);
 				if(v) {
@@ -126,19 +124,23 @@ $.extend(frappe.model, {
 	get_default_value: function(df, doc, parent_doc) {
 		var user_default = "";
 		var user_permissions = frappe.defaults.get_user_permissions();
+		let allowed_records = [];
+		if(user_permissions) {
+			allowed_records = frappe.perm.get_allowed_docs_for_doctype(user_permissions[df.options], doc.doctype);
+		}
 		var meta = frappe.get_meta(doc.doctype);
 		var has_user_permissions = (df.fieldtype==="Link"
-			&& user_permissions
+			&& !$.isEmptyObject(user_permissions)
 			&& df.ignore_user_permissions != 1
-			&& user_permissions[df.options]);
+			&& allowed_records.length);
 
 		// don't set defaults for "User" link field using User Permissions!
 		if (df.fieldtype==="Link" && df.options!=="User") {
 			// 1 - look in user permissions for document_type=="Setup".
 			// We don't want to include permissions of transactions to be used for defaults.
 			if (df.linked_document_type==="Setup"
-				&& has_user_permissions && user_permissions[df.options].docs.length===1) {
-				return user_permissions[df.options].docs[0];
+				&& has_user_permissions && allowed_records.length===1) {
+				return allowed_records[0];
 			}
 
 			if(!df.ignore_user_permissions) {
@@ -159,7 +161,7 @@ $.extend(frappe.model, {
 			}
 
 			var is_allowed_user_default = user_default &&
-				(!has_user_permissions || user_permissions[df.options].docs.indexOf(user_default)!==-1);
+				(!has_user_permissions || allowed_records.includes(user_default));
 
 			// is this user default also allowed as per user permissions?
 			if (is_allowed_user_default) {
@@ -184,7 +186,7 @@ $.extend(frappe.model, {
 
 			} else if (df["default"][0]===":") {
 				var boot_doc = frappe.model.get_default_from_boot_docs(df, doc, parent_doc);
-				var is_allowed_boot_doc = !has_user_permissions || user_permissions[df.options].docs.indexOf(boot_doc)!==-1;
+				var is_allowed_boot_doc = !has_user_permissions || allowed_records.includes(boot_doc);
 
 				if (is_allowed_boot_doc) {
 					return boot_doc;
@@ -195,7 +197,7 @@ $.extend(frappe.model, {
 			}
 
 			// is this default value is also allowed as per user permissions?
-			var is_allowed_default = !has_user_permissions || user_permissions[df.options].docs.indexOf(df["default"])!==-1;
+			var is_allowed_default = !has_user_permissions || allowed_records.includes(df.default);
 			if (df.fieldtype!=="Link" || df.options==="User" || is_allowed_default) {
 				return df["default"];
 			}
@@ -260,7 +262,7 @@ $.extend(frappe.model, {
 				&& !(df && (!from_amend && cint(df.no_copy) == 1))) {
 
 				var value = doc[key] || [];
-				if (df.fieldtype === "Table") {
+				if (frappe.model.table_fields.includes(df.fieldtype)) {
 					for (var i = 0, j = value.length; i < j; i++) {
 						var d = value[i];
 						frappe.model.copy_doc(d, from_amend, newdoc, df.fieldname);
@@ -336,5 +338,3 @@ frappe.new_doc = function (doctype, opts, init_callback) {
 
 	});
 }
-
-

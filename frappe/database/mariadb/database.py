@@ -27,7 +27,7 @@ class MariaDBDatabase(Database):
 		self.type_map = {
 			'Currency':		('decimal', '18,6'),
 			'Int':			('int', '11'),
-			'Long Int':		('bigint', '20'), # convert int to bigint if length is more than 11
+			'Long Int':		('bigint', '20'),
 			'Float':		('decimal', '18,6'),
 			'Percent':		('decimal', '18,6'),
 			'Check':		('int', '1'),
@@ -35,6 +35,8 @@ class MariaDBDatabase(Database):
 			'Long Text':	('longtext', ''),
 			'Code':			('longtext', ''),
 			'Text Editor':	('longtext', ''),
+			'Markdown Editor':	('longtext', ''),
+			'HTML Editor':	('longtext', ''),
 			'Date':			('date', ''),
 			'Datetime':		('datetime', '6'),
 			'Time':			('time', '6'),

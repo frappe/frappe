@@ -213,7 +213,9 @@ _f.Frm.prototype.watch_model_updates = function() {
 	});
 
 	// on table fields
-	var table_fields = frappe.get_children("DocType", me.doctype, "fields", {fieldtype:"Table"});
+	var table_fields = frappe.get_children("DocType", me.doctype, "fields", {
+		fieldtype: ["in", frappe.model.table_fields]
+	});
 
 	// using $.each to preserve df via closure
 	$.each(table_fields, function(i, df) {
@@ -496,29 +498,25 @@ _f.Frm.prototype.render_form = function(is_a_different_doc) {
 		// clear layout message
 		this.layout.show_message();
 
-		// header must be refreshed before client methods
-		// because add_custom_button
-		this.refresh_header(is_a_different_doc);
-
-		// call trigger
-		this.script_manager.trigger("refresh");
-
-		// trigger global trigger
-		// to use this
-		$(document).trigger('form-refresh', [this]);
-
-		// fields
-		this.refresh_fields();
-
-
-		// call onload post render for callbacks to be fired
-		if(this.cscript.is_onload) {
-			this.script_manager.trigger("onload_post_render");
-		}
-
-		// update dashboard after refresh
-		frappe.timeout(0.1).then(() => this.dashboard.after_refresh());
-
+		frappe.run_serially([
+			// header must be refreshed before client methods
+			// because add_custom_button
+			() => this.refresh_header(is_a_different_doc),
+			// trigger global trigger
+			// to use this
+			() => $(document).trigger('form-refresh', [this]),
+			// fields
+			() => this.refresh_fields(),
+			// call trigger
+			() => this.script_manager.trigger("refresh"),
+			// call onload post render for callbacks to be fired
+			() => {
+				if(this.cscript.is_onload) {
+					return this.script_manager.trigger("onload_post_render");
+				}
+			},
+			() => this.dashboard.after_refresh()
+		]);
 		// focus on first input
 
 		if(this.is_new()) {

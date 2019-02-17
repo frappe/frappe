@@ -22,7 +22,7 @@
 		{%- endif %}
 		{% if not is_list %}
 	    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
-	    		{{ _("Save") }}</button>
+	    		{{ _(button_label or "Save") }}</button>
 		{% endif %}
 	</div>
 	{% endif %}
@@ -152,7 +152,7 @@
 				{% if (loop.index == layout|len or frappe.form_dict.new) %}
 					{% if not read_only %}
 				    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
-				    	{{ _("Save") }}</button>
+				    	{{ _(button_label or "Save") }}</button>
 					{% endif %}
 				{% elif layout|len > 1 %}
 				    <button class="btn btn-primary btn-sm btn-change-section"

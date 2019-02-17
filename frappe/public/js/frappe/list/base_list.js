@@ -6,7 +6,12 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	show() {
-		this.init().then(() => this.refresh());
+		frappe.run_serially([
+			() => this.init(),
+			() => this.before_refresh(),
+			() => this.refresh(),
+			() => frappe.route_options = null
+		]);
 	}
 
 	init() {
@@ -344,6 +349,11 @@ frappe.views.BaseList = class BaseList {
 		};
 	}
 
+	before_refresh() {
+		// modify args here just before making the request
+		// see list_view.js
+	}
+
 	refresh() {
 		this.freeze(true);
 		// fetch data from server
@@ -383,6 +393,10 @@ frappe.views.BaseList = class BaseList {
 
 	render() {
 		// for child classes
+	}
+
+	on_filter_change() {
+		// fired when filters are added or removed
 	}
 
 	toggle_result_area() {
@@ -473,6 +487,7 @@ class FilterArea {
 		if (this.trigger_refresh) {
 			this.list_view.start = 0;
 			this.list_view.refresh();
+			this.list_view.on_filter_change();
 		}
 	}
 
@@ -605,15 +620,6 @@ class FilterArea {
 				onchange: () => this.refresh_list_view()
 			};
 		}));
-
-		if (fields.length > 3) {
-			fields = fields.map((df, i) => {
-				if (i >= 3) {
-					df.input_class = 'hidden-sm hidden-xs';
-				}
-				return df;
-			});
-		}
 
 		fields.map(df => this.list_view.page.add_field(df));
 

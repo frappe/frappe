@@ -34,7 +34,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return;
 		}
 
-		this.init().then(() => this.refresh());
+		super.show();
 	}
 
 	get view_name() {
@@ -48,33 +48,43 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	setup_defaults() {
 		super.setup_defaults();
 
-		if (frappe.route_options) {
-			// Priority 1: route filters
-			this.filters = this.parse_filters_from_route_options();
-		} else if (this.view_user_settings.filters) {
-			// Priority 2: saved filters
+		// initialize with saved order by
+		this.sort_by = this.view_user_settings.sort_by || 'modified';
+		this.sort_order = this.view_user_settings.sort_order || 'desc';
+
+		// set filters from user_settings or list_settings
+		if (this.view_user_settings.filters && this.view_user_settings.filters.length) {
+			// Priority 1: user_settings
 			const saved_filters = this.view_user_settings.filters;
 			this.filters = this.validate_filters(saved_filters);
 		} else {
-			// Priority 3: filters in listview_settings
-			const filters = (this.settings.filters || []).map(f => {
+			// Priority 2: filters in listview_settings
+			this.filters = (this.settings.filters || []).map(f => {
 				if (f.length === 3) {
 					f = [this.doctype, f[0], f[1], f[2]];
 				}
 				return f;
 			});
-
-			this.filters = filters;
 		}
-
-		// initialize with saved order by
-		this.sort_by = this.view_user_settings.sort_by || 'modified';
-		this.sort_order = this.view_user_settings.sort_order || 'desc';
 
 		// build menu items
 		this.menu_items = this.menu_items.concat(this.get_menu_items());
 
 		this.actions_menu_items = this.get_actions_menu_items();
+
+		if (this.view_user_settings.filters && this.view_user_settings.filters.length) {
+			// Priority 1: saved filters
+			const saved_filters = this.view_user_settings.filters;
+			this.filters = this.validate_filters(saved_filters);
+		} else {
+			// Priority 2: filters in listview_settings
+			this.filters = (this.settings.filters || []).map(f => {
+				if (f.length === 3) {
+					f = [this.doctype, f[0], f[1], f[2]];
+				}
+				return f;
+			});
+		}
 
 		this.patch_refresh_and_load_lib();
 	}
@@ -141,6 +151,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		);
 
 		fields.forEach(f => this._add_field(f));
+
+		this.fields.forEach(f => {
+			const df = frappe.meta.get_docfield(f[1], f[0]);
+			if (df && df.fieldtype === 'Currency' && df.options && !df.options.includes(':')) {
+				this._add_field(df.options);
+			}
+		});
 	}
 
 	patch_refresh_and_load_lib() {
@@ -262,7 +279,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_no_result_message() {
 		const new_button = this.can_create ?
 			`<p><button class="btn btn-primary btn-sm btn-new-doc">
-				${__('Make a new {0}', [__(this.doctype)])}
+				${__('Create a new {0}', [__(this.doctype)])}
 			</button></p>` : '';
 
 		return `<div class="msg-box no-border">
@@ -280,6 +297,26 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		return Object.assign(args, {
 			with_comment_count: true
+		});
+	}
+
+	before_refresh() {
+		if (frappe.route_options) {
+			this.filters = this.parse_filters_from_route_options();
+
+			return this.filter_area.clear(false)
+				.then(() => this.filter_area.set(this.filters));
+		}
+
+		return Promise.resolve();
+	}
+
+	parse_filters_from_settings() {
+		return (this.settings.filters || []).map(f => {
+			if (f.length === 3) {
+				f = [this.doctype, f[0], f[1], f[2]];
+			}
+			return f;
 		});
 	}
 
@@ -581,7 +618,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			args: {
 				doctype: this.doctype,
 				filters: this.get_filters_for_args(),
-				fields: [`count(${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`]
+				fields: [`count(${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`],
 			}
 		}).then(r => {
 			this.total_count = r.message.values[0][0] || current_count;
@@ -955,9 +992,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			items.push({
 				label: __('Customize'),
-				action: () => frappe.set_route('Form', 'Customize Form', {
-					doc_type: doctype
-				}),
+				action: () => {
+					if(this.meta && !this.meta.custom) {
+						frappe.set_route('Form', 'Customize Form', {
+							doc_type: doctype
+						});
+					}
+				},
 				standard: true
 			});
 		}
@@ -971,13 +1012,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		items.push({
 			label: __('Share URL'),
 			action: () => this.share_url(),
-			standard: true
-		});
-
-		// add to desktop
-		items.push({
-			label: __('Add to Desktop'),
-			action: () => frappe.add_to_desktop(doctype, doctype),
 			standard: true
 		});
 
@@ -1127,7 +1161,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			let doctype = null;
 			let value = frappe.route_options[field];
 
-			if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
+			let value_array;
+			if ($.isArray(value) && value[0].startsWith('[') && value[0].endsWith(']')) {
+				value_array = [];
+				for(var i=0; i<value.length; i++) {
+					value_array.push(JSON.parse(value[i]));
+				}
+			} else if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
 				value = JSON.parse(value);
 			}
 
@@ -1147,14 +1187,21 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			if (doctype) {
-				if ($.isArray(value)) {
+				if (value_array) {
+					for(var j=0; j<value_array.length; j++){
+						if ($.isArray(value_array[j])) {
+							filters.push([doctype, field, value_array[j][0], value_array[j][1]]);
+						} else {
+							filters.push([doctype, field, "=", value_array[j]]);
+						}
+					}
+				} else if ($.isArray(value)) {
 					filters.push([doctype, field, value[0], value[1]]);
 				} else {
 					filters.push([doctype, field, "=", value]);
 				}
 			}
 		}
-		frappe.route_options = null;
 
 		return filters;
 	}

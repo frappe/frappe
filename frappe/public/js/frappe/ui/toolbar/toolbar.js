@@ -22,19 +22,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		this.setup_sidebar();
 		this.setup_help();
 
-		this.setup_modules_dialog();
-		this.setup_progress_dialog();
 		this.bind_events();
 
 		$(document).trigger('toolbar_setup');
-	},
-
-
-	setup_modules_dialog() {
-		this.modules_select = new frappe.ui.toolbar.ModulesSelect();
-		$('.navbar-set-desktop-icons').on('click', () => {
-			this.modules_select.show();
-		});
 	},
 
 	bind_events: function() {
@@ -110,19 +100,11 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 		$("#input-help").on("keydown", function(e) {
 			if(e.which == 13) {
-				var keywords = $(this).val();
-				show_help_results(keywords);
 				$(this).val("");
 			}
 		});
 
-		$("#input-help + span").on("click", function() {
-			var keywords = $("#input-help").val();
-			show_help_results(keywords);
-			$(this).val("");
-		});
-
-		$(document).on("page-change", function() {
+		$(document).on("page-change", function () {
 			var $help_links = $(".dropdown-help #help-links");
 			$help_links.html("");
 
@@ -146,18 +128,10 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			for (var i = 0; i < links.length; i++) {
 				var link = links[i];
 				var url = link.url;
-				var app_name = url.split('//', 2)[1].split('/', 2)[1];
-				var data_path = url.slice(url.indexOf('/user'));
-				if(data_path.lastIndexOf('.')){
-					data_path = data_path.slice(0, data_path.lastIndexOf('.'));
-				}
-				data_path = data_path.replace('user', app_name);
-
 				$("<a>", {
 					href: link.url,
 					text: link.label,
-					target: "_blank",
-					"data-path": data_path
+					target: "_blank"
 				}).appendTo($help_links);
 			}
 
@@ -169,11 +143,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 		$(document).on("click", ".help-modal a", show_results);
 
-		var me = this;
-		function show_help_results(keywords) {
-			me.search.init_search(keywords, "help");
-		}
-
 		function show_results(e) {
 			//edit links
 			var href = e.target.href;
@@ -183,57 +152,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			var path = $(e.target).attr("data-path");
 			if(path) {
 				e.preventDefault();
-				frappe.call({
-					method: "frappe.utils.help.get_help_content",
-					args: {
-						path: path
-					},
-					callback: function(r) {
-						if(r.message && r.message.title) {
-							$result_modal.find('.modal-title').html("<span>"
-								+ r.message.title + "</span>");
-							$result_modal.find('.modal-body').html(r.message.content);
-							$result_modal.modal('show');
-						}
-					}
-				});
 			}
 		}
-	},
-
-	setup_progress_dialog: function() {
-		var me = this;
-		frappe.call({
-			method: "frappe.desk.user_progress.get_user_progress_slides",
-			type: 'GET',
-			callback: function(r) {
-				if(r.message) {
-					let slides = r.message;
-					if(slides.length && slides.map(s => parseInt(s.done)).includes(0)) {
-						frappe.require("assets/frappe/js/frappe/ui/toolbar/user_progress_dialog.js", function() {
-							me.progress_dialog = new frappe.setup.UserProgressDialog({
-								slides: slides
-							});
-							$('.user-progress').removeClass('hide');
-							$('.user-progress .dropdown-toggle').on('click', () => {
-								me.progress_dialog.show();
-							});
-
-							if (cint(frappe.boot.sysdefaults.is_first_startup)) {
-								me.progress_dialog.show();
-								frappe.call({
-									method: "frappe.desk.page.setup_wizard.setup_wizard.reset_is_first_startup",
-									args: {},
-									callback: () => {}
-								});
-							}
-
-						});
-					}
-				}
-			},
-			freeze: false
-		});
 	}
 });
 
@@ -260,6 +180,18 @@ $.extend(frappe.ui.toolbar, {
 			frappe.ui.toolbar.get_menu(menu) : menu;
 
 		$('<li class="divider custom-menu"></li>').prependTo(menu);
+	},
+	add_icon_link(route, icon, index, class_name) {
+		let parent_element = $(".navbar-right").get(0);
+		let new_element = $(`<li class="${class_name}">
+			<a class="btn" href="${route}" title="${frappe.utils.to_title_case(class_name, true)}" aria-haspopup="true" aria-expanded="true">
+				<div>
+					<i class="octicon ${icon}"></i>
+				</div>
+			</a>
+		</li>`).get(0);
+
+		parent_element.insertBefore(new_element, parent_element.children[index]);
 	}
 });
 

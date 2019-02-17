@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from frappe.model.utils.user_settings import update_user_settings
 import frappe, json
 from six import iteritems

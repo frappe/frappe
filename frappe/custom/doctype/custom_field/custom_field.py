@@ -8,6 +8,7 @@ from frappe.utils import cstr
 from frappe import _
 from frappe.model.document import Document
 from frappe.model.docfield import supports_translation
+from frappe.model import core_doctypes_list
 
 class CustomField(Document):
 	def autoname(self):
@@ -85,6 +86,14 @@ class CustomField(Document):
 
 @frappe.whitelist()
 def get_fields_label(doctype=None):
+	meta = frappe.get_meta(doctype)
+
+	if doctype in core_doctypes_list:
+		return frappe.msgprint(_("Custom Fields cannot be added to core DocTypes."))
+
+	if meta.custom:
+		return frappe.msgprint(_("Custom Fields can only be added to a standard DocType."))
+
 	return [{"value": df.fieldname or "", "label": _(df.label or "")}
 		for df in frappe.get_meta(doctype).get("fields")]
 
@@ -106,7 +115,9 @@ def create_custom_field(doctype, df, ignore_validate=False):
 			"dt": doctype,
 			"permlevel": 0,
 			"fieldtype": 'Data',
-			"hidden": 0
+			"hidden": 0,
+			# Looks like we always  use this programatically?
+			# "is_standard": 1
 		})
 		custom_field.update(df)
 		custom_field.flags.ignore_validate = ignore_validate
@@ -125,6 +136,7 @@ def create_custom_fields(custom_fields, ignore_validate = False, update=True):
 			field = frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df["fieldname"]})
 			if not field:
 				try:
+					df["owner"] = "Administrator"
 					create_custom_field(doctype, df, ignore_validate=ignore_validate)
 				except frappe.exceptions.DuplicateEntryError:
 					pass

@@ -10,7 +10,7 @@ frappe.ready(function() {
 		frappe.call({
 			method: 'frappe.www.search.get_search_results',
 			args: {
-				text: '{{ frappe.form_dict.q }}',
+				text: '{{ query }}',
 				start: $('.search-result-item').length,
 				as_html: 1
 			},

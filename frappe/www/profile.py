@@ -2,10 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe
-from frappe import _
-from frappe.utils.user import get_fullname_and_avatar
-import frappe.www.list
+
 
 no_cache = 1
 no_sitemap = 1

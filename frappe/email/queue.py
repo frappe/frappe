@@ -174,7 +174,8 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 			if att.get('fid'):
 				_attachments.append(att)
 			elif att.get("print_format_attachment") == 1:
-				att['lang'] = frappe.local.lang
+				if not att.get('lang', None):
+					att['lang'] = frappe.local.lang
 				att['print_letterhead'] = kwargs.get('print_letterhead')
 				_attachments.append(att)
 		e.attachments = json.dumps(_attachments)
@@ -206,8 +207,9 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 
 	except frappe.InvalidEmailAddressError:
 		# bad Email Address - don't add to queue
-		frappe.log_error('Invalid Email ID Sender: {0}, Recipients: {1}'.format(mail.sender,
-			', '.join(mail.recipients)), 'Email Not Sent')
+		import traceback
+		frappe.log_error('Invalid Email ID Sender: {0}, Recipients: {1}, \nTraceback: {2} '.format(mail.sender,
+			', '.join(mail.recipients), traceback.format_exc()), 'Email Not Sent')
 
 	recipients = list(set(recipients + kwargs.get('cc', []) + kwargs.get('bcc', [])))
 	e.set_recipients(recipients)
@@ -381,7 +383,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 	email = frappe.db.sql('''select
 			name, status, communication, message, sender, reference_doctype,
 			reference_name, unsubscribe_param, unsubscribe_method, expose_recipients,
-			show_as_cc, add_unsubscribe_link, attachments
+			show_as_cc, add_unsubscribe_link, attachments, retry
 		from
 			`tabEmail Queue`
 		where
@@ -463,12 +465,16 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 	except Exception as e:
 		frappe.db.rollback()
 
-		if any("Sent" == s.status for s in recipients_list):
-			frappe.db.sql("""update `tabEmail Queue` set status='Partially Errored', error=%s where name=%s""",
-				(text_type(e), email.name), auto_commit=auto_commit)
+		if email.retry < 3:
+			frappe.db.sql("""update `tabEmail Queue` set status='Not Sent', modified=%s, retry=retry+1 where name=%s""",
+				(now_datetime(), email.name), auto_commit=auto_commit)
 		else:
-			frappe.db.sql("""update `tabEmail Queue` set status='Error', error=%s
-where name=%s""", (text_type(e), email.name), auto_commit=auto_commit)
+			if any("Sent" == s.status for s in recipients_list):
+				frappe.db.sql("""update `tabEmail Queue` set status='Partially Errored', error=%s where name=%s""",
+					(text_type(e), email.name), auto_commit=auto_commit)
+			else:
+				frappe.db.sql("""update `tabEmail Queue` set status='Error', error=%s
+					where name=%s""", (text_type(e), email.name), auto_commit=auto_commit)
 
 		if email.communication:
 			frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
@@ -534,7 +540,7 @@ def prepare_message(email, recipient, recipients_list):
 
 		fid = attachment.get("fid")
 		if fid:
-			_file = frappe.get_doc("File", {"file_name": fid})
+			_file = frappe.get_doc("File", fid)
 			fcontent = _file.get_content()
 			attachment.update({
 				'fname': _file.file_name,

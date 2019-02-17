@@ -33,7 +33,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	:param sender: Communcation sender (default current user).
 	:param recipients: Communication recipients as list.
 	:param communication_medium: Medium of communication (default **Email**).
-	:param send_mail: Send via email (default **False**).
+	:param send_email: Send via email (default **False**).
 	:param print_html: HTML Print format to be sent as attachment.
 	:param print_format: Print Format name of parent document to be sent as attachment.
 	:param attachments: List of attachments as list of files or JSON string.
@@ -49,6 +49,9 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 
 	if not sender:
 		sender = get_formatted_email(frappe.session.user)
+
+	if isinstance(recipients, list):
+		recipients = ', '.join(recipients)
 
 	comm = frappe.get_doc({
 		"doctype":"Communication",
@@ -279,12 +282,16 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 			if isinstance(a, string_types):
 				# is it a filename?
 				try:
-					# keep this for error handling
-					_file = frappe.get_doc("File", {"file_name": a})
+					# check for both filename and file id
+					file_id = frappe.db.get_list('File', or_filters={'file_name': a, 'name': a}, limit=1)
+					if not file_id:
+						frappe.throw(_("Unable to find attachment {0}").format(a))
+					file_id = file_id[0]['name']
+					_file = frappe.get_doc("File", file_id)
 					_file.get_content()
 					# these attachments will be attached on-demand
 					# and won't be stored in the message
-					doc.attachments.append({"fid": a})
+					doc.attachments.append({"fid": file_id})
 				except IOError:
 					frappe.throw(_("Unable to find attachment {0}").format(a))
 			else:
@@ -303,7 +310,8 @@ def set_incoming_outgoing_accounts(doc):
 
 		doc.outgoing_email_account = frappe.db.get_value("Email Account",
 			{"append_to": doc.reference_doctype, "enable_outgoing": 1},
-			["email_id", "always_use_account_email_id_as_sender", "name"], as_dict=True)
+			["email_id", "always_use_account_email_id_as_sender", "name",
+			"always_use_account_name_as_sender_name"], as_dict=True)
 
 	if not doc.incoming_email_account:
 		doc.incoming_email_account = frappe.db.get_value("Email Account",
@@ -313,12 +321,14 @@ def set_incoming_outgoing_accounts(doc):
 		# if from address is not the default email account
 		doc.outgoing_email_account = frappe.db.get_value("Email Account",
 			{"email_id": doc.sender, "enable_outgoing": 1},
-			["email_id", "always_use_account_email_id_as_sender", "name", "send_unsubscribe_message"], as_dict=True) or frappe._dict()
+			["email_id", "always_use_account_email_id_as_sender", "name",
+			"send_unsubscribe_message", "always_use_account_name_as_sender_name"], as_dict=True) or frappe._dict()
 
 	if not doc.outgoing_email_account:
 		doc.outgoing_email_account = frappe.db.get_value("Email Account",
 			{"default_outgoing": 1, "enable_outgoing": 1},
-			["email_id", "always_use_account_email_id_as_sender", "name", "send_unsubscribe_message"],as_dict=True) or frappe._dict()
+			["email_id", "always_use_account_email_id_as_sender", "name",
+			"send_unsubscribe_message", "always_use_account_name_as_sender_name"],as_dict=True) or frappe._dict()
 
 	if doc.sent_or_received == "Sent":
 		doc.db_set("email_account", doc.outgoing_email_account.name)
@@ -490,9 +500,9 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 					recipients=recipients, cc=cc, bcc=bcc)
 
-			except frappe.db.InternalError:
+			except frappe.db.InternalError as e:
 				# deadlock, try again
-				if frappe.db.is_deadlocked():
+				if frappe.db.is_deadlocked(e):
 					frappe.db.rollback()
 					time.sleep(1)
 					continue

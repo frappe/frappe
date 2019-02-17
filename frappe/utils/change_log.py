@@ -11,7 +11,7 @@ import subprocess # nosec
 from frappe.utils import cstr
 from frappe.utils.gitutils import get_app_branch
 from frappe import _, safe_decode
-import git
+
 
 def get_change_log(user=None):
 	if not user: user = frappe.session.user
@@ -104,12 +104,7 @@ def get_versions():
 		}
 
 		if versions[app]['branch'] != 'master':
-			try:
-				app_repo = git.Repo(os.path.join('..', 'apps', '{}'.format(app)))
-				branch_version = '-'.join(app_repo.git.describe().split('-')[:2])
-				branch_version = [branch_version.strip('v')]
-			except:
-				branch_version = app_hooks.get('{0}_version'.format(versions[app]['branch']))
+			branch_version = app_hooks.get('{0}_version'.format(versions[app]['branch']))
 			if branch_version:
 				versions[app]['branch_version'] = branch_version[0] + ' ({0})'.format(get_app_last_commit_ref(app))
 
@@ -128,7 +123,7 @@ def get_app_branch(app):
 		result = safe_decode(result)
 		result = result.strip()
 		return result
-	except Exception as e:
+	except Exception:
 		return ''
 
 def get_app_last_commit_ref(app):
@@ -138,12 +133,12 @@ def get_app_last_commit_ref(app):
 		result = safe_decode(result)
 		result = result.strip()
 		return result
-	except Exception as e:
+	except Exception:
 		return ''
 
 def check_for_update():
 	updates = frappe._dict(major=[], minor=[], patch=[])
-	apps    = get_versions()
+	apps = get_versions()
 
 	for app in apps:
 		app_details = check_release_on_github(app)
@@ -151,7 +146,9 @@ def check_for_update():
 
 		github_version, org_name = app_details
 		# Get local instance's current version or the app
-		instance_version = Version(apps[app]['branch_version'].split(' ')[0])
+
+		branch_version = apps[app]['branch_version'].split(' ')[0] if apps[app].get('branch_version', '') else ''
+		instance_version = Version(branch_version or apps[app].get('version'))
 		# Compare and popup update message
 		for update_type in updates:
 			if github_version.__dict__[update_type] > instance_version.__dict__[update_type]:
@@ -228,7 +225,6 @@ def show_update_popup():
 		return
 
 	updates = json.loads(update_info)
-	current_versions = get_versions()
 
 	# Check if user is int the set of users to send update message to
 	update_message = ""
