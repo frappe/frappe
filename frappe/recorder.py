@@ -160,26 +160,16 @@ def set_recorder_state(should_record, *args, **kwargs):
 
 @frappe.whitelist()
 @do_not_record
-def get_requests(*args, **kwargs):
-	requests = frappe.cache().lrange("recorder-requests", 0, -1)
-	requests = list(map(lambda request: json.loads(request.decode()), requests))
-	for index, request in enumerate(requests, start=1):
-		request["index"] = index
-	return requests
+def get(uuid=None, *args, **kwargs):
+	if uuid:
+		result = json.loads(frappe.cache().get("recorder-request-{}".format(uuid)).decode())
+	else:
+		requests = frappe.cache().lrange("recorder-requests", 0, -1)
+		result = list(map(lambda request: json.loads(request.decode()), requests))
+	return result
 
 
 @frappe.whitelist()
 @do_not_record
-def erase_requests(*args, **kwargs):
+def delete(*args, **kwargs):
 	frappe.cache().delete_value("recorder-requests")
-
-
-@frappe.whitelist()
-@do_not_record
-def get_request_data(uuid, *args, **kwargs):
-	request = json.loads(frappe.cache().get("recorder-request-{}".format(uuid)).decode())
-	calls = request["calls"]
-	for index, call in enumerate(calls):
-		call["index"] = index
-
-	return request

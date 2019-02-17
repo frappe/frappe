@@ -44,7 +44,7 @@
 
 				</div>
 				<div class="result-list">
-					<router-link class="list-row-container" v-for="request in paginated(sorted(filtered(requests)))" :key="request.index" :to="{name: 'request-detail', params: {request_uuid: request.uuid}}" tag="div" v-bind="request">
+					<router-link class="list-row-container" v-for="(request, index) in paginated(sorted(filtered(requests)))" :key="index" :to="{name: 'request-detail', params: {request_uuid: request.uuid}}" tag="div" v-bind="request">
 						<div class="level list-row small">
 							<div class="level-left ellipsis">
 								<div class="list-row-col ellipsis list-subject level ">
@@ -204,13 +204,13 @@ export default {
 			}
 		},
 		refresh: function() {
-			frappe.call("frappe.recorder.get_requests").then( r => {
+			frappe.call("frappe.recorder.get").then( r => {
 				this.requests = r.message;
 				this.last_fetched = new Date();
 			});
 		},
 		clear: function() {
-			frappe.call("frappe.recorder.erase_requests");
+			frappe.call("frappe.recorder.delete");
 			this.refresh();
 		},
 		record: function(should_record) {

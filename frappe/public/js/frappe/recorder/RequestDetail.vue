@@ -112,10 +112,10 @@
 									</div>
 									<div class="grid-body">
 										<div class="rows">
-											<div class="grid-row" :class="showing == index ? 'grid-row-open' : ''"  v-for="(call, index) in request.calls" :key="call.index" v-bind="call">
+											<div class="grid-row" :class="showing == index ? 'grid-row-open' : ''"  v-for="(call, index) in request.calls" :key="index" v-bind="call">
 												<div class="data-row row" v-if="showing != index" style="display: block;" @click="showing = index" >
 													<div class="row-index sortable-handle col col-xs-1">
-														<span>{{ call.index }}</span></div>
+														<span>{{ index }}</span></div>
 													<div class="col grid-static-col col-xs-8 " data-fieldname="code" data-fieldtype="Code">
 														<div class="static-area">
 															<span>{{ call.query }}</span>
@@ -132,7 +132,7 @@
 													<div class="grid-form-heading"  @click="showing = null">
 														<div class="toolbar grid-header-toolbar">
 															<span class="panel-title">
-																SQL Query #<span class="grid-form-row-index">{{ call.index }}</span></span>
+																SQL Query #<span class="grid-form-row-index">{{ index }}</span></span>
 															<div class="btn btn-default btn-xs pull-right" style="margin-left: 7px;">
 																<span class="hidden-xs octicon octicon-triangle-up"></span>
 															</div>
@@ -206,7 +206,7 @@ export default {
 	},
 	mounted() {
 		frappe.call({
-			method: "frappe.recorder.get_request_data",
+			method: "frappe.recorder.get",
 			args: {
 				uuid: this.$route.params.request_uuid
 			}
