@@ -83,7 +83,7 @@ frappe.get_route = function(route) {
 		parts = doc_name.split("?");
 		route[route.length - 1] = parts[0];
 	} else {
-		parts = route[route.length - 1];
+		parts = doc_name;
 	}
 	if (parts.length > 1) {
 		var query_params = frappe.utils.get_query_params(parts[1]);
