@@ -78,8 +78,9 @@ frappe.get_route = function(route) {
 	route = frappe.get_raw_route_str(route).split('/');
 	route = $.map(route, frappe._decode_str);
 	var parts = null;
-	if(route[route.length - 1].indexOf("?") < route[route.length - 1].indexOf("=")){
-		parts = route[route.length - 1].split("?");
+	var doc_name = route[route.length - 1];
+	if(doc_name.indexOf("?") < doc_name.indexOf("=")){
+		parts = doc_name.split("?");
 		route[route.length - 1] = parts[0];
 	} else {
 		parts = route[route.length - 1];
