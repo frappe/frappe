@@ -230,13 +230,6 @@ before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migr
 otp_methods = ['OTP App','Email','SMS']
 user_privacy_documents = [
 	{
-		'doctype': 'User',
-		'match_field': 'email',
-		'personal_fields': ['first_name', 'middle_name', 'last_name', 'full_name', 'username', 'birth_date', 'user_image', 'phone',
-			'mobile_no', 'location', 'banner_image', 'interest', 'bio', 'email_signature', 'background_image'],
-		'applies_to_website_user': 1
-	},
-	{
 		'doctype': 'File',
 		'match_field': 'attached_to_name',
 		'personal_fields': ['file_name', 'file_url'],
@@ -264,6 +257,12 @@ user_privacy_documents = [
 		'personal_fields': ['first_name', 'last_name', 'phone', 'mobile_no'],
 	},
 	{
+		'doctype': 'Address',
+		'match_field': 'email_id',
+		'personal_fields': ['address_title', 'address_line1', 'address_line2', 'city', 'county', 'state', 'pincode',
+			'phone', 'fax'],
+	},
+	{
 		'doctype': 'Communication',
 		'match_field': 'sender',
 		'personal_fields': ['sender_full_name', 'phone_no', 'content'],
@@ -271,6 +270,13 @@ user_privacy_documents = [
 	{
 		'doctype': 'Communication',
 		'match_field': 'recipients',
+	},
+	{
+		'doctype': 'User',
+		'match_field': 'name',
+		'personal_fields': ['email', 'username', 'first_name', 'middle_name', 'last_name', 'full_name', 'birth_date',
+			'user_image', 'phone', 'mobile_no', 'location', 'banner_image', 'interest', 'bio', 'email_signature', 'background_image'],
+		'applies_to_website_user': 1
 	},
 
 ]

@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+import re
 from frappe.model.document import Document
 from frappe.utils.verified_command import get_signed_params, verify_request
 
@@ -27,7 +28,7 @@ class PersonalDataDeletionRequest(Document):
 		header=[_("Confirm Deletion of Data"), "green"])
 
 	def anonymize_data(self):
-		if 'System Manager' not in frappe.get_roles(frappe.session.user) and self.status != 'Pending Approval':
+		if not ('System Manager' in frappe.get_roles(frappe.session.user) and self.status == 'Pending Approval'):
 			frappe.throw(_("You are not authorized to complete this action."))
 
 		privacy_docs = frappe.get_hooks("user_privacy_documents")
@@ -37,6 +38,8 @@ class PersonalDataDeletionRequest(Document):
 			'Int': 0,
 			'Code': 'http://xxxxx'}
 
+		regex = re.compile(r"(?<!\.)\b{0}\b(?!\.)".format(re.escape(self.email)))
+
 		for ref_doc in privacy_docs:
 			meta = frappe.get_meta(ref_doc['doctype'])
 			personal_fields = ref_doc.get('personal_fields', [])
@@ -44,14 +47,32 @@ class PersonalDataDeletionRequest(Document):
 			if ref_doc.get('applies_to_website_user') and 'Guest' not in frappe.get_roles(self.email):
 				continue
 
-			anonymize_value = ''
+			anonymize_fields = ''
 			for field in personal_fields:
-				anonymize_value += ', `{0}`= \'{1}\''.format(field, anonymize_value_map.get(meta.get_field(field).fieldtype, str(field)))
+				field_details = meta.get_field(field)
+				field_value = anonymize_value_map.get(field_details.fieldtype, str(field)) if not field_details.unique else self.name
+				anonymize_fields += ', `{0}`= \'{1}\''.format(field, field_value)
 
+			if (meta.get_field(ref_doc['match_field']) or {}).get('fieldtype') == 'Code':
+				self.anonymize_multi_email_record(ref_doc, anonymize_fields, regex)
+
+			else:
+				frappe.db.sql("""UPDATE `tab{0}`
+					SET `{1}` = '{2}' {3}
+					WHERE `{1}` = '{4}' """.format(ref_doc['doctype'], ref_doc['match_field'], self.name,#nosec
+						anonymize_fields, self.email))
+
+	def anonymize_multi_email_record(self, ref_doc, anonymize_fields, regex):
+		docs = frappe.get_all(ref_doc['doctype'], {ref_doc['match_field']:('like', '%'+self.email+'%')}, ['name', ref_doc['match_field']])
+		for d in docs:
+			if not re.search(regex, d[ref_doc['match_field']]):
+				continue
+
+			anonymize_match_value = ', '.join(map(lambda x: self.name if re.search(regex, x) else x, d[ref_doc['match_field']].split()))
 			frappe.db.sql("""UPDATE `tab{0}`
 				SET `{1}` = '{2}' {3}
-				WHERE `{1}` = '{4}' """.format(ref_doc['doctype'], ref_doc['match_field'], self.name,#nosec
-					anonymize_value, self.email))
+				WHERE `name` = '{4}' """.format(ref_doc['doctype'], ref_doc['match_field'], anonymize_match_value,#nosec
+				anonymize_fields, d['name']))
 
 def remove_unverified_record():
 	frappe.db.sql("""DELETE FROM `tabPersonal Data Deletion Request` WHERE `status` = 'Pending Verification' and `creation` < (NOW() - INTERVAL '7' DAY)""")

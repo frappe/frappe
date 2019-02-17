@@ -24,6 +24,8 @@ class TestPersonalDataDeletionRequest(unittest.TestCase):
 		self.assertTrue("Subject: Confirm Deletion of Data" in email_queue[0].message)
 
 	def test_anonymized_data(self):
+		self.delete_request.status = 'Pending Approval'
+		self.delete_request.save()
 		PersonalDataDeletionRequest.anonymize_data(self.delete_request)
 		deleted_user = frappe.get_all('Contact',
 			{'email_id': self.delete_request.name},
