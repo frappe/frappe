@@ -5,7 +5,6 @@ import RecorderRoot from "./RecorderRoot.vue";
 
 import RecorderDetail from "./RecorderDetail.vue";
 import RequestDetail from "./RequestDetail.vue";
-import SQLDetail from "./SQLDetail.vue";
 
 Vue.use(VueRouter);
 const routes = [
@@ -18,11 +17,6 @@ const routes = [
 		name: "request-detail",
 		path: '/request/:request_uuid',
 		component: RequestDetail,
-	},
-	{
-		name: "sql-detail",
-		path: '/request/:request_uuid/sql/:call_index',
-		component: SQLDetail,
 	},
 ];
 
