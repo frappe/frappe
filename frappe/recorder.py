@@ -11,9 +11,6 @@ import sqlparse
 import uuid
 import datetime
 
-from pygments import highlight
-from pygments.lexers import MySqlLexer
-from pygments.formatters import HtmlFormatter
 
 def sql(*args, **kwargs):
 	# Execute wrapped function as is
@@ -31,27 +28,10 @@ def sql(*args, **kwargs):
 	# __self__ will refer to frappe.db
 	# Rest is trivial
 	query = frappe.db._cursor._executed
-	compressed_result = compress(result)
-
-	# Built in profiler is already turned on
-	# Now fetch the profile data for last query
-	# This must be done after collecting query from _cursor._executed
-	profile_result = frappe.db._sql("SHOW PROFILE", as_dict=True)
-
-	# Collect EXPLAIN for executed query
-	if query.lower().strip().split()[0] in ("select", "update", "delete"):
-		# Only SELECT/UPDATE/DELETE queries can be "EXPLAIN"ed
-		explain_result = frappe.db._sql("EXPLAIN EXTENDED {}".format(query), as_dict=True)
-	else:
-		explain_result = ""
-
 	query = sqlparse.format(query.strip(), keyword_case="upper", reindent=True)
+
 	data = {
-		"result": compressed_result,
 		"query": query,
-		"highlighted_query": highlight(query, MySqlLexer(), HtmlFormatter()),
-		"explain_result": compress(explain_result),
-		"profile_result": compress(profile_result),
 		"stack": stack,
 		"time": start_time,
 		"duration": float("{:.3f}".format((end_time - start_time) * 1000)),
@@ -112,7 +92,6 @@ class Recorder():
 def _patch():
 	frappe.db._sql = frappe.db.sql
 	frappe.db.sql = sql
-	frappe.db._sql("SET PROFILING = 1")
 
 
 def compress(data):
