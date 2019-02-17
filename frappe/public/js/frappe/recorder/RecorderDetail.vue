@@ -33,7 +33,7 @@
 							<div class="list-row-col ellipsis list-subject level ">
 								<span class="level-item">{{ columns[0].label }}</span>
 							</div>
-							<div class="list-row-col ellipsis hidden-xs"  v-for="(column, index) in columns.slice(1)" :key="index">
+							<div class="list-row-col ellipsis hidden-xs"  v-for="(column, index) in columns.slice(1)" :key="index" :class="{'text-right': column.number}">
 								<span>{{ column.label }}</span>
 							</div>
 						</div>
@@ -44,7 +44,7 @@
 
 				</div>
 				<div class="result-list">
-					<router-link class="list-row-container" v-for="(request, index) in paginated(sorted(filtered(requests)))" :key="index" :to="{name: 'request-detail', params: {id: request.id}}" tag="div" v-bind="request">
+					<router-link class="list-row-container" v-for="(request, index) in paginated(sorted(filtered(requests)))" :key="index" :to="{name: 'request-detail', params: {id: request.uuid}}" tag="div" v-bind="request">
 						<div class="level list-row small">
 							<div class="level-left ellipsis">
 								<div class="list-row-col ellipsis list-subject level ">
@@ -52,7 +52,7 @@
 										{{ request[columns[0].slug] }}
 									</span>
 								</div>
-								<div class="list-row-col ellipsis" v-for="(column, index) in columns.slice(1)" :key="index">
+								<div class="list-row-col ellipsis" v-for="(column, index) in columns.slice(1)" :key="index" :class="{'text-right': column.number}">
 									<span class="ellipsis text-muted">{{ request[column.slug] }}</span>
 								</div>
 							</div>
@@ -70,7 +70,7 @@
 			<div v-if="requests.length == 0" class="no-result text-muted flex justify-center align-center" style="">
 				<div class="msg-box no-border" v-if="status.status == 'Inactive'" >
 					<p>Recorder is Inactive</p>
-					<p><button class="btn btn-primary btn-sm btn-new-doc" @click="record(true)">Start Recording</button></p>
+					<p><button class="btn btn-primary btn-sm btn-new-doc" @click="start()">Start Recording</button></p>
 				</div>
 				<div class="msg-box no-border" v-if="status.status == 'Active'" >
 					<p>No Requests found</p>
@@ -107,11 +107,10 @@ export default {
 			requests: [],
 			columns: [
 				{label: "Time", slug: "time", sortable: true},
-				{label: "Duration", slug: "duration", sortable: true},
-				{label: "Time in Queries", slug: "time_queries", sortable: true},
-				{label: "Queries", slug: "queries", sortable: true},
+				{label: "Duration (ms)", slug: "duration", sortable: true, number: true},
+				{label: "Time in Queries (ms)", slug: "time_queries", sortable: true, number: true},
+				{label: "Queries", slug: "queries", sortable: true, number: true},
 				{label: "Method", slug: "method"},
-
 			],
 			query: {
 				sort: "time",
@@ -127,11 +126,9 @@ export default {
 				color: "grey",
 				status: "Unknown",
 			},
-			last_fetched: null,
 		};
 	},
 	mounted() {
-		frappe.socketio.init(9000);
 		this.fetch_status();
 		this.refresh();
 		this.$root.page.set_secondary_action("Clear", () => {
@@ -188,49 +185,35 @@ export default {
 			const sort = this.query.sort;
 			return requests.sort((a,b) => (a[sort] > b[sort]) ? order : -order);
 		},
-		sort: function(key) {
-			if(key == this.query.sort) {
-				this.query.order = (this.query.order == "asc") ? "desc" : "asc";
-			} else {
-				this.query.order = "asc";
-			}
-			this.query.sort = key;
-		},
-		glyphicon: function(key) {
-			if(key == this.query.sort) {
-				return (this.query.order == "asc") ? "glyphicon-sort-by-attributes" : "glyphicon-sort-by-attributes-alt";
-			} else {
-				return "glyphicon-sort";
-			}
-		},
 		refresh: function() {
-			frappe.call("frappe.recorder.get").then( r => {
-				this.requests = r.message;
-				this.last_fetched = new Date();
-			});
+			frappe.call("frappe.recorder.get").then( r => this.requests = r.message);
+		},
+		update: function(message) {
+			this.requests.push(JSON.parse(message));
 		},
 		clear: function() {
-			frappe.call("frappe.recorder.delete");
-			this.refresh();
+			frappe.call("frappe.recorder.delete").then(r => this.refresh());
 		},
-		record: function(should_record) {
-			frappe.call({
-				method: "frappe.recorder.set_recorder_state",
-				args: {
-					should_record: should_record
-				}
-			}).then(r => this.update_status(r.message));
+		start: function() {
+			frappe.call("frappe.recorder.start").then(r => this.fetch_status());
+		},
+		stop: function() {
+			frappe.call("frappe.recorder.stop").then(r => this.fetch_status());
 		},
 		fetch_status: function() {
-			frappe.call("frappe.recorder.get_status").then(r => this.update_status(r.message));
+			frappe.call("frappe.recorder.status").then(r => this.update_status(r.message));
 		},
-		update_status: function(status) {
-			this.status = status;
+		update_status: function(result) {
+			if(result) {
+				this.status = {status: "Active", color: "green"}
+			} else {
+				this.status = {status: "Inactive", color: "red"}
+			}
 			this.$root.page.set_indicator(this.status.status, this.status.color);
 			if(this.status.status == "Active") {
-				frappe.realtime.on("recorder-dump-event", this.refresh);
+				frappe.realtime.on("recorder-dump-event", this.update);
 			} else {
-				frappe.realtime.off("recorder-dump-event", this.refresh);
+				frappe.realtime.off("recorder-dump-event", this.update);
 			}
 
 			this.update_buttons();
@@ -238,22 +221,14 @@ export default {
 		update_buttons: function() {
 			if(this.status.status == "Active") {
 				this.$root.page.set_primary_action("Stop", () => {
-					this.record(false);
+					this.stop();
 				});
 			} else {
 				this.$root.page.set_primary_action("Start", () => {
-					this.record(true);
+					this.start();
 				});
 			}
 		},
-	},
-	filters: {
-		elipsize: function (value) {
-			if (!value) return '';
-			if (value.length > 30)
-				return value.substring(0, 30-3)+'...';
-			return value;
-		}
 	}
 };
 </script>

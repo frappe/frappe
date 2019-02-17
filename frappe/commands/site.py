@@ -575,7 +575,7 @@ def browse(context, site):
 def start_recording(context):
 	for site in context.sites:
 		frappe.init(site=site)
-		frappe.cache().set("recorder-intercept", 1)
+		frappe.recorder.start()
 
 
 @click.command('stop-recording')
@@ -583,7 +583,7 @@ def start_recording(context):
 def stop_recording(context):
 	for site in context.sites:
 		frappe.init(site=site)
-		frappe.cache().delete("recorder-intercept")
+		frappe.recorder.stop()
 
 
 commands = [

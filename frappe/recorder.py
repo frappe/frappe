@@ -11,24 +11,20 @@ import sqlparse
 import datetime
 
 
+RECORDER_INTERCEPT_FLAG = "recorder-intercept"
+RECORDER_REQUEST_SPARSE_HASH = "recorder-requests-sparse"
+RECORDER_REQUEST_HASH = "recorder-requests"
+
+
 def sql(*args, **kwargs):
-	# Execute wrapped function as is
-	# Record arguments as well as return value
-	# Record start and end time as well
 	start_time = time.time()
 	result = frappe.db._sql(*args, **kwargs)
 	end_time = time.time()
 
 	stack = "".join(traceback.format_stack())
 
-	# Big hack here
-	# PyMysql stores exact DB query in cursor._executed
-	# Assumes that function refers to frappe.db.sql
-	# __self__ will refer to frappe.db
-	# Rest is trivial
 	query = frappe.db._cursor._executed
 	query = sqlparse.format(query.strip(), keyword_case="upper", reindent=True)
-
 	data = {
 		"query": query,
 		"stack": stack,
@@ -36,35 +32,30 @@ def sql(*args, **kwargs):
 		"duration": float("{:.3f}".format((end_time - start_time) * 1000)),
 	}
 
-	# Record all calls, Will be later stored in cache
 	frappe.local._recorder.register(data)
 	return result
 
 
 def record():
-	if frappe.cache().get("recorder-intercept"):
+	if frappe.cache().get_value(RECORDER_INTERCEPT_FLAG):
 		frappe.local._recorder = Recorder()
 
 
 def dump():
 	if hasattr(frappe.local, "_recorder"):
 		frappe.local._recorder.dump()
-		frappe.publish_realtime(event="recorder-dump-event")
 
 
 class Recorder():
 	def __init__(self):
-		self.id = frappe.generate_hash(length=10)
+		self.uuid = frappe.generate_hash(length=10)
 		self.time = datetime.datetime.now()
 		self.calls = []
 		self.path = frappe.request.path
 		self.cmd = frappe.local.form_dict.cmd or ""
 		self.method = frappe.request.method
-
-		self.request = {
-			"headers": dict(frappe.local.request.headers),
-			"data": frappe.local.form_dict,
-		}
+		self.headers = dict(frappe.local.request.headers)
+		self.form_dict = frappe.local.form_dict
 		_patch()
 
 	def register(self, data):
@@ -72,7 +63,7 @@ class Recorder():
 
 	def dump(self):
 		request_data = {
-			"id": self.id,
+			"uuid": self.uuid,
 			"path": self.path,
 			"cmd": self.cmd,
 			"time": self.time,
@@ -81,31 +72,18 @@ class Recorder():
 			"duration": float("{:0.3f}".format((datetime.datetime.now() - self.time).total_seconds() * 1000)),
 			"method": self.method,
 		}
-		frappe.cache().lpush("recorder-requests", json.dumps(request_data, default=str))
+		frappe.cache().hset(RECORDER_REQUEST_SPARSE_HASH, self.uuid, request_data)
+		frappe.publish_realtime(event="recorder-dump-event", message=json.dumps(request_data, default=str))
 
 		request_data["calls"] = self.calls
-		request_data["http"] = self.request
-		frappe.cache().set("recorder-request-{}".format(self.id), json.dumps(request_data, default=str))
+		request_data["headers"] = self.headers
+		request_data["form_dict"] = self.form_dict
+		frappe.cache().hset(RECORDER_REQUEST_HASH, self.uuid, request_data)
 
 
 def _patch():
 	frappe.db._sql = frappe.db.sql
 	frappe.db.sql = sql
-
-
-def compress(data):
-	if data:
-		if isinstance(data[0], dict):
-			keys = list(data[0].keys())
-			values = list()
-			for row in data:
-				values.append([row.get(key) for key in keys])
-		else:
-			keys = [column[0] for column in frappe.db._cursor.description]
-			values = data
-	else:
-		keys, values = [], []
-	return {"keys": keys, "values": values}
 
 
 def do_not_record(function):
@@ -119,35 +97,34 @@ def do_not_record(function):
 
 @frappe.whitelist()
 @do_not_record
-def get_status(*args, **kwargs):
-	if frappe.cache().get("recorder-intercept"):
-		return {"status": "Active", "color": "green"}
-	return {"status": "Inactive", "color": "red"}
+def status(*args, **kwargs):
+	return bool(frappe.cache().get_value(RECORDER_INTERCEPT_FLAG))
 
 
 @frappe.whitelist()
 @do_not_record
-def set_recorder_state(should_record, *args, **kwargs):
-	if should_record == "true":
-		frappe.cache().set("recorder-intercept", 1)
-		return {"status": "Active", "color": "green"}
-	else:
-		frappe.cache().delete("recorder-intercept")
-		return {"status": "Inactive", "color": "red"}
+def start(*args, **kwargs):
+	frappe.cache().set_value(RECORDER_INTERCEPT_FLAG, 1)
 
 
 @frappe.whitelist()
 @do_not_record
-def get(id=None, *args, **kwargs):
-	if id:
-		result = json.loads(frappe.cache().get("recorder-request-{}".format(id)).decode())
+def stop(*args, **kwargs):
+	frappe.cache().delete_value(RECORDER_INTERCEPT_FLAG)
+
+
+@frappe.whitelist()
+@do_not_record
+def get(uuid=None, *args, **kwargs):
+	if uuid:
+		result = frappe.cache().hget(RECORDER_REQUEST_HASH, uuid)
 	else:
-		requests = frappe.cache().lrange("recorder-requests", 0, -1)
-		result = list(map(lambda request: json.loads(request.decode()), requests))
+		result = frappe.cache().hgetall(RECORDER_REQUEST_SPARSE_HASH).values()
 	return result
 
 
 @frappe.whitelist()
 @do_not_record
 def delete(*args, **kwargs):
-	frappe.cache().delete_value("recorder-requests")
+	frappe.cache().delete_value(RECORDER_REQUEST_SPARSE_HASH)
+	frappe.cache().delete_value(RECORDER_REQUEST_HASH)
