@@ -274,7 +274,8 @@ def errprint(msg):
 	if not request or (not "cmd" in local.form_dict) or conf.developer_mode:
 		print(msg)
 
-	error_log.append({"exc": msg, "locals": get_frame_locals()})
+	from .utils import escape_html
+	error_log.append({"exc": escape_html(msg), "locals": get_frame_locals()})
 
 def log(msg):
 	"""Add to `debug_log`.
