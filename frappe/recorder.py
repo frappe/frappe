@@ -3,12 +3,13 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
+import datetime
 import json
+import re
 import time
 import traceback
 import frappe
 import sqlparse
-import datetime
 
 
 RECORDER_INTERCEPT_FLAG = "recorder-intercept"
@@ -21,7 +22,9 @@ def sql(*args, **kwargs):
 	result = frappe.db._sql(*args, **kwargs)
 	end_time = time.time()
 
-	stack = "".join(traceback.format_stack())
+	stack_frames = filter(lambda x: "/apps/" in x, traceback.format_stack()[:-1])
+	stack_frames = map(lambda x: re.sub("File \".*/apps/", "File \"", x), stack_frames)
+	stack = "".join(stack_frames)
 
 	query = frappe.db._cursor._executed
 	query = sqlparse.format(query.strip(), keyword_case="upper", reindent=True)
