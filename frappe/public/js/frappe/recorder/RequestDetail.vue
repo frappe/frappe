@@ -15,8 +15,20 @@
 			</div>
 		</div>
 		<div class="row form-section visible-section">
-			<div class="col-sm-12">
+			<div class="col-sm-10">
 				<h6 class="form-section-heading uppercase">SQL Queries</h6>
+			</div>
+			<div class="col-sm-2 filter-list">
+				<div class="sort-selector">
+					<div class="dropdown"><a class="text-muted dropdown-toggle small" data-toggle="dropdown"><span class="dropdown-text">{{ table_columns.filter(c => c.slug == query.sort)[0].label }}</span></a>
+						<ul class="dropdown-menu">
+							<li v-for="(column, index) in table_columns.filter(c => c.sortable)" :key="index" @click="query.sort = column.slug"><a class="option">{{ column.label }}</a></li>
+						</ul>
+					</div>
+					<button class="btn btn-default btn-xs btn-order">
+						<span class="octicon text-muted" :class="query.order == 'asc' ? 'octicon-arrow-down' : 'octicon-arrow-up'"  @click="query.order = (query.order == 'asc') ? 'desc' : 'asc'"></span>
+					</button>
+				</div>
 			</div>
 			<div class="section-body">
 				<div class="form-column col-sm-12">
@@ -33,21 +45,21 @@
 													<div class="static-area ellipsis">Query</div>
 												</div>
 												<div class="col grid-static-col col-xs-2">
-													<div class="static-area ellipsis">Duration (ms)</div>
+													<div class="static-area ellipsis text-right">Duration (ms)</div>
 												</div>
 											</div>
 										</div>
 									</div>
 									<div class="grid-body">
 										<div class="rows">
-											<div class="grid-row" :class="showing == index ? 'grid-row-open' : ''"  v-for="(call, index) in request.calls" :key="index">
+											<div class="grid-row" :class="showing == index ? 'grid-row-open' : ''"  v-for="(call, index) in sorted(request.calls)" :key="index">
 												<div class="data-row row" v-if="showing != index" style="display: block;" @click="showing = index" >
 													<div class="row-index col col-xs-1"><span>{{ index }}</span></div>
 													<div class="col grid-static-col col-xs-8" data-fieldtype="Code">
 														<div class="static-area"><span>{{ call.query }}</span></div>
 													</div>
 													<div class="col grid-static-col col-xs-2">
-														<div class="static-area ellipsis">{{ call.duration }}</div>
+														<div class="static-area ellipsis text-right">{{ call.duration }}</div>
 													</div>
 													<div class="col col-xs-1"><a class="close btn-open-row">
 														<span class="octicon octicon-triangle-down"></span></a>
@@ -145,11 +157,27 @@ export default {
 				{label: "Request Headers", slug: "headers", type: "Small Text", formatter: value => `<pre class="for-description like-disabled-input">${JSON.stringify(value, null, 4)}</pre>`, class: "col-sm-12"},
 				{label: "Form Dict", slug: "form_dict", type: "Small Text", formatter: value => `<pre class="for-description like-disabled-input">${JSON.stringify(value, null, 4)}</pre>`, class: "col-sm-12"},
 			],
+			table_columns: [
+				{label: "Execution Order", slug: "index", sortable: true},
+				{label: "Duration (ms)", slug: "duration", sortable: true},
+			],
+			query: {
+				sort: "index",
+				order: "asc",
+			},
 			showing: null,
 			request: {
 				calls: [],
 			},
 		};
+	},
+	methods: {
+		sorted: function(calls) {
+			calls = calls.slice();
+			const order = (this.query.order == "asc") ? 1 : -1;
+			const sort = this.query.sort;
+			return calls.sort((a,b) => (a[sort] > b[sort]) ? order : -order);
+		},
 	},
 	mounted() {
 		frappe.breadcrumbs.add({
