@@ -18,7 +18,7 @@ class PersonalDataDeletionRequest(Document):
 
 	def send_verification_mail(self):
 		url = frappe.utils.get_url("/api/method/frappe.website.doctype.personal_data_delete_request.personal_data_delete_request.confirm_deletion") +\
-		"?" + get_signed_params({"email": self.email, "name": self.name})
+			"?" + get_signed_params({"email": self.email, "name": self.name})
 		host_name = frappe.local.site
 
 		frappe.sendmail(recipients= self.email,
@@ -81,12 +81,17 @@ def remove_unverified_record():
 def confirm_deletion(email, name):
 	if not verify_request():
 		return
-	doc  = frappe.get_doc("Personal Data Delete Request", name)
+
+	doc = frappe.get_doc("Personal Data Delete Request", name)
+	host_name = frappe.local.site
 	if doc.status != 'Pending Approval':
 		doc.status = 'Pending Approval'
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
-	host_name = frappe.local.site
-	frappe.respond_as_web_page(_("Confirmed"),
-		_("The process for deletion of {0} Data associated with {1} has been initiated.").format(host_name, email),
-		indicator_color='green')
+		frappe.respond_as_web_page(_("Confirmed"),
+			_("The process for deletion of {0} Data associated with {1} has been initiated.").format(host_name, email),
+			indicator_color='green')
+	else:
+		frappe.respond_as_web_page(_("Link Expired"),
+			_("This link has already been activated for verification."),
+			indicator_color='red')
