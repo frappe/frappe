@@ -64,7 +64,8 @@ def add_comment(reference_doctype, reference_name, content, comment_email):
 		reference_doctype = reference_doctype,
 		reference_name = reference_name,
 		content = clean_email_html(content),
-		comment_email = comment_email
+		comment_email = comment_email,
+		comment_type = 'Comment'
 	)).insert(ignore_permissions = True)
 
 	return doc.as_dict()

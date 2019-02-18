@@ -654,22 +654,7 @@ frappe.ui.form.Timeline = class Timeline {
 				if(!r.exc) {
 					me.comment_area.set_value('');
 					frappe.utils.play_sound("click");
-
-					var comment = r.message;
-					var comments = me.get_comments();
-					var comment_exists = false;
-					for (var i=0, l=comments.length; i<l; i++) {
-						if (comments[i].name==comment.name) {
-							comment_exists = true;
-							break;
-						}
-					}
-					if (comment_exists) {
-						return;
-					}
-
-					me.frm.get_docinfo().comments = comments.concat([r.message]);
-					me.refresh(true);
+					frappe.timeline.new_communication(r.message);
 				}
 			}
 		});
@@ -771,6 +756,9 @@ frappe.ui.form.Timeline = class Timeline {
 
 $.extend(frappe.timeline, {
 	new_communication: function(communication) {
+		if (!communication.communication_type) {
+			communication.communication_type = 'Comment';
+		}
 		var docinfo = frappe.model.get_docinfo(communication.reference_doctype, communication.reference_name);
 		if (docinfo && docinfo.communications) {
 			var communications = docinfo.communications;
