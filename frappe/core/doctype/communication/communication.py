@@ -6,8 +6,6 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import validate_email_add, get_fullname, strip_html, cstr
-from frappe.core.doctype.communication.comment import (notify_mentions,
-	update_comment_in_doc, on_trash)
 from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_mins_to_first_response)
 from frappe.core.utils import get_parent_doc, set_timeline_doc
@@ -87,18 +85,14 @@ class Communication(Document):
 		if not (self.reference_doctype and self.reference_name):
 			return
 
-		if self.reference_doctype == "Communication" and self.sent_or_received == "Sent" and \
-			self.communication_type != 'Comment':
+		if self.reference_doctype == "Communication" and self.sent_or_received == "Sent":
 			frappe.db.set_value("Communication", self.reference_name, "status", "Replied")
 
-		if self.communication_type in ("Communication", "Comment"):
+		if self.communication_type == "Communication":
 			# send new comment to listening clients
 			frappe.publish_realtime('new_communication', self.as_dict(),
 				doctype=self.reference_doctype, docname=self.reference_name,
 				after_commit=True)
-
-			if self.communication_type == "Comment":
-				notify_mentions(self)
 
 		elif self.communication_type in ("Chat", "Notification", "Bot"):
 			if self.reference_name == frappe.session.user:
@@ -114,23 +108,14 @@ class Communication(Document):
 		"""Update parent status as `Open` or `Replied`."""
 		if self.comment_type != 'Updated':
 			update_parent_mins_to_first_response(self)
-			update_comment_in_doc(self)
 			self.bot_reply()
 
 	def on_trash(self):
-		if (not self.flags.ignore_permissions
-			and self.communication_type=="Comment" and self.comment_type != "Comment"):
-
-			# prevent deletion of auto-created comments if not ignore_permissions
-			frappe.throw(_("Sorry! You cannot delete auto-generated comments"))
-
-		if self.communication_type in ("Communication", "Comment"):
+		if self.communication_type == "Communication":
 			# send delete comment to listening clients
 			frappe.publish_realtime('delete_communication', self.as_dict(),
 				doctype= self.reference_doctype, docname = self.reference_name,
 				after_commit=True)
-			# delete the comments from _comment
-			on_trash(self)
 
 	def set_status(self):
 		if not self.is_new():

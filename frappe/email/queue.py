@@ -174,7 +174,8 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 			if att.get('fid'):
 				_attachments.append(att)
 			elif att.get("print_format_attachment") == 1:
-				att['lang'] = frappe.local.lang
+				if not att.get('lang', None):
+					att['lang'] = frappe.local.lang
 				att['print_letterhead'] = kwargs.get('print_letterhead')
 				_attachments.append(att)
 		e.attachments = json.dumps(_attachments)
