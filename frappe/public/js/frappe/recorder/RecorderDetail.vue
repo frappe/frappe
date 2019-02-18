@@ -44,11 +44,11 @@
 
 				</div>
 				<div class="result-list">
-					<router-link class="list-row-container" v-for="(request, index) in paginated(sorted(filtered(requests)))" :key="index" :to="{name: 'request-detail', params: {id: request.uuid}}" tag="div" v-bind="request">
+					<div class="list-row-container" v-for="(request, index) in paginated(sorted(filtered(requests)))" :key="index" @click="route_to_request_detail(request.uuid)">
 						<div class="level list-row small">
 							<div class="level-left ellipsis">
 								<div class="list-row-col ellipsis list-subject level ">
-									<span class="level-item bold ellipsis">
+									<span class="level-item bold">
 										{{ request[columns[0].slug] }}
 									</span>
 								</div>
@@ -59,12 +59,12 @@
 							<div class="level-right ellipsis">
 								<div class="list-row-col ellipsis list-subject level ">
 									<span class="level-item ellipsis text-muted">
-										{{ request.path }}
+
 									</span>
 								</div>
 							</div>
 						</div>
-					</router-link>
+					</div>
 				</div>
 			</div>
 			<div v-if="requests.length == 0" class="no-result text-muted flex justify-center align-center" style="">
@@ -106,11 +106,12 @@ export default {
 		return {
 			requests: [],
 			columns: [
-				{label: "Time", slug: "time", sortable: true},
+				{label: "CMD", slug: "cmd"},
 				{label: "Duration (ms)", slug: "duration", sortable: true, number: true},
 				{label: "Time in Queries (ms)", slug: "time_queries", sortable: true, number: true},
 				{label: "Queries", slug: "queries", sortable: true, number: true},
 				{label: "Method", slug: "method"},
+				{label: "Time", slug: "time", sortable: true},
 			],
 			query: {
 				sort: "time",
@@ -128,10 +129,17 @@ export default {
 			},
 		};
 	},
+	created() {
+		let route = frappe.get_route();
+		if (route[2]) {
+			this.$router.push({name: 'request-detail', params: {id: route[2]}});
+		}
+	},
 	mounted() {
 		this.fetch_status();
 		this.refresh();
 		this.$root.page.set_secondary_action("Clear", () => {
+			frappe.set_route("recorder");
 			this.clear();
 		});
 
@@ -229,6 +237,15 @@ export default {
 				});
 			}
 		},
+		route_to_request_detail(id) {
+			this.$router.push({name: 'request-detail', params: {id}});
+		}
 	}
 };
 </script>
+<style>
+.list-row .level-left {
+	flex: 8;
+	width: 100%;
+}
+</style>

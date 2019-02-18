@@ -28,9 +28,18 @@ def sql(*args, **kwargs):
 
 	query = frappe.db._cursor._executed
 	query = sqlparse.format(query.strip(), keyword_case="upper", reindent=True)
+
+	# Collect EXPLAIN for executed query
+	if query.lower().strip().split()[0] in ("select", "update", "delete"):
+		# Only SELECT/UPDATE/DELETE queries can be "EXPLAIN"ed
+		explain_result = frappe.db._sql("EXPLAIN EXTENDED {}".format(query), as_dict=True)
+	else:
+		explain_result = []
+
 	data = {
 		"query": query,
 		"stack": stack,
+		"explain_result": explain_result,
 		"time": start_time,
 		"duration": float("{:.3f}".format((end_time - start_time) * 1000)),
 	}
@@ -40,13 +49,15 @@ def sql(*args, **kwargs):
 
 
 def record():
-	if frappe.cache().get_value(RECORDER_INTERCEPT_FLAG):
-		frappe.local._recorder = Recorder()
+	if __debug__:
+		if frappe.cache().get_value(RECORDER_INTERCEPT_FLAG):
+			frappe.local._recorder = Recorder()
 
 
 def dump():
-	if hasattr(frappe.local, "_recorder"):
-		frappe.local._recorder.dump()
+	if __debug__:
+		if hasattr(frappe.local, "_recorder"):
+			frappe.local._recorder.dump()
 
 
 class Recorder():

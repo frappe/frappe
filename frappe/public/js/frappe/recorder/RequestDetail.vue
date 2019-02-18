@@ -4,10 +4,10 @@
 			<div class="section-body">
 				<div class="form-column col-sm-12">
 					<form>
-						<div class="frappe-control input-max-width col-sm-6" :data-fieldtype="column.type" v-for="(column, index) in columns" :key="index">
+						<div class="frappe-control" :data-fieldtype="column.type" v-for="(column, index) in columns" :key="index" :class="column.class">
 							<div class="form-group">
 								<div class="clearfix"><label class="control-label">{{ column.label }}</label></div>
-								<div class="control-value like-disabled-input">{{ request[column.slug] }}</div>
+								<div class="control-value like-disabled-input" v-html="column.formatter ? column.formatter(request[column.slug]) : request[column.slug]"></div>
 							</div>
 						</div>
 					</form>
@@ -40,7 +40,7 @@
 									</div>
 									<div class="grid-body">
 										<div class="rows">
-											<div class="grid-row" :class="showing == index ? 'grid-row-open' : ''"  v-for="(call, index) in request.calls" :key="index" v-bind="call">
+											<div class="grid-row" :class="showing == index ? 'grid-row-open' : ''"  v-for="(call, index) in request.calls" :key="index">
 												<div class="data-row row" v-if="showing != index" style="display: block;" @click="showing = index" >
 													<div class="row-index col col-xs-1"><span>{{ index }}</span></div>
 													<div class="col grid-static-col col-xs-8" data-fieldtype="Code">
@@ -88,6 +88,25 @@
 																							<div class="control-value like-disabled-input for-description"><pre>{{ call.stack }}</pre></div>
 																						</div>
 																					</div>
+																					<div class="frappe-control" v-if="call.explain_result[0]">
+																						<div class="form-group">
+																							<div class="clearfix"><label class="control-label">SQL Explain</label></div>
+																							<div class="control-value like-disabled-input for-description" style="overflow:auto">
+																								<table class="table table-striped">
+																									<thead>
+																										<tr>
+																											<th v-for="key in Object.keys(call.explain_result[0])" :key="key">{{ key }}</th>
+																										</tr>
+																									</thead>
+																									<tbody>
+																										<tr v-for="(row, index) in call.explain_result" :key="index">
+																											<td v-for="key in Object.keys(call.explain_result[0])" :key="key">{{ row[key] }}</td>
+																										</tr>
+																									</tbody>
+																								</table>
+																							</div>
+																						</div>
+																					</div>
 																				</form>
 																			</div>
 																		</div>
@@ -117,14 +136,14 @@ export default {
  	data() {
 		return {
 			columns: [
-				{label: "Path", slug: "path", type: "Data"},
-				{label: "CMD", slug: "cmd", type: "Data"},
-				{label: "Time", slug: "time", type: "Time"},
-				{label: "Duration (ms)", slug: "duration", type: "Float"},
-				{label: "Number of Queries", slug: "queries", type: "Int"},
-				{label: "Time in Queries (ms)", slug: "time_queries", type: "Float"},
-				{label: "Request Headers", slug: "headers", type: "Small Text"},
-				{label: "Form Dict", slug: "form_dict", type: "Small Text"},
+				{label: "Path", slug: "path", type: "Data", class: "col-sm-6"},
+				{label: "CMD", slug: "cmd", type: "Data", class: "col-sm-6"},
+				{label: "Time", slug: "time", type: "Time", class: "col-sm-6"},
+				{label: "Duration (ms)", slug: "duration", type: "Float", class: "col-sm-6"},
+				{label: "Number of Queries", slug: "queries", type: "Int", class: "col-sm-6"},
+				{label: "Time in Queries (ms)", slug: "time_queries", type: "Float", class: "col-sm-6"},
+				{label: "Request Headers", slug: "headers", type: "Small Text", formatter: value => `<pre class="for-description like-disabled-input">${JSON.stringify(value, null, 4)}</pre>`, class: "col-sm-12"},
+				{label: "Form Dict", slug: "form_dict", type: "Small Text", formatter: value => `<pre class="for-description like-disabled-input">${JSON.stringify(value, null, 4)}</pre>`, class: "col-sm-12"},
 			],
 			showing: null,
 			request: {
@@ -133,6 +152,11 @@ export default {
 		};
 	},
 	mounted() {
+		frappe.breadcrumbs.add({
+			type: 'Custom',
+			label: __('Recorder'),
+			route: '#recorder'
+		});
 		frappe.call({
 			method: "frappe.recorder.get",
 			args: {
