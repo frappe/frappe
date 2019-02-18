@@ -3,6 +3,7 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
+from collections import Counter
 import datetime
 import json
 import re
@@ -89,13 +90,18 @@ class Recorder():
 		frappe.cache().hset(RECORDER_REQUEST_SPARSE_HASH, self.uuid, request_data)
 		frappe.publish_realtime(event="recorder-dump-event", message=json.dumps(request_data, default=str))
 
-		for index, call in enumerate(self.calls):
-			call["index"] = index
+		self.mark_duplicates()
 
 		request_data["calls"] = self.calls
 		request_data["headers"] = self.headers
 		request_data["form_dict"] = self.form_dict
 		frappe.cache().hset(RECORDER_REQUEST_HASH, self.uuid, request_data)
+
+	def mark_duplicates(self):
+		counts = Counter([call["query"] for call in self.calls])
+		for index, call in enumerate(self.calls):
+			call["index"] = index
+			call["exact_copies"] = counts[call["query"]]
 
 
 def _patch():

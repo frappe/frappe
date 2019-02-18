@@ -33,6 +33,14 @@
 			<div class="section-body">
 				<div class="form-column col-sm-12">
 					<form>
+						<div class="form-group frappe-control input-max-width" data-fieldtype="Check">
+							<div class="checkbox">
+								<label>
+									<span class="input-area"><input type="checkbox" class="input-with-feedback bold" data-fieldtype="Check" v-model="group_duplicates"></span>
+									<span class="label-area small">Group Duplicate Queries</span>
+								</label>
+							</div>
+						</div>
 						<div class="frappe-control" data-fieldtype="Table">
 							<div>
 								<div class="form-grid">
@@ -41,25 +49,31 @@
 											<div class="data-row row">
 												<div class="row-index col col-xs-1">
 													<span>Index</span></div>
-												<div class="col grid-static-col col-xs-8">
+												<div class="col grid-static-col col-xs-6">
 													<div class="static-area ellipsis">Query</div>
 												</div>
 												<div class="col grid-static-col col-xs-2">
 													<div class="static-area ellipsis text-right">Duration (ms)</div>
+												</div>
+												<div class="col grid-static-col col-xs-2">
+													<div class="static-area ellipsis text-right">Exact Copies</div>
 												</div>
 											</div>
 										</div>
 									</div>
 									<div class="grid-body">
 										<div class="rows">
-											<div class="grid-row" :class="showing == call.index ? 'grid-row-open' : ''"  v-for="call in paginated(sorted(request.calls))" :key="call.index">
+											<div class="grid-row" :class="showing == call.index ? 'grid-row-open' : ''"  v-for="call in paginated(sorted(grouped(request.calls)))" :key="call.index">
 												<div class="data-row row" v-if="showing != call.index" style="display: block;" @click="showing = call.index" >
 													<div class="row-index col col-xs-1"><span>{{ call.index }}</span></div>
-													<div class="col grid-static-col col-xs-8" data-fieldtype="Code">
+													<div class="col grid-static-col col-xs-6" data-fieldtype="Code">
 														<div class="static-area"><span>{{ call.query }}</span></div>
 													</div>
 													<div class="col grid-static-col col-xs-2">
 														<div class="static-area ellipsis text-right">{{ call.duration }}</div>
+													</div>
+													<div class="col grid-static-col col-xs-2">
+														<div class="static-area ellipsis text-right">{{ call.exact_copies }}</div>
 													</div>
 													<div class="col col-xs-1"><a class="close btn-open-row">
 														<span class="octicon octicon-triangle-down"></span></a>
@@ -92,6 +106,12 @@
 																						<div class="form-group">
 																							<div class="clearfix"><label class="control-label">Duration (ms)</label></div>
 																							<div class="control-value like-disabled-input">{{ call.duration }}</div>
+																						</div>
+																					</div>
+																					<div class="frappe-control input-max-width">
+																						<div class="form-group">
+																							<div class="clearfix"><label class="control-label">Exact Copies</label></div>
+																							<div class="control-value like-disabled-input">{{ call.exact_copies }}</div>
 																						</div>
 																					</div>
 																					<div class="frappe-control">
@@ -178,6 +198,7 @@ export default {
 			table_columns: [
 				{label: "Execution Order", slug: "index", sortable: true},
 				{label: "Duration (ms)", slug: "duration", sortable: true},
+				{label: "Exact Copies", slug: "exact_copies", sortable: true},
 			],
 			query: {
 				sort: "index",
@@ -188,6 +209,7 @@ export default {
 					total: 0,
 				}
 			},
+			group_duplicates: false,
 			showing: null,
 			request: {
 				calls: [],
@@ -234,6 +256,13 @@ export default {
 			const order = (this.query.order == "asc") ? 1 : -1;
 			const sort = this.query.sort;
 			return calls.sort((a,b) => (a[sort] > b[sort]) ? order : -order);
+		},
+		grouped: function(calls) {
+			if(this.group_duplicates) {
+				calls = calls.slice();
+				return calls.uniqBy(call => call["query"]);
+			}
+			return calls
 		},
 	},
 	mounted() {
