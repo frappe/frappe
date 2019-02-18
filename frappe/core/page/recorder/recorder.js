@@ -1,5 +1,5 @@
 frappe.pages['recorder'].on_page_load = function(wrapper) {
-	let page = frappe.ui.make_app_page({
+	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: 'Recorder',
 		single_column: true
@@ -11,7 +11,7 @@ frappe.pages['recorder'].on_page_load = function(wrapper) {
 	});
 
 	frappe.require('/assets/js/frappe-recorder.min.js');
-}
+};
 
 class Recorder {
 	constructor(wrapper) {
