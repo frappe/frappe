@@ -52,9 +52,9 @@
 									</div>
 									<div class="grid-body">
 										<div class="rows">
-											<div class="grid-row" :class="showing == index ? 'grid-row-open' : ''"  v-for="(call, index) in sorted(request.calls)" :key="index">
-												<div class="data-row row" v-if="showing != index" style="display: block;" @click="showing = index" >
-													<div class="row-index col col-xs-1"><span>{{ index }}</span></div>
+											<div class="grid-row" :class="showing == call.index ? 'grid-row-open' : ''"  v-for="call in paginated(sorted(request.calls))" :key="call.index">
+												<div class="data-row row" v-if="showing != call.index" style="display: block;" @click="showing = call.index" >
+													<div class="row-index col col-xs-1"><span>{{ call.index }}</span></div>
 													<div class="col grid-static-col col-xs-8" data-fieldtype="Code">
 														<div class="static-area"><span>{{ call.query }}</span></div>
 													</div>
@@ -68,7 +68,7 @@
 												<div class="form-in-grid">
 													<div class="grid-form-heading" @click="showing = null">
 														<div class="toolbar grid-header-toolbar">
-															<span class="panel-title">SQL Query #<span class="grid-form-row-index">{{ index }}</span></span>
+															<span class="panel-title">SQL Query #<span class="grid-form-row-index">{{ call.index }}</span></span>
 															<div class="btn btn-default btn-xs pull-right" style="margin-left: 7px;">
 																<span class="hidden-xs octicon octicon-triangle-up"></span>
 															</div>
@@ -138,6 +138,24 @@
 					</form>
 				</div>
 			</div>
+			<div v-if="request.calls.length != 0" class="list-paging-area" style="border-top: none">
+				<div class="row">
+					<div class="col-xs-6">
+						<div class="btn-group btn-group-paging">
+							<button type="button" class="btn btn-default btn-sm" v-for="(limit, index) in [20, 50, 100]" :key="index" :class="query.pagination.limit == limit ? 'btn-info' : ''" @click="query.pagination.limit = limit">
+								{{ limit }}
+							</button>
+						</div>
+					</div>
+					<div class="col-xs-6 text-right">
+						<div class="btn-group btn-group-paging">
+							<button type="button" class="btn btn-default btn-sm" :class="page.status" v-for="(page, index) in pages" :key="index" @click="query.pagination.page = page.number">
+								{{ page.label }}
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -164,6 +182,11 @@ export default {
 			query: {
 				sort: "index",
 				order: "asc",
+				pagination: {
+					limit: 20,
+					page: 1,
+					total: 0,
+				}
 			},
 			showing: null,
 			request: {
@@ -171,7 +194,41 @@ export default {
 			},
 		};
 	},
+	computed: {
+		pages: function() {
+			const current_page = this.query.pagination.page;
+			const total_pages = this.query.pagination.total;
+			return [{
+				label: "First",
+				number: 1,
+				status: (current_page == 1) ? "disabled" : "",
+			},{
+				label: "Previous",
+				number: Math.max(current_page - 1, 1),
+				status: (current_page == 1) ? "disabled" : "",
+			}, {
+				label: current_page,
+				number: current_page,
+				status: "btn-info",
+			}, {
+				label: "Next",
+				number: Math.min(current_page + 1, total_pages),
+				status: (current_page == total_pages) ? "disabled" : "",
+			}, {
+				label: "Last",
+				number: total_pages,
+				status: (current_page == total_pages) ? "disabled" : "",
+			}];
+		}
+	},
 	methods: {
+		paginated: function(calls) {
+			calls = calls.slice();
+			this.query.pagination.total = Math.ceil(calls.length / this.query.pagination.limit);
+			const begin = (this.query.pagination.page - 1) * (this.query.pagination.limit);
+			const end = begin + this.query.pagination.limit;
+			return calls.slice(begin, end);
+		},
 		sorted: function(calls) {
 			calls = calls.slice();
 			const order = (this.query.order == "asc") ? 1 : -1;
