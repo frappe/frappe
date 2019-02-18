@@ -79,6 +79,7 @@ frappe.get_route = function(route) {
 	route = $.map(route, frappe._decode_str);
 	var parts = null;
 	var doc_name = route[route.length - 1];
+	// if the last part contains ? then check if it is valid query string
 	if(doc_name.indexOf("?") < doc_name.indexOf("=")){
 		parts = doc_name.split("?");
 		route[route.length - 1] = parts[0];
