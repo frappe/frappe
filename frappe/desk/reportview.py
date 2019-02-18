@@ -222,12 +222,13 @@ def delete_items():
 		delete_bulk(doctype, items)
 
 def delete_bulk(doctype, items):
-	for i, d in enumerate(il):
+	failed = []
+	for i, d in enumerate(items):
 		try:
 			frappe.delete_doc(doctype, d)
-			if len(il) >= 5:
+			if len(items) >= 5:
 				frappe.publish_realtime("progress",
-					dict(progress=[i+1, len(il)], title=_('Deleting {0}').format(doctype), description=d),
+					dict(progress=[i+1, len(items)], title=_('Deleting {0}').format(doctype), description=d),
 						user=frappe.session.user)
 		except Exception:
 			failed.append(d)
