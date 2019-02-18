@@ -74,7 +74,7 @@ class Comment(Document):
 				template = "mentioned_in_comment",
 				args = {
 					"body_content": _("{0} mentioned you in a comment in {1}").format(sender_fullname, link),
-					"comment": doc,
+					"comment": self,
 					"link": link
 				},
 				header = [_('New Mention'), 'orange']
