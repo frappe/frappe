@@ -195,11 +195,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 			for item in frappe.db.get_values(link_dt, {link_field:doc.name},
 				["name", "parent", "parenttype", "docstatus"], as_dict=True):
 				linked_doctype = item.parenttype if item.parent else link_dt
-<<<<<<< HEAD
 				if linked_doctype in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", 'File', 'Version', "Activity Log", "Document Follow"):
-=======
-				if linked_doctype in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", 'File', 'Version', "Activity Log", 'Comment'):
->>>>>>> upstream
 					# don't check for communication and todo!
 					continue
 
@@ -224,11 +220,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 	'''Raise `frappe.LinkExistsError` if the document is dynamically linked'''
 	for df in get_dynamic_link_map().get(doc.doctype, []):
-<<<<<<< HEAD
 		if df.parent in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", 'File', 'Version', 'View Log', "Document Follow"):
-=======
-		if df.parent in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", 'File', 'Version', 'View Log', 'Comment'):
->>>>>>> upstream
 			# don't check for communication and todo!
 			continue
 
@@ -274,42 +266,13 @@ def raise_link_exists_exception(doc, reference_doctype, reference_docname, row='
 		.format(doc.doctype, doc_link, reference_doctype, reference_link, row), frappe.LinkExistsError)
 
 def delete_dynamic_links(doctype, name):
-<<<<<<< HEAD
-	delete_doc("ToDo", frappe.db.sql_list("""select name from `tabToDo`
-		where reference_type=%s and reference_name=%s""", (doctype, name)),
-		ignore_permissions=True, force=True)
-
-	frappe.db.sql('''delete from `tabEmail Unsubscribe`
-		where reference_doctype=%s and reference_name=%s''', (doctype, name))
-
-	# delete document follow
-	frappe.db.sql("""delete from `tabDocument Follow`
-		where ref_doctype=%s and ref_docname=%s""", (doctype, name))
-
-	# delete shares
-	frappe.db.sql("""delete from `tabDocShare`
-		where share_doctype=%s and share_name=%s""", (doctype, name))
-
-	# delete versions
-	frappe.db.sql('delete from tabVersion where ref_doctype=%s and docname=%s', (doctype, name))
-
-	# delete comments
-	frappe.db.sql("""delete from `tabCommunication`
-		where
-			communication_type = 'Comment'
-			and reference_doctype=%s and reference_name=%s""", (doctype, name))
-
-	# delete view logs
-	frappe.db.sql("""delete from `tabView Log`
-		where reference_doctype=%s and reference_name=%s""", (doctype, name))
-=======
 	delete_references('ToDo', doctype, name, 'reference_type')
 	delete_references('Email Unsubscribe', doctype, name)
 	delete_references('DocShare', doctype, name, 'share_doctype', 'share_name')
 	delete_references('Version', doctype, name, 'ref_doctype', 'docname')
 	delete_references('Comment', doctype, name)
 	delete_references('View Log', doctype, name)
->>>>>>> upstream
+	delete_references('Document Follow', doctype, name, 'ref_doctype', 'ref_docname')
 
 	# unlink communications
 	clear_references('Communication', doctype, name)
