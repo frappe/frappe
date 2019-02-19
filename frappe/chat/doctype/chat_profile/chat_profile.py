@@ -83,6 +83,7 @@ def create(user, exists_ok = False, fields = None):
 		dprof.user = user
 		dprof.save(ignore_permissions = True)
 	except frappe.DuplicateEntryError:
+		frappe.clear_messages()
 		if not exists_ok:
 			frappe.throw(_('Chat Profile for User {0} exists.').format(user))
 
