@@ -60,11 +60,13 @@ class WebsiteTheme(Document):
 
 	def generate_bootstrap_theme(self):
 		from subprocess import Popen, PIPE
+		from os.path import join as join_path
 
-		file_name = frappe.scrub(self.name) + '.css'
+		file_name = frappe.scrub(self.name) + frappe.generate_hash('Website Theme', 8) + '.css'
+		output_path = join_path(frappe.utils.get_bench_path(), 'sites', 'assets', 'css', file_name)
 		content = self.custom_theme
 		content = content.replace('\n', '\\n')
-		command = ['node', 'generate_bootstrap_theme.js', file_name, content]
+		command = ['node', 'generate_bootstrap_theme.js', output_path, content]
 
 		process = Popen(command, cwd=frappe.get_app_path('frappe', '..'), stdout=PIPE, stderr=PIPE)
 
@@ -73,7 +75,7 @@ class WebsiteTheme(Document):
 		if stderr:
 			frappe.throw('<pre>{stderr}</pre>'.format(stderr=frappe.safe_encode(stderr)))
 		else:
-			self.custom_theme_url = '/assets/frappe/website_theme/' + file_name
+			self.custom_theme_url = '/assets/css/' + file_name
 
 		frappe.msgprint(_('Compiled Successfully'), alert=True)
 
