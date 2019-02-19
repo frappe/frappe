@@ -190,12 +190,10 @@ class EmailServer:
 		# compare the UIDVALIDITY of email account and imap server
 		uid_validity = self.settings.uid_validity
 
-		responce, message = self.imap.status("Inbox", "(UIDVALIDITY UIDNEXT)")
-		current_uid_validity = self.parse_imap_responce("UIDVALIDITY", message[0])
-		if not current_uid_validity:
-			frappe.throw(_("Can not find UIDVALIDITY in imap status response"))
+		response, message = self.imap.status("Inbox", "(UIDVALIDITY UIDNEXT)")
+		current_uid_validity = self.parse_imap_response("UIDVALIDITY", message[0]) or 0
 
-		uidnext = int(self.parse_imap_responce("UIDNEXT", message[0]) or "1")
+		uidnext = int(self.parse_imap_response("UIDNEXT", message[0]) or "1")
 		frappe.db.set_value("Email Account", self.settings.email_account, "uidnext", uidnext)
 
 		if not uid_validity or uid_validity != current_uid_validity:
@@ -223,9 +221,9 @@ class EmailServer:
 		elif uid_validity == current_uid_validity:
 			return
 
-	def parse_imap_responce(self, cmd, responce):
+	def parse_imap_response(self, cmd, response):
 		pattern = r"(?<={cmd} )[0-9]*".format(cmd=cmd)
-		match = re.search(pattern, responce.decode('utf-8'), re.U | re.I)
+		match = re.search(pattern, response.decode('utf-8'), re.U | re.I)
 		if match:
 			return match.group(0)
 		else:
