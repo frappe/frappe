@@ -8,7 +8,7 @@ import json
 
 
 @frappe.whitelist()
-def get_master_calendar_events(doctype_list, start=None, end=None):
+def get_calendar_events(doctype_list, start=None, end=None):
 	doctype_list = frappe.parse_json(doctype_list)
 	data = get_field_map()
 
