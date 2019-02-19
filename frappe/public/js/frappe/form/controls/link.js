@@ -157,7 +157,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			me.set_custom_query(args);
 
 			frappe.call({
-				type: "GET",
+				type: "POST",
 				method:'frappe.desk.search.search_link',
 				no_spinner: true,
 				args: args,
