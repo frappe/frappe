@@ -349,7 +349,7 @@ function get_calendar_options() {
 
 function prepare_event(doctype_list, start, end, callback) {
 	return frappe.call({
-		method: "frappe.core.page.calendar.calendar.get_master_calendar_events",
+		method: "frappe.core.page.calendar.calendar.get_calendar_events",
 		type: "GET",
 		args: {
 			doctype_list,
