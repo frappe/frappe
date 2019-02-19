@@ -1,3 +1,5 @@
+(() => {
+
 frappe.pages['calendar'].on_page_load = function(wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
@@ -10,7 +12,8 @@ frappe.pages['calendar'].on_page_show = (wrapper) => {
 	var route = frappe.get_route();
 
 	if (frappe.pages.calendar.loaded) {
-		update_calendar(frappe.pages.calendar.page.sidebar, wrapper , route);
+		const doctype = (route[1] || '').trim();
+		update_calendar(frappe.pages.calendar.page.sidebar, wrapper, doctype);
 		return;
 	}
 
@@ -218,44 +221,49 @@ function get_more_calendars(sidebar, cal, page){
 function create_popover(event, jsEvent) {
 	$(".popover.fade.bottom.in").remove();
 
-	var htmlContent = "<div style='padding: 14px 14px 12px 14px; border-bottom: 1px solid grey; border-color: #d1d8dd ;'>" +
-		'<div><strong>'+event.title+ '</strong></div>' +
-		'<div class="text-muted text-medium">'+get_time_Html(event)+'</div>'+
-	'</div>'+
-	'<div class="text-muted text-medium" style="padding: 12px 14px 5px 14px">'+
-		get_description_html(event)+
-	"</div>";
+	const html_content = `
+		<div class="popover-header">
+			<div><strong>${event.title}</strong></div>
+			<div class="text-muted text-medium">
+				${get_time_html(event)}
+			</div>
+		</div>
+		<div class="popover-footer text-muted text-medium">
+			${get_description_html(event)}
+		</div>
+	`;
 
 	get_popover_attr(jsEvent.target);
 
-	$(jsEvent.target).popover({
+	const $target = $(jsEvent.target);
+	$target.popover({
 		html: true,
-		content: htmlContent
+		content: html_content
 	});
-	$(jsEvent.target).popover("show");
+	$target.popover("show");
 	popover_edit_button(event);
 }
 
-function get_description_html(event){
-	if (event.description == "None"){
+function get_description_html(event) {
+	if (event.description == "None") {
 		event.description = '';
 	}
 	return event.description;
 }
 
-function get_time_Html(event) {
-	var timeHtml;
+function get_time_html(event) {
+	let time_html;
 	if (event.allDay) {
-		timeHtml = "All Day";
+		time_html = "All Day";
 	} else if (event.start.isSame(event.end, 'date', 'month', 'year')) {
-		timeHtml = event.start.format('LT') + " to " + event.end.format('LT');
+		time_html = event.start.format('LT') + " to " + event.end.format('LT');
 	} else if (event.start.isSame(event.end, 'month', 'year')) {
-		timeHtml = event.start.format("DD-MM-YYYY") + " to " + event.end.format('DD-MM-YYYY');
+		time_html = event.start.format("DD-MM-YYYY") + " to " + event.end.format('DD-MM-YYYY');
 	} else {
-		timeHtml = event.start.format('DD-MM-YYYY') + " to " + event.end.format('DD-MM-YYYY');
+		time_html = event.start.format('DD-MM-YYYY') + " to " + event.end.format('DD-MM-YYYY');
 	}
 
-	return timeHtml;
+	return time_html;
 }
 
 function get_popover_attr(e) {
@@ -383,30 +391,39 @@ function prepare_event(doctype_list, start, end, callback) {
 	});
 }
 
-function update_calendar(side, wrapper, route) {
-	Object.values(side.find("ul > li > input:checked")).map((f)=>{
-		if (f.value){
-			side.find("ul > li > input[value = '"+f.value+"']").prop("checked",false);
-		}
-	});
-	var cal = wrapper.page.body.find(".cal-div");
-	if (route[1]){
-		side.find("ul > li > input[value = '"+route[1]+"']").prop("checked",true);
-		cal.fullCalendar("refetchEvents");
-	}else{
-		side.find("ul > li >input[value = 'Event']").prop("checked",true);
-		cal.fullCalendar("refetchEvents");
+function update_calendar(sidebar, wrapper, doctype) {
+	const $checkboxes = sidebar.find('input[type=checkbox]');
+	$checkboxes.prop('checked', false);
+
+	const cal = wrapper.page.body.find('.cal-div');
+
+	if (!doctype) {
+		doctype = 'Event'
 	}
 
+	if (doctype) {
+		const doctype_check = sidebar.find(`input[type=checkbox][value="${doctype}"]`);
+		sidebar.find(".old-link").removeClass('hide').prop('href', `#List/${doctype}/Calendar`);
+		doctype_check.prop('checked', true);
+		cal.fullCalendar("refetchEvents");
+	} else {
+		sidebar.find(".old-link").addClass('hide');
+	}
 }
 
 function create_calendar(wrapper) {
 	frappe.pages.calendar.loaded = true;
-	this.$nav = wrapper.page.sidebar.html(`<div class="module-sidebar-nav overlay-sidebar nav nav-pills nav-stacked">
+	this.$nav = wrapper.page.sidebar.html(`
+		<div class="module-sidebar-nav overlay-sidebar nav nav-pills nav-stacked">
 			<ul></ul>
 			<div></div>
-			</div>
-		`);
+			<li class="list-link margin-top">
+				<div class="btn-group">
+					<a class="hide old-link" href="">${__('Switch to old calendar')}</a>
+				</div>
+			</li>
+		</div>
+	`);
 	this.$sidebar_list = wrapper.page.sidebar.find('div > ul').css('padding', 0);
 	this.$cal = $("<div class='cal-div'>").appendTo(wrapper.page.body);
 
@@ -431,3 +448,5 @@ function get_allowed_calendar(){
 			.then(r => resolve(r.message));
 	});
 }
+
+})();
