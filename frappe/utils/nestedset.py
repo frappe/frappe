@@ -61,7 +61,7 @@ def update_add_node(doc, parent, parent_field):
 	if parent:
 		whse_data = frappe.db.sql("select lft, rgt from `tab{0}` where name=%s"
 			.format(doctype), parent, as_dict=1)
-		if whse_data is not None and len(whse_data)!=0:
+		if whse_data:
 			left = whse_data[0]['lft']
 			right = whse_data[0]['rgt']
 			validate_loop(doc.doctype, doc.name, left, right)
