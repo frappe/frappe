@@ -29,11 +29,11 @@
 		<link type="text/css" rel="stylesheet" href="{{ theme.custom_theme_url }}">
 		{% else %}
 		<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css">
-		{% endif %}
 
 		{%- for link in web_include_css %}
 		<link type="text/css" rel="stylesheet" href="{{ link|abs_url }}">
 		{%- endfor -%}
+		{% endif %}
 	{%- endblock -%}
 
 	{%- block head_include %}
