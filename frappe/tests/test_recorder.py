@@ -85,8 +85,10 @@ class TestRecorder(unittest.TestCase):
 			{'mariadb': 'SELECT COUNT(*) FROM tabDocType', 'postgres': 'SELECT COUNT(*) FROM "tabDocType"'},
 			{'mariadb': 'COMMIT', 'postgres': 'COMMIT'},
 		]
+
+		sql_dialect = frappe.conf.db_type or 'mariadb'
 		for query in queries:
-			frappe.db.sql(query[frappe.conf.db_type])
+			frappe.db.sql(query[sql_dialect])
 
 		frappe.recorder.dump()
 
@@ -96,7 +98,7 @@ class TestRecorder(unittest.TestCase):
 		self.assertEqual(len(request['calls']), len(queries))
 
 		for query, call in zip(queries, request['calls']):
-			self.assertEqual(call['query'], sqlparse.format(query[frappe.conf.db_type].strip(), keyword_case='upper', reindent=True))
+			self.assertEqual(call['query'], sqlparse.format(query[sql_dialect].strip(), keyword_case='upper', reindent=True))
 
 	def test_duplicate_queries(self):
 		queries = [
