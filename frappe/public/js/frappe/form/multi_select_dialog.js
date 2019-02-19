@@ -55,7 +55,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			},
 			{ fieldtype: "Section Break" },
 			{ fieldtype: "HTML", fieldname: "results_area" },
-			{ fieldtype: "Button", fieldname: "make_new", label: __("Make a new " + me.doctype) }
+			{ fieldtype: "Button", fieldname: "make_new", label: __('Create a new ' + me.doctype) }
 		]);
 
 		let doctype_plural = !this.doctype.endsWith('y') ? this.doctype + 's'

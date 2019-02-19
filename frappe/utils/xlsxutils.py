@@ -67,10 +67,10 @@ def handle_html(data):
 	value = ", ".join(value.split('# '))
 	return value
 
-def read_xlsx_file_from_attached_file(file_id=None, fcontent=None, filepath=None):
-	if file_id:
-		from frappe.utils.file_manager import get_file_path
-		filename = get_file_path(file_id)
+def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=None):
+	if file_url:
+		_file = frappe.get_doc("File", {"file_url": file_url})
+		filename = _file.get_full_path()
 	elif fcontent:
 		from io import BytesIO
 		filename = BytesIO(fcontent)

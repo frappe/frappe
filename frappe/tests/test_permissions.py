@@ -307,7 +307,7 @@ class TestPermissions(unittest.TestCase):
 			doctype"""
 
 		frappe.set_user('Administrator')
-		frappe.db.sql('delete from tabContact')
+		frappe.db.sql('DELETE FROM `tabContact`')
 
 		reset('Salutation')
 		reset('Contact')
@@ -317,8 +317,8 @@ class TestPermissions(unittest.TestCase):
 		add_user_permission("Salutation", "Mr", "test3@example.com")
 		self.set_strict_user_permissions(0)
 
-		allowed_contact = frappe.get_doc('Contact', '_Test Contact for _Test Customer')
-		other_contact = frappe.get_doc('Contact', '_Test Contact for _Test Supplier')
+		allowed_contact = frappe.get_doc('Contact', '_Test Contact For _Test Customer')
+		other_contact = frappe.get_doc('Contact', '_Test Contact For _Test Supplier')
 
 		frappe.set_user("test3@example.com")
 		self.assertTrue(allowed_contact.has_permission('read'))

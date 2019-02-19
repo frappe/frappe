@@ -10,6 +10,7 @@ from six import string_types
 import json
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_notifications():
 	if (frappe.flags.in_install or
 		not frappe.db.get_single_value('System Settings', 'setup_complete')):
@@ -241,6 +242,7 @@ def get_filters_for(doctype):
 	return config.get('for_doctype').get(doctype, {})
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_open_count(doctype, name, items=[]):
 	'''Get open count for given transactions and filters
 

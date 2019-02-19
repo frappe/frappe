@@ -22,15 +22,15 @@ class TestGlobalSearch(unittest.TestCase):
 		make_property_setter(doctype, "repeat_on", "in_global_search", 0, "Int")
 
 	def tearDown(self):
-		frappe.db.sql('delete from `tabProperty Setter` where doc_type="Event"')
+		frappe.db.sql("DELETE FROM `tabProperty Setter` WHERE `doc_type`='Event'")
 		frappe.clear_cache(doctype='Event')
-		frappe.db.sql('delete from `tabEvent`')
-		frappe.db.sql('delete from __global_search')
+		frappe.db.sql('DELETE FROM `tabEvent`')
+		frappe.db.sql('DELETE FROM `__global_search`')
 		make_test_objects('Event')
 		frappe.db.commit()
 
 	def insert_test_events(self):
-		frappe.db.sql('delete from tabEvent')
+		frappe.db.sql('DELETE FROM `tabEvent`')
 		phrases = ['"The Sixth Extinction II: Amor Fati" is the second episode of the seventh season of the American science fiction.',
 		'After Mulder awakens from his coma, he realizes his duty to prevent alien colonization. ',
 		'Carter explored themes of extraterrestrial involvement in ancient mass extinctions in this episode, the third in a trilogy.']

@@ -106,6 +106,7 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 	ignore = []
 
 	if frappe.db.exists(doc.doctype, doc.name):
+		# import pdb; pdb.set_trace()
 		old_doc = frappe.get_doc(doc.doctype, doc.name)
 
 		if doc.doctype in ignore_values:

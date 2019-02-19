@@ -20,7 +20,7 @@ def add_custom_fields():
 
 class TestAutoRepeat(unittest.TestCase):
 	def setUp(self):
-		if not frappe.db.sql('select name from `tabCustom Field` where name="auto_repeat"'):
+		if not frappe.db.sql("SELECT `name` FROM `tabCustom Field` WHERE `name`='auto_repeat'"):
 			add_custom_fields()
 
 	def test_daily_auto_repeat(self):

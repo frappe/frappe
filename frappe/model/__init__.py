@@ -5,13 +5,45 @@
 from __future__ import unicode_literals
 import frappe
 
+data_fieldtypes = (
+	'Currency',
+	'Int',
+	'Long Int',
+	'Float',
+	'Percent',
+	'Check',
+	'Small Text',
+	'Long Text',
+	'Code',
+	'Text Editor',
+	'Markdown Editor',
+	'HTML Editor',
+	'Date',
+	'Datetime',
+	'Time',
+	'Text',
+	'Data',
+	'Link',
+	'Dynamic Link',
+	'Password',
+	'Select',
+	'Read Only',
+	'Attach',
+	'Attach Image',
+	'Signature',
+	'Color',
+	'Barcode',
+	'Geolocation'
+)
 
-no_value_fields = ('Section Break', 'Column Break', 'HTML', 'Table', 'Button', 'Image',
+no_value_fields = ('Section Break', 'Column Break', 'HTML', 'Table', 'Table MultiSelect', 'Button', 'Image',
 	'Fold', 'Heading')
 display_fieldtypes = ('Section Break', 'Column Break', 'HTML', 'Button', 'Image', 'Fold', 'Heading')
+numeric_fieldtypes = ('Currency', 'Int', 'Long Int', 'Float', 'Percent', 'Check')
 default_fields = ('doctype','name','owner','creation','modified','modified_by',
 	'parent','parentfield','parenttype','idx','docstatus')
 optional_fields = ("_user_tags", "_comments", "_assign", "_liked_by", "_seen")
+table_fields = ('Table', 'Table MultiSelect')
 core_doctypes_list = ('DocType', 'DocField', 'DocPerm', 'User', 'Role', 'Has Role',
 	'Page', 'Module Def', 'Print Format', 'Report', 'Customize Form',
 	'Customize Form Field', 'Property Setter', 'Custom Field', 'Custom Script')
@@ -40,7 +72,6 @@ def delete_fields(args_dict, delete=0):
 		* Deletes record from `tabDocField`
 		* If not single doctype: Drops column from table
 		* If single, deletes record from `tabSingles`
-
 		args_dict = { dt: [field names] }
 	"""
 	import frappe.utils

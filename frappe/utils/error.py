@@ -186,7 +186,7 @@ def collect_error_snapshots():
 def clear_old_snapshots():
 	"""Clear snapshots that are older than a month"""
 	frappe.db.sql("""delete from `tabError Snapshot`
-		where creation < date_sub(now(), interval 1 month)""")
+		where creation < (NOW() - INTERVAL '1' MONTH)""")
 
 	path = get_error_snapshot_path()
 	today = datetime.datetime.now()

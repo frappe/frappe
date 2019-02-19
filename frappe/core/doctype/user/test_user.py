@@ -285,4 +285,4 @@ class TestUser(unittest.TestCase):
 		self.assertEqual(extract_mentions(user_name)[2], "test@abc.com")
 
 def delete_contact(user):
-	frappe.db.sql("delete from tabContact where email_id='%s'" % frappe.db.escape(user))
+	frappe.db.sql("DELETE FROM `tabContact` WHERE `email_id`= %s", user)

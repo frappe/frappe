@@ -1,47 +1,44 @@
 language: python
 dist: trusty
+sudo: required
 
 python:
-  - "2.7"
-  - "3.6"
+  - 2.7
+  - 3.6
+
+env:
+  - DB=mariadb
+  - DB=postgres
+  - TEST_TYPE=ui
 
 services:
   - mysql
 
+addons:
+  postgresql: "9.5"
+  hosts:
+    - test_site
+    - test_site_postgres
+    - test_site_ui
+
+matrix:
+  exclude:
+  - python: 2.7
+    env: DB=postgres
+  - python: 3.6
+    env: TEST_TYPE=ui
+
 install:
-  - sudo rm /etc/apt/sources.list.d/mongodb*.list
-  - sudo rm /etc/apt/sources.list.d/docker.list
-  - sudo apt-get install hhvm && rm -rf /home/travis/.kiex/
-  - sudo apt-get purge -y mysql-common mysql-server mysql-client
-  - nvm install v8.10.0
-
-  - pip install python-coveralls
-
-  - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
-
-  - sudo python install.py --develop --user travis --without-bench-setup
-  - sudo pip install -e ~/bench
-
-  - rm $TRAVIS_BUILD_DIR/.git/shallow
-  - cd ~/ && bench init frappe-bench --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
-  - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
+  - $TRAVIS_BUILD_DIR/.travis/install.sh
 
 before_script:
-  - mysql -u root -ptravis -e 'create database test_frappe'
-  - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
-  - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
-
-
   - cd ~/frappe-bench
-  - bench use test_site
-  - bench reinstall --yes
-  - bench scheduler disable
   - sed -i 's/9000/9001/g' sites/common_site_config.json
   - bench start &
   - sleep 10
 
 script:
-  - bench run-tests --coverage
+  - $TRAVIS_BUILD_DIR/.travis/run-tests.sh
 
 after_script:
   - coveralls -b apps/frappe -d ../../sites/.coverage

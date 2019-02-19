@@ -15,15 +15,18 @@ class TestDB(unittest.TestCase):
 		self.assertEqual(frappe.db.get_value("User", {"name": ["<", "B"]}), "Administrator")
 		self.assertEqual(frappe.db.get_value("User", {"name": ["<=", "Administrator"]}), "Administrator")
 
-		self.assertEqual(frappe.db.sql("""select name from `tabUser` where name > "s" order by modified desc""")[0][0],
+		self.assertEqual(frappe.db.sql("""SELECT name FROM `tabUser` WHERE name > 's' ORDER BY MODIFIED DESC""")[0][0],
 			frappe.db.get_value("User", {"name": [">", "s"]}))
 
-		self.assertEqual(frappe.db.sql("""select name from `tabUser` where name >= "t" order by modified desc""")[0][0],
+		self.assertEqual(frappe.db.sql("""SELECT name FROM `tabUser` WHERE name >= 't' ORDER BY MODIFIED DESC""")[0][0],
 			frappe.db.get_value("User", {"name": [">=", "t"]}))
 
 	def test_escape(self):
 		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
 
-	# def test_multiple_queries(self):
-	# 	# implicit commit
-	# 	self.assertRaises(frappe.SQLError, frappe.db.sql, """select name from `tabUser`; truncate `tabEmail Queue`""")
+	def test_get_single_value(self):
+		frappe.db.set_value('System Settings', 'System Settings', 'backup_limit', 5)
+		frappe.db.commit()
+
+		limit = frappe.db.get_single_value('System Settings', 'backup_limit')
+		self.assertEqual(limit, 5)

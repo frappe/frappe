@@ -195,6 +195,11 @@ $.extend(frappe.datetime, {
 		return frappe.datetime.now_date();
 	},
 
+	get_time: (timestamp) => {
+		// return time with AM/PM
+		return moment(timestamp).format('hh:mm A');
+	},
+
 	validate: function(d) {
 		return moment(d, [
 			frappe.defaultDateFormat,

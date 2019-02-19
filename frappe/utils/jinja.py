@@ -59,7 +59,9 @@ def render_template(template, context, is_path=None, safe_render=True):
 	:param safe_render: (optional) prevent server side scripting via jinja templating
 	'''
 
-	from frappe import throw
+	from frappe import get_traceback, throw
+	from frappe.utils import escape_html
+	from jinja2 import TemplateError
 
 	if not template:
 		return ""
@@ -72,7 +74,11 @@ def render_template(template, context, is_path=None, safe_render=True):
 	else:
 		if safe_render and ".__" in template:
 			throw("Illegal template")
-		return get_jenv().from_string(template).render(context)
+		try:
+			return get_jenv().from_string(template).render(context)
+		except TemplateError:
+			throw(title="Jinja Template Error", msg="<pre>{template}</pre><pre>{tb}</pre>".format(template=template, tb=escape_html(get_traceback())))
+
 
 def get_allowed_functions_for_jenv():
 	import os, json
@@ -120,6 +126,7 @@ def get_allowed_functions_for_jenv():
 			"get_hooks": frappe.get_hooks,
 			"get_meta": frappe.get_meta,
 			"get_doc": frappe.get_doc,
+			"get_cached_doc": frappe.get_cached_doc,
 			"get_list": frappe.get_list,
 			"get_all": frappe.get_all,
 			'get_system_settings': frappe.get_system_settings,

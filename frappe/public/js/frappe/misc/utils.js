@@ -88,6 +88,13 @@ Object.assign(frappe.utils, {
 	escape_html: function(txt) {
 		return $("<div></div>").text(txt || "").html();
 	},
+
+	html2text: function(html) {
+		let d = document.createElement('div');
+		d.innerHTML = html;
+		return d.textContent;
+	},
+
 	is_url: function(txt) {
 		return txt.toLowerCase().substr(0,7)=='http://'
 			|| txt.toLowerCase().substr(0,8)=='https://'
@@ -657,7 +664,14 @@ Object.assign(frappe.utils, {
 		}
 		return route;
 	},
-
+	get_route_label(route_str) {
+		let route = route_str.split('/');
+		if (['List', 'modules'].includes(route[0])){
+			return `${route[1]} ${route[2] || route[0]}`;
+		} else {
+			return `${route[0]} ${route[1]}`;
+		}
+	},
 	report_column_total: function(values, column, type) {
 		if (column.column.fieldtype == "Percent" || type === "mean") {
 			return values.reduce((a, b) => a + flt(b)) / values.length;

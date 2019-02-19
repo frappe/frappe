@@ -221,6 +221,18 @@ frappe.dom = {
 			reader.readAsDataURL(file_obj);
 		});
 	},
+	scroll_to_section(section_name) {
+		setTimeout(() => {
+			const section = $(`a:contains("${section_name}")`);
+			if (section.length) {
+				if(section.parent().hasClass('collapsed')) {
+					// opens the section
+					section.click();
+				}
+				frappe.ui.scroll(section.parent().parent());
+			}
+		}, 200);
+	},
 	pixel_to_inches(pixels) {
 		const div = $('<div id="dpi" style="height: 1in; width: 1in; left: 100%; position: fixed; top: 100%;"></div>');
 		div.appendTo(document.body);
@@ -231,7 +243,7 @@ frappe.dom = {
 
 		return inches;
 	}
-}
+};
 
 frappe.ellipsis = function(text, max) {
 	if(!max) max = 20;

@@ -5,7 +5,7 @@ from __future__ import unicode_literals, print_function
 
 import frappe
 import os
-from frappe.utils.file_manager import get_content_hash, get_file, get_file_name
+from frappe.core.doctype.file.file import get_content_hash, get_file_name
 from frappe.utils import get_files_path, get_site_path
 
 # The files missed by the previous patch might have been replaced with new files
@@ -36,7 +36,8 @@ def execute():
 		else:
 			b.file_url = os.path.normpath('/files/' + old_file_name)
 		try:
-			_file_name, content = get_file(name)
+			_file = frappe.get_doc("File", {"file_name": name})
+			content = _file.get_content()
 			b.content_hash = get_content_hash(content)
 		except IOError:
 			print('Warning: Error processing ', name)

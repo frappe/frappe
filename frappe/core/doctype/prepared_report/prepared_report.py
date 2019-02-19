@@ -6,15 +6,18 @@
 from __future__ import unicode_literals
 import base64
 import json
+import io
 
 import frappe
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
-from frappe.desk.query_report import generate_report_result
-from frappe.utils.file_manager import save_file, remove_all
+from frappe.desk.query_report import generate_report_result, get_columns_dict
+from frappe.core.doctype.file.file import remove_all
+from frappe.utils.csvutils import to_csv, read_csv_content_from_attached_file
 from frappe.desk.form.load import get_attachments
-from frappe.utils.file_manager import get_file
 from frappe.utils import gzip_compress, gzip_decompress
+from six import PY2
+from frappe.utils import encode
 
 class PreparedReport(Document):
 
@@ -54,21 +57,22 @@ def create_json_gz_file(data, dt, dn):
 	# Reports like P&L Statement were completely unsuable because of this
 	json_filename = '{0}.json.gz'.format(frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H:M"))
 	encoded_content = frappe.safe_encode(frappe.as_json(data))
-
-	# GZip compression seems to reduce storage requirements by 80-90%
 	compressed_content = gzip_compress(encoded_content)
-	save_file(
-		fname=json_filename,
-		content=compressed_content,
-		dt=dt,
-		dn=dn,
-		folder=None,
-		is_private=False)
 
+	# Call save() file function to upload and attach the file
+	_file = frappe.get_doc({
+		"doctype": "File",
+		"file_name": json_filename,
+		"attached_to_doctype": dt,
+		"attached_to_name": dn,
+		"content": compressed_content
+	})
+	_file.save()
 
 @frappe.whitelist()
 def download_attachment(dn):
 	attachment = get_attachments("Prepared Report", dn)[0]
 	frappe.local.response.filename = attachment.file_name[:-2]
-	frappe.local.response.filecontent = gzip_decompress(get_file(attachment.name)[1])
+	attached_file = frappe.get_doc('File', attachment.name)
+	frappe.local.response.filecontent = gzip_decompress(attached_file.get_content())
 	frappe.local.response.type = "binary"

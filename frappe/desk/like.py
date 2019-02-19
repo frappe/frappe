@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 """Allow adding of likes to documents"""
 
 import frappe, json
-from frappe.model.db_schema import add_column
+from frappe.database.schema import add_column
 from frappe import _
 from frappe.utils import get_link_to_form
 
@@ -54,8 +54,8 @@ def _toggle_like(doctype, name, add, user=None):
 
 		frappe.db.set_value(doctype, name, "_liked_by", json.dumps(liked_by), update_modified=False)
 
-	except Exception as e:
-		if isinstance(e.args, (tuple, list)) and e.args and e.args[0]==1054:
+	except frappe.db.ProgrammingError as e:
+		if frappe.db.is_column_missing(e):
 			add_column(doctype, "_liked_by", "Text")
 			_toggle_like(doctype, name, add, user)
 		else:
@@ -64,13 +64,12 @@ def _toggle_like(doctype, name, add, user=None):
 def remove_like(doctype, name):
 	"""Remove previous Like"""
 	# remove Comment
-	frappe.delete_doc("Communication", [c.name for c in frappe.get_all("Communication",
+	frappe.delete_doc("Comment", [c.name for c in frappe.get_all("Comment",
 		filters={
-			"communication_type": "Comment",
+			"comment_type": "Like",
 			"reference_doctype": doctype,
 			"reference_name": name,
 			"owner": frappe.session.user,
-			"comment_type": "Like"
 		}
 	)], ignore_permissions=True)
 

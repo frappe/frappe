@@ -73,9 +73,10 @@ def clear_doctype_cache(doctype=None):
 		clear_single(doctype)
 
 		# clear all parent doctypes
-		for dt in frappe.db.sql("""select parent from tabDocField
-			where fieldtype="Table" and options=%s""", (doctype,)):
-			clear_single(dt[0])
+
+		for dt in frappe.db.get_all('DocField', 'parent',
+			dict(fieldtype=['in', frappe.model.table_fields], options=doctype)):
+			clear_single(dt.parent)
 
 		# clear all notifications
 		delete_notification_count_for(doctype)

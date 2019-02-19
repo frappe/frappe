@@ -4,7 +4,8 @@
 from __future__ import unicode_literals
 import frappe, os
 
-from frappe.website.utils import can_cache, delete_page_cache, extract_title
+from frappe.website.utils import (can_cache, delete_page_cache, extract_title,
+	extract_comment_tag)
 from frappe.model.document import get_controller
 from six import text_type
 import io
@@ -115,7 +116,7 @@ def get_page_info_from_doctypes(path=None):
 				if path:
 					return routes[r.route]
 		except Exception as e:
-			if e.args[0]!=1054: raise e
+			if not frappe.db.is_missing_column(e): raise e
 
 	return routes
 
@@ -235,12 +236,7 @@ def setup_source(page_info):
 
 	# if only content
 	if page_info.template.endswith('.html') or page_info.template.endswith('.md'):
-		if ('</body>' not in source) and ('{% block' not in source):
-			page_info.only_content = True
-			html = '{% extends "templates/web.html" %}'
-			html += '\n{% block page_content %}\n' + source + '\n{% endblock %}'
-		else:
-			html = source
+		html = extend_from_base_template(page_info, source)
 
 		# load css/js files
 		js, css = '', ''
@@ -264,6 +260,23 @@ def setup_source(page_info):
 	# show table of contents
 	setup_index(page_info)
 
+def extend_from_base_template(page_info, source):
+	'''Extend the content with appropriate base template if required.
+
+	For easy composition, the users will only add the content of the page,
+	not its template. But if the user has explicitly put Jinja blocks, or <body> tags,
+	or comment tags like <!-- base_template: [path] -->
+	then the system will not try and put it inside the "web.template"
+	'''
+
+	if (('</body>' not in source) and ('{% block' not in source)
+		and ('<!-- base_template:' not in source)):
+		page_info.only_content = True
+		source = '''{% extends "templates/web.html" %}
+			{% block page_content %}\n''' + source + '\n{% endblock %}'
+
+	return source
+
 def setup_index(page_info):
 	'''Build page sequence from index.txt'''
 	if page_info.basename=='':
@@ -274,8 +287,21 @@ def setup_index(page_info):
 
 def load_properties(page_info):
 	'''Load properties like no_cache, title from raw'''
+
 	if not page_info.title:
 		page_info.title = extract_title(page_info.source, page_info.route)
+
+	custom_base_template = extract_comment_tag(page_info.source, 'base_template')
+
+	page_info.meta_tags = frappe._dict()
+
+	page_info.meta_tags.name = extract_comment_tag(page_info.source, 'meta:name')
+	page_info.meta_tags.description = extract_comment_tag(page_info.source, 'meta:description')
+
+	if custom_base_template:
+		page_info.source = '''{{% extends "{0}" %}}
+			{{% block page_content %}}{1}{{% endblock %}}'''.format(custom_base_template, page_info.source)
+		page_info.no_cache = 1
 
 	if "<!-- no-breadcrumbs -->" in page_info.source:
 		page_info.no_breadcrumbs = 1
@@ -321,7 +347,7 @@ def sync_global_search():
 	frappe.session.user = 'Guest'
 	frappe.local.no_cache = True
 
-	frappe.db.sql('delete from __global_search where doctype="Static Web Page"')
+	frappe.db.sql("DELETE FROM `__global_search` WHERE `doctype`='Static Web Page'")
 
 	for app in frappe.get_installed_apps(frappe_last=True):
 		app_path = frappe.get_app_path(app)

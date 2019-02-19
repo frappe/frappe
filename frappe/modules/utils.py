@@ -83,12 +83,10 @@ def sync_customizations(app=None):
 	for app_name in apps:
 		for module_name in frappe.local.app_modules.get(app_name) or []:
 			folder = frappe.get_app_path(app_name, module_name, 'custom')
-
 			if os.path.exists(folder):
 				for fname in os.listdir(folder):
 					with open(os.path.join(folder, fname), 'r') as f:
 						data = json.loads(f.read())
-
 					if data.get('sync_on_migrate'):
 						sync_customizations_for_doctype(data, folder)
 
@@ -105,13 +103,30 @@ def sync_customizations_for_doctype(data, folder):
 
 		# sync single doctype exculding the child doctype
 		def sync_single_doctype(doc_type):
-			frappe.db.sql('delete from `tab{0}` where `{1}` =%s'.format(
-				custom_doctype, doctype_fieldname), doc_type)
-			for d in data[key]:
-				if d.get(doctype_fieldname) == doc_type:
-					d['doctype'] = custom_doctype
-					doc = frappe.get_doc(d)
+			def _insert(data):
+				if data.get(doctype_fieldname) == doc_type:
+					data['doctype'] = custom_doctype
+					doc = frappe.get_doc(data)
 					doc.db_insert()
+
+			if custom_doctype != 'Custom Field':
+				frappe.db.sql('delete from `tab{0}` where `{1}` =%s'.format(
+					custom_doctype, doctype_fieldname), doc_type)
+
+				for d in data[key]:
+					_insert(data)
+
+			else:
+				for d in data[key]:
+					field = frappe.db.get_value("Custom Field", {"dt": doc_type, "fieldname": d["fieldname"]})
+					if not field:
+						d["owner"] = "Administrator"
+						_insert(d)
+					else:
+						custom_field = frappe.get_doc("Custom Field", field)
+						custom_field.flags.ignore_validate = True
+						custom_field.update(d)
+						custom_field.db_update()
 
 		for doc_type in doctypes:
 			# only sync the parent doctype and child doctype if there isn't any other child table json file
@@ -132,8 +147,7 @@ def sync_customizations_for_doctype(data, folder):
 	validate_fields_for_doctype(doctype)
 
 	if update_schema and not frappe.db.get_value('DocType', doctype, 'issingle'):
-		from frappe.model.db_schema import updatedb
-		updatedb(doctype)
+		frappe.db.updatedb(doctype)
 
 def scrub(txt):
 	return frappe.scrub(txt)

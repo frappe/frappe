@@ -17,12 +17,12 @@
 	{% if not read_only and has_header %}
 	<div style="padding-bottom: 15px;">
 	    {% if login_required -%}
-		<a href="{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
+		<a href="/{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
 	    	{{ _("Cancel") }}</a>
 		{%- endif %}
 		{% if not is_list %}
 	    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
-	    		{{ _("Save") }}</button>
+	    		{{ _(button_label or "Save") }}</button>
 		{% endif %}
 	</div>
 	{% endif %}
@@ -152,7 +152,7 @@
 				{% if (loop.index == layout|len or frappe.form_dict.new) %}
 					{% if not read_only %}
 				    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
-				    	{{ _("Save") }}</button>
+				    	{{ _(button_label or "Save") }}</button>
 					{% endif %}
 				{% elif layout|len > 1 %}
 				    <button class="btn btn-primary btn-sm btn-change-section"
@@ -165,6 +165,26 @@
 	{% endfor %}
 
 </div>
+
+{% if show_attachments and not frappe.form_dict.new -%}
+<div class="attachments">
+	<h3>{{ _("Attachments") }}</h3>
+	{% for attachment in attachments %}
+	<div class="attachment">
+		<a class="no-decoration attachment-link" href="{{ attachment.file_url }}" target="blank">
+			<div class="row">
+				<div class="col-xs-9">
+					<span class="file-name">{{ attachment.file_name }}</span>
+				</div>
+				<div class="col-xs-3">
+					<span class="pull-right file-size">{{ attachment.file_size }}</span>
+				</div>
+			</div>
+		</a>
+	</div>
+	{% endfor %}
+</div>
+{%- endif %}
 
 {% if allow_comments and not frappe.form_dict.new -%}
 <div class="comments">
@@ -193,6 +213,7 @@ window.web_form_settings = {
 	is_read_only: 		{{ 1 if read_only else 0 }},
 	doc_name: 			"{{ frappe.form_dict.name or "" }}",
 	login_required: 	{{ 1 if login_required else 0 }},
+	route_to_success_link: 	{{ 1 if route_to_success_link else 0 }},
 	max_attachment_size:{{ max_attachment_size }},
 	moment_date_format: "{{ frappe.date_format.upper() }}",
 	is_list: {{ frappe.utils.cint(is_list) }}
@@ -203,6 +224,12 @@ frappe.boot = {
 		date_format: "{{ frappe.get_system_settings('date_format') or 'yyyy-mm-dd' }}",
 	}
 };
+
+{% if show_attachments and not frappe.form_dict.new -%}
+$(".file-size").each(function() {
+	$(this).text(frappe.form.formatters.FileSize($(this).text()));
+});
+{%- endif %}
 
 // for backward compatibility of some libs
 frappe.sys_defaults = frappe.boot.sysdefaults;

@@ -79,9 +79,8 @@ def get_user_permissions(user=None):
 
 		out = frappe._dict(out)
 		frappe.cache().hset("user_permissions", user, out)
-
-	except frappe.SQLError as e:
-		if e.args[0]==1146:
+	except frappe.db.SQLError:
+		if frappe.db.is_table_missing():
 			# called from patch
 			pass
 
@@ -145,7 +144,7 @@ def clear_user_permissions(user, for_doctype):
 	frappe.only_for('System Manager')
 	total = frappe.db.count('User Permission', filters = dict(user=user, allow=for_doctype))
 	if total:
-		frappe.db.sql('DELETE FROM `tabUser Permission` WHERE user=%s AND allow=%s', (user, for_doctype))
+		frappe.db.sql('DELETE FROM `tabUser Permission` WHERE `user`=%s AND `allow`=%s', (user, for_doctype))
 		frappe.clear_cache()
 	return total
 

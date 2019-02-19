@@ -260,6 +260,7 @@ frappe.views.ListSidebar = class ListSidebar {
 		var me = this;
 		frappe.call({
 			method: 'frappe.desk.reportview.get_sidebar_stats',
+			type: 'GET',
 			args: {
 				stats: me.stats,
 				doctype: me.doctype,

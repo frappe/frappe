@@ -466,10 +466,13 @@ export default class Grid {
 			this.grid_rows_by_docname[doc.name].refresh_field(fieldname, value);
 		}
 	}
-	add_new_row(idx, callback, show) {
+	add_new_row(idx, callback, show, copy_doc) {
 		if(this.is_editable()) {
 			if(this.frm) {
 				var d = frappe.model.add_child(this.frm.doc, this.df.options, this.df.fieldname, idx);
+				if(copy_doc) {
+					d = this.duplicate_row(d, copy_doc);
+				}
 				d.__unedited = true;
 				this.frm.script_manager.trigger(this.df.fieldname + "_add", d.doctype, d.name);
 				this.refresh();
@@ -494,6 +497,17 @@ export default class Grid {
 
 			return d;
 		}
+	}
+
+	duplicate_row(d, copy_doc) {
+		$.each(copy_doc, function(key, value) {
+			if(!["creation", "modified", "modified_by", "idx", "owner",
+				"parent", "doctype", "name", "parentield"].includes(key)) {
+				d[key] = value;
+			}
+		});
+
+		return d;
 	}
 
 	set_focus_on_row(idx) {

@@ -6,7 +6,6 @@ import frappe
 from frappe import _
 import frappe.utils
 import frappe.sessions
-import frappe.utils.file_manager
 import frappe.desk.form.run_method
 from frappe.utils.response import build_response
 from werkzeug.wrappers import Response
@@ -111,7 +110,18 @@ def uploadfile():
 	try:
 		if frappe.form_dict.get('from_form'):
 			try:
-				ret = frappe.utils.file_manager.upload()
+				ret = frappe.get_doc({
+					"doctype": "File",
+					"attached_to_name": frappe.form_dict.docname,
+					"attached_to_doctype": frappe.form_dict.doctype,
+					"attached_to_field": frappe.form_dict.docfield,
+					"file_url": frappe.form_dict.file_url,
+					"file_name": frappe.form_dict.filename,
+					"is_private": frappe.utils.cint(frappe.form_dict.is_private),
+					"content": frappe.form_dict.filedata,
+					"decode": True
+				})
+				ret.save()
 			except frappe.DuplicateEntryError:
 				# ignore pass
 				ret = None

@@ -431,7 +431,7 @@ frappe.ui.Page = Class.extend({
 		var li = $('<li>');
 		var link = $('<a>').html(label).on("click", action).appendTo(li);
 
-		if(insert_after) {
+		if (insert_after) {
 			li.insertAfter(parent.find(insert_after));
 		} else {
 			if(prepend) {

@@ -3,7 +3,9 @@
   "scripts": {
     "build": "node rollup/build.js",
     "production": "FRAPPE_ENV=production node rollup/build.js",
-    "watch": "node rollup/watch.js"
+    "watch": "node rollup/watch.js",
+    "cypress:run": "cypress run --record --key 14ddd919-b01f-4d5f-b9d1-5af54d34c7f3",
+    "cypress:open": "cypress open"
   },
   "repository": {
     "type": "git",
@@ -16,6 +18,7 @@
   },
   "homepage": "https://frappe.io",
   "dependencies": {
+    "ace-builds": "^1.4.1",
     "awesomplete": "^1.1.2",
     "cookie": "^0.3.1",
     "express": "^4.16.2",
@@ -37,6 +40,7 @@
   "devDependencies": {
     "babel-runtime": "^6.26.0",
     "chalk": "^2.3.2",
+    "cypress": "^3.1.1",
     "less": "^3.0.4",
     "node-sass": "^4.9.0",
     "rollup": "^0.65.0",
