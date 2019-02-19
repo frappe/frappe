@@ -43,7 +43,7 @@ class WebsiteTheme(Document):
 	def validate_custom_bootstrap_theme(self):
 		if self.apply_custom_theme and self.custom_theme:
 			doc_before_save = self.get_doc_before_save()
-			if self.custom_theme != doc_before_save.custom_theme:
+			if doc_before_save is None or self.custom_theme != doc_before_save.custom_theme:
 				self.generate_bootstrap_theme()
 
 	def export_doc(self):
