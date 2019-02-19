@@ -27,7 +27,11 @@ def sql(*args, **kwargs):
 	stack_frames = map(lambda x: re.sub("File \".*/apps/", "File \"", x), stack_frames)
 	stack = "".join(stack_frames)
 
-	query = frappe.db._cursor._executed
+	if frappe.conf.db_type == 'postgres':
+		query = frappe.db._cursor.query
+	else:
+		query = frappe.db._cursor._executed
+
 	query = sqlparse.format(query.strip(), keyword_case="upper", reindent=True)
 
 	# Collect EXPLAIN for executed query
