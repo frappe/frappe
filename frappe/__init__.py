@@ -16,6 +16,7 @@ from faker import Faker
 # public
 from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
+from .utils.error import get_frame_locals
 
 # Hamless for Python 3
 # For Python 2 set default encoding to utf-8
@@ -23,7 +24,7 @@ if sys.version[0] == '2':
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '11.1.4'
+__version__ = '11.1.6'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -273,7 +274,7 @@ def errprint(msg):
 	if not request or (not "cmd" in local.form_dict) or conf.developer_mode:
 		print(msg)
 
-	error_log.append(msg)
+	error_log.append({"exc": msg, "locals": get_frame_locals()})
 
 def log(msg):
 	"""Add to `debug_log`.
@@ -501,6 +502,7 @@ def read_only():
 			retval = fn(*args, **get_newargs(fn, kwargs))
 
 			if local and hasattr(local, 'master_db'):
+				local.db.close()
 				local.db = local.master_db
 
 			return retval

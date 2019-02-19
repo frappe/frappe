@@ -232,6 +232,16 @@ frappe.dom = {
 				frappe.ui.scroll(section.parent().parent());
 			}
 		}, 200);
+	},
+	pixel_to_inches(pixels) {
+		const div = $('<div id="dpi" style="height: 1in; width: 1in; left: 100%; position: fixed; top: 100%;"></div>');
+		div.appendTo(document.body);
+
+		const dpi_x = document.getElementById('dpi').offsetWidth;
+		const inches = pixels / dpi_x;
+		div.remove();
+
+		return inches;
 	}
 };
 

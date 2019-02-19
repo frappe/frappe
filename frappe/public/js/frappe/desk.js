@@ -397,6 +397,7 @@ frappe.Application = Class.extend({
 				}
 			});
 			dialog.set_primary_action(__('Login'), () => {
+				dialog.set_message(__('Authenticating...'));
 				frappe.call({
 					method: 'login',
 					args: {

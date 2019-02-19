@@ -64,13 +64,12 @@ def _toggle_like(doctype, name, add, user=None):
 def remove_like(doctype, name):
 	"""Remove previous Like"""
 	# remove Comment
-	frappe.delete_doc("Communication", [c.name for c in frappe.get_all("Communication",
+	frappe.delete_doc("Comment", [c.name for c in frappe.get_all("Comment",
 		filters={
-			"communication_type": "Comment",
+			"comment_type": "Like",
 			"reference_doctype": doctype,
 			"reference_name": name,
 			"owner": frappe.session.user,
-			"comment_type": "Like"
 		}
 	)], ignore_permissions=True)
 

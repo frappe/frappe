@@ -22,7 +22,7 @@ import frappe.website.render
 from frappe.utils import get_site_name
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils.error import make_error_snapshot
-from frappe.core.doctype.communication.comment import update_comments_in_parent_after_request
+from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
 from frappe import _
 
 local_manager = LocalManager([frappe.local])
