@@ -154,7 +154,7 @@ def get(uuid=None, *args, **kwargs):
 	if uuid:
 		result = frappe.cache().hget(RECORDER_REQUEST_HASH, uuid)
 	else:
-		result = frappe.cache().hgetall(RECORDER_REQUEST_SPARSE_HASH).values()
+		result = list(frappe.cache().hgetall(RECORDER_REQUEST_SPARSE_HASH).values())
 	return result
 
 
