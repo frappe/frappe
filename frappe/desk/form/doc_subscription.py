@@ -10,7 +10,7 @@ from frappe.utils.background_jobs import enqueue
 
 @frappe.whitelist()
 def add_subcription(doctype, doc_name, user_email):
-	avoid_follow = ["Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", 'File', 'Version', 'View Log', "Document Follow"]
+	avoid_follow = ["Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", 'File', 'Version', 'View Log', "Document Follow", 'Comment']
 	track_changes = frappe.db.get_value("DocType", doctype, "track_changes")
 	if len(frappe.get_all("Document Follow", filters={'ref_doctype': doctype, 'ref_docname': doc_name, 'user': user_email}, limit=1)) == 0:
 		check = frappe.db.get_value("User", user_email, "enable_email_for_follow_documents")
@@ -95,27 +95,21 @@ def get_version(doctype, doc_name,frequency):
 
 def get_comments(doctype, doc_name, frequency):
 	timeline = []
-	comments = frappe.db.get_value(doctype, doc_name, "_comments")
-	if comments:
-		com = json.loads(comments)
-		for comment in com:
-			comment_dict = frappe._dict(comment)
-			filters = get_filters("name", comment_dict.name, frequency)
-			check = frappe.get_all("Communication", filters = filters)
-			if len(check) != 0:
-				modified = frappe.db.get_value("Communication", comment_dict.name, "modified")
-				time = frappe.utils.format_datetime(modified, "hh:mm a")
-				timeline.append({
-					"time": modified,
-					"data": {
-						"time": time,
-						"comment": frappe.utils.html2text(comment_dict.comment),
-						"by": comment_dict.by
-					},
-					"doctype": doctype,
-					"doc_name": doc_name,
-					"type": "comment"
-				})
+	filters = get_filters('reference_name', doc_name, frequency)
+	comments= frappe.get_all("Comment", filters = filters, fields=['content', 'modified', 'modified_by'])
+	for comment in comments:
+		time = frappe.utils.format_datetime(comment.modified, "hh:mm a")
+		timeline.append({
+			"time": comment.modified,
+			"data": {
+				"time": time,
+				"comment": frappe.utils.html2text(comment.content),
+				"by": comment.modified_by
+			},
+			"doctype": doctype,
+			"doc_name": doc_name,
+			"type": "comment"
+		})
 	return timeline
 
 @frappe.whitelist()
