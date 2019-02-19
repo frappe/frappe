@@ -33,7 +33,7 @@ def sql(*args, **kwargs):
 	# Collect EXPLAIN for executed query
 	if query.lower().strip().split()[0] in ("select", "update", "delete"):
 		# Only SELECT/UPDATE/DELETE queries can be "EXPLAIN"ed
-		explain_result = frappe.db._sql("EXPLAIN EXTENDED {}".format(query), as_dict=True)
+		explain_result = frappe.db._sql("EXPLAIN {}".format(query), as_dict=True)
 	else:
 		explain_result = []
 
