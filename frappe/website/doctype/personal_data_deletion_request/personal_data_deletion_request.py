@@ -10,6 +10,10 @@ from frappe.model.document import Document
 from frappe.utils.verified_command import get_signed_params, verify_request
 
 class PersonalDataDeletionRequest(Document):
+	def validate(self):
+		if not frappe.db.exists("User", self.email):
+			frappe.throw(_("Invalid User!!!"))
+
 	def after_insert(self):
 		if self.email in ['Administrator', 'Guest']:
 			frappe.throw(_("This user's data cannot be requested for deletion"))
