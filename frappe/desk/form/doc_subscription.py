@@ -94,23 +94,30 @@ def send_document_follow_mails(frequency):
 			if message != []:
 				sent_email_alert(d.ref_docname, d.ref_doctype, k, info, message)
 
-def get_version(doctype, doc_name,frequency):
+def get_version(doctype, doc_name, frequency):
 	timeline = []
 	filters = get_filters("docname", doc_name, frequency)
-	version = frappe.get_all("Version", filters = filters,fields=["ref_doctype", "data", "modified"])
+	version = frappe.get_all("Version",
+		filters=filters,
+		fields=["ref_doctype", "data", "modified"]
+	)
 	if version:
-		for d1 in version:
-			if isinstance(d1.data, frappe.string_types):
-				change = frappe._dict(json.loads(d1.data))
-				time = frappe.utils.format_datetime(d1.modified, "hh:mm a")
-				if change.comment:
-					get_activity(change.comment, timeline, time, doctype, doc_name, d1)
-				if change.changed:
-					get_field_changed(change.changed, timeline, time, doctype, doc_name, d1)
-				if change.row_changed:
-					get_row_changed(change.row_changed, timeline, time, doctype, doc_name, d1)
-				if change.added:
-					get_added_row(change.added, timeline, time, doctype, doc_name, d1)
+		for v in version:
+			change = frappe.parse_json(v.data)
+			time = frappe.utils.format_datetime(v.modified, "hh:mm a")
+
+			timeline_items = []
+			if change.comment:
+				timeline_items = get_activity(change.comment, time, doctype, doc_name, v)
+			if change.changed:
+				timeline_items = get_field_changed(change.changed, time, doctype, doc_name, v)
+			if change.row_changed:
+				timeline_items = get_row_changed(change.row_changed, time, doctype, doc_name, v)
+			if change.added:
+				timeline_items = get_added_row(change.added, time, doctype, doc_name, v)
+
+			timeline = timeline + timeline_items
+
 	return timeline
 
 def get_comments(doctype, doc_name, frequency):
@@ -161,11 +168,12 @@ def get_follow_users(doctype, doc_name, limit=4):
 	)
 
 def get_row_changed(row_changed, timeline, time, doctype, doc_name, d1):
+	items = []
 	for d in row_changed:
 		d[2] = d[2] if d[2] else ' '
 		d[0] = d[0] if d[0] else ' '
 		d[3][0][1] = d[3][0][1] if d[3][0][1] else ' '
-		timeline.append({
+		items.append({
 			"time": d1.modified,
 			"data": {
 					"time": time,
@@ -179,10 +187,12 @@ def get_row_changed(row_changed, timeline, time, doctype, doc_name, d1):
 			"doc_name": doc_name,
 			"type": "row changed"
 		})
+	return items
 
-def get_added_row(added, timeline, time, doctype, doc_name, d1):
+def get_added_row(added, time, doctype, doc_name, d1):
+	items = []
 	for d in added:
-		timeline.append({
+		items.append({
 			"time": d1.modified,
 			"data": {
 					"to": d[0],
@@ -192,13 +202,15 @@ def get_added_row(added, timeline, time, doctype, doc_name, d1):
 			"doc_name": doc_name,
 			"type": "row added"
 		})
+	return items
 
-def get_field_changed(changed, timeline, time, doctype, doc_name, d1):
+def get_field_changed(changed, time, doctype, doc_name, d1):
+	items = []
 	for d in changed:
 		d[1] = d[1] if d[1] else ' '
 		d[2] = d[2] if d[2] else ' '
 		d[0] = d[0] if d[0] else ' '
-		timeline.append({
+		items.append({
 			"time": d1.modified,
 			"data": {
 					"time": time,
@@ -210,9 +222,10 @@ def get_field_changed(changed, timeline, time, doctype, doc_name, d1):
 			"doc_name": doc_name,
 			"type": "field changed"
 		})
+	return items
 
-def get_activity(comment, timeline, time, doctype, doc_name, d1):
-	timeline.append({
+def get_activity(comment, time, doctype, doc_name, d1):
+	return [{
 		"time": d1.modified,
 		"data": {"time": time,
 				"activity": comment
@@ -220,7 +233,7 @@ def get_activity(comment, timeline, time, doctype, doc_name, d1):
 		"doctype": doctype,
 		"doc_name": doc_name,
 		"type": "activity"
-	})
+	}]
 
 def send_hourly_updates():
 	send_document_follow_mails("Hourly")
@@ -232,6 +245,8 @@ def send_weekly_updates():
 	send_document_follow_mails("Weekly")
 
 def get_filters(search_by, name, frequency):
+	filters = []
+
 	if frequency == "Weekly":
 		filters = [
 			[search_by, "=", name],
