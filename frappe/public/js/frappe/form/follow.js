@@ -60,12 +60,14 @@ frappe.ui.form.Follow = Class.extend({
 			});
 		}
 	},
-	set_follow: function(){
-		var subs= this.frm.get_docinfo().check_follow;
-		if(subs == 0){
+	set_follow: function() {
+		const docinfo = this.frm.get_docinfo();
+		const is_followed = docinfo && docinfo.is_document_followed;
+
+		if(is_followed > 0) {
 			this.follow_span.html("Unfollow");
 			this.followed.removeClass("hide");
-		}else{
+		} else {
 			this.follow_span.html("Follow");
 			this.followed_by_label.addClass("hide");
 			this.followed.empty();

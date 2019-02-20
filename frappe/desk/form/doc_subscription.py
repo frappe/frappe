@@ -22,7 +22,7 @@ def add_subcription(doctype, doc_name, user_email):
 		},
 		fieldname="value"
 	)
-	exists = check_if_exists(doctype, doc_name, user_email)
+	exists = is_document_followed(doctype, doc_name, user_email)
 	if exists:
 		check_if_enable = frappe.db.get_value("User", user_email, "document_follow_notify")
 		if user_email != "Administrator" and check_if_enable == 1 and (track_changes == 1 or custom_track_change == '1') and doctype not in avoid_follow:
@@ -47,16 +47,17 @@ def unfollow(doctype, doc_name, user_email):
 		fields=["name"],
 		limit=1
 	)
-	if len(doc) != 0:
+	if doc:
 		frappe.delete_doc("Document Follow", doc[0].name)
 		return 1
+	return 0
 
 def get_message(doc_name, doctype, frequency):
 	html = get_version(doctype, doc_name, frequency) + get_comments(doctype, doc_name, frequency)
 	t = sorted(html, key=lambda k: k["time"], reverse=True)
 	return t
 
-def sent_email_alert(doc_name, doctype, receiver, docinfo, timeline):
+def send_email_alert(doc_name, doctype, receiver, docinfo, timeline):
 	if receiver:
 		email_args = {
 			"template": "doc_subscription",
@@ -70,29 +71,35 @@ def sent_email_alert(doc_name, doctype, receiver, docinfo, timeline):
 			"reference_name": doc_name,
 			"delayed": False,
 		}
-	enqueue(method=frappe.sendmail, now=True, queue="short", timeout=300, is_async=True, **email_args)
-	frappe.db.commit()
+		enqueue(method=frappe.sendmail, now=True, queue="short", timeout=300, is_async=True, **email_args)
+		frappe.db.commit()
 
 def send_document_follow_mails(frequency):
-	users = frappe.get_list("Document Follow", fields={"name", "ref_doctype", "ref_docname", "user"})
-	newlist = sorted(users, key=lambda k:k["user"])
+	users = frappe.get_list("Document Follow",
+		fields={"name", "ref_doctype", "ref_docname", "user"})
+	sorted_users = sorted(users, key=lambda k: k["user"])
+
 	grouped_by_user = {}
-	for k, v in groupby(newlist, key=lambda k:k["user"]):
-		grouped_by_user[k]=list(v)
+	for k, v in groupby(sorted_users, key=lambda k: k["user"]):
+		grouped_by_user[k] = list(v)
 
-	for k in grouped_by_user:
-		freq = frappe.db.get_value("User", k, "document_follow_frequency")
+	for user in grouped_by_user:
+		user_frequency = frappe.db.get_value("User", user, "document_follow_frequency")
 		message = []
-		info = []
-		if freq == frequency:
-			for d in grouped_by_user[k]:
+		valid_document_follows = []
+		if user_frequency == frequency:
+			for d in grouped_by_user[user]:
 				content = get_message(d.ref_docname, d.ref_doctype, frequency)
-				if content != []:
+				if content:
 					message = message + content
-					info.append({"ref_docname": d.ref_docname, "ref_doctype": d.ref_doctype, "user": k})
+					valid_document_follows.append({
+						"ref_docname": d.ref_docname,
+						"ref_doctype": d.ref_doctype,
+						"user": user
+					})
 
-			if message != []:
-				sent_email_alert(d.ref_docname, d.ref_doctype, k, info, message)
+			if message:
+				send_email_alert(d.ref_docname, d.ref_doctype, user, valid_document_follows, message)
 
 def get_version(doctype, doc_name, frequency):
 	timeline = []
@@ -123,7 +130,10 @@ def get_version(doctype, doc_name, frequency):
 def get_comments(doctype, doc_name, frequency):
 	timeline = []
 	filters = get_filters("reference_name", doc_name, frequency)
-	comments= frappe.get_all("Comment", filters = filters, fields=["content", "modified", "modified_by"])
+	comments = frappe.get_all("Comment",
+		filters=filters,
+		fields=["content", "modified", "modified_by"]
+	)
 	for comment in comments:
 		time = frappe.utils.format_datetime(comment.modified, "hh:mm a")
 		timeline.append({
@@ -139,9 +149,8 @@ def get_comments(doctype, doc_name, frequency):
 		})
 	return timeline
 
-@frappe.whitelist()
-def check_if_exists(doctype, doc_name, user):
-	check_if_exists = frappe.get_all(
+def is_document_followed(doctype, doc_name, user):
+	docs = frappe.get_all(
 		"Document Follow",
 		filters={
 			"ref_doctype": doctype,
@@ -150,13 +159,10 @@ def check_if_exists(doctype, doc_name, user):
 		},
 		limit=1
 	)
-	if len(check_if_exists) == 0:
-		return 1
-	else:
-		return 0
+	return len(docs)
 
 @frappe.whitelist()
-def get_follow_users(doctype, doc_name, limit=4):
+def get_follow_users(doctype, doc_name, limit = 4):
 	return frappe.get_all(
 		"Document Follow",
 		filters={

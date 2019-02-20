@@ -9,7 +9,7 @@ import frappe.defaults
 import frappe.desk.form.meta
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
-from frappe.desk.form.doc_subscription import check_if_exists, get_follow_users
+from frappe.desk.form.doc_subscription import is_document_followed, get_follow_users
 from frappe import _
 
 @frappe.whitelist()
@@ -102,7 +102,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
 		"rating": get_feedback_rating(doc.doctype, doc.name),
 		"views": get_view_logs(doc.doctype, doc.name),
-		"check_follow": check_if_exists(doc.doctype, doc.name, frappe.session.user),
+		"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
 		"track_change": track_change(doc),
 		"check": frappe.db.get_value("User", frappe.session.user, "document_follow_notify")
 	}
