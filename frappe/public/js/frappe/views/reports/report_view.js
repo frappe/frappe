@@ -230,7 +230,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				}
 			},
 			hooks: {
-				totalAccumulator: frappe.utils.report_total_accumulator
+				columnTotal: frappe.utils.report_column_total
 			},
 			headerDropdown: [{
 				label: __('Add Column'),
