@@ -21,19 +21,20 @@ class PersonalDataDeletionRequest(Document):
 			self.send_verification_mail()
 
 	def send_verification_mail(self):
-		url = frappe.utils.get_url("/api/method/frappe.website.doctype.personal_data_delete_request.personal_data_delete_request.confirm_deletion") +\
-			"?" + get_signed_params({"email": self.email, "name": self.name})
 		host_name = frappe.local.site
+		url = frappe.utils.get_url("/api/method/frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.confirm_deletion") +\
+			"?" + get_signed_params({"email": self.email, "name": self.name, 'host_name': host_name})
 
 		frappe.sendmail(recipients= self.email,
 		subject=_("Confirm Deletion of Data"),
 		template="delete_data_confirmation",
-		args={'email':self.email, 'link':url, 'host_name':host_name},
+		args={'email':self.email, 'name':self.name, 'host_name':host_name, 'link':url},
 		header=[_("Confirm Deletion of Data"), "green"])
 
 	def anonymize_data(self):
-		if not ('System Manager' in frappe.get_roles(frappe.session.user) and self.status == 'Pending Approval'):
-			frappe.throw(_("You are not authorized to complete this action."))
+		frappe.only_for('System Manager')
+		if not (self.status == 'Pending Approval'):
+			frappe.throw(_("This request has not yet been approved by the user."))
 
 		privacy_docs = frappe.get_hooks("user_privacy_documents")
 
@@ -72,11 +73,11 @@ def remove_unverified_record():
 	frappe.db.sql("""DELETE FROM `tabPersonal Data Deletion Request` WHERE `status` = 'Pending Verification' and `creation` < (NOW() - INTERVAL '7' DAY)""")
 
 @frappe.whitelist(allow_guest=True)
-def confirm_deletion(email, name):
+def confirm_deletion(email, name, host_name):
 	if not verify_request():
 		return
 
-	doc = frappe.get_doc("Personal Data Delete Request", name)
+	doc = frappe.get_doc("Personal Data Deletion Request", name)
 	host_name = frappe.local.site
 	if doc.status != 'Pending Approval':
 		doc.status = 'Pending Approval'
