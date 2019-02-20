@@ -22,7 +22,6 @@ def add_subcription(doctype, doc_name, user_email):
 		},
 		fieldname="value"
 	)
-	print(custom_track_change)
 	check_if_exists = check(doctype, doc_name, user_email)
 	if check_if_exists == 1:
 		check_if_enable = frappe.db.get_value("User", user_email, "enable_email_for_follow_documents")
@@ -40,7 +39,8 @@ def add_subcription(doctype, doc_name, user_email):
 def unfollow(doctype, doc_name, user_email):
 	doc = frappe.get_all(
 		"Document Follow",
-		filters={"ref_doctype": doctype,
+		filters={
+			"ref_doctype": doctype,
 			"ref_docname": doc_name,
 			"user": user_email
 		},
