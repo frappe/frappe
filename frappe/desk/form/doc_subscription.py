@@ -70,7 +70,7 @@ def sent_email_alert(doc_name, doctype, receiver, docinfo, timeline):
 			"reference_name": doc_name,
 			"delayed": False,
 		}
-	enqueue(method=frappe.sendmail, now=True, queue="short", timeout=300, async=True, **email_args)
+	enqueue(method=frappe.sendmail, now=True, queue="short", timeout=300, is_async=True, **email_args)
 	frappe.db.commit()
 
 def send_document_follow_mails(frequency):
