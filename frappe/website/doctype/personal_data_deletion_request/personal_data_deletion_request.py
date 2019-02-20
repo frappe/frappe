@@ -53,26 +53,16 @@ class PersonalDataDeletionRequest(Document):
 				field_value = anonymize_value_map.get(field_details.fieldtype, str(field)) if not field_details.unique else self.name
 				anonymize_fields += ', `{0}`= \'{1}\''.format(field, field_value)
 
-			if (meta.get_field(ref_doc['match_field']) or {}).get('fieldtype') == 'Code':
-				self.anonymize_multi_email_record(ref_doc, anonymize_fields, regex)
+			docs = frappe.get_all(ref_doc['doctype'], {ref_doc['match_field']:('like', '%'+self.email+'%')}, ['name', ref_doc['match_field']])
+			for d in docs:
+				if not re.search(regex, d[ref_doc['match_field']]):
+					continue
 
-			else:
+				anonymize_match_value = ', '.join(map(lambda x: self.name if re.search(regex, x) else x, d[ref_doc['match_field']].split()))
 				frappe.db.sql("""UPDATE `tab{0}`
 					SET `{1}` = '{2}' {3}
-					WHERE `{1}` = '{4}' """.format(ref_doc['doctype'], ref_doc['match_field'], self.name,#nosec
-						anonymize_fields, self.email))
-
-	def anonymize_multi_email_record(self, ref_doc, anonymize_fields, regex):
-		docs = frappe.get_all(ref_doc['doctype'], {ref_doc['match_field']:('like', '%'+self.email+'%')}, ['name', ref_doc['match_field']])
-		for d in docs:
-			if not re.search(regex, d[ref_doc['match_field']]):
-				continue
-
-			anonymize_match_value = ', '.join(map(lambda x: self.name if re.search(regex, x) else x, d[ref_doc['match_field']].split()))
-			frappe.db.sql("""UPDATE `tab{0}`
-				SET `{1}` = '{2}' {3}
-				WHERE `name` = '{4}' """.format(ref_doc['doctype'], ref_doc['match_field'], anonymize_match_value,#nosec
-				anonymize_fields, d['name']))
+					WHERE `name` = '{4}' """.format(ref_doc['doctype'], ref_doc['match_field'], anonymize_match_value,#nosec
+					anonymize_fields, d['name']))
 
 def remove_unverified_record():
 	frappe.db.sql("""DELETE FROM `tabPersonal Data Deletion Request` WHERE `status` = 'Pending Verification' and `creation` < (NOW() - INTERVAL '7' DAY)""")
