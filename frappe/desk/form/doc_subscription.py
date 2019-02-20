@@ -22,9 +22,9 @@ def add_subcription(doctype, doc_name, user_email):
 		},
 		fieldname="value"
 	)
-	check_if_exists = check(doctype, doc_name, user_email)
-	if check_if_exists == 1:
-		check_if_enable = frappe.db.get_value("User", user_email, "enable_email_for_follow_documents")
+	exists = check_if_exists(doctype, doc_name, user_email)
+	if exists:
+		check_if_enable = frappe.db.get_value("User", user_email, "document_follow_notify")
 		if user_email != "Administrator" and check_if_enable == 1 and (track_changes == 1 or custom_track_change == '1') and doctype not in avoid_follow:
 			doc = frappe.new_doc("Document Follow")
 			doc.update({
@@ -81,7 +81,7 @@ def send_document_follow_mails(frequency):
 		grouped_by_user[k]=list(v)
 
 	for k in grouped_by_user:
-		freq = frappe.db.get_value("User", k, "frequency_for_follow_documents_email")
+		freq = frappe.db.get_value("User", k, "document_follow_frequency")
 		message = []
 		info = []
 		if freq == frequency:
@@ -133,7 +133,7 @@ def get_comments(doctype, doc_name, frequency):
 	return timeline
 
 @frappe.whitelist()
-def check(doctype, doc_name, user):
+def check_if_exists(doctype, doc_name, user):
 	check_if_exists = frappe.get_all(
 		"Document Follow",
 		filters={

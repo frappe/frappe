@@ -47,8 +47,8 @@ def get_user():
 	doc.first_name = "Test"
 	doc.last_name = "User"
 	doc.send_welcome_email = 0
-	doc.enable_email_for_follow_documents = 1
-	doc.frequency_for_follow_documents_email = "Hourly"
+	doc.document_follow_notify = 1
+	doc.document_follow_frequency = "Hourly"
 	doc.insert()
 	return doc
 
