@@ -44,14 +44,14 @@ def get_todays_events(as_list=False):
 
 def get_unseen_likes():
 	"""Returns count of unseen likes"""
-	return frappe.db.sql("""select count(*) from `tabCommunication`
+	return frappe.db.sql("""select count(*) from `tabComment`
 		where
-			communication_type='Comment'
+			comment_type='Like'
 			and modified >= (NOW() - INTERVAL '1' YEAR)
-			and comment_type='Like'
 			and owner is not null and owner!=%(user)s
 			and reference_owner=%(user)s
-			and seen=0""", {"user": frappe.session.user})[0][0]
+			and seen=0
+			""", {"user": frappe.session.user})[0][0]
 
 def get_unread_emails():
 	"returns unread emails for a user"

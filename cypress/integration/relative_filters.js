@@ -21,7 +21,7 @@ context('Relative Timeframe', () => {
 		cy.server();
 		cy.route({
 			method: 'POST',
-			url: '/'
+			url: '/api/method/frappe.desk.reportview.get'
 		}).as('applyFilter');
 		cy.get('.filter-box .btn:contains("Apply")').click();
 		cy.wait('@applyFilter');
@@ -39,7 +39,7 @@ context('Relative Timeframe', () => {
 		cy.server();
 		cy.route({
 			method: 'POST',
-			url: '/'
+			url: '/api/method/frappe.desk.reportview.get'
 		}).as('applyFilter');
 		cy.get('.filter-box .btn:contains("Apply")').click();
 		cy.wait('@applyFilter');

@@ -32,7 +32,7 @@ class PostgresDatabase(Database):
 		self.type_map = {
 			'Currency':		('decimal', '18,6'),
 			'Int':			('bigint', None),
-			'Long Int':		('bigint', None), # convert int to bigint if length is more than 11
+			'Long Int':		('bigint', None),
 			'Float':		('decimal', '18,6'),
 			'Percent':		('decimal', '18,6'),
 			'Check':		('smallint', None),

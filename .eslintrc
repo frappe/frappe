@@ -116,6 +116,7 @@
 		"md5": true,
 		"$": true,
 		"jQuery": true,
+		"Vue": true,
 		"moment": true,
 		"hljs": true,
 		"Awesomplete": true,

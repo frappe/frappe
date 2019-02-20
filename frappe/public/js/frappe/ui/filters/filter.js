@@ -117,10 +117,14 @@ frappe.ui.Filter = class {
 	}
 
 	update_filter_tag() {
-		return this._filter_value_set.then(() => {
-			!this.$filter_tag ? this.make_tag() : this.set_filter_button_text();
-			this.filter_edit_area.hide();
-		});
+		if (this._filter_value_set) {
+			return this._filter_value_set.then(() => {
+				!this.$filter_tag ? this.make_tag() : this.set_filter_button_text();
+				this.filter_edit_area.hide();
+			});
+		} else {
+			return Promise.resolve();
+		}
 	}
 
 	remove() {

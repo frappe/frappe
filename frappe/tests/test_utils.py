@@ -126,6 +126,9 @@ class TestHTMLUtils(unittest.TestCase):
 
 @frappe.whitelist()
 def create_todo_records():
+	if frappe.db.get_all('ToDo', {'description': 'this is first todo'}):
+		return
+
 	frappe.get_doc({
 		"doctype": "ToDo",
 		"date": add_to_date(now(), days=3),

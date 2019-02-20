@@ -487,5 +487,6 @@ frappe.ready(function() {
 				});
 			}
 		}
-	})
+	});
+	frappe.socketio.init(window.socketio_port);
 });

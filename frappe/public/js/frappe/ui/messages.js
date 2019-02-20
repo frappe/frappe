@@ -100,12 +100,7 @@ frappe.msgprint = function(msg, title) {
 
 	if(data.message instanceof Array) {
 		data.message.forEach(function(m) {
-			const msg = {
-				message: m,
-				indicator: data.indicator,
-				title: data.title
-			}
-			frappe.msgprint(msg);
+			frappe.msgprint(m);
 		});
 		return;
 	}

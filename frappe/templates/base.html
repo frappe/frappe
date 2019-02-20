@@ -49,7 +49,8 @@
 			frappe.ready_events.push(fn);
 		}
 		window.dev_server = {{ dev_server }};
-	</script>
+		window.socketio_port = {{ frappe.socketio_port }};
+    </script>
 </head>
 <body data-path="{{ path }}">
 	{%- block banner -%}

@@ -36,7 +36,8 @@
     "socket.io": "^2.0.4",
     "superagent": "^3.8.2",
     "touch": "^3.1.0",
-    "vue": "^2.5.17"
+    "vue": "^2.5.17",
+    "vue-router": "^2.0.0"
   },
   "devDependencies": {
     "babel-runtime": "^6.26.0",
@@ -51,7 +52,7 @@
     "rollup-plugin-node-resolve": "^3.0.2",
     "rollup-plugin-postcss": "^2.0.3",
     "rollup-plugin-uglify": "^3.0.0",
-    "rollup-plugin-vue": "^4.3.2",
+    "rollup-plugin-vue": "4.2.0",
     "vue-template-compiler": "^2.5.17"
   }
 }

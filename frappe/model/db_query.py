@@ -458,7 +458,7 @@ class DatabaseQuery(object):
 					f.operator = '='
 
 				value = ""
-				fallback = '""'
+				fallback = "''"
 				can_be_null = True
 
 				if 'ifnull' not in column_name:
@@ -747,6 +747,7 @@ def get_list(doctype, *args, **kwargs):
 	'''wrapper for DatabaseQuery'''
 	kwargs.pop('cmd', None)
 	kwargs.pop('ignore_permissions', None)
+	kwargs.pop('data', None)
 
 	# If doctype is child table
 	if frappe.is_table(doctype):

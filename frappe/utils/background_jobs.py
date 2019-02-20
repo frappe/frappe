@@ -36,9 +36,7 @@ def enqueue(method, queue='default', timeout=None, event=None,
 		:param kwargs: keyword arguments to be passed to the method
 	'''
 	# To handle older implementations
-	if 'async' in kwargs:
-		is_async = True
-		del kwargs['async']
+	is_async = kwargs.pop('async', is_async)
 
 	if now or frappe.flags.in_migrate:
 		return frappe.call(method, **kwargs)
@@ -105,7 +103,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 
 		if (retry < 5 and
 			(isinstance(e, frappe.RetryBackgroundJobError) or
-				(frappe.db.is_deadlocked() or frappe.db.is_timedout()))):
+				(frappe.db.is_deadlocked(e) or frappe.db.is_timedout(e)))):
 			# retry the job if
 			# 1213 = deadlock
 			# 1205 = lock wait timeout

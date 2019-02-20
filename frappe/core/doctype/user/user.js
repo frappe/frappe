@@ -71,10 +71,6 @@ frappe.ui.form.on('User', {
 		frm.toggle_display(['sb1', 'sb3', 'modules_access'], false);
 
 		if(!frm.is_new()) {
-			frm.add_custom_button(__("Set Desktop Icons"), function() {
-				frappe.frappe_toolbar.modules_select.show(doc.name);
-			}, null, "btn-default")
-
 			if(has_access_to_edit_user()) {
 
 				frm.add_custom_button(__("Set User Permissions"), function() {

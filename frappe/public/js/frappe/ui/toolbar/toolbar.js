@@ -21,19 +21,10 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 	make: function() {
 		this.setup_sidebar();
 		this.setup_help();
-		this.setup_modules_dialog();
 
 		this.bind_events();
 
 		$(document).trigger('toolbar_setup');
-	},
-
-
-	setup_modules_dialog() {
-		this.modules_select = new frappe.ui.toolbar.ModulesSelect();
-		$('.navbar-set-desktop-icons').on('click', () => {
-			this.modules_select.show();
-		});
 	},
 
 	bind_events: function() {

@@ -424,7 +424,7 @@ frappe.views.GridReport = Class.extend({
 				}
 			},
 			hooks: {
-				totalAccumulator: frappe.utils.report_total_accumulator
+				columnTotal: frappe.utils.report_column_total
 			}
 		});
 
