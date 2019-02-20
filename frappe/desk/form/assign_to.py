@@ -79,6 +79,8 @@ def add(args=None):
 		if not frappe.has_permission(doc=doc, user=args['assign_to']):
 			frappe.share.add(doc.doctype, doc.name, args['assign_to'])
 			frappe.msgprint(_('Shared with user {0} with read access').format(args['assign_to']), alert=True)
+
+		# make this document followed by assigned user
 		add_subcription(args['doctype'], args['name'], args['assign_to'])
 
 	# notify
