@@ -17,9 +17,10 @@ frappe.ui.form.Follow = Class.extend({
 	},
 	render_sidebar: function() {
 		var check_enable= this.frm.get_docinfo().check;
+		let track_change = this.frm.get_docinfo().track_change;
 		var me= this;
 		this.set_follow();
-		if (frappe.session.user == "Administrator" || check_enable != 1){
+		if (frappe.session.user === "Administrator" || check_enable !== 1 || track_change === 0) {
 			this.anchor.addClass("hidden");
 			this.followed.addClass("hidden");
 			this.follow_span.addClass("hidden");

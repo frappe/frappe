@@ -11,11 +11,22 @@ from frappe.utils.background_jobs import enqueue
 @frappe.whitelist()
 def add_subcription(doctype, doc_name, user_email):
 	avoid_follow = ["Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File", "Version", "View Log", "Document Follow", "Comment"]
+
 	track_changes = frappe.db.get_value("DocType", doctype, "track_changes")
+
+	custom_track_change = frappe.db.get_value(
+		"Property Setter",
+		filters={
+			"doc_type": doctype,
+			"property": "track_changes"
+		},
+		fieldname="value"
+	)
+	print(custom_track_change)
 	check_if_exists = check(doctype, doc_name, user_email)
 	if check_if_exists == 1:
 		check_if_enable = frappe.db.get_value("User", user_email, "enable_email_for_follow_documents")
-		if user_email != "Administrator" and check_if_enable == 1 and track_changes == 1 and doctype not in avoid_follow:
+		if user_email != "Administrator" and check_if_enable == 1 and (track_changes == 1 or custom_track_change == '1') and doctype not in avoid_follow:
 			doc = frappe.new_doc("Document Follow")
 			doc.update({
 				"ref_doctype": doctype,
