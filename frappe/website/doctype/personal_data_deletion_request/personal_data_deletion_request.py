@@ -68,6 +68,7 @@ class PersonalDataDeletionRequest(Document):
 					SET `{1}` = '{2}' {3}
 					WHERE `name` = '{4}' """.format(ref_doc['doctype'], ref_doc['match_field'], anonymize_match_value,#nosec
 					anonymize_fields, d['name']))
+		self.db_set('status', 'Deleted')
 
 def remove_unverified_record():
 	frappe.db.sql("""DELETE FROM `tabPersonal Data Deletion Request` WHERE `status` = 'Pending Verification' and `creation` < (NOW() - INTERVAL '7' DAY)""")
