@@ -253,7 +253,7 @@ def format_datetime(datetime_string, format_string=None):
 		formatted_datetime = datetime.strftime('%Y-%m-%d %H:%M:%S')
 	return formatted_datetime
 
-def weekdays():
+def get_weekdays():
 	return ['Monday', 'Tuesday', 'Wednesday', 'Thursday','Friday', 'Saturday', 'Sunday']
 
 def global_date_format(date, format="long"):
