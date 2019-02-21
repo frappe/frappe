@@ -250,14 +250,16 @@ def add_metatags(context):
 
 	# Get meta tags from Website Route meta
 	# they can override the defaults set above
-
 	route = context.route
 	if route == '':
 		# homepage
 		route = frappe.db.get_single_value('Website Settings', 'home_page')
 
-	is_not_file = not route.endswith(('.js', '.css'))
-	if is_not_file and frappe.db.exists('Website Route Meta', route):
+	route_exists = (route
+		and route.endswith(('.js', '.css'))
+		and frappe.db.exists('Website Route Meta', route))
+
+	if route_exists:
 		context.setdefault('metatags', frappe._dict({}))
 		website_route_meta = frappe.get_doc('Website Route Meta', route)
 		for meta_tag in website_route_meta.meta_tags:
