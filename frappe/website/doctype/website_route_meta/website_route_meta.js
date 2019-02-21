@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Website Route Meta', {
-	refresh: function() {
-
+	refresh: function(frm) {
+		frm.get_field('__newname').set_label('Route');
 	}
 });
