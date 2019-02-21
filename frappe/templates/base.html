@@ -52,7 +52,7 @@
 		window.socketio_port = {{ frappe.socketio_port }};
     </script>
 </head>
-<body data-path="{{ path }}">
+<body data-path="{{ path | e }}">
 	{%- block banner -%}
 		{% include "templates/includes/banner_extension.html" ignore missing %}
 
