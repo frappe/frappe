@@ -304,8 +304,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.route_options) {
 			this.filters = this.parse_filters_from_route_options();
 
-			return this.filter_area.clear(false)
-				.then(() => this.filter_area.set(this.filters));
+			if (this.filters.length > 0) {
+				return this.filter_area.clear(false)
+					.then(() => this.filter_area.set(this.filters));
+			}
 		}
 
 		return Promise.resolve();
