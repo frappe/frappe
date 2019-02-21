@@ -1,0 +1,53 @@
+@import "variables";
+
+.standard-image {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: $border-radius;
+	border: 1px solid $border-color;
+	width: 1.5rem;
+	height: 1.5rem;
+}
+
+@mixin website-image {
+	display: inline-block;
+	object-fit: contain;
+}
+
+.website-image-small {
+	@include website-image;
+	width: 5rem;
+	height: 5rem;
+}
+
+.website-image-medium {
+	@include website-image;
+	width: 10rem;
+	height: 10rem;
+}
+
+.website-image-large {
+	@include website-image;
+	width: 15rem;
+	height: 15rem;
+}
+
+.website-image-placeholder {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 3rem;
+	color: $gray-300;
+	background: $light;
+}
+
+.website-image-lazy {
+	height: 300px;
+	background-color: $light;
+}
+
+.website-image-broken {
+	padding: 50% 0;
+	background-color: $light;
+}

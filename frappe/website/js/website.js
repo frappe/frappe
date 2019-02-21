@@ -343,7 +343,7 @@ $.extend(frappe, {
 			image_exists(img.src)
 				.then(exists => {
 					if (!exists) {
-						$(img).replaceWith('<div class="broken-image">');
+						$(img).replaceWith('<div class="website-image-broken">');
 					}
 				});
 		})
@@ -352,7 +352,7 @@ $.extend(frappe, {
 		// Use IntersectionObserver to only load images that are visible in the viewport
 		// Fallback for browsers that don't support it
 		// To use this feature, instead of adding an img tag, add
-		// <div class="lazy-image" data-class="img-class" data-src="image.jpg" data-alt="image"></div>
+		// <div class="website-image-lazy" data-class="img-class" data-src="image.jpg" data-alt="image"></div>
 
 		function replace_with_image(target) {
 			const $target = $(target);
@@ -365,7 +365,7 @@ $.extend(frappe, {
 		}
 
 		if (!window.IntersectionObserver) {
-			$('.lazy-image').each((_, el) => {
+			$('.website-image-lazy').each((_, el) => {
 				replace_with_image(el);
 			});
 			return;
@@ -383,7 +383,7 @@ $.extend(frappe, {
 				threshold: [0, 0.2, 0.4, 0.6],
 			});
 
-		$('.lazy-image').each((_, el) => {
+		$('.website-image-lazy').each((_, el) => {
 			// Start observing an element
 			io.observe(el);
 		});
