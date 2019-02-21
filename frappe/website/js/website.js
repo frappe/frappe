@@ -330,24 +330,6 @@ $.extend(frappe, {
 	add_switch_to_desk: function() {
 		$('.switch-to-desk').removeClass('hidden');
 	},
-	setup_404_images: function() {
-		function image_exists(src) {
-			return new Promise(resolve => {
-				var img = new Image();
-				img.onload = () => resolve(true);
-				img.onerror = () => resolve(false);
-				img.src = src;
-			})
-		}
-		$('img').each((_, img) => {
-			image_exists(img.src)
-				.then(exists => {
-					if (!exists) {
-						$(img).replaceWith('<div class="website-image-broken">');
-					}
-				});
-		})
-	},
 	setup_lazy_images: function() {
 		// Use IntersectionObserver to only load images that are visible in the viewport
 		// Fallback for browsers that don't support it
@@ -361,7 +343,6 @@ $.extend(frappe, {
 				.map(key => `${key}="${attrs[key]}"`)
 				.join(' ');
 			$target.replaceWith(`<img ${data_string}>`);
-			frappe.setup_404_images();
 		}
 
 		if (!window.IntersectionObserver) {
@@ -443,7 +424,6 @@ $(document).ready(function() {
 
 	frappe.render_user();
 	frappe.setup_lazy_images();
-	frappe.setup_404_images();
 
 	$(document).trigger("page-change");
 });
