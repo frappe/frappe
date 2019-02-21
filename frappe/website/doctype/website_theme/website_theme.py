@@ -62,7 +62,7 @@ class WebsiteTheme(Document):
 		from subprocess import Popen, PIPE
 		from os.path import join as join_path
 
-		file_name = frappe.scrub(self.name) + frappe.generate_hash('Website Theme', 8) + '.css'
+		file_name = frappe.scrub(self.name) + '_' + frappe.generate_hash('Website Theme', 8) + '.css'
 		output_path = join_path(frappe.utils.get_bench_path(), 'sites', 'assets', 'css', file_name)
 		content = self.custom_theme
 		content = content.replace('\n', '\\n')
