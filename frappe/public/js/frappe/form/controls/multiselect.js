@@ -35,7 +35,7 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 	get_value() {
 		let data = this._super();
 		// find value of label from option list and return actual value string
-		if (this.df.options && this.df.options[0].label) {
+		if (this.df.options && this.df.options.length && this.df.options[0].label) {
 			data = data.split(',').map(op => op.trim());
 			data = data.map(val => {
 				let option = this.df.options.find(op => op.label === val);
@@ -48,7 +48,7 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 	set_formatted_input(value) {
 		if (!value) return;
 		// find label of value from option list and set from it as input
-		if (this.df.options && this.df.options[0].label) {
+		if (this.df.options && this.df.options.length && this.df.options[0].label) {
 			value = value.split(',').map(d => d.trim()).map(val => {
 				let option = this.df.options.find(op => op.value === val);
 				return option ? option.label : val;
