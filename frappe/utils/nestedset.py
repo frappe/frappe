@@ -59,11 +59,10 @@ def update_add_node(doc, parent, parent_field):
 
 	# get the last sibling of the parent
 	if parent:
-		whse_data = frappe.db.sql("select lft, rgt from `tab{0}` where name=%s"
-			.format(doctype), parent, as_dict=1)
-		if whse_data:
-			left = whse_data[0]['lft']
-			right = whse_data[0]['rgt']
+		records = frappe.db.sql("select lft, rgt from `tab"+doctype+"` where name=%s", parent, as_dict=1)
+		if records:
+			left = records[0]['lft']
+			right = records[0]['rgt']
 			validate_loop(doc.doctype, doc.name, left, right)
 		else:
 			frappe.throw(_("Parent("+parent+") is invalid."))
