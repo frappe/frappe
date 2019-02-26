@@ -100,6 +100,11 @@ class Comment(Document):
 		except ValueError:
 			return []
 
+def on_doctype_update():
+	frappe.db.add_index("Comment", ["reference_doctype", "reference_name"])
+	frappe.db.add_index("Comment", ["link_doctype", "link_name"])
+
+
 def update_comment_in_doc(doc):
 	"""Updates `_comments` (JSON) property in parent Document.
 	Creates a column `_comments` if property does not exist.
