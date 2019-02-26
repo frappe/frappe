@@ -155,7 +155,7 @@ def get_comments(doctype, doc_name, frequency):
 			"time": comment.modified,
 			"data": {
 				"time": time,
-				"comment": frappe.utils.html2text(comment.content),
+				"comment": frappe.utils.html2text(str(comment.content)),
 				"by": by
 			},
 			"doctype": doctype,
@@ -200,8 +200,8 @@ def get_row_changed(row_changed, time, doctype, doc_name, v):
 					"table_field": d[0],
 					"row": str(d[1]),
 					"field": d[3][0][0],
-					"from": frappe.utils.html2text(d[3][0][1]),
-					"to": frappe.utils.html2text(d[3][0][2])
+					"from": frappe.utils.html2text(str(d[3][0][1])),
+					"to": frappe.utils.html2text(str(d[3][0][2]))
 				},
 			"doctype": doctype,
 			"doc_name": doc_name,
@@ -237,8 +237,8 @@ def get_field_changed(changed, time, doctype, doc_name, v):
 			"data": {
 					"time": time,
 					"field": d[0],
-					"from": frappe.utils.html2text(d[1]),
-					"to": frappe.utils.html2text(d[2])
+					"from": frappe.utils.html2text(str(d[1])),
+					"to": frappe.utils.html2text(str(d[2]))
 				},
 			"doctype": doctype,
 			"doc_name": doc_name,
