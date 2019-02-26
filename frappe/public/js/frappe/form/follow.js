@@ -17,10 +17,9 @@ frappe.ui.form.Follow = Class.extend({
 	},
 	render_sidebar: function() {
 		var check_enable= this.frm.get_docinfo().check;
-		let track_change = this.frm.get_docinfo().track_change;
 		var me= this;
 		this.set_follow();
-		if (frappe.session.user === "Administrator" || check_enable !== 1 || track_change === 0) {
+		if (frappe.session.user === "Administrator" || check_enable !== 1 || frappe.get_meta(cur_frm.doctype).track_changes === 0) {
 			this.anchor.addClass("hidden");
 			this.followed.addClass("hidden");
 			this.follow_span.addClass("hidden");
@@ -30,7 +29,7 @@ frappe.ui.form.Follow = Class.extend({
 				me.anchor.addClass("text-muted");
 				if(me.follow_span.text() == "Follow"){
 					frappe.call({
-						method: 'frappe.desk.form.doc_subscription.add_subcription',
+						method: 'frappe.desk.form.document_follow.follow_document',
 						args: {
 							'doctype': cur_frm.doctype,
 							'doc_name': cur_frm.doc.name,
@@ -44,7 +43,7 @@ frappe.ui.form.Follow = Class.extend({
 					});
 				} else {
 					frappe.call({
-						method: 'frappe.desk.form.doc_subscription.unfollow',
+						method: 'frappe.desk.form.document_follow.unfollow_document',
 						args: {
 							'doctype': cur_frm.doctype,
 							'doc_name': cur_frm.doc.name,
@@ -86,22 +85,28 @@ frappe.ui.form.Follow = Class.extend({
 		var html ='';
 		return new Promise(resolve => {
 			frappe.call({
-				method: 'frappe.desk.form.doc_subscription.get_follow_users',
+				method: 'frappe.desk.form.document_follow.get_follow_users',
 				args: {
 					'doctype': cur_frm.doctype,
 					'doc_name': cur_frm.doc.name,
 				},
 			}).then(r => {
+				this.count_others = 0;
 				for (var d in r.message){
-					html += frappe.avatar(r.message[d].user, "avatar-small");
+					this.count_others++;
+					if(this.count_others < 4){
+						html += frappe.avatar(r.message[d].user, "avatar-small");
+					}
 				}
-				resolve(html);
+				resolve(html + String(666));
 			});
 		});
 	},
 	follow_action: function(me){
 		frappe.show_alert({
-			message: __('You are now following this document. You will receive daily updates via email. You can change this in User Settings.'),
+			message: __(`You are now following this document.
+				You will receive daily updates via email.
+				You can change this in User Settings.`),
 			indicator: 'orange'
 		});
 		me.anchor.removeClass("text-muted");

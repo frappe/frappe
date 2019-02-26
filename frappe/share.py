@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.desk.form.doc_subscription import add_subcription
+from frappe.desk.form.document_follow import follow_document
 from frappe.utils import cint
 
 @frappe.whitelist()
@@ -42,7 +42,7 @@ def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=No
 	doc.save(ignore_permissions=True)
 	notify_assignment(user, doctype, name, description=None, notify=notify)
 
-	add_subcription(doctype, name, user)
+	follow_document(doctype, name, user)
 
 	return doc
 

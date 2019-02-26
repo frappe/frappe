@@ -9,7 +9,7 @@ import frappe.defaults
 import frappe.desk.form.meta
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
-from frappe.desk.form.doc_subscription import is_document_followed, get_follow_users
+from frappe.desk.form.document_follow import is_document_followed, get_follow_users
 from frappe import _
 
 @frappe.whitelist()
@@ -103,32 +103,12 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"rating": get_feedback_rating(doc.doctype, doc.name),
 		"views": get_view_logs(doc.doctype, doc.name),
 		"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
-		"track_change": track_change(doc),
 		"check": frappe.db.get_value("User", frappe.session.user, "document_follow_notify")
 	}
 
 def get_attachments(dt, dn):
 	return frappe.get_all("File", fields=["name", "file_name", "file_url", "is_private"],
 		filters = {"attached_to_name": dn, "attached_to_doctype": dt})
-
-def track_change(doc):
-
-	custom_track_change = frappe.db.get_value(
-		"Property Setter",
-		filters={
-			"doc_type": doc.doctype,
-			"property": "track_changes"
-		},
-		fieldname="value"
-	)
-
-	track_change = frappe.db.get_value("DocType", doc.doctype, "track_changes")
-
-	if  track_change == 1 or  custom_track_change == '1':
-		return 1
-	else:
-		return 0
-
 
 def get_versions(doc):
 	return frappe.get_all('Version', filters=dict(ref_doctype=doc.doctype, docname=doc.name),

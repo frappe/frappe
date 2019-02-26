@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 
 import frappe
 from frappe import _
-from frappe.desk.form.doc_subscription import add_subcription
+from frappe.desk.form.document_follow import follow_document
 from frappe.desk.form.load import get_docinfo
 import frappe.share
 
@@ -81,7 +81,7 @@ def add(args=None):
 			frappe.msgprint(_('Shared with user {0} with read access').format(args['assign_to']), alert=True)
 
 		# make this document followed by assigned user
-		add_subcription(args['doctype'], args['name'], args['assign_to'])
+		follow_document(args['doctype'], args['name'], args['assign_to'])
 
 	# notify
 	notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',\
