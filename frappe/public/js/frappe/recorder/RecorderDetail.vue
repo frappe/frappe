@@ -106,7 +106,7 @@ export default {
 		return {
 			requests: [],
 			columns: [
-				{label: "CMD", slug: "cmd"},
+				{label: "Path", slug: "path"},
 				{label: "Duration (ms)", slug: "duration", sortable: true, number: true},
 				{label: "Time in Queries (ms)", slug: "time_queries", sortable: true, number: true},
 				{label: "Queries", slug: "queries", sortable: true, number: true},
