@@ -126,21 +126,19 @@ frappe.ui.form.on('Website Theme', {
 							`$body-bg: ${background_color};`
 						);
 					}
-					if (enable_shadows) {
-						scss_lines.push(
-							`$enable-shadows: true;`
-						);
-					}
-					if (enable_gradients) {
-						scss_lines.push(
-							`$enable-gradients: true;`
-						);
-					}
-					if (enable_rounded) {
-						scss_lines.push(
-							`$enable-rounded: true;`
-						);
-					}
+
+					scss_lines.push(
+						`$enable-shadows: ${Boolean(enable_shadows)};`
+					);
+
+					scss_lines.push(
+						`$enable-gradients: ${Boolean(enable_gradients)};`
+					);
+
+					scss_lines.push(
+						`$enable-rounded: ${Boolean(enable_rounded)};`
+					);
+
 					if (font_size) {
 						scss_lines.push(
 							'\n',
