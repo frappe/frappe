@@ -47,7 +47,7 @@ def _toggle_like(doctype, name, add, user=None):
 			if user not in liked_by:
 				liked_by.append(user)
 				add_comment(doctype, name)
-				follow_document(doctype, name, user)
+				follow_document(doctype, name, user, force="no")
 		else:
 			if user in liked_by:
 				liked_by.remove(user)

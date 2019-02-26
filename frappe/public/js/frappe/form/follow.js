@@ -33,7 +33,8 @@ frappe.ui.form.Follow = Class.extend({
 						args: {
 							'doctype': cur_frm.doctype,
 							'doc_name': cur_frm.doc.name,
-							'user_email': frappe.session.user
+							'user_email': frappe.session.user,
+							'force': 'yes'
 						},
 						callback: function(r) {
 							if (r) {

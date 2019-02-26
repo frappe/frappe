@@ -69,7 +69,7 @@ def add_comment(reference_doctype, reference_name, content, comment_email):
 		comment_type = 'Comment'
 	)).insert(ignore_permissions = True)
 
-	follow_document(doc.reference_doctype, doc.reference_name, frappe.session.user)
+	follow_document(doc.reference_doctype, doc.reference_name, frappe.session.user, force="no")
 	return doc.as_dict()
 
 @frappe.whitelist()

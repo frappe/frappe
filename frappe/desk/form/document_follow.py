@@ -9,7 +9,7 @@ from itertools import groupby
 from frappe.utils.background_jobs import enqueue
 
 @frappe.whitelist()
-def follow_document(doctype, doc_name, user_email):
+def follow_document(doctype, doc_name, user_email, force):
 	'''
 		param:
 		Doctype name
@@ -27,7 +27,7 @@ def follow_document(doctype, doc_name, user_email):
 	exists = is_document_followed(doctype, doc_name, user_email)
 	if exists == 0:
 		check_if_enable = frappe.db.get_value("User", user_email, "document_follow_notify")
-		if user_email != "Administrator" and check_if_enable == 1 and track_changes == 1 and doctype not in avoid_follow:
+		if user_email != "Administrator" and check_if_enable == 1 and track_changes == 1 and (doctype not in avoid_follow or force == 'yes'):
 			doc = frappe.new_doc("Document Follow")
 			doc.update({
 				"ref_doctype": doctype,

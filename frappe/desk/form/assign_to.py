@@ -81,7 +81,7 @@ def add(args=None):
 			frappe.msgprint(_('Shared with user {0} with read access').format(args['assign_to']), alert=True)
 
 		# make this document followed by assigned user
-		follow_document(args['doctype'], args['name'], args['assign_to'])
+		follow_document(args['doctype'], args['name'], args['assign_to'], force="no")
 
 	# notify
 	notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',\
