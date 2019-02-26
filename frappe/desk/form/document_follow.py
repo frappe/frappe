@@ -20,7 +20,9 @@ def follow_document(doctype, doc_name, user_email):
 		avoided for some doctype
 		follow only if track changes are set to 1
 	'''
-	avoid_follow = ["Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File", "Version", "View Log", "Document Follow", "Comment"]
+	avoid_follow = ["Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log",
+		"File", "Version", "View Log", "Document Follow", "Comment"]
+
 	track_changes = frappe.get_meta(doctype).track_changes
 	exists = is_document_followed(doctype, doc_name, user_email)
 	if exists == 0:
@@ -57,7 +59,7 @@ def get_message(doc_name, doctype, frequency):
 	t = sorted(html, key=lambda k: k["time"], reverse=True)
 	return t
 
-def send_email_alert(doc_name, doctype, receiver, docinfo, timeline):
+def send_email_alert(receiver, docinfo, timeline):
 	if receiver:
 		email_args = {
 			"template": "document_follow",
@@ -67,12 +69,9 @@ def send_email_alert(doc_name, doctype, receiver, docinfo, timeline):
 			},
 			"recipients": [receiver],
 			"subject": "Document Follow Notification",
-			"reference_doctype": doctype,
-			"reference_name": doc_name,
 			"delayed": False,
 		}
 		enqueue(method=frappe.sendmail, now=True, queue="short", timeout=300, is_async=True, **email_args)
-		frappe.db.commit()
 
 def send_document_follow_mails(frequency):
 
@@ -105,13 +104,12 @@ def send_document_follow_mails(frequency):
 				if content:
 					message = message + content
 					valid_document_follows.append({
-						"ref_docname": d.ref_docname,
-						"ref_doctype": d.ref_doctype,
-						"user": user
+						"reference_docname": d.ref_docname,
+						"reference_doctype": d.ref_doctype,
 					})
 
 			if message:
-				send_email_alert(d.ref_docname, d.ref_doctype, user, valid_document_follows, message)
+				send_email_alert(user, valid_document_follows, message)
 
 
 def get_version(doctype, doc_name, frequency):

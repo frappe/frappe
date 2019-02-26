@@ -10,7 +10,7 @@
 		<td width="15"></td>
 		<td>
 			<div class="text-medium text-muted">
-				<span>{{ doc.ref_doctype }}: {{doc.ref_docname }}</span>
+				<span>{{ doc.reference_doctype }}: {{doc.reference_docname }}</span>
 			</div>
 		</td>
 		<td width="15"></td>
@@ -25,7 +25,7 @@
 			<div>
 				<ul class="list-unstyled" style="line-height: 1.7">
 					{% for data in timeline %}
-						{% if (data.doctype == doc.ref_doctype and data.doc_name == doc.ref_docname) %}
+						{% if (data.doctype == doc.reference_doctype and data.doc_name == doc.reference_docname) %}
 							{% if data.type == "comment" %}
 								<li>
 									<span style ='color:#8d99a6!important'>
