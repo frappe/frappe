@@ -1068,7 +1068,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return {
 				label: __('Delete'),
 				action: () => {
-					const docnames = this.get_checked_items(true);
+					const docnames = this.get_checked_items(true).map(docname => docname.toString());
 					frappe.confirm(__('Delete {0} items permanently?', [docnames.length]),
 						() => bulk_operations.delete(docnames, this.refresh));
 				},
