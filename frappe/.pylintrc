@@ -1,1 +1,1 @@
-disable=access-member-before-definition
+disable=access-member-before-definition, no-member
