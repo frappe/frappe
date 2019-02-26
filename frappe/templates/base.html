@@ -25,8 +25,8 @@
 		{{ head_html or "" }}
 		{%- endif %}
 
-		{% if theme.apply_custom_theme and theme.custom_theme_url %}
-		<link type="text/css" rel="stylesheet" href="{{ theme.custom_theme_url }}">
+		{% if theme.theme_url %}
+		<link type="text/css" rel="stylesheet" href="{{ theme.theme_url }}">
 		{% else %}
 		<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css">
 
