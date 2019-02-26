@@ -79,7 +79,7 @@ const get_options_for_scss = () => {
 			...app_paths
 		]
 	}
-}
+};
 
 module.exports = {
 	sites_path,
