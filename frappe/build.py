@@ -2,14 +2,11 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals, print_function
-from frappe.utils.minify import JavascriptMinify
-import warnings
-
-from six import iteritems, text_type
-import subprocess
-from distutils.spawn import find_executable
-import os, frappe, json, shutil, re
+import os, frappe, json, shutil, re, warnings, subprocess
 from os.path import exists as path_exists, join as join_path, abspath, isdir
+from distutils.spawn import find_executable
+from six import iteritems, text_type
+from frappe.utils.minify import JavascriptMinify
 
 """
 Build the `public` folders and setup languages
