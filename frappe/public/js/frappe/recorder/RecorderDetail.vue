@@ -48,7 +48,7 @@
 						<div class="level list-row small">
 							<div class="level-left ellipsis">
 								<div class="list-row-col ellipsis list-subject level ">
-									<span class="level-item bold">
+									<span class="level-item bold" :title="request[columns[0].slug]">
 										{{ request[columns[0].slug] }}
 									</span>
 								</div>
