@@ -35,7 +35,7 @@ class Comment(Document):
 			after_commit=True)
 
 	def remove_comment_from_cache(self):
-		_comments = self.get_comments_from_parent()
+		_comments = get_comments_from_parent(self)
 		for c in _comments:
 			if c.get("name")==self.name:
 				_comments.remove(c)
@@ -80,25 +80,6 @@ class Comment(Document):
 				header = [_('New Mention'), 'orange']
 			)
 
-	def get_comments_from_parent(self):
-		'''
-		get the list of comments cached in the document record in the column
-		`_comments`
-		'''
-		try:
-			_comments = frappe.db.get_value(self.reference_doctype, self.reference_name, "_comments") or "[]"
-
-		except Exception as e:
-			if frappe.db.is_missing_table_or_column(e):
-				_comments = "[]"
-
-			else:
-				raise
-
-		try:
-			return json.loads(_comments)
-		except ValueError:
-			return []
 
 def on_doctype_update():
 	frappe.db.add_index("Comment", ["reference_doctype", "reference_name"])
@@ -109,7 +90,7 @@ def update_comment_in_doc(doc):
 	"""Updates `_comments` (JSON) property in parent Document.
 	Creates a column `_comments` if property does not exist.
 
-	Only user created comments Communication or Comment of type Comment are saved.
+	Only user created Communication or Comment of type Comment are saved.
 
 	`_comments` format
 
@@ -120,14 +101,14 @@ def update_comment_in_doc(doc):
 		}"""
 
 	# only comments get updates, not likes, assignments etc.
-	if doc.comment_type != 'Comment':
+	if doc.doctype == 'Comment' and doc.comment_type != 'Comment':
 		return
 
 	def get_truncated(content):
 		return (content[:97] + '...') if len(content) > 100 else content
 
 	if doc.reference_doctype and doc.reference_name and doc.content:
-		_comments = doc.get_comments_from_parent()
+		_comments = get_comments_from_parent(doc)
 
 		updated = False
 		for c in _comments:
@@ -138,12 +119,34 @@ def update_comment_in_doc(doc):
 		if not updated:
 			_comments.append({
 				"comment": get_truncated(doc.content),
-				"by": doc.comment_email or doc.owner,
+
+				# "comment_email" for Comment and "sender" for Communication
+				"by": getattr(doc, 'comment_email', None) or getattr(doc, 'sender', None) or doc.owner,
 				"name": doc.name
 			})
 
 		update_comments_in_parent(doc.reference_doctype, doc.reference_name, _comments)
 
+
+def get_comments_from_parent(doc):
+	'''
+	get the list of comments cached in the document record in the column
+	`_comments`
+	'''
+	try:
+		_comments = frappe.db.get_value(doc.reference_doctype, doc.reference_name, "_comments") or "[]"
+
+	except Exception as e:
+		if frappe.db.is_missing_table_or_column(e):
+			_comments = "[]"
+
+		else:
+			raise
+
+	try:
+		return json.loads(_comments)
+	except ValueError:
+		return []
 
 def update_comments_in_parent(reference_doctype, reference_name, _comments):
 	"""Updates `_comments` property in parent Document with given dict.
