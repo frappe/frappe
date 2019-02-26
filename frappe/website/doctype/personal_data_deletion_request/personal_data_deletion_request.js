@@ -11,7 +11,8 @@ frappe.ui.form.on('Personal Data Deletion Request', {
 					freeze: true,
 					callback: function() {
 						frm.refresh();
-					}});
+					}
+				});
 			});
 		}
 	}

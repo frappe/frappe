@@ -7,12 +7,12 @@ import frappe
 from frappe import _
 import re
 from frappe.model.document import Document
+from frappe.utils import validate_email_add
 from frappe.utils.verified_command import get_signed_params, verify_request
 
 class PersonalDataDeletionRequest(Document):
 	def validate(self):
-		if not frappe.db.exists("User", self.email):
-			frappe.throw(_("Invalid User!!!"))
+		validate_email_add(self.email, throw=True)
 
 	def after_insert(self):
 		if self.email in ['Administrator', 'Guest']:
@@ -25,11 +25,18 @@ class PersonalDataDeletionRequest(Document):
 		url = frappe.utils.get_url("/api/method/frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.confirm_deletion") +\
 			"?" + get_signed_params({"email": self.email, "name": self.name, 'host_name': host_name})
 
-		frappe.sendmail(recipients= self.email,
-		subject=_("Confirm Deletion of Data"),
-		template="delete_data_confirmation",
-		args={'email':self.email, 'name':self.name, 'host_name':host_name, 'link':url},
-		header=[_("Confirm Deletion of Data"), "green"])
+		frappe.sendmail(
+			recipients=self.email,
+			subject=_("Confirm Deletion of Data"),
+			template="delete_data_confirmation",
+			args={
+				'email':self.email,
+				'name':self.name,
+				'host_name':host_name,
+				'link':url
+			},
+			header=[_("Confirm Deletion of Data"), "green"]
+		)
 
 	def anonymize_data(self):
 		frappe.only_for('System Manager')
@@ -41,7 +48,8 @@ class PersonalDataDeletionRequest(Document):
 		anonymize_value_map = {
 			'Date': '1111-01-01',
 			'Int': 0,
-			'Code': 'http://xxxxx'}
+			'Code': 'http://xxxxx'
+		}
 
 		regex = re.compile(r"(?<!\.)\b{0}\b(?!\.)".format(re.escape(self.email)))
 

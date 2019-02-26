@@ -12,7 +12,10 @@ from datetime import datetime, timedelta
 class TestPersonalDataDeletionRequest(unittest.TestCase):
 	def setUp(self):
 		create_user_if_not_exists(email='test_delete@example.com')
-		self.delete_request = frappe.get_doc({'doctype':'Personal Data Deletion Request', 'email':'test_delete@example.com'})
+		self.delete_request = frappe.get_doc({
+			'doctype':'Personal Data Deletion Request',
+			'email':'test_delete@example.com'
+		})
 		self.delete_request.save(ignore_permissions=True)
 
 	def test_delete_request(self):
@@ -38,7 +41,8 @@ class TestPersonalDataDeletionRequest(unittest.TestCase):
   			'phone': 'phone',
   			'mobile_no': 'mobile_no'
 		}]
-		self.assertTrue(expected_data, deleted_user)
+		self.assertEqual(expected_data, deleted_user)
+		self.assertEqual(self.delete_request.status, 'Deleted')
 
 	def test_unverified_record_removal(self):
 		date_time_obj = datetime.strptime(self.delete_request.creation, '%Y-%m-%d %H:%M:%S.%f')
