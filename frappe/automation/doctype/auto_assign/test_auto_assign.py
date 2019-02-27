@@ -64,7 +64,9 @@ class TestAutoAssign(unittest.TestCase):
 			self.assertEqual(len(frappe.get_all('ToDo', dict(owner = user, reference_type = 'Note'))), 10)
 
 		# clear 5 assignments for first user
-		frappe.db.sql("delete from tabToDo where reference_type = 'Note' and owner = 'test@example.com' limit 5")
+		# can't do a limit in "delete" since postgres does not support it
+		for d in frappe.get_all('ToDo', dict(reference_type = 'Note', owner = 'test@example.com'), limit=5):
+			frappe.db.sql("delete from tabToDo where name = %s", d.name)
 
 		# add 5 more assignments
 		for i in range(5):
