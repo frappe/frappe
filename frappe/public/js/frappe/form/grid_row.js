@@ -308,13 +308,13 @@ frappe.ui.form.GridRow = Class.extend({
 			this.columns_list.forEach((column, index) => {
 
 				if(!this.frm) {
-					let df = this.grid.visible_columns[index][0]
+					let df = this.grid.visible_columns[index][0];
 
 					let txt = this.doc ?
 						frappe.format(this.doc[df.fieldname], df, null, this.doc) :
 						__(df.label);
 
-					this.refresh_field(df.fieldname, txt)
+					this.refresh_field(df.fieldname, txt);
 				}
 
 				if (!column.df.hidden) {
