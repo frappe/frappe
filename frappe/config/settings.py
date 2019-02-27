@@ -113,6 +113,11 @@ def get_data():
 				},
 				{
 					"type": "doctype",
+					"name": "Auto Email Report",
+					"description": _("Setup Reports to be emailed at regular intervals"),
+				},
+				{
+					"type": "doctype",
 					"name": "Newsletter",
 					"description": _("Create and manage newsletter")
 				}
@@ -167,22 +172,14 @@ def get_data():
 			]
 		},
 		{
-			"label": _("Automation"),
+			"label": _("Applications"),
 			"items":[
 				{
-					"type": "doctype",
-					"name": "Notification",
-					"description": _("Setup Notifications based on various criteria.")
-				},
-				{
-					"type": "doctype",
-					"name": "Auto Assign",
-					"description": _("Automatically assign documents to users.")
-				},
-				{
-					"type": "doctype",
-					"name": "Auto Email Report",
-					"description": _("Setup Reports to be emailed at regular intervals"),
+					"type": "page",
+					"name": "applications",
+					"label": _("Application Installer"),
+					"description": _("Install Applications."),
+					"icon": "fa fa-download"
 				},
 			]
 		}

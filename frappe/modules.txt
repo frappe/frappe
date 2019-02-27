@@ -11,4 +11,3 @@ Contacts
 Data Migration
 Chat
 Social
-Automation
