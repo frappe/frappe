@@ -2839,7 +2839,7 @@ p-try@^1.0.0:
   resolved "https://registry.yarnpkg.com/p-try/-/p-try-1.0.0.tgz#cbc79cdbaf8fd4228e13f621f2b1a237c1b207b3"
   integrity sha1-y8ec26+P1CKOE/Yh8rGiN8GyB7M=
 
-"parchment@github:quilljs/parchment#487850f7eb030a6c4e750ba809e58b09444e0bdb":
+parchment@quilljs/parchment#487850f7eb030a6c4e750ba809e58b09444e0bdb:
   version "2.0.0-dev"
   resolved "https://codeload.github.com/quilljs/parchment/tar.gz/487850f7eb030a6c4e750ba809e58b09444e0bdb"
 
