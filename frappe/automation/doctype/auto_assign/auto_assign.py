@@ -88,6 +88,9 @@ class AutoAssign(Document):
 			frappe.msgprint(frappe._('Auto assignment failed'), indicator = 'orange')
 
 def apply(doc, method):
+	if frappe.flags.in_patch or frappe.flags.in_install:
+		return
+
 	auto_assigns = frappe.cache().get_value('auto_assign', get_auto_assigns)
 	if doc.doctype in auto_assigns:
 		frappe.get_doc('Auto Assign', doc.doctype).apply(doc.as_dict())
