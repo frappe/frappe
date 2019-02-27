@@ -71,7 +71,7 @@ def get_all_empty_tables_by_module():
 		SELECT
 			name, module
 		FROM information_schema.tables as i
-		JOIN tabDoctype as d
+		JOIN tabDocType as d
 			ON i.table_name = CONCAT('tab', d.name)
 		WHERE table_rows = 0;
 
