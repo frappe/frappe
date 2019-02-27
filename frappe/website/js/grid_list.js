@@ -116,10 +116,10 @@ export default function make_datatable(container, doctype) {
 			args: { doctype },
 			callback: (r) => {
 				const docfields = r.message;
-				var data = frappe.utils.get_query_params()
-				data.doctype = doctype
-				data.fields = docfields.map(df => df.fieldname)
-				data.web_form_name = window.web_form_settings.web_form_name
+				var data = frappe.utils.get_query_params();
+				data.doctype = doctype;
+				data.fields = docfields.map(df => df.fieldname);
+				data.web_form_name = window.web_form_settings.web_form_name;
 				frappe.call({
 					method: 'frappe.www.list.get_list_data',
 					args: data,
