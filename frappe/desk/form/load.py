@@ -103,7 +103,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"rating": get_feedback_rating(doc.doctype, doc.name),
 		"views": get_view_logs(doc.doctype, doc.name),
 		"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
-		"check": frappe.db.get_value("User", frappe.session.user, "document_follow_notify")
+		"document_follow_enabled": frappe.db.get_value("User", frappe.session.user, "document_follow_notify")
 	}
 
 def get_attachments(dt, dn):

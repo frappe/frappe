@@ -77,11 +77,14 @@
 	</li>
 </ul>
 <ul class="list-unstyled sidebar-menu followed-by-section">
-	<li class="h6 followed-by-label text-medium">{%= __("Followed by") %}</li>
-	<li class="form-followed"></li>
+	<li class="h6 followed-by-label text-medium hidden">{%= __("Followed by") %}</li>
+	<li class="followed-by"></li>
 	<li class="document-follow">
-		<a class="strong badge-hover anchor-document-follow">
-			<span></span>
+		<a class="strong badge-hover follow-document-link hidden">
+			{%= __("Follow") %}
+		</a>
+		<a class="strong badge-hover unfollow-document-link hidden">
+			{%= __("Unfollow") %}
 		</a>
 	</li>
 </ul>

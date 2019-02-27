@@ -5,11 +5,12 @@ from __future__ import unicode_literals
 import frappe
 import json
 import frappe.utils
+from frappe import _
 from itertools import groupby
 from frappe.utils.background_jobs import enqueue
 
 @frappe.whitelist()
-def follow_document(doctype, doc_name, user_email, force):
+def follow_document(doctype, doc_name, user, force=False):
 	'''
 		param:
 		Doctype name
@@ -24,27 +25,27 @@ def follow_document(doctype, doc_name, user_email, force):
 		"File", "Version", "View Log", "Document Follow", "Comment"]
 
 	track_changes = frappe.get_meta(doctype).track_changes
-	exists = is_document_followed(doctype, doc_name, user_email)
+	exists = is_document_followed(doctype, doc_name, user)
 	if exists == 0:
-		check_if_enable = frappe.db.get_value("User", user_email, "document_follow_notify")
-		if user_email != "Administrator" and check_if_enable == 1 and track_changes == 1 and (doctype not in avoid_follow or force == 'yes'):
+		user_can_follow = frappe.db.get_value("User", user, "document_follow_notify")
+		if user != "Administrator" and user_can_follow and track_changes and (doctype not in avoid_follow or force):
 			doc = frappe.new_doc("Document Follow")
 			doc.update({
 				"ref_doctype": doctype,
 				"ref_docname": doc_name,
-				"user": user_email
+				"user": user
 			})
 			doc.save()
 			return doc
 
 @frappe.whitelist()
-def unfollow_document(doctype, doc_name, user_email):
+def unfollow_document(doctype, doc_name, user):
 	doc = frappe.get_all(
 		"Document Follow",
 		filters={
 			"ref_doctype": doctype,
 			"ref_docname": doc_name,
-			"user": user_email
+			"user": user
 		},
 		fields=["name"],
 		limit=1
@@ -55,23 +56,20 @@ def unfollow_document(doctype, doc_name, user_email):
 	return 0
 
 def get_message(doc_name, doctype, frequency):
-	html = get_version(doctype, doc_name, frequency) + get_comments(doctype, doc_name, frequency)
-	t = sorted(html, key=lambda k: k["time"], reverse=True)
-	return t
+	activity_list = get_version(doctype, doc_name, frequency) + get_comments(doctype, doc_name, frequency)
+	return sorted(activity_list, key=lambda k: k["time"], reverse=True)
 
 def send_email_alert(receiver, docinfo, timeline):
 	if receiver:
-		email_args = {
-			"template": "document_follow",
-			"args": {
+		frappe.sendmail(
+			subject=_("Document Follow Notification"),
+			recipients=[receiver],
+			template="document_follow",
+			args={
 				"docinfo": docinfo,
 				"timeline": timeline,
-			},
-			"recipients": [receiver],
-			"subject": "Document Follow Notification",
-			"delayed": False,
-		}
-		enqueue(method=frappe.sendmail, now=True, queue="short", timeout=300, is_async=True, **email_args)
+			}
+		)
 
 def send_document_follow_mails(frequency):
 

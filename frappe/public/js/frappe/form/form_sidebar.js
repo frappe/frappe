@@ -133,7 +133,7 @@ frappe.ui.form.Sidebar = Class.extend({
 		frappe.ui.setup_like_popover(this.sidebar.find(".liked-by-parent"), ".liked-by");
 	},
 	make_follow: function(){
-		this.frm.follow = new frappe.ui.form.Follow({
+		this.frm.follow = new frappe.ui.form.DocumentFollow({
 			frm: this.frm,
 			parent: this.sidebar.find(".followed-by-section")
 		});
