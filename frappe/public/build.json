@@ -351,12 +351,6 @@
 		"public/js/frappe/views/reports/print_grid.html",
 		"public/js/frappe/views/reports/print_tree.html"
 	],
-	"js/web_form.min.js": [
-		"public/js/frappe/misc/datetime.js",
-		"website/js/web_form.js",
-		"public/js/lib/datepicker/datepicker.min.js",
-		"public/js/lib/datepicker/datepicker.en.js"
-	],
 	"css/web_form.css": [
 		"public/less/list.less",
 		"website/css/web_form.css",

@@ -43,7 +43,7 @@ class HelpArticle(WebsiteGenerator):
 	def get_parents(self, context):
 		return [{"title": context.category.category_name, "route":context.category.route}]
 
-def get_list_context(context=None):
+def get_(context=None):
 	filters = dict(published=1)
 
 	category = frappe.db.get_value("Help Category", { "route": frappe.local.path })

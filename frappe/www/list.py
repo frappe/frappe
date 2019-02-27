@@ -7,6 +7,7 @@ from frappe.utils import cint, quoted
 from frappe.website.render import resolve_path
 from frappe.model.document import get_controller, Document
 from frappe import _
+import datetime
 
 no_cache = 1
 no_sitemap = 1
@@ -22,6 +23,7 @@ def get_context(context, **dict_params):
 	context.doctype = doctype
 	context.txt = frappe.local.form_dict.txt
 	context.update(get(**frappe.local.form_dict))
+	context.time = frappe.form_dict.time
 
 @frappe.whitelist(allow_guest=True)
 def get(doctype, txt=None, limit_start=0, limit=20, pathname=None, **kwargs):
@@ -43,27 +45,54 @@ def get(doctype, txt=None, limit_start=0, limit=20, pathname=None, **kwargs):
 	result = []
 	row_template = list_context.row_template or "templates/includes/list/row_template.html"
 	list_view_fields = [df for df in meta.fields if df.in_list_view][:4]
+	time = frappe.form_dict.time
 
 	for doc in raw_result:
-		doc.doctype = doctype
-		new_context = frappe._dict(doc=doc, meta=meta,
-			list_view_fields=list_view_fields)
+		if doctype == 'Attendance' and time:
+			if time == 'today':
+				checker = bool(doc.attendance_date == datetime.date.today())
+			elif time == 'monthly':
+				checker = bool((doc.attendance_date).month == datetime.date.today().month)
+			elif time == 'weekly':
+				checker = bool((doc.attendance_date).strftime("%V") == datetime.date.today().strftime("%V"))
 
-		if not list_context.get_list and not isinstance(new_context.doc, Document):
-			new_context.doc = frappe.get_doc(doc.doctype, doc.name)
-			new_context.update(new_context.doc.as_dict())
+			if checker:
+				doc.doctype = doctype
+				new_context = frappe._dict(doc=doc, meta=meta,
+					list_view_fields=list_view_fields, time=time)
 
-		if not frappe.flags.in_test:
-			pathname = pathname or frappe.local.request.path
-			new_context["pathname"] = pathname.strip("/ ")
-		new_context.update(list_context)
-		set_route(new_context)
-		rendered_row = frappe.render_template(row_template, new_context, is_path=True)
-		result.append(rendered_row)
+				if not list_context.get_list and not isinstance(new_context.doc, Document):
+					new_context.doc = frappe.get_doc(doc.doctype, doc.name)
+					new_context.update(new_context.doc.as_dict())
+
+				if not frappe.flags.in_test:
+					pathname = pathname or frappe.local.request.path
+					new_context["pathname"] = pathname.strip("/ ")
+				new_context.update(list_context)
+				set_route(new_context)
+				rendered_row = frappe.render_template(row_template, new_context, is_path=True)
+				result.append(rendered_row)
+		
+		else:
+			doc.doctype = doctype
+			new_context = frappe._dict(doc=doc, meta=meta,
+				list_view_fields=list_view_fields, time=time)
+
+			if not list_context.get_list and not isinstance(new_context.doc, Document):
+				new_context.doc = frappe.get_doc(doc.doctype, doc.name)
+				new_context.update(new_context.doc.as_dict())
+
+			if not frappe.flags.in_test:
+				pathname = pathname or frappe.local.request.path
+				new_context["pathname"] = pathname.strip("/ ")
+			new_context.update(list_context)
+			set_route(new_context)
+			rendered_row = frappe.render_template(row_template, new_context, is_path=True)
+			result.append(rendered_row)
 
 	from frappe.utils.response import json_handler
 	return {
-		"raw_result": json.dumps(raw_result, default=json_handler),
+		"raw_result": raw_result,
 		"result": result,
 		"show_more": show_more,
 		"next_start": limit_start + limit,

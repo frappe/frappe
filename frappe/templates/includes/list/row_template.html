@@ -3,10 +3,11 @@
 		{% if list_view_fields %}
 			<div class='row'>
 				{% for df in list_view_fields %}
-				<div class='col-sm-{{ (12/(list_view_fields|len))|int }}'>
+				<div class='col-sm-{{ (10/(list_view_fields|len))|int }}'>
 					{{ doc.get(df.fieldname) }}
 				</div>
 				{% endfor %}
+				<a href="/{{ route }}" class="btn btn-default">Print</a>
 			</div>
 		{% else %}
         	<p>{{ doc.get(title_field) }}</p>

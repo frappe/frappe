@@ -104,9 +104,7 @@ frappe.views.BaseList = class BaseList {
 			}
 			return f;
 		});
-		// remove null or undefined values
-		this.fields = this.fields.filter(Boolean);
-		//de-duplicate
+		//de-dup
 		this.fields = this.fields.uniqBy(f => f[0] + f[1]);
 	}
 

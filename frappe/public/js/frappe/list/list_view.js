@@ -290,10 +290,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.route_options) {
 			this.filters = this.parse_filters_from_route_options();
 
-			if (this.filters.length > 0) {
-				return this.filter_area.clear(false)
-					.then(() => this.filter_area.set(this.filters));
-			}
+			return this.filter_area.clear(false)
+				.then(() => this.filter_area.set(this.filters));
 		}
 
 		return Promise.resolve();
@@ -865,7 +863,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						}
 						return return_value;
 					});
-					this.toggle_result_area();
+
 					this.render();
 				});
 		});

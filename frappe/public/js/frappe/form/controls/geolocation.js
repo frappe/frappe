@@ -16,7 +16,7 @@ frappe.ui.form.ControlGeolocation = frappe.ui.form.ControlCode.extend({
 		if ($input_wrapper.is(':visible')) {
 			this.make_map();
 		} else {
-			$(document).on('frappe.ui.Dialog:shown', () => {
+			$(document).on('quick-entry-dialog-open', () => {
 				this.make_map();
 			});
 		}

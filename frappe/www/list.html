@@ -1,11 +1,16 @@
 {% extends "templates/web.html" %}
 
 {% block title %}
-	{{ title or (_("{0} List").format(_(doctype))) }}
+	{{(_("{0} List").format(_(doctype))) or title}}
 {% endblock %}
 
 {% block header %}
-	<h1>{{ title or (_("{0} List").format(_(doctype))) }}</h1>
+{% if doctype == 'Attendance' %}
+<a href="/attendance?time=today" class="btn btn-default pull-right">Today</a>
+<a href="/attendance?time=weekly" class="btn btn-default pull-right">Weekly</a>
+<a href="/attendance?time=monthly" class="btn btn-default pull-right">Monthly</a>
+{% endif %}
+    <h1>{{(_("{0} List").format(_(doctype))) or title}}</h1>
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -23,7 +28,6 @@
 {% endblock %}
 
 {% block page_content %}
-
 {% if introduction %}<p>{{ introduction }}</p>{% endif %}
 {% include "templates/includes/list/list.html" %}
 {% if list_footer %}{{ list_footer }}{% endif %}

@@ -119,7 +119,7 @@ frappe.ui.form.on("Customize Form", {
 			frm.set_df_property("sort_field", "options", fields);
 		}
 
-		if(frappe.route_options && frappe.route_options.doc_type) {
+		if(frappe.route_options) {
 			setTimeout(function() {
 				frm.set_value("doc_type", frappe.route_options.doc_type);
 				frappe.route_options = null;
