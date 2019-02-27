@@ -330,8 +330,8 @@ class User(Document):
 
 		# unlink contact
 		frappe.db.sql("""update `tabContact`
-		set user=null
-		where name=%s""", (self.full_name))
+			set user=null
+			where user=%s""", (self.name))
 
 
 	def before_rename(self, old_name, new_name, merge=False):
