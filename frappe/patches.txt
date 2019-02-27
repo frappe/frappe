@@ -104,8 +104,6 @@ frappe.patches.v4_3.remove_allow_on_submit_customization
 frappe.patches.v5_0.rename_table_fieldnames
 frappe.patches.v5_0.communication_parent
 frappe.patches.v5_0.clear_website_group_and_notifications
-execute:frappe.db.sql("""update tabComment set comment = substr(comment, 6, locate(":", comment)-6) where comment_type in ("Assigned", "Assignment Completed")""")
-execute:frappe.db.sql("update `tabComment` set comment_type='Comment' where comment_doctype='Blog Post' and ifnull(comment_type, '')=''")
 frappe.patches.v5_0.update_shared
 execute:frappe.reload_doc("core", "doctype", "docshare") #2015-07-21
 frappe.patches.v6_19.comment_feed_communication
@@ -234,3 +232,4 @@ frappe.patches.v12_0.set_primary_key_in_series
 execute:frappe.reload_doc('core', 'doctype', 'document_follow')
 execute:frappe.delete_doc("Page", "modules", ignore_missing=True)
 frappe.patches.v11_0.set_default_letter_head_source
+frappe.patches.v12_0.setup_comments_from_communications

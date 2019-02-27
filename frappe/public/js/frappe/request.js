@@ -75,6 +75,12 @@ frappe.call = function(opts) {
 		}
 	}
 
+	let url = opts.url;
+	if (!url) {
+		url = '/api/method/' + args.cmd;
+		delete args.cmd;
+	}
+
 	return frappe.request.call({
 		type: opts.type || "POST",
 		args: args,
@@ -87,7 +93,7 @@ frappe.call = function(opts) {
 		headers: opts.headers || {},
 		// show_spinner: !opts.no_spinner,
 		async: opts.async,
-		url: opts.url || frappe.request.url,
+		url,
 	});
 }
 
