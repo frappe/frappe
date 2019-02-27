@@ -64,7 +64,7 @@ class TestAutoAssign(unittest.TestCase):
 			self.assertEqual(len(frappe.get_all('ToDo', dict(owner = user, reference_type = 'Note'))), 10)
 
 		# clear 5 assignments for first user
-		frappe.db.sql('delete from tabToDo where reference_type = "Note" and owner = "test@example.com" limit 5')
+		frappe.db.sql("delete from tabToDo where reference_type = 'Note' and owner = 'test@example.com' limit 5")
 
 		# add 5 more assignments
 		for i in range(5):
@@ -107,7 +107,7 @@ class TestAutoAssign(unittest.TestCase):
 		), 'owner'), None)
 
 def clear_assignments():
-	frappe.db.sql('delete from tabToDo where reference_type = "Note"')
+	frappe.db.sql("delete from tabToDo where reference_type = 'Note'")
 
 def get_auto_assign():
 	frappe.delete_doc_if_exists('Auto Assign', 'Note')
