@@ -124,7 +124,8 @@ frappe.msgprint = function(msg, title) {
 		// msgprint should be narrower than the usual dialog
 		msg_dialog.wrapper.classList.add('msgprint-dialog')
 
-		msg_dialog.msg_area = $('<div class="msgprint-content">')
+		// class "msgprint" is used in tests
+		msg_dialog.msg_area = $('<div class="msgprint">')
 			.appendTo(msg_dialog.body);
 
 		msg_dialog.loading_indicator = $('<div class="loading-indicator text-center" \
