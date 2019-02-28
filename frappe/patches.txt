@@ -235,3 +235,4 @@ frappe.patches.v11_0.delete_all_prepared_reports
 frappe.patches.v11_0.fix_order_by_in_reports_json
 execute:frappe.delete_doc('Page', 'applications', ignore_missing=True)
 frappe.patches.v11_0.set_missing_creation_and_modified_value_for_user_permissions
+frappe.patches.v11_0.remove_doctype_user_permissions_for_page_and_report

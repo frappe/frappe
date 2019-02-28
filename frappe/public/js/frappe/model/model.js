@@ -248,8 +248,7 @@ $.extend(frappe.model, {
 	is_submittable: function(doctype) {
 		if(!doctype) return false;
 		return locals.DocType[doctype]
-			&& locals.DocType[doctype].is_submittable
-			&& !this.has_workflow(doctype);
+			&& locals.DocType[doctype].is_submittable;
 	},
 
 	is_table: function(doctype) {
