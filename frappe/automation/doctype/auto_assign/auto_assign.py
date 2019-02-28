@@ -22,7 +22,9 @@ class AutoAssign(Document):
 
 		# try clearing
 		if self.unassign_condition:
-			self.clear_assignment(doc)
+			return self.clear_assignment(doc)
+
+		return False
 
 	def do_assignment(self, doc):
 		user = self.get_user()
@@ -31,7 +33,7 @@ class AutoAssign(Document):
 			assign_to = user,
 			doctype = doc.get('doctype'),
 			name = doc.get('name'),
-			description = self.description
+			description = frappe.render_template(self.description, doc)
 		))
 
 		# set for reference in round robin
@@ -40,7 +42,7 @@ class AutoAssign(Document):
 	def clear_assignment(self, doc):
 		'''Clear assignments'''
 		if self.safe_eval('unassign_condition', doc):
-			assign_to.clear(doc.get('doctype'), doc.get('name'))
+			return assign_to.clear(doc.get('doctype'), doc.get('name'))
 
 	def get_user(self):
 		'''
@@ -98,7 +100,7 @@ def apply(doc, method):
 	auto_assigns = frappe.cache().get_value('auto_assign', get_auto_assigns)
 	if doc.doctype in auto_assigns:
 		# multiple auto assigns
-		for d in frappe.db.get_all('Auto Assign', dict(document_type=doc.doctype, disabled = 0)):
+		for d in frappe.db.get_all('Auto Assign', dict(document_type=doc.doctype, disabled = 0), order_by = 'priority desc'):
 			if frappe.get_doc('Auto Assign', d.name).apply(doc.as_dict()):
 				break
 

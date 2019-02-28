@@ -108,15 +108,26 @@ class TestAutoAssign(unittest.TestCase):
 			status = 'Open'
 		), 'owner'), None)
 
+	def check_multiple_rules(self):
+		note = make_note(dict(public=1, notify_on_login=1))
+
+		# check if auto assigned to test3 (2nd rule is applied, as it has higher priority)
+		self.assertEqual(frappe.db.get_value('ToDo', dict(
+			reference_type = 'Note',
+			reference_name = note.name,
+			status = 'Open'
+		), 'owner'), 'test@example.com')
+
 def clear_assignments():
 	frappe.db.sql("delete from tabToDo where reference_type = 'Note'")
 
 def get_auto_assign():
-	frappe.delete_doc_if_exists('Auto Assign', 'For Note')
+	frappe.delete_doc_if_exists('Auto Assign', 'For Note 1')
 
 	auto_assign = frappe.get_doc(dict(
-		name = 'For Note',
+		name = 'For Note 1',
 		doctype = 'Auto Assign',
+		priority = 0,
 		document_type = 'Note',
 		assign_condition = 'public == 1',
 		unassign_condition = 'public == 0',
@@ -127,6 +138,23 @@ def get_auto_assign():
 			dict(user = 'test2@example.com'),
 		]
 	)).insert()
+
+	frappe.delete_doc_if_exists('Auto Assign', 'For Note 2')
+
+	# 2nd rule
+	frappe.get_doc(dict(
+		name = 'For Note 2',
+		doctype = 'Auto Assign',
+		priority = 1,
+		document_type = 'Note',
+		assign_condition = 'notify_on_login == 1',
+		unassign_condition = 'notify_on_login == 0',
+		rule = 'Round Robin',
+		users = [
+			dict(user = 'test3@example.com')
+		]
+	)).insert()
+
 
 	return auto_assign
 
