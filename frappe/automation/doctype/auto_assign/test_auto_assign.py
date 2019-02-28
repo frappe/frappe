@@ -56,7 +56,7 @@ class TestAutoAssign(unittest.TestCase):
 		self.auto_assign.rule = 'Load Balancing'
 		self.auto_assign.save()
 
-		for i in range(30):
+		for _ in range(30):
 			note = make_note(dict(public=1))
 
 		# check if each user has 10 assignments (?)
@@ -70,7 +70,7 @@ class TestAutoAssign(unittest.TestCase):
 
 		# add 5 more assignments
 		for i in range(5):
-			note = make_note(dict(public=1))
+			make_note(dict(public=1))
 
 		# check if each user still has 10 assignments
 		for user in ('test@example.com', 'test1@example.com', 'test2@example.com'):

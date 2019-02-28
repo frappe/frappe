@@ -9,7 +9,7 @@ from frappe.model.document import Document
 from frappe.desk.form import assign_to
 
 class AutoAssign(Document):
-	def on_update(self):
+	def on_update(self): # pylint: disable=no-self-use
 		frappe.cache().delete_value('auto_assign')
 
 	def apply(self, doc):
