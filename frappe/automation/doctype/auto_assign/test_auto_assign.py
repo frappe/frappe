@@ -112,9 +112,10 @@ def clear_assignments():
 	frappe.db.sql("delete from tabToDo where reference_type = 'Note'")
 
 def get_auto_assign():
-	frappe.delete_doc_if_exists('Auto Assign', 'Note')
+	frappe.delete_doc_if_exists('Auto Assign', 'For Note')
 
 	auto_assign = frappe.get_doc(dict(
+		name = 'For Note',
 		doctype = 'Auto Assign',
 		document_type = 'Note',
 		assign_condition = 'public == 1',

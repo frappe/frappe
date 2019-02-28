@@ -3,8 +3,8 @@
  "allow_events_in_timeline": 0,
  "allow_guest_to_view": 0,
  "allow_import": 0,
- "allow_rename": 0,
- "autoname": "field:document_type",
+ "allow_rename": 1,
+ "autoname": "Prompt",
  "beta": 0,
  "creation": "2019-02-27 11:44:44.232703",
  "custom": 0,
@@ -46,7 +46,7 @@
    "search_index": 0,
    "set_only_once": 0,
    "translatable": 0,
-   "unique": 1
+   "unique": 0
   },
   {
    "allow_bulk_edit": 0,
@@ -384,7 +384,7 @@
  "issingle": 0,
  "istable": 0,
  "max_attachments": 0,
- "modified": "2019-02-27 17:16:30.680993",
+ "modified": "2019-02-28 15:07:20.601577",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Auto Assign",

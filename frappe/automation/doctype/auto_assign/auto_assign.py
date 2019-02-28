@@ -12,12 +12,16 @@ class AutoAssign(Document):
 	def on_update(self): # pylint: disable=no-self-use
 		frappe.cache().delete_value('auto_assign')
 
+	def after_rename(self): # pylint: disable=no-self-use
+		frappe.cache().delete_value('auto_assign')
+
 	def apply(self, doc):
 		if self.safe_eval('assign_condition', doc):
 			self.do_assignment(doc)
+			return True
 
 		# try clearing
-		elif self.unassign_condition:
+		if self.unassign_condition:
 			self.clear_assignment(doc)
 
 	def do_assignment(self, doc):
@@ -93,7 +97,10 @@ def apply(doc, method):
 
 	auto_assigns = frappe.cache().get_value('auto_assign', get_auto_assigns)
 	if doc.doctype in auto_assigns:
-		frappe.get_doc('Auto Assign', doc.doctype).apply(doc.as_dict())
+		# multiple auto assigns
+		for d in frappe.db.get_all('Auto Assign', dict(document_type=doc.doctype, disabled = 0)):
+			if frappe.get_doc('Auto Assign', d.name).apply(doc.as_dict()):
+				break
 
 def get_auto_assigns():
-	return [d.name for d in frappe.db.get_all('Auto Assign', dict(disabled = 0))]
+	return [d.document_type for d in frappe.db.get_all('Auto Assign', fields=['document_type'], filters=dict(disabled = 0))]
