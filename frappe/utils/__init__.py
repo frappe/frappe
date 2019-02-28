@@ -565,7 +565,9 @@ def parse_json(val):
 	"""
 	if isinstance(val, string_types):
 		val = json.loads(val)
-	return frappe._dict(val)
+	if isinstance(val, dict):
+		val = frappe._dict(val)
+	return val
 
 def cast_fieldtype(fieldtype, value):
 	if fieldtype in ("Currency", "Float", "Percent"):
