@@ -1,7 +1,7 @@
 // Copyright (c) 2019, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Auto Assign', {
+frappe.ui.form.on('Assignment Rule', {
 	refresh: function(frm) {
 		// refresh description
 		frm.events.rule(frm);

@@ -8,7 +8,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.desk.form import assign_to
 
-class AutoAssign(Document):
+class AssignmentRule(Document):
 	def on_update(self): # pylint: disable=no-self-use
 		frappe.cache().delete_value('assignment_rule')
 
