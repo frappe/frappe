@@ -89,7 +89,7 @@ def send_document_follow_mails(frequency):
 	sorted_users = sorted(users, key=lambda k: k["user"])
 
 	grouped_by_user = {}
-	for k, v in groupby(sorted_users, key=lambda k: k["user"]):
+	for k, v in groupby(sorted_users, key=lambda k: k.get('user', None)):
 		grouped_by_user[k] = list(v)
 
 	for user in grouped_by_user:
