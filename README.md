@@ -20,11 +20,17 @@
     <a href='https://frappe.io/docs'>
         <img src='https://img.shields.io/badge/docs-📖-7575FF.svg?style=flat-square'/>
     </a>
-	<a href='https://www.codetriage.com/frappe/frappe'>
-		<img src='https://www.codetriage.com/frappe/frappe/badges/users.svg'>
-	</a>
+    <a href='https://www.codetriage.com/frappe/frappe'>
+        <img src='https://www.codetriage.com/frappe/frappe/badges/users.svg'>
+    </a>
     <a href='https://coveralls.io/github/frappe/frappe?branch=develop'>
         <img src='https://coveralls.io/repos/github/frappe/frappe/badge.svg?branch=develop'>
+    </a>
+    <a href='http://isitmaintained.com/project/frappe/frappe'>
+        <img src='http://isitmaintained.com/badge/resolution/frappe/frappe.svg' alt='Average time to resolve an issue'>
+    </a>
+    <a href='http://isitmaintained.com/project/frappe/frappe'>
+        <img src='http://isitmaintained.com/badge/open/frappe/frappe.svg' alt='Percentage of issues still open'>
     </a>
 </div>
 
