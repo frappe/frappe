@@ -90,7 +90,7 @@ $.extend(frappe.model, {
 		for(var fid=0;fid<docfields.length;fid++) {
 			var f = docfields[fid];
 			if(!in_list(frappe.model.no_value_type, f.fieldtype) && doc[f.fieldname]==null) {
-				var v = frappe.model.get_default_value(f, doc, parent_doc);
+				var v = !f.depends_on || doc[f.depends_on] ? frappe.model.get_default_value(f, doc, parent_doc) : null;
 				if(v) {
 					if(in_list(["Int", "Check"], f.fieldtype))
 						v = cint(v);
