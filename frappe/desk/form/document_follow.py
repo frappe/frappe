@@ -93,7 +93,6 @@ def send_document_follow_mails(frequency):
 	for k, v in groupby(sorted_users, key=lambda k: k['user']):
 		grouped_by_user[k] = list(v)
 
-	print(grouped_by_user)
 	for user in grouped_by_user:
 		user_frequency = frappe.db.get_value("User", user, "document_follow_frequency")
 		message = []
