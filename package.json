@@ -36,7 +36,7 @@
     "socket.io": "^2.0.4",
     "superagent": "^3.8.2",
     "touch": "^3.1.0",
-    "vue": "^2.5.17",
+    "vue": "2.5.17",
     "vue-router": "^2.0.0"
   },
   "devDependencies": {

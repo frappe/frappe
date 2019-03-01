@@ -62,6 +62,11 @@ def get_modules_from_app(app):
 				to_add = False
 
 			if to_add:
+<<<<<<< HEAD
+=======
+				m["shortcuts"] = get_onboard_items(app, frappe.scrub(m["module_name"]))[:5]
+				m["app"] = app
+>>>>>>> feat(desk): DeskModuleBox, get some links if not set
 				active_modules_list.append(m)
 
 	return active_modules_list

@@ -252,6 +252,46 @@ def get_setup_section(app, module, label, icon):
 				"items": section["items"]
 			}
 
+
+def get_onboard_items(app, module):
+	try:
+		sections = get_config(app, module)
+	except ImportError:
+		return []
+
+	onboard_items = []
+	fallback_items = []
+
+	for section in sections:
+		for item in section["items"]:
+			if item.get("onboard", 0) == 1:
+				onboard_items.append(item)
+
+			# in case onboard is not set
+			fallback_items.append(item)
+
+			if len(onboard_items) > 5:
+				return onboard_items
+
+	return onboard_items or fallback_items
+
+
+@frappe.whitelist()
+def get_links(app, module):
+	try:
+		sections = get_config(app, frappe.scrub(module))
+	except ImportError:
+		return []
+
+	link_names = []
+
+
+	for section in sections:
+		for item in section["items"]:
+			link_names.append(item.get("label"))
+	print(link_names)
+	return link_names
+
 def set_last_modified(data):
 	for section in data:
 		for item in section["items"]:
