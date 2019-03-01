@@ -125,9 +125,17 @@ def remove(doctype, name, assign_to):
 	return get({"doctype": doctype, "name": name})
 
 def clear(doctype, name):
-	for assign_to in frappe.db.sql_list("""select owner from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s""", locals()):
-			remove(doctype, name, assign_to)
+	'''
+	Clears assignments, return False if not assigned.
+	'''
+	assignments = frappe.db.get_all('ToDo', fields=['owner'], filters = dict(reference_type = doctype, reference_name = name))
+	if not assignments:
+		return False
+
+	for assign_to in assignments:
+		remove(doctype, name, assign_to.owner)
+
+	return True
 
 def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 	description=None, notify=0):

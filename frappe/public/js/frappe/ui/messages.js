@@ -122,7 +122,7 @@ frappe.msgprint = function(msg, title) {
 		});
 
 		// msgprint should be narrower than the usual dialog
-		msg_dialog.wrapper.classList.add('msgprint-dialog')
+		msg_dialog.wrapper.classList.add('msgprint-dialog');
 
 		// class "msgprint" is used in tests
 		msg_dialog.msg_area = $('<div class="msgprint">')
