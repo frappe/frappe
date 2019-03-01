@@ -13,6 +13,12 @@ def get_modules_from_all_apps_for_user(user=None):
 
 	allowed_modules_list = [m for m in all_modules if m.get("module_name") not in user_blocked_modules]
 
+	empty_tables_by_module = get_all_empty_tables_by_module()
+
+	for module in allowed_modules_list:
+		if module["module_name"] in empty_tables_by_module:
+			module["onboard_present"] = 1
+
 	return allowed_modules_list
 
 def get_modules_from_all_apps():
@@ -56,34 +62,30 @@ def get_modules_from_app(app):
 				to_add = False
 
 			if to_add:
-				onboard_present = is_onboard_present(m) if show_onboard(m) else False
-				m["onboard_present"] = onboard_present
 				active_modules_list.append(m)
 
 	return active_modules_list
 
-@frappe.whitelist()
-def is_onboard_present(module):
-	exists_cache = {}
-	def exists(name, link_type):
-		exists = exists_cache.get(name)
-		if not exists:
-			if link_type == "doctype" and not frappe.db.get_value('DocType', name, 'issingle'):
-				exists = frappe.db.count(name)
-			else:
-				exists = True
-			exists_cache[name] = exists
-		return exists
+def get_all_empty_tables_by_module():
+	results = frappe.db.sql("""
+		SELECT
+			name, module
+		FROM information_schema.tables as i
+		JOIN tabDocType as d
+			ON i.table_name = CONCAT('tab', d.name)
+		WHERE table_rows = 0;
 
-	sections = get_data(module["module_name"], False)
-	for section in sections:
-		for item in section["items"]:
-			if exists(item.get("name"), item.get("type")):
-				return True
-	return False
+	""")
 
-def show_onboard(module):
-	return module.get("type") == "module"
+	empty_tables_by_module = {}
+
+	for doctype, module in results:
+		if module in empty_tables_by_module:
+			empty_tables_by_module[module].append(doctype)
+		else:
+			empty_tables_by_module[module] = [doctype]
+
+	return empty_tables_by_module
 
 def is_domain(module):
 	return module.get("category") == "Domains"

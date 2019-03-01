@@ -35,5 +35,5 @@ class EmailUnsubscribe(Document):
 	def on_update(self):
 		if self.reference_doctype and self.reference_name:
 			doc = frappe.get_doc(self.reference_doctype, self.reference_name)
-			doc.add_comment("Label", _("Left this conversation"), comment_by=self.email)
+			doc.add_comment("Label", _("Left this conversation"), comment_email=self.email)
 

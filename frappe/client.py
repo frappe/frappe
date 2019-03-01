@@ -358,7 +358,7 @@ def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder
 		doc.set(docfield, _file.file_url)
 		doc.save()
 
-	return f.as_dict()
+	return _file.as_dict()
 
 def check_parent_permission(parent, child_doctype):
 	if parent:

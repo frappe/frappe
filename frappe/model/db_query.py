@@ -386,7 +386,7 @@ class DatabaseQuery(object):
 
 		elif f.operator.lower() in ('in', 'not in'):
 			values = f.value or ''
-			if not isinstance(values, (list, tuple)):
+			if isinstance(values, frappe.string_types):
 				values = values.split(",")
 
 			fallback = "''"
@@ -747,6 +747,7 @@ def get_list(doctype, *args, **kwargs):
 	'''wrapper for DatabaseQuery'''
 	kwargs.pop('cmd', None)
 	kwargs.pop('ignore_permissions', None)
+	kwargs.pop('data', None)
 
 	# If doctype is child table
 	if frappe.is_table(doctype):

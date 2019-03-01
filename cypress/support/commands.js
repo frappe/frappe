@@ -50,3 +50,7 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype='Data') => {
 		return cy.get('@input').type(value);
 	}
 });
+
+Cypress.Commands.add('awesomebar', (text) => {
+	cy.get('#navbar-search').type(`${text}{downarrow}{enter}`, { delay: 100 });
+});
