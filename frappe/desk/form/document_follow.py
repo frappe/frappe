@@ -85,17 +85,17 @@ def send_document_follow_mails(frequency):
 	'''
 
 	users = frappe.get_list("Document Follow",
-		fields={"name", "ref_doctype", "ref_docname", "user"})
+		fields={"name", "ref_doctype", "ref_docname", "user"}, debug=1)
 
-	from pprint import pprint
-	pprint(users)
-	sorted_users = sorted(users, key=lambda k: k.get('user', 'current_user'))
+	print(users)
+
+	sorted_users = sorted(users, key=lambda k: k['user'])
 
 	grouped_by_user = {}
-	for k, v in groupby(sorted_users, key=lambda k: k.get('user', 'current_user')):
+	for k, v in groupby(sorted_users, key=lambda k: k['user']):
 		grouped_by_user[k] = list(v)
 
-	pprint(grouped_by_user)
+	print(grouped_by_user)
 	for user in grouped_by_user:
 		user_frequency = frappe.db.get_value("User", user, "document_follow_frequency")
 		message = []
