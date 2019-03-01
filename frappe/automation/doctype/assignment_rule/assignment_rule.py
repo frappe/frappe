@@ -27,6 +27,9 @@ class AssignmentRule(Document):
 		return False
 
 	def do_assignment(self, doc):
+		# clear existing assignment, to reassign
+		assign_to.clear(doc.get('doctype'), doc.get('name'))
+
 		user = self.get_user()
 
 		assign_to.add(dict(
