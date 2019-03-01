@@ -17,6 +17,9 @@ class WorkflowAction(Document):
 	pass
 
 
+def on_doctype_update():
+	frappe.db.add_index("Workflow Action", ["status", "user"])
+
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
 
