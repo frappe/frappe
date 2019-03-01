@@ -85,9 +85,7 @@ def send_document_follow_mails(frequency):
 	'''
 
 	users = frappe.get_list("Document Follow",
-		fields={"name", "ref_doctype", "ref_docname", "user"}, debug=1)
-
-	print(users)
+		fields=["*"])
 
 	sorted_users = sorted(users, key=lambda k: k['user'])
 
