@@ -3,6 +3,7 @@
 
 
 <div id="the-carousel" class="carousel slide">
+	{% if slides | len > 1 %}
 	<!-- Indicators -->
 	<ol class="carousel-indicators">
 		{% for slide in slides %}
@@ -10,6 +11,7 @@
 				{%- if loop.index==0 %}class="active"{% endif %}></li>
 		{% endfor %}
 	</ol>
+	{% endif %}
 
 	<!-- Wrapper for slides -->
 	<div class="carousel-inner">
