@@ -78,7 +78,7 @@ const get_options_for_scss = () => {
 			node_modules_path,
 			...app_paths
 		]
-	}
+	};
 };
 
 module.exports = {

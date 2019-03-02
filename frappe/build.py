@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals, print_function
-import os, frappe, json, shutil, re, warnings, subprocess
+import os, frappe, json, shutil, re, warnings
 from os.path import exists as path_exists, join as join_path, abspath, isdir
 from distutils.spawn import find_executable
 from six import iteritems, text_type
