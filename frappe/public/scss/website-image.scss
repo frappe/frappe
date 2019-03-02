@@ -17,6 +17,7 @@ img:after {
 	width: 100%;
 	height: 100%;
 	background-color: $light;
+	padding: 50% 0;
 }
 
 .standard-image {
@@ -51,6 +52,7 @@ img:after {
 
 .website-image {
 	@include website-image;
+	width: 100%;
 }
 
 .website-image-small {
@@ -75,4 +77,8 @@ img:after {
 	@include website-image;
 	width: 30rem;
 	height: 30rem;
+}
+
+.website-image[src*="no-image.jpg"] {
+	padding: 46% 0;
 }
