@@ -7,7 +7,6 @@ from frappe import _
 from frappe.boot import get_allowed_pages, get_allowed_reports
 from frappe.desk.doctype.desktop_icon.desktop_icon import set_hidden, clear_desktop_icons_cache
 
-
 @frappe.whitelist()
 def get(module):
 	"""Returns data (sections, list of reports, counts) to render module view in desk:
@@ -20,12 +19,10 @@ def get(module):
 
 	return out
 
-
 @frappe.whitelist()
 def hide_module(module):
 	set_hidden(module, frappe.session.user, 1)
 	clear_desktop_icons_cache()
-
 
 def get_data(module, build=True):
 	"""Get module data for the module view `desk/#Module/[name]`"""
@@ -83,7 +80,6 @@ def get_data(module, build=True):
 
 	return data
 
-
 def build_config_from_file(module):
 	"""Build module info from `app/config/desktop.py` files."""
 	data = []
@@ -96,7 +92,6 @@ def build_config_from_file(module):
 			pass
 
 	return filter_by_restrict_to_domain(data)
-
 
 def filter_by_restrict_to_domain(data):
 	""" filter Pages and DocType depending on the Active Module(s) """
@@ -119,7 +114,6 @@ def filter_by_restrict_to_domain(data):
 
 	return data
 
-
 def build_standard_config(module, doctype_info):
 	"""Build standard module data from DocTypes."""
 	if not frappe.db.get_value("Module Def", module):
@@ -138,7 +132,6 @@ def build_standard_config(module, doctype_info):
 
 	return data
 
-
 def add_section(data, label, icon, items):
 	"""Adds a section to the module data."""
 	if not items: return
@@ -156,7 +149,6 @@ def add_custom_doctypes(data, doctype_info):
 
 	add_section(data, _("Setup"), "fa fa-cog",
 		[d for d in doctype_info if (d.custom and d.document_type in ("Setup", "Master", ""))])
-
 
 def get_doctype_info(module):
 	"""Returns list of non child DocTypes for given module."""
@@ -177,7 +169,6 @@ def get_doctype_info(module):
 
 	return doctype_info
 
-
 def combine_common_sections(data):
 	"""Combine sections declared in separate apps."""
 	sections = []
@@ -190,7 +181,6 @@ def combine_common_sections(data):
 			sections_dict[each["label"]]["items"] += each["items"]
 
 	return sections
-
 
 def apply_permissions(data):
 	default_country = frappe.db.get_default("country")
@@ -225,13 +215,10 @@ def apply_permissions(data):
 
 	return new_data
 
-
 def get_config(app, module):
 	"""Load module info from `[app].config.[module]`."""
 	config = frappe.get_module("{app}.config.{module}".format(app=app, module=module))
 	config = config.get_data()
-
-	print(module)
 
 	sections = [s for s in config if s.get("condition", True)]
 
@@ -245,7 +232,6 @@ def get_config(app, module):
 
 	return sections
 
-
 def add_setup_section(config, app, module, label, icon):
 	"""Add common sections to `/desk#Module/Setup`"""
 	try:
@@ -254,7 +240,6 @@ def add_setup_section(config, app, module, label, icon):
 			config.append(setup_section)
 	except ImportError:
 		pass
-
 
 def get_setup_section(app, module, label, icon):
 	"""Get the setup section from each module (for global Setup page)."""
@@ -267,45 +252,11 @@ def get_setup_section(app, module, label, icon):
 				"items": section["items"]
 			}
 
-
-def get_onboard_items(app, module):
-	try:
-		sections = get_config(app, module)
-	except ImportError:
-		return []
-
-	onboard_items = []
-
-	for section in sections:
-		for item in section["items"]:
-			if item.get("onboard", 0) == 1:
-				onboard_items.append(item)
-	return onboard_items
-
-
-@frappe.whitelist()
-def get_links(app, module):
-	try:
-		sections = get_config(app, frappe.scrub(module))
-	except ImportError:
-		return []
-
-	link_names = []
-
-
-	for section in sections:
-		for item in section["items"]:
-			link_names.append(item.get("label"))
-	print(link_names)
-	return link_names
-
-
 def set_last_modified(data):
 	for section in data:
 		for item in section["items"]:
 			if item["type"] == "doctype":
 				item["last_modified"] = get_last_modified(item["name"])
-
 
 def get_last_modified(doctype):
 	def _get():
@@ -329,7 +280,6 @@ def get_last_modified(doctype):
 		last_modified = None
 
 	return last_modified
-
 
 def get_report_list(module, is_standard="No"):
 	"""Returns list on new style reports for modules."""

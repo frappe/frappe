@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 from frappe import _
 import frappe
-from frappe.desk.moduleview import get_data, get_onboard_items
+from frappe.desk.moduleview import get_data
 from six import iteritems
 
 def get_modules_from_all_apps_for_user(user=None):
@@ -62,8 +62,6 @@ def get_modules_from_app(app):
 				to_add = False
 
 			if to_add:
-				m["shortcuts"] = get_onboard_items(app, frappe.scrub(m["module_name"]))
-				m["app"] = app
 				active_modules_list.append(m)
 
 	return active_modules_list
@@ -76,6 +74,7 @@ def get_all_empty_tables_by_module():
 		JOIN tabDocType as d
 			ON i.table_name = CONCAT('tab', d.name)
 		WHERE table_rows = 0;
+
 	""")
 
 	empty_tables_by_module = {}
