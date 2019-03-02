@@ -48,7 +48,7 @@
 						<div class="level list-row small">
 							<div class="level-left ellipsis">
 								<div class="list-row-col ellipsis list-subject level ">
-									<span class="level-item bold">
+									<span class="level-item bold" :title="request[columns[0].slug]">
 										{{ request[columns[0].slug] }}
 									</span>
 								</div>
@@ -106,7 +106,7 @@ export default {
 		return {
 			requests: [],
 			columns: [
-				{label: "CMD", slug: "cmd"},
+				{label: "Path", slug: "path"},
 				{label: "Duration (ms)", slug: "duration", sortable: true, number: true},
 				{label: "Time in Queries (ms)", slug: "time_queries", sortable: true, number: true},
 				{label: "Queries", slug: "queries", sortable: true, number: true},

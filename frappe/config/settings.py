@@ -169,20 +169,13 @@ def get_data():
 					"name": "Workflow Action",
 					"description": _("Actions for workflow (e.g. Approve, Cancel).")
 				},
+				{
+					"type": "doctype",
+					"name": "Assignment Rule",
+					"description": _("Set up rules for user assignments.")
+				}
 			]
 		},
-		{
-			"label": _("Applications"),
-			"items":[
-				{
-					"type": "page",
-					"name": "applications",
-					"label": _("Application Installer"),
-					"description": _("Install Applications."),
-					"icon": "fa fa-download"
-				},
-			]
-		}
 	]
 	add_setup_section(data, "frappe", "website", _("Website"), "fa fa-globe")
 	return data
