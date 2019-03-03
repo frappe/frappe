@@ -12,9 +12,15 @@
 
 		<div class="modules-container">
 			<desk-module-box
-				v-for="module in modules"
+				v-for="(module, index) in modules.filter(m => !m.hidden)"
 				:key="module.name"
+				:index="index"
 				v-bind="module"
+
+				@box-dragstart="box_dragstart($event)"
+				@box-dragend="box_dragend($event)"
+				@box-enter="box_enter($event)"
+				@box-drop="box_drop($event)"
 			>
 			</desk-module-box>
 		</div>
@@ -24,107 +30,143 @@
 <script>
 import DeskModuleBox from "./DeskModuleBox.vue";
 export default {
-	props: ['category', 'initial_modules'],
+	props: ['category', 'all_modules'],
 	components: {
 		DeskModuleBox
 	},
 	data() {
 		return {
-			modules: this.initial_modules,
+			template_modules: this.all_modules,
+			modules: this.all_modules.slice(),
 			dragged_index: -1,
 			hovered_index: -1,
 		}
 	},
 	methods: {
+		box_dragstart(index) {
+			this.dragged_index = index;
+		},
+		box_dragend(index) {
+			this.dragged_index = -1;
+			this.hovered_index = -1;
+		},
+		box_enter(index) {
+			this.hovered_index = index;
+		},
+		box_drop(index) {
+			let d = this.dragged_index;
+			let h = this.hovered_index;
+			if (d < h) {
+				this.modules.splice(h, 0, this.modules[d]);
+				this.modules.splice(d, 1);
+			}
+		},
 		show_customize_dialog() {
-
 			if(!this.dialog) {
 				let all_modules = this.modules;
 				let fields = [];
 
-				all_modules.forEach(module => {
-					fields.push({
-						label: __(module.module_name),
-						fieldname: module.module_name,
-						fieldtype: "Check",
-						default: 1
-					});
+				const fieldname = 'home_settings';
 
-					if(module.shortcuts) {
-						fields.push({
-							label: __(""),
-							fieldname: module.module_name + "_shortcuts",
-							fieldtype: "MultiSelect",
-							get_data: function() {
-								let data = [];
+				frappe.db.get_value('User', user, fieldname)
+					.then((resp) => {
+						let home_settings = JSON.parse(resp.message[fieldname]);
+						let settings = home_settings[this.category];
+						let selected_modules = Object.keys(settings);
 
-								frappe.call({
-									type: "GET",
-									method:'frappe.desk.moduleview.get_links',
-									async: false,
-									no_spinner: true,
-									args: {
-										app: module.app,
-										module: module.module_name,
+						all_modules.forEach(module => {
+							fields.push({
+								label: __(module.module_name),
+								fieldname: module.module_name,
+								fieldtype: "Check",
+								default: selected_modules.includes(module.module_name) ? 1 : 0
+							});
+
+							if(module.shortcuts) {
+								fields.push({
+									label: __(""),
+									fieldname: module.module_name + "_shortcuts",
+									fieldtype: "MultiSelect",
+									get_data: function() {
+										let data = [];
+
+										frappe.call({
+											type: "GET",
+											method:'frappe.desk.moduleview.get_links',
+											async: false,
+											no_spinner: true,
+											args: {
+												app: module.app,
+												module: module.module_name,
+											},
+											callback: function(r) {
+												data = r.message;
+											}
+										});
+										return data;
 									},
-									callback: function(r) {
-										data = r.message;
+									default: module.shortcuts.map(m => (m.name || m.label)),
+									depends_on: module.module_name
+								});
+							}
+						});
+
+						this.dialog = new frappe.ui.Dialog({
+							title: __("Customize " + this.category),
+							fields: fields,
+							primary_action_label: __("Update"),
+							primary_action: (values) => {
+								let settings = {};
+								this.template_modules.map((m, i) => {
+									m.hidden = 0;
+								})
+
+								Object.keys(values).forEach(key => {
+									if(!key.includes('shortcuts') && values[key]) {
+										settings[key] = {
+											links: values[key + '_shortcuts'] || []
+										}
+									}
+									if(!values[key]) {
+										this.template_modules.map((m, i) => {
+											if(m.module_name === key) {
+												m.hidden = 1;
+											}
+										})
 									}
 								});
-								return data;
-							},
-							default: module.shortcuts.map(m => (m.name || m.label)),
-							depends_on: module.module_name
-						});
-					}
-				});
 
-				this.dialog = new frappe.ui.Dialog({
-					title: __("Customize " + this.category),
-					fields: fields,
-					primary_action_label: __("Update"),
-					primary_action: (values) => {
-						let settings = {};
-						Object.keys(values).forEach(key => {
-							if(!key.includes('shortcuts') && values[key]) {
-								settings[key] = {
-									links: values[key + '_shortcuts'] || []
-								}
-							}
-							if(!values[key]) {
-								let index = -1;
-								this.modules.map((m, i) => {
-									if(m.module_name === key) {
-										index = i;
-									}
-								})
-								this.modules.splice(index, 1);
-							}
-						});
+								this.modules = this.template_modules.filter(m => !m.hidden);
 
-						const user = frappe.session.user;
-						const fieldname = 'home_settings';
-						frappe.db.get_value('User', user,fieldname)
-							.then((resp) => {
-								let home_settings = JSON.parse(resp.message[fieldname]);
-								home_settings[this.category] = settings;
-								frappe.db.set_value('User', user, fieldname, home_settings)
+								const user = frappe.session.user;
+								const fieldname = 'home_settings';
+								frappe.db.get_value('User', user, fieldname)
 									.then((resp) => {
+										let home_settings = JSON.parse(resp.message[fieldname]);
+										home_settings[this.category] = settings;
+										frappe.db.set_value('User', user, fieldname, home_settings)
+											.then((resp) => {
 
-										this.dialog.hide();
+												this.dialog.hide();
+											})
+											.fail((err) => {
+												frappe.msgprint(err);
+											});
 									})
-									.fail((err) => {
-										frappe.msgprint(err);
-									});
-							})
-					}
-				});
+							}
+						});
 
-				this.dialog.modal_body.find('.clearfix').css({'display': 'none'});
-				this.dialog.modal_body.find('.frappe-control*[data-fieldtype="MultiSelect"]').css({'margin-bottom': '30px'});
+						this.dialog.modal_body.find('.clearfix').css({'display': 'none'});
+						this.dialog.modal_body.find('.frappe-control*[data-fieldtype="MultiSelect"]').css({'margin-bottom': '30px'});
+
+						this.dialog.show();
+
+					});
+
+			} else {
+				this.dialog.show();
 			}
 
-			this.dialog.show();
 		}
 	}
 }

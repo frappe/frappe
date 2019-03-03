@@ -1,18 +1,25 @@
 <template>
-	<div :href="type === 'module' ? '#modules/' + module_name : link"
+	<div
+		v-if="!hidden"
 		class="border module-box"
+		:class="{'hovered-box': hovered}"
 		:draggable="true"
+		@dragstart="on_dragstart"
+		@dragend="on_dragend"
+		@dragenter="on_enter"
+		@drop="on_drop"
 	>
 		<div class="flush-top">
 			<div class="module-box-content">
 				<div class="level">
-					<h4 class="h4">
-						<span class="indicator" :class="count ? 'red' : (onboard_present ? 'orange' : 'grey')"></span>
-						{{ label }}
-					</h4>
-					<span class="octicon octicon-three-bars text-extra-muted" style="
-						font-size: 12px;
-					"></span>
+					<a class="module-box-link" :href="type === 'module' ? '#modules/' + module_name : link">
+						<h4 class="h4">
+							<span class="indicator" :class="count ? 'red' : (onboard_present ? 'orange' : 'grey')"></span>
+							{{ label }}
+						</h4>
+					</a>
+
+					<!-- <span class="drag-handle octicon octicon-three-bars text-extra-muted"></span> -->
 				</div>
 				<p
 					v-if="shortcuts.length"
@@ -31,16 +38,30 @@
 
 <script>
 export default {
-	props: ['name', 'label', 'type', 'module_name', 'link', 'count', 'onboard_present', 'shortcuts', 'description'],
+	props: ['index', 'name', 'label', 'type', 'module_name', 'link', 'count', 'onboard_present', 'shortcuts', 'description', 'hidden'],
+	data() {
+		return {
+			hovered: 0
+		}
+	},
 	methods: {
 		on_dragstart() {
+			this.$emit('box-dragstart', this.index)
 			return 0;
 		},
 		on_dragend() {
+			this.$emit('box-dragend', this.index)
 			return 0;
 		},
-		on_hover() {
-			return 1;
+		on_enter() {
+			this.$emit('box-enter', this.index)
+			// this.hovered = 1;
+		},
+		on_drop() {
+			this.$emit('box-drop', this.index)
+		},
+		on_exit() {
+			// this.hovered = 0;
 		}
 	}
 }
@@ -53,6 +74,10 @@ export default {
 	padding-top: 3px;
 	display: block;
 	background-color: #ffffff;
+}
+
+.hovered-box {
+	background-color: #fafbfc;
 }
 
 .octicon-three-bars:hover {
@@ -74,6 +99,10 @@ export default {
 	}
 }
 
+.module-box-link {
+	flex: 1;
+}
+
 .icon-box {
 	padding: 15px;
 	width: 54px;
@@ -91,6 +120,10 @@ export default {
 
 .shortcut-tag {
 	margin-right: 5px;
+}
+
+.drag-handle {
+	font-size: 12px;
 }
 </style>
 

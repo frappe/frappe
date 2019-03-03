@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 from frappe import _
 import frappe
-from frappe.desk.moduleview import get_data
+import json
+from frappe.desk.moduleview import get_data, get_onboard_items, config_exists
 from six import iteritems
 
 def get_modules_from_all_apps_for_user(user=None):
@@ -15,9 +16,14 @@ def get_modules_from_all_apps_for_user(user=None):
 
 	empty_tables_by_module = get_all_empty_tables_by_module()
 
+	home_settings = json.loads(frappe.db.get_value("User", frappe.session.user, 'home_settings'))
+
 	for module in allowed_modules_list:
-		if module["module_name"] in empty_tables_by_module:
+		module_name = module["module_name"]
+		if module_name in empty_tables_by_module:
 			module["onboard_present"] = 1
+		if module_name not in home_settings[module["category"]]:
+			module["hidden"] = 1
 
 	return allowed_modules_list
 
@@ -54,19 +60,19 @@ def get_modules_from_app(app):
 			module_name = m.get("module_name")
 
 			# Check Domain
-			if is_domain(m):
-				if module_name not in active_domains:
-					to_add = False
+			if is_domain(m) and module_name not in active_domains:
+				to_add = False
+
+			# Check if config
+			if is_module(m) and not config_exists(app, frappe.scrub(module_name)):
+				to_add = False
 
 			if "condition" in m and not m["condition"]:
 				to_add = False
 
 			if to_add:
-<<<<<<< HEAD
-=======
 				m["shortcuts"] = get_onboard_items(app, frappe.scrub(m["module_name"]))[:5]
 				m["app"] = app
->>>>>>> feat(desk): DeskModuleBox, get some links if not set
 				active_modules_list.append(m)
 
 	return active_modules_list
@@ -94,3 +100,6 @@ def get_all_empty_tables_by_module():
 
 def is_domain(module):
 	return module.get("category") == "Domains"
+
+def is_module(module):
+	return module.get("type") == "module"

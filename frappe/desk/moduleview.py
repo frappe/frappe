@@ -232,6 +232,13 @@ def get_config(app, module):
 
 	return sections
 
+def config_exists(app, module):
+	try:
+		frappe.get_module("{app}.config.{module}".format(app=app, module=module))
+		return True
+	except ImportError:
+		return False
+
 def add_setup_section(config, app, module, label, icon):
 	"""Add common sections to `/desk#Module/Setup`"""
 	try:
@@ -261,6 +268,10 @@ def get_onboard_items(app, module):
 
 	onboard_items = []
 	fallback_items = []
+
+	if not sections:
+		doctype_info = get_doctype_info(module)
+		sections = build_standard_config(module, doctype_info)
 
 	for section in sections:
 		for item in section["items"]:
