@@ -24,4 +24,4 @@ class TestAssign(unittest.TestCase):
 
 		# assignment is cleared
 		assignments = frappe.desk.form.assign_to.get(dict(doctype = todo.doctype, name=todo.name))
-		self.assertFalse(assignments)
+		self.assertEqual(len(assignments), 0)
