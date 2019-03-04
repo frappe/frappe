@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 from frappe import _
 from frappe.boot import get_allowed_pages, get_allowed_reports
 from frappe.desk.doctype.desktop_icon.desktop_icon import set_hidden, clear_desktop_icons_cache
@@ -232,6 +233,13 @@ def get_config(app, module):
 
 	return sections
 
+def config_exists(app, module):
+	try:
+		frappe.get_module("{app}.config.{module}".format(app=app, module=module))
+		return True
+	except ImportError:
+		return False
+
 def add_setup_section(config, app, module, label, icon):
 	"""Add common sections to `/desk#Module/Setup`"""
 	try:
@@ -251,6 +259,75 @@ def get_setup_section(app, module, label, icon):
 				"icon": icon,
 				"items": section["items"]
 			}
+
+
+def get_onboard_items(app, module):
+	try:
+		sections = get_config(app, module)
+	except ImportError:
+		return []
+
+	onboard_items = []
+	fallback_items = []
+
+	if not sections:
+		doctype_info = get_doctype_info(module)
+		sections = build_standard_config(module, doctype_info)
+
+	for section in sections:
+		for item in section["items"]:
+			if item.get("onboard", 0) == 1:
+				onboard_items.append(item)
+
+			# in case onboard is not set
+			fallback_items.append(item)
+
+			if len(onboard_items) > 5:
+				return onboard_items
+
+	return onboard_items or fallback_items
+
+
+@frappe.whitelist()
+def get_links(app, module):
+	try:
+		sections = get_config(app, frappe.scrub(module))
+	except ImportError:
+		return []
+
+	link_names = []
+
+	for section in sections:
+		for item in section["items"]:
+			link_names.append(item.get("label"))
+	print(link_names)
+	return link_names
+
+
+@frappe.whitelist()
+def get_module_link_items_from_dict(module_link_list_map):
+	module_link_list_map = json.loads(module_link_list_map)
+	module_links = {}
+	for module, data in module_link_list_map.items():
+		print(data)
+		module_links[module] = get_module_link_items_from_list(data["app"], module, data["links"])
+	return module_links
+
+
+def get_module_link_items_from_list(app, module, list_of_link_names):
+	try:
+		sections = get_config(app, frappe.scrub(module))
+	except ImportError:
+		return []
+
+	links = []
+	for section in sections:
+		for item in section["items"]:
+			if item.get("label", "") in list_of_link_names:
+				links.append(item)
+
+	return links
+
 
 def set_last_modified(data):
 	for section in data:

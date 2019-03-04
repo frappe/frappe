@@ -23,7 +23,6 @@ def get_data():
 			"reverse": 1,
 			"icon": "octicon octicon-settings",
 			"type": "module",
-			"hidden": 1,
 			"description": "Data import, printing, email and workflows."
 		},
 		{
@@ -34,7 +33,6 @@ def get_data():
 			"reverse": 1,
 			"icon": "octicon octicon-settings",
 			"type": "module",
-			"hidden": 1,
 			"description": "Setup roles and permissions for users on documents."
 		},
 		{
@@ -45,7 +43,6 @@ def get_data():
 			"reverse": 1,
 			"icon": "octicon octicon-settings",
 			"type": "module",
-			"hidden": 1,
 			"description": "Customize forms, custom fields, scripts and translations."
 		},
 		{
@@ -55,7 +52,6 @@ def get_data():
 			"color": "#16a085",
 			"icon": "octicon octicon-globe",
 			"type": "module",
-			"hidden": 1,
 			"description": "DropBox, Woocomerce, AWS, Shopify and GoCardless."
 		},
 		{
@@ -65,7 +61,6 @@ def get_data():
 			"type": 'module',
 			"icon": "octicon octicon-book",
 			"color": '#ffaedb',
-			"hidden": 1,
 			"description": "People Contacts and Address Book."
 		},
 		{
@@ -78,7 +73,6 @@ def get_data():
 			"type": "module",
 			"system_manager": 1,
 			"condition": getattr(frappe.local.conf, 'developer_mode', 0),
-			"hidden": 1,
 			"description": "Doctypes, dev tools and logs."
 		},
 
@@ -91,7 +85,6 @@ def get_data():
 			"color": "#16a085",
 			"icon": "octicon octicon-globe",
 			"type": "module",
-			"hidden": 1,
 			"description": "Webpages, webforms, blogs and website theme."
 		},
 		{
