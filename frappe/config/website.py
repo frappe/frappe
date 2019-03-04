@@ -28,6 +28,11 @@ def get_data():
 					"name": "Website Slideshow",
 					"description": _("Embed image slideshows in website pages."),
 				},
+				{
+					"type": "doctype",
+					"name": "Website Route Meta",
+					"description": _("Add meta tags to your web pages"),
+				},
 			]
 		},
 		{

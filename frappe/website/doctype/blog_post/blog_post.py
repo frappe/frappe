@@ -56,6 +56,7 @@ class BlogPost(WebsiteGenerator):
 
 		if self.blogger:
 			context.blogger_info = frappe.get_doc("Blogger", self.blogger).as_dict()
+			context.author = self.blogger
 
 		context.description = self.blog_intro or self.content[:140]
 
@@ -164,7 +165,7 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 				t2.full_name, t2.avatar, t1.blogger,
 				(select count(name) from `tabComment`
 					where
-						and comment_type='Comment'
+						comment_type='Comment'
 						and reference_doctype='Blog Post'
 						and reference_name=t1.name) as comments
 		from `tabBlog Post` t1, `tabBlogger` t2

@@ -1,7 +1,7 @@
 <template>
-	<div>
+	<keep-alive include="RecorderDetail">
 		<router-view/>
-	</div>
+	</keep-alive>
 </template>
 
 <script>

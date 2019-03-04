@@ -17,15 +17,10 @@ def get(args=None):
 	if not args:
 		args = frappe.local.form_dict
 
-	get_docinfo(frappe.get_doc(args.get("doctype"), args.get("name")))
-
-	return frappe.db.sql("""SELECT `owner`, `description`
-		FROM `tabToDo`
-		WHERE reference_type=%(doctype)s
-		AND reference_name=%(name)s
-		AND status='Open'
-		ORDER BY modified DESC
-		LIMIT 5""", args, as_dict=True)
+	return frappe.get_all('ToDo', fields = ['owner', 'description'], filters = dict(
+		reference_type = args.get('doctype'),
+		reference_name = args.get('name')
+	), limit = 5)
 
 @frappe.whitelist()
 def add(args=None):
@@ -128,9 +123,17 @@ def remove(doctype, name, assign_to):
 	return get({"doctype": doctype, "name": name})
 
 def clear(doctype, name):
-	for assign_to in frappe.db.sql_list("""select owner from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s""", locals()):
-			remove(doctype, name, assign_to)
+	'''
+	Clears assignments, return False if not assigned.
+	'''
+	assignments = frappe.db.get_all('ToDo', fields=['owner'], filters = dict(reference_type = doctype, reference_name = name))
+	if not assignments:
+		return False
+
+	for assign_to in assignments:
+		remove(doctype, name, assign_to.owner)
+
+	return True
 
 def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 	description=None, notify=0):

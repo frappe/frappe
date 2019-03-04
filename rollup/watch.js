@@ -67,7 +67,7 @@ function get_watch_options(app) {
 function log_css_change({output}) {
 	return {
 		name: 'log-css-change',
-		ongenerate() {
+		generateBundle() {
 			if (!output.endsWith('.css')) return null;
 			log('Rebuilding', path.basename(output));
 			return null;

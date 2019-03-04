@@ -979,7 +979,7 @@ def strip(val, chars=None):
 def to_markdown(html):
 	text = None
 	try:
-		text = html2text(html)
+		text = html2text(html or '')
 	except HTMLParser.HTMLParseError:
 		pass
 
@@ -999,7 +999,7 @@ def md_to_html(markdown_text):
 
 	html = None
 	try:
-		html = markdown(markdown_text, extras=extras)
+		html = markdown(markdown_text or '', extras=extras)
 	except MarkdownError:
 		pass
 

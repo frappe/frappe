@@ -244,7 +244,7 @@ class TestReportview(unittest.TestCase):
 		out = DatabaseQuery("DocType").execute(fields=["name"],
 				filters={'issingle': 1}, or_filters=[['DocType', 'module', '=', 'Core']],
 				order_by='creation')
-		self.assertTrue('User Permission for Page and Report' in [d['name'] for d in out])
+		self.assertTrue('Role Permission for Page and Report' in [d['name'] for d in out])
 
 		out = DatabaseQuery("DocType").execute(fields=["name"],
 				filters={'track_changes': 1, 'module': 'Core'},

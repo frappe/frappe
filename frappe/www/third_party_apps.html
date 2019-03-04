@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block page_sidebar %}
-{% include "templates/pages/web_sidebar.html" %}
+{% include "templates/includes/web_sidebar.html" %}
 {% endblock %}
 
 {% block style %}
@@ -26,7 +26,7 @@
 				<div class="well">
 					<div class="text-muted">{{ _("This will log out {0} from all other devices".format(app.app_name)) }}</div>
 					<div class="padding"></div>
-					<div class="text-right">						
+					<div class="text-right">
 						<button class="btn btn-default" onclick="location.href = '/third_party_apps';">Cancel</button>
 						<button class="btn btn-danger btn-delete-app" data-client_id="{{ app.client_id }}">Revoke</button>
 					</div>
@@ -46,15 +46,15 @@
 				<small class="text-right">
 					{{ _("logged in") }}&nbsp;{{ frappe.utils.pretty_date(app.creation) }}
 				</small>
-			</div>			
+			</div>
 			<div class="col-xs-2 text-right small text-muted">
-				<a class="btn btn-xs btn-link" href="/third_party_apps?app={{ app.name }}">{{ _("Revoke") }}</a>
+				<a class="btn btn-sm btn-link" href="/third_party_apps?app={{ app.name }}">{{ _("Revoke") }}</a>
 			</div>
 		</div>
 	</div>
 	{% endfor %}
 {% else %}
-	<div class="text-center text-muted">
+	<div class="text-muted">
 		{{ _("No Active Sessions")}}
 	</div>
 {% endif %}

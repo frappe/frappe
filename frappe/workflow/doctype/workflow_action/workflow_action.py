@@ -17,6 +17,9 @@ class WorkflowAction(Document):
 	pass
 
 
+def on_doctype_update():
+	frappe.db.add_index("Workflow Action", ["status", "user"])
+
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
 
@@ -173,9 +176,6 @@ def create_workflow_actions_for_users(users, doc):
 			'status': 'Open',
 			'user': user
 		}).insert(ignore_permissions=True)
-
-	frappe.db.commit()
-
 
 def send_workflow_action_email(users_data, doc):
 	common_args = get_common_email_args(doc)
