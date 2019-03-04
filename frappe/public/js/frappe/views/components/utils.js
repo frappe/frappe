@@ -1,15 +1,12 @@
-function generate_route(item, module_name) {
+function generate_route(item) {
 	if(item.type==="doctype") {
 		item.doctype = item.name;
-		// // map of doctypes that belong to a module
-		// frappe.module_links[module_name].push(item.name);
 	}
 	let route = '';
 	if(!item.route) {
 		if(item.link) {
 			route=strip(item.link, "#");
-		}
-		else if(item.type==="doctype") {
+		} else if(item.type==="doctype") {
 			if(frappe.model.is_single(item.doctype)) {
 				route = 'Form/' + item.doctype;
 			} else {
@@ -18,14 +15,11 @@ function generate_route(item, module_name) {
 				}
 				route="List/" + item.doctype;
 			}
-		}
-		else if(item.type==="report" && item.is_query_report) {
+		} else if(item.type==="report" && item.is_query_report) {
 			route="query-report/" + item.name;
-		}
-		else if(item.type==="report") {
+		} else if(item.type==="report") {
 			route="List/" + item.doctype + "/Report/" + item.name;
-		}
-		else if(item.type==="page") {
+		} else if(item.type==="page") {
 			route=item.name;
 		}
 
@@ -46,4 +40,4 @@ function generate_route(item, module_name) {
 
 export {
 	generate_route
-}
+};

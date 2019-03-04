@@ -16,20 +16,23 @@ def get_modules_from_all_apps_for_user(user=None):
 
 	empty_tables_by_module = get_all_empty_tables_by_module()
 
-	home_settings = json.loads(frappe.db.get_value("User", frappe.session.user, 'home_settings'))
+	home_settings = frappe.db.get_value("User", frappe.session.user, 'home_settings')
+	if home_settings:
+		home_settings = json.loads(home_settings)
 
 	for module in allowed_modules_list:
 		module_name = module["module_name"]
 		if module_name in empty_tables_by_module:
 			module["onboard_present"] = 1
 
-		category_settings = home_settings[module["category"]]
-		if module_name not in category_settings:
-			module["hidden"] = 1
-		else:
-			links = category_settings[module_name]["links"]
-			if links:
-				module["links"] = get_module_link_items_from_list(module["app"], module_name, links.split(","))
+		if home_settings:
+			category_settings = home_settings[module["category"]]
+			if module_name not in category_settings:
+				module["hidden"] = 1
+			else:
+				links = category_settings[module_name]["links"]
+				if links:
+					module["links"] = get_module_link_items_from_list(module["app"], module_name, links.split(","))
 
 	return allowed_modules_list
 
