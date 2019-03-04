@@ -16,7 +16,7 @@ class TestDocumentFollow(unittest.TestCase):
 		event_doc.description = "This is a test description for sending mail"
 		event_doc.save()
 
-		doc = document_follow.follow_document("Event", event_doc.name , user.name)
+		doc = document_follow.follow_document("Event", event_doc.name , user.name, force=True)
 		self.assertEquals(doc.user, user.name)
 
 		document_follow.send_hourly_updates()

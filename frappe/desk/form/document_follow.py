@@ -3,11 +3,9 @@
 
 from __future__ import unicode_literals
 import frappe
-import json
 import frappe.utils
 from frappe import _
 from itertools import groupby
-from frappe.utils.background_jobs import enqueue
 
 @frappe.whitelist()
 def follow_document(doctype, doc_name, user, force=False):

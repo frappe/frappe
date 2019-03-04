@@ -9,7 +9,7 @@ import frappe.defaults
 import frappe.desk.form.meta
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
-from frappe.desk.form.document_follow import is_document_followed, get_follow_users
+from frappe.desk.form.document_follow import is_document_followed
 from frappe import _
 
 @frappe.whitelist()
