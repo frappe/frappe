@@ -13,6 +13,8 @@ def execute():
 	settings = {}
 
 	for module in all_modules:
+		if not module.get("app"): continue
+
 		links = get_onboard_items(module["app"], frappe.scrub(module["module_name"]))[:5]
 		module_settings = {
 			"links": ",".join([d["label"] for d in links])
