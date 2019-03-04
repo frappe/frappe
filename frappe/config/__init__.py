@@ -26,7 +26,7 @@ def get_modules_from_all_apps_for_user(user=None):
 			module["onboard_present"] = 1
 
 		if home_settings:
-			category_settings = home_settings[module["category"]]
+			category_settings = home_settings[module.get("category")] if module.get("category") else {}
 			if module_name not in category_settings:
 				module["hidden"] = 1
 			else:
