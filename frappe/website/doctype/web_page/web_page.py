@@ -46,9 +46,6 @@ class WebPage(WebsiteGenerator):
 			"text_align": self.text_align,
 		})
 
-		if self.description:
-			context.setdefault("metatags", {})["description"] = self.description
-
 		if not self.show_title:
 			context["no_header"] = 1
 
@@ -123,8 +120,7 @@ class WebPage(WebsiteGenerator):
 
 	def set_metatags(self, context):
 		context.metatags = {
-			"name": context.title,
-			"description": (context.description or "").replace("\n", " ")[:500]
+			"name": context.title
 		}
 
 		image = find_first_image(context.main_section or "")

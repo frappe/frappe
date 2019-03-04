@@ -46,15 +46,13 @@ web_include_js = [
 	"website_script.js"
 ]
 
-bootstrap = "assets/frappe/css/bootstrap.css"
-web_include_css = [
-	"assets/css/frappe-web.css"
-]
+web_include_css = []
 
 website_route_rules = [
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"},
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
-	{"from_route": "/newsletters", "to_route": "Newsletter"}
+	{"from_route": "/newsletters", "to_route": "Newsletter"},
+	{"from_route": "/profile", "to_route": "me"},
 ]
 
 write_file_keys = ["file_url", "file_name"]

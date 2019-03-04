@@ -128,11 +128,6 @@ frappe.msgprint = function(msg, title) {
 		msg_dialog.msg_area = $('<div class="msgprint">')
 			.appendTo(msg_dialog.body);
 
-		msg_dialog.loading_indicator = $('<div class="loading-indicator text-center" \
-				style="margin: 15px;">\
-				<img src="/assets/frappe/images/ui/ajax-loader.gif"></div>')
-			.appendTo(msg_dialog.body);
-
 		msg_dialog.clear = function() {
 			msg_dialog.msg_area.empty();
 		}
@@ -174,11 +169,6 @@ frappe.msgprint = function(msg, title) {
 	}
 
 	msg_dialog.msg_area.append(data.message);
-	msg_dialog.loading_indicator.addClass("hide");
-
-	msg_dialog.show_loading = function() {
-		msg_dialog.loading_indicator.removeClass("hide");
-	}
 
 	// make msgprint always appear on top
 	msg_dialog.$wrapper.css("z-index", 2000);

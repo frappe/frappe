@@ -29,7 +29,7 @@ def get_search_results(text, start=0, as_html=False):
 	for d in results:
 		d.content = html2text(d.content)
 		index = d.content.lower().index(text.lower())
-		d.content = d.content[:index] + '<b>' + d.content[index:][:len(text)] + '</b>' + d.content[index + len(text):]
+		d.content = d.content[:index] + '<mark>' + d.content[index:][:len(text)] + '</mark>' + d.content[index + len(text):]
 
 		if index < 40:
 			start = 0

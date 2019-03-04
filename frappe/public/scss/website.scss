@@ -1,0 +1,89 @@
+@import "variables";
+@import "~bootstrap/scss/bootstrap";
+@import "multilevel-dropdown";
+@import "website-image";
+
+body {
+	font-size: 16px;
+}
+
+.navbar.bg-dark {
+	.dropdown-menu {
+		font-size: .75rem;
+		background-color: $dark;
+		border-radius: 0;
+	}
+
+	.nav-link {
+		white-space: nowrap;
+		color: $light;
+
+		&:hover {
+			color: $primary;
+		}
+	}
+
+	.nav-item {
+		padding: 0rem 1rem;
+	}
+
+	.dropdown-item {
+		color: $light;
+
+		&:hover {
+			background-color: $dark;
+			color: $primary;
+		}
+	}
+}
+
+
+.input-dark {
+	background-color: $dark;
+	border-color: darken($primary, 40%);
+	color: $light;
+}
+
+.breadcrumb {
+    padding-left: 0;
+    padding-right: 0;
+    background-color: white;
+}
+
+a.card {
+	text-decoration: none;
+}
+
+img {
+	max-width: 100%;
+}
+
+.hidden {
+	@extend .d-none;
+}
+
+.text-underline {
+	text-decoration: underline;
+}
+
+.web-footer {
+	padding: 5rem 0;
+	min-height: 140px;
+	border-top: 1px solid $border-color;
+}
+
+.footer-group-label {
+	color: $text-muted;
+}
+
+.footer-parent-item {
+	margin-bottom: 1rem;
+}
+
+.no-underline {
+    text-decoration: none !important;
+}
+
+.indicator {
+    font-size: inherit;
+}
