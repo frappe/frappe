@@ -1,9 +1,9 @@
 from __future__ import unicode_literals
-from frappe import _
-import frappe
 import json
-from frappe.desk.moduleview import get_data, get_onboard_items, config_exists, get_module_link_items_from_list
 from six import iteritems
+import frappe
+from frappe import _
+from frappe.desk.moduleview import (get_data, get_onboard_items, config_exists, get_module_link_items_from_list)
 
 def get_modules_from_all_apps_for_user(user=None):
 	if not user:
