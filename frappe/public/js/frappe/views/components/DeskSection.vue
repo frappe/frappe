@@ -29,6 +29,8 @@
 
 <script>
 import DeskModuleBox from "./DeskModuleBox.vue";
+import { generate_route } from './utils.js';
+
 export default {
 	props: ['category', 'all_modules'],
 	components: {
@@ -36,7 +38,13 @@ export default {
 	},
 	data() {
 		let template_modules = this.all_modules;
-		//  TODO: make routes on template modules
+		template_modules.forEach(module => {
+			if(module.links) {
+				module.links.forEach(link => {
+					link.route = generate_route(link);
+				});
+			}
+		});
 
 		return {
 			template_modules: template_modules,
@@ -130,8 +138,10 @@ export default {
 				callback: (r) => {
 					const module_links_dict = r.message;
 					this.template_modules.map((m, i) => {
-						//  TODO: make routes on template modules
 						let raw_links = module_links_dict[m.module_name];
+						raw_links.forEach(link => {
+							link.route = generate_route(link);
+						});
 						if(Object.keys(module_link_list_map).includes(m.module_name)) {
 							m.hidden = 0;
 							m.links = raw_links;

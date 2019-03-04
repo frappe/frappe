@@ -26,8 +26,8 @@
 					class="small text-muted">
 						<a
 							v-for="shortcut in links"
-							:key="shortcut.name"
-							:href="shortcut.link"
+							:key="(shortcut.name || shortcut.label) + shortcut.type"
+							:href="shortcut.route"
 							class="btn btn-default btn-xs shortcut-tag" title="toggle Tag"> {{ shortcut.label }}
 						</a>
 				</p>
