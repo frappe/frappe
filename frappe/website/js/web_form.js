@@ -36,8 +36,8 @@ frappe.ready(function() {
 	setTimeout(() => {
 		$('body').css('display', 'block');
 
-		// remove footer save button if form height is grater less than window height
-		if(!($('.webform-wrapper').height() > window.innerHeight)){
+		// remove footer save button if form height is less than window height
+		if($('.webform-wrapper').height() < window.innerHeight){
 			$(".footer-button").addClass("hide");
 		}
 
