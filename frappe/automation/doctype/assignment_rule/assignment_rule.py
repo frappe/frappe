@@ -70,6 +70,9 @@ class AssignmentRule(Document):
 			if self.last_user == d.user:
 				return self.users[i+1].user
 
+		# bad last user, assign to the first one
+		return self.users[0].user
+
 	def get_user_load_balancing(self):
 		'''Assign to the user with least number of open assignments'''
 		counts = []
