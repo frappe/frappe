@@ -16,12 +16,13 @@ class AssignmentRule(Document):
 		frappe.cache().delete_value('assignment_rule')
 
 	def apply(self, doc):
-		if not assign_to.get(doc) and self.safe_eval('assign_condition', doc):
+		assignments = assign_to.get(doc)
+		if not assignments and self.safe_eval('assign_condition', doc):
 			self.do_assignment(doc)
 			return True
 
 		# try clearing
-		if self.unassign_condition:
+		if assignments and self.unassign_condition:
 			return self.clear_assignment(doc)
 
 		return False
