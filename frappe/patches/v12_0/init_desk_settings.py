@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import frappe
 import json
 from frappe.config import get_modules_from_all_apps_for_user
+from frappe.desk.moduleview import get_onboard_items
 
 def execute():
 	frappe.reload_doc("core", "doctype", "user")
@@ -11,8 +12,9 @@ def execute():
 	settings = {}
 
 	for idx, m in enumerate(all_modules):
+		links = get_onboard_items(m["app"], frappe.scrub(m["module_name"]))[:5]
 		module_settings = {
-			"links": ",".join([d["label"] for d in m.get("shortcuts")])
+			"links": ",".join([d["label"] for d in links])
 		}
 		category_dict = settings.get(m.get("category", ""), None)
 		if category_dict:

@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 from frappe import _
 import frappe
 import json
-from frappe.desk.moduleview import get_data, get_onboard_items, config_exists
+from frappe.desk.moduleview import get_data, get_onboard_items, config_exists, get_module_link_items_from_list
 from six import iteritems
 
 def get_modules_from_all_apps_for_user(user=None):
@@ -22,8 +22,14 @@ def get_modules_from_all_apps_for_user(user=None):
 		module_name = module["module_name"]
 		if module_name in empty_tables_by_module:
 			module["onboard_present"] = 1
-		if module_name not in home_settings[module["category"]]:
+
+		category_settings = home_settings[module["category"]]
+		if module_name not in category_settings:
 			module["hidden"] = 1
+		else:
+			links = category_settings[module_name]["links"]
+			if links:
+				module["links"] = get_module_link_items_from_list(module["app"], module_name, links.split(","))
 
 	return allowed_modules_list
 
@@ -71,7 +77,6 @@ def get_modules_from_app(app):
 				to_add = False
 
 			if to_add:
-				m["shortcuts"] = get_onboard_items(app, frappe.scrub(m["module_name"]))[:5]
 				m["app"] = app
 				active_modules_list.append(m)
 

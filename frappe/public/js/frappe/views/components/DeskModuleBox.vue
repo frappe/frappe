@@ -22,10 +22,10 @@
 					<!-- <span class="drag-handle octicon octicon-three-bars text-extra-muted"></span> -->
 				</div>
 				<p
-					v-if="shortcuts.length"
+					v-if="links && links.length"
 					class="small text-muted">
 						<a
-							v-for="shortcut in shortcuts"
+							v-for="shortcut in links"
 							:key="shortcut.name"
 							:href="shortcut.link"
 							class="btn btn-default btn-xs shortcut-tag" title="toggle Tag"> {{ shortcut.label }}
@@ -38,7 +38,7 @@
 
 <script>
 export default {
-	props: ['index', 'name', 'label', 'type', 'module_name', 'link', 'count', 'onboard_present', 'shortcuts', 'description', 'hidden'],
+	props: ['index', 'name', 'label', 'type', 'module_name', 'link', 'count', 'onboard_present', 'links', 'description', 'hidden'],
 	data() {
 		return {
 			hovered: 0

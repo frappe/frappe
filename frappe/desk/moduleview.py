@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 from frappe import _
 from frappe.boot import get_allowed_pages, get_allowed_reports
 from frappe.desk.doctype.desktop_icon.desktop_icon import set_hidden, clear_desktop_icons_cache
@@ -296,12 +297,37 @@ def get_links(app, module):
 
 	link_names = []
 
-
 	for section in sections:
 		for item in section["items"]:
 			link_names.append(item.get("label"))
 	print(link_names)
 	return link_names
+
+
+@frappe.whitelist()
+def get_module_link_items_from_dict(module_link_list_map):
+	module_link_list_map = json.loads(module_link_list_map)
+	module_links = {}
+	for module, data in module_link_list_map.items():
+		print(data)
+		module_links[module] = get_module_link_items_from_list(data["app"], module, data["links"])
+	return module_links
+
+
+def get_module_link_items_from_list(app, module, list_of_link_names):
+	try:
+		sections = get_config(app, frappe.scrub(module))
+	except ImportError:
+		return []
+
+	links = []
+	for section in sections:
+		for item in section["items"]:
+			if item.get("label", "") in list_of_link_names:
+				links.append(item)
+
+	return links
+
 
 def set_last_modified(data):
 	for section in data:
