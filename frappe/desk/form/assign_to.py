@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 
 import frappe
 from frappe import _
-from frappe.desk.form.load import get_docinfo
 import frappe.share
 
 class DuplicateToDoError(frappe.ValidationError): pass
@@ -16,15 +15,10 @@ def get(args=None):
 	if not args:
 		args = frappe.local.form_dict
 
-	get_docinfo(frappe.get_doc(args.get("doctype"), args.get("name")))
-
-	return frappe.db.sql("""SELECT `owner`, `description`
-		FROM `tabToDo`
-		WHERE reference_type=%(doctype)s
-		AND reference_name=%(name)s
-		AND status='Open'
-		ORDER BY modified DESC
-		LIMIT 5""", args, as_dict=True)
+	return frappe.get_all('ToDo', fields = ['owner', 'description'], filters = dict(
+		reference_type = args.get('doctype'),
+		reference_name = args.get('name')
+	), limit = 5)
 
 @frappe.whitelist()
 def add(args=None):
