@@ -28,7 +28,7 @@ frappe.ui.form.Timeline = class Timeline {
 			render_input: true,
 			only_input: true,
 			on_submit: (val) => {
-				val && this.insert_comment("Comment", val, this.comment_area.button);
+				val && this.insert_comment(val, this.comment_area.button);
 			}
 		});
 
@@ -149,10 +149,17 @@ frappe.ui.form.Timeline = class Timeline {
 		this.wrapper.toggle(true);
 		this.list.empty();
 		this.comment_area.set_value('');
-		let communications = this.get_communications(true);
-		var views = this.get_view_logs();
 
+		// get all communications
+		let communications = this.get_communications(true);
+
+		// append views
+		var views = this.get_view_logs();
 		var timeline = communications.concat(views);
+
+		// append comments
+		timeline = timeline.concat(this.get_comments());
+		// sort
 		timeline
 			.filter(a => a.content)
 			.sort((b, c) => me.compare_dates(b, c))
@@ -312,7 +319,7 @@ frappe.ui.form.Timeline = class Timeline {
 		c["delete"] = "";
 		c["edit"] = "";
 		if(c.communication_type=="Comment" && (c.comment_type || "Comment") === "Comment") {
-			if(frappe.model.can_delete("Communication")) {
+			if(frappe.model.can_delete("Comment")) {
 				c["delete"] = '<a class="close delete-comment" title="Delete"  href="#"><i class="octicon octicon-x"></i></a>';
 			}
 
@@ -498,6 +505,22 @@ frappe.ui.form.Timeline = class Timeline {
 		return out;
 	}
 
+	get_comments() {
+		let docinfo = this.frm.get_docinfo();
+
+		for (let c of docinfo.comments) {
+			this.cast_comment_as_communication(c);
+		}
+
+		return docinfo.comments;
+	}
+
+	cast_comment_as_communication(c) {
+		c.sender = c.comment_email;
+		c.sender_full_name = c.comment_by;
+		c.communication_type = 'Comment';
+	}
+
 	build_version_comments(docinfo, out) {
 		var me = this;
 		docinfo.versions.forEach(function(version) {
@@ -530,8 +553,8 @@ frappe.ui.form.Timeline = class Timeline {
 							if(field_display_status === 'Read' || field_display_status === 'Write') {
 								parts.push(__('{0} from {1} to {2}', [
 									__(df.label),
-									(frappe.ellipsis(p[1], 40) || '""').bold(),
-									(frappe.ellipsis(p[2], 40) || '""').bold()
+									(frappe.ellipsis(frappe.utils.html2text(p[1]), 40) || '""').bold(),
+									(frappe.ellipsis(frappe.utils.html2text(p[2]), 40) || '""').bold()
 								]));
 							}
 						}
@@ -539,7 +562,7 @@ frappe.ui.form.Timeline = class Timeline {
 					return parts.length < 3;
 				});
 				if(parts.length) {
-					out.push(me.get_version_comment(version, __("changed value of {0}", [parts.join(', ')])));
+					out.push(me.get_version_comment(version, __("changed value of {0}", [parts.join(', ').bold()])));
 				}
 			}
 
@@ -616,42 +639,22 @@ frappe.ui.form.Timeline = class Timeline {
 		};
 	}
 
-	insert_comment(comment_type, comment, btn) {
+	insert_comment(comment, btn) {
 		var me = this;
 		return frappe.call({
 			method: "frappe.desk.form.utils.add_comment",
 			args: {
-				doc:{
-					doctype: "Communication",
-					communication_type: "Comment",
-					comment_type: comment_type || "Comment",
-					reference_doctype: this.frm.doctype,
-					reference_name: this.frm.docname,
-					content: comment,
-					sender: frappe.session.user
-				}
+				reference_doctype: this.frm.doctype,
+				reference_name: this.frm.docname,
+				content: comment,
+				comment_email: frappe.session.user
 			},
 			btn: btn,
 			callback: function(r) {
 				if(!r.exc) {
 					me.comment_area.set_value('');
 					frappe.utils.play_sound("click");
-
-					var comment = r.message;
-					var comments = me.get_communications();
-					var comment_exists = false;
-					for (var i=0, l=comments.length; i<l; i++) {
-						if (comments[i].name==comment.name) {
-							comment_exists = true;
-							break;
-						}
-					}
-					if (comment_exists) {
-						return;
-					}
-
-					me.frm.get_docinfo().communications = comments.concat([r.message]);
-					me.refresh(true);
+					frappe.timeline.new_communication(r.message);
 				}
 			}
 		});
@@ -665,7 +668,7 @@ frappe.ui.form.Timeline = class Timeline {
 			return frappe.call({
 				method: "frappe.client.delete",
 				args: {
-					doctype: "Communication",
+					doctype: "Comment",
 					name: name
 				},
 				callback: function(r) {
@@ -753,6 +756,9 @@ frappe.ui.form.Timeline = class Timeline {
 
 $.extend(frappe.timeline, {
 	new_communication: function(communication) {
+		if (!communication.communication_type) {
+			communication.communication_type = 'Comment';
+		}
 		var docinfo = frappe.model.get_docinfo(communication.reference_doctype, communication.reference_name);
 		if (docinfo && docinfo.communications) {
 			var communications = docinfo.communications;

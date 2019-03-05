@@ -88,6 +88,13 @@ Object.assign(frappe.utils, {
 	escape_html: function(txt) {
 		return $("<div></div>").text(txt || "").html();
 	},
+
+	html2text: function(html) {
+		let d = document.createElement('div');
+		d.innerHTML = html;
+		return d.textContent;
+	},
+
 	is_url: function(txt) {
 		return txt.toLowerCase().substr(0,7)=='http://'
 			|| txt.toLowerCase().substr(0,8)=='https://'
@@ -665,13 +672,15 @@ Object.assign(frappe.utils, {
 			return `${route[0]} ${route[1]}`;
 		}
 	},
-	report_total_accumulator: function(column, values, type) {
-		if (column.fieldtype == "Percent" || type === "mean") {
-			return values.reduce((a, b) => ({content: a.content + flt(b.content)})).content / values.length;
-		} else if (frappe.model.is_numeric_field(column.fieldtype)) {
-			return values.reduce((a, b) => ({content: a.content + flt(b.content)})).content;
+	report_column_total: function(values, column, type) {
+		if (column.column.fieldtype == "Percent" || type === "mean") {
+			return values.reduce((a, b) => a + flt(b)) / values.length;
+		} else if (column.column.fieldtype == "Int") {
+			return values.reduce((a, b) => a + cint(b));
+		} else if (frappe.model.is_numeric_field(column.column.fieldtype)) {
+			return values.reduce((a, b) => a + flt(b));
 		} else {
-			return false;
+			return null;
 		}
 	}
 });

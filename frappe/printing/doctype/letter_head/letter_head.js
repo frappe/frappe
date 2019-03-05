@@ -3,6 +3,6 @@
 
 frappe.ui.form.on('Letter Head', {
 	refresh: function(frm) {
-
+		frm.flag_public_attachments = true;
 	}
 });

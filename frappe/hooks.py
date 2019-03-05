@@ -46,15 +46,13 @@ web_include_js = [
 	"website_script.js"
 ]
 
-bootstrap = "assets/frappe/css/bootstrap.css"
-web_include_css = [
-	"assets/css/frappe-web.css"
-]
+web_include_css = []
 
 website_route_rules = [
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"},
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
-	{"from_route": "/newsletters", "to_route": "Newsletter"}
+	{"from_route": "/newsletters", "to_route": "Newsletter"},
+	{"from_route": "/profile", "to_route": "me"},
 ]
 
 write_file_keys = ["file_url", "file_name"]
@@ -118,7 +116,8 @@ doc_events = {
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.core.doctype.activity_log.feed.update_feed",
-			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
+			"frappe.automation.doctype.assignment_rule.assignment_rule.apply"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [

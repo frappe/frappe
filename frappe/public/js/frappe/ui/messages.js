@@ -100,12 +100,7 @@ frappe.msgprint = function(msg, title) {
 
 	if(data.message instanceof Array) {
 		data.message.forEach(function(m) {
-			const msg = {
-				message: m,
-				indicator: data.indicator,
-				title: data.title
-			}
-			frappe.msgprint(msg);
+			frappe.msgprint(m);
 		});
 		return;
 	}
@@ -125,12 +120,12 @@ frappe.msgprint = function(msg, title) {
 				msg_dialog.msg_area.empty();
 			}
 		});
-		msg_dialog.msg_area = $('<div class="msgprint">')
-			.appendTo(msg_dialog.body);
 
-		msg_dialog.loading_indicator = $('<div class="loading-indicator text-center" \
-				style="margin: 15px;">\
-				<img src="/assets/frappe/images/ui/ajax-loader.gif"></div>')
+		// msgprint should be narrower than the usual dialog
+		msg_dialog.wrapper.classList.add('msgprint-dialog');
+
+		// class "msgprint" is used in tests
+		msg_dialog.msg_area = $('<div class="msgprint">')
 			.appendTo(msg_dialog.body);
 
 		msg_dialog.clear = function() {
@@ -174,11 +169,6 @@ frappe.msgprint = function(msg, title) {
 	}
 
 	msg_dialog.msg_area.append(data.message);
-	msg_dialog.loading_indicator.addClass("hide");
-
-	msg_dialog.show_loading = function() {
-		msg_dialog.loading_indicator.removeClass("hide");
-	}
 
 	// make msgprint always appear on top
 	msg_dialog.$wrapper.css("z-index", 2000);

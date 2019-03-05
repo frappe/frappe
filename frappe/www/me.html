@@ -3,48 +3,27 @@
 {% block title %}{{ _("My Account") }}{% endblock %}
 {% block header %}<h1>{{ _("My Account") }}</h1>{% endblock %}
 
-{% block page_sidebar %}
-{% include "templates/pages/web_sidebar.html" %}
-{% endblock %}
-
 {% block page_content %}
-
 <!-- no-cache -->
-<div class="row your-account-info hidden-xs" style="min-height: 400px; padding-bottom: 50px;">
+<div class="row your-account-info d-none d-sm-block">
 	<div class="col-sm-4">
-			<span class="user-image-myaccount"></span>
-			<div>
-				<ul class="list-unstyled">
-					<li><a href="/update-password">
-						<h6 class="text-muted">{{ _("Reset Password") }}</h6>
-					</a></li>
-					<li><a href="/update-profile?name={{ user }}">
-						<h6 class="text-muted">{{ _("Edit Profile") }}</h6>
-					</a></li>
-					<li><a href="/third_party_apps">
-						<h6 class="text-muted">{{ _("Manage Third Party Apps") }}</h6>
-					</a></li>
-				</ul>
-			</div>
-		</div>
-	<div class="col-sm-8 pull-left">
-		<div class="row">
-			<div class="col-xs-4 text-right text-muted">{{ _("Name") }}</div>
-			<div class="col-xs-8">{{ fullname }}</div>
-		</div>
+		<ul class="list-unstyled">
+			<li><a href="/update-password">{{ _("Reset Password") }}</a></li>
+			<li><a href="/update-profile?name={{ user }}">{{ _("Edit Profile") }}</a></li>
+			<li><a href="/third_party_apps">{{ _("Manage Third Party Apps") }}</a></li>
+		</ul>
 	</div>
 </div>
-<div class="col-xs-12 hide" style="min-height: 400px; padding: 10px 0 0 0">
-	<ul class="list-group">
-		<a class="list-group-item" href="/profile">
-            {{ _("Profile") }}
-		</a>
-		{% for item in sidebar_items -%}
-			<a class="list-group-item" href="{{ item.route }}"
-				{% if item.target %}target="{{ item.target }}"{% endif %}>
-				{{ _(item.title or item.label) }}
-			</a>
-		{%- endfor %}
-	</ul>
+<div class="row d-block d-sm-none">
+	<div class="col-12">
+		<ul class="list-group">
+			{% for item in sidebar_items -%}
+				<a class="list-group-item" href="{{ item.route }}"
+					{% if item.target %}target="{{ item.target }}"{% endif %}>
+					{{ _(item.title or item.label) }}
+				</a>
+			{%- endfor %}
+		</ul>
+	</div>
 </div>
 {% endblock %}

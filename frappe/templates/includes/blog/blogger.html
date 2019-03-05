@@ -1,13 +1,13 @@
-<div class="blogger">
-	<div class="inline-block" style="vertical-align: top">
-		<div class="avatar avatar-large">
-			<img itemprop="thumbnailUrl" src="{{ blogger_info.avatar or "/assets/frappe/images/default-avatar.png" }}" />
-		</div>
-	</div>
-	<div class="inline-block" style="width: calc(100% - 100px)">
-		<h3 class="blogger-name text-muted">
-			<a href="/blog?blogger={{ blogger_info.name }}">{{ blogger_info.full_name }}</a>
-		</h3>
-		<p class="text-muted">{%if blogger_info.bio %}{{ blogger_info.bio }}{% endif %}</p>
+{% from "frappe/templates/includes/macros.html" import square_image_with_fallback %}
+
+<div class="media">
+	{{ square_image_with_fallback(src=blogger_info.avatar, size='72px', alt=blogger_info.full_name, class='align-self-start mr-3') }}
+	<div class="media-body">
+		<h5 class="mt-0">
+			<a href="/blog?blogger={{ blogger_info.name }}" class="text-dark">{{ blogger_info.full_name }}</a>
+		</h5>
+		{% if blogger_info.bio %}
+		<p class="text-muted">{{ blogger_info.bio }}</p>
+		{% endif %}
 	</div>
 </div>

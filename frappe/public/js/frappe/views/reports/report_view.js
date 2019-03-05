@@ -68,6 +68,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		});
 	}
 
+	before_refresh() {
+		if (this.report_doc) {
+			// don't parse frappe.route_options if this is a Custom Report
+			return Promise.resolve();
+		}
+		return super.before_refresh();
+	}
+
 	before_render() {
 		if (this.report_doc) {
 			this.set_dirty_state_for_custom_report();
@@ -230,7 +238,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				}
 			},
 			hooks: {
-				totalAccumulator: frappe.utils.report_total_accumulator
+				columnTotal: frappe.utils.report_column_total
 			},
 			headerDropdown: [{
 				label: __('Add Column'),
@@ -1187,17 +1195,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				}
 			});
 		}
-
-		// add to desktop
-		items.push({
-			label: __('Add to Desktop'),
-			action: () => {
-				frappe.add_to_desktop(
-					this.report_name || __('{0} Report', [this.doctype]),
-					this.doctype, this.report_name
-				);
-			}
-		});
 
 		return items.map(i => Object.assign(i, { standard: true }));
 	}

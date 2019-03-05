@@ -6,6 +6,9 @@ from frappe.model.dynamic_links import dynamic_link_queries
 from frappe.permissions import reset_perms
 
 def execute():
+	# comments stay comments in v12
+	return
+
 	frappe.reload_doctype("DocType")
 	frappe.reload_doctype("Communication")
 	reset_perms("Communication")

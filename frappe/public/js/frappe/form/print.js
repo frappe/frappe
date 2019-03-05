@@ -136,22 +136,40 @@ frappe.ui.form.PrintPreview = Class.extend({
 	preview: function () {
 		var me = this;
 		this.get_print_html(function (out) {
-			me.wrapper.find(".print-format").html(out.html);
+			const $print_format = me.wrapper.find(".print-format");
+			$print_format.html(out.html);
 			me.show_footer();
 			me.set_style(out.style);
+
+			const print_height = $print_format.get(0).offsetHeight;
+			const $message = me.wrapper.find(".page-break-message");
+
+			const print_height_inches = frappe.dom.pixel_to_inches(print_height);
+			// if contents are large enough, indicate that it will get printed on multiple pages
+			// Maximum height for an A4 document is 11.69 inches
+			if (print_height_inches > 11.69) {
+				$message.text(__('This may get printed on multiple pages'));
+			} else {
+				$message.text('');
+			}
 		});
 	},
 	show_footer: function() {
 		// footer is hidden by default as reqd by pdf generation
 		// simple hack to show it in print preview
+		this.wrapper.find('.print-format').css({
+			display: 'flex',
+			flexDirection: 'column'
+		});
 		this.wrapper.find('.page-break').css({
 			'display': 'flex',
-			'flex-direction': 'column'
+			'flex-direction': 'column',
+			'flex': '1'
 		});
 		this.wrapper.find('#footer-html').attr('style', `
 			display: block !important;
 			order: 1;
-			margin-top: 20px;
+			margin-top: auto;
 		`);
 	},
 	printit: function () {

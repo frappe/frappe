@@ -36,9 +36,9 @@ class User(Document):
 			self.name = self.email
 
 	def onload(self):
+		from frappe.config import get_modules_from_all_apps
 		self.set_onload('all_modules',
-			[m.module_name for m in frappe.db.get_all('Desktop Icon',
-				fields=['module_name'], filters={'standard': 1}, order_by="module_name")])
+			[m.get("module_name") for m in get_modules_from_all_apps()])
 
 	def before_insert(self):
 		self.flags.in_insert = True
@@ -327,6 +327,12 @@ class User(Document):
 			where communication_type in ('Chat', 'Notification')
 			and reference_doctype='User'
 			and (reference_name=%s or owner=%s)""", (self.name, self.name))
+
+		# unlink contact
+		frappe.db.sql("""update `tabContact`
+			set `user`=null
+			where `user`=%s""", (self.name))
+
 
 	def before_rename(self, old_name, new_name, merge=False):
 		self.check_demo()

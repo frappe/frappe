@@ -19,10 +19,6 @@
 			"error",
 			"1tbs"
 		],
-		"space-before-function-paren": [
-			"error",
-			"never"
-		],
 		"space-unary-ops": [
 			"error",
 			{ "words": true }
@@ -121,6 +117,7 @@
 		"md5": true,
 		"$": true,
 		"jQuery": true,
+		"Vue": true,
 		"moment": true,
 		"hljs": true,
 		"Awesomplete": true,

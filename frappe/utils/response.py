@@ -41,6 +41,7 @@ def build_response(response_type=None):
 		'txt': as_txt,
 		'download': as_raw,
 		'json': as_json,
+		'pdf': as_pdf,
 		'page': as_page,
 		'redirect': redirect,
 		'binary': as_binary
@@ -83,6 +84,13 @@ def as_json():
 	response.data = json.dumps(frappe.local.response, default=json_handler, separators=(',',':'))
 	return response
 
+def as_pdf():
+	response = Response()
+	response.mimetype = "application/pdf"
+	response.headers["Content-Disposition"] = ("filename=\"%s\"" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
+	response.data = frappe.response['filecontent']
+	return response
+
 def as_binary():
 	response = Response()
 	response.mimetype = 'application/octet-stream'
@@ -96,8 +104,8 @@ def make_logs(response = None):
 		response = frappe.local.response
 
 	if frappe.error_log:
-		# frappe.response['exc'] = json.dumps("\n".join([cstr(d) for d in frappe.error_log]))
-		response['exc'] = json.dumps([frappe.utils.cstr(d) for d in frappe.local.error_log])
+		response['exc'] = json.dumps([frappe.utils.cstr(d["exc"]) for d in frappe.local.error_log])
+		response['locals'] = json.dumps([frappe.utils.cstr(d["locals"]) for d in frappe.local.error_log])
 
 	if frappe.local.message_log:
 		response['_server_messages'] = json.dumps([frappe.utils.cstr(d) for

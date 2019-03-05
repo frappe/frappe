@@ -151,6 +151,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		);
 
 		fields.forEach(f => this._add_field(f));
+
+		this.fields.forEach(f => {
+			const df = frappe.meta.get_docfield(f[1], f[0]);
+			if (df && df.fieldtype === 'Currency' && df.options && !df.options.includes(':')) {
+				this._add_field(df.options);
+			}
+		});
 	}
 
 	patch_refresh_and_load_lib() {
@@ -297,8 +304,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.route_options) {
 			this.filters = this.parse_filters_from_route_options();
 
-			return this.filter_area.clear(false)
-				.then(() => this.filter_area.set(this.filters));
+			if (this.filters.length > 0) {
+				return this.filter_area.clear(false)
+					.then(() => this.filter_area.set(this.filters));
+			}
 		}
 
 		return Promise.resolve();
@@ -611,7 +620,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			args: {
 				doctype: this.doctype,
 				filters: this.get_filters_for_args(),
-				fields: [`count(distinct ${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`],
+				fields: [`count(${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`],
 			}
 		}).then(r => {
 			this.total_count = r.message.values[0][0] || current_count;
@@ -870,7 +879,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						}
 						return return_value;
 					});
-
+					this.toggle_result_area();
 					this.render();
 				});
 		});
@@ -1008,13 +1017,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			standard: true
 		});
 
-		// add to desktop
-		items.push({
-			label: __('Add to Desktop'),
-			action: () => frappe.add_to_desktop(doctype, doctype),
-			standard: true
-		});
-
 		if (frappe.user.has_role('System Manager') && frappe.boot.developer_mode === 1) {
 			// edit doctype
 			items.push({
@@ -1066,7 +1068,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return {
 				label: __('Delete'),
 				action: () => {
-					const docnames = this.get_checked_items(true);
+					const docnames = this.get_checked_items(true).map(docname => docname.toString());
 					frappe.confirm(__('Delete {0} items permanently?', [docnames.length]),
 						() => bulk_operations.delete(docnames, this.refresh));
 				},

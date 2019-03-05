@@ -9,53 +9,43 @@ from frappe.website.render import clear_cache
 from frappe import _
 
 @frappe.whitelist(allow_guest=True)
-def add_comment(args=None):
-	"""
-		args = {
-			'comment': '',
-			'comment_by': '',
-			'comment_by_fullname': '',
-			'reference_doctype': '',
-			'reference_name': '',
-			'route': '',
-		}
-	"""
+def add_comment(comment, comment_email, comment_by, reference_doctype, reference_name, route):
+	doc = frappe.get_doc(reference_doctype, reference_name)
 
-	if not args:
-		args = frappe.local.form_dict
+	comment = doc.add_comment(
+		text = comment,
+		comment_email = comment_email,
+		comment_by = comment_by)
 
-	route = args.get("route")
+	blacklist = ['http://', 'https://', '@gmail.com']
 
-	doc = frappe.get_doc(args["reference_doctype"], args["reference_name"])
-	comment = doc.add_comment("Comment", args["comment"], comment_by=args["comment_by"])
-	comment.flags.ignore_permissions = True
-	comment.sender_full_name = args["comment_by_fullname"]
-	comment.save()
+	if not any([b in comment.content for b in blacklist]):
+		# probably not spam!
+		comment.db_set('published', 1)
 
 	# since comments are embedded in the page, clear the web cache
-	clear_cache(route)
+	if route:
+		clear_cache(route)
 
-	# notify commentors
-	commentors = [d[0] for d in frappe.db.sql("""select sender from `tabCommunication`
-		where
-			communication_type = 'Comment' and comment_type = 'Comment'
-			and reference_doctype=%s
-			and reference_name=%s""", (comment.reference_doctype, comment.reference_name))]
+	content = (doc.content
+		+ "<p><a href='{0}/desk/#Form/Comment/{1}' style='font-size: 80%'>{2}</a></p>".format(frappe.utils.get_request_site_address(),
+			doc.name,
+			_("View Comment")))
 
-	owner = frappe.db.get_value(doc.doctype, doc.name, "owner")
-	recipients = list(set(commentors if owner=="Administrator" else (commentors + [owner])))
+	# notify creator
+	frappe.sendmail(
+		recipients = frappe.db.get_value('User', doc.owner, 'email') or doc.owner,
+		subject = _('New Comment on {0}: {1}').format(doc.doctype, doc.name),
+		message = content,
+		reference_doctype=doc.doctype,
+		reference_name=doc.name
+	)
 
-	message = _("{0} by {1}").format(frappe.utils.markdown(args.get("comment")), comment.sender_full_name)
-	message += "<p><a href='{0}/{1}' style='font-size: 80%'>{2}</a></p>".format(frappe.utils.get_request_site_address(),
-		route, _("View it in your browser"))
+	if comment.published:
+		# revert with template if all clear (no backlinks)
+		template = frappe.get_template("templates/includes/comments/comment.html")
 
-	from frappe.email.queue import send
+		return template.render({"comment": comment.as_dict()})
 
-	send(recipients=recipients,
-		subject = _("New comment on {0} {1}").format(doc.doctype, doc.name),
-		message = message,
-		reference_doctype=doc.doctype, reference_name=doc.name)
-
-	template = frappe.get_template("templates/includes/comments/comment.html")
-
-	return template.render({"comment": comment.as_dict()})
+	else:
+		return ''
