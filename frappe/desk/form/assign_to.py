@@ -7,7 +7,6 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.desk.form.document_follow import follow_document
-from frappe.desk.form.load import get_docinfo
 import frappe.share
 
 class DuplicateToDoError(frappe.ValidationError): pass
