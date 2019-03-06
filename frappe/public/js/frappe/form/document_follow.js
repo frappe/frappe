@@ -110,7 +110,7 @@ frappe.ui.form.DocumentFollow = class DocumentFollow {
 					if(this.count_others < 4){
 						html += frappe.avatar(r.message[d].user, 'avatar-small');
 					}
-					if(this.count_others == 0){
+					if(this.count_others === 0){
 						this.followed_by.addClass('hidden');
 					}
 				}
