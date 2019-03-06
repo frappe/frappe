@@ -146,6 +146,8 @@ d85b; border-radius:8px; display:inline-block; height:8px; margin-right:5px=
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+FROM: test1_@erpnext.com
+Reply-To: test2_@erpnext.com
 
 """ + end
 
