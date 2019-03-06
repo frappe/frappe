@@ -8,7 +8,9 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 	setup_defaults() {
 		super.setup_defaults();
 		this.page_title = this.page_title + ' ' + __('Gantt');
-		this.calendar_settings = frappe.views.calendar[this.doctype] || {};
+        if(temp_key == "Attendance")
+            temp_key = "AttendanceGantt";
+		this.calendar_settings = frappe.views.calendar[temp_key] || {};
 		if(this.calendar_settings.order_by) {
 			this.sort_by = this.calendar_settings.order_by;
 			this.sort_order = 'asc';
