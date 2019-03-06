@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 # Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
@@ -141,14 +139,18 @@ d85b; border-radius:8px; display:inline-block; height:8px; margin-right:5px=
 		self.assertTrue('<span>This is string</span>' in html)
 
 	def test_8bit_utf_8_decoding(self):
+		end = b"\xed\x95\x9c\xea\xb8\x80\xe1\xa5\xa1\xe2\x95\xa5\xe0\xba\xaa\xe0\xa4\x8f"
+		end_decoded = end.decode('utf-8')
+
 		content = b"""MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
 
-\xed\x95\x9c\xea\xb8\x80\xe1\xa5\xa1\xe2\x95\xa5\xe0\xba\xaa\xe0\xa4\x8f"""
+""" + end
+
 		mail = Email(content)
-		self.assertEqual(mail.text_content, "한글ᥡ╥ສए")
+		self.assertEqual(mail.text_content, end_decoded)
 
 def fixed_column_width(string, chunk_size):
 	parts = [string[0+i:chunk_size+i] for i in range(0, len(string), chunk_size)]
