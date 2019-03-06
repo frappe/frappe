@@ -361,8 +361,12 @@ class Email:
 			self.raw = safe_encode(content)
 			self.mail = email.message_from_string(self.raw)
 		else:
-			self.raw = safe_decode(content)
-			self.mail = email.message_from_bytes(content)
+			if isinstance(content, bytes):
+				self.raw = content
+				self.mail = email.message_from_bytes(self.raw)
+			else:
+				self.raw = safe_decode(content)	
+				self.mail = email.message_from_string(self.raw)
 
 		self.text_content = ''
 		self.html_content = ''
