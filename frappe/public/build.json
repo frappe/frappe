@@ -381,7 +381,9 @@
 		"public/less/list.less",
 		"website/css/web_form.css",
 		"public/less/quill.less",
-		"public/less/datepicker.less"
+		"public/less/datepicker.less",
+		"public/less/awesomplete.less",
+		"public/less/form_grid.less"
 	],
 	"js/print_format_v3.min.js": [
 		"public/js/legacy/layout.js",
