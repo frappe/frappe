@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 import frappe.utils
+from frappe.utils import get_url_to_form
 from frappe import _
 from itertools import groupby
 
@@ -103,6 +104,7 @@ def send_document_follow_mails(frequency):
 					valid_document_follows.append({
 						"reference_docname": d.ref_docname,
 						"reference_doctype": d.ref_doctype,
+						"reference_url": get_url_to_form(d.ref_doctype, d.ref_docname)
 					})
 
 			if message:
