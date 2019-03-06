@@ -358,7 +358,7 @@ class Email:
 
 		:param content: Raw message."""
 		if six.PY2:
-			self.raw = safe_encode(content) 
+			self.raw = safe_encode(content)
 			self.mail = email.message_from_string(self.raw)
 		else:
 			self.raw = content
