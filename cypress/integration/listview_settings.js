@@ -1,4 +1,4 @@
-context('Relative Timeframe', () => {
+context('List View Settings', () => {
 	beforeEach(() => {
 		cy.login('Administrator', 'qwe');
 		cy.visit('/desk');
