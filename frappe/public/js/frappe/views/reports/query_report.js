@@ -52,10 +52,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.secondary_action = {
 			label: __('Refresh'),
 			action: () => {
-				if(this.execution_time > 2) {
-					this.setup_progress_bar();
-				}
-
+				this.setup_progress_bar();
 				this.refresh();
 			}
 		};
@@ -171,8 +168,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	setup_progress_bar() {
 		let seconds_elapsed = 0;
-		const execution_time = this.report_settings.execution_time < 10
-			? 10 : this.report_settings.execution_time;
+		const execution_time = this.report_settings.execution_time || 0;
+
+		if (execution_time < 5) return;
 
 		this.interval = setInterval(function()  {
 			seconds_elapsed += 1;
