@@ -259,9 +259,11 @@ $.extend(frappe, {
 	},
 
 	trigger_ready: function() {
-		frappe.ready_events.forEach(function(fn) {
-			fn();
-		});
+		if (frappe.ready_events){
+			frappe.ready_events.forEach(function(fn) {
+				fn();
+			});
+		}
 	},
 
 	highlight_code_blocks: function() {
@@ -455,7 +457,7 @@ $(document).on("page-change", function() {
 });
 
 
-frappe.ready(function() {
+$(document).ready(function() {
 	frappe.call({
 		method: 'frappe.website.doctype.website_settings.website_settings.is_chat_enabled',
 		callback: (r) => {
