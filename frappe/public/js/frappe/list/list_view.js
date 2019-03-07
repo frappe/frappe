@@ -294,7 +294,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	freeze() {
-		if (!this.list_view_settings.disable_count) {
+		if (this.list_view_settings && !this.list_view_settings.disable_count) {
 			this.$result.find('.list-count').html(`<span>${__('Refreshing')}...</span>`);
 		}
 	}
