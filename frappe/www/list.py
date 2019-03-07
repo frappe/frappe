@@ -70,7 +70,7 @@ def get(doctype, txt=None, limit_start=0, limit=20, pathname=None, **kwargs):
 	}
 
 @frappe.whitelist(allow_guest=True)
-def get_list_data(doctype, txt=None, limit_start=0, limit=20, **kwargs):
+def get_list_data(doctype, txt=None, limit_start=0, fields=None, cmd=None, limit=20, **kwargs):
 	"""Returns processed HTML page for a standard listing."""
 	limit_start = cint(limit_start)
 

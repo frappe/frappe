@@ -16,7 +16,6 @@ from frappe import _
 from frappe.model.sync import sync_for
 from frappe.utils.fixtures import sync_fixtures
 from frappe.website import render
-from frappe.desk.doctype.desktop_icon.desktop_icon import sync_from_app
 from frappe.modules.utils import sync_customizations
 from frappe.database import setup_database
 
@@ -83,8 +82,6 @@ def install_app(name, verbose=False, set_as_patched=True):
 		add_module_defs(name)
 
 	sync_for(name, force=True, sync_everything=True, verbose=verbose, reset_permissions=True)
-
-	sync_from_app(name)
 
 	add_to_installed_apps(name)
 

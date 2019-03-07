@@ -18,7 +18,8 @@ def get(args=None):
 
 	return frappe.get_all('ToDo', fields = ['owner', 'description'], filters = dict(
 		reference_type = args.get('doctype'),
-		reference_name = args.get('name')
+		reference_name = args.get('name'),
+		status = 'Open'
 	), limit = 5)
 
 @frappe.whitelist()
@@ -97,7 +98,8 @@ def add_multiple(args=None):
 		add(args)
 
 def remove_from_todo_if_already_assigned(doctype, docname):
-	owner = frappe.db.get_value("ToDo", {"reference_type": doctype, "reference_name": docname, "status":"Open"}, "owner")
+	owner = frappe.db.get_value("ToDo", {"reference_type": doctype, "reference_name": docname,
+		"status":"Open"}, "owner")
 	if owner:
 		remove(doctype, docname, owner)
 
@@ -125,7 +127,8 @@ def clear(doctype, name):
 	'''
 	Clears assignments, return False if not assigned.
 	'''
-	assignments = frappe.db.get_all('ToDo', fields=['owner'], filters = dict(reference_type = doctype, reference_name = name))
+	assignments = frappe.db.get_all('ToDo', fields=['owner'], filters =
+		dict(reference_type = doctype, reference_name = name))
 	if not assignments:
 		return False
 
