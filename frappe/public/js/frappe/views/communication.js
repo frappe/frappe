@@ -195,21 +195,9 @@ frappe.views.CommunicationComposer = Class.extend({
 				}
 				var content_field = me.dialog.fields_dict.content;
 				var subject_field = me.dialog.fields_dict.subject;
-				var content = content_field.get_value() || "";
-				var subject = subject_field.get_value() || "";
 
-				var parts = content.split('<!-- salutation-ends -->');
-
-				if(parts.length===2) {
-					content = [reply.message, "<br>", parts[1]];
-				} else {
-					content = [reply.message, "<br>", content];
-				}
-
-				content_field.set_value(content.join(''));
-				if(subject === "") {
-					subject_field.set_value(reply.subject);
-				}
+				content_field.set_value(reply.message);
+				subject_field.set_value(reply.subject);
 
 				me.reply_added = email_template;
 			}
