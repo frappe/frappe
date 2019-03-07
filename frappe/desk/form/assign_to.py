@@ -29,7 +29,8 @@ def add(args=None):
 			"assign_to": ,
 			"doctype": ,
 			"name": ,
-			"description":
+			"description": ,
+			"assignment_rule":
 		}
 
 	"""
@@ -62,6 +63,7 @@ def add(args=None):
 			"status": "Open",
 			"date": args.get('date', nowdate()),
 			"assigned_by": args.get('assigned_by', frappe.session.user),
+			'assignment_rule': args.get('assignment_rule')
 		}).insert(ignore_permissions=True)
 
 		# set assigned_to if field exists
