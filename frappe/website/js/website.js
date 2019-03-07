@@ -29,15 +29,18 @@ $.extend(frappe, {
 			if(link.split('.').pop() === 'js') {
 				el = document.createElement('script');
 				el.type = 'text/javascript';
+				el.src = link;
 			} else {
-				el = document.createElement('style');
+				el = document.createElement('link');
+				el.type = 'text/css';
+				el.rel = 'stylesheet';
+				el.href = link;
 			}
 			document.getElementsByTagName('head')[0].appendChild(el);
 			el.onload = () => {
 				frappe._assets_loaded.push(link);
 				resolve();
 			};
-			el.src = link;
 		});
 	},
 	hide_message: function() {
