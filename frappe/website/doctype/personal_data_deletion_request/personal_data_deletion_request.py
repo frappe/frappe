@@ -7,12 +7,12 @@ import frappe
 from frappe import _
 import re
 from frappe.model.document import Document
-from frappe.utils import validate_email_add
+from frappe.utils import validate_email_address
 from frappe.utils.verified_command import get_signed_params, verify_request
 
 class PersonalDataDeletionRequest(Document):
 	def validate(self):
-		validate_email_add(self.email, throw=True)
+		validate_email_address(self.email, throw=True)
 
 	def after_insert(self):
 		if self.email in ['Administrator', 'Guest']:
@@ -22,7 +22,8 @@ class PersonalDataDeletionRequest(Document):
 
 	def send_verification_mail(self):
 		host_name = frappe.local.site
-		url = frappe.utils.get_url("/api/method/frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.confirm_deletion") +\
+		url = frappe.utils.get_url("/api/method/frappe.website.doctype. \
+			personal_data_deletion_request.personal_data_deletion_request.confirm_deletion") +\
 			"?" + get_signed_params({"email": self.email, "name": self.name, 'host_name': host_name})
 
 		frappe.sendmail(
@@ -39,6 +40,7 @@ class PersonalDataDeletionRequest(Document):
 		)
 
 	def anonymize_data(self):
+		""" mask user data with non identifiable data """
 		frappe.only_for('System Manager')
 		if not (self.status == 'Pending Approval'):
 			frappe.throw(_("This request has not yet been approved by the user."))
@@ -63,7 +65,7 @@ class PersonalDataDeletionRequest(Document):
 			anonymize_fields = ''
 			for field in personal_fields:
 				field_details = meta.get_field(field)
-				field_value = anonymize_value_map.get(field_details.fieldtype, str(field)) if not field_details.unique else self.name
+				field_value = anonymize_value_map.get(field_details.fieldtype, str(field)) if not field_details.unique else self.name.split("@")[0]
 				anonymize_fields += ', `{0}`= \'{1}\''.format(field, field_value)
 
 			docs = frappe.get_all(ref_doc['doctype'], {ref_doc['match_field']:('like', '%'+self.email+'%')}, ['name', ref_doc['match_field']])
@@ -74,12 +76,20 @@ class PersonalDataDeletionRequest(Document):
 				anonymize_match_value = ', '.join(map(lambda x: self.name if re.search(regex, x) else x, d[ref_doc['match_field']].split()))
 				frappe.db.sql("""UPDATE `tab{0}`
 					SET `{1}` = '{2}' {3}
-					WHERE `name` = '{4}' """.format(ref_doc['doctype'], ref_doc['match_field'], anonymize_match_value,#nosec
-					anonymize_fields, d['name']))
+					WHERE `name` = '{4}' """.format( #nosec
+					ref_doc['doctype'],
+					ref_doc['match_field'],
+					anonymize_match_value,
+					anonymize_fields,
+					d['name']
+				))
 		self.db_set('status', 'Deleted')
 
 def remove_unverified_record():
-	frappe.db.sql("""DELETE FROM `tabPersonal Data Deletion Request` WHERE `status` = 'Pending Verification' and `creation` < (NOW() - INTERVAL '7' DAY)""")
+	frappe.db.sql("""
+		DELETE FROM `tabPersonal Data Deletion Request`
+		WHERE `status` = 'Pending Verification'
+		AND `creation` < (NOW() - INTERVAL '7' DAY)""")
 
 @frappe.whitelist(allow_guest=True)
 def confirm_deletion(email, name, host_name):
@@ -88,12 +98,12 @@ def confirm_deletion(email, name, host_name):
 
 	doc = frappe.get_doc("Personal Data Deletion Request", name)
 	host_name = frappe.local.site
-	if doc.status != 'Pending Approval':
+	if doc.status == 'Pending Verification':
 		doc.status = 'Pending Approval'
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
 		frappe.respond_as_web_page(_("Confirmed"),
-			_("The process for deletion of {0} Data associated with {1} has been initiated.").format(host_name, email),
+			_("The process for deletion of {0} data associated with {1} has been initiated.").format(host_name, email),
 			indicator_color='green')
 	else:
 		frappe.respond_as_web_page(_("Link Expired"),

@@ -7,7 +7,7 @@ import frappe
 import unittest
 from frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request import PersonalDataDeletionRequest, remove_unverified_record
 from frappe.website.doctype.personal_data_download_request.test_personal_data_download_request import create_user_if_not_exists
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 class TestPersonalDataDeletionRequest(unittest.TestCase):
 	def setUp(self):
@@ -30,23 +30,23 @@ class TestPersonalDataDeletionRequest(unittest.TestCase):
 		self.delete_request.status = 'Pending Approval'
 		self.delete_request.save()
 		PersonalDataDeletionRequest.anonymize_data(self.delete_request)
-		deleted_user = frappe.get_all('Contact',
-			{'email_id': self.delete_request.name},
-			['first_name', 'last_name', 'phone', 'mobile_no'])
+		deleted_user = frappe.get_all('User',
+			filters = {'name': self.delete_request.name},
+			fields = ['first_name', 'last_name', 'phone', 'birth_date'])
 		self.assertEqual(len(deleted_user), 1)
 
 		expected_data = [{
 			'first_name': 'first_name',
   			'last_name': 'last_name',
   			'phone': 'phone',
-  			'mobile_no': 'mobile_no'
+			'birth_date': date(1111,1,1),
 		}]
 		self.assertEqual(expected_data, deleted_user)
 		self.assertEqual(self.delete_request.status, 'Deleted')
 
 	def test_unverified_record_removal(self):
 		date_time_obj = datetime.strptime(self.delete_request.creation, '%Y-%m-%d %H:%M:%S.%f')
-		date_time_obj  += timedelta(days=-7)
+		date_time_obj += timedelta(days=-7)
 		self.delete_request.creation = date_time_obj
 		self.status = 'Pending Verification'
 		self.delete_request.save()
