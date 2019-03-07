@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import validate_email_add
+from frappe.utils import validate_email_address
 from frappe.model.document import Document
 from frappe.utils import parse_addr
 
@@ -69,7 +69,7 @@ def add_subscribers(name, email_list):
 	count = 0
 	for email in email_list:
 		email = email.strip()
-		parsed_email = validate_email_add(email, False)
+		parsed_email = validate_email_address(email, False)
 
 		if parsed_email:
 			if not frappe.db.get_value("Email Group Member",

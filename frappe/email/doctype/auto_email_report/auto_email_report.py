@@ -12,7 +12,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import (format_time, get_link_to_form, get_url_to_report,
-	global_date_format, now, now_datetime, validate_email_add)
+	global_date_format, now, now_datetime, validate_email_address)
 from frappe.utils.csvutils import to_csv
 from frappe.utils.xlsxutils import make_xlsx
 
@@ -36,7 +36,7 @@ class AutoEmailReport(Document):
 		valid = []
 		for email in self.email_to.split():
 			if email:
-				validate_email_add(email, True)
+				validate_email_address(email, True)
 				valid.append(email)
 
 		self.email_to = '\n'.join(valid)
