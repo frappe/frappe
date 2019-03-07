@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest
+import json
 from frappe.website.doctype.personal_data_download_request.personal_data_download_request import get_user_data
 
 
@@ -12,9 +13,10 @@ class TestRequestPersonalData(unittest.TestCase):
 	def setUp(self):
 		create_user_if_not_exists(email='test_privacy@example.com')
 
-	def test_user_data(self):
-		user_data = get_user_data('test_privacy@example.com')
-		expected_data = {'Contact': frappe.get_all('Contact', {'email_id':'test_privacy@example.com'},["*"])}
+	def test_user_data_creation(self):
+		user_data = json.loads(get_user_data('test_privacy@example.com'))
+		expected_data = {'Contact': frappe.get_all('Contact', {'email_id':'test_privacy@example.com'}, ["*"])}
+		expected_data = json.loads(json.dumps(expected_data, default=str))
 		self.assertEqual({'Contact': user_data['Contact']}, expected_data)
 
 	def test_file_and_email_creation(self):
@@ -44,5 +46,6 @@ def create_user_if_not_exists(email, first_name = None):
 		"user_type": "Website User",
 		"email": email,
 		"send_welcome_email": 0,
-		"first_name": first_name or email.split("@")[0]
+		"first_name": first_name or email.split("@")[0],
+		"birth_date": frappe.utils.now_datetime()
 	}).insert(ignore_permissions=True)

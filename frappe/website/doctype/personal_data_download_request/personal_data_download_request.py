@@ -4,8 +4,10 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils.verified_command import get_signed_params
 
 class PersonalDataDownloadRequest(Document):
 	def after_insert(self):
@@ -20,7 +22,7 @@ class PersonalDataDownloadRequest(Document):
 		user_name = self.user_name.replace(' ','-')
 		f = frappe.get_doc({
 			'doctype': 'File',
-			'file_name': 'Personal-Data-'+user_name+'-'+self.name+'.txt',
+			'file_name': 'Personal-Data-'+user_name+'-'+self.name+'.json',
 			"attached_to_doctype": 'Personal Data Download Request',
 			"attached_to_name": self.name,
 			'content': str(personal_data),
@@ -28,6 +30,8 @@ class PersonalDataDownloadRequest(Document):
 		})
 		f.save(ignore_permissions=True)
 
+		file_link = frappe.utils.get_url("/api/method/frappe.core.doctype.file.file.download_file") +\
+			"?" + get_signed_params({"file_url": f.file_url})
 		host_name = frappe.local.site
 		frappe.sendmail(
 			recipients=frappe.session.user,
@@ -36,7 +40,7 @@ class PersonalDataDownloadRequest(Document):
 			args={
 				'user':frappe.session.user,
 				'user_name':self.user_name,
-				'link':"".join(f.file_url),
+				'link':file_link,
 				'host_name':host_name
 			},
 			header=[_("Download Your Data"), "green"]
@@ -51,4 +55,4 @@ def get_user_data(user):
 		d += frappe.get_all(hook.get('doctype'), {hook.get('match_field'): user}, ["*"])
 		if d:
 			data.update({ hook.get('doctype'):d })
-	return data
+	return json.dumps(data, indent=2, default=str)
