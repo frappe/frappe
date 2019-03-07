@@ -16,6 +16,7 @@ from frappe.model import optional_fields, table_fields
 from frappe.model.workflow import validate_workflow
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
+from frappe.desk.form.document_follow import follow_document
 
 # once_only validation
 # methods
@@ -1014,6 +1015,7 @@ class Document(BaseDocument):
 		version = frappe.new_doc('Version')
 		if version.set_diff(self._doc_before_save, self):
 			version.insert(ignore_permissions=True)
+			follow_document(self.doctype, self.name, frappe.session.user)
 
 	@staticmethod
 	def whitelist(f):

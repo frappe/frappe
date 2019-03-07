@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 
 import frappe
 from frappe import _
+from frappe.desk.form.document_follow import follow_document
 import frappe.share
 
 class DuplicateToDoError(frappe.ValidationError): pass
@@ -42,7 +43,6 @@ def add(args=None):
 		AND `status`='Open'
 		AND `owner`=%(assign_to)s""", args):
 		frappe.throw(_("Already in user's To Do list"), DuplicateToDoError)
-
 	else:
 		from frappe.utils import nowdate
 
@@ -74,6 +74,9 @@ def add(args=None):
 		if not frappe.has_permission(doc=doc, user=args['assign_to']):
 			frappe.share.add(doc.doctype, doc.name, args['assign_to'])
 			frappe.msgprint(_('Shared with user {0} with read access').format(args['assign_to']), alert=True)
+
+		# make this document followed by assigned user
+		follow_document(args['doctype'], args['name'], args['assign_to'])
 
 	# notify
 	notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',\
