@@ -10,7 +10,6 @@ from frappe.app import init_request
 def set_request(**kwargs):
 	builder = EnvironBuilder(**kwargs)
 	frappe.local.request = Request(builder.get_environ())
-	init_request(frappe.local.request)
 
 def get_html_for_route(route):
 	set_request(method='GET', path=route)
