@@ -308,7 +308,7 @@ frappe.ui.form.Timeline = class Timeline {
 	}
 
 	prepare_timeline_item(c) {
-		if(!c.sender) c.sender = c.owner;
+		if(!c.sender) c.sender = c.owner || 'Guest';
 
 		if(c.sender && c.sender.indexOf("<")!==-1) {
 			c.sender = c.sender.split("<")[1].split(">")[0];

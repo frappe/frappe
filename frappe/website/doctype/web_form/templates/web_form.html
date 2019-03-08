@@ -153,8 +153,8 @@
 				<!-- save/next button -->
 				{% if (loop.index == layout|len or frappe.form_dict.new) %}
 					{% if not read_only %}
-				    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
-				    	{{ _(button_label or "Save") }}</button>
+				    <button type="submit" class="btn btn-primary btn-sm btn-form-submit footer-button">
+				    	{{ _("Save") }}</button>
 					{% endif %}
 				{% elif layout|len > 1 %}
 				    <button class="btn btn-primary btn-sm btn-change-section"
