@@ -54,3 +54,11 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype='Data') => {
 Cypress.Commands.add('awesomebar', (text) => {
 	cy.get('#navbar-search').type(`${text}{downarrow}{enter}`, { delay: 100 });
 });
+
+Cypress.Commands.add('new_form', (doctype) => {
+	cy.visit(`/desk#Form/${doctype}/New ${doctype} 1`);
+});
+
+Cypress.Commands.add('go_to_list', (doctype) => {
+	cy.visit(`/desk#List/${doctype}/List`);
+});
