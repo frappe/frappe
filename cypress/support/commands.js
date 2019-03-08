@@ -31,9 +31,7 @@ Cypress.Commands.add('login', (email, password) => {
 			usr: email,
 			pwd: password
 		}
-	})
-
-	cy.getCookie('sid').should('exist')
+	});
 });
 
 Cypress.Commands.add('fill_field', (fieldname, value, fieldtype='Data') => {
