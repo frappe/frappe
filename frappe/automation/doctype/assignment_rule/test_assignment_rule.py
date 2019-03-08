@@ -130,7 +130,7 @@ def get_assignment_rule():
 		priority = 0,
 		document_type = 'Note',
 		assign_condition = 'public == 1',
-		unassign_condition = 'pubic == 0 or notify_on_login == 1',
+		unassign_condition = 'public == 0 or notify_on_login == 1',
 		rule = 'Round Robin',
 		users = [
 			dict(user = 'test@example.com'),
