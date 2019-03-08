@@ -22,8 +22,7 @@ class PersonalDataDeletionRequest(Document):
 
 	def send_verification_mail(self):
 		host_name = frappe.local.site
-		url = frappe.utils.get_url("/api/method/frappe.website.doctype. \
-			personal_data_deletion_request.personal_data_deletion_request.confirm_deletion") +\
+		url = frappe.utils.get_url("/api/method/frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.confirm_deletion") +\
 			"?" + get_signed_params({"email": self.email, "name": self.name, 'host_name': host_name})
 
 		frappe.sendmail(
