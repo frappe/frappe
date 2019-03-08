@@ -66,7 +66,9 @@ class RolePermissionforPageandReport(Document):
 
 	def update_disable_prepared_report(self):
 		if self.report:
-			frappe.db.set_value('Report', self.report, 'disable_prepared_report', self.disable_prepared_report)
+			# intentionally written update query in frappe.db.sql instead of frappe.db.set_value
+			frappe.db.sql(""" update `tabReport` set disable_prepared_report = %s
+				where name = %s""", (self.disable_prepared_report, self.report))
 
 	def get_args(self, row=None):
 		name = self.page if self.set_role_for == 'Page' else self.report
@@ -75,7 +77,7 @@ class RolePermissionforPageandReport(Document):
 		return {
 			check_for_field: name
 		}
-		
+
 	def get_roles(self):
 		roles = []
 		for data in self.roles:

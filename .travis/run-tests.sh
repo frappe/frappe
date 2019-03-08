@@ -16,8 +16,8 @@ if [[ $DB == 'mariadb' ]]; then
 
 elif [[ $TEST_TYPE == 'ui' ]]; then
     setup_mariadb_env 'test_site_ui'
-    bench --site test_site_ui --force restore ./apps/frappe/test_sites/test_site_ui/test_site_ui-database.sql.gz
-    bench --site test_site_ui migrate
+    bench --site test_site_ui reinstall --yes
+	bench --site test_site_ui execute frappe.utils.install.complete_setup_wizard
     bench --site test_site_ui scheduler disable
     cd apps/frappe && yarn && yarn cypress:run
 
