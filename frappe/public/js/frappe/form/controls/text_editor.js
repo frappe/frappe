@@ -20,6 +20,25 @@ Table.create = (value) => {
 }
 Quill.register(Table, true);
 
+// link without href
+var Link = Quill.import('formats/link');
+
+class MyLink extends Link {
+	static create(value) {
+		let node = super.create(value);
+		value = this.sanitize(value);
+		node.setAttribute('href', value);
+		if(value.startsWith('/') || value.indexOf(window.location.host)) {
+			// no href if internal link
+			node.removeAttribute('target');
+		}
+		return node;
+	}
+}
+
+Quill.register(MyLink);
+
+
 // hidden blot
 class HiddenBlock extends Block {
 	static create(value) {
@@ -44,13 +63,11 @@ Uploader.DEFAULTS.mimetypes.push('image/gif');
 // inline style
 const BackgroundStyle = Quill.import('attributors/style/background');
 const ColorStyle = Quill.import('attributors/style/color');
-const SizeStyle = Quill.import('attributors/style/size');
 const FontStyle = Quill.import('attributors/style/font');
 const AlignStyle = Quill.import('attributors/style/align');
 const DirectionStyle = Quill.import('attributors/style/direction');
 Quill.register(BackgroundStyle, true);
 Quill.register(ColorStyle, true);
-Quill.register(SizeStyle, true);
 Quill.register(FontStyle, true);
 Quill.register(AlignStyle, true);
 Quill.register(DirectionStyle, true);
@@ -140,6 +157,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		return [
 			[{ 'header': [1, 2, 3, false] }],
 			['bold', 'italic', 'underline'],
+			[{ 'color': [] }, { 'background': [] }],
 			['blockquote', 'code-block'],
 			['link', 'image'],
 			[{ 'list': 'ordered' }, { 'list': 'bullet' }],

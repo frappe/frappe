@@ -429,7 +429,7 @@ def get_random_filename(extn=None, content_type=None):
 
 	return random_string(7) + (extn or "")
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def validate_filename(filename):
 	from frappe.utils import now_datetime
 	timestamp = now_datetime().strftime(" %Y-%m-%d %H:%M:%S")

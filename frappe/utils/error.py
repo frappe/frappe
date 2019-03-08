@@ -202,6 +202,7 @@ def get_error_snapshot_path():
 
 def get_frame_locals():
 	traceback = sys.exc_info()[2]
+	frames = []
 	if traceback:
 		frames = inspect.getinnerframes(traceback, context=0)
 	_locals = ['Locals (most recent call last):']
