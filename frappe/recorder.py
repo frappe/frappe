@@ -12,6 +12,7 @@ import traceback
 import frappe
 import sqlparse
 
+from frappe import _
 
 RECORDER_INTERCEPT_FLAG = "recorder-intercept"
 RECORDER_REQUEST_SPARSE_HASH = "recorder-requests-sparse"
