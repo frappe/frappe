@@ -95,13 +95,13 @@ def set_test_email_config():
 class TimeLoggingTestResult(unittest.TextTestResult):
 	def startTest(self, test):
 		self._started_at = time.time()
-		super().startTest(test)
+		super(TimeLoggingTestResult, self).startTest(test)
 
 	def addSuccess(self, test):
 		elapsed = time.time() - self._started_at
 		name = self.getDescription(test)
 		self.stream.write("\n{} ({:.03}s)\n".format(name, elapsed))
-		super().addSuccess(test)
+		super(TimeLoggingTestResult, self).addSuccess(test)
 
 
 def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False, failfast=False):
