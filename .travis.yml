@@ -25,12 +25,6 @@ matrix:
   exclude:
   - python: 2.7
     env: DB=postgres
-  - python: 3.6
-    env: TEST_TYPE=ui
-  - python: 3.6
-    env: DB=mariadb
-  - python: 2.7
-    env: DB=mariadb
   - python: 2.7
     env: TEST_TYPE=ui
 
