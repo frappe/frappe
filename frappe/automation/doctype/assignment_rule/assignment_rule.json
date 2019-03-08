@@ -380,7 +380,7 @@
    "collapsible": 0,
    "columns": 0,
    "fieldname": "users",
-   "fieldtype": "Table",
+   "fieldtype": "Table MultiSelect",
    "hidden": 0,
    "ignore_user_permissions": 0,
    "ignore_xss_filter": 0,
@@ -449,7 +449,7 @@
  "issingle": 0,
  "istable": 0,
  "max_attachments": 0,
- "modified": "2019-02-28 17:12:44.413782",
+ "modified": "2019-03-08 15:13:01.379471",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Assignment Rule",
@@ -476,7 +476,7 @@
    "write": 1
   }
  ],
- "quick_entry": 1,
+ "quick_entry": 0,
  "read_only": 0,
  "read_only_onload": 0,
  "show_name_in_global_search": 0,
