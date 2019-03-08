@@ -232,7 +232,7 @@ class Meta(Document):
 		are to be fetched and updated for a particular link field
 
 		These fields are of type Data, Link, Text, Readonly and their
-		options property is set as `link_fieldname`.`source_fieldname`'''
+		fetch_from property is set as `link_fieldname`.`source_fieldname`'''
 
 		out = []
 

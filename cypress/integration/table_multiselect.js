@@ -1,51 +1,51 @@
 context('Table MultiSelect', () => {
-	// ToDo does not have any "assign_to" property, hence commented
+	beforeEach(() => {
+		cy.login('Administrator', 'qwe');
+	});
 
-	// beforeEach(() => {
-	// 	cy.login('Administrator', 'qwe');
-	// });
+	let name = 'table multiselect' + Math.random().toString().slice(2, 8);
 
-	// let todo_description = 'table multiselect' + Math.random().toString().slice(2, 8);
+	it('select value from multiselect dropdown', () => {
+		cy.new_form('Assignment Rule');
+		cy.fill_field('__newname', name);
+		cy.fill_field('document_type', 'ToDo');
+		cy.fill_field('assign_condition', 'status=="Open"');
+		cy.get('input[data-fieldname="users"]').focus().as('input');
+		cy.get('input[data-fieldname="users"] + ul').should('be.visible');
+		cy.get('@input').type('test{enter}', { delay: 100 });
+		cy.get('.frappe-control[data-fieldname="users"] .form-control .tb-selected-value')
+			.first().as('selected-value');
+		cy.get('@selected-value').should('contain', 'test@erpnext.com');
 
-	// it('select value from multiselect dropdown', () => {
-	// 	cy.visit('/desk#Form/ToDo/New ToDo 1');
-	// 	cy.fill_field('description', todo_description, 'Text Editor').blur();
-	// 	cy.get('input[data-fieldname="assign_to"]').focus().as('input');
-	// 	cy.get('input[data-fieldname="assign_to"] + ul').should('be.visible');
-	// 	cy.get('@input').type('faris{enter}', { delay: 100 });
-	// 	cy.get('.frappe-control[data-fieldname="assign_to"] .form-control .tb-selected-value')
-	// 		.first().as('selected-value');
-	// 	cy.get('@selected-value').should('contain', 'faris@erpnext.com');
+		cy.server();
+		cy.route('POST', '/api/method/frappe.desk.form.save.savedocs').as('save_form');
+		// trigger save
+		cy.get('.primary-action').click();
+		cy.wait('@save_form').its('status').should('eq', 200);
+		cy.get('@selected-value').should('contain', 'test@erpnext.com');
+	});
 
-	// 	cy.server();
-	// 	cy.route('POST', '/api/method/frappe.desk.form.save.savedocs').as('save_form');
-	// 	// trigger save
-	// 	cy.get('.primary-action').click();
-	// 	cy.wait('@save_form').its('status').should('eq', 200);
-	// 	cy.get('@selected-value').should('contain', 'faris@erpnext.com');
-	// });
+	it('delete value using backspace', () => {
+		cy.go_to_list('Assignment Rule');
+		cy.get(`.list-subject:contains("table multiselect")`).last().find('a').click();
+		cy.get('input[data-fieldname="users"]').focus().type('{backspace}');
+		cy.get('.frappe-control[data-fieldname="users"] .form-control .tb-selected-value')
+			.should('not.exist');
+	});
 
-	// it('delete value using backspace', () => {
-	// 	cy.visit('/desk#List/ToDo/List');
-	// 	cy.get(`.list-subject:contains("table multiselect")`).last().find('a').click();
-	// 	cy.get('input[data-fieldname="assign_to"]').focus().type('{backspace}');
-	// 	cy.get('.frappe-control[data-fieldname="assign_to"] .form-control .tb-selected-value')
-	// 		.should('not.exist');
-	// });
+	it('delete value using x', () => {
+		cy.go_to_list('Assignment Rule');
+		cy.get(`.list-subject:contains("table multiselect")`).last().find('a').click();
+		cy.get('.frappe-control[data-fieldname="users"] .form-control .tb-selected-value').as('existing_value');
+		cy.get('@existing_value').find('.btn-remove').click();
+		cy.get('@existing_value').should('not.exist');
+	});
 
-	// it('delete value using x', () => {
-	// 	cy.visit('/desk#List/ToDo/List');
-	// 	cy.get(`.list-subject:contains("table multiselect")`).last().find('a').click();
-	// 	cy.get('.frappe-control[data-fieldname="assign_to"] .form-control .tb-selected-value').as('existing_value');
-	// 	cy.get('@existing_value').find('.btn-remove').click();
-	// 	cy.get('@existing_value').should('not.exist');
-	// });
-
-	// it('navigate to selected value', () => {
-	// 	cy.visit('/desk#List/ToDo/List');
-	// 	cy.get(`.list-subject:contains("table multiselect")`).last().find('a').click();
-	// 	cy.get('.frappe-control[data-fieldname="assign_to"] .form-control .tb-selected-value').as('existing_value');
-	// 	cy.get('@existing_value').find('.btn-link-to-form').click();
-	// 	cy.location('hash').should('contain', 'Form/User/faris@erpnext.com');
-	// });
+	it('navigate to selected value', () => {
+		cy.go_to_list('Assignment Rule');
+		cy.get(`.list-subject:contains("table multiselect")`).last().find('a').click();
+		cy.get('.frappe-control[data-fieldname="users"] .form-control .tb-selected-value').as('existing_value');
+		cy.get('@existing_value').find('.btn-link-to-form').click();
+		cy.location('hash').should('contain', 'Form/User/test@erpnext.com');
+	});
 });

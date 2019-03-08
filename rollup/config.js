@@ -20,7 +20,8 @@ const {
 	bench_path,
 	get_public_path,
 	get_app_path,
-	get_build_json
+	get_build_json,
+	get_options_for_scss
 } = require('./rollup.utils');
 
 function get_rollup_options(output_file, input_files) {
@@ -115,12 +116,15 @@ function get_rollup_options_for_css(output_file, input_files) {
 		// less -> css
 		postcss({
 			extract: output_path,
-			use: [['less', {
-				// import other less/css files starting from these folders
-				paths: [
-					path.resolve(get_public_path('frappe'), 'less')
-				]
-			}], 'sass'],
+			use: [
+				['less', {
+					// import other less/css files starting from these folders
+					paths: [
+						path.resolve(get_public_path('frappe'), 'less')
+					]
+				}],
+				['sass', get_options_for_scss()]
+			],
 			include: [
 				path.resolve(bench_path, '**/*.less'),
 				path.resolve(bench_path, '**/*.scss'),

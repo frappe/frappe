@@ -5,7 +5,7 @@
 		"es6": true
 	},
 	"parserOptions": {
-		"ecmaVersion": 6,
+		"ecmaVersion": 8,
 		"sourceType": "module"
 	},
 	"extends": "eslint:recommended",
@@ -18,10 +18,6 @@
 		"brace-style": [
 			"error",
 			"1tbs"
-		],
-		"space-before-function-paren": [
-			"error",
-			"never"
 		],
 		"space-unary-ops": [
 			"error",

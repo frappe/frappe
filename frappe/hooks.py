@@ -46,15 +46,13 @@ web_include_js = [
 	"website_script.js"
 ]
 
-bootstrap = "assets/frappe/css/bootstrap.css"
-web_include_css = [
-	"assets/css/frappe-web.css"
-]
+web_include_css = []
 
 website_route_rules = [
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"},
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
-	{"from_route": "/newsletters", "to_route": "Newsletter"}
+	{"from_route": "/newsletters", "to_route": "Newsletter"},
+	{"from_route": "/profile", "to_route": "me"},
 ]
 
 write_file_keys = ["file_url", "file_name"]
@@ -159,7 +157,8 @@ scheduler_events = {
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
 		"frappe.limits.update_space_usage",
 		"frappe.desk.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
-		"frappe.deferred_insert.save_to_db"
+		"frappe.deferred_insert.save_to_db",
+		"frappe.desk.form.document_follow.send_hourly_updates"
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",
@@ -175,6 +174,8 @@ scheduler_events = {
 		"frappe.core.doctype.feedback_request.feedback_request.delete_feedback_request",
 		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs",
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
+		"frappe.desk.form.document_follow.send_daily_updates"
+
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
@@ -184,7 +185,8 @@ scheduler_events = {
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_weekly",
 		"frappe.utils.change_log.check_for_update",
-		"frappe.desk.doctype.route_history.route_history.flush_old_route_records"
+		"frappe.desk.doctype.route_history.route_history.flush_old_route_records",
+		"frappe.desk.form.document_follow.send_weekly_updates"
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly"

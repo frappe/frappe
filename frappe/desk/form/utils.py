@@ -6,6 +6,7 @@ import frappe, json
 import frappe.desk.form.meta
 import frappe.desk.form.load
 from frappe.utils.html_utils import clean_email_html
+from frappe.desk.form.document_follow import follow_document
 
 from frappe import _
 from six import string_types
@@ -68,6 +69,7 @@ def add_comment(reference_doctype, reference_name, content, comment_email):
 		comment_type = 'Comment'
 	)).insert(ignore_permissions = True)
 
+	follow_document(doc.reference_doctype, doc.reference_name, frappe.session.user)
 	return doc.as_dict()
 
 @frappe.whitelist()

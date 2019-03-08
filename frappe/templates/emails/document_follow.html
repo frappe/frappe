@@ -1,0 +1,88 @@
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+	<tr>
+		<h3>Document Follow Notification</h3>
+	</tr>
+</table>
+{% for doc in docinfo%}
+<table class="panel-header" border="0" cellpadding="0" cellspacing="0" width="100%">
+	<tr height="10"></tr>
+	<tr>
+		<td width="15"></td>
+		<td>
+			<div class="text-medium text-muted">
+				<span><a href="{{doc.reference_url}}">{{ doc.reference_doctype }}: {{doc.reference_docname }}</a></span>
+			</div>
+		</td>
+		<td width="15"></td>
+	</tr>
+	<tr height="10"></tr>
+</table>
+<table class="panel-body" border="0" cellpadding="0" cellspacing="0" width="100%">
+	<tr height="10"></tr>
+	<tr>
+		<td width="15"></td>
+		<td>
+			<div>
+				<ul class="list-unstyled" style="line-height: 1.7">
+					{% for data in timeline %}
+						{% if (data.doctype == doc.reference_doctype and data.doc_name == doc.reference_docname) %}
+							{% if data.type == "comment" %}
+								<li>
+									<span style ='color:#8d99a6!important'>
+										{{data.data.time}}:
+									</span>
+									<b>"{{data.data.comment}}"</b>
+									{{data.data.by}}
+								</li>
+							{% elif data.type == "row added" %}
+								<li>
+									<span style ='color:#8d99a6!important'>
+										{{data.data.time}}:
+									</span>
+									Row Added to Table Field
+									<b>{{data.data.to}}</b>
+									By:
+									<b>{{data.by}}</b>
+								</li>
+							{% elif data.type == "field changed" %}
+								<li>
+									<span style ='color:#8d99a6!important'>
+										{{data.data.time}}:
+									</span>Field:
+									<b>"{{data.data.field}}"</b>
+									changed from
+									<b>"{{data.data.from}}"</b>
+									to
+									<b>"{{data.data.to}}"</b>
+									By:
+									<b>{{data.by}}</b>
+								</li>
+							{% elif data.type == "row changed" %}
+								<li>
+									<span style ='color:#8d99a6!important'>
+										{{data.data.time}}:
+									</span>
+									Table Field:
+									<b>"{{data.data.table_field}}"</b>
+									Row# {{data.data.row}} Field:
+									<b>"{{data.data.field}}"</b>
+									changed from
+									<b>"{{data.data.from}}" </b>
+									to <b>"{{data.data.to}}"</b>
+									By:
+									<b>{{data.by}}</b>
+								</li>
+							{% endif %}
+						{% endif %}
+					{% endfor %}
+				</ul>
+			</div>
+		</td>
+		<td width="15"></td>
+	</tr>
+	<tr height="10"></tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+	<tr height="20"></tr>
+</table>
+{% endfor %}

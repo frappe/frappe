@@ -16,15 +16,24 @@ class AssignmentRule(Document):
 		frappe.cache().delete_value('assignment_rule')
 
 	def apply(self, doc):
-		if self.safe_eval('assign_condition', doc):
+		assignments = self.get_assignments(doc)
+		if not assignments and self.safe_eval('assign_condition', doc):
 			self.do_assignment(doc)
 			return True
 
 		# try clearing
-		if self.unassign_condition:
+		if (self.unassign_condition and assignments and
+			self.name in [d.assignment_rule for d in assignments]):
 			return self.clear_assignment(doc)
 
 		return False
+
+	def get_assignments(self, doc):
+		return frappe.get_all('ToDo', fields = ['name', 'assignment_rule'], filters = dict(
+			reference_type = doc.get('doctype'),
+			reference_name = doc.get('name'),
+			status = 'Open'
+		), limit = 5)
 
 	def do_assignment(self, doc):
 		# clear existing assignment, to reassign
@@ -36,7 +45,8 @@ class AssignmentRule(Document):
 			assign_to = user,
 			doctype = doc.get('doctype'),
 			name = doc.get('name'),
-			description = frappe.render_template(self.description, doc)
+			description = frappe.render_template(self.description, doc),
+			assignment_rule = self.name
 		))
 
 		# set for reference in round robin
@@ -70,6 +80,9 @@ class AssignmentRule(Document):
 			if self.last_user == d.user:
 				return self.users[i+1].user
 
+		# bad last user, assign to the first one
+		return self.users[0].user
+
 	def get_user_load_balancing(self):
 		'''Assign to the user with least number of open assignments'''
 		counts = []
@@ -91,10 +104,10 @@ class AssignmentRule(Document):
 	def safe_eval(self, fieldname, doc):
 		try:
 			return frappe.safe_eval(self.get(fieldname), None, doc)
-		except Exception:
+		except Exception as e:
 			# when assignment fails, don't block the document as it may be
 			# a part of the email pulling
-			frappe.msgprint(frappe._('Auto assignment failed'), indicator = 'orange')
+			frappe.msgprint(frappe._('Auto assignment failed: {0}').format(str(e)), indicator = 'orange')
 
 def apply(doc, method):
 	if frappe.flags.in_patch or frappe.flags.in_install:
