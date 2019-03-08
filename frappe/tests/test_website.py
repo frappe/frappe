@@ -5,7 +5,6 @@ from werkzeug.wrappers import Request
 from werkzeug.test import EnvironBuilder
 
 from frappe.website import render
-from frappe.app import init_request
 
 def set_request(**kwargs):
 	builder = EnvironBuilder(**kwargs)
