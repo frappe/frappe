@@ -5,10 +5,18 @@ from werkzeug.wrappers import Request
 from werkzeug.test import EnvironBuilder
 
 from frappe.website import render
+from frappe.app import init_request
 
 def set_request(**kwargs):
 	builder = EnvironBuilder(**kwargs)
 	frappe.local.request = Request(builder.get_environ())
+	init_request(frappe.local.request)
+
+def get_html_for_route(route):
+	set_request(method='GET', path=route)
+	response = render.render()
+	html = frappe.safe_decode(response.get_data())
+	return html
 
 class TestWebsite(unittest.TestCase):
 
