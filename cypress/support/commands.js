@@ -25,14 +25,15 @@
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... });
 Cypress.Commands.add('login', (email, password) => {
 	cy.request({
-		url: '/',
+		url: '/api/method/login',
 		method: 'POST',
 		body: {
-			cmd: 'login',
 			usr: email,
 			pwd: password
 		}
-	});
+	})
+
+	cy.getCookie('sid').should('exist')
 });
 
 Cypress.Commands.add('fill_field', (fieldname, value, fieldtype='Data') => {
