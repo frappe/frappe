@@ -13,35 +13,34 @@ $.extend(frappe, {
 		lang: 'en'
 	},
 	_assets_loaded: [],
-	require: function(url, callback) {
-
-		let async = false;
-		if (callback) {
-			async = true;
+	require: async function(links, callback) {
+		if (typeof (links) === 'string') {
+			links = [links];
 		}
-
-		if(frappe._assets_loaded.indexOf(url)!==-1) {
-			callback && callback();
-			return;
+		for (let link of links) {
+			await this.add_asset_to_head(link);
 		}
-
-		return $.ajax({
-			url: url,
-			async: async,
-			dataType: "text",
-			success: function(data) {
-				var el;
-				if(url.split(".").splice(-1) == "js") {
-					el = document.createElement('script');
-				} else {
-					el = document.createElement('style');
-				}
-				el.appendChild(document.createTextNode(data));
-				document.getElementsByTagName('head')[0].appendChild(el);
-				frappe._assets_loaded.push(url);
-
-				callback && callback();
+		callback && callback();
+	},
+	add_asset_to_head(link) {
+		return new Promise(resolve => {
+			if (frappe._assets_loaded.includes(link)) return resolve();
+			let el;
+			if(link.split('.').pop() === 'js') {
+				el = document.createElement('script');
+				el.type = 'text/javascript';
+				el.src = link;
+			} else {
+				el = document.createElement('link');
+				el.type = 'text/css';
+				el.rel = 'stylesheet';
+				el.href = link;
 			}
+			document.getElementsByTagName('head')[0].appendChild(el);
+			el.onload = () => {
+				frappe._assets_loaded.push(link);
+				resolve();
+			};
 		});
 	},
 	hide_message: function() {
