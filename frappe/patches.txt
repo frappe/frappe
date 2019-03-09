@@ -5,6 +5,7 @@ frappe.patches.v8_0.update_global_search_table
 frappe.patches.v7_0.update_auth
 frappe.patches.v8_0.drop_in_dialog #2017-09-22
 frappe.patches.v7_2.remove_in_filter
+frappe.patches.v11_0.drop_column_apply_user_permissions
 execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2017-09-22
 execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2018-02-20
 execute:frappe.reload_doc('core', 'doctype', 'custom_docperm')
@@ -14,7 +15,6 @@ frappe.patches.v8_0.drop_is_custom_from_docperm
 execute:frappe.reload_doc('core', 'doctype', 'module_def') #2017-09-22
 execute:frappe.reload_doc('core', 'doctype', 'version') #2017-04-01
 frappe.patches.v11_0.replicate_old_user_permissions
-frappe.patches.v11_0.drop_column_apply_user_permissions
 frappe.patches.v11_0.reload_and_rename_view_log #2019-01-03
 frappe.patches.v7_1.rename_scheduler_log_to_error_log
 frappe.patches.v6_1.rename_file_data
@@ -104,8 +104,6 @@ frappe.patches.v4_3.remove_allow_on_submit_customization
 frappe.patches.v5_0.rename_table_fieldnames
 frappe.patches.v5_0.communication_parent
 frappe.patches.v5_0.clear_website_group_and_notifications
-execute:frappe.db.sql("""update tabComment set comment = substr(comment, 6, locate(":", comment)-6) where comment_type in ("Assigned", "Assignment Completed")""")
-execute:frappe.db.sql("update `tabComment` set comment_type='Comment' where comment_doctype='Blog Post' and ifnull(comment_type, '')=''")
 frappe.patches.v5_0.update_shared
 execute:frappe.reload_doc("core", "doctype", "docshare") #2015-07-21
 frappe.patches.v6_19.comment_feed_communication
@@ -230,6 +228,11 @@ frappe.patches.v11_0.delete_all_prepared_reports
 frappe.patches.v11_0.fix_order_by_in_reports_json
 execute:frappe.delete_doc('Page', 'applications', ignore_missing=True)
 frappe.patches.v11_0.set_missing_creation_and_modified_value_for_user_permissions
+frappe.patches.v11_0.remove_doctype_user_permissions_for_page_and_report
+frappe.patches.v11_0.set_default_letter_head_source
 frappe.patches.v12_0.set_primary_key_in_series
+execute:frappe.reload_doc('email', 'doctype', 'document_follow')
 execute:frappe.delete_doc("Page", "modules", ignore_missing=True)
 frappe.patches.v11_0.set_default_letter_head_source
+frappe.patches.v12_0.setup_comments_from_communications
+frappe.patches.v12_0.init_desk_settings

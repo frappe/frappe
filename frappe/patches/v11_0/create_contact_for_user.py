@@ -13,4 +13,4 @@ def execute():
 			user.first_name = re.sub("[<>]+", '', frappe.safe_decode(user.first_name))
 		if user.last_name:
 			user.last_name  = re.sub("[<>]+", '', frappe.safe_decode(user.last_name))
-		create_contact(user, ignore_links=True)
+		create_contact(user, ignore_links=True, ignore_mandatory=True)

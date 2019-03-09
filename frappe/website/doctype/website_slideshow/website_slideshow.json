@@ -1,5 +1,6 @@
 {
  "allow_copy": 0, 
+ "allow_events_in_timeline": 0, 
  "allow_guest_to_view": 0, 
  "allow_import": 0, 
  "allow_rename": 0, 
@@ -15,6 +16,7 @@
  "fields": [
   {
    "allow_bulk_edit": 0, 
+   "allow_in_quick_entry": 0, 
    "allow_on_submit": 0, 
    "bold": 0, 
    "collapsible": 0, 
@@ -40,16 +42,18 @@
    "reqd": 1, 
    "search_index": 0, 
    "set_only_once": 0, 
-   "unique": 0
+   "translatable": 0, 
+   "unique": 1
   }, 
   {
    "allow_bulk_edit": 0, 
+   "allow_in_quick_entry": 0, 
    "allow_on_submit": 0, 
    "bold": 0, 
    "collapsible": 0, 
    "columns": 0, 
    "depends_on": "eval:!doc.__islocal", 
-   "description": "Note: For best results, images must be of the same size and width must be greater than height.", 
+   "description": "Note: For best results,  images must be of the same size and width must be greater than height.", 
    "fieldname": "sb0", 
    "fieldtype": "Section Break", 
    "hidden": 0, 
@@ -71,10 +75,12 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
+   "translatable": 0, 
    "unique": 0
   }, 
   {
    "allow_bulk_edit": 0, 
+   "allow_in_quick_entry": 0, 
    "allow_on_submit": 0, 
    "bold": 0, 
    "collapsible": 0, 
@@ -102,10 +108,12 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
+   "translatable": 0, 
    "unique": 0
   }, 
   {
    "allow_bulk_edit": 0, 
+   "allow_in_quick_entry": 0, 
    "allow_on_submit": 0, 
    "bold": 0, 
    "collapsible": 0, 
@@ -113,7 +121,7 @@
    "depends_on": "eval:!doc.__islocal", 
    "description": "This goes above the slideshow.", 
    "fieldname": "header", 
-   "fieldtype": "Text Editor", 
+   "fieldtype": "HTML Editor", 
    "hidden": 0, 
    "ignore_user_permissions": 0, 
    "ignore_xss_filter": 0, 
@@ -133,6 +141,7 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0, 
+   "translatable": 0, 
    "unique": 0
   }
  ], 
@@ -147,7 +156,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 10, 
- "modified": "2017-10-05 18:56:20.094625", 
+ "modified": "2019-02-21 15:05:32.218696", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Slideshow", 
@@ -155,7 +164,6 @@
  "permissions": [
   {
    "amend": 0, 
-   "apply_user_permissions": 0, 
    "cancel": 0, 
    "create": 1, 
    "delete": 1, 
@@ -179,5 +187,6 @@
  "read_only_onload": 0, 
  "show_name_in_global_search": 0, 
  "track_changes": 1, 
- "track_seen": 0
+ "track_seen": 0, 
+ "track_views": 0
 }

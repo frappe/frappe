@@ -79,8 +79,8 @@ def get_user_permissions(user=None):
 
 		out = frappe._dict(out)
 		frappe.cache().hset("user_permissions", user, out)
-	except frappe.db.SQLError:
-		if frappe.db.is_table_missing():
+	except frappe.db.SQLError as e:
+		if frappe.db.is_table_missing(e):
 			# called from patch
 			pass
 

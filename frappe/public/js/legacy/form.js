@@ -342,11 +342,12 @@ _f.Frm.prototype.refresh_header = function(is_a_different_doc) {
 	this.document_flow.refresh();
 	this.dashboard.refresh();
 
-	if(this.meta.is_submittable &&
-		this.perm[0] && this.perm[0].submit &&
-		!this.is_dirty() &&
-		!this.is_new() &&
-		this.doc.docstatus===0) {
+	if(this.meta.is_submittable
+		&& this.perm[0] && this.perm[0].submit
+		&& !this.is_dirty()
+		&& !this.is_new()
+		&& !frappe.model.has_workflow(this.doctype) // show only if no workflow
+		&& this.doc.docstatus===0) {
 		this.dashboard.add_comment(__('Submit this document to confirm'), 'orange', true);
 	}
 
