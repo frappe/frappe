@@ -87,6 +87,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		this.patch_refresh_and_load_lib();
+		return this.get_list_view_settings();
+	}
+
+	get_list_view_settings() {
+		return frappe.call("frappe.desk.listview.get_list_settings", {doctype: this.doctype}).then(doc => this.list_view_settings = doc.message || {});
 	}
 
 	on_sort_change(sort_by, sort_order) {
@@ -289,7 +294,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	freeze() {
-		this.$result.find('.list-count').html(`<span>${__('Refreshing')}...</span>`);
+		if (this.list_view_settings && !this.list_view_settings.disable_count) {
+			this.$result.find('.list-count').html(`<span>${__('Refreshing')}...</span>`);
+		}
 	}
 
 	get_args() {
@@ -375,10 +382,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	render_count() {
-		this.get_count_str()
-			.then(str => {
+		if (!this.list_view_settings.disable_count) {
+			this.get_count_str().then(str => {
 				this.$result.find('.list-count').html(`<span>${str}</span>`);
 			});
+		}
 	}
 
 	render_tags() {
@@ -824,6 +832,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_realtime_updates() {
+		if (this.list_view_settings.disable_auto_refresh) {
+			return;
+		}
 		frappe.realtime.on('list_update', data => {
 			if (this.filter_area.is_being_edited()) {
 				return;
@@ -1026,7 +1037,31 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 		}
 
+		if (frappe.user.has_role('System Manager')) {
+			items.push({
+				label: __('Settings'),
+				action: () => this.show_list_settings(),
+				standard: true
+			});
+		}
 		return items;
+	}
+
+	show_list_settings() {
+		frappe.model.with_doctype("List View Setting", () => {
+			let d = new frappe.ui.Dialog({
+				title: __("Settings"),
+				fields: frappe.get_meta("List View Setting").fields
+			});
+			d.set_values(this.list_view_settings);
+			d.show();
+			d.set_primary_action(__('Save'), () => {
+				let values = d.get_values();
+				frappe.call("frappe.desk.listview.set_list_settings", {doctype: this.doctype, values: values});
+				Object.assign(this.list_view_settings, values);
+				d.hide();
+			});
+		});
 	}
 
 	get_actions_menu_items() {
