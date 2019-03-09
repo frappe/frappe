@@ -70,9 +70,8 @@ def import_db_from_sql(source_sql=None, verbose=False):
 	if verbose: print("Imported from database %s" % source_sql)
 
 def check_if_ready_for_barracuda():
-	mariadb_variables = frappe._dict(frappe.db.sql("""show variables"""))
-	mariadb_minor_version = int(mariadb_variables.get('version').split('-')[0].split('.')[1])
-	if mariadb_minor_version < 3:
+	# MariaDB version 10.3 did not support the "innodb_file_format" keyword.
+	if get_mariadb_versions()['major'] != '10.3':
 		check_database(mariadb_variables, {
 			"innodb_file_format": "Barracuda",
 			"innodb_file_per_table": "ON",
@@ -84,7 +83,7 @@ def check_if_ready_for_barracuda():
 	})
 
 def check_database(mariadb_variables, variables_dict):
-	mariadb_minor_version = int(mariadb_variables.get('version').split('-')[0].split('.')[1])
+	versions = get_mariadb_versions()
 	for key, value in variables_dict.items():
 		if mariadb_variables.get(key) != value:
 			site = frappe.local.site
@@ -94,10 +93,10 @@ def check_database(mariadb_variables, variables_dict):
 				   "run `bench new-site {x}` again.{sep2}"
 				   "").format(x=site, sep2="\n"*2, sep="\n")
 
-			if mariadb_minor_version < 3:
-				print_db_config(msg, expected_config_for_barracuda_2)
+			if versions['major'] != '10.3'
+				print_db_config(msg, expected_config_for_barracuda)
 			else:
-				print_db_config(msg, expected_config_for_barracuda_3)
+				print_db_config(msg, expected_config_for_barracuda_10_3)
 			raise frappe.exceptions.ImproperDBConfigurationError(
 				reason="MariaDB default file format is not Barracuda"
 			)
@@ -124,7 +123,17 @@ def print_db_config(explanation, config_text):
 	print(config_text)
 	print("="*80)
 
-expected_config_for_barracuda_2 = """
+def get_mariadb_versions()
+	# MariaDB classifies their versions as Major (1st and 2nd number together), and Minor (3rd number)
+	# Example:  Version 10.3.13 has a Major Version (10.3), and a Minor Version (13)
+	mariadb_variables = frappe._dict(frappe.db.sql("""show variables"""))
+	version_string = int(mariadb_variables.get('version').split('-')[0]
+	versions = {}
+	versions['major'] = version_string.split('.')[0] + '.' + version_string.split('.')[1]
+	versions['minor'] = version_string.split('.')[2]
+	return versions
+
+expected_config_for_barracuda = """
 [mysqld]
 innodb-file-format=barracuda
 innodb-file-per-table=1
@@ -137,7 +146,7 @@ collation-server = utf8mb4_unicode_ci
 default-character-set = utf8mb4
 """
 
-expected_config_for_barracuda_3 = """
+expected_config_for_barracuda_10_3 = """
 [mysqld]
 character-set-client-handshake = FALSE
 character-set-server = utf8mb4
