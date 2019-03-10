@@ -39,6 +39,7 @@ frappe.Application = Class.extend({
 			throw 'boot failed';
 		}
 
+		this.setup_frappe_vue();
 		this.load_bootinfo();
 		this.load_user_permissions();
 		this.make_nav_bar();
@@ -121,6 +122,12 @@ frappe.Application = Class.extend({
 		}
 
 	},
+
+	setup_frappe_vue() {
+		Vue.prototype.__ = window.__;
+		Vue.prototype.frappe = window.frappe;
+	},
+
 	set_password: function(user) {
 		var me=this;
 		frappe.call({
