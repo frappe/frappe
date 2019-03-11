@@ -26,7 +26,7 @@ def follow_document(doctype, doc_name, user, force=False):
 	track_changes = frappe.get_meta(doctype).track_changes
 	exists = is_document_followed(doctype, doc_name, user)
 	if exists == 0:
-		user_can_follow = frappe.db.get_value("User", user, "document_follow_notify")
+		user_can_follow = frappe.db.get_value("User", user, "document_follow_notify", ignore=True)
 		if user != "Administrator" and user_can_follow and track_changes and (doctype not in avoid_follow or force):
 			doc = frappe.new_doc("Document Follow")
 			doc.update({
