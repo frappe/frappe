@@ -300,7 +300,6 @@ def get_links(app, module):
 	for section in sections:
 		for item in section["items"]:
 			link_names.append(item.get("label"))
-	print(link_names)
 	return link_names
 
 
@@ -309,7 +308,6 @@ def get_module_link_items_from_dict(module_link_list_map):
 	module_link_list_map = json.loads(module_link_list_map)
 	module_links = {}
 	for module, data in module_link_list_map.items():
-		print(data)
 		module_links[module] = get_module_link_items_from_list(data["app"], module, data["links"])
 	return module_links
 

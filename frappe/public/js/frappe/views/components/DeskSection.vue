@@ -58,29 +58,19 @@ export default {
 	methods: {
 		show_customize_dialog() {
 			if(!this.dialog) {
-				this.get_settings()
-					.then(() => {
-						const fields = this.make_fields();
-						this.make_and_show_dialog(fields);
-					});
+				const fields = this.make_fields();
+				this.make_and_show_dialog(fields);
 			} else {
 				this.dialog.show();
 			}
 		},
-		get_settings() {
-			return frappe.db.get_value('User', user, 'home_settings')
-				.then(resp => {
-					this.all_settings = JSON.parse(resp.message['home_settings']);
-					this.settings = this.all_settings[this.category];
-				});
-		},
 		make_fields() {
 			let fields = [];
 			let template_modules = this.template_modules;
-			let selected_modules = Object.keys(this.settings);
+			// let selected_modules = Object.keys(this.settings);
 
 			template_modules.forEach(module => {
-				fields.push(this.get_module_select_field(module, selected_modules));
+				fields.push(this.get_module_select_field(module));
 
 				if(module.links) {
 					fields.push(this.get_links_multiselect_field(module));
@@ -95,6 +85,8 @@ export default {
 				fields: fields,
 				primary_action_label: __("Update"),
 				primary_action: (values) => {
+					// Figure out the diff from the default settings known from modules
+
 					let module_link_list_map = {};
 
 					Object.keys(values).forEach(module_name => {
@@ -155,12 +147,12 @@ export default {
 			});
 		},
 
-		get_module_select_field(module, selected_modules) {
+		get_module_select_field(module) {
 			return {
 				label: __(module.module_name),
 				fieldname: module.module_name,
 				fieldtype: "Check",
-				default: selected_modules.includes(module.module_name) ? 1 : 0
+				default: module.hidden ? 0 : 1
 			}
 		},
 
@@ -187,7 +179,7 @@ export default {
 					});
 					return data;
 				},
-				default: module.links.map(m => (m.name || m.label)),
+				default: module.links.map(l => (l.name || l.label)),
 				depends_on: module.module_name
 			};
 		},

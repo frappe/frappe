@@ -11,7 +11,6 @@ def get_modules_from_all_apps_for_user(user=None):
 
 	all_modules = get_modules_from_all_apps()
 	user_blocked_modules = frappe.get_doc('User', user).get_blocked_modules()
-
 	allowed_modules_list = [m for m in all_modules if m.get("module_name") not in user_blocked_modules]
 
 	empty_tables_by_module = get_all_empty_tables_by_module()
@@ -21,18 +20,50 @@ def get_modules_from_all_apps_for_user(user=None):
 		home_settings = json.loads(home_settings)
 
 	for module in allowed_modules_list:
-		module_name = module["module_name"]
+		module_name = module.get("module_name")
+		category = module.get("category")
+
+		# Apply onboarding status
 		if module_name in empty_tables_by_module:
 			module["onboard_present"] = 1
 
+		# Apply customizations. Format of user settings:
+
+		# home_settings = {				# <--- Settings
+		# 	"Domains": {   				# <--- Category (Desk Section)
+		# 		"Manufacturing": {		# <--- Module
+		# 			"index": 3,
+		# 			"links": [],
+		# 			"hidden": 1,
+		# 		},
+		#
+		# 	},
+		# }
+
 		if home_settings:
-			category_settings = home_settings.get(module.get("category"), {}) if module.get("category") else {}
-			if module_name not in category_settings:
-				module["hidden"] = 1
-			else:
-				links = category_settings[module_name]["links"]
-				if links:
-					module["links"] = get_module_link_items_from_list(module["app"], module_name, links.split(","))
+			category_settings = home_settings.get(category, '')
+			if category_settings:
+				module_settings = category_settings.get(module_name)
+				if module_settings:
+
+					# Set links
+					custom_links = module_settings.get("links")
+					if custom_links:
+						module["links"] = get_module_link_items_from_list(module["app"], module_name, custom_links.split(","))
+
+					# Set hidden
+					module["hidden"] = module_settings.get("hidden", 0)
+
+					# Set index, (drap and drop customizations)
+					index = module_settings.get("index")
+					if not index:
+						index = 0
+
+					module["index"] = index
+
+		# Set defaults if no customizations were set
+		if not module.get("links"):
+			module["links"] =  get_onboard_items(module["app"], frappe.scrub(module_name))[:5]
 
 	return allowed_modules_list
 
