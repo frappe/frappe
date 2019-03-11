@@ -2,61 +2,61 @@
   <Popover :align="align">
     <slot></slot>
     <ul slot="popover-content" class="list-reset">
-      <li class="list-item" v-for="item of dropdownItems" :key="item.label">
-        <a :href="item.route">{{ item.label }}</a>
+      <li v-for="item of dropdownItems" :key="item.label">
+        <a class="list-item" :href="item.route">{{ item.label }}</a>
       </li>
     </ul>
   </Popover>
 </template>
 <script>
-import Popover from './Popover.vue'
+import Popover from "./Popover.vue";
 
 export default {
-  name: 'Dropdown',
+  name: "Dropdown",
   components: {
-    Popover,
+    Popover
   },
   props: {
     items: {
       type: Array,
-      default: () => [],
+      default: () => []
     },
     label: {
       type: String,
-      default: 'Dropdown',
+      default: "Dropdown"
     },
     align: {
       type: String,
-      default: 'right',
-    },
+      default: "right"
+    }
   },
   data() {
     return {
-      isOpen: false,
-    }
+      isOpen: false
+    };
   },
   computed: {
     dropdownItems() {
       return (this.items || []).map(item => {
-        if (typeof item === 'string') {
+        if (typeof item === "string") {
           return {
             label: item,
-            action: console.log,
-          }
+            action: console.log
+          };
         }
         if (!item.action && item.route) {
-          item.action = this.setRoute.bind(this, item.route)
+          item.action = this.setRoute.bind(this, item.route);
         }
-        return item
-      })
-    },
+        return item;
+      });
+    }
   },
   methods: {
     setRoute(route) {
-      this.$router.push(route)
-    },
-  },
-}
+      this.$router.push(route);
+    }
+  }
+};
 </script>
 <style scoped>
 .list-reset {
@@ -69,8 +69,10 @@ export default {
   border-bottom-right-radius: 0.25rem;
   border-bottom-left-radius: 0.25rem;
 }
-.hover-bg-grey-lighter:hover {
-  background-color: #f1f5f8;
+.list-item:hover {
+  background-color: #f0f4f7;
+}
+.list-item {
   padding: 14px;
   transition: all 0.1s ease-in;
 }

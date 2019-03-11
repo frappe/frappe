@@ -12,15 +12,9 @@
     <div class="flush-top">
       <div class="module-box-content">
         <div class="level">
-          <a
-            class="module-box-link"
-            :href="type === 'module' ? '#modules/' + module_name : link"
-          >
+          <a class="module-box-link" :href="type === 'module' ? '#modules/' + module_name : link">
             <h4 class="h4">
-              <span
-                class="indicator"
-                :class="count ? 'red' : onboard_present ? 'orange' : 'grey'"
-              ></span>
+              <i :class="icon" style="color:#8d99a6;font-size:18px;margin-right:6px;"></i>
               {{ label }}
             </h4>
           </a>
@@ -47,51 +41,52 @@
 </template>
 
 <script>
-import Dropdown from './Dropdown.vue'
+import Dropdown from "./Dropdown.vue";
 
 export default {
   props: [
-    'index',
-    'name',
-    'label',
-    'type',
-    'module_name',
-    'link',
-    'count',
-    'onboard_present',
-    'links',
-    'description',
-    'hidden',
+    "index",
+    "name",
+    "label",
+    "type",
+    "module_name",
+    "link",
+    "count",
+    "onboard_present",
+    "links",
+    "description",
+    "hidden",
+    "icon"
   ],
   components: {
-    Dropdown,
+    Dropdown
   },
   data() {
     return {
-      hovered: 0,
-    }
+      hovered: 0
+    };
   },
   methods: {
     on_dragstart() {
-      this.$emit('box-dragstart', this.index)
-      return 0
+      this.$emit("box-dragstart", this.index);
+      return 0;
     },
     on_dragend() {
-      this.$emit('box-dragend', this.index)
-      return 0
+      this.$emit("box-dragend", this.index);
+      return 0;
     },
     on_enter() {
-      this.$emit('box-enter', this.index)
+      this.$emit("box-enter", this.index);
       // this.hovered = 1;
     },
     on_drop() {
-      this.$emit('box-drop', this.index)
+      this.$emit("box-drop", this.index);
     },
     on_exit() {
       // this.hovered = 0;
-    },
-  },
-}
+    }
+  }
+};
 </script>
 
 <style lang="less" scoped>
