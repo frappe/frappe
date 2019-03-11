@@ -1,55 +1,77 @@
 <template>
-  <div
-    class="inline-block relative"
-    :class="{ 'w-full': this.fullwidth }"
-    v-on-outside-click="closePopover"
-  >
+  <div class="inline-block relative" :class="{ 'w-full': this.fullwidth }" v-outside="closePopover">
     <div @click="togglePopover">
       <slot :togglePopover="togglePopover" :closePopover="closePopover"></slot>
     </div>
-    <div
-      v-show="isOpen"
-      class="absolute mt-default z-20"
-      :class="popoverClasses"
-    >
+    <div v-show="isOpen" class="absolute mt-default z-20" :class="popoverClasses">
       <slot name="popover-content"></slot>
     </div>
   </div>
 </template>
 <script>
+let instances = [];
+
+function onDocumentClick(e, el, fn) {
+  let target = e.target;
+  if (el !== target && !el.contains(target)) {
+    fn(e);
+  }
+}
+
 export default {
-  name: 'Popover',
+  name: "Popover",
   props: {
     align: {
-      default: 'left',
+      default: "left"
     },
     fullwidth: {
-      default: false,
-    },
+      default: false
+    }
   },
   data() {
     return {
-      isOpen: false,
+      isOpen: false
+    };
+  },
+  directives: {
+    outside: {
+      bind(el, binding) {
+        el.dataset.outsideClickIndex = instances.length;
+
+        const fn = binding.value;
+        const click = function(e) {
+          onDocumentClick(e, el, fn);
+        };
+
+        document.addEventListener("click", click);
+        instances.push(click);
+      },
+      unbind(el) {
+        const index = el.dataset.outsideClickIndex;
+        const handler = instances[index];
+        document.addEventListener("click", handler);
+        instances.splice(index, 1);
+      }
     }
   },
   computed: {
     popoverClasses() {
       return {
-        'pin-r': this.align === 'right',
-        'pin-l': this.align === 'left',
-        'w-full': this.fullwidth === true,
-      }
-    },
+        "pin-r": this.align === "right",
+        "pin-l": this.align === "left",
+        "w-full": this.fullwidth === true
+      };
+    }
   },
   methods: {
     togglePopover() {
-      this.isOpen = !this.isOpen
+      this.isOpen = !this.isOpen;
     },
     closePopover() {
-      this.isOpen = false
-    },
-  },
-}
+      this.isOpen = false;
+    }
+  }
+};
 </script>
 <style scoped>
 .relative {

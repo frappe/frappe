@@ -12,12 +12,14 @@
     <div class="flush-top">
       <div class="module-box-content">
         <div class="level">
-          <a class="module-box-link" :href="type === 'module' ? '#modules/' + module_name : link">
+          <div class="module-box-link">
             <h4 class="h4">
-              <i :class="icon" style="color:#8d99a6;font-size:18px;margin-right:6px;"></i>
-              {{ label }}
+              <a :href="type === 'module' ? '#modules/' + module_name : link">
+                <i :class="icon" style="color:#8d99a6;font-size:18px;margin-right:6px;"></i>
+                {{ label }}
+              </a>
             </h4>
-          </a>
+          </div>
           <dropdown v-if="links && links.length" :items="links">
             <span class="pull-right">
               <i class="octicon octicon-chevron-down"></i>
@@ -93,7 +95,6 @@ export default {
 .module-box {
   border-radius: 4px;
   padding: 5px 15px;
-  padding-top: 3px;
   display: block;
   background-color: #ffffff;
 }
@@ -102,7 +103,7 @@ export default {
   background-color: #fafbfc;
 }
 
-.octicon-three-bars:hover {
+.octicon-chevron-down:hover {
   cursor: pointer;
 }
 
