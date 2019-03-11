@@ -18,6 +18,10 @@ sudo pip install -e ~/bench
 
 rm $TRAVIS_BUILD_DIR/.git/shallow
 cd ~/ && bench init frappe-bench --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
-cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
-cp -r $TRAVIS_BUILD_DIR/test_sites/test_site_postgres ~/frappe-bench/sites/
-cp -r $TRAVIS_BUILD_DIR/test_sites/test_site_ui ~/frappe-bench/sites/
+if [[ $DB == 'mariadb' ]]; then
+	cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
+elif [[ $TEST_TYPE == 'ui' ]]; then
+	cp -r $TRAVIS_BUILD_DIR/test_sites/test_site_ui ~/frappe-bench/sites/
+elif [[ $DB == 'postgres' ]]; then
+	cp -r $TRAVIS_BUILD_DIR/test_sites/test_site_postgres ~/frappe-bench/sites/
+fi

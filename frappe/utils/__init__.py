@@ -564,7 +564,9 @@ def parse_json(val):
 	Parses json if string else return
 	"""
 	if isinstance(val, string_types):
-		return json.loads(val)
+		val = json.loads(val)
+	if isinstance(val, dict):
+		val = frappe._dict(val)
 	return val
 
 def cast_fieldtype(fieldtype, value):

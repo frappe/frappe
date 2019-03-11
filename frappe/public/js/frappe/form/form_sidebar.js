@@ -16,13 +16,13 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.user_actions = this.sidebar.find(".user-actions");
 		this.image_section = this.sidebar.find(".sidebar-image-section");
 		this.image_wrapper = this.image_section.find('.sidebar-image-wrapper');
-
 		this.make_assignments();
 		this.make_attachments();
 		this.make_shared();
 		this.make_viewers();
 		this.make_tags();
 		this.make_like();
+		this.make_follow();
 
 		this.bind_events();
 		frappe.ui.form.setup_user_image_event(this.frm);
@@ -54,6 +54,7 @@ frappe.ui.form.Sidebar = Class.extend({
 			this.frm.assign_to.refresh();
 			this.frm.attachments.refresh();
 			this.frm.shared.refresh();
+			this.frm.follow.refresh();
 			this.frm.viewers.refresh();
 			this.frm.tags && this.frm.tags.refresh(this.frm.doc._user_tags);
 			this.sidebar.find(".modified-by").html(__("{0} edited this {1}",
@@ -131,7 +132,12 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.like_count = this.sidebar.find(".liked-by .likes-count");
 		frappe.ui.setup_like_popover(this.sidebar.find(".liked-by-parent"), ".liked-by");
 	},
-
+	make_follow: function(){
+		this.frm.follow = new frappe.ui.form.DocumentFollow({
+			frm: this.frm,
+			parent: this.sidebar.find(".followed-by-section")
+		});
+	},
 	refresh_like: function() {
 		if (!this.like_icon) {
 			return;
@@ -149,7 +155,6 @@ frappe.ui.form.Sidebar = Class.extend({
 
 	refresh_image: function() {
 	},
-
 	setup_ratings: function() {
 		var _ratings = this.frm.get_docinfo().rating || 0;
 
@@ -158,5 +163,5 @@ frappe.ui.form.Sidebar = Class.extend({
 			var rating_icons = frappe.render_template("rating_icons", {rating: _ratings, show_label: false});
 			this.ratings.find(".rating-icons").html(rating_icons);
 		}
-	}
+	},
 });

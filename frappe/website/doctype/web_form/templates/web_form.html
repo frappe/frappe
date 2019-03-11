@@ -3,7 +3,7 @@
 {% block title %}{{ _(title) }}{% endblock %}
 
 {% block header %}
-<h1>{{ _(title) }}</h1>
+<h2>{{ _(title) }}</h2>
 {% endblock %}
 
 
@@ -27,11 +27,11 @@
 	</div>
 	{% endif %}
 	{% if is_list %}
-	<div style="padding-bottom: 15px;">
-	    <a href="/{{ pathname }}{{ delimeter }}new=1{{ params_from_form_dict}}" class="btn btn-primary btn-new btn-sm">
+	<div class="text-right mt-2">
+	    <a href="/{{ pathname }}{{ delimeter }}new=1{{ params_from_form_dict}}" class="btn btn-primary btn-new">
 	    {{ _("New") }}
 		</a>
-		<button class="btn btn-danger btn-delete btn-sm">
+		<button class="btn btn-danger btn-delete">
 			{{ _("Delete") }}
 		</button>
 	</div>
@@ -46,12 +46,14 @@
 {% endblock %}
 
 {% block page_content %}
-<div class="introduction">
-	{% if introduction_text %}
-	<p class="text-muted">{{ _(introduction_text) }}</p>
-	{% endif %}
-</div>
-<div class="form-message hidden"></div>
+{% if introduction_text %}
+	<div class="introduction">
+		<p class="text-muted">{{ _(introduction_text) }}</p>
+	</div>
+{% else %}
+	<hr style="margin-top: 0;">
+{% endif %}
+<div class="form-message hide"></div>
 
 {% if _login_required %}
 <div class="login-required">
@@ -151,8 +153,8 @@
 				<!-- save/next button -->
 				{% if (loop.index == layout|len or frappe.form_dict.new) %}
 					{% if not read_only %}
-				    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
-				    	{{ _(button_label or "Save") }}</button>
+				    <button type="submit" class="btn btn-primary btn-sm btn-form-submit footer-button">
+				    	{{ _("Save") }}</button>
 					{% endif %}
 				{% elif layout|len > 1 %}
 				    <button class="btn btn-primary btn-sm btn-change-section"

@@ -5,7 +5,7 @@
 		"es6": true
 	},
 	"parserOptions": {
-		"ecmaVersion": 6,
+		"ecmaVersion": 8,
 		"sourceType": "module"
 	},
 	"extends": "eslint:recommended",
@@ -113,11 +113,9 @@
 		"getCookie": true,
 		"getCookies": true,
 		"get_url_arg": true,
-
 		"md5": true,
 		"$": true,
 		"jQuery": true,
-		"Vue": true,
 		"moment": true,
 		"hljs": true,
 		"Awesomplete": true,

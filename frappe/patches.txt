@@ -231,6 +231,7 @@ frappe.patches.v11_0.set_missing_creation_and_modified_value_for_user_permission
 frappe.patches.v11_0.remove_doctype_user_permissions_for_page_and_report
 frappe.patches.v11_0.set_default_letter_head_source
 frappe.patches.v12_0.set_primary_key_in_series
+execute:frappe.reload_doc('email', 'doctype', 'document_follow')
 execute:frappe.delete_doc("Page", "modules", ignore_missing=True)
 frappe.patches.v11_0.set_default_letter_head_source
 frappe.patches.v12_0.setup_comments_from_communications
