@@ -181,6 +181,7 @@ frappe.patches.v8_0.update_gender_and_salutation
 frappe.patches.v8_0.setup_email_inbox #2017-03-29
 frappe.patches.v8_0.newsletter_childtable_migrate
 frappe.patches.v8_0.set_doctype_values_in_custom_role
+execute:frappe.reload_doc('email', 'doctype', 'document_follow')
 frappe.patches.v8_0.install_new_build_system_requirements
 frappe.patches.v8_0.set_currency_field_precision	# 2017-05-09
 frappe.patches.v8_0.rename_print_to_printing
