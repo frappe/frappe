@@ -1015,7 +1015,8 @@ class Document(BaseDocument):
 		version = frappe.new_doc('Version')
 		if version.set_diff(self._doc_before_save, self):
 			version.insert(ignore_permissions=True)
-			follow_document(self.doctype, self.name, frappe.session.user)
+			if not frappe.flags.in_migrate:
+				follow_document(self.doctype, self.name, frappe.session.user)
 
 	@staticmethod
 	def whitelist(f):
