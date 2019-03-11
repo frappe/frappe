@@ -70,3 +70,6 @@ def delete_post(post_name):
 	post = frappe.get_doc('Post', post_name)
 	post.delete()
 	frappe.publish_realtime('delete_post' + post_name, after_commit=True)
+
+def get_unseen_post_count():
+	return 10
