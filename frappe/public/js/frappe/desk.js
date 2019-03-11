@@ -543,7 +543,9 @@ frappe.Application = Class.extend({
 
 	setup_social_listeners() {
 		frappe.realtime.on('mention', (message) => {
-			frappe.show_alert(message);
+			if (frappe.get_route()[0] !== 'social') {
+				frappe.show_alert(message);
+			}
 		});
 	}
 });
