@@ -268,6 +268,7 @@
 	],
 	"js/form.min.js": [
 		"public/js/frappe/form/templates/print_layout.html",
+		"public/js/frappe/form/document_follow.js",
 		"public/js/frappe/form/templates/users_in_sidebar.html",
 		"public/js/frappe/form/templates/set_sharing.html",
 		"public/js/frappe/form/templates/form_sidebar.html",
@@ -329,11 +330,6 @@
 		"public/js/frappe/list/list_sidebar.js",
 		"public/js/frappe/list/list_sidebar.html",
 		"public/js/frappe/list/list_sidebar_stat.html",
-		"public/js/frappe/list/list_item_main.html",
-		"public/js/frappe/list/list_item_row.html",
-		"public/js/frappe/list/list_item_main_head.html",
-		"public/js/frappe/list/list_item_row_head.html",
-		"public/js/frappe/list/list_item_subject.html",
 		"public/js/frappe/list/list_view_permission_restrictions.html",
 
 		"public/js/frappe/views/gantt/gantt_view.js",
@@ -343,8 +339,6 @@
 		"public/js/frappe/views/inbox/inbox_view.js",
 		"public/js/frappe/views/file/file_view.js",
 
-		"public/js/frappe/list/header_select_all_like_filter.html",
-		"public/js/frappe/list/item_assigned_to_comment_count.html",
 		"public/js/frappe/views/treeview.js",
 		"public/js/frappe/views/interaction.js",
 

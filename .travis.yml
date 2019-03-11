@@ -25,7 +25,7 @@ matrix:
   exclude:
   - python: 2.7
     env: DB=postgres
-  - python: 3.6
+  - python: 2.7
     env: TEST_TYPE=ui
 
 install:

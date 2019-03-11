@@ -48,29 +48,31 @@ def authenticate(user):
 @frappe.whitelist()
 def get(user, fields = None):
 	duser   = frappe.get_doc('User', user)
-	dprof   = frappe.get_doc('Chat Profile', user)
 
-	# If you're adding something here, make sure the client recieves it.
-	profile = dict(
-		# User
-		name       = duser.name,
-		email      = duser.email,
-		first_name = duser.first_name,
-		last_name  = duser.last_name,
-		username   = duser.username,
-		avatar     = duser.user_image,
-		bio        = duser.bio,
-		# Chat Profile
-		status             = dprof.status,
-		chat_background    = dprof.chat_background,
-		message_preview    = bool(dprof.message_preview),
-		notification_tones = bool(dprof.notification_tones),
-		conversation_tones = bool(dprof.conversation_tones),
-		enable_chat        = bool(dprof.enable_chat)
-	)
-	profile = filter_dict(profile, fields)
+	if frappe.db.exists('Chat Profile', user):
+		dprof = frappe.get_doc('Chat Profile', user)
 
-	return dictify(profile)
+		# If you're adding something here, make sure the client recieves it.
+		profile = dict(
+			# User
+			name       = duser.name,
+			email      = duser.email,
+			first_name = duser.first_name,
+			last_name  = duser.last_name,
+			username   = duser.username,
+			avatar     = duser.user_image,
+			bio        = duser.bio,
+			# Chat Profile
+			status             = dprof.status,
+			chat_background    = dprof.chat_background,
+			message_preview    = bool(dprof.message_preview),
+			notification_tones = bool(dprof.notification_tones),
+			conversation_tones = bool(dprof.conversation_tones),
+			enable_chat        = bool(dprof.enable_chat)
+		)
+		profile = filter_dict(profile, fields)
+
+		return dictify(profile)
 
 @frappe.whitelist()
 def create(user, exists_ok = False, fields = None):

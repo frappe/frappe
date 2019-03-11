@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 import frappe, json
 from frappe.database.schema import add_column
 from frappe import _
+from frappe.desk.form.document_follow import follow_document
 from frappe.utils import get_link_to_form
 
 @frappe.whitelist()
@@ -46,7 +47,7 @@ def _toggle_like(doctype, name, add, user=None):
 			if user not in liked_by:
 				liked_by.append(user)
 				add_comment(doctype, name)
-
+				follow_document(doctype, name, user)
 		else:
 			if user in liked_by:
 				liked_by.remove(user)

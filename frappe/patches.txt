@@ -200,6 +200,7 @@ frappe.patches.v9_1.move_feed_to_activity_log
 execute:frappe.delete_doc('Page', 'data-import-tool', ignore_missing=True)
 frappe.patches.v10_0.reload_countries_and_currencies
 frappe.patches.v10_0.refactor_social_login_keys
+execute:frappe.reload_doc('email', 'doctype', 'document_follow')
 frappe.patches.v10_0.enable_chat_by_default_within_system_settings
 frappe.patches.v10_0.remove_custom_field_for_disabled_domain
 execute:frappe.delete_doc("Page", "chat")
@@ -231,6 +232,7 @@ frappe.patches.v11_0.set_missing_creation_and_modified_value_for_user_permission
 frappe.patches.v11_0.remove_doctype_user_permissions_for_page_and_report
 frappe.patches.v11_0.set_default_letter_head_source
 frappe.patches.v12_0.set_primary_key_in_series
+execute:frappe.reload_doc('email', 'doctype', 'document_follow')
 execute:frappe.delete_doc("Page", "modules", ignore_missing=True)
 frappe.patches.v11_0.set_default_letter_head_source
 frappe.patches.v12_0.setup_comments_from_communications
