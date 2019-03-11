@@ -63,11 +63,14 @@ export default {
 		frappe.app_updates.on('user_image_updated', () => {
 			this.$root.$emit('user_image_updated')
 		})
+
+		this.update_primary_action(frappe.get_route()[1])
 	},
 	mounted() {
 		frappe.route.on('change', () => {
 			if (frappe.get_route()[0] === 'social') {
 				this.set_current_page();
+				this.update_primary_action(frappe.get_route()[1])
 				frappe.utils.scroll_to(0);
 				$("body").attr("data-route", frappe.get_route_str());
 			}
@@ -77,6 +80,15 @@ export default {
 	methods: {
 		set_current_page() {
 			this.current_page = this.get_current_page();
+		},
+		update_primary_action(current_route) {
+			if (current_route === 'home') {
+				this.$root.page.set_primary_action(__('Post'), () => {
+					frappe.social.post_dialog.show();
+				});
+			} else {
+				this.$root.page.clear_primary_action()
+			}
 		},
 		get_current_page() {
 			const route_map = get_route_map();
