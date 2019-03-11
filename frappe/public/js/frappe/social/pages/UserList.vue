@@ -1,19 +1,21 @@
 <template>
 	<div class="flex justify-center">
 		<div class="col-md-6">
-			<div class="flex justify-between padding">
+			<div class="flex justify-between padding search-bar">
 				<input type="text" class="form-control" :placeholder="__('Search for a user...')" v-model="search_text">
 			</div>
-			<ul class="list-unstyled">
+			<ul class="list-unstyled user-list">
 				<li
-					class="padding cursor-pointer"
+					class="padding cursor-pointer flex user-card"
 					v-for="user in filtered_users" :key="user.name"
 					@click="go_to_profile_page(user.name)">
-					<span
-						v-html="get_avatar(user.name)">
-					</span>
-					{{ user.fullname }}
+					<span v-html="get_avatar(user.name)"></span>
+					<div class="user-details">
+						{{ user.fullname }}
+						<div class="text-muted text-medium" :class="{'italic': !user.bio}">{{ user.bio || 'No Bio'}}</div>
+					</div>
 				</li>
+				<li class="text-muted" v-if="!filtered_users.length">{{__('No user found')}}</li>
 			</ul>
 		</div>
 	</div>
@@ -40,7 +42,7 @@ export default {
 		}
 	},
 	created() {
-		const standard_users = ['Administrator', 'Guest'];
+		const standard_users = ['Administrator', 'Guest', 'guest@example.com'];
 		this.users = frappe.boot.user_info;
 		// delete standard users from the list
 		standard_users.forEach(user => delete this.users[user]);
@@ -56,5 +58,36 @@ export default {
 	}
 }
 </script>
+<style lang="less" scoped>
+.user-list {
+	// similar to search bar height
+	margin-top: 75px;
+	.user-card {
+		&:hover {
+			border: 1px solid #d1d8dd;
+		}
+		border-radius: 5px;
+		.user-details {
+			margin-left: 10px;
+			.italic {
+				font-style: italic;
+			}
+		}
+	}
+}
+.search-bar {
+	position: fixed;
+	background: white;
+	height: 75px;
+	text-align: center;
+	input {
+		width: 40%;
+		margin: auto;
+	}
+	width: 100%;
+	left: 0;
+}
+</style>
+
 
 
