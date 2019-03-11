@@ -12,7 +12,7 @@
 					<span v-html="get_avatar(user.name)"></span>
 					<div class="user-details">
 						{{ user.fullname }}
-						<div class="text-muted text-medium" :class="{'italic': !user.bio}">{{ user.bio || 'No Bio'}}</div>
+						<div class="text-muted text-medium" :class="{'italic': !user.bio}">{{ frappe.ellipsis(user.bio, 100) || 'No Bio'}}</div>
 					</div>
 				</li>
 				<li class="text-muted" v-if="!filtered_users.length">{{__('No user found')}}</li>
