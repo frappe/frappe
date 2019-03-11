@@ -2,7 +2,10 @@
 	<div class="flex justify-center">
 		<div class="col-md-6">
 			<div class="flex justify-between padding search-bar">
-				<input type="text" class="form-control" :placeholder="__('Search for a user...')" v-model="search_text">
+				<div class="flex col-md-6">
+					<button class="btn" @click="frappe.set_route('social', 'home')">← {{ __('Back') }}</button>
+					<input type="text" class="form-control" :placeholder="__('Search for a user...')" v-model="search_text">
+				</div>
 			</div>
 			<ul class="list-unstyled user-list">
 				<li
@@ -80,8 +83,7 @@ export default {
 	background: white;
 	height: 75px;
 	text-align: center;
-	input {
-		width: 40%;
+	div {
 		margin: auto;
 	}
 	width: 100%;

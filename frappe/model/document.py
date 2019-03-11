@@ -1154,7 +1154,7 @@ class Document(BaseDocument):
 				frappe.local.flags.commit = True
 
 	def add_viewed(self, user=None):
-		'''add log to communication when a user viewes a document'''
+		'''add log to communication when a user views a document'''
 		if not user:
 			user = frappe.session.user
 
