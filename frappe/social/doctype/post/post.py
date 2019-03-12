@@ -7,7 +7,6 @@ import frappe
 import requests
 from bs4 import BeautifulSoup
 from frappe.model.document import Document
-from frappe.core.doctype.user.user import extract_mentions
 
 class Post(Document):
 	def on_update(self):
@@ -98,12 +97,9 @@ def get_viewed_posts(only_count=False):
 
 @frappe.whitelist()
 def set_seen(post_name):
-	try:
-		frappe.get_doc({
-			'doctype': 'View Log',
-			'reference_doctype': 'Post',
-			'reference_name': post_name,
-			'viewed_by': frappe.session.user
-		}).insert(ignore_permissions=True)
-	except:
-		pass
+	frappe.get_doc({
+		'doctype': 'View Log',
+		'reference_doctype': 'Post',
+		'reference_name': post_name,
+		'viewed_by': frappe.session.user
+	}).insert(ignore_permissions=True)
