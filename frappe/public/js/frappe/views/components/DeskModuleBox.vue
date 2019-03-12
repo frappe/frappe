@@ -15,7 +15,7 @@
           <div class="module-box-link">
             <h4 class="h4">
               <a :href="type === 'module' ? '#modules/' + module_name : link">
-                <i :class="icon" style="color:#8d99a6;font-size:18px;margin-right:6px;"></i>
+                <i :class="iconClass" style="color:#8d99a6;font-size:18px;margin-right:6px;"></i>
                 {{ label }}
               </a>
             </h4>
@@ -67,6 +67,15 @@ export default {
     return {
       hovered: 0
     };
+  },
+  computed: {
+    iconClass() {
+      if (this.icon) {
+        return this.icon;
+      } else {
+        return "octicon octicon-primitive-dot";
+      }
+    }
   },
   methods: {
     on_dragstart() {
