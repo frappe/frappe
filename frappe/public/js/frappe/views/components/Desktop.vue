@@ -8,7 +8,7 @@
 				v-if="modules.filter(m => m.category === category).length"
 				:category="category"
 				:all_modules="modules.filter(m => m.category === category)"
-				:customization_settings="home_settings[category] || {}"
+				:customization_settings="home_settings ? home_settings[category] : {}"
 			>
 			</desk-section>
 
