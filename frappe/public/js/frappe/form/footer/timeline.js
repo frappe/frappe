@@ -361,7 +361,6 @@ frappe.ui.form.Timeline = class Timeline {
 			} else {
 				c.content_html = c.content;
 				c.content_html = frappe.utils.strip_whitespace(c.content_html);
-				c.content_html = c.content_html.replace(/&lt;/g,"<").replace(/&gt;/g,">");
 			}
 
 			// bold @mentions
