@@ -3,11 +3,16 @@
 		<div class="comment-box flex-column">
 			<div class="text-muted comment-label">{{ __('Add a comment') }}</div>
 			<div ref="comment-section"></div>
-			<button
-				class="btn btn-primary btn-sm"
-				@click="create_comment">
-				{{ __('Comment') }}
-			</button>
+			<div class="flex justify-between">
+				<div class="text-muted small">
+					{{ __("Ctrl+Enter to add comment") }}
+				</div>
+				<button
+					class="btn btn-primary btn-sm"
+					@click="create_comment">
+					{{ __('Comment') }}
+				</button>
+			</div>
 		</div>
 		<div ref="comments" v-if="comments.length" class="comment-list">
 			<div class="comment" v-for="comment in comments" :key="comment.name">
@@ -87,7 +92,7 @@ export default {
 	.comment-label {
 		margin-bottom: 5px;
 	}
-	/deep/.ql-editor {
+	::v-deep .ql-editor {
 		background: white;
 		border-radius: 4px;
 		min-height: 60px !important;
