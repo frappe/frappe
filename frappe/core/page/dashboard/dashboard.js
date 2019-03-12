@@ -44,12 +44,14 @@ class Dashboard {
 			this.dashboard_doc = doc;
 			this.charts = this.dashboard_doc.charts;
 
-			this.charts.map((chart_doc) => {
+			this.charts.map((chart) => {
 				let chart_container = $("<div><div>");
 				chart_container.appendTo(this.container);
 
-				let dashboard_chart = new DashboardChart(chart_doc, chart_container);
-				dashboard_chart.show();
+				frappe.model.with_doc("Dashboard Chart", chart.chart).then( chart_doc => {
+					let dashboard_chart = new DashboardChart(chart_doc, chart_container);
+					dashboard_chart.show();
+				});
 			});
 		});
 	}
