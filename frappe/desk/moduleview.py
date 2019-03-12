@@ -309,7 +309,7 @@ def update_desk_section_settings(desk_section, new_settings):
 	if home_settings:
 		home_settings = json.loads(home_settings)
 	else:
-		return
+		return {}
 
 	new_settings = json.loads(new_settings)
 

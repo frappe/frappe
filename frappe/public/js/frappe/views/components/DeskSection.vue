@@ -151,7 +151,7 @@ export default {
 			};
 		},
 
-		get_customized_modules(default_modules, customization_settings) {
+		get_customized_modules(default_modules, customization_settings={}) {
 			return default_modules.map(module => {
 				let customized_module = JSON.parse(JSON.stringify(module));
 
