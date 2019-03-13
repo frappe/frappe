@@ -60,12 +60,81 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	setup_sort_selector() {
+		console.log("Setting Sort Selector");
 		this.sort_selector = new frappe.ui.SortSelector({
 			parent: this.filter_area.$filter_list_wrapper,
 			doctype: this.doctype,
 			args: this.order_by,
 			onchange: this.on_sort_change.bind(this)
 		});
+
+		let group_by_button = $(`<button style="margin-right: 10px;" class="btn btn-default btn-xs add-filter text-muted"> ${__("Add Group By")}</button>`)
+		group_by_button.click(() => this.show_group_by_modal());
+		this.page.wrapper.find(".active-tag-filters").append(group_by_button);
+	}
+
+	show_group_by_modal() {
+		this.group_by = "customer";
+		this.aggregate_on = "grand_total";
+		this.aggregate_function = 'sum';
+
+		const d = new frappe.ui.Dialog({
+			title: __('Set Group By'),
+			fields: [
+				{
+					fieldtype: 'Select',
+					fieldname: 'group_by',
+					label: 'Column for Group by',
+					options: this.get_group_by_fields(),
+					reqd: 1
+				},
+				{
+					fieldtype: 'Select',
+					fieldname: 'aggregate_function',
+					label: 'Aggregate Function',
+					options: ["Count", "Sum", "Average"],
+					reqd: 1
+				},
+				{
+					fieldtype: 'Select',
+					fieldname: 'aggregate_on',
+					label: 'Column for Aggregate',
+					options: this.meta.fields.map(f => f.label),
+					reqd: 1
+				}
+			]
+		});
+		window.xxx = d;
+		d.set_primary_action("Add", () => {
+			this.group_by = this.meta.fields.find( f => f.label == d.get_values().group_by).fieldname;
+			this.aggregate_on = this.meta.fields.find( f => f.label == d.get_values().aggregate_on).fieldname;
+
+			let sql_aggregate_function = {
+				Count: "count",
+				Sum: "sum",
+				Average: "avg",
+			}
+			this.aggregate_function = sql_aggregate_function[d.get_values().aggregate_function];
+			d.hide();
+		});
+		d.show();
+	}
+
+	get_args() {
+		const args = super.get_args();
+		if (this.aggregate_function && this.aggregate_on) {
+			args.fields.push(`${this.aggregate_function}(${this.aggregate_on}) as ${this.aggregate_on}`);
+		}
+		return Object.assign(args, {
+			with_comment_count: false,
+			start: 0,
+			page_length: null,
+			group_by: this.group_by || null,
+		});
+	}
+
+	get_group_by_fields() {
+		return this.meta.fields.filter((f)=> ["Select", "Link"].includes(f.fieldtype)).map(f => f.label);
 	}
 
 	before_refresh() {
