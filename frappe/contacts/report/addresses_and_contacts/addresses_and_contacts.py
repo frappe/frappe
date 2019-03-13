@@ -81,11 +81,13 @@ def get_reference_details(reference_doctype, doctype, reference_list, reference_
 	]
 
 	if doctype == "Contact":
-		filters.append(["is_primary_contact", "=", "1"])
+		customer = frappe.get_doc('Customer', list(reference_details.keys())[0])
+		if customer.customer_primary_contact:
+			filters.append(["is_primary_contact", "=", "1"])
 
 	fields = ["`tabDynamic Link`.link_name"] + field_map.get(doctype, [])
 
-	records = frappe.get_list(doctype, filters=filters, fields=fields, as_list=True)
+	records = frappe.get_list(doctype, filters=filters, fields=fields, as_list=True, debug=True)
 
 	for d in records:
 		reference_details[d[0]][frappe.scrub(doctype)] = d[1:]
