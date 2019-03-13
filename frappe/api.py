@@ -53,6 +53,7 @@ def handle():
 
 	if call=="method":
 		frappe.local.form_dict.cmd = doctype
+		frappe.local.form_dict.pop("data", None)
 		return frappe.handler.handle()
 
 	elif call=="resource":
