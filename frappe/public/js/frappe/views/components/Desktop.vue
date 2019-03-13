@@ -32,6 +32,8 @@ export default {
 			module.count = this.get_module_count(module.module_name);
 		});
 
+		const home_settings = frappe.boot.home_settings || '{}';
+
 		return {
 			route_str: frappe.get_route()[1],
 			module_label: '',
@@ -51,7 +53,7 @@ export default {
 			// 	},
 			// }
 
-			home_settings: JSON.parse(frappe.boot.home_settings)
+			home_settings: JSON.parse(home_settings)
 		};
 	},
 	methods: {
