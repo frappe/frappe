@@ -71,7 +71,8 @@ def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 
 		role_permissions = get_role_permissions(meta, user=user)
 		perm = role_permissions.get(ptype)
-		if not perm: push_perm_check_log('User do not have doctype access via role permission')
+		if not perm:
+			push_perm_check_log('User <b>{0}</b> do not have doctype access via role permission for <b>{1}</b>'.format(user, doctype))
 
 	def false_if_not_shared():
 		if ptype in ("read", "write", "share", "email", "print"):
