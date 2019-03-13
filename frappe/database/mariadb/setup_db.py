@@ -135,10 +135,10 @@ def check_database_settings():
         msg = ("Creation of your site - {x} failed because MariaDB is not properly {sep}"
                "configured.  If using version 10.2.x or earlier, make sure you use the {sep}"
                "the Barracuda storage engine. {sep}{sep}"
-               "Please verify the settings below in MariaDB's my.cnf.  Restart MariaDB.  And {sep}"
+               "Please verify the settings above in MariaDB's my.cnf.  Restart MariaDB.  And {sep}"
                "then run `bench new-site {x}` again.{sep2}"
                "").format(x=site, sep2="\n"*2, sep="\n")
-
+        print_db_config(msg)
     return result
 
 
@@ -160,8 +160,7 @@ def get_root_connection(root_login, root_password):
     return frappe.local.flags.root_connection
 
 
-def print_db_config(explanation, config_text):
+def print_db_config(explanation):
     print("="*80)
     print(explanation)
-    print(config_text)
     print("="*80)
