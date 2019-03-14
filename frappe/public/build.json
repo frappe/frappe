@@ -12,6 +12,7 @@
 		"node_modules/frappe-datatable/dist/frappe-datatable.css"
 	],
 	"css/frappe-web-b4.css": [
+		"public/css/font-awesome.css",
 		"public/less/indicator.less",
 		"public/scss/website.scss"
 	],
@@ -93,7 +94,8 @@
 		"public/js/frappe/form/controls/geolocation.js",
 		"public/js/frappe/form/controls/multiselect.js",
 		"public/js/frappe/form/controls/multicheck.js",
-		"public/js/frappe/form/controls/table_multiselect.js"
+		"public/js/frappe/form/controls/table_multiselect.js",
+		"public/js/frappe/form/controls/rating.js"
 	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
