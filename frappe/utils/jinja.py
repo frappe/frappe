@@ -77,7 +77,7 @@ def render_template(template, context, is_path=None, safe_render=True):
 		try:
 			return get_jenv().from_string(template).render(context)
 		except TemplateError:
-			throw(title="Jinja Template Error", msg="<pre>{template}</pre><pre>{tb}</pre>".format(template=template, tb=escape_html(get_traceback())))
+			throw(title="Jinja Template Error", msg="<pre>{template}</pre><pre>{tb}</pre>".format(template=template, tb=get_traceback()))
 
 
 def get_allowed_functions_for_jenv():
