@@ -1,8 +1,10 @@
 <template>
 	<div>
-		<post-skeleton v-for="index in 5" :key="index" v-if="loading_posts && !posts.length"/>
+		<div v-if="loading_posts && !posts.length">
+			<post-skeleton v-for="index in 5" :key="index"/>
+		</div>
 		<transition-group name="flip-list">
-			<post
+			<post ref="posts"
 				:post="post"
 				v-for="(post, index) in posts"
 				:key="post.name"
@@ -61,11 +63,9 @@ export default {
 	},
 	methods: {
 		get_posts(filters, load_old) {
-			return frappe.db.get_list('Post', {
-				fields: ['name', 'content', 'owner', 'creation', 'liked_by', 'is_pinned', 'is_globally_pinned'],
-				filters: filters,
-				limit_start: load_old ? this.posts.length : 0,
-				order_by: 'is_globally_pinned desc, creation desc',
+			return frappe.xcall('frappe.social.doctype.post.post.get_posts', {
+				filters,
+				limit_start: load_old ? this.posts.length : 0
 			})
 		},
 		update_posts(load_old = false) {
@@ -85,9 +85,11 @@ export default {
 				}
 			}).finally(() => {
 				this.loading_posts = false;
+				this.track_seen()
 			});
 		},
 		handle_scroll: frappe.utils.debounce(function() {
+			this.track_seen()
 			const screen_bottom = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
 			if (screen_bottom && this.more_posts_available) {
 				if (!this.loading_posts) {
@@ -95,6 +97,15 @@ export default {
 				}
 			}
 		}, 500),
+		track_seen() {
+			const posts = this.$refs.posts || []
+			posts.forEach((post_component) => {
+				if(!post_component.post.seen
+				 && frappe.dom.is_element_in_viewport(post_component.$el, 50)) {
+					post_component.update_seen()
+				}
+			})
+		},
 		delete_post(index) {
 			this.posts.splice(index, 1);
 		},

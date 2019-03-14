@@ -8,6 +8,7 @@
 				v-if="modules.filter(m => m.category === category).length"
 				:category="category"
 				:all_modules="modules.filter(m => m.category === category)"
+				:customization_settings="home_settings ? home_settings[category] : {}"
 			>
 			</desk-section>
 
@@ -31,14 +32,38 @@ export default {
 			module.count = this.get_module_count(module.module_name);
 		});
 
+		const home_settings = frappe.boot.home_settings || '{}';
+
 		return {
 			route_str: frappe.get_route()[1],
 			module_label: '',
 			module_categories: ["Modules", "Domains", "Places", "Administration"],
-			modules: modules_list
+			modules: modules_list,
+
+			// // Desk customizations. Format of user settings:
+
+			// home_settings = {				// <--- Settings
+			// 	"Domains": {   				// <--- Category (Desk Section)
+			// 		"Manufacturing": {		// <--- Module
+			// 			"index": 3,
+			// 			"links": [],
+			// 			"hidden": 1,
+			// 		},
+
+			// 	},
+			// }
+
+			home_settings: JSON.parse(home_settings)
 		};
 	},
 	methods: {
+		get_settings() {
+			return frappe.db.get_value('User', user, 'home_settings')
+				.then(resp => {
+					this.all_settings = JSON.parse(resp.message['home_settings']);
+					this.settings = this.all_settings[this.category];
+				});
+		},
 		get_module_count(module_name) {
 			var module_doctypes = frappe.boot.notification_info.module_doctypes[module_name];
 			var sum = 0;

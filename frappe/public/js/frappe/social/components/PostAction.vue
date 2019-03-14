@@ -44,7 +44,7 @@ export default {
 		cursor: pointer;
 		color: #8d99a6;
 		span {
-			padding-left: 5px;
+			padding: 5px;
 		}
 		&:hover {
 			color: darken(#8d99a6, 10%);

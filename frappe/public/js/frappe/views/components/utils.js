@@ -24,6 +24,8 @@ function generate_route(item) {
 		}
 
 		route = '#' + route;
+	} else {
+		route = item.route;
 	}
 
 	if(item.route_options) {

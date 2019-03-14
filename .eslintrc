@@ -56,6 +56,7 @@
 	"root": true,
 	"globals": {
 		"frappe": true,
+		"Vue": true,
 		"__": true,
 		"_p": true,
 		"_f": true,
@@ -112,11 +113,9 @@
 		"getCookie": true,
 		"getCookies": true,
 		"get_url_arg": true,
-
 		"md5": true,
 		"$": true,
 		"jQuery": true,
-		"Vue": true,
 		"moment": true,
 		"hljs": true,
 		"Awesomplete": true,

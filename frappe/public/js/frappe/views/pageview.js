@@ -48,8 +48,6 @@ frappe.views.pageview = {
 					let container = $('<div class="container"></div>').appendTo(page);
 					container = $('<div></div>').appendTo(container);
 
-					Vue.prototype.__ = window.__;
-					Vue.prototype.frappe = window.frappe;
 					new Vue({
 						el: container[0],
 						render: h => h(Desktop)

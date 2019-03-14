@@ -300,18 +300,32 @@ def get_links(app, module):
 	for section in sections:
 		for item in section["items"]:
 			link_names.append(item.get("label"))
-	print(link_names)
 	return link_names
 
 
 @frappe.whitelist()
-def get_module_link_items_from_dict(module_link_list_map):
-	module_link_list_map = json.loads(module_link_list_map)
-	module_links = {}
-	for module, data in module_link_list_map.items():
-		print(data)
-		module_links[module] = get_module_link_items_from_list(data["app"], module, data["links"])
-	return module_links
+def update_desk_section_settings(desk_section, new_settings):
+	home_settings = frappe.db.get_value("User", frappe.session.user, 'home_settings')
+	if home_settings:
+		home_settings = json.loads(home_settings)
+	else:
+		return {}
+
+	new_settings = json.loads(new_settings)
+
+	for module, data in new_settings.items():
+		if data.get("links"):
+			data["links"] = get_module_link_items_from_list(data["app"], module, data.get("links"))
+		data.pop("app", None)
+
+	home_settings[desk_section] = new_settings
+	settings_json_str = json.dumps(home_settings)
+	# # This didn't work
+	# frappe.db.set_value("User", frappe.session.user, 'home_settings', json.dumps(home_settings))
+	frappe.db.sql("""update tabUser set home_settings = %s""", (settings_json_str), debug=True)
+	frappe.db.commit()
+
+	return new_settings
 
 
 def get_module_link_items_from_list(app, module, list_of_link_names):

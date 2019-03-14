@@ -457,13 +457,23 @@ li.user-progress {
 
 // like pop-over
 .liked-by-popover {
-	min-width: 100px;
-	margin-top: -10px;
-	margin-bottom: -10px;
-
-	li {
-		margin: 15px 0px;
+	.popover-content {
+		padding: 0px;
+		overflow: scroll;
+		max-height: 150px;
 	}
+	min-width: 100px;
+	ul {
+		margin: 0px;
+		li {
+			padding: 10px;
+			cursor: pointer;
+			&:hover {
+				background: @btn-bg;
+			}
+		}
+	}
+
 }
 
 .screenshot {

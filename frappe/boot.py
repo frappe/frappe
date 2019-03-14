@@ -98,6 +98,7 @@ def load_conf_settings(bootinfo):
 def load_desktop_icons(bootinfo):
 	from frappe.config import get_modules_from_all_apps_for_user
 	bootinfo.allowed_modules = get_modules_from_all_apps_for_user()
+	bootinfo.home_settings = frappe.db.get_value("User", frappe.session.user, 'home_settings','')
 
 def get_allowed_pages():
 	return get_user_pages_or_reports('Page')
