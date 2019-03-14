@@ -45,8 +45,12 @@
 			</ul>
 		</div>
 	</li>
-	<li class="assigned-to-me">
-		<a>{%= __("Assigned To Me") %}</a>
+	<li class="assigned-to">
+		<a class = "dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			{%= __("Assigned To") %} <span class="caret"></span>
+		</a>
+		<ul class="dropdown-menu assigned-dropdown" style="max-height: 300px; overflow-y: auto;">
+		</ul>
 	</li>
 	{% if(frappe.help.has_help(doctype)) { %}
 	<li><a class="help-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>
