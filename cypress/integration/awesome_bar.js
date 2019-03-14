@@ -1,18 +1,12 @@
 context('Awesome Bar', () => {
 	before(() => {
+		cy.visit('/login');
 		cy.login('Administrator', 'qwe');
 		cy.visit('/desk');
 	});
 
 	beforeEach(() => {
 		cy.get('.navbar-home').click();
-	});
-
-	it('navigates to modules', () => {
-		cy.get('#navbar-search')
-			.type('modules{downarrow}{enter}', { delay: 100 });
-
-		cy.location('hash').should('eq', '#modules');
 	});
 
 	it('navigates to doctype list', () => {

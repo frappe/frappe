@@ -303,7 +303,7 @@ def sync_global_search():
 	:return:
 	"""
 	while frappe.cache().llen('global_search_queue') > 0:
-		value = json.loads(frappe.cache().lpop('global_search_queue'))
+		value = json.loads(frappe.cache().lpop('global_search_queue').decode('utf-8'))
 		sync_value(value)
 
 def sync_value(value):
@@ -311,16 +311,26 @@ def sync_value(value):
 	Sync a given document to global search
 	:param value: dict of { doctype, name, content, published, title, route }
 	'''
-	
+
 	frappe.db.multisql({
 		'mariadb': '''INSERT INTO `__global_search`
 			(`doctype`, `name`, `content`, `published`, `title`, `route`)
 			VALUES (%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
-			ON DUPLICATE key UPDATE `content`=%(content)s''',
+			ON DUPLICATE key UPDATE
+				`content`=%(content)s,
+				`published`=%(published)s,
+				`title`=%(title)s,
+				`route`=%(route)s
+		''',
 		'postgres': '''INSERT INTO `__global_search`
 			(`doctype`, `name`, `content`, `published`, `title`, `route`)
 			VALUES (%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
-			ON CONFLICT("doctype", "name") DO UPDATE SET `content`=%(content)s'''
+			ON CONFLICT("doctype", "name") DO UPDATE SET
+				`content`=%(content)s,
+				`published`=%(published)s,
+				`title`=%(title)s,
+				`route`=%(route)s
+		'''
 	}, value)
 
 def delete_for_document(doc):

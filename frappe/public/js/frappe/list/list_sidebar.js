@@ -26,7 +26,7 @@ frappe.views.ListSidebar = class ListSidebar {
 
 		this.setup_reports();
 		this.setup_list_filter();
-		this.setup_assigned_to_me();
+		this.setup_assigned_to();
 		this.setup_views();
 		this.setup_kanban_boards();
 		this.setup_calendar_view();
@@ -216,10 +216,33 @@ frappe.views.ListSidebar = class ListSidebar {
 		});
 	}
 
-	setup_assigned_to_me() {
-		this.page.sidebar.find(".assigned-to-me a").on("click", () => {
-			this.list_view.filter_area.add(this.list_view.doctype, "_assign", "like", `%${frappe.session.user}%`);
+	setup_assigned_to() {
+		let dropdown = this.page.sidebar.find('.assigned-dropdown');
+		if(this.doctype === 'ToDo') {
+			$('.assigned-to').remove();
+		}
+		frappe.call('frappe.desk.listview.get_user_assignments_and_count').then((data) => {
+			let current_user_count = data.message.find(user => user.name === frappe.session.user).count;
+			this.get_html_for_assigned(frappe.session.user, current_user_count).appendTo(dropdown);
+			let user_list = data.message.filter(user => !['Guest', frappe.session.user, 'Administrator'].includes(user.name));
+			user_list.forEach((user) => {
+				this.get_html_for_assigned(user.name, user.count).appendTo(dropdown);
+			});
+			$(".assigned-dropdown li a").on("click", (e) => {
+				let assigned_user = $(e.currentTarget).find($('.assigned-user')).text();
+				if(assigned_user === 'Me') assigned_user = frappe.session.user;
+				this.list_view.filter_area.remove('_assign');
+				this.list_view.filter_area.add(this.list_view.doctype, "_assign", "like", `%${assigned_user}%`);
+			});
 		});
+	}
+
+	get_html_for_assigned(name, count) {
+		if (name === frappe.session.user) name='Me';
+		if (count > 99) count='99+';
+		let html = $('<li class="assigned"><a class="badge-hover" role="assigned-item"><span class="assigned-user">' 
+					+ name + '</span><span class="badge pull-right" style="position:relative">' + count + '</span></a></li>');
+		return html;
 	}
 
 	setup_upgrade_box() {
@@ -258,6 +281,9 @@ frappe.views.ListSidebar = class ListSidebar {
 
 	get_stats() {
 		var me = this;
+		if (this.list_view.list_view_settings && this.list_view.list_view_settings.disable_sidebar_stats) {
+			return;
+		}
 		frappe.call({
 			method: 'frappe.desk.reportview.get_sidebar_stats',
 			type: 'GET',

@@ -216,8 +216,15 @@ def get_context(context):
 				please enable Allow Print For {0} in Print Settings""".format(status)),
 				title=_("Error in Notification"))
 		else:
-			return [{"print_format_attachment":1, "doctype":doc.doctype, "name": doc.name,
-				"print_format":self.print_format, "print_letterhead": print_settings.with_letterhead}]
+			return [{
+				"print_format_attachment": 1,
+				"doctype": doc.doctype,
+				"name": doc.name,
+				"print_format": self.print_format,
+				"print_letterhead": print_settings.with_letterhead,
+				"lang": frappe.db.get_value('Print Format', self.print_format, 'default_print_language')
+					if self.print_format else 'en'
+			}]
 
 
 	def get_template(self):
@@ -309,8 +316,9 @@ def evaluate_alert(doc, alert, event):
 	except TemplateError:
 		frappe.throw(_("Error while evaluating Notification {0}. Please fix your template.").format(alert))
 	except Exception as e:
-		frappe.log_error(message=frappe.get_traceback(), title=str(e))
-		frappe.throw(_("Error in Notification"))
+		error_log = frappe.log_error(message=frappe.get_traceback(), title=str(e))
+		frappe.throw(_("Error in Notification: {}".format(
+			frappe.utils.get_link_to_form('Error Log', error_log.name))))
 
 def get_context(doc):
 	return {"doc": doc, "nowdate": nowdate, "frappe.utils": frappe.utils}

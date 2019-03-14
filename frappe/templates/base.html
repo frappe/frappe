@@ -3,101 +3,93 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>{% block title %} {{ title | striptags }} {% endblock %}</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<meta name="generator" content="frappe">
-    {% block favicon %}
-	<link rel="shortcut icon"
+
+	{% block meta_block %}
+		{% include "templates/includes/meta_block.html" %}
+	{% endblock %}
+
+	<title>{% block title %} {{ title | striptags }} {% endblock %}</title>
+
+	{% block favicon %}
+	<link
+		rel="shortcut icon"
 		href="{{ (favicon or "/assets/frappe/images/favicon.png") | abs_url }}"
-		type="image/x-icon">
-	<link rel="icon"
-		href="{{ (favicon or "/assets/frappe/images/favicon.png") | abs_url }}"
-		type="image/x-icon">
-    {% endblock %}
+		type="image/x-icon"
+	>
+	{% endblock %}
+
 	{%- block head -%}
-		{% block meta_block %}{% endblock %}
 		{% if head_html is defined -%}
 		{{ head_html or "" }}
 		{%- endif %}
+
+		{% if theme.theme_url %}
+		<link type="text/css" rel="stylesheet" href="{{ theme.theme_url }}">
+		{% else %}
+		<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css">
+
 		{%- for link in web_include_css %}
 		<link type="text/css" rel="stylesheet" href="{{ link|abs_url }}">
 		{%- endfor -%}
-	    {%- block head_include %}{{ head_include or "" }}{% endblock -%}
-		{%- block style %}{%- endblock -%}
+		{% endif %}
 	{%- endblock -%}
-    <script>
+
+	{%- block head_include %}
+		{{ head_include or "" }}
+	{% endblock -%}
+
+	{%- block style %}{%- endblock -%}
+
+	<script>
 		window.frappe = {};
 		frappe.ready_events = [];
 		frappe.ready = function(fn) {
 			frappe.ready_events.push(fn);
 		}
 		window.dev_server = {{ dev_server }};
+		window.socketio_port = {{ frappe.socketio_port }};
     </script>
 </head>
-{% block body %}
-<body data-path="{{ path }}">
-	<div class="main-section">
-		<div class="wrapper">
-			<header>
-			{%- block banner -%}
-				{% include "templates/includes/banner_extension.html" ignore missing %}
-				{% if banner_html -%}
-				<div class="container">
-					<div class='banner'>
-						{{ banner_html or "" }}
-					</div>
-				</div>
-				{%- endif %}
-			{%- endblock -%}
+<body data-path="{{ path | e }}">
+	{%- block banner -%}
+		{% include "templates/includes/banner_extension.html" ignore missing %}
 
-			{%- block navbar -%}
-                {% include "templates/includes/navbar/navbar.html" %}
-            {%- endblock -%}
-			</header>
+		{% if banner_html -%}
+		<div class="container">
+			<div class="banner">
+				{{ banner_html or "" }}
+			</div>
+		</div>
+		{%- endif %}
+	{%- endblock -%}
 
-            <div class="hero-and-content">
-                <div data-html-block="hero">
-				{%- block hero -%}{%- endblock -%}
-                </div>
-                <div class="container">
-                {% block content %}{% endblock %}
-                </div>
-            </div>
-			{%- if footer is defined -%}
-			<footer class="page-footer">
-				<div class="container">
-					{{ footer }}
-				</div>
-			</footer>
-			{%- endif -%}
-		</div>
-		<div>
-			{%- block footer -%}{% include "templates/includes/footer/footer.html" %}{%- endblock -%}
-		</div>
-	</div>
+	{%- block navbar -%}
+		{% include "templates/includes/navbar/navbar.html" %}
+	{%- endblock -%}
+
+	{% block content %}
+		{{ content }}
+	{% endblock %}
+
+	{%- block footer -%}
+		{% include "templates/includes/footer/footer.html" %}
+	{%- endblock -%}
+
 	{% block base_scripts %}
 	<!-- js should be loaded in body! -->
-	<script type="text/javascript"
-		src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.slim.js"></script>
-	<script type="text/javascript"
-		src="/assets/js/frappe-web.min.js"></script>
-	<script type="text/javascript"
-		src="/assets/frappe/js/lib/bootstrap.min.js"></script>
+	<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
+	<script type="text/javascript" src="/assets/js/frappe-web.min.js"></script>
+	<script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
 	{% endblock %}
-    {%- if js_globals is defined %}
-    <script>
-    {%- for key, value in js_globals.iteritems() %}
-    window.{{ key }} = "{{ value[0] }}";
-    {%- endfor -%}
-    </script>
-    {% endif -%}
+
 	{%- for link in web_include_js %}
-	<script type="text/javascript" src="{{ link|abs_url }}"></script>
+	<script type="text/javascript" src="{{ link | abs_url }}"></script>
 	{%- endfor -%}
-    {%- block script %}{%- endblock %}
+
+	{%- block script %}{%- endblock %}
 	<!-- csrf_token -->
-    {%- block body_include %}{{ body_include or "" }}{% endblock -%}
+	{%- block body_include %}{{ body_include or "" }}{% endblock -%}
 </body>
-{% endblock %}
 </html>

@@ -12,6 +12,12 @@
 					v-if="options.length"
 					:options="options"
 				/>
+				<transition name="fade">
+					<span
+						class="indicator blue"
+						v-if="!this.post.seen">
+					</span>
+				</transition>
 			</div>
 			<div class="user-avatar" v-html="user_avatar" @click="goto_profile(post.owner)"></div>
 			<a class="user-name" @click="goto_profile(post.owner)">{{ user_name }}</a>
@@ -170,6 +176,11 @@ export default {
 				}).then(frappe.dom.unfreeze)
 			})
 		},
+		update_seen() {
+			frappe.xcall('frappe.social.doctype.post.post.set_seen', {
+				post_name: this.post.name
+			}).then(() => this.post.seen = true)
+		},
 		generate_preview(link_element) {
 			// TODO: move the code to separate component
 			frappe.xcall('frappe.social.doctype.post.post.get_link_info', {
@@ -202,6 +213,15 @@ export default {
 	padding: 15px 46px;
 	padding-top: 0px;
 	background: #F6F6F6;
+}
+.indicator {
+	margin-left: 15px;
+}
+.fade-enter-active, .fade-leave-active {
+	transition: opacity .8s;
+}
+.fade-enter, .fade-leave-to {
+	opacity: 0;
 }
 </style>
 

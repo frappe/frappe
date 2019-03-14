@@ -109,7 +109,8 @@ def get_default_outgoing_email_account(raise_exception_not_set=True):
 		 "mail_password": "Super.Secret.Password",
 		 "auto_email_id": "emails@example.com",
 		 "email_sender_name": "Example Notifications",
-		 "always_use_account_email_id_as_sender": 0
+		 "always_use_account_email_id_as_sender": 0,
+		 "always_use_account_name_as_sender_name": 0
 		}
 	'''
 	email_account = _get_email_account({"enable_outgoing": 1, "default_outgoing": 1})
@@ -128,7 +129,8 @@ def get_default_outgoing_email_account(raise_exception_not_set=True):
 			"login_id": frappe.conf.get("mail_login"),
 			"email_id": frappe.conf.get("auto_email_id") or frappe.conf.get("mail_login") or 'notifications@example.com',
 			"password": frappe.conf.get("mail_password"),
-			"always_use_account_email_id_as_sender": frappe.conf.get("always_use_account_email_id_as_sender", 0)
+			"always_use_account_email_id_as_sender": frappe.conf.get("always_use_account_email_id_as_sender", 0),
+			"always_use_account_name_as_sender_name": frappe.conf.get("always_use_account_name_as_sender_name", 0)
 		})
 		email_account.from_site_config = True
 		email_account.name = frappe.conf.get("email_sender_name") or "Frappe"
@@ -182,6 +184,7 @@ class SMTPServer:
 			self.use_tls = self.email_account.use_tls
 			self.sender = self.email_account.email_id
 			self.always_use_account_email_id_as_sender = cint(self.email_account.get("always_use_account_email_id_as_sender"))
+			self.always_use_account_name_as_sender_name = cint(self.email_account.get("always_use_account_name_as_sender_name"))
 
 	@property
 	def sess(self):

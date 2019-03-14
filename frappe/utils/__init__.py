@@ -564,7 +564,9 @@ def parse_json(val):
 	Parses json if string else return
 	"""
 	if isinstance(val, string_types):
-		return json.loads(val)
+		val = json.loads(val)
+	if isinstance(val, dict):
+		val = frappe._dict(val)
 	return val
 
 def cast_fieldtype(fieldtype, value):
@@ -640,3 +642,16 @@ def gzip_decompress(data):
 	"""
 	with GzipFile(fileobj=io.BytesIO(data)) as f:
 		return f.read()
+
+def get_safe_filters(filters):
+	try:
+		filters = json.loads(filters)
+
+		if isinstance(filters, (integer_types, float)):
+			filters = frappe.as_unicode(filters)
+
+	except (TypeError, ValueError):
+		# filters are not passed, not json
+		pass
+
+	return filters

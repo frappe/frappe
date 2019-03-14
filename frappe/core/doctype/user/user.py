@@ -36,9 +36,9 @@ class User(Document):
 			self.name = self.email
 
 	def onload(self):
+		from frappe.config import get_modules_from_all_apps
 		self.set_onload('all_modules',
-			[m.module_name for m in frappe.db.get_all('Desktop Icon',
-				fields=['module_name'], filters={'standard': 1}, order_by="module_name")])
+			[m.get("module_name") for m in get_modules_from_all_apps()])
 
 	def before_insert(self):
 		self.flags.in_insert = True
@@ -328,6 +328,12 @@ class User(Document):
 			and reference_doctype='User'
 			and (reference_name=%s or owner=%s)""", (self.name, self.name))
 
+		# unlink contact
+		frappe.db.sql("""update `tabContact`
+			set `user`=null
+			where `user`=%s""", (self.name))
+
+
 	def before_rename(self, old_name, new_name, merge=False):
 		self.check_demo()
 		frappe.clear_cache(user=old_name)
@@ -357,6 +363,9 @@ class User(Document):
 					SET `%s` = %s
 					WHERE `%s` = %s""" %
 					(tab, field, '%s', field, '%s'), (new_name, old_name))
+
+		if frappe.db.exists("Chat Profile", old_name):
+			frappe.rename_doc("Chat Profile", old_name, new_name, force=True)
 
 		# set email
 		frappe.db.sql("""UPDATE `tabUser`
@@ -1039,7 +1048,7 @@ def update_roles(role_profile):
 		user.set('roles', [])
 		user.add_roles(*roles)
 
-def create_contact(user, ignore_links=False):
+def create_contact(user, ignore_links=False, ignore_mandatory=False):
 	if user.name in ["Administrator", "Guest"]: return
 
 	if not frappe.db.get_value("Contact", {"email_id": user.email}):
@@ -1052,7 +1061,7 @@ def create_contact(user, ignore_links=False):
 			"gender": user.gender,
 			"phone": user.phone,
 			"mobile_no": user.mobile_no
-		}).insert(ignore_permissions=True, ignore_links=ignore_links)
+		}).insert(ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory)
 
 
 @frappe.whitelist()

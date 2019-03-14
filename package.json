@@ -20,6 +20,7 @@
   "dependencies": {
     "ace-builds": "^1.4.1",
     "awesomplete": "^1.1.2",
+    "bootstrap": "^4.3.1",
     "cookie": "^0.3.1",
     "express": "^4.16.2",
     "frappe-datatable": "^1.8.0",
@@ -35,22 +36,23 @@
     "socket.io": "^2.0.4",
     "superagent": "^3.8.2",
     "touch": "^3.1.0",
-    "vue": "^2.5.17"
+    "vue": "^2.6.8",
+    "vue-router": "^2.0.0"
   },
   "devDependencies": {
     "babel-runtime": "^6.26.0",
     "chalk": "^2.3.2",
     "cypress": "^3.1.1",
     "less": "^3.0.4",
-    "node-sass": "^4.9.0",
-    "rollup": "^0.65.0",
+    "node-sass": "^4.11.0",
+    "rollup": "^1.2.2",
     "rollup-plugin-buble": "^0.19.2",
     "rollup-plugin-commonjs": "^8.3.0",
     "rollup-plugin-multi-entry": "^2.0.2",
-    "rollup-plugin-node-resolve": "^3.0.2",
-    "rollup-plugin-postcss": "^1.4.0",
+    "rollup-plugin-node-resolve": "^4.0.1",
+    "rollup-plugin-postcss": "^2.0.3",
     "rollup-plugin-uglify": "^3.0.0",
-    "rollup-plugin-vue": "^4.3.2",
-    "vue-template-compiler": "^2.5.17"
+    "rollup-plugin-vue": "4.2.0",
+    "vue-template-compiler": "^2.6.8"
   }
 }

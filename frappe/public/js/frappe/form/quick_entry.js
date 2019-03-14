@@ -116,9 +116,6 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 
 		this.dialog.onhide = () => frappe.quick_entry = null;
 		this.dialog.show();
-		this.dialog.$wrapper.on('shown.bs.modal', function() {
-			$(document).trigger('quick-entry-dialog-open');
-		});
 
 		this.dialog.refresh_dependency();
 		this.set_defaults();

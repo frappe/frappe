@@ -52,10 +52,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.secondary_action = {
 			label: __('Refresh'),
 			action: () => {
-				if(this.execution_time > 2) {
-					this.setup_progress_bar();
-				}
-
+				this.setup_progress_bar();
 				this.refresh();
 			}
 		};
@@ -171,8 +168,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	setup_progress_bar() {
 		let seconds_elapsed = 0;
-		const execution_time = this.report_settings.execution_time < 10
-			? 10 : this.report_settings.execution_time;
+		const execution_time = this.report_settings.execution_time || 0;
+
+		if (execution_time < 5) return;
 
 		this.interval = setInterval(function()  {
 			seconds_elapsed += 1;
@@ -436,7 +434,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				cellHeight: 33,
 				showTotalRow: this.raw_data.add_total_row,
 				hooks: {
-					totalAccumulator: frappe.utils.report_total_accumulator
+					columnTotal: frappe.utils.report_column_total
 				}
 			};
 
@@ -476,11 +474,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	get_possible_chart_options() {
 		const columns = this.raw_data.columns;
 		const rows =  this.raw_data.result;
-		const first_row = rows[0];
 		const has_total_row = this.raw_data.add_total_row;
+		const first_row = Array.isArray(rows[0]) ? rows[0] : Object.values(rows[0]);
 
 		const indices = first_row.reduce((accumulator, current_value, current_index) => {
-			if(!isNaN(Number(current_value))) {
+			if (Number.isFinite(current_value)) {
 				accumulator.push(current_index);
 			}
 			return accumulator;
@@ -639,7 +637,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			}
 
 			const format_cell = (value, row, column, data) => {
-				return frappe.format(value == null ? '' : value, column,
+				return frappe.format(value, column,
 					{for_print: false, always_show_decimals: true}, data);
 			};
 
@@ -961,12 +959,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}),
 				condition: () => frappe.model.can_set_user_permissions('Report'),
 				standard: true
-			},
-			{
-				label: __('Add to Desktop'),
-				action: () => frappe.add_to_desktop(this.report_name, null, this.report_name),
-				standard: true
-			},
+			}
 		];
 	}
 
@@ -992,7 +985,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	show_footer_message() {
 		const message = __('For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).');
-		const execution_time_msg = __('Exection Time: {0} sec', [this.execution_time || 0.1]);
+		const execution_time_msg = __('Execution Time: {0} sec', [this.execution_time || 0.1]);
 
 		this.page.footer.removeClass('hide').addClass('text-muted col-md-12')
 			.html(`<span class="text-left col-md-6">${message}</span><span class="text-right col-md-6">${execution_time_msg}</span>`);

@@ -19,6 +19,11 @@ frappe.upload = {
 			opts.is_private = 1;
 		}
 
+		// form level attachments defined as public (for letter head, web page etc)
+		if (cur_frm && cur_frm.flag_public_attachments) {
+			opts.is_private = 0;
+		}
+
 		var d = null;
 		// create new dialog if no parent given
 		if(!opts.parent) {

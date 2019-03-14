@@ -6,6 +6,7 @@ import functools
 import frappe, re, os
 from six import iteritems
 from past.builtins import cmp
+from frappe.utils import markdown
 
 def delete_page_cache(path):
 	cache = frappe.cache()
@@ -33,16 +34,15 @@ def can_cache(no_cache=False):
 	return not no_cache
 
 def get_comment_list(doctype, name):
-	return frappe.db.sql("""select
-		content, sender_full_name, creation, sender
-		from `tabCommunication`
-		where
-			communication_type='Comment'
-			and reference_doctype=%s
-			and reference_name=%s
-			and (comment_type is null or comment_type in ('Comment', 'Communication'))
-			and modified >= (NOW() - INTERVAL '1' YEAR)
-		order by creation""", (doctype, name), as_dict=1) or []
+	return frappe.get_all('Comment',
+			fields = ['name', 'creation', 'owner', 'comment_email', 'comment_by', 'content'],
+			filters = dict(
+				reference_doctype = doctype,
+				reference_name = name,
+				comment_type = 'Comment',
+				published = 1
+			),
+			order_by = 'creation asc')
 
 def get_home_page():
 	if frappe.local.flags.home_page:
@@ -327,3 +327,18 @@ def add_missing_headers():
 						content = '# {0}\n\n'.format(h) + content
 						f.write(content.encode('utf-8'))
 
+def get_html_content_based_on_type(doc, fieldname, content_type):
+		'''
+		Set content based on content_type
+		'''
+		content = doc.get(fieldname)
+
+		if content_type == 'Markdown':
+			content = markdown(doc.get(fieldname + '_md'))
+		elif content_type == 'HTML':
+			content = doc.get(fieldname + '_html')
+
+		if content == None:
+			content = ''
+
+		return content

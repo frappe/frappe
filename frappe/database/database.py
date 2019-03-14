@@ -881,9 +881,14 @@ class Database(object):
 
 	def get_descendants(self, doctype, name):
 		'''Return descendants of the current record'''
-		lft, rgt = self.get_value(doctype, name, ('lft', 'rgt'))
-		return self.sql_list('''select name from `tab{doctype}`
-			where lft > {lft} and rgt < {rgt}'''.format(doctype=doctype, lft=lft, rgt=rgt))
+		node_location_indexes = self.get_value(doctype, name, ('lft', 'rgt'))
+		if node_location_indexes:
+			lft, rgt = node_location_indexes
+			return self.sql_list('''select name from `tab{doctype}`
+				where lft > {lft} and rgt < {rgt}'''.format(doctype=doctype, lft=lft, rgt=rgt))
+		else:
+			# when document does not exist
+			return []
 
 	def is_missing_table_or_column(self, e):
 		return self.is_missing_column(e) or self.is_missing_table(e)

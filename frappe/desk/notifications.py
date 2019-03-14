@@ -251,6 +251,11 @@ def get_open_count(doctype, name, items=[]):
 	:param transactions: List of transactions (json/dict)
 	:param filters: optional filters (json/list)'''
 
+	if frappe.flags.in_migrate or frappe.flags.in_install:
+		return {
+			'count': []
+		}
+
 	frappe.has_permission(doc=frappe.get_doc(doctype, name), throw=True)
 
 	meta = frappe.get_meta(doctype)

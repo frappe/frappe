@@ -41,7 +41,7 @@
    "remember_last_selected_value": 0,
    "report_hide": 0,
    "reqd": 1,
-   "search_index": 0,
+   "search_index": 1,
    "set_only_once": 0,
    "translatable": 0,
    "unique": 0
@@ -222,7 +222,7 @@
  "issingle": 0,
  "istable": 0,
  "max_attachments": 0,
- "modified": "2018-11-12 16:26:12.362352",
+ "modified": "2019-02-13 22:58:27.428741",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Permission",

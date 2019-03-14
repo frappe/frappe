@@ -173,6 +173,9 @@ class DatabaseQuery(object):
 				except ValueError:
 					self.fields = [f.strip() for f in self.fields.split(",")]
 
+		# remove empty strings / nulls in fields
+		self.fields = [f for f in self.fields if f]
+
 		for filter_name in ["filters", "or_filters"]:
 			filters = getattr(self, filter_name)
 			if isinstance(filters, string_types):
@@ -192,7 +195,6 @@ class DatabaseQuery(object):
 					field which may leads to sql injection.
 			example :
 				field = "`DocType`.`issingle`, version()"
-
 			As field contains `,` and mysql function `version()`, with the help of regex
 			the system will filter out this field.
 		'''
@@ -326,7 +328,6 @@ class DatabaseQuery(object):
 
 	def prepare_filter_condition(self, f):
 		"""Returns a filter condition in the format:
-
 				ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
 		"""
 
@@ -386,7 +387,7 @@ class DatabaseQuery(object):
 
 		elif f.operator.lower() in ('in', 'not in'):
 			values = f.value or ''
-			if not isinstance(values, (list, tuple)):
+			if isinstance(values, frappe.string_types):
 				values = values.split(",")
 
 			fallback = "''"
@@ -747,6 +748,7 @@ def get_list(doctype, *args, **kwargs):
 	'''wrapper for DatabaseQuery'''
 	kwargs.pop('cmd', None)
 	kwargs.pop('ignore_permissions', None)
+	kwargs.pop('data', None)
 
 	# If doctype is child table
 	if frappe.is_table(doctype):
