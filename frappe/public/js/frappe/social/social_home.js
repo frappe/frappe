@@ -8,24 +8,19 @@ frappe.social.Home = class SocialHome {
 		this.page = parent.page;
 		this.setup_header();
 		this.make_body();
-		this.set_primary_action();
 	}
 	make_body() {
 		this.$social_container = this.$parent.find('.layout-main');
-		frappe.require('/assets/js/frappe-vue.min.js', () => {
-			new Vue({
-				el: this.$social_container[0],
-				render: h => h(Home)
-			});
+		new Vue({
+			el: this.$social_container[0],
+			render: h => h(Home),
+			data: {
+				'page': this.page
+			}
 		});
 	}
 	setup_header() {
 		this.page.set_title(__('Social'));
-	}
-	set_primary_action() {
-		this.page.set_primary_action(__('Post'), () => {
-			frappe.social.post_dialog.show();
-		});
 	}
 };
 

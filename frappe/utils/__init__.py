@@ -642,3 +642,16 @@ def gzip_decompress(data):
 	"""
 	with GzipFile(fileobj=io.BytesIO(data)) as f:
 		return f.read()
+
+def get_safe_filters(filters):
+	try:
+		filters = json.loads(filters)
+
+		if isinstance(filters, (integer_types, float)):
+			filters = frappe.as_unicode(filters)
+
+	except (TypeError, ValueError):
+		# filters are not passed, not json
+		pass
+
+	return filters

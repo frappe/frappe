@@ -22,9 +22,6 @@
 	"js/chat.js": [
 		"public/js/frappe/chat.js"
 	],
-	"js/frappe-vue.min.js": [
-		"public/js/frappe_vue.js"
-	],
 	"js/frappe-recorder.min.js": [
 		"public/js/frappe/recorder/recorder.js"
 	],
