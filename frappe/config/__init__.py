@@ -34,6 +34,9 @@ def get_modules_from_all_apps_for_user(user=None):
 				if links:
 					module["links"] = get_module_link_items_from_list(module["app"], module_name, links.split(","))
 
+		else:
+			module["links"] = get_onboard_items(module["app"], frappe.scrub(module_name))[:6]
+
 	return allowed_modules_list
 
 def get_modules_from_all_apps():
