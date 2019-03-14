@@ -5,12 +5,16 @@ from __future__ import unicode_literals
 
 from collections import Counter
 import datetime
+import inspect
 import json
 import re
 import time
 import traceback
 import frappe
 import sqlparse
+from pygments import highlight
+from pygments.lexers import PythonLexer
+from pygments.formatters import HtmlFormatter
 
 from frappe import _
 
@@ -24,9 +28,7 @@ def sql(*args, **kwargs):
 	result = frappe.db._sql(*args, **kwargs)
 	end_time = time.time()
 
-	stack_frames = filter(lambda x: "/apps/" in x, traceback.format_stack()[:-1])
-	stack_frames = map(lambda x: re.sub("File \".*/apps/", "File \"", x), stack_frames)
-	stack = "".join(stack_frames)
+	stack = list(get_current_stack_frames())
 
 	if frappe.conf.db_type == 'postgres':
 		query = frappe.db._cursor.query
@@ -52,6 +54,21 @@ def sql(*args, **kwargs):
 
 	frappe.local._recorder.register(data)
 	return result
+
+
+def get_current_stack_frames():
+	current = inspect.currentframe()
+	frames = inspect.getouterframes(current, context=10)
+	for frame, filename, lineno, function, context, index in list(reversed(frames))[:-2]:
+		if "/apps/" in filename:
+			yield {
+				"filename": re.sub(".*/apps/", "", filename),
+				"lineno": lineno,
+				"function": function,
+				"context": "".join(context),
+				"index": index,
+				"locals": json.dumps(frame.f_locals, skipkeys=True, default=str)
+			}
 
 
 def record():
@@ -158,6 +175,11 @@ def stop(*args, **kwargs):
 def get(uuid=None, *args, **kwargs):
 	if uuid:
 		result = frappe.cache().hget(RECORDER_REQUEST_HASH, uuid)
+		lexer = PythonLexer(tabsize=4)
+		for call in result["calls"]:
+			for stack in call["stack"]:
+				formatter = HtmlFormatter(noclasses=True, hl_lines=[stack["index"] + 1])
+				stack["context"] = highlight(stack["context"], lexer, formatter)
 	else:
 		result = list(frappe.cache().hgetall(RECORDER_REQUEST_SPARSE_HASH).values())
 	return result

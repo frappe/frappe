@@ -79,7 +79,7 @@
 														<span class="octicon octicon-triangle-down"></span></a>
 													</div>
 												</div>
-												<div class="form-in-grid">
+												<div class="form-in-grid" v-if="showing == call.index">
 													<div class="grid-form-heading" @click="showing = null">
 														<div class="toolbar grid-header-toolbar">
 															<span class="panel-title">SQL Query #<span class="grid-form-row-index">{{ call.index }}</span></span>
@@ -117,7 +117,40 @@
 																					<div class="frappe-control">
 																						<div class="form-group">
 																							<div class="clearfix"><label class="control-label">Stack Trace</label></div>
-																							<div class="control-value like-disabled-input for-description"><pre>{{ call.stack }}</pre></div>
+																							<div class="control-value like-disabled-input for-description" style="overflow:auto">
+																								<table class="table table-striped">
+																									<thead>
+																										<tr>
+																											<th v-for="key in ['filename', 'lineno', 'function']" :key="key">{{ key }}</th>
+																										</tr>
+																									</thead>
+																									<tbody>
+																										<template v-for="(row, index) in call.stack">
+																											<tr :key="index" @click="showing_traceback = showing_traceback == index ? null : index">
+																												<td v-for="key in ['filename', 'lineno', 'function']" :key="key">{{ row[key] }}</td>
+																											</tr>
+																											<tr v-if="showing_traceback == index">
+																												<td colspan="4" v-html="row.context"></td>
+																											</tr>
+																											<tr v-if="showing_traceback == index">
+																												<td colspan="4">
+																													<table class="table table-striped">
+																														<thead>
+																															<tr><th>Variable</th><th>Value</th></tr>
+																														</thead>
+																														<tbody>
+																															<tr v-for="(variable, index) in Object.entries(JSON.parse(row.locals))" :key="index">
+																																<td>{{ variable[0] }}</td>
+																																<td>{{ variable[1] }}</td>
+																															</tr>
+																														</tbody>
+																													</table>
+																												</td>
+																											</tr>
+																										</template>
+																									</tbody>
+																								</table>
+																							</div>
 																						</div>
 																					</div>
 																					<div class="frappe-control" v-if="call.explain_result[0]">
@@ -211,6 +244,7 @@ export default {
 			},
 			group_duplicates: false,
 			showing: null,
+			showing_traceback: null,
 			request: {
 				calls: [],
 			},
