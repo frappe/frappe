@@ -14,7 +14,7 @@ import frappe
 import sqlparse
 from pygments import highlight
 from pygments.lexers import PythonLexer
-from pygments.formatters import HtmlFormatter, RawTokenFormatter, NullFormatter
+from pygments.formatters import HtmlFormatter
 
 from frappe import _
 
