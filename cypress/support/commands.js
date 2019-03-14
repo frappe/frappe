@@ -61,6 +61,7 @@ Cypress.Commands.add('new_form', (doctype) => {
 
 Cypress.Commands.add('go_to_list', (doctype) => {
 	cy.visit(`/desk#List/${doctype}/List`);
+});
 
 Cypress.Commands.add('get_field', (fieldname, fieldtype='Data') => {
 	let selector = `.form-control[data-fieldname="${fieldname}"]`;
