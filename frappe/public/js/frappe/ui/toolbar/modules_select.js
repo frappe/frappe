@@ -56,6 +56,7 @@ frappe.ui.toolbar.ModulesSelect = class {
 						return new Promise((resolve) => {
 							frappe.call({
 								method: 'frappe.desk.doctype.desktop_icon.desktop_icon.get_module_icons',
+								type: 'GET',
 								args: {user: this.user},
 								freeze: true,
 								callback: (r) => {

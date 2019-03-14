@@ -258,6 +258,7 @@ frappe.Application = Class.extend({
 		if(frappe.session_alive && frappe.boot && frappe.boot.home_page !== 'setup-wizard') {
 			return frappe.call({
 				method: "frappe.desk.notifications.get_notifications",
+				type: 'GET',
 				callback: function(r) {
 					if(r.message) {
 						$.extend(frappe.boot.notification_info, r.message);

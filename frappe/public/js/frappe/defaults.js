@@ -81,7 +81,7 @@ frappe.defaults = {
 
 		if(value) {
 			try {
-				return JSON.parse(value)
+				return JSON.parse(value);
 			} catch(e) {
 				return value;
 			}
@@ -116,7 +116,10 @@ frappe.defaults = {
 
 	update_user_permissions: function() {
 		const method = 'frappe.core.doctype.user_permission.user_permission.get_user_permissions';
-		frappe.call(method).then(r => {
+		frappe.call({
+			method,
+			type: 'GET',
+		}).then(r => {
 			if (r.message) {
 				this._user_permissions = Object.assign({}, r.message);
 			}

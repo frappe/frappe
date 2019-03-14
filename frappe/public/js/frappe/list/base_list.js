@@ -345,6 +345,7 @@ frappe.views.BaseList = class BaseList {
 		const args = this.get_args();
 		return {
 			method: this.method,
+			type: 'GET',
 			args: args,
 			freeze: this.freeze_on_refresh || false,
 			freeze_message: this.freeze_message || (__('Loading') + '...')

@@ -16,6 +16,7 @@ frappe.db = {
 		return new Promise ((resolve) => {
 			frappe.call({
 				method: 'frappe.model.db_query.get_list',
+				type: 'GET',
 				args: args,
 				callback: function(r) {
 					resolve(r.message);
@@ -33,6 +34,7 @@ frappe.db = {
 	get_value: function(doctype, filters, fieldname, callback, parent) {
 		return frappe.call({
 			method: "frappe.client.get_value",
+			type: 'GET',
 			args: {
 				doctype: doctype,
 				fieldname: fieldname,
@@ -68,6 +70,7 @@ frappe.db = {
 		return new Promise((resolve, reject) => {
 			frappe.call({
 				method: "frappe.client.get",
+				type: 'GET',
 				args: { doctype, name, filters },
 				callback: r => resolve(r.message)
 			}).fail(reject);
@@ -85,11 +88,13 @@ frappe.db = {
 	},
 	count: function(doctype, args={}) {
 		return new Promise(resolve => {
-			frappe.call(
-				'frappe.client.get_count',
-				Object.assign(args, { doctype }),
-				r => resolve(r.message)
-			);
+			frappe.call({
+				method: 'frappe.client.get_count',
+				args: Object.assign(args, {
+					doctype
+				}),
+				type: 'GET',
+			}).then(resolve);
 		});
 	}
 };

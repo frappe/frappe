@@ -297,7 +297,10 @@ frappe.views.KanbanView.setup_dropdown_in_sidebar = function(doctype, $dropdown)
 	}
 
 	function get_kanban_boards() {
-		return frappe.call('frappe.desk.doctype.kanban_board.kanban_board.get_kanban_boards', { doctype })
-			.then(r => r.message);
+		return frappe.call({
+			method: 'frappe.desk.doctype.kanban_board.kanban_board.get_kanban_boards',
+			args: { doctype },
+			type: 'GET',
+		}).then(r => r.message);
 	}
 };
