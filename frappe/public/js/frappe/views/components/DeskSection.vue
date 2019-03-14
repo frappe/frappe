@@ -229,6 +229,7 @@ export default {
   grid-auto-rows: minmax(62px, 1fr);
   column-gap: 15px;
   row-gap: 15px;
+  align-items: center;
 }
 </style>
 

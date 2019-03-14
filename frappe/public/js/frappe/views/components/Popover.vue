@@ -93,7 +93,7 @@ export default {
   position: absolute;
 }
 .mt-default {
-  margin-top: 20px;
+  margin-top: 25px;
 }
 .z-20 {
   z-index: 20;

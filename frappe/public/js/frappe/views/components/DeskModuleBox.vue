@@ -12,14 +12,14 @@
     <div class="flush-top">
       <div class="module-box-content">
         <div class="level">
-          <div class="module-box-link">
+          <a class="module-box-link" :href="type === 'module' ? '#modules/' + module_name : link">
             <h4 class="h4">
-              <a :href="type === 'module' ? '#modules/' + module_name : link">
+              <div>
                 <i :class="iconClass" style="color:#8d99a6;font-size:18px;margin-right:6px;"></i>
                 {{ label }}
-              </a>
+              </div>
             </h4>
-          </div>
+          </a>
           <dropdown v-if="links && links.length" :items="links">
             <span class="pull-right">
               <i class="octicon octicon-chevron-down"></i>
@@ -73,7 +73,7 @@ export default {
       if (this.icon) {
         return this.icon;
       } else {
-        return "octicon octicon-primitive-dot";
+        return "octicon octicon-file-text";
       }
     }
   },
@@ -116,16 +116,17 @@ export default {
   background-color: #fafbfc;
 }
 
+.octicon-chevron-down {
+  font-size: 24px;
+  padding: 5px;
+}
+
 .octicon-chevron-down:hover {
   cursor: pointer;
 }
 
 .module-box-content {
   width: 100%;
-
-  h4 {
-    margin-bottom: 5px;
-  }
 
   p {
     margin-top: 5px;
@@ -137,6 +138,10 @@ export default {
 
 .module-box-link {
   flex: 1;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  text-decoration: none;
+  --moz-text-decoration-line: none;
 }
 
 .icon-box {
