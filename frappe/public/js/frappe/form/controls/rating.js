@@ -2,12 +2,12 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 	make_input() {
 		this._super();
 		const star_template = `
-		<div>
-			<i class="fa fa-fw fa-star-o star-icon" data-idx=1></i>
-			<i class="fa fa-fw fa-star-o star-icon" data-idx=2></i>
-			<i class="fa fa-fw fa-star-o star-icon" data-idx=3></i>
-			<i class="fa fa-fw fa-star-o star-icon" data-idx=4></i>
-			<i class="fa fa-fw fa-star-o star-icon" data-idx=5></i>
+		<div class = "rating">
+			<i class="fa fa-fw fa-star text-extra-muted" data-idx=1></i>
+			<i class="fa fa-fw fa-star text-extra-muted" data-idx=2></i>
+			<i class="fa fa-fw fa-star text-extra-muted" data-idx=3></i>
+			<i class="fa fa-fw fa-star text-extra-muted" data-idx=4></i>
+			<i class="fa fa-fw fa-star text-extra-muted" data-idx=5></i>
 		</div>
 		`;
 		
@@ -18,19 +18,16 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 			var star_value = el.data('idx');
 			el.parent().children('i.fa').each( function(e){
 				if (e < star_value) {
-					$(this).addClass('fa-star');
-					$(this).removeClass('fa-star-o');
+					$(this).addClass('hover');
 				} else {
-					$(this).addClass('fa-star-o');
-					$(this).removeClass('fa-star');
+					$(this).removeClass('hover');
 				}
 			});	
 		}, (ev) => {
-			const el = $(ev.currentTarget);
-			el.parent().children('i.fa').each( function(e) {
-				$(this).addClass('fa-star-o');
-				$(this).removeClass('fa-star');
-			});
+				const el = $(ev.currentTarget);
+				el.parent().children('i.fa').each( function(e) {
+					$(this).removeClass('hover');
+				});
 		});
 
 		this.$input_wrapper.find('i').click((ev) => {
@@ -38,15 +35,19 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 			var star_value = el.data('idx');
 			el.parent().children('i.fa').each( function(e) {
 				if (e < star_value){
-					$(this).css('color', 'green');
+					$(this).addClass('click');
+					
 				} else {
-					$(this).css('color', '');
+					$(this).removeClass('click');
 				}
-				
 			});
+			this.set_value(star_value);
 		});
 	},
+	get_value() {
+		return this.value ? this.value : 0;
+	},
 	set_formatted_input(value) { 
-		console.log(value)
+		console.log(this.$input_wrapper.find('i'))
 	}
 });
