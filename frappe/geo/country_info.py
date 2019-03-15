@@ -12,6 +12,8 @@ def get_country_info(country=None):
 	data = frappe._dict(data.get(country, {}))
 	if not 'date_format' in data:
 		data.date_format = "dd-mm-yyyy"
+	if not 'time_format' in data:
+		data.time_format = "HH:mm:ss"
 
 	return data
 

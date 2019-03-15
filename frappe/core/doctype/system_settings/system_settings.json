@@ -118,6 +118,14 @@
    "reqd": 1
   },
   {
+   "default": "HH:mm:ss",
+   "fieldname": "time_format",
+   "fieldtype": "Select",
+   "label": "Time Format",
+   "options": "HH:mm:ss\nHH:mm",
+   "reqd": 1,
+  },
+  {
    "fieldname": "column_break_7",
    "fieldtype": "Column Break"
   },
