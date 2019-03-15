@@ -1,35 +1,31 @@
 <template>
-	<div>
-		<div class="section-header level text-muted">
-			<div class="module-category h6 uppercase">
-			{{ category }}
-			</div>
+  <div>
+    <div class="section-header level text-muted">
+      <div class="module-category h6 uppercase">{{ category }}</div>
 
-			<div>
-				<a class="small text-muted" @click="show_customize_dialog">{{ __("Customize") }}</a>
-			</div>
-		</div>
+      <div>
+        <a class="small text-muted" @click="show_customize_dialog">{{ __("Customize") }}</a>
+      </div>
+    </div>
 
-		<div class="modules-container">
-			<desk-module-box
-				v-for="(module, index) in modules.filter(m => !m.hidden)"
-				:key="module.name"
-				:index="index"
-				v-bind="module"
-
-				@box-dragstart="box_dragstart($event)"
-				@box-dragend="box_dragend($event)"
-				@box-enter="box_enter($event)"
-				@box-drop="box_drop($event)"
-			>
-			</desk-module-box>
-		</div>
-	</div>
+    <div class="modules-container">
+      <desk-module-box
+        v-for="(module, index) in modules.filter(m => !m.hidden)"
+        :key="module.name"
+        :index="index"
+        v-bind="module"
+        @box-dragstart="box_dragstart($event)"
+        @box-dragend="box_dragend($event)"
+        @box-enter="box_enter($event)"
+        @box-drop="box_drop($event)"
+      ></desk-module-box>
+    </div>
+  </div>
 </template>
 
 <script>
 import DeskModuleBox from "./DeskModuleBox.vue";
-import { generate_route } from './utils.js';
+import { generate_route } from "./utils.js";
 
 export default {
 	props: ['category', 'all_modules', 'customization_settings'],
@@ -246,17 +242,18 @@ export default {
 
 <style lang="less" scoped>
 .section-header {
-	margin-top: 30px;
-	margin-bottom: 15px;
-	border-bottom: 1px solid #d0d8dd;
+  margin-top: 30px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #d0d8dd;
 }
 
 .modules-container {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-	grid-auto-rows: minmax(72px, 1fr);
-	column-gap: 15px;
-	row-gap: 15px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-auto-rows: minmax(62px, 1fr);
+  column-gap: 15px;
+  row-gap: 15px;
+  align-items: center;
 }
 </style>
 
