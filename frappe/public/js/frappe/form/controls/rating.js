@@ -48,6 +48,11 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 		return this.value ? this.value : 0;
 	},
 	set_formatted_input(value) { 
-		console.log(this.$input_wrapper.find('i'))
+		var el = this.$input_wrapper.find('i');
+		el.children('i.fa').prevObject.each( function(e) {
+			if (e < value){
+				$(this).addClass('click');	
+			} 
+		});	
 	}
 });
