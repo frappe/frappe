@@ -31,8 +31,10 @@ def get_safe_globals():
 	datautils = {}
 	if frappe.db:
 		date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
+		time_format = frappe.db.get_default("time_format") or "HH:mm:ss"
 	else:
-		date_format = 'yyyy-mm-dd'
+		date_format = "yyyy-mm-dd"
+		time_format = "HH:mm:ss"
 
 	add_module_properties(frappe.utils.data, datautils, lambda obj: hasattr(obj, "__call__"))
 
@@ -53,6 +55,7 @@ def get_safe_globals():
 			format = frappe.format_value,
 			format_value = frappe.format_value,
 			date_format = date_format,
+			time_format = time_format,
 			format_date = frappe.utils.data.global_date_format,
 			form_dict = getattr(frappe.local, 'form_dict', {}),
 
@@ -98,6 +101,7 @@ def get_safe_globals():
 	if not frappe.flags.in_setup_help:
 		out.get_visible_columns = get_visible_columns
 		out.frappe.date_format = date_format
+		out.frappe.time_format = time_format
 		out.frappe.db = frappe._dict(
 			get_list = frappe.get_list,
 			get_all = frappe.get_all,
