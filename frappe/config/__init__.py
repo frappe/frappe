@@ -45,6 +45,7 @@ def get_modules_from_app(app):
 		active_modules_list = []
 		for m, module in iteritems(modules):
 			module['module_name'] = m
+			module['app'] = app
 			active_modules_list.append(module)
 	else:
 		for m in modules:
