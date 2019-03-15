@@ -347,8 +347,8 @@ class User(Document):
 		self.validate_email_type(new_name)
 
 	def validate_email_type(self, email):
-		from frappe.utils import validate_email_add
-		validate_email_add(email.strip(), True)
+		from frappe.utils import validate_email_address
+		validate_email_address(email.strip(), True)
 
 	def after_rename(self, old_name, new_name, merge=False):
 		tables = frappe.db.get_tables()

@@ -1,0 +1,11 @@
+<p>{{_("Dear User,")}}</p>
+<p>{{_("We have received a request for deletion of {0} data associated with: {1}").format(host_name, email)}}.</p>
+<p>{{_("This will permanently remove your data.")}}</b>
+<p>{{_("Click on the link below to verify your request")}}.</p>
+
+<p style="margin: 30px 0px;">
+    <a href="{{ link }}" rel="nofollow" class="btn btn-primary btn-sm primary-action" style="padding: 8px 20px;">{{ _("Confirm Request") }}</a>
+</p>
+<p style="font-size: 85%;">
+    {{_("You can also copy-paste this ")}} <a href="{{ link }}">{{_("Verification Link")}}</a>{{_(" to your browser")}}
+</p>

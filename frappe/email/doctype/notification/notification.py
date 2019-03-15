@@ -8,7 +8,7 @@ import json, os
 from frappe import _
 from frappe.model.document import Document
 from frappe.core.doctype.role.role import get_emails_from_role
-from frappe.utils import validate_email_add, nowdate, parse_val, is_html, add_to_date
+from frappe.utils import validate_email_address, nowdate, parse_val, is_html, add_to_date
 from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
 from six import string_types
@@ -170,7 +170,7 @@ def get_context(context):
 					continue
 			if recipient.email_by_document_field:
 				email_ids_value = doc.get(recipient.email_by_document_field)
-				if validate_email_add(email_ids_value):
+				if validate_email_address(email_ids_value):
 					email_ids = email_ids_value.replace(",", "\n")
 					recipients = recipients + email_ids.split("\n")
 

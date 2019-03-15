@@ -74,7 +74,7 @@ def extract_email_id(email):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
 
-def validate_email_add(email_str, throw=False):
+def validate_email_address(email_str, throw=False):
 	"""Validates the email string"""
 	email = email_str = (email_str or "").strip()
 
@@ -454,7 +454,7 @@ def markdown(text, sanitize=True, linkify=True):
 def sanitize_email(emails):
 	sanitized = []
 	for e in split_emails(emails):
-		if not validate_email_add(e):
+		if not validate_email_address(e):
 			continue
 
 		full_name, email_id = parse_addr(e)

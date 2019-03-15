@@ -5,7 +5,7 @@ from __future__ import unicode_literals, absolute_import
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_add, get_fullname, strip_html, cstr
+from frappe.utils import validate_email_address, get_fullname, strip_html, cstr
 from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_mins_to_first_response)
 from frappe.core.utils import get_parent_doc, set_timeline_doc
@@ -149,7 +149,7 @@ class Communication(Document):
 				self.sender = None
 			else:
 				if self.sent_or_received=='Sent':
-					validate_email_add(self.sender, throw=True)
+					validate_email_address(self.sender, throw=True)
 				sender_name, sender_email = parse_addr(self.sender)
 				if sender_name == sender_email:
 					sender_name = None

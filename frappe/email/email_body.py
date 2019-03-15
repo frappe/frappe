@@ -165,13 +165,13 @@ class EMail:
 
 	def validate(self):
 		"""validate the Email Addresses"""
-		from frappe.utils import validate_email_add
+		from frappe.utils import validate_email_address
 
 		if not self.sender:
 			self.sender = self.email_account.default_sender
 
-		validate_email_add(strip(self.sender), True)
-		self.reply_to = validate_email_add(strip(self.reply_to) or self.sender, True)
+		validate_email_address(strip(self.sender), True)
+		self.reply_to = validate_email_address(strip(self.reply_to) or self.sender, True)
 
 		self.replace_sender()
 		self.replace_sender_name()
@@ -181,7 +181,7 @@ class EMail:
 		self.bcc = [strip(r) for r in self.bcc]
 
 		for e in self.recipients + (self.cc or []) + (self.bcc or []):
-			validate_email_add(e, True)
+			validate_email_address(e, True)
 
 	def replace_sender(self):
 		if cint(self.email_account.always_use_account_email_id_as_sender):
