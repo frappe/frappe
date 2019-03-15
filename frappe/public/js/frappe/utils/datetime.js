@@ -51,7 +51,7 @@ $.extend(frappe.datetime, {
 	},
 
 	obj_to_user: function(d) {
-		return moment(d).format(frappe.datetime.get_user_fmt().toUpperCase());
+		return moment(d).format(frappe.datetime.get_user_date_fmt().toUpperCase());
 	},
 
 	get_diff: function(d1, d2) {
@@ -98,23 +98,28 @@ $.extend(frappe.datetime, {
 		return moment().endOf("year").format();
 	},
 
-	get_user_fmt: function() {
+	get_user_time_fmt: function() {
+		return frappe.sys_defaults && frappe.sys_defaults.time_format || "HH:mm:ss";
+	},
+
+	get_user_date_fmt: function() {
 		return frappe.sys_defaults && frappe.sys_defaults.date_format || "yyyy-mm-dd";
 	},
 
 	str_to_user: function(val, only_time = false) {
 		if(!val) return "";
 
+		var user_time_fmt = frappe.datetime.get_user_time_fmt();
 		if(only_time) {
 			return moment(val, frappe.defaultTimeFormat)
-				.format(frappe.defaultTimeFormat);
+				.format(user_time_fmt);
 		}
 
-		var user_fmt = frappe.datetime.get_user_fmt().toUpperCase();
+		var user_date_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
 		if(typeof val !== "string" || val.indexOf(" ")===-1) {
-			return moment(val).format(user_fmt);
+			return moment(val).format(user_date_fmt);
 		} else {
-			return moment(val, "YYYY-MM-DD HH:mm:ss").format(user_fmt + " HH:mm:ss");
+			return moment(val, "YYYY-MM-DD HH:mm:ss").format(user_date_fmt + " " + user_time_fmt);
 		}
 	},
 
@@ -124,16 +129,17 @@ $.extend(frappe.datetime, {
 
 	user_to_str: function(val, only_time = false) {
 
+		var user_time_fmt = frappe.datetime.get_user_time_fmt();
 		if(only_time) {
-			return moment(val, frappe.defaultTimeFormat)
+			return moment(val, user_time_fmt)
 				.format(frappe.defaultTimeFormat);
 		}
 
-		var user_fmt = frappe.datetime.get_user_fmt().toUpperCase();
+		var user_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
 		var system_fmt = "YYYY-MM-DD";
 
 		if(val.indexOf(" ")!==-1) {
-			user_fmt += " HH:mm:ss";
+			user_fmt += " " + user_time_fmt;
 			system_fmt += " HH:mm:ss";
 		}
 
