@@ -96,8 +96,10 @@ def get_allowed_functions_for_jenv():
 	datautils = {}
 	if frappe.db:
 		date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
+		time_format = frappe.db.get_default("time_format") or "HH:mm:ss"
 	else:
-		date_format = 'yyyy-mm-dd'
+		date_format = "yyyy-mm-dd"
+		time_format = "HH:mm:ss"
 
 	for key, obj in frappe.utils.data.__dict__.items():
 		if key.startswith("_"):
@@ -118,9 +120,10 @@ def get_allowed_functions_for_jenv():
 		"frappe": {
 			"_": frappe._,
 			"get_url": frappe.utils.get_url,
-			'format': frappe.format_value,
+			"format": frappe.format_value,
 			"format_value": frappe.format_value,
-			'date_format': date_format,
+			"date_format": date_format,
+			"time_format": time_format,
 			"format_date": frappe.utils.data.global_date_format,
 			"form_dict": getattr(frappe.local, 'form_dict', {}),
 			"get_hooks": frappe.get_hooks,
@@ -165,6 +168,7 @@ def get_allowed_functions_for_jenv():
 	if not frappe.flags.in_setup_help:
 		out['get_visible_columns'] = get_visible_columns
 		out['frappe']['date_format'] = date_format
+		out['frappe']['time_format'] = time_format
 		out['frappe']["db"] = {
 			"get_value": frappe.db.get_value,
 			"get_single_value": frappe.db.get_single_value,
