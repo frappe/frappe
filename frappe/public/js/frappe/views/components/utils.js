@@ -13,7 +13,7 @@ function generate_route(item) {
 				if (item.filters) {
 					frappe.route_options=item.filters;
 				}
-				route="List/" + item.doctype;
+				route="List/" + item.doctype + "/List";
 			}
 		} else if(item.type==="report" && item.is_query_report) {
 			route="query-report/" + item.name;
