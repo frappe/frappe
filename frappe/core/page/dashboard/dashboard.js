@@ -193,21 +193,10 @@ class DashboardChart {
 	}
 
 	get_settings() {
-		if (frappe.dashboard_chart_sources && frappe.dashboard_chart_sources[this.chart_doc.source]) {
-			return this._load_script;
-		}
-		this._load_script = new Promise(resolve => frappe.call({
-			method: 'frappe.core.page.dashboard.dashboard.get_script',
-			args: {
-				source_name: this.chart_doc.source
-			},
-			callback: result => {
-				frappe.dom.eval(result.message.script || '');
-				this.settings = frappe.dashboard_chart_sources[this.chart_doc.source];
-				resolve();
-			}
+		return new Promise(resolve => frappe.db.get_value("Dashboard Chart Source", this.chart_doc.source, "config", e => {
+			this.settings = JSON.parse(e.config);
+			resolve();
 		}));
-		return this._load_script;
 	}
 
 	create_set_filters_dialog() {

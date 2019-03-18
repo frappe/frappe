@@ -4,6 +4,7 @@ frappe.provide("frappe.dashboard_chart_sources");
 
 frappe.ui.form.on('Dashboard Chart', {
 	refresh: function(frm) {
+		frm.set_df_property("filters_section", "hidden", 1);
 		frm.trigger("show_filters");
 	},
 
@@ -13,25 +14,20 @@ frappe.ui.form.on('Dashboard Chart', {
 
 	show_filters: function(frm) {
 		if (frm.doc.source) {
-			if (frappe.dashboard_chart_sources && frappe.dashboard_chart_sources[frm.doc.source]) {
+			if (frm.filters) {
 				frm.trigger('render_filters_table');
 			} else {
-				frappe.call({
-					method: 'frappe.core.page.dashboard.dashboard.get_script',
-					args: {
-						source_name: frm.doc.source
-					},
-					callback: result => {
-						frappe.dom.eval(result.message.script || '');
-						frm.trigger('render_filters_table');
-					}
+				frappe.db.get_value("Dashboard Chart Source", frm.doc.source, "config", e => {
+					frm.filters = JSON.parse(e.config).filters;
+					frm.trigger('render_filters_table');
 				});
 			}
 		}
 	},
 
 	render_filters_table: function(frm) {
-		let fields = frappe.dashboard_chart_sources[frm.doc.source].filters;
+		frm.set_df_property("filters_section", "hidden", 0);
+		let fields = frm.filters;
 
 		let wrapper = $(frm.get_field('filters_json').wrapper).empty();
 		let table = $(`<table class="table table-bordered" style="cursor:pointer; margin:0px;">
@@ -62,7 +58,8 @@ frappe.ui.form.on('Dashboard Chart', {
 						frm.set_value('filters_json', JSON.stringify(values));
 						frm.trigger('show_filters');
 					}
-				}
+				},
+				primary_action_label: "Set"
 			});
 			dialog.show();
 			dialog.set_values(filters);
