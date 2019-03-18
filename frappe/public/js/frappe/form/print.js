@@ -1,8 +1,12 @@
 frappe.provide("frappe.ui.form");
 
 // init qz tray library
-qz.api.setPromiseType(function promise(resolver) { return new Promise(resolver); });
-qz.api.setSha256Type(function(data) { return sha256(data); });
+qz.api.setPromiseType(function promise(resolver) {
+	return new Promise(resolver); 
+});
+qz.api.setSha256Type(function(data) { 
+	return sha256(data); 
+});
 
 frappe.ui.form.PrintPreview = Class.extend({
 	init: function (opts) {
@@ -207,13 +211,13 @@ frappe.ui.form.PrintPreview = Class.extend({
 						}
 					});
 				} 
-				else if(me.get_mapped_printer().length == 1){
+				else if(me.get_mapped_printer().length === 1){
 					// printer is already mapped in localstorage (applies for both raw and pdf )
 					if(me.is_raw_printing()){
 						me.get_raw_commands(function(out) {
-							let printer_map = me.get_mapped_printer()[0]
-							let config = qz.configs.create(printer_map.printer)
-							let data = [out.raw_commands]
+							let printer_map = me.get_mapped_printer()[0];
+							let config = qz.configs.create(printer_map.printer);
+							let data = [out.raw_commands];
 							frappe.ui.form.qz_connect().then(function(){
 								return qz.print(config,data);
 							}).then(frappe.ui.form.qz_success).catch((err)=>{
@@ -222,7 +226,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 						})
 					}
 					else{
-						frappe.show_alert({message:__('PDF Printing via QZ is not yet supported. Please remove QZ printer mapping for this Print format and try again.'),indicator:'blue'},14)
+						frappe.show_alert({message:__('PDF Printing via QZ is not yet supported. Please remove QZ printer mapping for this Print format and try again.'),indicator:'blue'},14);
 						//Note: need to solve "Error: Cannot parse (FILE)<URL> as a PDF file" to enable qz pdf printing.
 
 						// // use pdf method print method of qz
@@ -243,8 +247,8 @@ frappe.ui.form.PrintPreview = Class.extend({
 					}
 				}
 				else if(me.is_raw_printing()) {
-					frappe.show_alert({message:__('Please set a printer mapping for this print format in the QZ Settings'),indicator:'blue'},14)
-					me.qz_setting_dialog()
+					frappe.show_alert({message:__('Please set a printer mapping for this print format in the QZ Settings'),indicator:'blue'},14);
+					me.qz_setting_dialog();
 				}
 				else {
 					me.new_page_preview(true);
@@ -300,10 +304,10 @@ frappe.ui.form.PrintPreview = Class.extend({
 		if(localStorage && localStorage.print_format_printer_map 
 			&& JSON.parse(localStorage.print_format_printer_map)[this.frm.doctype]) {
 			return (JSON.parse(localStorage.print_format_printer_map)[this.frm.doctype])
-			.filter((printer_map)=> printer_map.print_format == this.selected_format())
+				.filter((printer_map)=> printer_map.print_format == this.selected_format());
 		}
 		else {
-			return []
+			return [];
 		}
 	},
 	preview_old_style: function () {
@@ -352,7 +356,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 		return this.get_print_format(format).print_format_type === "Client";
 	},
 	is_raw_printing: function (format) {
-		return this.get_print_format(format).raw_printing == true;
+		return this.get_print_format(format).raw_printing === true;
 	},
 	get_print_format: function (format) {
 		if (!format) {
@@ -372,13 +376,13 @@ frappe.ui.form.PrintPreview = Class.extend({
 		frappe.dom.set_style(style || frappe.boot.print_css, "print-style");
 	},
 	qz_setting_dialog: function() {
-		var me = this
+		var me = this;
 		if (localStorage && localStorage.print_format_printer_map)
 			this.print_format_printer_map = JSON.parse(localStorage.print_format_printer_map);
 		else
-			this.print_format_printer_map = {}
+			this.print_format_printer_map = {};
 		this.data = [];
-		this.data = this.print_format_printer_map[this.frm.doctype] || []
+		this.data = this.print_format_printer_map[this.frm.doctype] || [];
 		this.printer_list = [];
 		frappe.ui.form.qz_get_printer_list().then((data)=>{
 			this.printer_list = data;
@@ -388,10 +392,11 @@ frappe.ui.form.PrintPreview = Class.extend({
 			const dialog = new frappe.ui.Dialog({
 				title: __("QZ Tray Print Settings"),
 				fields: [
-					{fieldtype:'Section Break', label: __('Printer Mapping')},
+					{fieldtype:'Section Break'},
 					{
 						fieldname: "printer_mapping",
 						fieldtype: "Table",
+						label: __('Printer Mapping'),
 						in_place_edit: true,
 						data: this.data,
 						get_data: () => {
@@ -420,19 +425,19 @@ frappe.ui.form.PrintPreview = Class.extend({
 					let printer_mapping = this.get_values()["printer_mapping"];
 					if (printer_mapping && printer_mapping.length) {
 						let print_format_list = printer_mapping.map(a => a.print_format);
-						let has_duplicate = print_format_list.some((item, idx) => print_format_list.indexOf(item) != idx  )
+						let has_duplicate = print_format_list.some((item, idx) => print_format_list.indexOf(item) != idx  );
 						if (has_duplicate)
 							frappe.throw(__("Cannot have multiple printers mapped to a single print format."));
 					}
 					else {
-						printer_mapping = []
+						printer_mapping = [];
 					}
 					if (localStorage && localStorage.print_format_printer_map)
 						this.print_format_printer_map = JSON.parse(localStorage.print_format_printer_map);
 					else
-						this.print_format_printer_map = {}
+						this.print_format_printer_map = {};
 					this.print_format_printer_map[me.frm.doctype] = printer_mapping;
-					localStorage.print_format_printer_map = JSON.stringify(this.print_format_printer_map)
+					localStorage.print_format_printer_map = JSON.stringify(this.print_format_printer_map);
 					this.hide();
 				},
 				primary_action_label: __('Save')
@@ -489,14 +494,15 @@ frappe.ui.get_print_settings = function (pdf, callback, letter_head) {
 //  - after mimetype launcher is fired, try to connect 3 more times
 //  - display success/fail meaasges to user
 frappe.ui.form.qz_connect = function() {
-    return new Promise(function(resolve, reject) {
+	return new Promise(function(resolve, reject) {
 		if (qz.websocket.isActive()) {	// if already active, resolve immediately
 			// frappe.show_alert({message: __('QZ Tray Connection Active!'), indicator: 'green'});
 			resolve();
-        } else {
+		} 
+		else {
 			// try to connect once before firing the mimetype launcher
 			frappe.show_alert({message: __('Attemting Connection to QZ Tray!'), indicator: 'blue'});
-            qz.websocket.connect().then(()=>{
+			qz.websocket.connect().then(()=>{
 				frappe.show_alert({message: __('Connected to QZ Tray!'), indicator: 'green'});
 				resolve();
 			}, function retry(err) {
@@ -504,13 +510,14 @@ frappe.ui.form.qz_connect = function() {
 					// if a connect was not succesful, launch the mimetime, try 3 more times
 					frappe.show_alert({message: __('Attemting to launch QZ Tray!'), indicator: 'blue'},14);
 					window.location.assign("qz:launch");
-                	qz.websocket.connect({ retries: 3, delay: 1 }).then(()=>{
-					frappe.show_alert({message: __('Connected to QZ Tray!'), indicator: 'green'});
-					resolve();
-				}, (err)=>{
-					frappe.show_alert({message: __('Error connecting to QZ Tray! <a href="https://qz.io/download/">Click here to Download QZ Tray</a>'), indicator: 'red'},14);
-					reject();
-				});
+					qz.websocket.connect({ retries: 3, delay: 1 }).then(()=>{
+						frappe.show_alert({message: __('Connected to QZ Tray!'), indicator: 'green'});
+						resolve();
+					}, (err)=>{
+						frappe.show_alert({message: __('Error connecting to QZ Tray! <a href="https://qz.io/download/">Click here to Download QZ Tray</a>'), indicator: 'red'},14);
+						console.error("qz error:",err)
+						reject();
+					});
 			}
 			else{
 				frappe.show_alert({message: 'QZ Tray '+err.toString(), indicator: 'red'},14);
@@ -528,7 +535,7 @@ frappe.ui.form.qz_get_printer_list = function(){
 		return data
 	}).catch((err)=>{
 		frappe.ui.form.qz_fail(err);
-	})
+	});
 }
 
 // notify qz successful print

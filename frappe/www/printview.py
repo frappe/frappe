@@ -186,7 +186,7 @@ def get_html_and_style(doc, name=None, print_format=None, meta=None,
 		return {
 			"html": '<div class="alert alert-info">'
 		+ _("Note: This Print Format is in Raw Commands and cannot be previewed.")
-		+ '</div>'	
+		+ '</div>'
 		}
 
 	return {
@@ -204,7 +204,7 @@ def get_rendered_raw_commands(doc, name=None, print_format=None, meta=None, lang
 
 	if isinstance(doc, string_types):
 		doc = frappe.get_doc(json.loads(doc))
-	
+
 	print_format = get_print_format_doc(print_format, meta=meta or frappe.get_meta(doc.doctype))
 
 	if not print_format or (print_format and not print_format.raw_printing):
