@@ -357,9 +357,13 @@ class Email:
 		"""Parses headers, content, attachments from given raw message.
 
 		:param content: Raw message."""
-		self.raw = safe_encode(content) if six.PY2 else safe_decode(content)
-		self.mail = email.message_from_string(self.raw)
-
+		if six.PY2:
+			self.mail = email.message_from_string(safe_encode(content))
+		else:
+			if isinstance(content, bytes):
+				self.mail = email.message_from_bytes(content)
+			else:
+				self.mail = email.message_from_string(content)
 
 		self.text_content = ''
 		self.html_content = ''
