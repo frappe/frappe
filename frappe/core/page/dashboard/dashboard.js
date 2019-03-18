@@ -125,7 +125,10 @@ class DashboardChart {
 				}
 			}
 		];
+		this.set_chart_actions(actions);
+	}
 
+	set_chart_actions(actions) {
 		this.chart_actions = $(`<div class="chart-actions btn-group dropdown pull-right">
 			<a class="dropdown-toggle" data-toggle="dropdown"
 				aria-haspopup="true" aria-expanded="false"> <button class="btn btn-default btn-xs"><span class="caret"></span></button>
@@ -149,7 +152,7 @@ class DashboardChart {
 			{
 				chart_name: this.chart_doc.name,
 				filters: filters,
-				refresh: refresh,
+				refresh: refresh ? 1 : 0,
 			}
 		);
 	}

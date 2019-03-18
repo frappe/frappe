@@ -16,7 +16,7 @@ def cache_source(function):
 			"name": chart_name,
 			"filters": filters
 		}, default=str)
-		if kwargs.get("refresh") == "true":
+		if kwargs.get("refresh"):
 			results = generate_and_cache_results(chart_name, function, filters, cache_key)
 		else:
 			cached_results = frappe.cache().get_value(cache_key)
