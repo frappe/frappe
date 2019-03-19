@@ -45,11 +45,15 @@
 			</ul>
 		</div>
 	</li>
-	<li class="assigned-to">
+	<li class="assigned-to" style="display: none">
 		<a class = "dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 			{%= __("Assigned To") %} <span class="caret"></span>
 		</a>
 		<ul class="dropdown-menu assigned-dropdown" style="max-height: 300px; overflow-y: auto;">
+			<li><div class="list-loading text-center assigned-loading" style="color: #8d99a6">
+				{%= (__("Loading") + "..." ) %}
+			</div>
+			</li>
 		</ul>
 	</li>
 	{% if(frappe.help.has_help(doctype)) { %}
