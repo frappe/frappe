@@ -205,7 +205,7 @@ def make_links(columns, data):
 				if col.options and row[col.fieldname]:
 					row[col.fieldname] = get_link_to_form(col.options, row[col.fieldname])
 			elif col.fieldtype == "Dynamic Link":
-				if col.options and row[col.fieldname]:
+				if col.options and row[col.fieldname] and row[col.options]:
 					row[col.fieldname] = get_link_to_form(row[col.options], row[col.fieldname])
 
 	return columns, data
