@@ -60,7 +60,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	setup_sort_selector() {
-		console.log("Setting Sort Selector");
 		this.sort_selector = new frappe.ui.SortSelector({
 			parent: this.filter_area.$filter_list_wrapper,
 			doctype: this.doctype,
@@ -68,63 +67,120 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			onchange: this.on_sort_change.bind(this)
 		});
 
-		let group_by_button = $(`<button style="margin-right: 10px;" class="btn btn-default btn-xs add-filter text-muted"> ${__("Add Group By")}</button>`)
-		group_by_button.click(() => this.show_group_by_modal());
-		this.page.wrapper.find(".active-tag-filters").append(group_by_button);
+		//Setup groupby for reports
+		this.setup_groupby_area();
 	}
 
-	show_group_by_modal() {
-		this.group_by = "customer";
-		this.aggregate_on = "grand_total";
-		this.aggregate_function = 'sum';
+	make_groupby_button() {
+		let group_by_button =  $(`<div class="tag-groupby-area">
+								<div class="active-tag-groupby">
+									<button class="btn btn-default btn-xs add-groupby text-muted">
+											${__("Add Group")}
+									</button>
+								</div>
+							</div>`);
+		this.page.wrapper.find(".sort-selector").before(group_by_button);
+		group_by_button.click(() => this.groupby_edit_area.show());
+	}
 
-		const d = new frappe.ui.Dialog({
-			title: __('Set Group By'),
-			fields: [
-				{
-					fieldtype: 'Select',
-					fieldname: 'group_by',
-					label: 'Column for Group by',
-					options: this.get_group_by_fields(),
-					reqd: 1
-				},
-				{
-					fieldtype: 'Select',
-					fieldname: 'aggregate_function',
-					label: 'Aggregate Function',
-					options: ["Count", "Sum", "Average"],
-					reqd: 1
-				},
-				{
-					fieldtype: 'Select',
-					fieldname: 'aggregate_on',
-					label: 'Column for Aggregate',
-					options: this.meta.fields.map(f => f.label),
-					reqd: 1
+	setup_groupby_area() {
+		this.make_groupby_button();
+		let current_cols=[];
+		let sql_aggregate_function = [{name:'count', label: 'Count'}, {name:'sum', label: 'Sum'}, {name:'avg', label:'Average'}];
+		this.groupby_edit_area = $(frappe.render_template("groupby", {
+			groupby_conditions: this.get_group_by_fields(),
+			aggregate_function_conditions: sql_aggregate_function,
+		}));
+		$(".aggregate-function").val("count");
+		this.page.wrapper.find(".frappe-list").append(
+			this.groupby_edit_area);
+
+		//Set aggregate on options as numeric fields if function is sum or average
+		$('.aggregate-function').on('change', () => {
+			this.meta.fields.forEach((field) => {
+				let fn = $('.aggregate-function option:selected').val();
+				if(fn === 'sum' || fn === 'avg') {
+					if(frappe.model.is_numeric_field(field.fieldtype)) {
+						$('.aggregate-on')
+							.append($('<option>', { value : field.fieldname })
+								.text(field.label));
+					}
+					$('.aggregate-on').show();
+				} else {
+					$('.aggregate-on').hide();
 				}
-			]
-		});
-		window.xxx = d;
-		d.set_primary_action("Add", () => {
-			this.group_by = this.meta.fields.find( f => f.label == d.get_values().group_by).fieldname;
-			this.aggregate_on = this.meta.fields.find( f => f.label == d.get_values().aggregate_on).fieldname;
+			});
+		})
 
-			let sql_aggregate_function = {
-				Count: "count",
-				Sum: "sum",
-				Average: "avg",
-			}
-			this.aggregate_function = sql_aggregate_function[d.get_values().aggregate_function];
-			d.hide();
+		$('.set-groupby-and-run').on('click', () => {
+			current_cols = this.apply_groupby();
 		});
-		d.show();
+
+		$('.remove-groupby').on('click', () => {
+			this.remove_groupby(current_cols);
+		});
 	}
+
+	apply_groupby() {
+		this.group_by = this.page.wrapper.find('.groupby option:selected').val();
+		this.aggregate_function = this.page.wrapper.find('.aggregate-function option:selected').val();
+		this.aggregate_on = this.page.wrapper.find('.aggregate-on option:selected').val();
+
+		//All necessary fields must be set before applying groupby
+		if(!this.group_by) {
+			this.page.wrapper.find('.groupby').focus();
+			return;
+		} else if(!this.aggregate_function) {
+			this.page.wrapper.find('.aggregate-function').focus();
+			return;
+		} else if(!this.aggregate_on && this.aggregate_function!=='count') {
+			this.page.wrapper.find('.aggregate-on').focus();
+			return;
+		}
+
+		if(this.aggregate_function === 'count') {
+			let groupby_query = 'count(' + this.field_type + '.'+ this.group_by+') as ' + this.group_by + '_Count';
+			this.fields.push([groupby_query, this.doctype]);
+		}
+		$('.set-groupby-and-run').hide();
+		let current_cols = this.columns;
+		let remove_columns = this.columns.filter(column => ![this.aggregate_on, this.group_by].includes(column.field));
+		remove_columns.forEach((col) => {
+			this.remove_column_from_datatable(col);
+		});
+
+		this.columns[0].width = 400;
+		if(this.columns[1]) this.columns[1].width = 300;
+		this.refresh();
+		return current_cols;
+	}
+
+	remove_groupby(columns) {
+		this.groupby_edit_area.hide();
+		$('.set-groupby-and-run').show();
+		this.group_by = null;
+		this.aggregate_function = null;
+		this.aggregate_on = null;
+		$(".groupby").val("");
+		$(".aggregate-function").val("count");
+		$(".aggregate-on").val("").hide();
+		columns.forEach((col, i) => {
+			this.add_column_to_datatable(col.field, this.doctype, i);
+		});
+		this.fields.pop();
+		this.setup_columns();
+	}
+
 
 	get_args() {
 		const args = super.get_args();
-		if (this.aggregate_function && this.aggregate_on) {
-			args.fields.push(`${this.aggregate_function}(${this.aggregate_on}) as ${this.aggregate_on}`);
+		this.field_type = args.fields[0].substring(0,args.fields[0].indexOf('.'));
+		if (this.aggregate_function && this.group_by && this.aggregate_on) {
+			if(this.aggregate_function !== 'count') {
+				args.fields.push(`${this.aggregate_function}(${this.aggregate_on}) as ${this.aggregate_on}`);
+			}
 		}
+
 		return Object.assign(args, {
 			with_comment_count: false,
 			start: 0,
@@ -134,7 +190,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	get_group_by_fields() {
-		return this.meta.fields.filter((f)=> ["Select", "Link"].includes(f.fieldtype)).map(f => f.label);
+		return this.meta.fields.filter((f)=> ["Select", "Link"].includes(f.fieldtype));
 	}
 
 	before_refresh() {
@@ -733,7 +789,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.build_fields();
 		this.setup_columns();
 
-		this.datatable.destroy();
+		if (this.datatable) this.datatable.destroy();
 		this.datatable = null;
 		this.refresh();
 	}
@@ -758,7 +814,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		const index = this.fields.findIndex(f => column.field === f[0]);
 		if (index === -1) return;
 		const field = this.fields[index];
-		if (field[0] === 'name') {
+		if (field[0] === 'name' && this.group_by === null) {
 			this.refresh();
 			frappe.throw(__('Cannot remove ID field'));
 		}
@@ -869,13 +925,28 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	build_column(c) {
+
 		let [fieldname, doctype] = c;
 		let docfield = frappe.meta.docfield_map[doctype || this.doctype][fieldname];
 
+		// brackets are not allowed in fieldnames, if there is a bracket, its a function
+		if (fieldname.includes('(')) {
+			if (fieldname.includes(' AS ')) {
+				fieldname = fieldname.split(' AS ').slice(-1)[0];
+			} else if (fieldname.includes(' as ')) {
+				fieldname = fieldname.split(' as ').slice(-1)[0];
+			}
+		}
 		if (!docfield) {
-			docfield = frappe.model.get_std_field(fieldname);
+			docfield = frappe.model.get_std_field(fieldname, true);
 
 			if (docfield) {
+				if(!docfield.label) {
+					docfield.label = toTitle(fieldname);
+					if(docfield.label.includes('_')) {
+						docfield.label = docfield.label.replace('_',' ');
+					}
+				}
 				docfield.parent = this.doctype;
 				if (fieldname == "name") {
 					docfield.options = this.doctype;

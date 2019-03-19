@@ -87,13 +87,18 @@ $.extend(frappe.model, {
 		return !frappe.model.std_fields_list.includes(fieldname);
 	},
 
-	get_std_field: function(fieldname) {
+	get_std_field: function(fieldname, ignore=false) {
 		var docfield = $.map([].concat(frappe.model.std_fields).concat(frappe.model.std_fields_table),
 			function(d) {
 				if(d.fieldname==fieldname) return d;
 			});
-		if(!docfield.length) {
-			frappe.msgprint(__("Unknown Column: {0}", [fieldname]));
+		if (!docfield.length) {
+			//Standard fields are ignored in case of adding columns as a result of groupby
+			if (ignore) {
+				return {fieldname: fieldname};
+			} else {
+				frappe.msgprint(__("Unknown Column: {0}", [fieldname]));
+			}
 		}
 		return docfield[0];
 	},
