@@ -21,30 +21,25 @@ class EnergyPointLog(Document):
 	def after_insert(self):
 		update_user_energy_points(self.points, self.user)
 
-def update_log(doc, state):
+def process_for_energy_points(doc, state):
 	if frappe.flags.in_patch: return
 	doc_action = doc.get('_action')
 	if not doc_action: return
 
-	if doc.is_new() and doc_action =="save":
-		event_type = "Create"
-	else:
-		event_type = get_event_type(doc_action)
-
 	point_rule = frappe.get_all('Energy Point Rule', filters={
 		'reference_doctype': doc.get('doctype'),
-		'event_type': event_type
-	}, fields=['point', 'rule_name'], limit=1)
+	}, fields=['points', 'rule_name'], limit=1)
 
 	if point_rule:
 		point_rule = point_rule[0]
 		print(point_rule)
 		if frappe.safe_eval(point_rule.condition or True, None, {'doc': doc}):
 			create_energy_point_log(
-				point_rule.point,
+				point_rule.points,
 				"Action {0} on {1}".format(point_rule.rule_name, doc.name),
 				doc.doctype,
-				doc.name
+				doc.name,
+				doc.get(point_rule.user_field)
 			)
 
 def get_event_type(state):
