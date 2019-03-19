@@ -35,23 +35,27 @@ def get_context(context):
 
 def get_public_pages_from_doctypes():
 	'''Returns pages from doctypes that are publicly accessible'''
-	routes = {}
-	doctypes_with_web_view = [d.name for d in frappe.db.get_all('DocType', {
-		'has_web_view': 1,
-		'allow_guest_to_view': 1
-	})]
 
-	for doctype in doctypes_with_web_view:
-		controller = get_controller(doctype)
-		meta = frappe.get_meta(doctype)
-		condition_field = meta.is_published_field or controller.website.condition_field
+	def get_sitemap_routes():
+		routes = {}
+		doctypes_with_web_view = [d.name for d in frappe.db.get_all('DocType', {
+			'has_web_view': 1,
+			'allow_guest_to_view': 1
+		})]
 
-		try:
-			res = frappe.db.get_all(doctype, ['route', 'name', 'modified'], { condition_field: 1 })
-			for r in res:
-				routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
+		for doctype in doctypes_with_web_view:
+			controller = get_controller(doctype)
+			meta = frappe.get_meta(doctype)
+			condition_field = meta.is_published_field or controller.website.condition_field
 
-		except Exception as e:
-			if not frappe.db.is_missing_column(e): raise e
+			try:
+				res = frappe.db.get_all(doctype, ['route', 'name', 'modified'], { condition_field: 1 })
+				for r in res:
+					routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
 
-	return routes
+			except Exception as e:
+				if not frappe.db.is_missing_column(e): raise e
+
+		return routes
+
+	return frappe.cache().get_value("sitemap_routes", get_sitemap_routes)
