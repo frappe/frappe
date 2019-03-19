@@ -179,7 +179,7 @@ def get_html_and_style(doc, name=None, print_format=None, meta=None,
 
 	if isinstance(doc, string_types):
 		doc = frappe.get_doc(json.loads(doc))
-	
+
 	print_format = get_print_format_doc(print_format, meta=meta or frappe.get_meta(doc.doctype))
 
 	if print_format and print_format.raw_printing:

@@ -56,7 +56,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 			});
 
 		this.wrapper.find(".btn-qz-settings").click(function () {
-			me.qz_setting_dialog()
+			me.qz_setting_dialog();
 		});
 
 		this.wrapper.find(".btn-print-print").click(function () {
@@ -222,10 +222,10 @@ frappe.ui.form.PrintPreview = Class.extend({
 								return qz.print(config,data);
 							}).then(frappe.ui.form.qz_success).catch((err)=>{
 								frappe.ui.form.qz_fail(err);
-							})
-						})
+							});
+						});
 					}
-					else{
+					else {
 						frappe.show_alert({message:__('PDF Printing via QZ is not yet supported. Please remove QZ printer mapping for this Print format and try again.'),indicator:'blue'},14);
 						//Note: need to solve "Error: Cannot parse (FILE)<URL> as a PDF file" to enable qz pdf printing.
 
@@ -506,33 +506,33 @@ frappe.ui.form.qz_connect = function() {
 				frappe.show_alert({message: __('Connected to QZ Tray!'), indicator: 'green'});
 				resolve();
 			}, function retry(err) {
-				if (err.message === 'Unable to establish connection with QZ'){
+				if (err.message === 'Unable to establish connection with QZ') {
 					// if a connect was not succesful, launch the mimetime, try 3 more times
 					frappe.show_alert({message: __('Attemting to launch QZ Tray!'), indicator: 'blue'},14);
 					window.location.assign("qz:launch");
 					qz.websocket.connect({ retries: 3, delay: 1 }).then(()=>{
 						frappe.show_alert({message: __('Connected to QZ Tray!'), indicator: 'green'});
 						resolve();
-					}, (err)=>{
+					}, 
+					()=> {
 						frappe.show_alert({message: __('Error connecting to QZ Tray! <a href="https://qz.io/download/">Click here to Download QZ Tray</a>'), indicator: 'red'},14);
-						console.error("qz error:",err)
 						reject();
 					});
-			}
-			else{
-				frappe.show_alert({message: 'QZ Tray '+err.toString(), indicator: 'red'},14);
-				reject();
-			}
+				}
+				else {
+					frappe.show_alert({message: 'QZ Tray '+err.toString(), indicator: 'red'},14);
+					reject();
+				}
             });
-        }
-    });
+		}
+	});
 }
 
 frappe.ui.form.qz_get_printer_list = function(){
 	return frappe.ui.form.qz_connect().then(function(){
-		return qz.printers.find()
+		return qz.printers.find();
 	}).then((data)=>{
-		return data
+		return data;
 	}).catch((err)=>{
 		frappe.ui.form.qz_fail(err);
 	});
@@ -540,13 +540,12 @@ frappe.ui.form.qz_get_printer_list = function(){
 
 // notify qz successful print
 frappe.ui.form.qz_success = function() { 
-    frappe.show_alert({message: __('QZ print complete!'), indicator: 'green'});
+	frappe.show_alert({message: __('QZ print complete!'), indicator: 'green'});
 }
 
 // notify qz errors
 frappe.ui.form.qz_fail = function(e) {
-	console.error("qz error:",e)
-    frappe.show_alert({message:__("QZ Tray Failed") + e.toString(), indicator:'red'},20);
+	frappe.show_alert({message:__("QZ Tray Failed") + e.toString(), indicator:'red'},20);
 }
 
 

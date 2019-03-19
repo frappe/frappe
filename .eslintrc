@@ -141,6 +141,7 @@
 		"context": true,
 		"before": true,
 		"beforeEach": true,
-		"qz": true
+		"qz": true,
+		"sha256": true
 	}
 }
