@@ -15,25 +15,18 @@ class AssignmentRule(Document):
 	def after_rename(self): # pylint: disable=no-self-use
 		frappe.cache().delete_value('assignment_rule')
 
-	def apply(self, doc):
-		assignments = self.get_assignments(doc)
-		if not assignments and self.safe_eval('assign_condition', doc):
-			self.do_assignment(doc)
-			return True
-
-		# try clearing
-		if (self.unassign_condition and assignments and
+	def apply_unassign(self, doc, assignments):
+		if (self.unassign_condition and
 			self.name in [d.assignment_rule for d in assignments]):
 			return self.clear_assignment(doc)
 
 		return False
 
-	def get_assignments(self, doc):
-		return frappe.get_all('ToDo', fields = ['name', 'assignment_rule'], filters = dict(
-			reference_type = doc.get('doctype'),
-			reference_name = doc.get('name'),
-			status = 'Open'
-		), limit = 5)
+	def apply_assign(self, doc):
+		if self.safe_eval('assign_condition', doc):
+			self.do_assignment(doc)
+			return True
+
 
 	def do_assignment(self, doc):
 		# clear existing assignment, to reassign
@@ -109,16 +102,45 @@ class AssignmentRule(Document):
 			# a part of the email pulling
 			frappe.msgprint(frappe._('Auto assignment failed: {0}').format(str(e)), indicator = 'orange')
 
+def get_assignments(doc):
+	return frappe.get_all('ToDo', fields = ['name', 'assignment_rule'], filters = dict(
+		reference_type = doc.get('doctype'),
+		reference_name = doc.get('name'),
+		status = 'Open'
+	), limit = 5)
+
 def apply(doc, method):
 	if frappe.flags.in_patch or frappe.flags.in_install:
 		return
 
 	assignment_rules = frappe.cache().get_value('assignment_rule', get_assignment_rules)
+	assignment_rule_docs = []
+
+	# build rules
 	if doc.doctype in assignment_rules:
 		# multiple auto assigns
 		for d in frappe.db.get_all('Assignment Rule', dict(document_type=doc.doctype, disabled = 0), order_by = 'priority desc'):
-			if frappe.get_doc('Assignment Rule', d.name).apply(doc.as_dict()):
-				break
+			assignment_rule_docs.append(frappe.get_doc('Assignment Rule', d.name))
+
+	if not assignment_rule_docs:
+		return
+
+	doc = doc.as_dict()
+	assignments = get_assignments(doc)
+
+	clear = True
+	if assignments:
+		# first unassign
+		clear = False
+		for assignment_rule in assignment_rule_docs:
+			clear = assignment_rule.apply_unassign(doc, assignments)
+			if clear: break
+
+	# apply rule only if there are no exisiting assignments
+	if clear:
+		for assignment_rule in assignment_rule_docs:
+			if assignment_rule.apply_assign(doc): break
+
 
 def get_assignment_rules():
 	return [d.document_type for d in frappe.db.get_all('Assignment Rule', fields=['document_type'], filters=dict(disabled = 0))]
