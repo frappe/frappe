@@ -130,12 +130,15 @@ doc_events = {
 		],
 		"on_change": [
 			"frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request",
+			"frappe.social.doctype.energy_point_log.energy_point_log.update_log"
 		]
 	},
 	"Email Group Member": {
 		"validate": "frappe.email.doctype.email_group.email_group.restrict_email_group"
 	},
-
+	"Energy Point Log": {
+		"after_insert": "frappe.social.doctype.energy_point_log.energy_point_log.update_user_energy_points"
+	},
 }
 
 scheduler_events = {
