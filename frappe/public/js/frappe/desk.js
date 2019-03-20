@@ -45,6 +45,9 @@ frappe.Application = Class.extend({
 		this.make_nav_bar();
 		this.set_favicon();
 		this.setup_analytics();
+
+		this.show_energy_points();
+
 		frappe.ui.keys.setup();
 		this.set_rtl();
 
@@ -547,6 +550,16 @@ frappe.Application = Class.extend({
 				frappe.show_alert(message);
 			}
 		});
+	},
+
+	show_energy_points() {
+		if (frappe.boot.energy_points_enabled) {
+			$(".toolbar-user-fullname").append(`
+				<span class="ellipsis hidden-xs energy-points hidden-sm primary">
+					(${frappe.user_info().energy_points} pts)
+				</span>
+			`);
+		}
 	}
 });
 

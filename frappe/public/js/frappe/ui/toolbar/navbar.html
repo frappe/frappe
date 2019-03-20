@@ -22,8 +22,6 @@
 				{{ avatar }}
 				<span class="ellipsis toolbar-user-fullname hidden-xs hidden-sm">
 					{%= frappe.user.full_name() %}</span>
-				<span class="ellipsis toolbar-user-fullname hidden-xs hidden-sm primary">
-					({%= frappe.user_info().energy_points %} pts)</span>
 				<b class="caret hidden-xs hidden-sm"></b></a>
 				<ul class="dropdown-menu" id="toolbar-user" role="menu">
 					<li><a href="#Form/User/{%= encodeURIComponent(frappe.session.user) %}">
