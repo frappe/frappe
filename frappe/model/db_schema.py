@@ -51,7 +51,9 @@ type_map = {
 	'Signature':		('longtext', ''),
 	'Color':		('varchar', varchar_len),
 	'Barcode':		('longtext', ''),
-	'Geolocation':		('longtext', '')
+	'Geolocation':		('longtext', ''),
+	'JSON':			('json', ''),
+	'JSONB':		('jsonb', ''),
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',

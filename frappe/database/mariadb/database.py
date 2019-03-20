@@ -52,7 +52,9 @@ class MariaDBDatabase(Database):
 			'Signature':	('longtext', ''),
 			'Color':		('varchar', self.VARCHAR_LEN),
 			'Barcode':		('longtext', ''),
-			'Geolocation':	('longtext', '')
+			'Geolocation':	('longtext', ''),
+			'JSON':			('json', ''),	# MySQL 5.7.8, MySQL supports a native JSON data type defined by RFC 7159 and MariaDB starting with 10.2.3
+			'JSONB':		('json', ''),
 		}
 
 	def get_connection(self):

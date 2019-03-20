@@ -75,6 +75,7 @@ frappe.ui.form.Layout = Class.extend({
 		if (this.no_opening_section()) {
 			this.make_section();
 		}
+
 		$.each(fields, function(i, df) {
 			switch(df.fieldtype) {
 				case "Fold":
