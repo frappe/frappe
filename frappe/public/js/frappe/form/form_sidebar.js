@@ -20,6 +20,8 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.make_attachments();
 		this.make_shared();
 		this.make_viewers();
+		this.make_review();
+
 		this.make_tags();
 		this.make_like();
 		this.make_follow();
@@ -155,6 +157,7 @@ frappe.ui.form.Sidebar = Class.extend({
 
 	refresh_image: function() {
 	},
+
 	setup_ratings: function() {
 		var _ratings = this.frm.get_docinfo().rating || 0;
 
@@ -164,4 +167,25 @@ frappe.ui.form.Sidebar = Class.extend({
 			this.ratings.find(".rating-icons").html(rating_icons);
 		}
 	},
+	make_review: function() {
+		const button = this.sidebar.find(".form-attachments").append('<a>Give Points</a>');
+
+		const review_dialog = new frappe.ui.Dialog({
+			'title': __('Review'),
+			'fields': [{
+				fieldname: 'points',
+				fieldtype: 'Int',
+				label: __('Points')
+			}, {
+				fieldtype: 'Small Text',
+				fieldname: 'reason',
+				label: __('Reason')
+			}],
+			primary_action: function() { },
+			primary_action_label: __('Send Points')
+		});
+
+
+		button.click(() => review_dialog.show());
+	}
 });

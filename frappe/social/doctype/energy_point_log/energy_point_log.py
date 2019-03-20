@@ -59,7 +59,8 @@ def create_energy_point_log(points, reason, reference_doctype, reference_name, u
 		'reference_name': reference_name
 	})
 
-	if log_exists: return
+	if log_exists:
+		return
 
 	frappe.get_doc({
 		'doctype': 'Energy Point Log',
@@ -79,5 +80,5 @@ def update_user_energy_points(point, user=None):
 	previous_point = frappe.db.get_value('User', user, 'energy_points')
 	new_point = cint(previous_point) + point
 	frappe.db.set_value('User', user, 'energy_points', new_point)
-
-	print('================= {} gained {} points ==================='.format(user, point))
+	message='=== You gained </b>{}</b> points ==='.format(point)
+	frappe.publish_realtime('points_gained', message=message , user=user)

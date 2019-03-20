@@ -15,8 +15,11 @@
 					<span v-html="get_avatar(user.name)"></span>
 					<div class="user-details">
 						{{ user.fullname }}
-						<div class="text-muted text-medium" :class="{'italic': !user.bio}">{{ frappe.ellipsis(user.bio, 100) || 'No Bio'}}</div>
+						<div class="text-muted text-medium" :class="{'italic': !user.bio}">
+							{{ frappe.ellipsis(user.bio, 100) || 'No Bio'}}
+						</div>
 					</div>
+					<span class="text-muted text-nowrap">{{user.energy_points}} pts</span>
 				</li>
 				<li class="text-muted" v-if="!filtered_users.length">{{__('No user found')}}</li>
 			</ul>
@@ -66,12 +69,14 @@ export default {
 	// similar to search bar height
 	margin-top: 75px;
 	.user-card {
+		border: 1px solid white;
 		&:hover {
-			border: 1px solid #d1d8dd;
+			border-color:#d1d8dd;
 		}
 		border-radius: 5px;
 		.user-details {
-			margin-left: 10px;
+			width: 100%;
+			margin: 0 10px;
 			.italic {
 				font-style: italic;
 			}

@@ -46,6 +46,7 @@ frappe.Application = Class.extend({
 		this.set_favicon();
 		this.setup_analytics();
 
+		this.setup_energy_point_listeners();
 		this.show_energy_points();
 
 		frappe.ui.keys.setup();
@@ -549,6 +550,12 @@ frappe.Application = Class.extend({
 			if (frappe.get_route()[0] !== 'social') {
 				frappe.show_alert(message);
 			}
+		});
+	},
+
+	setup_energy_point_listeners() {
+		frappe.realtime.on('points_gained', (message) => {
+			frappe.show_alert(message);
 		});
 	},
 
