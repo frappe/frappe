@@ -26,26 +26,23 @@ def process_for_energy_points(doc, state):
 	doc_action = doc.get('_action')
 	if not doc_action: return
 
-	point_rule = frappe.get_all('Energy Point Rule', filters={
+	point_rules = frappe.get_all('Energy Point Rule', filters={
 		'reference_doctype': doc.get('doctype'),
-	}, fields=['points', 'rule_name'], limit=1)
-
-	if point_rule:
-		point_rule = point_rule[0]
-		print(point_rule)
-		if frappe.safe_eval(point_rule.condition or True, None, {'doc': doc}):
+	}, fields=['name', 'points', 'rule_name', '`condition`', 'user_field'], debug=1)
+	print(point_rules)
+	for point_rule in point_rules:
+		print(point_rule.condition)
+		if frappe.safe_eval(point_rule.condition, None, {'doc': doc}):
 			create_energy_point_log(
-				point_rule.points,
-				"Action {0} on {1}".format(point_rule.rule_name, doc.name),
-				doc.doctype,
-				doc.name,
-				doc.get(point_rule.user_field)
+				points=point_rule.points,
+				reason=None,
+				reference_doctype=doc.doctype,
+				reference_name=doc.name,
+				user=doc.get(point_rule.user_field),
+				rule=point_rule.name
 			)
 
-def get_event_type(state):
-	return state.capitalize()
-
-def create_energy_point_log(points, reason, reference_doctype, reference_name, user=None):
+def create_energy_point_log(points, reason, reference_doctype, reference_name, user=None, rule=None):
 	print('===================in=========', user, points)
 	if not user:
 		user = frappe.session.user
@@ -56,6 +53,7 @@ def create_energy_point_log(points, reason, reference_doctype, reference_name, u
 		'doctype': 'Energy Point Log',
 		'points': points,
 		'user': user,
+		'rule': rule,
 		'reason': reason,
 		'reference_doctype': reference_doctype,
 		'reference_name': reference_name
@@ -67,8 +65,8 @@ def update_user_energy_points(point, user=None):
 	# TODO: find alternative
 	if user == 'admin@erpnext.com': user = 'Administrator'
 	if not user: user = frappe.session.user
-	previous_point = frappe.db.get_value('User', user, 'energy_point')
+	previous_point = frappe.db.get_value('User', user, 'energy_points')
 	new_point = cint(previous_point) + point
-	frappe.db.set_value('User', user, 'energy_point', new_point)
+	frappe.db.set_value('User', user, 'energy_points', new_point)
 
 	print('================= {} gained {} points ==================='.format(user, point))
