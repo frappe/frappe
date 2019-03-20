@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.utils import cint
+from ..energy_point_settings.energy_point_settings import is_energy_point_enabled
 
 ENERGY_POINT_VALUES = {
 	'issue_closed': 2,
@@ -22,7 +23,9 @@ class EnergyPointLog(Document):
 		update_user_energy_points(self.points, self.user)
 
 def process_for_energy_points(doc, state):
-	if frappe.flags.in_patch: return
+	if (not is_energy_point_enabled()
+		or frappe.flags.in_patch): return
+
 	doc_action = doc.get('_action')
 	if not doc_action: return
 

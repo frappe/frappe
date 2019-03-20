@@ -5,6 +5,10 @@
 from __future__ import unicode_literals
 # import frappe
 from frappe.model.document import Document
+import frappe
 
 class EnergyPointSettings(Document):
 	pass
+
+def is_energy_point_enabled():
+	return frappe.get_cached_value('Energy Point Settings', None, 'enabled')
