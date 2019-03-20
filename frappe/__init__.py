@@ -24,7 +24,7 @@ if sys.version[0] == '2':
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '11.1.14'
+__version__ = '11.1.15'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -499,12 +499,14 @@ def read_only():
 		def wrapper_fn(*args, **kwargs):
 			if conf.use_slave_for_read_only:
 				connect_read_only()
-
-			retval = fn(*args, **get_newargs(fn, kwargs))
-
-			if local and hasattr(local, 'master_db'):
-				local.db.close()
-				local.db = local.master_db
+			try:
+				retval = fn(*args, **get_newargs(fn, kwargs))
+			except:
+				raise
+			finally:
+				if local and hasattr(local, 'master_db'):
+					local.db.close()
+					local.db = local.master_db
 
 			return retval
 		return wrapper_fn
