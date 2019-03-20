@@ -47,8 +47,17 @@ def create_energy_point_log(points, reason, reference_doctype, reference_name, u
 	if not user:
 		user = frappe.session.user
 
-	if user == 'admin@example.com':
-		user = 'Administrator'
+	if user in ['admin@example.com', 'Administrator', 'Guest']: return
+
+	log_exists = frappe.db.exists('Energy Point Log', {
+		'user': user,
+		'rule': rule,
+		'reference_doctype': reference_doctype,
+		'reference_name': reference_name
+	})
+
+	if log_exists: return
+
 	frappe.get_doc({
 		'doctype': 'Energy Point Log',
 		'points': points,
@@ -62,9 +71,8 @@ def create_energy_point_log(points, reason, reference_doctype, reference_name, u
 def update_user_energy_points(point, user=None):
 	point = cint(point)
 	if not point: return
-	# TODO: find alternative
-	if user == 'admin@erpnext.com': user = 'Administrator'
 	if not user: user = frappe.session.user
+
 	previous_point = frappe.db.get_value('User', user, 'energy_points')
 	new_point = cint(previous_point) + point
 	frappe.db.set_value('User', user, 'energy_points', new_point)
