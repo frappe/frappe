@@ -28,7 +28,7 @@ frappe.ui.form.on('Custom Script', {
 										istable: 1,
 										name: ['in', child_tables]
 									}
-								}
+								};
 							}
 						}
 					],
