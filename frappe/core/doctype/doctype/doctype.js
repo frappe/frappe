@@ -21,6 +21,12 @@ frappe.ui.form.on('DocType', {
 			frm.toggle_enable("beta", 0);
 		}
 
+		if (!frm.is_new()) {
+			frm.add_custom_button(__('Go to {0} List', [frm.doc.name]), () => {
+				frappe.set_route('List', frm.doc.name, 'List');
+			});
+		}
+
 		if(!frappe.boot.developer_mode && !frm.doc.custom) {
 			// make the document read-only
 			frm.set_read_only();
