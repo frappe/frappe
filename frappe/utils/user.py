@@ -378,3 +378,11 @@ def get_link_to_reset_password(user):
 	return {
 		'link': link
 	}
+
+def get_users_with_role(role):
+	return [p[0] for p in frappe.db.sql("""SELECT DISTINCT `tabUser`.`name`
+		FROM `tabHas Role`, `tabUser`
+		WHERE `tabHas Role`.`role`=%s
+		AND `tabUser`.`name`!='Administrator'
+		AND `tabHas Role`.`parent`=`tabUser`.`name`
+		AND `tabUser`.`enabled`=1""", role)]
