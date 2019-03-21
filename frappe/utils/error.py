@@ -16,6 +16,7 @@ import cgitb
 import datetime
 import json
 import six
+import pickle
 
 def make_error_snapshot(exception):
 	if frappe.conf.disable_error_snapshot:
@@ -200,6 +201,24 @@ def clear_old_snapshots():
 def get_error_snapshot_path():
 	return frappe.get_site_path('error-snapshots')
 
+def serialization_handler(value):
+	try:
+		return frappe.as_json(value)
+	except:
+		try:
+			return pickle.loads(value)
+		except:
+			return str(value)
+
+def serialize(frame):
+	try:
+		return json.dumps(frame.f_locals, default=serialization_handler, indent=4)
+	except TypeError:
+		try:
+			return pickle.dumps(frame.f_locals)
+		except TypeError:
+			return 'Unable to parse locals'
+
 def get_frame_locals():
 	traceback = sys.exc_info()[2]
 	frames = []
@@ -208,6 +227,11 @@ def get_frame_locals():
 	_locals = ['Locals (most recent call last):']
 	for frame, filename, lineno, function, __, __ in frames:
 		if '/apps/' in filename:
-			_locals.append('File "{}", line {}, in {}\n{}'.format(filename, lineno, function, json.dumps(frame.f_locals, default=str, indent=4)))
+			_locals.append('File "{}", line {}, in {}\n{}'.format(
+				filename,
+				lineno,
+				function,
+				serialize(frame)
+			))
 
 	return '\n'.join(_locals)
