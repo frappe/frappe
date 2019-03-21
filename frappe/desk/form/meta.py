@@ -66,6 +66,8 @@ class FormMeta(Meta):
 			'__custom_js'):
 			d[k] = self.get(k)
 
+		# d['fields'] = d.get('fields', [])
+
 		for i, df in enumerate(d.get("fields") or []):
 			for k in ("search_fields", "is_custom_field", "linked_document_type"):
 				df[k] = self.get("fields")[i].get(k)

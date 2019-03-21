@@ -43,6 +43,12 @@ frappe.ui.form.on('DocType', {
 		// set label for "In List View" for child tables
 		frm.get_docfield('fields', 'in_list_view').label = frm.doc.istable ?
 			__('In Grid View') : __('In List View');
+
+		frm.events.autoname(frm);
+	},
+
+	autoname(frm) {
+		frm.set_df_property('fields', 'reqd', frm.doc.autoname !== 'Prompt');
 	}
 })
 
