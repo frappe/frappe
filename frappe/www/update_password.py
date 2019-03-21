@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 from frappe import _
 
-no_sitemap = 1
 no_cache = 1
 
 def get_context(context):

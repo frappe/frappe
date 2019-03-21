@@ -38,7 +38,7 @@ def update_controller_context(context, controller):
 
 	if module:
 		# get config fields
-		for prop in ("base_template_path", "template", "no_cache", "no_sitemap",
+		for prop in ("base_template_path", "template", "no_cache", "sitemap",
 			"condition_field"):
 			if hasattr(module, prop):
 				context[prop] = getattr(module, prop)
@@ -89,7 +89,7 @@ def build_context(context):
 			if ret:
 				context.update(ret)
 
-		for prop in ("no_cache", "no_sitemap"):
+		for prop in ("no_cache", "sitemap"):
 			if not prop in context:
 				context[prop] = getattr(context.doc, prop, False)
 

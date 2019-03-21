@@ -276,11 +276,6 @@ def add_system_manager(email, first_name=None, last_name=None, send_welcome_emai
 		"send_welcome_email": 1 if send_welcome_email else 0
 	})
 
-	if password:
-		user.update({
-			"new_password": password
-		})
-
 	user.insert()
 
 	# add roles
@@ -292,6 +287,10 @@ def add_system_manager(email, first_name=None, last_name=None, send_welcome_emai
 	)
 	roles = [role.name for role in roles]
 	user.add_roles(*roles)
+
+	if password:
+		from frappe.utils.password import update_password
+		update_password(user=user.name, pwd=password)
 
 def get_enabled_system_users():
 	# add more fields if required

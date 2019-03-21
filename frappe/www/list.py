@@ -9,7 +9,6 @@ from frappe.model.document import get_controller, Document
 from frappe import _
 
 no_cache = 1
-no_sitemap = 1
 
 def get_context(context, **dict_params):
 	"""Returns context for a list standard list page.

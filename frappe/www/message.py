@@ -7,7 +7,6 @@ import frappe
 from frappe.utils import strip_html_tags
 
 no_cache = 1
-no_sitemap = 1
 
 def get_context(context):
 	message_context = {}
