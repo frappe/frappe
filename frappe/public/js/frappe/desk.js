@@ -563,7 +563,7 @@ frappe.Application = Class.extend({
 		if (frappe.boot.energy_points_enabled) {
 			$(".toolbar-user-fullname").append(`
 				<span class="ellipsis hidden-xs energy-points hidden-sm primary">
-					(${frappe.user_info().energy_points} pts)
+					(${frappe.boot.energy_points} pts)
 				</span>
 			`);
 		}

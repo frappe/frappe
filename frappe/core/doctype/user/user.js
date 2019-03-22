@@ -64,7 +64,7 @@ frappe.ui.form.on('User', {
 			frm.points = frm.sidebar.image_section.append(`
 				<ul class="list-unstyled sidebar-menu">
 					<li align="center" class="bold text-muted">
-						<span class="text-large">${frm.doc.energy_points}</span> points
+						<span class="text-large">${frappe.boot.energy_points}</span> points
 					</li>
 				</ul>
 			`);

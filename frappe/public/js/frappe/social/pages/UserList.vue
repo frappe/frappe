@@ -19,7 +19,7 @@
 							{{ frappe.ellipsis(user.bio, 100) || 'No Bio'}}
 						</div>
 					</div>
-					<span class="text-muted text-nowrap">{{user.energy_points}} pts</span>
+					<span class="text-muted text-nowrap">{{frappe.boot.energy_points}} pts</span>
 				</li>
 				<li class="text-muted" v-if="!filtered_users.length">{{__('No user found')}}</li>
 			</ul>
