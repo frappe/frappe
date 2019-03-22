@@ -7,7 +7,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import cint
 from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
-from frappe.social.doctype.energy_point_log.energy_point_log import create_energy_point_log
+from frappe.social.doctype.energy_point_log.energy_point_log import create_energy_points_log
 
 class EnergyPointRule(Document):
 	def apply(self, doc):
@@ -23,7 +23,7 @@ class EnergyPointRule(Document):
 			user = doc.get(self.user_field)
 			rule = self.name
 
-			create_energy_point_log(reference_doctype, reference_name, {
+			create_energy_points_log(reference_doctype, reference_name, {
 				'points': points,
 				'user': user,
 				'rule': rule

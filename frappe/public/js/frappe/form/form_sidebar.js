@@ -175,13 +175,30 @@ frappe.ui.form.Sidebar = Class.extend({
 			'fields': [{
 				fieldname: 'points',
 				fieldtype: 'Int',
-				label: __('Points')
+				label: __('Points'),
+				description: __(`Currently you have ${frappe.boot.review_points} review points`)
 			}, {
 				fieldtype: 'Small Text',
 				fieldname: 'reason',
 				label: __('Reason')
 			}],
-			primary_action: function() { },
+			primary_action: (values) => {
+				if (values.points >= frappe.boot.review_points) {
+					return frappe.msgprint(__('You do not have enough points'));
+				}
+				// Add energy point log -- need api for that
+				frappe.xcall('frappe.social.doctype.energy_point_log.energy_point_log.give_points', {
+					doc: {
+						doctype: this.frm.doc.doctype,
+						name: this.frm.doc.name,
+					},
+					to_user: this.frm.doc.owner,
+					points: values.points,
+					reason: values.reason
+				}).then(() => review_dialog.hide());
+				// deduct review points from the user
+				// Alert
+			},
 			primary_action_label: __('Send Points')
 		});
 
