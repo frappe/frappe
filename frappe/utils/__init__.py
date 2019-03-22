@@ -80,7 +80,7 @@ def validate_email_add(email_str, throw=False):
 	"""
 	return validate_email_address(email_str, throw=False)
 
- def validate_email_address(email_str, throw=False):
+def validate_email_address(email_str, throw=False):
 	"""Validates the email string"""
 	email = email_str = (email_str or "").strip()
 
