@@ -39,8 +39,3 @@ frappe.ui.form.on('DocType', {
 			__('In Grid View') : __('In List View');
 	}
 })
-
-// for legacy... :)
-cur_frm.cscript.validate = function(doc, cdt, cdn) {
-	doc.server_code_compiled = null;
-}
