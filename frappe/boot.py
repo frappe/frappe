@@ -18,6 +18,7 @@ from frappe.translate import get_lang_dict
 from frappe.email.inbox import get_email_accounts
 from frappe.core.doctype.feedback_trigger.feedback_trigger import get_enabled_feedback_trigger
 from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
+from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -80,6 +81,9 @@ def get_bootinfo():
 	bootinfo.success_action = get_success_action()
 	bootinfo.update(get_email_accounts(user=frappe.session.user))
 	bootinfo.energy_points_enabled = is_energy_point_enabled()
+	bootinfo.energy_points = get_energy_points(frappe.session.user)
+
+	bootinfo.review_points = get_energy_points(frappe.session.user, 'Review')
 
 	return bootinfo
 
@@ -197,7 +201,7 @@ def load_translations(bootinfo):
 def get_fullnames():
 	"""map of user fullnames"""
 	ret = frappe.db.sql("""select `name`, full_name as fullname,
-		user_image as image, gender, email, username, bio, location, interest, banner_image, allowed_in_mentions, energy_points
+		user_image as image, gender, email, username, bio, location, interest, banner_image, allowed_in_mentions
 		from tabUser where enabled=1 and user_type!='Website User'""", as_dict=1)
 
 	d = {}

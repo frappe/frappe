@@ -9,9 +9,11 @@ from frappe.utils import cint
 
 class EnergyPointLog(Document):
 	def after_insert(self):
-		update_user_energy_points(self.points, self.user)
+		if self.type != 'Review':
+			message='=== You gained <b>{}</b> points ==='.format(self.points)
+			frappe.publish_realtime('points_gained', message=message , user=self.user)
 
-def create_energy_point_log(ref_doctype, ref_name, doc):
+def create_energy_points_log(ref_doctype, ref_name, doc):
 	doc = frappe._dict(doc)
 	log_exists = frappe.db.exists('Energy Point Log', {
 		'user': doc.user,
@@ -29,11 +31,22 @@ def create_energy_point_log(ref_doctype, ref_name, doc):
 	_doc.insert(ignore_permissions=True)
 	return _doc
 
-def update_user_energy_points(points, user):
-	points = cint(points)
+def create_review_points_log(user, points, reason=None):
+	return frappe.get_doc({
+		'doctype': 'Energy Point Log',
+		'points': points,
+		'type': 'Review',
+		'user': user,
+		'reason': reason
+	}).insert(ignore_permissions=True)
 
-	previous_points = frappe.db.get_value('User', user, 'energy_points')
-	new_points = cint(previous_points) + points
-	frappe.db.set_value('User', user, 'energy_points', new_points)
-	message='=== You gained <b>{}</b> points ==='.format(points)
-	frappe.publish_realtime('points_gained', message=message , user=user)
+def get_energy_points(user, points_type=None):
+	if not points_type:
+		points_type = ['NOT IN', ('Review')]
+
+	log = frappe.db.get_all('Energy Point Log', filters={
+		'user': user,
+		'type': points_type
+	}, fields=['SUM(`points`) as points'], group_by='user')
+
+	return log[0].points if log else 0

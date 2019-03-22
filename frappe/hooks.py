@@ -135,10 +135,7 @@ doc_events = {
 	},
 	"Email Group Member": {
 		"validate": "frappe.email.doctype.email_group.email_group.restrict_email_group"
-	},
-	"Energy Point Log": {
-		"after_insert": "frappe.social.doctype.energy_point_log.energy_point_log.update_user_energy_points"
-	},
+	}
 }
 
 scheduler_events = {
@@ -178,7 +175,7 @@ scheduler_events = {
 		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs",
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
 		"frappe.desk.form.document_follow.send_daily_updates"
-
+		"frappe.social.doctype.energy_point_settings.energy_point_settings.allocate_review_points"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
