@@ -28,7 +28,8 @@ class BlogPost(WebsiteGenerator):
 		super(BlogPost, self).validate()
 
 		if not self.blog_intro:
-			self.blog_intro = self.content[:140]
+			content = get_html_content_based_on_type(self, 'content', self.content_type)
+			self.blog_intro = content[:140]
 			self.blog_intro = strip_html_tags(self.blog_intro)
 
 		if self.blog_intro:
@@ -58,16 +59,16 @@ class BlogPost(WebsiteGenerator):
 			context.blogger_info = frappe.get_doc("Blogger", self.blogger).as_dict()
 			context.author = self.blogger
 
-		context.description = self.blog_intro or self.content[:140]
 
 		context.content = get_html_content_based_on_type(self, 'content', self.content_type)
+		context.description = self.blog_intro or context.content[:140]
 
 		context.metatags = {
 			"name": self.title,
 			"description": context.description,
 		}
 
-		image = find_first_image(self.content)
+		image = find_first_image(context.content)
 		if image:
 			context.metatags["image"] = image
 
