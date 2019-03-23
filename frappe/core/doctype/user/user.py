@@ -430,6 +430,9 @@ class User(Document):
 
 	def password_strength_test(self):
 		""" test password strength """
+		if self.flags.ignore_password_policy:
+			return
+
 		if self.__new_password:
 			user_data = (self.first_name, self.middle_name, self.last_name, self.email, self.birth_date)
 			result = test_password_strength(self.__new_password, '', None, user_data)
@@ -776,7 +779,7 @@ def sign_up(email, full_name, redirect_to):
 		if frappe.db.sql("""select count(*) from tabUser where
 			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 300:
 
-			frappe.respond_as_web_page(_('Temperorily Disabled'),
+			frappe.respond_as_web_page(_('Temporarily Disabled'),
 				_('Too many users signed up recently, so the registration is disabled. Please try back in an hour'),
 				http_status_code=429)
 
@@ -790,6 +793,7 @@ def sign_up(email, full_name, redirect_to):
 			"user_type": "Website User"
 		})
 		user.flags.ignore_permissions = True
+		user.flags.ignore_password_policy = True
 		user.insert()
 
 		# set default signup role as per Portal Settings
