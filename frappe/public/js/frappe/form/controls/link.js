@@ -229,6 +229,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				item.action.apply(me);
 			}
 
+			// If user need to process result values including decsription
+			// then they can process it by defining process_result function
+			// while creating custom link field
+			if(me.df.process_result && typeof(me.df.process_result==='function')){ 
+				me.df.process_result(item); 
+			}
+
 			// if remember_last_selected is checked in the doctype against the field,
 			// then add this value
 			// to defaults so you do not need to set it again
