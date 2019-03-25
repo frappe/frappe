@@ -898,7 +898,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_checked_items(only_docnames) {
 		const docnames = Array.from(this.$checks || [])
-			.map(check => $(check).data().name);
+			.map(check => cstr($(check).data().name));
 
 		if (only_docnames) return docnames;
 
