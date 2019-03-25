@@ -1712,9 +1712,10 @@
  },
  "Mozambique": {
   "code": "mz",
+  "currency": "MZN",
   "currency_fraction": "Centavo",
   "currency_fraction_units": 100,
-  "currency_symbol": "MT",
+  "currency_symbol": "MZN",
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Maputo"
