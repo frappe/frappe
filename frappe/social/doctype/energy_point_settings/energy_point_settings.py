@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.social.doctype.energy_point_log.energy_point_log import create_review_points_log
-from frappe.utils import add_to_date, today
+from frappe.utils import add_to_date, today, getdate
 
 class EnergyPointSettings(Document):
 	pass
@@ -34,15 +34,17 @@ def create_review_points(level):
 
 def can_allocate_today(last_date, periodicity):
 	if not last_date:
-		days_to_add = {
-			'Daily': 1,
-			'Weekly': 7,
-			'Monthly': 30
-		}.get(periodicity, 1)
+		return True
 
-		next_allocation_date = add_to_date(last_date, days=days_to_add)
+	days_to_add = {
+		'Daily': 1,
+		'Weekly': 7,
+		'Monthly': 30
+	}.get(periodicity, 1)
 
-		return next_allocation_date <= today()
+	next_allocation_date = add_to_date(last_date, days=days_to_add)
+
+	return getdate(next_allocation_date) <= getdate()
 
 
 def get_users_with_role(role):
