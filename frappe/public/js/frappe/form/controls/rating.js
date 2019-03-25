@@ -3,11 +3,11 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 		this._super();
 		const star_template = `
 		<div class = "rating">
-			<i class="fa fa-fw fa-star text-extra-muted" data-idx=1></i>
-			<i class="fa fa-fw fa-star text-extra-muted" data-idx=2></i>
-			<i class="fa fa-fw fa-star text-extra-muted" data-idx=3></i>
-			<i class="fa fa-fw fa-star text-extra-muted" data-idx=4></i>
-			<i class="fa fa-fw fa-star text-extra-muted" data-idx=5></i>
+			<i class="fa fa-fw fa-star" data-idx=1></i>
+			<i class="fa fa-fw fa-star" data-idx=2></i>
+			<i class="fa fa-fw fa-star" data-idx=3></i>
+			<i class="fa fa-fw fa-star" data-idx=4></i>
+			<i class="fa fa-fw fa-star" data-idx=5></i>
 		</div>
 		`;
 		
@@ -15,29 +15,29 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 
 		this.$input_wrapper.find('i').hover((ev) => {
 			const el = $(ev.currentTarget);
-			var star_value = el.data('idx');
+			let star_value = el.data('idx');
 			el.parent().children('i.fa').each( function(e){
 				if (e < star_value) {
-					$(this).addClass('hover');
+					$(this).addClass('star-hover');
 				} else {
-					$(this).removeClass('hover');
+					$(this).removeClass('star-hover');
 				}
 			});
 		}, (ev) => {
 				const el = $(ev.currentTarget);
 				el.parent().children('i.fa').each( function(e) {
-					$(this).removeClass('hover');
+					$(this).removeClass('star-hover');
 				});
 		});
 
 		this.$input_wrapper.find('i').click((ev) => {
 			const el = $(ev.currentTarget);
-			var star_value = el.data('idx');
+			let star_value = el.data('idx');
 			el.parent().children('i.fa').each( function(e) {
 				if (e < star_value){
-					$(this).addClass('click');
+					$(this).addClass('star-click');
 				} else {
-					$(this).removeClass('click');
+					$(this).removeClass('star-click');
 				}
 			});
 			this.set_value(star_value);
@@ -47,10 +47,10 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 		return this.value ? this.value : 0;
 	},
 	set_formatted_input(value) {
-		var el = this.$input_wrapper.find('i');
+		let el = this.$input_wrapper.find('i');
 		el.children('i.fa').prevObject.each( function(e) {
 			if (e < value){
-				$(this).addClass('click');
+				$(this).addClass('star-click');
 			}
 		});
 	}
