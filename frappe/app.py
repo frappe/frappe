@@ -57,8 +57,6 @@ def application(request):
 			response = frappe.handler.handle()
 
 		elif frappe.request.path.startswith("/api/"):
-			if frappe.local.form_dict.data is None:
-					frappe.local.form_dict.data = request.get_data()
 			response = frappe.api.handle()
 
 		elif frappe.request.path.startswith('/backups'):
