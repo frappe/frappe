@@ -1153,7 +1153,6 @@
   "currency": "INR",
   "currency_fraction": "Paisa",
   "currency_fraction_units": 100,
-  "smallest_currency_fraction_value": 0.01,
   "currency_name": "Indian Rupee",
   "currency_symbol": "\u20b9",
   "number_format": "#,##,###.##",
