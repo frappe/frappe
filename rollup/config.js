@@ -55,7 +55,9 @@ function get_rollup_options_for_js(output_file, input_files) {
 			objectAssign: 'Object.assign',
 			transforms: {
 				dangerousForOf: true,
-				classes: false
+				classes: false,
+				// https://github.com/bublejs/buble/issues/81
+				spreadRest: false
 			},
 			exclude: [path.resolve(bench_path, '**/*.css'), path.resolve(bench_path, '**/*.less')]
 		}),
