@@ -4,7 +4,7 @@
  "docstatus": 0,
  "doctype": "Page",
  "idx": 0,
- "modified": "2018-08-06 12:43:28.480030",
+ "modified": "2019-03-23 19:25:26.947734",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "energy-point-history",
@@ -14,5 +14,6 @@
  "script": null,
  "standard": "Yes",
  "style": null,
- "system_page": 1
+ "system_page": 1,
+ "title": "Energy Point History"
 }
