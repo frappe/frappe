@@ -61,3 +61,19 @@ Cypress.Commands.add('new_form', (doctype) => {
 Cypress.Commands.add('go_to_list', (doctype) => {
 	cy.visit(`/desk#List/${doctype}/List`);
 });
+
+Cypress.Commands.add('dialog', (title, fields) => {
+	cy.window().then(win => {
+		var d = new win.frappe.ui.Dialog({
+			title: title,
+			fields: [
+				fields
+			],
+			primary_action: function(){
+				d.hide();
+			}
+		});
+		d.show();
+		return d
+	});
+});
