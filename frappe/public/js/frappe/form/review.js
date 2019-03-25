@@ -9,6 +9,7 @@ frappe.ui.form.Review = class Review {
 		this.frm = frm;
 		this.make_review_container();
 		this.add_review_button();
+		this.update_reviewers();
 	}
 	make_review_container() {
 		this.$wrapper = this.parent.append(`
@@ -18,20 +19,10 @@ frappe.ui.form.Review = class Review {
 				<li class="review-list"></li>
 			</ul>
 		`);
+		this.review_list_wrapper = this.$wrapper.find('.review-list');
 	}
 	add_review_button() {
-		this.review_list_wrapper = this.$wrapper.find('.review-list');
-
-		Object.keys(frappe.boot.user_info).forEach((user) => {
-			this.review_list_wrapper.append(`
-				<span class="review-pill">
-					${frappe.avatar(user)}
-					<span class="text-muted">
-						${Math.floor(Math.random() * 100) + 1}
-					</span>
-				</span>
-			`);
-		});
+		if (!frappe.boot.review_points) return;
 
 		this.review_list_wrapper.append(`
 			<span class="avatar avatar-small avatar-empty share-doc-btn cursor-pointer" title="${__("Review")}">
@@ -94,7 +85,7 @@ frappe.ui.form.Review = class Review {
 				label: __('Reason')
 			}],
 			primary_action: (values) => {
-				if (values.points >= frappe.boot.review_points) {
+				if (values.points > frappe.boot.review_points) {
 					return frappe.msgprint(__('You do not have enough points'));
 				}
 				// Add energy point log -- need api for that
@@ -116,5 +107,22 @@ frappe.ui.form.Review = class Review {
 			primary_action_label: __('Send')
 		});
 		review_dialog.show();
+	}
+	update_reviewers() {
+		frappe.xcall('frappe.social.doctype.energy_point_log.energy_point_log.get_reviews', {
+			'doctype': this.frm.doc.doctype,
+			'docname': this.frm.doc.name,
+		}).then(review_logs => {
+			review_logs.forEach(review_log => {
+				this.review_list_wrapper.prepend(`
+					<span class="review-pill">
+						${frappe.avatar(review_log.owner)}
+						<span class="text-muted">
+							${review_log.points}
+						</span>
+					</span>
+				`);
+			});
+		});
 	}
 };
