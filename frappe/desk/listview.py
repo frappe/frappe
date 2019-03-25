@@ -29,11 +29,17 @@ def set_list_settings(doctype, values):
 def get_user_assignments_and_count(doctype, current_filters):
 	filtered_list = frappe.get_all(doctype,
 		filters=current_filters)
-	names = list(map(lambda x: x.name, filtered_list))
-	user_list = frappe.get_all("User", filters={"user_type": "System User"})
+	names = "'"+"','".join(list(map(lambda x: x.name, filtered_list)))+"'"
+
 	if names:
-		assignment_data = sorted([{"count":frappe.db.count('ToDo', filters = {'owner': user['name'], 'status': 'Open', 'reference_name': ('in', names)}),
-						"name": user['name']} for user in user_list], key=lambda k: k['count'], reverse = True)
-		return assignment_data
-	else: 
+		todo_list = sorted(frappe.db.sql("""select tabToDo.owner as name, count(*) as count from tabToDo, tabUser
+										where
+										tabToDo.status='open' and
+										tabToDo.owner = tabUser.name and
+										tabUser.user_type = 'System User' and
+										tabToDo.reference_name in ({names})
+										group by tabToDo.owner
+										""".format(doctype = doctype, names = names), as_dict=True), key=lambda k: k['count'], reverse = True)
+		return todo_list
+	else:
 		return []

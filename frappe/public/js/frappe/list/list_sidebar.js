@@ -231,8 +231,11 @@ frappe.views.ListSidebar = class ListSidebar {
 
 		frappe.call('frappe.desk.listview.get_user_assignments_and_count', {doctype: this.doctype, current_filters: current_filters}).then((data) => {
 			$('.assigned-loading').hide();
-			let current_user_count = data.message.find(user => user.name === frappe.session.user).count;
-			this.get_html_for_assigned(frappe.session.user, current_user_count).appendTo(dropdown);
+			let current_user  = data.message.find(user => user.name === frappe.session.user);
+			if(current_user) {
+				let current_user_count = current_user.count;
+				this.get_html_for_assigned(frappe.session.user, current_user_count).appendTo(dropdown);
+			}
 			let user_list = data.message.filter(user => !['Guest', frappe.session.user, 'Administrator'].includes(user.name) && user.count!==0 );
 			user_list.forEach((user) => {
 				this.get_html_for_assigned(user.name, user.count).appendTo(dropdown);
