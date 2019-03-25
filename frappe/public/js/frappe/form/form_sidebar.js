@@ -167,42 +167,11 @@ frappe.ui.form.Sidebar = Class.extend({
 			this.ratings.find(".rating-icons").html(rating_icons);
 		}
 	},
+
 	make_review: function() {
-		const button = this.sidebar.find(".form-attachments").append('<a>Give Points</a>');
-
-		const review_dialog = new frappe.ui.Dialog({
-			'title': __('Review'),
-			'fields': [{
-				fieldname: 'points',
-				fieldtype: 'Int',
-				label: __('Points'),
-				description: __(`Currently you have ${frappe.boot.review_points} review points`)
-			}, {
-				fieldtype: 'Small Text',
-				fieldname: 'reason',
-				label: __('Reason')
-			}],
-			primary_action: (values) => {
-				if (values.points >= frappe.boot.review_points) {
-					return frappe.msgprint(__('You do not have enough points'));
-				}
-				// Add energy point log -- need api for that
-				frappe.xcall('frappe.social.doctype.energy_point_log.energy_point_log.give_points', {
-					doc: {
-						doctype: this.frm.doc.doctype,
-						name: this.frm.doc.name,
-					},
-					to_user: this.frm.doc.owner,
-					points: values.points,
-					reason: values.reason
-				}).then(() => review_dialog.hide());
-				// deduct review points from the user
-				// Alert
-			},
-			primary_action_label: __('Send Points')
+		this.frm.reviews = new frappe.ui.form.Review({
+			parent: this.sidebar.find(".form-attachments"),
+			frm: this.frm
 		});
-
-
-		button.click(() => review_dialog.show());
 	}
 });

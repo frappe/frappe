@@ -54,9 +54,8 @@ def get_energy_points(user, points_type=None):
 	return log[0].points if log else 0
 
 @frappe.whitelist()
-def give_points(doc, points, to_user, reason):
+def review(doc, points, to_user, reason, review_type='Appreciation'):
 	current_review_points = get_energy_points(frappe.session.user, 'Review')
-	print(doc)
 	doc = frappe._dict(json.loads(doc))
 	points = cint(points)
 	if current_review_points < abs(points):
@@ -71,14 +70,16 @@ def give_points(doc, points, to_user, reason):
 	)
 
 	create_energy_points_log(doc.doctype, doc.name, {
-		'type': 'Appreciation',
+		'type': review_type,
 		'reason': reason,
 		'points': points,
 		'user': to_user
 	})
+
 	message = _('{} appreciated your work on {} with {} points'.format(
 		frappe.session.user,
 		doc.name,
 		points
 	))
+
 	frappe.publish_realtime('points_gained', message=message , user=to_user)

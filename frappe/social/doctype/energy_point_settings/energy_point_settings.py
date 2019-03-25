@@ -34,7 +34,6 @@ def create_review_points(level):
 
 def can_allocate_today(last_date, periodicity):
 	if not last_date:
-		return True
 		days_to_add = {
 			'Daily': 1,
 			'Weekly': 7,

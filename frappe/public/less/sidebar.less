@@ -376,3 +376,29 @@ body[data-route^="Module"] .main-menu {
 .assignment-row {
 	margin-bottom: 5px;
 }
+
+.review-list {
+	display: flex;
+	flex-wrap: wrap;
+	.review-pill {
+		width: 50px;
+		border: 1px solid #d2d8dd;
+		border-radius: 4px;
+		display: flex;
+		margin-right: 5px;
+		margin-bottom: 10px;
+		.avatar {
+			padding: 0px;
+			margin: 0px;
+		}
+		.standard-image {
+			border-left: 0;
+		}
+		span:nth-child(2) {
+			flex-basis: 50%;
+			text-align: center;
+			align-self: center;
+			font-size: @text-small;
+		}
+	}
+}
