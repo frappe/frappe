@@ -2690,8 +2690,10 @@
  },
  "Yemen": {
   "code": "ye",
+  "currency": "YER",
   "currency_fraction": "Fils",
   "currency_fraction_units": 100,
+  "currency_name": "Yemeni Rial",
   "currency_symbol": "\ufdfc",
   "number_format": "#,###.##",
   "timezones": [
