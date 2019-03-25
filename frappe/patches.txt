@@ -1,3 +1,4 @@
+frappe.patches.v12_0.remove_deprecated_fields_from_doctype #2
 execute:frappe.db.sql("""update `tabPatch Log` set patch=replace(patch, '.4_0.', '.v4_0.')""") #2014-05-12
 frappe.patches.v5_0.convert_to_barracuda_and_utf8mb4
 execute:frappe.utils.global_search.setup_global_search_table()
@@ -237,4 +238,3 @@ frappe.patches.v11_0.set_default_letter_head_source
 frappe.patches.v12_0.setup_comments_from_communications
 frappe.patches.v12_0.init_desk_settings #11-03-2019
 frappe.patches.v12_0.replace_null_values_in_tables
-frappe.patches.v12_0.remove_deprecated_fields_from_doctype #1
