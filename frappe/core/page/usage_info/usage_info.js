@@ -30,10 +30,10 @@ frappe.pages['usage-info'].on_page_load = function(wrapper) {
 
 			let usage_message = '';
 			if (limits.space_usage.total > limits.space) {
-				usage_message = __('You have used up all of the space allotted to you. Please buy more space in your subscription.')
+				usage_message = __('You have used up all of the space allotted to you. Please buy more space in your subscription.');
 			} else {
 				let available = flt(limits.space - limits.space_usage.total, 2);
-				usage_message = __('{0} available out of {1}', [(available + ' MB').bold(), (limits.space + ' MB').bold()])
+				usage_message = __('{0} available out of {1}', [(available + ' MB').bold(), (limits.space + ' MB').bold()]);
 			}
 
 			$(frappe.render_template("usage_info", Object.assign(usage_info, {
