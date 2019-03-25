@@ -52,6 +52,15 @@ frappe.form.formatters = {
 	Percent: function(value, docfield, options) {
 		return frappe.form.formatters._right(flt(value, 2) + "%", options)
 	},
+	Rating: function(value, docfield, options, doc) {
+		return `
+			<div class="rating">
+				${Array.from(new Array(5)).map((_, i) =>
+					`<i class="fa fa-fw fa-star ${i <= (value || 0) ? "star-click": "" } star-icon" data-idx="${i}"></i>`
+					).join('')}
+			</div>
+		`;
+	},
 	Currency: function (value, docfield, options, doc) {
 		var currency  = frappe.meta.get_field_currency(docfield, doc);
 		var precision = docfield.precision || cint(frappe.boot.sysdefaults.currency_precision) || 2;

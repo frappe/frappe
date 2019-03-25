@@ -6,9 +6,7 @@
 		"public/less/avatar.less",
 		"node_modules/highlight.js/styles/zenburn.css",
 		"public/less/form.less",
-		"public/less/controls.less",
 		"public/less/chat.less",
-		"public/less/form_grid.less",
 		"node_modules/frappe-datatable/dist/frappe-datatable.css"
 	],
 	"css/frappe-web-b4.css": [
@@ -376,7 +374,8 @@
 		"public/less/quill.less",
 		"public/less/datepicker.less",
 		"public/less/awesomplete.less",
-		"public/less/form_grid.less"
+		"public/less/form_grid.less",
+		"public/less/controls.less"
 	],
 	"js/print_format_v3.min.js": [
 		"public/js/legacy/layout.js",
