@@ -16,6 +16,7 @@ context('Rating Control', () => {
             .should('have.class', 'star-click');
         cy.get('@dialog').then(dialog => {
             var value = dialog.get_value('rate');
+            expect(value).to.equal(1)
         })
     });
 
