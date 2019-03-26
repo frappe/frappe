@@ -52,12 +52,12 @@ frappe.form.formatters = {
 	Percent: function(value, docfield, options) {
 		return frappe.form.formatters._right(flt(value, 2) + "%", options)
 	},
-	Rating: function(value, docfield, options, doc) {
+	Rating: function(value, docfield, options) {
 		return `
 			<div class="rating">
 				${Array.from(new Array(5)).map((_, i) =>
 					`<i class="fa fa-fw fa-star ${i < (value || 0) ? "star-click": "" } star-icon" data-idx="${(i+1)}"></i>`
-					).join('')}
+				).join('')}
 			</div>
 		`;
 	},

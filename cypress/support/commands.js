@@ -74,6 +74,6 @@ Cypress.Commands.add('dialog', (title, fields) => {
 			}
 		});
 		d.show();
-		return d
+		return d;
 	});
 });
