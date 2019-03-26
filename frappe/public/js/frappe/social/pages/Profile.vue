@@ -24,13 +24,6 @@
 						<span>Likes</span>
 						<span>({{ liked_posts_count }})</span>
 					</div>
-					<div
-						class="option"
-						:class="{'bold': show_list === 'badges'}"
-						@click="show_list = 'badges'">
-						<span>Badges</span>
-						<span>({{ user_posts_count }})</span>
-					</div>
 				</div>
 				<post-loader :post_list_filter="post_list_filter"></post-loader>
 			</div>

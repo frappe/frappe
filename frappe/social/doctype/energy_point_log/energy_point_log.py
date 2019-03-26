@@ -29,6 +29,8 @@ class EnergyPointLog(Document):
 		if message:
 			frappe.publish_realtime('energy_point_alert', message=message , user=self.user)
 
+		frappe.cache().hdel('energy_points', self.user)
+
 def create_energy_points_log(ref_doctype, ref_name, doc):
 	doc = frappe._dict(doc)
 	log_exists = frappe.db.exists('Energy Point Log', {
@@ -56,38 +58,39 @@ def create_review_points_log(user, points, reason=None):
 		'reason': reason
 	}).insert(ignore_permissions=True)
 
-def get_energy_points(user, points_type=None):
-	if not points_type:
-		points_type = ['NOT IN', ('Review')]
+@frappe.whitelist()
+def get_energy_points(user):
+	points = frappe.cache().hget('energy_points', user,
+		lambda: get_user_energy_and_review_points(user))
+	return frappe._dict(points.get(user, {}))
 
-	log = frappe.db.get_all('Energy Point Log', filters={
-		'user': user,
-		'type': points_type
-	}, fields=['SUM(`points`) as points'], group_by='user')
+@frappe.whitelist()
+def get_user_energy_and_review_points(user=None):
+	if user:
+		where_user = 'WHERE `user` = %s'
+	else:
+		where_user = ''
 
-	return log[0].points if log else 0
-
-def get_user_energy_and_review_points():
 	points_list =  frappe.db.sql("""
 		SELECT
 			SUM(CASE WHEN `type`!= 'Review' THEN `points` ELSE 0 END) as energy_points,
 			SUM(CASE WHEN `type`='Review' THEN `points` ELSE 0 END) as review_points,
+			SUM(CASE WHEN `type`='Review' and `points` < 0 THEN ABS(`points`) ELSE 0 END) as given_points,
 			`user`
 		FROM `tabEnergy Point Log`
+		{where_user}
 		GROUP BY `user`
-	""", as_dict=1)
+	""".format(where_user=where_user), values=[user] if user else (), debug=1, as_dict=1)
 
 	dict_to_return = frappe._dict()
-
 	for d in points_list:
 		dict_to_return[d.pop('user')] = d
-
 	return dict_to_return
 
 
 @frappe.whitelist()
 def review(doc, points, to_user, reason, review_type='Appreciation'):
-	current_review_points = get_energy_points(frappe.session.user, 'Review')
+	current_review_points = get_energy_points(frappe.session.user).review_points
 	doc = frappe._dict(json.loads(doc))
 	points = abs(cint(points))
 	if current_review_points < points:
