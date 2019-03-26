@@ -10,6 +10,10 @@ from frappe.model.document import Document
 from frappe.utils import cint
 
 class EnergyPointLog(Document):
+	def validate(self):
+		if self.type in ['Appreciation', 'Criticism'] and self.user == self.owner:
+			frappe.throw(_('You cannot give review points to yourself'))
+
 	def after_insert(self):
 		message = ''
 		if self.type == 'Auto':
@@ -117,4 +121,4 @@ def get_reviews(doctype, docname):
 		'reference_doctype': doctype,
 		'reference_name': docname,
 		'type': ['in', ('Appreciation', 'Criticism')],
-	}, fields=['points', 'owner', 'type', 'user', 'reason'])
+	}, fields=['points', 'owner', 'type', 'user', 'reason', 'creation'])
