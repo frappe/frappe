@@ -35,6 +35,51 @@
   }, 
   {
    "is_child_table": 0, 
+   "local_fieldname": "repeat_on", 
+   "remote_fieldname": "repeat_on"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "repeat_till", 
+   "remote_fieldname": "repeat_till"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "monday", 
+   "remote_fieldname": "monday"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "tuesday", 
+   "remote_fieldname": "tuesday"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "wednesday", 
+   "remote_fieldname": "wednesday"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "thursday", 
+   "remote_fieldname": "thursday"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "friday", 
+   "remote_fieldname": "friday"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "saturday", 
+   "remote_fieldname": "saturday"
+  }, 
+  {
+   "is_child_table": 0, 
+   "local_fieldname": "sunday", 
+   "remote_fieldname": "sunday"
+  }, 
+  {
+   "is_child_table": 0, 
    "local_fieldname": "name", 
    "remote_fieldname": "name"
   }
@@ -45,8 +90,8 @@
  "mapping_name": "Event to GCalendar", 
  "mapping_type": "Push", 
  "migration_id_field": "gcalendar_sync_id", 
- "modified": "2018-05-18 14:38:43.658069", 
- "modified_by": "chdecultot@dokos.io", 
+ "modified": "2019-03-26 10:16:45.400150", 
+ "modified_by": "Administrator", 
  "name": "Event to GCalendar", 
  "owner": "Administrator", 
  "page_length": 10, 
