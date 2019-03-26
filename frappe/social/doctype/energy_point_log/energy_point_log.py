@@ -11,6 +11,7 @@ from frappe.utils import cint
 
 class EnergyPointLog(Document):
 	def after_insert(self):
+		message = ''
 		if self.type == 'Auto':
 			message=_('You gained <b>{}</b> points').format(self.points)
 		elif self.type == 'Appreciation':
@@ -113,4 +114,4 @@ def get_reviews(doctype, docname):
 		'reference_doctype': doctype,
 		'reference_name': docname,
 		'type': ['in', ('Appreciation', 'Criticism')],
-	}, fields=['points', 'owner', 'type', 'user'])
+	}, fields=['points', 'owner', 'type', 'user', 'reason'])

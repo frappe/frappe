@@ -61,7 +61,7 @@ frappe.ui.form.Review = class Review {
 				options: this.get_involved_users(),
 				default: this.frm.doc.owner
 			}, {
-				fieldname: 'action',
+				fieldname: 'review_type',
 				fieldtype: 'Select',
 				label: __('Action'),
 				options: [{
@@ -96,6 +96,7 @@ frappe.ui.form.Review = class Review {
 					},
 					to_user: values.to_user,
 					points: values.points,
+					review_type: values.review_type,
 					reason: values.reason
 				}).then(() => {
 					review_dialog.hide();
@@ -114,15 +115,34 @@ frappe.ui.form.Review = class Review {
 			'docname': this.frm.doc.name,
 		}).then(review_logs => {
 			review_logs.forEach(review_log => {
-				this.review_list_wrapper.prepend(`
+				let review_pill = $(`
 					<span class="review-pill">
 						${frappe.avatar(review_log.owner)}
-						<span class="text-muted">
-							${review_log.points}
+						<span class="bold ${review_log.type === 'Appreciation' ? 'text-success': 'text-danger'}">
+							${review_log.type === 'Appreciation' ? '+': ''}${review_log.points}
 						</span>
 					</span>
 				`);
+				this.review_list_wrapper.prepend(review_pill);
+				this.setup_detail_popover(review_pill, review_log);
 			});
 		});
+	}
+	setup_detail_popover(el, data) {
+		el.popover({
+			animation: true,
+			trigger: 'hover',
+			delay: 500,
+			placement: 'top',
+			content: () => {
+				return `<div class="text-small">
+					<b>For</b> ${frappe.user_info(data.user).fullname}
+					<p>${data.reason}</p>
+				</div>`;
+			},
+			html: true,
+			container: 'body'
+		});
+		return el;
 	}
 };
