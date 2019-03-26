@@ -81,9 +81,6 @@ def get_bootinfo():
 	bootinfo.success_action = get_success_action()
 	bootinfo.update(get_email_accounts(user=frappe.session.user))
 	bootinfo.energy_points_enabled = is_energy_point_enabled()
-	bootinfo.energy_points = get_energy_points(frappe.session.user)
-
-	bootinfo.review_points = get_energy_points(frappe.session.user, 'Review')
 
 	return bootinfo
 

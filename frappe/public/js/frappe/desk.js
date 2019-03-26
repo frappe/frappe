@@ -47,7 +47,6 @@ frappe.Application = Class.extend({
 		this.setup_analytics();
 
 		this.setup_energy_point_listeners();
-		this.show_energy_points();
 
 		frappe.ui.keys.setup();
 		this.set_rtl();
@@ -557,16 +556,6 @@ frappe.Application = Class.extend({
 		frappe.realtime.on('energy_point_alert', (message) => {
 			frappe.show_alert(message);
 		});
-	},
-
-	show_energy_points() {
-		if (frappe.boot.energy_points_enabled) {
-			$(".toolbar-user-fullname").append(`
-				<span class="ellipsis hidden-xs energy-points hidden-sm primary">
-					(${frappe.boot.energy_points} pts)
-				</span>
-			`);
-		}
 	}
 });
 
