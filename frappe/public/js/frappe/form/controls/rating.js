@@ -10,7 +10,7 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 			<i class="fa fa-fw fa-star" data-idx=5></i>
 		</div>
 		`;
-		
+
 		this.$input_wrapper.html(star_template);
 
 		this.$input_wrapper.find('i').hover((ev) => {
@@ -25,7 +25,7 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 			});
 		}, (ev) => {
 				const el = $(ev.currentTarget);
-				el.parent().children('i.fa').each( function(e) {
+				el.parent().children('i.fa').each( function() {
 					$(this).removeClass('star-hover');
 				});
 		});
