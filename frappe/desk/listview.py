@@ -27,19 +27,26 @@ def set_list_settings(doctype, values):
 
 @frappe.whitelist()
 def get_user_assignments_and_count(doctype, current_filters):
-	filtered_list = frappe.get_all(doctype,
-		filters=current_filters)
-	names = "'"+"','".join(list(map(lambda x: x.name, filtered_list)))+"'"
 
-	if names:
-		todo_list = sorted(frappe.db.sql("""select tabToDo.owner as name, count(*) as count from tabToDo, tabUser
-										where
-										tabToDo.status='open' and
-										tabToDo.owner = tabUser.name and
-										tabUser.user_type = 'System User' and
-										tabToDo.reference_name in ({names})
-										group by tabToDo.owner
-										""".format(doctype = doctype, names = names), as_dict=True), key=lambda k: k['count'], reverse = True)
-		return todo_list
-	else:
-		return []
+	subquery_condition = ''
+	if current_filters:
+		# get the subquery
+		subquery = frappe.get_all(doctype,
+			filters=current_filters, return_query = True)
+		subquery_condition = ' and tabToDo.reference_name in ({subquery})'.format(subquery = subquery)
+
+	todo_list = frappe.db.sql("""select tabToDo.owner as name, count(*) as count
+		from
+			tabToDo, tabUser
+		where
+			tabToDo.status='open' and
+			tabToDo.owner = tabUser.name and
+			tabUser.user_type = 'System User' 
+			{subquery_condition}
+		group by
+			tabToDo.owner
+		order by
+			count desc
+		limit 50""".format(subquery_condition = subquery_condition), as_dict=True)
+
+	return todo_list

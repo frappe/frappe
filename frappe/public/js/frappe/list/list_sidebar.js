@@ -41,6 +41,7 @@ frappe.views.ListSidebar = class ListSidebar {
 			$('.assigned-to').show();
 		}
 		$('.assigned-to').on('click', () => {
+			$('.assigned').remove();
 			this.setup_assigned_to();
 		});
 
@@ -224,7 +225,6 @@ frappe.views.ListSidebar = class ListSidebar {
 	}
 
 	setup_assigned_to() {
-		$('.assigned').remove();
 		$('.assigned-loading').show();
 		let dropdown = this.page.sidebar.find('.assigned-dropdown');
 		let current_filters = this.list_view.get_filters_for_args();
@@ -251,7 +251,7 @@ frappe.views.ListSidebar = class ListSidebar {
 
 	get_html_for_assigned(name, count) {
 		if (name === frappe.session.user) name='Me';
-		if (count > 50) count='50+';
+		if (count > 99) count='99+';
 		let html = $('<li class="assigned"><a class="badge-hover" role="assigned-item"><span class="assigned-user">' 
 					+ name + '</span><span class="badge pull-right" style="position:relative">' + count + '</span></a></li>');
 		return html;
