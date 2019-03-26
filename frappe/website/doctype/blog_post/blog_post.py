@@ -163,7 +163,6 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 				t1.published_on as creation,
 				t1.content as content,
 				t1.content_type as content_type,
-				t1.content_html as content_html,
 				ifnull(t1.blog_intro, t1.content) as intro,
 				t2.full_name, t2.avatar, t1.blogger,
 				(select count(name) from `tabComment`
@@ -185,14 +184,10 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 
 	for post in posts:
 
+		post.content = get_html_content_based_on_type(post, 'content', post.content_type)
+		post.cover_image = find_first_image(post.content)
 		post.published = global_date_format(post.creation)
-
-		if post.content_type == "HTML":
-			post.cover_image = find_first_image(post.content_html)
-			post.content = strip_html_tags(post.content_html)
-		else:
-			post.cover_image = find_first_image(post.content)
-			post.content = strip_html_tags(post.content[:340])
+		post.content = strip_html_tags(post.content)
 
 		if not post.comments:
 			post.comment_text = _('No comments yet')
