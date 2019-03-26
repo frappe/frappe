@@ -414,7 +414,7 @@ class DataMigrationRun(Document):
 					self.post_process_doc(remote_doc=d, local_doc=local_doc)
 				except Exception:
 					# failed, append to log
-					self.update_log('push_failed', {migration_id_value: cstr(e)})
+					self.update_log('pull_failed', {migration_id_value: cstr(e)})
 
 		if len(data) < mapping.page_length:
 			# last page, done with pull
