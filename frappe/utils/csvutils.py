@@ -88,32 +88,18 @@ def send_csv_to_client(args):
 		args = json.loads(args)
 
 	args = frappe._dict(args)
+	dialect = frappe.get_doc({
+		"doctype":"CSV Dialect",
+		"quoting":"Minimal",
+		"delimiter":",",
+		"encoding":"utf-8",
+		"doublequote": 1
+	})
 
-	frappe.response["result"] = cstr(to_csv(args.data))
+	frappe.response["result"] = cstr(dialect.to_csv(args.data))
 	frappe.response["doctype"] = args.filename
 	frappe.response["type"] = "csv"
 
-def to_csv(data):
-	writer = UnicodeWriter()
-	for row in data:
-		writer.writerow(row)
-
-	return writer.getvalue()
-
-
-class UnicodeWriter:
-	def __init__(self, encoding="utf-8"):
-		self.encoding = encoding
-		self.queue = StringIO()
-		self.writer = csv.writer(self.queue, quoting=csv.QUOTE_NONNUMERIC)
-
-	def writerow(self, row):
-		if six.PY2:
-			row = encode(row, self.encoding)
-		self.writer.writerow(row)
-
-	def getvalue(self):
-		return self.queue.getvalue()
 
 def check_record(d):
 	"""check for mandatory, select options, dates. these should ideally be in doclist"""
