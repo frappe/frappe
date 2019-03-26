@@ -140,7 +140,7 @@ class LoginManager:
 
 	def get_user_info(self, resume=False):
 		self.info = frappe.db.get_value("User", self.user,
-			["user_type", "first_name", "last_name", "user_image", "energy_points"], as_dict=1)
+			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
 
 		self.user_type = self.info.user_type
 
