@@ -68,116 +68,15 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		});
 
 		//Setup groupby for reports
-		this.setup_groupby_area();
+		this.group_by_control = new frappe.ui.GroupBy(this);
 	}
-
-	make_groupby_button() {
-		let group_by_button =  $(`<div class="tag-groupby-area">
-								<div class="active-tag-groupby">
-									<button class="btn btn-default btn-xs add-groupby text-muted">
-											${__("Add Group")}
-									</button>
-								</div>
-							</div>`);
-		this.page.wrapper.find(".sort-selector").before(group_by_button);
-		group_by_button.click(() => this.groupby_edit_area.show());
-	}
-
-	setup_groupby_area() {
-		this.make_groupby_button();
-		let current_cols=[];
-		let sql_aggregate_function = [{name:'count', label: 'Count'}, {name:'sum', label: 'Sum'}, {name:'avg', label:'Average'}];
-		this.groupby_edit_area = $(frappe.render_template("groupby", {
-			groupby_conditions: this.get_group_by_fields(),
-			aggregate_function_conditions: sql_aggregate_function,
-		}));
-		$(".aggregate-function").val("count");
-		this.page.wrapper.find(".frappe-list").append(
-			this.groupby_edit_area);
-
-		//Set aggregate on options as numeric fields if function is sum or average
-		$('.aggregate-function').on('change', () => {
-			this.meta.fields.forEach((field) => {
-				let fn = $('.aggregate-function option:selected').val();
-				if(fn === 'sum' || fn === 'avg') {
-					if(frappe.model.is_numeric_field(field.fieldtype)) {
-						$('.aggregate-on')
-							.append($('<option>', { value : field.fieldname })
-								.text(field.label));
-					}
-					$('.aggregate-on').show();
-				} else {
-					$('.aggregate-on').hide();
-				}
-			});
-		})
-
-		$('.set-groupby-and-run').on('click', () => {
-			current_cols = this.apply_groupby();
-		});
-
-		$('.remove-groupby').on('click', () => {
-			this.remove_groupby(current_cols);
-		});
-	}
-
-	apply_groupby() {
-		this.group_by = this.page.wrapper.find('.groupby option:selected').val();
-		this.aggregate_function = this.page.wrapper.find('.aggregate-function option:selected').val();
-		this.aggregate_on = this.page.wrapper.find('.aggregate-on option:selected').val();
-
-		//All necessary fields must be set before applying groupby
-		if(!this.group_by) {
-			this.page.wrapper.find('.groupby').focus();
-			return;
-		} else if(!this.aggregate_function) {
-			this.page.wrapper.find('.aggregate-function').focus();
-			return;
-		} else if(!this.aggregate_on && this.aggregate_function!=='count') {
-			this.page.wrapper.find('.aggregate-on').focus();
-			return;
-		}
-
-		if(this.aggregate_function === 'count') {
-			let groupby_query = 'count(' + this.field_type + '.'+ this.group_by+') as ' + this.group_by + '_Count';
-			this.fields.push([groupby_query, this.doctype]);
-		}
-		$('.set-groupby-and-run').hide();
-		let current_cols = this.columns;
-		let remove_columns = this.columns.filter(column => ![this.aggregate_on, this.group_by].includes(column.field));
-		remove_columns.forEach((col) => {
-			this.remove_column_from_datatable(col);
-		});
-
-		this.columns[0].width = 400;
-		if(this.columns[1]) this.columns[1].width = 300;
-		this.refresh();
-		return current_cols;
-	}
-
-	remove_groupby(columns) {
-		this.groupby_edit_area.hide();
-		$('.set-groupby-and-run').show();
-		this.group_by = null;
-		this.aggregate_function = null;
-		this.aggregate_on = null;
-		$(".groupby").val("");
-		$(".aggregate-function").val("count");
-		$(".aggregate-on").val("").hide();
-		columns.forEach((col, i) => {
-			this.add_column_to_datatable(col.field, this.doctype, i);
-		});
-		this.fields.pop();
-		this.setup_columns();
-	}
-
 
 	get_args() {
 		const args = super.get_args();
 		this.field_type = args.fields[0].substring(0,args.fields[0].indexOf('.'));
-		if (this.aggregate_function && this.group_by && this.aggregate_on) {
-			if(this.aggregate_function !== 'count') {
-				args.fields.push(`${this.aggregate_function}(${this.aggregate_on}) as ${this.aggregate_on}`);
+		if (this.group_by_control.aggregate_function && this.group_by_control.group_by && this.group_by_control.aggregate_on) {
+			if(this.group_by_control.aggregate_function !== 'count') {
+				args.fields.push(`${this.group_by_control.aggregate_function}(${this.group_by_control.aggregate_on}) as ${this.group_by_control.aggregate_on}`);
 			}
 		}
 
@@ -185,12 +84,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			with_comment_count: false,
 			start: 0,
 			page_length: null,
-			group_by: this.group_by || null,
+			group_by: this.group_by_control.group_by || null,
+			order_by: this.group_by_control.order_by || null,
 		});
-	}
-
-	get_group_by_fields() {
-		return this.meta.fields.filter((f)=> ["Select", "Link"].includes(f.fieldtype));
 	}
 
 	before_refresh() {
@@ -969,7 +865,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			}
 			return docfield.fieldtype === 'Date' ? 'right' : 'left';
 		})();
-
 		const width = (docfield ? cint(docfield.width) : null) || null;
 
 		// child table column
