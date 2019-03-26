@@ -362,9 +362,10 @@ def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder
 def check_parent_permission(parent, child_doctype):
 	if parent:
 		# User may pass fake parent and get the information from the child table
-		if child_doctype and not frappe.db.exists('DocField',
-			{'parent': parent, 'options': child_doctype}):
-			raise frappe.PermissionError
+		if child_doctype and child_doctype != 'DocField':
+			if not frappe.db.exists('DocField',
+				{'parent': parent, 'options': child_doctype}):
+				raise frappe.PermissionError
 
 		if frappe.permissions.has_permission(parent):
 			return
