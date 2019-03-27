@@ -31,7 +31,7 @@ class EnergyPointRule(Document):
 
 
 def process_energy_points(doc, state):
-	if not is_energy_point_enabled() or frappe.flags.in_patch or frappe.flags.in_install:
+	if frappe.flags.in_patch or frappe.flags.in_install or not is_energy_point_enabled():
 		return
 
 	energy_point_doctypes = frappe.cache().get_value('energy_point_doctypes', get_energy_point_doctypes)
