@@ -19,7 +19,7 @@ class Dashboard {
 	constructor(wrapper) {
 		this.wrapper = $(wrapper);
 		$(`<div class="dashboard">
-			<div class="dashboard-graph" class="row"></div>
+			<div class="dashboard-graph row"></div>
 		</div>`).appendTo(this.wrapper.find(".page-content").empty());
 		this.container = this.wrapper.find(".dashboard-graph");
 		this.page = wrapper.page;
@@ -45,7 +45,7 @@ class Dashboard {
 			this.charts = this.dashboard_doc.charts;
 
 			this.charts.map((chart) => {
-				let chart_container = $("<div><div>");
+				let chart_container = $("<div></div>");
 				chart_container.appendTo(this.container);
 
 				frappe.model.with_doc("Dashboard Chart", chart.chart).then( chart_doc => {
@@ -164,7 +164,7 @@ class DashboardChart {
 			"Bar": "bar",
 		};
 		let chart_args = {
-			title: this.chart_doc.chart_name,
+			title: this.chart_doc.chart_name.bold(),
 			data: this.data,
 			type: chart_type_map[this.chart_doc.type],
 			colors: [this.chart_doc.color || "light-blue"],

@@ -3,8 +3,6 @@
 from __future__ import unicode_literals
 import json
 import frappe
-from frappe.modules import get_module_path
-from frappe.model.utils import render_include
 
 
 def cache_source(function):

@@ -8,7 +8,7 @@
 .chart-actions {
     position: absolute;
     right: 30px;
-    top: 30px;
+    top: 54px;
 }
 
 .chart-column-container {
@@ -17,7 +17,11 @@
 
 .last-synced-text {
     position: absolute;
-    top: 34px;
+    top: 56px;
     right: 60px;
-    font-size: 10px;
+    font-size: 12px;
+}
+
+.dashboard-graph {
+    padding-top: 15px;
 }
