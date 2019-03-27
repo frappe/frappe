@@ -93,6 +93,10 @@ def send_email(success, service_name, error_status=None):
 	frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
 def backup_to_dropbox(upload_db_backup=True):
+	import time
+
+	start_time = time.time()
+
 	if not frappe.db:
 		frappe.connect()
 
@@ -127,6 +131,7 @@ def backup_to_dropbox(upload_db_backup=True):
 		upload_from_folder(get_files_path(), 0, "/files", dropbox_client, did_not_upload, error_log)
 		upload_from_folder(get_files_path(is_private=1), 1, "/private/files", dropbox_client, did_not_upload, error_log)
 
+	print(time.time() - start)
 	return did_not_upload, list(set(error_log))
 
 def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not_upload, error_log):
@@ -155,11 +160,14 @@ def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not
 
 		found = False
 		for file_metadata in response.entries:
-			if (os.path.basename(filepath) == file_metadata.name
-				and os.stat(encode(filepath)).st_size == int(file_metadata.size)):
-				found = True
-				update_file_dropbox_status(f.name)
-				break
+			try:
+				if (os.path.basename(filepath) == file_metadata.name
+					and os.stat(encode(filepath)).st_size == int(file_metadata.size)):
+					found = True
+					update_file_dropbox_status(f.name)
+					break
+			except Exception:
+				error_log.append(frappe.get_traceback())
 
 		if not found:
 			try:
