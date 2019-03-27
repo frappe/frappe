@@ -64,8 +64,10 @@ def create_review_points_log(user, points, reason=None):
 
 @frappe.whitelist()
 def get_energy_points(user):
-	points = frappe.cache().hget('energy_points', user,
-		lambda: get_user_energy_and_review_points(user))
+	# points = frappe.cache().hget('energy_points', user,
+	# 	lambda: get_user_energy_and_review_points(user))
+	# TODO: cache properly
+	points = get_user_energy_and_review_points(user)
 	return frappe._dict(points.get(user, {}))
 
 @frappe.whitelist()
@@ -84,7 +86,7 @@ def get_user_energy_and_review_points(user=None):
 		FROM `tabEnergy Point Log`
 		{where_user}
 		GROUP BY `user`
-	""".format(where_user=where_user), values=[user] if user else (), debug=1, as_dict=1)
+	""".format(where_user=where_user), values=user or (), as_dict=1)
 
 	dict_to_return = frappe._dict()
 	for d in points_list:
