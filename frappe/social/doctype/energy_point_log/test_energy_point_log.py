@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest
-from .energy_point_log import get_energy_points
+from .energy_point_log import get_energy_points as _get_energy_points
 from frappe.utils.testutils import add_custom_field, clear_custom_fields
 
 class TestEnergyPointLog(unittest.TestCase):
@@ -102,4 +102,5 @@ def create_a_todo():
 	}).insert()
 
 
-# test for multiplier
+def get_energy_points(user):
+	return _get_energy_points(user).energy_points or 0
