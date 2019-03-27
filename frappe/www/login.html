@@ -21,9 +21,12 @@
 				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _("Email address") }}{% endif %}"
 				required autofocus>
 
-
-			<input type="password" id="login_password"
-				class="form-control" placeholder="{{ _('Password') }}" required>
+			<div class="password-field" style="position: relative;">
+				<input type="password" id="login_password"
+					class="form-control" placeholder="{{ _('Password') }}" required>
+				
+				<span toggle="#login_password" class="fa fa-fw fa-eye toggle-password"></span>
+			</div>
 
 			<button class="btn btn-sm btn-primary btn-block btn-login" type="submit">
 				{{ _("Sign in") }}</button>
