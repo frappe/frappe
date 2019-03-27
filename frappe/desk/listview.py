@@ -33,18 +33,18 @@ def get_user_assignments_and_count(doctype, current_filters):
 		# get the subquery
 		subquery = frappe.get_all(doctype,
 			filters=current_filters, return_query = True)
-		subquery_condition = ' and tabToDo.reference_name in ({subquery})'.format(subquery = subquery)
+		subquery_condition = ' and `tabToDo`.reference_name in ({subquery})'.format(subquery = subquery)
 
-	todo_list = frappe.db.sql("""select tabToDo.owner as name, count(*) as count
+	todo_list = frappe.db.sql("""select `tabToDo`.owner as name, count(*) as count
 		from
-			tabToDo, tabUser
+			`tabToDo`, `tabUser`
 		where
-			tabToDo.status='open' and
-			tabToDo.owner = tabUser.name and
-			tabUser.user_type = 'System User' 
+			`tabToDo`.status='open' and
+			`tabToDo`.owner = `tabUser`.name and
+			`tabUser`.user_type = 'System User' 
 			{subquery_condition}
 		group by
-			tabToDo.owner
+			`tabToDo`.owner
 		order by
 			count desc
 		limit 50""".format(subquery_condition = subquery_condition), as_dict=True)
