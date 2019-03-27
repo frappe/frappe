@@ -2,7 +2,6 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 import json
-import os
 import frappe
 from frappe.modules import get_module_path
 from frappe.model.utils import render_include

@@ -1,7 +1,6 @@
 // Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.dashboard_chart_sources");
 
 frappe.pages['dashboard'].on_page_load = function(wrapper) {
 	frappe.ui.make_app_page({

@@ -1,6 +1,5 @@
 // Copyright (c) 2019, Frappe Technologies and contributors
 // For license information, please see license.txt
-frappe.provide("frappe.dashboard_chart_sources");
 
 frappe.ui.form.on('Dashboard Chart', {
 	refresh: function(frm) {
