@@ -275,14 +275,14 @@ def build_xlsx_data(columns, data, visible_idx):
 		if i in visible_idx:
 			row_data = []
 
-			if isinstance(row, list):
-				row_data = row
-			elif isinstance(row, dict) and row:
+			if isinstance(row, dict) and row:
 				for idx in range(len(data.columns)):
 					label = columns[idx]["label"]
 					fieldname = columns[idx]["fieldname"]
 
 					row_data.append(row.get(fieldname, row.get(label, "")))
+			else:
+				row_data = row
 
 			result.append(row_data)
 
