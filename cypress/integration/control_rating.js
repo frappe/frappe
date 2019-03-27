@@ -4,7 +4,7 @@ context('Rating Control', () => {
 	});
 
 	it('click on the star rating to record value', () => {
-		cy.visit('/desk')
+		cy.visit('/desk');
 		cy.dialog('Rating', {
 			'fieldname': 'rate',
 			'fieldtype': 'Rating',
@@ -18,15 +18,15 @@ context('Rating Control', () => {
 		cy.get('@dialog').then(dialog => {
 			var value = dialog.get_value('rate');
 			expect(value).to.equal(1);
-		})
+		});
 	});
 
 	it('hover on the star', () => {
-		cy.visit('/desk')
+		cy.visit('/desk');
 		cy.dialog('Rating', {
 			'fieldname': 'rate',
 			'fieldtype': 'Rating',
-		})
+		});
 		cy.get('div.rating')
 			.children('i.fa')
 			.first()

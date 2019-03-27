@@ -24,10 +24,10 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 				}
 			});
 		}, (ev) => {
-				const el = $(ev.currentTarget);
-				el.parent().children('i.fa').each( function() {
-					$(this).removeClass('star-hover');
-				});
+			const el = $(ev.currentTarget);
+			el.parent().children('i.fa').each( function() {
+				$(this).removeClass('star-hover');
+			});
 		});
 
 		$(this.input_area).find('i').click((ev) => {
@@ -54,8 +54,7 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 		el.children('i.fa').prevObject.each( function(e) {
 			if (e < value) {
 				$(this).addClass('star-click');
-			}
-			else {
+			} else {
 				$(this).removeClass('star-click');
 			}
 		});

@@ -53,13 +53,11 @@ frappe.form.formatters = {
 		return frappe.form.formatters._right(flt(value, 2) + "%", options)
 	},
 	Rating: function(value) {
-		return `
-			<span class="rating">
-				${Array.from(new Array(5)).map((_, i) =>
-					`<i class="fa fa-fw fa-star ${i < (value || 0) ? "star-click": "" } star-icon" data-idx="${(i+1)}"></i>`
-				).join('')}
-			</span>
-		`;
+		return `<span class="rating">
+	${Array.from(new Array(5)).map((_, i) =>
+		`<i class="fa fa-fw fa-star ${i < (value || 0) ? "star-click": "" } star-icon" data-idx="${(i+1)}"></i>`
+	).join('')}
+		</span>`;
 	},
 	Currency: function (value, docfield, options, doc) {
 		var currency  = frappe.meta.get_field_currency(docfield, doc);
