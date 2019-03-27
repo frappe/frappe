@@ -101,7 +101,6 @@ frappe.ui.form.Review = class Review {
 				if (values.points > this.points.review_points) {
 					return frappe.msgprint(__('You do not have enough points'));
 				}
-				// Add energy point log -- need api for that
 				frappe.xcall('frappe.social.doctype.energy_point_log.energy_point_log.review', {
 					doc: {
 						doctype: this.frm.doc.doctype,
@@ -116,8 +115,6 @@ frappe.ui.form.Review = class Review {
 					review_dialog.clear();
 					this.update_reviewers();
 				});
-				// deduct review points from the user
-				// Alert
 			},
 			primary_action_label: __('Submit')
 		});
