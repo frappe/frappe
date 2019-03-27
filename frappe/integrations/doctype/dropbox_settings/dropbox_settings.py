@@ -93,10 +93,6 @@ def send_email(success, service_name, error_status=None):
 	frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
 def backup_to_dropbox(upload_db_backup=True):
-	import time
-
-	start_time = time.time()
-
 	if not frappe.db:
 		frappe.connect()
 
@@ -131,7 +127,6 @@ def backup_to_dropbox(upload_db_backup=True):
 		upload_from_folder(get_files_path(), 0, "/files", dropbox_client, did_not_upload, error_log)
 		upload_from_folder(get_files_path(is_private=1), 1, "/private/files", dropbox_client, did_not_upload, error_log)
 
-	print(time.time() - start)
 	return did_not_upload, list(set(error_log))
 
 def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not_upload, error_log):
