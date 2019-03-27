@@ -17,6 +17,7 @@ from six.moves import reload_module
 from frappe.model.naming import revert_series_if_last
 
 unittest_runner = unittest.TextTestRunner
+SLOW_TEST_THRESHOLD = 2
 
 def xmlrunner_wrapper(output):
 	"""Convenience wrapper to keep method signature unchanged for XMLTestRunner and TextTestRunner"""
@@ -100,7 +101,8 @@ class TimeLoggingTestResult(unittest.TextTestResult):
 	def addSuccess(self, test):
 		elapsed = time.time() - self._started_at
 		name = self.getDescription(test)
-		self.stream.write("\n{} ({:.03}s)\n".format(name, elapsed))
+		if elapsed >= SLOW_TEST_THRESHOLD:
+			self.stream.write("\n{} ({:.03}s)\n".format(name, elapsed))
 		super(TimeLoggingTestResult, self).addSuccess(test)
 
 
