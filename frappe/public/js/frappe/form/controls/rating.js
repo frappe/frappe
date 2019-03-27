@@ -2,18 +2,18 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 	make_input() {
 		this._super();
 		const star_template = `
-		<div class = "rating">
-			<i class="fa fa-fw fa-star" data-idx=1></i>
-			<i class="fa fa-fw fa-star" data-idx=2></i>
-			<i class="fa fa-fw fa-star" data-idx=3></i>
-			<i class="fa fa-fw fa-star" data-idx=4></i>
-			<i class="fa fa-fw fa-star" data-idx=5></i>
-		</div>
+			<div class="rating">
+				<i class="fa fa-fw fa-star" data-idx=1></i>
+				<i class="fa fa-fw fa-star" data-idx=2></i>
+				<i class="fa fa-fw fa-star" data-idx=3></i>
+				<i class="fa fa-fw fa-star" data-idx=4></i>
+				<i class="fa fa-fw fa-star" data-idx=5></i>
+			</div>
 		`;
 
-		this.$input_wrapper.html(star_template);
+		$(this.input_area).html(star_template);
 
-		this.$input_wrapper.find('i').hover((ev) => {
+		$(this.input_area).find('i').hover((ev) => {
 			const el = $(ev.currentTarget);
 			let star_value = el.data('idx');
 			el.parent().children('i.fa').each( function(e){
@@ -30,7 +30,7 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 				});
 		});
 
-		this.$input_wrapper.find('i').click((ev) => {
+		$(this.input_area).find('i').click((ev) => {
 			const el = $(ev.currentTarget);
 			let star_value = el.data('idx');
 			el.parent().children('i.fa').each( function(e) {
@@ -40,17 +40,23 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 					$(this).removeClass('star-click');
 				}
 			});
-			this.set_value(star_value);
+			this.validate_and_set_in_model(star_value, ev);
+			if (this.doctype && this.docname) {
+				this.set_input(star_value);
+			}
 		});
 	},
 	get_value() {
-		return this.value ? this.value : 0;
+		return cint(this.value);
 	},
 	set_formatted_input(value) {
-		let el = this.$input_wrapper.find('i');
+		let el = $(this.input_area).find('i');
 		el.children('i.fa').prevObject.each( function(e) {
-			if (e < value){
+			if (e < value) {
 				$(this).addClass('star-click');
+			}
+			else {
+				$(this).removeClass('star-click');
 			}
 		});
 	}
