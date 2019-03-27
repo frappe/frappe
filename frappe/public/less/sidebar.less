@@ -392,13 +392,16 @@ body[data-route^="Module"] .main-menu {
 
 	.review-pill {
 		width: 50px;
-		border: 1px solid #d2d8dd;
+		border: 1px solid @border-color;
 		border-radius: 4px;
 		display: flex;
 		margin: 0 10px 10px 0;
 		.avatar {
 			padding: 0px;
 			margin: 0px;
+			.avatar-frame {
+				border-radius: 3px 0 0 3px;
+			}
 		}
 		.standard-image {
 			border-left: 0;
