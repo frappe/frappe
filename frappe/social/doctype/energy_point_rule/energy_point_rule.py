@@ -10,6 +10,7 @@ from frappe.social.doctype.energy_point_log.energy_point_log import create_energ
 
 class EnergyPointRule(Document):
 	def apply(self, doc):
+		print('apply', doc.as_dict().name)
 		if frappe.safe_eval(self.condition, None, {'doc': doc.as_dict()}):
 			multiplier = 1
 
@@ -30,6 +31,8 @@ class EnergyPointRule(Document):
 
 
 def process_energy_points(doc, state):
+	if doc.doctype == 'ToDo':
+		print(frappe.flags.in_patch, frappe.flags.in_install, is_energy_point_enabled(), '----------------------------')
 	if frappe.flags.in_patch or frappe.flags.in_install or not is_energy_point_enabled():
 		return
 

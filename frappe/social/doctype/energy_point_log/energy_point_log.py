@@ -44,6 +44,7 @@ def get_alert_message(doc):
 
 def create_energy_points_log(ref_doctype, ref_name, doc):
 	doc = frappe._dict(doc)
+	print('apply', ref_doctype, ref_name, doc.user, doc.rule)
 	log_exists = frappe.db.exists('Energy Point Log', {
 		'user': doc.user,
 		'rule': doc.rule,
