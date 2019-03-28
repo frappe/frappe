@@ -155,11 +155,14 @@ def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not
 
 		found = False
 		for file_metadata in response.entries:
-			if (os.path.basename(filepath) == file_metadata.name
-				and os.stat(encode(filepath)).st_size == int(file_metadata.size)):
-				found = True
-				update_file_dropbox_status(f.name)
-				break
+			try:
+				if (os.path.basename(filepath) == file_metadata.name
+					and os.stat(encode(filepath)).st_size == int(file_metadata.size)):
+					found = True
+					update_file_dropbox_status(f.name)
+					break
+			except Exception:
+				error_log.append(frappe.get_traceback())
 
 		if not found:
 			try:
