@@ -10,6 +10,7 @@ from frappe.utils.testutils import add_custom_field, clear_custom_fields
 
 class TestEnergyPointLog(unittest.TestCase):
 	def tearDown(self):
+		frappe.set_user('Administrator')
 		frappe.db.sql('DELETE FROM `tabEnergy Point Log`')
 		frappe.db.sql('DELETE FROM `tabEnergy Point Rule`')
 
