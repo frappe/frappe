@@ -129,7 +129,7 @@ def parse_naming_series(parts, doctype='', doc=''):
 		if e.startswith('#'):
 			if not series_set:
 				digits = len(e)
-				part = getseries(n, digits, doctype)
+				part = getseries(n, digits)
 				series_set = True
 		elif e == 'YY':
 			part = today.strftime('%y')
@@ -152,7 +152,7 @@ def parse_naming_series(parts, doctype='', doc=''):
 	return n
 
 
-def getseries(key, digits, doctype=''):
+def getseries(key, digits):
 	# series created ?
 	current = frappe.db.sql("SELECT `current` FROM `tabSeries` WHERE `name`=%s FOR UPDATE", (key,))
 	if current and current[0][0] is not None:
