@@ -66,9 +66,7 @@ Cypress.Commands.add('dialog', (title, fields) => {
 	cy.window().then(win => {
 		var d = new win.frappe.ui.Dialog({
 			title: title,
-			fields: [
-				fields
-			],
+			fields: fields,
 			primary_action: function(){
 				d.hide();
 			}
