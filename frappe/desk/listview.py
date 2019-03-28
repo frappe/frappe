@@ -39,7 +39,7 @@ def get_user_assignments_and_count(doctype, current_filters):
 		from
 			`tabToDo`, `tabUser`
 		where
-			`tabToDo`.status='open' and
+			`tabToDo`.status='Open' and
 			`tabToDo`.owner = `tabUser`.name and
 			`tabUser`.user_type = 'System User' 
 			{subquery_condition}
