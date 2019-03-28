@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 import json
 from frappe.model.document import Document
-from frappe.utils import cint
+from frappe.utils import cint, get_fullname
 
 class EnergyPointLog(Document):
 	def validate(self):
@@ -15,25 +15,32 @@ class EnergyPointLog(Document):
 			frappe.throw(_('You cannot give review points to yourself'))
 
 	def after_insert(self):
-		message = ''
-		if self.type == 'Auto':
-			message=_('You gained <b>{}</b> points').format(self.points)
-		elif self.type == 'Appreciation':
-			message = _('{} appreciated your work on {} with {} points'.format(
-				self.owner,
-				self.reference_name,
-				self.points
-			))
-		elif self.type == 'Criticism':
-			message = _('{} criticized your work on {} with {} points'.format(
-				self.owner,
-				self.reference_name,
-				self.points
-			))
+		message = get_alert_message(self)
 		if message:
-			frappe.publish_realtime('energy_point_alert', message=message , user=self.user)
+			frappe.publish_realtime('energy_point_alert', message=message, user=self.user)
 
 		frappe.cache().hdel('energy_points', self.user)
+
+def get_alert_message(doc):
+	message = ''
+	owner_name = get_fullname(doc.owner)
+	doc_link = frappe.get_desk_link(doc.reference_doctype, doc.reference_name)
+	points = frappe.bold(doc.points)
+	if doc.type == 'Auto':
+		message=_('You gained {} points').format(points)
+	elif doc.type == 'Appreciation':
+		message = _('{} appreciated your work on {} with {} points'.format(
+			owner_name,
+			doc_link,
+			points
+		))
+	elif doc.type == 'Criticism':
+		message = _('{} criticized your work on {} with {} points'.format(
+			owner_name,
+			doc_link,
+			points
+		))
+	return message
 
 def create_energy_points_log(ref_doctype, ref_name, doc):
 	doc = frappe._dict(doc)
