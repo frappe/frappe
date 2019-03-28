@@ -65,14 +65,16 @@ frappe.ui.form.Review = class Review {
 			.filter(Boolean);
 	}
 	show() {
+		const user_options = this.get_involved_users();
+		const doc_owner = this.frm.doc.owner;
 		const review_dialog = new frappe.ui.Dialog({
 			'title': __('Add Review'),
 			'fields': [{
 				fieldname: 'to_user',
-				fieldtype: 'Autocomplete',
+				fieldtype: 'Select',
 				label: __('To User'),
-				options: this.get_involved_users(),
-				default: this.frm.doc.owner
+				options: user_options,
+				default: user_options.includes(doc_owner) ? doc_owner : user_options[0]
 			}, {
 				fieldname: 'review_type',
 				fieldtype: 'Select',
@@ -142,20 +144,20 @@ frappe.ui.form.Review = class Review {
 	}
 	setup_detail_popover(el, data) {
 		let subject = '';
-		let fullname = frappe.user_info(data.user).fullname;
+		let fullname = frappe.user.full_name(data.user);
 		let timestamp = `<span class="text-muted">${frappe.datetime.comment_when(data.creation)}</span>`;
 		let message_parts = [Math.abs(data.points), fullname, timestamp];
 		if (data.type === 'Appreciation') {
 			if (data.points == 1) {
-				subject = __('{0} appreciation point to {1} {2}', message_parts);
+				subject = __('{0} appreciation point for {1} {2}', message_parts);
 			} else {
-				subject = __('{0} appreciation points to {1} {2}', message_parts);
+				subject = __('{0} appreciation points for {1} {2}', message_parts);
 			}
 		} else {
 			if (data.points == -1) {
-				subject = __('{0} criticism point to {1} {2}', message_parts);
+				subject = __('{0} criticism point for {1} {2}', message_parts);
 			} else {
-				subject = __('{0} criticism points to {1} {2}', message_parts);
+				subject = __('{0} criticism points for {1} {2}', message_parts);
 			}
 		}
 		el.popover({
