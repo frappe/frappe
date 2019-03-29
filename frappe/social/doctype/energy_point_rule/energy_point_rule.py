@@ -14,7 +14,7 @@ class EnergyPointRule(Document):
 			multiplier = 1
 
 			if self.multiplier_field:
-				multiplier = doc.get(self.multiplier_field, 1)
+				multiplier = doc.get(self.multiplier_field) or 1
 
 			points = round(self.points * multiplier)
 			reference_doctype = doc.doctype
@@ -24,12 +24,14 @@ class EnergyPointRule(Document):
 
 			# incase of zero as result after roundoff
 			if not points: return
-
-			create_energy_points_log(reference_doctype, reference_name, {
-				'points': points,
-				'user': user,
-				'rule': rule
-			})
+			try:
+				create_energy_points_log(reference_doctype, reference_name, {
+					'points': points,
+					'user': user,
+					'rule': rule
+				})
+			except Exception as e:
+				frappe.log_error('apply_energy_point', e)
 
 
 def process_energy_points(doc, state):
