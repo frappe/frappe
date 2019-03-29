@@ -62,11 +62,11 @@ export default {
       }
 	},
 	dropdown_links() {
-		return this.links
+		return this.links.length > 0 ? this.links
 			.filter(link => !link.hidden)
 			.concat([
 				{ label: __('Customize'), action: () => this.$emit('customize'), class: 'border-top' }
-			]);
+			]) : [];
 	}
   },
 };
