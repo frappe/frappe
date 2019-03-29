@@ -1183,6 +1183,12 @@ class Document(BaseDocument):
 			self.set("__onload", frappe._dict())
 		self.get("__onload")[key] = value
 
+	def get_onload(self, key=None):
+		if not key:
+			return self.get("__onload", frappe._dict())
+
+		return self.get('__onload')[key]
+
 	def update_timeline_doc(self):
 		if frappe.flags.in_install or not self.meta.get("timeline_field"):
 			return
