@@ -104,7 +104,7 @@ def get_user_energy_and_review_points(user=None):
 @frappe.whitelist()
 def review(doc, points, to_user, reason, review_type='Appreciation'):
 	current_review_points = get_energy_points(frappe.session.user).review_points
-	doc = frappe._dict(json.loads(doc))
+	doc = doc.as_dict() if hasattr(doc, 'as_dict') else frappe._dict(json.loads(doc))
 	points = abs(cint(points))
 	if current_review_points < points:
 		frappe.msgprint(_('You do not have enough review points'))
