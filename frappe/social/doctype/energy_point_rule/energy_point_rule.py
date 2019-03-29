@@ -36,15 +36,15 @@ def process_energy_points(doc, state):
 	if frappe.flags.in_patch or frappe.flags.in_install or not is_energy_point_enabled():
 		return
 
-	energy_point_doctypes = frappe.cache().get_value('energy_point_doctypes', get_energy_point_doctypes)
+	# energy_point_doctypes = frappe.cache().get_value('energy_point_doctypes', get_energy_point_doctypes)
 
-	if doc.doctype in energy_point_doctypes:
-		rules = frappe.get_all('Energy Point Rule', filters={
-			'reference_doctype': doc.doctype,
-			'enabled': 1
-		})
-		for d in rules:
-			frappe.get_doc('Energy Point Rule', d.name).apply(doc)
+	# if doc.doctype in energy_point_doctypes:
+	rules = frappe.get_all('Energy Point Rule', filters={
+		'reference_doctype': doc.doctype,
+		'enabled': 1
+	})
+	for d in rules:
+		frappe.get_doc('Energy Point Rule', d.name).apply(doc)
 
 def get_energy_point_doctypes():
 	return [
