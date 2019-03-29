@@ -60,15 +60,7 @@ frappe.ui.form.on('User', {
 			frm.reload_doc();
 			return;
 		}
-		if (frappe.boot.energy_points_enabled && !frm.points ) {
-			frm.points = frm.sidebar.image_section.append(`
-				<ul class="list-unstyled sidebar-menu">
-					<li align="center" class="bold text-muted">
-						<span class="text-large">${frappe.boot.energy_points}</span> points
-					</li>
-				</ul>
-			`);
-		}
+
 		if(doc.name===frappe.session.user && !doc.__unsaved
 			&& frappe.all_timezones
 			&& (doc.language || frappe.boot.user.language)
