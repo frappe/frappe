@@ -72,6 +72,11 @@ def create_review_points_log(user, points, reason=None, doctype=None, docname=No
 	}).insert(ignore_permissions=True)
 
 @frappe.whitelist()
+def add_review_points(user, points):
+	frappe.only_for('System Manager')
+	create_review_points_log(user, points)
+
+@frappe.whitelist()
 def get_energy_points(user):
 	# points = frappe.cache().hget('energy_points', user,
 	# 	lambda: get_user_energy_and_review_points(user))
