@@ -166,19 +166,23 @@ frappe.ui.form.Review = class Review {
 			trigger: 'hover',
 			delay: 500,
 			placement: 'top',
-			template:`<div class="review-popover popover">
-				<div class="arrow"></div>
-				<div class="popover-content"></div>
-			</div>`,
+			template:`
+				<div class="review-popover popover">
+					<div class="arrow"></div>
+					<div class="popover-content"></div>
+				</div>
+			`,
 			content: () => {
-				return `<div class="text-medium">
-					<div class="subject">
-						${subject}
+				return `
+					<div class="text-medium">
+						<div class="subject">
+							${subject}
+						</div>
+						<div class="body">
+							<div>${data.reason}</div>
+						</div>
 					</div>
-					<div class="body">
-						<div>${data.reason}</div>
-					</div>
-				</div>`;
+				`;
 			},
 			html: true,
 			container: 'body'
