@@ -36,8 +36,8 @@ class TestEnergyPointLog(unittest.TestCase):
 
 	def test_points_based_on_multiplier_field(self):
 		frappe.set_user('test@example.com')
-		add_custom_field('ToDo', 'multiplier', 'Int')
-		multiplier_value = 2
+		add_custom_field('ToDo', 'multiplier', 'Float')
+		multiplier_value = 0.51
 
 		todo_point_rule = create_energy_point_rule_for_todo('multiplier')
 		energy_point_of_user = get_points('test@example.com')
@@ -50,7 +50,7 @@ class TestEnergyPointLog(unittest.TestCase):
 
 		points_after_closing_todo = get_points('test@example.com')
 
-		self.assertEquals(points_after_closing_todo, energy_point_of_user + (todo_point_rule.points * multiplier_value))
+		self.assertEquals(points_after_closing_todo, energy_point_of_user + round(todo_point_rule.points * multiplier_value))
 		clear_custom_fields('ToDo')
 
 	def test_disabled_energy_points(self):
