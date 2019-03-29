@@ -117,7 +117,8 @@ doc_events = {
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.core.doctype.activity_log.feed.update_feed",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
-			"frappe.automation.doctype.assignment_rule.assignment_rule.apply"
+			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
+			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
@@ -129,13 +130,12 @@ doc_events = {
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
 		],
 		"on_change": [
-			"frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request",
+			"frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request"
 		]
 	},
 	"Email Group Member": {
 		"validate": "frappe.email.doctype.email_group.email_group.restrict_email_group"
-	},
-
+	}
 }
 
 scheduler_events = {
@@ -174,8 +174,8 @@ scheduler_events = {
 		"frappe.core.doctype.feedback_request.feedback_request.delete_feedback_request",
 		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs",
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
-		"frappe.desk.form.document_follow.send_daily_updates"
-
+		"frappe.desk.form.document_follow.send_daily_updates",
+		"frappe.social.doctype.energy_point_settings.energy_point_settings.allocate_review_points"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
