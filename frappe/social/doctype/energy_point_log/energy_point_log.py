@@ -60,13 +60,15 @@ def create_energy_points_log(ref_doctype, ref_name, doc):
 	_doc.insert(ignore_permissions=True)
 	return _doc
 
-def create_review_points_log(user, points, reason=None):
+def create_review_points_log(user, points, reason=None, doctype=None, docname=None):
 	return frappe.get_doc({
 		'doctype': 'Energy Point Log',
 		'points': points,
 		'type': 'Review',
 		'user': user,
-		'reason': reason
+		'reason': reason,
+		'reference_doctype': doctype,
+		'reference_name': docname
 	}).insert(ignore_permissions=True)
 
 @frappe.whitelist()
@@ -110,19 +112,21 @@ def review(doc, points, to_user, reason, review_type='Appreciation'):
 		frappe.msgprint(_('You do not have enough review points'))
 		return
 
-	# deduct review points from reviewer
-	create_review_points_log(
-		user=frappe.session.user,
-		points=-points,
-		reason=reason
-	)
-
-	create_energy_points_log(doc.doctype, doc.name, {
+	review_doc = create_energy_points_log(doc.doctype, doc.name, {
 		'type': review_type,
 		'reason': reason,
 		'points': points if review_type == 'Appreciation' else -points,
 		'user': to_user
 	})
+
+	# deduct review points from reviewer
+	create_review_points_log(
+		user=frappe.session.user,
+		points=-points,
+		reason=reason,
+		doctype=review_doc.doctype,
+		docname=review_doc.name
+	)
 
 @frappe.whitelist()
 def get_reviews(doctype, docname):
