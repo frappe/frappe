@@ -1,9 +1,10 @@
 <template>
   <Popover :align="align">
     <slot></slot>
-    <ul slot="popover-content" class="list-reset">
-      <li v-for="item of dropdownItems" :key="item.label">
-        <a class="list-item" :href="item.route">{{ item.label }}</a>
+    <ul slot="popover-content" class="list-reset border">
+      <li v-for="item of dropdownItems" :key="item.label" :class="item.class || null">
+        <a v-if="item.route" class="list-item" :href="item.route">{{ item.label }}</a>
+        <div v-else class="list-item" @click="item.action">{{ item.label }}</div>
       </li>
     </ul>
   </Popover>
