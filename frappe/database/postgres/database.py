@@ -51,6 +51,7 @@ class PostgresDatabase(Database):
 			'Dynamic Link':	('varchar', self.VARCHAR_LEN),
 			'Password':		('varchar', self.VARCHAR_LEN),
 			'Select':		('varchar', self.VARCHAR_LEN),
+			'Rating':		('smallint', None),
 			'Read Only':	('varchar', self.VARCHAR_LEN),
 			'Attach':		('text', ''),
 			'Attach Image':	('text', ''),

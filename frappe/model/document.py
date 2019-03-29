@@ -213,12 +213,12 @@ class Document(BaseDocument):
 		self.set_docstatus()
 		self.check_if_latest()
 		self.run_method("before_insert")
+		self._validate_links()
 		self.set_new_name()
 		self.set_parent_in_children()
 		self.validate_higher_perm_levels()
 
 		self.flags.in_insert = True
-		self._validate_links()
 		self.run_before_save_methods()
 		self._validate()
 		self.set_docstatus()

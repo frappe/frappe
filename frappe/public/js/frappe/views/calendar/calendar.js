@@ -25,10 +25,12 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 	}
 
 	setup_defaults() {
-		super.setup_defaults();
-		this.page_title = __('{0} Calendar', [this.page_title]);
-		this.calendar_settings = frappe.views.calendar[this.doctype] || {};
-		this.calendar_name = frappe.get_route()[3];
+		return super.setup_defaults()
+			.then(() => {
+				this.page_title = __('{0} Calendar', [this.page_title]);
+				this.calendar_settings = frappe.views.calendar[this.doctype] || {};
+				this.calendar_name = frappe.get_route()[3];
+			});
 	}
 
 	setup_view() {

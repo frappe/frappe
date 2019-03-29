@@ -133,7 +133,8 @@ $.extend(frappe.meta, {
 	},
 
 	has_field: function(dt, fn) {
-		return frappe.meta.docfield_map[dt][fn];
+		let docfield_map = frappe.meta.docfield_map[dt];
+		return docfield_map && docfield_map[fn];
 	},
 
 	get_table_fields: function(dt) {

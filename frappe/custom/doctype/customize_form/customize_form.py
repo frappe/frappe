@@ -22,13 +22,11 @@ doctype_properties = {
 	'sort_field': 'Data',
 	'sort_order': 'Data',
 	'default_print_format': 'Data',
-	'read_only_onload': 'Check',
 	'allow_copy': 'Check',
 	'istable': 'Check',
 	'quick_entry': 'Check',
 	'editable_grid': 'Check',
 	'max_attachments': 'Int',
-	'image_view': 'Check',
 	'track_changes': 'Check',
 }
 

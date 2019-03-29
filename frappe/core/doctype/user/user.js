@@ -140,7 +140,7 @@ frappe.ui.form.on('User', {
 			for ( var i=0;i<frm.doc.user_emails.length;i++) {
 				frm.doc.user_emails[i].idx=frm.doc.user_emails[i].idx+1;
 			}
-			cur_frm.dirty();
+			frm.dirty();
 		}
 
 	},
