@@ -16,11 +16,14 @@ class EnergyPointRule(Document):
 			if self.multiplier_field:
 				multiplier = doc.get(self.multiplier_field, 1)
 
-			points = self.points * multiplier
+			points = round(self.points * multiplier)
 			reference_doctype = doc.doctype
 			reference_name = doc.name
 			user = doc.get(self.user_field)
 			rule = self.name
+
+			# incase of zero as result after roundoff
+			if not points: return
 
 			create_energy_points_log(reference_doctype, reference_name, {
 				'points': points,

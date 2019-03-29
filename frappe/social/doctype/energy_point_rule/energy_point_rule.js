@@ -19,7 +19,7 @@ frappe.ui.form.on('Energy Point Rule', {
 				.map(map_for_options)
 				.concat([{label: __('Owner'), value: 'owner'}]);
 
-			const multiplier_fields = fields.filter(df => df.fieldtype === 'Int')
+			const multiplier_fields = fields.filter(df => ['Int', 'Float'].includes(df.fieldtype))
 				.map(map_for_options);
 
 			frm.set_df_property('user_field', 'options', user_fields);
