@@ -686,7 +686,7 @@ Object.assign(frappe.utils, {
 
 	deep_equal(a, b) {
 		// https://github.com/epoberezkin/fast-deep-equal/blob/master/index.js
-
+		/* eslint-disable */
 		var isArray = Array.isArray;
 		var keyList = Object.keys;
 		var hasProp = Object.prototype.hasOwnProperty;
@@ -742,6 +742,7 @@ Object.assign(frappe.utils, {
 		};
 
 		return equal(a, b)
+		/* eslint-enable */
 	}
 });
 
