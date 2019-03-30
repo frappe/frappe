@@ -45,6 +45,14 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 		return data;
 	},
 
+	parse(value) {
+		if(typeof value === 'string') {
+			value = value.trim().replace(/\,$/, '');
+			value = value ? value.split(',') : [];
+		}
+		return value;
+	},
+
 	set_formatted_input(value) {
 		if (!value) return;
 		// find label of value from option list and set from it as input
@@ -57,13 +65,6 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 		this._super(value);
 	},
 
-	get_values() {
-		const value = this.get_value() || '';
-		const values = value.split(/\s*,\s*/).filter(d => d);
-
-		return values;
-	},
-
 	get_data() {
 		let data;
 		if(this.df.get_data) {
@@ -72,7 +73,7 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 		} else {
 			data = this._super();
 		}
-		const values = this.get_values() || [];
+		const values = this.get_value() || [];
 
 		// return values which are not already selected
 		if(data) data.filter(d => !values.includes(d));
