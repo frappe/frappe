@@ -682,6 +682,11 @@ Object.assign(frappe.utils, {
 		} else {
 			return null;
 		}
+	},
+	get_points(points) {
+		return `<span class='bold' style="color: ${points >= 0 ? '#45A163': '#e42121'}">
+			${points > 0 ? '+': ''}${points}
+		</span>`;
 	}
 });
 
