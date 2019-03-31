@@ -149,6 +149,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.get_fields_in_list_view(),
 			[this.meta.title_field, this.meta.image_field],
 			(this.settings.add_fields || []),
+			(this.settings.imageview_fields || []),
 			this.meta.track_seen ? '_seen' : null,
 			this.sort_by,
 			'enabled',
