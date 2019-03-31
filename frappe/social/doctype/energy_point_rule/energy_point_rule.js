@@ -15,7 +15,8 @@ frappe.ui.form.on('Energy Point Rule', {
 		frappe.model.with_doctype(reference_doctype, () => {
 			const map_for_options = df => ({ label: df.label, value: df.fieldname });
 			const fields = frappe.meta.get_docfields(frm.doc.reference_doctype);
-			const user_fields = fields.filter(df => df.fieldtype === 'Link' && df.options === 'User')
+			const user_fields = fields.filter(df => (df.fieldtype === 'Link' && df.options === 'User')
+				|| df.fieldtype === 'Data')
 				.map(map_for_options)
 				.concat([{label: __('Owner'), value: 'owner'}]);
 
