@@ -142,11 +142,9 @@ export default {
 </script>
 <style lang="less" scoped>
 @import "frappe/public/less/variables";
-
 .user-list {
 	border-left: 1px solid @border-color;
 	border-right: 1px solid @border-color;
-
 	.user-card {
 		display: flex;
 		cursor: pointer;
@@ -154,23 +152,20 @@ export default {
 		border-bottom: 1px solid @border-color;
 		.user-details {
 			flex: 1;
-
 			.italic {
 				font-style: italic;
 			}
 		}
 	}
 }
-
 .user-points {
 	flex: 0 0 20%;
 	text-align: right;
+	align-self: center;
 }
-
 .user-list-header {
 	background-color: @light-bg;
 }
-
 .search-bar {
 	position: sticky;
 	top: 0;
