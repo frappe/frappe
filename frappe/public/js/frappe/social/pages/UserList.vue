@@ -93,6 +93,9 @@ export default {
 		standard_users.forEach(user => delete this.users[user]);
 		this.users = Object.values(this.users);
 		this.fetch_users_energy_points_and_update_users();
+		frappe.realtime.on('update_points', () => {
+			this.fetch_users_energy_points_and_update_users();
+		});
 	},
 	methods: {
 		get_avatar(user) {
