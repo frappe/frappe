@@ -23,6 +23,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 	set_fields() {
 		this.fields = [
 			'name',
+			...this.settings.imageview_fields,
 			this.meta.title_field,
 			this.meta.image_field
 		];
@@ -65,12 +66,18 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 		item._name = encodeURI(item.name);
 		const encoded_name = item._name;
 		const title = strip_html(item[this.meta.title_field || 'name']);
+		const info_fields = this.settings.imageview_fields || []
 		const _class = !item._image_url ? 'no-image' : '';
 		const _html = item._image_url ?
 			`<img data-name="${encoded_name}" src="${ item._image_url }" alt="${ title }">` :
 			`<span class="placeholder-text">
 				${ frappe.get_abbr(title) }
 			</span>`;
+		let info_html = `<div><ul class="list-unstyled image-view-info">`
+		info_fields.forEach((field) => {
+			if (item[field]) info_html += `<li>${item[field]}</li>`
+		})
+		info_html += `</ul></div>`
 
 		return `
 			<div class="image-view-item">
@@ -94,6 +101,7 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 						</div>
 					</a>
 				</div>
+				${info_html}
 			</div>
 		`;
 	}
