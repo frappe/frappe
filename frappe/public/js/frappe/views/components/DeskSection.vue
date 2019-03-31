@@ -32,7 +32,7 @@ export default {
 					{
 						label: __('Shortcuts'),
 						fieldname: 'links',
-						fieldtype: 'MultiSelect',
+						fieldtype: 'MultiSelectPills',
 						get_data() {
 							return frappe.call('frappe.desk.moduleview.get_links', {
 								app: module.app,
