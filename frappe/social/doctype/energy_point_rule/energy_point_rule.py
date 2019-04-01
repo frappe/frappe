@@ -24,6 +24,10 @@ class EnergyPointRule(Document):
 
 			# incase of zero as result after roundoff
 			if not points: return
+
+			# if user_field has no value
+			if not user: return
+
 			try:
 				create_energy_points_log(reference_doctype, reference_name, {
 					'points': points,
@@ -31,7 +35,7 @@ class EnergyPointRule(Document):
 					'rule': rule
 				})
 			except Exception as e:
-				frappe.log_error('apply_energy_point', e)
+				frappe.log_error(e, 'apply_energy_point')
 
 
 def process_energy_points(doc, state):
