@@ -76,7 +76,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		return super.before_refresh();
 	}
 
-	before_render() {
+	after_render() {
 		if (this.report_doc) {
 			this.set_dirty_state_for_custom_report();
 		} else {
@@ -85,23 +85,25 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	set_dirty_state_for_custom_report() {
-		const json = JSON.stringify({
+		let current_settings = {
 			filters: this.filter_area.get(),
 			fields: this.fields,
 			order_by: this.sort_selector.get_sql_string(),
 			add_totals_row: this.add_totals_row,
-			page_length: this.page_length
-		});
+			page_length: this.page_length,
+			column_widths: this.get_column_widths()
+		}
 
-		const report_json = JSON.stringify({
+		let report_settings = {
 			filters: this.report_doc.json.filters,
 			fields: this.report_doc.json.fields,
 			order_by: this.report_doc.json.order_by,
 			add_totals_row: this.report_doc.json.add_totals_row,
-			page_length: this.report_doc.json.page_length
-		});
+			page_length: this.report_doc.json.page_length,
+			column_widths: this.report_doc.json.column_widths
+		}
 
-		if (json != report_json) {
+		if (!frappe.utils.deep_equal(current_settings, report_settings)) {
 			this.page.set_indicator(__('Not Saved'), 'orange');
 		} else {
 			this.page.clear_indicator();
@@ -830,10 +832,15 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			return docfield.fieldtype === 'Date' ? 'right' : 'left';
 		})();
 
-		const width = (docfield ? cint(docfield.width) : null) || null;
-
 		// child table column
 		const id = doctype !== this.doctype ? `${doctype}:${fieldname}` : fieldname;
+
+		let width = (docfield ? cint(docfield.width) : null) || null;
+		if (this.report_doc) {
+			// load the user saved column width
+			let saved_column_widths = this.report_doc.json.column_widths || {};
+			width = saved_column_widths[id] || width;
+		}
 
 		let compareFn = null;
 		if (docfield.fieldtype === 'Date') {
@@ -950,7 +957,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				fields: this.fields,
 				order_by: this.sort_selector.get_sql_string(),
 				add_totals_row: this.add_totals_row,
-				page_length: this.page_length
+				page_length: this.page_length,
+				column_widths: this.get_column_widths()
 			}
 
 			return frappe.call({
@@ -975,6 +983,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						};
 						this.list_sidebar.setup_reports();
 						frappe.set_route('List', this.doctype, 'Report', r.message);
+						return;
 					}
 
 					// update state
@@ -992,6 +1001,20 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				_save_report(data.name);
 			}, __('Save As'));
 		}
+	}
+
+	get_column_widths() {
+		if (this.datatable) {
+			return this.datatable
+				.datamanager
+				.getColumns(true)
+				.reduce((acc, curr) => {
+					acc[curr.id] = parseInt(curr.width);
+					return acc;
+				}, {});
+		}
+
+		return {};
 	}
 
 	get_report_doc() {
