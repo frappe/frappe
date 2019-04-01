@@ -118,8 +118,8 @@ export default {
 					frappe.call('frappe.desk.moduleview.hide_modules_from_desktop', {
 						modules: modules_to_hide
 					})
-						.then(r => r.message)
-						.then(hs => this.update_modules_with_home_settings(hs));
+					.then(r => r.message)
+					.then(hs => this.update_modules_with_home_settings(hs));
 				}
 			});
 
