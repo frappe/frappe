@@ -365,6 +365,7 @@ frappe.views.BaseList = class BaseList {
 			this.toggle_result_area();
 			this.before_render();
 			this.render();
+			this.after_render();
 			this.freeze(false);
 		});
 	}
@@ -387,6 +388,10 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	before_render() {
+
+	}
+
+	after_render() {
 
 	}
 
