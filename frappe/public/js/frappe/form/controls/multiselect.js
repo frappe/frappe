@@ -39,7 +39,7 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 	},
 
 	get_value() {
-		let data = this._super();
+		let data = this.value;
 		if (!data) return;
 		// find value of label from option list and return actual value string
 		if (this.options_label) {
