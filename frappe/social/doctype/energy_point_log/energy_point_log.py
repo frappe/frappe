@@ -20,6 +20,7 @@ class EnergyPointLog(Document):
 			frappe.publish_realtime('energy_point_alert', message=message, user=self.user)
 
 		frappe.cache().hdel('energy_points', self.user)
+		frappe.publish_realtime('update_points')
 
 def get_alert_message(doc):
 	message = ''

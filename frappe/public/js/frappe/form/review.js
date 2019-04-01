@@ -133,9 +133,7 @@ frappe.ui.form.Review = class Review {
 				let review_pill = $(`
 					<span class="review-pill">
 						${frappe.avatar(log.owner)}
-						<span class="bold" style="color: ${log.points > 0 ? '#45A163': '#e42121'}">
-							${log.points > 0 ? '+': ''}${log.points}
-						</span>
+						${frappe.utils.get_points(log.points)}
 					</span>
 				`);
 				this.review_list_wrapper.prepend(review_pill);
