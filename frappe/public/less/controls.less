@@ -94,3 +94,29 @@
 		color: @text-light;
 	}
 }
+
+.multiselect-wrapper {
+	display: flex !important;
+	flex-wrap: wrap;
+	border: 1px solid @border-color;
+	border-radius: 4px;
+	padding: 5px;
+
+	input {
+		border: none;
+
+		&:focus {
+			box-shadow: none;
+		}
+	}
+}
+
+.shortened-input .awesomplete {
+	width: inherit;
+}
+
+.multiselect-tag {
+	display: flex;
+	margin-right: 5px;
+	margin-bottom: 5px;
+}

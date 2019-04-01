@@ -4,7 +4,11 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 	make_input() {
 		this._super();
 		this.options_label = this.df.options && this.df.options.length && this.df.options[0].label;
-		this.$input_area = $(this.input_area);
+		this.$input_area = $(this.input_area).addClass('multiselect-wrapper');
+
+		if(this.df.tags) {
+			 $(this.input_area).addClass('shortened-input');
+		}
 	},
 
 	get_awesomplete_settings() {
@@ -108,13 +112,13 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 			.map(value => this.get_pill_html(value))
 			.join('');
 
-		this.$input_area.find('.tb-selected-value').remove();
+		this.$input_area.find('.multiselect-tag').remove();
 		this.$input_area.prepend(html);
 	},
 
 	get_pill_html(value) {
 		const encoded_value = encodeURIComponent(value);
-		return `<div class="btn-group tb-selected-value" data-value="${encoded_value}">
+		return `<div class="btn-group multiselect-tag" data-value="${encoded_value}">
 			<button class="btn btn-default btn-xs btn-link-to-form">${__(value)}</button>
 			<button class="btn btn-default btn-xs btn-remove">
 				<i class="fa fa-remove text-muted"></i>
