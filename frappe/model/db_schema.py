@@ -45,6 +45,7 @@ type_map = {
 	'Dynamic Link':		('varchar', varchar_len),
 	'Password':		('varchar', varchar_len),
 	'Select':		('varchar', varchar_len),
+	'Rating':		('int', '1'),
 	'Read Only':		('varchar', varchar_len),
 	'Attach':		('text', ''),
 	'Attach Image':		('text', ''),

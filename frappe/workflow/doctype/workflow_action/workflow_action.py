@@ -12,6 +12,7 @@ from frappe import _
 from frappe.model.workflow import apply_workflow, get_workflow_name, \
 	has_approval_access, get_workflow_state_field, send_email_alert
 from frappe.desk.notifications import clear_doctype_notifications
+from frappe.utils.user import get_users_with_role
 
 class WorkflowAction(Document):
 	pass
@@ -216,15 +217,6 @@ def get_confirm_workflow_action_url(doc, action, user):
 	}
 
 	return get_url(confirm_action_method + "?" + get_signed_params(params))
-
-
-def get_users_with_role(role):
-	return [p[0] for p in frappe.db.sql("""SELECT DISTINCT `tabUser`.`name`
-		FROM `tabHas Role`, `tabUser`
-		WHERE `tabHas Role`.`role`=%s
-		AND `tabUser`.`name`!='Administrator'
-		AND `tabHas Role`.`parent`=`tabUser`.`name`
-		AND `tabUser`.`enabled`=1""", role)]
 
 def is_workflow_action_already_created(doc):
 	return frappe.db.exists({

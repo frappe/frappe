@@ -137,6 +137,7 @@
 		"Cypress": true,
 		"cy": true,
 		"it": true,
+		"expect": true,
 		"context": true,
 		"before": true,
 		"beforeEach": true

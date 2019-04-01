@@ -26,7 +26,6 @@ frappe.views.ListSidebar = class ListSidebar {
 
 		this.setup_reports();
 		this.setup_list_filter();
-		this.setup_assigned_to();
 		this.setup_views();
 		this.setup_kanban_boards();
 		this.setup_calendar_view();
@@ -37,6 +36,15 @@ frappe.views.ListSidebar = class ListSidebar {
 		if (limits.upgrade_url && limits.expiry && !frappe.flags.upgrade_dismissed) {
 			this.setup_upgrade_box();
 		}
+
+		if(this.doctype !== 'ToDo') {
+			$('.assigned-to').show();
+		}
+		$('.assigned-to').on('click', () => {
+			$('.assigned').remove();
+			this.setup_assigned_to();
+		});
+
 	}
 
 	setup_views() {
@@ -217,14 +225,18 @@ frappe.views.ListSidebar = class ListSidebar {
 	}
 
 	setup_assigned_to() {
+		$('.assigned-loading').show();
 		let dropdown = this.page.sidebar.find('.assigned-dropdown');
-		if(this.doctype === 'ToDo') {
-			$('.assigned-to').remove();
-		}
-		frappe.call('frappe.desk.listview.get_user_assignments_and_count').then((data) => {
-			let current_user_count = data.message.find(user => user.name === frappe.session.user).count;
-			this.get_html_for_assigned(frappe.session.user, current_user_count).appendTo(dropdown);
-			let user_list = data.message.filter(user => !['Guest', frappe.session.user, 'Administrator'].includes(user.name));
+		let current_filters = this.list_view.get_filters_for_args();
+
+		frappe.call('frappe.desk.listview.get_user_assignments_and_count', {doctype: this.doctype, current_filters: current_filters}).then((data) => {
+			$('.assigned-loading').hide();
+			let current_user  = data.message.find(user => user.name === frappe.session.user);
+			if(current_user) {
+				let current_user_count = current_user.count;
+				this.get_html_for_assigned(frappe.session.user, current_user_count).appendTo(dropdown);
+			}
+			let user_list = data.message.filter(user => !['Guest', frappe.session.user, 'Administrator'].includes(user.name) && user.count!==0 );
 			user_list.forEach((user) => {
 				this.get_html_for_assigned(user.name, user.count).appendTo(dropdown);
 			});

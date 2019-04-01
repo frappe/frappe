@@ -117,7 +117,10 @@ def make_asset_dirs(make_copy=False, restore=False):
 							os.unlink(target)
 						else:
 							shutil.rmtree(target)
-					os.symlink(source, target)
+					try:
+						os.symlink(source, target)
+					except OSError:
+						print('Cannot link {} to {}'.format(source, target))
 			else:
 				# warnings.warn('Source {source} does not exist.'.format(source = source))
 				pass

@@ -859,13 +859,18 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			align,
 			compareValue: compareFn,
 			format: (value, row, column, data) => {
-				const d = row.reduce((acc, curr) => {
-					if (!curr.column.docfield) return acc;
-					acc[curr.column.docfield.fieldname] = curr.content;
-					return acc;
-				}, {});
+				let doc = null;
+				if (Array.isArray(row)) {
+					doc = row.reduce((acc, curr) => {
+						if (!curr.column.docfield) return acc;
+						acc[curr.column.docfield.fieldname] = curr.content;
+						return acc;
+					}, {});
+				} else {
+					doc = row;
+				}
 
-				return frappe.format(value, column.docfield, { always_show_decimals: true }, d);
+				return frappe.format(value, column.docfield, { always_show_decimals: true }, doc);
 			}
 		};
 	}

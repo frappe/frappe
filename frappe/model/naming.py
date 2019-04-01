@@ -88,21 +88,21 @@ def set_name_by_naming_series(doc):
 
 def make_autoname(key='', doctype='', doc=''):
 	"""
-   Creates an autoname from the given key:
+	Creates an autoname from the given key:
 
-   **Autoname rules:**
+	**Autoname rules:**
 
-         * The key is separated by '.'
-         * '####' represents a series. The string before this part becomes the prefix:
-            Example: ABC.#### creates a series ABC0001, ABC0002 etc
-         * 'MM' represents the current month
-         * 'YY' and 'YYYY' represent the current year
+		 * The key is separated by '.'
+		 * '####' represents a series. The string before this part becomes the prefix:
+			Example: ABC.#### creates a series ABC0001, ABC0002 etc
+		 * 'MM' represents the current month
+		 * 'YY' and 'YYYY' represent the current year
 
 
    *Example:*
 
-         * DE/./.YY./.MM./.##### will create a series like
-           DE/09/01/0001 where 09 is the year, 01 is the month and 0001 is the series
+		 * DE/./.YY./.MM./.##### will create a series like
+		   DE/09/01/0001 where 09 is the year, 01 is the month and 0001 is the series
 	"""
 	if key == "hash":
 		return frappe.generate_hash(doctype, 10)
@@ -121,7 +121,6 @@ def parse_naming_series(parts, doctype='', doc=''):
 	n = ''
 	if isinstance(parts, string_types):
 		parts = parts.split('.')
-
 	series_set = False
 	today = now_datetime()
 	for e in parts:
@@ -129,7 +128,7 @@ def parse_naming_series(parts, doctype='', doc=''):
 		if e.startswith('#'):
 			if not series_set:
 				digits = len(e)
-				part = getseries(n, digits, doctype)
+				part = getseries(n, digits)
 				series_set = True
 		elif e == 'YY':
 			part = today.strftime('%y')
@@ -141,6 +140,9 @@ def parse_naming_series(parts, doctype='', doc=''):
 			part = today.strftime('%Y')
 		elif e == 'FY':
 			part = frappe.defaults.get_user_default("fiscal_year")
+		elif e.startswith('{') and doc:
+			e = e.replace('{', '').replace('}', '')
+			part = doc.get(e)
 		elif doc and doc.get(e):
 			part = doc.get(e)
 		else:
@@ -152,7 +154,7 @@ def parse_naming_series(parts, doctype='', doc=''):
 	return n
 
 
-def getseries(key, digits, doctype=''):
+def getseries(key, digits):
 	# series created ?
 	current = frappe.db.sql("SELECT `current` FROM `tabSeries` WHERE `name`=%s FOR UPDATE", (key,))
 	if current and current[0][0] is not None:
