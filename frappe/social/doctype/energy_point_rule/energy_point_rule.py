@@ -35,7 +35,7 @@ class EnergyPointRule(Document):
 					'rule': rule
 				})
 			except Exception as e:
-				frappe.log_error(e, 'apply_energy_point')
+				frappe.log_error(frappe.get_traceback(), 'apply_energy_point')
 
 
 def process_energy_points(doc, state):
