@@ -9,6 +9,15 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 		if(this.df.tags) {
 			 $(this.input_area).addClass('shortened-input');
 		}
+
+		this.$input_area.on('click', '.btn-remove', (e) => {
+			const $target = $(e.currentTarget);
+			const $tag = $target.closest('.multiselect-tag');
+
+			const value_to_remove = decodeURIComponent($tag.data().value);
+			this.value = this.value.filter(val => val !== value_to_remove);
+			$tag.remove();
+		});
 	},
 
 	get_awesomplete_settings() {
