@@ -743,6 +743,12 @@ Object.assign(frappe.utils, {
 
 		return equal(a, b)
 		/* eslint-enable */
+  },
+
+	get_points(points) {
+		return `<span class='bold' style="color: ${points >= 0 ? '#45A163': '#e42121'}">
+			${points > 0 ? '+': ''}${points}
+		</span>`;
 	}
 });
 

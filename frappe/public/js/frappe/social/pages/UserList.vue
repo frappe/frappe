@@ -16,40 +16,52 @@
 				</span>
 			</li>
 			<li
-				class="user-card"
-				v-for="user in filtered_users" :key="user.name"
-				@click="go_to_profile_page(user.name)">
-				<div class="user-details flex">
-					<span v-html="get_avatar(user.name)"></span>
-					<div>
-						<div>{{ user.fullname }}</div>
-						<div class="text-muted text-medium" :class="{'italic': !user.bio}">
-							{{ frappe.ellipsis(user.bio, 100) || 'No Bio'}}
-						</div>
+				v-for="user in filtered_users"
+				:key="user.name"
+				@click="toggle_log(user.name)">
+				<div class="user-card">
+					<div class="user-details flex">
+						<span v-html="get_avatar(user.name)"></span>
+						<span>
+							<a @click="go_to_profile_page(user.name)">{{ user.fullname }}</a>
+							<div class="text-muted text-medium" :class="{'italic': !user.bio}">
+								{{ frappe.ellipsis(user.bio, 100) || 'No Bio'}}
+							</div>
+						</span>
 					</div>
+					<span class="text-muted text-nowrap user-points">
+						{{ user.energy_points }}
+					</span>
+					<span class="text-muted text-nowrap user-points">
+						{{ user.review_points }}
+					</span>
+					<span class="text-muted text-nowrap user-points">
+						{{ user.given_points }}
+					</span>
 				</div>
-				<span class="text-muted text-nowrap user-points">
-					{{ user.energy_points }}
-				</span>
-				<span class="text-muted text-nowrap user-points">
-					{{ user.review_points }}
-				</span>
-				<span class="text-muted text-nowrap user-points">
-					{{ user.given_points }}
-				</span>
+				<energy-point-history
+					v-if="show_log_for===user.name"
+					class="energy-point-history"
+					:user="user.name">
+				</energy-point-history>
 			</li>
-			<li class="text-muted" v-if="!filtered_users.length">{{__('No user found')}}</li>
+			<li class="user-card text-muted" v-if="!filtered_users.length">{{__('No user found')}}</li>
 		</ul>
 	</div>
 </template>
 <script>
+import EnergyPointHistory from '../components/EnergyPointHistory.vue';
 export default {
+	components: {
+		EnergyPointHistory
+	},
 	data() {
 		return {
 			users: [],
 			filter_users_by: null,
 			sort_users_by: 'energy_points',
 			sort_order: 'desc',
+			show_log_for: null
 		}
 	},
 	computed: {
@@ -93,6 +105,9 @@ export default {
 		standard_users.forEach(user => delete this.users[user]);
 		this.users = Object.values(this.users);
 		this.fetch_users_energy_points_and_update_users();
+		frappe.realtime.on('update_points', () => {
+			this.fetch_users_energy_points_and_update_users();
+		});
 	},
 	methods: {
 		get_avatar(user) {
@@ -114,42 +129,43 @@ export default {
 					return user;
 				});
 			});
+		},
+		toggle_log(user) {
+			if (this.show_log_for === user) {
+				this.show_log_for = null
+			} else {
+				this.show_log_for = user
+			}
 		}
 	}
 }
 </script>
 <style lang="less" scoped>
 @import "frappe/public/less/variables";
-
 .user-list {
 	border-left: 1px solid @border-color;
 	border-right: 1px solid @border-color;
-
 	.user-card {
 		display: flex;
 		cursor: pointer;
 		padding: 12px 15px;
 		border-bottom: 1px solid @border-color;
-
 		.user-details {
 			flex: 1;
-
 			.italic {
 				font-style: italic;
 			}
 		}
 	}
 }
-
 .user-points {
 	flex: 0 0 20%;
 	text-align: right;
+	align-self: center;
 }
-
 .user-list-header {
 	background-color: @light-bg;
 }
-
 .search-bar {
 	position: sticky;
 	top: 0;
@@ -161,6 +177,12 @@ export default {
 	}
 	width: 100%;
 	left: 0;
+}
+.energy-point-history {
+	border-bottom: 1px solid @border-color;
+	max-height: 300px;
+	overflow: scroll;
+	background-color: @light-bg;
 }
 </style>
 
