@@ -322,7 +322,7 @@ def update_desk_section_settings(desk_section, new_settings):
 	settings_json_str = json.dumps(home_settings)
 	# # This didn't work
 	# frappe.db.set_value("User", frappe.session.user, 'home_settings', json.dumps(home_settings))
-	frappe.db.sql("""update tabUser set home_settings = %s""", (settings_json_str), debug=True)
+	frappe.db.sql("""update `tabUser` set home_settings = %s""", (settings_json_str), debug=True)
 	frappe.db.commit()
 
 	return new_settings

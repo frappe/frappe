@@ -78,15 +78,35 @@ def get_modules_from_app(app):
 	return active_modules_list
 
 def get_all_empty_tables_by_module():
-	results = frappe.db.sql("""
-		SELECT
-			name, module
-		FROM information_schema.tables as i
-		JOIN tabDocType as d
-			ON i.table_name = CONCAT('tab', d.name)
-		WHERE table_rows = 0;
-
-	""")
+	results = frappe.db.multisql({
+		"mariadb": """SELECT
+						name, module
+					FROM information_schema.tables as i
+					JOIN tabDocType as d
+						ON i.table_name = CONCAT('tab', d.name)
+					WHERE table_rows = 0;""",
+		"postgres": """SELECT
+	    				NAME, module
+					FROM
+					(
+					SELECT
+						NAME, module, Concat('tab', NAME) AS tn
+					FROM
+						"tabDocType"
+					) t1
+					JOIN (
+						SELECT
+							relname
+						FROM
+							pg_class
+						JOIN pg_namespace ON (
+							pg_class.relnamespace = pg_namespace.oid
+						)
+						WHERE
+							relpages = 0
+							AND pg_namespace.nspname = 'public'
+					) t2 ON t1.tn = t2.relname;"""
+	})
 
 	empty_tables_by_module = {}
 
