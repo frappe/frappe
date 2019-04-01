@@ -1,6 +1,12 @@
 import Awesomplete from 'awesomplete';
 
 frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
+	make_input() {
+		this._super();
+		this.options_label = this.df.options && this.df.options.length && this.df.options[0].label;
+		this.$input_area = $(this.input_area);
+	},
+
 	get_awesomplete_settings() {
 		const settings = this._super();
 
@@ -36,20 +42,27 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 		let data = this._super();
 		if (!data) return;
 		// find value of label from option list and return actual value string
-		if (this.df.options && this.df.options.length && this.df.options[0].label) {
+		if (this.options_label) {
 			data = data.map(val => {
 				let option = this.df.options.find(op => op.label === val);
 				return option ? option.value : null;
-			}).filter(n => n != null);
+			}).filter(Boolean);
 		}
 		return data;
 	},
 
-	parse(value) {
+	validate(value) {
+		if (!value) return;
 		let values;
-		if(typeof value === 'string') {
+
+		if (typeof value === 'string') {
 			value = value.trim().replace(/\,$/, '');
-			values = value ? value.split(',').map(d => d.trim()) : [];
+			if (this.df.tags) {
+				values = this.value ? this.value : [];
+				values.push(value);
+			} else {
+				values = this.get_array_from_string_of_values(value);
+			}
 		} else {
 			values = value;
 		}
@@ -59,14 +72,20 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 	set_formatted_input(value) {
 		if (!value) return;
 		// find label of value from option list and set from it as input
-		if (this.df.options && this.df.options.length && this.df.options[0].label) {
+		if (this.options_label) {
 			value = value.map(val => {
 				let option = this.df.options.find(op => op.value === val);
 				return option ? option.label : val;
-			}).filter(n => n != null);
+			}).filter(Boolean);
 		}
-		value = value.join(', ');
-		this._super(value);
+
+		if(this.df.tags) {
+			this.set_pill_html(value);
+			this._super('');
+		} else {
+			value = value.join(', ');
+			this._super(value);
+		}
 	},
 
 	get_data() {
@@ -82,5 +101,28 @@ frappe.ui.form.ControlMultiSelect = frappe.ui.form.ControlAutocomplete.extend({
 		// return values which are not already selected
 		if(data) data.filter(d => !values.includes(d));
 		return data;
+	},
+
+	set_pill_html(values) {
+		const html = values
+			.map(value => this.get_pill_html(value))
+			.join('');
+
+		this.$input_area.find('.tb-selected-value').remove();
+		this.$input_area.prepend(html);
+	},
+
+	get_pill_html(value) {
+		const encoded_value = encodeURIComponent(value);
+		return `<div class="btn-group tb-selected-value" data-value="${encoded_value}">
+			<button class="btn btn-default btn-xs btn-link-to-form">${__(value)}</button>
+			<button class="btn btn-default btn-xs btn-remove">
+				<i class="fa fa-remove text-muted"></i>
+			</button>
+		</div>`;
+	},
+
+	get_array_from_string_of_values(value) {
+		return value ? value.split(',').map(d => d.trim()) : [];
 	}
 });
