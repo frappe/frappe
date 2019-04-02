@@ -17,6 +17,7 @@ from frappe.utils.change_log import get_versions
 from frappe.translate import get_lang_dict
 from frappe.email.inbox import get_email_accounts
 from frappe.core.doctype.feedback_trigger.feedback_trigger import get_enabled_feedback_trigger
+from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -78,6 +79,7 @@ def get_bootinfo():
 	bootinfo.gsuite_enabled = get_gsuite_status()
 	bootinfo.success_action = get_success_action()
 	bootinfo.update(get_email_accounts(user=frappe.session.user))
+	bootinfo.energy_points_enabled = is_energy_point_enabled()
 
 	return bootinfo
 
@@ -98,7 +100,6 @@ def load_conf_settings(bootinfo):
 def load_desktop_icons(bootinfo):
 	from frappe.config import get_modules_from_all_apps_for_user
 	bootinfo.allowed_modules = get_modules_from_all_apps_for_user()
-	bootinfo.home_settings = frappe.db.get_value("User", frappe.session.user, 'home_settings','')
 
 def get_allowed_pages():
 	return get_user_pages_or_reports('Page')

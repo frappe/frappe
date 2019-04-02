@@ -95,6 +95,7 @@
 		"public/js/frappe/form/controls/table_multiselect.js",
 		"public/js/frappe/form/controls/json.js",
 		"public/js/frappe/form/controls/jsonb.js",
+		"public/js/frappe/form/controls/multiselect_pills.js",
 		"public/js/frappe/form/controls/rating.js"
 	],
 	"js/dialog.min.js": [
@@ -266,8 +267,8 @@
 		"public/less/form_grid.less"
 	],
 	"js/form.min.js": [
-		"public/js/frappe/form/templates/print_layout.html",
 		"public/js/frappe/form/document_follow.js",
+		"public/js/frappe/form/templates/print_layout.html",
 		"public/js/frappe/form/templates/users_in_sidebar.html",
 		"public/js/frappe/form/templates/set_sharing.html",
 		"public/js/frappe/form/templates/form_sidebar.html",
@@ -288,6 +289,7 @@
 		"public/js/frappe/form/form_sidebar.js",
 		"public/js/frappe/form/user_image.js",
 		"public/js/frappe/form/share.js",
+		"public/js/frappe/form/review.js",
 		"public/js/frappe/form/form_viewers.js",
 		"public/js/frappe/form/footer/attachment.html",
 		"public/js/frappe/form/footer/form_footer.html",

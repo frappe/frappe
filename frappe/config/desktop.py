@@ -99,4 +99,15 @@ def get_data():
 			'idx': 15,
 			"description": "Build your profile and share posts with other users."
 		},
+		{
+			"module_name": 'leaderboard',
+			"category": "Places",
+			"label": _('Leaderboard'),
+			"icon": "octicon octicon-list-ordered",
+			"type": "link",
+			"link": "#social/users",
+			"color": '#FF4136',
+			'standard': 1,
+			'idx': 16
+		},
 	]

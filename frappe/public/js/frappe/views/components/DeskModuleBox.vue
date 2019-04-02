@@ -3,11 +3,6 @@
     v-if="!hidden"
     class="border module-box"
     :class="{ 'hovered-box': hovered }"
-    :draggable="true"
-    @dragstart="on_dragstart"
-    @dragend="on_dragend"
-    @dragenter="on_enter"
-    @drop="on_drop"
   >
     <div class="flush-top">
       <div class="module-box-content">
@@ -20,23 +15,12 @@
               </div>
             </h4>
           </a>
-          <dropdown v-if="links && links.length" :items="links">
+          <dropdown v-if="dropdown_links && dropdown_links.length" :items="dropdown_links">
             <span class="pull-right">
-              <i class="octicon octicon-chevron-down"></i>
+              <i class="octicon octicon-chevron-down text-muted"></i>
             </span>
           </dropdown>
-          <!-- <span class="drag-handle octicon octicon-three-bars text-extra-muted"></span> -->
         </div>
-        <!-- <p v-if="links && links.length" class="small text-muted">
-          <a
-            v-for="shortcut in links"
-            :key="(shortcut.name || shortcut.label) + shortcut.type"
-            :href="shortcut.route"
-            class="btn btn-default btn-xs shortcut-tag"
-            title="toggle Tag"
-            >{{ shortcut.label }}</a
-          >
-        </p>-->
       </div>
     </div>
   </div>
@@ -50,6 +34,7 @@ export default {
     "index",
     "name",
     "label",
+    "category",
     "type",
     "module_name",
     "link",
@@ -75,32 +60,21 @@ export default {
       } else {
         return "octicon octicon-file-text";
       }
-    }
+	},
+	dropdown_links() {
+		return this.links.length > 0 ? this.links
+			.filter(link => !link.hidden)
+			.concat([
+				{ label: __('Customize'), action: () => this.$emit('customize'), class: 'border-top' }
+			]) : [];
+	}
   },
-  methods: {
-    on_dragstart() {
-      this.$emit("box-dragstart", this.index);
-      return 0;
-    },
-    on_dragend() {
-      this.$emit("box-dragend", this.index);
-      return 0;
-    },
-    on_enter() {
-      this.$emit("box-enter", this.index);
-      // this.hovered = 1;
-    },
-    on_drop() {
-      this.$emit("box-drop", this.index);
-    },
-    on_exit() {
-      // this.hovered = 0;
-    }
-  }
 };
 </script>
 
 <style lang="less" scoped>
+@import "frappe/public/less/variables";
+
 .module-box {
   border-radius: 4px;
   padding: 5px 15px;
@@ -109,16 +83,21 @@ export default {
 }
 
 .module-box:hover {
-  box-shadow: 0 3px 4px 0 rgba(18, 18, 19, 0.08);
+	border-color: @text-muted;
 }
 
 .hovered-box {
-  background-color: #fafbfc;
+  background-color: @light-bg;
 }
 
 .octicon-chevron-down {
-  font-size: 24px;
-  padding: 5px;
+  font-size: 14px;
+  padding: 4px 6px 2px 6px;
+  border-radius: 4px;
+
+  &:hover {
+	background: @btn-bg;
+  }
 }
 
 .octicon-chevron-down:hover {
