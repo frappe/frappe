@@ -83,7 +83,8 @@ def get_user_default_value(df, defaults, doctype_user_permissions, allowed_recor
 	if df.fieldtype == "Link" and df.options != "User":
 		# 1 - look in user permissions only for document_type==Setup
 		# We don't want to include permissions of transactions to be used for defaults.
-		if frappe.get_meta(df.options).document_type=="Setup" and len(allowed_records)==1:
+		if (frappe.get_meta(df.options).document_type=="Setup"
+			and len(allowed_records)==1 and not df.ignore_user_permissions):
 			return allowed_records[0]
 
 		# 2 - Look in user defaults
