@@ -235,7 +235,7 @@ class Session:
 			user.last_login = frappe.utils.now()
 			user.last_ip = frappe.local.request_ip
 			user.last_active = frappe.utils.now()
-			user.save()
+			user.save(ignore_permissions=True)
 
 			frappe.db.commit()
 
