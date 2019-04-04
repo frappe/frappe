@@ -154,7 +154,6 @@
 		"public/js/lib/leaflet/leaflet.draw.js",
 		"public/js/lib/leaflet/L.Control.Locate.js",
 		"public/js/lib/leaflet/easy-button.js",
-		"node_modules/js-sha256/build/sha256.min.js",
 		"node_modules/qz-tray/qz-tray.js"
 	],
 	"js/desk.min.js": [

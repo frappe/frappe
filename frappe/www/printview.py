@@ -184,8 +184,8 @@ def get_html_and_style(doc, name=None, print_format=None, meta=None,
 
 	if print_format and print_format.raw_printing:
 		return {
-			"html": '<div class="alert alert-info">'
-		+ _("Note: This Print Format is in Raw Commands and cannot be previewed.")
+			"html": '<div class="text-muted text-center" style="font-size: 2em; margin-top: 80px;">'
+		+ _("No Preview Available")
 		+ '</div>'
 		}
 
