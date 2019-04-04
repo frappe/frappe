@@ -771,6 +771,12 @@ frappe.PrintFormatBuilder = Class.extend({
 						df.fieldtype = "HTML";
 						df.options = $($this.find(".html-content")[0]).data('content');
 					}
+					
+					if($this.attr("data-reptext")){
+						this.innerText = $this.attr("data-reptext");
+						alert($this.attr("data-reptext"));
+					}
+					
 					data.push(df);
 				});
 			});
