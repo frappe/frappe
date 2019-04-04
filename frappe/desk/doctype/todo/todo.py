@@ -4,9 +4,11 @@
 from __future__ import unicode_literals
 import frappe
 import json
+import calendar
 
 from frappe.model.document import Document
 from frappe.utils import get_fullname
+from frappe.utils.background_jobs import enqueue
 
 from frappe import _
 from frappe.utils.data import add_to_date, getdate
@@ -15,9 +17,30 @@ subject_field = "description"
 sender_field = "sender"
 exclude_from_linked_with = True
 
+
 class ToDo(Document):
+	def check_date(self):
+		if self.start_date > self.date:
+			frappe.throw(_("Start Date over Due Date is not allowed"))
+		elif self.start_date == self.date:
+			frappe.throw(_("Start Date same as Due Date is not allowed"))
+
+	def check_delta_frequency(self):
+		start = getdate(self.start_date)
+		end = getdate(self.date)
+
+		if self.frequency == "Weekly" and (add_to_date(start, days=7) > end):
+			frappe.throw(_("Date range is not allowed, should be at least 7 days"))
+		if self.frequency == "Monthly" and (add_to_date(start, months=1) > end):
+			frappe.throw(_("Date range is not allowed, should be at least 1 month"))
+
 	def validate(self):
 		self._assignment = None
+
+		if self.is_recurring:
+			self.check_date()
+			self.check_delta_frequency()
+
 		if self.is_new():
 			if self.assigned_by == self.owner:
 				assignment_message = frappe._("{0} self assigned this task: {1}").format(get_fullname(self.assigned_by), self.description)
@@ -43,38 +66,9 @@ class ToDo(Document):
 
 		self.update_in_reference()
 
-	def make_recurred_todo(self):
-		startdate = getdate()
-		date = getdate(self.date)
-
-		if date == startdate:
-			frappe.throw(_("Due date should not be today"))
-
-		if self.frequency == 'Weekly':
-			startdate = add_to_date(startdate, days=get_weekdate(startdate, self.day_of_week))
-
-		days_interval = get_interval_days(self.frequency) if self.frequency != "Monthly" else 0
-		months_interval = 1 if self.frequency == "Monthly" else 0
-
-		iterdate = startdate
-
-		while iterdate < date:
-			iterdate = add_to_date(iterdate, days=days_interval, months=months_interval)
-
-			if self.frequency == 'Weekdays' and is_weekend(iterdate):
-				continue
-
-			frappe.get_doc({
-				'doctype': 'ToDo',
-				'description': self.description,
-				'date': iterdate
-			}).insert()
-
-		self.date = startdate
-
-	def before_save(self):
-		if self.flags.in_insert and self.is_recurring:
-			self.make_recurred_todo()
+	def after_insert(self):
+		if self.is_recurring:
+			enqueue(make_recurred_todo, doc=self)
 
 	def on_trash(self):
 		# unlink todo from linked comments
@@ -143,31 +137,42 @@ def has_permission(doc, user):
 
 
 def get_interval_days(frequency):
-	if frequency in ("Daily", "Weekdays"):
-		return 1
-	elif frequency == "Weekly":
-		return 7
-
-
-def get_weekday(frequency):
-	weekdays = {
-		'Monday': 0,
-		'Tuesday': 1,
-		'Wednesday': 2,
-		'Thursday': 3,
-		'Friday': 4,
-		'Saturday': 5,
-		'Sunday': 6
+	days = {
+		"Daily": 1,
+		"Weekdays": 1,
+		"Weekly": 7,
+		"Monthly": 30
 	}
-	return weekdays[frequency]
-
-
-def get_weekdate(date, day_of_week):
-	return ((7 - date.weekday()) + get_weekday(day_of_week)) % 7
+	return days[frequency]
 
 
 def is_weekend(date):
-	return date.weekday() in [5, 6]
+	return date.weekday() in [calendar.SATURDAY, calendar.SUNDAY]
+
+
+def make_recurred_todo(doc):
+	iterdate = getdate(doc.start_date)
+	interval = get_interval_days(doc.frequency)
+	months, days = divmod(interval, 30)
+
+	while iterdate < getdate(doc.date):
+		iterdate = add_to_date(iterdate, days=days, months=months)
+
+		if doc.frequency == "Weekdays" and is_weekend(iterdate):
+			continue
+
+		frappe.get_doc({
+			'doctype': 'ToDo',
+			'priority': doc.priority,
+			'color': doc.color,
+			'owner': doc.owner,
+			'date': iterdate,
+			'description': doc.description,
+			'reference_type': doc.reference_type,
+			'reference_name': doc.reference_name,
+			'role': doc.role,
+			'assigned_by': doc.assigned_by
+		}).insert()
 
 
 @frappe.whitelist()
