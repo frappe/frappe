@@ -3,14 +3,14 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import validate_email_add
+from frappe.utils import validate_email_address
 
 def execute():
 	''' update/delete the email group member with the wrong email '''
 
 	email_group_members = frappe.get_all("Email Group Member", fields=["name", "email"])
 	for member in email_group_members:
-		validated_email = validate_email_add(member.email)
+		validated_email = validate_email_address(member.email)
 		if (validated_email==member.email):
 			pass
 		else:

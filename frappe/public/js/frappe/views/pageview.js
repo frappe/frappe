@@ -43,18 +43,18 @@ frappe.views.pageview = {
 			name = (frappe.boot ? frappe.boot.home_page : window.page_name);
 
 			if(name === "desktop") {
-				let page = frappe.container.add_page('desktop');
+				if(!frappe.pages.desktop) {
+					let page = frappe.container.add_page('desktop');
+					let container = $('<div class="container"></div>').appendTo(page);
+					container = $('<div></div>').appendTo(container);
+
+					new Vue({
+						el: container[0],
+						render: h => h(Desktop)
+					});
+				}
+
 				frappe.container.change_to('desktop');
-
-				let container = $('<div class="container"></div>').appendTo(page);
-				container = $('<div></div>').appendTo(container);
-
-				Vue.prototype.__ = window.__;
-				Vue.prototype.frappe = window.frappe;
-				new Vue({
-					el: container[0],
-					render: h => h(Desktop)
-				});
 				return;
 			}
 		}

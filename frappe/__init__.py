@@ -24,7 +24,7 @@ if sys.version[0] == '2':
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '11.1.6'
+__version__ = '11.1.17'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -187,6 +187,9 @@ def connect(site=None, db_name=None):
 
 	local.db = get_db(user=db_name or local.conf.db_name)
 	set_user("Administrator")
+
+	for hook in get_hooks("connect") or []:
+		get_attr(hook)()
 
 def connect_read_only():
 	from frappe.database import get_db
@@ -498,12 +501,14 @@ def read_only():
 		def wrapper_fn(*args, **kwargs):
 			if conf.use_slave_for_read_only:
 				connect_read_only()
-
-			retval = fn(*args, **get_newargs(fn, kwargs))
-
-			if local and hasattr(local, 'master_db'):
-				local.db.close()
-				local.db = local.master_db
+			try:
+				retval = fn(*args, **get_newargs(fn, kwargs))
+			except:
+				raise
+			finally:
+				if local and hasattr(local, 'master_db'):
+					local.db.close()
+					local.db = local.master_db
 
 			return retval
 		return wrapper_fn
@@ -918,11 +923,15 @@ def get_hooks(hook=None, default=None, app_name=None):
 					append_hook(hooks, key, getattr(app_hooks, key))
 		return hooks
 
+	no_cache = conf.developer_mode or False
 
 	if app_name:
 		hooks = _dict(load_app_hooks(app_name))
 	else:
-		hooks = _dict(cache().get_value("app_hooks", load_app_hooks))
+		if no_cache:
+			hooks = _dict(load_app_hooks())
+		else:
+			hooks = _dict(cache().get_value("app_hooks", load_app_hooks))
 
 	if hook:
 		return hooks.get(hook) or (default if default is not None else [])

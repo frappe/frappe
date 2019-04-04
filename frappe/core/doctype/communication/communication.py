@@ -5,12 +5,13 @@ from __future__ import unicode_literals, absolute_import
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_add, get_fullname, strip_html, cstr
+from frappe.utils import validate_email_address, get_fullname, strip_html, cstr
 from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_mins_to_first_response)
 from frappe.core.utils import get_parent_doc, set_timeline_doc
 from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr
+from frappe.core.doctype.comment.comment import update_comment_in_doc
 
 from collections import Counter
 
@@ -105,7 +106,10 @@ class Communication(Document):
 					user=self.reference_name, after_commit=True)
 
 	def on_update(self):
-		"""Update parent status as `Open` or `Replied`."""
+		# add to _comment property of the doctype, so it shows up in
+		# comments count for the list view
+		update_comment_in_doc(self)
+
 		if self.comment_type != 'Updated':
 			update_parent_mins_to_first_response(self)
 			self.bot_reply()
@@ -145,7 +149,7 @@ class Communication(Document):
 				self.sender = None
 			else:
 				if self.sent_or_received=='Sent':
-					validate_email_add(self.sender, throw=True)
+					validate_email_address(self.sender, throw=True)
 				sender_name, sender_email = parse_addr(self.sender)
 				if sender_name == sender_email:
 					sender_name = None

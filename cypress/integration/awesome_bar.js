@@ -1,5 +1,6 @@
 context('Awesome Bar', () => {
 	before(() => {
+		cy.visit('/login');
 		cy.login('Administrator', 'qwe');
 		cy.visit('/desk');
 	});

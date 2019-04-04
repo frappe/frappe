@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import clear_cache
-from frappe.utils import today, cint, global_date_format, get_fullname, strip_html_tags, markdown
+from frappe.utils import today, cint, global_date_format, get_fullname, strip_html_tags, markdown, sanitize_html
 from frappe.website.utils import (find_first_image, get_html_content_based_on_type,
 	get_comment_list)
 
@@ -28,7 +28,8 @@ class BlogPost(WebsiteGenerator):
 		super(BlogPost, self).validate()
 
 		if not self.blog_intro:
-			self.blog_intro = self.content[:140]
+			content = get_html_content_based_on_type(self, 'content', self.content_type)
+			self.blog_intro = content[:140]
 			self.blog_intro = strip_html_tags(self.blog_intro)
 
 		if self.blog_intro:
@@ -56,17 +57,18 @@ class BlogPost(WebsiteGenerator):
 
 		if self.blogger:
 			context.blogger_info = frappe.get_doc("Blogger", self.blogger).as_dict()
+			context.author = self.blogger
 
-		context.description = self.blog_intro or self.content[:140]
 
 		context.content = get_html_content_based_on_type(self, 'content', self.content_type)
+		context.description = self.blog_intro or context.content[:140]
 
 		context.metatags = {
 			"name": self.title,
 			"description": context.description,
 		}
 
-		image = find_first_image(self.content)
+		image = find_first_image(context.content)
 		if image:
 			context.metatags["image"] = image
 
@@ -100,7 +102,7 @@ def get_list_context(context=None):
 		title = _('Blog')
 	)
 
-	category = frappe.local.form_dict.blog_category or frappe.local.form_dict.category
+	category = sanitize_html(frappe.local.form_dict.blog_category or frappe.local.form_dict.category)
 	if category:
 		category_title = get_blog_category(category)
 		list_context.sub_title = _("Posts filed under {0}").format(category_title)
@@ -112,7 +114,7 @@ def get_list_context(context=None):
 		list_context.title = blogger
 
 	elif frappe.local.form_dict.txt:
-		list_context.sub_title = _('Filtered by "{0}"').format(frappe.local.form_dict.txt)
+		list_context.sub_title = _('Filtered by "{0}"').format(sanitize_html(frappe.local.form_dict.txt))
 
 	if list_context.sub_title:
 		list_context.parents = [{"name": _("Home"), "route": "/"},
@@ -160,11 +162,14 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 			t1.title, t1.name, t1.blog_category, t1.route, t1.published_on,
 				t1.published_on as creation,
 				t1.content as content,
+				t1.content_type as content_type,
+				t1.content_html as content_html,
+				t1.content_md as content_md,
 				ifnull(t1.blog_intro, t1.content) as intro,
 				t2.full_name, t2.avatar, t1.blogger,
 				(select count(name) from `tabComment`
 					where
-						and comment_type='Comment'
+						comment_type='Comment'
 						and reference_doctype='Blog Post'
 						and reference_name=t1.name) as comments
 		from `tabBlog Post` t1, `tabBlogger` t2
@@ -180,9 +185,12 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 	posts = frappe.db.sql(query, as_dict=1)
 
 	for post in posts:
+
+		post.content = get_html_content_based_on_type(post, 'content', post.content_type)
 		post.cover_image = find_first_image(post.content)
 		post.published = global_date_format(post.creation)
-		post.content = strip_html_tags(post.content[:340])
+		post.content = strip_html_tags(post.content)
+
 		if not post.comments:
 			post.comment_text = _('No comments yet')
 		elif post.comments==1:

@@ -130,3 +130,10 @@ p {
 	padding: 10px;
 	border-radius: 4px;
 }
+
+.toggle-password {
+  right: 9px;
+  top: 9px;
+  position: absolute;
+  z-index: 2;
+}

@@ -16,6 +16,7 @@ from frappe.model import optional_fields, table_fields
 from frappe.model.workflow import validate_workflow
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
+from frappe.desk.form.document_follow import follow_document
 
 # once_only validation
 # methods
@@ -212,12 +213,12 @@ class Document(BaseDocument):
 		self.set_docstatus()
 		self.check_if_latest()
 		self.run_method("before_insert")
+		self._validate_links()
 		self.set_new_name()
 		self.set_parent_in_children()
 		self.validate_higher_perm_levels()
 
 		self.flags.in_insert = True
-		self._validate_links()
 		self.run_before_save_methods()
 		self._validate()
 		self.set_docstatus()
@@ -1014,6 +1015,8 @@ class Document(BaseDocument):
 		version = frappe.new_doc('Version')
 		if version.set_diff(self._doc_before_save, self):
 			version.insert(ignore_permissions=True)
+			if not frappe.flags.in_migrate:
+				follow_document(self.doctype, self.name, frappe.session.user)
 
 	@staticmethod
 	def whitelist(f):
@@ -1151,7 +1154,7 @@ class Document(BaseDocument):
 				frappe.local.flags.commit = True
 
 	def add_viewed(self, user=None):
-		'''add log to communication when a user viewes a document'''
+		'''add log to communication when a user views a document'''
 		if not user:
 			user = frappe.session.user
 
@@ -1179,6 +1182,12 @@ class Document(BaseDocument):
 		if not self.get("__onload"):
 			self.set("__onload", frappe._dict())
 		self.get("__onload")[key] = value
+
+	def get_onload(self, key=None):
+		if not key:
+			return self.get("__onload", frappe._dict())
+
+		return self.get('__onload')[key]
 
 	def update_timeline_doc(self):
 		if frappe.flags.in_install or not self.meta.get("timeline_field"):
@@ -1215,7 +1224,7 @@ class Document(BaseDocument):
 
 		if file_lock.lock_exists(self.get_signature()):
 			frappe.throw(_('This document is currently queued for execution. Please try again'),
-				title=_('Document Queued'), indicator='red')
+				title=_('Document Queued'))
 
 		self.lock()
 		enqueue('frappe.model.document.execute_action', doctype=self.doctype, name=self.name,

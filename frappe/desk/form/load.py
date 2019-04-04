@@ -9,6 +9,7 @@ import frappe.defaults
 import frappe.desk.form.meta
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
+from frappe.desk.form.document_follow import is_document_followed
 from frappe import _
 
 @frappe.whitelist()
@@ -90,7 +91,6 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		doc = frappe.get_doc(doctype, name)
 		if not doc.has_permission("read"):
 			raise frappe.PermissionError
-
 	frappe.response["docinfo"] = {
 		"attachments": get_attachments(doc.doctype, doc.name),
 		"communications": _get_communications(doc.doctype, doc.name),
@@ -101,7 +101,9 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"permissions": get_doc_permissions(doc),
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
 		"rating": get_feedback_rating(doc.doctype, doc.name),
-		"views": get_view_logs(doc.doctype, doc.name)
+		"views": get_view_logs(doc.doctype, doc.name),
+		"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
+		"document_follow_enabled": frappe.db.get_value("User", frappe.session.user, "document_follow_notify")
 	}
 
 def get_attachments(dt, dn):

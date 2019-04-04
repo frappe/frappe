@@ -25,10 +25,9 @@
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... });
 Cypress.Commands.add('login', (email, password) => {
 	cy.request({
-		url: '/',
+		url: '/api/method/login',
 		method: 'POST',
 		body: {
-			cmd: 'login',
 			usr: email,
 			pwd: password
 		}
@@ -49,4 +48,30 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype='Data') => {
 	} else {
 		return cy.get('@input').type(value);
 	}
+});
+
+Cypress.Commands.add('awesomebar', (text) => {
+	cy.get('#navbar-search').type(`${text}{downarrow}{enter}`, { delay: 100 });
+});
+
+Cypress.Commands.add('new_form', (doctype) => {
+	cy.visit(`/desk#Form/${doctype}/New ${doctype} 1`);
+});
+
+Cypress.Commands.add('go_to_list', (doctype) => {
+	cy.visit(`/desk#List/${doctype}/List`);
+});
+
+Cypress.Commands.add('dialog', (title, fields) => {
+	cy.window().then(win => {
+		var d = new win.frappe.ui.Dialog({
+			title: title,
+			fields: fields,
+			primary_action: function(){
+				d.hide();
+			}
+		});
+		d.show();
+		return d;
+	});
 });

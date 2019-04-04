@@ -8,7 +8,6 @@ import json
 from frappe.integrations.doctype.braintree_settings.braintree_settings import get_client_token, get_gateway_controller
 
 no_cache = 1
-no_sitemap = 1
 
 expected_keys = ('amount', 'title', 'description', 'reference_doctype', 'reference_docname',
 	'payer_name', 'payer_email', 'order_id', 'currency')

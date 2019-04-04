@@ -68,13 +68,27 @@
 	<li class="h6 viewers-label">{%= __("Currently Viewing") %}</li>
 	<li class="form-viewers"></li>
 </ul>
-<ul class="list-unstyled sidebar-menu text-muted">
+<ul class="list-unstyled sidebar-menu">
 	<li class="liked-by-parent">
 		<span class="liked-by">
 			<i class="octicon octicon-heart like-action text-extra-muted fa-fw"></i>
 			<span class="likes-count"></span>
 		</span>
 	</li>
+</ul>
+<ul class="list-unstyled sidebar-menu followed-by-section">
+	<li class="h6 followed-by-label text-medium hidden">{%= __("Followed by") %}</li>
+	<li class="followed-by"></li>
+	<li class="document-follow">
+		<a class="strong badge-hover follow-document-link hidden">
+			{%= __("Follow") %}
+		</a>
+		<a class="strong badge-hover unfollow-document-link hidden">
+			{%= __("Unfollow") %}
+		</a>
+	</li>
+</ul>
+<ul class="list-unstyled sidebar-menu text-muted">
 	<li class="modified-by"></li>
 	<li class="created-by"></li>
 </ul>

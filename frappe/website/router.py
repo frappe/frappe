@@ -215,7 +215,10 @@ def get_page_info(path, app, start, basepath=None, app_path=None, fname=None):
 	setup_source(page_info)
 
 	# extract properties from HTML comments
-	load_properties(page_info)
+	load_properties_from_source(page_info)
+
+	# extract properties from controller attributes
+	load_properties_from_controller(page_info)
 
 	# if not page_info.title:
 	# 	print('no-title-for', page_info.route)
@@ -285,8 +288,8 @@ def setup_index(page_info):
 		if os.path.exists(index_txt_path):
 			page_info.index = open(index_txt_path, 'r').read().splitlines()
 
-def load_properties(page_info):
-	'''Load properties like no_cache, title from raw'''
+def load_properties_from_source(page_info):
+	'''Load properties like no_cache, title from source html'''
 
 	if not page_info.title:
 		page_info.title = extract_title(page_info.source, page_info.route)
@@ -322,7 +325,21 @@ def load_properties(page_info):
 		page_info.no_cache = 1
 
 	if "<!-- no-sitemap -->" in page_info.source:
-		page_info.no_cache = 1
+		page_info.sitemap = 0
+
+	if "<!-- sitemap -->" in page_info.source:
+		page_info.sitemap = 1
+
+def load_properties_from_controller(page_info):
+	if not page_info.controller: return
+
+	module = frappe.get_module(page_info.controller)
+	if not module: return
+
+	for prop in ("base_template_path", "template", "no_cache",
+		"sitemap", "condition_field"):
+		if hasattr(module, prop):
+			page_info[prop] = getattr(module, prop)
 
 def get_doctypes_with_web_view():
 	'''Return doctypes with Has Web View or set via hooks'''

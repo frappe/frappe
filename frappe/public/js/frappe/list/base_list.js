@@ -104,7 +104,9 @@ frappe.views.BaseList = class BaseList {
 			}
 			return f;
 		});
-		//de-dup
+		// remove null or undefined values
+		this.fields = this.fields.filter(Boolean);
+		//de-duplicate
 		this.fields = this.fields.uniqBy(f => f[0] + f[1]);
 	}
 
@@ -363,6 +365,7 @@ frappe.views.BaseList = class BaseList {
 			this.toggle_result_area();
 			this.before_render();
 			this.render();
+			this.after_render();
 			this.freeze(false);
 			if (this.settings.refresh) {
 				this.settings.refresh(this);
@@ -388,6 +391,10 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	before_render() {
+
+	}
+
+	after_render() {
 
 	}
 

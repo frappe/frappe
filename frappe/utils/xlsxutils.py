@@ -61,10 +61,17 @@ def handle_html(data):
 	obj = HTML2Text()
 	obj.ignore_links = True
 	obj.body_width = 0
-	value = obj.handle(h)
+
+	try:
+		value = obj.handle(h)
+	except Exception:
+		# unable to parse html, send it raw
+		return value
+
 	value = ", ".join(value.split('  \n'))
 	value = " ".join(value.split('\n'))
 	value = ", ".join(value.split('# '))
+
 	return value
 
 def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=None):

@@ -328,6 +328,12 @@ class User(Document):
 			and reference_doctype='User'
 			and (reference_name=%s or owner=%s)""", (self.name, self.name))
 
+		# unlink contact
+		frappe.db.sql("""update `tabContact`
+			set `user`=null
+			where `user`=%s""", (self.name))
+
+
 	def before_rename(self, old_name, new_name, merge=False):
 		self.check_demo()
 		frappe.clear_cache(user=old_name)
@@ -341,8 +347,8 @@ class User(Document):
 		self.validate_email_type(new_name)
 
 	def validate_email_type(self, email):
-		from frappe.utils import validate_email_add
-		validate_email_add(email.strip(), True)
+		from frappe.utils import validate_email_address
+		validate_email_address(email.strip(), True)
 
 	def after_rename(self, old_name, new_name, merge=False):
 		tables = frappe.db.get_tables()
@@ -424,6 +430,9 @@ class User(Document):
 
 	def password_strength_test(self):
 		""" test password strength """
+		if self.flags.ignore_password_policy:
+			return
+
 		if self.__new_password:
 			user_data = (self.first_name, self.middle_name, self.last_name, self.email, self.birth_date)
 			result = test_password_strength(self.__new_password, '', None, user_data)
@@ -770,7 +779,7 @@ def sign_up(email, full_name, redirect_to):
 		if frappe.db.sql("""select count(*) from tabUser where
 			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 300:
 
-			frappe.respond_as_web_page(_('Temperorily Disabled'),
+			frappe.respond_as_web_page(_('Temporarily Disabled'),
 				_('Too many users signed up recently, so the registration is disabled. Please try back in an hour'),
 				http_status_code=429)
 
@@ -784,6 +793,7 @@ def sign_up(email, full_name, redirect_to):
 			"user_type": "Website User"
 		})
 		user.flags.ignore_permissions = True
+		user.flags.ignore_password_policy = True
 		user.insert()
 
 		# set default signup role as per Portal Settings
@@ -1042,7 +1052,7 @@ def update_roles(role_profile):
 		user.set('roles', [])
 		user.add_roles(*roles)
 
-def create_contact(user, ignore_links=False):
+def create_contact(user, ignore_links=False, ignore_mandatory=False):
 	if user.name in ["Administrator", "Guest"]: return
 
 	if not frappe.db.get_value("Contact", {"email_id": user.email}):
@@ -1055,7 +1065,7 @@ def create_contact(user, ignore_links=False):
 			"gender": user.gender,
 			"phone": user.phone,
 			"mobile_no": user.mobile_no
-		}).insert(ignore_permissions=True, ignore_links=ignore_links)
+		}).insert(ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory)
 
 
 @frappe.whitelist()

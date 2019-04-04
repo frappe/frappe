@@ -1,8 +1,9 @@
 from __future__ import unicode_literals
-from frappe import _
-import frappe
-from frappe.desk.moduleview import get_data
+import json
 from six import iteritems
+import frappe
+from frappe import _
+from frappe.desk.moduleview import (get_data, get_onboard_items, config_exists, get_module_link_items_from_list)
 
 def get_modules_from_all_apps_for_user(user=None):
 	if not user:
@@ -10,8 +11,19 @@ def get_modules_from_all_apps_for_user(user=None):
 
 	all_modules = get_modules_from_all_apps()
 	user_blocked_modules = frappe.get_doc('User', user).get_blocked_modules()
-
 	allowed_modules_list = [m for m in all_modules if m.get("module_name") not in user_blocked_modules]
+
+	empty_tables_by_module = get_all_empty_tables_by_module()
+
+	for module in allowed_modules_list:
+		module_name = module.get("module_name")
+
+		# Apply onboarding status
+		if module_name in empty_tables_by_module:
+			module["onboard_present"] = 1
+
+		# Set defaults links
+		module["links"] =  get_onboard_items(module["app"], frappe.scrub(module_name))[:5]
 
 	return allowed_modules_list
 
@@ -33,6 +45,7 @@ def get_modules_from_app(app):
 		active_modules_list = []
 		for m, module in iteritems(modules):
 			module['module_name'] = m
+			module['app'] = app
 			active_modules_list.append(module)
 	else:
 		for m in modules:
@@ -48,42 +61,45 @@ def get_modules_from_app(app):
 			module_name = m.get("module_name")
 
 			# Check Domain
-			if is_domain(m):
-				if module_name not in active_domains:
-					to_add = False
+			if is_domain(m) and module_name not in active_domains:
+				to_add = False
+
+			# Check if config
+			if is_module(m) and not config_exists(app, frappe.scrub(module_name)):
+				to_add = False
 
 			if "condition" in m and not m["condition"]:
 				to_add = False
 
 			if to_add:
-				onboard_present = is_onboard_present(m) if show_onboard(m) else False
-				m["onboard_present"] = onboard_present
+				m["app"] = app
 				active_modules_list.append(m)
 
 	return active_modules_list
 
-@frappe.whitelist()
-def is_onboard_present(module):
-	exists_cache = {}
-	def exists(name, link_type):
-		exists = exists_cache.get(name)
-		if not exists:
-			if link_type == "doctype" and not frappe.db.get_value('DocType', name, 'issingle'):
-				exists = frappe.db.count(name)
-			else:
-				exists = True
-			exists_cache[name] = exists
-		return exists
+def get_all_empty_tables_by_module():
+	results = frappe.db.sql("""
+		SELECT
+			name, module
+		FROM information_schema.tables as i
+		JOIN tabDocType as d
+			ON i.table_name = CONCAT('tab', d.name)
+		WHERE table_rows = 0;
 
-	sections = get_data(module["module_name"], False)
-	for section in sections:
-		for item in section["items"]:
-			if exists(item.get("name"), item.get("type")):
-				return True
-	return False
+	""")
 
-def show_onboard(module):
-	return module.get("type") == "module"
+	empty_tables_by_module = {}
+
+	for doctype, module in results:
+		if module in empty_tables_by_module:
+			empty_tables_by_module[module].append(doctype)
+		else:
+			empty_tables_by_module[module] = [doctype]
+
+	return empty_tables_by_module
 
 def is_domain(module):
 	return module.get("category") == "Domains"
+
+def is_module(module):
+	return module.get("type") == "module"

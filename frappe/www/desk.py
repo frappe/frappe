@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals, print_function
 
-no_sitemap = 1
 no_cache = 1
 base_template_path = "templates/www/desk.html"
 

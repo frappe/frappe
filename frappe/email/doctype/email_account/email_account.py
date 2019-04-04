@@ -9,7 +9,7 @@ import json
 import socket
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_add, cint, get_datetime, DATE_FORMAT, strip, comma_or, sanitize_html
+from frappe.utils import validate_email_address, cint, get_datetime, DATE_FORMAT, strip, comma_or, sanitize_html
 from frappe.utils.user import is_system_user
 from frappe.utils.jinja import render_template
 from frappe.email.smtp import SMTPServer
@@ -39,7 +39,7 @@ class EmailAccount(Document):
 	def validate(self):
 		"""Validate Email Address and check POP3/IMAP and SMTP connections is enabled."""
 		if self.email_id:
-			validate_email_add(self.email_id, True)
+			validate_email_address(self.email_id, True)
 
 		if self.login_id_is_different:
 			if not self.login_id:
@@ -79,7 +79,7 @@ class EmailAccount(Document):
 			if not self.send_notification_to:
 				frappe.throw(_("{0} is mandatory").format(self.meta.get_label("send_notification_to")))
 			for e in self.get_unreplied_notification_emails():
-				validate_email_add(e, True)
+				validate_email_address(e, True)
 
 		if self.enable_incoming and self.append_to:
 			valid_doctypes = [d[0] for d in get_append_to()]

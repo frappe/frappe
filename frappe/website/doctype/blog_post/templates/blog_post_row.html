@@ -1,35 +1,27 @@
 {%- set post = doc -%}
-<div class="web-list-item blog-list-item">
+<div class="web-list-item blog-list-item my-5">
 	<div class="row">
-		<div class="col-xs-12">
-			<h1><a href="/{{ post.route }}">{{ post.title }}</a></h1>
+		<div class="col-12 col-md-7">
+			<h4><a href="/{{ post.route }}" class="text-dark">{{ post.title }}</a></h4>
 			{% if post.cover_image %}
 			<p>
 				<img  class="blogpost-cover-img" src="{{ post.cover_image }}" alt="{{post.title}} - Cover Image">
 			</p>
 			{% endif %}
-			<p class="post-description">{{ post.intro }}</p>
-
-			<div>
-				<div class="inline-block" style="vertical-align: top">
-					<div class="avatar">
-						<img itemprop="thumbnailUrl" src="{{ post.avatar or "/assets/frappe/images/default-avatar.png" }}" />
-					</div>
-				</div>
-				<div class="inline-block" style="width: calc(100% - 100px)">
-					<div class='text-muted'>
-						<a href="/blog?blogger={{ post.blogger }}">{{ post.full_name }}</a>
-					</div>
-					<div class="text-muted small">
-						{{ frappe.format_date(post.published_on) }}
-						{% if post.comments %}
-						<span style='display: inline-block; margin-left: 10px;'>
-						<i class='octicon octicon-comment-discussion'></i> {{ post.comments }}
-						</span>
-						{% endif %}
-					</div>
-				</div>
-			</div>
+			<p class="post-description text-muted">{{ post.intro }}</p>
+			<p class="text-muted small">
+				<a class="text-muted" href="/blog?blogger={{ post.blogger }}">{{ post.full_name }}</a>
+				&middot;
+				{{ frappe.format_date(post.published_on) }}
+				{% if post.comments %}
+                &middot;
+                {% if post.comments == 1 %}
+                {{ _('1 comment') }}
+                {% else %}
+				{{ _('{0} comments').format(post.comments) }}
+                {% endif %}
+				{% endif %}
+			</p>
 		</div>
 	</div>
 </div>

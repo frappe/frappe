@@ -85,12 +85,12 @@ $.extend(frappe.model, {
 
 	set_default_values: function(doc, parent_doc) {
 		var doctype = doc.doctype;
-		var docfields = frappe.meta.docfield_list[doctype] || [];
+		var docfields = frappe.meta.get_docfields(doctype);
 		var updated = [];
 		for(var fid=0;fid<docfields.length;fid++) {
 			var f = docfields[fid];
 			if(!in_list(frappe.model.no_value_type, f.fieldtype) && doc[f.fieldname]==null) {
-				var v = frappe.model.get_default_value(f, doc, parent_doc);
+				var v = !f.depends_on || doc[f.depends_on] ? frappe.model.get_default_value(f, doc, parent_doc) : null;
 				if(v) {
 					if(in_list(["Int", "Check"], f.fieldtype))
 						v = cint(v);
@@ -114,7 +114,7 @@ $.extend(frappe.model, {
 		if(meta && meta.istable) return;
 
 		// create empty rows for mandatory table fields
-		frappe.meta.docfield_list[doc.doctype].forEach(function(df) {
+		frappe.meta.get_docfields(doc.doctype).forEach(function(df) {
 			if(df.fieldtype==='Table' && df.reqd) {
 				frappe.model.add_child(doc, df.fieldname);
 			}

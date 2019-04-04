@@ -296,7 +296,7 @@
  "issingle": 1, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2018-08-07 04:12:43.691760", 
+ "modified": "2019-02-25 04:12:43.691760", 
  "modified_by": "Administrator", 
  "module": "Integrations", 
  "name": "S3 Backup Settings", 

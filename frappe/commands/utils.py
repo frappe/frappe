@@ -223,15 +223,16 @@ def export_csv(context, doctype, path):
 			frappe.destroy()
 
 @click.command('export-fixtures')
+@click.option('--app', default=None, help='Export fixtures of a specific app')
 @pass_context
-def export_fixtures(context):
+def export_fixtures(context, app=None):
 	"Export fixtures"
 	from frappe.utils.fixtures import export_fixtures
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			export_fixtures()
+			export_fixtures(app=app)
 		finally:
 			frappe.destroy()
 
