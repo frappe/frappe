@@ -12,7 +12,7 @@
 				{{ __('Show / Hide Cards') }}
 			</a>
 			<desk-section
-				v-if="get_modules_for_category(category)"
+				v-if="get_modules_for_category(category).length"
 				:category="category"
 				:modules="get_modules_for_category(category)"
 				@update_home_settings="hs => update_modules_with_home_settings(hs)"
