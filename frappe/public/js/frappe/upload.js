@@ -223,9 +223,8 @@ frappe.upload = {
 		var i = -1;
 		frappe.upload.total_files = files ? files.length : 0;
 
-		if (frappe.upload.total_files === 1){
-			frappe.upload.upload_file(files[0], args, opts);
-			return;
+		if (frappe.upload.total_files === 1) {
+			return frappe.upload.upload_file(files[0], args, opts);
 		}
 		// upload the first file
 		upload_next();
