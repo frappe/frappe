@@ -83,10 +83,10 @@ def generate_report_result(report, filters=None, user=None):
 				data_to_be_printed = res[4]
 
 	if result:
-		result = get_filtered_data(report.ref_doctype, columns, result, user)
+		result, columns = get_filtered_data(report.ref_doctype, columns, result, user, report.add_custom_fields_in_report)
 
-	if cint(report.add_total_row) and result:
-		result = add_total_row(result, columns)
+	# if cint(report.add_total_row) and result:
+	# 	result = add_total_row(result, columns)
 
 	return {
 		"result": result,
@@ -354,7 +354,7 @@ def add_total_row(result, columns, meta = None):
 	return result
 
 
-def get_filtered_data(ref_doctype, columns, data, user):
+def get_filtered_data(ref_doctype, columns, data, user, add_custom_fields):
 	result = []
 	linked_doctypes = get_linked_doctypes(columns, data)
 	match_filters_per_doctype = get_user_match_filters(linked_doctypes, user=user)
@@ -363,6 +363,46 @@ def get_filtered_data(ref_doctype, columns, data, user):
 
 	role_permissions = get_role_permissions(frappe.get_meta(ref_doctype), user)
 	if_owner = role_permissions.get("if_owner", {}).get("report")
+
+	doc_fields_map = {}
+	custom_field_value_map = {}
+
+	if add_custom_fields:
+
+		fields = frappe.db.sql(""" select dt, fieldname, fieldtype from `tabCustom Field`
+			where fieldtype not in ('Section Break', 'Column Break') and
+			dt in (%s)""" % ', '.join(['%s']* len(linked_doctypes)), tuple([doctype for doctype in linked_doctypes.keys()]), as_dict=1)
+
+		for d in fields:
+			doc_fields_map.setdefault(d.dt, [])
+			doc_fields_map.get(d.dt).append(d.fieldname)
+
+			columns.append({
+				"label": frappe.unscrub(d.fieldname),
+				"fieldname": d.filedname,
+				"fieldtype": d.fieldtype,
+				"width": 100
+			})
+
+		for doctype in linked_doctypes.keys():
+			if doc_fields_map.get(doctype):
+				values = frappe.db.sql("select name, {fields} from `tab{doctype}` "
+					.format(fields = ", ".join(doc_fields_map.get(doctype)), doctype=doctype), as_dict=1)
+
+				for value in values:
+					custom_field_value_map.setdefault(value.name, value)
+
+		for row in data:
+			for index, column in enumerate(columns):
+				print(index,column)
+				if isinstance(row, dict) and column.get("fieldtype") == "Link":
+					fieldname = column.get("fieldname")
+					row.update({ "test_field": custom_field_value_map.get(row.get(fieldname),{}).get("test_field")})
+				else:
+					print("$$$$$$$$$$")
+					custom_field_value_map.get(row[index],{})
+					row.append(custom_field_value_map.get(row[index],{}).get("test_field"))
+
 
 	if match_filters_per_doctype:
 		for row in data:
@@ -375,7 +415,7 @@ def get_filtered_data(ref_doctype, columns, data, user):
 	else:
 		result = list(data)
 
-	return result
+	return result, columns
 
 
 def has_match(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner, columns_dict, user):
