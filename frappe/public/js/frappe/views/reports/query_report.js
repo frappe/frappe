@@ -92,7 +92,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.load_report();
 		} else {
 			// same report
-			this.refresh_report();
+			// don't do anything to preserve state
+			// like filters and datatable column widths
 		}
 	}
 
