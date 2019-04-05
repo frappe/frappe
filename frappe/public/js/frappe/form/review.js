@@ -75,7 +75,7 @@ frappe.ui.form.Review = class Review {
 
 		return involved_users
 			.uniqBy(u => u)
-			.filter(user => user !== frappe.session.user)
+			.filter(user => !['Administrator', frappe.session.user].includes(user))
 			.filter(Boolean);
 	}
 	show_review_dialog() {
