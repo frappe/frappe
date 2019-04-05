@@ -158,13 +158,13 @@ def get_reviews(doctype, docname):
 	}, fields=['points', 'owner', 'type', 'user', 'reason', 'creation'])
 
 @frappe.whitelist()
-def revert(name, reason=None):
+def revert(name, reason):
 	frappe.only_for('System Manager')
 	doc_to_revert = frappe.get_doc('Energy Point Log', name)
 	doc_to_revert.reverted = 1
 	doc_to_revert.save()
 
-	frappe.get_doc({
+	revert_log = frappe.get_doc({
 		'doctype': 'Energy Point Log',
 		'points': -doc_to_revert.points,
 		'type': 'Revert',
@@ -172,5 +172,7 @@ def revert(name, reason=None):
 		'reason': reason,
 		'reference_doctype': doc_to_revert.reference_doctype,
 		'reference_name': doc_to_revert.reference_name,
-		'revert_for': doc_to_revert.name
+		'revert_of': doc_to_revert.name
 	}).insert()
+
+	return revert_log
