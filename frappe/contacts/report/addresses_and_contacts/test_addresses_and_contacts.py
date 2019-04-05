@@ -99,9 +99,9 @@ class TestAddressesAndContacts(unittest.TestCase):
 		create_linked_contact(links_list)
 		create_linked_address(links_list)
 		report_data = get_data({"reference_doctype": "Test Custom Doctype"})
-		for link in links_list:
+		for idx, link in enumerate(links_list):
 			test_item = [link, 'test address line 1', 'test address line 2', 'Milan', None, None, 'Italy', 0, '_Test First Name', '_Test Last Name', '+91 0000000000', None, 'test_contact@example.com', 1]
-			self.assertEquals(test_item, report_data)
+			self.assertListEqual(test_item, report_data[idx])
 
 	def tearDown(self):
 		frappe.db.rollback()
