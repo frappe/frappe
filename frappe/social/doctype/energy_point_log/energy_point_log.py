@@ -15,33 +15,40 @@ class EnergyPointLog(Document):
 			frappe.throw(_('You cannot give review points to yourself'))
 
 	def after_insert(self):
-		message = get_alert_message(self)
-		if message:
-			frappe.publish_realtime('energy_point_alert', message=message, user=self.user)
+		alert_dict = get_alert_dict(self)
+		if alert_dict:
+			frappe.publish_realtime('energy_point_alert', message=alert_dict, user=self.user)
 
 		frappe.cache().hdel('energy_points', self.user)
 		frappe.publish_realtime('update_points')
 
-def get_alert_message(doc):
-	message = ''
+def get_alert_dict(doc):
+	alert_dict = frappe._dict({
+		'message': '',
+		'indicator': 'green'
+	})
 	owner_name = get_fullname(doc.owner)
 	doc_link = frappe.get_desk_link(doc.reference_doctype, doc.reference_name)
 	points = frappe.bold(doc.points)
 	if doc.type == 'Auto':
-		message=_('You gained {} points').format(points)
+		alert_dict.message=_('You gained {} points').format(points)
 	elif doc.type == 'Appreciation':
-		message = _('{} appreciated your work on {} with {} points'.format(
+		alert_dict.message = _('{} appreciated your work on {} with {} points'.format(
 			owner_name,
 			doc_link,
 			points
 		))
 	elif doc.type == 'Criticism':
-		message = _('{} criticized your work on {} with {} points'.format(
+		alert_dict.message = _('{} criticized your work on {} with {} points'.format(
 			owner_name,
 			doc_link,
 			points
 		))
-	return message
+		alert_dict.indicator = 'red'
+	else:
+		alert_dict = {}
+
+	return alert_dict
 
 def create_energy_points_log(ref_doctype, ref_name, doc):
 	doc = frappe._dict(doc)
