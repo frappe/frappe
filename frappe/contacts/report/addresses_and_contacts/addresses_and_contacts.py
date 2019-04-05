@@ -67,10 +67,14 @@ def get_reference_addresses_and_contact(reference_doctype, reference_name):
 			result.extend(add_blank_columns_for("Address"))
 			data.append(result)
 		else:
-			result = [reference_name]
-			result.extend(list(addresses) or add_blank_columns_for("Address"))
-			result.extend(list(contacts) or add_blank_columns_for("Contact"))
-			data.append(result)
+			max_length = max(len(addresses), len(contacts))
+			for idx in range(0, max_length):
+				result = [reference_name]
+
+				result.extend(list(addresses[idx].values()) if idx < len(addresses) else add_blank_columns_for("Address"))
+				result.extend(list(contacts[idx].values()) if idx < len(contacts) else add_blank_columns_for("Contact"))
+
+				data.append(result)
 
 	return data
 
@@ -81,9 +85,14 @@ def get_reference_details(reference_doctype, doctype, reference_list, reference_
 	]
 	fields = ["`tabDynamic Link`.link_name"] + field_map.get(doctype, [])
 
-	records = frappe.get_list(doctype, filters=filters, fields=fields, as_list=True)
+	records = frappe.get_list(doctype, filters=filters, fields=fields)
+	temp_records = list()
+
 	for d in records:
-		reference_details[d[0]][frappe.scrub(doctype)] = d[1:]
+		d.pop('link_name')
+		temp_records.append(d)
+
+	reference_details[reference_list[0]][frappe.scrub(doctype)] = temp_records
 	return reference_details
 
 def add_blank_columns_for(doctype):
