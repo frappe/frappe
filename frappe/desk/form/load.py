@@ -140,7 +140,8 @@ def get_comments(doctype, name):
 def get_point_logs(doctype, docname):
 	return frappe.db.get_all('Energy Point Log', filters={
 		'reference_doctype': doctype,
-		'reference_name': docname
+		'reference_name': docname,
+		'type': ['!=', 'Review']
 	}, fields=['*'])
 
 def _get_communications(doctype, name, start=0, limit=20):
