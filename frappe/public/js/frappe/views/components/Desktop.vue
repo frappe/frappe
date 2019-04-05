@@ -107,7 +107,7 @@ export default {
 			});
 			const d = new frappe.ui.Dialog({
 				title: __('Show / Hide Cards'),
-				fields,
+				fields: fields.filter(f => f.options.length > 0),
 				primary_action_label: __('Save'),
 				primary_action: (values) => {
 					let all_modules = this.modules.map(m => m.module_name);
