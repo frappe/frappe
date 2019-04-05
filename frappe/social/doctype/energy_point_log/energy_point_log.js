@@ -5,7 +5,7 @@ frappe.ui.form.on('Energy Point Log', {
 	refresh: function(frm) {
 		if (frm.doc.reverted) {
 			frm.set_intro(__('This document has been reverted'));
-		} else if (!['Revert', 'Review'].includes(frm.doc.type)
+		} else if (frm.doc.type === 'Auto'
 			&& frappe.user_roles.includes('System Manager')) {
 			frm.add_custom_button(__('Revert'), () => frm.events.show_revert_dialog(frm));
 		}

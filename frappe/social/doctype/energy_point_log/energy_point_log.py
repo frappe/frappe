@@ -161,12 +161,16 @@ def get_reviews(doctype, docname):
 def revert(name, reason):
 	frappe.only_for('System Manager')
 	doc_to_revert = frappe.get_doc('Energy Point Log', name)
+
+	if doc_to_revert.type != 'Auto':
+		frappe.throw(_('This document cannot be reverted'))
+
 	doc_to_revert.reverted = 1
 	doc_to_revert.save()
 
 	revert_log = frappe.get_doc({
 		'doctype': 'Energy Point Log',
-		'points': -doc_to_revert.points,
+		'points': -(doc_to_revert.points),
 		'type': 'Revert',
 		'user': doc_to_revert.user,
 		'reason': reason,
