@@ -15,33 +15,46 @@ class EnergyPointLog(Document):
 			frappe.throw(_('You cannot give review points to yourself'))
 
 	def after_insert(self):
-		message = get_alert_message(self)
-		if message:
-			frappe.publish_realtime('energy_point_alert', message=message, user=self.user)
+		alert_dict = get_alert_dict(self)
+		if alert_dict:
+			frappe.publish_realtime('energy_point_alert', message=alert_dict, user=self.user)
 
 		frappe.cache().hdel('energy_points', self.user)
 		frappe.publish_realtime('update_points')
 
-def get_alert_message(doc):
-	message = ''
+def get_alert_dict(doc):
+	alert_dict = frappe._dict({
+		'message': '',
+		'indicator': 'green'
+	})
 	owner_name = get_fullname(doc.owner)
 	doc_link = frappe.get_desk_link(doc.reference_doctype, doc.reference_name)
 	points = frappe.bold(doc.points)
 	if doc.type == 'Auto':
-		message=_('You gained {} points').format(points)
+		alert_dict.message=_('You gained {} points').format(points)
 	elif doc.type == 'Appreciation':
-		message = _('{} appreciated your work on {} with {} points'.format(
+		alert_dict.message = _('{} appreciated your work on {} with {} points'.format(
 			owner_name,
 			doc_link,
 			points
 		))
 	elif doc.type == 'Criticism':
-		message = _('{} criticized your work on {} with {} points'.format(
+		alert_dict.message = _('{} criticized your work on {} with {} points'.format(
 			owner_name,
 			doc_link,
 			points
 		))
-	return message
+		alert_dict.indicator = 'red'
+	elif doc.type == 'Revert':
+		alert_dict.message = _('{} reverted your points on {}'.format(
+			owner_name,
+			doc_link,
+		))
+		alert_dict.indicator = 'red'
+	else:
+		alert_dict = {}
+
+	return alert_dict
 
 def create_energy_points_log(ref_doctype, ref_name, doc):
 	doc = frappe._dict(doc)
@@ -134,6 +147,8 @@ def review(doc, points, to_user, reason, review_type='Appreciation'):
 		docname=review_doc.name
 	)
 
+	return review_doc
+
 @frappe.whitelist()
 def get_reviews(doctype, docname):
 	return frappe.get_all('Energy Point Log', filters={
@@ -141,3 +156,27 @@ def get_reviews(doctype, docname):
 		'reference_name': docname,
 		'type': ['in', ('Appreciation', 'Criticism')],
 	}, fields=['points', 'owner', 'type', 'user', 'reason', 'creation'])
+
+@frappe.whitelist()
+def revert(name, reason):
+	frappe.only_for('System Manager')
+	doc_to_revert = frappe.get_doc('Energy Point Log', name)
+
+	if doc_to_revert.type != 'Auto':
+		frappe.throw(_('This document cannot be reverted'))
+
+	doc_to_revert.reverted = 1
+	doc_to_revert.save()
+
+	revert_log = frappe.get_doc({
+		'doctype': 'Energy Point Log',
+		'points': -(doc_to_revert.points),
+		'type': 'Revert',
+		'user': doc_to_revert.user,
+		'reason': reason,
+		'reference_doctype': doc_to_revert.reference_doctype,
+		'reference_name': doc_to_revert.reference_name,
+		'revert_of': doc_to_revert.name
+	}).insert()
+
+	return revert_log

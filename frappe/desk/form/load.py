@@ -102,6 +102,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
 		"rating": get_feedback_rating(doc.doctype, doc.name),
 		"views": get_view_logs(doc.doctype, doc.name),
+		"energy_point_logs": get_point_logs(doc.doctype, doc.name),
 		"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
 		"document_follow_enabled": frappe.db.get_value("User", frappe.session.user, "document_follow_notify")
 	}
@@ -135,6 +136,13 @@ def get_comments(doctype, name):
 			c.content = frappe.utils.markdown(c.content)
 
 	return comments
+
+def get_point_logs(doctype, docname):
+	return frappe.db.get_all('Energy Point Log', filters={
+		'reference_doctype': doctype,
+		'reference_name': docname,
+		'type': ['!=', 'Review']
+	}, fields=['*'])
 
 def _get_communications(doctype, name, start=0, limit=20):
 	communications = get_communication_data(doctype, name, start, limit)
