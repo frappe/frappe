@@ -113,7 +113,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 
 	clear() {
-		super();
+		super.clear();
 		this.clear_message();
 	}
 
