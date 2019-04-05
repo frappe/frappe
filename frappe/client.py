@@ -7,6 +7,7 @@ from frappe import _
 import frappe.model
 import frappe.utils
 import json, os
+from frappe.utils import get_safe_filters
 
 from six import iteritems, string_types, integer_types
 
@@ -358,7 +359,7 @@ def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder
 		doc.set(docfield, _file.file_url)
 		doc.save()
 
-	return f.as_dict()
+	return _file.as_dict()
 
 def check_parent_permission(parent, child_doctype):
 	if parent:
@@ -371,16 +372,3 @@ def check_parent_permission(parent, child_doctype):
 			return
 	# Either parent not passed or the user doesn't have permission on parent doctype of child table!
 	raise frappe.PermissionError
-
-def get_safe_filters(filters):
-	try:
-		filters = json.loads(filters)
-
-		if isinstance(filters, (integer_types, float)):
-			filters = frappe.as_unicode(filters)
-
-	except (TypeError, ValueError):
-		# filters are not passesd, not json
-		pass
-
-	return filters

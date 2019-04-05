@@ -36,6 +36,9 @@ class WebsiteGenerator(Document):
 		})
 
 	def validate(self):
+		self.set_route()
+
+	def set_route(self):
 		if self.is_website_published() and not self.route:
 			self.route = self.make_route()
 

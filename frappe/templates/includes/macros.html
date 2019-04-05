@@ -1,0 +1,19 @@
+{% macro square_image_with_fallback(src=None, size=None, alt=None, class="") %}
+{% if src %}
+<img
+	{% if size %}
+	width="{{size}}"
+	height="{{size}}"
+	{% endif %}
+
+	{% if src %}
+	src="{{ src }}"
+	{% endif %}
+
+	class="{{ class }} "
+	alt="{{ alt or '' }}"
+>
+{% else %}
+<div class="no-image bg-light {{ class }} " {% if size %}style="width: {{size}}; height: {{size}};"{% endif %}></div>
+{% endif %}
+{% endmacro %}

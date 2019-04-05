@@ -104,7 +104,7 @@ create index on "tabDocPerm" ("parent");
 
 DROP TABLE IF EXISTS "tabDocType";
 CREATE TABLE "tabDocType" (
-  "name" varchar(255) NOT NULL DEFAULT '',
+  "name" varchar(255) NOT NULL,
   "creation" timestamp(6) DEFAULT NULL,
   "modified" timestamp(6) DEFAULT NULL,
   "modified_by" varchar(255) DEFAULT NULL,
@@ -140,11 +140,9 @@ CREATE TABLE "tabDocType" (
   "allow_rename" smallint NOT NULL DEFAULT 0,
   "allow_import" smallint NOT NULL DEFAULT 0,
   "hide_toolbar" smallint NOT NULL DEFAULT 0,
-  "hide_heading" smallint NOT NULL DEFAULT 0,
   "track_seen" smallint NOT NULL DEFAULT 0,
   "max_attachments" bigint NOT NULL DEFAULT 0,
   "print_outline" varchar(255) DEFAULT NULL,
-  "read_only_onload" smallint NOT NULL DEFAULT 0,
   "document_type" varchar(255) DEFAULT NULL,
   "icon" varchar(255) DEFAULT NULL,
   "color" varchar(255) DEFAULT NULL,
@@ -158,7 +156,6 @@ CREATE TABLE "tabDocType" (
   "_user_tags" varchar(255) DEFAULT NULL,
   "custom" smallint NOT NULL DEFAULT 0,
   "beta" smallint NOT NULL DEFAULT 0,
-  "image_view" smallint NOT NULL DEFAULT 0,
   "has_web_view" smallint NOT NULL DEFAULT 0,
   "allow_guest_to_view" smallint NOT NULL DEFAULT 0,
   "route" varchar(255) DEFAULT NULL,

@@ -1,6 +1,6 @@
-<div class="comment-view">
+<div class="comment-view mb-4">
 	{% if comment_text %}
-	<div class="comment-header">{{ comment_text }}</div>
+	<div class="comment-header mb-4">{{ comment_text }}</div>
 	{% endif %}
 	{% if not comment_list %}
 	<div class="no-comment">
@@ -9,8 +9,10 @@
 	{% endif %}
 
 	<div itemscope itemtype="http://schema.org/UserComments" id="comment-list">
-		{% for comment in comment_list %}
-		{% include "templates/includes/comments/comment.html" %}
+        {% for comment in comment_list %}
+        <div class="my-3">
+            {% include "templates/includes/comments/comment.html" %}
+        </div>
 		{% endfor %}
 	</div>
 </div>
@@ -22,20 +24,20 @@
 	</div>
 
 	<div class="comment-form-wrapper">
-		<a class="add-comment btn btn-default btn-xs">{{ _("Add Comment") }}</a>
+		<a class="add-comment btn btn-light btn-sm">{{ _("Add Comment") }}</a>
 			<div style="display: none;" id="comment-form">
 			<p>{{ _("Leave a Comment") }}</p>
 			<div class="alert" style="display:none;"></div>
 			<form>
 				<fieldset>
-					<div class="row {% if _login_required %}hide{% endif %}"
+					<div class="row {% if _login_required %} hidden {% endif %}"
 						style="margin-bottom: 15px;">
 						<div class="col-sm-6">
-							<input class="form-control" name="comment_by_fullname"
+							<input class="form-control" name="comment_by"
 								placeholder="{{ _("Your Name") }}" type="text">
 						</div>
 						<div class="col-sm-6">
-							<input class="form-control" name="comment_by"
+							<input class="form-control" name="comment_email"
 								placeholder="{{ _("Your Email Address") }}" type="email">
 						</div>
 					</div>
@@ -74,8 +76,8 @@
                 full_name = frappe.get_cookie("full_name");
                 user_id = frappe.get_cookie("user_id");
                 if(user_id != "Guest") {
-        			$("[name='comment_by']").val(user_id);
-        			$("[name='comment_by_fullname']").val(full_name);
+        			$("[name='comment_email']").val(user_id);
+        			$("[name='comment_by']").val(full_name);
                 }
             }
 			$("#comment-form textarea").val("");
@@ -83,8 +85,8 @@
 
 		$("#submit-comment").click(function() {
 			var args = {
-				comment_by_fullname: $("[name='comment_by_fullname']").val(),
 				comment_by: $("[name='comment_by']").val(),
+				comment_email: $("[name='comment_email']").val(),
 				comment: $("[name='comment']").val(),
 				reference_doctype: "{{ reference_doctype or doctype }}",
 				reference_name: "{{ reference_name or name }}",
@@ -92,12 +94,12 @@
 				route: "{{ pathname }}",
 			}
 
-			if(!args.comment_by_fullname || !args.comment_by || !args.comment) {
+			if(!args.comment_by || !args.comment_email || !args.comment) {
 				frappe.msgprint("{{ _("All fields are necessary to submit the comment.") }}");
 				return false;
 			}
 
-			if (args.comment_by!=='Administrator' && !validate_email(args.comment_by)) {
+			if (args.comment_email!=='Administrator' && !validate_email(args.comment_email)) {
 				frappe.msgprint("{{ _("Please enter a valid email address.") }}");
 				return false;
 			}
@@ -112,11 +114,16 @@
 						if(r._server_messages)
 							frappe.msgprint(r._server_messages);
 					} else {
-						$(r.message).appendTo("#comment-list");
+						if (r.message) {
+							$(r.message).appendTo("#comment-list");
+						} else {
+							// probably spam
+							frappe.msgprint('{{ _("Thank you for your comment. It will be published after approval") }}');
+						}
 						$(".no-comment, .add-comment").toggle(false);
 						$("#comment-form").toggle();
 					}
-					$(".add-comment").text('{{ _("Add Another Comment") }}');
+					$(".add-comment").text(__("Add Another Comment"));
 					$(".add-comment").toggle();
 				}
 			})

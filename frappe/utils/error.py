@@ -13,7 +13,6 @@ import traceback
 import linecache
 import pydoc
 import cgitb
-import types
 import datetime
 import json
 import six
@@ -200,3 +199,15 @@ def clear_old_snapshots():
 
 def get_error_snapshot_path():
 	return frappe.get_site_path('error-snapshots')
+
+def get_frame_locals():
+	traceback = sys.exc_info()[2]
+	frames = []
+	if traceback:
+		frames = inspect.getinnerframes(traceback, context=0)
+		_locals = ['Locals (most recent call last):']
+		for frame, filename, lineno, function, __, __ in frames:
+			if '/apps/' in filename:
+				_locals.append('File "{}", line {}, in {}\n{}'.format(filename, lineno, function, json.dumps(frame.f_locals, default=str, indent=4)))
+
+		return '\n'.join(_locals)

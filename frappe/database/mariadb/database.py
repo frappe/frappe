@@ -27,7 +27,7 @@ class MariaDBDatabase(Database):
 		self.type_map = {
 			'Currency':		('decimal', '18,6'),
 			'Int':			('int', '11'),
-			'Long Int':		('bigint', '20'), # convert int to bigint if length is more than 11
+			'Long Int':		('bigint', '20'),
 			'Float':		('decimal', '18,6'),
 			'Percent':		('decimal', '18,6'),
 			'Check':		('int', '1'),
@@ -46,6 +46,7 @@ class MariaDBDatabase(Database):
 			'Dynamic Link':	('varchar', self.VARCHAR_LEN),
 			'Password':		('varchar', self.VARCHAR_LEN),
 			'Select':		('varchar', self.VARCHAR_LEN),
+			'Rating':		('int', '1'),
 			'Read Only':	('varchar', self.VARCHAR_LEN),
 			'Attach':		('text', ''),
 			'Attach Image':	('text', ''),

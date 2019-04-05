@@ -11,7 +11,6 @@ from frappe.utils import cint, strip_html
 from six import string_types
 
 no_cache = 1
-no_sitemap = 1
 
 base_template_path = "templates/www/printview.html"
 standard_format = "templates/print_formats/standard.html"
@@ -326,7 +325,7 @@ def is_visible(df, doc):
 		if df.fieldname in doc.hide_in_print_layout:
 			return False
 
-	if df.permlevel or 0 > 0 and not doc.has_permlevel_access_to(df.fieldname, df):
+	if (df.permlevel or 0) > 0 and not doc.has_permlevel_access_to(df.fieldname, df):
 		return False
 
 	return not doc.is_print_hide(df.fieldname, df)

@@ -15,7 +15,7 @@ from frappe import _
 from frappe.utils.csvutils import getlink
 from frappe.utils.dateutils import parse_date
 
-from frappe.utils import cint, cstr, flt, getdate, get_datetime, get_url, get_url_to_form
+from frappe.utils import cint, cstr, flt, getdate, get_datetime, get_url, get_absolute_url
 from six import text_type, string_types
 
 
@@ -418,31 +418,44 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				# log errors
 				if parentfield:
 					log(**{"row": doc.idx, "title": 'Inserted row for "%s"' % (as_link(parenttype, doc.parent)),
-						"link": get_url_to_form(parenttype, doc.parent), "message": 'Document successfully saved', "indicator": "green"})
+						"link": get_absolute_url(parenttype, doc.parent), "message": 'Document successfully saved', "indicator": "green"})
 				elif submit_after_import:
 					log(**{"row": row_idx + 1, "title":'Submitted row for "%s"' % (as_link(doc.doctype, doc.name)),
-						"message": "Document successfully submitted", "link": get_url_to_form(doc.doctype, doc.name), "indicator": "blue"})
+						"message": "Document successfully submitted", "link": get_absolute_url(doc.doctype, doc.name), "indicator": "blue"})
 				elif original:
 					log(**{"row": row_idx + 1,"title":'Updated row for "%s"' % (as_link(doc.doctype, doc.name)),
-						"message": "Document successfully updated", "link": get_url_to_form(doc.doctype, doc.name), "indicator": "green"})
+						"message": "Document successfully updated", "link": get_absolute_url(doc.doctype, doc.name), "indicator": "green"})
 				elif not update_only:
 					log(**{"row": row_idx + 1, "title":'Inserted row for "%s"' % (as_link(doc.doctype, doc.name)),
-						"message": "Document successfully saved", "link": get_url_to_form(doc.doctype, doc.name), "indicator": "green"})
+						"message": "Document successfully saved", "link": get_absolute_url(doc.doctype, doc.name), "indicator": "green"})
 				else:
 					log(**{"row": row_idx + 1, "title":'Ignored row for %s' % (row[1]), "link": None,
 						"message": "Document updation ignored", "indicator": "orange"})
 
 			except Exception as e:
 				error_flag = True
-				err_msg = frappe.local.message_log and "\n".join([json.loads(msg).get('message') for msg in frappe.local.message_log]) or cstr(e)
+
+				# build error message
+				if frappe.local.message_log:
+					err_msg = "\n".join(['<p class="border-bottom small">{}</p>'.format(json.loads(msg).get('message')) for msg in frappe.local.message_log])
+				else:
+					err_msg = '<p class="border-bottom small">{}</p>'.format(cstr(e))
+
 				error_trace = frappe.get_traceback()
 				if error_trace:
 					error_log_doc = frappe.log_error(error_trace)
-					error_link = get_url_to_form("Error Log", error_log_doc.name)
+					error_link = get_absolute_url("Error Log", error_log_doc.name)
 				else:
 					error_link = None
-				log(**{"row": row_idx + 1, "title":'Error for row %s' % (len(row)>1 and frappe.safe_decode(row[1]) or ""), "message": err_msg,
-					"indicator": "red", "link":error_link})
+
+				log(**{
+					"row": row_idx + 1,
+					"title": 'Error for row %s' % (len(row)>1 and frappe.safe_decode(row[1]) or ""),
+					"message": err_msg,
+					"indicator": "red",
+					"link":error_link
+				})
+
 				# data with error to create a new file
 				# include the errored data in the last row as last_error_row_idx will not be updated for the last row
 				if skip_errors:

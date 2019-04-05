@@ -94,7 +94,7 @@ class File(NestedSet):
 			self.validate_file_name()
 		self.validate_folder()
 
-		if not self.flags.ignore_file_validate:
+		if not self.file_url and not self.flags.ignore_file_validate:
 			if not self.is_folder:
 				self.validate_file()
 			self.generate_content_hash()
@@ -139,7 +139,7 @@ class File(NestedSet):
 	def set_folder_size(self):
 		"""Set folder size if folder"""
 		if self.is_folder and not self.is_new():
-			self.file_size = frappe.utils.cint(self.get_folder_size())
+			self.file_size = cint(self.get_folder_size())
 			self.db_set('file_size', self.file_size)
 
 			for folder in self.get_ancestors():
@@ -175,6 +175,9 @@ class File(NestedSet):
 		TODO: validate for private file
 		"""
 		full_path = self.get_full_path()
+
+		if full_path.startswith('http'):
+			return True
 
 		if not os.path.exists(full_path):
 			frappe.throw(_("File {0} does not exist").format(self.file_url), IOError)
@@ -231,7 +234,7 @@ class File(NestedSet):
 			else:
 				try:
 					image, filename, extn = get_web_image(self.file_url)
-				except (requests.exceptions.HTTPError, requests.exceptions.SSLError, IOError):
+				except (requests.exceptions.HTTPError, requests.exceptions.SSLError, IOError, TypeError):
 					return
 
 			size = width, height
@@ -384,7 +387,10 @@ class File(NestedSet):
 		elif file_path.startswith("/files/"):
 			file_path = get_files_path(*file_path.split("/files/", 1)[1].split("/"))
 
-		else:
+		elif file_path.startswith("http"):
+			pass
+
+		elif not self.file_url:
 			frappe.throw(_("There is some problem with the file url: {0}").format(file_path))
 
 		return file_path

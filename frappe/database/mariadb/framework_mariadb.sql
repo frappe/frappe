@@ -103,7 +103,7 @@ CREATE TABLE `tabDocPerm` (
 
 DROP TABLE IF EXISTS `tabDocType`;
 CREATE TABLE `tabDocType` (
-  `name` varchar(255) NOT NULL DEFAULT '',
+  `name` varchar(255) NOT NULL,
   `creation` datetime(6) DEFAULT NULL,
   `modified` datetime(6) DEFAULT NULL,
   `modified_by` varchar(255) DEFAULT NULL,
@@ -139,11 +139,9 @@ CREATE TABLE `tabDocType` (
   `allow_rename` int(1) NOT NULL DEFAULT 0,
   `allow_import` int(1) NOT NULL DEFAULT 0,
   `hide_toolbar` int(1) NOT NULL DEFAULT 0,
-  `hide_heading` int(1) NOT NULL DEFAULT 0,
   `track_seen` int(1) NOT NULL DEFAULT 0,
   `max_attachments` int(11) NOT NULL DEFAULT 0,
   `print_outline` varchar(255) DEFAULT NULL,
-  `read_only_onload` int(1) NOT NULL DEFAULT 0,
   `document_type` varchar(255) DEFAULT NULL,
   `icon` varchar(255) DEFAULT NULL,
   `color` varchar(255) DEFAULT NULL,
@@ -157,7 +155,6 @@ CREATE TABLE `tabDocType` (
   `_user_tags` varchar(255) DEFAULT NULL,
   `custom` int(1) NOT NULL DEFAULT 0,
   `beta` int(1) NOT NULL DEFAULT 0,
-  `image_view` int(1) NOT NULL DEFAULT 0,
   `has_web_view` int(1) NOT NULL DEFAULT 0,
   `allow_guest_to_view` int(1) NOT NULL DEFAULT 0,
   `route` varchar(255) DEFAULT NULL,

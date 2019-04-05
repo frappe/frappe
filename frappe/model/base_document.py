@@ -16,6 +16,12 @@ from frappe.utils.password import get_decrypted_password, set_encrypted_password
 from frappe.utils import (cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta,
 	sanitize_html, sanitize_email, cast_fieldtype)
 
+max_positive_value = {
+	'smallint': 2 ** 15,
+	'int': 2 ** 31,
+	'bigint': 2 ** 63
+}
+
 _classes = {}
 
 def get_controller(doctype):
@@ -453,9 +459,12 @@ class BaseDocument(object):
 				# that are mapped as link_fieldname.source_fieldname in Options of
 				# Readonly or Data or Text type fields
 
-				# NOTE: All fields will be replaced, if you want manual changes to stay
-				# use `frm.add_fetch`
-				fields_to_fetch = self.meta.get_fields_to_fetch(df.fieldname)
+				fields_to_fetch = [
+					_df for _df in self.meta.get_fields_to_fetch(df.fieldname)
+					if
+						not _df.get('fetch_if_empty')
+						or (_df.get('fetch_if_empty') and not self.get(_df.fieldname))
+				]
 
 				if not fields_to_fetch:
 					# cache a single value type
@@ -549,20 +558,39 @@ class BaseDocument(object):
 			# single doctype value type is mediumtext
 			return
 
+		type_map = frappe.db.type_map
+
 		for fieldname, value in iteritems(self.get_valid_dict()):
 			df = self.meta.get_field(fieldname)
-			if df and df.fieldtype in data_fieldtypes and frappe.db.type_map[df.fieldtype][0]=="varchar":
-				max_length = cint(df.get("length")) or cint(frappe.db.VARCHAR_LEN)
+
+			if not df or df.fieldtype == 'Check':
+				# skip standard fields and Check fields
+				continue
+
+			column_type = type_map[df.fieldtype][0] or None
+
+			if column_type == 'varchar':
+				default_column_max_length = type_map[df.fieldtype][1] or None
+				max_length = cint(df.get("length")) or cint(default_column_max_length)
 
 				if len(cstr(value)) > max_length:
-					if self.parentfield and self.idx:
-						reference = _("{0}, Row {1}").format(_(self.doctype), self.idx)
+					self.throw_length_exceeded_error(df, max_length, value)
 
-					else:
-						reference = "{0} {1}".format(_(self.doctype), self.name)
+			elif column_type in ('int', 'bigint', 'smallint'):
+				max_length = max_positive_value[column_type]
 
-					frappe.throw(_("{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}")\
-						.format(reference, _(df.label), max_length, value), frappe.CharacterLengthExceededError, title=_('Value too big'))
+				if abs(value) > max_length:
+					self.throw_length_exceeded_error(df, max_length, value)
+
+	def throw_length_exceeded_error(self, df, max_length, value):
+		if self.parentfield and self.idx:
+			reference = _("{0}, Row {1}").format(_(self.doctype), self.idx)
+
+		else:
+			reference = "{0} {1}".format(_(self.doctype), self.name)
+
+		frappe.throw(_("{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}")\
+			.format(reference, _(df.label), max_length, value), frappe.CharacterLengthExceededError, title=_('Value too big'))
 
 	def _validate_update_after_submit(self):
 		# get the full doc with children
@@ -756,7 +784,7 @@ class BaseDocument(object):
 				ref_doc = frappe.new_doc(self.doctype)
 			else:
 				# get values from old doc
-				if self.parent:
+				if self.get('parent_doc'):
 					self.parent_doc.get_latest()
 					ref_doc = [d for d in self.parent_doc.get(self.parentfield) if d.name == self.name][0]
 				else:

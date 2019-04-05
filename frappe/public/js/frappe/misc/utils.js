@@ -1,6 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import deep_equal from "fast-deep-equal";
 frappe.provide('frappe.utils');
 
 Object.assign(frappe.utils, {
@@ -88,6 +89,13 @@ Object.assign(frappe.utils, {
 	escape_html: function(txt) {
 		return $("<div></div>").text(txt || "").html();
 	},
+
+	html2text: function(html) {
+		let d = document.createElement('div');
+		d.innerHTML = html;
+		return d.textContent;
+	},
+
 	is_url: function(txt) {
 		return txt.toLowerCase().substr(0,7)=='http://'
 			|| txt.toLowerCase().substr(0,8)=='https://'
@@ -664,7 +672,27 @@ Object.assign(frappe.utils, {
 		} else {
 			return `${route[0]} ${route[1]}`;
 		}
+	},
+	report_column_total: function(values, column, type) {
+		if (column.column.fieldtype == "Percent" || type === "mean") {
+			return values.reduce((a, b) => a + flt(b)) / values.length;
+		} else if (column.column.fieldtype == "Int") {
+			return values.reduce((a, b) => a + cint(b));
+		} else if (frappe.model.is_numeric_field(column.column.fieldtype)) {
+			return values.reduce((a, b) => a + flt(b));
+		} else {
+			return null;
+		}
+	},
 
+	deep_equal(a, b) {
+		return deep_equal(a, b);
+	},
+
+	get_points(points) {
+		return `<span class='bold' style="color: ${points >= 0 ? '#45A163': '#e42121'}">
+			${points > 0 ? '+': ''}${points}
+		</span>`;
 	}
 });
 

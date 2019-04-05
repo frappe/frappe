@@ -2,18 +2,15 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals, print_function
-from frappe.utils.minify import JavascriptMinify
-import warnings
-
-from six import iteritems, text_type
-import subprocess
+import os, frappe, json, shutil, re, warnings
+from os.path import exists as path_exists, join as join_path, abspath, isdir
 from distutils.spawn import find_executable
+from six import iteritems, text_type
+from frappe.utils.minify import JavascriptMinify
 
 """
 Build the `public` folders and setup languages
 """
-
-import os, frappe, json, shutil, re
 
 app_paths = None
 def setup():
@@ -45,7 +42,7 @@ def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False)
 	if app:
 		command += ' --app {app}'.format(app=app)
 
-	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
+	frappe_app_path = abspath(join_path(app_paths[0], '..'))
 	check_yarn()
 	frappe.commands.popen(command, cwd=frappe_app_path)
 
@@ -55,7 +52,7 @@ def watch(no_compress):
 
 	pacman = get_node_pacman()
 
-	frappe_app_path = os.path.abspath(os.path.join(app_paths[0], '..'))
+	frappe_app_path = abspath(join_path(app_paths[0], '..'))
 	check_yarn()
 	frappe_app_path = frappe.get_app_path('frappe', '..')
 	frappe.commands.popen('{pacman} run watch'.format(pacman=pacman), cwd = frappe_app_path)
@@ -69,65 +66,70 @@ def check_yarn():
 
 def make_asset_dirs(make_copy=False, restore=False):
 	# don't even think of making assets_path absolute - rm -rf ahead.
-	assets_path = os.path.join(frappe.local.sites_path, "assets")
+	assets_path = join_path(frappe.local.sites_path, "assets")
 	for dir_path in [
-			os.path.join(assets_path, 'js'),
-			os.path.join(assets_path, 'css')]:
+			join_path(assets_path, 'js'),
+			join_path(assets_path, 'css')]:
 
-		if not os.path.exists(dir_path):
+		if not path_exists(dir_path):
 			os.makedirs(dir_path)
 
 	for app_name in frappe.get_all_apps(True):
 		pymodule = frappe.get_module(app_name)
-		app_base_path = os.path.abspath(os.path.dirname(pymodule.__file__))
+		app_base_path = abspath(os.path.dirname(pymodule.__file__))
 
 		symlinks = []
+		app_public_path = join_path(app_base_path, 'public')
 		# app/public > assets/app
-		symlinks.append([os.path.join(app_base_path, 'public'), os.path.join(assets_path, app_name)])
+		symlinks.append([app_public_path, join_path(assets_path, app_name)])
 		# app/node_modules > assets/app/node_modules
-		symlinks.append([os.path.join(app_base_path, '..', 'node_modules'), os.path.join(assets_path, app_name, 'node_modules')])
+		if path_exists(abspath(app_public_path)):
+			symlinks.append([join_path(app_base_path, '..', 'node_modules'), join_path(assets_path, app_name, 'node_modules')])
 
 		app_doc_path = None
-		if os.path.isdir(os.path.join(app_base_path, 'docs')):
-			app_doc_path = os.path.join(app_base_path, 'docs')
+		if isdir(join_path(app_base_path, 'docs')):
+			app_doc_path = join_path(app_base_path, 'docs')
 
-		elif os.path.isdir(os.path.join(app_base_path, 'www', 'docs')):
-			app_doc_path = os.path.join(app_base_path, 'www', 'docs')
+		elif isdir(join_path(app_base_path, 'www', 'docs')):
+			app_doc_path = join_path(app_base_path, 'www', 'docs')
 
 		if app_doc_path:
-			symlinks.append([app_doc_path, os.path.join(assets_path, app_name + '_docs')])
+			symlinks.append([app_doc_path, join_path(assets_path, app_name + '_docs')])
 
 		for source, target in symlinks:
-			source = os.path.abspath(source)
-			if os.path.exists(source):
+			source = abspath(source)
+			if path_exists(source):
 				if restore:
-					if os.path.exists(target):
+					if path_exists(target):
 						if os.path.islink(target):
 							os.unlink(target)
 						else:
 							shutil.rmtree(target)
 						shutil.copytree(source, target)
 				elif make_copy:
-					if os.path.exists(target):
+					if path_exists(target):
 						warnings.warn('Target {target} already exists.'.format(target = target))
 					else:
 						shutil.copytree(source, target)
 				else:
-					if os.path.exists(target):
+					if path_exists(target):
 						if os.path.islink(target):
 							os.unlink(target)
 						else:
 							shutil.rmtree(target)
-					os.symlink(source, target)
+					try:
+						os.symlink(source, target)
+					except OSError:
+						print('Cannot link {} to {}'.format(source, target))
 			else:
 				# warnings.warn('Source {source} does not exist.'.format(source = source))
 				pass
 
 def build(no_compress=False, verbose=False):
-	assets_path = os.path.join(frappe.local.sites_path, "assets")
+	assets_path = join_path(frappe.local.sites_path, "assets")
 
 	for target, sources in iteritems(get_build_maps()):
-		pack(os.path.join(assets_path, target), sources, no_compress, verbose)
+		pack(join_path(assets_path, target), sources, no_compress, verbose)
 
 def get_build_maps():
 	"""get all build.jsons with absolute paths"""
@@ -135,8 +137,8 @@ def get_build_maps():
 
 	build_maps = {}
 	for app_path in app_paths:
-		path = os.path.join(app_path, 'public', 'build.json')
-		if os.path.exists(path):
+		path = join_path(app_path, 'public', 'build.json')
+		if path_exists(path):
 			with open(path) as f:
 				try:
 					for target, sources in iteritems(json.loads(f.read())):
@@ -146,7 +148,7 @@ def get_build_maps():
 							if isinstance(source, list):
 								s = frappe.get_pymodule_path(source[0], *source[1].split("/"))
 							else:
-								s = os.path.join(app_path, source)
+								s = join_path(app_path, source)
 							source_paths.append(s)
 
 						build_maps[target] = source_paths
@@ -166,7 +168,7 @@ def pack(target, sources, no_compress, verbose):
 	for f in sources:
 		suffix = None
 		if ':' in f: f, suffix = f.split(':')
-		if not os.path.exists(f) or os.path.isdir(f):
+		if not path_exists(f) or isdir(f):
 			print("did not find " + f)
 			continue
 		timestamps[f] = os.path.getmtime(f)
@@ -220,7 +222,7 @@ def files_dirty():
 	for target, sources in iteritems(get_build_maps()):
 		for f in sources:
 			if ':' in f: f, suffix = f.split(':')
-			if not os.path.exists(f) or os.path.isdir(f): continue
+			if not path_exists(f) or isdir(f): continue
 			if os.path.getmtime(f) != timestamps.get(f):
 				print(f + ' dirty')
 				return True
@@ -233,11 +235,11 @@ def compile_less():
 		return
 
 	for path in app_paths:
-		less_path = os.path.join(path, "public", "less")
-		if os.path.exists(less_path):
+		less_path = join_path(path, "public", "less")
+		if path_exists(less_path):
 			for fname in os.listdir(less_path):
 				if fname.endswith(".less") and fname != "variables.less":
-					fpath = os.path.join(less_path, fname)
+					fpath = join_path(less_path, fname)
 					mtime = os.path.getmtime(fpath)
 					if fpath in timestamps and mtime == timestamps[fpath]:
 						continue
@@ -246,5 +248,5 @@ def compile_less():
 
 					print("compiling {0}".format(fpath))
 
-					css_path = os.path.join(path, "public", "css", fname.rsplit(".", 1)[0] + ".css")
+					css_path = join_path(path, "public", "css", fname.rsplit(".", 1)[0] + ".css")
 					os.system("lessc {0} > {1}".format(fpath, css_path))

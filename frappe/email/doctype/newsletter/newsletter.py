@@ -14,7 +14,7 @@ from frappe.utils.scheduler import log
 from frappe.email.queue import send
 from frappe.email.doctype.email_group.email_group import add_subscribers
 from frappe.utils import parse_addr
-from frappe.utils import validate_email_add
+from frappe.utils import validate_email_address
 
 
 class Newsletter(WebsiteGenerator):
@@ -27,7 +27,7 @@ class Newsletter(WebsiteGenerator):
 	def validate(self):
 		self.route = "newsletters/" + self.name
 		if self.send_from:
-			validate_email_add(self.send_from, True)
+			validate_email_address(self.send_from, True)
 
 	def test_send(self, doctype="Lead"):
 		self.recipients = frappe.utils.split_emails(self.test_email_id)

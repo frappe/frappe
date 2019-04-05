@@ -5,7 +5,7 @@
 		"es6": true
 	},
 	"parserOptions": {
-		"ecmaVersion": 6,
+		"ecmaVersion": 8,
 		"sourceType": "module"
 	},
 	"extends": "eslint:recommended",
@@ -18,10 +18,6 @@
 		"brace-style": [
 			"error",
 			"1tbs"
-		],
-		"space-before-function-paren": [
-			"error",
-			"never"
 		],
 		"space-unary-ops": [
 			"error",
@@ -60,6 +56,7 @@
 	"root": true,
 	"globals": {
 		"frappe": true,
+		"Vue": true,
 		"__": true,
 		"_p": true,
 		"_f": true,
@@ -116,7 +113,6 @@
 		"getCookie": true,
 		"getCookies": true,
 		"get_url_arg": true,
-
 		"md5": true,
 		"$": true,
 		"jQuery": true,
@@ -141,6 +137,7 @@
 		"Cypress": true,
 		"cy": true,
 		"it": true,
+		"expect": true,
 		"context": true,
 		"before": true,
 		"beforeEach": true

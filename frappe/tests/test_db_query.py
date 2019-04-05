@@ -244,7 +244,7 @@ class TestReportview(unittest.TestCase):
 		out = DatabaseQuery("DocType").execute(fields=["name"],
 				filters={'issingle': 1}, or_filters=[['DocType', 'module', '=', 'Core']],
 				order_by='creation')
-		self.assertTrue('User Permission for Page and Report' in [d['name'] for d in out])
+		self.assertTrue('Role Permission for Page and Report' in [d['name'] for d in out])
 
 		out = DatabaseQuery("DocType").execute(fields=["name"],
 				filters={'track_changes': 1, 'module': 'Core'},
@@ -337,6 +337,17 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue(len(data) == 0)
 		self.assertTrue(len(frappe.get_all('File', {'name': ('not ancestors of', 'Home')})) == len(frappe.get_all('File')))
 
+
+	def test_is_set_is_not_set(self):
+		res = DatabaseQuery('DocType').execute(filters={'autoname': ['is', 'not set']})
+		self.assertTrue({'name': 'Integration Request'} in res)
+		self.assertTrue({'name': 'User'} in res)
+		self.assertFalse({'name': 'Blogger'} in res)
+
+		res = DatabaseQuery('DocType').execute(filters={'autoname': ['is', 'set']})
+		self.assertTrue({'name': 'DocField'} in res)
+		self.assertTrue({'name': 'Prepared Report'} in res)
+		self.assertFalse({'name': 'Property Setter'} in res)
 
 
 def create_event(subject="_Test Event", starts_on=None):

@@ -4,7 +4,6 @@
 # model __init__.py
 from __future__ import unicode_literals
 import frappe
-import json
 
 data_fieldtypes = (
 	'Currency',
@@ -28,6 +27,7 @@ data_fieldtypes = (
 	'Dynamic Link',
 	'Password',
 	'Select',
+	'Rating',
 	'Read Only',
 	'Attach',
 	'Attach Image',
@@ -45,6 +45,27 @@ default_fields = ('doctype','name','owner','creation','modified','modified_by',
 	'parent','parentfield','parenttype','idx','docstatus')
 optional_fields = ("_user_tags", "_comments", "_assign", "_liked_by", "_seen")
 table_fields = ('Table', 'Table MultiSelect')
+core_doctypes_list = ('DocType', 'DocField', 'DocPerm', 'User', 'Role', 'Has Role',
+	'Page', 'Module Def', 'Print Format', 'Report', 'Customize Form',
+	'Customize Form Field', 'Property Setter', 'Custom Field', 'Custom Script')
+
+def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfields=[]):
+	if not tarfields:
+		tarfields = srcfields
+	l = []
+	data = src.get(srcfield)
+	for d in data:
+		newrow = tar.append(tarfield)
+		newrow.idx = d.idx
+
+		for i in range(len(srcfields)):
+			newrow.set(tarfields[i], d.get(srcfields[i]))
+
+		l.append(newrow)
+	return l
+
+def db_exists(dt, dn):
+	return frappe.db.exists(dt, dn)
 
 def delete_fields(args_dict, delete=0):
 	"""

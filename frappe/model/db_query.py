@@ -36,7 +36,7 @@ class DatabaseQuery(object):
 		ignore_permissions=False, user=None, with_comment_count=False,
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
-		update=None, add_total_row=None, user_settings=None, reference_doctype=None):
+		update=None, add_total_row=None, user_settings=None, reference_doctype=None, return_query=False):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
@@ -79,6 +79,7 @@ class DatabaseQuery(object):
 		self.user = user or frappe.session.user
 		self.update = update
 		self.user_settings_fields = copy.deepcopy(self.fields)
+		self.return_query = return_query
 
 		# for contextual user permission check
 		# to determine which user permission is applicable on link field of specific doctype
@@ -91,6 +92,8 @@ class DatabaseQuery(object):
 			result = self.run_custom_query(query)
 		else:
 			result = self.build_and_run()
+			if return_query:
+				return result
 
 		if with_comment_count and not as_list and self.doctype:
 			self.add_comment_count(result)
@@ -115,7 +118,10 @@ class DatabaseQuery(object):
 		query = """select %(fields)s from %(tables)s %(conditions)s
 			%(group_by)s %(order_by)s %(limit)s""" % args
 
-		return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug, update=self.update)
+		if self.return_query:
+			return query
+		else:
+			return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug, update=self.update)
 
 	def prepare_args(self):
 		self.parse_args()
@@ -173,6 +179,9 @@ class DatabaseQuery(object):
 				except ValueError:
 					self.fields = [f.strip() for f in self.fields.split(",")]
 
+		# remove empty strings / nulls in fields
+		self.fields = [f for f in self.fields if f]
+
 		for filter_name in ["filters", "or_filters"]:
 			filters = getattr(self, filter_name)
 			if isinstance(filters, string_types):
@@ -192,7 +201,6 @@ class DatabaseQuery(object):
 					field which may leads to sql injection.
 			example :
 				field = "`DocType`.`issingle`, version()"
-
 			As field contains `,` and mysql function `version()`, with the help of regex
 			the system will filter out this field.
 		'''
@@ -326,7 +334,6 @@ class DatabaseQuery(object):
 
 	def prepare_filter_condition(self, f):
 		"""Returns a filter condition in the format:
-
 				ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
 		"""
 
@@ -386,7 +393,7 @@ class DatabaseQuery(object):
 
 		elif f.operator.lower() in ('in', 'not in'):
 			values = f.value or ''
-			if not isinstance(values, (list, tuple)):
+			if isinstance(values, frappe.string_types):
 				values = values.split(",")
 
 			fallback = "''"
@@ -450,6 +457,19 @@ class DatabaseQuery(object):
 			elif df and df.fieldtype=="Time":
 				value = get_time(f.value).strftime("%H:%M:%S.%f")
 				fallback = "'00:00:00'"
+
+			elif f.operator.lower() == "is":
+				if f.value == 'set':
+					f.operator = '!='
+				elif f.value == 'not set':
+					f.operator = '='
+
+				value = ""
+				fallback = "''"
+				can_be_null = True
+
+				if 'ifnull' not in column_name:
+					column_name = 'ifnull({}, {})'.format(column_name, fallback)
 
 			elif f.operator.lower() in ("like", "not like") or (isinstance(f.value, string_types) and
 				(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
@@ -734,6 +754,7 @@ def get_list(doctype, *args, **kwargs):
 	'''wrapper for DatabaseQuery'''
 	kwargs.pop('cmd', None)
 	kwargs.pop('ignore_permissions', None)
+	kwargs.pop('data', None)
 
 	# If doctype is child table
 	if frappe.is_table(doctype):

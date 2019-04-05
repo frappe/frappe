@@ -9,7 +9,7 @@ import json
 from email.utils import formataddr
 from frappe.core.utils import get_parent_doc
 from frappe.utils import (get_url, get_formatted_email, cint,
-  validate_email_add, split_emails, time_diff_in_seconds, parse_addr, get_datetime)
+  validate_email_address, split_emails, time_diff_in_seconds, parse_addr, get_datetime)
 from frappe.email.queue import check_email_limit
 from frappe.utils.scheduler import log
 from frappe.email.email_body import get_message_id
@@ -33,7 +33,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	:param sender: Communcation sender (default current user).
 	:param recipients: Communication recipients as list.
 	:param communication_medium: Medium of communication (default **Email**).
-	:param send_mail: Send via email (default **False**).
+	:param send_email: Send via email (default **False**).
 	:param print_html: HTML Print format to be sent as attachment.
 	:param print_format: Print Format name of parent document to be sent as attachment.
 	:param attachments: List of attachments as list of files or JSON string.
@@ -49,6 +49,9 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 
 	if not sender:
 		sender = get_formatted_email(frappe.session.user)
+
+	if isinstance(recipients, list):
+		recipients = ', '.join(recipients)
 
 	comm = frappe.get_doc({
 		"doctype":"Communication",
@@ -98,14 +101,14 @@ def validate_email(doc):
 
 	# validate recipients
 	for email in split_emails(doc.recipients):
-		validate_email_add(email, throw=True)
+		validate_email_address(email, throw=True)
 
 	# validate CC
 	for email in split_emails(doc.cc):
-		validate_email_add(email, throw=True)
+		validate_email_address(email, throw=True)
 
 	for email in split_emails(doc.bcc):
-		validate_email_add(email, throw=True)
+		validate_email_address(email, throw=True)
 
 	# validate sender
 
@@ -307,7 +310,8 @@ def set_incoming_outgoing_accounts(doc):
 
 		doc.outgoing_email_account = frappe.db.get_value("Email Account",
 			{"append_to": doc.reference_doctype, "enable_outgoing": 1},
-			["email_id", "always_use_account_email_id_as_sender", "name"], as_dict=True)
+			["email_id", "always_use_account_email_id_as_sender", "name",
+			"always_use_account_name_as_sender_name"], as_dict=True)
 
 	if not doc.incoming_email_account:
 		doc.incoming_email_account = frappe.db.get_value("Email Account",
@@ -317,12 +321,14 @@ def set_incoming_outgoing_accounts(doc):
 		# if from address is not the default email account
 		doc.outgoing_email_account = frappe.db.get_value("Email Account",
 			{"email_id": doc.sender, "enable_outgoing": 1},
-			["email_id", "always_use_account_email_id_as_sender", "name", "send_unsubscribe_message"], as_dict=True) or frappe._dict()
+			["email_id", "always_use_account_email_id_as_sender", "name",
+			"send_unsubscribe_message", "always_use_account_name_as_sender_name"], as_dict=True) or frappe._dict()
 
 	if not doc.outgoing_email_account:
 		doc.outgoing_email_account = frappe.db.get_value("Email Account",
 			{"default_outgoing": 1, "enable_outgoing": 1},
-			["email_id", "always_use_account_email_id_as_sender", "name", "send_unsubscribe_message"],as_dict=True) or frappe._dict()
+			["email_id", "always_use_account_email_id_as_sender", "name",
+			"send_unsubscribe_message", "always_use_account_name_as_sender_name"],as_dict=True) or frappe._dict()
 
 	if doc.sent_or_received == "Sent":
 		doc.db_set("email_account", doc.outgoing_email_account.name)
@@ -494,9 +500,9 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 					recipients=recipients, cc=cc, bcc=bcc)
 
-			except frappe.db.InternalError:
+			except frappe.db.InternalError as e:
 				# deadlock, try again
-				if frappe.db.is_deadlocked():
+				if frappe.db.is_deadlocked(e):
 					frappe.db.rollback()
 					time.sleep(1)
 					continue

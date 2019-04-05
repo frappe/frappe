@@ -16,8 +16,15 @@ from faker import Faker
 # public
 from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
+from .utils.error import get_frame_locals
 
-__version__ = '10.1.70'
+# Hamless for Python 3
+# For Python 2 set default encoding to utf-8
+if sys.version[0] == '2':
+	reload(sys)
+	sys.setdefaultencoding("utf-8")
+
+__version__ = '11.1.17'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -181,6 +188,9 @@ def connect(site=None, db_name=None):
 	local.db = get_db(user=db_name or local.conf.db_name)
 	set_user("Administrator")
 
+	for hook in get_hooks("connect") or []:
+		get_attr(hook)()
+
 def connect_read_only():
 	from frappe.database import get_db
 
@@ -267,7 +277,7 @@ def errprint(msg):
 	if not request or (not "cmd" in local.form_dict) or conf.developer_mode:
 		print(msg)
 
-	error_log.append(msg)
+	error_log.append({"exc": msg, "locals": get_frame_locals()})
 
 def log(msg):
 	"""Add to `debug_log`.
@@ -491,11 +501,14 @@ def read_only():
 		def wrapper_fn(*args, **kwargs):
 			if conf.use_slave_for_read_only:
 				connect_read_only()
-
-			retval = fn(*args, **get_newargs(fn, kwargs))
-
-			if local and hasattr(local, 'master_db'):
-				local.db = local.master_db
+			try:
+				retval = fn(*args, **get_newargs(fn, kwargs))
+			except:
+				raise
+			finally:
+				if local and hasattr(local, 'master_db'):
+					local.db.close()
+					local.db = local.master_db
 
 			return retval
 		return wrapper_fn
@@ -910,11 +923,15 @@ def get_hooks(hook=None, default=None, app_name=None):
 					append_hook(hooks, key, getattr(app_hooks, key))
 		return hooks
 
+	no_cache = conf.developer_mode or False
 
 	if app_name:
 		hooks = _dict(load_app_hooks(app_name))
 	else:
-		hooks = _dict(cache().get_value("app_hooks", load_app_hooks))
+		if no_cache:
+			hooks = _dict(load_app_hooks())
+		else:
+			hooks = _dict(cache().get_value("app_hooks", load_app_hooks))
 
 	if hook:
 		return hooks.get(hook) or (default if default is not None else [])

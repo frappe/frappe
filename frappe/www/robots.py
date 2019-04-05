@@ -1,6 +1,6 @@
+from __future__ import unicode_literals
 import frappe
 
-no_sitemap = 1
 base_template_path = "templates/www/robots.txt"
 
 def get_context(context):

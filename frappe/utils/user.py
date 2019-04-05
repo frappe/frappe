@@ -157,8 +157,8 @@ class UserPermissions:
 				self.can_read.remove(dt)
 
 		if "System Manager" in self.get_roles():
-			self.can_import = filter(lambda d: d in self.can_create,
-				frappe.db.sql_list("""select name from `tabDocType` where allow_import = 1"""))
+			self.can_import = list(filter(lambda d: d in self.can_create,
+				frappe.db.sql_list("""select name from `tabDocType` where allow_import = 1""")))
 
 	def get_defaults(self):
 		import frappe.defaults
@@ -197,7 +197,7 @@ class UserPermissions:
 
 	def load_user(self):
 		d = frappe.db.sql("""select email, first_name, last_name, creation,
-			email_signature, user_type, language, background_image, background_style,
+			email_signature, user_type, language, background_style, background_image,
 			mute_sounds, send_me_a_copy from tabUser where name = %s""", (self.name,), as_dict=1)[0]
 
 		if not self.can_read:
@@ -229,7 +229,7 @@ def get_fullname_and_avatar(user):
 	first_name, last_name, avatar, name = frappe.db.get_value("User",
 		user, ["first_name", "last_name", "user_image", "name"])
 	return _dict({
-		"fullname": " ".join(filter(None, [first_name, last_name])),
+		"fullname": " ".join(list(filter(None, [first_name, last_name]))),
 		"avatar": avatar,
 		"name": name
 	})
@@ -276,11 +276,6 @@ def add_system_manager(email, first_name=None, last_name=None, send_welcome_emai
 		"send_welcome_email": 1 if send_welcome_email else 0
 	})
 
-	if password:
-		user.update({
-			"new_password": password
-		})
-
 	user.insert()
 
 	# add roles
@@ -292,6 +287,10 @@ def add_system_manager(email, first_name=None, last_name=None, send_welcome_emai
 	)
 	roles = [role.name for role in roles]
 	user.add_roles(*roles)
+
+	if password:
+		from frappe.utils.password import update_password
+		update_password(user=user.name, pwd=password)
 
 def get_enabled_system_users():
 	# add more fields if required
@@ -379,3 +378,11 @@ def get_link_to_reset_password(user):
 	return {
 		'link': link
 	}
+
+def get_users_with_role(role):
+	return [p[0] for p in frappe.db.sql("""SELECT DISTINCT `tabUser`.`name`
+		FROM `tabHas Role`, `tabUser`
+		WHERE `tabHas Role`.`role`=%s
+		AND `tabUser`.`name`!='Administrator'
+		AND `tabHas Role`.`parent`=`tabUser`.`name`
+		AND `tabUser`.`enabled`=1""", role)]

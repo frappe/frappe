@@ -13,6 +13,10 @@ $.extend(frappe.model, {
 		'_user_tags', '_comments', '_assign', '_liked_by', 'docstatus',
 		'parent', 'parenttype', 'parentfield', 'idx'],
 
+	core_doctypes_list: ['DocType', 'DocField', 'DocPerm', 'User', 'Role', 'Has Role',
+		'Page', 'Module Def', 'Print Format', 'Report', 'Customize Form',
+		'Customize Form Field', 'Property Setter', 'Custom Field', 'Custom Script'],
+
 	std_fields: [
 		{fieldname:'name', fieldtype:'Link', label:__('ID')},
 		{fieldname:'owner', fieldtype:'Link', label:__('Created By'), options: 'User'},
@@ -248,8 +252,7 @@ $.extend(frappe.model, {
 	is_submittable: function(doctype) {
 		if(!doctype) return false;
 		return locals.DocType[doctype]
-			&& locals.DocType[doctype].is_submittable
-			&& !this.has_workflow(doctype);
+			&& locals.DocType[doctype].is_submittable;
 	},
 
 	is_table: function(doctype) {

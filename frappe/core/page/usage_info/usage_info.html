@@ -46,10 +46,6 @@
 	<div class="usage-info-section" style="margin: 30px;">
 	    <h4>{{ __("Space") }}</h4>
 
-	    {% var database_percent = ((limits.space_usage.database_size / limits.space) * 100); %}
-	    {% var files_percent = ((limits.space_usage.files_size / limits.space) * 100); %}
-	    {% var backup_percent = ((limits.space_usage.backup_size / limits.space) * 100); %}
-
 	    <div class="progress" style="margin-bottom: 0;">
 	        <div class="progress-bar" style="width: {%= database_percent %}%; background-color: #5e64ff"></div>
 	        <div class="progress-bar" style="width: {%= files_percent %}%; background-color: #743ee2"></div>
@@ -66,12 +62,7 @@
 			{{ __("Backup Size:") }} {%= limits.space_usage.backup_size %} MB
 		</span>
 
-		<p>
-			<span class="{%= ((limits.space - limits.space_usage.total) > 50) ? "" : "text-warning" %}">
-	                    <b>{%= flt(limits.space - limits.space_usage.total, 2) %} MB</b></span>
-			available out of
-			<span><b>{%= limits.space %} MB</b></span>
-		</p>
+		<p>{{ usage_message }}</p>
 	</div>
 	{% endif %}
 </div>

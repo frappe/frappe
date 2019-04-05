@@ -19,6 +19,11 @@ frappe.upload = {
 			opts.is_private = 1;
 		}
 
+		// form level attachments defined as public (for letter head, web page etc)
+		if (cur_frm && cur_frm.flag_public_attachments) {
+			opts.is_private = 0;
+		}
+
 		var d = null;
 		// create new dialog if no parent given
 		if(!opts.parent) {
@@ -217,6 +222,10 @@ frappe.upload = {
 	upload_multiple_files: function(files /*FileData array*/, args, opts) {
 		var i = -1;
 		frappe.upload.total_files = files ? files.length : 0;
+
+		if (frappe.upload.total_files === 1) {
+			return frappe.upload.upload_file(files[0], args, opts);
+		}
 		// upload the first file
 		upload_next();
 		// subsequent files will be uploaded after

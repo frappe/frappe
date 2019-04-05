@@ -7,11 +7,9 @@ from __future__ import unicode_literals
 import frappe
 import frappe.defaults
 import unittest
-import json
 import frappe.model.meta
 from frappe.permissions import (add_user_permission, remove_user_permission,
-	clear_user_permissions_for_doctype, get_doc_permissions, add_permission,
-	get_valid_perms)
+	clear_user_permissions_for_doctype, get_doc_permissions, add_permission)
 from frappe.core.page.permission_manager.permission_manager import update, reset
 from frappe.test_runner import make_test_records_for_doctype
 from frappe.core.doctype.user_permission.user_permission import clear_user_permissions
@@ -84,11 +82,21 @@ class TestPermissions(unittest.TestCase):
 		self.assertFalse("-test-blog-post" in names)
 
 	def test_default_values(self):
+		doc = frappe.new_doc("Blog Post")
+		self.assertFalse(doc.get("blog_category"))
+
+		# Fetch default based on single user permission
 		add_user_permission("Blog Category", "_Test Blog Category 1", "test2@example.com")
 
 		frappe.set_user("test2@example.com")
 		doc = frappe.new_doc("Blog Post")
 		self.assertEqual(doc.get("blog_category"), "_Test Blog Category 1")
+
+		# Don't fetch default if user permissions is more than 1
+		add_user_permission("Blog Category", "_Test Blog Category", "test2@example.com", ignore_permissions=True)
+		frappe.clear_cache()
+		doc = frappe.new_doc("Blog Post")
+		self.assertFalse(doc.get("blog_category"))
 
 	def test_user_link_match_doc(self):
 		blogger = frappe.get_doc("Blogger", "_Test Blogger 1")

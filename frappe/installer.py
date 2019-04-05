@@ -16,14 +16,13 @@ from frappe import _
 from frappe.model.sync import sync_for
 from frappe.utils.fixtures import sync_fixtures
 from frappe.website import render
-from frappe.desk.doctype.desktop_icon.desktop_icon import sync_from_app
 from frappe.modules.utils import sync_customizations
 from frappe.database import setup_database
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
 	admin_password=None, verbose=True, force=0, site_config=None, reinstall=False,
 	db_type=None):
-	
+
 	if not db_type:
 		db_type = frappe.conf.db_type or 'mariadb'
 
@@ -83,8 +82,6 @@ def install_app(name, verbose=False, set_as_patched=True):
 		add_module_defs(name)
 
 	sync_for(name, force=True, sync_everything=True, verbose=verbose, reset_permissions=True)
-
-	sync_from_app(name)
 
 	add_to_installed_apps(name)
 
@@ -157,9 +154,6 @@ def remove_app(app_name, dry_run=False, yes=False):
 		print("removing Module {0}...".format(module_name))
 		if not dry_run:
 			frappe.delete_doc("Module Def", module_name)
-
-	# delete desktop icons
-	frappe.db.sql('delete from `tabDesktop Icon` where app=%s', app_name)
 
 	remove_from_installed_apps(app_name)
 

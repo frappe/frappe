@@ -11,7 +11,7 @@ $.extend(frappe.contacts, {
 		if(frm.fields_dict['address_html'] && "addr_list" in frm.doc.__onload) {
 			$(frm.fields_dict['address_html'].wrapper)
 				.html(frappe.render_template("address_list",
-					cur_frm.doc.__onload))
+					frm.doc.__onload))
 				.find(".btn-address").on("click", function() {
 					frappe.new_doc("Address");
 				});
@@ -21,7 +21,7 @@ $.extend(frappe.contacts, {
 		if(frm.fields_dict['contact_html'] && "contact_list" in frm.doc.__onload) {
 			$(frm.fields_dict['contact_html'].wrapper)
 				.html(frappe.render_template("contact_list",
-					cur_frm.doc.__onload))
+					frm.doc.__onload))
 				.find(".btn-contact").on("click", function() {
 					frappe.new_doc("Contact");
 				}

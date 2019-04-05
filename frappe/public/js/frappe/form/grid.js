@@ -50,36 +50,39 @@ export default class Grid {
 	make() {
 		var me = this;
 
-		let template = `<div>
+		let template = `<div class="form-group">
+			<div class="clearfix">
+				<label class="control-label" style="padding-right: 0px;">${__(this.df.label)}</label>
+			</div>
 			<div class="form-grid">
 				<div class="grid-heading-row"></div>
 				<div class="grid-body">
 					<div class="rows"></div>
 					<div class="grid-empty text-center hide">${__("No Data")}</div>
-					<div class="small form-clickable-section grid-footer">
-						<div class="row">
-							<div class="col-sm-6 grid-buttons">
-								<button type="reset"
-									class="btn btn-xs btn-danger grid-remove-rows hide"
-									style="margin-right: 4px;">
-									${__("Delete")}</button>
-								<button type="reset"
-									class="grid-add-multiple-rows btn btn-xs btn-default hide"
-									style="margin-right: 4px;">
-									${__("Add Multiple")}</a>
-								<!-- hack to allow firefox include this in tabs -->
-								<button type="reset" class="btn btn-xs btn-default grid-add-row">
-									${__("Add Row")}</button>
-							</div>
-							<div class="col-sm-6 text-right">
-								<a href="#" class="grid-download btn btn-xs btn-default hide"
-									style="margin-left: 10px;">
-									${__("Download")}</a>
-								<a href="#" class="grid-upload btn btn-xs btn-default hide"
-									style="margin-left: 10px;">
-									${__("Upload")}</a>
-							</div>
-						</div>
+				</div>
+			</div>
+			<div class="mt-2 small form-clickable-section grid-footer">
+				<div class="row">
+					<div class="col-sm-6 grid-buttons">
+						<button type="reset"
+							class="btn btn-xs btn-danger grid-remove-rows hide"
+							style="margin-right: 4px;">
+							${__("Delete")}</button>
+						<button type="reset"
+							class="grid-add-multiple-rows btn btn-xs btn-default hide"
+							style="margin-right: 4px;">
+							${__("Add Multiple")}</a>
+						<!-- hack to allow firefox include this in tabs -->
+						<button type="reset" class="btn btn-xs btn-default grid-add-row">
+							${__("Add Row")}</button>
+					</div>
+					<div class="col-sm-6 text-right">
+						<a href="#" class="grid-download btn btn-xs btn-default hide"
+							style="margin-left: 10px;">
+							${__("Download")}</a>
+						<a href="#" class="grid-upload btn btn-xs btn-default hide"
+							style="margin-left: 10px;">
+							${__("Upload")}</a>
 					</div>
 				</div>
 			</div>
@@ -366,7 +369,7 @@ export default class Grid {
 		return data;
 	}
 	get_modal_data() {
-		return this.df.get_data ? this.df.get_data().filter(data => {
+		return this.df.get_data() ? this.df.get_data().filter(data => {
 			if (!this.deleted_docs || !in_list(this.deleted_docs, data.name)) {
 				return data;
 			}
@@ -698,7 +701,7 @@ export default class Grid {
 			data.push(["------"]);
 			$.each(frappe.get_meta(me.df.options).fields, function(i, df) {
 				// don't include the read-only field in the template
-				if(frappe.model.is_value_type(df.fieldtype) && !df.read_only) {
+				if(frappe.model.is_value_type(df.fieldtype)) {
 					data[1].push(df.label);
 					data[2].push(df.fieldname);
 					let description = (df.description || "") + ' ';

@@ -569,6 +569,23 @@ def browse(context, site):
 	else:
 		click.echo("\nSite named \033[1m{}\033[0m doesn't exist\n".format(site))
 
+
+@click.command('start-recording')
+@pass_context
+def start_recording(context):
+	for site in context.sites:
+		frappe.init(site=site)
+		frappe.recorder.start()
+
+
+@click.command('stop-recording')
+@pass_context
+def stop_recording(context):
+	for site in context.sites:
+		frappe.init(site=site)
+		frappe.recorder.stop()
+
+
 commands = [
 	add_system_manager,
 	backup,
@@ -592,5 +609,7 @@ commands = [
 	_use,
 	set_last_active_for_user,
 	publish_realtime,
-	browse
+	browse,
+	start_recording,
+	stop_recording,
 ]

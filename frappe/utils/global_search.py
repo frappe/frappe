@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import re
 import redis
+import json
 from frappe.utils import cint, strip_html_tags
 from frappe.model.base_document import get_controller
 from six import text_type
@@ -62,6 +63,11 @@ def rebuild_for_doctype(doctype):
 	searchable fields
 	:param doctype: Doctype
 	"""
+	if frappe.local.conf.get('disable_global_search'):
+		return
+
+	if frappe.local.conf.get('disable_global_search'):
+		return
 
 	def _get_filters():
 		filters = frappe._dict({ "docstatus": ["!=", 2] })
@@ -216,16 +222,18 @@ def insert_values_for_multiple_docs(all_contents):
 def update_global_search(doc):
 	"""
 	Add values marked with `in_global_search` to
-	`frappe.flags.update_global_search` from given doc
+	`global_search_queue` from given doc
 	:param doc: Document to be added to global search
 	"""
+	if frappe.local.conf.get('disable_global_search'):
+		return
+
+	if frappe.local.conf.get('disable_global_search'):
+		return
 
 	if doc.docstatus > 1 or (doc.meta.has_field("enabled") and not doc.get("enabled")) \
 		or doc.get("disabled"):
 			return
-
-	if frappe.flags.update_global_search==None:
-		frappe.flags.update_global_search = []
 
 	content = []
 	for field in doc.meta.get_global_search_fields():
@@ -252,30 +260,21 @@ def update_global_search(doc):
 		title = (doc.get_title() or '')[:int(frappe.db.VARCHAR_LEN)]
 		route = doc.get('route') if doc else ''
 
-		frappe.flags.update_global_search.append(
-			dict(
-				doctype=doc.doctype,
-				name=doc.name,
-				content=' ||| '.join(content or ''),
-				published=published,
-				title=title,
-				route=route
-			)
+		value = dict(
+			doctype=doc.doctype,
+			name=doc.name,
+			content=' ||| '.join(content or ''),
+			published=published,
+			title=title,
+			route=route
 		)
 
-		enqueue_global_search()
-
-
-def enqueue_global_search():
-	if frappe.flags.update_global_search:
 		try:
-			frappe.enqueue('frappe.utils.global_search.sync_global_search',
-				now=frappe.flags.in_test or frappe.flags.in_install or frappe.flags.in_migrate,
-				flags=frappe.flags.update_global_search, enqueue_after_commit=True)
+			# append to search queue if connected
+			frappe.cache().lpush('global_search_queue', json.dumps(value))
 		except redis.exceptions.ConnectionError:
-			sync_global_search()
-
-		frappe.flags.update_global_search = []
+			# not connected, sync directly
+			sync_value(value)
 
 
 def get_formatted_value(value, field):
@@ -296,33 +295,43 @@ def get_formatted_value(value, field):
 	return field.label + " : " + strip_html_tags(text_type(value))
 
 
-def sync_global_search(flags=None):
+def sync_global_search():
 	"""
-	Add values from `flags` (frappe.flags.update_global_search) to __global_search.
-	This is called internally at the end of the request.
+	Inserts / updates values from `global_search_queue` to __global_search.
+	This is called via job scheduler
 	:param flags:
 	:return:
 	"""
+	while frappe.cache().llen('global_search_queue') > 0:
+		value = json.loads(frappe.cache().lpop('global_search_queue').decode('utf-8'))
+		sync_value(value)
 
-	if not flags:
-		flags = frappe.flags.update_global_search
+def sync_value(value):
+	'''
+	Sync a given document to global search
+	:param value: dict of { doctype, name, content, published, title, route }
+	'''
 
-	# Can pass flags manually as frappe.flags.update_global_search isn't reliable at a later time,
-	# when syncing is enqueued
-	for value in flags:
-		frappe.db.multisql({
-			'mariadb': '''INSERT INTO `__global_search`
-				(`doctype`, `name`, `content`, `published`, `title`, `route`)
-				VALUES (%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
-				ON DUPLICATE key UPDATE `content`=%(content)s''',
-			'postgres': '''INSERT INTO `__global_search`
-				(`doctype`, `name`, `content`, `published`, `title`, `route`)
-				VALUES (%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
-				ON CONFLICT("doctype", "name") DO UPDATE SET `content`=%(content)s'''
-		}, value)
-
-	frappe.flags.update_global_search = []
-
+	frappe.db.multisql({
+		'mariadb': '''INSERT INTO `__global_search`
+			(`doctype`, `name`, `content`, `published`, `title`, `route`)
+			VALUES (%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
+			ON DUPLICATE key UPDATE
+				`content`=%(content)s,
+				`published`=%(published)s,
+				`title`=%(title)s,
+				`route`=%(route)s
+		''',
+		'postgres': '''INSERT INTO `__global_search`
+			(`doctype`, `name`, `content`, `published`, `title`, `route`)
+			VALUES (%(doctype)s, %(name)s, %(content)s, %(published)s, %(title)s, %(route)s)
+			ON CONFLICT("doctype", "name") DO UPDATE SET
+				`content`=%(content)s,
+				`published`=%(published)s,
+				`title`=%(title)s,
+				`route`=%(route)s
+		'''
+	}, value)
 
 def delete_for_document(doc):
 	"""

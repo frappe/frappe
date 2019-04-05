@@ -6,7 +6,7 @@ import frappe, re, os
 from frappe.utils.pdf import get_pdf
 from frappe.email.smtp import get_outgoing_email_account
 from frappe.utils import (get_url, scrub_urls, strip, expand_relative_urls, cint,
-	split_emails, to_markdown, markdown, encode, random_string, parse_addr)
+	split_emails, to_markdown, markdown, random_string, parse_addr)
 import email.utils
 from six import iteritems, text_type, string_types
 from email.mime.multipart import MIMEMultipart
@@ -165,28 +165,35 @@ class EMail:
 
 	def validate(self):
 		"""validate the Email Addresses"""
-		from frappe.utils import validate_email_add
+		from frappe.utils import validate_email_address
 
 		if not self.sender:
 			self.sender = self.email_account.default_sender
 
-		validate_email_add(strip(self.sender), True)
-		self.reply_to = validate_email_add(strip(self.reply_to) or self.sender, True)
+		validate_email_address(strip(self.sender), True)
+		self.reply_to = validate_email_address(strip(self.reply_to) or self.sender, True)
 
 		self.replace_sender()
+		self.replace_sender_name()
 
 		self.recipients = [strip(r) for r in self.recipients]
 		self.cc = [strip(r) for r in self.cc]
 		self.bcc = [strip(r) for r in self.bcc]
 
 		for e in self.recipients + (self.cc or []) + (self.bcc or []):
-			validate_email_add(e, True)
+			validate_email_address(e, True)
 
 	def replace_sender(self):
 		if cint(self.email_account.always_use_account_email_id_as_sender):
 			self.set_header('X-Original-From', self.sender)
 			sender_name, sender_email = parse_addr(self.sender)
 			self.sender = email.utils.formataddr((str(Header(sender_name or self.email_account.name, 'utf-8')), self.email_account.email_id))
+
+	def replace_sender_name(self):
+		if cint(self.email_account.always_use_account_name_as_sender_name):
+			self.set_header('X-Original-From', self.sender)
+			sender_name, sender_email = parse_addr(self.sender)
+			self.sender = email.utils.formataddr((str(Header(self.email_account.name, 'utf-8')), sender_email))
 
 	def set_message_id(self, message_id, is_notification=False):
 		if message_id:

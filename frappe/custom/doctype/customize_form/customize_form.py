@@ -11,7 +11,7 @@ import frappe.translate
 from frappe import _
 from frappe.utils import cint
 from frappe.model.document import Document
-from frappe.model import no_value_fields
+from frappe.model import no_value_fields, core_doctypes_list
 from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 from frappe.model.docfield import supports_translation
 
@@ -22,13 +22,11 @@ doctype_properties = {
 	'sort_field': 'Data',
 	'sort_order': 'Data',
 	'default_print_format': 'Data',
-	'read_only_onload': 'Check',
 	'allow_copy': 'Check',
 	'istable': 'Check',
 	'quick_entry': 'Check',
 	'editable_grid': 'Check',
 	'max_attachments': 'Int',
-	'image_view': 'Check',
 	'track_changes': 'Check',
 }
 
@@ -38,6 +36,7 @@ docfield_properties = {
 	'fieldtype': 'Select',
 	'options': 'Text',
 	'fetch_from': 'Small Text',
+	'fetch_if_empty': 'Check',
 	'permlevel': 'Int',
 	'width': 'Data',
 	'print_width': 'Data',
@@ -84,6 +83,12 @@ class CustomizeForm(Document):
 			return
 
 		meta = frappe.get_meta(self.doc_type)
+
+		if self.doc_type in core_doctypes_list:
+			return frappe.msgprint(_("Core DocTypes cannot be customized."))
+
+		if meta.custom:
+			return frappe.msgprint(_("Only standard DocTypes are allowed to be customized from Customize Form."))
 
 		# doctype properties
 		for property in doctype_properties:

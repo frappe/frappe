@@ -223,15 +223,16 @@ def export_csv(context, doctype, path):
 			frappe.destroy()
 
 @click.command('export-fixtures')
+@click.option('--app', default=None, help='Export fixtures of a specific app')
 @pass_context
-def export_fixtures(context):
+def export_fixtures(context, app=None):
 	"Export fixtures"
 	from frappe.utils.fixtures import export_fixtures
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			export_fixtures()
+			export_fixtures(app=app)
 		finally:
 			frappe.destroy()
 
@@ -343,6 +344,7 @@ def mariadb(context):
 		frappe.conf.db_name,
 		'-h', frappe.conf.db_host or "localhost",
 		'--pager=less -SFX',
+		'--safe-updates',
 		"-A"])
 
 @click.command('postgres')
@@ -600,58 +602,27 @@ def get_version():
 @click.option('--db_type')
 @click.option('--root_password')
 def setup_global_help(db_type=None, root_password=None):
-	'''setup help table in a separate database that will be
+	'''Deprecated: setup help table in a separate database that will be
 	shared by the whole bench and set `global_help_setup` as 1 in
 	common_site_config.json'''
-
-	from frappe.installer import update_site_config
-
-	frappe.local.flags = frappe._dict()
-	frappe.local.flags.in_setup_help = True
-	frappe.local.flags.in_install = True
-	frappe.local.lang = 'en'
-	frappe.local.conf = frappe.get_site_config(sites_path='.')
-
-	update_site_config('global_help_setup', 1,
-		site_config_path=os.path.join('.', 'common_site_config.json'))
-
-	if root_password:
-		frappe.local.conf.root_password = root_password
-
-	if not frappe.local.conf.db_type:
-		frappe.local.conf.db_type = db_type
-
-
-	from frappe.utils.help import sync
-	sync()
+	print_in_app_help_deprecation()
 
 @click.command('get-docs-app')
 @click.argument('app')
 def get_docs_app(app):
-	'''Get the docs app for given app'''
-	from frappe.utils.help import setup_apps_for_docs
-	setup_apps_for_docs(app)
+	'''Deprecated: Get the docs app for given app'''
+	print_in_app_help_deprecation()
 
 @click.command('get-all-docs-apps')
 def get_all_docs_apps():
-	'''Get docs apps for all apps'''
-	from frappe.utils.help import setup_apps_for_docs
-	for app in frappe.get_installed_apps():
-		setup_apps_for_docs(app)
+	'''Deprecated: Get docs apps for all apps'''
+	print_in_app_help_deprecation()
 
 @click.command('setup-help')
 @pass_context
 def setup_help(context):
-	'''Setup help table in the current site (called after migrate)'''
-	from frappe.utils.help import sync
-
-	for site in context.sites:
-		try:
-			frappe.init(site)
-			frappe.connect()
-			sync()
-		finally:
-			frappe.destroy()
+	'''Deprecated: Setup help table in the current site (called after migrate)'''
+	print_in_app_help_deprecation()
 
 @click.command('rebuild-global-search')
 @pass_context
@@ -715,6 +686,10 @@ def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
 	else:
 		print('No Updates')
 
+def print_in_app_help_deprecation():
+	print("In app help has been removed.\nYou can access the documentation on erpnext.com/docs or frappe.io/docs")
+	return
+
 commands = [
 	build,
 	clear_cache,
@@ -747,6 +722,5 @@ commands = [
 	add_to_email_queue,
 	setup_global_help,
 	setup_help,
-	rebuild_global_search,
-	auto_deploy
+	rebuild_global_search
 ]

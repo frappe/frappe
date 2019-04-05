@@ -3,7 +3,7 @@
 {% block title %}{{ _(title) }}{% endblock %}
 
 {% block header %}
-<h1>{{ _(title) }}</h1>
+<h2>{{ _(title) }}</h2>
 {% endblock %}
 
 
@@ -17,21 +17,21 @@
 	{% if not read_only and has_header %}
 	<div style="padding-bottom: 15px;">
 	    {% if login_required -%}
-		<a href="/{{ cancel_url or pathname }}" class="btn btn-default btn-sm">
+		<a href="/{{ cancel_url or pathname }}" class="btn btn-light btn-sm">
 	    	{{ _("Cancel") }}</a>
 		{%- endif %}
 		{% if not is_list %}
 	    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
-	    		{{ _("Save") }}</button>
+	    		{{ _(button_label or "Save") }}</button>
 		{% endif %}
 	</div>
 	{% endif %}
 	{% if is_list %}
-	<div style="padding-bottom: 15px;">
-	    <a href="/{{ pathname }}{{ delimeter }}new=1{{ params_from_form_dict}}" class="btn btn-primary btn-new btn-sm">
+	<div class="text-right mt-2">
+	    <a href="/{{ pathname }}{{ delimeter }}new=1{{ params_from_form_dict}}" class="btn btn-primary btn-new">
 	    {{ _("New") }}
 		</a>
-		<button class="btn btn-danger btn-delete btn-sm">
+		<button class="btn btn-danger btn-delete">
 			{{ _("Delete") }}
 		</button>
 	</div>
@@ -46,11 +46,13 @@
 {% endblock %}
 
 {% block page_content %}
-<div class="introduction">
-	{% if introduction_text %}
-	<p class="text-muted">{{ _(introduction_text) }}</p>
-	{% endif %}
-</div>
+{% if introduction_text %}
+	<div class="introduction">
+		<p class="text-muted">{{ _(introduction_text) }}</p>
+	</div>
+{% else %}
+	<hr style="margin-top: 0;">
+{% endif %}
 <div class="form-message hide"></div>
 
 {% if _login_required %}
@@ -71,8 +73,8 @@
 	{% if show_in_grid %}
 		<div class="web-form-list">
 			<div class="results"></div>
-			<div class="more-block {% if not show_more -%} hide {%- endif %}">
-				<button class="btn btn-default btn-more btn-sm">{{ _("More") }}</button>
+			<div class="more-block {% if not show_more -%} hidden {%- endif %}">
+				<button class="btn btn-light btn-more btn-sm">{{ _("More") }}</button>
 			</div>
 		</div>
 	{% else %}
@@ -99,7 +101,7 @@
 	<div class="row">
 		<div class="col-sm-9">
 			<p class="text-muted">
-				<a class="btn btn-default btn-sm" href="{{ doc.route }}" target="_blank" rel="noopener noreferrer">
+				<a class="btn btn-light btn-sm" href="{{ doc.route }}" target="_blank" rel="noopener noreferrer">
 					{{ web_page_link_text }}</a>
 			</p>
 		</div>
@@ -144,14 +146,14 @@
 			<br>
 			<p class='text-right'>
 				{%- if loop.index > 1 -%}
-				<button class='btn btn-sm btn-default btn-change-section'
+				<button class='btn btn-sm btn-light btn-change-section'
 					data-idx="{{ loop.index - 1 }}">
 					{{ _("Previous") }}</button>
 				{%- endif -%}
 				<!-- save/next button -->
 				{% if (loop.index == layout|len or frappe.form_dict.new) %}
 					{% if not read_only %}
-				    <button type="submit" class="btn btn-primary btn-sm btn-form-submit">
+				    <button type="submit" class="btn btn-primary btn-sm btn-form-submit footer-button">
 				    	{{ _("Save") }}</button>
 					{% endif %}
 				{% elif layout|len > 1 %}
@@ -171,12 +173,12 @@
 	<h3>{{ _("Attachments") }}</h3>
 	{% for attachment in attachments %}
 	<div class="attachment">
-		<a class="no-decoration attachment-link" href="{{ attachment.file_url }}" target="blank">
+		<a class="no-underline attachment-link" href="{{ attachment.file_url }}" target="blank">
 			<div class="row">
-				<div class="col-xs-9">
+				<div class="col-9">
 					<span class="file-name">{{ attachment.file_name }}</span>
 				</div>
-				<div class="col-xs-3">
+				<div class="col-3">
 					<span class="pull-right file-size">{{ attachment.file_size }}</span>
 				</div>
 			</div>
@@ -205,7 +207,7 @@
 <script>
 window.web_form_settings = {
 	allow_incomplete: 	{{ allow_incomplete or 0 }},
-	success_link: 		'<p>{{ success_message or _("Your information has been submitted") }}</p><p><a href="{{ success_url or "/" }}" class="btn btn-sm btn-default">{{ _("Continue") }}</a></p>',
+	success_link: 		'<p>{{ success_message or _("Your information has been submitted") }}</p><p><a href="{{ success_url or "/" }}" class="btn btn-sm btn-light">{{ _("Continue") }}</a></p>',
 	datepicker_format: 	"{{ frappe.date_format }}",
 	web_form_doctype: 	"{{ doc_type }}",
 	web_form_name: 		"{{ name }}",

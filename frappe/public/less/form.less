@@ -363,6 +363,11 @@ h6.uppercase, .h6.uppercase {
 
 .timeline-items {
 	position: relative;
+
+	.timeline-item-content {
+		max-height: 400px;
+		overflow: auto;
+	}
 }
 
 .timeline {
@@ -942,4 +947,8 @@ body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
 			right: 0;
 		}
 	}
+}
+
+.followed-by-label{
+	margin-top: 30px;
 }

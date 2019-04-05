@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 from frappe import _
 from frappe.boot import get_allowed_pages, get_allowed_reports
 from frappe.desk.doctype.desktop_icon.desktop_icon import set_hidden, clear_desktop_icons_cache
@@ -24,7 +25,7 @@ def hide_module(module):
 	set_hidden(module, frappe.session.user, 1)
 	clear_desktop_icons_cache()
 
-def get_data(module):
+def get_data(module, build=True):
 	"""Get module data for the module view `desk/#Module/[name]`"""
 	doctype_info = get_doctype_info(module)
 	data = build_config_from_file(module)
@@ -40,7 +41,43 @@ def get_data(module):
 	data = combine_common_sections(data)
 	data = apply_permissions(data)
 
-	#set_last_modified(data)
+	# set_last_modified(data)
+
+	if build:
+		exists_cache = {}
+		def doctype_contains_a_record(name):
+			exists = exists_cache.get(name)
+			if not exists:
+				if not frappe.db.get_value('DocType', name, 'issingle'):
+					exists = frappe.db.count(name)
+				else:
+					exists = True
+				exists_cache[name] = exists
+			return exists
+
+		for section in data:
+			for item in section["items"]:
+				# Onboarding
+
+				# First disable based on exists of depends_on list
+				doctype = item.get("doctype")
+				dependencies = item.get("dependencies") or None
+				if not dependencies and doctype:
+					item["dependencies"] = [doctype]
+
+				dependencies = item.get("dependencies")
+				if dependencies:
+					incomplete_dependencies = [d for d in dependencies if not doctype_contains_a_record(d)]
+					if len(incomplete_dependencies):
+						item["incomplete_dependencies"] = incomplete_dependencies
+
+				if item.get("onboard"):
+					# Mark Spotlights for initial
+					if item.get("type") == "doctype":
+						name = item.get("name")
+						count = doctype_contains_a_record(name)
+
+						item["count"] = count
 
 	return data
 
@@ -184,14 +221,24 @@ def get_config(app, module):
 	config = frappe.get_module("{app}.config.{module}".format(app=app, module=module))
 	config = config.get_data()
 
-	for section in config:
+	sections = [s for s in config if s.get("condition", True)]
+
+	for section in sections:
 		for item in section["items"]:
 			if item["type"]=="report" and frappe.db.get_value("Report", item["name"], "disabled")==1:
 				section["items"].remove(item)
 				continue
 			if not "label" in item:
 				item["label"] = _(item["name"])
-	return config
+
+	return sections
+
+def config_exists(app, module):
+	try:
+		frappe.get_module("{app}.config.{module}".format(app=app, module=module))
+		return True
+	except ImportError:
+		return False
 
 def add_setup_section(config, app, module, label, icon):
 	"""Add common sections to `/desk#Module/Setup`"""
@@ -212,6 +259,89 @@ def get_setup_section(app, module, label, icon):
 				"icon": icon,
 				"items": section["items"]
 			}
+
+
+def get_onboard_items(app, module):
+	try:
+		sections = get_config(app, module)
+	except ImportError:
+		return []
+
+	onboard_items = []
+	fallback_items = []
+
+	if not sections:
+		doctype_info = get_doctype_info(module)
+		sections = build_standard_config(module, doctype_info)
+
+	for section in sections:
+		for item in section["items"]:
+			if item.get("onboard", 0) == 1:
+				onboard_items.append(item)
+
+			# in case onboard is not set
+			fallback_items.append(item)
+
+			if len(onboard_items) > 5:
+				return onboard_items
+
+	return onboard_items or fallback_items
+
+
+@frappe.whitelist()
+def get_links(app, module):
+	try:
+		sections = get_config(app, frappe.scrub(module))
+	except ImportError:
+		return []
+
+	link_names = []
+
+	for section in sections:
+		for item in section["items"]:
+			link_names.append(item.get("label"))
+	return link_names
+
+@frappe.whitelist()
+def hide_modules_from_desktop(modules):
+	modules = frappe.parse_json(modules)
+	home_settings = frappe.db.get_value("User", frappe.session.user, 'home_settings')
+	home_settings = frappe.parse_json(home_settings or '{}')
+
+	home_settings['hidden_modules'] = modules
+	frappe.db.set_value('User', frappe.session.user, 'home_settings', json.dumps(home_settings))
+
+	return home_settings
+
+
+
+@frappe.whitelist()
+def update_links_for_module(module_name, links):
+	home_settings = frappe.db.get_value("User", frappe.session.user, 'home_settings')
+	home_settings = frappe.parse_json(home_settings or '{}')
+
+	home_settings.setdefault('links', {})
+	home_settings['links'].setdefault(module_name, None)
+	home_settings['links'][module_name] = links
+	frappe.db.set_value('User', frappe.session.user, 'home_settings', json.dumps(home_settings))
+
+	return home_settings
+
+
+def get_module_link_items_from_list(app, module, list_of_link_names):
+	try:
+		sections = get_config(app, frappe.scrub(module))
+	except ImportError:
+		return []
+
+	links = []
+	for section in sections:
+		for item in section["items"]:
+			if item.get("label", "") in list_of_link_names:
+				links.append(item)
+
+	return links
+
 
 def set_last_modified(data):
 	for section in data:

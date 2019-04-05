@@ -9,6 +9,7 @@ import frappe.defaults
 import frappe.desk.form.meta
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import get_doc_permissions
+from frappe.desk.form.document_follow import is_document_followed
 from frappe import _
 
 @frappe.whitelist()
@@ -90,17 +91,19 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		doc = frappe.get_doc(doctype, name)
 		if not doc.has_permission("read"):
 			raise frappe.PermissionError
-
 	frappe.response["docinfo"] = {
 		"attachments": get_attachments(doc.doctype, doc.name),
 		"communications": _get_communications(doc.doctype, doc.name),
+		'comments': get_comments(doc.doctype, doc.name),
 		'total_comments': len(json.loads(doc.get('_comments') or '[]')),
 		'versions': get_versions(doc),
 		"assignments": get_assignments(doc.doctype, doc.name),
 		"permissions": get_doc_permissions(doc),
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
 		"rating": get_feedback_rating(doc.doctype, doc.name),
-		"views": get_view_logs(doc.doctype, doc.name)
+		"views": get_view_logs(doc.doctype, doc.name),
+		"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
+		"document_follow_enabled": frappe.db.get_value("User", frappe.session.user, "document_follow_notify")
 	}
 
 def get_attachments(dt, dn):
@@ -120,6 +123,19 @@ def get_communications(doctype, name, start=0, limit=20):
 	return _get_communications(doctype, name, start, limit)
 
 
+def get_comments(doctype, name):
+	comments = frappe.get_all('Comment', fields = ['*'], filters = dict(
+		reference_doctype = doctype,
+		reference_name = name
+	))
+
+	# convert to markdown (legacy ?)
+	for c in comments:
+		if c.comment_type == 'Comment':
+			c.content = frappe.utils.markdown(c.content)
+
+	return comments
+
 def _get_communications(doctype, name, start=0, limit=20):
 	communications = get_communication_data(doctype, name, start, limit)
 	for c in communications:
@@ -130,8 +146,6 @@ def _get_communications(doctype, name, start=0, limit=20):
 					"attached_to_name": c.name}
 				))
 
-		elif c.communication_type=="Comment" and c.comment_type=="Comment":
-			c.content = frappe.utils.markdown(c.content)
 	return communications
 
 def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=None,
@@ -142,19 +156,15 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 			`communication_date`, `content`, `sender`, `sender_full_name`,
 			`creation`, `subject`, `delivery_status`, `_liked_by`,
 			`timeline_doctype`, `timeline_name`, `reference_doctype`, `reference_name`,
-			`link_doctype`, `link_name`, `read_by_recipient`, `rating` '''
+			`link_doctype`, `link_name`, `read_by_recipient`, `rating`, 'Communication' AS `doctype`'''
 
-	conditions = '''communication_type in ('Communication', 'Comment', 'Feedback')
+	conditions = '''communication_type in ('Communication', 'Feedback')
 			and (
 				(reference_doctype=%(doctype)s and reference_name=%(name)s)
 				or (
-				(timeline_doctype=%(doctype)s and timeline_name=%(name)s)
-				and (
-				communication_type='Communication'
-				or (
-					communication_type='Comment'
-					and comment_type in ('Created', 'Updated', 'Submitted', 'Cancelled', 'Deleted')
-				)))
+					(timeline_doctype=%(doctype)s and timeline_name=%(name)s)
+					and (communication_type='Communication')
+				)
 			)'''
 
 
@@ -222,8 +232,8 @@ def get_view_logs(doctype, docname):
 		view_logs = frappe.get_all("View Log", filters={
 			"reference_doctype": doctype,
 			"reference_name": docname,
-		}, fields=["name", "creation"], order_by="creation desc")
+		}, fields=["name", "creation", "owner"], order_by="creation desc")
 
-		if  view_logs:
+		if view_logs:
 			logs = view_logs
 	return logs

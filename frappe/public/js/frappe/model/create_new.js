@@ -85,14 +85,12 @@ $.extend(frappe.model, {
 
 	set_default_values: function(doc, parent_doc) {
 		var doctype = doc.doctype;
-		var docfields = frappe.meta.docfield_list[doctype] || [];
+		var docfields = frappe.meta.get_docfields(doctype);
 		var updated = [];
-
 		for(var fid=0;fid<docfields.length;fid++) {
 			var f = docfields[fid];
-
 			if(!in_list(frappe.model.no_value_type, f.fieldtype) && doc[f.fieldname]==null) {
-				var v = frappe.model.get_default_value(f, doc, parent_doc);
+				var v = !f.depends_on || doc[f.depends_on] ? frappe.model.get_default_value(f, doc, parent_doc) : null;
 				if(v) {
 					if(in_list(["Int", "Check"], f.fieldtype))
 						v = cint(v);
@@ -116,7 +114,7 @@ $.extend(frappe.model, {
 		if(meta && meta.istable) return;
 
 		// create empty rows for mandatory table fields
-		frappe.meta.docfield_list[doc.doctype].forEach(function(df) {
+		frappe.meta.get_docfields(doc.doctype).forEach(function(df) {
 			if(df.fieldtype==='Table' && df.reqd) {
 				frappe.model.add_child(doc, df.fieldname);
 			}
@@ -126,25 +124,23 @@ $.extend(frappe.model, {
 	get_default_value: function(df, doc, parent_doc) {
 		var user_default = "";
 		var user_permissions = frappe.defaults.get_user_permissions();
+		let allowed_records = [];
+		if(user_permissions) {
+			allowed_records = frappe.perm.get_allowed_docs_for_doctype(user_permissions[df.options], doc.doctype);
+		}
 		var meta = frappe.get_meta(doc.doctype);
 		var has_user_permissions = (df.fieldtype==="Link"
-			&& user_permissions
+			&& !$.isEmptyObject(user_permissions)
 			&& df.ignore_user_permissions != 1
-			&& user_permissions[df.options]);
-
-		function is_doc_allowed(doctype, docname) {
-			return user_permissions[doctype].some(perm => {
-				return perm.doc === docname && (perm.applicable_for === doc.doctype || !perm.applicable_for);
-			});
-		}
+			&& allowed_records.length);
 
 		// don't set defaults for "User" link field using User Permissions!
 		if (df.fieldtype==="Link" && df.options!=="User") {
 			// 1 - look in user permissions for document_type=="Setup".
 			// We don't want to include permissions of transactions to be used for defaults.
 			if (df.linked_document_type==="Setup"
-				&& has_user_permissions && user_permissions[df.options].length===1) {
-				return user_permissions[df.options][0].doc;
+				&& has_user_permissions && allowed_records.length===1) {
+				return allowed_records[0];
 			}
 
 			if(!df.ignore_user_permissions) {
@@ -165,7 +161,7 @@ $.extend(frappe.model, {
 			}
 
 			var is_allowed_user_default = user_default &&
-				(!has_user_permissions || is_doc_allowed(df.options, user_default));
+				(!has_user_permissions || allowed_records.includes(user_default));
 
 			// is this user default also allowed as per user permissions?
 			if (is_allowed_user_default) {
@@ -190,7 +186,7 @@ $.extend(frappe.model, {
 
 			} else if (df["default"][0]===":") {
 				var boot_doc = frappe.model.get_default_from_boot_docs(df, doc, parent_doc);
-				var is_allowed_boot_doc = !has_user_permissions || is_doc_allowed(df.options, boot_doc);
+				var is_allowed_boot_doc = !has_user_permissions || allowed_records.includes(boot_doc);
 
 				if (is_allowed_boot_doc) {
 					return boot_doc;
@@ -201,7 +197,7 @@ $.extend(frappe.model, {
 			}
 
 			// is this default value is also allowed as per user permissions?
-			var is_allowed_default = !has_user_permissions || is_doc_allowed(df.options, df.default);
+			var is_allowed_default = !has_user_permissions || allowed_records.includes(df.default);
 			if (df.fieldtype!=="Link" || df.options==="User" || is_allowed_default) {
 				return df["default"];
 			}
@@ -342,5 +338,3 @@ frappe.new_doc = function (doctype, opts, init_callback) {
 
 	});
 }
-
-

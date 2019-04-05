@@ -4,7 +4,9 @@
 			<a class="navbar-brand toggle-sidebar visible-xs visible-sm">
 				<i class="octicon octicon-three-bars"></i>
 			</a>
-			<a class="navbar-brand navbar-home hidden-xs hidden-sm" href="#">Home</a>
+			<a class="navbar-brand navbar-home hidden-xs hidden-sm" href="#">
+				<img src="/assets/frappe/images/frappe-framework-logo.png">
+			</a>
 			<ul class="nav navbar-nav" id="navbar-breadcrumbs">
 			</ul>
 		</div>
@@ -18,17 +20,15 @@
 				<a class="dropdown-toggle" data-toggle="dropdown" href="#"
 					onclick="return false;">
 				{{ avatar }}
-                <span class="ellipsis toolbar-user-fullname hidden-xs hidden-sm">
+				<span class="ellipsis toolbar-user-fullname hidden-xs hidden-sm">
 					{%= frappe.user.full_name() %}</span>
-                <b class="caret hidden-xs hidden-sm"></b></a>
+				<b class="caret hidden-xs hidden-sm"></b></a>
 				<ul class="dropdown-menu" id="toolbar-user" role="menu">
-					<li class="navbar-set-desktop-icons"><a>
-					    {%= __("Set Desktop Icons") %}</a></li>
 					<li><a href="#Form/User/{%= encodeURIComponent(frappe.session.user) %}">
-					    {%= __("My Settings") %}</a></li>
+						{%= __("My Settings") %}</a></li>
 					<li class="navbar-reload">
 						<a href="#" onclick="return frappe.ui.toolbar.clear_cache();">
-					    {%= __("Reload") %}</a></li>
+						{%= __("Reload") %}</a></li>
 					<li><a href="/index" target="_blank" rel="noopener noreferrer">
 						{%= __("View Website") %}</a></li>
 					<li><a href="#background_jobs">
@@ -47,16 +47,8 @@
 						style="padding: 50% 7px; font-size: 17px; background-color: #fafbfc; font-weight: 100;">?</span>
 				</a>
 				<ul class="dropdown-menu" role="menu">
-					<div class="input-group" style="border-bottom: 1px solid #d1d8dd;">
-						<input id="input-help" type="text" placeholder="{{ __("What do you need help with?") }}" autofocus>
-						<span class="input-group-btn"><button class="btn btn-default">{{ __("Go") }}</button></span>
-					</div>
 					<li id="help-links"></li>
 					<li class="divider"></li>
-					<li>
-						<a data-link-type="documentation"
-							data-path="/documentation/index" target="_blank" rel="noopener noreferrer">{{ __("Documentation") }}</a>
-					</li>
 					<li class="divider documentation-links"></li>
 					<li><a href="#" onclick="return frappe.ui.toolbar.show_about();">
 						{%= __("About") %}</a></li>
@@ -94,13 +86,13 @@
 		</div>
 
 		<div class="hidden-xs">
-	        <form class="navbar-form navbar-right" role="search" onsubmit="return false;">
-	          <div class="form-group form-group-sm ui-front">
-	            <input id="navbar-search" type="text" class="form-control"
+			<form class="navbar-form navbar-right" role="search" onsubmit="return false;">
+			  <div class="form-group form-group-sm ui-front">
+				<input id="navbar-search" type="text" class="form-control"
 					placeholder="{%= __("Search or type a command") %} {%= __("(Ctrl + G)") %}" aria-haspopup="true">
 				<span class="octicon octicon-search navbar-search-icon"></span>
-	          </div>
-	        </form>
+			  </div>
+			</form>
 		</div>
 	</div>
 </div>

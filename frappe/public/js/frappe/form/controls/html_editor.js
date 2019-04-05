@@ -5,6 +5,7 @@ frappe.ui.form.ControlHTMLEditor = frappe.ui.form.ControlMarkdownEditor.extend({
 		this._super();
 	},
 	update_preview() {
+		if (!this.markdown_preview) return;
 		let value = this.get_value() || '';
 		value = frappe.dom.remove_script_and_style(value);
 		this.markdown_preview.html(value);

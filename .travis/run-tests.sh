@@ -11,17 +11,13 @@ setup_mariadb_env() {
 if [[ $DB == 'mariadb' ]]; then
     setup_mariadb_env 'test_frappe'
     bench --site test_site reinstall --yes
-    bench --site test_site setup-help
-    bench setup-global-help --root_password travis
     bench --site test_site scheduler disable
     bench --site test_site run-tests --coverage
 
 elif [[ $TEST_TYPE == 'ui' ]]; then
     setup_mariadb_env 'test_site_ui'
-    bench --site test_site_ui --force restore ./apps/frappe/test_sites/test_site_ui/test_site_ui-database.sql.gz
-    bench --site test_site_ui migrate
-    bench --site test_site_ui setup-help
-    bench setup-global-help --root_password travis
+    bench --site test_site_ui reinstall --yes
+	bench --site test_site_ui execute frappe.utils.install.complete_setup_wizard
     bench --site test_site_ui scheduler disable
     cd apps/frappe && yarn && yarn cypress:run
 
@@ -29,8 +25,6 @@ elif [[ $DB == 'postgres' ]]; then
     psql -c "CREATE DATABASE test_frappe;" -U postgres
     psql -c "CREATE USER test_frappe WITH PASSWORD 'test_frappe';" -U postgres
     bench --site test_site_postgres reinstall --yes
-    bench --site test_site_postgres setup-help
-    bench setup-global-help --db_type=postgres --root_password travis
     bench --site test_site_postgres scheduler disable
     bench --site test_site_postgres run-tests --coverage
 fi
