@@ -31,7 +31,7 @@ Object.assign(frappe.utils, {
 		if (!txt) return false;
 
 		if(txt.indexOf("<br>")==-1 && txt.indexOf("<p")==-1
-			&& txt.indexOf("<img")==-1 && txt.indexOf("<div")==-1) {
+			&& txt.indexOf("<img")==-1 && txt.indexOf("<div")==-1 && !txt.includes('<span')) {
 			return false;
 		}
 		return true;
@@ -688,12 +688,6 @@ Object.assign(frappe.utils, {
 	deep_equal(a, b) {
 		return deep_equal(a, b);
 	},
-
-	get_points(points) {
-		return `<span class='bold' style="color: ${points >= 0 ? '#45A163': '#e42121'}">
-			${points > 0 ? '+': ''}${points}
-		</span>`;
-	}
 });
 
 // Array de duplicate

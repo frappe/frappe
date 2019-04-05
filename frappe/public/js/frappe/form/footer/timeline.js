@@ -159,6 +159,10 @@ frappe.ui.form.Timeline = class Timeline {
 
 		// append comments
 		timeline = timeline.concat(this.get_comments());
+
+		// append energy point logs
+		timeline = timeline.concat(this.get_energy_point_logs());
+
 		// sort
 		timeline
 			.filter(a => a.content)
@@ -512,6 +516,16 @@ frappe.ui.form.Timeline = class Timeline {
 		}
 
 		return docinfo.comments;
+	}
+
+	get_energy_point_logs() {
+		let energy_point_logs = this.frm.get_docinfo().energy_point_logs;
+		energy_point_logs.map(log => {
+			log.comment_type = 'Energy Points';
+			log.content = frappe.energy_points.format_log(log);
+			return log;
+		});
+		return energy_point_logs;
 	}
 
 	cast_comment_as_communication(c) {
