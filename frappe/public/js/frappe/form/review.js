@@ -32,7 +32,6 @@ frappe.ui.form.Review = class Review {
 		this.review_list_wrapper = this.$wrapper.find('.review-list');
 	}
 	add_review_button() {
-		if (!this.points.review_points || !this.get_involved_users().length) return;
 
 		this.review_list_wrapper.append(`
 			<span class="avatar avatar-small avatar-empty btn-add-review" title="${__('Add Review')}">
@@ -40,7 +39,22 @@ frappe.ui.form.Review = class Review {
 			</span>
 		`);
 
-		this.review_list_wrapper.find('.btn-add-review').click(() => this.show());
+		const review_button = this.review_list_wrapper.find('.btn-add-review');
+
+		if (!this.points.review_points) {
+			review_button.click(false);
+			review_button.popover({
+				trigger: 'hover',
+				content: () => {
+					return `<div class="text-medium">
+						${__('You do not have enough review points')}
+					</div>`;
+				},
+				html: true
+			});
+		} else {
+			review_button.click(() => this.show_review_dialog());
+		}
 	}
 	get_involved_users() {
 		const user_fields = this.frm.meta.fields
@@ -64,7 +78,7 @@ frappe.ui.form.Review = class Review {
 			.filter(user => user !== frappe.session.user)
 			.filter(Boolean);
 	}
-	show() {
+	show_review_dialog() {
 		const user_options = this.get_involved_users();
 		const doc_owner = this.frm.doc.owner;
 		const review_dialog = new frappe.ui.Dialog({
