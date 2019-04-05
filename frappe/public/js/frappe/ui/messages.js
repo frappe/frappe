@@ -283,11 +283,11 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 			<a class="close">&times;</a>
 		</div>`);
 
-	div.find('.alert-message').append(message.message);
-
 	if(message.indicator) {
-		div.find('.alert-message').addClass('indicator '+ message.indicator);
+		div.find('.alert-message').append(`<span class="indicator ${message.indicator}"></span>`);
 	}
+
+	div.find('.alert-message').append(message.message);
 
 	if (body_html) {
 		div.find('.alert-body').show().html(body_html);
