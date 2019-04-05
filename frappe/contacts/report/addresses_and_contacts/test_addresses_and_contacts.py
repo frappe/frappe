@@ -94,7 +94,7 @@ def create_linked_contact(link_list):
 
 class TestAddressesAndContacts(unittest.TestCase):
 	def test_get_data(self):
-		linked_docs = [get_custom_doc_for_address_and_contacts(), get_custom_doc_for_address_and_contacts(), get_custom_doc_for_address_and_contacts()]
+		linked_docs = [get_custom_doc_for_address_and_contacts()]
 		links_list = [item.name for item in linked_docs]
 		create_linked_contact(links_list)
 		create_linked_address(links_list)
