@@ -2,7 +2,7 @@
 	<div>
 		<ul class="log-list">
 			<li class="history-log" v-for="log in history_logs" :key="log.name">
-				<span v-html="frappe.energy_points.format_log(log, true)"></span>
+				<span v-html="frappe.energy_points.format_history_log(log, true)"></span>
 			</li>
 			<li v-if="!history_logs.length" class="history-log">
 				{{__('No logs found')}}

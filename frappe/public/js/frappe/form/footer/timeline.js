@@ -522,7 +522,7 @@ frappe.ui.form.Timeline = class Timeline {
 		let energy_point_logs = this.frm.get_docinfo().energy_point_logs;
 		energy_point_logs.map(log => {
 			log.comment_type = 'Energy Points';
-			log.content = frappe.energy_points.format_log(log);
+			log.content = frappe.energy_points.format_form_log(log);
 			return log;
 		});
 		return energy_point_logs;
