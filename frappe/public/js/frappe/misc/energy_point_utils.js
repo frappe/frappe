@@ -40,7 +40,7 @@ Object.assign(frappe.energy_points, {
 		}
 		if (log.type === 'Revert') {
 			return __('{0} reverted {1}', [owner_name,
-				frappe.utils.get_form_link('Energy Point Log', log.revert_for, true)]);
+				frappe.utils.get_form_link('Energy Point Log', log.revert_of, true)]);
 		}
 		return __('via automatic rule {0} on {1}', [log.rule.bold(), doc_link]);
 	},
@@ -56,7 +56,7 @@ Object.assign(frappe.energy_points, {
 		}
 		if (log.type === 'Revert') {
 			return __('{0} reverted {1}', [user,
-				frappe.utils.get_form_link('Energy Point Log', log.revert_for, true)]);
+				frappe.utils.get_form_link('Energy Point Log', log.revert_of, true)]);
 		}
 		return __('gained by {0} via automatic rule {1}', [user, log.rule.bold()]);
 	},
