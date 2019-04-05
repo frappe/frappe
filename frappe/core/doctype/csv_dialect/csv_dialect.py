@@ -10,7 +10,6 @@ from six import StringIO, string_types
 from frappe.utils import encode
 import frappe
 from frappe.model.document import Document
-from frappe import msgprint, _
 from frappe import DoesNotExistError
 
 
