@@ -185,6 +185,7 @@ frappe.ui.add_assignment = function(opts, dialog) {
 	var assign_to = dialog.fields_dict.assign_to.get_value();
 	var args = dialog.get_values();
 	if(args && assign_to) {
+		dialog.set_message('Assigning...');
 		return frappe.call({
 			method: opts.method,
 			args: $.extend(args, {
@@ -194,15 +195,17 @@ frappe.ui.add_assignment = function(opts, dialog) {
 				bulk_assign:  opts.bulk_assign || false,
 				re_assign: opts.re_assign || false
 			}),
-			callback: function(r,rt) {
+			btn: dialog.get_primary_btn(),
+			callback: function(r) {
 				if(!r.exc) {
 					if(opts.callback){
 						opts.callback(r);
 					}
 					dialog && dialog.hide();
+				} else {
+					dialog.clear_message();
 				}
 			},
-			btn: this
 		});
 	}
 }

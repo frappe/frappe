@@ -112,6 +112,11 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.$body.removeClass('hide');
 	}
 
+	clear() {
+		super();
+		this.clear_message();
+	}
+
 	set_primary_action(label, click) {
 		this.has_primary_action = true;
 		var me = this;
