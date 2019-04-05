@@ -36,6 +36,12 @@ frappe.ui.form.on('Data Import', {
 		});
 	},
 
+	reference_doctype: function(frm){
+		if (frm.doc.reference_doctype) {
+			frappe.model.with_doctype(frm.doc.reference_doctype);
+		}
+	},
+
 	refresh: function(frm) {
 		frm.disable_save();
 		frm.dashboard.clear_headline();
