@@ -127,9 +127,10 @@ frappe.ui.form.Review = class Review {
 					points: values.points,
 					review_type: values.review_type,
 					reason: values.reason
-				}).then(() => {
+				}).then(review => {
 					review_dialog.hide();
 					review_dialog.clear();
+					this.frm.get_docinfo().energy_point_logs.unshift(review);
 					this.update_reviewers();
 				});
 			},
@@ -138,21 +139,19 @@ frappe.ui.form.Review = class Review {
 		review_dialog.show();
 	}
 	update_reviewers() {
-		frappe.xcall('frappe.social.doctype.energy_point_log.energy_point_log.get_reviews', {
-			'doctype': this.frm.doc.doctype,
-			'docname': this.frm.doc.name,
-		}).then(review_logs => {
-			this.review_list_wrapper.find('.review-pill').remove();
-			review_logs.forEach(log => {
-				let review_pill = $(`
-					<span class="review-pill">
-						${frappe.avatar(log.owner)}
-						${frappe.utils.get_points(log.points)}
-					</span>
-				`);
-				this.review_list_wrapper.prepend(review_pill);
-				this.setup_detail_popover(review_pill, log);
-			});
+		const review_logs = this.frm.get_docinfo().energy_point_logs
+			.filter(log => log.type !== 'Auto');
+
+		this.review_list_wrapper.find('.review-pill').remove();
+		review_logs.forEach(log => {
+			let review_pill = $(`
+				<span class="review-pill">
+					${frappe.avatar(log.owner)}
+					${frappe.energy_points.get_points(log.points)}
+				</span>
+			`);
+			this.review_list_wrapper.prepend(review_pill);
+			this.setup_detail_popover(review_pill, log);
 		});
 	}
 	setup_detail_popover(el, data) {
