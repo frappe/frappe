@@ -101,7 +101,7 @@ class TestAddressesAndContacts(unittest.TestCase):
 		report_data = get_data({"reference_doctype": "Test Custom Doctype"})
 		for link in links_list:
 			test_item = [link, 'test address line 1', 'test address line 2', 'Milan', None, None, 'Italy', 0, '_Test First Name', '_Test Last Name', '+91 0000000000', None, 'test_contact@example.com', 1]
-			self.assertIn(test_item, report_data)
+			self.assertEquals(test_item, report_data)
 
 	def tearDown(self):
 		frappe.db.rollback()
