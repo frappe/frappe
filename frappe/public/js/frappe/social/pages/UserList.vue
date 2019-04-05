@@ -17,9 +17,8 @@
 			</li>
 			<li
 				v-for="user in filtered_users"
-				:key="user.name"
-				@click="toggle_log(user.name)">
-				<div class="user-card">
+				:key="user.name">
+				<div class="user-card" @click="toggle_log(user.name)">
 					<div class="user-details flex">
 						<span v-html="get_avatar(user.name)"></span>
 						<span>
@@ -180,8 +179,6 @@ export default {
 }
 .energy-point-history {
 	border-bottom: 1px solid @border-color;
-	max-height: 300px;
-	overflow: scroll;
 	background-color: @light-bg;
 }
 </style>
