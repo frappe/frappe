@@ -131,6 +131,7 @@ frappe.ui.form.Review = class Review {
 					review_dialog.hide();
 					review_dialog.clear();
 					this.frm.get_docinfo().energy_point_logs.unshift(review);
+					this.frm.timeline.refresh();
 					this.update_reviewers();
 				});
 			},
