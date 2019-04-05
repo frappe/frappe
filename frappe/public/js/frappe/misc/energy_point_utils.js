@@ -20,7 +20,7 @@ Object.assign(frappe.energy_points, {
 		}
 		return __('via automatic rule {0} for {1}', [log.rule.bold(), doc_link]);
 	},
-	format_log(log, with_timestamp=true) {
+	format_log(log, with_timestamp=false) {
 		let formatted_log = `<span>
 			${this.get_points(log.points)}&nbsp;${this.log_message(log)}
 			${ with_timestamp ? '<span>&nbsp;-&nbsp;</span>' + frappe.datetime.comment_when(log.creation):''}
