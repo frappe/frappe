@@ -5,33 +5,20 @@ import showdown from 'showdown';
 
 frappe.provide("frappe.tools");
 
-frappe.tools.downloadify = function(data, roles, title) {
+frappe.tools.downloadify = function(data, roles, title, dialect='') {
 	if(roles && roles.length && !has_common(roles, roles)) {
 		frappe.msgprint(__("Export not allowed. You need {0} role to export.", [frappe.utils.comma_or(roles)]));
 		return;
 	}
 
-	var filename = title + ".csv";
-	var csv_data = frappe.tools.to_csv(data);
-	var a = document.createElement('a');
-
-	if ("download" in a) {
-		// Used Blob object, because it can handle large files
-		var blob_object = new Blob([csv_data], { type: 'text/csv;charset=UTF-8' });
-		a.href = URL.createObjectURL(blob_object);
-		a.download = filename;
-
-	} else {
-		// use old method
-		a.href = 'data:attachment/csv,' + encodeURIComponent(csv_data);
-		a.download = filename;
-		a.target = "_blank";
-	}
-
-	document.body.appendChild(a);
-	a.click();
-
-	document.body.removeChild(a);
+	frappe.call({
+		method: 'frappe.core.doctype.csv_dialect.csv_dialect.send_csv_to_client',
+		args: {
+			data: data,
+			filename: title + ".csv",
+			dialect: dialect,
+		}
+	});
 };
 
 frappe.markdown = function(txt) {
@@ -61,19 +48,6 @@ frappe.markdown = function(txt) {
 	}
 
 	return frappe.md2html.makeHtml(txt);
-}
-
-
-frappe.tools.to_csv = function(data) {
-	var res = [];
-	$.each(data, function(i, row) {
-		row = $.map(row, function(col) {
-			if (col === null || col === undefined) col = '';
-			return typeof col === "string" ? ('"' + $('<i>').html(col.replace(/"/g, '""')).text() + '"') : col;
-		});
-		res.push(row.join(","));
-	});
-	return res.join("\n");
 };
 
 frappe.slickgrid_tools = {

@@ -3,14 +3,15 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
-from frappe.model.document import Document
-from frappe import msgprint, _
 import csv
 import json
 import six
 from six import StringIO, string_types
-from frappe.utils import encode, cstr, cint, flt, comma_or
+from frappe.utils import encode
+import frappe
+from frappe.model.document import Document
+from frappe import msgprint, _
+from frappe import DoesNotExistError
 
 
 class CSVDialect(Document):
@@ -40,6 +41,7 @@ class UnicodeWriter:
 	def getvalue(self):
 		return self.queue.getvalue()
 
+
 def register_dialect(dialect):
 	"""
 	register a new csv dialect named dialect.name
@@ -67,9 +69,9 @@ def register_dialect(dialect):
 @frappe.whitelist()
 def send_csv_to_client(args):
 	"""
-	/api/method/frappe.utils.csvutils.send_csv_to_client?args={"data":[],"filename":"","dialect":""}
+	/api/method/frappe.core.doctype.csv_dialect.csv_dialect.send_csv_to_client
 
-	args: {
+	args = {
 		"data": [ [], [], ... ],        # list of rows
 		"filename": "",                 # any name for the output file
 		"dialect": "" 					# name of a `CSV Dialect`
@@ -79,8 +81,23 @@ def send_csv_to_client(args):
 		args = json.loads(args)
 
 	args = frappe._dict(args)
-	dialect = frappe.get_doc('CSV Dialect', args.dialect)
 
-	frappe.response["result"] = dialect.to_csv(args.data)
-	frappe.response["doctype"] = args.filename
+	data = args.get('data')
+	dialect = args.get('dialect')
+	filename = args.get('filename')
+
+	try:
+		dialect = frappe.get_doc('CSV Dialect', dialect)
+	except DoesNotExistError:
+		dialect = frappe.get_doc({
+			"doctype":"CSV Dialect",
+			"quoting":"Minimal",
+			"delimiter":",",
+			"encoding":"utf-8",
+			"doublequote": 1
+		})
+
+	frappe.response["result"] = dialect.to_csv(data)
+	frappe.response["doctype"] = filename
 	frappe.response["type"] = "csv"
+

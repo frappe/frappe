@@ -9,6 +9,7 @@ import csv
 import six
 from six import StringIO, text_type, string_types
 from frappe.utils import encode, cstr, cint, flt, comma_or
+from frappe.core.doctype.csv_dialect import csv_dialect
 
 def read_csv_content_from_uploaded_file(ignore_encoding=False):
 	if getattr(frappe, "uploaded_file", None):
@@ -84,21 +85,7 @@ def read_csv_content(fcontent, ignore_encoding=False):
 
 @frappe.whitelist()
 def send_csv_to_client(args):
-	if isinstance(args, string_types):
-		args = json.loads(args)
-
-	args = frappe._dict(args)
-	dialect = frappe.get_doc({
-		"doctype":"CSV Dialect",
-		"quoting":"Minimal",
-		"delimiter":",",
-		"encoding":"utf-8",
-		"doublequote": 1
-	})
-
-	frappe.response["result"] = cstr(dialect.to_csv(args.data))
-	frappe.response["doctype"] = args.filename
-	frappe.response["type"] = "csv"
+	csv_dialect.send_csv_to_client(args)
 
 
 def check_record(d):
