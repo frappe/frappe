@@ -2,10 +2,7 @@
 	<div>
 		<ul class="log-list">
 			<li class="history-log" v-for="log in history_logs" :key="log.name">
-				<span v-html="frappe.utils.get_points(log.points)"></span>
-				<span v-html="log_body(log)"></span>
-				<span>&nbsp;-&nbsp;</span>
-				<span v-html="frappe.datetime.comment_when(log.creation)"></span>
+				<span v-html="frappe.energy_points.format_log(log, true)"></span>
 			</li>
 			<li v-if="!history_logs.length" class="history-log">
 				{{__('No logs found')}}
@@ -32,19 +29,6 @@ export default {
 			this.history_logs = data;
 		})
 	},
-	methods: {
-		log_body(log) {
-			const doc_link = frappe.utils.get_form_link(log.reference_doctype, log.reference_name, true)
-			const owner_name = frappe.user.full_name(log.owner).bold();
-			if (log.type === 'Appreciation') {
-				return __('{0} appreciated on {1}', [owner_name, doc_link])
-			}
-			if (log.type === 'Criticism') {
-				return __('{0} criticized on {1}', [owner_name, doc_link])
-			}
-			return __('via automatic rule {0} for {1}', [log.rule.bold(), doc_link])
-		}
-	}
 
 }
 </script>
@@ -71,11 +55,6 @@ export default {
 	padding: 10px;
 	padding-left: 50px;
 	display: flex;
-	span:nth-child(1) {
-		width: 40px;
-		text-align: right;
-		margin-right: 10px;
-	}
 	position: relative;
 }
 .history-log:before {
