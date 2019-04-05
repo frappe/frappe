@@ -140,7 +140,7 @@ frappe.ui.form.Review = class Review {
 	}
 	update_reviewers() {
 		const review_logs = this.frm.get_docinfo().energy_point_logs
-			.filter(log => log.type !== 'Auto');
+			.filter(log => ['Appreciation', 'Criticism'].includes(log.type));
 
 		this.review_list_wrapper.find('.review-pill').remove();
 		review_logs.forEach(log => {
