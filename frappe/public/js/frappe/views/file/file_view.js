@@ -40,15 +40,17 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	}
 
 	setup_defaults() {
-		super.setup_defaults();
-		this.page_title = __('File Manager');
+		return super.setup_defaults()
+			.then(() => {
+				this.page_title = __('File Manager');
 
-		const route = frappe.get_route();
-		this.current_folder = route.slice(2).join('/');
-		this.filters = [['File', 'folder', '=', this.current_folder, true]];
-		this.order_by = this.view_user_settings.order_by || 'file_name asc';
+				const route = frappe.get_route();
+				this.current_folder = route.slice(2).join('/');
+				this.filters = [['File', 'folder', '=', this.current_folder, true]];
+				this.order_by = this.view_user_settings.order_by || 'file_name asc';
 
-		this.menu_items = this.menu_items.concat(this.file_menu_items());
+				this.menu_items = this.menu_items.concat(this.file_menu_items());
+			});
 	}
 
 	file_menu_items() {

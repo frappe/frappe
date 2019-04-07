@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe, unittest, os
 from frappe.utils import cint
 from frappe.model.naming import revert_series_if_last, make_autoname, parse_naming_series
+from frappe.utils.testutils import add_custom_field, clear_custom_fields
 
 class TestDocument(unittest.TestCase):
 	def test_get_return_empty_list_for_table_field_if_none(self):
@@ -236,3 +237,20 @@ class TestDocument(unittest.TestCase):
 			new_current = cint(frappe.db.get_value('Series', prefix, "current", order_by="name"))
 
 			self.assertEqual(cint(old_current) - 1, new_current)
+
+	def test_default_of_dependent_field(self):
+		add_custom_field('ToDo', 'parent_field', 'Data')
+
+		add_custom_field('ToDo', 'dependent_field', 'Data',
+			default='Some Data', depends_on='parent_field')
+
+		add_custom_field('ToDo', 'independent_field', 'Data',
+			default='Some Data')
+
+
+		doc = frappe.new_doc('ToDo')
+
+		self.assertFalse(doc.get('dependent_field'))
+		self.assertEqual(doc.get('independent_field'), 'Some Data')
+
+		clear_custom_fields('ToDo')

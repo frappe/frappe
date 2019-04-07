@@ -2,7 +2,7 @@
 	<div class="flex flex-column">
 		<a class="route-link"
 			@click.prevent="go_to_user_list()">
-			{{ __('All Users') }}
+			{{ __('Leaderboard') }}
 		</a>
 		<div class="links" v-if="frequently_visited_list.length">
 			<div class="muted-title">

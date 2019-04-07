@@ -203,7 +203,7 @@ body[data-route^="Module"] .main-menu {
 	}
 }
 
-.form-sidebar .form-shared .share-doc-btn& {
+.form-sidebar .form-shared .share-doc-btn, .btn-add-review {
 	&:hover,
 	&:focus,
 	&:active {
@@ -375,4 +375,57 @@ body[data-route^="Module"] .main-menu {
 
 .assignment-row {
 	margin-bottom: 5px;
+}
+
+.review-list {
+	display: flex;
+	flex-wrap: wrap;
+
+	.btn-add-review {
+		cursor: pointer;
+
+		.octicon {
+			position: relative;
+			left: 4.5px;
+		}
+	}
+
+	.review-pill {
+		width: 50px;
+		border: 1px solid @border-color;
+		border-radius: 4px;
+		display: flex;
+		margin: 0 10px 10px 0;
+		.avatar {
+			padding: 0px;
+			margin: 0px;
+			.avatar-frame {
+				border-radius: 3px 0 0 3px;
+			}
+		}
+		.standard-image {
+			border-left: 0;
+		}
+		span:nth-child(2) {
+			flex-basis: 50%;
+			text-align: center;
+			align-self: center;
+			font-size: @text-small;
+		}
+		cursor: pointer;
+	}
+}
+
+.review-popover  {
+	max-width: 150px;
+
+	.popover-content {
+		padding: 0;
+	}
+	.subject {
+		border-bottom: 1px solid @border-color;
+	}
+	.subject, .body {
+		padding: 12px;
+	}
 }
