@@ -66,6 +66,12 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"sent_or_received": sent_or_received,
 		"reference_doctype": doctype,
 		"reference_name": name,
+		"communication_link": [
+			{
+				"reference_doctype": doctype,
+				"reference_name": name,
+			},
+		],
 		"message_id":get_message_id().strip(" <>"),
 		"read_receipt":read_receipt,
 		"has_attachment": 1 if attachments else 0

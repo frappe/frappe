@@ -160,36 +160,33 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	group_by=None, as_dict=True):
 	'''Returns list of communications for a given document'''
 	if not fields:
-		fields = '''`name`, `communication_type`,`communication_medium`, `comment_type`,
-			`communication_date`, `content`, `sender`, `sender_full_name`,
-			`creation`, `subject`, `delivery_status`, `_liked_by`,
-			`timeline_doctype`, `timeline_name`, `reference_doctype`, `reference_name`,
-			`link_doctype`, `link_name`, `read_by_recipient`, `rating`, 'Communication' AS `doctype`'''
+		fields = '''*'''
 
-	conditions = '''communication_type in ('Communication', 'Feedback')
+	conditions = '''`tabCommunication`.communication_type in ('Communication', 'Feedback')
 			and (
-				(reference_doctype=%(doctype)s and reference_name=%(name)s)
+				(`tabCommunication Link`.reference_doctype=%(doctype)s and `tabCommunication Link`.reference_name=%(name)s)
 				or (
-					(timeline_doctype=%(doctype)s and timeline_name=%(name)s)
-					and (communication_type='Communication')
+					(`tabCommunication`.timeline_doctype=%(doctype)s and `tabCommunication`.timeline_name=%(name)s)
+					and (`tabCommunication`.communication_type='Communication')
 				)
 			)'''
 
 
 	if after:
 		# find after a particular date
-		conditions+= ' and creation > {0}'.format(after)
+		conditions+= ' and `tabCommunication`.creation > {0}'.format(after)
 
 	if doctype=='User':
-		conditions+= " and not (reference_doctype='User' and communication_type='Communication')"
+		conditions+= " and not (`tabCommunication Link`.reference_doctype='User' and `tabCommunication`.communication_type='Communication')"
 
 	communications = frappe.db.sql("""select {fields}
 		from `tabCommunication`
-		where {conditions} {group_by}
-		order by creation desc LIMIT %(limit)s OFFSET %(start)s""".format(
+		inner join `tabCommunication Link` where `tabCommunication`.name=`tabCommunication Link`.parent
+		and {conditions} {group_by}
+		order by `tabCommunication`.creation desc LIMIT %(limit)s OFFSET %(start)s""".format(
 			fields = fields, conditions=conditions, group_by=group_by or ""),
 			{ "doctype": doctype, "name": name, "start": frappe.utils.cint(start), "limit": limit },
-			as_dict=as_dict)
+			as_dict=as_dict, debug=True)
 
 	return communications
 
