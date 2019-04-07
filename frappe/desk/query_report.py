@@ -390,7 +390,7 @@ def get_filtered_data(ref_doctype, columns, data, user, custom_columns):
 		custom_field_list = []
 
 		for doctype, field_list in iteritems(fields):
-			values = frappe.db.sql("select name, {fields} from `tab{doctype}` "
+			values = frappe.db.sql("select name, {fields} from `tab{doctype}` "  #nosec
 				.format(fields = ", ".join(field_list), doctype=doctype), as_dict=1)
 
 			custom_field_list += field_list
