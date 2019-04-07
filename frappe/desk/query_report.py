@@ -16,6 +16,7 @@ from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
 from datetime import timedelta
 from frappe.utils import gzip_decompress
+from frappe.model import no_value_fields
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
@@ -32,7 +33,7 @@ def get_report_doc(report_name):
 	return doc
 
 
-def generate_report_result(report, filters=None, user=None):
+def generate_report_result(report, filters=None, user=None, custom_columns=None):
 	status = None
 	if not user:
 		user = frappe.session.user
@@ -82,10 +83,10 @@ def generate_report_result(report, filters=None, user=None):
 				data_to_be_printed = res[4]
 
 	if result:
-		result, columns = get_filtered_data(report.ref_doctype, columns, result, user, report.add_custom_fields_in_report)
+		result, columns = get_filtered_data(report.ref_doctype, columns, result, user, custom_columns)
 
-	# if cint(report.add_total_row) and result:
-	# 	result = add_total_row(result, columns)
+	if cint(report.add_total_row) and result:
+		result = add_total_row(result, columns)
 
 	return {
 		"result": result,
@@ -159,7 +160,7 @@ def get_script(report_name):
 
 @frappe.whitelist()
 @frappe.read_only()
-def run(report_name, filters=None, user=None):
+def run(report_name, filters=None, user=None, custom_columns=None):
 
 	report = get_report_doc(report_name)
 	if not user:
@@ -181,7 +182,7 @@ def run(report_name, filters=None, user=None):
 			dn = ""
 		result = get_prepared_report_result(report, filters, dn, user)
 	else:
-		result = generate_report_result(report, filters, user)
+		result = generate_report_result(report, filters, user, custom_columns)
 
 	result["add_total_row"] = report.add_total_row
 
@@ -353,8 +354,27 @@ def add_total_row(result, columns, meta = None):
 	result.append(total_row)
 	return result
 
+@frappe.whitelist()
+def get_custom_fields(doctypes):
 
-def get_filtered_data(ref_doctype, columns, data, user, add_custom_fields):
+	field_map = []
+
+	doclist = json.loads(doctypes)
+
+	for d in doclist:
+		fieldlist = [f.label for f in frappe.get_meta(d).fields \
+			if f.label and f.fieldname and f.fieldname not in no_value_fields
+			and f.fieldname not in ["naming_series"]
+			and f.fieldtype not in ["Section Break", "Column Break", "Table"]]
+
+		field_map.append({
+			"doctype": d,
+			"fields": fieldlist
+		})
+
+	return field_map
+
+def get_filtered_data(ref_doctype, columns, data, user, custom_columns):
 	result = []
 	linked_doctypes = get_linked_doctypes(columns, data)
 	match_filters_per_doctype = get_user_match_filters(linked_doctypes, user=user)
@@ -364,45 +384,42 @@ def get_filtered_data(ref_doctype, columns, data, user, add_custom_fields):
 	role_permissions = get_role_permissions(frappe.get_meta(ref_doctype), user)
 	if_owner = role_permissions.get("if_owner", {}).get("report")
 
-	doc_fields_map = {}
-	custom_field_value_map = {}
+	if custom_columns:
+		custom_field_value_map = {}
+		fields = json.loads(custom_columns)
+		custom_field_list = []
 
-	if add_custom_fields:
+		for doctype, field_list in iteritems(fields):
+			values = frappe.db.sql("select name, {fields} from `tab{doctype}` "
+				.format(fields = ", ".join(field_list), doctype=doctype), as_dict=1)
 
-		fields = frappe.db.sql(""" select dt, fieldname, fieldtype from `tabCustom Field`
-			where fieldtype not in ('Section Break', 'Column Break') and
-			dt in (%s)""" % ', '.join(['%s']* len(linked_doctypes)), tuple([doctype for doctype in linked_doctypes.keys()]), as_dict=1)
-
-		for d in fields:
-			doc_fields_map.setdefault(d.dt, [])
-			doc_fields_map.get(d.dt).append(d.fieldname)
-
-			columns.append({
-				"label": frappe.unscrub(d.fieldname),
-				"fieldname": d.filedname,
-				"fieldtype": d.fieldtype,
-				"width": 100
+			custom_field_list += field_list
+			for field in field_list:
+				columns.append({
+					"label": frappe.unscrub(field),
+					"fieldname": field,
+					"fieldtype": "Data",
+					"width": 100
 			})
 
-		for doctype in linked_doctypes.keys():
-			if doc_fields_map.get(doctype):
-				values = frappe.db.sql("select name, {fields} from `tab{doctype}` "
-					.format(fields = ", ".join(doc_fields_map.get(doctype)), doctype=doctype), as_dict=1)
+			for value in values:
+				custom_field_value_map.setdefault(value.name, value)
 
-				for value in values:
-					custom_field_value_map.setdefault(value.name, value)
+		columns_dict = get_columns_dict(columns)
+		columns_idx_map = [columns_dict.get(i) for i in range(len(columns))]
 
 		for row in data:
-			for index, column in enumerate(columns):
-				print(index,column)
-				if isinstance(row, dict) and column.get("fieldtype") == "Link":
-					fieldname = column.get("fieldname")
-					row.update({ "test_field": custom_field_value_map.get(row.get(fieldname),{}).get("test_field")})
-				else:
-					print("$$$$$$$$$$")
-					custom_field_value_map.get(row[index],{})
-					row.append(custom_field_value_map.get(row[index],{}).get("test_field"))
-
+			for index, column in enumerate(columns_idx_map):
+				for d in custom_field_list:
+					if column.get("fieldtype") == "Link" or column.get("fieldtype") == "Dynamic Link":
+						if isinstance(row, dict):
+							fieldname = column.get("fieldname")
+							row.update({ fieldname: custom_field_value_map.get(row.get(fieldname),{}).get(d)})
+						else:
+							fieldname = column.get("fieldname")
+							value = custom_field_value_map.get(row[index],{}).get(d)
+							if value:
+								row.append(value)
 
 	if match_filters_per_doctype:
 		for row in data:

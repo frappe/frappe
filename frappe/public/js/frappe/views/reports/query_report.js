@@ -269,7 +269,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.page.clear_fields();
 	}
 
-	refresh() {
+	refresh(values) {
 		this.toggle_message(true);
 		let filters = this.get_filter_values(true);
 		let query = frappe.utils.get_query_string(frappe.get_route_str());
@@ -291,6 +291,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				args: {
 					report_name: this.report_name,
 					filters: filters,
+					custom_columns: values
 				},
 				callback: resolve,
 				always: () => this.page.btn_secondary.prop('disabled', false)
@@ -418,7 +419,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.raw_data = data;
 		this.columns = this.prepare_columns(data.columns);
 		this.data = this.prepare_data(data.result);
-
+		this.custom_fields = this.get_dialog_fields();
 		this.tree_report = this.data.some(d => 'indent' in d);
 	}
 
@@ -963,6 +964,22 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				standard: true
 			},
 			{
+				label: __('Add Custom Fields'),
+				action: () => {
+					const d = new frappe.ui.Dialog({
+						title: __('Add Custom Fields'),
+						fields: this.custom_fields,
+						primary_action: (values) => {
+							this.refresh(values);
+							d.hide();
+						}
+					});
+
+					d.show();
+				},
+				standard: true
+			},
+			{
 				label: __('User Permissions'),
 				action: () => frappe.set_route('List', 'User Permission', {
 					doctype: 'Report',
@@ -972,6 +989,64 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				standard: true
 			}
 		];
+	}
+
+	get_linked_doctypes() {
+
+		let doctypes = [];
+		let dynamic_links = [];
+		let dynamic_doctypes = new Set();
+
+		this.columns.forEach(df => {
+			if (df.fieldtype == "Link" && df.options) {
+				doctypes.push(df.options);
+			}
+			else if (df.fieldtype == "Dynamic Link" && df.options) {
+				dynamic_links.push(df.options);
+			}
+		});
+
+		this.data.forEach(row => {
+			dynamic_links.forEach(field => {
+				if (row[field]){
+					dynamic_doctypes.add(row[field]);
+				}
+			})
+		})
+
+		doctypes = doctypes.concat(Array.from(dynamic_doctypes));
+
+		return doctypes;
+	}
+
+	get_dialog_fields() {
+		var dialog_fields = [];
+		const linked_doctypes = this.get_linked_doctypes();
+
+		frappe.call({
+			method: "frappe.desk.query_report.get_custom_fields",
+			args: {
+				doctypes: linked_doctypes
+			},
+			callback: function(r) {
+				r.message.forEach(df => {
+					dialog_fields.push({
+						label: __(df.doctype),
+						fieldname: df.doctype,
+						fieldtype: 'MultiCheck',
+						columns: 2,
+						options: df.fields
+							.map(f => ({
+								label: __(f),
+								value: f ? frappe.scrub(f) : null,
+								checked: 0
+							}))
+					});
+				});
+			}
+		});
+
+		return dialog_fields;
 	}
 
 	setup_report_wrapper() {
