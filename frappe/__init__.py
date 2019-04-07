@@ -24,7 +24,7 @@ if sys.version[0] == '2':
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '11.1.17'
+__version__ = '11.1.20'
 __title__ = "Frappe Framework"
 
 local = Local()
