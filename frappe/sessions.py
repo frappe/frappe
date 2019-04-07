@@ -231,11 +231,15 @@ class Session:
 			self.insert_session_record()
 
 			# update user
-			frappe.db.sql("""UPDATE `tabUser` SET `last_login` = %(now)s, `last_ip` = %(ip)s, `last_active` = %(now)s
-				where `name`=%(name)s""", {
-					"now": frappe.utils.now(),
-					"ip": frappe.local.request_ip,
-					"name": self.data['user']
+			frappe.db.sql("""UPDATE `tabUser`
+				SET
+					last_login = %(now)s,
+					last_ip = %(ip)s,
+					last_active = %(now)s
+				WHERE name=%(name)s""", {
+					'now': frappe.utils.now(),
+					'ip': frappe.local.request_ip,
+					'name': self.data['user']
 				})
 
 			frappe.db.commit()

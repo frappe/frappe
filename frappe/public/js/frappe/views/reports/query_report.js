@@ -92,7 +92,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.load_report();
 		} else {
 			// same report
-			this.refresh_report();
+			// don't do anything to preserve state
+			// like filters and datatable column widths
 		}
 	}
 
@@ -493,10 +494,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			const type = chart_type.toLowerCase();
 			const colors = color ? [color] : undefined;
 
-			let labels = get_column_values(x_field)
-				.filter(Boolean)
-				.map(d => d.trim())
-				.filter(Boolean);
+			let labels = get_column_values(x_field);
 
 			let dataset_values = get_column_values(y_field).map(d => Number(d));
 

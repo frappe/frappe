@@ -213,12 +213,12 @@ class Document(BaseDocument):
 		self.set_docstatus()
 		self.check_if_latest()
 		self.run_method("before_insert")
+		self._validate_links()
 		self.set_new_name()
 		self.set_parent_in_children()
 		self.validate_higher_perm_levels()
 
 		self.flags.in_insert = True
-		self._validate_links()
 		self.run_before_save_methods()
 		self._validate()
 		self.set_docstatus()
@@ -1182,6 +1182,12 @@ class Document(BaseDocument):
 		if not self.get("__onload"):
 			self.set("__onload", frappe._dict())
 		self.get("__onload")[key] = value
+
+	def get_onload(self, key=None):
+		if not key:
+			return self.get("__onload", frappe._dict())
+
+		return self.get('__onload')[key]
 
 	def update_timeline_doc(self):
 		if frappe.flags.in_install or not self.meta.get("timeline_field"):

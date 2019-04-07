@@ -36,7 +36,7 @@ class DatabaseQuery(object):
 		ignore_permissions=False, user=None, with_comment_count=False,
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
-		update=None, add_total_row=None, user_settings=None, reference_doctype=None):
+		update=None, add_total_row=None, user_settings=None, reference_doctype=None, return_query=False):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
@@ -79,6 +79,7 @@ class DatabaseQuery(object):
 		self.user = user or frappe.session.user
 		self.update = update
 		self.user_settings_fields = copy.deepcopy(self.fields)
+		self.return_query = return_query
 
 		# for contextual user permission check
 		# to determine which user permission is applicable on link field of specific doctype
@@ -91,6 +92,8 @@ class DatabaseQuery(object):
 			result = self.run_custom_query(query)
 		else:
 			result = self.build_and_run()
+			if return_query:
+				return result
 
 		if with_comment_count and not as_list and self.doctype:
 			self.add_comment_count(result)
@@ -115,7 +118,10 @@ class DatabaseQuery(object):
 		query = """select %(fields)s from %(tables)s %(conditions)s
 			%(group_by)s %(order_by)s %(limit)s""" % args
 
-		return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug, update=self.update)
+		if self.return_query:
+			return query
+		else:
+			return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug, update=self.update)
 
 	def prepare_args(self):
 		self.parse_args()

@@ -14,14 +14,14 @@
 						class="option"
 						:class="{'bold': show_list === 'user_posts'}"
 						@click="show_list = 'user_posts'">
-						<span>Posts</span>
+						<span>{{__('Posts')}}</span>
 						<span>({{ user_posts_count }})</span>
 					</div>
 					<div
 						class="option"
 						:class="{'bold': show_list === 'liked_posts'}"
 						@click="show_list = 'liked_posts'">
-						<span>Likes</span>
+						<span>{{__('Likes')}}</span>
 						<span>({{ liked_posts_count }})</span>
 					</div>
 				</div>
