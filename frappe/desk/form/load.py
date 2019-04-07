@@ -164,8 +164,10 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 
 	conditions = '''`tabCommunication`.communication_type in ('Communication', 'Feedback')
 			and ((`tabCommunication Link`.reference_doctype=%(doctype)s and `tabCommunication Link`.reference_name=%(name)s)
-				or ((`tabCommunication`.timeline_doctype=%(doctype)s and `tabCommunication`.timeline_name=%(name)s)
+				or (
+					(`tabCommunication`.timeline_doctype=%(doctype)s and `tabCommunication`.timeline_name=%(name)s)
 					and (`tabCommunication`.communication_type='Communication')
+				)
 			)'''
 
 
