@@ -124,7 +124,7 @@ frappe.Application = Class.extend({
 				}
 			}
 		}
-
+		this.link_preview = new frappe.ui.LinkPreview();
 	},
 
 	setup_frappe_vue() {

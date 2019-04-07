@@ -372,3 +372,21 @@ def check_parent_permission(parent, child_doctype):
 			return
 	# Either parent not passed or the user doesn't have permission on parent doctype of child table!
 	raise frappe.PermissionError
+
+@frappe.whitelist()
+def get_preview_data(doctype, docname, fields):
+	fields = json.loads(fields)
+	preview_data = frappe.cache().hget('preview_data', (doctype, docname))
+	print('abcde')
+	if preview_data == None:
+		print('nimu')
+		preview_data = frappe.get_all(doctype, filters={
+			'name': docname
+		}, fields=fields, limit=1)
+		if preview_data: preview_data = preview_data[0]
+		frappe.cache().hset('preview_data', (doctype, docname), preview_data)
+
+	return preview_data
+
+def clear_preview_cache(doc, method):
+	frappe.cache().delete_value('preview_data', (doc.get('doctype', doc.get('name'))))
