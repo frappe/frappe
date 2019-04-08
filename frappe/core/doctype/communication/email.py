@@ -64,8 +64,6 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"bcc": bcc or None,
 		"communication_medium": communication_medium,
 		"sent_or_received": sent_or_received,
-		"reference_doctype": doctype,
-		"reference_name": name,
 		"reference_link": [
 			{
 				"reference_doctype": doctype,
