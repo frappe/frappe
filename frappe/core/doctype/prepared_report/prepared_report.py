@@ -4,20 +4,15 @@
 
 
 from __future__ import unicode_literals
-import base64
 import json
-import io
-
 import frappe
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
-from frappe.desk.query_report import generate_report_result, get_columns_dict
+from frappe.desk.query_report import generate_report_result
 from frappe.core.doctype.file.file import remove_all
-from frappe.utils.csvutils import to_csv, read_csv_content_from_attached_file
 from frappe.desk.form.load import get_attachments
 from frappe.utils import gzip_compress, gzip_decompress
-from six import PY2
-from frappe.utils import encode
+
 
 class PreparedReport(Document):
 
