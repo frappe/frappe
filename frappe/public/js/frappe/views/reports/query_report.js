@@ -902,7 +902,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	get_data_for_print() {
 		const indices = this.datatable.datamanager.getFilteredRowIndices();
-		return indices.map(i => this.data[i]);
+		let rows = indices.map(i => this.data[i]);
+		let totalRow = this.datatable.bodyRenderer.getTotalRow().reduce((row, cell) => {
+			row[cell.column.id] = cell.content;
+			return row;
+		}, {});
+		rows.push(totalRow);
+		return rows;
 	}
 
 	get_columns_for_print() {
