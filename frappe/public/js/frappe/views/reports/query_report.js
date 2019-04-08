@@ -79,6 +79,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 			}
 		});
+		this.page.wrapper.on('click', '[data-action]', (e) => {
+			let action_name = $(e.currentTarget).data('action');
+			let action = this[action_name];
+			if (action.call) {
+				action.call(this, e);
+			}
+		});
 	}
 
 	load() {
@@ -990,8 +997,35 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const message = __('For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).');
 		const execution_time_msg = __('Execution Time: {0} sec', [this.execution_time || 0.1]);
 
-		this.page.footer.removeClass('hide').addClass('text-muted col-md-12')
-			.html(`<span class="text-left col-md-6">${message}</span><span class="text-right col-md-6">${execution_time_msg}</span>`);
+		this.page.footer.removeClass('hide').addClass('text-muted col-md-12').html(`
+			<span class="text-left col-md-6">${message}</span><span class="text-right col-md-6">${execution_time_msg}</span>
+		`);
+
+		this.page.wrapper.find('.tree-footer').remove();
+		if (this.tree_report) {
+			this.$tree_footer = this.page.footer.clone().addClass('tree-footer');
+			this.$tree_footer.html(`<div class="col-md-12">
+				<button class="btn btn-xs btn-default" data-action="expand_all_rows">
+					${__('Expand All')}</button>
+				<button class="btn btn-xs btn-default" data-action="collapse_all_rows">
+					${__('Collapse All')}</button>
+			</div>`);
+			this.page.footer.before(this.$tree_footer);
+		}
+		this.$tree_footer.find('[data-action=collapse_all_rows]').show();
+		this.$tree_footer.find('[data-action=expand_all_rows]').hide();
+	}
+
+	expand_all_rows() {
+		this.$tree_footer.find('[data-action=expand_all_rows]').hide();
+		this.datatable.rowmanager.expandAllNodes();
+		this.$tree_footer.find('[data-action=collapse_all_rows]').show();
+	}
+
+	collapse_all_rows() {
+		this.$tree_footer.find('[data-action=collapse_all_rows]').hide();
+		this.datatable.rowmanager.collapseAllNodes();
+		this.$tree_footer.find('[data-action=expand_all_rows]').show();
 	}
 
 	message_div(message) {
