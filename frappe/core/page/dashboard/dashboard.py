@@ -9,11 +9,8 @@ def cache_source(function):
 	def wrapper(*args, **kwargs):
 		filters = json.loads(kwargs.get("filters", "{}"))
 		chart_name = kwargs.get("chart_name")
-		cache_key = json.dumps({
-			"name": chart_name,
-			"filters": filters
-		}, default=str)
-		if kwargs.get("refresh"):
+		cache_key = 'chart-data:{}:{}'.format(chart_name, json.dumps(filters))
+		if int(kwargs.get("refresh") or 0):
 			results = generate_and_cache_results(chart_name, function, filters, cache_key)
 		else:
 			cached_results = frappe.cache().get_value(cache_key)
@@ -23,7 +20,6 @@ def cache_source(function):
 				results = generate_and_cache_results(chart_name, function, filters, cache_key)
 		return results
 	return wrapper
-
 
 def generate_and_cache_results(chart_name, function, filters, cache_key):
 	results = function(frappe._dict(filters))
