@@ -163,11 +163,8 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 		fields = '''*'''
 
 	conditions = '''`tabCommunication`.communication_type in ('Communication', 'Feedback')
-			and ((`tabReference Link`.reference_doctype=%(doctype)s and `tabReference Link`.reference_name=%(name)s)
-				or (
-					(`tabCommunication`.timeline_doctype=%(doctype)s and `tabCommunication`.timeline_name=%(name)s)
-					and (`tabCommunication`.communication_type='Communication')
-				)
+			and ((`tabDynamic Link`.link_doctype=%(doctype)s and `tabDynamic Link`.link_name=%(name)s)
+				or (`tabCommunication`.communication_type='Communication')
 			)'''
 
 
@@ -176,11 +173,11 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 		conditions+= ' and `tabCommunication`.creation > {0}'.format(after)
 
 	if doctype=='User':
-		conditions+= " and not (`tabReference Link`.reference_doctype='User' and `tabCommunication`.communication_type='Communication')"
+		conditions+= " and not (`tabDynamic Link`.link_doctype='User' and `tabCommunication`.communication_type='Communication')"
 
 	communications = frappe.db.sql("""select {fields}
 		from `tabCommunication`
-		inner join `tabReference Link` where `tabCommunication`.name=`tabReference Link`.parent
+		inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
 		and {conditions} {group_by}
 		order by `tabCommunication`.creation desc LIMIT %(limit)s OFFSET %(start)s""".format(
 			fields = fields, conditions=conditions, group_by=group_by or ""),
@@ -219,11 +216,11 @@ def get_feedback_rating(doctype, docname):
 
 	fields = '''`tabCommunication`.name, `tabCommunication`.rating'''
 
-	conditions = '''`tabReference Link`.reference_doctype=%(doctype)s and `tabReference Link`.reference_name=%(docname)s'''
+	conditions = '''`tabDynamic Link`.link_doctype=%(doctype)s and `tabDynamic Link`.link_name=%(docname)s'''
 
 	rating = frappe.db.sql("""select {fields}
 		from `tabCommunication`
-		inner join `tabReference Link` where `tabCommunication`.name=`tabReference Link`.parent
+		inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
 		and {conditions}
 		order by `tabCommunication`.creation desc""".format(
 			fields = fields, conditions=conditions),

@@ -64,10 +64,10 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"bcc": bcc or None,
 		"communication_medium": communication_medium,
 		"sent_or_received": sent_or_received,
-		"reference_link": [
+		"dynamic_link": [
 			{
-				"reference_doctype": doctype,
-				"reference_name": name,
+				"link_doctype": doctype,
+				"link_name": name,
 			},
 		],
 		"message_id":get_message_id().strip(" <>"),
@@ -78,7 +78,12 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 
 	if not doctype:
 		# if no reference given, then send it against the communication
-		comm.db_set(dict(reference_doctype='Communication', reference_name=comm.name))
+		ref_link = frappe.get_doc({
+			"doctype": "Dynamic Link",
+			"parent": comm.name,
+			"link_doctype": "Communication",
+			"link_name": comm.name
+		}).insert(ignore_permissions=True)
 
 	if isinstance(attachments, string_types):
 		attachments = json.loads(attachments)

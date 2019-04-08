@@ -276,8 +276,8 @@ def delete_dynamic_links(doctype, name):
 
 	# unlink communications
 	clear_references('Communication', doctype, name)
-	clear_references('Communication', doctype, name, 'link_doctype', 'link_name')
-	clear_references('Communication', doctype, name, 'timeline_doctype', 'timeline_name')
+	#clear_references('Communication', doctype, name, 'link_doctype', 'link_name')
+	#clear_references('Communication', doctype, name, 'timeline_doctype', 'timeline_name')
 
 	clear_references('Activity Log', doctype, name)
 	clear_references('Activity Log', doctype, name, 'timeline_doctype', 'timeline_name')
