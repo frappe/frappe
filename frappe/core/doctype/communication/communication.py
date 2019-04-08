@@ -195,8 +195,12 @@ class Communication(Document):
 					"comment_type": "Bot",
 					"communication_type": "Bot",
 					"content": cstr(reply),
-					"reference_doctype": self.reference_doctype,
-					"reference_name": self.reference_name
+					"reference_link": [
+						{
+							"reference_doctype": self.reference_doctype,
+							"reference_name": self.reference_name
+						},
+					]
 				}).insert()
 				frappe.local.flags.commit = True
 
@@ -270,3 +274,6 @@ def get_permission_query_conditions_for_communication(user):
 		email_accounts = [ '"%s"'%account.get("email_account") for account in accounts ]
 		return """tabCommunication.email_account in ({email_accounts})"""\
 			.format(email_accounts=','.join(email_accounts))
+
+def get_children(parent):
+	return frappe.get_list("Reference Link", filters={"parent": name}, fields=["reference_doctype", "referece_name"])

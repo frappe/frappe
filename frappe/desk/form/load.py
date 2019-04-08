@@ -163,7 +163,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 		fields = '''*'''
 
 	conditions = '''`tabCommunication`.communication_type in ('Communication', 'Feedback')
-			and ((`tabCommunication Link`.reference_doctype=%(doctype)s and `tabCommunication Link`.reference_name=%(name)s)
+			and ((`tabReference Link`.reference_doctype=%(doctype)s and `tabReference Link`.reference_name=%(name)s)
 				or (
 					(`tabCommunication`.timeline_doctype=%(doctype)s and `tabCommunication`.timeline_name=%(name)s)
 					and (`tabCommunication`.communication_type='Communication')
@@ -176,11 +176,11 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 		conditions+= ' and `tabCommunication`.creation > {0}'.format(after)
 
 	if doctype=='User':
-		conditions+= " and not (`tabCommunication Link`.reference_doctype='User' and `tabCommunication`.communication_type='Communication')"
+		conditions+= " and not (`tabReference Link`.reference_doctype='User' and `tabCommunication`.communication_type='Communication')"
 
 	communications = frappe.db.sql("""select {fields}
 		from `tabCommunication`
-		inner join `tabCommunication Link` where `tabCommunication`.name=`tabCommunication Link`.parent
+		inner join `tabReference Link` where `tabCommunication`.name=`tabReference Link`.parent
 		and {conditions} {group_by}
 		order by `tabCommunication`.creation desc LIMIT %(limit)s OFFSET %(start)s""".format(
 			fields = fields, conditions=conditions, group_by=group_by or ""),
@@ -217,11 +217,17 @@ def run_onload(doc):
 def get_feedback_rating(doctype, docname):
 	""" get and return the latest feedback rating if available """
 
-	rating= frappe.get_all("Communication", filters={
-		"reference_doctype": doctype,
-		"reference_name": docname,
-		"communication_type": "Feedback"
-	}, fields=["rating"], order_by="creation desc", as_list=True)
+	fields = '''`tabCommunication`.name, `tabCommunication`.rating'''
+
+	conditions = '''`tabReference Link`.reference_doctype=%(doctype)s and `tabReference Link`.reference_name=%(docname)s'''
+
+	rating = frappe.db.sql("""select {fields}
+		from `tabCommunication`
+		inner join `tabReference Link` where `tabCommunication`.name=`tabReference Link`.parent
+		and {conditions}
+		order by `tabCommunication`.creation desc""".format(
+			fields = fields, conditions=conditions),
+			{ "doctype": doctype, "docname": docname}, debug=True)
 
 	if not rating:
 		return 0
