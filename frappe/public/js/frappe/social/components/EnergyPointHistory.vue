@@ -4,8 +4,18 @@
 			<li class="history-log" v-for="log in history_logs" :key="log.name">
 				<span v-html="frappe.energy_points.format_history_log(log, true)"></span>
 			</li>
+			<li v-if="fetching" class="history-log">
+				{{ __('Fetching') + '...' }}
+			</li>
+			<li v-if="!fetching && has_more_logs" class="history-log">
+				<button
+					class="btn btn-default btn-xs"
+					@click="get_logs()">
+					{{ __('Load more') }}
+				</button>
+			</li>
 			<li v-if="!history_logs.length" class="history-log">
-				{{__('No logs found')}}
+				{{ __('No logs found') }}
 			</li>
 		</ul>
 	</div>
@@ -15,19 +25,33 @@ export default {
 	props: ['user'],
 	data() {
 		return {
-			history_logs: []
+			history_logs: [],
+			fetching: false,
+			has_more_logs: true
 		}
 	},
 	created() {
-		frappe.db.get_list('Energy Point Log', {
-			filters: {
-				user: this.user,
-				type: ['!=', 'Review']
-			},
-			fields: ['*']
-		}).then(data => {
-			this.history_logs = data;
-		})
+		this.get_logs();
+	},
+	methods: {
+		get_logs() {
+			this.fetching = true;
+			const pull_limit = 10;
+			frappe.db.get_list('Energy Point Log', {
+				filters: {
+					user: this.user,
+					type: ['!=', 'Review']
+				},
+				fields: ['*'],
+				limit: pull_limit,
+				limit_start: this.history_logs.length
+			}).then(data => {
+				this.history_logs = this.history_logs.concat(data);
+				this.has_more_logs = data.length === pull_limit;
+			}).finally(() => {
+				this.fetching = false;
+			})
+		}
 	},
 
 }
