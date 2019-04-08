@@ -490,8 +490,14 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				xlsx_file = make_xlsx(data_rows_with_error, "Data Import Template")
 				file_data = xlsx_file.getvalue()
 			else:
-				from frappe.utils.csvutils import to_csv
-				file_data = to_csv(data_rows_with_error)
+				dialect = frappe.get_doc({
+					"doctype":"CSV Dialect",
+					"quoting":"Minimal",
+					"delimiter":",",
+					"encoding":"utf-8",
+					"doublequote": 1
+				})
+				file_data = dialect.to_csv(data_rows_with_error)
 			_file = frappe.get_doc({
 				"doctype": "File",
 				"file_name": file_name,

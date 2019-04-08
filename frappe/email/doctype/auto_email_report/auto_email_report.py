@@ -13,7 +13,6 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import (format_time, get_link_to_form, get_url_to_report,
 	global_date_format, now, now_datetime, validate_email_address)
-from frappe.utils.csvutils import to_csv
 from frappe.utils.xlsxutils import make_xlsx
 
 max_reports_per_user = frappe.local.conf.max_reports_per_user or 3
@@ -85,7 +84,15 @@ class AutoEmailReport(Document):
 
 		elif self.format == 'CSV':
 			spreadsheet_data = self.get_spreadsheet_data(columns, data)
-			return to_csv(spreadsheet_data)
+			dialect = frappe.get_doc({
+				"doctype":"CSV Dialect",
+				"quoting":"Minimal",
+				"delimiter":",",
+				"encoding":"utf-8",
+				"doublequote": 1
+			})
+
+			return dialect.to_csv(spreadsheet_data)
 
 		else:
 			frappe.throw(_('Invalid Output Format'))
