@@ -83,11 +83,22 @@ export default {
 		},
 		update_primary_action(current_route) {
 			if (current_route === 'home') {
+				this.$root.page.set_title(__('Social'));
+				frappe.breadcrumbs.update();
 				this.$root.page.set_primary_action(__('Post'), () => {
 					frappe.social.post_dialog.show();
 				});
 			} else {
-				this.$root.page.clear_primary_action()
+				frappe.breadcrumbs.add({
+					type: 'Custom',
+					label: __('Social Home'),
+					route: '#social/home'
+				});
+				this.$root.page.clear_primary_action();
+			}
+
+			if (current_route === 'users') {
+				this.$root.page.set_title(__('Leaderboard'));
 			}
 		},
 		get_current_page() {

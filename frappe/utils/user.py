@@ -197,7 +197,7 @@ class UserPermissions:
 
 	def load_user(self):
 		d = frappe.db.sql("""select email, first_name, last_name, creation,
-			email_signature, user_type, language, background_image, background_style,
+			email_signature, user_type, language, background_style, background_image,
 			mute_sounds, send_me_a_copy from tabUser where name = %s""", (self.name,), as_dict=1)[0]
 
 		if not self.can_read:
@@ -378,3 +378,11 @@ def get_link_to_reset_password(user):
 	return {
 		'link': link
 	}
+
+def get_users_with_role(role):
+	return [p[0] for p in frappe.db.sql("""SELECT DISTINCT `tabUser`.`name`
+		FROM `tabHas Role`, `tabUser`
+		WHERE `tabHas Role`.`role`=%s
+		AND `tabUser`.`name`!='Administrator'
+		AND `tabHas Role`.`parent`=`tabUser`.`name`
+		AND `tabUser`.`enabled`=1""", role)]

@@ -302,30 +302,30 @@ def get_links(app, module):
 			link_names.append(item.get("label"))
 	return link_names
 
+@frappe.whitelist()
+def hide_modules_from_desktop(modules):
+	modules = frappe.parse_json(modules)
+	home_settings = frappe.db.get_value("User", frappe.session.user, 'home_settings')
+	home_settings = frappe.parse_json(home_settings or '{}')
+
+	home_settings['hidden_modules'] = modules
+	frappe.db.set_value('User', frappe.session.user, 'home_settings', json.dumps(home_settings))
+
+	return home_settings
+
+
 
 @frappe.whitelist()
-def update_desk_section_settings(desk_section, new_settings):
+def update_links_for_module(module_name, links):
 	home_settings = frappe.db.get_value("User", frappe.session.user, 'home_settings')
-	if home_settings:
-		home_settings = json.loads(home_settings)
-	else:
-		return {}
+	home_settings = frappe.parse_json(home_settings or '{}')
 
-	new_settings = json.loads(new_settings)
+	home_settings.setdefault('links', {})
+	home_settings['links'].setdefault(module_name, None)
+	home_settings['links'][module_name] = links
+	frappe.db.set_value('User', frappe.session.user, 'home_settings', json.dumps(home_settings))
 
-	for module, data in new_settings.items():
-		if data.get("links"):
-			data["links"] = get_module_link_items_from_list(data["app"], module, data.get("links"))
-		data.pop("app", None)
-
-	home_settings[desk_section] = new_settings
-	settings_json_str = json.dumps(home_settings)
-	# # This didn't work
-	# frappe.db.set_value("User", frappe.session.user, 'home_settings', json.dumps(home_settings))
-	frappe.db.sql("""update tabUser set home_settings = %s""", (settings_json_str), debug=True)
-	frappe.db.commit()
-
-	return new_settings
+	return home_settings
 
 
 def get_module_link_items_from_list(app, module, list_of_link_names):

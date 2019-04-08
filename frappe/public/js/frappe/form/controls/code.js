@@ -32,7 +32,8 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 			'HTML': 'ace/mode/html',
 			'CSS': 'ace/mode/css',
 			'Markdown': 'ace/mode/markdown',
-			'SCSS': 'ace/mode/scss'
+			'SCSS': 'ace/mode/scss',
+			'JSON': 'ace/mode/json'
 		};
 		const language = this.df.options;
 

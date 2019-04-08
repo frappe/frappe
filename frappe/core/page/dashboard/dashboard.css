@@ -1,0 +1,27 @@
+.chart-container {
+    border: 1px solid #d1d8dd;
+    border-radius: 4px;
+    margin: 15px 0;
+    padding: 15px;
+}
+
+.chart-actions {
+    position: absolute;
+    right: 30px;
+    top: 54px;
+}
+
+.chart-column-container {
+    position: relative;
+}
+
+.last-synced-text {
+    position: absolute;
+    top: 56px;
+    right: 60px;
+    font-size: 12px;
+}
+
+.dashboard-graph {
+    padding-top: 15px;
+}

@@ -60,7 +60,6 @@ def render_template(template, context, is_path=None, safe_render=True):
 	'''
 
 	from frappe import get_traceback, throw
-	from frappe.utils import escape_html
 	from jinja2 import TemplateError
 
 	if not template:
