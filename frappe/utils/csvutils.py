@@ -7,9 +7,10 @@ from frappe import msgprint, _
 import json
 import csv
 import six
-from six import StringIO, text_type, string_types
-from frappe.utils import encode, cstr, cint, flt, comma_or
-from frappe.core.doctype.csv_dialect import csv_dialect
+from six import text_type
+from frappe.utils import cint, flt, comma_or
+# unused in this file, but other code might still import this function from here.
+from frappe.core.doctype.csv_dialect.csv_dialect import send_csv_to_client
 
 def read_csv_content_from_uploaded_file(ignore_encoding=False):
 	if getattr(frappe, "uploaded_file", None):
@@ -82,10 +83,6 @@ def read_csv_content(fcontent, ignore_encoding=False):
 	except Exception:
 		frappe.msgprint(_("Not a valid Comma Separated Value (CSV File)"))
 		raise
-
-@frappe.whitelist()
-def send_csv_to_client(args):
-	csv_dialect.send_csv_to_client(args)
 
 
 def check_record(d):
