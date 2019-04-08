@@ -302,7 +302,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 		});
 	},
 	get_mapped_printer: function () {
-		let print_format_printer_map = get_print_format_printer_map();
+		let print_format_printer_map = this.get_print_format_printer_map();
 		if (print_format_printer_map[this.frm.doctype]) {
 			return print_format_printer_map[this.frm.doctype].filter(
 				(printer_map) => printer_map.print_format == this.selected_format());
@@ -315,8 +315,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 		try {
 			let print_format_printer_map = JSON.parse(localStorage.print_format_printer_map);
 			return print_format_printer_map;
-		}
-		catch(e) {
+		} catch (e) {
 			return {};
 		}
 	},
@@ -387,7 +386,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	raw_print_setting_dialog: function () {
 		var me = this;
-		this.print_format_printer_map = get_print_format_printer_map();
+		this.print_format_printer_map = me.get_print_format_printer_map();
 		this.data = [];
 		this.data = this.print_format_printer_map[this.frm.doctype] || [];
 		this.printer_list = [];
@@ -436,7 +435,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 					} else {
 						printer_mapping = [];
 					}
-					this.print_format_printer_map = get_print_format_printer_map();
+					this.print_format_printer_map = me.get_print_format_printer_map();
 					this.print_format_printer_map[me.frm.doctype] = printer_mapping;
 					localStorage.print_format_printer_map = JSON.stringify(this.print_format_printer_map);
 					this.hide();
@@ -563,7 +562,7 @@ frappe.ui.form.qz_get_printer_list = function () {
 // notify qz successful print
 frappe.ui.form.qz_success = function () {
 	frappe.show_alert({
-		message: __('Print Sent to printer!!'),
+		message: __('Print Sent to printer!'),
 		indicator: 'green'
 	});
 }
