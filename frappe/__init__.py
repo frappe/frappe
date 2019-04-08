@@ -188,9 +188,6 @@ def connect(site=None, db_name=None):
 	local.db = Database(user=db_name or local.conf.db_name)
 	set_user("Administrator")
 
-	for hook in get_hooks("connect") or []:
-		get_attr(hook)()
-
 def connect_read_only():
 	from frappe.database import Database
 
