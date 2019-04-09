@@ -39,4 +39,5 @@
 
 .dashboard-graph {
     padding-top: 15px;
+    overflow: hidden;
 }

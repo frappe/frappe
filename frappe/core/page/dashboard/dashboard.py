@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 import json
 import frappe
+from frappe.utils import add_to_date
 
 
 def cache_source(function):
@@ -22,7 +23,20 @@ def cache_source(function):
 	return wrapper
 
 def generate_and_cache_results(chart_name, function, filters, cache_key):
-	results = function(frappe._dict(filters))
+	results = function(chart_name, frappe._dict(filters))
 	frappe.cache().set_value(cache_key, json.dumps(results, default=str))
-	frappe.db.set_value("Dashboard Chart", chart_name, "last_synced_on", frappe.utils.now())
+	frappe.db.set_value("Dashboard Chart", chart_name, "last_synced_on", frappe.utils.now(), update_modified = False)
 	return results
+
+def get_from_date_from_timespan(timespan):
+	days = months = years = 0
+	if "Last Week" == timespan:
+		days = -7
+	if "Last Month" == timespan:
+		months = -1
+	elif "Last Quarter" == timespan:
+		months = -3
+	elif "Last Year" == timespan:
+		years = -1
+	return add_to_date(None, years=years, months=months, days=days,
+		as_datetime=True)

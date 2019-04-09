@@ -5,7 +5,10 @@ frappe.breadcrumbs = {
 	all: {},
 
 	preferred: {
-		"File": ""
+		"File": "",
+		"Dashboard": "Customization",
+		"Dashboard Chart": "Customization",
+		"Dashboard Chart Source": "Customization",
 	},
 
 	set_doctype_module: function(doctype, module) {

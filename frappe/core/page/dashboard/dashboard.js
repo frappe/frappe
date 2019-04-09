@@ -1,6 +1,8 @@
 // Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+frappe.provide('frappe.dashboards');
+frappe.provide('frappe.dashboards.chart_sources');
 
 frappe.pages['dashboard'].on_page_load = function(wrapper) {
 	var page = frappe.ui.make_app_page({
@@ -117,9 +119,11 @@ class DashboardChart {
 	prepare_chart_actions() {
 		let actions = [
 			{
-				label: __("Set Filters"),
+				label: __("View Filters"),
 				action: "set-filters",
-				handler: this.create_set_filters_dialog.bind(this)
+				handler: () => {
+					frappe.set_route('Form', 'Dashboard Chart', this.chart_doc.name);
+				}
 			},
 			{
 				label: __("Force Refresh"),
@@ -156,8 +160,11 @@ class DashboardChart {
 
 	fetch(filters, refresh=false) {
 		this.chart_container.find('.chart-loading-status').removeClass('hide');
+		let method = this.settings ? this.settings.method
+			: 'frappe.desk.doctype.dashboard_chart.dashboard_chart.get';
+
 		return frappe.xcall(
-			this.settings.method_path,
+			method,
 			{
 				chart_name: this.chart_doc.name,
 				filters: filters,
@@ -177,7 +184,7 @@ class DashboardChart {
 			type: chart_type_map[this.chart_doc.type],
 			colors: [this.chart_doc.color || "light-blue"],
 			axisOptions: {
-				xIsSeries: this.settings.is_time_series
+				xIsSeries: this.chart_doc.timeseries
 			},
 		};
 		this.chart_container.find('.chart-loading-status').addClass('hide');
@@ -207,38 +214,21 @@ class DashboardChart {
 	}
 
 	get_settings() {
-		return new Promise(resolve => frappe.db.get_value("Dashboard Chart Source", this.chart_doc.source, "config", e => {
-			this.settings = JSON.parse(e.config);
-			resolve();
-		}));
-	}
-
-	create_set_filters_dialog() {
-		const d = new frappe.ui.Dialog({
-			title: __('Set Filters'),
-			fields: this.settings.filters
-		});
-		d.set_values(this.filters);
-		d.show();
-
-		const set_filters = () => {
-			const values = d.get_values();
-			if (!Object.entries(this.filters).map(e => values[e[0]] === e[1]).every(Boolean)) {
-				frappe.db.set_value("Dashboard Chart", this.chart_doc.name, "filters_json", JSON.stringify(values)).then(() => {
-					this.fetch(values, true).then(data => {
-						this.update_chart_object();
-						this.data = data;
-						this.render();
+		if (this.chart_doc.chart_type == 'Custom') {
+			// custom source
+			if (frappe.dashboards.chart_sources[this.chart_doc.source]) {
+				this.settings = frappe.dashboards.chart_sources[this.chart_doc.source];
+				return Promise.resolve();
+			} else {
+				return frappe.xcall('frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config',
+					{name: this.chart_doc.source})
+					.then(config => {
+						frappe.dom.eval(config);
+						this.settings = frappe.dashboards.chart_sources[this.chart_doc.source];
 					});
-				});
 			}
-			d.hide();
-		};
-
-		this.settings.filters.map(field => field.onchange = e => {
-			if(e) {
-				d.set_primary_action(__('Save Filters'), set_filters);
-			}
-		});
+		} else {
+			return Promise.resolve();
+		}
 	}
 }
