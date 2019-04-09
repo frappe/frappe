@@ -18,6 +18,7 @@ class EnergyPointLog(Document):
 		alert_dict = get_alert_dict(self)
 		if alert_dict:
 			frappe.publish_realtime('energy_point_alert', message=alert_dict, user=self.user)
+			send_review_mail(self, alert_dict)
 
 		frappe.cache().hdel('energy_points', self.user)
 		frappe.publish_realtime('update_points')
@@ -55,6 +56,13 @@ def get_alert_dict(doc):
 		alert_dict = {}
 
 	return alert_dict
+
+def send_review_mail(doc, message_dict):
+	if doc.type in ['Appreciation', 'Criticism']:
+		frappe.sendmail(recipients=doc.user,
+			subject=_("You gained some energy points") if doc.points > 0 else _("You lost some energy points"),
+			message=message_dict.message + '<p>{}</p>'.format(doc.reason),
+			header=[_('Energy point update'), message_dict.indicator])
 
 def create_energy_points_log(ref_doctype, ref_name, doc):
 	doc = frappe._dict(doc)
