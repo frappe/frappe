@@ -160,12 +160,18 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	group_by=None, as_dict=True):
 	'''Returns list of communications for a given document'''
 	if not fields:
-		fields = '''*'''
+		fields = '''
+			`tabCommunication`.name, `tabCommunication`.communication_type, `tabCommunication`.communication_medium,
+			`tabCommunication`.comment_type, `tabCommunication`.communication_date, `tabCommunication`.content,
+			`tabCommunication`.sender, `tabCommunication`.sender_full_name, `tabCommunication`.creation,
+			`tabCommunication`.subject, `tabCommunication`.delivery_status, `tabCommunication`._liked_by,
+			`tabCommunication`.read_by_recipient, `tabCommunication`.rating,
+			`tabDynamic Link`.parent, `tabDynamic Link`.link_doctype, `tabDynamic Link`.link_name
+		'''
 
 	conditions = '''`tabCommunication`.communication_type in ('Communication', 'Feedback')
-			and ((`tabDynamic Link`.link_doctype=%(doctype)s and `tabDynamic Link`.link_name=%(name)s)
-				or (`tabCommunication`.communication_type='Communication')
-			)'''
+			and (`tabDynamic Link`.link_doctype=%(doctype)s and `tabDynamic Link`.link_name=%(name)s)
+			and (`tabCommunication`.communication_type='Communication')'''
 
 
 	if after:
@@ -214,7 +220,10 @@ def run_onload(doc):
 def get_feedback_rating(doctype, docname):
 	""" get and return the latest feedback rating if available """
 
-	fields = '''`tabCommunication`.name, `tabCommunication`.rating'''
+	fields = '''
+		`tabCommunication`.name, `tabCommunication`.rating,
+		`tabDynamic Link`.parent, `tabDynamic Link`.link_doctype, `tabDynamic Link`.link_name
+	'''
 
 	conditions = '''`tabDynamic Link`.link_doctype=%(doctype)s and `tabDynamic Link`.link_name=%(docname)s'''
 

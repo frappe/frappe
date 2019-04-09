@@ -46,16 +46,6 @@
 						<i class="{%= data.icon %} hidden-xs fa-fw"></i>
 						<span title="{%= data.comment_by %}">{%= data.fullname %}</span>
 					</span>
-					<span>
-						{% if (data.timeline_doctype===data.frm.doc.doctype
-							&& data.timeline_name===data.frm.doc.name) { %}
-							&ndash;
-							<a href="#Form/{%= data.reference_doctype %}/{%= data.reference_name %}" class="text-muted">
-								<strong>{{ __(data.reference_doctype) }}</strong>
-									{{ data.reference_name }}
-							</a>
-						{% } %}
-					</span>
 						{% if(in_list(["Communication", "Feedback"], data.communication_type)) { %}
 							{% if (frappe.model.can_read(\'Communication\')) { %}
 							<a href="#Form/Communication/{%= data.name %}"

@@ -55,13 +55,16 @@ def get_new_messages():
 		# no update for 30 mins, consider only the last 30 mins
 		last_update = (now_datetime() - relativedelta(seconds=1800)).strftime(DATETIME_FORMAT)
 
-	return frappe.db.sql("""select sender_full_name, content
+	return frappe.db.sql("""
+		select `tabCommunication`.name, `tabCommunication`.sender_full_name, `tabCommunication`.content,
+		`tabDynamic Link`.link_doctype, `tabDynamic Link`.link_name, `tabDynamic Link`.parent
 		from `tabCommunication`
-			where communication_type in ('Chat', 'Notification')
-			and reference_doctype='user'
-			and reference_name = %s
-			and creation > %s
-			order by creation desc""", (frappe.session.user, last_update), as_dict=1)
+		inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
+			and `tabCommunication`.communication_type in ('Chat', 'Notification')
+			and `tabDynamic Link`.link_doctype='user'
+			and `tabDynamic Link`.link_name = %s
+			and `tabDynamic Link`.creation > %s
+			order by `tabDynamic Link`.creation desc""", (frappe.session.user, last_update), as_dict=1)
 
 def get_notifications_for_modules(config, notification_count):
 	"""Notifications for modules"""
