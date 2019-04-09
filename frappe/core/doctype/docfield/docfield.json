@@ -63,10 +63,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 1,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Label",
    "length": 0,
@@ -104,21 +101,14 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 1,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Type",
    "length": 0,
    "no_copy": 0,
    "oldfieldname": "fieldtype",
    "oldfieldtype": "Select",
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-   "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRating\nRead Only\nSection Break\nSelect\nSmall Text\nTable\nTable MultiSelect\nText\nText Editor\nTime\nSignature",
-=======
    "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRead Only\nSection Break\nSelect\nSmall Text\nTable\nTable MultiSelect\nText\nText Editor\nTime\nSignature",
->>>>>>> Add preview popover on hover to all link fields
    "permlevel": 0,
    "print_hide": 0,
    "print_hide_if_no_value": 0,
@@ -147,10 +137,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 1,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Name",
    "length": 0,
@@ -185,10 +172,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 1,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Mandatory",
    "length": 0,
@@ -227,10 +211,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Precision",
    "length": 0,
@@ -265,10 +246,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Length",
    "length": 0,
@@ -302,10 +280,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Index",
    "length": 0,
@@ -342,10 +317,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "In List View",
    "length": 0,
@@ -380,10 +352,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "In Standard Filter",
    "length": 0,
@@ -418,10 +387,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "In Global Search",
    "length": 0,
@@ -447,8 +413,6 @@
    "collapsible": 0,
    "columns": 0,
    "fetch_if_empty": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "fieldname": "in_preview",
    "fieldtype": "Check",
    "hidden": 0,
@@ -483,7 +447,6 @@
    "collapsible": 0,
    "columns": 0,
    "fetch_if_empty": 0,
->>>>>>> Add preview popover on hover to all link fields
    "fieldname": "allow_in_quick_entry",
    "fieldtype": "Check",
    "hidden": 0,
@@ -492,10 +455,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Allow in Quick Entry",
    "length": 0,
@@ -529,10 +489,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Bold",
    "length": 0,
@@ -568,10 +525,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Translatable",
    "length": 0,
@@ -606,10 +560,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Collapsible",
    "length": 255,
@@ -644,10 +595,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Collapsible Depends On",
    "length": 0,
@@ -682,10 +630,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "length": 0,
    "no_copy": 0,
@@ -718,10 +663,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 1,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Options",
    "length": 0,
@@ -756,10 +698,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Default",
    "length": 0,
@@ -794,10 +733,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Fetch From",
    "length": 0,
@@ -832,10 +768,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Fetch If Empty",
    "length": 0,
@@ -869,10 +802,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Permissions",
    "length": 0,
@@ -905,10 +835,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Display Depends On",
    "length": 255,
@@ -944,10 +871,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Hidden",
    "length": 0,
@@ -984,10 +908,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Read Only",
    "length": 0,
@@ -1022,10 +943,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Unique",
    "length": 0,
@@ -1060,10 +978,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Set Only Once",
    "length": 0,
@@ -1097,10 +1012,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Allow Bulk Edit",
    "length": 0,
@@ -1134,10 +1046,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "length": 0,
    "no_copy": 0,
@@ -1170,10 +1079,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Perm Level",
    "length": 0,
@@ -1211,10 +1117,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Ignore User Permissions",
    "length": 0,
@@ -1248,10 +1151,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Allow on Submit",
    "length": 0,
@@ -1288,10 +1188,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Report Hide",
    "length": 0,
@@ -1329,10 +1226,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Remember Last Selected Value",
    "length": 0,
@@ -1367,10 +1261,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Ignore XSS Filter",
    "length": 0,
@@ -1404,10 +1295,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Display",
    "length": 0,
@@ -1440,10 +1328,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "In Filter",
    "length": 0,
@@ -1480,10 +1365,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "No Copy",
    "length": 0,
@@ -1520,10 +1402,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Print Hide",
    "length": 0,
@@ -1561,10 +1440,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Print Hide If No Value",
    "length": 0,
@@ -1598,10 +1474,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Print Width",
    "length": 0,
@@ -1634,10 +1507,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Width",
    "length": 0,
@@ -1676,10 +1546,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Columns",
    "length": 0,
@@ -1713,10 +1580,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "length": 0,
    "no_copy": 0,
@@ -1748,10 +1612,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 1,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "label": "Description",
    "length": 0,
@@ -1788,10 +1649,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "length": 0,
    "no_copy": 0,
@@ -1825,10 +1683,7 @@
    "in_filter": 0,
    "in_global_search": 0,
    "in_list_view": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
-=======
    "in_preview": 0,
->>>>>>> Add preview popover on hover to all link fields
    "in_standard_filter": 0,
    "length": 0,
    "no_copy": 0,
@@ -1848,20 +1703,14 @@
   }
  ],
  "has_web_view": 0,
- "hide_heading": 0,
  "hide_toolbar": 0,
  "idx": 1,
- "image_view": 0,
  "in_create": 0,
  "is_submittable": 0,
  "issingle": 0,
  "istable": 1,
  "max_attachments": 0,
-<<<<<<< bb1d5f7107c860375dcdf38e5aadebea7122c31e
- "modified": "2019-03-18 17:59:57.873790",
-=======
- "modified": "2019-03-20 14:30:21.672655",
->>>>>>> Add preview popover on hover to all link fields
+ "modified": "2019-04-08 12:19:53.415372",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
@@ -1869,7 +1718,6 @@
  "permissions": [],
  "quick_entry": 0,
  "read_only": 0,
- "read_only_onload": 0,
  "show_name_in_global_search": 0,
  "sort_order": "ASC",
  "track_changes": 0,

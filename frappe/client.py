@@ -376,14 +376,16 @@ def check_parent_permission(parent, child_doctype):
 @frappe.whitelist()
 def get_preview_data(doctype, docname, fields):
 	fields = json.loads(fields)
+	if frappe.get_meta(doctype).has_field('image') : 
+		fields.append('image')
 	preview_data = frappe.cache().hget('preview_data', (doctype, docname))
-	print('abcde')
 	if preview_data == None:
-		print('nimu')
 		preview_data = frappe.get_all(doctype, filters={
 			'name': docname
 		}, fields=fields, limit=1)
-		if preview_data: preview_data = preview_data[0]
+		if preview_data: 
+			preview_data = preview_data[0]
+			preview_data = {k: v for k, v in preview_data.items() if v is not None}
 		frappe.cache().hset('preview_data', (doctype, docname), preview_data)
 
 	return preview_data
