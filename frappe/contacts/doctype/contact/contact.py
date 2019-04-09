@@ -102,7 +102,7 @@ def get_contact_details(contact):
 	out = {
 		"contact_person": contact.get("name"),
 		"contact_display": " ".join(filter(None,
-			[contact.get("first_name"), contact.get("last_name")])),
+			[contact.get("salutation"), contact.get("first_name"), contact.get("last_name")])),
 		"contact_email": contact.get("email_id"),
 		"contact_mobile": contact.get("mobile_no"),
 		"contact_phone": contact.get("phone"),
