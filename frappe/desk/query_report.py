@@ -353,6 +353,14 @@ def add_total_row(result, columns, meta = None):
 	result.append(total_row)
 	return result
 
+@frappe.whitelist()
+def get_data_for_custom_field(doctype, field):
+
+	value_map = frappe._dict(frappe.get_all(doctype,
+		fields=["name", field],
+		as_list=1))
+
+	return value_map
 
 def get_filtered_data(ref_doctype, columns, data, user):
 	result = []
