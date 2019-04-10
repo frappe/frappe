@@ -8,8 +8,6 @@ from frappe import _
 import json
 from frappe.model.document import Document
 from frappe.utils import cint, get_fullname, getdate
-from frappe.utils.user import get_enabled_system_users
-from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
 
 class EnergyPointLog(Document):
 	def validate(self):
@@ -207,6 +205,9 @@ def send_monthly_summary():
 	send_summary('Monthly')
 
 def send_summary(timespan):
+	from frappe.utils.user import get_enabled_system_users
+	from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
+
 	if not is_energy_point_enabled():
 		return
 
@@ -230,7 +231,7 @@ def send_summary(timespan):
 			args={
 				'top_performer': user_points[0],
 				'top_reviewer': max(user_points, key=lambda x:x['given_points']),
-				'standings': user_points,
+				'standings': user_points[:10], # top 10
 				'footer_message': get_footer_message(timespan).format(from_date, to_date)
 			}
 		)
