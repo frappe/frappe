@@ -1133,9 +1133,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					${__('Collapse All')}</button>
 			</div>`);
 			this.page.footer.before(this.$tree_footer);
+			this.$tree_footer.find('[data-action=collapse_all_rows]').show();
+			this.$tree_footer.find('[data-action=expand_all_rows]').hide();
 		}
-		this.$tree_footer.find('[data-action=collapse_all_rows]').show();
-		this.$tree_footer.find('[data-action=expand_all_rows]').hide();
 	}
 
 	expand_all_rows() {
