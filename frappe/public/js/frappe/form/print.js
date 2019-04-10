@@ -20,6 +20,9 @@ frappe.ui.form.PrintPreview = Class.extend({
 
 		// only system manager can edit
 		this.wrapper.find(".btn-print-edit").toggle(frappe.user.has_role("System Manager"));
+		if (frappe.model.get_doc(":Print Settings", "Print Settings").enable_raw_printing == "1") {
+			this.wrapper.find(".btn-raw-print-setting").toggle(true);
+		}
 	},
 	bind_events: function () {
 		var me = this;
@@ -246,6 +249,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 						// })
 					}
 				} else if (me.is_raw_printing()) {
+					// printer not mapped in localstorage and the current print format is raw printing
 					frappe.show_alert({
 						message: __('Please set a printer mapping for this print format in the Raw Printing Settings'),
 						indicator: 'blue'
@@ -287,6 +291,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 		});
 	},
 	get_raw_commands: function (callback) {
+		// fetches rendered raw commands from the server for the current print format.
 		frappe.call({
 			method: "frappe.www.printview.get_rendered_raw_commands",
 			args: {
@@ -302,16 +307,17 @@ frappe.ui.form.PrintPreview = Class.extend({
 		});
 	},
 	get_mapped_printer: function () {
+		// returns a list of "print format: printer" mapping filtered by the current print format 
 		let print_format_printer_map = this.get_print_format_printer_map();
 		if (print_format_printer_map[this.frm.doctype]) {
 			return print_format_printer_map[this.frm.doctype].filter(
 				(printer_map) => printer_map.print_format == this.selected_format());
-		}
-		else {
+		} else {
 			return [];
 		}
 	},
 	get_print_format_printer_map: function () {
+		// returns the whole object "print_format_printer_map" stored in the localStorage.
 		try {
 			let print_format_printer_map = JSON.parse(localStorage.print_format_printer_map);
 			return print_format_printer_map;
@@ -385,6 +391,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 		frappe.dom.set_style(style || frappe.boot.print_css, "print-style");
 	},
 	raw_print_setting_dialog: function () {
+		// dialog for the Raw Print Settings
 		var me = this;
 		this.print_format_printer_map = me.get_print_format_printer_map();
 		this.data = [];
