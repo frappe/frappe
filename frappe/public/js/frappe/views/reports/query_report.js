@@ -971,7 +971,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							{
 								fieldtype: 'Select',
 								fieldname: 'doctype',
-								label: 'From Document Type',
+								label: __('From Document Type'),
 								options: this.linked_doctypes.map(df => ({ label: df.doctype, value: df.doctype })),
 								change: () => {
 									let doctype = d.get_value('doctype');
@@ -980,18 +980,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 											.map(df => ({ label: df.label, value: df.fieldname }));
 										d.set_df_property('field', 'options', fields);
 
-									})
+									});
 								}
 							},
 							{
 								fieldtype: 'Select',
-								label: 'Field',
+								label: __('Field'),
 								fieldname: 'field',
 								options: []
 							},
 							{
 								fieldtype: 'Select',
-								label: 'Insert After',
+								label: __('Insert After'),
 								fieldname: 'insert_after',
 								options: this.columns.map(df => df.label)
 							}
@@ -1051,7 +1051,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		this.data.forEach(row => {
 			row[column_field] = custom_data[row[link_field]];
-		})
+		});
 
 		this.render_datatable();
 	}
@@ -1082,8 +1082,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				if (row[field.link_name]){
 					dynamic_doctypes.add(row[field.link_name] + ":" + field.fieldname);
 				}
-			})
-		})
+			});
+		});
 
 		doctypes = doctypes.concat(Array.from(dynamic_doctypes).map(d => {
 			const doc_field_pair = d.split(":");
@@ -1095,7 +1095,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		doctypes.forEach(doc => {
 			this.doctype_field_map[doc.doctype] = doc.fieldname;
-		})
+		});
 
 		return doctypes;
 	}
