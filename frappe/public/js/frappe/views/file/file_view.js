@@ -325,13 +325,22 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 				}
 				e.stopPropagation();
 				e.preventDefault();
-				frappe.upload.make({
-					files: dataTransfer.files,
-					"args": {
-						"folder": this.current_folder,
-						"from_form": 1
-					}
-				});
+
+				let flags = frappe.get_doc('Feature Flags');
+				if (flags.new_upload_dialog) {
+					new frappe.ui.FileUploader({
+						files: dataTransfer.files,
+						folder: this.current_folder
+					});
+				} else {
+					frappe.upload.make({
+						files: dataTransfer.files,
+						"args": {
+							"folder": this.current_folder,
+							"from_form": 1
+						}
+					});
+				}
 			});
 	}
 
