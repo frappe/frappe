@@ -971,7 +971,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							{
 								fieldtype: 'Select',
 								fieldname: 'doctype',
-								label: 'DocType',
+								label: 'From Document Type',
 								options: this.linked_doctypes.map(df => ({ label: df.doctype, value: df.doctype })),
 								change: () => {
 									let doctype = d.get_value('doctype');
