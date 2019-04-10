@@ -266,7 +266,7 @@ def get_ancestors_of(doctype, name, order_by="lft desc", limit=None):
 	"""Get ancestor elements of a DocType with a tree structure"""
 	lft, rgt = frappe.db.get_value(doctype, name, ["lft", "rgt"])
 
-	result = [d["name"] for d in frappe.db.get_list(doctype, {"lft": ["<", lft], "rgt": [">", rgt]},
+	result = [d["name"] for d in frappe.db.get_all(doctype, {"lft": ["<", lft], "rgt": [">", rgt]},
 		"name", order_by=order_by, limit_page_length=limit)]
 
 	return result or []
