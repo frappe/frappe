@@ -919,3 +919,10 @@ def validate_filename(filename):
 	timestamp = now_datetime().strftime(" %Y-%m-%d %H:%M:%S")
 	fname = get_file_name(filename, timestamp)
 	return fname
+
+@frappe.whitelist()
+def get_files_in_folder(folder):
+	return frappe.db.get_all('File',
+		{ 'folder': folder },
+		['name', 'file_name', 'file_url', 'is_folder', 'modified']
+	)
