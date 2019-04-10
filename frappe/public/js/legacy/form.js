@@ -142,13 +142,26 @@ _f.Frm.prototype.setup_drag_drop = function() {
 				throw "attach error";
 			}
 
-			frappe.upload.make({
-				args: me.attachments.get_args(),
-				files: dataTransfer.files,
-				callback: function(attachment, r) {
-					me.attachments.attachment_uploaded(attachment, r);
-				}
-			});
+			let flags = frappe.get_doc('Feature Flags');
+
+			if (flags.new_upload_dialog) {
+				new frappe.ui.FileUploader({
+					doctype: me.doctype,
+					docname: me.docname,
+					files: dataTransfer.files,
+					on_success(r) {
+						me.attachments.attachment_uploaded(r.message, r);
+					}
+				});
+			} else {
+				frappe.upload.make({
+					args: me.attachments.get_args(),
+					files: dataTransfer.files,
+					callback: function(attachment, r) {
+						me.attachments.attachment_uploaded(attachment, r);
+					}
+				});
+			}
 		});
 };
 
