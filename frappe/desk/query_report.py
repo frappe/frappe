@@ -17,7 +17,6 @@ from six import string_types, iteritems
 from datetime import timedelta
 from frappe.utils.file_manager import get_file
 from frappe.utils import gzip_decompress
-from frappe.model import no_value_fields
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
@@ -84,7 +83,7 @@ def generate_report_result(report, filters=None, user=None):
 				data_to_be_printed = res[4]
 
 	if result:
-		result, columns = get_filtered_data(report.ref_doctype, columns, result, user)
+		result = get_filtered_data(report.ref_doctype, columns, result, user)
 
 	if cint(report.add_total_row) and result:
 		result = add_total_row(result, columns)
@@ -384,7 +383,7 @@ def get_filtered_data(ref_doctype, columns, data, user):
 	else:
 		result = list(data)
 
-	return result, columns
+	return result
 
 
 def has_match(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner, columns_dict, user):
