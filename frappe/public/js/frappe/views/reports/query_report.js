@@ -1045,7 +1045,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.columns.splice(insert_after_index + 1, 0, column[0]);
 
 		this.data.forEach(row => {
-			row[column_field] = custom_data[row[link_field]]
+			row[column_field] = custom_data[row[link_field]];
 		})
 
 		this.render_datatable();
@@ -1055,7 +1055,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		let doctypes = [];
 		let dynamic_links = [];
 		let dynamic_doctypes = new Set();
-		this.doctype_field_map = {}
+		this.doctype_field_map = {};
 
 		this.columns.forEach(df => {
 			if (df.fieldtype == "Link" && df.options && df.options != "Currency") {
@@ -1085,7 +1085,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return {
 				doctype: doc_field_pair[0],
 				fieldname: doc_field_pair[1]
-			}
+			};
 		}));
 
 		doctypes.forEach(doc => {
