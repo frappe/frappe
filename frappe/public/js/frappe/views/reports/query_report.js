@@ -269,7 +269,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.page.clear_fields();
 	}
 
-	refresh(values) {
+	refresh() {
 		this.toggle_message(true);
 		let filters = this.get_filter_values(true);
 		let query = frappe.utils.get_query_string(frappe.get_route_str());
@@ -291,7 +291,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				args: {
 					report_name: this.report_name,
 					filters: filters,
-					custom_columns: values
 				},
 				callback: resolve,
 				always: () => this.page.btn_secondary.prop('disabled', false)
@@ -322,7 +321,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.add_prepared_report_buttons(data.doc);
 			}
 			this.toggle_message(false);
-
 			if (data.result && data.result.length) {
 				this.prepare_report_data(data);
 
@@ -419,12 +417,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.raw_data = data;
 		this.columns = this.prepare_columns(data.columns);
 		this.data = this.prepare_data(data.result);
-		this.custom_fields = this.get_dialog_fields();
+		this.linked_doctypes = this.get_linked_doctypes();
 		this.tree_report = this.data.some(d => 'indent' in d);
 	}
 
 	render_datatable() {
 		let data = this.data;
+
 		if (this.raw_data.add_total_row) {
 			data = data.slice();
 			data.splice(-1, 1);
@@ -964,16 +963,63 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				standard: true
 			},
 			{
-				label: __('Add Custom Fields'),
+				label: __('Add Column'),
 				action: () => {
-					const d = new frappe.ui.Dialog({
-						title: __('Add Custom Fields'),
-						fields: this.custom_fields,
+					let d = new frappe.ui.Dialog({
+						title: __('Add Column'),
+						fields: [
+							{
+								fieldtype: 'Select',
+								fieldname: 'doctype',
+								label: 'DocType',
+								options: this.linked_doctypes.map(df => ({ label: df.doctype, value: df.doctype })),
+								change: () => {
+									let doctype = d.get_value('doctype');
+									frappe.model.with_doctype(doctype, () => {
+										let fields = frappe.meta.get_docfields(doctype)
+											.map(df => ({ label: df.label, value: df.fieldname }));
+										d.set_df_property('field', 'options', fields);
+
+									})
+								}
+							},
+							{
+								fieldtype: 'Select',
+								label: 'Field',
+								fieldname: 'field',
+								options: []
+							},
+							{
+								fieldtype: 'Select',
+								label: 'Insert After',
+								fieldname: 'insert_after',
+								options: this.columns.map(df => df.label)
+							}
+						],
 						primary_action: (values) => {
-							this.refresh(values);
-							d.hide();
+							const custom_columns = [];
+							let df = frappe.meta.get_docfield(values.doctype, values.field);
+							custom_columns.push({
+								fieldname: df.fieldname,
+								fieldtype: df.fieldtype,
+								label: df.label,
+								width: 100
+							});
+							frappe.call({
+								method: 'frappe.desk.query_report.get_data_for_custom_field',
+								args: {
+									field: values.field,
+									doctype: values.doctype
+								},
+								callback: (r) => {
+									const custom_data = r.message;
+									const link_field = this.doctype_field_map[values.doctype];
+									this.add_custom_column(custom_columns, custom_data, link_field, values.field, values.insert_after);
+									d.hide();
+								}
+							});
 						}
-					});
+					})
 
 					d.show();
 				},
@@ -991,62 +1037,62 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		];
 	}
 
-	get_linked_doctypes() {
+	add_custom_column(custom_column, custom_data, link_field, column_field, insert_after) {
+		const column = this.prepare_columns(custom_column);
 
+		const insert_after_index = this.columns
+			.findIndex(column => column.label === insert_after);
+		this.columns.splice(insert_after_index + 1, 0, column[0]);
+
+		this.data.forEach(row => {
+			row[column_field] = custom_data[row[link_field]]
+		})
+
+		this.render_datatable();
+	}
+
+	get_linked_doctypes() {
 		let doctypes = [];
 		let dynamic_links = [];
 		let dynamic_doctypes = new Set();
+		this.doctype_field_map = {}
 
 		this.columns.forEach(df => {
-			if (df.fieldtype == "Link" && df.options) {
-				doctypes.push(df.options);
+			if (df.fieldtype == "Link" && df.options && df.options != "Currency") {
+				doctypes.push({
+					doctype: df.options,
+					fieldname: df.fieldname
+				});
 			}
 			else if (df.fieldtype == "Dynamic Link" && df.options) {
-				dynamic_links.push(df.options);
+				dynamic_links.push({
+					link_name: df.options,
+					fieldname: df.fieldname
+				});
 			}
 		});
 
 		this.data.forEach(row => {
 			dynamic_links.forEach(field => {
-				if (row[field]){
-					dynamic_doctypes.add(row[field]);
+				if (row[field.link_name]){
+					dynamic_doctypes.add(row[field.link_name] + ":" + field.fieldname);
 				}
 			})
 		})
 
-		doctypes = doctypes.concat(Array.from(dynamic_doctypes));
+		doctypes = doctypes.concat(Array.from(dynamic_doctypes).map(d => {
+			const doc_field_pair = d.split(":");
+			return {
+				doctype: doc_field_pair[0],
+				fieldname: doc_field_pair[1]
+			}
+		}));
+
+		doctypes.forEach(doc => {
+			this.doctype_field_map[doc.doctype] = doc.fieldname;
+		})
 
 		return doctypes;
-	}
-
-	get_dialog_fields() {
-		var dialog_fields = [];
-		const linked_doctypes = this.get_linked_doctypes();
-
-		frappe.call({
-			method: "frappe.desk.query_report.get_custom_fields",
-			args: {
-				doctypes: linked_doctypes
-			},
-			callback: function(r) {
-				r.message.forEach(df => {
-					dialog_fields.push({
-						label: __(df.doctype),
-						fieldname: df.doctype,
-						fieldtype: 'MultiCheck',
-						columns: 2,
-						options: df.fields
-							.map(f => ({
-								label: __(f),
-								value: f ? frappe.scrub(f) : null,
-								checked: 0
-							}))
-					});
-				});
-			}
-		});
-
-		return dialog_fields;
 	}
 
 	setup_report_wrapper() {
