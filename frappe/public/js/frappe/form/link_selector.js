@@ -76,7 +76,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 
 		frappe.link_search(this.doctype, args, function (r) {
 			var parent = me.dialog.fields_dict.results.$wrapper;
-			if (args.start == 0) {
+			if (args.start === 0) {
 				parent.empty();
 			}
 
@@ -121,6 +121,12 @@ frappe.ui.form.LinkSelector = Class.extend({
 						frappe.new_doc(me.doctype);
 					});
 			}
+
+			if (r.values.length < 20) {
+				var more_btn = me.dialog.fields_dict.more.$wrapper;
+				more_btn.hide();
+			}
+
 		}, this.dialog.get_primary_btn());
 
 	},
