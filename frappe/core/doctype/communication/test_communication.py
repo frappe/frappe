@@ -45,27 +45,44 @@ class TestCommunication(unittest.TestCase):
 
 	def test_circular_linking(self):
 		content = "This was created to test circular linking"
+
 		a = frappe.get_doc({
 			"doctype": "Communication",
 			"communication_type": "Communication",
 			"content": content,
 		}).insert()
+
 		b = frappe.get_doc({
 			"doctype": "Communication",
 			"communication_type": "Communication",
 			"content": content,
-			"reference_doctype": "Communication",
-			"reference_name": a.name
+			"dynamic_link":[
+				{
+					"link_doctype": "Communication",
+					"link_name": a.name,
+				},
+			]
 		}).insert()
+
 		c = frappe.get_doc({
 			"doctype": "Communication",
 			"communication_type": "Communication",
 			"content": content,
-			"reference_doctype": "Communication",
-			"reference_name": b.name
+			"dynamic_link":[
+				{
+					"link_doctype": "Communication",
+					"link_name": b.name,
+				},
+			]
 		}).insert()
-		a = frappe.get_doc("Communication", a.name)
-		a.reference_doctype = "Communication"
-		a.reference_name = c.name
-		self.assertRaises(frappe.CircularLinkingError, a.save)
 
+		a = frappe.get_doc("Communication", a.name)
+		a.update({
+			"dynamic_link": [
+				{
+					"link_doctype": "Communication",
+					"link_name": c.name
+				}
+			]
+		})
+		self.assertRaises(frappe.CircularLinkingError, a.save)

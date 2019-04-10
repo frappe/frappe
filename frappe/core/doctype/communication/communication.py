@@ -60,26 +60,37 @@ class Communication(Document):
 
 	def validate_reference(self):
 		for dynamic_link in self.dynamic_link:
-			if dynamic_link.link_doctype and dynamic_link.link_name:
-				if not dynamic_link.reference_owner:
-					dynamic_link.reference_owner = frappe.db.get_value(dynamic_link.link_doctype,\
-						dynamic_link.link_name, "owner")
+			if not dynamic_link.link_owner:
+				dynamic_link.link_owner = frappe.db.get_value(dynamic_link.link_doctype,\
+					dynamic_link.link_name, "owner")
 
-				# prevent communication against a child table
-				if frappe.get_meta(dynamic_link.link_doctype).istable:
-					frappe.throw(_("Cannot create a {0} against a child document: {1}")
-						.format(_(self.communication_type), _(dynamic_link.link_doctype)))
+			# prevent communication against a child table
+			if frappe.get_meta(dynamic_link.link_doctype).istable:
+				frappe.throw(_("Cannot create a {0} against a child document: {1}")
+					.format(_(self.communication_type), _(dynamic_link.link_doctype)))
 
-				# Prevent circular linking of Communication DocTypes
-				if dynamic_link.link_doctype == "Communication":
-					circular_linking = False
-					doc = get_parent_doc(self, dynamic_link.link_doctype, dynamic_link.link_name)
-					for references in doc.dynamic_link:
-						while references.link_doctype == "Communication":
-							if get_parent_doc(doc, references.link_doctype, references.link_name).name==self.name: #do
-								circular_linking = True
-								break
-							doc = get_parent_doc(doc, references.link_doctype, references.link_name)
+			# Prevent circular linking of Communication DocTypes
+			if dynamic_link.link_doctype == "Communication":
+				circular_linking = False
+				circular_level_1 = get_parent_doc(dynamic_link.link_doctype, dynamic_link.link_name)
+
+				# Level 1
+				if circular_level_1:
+					for link in circular_level_1.dynamic_link:
+						if link.link_doctype == "Communication":
+							circular_level_2 = get_parent_doc(link.link_doctype, link.link_name)
+
+							# Level 2
+							if circular_level_2:
+								for ref_link in circular_level_2.dynamic_link:
+									if ref_link.link_doctype == "Communication":
+										circular_level_3 = get_parent_doc(ref_link.link_doctype, ref_link.link_name)
+
+										# Level 3
+										if circular_level_3:
+											if circular_level_3.name == self.name:
+												circular_linking = True
+												break
 						if circular_linking:
 							frappe.throw(_("Please make sure the Reference Communication Docs are not circularly linked."), frappe.CircularLinkingError)
 
@@ -110,19 +121,19 @@ class Communication(Document):
 	def on_update(self):
 		# add to _comment property of the doctype, so it shows up in
 		# comments count for the list view
-		update_comment_in_doc(self)
+		# update_comment_in_doc(self) #to fix
 
 		if self.comment_type != 'Updated':
-			update_parent_mins_to_first_response(self)
+			for dynamic_link in self.dynamic_link:
+				update_parent_mins_to_first_response(self, dynamic_link.link_doctype, dynamic_link.link_name)
 			self.bot_reply()
 
 	def on_trash(self):
-		for dynamic_link in self.dynamic_link:
-			if self.communication_type == "Communication":
-				# send delete comment to listening clients
+		if self.communication_type == "Communication":
+			# send delete comment to listening clients
+			for dynamic_link in self.dynamic_link:
 				frappe.publish_realtime('delete_communication', self.as_dict(),
-					doctype= dynamic_link.link_doctype, docname = dynamic_link.link_name,
-					after_commit=True)
+					doctype= dynamic_link.link_doctype, docname = dynamic_link.link_name, after_commit=True)
 
 	def set_status(self):
 		if not self.is_new():
@@ -161,17 +172,17 @@ class Communication(Document):
 				self.sender_full_name = sender_name or get_fullname(frappe.session.user) if frappe.session.user!='Administrator' else None
 
 	def send(self, print_html=None, print_format=None, attachments=None,
-		send_me_a_copy=False, recipients=None):
+		send_me_a_copy=False, recipients=None, link_doctype=None, link_name=None):
 		"""Send communication via Email.
 
 		:param print_html: Send given value as HTML attachment.
 		:param print_format: Attach print format of parent document."""
 
 		self.send_me_a_copy = send_me_a_copy
-		self.notify(print_html, print_format, attachments, recipients)
+		self.notify(print_html, print_format, attachments, recipients, link_doctype, link_name)
 
 	def notify(self, print_html=None, print_format=None, attachments=None,
-		recipients=None, cc=None, bcc=None,fetched_from_email_account=False):
+		recipients=None, cc=None, bcc=None, link_doctype=None, link_name=None, fetched_from_email_account=False):
 		"""Calls a delayed task 'sendmail' that enqueus email in Email Queue queue
 
 		:param print_html: Send given value as HTML attachment
@@ -182,13 +193,12 @@ class Communication(Document):
 		:param fetched_from_email_account: True when pulling email, the notification shouldn't go to the main recipient
 
 		"""
-		notify(self, print_html, print_format, attachments, recipients, cc, bcc,
-			fetched_from_email_account)
+		notify(self, print_html, print_format, attachments, recipients, cc, bcc, link_doctype, link_name, fetched_from_email_account)
 
 	def _notify(self, print_html=None, print_format=None, attachments=None,
-		recipients=None, cc=None, bcc=None):
+		recipients=None, cc=None, bcc=None, link_doctype=None, link_name=None):
 
-		_notify(self, print_html, print_format, attachments, recipients, cc, bcc)
+		_notify(self, print_html, print_format, attachments, recipients, cc, bcc, link_doctype, link_name)
 
 	def bot_reply(self):
 		if self.comment_type == 'Bot' and self.communication_type == 'Chat':
@@ -201,8 +211,8 @@ class Communication(Document):
 					"content": cstr(reply),
 					"dynamic_link": [
 						{
-							"link_doctype": self.link_doctype,
-							"link_name": self.link_name
+							"link_doctype": self.dynamic_link[0].link_doctype,
+							"link_name": self.dynamic_link[0].link_name
 						},
 					]
 				}).insert()
@@ -243,8 +253,6 @@ class Communication(Document):
 
 def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""
-	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"]) #check
-	frappe.db.add_index("Communication", ["timeline_doctype", "timeline_name"])
 	frappe.db.add_index("Communication", ["status", "communication_type"])
 
 def has_permission(doc, ptype, user):
@@ -276,11 +284,8 @@ def get_permission_query_conditions_for_communication(user):
 		return """tabCommunication.email_account in ({email_accounts})"""\
 			.format(email_accounts=','.join(email_accounts))
 
-def get_parent_doc(doc, link_doctype, link_name):
+def get_parent_doc(link_doctype, link_name):
 	"""Returns document of `link_doctype`, `link_doctype`"""
-	if not hasattr(doc, "parent_doc"):
-		if link_doctype and link_name:
-			doc.parent_doc = frappe.get_doc(link_doctype, link_name)
-		else:
-			doc.parent_doc = None
-	return doc.parent_doc
+	if link_doctype and link_name:
+		parent_doc = frappe.get_doc(link_doctype, link_name)
+	return parent_doc if parent_doc else None
