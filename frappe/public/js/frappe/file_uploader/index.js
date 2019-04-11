@@ -1,4 +1,4 @@
-import FileUploaderComponent from './FileUploader.vue'
+import FileUploaderComponent from './FileUploader.vue';
 
 export default class FileUploader {
 	constructor({ wrapper, method, on_success, doctype, docname, files, folder } = {}) {
