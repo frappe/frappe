@@ -1,12 +1,11 @@
 <template>
 	<div class="file-browser">
-		<div class="flex justify-between align-center">
-			<h5>{{ __('File Browser') }}</h5>
+		<div>
 			<a
 				href=""
 				class="text-muted text-medium"
 				@click.prevent="$emit('hide-browser')"
-			>{{ __('Hide Browser') }}</a>
+			>{{ __('← Back to upload files') }}</a>
 		</div>
 		<div class="file-browser-list border rounded">
 			<div class="file-filter">
@@ -128,6 +127,7 @@ export default {
 .file-browser-list {
 	height: 300px;
 	overflow: auto;
+	margin-top: 10px;
 }
 
 .file-filter {

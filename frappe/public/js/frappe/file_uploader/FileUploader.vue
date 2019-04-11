@@ -7,13 +7,13 @@
 		<div
 			class="file-upload-area padding border rounded text-center cursor-pointer flex align-center justify-center"
 			@click="browse_files"
-			v-show="files.length === 0 && !show_file_browser"
+			v-show="files.length === 0 && !show_file_browser && !show_web_link"
 		>
 			<div v-if="!is_dragging">
 				<div>
 					{{ __('Drag and drop files, ') }}
 					<label style="margin: 0">
-						<a href="#" class="text-primary" @click.prevent>{{ __('browse') }}</a>
+						<a href="#" class="text-primary" @click.prevent>{{ __('browse,') }}</a>
 						<input
 							type="file"
 							class="hidden"
@@ -23,19 +23,28 @@
 							:accept="restrictions.allowed_file_types.join(', ')"
 						>
 					</label>
-					{{ __('or choose an') }}
+					{{ __('choose an') }}
 					<a href="#" class="text-primary bold"
 						@click.stop.prevent="show_file_browser = true"
 					>
 						{{ __('uploaded file') }}
 					</a>
+					{{ __('or attach a') }}
+					<a class="text-primary bold" href
+						@click.stop.prevent="show_web_link = true"
+					>
+						{{ __('web link') }}
+					</a>
+				</div>
+				<div class="text-muted text-medium">
+					{{ upload_notes }}
 				</div>
 			</div>
 			<div v-else>
 				{{ __('Drop files here') }}
 			</div>
 		</div>
-		<div class="file-preview-area" v-show="files.length && !show_file_browser">
+		<div class="file-preview-area" v-show="files.length && !show_file_browser && !show_web_link">
 			<div class="margin-bottom" v-if="!upload_complete">
 				<label>
 					<input type="checkbox" class="input-with-feedback" @change="e => toggle_all_private(e.target.checked)">
@@ -66,7 +75,7 @@
 				</span>
 			</button>
 		</div>
-		<div class="upload-progress" v-if="currently_uploading !== -1 && !upload_complete && !show_file_browser">
+		<div class="upload-progress" v-if="currently_uploading !== -1 && !upload_complete && !show_file_browser && !show_web_link">
 			<span
 				class="text-medium"
 				v-html="__('Uploading {0} of {1}', [String(currently_uploading + 1).bold(), String(files.length).bold()])"
@@ -95,12 +104,18 @@
 			v-if="show_file_browser"
 			@hide-browser="show_file_browser = false"
 		/>
+		<WebLink
+			ref="web_link"
+			v-if="show_web_link"
+			@hide-web-link="show_web_link = false"
+		/>
 	</div>
 </template>
 
 <script>
 import FilePreview from './FilePreview.vue';
 import FileBrowser from './FileBrowser.vue';
+import WebLink from './WebLink.vue';
 
 export default {
 	name: 'FileUploader',
@@ -139,14 +154,16 @@ export default {
 	},
 	components: {
 		FilePreview,
-		FileBrowser
+		FileBrowser,
+		WebLink
 	},
 	data() {
 		return {
 			files: [],
 			is_dragging: false,
 			currently_uploading: -1,
-			show_file_browser: false
+			show_file_browser: false,
+			show_web_link: false,
 		}
 	},
 	watch: {
@@ -162,9 +179,6 @@ export default {
 				&& this.files.every(
 					file => file.total !== 0 && file.progress === file.total);
 		},
-		upload_failed() {
-			return this.files.length > 0 && this.files.every(file => file.failed);
-		}
 	},
 	methods: {
 		dragover() {
@@ -261,6 +275,17 @@ export default {
 
 				return this.upload_file({
 					file_url: selected_file.file_url
+				});
+			}
+			if (this.show_web_link) {
+				let file_url = this.$refs.web_link.url;
+				if (!file_url) {
+					frappe.msgprint(__('Invalid URL'));
+					return Promise.reject();
+				}
+
+				return this.upload_file({
+					file_url
 				});
 			}
 			return frappe.run_serially(
