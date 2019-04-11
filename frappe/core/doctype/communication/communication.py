@@ -42,7 +42,7 @@ class Communication(Document):
 			frappe.db.commit()
 
 	def validate(self):
-		#deduplicate_dynamic_links(self.dynamic_link)
+		self.deduplicate_dynamic_links()
 		self.validate_reference()
 
 		if not self.user:
@@ -59,6 +59,25 @@ class Communication(Document):
 		self.set_sender_full_name()
 
 		validate_email(self)
+
+	def deduplicate_dynamic_links(self):
+		links, duplicate = [], False
+		for l in self.dynamic_link or []:
+			t = (l.link_doctype, l.link_name)
+			if not t in links:
+				links.append(t)
+			else:
+				duplicate = True
+
+		if duplicate:
+			self.dynamic_link = []
+			for l in links:
+				self.append("dynamic_link",
+					{
+						"link_doctype": l[0],
+						"link_name": l[1]
+					}
+				)
 
 	def validate_reference(self):
 		for dynamic_link in self.dynamic_link:
