@@ -8,6 +8,7 @@ from frappe.model.document import Document
 from frappe.utils import validate_email_address, get_fullname, strip_html, cstr
 from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_mins_to_first_response)
+from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr
 from frappe.core.doctype.comment.comment import update_comment_in_doc
@@ -41,6 +42,7 @@ class Communication(Document):
 			frappe.db.commit()
 
 	def validate(self):
+		#deduplicate_dynamic_links(self.dynamic_link)
 		self.validate_reference()
 
 		if not self.user:
@@ -289,3 +291,17 @@ def get_parent_doc(link_doctype, link_name):
 	if link_doctype and link_name:
 		parent_doc = frappe.get_doc(link_doctype, link_name)
 	return parent_doc if parent_doc else None
+
+@frappe.whitelist()
+def add_link(doctype, name, link_doctype, link_name):
+	print(doctype, name, link_doctype, link_name)
+	doc = frappe.get_doc(doctype, name)
+	print(doc.as_dict())
+	doc.append("dynamic_link",
+		{
+			"link_doctype": link_doctype,
+			"link_name": link_name
+		}
+	)
+	doc.save()
+	print(doc.as_dict())
