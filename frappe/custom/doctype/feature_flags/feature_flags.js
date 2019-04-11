@@ -3,6 +3,6 @@
 
 frappe.ui.form.on('Feature Flags', {
 	refresh: function(frm) {
-		frm.set_intro(__('Enable experimental features. These features may be removed before they end up in the core.'))
+		frm.set_intro(__('Enable experimental features. These features may be removed before they end up in the core.'));
 	}
 });
