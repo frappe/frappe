@@ -142,28 +142,44 @@ def update_completed_workflow_actions(doc, user=None):
 		(user, doc.get('doctype'), doc.get('name'), user))
 
 def get_next_possible_transitions(workflow_name, state):
-	return frappe.get_all('Workflow Transition',
-		fields=['allowed', 'action', 'state', 'allow_self_approval'],
-		filters=[['parent', '=', workflow_name],
-		['state', '=', state]])
+    # condition is an SQL reserved word, must be back-ticked
+    return frappe.get_all('Workflow Transition',
+        fields=['allowed', 'action', 'state', 'allow_self_approval', '`condition`'],
+        filters=[['parent', '=', workflow_name],
+        ['state', '=', state]])
 
 def get_users_next_action_data(transitions, doc):
-	user_data_map = {}
-	for transition in transitions:
-		users = get_users_with_role(transition.allowed)
-		filtered_users = filter_allowed_users(users, doc, transition)
-		for user in filtered_users:
-			if not user_data_map.get(user):
-				user_data_map[user] = {
-					'possible_actions': [],
-					'email': frappe.db.get_value('User', user, 'email'),
-				}
+    user_data_map = {}
+    for transition in transitions:
+        # if self_approval is checked it shouldn't make workflow action and email! 
+        if transition.allow_self_approval:
+            continue
 
-			user_data_map[user].get('possible_actions').append({
-				'action_name': transition.action,
-				'action_link': get_workflow_action_url(transition.action, doc, user)
-			})
-	return user_data_map
+        else:
+            satisfies_condition = True
+            if transition.condition:
+                satisfies_condition = frappe.safe_eval(transition.condition,
+                dict(frappe = frappe._dict(
+                    db = frappe._dict(get_value = frappe.db.get_value, get_list=frappe.db.get_list),
+                    session = frappe.session
+                )),
+                dict(doc = doc))
+            # allowed users should also satisfy the transition condition 
+            if satisfies_condition:
+                users = get_users_with_role(transition.allowed)
+                filtered_users = filter_allowed_users(users, doc, transition)
+                for user in filtered_users:
+                    if not user_data_map.get(user):
+                        user_data_map[user] = {
+                            'possible_actions': [],
+                            'email': frappe.db.get_value('User', user, 'email'),
+                        }
+
+                    user_data_map[user].get('possible_actions').append({
+                        'action_name': transition.action,
+                        'action_link': get_workflow_action_url(transition.action, doc, user)
+                    })
+    return user_data_map
 
 
 def create_workflow_actions_for_users(users, doc):
