@@ -17,14 +17,7 @@ def get(chart_name, from_date=None, to_date=None, refresh = None):
 	timegrain = chart.time_interval
 	filters = json.loads(chart.filters_json)
 
-	date_function = {
-		'Monthly': 'month',
-		'Quarterly': 'quarter',
-		'Weekly': 'week',
-		'Daily': 'dayofyear'
-	}[timegrain]
-	interval_unit = 'day' if date_function=='dayofyear' else date_function
-
+	# don't include cancelled documents
 	filters['docstatus'] = ('<', 2)
 
 	if not from_date:
@@ -32,35 +25,38 @@ def get(chart_name, from_date=None, to_date=None, refresh = None):
 	if not to_date:
 		to_date = nowdate()
 
+	# get conditions from filters
 	conditions, values = frappe.db.build_conditions(filters)
 
-	# build and run query
-
-	# query will return last day of the interval and aggregate value
+	# query will return year, unit and aggregate value
 	data = frappe.db.sql('''
 		select
-			date_sub(date_add(makedate(year({datefield}), 1), interval {interval_unit}({datefield}) {interval_unit}), interval 1 day) as date,
+			extract(year from {datefield}) as _year,
+			{unit_function} as _unit,
 			{aggregate_function}({value_field})
 		from `tab{doctype}`
 		where
 			{conditions}
 			and {datefield} >= '{from_date}'
 			and {datefield} <= '{to_date}'
-		group by {date_function}({datefield}), year({datefield})
-		order by {datefield} asc
+		group by _year, _unit
+		order by _year asc, _unit asc
 	'''.format(
-		date_function = date_function,
+		unit_function = get_unit_function(chart.based_on, timegrain),
 		datefield = chart.based_on,
 		aggregate_function = chart.chart_type,
 		value_field = chart.value_based_on or '1',
 		doctype = chart.document_type,
-		to_date = to_date,
 		conditions = conditions,
 		from_date = from_date.strftime('%Y-%m-%d'),
-		interval_unit = interval_unit
+		to_date = to_date
 	), values)
 
-	result = add_missing_values(data, timegrain, from_date, to_date)
+	# result given as year, unit -> convert it to end of period of that unit
+	result = convert_to_dates(data, timegrain)
+
+	# add missing data points for periods where there was no result
+	result = add_missing_values(result, timegrain, from_date, to_date)
 
 	return {
 		"labels": [r[0].strftime('%Y-%m-%d') for r in result],
@@ -69,6 +65,37 @@ def get(chart_name, from_date=None, to_date=None, refresh = None):
 			"values": [r[1] for r in result]
 		}]
 	}
+
+def convert_to_dates(data, timegrain):
+	result = []
+	for d in data:
+		if timegrain == 'Daily':
+			result.append([add_to_date('{:d}-01-01'.format(int(d[0])), days = d[1]), d[2]])
+		elif timegrain == 'Weekly':
+			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), weeks = d[1] + 1), days = -1), d[2]])
+		elif timegrain == 'Monthly':
+			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months = d[1]), days = -1), d[2]])
+		elif timegrain == 'Quarterly':
+			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months = d[1] * 3), days = -1), d[2]])
+
+		result[-1][0] = getdate(result[-1][0])
+
+	return result
+
+def get_unit_function(datefield, timegrain):
+	unit_function = ''
+	if timegrain=='Daily':
+		if frappe.conf.db_type == 'mariadb':
+			unit_function = 'dayofyear({})'.format(datefield)
+		else:
+			unit_function = 'extract(doy from {datefield})'.format(
+				datefield=datefield)
+
+	else:
+		unit_function = 'extract({unit} from {datefield})'.format(
+			unit = timegrain[:-2].lower(), datefield=datefield)
+
+	return unit_function
 
 def add_missing_values(data, timegrain, from_date, to_date):
 	# add missing intervals
