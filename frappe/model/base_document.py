@@ -579,7 +579,7 @@ class BaseDocument(object):
 			elif column_type in ('int', 'bigint', 'smallint'):
 				max_length = max_positive_value[column_type]
 
-				if abs(value) > max_length:
+				if abs(cint(value)) > max_length:
 					self.throw_length_exceeded_error(df, max_length, value)
 
 	def throw_length_exceeded_error(self, df, max_length, value):
