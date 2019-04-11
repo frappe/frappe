@@ -190,7 +190,7 @@ scheduler_events = {
 		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_report"
 	],
 	"monthly": [
-		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly"
+		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly",
 		"frappe.social.doctype.energy_point_log.energy_point_log.send_monthly_report"
 	],
 	"monthly_long": [
