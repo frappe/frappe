@@ -108,6 +108,7 @@ class DashboardChart {
 		this.chart_container = $(`<div class="col-sm-${columns} chart-column-container">
 			<div class="chart-wrapper">
 				<div class="chart-loading-state text-muted">${__("Loading...")}</div>
+				<div class="chart-empty-state hide text-muted">${__("No Data")}</div>
 			</div>
 		</div>`);
 		this.chart_container.appendTo(this.container);
@@ -159,7 +160,7 @@ class DashboardChart {
 	}
 
 	fetch(filters, refresh=false) {
-		this.chart_container.find('.chart-loading-status').removeClass('hide');
+		this.chart_container.find('.chart-loading-state').removeClass('hide');
 		let method = this.settings ? this.settings.method
 			: 'frappe.desk.doctype.dashboard_chart.dashboard_chart.get';
 
@@ -187,7 +188,7 @@ class DashboardChart {
 				xIsSeries: this.chart_doc.timeseries
 			},
 		};
-		this.chart_container.find('.chart-loading-status').addClass('hide');
+		this.chart_container.find('.chart-loading-state').addClass('hide');
 
 		if(!this.chart) {
 			this.chart = new Chart(this.chart_container.find(".chart-wrapper")[0], chart_args);

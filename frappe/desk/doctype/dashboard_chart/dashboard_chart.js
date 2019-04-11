@@ -24,10 +24,7 @@ frappe.ui.form.on('Dashboard Chart', {
 		if (['Count', 'Average', 'Sum'].includes(frm.doc.chart_type)) {
 			frm.set_value('timeseries', 1);
 		}
-		frm.set_value('source', '');
 		frm.set_value('document_type', '');
-		frm.set_value('based_on', '');
-		frm.set_value('value_based_on', '');
 	},
 
 	document_type: function(frm) {
@@ -35,6 +32,8 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.set_value('source', '');
 		frm.set_value('based_on', '');
 		frm.set_value('value_based_on', '');
+		frm.set_value('filters_json', '{}');
+		frm.trigger('update_options');
 	},
 
 	update_options: function(frm) {
