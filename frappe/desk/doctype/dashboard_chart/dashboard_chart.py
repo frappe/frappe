@@ -10,7 +10,7 @@ from frappe.model.document import Document
 
 @frappe.whitelist()
 @cache_source
-def get(chart_name, from_date=None, to_date=None):
+def get(chart_name, from_date=None, to_date=None, refresh = None):
 	chart = frappe.get_doc('Dashboard Chart', chart_name)
 
 	timespan = chart.timespan
