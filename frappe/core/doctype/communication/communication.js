@@ -18,10 +18,8 @@ frappe.ui.form.on("Communication", {
 		frm.convert_to_click && frm.set_convert_button();
 		frm.subject_field = "subject";
 
-		if(frm.doc.reference_doctype && frm.doc.reference_name) {
-			frm.add_custom_button(__(frm.doc.reference_name), function() {
-				frappe.set_route("Form", frm.doc.reference_doctype, frm.doc.reference_name);
-			});
+		if(frm.doc.dynamic_link) {
+
 		} else {
 			// if an unlinked communication, set email field
 			if (frm.doc.sent_or_received==="Received") {
@@ -50,11 +48,11 @@ frappe.ui.form.on("Communication", {
 			});
 		}
 
-		frm.add_custom_button(__("Relink"), function() {
-			frm.trigger('show_relink_dialog');
+		frm.add_custom_button(__("Add link"), function() {
+			frm.trigger('show_add_link_dialog');
 		});
 
-		if(frm.doc.communication_type=="Communication" 
+		if(frm.doc.communication_type=="Communication"
 			&& frm.doc.communication_medium == "Email"
 			&& frm.doc.sent_or_received == "Received") {
 
@@ -90,7 +88,7 @@ frappe.ui.form.on("Communication", {
 			}
 		}
 
-		if(frm.doc.communication_type=="Communication" 
+		if(frm.doc.communication_type=="Communication"
 			&& frm.doc.communication_medium == "Phone"
 			&& frm.doc.sent_or_received == "Received"){
 
@@ -100,39 +98,37 @@ frappe.ui.form.on("Communication", {
 		}
 	},
 
-	show_relink_dialog: function(frm){
+	show_add_link_dialog: function(frm){
 		var lib = "frappe.email";
 		var d = new frappe.ui.Dialog ({
-			title: __("Relink Communication"),
+			title: __("Add new link to Communication"),
 			fields: [{
 				"fieldtype": "Link",
 				"options": "DocType",
 				"label": __("Reference Doctype"),
-				"fieldname": "reference_doctype",
-				"get_query": function() {return {"query": "frappe.email.get_communication_doctype"}}
+				"fieldname": "link_doctype",
 			},
 			{
 				"fieldtype": "Dynamic Link",
-				"options": "reference_doctype",
+				"options": "link_doctype",
 				"label": __("Reference Name"),
-				"fieldname": "reference_name"
+				"fieldname": "link_name"
 			}]
 		});
-		d.set_value("reference_doctype", frm.doc.reference_doctype);
-		d.set_value("reference_name", frm.doc.reference_name);
-		d.set_primary_action(__("Relink"), function () {
+		d.set_primary_action(__("Add link"), function () {
 			var values = d.get_values();
 			if (values) {
 				frappe.confirm(
-					__('Are you sure you want to relink this communication to {0}?', [values["reference_name"]]),
+					__('Are you sure you want to add link to this communication to {0}?', [values["link_doctype"]]),
 					function () {
 						d.hide();
 						frappe.call({
-							method: "frappe.email.relink",
+							method: "frappe.core.doctype.communication.communication.add_link",
 							args: {
+								"doctype": frm.doctype,
 								"name": frm.doc.name,
-								"reference_doctype": values["reference_doctype"],
-								"reference_name": values["reference_name"]
+								"link_doctype": values["link_doctype"],
+								"link_name": values["link_name"]
 							},
 							callback: function () {
 								frm.refresh();
@@ -185,7 +181,7 @@ frappe.ui.form.on("Communication", {
 
 	forward_mail: function(frm) {
 		var args = frm.events.get_mail_args(frm)
-		$.extend(args, {		
+		$.extend(args, {
 			forward: true,
 			subject: __("Fw: {0}", [frm.doc.subject]),
 		})
@@ -255,3 +251,7 @@ frappe.ui.form.on("Communication", {
 		})
 	}
 });
+
+function action(){
+	console.log("HELLO");
+}
