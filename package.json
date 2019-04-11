@@ -24,7 +24,7 @@
     "cookie": "^0.3.1",
     "express": "^4.16.2",
     "fast-deep-equal": "^2.0.1",
-    "frappe-datatable": "^1.10.0",
+    "frappe-datatable": "^1.12.0",
     "frappe-gantt": "^0.1.0",
     "fuse.js": "^3.2.0",
     "highlight.js": "^9.12.0",

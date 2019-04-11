@@ -3,7 +3,7 @@
 
 
 frappe.pages['dashboard'].on_page_load = function(wrapper) {
-	frappe.ui.make_app_page({
+	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __("Dashboard"),
 		single_column: true
@@ -62,6 +62,11 @@ class Dashboard {
 
 	set_dropdown() {
 		this.page.clear_menu();
+
+		this.page.add_menu_item('Edit...', () => {
+			frappe.set_route('Form', 'Dashboard', frappe.dashboard.dashboard_name);
+		})
+
 		frappe.db.get_list("Dashboard").then(dashboards => {
 			dashboards.map(dashboard => {
 				let name = dashboard.name;
@@ -99,7 +104,9 @@ class DashboardChart {
 		};
 		let columns = column_width_map[this.chart_doc.width];
 		this.chart_container = $(`<div class="col-sm-${columns} chart-column-container">
-			<div class="chart-wrapper"></div>
+			<div class="chart-wrapper">
+				<div class="chart-loading-state text-muted">${__("Loading...")}</div>
+			</div>
 		</div>`);
 		this.chart_container.appendTo(this.container);
 
@@ -148,6 +155,7 @@ class DashboardChart {
 	}
 
 	fetch(filters, refresh=false) {
+		this.chart_container.find('.chart-loading-status').removeClass('hide');
 		return frappe.xcall(
 			this.settings.method_path,
 			{
@@ -172,6 +180,8 @@ class DashboardChart {
 				xIsSeries: this.settings.is_time_series
 			},
 		};
+		this.chart_container.find('.chart-loading-status').addClass('hide');
+
 		if(!this.chart) {
 			this.chart = new Chart(this.chart_container.find(".chart-wrapper")[0], chart_args);
 		} else {

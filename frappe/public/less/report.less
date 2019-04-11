@@ -67,3 +67,45 @@
 		margin-bottom: 2px;
 	}
 }
+
+.groupby-box {
+	border-bottom: 1px solid #d1d8dd;
+	padding: 10px 15px 3px;
+
+	.remove-groupby {
+		margin-top: 6px;
+		margin-left: 15px;
+	}
+
+	.groupby-field {
+		padding-right: 15px;
+		width: calc(100% - 36px);
+
+		.frappe-control {
+			position: relative;
+		}
+	}
+}
+
+// for sm and above
+@media (min-width: @screen-xs) {
+	.groupby-box .row > div[class*="col-sm-"] {
+		padding-right: 0px;
+	}
+
+	.groupby-field {
+		width: 65% !important;
+
+		.frappe-control {
+			position: relative;
+		}
+	}
+}
+
+.tag-groupby-area {
+	padding: 10px 150px 10px 10px;
+	position: absolute;
+    top: 0px;
+    right: 0px;
+    display: flex;
+}

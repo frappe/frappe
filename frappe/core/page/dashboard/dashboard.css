@@ -1,14 +1,29 @@
-.chart-container {
+.chart-wrapper {
     border: 1px solid #d1d8dd;
     border-radius: 4px;
+    height: 340px;
     margin: 15px 0;
+}
+
+.chart-container {
     padding: 15px;
+}
+
+.chart-container > .title {
+    margin: 0px;
+    font-size: 14px;
+}
+
+.chart-loading-state {
+    height: 100%;
+    margin-top: 160px;
+    text-align: center;
 }
 
 .chart-actions {
     position: absolute;
     right: 30px;
-    top: 54px;
+    top: 26px;
 }
 
 .chart-column-container {
@@ -17,7 +32,7 @@
 
 .last-synced-text {
     position: absolute;
-    top: 56px;
+    top: 28px;
     right: 60px;
     font-size: 12px;
 }

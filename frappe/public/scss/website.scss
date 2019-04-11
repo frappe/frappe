@@ -62,6 +62,10 @@ img {
 	@extend .d-none;
 }
 
+.hide-control {
+    @extend .d-none;
+}
+
 .text-underline {
 	text-decoration: underline;
 }
