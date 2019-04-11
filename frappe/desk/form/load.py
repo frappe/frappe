@@ -188,7 +188,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 		order by `tabCommunication`.creation desc LIMIT %(limit)s OFFSET %(start)s""".format(
 			fields = fields, conditions=conditions, group_by=group_by or ""),
 			{ "doctype": doctype, "name": name, "start": frappe.utils.cint(start), "limit": limit },
-			as_dict=as_dict, debug=True)
+			as_dict=as_dict)
 
 	return communications
 
@@ -233,7 +233,7 @@ def get_feedback_rating(doctype, docname):
 		and {conditions}
 		order by `tabCommunication`.creation desc""".format(
 			fields = fields, conditions=conditions),
-			{ "doctype": doctype, "docname": docname}, debug=True)
+			{ "doctype": doctype, "docname": docname})
 
 	if not rating:
 		return 0
