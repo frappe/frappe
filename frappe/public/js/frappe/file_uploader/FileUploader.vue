@@ -20,6 +20,7 @@
 							ref="file_input"
 							@change="on_file_input"
 							:multiple="multiple_files"
+							:accept="restrictions.allowed_file_types.join(', ')"
 						>
 					</label>
 					{{ __('or choose an') }}
@@ -124,6 +125,16 @@ export default {
 		},
 		on_success: {
 			default: null
+		},
+		restrictions: {
+			default: () => ({
+				max_file_size: null, // 2048 -> 2KB
+				max_number_of_files: null,
+				allowed_file_types: [] // ['image/*', 'video/*', '.jpg', '.gif', '.pdf']
+			})
+		},
+		upload_notes: {
+			default: null // "Images or video, upto 2MB"
 		}
 	},
 	components: {
@@ -185,20 +196,60 @@ export default {
 			});
 		},
 		add_files(file_array) {
-			let files = Array.from(file_array).map(file => {
-				let is_image = file.type.startsWith('image');
-				return {
-					file_obj: file,
-					name: file.name,
-					doc: null,
-					progress: 0,
-					total: 0,
-					failed: false,
-					uploading: false,
-					private: !is_image
-				}
-			});
+			let files = Array.from(file_array)
+				.filter(this.check_restrictions)
+				.map(file => {
+					let is_image = file.type.startsWith('image');
+					return {
+						file_obj: file,
+						name: file.name,
+						doc: null,
+						progress: 0,
+						total: 0,
+						failed: false,
+						uploading: false,
+						private: !is_image
+					}
+				});
 			this.files = this.files.concat(files);
+		},
+		check_restrictions(file) {
+			let { max_file_size, allowed_file_types } = this.restrictions;
+
+			let mime_type = file.type;
+			let extension = '.' + file.name.split('.').pop();
+
+			let is_correct_type = true;
+			let valid_file_size = true;
+
+			if (allowed_file_types) {
+				is_correct_type = allowed_file_types.some((type) => {
+					// is this is a mime-type
+					if (type.includes('/')) {
+						if (!file.type) return false;
+						return file.type.match(type);
+					}
+
+					// otherwise this is likely an extension
+					if (type[0] === '.') {
+						return file.name.endsWith(type);
+					}
+					return false;
+				});
+			}
+
+			if (max_file_size && file.size != null) {
+				valid_file_size = file.size < max_file_size;
+			}
+
+			if (!is_correct_type) {
+				console.warn('File skipped because of invalid file type', file);
+			}
+			if (!valid_file_size) {
+				console.warn('File skipped because of invalid file size', file.size, file);
+			}
+
+			return is_correct_type && valid_file_size;
 		},
 		upload_files() {
 			if (this.show_file_browser) {

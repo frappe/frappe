@@ -1,7 +1,17 @@
 import FileUploaderComponent from './FileUploader.vue';
 
 export default class FileUploader {
-	constructor({ wrapper, method, on_success, doctype, docname, files, folder } = {}) {
+	constructor({
+		wrapper,
+		method,
+		on_success,
+		doctype,
+		docname,
+		files,
+		folder,
+		restrictions,
+		upload_notes
+	} = {}) {
 		if (!wrapper) {
 			this.make_dialog();
 		} else {
@@ -17,7 +27,9 @@ export default class FileUploader {
 					docname,
 					method,
 					folder,
-					on_success
+					on_success,
+					restrictions,
+					upload_notes
 				}
 			})
 		});
