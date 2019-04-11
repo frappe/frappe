@@ -19,7 +19,12 @@ frappe.ui.form.on("Communication", {
 		frm.subject_field = "subject";
 
 		if(frm.doc.dynamic_link) {
-
+			for (var link in frm.doc.dynamic_link) {
+				let dynamic_link = frm.doc.dynamic_link[link]
+				frm.add_custom_button(__(dynamic_link.link_doctype) + ": " + dynamic_link.link_name, function () {
+					frappe.set_route("Form", dynamic_link.link_doctype, dynamic_link.link_name);
+				}, "View");
+			}
 		} else {
 			// if an unlinked communication, set email field
 			if (frm.doc.sent_or_received==="Received") {
@@ -36,6 +41,10 @@ frappe.ui.form.on("Communication", {
 			});
 		}
 
+		frm.add_custom_button(__("Add link"), function() {
+			frm.trigger('show_add_link_dialog');
+		});
+
 		if(frm.doc.status==="Open") {
 			frm.add_custom_button(__("Close"), function() {
 				frm.set_value("status", "Closed");
@@ -47,10 +56,6 @@ frappe.ui.form.on("Communication", {
 				frm.save();
 			});
 		}
-
-		frm.add_custom_button(__("Add link"), function() {
-			frm.trigger('show_add_link_dialog');
-		});
 
 		if(frm.doc.communication_type=="Communication"
 			&& frm.doc.communication_medium == "Email"
@@ -101,7 +106,7 @@ frappe.ui.form.on("Communication", {
 	show_add_link_dialog: function(frm){
 		var lib = "frappe.email";
 		var d = new frappe.ui.Dialog ({
-			title: __("Add new link to Communication"),
+			title: __("Add a new link to Communication"),
 			fields: [{
 				"fieldtype": "Link",
 				"options": "DocType",
@@ -118,27 +123,8 @@ frappe.ui.form.on("Communication", {
 		d.set_primary_action(__("Add link"), function () {
 			var values = d.get_values();
 			if (values) {
-				frappe.confirm(
-					__('Are you sure you want to add link to this communication to {0}?', [values["link_doctype"]]),
-					function () {
-						d.hide();
-						frappe.call({
-							method: "frappe.core.doctype.communication.communication.add_link",
-							args: {
-								"doctype": frm.doctype,
-								"name": frm.doc.name,
-								"link_doctype": values["link_doctype"],
-								"link_name": values["link_name"]
-							},
-							callback: function () {
-								frm.refresh();
-							}
-						});
-					},
-					function () {
-						frappe.show_alert('Document not Relinked')
-					}
-				);
+				d.hide();
+				frm.call('add_link', values).then(() => frm.refresh());
 			}
 		});
 		d.show();

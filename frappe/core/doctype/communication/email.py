@@ -222,7 +222,7 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		print_letterhead=frappe.flags.print_letterhead
 	)
 
-def update_parent_mins_to_first_response(doc, link_doctype=None, link_name=None):
+def update_parent_mins_to_first_response(doc, link_doctype, link_name):
 	"""Update mins_to_first_communication of parent document based on who is replying."""
 
 	parent = frappe.get_doc(link_doctype, link_name)
@@ -302,7 +302,7 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None,
 	if print_format and view_link:
 		doc.content += get_attach_link(doc, print_format)
 
-	set_incoming_outgoing_accounts(doc)
+	set_incoming_outgoing_accounts(doc, link_doctype, link_name)
 
 	if not doc.sender:
 		doc.sender = doc.outgoing_email_account.email_id
@@ -343,19 +343,19 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None,
 			else:
 				doc.attachments.append(a)
 
-def set_incoming_outgoing_accounts(doc):
+def set_incoming_outgoing_accounts(doc, link_doctype, link_name):
 	doc.incoming_email_account = doc.outgoing_email_account = None
 
 	if not doc.incoming_email_account and doc.sender:
 		doc.incoming_email_account = frappe.db.get_value("Email Account",
 			{"email_id": doc.sender, "enable_incoming": 1}, "email_id")
 
-	if not doc.incoming_email_account and doc.reference_doctype:
+	if not doc.incoming_email_account and link_doctype:
 		doc.incoming_email_account = frappe.db.get_value("Email Account",
-			{"append_to": doc.reference_doctype, }, "email_id")
+			{"append_to": link_doctype, }, "email_id")
 
 		doc.outgoing_email_account = frappe.db.get_value("Email Account",
-			{"append_to": doc.reference_doctype, "enable_outgoing": 1},
+			{"append_to": link_doctype, "enable_outgoing": 1},
 			["email_id", "always_use_account_email_id_as_sender", "name",
 			"always_use_account_name_as_sender_name"], as_dict=True)
 

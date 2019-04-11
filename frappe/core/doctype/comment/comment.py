@@ -86,7 +86,7 @@ def on_doctype_update():
 	frappe.db.add_index("Comment", ["link_doctype", "link_name"])
 
 
-def update_comment_in_doc(doc):
+def update_comment_in_doc(doc, reference_doctype=None, reference_name=None):
 	"""Updates `_comments` (JSON) property in parent Document.
 	Creates a column `_comments` if property does not exist.
 
@@ -107,8 +107,17 @@ def update_comment_in_doc(doc):
 	def get_truncated(content):
 		return (content[:97] + '...') if len(content) > 100 else content
 
-	if doc.reference_doctype and doc.reference_name and doc.content:
-		_comments = get_comments_from_parent(doc)
+	"""
+		Communication now uses child doctype for maintaining links which are passed
+		Incase of Comments, it still uses doc.reference_doctype and doc.reference_name
+	"""
+
+	if not (reference_doctype and reference_name):
+		reference_doctype = doc.reference_doctype
+		reference_name = doc.reference_name
+
+	if reference_doctype and reference_name and doc.content:
+		_comments = get_comments_from_parent(doc, reference_doctype, reference_name)
 
 		updated = False
 		for c in _comments:
@@ -125,16 +134,20 @@ def update_comment_in_doc(doc):
 				"name": doc.name
 			})
 
-		update_comments_in_parent(doc.reference_doctype, doc.reference_name, _comments)
+		update_comments_in_parent(reference_doctype, reference_name, _comments)
 
 
-def get_comments_from_parent(doc):
+def get_comments_from_parent(doc, reference_doctype=None, reference_name=None):
 	'''
 	get the list of comments cached in the document record in the column
 	`_comments`
 	'''
+	if not (reference_doctype and reference_name):
+		reference_doctype = doc.reference_doctype
+		reference_name = doc.reference_name
+
 	try:
-		_comments = frappe.db.get_value(doc.reference_doctype, doc.reference_name, "_comments") or "[]"
+		_comments = frappe.db.get_value(reference_doctype, reference_name, "_comments") or "[]"
 
 	except Exception as e:
 		if frappe.db.is_missing_table_or_column(e):
