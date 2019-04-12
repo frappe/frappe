@@ -105,11 +105,8 @@ def add_missing_values(data, timegrain, from_date, to_date):
 
 	# fill out data before the first data point
 	first_data_point_date = data[0][0] if data else getdate(add_to_date(to_date, days=1))
-	c = 0
 	while first_data_point_date > first_expected_date:
 		result.append([first_expected_date, 0.0])
-		c+=1
-		if c > 100: break
 		first_expected_date = get_next_expected_date(first_expected_date, timegrain)
 
 	# fill data points and missing points

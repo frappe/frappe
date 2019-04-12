@@ -29,8 +29,15 @@ class Dashboard {
 
 	show() {
 		this.route = frappe.get_route();
-		const current_dashboard_name = this.route.slice(-1)[0];
+		if (this.route.length > 1) {
+			this.show_dashboard(this.route.slice(-1)[0])
+		} else {
+			frappe.db.get_list('Dashboard', {filters: {is_default: 1}}).then(data =>
+				frappe.set_route('dashboard', data[0].name));
+		}
+	}
 
+	show_dashboard(current_dashboard_name) {
 		if(this.dashboard_name !== current_dashboard_name) {
 			this.dashboard_name = current_dashboard_name;
 			this.page.set_title(this.dashboard_name);
