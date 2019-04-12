@@ -65,7 +65,7 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 	if isinstance(send_after, int):
 		send_after = add_days(nowdate(), send_after)
 
-	email_account = get_outgoing_email_account(True, append_to=reference_doctype, sender=sender)
+	email_account = get_outgoing_email_account(True, append_to=link_doctype, sender=sender)
 	if not sender or sender == "Administrator":
 		sender = email_account.default_sender
 
