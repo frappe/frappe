@@ -60,8 +60,10 @@ class Communication(Document):
 		validate_email(self)
 
 	def deduplicate_dynamic_links(self):
-		links, duplicate = [], False
-		for l in self.dynamic_link or []:
+		links, dynamic_link, duplicate = [], [], False
+		if self.dynamic_link:
+			dynamic_link = self.dynamic_link
+		for l in dynamic_link:
 			t = (l.link_doctype, l.link_name)
 			if not t in links:
 				links.append(t)
