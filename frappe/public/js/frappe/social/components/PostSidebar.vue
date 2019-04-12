@@ -1,6 +1,6 @@
 <template>
 	<div class="flex flex-column">
-		<a class="route-link"
+		<a class="leaderboard-link"
 			@click.prevent="go_to_user_list()">
 			{{ __('Leaderboard') }}
 		</a>
@@ -55,6 +55,10 @@ export default {
 .route-link {
 	margin: 0px 10px 10px 0;
 	text-transform: capitalize;
+}
+.leaderboard-link {
+	.route-link;
+	margin-bottom: 15px;
 }
 .stats {
 	min-height: 150px
