@@ -34,7 +34,8 @@ class S3BackupSettings(Document):
 			frappe.throw(_("Invalid Access Key ID or Secret Access Key."))
 
 		try:
-			conn.create_bucket(Bucket=bucket_lower)
+			conn.create_bucket(Bucket=bucket_lower, CreateBucketConfiguration={
+				'LocationConstraint': self.region})
 		except ClientError:
 			frappe.throw(_("Unable to create bucket: {0}. Change it to a more unique name.").format(bucket_lower))
 

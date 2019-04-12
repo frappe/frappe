@@ -7,14 +7,14 @@
 			<li v-if="fetching" class="history-log">
 				{{ __('Fetching') + '...' }}
 			</li>
-			<li v-if="!fetching && has_more_logs" class="history-log">
+			<li v-else-if="has_more_logs" class="history-log">
 				<button
 					class="btn btn-default btn-xs"
 					@click="get_logs()">
 					{{ __('Load more') }}
 				</button>
 			</li>
-			<li v-if="!history_logs.length" class="history-log">
+			<li v-else-if="!history_logs.length" class="history-log">
 				{{ __('No logs found') }}
 			</li>
 		</ul>
