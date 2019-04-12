@@ -687,8 +687,8 @@ def notify_unreplied():
 							and `tabCommunication`.email_account={1}
 							and (`tabCommunication`.creation between {2} and {3})
 						'''.format(email_account.append_to, email_account.name,
-								datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60)
-								datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3))
+								(datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60))
+								(datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3)))
 
 			comms = frappe.db.sql('''select {fields} from `tabCommunication`
 						inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
