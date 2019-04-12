@@ -30,10 +30,30 @@ class Dashboard {
 	show() {
 		this.route = frappe.get_route();
 		if (this.route.length > 1) {
+			// from route
 			this.show_dashboard(this.route.slice(-1)[0])
 		} else {
-			frappe.db.get_list('Dashboard', {filters: {is_default: 1}}).then(data =>
-				frappe.set_route('dashboard', data[0].name));
+			// last opened
+			if (frappe.last_dashboard) {
+				frappe.set_route('dashboard', frappe.last_dashboard);
+			} else {
+				// default dashboard
+				frappe.db.get_list('Dashboard', {filters: {is_default: 1}}).then(data => {
+					if (data && data.length) {
+						frappe.set_route('dashboard', data[0].name);
+					} else {
+						// no default, get the latest one
+						frappe.db.get_list('Dashboard', {limit: 1}).then(data => {
+							if (data && data.length) {
+								frappe.set_route('dashboard', data[0].name);
+							} else {
+								// create a new dashboard!
+								frappe.new_doc('Dashboard');
+							}
+						});
+					}
+				});
+			}
 		}
 	}
 
@@ -46,6 +66,7 @@ class Dashboard {
 			this.refresh();
 		}
 		this.charts = {};
+		frappe.last_dashboard = current_dashboard_name;
 	}
 
 	refresh() {
@@ -74,7 +95,11 @@ class Dashboard {
 
 		this.page.add_menu_item('Edit...', () => {
 			frappe.set_route('Form', 'Dashboard', frappe.dashboard.dashboard_name);
-		})
+		}, 1);
+
+		this.page.add_menu_item('New...', () => {
+			frappe.new_doc('Dashboard');
+		}, 1);
 
 		frappe.db.get_list("Dashboard").then(dashboards => {
 			dashboards.map(dashboard => {
@@ -127,15 +152,8 @@ class DashboardChart {
 	prepare_chart_actions() {
 		let actions = [
 			{
-				label: __("View Filters"),
-				action: "set-filters",
-				handler: () => {
-					frappe.set_route('Form', 'Dashboard Chart', this.chart_doc.name);
-				}
-			},
-			{
-				label: __("Force Refresh"),
-				action: "force-refresh",
+				label: __("Refresh"),
+				action: 'action-refresh',
 				handler: () => {
 					this.fetch(this.filters, true).then(data => {
 						this.update_chart_object();
@@ -143,8 +161,24 @@ class DashboardChart {
 						this.render();
 					});
 				}
+			},
+			{
+				label: __("Edit..."),
+				action: 'action-edit',
+				handler: () => {
+					frappe.set_route('Form', 'Dashboard Chart', this.chart_doc.name);
+				}
 			}
 		];
+		if (this.chart_doc.document_type) {
+			actions.push({
+				label: __("{0} List", [this.chart_doc.document_type]),
+				action: 'action-list',
+				handler: () => {
+					frappe.set_route('List', this.chart_doc.document_type);
+				}
+			})
+		}
 		this.set_chart_actions(actions);
 	}
 
