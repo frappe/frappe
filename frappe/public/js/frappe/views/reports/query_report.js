@@ -116,15 +116,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.prepared_report_action = "New";
 		this.custom_report = null;
 
-		frappe.db.get_value("Report",
-			{"report_name": this.report_name},
-			'reference_report', (r) => {
-				if (r.reference_report){
-					this.custom_report = this.report_name;
-					this.report_name = r.reference_report;
-				}
-			}
-		);
 
 		frappe.run_serially([
 			() => this.get_report_doc(),
@@ -164,7 +155,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	get_report_settings() {
 		if (frappe.query_reports[this.report_name]) {
-			this.report_settings = frappe.query_reports[this.report_name];
+			this.report_settings = this.get_local_report_settings();
 			return this._load_script;
 		}
 
@@ -177,13 +168,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return r;
 		}).then(r => {
 			return frappe.after_ajax(() => {
-				this.report_settings = frappe.query_reports[this.report_name];
+				this.report_settings = this.get_local_report_settings();
 				this.report_settings.html_format = r.message.html_format;
 				this.report_settings.execution_time = r.message.execution_time || 0;
 			});
 		});
 
 		return this._load_script;
+	}
+
+	get_local_report_settings() {
+		let report_script_name = this.report_doc.report_type === 'Custom Report'
+			? this.report_doc.reference_report
+			: this.report_name;
+		return frappe.query_reports[report_script_name];
 	}
 
 	setup_progress_bar() {
@@ -1046,7 +1044,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				label: __('Save'),
 				action: () => {
 					let d = new frappe.ui.Dialog({
-						title: __('Save Reports'),
+						title: __('Save Report'),
 						fields: [
 							{
 								fieldtype: 'Data',
