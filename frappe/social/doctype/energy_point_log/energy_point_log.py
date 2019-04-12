@@ -21,7 +21,7 @@ class EnergyPointLog(Document):
 			send_review_mail(self, alert_dict)
 
 		frappe.cache().hdel('energy_points', self.user)
-		frappe.publish_realtime('update_points')
+		frappe.publish_realtime('update_points', after_commit=True)
 
 def get_alert_dict(doc):
 	alert_dict = frappe._dict({
