@@ -4,7 +4,7 @@ frappe.quick_edit = function(doctype, name) {
 	frappe.db.get_doc(doctype, name).then(doc => {
 		frappe.ui.form.make_quick_entry(doctype, null, null, doc);
 	});
-}
+};
 
 frappe.ui.form.make_quick_entry = (doctype, after_insert, init_callback, doc) => {
 	var trimmed_doctype = doctype.replace(/ /g, '');

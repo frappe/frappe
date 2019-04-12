@@ -31,7 +31,7 @@ class Dashboard {
 		this.route = frappe.get_route();
 		if (this.route.length > 1) {
 			// from route
-			this.show_dashboard(this.route.slice(-1)[0])
+			this.show_dashboard(this.route.slice(-1)[0]);
 		} else {
 			// last opened
 			if (frappe.last_dashboard) {
