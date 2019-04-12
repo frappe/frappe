@@ -45,17 +45,12 @@ def get_system_managers():
 		AND parent!='Administrator'
 		AND parent IN (SELECT email FROM tabUser WHERE enabled=1)""")
 
-@frappe.whitelist()
-def relink(name, reference_doctype=None, reference_name=None):
-	frappe.db.sql("""update
-			`tabCommunication`
-		set
-			reference_doctype = %s,
-			reference_name = %s,
-			status = "Linked"
-		where
-			communication_type = "Communication" and
-			name = %s""", (reference_doctype, reference_name, name))
+@frappe.whitelist() #do later for relink
+def relink(name, link_doctype=None, link_name=None):
+	comm = frappe.get_doc("Communication", name)
+	comm.status = "Linked"
+	comm.add_link(link_doctype, link_name)
+	comm.save()
 
 def get_communication_doctype(doctype, txt, searchfield, start, page_len, filters):
 	user_perms = frappe.utils.user.UserPermissions(frappe.session.user)

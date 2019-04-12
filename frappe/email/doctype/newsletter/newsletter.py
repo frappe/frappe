@@ -83,7 +83,7 @@ class Newsletter(WebsiteGenerator):
 
 		send(recipients = self.recipients, sender = sender,
 			subject = self.subject, message = self.message,
-			reference_doctype = self.doctype, reference_name = self.name,
+			link_doctype = self.doctype, link_name = self.name,
 			add_unsubscribe_link = self.send_unsubscribe_link, attachments=attachments,
 			unsubscribe_method = "/unsubscribe",
 			unsubscribe_params = {"name": self.name},

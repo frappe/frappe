@@ -432,8 +432,7 @@ class EmailAccount(Document):
 			parent = self.create_new_parent(communication, email)
 
 		if parent:
-			communication.reference_doctype = parent.doctype
-			communication.reference_name = parent.name
+			communication.add_link(parent.doctype, parent.name)
 
 		# check if message is notification and disable notifications for this message
 		isnotification = email.mail.get("isnotification")
@@ -519,7 +518,7 @@ class EmailAccount(Document):
 
 		return parent
 
-	def find_parent_from_in_reply_to(self, communication, email):
+	def find_parent_from_in_reply_to(self, communication, email): #dig here for if any bug
 		'''Returns parent reference if embedded in In-Reply-To header
 
 		Message-ID is formatted as `{message_id}@{site}`'''
@@ -561,16 +560,18 @@ class EmailAccount(Document):
 			else:
 				unsubscribe_message = ""
 
-			frappe.sendmail(recipients = [email.from_email],
-				sender = self.email_id,
-				reply_to = communication.incoming_email_account,
-				subject = _("Re: ") + communication.subject,
-				content = render_template(self.auto_reply_message or "", communication.as_dict()) or \
-					 frappe.get_template("templates/emails/auto_reply.html").render(communication.as_dict()),
-				reference_doctype = communication.reference_doctype,
-				reference_name = communication.reference_name,
-				in_reply_to = email.mail.get("Message-Id"), # send back the Message-Id as In-Reply-To
-				unsubscribe_message = unsubscribe_message)
+			links = communication.get_links()
+			for link in links:
+				frappe.sendmail(recipients = [email.from_email],
+					sender = self.email_id,
+					reply_to = communication.incoming_email_account,
+					subject = _("Re: ") + communication.subject,
+					content = render_template(self.auto_reply_message or "", communication.as_dict()) or \
+						frappe.get_template("templates/emails/auto_reply.html").render(communication.as_dict()),
+					link_doctype = link.link_doctype,
+					link_name = link.link_name,
+					in_reply_to = email.mail.get("Message-Id"), # send back the Message-Id as In-Reply-To
+					unsubscribe_message = unsubscribe_message)
 
 	def get_unreplied_notification_emails(self):
 		"""Return list of emails listed"""
@@ -656,7 +657,6 @@ def test_internet(host="8.8.8.8", port=53, timeout=3):
 		socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
 		return True
 	except Exception as ex:
-		print(ex.message)
 		return False
 
 def notify_unreplied():
@@ -668,21 +668,41 @@ def notify_unreplied():
 		if email_account.append_to:
 
 			# get open communications younger than x mins, for given doctype
-			for comm in frappe.get_all("Communication", "name", filters=[
-					{"sent_or_received": "Received"},
-					{"reference_doctype": email_account.append_to},
-					{"unread_notification_sent": 0},
-					{"email_account":email_account.name},
-					{"creation": ("<", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60))},
-					{"creation": (">", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3))}
-				]):
+			#for comm in frappe.get_all("Communication", "name", filters=[
+			#		{"sent_or_received": "Received"},
+			#		{"reference_doctype": email_account.append_to},
+			#		{"unread_notification_sent": 0},
+			#		{"email_account":email_account.name},
+			#		{"creation": ("<", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60))},
+			#		{"creation": (">", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3))}
+			#	]):
+			fields = '''`tabCommunication`.name, `tabCommunication`,sent_or_received, `tabCommunication`.unread_notification_sent,
+						`tabCommunication`.email_account, `tabCommunication`.creation, `tabCommunication`.status,
+						`tabCommunication`.content, `tabCommunication`.subject
+						`tabDynamic Link`.parent, `tabDynamic Link`.link_doctype, `tabDynamic Link`.link_name'''
+
+			filters = 	'''`tabCommunication`.sent_or_received="Received"
+							and `tabDynamic Link`.email_account.append_to={0}
+							and `tabCommunication`.unread_notification_sent=0
+							and `tabCommunication`.email_account={1}
+							and (`tabCommunication`.creation between {2} and {3})
+						'''.format(email_account.append_to, email_account.name,
+								datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60)
+								datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3))
+
+			comms = frappe.db.sql('''select {fields} from `tabCommunication`
+						inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
+						and {filters}
+						'''.format(fields=fields, filters=filters), as_dict=True)
+
+			for comm in comms:
 				comm = frappe.get_doc("Communication", comm.name)
 
-				if frappe.db.get_value(comm.reference_doctype, comm.reference_name, "status")=="Open":
+				if comm.status=="Open":
 					# if status is still open
 					frappe.sendmail(recipients=email_account.get_unreplied_notification_emails(),
-						content=comm.content, subject=comm.subject, doctype= comm.reference_doctype,
-						name=comm.reference_name)
+						content=comm.content, subject=comm.subject, doctype= comm.link_doctype,
+						name=comm.link_name)
 
 				# update flag
 				comm.db_set("unread_notification_sent", 1)

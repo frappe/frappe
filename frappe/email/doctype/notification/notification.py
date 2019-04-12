@@ -147,8 +147,8 @@ def get_context(context):
 			cc = cc,
 			bcc = bcc,
 			message = frappe.render_template(self.message, context),
-			reference_doctype = doc.doctype,
-			reference_name = doc.name,
+			link_doctype = doc.doctype,
+			link_name = doc.name,
 			attachments = attachments,
 			print_letterhead = ((attachments
 				and attachments[0].get('print_letterhead')) or False))

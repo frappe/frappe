@@ -113,10 +113,9 @@ def mark_as_spam(communication, sender):
 		}).insert(ignore_permissions=True)
 	frappe.db.set_value("Communication", communication, "email_status", "Spam")
 
-def link_communication_to_document(doc, reference_doctype, reference_name, ignore_communication_links):
+def link_communication_to_document(doc, link_doctype, link_name, ignore_communication_links):
 	if not ignore_communication_links:
-		doc.reference_doctype = reference_doctype
-		doc.reference_name = reference_name
+		doc.add_link(link_doctype, link_name)
 		doc.status = "Linked"
 		doc.save(ignore_permissions=True)
 
@@ -165,20 +164,19 @@ def make_lead_from_communication(communication, ignore_communication_links=False
 
 @frappe.whitelist()
 def make_opportunity_from_communication(communication, ignore_communication_links=False):
-	doc = frappe.get_doc("Communication", communication)
+	comms = frappe.get_doc("Dynamic Link", filters={"parent":communication, "parenttype": "Communication", "link_doctype":"Lead"})
 
-	lead = doc.reference_name if doc.reference_doctype == "Lead" else None
-	if not lead:
+	for comm in comms:
 		lead = make_lead_from_communication(communication, ignore_communication_links=True)
 
-	enquiry_from = "Lead"
+		enquiry_from = "Lead"
 
-	opportunity = frappe.get_doc({
-		"doctype": "Opportunity",
-		"enquiry_from": enquiry_from,
-		"lead": lead
-	}).insert(ignore_permissions=True)
+		opportunity = frappe.get_doc({
+			"doctype": "Opportunity",
+			"enquiry_from": enquiry_from,
+			"lead": lead
+		}).insert(ignore_permissions=True)
 
-	link_communication_to_document(doc, "Opportunity", opportunity.name, ignore_communication_links)
+		link_communication_to_document(doc, "Opportunity", opportunity.name, ignore_communication_links)
 
 	return opportunity.name

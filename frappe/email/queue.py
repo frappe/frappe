@@ -17,8 +17,8 @@ from six import text_type, string_types
 
 class EmailLimitCrossedError(frappe.ValidationError): pass
 
-def send(recipients=None, sender=None, subject=None, message=None, text_content=None, reference_doctype=None,
-		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
+def send(recipients=None, sender=None, subject=None, message=None, text_content=None, link_doctype=None,
+		link_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, reply_to=None, cc=[], bcc=[], message_id=None, in_reply_to=None, send_after=None,
 		expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None,
 		queue_separately=False, is_notification=False, add_unsubscribe_link=1, inline_images=None,
@@ -30,8 +30,8 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 	:param subject: Email subject.
 	:param message: Email message.
 	:param text_content: Text version of email message.
-	:param reference_doctype: Reference DocType of caller document.
-	:param reference_name: Reference name of caller document.
+	:param link_doctype: Reference DocType of caller document.
+	:param link_name: Reference name of caller document.
 	:param send_priority: Priority for Email Queue, default 1.
 	:param unsubscribe_method: URL method for unsubscribe. Default is `/api/method/frappe.email.queue.unsubscribe`.
 	:param unsubscribe_params: additional params for unsubscribed links. default are name, doctype, email
@@ -77,9 +77,9 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 		except HTMLParser.HTMLParseError:
 			text_content = "See html attachment"
 
-	if reference_doctype and reference_name:
+	if link_doctype and link_name:
 		unsubscribed = [d.email for d in frappe.db.get_all("Email Unsubscribe", "email",
-			{"reference_doctype": reference_doctype, "reference_name": reference_name})]
+			{"reference_doctype": link_doctype, "reference_name": link_name})]
 
 		unsubscribed += [d.email for d in frappe.db.get_all("Email Unsubscribe", "email",
 			{"global_unsubscribe": 1})]
@@ -115,8 +115,8 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 	add(recipients, sender, subject,
 		formatted=email_content,
 		text_content=email_text_context,
-		reference_doctype=reference_doctype,
-		reference_name=reference_name,
+		link_doctype=link_doctype,
+		link_name=link_name,
 		attachments=attachments,
 		reply_to=reply_to,
 		cc=cc,

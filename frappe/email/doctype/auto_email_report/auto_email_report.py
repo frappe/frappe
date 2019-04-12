@@ -146,8 +146,8 @@ class AutoEmailReport(Document):
 			subject = self.name,
 			message = message,
 			attachments = attachments,
-			reference_doctype = self.doctype,
-			reference_name = self.name
+			link_doctype = self.doctype,
+			link_name = self.name
 		)
 
 @frappe.whitelist()

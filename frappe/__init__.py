@@ -408,7 +408,7 @@ def get_request_header(key, default=None):
 	return request.headers.get(key, default)
 
 def sendmail(recipients=[], sender="", subject="No Subject", message="No Message",
-		as_markdown=False, delayed=True, reference_doctype=None, reference_name=None,
+		as_markdown=False, delayed=True, link_doctype=None, link_name=None,
 		unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
 		attachments=None, content=None, doctype=None, name=None, reply_to=None,
 		cc=[], bcc=[], message_id=None, in_reply_to=None, send_after=None, expose_recipients=None,
@@ -424,8 +424,8 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param as_markdown: Convert content markdown to HTML.
 	:param delayed: Send via scheduled email sender **Email Queue**. Don't send immediately. Default is true
 	:param send_priority: Priority for Email Queue, default 1.
-	:param reference_doctype: (or `doctype`) Append as communication to this DocType.
-	:param reference_name: (or `name`) Append as communication to this document name.
+	:param link_doctype: (or `doctype`) Append as communication to this DocType.
+	:param link_name: (or `name`) Append as communication to this document name.
 	:param unsubscribe_method: Unsubscribe url with options email, doctype, name. e.g. `/api/method/unsubscribe`
 	:param unsubscribe_params: Unsubscribe paramaters to be loaded on the unsubscribe_method [optional] (dict).
 	:param attachments: List of attachments.
@@ -456,7 +456,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	from frappe.email import queue
 	queue.send(recipients=recipients, sender=sender,
 		subject=subject, message=message, text_content=text_content,
-		reference_doctype = doctype or reference_doctype, reference_name = name or reference_name,
+		link_doctype = doctype or link_doctype, link_name = name or link_name,
 		unsubscribe_method=unsubscribe_method, unsubscribe_params=unsubscribe_params, unsubscribe_message=unsubscribe_message,
 		attachments=attachments, reply_to=reply_to, cc=cc, bcc=bcc, message_id=message_id, in_reply_to=in_reply_to,
 		send_after=send_after, expose_recipients=expose_recipients, send_priority=send_priority,

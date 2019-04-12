@@ -283,6 +283,21 @@ class Communication(Document):
 		)
 		self.save()
 
+	def get_links(self, link_doctype=None, link_name=None):
+		filters = {
+			"parenttype": "Communication",
+			"parent": self.name
+		}
+		if link_doctype and link_name:
+			filters.update({
+				"link_doctype": link_doctype,
+				"link_name": link_name
+			})
+
+		links = frappe.get_list("Dynamic Link", filters=filters, fields=["link_doctype", "link_name"])
+		return links
+
+
 def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""
 	frappe.db.add_index("Communication", ["status", "communication_type"])

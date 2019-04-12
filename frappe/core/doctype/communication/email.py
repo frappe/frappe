@@ -441,7 +441,7 @@ def get_bcc(doc, link_doctype=None, link_name=None, recipients=None, fetched_fro
 
 		if link_doctype and link_name:
 			exclude += [d[0] for d in frappe.db.get_all("Email Unsubscribe", ["email"],
-				{"reference_doctype": reference_doctype, "reference_name": link_name}, as_list=True)]
+				{"reference_doctype": link_doctype, "reference_name": link_name}, as_list=True)]
 
 		bcc = filter_email_list(doc, bcc, exclude, is_bcc=True)
 
