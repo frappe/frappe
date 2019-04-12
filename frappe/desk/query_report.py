@@ -67,7 +67,6 @@ def generate_report_result(report, filters=None, user=None):
 	else:
 		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
 		if report.is_standard == "Yes":
-			# report_doc_name =
 			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
 			threshold = 30
 			res = []
@@ -144,7 +143,6 @@ def background_enqueue_run(report_name, filters=None, user=None):
 def get_script(report_name):
 	report = get_report_doc(report_name)
 	module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
-	# report_file_name = report.reference_report if report.is_custom_report else report.name
 	module_path = get_module_path(module)
 	report_folder = os.path.join(module_path, "report", scrub(report.name))
 	script_path = os.path.join(report_folder, scrub(report.name) + ".js")
@@ -178,7 +176,7 @@ def get_script(report_name):
 @frappe.read_only()
 def run(report_name, filters=None, user=None):
 
-	report  = get_report_doc(report_name)
+	report = get_report_doc(report_name)
 	if not user:
 		user = frappe.session.user
 	if not frappe.has_permission(report.ref_doctype, "report"):
@@ -205,7 +203,6 @@ def run(report_name, filters=None, user=None):
 	return result
 
 def add_data_to_custom_columns(columns, result):
-
 	custom_fields_data = get_data_for_custom_report(columns)
 
 	data = []
@@ -215,7 +212,7 @@ def add_data_to_custom_columns(columns, result):
 			for idx, column in enumerate(columns):
 				if column.get('link_field'):
 					row_obj[column['fieldname']] = None
-					row.insert(idx,None)
+					row.insert(idx, None)
 				else:
 					row_obj[column['fieldname']] = row[idx]
 			data.append(row_obj)
@@ -418,12 +415,11 @@ def get_data_for_custom_report(columns):
 
 @frappe.whitelist()
 def save_report(reference_report, report_name, columns):
-
-	report_doc, _ = get_report_doc(reference_report)
+	report_doc = get_report_doc(reference_report)
 
 	docname = frappe.db.exists("Report", report_name)
 	if docname:
-		report = frappe.get_doc("Report", {'report_name':docname, 'is_standard': 'No', 'report_type': 'Custom Report'})
+		report = frappe.get_doc("Report", {'report_name': docname, 'is_standard': 'No', 'report_type': 'Custom Report'})
 		report.update({"json": columns})
 		report.save()
 		frappe.msgprint(_("Report updated successfully"))
