@@ -124,7 +124,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					this.report_name = r.reference_report;
 				}
 			}
-		)
+		);
 
 		frappe.run_serially([
 			() => this.get_report_doc(),
@@ -1034,7 +1034,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								}
 							});
 							this.show_save = true;
-							this.set_menu_items()
+							this.set_menu_items();
 						}
 					})
 
@@ -1071,7 +1071,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							});
 						}
 					});
-					d.show()
+					d.show();
 				},
 				condition: () => this.show_save,
 				standard: true
