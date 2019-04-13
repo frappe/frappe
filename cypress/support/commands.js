@@ -1,3 +1,4 @@
+import 'cypress-file-upload'
 // ***********************************************
 // This example commands.js shows you how to
 // create various custom commands and overwrite
@@ -74,4 +75,13 @@ Cypress.Commands.add('dialog', (title, fields) => {
 		d.show();
 		return d;
 	});
+});
+
+Cypress.Commands.add('get_open_dialog', () => {
+	return cy.get('.modal:visible').last();
+});
+
+Cypress.Commands.add('hide_dialog', () => {
+	cy.get_open_dialog().find('.btn-modal-close').click();
+	cy.get('.modal:visible').should('not.exist');
 });
