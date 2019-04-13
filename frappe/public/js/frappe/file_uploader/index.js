@@ -10,7 +10,8 @@ export default class FileUploader {
 		files,
 		folder,
 		restrictions,
-		upload_notes
+		upload_notes,
+		allow_multiple
 	} = {}) {
 		if (!wrapper) {
 			this.make_dialog();
@@ -29,7 +30,8 @@ export default class FileUploader {
 					folder,
 					on_success,
 					restrictions,
-					upload_notes
+					upload_notes,
+					allow_multiple
 				}
 			})
 		});
