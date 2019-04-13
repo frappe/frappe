@@ -12,7 +12,7 @@ context('Form', () => {
 		cy.get('#page-query-report input[data-fieldname="doctype"]').as('input-test');
 		cy.get('@input-test').focus().type('Role', { delay: 100 });
 		cy.get('.menu-btn-group .btn').click();
-		cy.get('.grey-link:contains("Add Column")').click();
+		cy.get('.grey-link:contains("Add Column")').wait(100).click();
 		cy.get('.modal-dialog select[data-fieldname="doctype"]').select("Role");
 		cy.get('.modal-dialog select[data-fieldname="field"]').select("Role Name");
 		cy.get('.modal-dialog select[data-fieldname="insert_after"]').select("Name");
