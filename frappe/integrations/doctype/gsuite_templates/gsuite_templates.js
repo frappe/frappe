@@ -9,18 +9,6 @@ frappe.ui.form.on('GSuite Templates', {
 			frm.trigger('set_available_folders');
 		}
 	},
-	template_id: function(frm) {
-		if (!frm.is_new()) {
-			// if doc is NOT new, get options when selecting field
-			frm.trigger('set_available_docs');
-		}
-	},
-	destination_id: function(frm) {
-		if (!frm.is_new()) {
-			// if doc is NOT new, get options when selecting field
-			frm.trigger('set_available_folders');
-		}
-	},
 	set_available_docs: function(frm) {
 		frappe.call({
 			// get documents from Google Drive
