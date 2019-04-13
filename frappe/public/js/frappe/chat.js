@@ -2132,10 +2132,11 @@ class extends Component {
 				 icon: "file",
 				label: "File",
 				onclick: ( ) => {
-					const dialog = frappe.upload.make({
-							args: { doctype: "Chat Room", docname: props.name },
-						callback: (a, b, args) => {
-							const { file_url, filename } = args
+					new frappe.ui.FileUploader({
+						doctype: "Chat Room",
+						docname: props.name,
+						on_success(file_doc) {
+							const { file_url, filename } = file_doc
 							frappe.chat.message.send(props.name, { path: file_url, name: filename }, "File")
 						}
 					})

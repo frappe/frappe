@@ -290,6 +290,8 @@ class File(NestedSet):
 
 		zip_path = frappe.get_site_path(self.file_url.strip('/'))
 		base_url = os.path.dirname(self.file_url)
+
+		files = []
 		with zipfile.ZipFile(zip_path) as zf:
 			zf.extractall(os.path.dirname(zip_path))
 			for info in zf.infolist():
@@ -308,8 +310,10 @@ class File(NestedSet):
 					file_doc.attached_to_doctype = self.attached_to_doctype
 					file_doc.attached_to_name = self.attached_to_name
 					file_doc.save()
+					files.append(file_doc)
 
 		frappe.delete_doc('File', self.name)
+		return files
 
 
 	def get_file_url(self):
@@ -888,7 +892,8 @@ def get_random_filename(extn=None, content_type=None):
 def unzip_file(name):
 	'''Unzip the given file and make file records for each of the extracted files'''
 	file_obj = frappe.get_doc('File', name)
-	file_obj.unzip()
+	files = file_obj.unzip()
+	return len(files)
 
 
 @frappe.whitelist()
