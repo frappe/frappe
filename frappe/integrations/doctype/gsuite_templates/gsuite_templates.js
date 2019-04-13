@@ -27,7 +27,7 @@ frappe.ui.form.on('GSuite Templates', {
 			method: 'frappe.integrations.doctype.gsuite_templates.gsuite_templates.get_gdrive_docs',
 			callback: function(res) {
 				// set available documents as options
-				frm.trigger('set_options', 'template_id', res);
+				set_gsuite_template_options(frm, 'template_id', res);
 			}
 		});
 	},
@@ -37,17 +37,17 @@ frappe.ui.form.on('GSuite Templates', {
 			method: 'frappe.integrations.doctype.gsuite_templates.gsuite_templates.get_gdrive_folders',
 			callback: function(res) {
 				// set available folders as options
-				frm.trigger('set_options', 'destination_id', res);
+				set_gsuite_template_options(frm, 'destination_id', res);
 			}
 		});
 	},
-	set_options: function(frm, field, data) {
-		var options = [];
-		(data.message || []).forEach(function(row){ 
-			options.push({'value': row.id, 'label': row.name});
-		});
-		frm.set_df_property(field, 'options', options);
-	}
 });
 
+const set_gsuite_template_options = function(frm, field, data) {
+	var options = [];
+	(data.message || []).forEach(function(row){ 
+		options.push({'value': row.id, 'label': row.name});
+	});
+	frm.set_df_property(field, 'options', options);
+};
 
