@@ -93,10 +93,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.toggle_nothing_to_show(true);
 			return;
 		}
+
 		if (this.report_name !== frappe.get_route()[1]) {
 			// this.toggle_loading(true);
 			// different report
 			this.load_report();
+		}
+		else if (frappe.route_options){
+			// filters passed through routes
+			// so refresh report again
+			this.refresh_report();
 		} else {
 			// same report
 			// don't do anything to preserve state
