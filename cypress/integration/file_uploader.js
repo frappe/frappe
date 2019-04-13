@@ -6,7 +6,7 @@ context('FileUploader', () => {
 
 	function open_upload_dialog() {
 		cy.window().its('frappe').then(frappe => {
-			new frappe.ui.FileUploader()
+			new frappe.ui.FileUploader();
 		});
 	}
 

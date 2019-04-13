@@ -119,7 +119,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 		var attach = $(fields.select_attachments.wrapper);
 
 		if (!this.attachments) {
-			this.attachments = []
+			this.attachments = [];
 		}
 
 		let args = {
@@ -136,14 +136,14 @@ frappe.views.InteractionComposer = class InteractionComposer {
 					this.frm.attachments.attachment_uploaded(attachment);
 					this.render_attach();
 				}
-			}
+			};
 		}
 
 		$("<h6 class='text-muted add-attachment' style='margin-top: 12px; cursor:pointer;'>"
 			+__("Select Attachments")+"</h6><div class='attach-list'></div>\
 			<p class='add-more-attachments'>\
 			<a class='text-muted small'><i class='octicon octicon-plus' style='font-size: 12px'></i> "
-			+__("Add Attachment")+"</a></p>").appendTo(attach.empty())
+			+__("Add Attachment")+"</a></p>").appendTo(attach.empty());
 		attach
 			.find(".add-more-attachments a")
 			.on('click',() => new frappe.ui.FileUploader(args));
