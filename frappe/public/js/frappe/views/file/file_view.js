@@ -103,25 +103,20 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 			{
 				label: __('Import Zip'),
 				action: () => {
-					// make upload dialog
-					frappe.ui.get_upload_dialog({
-						args: {
-							folder: this.current_folder,
-							from_form: 1
+					new frappe.ui.FileUploader({
+						folder: this.current_folder,
+						restrictions: {
+							allowed_file_types: ['.zip']
 						},
-						callback: (attachment, r) => {
-							frappe.call({
-								method: 'frappe.core.doctype.file.file.unzip_file',
-								args: {
-									name: r.message.name,
-								},
-								callback: function (r) {
-									if(r.exc) {
-										frappe.msgprint(__('Error in uploading files' + r.exc));
+						on_success: file => {
+							frappe.show_alert(__('Unzipping files...'));
+							frappe.call('frappe.core.doctype.file.file.unzip_file', { name: file.name })
+								.then((r) => {
+									if (r.message) {
+										frappe.show_alert(__('Unzipped {0} files', [r.message]));
 									}
-								}
-							});
-						},
+								});
+						}
 					});
 				}
 			}
@@ -302,12 +297,9 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 	}
 
 	make_new_doc() {
-		frappe.ui.get_upload_dialog({
-			"args": {
-				"folder": this.current_folder,
-				"from_form": 1
-			},
-			callback:() => this.refresh()
+		new frappe.ui.FileUploader({
+			folder: this.current_folder,
+			on_success: () => this.refresh()
 		});
 	}
 
@@ -326,21 +318,10 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 				e.stopPropagation();
 				e.preventDefault();
 
-				let flags = frappe.get_doc('Feature Flags');
-				if (flags.new_upload_dialog) {
-					new frappe.ui.FileUploader({
-						files: dataTransfer.files,
-						folder: this.current_folder
-					});
-				} else {
-					frappe.upload.make({
-						files: dataTransfer.files,
-						"args": {
-							"folder": this.current_folder,
-							"from_form": 1
-						}
-					});
-				}
+				new frappe.ui.FileUploader({
+					files: dataTransfer.files,
+					folder: this.current_folder
+				});
 			});
 	}
 
