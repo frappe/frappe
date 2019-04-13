@@ -19,7 +19,7 @@
 							class="hidden"
 							ref="file_input"
 							@change="on_file_input"
-							:multiple="multiple_files"
+							:multiple="allow_multiple"
 							:accept="restrictions.allowed_file_types.join(', ')"
 						>
 					</label>
@@ -123,7 +123,7 @@ export default {
 		show_upload_button: {
 			default: true
 		},
-		multiple_files: {
+		allow_multiple: {
 			default: true
 		},
 		doctype: {
@@ -168,7 +168,7 @@ export default {
 	},
 	watch: {
 		files(newvalue, oldvalue) {
-			if (!this.multiple_files && newvalue.length > 1) {
+			if (!this.allow_multiple && newvalue.length > 1) {
 				this.files = [newvalue[newvalue.length - 1]];
 			}
 		}
