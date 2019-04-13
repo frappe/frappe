@@ -47,7 +47,7 @@ context('FileUploader', () => {
 	it('should accept web links', () => {
 		open_upload_dialog();
 
-		cy.get_open_dialog().find('a:contains("web link")').click();
+		cy.get_open_dialog().find('a:contains("web link")').click({ force: true });
 		cy.get_open_dialog().find('.file-web-link input').type('https://github.com');
 		cy.server();
 		cy.route('POST', '/api/method/upload_file').as('upload_file');
