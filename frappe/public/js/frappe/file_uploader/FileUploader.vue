@@ -236,7 +236,7 @@ export default {
 			let is_correct_type = true;
 			let valid_file_size = true;
 
-			if (allowed_file_types) {
+			if (allowed_file_types.length) {
 				is_correct_type = allowed_file_types.some((type) => {
 					// is this is a mime-type
 					if (type.includes('/')) {
@@ -321,20 +321,20 @@ export default {
 					if (xhr.readyState == XMLHttpRequest.DONE) {
 						if (xhr.status === 200) {
 							let r = null;
-							let doc = null;
+							let file_doc = null;
 							try {
 								r = JSON.parse(xhr.responseText);
 								if (r.message.doctype === 'File') {
-									doc = r.message;
+									file_doc = r.message;
 								}
 							} catch(e) {
 								r = xhr.responseText;
 							}
 
-							file.doc = doc;
+							file.doc = file_doc;
 
 							if (this.on_success) {
-								this.on_success(r);
+								this.on_success(file_doc, r);
 							}
 						} else {
 							file.failed = true;
