@@ -14,13 +14,13 @@ context('Form', () => {
 		cy.get('.datatable').should('exist');
 		cy.get('.menu-btn-group .btn').click({force: true});
 		cy.get('.grey-link:contains("Add Column")').click({force: true});
-		cy.get('.modal-dialog select[data-fieldname="doctype"]').select("Role");
-		cy.get('.modal-dialog select[data-fieldname="field"]').select("Role Name");
-		cy.get('.modal-dialog select[data-fieldname="insert_after"]').select("Name");
+		cy.get('.modal-dialog select[data-fieldname="doctype"]').select("Role", {force: true});
+		cy.get('.modal-dialog select[data-fieldname="field"]').select("Role Name", {force: true});
+		cy.get('.modal-dialog select[data-fieldname="insert_after"]').select("Name", {force: true});
 		cy.get('.modal-dialog .btn-primary:contains("Submit")').click({force: true});
 		cy.get('.menu-btn-group .btn').click({force: true});
 		cy.get('.grey-link:contains("Save")').click({force: true});
-		cy.get('.modal-dialog input[data-fieldname="report_name"]').type("Test Report");
+		cy.get('.modal-dialog input[data-fieldname="report_name"]').type("Test Report", {force: true});
 		cy.get('.modal:visible .btn-primary:contains("Submit")').click({force: true});
 	});
 });
