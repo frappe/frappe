@@ -79,6 +79,9 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 					doc.flags.in_delete = True
 					doc.run_method('on_change')
 
+				# Remove all linked communications for the doc
+				remove_communication_links(doc=doc, link_doctype=doctype, link_name=name)
+
 				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links', doctype=doc.doctype, name=doc.name,
 					is_async=False if frappe.flags.in_test else True)
 
@@ -274,9 +277,6 @@ def delete_dynamic_links(doctype, name):
 	delete_references('View Log', doctype, name)
 	delete_references('Document Follow', doctype, name, 'ref_doctype', 'ref_docname')
 
-	# unlink communications
-	clear_communication_references(doc='Communication', link_doctype=doctype, link_name=name)
-
 	clear_references('Activity Log', doctype, name)
 	clear_references('Activity Log', doctype, name, 'timeline_doctype', 'timeline_name')
 
@@ -296,7 +296,7 @@ def clear_references(doctype, reference_doctype, reference_name,
 			{1}=%s and {2}=%s'''.format(doctype, reference_doctype_field, reference_name_field), # nosec
 		(reference_doctype, reference_name))
 
-def clear_communication_references(doc, method=None, link_doctype=None, link_name=None):
+def remove_communication_links(doc, method=None, link_doctype=None, link_name=None):
 	if method:
 		link_doctype = doc.doctype
 		link_name = doc.name
