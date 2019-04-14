@@ -10,9 +10,10 @@ context('Form', () => {
 		cy.get('#page-query-report input[data-fieldname="user"]').as('input');
 		cy.get('@input').focus().type('test@erpnext.com', { delay: 100 });
 		cy.get('#page-query-report input[data-fieldname="doctype"]').as('input-test');
-		cy.get('@input-test').focus().type('Role', { delay: 100 });
+		cy.get('@input-test').focus().type('Role', { delay: 100 }).blur();
+		cy.get('.datatable').should('exist');
 		cy.get('.menu-btn-group .btn').click({force: true});
-		cy.get('.grey-link:contains("Add Column")').wait(100).click({force: true});
+		cy.get('.grey-link:contains("Add Column")').click({force: true});
 		cy.get('.modal-dialog select[data-fieldname="doctype"]').select("Role");
 		cy.get('.modal-dialog select[data-fieldname="field"]').select("Role Name");
 		cy.get('.modal-dialog select[data-fieldname="insert_after"]').select("Name");
