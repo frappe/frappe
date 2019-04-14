@@ -43,8 +43,9 @@ class ToDo(Document):
 
 	def on_trash(self):
 		# unlink todo from linked comments
-		frappe.db.sql("""update `tabCommunication` set link_doctype=null, link_name=null
-			where link_doctype=%(doctype)s and link_name=%(name)s""", {"doctype": self.doctype, "name": self.name})
+		references = frappe.get_list("Dynamic Link", filters={"link_doctype": self.doctype, "link_name": self.name})
+		for reference in references:
+			frappe.delete_doc("Dynamic Link", reference.name)
 
 		self.update_in_reference()
 

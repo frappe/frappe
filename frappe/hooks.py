@@ -120,6 +120,7 @@ doc_events = {
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
 		],
+		"on_trash": "frappe.model.delete_doc.clear_communication_references",
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
 			"frappe.desk.notifications.clear_doctype_notifications",
