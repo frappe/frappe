@@ -66,5 +66,9 @@ export default class FileUploader {
 
 		this.wrapper = this.dialog.fields_dict.upload_area.$wrapper[0];
 		this.dialog.show();
+		this.dialog.$wrapper.on('hidden.bs.modal', function() {
+			$(this).data('bs.modal', null);
+			$(this).remove();
+		});
 	}
 }
