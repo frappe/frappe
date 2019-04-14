@@ -29,6 +29,7 @@ context('FileUploader', () => {
 			cy.route('POST', '/api/method/upload_file').as('upload_file');
 			cy.get_open_dialog().find('.btn-primary').click();
 			cy.wait('@upload_file').its('status').should('be', 200);
+			cy.get('.modal:visible').should('not.exist');
 		});
 	});
 
@@ -42,17 +43,19 @@ context('FileUploader', () => {
 		cy.get_open_dialog().find('.btn-primary').click();
 		cy.wait('@upload_file').its('response.body.message')
 			.should('have.property', 'file_url', '/private/files/example.json');
+		cy.get('.modal:visible').should('not.exist');
 	});
 
 	it('should accept web links', () => {
 		open_upload_dialog();
 
-		cy.get_open_dialog().find('a:contains("web link")').click({ force: true });
+		cy.get_open_dialog().find('a:contains("web link")').click();
 		cy.get_open_dialog().find('.file-web-link input').type('https://github.com');
 		cy.server();
 		cy.route('POST', '/api/method/upload_file').as('upload_file');
 		cy.get_open_dialog().find('.btn-primary').click();
 		cy.wait('@upload_file').its('response.body.message')
 			.should('have.property', 'file_url', 'https://github.com');
+		cy.get('.modal:visible').should('not.exist');
 	});
 });
