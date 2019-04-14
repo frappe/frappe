@@ -37,8 +37,9 @@ class TestEmailAccount(unittest.TestCase):
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		self.assertTrue("test_receiver@example.com" in comm.recipients)
 
-		# check if todo is created
-		self.assertTrue(frappe.db.get_value(comm.reference_doctype, comm.reference_name, "name"))
+		# check if todo, contacts are created
+		for links in frappe.get_list("Dynamic Link", filters={"parent": comm.name}, fields=["link_doctype", "link_name"]):
+			self.assertTrue(frappe.db.get_value(links.link_doctype, links.link_name, "name"))
 
 	def test_unread_notification(self):
 		self.test_incoming()
@@ -48,8 +49,9 @@ class TestEmailAccount(unittest.TestCase):
 
 		frappe.db.sql("DELETE FROM `tabEmail Queue`")
 		notify_unreplied()
-		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": comm.reference_doctype,
-			"reference_name": comm.reference_name, "status":"Not Sent"}))
+		for links in frappe.get_list("Dynamic Link", filters={"parent": comm.name}, fields=["link_doctype", "link_name"]):
+			self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": links.link_doctype,
+				"reference_name": links.link_name, "status":"Not Sent"}))
 
 	def test_incoming_with_attach(self):
 		frappe.db.sql("DELETE FROM `tabCommunication` WHERE sender='test_sender@example.com'")
@@ -143,10 +145,16 @@ class TestEmailAccount(unittest.TestCase):
 		email_account.receive(test_mails=test_mails)
 
 		sent = frappe.get_doc("Communication", sent_name)
+		sent_links = frappe.get_all("Dynamic Link", filters={"parent": sent.name}, fields=["link_doctype", "link_name"])
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
-		self.assertEqual(comm.reference_doctype, sent.reference_doctype)
-		self.assertEqual(comm.reference_name, sent.reference_name)
+		comm_links = frappe.get_all("Dynamic Link", filters={"parent": comm.name}, fields=["link_doctype", "link_name"])
+
+		print("threading")
+		links = max(len(sent_links), len(comm_links))
+		for idx in range(0, links):
+			self.assertEqual(comm_links[idx].link_doctype, sent_links[idx].link_doctype)
+			self.assertEqual(comm_links[idx].link_name, sent_links[idx].link_name)
 
 	def test_threading_by_subject(self):
 		frappe.db.sql("""delete from tabCommunication
@@ -163,11 +171,17 @@ class TestEmailAccount(unittest.TestCase):
 		email_account.receive(test_mails=test_mails)
 
 		comm_list = frappe.get_all("Communication", filters={"sender":"test_sender@example.com"},
-			fields=["name", "reference_doctype", "reference_name"])
+			fields=["name"])
+
+		comm_links = []
+		for comm_list_links in comm_list:
+			for links in frappe.get_list("Dynamic Link", filters={"parent": comm_list_link}, fields=["link_doctype", "link_name"]):
+		 		comm_links.append(links)
 
 		# both communications attached to the same reference
-		self.assertEqual(comm_list[0].reference_doctype, comm_list[1].reference_doctype)
-		self.assertEqual(comm_list[0].reference_name, comm_list[1].reference_name)
+		for idx in range(0, len(comm_links)/2):
+			self.assertEqual(comm_list[idx].link_doctype, comm_list[idx+2].link_doctype)
+			self.assertEqual(comm_list[idx].link_name, comm_list[idx+2].link_name)
 
 	def test_threading_by_message_id(self):
 		frappe.db.sql("""delete from tabCommunication""")
@@ -178,7 +192,7 @@ class TestEmailAccount(unittest.TestCase):
 
 		# send a mail against this
 		frappe.sendmail(recipients='test@example.com', subject='test message for threading',
-			message='testing', reference_doctype=event.doctype, reference_name=event.name)
+			message='testing', link_doctype=event.doctype, link_name=event.name)
 
 		last_mail = frappe.get_doc('Email Queue', dict(reference_name=event.name))
 
@@ -191,8 +205,14 @@ class TestEmailAccount(unittest.TestCase):
 		email_account.receive(test_mails=test_mails)
 
 		comm_list = frappe.get_all("Communication", filters={"sender":"test_sender@example.com"},
-			fields=["name", "reference_doctype", "reference_name"])
+			fields=["name"])
+
+		comm_links = []
+		for comm_list_links in comm_list:
+			for links in frappe.get_list("Dynamic Link", filters={"parent": comm_list_link}, fields=["link_doctype", "link_name"]):
+		 		comm_links.append(links)
 
 		# check if threaded correctly
-		self.assertEqual(comm_list[0].reference_doctype, event.doctype)
-		self.assertEqual(comm_list[0].reference_name, event.name)
+		for idx in range(0, len(comm_links)/2):
+			self.assertEqual(comm_list[idx].link_doctype, comm_list[idx+2].link_doctype)
+			self.assertEqual(comm_list[idx].link_name, comm_list[idx+2].link_name)

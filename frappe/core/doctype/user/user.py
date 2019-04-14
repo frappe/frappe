@@ -323,10 +323,14 @@ class User(Document):
 		frappe.db.sql("""delete from `tabDocShare` where user=%s""", self.name)
 
 		# delete messages
-		frappe.db.sql("""delete from `tabCommunication`
-			where communication_type in ('Chat', 'Notification')
-			and reference_doctype='User'
-			and (reference_name=%s or owner=%s)""", (self.name, self.name))
+		frappe.db.sql("""
+			delete from `tabCommunication`
+			inner join `tabDynamic Link`
+			where `tabCommunication`.name=`tabDynamic Link`.parent
+			where `tabCommunication`.communication_type in ('Chat', 'Notification')
+			and `tabDynamic Link`.link_doctype='User'
+			and (`tabDynamic Link`.link_name=%s or `tabDynamic Link`.link_owner=%s)
+		""", (self.name, self.name))
 
 		# unlink contact
 		frappe.db.sql("""update `tabContact`

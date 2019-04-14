@@ -553,14 +553,15 @@ class EmailAccount(Document):
 	def send_auto_reply(self, communication, email):
 		"""Send auto reply if set."""
 		if self.enable_auto_reply:
-			set_incoming_outgoing_accounts(communication)
+			links = communication.get_links()
+			for link in links:
+				set_incoming_outgoing_accounts(communication, link.link_doctype, link.link_name)
 
 			if self.send_unsubscribe_message:
 				unsubscribe_message = _("Leave this conversation")
 			else:
 				unsubscribe_message = ""
 
-			links = communication.get_links()
 			for link in links:
 				frappe.sendmail(recipients = [email.from_email],
 					sender = self.email_id,

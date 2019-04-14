@@ -18,7 +18,7 @@ class TestEmail(unittest.TestCase):
 	def test_email_queue(self, send_after=None):
 		frappe.sendmail(recipients = ['test@example.com', 'test1@example.com'],
 			sender="admin@example.com",
-			reference_doctype='User', reference_name='Administrator',
+			link_doctype='User', link_name='Administrator',
 			subject='Testing Queue', message='This mail is queued!',
 			unsubscribe_message="Unsubscribe", send_after=send_after)
 
@@ -56,7 +56,7 @@ class TestEmail(unittest.TestCase):
 		frappe.sendmail(recipients=['test@example.com'],
 			cc=['test1@example.com'],
 			sender="admin@example.com",
-			reference_doctype='User', reference_name="Administrator",
+			link_doctype='User', link_name="Administrator",
 			subject='Testing Email Queue', message='This is mail is queued!', unsubscribe_message="Unsubscribe", expose_recipients="header")
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Not Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
@@ -75,7 +75,7 @@ class TestEmail(unittest.TestCase):
 		frappe.sendmail(recipients=['test@example.com'],
 			cc=['test1@example.com'],
 			sender="admin@example.com",
-			reference_doctype='User', reference_name="Administrator",
+			link_doctype='User', link_name="Administrator",
 			subject='Testing Email Queue', message='This is mail is queued!', unsubscribe_message="Unsubscribe", expose_recipients="footer", now=True)
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
@@ -91,7 +91,7 @@ class TestEmail(unittest.TestCase):
 		frappe.sendmail(recipients=['test@example.com'],
 			cc=['test1@example.com'],
 			sender="admin@example.com",
-			reference_doctype='User', reference_name="Administrator",
+			link_doctype='User', link_name="Administrator",
 			subject='Testing Email Queue', message='This is mail is queued!', unsubscribe_message="Unsubscribe", now=True)
 		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
@@ -137,7 +137,7 @@ class TestEmail(unittest.TestCase):
 
 		send(recipients = ['test@example.com', 'test1@example.com'],
 			sender="admin@example.com",
-			reference_doctype='User', reference_name= "Administrator",
+			link_doctype='User', link_name= "Administrator",
 			subject='Testing Email Queue', message='This is mail is queued!', unsubscribe_message="Unsubscribe")
 
 		# this is sent async (?)
@@ -157,7 +157,7 @@ class TestEmail(unittest.TestCase):
 		self.assertRaises(EmailLimitCrossedError, send,
 			recipients=['test@example.com']*1000,
 			sender="admin@example.com",
-			reference_doctype = "User", reference_name="Administrator",
+			link_doctype = "User", link_name="Administrator",
 			subject='Testing Email Queue', message='This email is queued!')
 
 	def test_image_parsing(self):

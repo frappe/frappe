@@ -98,7 +98,7 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 	email_text_context = text_content
 
 	should_append_unsubscribe = (add_unsubscribe_link
-		and reference_doctype
+		and link_doctype
 		and (unsubscribe_message or reference_doctype=="Newsletter")
 		and add_unsubscribe_link==1)
 
