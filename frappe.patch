@@ -1,0 +1,97 @@
+t a/frappe/hooks.py b/frappe/hooks.py
+index bbd8d6e..4375d91 100755
+--- a/frappe/hooks.py
++++ b/frappe/hooks.py
+@@ -152,6 +152,7 @@ scheduler_events = {
+ 		"frappe.sessions.clear_expired_sessions",
+ 		"frappe.email.doctype.email_alert.email_alert.trigger_daily_alerts",
+ 		"frappe.async.remove_old_task_logs",
++		"frappe.limits.update_site_usage",
+ 		"frappe.utils.scheduler.disable_scheduler_on_expiry",
+ 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
+ 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
+diff --git a/frappe/limits.py b/frappe/limits.py
+index 0330db2..b3faad8 100755
+--- a/frappe/limits.py
++++ b/frappe/limits.py
+@@ -5,7 +5,8 @@ from frappe.utils import now_datetime, getdate, flt, cint, get_fullname
+ from frappe.installer import update_site_config
+ from frappe.utils.data import formatdate
+ from frappe.utils.user import get_enabled_system_users, disable_users
+-import os, subprocess
++import os, subprocess, json
++from frappe.utils.__init__ import get_site_info
+ from six.moves.urllib.parse import parse_qsl, urlsplit, urlunsplit, urlencode
+ from six import string_types
+ 
+@@ -235,3 +236,10 @@ def get_database_size():
+ 		FROM information_schema.TABLES WHERE table_schema = %s GROUP BY table_schema''', db_name, as_dict=True)
+ 
+ 	return flt(db_size[0].get('database_size'), 2)
++
++def update_site_usage():
++	data = get_site_info()
++	# exists = os.path.isfile(frappe.get_site_path("site_data.json"))
++	with open(os.path.join(frappe.get_site_path(), 'site_data.json'), 'w') as outfile:
++		json.dump(data, outfile)
++		outfile.close()
+diff --git a/frappe/utils/__init__.py b/frappe/utils/__init__.py
+index 390cedf..3a84340 100644
+--- a/frappe/utils/__init__.py
++++ b/frappe/utils/__init__.py
+@@ -525,6 +525,9 @@ def get_site_info():
+ 	system_settings = frappe.db.get_singles_dict('System Settings')
+ 	space_usage = frappe._dict((frappe.local.conf.limits or {}).get('space_usage', {}))
+ 
++	kwargs = {"fields": ["user", "creation", "full_name"], "filters":{"Operation": "Login", "Status": "Success"}, "limit": "10"}
++
++
+ 	site_info = {
+ 		'installed_apps': get_installed_apps_info(),
+ 		'users': users,
+@@ -539,7 +542,8 @@ def get_site_info():
+ 		'space_used': flt((space_usage.total or 0) / 1024.0, 2),
+ 		'database_size': space_usage.database_size,
+ 		'backup_size': space_usage.backup_size,
+-		'files_size': space_usage.files_size
++		'files_size': space_usage.files_size,
++		'last_logins': frappe.get_all("Activity Log", **kwargs)
+ 	}
+ 
+ 	# from other apps
+diff --git a/frappe/utils/user.py b/frappe/utils/user.py
+index 3aa5774..c704eb2 100755
+--- a/frappe/utils/user.py
++++ b/frappe/utils/user.py
+@@ -308,13 +308,13 @@ def disable_users(limits=None):
+ 		return
+ 
+ 	if limits.get('users'):
+-		system_manager = get_system_managers(only_name=True)[-1]
++		system_manager = get_system_managers(only_name=True)
++		user_list = ['Administrator', 'Guest']
++		if system_manager:
++			user_list.append(system_manager[-1])
+ 
+ 		#exclude system manager from active user list
+-		active_users =  frappe.db.sql_list("""select name from tabUser
+-			where name not in ('Administrator', 'Guest', %s) and user_type = 'System User' and enabled=1
+-			order by creation desc""", system_manager)
+-
++		active_users = frappe.get_all("User", filters={"user_type":"System User", "enabled":1, "name": ["not in", user_list]}, fields=["name"])
+ 		user_limit = cint(limits.get('users')) - 1
+ 
+ 		if len(active_users) > user_limit:
+diff --git a/requirements.txt b/requirements.txt
+index 91e57e2..f870287 100644
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -47,7 +47,7 @@ pyotp==2.2.7
+ pyqrcode==1.2.1
+ pypng==0.0.18
+ premailer==3.2.0
+-croniter==0.3.26
++croniter==0.3.28
+ googlemaps==3.0.2
+ urllib3==1.23
+ GitPython==2.1.11
