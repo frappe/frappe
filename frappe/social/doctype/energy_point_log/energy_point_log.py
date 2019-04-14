@@ -116,7 +116,7 @@ def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
 	if from_date:
 		conditions += 'WHERE' if not conditions else 'AND'
 		conditions += ' `creation` >= %s'
-		values.append(conditions)
+		values.append(from_date)
 
 	points_list =  frappe.db.sql("""
 		SELECT
