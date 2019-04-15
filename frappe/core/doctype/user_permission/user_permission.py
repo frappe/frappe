@@ -7,21 +7,14 @@ import frappe, json
 from frappe.model.document import Document
 from frappe.permissions import (get_valid_perms, update_permission_property)
 from frappe import _
+from frappe.utils import cstr
 from frappe.core.utils import find
 from frappe.desk.form.linked_with import get_linked_doctypes
 
 class UserPermission(Document):
 	def validate(self):
-		duplicate_exists = frappe.db.get_all(self.doctype, filters={
-			'allow': self.allow,
-			'for_value': self.for_value,
-			'user': self.user,
-			'applicable_for': self.applicable_for,
-			'apply_to_all_doctypes': self.apply_to_all_doctypes,
-			'name': ['!=', self.name]
-		}, limit=1)
-		if duplicate_exists:
-			frappe.throw(_("User permission already exists"), frappe.DuplicateEntryError)
+		self.validate_user_permission()
+		self.validate_permission_overlap()
 
 	def on_update(self):
 		frappe.cache().delete_value('user_permissions')
@@ -30,6 +23,45 @@ class UserPermission(Document):
 	def on_trash(self): # pylint: disable=no-self-use
 		frappe.cache().delete_value('user_permissions')
 		frappe.publish_realtime('update_user_permissions')
+
+	def validate_user_permission(self):
+		''' checks for duplicate user permission records'''
+
+		duplicate_exists = frappe.db.get_all(self.doctype, filters={
+			'allow': self.allow,
+			'for_value': self.for_value,
+			'user': self.user,
+			'applicable_for': cstr(self.applicable_for),
+			'apply_to_all_doctypes': self.apply_to_all_doctypes,
+			'name': ['!=', self.name]
+		}, limit=1)
+		if duplicate_exists:
+			frappe.throw(_("User permission already exists"), frappe.DuplicateEntryError)
+
+	def validate_permission_overlap(self):
+		''' validate user permission overlap for default value of a particular doctype '''
+		overlap_exists = []
+		if self.is_default:
+			overlap_exists = frappe.db.sql("""
+				SELECT
+					name
+				FROM `tabUser Permission`
+				WHERE
+					allow=%(allow)s
+					AND user=%(user)s
+					AND is_default=1
+					AND name!=%(name)s
+					AND (applicable_for=%(applicable_for)s
+					OR apply_to_all_doctypes=1)
+				LIMIT 1
+			""", {
+				'allow': self.allow,
+				'user': self.user,
+				'applicable_for': self.applicable_for,
+				'name': self.name
+			}, as_dict=1)
+		if overlap_exists:
+			frappe.throw(_("User permission {0} has already assigned default vaue for {1}.".format(overlap_exists[0].name, self.allow)))
 
 @frappe.whitelist()
 def get_user_permissions(user=None):
@@ -52,7 +84,7 @@ def get_user_permissions(user=None):
 
 	out = {}
 
-	def add_doc_to_perm(perm, doc_name):
+	def add_doc_to_perm(perm, doc_name, is_default):
 		# group rules for each type
 		# for example if allow is "Customer", then build all allowed customers
 		# in a list
@@ -61,21 +93,22 @@ def get_user_permissions(user=None):
 
 		out[perm.allow].append(frappe._dict({
 			'doc': doc_name,
-			'applicable_for': perm.get('applicable_for')
+			'applicable_for': perm.get('applicable_for'),
+			'is_default': is_default
 		}))
 
 	try:
 		for perm in frappe.get_all('User Permission',
-			fields=['allow', 'for_value', 'applicable_for'],
+			fields=['allow', 'for_value', 'applicable_for', 'is_default'],
 			filters=dict(user=user)):
 
 			meta = frappe.get_meta(perm.allow)
-			add_doc_to_perm(perm, perm.for_value)
+			add_doc_to_perm(perm, perm.for_value, perm.is_default)
 
 			if meta.is_nested_set():
 				decendants = frappe.db.get_descendants(perm.allow, perm.for_value)
 				for doc in decendants:
-					add_doc_to_perm(perm, doc)
+					add_doc_to_perm(perm, doc, False)
 
 		out = frappe._dict(out)
 		frappe.cache().hset("user_permissions", user, out)
