@@ -61,7 +61,7 @@ def set_user_and_static_default_values(doc):
 
 			user_default_value = get_user_default_value(df, defaults, doctype_user_permissions, allowed_records)
 			if user_default_value != None:
-    				# do not set default if the field on which current field is dependent is not set
+    			# do not set default if the field on which current field is dependent is not set
 				if is_dependent_field_set(df.depends_on, doc):
 					doc.set(df.fieldname, user_default_value)
 			else:
