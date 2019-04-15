@@ -99,7 +99,7 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 
 	should_append_unsubscribe = (add_unsubscribe_link
 		and link_doctype
-		and (unsubscribe_message or reference_doctype=="Newsletter")
+		and (unsubscribe_message or link_doctype=="Newsletter")
 		and add_unsubscribe_link==1)
 
 	unsubscribe_link = None
@@ -115,8 +115,8 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 	add(recipients, sender, subject,
 		formatted=email_content,
 		text_content=email_text_context,
-		link_doctype=link_doctype,
-		link_name=link_name,
+		reference_doctype=link_doctype,
+		reference_name=link_name,
 		attachments=attachments,
 		reply_to=reply_to,
 		cc=cc,

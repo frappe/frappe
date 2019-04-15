@@ -677,11 +677,7 @@ def notify_unreplied():
 			#		{"creation": (">", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3))}
 			#	]):
 
-			fields = '''`tabCommunication`.name, `tabCommunication`.sent_or_received, `tabCommunication`.status,
-						`tabCommunication`.unread_notification_sent, `tabCommunication`.email_account,
-						`tabCommunication`.creation, `tabCommunication`.content, `tabCommunication`.subject,
-						`tabCommunication`.`modified`, `tabDynamic Link`.parent, `tabDynamic Link`.link_doctype,
-						`tabDynamic Link`.link_name'''
+			fields = '''`tabCommunication`.name'''
 
 			filters = 	'''`tabCommunication`.sent_or_received='Received'
 							and `tabDynamic Link`.link_doctype='{0}'
@@ -697,16 +693,17 @@ def notify_unreplied():
 						inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
 						and {filters}
 						order by `tabCommunication`.`modified` desc
-						'''.format(fields=fields, filters=filters), as_dict=True, debug=True)
+						'''.format(fields=fields, filters=filters), as_dict=True)
 
 			for comm in comms:
 				comm = frappe.get_doc("Communication", comm.name)
-
-				if comm.status=="Open":
-					# if status is still open
-					frappe.sendmail(recipients=email_account.get_unreplied_notification_emails(),
-						content=comm.content, subject=comm.subject, doctype= comm.link_doctype,
-						name=comm.link_name)
+				comm_links = comm.get_links()
+				for comm_link in comm_links:
+					if frappe.db.get_value(comm_link.link_doctype, comm_link.link_name, "status")=="Open":
+						# if status is still open
+						frappe.sendmail(recipients=email_account.get_unreplied_notification_emails(),
+							content=comm.content, subject=comm.subject, doctype= comm_link.link_doctype,
+							name=comm_link.link_name)
 
 				# update flag
 				comm.db_set("unread_notification_sent", 1)
