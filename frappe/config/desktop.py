@@ -98,5 +98,16 @@ def get_data():
 			'standard': 1,
 			'idx': 15,
 			"description": "Build your profile and share posts with other users."
-		}
+		},
+		{
+			"module_name": 'dashboard',
+			"category": "Places",
+			"label": _('Dashboard'),
+			"icon": "octicon octicon-graph",
+			"type": "link",
+			"link": "#dashboard",
+			"color": '#FF4136',
+			'standard': 1,
+			'idx': 10
+		},
 	]
