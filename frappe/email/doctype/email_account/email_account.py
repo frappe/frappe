@@ -432,7 +432,7 @@ class EmailAccount(Document):
 			parent = self.create_new_parent(communication, email)
 
 		if parent:
-			communication.add_link(parent.doctype, parent.name)
+			communication.add_link(link_doctype=parent.doctype, link_name=parent.name, no_save=True)
 
 		# check if message is notification and disable notifications for this message
 		isnotification = email.mail.get("isnotification")
@@ -667,7 +667,6 @@ def notify_unreplied():
 	for email_account in frappe.get_all("Email Account", "name", filters={"enable_incoming": 1, "notify_if_unreplied": 1}):
 		email_account = frappe.get_doc("Email Account", email_account.name)
 		if email_account.append_to:
-
 			# get open communications younger than x mins, for given doctype
 			#for comm in frappe.get_all("Communication", "name", filters=[
 			#		{"sent_or_received": "Received"},
@@ -677,24 +676,28 @@ def notify_unreplied():
 			#		{"creation": ("<", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60))},
 			#		{"creation": (">", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3))}
 			#	]):
-			fields = '''`tabCommunication`.name, `tabCommunication`,sent_or_received, `tabCommunication`.unread_notification_sent,
-						`tabCommunication`.email_account, `tabCommunication`.creation, `tabCommunication`.status,
-						`tabCommunication`.content, `tabCommunication`.subject
-						`tabDynamic Link`.parent, `tabDynamic Link`.link_doctype, `tabDynamic Link`.link_name'''
 
-			filters = 	'''`tabCommunication`.sent_or_received="Received"
-							and `tabDynamic Link`.email_account.append_to={0}
+			fields = '''`tabCommunication`.name, `tabCommunication`.sent_or_received, `tabCommunication`.status,
+						`tabCommunication`.unread_notification_sent, `tabCommunication`.email_account,
+						`tabCommunication`.creation, `tabCommunication`.content, `tabCommunication`.subject,
+						`tabCommunication`.`modified`, `tabDynamic Link`.parent, `tabDynamic Link`.link_doctype,
+						`tabDynamic Link`.link_name'''
+
+			filters = 	'''`tabCommunication`.sent_or_received='Received'
+							and `tabDynamic Link`.link_doctype='{0}'
 							and `tabCommunication`.unread_notification_sent=0
-							and `tabCommunication`.email_account={1}
-							and (`tabCommunication`.creation between {2} and {3})
+							and `tabCommunication`.email_account='{1}'
+							and coalesce(`tabCommunication`.creation, NULL) < '{2}'
+							and coalesce(`tabCommunication`.creation, NULL) > '{3}'
 						'''.format(email_account.append_to, email_account.name,
-								(datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60))
+								(datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60)),
 								(datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3)))
 
 			comms = frappe.db.sql('''select {fields} from `tabCommunication`
 						inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
 						and {filters}
-						'''.format(fields=fields, filters=filters), as_dict=True)
+						order by `tabCommunication`.`modified` desc
+						'''.format(fields=fields, filters=filters), as_dict=True, debug=True)
 
 			for comm in comms:
 				comm = frappe.get_doc("Communication", comm.name)

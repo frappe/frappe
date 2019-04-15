@@ -77,12 +77,5 @@ class TestCommunication(unittest.TestCase):
 		}).insert()
 
 		a = frappe.get_doc("Communication", a.name)
-		a.update({
-			"dynamic_link": [
-				{
-					"link_doctype": "Communication",
-					"link_name": c.name
-				}
-			]
-		})
+		a.add_link("Communication", c.name)
 		self.assertRaises(frappe.CircularLinkingError, a.save)

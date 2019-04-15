@@ -274,14 +274,15 @@ class Communication(Document):
 			if commit:
 				frappe.db.commit()
 
-	def add_link(self, link_doctype, link_name):
+	def add_link(self, link_doctype, link_name, no_save=False):
 		self.append("dynamic_link",
 			{
 				"link_doctype": link_doctype,
 				"link_name": link_name
 			}
 		)
-		self.save()
+		if no_save == False:
+			self.save()
 
 	def get_links(self, link_doctype=None, link_name=None):
 		filters = {
