@@ -102,6 +102,11 @@ frappe.ui.form.PrintPreview = Class.extend({
 				}, __("New Custom Print Format"), __("Start"));
 			}
 		});
+
+		$(document).on('new-print-format', (e) => {
+			this.refresh_print_options();
+			this.print_sel.val(e.print_format)
+		});
 	},
 	set_user_lang: function () {
 		this.lang_code = this.frm.doc.language;
