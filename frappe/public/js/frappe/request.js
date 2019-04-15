@@ -30,7 +30,8 @@ frappe.call = function(opts) {
 			indicator: 'orange',
 			message: __('You are not connected to Internet. Retry after sometime.')
 		}, 3);
-		return;
+		opts.always && opts.always();
+		return $.ajax();
 	}
 	if (typeof arguments[0]==='string') {
 		opts = {
