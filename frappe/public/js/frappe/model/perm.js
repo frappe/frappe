@@ -255,7 +255,7 @@ $.extend(frappe.perm, {
 
 	get_allowed_docs_for_doctype: (user_permissions, doctype) => {
 		return (user_permissions || []).filter(perm => {
-			return (perm.applicable_for === doctype || !perm.applicable_for);
+			return ((perm.applicable_for === doctype || !perm.applicable_for) && (perm.is_default === 1 || user_permissions.length === 1));
 		}).map(perm => perm.doc);
 	}
 });
