@@ -110,9 +110,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.page_name = frappe.get_route_str();
 		this.report_name = this.route[1];
 		this.page_title = __(this.report_name);
+		this.show_save = false;
 		this.menu_items = this.get_menu_items();
 		this.datatable = null;
 		this.prepared_report_action = "New";
+		this.custom_report = null;
+
 
 		frappe.run_serially([
 			() => this.get_report_doc(),
@@ -152,7 +155,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	get_report_settings() {
 		if (frappe.query_reports[this.report_name]) {
-			this.report_settings = frappe.query_reports[this.report_name];
+			this.report_settings = this.get_local_report_settings();
 			return this._load_script;
 		}
 
@@ -165,13 +168,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return r;
 		}).then(r => {
 			return frappe.after_ajax(() => {
-				this.report_settings = frappe.query_reports[this.report_name];
+				this.report_settings = this.get_local_report_settings();
 				this.report_settings.html_format = r.message.html_format;
 				this.report_settings.execution_time = r.message.execution_time || 0;
 			});
 		});
 
 		return this._load_script;
+	}
+
+	get_local_report_settings() {
+		let report_script_name = this.report_doc.report_type === 'Custom Report'
+			? this.report_doc.reference_report
+			: this.report_name;
+		return frappe.query_reports[report_script_name];
 	}
 
 	setup_progress_bar() {
@@ -289,7 +299,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				method: 'frappe.desk.query_report.run',
 				type: 'GET',
 				args: {
-					report_name: this.report_name,
+					report_name: this.custom_report || this.report_name,
 					filters: filters,
 				},
 				callback: resolve,
@@ -1003,8 +1013,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								fieldname: df.fieldname,
 								fieldtype: df.fieldtype,
 								label: df.label,
+								link_field: this.doctype_field_map[values.doctype],
+								doctype: values.doctype,
 								width: 100
 							});
+
 							frappe.call({
 								method: 'frappe.desk.query_report.get_data_for_custom_field',
 								args: {
@@ -1018,11 +1031,47 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 									d.hide();
 								}
 							});
+							this.show_save = true;
+							this.set_menu_items();
 						}
 					})
 
 					d.show();
 				},
+				standard: true
+			},
+			{
+				label: __('Save'),
+				action: () => {
+					let d = new frappe.ui.Dialog({
+						title: __('Save Report'),
+						fields: [
+							{
+								fieldtype: 'Data',
+								fieldname: 'report_name',
+								label: __("Report Name"),
+								default: this.report_doc.is_standard == 'No' ? this.report_name : "",
+							}
+						],
+						primary_action: (values) => {
+							frappe.call({
+								method: "frappe.desk.query_report.save_report",
+								args: {
+									reference_report: this.report_name,
+									report_name: values.report_name,
+									columns: this.columns
+								},
+								callback: function(r) {
+									this.show_save = false;
+									d.hide();
+									frappe.set_route('query-report', r.message);
+								}
+							});
+						}
+					});
+					d.show();
+				},
+				condition: () => this.show_save,
 				standard: true
 			},
 			{

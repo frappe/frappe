@@ -17,6 +17,9 @@ frappe.ui.form.on('Report', {
 				case "Script Report":
 					frappe.set_route("query-report", doc.name);
 					break;
+				case "Custom Report":
+					frappe.set_route("query-report", doc.name);
+					break;
 			}
 		}, "fa fa-table");
 
