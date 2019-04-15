@@ -1056,7 +1056,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								fieldtype: 'Data',
 								fieldname: 'report_name',
 								label: __("Report Name"),
-								default: this.report_doc.is_standard == 'No' ? this.custom_report : "",
+								default: this.report_doc.is_standard == 'No' ? this.report_name : "",
 							}
 						],
 						primary_action: (values) => {
