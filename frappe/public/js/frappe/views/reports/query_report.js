@@ -120,7 +120,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.menu_items = this.get_menu_items();
 		this.datatable = null;
 		this.prepared_report_action = "New";
-		this.custom_report = null;
 
 
 		frappe.run_serially([
@@ -305,7 +304,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				method: 'frappe.desk.query_report.run',
 				type: 'GET',
 				args: {
-					report_name: this.custom_report || this.report_name,
+					report_name: this.report_name,
 					filters: filters,
 				},
 				callback: resolve,
