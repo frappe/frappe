@@ -86,7 +86,7 @@ class TestPermissions(unittest.TestCase):
 		self.assertFalse(doc.get("blog_category"))
 
 		# Fetch default based on single user permission
-		add_user_permission("Blog Category", "_Test Blog Category 1", "test2@example.com")
+		add_user_permission("Blog Category", "_Test Blog Category 1", "test2@example.com", is_default=True)
 
 		frappe.set_user("test2@example.com")
 		doc = frappe.new_doc("Blog Post")
@@ -96,7 +96,7 @@ class TestPermissions(unittest.TestCase):
 		add_user_permission("Blog Category", "_Test Blog Category", "test2@example.com", ignore_permissions=True)
 		frappe.clear_cache()
 		doc = frappe.new_doc("Blog Post")
-		self.assertFalse(doc.get("blog_category"))
+		self.assertEqual(doc.get("blog_category"), "_Test Blog Category 1")
 
 	def test_user_link_match_doc(self):
 		blogger = frappe.get_doc("Blogger", "_Test Blogger 1")
