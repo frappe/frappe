@@ -7,7 +7,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.model import no_value_fields
 from frappe.translate import set_default_language
-from frappe.utils import cint
+from frappe.utils import cint, today
 from frappe.utils.momentjs import get_all_timezones
 from frappe.twofactor import toggle_two_factor_auth
 
@@ -46,6 +46,13 @@ class SystemSettings(Document):
 		frappe.cache().delete_value('system_settings')
 		frappe.cache().delete_value('time_zone')
 		frappe.local.system_settings = {}
+
+		if self.force_user_to_reset_password:
+			frappe.db.sql(""" UPDATE `tabUser`
+				SET
+					last_password_reset_date = %s
+				WHERE
+					last_password_reset_date is null or last_password_reset_date = ''""", today())
 
 @frappe.whitelist()
 def load():
