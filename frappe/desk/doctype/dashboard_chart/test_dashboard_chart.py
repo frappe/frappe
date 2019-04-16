@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import unittest, frappe
 from frappe.utils import getdate
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import (get,
-	get_period_ending, get_period_beginning)
+	get_period_ending)
 
 class TestDashboardChart(unittest.TestCase):
 	def test_period_ending(self):
@@ -31,15 +31,6 @@ class TestDashboardChart(unittest.TestCase):
 			getdate('2019-06-30'))
 		self.assertEqual(get_period_ending('2019-10-01', 'Quarterly'),
 			getdate('2019-12-31'))
-
-	def test_get_period_beginning(self):
-		self.assertEqual(get_period_beginning('2019-02-02', 'Monthly'),
-			getdate('2019-02-01'))
-		self.assertEqual(get_period_beginning('2019-02-02', 'Quarterly'),
-			getdate('2019-01-01'))
-		self.assertEqual(get_period_beginning('2019-01-29', 'Weekly'),
-			getdate('2019-02-01'))
-
 
 	def test_dashboard_chart(self):
 		if frappe.db.exists('Dashboard Chart', 'Test Dashboard Chart'):

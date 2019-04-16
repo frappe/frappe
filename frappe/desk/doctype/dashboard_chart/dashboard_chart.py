@@ -156,22 +156,6 @@ def get_period_ending(date, timegrain):
 
 	return getdate(date)
 
-def get_period_beginning(date, timegrain):
-	if timegrain=='Daily':
-		return getdate(date)
-
-	ending = get_period_ending(date, timegrain)
-	beginning = None
-
-	if timegrain=='Weekly':
-		beginning = add_to_date(add_to_date(ending, weeks=-1), days = 1)
-	elif timegrain=='Monthly':
-		beginning = add_to_date(add_to_date(ending, months=-1), days = 1)
-	elif timegrain=='Quarterly':
-		beginning = add_to_date(add_to_date(ending, months=-3), days = 1)
-
-	return getdate(beginning)
-
 def get_week_ending(date):
 	# fun fact: week ends on the day before 1st Jan of the year.
 	# for 2019 it is Monday
