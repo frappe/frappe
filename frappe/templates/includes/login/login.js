@@ -174,6 +174,11 @@ login.login_handlers = (function() {
 			if(data.message == 'Logged In'){
 				login.set_indicator("{{ _("Success") }}", 'green');
 				window.location.href = frappe.utils.get_url_arg("redirect-to") || data.home_page;
+			} else if(data.message == 'Password Reset'){
+				frappe.msgprint(__("The password of your account is expired"));
+				setTimeout(() => {
+					window.location.href = data.redirect_to;
+				}, 1000);
 			} else if(data.message=="No App") {
 				login.set_indicator("{{ _("Success") }}", 'green');
 				if(localStorage) {
