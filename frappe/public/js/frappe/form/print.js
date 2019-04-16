@@ -105,7 +105,9 @@ frappe.ui.form.PrintPreview = Class.extend({
 
 		$(document).on('new-print-format', (e) => {
 			this.refresh_print_options();
-			this.print_sel.val(e.print_format)
+			if (e.print_format) {
+				this.print_sel.val(e.print_format);
+			}
 		});
 	},
 	set_user_lang: function () {
