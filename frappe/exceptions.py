@@ -84,4 +84,3 @@ class RetryBackgroundJobError(Exception): pass
 class DocumentLockedError(ValidationError): pass
 class CircularLinkingError(ValidationError): pass
 class SecurityException(Exception): pass
-class IncompatibleApp(ValidationError): pass

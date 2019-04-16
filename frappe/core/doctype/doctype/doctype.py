@@ -329,7 +329,8 @@ class DocType(Document):
 		if merge:
 			frappe.throw(_("DocType can not be merged"))
 
-		if not frappe.flags.in_test and not frappe.flags.in_patch:
+		# Do not rename and move files and folders for custom doctype
+		if not self.custom and not frappe.flags.in_test and not frappe.flags.in_patch:
 			self.rename_files_and_folders(old, new)
 
 	def after_rename(self, old, new, merge=False):

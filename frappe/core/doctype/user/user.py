@@ -93,7 +93,7 @@ class User(Document):
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
 		self.send_password_notification(self.__new_password)
-		create_contact(self)
+		create_contact(self, ignore_mandatory=True)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
 
