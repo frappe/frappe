@@ -91,8 +91,8 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		for email in email_addrs:
 			if email != None and email != "":
 				contact_name = None
-				if not frappe.get_list("Contact", filters={"email_id": email}, limit=1):
 
+				if not frappe.get_list("Contact", filters={"email_id": email}, limit=1):
 					contact = frappe.get_doc({
 							"doctype": "Contact",
 							"first_name": email.split("@")[0],
@@ -101,7 +101,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 					contact_name = contact.first_name
 
 				if not contact_name:
-					contact_name = frappe.get_list("Contact", filters={"email_id": email}, fields=["first_name"], limit=1)[0].first_name
+					contact_name = frappe.get_list("Contact", filters={"email_id": email}, limit=1)[0].name
 
 				dynamic_link.append(
 					{
@@ -112,10 +112,20 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 
 	if doctype:
 		#link doctype if present to the communication
+		link_doctype, link_name = doctype, name
 		dynamic_link.append(
 			{
 				"link_doctype": doctype,
 				"link_name": name
+			}
+		)
+	else:
+		#link to itself when no doctype
+		link_doctype, link_name = 'Communication', comm.name
+		dynamic_link.append(
+			{
+				"link_doctype": 'Communication',
+				"link_name": comm.name
 			}
 		)
 
@@ -135,7 +145,8 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 
 	if cint(send_email):
 		frappe.flags.print_letterhead = cint(print_letterhead)
-		comm.send(print_html, print_format, attachments, send_me_a_copy=send_me_a_copy)
+		comm.send(print_html, print_format, attachments, send_me_a_copy=send_me_a_copy,
+			link_doctype=link_doctype, link_name=link_name)
 
 	return {
 		"name": comm.name,
@@ -184,7 +195,7 @@ def notify(doc, print_html=None, print_format=None, attachments=None,
 	if frappe.flags.in_test:
 		# for test cases, run synchronously
 		doc._notify(print_html=print_html, print_format=print_format, attachments=attachments,
-			recipients=recipients, cc=cc, link_doctype=link_doctype, link_name=link_name, bcc=None)
+			recipients=recipients, cc=cc, bcc=None, link_doctype=link_doctype, link_name=link_name)
 	else:
 		check_email_limit(list(set(doc.sent_email_addresses)))
 		enqueue(sendmail, queue="default", timeout=300, event="sendmail",
@@ -210,6 +221,8 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		expose_recipients="header",
 		sender=doc.sender,
 		reply_to=doc.incoming_email_account,
+		link_doctype=link_doctype,
+		link_name=link_name,
 		subject=doc.subject,
 		content=doc.content,
 		attachments=doc.attachments,
@@ -300,7 +313,7 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None,
 	view_link = frappe.utils.cint(frappe.db.get_value("Print Settings", "Print Settings", "attach_view_link"))
 
 	if print_format and view_link:
-		doc.content += get_attach_link(doc, print_format)
+		doc.content += get_attach_link(doc, print_format, link_doctype, link_name)
 
 	set_incoming_outgoing_accounts(doc, link_doctype, link_name)
 
@@ -521,7 +534,7 @@ def get_attach_link(doc, print_format, link_doctype=None, link_name=None):
 		"doctype": link_doctype,
 		"name": link_name,
 		"print_format": print_format,
-		"key": get_parent_doc(doc, link_doctype, link_name).get_signature()
+		"key": get_parent_doc(link_doctype, link_name).get_signature()
 	})
 
 def sendmail(communication_name, print_html=None, print_format=None, attachments=None,
@@ -603,11 +616,8 @@ def mark_email_as_seen(name=None):
 		frappe.response["filename"] = "imaginary_pixel.png"
 		frappe.response["filecontent"] = buffered_obj.getvalue()
 
-def get_parent_doc(doc, link_doctype, link_name):
+def get_parent_doc(link_doctype, link_name):
 	"""Returns document of `link_doctype`, `link_doctype`"""
-	if not hasattr(doc, "parent_doc"):
-		if link_doctype and link_name:
-			doc.parent_doc = frappe.get_doc(link_doctype, link_name)
-		else:
-			doc.parent_doc = None
-	return doc.parent_doc
+	if link_doctype and link_name:
+		parent_doc = frappe.get_doc(link_doctype, link_name)
+	return parent_doc if parent_doc else None
