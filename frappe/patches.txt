@@ -1,3 +1,4 @@
+frappe.patches.v12_0.remove_deprecated_fields_from_doctype #3
 execute:frappe.db.sql("""update `tabPatch Log` set patch=replace(patch, '.4_0.', '.v4_0.')""") #2014-05-12
 frappe.patches.v5_0.convert_to_barracuda_and_utf8mb4
 execute:frappe.utils.global_search.setup_global_search_table()
@@ -14,6 +15,7 @@ execute:frappe.reload_doc('core', 'doctype', 'comment')
 frappe.patches.v8_0.drop_is_custom_from_docperm
 execute:frappe.reload_doc('core', 'doctype', 'module_def') #2017-09-22
 execute:frappe.reload_doc('core', 'doctype', 'version') #2017-04-01
+execute:frappe.reload_doc('email', 'doctype', 'document_follow')
 frappe.patches.v11_0.replicate_old_user_permissions
 frappe.patches.v11_0.reload_and_rename_view_log #2019-01-03
 frappe.patches.v7_1.rename_scheduler_log_to_error_log
@@ -231,8 +233,9 @@ frappe.patches.v11_0.set_missing_creation_and_modified_value_for_user_permission
 frappe.patches.v11_0.remove_doctype_user_permissions_for_page_and_report
 frappe.patches.v11_0.set_default_letter_head_source
 frappe.patches.v12_0.set_primary_key_in_series
-execute:frappe.reload_doc('email', 'doctype', 'document_follow')
 execute:frappe.delete_doc("Page", "modules", ignore_missing=True)
 frappe.patches.v11_0.set_default_letter_head_source
 frappe.patches.v12_0.setup_comments_from_communications
-frappe.patches.v12_0.init_desk_settings
+frappe.patches.v12_0.init_desk_settings #11-03-2019
+frappe.patches.v12_0.replace_null_values_in_tables
+frappe.patches.v12_0.reset_home_settings

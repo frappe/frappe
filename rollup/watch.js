@@ -32,7 +32,7 @@ function watch_assets() {
 
 			case 'BUNDLE_START': {
 				const output = event.output[0];
-				if (output.endsWith('.js', '.vue')) {
+				if (output.endsWith('.js') || output.endsWith('.vue')) {
 					log('Rebuilding', path.basename(event.output[0]));
 				}
 				break;

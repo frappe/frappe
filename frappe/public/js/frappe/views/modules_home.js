@@ -11,8 +11,7 @@ frappe.modules.Home = class {
 	}
 	make_body() {
 		this.$modules_container = this.$parent.find('.layout-main');
-		Vue.prototype.__ = window.__;
-		Vue.prototype.frappe = window.frappe;
+
 		new Vue({
 			el: this.$modules_container[0],
 			render: h => h(Modules)

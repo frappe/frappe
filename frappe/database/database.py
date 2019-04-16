@@ -879,6 +879,10 @@ class Database(object):
 		# implemented in specific class
 		pass
 
+	@staticmethod
+	def is_column_missing(e):
+		return frappe.db.is_missing_column(e)
+
 	def get_descendants(self, doctype, name):
 		'''Return descendants of the current record'''
 		node_location_indexes = self.get_value(doctype, name, ('lft', 'rgt'))

@@ -35,5 +35,12 @@ frappe.ui.form.ControlMarkdownEditor = frappe.ui.form.ControlCode.extend({
 	update_preview() {
 		const value = this.get_value() || "";
 		this.markdown_preview.html(frappe.markdown(value));
+	},
+
+	set_formatted_input(value) {
+		this._super(value)
+			.then(() => {
+				this.update_preview();
+			});
 	}
 });

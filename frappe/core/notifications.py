@@ -17,6 +17,9 @@ def get_notification_config():
 		"for_other": {
 			"Likes": "frappe.core.notifications.get_unseen_likes",
 			"Email": "frappe.core.notifications.get_unread_emails",
+		},
+		"for_module": {
+			"Social": "frappe.social.doctype.post.post.get_unseen_post_count"
 		}
 	}
 

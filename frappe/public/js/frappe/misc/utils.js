@@ -1,6 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import deep_equal from "fast-deep-equal";
 frappe.provide('frappe.utils');
 
 Object.assign(frappe.utils, {
@@ -682,6 +683,16 @@ Object.assign(frappe.utils, {
 		} else {
 			return null;
 		}
+	},
+
+	deep_equal(a, b) {
+		return deep_equal(a, b);
+	},
+
+	get_points(points) {
+		return `<span class='bold' style="color: ${points >= 0 ? '#45A163': '#e42121'}">
+			${points > 0 ? '+': ''}${points}
+		</span>`;
 	}
 });
 

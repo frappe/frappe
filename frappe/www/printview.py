@@ -11,7 +11,6 @@ from frappe.utils import cint, strip_html
 from six import string_types
 
 no_cache = 1
-no_sitemap = 1
 
 base_template_path = "templates/www/printview.html"
 standard_format = "templates/print_formats/standard.html"

@@ -75,6 +75,12 @@ def extract_email_id(email):
 	return email_id
 
 def validate_email_add(email_str, throw=False):
+	"""
+	validate_email_add will be renamed to the validate_email_address in v12
+	"""
+	return validate_email_address(email_str, throw=False)
+
+def validate_email_address(email_str, throw=False):
 	"""Validates the email string"""
 	email = email_str = (email_str or "").strip()
 
@@ -454,7 +460,7 @@ def markdown(text, sanitize=True, linkify=True):
 def sanitize_email(emails):
 	sanitized = []
 	for e in split_emails(emails):
-		if not validate_email_add(e):
+		if not validate_email_address(e):
 			continue
 
 		full_name, email_id = parse_addr(e)
@@ -642,3 +648,16 @@ def gzip_decompress(data):
 	"""
 	with GzipFile(fileobj=io.BytesIO(data)) as f:
 		return f.read()
+
+def get_safe_filters(filters):
+	try:
+		filters = json.loads(filters)
+
+		if isinstance(filters, (integer_types, float)):
+			filters = frappe.as_unicode(filters)
+
+	except (TypeError, ValueError):
+		# filters are not passed, not json
+		pass
+
+	return filters

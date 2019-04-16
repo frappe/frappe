@@ -17,6 +17,7 @@ from frappe.utils.change_log import get_versions
 from frappe.translate import get_lang_dict
 from frappe.email.inbox import get_email_accounts
 from frappe.core.doctype.feedback_trigger.feedback_trigger import get_enabled_feedback_trigger
+from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -78,6 +79,7 @@ def get_bootinfo():
 	bootinfo.gsuite_enabled = get_gsuite_status()
 	bootinfo.success_action = get_success_action()
 	bootinfo.update(get_email_accounts(user=frappe.session.user))
+	bootinfo.energy_points_enabled = is_energy_point_enabled()
 
 	return bootinfo
 
@@ -111,22 +113,25 @@ def get_user_pages_or_reports(parent):
 	column = get_column(parent)
 
 	# get pages or reports set on custom role
-	custom_roles = frappe.db.sql("""
+	pages_with_custom_roles = frappe.db.sql("""
 		select
 			`tabCustom Role`.{field} as name,
 			`tabCustom Role`.modified,
-			`tabCustom Role`.ref_doctype
-		from `tabCustom Role`, `tabHas Role`
+			`tabCustom Role`.ref_doctype,
+			{column}
+		from `tabCustom Role`, `tabHas Role`, `tab{parent}`
 		where
 			`tabHas Role`.parent = `tabCustom Role`.name
+			and `tab{parent}`.name = `tabCustom Role`.{field}
 			and `tabCustom Role`.{field} is not null
 			and `tabHas Role`.role in ({roles})
-	""".format(field=parent.lower(), roles = ', '.join(['%s']*len(roles))), roles, as_dict=1)
+	""".format(field=parent.lower(), parent=parent, column=column,
+		roles = ', '.join(['%s']*len(roles))), roles, as_dict=1)
 
-	for p in custom_roles:
-		has_role[p.name] = {"modified":p.modified, "title": p.name, "ref_doctype": p.ref_doctype}
+	for p in pages_with_custom_roles:
+		has_role[p.name] = {"modified":p.modified, "title": p.title, "ref_doctype": p.ref_doctype}
 
-	standard_roles = frappe.db.sql("""
+	pages_with_standard_roles = frappe.db.sql("""
 		select distinct
 			`tab{parent}`.name as name,
 			`tab{parent}`.modified,
@@ -143,7 +148,7 @@ def get_user_pages_or_reports(parent):
 			field=parent.lower(), condition="and `tabReport`.disabled=0" if parent == "Report" else ""),
 			roles, as_dict=True)
 
-	for p in standard_roles:
+	for p in pages_with_standard_roles:
 		if p.name not in has_role:
 			has_role[p.name] = {"modified":p.modified, "title": p.title}
 			if parent == "Report":

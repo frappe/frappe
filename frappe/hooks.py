@@ -117,7 +117,8 @@ doc_events = {
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.core.doctype.activity_log.feed.update_feed",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
-			"frappe.automation.doctype.assignment_rule.assignment_rule.apply"
+			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
+			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
@@ -129,13 +130,12 @@ doc_events = {
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
 		],
 		"on_change": [
-			"frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request",
+			"frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request"
 		]
 	},
 	"Email Group Member": {
 		"validate": "frappe.email.doctype.email_group.email_group.restrict_email_group"
-	},
-
+	}
 }
 
 scheduler_events = {
@@ -173,7 +173,9 @@ scheduler_events = {
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.core.doctype.feedback_request.feedback_request.delete_feedback_request",
 		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs",
-		"frappe.desk.form.document_follow.send_daily_updates"
+		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
+		"frappe.desk.form.document_follow.send_daily_updates",
+		"frappe.social.doctype.energy_point_settings.energy_point_settings.allocate_review_points"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
@@ -229,3 +231,55 @@ before_write_file = "frappe.limits.validate_space_limit"
 before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
 
 otp_methods = ['OTP App','Email','SMS']
+user_privacy_documents = [
+	{
+		'doctype': 'File',
+		'match_field': 'attached_to_name',
+		'personal_fields': ['file_name', 'file_url'],
+		'applies_to_website_user': 1
+	},
+	{
+		'doctype': 'Email Group Member',
+		'match_field': 'email',
+	},
+	{
+		'doctype': 'Email Unsubscribe',
+		'match_field': 'email',
+	},
+	{
+		'doctype': 'Email Queue',
+		'match_field': 'sender',
+	},
+	{
+		'doctype': 'Email Queue Recipient',
+		'match_field': 'recipient',
+	},
+	{
+		'doctype': 'Contact',
+		'match_field': 'email_id',
+		'personal_fields': ['first_name', 'last_name', 'phone', 'mobile_no'],
+	},
+	{
+		'doctype': 'Address',
+		'match_field': 'email_id',
+		'personal_fields': ['address_title', 'address_line1', 'address_line2', 'city', 'county', 'state', 'pincode',
+			'phone', 'fax'],
+	},
+	{
+		'doctype': 'Communication',
+		'match_field': 'sender',
+		'personal_fields': ['sender_full_name', 'phone_no', 'content'],
+	},
+	{
+		'doctype': 'Communication',
+		'match_field': 'recipients',
+	},
+	{
+		'doctype': 'User',
+		'match_field': 'name',
+		'personal_fields': ['email', 'username', 'first_name', 'middle_name', 'last_name', 'full_name', 'birth_date',
+			'user_image', 'phone', 'mobile_no', 'location', 'banner_image', 'interest', 'bio', 'email_signature', 'background_image'],
+		'applies_to_website_user': 1
+	},
+
+]

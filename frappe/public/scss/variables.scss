@@ -1,2 +1,21 @@
+$gray-100: #fafbfc;
+$gray-150: #f5f7fa;
+$gray-200: #ebecf1;
+$gray-300: #d1d8dd;
+$gray-400: #ced4da;
+$gray-500: #adb5bd;
+$gray-600: #8d99a6;
+$gray-700: #495057;
+$gray-800: #36414c;
+$gray-900: #2e3338;
+$primary:	#5e64ff;
+
+$black: #000;
+
+$body-color: $gray-800;
+$text-muted: $gray-600;
+$border-color: $gray-200;
+
 @import "~bootstrap/scss/functions";
 @import "~bootstrap/scss/variables";
+

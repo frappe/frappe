@@ -46,7 +46,6 @@ def import_custom_scripts(app):
 						frappe.get_doc({
 							"doctype":"Custom Script",
 							"dt": doctype,
-							"script_type": "Client",
 							"script": script
 						}).insert()
 

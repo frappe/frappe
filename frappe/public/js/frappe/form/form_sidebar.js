@@ -20,6 +20,8 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.make_attachments();
 		this.make_shared();
 		this.make_viewers();
+		this.make_review();
+
 		this.make_tags();
 		this.make_like();
 		this.make_follow();
@@ -155,6 +157,7 @@ frappe.ui.form.Sidebar = Class.extend({
 
 	refresh_image: function() {
 	},
+
 	setup_ratings: function() {
 		var _ratings = this.frm.get_docinfo().rating || 0;
 
@@ -164,4 +167,11 @@ frappe.ui.form.Sidebar = Class.extend({
 			this.ratings.find(".rating-icons").html(rating_icons);
 		}
 	},
+
+	make_review: function() {
+		this.frm.reviews = new frappe.ui.form.Review({
+			parent: this.sidebar.find(".form-attachments"),
+			frm: this.frm
+		});
+	}
 });
