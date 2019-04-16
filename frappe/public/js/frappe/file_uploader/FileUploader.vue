@@ -62,18 +62,22 @@
 					@toggle_private="toggle_private(i)"
 				/>
 			</div>
-			<button
-				v-if="show_upload_button && currently_uploading === -1"
-				class="btn btn-primary btn-sm margin-top"
-				@click="upload_files"
-			>
-				<span v-if="files.length === 1">
-					{{ __('Upload file') }}
-				</span>
-				<span v-else>
-					{{ __('Upload {0} files', [files.length]) }}
-				</span>
-			</button>
+			<div class="flex align-center" v-if="show_upload_button && currently_uploading === -1">
+				<button
+					class="btn btn-primary btn-sm margin-right"
+					@click="upload_files"
+				>
+					<span v-if="files.length === 1">
+						{{ __('Upload file') }}
+					</span>
+					<span v-else>
+						{{ __('Upload {0} files', [files.length]) }}
+					</span>
+				</button>
+				<div class="text-muted text-medium">
+					{{ __('Click on the lock icon to toggle public/private') }}
+				</div>
+			</div>
 		</div>
 		<div class="upload-progress" v-if="currently_uploading !== -1 && !upload_complete && !show_file_browser && !show_web_link">
 			<span
