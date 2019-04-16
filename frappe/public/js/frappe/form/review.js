@@ -115,6 +115,7 @@ frappe.ui.form.Review = class Review {
 				label: __('Reason')
 			}],
 			primary_action: (values) => {
+				review_dialog.disable_primary_action();
 				if (values.points > this.points.review_points) {
 					return frappe.msgprint(__('You do not have enough points'));
 				}
@@ -133,6 +134,8 @@ frappe.ui.form.Review = class Review {
 					this.frm.get_docinfo().energy_point_logs.unshift(review);
 					this.frm.timeline.refresh();
 					this.update_reviewers();
+				}).finally(() => {
+					review_dialog.enable_primary_action();
 				});
 			},
 			primary_action_label: __('Submit')
