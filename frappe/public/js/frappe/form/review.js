@@ -88,7 +88,6 @@ frappe.ui.form.Review = class Review {
 				fieldtype: 'Autocomplete',
 				label: __('To User'),
 				options: user_options,
-				default: user_options.includes(doc_owner) ? doc_owner : user_options[0],
 				description: __('Only users involved in the document are listed')
 			}, {
 				fieldname: 'review_type',
