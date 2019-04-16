@@ -57,10 +57,13 @@ def search_link(doctype, txt, query=None, filters=None, page_length=20, searchfi
 # this is called by the search box
 @frappe.whitelist()
 def search_widget(doctype, txt, query=None, searchfield=None, start=0,
-	page_length=10, filters=None, filter_fields=None, as_dict=False, reference_doctype=None, ignore_user_permissions=False):
+	page_length=20, filters=None, filter_fields=None, as_dict=False, reference_doctype=None, ignore_user_permissions=False):
+
+	start = cint(start)
+
 	if isinstance(filters, string_types):
 		filters = json.loads(filters)
-	
+
 	if searchfield:
 		sanitize_searchfield(searchfield)
 
@@ -134,7 +137,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			from frappe.model.db_query import get_order_by
 			order_by_based_on_meta = get_order_by(doctype, meta)
 			# 2 is the index of _relevance column
-			order_by = "2 , {0}, `tab{1}`.idx desc".format(order_by_based_on_meta, doctype)
+			order_by = "_relevance, {0}, `tab{1}`.idx desc".format(order_by_based_on_meta, doctype)
 
 			ignore_permissions = True if doctype == "DocType" else (cint(ignore_user_permissions) and has_permission(doctype))
 

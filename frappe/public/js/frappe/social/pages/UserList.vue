@@ -39,9 +39,10 @@
 					</span>
 				</div>
 				<energy-point-history
-					v-if="show_log_for===user.name"
+					v-show="show_log_for===user.name"
 					class="energy-point-history"
-					:user="user.name">
+					:user="user.name"
+					:key="user.name + user.energy_points">
 				</energy-point-history>
 			</li>
 			<li class="user-card text-muted" v-if="!filtered_users.length">{{__('No user found')}}</li>

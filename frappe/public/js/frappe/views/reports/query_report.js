@@ -79,6 +79,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 			}
 		});
+		this.page.wrapper.on('click', '[data-action]', (e) => {
+			let action_name = $(e.currentTarget).data('action');
+			let action = this[action_name];
+			if (action.call) {
+				action.call(this, e);
+			}
+		});
 	}
 
 	load() {
@@ -103,9 +110,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.page_name = frappe.get_route_str();
 		this.report_name = this.route[1];
 		this.page_title = __(this.report_name);
+		this.show_save = false;
 		this.menu_items = this.get_menu_items();
 		this.datatable = null;
 		this.prepared_report_action = "New";
+
 
 		frappe.run_serially([
 			() => this.get_report_doc(),
@@ -145,7 +154,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	get_report_settings() {
 		if (frappe.query_reports[this.report_name]) {
-			this.report_settings = frappe.query_reports[this.report_name];
+			this.report_settings = this.get_local_report_settings();
 			return this._load_script;
 		}
 
@@ -158,13 +167,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return r;
 		}).then(r => {
 			return frappe.after_ajax(() => {
-				this.report_settings = frappe.query_reports[this.report_name];
+				this.report_settings = this.get_local_report_settings();
 				this.report_settings.html_format = r.message.html_format;
 				this.report_settings.execution_time = r.message.execution_time || 0;
 			});
 		});
 
 		return this._load_script;
+	}
+
+	get_local_report_settings() {
+		let report_script_name = this.report_doc.report_type === 'Custom Report'
+			? this.report_doc.reference_report
+			: this.report_name;
+		return frappe.query_reports[report_script_name];
 	}
 
 	setup_progress_bar() {
@@ -314,7 +330,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.add_prepared_report_buttons(data.doc);
 			}
 			this.toggle_message(false);
-
 			if (data.result && data.result.length) {
 				this.prepare_report_data(data);
 
@@ -411,12 +426,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.raw_data = data;
 		this.columns = this.prepare_columns(data.columns);
 		this.data = this.prepare_data(data.result);
-
+		this.linked_doctypes = this.get_linked_doctypes();
 		this.tree_report = this.data.some(d => 'indent' in d);
 	}
 
 	render_datatable() {
 		let data = this.data;
+
 		if (this.raw_data.add_total_row) {
 			data = data.slice();
 			data.splice(-1, 1);
@@ -895,7 +911,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	get_data_for_print() {
 		const indices = this.datatable.datamanager.getFilteredRowIndices();
-		return indices.map(i => this.data[i]);
+		let rows = indices.map(i => this.data[i]);
+		let totalRow = this.datatable.bodyRenderer.getTotalRow().reduce((row, cell) => {
+			row[cell.column.id] = cell.content;
+			return row;
+		}, {});
+		rows.push(totalRow);
+		return rows;
 	}
 
 	get_columns_for_print() {
@@ -950,6 +972,108 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				standard: true
 			},
 			{
+				label: __('Add Column'),
+				action: () => {
+					let d = new frappe.ui.Dialog({
+						title: __('Add Column'),
+						fields: [
+							{
+								fieldtype: 'Select',
+								fieldname: 'doctype',
+								label: __('From Document Type'),
+								options: this.linked_doctypes.map(df => ({ label: df.doctype, value: df.doctype })),
+								change: () => {
+									let doctype = d.get_value('doctype');
+									frappe.model.with_doctype(doctype, () => {
+										let fields = frappe.meta.get_docfields(doctype)
+											.map(df => ({ label: df.label, value: df.fieldname }));
+										d.set_df_property('field', 'options', fields);
+
+									});
+								}
+							},
+							{
+								fieldtype: 'Select',
+								label: __('Field'),
+								fieldname: 'field',
+								options: []
+							},
+							{
+								fieldtype: 'Select',
+								label: __('Insert After'),
+								fieldname: 'insert_after',
+								options: this.columns.map(df => df.label)
+							}
+						],
+						primary_action: (values) => {
+							const custom_columns = [];
+							let df = frappe.meta.get_docfield(values.doctype, values.field);
+							custom_columns.push({
+								fieldname: df.fieldname,
+								fieldtype: df.fieldtype,
+								label: df.label,
+								link_field: this.doctype_field_map[values.doctype],
+								doctype: values.doctype,
+								width: 100
+							});
+
+							frappe.call({
+								method: 'frappe.desk.query_report.get_data_for_custom_field',
+								args: {
+									field: values.field,
+									doctype: values.doctype
+								},
+								callback: (r) => {
+									const custom_data = r.message;
+									const link_field = this.doctype_field_map[values.doctype];
+									this.add_custom_column(custom_columns, custom_data, link_field, values.field, values.insert_after);
+									d.hide();
+								}
+							});
+							this.show_save = true;
+							this.set_menu_items();
+						}
+					})
+
+					d.show();
+				},
+				standard: true
+			},
+			{
+				label: __('Save'),
+				action: () => {
+					let d = new frappe.ui.Dialog({
+						title: __('Save Report'),
+						fields: [
+							{
+								fieldtype: 'Data',
+								fieldname: 'report_name',
+								label: __("Report Name"),
+								default: this.report_doc.is_standard == 'No' ? this.report_name : "",
+							}
+						],
+						primary_action: (values) => {
+							frappe.call({
+								method: "frappe.desk.query_report.save_report",
+								args: {
+									reference_report: this.report_name,
+									report_name: values.report_name,
+									columns: this.columns
+								},
+								callback: function(r) {
+									this.show_save = false;
+									d.hide();
+									frappe.set_route('query-report', r.message);
+								}
+							});
+						}
+					});
+					d.show();
+				},
+				condition: () => this.show_save,
+				standard: true
+			},
+			{
 				label: __('User Permissions'),
 				action: () => frappe.set_route('List', 'User Permission', {
 					doctype: 'Report',
@@ -959,6 +1083,64 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				standard: true
 			}
 		];
+	}
+
+	add_custom_column(custom_column, custom_data, link_field, column_field, insert_after) {
+		const column = this.prepare_columns(custom_column);
+
+		const insert_after_index = this.columns
+			.findIndex(column => column.label === insert_after);
+		this.columns.splice(insert_after_index + 1, 0, column[0]);
+
+		this.data.forEach(row => {
+			row[column_field] = custom_data[row[link_field]];
+		});
+
+		this.render_datatable();
+	}
+
+	get_linked_doctypes() {
+		let doctypes = [];
+		let dynamic_links = [];
+		let dynamic_doctypes = new Set();
+		this.doctype_field_map = {};
+
+		this.columns.forEach(df => {
+			if (df.fieldtype == "Link" && df.options && df.options != "Currency") {
+				doctypes.push({
+					doctype: df.options,
+					fieldname: df.fieldname
+				});
+			}
+			else if (df.fieldtype == "Dynamic Link" && df.options) {
+				dynamic_links.push({
+					link_name: df.options,
+					fieldname: df.fieldname
+				});
+			}
+		});
+
+		this.data.forEach(row => {
+			dynamic_links.forEach(field => {
+				if (row[field.link_name]){
+					dynamic_doctypes.add(row[field.link_name] + ":" + field.fieldname);
+				}
+			});
+		});
+
+		doctypes = doctypes.concat(Array.from(dynamic_doctypes).map(d => {
+			const doc_field_pair = d.split(":");
+			return {
+				doctype: doc_field_pair[0],
+				fieldname: doc_field_pair[1]
+			};
+		}));
+
+		doctypes.forEach(doc => {
+			this.doctype_field_map[doc.doctype] = doc.fieldname;
+		});
+
+		return doctypes;
 	}
 
 	setup_report_wrapper() {
@@ -985,8 +1167,35 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const message = __('For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).');
 		const execution_time_msg = __('Execution Time: {0} sec', [this.execution_time || 0.1]);
 
-		this.page.footer.removeClass('hide').addClass('text-muted col-md-12')
-			.html(`<span class="text-left col-md-6">${message}</span><span class="text-right col-md-6">${execution_time_msg}</span>`);
+		this.page.footer.removeClass('hide').addClass('text-muted col-md-12').html(`
+			<span class="text-left col-md-6">${message}</span><span class="text-right col-md-6">${execution_time_msg}</span>
+		`);
+
+		this.page.wrapper.find('.tree-footer').remove();
+		if (this.tree_report) {
+			this.$tree_footer = this.page.footer.clone().addClass('tree-footer');
+			this.$tree_footer.html(`<div class="col-md-12">
+				<button class="btn btn-xs btn-default" data-action="expand_all_rows">
+					${__('Expand All')}</button>
+				<button class="btn btn-xs btn-default" data-action="collapse_all_rows">
+					${__('Collapse All')}</button>
+			</div>`);
+			this.page.footer.before(this.$tree_footer);
+			this.$tree_footer.find('[data-action=collapse_all_rows]').show();
+			this.$tree_footer.find('[data-action=expand_all_rows]').hide();
+		}
+	}
+
+	expand_all_rows() {
+		this.$tree_footer.find('[data-action=expand_all_rows]').hide();
+		this.datatable.rowmanager.expandAllNodes();
+		this.$tree_footer.find('[data-action=collapse_all_rows]').show();
+	}
+
+	collapse_all_rows() {
+		this.$tree_footer.find('[data-action=collapse_all_rows]').hide();
+		this.datatable.rowmanager.collapseAllNodes();
+		this.$tree_footer.find('[data-action=expand_all_rows]').show();
 	}
 
 	message_div(message) {
