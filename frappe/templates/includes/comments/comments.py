@@ -12,6 +12,10 @@ from frappe import _
 def add_comment(comment, comment_email, comment_by, reference_doctype, reference_name, route):
 	doc = frappe.get_doc(reference_doctype, reference_name)
 
+	if len(comment) < 10:
+		frappe.msgprint(_('Comment Should be atleast 10 characters'))
+		return ''
+
 	comment = doc.add_comment(
 		text = comment,
 		comment_email = comment_email,
@@ -27,9 +31,9 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 	if route:
 		clear_cache(route)
 
-	content = (doc.content
+	content = (comment.content
 		+ "<p><a href='{0}/desk/#Form/Comment/{1}' style='font-size: 80%'>{2}</a></p>".format(frappe.utils.get_request_site_address(),
-			doc.name,
+			comment.name,
 			_("View Comment")))
 
 	# notify creator
