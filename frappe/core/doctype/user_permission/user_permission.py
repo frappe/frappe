@@ -14,7 +14,7 @@ from frappe.desk.form.linked_with import get_linked_doctypes
 class UserPermission(Document):
 	def validate(self):
 		self.validate_user_permission()
-		self.validate_permission_overlap()
+		self.validate_default_permission()
 
 	def on_update(self):
 		frappe.cache().delete_value('user_permissions')
@@ -38,7 +38,7 @@ class UserPermission(Document):
 		if duplicate_exists:
 			frappe.throw(_("User permission already exists"), frappe.DuplicateEntryError)
 
-	def validate_permission_overlap(self):
+	def validate_default_permission(self):
 		''' validate user permission overlap for default value of a particular doctype '''
 		overlap_exists = []
 		if self.is_default:

@@ -8,17 +8,28 @@ import frappe
 import unittest
 
 class TestUserPermission(unittest.TestCase):
+	def test_default_user_permission(self):
+		user = create_user('test_bulk_creation_update@example.com')
+		param = get_params(user, 'User', user.name, True)
+		add_user_permissions(param)
+
+		#create a duplicate entry with default
+		perm_user = create_user('test_perm@example.com')
+
+		param = get_params(user, 'User', perm_user.name, True)
+		self.assertRaises(frappe.ValidationError, add_user_permissions, param)
+
 	def test_apply_to_all(self):
 		''' Create User permission for User having access to all applicable Doctypes'''
-		user = get_user()
-		param = get_params(user, apply = 1)
+		user = create_user('test_bulk_creation_update@example.com')
+		param = get_params(user, 'User', user.name)
 		created = add_user_permissions(param)
 		self.assertEquals(created, 1)
 
 	def test_for_applicable_on_update_from_apply_to_all(self):
 		''' Update User Permission from all to some applicable Doctypes'''
-		user = get_user()
-		param = get_params(user, applicable = ["Chat Room", "Chat Message"])
+		user = create_user('test_bulk_creation_update@example.com')
+		param = get_params(user, 'User', user.name , applicable = ["Chat Room", "Chat Message"])
 		create = add_user_permissions(param)
 		frappe.db.commit()
 
@@ -33,8 +44,8 @@ class TestUserPermission(unittest.TestCase):
 
 	def test_for_apply_to_all_on_update_from_applicable(self):
 		''' Update User Permission from some to all applicable Doctypes'''
-		user = get_user()
-		param = get_params(user, apply = 1)
+		user = create_user('test_bulk_creation_update@example.com')
+		param = get_params(user, 'User', user.name)
 		created = add_user_permissions(param)
 		created_apply_to_all = frappe.db.exists("User Permission", get_exists_param(user))
 		removed_applicable_first = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Room"))
@@ -46,26 +57,26 @@ class TestUserPermission(unittest.TestCase):
 		self.assertIsNone(removed_applicable_second)
 		self.assertEquals(created, 1)
 
-def get_user():
-	if frappe.db.exists('User', 'test_bulk_creation_update@example.com'):
-		return frappe.get_doc('User', 'test_bulk_creation_update@example.com')
+def create_user(user):
+	if frappe.db.exists('User', user):
+		return frappe.get_doc('User', user)
 	else:
 		user = frappe.new_doc('User')
-		user.email = 'test_bulk_creation_update@example.com'
-		user.first_name = 'Test_Bulk_Creation'
+		user.email = user
+		user.first_name = user.split("@")[0]
 		user.add_roles("System Manager")
 		return user
 
-def get_params(user, apply = None , applicable = None):
+def get_params(user, doctype, docname, is_default=False, applicable=None):
 	''' Return param to insert '''
 	param = {
 		"user": user.name,
-		"doctype":"User",
-		"docname":user.name
+		"doctype":doctype,
+		"docname":docname,
+		"is_default": is_default,
+		"apply_to_all_doctypes": 1,
+		"applicable_doctypes": []
 	}
-	if apply:
-		param.update({"apply_to_all_doctypes": 1})
-		param.update({"applicable_doctypes": []})
 	if applicable:
 		param.update({"apply_to_all_doctypes": 0})
 		param.update({"applicable_doctypes": applicable})
