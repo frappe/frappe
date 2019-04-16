@@ -278,16 +278,16 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 
 	const div = $(`
 		<div class="alert desk-alert">
-			<div class="alert-message"></div>
+			<div class="alert-message small"></div>
 			<div class="alert-body" style="display: none"></div>
 			<a class="close">&times;</a>
 		</div>`);
 
-	div.find('.alert-message').append(message.message);
-
 	if(message.indicator) {
-		div.find('.alert-message').addClass('indicator '+ message.indicator);
+		div.find('.alert-message').append(`<span class="indicator ${message.indicator}"></span>`);
 	}
+
+	div.find('.alert-message').append(message.message);
 
 	if (body_html) {
 		div.find('.alert-body').show().html(body_html);

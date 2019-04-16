@@ -66,6 +66,27 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			args: this.order_by,
 			onchange: this.on_sort_change.bind(this)
 		});
+
+		//Setup groupby for reports
+		this.group_by_control = new frappe.ui.GroupBy(this);
+	}
+
+	get_args() {
+		const args = super.get_args();
+		this.field_type = args.fields[0].substring(0,args.fields[0].indexOf('.'));
+		if (this.group_by_control.aggregate_function && this.group_by_control.group_by && this.group_by_control.aggregate_on) {
+			if(this.group_by_control.aggregate_function !== 'count') {
+				args.fields.push(`${this.group_by_control.aggregate_function}(${this.group_by_control.aggregate_on}) as ${this.group_by_control.aggregate_on}`);
+			}
+		}
+
+		return Object.assign(args, {
+			with_comment_count: false,
+			start: 0,
+			page_length: null,
+			group_by: this.group_by_control.group_by || null,
+			order_by: this.group_by_control.order_by || null,
+		});
 	}
 
 	before_refresh() {
@@ -666,7 +687,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.build_fields();
 		this.setup_columns();
 
-		this.datatable.destroy();
+		if (this.datatable) this.datatable.destroy();
 		this.datatable = null;
 		this.refresh();
 	}
@@ -691,7 +712,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		const index = this.fields.findIndex(f => column.field === f[0]);
 		if (index === -1) return;
 		const field = this.fields[index];
-		if (field[0] === 'name') {
+		if (field[0] === 'name' && this.group_by === null) {
 			this.refresh();
 			frappe.throw(__('Cannot remove ID field'));
 		}
@@ -802,13 +823,28 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	build_column(c) {
+
 		let [fieldname, doctype] = c;
 		let docfield = frappe.meta.docfield_map[doctype || this.doctype][fieldname];
 
+		// brackets are not allowed in fieldnames, if there is a bracket, its a function
+		if (fieldname.includes('(')) {
+			if (fieldname.includes(' AS ')) {
+				fieldname = fieldname.split(' AS ').slice(-1)[0];
+			} else if (fieldname.includes(' as ')) {
+				fieldname = fieldname.split(' as ').slice(-1)[0];
+			}
+		}
 		if (!docfield) {
-			docfield = frappe.model.get_std_field(fieldname);
+			docfield = frappe.model.get_std_field(fieldname, true);
 
 			if (docfield) {
+				if(!docfield.label) {
+					docfield.label = toTitle(fieldname);
+					if(docfield.label.includes('_')) {
+						docfield.label = docfield.label.replace('_',' ');
+					}
+				}
 				docfield.parent = this.doctype;
 				if (fieldname == "name") {
 					docfield.options = this.doctype;

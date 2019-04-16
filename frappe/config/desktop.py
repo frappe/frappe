@@ -100,14 +100,14 @@ def get_data():
 			"description": "Build your profile and share posts with other users."
 		},
 		{
-			"module_name": 'leaderboard',
+			"module_name": 'dashboard',
 			"category": "Places",
-			"label": _('Leaderboard'),
-			"icon": "octicon octicon-list-ordered",
+			"label": _('Dashboard'),
+			"icon": "octicon octicon-graph",
 			"type": "link",
-			"link": "#social/users",
+			"link": "#dashboard",
 			"color": '#FF4136',
 			'standard': 1,
-			'idx': 16
+			'idx': 10
 		},
 	]

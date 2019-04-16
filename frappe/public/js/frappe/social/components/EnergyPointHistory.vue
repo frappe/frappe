@@ -2,13 +2,20 @@
 	<div>
 		<ul class="log-list">
 			<li class="history-log" v-for="log in history_logs" :key="log.name">
-				<span v-html="frappe.utils.get_points(log.points)"></span>
-				<span v-html="log_body(log)"></span>
-				<span>&nbsp;-&nbsp;</span>
-				<span v-html="frappe.datetime.comment_when(log.creation)"></span>
+				<span v-html="frappe.energy_points.format_history_log(log, true)"></span>
 			</li>
-			<li v-if="!history_logs.length" class="history-log">
-				{{__('No logs found')}}
+			<li v-if="fetching" class="history-log">
+				{{ __('Fetching') + '...' }}
+			</li>
+			<li v-else-if="has_more_logs" class="history-log">
+				<button
+					class="btn btn-default btn-xs"
+					@click="get_logs()">
+					{{ __('Load more') }}
+				</button>
+			</li>
+			<li v-else-if="!history_logs.length" class="history-log">
+				{{ __('No logs found') }}
 			</li>
 		</ul>
 	</div>
@@ -18,33 +25,34 @@ export default {
 	props: ['user'],
 	data() {
 		return {
-			history_logs: []
+			history_logs: [],
+			fetching: false,
+			has_more_logs: true
 		}
 	},
 	created() {
-		frappe.db.get_list('Energy Point Log', {
-			filters: {
-				user: this.user,
-				type: ['!=', 'Review']
-			},
-			fields: ['*']
-		}).then(data => {
-			this.history_logs = data;
-		})
+		this.get_logs();
 	},
 	methods: {
-		log_body(log) {
-			const doc_link = frappe.utils.get_form_link(log.reference_doctype, log.reference_name, true)
-			const owner_name = frappe.user.full_name(log.owner).bold();
-			if (log.type === 'Appreciation') {
-				return __('{0} appreciated on {1}', [owner_name, doc_link])
-			}
-			if (log.type === 'Criticism') {
-				return __('{0} criticized on {1}', [owner_name, doc_link])
-			}
-			return __('via automatic rule {0} for {1}', [log.rule.bold(), doc_link])
+		get_logs() {
+			this.fetching = true;
+			const pull_limit = 10;
+			frappe.db.get_list('Energy Point Log', {
+				filters: {
+					user: this.user,
+					type: ['!=', 'Review']
+				},
+				fields: ['*'],
+				limit: pull_limit,
+				limit_start: this.history_logs.length
+			}).then(data => {
+				this.history_logs = this.history_logs.concat(data);
+				this.has_more_logs = data.length === pull_limit;
+			}).finally(() => {
+				this.fetching = false;
+			})
 		}
-	}
+	},
 
 }
 </script>
@@ -71,11 +79,6 @@ export default {
 	padding: 10px;
 	padding-left: 50px;
 	display: flex;
-	span:nth-child(1) {
-		width: 40px;
-		text-align: right;
-		margin-right: 10px;
-	}
 	position: relative;
 }
 .history-log:before {

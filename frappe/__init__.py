@@ -24,7 +24,7 @@ if sys.version[0] == '2':
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '11.1.17'
+__version__ = '11.1.21'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -187,9 +187,6 @@ def connect(site=None, db_name=None):
 
 	local.db = get_db(user=db_name or local.conf.db_name)
 	set_user("Administrator")
-
-	for hook in get_hooks("connect") or []:
-		get_attr(hook)()
 
 def connect_read_only():
 	from frappe.database import get_db
