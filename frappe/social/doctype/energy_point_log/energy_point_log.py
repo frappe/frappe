@@ -183,7 +183,7 @@ def revert(name, reason):
 		frappe.throw(_('This document cannot be reverted'))
 
 	doc_to_revert.reverted = 1
-	doc_to_revert.save()
+	doc_to_revert.save(ignore_permissions=True)
 
 	revert_log = frappe.get_doc({
 		'doctype': 'Energy Point Log',
@@ -194,7 +194,7 @@ def revert(name, reason):
 		'reference_doctype': doc_to_revert.reference_doctype,
 		'reference_name': doc_to_revert.reference_name,
 		'revert_of': doc_to_revert.name
-	}).insert()
+	}).insert(ignore_permissions=True)
 
 	return revert_log
 
