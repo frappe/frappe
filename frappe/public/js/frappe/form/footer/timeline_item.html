@@ -183,6 +183,8 @@
 						{% } %}
 						{%= __("Liked by {0}", [data.fullname]) %}
 					</span>
+					{% } else if (data.comment_type == "Energy Points") { %}
+						{{ data.content_html }}
 					{% } else { %}
 						<b title="{{ data.comment_by }}">{%= data.fullname %}</b>
 						{%= __(data.content) %}

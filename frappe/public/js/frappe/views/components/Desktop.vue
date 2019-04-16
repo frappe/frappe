@@ -12,7 +12,7 @@
 				{{ __('Show / Hide Cards') }}
 			</a>
 			<desk-section
-				v-if="get_modules_for_category(category)"
+				v-if="get_modules_for_category(category).length"
 				:category="category"
 				:modules="get_modules_for_category(category)"
 				@update_home_settings="hs => update_modules_with_home_settings(hs)"
@@ -107,7 +107,7 @@ export default {
 			});
 			const d = new frappe.ui.Dialog({
 				title: __('Show / Hide Cards'),
-				fields,
+				fields: fields.filter(f => f.options.length > 0),
 				primary_action_label: __('Save'),
 				primary_action: (values) => {
 					let all_modules = this.modules.map(m => m.module_name);

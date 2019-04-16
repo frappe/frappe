@@ -62,7 +62,7 @@ def create_email_flag_queue(names, action):
 		return
 
 	for name in json.loads(names or []):
-		uid, seen_status, email_account = frappe.db.get_value("Communication", name, 
+		uid, seen_status, email_account = frappe.db.get_value("Communication", name,
 			["ifnull(uid, -1)", "ifnull(seen, 0)", "email_account"])
 
 		# can not mark email SEEN or UNSEEN without uid
@@ -92,7 +92,7 @@ def create_email_flag_queue(names, action):
 					"email_account": email_account
 				})
 				flag_queue.save(ignore_permissions=True)
-				frappe.db.set_value("Communication", name, "seen", seen, 
+				frappe.db.set_value("Communication", name, "seen", seen,
 					update_modified=False)
 				mark_as_seen_unseen(name, action)
 
@@ -109,7 +109,7 @@ def mark_as_spam(communication, sender):
 		frappe.get_doc({
 			"doctype": "Email Rule",
 			"email_id": sender,
-			"is_spam": 1	
+			"is_spam": 1
 		}).insert(ignore_permissions=True)
 	frappe.db.set_value("Communication", communication, "email_status", "Spam")
 
@@ -142,8 +142,11 @@ def make_lead_from_communication(communication, ignore_communication_links=False
 	""" raise a issue from email """
 
 	doc = frappe.get_doc("Communication", communication)
-	frappe.errprint(doc.sender_full_name)
-	lead_name = frappe.db.get_value("Lead", {"email_id": doc.sender,"mobile_no": doc.phone_no})
+	lead_name = None
+	if doc.sender:
+		lead_name = frappe.db.get_value("Lead", {"email_id": doc.sender})
+	if not lead_name and doc.mobile_no:
+		lead_name = frappe.db.get_value("Lead", {"mobile_no": doc.phone_no})
 	if not lead_name:
 		lead = frappe.get_doc({
 			"doctype": "Lead",

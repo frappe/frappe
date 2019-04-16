@@ -75,7 +75,10 @@ frappe.db = {
 				method: "frappe.client.get",
 				type: 'GET',
 				args: { doctype, name, filters },
-				callback: r => resolve(r.message)
+				callback: r => {
+					frappe.model.sync(r.message);
+					resolve(r.message);
+				}
 			}).fail(reject);
 		});
 	},

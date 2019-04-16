@@ -282,12 +282,12 @@ class DocType(Document):
 			return
 
 		fields = [d.fieldname for d in self.fields if d.fieldtype in data_fieldtypes]
-
-		frappe.db.sql('''delete from
+		if fields:
+			frappe.db.sql('''delete from
 				`tabCustom Field`
-			where
-				 dt = {0} and fieldname in ({1})
-		'''.format('%s', ', '.join(['%s'] * len(fields))), tuple([self.name] + fields), as_dict=True)
+				where
+				dt = {0} and fieldname in ({1})
+				'''.format('%s', ', '.join(['%s'] * len(fields))), tuple([self.name] + fields), as_dict=True)
 
 	def sync_global_search(self):
 		'''If global search settings are changed, rebuild search properties for this table'''

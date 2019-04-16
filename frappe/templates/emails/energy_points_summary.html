@@ -1,0 +1,43 @@
+{% if top_performer.energy_points %}
+<h3>{{ _('Top Performer') }} 🏆 </h3>
+<p> {{ frappe.get_fullname(top_performer.user) }}
+	<span class="text-muted">
+		{{ frappe._('gained {0} points').format(frappe.utils.cint(top_performer.energy_points)) }}
+	</span>
+</p>
+{% endif %}
+
+{% if top_reviewer.given_points %}
+<h3>{{ _('Top Reviewer') }} ❤️ </h3>
+<p> {{ frappe.get_fullname(top_reviewer.user) }}
+	<span class="text-muted">
+		{{ frappe._('gave {0} points').format(frappe.utils.cint(top_reviewer.given_points)) }}
+	</span>
+</p>
+
+<hr style='margin: 20px 0px'>
+{% endif %}
+
+
+<h3>{{ _('Standings') }} ({{ _('Top {0}').format(standings|length) }}) </h3>
+
+<table class='table table-bordered'>
+	<tr>
+		<th> # </th>
+		<th style='width: 70%'>{{ frappe._('User') }}</th>
+		<th style='width: 15%'>{{ frappe._('Energy Points') }}</th>
+		<th style='width: 15%'>{{ frappe._('Points Given') }}</th>
+	</tr>
+	{% for user in standings %}
+	<tr>
+		<td>{{ loop.index }}</td>
+		<td>{{ frappe.get_fullname(user.user) }}</td>
+		<td>{{ frappe.utils.cint(user.energy_points) }}</td>
+		<td>{{ frappe.utils.cint(user.given_points) }}</td>
+	</tr>
+	{% endfor %}
+</table>
+
+<p class="text-muted">
+	{{ footer_message }}
+</p>

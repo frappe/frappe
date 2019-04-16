@@ -18,6 +18,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 	make: function () {
 		var me = this;
 
+		this.start = 0;
 		this.dialog = new frappe.ui.Dialog({
 			title: __("Select {0}", [(this.doctype == '[Select]') ? __("value") : __(this.doctype)]),
 			fields: [
@@ -27,10 +28,17 @@ frappe.ui.form.LinkSelector = Class.extend({
 				},
 				{
 					fieldtype: "HTML", fieldname: "results"
+				},
+				{
+					fieldtype: "Button", fieldname: "more", label: __("More"), click: () => {
+						me.start += 20;
+						me.search();
+					}
 				}
 			],
 			primary_action_label: __("Search"),
 			primary_action: function () {
+				me.start = 0;
 				me.search();
 			}
 		});
@@ -40,6 +48,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 
 		this.dialog.get_input("txt").on("keypress", function (e) {
 			if (e.which === 13) {
+				me.start = 0;
 				me.search();
 			}
 		});
@@ -49,7 +58,8 @@ frappe.ui.form.LinkSelector = Class.extend({
 	search: function () {
 		var args = {
 			txt: this.dialog.fields_dict.txt.get_value(),
-			searchfield: "name"
+			searchfield: "name",
+			start: this.start
 		};
 		var me = this;
 
@@ -66,7 +76,10 @@ frappe.ui.form.LinkSelector = Class.extend({
 
 		frappe.link_search(this.doctype, args, function (r) {
 			var parent = me.dialog.fields_dict.results.$wrapper;
-			parent.empty();
+			if (args.start === 0) {
+				parent.empty();
+			}
+
 			if (r.values.length) {
 				$.each(r.values, function (i, v) {
 					var row = $(repl('<div class="row link-select-row">\
@@ -108,6 +121,12 @@ frappe.ui.form.LinkSelector = Class.extend({
 						frappe.new_doc(me.doctype);
 					});
 			}
+
+			if (r.values.length < 20) {
+				var more_btn = me.dialog.fields_dict.more.$wrapper;
+				more_btn.hide();
+			}
+
 		}, this.dialog.get_primary_btn());
 
 	},
