@@ -197,7 +197,7 @@ frappe.request.call = function(opts) {
 		headers: Object.assign({
 			"X-Frappe-CSRF-Token": frappe.csrf_token,
 			"Accept": "application/json",
-			"X-Frappe-CMD": (opts.args && opts.args.cmd  || '') || ''
+			"X-Frappe-CMD": opts.get('args', {}).get('cmd', '')
 		}, opts.headers),
 		cache: false
 	};
