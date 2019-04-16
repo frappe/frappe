@@ -20,10 +20,9 @@ from datetime import datetime, timedelta
 from frappe.desk.form import assign_to
 from frappe.utils.user import get_system_managers
 from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts
+from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts, add_contact
 from frappe.utils.scheduler import log
 from frappe.utils.html_utils import clean_email_html
-
 
 class SentEmailInInbox(Exception): pass
 
@@ -386,6 +385,9 @@ class EmailAccount(Document):
 			users = list(set([ user.get("parent") for user in users ]))
 			communication._seen = json.dumps(users)
 
+		add_contact(communication=communication, recipients=email.mail.get("To"), \
+			cc=email.mail.get("CC"), sender=email.from_email)
+
 		communication.flags.in_receive = True
 		communication.insert(ignore_permissions = 1)
 
@@ -668,15 +670,6 @@ def notify_unreplied():
 		email_account = frappe.get_doc("Email Account", email_account.name)
 		if email_account.append_to:
 			# get open communications younger than x mins, for given doctype
-			#for comm in frappe.get_all("Communication", "name", filters=[
-			#		{"sent_or_received": "Received"},
-			#		{"reference_doctype": email_account.append_to},
-			#		{"unread_notification_sent": 0},
-			#		{"email_account":email_account.name},
-			#		{"creation": ("<", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60))},
-			#		{"creation": (">", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3))}
-			#	]):
-
 			fields = '''`tabCommunication`.name'''
 
 			filters = 	'''`tabCommunication`.sent_or_received='Received'

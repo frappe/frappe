@@ -190,12 +190,17 @@ class TestEmailAccount(unittest.TestCase):
 		 		comm_links.append(links)
 
 		# both communications attached to the same reference
-		for idx in range(0, int(len(comm_links)/2)):
-			self.assertEqual(comm_links[idx].link_doctype, comm_links[idx+1].link_doctype)
-			self.assertEqual(comm_links[idx].link_name, comm_links[idx+1].link_name)
+		counter = 0
+		for comm_link_1 in comm_links:
+			for comm_link_2 in comm_links:
+				if comm_link_1.link_doctype == comm_link_2.link_doctype and \
+					comm_link_1.link_name == comm_link_2.link_name:
+					counter += 1
+					break
+
+		self.assertEqual(len(comm_links), counter)
 
 	def test_threading_by_message_id(self):
-		#frappe.db.sql("""delete from tabCommunication""")
 		frappe.db.sql("""delete c.* from `tabCommunication` c inner join `tabDynamic Link` d on c.name=d.parent""")
 		frappe.db.sql("""delete from `tabEmail Queue`""")
 
@@ -224,6 +229,12 @@ class TestEmailAccount(unittest.TestCase):
 		 		comm_links.append(links)
 
 		# check if threaded correctly
-		for idx in range(0, int(len(comm_links)/2)):
-			self.assertEqual(comm_links[idx].link_doctype, comm_links[idx+1].link_doctype)
-			self.assertEqual(comm_links[idx].link_name, comm_links[idx+1].link_name)
+		counter = 0
+		for comm_link_1 in comm_links:
+			for comm_link_2 in comm_links:
+				if comm_link_1.link_doctype == comm_link_2.link_doctype and \
+					comm_link_1.link_name == comm_link_2.link_name:
+					counter += 1
+					break
+
+		self.assertEqual(len(comm_links), counter)

@@ -16,6 +16,7 @@ import frappe.email.smtp
 import time
 from frappe import _
 from frappe.utils.background_jobs import enqueue
+from email.utils import parseaddr
 
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
@@ -69,69 +70,17 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	})
 	comm.insert(ignore_permissions=True)
 
-	if recipients or cc or bcc:
-		email_addrs = []
-		dynamic_link = []
-
-		#link all contacts to the communication
-		email_addrs.append(frappe.session.user_email)
-
-		if recipients:
-			for email in recipients.split(","):
-				email_addrs.append(email.strip())
-
-		if cc:
-			for email in cc.split(","):
-				email_addrs.append(email.strip())
-
-		if bcc:
-			for email in bcc.split(","):
-				email_addrs.append(email.strip())
-
-		for email in email_addrs:
-			if email != None and email != "":
-				contact_name = None
-
-				if not frappe.get_list("Contact", filters={"email_id": email}, limit=1):
-					contact = frappe.get_doc({
-							"doctype": "Contact",
-							"first_name": email.split("@")[0],
-							"email_id": email
-						}).insert(ignore_permissions=True)
-					contact_name = contact.first_name
-
-				if not contact_name:
-					contact_name = frappe.get_list("Contact", filters={"email_id": email}, limit=1)[0].name
-
-				dynamic_link.append(
-					{
-						"link_doctype": "Contact",
-						"link_name": contact_name
-					}
-				)
+	add_contact(communication=comm, recipients=recipients, cc=cc, bcc=bcc)
 
 	if doctype:
 		#link doctype if present to the communication
 		link_doctype, link_name = doctype, name
-		dynamic_link.append(
-			{
-				"link_doctype": doctype,
-				"link_name": name
-			}
-		)
+		comm.add_link(link_doctype=doctype, link_name=name, no_save=True)
 	else:
 		#link to itself when no doctype
 		link_doctype, link_name = 'Communication', comm.name
-		dynamic_link.append(
-			{
-				"link_doctype": 'Communication',
-				"link_name": comm.name
-			}
-		)
+		comm.add_link(link_doctype='Communication', link_name=comm.name, no_save=True)
 
-	comm.update({
-		"dynamic_link": dynamic_link
-	})
 	comm.save(ignore_permissions=True)
 
 	if isinstance(attachments, string_types):
@@ -281,7 +230,7 @@ def get_recipients_cc_and_bcc(doc, recipients, cc, bcc, fetched_from_email_accou
 		original_recipients, recipients = recipients, []
 
 		# send email to the sender of the previous email in the thread which this email is a reply to
-		#provides erratic results and can send external
+		# provides erratic results and can send external
 		if doc.previous_email_sender:
 			recipients.append(doc.previous_email_sender)
 
@@ -621,3 +570,39 @@ def get_parent_doc(link_doctype, link_name):
 	if link_doctype and link_name:
 		parent_doc = frappe.get_doc(link_doctype, link_name)
 	return parent_doc if parent_doc else None
+
+def add_contact(communication, sender=None, recipients=None, cc=None, bcc=None):
+	email_addrs = []
+
+	#link all contacts to the communication
+	email_addrs.append(frappe.session.user_email)
+
+	if sender:
+		for email in sender.split(","):
+			email_addrs.append(parseaddr(email)[1])
+	if recipients:
+		for email in recipients.split(","):
+			email_addrs.append(parseaddr(email)[1])
+	if cc:
+		for email in cc.split(","):
+			email_addrs.append(parseaddr(email)[1])
+	if bcc:
+		for email in bcc.split(","):
+			email_addrs.append(parseaddr(email)[1])
+
+	for email in email_addrs:
+		if email != None and email != "":
+			contact_name = None
+
+			if not frappe.get_list("Contact", filters={"email_id": email}, limit=1):
+				contact = frappe.get_doc({
+						"doctype": "Contact",
+						"first_name": email.split("@")[0],
+						"email_id": email
+					}).insert(ignore_permissions=True)
+				contact_name = contact.first_name
+
+			if not contact_name:
+				contact_name = frappe.get_list("Contact", filters={"email_id": email}, limit=1)[0].name
+
+			communication.add_link(link_doctype="Contact", link_name=contact_name, no_save=True)
