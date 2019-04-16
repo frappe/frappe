@@ -145,7 +145,9 @@ def get_next_expected_date(date, timegrain):
 
 def get_period_ending(date, timegrain):
 	date = getdate(date)
-	if timegrain=='Weekly':
+	if timegrain=='Daily':
+		pass
+	elif timegrain=='Weekly':
 		date = get_week_ending(date)
 	elif timegrain=='Monthly':
 		date = get_month_ending(date)
@@ -153,6 +155,22 @@ def get_period_ending(date, timegrain):
 		date = get_quarter_ending(date)
 
 	return getdate(date)
+
+def get_period_beginning(date, timegrain):
+	if timegrain=='Daily':
+		return getdate(date)
+
+	ending = get_period_ending(date, timegrain)
+	beginning = None
+
+	if timegrain=='Weekly':
+		beginning = add_to_date(add_to_date(ending, weeks=-1), days = 1)
+	elif timegrain=='Monthly':
+		beginning = add_to_date(add_to_date(ending, months=-1), days = 1)
+	elif timegrain=='Quarterly':
+		beginning = add_to_date(add_to_date(ending, months=-3), days = 1)
+
+	return getdate(beginning)
 
 def get_week_ending(date):
 	# fun fact: week ends on the day before 1st Jan of the year.
