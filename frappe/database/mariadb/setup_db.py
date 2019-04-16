@@ -1,8 +1,7 @@
 from __future__ import unicode_literals
 
 import frappe
-import os
-import sys
+import os, sys
 from frappe.database.db_manager import DbManager
 
 expected_settings_10_2_earlier = {
@@ -32,11 +31,10 @@ def get_mariadb_versions():
 
 
 def setup_database(force, source_sql, verbose):
-	frappe.local.session = frappe._dict({'user': 'Administrator'})
+	frappe.local.session = frappe._dict({'user':'Administrator'})
 
 	db_name = frappe.local.conf.db_name
-	root_conn = get_root_connection(
-		frappe.flags.root_login, frappe.flags.root_password)
+	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
 	dbman = DbManager(root_conn)
 	if force or (db_name not in dbman.get_database_list()):
 		dbman.delete_user(db_name)
@@ -45,28 +43,22 @@ def setup_database(force, source_sql, verbose):
 		raise Exception("Database %s already exists" % (db_name,))
 
 	dbman.create_user(db_name, frappe.conf.db_password)
-	if verbose:
-		print("Created user %s" % db_name)
+	if verbose: print("Created user %s" % db_name)
 
 	dbman.create_database(db_name)
-	if verbose:
-		print("Created database %s" % db_name)
+	if verbose: print("Created database %s" % db_name)
 
 	dbman.grant_all_privileges(db_name, db_name)
 	dbman.flush_privileges()
-	if verbose:
-		print("Granted privileges to user %s and database %s" %
-			  (db_name, db_name))
+	if verbose: print("Granted privileges to user %s and database %s" % (db_name, db_name))
 
 	# close root connection
 	root_conn.close()
 
 	bootstrap_database(db_name, verbose, source_sql)
 
-
 def setup_help_database(help_db_name):
-	dbman = DbManager(get_root_connection(
-		frappe.flags.root_login, frappe.flags.root_password))
+	dbman = DbManager(get_root_connection(frappe.flags.root_login, frappe.flags.root_password))
 	dbman.drop_database(help_db_name)
 
 	# make database
@@ -75,19 +67,16 @@ def setup_help_database(help_db_name):
 			dbman.create_user(help_db_name, help_db_name)
 		except Exception as e:
 			# user already exists
-			if e.args[0] != 1396:
-				raise
+			if e.args[0] != 1396: raise
 		dbman.create_database(help_db_name)
 		dbman.grant_all_privileges(help_db_name, help_db_name)
 		dbman.flush_privileges()
-
 
 def drop_user_and_database(db_name, root_login, root_password):
 	frappe.local.db = get_root_connection(root_login, root_password)
 	dbman = DbManager(frappe.local.db)
 	dbman.delete_user(db_name)
 	dbman.drop_database(db_name)
-
 
 def bootstrap_database(db_name, verbose, source_sql=None):
 	frappe.connect(db_name=db_name)
@@ -101,18 +90,13 @@ def bootstrap_database(db_name, verbose, source_sql=None):
 			Check your mysql root password, or use --force to reinstall''')
 		sys.exit(1)
 
-
 def import_db_from_sql(source_sql=None, verbose=False):
-	if verbose:
-		print("Starting database import...")
+	if verbose: print("Starting database import...")
 	db_name = frappe.conf.db_name
 	if not source_sql:
-		source_sql = os.path.join(os.path.dirname(
-			__file__), 'framework_mariadb.sql')
-	DbManager(frappe.local.db).restore_database(
-		db_name, source_sql, db_name, frappe.conf.db_password)
-	if verbose:
-		print("Imported from database %s" % source_sql)
+		source_sql = os.path.join(os.path.dirname(__file__), 'framework_mariadb.sql')
+	DbManager(frappe.local.db).restore_database(db_name, source_sql, db_name, frappe.conf.db_password)
+	if verbose: print("Imported from database %s" % source_sql)
 
 
 def check_database_settings():
@@ -154,8 +138,7 @@ def get_root_connection(root_login, root_password):
 		if not root_password:
 			root_password = getpass.getpass("MySQL root password: ")
 
-		frappe.local.flags.root_connection = frappe.database.get_db(
-			user=root_login, password=root_password)
+		frappe.local.flags.root_connection = frappe.database.get_db(user=root_login, password=root_password)
 
 	return frappe.local.flags.root_connection
 
