@@ -741,9 +741,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		let out = {};
 
 		const standard_fields_filter = df =>
-			!in_list(frappe.model.no_value_type, df.fieldtype) &&
-			!df.report_hide && df.fieldname !== 'naming_series' &&
-			!df.hidden;
+			!in_list(frappe.model.no_value_type, df.fieldtype) && !df.report_hide;
 
 		let doctype_fields = frappe.meta.get_docfields(this.doctype).filter(standard_fields_filter);
 
