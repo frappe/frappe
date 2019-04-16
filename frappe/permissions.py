@@ -395,7 +395,7 @@ def set_user_permission_if_allowed(doctype, name, user, with_message=False):
 	if get_role_permissions(frappe.get_meta(doctype), user).set_user_permissions!=1:
 		add_user_permission(doctype, name, user)
 
-def add_user_permission(doctype, name, user, ignore_permissions=False, applicable_for=None):
+def add_user_permission(doctype, name, user, is_default=False, ignore_permissions=False, applicable_for=None):
 	'''Add user permission'''
 	from frappe.core.doctype.user_permission.user_permission import user_permission_exists
 
@@ -408,6 +408,7 @@ def add_user_permission(doctype, name, user, ignore_permissions=False, applicabl
 			user=user,
 			allow=doctype,
 			for_value=name,
+			is_default=is_default,
 			applicable_for=applicable_for,
 		)).insert(ignore_permissions=ignore_permissions)
 
