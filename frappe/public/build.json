@@ -153,8 +153,7 @@
 		"public/js/lib/leaflet/leaflet.js",
 		"public/js/lib/leaflet/leaflet.draw.js",
 		"public/js/lib/leaflet/L.Control.Locate.js",
-		"public/js/lib/leaflet/easy-button.js",
-		"node_modules/qz-tray/qz-tray.js"
+		"public/js/lib/leaflet/easy-button.js"
 	],
 	"js/desk.min.js": [
 		"public/js/frappe/class.js",
