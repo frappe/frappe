@@ -145,7 +145,9 @@ def get_next_expected_date(date, timegrain):
 
 def get_period_ending(date, timegrain):
 	date = getdate(date)
-	if timegrain=='Weekly':
+	if timegrain=='Daily':
+		pass
+	elif timegrain=='Weekly':
 		date = get_week_ending(date)
 	elif timegrain=='Monthly':
 		date = get_month_ending(date)

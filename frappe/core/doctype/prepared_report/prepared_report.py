@@ -37,6 +37,15 @@ class PreparedReport(Document):
 
 def run_background(instance):
 	report = frappe.get_doc("Report", instance.ref_report_doctype)
+
+	report.custom_columns = []
+
+	if report.report_type == 'Custom Report':
+		custom_report_doc = report
+		reference_report = custom_report_doc.reference_report
+		report = frappe.get_doc("Report", reference_report)
+		report.custom_columns = custom_report_doc.json
+
 	result = generate_report_result(report, filters=instance.filters, user=instance.owner)
 	create_json_gz_file(result['result'], 'Prepared Report', instance.name)
 
