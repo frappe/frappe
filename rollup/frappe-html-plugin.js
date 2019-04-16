@@ -19,7 +19,7 @@ module.exports = function frappe_html() {
 			var content = scrub_html_template(code);
 
 			return `
-				frappe.templates['${key}'] = '${content}';
+				frappe.templates['${key}'] = \`${content}\`;
 			`;
 		}
 	};
