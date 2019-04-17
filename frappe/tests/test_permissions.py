@@ -86,7 +86,7 @@ class TestPermissions(unittest.TestCase):
 		self.assertFalse(doc.get("blog_category"))
 
 		# Fetch default based on single user permission
-		add_user_permission("Blog Category", "_Test Blog Category 1", "test2@example.com", is_default=True)
+		add_user_permission("Blog Category", "_Test Blog Category 1", "test2@example.com", is_default=1)
 
 		frappe.set_user("test2@example.com")
 		doc = frappe.new_doc("Blog Post")

@@ -9,14 +9,12 @@ import unittest
 
 class TestUserPermission(unittest.TestCase):
 	def test_default_user_permission(self):
-		user = create_user('test_bulk_creation_update@example.com')
-		param = get_params(user, 'User', user.name, True)
+		user = create_user('test_default_permission@example.com')
+		param = get_params(user, 'User', user.name, is_default=1)
 		add_user_permissions(param)
-
 		#create a duplicate entry with default
-		perm_user = create_user('test_perm@example.com')
-
-		param = get_params(user, 'User', perm_user.name, True)
+		perm_user = create_user('test_user_perm@example.com')
+		param = get_params(user, 'User', perm_user.name, is_default=1)
 		self.assertRaises(frappe.ValidationError, add_user_permissions, param)
 
 	def test_apply_to_all(self):
@@ -57,17 +55,18 @@ class TestUserPermission(unittest.TestCase):
 		self.assertIsNone(removed_applicable_second)
 		self.assertEquals(created, 1)
 
-def create_user(user):
-	if frappe.db.exists('User', user):
-		return frappe.get_doc('User', user)
+def create_user(email):
+	''' create user with role system manager '''
+	if frappe.db.exists('User', email):
+		return frappe.get_doc('User', email)
 	else:
 		user = frappe.new_doc('User')
-		user.email = user
-		user.first_name = user.split("@")[0]
+		user.email = email
+		user.first_name = email.split("@")[0]
 		user.add_roles("System Manager")
 		return user
 
-def get_params(user, doctype, docname, is_default=False, applicable=None):
+def get_params(user, doctype, docname, is_default=0, applicable=None):
 	''' Return param to insert '''
 	param = {
 		"user": user.name,
