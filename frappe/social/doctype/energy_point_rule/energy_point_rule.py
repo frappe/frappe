@@ -4,11 +4,18 @@
 
 from __future__ import unicode_literals
 import frappe
+import frappe.cache_manager
 from frappe.model.document import Document
 from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
 from frappe.social.doctype.energy_point_log.energy_point_log import create_energy_points_log
 
 class EnergyPointRule(Document):
+	def on_update(self):
+		frappe.cache_manager.clear_doctype_map('Energy Point Rule', self.name)
+
+	def on_trash(self):
+		frappe.cache_manager.clear_doctype_map('Energy Point Rule', self.name)
+
 	def apply(self, doc):
 		if frappe.safe_eval(self.condition, None, {'doc': doc.as_dict()}):
 			multiplier = 1
@@ -41,14 +48,9 @@ class EnergyPointRule(Document):
 def process_energy_points(doc, state):
 	if frappe.flags.in_patch or frappe.flags.in_install or not is_energy_point_enabled():
 		return
-	# TODO: cache properly
-	# energy_point_doctypes = frappe.cache().get_value('energy_point_doctypes', get_energy_point_doctypes)
-	# if doc.doctype in energy_point_doctypes:
-	rules = frappe.get_all('Energy Point Rule', filters={
-		'reference_doctype': doc.doctype,
-		'enabled': 1
-	})
-	for d in rules:
+
+	for d in frappe.cache_manager.get_doctype_map('Energy Point Rule', doc.doctype,
+		dict(reference_doctype = doc.doctype, enabled=1)):
 		frappe.get_doc('Energy Point Rule', d.name).apply(doc)
 
 def get_energy_point_doctypes():
