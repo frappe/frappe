@@ -89,6 +89,27 @@ def read_doc_from_file(path):
 	else:
 		raise IOError('%s missing' % path)
 
+	# set order of fields from field_order
+	if doc.get("doctype") == "DocType":
+		if doc.get("field_order") and doc.get("fields"):
+			new_field_dicts = []
+			remaining_field_names = [f['fieldname'] for f in doc['fields']]
+
+			for fieldname in doc['field_order']:
+				field_dict = filter(lambda d: d['fieldname'] == fieldname, doc['fields'])
+				if field_dict:
+					new_field_dicts.append(field_dict[0])
+					remaining_field_names.remove(fieldname)
+
+			for fieldname in remaining_field_names:
+				field_dict = filter(lambda d: d['fieldname'] == fieldname, doc['fields'])
+				new_field_dicts.append(field_dict[0])
+
+			doc['fields'] = new_field_dicts
+
+		if "field_order" in doc:
+			del doc['field_order']
+
 	return doc
 
 ignore_doctypes = [""]
