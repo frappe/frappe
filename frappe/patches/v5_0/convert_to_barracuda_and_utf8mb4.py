@@ -1,10 +1,10 @@
 from __future__ import unicode_literals
 import frappe
-from frappe.database.mariadb.setup_db import check_if_ready_for_barracuda
+from frappe.database.mariadb.setup_db import check_database_settings
 from frappe.model.meta import trim_tables
 
 def execute():
-	check_if_ready_for_barracuda()
+	check_database_settings()
 
 	for table in frappe.db.get_tables():
 		frappe.db.sql_ddl("""alter table `{0}` ENGINE=InnoDB ROW_FORMAT=COMPRESSED""".format(table))
