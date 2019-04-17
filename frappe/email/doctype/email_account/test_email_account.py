@@ -135,7 +135,6 @@ class TestEmailAccount(unittest.TestCase):
 			content="test mail 001", subject="test-mail-002", doctype="Email Account",
 			name="_Test Email Account 1", print_format="Standard", send_email=True)
 
-		k = frappe.get_last_doc("Email Queue")
 		sent_mail = email.message_from_string(frappe.get_last_doc("Email Queue").message)
 		self.assertTrue("test-mail-002" in sent_mail.get("Subject"))
 
