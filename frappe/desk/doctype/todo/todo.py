@@ -109,3 +109,15 @@ def new_todo(description):
 		'doctype': 'ToDo',
 		'description': description
 	}).insert()
+
+
+@frappe.whitelist()
+def recurring(todo, start_date, end_date, frequency):
+	frappe.get_doc({
+		'doctype': 'Auto Repeat',
+		'reference_doctype': 'ToDo',
+		'reference_document': todo,
+		'start_date': start_date,
+		'end_date': end_date,
+		'frequency': frequency
+	}).insert().submit()
