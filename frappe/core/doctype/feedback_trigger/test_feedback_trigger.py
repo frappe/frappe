@@ -63,14 +63,13 @@ class TestFeedbackTrigger(unittest.TestCase):
 		self.assertFalse(email_queue)
 
 		# add a communication
-		frappe.get_doc({
-			"reference_doctype": "ToDo",
-			"reference_name": todo.name,
+		comm = frappe.get_doc({
+			"doctype": "Communication"
 			"communication_type": "Communication",
 			"content": "Test Communication",
 			"subject": "Test Communication",
-			"doctype": "Communication"
 		}).insert(ignore_permissions=True)
+		comm.add_link(link_doctype="ToDo", link_name=todo.name)
 
 		# check if feedback mail alert is triggered
 		todo.reload()
@@ -98,9 +97,14 @@ class TestFeedbackTrigger(unittest.TestCase):
 		self.assertTrue(result)
 
 		# test if feedback is saved in Communication
-		docname = frappe.db.get_value("Communication", {
+
+		comm_link_name = frappe.get_list("Dynamic Link", filters={
 			"reference_doctype": "ToDo",
 			"reference_name": todo.name,
+		}, fields=["parent"])[0].parent
+
+		docname = frappe.get_list("Communication", filters={
+			"name": comm_link_name,
 			"communication_type": "Feedback",
 			"feedback_request": feedback_request
 		})
@@ -122,10 +126,9 @@ class TestFeedbackTrigger(unittest.TestCase):
 		frappe.delete_doc("ToDo", todo.name)
 
 		# test if feedback requests and feedback communications are deleted?
-		communications = frappe.get_all("Communication", {
-			"reference_doctype": "ToDo",
-			"reference_name": todo.name,
-			"communication_type": "Feedback"
+		communications = frappe.get_all("Dynamic Link", {
+			"link_doctype": "ToDo",
+			"link_name": todo.name,
 		})
 		self.assertFalse(communications)
 

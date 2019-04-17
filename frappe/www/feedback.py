@@ -11,7 +11,7 @@ def get_context(context):
 
 	if not all([reference_name, reference_doctype]) or \
 		not frappe.db.get_value(reference_doctype, reference_name):
-		
+
 		return {
 			"is_valid_request": False,
 			"error_message": "Invalid reference doctype and reference name"
@@ -20,7 +20,7 @@ def get_context(context):
 	communications = frappe.get_all("Communication", filters={
 		"reference_doctype": reference_doctype,
 		"reference_name": reference_name,
-		"communication_type": "Communication"	
+		"communication_type": "Communication"
 	}, fields=["*"], limit_page_length=10, order_by="creation desc")
 
 	return {
@@ -56,12 +56,11 @@ def accept(key, sender, reference_doctype, reference_name, feedback, rating, ful
 			"sender": sender or "Guest",
 			"sent_or_received": "Received",
 			"communication_type": "Feedback",
-			"reference_name": reference_name,
 			"sender_full_name": fullname or "",
 			"feedback_request": feedback_request,
-			"reference_doctype": reference_doctype,
 			"subject": "Feedback for {0} {1}".format(reference_doctype, reference_name),
 		}).insert(ignore_permissions=True)
+		communication.add_link(link_doctype=reference_doctype, link_name=reference_name)
 
 		doc = frappe.get_doc("Feedback Request", feedback_request)
 		doc.is_feedback_submitted = 1
