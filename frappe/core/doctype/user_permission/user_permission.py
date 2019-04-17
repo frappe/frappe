@@ -42,24 +42,15 @@ class UserPermission(Document):
 		''' validate user permission overlap for default value of a particular doctype '''
 		overlap_exists = []
 		if self.is_default:
-			overlap_exists = frappe.db.sql("""
-				SELECT
-					name
-				FROM `tabUser Permission`
-				WHERE
-					allow=%(allow)s
-					AND user=%(user)s
-					AND is_default=1
-					AND name!=%(name)s
-					AND (applicable_for=%(applicable_for)s
-					OR apply_to_all_doctypes=1)
-				LIMIT 1
-			""", {
+			overlap_exists = frappe.get_all(self.doctype, filters={
 				'allow': self.allow,
 				'user': self.user,
-				'applicable_for': self.applicable_for,
-				'name': self.name
-			}, as_dict=1)
+				'is_default': 1,
+				'name': ['!=', self.name]
+			}, or_filters={
+				'applicable_for': cstr(self.applicable_for),
+				'apply_to_all_doctypes': 1
+			}, limit=1)
 		if overlap_exists:
 			frappe.throw(_("User permission {0} has already assigned default vaue for {1}.".format(overlap_exists[0].name, self.allow)))
 
