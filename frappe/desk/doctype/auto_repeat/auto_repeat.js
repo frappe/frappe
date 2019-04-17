@@ -13,7 +13,6 @@ frappe.ui.form.on('Auto Repeat', {
 		frm.fields_dict['reference_document'].get_query = function() {
 			return {
 				filters: {
-					"docstatus": 1,
 					"auto_repeat": ''
 				}
 			};
