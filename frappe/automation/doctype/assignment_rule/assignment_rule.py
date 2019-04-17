@@ -7,13 +7,14 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.desk.form import assign_to
+import frappe.cache_manager
 
 class AssignmentRule(Document):
 	def on_update(self): # pylint: disable=no-self-use
-		frappe.cache().delete_value('assignment_rule')
+		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.name)
 
 	def after_rename(self): # pylint: disable=no-self-use
-		frappe.cache().delete_value('assignment_rule')
+		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.name)
 
 	def apply_unassign(self, doc, assignments):
 		if (self.unassign_condition and
@@ -113,14 +114,14 @@ def apply(doc, method):
 	if frappe.flags.in_patch or frappe.flags.in_install:
 		return
 
-	assignment_rules = frappe.cache().get_value('assignment_rule', get_assignment_rules)
+	assignment_rules = frappe.cache_manager.get_doctype_map('Assignment Rule', doc.doctype, dict(
+		document_type = doc.doctype, disabled = 0), order_by = 'priority desc')
+
 	assignment_rule_docs = []
 
-	# build rules
-	if doc.doctype in assignment_rules:
-		# multiple auto assigns
-		for d in frappe.db.get_all('Assignment Rule', dict(document_type=doc.doctype, disabled = 0), order_by = 'priority desc'):
-			assignment_rule_docs.append(frappe.get_doc('Assignment Rule', d.name))
+	# multiple auto assigns
+	for d in assignment_rules:
+		assignment_rule_docs.append(frappe.get_doc('Assignment Rule', d.name))
 
 	if not assignment_rule_docs:
 		return
