@@ -460,13 +460,13 @@ class DocType(Document):
 			remaining_field_names = [f['fieldname'] for f in docdict.get('fields', [])]
 
 			for fieldname in docdict.get('field_order'):
-				field_dict = filter(lambda d: d['fieldname'] == fieldname, docdict.get('fields', []))
+				field_dict = list(filter(lambda d: d['fieldname'] == fieldname, docdict.get('fields', [])))
 				if field_dict:
 					new_field_dicts.append(field_dict[0])
 					remaining_field_names.remove(fieldname)
 
 			for fieldname in remaining_field_names:
-				field_dict = filter(lambda d: d['fieldname'] == fieldname, docdict.get('fields', []))
+				field_dict = list(filter(lambda d: d['fieldname'] == fieldname, docdict.get('fields', [])))
 				new_field_dicts.append(field_dict[0])
 
 			docdict['fields'] = new_field_dicts
