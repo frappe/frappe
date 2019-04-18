@@ -187,6 +187,8 @@ def send_workflow_action_email(users_data, doc):
 				'actions': d.get('possible_actions'),
 				'message': message
 			},
+			'reference_name': doc.name,
+			'reference_doctype': doc.doctype
 		}
 		email_args.update(common_args)
 		enqueue(method=frappe.sendmail, queue='short', **email_args)

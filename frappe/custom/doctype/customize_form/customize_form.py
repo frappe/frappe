@@ -149,6 +149,7 @@ class CustomizeForm(Document):
 			return
 
 		self.flags.update_db = False
+		self.flags.rebuild_doctype_for_global_search = False
 
 		self.set_property_setters()
 		self.update_custom_fields()
@@ -163,6 +164,10 @@ class CustomizeForm(Document):
 			frappe.msgprint(_("{0} updated").format(_(self.doc_type)))
 		frappe.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()
+
+		if self.flags.rebuild_doctype_for_global_search:
+			frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype',
+				now=True, doctype=self.doc_type)
 
 	def set_property_setters(self):
 		meta = frappe.get_meta(self.doc_type)
@@ -223,6 +228,10 @@ class CustomizeForm(Document):
 					elif property == 'translatable' and not supports_translation(df.get('fieldtype')):
 						frappe.msgprint(_("You can't set 'Translatable' for field {0}").format(df.label))
 						continue
+
+					elif (property == 'in_global_search' and
+						df.in_global_search != meta_df[0].get("in_global_search")):
+						self.flags.rebuild_doctype_for_global_search = True
 
 					self.make_property_setter(property=property, value=df.get(property),
 						property_type=docfield_properties[property], fieldname=df.fieldname)
