@@ -4,8 +4,9 @@
 from __future__ import unicode_literals, print_function
 
 import frappe, os, json
-from frappe.modules import get_module_path, scrub_dt_dn
+from frappe.modules import get_module_path, scrub_dt_dn, load_doctype_module
 from frappe.utils import get_datetime_str
+from frappe.model.base_document import get_controller
 
 ignore_values = {
 	"Report": ["disabled", "prepared_report"],
@@ -89,27 +90,6 @@ def read_doc_from_file(path):
 	else:
 		raise IOError('%s missing' % path)
 
-	# set order of fields from field_order
-	if doc.get("doctype") == "DocType":
-		if doc.get("field_order") and doc.get("fields"):
-			new_field_dicts = []
-			remaining_field_names = [f['fieldname'] for f in doc['fields']]
-
-			for fieldname in doc['field_order']:
-				field_dict = filter(lambda d: d['fieldname'] == fieldname, doc['fields'])
-				if field_dict:
-					new_field_dicts.append(field_dict[0])
-					remaining_field_names.remove(fieldname)
-
-			for fieldname in remaining_field_names:
-				field_dict = filter(lambda d: d['fieldname'] == fieldname, doc['fields'])
-				new_field_dicts.append(field_dict[0])
-
-			doc['fields'] = new_field_dicts
-
-		if "field_order" in doc:
-			del doc['field_order']
-
 	return doc
 
 ignore_doctypes = [""]
@@ -118,7 +98,14 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 		ignore_version=None, reset_permissions=False):
 	frappe.flags.in_import = True
 	docdict["__islocal"] = 1
+
+	controller = get_controller(docdict['doctype'])
+	if controller and hasattr(controller, 'prepare_docdict_for_import') and callable(getattr(controller, 'prepare_docdict_for_import')):
+		controller.prepare_docdict_for_import(docdict)
+
 	doc = frappe.get_doc(docdict)
+
+	doc.run_method("before_import")
 
 	doc.flags.ignore_version = ignore_version
 	if pre_process:
