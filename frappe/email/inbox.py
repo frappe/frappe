@@ -145,7 +145,7 @@ def make_lead_from_communication(communication, ignore_communication_links=False
 	lead_name = None
 	if doc.sender:
 		lead_name = frappe.db.get_value("Lead", {"email_id": doc.sender})
-	if not lead_name and doc.mobile_no:
+	if not lead_name and doc.phone_no:
 		lead_name = frappe.db.get_value("Lead", {"mobile_no": doc.phone_no})
 	if not lead_name:
 		lead = frappe.get_doc({
