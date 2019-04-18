@@ -115,38 +115,28 @@ frappe.views.InteractionComposer = class InteractionComposer {
 	}
 
 	setup_attach() {
-		let fields = this.dialog.fields_dict;
-		let attach = $(fields.select_attachments.wrapper);
+		var fields = this.dialog.fields_dict;
+		var attach = $(fields.select_attachments.wrapper);
 
-		let me = this;
-		if (!me.attachments){
-			me.attachments = [];
+		if (!this.attachments) {
+			this.attachments = [];
 		}
 
 		let args = {
-			args: {
-				from_form: 1,
-				folder:"Home/Attachments"
-			},
-			callback: function(attachment){
-				me.attachments.push(attachment);
-			},
-			max_width: null,
-			max_height: null
+			folder: 'Home/Attachments',
+			on_success: attachment => this.attachments.push(attachment)
 		};
 
-		if(me.frm) {
+		if (this.frm) {
 			args = {
-				args: (me.frm.attachments.get_args
-					? me.frm.attachments.get_args()
-					: { from_form: 1,folder:"Home/Attachments" }),
-				callback: function(attachment, r){
-					me.frm.attachments.attachment_uploaded(attachment, r);
-				},
-				max_width: me.frm.cscript ? me.frm.cscript.attachment_max_width : null,
-				max_height: me.frm.cscript ? me.frm.cscript.attachment_max_height : null
+				doctype: this.frm.doctype,
+				docname: this.frm.docname,
+				folder: 'Home/Attachments',
+				on_success: attachment => {
+					this.frm.attachments.attachment_uploaded(attachment);
+					this.render_attach();
+				}
 			};
-
 		}
 
 		$("<h6 class='text-muted add-attachment' style='margin-top: 12px; cursor:pointer;'>"
@@ -154,11 +144,10 @@ frappe.views.InteractionComposer = class InteractionComposer {
 			<p class='add-more-attachments'>\
 			<a class='text-muted small'><i class='octicon octicon-plus' style='font-size: 12px'></i> "
 			+__("Add Attachment")+"</a></p>").appendTo(attach.empty());
-		attach.find(".add-more-attachments a").on('click',this,function() {
-			me.upload = frappe.ui.get_upload_dialog(args);
-		});
-		me.render_attach();
-
+		attach
+			.find(".add-more-attachments a")
+			.on('click',() => new frappe.ui.FileUploader(args));
+		this.render_attach();
 	}
 
 	render_attach(){
