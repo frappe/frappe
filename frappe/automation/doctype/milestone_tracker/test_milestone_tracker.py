@@ -9,7 +9,7 @@ import unittest
 class TestMilestoneTracker(unittest.TestCase):
 	def test_milestone(self):
 		frappe.db.sql('delete from `tabMilestone Tracker`')
-		tracker = frappe.get_doc(dict(
+		frappe.get_doc(dict(
 			doctype = 'Milestone Tracker',
 			document_type = 'ToDo',
 			track_field = 'status'
