@@ -828,11 +828,6 @@ class Document(BaseDocument):
 			elif alert.event=='Method' and method == alert.method:
 				_evaluate_alert(alert)
 
-	@staticmethod
-	def whitelist(f):
-		f.whitelisted = True
-		return f
-
 	@whitelist.__func__
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
