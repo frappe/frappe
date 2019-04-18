@@ -58,12 +58,12 @@ class AutoEmailReport(Document):
 		'''Returns file in for the report in given format'''
 		report = frappe.get_doc('Report', self.report)
 
-		self.filters = json.loads(self.filters) if self.filters else {}
+		self.filters = frappe.parse_json(self.filters) if self.filters else {}
 
 		if self.report_type=='Report Builder' and self.data_modified_till:
 			self.filters['modified'] = ('>', now_datetime() - timedelta(hours=self.data_modified_till))
 
-		if self.report_type != 'Report Builder' and self.dynamic_date_period and self.from_date_field and self.to_date_field:
+		if self.report_type != 'Report Builder' and self.dynamic_date_filters_set():
 			to_date = today()
 			from_date_value = {
 				'Daily': ('days', -1),
@@ -166,6 +166,9 @@ class AutoEmailReport(Document):
 			reference_doctype = self.doctype,
 			reference_name = self.name
 		)
+
+	def dynamic_date_filters_set(self):
+		return self.dynamic_date_period and self.from_date_field and self.to_date_field
 
 @frappe.whitelist()
 def download(name):
