@@ -18,6 +18,7 @@ from frappe.modules import make_boilerplate, get_doc_path
 from frappe.model.db_schema import validate_column_name, validate_column_length, type_map
 from frappe.model.docfield import supports_translation
 from frappe.modules.import_file import get_file_path
+from six import iteritems
 import frappe.website.render
 import json
 
@@ -393,6 +394,21 @@ class DocType(Document):
 				make_property_setter(self.name, "naming_series", "default", naming_series[0].default, "Text", validate_fields_for_doctype=False)
 
 	def before_export(self, docdict):
+		# remove null and empty fields
+		def remove_null_fields(o):
+			to_remove = []
+			for attr, value in iteritems(o):
+				if isinstance(value, list):
+					for v in value:
+						remove_null_fields(v)
+				elif not value:
+					to_remove.append(attr)
+
+			for attr in to_remove:
+				del o[attr]
+
+		remove_null_fields(docdict)
+
 		# retain order of 'fields' table and change order in 'field_order'
 		docdict["field_order"] = [f.fieldname for f in self.fields]
 

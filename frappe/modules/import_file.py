@@ -4,7 +4,7 @@
 from __future__ import unicode_literals, print_function
 
 import frappe, os, json
-from frappe.modules import get_module_path, scrub_dt_dn, load_doctype_module
+from frappe.modules import get_module_path, scrub_dt_dn
 from frappe.utils import get_datetime_str
 from frappe.model.base_document import get_controller
 
