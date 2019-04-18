@@ -491,7 +491,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const first_row = rows[0];
 		const has_total_row = this.raw_data.add_total_row;
 
-		const indices = first_row.reduce((accumulator, current_value, current_index) => {
+		console.log(first_row)
+
+		const indices = [first_row].reduce((accumulator, current_value, current_index) => {
 			if(!isNaN(Number(current_value))) {
 				accumulator.push(current_index);
 			}
