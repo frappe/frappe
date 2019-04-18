@@ -17,7 +17,9 @@ from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate, get_doc_path
 from frappe.database.schema import validate_column_name, validate_column_length
 from frappe.model.docfield import supports_translation
+from frappe.modules.import_file import get_file_path
 import frappe.website.render
+import json
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 
@@ -403,6 +405,57 @@ class DocType(Document):
 			make_property_setter(self.name, "naming_series", "options", naming_series[0].options, "Text", validate_fields_for_doctype=False)
 			if naming_series[0].default:
 				make_property_setter(self.name, "naming_series", "default", naming_series[0].default, "Text", validate_fields_for_doctype=False)
+
+	def before_export(self, docdict):
+		# retain order of 'fields' table and change order in 'field_order'
+		docdict["field_order"] = [f.fieldname for f in self.fields]
+
+		path = get_file_path(self.module, "DocType", self.name)
+		if os.path.exists(path):
+			try:
+				with open(path, 'r') as txtfile:
+					olddoc = json.loads(txtfile.read())
+
+				old_field_names = [f['fieldname'] for f in olddoc.get("fields", [])]
+				if old_field_names:
+					new_field_dicts = []
+					remaining_field_names = [f.fieldname for f in self.fields]
+
+					for fieldname in old_field_names:
+						field_dict = filter(lambda d: d['fieldname'] == fieldname, docdict['fields'])
+						if field_dict:
+							new_field_dicts.append(field_dict[0])
+							remaining_field_names.remove(fieldname)
+
+					for fieldname in remaining_field_names:
+						field_dict = filter(lambda d: d['fieldname'] == fieldname, docdict['fields'])
+						new_field_dicts.append(field_dict[0])
+
+					docdict['fields'] = new_field_dicts
+			except ValueError:
+				pass
+
+	@staticmethod
+	def prepare_docdict_for_import(docdict):
+		# set order of fields from field_order
+		if docdict.get("field_order"):
+			new_field_dicts = []
+			remaining_field_names = [f['fieldname'] for f in docdict.get('fields', [])]
+
+			for fieldname in docdict.get('field_order'):
+				field_dict = filter(lambda d: d['fieldname'] == fieldname, docdict.get('fields', []))
+				if field_dict:
+					new_field_dicts.append(field_dict[0])
+					remaining_field_names.remove(fieldname)
+
+			for fieldname in remaining_field_names:
+				field_dict = filter(lambda d: d['fieldname'] == fieldname, docdict.get('fields', []))
+				new_field_dicts.append(field_dict[0])
+
+			docdict['fields'] = new_field_dicts
+
+		if "field_order" in docdict:
+			del docdict["field_order"]
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/doctype/[name]/[name].json`."""
