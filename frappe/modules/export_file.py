@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 import frappe, os
 import frappe.model
 from frappe.modules import scrub, get_module_path, scrub_dt_dn
-import json
 
 def export_doc(doc):
 	export_to_files([[doc.doctype, doc.name]])
