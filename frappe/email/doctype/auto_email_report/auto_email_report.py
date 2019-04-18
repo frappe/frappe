@@ -12,7 +12,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import (format_time, get_link_to_form, get_url_to_report,
-	global_date_format, now, now_datetime, validate_email_address)
+	global_date_format, now, now_datetime, validate_email_address, today, add_to_date)
 from frappe.utils.csvutils import to_csv
 from frappe.utils.xlsxutils import make_xlsx
 
@@ -58,9 +58,26 @@ class AutoEmailReport(Document):
 		'''Returns file in for the report in given format'''
 		report = frappe.get_doc('Report', self.report)
 
+		self.filters = json.loads(self.filters) if self.filters else {}
+
 		if self.report_type=='Report Builder' and self.data_modified_till:
-			self.filters = json.loads(self.filters) if self.filters else {}
 			self.filters['modified'] = ('>', now_datetime() - timedelta(hours=self.data_modified_till))
+
+		if self.report_type != 'Report Builder' and self.dynamic_date_period and self.from_date_field and self.to_date_field:
+			to_date = today()
+			from_date_value = {
+				'Daily': ('days', -1),
+				'Weekly': ('weeks', -1),
+				'Monthly': ('months', -1),
+				'Quarterly': ('months', -3),
+				'Half Yearly': ('months', -6),
+				'Yearly': ('years', -1)
+			}[self.dynamic_date_period]
+
+			from_date = add_to_date(to_date, **{from_date_value[0]: from_date_value[1]})
+
+			self.filters[self.from_date_field] = from_date
+			self.filters[self.to_date_field] = to_date
 
 		columns, data = report.get_data(limit=self.no_of_rows or 100, user = self.user,
 			filters = self.filters, as_dict=True)
