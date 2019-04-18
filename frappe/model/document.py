@@ -117,6 +117,12 @@ class Document(BaseDocument):
 			# incorrect arguments. let's not proceed.
 			raise ValueError('Illegal arguments')
 
+	@staticmethod
+	def whitelist(f):
+		"""Decorator: Whitelist method to be called remotely via REST API."""
+		f.whitelisted = True
+		return f
+
 	def reload(self):
 		"""Reload document from database"""
 		self.load_from_db()
@@ -1007,12 +1013,6 @@ class Document(BaseDocument):
 			version.insert(ignore_permissions=True)
 			if not frappe.flags.in_migrate:
 				follow_document(self.doctype, self.name, frappe.session.user)
-
-	@staticmethod
-	def whitelist(f):
-		"""Decorator: Whitelist method to be called remotely via REST API."""
-		f.whitelisted = True
-		return f
 
 	@staticmethod
 	def hook(f):
