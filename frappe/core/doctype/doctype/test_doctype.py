@@ -106,7 +106,7 @@ class TestDocType(unittest.TestCase):
 				if condition:
 					self.assertFalse(re.match(pattern, condition))
 
-	def test_load_file_field_order(self):
+	def test_sync_field_order(self):
 		from frappe.modules.import_file import get_file_path
 		import os
 

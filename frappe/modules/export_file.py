@@ -24,6 +24,7 @@ def export_to_files(record_list=None, record_module=None, verbose=0, create_init
 
 def write_document_file(doc, record_module=None, create_init=True):
 	newdoc = doc.as_dict(no_nulls=True)
+	doc.run_method("before_export", newdoc)
 
 	# strip out default fields from children
 	for df in doc.meta.get_table_fields():
@@ -39,35 +40,7 @@ def write_document_file(doc, record_module=None, create_init=True):
 
 	# write the data file
 	fname = scrub(doc.name)
-	with open(os.path.join(folder, fname + ".json"), 'a+') as txtfile:
-		# if exporting DocType, retain order of 'fields' table and change order in 'field_order'
-		if doc.doctype == "DocType":
-			newdoc["field_order"] = [f.fieldname for f in doc.fields]
-
-			try:
-				olddoc = json.loads(txtfile.read())
-				old_field_names = [f['fieldname'] for f in olddoc.get("fields", [])]
-
-				if old_field_names:
-					new_field_dicts = []
-					remaining_field_names = [f.fieldname for f in doc.fields]
-
-					for fieldname in old_field_names:
-						field_dict = filter(lambda d: d['fieldname'] == fieldname, newdoc['fields'])
-						if field_dict:
-							new_field_dicts.append(field_dict[0])
-							remaining_field_names.remove(fieldname)
-
-					for fieldname in remaining_field_names:
-						field_dict = filter(lambda d: d['fieldname'] == fieldname, newdoc['fields'])
-						new_field_dicts.append(field_dict[0])
-
-					newdoc['fields'] = new_field_dicts
-			except ValueError:
-				pass
-
-		txtfile.seek(0)
-		txtfile.truncate()
+	with open(os.path.join(folder, fname + ".json"), 'w+') as txtfile:
 		txtfile.write(frappe.as_json(newdoc))
 
 def get_module_name(doc):
