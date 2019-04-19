@@ -82,8 +82,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		return Object.assign(args, {
 			with_comment_count: false,
-			start: 0,
-			page_length: null,
 			group_by: this.group_by_control.group_by || null,
 			order_by: this.group_by_control.order_by || null,
 		});
