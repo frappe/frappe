@@ -88,7 +88,6 @@ frappe.ui.form.Review = class Review {
 				fieldtype: 'Autocomplete',
 				label: __('To User'),
 				options: user_options,
-				default: user_options.includes(doc_owner) ? doc_owner : user_options[0],
 				description: __('Only users involved in the document are listed')
 			}, {
 				fieldname: 'review_type',
@@ -115,6 +114,7 @@ frappe.ui.form.Review = class Review {
 				label: __('Reason')
 			}],
 			primary_action: (values) => {
+				review_dialog.disable_primary_action();
 				if (values.points > this.points.review_points) {
 					return frappe.msgprint(__('You do not have enough points'));
 				}
@@ -133,6 +133,8 @@ frappe.ui.form.Review = class Review {
 					this.frm.get_docinfo().energy_point_logs.unshift(review);
 					this.frm.timeline.refresh();
 					this.update_reviewers();
+				}).finally(() => {
+					review_dialog.enable_primary_action();
 				});
 			},
 			primary_action_label: __('Submit')
