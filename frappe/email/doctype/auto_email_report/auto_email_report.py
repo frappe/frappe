@@ -5,7 +5,6 @@
 from __future__ import unicode_literals
 
 import calendar
-import json
 from datetime import timedelta
 
 import frappe
