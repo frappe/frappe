@@ -64,20 +64,7 @@ class AutoEmailReport(Document):
 			self.filters['modified'] = ('>', now_datetime() - timedelta(hours=self.data_modified_till))
 
 		if self.report_type != 'Report Builder' and self.dynamic_date_filters_set():
-			to_date = today()
-			from_date_value = {
-				'Daily': ('days', -1),
-				'Weekly': ('weeks', -1),
-				'Monthly': ('months', -1),
-				'Quarterly': ('months', -3),
-				'Half Yearly': ('months', -6),
-				'Yearly': ('years', -1)
-			}[self.dynamic_date_period]
-
-			from_date = add_to_date(to_date, **{from_date_value[0]: from_date_value[1]})
-
-			self.filters[self.from_date_field] = from_date
-			self.filters[self.to_date_field] = to_date
+			self.prepare_dynamic_filters()
 
 		columns, data = report.get_data(limit=self.no_of_rows or 100, user = self.user,
 			filters = self.filters, as_dict=True)
@@ -137,6 +124,24 @@ class AutoEmailReport(Document):
 
 	def get_file_name(self):
 		return "{0}.{1}".format(self.report.replace(" ", "-").replace("/", "-"), self.format.lower())
+
+	def prepare_dynamic_filters(self):
+		self.filters = frappe.parse_json(self.filters)
+
+		to_date = today()
+		from_date_value = {
+			'Daily': ('days', -1),
+			'Weekly': ('weeks', -1),
+			'Monthly': ('months', -1),
+			'Quarterly': ('months', -3),
+			'Half Yearly': ('months', -6),
+			'Yearly': ('years', -1)
+		}[self.dynamic_date_period]
+
+		from_date = add_to_date(to_date, **{from_date_value[0]: from_date_value[1]})
+
+		self.filters[self.from_date_field] = from_date
+		self.filters[self.to_date_field] = to_date
 
 	def send(self):
 		if self.filter_meta and not self.filters:
