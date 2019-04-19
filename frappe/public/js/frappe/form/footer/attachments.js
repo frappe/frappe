@@ -63,12 +63,12 @@ frappe.ui.form.Attachments = Class.extend({
 
 		var me = this;
 
-		var $attach = $(frappe.render_template("attachment", { 
+		var $attach = $(frappe.render_template("attachment", {
 			"file_path": "/desk#Form/File/" + fileid,
 			"icon": attachment.is_private ? "fa fa-lock" : "fa fa-unlock-alt",
 			"file_name": file_name,
 			"file_url": frappe.urllib.get_full_url(file_url)
-		})).insertAfter(this.attachments_label.addClass("has-attachments"));			
+		})).insertAfter(this.attachments_label.addClass("has-attachments"));
 
 		var $close =
 			$attach.find(".close")
@@ -146,12 +146,12 @@ frappe.ui.form.Attachments = Class.extend({
 			this.dialog.$wrapper.remove();
 		}
 
-		// make upload dialog
-		this.dialog = frappe.ui.get_upload_dialog({
-			"args": me.get_args(),
-			"callback": function(attachment, r) { me.attachment_uploaded(attachment, r) },
-			"max_width": me.frm.cscript ? me.frm.cscript.attachment_max_width : null,
-			"max_height": me.frm.cscript ? me.frm.cscript.attachment_max_height : null
+		new frappe.ui.FileUploader({
+			doctype: this.frm.doctype,
+			docname: this.frm.docname,
+			on_success: (file_doc) => {
+				this.attachment_uploaded(file_doc);
+			}
 		});
 	},
 	get_args: function() {
@@ -161,7 +161,7 @@ frappe.ui.form.Attachments = Class.extend({
 			docname: this.frm.docname,
 		}
 	},
-	attachment_uploaded:  function(attachment, r) {
+	attachment_uploaded:  function(attachment) {
 		this.dialog && this.dialog.hide();
 		this.update_attachment(attachment);
 		this.frm.reload_docinfo();
@@ -263,7 +263,7 @@ frappe.ui.get_upload_dialog = function(opts){
 	dialog.show();
 	var upload_area = $('<div></div>').prependTo(dialog.body);
 
-	
+
 
 	frappe.upload.make({
 		parent: upload_area,

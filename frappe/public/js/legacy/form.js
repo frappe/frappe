@@ -142,11 +142,12 @@ _f.Frm.prototype.setup_drag_drop = function() {
 				throw "attach error";
 			}
 
-			frappe.upload.make({
-				args: me.attachments.get_args(),
+			new frappe.ui.FileUploader({
+				doctype: me.doctype,
+				docname: me.docname,
 				files: dataTransfer.files,
-				callback: function(attachment, r) {
-					me.attachments.attachment_uploaded(attachment, r);
+				on_success(file_doc) {
+					me.attachments.attachment_uploaded(file_doc);
 				}
 			});
 		});
