@@ -4,6 +4,32 @@ import frappe
 import os, sys
 from frappe.database.db_manager import DbManager
 
+expected_settings_10_2_earlier = {
+	"innodb_file_format": "Barracuda",
+	"innodb_file_per_table": "ON",
+	"innodb_large_prefix": "ON",
+	"character_set_server": "utf8mb4",
+	"collation_server": "utf8mb4_unicode_ci"
+}
+
+expected_settings_10_3_later = {
+	"character_set_server": "utf8mb4",
+	"collation_server": "utf8mb4_unicode_ci"
+}
+
+
+def get_mariadb_versions():
+	# MariaDB classifies their versions as Major (1st and 2nd number), and Minor (3rd number)
+	# Example: Version 10.3.13 is Major Version = 10.3, Minor Version = 13
+	mariadb_variables = frappe._dict(frappe.db.sql("""show variables"""))
+	version_string = mariadb_variables.get('version').split('-')[0]
+	versions = {}
+	versions['major'] = version_string.split(
+		'.')[0] + '.' + version_string.split('.')[1]
+	versions['minor'] = version_string.split('.')[2]
+	return versions
+
+
 def setup_database(force, source_sql, verbose):
 	frappe.local.session = frappe._dict({'user':'Administrator'})
 
@@ -54,7 +80,10 @@ def drop_user_and_database(db_name, root_login, root_password):
 
 def bootstrap_database(db_name, verbose, source_sql=None):
 	frappe.connect(db_name=db_name)
-	check_if_ready_for_barracuda()
+	if not check_database_settings():
+		print('Database settings do not match expected values; stopping database setup.')
+		sys.exit(1)
+
 	import_db_from_sql(source_sql, verbose)
 	if not 'tabDefaultValue' in frappe.db.get_tables():
 		print('''Database not installed, this can due to lack of permission, or that the database name exists.
@@ -69,38 +98,33 @@ def import_db_from_sql(source_sql=None, verbose=False):
 	DbManager(frappe.local.db).restore_database(db_name, source_sql, db_name, frappe.conf.db_password)
 	if verbose: print("Imported from database %s" % source_sql)
 
-def check_if_ready_for_barracuda():
+
+def check_database_settings():
+	versions = get_mariadb_versions()
+	if versions['major'] <= '10.2':
+		expected_variables = expected_settings_10_2_earlier
+	else:
+		expected_variables = expected_settings_10_3_later
+
 	mariadb_variables = frappe._dict(frappe.db.sql("""show variables"""))
-	mariadb_minor_version = int(mariadb_variables.get('version').split('-')[0].split('.')[1])
-	if mariadb_minor_version < 3:
-		check_database(mariadb_variables, {
-			"innodb_file_format": "Barracuda",
-			"innodb_file_per_table": "ON",
-			"innodb_large_prefix": "ON"
-		})
-	check_database(mariadb_variables, {
-		"character_set_server": "utf8mb4",
-		"collation_server": "utf8mb4_unicode_ci"
-	})
+	# Check each expected value vs. actuals:
+	result = True
+	for key, expected_value in expected_variables.items():
+		if mariadb_variables.get(key) != expected_value:
+			print("For key %s. Expected value %s, found value %s" %
+				  (key, expected_value, mariadb_variables.get(key)))
+			result = False
+	if not result:
+		site = frappe.local.site
+		msg = ("Creation of your site - {x} failed because MariaDB is not properly {sep}"
+			   "configured.  If using version 10.2.x or earlier, make sure you use the {sep}"
+			   "the Barracuda storage engine. {sep}{sep}"
+			   "Please verify the settings above in MariaDB's my.cnf.  Restart MariaDB.  And {sep}"
+			   "then run `bench new-site {x}` again.{sep2}"
+			   "").format(x=site, sep2="\n"*2, sep="\n")
+		print_db_config(msg)
+	return result
 
-def check_database(mariadb_variables, variables_dict):
-	mariadb_minor_version = int(mariadb_variables.get('version').split('-')[0].split('.')[1])
-	for key, value in variables_dict.items():
-		if mariadb_variables.get(key) != value:
-			site = frappe.local.site
-			msg = ("Creation of your site - {x} failed because MariaDB is not properly {sep}"
-				   "configured to use the Barracuda storage engine. {sep}"
-				   "Please add the settings below to MariaDB's my.cnf, restart MariaDB then {sep}"
-				   "run `bench new-site {x}` again.{sep2}"
-				   "").format(x=site, sep2="\n"*2, sep="\n")
-
-			if mariadb_minor_version < 3:
-				print_db_config(msg, expected_config_for_barracuda_2)
-			else:
-				print_db_config(msg, expected_config_for_barracuda_3)
-			raise frappe.exceptions.ImproperDBConfigurationError(
-				reason="MariaDB default file format is not Barracuda"
-			)
 
 def get_root_connection(root_login, root_password):
 	import getpass
@@ -118,31 +142,8 @@ def get_root_connection(root_login, root_password):
 
 	return frappe.local.flags.root_connection
 
-def print_db_config(explanation, config_text):
+
+def print_db_config(explanation):
 	print("="*80)
 	print(explanation)
-	print(config_text)
 	print("="*80)
-
-expected_config_for_barracuda_2 = """
-[mysqld]
-innodb-file-format=barracuda
-innodb-file-per-table=1
-innodb-large-prefix=1
-character-set-client-handshake = FALSE
-character-set-server = utf8mb4
-collation-server = utf8mb4_unicode_ci
-
-[mysql]
-default-character-set = utf8mb4
-"""
-
-expected_config_for_barracuda_3 = """
-[mysqld]
-character-set-client-handshake = FALSE
-character-set-server = utf8mb4
-collation-server = utf8mb4_unicode_ci
-
-[mysql]
-default-character-set = utf8mb4
-"""

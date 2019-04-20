@@ -935,16 +935,14 @@ body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
 	height: 80px !important;
 }
 
-.frappe-control[data-fieldtype="Attach"] {
+.frappe-control[data-fieldtype="Attach"], .frappe-control[data-fieldtype="Attach Image"] {
 	.attached-file {
 		position: relative;
-		margin-top: 5px;
-
-		.close {
-			position: absolute;
-			top: 0;
-			right: 0;
-		}
+		padding: 6px 10px;
+		background: @light-bg;
+		border-radius: 4px;
+		border: 1px solid @border-color;
+		font-size: @text-medium;
 	}
 }
 

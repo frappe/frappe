@@ -556,7 +556,7 @@ frappe.Application = Class.extend({
 		frappe.realtime.on('energy_point_alert', (message) => {
 			frappe.show_alert(message);
 		});
-	}
+	},
 });
 
 frappe.get_module = function(m, default_module) {
