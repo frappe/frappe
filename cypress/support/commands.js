@@ -41,13 +41,16 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype='Data') => {
 	if (fieldtype === 'Text Editor') {
 		selector = `[data-fieldname="${fieldname}"] .ql-editor`;
 	}
+	if (fieldtype === 'Code') {
+		selector = `[data-fieldname="${fieldname}"] .ace_text-input`;
+	}
 
 	cy.get(selector).as('input');
 
 	if (fieldtype === 'Select') {
 		return cy.get('@input').select(value);
 	} else {
-		return cy.get('@input').type(value);
+		return cy.get('@input').type(value, {waitForAnimations: false});
 	}
 });
 
