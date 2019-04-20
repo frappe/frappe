@@ -21,6 +21,7 @@ psycopg2.extensions.register_type(DEC2FLOAT)
 
 class PostgresDatabase(Database):
 	ProgrammingError = psycopg2.ProgrammingError
+	TableMissingError = psycopg2.ProgrammingError
 	OperationalError = psycopg2.OperationalError
 	InternalError = psycopg2.InternalError
 	SQLError = psycopg2.ProgrammingError

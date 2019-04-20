@@ -17,6 +17,7 @@ from frappe.database.mariadb.schema import MariaDBTable
 
 class MariaDBDatabase(Database):
 	ProgrammingError = pymysql.err.ProgrammingError
+	TableMissingError = pymysql.err.ProgrammingError
 	OperationalError = pymysql.err.OperationalError
 	InternalError = pymysql.err.InternalError
 	SQLError = pymysql.err.ProgrammingError
