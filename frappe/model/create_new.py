@@ -56,10 +56,10 @@ def set_user_and_static_default_values(doc):
 		if df.fieldtype in data_fieldtypes:
 			# user permissions for link options
 			doctype_user_permissions = user_permissions.get(df.options, [])
-			# Allowed records for the reference doctype (link field)
-			allowed_records = get_allowed_docs_for_doctype(doctype_user_permissions, df.parent)
+			# Allowed records for the reference doctype (link field) along with default doc
+			allowed_records, default_doc = get_allowed_docs_for_doctype(doctype_user_permissions, df.parent, get_default=True)
 
-			user_default_value = get_user_default_value(df, defaults, doctype_user_permissions, allowed_records)
+			user_default_value = get_user_default_value(df, defaults, doctype_user_permissions, allowed_records, default_doc)
 			if user_default_value != None:
     			# do not set default if the field on which current field is dependent is not set
 				if is_dependent_field_set(df.depends_on, doc):
@@ -78,14 +78,14 @@ def is_dependent_field_set(fieldname, doc):
 	if fieldname not in value_dict: return True
 	return value_dict[fieldname]
 
-def get_user_default_value(df, defaults, doctype_user_permissions, allowed_records):
+def get_user_default_value(df, defaults, doctype_user_permissions, allowed_records, default_doc):
 	# don't set defaults for "User" link field using User Permissions!
 	if df.fieldtype == "Link" and df.options != "User":
 		# 1 - look in user permissions only for document_type==Setup
 		# We don't want to include permissions of transactions to be used for defaults.
 		if (frappe.get_meta(df.options).document_type=="Setup"
-			and len(allowed_records)==1 and not df.ignore_user_permissions):
-			return allowed_records[0]
+			and not df.ignore_user_permissions and default_doc):
+				return default_doc
 
 		# 2 - Look in user defaults
 		user_default = defaults.get(df.fieldname)
@@ -147,7 +147,6 @@ def user_permissions_exist(df, doctype_user_permissions):
 
 def get_default_based_on_another_field(df, user_permissions, parent_doc):
 	# default value based on another document
-	from frappe.permissions import get_allowed_docs_for_doctype
 
 	ref_doctype =  df.default[1:]
 	ref_fieldname = ref_doctype.lower().replace(" ", "_")
