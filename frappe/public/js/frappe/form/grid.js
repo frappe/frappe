@@ -330,31 +330,31 @@ export default class Grid {
 	}
 	make_sortable($rows) {
 		var me =this;
-		if ('ontouchstart' in window) {
-			return;
-		}
-
 		new Sortable($rows.get(0), {
 			group: {name: me.df.fieldname},
 			handle: '.sortable-handle',
 			draggable: '.grid-row',
+			animation: 100,
 			filter: 'li, a',
-			onUpdate: function(event, ui) {
-				me.frm.doc[me.df.fieldname] = [];
-				$rows.find(".grid-row").each(function(i, item) {
-					var doc = locals[me.doctype][$(item).attr('data-name')];
-					doc.idx = i + 1;
-					me.frm.doc[me.df.fieldname].push(doc);
-				});
+			onMove: function(event) {
+				// don't move if editable
+				if (me.is_editable()) {
+					return false;
+				}
 
-				// re-order grid-rows by name
-				me.grid_rows = [];
-				me.frm.doc[me.df.fieldname].forEach(function(d) {
-					me.grid_rows.push(me.grid_rows_by_docname[d.name]);
-				});
-				me.frm.script_manager.trigger(me.df.fieldname + "_move", me.df.options, me.frm.doc[me.df.fieldname][event.newIndex].name);
+				// prevent drag behaviour if _sortable property is "false"
+				let idx = $(event.dragged).closest('.grid-row').attr('data-idx');
+				let doc = me.get_data()[idx - 1];
+				if (doc && doc._sortable === false) {
+					return false;
+				}
+			},
+			onUpdate: function(event) {
+				let idx = $(event.item).closest('.grid-row').attr('data-idx');
+				let doc = me.get_data()[idx - 1];
+				me.renumber_based_on_dom();
+				me.frm.script_manager.trigger(me.df.fieldname + "_move", me.df.options, doc.name);
 				me.refresh();
-
 				me.frm.dirty();
 			}
 		});
@@ -500,6 +500,26 @@ export default class Grid {
 
 			return d;
 		}
+	}
+
+	renumber_based_on_dom() {
+		// renumber based on dom
+		let me = this;
+		let $rows = $(me.parent).find(".rows");
+
+		me.grid_rows = [];
+		me.frm.doc[me.df.fieldname] = [];
+
+		$rows.find(".grid-row").each(function(i, item) {
+
+			let $item = $(item);
+			let d = locals[me.doctype][$item.attr('data-name')];
+			d.idx = i + 1;
+			$item.attr('data-idx', d.idx);
+
+			me.frm.doc[me.df.fieldname].push(d);
+			me.grid_rows.push(me.grid_rows_by_docname[d.name]);
+		});
 	}
 
 	duplicate_row(d, copy_doc) {
