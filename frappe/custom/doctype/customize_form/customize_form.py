@@ -157,7 +157,7 @@ class CustomizeForm(Document):
 			frappe.db.updatedb(self.doc_type)
 
 		if not hasattr(self, 'hide_success') or not self.hide_success:
-			frappe.msgprint(_("{0} updated").format(_(self.doc_type)))
+			frappe.msgprint(_("{0} updated").format(_(self.doc_type)), alert=True)
 		frappe.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()
 

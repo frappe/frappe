@@ -73,18 +73,22 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	get_args() {
 		const args = super.get_args();
-		this.field_type = args.fields[0].substring(0,args.fields[0].indexOf('.'));
-		if (this.group_by_control.aggregate_function && this.group_by_control.group_by && this.group_by_control.aggregate_on) {
-			if(this.group_by_control.aggregate_function !== 'count') {
-				args.fields.push(`${this.group_by_control.aggregate_function}(${this.group_by_control.aggregate_on}) as ${this.group_by_control.aggregate_on}`);
-			}
-		}
 
-		return Object.assign(args, {
-			with_comment_count: false,
-			group_by: this.group_by_control.group_by || null,
-			order_by: this.group_by_control.order_by || null,
-		});
+		if (this.group_by_control.aggregate_function) {
+			this.field_type = args.fields[0].substring(0,args.fields[0].indexOf('.'));
+			if (this.group_by_control.aggregate_function && this.group_by_control.group_by && this.group_by_control.aggregate_on) {
+				if(this.group_by_control.aggregate_function !== 'count') {
+					args.fields.push(`${this.group_by_control.aggregate_function}(${this.group_by_control.aggregate_on}) as ${this.group_by_control.aggregate_on}`);
+				}
+			}
+
+			Object.assign(args, {
+				with_comment_count: false,
+				group_by: this.group_by_control.group_by || null,
+				order_by: this.group_by_control.order_by || null,
+			});
+		}
+		return args;
 	}
 
 	before_refresh() {

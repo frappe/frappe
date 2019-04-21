@@ -259,7 +259,8 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 
 		return {
 			doctype: this.doctype,
-			fields: $.map(this.columns || [], function(v) { return me.get_full_column_name(v); }),
+			fields: $.map(this.columns || [], function(v) {
+				return me.get_full_column_name(v); }),
 			order_by: this.get_order_by(),
 			add_total_row: this.add_total_row,
 			filters: filters,
@@ -888,7 +889,6 @@ frappe.ui.ColumnPicker = Class.extend({
 		});
 
 		new Sortable(this.column_list.get(0), {
-			//handle: '.sortable-handle',
 			filter: 'input',
 			draggable: '.column-list-item',
 			chosenClass: 'sortable-chosen',

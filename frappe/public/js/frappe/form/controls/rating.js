@@ -3,11 +3,11 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 		this._super();
 		const star_template = `
 			<div class="rating">
-				<i class="fa fa-fw fa-star" data-idx=1></i>
-				<i class="fa fa-fw fa-star" data-idx=2></i>
-				<i class="fa fa-fw fa-star" data-idx=3></i>
-				<i class="fa fa-fw fa-star" data-idx=4></i>
-				<i class="fa fa-fw fa-star" data-idx=5></i>
+				<i class="fa fa-fw fa-star" data-rating=1></i>
+				<i class="fa fa-fw fa-star" data-rating=2></i>
+				<i class="fa fa-fw fa-star" data-rating=3></i>
+				<i class="fa fa-fw fa-star" data-rating=4></i>
+				<i class="fa fa-fw fa-star" data-rating=5></i>
 			</div>
 		`;
 
@@ -15,7 +15,7 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 
 		$(this.input_area).find('i').hover((ev) => {
 			const el = $(ev.currentTarget);
-			let star_value = el.data('idx');
+			let star_value = el.data('rating');
 			el.parent().children('i.fa').each( function(e){
 				if (e < star_value) {
 					$(this).addClass('star-hover');
@@ -32,7 +32,7 @@ frappe.ui.form.ControlRating  = frappe.ui.form.ControlInt.extend({
 
 		$(this.input_area).find('i').click((ev) => {
 			const el = $(ev.currentTarget);
-			let star_value = el.data('idx');
+			let star_value = el.data('rating');
 			el.parent().children('i.fa').each( function(e) {
 				if (e < star_value){
 					$(this).addClass('star-click');
