@@ -191,8 +191,8 @@ def connect(site=None, db_name=None):
 def connect_read_only():
 	from frappe.database import get_db
 
-	local.read_only_db = get_db(local.conf.slave_host, local.conf.slave_db_name,
-		local.conf.slave_db_password)
+	local.read_only_db = get_db(host=local.conf.slave_host, user=local.conf.slave_db_name,
+		password=local.conf.slave_db_password)
 
 	# swap db connections
 	local.master_db = local.db
