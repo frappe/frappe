@@ -308,13 +308,13 @@ def disable_users(limits=None):
 		return
 
 	if limits.get('users'):
-		system_manager = get_system_managers(only_name=True)[-1]
+		system_manager = get_system_managers(only_name=True)
+		user_list = ['Administrator', 'Guest']
+		if system_manager:
+			user_list.append(system_manager[-1])
 
 		#exclude system manager from active user list
-		active_users =  frappe.db.sql_list("""select name from tabUser
-			where name not in ('Administrator', 'Guest', %s) and user_type = 'System User' and enabled=1
-			order by creation desc""", system_manager)
-
+		active_users = frappe.get_all("User", filters={"user_type":"System User", "enabled":1, "name": ["not in", user_list]}, fields=["name"])
 		user_limit = cint(limits.get('users')) - 1
 
 		if len(active_users) > user_limit:
