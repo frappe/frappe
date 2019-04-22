@@ -171,7 +171,7 @@ frappe.ui.form.Sidebar = Class.extend({
 	make_review: function() {
 		if (frappe.boot.energy_points_enabled && !this.frm.is_new()) {
 			this.frm.reviews = new frappe.ui.form.Review({
-				parent: this.sidebar.find(".form-attachments"),
+				parent: this.sidebar.find(".form-review"),
 				frm: this.frm
 			});
 		}
