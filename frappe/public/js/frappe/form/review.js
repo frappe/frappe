@@ -5,30 +5,22 @@ frappe.provide("frappe.ui.form");
 
 frappe.ui.form.Review = class Review {
 	constructor({parent, frm}) {
-		this.parent = parent;
+		this.$wrapper = parent;
 		this.frm = frm;
-		this.fetch_energy_points()
-			.then(() => {
-				this.make_review_container();
-				this.add_review_button();
-				this.update_reviewers();
-			});
+		this.points = frappe.boot.points;
+		this.make_review_container();
+		this.add_review_button();
+		this.update_reviewers();
 	}
-	fetch_energy_points() {
+	update_points() {
 		return frappe.xcall('frappe.social.doctype.energy_point_log.energy_point_log.get_energy_points', {
 			user: frappe.session.user
 		}).then(data => {
+			frappe.boot.points = data;
 			this.points = data;
 		});
 	}
 	make_review_container() {
-		this.$wrapper = this.parent.append(`
-			<ul class="list-unstyled sidebar-menu">
-				<li class="divider"></li>
-				<li class="h6 shared-with-label">${__('Reviews')}</li>
-				<li class="review-list"></li>
-			</ul>
-		`);
 		this.review_list_wrapper = this.$wrapper.find('.review-list');
 	}
 	add_review_button() {
@@ -133,6 +125,7 @@ frappe.ui.form.Review = class Review {
 					this.frm.get_docinfo().energy_point_logs.unshift(review);
 					this.frm.timeline.refresh();
 					this.update_reviewers();
+					this.update_points();
 				}).finally(() => {
 					review_dialog.enable_primary_action();
 				});
