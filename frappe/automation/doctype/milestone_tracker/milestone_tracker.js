@@ -5,6 +5,9 @@ frappe.ui.form.on('Milestone Tracker', {
 	refresh: function(frm) {
 		frm.trigger('update_options');
 	},
+	document_type: function(frm) {
+		frm.trigger('update_options');
+	},
 	update_options: function(frm) {
 		// update select options for `track_field`
 		let doctype = frm.doc.document_type;

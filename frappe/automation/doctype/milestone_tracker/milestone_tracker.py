@@ -27,7 +27,7 @@ class MilestoneTracker(Document):
 				from_value = from_value,
 				value = doc.get(self.track_field),
 				milestone_tracker = self.name,
-			)).insert()
+			)).insert(ignore_permissions=True)
 
 def evaluate_milestone(doc, event):
 	for d in frappe.cache_manager.get_doctype_map('Milestone Tracker', doc.doctype,
