@@ -197,6 +197,10 @@ class Database:
 					frappe.log(values)
 					frappe.log(">>>>")
 				self._cursor.execute(query, values)
+
+				if frappe.flags.in_migrate:
+					self.log_touched_tables(query, values)
+
 			else:
 				if debug:
 					if explain:
@@ -208,6 +212,9 @@ class Database:
 					frappe.log(">>>>")
 
 				self._cursor.execute(query)
+
+				if frappe.flags.in_migrate:
+					self.log_touched_tables(query)
 
 			if debug:
 				time_end = time()
@@ -975,6 +982,21 @@ class Database:
 		else:
 			# when document does not exist
 			return []
+
+	def log_touched_tables(self, query, values=None):
+		if values:
+			query = self._cursor.mogrify(query, values)
+		if query.strip().lower().split()[0] in ('insert', 'delete', 'update', 'alter'):
+			# ([`\"']?) Captures ', " or ` at the begining of the table name (if provided)
+			# (tab([A-Z]\w+)( [A-Z]\w+)*) Captures table names that start with "tab"
+			# and are continued with multiple words that start with a captital letter
+			# e.g. 'tabXxx' or 'tabXxx Xxx' or 'tabXxx Xxx Xxx' and so on
+			# \1 matches the first captured group (quote character) at the end of the table name
+			tables = [groups[1] for groups in re.findall(r'([`"\']?)(tab([A-Z]\w+)( [A-Z]\w+)*)\1', query)]
+			if frappe.flags.touched_tables is None:
+				frappe.flags.touched_tables = set()
+			frappe.flags.touched_tables.update(tables)
+
 
 def enqueue_jobs_after_commit():
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
