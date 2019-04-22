@@ -47,7 +47,7 @@ pyotp==2.2.7
 pyqrcode==1.2.1
 pypng==0.0.18
 premailer==3.2.0
-croniter==0.3.28
+croniter==0.3.29
 googlemaps==3.0.2
 urllib3==1.23
 GitPython==2.1.11
