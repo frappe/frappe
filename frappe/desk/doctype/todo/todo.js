@@ -11,9 +11,10 @@ frappe.ui.form.on("ToDo", {
 		});
 	},
 
-	validate: function(frm)
-	{
-		frm.trigger("Save");
+	validate: function(frm) {
+		if (frm.doc.is_repeating && frm.doc.__islocal) {
+			frm.trigger("new_auto_repeat_prompt");
+		}
 	},
 
 	refresh: function(frm) {
@@ -43,9 +44,7 @@ frappe.ui.form.on("ToDo", {
 			}, null, "btn-default");
 		}
 	},
-
-	Save: function(frm)
-	{
+	new_auto_repeat_prompt: function(frm) {
 			frappe.prompt([
 				{	'fieldname': 'start_date',
 					'fieldtype': 'Date',
@@ -72,7 +71,7 @@ frappe.ui.form.on("ToDo", {
 			],
 			function(values){
 				frappe.call({
-					method: "frappe.desk.doctype.todo.todo.recurring",
+					method: "frappe.desk.doctype.todo.todo.new_auto_repeat",
 					args: {
 						todo: frm.doc.name,
 						start_date: values["start_date"],
@@ -80,20 +79,14 @@ frappe.ui.form.on("ToDo", {
 						frequency: values["frequency"]
 					},
 					callback: function(r) {
-						frappe.confirm(
-							'ToDo Recurring Successful',
-							function(){
-								window.close();
-							},
-							function(){
-								show_alert('Recurring Created')
-							}
-						)
+						if (r.message) {
+							msgprint("Successfully created repeating task.", "Auto Repeat");
+						}
 					}
 				});
 			},
 			'Auto Repeat',
 			'Submit'
-			)
+			);
 	}
 });
