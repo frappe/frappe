@@ -121,7 +121,7 @@ export default class GridRow {
 	move() {
 		// promopt the user where they want to move this row
 		var me = this;
-		var dialog = frappe.prompt({
+		frappe.prompt({
 			fieldname: 'move_to',
 			label: __('Move to Row Number'),
 			fieldtype: 'Int',
