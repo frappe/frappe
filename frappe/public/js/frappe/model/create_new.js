@@ -125,8 +125,9 @@ $.extend(frappe.model, {
 		var user_default = "";
 		var user_permissions = frappe.defaults.get_user_permissions();
 		let allowed_records = [];
+		let default_doc = null;
 		if(user_permissions) {
-			allowed_records = frappe.perm.get_allowed_docs_for_doctype(user_permissions[df.options], doc.doctype);
+			({allowed_records, default_doc} = frappe.perm.filter_allowed_docs_for_doctype(user_permissions[df.options], doc.doctype));
 		}
 		var meta = frappe.get_meta(doc.doctype);
 		var has_user_permissions = (df.fieldtype==="Link"
@@ -139,8 +140,8 @@ $.extend(frappe.model, {
 			// 1 - look in user permissions for document_type=="Setup".
 			// We don't want to include permissions of transactions to be used for defaults.
 			if (df.linked_document_type==="Setup"
-				&& has_user_permissions && allowed_records.length===1) {
-				return allowed_records[0];
+				&& has_user_permissions && default_doc) {
+				return default_doc;
 			}
 
 			if(!df.ignore_user_permissions) {

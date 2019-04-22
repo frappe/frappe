@@ -523,17 +523,23 @@ def allow_everything():
 	perm = {ptype: 1 for ptype in rights}
 	return perm
 
-def get_allowed_docs_for_doctype(user_permissions, doctype, get_default=False):
-	'''Returns all the docs from the passed user_permissions that are
-		allowed under provided doctype along with default doc value if get_default is set '''
+def get_allowed_docs_for_doctype(user_permissions, doctype):
+	''' Returns all the docs from the passed user_permissions that are
+		allowed under provided doctype '''
+	return filter_allowed_docs_for_doctype(user_permissions, doctype, with_default_doc=False)
+
+def filter_allowed_docs_for_doctype(user_permissions, doctype, with_default_doc=True):
+	''' Returns all the docs from the passed user_permissions that are
+		allowed under provided doctype along with default doc value if with_default_doc is set '''
 	allowed_doc = []
+	default_doc = None
 	for doc in user_permissions:
 		if not doc.get('applicable_for') or doc.get('applicable_for') == doctype:
 			allowed_doc.append(doc.get('doc'))
-			if doc.get('is_default') or len(user_permissions) == 1 and get_default:
+			if doc.get('is_default') or len(user_permissions) == 1 and with_default_doc:
 				default_doc = doc.get('doc')
 
-	return (allowed_doc, default_doc) if default_doc else allowed_doc
+	return (allowed_doc, default_doc) if with_default_doc else allowed_doc
 
 def push_perm_check_log(log):
 	if frappe.flags.get('has_permission_check_logs') == None: return
