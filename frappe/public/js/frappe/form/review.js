@@ -7,17 +7,16 @@ frappe.ui.form.Review = class Review {
 	constructor({parent, frm}) {
 		this.parent = parent;
 		this.frm = frm;
-		this.fetch_energy_points()
-			.then(() => {
-				this.make_review_container();
-				this.add_review_button();
-				this.update_reviewers();
-			});
+		this.points = frappe.boot.points;
+		this.make_review_container();
+		this.add_review_button();
+		this.update_reviewers();
 	}
-	fetch_energy_points() {
+	update_points() {
 		return frappe.xcall('frappe.social.doctype.energy_point_log.energy_point_log.get_energy_points', {
 			user: frappe.session.user
 		}).then(data => {
+			frappe.boot.points = data;
 			this.points = data;
 		});
 	}
@@ -133,6 +132,7 @@ frappe.ui.form.Review = class Review {
 					this.frm.get_docinfo().energy_point_logs.unshift(review);
 					this.frm.timeline.refresh();
 					this.update_reviewers();
+					this.update_points();
 				}).finally(() => {
 					review_dialog.enable_primary_action();
 				});
