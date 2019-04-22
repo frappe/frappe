@@ -10,49 +10,48 @@ frappe.ui.LinkPreview = class {
 
 		$(document.body).on('mouseover', 'a[href*="/"], input[data-fieldname], .popover', (e) => {
 			this.link_hovered = true;
-			let element = $(e.currentTarget);
-			let name, doctype, link;
-			let is_link = true;
+			this.element = $(e.currentTarget);
+			this.is_link = true;
 
-			if(!element.parents().find('.popover').length) {
-				if(element.attr('href')) {
-					link = element.attr('href');
-					let details = this.get_details(link,element);
-					name = details.name;
-					doctype = details.doctype;
+			if(!this.element.parents().find('.popover').length) {
+				if(this.element.attr('href')) {
+					this.link = this.element.attr('href');
+					let details = this.get_details();
+					this.name = details.name;
+					this.doctype = details.doctype;
 				} else {
-					is_link = false;
-					link = element.parents('.control-input-wrapper').find('.control-value').children('a').attr('href');
+					this.is_link = false;
+					this.link = this.element.parents('.control-input-wrapper').find('.control-value').children('a').attr('href');
 
-					if(link) {
-						let details = this.get_details(link,element);
-						name = details.name;
-						doctype = details.doctype;
+					if(this.link) {
+						let details = this.get_details();
+						this.name = details.name;
+						this.doctype = details.doctype;
 					} else {
-						name = element.parent().next().text();
-						doctype = element.attr('data-doctype');
+						this.name = this.element.parent().next().text();
+						this.doctype = this.element.attr('data-doctype');
 					}
 				}
 
-				let popover = element.data("bs.popover");
-				if(name && doctype) {
-					this.setup_popover_control(e, popover, name, doctype, element, is_link, link);
+				this.popover = this.element.data("bs.popover");
+				if(this.name && this.doctype && this.doctype!=='files') {
+					this.setup_popover_control(e);
 				}
 			}
 		});
 
 	}
 
-	get_details(link, element) {
+	get_details() {
 		let details = {};
-		let link_arr = link.split('/');
+		let link_arr = this.link.split('/');
 
 		if(link_arr.length > 2) {
 			details.name = decodeURI(link_arr[link_arr.length - 1]);
 			details.doctype = decodeURI(link_arr[link_arr.length -2]);
 			details.name = details.name.replace(new RegExp('%2F', 'g'), '/');
 		}
-		let title = element.attr('title');
+		let title = this.element.attr('title');
 		if( title && title.includes('/')) {
 			details.name = title.trim();
 			details.doctype = decodeURI(link_arr[link_arr.length-3]);
@@ -61,48 +60,51 @@ frappe.ui.LinkPreview = class {
 	}
 
 
-	setup_popover_control(e, popover, name, doctype, $el, is_link, link) {
+	setup_popover_control(e) {
 
-		if(!popover || !is_link) {
-			let preview_fields = this.get_preview_fields(doctype);
+		if(!this.popover || !this.is_link) {
+			let preview_fields = this.get_preview_fields();
 			if(preview_fields.length) {
 				this.data_timeout = setTimeout(() => {
-					this.get_preview_fields_value(doctype, name, preview_fields).then((preview_data)=> {
-						if(preview_data) {
-							if(this.popover_timeout) {
-								clearTimeout(this.popover_timeout);
-							}
-
-							this.popover_timeout = setTimeout(() => {
-
-								if(popover) {
-									let new_content = this.get_popover_html(preview_data, doctype, link);
-									popover.options.content = new_content;
-								} else {
-									this.init_preview_popover($el, preview_data, doctype, is_link, link);
-								}
-
-								if(!is_link) {
-									var left = e.pageX;
-									$el.popover('show');
-									var width =$('.popover').width();
-									$('.control-field-popover').css('left', (left-(width/2)) + 'px');
-								} else {
-									$el.popover('show');
-								}
-
-							}, 1000);
-						}
-					});
+					this.create_popover(e, preview_fields);
 				}, 1000);
 			}
 		} else {
 			this.popover_timeout = setTimeout(() => {
-				popover.show();
+				this.popover.show();
 			}, 1000);
 		}
-
+		console.log('this', this);
 		this.handle_popover_hide();
+	}
+
+	create_popover(e, preview_fields) {
+		this.get_preview_fields_value(preview_fields).then((preview_data)=> {
+			if(preview_data) {
+				if(this.popover_timeout) {
+					clearTimeout(this.popover_timeout);
+				}
+
+				this.popover_timeout = setTimeout(() => {
+					if(this.popover) {
+						let new_content = this.get_popover_html(preview_data);
+						this.popover.options.content = new_content;
+					} else {
+						this.init_preview_popover(preview_data);
+					}
+
+					if(!this.is_link) {
+						var left = e.pageX;
+						this.element.popover('show');
+						var width = $('.popover').width();
+						$('.control-field-popover').css('left', (left-(width/2)) + 'px');
+					} else {
+						this.element.popover('show');
+					}
+
+				}, 1000);
+			}
+		});
 	}
 
 	handle_popover_hide() {
@@ -123,7 +125,8 @@ frappe.ui.LinkPreview = class {
 		});
 	}
 
-	get_preview_fields(dt) {
+	get_preview_fields() {
+		let dt = this.doctype;
 		let fields = [];
 		frappe.model.with_doctype(dt, () => {
 			frappe.get_meta(dt).fields.filter((field) => {
@@ -145,18 +148,18 @@ frappe.ui.LinkPreview = class {
 		return fields;
 	}
 
-	get_preview_fields_value(dt, field_name, field_list) {
+	get_preview_fields_value(field_list) {
 		return frappe.xcall('frappe.desk.link_preview.get_preview_data', {
-			'doctype': dt,
-			'docname': field_name,
+			'doctype': this.doctype,
+			'docname': this.name,
 			'fields': field_list,
 		});
 	}
 
-	init_preview_popover($el, preview_data, dt, is_link, link) {
+	init_preview_popover(preview_data) {
 
-		let popover_content = this.get_popover_html(preview_data, dt, link);
-		$el.popover({
+		let popover_content = this.get_popover_html(preview_data);
+		this.element.popover({
 			container: 'body',
 			html: true,
 			content: popover_content,
@@ -165,21 +168,22 @@ frappe.ui.LinkPreview = class {
 			animation: false,
 		});
 
-		if(!is_link) {
-			$el.data('bs.popover').tip().addClass('control-field-popover');
+		if(!this.is_link) {
+			this.element.data('bs.popover').tip().addClass('control-field-popover');
 		}
 
-		this.$links.push($el);
+		this.$links.push(this.element);
 
 	}
 
-	get_popover_html(preview_data, dt, link) {
-		if(!link) {
-			link = window.location.href;
+	get_popover_html(preview_data) {
+		if(!this.link) {
+			console.log('here');
+			this.link = window.location.href;
 		}
 
-		if(link && link.includes(' ')) {
-			link = link.replace(new RegExp(' ', 'g'), '%20');
+		if(this.link && this.link.includes(' ')) {
+			this.link = this.link.replace(new RegExp(' ', 'g'), '%20');
 		}
 
 		let image_html = '';
@@ -194,13 +198,13 @@ frappe.ui.LinkPreview = class {
 			</div>`;
 		}
 		if(preview_data['title']) {
-			title_html+= `<a class="preview-title small" href=${link}>${preview_data['title']}</a>`;
+			title_html+= `<a class="preview-title small" href=${this.link}>${preview_data['title']}</a>`;
 		}
 
 		Object.keys(preview_data).forEach(key => {
 			if(key!='image' && key!='name') {
 				let value = this.truncate_value(preview_data[key]);            
-				let label = this.truncate_value(frappe.meta.get_label(dt, key));
+				let label = this.truncate_value(frappe.meta.get_label(this.doctype, key));
 				content_html += `
 				<tr class="preview-field">
 					<td class='text-muted small field-name'>${label}</td> 
@@ -211,25 +215,17 @@ frappe.ui.LinkPreview = class {
 		});
 		content_html+=`</table>`;
 
-		let popover_content = `<div class="preview-popover-header">
-									${image_html}
-									<div class="preview-header">
-										<div class="preview-main">
-											<a class="preview-name text-bold" href=${link}>${preview_data['name']}</a>
-											${title_html}
-											<span class="text-muted small">${dt}</span>
-										</div>
+		let popover_content = `<div class="preview-popover-header">${image_html}<div class="preview-header">
+									<div class="preview-main">
+										<a class="preview-name text-bold" href=${this.link}>${preview_data['name']}</a>
+										${title_html}
+										<span class="text-muted small">${this.doctype}</span>
 									</div>
-								</div>
+								</div></div>
 								<hr>
 								<div class="popover-body">
 									${content_html}
 								</div>`;
-
-		if(!link) {
-			$('.preview-name').removeAttr('href');
-			$('.preview-title').removeAttr('href');
-		}
 
 		return popover_content;
 	}

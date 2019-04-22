@@ -15,7 +15,7 @@ def get_preview_data(doctype, docname, fields):
 
 	preview_data = frappe.cache().hget('preview_data', (doctype, docname))
 	if preview_data == None:
-		preview_data = frappe.get_all(doctype, filters={
+		preview_data = frappe.get_list(doctype, filters={
 			'name': docname
 		}, fields=preview_fields, limit=1)
 		if preview_data:
