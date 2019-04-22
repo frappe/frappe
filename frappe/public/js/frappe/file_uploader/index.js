@@ -11,7 +11,8 @@ export default class FileUploader {
 		folder,
 		restrictions,
 		upload_notes,
-		allow_multiple
+		allow_multiple,
+		as_dataurl
 	} = {}) {
 		if (!wrapper) {
 			this.make_dialog();
@@ -31,7 +32,8 @@ export default class FileUploader {
 					on_success,
 					restrictions,
 					upload_notes,
-					allow_multiple
+					allow_multiple,
+					as_dataurl
 				}
 			})
 		});
