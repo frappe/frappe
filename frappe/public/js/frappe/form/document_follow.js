@@ -20,7 +20,7 @@ frappe.ui.form.DocumentFollow = class DocumentFollow {
 
 	render_sidebar() {
 		const docinfo = this.frm.get_docinfo();
-		const document_follow_enabled = docinfo && docinfo.document_follow_enabled;
+		const document_follow_enabled = frappe.boot.user.document_follow_notify;
 		const document_can_be_followed = frappe.get_meta(this.frm.doctype).track_changes;
 		if (frappe.session.user === 'Administrator'
 			|| !document_follow_enabled

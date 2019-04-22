@@ -833,7 +833,7 @@ class Database(object):
 		"""Returns list of column names from given doctype."""
 		columns = self.get_db_table_columns('tab' + doctype)
 		if not columns:
-			raise self.ProgrammingError
+			raise self.TableMissingError
 		return columns
 
 	def has_column(self, doctype, column):
