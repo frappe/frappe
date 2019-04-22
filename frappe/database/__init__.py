@@ -23,7 +23,7 @@ def drop_user_and_database(db_name, root_login=None, root_password=None):
 		import frappe.database.mariadb.setup_db
 		return frappe.database.mariadb.setup_db.drop_user_and_database(db_name, root_login, root_password)
 
-def get_db(host=None, port=None, user=None, password=None):
+def get_db(host=None, user=None, password=None, port=None):
 	import frappe
 	if frappe.conf.db_type == 'postgres':
 		import frappe.database.postgres.database
