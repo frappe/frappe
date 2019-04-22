@@ -660,9 +660,11 @@ export default class Grid {
 			// upload
 			frappe.flags.no_socketio = true;
 			$(this.wrapper).find(".grid-upload").removeClass("hide").on("click", function() {
-				frappe.prompt({fieldtype:"Attach", label:"Upload File", fieldname: "upload_file"},
-					function(data) {
-						var data = frappe.utils.csv_to_array(frappe.upload.get_string(data.upload_file));
+				new frappe.ui.FileUploader({
+					as_dataurl: true,
+					allow_multiple: false,
+					on_success(file) {
+						var data = frappe.utils.csv_to_array(frappe.upload.get_string(file.dataurl));
 						// row #2 contains fieldnames;
 						var fieldnames = data[2];
 
@@ -700,8 +702,8 @@ export default class Grid {
 
 						me.frm.refresh_field(me.df.fieldname);
 						frappe.msgprint({message:__('Table updated'), title:__('Success'), indicator:'green'})
-
-					}, __("Edit via Upload"), __("Update"));
+					}
+				});
 				return false;
 			});
 		}

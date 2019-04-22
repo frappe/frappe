@@ -130,6 +130,9 @@ export default {
 		allow_multiple: {
 			default: true
 		},
+		as_dataurl: {
+			default: false
+		},
 		doctype: {
 			default: null
 		},
@@ -271,26 +274,13 @@ export default {
 		},
 		upload_files() {
 			if (this.show_file_browser) {
-				let selected_file = this.$refs.file_browser.selected_node;
-				if (!selected_file.value) {
-					frappe.msgprint(__('Click on a file to select it.'));
-					return Promise.reject();
-				}
-
-				return this.upload_file({
-					file_url: selected_file.file_url
-				});
+				return this.upload_via_file_browser();
 			}
 			if (this.show_web_link) {
-				let file_url = this.$refs.web_link.url;
-				if (!file_url) {
-					frappe.msgprint(__('Invalid URL'));
-					return Promise.reject();
-				}
-
-				return this.upload_file({
-					file_url
-				});
+				return this.upload_via_web_link();
+			}
+			if (this.as_dataurl) {
+				return this.return_as_dataurl();
 			}
 			return frappe.run_serially(
 				this.files.map(
@@ -298,6 +288,38 @@ export default {
 						() => this.upload_file(file, i)
 				)
 			);
+		},
+		upload_via_file_browser() {
+			let selected_file = this.$refs.file_browser.selected_node;
+			if (!selected_file.value) {
+				frappe.msgprint(__('Click on a file to select it.'));
+				return Promise.reject();
+			}
+
+			return this.upload_file({
+				file_url: selected_file.file_url
+			});
+		},
+		upload_via_web_link() {
+			let file_url = this.$refs.web_link.url;
+			if (!file_url) {
+				frappe.msgprint(__('Invalid URL'));
+				return Promise.reject();
+			}
+
+			return this.upload_file({
+				file_url
+			});
+		},
+		return_as_dataurl() {
+			let promises = this.files.map(file =>
+				frappe.dom.file_to_base64(file.file_obj)
+					.then(dataurl => {
+						file.dataurl = dataurl;
+						this.on_success && this.on_success(file);
+					})
+			);
+			return Promise.all(promises);
 		},
 		upload_file(file, i) {
 			this.currently_uploading = i;
