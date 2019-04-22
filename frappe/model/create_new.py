@@ -12,7 +12,7 @@ import frappe.defaults
 from frappe.model import data_fieldtypes
 from frappe.utils import nowdate, nowtime, now_datetime
 from frappe.core.doctype.user_permission.user_permission import get_user_permissions
-from frappe.permissions import get_allowed_docs_for_doctype
+from frappe.permissions import filter_allowed_docs_for_doctype
 
 def get_new_doc(doctype, parent_doc = None, parentfield = None, as_dict=False):
 	if doctype not in frappe.local.new_doc_templates:
@@ -57,7 +57,7 @@ def set_user_and_static_default_values(doc):
 			# user permissions for link options
 			doctype_user_permissions = user_permissions.get(df.options, [])
 			# Allowed records for the reference doctype (link field) along with default doc
-			allowed_records, default_doc = get_allowed_docs_for_doctype(doctype_user_permissions, df.parent, get_default=True)
+			allowed_records, default_doc = filter_allowed_docs_for_doctype(doctype_user_permissions, df.parent, with_default_doc=True)
 
 			user_default_value = get_user_default_value(df, defaults, doctype_user_permissions, allowed_records, default_doc)
 			if user_default_value != None:
@@ -147,6 +147,7 @@ def user_permissions_exist(df, doctype_user_permissions):
 
 def get_default_based_on_another_field(df, user_permissions, parent_doc):
 	# default value based on another document
+	from frappe.permissions import get_allowed_docs_for_doctype
 
 	ref_doctype =  df.default[1:]
 	ref_fieldname = ref_doctype.lower().replace(" ", "_")

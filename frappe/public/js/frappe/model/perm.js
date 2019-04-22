@@ -254,8 +254,26 @@ $.extend(frappe.perm, {
 	},
 
 	get_allowed_docs_for_doctype: (user_permissions, doctype) => {
-		return (user_permissions || []).filter(perm => {
-			return ((perm.applicable_for === doctype || !perm.applicable_for) && (perm.is_default === 1 || user_permissions.length === 1));
-		}).map(perm => perm.doc);
+		// returns docs from the list of user permissions that are allowed under provided doctype
+		filter_allowed_docs_for_doctype(user_permissions, doctype, false)
+	},
+
+	filter_allowed_docs_for_doctype: (user_permissions, doctype, with_default_doc=true) => {
+		// returns docs from the list of user permissions that are allowed under provided doctype
+		// also returns default doc when with_default_doc is set
+		const allowed_docs = (user_permissions || []).filter(perm => {
+		  return (perm.applicable_for === doctype || !perm.applicable_for);
+		});
+		const allowed_docs_name = (allowed_docs || []).map(perm => perm.doc);
+		if (with_default_doc && allowed_docs_name) {
+			const default_doc = allowed_docs_name.length === 1? allowed_docs_name: allowed_docs.filter(perm => perm.is_default).map(record => record.doc);
+
+			return {
+				allowed_records: allowed_docs_name,
+				default_doc: default_doc[0]
+			}
+		} else {
+			return allowed_docs_name;
+		}
 	}
 });
