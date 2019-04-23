@@ -552,7 +552,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 
 		const numeric_fields = columns.filter((col, i) => indices.includes(i));
-		window.flds = numeric_fields
 		const non_numeric_fields = columns.filter((col, i) => !indices.includes(i))
 
 		const dialog = new frappe.ui.Dialog({
