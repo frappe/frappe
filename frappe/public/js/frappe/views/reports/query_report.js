@@ -497,7 +497,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	get_possible_chart_options() {
 		const columns = this.raw_data.columns;
 		const rows =  this.raw_data.result;
-		const first_row = rows[0];
+		const first_row = Array.isArray(rows[0]) ? rows[0] : Object.values(rows[0]);
 		const has_total_row = this.raw_data.add_total_row;
 
 		const indices = first_row.reduce((accumulator, current_value, current_index) => {
