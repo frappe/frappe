@@ -83,29 +83,16 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 	},
 
 	get_value: function() {
-		if ( this.fileobj ) {
-			if ( this.fileobj.file_url ) {
-				return this.fileobj.file_url;
-			} else if ( this.fileobj.filename ) {
-				var dataURI = this.fileobj.filename + ',' + this.dataurl;
-
-				return dataURI;
-			}
-		} else {
-			return this.value || null;
-		}
+		return this.value || null;
 	},
 
 	on_upload_complete: function(attachment) {
 		if(this.frm) {
 			this.parse_validate_and_set_in_model(attachment.file_url);
-			this.refresh();
 			this.frm.attachments.update_attachment(attachment);
 			this.frm.doc.docstatus == 1 ? this.frm.save('Update') : this.frm.save();
-		} else {
-			this.value = this.get_value();
-			this.refresh();
-			frappe.hide_progress();
 		}
+		this.value = attachment.file_url;
+		this.refresh();
 	},
 });
