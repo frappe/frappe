@@ -3,15 +3,39 @@
 		<ul class="list-unstyled user-list">
 			<li class="user-card user-list-header text-medium">
 				<span class="user-details text-muted">
+					<input
+						class="form-control"
+						type="search"
+						placeholder="Search User"
+						v-model="filter_users_by"
+					>
+				</span>
+				<span class="flex-20 text-muted">
+				</span>
+				<span class="flex-20 text-muted">
+					Period &nbsp;&nbsp;
+				</span>
+				<span class="flex-20 text-muted">
+					<select class="form-control" v-model="period">
+						<option
+							v-for="value in period_options"
+							:key="value" :value="value">
+							{{ value }}
+						</option>
+					</select>
+				</span>
+			</li>
+			<li class="user-card user-list-header text-medium">
+				<span class="user-details text-muted">
 					{{ __('User') }}
 				</span>
-				<span class="user-points text-muted">
+				<span class="flex-20 text-muted">
 					{{ __('Energy Points') }}
 				</span>
-				<span class="user-points text-muted">
+				<span class="flex-20 text-muted">
 					{{ __('Review Points') }}
 				</span>
-				<span class="user-points text-muted">
+				<span class="flex-20 text-muted">
 					{{ __('Points Given') }}
 				</span>
 			</li>
@@ -28,13 +52,13 @@
 							</div>
 						</span>
 					</div>
-					<span class="text-muted text-nowrap user-points">
+					<span class="text-muted text-nowrap flex-20">
 						{{ user.energy_points }}
 					</span>
-					<span class="text-muted text-nowrap user-points">
+					<span class="text-muted text-nowrap flex-20">
 						{{ user.review_points }}
 					</span>
-					<span class="text-muted text-nowrap user-points">
+					<span class="text-muted text-nowrap flex-20">
 						{{ user.given_points }}
 					</span>
 				</div>
@@ -61,10 +85,25 @@ export default {
 			filter_users_by: null,
 			sort_users_by: 'energy_points',
 			sort_order: 'desc',
-			show_log_for: null
+			show_log_for: null,
+			period_options: ['Lifetime', 'Last Month', 'Last Week', 'Today'],
+			period: 'Lifetime',
 		}
 	},
 	computed: {
+		from_date() {
+			const days_to_deduct = {
+				'Last Week': 7,
+				'Last Month': 30,
+			};
+			if (this.period === 'Lifetime') {
+				return null;
+			}
+			if (this.period === 'Today') {
+				return frappe.datetime.get_today()
+			}
+			return frappe.datetime.add_days(moment(), -days_to_deduct[this.period])
+		},
 		filtered_users() {
 			let filtered = this.users.slice();
 
@@ -98,6 +137,11 @@ export default {
 			return filtered;
 		}
 	},
+	watch: {
+		period() {
+			this.fetch_users_energy_points_and_update_users();
+		}
+	},
 	created() {
 		const standard_users = ['Administrator', 'Guest', 'guest@example.com'];
 		this.users = frappe.boot.user_info;
@@ -117,9 +161,9 @@ export default {
 			frappe.set_route('social', 'profile', user)
 		},
 		fetch_users_energy_points_and_update_users() {
-			frappe.xcall(
-				'frappe.social.doctype.energy_point_log.energy_point_log.get_user_energy_and_review_points'
-			).then(data => {
+			frappe.xcall('frappe.social.doctype.energy_point_log.energy_point_log.get_user_energy_and_review_points', {
+				from_date: this.from_date
+			}).then(data => {
 				let users = this.users.slice();
 				this.users = users.map(user => {
 					const points = data[user.name] || {};
@@ -158,7 +202,7 @@ export default {
 		}
 	}
 }
-.user-points {
+.flex-20 {
 	flex: 0 0 20%;
 	text-align: right;
 	align-self: center;
