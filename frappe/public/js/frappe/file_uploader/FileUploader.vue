@@ -364,11 +364,13 @@ export default {
 							}
 						} else {
 							file.failed = true;
+							let error = null;
 							try {
-								console.error(JSON.parse(xhr.responseText));
+								error = JSON.parse(xhr.responseText);
 							} catch(e) {
-								console.error(xhr.responseText);
+								// pass
 							}
+							frappe.request.cleanup({}, error);
 						}
 					}
 				}
