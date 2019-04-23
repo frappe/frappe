@@ -66,7 +66,9 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.sidebar-menu {
-		margin: 30px 0px;
+		padding: 15px 0px;
+		border-bottom: 1px solid @light-border-color;
+		margin: 0px;
 	}
 }
 
@@ -92,15 +94,15 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	h6, .h6 {
-		text-transform: uppercase;
-		color: @text-muted;
-		font-size: @text-small;
 		margin-top: 0px;
 	}
 
 	> li {
 		position: relative;
-		margin-bottom: 7px;
+	}
+
+	.list-link {
+		margin: 7px 0px;
 	}
 }
 
@@ -113,7 +115,6 @@ body[data-route^="Module"] .main-menu {
 		}
 
 		input {
-			font-size: @text-medium !important;
 			color: @text-color !important;
 			font-style: italic;
 		}
@@ -166,8 +167,6 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.sidebar-image-section {
-		margin-top: 15px;
-		margin-bottom: 0px;
 		cursor: pointer;
 
 		.sidebar-image {
@@ -256,16 +255,9 @@ body[data-route^="Module"] .main-menu {
 }
 
 .layout-side-section .form-sidebar {
-	.modified-by,
-	.created-by {
-		margin: 30px 0px;
+	.modified-by {
+		margin-bottom: 15px;
 	}
-}
-
-// list sidebar
-
-.layout-side-section .list-sidebar {
-	margin-top: -15px;
 }
 
 .layout-side-section {

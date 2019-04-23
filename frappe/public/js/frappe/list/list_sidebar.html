@@ -3,8 +3,7 @@
 </ul>
 <ul class="list-unstyled sidebar-menu standard-actions">
 	{% if frappe.model.can_get_report(doctype) %}
-	<li class="divider"></li>
-	<li>
+	<li class="list-link">
 		<div class="btn-group">
 			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 				{{ __("Reports") }} <span class="caret"></span>
@@ -57,7 +56,7 @@
 		</ul>
 	</li>
 	{% if(frappe.help.has_help(doctype)) { %}
-	<li><a class="help-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>
+	<li><a class="help-link list-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>
 	{% } %}
 </ul>
 <ul class="list-unstyled sidebar-menu charts-menu hide">
