@@ -540,7 +540,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			const wrapper = $(dialog.fields_dict["chart_preview"].wrapper);
 			const values = dialog.get_values(true);
 			let options = make_chart_options(values);
-			console.log("Chart Options", options)
 
 			Object.assign(options, {
 				height: 150
