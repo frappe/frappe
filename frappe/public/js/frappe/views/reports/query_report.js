@@ -562,16 +562,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					fieldname: 'y_field',
 					label: 'Y Field',
 					fieldtype: 'Select',
-					options: numeric_fields,
-					default: numeric_fields[0],
+					options: numeric_fields.map((opt) => opt.options),
+					default: numeric_fields.map((opt) => opt.options)[0],
 					onchange: preview_chart
 				},
 				{
 					fieldname: 'x_field',
 					label: 'X Field',
 					fieldtype: 'Select',
-					options: non_numeric_fields,
-					default: non_numeric_fields[0],
+					options: non_numeric_fields.map((opt) => opt.options),
+					default: non_numeric_fields.map((opt) => opt.options)[0],
 					onchange: preview_chart
 				},
 				{
