@@ -36,8 +36,8 @@ frappe.ui.form.Dashboard = Class.extend({
 		// clear custom
 		this.wrapper.find('.custom').remove();
 	},
-	set_headline: function(html) {
-		this.frm.layout.show_message(html);
+	set_headline: function(html, color) {
+		this.frm.layout.show_message(html, color);
 	},
 	clear_headline: function() {
 		this.frm.layout.show_message();
@@ -57,12 +57,9 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.clear_headline();
 	},
 
-	set_headline_alert: function(text, indicator_color) {
-		if (!indicator_color) {
-			indicator_color = 'orange';
-		}
+	set_headline_alert: function(text, color) {
 		if(text) {
-			this.set_headline(`<div><span class="indicator ${indicator_color}">${text}</span></div>`);
+			this.set_headline(`<div>${text}</div>`, color);
 		} else {
 			this.clear_headline();
 		}

@@ -349,7 +349,7 @@ _f.Frm.prototype.refresh_header = function(is_a_different_doc) {
 		&& !this.is_new()
 		&& !frappe.model.has_workflow(this.doctype) // show only if no workflow
 		&& this.doc.docstatus===0) {
-		this.dashboard.add_comment(__('Submit this document to confirm'), 'orange', true);
+		this.dashboard.add_comment(__('Submit this document to confirm'), 'blue', true);
 	}
 
 	this.clear_custom_buttons();
@@ -921,8 +921,8 @@ _f.Frm.prototype.get_perm = function(permlevel, access_type) {
 };
 
 
-_f.Frm.prototype.set_intro = function(txt) {
-	this.dashboard.set_headline_alert(txt);
+_f.Frm.prototype.set_intro = function(txt, color) {
+	this.dashboard.set_headline_alert(txt, color);
 };
 
 _f.Frm.prototype.set_footnote = function(txt) {

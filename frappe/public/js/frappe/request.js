@@ -420,7 +420,7 @@ frappe.request.report_error = function(xhr, request_opts) {
 				name: frappe.session.user
 			}
 		});
-		communication_composer.dialog.$wrapper.css("z-index", cint(msg_dialog.$wrapper.css("z-index")) + 1);
+		communication_composer.dialog.$wrapper.css("z-index", cint(frappe.msg_dialog.$wrapper.css("z-index")) + 1);
 	}
 
 	if (exc) {
