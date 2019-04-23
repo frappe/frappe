@@ -109,16 +109,3 @@ def new_todo(description):
 		'doctype': 'ToDo',
 		'description': description
 	}).insert()
-
-
-@frappe.whitelist()
-def new_auto_repeat(todo, start_date, end_date, frequency):
-	auto_repeat = frappe.get_doc({
-		'doctype': 'Auto Repeat',
-		'reference_doctype': 'ToDo',
-		'reference_document': todo,
-		'start_date': start_date,
-		'end_date': end_date,
-		'frequency': frequency
-	}).insert().submit()
-	return {'auto_repeat': auto_repeat}
