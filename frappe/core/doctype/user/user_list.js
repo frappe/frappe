@@ -16,4 +16,4 @@ frappe.listview_settings['User'] = {
 	}
 };
 
-frappe.help.youtube_id["User"] = "fnBoRhBrwR4";
+frappe.help.youtube_id["User"] = "8Slw1hsTmUI";

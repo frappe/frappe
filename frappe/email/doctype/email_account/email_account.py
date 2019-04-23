@@ -20,7 +20,7 @@ from datetime import datetime, timedelta
 from frappe.desk.form import assign_to
 from frappe.utils.user import get_system_managers
 from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts, add_contact
+from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts, add_contacts
 from frappe.utils.scheduler import log
 from frappe.utils.html_utils import clean_email_html
 
@@ -385,8 +385,7 @@ class EmailAccount(Document):
 			users = list(set([ user.get("parent") for user in users ]))
 			communication._seen = json.dumps(users)
 
-		add_contact(communication=communication, recipients=email.mail.get("To"), \
-			cc=email.mail.get("CC"), sender=email.from_email)
+		add_contacts([email.mail.get("To"), email.mail.get("CC"), email.from_email])
 
 		communication.flags.in_receive = True
 		communication.insert(ignore_permissions = 1)
@@ -434,7 +433,7 @@ class EmailAccount(Document):
 			parent = self.create_new_parent(communication, email)
 
 		if parent:
-			communication.add_link(link_doctype=parent.doctype, link_name=parent.name, no_save=True)
+			communication.add_link(link_doctype=parent.doctype, link_name=parent.name)
 
 		# check if message is notification and disable notifications for this message
 		isnotification = email.mail.get("isnotification")

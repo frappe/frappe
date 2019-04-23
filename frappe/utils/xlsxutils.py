@@ -66,7 +66,7 @@ def handle_html(data):
 		value = obj.handle(h)
 	except Exception:
 		# unable to parse html, send it raw
-		return value
+		return data
 
 	value = ", ".join(value.split('  \n'))
 	value = " ".join(value.split('\n'))

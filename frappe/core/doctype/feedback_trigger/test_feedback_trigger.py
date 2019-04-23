@@ -64,7 +64,7 @@ class TestFeedbackTrigger(unittest.TestCase):
 
 		# add a communication
 		comm = frappe.get_doc({
-			"doctype": "Communication"
+			"doctype": "Communication",
 			"communication_type": "Communication",
 			"content": "Test Communication",
 			"subject": "Test Communication",

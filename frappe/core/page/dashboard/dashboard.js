@@ -1,6 +1,8 @@
 // Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+frappe.provide('frappe.dashboards');
+frappe.provide('frappe.dashboards.chart_sources');
 
 frappe.pages['dashboard'].on_page_load = function(wrapper) {
 	var page = frappe.ui.make_app_page({
@@ -27,8 +29,35 @@ class Dashboard {
 
 	show() {
 		this.route = frappe.get_route();
-		const current_dashboard_name = this.route.slice(-1)[0];
+		if (this.route.length > 1) {
+			// from route
+			this.show_dashboard(this.route.slice(-1)[0]);
+		} else {
+			// last opened
+			if (frappe.last_dashboard) {
+				frappe.set_route('dashboard', frappe.last_dashboard);
+			} else {
+				// default dashboard
+				frappe.db.get_list('Dashboard', {filters: {is_default: 1}}).then(data => {
+					if (data && data.length) {
+						frappe.set_route('dashboard', data[0].name);
+					} else {
+						// no default, get the latest one
+						frappe.db.get_list('Dashboard', {limit: 1}).then(data => {
+							if (data && data.length) {
+								frappe.set_route('dashboard', data[0].name);
+							} else {
+								// create a new dashboard!
+								frappe.new_doc('Dashboard');
+							}
+						});
+					}
+				});
+			}
+		}
+	}
 
+	show_dashboard(current_dashboard_name) {
 		if(this.dashboard_name !== current_dashboard_name) {
 			this.dashboard_name = current_dashboard_name;
 			this.page.set_title(this.dashboard_name);
@@ -37,6 +66,7 @@ class Dashboard {
 			this.refresh();
 		}
 		this.charts = {};
+		frappe.last_dashboard = current_dashboard_name;
 	}
 
 	refresh() {
@@ -65,7 +95,11 @@ class Dashboard {
 
 		this.page.add_menu_item('Edit...', () => {
 			frappe.set_route('Form', 'Dashboard', frappe.dashboard.dashboard_name);
-		})
+		}, 1);
+
+		this.page.add_menu_item('New...', () => {
+			frappe.new_doc('Dashboard');
+		}, 1);
 
 		frappe.db.get_list("Dashboard").then(dashboards => {
 			dashboards.map(dashboard => {
@@ -106,6 +140,7 @@ class DashboardChart {
 		this.chart_container = $(`<div class="col-sm-${columns} chart-column-container">
 			<div class="chart-wrapper">
 				<div class="chart-loading-state text-muted">${__("Loading...")}</div>
+				<div class="chart-empty-state hide text-muted">${__("No Data")}</div>
 			</div>
 		</div>`);
 		this.chart_container.appendTo(this.container);
@@ -117,13 +152,8 @@ class DashboardChart {
 	prepare_chart_actions() {
 		let actions = [
 			{
-				label: __("Set Filters"),
-				action: "set-filters",
-				handler: this.create_set_filters_dialog.bind(this)
-			},
-			{
-				label: __("Force Refresh"),
-				action: "force-refresh",
+				label: __("Refresh"),
+				action: 'action-refresh',
 				handler: () => {
 					this.fetch(this.filters, true).then(data => {
 						this.update_chart_object();
@@ -131,8 +161,24 @@ class DashboardChart {
 						this.render();
 					});
 				}
+			},
+			{
+				label: __("Edit..."),
+				action: 'action-edit',
+				handler: () => {
+					frappe.set_route('Form', 'Dashboard Chart', this.chart_doc.name);
+				}
 			}
 		];
+		if (this.chart_doc.document_type) {
+			actions.push({
+				label: __("{0} List", [this.chart_doc.document_type]),
+				action: 'action-list',
+				handler: () => {
+					frappe.set_route('List', this.chart_doc.document_type);
+				}
+			})
+		}
 		this.set_chart_actions(actions);
 	}
 
@@ -155,9 +201,12 @@ class DashboardChart {
 	}
 
 	fetch(filters, refresh=false) {
-		this.chart_container.find('.chart-loading-status').removeClass('hide');
+		this.chart_container.find('.chart-loading-state').removeClass('hide');
+		let method = this.settings ? this.settings.method
+			: 'frappe.desk.doctype.dashboard_chart.dashboard_chart.get';
+
 		return frappe.xcall(
-			this.settings.method_path,
+			method,
 			{
 				chart_name: this.chart_doc.name,
 				filters: filters,
@@ -177,10 +226,10 @@ class DashboardChart {
 			type: chart_type_map[this.chart_doc.type],
 			colors: [this.chart_doc.color || "light-blue"],
 			axisOptions: {
-				xIsSeries: this.settings.is_time_series
+				xIsSeries: this.chart_doc.timeseries
 			},
 		};
-		this.chart_container.find('.chart-loading-status').addClass('hide');
+		this.chart_container.find('.chart-loading-state').addClass('hide');
 
 		if(!this.chart) {
 			this.chart = new Chart(this.chart_container.find(".chart-wrapper")[0], chart_args);
@@ -207,38 +256,21 @@ class DashboardChart {
 	}
 
 	get_settings() {
-		return new Promise(resolve => frappe.db.get_value("Dashboard Chart Source", this.chart_doc.source, "config", e => {
-			this.settings = JSON.parse(e.config);
-			resolve();
-		}));
-	}
-
-	create_set_filters_dialog() {
-		const d = new frappe.ui.Dialog({
-			title: __('Set Filters'),
-			fields: this.settings.filters
-		});
-		d.set_values(this.filters);
-		d.show();
-
-		const set_filters = () => {
-			const values = d.get_values();
-			if (!Object.entries(this.filters).map(e => values[e[0]] === e[1]).every(Boolean)) {
-				frappe.db.set_value("Dashboard Chart", this.chart_doc.name, "filters_json", JSON.stringify(values)).then(() => {
-					this.fetch(values, true).then(data => {
-						this.update_chart_object();
-						this.data = data;
-						this.render();
+		if (this.chart_doc.chart_type == 'Custom') {
+			// custom source
+			if (frappe.dashboards.chart_sources[this.chart_doc.source]) {
+				this.settings = frappe.dashboards.chart_sources[this.chart_doc.source];
+				return Promise.resolve();
+			} else {
+				return frappe.xcall('frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config',
+					{name: this.chart_doc.source})
+					.then(config => {
+						frappe.dom.eval(config);
+						this.settings = frappe.dashboards.chart_sources[this.chart_doc.source];
 					});
-				});
 			}
-			d.hide();
-		};
-
-		this.settings.filters.map(field => field.onchange = e => {
-			if(e) {
-				d.set_primary_action(__('Save Filters'), set_filters);
-			}
-		});
+		} else {
+			return Promise.resolve();
+		}
 	}
 }

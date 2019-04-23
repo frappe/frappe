@@ -688,6 +688,27 @@ Object.assign(frappe.utils, {
 	deep_equal(a, b) {
 		return deep_equal(a, b);
 	},
+
+	file_name_ellipsis(filename, length) {
+		let first_part_length = length * 2 / 3;
+		let last_part_length = length - first_part_length;
+		let parts = filename.split('.');
+		let extn = parts.pop();
+		let name = parts.join('');
+		let first_part = name.slice(0, first_part_length);
+		let last_part = name.slice(-last_part_length);
+		if (name.length > length) {
+			return `${first_part}...${last_part}.${extn}`;
+		} else {
+			return filename;
+		}
+	},
+	get_decoded_string(dataURI) {
+		// decodes base64 to string
+		let parts = dataURI.split(',');
+		const encoded_data = parts[1];
+		return decodeURIComponent(escape(atob(encoded_data)));
+	}
 });
 
 // Array de duplicate
@@ -701,4 +722,10 @@ if (!Array.prototype.uniqBy) {
 			});
 		}
 	});
+	Object.defineProperty(Array.prototype, 'move', {
+		value: function(from, to) {
+			this.splice(to, 0, this.splice(from, 1)[0]);
+		}
+	});
 }
+

@@ -28,22 +28,40 @@ class PreparedReport(Document):
 	def after_insert(self):
 		enqueue(
 			run_background,
-			instance=self, timeout=6000
+			prepared_report=self.name, timeout=6000
 		)
 
 	def on_trash(self):
 		remove_all("PreparedReport", self.name, from_delete=True)
 
 
-def run_background(instance):
+def run_background(prepared_report):
+	instance = frappe.get_doc("Prepared Report", prepared_report)
 	report = frappe.get_doc("Report", instance.ref_report_doctype)
-	result = generate_report_result(report, filters=instance.filters, user=instance.owner)
-	create_json_gz_file(result['result'], 'Prepared Report', instance.name)
 
-	instance.status = "Completed"
-	instance.columns = json.dumps(result["columns"])
-	instance.report_end_time = frappe.utils.now()
-	instance.save()
+	try:
+		report.custom_columns = []
+
+		if report.report_type == 'Custom Report':
+			custom_report_doc = report
+			reference_report = custom_report_doc.reference_report
+			report = frappe.get_doc("Report", reference_report)
+			report.custom_columns = custom_report_doc.json
+
+		result = generate_report_result(report, filters=instance.filters, user=instance.owner)
+		create_json_gz_file(result['result'], 'Prepared Report', instance.name)
+
+		instance.status = "Completed"
+		instance.columns = json.dumps(result["columns"])
+		instance.report_end_time = frappe.utils.now()
+		instance.save()
+
+	except Exception:
+		frappe.log_error(frappe.get_traceback())
+		instance = frappe.get_doc("Prepared Report", prepared_report)
+		instance.status = "Error"
+		instance.error_message = frappe.get_traceback()
+		instance.save()
 
 	frappe.publish_realtime(
 		'report_generated',

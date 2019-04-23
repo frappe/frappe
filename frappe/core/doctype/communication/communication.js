@@ -118,14 +118,16 @@ frappe.ui.form.on("Communication", {
 				"options": "link_doctype",
 				"label": __("Reference Name"),
 				"fieldname": "link_name"
-			}]
-		});
-		d.set_primary_action(__("Add link"), function () {
-			var values = d.get_values();
-			if (values) {
+			}],
+			primary_action: ({ link_doctype, link_name }) => {
 				d.hide();
-				frm.call('add_link', values).then(() => frm.refresh());
-			}
+				frm.call('add_link', {
+					link_doctype,
+					link_name,
+					autosave: true
+				}).then(() => frm.refresh());
+			},
+			primary_action_label: __('Add Link')
 		});
 		d.show();
 	},

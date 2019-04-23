@@ -40,6 +40,9 @@ def get_diff(old, new, for_child=False):
 			],
 
 		}'''
+	if not new:
+		return None
+
 	out = frappe._dict(changed = [], added = [], removed = [], row_changed = [])
 	for df in new.meta.fields:
 		if df.fieldtype in no_value_fields and df.fieldtype not in table_fields:

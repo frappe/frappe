@@ -21,7 +21,7 @@ class EnergyPointLog(Document):
 			send_review_mail(self, alert_dict)
 
 		frappe.cache().hdel('energy_points', self.user)
-		frappe.publish_realtime('update_points')
+		frappe.publish_realtime('update_points', after_commit=True)
 
 def get_alert_dict(doc):
 	alert_dict = frappe._dict({
@@ -116,7 +116,7 @@ def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
 	if from_date:
 		conditions += 'WHERE' if not conditions else 'AND'
 		conditions += ' `creation` >= %s'
-		values.append(conditions)
+		values.append(from_date)
 
 	points_list =  frappe.db.sql("""
 		SELECT
@@ -183,7 +183,7 @@ def revert(name, reason):
 		frappe.throw(_('This document cannot be reverted'))
 
 	doc_to_revert.reverted = 1
-	doc_to_revert.save()
+	doc_to_revert.save(ignore_permissions=True)
 
 	revert_log = frappe.get_doc({
 		'doctype': 'Energy Point Log',
@@ -194,7 +194,7 @@ def revert(name, reason):
 		'reference_doctype': doc_to_revert.reference_doctype,
 		'reference_name': doc_to_revert.reference_name,
 		'revert_of': doc_to_revert.name
-	}).insert()
+	}).insert(ignore_permissions=True)
 
 	return revert_log
 

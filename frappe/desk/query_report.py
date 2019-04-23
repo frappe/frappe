@@ -19,6 +19,16 @@ from frappe.utils import gzip_decompress
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
+	doc.custom_columns = []
+
+	if doc.report_type == 'Custom Report':
+		custom_report_doc = doc
+		reference_report = custom_report_doc.reference_report
+		doc = frappe.get_doc("Report", reference_report)
+		doc.custom_report = report_name
+		doc.custom_columns = custom_report_doc.json
+		doc.is_custom_report = True
+
 	if not doc.is_permitted():
 		frappe.throw(_("You don't have access to Report: {0}").format(report_name), frappe.PermissionError)
 
@@ -81,6 +91,11 @@ def generate_report_result(report, filters=None, user=None):
 			if len(res) > 4:
 				data_to_be_printed = res[4]
 
+
+			if report.custom_columns:
+				columns = json.loads(report.custom_columns)
+				result = add_data_to_custom_columns(columns, result)
+
 	if result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
 
@@ -126,7 +141,6 @@ def background_enqueue_run(report_name, filters=None, user=None):
 @frappe.whitelist()
 def get_script(report_name):
 	report = get_report_doc(report_name)
-
 	module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
 	module_path = get_module_path(module)
 	report_folder = os.path.join(module_path, "report", scrub(report.name))
@@ -187,6 +201,32 @@ def run(report_name, filters=None, user=None):
 
 	return result
 
+def add_data_to_custom_columns(columns, result):
+	custom_fields_data = get_data_for_custom_report(columns)
+
+	data = []
+	for row in result:
+		row_obj = {}
+		if isinstance(row, list):
+			for idx, column in enumerate(columns):
+				if column.get('link_field'):
+					row_obj[column['fieldname']] = None
+					row.insert(idx, None)
+				else:
+					row_obj[column['fieldname']] = row[idx]
+			data.append(row_obj)
+		else:
+			data.append(row)
+
+	for row in data:
+		for column in columns:
+			if column.get('link_field'):
+				fieldname = column['fieldname']
+				key = (column['doctype'], fieldname)
+				link_field = column['link_field']
+				row[fieldname] = custom_fields_data.get(key, {}).get(row.get(link_field))
+
+	return data
 
 def get_prepared_report_result(report, filters, dn="", user=None):
 	latest_report_data = {}
@@ -361,6 +401,43 @@ def get_data_for_custom_field(doctype, field):
 		as_list=1))
 
 	return value_map
+
+def get_data_for_custom_report(columns):
+	doc_field_value_map = {}
+
+	for column in columns:
+		if column.get('link_field'):
+			fieldname = column.get('fieldname')
+			doctype = column.get('doctype')
+			doc_field_value_map[(doctype, fieldname)] = get_data_for_custom_field(doctype, fieldname)
+
+	return doc_field_value_map
+
+@frappe.whitelist()
+def save_report(reference_report, report_name, columns):
+	report_doc = get_report_doc(reference_report)
+
+	docname = frappe.db.exists("Report", report_name)
+	if docname:
+		report = frappe.get_doc("Report", {'report_name': docname, 'is_standard': 'No', 'report_type': 'Custom Report'})
+		report.update({"json": columns})
+		report.save()
+		frappe.msgprint(_("Report updated successfully"))
+
+		return docname
+	else:
+		new_report = frappe.get_doc({
+			'doctype': 'Report',
+			'report_name': report_name,
+			'json': columns,
+			'ref_doctype': report_doc.ref_doctype,
+			'is_standard': 'No',
+			'report_type': 'Custom Report',
+			'reference_report': reference_report
+		}).insert(ignore_permissions = True)
+		frappe.msgprint(_("{0} saved successfully".format(new_report.name)))
+		return new_report.name
+
 
 def get_filtered_data(ref_doctype, columns, data, user):
 	result = []

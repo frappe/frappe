@@ -74,7 +74,7 @@ class Communication(Document):
 			if duplicate:
 				self.dynamic_link = []
 				for l in links:
-					self.add_link(link_doctype=l[0], link_name=l[1], no_save=True)
+					self.add_link(link_doctype=l[0], link_name=l[1])
 
 	def validate_reference(self):
 		for dynamic_link in self.dynamic_link:
@@ -270,14 +270,15 @@ class Communication(Document):
 			if commit:
 				frappe.db.commit()
 
-	def add_link(self, link_doctype, link_name, no_save=False):
+	def add_link(self, link_doctype, link_name, autosave=False):
 		self.append("dynamic_link",
 			{
 				"link_doctype": link_doctype,
 				"link_name": link_name
 			}
 		)
-		if no_save == False:
+
+		if autosave:
 			self.save()
 
 	def get_links(self, link_doctype=None, link_name=None):

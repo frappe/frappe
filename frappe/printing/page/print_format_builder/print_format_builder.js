@@ -144,6 +144,8 @@ frappe.PrintFormatBuilder = Class.extend({
 				}
 			},
 			callback: function(r) {
+				frappe.model.with_doc('Print Format', r.message.name)
+					.then(() => $(document).trigger({ type: 'new-print-format', print_format: r.message.name }));
 				me.print_format = r.message;
 				me.refresh();
 			}
@@ -785,6 +787,8 @@ frappe.PrintFormatBuilder = Class.extend({
 				fieldname: "format_data",
 				value: JSON.stringify(data),
 			},
+			freeze: true,
+			btn: this.page.btn_primary,
 			callback: function(r) {
 				me.print_format = r.message;
 				frappe.show_alert({message: __("Saved"), indicator: 'green'});

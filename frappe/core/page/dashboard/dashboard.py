@@ -3,26 +3,39 @@
 from __future__ import unicode_literals
 import json
 import frappe
+from frappe.utils import add_to_date
 
 
 def cache_source(function):
 	def wrapper(*args, **kwargs):
-		filters = json.loads(kwargs.get("filters", "{}"))
 		chart_name = kwargs.get("chart_name")
-		cache_key = 'chart-data:{}:{}'.format(chart_name, json.dumps(filters))
+		cache_key = 'chart-data:{}'.format(chart_name)
 		if int(kwargs.get("refresh") or 0):
-			results = generate_and_cache_results(chart_name, function, filters, cache_key)
+			results = generate_and_cache_results(chart_name, function, cache_key)
 		else:
 			cached_results = frappe.cache().get_value(cache_key)
 			if cached_results:
 				results = json.loads(frappe.safe_decode(cached_results))
 			else:
-				results = generate_and_cache_results(chart_name, function, filters, cache_key)
+				results = generate_and_cache_results(chart_name, function, cache_key)
 		return results
 	return wrapper
 
-def generate_and_cache_results(chart_name, function, filters, cache_key):
-	results = function(frappe._dict(filters))
+def generate_and_cache_results(chart_name, function, cache_key):
+	results = function(chart_name)
 	frappe.cache().set_value(cache_key, json.dumps(results, default=str))
-	frappe.db.set_value("Dashboard Chart", chart_name, "last_synced_on", frappe.utils.now())
+	frappe.db.set_value("Dashboard Chart", chart_name, "last_synced_on", frappe.utils.now(), update_modified = False)
 	return results
+
+def get_from_date_from_timespan(to_date, timespan):
+	days = months = years = 0
+	if "Last Week" == timespan:
+		days = -7
+	if "Last Month" == timespan:
+		months = -1
+	elif "Last Quarter" == timespan:
+		months = -3
+	elif "Last Year" == timespan:
+		years = -1
+	return add_to_date(to_date, years=years, months=months, days=days,
+		as_datetime=True)

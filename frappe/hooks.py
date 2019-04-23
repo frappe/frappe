@@ -118,7 +118,8 @@ doc_events = {
 			"frappe.core.doctype.activity_log.feed.update_feed",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
-			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
+			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points",
+			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
@@ -187,11 +188,11 @@ scheduler_events = {
 		"frappe.utils.change_log.check_for_update",
 		"frappe.desk.doctype.route_history.route_history.flush_old_route_records",
 		"frappe.desk.form.document_follow.send_weekly_updates",
-		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_report"
+		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary"
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly",
-		"frappe.social.doctype.energy_point_log.energy_point_log.send_monthly_report"
+		"frappe.social.doctype.energy_point_log.energy_point_log.send_monthly_summary"
 	],
 	"monthly_long": [
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_monthly"
