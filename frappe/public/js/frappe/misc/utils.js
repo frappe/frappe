@@ -683,6 +683,12 @@ Object.assign(frappe.utils, {
 		} else {
 			return filename;
 		}
+	},
+	get_decoded_string(dataURI) {
+		// decodes base64 to string
+		let parts = dataURI.split(',');
+		const encoded_data = parts[1];
+		return decodeURIComponent(escape(atob(encoded_data)));
 	}
 });
 
