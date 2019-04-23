@@ -74,7 +74,6 @@ frappe.ui.LinkPreview = class {
 				this.popover.show();
 			}, 1000);
 		}
-		console.log('this', this);
 		this.handle_popover_hide();
 	}
 
@@ -178,7 +177,6 @@ frappe.ui.LinkPreview = class {
 
 	get_popover_html(preview_data) {
 		if(!this.link) {
-			console.log('here');
 			this.link = window.location.href;
 		}
 
@@ -215,17 +213,20 @@ frappe.ui.LinkPreview = class {
 		});
 		content_html+=`</table>`;
 
-		let popover_content = `<div class="preview-popover-header">${image_html}<div class="preview-header">
-									<div class="preview-main">
-										<a class="preview-name text-bold" href=${this.link}>${preview_data['name']}</a>
-										${title_html}
-										<span class="text-muted small">${this.doctype}</span>
-									</div>
-								</div></div>
-								<hr>
-								<div class="popover-body">
-									${content_html}
-								</div>`;
+		let popover_content = 
+			`<div class="preview-popover-header">${image_html}
+				<div class="preview-header">
+					<div class="preview-main">
+						<a class="preview-name text-bold" href=${this.link}>${preview_data['name']}</a>
+						${title_html}
+						<span class="text-muted small">${this.doctype}</span>
+					</div>
+				</div>
+			</div>
+			<hr>
+			<div class="popover-body">
+				${content_html}
+			</div>`;
 
 		return popover_content;
 	}
