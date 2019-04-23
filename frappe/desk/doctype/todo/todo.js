@@ -50,41 +50,55 @@ frappe.ui.form.on("ToDo", {
 			{
 				'fieldname': 'start_date',
 				'fieldtype': 'Date',
-				'label': 'Start Date',
+				'label': __('Start Date'),
 				'default': frappe.datetime.nowdate()
 			},
 			{
 				'fieldname': 'end_date',
 				'fieldtype': 'Date',
-				'label': 'End Date',
+				'label': __('End Date')
 			},
 			{
 				'fieldname': 'frequency',
 				'fieldtype': 'Select',
-				'options': ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Half-yearly', 'Yearly'],
-				'label': 'Frequency',
-				'reqd': 1
+				'label': __('Frequency'),
+				'reqd': 1,
+				'options': [
+					{'label': __('Daily'), 'value': 'Daily'},
+					{'label': __('Weekly'), 'value': 'Weekly'},
+					{'label': __('Monthly'), 'value': 'Monthly'},
+					{'label': __('Quarterly'), 'value': 'Quarterly'},
+					{'label': __('Half-yearly'), 'value': 'Half-yearly'},
+					{'label': __('Yearly'), 'value': 'Yearly'}
+				]
 			}
 		];
 
 		frappe.prompt(fields, function (values) {
 			frappe.call({
-				method: "frappe.desk.doctype.todo.todo.new_auto_repeat",
+				method: "frappe.desk.doctype.auto_repeat.auto_repeat.make_auto_repeat",
 				args: {
-					todo: frm.doc.name,
-					start_date: values["start_date"],
-					end_date: values["end_date"],
-					frequency: values["frequency"]
+					'doctype': frm.doc.doctype,
+					'docname': frm.doc.name,
+					'submit': true,
+					'opts': {
+						'start_date': values['start_date'],
+						'end_date': values['end_date'],
+						'frequency': values['frequency']
+					}
 				},
 				callback: function (r) {
 					if (r.message) {
-						frappe.msgprint("Successfully created repeating task.", "Auto Repeat");
+						frappe.show_alert({
+							'message': __("Successfully created repeating task"),
+							'indicator': 'green'
+						});
 					}
 				}
 			});
 		},
-		'Auto Repeat',
-		'Submit'
+		__('Auto Repeat'),
+		__('Submit')
 		);
 	}
 });
