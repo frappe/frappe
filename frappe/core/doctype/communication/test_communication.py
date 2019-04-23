@@ -56,7 +56,7 @@ class TestCommunication(unittest.TestCase):
 			"doctype": "Communication",
 			"communication_type": "Communication",
 			"content": content,
-			"dynamic_link":[
+			"dynamic_links":[
 				{
 					"link_doctype": "Communication",
 					"link_name": a.name,
@@ -68,7 +68,7 @@ class TestCommunication(unittest.TestCase):
 			"doctype": "Communication",
 			"communication_type": "Communication",
 			"content": content,
-			"dynamic_link":[
+			"dynamic_links":[
 				{
 					"link_doctype": "Communication",
 					"link_name": b.name,

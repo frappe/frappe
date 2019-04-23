@@ -60,9 +60,9 @@ class Communication(Document):
 		validate_email(self)
 
 	def deduplicate_dynamic_links(self):
-		if self.dynamic_link:
+		if self.dynamic_links:
 			links, dynamic_link, duplicate = [], [], False
-			dynamic_link = self.dynamic_link
+			dynamic_link = self.dynamic_links
 
 			for l in dynamic_link:
 				t = (l.link_doctype, l.link_name)
@@ -72,12 +72,12 @@ class Communication(Document):
 					duplicate = True
 
 			if duplicate:
-				self.dynamic_link = []
+				self.dynamic_links = []
 				for l in links:
 					self.add_link(link_doctype=l[0], link_name=l[1])
 
 	def validate_reference(self):
-		for dynamic_link in self.dynamic_link:
+		for dynamic_link in self.dynamic_links:
 			if not dynamic_link.link_owner:
 				dynamic_link.link_owner = frappe.db.get_value(dynamic_link.link_doctype,\
 					dynamic_link.link_name, "owner")
@@ -94,13 +94,13 @@ class Communication(Document):
 
 				# Level 1
 				if circular_level_1:
-					for link in circular_level_1.dynamic_link:
+					for link in circular_level_1.dynamic_links:
 						if link.link_doctype == "Communication":
 							circular_level_2 = get_parent_doc(link.link_doctype, link.link_name)
 
 							# Level 2
 							if circular_level_2:
-								for ref_link in circular_level_2.dynamic_link:
+								for ref_link in circular_level_2.dynamic_links:
 									if ref_link.link_doctype == "Communication":
 										circular_level_3 = get_parent_doc(ref_link.link_doctype, ref_link.link_name)
 
@@ -110,11 +110,10 @@ class Communication(Document):
 												circular_linking = True
 												break
 						if circular_linking:
-							frappe.throw(_("Please make sure the Reference Communication Docs are not circularly \
-								linked."), frappe.CircularLinkingError)
+							frappe.throw(_("Please make sure the Reference Communication Docs are not circularly linked."), frappe.CircularLinkingError)
 
 	def after_insert(self):
-		for dynamic_link in self.dynamic_link:
+		for dynamic_link in self.dynamic_links:
 			if not (dynamic_link.link_doctype and dynamic_link.link_name):
 				return
 
@@ -140,18 +139,17 @@ class Communication(Document):
 	def on_update(self):
 		# add to _comment property of the doctype, so it shows up in
 		# comments count for the list view
-		for dynamic_link in self.dynamic_link:
+		for dynamic_link in self.dynamic_links:
 			update_comment_in_doc(self, dynamic_link.link_doctype, dynamic_link.link_name)
 
 		if self.comment_type != 'Updated':
-			for dynamic_link in self.dynamic_link:
+			for dynamic_link in self.dynamic_links:
 				update_parent_mins_to_first_response(self, dynamic_link.link_doctype, dynamic_link.link_name)
-			self.bot_reply()
 
 	def on_trash(self):
 		if self.communication_type == "Communication":
 			# send delete comment to listening clients
-			for dynamic_link in self.dynamic_link:
+			for dynamic_link in self.dynamic_links:
 				frappe.publish_realtime('delete_communication', self.as_dict(),
 					doctype= dynamic_link.link_doctype, docname = dynamic_link.link_name, after_commit=True)
 
@@ -159,7 +157,7 @@ class Communication(Document):
 		if not self.is_new():
 			return
 
-		for dynamic_link in self.dynamic_link:
+		for dynamic_link in self.dynamic_links:
 			if dynamic_link.link_doctype and dynamic_link.link_name:
 				self.status = "Linked"
 			elif self.communication_type=="Communication":
@@ -220,24 +218,6 @@ class Communication(Document):
 
 		_notify(self, print_html, print_format, attachments, recipients, cc, bcc, link_doctype, link_name)
 
-	def bot_reply(self):
-		if self.comment_type == 'Bot' and self.communication_type == 'Chat':
-			reply = BotReply().get_reply(self.content)
-			if reply:
-				frappe.get_doc({
-					"doctype": "Communication",
-					"comment_type": "Bot",
-					"communication_type": "Bot",
-					"content": cstr(reply),
-					"dynamic_link": [
-						{
-							"link_doctype": self.dynamic_link[0].link_doctype,
-							"link_name": self.dynamic_link[0].link_name
-						},
-					]
-				}).insert()
-				frappe.local.flags.commit = True
-
 	def set_delivery_status(self, commit=False):
 		'''Look into the status of Email Queue linked to this Communication and set the Delivery Status of this Communication'''
 		delivery_status = None
@@ -260,7 +240,7 @@ class Communication(Document):
 		if delivery_status:
 			self.db_set('delivery_status', delivery_status)
 
-			for dynamic_link in self.dynamic_link:
+			for dynamic_link in self.dynamic_links:
 				frappe.publish_realtime('update_communication', self.as_dict(),
 					doctype=dynamic_link.link_doctype, docname=dynamic_link.link_name, after_commit=True)
 
@@ -271,7 +251,7 @@ class Communication(Document):
 				frappe.db.commit()
 
 	def add_link(self, link_doctype, link_name, autosave=False):
-		self.append("dynamic_link",
+		self.append("dynamic_links",
 			{
 				"link_doctype": link_doctype,
 				"link_name": link_name
@@ -292,7 +272,7 @@ class Communication(Document):
 				"link_name": link_name
 			})
 
-		links = frappe.get_list("Dynamic Link", filters=filters, fields=["link_doctype", "link_name"])
+		links = frappe.get_all("Dynamic Link", filters=filters, fields=["link_doctype", "link_name"])
 		return links
 
 
@@ -301,7 +281,7 @@ def on_doctype_update():
 	frappe.db.add_index("Communication", ["status", "communication_type"])
 
 def has_permission(doc, ptype, user):
-	for value in doc.dynamic_link:
+	for value in doc.dynamic_links:
 		if ptype=="read":
 			if (value.link_doctype == "Communication" and value.link_name == doc.name):
 				return
@@ -328,9 +308,3 @@ def get_permission_query_conditions_for_communication(user):
 		email_accounts = [ '"%s"'%account.get("email_account") for account in accounts ]
 		return """tabCommunication.email_account in ({email_accounts})"""\
 			.format(email_accounts=','.join(email_accounts))
-
-#def get_parent_doc(link_doctype, link_name):
-#	"""Returns document of `link_doctype`, `link_doctype`"""
-#	if link_doctype and link_name:
-#		parent_doc = frappe.get_doc(link_doctype, link_name)
-#	return parent_doc if parent_doc else None

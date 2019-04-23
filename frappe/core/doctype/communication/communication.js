@@ -18,12 +18,12 @@ frappe.ui.form.on("Communication", {
 		frm.convert_to_click && frm.set_convert_button();
 		frm.subject_field = "subject";
 
-		if(frm.doc.dynamic_link) {
-			for (var link in frm.doc.dynamic_link) {
-				let dynamic_link = frm.doc.dynamic_link[link];
+		if(frm.doc.dynamic_links) {
+			for (var link in frm.doc.dynamic_links) {
+				let dynamic_link = frm.doc.dynamic_links[link];
 				frm.add_custom_button(__(dynamic_link.link_doctype) + ": " + dynamic_link.link_name, function () {
 					frappe.set_route("Form", dynamic_link.link_doctype, dynamic_link.link_name);
-				}, "View");
+				}, __("View"));
 			}
 		} else {
 			// if an unlinked communication, set email field
