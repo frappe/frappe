@@ -27,10 +27,10 @@ def get_db(host=None, user=None, password=None, port=None):
 	import frappe
 	if frappe.conf.db_type == 'postgres':
 		import frappe.database.postgres.database
-		return frappe.database.postgres.database.PostgresDatabase(host, port, user, password)
+		return frappe.database.postgres.database.PostgresDatabase(host, user, password, port)
 	else:
 		import frappe.database.mariadb.database
-		return frappe.database.mariadb.database.MariaDBDatabase(host, port, user, password)
+		return frappe.database.mariadb.database.MariaDBDatabase(host, user, password, port)
 
 def setup_help_database(help_db_name):
 	import frappe
