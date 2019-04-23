@@ -664,7 +664,7 @@ export default class Grid {
 					as_dataurl: true,
 					allow_multiple: false,
 					on_success(file) {
-						var data = frappe.utils.csv_to_array(frappe.upload.get_string(file.dataurl));
+						var data = frappe.utils.csv_to_array(file.dataurl);
 						// row #2 contains fieldnames;
 						var fieldnames = data[2];
 
