@@ -1727,10 +1727,10 @@ fragment-cache@^0.2.1:
   dependencies:
     map-cache "^0.2.2"
 
-frappe-datatable@^1.12.1:
-  version "1.12.1"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.12.1.tgz#6efe342346025ffeed822e188a05da6c9c9230c9"
-  integrity sha512-AC2sJDuJOr0nSfT+w7DPZd7zPW7PHGhg9XxdRNlaAYpy45r3owdJVF+R6lCMQRvFvvzmPMht02EOE6cFpkzLKw==
+frappe-datatable@^1.12.2:
+  version "1.12.2"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.12.2.tgz#cb7e32defd38426c63278249843baa91dcba79aa"
+  integrity sha512-e4prKv4klBW9I5iVIesoeJgt4LofzZDfDxP+eqvQN2GZRVs8KYEXgyPhcaH89FfuhIkzVK6kDbMHw+KbGfOJIA==
   dependencies:
     hyperlist "^1.0.0-beta"
     lodash "^4.17.5"
