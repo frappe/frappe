@@ -10,64 +10,45 @@
 						v-model="filter_users_by"
 					>
 				</span>
+				<span class="flex-40"></span>
 				<span class="flex-20 text-muted">
-				</span>
-				<span class="flex-20 text-muted">
-					Period &nbsp;&nbsp;
-				</span>
-				<span class="flex-20 text-muted">
-					<select class="form-control" v-model="period">
-						<option
-							v-for="value in period_options"
-							:key="value" :value="value">
-							{{ value }}
-						</option>
+					<select class="form-control" data-toggle="tooltip" title="Period" v-model="period">
+						<option v-for="value in period_options" :key="value" :value="value">{{ value }}</option>
 					</select>
 				</span>
 			</li>
 			<li class="user-card user-list-header text-medium">
-				<span class="user-details text-muted">
-					{{ __('User') }}
-				</span>
-				<span class="flex-20 text-muted">
-					{{ __('Energy Points') }}
-				</span>
-				<span class="flex-20 text-muted">
-					{{ __('Review Points') }}
-				</span>
-				<span class="flex-20 text-muted">
-					{{ __('Points Given') }}
-				</span>
+				<span class="user-details text-muted">{{ __('User') }}</span>
+				<span
+					class="flex-20 text-muted"
+					v-for="title in ['Energy Points', 'Review Points', 'Points Given']"
+					:key="title"
+				>{{ __(title) }}</span>
 			</li>
-			<li
-				v-for="user in filtered_users"
-				:key="user.name">
+			<li v-for="user in filtered_users" :key="user.name">
 				<div class="user-card" @click="toggle_log(user.name)">
-					<div class="user-details flex">
+					<span class="user-details flex">
 						<span v-html="get_avatar(user.name)"></span>
 						<span>
 							<a @click="go_to_profile_page(user.name)">{{ user.fullname }}</a>
-							<div class="text-muted text-medium" :class="{'italic': !user.bio}">
-								{{ frappe.ellipsis(user.bio, 100) || 'No Bio'}}
-							</div>
+							<div
+								class="text-muted text-medium"
+								:class="{'italic': !user.bio}"
+							>{{ frappe.ellipsis(user.bio, 100) || 'No Bio'}}</div>
 						</span>
-					</div>
-					<span class="text-muted text-nowrap flex-20">
-						{{ user.energy_points }}
 					</span>
-					<span class="text-muted text-nowrap flex-20">
-						{{ user.review_points }}
-					</span>
-					<span class="text-muted text-nowrap flex-20">
-						{{ user.given_points }}
-					</span>
+					<span
+						class="text-muted text-nowrap flex-20"
+						v-for="key in ['energy_points', 'review_points', 'given_points']"
+						:key="key"
+					>{{ user[key] }}</span>
 				</div>
 				<energy-point-history
 					v-show="show_log_for===user.name"
 					class="energy-point-history"
 					:user="user.name"
-					:key="user.name + user.energy_points">
-				</energy-point-history>
+					:key="user.name + user.energy_points"
+				></energy-point-history>
 			</li>
 			<li class="user-card text-muted" v-if="!filtered_users.length">{{__('No user found')}}</li>
 		</ul>
@@ -87,30 +68,31 @@ export default {
 			sort_order: 'desc',
 			show_log_for: null,
 			period_options: ['Lifetime', 'Last Month', 'Last Week', 'Today'],
-			period: 'Lifetime',
-		}
+			period: 'Lifetime'
+		};
 	},
 	computed: {
 		from_date() {
 			const days_to_deduct = {
 				'Last Week': 7,
-				'Last Month': 30,
+				'Last Month': 30
 			};
 			if (this.period === 'Lifetime') {
 				return null;
 			}
 			if (this.period === 'Today') {
-				return frappe.datetime.get_today()
+				return frappe.datetime.get_today();
 			}
-			return frappe.datetime.add_days(moment(), -days_to_deduct[this.period])
+			return frappe.datetime.add_days(moment(), -days_to_deduct[this.period]);
 		},
 		filtered_users() {
 			let filtered = this.users.slice();
-
 			if (this.filter_users_by) {
 				filtered = filtered.filter(user =>
-					user.fullname.toLowerCase().includes(this.filter_users_by.toLowerCase())
-				)
+					user.fullname
+						.toLowerCase()
+						.includes(this.filter_users_by.toLowerCase())
+				);
 			}
 
 			if (this.sort_users_by) {
@@ -128,10 +110,10 @@ export default {
 					}
 
 					if (this.sort_order === 'desc') {
-						return_value = -return_value
+						return_value = -return_value;
 					}
 
-					return return_value
+					return return_value;
 				});
 			}
 			return filtered;
@@ -141,6 +123,9 @@ export default {
 		period() {
 			this.fetch_users_energy_points_and_update_users();
 		}
+	},
+	mounted() {
+		$('[data-toggle="tooltip"]').tooltip();
 	},
 	created() {
 		const standard_users = ['Administrator', 'Guest', 'guest@example.com'];
@@ -155,37 +140,42 @@ export default {
 	},
 	methods: {
 		get_avatar(user) {
-			return frappe.avatar(user, 'avatar-medium')
+			return frappe.avatar(user, 'avatar-medium');
 		},
 		go_to_profile_page(user) {
-			frappe.set_route('social', 'profile', user)
+			frappe.set_route('social', 'profile', user);
 		},
 		fetch_users_energy_points_and_update_users() {
-			frappe.xcall('frappe.social.doctype.energy_point_log.energy_point_log.get_user_energy_and_review_points', {
-				from_date: this.from_date
-			}).then(data => {
-				let users = this.users.slice();
-				this.users = users.map(user => {
-					const points = data[user.name] || {};
-					user.energy_points = points.energy_points || 0;
-					user.review_points = points.review_points || 0;
-					user.given_points = points.given_points || 0;
-					return user;
+			frappe
+				.xcall(
+					'frappe.social.doctype.energy_point_log.energy_point_log.get_user_energy_and_review_points',
+					{
+						from_date: this.from_date
+					}
+				)
+				.then(data => {
+					let users = this.users.slice();
+					this.users = users.map(user => {
+						const points = data[user.name] || {};
+						user.energy_points = points.energy_points || 0;
+						user.review_points = points.review_points || 0;
+						user.given_points = points.given_points || 0;
+						return user;
+					});
 				});
-			});
 		},
 		toggle_log(user) {
 			if (this.show_log_for === user) {
-				this.show_log_for = null
+				this.show_log_for = null;
 			} else {
-				this.show_log_for = user
+				this.show_log_for = user;
 			}
 		}
 	}
-}
+};
 </script>
 <style lang="less" scoped>
-@import "frappe/public/less/variables";
+@import 'frappe/public/less/variables';
 .user-list {
 	border-left: 1px solid @border-color;
 	border-right: 1px solid @border-color;
@@ -206,6 +196,9 @@ export default {
 	flex: 0 0 20%;
 	text-align: right;
 	align-self: center;
+}
+.flex-40 {
+	flex: 0 0 40%;
 }
 .user-list-header {
 	background-color: @light-bg;
