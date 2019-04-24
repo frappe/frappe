@@ -373,7 +373,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.data.length > 0) {
 			// append rows
 			this.$result.append(
-				this.data.map(doc => this.get_list_row_html(doc)).join('')
+				this.data.map((doc, i) => {
+					doc._idx = i;
+					return this.get_list_row_html(doc);
+				}).join('')
 			);
 		}
 		this.on_row_checked();
@@ -473,7 +476,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_list_row_html(doc) {
-		return this.get_list_row_html_skeleton(this.get_left_html(doc), this.get_right_html(doc));
+		return this.get_list_row_html_skeleton(this.get_left_html(doc),
+			this.get_right_html(doc));
 	}
 
 	get_list_row_html_skeleton(left = '', right = '') {
@@ -580,7 +584,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_meta_html(doc) {
 		let html = '';
-		if (doc[this.meta.title_field || ''] !== doc.name) {
+		if (!this.settings.hide_name_column && doc[this.meta.title_field || ''] !== doc.name) {
 			html += `
 				<div class="level-item hidden-xs hidden-sm ellipsis">
 					<a class="text-muted ellipsis" href="${this.get_form_link(doc)}">
@@ -589,6 +593,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</div>
 			`;
 		}
+
+		if (this.settings.button && this.settings.button.show(doc)) {
+			html += `
+				<div class="level-item hidden-xs">
+					<button class="btn btn-action btn-default btn-xs"
+						data-name="${doc.name}" data-idx="${doc._idx}"
+						title="${this.settings.button.get_description(doc)}">
+						${this.settings.button.get_label(doc)}
+					</a>
+				</div>
+			`;
+		}
+
 		const modified = comment_when(doc.modified, true);
 
 		const last_assignee = JSON.parse(doc._assign || '[]').slice(-1)[0];
@@ -710,6 +727,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.setup_check_events();
 		this.setup_like();
 		this.setup_realtime_updates();
+		this.setup_action_handler();
 	}
 
 	setup_filterable() {
@@ -759,6 +777,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				window.location.href = link.href;
 				return false;
 			}
+		});
+	}
+
+	setup_action_handler() {
+		this.$result.on('click', '.btn-action', (e) => {
+			const $button = $(e.currentTarget);
+			const doc = this.data[$button.attr('data-idx')];
+			this.settings.button.action(doc);
+			e.stopPropagation();
+			return false;
 		});
 	}
 

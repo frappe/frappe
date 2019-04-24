@@ -1,4 +1,7 @@
 frappe.listview_settings['ToDo'] = {
+	hide_name_column: true,
+	add_fields: ["reference_type", "reference_name"],
+
 	onload: function(me) {
 		if (!frappe.route_options) {
 			frappe.route_options = {
@@ -8,7 +11,22 @@ frappe.listview_settings['ToDo'] = {
 		}
 		me.page.set_title(__("To Do"));
 	},
-	hide_name_column: true,
+
+	button: {
+		show: function(doc) {
+			return doc.reference_name;
+		},
+		get_label: function(doc) {
+			return __('Open');
+		},
+		get_description: function(doc) {
+			return __('Open {0}', [`${doc.reference_type} ${doc.reference_name}`])
+		},
+		action: function(doc) {
+			frappe.set_route('Form', doc.reference_type, doc.reference_name);
+		}
+	},
+
 	refresh: function(me) {
 		if (me.todo_sidebar_setup) return;
 
@@ -19,5 +37,4 @@ frappe.listview_settings['ToDo'] = {
 
 		me.todo_sidebar_setup = true;
 	},
-	add_fields: ["reference_type", "reference_name"],
 }
