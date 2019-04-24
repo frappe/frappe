@@ -490,7 +490,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	get_possible_chart_options() {
 		const columns = this.raw_data.columns;
-		const rows =  this.raw_data.result.filter(value => Object.keys(value).length !== 0);
+		const rows =  this.raw_data.result.filter(value => Object.keys(value).length);
 		const has_total_row = this.raw_data.add_total_row;
 		const first_row = Array.isArray(rows[0]) ? rows[0] : Object.values(rows[0]);
 
@@ -545,6 +545,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			wrapper.show();
 		}
 
+		function get_options(fields) {
+			return fields.map((field) => {
+				return {label: field.label, value: field.fieldname};
+		   }
+		}
+
 		const numeric_fields = columns.filter((col, i) => indices.includes(i));
 		const non_numeric_fields = columns.filter((col, i) => !indices.includes(i))
 
@@ -555,24 +561,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					fieldname: 'y_field',
 					label: 'Y Field',
 					fieldtype: 'Select',
-					options: numeric_fields.map((field) => {
-						return {label: field.label, value: field.fieldname};
-					}),
-					default: numeric_fields.map((field) => {
-						return {label: field.label, value: field.fieldname};
-					})[0],
+					options: get_options(numeric_fields),
 					onchange: preview_chart
 				},
 				{
 					fieldname: 'x_field',
 					label: 'X Field',
 					fieldtype: 'Select',
-					options: non_numeric_fields.map((field) => {
-						return {label: field.label, value: field.fieldname};
-					}),
-					default: non_numeric_fields.map((field) => {
-						return {label: field.label, value: field.fieldname};
-					})[0],
+					options: get_options(non_numeric_fields),
 					onchange: preview_chart
 				},
 				{
