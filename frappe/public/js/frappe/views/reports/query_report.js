@@ -548,7 +548,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		function get_options(fields) {
 			return fields.map((field) => {
 				return {label: field.label, value: field.fieldname};
-		   });
+			});
 		}
 
 		const numeric_fields = columns.filter((col, i) => indices.includes(i));
@@ -605,8 +605,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			primary_action: (values) => {
 				let options = make_chart_options(values);
 
-				let x_field_label = numeric_fields.filter((field) => field.fieldname == values.y_field)[0].label
-				let y_field_label = non_numeric_fields.filter((field) => field.fieldname == values.x_field)[0].label
+				let x_field_label = numeric_fields.filter((field) => field.fieldname == values.y_field)[0].label;
+				let y_field_label = non_numeric_fields.filter((field) => field.fieldname == values.x_field)[0].label;
 
 				options.title = __(`${this.report_name}: ${x_field_label} vs ${y_field_label}`);
 
