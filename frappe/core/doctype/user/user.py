@@ -12,6 +12,8 @@ from frappe.utils.user import get_system_managers
 import frappe.permissions
 import frappe.share
 import re
+import json
+
 from frappe.limits import get_limits
 from frappe.website.utils import is_signup_enabled
 from frappe.utils.background_jobs import enqueue
@@ -1087,3 +1089,11 @@ def generate_keys(user):
 
 		return {"api_secret": api_secret}
 	frappe.throw(frappe._("Not Permitted"), frappe.PermissionError)
+
+@frappe.whitelist()
+def update_profile_info(profile_info):
+	profile_info = json.loads(profile_info)
+	user = frappe.get_doc('User', frappe.session.user)
+	user.update(profile_info)
+	user.save()
+	return user
