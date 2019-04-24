@@ -8,7 +8,7 @@ import frappe
 import unittest
 
 class TestUserPermission(unittest.TestCase):
-	def test_default_user_permission(self):
+	def test_default_user_permission_validation(self):
 		user = create_user('test_default_permission@example.com')
 		param = get_params(user, 'User', user.name, is_default=1)
 		add_user_permissions(param)
