@@ -12,9 +12,10 @@ import frappe.model.sync
 from frappe.utils.fixtures import sync_fixtures
 from frappe.cache_manager import clear_global_cache
 from frappe.desk.notifications import clear_notifications
-from frappe.website import render, router
+from frappe.website import render
 from frappe.core.doctype.language.language import sync_languages
 from frappe.modules.utils import sync_customizations
+from frappe.utils import global_search
 
 def migrate(verbose=True, rebuild_website=False):
 	'''Migrate all apps to the latest version, will:
@@ -58,7 +59,7 @@ def migrate(verbose=True, rebuild_website=False):
 		render.clear_cache()
 
 		# add static pages to global search
-		router.sync_global_search()
+		global_search.update_global_search_for_all_web_pages()
 
 		#run after_migrate hooks
 		for app in frappe.get_installed_apps():

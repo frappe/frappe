@@ -13,13 +13,13 @@ def get_context(context):
 		context.title = _('Search Results for ')
 		context.query = query
 		context.route = '/search'
-		context.update(get_search_results(query))
+		context.update(get_search_results(query, frappe.form_dict.scope))
 	else:
 		context.title = _('Search')
 
 @frappe.whitelist(allow_guest = True)
-def get_search_results(text, start=0, as_html=False):
-	results = web_search(text, start, limit=21)
+def get_search_results(text, scope=None, start=0, as_html=False):
+	results = web_search(text, scope, start, limit=21)
 	out = frappe._dict()
 
 	if len(results) == 21:
@@ -27,22 +27,25 @@ def get_search_results(text, start=0, as_html=False):
 		results = results[:20]
 
 	for d in results:
-		d.content = html2text(d.content)
-		index = d.content.lower().index(text.lower())
-		d.content = d.content[:index] + '<mark>' + d.content[index:][:len(text)] + '</mark>' + d.content[index + len(text):]
+		try:
+			d.content = html2text(d.content)
+			index = d.content.lower().index(text.lower())
+			d.content = d.content[:index] + '<mark>' + d.content[index:][:len(text)] + '</mark>' + d.content[index + len(text):]
 
-		if index < 40:
-			start = 0
-			prefix = ''
-		else:
-			start = index - 40
-			prefix = '...'
+			if index < 40:
+				start = 0
+				prefix = ''
+			else:
+				start = index - 40
+				prefix = '...'
 
-		suffix = ''
-		if (index + len(text) + 47) < len(d.content):
-			 suffix = '...'
+			suffix = ''
+			if (index + len(text) + 47) < len(d.content):
+				suffix = '...'
 
-		d.preview = prefix + d.content[start:start + len(text) + 87] + suffix
+			d.preview = prefix + d.content[start:start + len(text) + 87] + suffix
+		except Exception:
+			d.preview = html2text(d.content)[:97] + '...'
 
 	out.results = results
 
