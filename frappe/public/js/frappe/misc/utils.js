@@ -194,25 +194,6 @@ Object.assign(frappe.utils, {
 			return list;
 		}
 	},
-	set_intro: function(me, wrapper, txt, append, indicator) {
-		if(!me.intro_area) {
-			me.intro_area = $('<div class="intro-area">')
-				.prependTo(wrapper);
-		}
-		if(txt) {
-			if(!append) {
-				me.intro_area.empty();
-			}
-			if(indicator) {
-				me.intro_area.html('<div class="indicator '+indicator+'">'+txt+'</div>')
-			} else {
-				me.intro_area.html('<p class="text-muted">'+txt+'</div>')
-			}
-		} else {
-			me.intro_area.remove();
-			me.intro_area = null;
-		}
-	},
 	set_footnote: function(footnote_area, wrapper, txt) {
 		if(!footnote_area) {
 			footnote_area = $('<div class="text-muted footnote-area level">')
