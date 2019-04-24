@@ -439,7 +439,7 @@ class DocType(Document):
 				pass
 
 	@staticmethod
-	def prepare_docdict_for_import(docdict):
+	def prepare_for_import(docdict):
 		# set order of fields from field_order
 		if docdict.get("field_order"):
 			new_field_dicts = []
