@@ -605,7 +605,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			primary_action: (values) => {
 				let options = make_chart_options(values);
 
-				options.title = __(`${this.report_name}: ${numeric_fields.filter((field) => field.fieldname == values.y_field)[0].label} vs ${non_numeric_fields.filter((field) => field.fieldname == values.x_field)[0].label}`);
+				let x_field_label = numeric_fields.filter((field) => field.fieldname == values.y_field)[0].label
+				let y_field_label = non_numeric_fields.filter((field) => field.fieldname == values.x_field)[0].label
+
+				options.title = __(`${this.report_name}: ${x_field_label} vs ${y_field_label}`);
 
 				this.render_chart(options);
 
