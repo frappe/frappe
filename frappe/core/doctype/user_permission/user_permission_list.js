@@ -16,6 +16,7 @@ frappe.listview_settings['User Permission'] = {
 							dialog.fields_dict.doctype.set_input(undefined);
 							dialog.fields_dict.docname.set_input(undefined);
 							dialog.set_df_property("docname", "hidden", 1);
+							dialog.set_df_property("is_default", "hidden", 1);
 							dialog.set_df_property("apply_to_all_doctypes", "hidden", 1);
 							dialog.set_df_property("applicable_doctypes", "hidden", 1);
 						}
@@ -54,10 +55,15 @@ frappe.listview_settings['User Permission'] = {
 						}
 					},
 					{
+						fieldname: 'is_default',
+						label: __('Is Default'),
+						fieldtype: 'Check',
+						hidden: 1
+					},
+					{
 						fieldname: 'apply_to_all_doctypes',
 						label: __('Apply to all Documents Types'),
 						fieldtype: 'Check',
-						checked: 1,
 						hidden: 1,
 						onchange: function() {
 							if(dialog.fields_dict.doctype.value && dialog.fields_dict.docname.value && dialog.fields_dict.user.value){
@@ -205,8 +211,9 @@ frappe.listview_settings['User Permission'] = {
 	on_doctype_change: function(dialog) {
 		dialog.set_df_property("docname", "hidden", 0);
 		dialog.set_df_property("docname", "reqd", 1);
+		dialog.set_df_property("is_default", "hidden", 0);
 		dialog.set_df_property("apply_to_all_doctypes", "hidden", 0);
-		dialog.set_value("apply_to_all_doctypes","checked",1);
+		dialog.set_value("apply_to_all_doctypes", "checked", 1);
 	},
 
 	on_docname_change: function(dialog, options, applicable) {
