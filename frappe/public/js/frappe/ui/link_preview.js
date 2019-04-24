@@ -16,6 +16,9 @@ frappe.ui.LinkPreview = class {
 			if(!this.element.parents().find('.popover').length) {
 				if(this.element.attr('href')) {
 					this.link = this.element.attr('href');
+					if(this.link.startsWith('http')) {
+						return;
+					}
 					let details = this.get_details();
 					this.name = details.name;
 					this.doctype = details.doctype;
@@ -34,7 +37,7 @@ frappe.ui.LinkPreview = class {
 				}
 
 				this.popover = this.element.data("bs.popover");
-				if(this.name && this.doctype && this.doctype!=='files') {
+				if(this.name && this.doctype) {
 					this.setup_popover_control(e);
 				}
 			}

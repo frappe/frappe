@@ -9,8 +9,7 @@ def get_preview_data(doctype, docname, fields):
 	preview_fields.append(frappe.get_meta(doctype).get_title_field())
 	if 'name' not in fields:
 		preview_fields.append('name')
-	if frappe.get_meta(doctype).has_field('image'):
-		preview_fields.append('image')
+	preview_fields.append(frappe.get_meta(doctype).image_field)
 
 	preview_data = frappe.get_list(doctype, filters={
 		'name': docname
