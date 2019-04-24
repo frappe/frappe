@@ -47,6 +47,7 @@
 					v-show="show_log_for===user.name"
 					class="energy-point-history"
 					:user="user.name"
+					:from_date="from_date"
 					:key="user.name + user.energy_points"
 				></energy-point-history>
 			</li>
