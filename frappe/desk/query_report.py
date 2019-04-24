@@ -225,7 +225,7 @@ def add_data_to_custom_columns(columns, result):
 				fieldname = column['fieldname']
 				key = (column['doctype'], fieldname)
 				link_field = column['link_field']
-				row[fieldname] = custom_fields_data.get(key, {}).get(row[link_field])
+				row[fieldname] = custom_fields_data.get(key, {}).get(row.get(link_field))
 
 	return data
 
