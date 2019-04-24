@@ -100,8 +100,8 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 	docdict["__islocal"] = 1
 
 	controller = get_controller(docdict['doctype'])
-	if controller and hasattr(controller, 'prepare_docdict_for_import') and callable(getattr(controller, 'prepare_docdict_for_import')):
-		controller.prepare_docdict_for_import(docdict)
+	if controller and hasattr(controller, 'prepare_for_import') and callable(getattr(controller, 'prepare_for_import')):
+		controller.prepare_for_import(docdict)
 
 	doc = frappe.get_doc(docdict)
 
