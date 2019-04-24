@@ -43,7 +43,7 @@ export default {
 	background-size: cover;
 	background-position: center;
 	background-repeat: no-repeat;
-	background-color: '#262626';
+	background-color: #262626;
 	.user-avatar {
 		position: relative;
 		/deep/ .avatar {
