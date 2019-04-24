@@ -509,7 +509,20 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					.then((updated_doc) => {
 						const _data = this.data.find(d => d.name === updated_doc.name);
 						for (let field in _data) {
-							_data[field] = updated_doc[field];
+							if (field.includes(':')) {
+								// child table field
+								const [cdt, _field] = field.split(':');
+								const cdt_row = Object.keys(updated_doc)
+									.filter(key => Array.isArray(updated_doc[key]) && updated_doc[key][0].doctype === cdt)
+									.map(key => updated_doc[key])
+									.map(a => a[0])
+									.filter(cdoc => cdoc.name === _data[cdt + ':name'])[0];
+								if (cdt_row) {
+									_data[field] = cdt_row[_field];
+								}
+							} else {
+								_data[field] = updated_doc[field];
+							}
 						}
 					})
 					.then(() => this.refresh_charts());
