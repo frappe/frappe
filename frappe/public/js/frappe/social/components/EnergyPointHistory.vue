@@ -22,13 +22,13 @@
 </template>
 <script>
 export default {
-	props: ['user'],
+	props: ['user', 'from_date'],
 	data() {
 		return {
 			history_logs: [],
 			fetching: false,
 			has_more_logs: true
-		}
+		};
 	},
 	created() {
 		this.get_logs();
@@ -37,34 +37,37 @@ export default {
 		get_logs() {
 			this.fetching = true;
 			const pull_limit = 10;
-			frappe.db.get_list('Energy Point Log', {
-				filters: {
-					user: this.user,
-					type: ['!=', 'Review']
-				},
-				fields: ['*'],
-				limit: pull_limit,
-				limit_start: this.history_logs.length
-			}).then(data => {
-				this.history_logs = this.history_logs.concat(data);
-				this.has_more_logs = data.length === pull_limit;
-			}).finally(() => {
-				this.fetching = false;
-			})
+			frappe.db
+				.get_list('Energy Point Log', {
+					filters: {
+						user: this.user,
+						type: ['!=', 'Review'],
+						creation: ['>=',  this.from_date]
+					},
+					fields: ['*'],
+					limit: pull_limit,
+					limit_start: this.history_logs.length
+				})
+				.then(data => {
+					this.history_logs = this.history_logs.concat(data);
+					this.has_more_logs = data.length === pull_limit;
+				})
+				.finally(() => {
+					this.fetching = false;
+				});
 		}
-	},
-
-}
+	}
+};
 </script>
 <style lang="less">
-@import "frappe/public/less/common";
+@import 'frappe/public/less/common';
 .log-list {
 	padding: 15px;
 	padding-left: 0px;
 	position: relative;
 }
 .log-list:before {
-	content: " ";
+	content: ' ';
 	border-left: 1px solid @border-color;
 	position: absolute;
 	top: 0px;
@@ -82,7 +85,7 @@ export default {
 	position: relative;
 }
 .history-log:before {
-	content: " ";
+	content: ' ';
 	width: 7px;
 	height: 7px;
 	background-color: @border-color;
