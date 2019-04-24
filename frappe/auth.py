@@ -64,7 +64,7 @@ class HTTPRequest:
 		check_session_stopped()
 
 	def validate_csrf_token(self):
-		if frappe.local.request and frappe.local.request.method=="POST":
+		if frappe.local.request and frappe.local.request.method in ("POST", "PUT", "DELETE"):
 			if not frappe.local.session: return
 			if not frappe.local.session.data.csrf_token \
 				or frappe.local.session.data.device=="mobile" \
@@ -91,7 +91,7 @@ class HTTPRequest:
 
 	def connect(self, ac_name = None):
 		"""connect to db, from ac_name or db_name"""
-		frappe.local.db = frappe.database.Database(user = self.get_db_name(), \
+		frappe.local.db = frappe.database.get_db(user = self.get_db_name(), \
 			password = getattr(conf, 'db_password', ''))
 
 class LoginManager:

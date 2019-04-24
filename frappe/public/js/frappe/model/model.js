@@ -4,7 +4,7 @@
 frappe.provide('frappe.model');
 
 $.extend(frappe.model, {
-	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table',
+	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table', 'Table MultiSelect',
 		'Button', 'Image', 'Fold', 'Heading'],
 
 	layout_fields: ['Section Break', 'Column Break', 'Fold'],
@@ -36,6 +36,8 @@ $.extend(frappe.model, {
 	std_fields_table: [
 		{fieldname:'parent', fieldtype:'Data', label:__('Parent')},
 	],
+
+	table_fields: ['Table', 'Table MultiSelect'],
 
 	new_names: {},
 	events: {},
@@ -85,13 +87,18 @@ $.extend(frappe.model, {
 		return !frappe.model.std_fields_list.includes(fieldname);
 	},
 
-	get_std_field: function(fieldname) {
+	get_std_field: function(fieldname, ignore=false) {
 		var docfield = $.map([].concat(frappe.model.std_fields).concat(frappe.model.std_fields_table),
 			function(d) {
 				if(d.fieldname==fieldname) return d;
 			});
-		if(!docfield.length) {
-			frappe.msgprint(__("Unknown Column: {0}", [fieldname]));
+		if (!docfield.length) {
+			//Standard fields are ignored in case of adding columns as a result of groupby
+			if (ignore) {
+				return {fieldname: fieldname};
+			} else {
+				frappe.msgprint(__("Unknown Column: {0}", [fieldname]));
+			}
 		}
 		return docfield[0];
 	},
@@ -100,10 +107,12 @@ $.extend(frappe.model, {
 		if(locals.DocType[doctype]) {
 			callback && callback();
 		} else {
-			var cached_timestamp = null;
+			let cached_timestamp = null;
+			let cached_doc = null;
+
 			if(localStorage["_doctype:" + doctype]) {
 				let cached_docs = JSON.parse(localStorage["_doctype:" + doctype]);
-				let cached_doc = cached_docs.filter(doc => doc.name === doctype)[0];
+				cached_doc = cached_docs.filter(doc => doc.name === doctype)[0];
 				if(cached_doc) {
 					cached_timestamp = cached_doc.modified;
 				}
@@ -307,7 +316,7 @@ $.extend(frappe.model, {
 		var val = locals[dt] && locals[dt][dn] && locals[dt][dn][fn];
 		var df = frappe.meta.get_docfield(dt, fn, dn);
 
-		if(df.fieldtype=='Table') {
+		if(frappe.model.table_fields.includes(df.fieldtype)) {
 			var ret = false;
 			$.each(locals[df.options] || {}, function(k,d) {
 				if(d.parent==dn && d.parenttype==dt && d.parentfield==df.fieldname) {

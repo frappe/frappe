@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-from frappe.installer import create_user_settings_table
 from frappe.model.utils.user_settings import update_user_settings
 import frappe, json
 from six import iteritems
@@ -12,7 +11,7 @@ def execute():
 				data = json.loads(us.data)
 			except:
 				continue
-		
+
 			if 'List' in data:
 				continue
 
@@ -32,7 +31,7 @@ def execute():
 		frappe.db.sql("RENAME TABLE __ListSettings to __UserSettings")
 	else:
 		if not frappe.db.table_exists("__UserSettings"):
-			create_user_settings_table()
+			frappe.db.create_user_settings_table()
 
 		for user in frappe.db.get_all('User', {'user_type': 'System User'}):
 			defaults = frappe.defaults.get_defaults_for(user.name)

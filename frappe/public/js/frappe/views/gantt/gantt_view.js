@@ -6,16 +6,18 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 	}
 
 	setup_defaults() {
-		super.setup_defaults();
-		this.page_title = this.page_title + ' ' + __('Gantt');
-		this.calendar_settings = frappe.views.calendar[this.doctype] || {};
-		if(this.calendar_settings.order_by) {
-			this.sort_by = this.calendar_settings.order_by;
-			this.sort_order = 'asc';
-		} else {
-			this.sort_by = this.view_user_settings.sort_by || this.calendar_settings.field_map.start;
-			this.sort_order = this.view_user_settings.sort_order || 'asc';
-		}
+		return super.setup_defaults()
+			.then(() => {
+				this.page_title = this.page_title + ' ' + __('Gantt');
+				this.calendar_settings = frappe.views.calendar[this.doctype] || {};
+				if(this.calendar_settings.order_by) {
+					this.sort_by = this.calendar_settings.order_by;
+					this.sort_order = 'asc';
+				} else {
+					this.sort_by = this.view_user_settings.sort_by || this.calendar_settings.field_map.start;
+					this.sort_order = this.view_user_settings.sort_order || 'asc';
+				}
+			})
 	}
 
 	setup_view() {

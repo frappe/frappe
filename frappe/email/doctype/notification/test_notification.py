@@ -108,6 +108,7 @@ class TestNotification(unittest.TestCase):
 				{ "email_by_document_field": "owner" }
 			]
 		}).insert()
+		frappe.db.commit()
 
 		event = frappe.new_doc("Event")
 		event.subject = "test-2",

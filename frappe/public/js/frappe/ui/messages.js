@@ -120,12 +120,12 @@ frappe.msgprint = function(msg, title) {
 				msg_dialog.msg_area.empty();
 			}
 		});
-		msg_dialog.msg_area = $('<div class="msgprint">')
-			.appendTo(msg_dialog.body);
 
-		msg_dialog.loading_indicator = $('<div class="loading-indicator text-center" \
-				style="margin: 15px;">\
-				<img src="/assets/frappe/images/ui/ajax-loader.gif"></div>')
+		// msgprint should be narrower than the usual dialog
+		msg_dialog.wrapper.classList.add('msgprint-dialog');
+
+		// class "msgprint" is used in tests
+		msg_dialog.msg_area = $('<div class="msgprint">')
 			.appendTo(msg_dialog.body);
 
 		msg_dialog.clear = function() {
@@ -169,11 +169,6 @@ frappe.msgprint = function(msg, title) {
 	}
 
 	msg_dialog.msg_area.append(data.message);
-	msg_dialog.loading_indicator.addClass("hide");
-
-	msg_dialog.show_loading = function() {
-		msg_dialog.loading_indicator.removeClass("hide");
-	}
 
 	// make msgprint always appear on top
 	msg_dialog.$wrapper.css("z-index", 2000);
@@ -283,16 +278,16 @@ frappe.show_alert = function(message, seconds=7, actions={}) {
 
 	const div = $(`
 		<div class="alert desk-alert">
-			<div class="alert-message"></div>
+			<div class="alert-message small"></div>
 			<div class="alert-body" style="display: none"></div>
 			<a class="close">&times;</a>
 		</div>`);
 
-	div.find('.alert-message').append(message.message);
-
 	if(message.indicator) {
-		div.find('.alert-message').addClass('indicator '+ message.indicator);
+		div.find('.alert-message').append(`<span class="indicator ${message.indicator}"></span>`);
 	}
+
+	div.find('.alert-message').append(message.message);
 
 	if (body_html) {
 		div.find('.alert-body').show().html(body_html);

@@ -20,4 +20,4 @@ def update_routes(doctypes):
 				if(ifnull(parent_website_route, "")="", "", "/"), page_name) {1}""".format(d, condition))
 
 		except Exception as e:
-			if e.args[0]!=1054: raise
+			if not frappe.db.is_missing_column(e): raise

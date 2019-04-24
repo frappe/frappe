@@ -32,7 +32,7 @@ function watch_assets() {
 
 			case 'BUNDLE_START': {
 				const output = event.output[0];
-				if (output.endsWith('.js')) {
+				if (output.endsWith('.js') || output.endsWith('.vue')) {
 					log('Rebuilding', path.basename(event.output[0]));
 				}
 				break;
@@ -67,7 +67,7 @@ function get_watch_options(app) {
 function log_css_change({output}) {
 	return {
 		name: 'log-css-change',
-		ongenerate() {
+		generateBundle() {
 			if (!output.endsWith('.css')) return null;
 			log('Rebuilding', path.basename(output));
 			return null;

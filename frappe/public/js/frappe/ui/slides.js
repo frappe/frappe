@@ -238,7 +238,7 @@ frappe.ui.Slides = class Slides {
 			.appendTo(this.container);
 		this.$body = $(`<div>`).addClass(`slide-container`)
 			.appendTo(this.container);
-		this.$footer = $(`<div>`).addClass(`footer`)
+		this.$footer = $(`<div>`).addClass(`slide-footer`)
 			.appendTo(this.container);
 
 		this.render_progress_dots();

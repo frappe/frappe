@@ -282,7 +282,7 @@ frappe.ui.Page = Class.extend({
 
 		if (this.is_in_group_button_dropdown(parent, item_selector, label)) return;
 
-		if(standard===true) {
+		if(standard) {
 			$li.appendTo(parent);
 		} else {
 			this.divider = parent.find(".divider");
@@ -431,7 +431,7 @@ frappe.ui.Page = Class.extend({
 		var li = $('<li>');
 		var link = $('<a>').html(label).on("click", action).appendTo(li);
 
-		if(insert_after) {
+		if (insert_after) {
 			li.insertAfter(parent.find(insert_after));
 		} else {
 			if(prepend) {

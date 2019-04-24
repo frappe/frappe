@@ -1,6 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import deep_equal from "fast-deep-equal";
 frappe.provide('frappe.utils');
 
 Object.assign(frappe.utils, {
@@ -30,7 +31,7 @@ Object.assign(frappe.utils, {
 		if (!txt) return false;
 
 		if(txt.indexOf("<br>")==-1 && txt.indexOf("<p")==-1
-			&& txt.indexOf("<img")==-1 && txt.indexOf("<div")==-1) {
+			&& txt.indexOf("<img")==-1 && txt.indexOf("<div")==-1 && !txt.includes('<span')) {
 			return false;
 		}
 		return true;
@@ -88,6 +89,13 @@ Object.assign(frappe.utils, {
 	escape_html: function(txt) {
 		return $("<div></div>").text(txt || "").html();
 	},
+
+	html2text: function(html) {
+		let d = document.createElement('div');
+		d.innerHTML = html;
+		return d.textContent;
+	},
+
 	is_url: function(txt) {
 		return txt.toLowerCase().substr(0,7)=='http://'
 			|| txt.toLowerCase().substr(0,8)=='https://'
@@ -657,7 +665,14 @@ Object.assign(frappe.utils, {
 		}
 		return route;
 	},
-
+	get_route_label(route_str) {
+		let route = route_str.split('/');
+		if (['List', 'modules'].includes(route[0])){
+			return `${route[1]} ${route[2] || route[0]}`;
+		} else {
+			return `${route[0]} ${route[1]}`;
+		}
+	},
 	report_column_total: function(values, column, type) {
 		if (column.column.fieldtype == "Percent" || type === "mean") {
 			return values.reduce((a, b) => a + flt(b)) / values.length;
@@ -668,6 +683,31 @@ Object.assign(frappe.utils, {
 		} else {
 			return null;
 		}
+	},
+
+	deep_equal(a, b) {
+		return deep_equal(a, b);
+	},
+
+	file_name_ellipsis(filename, length) {
+		let first_part_length = length * 2 / 3;
+		let last_part_length = length - first_part_length;
+		let parts = filename.split('.');
+		let extn = parts.pop();
+		let name = parts.join('');
+		let first_part = name.slice(0, first_part_length);
+		let last_part = name.slice(-last_part_length);
+		if (name.length > length) {
+			return `${first_part}...${last_part}.${extn}`;
+		} else {
+			return filename;
+		}
+	},
+	get_decoded_string(dataURI) {
+		// decodes base64 to string
+		let parts = dataURI.split(',');
+		const encoded_data = parts[1];
+		return decodeURIComponent(escape(atob(encoded_data)));
 	}
 });
 
@@ -682,4 +722,10 @@ if (!Array.prototype.uniqBy) {
 			});
 		}
 	});
+	Object.defineProperty(Array.prototype, 'move', {
+		value: function(from, to) {
+			this.splice(to, 0, this.splice(from, 1)[0]);
+		}
+	});
 }
+

@@ -69,10 +69,6 @@ class ChatRoom(Document):
 		if self.type == "Group" and not self.room_name:
 			frappe.throw(_('Group name cannot be empty.'))
 
-	def before_save(self):
-		if not self.is_new():
-			self.get_doc_before_save()
-
 	def on_update(self):
 		if not self.is_new():
 			before = self.get_doc_before_save()

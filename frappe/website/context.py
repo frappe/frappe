@@ -38,7 +38,7 @@ def update_controller_context(context, controller):
 
 	if module:
 		# get config fields
-		for prop in ("base_template_path", "template", "no_cache", "no_sitemap",
+		for prop in ("base_template_path", "template", "no_cache", "sitemap",
 			"condition_field"):
 			if hasattr(module, prop):
 				context[prop] = getattr(module, prop)
@@ -89,7 +89,7 @@ def build_context(context):
 			if ret:
 				context.update(ret)
 
-		for prop in ("no_cache", "no_sitemap"):
+		for prop in ("no_cache", "sitemap"):
 			if not prop in context:
 				context[prop] = getattr(context.doc, prop, False)
 
@@ -217,11 +217,51 @@ def add_metatags(context):
 	if tags:
 		if not "twitter:card" in tags:
 			tags["twitter:card"] = "summary_large_image"
+
 		if not "og:type" in tags:
 			tags["og:type"] = "article"
+
 		if tags.get("name"):
 			tags["og:title"] = tags["twitter:title"] = tags["name"]
+
+		if tags.get("title"):
+			tags["og:title"] = tags["twitter:title"] = tags["title"]
+
 		if tags.get("description"):
 			tags["og:description"] = tags["twitter:description"] = tags["description"]
-		if tags.get("image"):
-			tags["og:image"] = tags["twitter:image:src"] = tags["image"] = frappe.utils.get_url(tags.get("image"))
+
+		image = tags.get('image', context.image or None)
+		if image:
+			tags["og:image"] = tags["twitter:image:src"] = tags["image"] = frappe.utils.get_url(image)
+
+		if context.path:
+			tags['og:url'] = tags['url'] = frappe.utils.get_url(context.path)
+
+		if context.published_on:
+			tags['datePublished'] = context.published_on
+
+		if context.author:
+			tags['author'] = context.author
+
+		if context.description:
+			tags['description'] = context.description
+
+		tags['language'] = frappe.local.lang or 'en'
+
+	# Get meta tags from Website Route meta
+	# they can override the defaults set above
+	route = context.route
+	if route == '':
+		# homepage
+		route = frappe.db.get_single_value('Website Settings', 'home_page')
+
+	route_exists = (route
+		and not route.endswith(('.js', '.css'))
+		and frappe.db.exists('Website Route Meta', route))
+
+	if route_exists:
+		context.setdefault('metatags', frappe._dict({}))
+		website_route_meta = frappe.get_doc('Website Route Meta', route)
+		for meta_tag in website_route_meta.meta_tags:
+			d = meta_tag.get_meta_dict()
+			context.metatags.update(d)

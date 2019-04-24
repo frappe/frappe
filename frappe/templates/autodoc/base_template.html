@@ -34,7 +34,7 @@
 		{%- block style %}{%- endblock -%}
 	{%- endblock -%}
 </head>
-<body data-path="{{ path }}">
+<body data-path="{{ path | e }}">
 	<div class="main-section">
 		<div>
 			{%- block banner -%}

@@ -6,9 +6,9 @@ import frappe
 from frappe import _
 import frappe.utils
 import frappe.sessions
-import frappe.utils.file_manager
 import frappe.desk.form.run_method
 from frappe.utils.response import build_response
+from frappe.utils import cint
 from werkzeug.wrappers import Response
 from six import string_types
 
@@ -111,7 +111,18 @@ def uploadfile():
 	try:
 		if frappe.form_dict.get('from_form'):
 			try:
-				ret = frappe.utils.file_manager.upload()
+				ret = frappe.get_doc({
+					"doctype": "File",
+					"attached_to_name": frappe.form_dict.docname,
+					"attached_to_doctype": frappe.form_dict.doctype,
+					"attached_to_field": frappe.form_dict.docfield,
+					"file_url": frappe.form_dict.file_url,
+					"file_name": frappe.form_dict.filename,
+					"is_private": frappe.utils.cint(frappe.form_dict.is_private),
+					"content": frappe.form_dict.filedata,
+					"decode": True
+				})
+				ret.save()
 			except frappe.DuplicateEntryError:
 				# ignore pass
 				ret = None
@@ -127,6 +138,46 @@ def uploadfile():
 		ret = None
 
 	return ret
+
+@frappe.whitelist()
+def upload_file():
+	files = frappe.request.files
+	is_private = frappe.form_dict.is_private
+	doctype = frappe.form_dict.doctype
+	docname = frappe.form_dict.docname
+	fieldname = frappe.form_dict.fieldname
+	file_url = frappe.form_dict.file_url
+	folder = frappe.form_dict.folder or 'Home'
+	method = frappe.form_dict.method
+	content = None
+	filename = None
+
+	if 'file' in files:
+		file = files['file']
+		content = file.stream.read()
+		filename = file.filename
+
+	frappe.local.uploaded_file = content
+	frappe.local.uploaded_filename = filename
+
+	if method:
+		method = frappe.get_attr(method)
+		is_whitelisted(method)
+		return method()
+	else:
+		ret = frappe.get_doc({
+			"doctype": "File",
+			"attached_to_doctype": doctype,
+			"attached_to_name": docname,
+			"attached_to_field": fieldname,
+			"folder": folder,
+			"file_name": filename,
+			"file_url": file_url,
+			"is_private": cint(is_private),
+			"content": content
+		})
+		ret.save()
+		return ret
 
 
 def get_attr(cmd):

@@ -64,8 +64,7 @@ class CustomField(Document):
 		if not frappe.db.get_value('DocType', self.dt, 'issingle'):
 			if (self.fieldname not in frappe.db.get_table_columns(self.dt)
 				or getattr(self, "_old_fieldtype", None) != self.fieldtype):
-				from frappe.model.db_schema import updatedb
-				updatedb(self.dt)
+				frappe.db.updatedb(self.dt)
 
 	def on_trash(self):
 		# delete property setter entries

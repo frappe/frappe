@@ -10,6 +10,12 @@ def set_request(**kwargs):
 	builder = EnvironBuilder(**kwargs)
 	frappe.local.request = Request(builder.get_environ())
 
+def get_html_for_route(route):
+	set_request(method='GET', path=route)
+	response = render.render()
+	html = frappe.safe_decode(response.get_data())
+	return html
+
 class TestWebsite(unittest.TestCase):
 
 	def test_page_load(self):

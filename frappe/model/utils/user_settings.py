@@ -19,8 +19,8 @@ def get_user_settings(doctype, for_update=False):
 		'{0}::{1}'.format(doctype, frappe.session.user))
 
 	if user_settings is None:
-		user_settings = frappe.db.sql('''select data from __UserSettings
-			where user=%s and doctype=%s''', (frappe.session.user, doctype))
+		user_settings = frappe.db.sql('''select data from `__UserSettings`
+			where `user`=%s and `doctype`=%s''', (frappe.session.user, doctype))
 		user_settings = user_settings and user_settings[0][0] or '{}'
 
 		if not for_update:
@@ -50,8 +50,15 @@ def sync_user_settings():
 	for key, data in iteritems(frappe.cache().hgetall('_user_settings')):
 		key = safe_decode(key)
 		doctype, user = key.split('::') # WTF?
-		frappe.db.sql('''insert into __UserSettings (user, doctype, data) values (%s, %s, %s)
-			on duplicate key update data=%s''', (user, doctype, data, data))
+		frappe.db.multisql({
+			'mariadb': """INSERT INTO `__UserSettings`(`user`, `doctype`, `data`)
+				VALUES (%s, %s, %s)
+				ON DUPLICATE key UPDATE `data`=%s""",
+			'postgres': """INSERT INTO `__UserSettings` (`user`, `doctype`, `data`)
+				VALUES (%s, %s, %s)
+				ON CONFLICT ("user", "doctype") DO UPDATE SET `data`=%s""",
+		}, (user, doctype, data, data), as_dict=1)
+
 
 @frappe.whitelist()
 def save(doctype, user_settings):

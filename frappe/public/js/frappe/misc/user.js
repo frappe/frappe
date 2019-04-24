@@ -9,7 +9,7 @@ frappe.user_info = function(uid) {
 			fullname: __("Bot"),
 			image: "/assets/frappe/images/ui/bot.png",
 			abbr: "B"
-		}
+		};
 	}
 
 	if(!(frappe.boot.user_info && frappe.boot.user_info[uid])) {
@@ -24,7 +24,7 @@ frappe.user_info = function(uid) {
 	user_info.color = frappe.get_palette(user_info.fullname);
 
 	return user_info;
-}
+};
 
 frappe.ui.set_user_background = function(src, selector, style) {
 	if(!selector) selector = "#page-desktop";
@@ -47,7 +47,7 @@ frappe.ui.set_user_background = function(src, selector, style) {
 		background:background,
 		style: style==="Fill Screen" ? "background-size: cover;" : ""
 	}));
-}
+};
 
 frappe.provide('frappe.user');
 
@@ -74,7 +74,7 @@ $.extend(frappe.user, {
 	},
 	get_desktop_items: function() {
 		// hide based on permission
-		var modules_list = $.map(frappe.boot.desktop_icons, function(icon) {
+		var modules_list = $.map(frappe.boot.allowed_modules, function(icon) {
 			var m = icon.module_name;
 			var type = frappe.modules[m] && frappe.modules[m].type;
 
@@ -103,14 +103,6 @@ $.extend(frappe.user, {
 		});
 
 		return modules_list;
-	},
-
-	is_module: function(m) {
-		var icons = frappe.get_desktop_icons();
-		for(var i=0; i<icons.length; i++) {
-			if(m===icons[i].module_name) return true;
-		}
-		return false;
 	},
 
 	is_report_manager: function() {
@@ -147,9 +139,9 @@ $.extend(frappe.user, {
 	/* Normally frappe.user is an object
 	 * having properties and methods.
 	 * But in the following case
-	 * 
+	 *
 	 * if (frappe.user === 'Administrator')
-	 * 
+	 *
 	 * frappe.user will cast to a string
 	 * returning frappe.user.name
 	 */

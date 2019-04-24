@@ -144,12 +144,12 @@ class EMail:
 
 	def attach_file(self, n):
 		"""attach a file from the `FileData` table"""
-		from frappe.utils.file_manager import get_file
-		res = get_file(n)
-		if not res:
+		_file = frappe.get_doc("File", {"file_name": n})
+		content = _file.get_content()
+		if not content:
 			return
 
-		self.add_attachment(res[0], res[1])
+		self.add_attachment(_file.file_name, content)
 
 	def add_attachment(self, fname, fcontent, content_type=None,
 		parent=None, content_id=None, inline=False):
@@ -165,13 +165,13 @@ class EMail:
 
 	def validate(self):
 		"""validate the Email Addresses"""
-		from frappe.utils import validate_email_add
+		from frappe.utils import validate_email_address
 
 		if not self.sender:
 			self.sender = self.email_account.default_sender
 
-		validate_email_add(strip(self.sender), True)
-		self.reply_to = validate_email_add(strip(self.reply_to) or self.sender, True)
+		validate_email_address(strip(self.sender), True)
+		self.reply_to = validate_email_address(strip(self.reply_to) or self.sender, True)
 
 		self.replace_sender()
 		self.replace_sender_name()
@@ -181,7 +181,7 @@ class EMail:
 		self.bcc = [strip(r) for r in self.bcc]
 
 		for e in self.recipients + (self.cc or []) + (self.bcc or []):
-			validate_email_add(e, True)
+			validate_email_address(e, True)
 
 	def replace_sender(self):
 		if cint(self.email_account.always_use_account_email_id_as_sender):

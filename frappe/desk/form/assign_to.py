@@ -6,7 +6,8 @@ from __future__ import unicode_literals
 
 import frappe
 from frappe import _
-from frappe.desk.form.load import get_docinfo
+from frappe.desk.form.document_follow import follow_document
+from frappe.utils import cint
 import frappe.share
 
 class DuplicateToDoError(frappe.ValidationError): pass
@@ -16,11 +17,11 @@ def get(args=None):
 	if not args:
 		args = frappe.local.form_dict
 
-	get_docinfo(frappe.get_doc(args.get("doctype"), args.get("name")))
-
-	return frappe.db.sql("""select owner, description from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
-		order by modified desc limit 5""", args, as_dict=True)
+	return frappe.get_all('ToDo', fields = ['owner', 'description'], filters = dict(
+		reference_type = args.get('doctype'),
+		reference_name = args.get('name'),
+		status = 'Open'
+	), limit = 5)
 
 @frappe.whitelist()
 def add(args=None):
@@ -29,18 +30,21 @@ def add(args=None):
 			"assign_to": ,
 			"doctype": ,
 			"name": ,
-			"description":
+			"description": ,
+			"assignment_rule":
 		}
 
 	"""
 	if not args:
 		args = frappe.local.form_dict
 
-	if frappe.db.sql("""select owner from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
-		and owner=%(assign_to)s""", args):
+	if frappe.db.sql("""SELECT `owner`
+		FROM `tabToDo`
+		WHERE `reference_type`=%(doctype)s
+		AND `reference_name`=%(name)s
+		AND `status`='Open'
+		AND `owner`=%(assign_to)s""", args):
 		frappe.throw(_("Already in user's To Do list"), DuplicateToDoError)
-
 	else:
 		from frappe.utils import nowdate
 
@@ -48,7 +52,7 @@ def add(args=None):
 		# 	remove_from_todo_if_already_assigned(args['doctype'], args['name'])
 
 		if not args.get('description'):
-			args['description'] = _('Assignment')
+			args['description'] = _('Assignment for {0} {1}'.format(args['doctype'], args['name']))
 
 		d = frappe.get_doc({
 			"doctype":"ToDo",
@@ -60,6 +64,7 @@ def add(args=None):
 			"status": "Open",
 			"date": args.get('date', nowdate()),
 			"assigned_by": args.get('assigned_by', frappe.session.user),
+			'assignment_rule': args.get('assignment_rule')
 		}).insert(ignore_permissions=True)
 
 		# set assigned_to if field exists
@@ -72,6 +77,9 @@ def add(args=None):
 		if not frappe.has_permission(doc=doc, user=args['assign_to']):
 			frappe.share.add(doc.doctype, doc.name, args['assign_to'])
 			frappe.msgprint(_('Shared with user {0} with read access').format(args['assign_to']), alert=True)
+
+		# make this document followed by assigned user
+		follow_document(args['doctype'], args['name'], args['assign_to'])
 
 	# notify
 	notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',\
@@ -93,7 +101,8 @@ def add_multiple(args=None):
 		add(args)
 
 def remove_from_todo_if_already_assigned(doctype, docname):
-	owner = frappe.db.get_value("ToDo", {"reference_type": doctype, "reference_name": docname, "status":"Open"}, "owner")
+	owner = frappe.db.get_value("ToDo", {"reference_type": doctype, "reference_name": docname,
+		"status":"Open"}, "owner")
 	if owner:
 		remove(doctype, docname, owner)
 
@@ -118,9 +127,18 @@ def remove(doctype, name, assign_to):
 	return get({"doctype": doctype, "name": name})
 
 def clear(doctype, name):
-	for assign_to in frappe.db.sql_list("""select owner from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s""", locals()):
-			remove(doctype, name, assign_to)
+	'''
+	Clears assignments, return False if not assigned.
+	'''
+	assignments = frappe.db.get_all('ToDo', fields=['owner'], filters =
+		dict(reference_type = doctype, reference_name = name))
+	if not assignments:
+		return False
+
+	for assign_to in assignments:
+		remove(doctype, name, assign_to.owner)
+
+	return True
 
 def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 	description=None, notify=0):
@@ -133,14 +151,11 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 	if assigned_by==owner:
 		return
 
-	from frappe.boot import get_fullnames
-	user_info = get_fullnames()
-
 	# Search for email address in description -- i.e. assignee
 	from frappe.utils import get_link_to_form
 	assignment = get_link_to_form(doc_type, doc_name, label="%s: %s" % (doc_type, doc_name))
-	owner_name = user_info.get(owner, {}).get('fullname')
-	user_name = user_info.get(frappe.session.get('user'), {}).get('fullname')
+	owner_name = frappe.get_cached_value('User', owner, 'full_name')
+	user_name = frappe.get_cached_value('User', frappe.session.user, 'full_name')
 	if action=='CLOSE':
 		if owner == frappe.session.get('user'):
 			arg = {
@@ -163,7 +178,7 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 			'notify': notify
 		}
 
-	if arg and arg.get("notify"):
+	if arg and cint(arg.get("notify")):
 		_notify(arg)
 
 def _notify(args):

@@ -1,27 +1,28 @@
 {% for page in footer_items %}
-<div class="col-sm-4 footer-group">
-	{% if not page.parent_label -%}
-		<div data-label='{{ page.label }}'>
-		<a {% if not page.child_items -%} href="{{ (page.url or '')|abs_url }}" {%- endif %}
-		{% if page.child_items %} onclick="return false;" {% endif %}
-		{{ page.target or ''}}>
-		{%- if page.child_items -%}
-			<span class="footer-group-label footer-parent-item text-muted">{{ page.label }}<span>
-			</a>
-			<ul class="list-unstyled small">
-			{%- for child in page.child_items -%}
-				<li class="footer-child-item" data-label='{{ child.label }}'>
-					<a href="{{ child.url | abs_url }}"
-						{% if child.target %}target="_blank"{% endif %}>{{ child.label }}</a>
-				</li>
-			{%- endfor -%}
-			</ul>
-		{%- else -%}
-		<span class="footer-group-label small text-muted">{{ page.label }}<span>
-		</a>
-		{%- endif -%}
-		</div>
-	{%- endif -%}
-	</div>
+{% if not page.parent_label %}
+    <div class="col footer-group">
+        {% if not page.parent_label -%}
+            <div data-label='{{ page.label }}'>
+            <a {% if not page.child_items -%} href="{{ (page.url or '')|abs_url }}" {%- endif %}
+            {% if page.child_items %} onclick="return false;" {% endif %}
+            {{ page.target or ''}}>
+            {%- if page.child_items -%}
+                <div class="footer-group-label footer-parent-item">{{ page.label }}</div>
+                </a>
+                <ul class="list-unstyled">
+                {%- for child in page.child_items -%}
+                    <li class="footer-child-item mt-2" data-label='{{ child.label }}'>
+                        <a href="{{ child.url | abs_url }}"
+                            {% if child.target %}target="_blank"{% endif %}>{{ child.label }}</a>
+                    </li>
+                {%- endfor -%}
+                </ul>
+            {%- else -%}
+            <div class="footer-group-label">{{ page.label }}<div>
+            </a>
+            {%- endif -%}
+            </div>
+        {%- endif -%}
+        </div>
+    {% endif %}
 {% endfor %}
-

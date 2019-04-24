@@ -9,7 +9,7 @@ from frappe.model.document import Document
 class WebsiteTheme(Document):
 	def validate(self):
 		self.validate_if_customizable()
-		self.validate_colors()
+		self.validate_theme()
 
 	def on_update(self):
 		if (not self.custom
@@ -34,11 +34,12 @@ class WebsiteTheme(Document):
 		if self.is_standard_and_not_valid_user():
 			frappe.throw(_("Please Duplicate this Website Theme to customize."))
 
-	def validate_colors(self):
-		if (self.top_bar_color or self.top_bar_text_color) and \
-			self.top_bar_color==self.top_bar_text_color:
-				frappe.throw(_("Top Bar Color and Text Color are the same. They should be have good contrast to be readable."))
-
+	def validate_theme(self):
+		'''Generate theme css if theme_scss has changed'''
+		if self.theme_scss:
+			doc_before_save = self.get_doc_before_save()
+			if doc_before_save is None or self.theme_scss != doc_before_save.theme_scss:
+				self.generate_bootstrap_theme()
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/website_theme/[name]/[name].json`."""
@@ -47,9 +48,31 @@ class WebsiteTheme(Document):
 
 
 	def clear_cache_if_current_theme(self):
+		if frappe.flags.in_install == 'frappe': return
 		website_settings = frappe.get_doc("Website Settings", "Website Settings")
 		if getattr(website_settings, "website_theme", None) == self.name:
 			website_settings.clear_cache()
+
+	def generate_bootstrap_theme(self):
+		from subprocess import Popen, PIPE
+		from os.path import join as join_path
+
+		file_name = frappe.scrub(self.name) + '_' + frappe.generate_hash('Website Theme', 8) + '.css'
+		output_path = join_path(frappe.utils.get_bench_path(), 'sites', 'assets', 'css', file_name)
+		content = self.theme_scss
+		content = content.replace('\n', '\\n')
+		command = ['node', 'generate_bootstrap_theme.js', output_path, content]
+
+		process = Popen(command, cwd=frappe.get_app_path('frappe', '..'), stdout=PIPE, stderr=PIPE)
+
+		stderr = process.communicate()[1]
+
+		if stderr:
+			frappe.throw('<pre>{stderr}</pre>'.format(stderr=frappe.safe_encode(stderr)))
+		else:
+			self.theme_url = '/assets/css/' + file_name
+
+		frappe.msgprint(_('Compiled Successfully'), alert=True)
 
 	def use_theme(self):
 		use_theme(self.name)
@@ -62,21 +85,11 @@ def use_theme(theme):
 	website_settings.save()
 
 def add_website_theme(context):
-	bootstrap = frappe.get_hooks("bootstrap")[0]
-	bootstrap = [bootstrap]
 	context.theme = frappe._dict()
 
 	if not context.disable_website_theme:
 		website_theme = get_active_theme()
 		context.theme = website_theme and website_theme.as_dict() or frappe._dict()
-
-		if website_theme:
-			if website_theme.bootstrap:
-				bootstrap.append(website_theme.bootstrap)
-
-			context.web_include_css = context.web_include_css + ["website_theme.css"]
-
-	context.web_include_css = bootstrap + context.web_include_css
 
 def get_active_theme():
 	website_theme = frappe.db.get_value("Website Settings", "Website Settings", "website_theme")

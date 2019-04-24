@@ -31,7 +31,7 @@ def get_desktop_icons(user=None):
 	user_icons = frappe.cache().hget('desktop_icons', user)
 
 	if not user_icons:
-		fields = ['module_name', 'hidden', 'label', 'link', 'type', 'icon', 'color',
+		fields = ['module_name', 'hidden', 'label', 'link', 'type', 'icon', 'color', 'description', 'category',
 			'_doctype', '_report', 'idx', 'force_show', 'reverse', 'custom', 'standard', 'blocked']
 
 		active_domains = frappe.get_active_domains()
@@ -307,7 +307,7 @@ def make_user_copy(module_name, user):
 		'module_name': module_name
 	})
 
-	for key in ('app', 'label', 'route', 'type', '_doctype', 'idx', 'reverse', 'force_show'):
+	for key in ('app', 'label', 'route', 'type', '_doctype', 'idx', 'reverse', 'force_show', 'link', 'icon', 'color'):
 		if original.get(key):
 			desktop_icon.set(key, original.get(key))
 
@@ -410,7 +410,7 @@ def get_user_icons(user):
 			add = False
 
 		if not icon.custom:
-			if icon.module_name=='Learn':
+			if icon.module_name==['Help', 'Settings']:
 				pass
 
 			elif icon.type=="page" and icon.link not in allowed_pages:

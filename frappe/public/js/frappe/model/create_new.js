@@ -85,7 +85,7 @@ $.extend(frappe.model, {
 
 	set_default_values: function(doc, parent_doc) {
 		var doctype = doc.doctype;
-		var docfields = frappe.meta.docfield_list[doctype] || [];
+		var docfields = frappe.meta.get_docfields(doctype);
 		var updated = [];
 		for(var fid=0;fid<docfields.length;fid++) {
 			var f = docfields[fid];
@@ -114,7 +114,7 @@ $.extend(frappe.model, {
 		if(meta && meta.istable) return;
 
 		// create empty rows for mandatory table fields
-		frappe.meta.docfield_list[doc.doctype].forEach(function(df) {
+		frappe.meta.get_docfields(doc.doctype).forEach(function(df) {
 			if(df.fieldtype==='Table' && df.reqd) {
 				frappe.model.add_child(doc, df.fieldname);
 			}
@@ -262,7 +262,7 @@ $.extend(frappe.model, {
 				&& !(df && (!from_amend && cint(df.no_copy) == 1))) {
 
 				var value = doc[key] || [];
-				if (df.fieldtype === "Table") {
+				if (frappe.model.table_fields.includes(df.fieldtype)) {
 					for (var i = 0, j = value.length; i < j; i++) {
 						var d = value[i];
 						frappe.model.copy_doc(d, from_amend, newdoc, df.fieldname);
