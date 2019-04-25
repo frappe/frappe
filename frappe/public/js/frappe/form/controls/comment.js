@@ -16,7 +16,7 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 				<div class="comment-input-container">
 					<div class="frappe-control"></div>
 					<div class="text-muted small">
-						${__("Ctrl+Enter to add comment")}
+						${__("Ctrl+Enter or Ctrl+S to add comment")}
 					</div>
 				</div>
 			</div>
@@ -43,7 +43,7 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 
 		this.$wrapper.on('keydown', e => {
 			const key = frappe.ui.keys.get_key(e);
-			if (key === 'ctrl+enter') {
+			if (['ctrl+enter', 'ctrl+s'].includes(key)) {
 				e.preventDefault();
 				this.submit();
 			}
