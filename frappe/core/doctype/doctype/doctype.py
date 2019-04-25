@@ -550,7 +550,7 @@ def validate_fields(meta):
 
 		if getattr(d, "unique", False):
 			if d.fieldtype not in ("Data", "Link", "Read Only"):
-				frappe.throw(_("[{0}]Fieldtype {1} for {2} cannot be unique").format(self.name, d.fieldtype, d.label))
+				frappe.throw(_("[{0}]: Fieldtype {1} for {2} cannot be unique").format(self.name, d.fieldtype, d.label))
 
 			if not d.get("__islocal"):
 				try:
@@ -570,7 +570,7 @@ def validate_fields(meta):
 				else:
 					# else of try block
 					if has_non_unique_values and has_non_unique_values[0][0]:
-						frappe.throw(_("[{0}]Field '{1}' cannot be set as Unique as it has non-unique values").format(self.name, d.label))
+						frappe.throw(_("[{0}]: Field '{1}' cannot be set as Unique as it has non-unique values").format(self.name, d.label))
 
 		if d.search_index and d.fieldtype in ("Text", "Long Text", "Small Text", "Code", "Text Editor"):
 			frappe.throw(_("Fieldtype {0} for {1} cannot be indexed").format(d.fieldtype, d.label))
