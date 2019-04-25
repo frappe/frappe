@@ -63,15 +63,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.menu_items = [];
 	}
 
-	get_filtered_and_ordered_data(){
-		const rows_in_order = this.datatable.datamanager.rowViewOrder.map(index => {
-			if (this.datatable.bodyRenderer.visibleRowIndices.includes(index)) {
-				return this.data[index];
-			}
-		}).filter(Boolean);
-		return rows_in_order;
-	}
-
 	setup_events() {
 		frappe.realtime.on("report_generated", (data) => {
 			if(data.report_name) {
@@ -927,7 +918,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_data_for_print() {
-		let rows = this.get_filtered_and_ordered_data();
+		const rows = this.datatable.datamanager.rowViewOrder.map(index => {
+			if (this.datatable.bodyRenderer.visibleRowIndices.includes(index)) {
+				return this.data[index];
+			}
+		}).filter(Boolean);
 		let totalRow = this.datatable.bodyRenderer.getTotalRow().reduce((row, cell) => {
 			row[cell.column.id] = cell.content;
 			return row;
