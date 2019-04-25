@@ -198,6 +198,7 @@ export default {
 }
 .rank-column {
 	flex: 0 0 30px;
+	align-self: center;
 	.text-muted
 }
 .flex-20 {
