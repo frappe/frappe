@@ -35,15 +35,16 @@ class Event(Document):
 		self.sync_communication()
 
 	def on_trash(self):
-		communications = frappe.get_all("Communication", dict(reference_doctype=self.doctype, reference_name=self.name))
+		communications = frappe.get_all("Dynamic Link", filters={"link_doctype": self.doctype, "link_name": self.name, "parenttype": "Communication"}, fields=["parent"])
 		if communications:
 			for communication in communications:
-				frappe.get_doc("Communication", communication.name).delete()
+				frappe.get_doc("Communication", communication.parent).delete()
 
 	def sync_communication(self):
 		if self.event_participants:
 			for participant in self.event_participants:
-				communication_name = frappe.db.get_value("Communication", dict(reference_doctype=self.doctype, reference_name=self.name, timeline_doctype=participant.reference_doctype, timeline_name=participant.reference_docname), "name")
+				communication_name = frappe.db.get_value("Dynamic Link", dict(link_doctype=self.doctype, link_name=self.name, parenttype="Communication"), "parent")
+				communication_name = frappe.db.get_value("Dynamic Link", dict(link_doctype=participant.reference_doctype, link_name=participant.reference_docname, parenttype="Communication"), "parent")
 				if communication_name:
 					communication = frappe.get_doc("Communication", communication_name)
 					self.update_communication(participant, communication)
@@ -62,10 +63,8 @@ class Event(Document):
 		communication.subject = self.subject
 		communication.content = self.description if self.description else self.subject
 		communication.communication_date = self.starts_on
-		communication.timeline_doctype = participant.reference_doctype
-		communication.timeline_name = participant.reference_docname
-		communication.reference_doctype = self.doctype
-		communication.reference_name = self.name
+		communication.add_link(participant.reference_doctype, participant.reference_docname)
+		communication.add_link(self.doctype, self.name)
 		communication.communication_medium = communication_mapping[self.event_category] if self.event_category else ""
 		communication.status = "Linked"
 		communication.save(ignore_permissions=True)
