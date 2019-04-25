@@ -16,7 +16,7 @@ frappe.listview_settings['ToDo'] = {
 		show: function(doc) {
 			return doc.reference_name;
 		},
-		get_label: function(doc) {
+		get_label: function() {
 			return __('Open');
 		},
 		get_description: function(doc) {
