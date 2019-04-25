@@ -63,6 +63,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.menu_items = [];
 	}
 
+	get_filtered_and_ordered_data(){
+		const rows_in_order = this.datatable.datamanager.rowViewOrder.map(index => {
+			if (this.datatable.bodyRenderer.visibleRowIndices.includes(index)) {
+				return this.data[index];
+			}
+		}).filter(Boolean);
+		return rows_in_order;
+	}
+
 	setup_events() {
 		frappe.realtime.on("report_generated", (data) => {
 			if(data.report_name) {
@@ -790,8 +799,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			print_settings: print_settings,
 			landscape: landscape,
 			filters: this.get_filter_values(),
-			data: custom_format ? this.data : this.get_data_for_print(),
+			data: this.get_data_for_print(),
 			columns: custom_format ? this.columns : this.get_columns_for_print(),
+			original_data: this.data,
 			report: this
 		});
 	}
@@ -803,7 +813,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		const custom_format = this.report_settings.html_format || null;
 		const columns = custom_format ? this.columns : this.get_columns_for_print();
-		const data = custom_format ? this.data : this.get_data_for_print();
+		const data = this.get_data_for_print();
 		const applied_filters = this.get_filter_values();
 
 		const filters_html = this.get_filters_html_for_print();
@@ -812,6 +822,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			subtitle: filters_html,
 			filters: applied_filters,
 			data: data,
+			original_data: this.data,
 			columns: columns,
 			report: this
 		});
@@ -916,8 +927,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_data_for_print() {
-		const indices = this.datatable.datamanager.getFilteredRowIndices();
-		let rows = indices.map(i => this.data[i]);
+		let rows = this.get_filtered_and_ordered_data();
 		let totalRow = this.datatable.bodyRenderer.getTotalRow().reduce((row, cell) => {
 			row[cell.column.id] = cell.content;
 			return row;
