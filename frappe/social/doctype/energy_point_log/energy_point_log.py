@@ -11,8 +11,15 @@ from frappe.utils import cint, get_fullname, getdate
 
 class EnergyPointLog(Document):
 	def validate(self):
+		self.map_milestone_reference()
 		if self.type in ['Appreciation', 'Criticism'] and self.user == self.owner:
 			frappe.throw(_('You cannot give review points to yourself'))
+
+	def map_milestone_reference(self):
+		# link energy point to the original reference, if set by milestone
+		if self.reference_doctype == 'Milestone':
+			self.reference_doctype, self.reference_name = frappe.db.get_value('Milestone', self.reference_name,
+				['reference_type', 'reference_name'])
 
 	def after_insert(self):
 		alert_dict = get_alert_dict(self)
