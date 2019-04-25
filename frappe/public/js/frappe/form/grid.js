@@ -329,33 +329,32 @@ export default class Grid {
 			this.grid_rows_by_docname[docname].refresh();
 	}
 	make_sortable($rows) {
-		var me =this;
 		new Sortable($rows.get(0), {
-			group: {name: me.df.fieldname},
+			group: {name: this.df.fieldname},
 			handle: '.sortable-handle',
 			draggable: '.grid-row',
 			animation: 100,
 			filter: 'li, a',
-			onMove: function(event) {
+			onMove: (event) => {
 				// don't move if editable
-				if (me.is_editable()) {
+				if (!this.is_editable()) {
 					return false;
 				}
 
 				// prevent drag behaviour if _sortable property is "false"
 				let idx = $(event.dragged).closest('.grid-row').attr('data-idx');
-				let doc = me.get_data()[idx - 1];
+				let doc = this.get_data()[idx - 1];
 				if (doc && doc._sortable === false) {
 					return false;
 				}
 			},
-			onUpdate: function(event) {
+			onUpdate: (event) => {
 				let idx = $(event.item).closest('.grid-row').attr('data-idx');
-				let doc = me.get_data()[idx - 1];
-				me.renumber_based_on_dom();
-				me.frm.script_manager.trigger(me.df.fieldname + "_move", me.df.options, doc.name);
-				me.refresh();
-				me.frm.dirty();
+				let doc = this.get_data()[idx - 1];
+				this.renumber_based_on_dom();
+				this.frm.script_manager.trigger(this.df.fieldnathis + "_move", this.df.options, doc.nathis);
+				this.refresh();
+				this.frm.dirty();
 			}
 		});
 
