@@ -2,6 +2,7 @@
 	<div class="user-list-container">
 		<ul class="list-unstyled user-list">
 			<li class="user-card user-list-header text-medium">
+				<span class="rank-column"></span>
 				<span class="user-details text-muted">
 					<input
 						class="form-control"
@@ -18,6 +19,7 @@
 				</span>
 			</li>
 			<li class="user-card user-list-header text-medium">
+				<span class="rank-column">#</span>
 				<span class="user-details text-muted">{{ __('User') }}</span>
 				<span
 					class="flex-20 text-muted"
@@ -25,9 +27,10 @@
 					:key="title"
 				>{{ __(title) }}</span>
 			</li>
-			<li v-for="user in filtered_users" :key="user.name">
+			<li v-for="(user, index) in filtered_users" :key="user.name">
 				<div class="user-card" @click="toggle_log(user.name)">
 					<span class="user-details flex">
+						<span class="rank-column">{{ index + 1 }}</span>
 						<span v-html="get_avatar(user.name)"></span>
 						<span>
 							<a @click="go_to_profile_page(user.name)">{{ user.fullname }}</a>
@@ -176,7 +179,7 @@ export default {
 };
 </script>
 <style lang="less" scoped>
-@import 'frappe/public/less/variables';
+@import 'frappe/public/less/common';
 .user-list {
 	border-left: 1px solid @border-color;
 	border-right: 1px solid @border-color;
@@ -192,6 +195,10 @@ export default {
 			}
 		}
 	}
+}
+.rank-column {
+	flex: 0 0 30px;
+	.text-muted
 }
 .flex-20 {
 	flex: 0 0 20%;
