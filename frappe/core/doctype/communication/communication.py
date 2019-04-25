@@ -79,7 +79,7 @@ class Communication(Document):
 	def validate_reference(self):
 		for dynamic_link in self.dynamic_links:
 			if not dynamic_link.link_owner:
-				dynamic_link.link_owner = frappe.db.get_value(dynamic_link.link_doctype,\
+				dynamic_link.link_owner = frappe.db.get_value(dynamic_link.link_doctype,
 					dynamic_link.link_name, "owner")
 
 			# prevent communication against a child table
