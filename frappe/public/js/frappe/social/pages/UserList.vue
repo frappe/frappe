@@ -71,23 +71,22 @@ export default {
 			sort_users_by: 'energy_points',
 			sort_order: 'desc',
 			show_log_for: null,
-			period_options: ['Lifetime', 'Last Month', 'Last Week', 'Today'],
-			period: 'Lifetime'
+			period_options: ['Lifetime', 'This Month', 'This Week', 'Today'],
+			period: 'This Month'
 		};
 	},
 	computed: {
 		from_date() {
-			const days_to_deduct = {
-				'Last Week': 7,
-				'Last Month': 30
-			};
-			if (this.period === 'Lifetime') {
-				return null;
+			if (this.period === 'This Month') {
+				return frappe.datetime.month_start();
+			}
+			if (this.period === 'This Week') {
+				return frappe.datetime.week_start;
 			}
 			if (this.period === 'Today') {
 				return frappe.datetime.get_today();
 			}
-			return frappe.datetime.add_days(moment(), -days_to_deduct[this.period]);
+			return null;
 		},
 		filtered_users() {
 			let filtered = this.users.slice();
