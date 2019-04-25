@@ -43,8 +43,11 @@ class Event(Document):
 	def sync_communication(self):
 		if self.event_participants:
 			for participant in self.event_participants:
-				communication_name = frappe.db.get_value("Dynamic Link", dict(link_doctype=self.doctype, link_name=self.name, parenttype="Communication"), "parent")
-				communication_name = frappe.db.get_value("Dynamic Link", dict(link_doctype=participant.reference_doctype, link_name=participant.reference_docname, parenttype="Communication"), "parent")
+				communication_name = None
+				event_comm = frappe.db.get_value("Dynamic Link", dict(link_doctype=self.doctype, link_name=self.name, parenttype="Communication"), "parent")
+				participant_comm = frappe.db.get_value("Dynamic Link", dict(link_doctype=participant.reference_doctype, link_name=participant.reference_docname, parenttype="Communication"), "parent")
+				if event_comm == participant_comm:
+					communication_name = event_comm
 				if communication_name:
 					communication = frappe.get_doc("Communication", communication_name)
 					self.update_communication(participant, communication)
