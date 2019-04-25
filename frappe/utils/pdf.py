@@ -46,7 +46,7 @@ def get_pdf(html, options=None, output = None):
 	if output:
 		# Encrypt if required
 		if "password" in options:
-			output.encrypt(options["password"])
+			output.encrypt(options["password"].encode('utf-8'))
 		return get_file_data_from_writer(output)
 
 	# https://pythonhosted.org/PyPDF2/PdfFileWriter.html
@@ -57,7 +57,7 @@ def get_pdf(html, options=None, output = None):
 	writer.appendPagesFromReader(reader)
 
 	if "password" in options:
-		writer.encrypt(options["password"])
+		writer.encrypt(options["password"].encode('utf-8'))
 
 	filedata = get_file_data_from_writer(writer)
 
