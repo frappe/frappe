@@ -1,21 +1,17 @@
 <h1>{{ title }}</h1>
 
 {%- macro search_results_section(results, title, has_more) -%}
-	<div class="search-result col-sm-6">
-		{% if title %}
-		<h3 class="mb-4">{{ title }}</h3>
-		{% endif %}
+	<div class="col-sm-6">
+		<div class="search-result">
+			{% if title %}
+			<h3 class="mb-4">{{ title }}</h3>
+			{% endif %}
 
-		{% for d in results %}
-		<div class="search-result-item mb-4">
-			<a href="{{ d.route }}"><b>{{ d.title }}</b></a>
-			<p class="m-0">{{ d.preview }}</p>
+			{% include "templates/includes/search_result.html" %}
 		</div>
-		{% endfor %}
 		{% if has_more %}
 		<button class='btn btn-light btn-sm btn-more'>{{ _("More") }}</button>
 		{% endif %}
-		<hr>
 	</div>
 {%- endmacro %}
 
