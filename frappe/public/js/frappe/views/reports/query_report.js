@@ -456,6 +456,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				layout: 'fixed',
 				cellHeight: 33,
 				showTotalRow: this.raw_data.add_total_row,
+				direction: frappe.utils.is_rtl() ? 'rtl' : 'ltr',
 				hooks: {
 					columnTotal: frappe.utils.report_column_total
 				}

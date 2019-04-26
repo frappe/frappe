@@ -673,6 +673,10 @@ Object.assign(frappe.utils, {
 
 	deep_equal(a, b) {
 		return deep_equal(a, b);
+	},
+
+	is_rtl() {
+		return ["ar", "he", "fa"].includes(frappe.boot.lang);
 	}
 });
 

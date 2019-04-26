@@ -229,6 +229,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			checkboxColumn: true,
 			inlineFilters: true,
 			cellHeight: 35,
+			direction: frappe.utils.is_rtl() ? 'rtl' : 'ltr',
 			events: {
 				onRemoveColumn: (column) => {
 					this.remove_column_from_datatable(column);
