@@ -210,7 +210,7 @@ def get_next_link(route, url_prefix=None, app=None):
 	route = route.rstrip('/')
 	children_map = get_full_index(app=app)
 	parent_route = os.path.dirname(route)
-	children = children_map[parent_route]
+	children = children_map.get(parent_route, None)
 
 	if parent_route and children:
 		for i, c in enumerate(children):
