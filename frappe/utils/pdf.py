@@ -9,10 +9,9 @@ from bs4 import BeautifulSoup
 from PyPDF2 import PdfFileReader, PdfFileWriter
 import re, io
 
-def get_pdf(html, options=None, output = None):
+def get_pdf(html, options=None, output=None):
 	html = scrub_urls(html)
 	html, options = prepare_options(html, options)
-	# fname = os.path.join("/tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
 
 	options.update({
 		"disable-javascript": "",
@@ -66,7 +65,6 @@ def get_pdf(html, options=None, output = None):
 def get_file_data_from_writer(writer_obj):
 
 	# https://docs.python.org/3/library/io.html
-	# Create a new stream and write into it
 	stream = io.BytesIO()
 	writer_obj.write(stream)
 
