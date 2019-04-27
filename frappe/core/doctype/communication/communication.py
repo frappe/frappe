@@ -261,6 +261,12 @@ class Communication(Document):
 		if autosave:
 			self.save()
 
+	def remove_link(self, link_doctype, link_name, autosave=False):
+		frappe.delete_doc("Dynamic Link", {"link_doctype": link_doctype, "link_name": link_name})
+
+		if autosave:
+			self.save()
+
 	def get_links(self, link_doctype=None, link_name=None):
 		filters = {
 			"parenttype": "Communication",

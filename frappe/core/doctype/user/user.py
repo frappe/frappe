@@ -324,19 +324,18 @@ class User(Document):
 
 		# delete messages
 		frappe.db.sql("""
-			delete from `tabCommunication`
+			delete `tabCommunication`.*, `tabDynamic Link`.*  from `tabCommunication`
 			inner join `tabDynamic Link`
 			where `tabCommunication`.name=`tabDynamic Link`.parent
-			where `tabCommunication`.communication_type in ('Chat', 'Notification')
+			and `tabCommunication`.communication_type in ('Chat', 'Notification')
 			and `tabDynamic Link`.link_doctype='User'
 			and (`tabDynamic Link`.link_name=%s or `tabDynamic Link`.link_owner=%s)
-		""", (self.name, self.name))
+		""", (self.name, self.name), debug=True)
 
 		# unlink contact
 		frappe.db.sql("""update `tabContact`
 			set `user`=null
 			where `user`=%s""", (self.name))
-
 
 	def before_rename(self, old_name, new_name, merge=False):
 		self.check_demo()

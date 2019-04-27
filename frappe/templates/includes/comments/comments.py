@@ -41,8 +41,8 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 		recipients = frappe.db.get_value('User', doc.owner, 'email') or doc.owner,
 		subject = _('New Comment on {0}: {1}').format(doc.doctype, doc.name),
 		message = content,
-		reference_doctype=doc.doctype,
-		reference_name=doc.name
+		link_doctype=doc.doctype,
+		link_name=doc.name
 	)
 
 	if comment.published:

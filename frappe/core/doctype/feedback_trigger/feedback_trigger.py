@@ -105,12 +105,14 @@ def get_feedback_request_details(reference_doctype, reference_name, trigger="Man
 
 	recipients = doc.get(feedback_trigger.email_fieldname, None)
 	if feedback_trigger.check_communication:
-		communications = frappe.get_all("Communication", filters={
-			"reference_doctype": reference_doctype,
-			"reference_name": reference_name,
-			"communication_type": "Communication",
-			"sent_or_received": "Sent"
-		}, fields=["name"])
+
+		communications = frappe.db.sql("""select `tabCommunication`.name from `tabCommunication`
+				inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
+				and `tabDynamic Link`.link_doctype='{0}'
+				and `tabDynamic Link`.link_name='{1}'
+				and `tabCommunication`.communication_type='Communication'
+				and `tabCommunication`.sent_or_received='Sent'""".format(reference_doctype, reference_name),
+			as_list=True)
 
 		if len(communications) < 1:
 			frappe.msgprint(_("At least one reply is mandatory before requesting feedback"))
@@ -129,8 +131,8 @@ def get_feedback_request_details(reference_doctype, reference_name, trigger="Man
 		return {
 			"subject": subject,
 			"recipients": recipients,
-			"reference_name":doc.name,
-			"reference_doctype":doc.doctype,
+			"link_name":doc.name,
+			"link_doctype":doc.doctype,
 			"message": feedback_request_message,
 		}
 	else:
@@ -202,14 +204,15 @@ def delete_feedback_request_and_feedback(reference_doctype, reference_name):
 		"reference_name": reference_name
 	})
 
-	communications = frappe.get_all("Communication", {
-		"communication_type": "Feedback",
-		"reference_doctype": reference_doctype,
-		"reference_name": reference_name
-	})
-
 	for request in feedback_requests:
 		frappe.delete_doc("Feedback Request", request.get("name"), ignore_permissions=True)
 
+	communications = frappe.db.sql("""select `tabCommunication`.name from `tabCommunication`
+			inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
+			and `tabDynamic Link`.link_doctype='{0}'
+			and `tabDynamic Link`.link_name='{1}'
+			and `tabCommunication`.communication_type='Feedback'""".format(reference_doctype, reference_name),
+		as_list=True)
+
 	for communication in communications:
-		frappe.delete_doc("Communication", communication.get("name"), ignore_permissions=True)
+		frappe.delete_doc("Communication", communication, ignore_permissions=True)

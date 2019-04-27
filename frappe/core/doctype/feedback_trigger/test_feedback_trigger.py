@@ -18,13 +18,14 @@ def get_feedback_request(todo, feedback_trigger):
 
 class TestFeedbackTrigger(unittest.TestCase):
 	def setUp(self):
-		new_user = frappe.get_doc(dict(doctype='User', email='test-feedback@example.com',
-			first_name='Tester')).insert(ignore_permissions=True)
-		new_user.add_roles("System Manager")
+		if not frappe.db.exists("User", "test-feedback@example.com"):
+			new_user = frappe.get_doc(dict(doctype='User', email='test-feedback@example.com',
+				first_name='Tester')).insert(ignore_permissions=True)
+			new_user.add_roles("System Manager")
 
 	def tearDown(self):
-		frappe.db.sql("delete from tabContact where email_id='test-feedback@example.com'")
 		frappe.delete_doc("User", "test-feedback@example.com")
+		frappe.db.sql("delete from tabContact where email_id='test-feedback@example.com'")
 		frappe.delete_doc("Feedback Trigger", "ToDo")
 		frappe.db.sql('delete from `tabEmail Queue`')
 		frappe.db.sql('delete from `tabFeedback Request`')
@@ -68,8 +69,9 @@ class TestFeedbackTrigger(unittest.TestCase):
 			"communication_type": "Communication",
 			"content": "Test Communication",
 			"subject": "Test Communication",
-		}).insert(ignore_permissions=True)
+		})
 		comm.add_link(link_doctype="ToDo", link_name=todo.name)
+		comm.insert(ignore_permissions=True)
 
 		# check if feedback mail alert is triggered
 		todo.reload()
@@ -97,17 +99,13 @@ class TestFeedbackTrigger(unittest.TestCase):
 		self.assertTrue(result)
 
 		# test if feedback is saved in Communication
-
-		comm_link_name = frappe.get_list("Dynamic Link", filters={
-			"reference_doctype": "ToDo",
-			"reference_name": todo.name,
-		}, fields=["parent"])[0].parent
-
-		docname = frappe.get_list("Communication", filters={
-			"name": comm_link_name,
-			"communication_type": "Feedback",
-			"feedback_request": feedback_request
-		})
+		docname = frappe.db.sql("""select `tabCommunication`.name from `tabCommunication`
+				inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
+				and `tabDynamic Link`.link_doctype='ToDo'
+				and `tabDynamic Link`.link_name='{0}'
+				and `tabCommunication`.communication_type='Feedback'
+				and `tabCommunication`.feedback_request='{1}'
+		""".format(todo.name, feedback_request))
 
 		communication = frappe.get_doc("Communication", docname)
 		self.assertEqual(communication.rating, 4)
@@ -126,10 +124,12 @@ class TestFeedbackTrigger(unittest.TestCase):
 		frappe.delete_doc("ToDo", todo.name)
 
 		# test if feedback requests and feedback communications are deleted?
-		communications = frappe.get_all("Dynamic Link", {
-			"link_doctype": "ToDo",
-			"link_name": todo.name,
-		})
+		communications = frappe.db.sql("""select `tabCommunication`.name from `tabCommunication`
+				inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
+				and `tabDynamic Link`.link_doctype='ToDo'
+				and `tabDynamic Link`.link_name='{0}'
+				and `tabCommunication`.communication_type='Feedback'
+		""".format(todo.name), as_list=True)
 		self.assertFalse(communications)
 
 		feedback_requests = frappe.get_all("Feedback Request", {
