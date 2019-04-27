@@ -81,7 +81,7 @@ export default {
 				return frappe.datetime.month_start();
 			}
 			if (this.period === 'This Week') {
-				return frappe.datetime.week_start;
+				return frappe.datetime.week_start();
 			}
 			if (this.period === 'Today') {
 				return frappe.datetime.get_today();
