@@ -5,9 +5,9 @@ from __future__ import unicode_literals
 import pdfkit, os, frappe
 from frappe.utils import scrub_urls
 from frappe import _
+import six, re, io
 from bs4 import BeautifulSoup
 from PyPDF2 import PdfFileReader, PdfFileWriter
-import re, io
 
 def get_pdf(html, options=None, output=None):
 	html = scrub_urls(html)
@@ -42,10 +42,15 @@ def get_pdf(html, options=None, output=None):
 		else:
 			raise
 
+	password = options["password"]
+
+	if six.PY2:
+		password = frappe.safe_encode(password)
+
 	if output:
 		# Encrypt if required
 		if "password" in options:
-			output.encrypt(options["password"].encode('utf-8'))
+			output.encrypt(password)
 		return get_file_data_from_writer(output)
 
 	writer = PdfFileWriter()
@@ -53,7 +58,7 @@ def get_pdf(html, options=None, output=None):
 	writer.appendPagesFromReader(reader)
 
 	if "password" in options:
-		writer.encrypt(options["password"].encode('utf-8'))
+		writer.encrypt(password)
 
 	filedata = get_file_data_from_writer(writer)
 

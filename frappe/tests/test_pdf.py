@@ -5,8 +5,8 @@ from __future__ import unicode_literals
 import unittest
 
 import frappe.utils.pdf as pdfgen
-from PyPDF2 import PdfFileReader, PdfFileWriter
-import pdfkit, io
+import frappe, io, six
+from PyPDF2 import PdfFileReader
 
 #class TestPdfBorders(unittest.TestCase):
 class TestPdf(unittest.TestCase):
@@ -34,13 +34,16 @@ class TestPdf(unittest.TestCase):
 		self.test_read_options_from_html()
 
 	def test_read_options_from_html(self):
-		html, html_options = pdfgen.read_options_from_html(self.html)
+		_, html_options = pdfgen.read_options_from_html(self.html)
 		self.assertTrue(html_options['margin-top'] == '0')
 		self.assertTrue(html_options['margin-left'] == '10')
 		self.assertTrue(html_options['margin-right'] == '0')
 
 	def test_pdf_encryption(self):
-		pdf = pdfgen.get_pdf(self.html, options={"password": "qwe"})
+		password = "qwe"
+		pdf = pdfgen.get_pdf(self.html, options={"password": password})
 		reader = PdfFileReader(io.BytesIO(pdf))
 		self.assertTrue(reader.isEncrypted)
-		self.assertTrue(reader.decrypt("qwe".encode('utf-8')))
+		if six.PY2:
+			password = frappe.safe_encode(password)
+		self.assertTrue(reader.decrypt(password))
