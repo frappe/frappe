@@ -107,8 +107,8 @@ def get_feedback_request_details(reference_doctype, reference_name, trigger="Man
 	if feedback_trigger.check_communication:
 
 		communications = frappe.db.sql("""select `tabCommunication`.name from `tabCommunication`
-				inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
-				and `tabDynamic Link`.link_doctype='{0}'
+				inner join `tabDynamic Link` on `tabCommunication`.name=`tabDynamic Link`.parent
+				where `tabDynamic Link`.link_doctype='{0}'
 				and `tabDynamic Link`.link_name='{1}'
 				and `tabCommunication`.communication_type='Communication'
 				and `tabCommunication`.sent_or_received='Sent'""".format(reference_doctype, reference_name),
@@ -208,8 +208,8 @@ def delete_feedback_request_and_feedback(reference_doctype, reference_name):
 		frappe.delete_doc("Feedback Request", request.get("name"), ignore_permissions=True)
 
 	communications = frappe.db.sql("""select `tabCommunication`.name from `tabCommunication`
-			inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
-			and `tabDynamic Link`.link_doctype='{0}'
+			inner join `tabDynamic Link` on `tabCommunication`.name=`tabDynamic Link`.parent
+			where `tabDynamic Link`.link_doctype='{0}'
 			and `tabDynamic Link`.link_name='{1}'
 			and `tabCommunication`.communication_type='Feedback'""".format(reference_doctype, reference_name),
 		as_list=True)

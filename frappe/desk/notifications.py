@@ -58,13 +58,12 @@ def get_new_messages():
 	return frappe.db.sql("""
 		select `tabCommunication`.name, `tabCommunication`.sender_full_name, `tabCommunication`.content,
 		`tabDynamic Link`.link_doctype, `tabDynamic Link`.link_name, `tabDynamic Link`.parent
-		from `tabCommunication`
-		inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
-			and `tabCommunication`.communication_type in ('Chat', 'Notification')
-			and `tabDynamic Link`.link_doctype='user'
-			and `tabDynamic Link`.link_name = %s
-			and `tabDynamic Link`.creation > %s
-			order by `tabDynamic Link`.creation desc""", (frappe.session.user, last_update), as_dict=1)
+		from `tabCommunication` inner join `tabDynamic Link` on `tabCommunication`.name=`tabDynamic Link`.parent
+		where `tabCommunication`.communication_type in ('Chat', 'Notification')
+		and `tabDynamic Link`.link_doctype='user'
+		and `tabDynamic Link`.link_name = %s
+		and `tabDynamic Link`.creation > %s
+		order by `tabDynamic Link`.creation desc""", (frappe.session.user, last_update), as_dict=1)
 
 def get_notifications_for_modules(config, notification_count):
 	"""Notifications for modules"""

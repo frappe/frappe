@@ -233,8 +233,8 @@ def get_feedback_rating(doctype, docname):
 
 	rating = frappe.db.sql("""select {fields}
 		from `tabCommunication`
-		inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
-		and {conditions}
+		inner join `tabDynamic Link` on `tabCommunication`.name=`tabDynamic Link`.parent
+		where {conditions}
 		order by `tabCommunication`.creation desc""".format(
 			fields = fields, conditions=conditions),
 			{ "doctype": doctype, "docname": docname})
