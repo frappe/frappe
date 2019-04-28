@@ -104,7 +104,6 @@ frappe.ui.form.on("Communication", {
 	},
 
 	show_add_link_dialog: function(frm){
-		var lib = "frappe.email";
 		var d = new frappe.ui.Dialog ({
 			title: __("Add a new link to Communication"),
 			fields: [{

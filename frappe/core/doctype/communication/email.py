@@ -574,7 +574,6 @@ def get_parent_doc(link_doctype, link_name):
 	return parent_doc if parent_doc else None
 
 def add_contacts(email_strings):
-	print(email_strings)
 	email_addrs = []
 
 	for email_string in email_strings:

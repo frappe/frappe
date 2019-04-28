@@ -385,7 +385,9 @@ class EmailAccount(Document):
 			users = list(set([ user.get("parent") for user in users ]))
 			communication._seen = json.dumps(users)
 
-		add_contacts([email.mail.get("To"), email.mail.get("CC"), email.from_email])
+		contacts = add_contacts([email.mail.get("To"), email.mail.get("CC"), email.from_email])
+		for contact_name in contacts:
+			communication.add_link('Contact', contact_name)
 
 		communication.flags.in_receive = True
 		communication.insert(ignore_permissions = 1)
