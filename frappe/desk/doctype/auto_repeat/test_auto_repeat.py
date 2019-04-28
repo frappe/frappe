@@ -95,9 +95,9 @@ class TestAutoRepeat(unittest.TestCase):
 				select `tabCommunication`.name from `tabCommunication`
 				inner join `tabDynamic Link`
 				where `tabCommunication`.name=`tabDynamic Link`.parent
-				and `tabDynamic Link`.link_doctye='{0}'
-				and `tabDynamic Link`.link_name='{1}'
-			""".format("ToDo", new_todo))
+				and `tabDynamic Link`.link_doctype='ToDo'
+				and `tabDynamic Link`.link_name='{0}'
+			""".format(new_todo))
 		self.assertTrue(linked_comm)
 
 
