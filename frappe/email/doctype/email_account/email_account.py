@@ -683,8 +683,8 @@ def notify_unreplied():
 								(datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3)))
 
 			comms = frappe.db.sql('''select {fields} from `tabCommunication`
-						inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
-						and {filters}
+						inner join `tabDynamic Link` on `tabCommunication`.name=`tabDynamic Link`.parent
+						where {filters}
 						order by `tabCommunication`.`modified` desc
 						'''.format(fields=fields, filters=filters), as_dict=True)
 

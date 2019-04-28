@@ -100,8 +100,8 @@ class TestFeedbackTrigger(unittest.TestCase):
 
 		# test if feedback is saved in Communication
 		docname = frappe.db.sql("""select `tabCommunication`.name from `tabCommunication`
-				inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
-				and `tabDynamic Link`.link_doctype='ToDo'
+				inner join `tabDynamic Link` on `tabCommunication`.name=`tabDynamic Link`.parent
+				where `tabDynamic Link`.link_doctype='ToDo'
 				and `tabDynamic Link`.link_name='{0}'
 				and `tabCommunication`.communication_type='Feedback'
 				and `tabCommunication`.feedback_request='{1}'
@@ -125,8 +125,8 @@ class TestFeedbackTrigger(unittest.TestCase):
 
 		# test if feedback requests and feedback communications are deleted?
 		communications = frappe.db.sql("""select `tabCommunication`.name from `tabCommunication`
-				inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
-				and `tabDynamic Link`.link_doctype='ToDo'
+				inner join `tabDynamic Link` on `tabCommunication`.name=`tabDynamic Link`.parent
+				where `tabDynamic Link`.link_doctype='ToDo'
 				and `tabDynamic Link`.link_name='{0}'
 				and `tabCommunication`.communication_type='Feedback'
 		""".format(todo.name), as_list=True)

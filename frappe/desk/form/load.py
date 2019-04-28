@@ -187,8 +187,8 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 
 	communications = frappe.db.sql("""select {fields}
 		from `tabCommunication`
-		inner join `tabDynamic Link` where `tabCommunication`.name=`tabDynamic Link`.parent
-		and {conditions} {group_by}
+		inner join `tabDynamic Link` on `tabCommunication`.name=`tabDynamic Link`.parent
+		where {conditions} {group_by}
 		order by `tabCommunication`.creation desc LIMIT %(limit)s OFFSET %(start)s""".format(
 			fields = fields, conditions=conditions, group_by=group_by or ""),
 			{ "doctype": doctype, "name": name, "start": frappe.utils.cint(start), "limit": limit },
