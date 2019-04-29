@@ -41,6 +41,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_view() {
 		this.setup_columns();
 		this.bind_charts_button();
+		super.setup_new_doc_event();
 	}
 
 	setup_result_area() {
@@ -228,6 +229,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			checkboxColumn: true,
 			inlineFilters: true,
 			cellHeight: 35,
+			direction: frappe.utils.is_rtl() ? 'rtl' : 'ltr',
 			events: {
 				onRemoveColumn: (column) => {
 					this.remove_column_from_datatable(column);
@@ -796,7 +798,20 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_columns() {
 		const hide_columns = ['docstatus'];
 		const fields = this.fields.filter(f => !hide_columns.includes(f[0]));
+
+		// apply previous column width
+		let column_widths = null;
+		if (this.columns) {
+			column_widths = this.get_column_widths();
+		}
 		this.columns = fields.map(f => this.build_column(f)).filter(Boolean);
+
+		if (column_widths) {
+			this.columns = this.columns.map(column => {
+				column.width = column_widths[column.id] || column.width;
+				return column;
+			});
+		}
 	}
 
 	build_column(c) {
