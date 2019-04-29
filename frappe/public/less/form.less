@@ -579,13 +579,15 @@ h6.uppercase, .h6.uppercase {
 	.timeline-indicator();
 }
 
-.timeline-item.notification-content.dark::before {
-	background-color: @text-color;
+.timeline-item {
+	.reply-link, .reply-link-all {
+		margin-left: 15px;
+		font-size: 12px;
+	}
 }
 
-.timeline-item .reply-link {
-	margin-left: 15px;
-	font-size: 12px;
+.timeline-item.notification-content.dark::before {
+	background-color: @text-color;
 }
 
 .timeline-head {

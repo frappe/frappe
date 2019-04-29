@@ -95,6 +95,8 @@
 								&& data.sender !== frappe.session.user_email) { %}
 							<a class="text-muted reply-link pull-right timeline-content-show"
 								data-name="{%= data.name %}" title="{%= __("Reply") %}">{%= __("Reply") %}</a>
+							<a class="text-muted reply-link-all pull-right timeline-content-show"
+								data-name="{%= data.name %}" title="{%= __("Reply All") %}">{%= __("Reply All") %}</a>
 							{% } %}
 						{% } %}
 					<span class="text-muted commented-on hidden-xs {% if (data.futur_date) { %}timeline-futur{% } %}">

@@ -289,28 +289,38 @@ frappe.ui.form.Timeline = class Timeline {
 	}
 
 	add_reply_btn_event($timeline_item, c) {
-		var me = this;
-		$timeline_item.find(".reply-link").on("click", function() {
-			var name = $(this).attr("data-name");
+		$timeline_item.on('click', '.reply-link, .reply-link-all', (e) => {
 			var last_email = null;
 
-			// find the email tor reply to
-			me.get_communications().forEach(function(c) {
-				if(c.name==name) {
+			const $target = $(e.currentTarget);
+			const name = $target.data().name;
+
+			// find the email to reply to
+			this.get_communications().forEach(function(c) {
+				if(c.name == name) {
 					last_email = c;
 					return false;
 				}
 			});
 
-			// make the composer
-			new frappe.views.CommunicationComposer({
-				doc: me.frm.doc,
+			const opts = {
+				doc: this.frm.doc,
 				txt: "",
 				title: __('Reply'),
-				frm: me.frm,
-				last_email: last_email,
+				frm: this.frm,
+				last_email,
 				is_a_reply: true
-			});
+			};
+
+			if ($target.is('.reply-link-all')) {
+				if (last_email) {
+					opts.cc = last_email.cc;
+					opts.bcc = last_email.bcc;
+				}
+			}
+
+			// make the composer
+			new frappe.views.CommunicationComposer(opts);
 		});
 	}
 
@@ -834,4 +844,4 @@ $.extend(frappe.timeline, {
 
 		return index;
 	}
-})
+});
