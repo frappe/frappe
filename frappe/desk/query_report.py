@@ -360,6 +360,8 @@ def add_total_row(result, columns, meta = None):
 			options = col.get("options")
 
 		for row in result:
+			if i >= len(row): continue
+
 			cell = row.get(fieldname) if isinstance(row, dict) else row[i]
 			if fieldtype in ["Currency", "Int", "Float", "Percent"] and flt(cell):
 				total_row[i] = flt(total_row[i]) + flt(cell)
