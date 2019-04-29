@@ -11,7 +11,6 @@ from frappe.utils import cint, strip_html
 from six import string_types
 
 no_cache = 1
-no_sitemap = 1
 
 base_template_path = "templates/www/printview.html"
 standard_format = "templates/print_formats/standard.html"
@@ -35,7 +34,7 @@ def get_context(context):
 	print_format = get_print_format_doc(None, meta = meta)
 
 	return {
-		"body": get_html(doc, print_format = print_format,
+		"body": get_rendered_template(doc, print_format = print_format,
 			meta=meta, trigger_print = frappe.form_dict.trigger_print,
 			no_letterhead=frappe.form_dict.no_letterhead),
 		"css": get_print_style(frappe.form_dict.style, print_format),
@@ -59,7 +58,7 @@ def get_print_format_doc(print_format_name, meta):
 			# if old name, return standard!
 			return None
 
-def get_html(doc, name=None, print_format=None, meta=None,
+def get_rendered_template(doc, name=None, print_format=None, meta=None,
 	no_letterhead=None, trigger_print=False):
 
 	print_settings = frappe.db.get_singles_dict("Print Settings")
@@ -182,10 +181,38 @@ def get_html_and_style(doc, name=None, print_format=None, meta=None,
 		doc = frappe.get_doc(json.loads(doc))
 
 	print_format = get_print_format_doc(print_format, meta=meta or frappe.get_meta(doc.doctype))
+
+	if print_format and print_format.raw_printing:
+		return {
+			"html": '<div class="text-muted text-center" style="font-size: 2em; margin-top: 80px;">'
+		+ _("No Preview Available")
+		+ '</div>'
+		}
+
 	return {
-		"html": get_html(doc, name=name, print_format=print_format, meta=meta,
+		"html": get_rendered_template(doc, name=name, print_format=print_format, meta=meta,
 	no_letterhead=no_letterhead, trigger_print=trigger_print),
 		"style": get_print_style(style=style, print_format=print_format)
+	}
+
+@frappe.whitelist()
+def get_rendered_raw_commands(doc, name=None, print_format=None, meta=None, lang=None):
+	"""Returns Rendered Raw Commands of print format, used to send directly to printer"""
+
+	if isinstance(doc, string_types) and isinstance(name, string_types):
+		doc = frappe.get_doc(doc, name)
+
+	if isinstance(doc, string_types):
+		doc = frappe.get_doc(json.loads(doc))
+
+	print_format = get_print_format_doc(print_format, meta=meta or frappe.get_meta(doc.doctype))
+
+	if not print_format or (print_format and not print_format.raw_printing):
+		frappe.throw(_("{0} is not a raw printing format.").format(print_format),
+				frappe.TemplateNotFoundError)
+
+	return {
+		"raw_commands": get_rendered_template(doc, name=name, print_format=print_format, meta=meta)
 	}
 
 def validate_print_permission(doc):
@@ -219,8 +246,10 @@ def get_print_format(doctype, print_format):
 		with open(path, "r") as pffile:
 			return pffile.read()
 	else:
-		if print_format.html:
+		if print_format.html and not print_format.raw_printing:
 			return print_format.html
+		elif print_format.raw_commands and print_format.raw_printing:
+			return print_format.raw_commands
 		else:
 			frappe.throw(_("No template found at path: {0}").format(path),
 				frappe.TemplateNotFoundError)
@@ -326,7 +355,7 @@ def is_visible(df, doc):
 		if df.fieldname in doc.hide_in_print_layout:
 			return False
 
-	if df.permlevel or 0 > 0 and not doc.has_permlevel_access_to(df.fieldname, df):
+	if (df.permlevel or 0) > 0 and not doc.has_permlevel_access_to(df.fieldname, df):
 		return False
 
 	return not doc.is_print_hide(df.fieldname, df)

@@ -7,7 +7,14 @@ frappe.ui.form.ControlSignature = frappe.ui.form.ControlData.extend({
 
 		// make jSignature field
 		this.body = $('<div class="signature-field"></div>').appendTo(me.wrapper);
-		this.make_pad();
+
+		if (this.body.is(':visible')) {
+			this.make_pad();
+		} else {
+			$(document).on('frappe.ui.Dialog:shown', () => {
+				this.make_pad();
+			});
+		}
 
 		this.img_wrapper = $(`<div class="signature-display">
 			<div class="missing-image attach-missing-image">

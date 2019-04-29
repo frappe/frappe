@@ -1,4 +1,4 @@
-apps/frappe/frappe/utils/nestedset.py +246,{0} {1} cannot be a leaf node as it has children,"{0} {1} kan ikke være en blad node, da den har undernoder"
+apps/frappe/frappe/utils/nestedset.py +252,{0} {1} cannot be a leaf node as it has children,"{0} {1} kan ikke være en blad node, da den har undernoder"
 apps/frappe/frappe/utils/csvutils.py +53,"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Ukendt fil kodning. Prøvede utf-8, vinduer-1250, vinduer-1252."
 DocType: About Us Settings,"""Company History""",'Virksomhedshistorie'
 DocType: Currency,"1 Currency = [?] Fraction

@@ -10,7 +10,7 @@ def execute():
 	for user in users:
 		# get user_settings for each user
 		settings = frappe.db.sql("select * from `__UserSettings` \
-			where user='{0}'".format(frappe.db.escape(user.user)), as_dict=True)
+			where user={0}".format(frappe.db.escape(user.user)), as_dict=True)
 
 		# traverse through each doctype's settings for a user
 		for d in settings:

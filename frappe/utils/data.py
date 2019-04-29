@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 # IMPORTANT: only import safe functions as this module will be included in jinja environment
 import frappe
 import operator
-import re, urllib, datetime, math, time
+import re, datetime, math, time
 import babel.dates
 from babel.core import UnknownLocaleError
 from dateutil import parser
@@ -35,8 +35,8 @@ def getdate(string_date=None):
 	elif isinstance(string_date, datetime.date):
 		return string_date
 
-	# dateutil parser does not agree with dates like 0000-00-00
-	if not string_date or string_date=="0000-00-00":
+	# dateutil parser does not agree with dates like 0001-01-01
+	if not string_date or string_date=="0001-01-01":
 		return None
 	return parser.parse(string_date).date()
 
@@ -53,8 +53,8 @@ def get_datetime(datetime_str=None):
 	elif isinstance(datetime_str, datetime.date):
 		return datetime.datetime.combine(datetime_str, datetime.time())
 
-	# dateutil parser does not agree with dates like 0000-00-00
-	if not datetime_str or (datetime_str or "").startswith("0000-00-00"):
+	# dateutil parser does not agree with dates like 0001-01-01
+	if not datetime_str or (datetime_str or "").startswith("0001-01-01"):
 		return None
 
 	try:
@@ -70,7 +70,7 @@ def to_timedelta(time_str):
 	else:
 		return time_str
 
-def add_to_date(date, years=0, months=0, days=0, hours=0, as_string=False, as_datetime=False):
+def add_to_date(date, years=0, months=0, weeks=0, days=0, hours=0, as_string=False, as_datetime=False):
 	"""Adds `days` to the given date"""
 	from dateutil.relativedelta import relativedelta
 
@@ -86,7 +86,7 @@ def add_to_date(date, years=0, months=0, days=0, hours=0, as_string=False, as_da
 			as_datetime = True
 		date = parser.parse(date)
 
-	date = date + relativedelta(years=years, months=months, days=days, hours=hours)
+	date = date + relativedelta(years=years, months=months, weeks=weeks, days=days, hours=hours)
 
 	if as_string:
 		if as_datetime:
@@ -253,6 +253,9 @@ def format_datetime(datetime_string, format_string=None):
 		formatted_datetime = datetime.strftime('%Y-%m-%d %H:%M:%S')
 	return formatted_datetime
 
+def get_weekdays():
+	return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
 def global_date_format(date, format="long"):
 	"""returns localized date in the form of January 1, 2012"""
 	date = getdate(date)
@@ -323,7 +326,6 @@ def ceil(s):
 
 def cstr(s, encoding='utf-8'):
 	return frappe.as_unicode(s, encoding)
-
 def rounded(num, precision=0):
 	"""round method for round halfs to nearest even algorithm aka banker's rounding - compatible with python3"""
 	precision = cint(precision)
@@ -745,6 +747,27 @@ def get_link_to_form(doctype, name, label=None):
 
 	return """<a href="{0}">{1}</a>""".format(get_url_to_form(doctype, name), label)
 
+def get_link_to_report(name, label=None, report_type=None, doctype=None, filters=None):
+	if not label: label = name
+
+	if filters:
+		conditions = []
+		for k,v in iteritems(filters):
+			if isinstance(v, list):
+				for value in v:
+					conditions.append(str(k)+'='+'["'+str(value[0]+'"'+','+'"'+str(value[1])+'"]'))
+			else:
+				conditions.append(str(k)+"="+str(v))
+
+		filters = "&".join(conditions)
+
+		return """<a href='{0}'>{1}</a>""".format(get_url_to_report_with_filters(name, filters, report_type, doctype), label)
+	else:
+		return """<a href='{0}'>{1}</a>""".format(get_url_to_report(name, report_type, doctype), label)
+
+def get_absolute_url(doctype, name):
+	return "desk#Form/{0}/{1}".format(quoted(doctype), quoted(name))
+
 def get_url_to_form(doctype, name):
 	return get_url(uri = "desk#Form/{0}/{1}".format(quoted(doctype), quoted(name)))
 
@@ -756,6 +779,12 @@ def get_url_to_report(name, report_type = None, doctype = None):
 		return get_url(uri = "desk#Report/{0}/{1}".format(quoted(doctype), quoted(name)))
 	else:
 		return get_url(uri = "desk#query-report/{0}".format(quoted(name)))
+
+def get_url_to_report_with_filters(name, filters, report_type = None, doctype = None):
+	if report_type == "Report Builder":
+		return get_url(uri = "desk#Report/{0}?{1}".format(quoted(doctype), filters))
+	else:
+		return get_url(uri = "desk#query-report/{0}?{1}".format(quoted(name), filters))
 
 operator_map = {
 	# startswith
@@ -834,8 +863,8 @@ def get_filter(doctype, f):
 		# if operator is missing
 		f.operator = "="
 
-	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in",
-		"between", "descendants of", "ancestors of", "not descendants of", "not ancestors of")
+	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in", "is",
+		"between", "descendants of", "ancestors of", "not descendants of", "not ancestors of", "previous", "next")
 	if f.operator.lower() not in valid_operators:
 		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
 
@@ -949,7 +978,7 @@ def strip(val, chars=None):
 def to_markdown(html):
 	text = None
 	try:
-		text = html2text(html)
+		text = html2text(html or '')
 	except HTMLParser.HTMLParseError:
 		pass
 
@@ -969,7 +998,7 @@ def md_to_html(markdown_text):
 
 	html = None
 	try:
-		html = markdown(markdown_text, extras=extras)
+		html = markdown(markdown_text or '', extras=extras)
 	except MarkdownError:
 		pass
 

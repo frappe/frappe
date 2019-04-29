@@ -658,7 +658,7 @@ frappe.ui.FieldSelect = Class.extend({
 		if(me.doctype && df.parent==me.doctype) {
 			var label = __(df.label);
 			var table = me.doctype;
-			if(df.fieldtype=='Table') me.table_fields.push(df);
+			if(frappe.model.table_fields.includes(df.fieldtype)) me.table_fields.push(df);
 		} else {
 			var label = __(df.label) + ' (' + __(df.parent) + ')';
 			var table = df.parent;

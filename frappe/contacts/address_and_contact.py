@@ -101,12 +101,13 @@ def get_permitted_and_not_permitted_links(doctype):
 	not_permitted_links = []
 
 	meta = frappe.get_meta(doctype)
+	allowed_doctypes = frappe.permissions.get_doctypes_with_read()
 
 	for df in meta.get_link_fields():
 		if df.options not in ("Customer", "Supplier", "Company", "Sales Partner"):
 			continue
 
-		if frappe.has_permission(df.options):
+		if df.options in allowed_doctypes:
 			permitted_links.append(df)
 		else:
 			not_permitted_links.append(df)
@@ -145,10 +146,9 @@ def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, fil
 	_doctypes = tuple([d for d in _doctypes if re.search(txt+".*", _(d[0]), re.IGNORECASE)])
 
 	all_doctypes = [d[0] for d in doctypes + _doctypes]
-	valid_doctypes = []
+	allowed_doctypes = frappe.permissions.get_doctypes_with_read()
 
-	for doctype in all_doctypes:
-		if frappe.has_permission(doctype):
-			valid_doctypes.append([doctype])
+	valid_doctypes = sorted(set(all_doctypes).intersection(set(allowed_doctypes)))
+	valid_doctypes = [[doctype] for doctype in valid_doctypes]
 
-	return sorted(valid_doctypes)
+	return valid_doctypes

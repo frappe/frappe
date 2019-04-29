@@ -8,7 +8,7 @@ const commonjs = require('rollup-plugin-commonjs');
 const node_resolve = require('rollup-plugin-node-resolve');
 const postcss = require('rollup-plugin-postcss');
 const buble = require('rollup-plugin-buble');
-const uglify = require('rollup-plugin-uglify');
+const { terser } = require('rollup-plugin-terser');
 const vue = require('rollup-plugin-vue');
 const frappe_html = require('./frappe-html-plugin');
 
@@ -20,7 +20,8 @@ const {
 	bench_path,
 	get_public_path,
 	get_app_path,
-	get_build_json
+	get_build_json,
+	get_options_for_scss
 } = require('./rollup.utils');
 
 function get_rollup_options(output_file, input_files) {
@@ -64,7 +65,7 @@ function get_rollup_options_for_js(output_file, input_files) {
 				paths: node_resolve_paths
 			}
 		}),
-		production && uglify()
+		production && terser()
 	];
 
 	return {
@@ -115,12 +116,15 @@ function get_rollup_options_for_css(output_file, input_files) {
 		// less -> css
 		postcss({
 			extract: output_path,
-			use: [['less', {
-				// import other less/css files starting from these folders
-				paths: [
-					path.resolve(get_public_path('frappe'), 'less')
-				]
-			}], 'sass'],
+			use: [
+				['less', {
+					// import other less/css files starting from these folders
+					paths: [
+						path.resolve(get_public_path('frappe'), 'less')
+					]
+				}],
+				['sass', get_options_for_scss()]
+			],
 			include: [
 				path.resolve(bench_path, '**/*.less'),
 				path.resolve(bench_path, '**/*.scss'),

@@ -13,22 +13,27 @@ frappe.ui.Filter = class {
 			["not like", __("Not Like")],
 			["in", __("In")],
 			["not in", __("Not In")],
+			["is", __("Is")],
 			[">", ">"],
 			["<", "<"],
 			[">=", ">="],
 			["<=", "<="],
 			["Between", __("Between")],
 			["descendants of", __("Descendants Of")],
-			["ancestors of", __("Ancestors Of")]
+			["not descendants of", __("Not Descendants Of")],
+			["ancestors of", __("Ancestors Of")],
+			["not ancestors of", __("Not Ancestors Of")],
+			["Previous", __("Previous")],
+			["Next", __("Next")]
 		];
 		this.invalid_condition_map = {
 			Date: ['like', 'not like'],
 			Datetime: ['like', 'not like'],
-			Data: ['Between'],
-			Select: ["Between", "<=", ">=", "<", ">"],
-			Link: ["Between"],
-			Currency: ["Between"],
-			Color: ["Between"]
+			Data: ['Between', 'Previous', 'Next'],
+			Select: ['like', 'not like'],
+			Link: ["Between", 'Previous', 'Next'],
+			Currency: ["Between", 'Previous', 'Next'],
+			Color: ["Between", 'Previous', 'Next']
 		};
 		this.make();
 		this.make_select();
@@ -37,7 +42,9 @@ frappe.ui.Filter = class {
 	}
 
 	make() {
-		this.filter_edit_area = $(frappe.render_template("edit_filter", {}))
+		this.filter_edit_area = $(frappe.render_template("edit_filter", {
+			conditions: this.conditions
+		}))
 			.appendTo(this.parent.find('.filter-edit-area'));
 	}
 
@@ -110,10 +117,14 @@ frappe.ui.Filter = class {
 	}
 
 	update_filter_tag() {
-		return this._filter_value_set.then(() => {
-			!this.$filter_tag ? this.make_tag() : this.set_filter_button_text();
-			this.filter_edit_area.hide();
-		});
+		if (this._filter_value_set) {
+			return this._filter_value_set.then(() => {
+				!this.$filter_tag ? this.make_tag() : this.set_filter_button_text();
+				this.filter_edit_area.hide();
+			});
+		} else {
+			return Promise.resolve();
+		}
 	}
 
 	remove() {
@@ -125,7 +136,9 @@ frappe.ui.Filter = class {
 
 	set_values(doctype, fieldname, condition, value) {
 		// presents given (could be via tags!)
-		this.set_field(doctype, fieldname);
+		if (this.set_field(doctype, fieldname) === false) {
+			return
+		}
 
 		if(this.field.df.original_type==='Check') {
 			value = (value==1) ? 'Yes' : 'No';
@@ -154,9 +167,9 @@ frappe.ui.Filter = class {
 
 		let original_docfield = (this.fieldselect.fields_by_name[doctype] || {})[fieldname];
 		if(!original_docfield) {
-			frappe.msgprint(__("Field {0} is not selectable.", [fieldname]));
+			console.warn(`Field ${fieldname} is not selectable.`);
 			this.remove();
-			return;
+			return false;
 		}
 
 		let df = copy_dict(original_docfield);
@@ -181,6 +194,32 @@ frappe.ui.Filter = class {
 		// clear field area and make field
 		this.fieldselect.selected_doctype = doctype;
 		this.fieldselect.selected_fieldname = fieldname;
+
+		if(["Previous", "Next"].includes(condition) && ['Date', 'Datetime', 'DateRange', 'Select'].includes(this.field.df.fieldtype)) {
+			df.fieldtype = 'Select';
+			df.options = [
+				{
+					label: __('1 week'),
+					value: '1 week'
+				},
+				{
+					label: __('1 month'),
+					value: '1 month'
+				},
+				{
+					label: __('3 months'),
+					value: '3 months'
+				},
+				{
+					label: __('6 months'),
+					value: '6 months'
+				},
+				{
+					label: __('1 year'),
+					value: '1 year'
+				}
+			];
+		}
 
 		this.make_field(df, cur.fieldtype);
 	}
@@ -394,6 +433,13 @@ frappe.ui.filter_utils = {
 		}
 		if(condition == "Between" && (df.fieldtype == 'Date' || df.fieldtype == 'Datetime')){
 			df.fieldtype = 'DateRange';
+		}
+		if (condition === 'is') {
+			df.fieldtype = 'Select';
+			df.options = [
+				{ label: __('Set'), value: 'set' },
+				{ label: __('Not Set'), value: 'not set' },
+			];
 		}
 	}
 };

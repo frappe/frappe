@@ -22,15 +22,15 @@ class TestGlobalSearch(unittest.TestCase):
 		make_property_setter(doctype, "repeat_on", "in_global_search", 0, "Int")
 
 	def tearDown(self):
-		frappe.db.sql('delete from `tabProperty Setter` where doc_type="Event"')
+		frappe.db.sql("DELETE FROM `tabProperty Setter` WHERE `doc_type`='Event'")
 		frappe.clear_cache(doctype='Event')
-		frappe.db.sql('delete from `tabEvent`')
-		frappe.db.sql('delete from __global_search')
+		frappe.db.sql('DELETE FROM `tabEvent`')
+		frappe.db.sql('DELETE FROM `__global_search`')
 		make_test_objects('Event')
 		frappe.db.commit()
 
 	def insert_test_events(self):
-		frappe.db.sql('delete from tabEvent')
+		frappe.db.sql('DELETE FROM `tabEvent`')
 		phrases = ['"The Sixth Extinction II: Amor Fati" is the second episode of the seventh season of the American science fiction.',
 		'After Mulder awakens from his coma, he realizes his duty to prevent alien colonization. ',
 		'Carter explored themes of extraterrestrial involvement in ancient mass extinctions in this episode, the third in a trilogy.']
@@ -42,7 +42,9 @@ class TestGlobalSearch(unittest.TestCase):
 				repeat_on='Every Month',
 				starts_on=frappe.utils.now_datetime())).insert()
 
+		global_search.sync_global_search()
 		frappe.db.commit()
+
 
 	def test_search(self):
 		self.insert_test_events()
@@ -61,7 +63,7 @@ class TestGlobalSearch(unittest.TestCase):
 		event.subject = test_subject
 		event.save()
 		frappe.db.commit()
-
+		global_search.sync_global_search()
 		results = global_search.search('testing global search')
 
 		self.assertTrue('testing global search' in results[0].content)
@@ -87,6 +89,7 @@ class TestGlobalSearch(unittest.TestCase):
 		self.assertEqual(len(results), 1)
 
 		frappe.delete_doc('Event', event_name)
+		global_search.sync_global_search()
 
 		results = global_search.search(test_subject)
 		self.assertEqual(len(results), 0)
@@ -111,6 +114,7 @@ class TestGlobalSearch(unittest.TestCase):
 			})
 			doc.insert()
 
+		global_search.sync_global_search()
 		frappe.db.commit()
 
 	def test_get_field_value(self):
@@ -177,3 +181,10 @@ class TestGlobalSearch(unittest.TestCase):
 					field_as_text = global_search.get_formatted_value(doc.description, field)
 
 			self.assertEqual(case["result"], field_as_text)
+
+	def test_web_page_index(self):
+		global_search.update_global_search_for_all_web_pages()
+		global_search.sync_global_search()
+		frappe.db.commit()
+		results = global_search.web_search('unsubscribe')
+		self.assertTrue('Unsubscribe' in results[0].content)

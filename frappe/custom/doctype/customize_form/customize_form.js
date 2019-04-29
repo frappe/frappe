@@ -13,9 +13,7 @@ frappe.ui.form.on("Customize Form", {
 				filters: [
 					['DocType', 'issingle', '=', 0],
 					['DocType', 'custom', '=', 0],
-					['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, User, Role, Has Role, \
-						Page, Has Role, Module Def, Print Format, Report, Customize Form, \
-						Customize Form Field, Property Setter, Custom Field, Custom Script'],
+					['DocType', 'name', 'not in', frappe.model.core_doctypes_list],
 					['DocType', 'restrict_to_domain', 'in', frappe.boot.active_domains]
 				]
 			};
@@ -30,6 +28,11 @@ frappe.ui.form.on("Customize Form", {
 		$(frm.wrapper).on("grid-make-sortable", function(e, frm) {
 			frm.trigger("setup_sortable");
 		});
+
+		$(frm.wrapper).on("grid-move-row", function(e, frm) {
+			frm.trigger("setup_sortable");
+		});
+
 	},
 
 	doc_type: function(frm) {
@@ -39,8 +42,14 @@ frappe.ui.form.on("Customize Form", {
 				doc: frm.doc,
 				freeze: true,
 				callback: function(r) {
-					frm.refresh();
-					frm.trigger("setup_sortable");
+					if(r) {
+						if(r._server_messages && r._server_messages.length) {
+							frm.set_value("doc_type", "");
+						} else {
+							frm.refresh();
+							frm.trigger("setup_sortable");
+						}
+					}
 				}
 			});
 		} else {
@@ -53,12 +62,13 @@ frappe.ui.form.on("Customize Form", {
 		frm.doc.fields.forEach(function(f, i) {
 			var data_row = frm.page.body.find('[data-fieldname="fields"] [data-idx="'+ f.idx +'"] .data-row');
 
-			if(!f.is_custom_field) {
-				data_row.removeClass('sortable-handle');
-			} else {
+			if(f.is_custom_field) {
 				data_row.addClass("highlight");
+			} else {
+				f._sortable = false;
 			}
 		});
+		frm.fields_dict.fields.grid.refresh();
 	},
 
 	refresh: function(frm) {
@@ -115,7 +125,7 @@ frappe.ui.form.on("Customize Form", {
 			frm.set_df_property("sort_field", "options", fields);
 		}
 
-		if(frappe.route_options) {
+		if(frappe.route_options && frappe.route_options.doc_type) {
 			setTimeout(function() {
 				frm.set_value("doc_type", frappe.route_options.doc_type);
 				frappe.route_options = null;

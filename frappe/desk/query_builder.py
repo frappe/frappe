@@ -1,5 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 import frappe
@@ -9,9 +9,6 @@ out = frappe.response
 from frappe.utils import cint
 import frappe.defaults
 from six import text_type
-
-# imports - third-party imports
-import pymysql
 
 def get_sql_tables(q):
 	if q.find('WHERE') != -1:
@@ -78,16 +75,16 @@ def add_match_conditions(q, tl):
 			q = q[0] + condition_st + '(' + ' OR '.join(sl) + ') ' + condition_end + q[1]
 		else:
 			q = q + condition_st + '(' + ' OR '.join(sl) + ')'
-	
+
 	return q
 
 def guess_type(m):
 	"""
 		Returns fieldtype depending on the MySQLdb Description
 	"""
-	if m in pymysql.NUMBER:
+	if frappe.db.is_type_number(m):
 		return 'Currency'
-	elif m in pymysql.DATE:
+	elif m in frappe.is_type_datetime(m):
 		return 'Date'
 	else:
 		return 'Data'
@@ -97,7 +94,7 @@ def build_description_simple():
 
 	for m in frappe.db.get_description():
 		colnames.append(m[0])
-		coltypes.append(guess_type[m[0]])
+		coltypes.append(guess_type[m[1]])
 		coloptions.append('')
 		colwidths.append('100')
 
@@ -178,7 +175,7 @@ def runquery(q='', ret=0, from_export=0):
 		meta = get_sql_meta(tl)
 
 		q = add_match_conditions(q, tl)
-		
+
 		# replace special variables
 		q = q.replace('__user', frappe.session.user)
 		q = q.replace('__today', frappe.utils.nowdate())
@@ -223,9 +220,6 @@ def runquery(q='', ret=0, from_export=0):
 def runquery_csv():
 	global out
 
-	# run query
-	res = runquery(from_export = 1)
-
 	q = frappe.form_dict.get('query')
 
 	rep_name = frappe.form_dict.get('report_name')
@@ -236,9 +230,6 @@ def runquery_csv():
 			rep_name = get_sql_tables(q)[0]
 
 	if not rep_name: rep_name = 'DataExport'
-
-	# Headings
-	heads = []
 
 	rows = [[rep_name], out['colnames']] + out['values']
 
@@ -264,9 +255,9 @@ def add_limit_to_query(query, args):
 	if args.get('limit_page_length'):
 		query += """
 			limit %(limit_start)s, %(limit_page_length)s"""
-			
+
 		import frappe.utils
 		args['limit_start'] = frappe.utils.cint(args.get('limit_start'))
 		args['limit_page_length'] = frappe.utils.cint(args.get('limit_page_length'))
-	
+
 	return query, args

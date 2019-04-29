@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 # imports - third-party imports
 import requests
 
@@ -26,7 +28,7 @@ def get_user_doc(user = None):
 
 	user = user or session.user
 	user = frappe.get_doc('User', user)
-	
+
 	return user
 
 def squashify(what):
@@ -43,9 +45,9 @@ def safe_json_loads(*args):
 			arg = json.loads(arg)
 		except Exception as e:
 			pass
-			
+
 		results.append(arg)
-	
+
 	return squashify(results)
 
 def filter_dict(what, keys, ignore = False):
@@ -68,7 +70,7 @@ def get_if_empty(a, b):
 	if not a:
 		a = b
 	return a
-	
+
 def listify(arg):
 	if not isinstance(arg, list):
 		arg = [arg]
@@ -89,7 +91,7 @@ def check_url(what, raise_err = False):
 			raise ValueError('{what} not a valid URL.')
 		else:
 			return False
-	
+
 	return True
 
 def create_test_user(module):
@@ -110,5 +112,5 @@ def get_emojis():
 		if resp.ok:
 			emojis = resp.json()
 			redis.hset('frappe_emojis', 'emojis', emojis)
-	
+
 	return dictify(emojis)

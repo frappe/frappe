@@ -31,9 +31,15 @@
                     {% var value = col.fieldname ? row[col.fieldname] : row[col.id]; %}
 
                     <td>
-                        {{ col.formatter
-	                        ? col.formatter(row._index, col._index, value, col, row, true)
-                            : (col.docfield ? frappe.format(value, col.docfield) : value) }}
+                        {{
+                            col.formatter
+                                ? col.formatter(row._index, col._index, value, col, row, true)
+                                : col.format
+                                    ? col.format(value, row, col, data)
+                                    : col.docfield
+                                        ? frappe.format(value, col.docfield)
+                                        : value
+                        }}
                     </td>
                 {% endif %}
             {% endfor %}
@@ -41,3 +47,4 @@
         {% endfor %}
     </tbody>
 </table>
+

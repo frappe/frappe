@@ -12,7 +12,6 @@ source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 
 develop_version = '12.x.x-develop'
-staging_version = '11.0.3-beta.47'
 
 app_email = "info@frappe.io"
 
@@ -47,15 +46,13 @@ web_include_js = [
 	"website_script.js"
 ]
 
-bootstrap = "assets/frappe/css/bootstrap.css"
-web_include_css = [
-	"assets/css/frappe-web.css"
-]
+web_include_css = []
 
 website_route_rules = [
 	{"from_route": "/blog/<category>", "to_route": "Blog Post"},
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
-	{"from_route": "/newsletters", "to_route": "Newsletter"}
+	{"from_route": "/newsletters", "to_route": "Newsletter"},
+	{"from_route": "/profile", "to_route": "me"},
 ]
 
 write_file_keys = ["file_url", "file_name"]
@@ -102,7 +99,8 @@ has_permission = {
 	"Contact": "frappe.contacts.address_and_contact.has_permission",
 	"Address": "frappe.contacts.address_and_contact.has_permission",
 	"Communication": "frappe.core.doctype.communication.communication.has_permission",
-	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.has_permission"
+	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.has_permission",
+	"File": "frappe.core.doctype.file.file.has_permission"
 }
 
 has_website_permission = {
@@ -118,7 +116,10 @@ doc_events = {
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.core.doctype.activity_log.feed.update_feed",
-			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
+			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
+			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points",
+			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone"
 		],
 		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_cancel": [
@@ -130,13 +131,12 @@ doc_events = {
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
 		],
 		"on_change": [
-			"frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request",
+			"frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request"
 		]
 	},
 	"Email Group Member": {
 		"validate": "frappe.email.doctype.email_group.email_group.restrict_email_group"
-	},
-
+	}
 }
 
 scheduler_events = {
@@ -148,7 +148,8 @@ scheduler_events = {
 		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
 		"frappe.twofactor.delete_all_barcodes_for_users",
 		"frappe.integrations.doctype.gcalendar_settings.gcalendar_settings.sync",
-		"frappe.website.doctype.web_page.web_page.check_publish_status"
+		"frappe.website.doctype.web_page.web_page.check_publish_status",
+		'frappe.utils.global_search.sync_global_search'
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
@@ -157,6 +158,8 @@ scheduler_events = {
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
 		"frappe.limits.update_space_usage",
 		"frappe.desk.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
+		"frappe.deferred_insert.save_to_db",
+		"frappe.desk.form.document_follow.send_hourly_updates"
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",
@@ -171,6 +174,9 @@ scheduler_events = {
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.core.doctype.feedback_request.feedback_request.delete_feedback_request",
 		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs",
+		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
+		"frappe.desk.form.document_follow.send_daily_updates",
+		"frappe.social.doctype.energy_point_settings.energy_point_settings.allocate_review_points"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
@@ -179,10 +185,14 @@ scheduler_events = {
 	"weekly_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_weekly",
-		"frappe.utils.change_log.check_for_update"
+		"frappe.utils.change_log.check_for_update",
+		"frappe.desk.doctype.route_history.route_history.flush_old_route_records",
+		"frappe.desk.form.document_follow.send_weekly_updates",
+		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary"
 	],
 	"monthly": [
-		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly"
+		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly",
+		"frappe.social.doctype.energy_point_log.energy_point_log.send_monthly_summary"
 	],
 	"monthly_long": [
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_monthly"
@@ -224,3 +234,55 @@ before_write_file = "frappe.limits.validate_space_limit"
 before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
 
 otp_methods = ['OTP App','Email','SMS']
+user_privacy_documents = [
+	{
+		'doctype': 'File',
+		'match_field': 'attached_to_name',
+		'personal_fields': ['file_name', 'file_url'],
+		'applies_to_website_user': 1
+	},
+	{
+		'doctype': 'Email Group Member',
+		'match_field': 'email',
+	},
+	{
+		'doctype': 'Email Unsubscribe',
+		'match_field': 'email',
+	},
+	{
+		'doctype': 'Email Queue',
+		'match_field': 'sender',
+	},
+	{
+		'doctype': 'Email Queue Recipient',
+		'match_field': 'recipient',
+	},
+	{
+		'doctype': 'Contact',
+		'match_field': 'email_id',
+		'personal_fields': ['first_name', 'last_name', 'phone', 'mobile_no'],
+	},
+	{
+		'doctype': 'Address',
+		'match_field': 'email_id',
+		'personal_fields': ['address_title', 'address_line1', 'address_line2', 'city', 'county', 'state', 'pincode',
+			'phone', 'fax'],
+	},
+	{
+		'doctype': 'Communication',
+		'match_field': 'sender',
+		'personal_fields': ['sender_full_name', 'phone_no', 'content'],
+	},
+	{
+		'doctype': 'Communication',
+		'match_field': 'recipients',
+	},
+	{
+		'doctype': 'User',
+		'match_field': 'name',
+		'personal_fields': ['email', 'username', 'first_name', 'middle_name', 'last_name', 'full_name', 'birth_date',
+			'user_image', 'phone', 'mobile_no', 'location', 'banner_image', 'interest', 'bio', 'email_signature', 'background_image'],
+		'applies_to_website_user': 1
+	},
+
+]

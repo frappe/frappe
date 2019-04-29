@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 import frappe
-from frappe.model.db_schema import add_column
+from frappe.database.schema import add_column
 
 def execute():
 	frappe.db.sql("""update `tabSingles` set field='_liked_by' where field='_starred_by'""")

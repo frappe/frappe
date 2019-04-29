@@ -66,6 +66,8 @@ class FormMeta(Meta):
 			'__custom_js'):
 			d[k] = self.get(k)
 
+		# d['fields'] = d.get('fields', [])
+
 		for i, df in enumerate(d.get("fields") or []):
 			for k in ("search_fields", "is_custom_field", "linked_document_type"):
 				df[k] = self.get("fields")[i].get(k)
@@ -85,8 +87,12 @@ class FormMeta(Meta):
 		self._add_code(_get_path(self.name + '.js'), '__js')
 		if system_country:
 			self._add_code(_get_path(os.path.join('regional', system_country + '.js')), '__js')
+
 		self._add_code(_get_path(self.name + '.css'), "__css")
 		self._add_code(_get_path(self.name + '_list.js'), '__list_js')
+		if system_country:
+			self._add_code(_get_path(os.path.join('regional', system_country + '_list.js')), '__list_js')
+
 		self._add_code(_get_path(self.name + '_calendar.js'), '__calendar_js')
 		self._add_code(_get_path(self.name + '_tree.js'), '__tree_js')
 
@@ -124,8 +130,7 @@ class FormMeta(Meta):
 	def add_custom_script(self):
 		"""embed all require files"""
 		# custom script
-		custom = frappe.db.get_value("Custom Script", {"dt": self.name,
-			"script_type": "Client"}, "script") or ""
+		custom = frappe.db.get_value("Custom Script", {"dt": self.name}, "script") or ""
 
 		self.set("__custom_js", custom)
 

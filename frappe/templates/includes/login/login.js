@@ -56,6 +56,16 @@ login.bind_events = function() {
 		return false;
 	});
 
+	$(".toggle-password").click(function() {
+		$(this).toggleClass("fa-eye fa-eye-slash");
+		var input = $($(this).attr("toggle"));
+		if (input.attr("type") == "password") {
+			input.attr("type", "text");
+		} else {
+			input.attr("type", "password");
+		}
+	});
+
 	{% if ldap_settings %}
 		$(".btn-ldap-login").on("click", function(){
 			var args = {};

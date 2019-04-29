@@ -13,7 +13,7 @@ from frappe import _, safe_decode, safe_encode
 from frappe.utils import (extract_email_id, convert_utc_to_user_timezone, now,
 	cint, cstr, strip, markdown, parse_addr)
 from frappe.utils.scheduler import log
-from frappe.utils.file_manager import get_random_filename, save_file, MaxFileSizeReachedError
+from frappe.core.doctype.file.file import get_random_filename, MaxFileSizeReachedError
 
 class EmailSizeExceededError(frappe.ValidationError): pass
 class EmailTimeoutError(frappe.ValidationError): pass
@@ -190,12 +190,10 @@ class EmailServer:
 		# compare the UIDVALIDITY of email account and imap server
 		uid_validity = self.settings.uid_validity
 
-		responce, message = self.imap.status("Inbox", "(UIDVALIDITY UIDNEXT)")
-		current_uid_validity = self.parse_imap_responce("UIDVALIDITY", message[0])
-		if not current_uid_validity:
-			frappe.throw(_("Can not find UIDVALIDITY in imap status response"))
+		response, message = self.imap.status("Inbox", "(UIDVALIDITY UIDNEXT)")
+		current_uid_validity = self.parse_imap_response("UIDVALIDITY", message[0]) or 0
 
-		uidnext = int(self.parse_imap_responce("UIDNEXT", message[0]) or "1")
+		uidnext = int(self.parse_imap_response("UIDNEXT", message[0]) or "1")
 		frappe.db.set_value("Email Account", self.settings.email_account, "uidnext", uidnext)
 
 		if not uid_validity or uid_validity != current_uid_validity:
@@ -223,9 +221,9 @@ class EmailServer:
 		elif uid_validity == current_uid_validity:
 			return
 
-	def parse_imap_responce(self, cmd, responce):
+	def parse_imap_response(self, cmd, response):
 		pattern = r"(?<={cmd} )[0-9]*".format(cmd=cmd)
-		match = re.search(pattern, responce.decode('utf-8'), re.U | re.I)
+		match = re.search(pattern, response.decode('utf-8'), re.U | re.I)
 		if match:
 			return match.group(0)
 		else:
@@ -359,9 +357,13 @@ class Email:
 		"""Parses headers, content, attachments from given raw message.
 
 		:param content: Raw message."""
-		self.raw = safe_encode(content) if six.PY2 else safe_decode(content)
-		self.mail = email.message_from_string(self.raw)
-
+		if six.PY2:
+			self.mail = email.message_from_string(safe_encode(content))
+		else:
+			if isinstance(content, bytes):
+				self.mail = email.message_from_bytes(content)
+			else:
+				self.mail = email.message_from_string(content)
 
 		self.text_content = ''
 		self.html_content = ''
@@ -523,12 +525,18 @@ class Email:
 
 		for attachment in self.attachments:
 			try:
-				file_data = save_file(attachment['fname'], attachment['fcontent'],
-					doc.doctype, doc.name, is_private=1)
-				saved_attachments.append(file_data)
+				_file = frappe.get_doc({
+					"doctype": "File",
+					"file_name": attachment['fname'],
+					"attached_to_doctype": doc.doctype,
+					"attached_to_name": doc.name,
+					"is_private": 1,
+					"content": attachment['fcontent']})
+				_file.save()
+				saved_attachments.append(_file)
 
 				if attachment['fname'] in self.cid_map:
-					self.cid_map[file_data.name] = self.cid_map[attachment['fname']]
+					self.cid_map[_file.name] = self.cid_map[attachment['fname']]
 
 			except MaxFileSizeReachedError:
 				# WARNING: bypass max file size exception
@@ -547,6 +555,7 @@ class Email:
 
 # fix due to a python bug in poplib that limits it to 2048
 poplib._MAXLINE = 20480
+imaplib._MAXLINE = 20480
 
 class TimerMixin(object):
 	def __init__(self, *args, **kwargs):

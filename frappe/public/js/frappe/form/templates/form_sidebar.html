@@ -1,6 +1,5 @@
 <ul class="list-unstyled sidebar-menu user-actions hidden"></ul>
 <ul class="list-unstyled sidebar-menu sidebar-image-section hidden-xs hidden-sm hide">
-	<li class="divider"></li>
 	<li class="sidebar-image-wrapper">
 		<div class="sidebar-image"></div>
 		<div class="sidebar-standard-image">
@@ -18,7 +17,6 @@
 </div>
 {% endif %}
 <ul class="list-unstyled sidebar-menu sidebar-rating hide">
-	<li class="divider"></li>
 	<li style="position: relative;">
 		<a class="strong badge-hover">
 			<span>{%= __("Feedback") %}</span>
@@ -27,54 +25,66 @@
 	<li class="rating-icons"></li>
 </ul>
 <ul class="list-unstyled sidebar-menu">
-	<li class="divider"></li>
 	<li style="position: relative;">
-		<a class="strong sidebar-comments badge-hover">
+		<a class="sidebar-comments badge-hover">
 			<span>{%= __("Comments") %}</span>
 			<span class="badge n-comments">0</span>
 		</a>
 	</li>
     {% if(frappe.help.has_help(doctype)) { %}
-    <li><a class="strong help-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>
+    <li><a class="help-link list-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>
     {% } %}
 </ul>
 <ul class="list-unstyled sidebar-menu form-assignments">
-	<li class="divider"></li>
 	<li class="h6 assigned-to-label">{%= __("Assigned To") %}</li>
-	<li><a class="strong add-assignment">{%= __("Assign") %}
+	<li><a class="add-assignment text-muted">{%= __("Assign") %}
 		<i class="octicon octicon-plus" style="margin-left: 2px;"></i></a></li>
 </ul>
 <ul class="list-unstyled sidebar-menu form-attachments">
-	<li class="divider"></li>
 	<li class="h6 attachments-label">{%= __("Attachments") %}</li>
-	<li><a class="strong add-attachment">{%= __("Attach File") %}
+	<li><a class="add-attachment text-muted">{%= __("Attach File") %}
 		<i class="octicon octicon-plus" style="margin-left: 2px;"></i></li></a>
 </ul>
 <ul class="list-unstyled sidebar-menu">
-	<li class="divider"></li>
 	<li class="h6 tags-label">{%= __("Tags") %}</li>
 	<li class="form-tags">
 		<div class="tag-area"></div>
 		<div class="clearfix"></div>
 	</li>
 </ul>
+<ul class="list-unstyled sidebar-menu form-reviews">
+	<li class="h6 attachments-label">{%= __("Reviews") %}</li>
+	<li class="review-list"></li>
+</ul>
 <ul class="list-unstyled sidebar-menu">
-	<li class="divider"></li>
 	<li class="h6 shared-with-label">{%= __("Shared With") %}</li>
 	<li class="form-shared"></li>
 </ul>
 <ul class="list-unstyled sidebar-menu">
-	<li class="divider"></li>
 	<li class="h6 viewers-label">{%= __("Currently Viewing") %}</li>
 	<li class="form-viewers"></li>
 </ul>
-<ul class="list-unstyled sidebar-menu text-muted">
+<ul class="list-unstyled sidebar-menu">
 	<li class="liked-by-parent">
 		<span class="liked-by">
 			<i class="octicon octicon-heart like-action text-extra-muted fa-fw"></i>
 			<span class="likes-count"></span>
 		</span>
 	</li>
+</ul>
+<ul class="list-unstyled sidebar-menu followed-by-section">
+	<li class="h6 followed-by-label text-medium hidden">{%= __("Followed by") %}</li>
+	<li class="followed-by"></li>
+	<li class="document-follow">
+		<a class="badge-hover follow-document-link hidden">
+			{%= __("Follow") %}
+		</a>
+		<a class="badge-hover unfollow-document-link hidden">
+			{%= __("Unfollow") %}
+		</a>
+	</li>
+</ul>
+<ul class="list-unstyled sidebar-menu text-muted">
 	<li class="modified-by"></li>
 	<li class="created-by"></li>
 </ul>
@@ -82,6 +92,6 @@
     {{ frappe.get_form_sidebar_extension() }}
 {% } %}
 <ul class="list-unstyled visible-xs visible-sm">
-	<li class="divider"></li>
+
 	<li class="close-sidebar">Close</li>
 </ul>

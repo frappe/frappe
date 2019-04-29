@@ -103,6 +103,7 @@ frappe.ui.form.AssignTo = Class.extend({
 		}
 
 		me.assign_to.dialog.show();
+		me.assign_to = null;
 	},
 	remove: function(owner) {
 		var me = this;
@@ -133,22 +134,24 @@ frappe.ui.form.AssignToDialog = Class.extend({
 		var dialog = new frappe.ui.Dialog({
 			title: __('Add to To Do'),
 			fields: [
-				{fieldtype: 'Link', fieldname:'assign_to', options:'User',
-					label:__("Assign To"), reqd:true, filters: {'user_type': 'System User'}},
-				{fieldtype:'Check', fieldname:'myself', label:__("Assign to me"), "default":0},
-				{fieldtype:'Small Text', fieldname:'description', label:__("Comment")},
-				{fieldtype: 'Section Break'},
-				{fieldtype: 'Column Break'},
-				{fieldtype:'Date', fieldname:'date', label: __("Complete By")},
-				{fieldtype:'Check', fieldname:'notify',
-					label:__("Notify by Email")},
-				{fieldtype: 'Column Break'},
-				{fieldtype:'Select', fieldname:'priority', label: __("Priority"),
-					options:[
-						{value:'Low', label:__('Low')},
-						{value:'Medium', label:__('Medium')},
-						{value:'High', label:__('High')}],
-					'default':'Medium'},
+				{ fieldtype: 'Link', fieldname: 'assign_to', options: 'User', label: __("Assign To"), reqd: true, filters: { 'user_type': 'System User' }},
+				{ fieldtype: 'Check', fieldname: 'myself', label: __("Assign to me"), "default": 0 },
+				{ fieldtype: 'Small Text', fieldname: 'description', label: __("Comment") },
+				{ fieldtype: 'Section Break' },
+				{ fieldtype: 'Column Break' },
+				{ fieldtype: 'Date', fieldname: 'date', label: __("Complete By") },
+				{ fieldtype: 'Check', fieldname: 'notify', label: __("Notify by Email") },
+				{ fieldtype: 'Column Break' },
+				{ fieldtype: 'Select', fieldname: 'priority', label: __("Priority"),
+					options: [
+						{ value: 'Low', label: __('Low') },
+						{ value: 'Medium', label: __('Medium') },
+						{ value: 'High', label: __('High') }
+					],
+					// Pick up priority from the source document, if it exists and is available in ToDo
+					'default': ["Low", "Medium", "High"].includes(opts.obj.frm && opts.obj.frm.doc.priority
+						? opts.obj.frm.doc.priority : 'Medium')
+				},
 			],
 			primary_action: function() { frappe.ui.add_assignment(opts, this) },
 			primary_action_label: __("Add")
@@ -184,6 +187,7 @@ frappe.ui.add_assignment = function(opts, dialog) {
 	var assign_to = dialog.fields_dict.assign_to.get_value();
 	var args = dialog.get_values();
 	if(args && assign_to) {
+		dialog.set_message('Assigning...');
 		return frappe.call({
 			method: opts.method,
 			args: $.extend(args, {
@@ -193,15 +197,17 @@ frappe.ui.add_assignment = function(opts, dialog) {
 				bulk_assign:  opts.bulk_assign || false,
 				re_assign: opts.re_assign || false
 			}),
-			callback: function(r,rt) {
+			btn: dialog.get_primary_btn(),
+			callback: function(r) {
 				if(!r.exc) {
 					if(opts.callback){
 						opts.callback(r);
 					}
 					dialog && dialog.hide();
+				} else {
+					dialog.clear_message();
 				}
 			},
-			btn: this
 		});
 	}
 }

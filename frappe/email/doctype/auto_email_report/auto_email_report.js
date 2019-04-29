@@ -99,6 +99,14 @@ frappe.ui.form.on('Auto Email Report', {
 				dialog.show();
 				dialog.set_values(filters);
 			})
+
+			// populate dynamic date field selection
+			let date_fields = report_filters
+				.filter(df => df.fieldtype === 'Date')
+				.map(df => ({ label: df.label, value: df.fieldname }));
+			frm.set_df_property('from_date_field', 'options', date_fields);
+			frm.set_df_property('to_date_field', 'options', date_fields);
+			frm.toggle_display('dynamic_report_filters_section', date_fields.length > 0);
 		}
 	}
 });

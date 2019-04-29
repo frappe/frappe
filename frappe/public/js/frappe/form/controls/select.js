@@ -33,10 +33,10 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 		}
 
 		// nothing changed
-		if(options.toString() === this.last_options) {
+		if (JSON.stringify(options) === this.last_options) {
 			return;
 		}
-		this.last_options = options.toString();
+		this.last_options = JSON.stringify(options);
 
 		if(this.$input) {
 			var selected = this.$input.find(":selected").val();

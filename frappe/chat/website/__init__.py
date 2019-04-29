@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import frappe
 from   frappe.chat.util import filter_dict, safe_json_loads
 

@@ -50,13 +50,19 @@ frappe.ui.form.Layout = Class.extend({
 		fields = fields.concat(frappe.meta.sort_docfields(frappe.meta.docfield_map[this.doctype]));
 		return fields;
 	},
-	show_message: function(html) {
+	show_message: function(html, color) {
+		if (this.message_color) {
+			// remove previous color
+			this.message.removeClass(this.message_color);
+		}
+		this.message_color = (color && ['yellow', 'blue'].includes(color)) ? color : 'blue';
 		if(html) {
 			if(html.substr(0, 1)!=='<') {
 				// wrap in a block
 				html = '<div>' + html + '</div>';
 			}
-			$(html).appendTo(this.message.removeClass('hidden'));
+			this.message.removeClass('hidden').addClass(this.message_color);
+			$(html).appendTo(this.message);
 		} else {
 			this.message.empty().addClass('hidden');
 		}
@@ -500,10 +506,13 @@ frappe.ui.form.Layout = Class.extend({
 
 		} else if(typeof(expression) === 'function') {
 			out = expression(doc);
-			
+
 		} else if(expression.substr(0,5)=='eval:') {
 			try {
 				out = eval(expression.substr(5));
+				if(parent && parent.istable && expression.includes('is_submittable')) {
+					out = true;
+				}
 			} catch(e) {
 				frappe.throw(__('Invalid "depends_on" expression'));
 			}

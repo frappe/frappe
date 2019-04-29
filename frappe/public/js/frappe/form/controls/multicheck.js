@@ -86,7 +86,9 @@ frappe.ui.form.ControlMultiCheck = frappe.ui.form.Control.extend({
 				this.selected_options.push(option_name);
 			} else {
 				let index = this.selected_options.indexOf(option_name);
-				this.selected_options.splice(index, 1);
+				if(index > -1) {
+					this.selected_options.splice(index, 1);
+				}
 			}
 			this.df.on_change && this.df.on_change();
 		});

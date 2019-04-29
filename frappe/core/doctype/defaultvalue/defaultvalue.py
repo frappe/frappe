@@ -11,14 +11,11 @@ class DefaultValue(Document):
 
 def on_doctype_update():
 	"""Create indexes for `tabDefaultValue` on `(parent, defkey)`"""
-	if not frappe.db.sql("""show index from `tabDefaultValue`
-		where Key_name="defaultvalue_parent_defkey_index" """):
-		frappe.db.commit()
-		frappe.db.sql("""alter table `tabDefaultValue`
-			add index defaultvalue_parent_defkey_index(parent, defkey)""")
+	frappe.db.commit()
+	frappe.db.add_index(doctype='DefaultValue',
+		fields=['parent', 'defkey'],
+		index_name='defaultvalue_parent_defkey_index')
 
-	if not frappe.db.sql("""show index from `tabDefaultValue`
-		where Key_name="defaultvalue_parent_parenttype_index" """):
-		frappe.db.commit()
-		frappe.db.sql("""alter table `tabDefaultValue`
-			add index defaultvalue_parent_parenttype_index(parent, parenttype)""")
+	frappe.db.add_index(doctype='DefaultValue',
+		fields=['parent', 'parenttype'],
+		index_name='defaultvalue_parent_parenttype_index')

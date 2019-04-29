@@ -12,17 +12,21 @@ from frappe import _
 from frappe.model.workflow import apply_workflow, get_workflow_name, \
 	has_approval_access, get_workflow_state_field, send_email_alert
 from frappe.desk.notifications import clear_doctype_notifications
+from frappe.utils.user import get_users_with_role
 
 class WorkflowAction(Document):
 	pass
 
+
+def on_doctype_update():
+	frappe.db.add_index("Workflow Action", ["status", "user"])
 
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
 
 	if user == "Administrator": return ""
 
-	return "(`tabWorkflow Action`.user='{user}')".format(user=user)
+	return "(`tabWorkflow Action`.`user`='{user}')".format(user=user)
 
 def has_permission(doc, user):
 	if user not in ['Administrator', doc.user]:
@@ -128,14 +132,14 @@ def return_link_expired_page(doc, doc_workflow_state):
 
 def clear_old_workflow_actions(doc, user=None):
 	user = user if user else frappe.session.user
-	frappe.db.sql('''delete from `tabWorkflow Action`
-		where reference_doctype=%s and reference_name=%s and user!=%s and status="Open"''',
+	frappe.db.sql("""DELETE FROM `tabWorkflow Action`
+		WHERE `reference_doctype`=%s AND `reference_name`=%s AND `user`!=%s AND `status`='Open'""",
 		(doc.get('doctype'), doc.get('name'), user))
 
 def update_completed_workflow_actions(doc, user=None):
 	user = user if user else frappe.session.user
-	frappe.db.sql('''update `tabWorkflow Action` set status='Completed', completed_by=%s
-		where reference_doctype=%s and reference_name=%s and user=%s and status="Open"''',
+	frappe.db.sql("""UPDATE `tabWorkflow Action` SET `status`='Completed', `completed_by`=%s
+		WHERE `reference_doctype`=%s AND `reference_name`=%s AND `user`=%s AND `status`='Open'""",
 		(user, doc.get('doctype'), doc.get('name'), user))
 
 def get_next_possible_transitions(workflow_name, state):
@@ -174,9 +178,6 @@ def create_workflow_actions_for_users(users, doc):
 			'user': user
 		}).insert(ignore_permissions=True)
 
-	frappe.db.commit()
-
-
 def send_workflow_action_email(users_data, doc):
 	common_args = get_common_email_args(doc)
 	message = common_args.pop('message', None)
@@ -187,6 +188,8 @@ def send_workflow_action_email(users_data, doc):
 				'actions': d.get('possible_actions'),
 				'message': message
 			},
+			'reference_name': doc.name,
+			'reference_doctype': doc.doctype
 		}
 		email_args.update(common_args)
 		enqueue(method=frappe.sendmail, queue='short', **email_args)
@@ -216,15 +219,6 @@ def get_confirm_workflow_action_url(doc, action, user):
 	}
 
 	return get_url(confirm_action_method + "?" + get_signed_params(params))
-
-
-def get_users_with_role(role):
-	return [p[0] for p in frappe.db.sql("""select distinct tabUser.name
-		from `tabHas Role`, tabUser
-		where `tabHas Role`.role=%s
-		and tabUser.name != "Administrator"
-		and `tabHas Role`.parent = tabUser.name
-		and tabUser.enabled=1""", role)]
 
 def is_workflow_action_already_created(doc):
 	return frappe.db.exists({

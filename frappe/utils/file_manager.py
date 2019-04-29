@@ -28,7 +28,6 @@ def upload():
 	# get record details
 	dt = frappe.form_dict.doctype
 	dn = frappe.form_dict.docname
-	df = frappe.form_dict.docfield
 	file_url = frappe.form_dict.file_url
 	filename = frappe.form_dict.filename
 	frappe.form_dict.is_private = cint(frappe.form_dict.is_private)
@@ -430,7 +429,7 @@ def get_random_filename(extn=None, content_type=None):
 
 	return random_string(7) + (extn or "")
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def validate_filename(filename):
 	from frappe.utils import now_datetime
 	timestamp = now_datetime().strftime(" %Y-%m-%d %H:%M:%S")

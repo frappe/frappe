@@ -22,14 +22,9 @@ import frappe.website.render
 from frappe.utils import get_site_name
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils.error import make_error_snapshot
-from frappe.core.doctype.communication.comment import update_comments_in_parent_after_request
+from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
 from frappe import _
-
-# imports - third-party imports
-import pymysql
-from pymysql.constants import ER
-
-# imports - module imports
+import frappe.recorder
 
 local_manager = LocalManager([frappe.local])
 
@@ -47,7 +42,6 @@ class RequestContext(object):
 	def __exit__(self, type, value, traceback):
 		frappe.destroy()
 
-
 @Request.application
 def application(request):
 	response = None
@@ -57,12 +51,12 @@ def application(request):
 
 		init_request(request)
 
+		frappe.recorder.record()
+
 		if frappe.local.form_dict.cmd:
 			response = frappe.handler.handle()
 
 		elif frappe.request.path.startswith("/api/"):
-			if frappe.local.form_dict.data is None:
-					frappe.local.form_dict.data = request.get_data()
 			response = frappe.api.handle()
 
 		elif frappe.request.path.startswith('/backups'):
@@ -97,6 +91,8 @@ def application(request):
 		if response and hasattr(frappe.local, 'cookie_manager'):
 			frappe.local.cookie_manager.flush_cookies(response=response)
 
+		frappe.recorder.dump()
+
 		frappe.destroy()
 
 	return response
@@ -122,8 +118,9 @@ def init_request(request):
 def make_form_dict(request):
 	import json
 
-	if 'application/json' in (request.content_type or '') and request.data:
-		args = json.loads(request.data)
+	request_data = request.get_data(as_text=True)
+	if 'application/json' in (request.content_type or '') and request_data:
+		args = json.loads(request_data)
 	else:
 		args = request.form or request.args
 
@@ -148,8 +145,8 @@ def handle_exception(e):
 		response = frappe.utils.response.report_error(http_status_code)
 
 	elif (http_status_code==500
-		and isinstance(e, pymysql.InternalError)
-		and e.args[0] in (ER.LOCK_WAIT_TIMEOUT, ER.LOCK_DEADLOCK)):
+		and (frappe.db and isinstance(e, frappe.db.InternalError))
+		and (frappe.db and (frappe.db.is_deadlocked(e) or frappe.db.is_timedout(e)))):
 			http_status_code = 508
 
 	elif http_status_code==401:
@@ -225,11 +222,11 @@ def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=No
 
 	if not os.environ.get('NO_STATICS'):
 		application = SharedDataMiddleware(application, {
-			'/assets': os.path.join(sites_path, 'assets'),
+			str('/assets'): str(os.path.join(sites_path, 'assets'))
 		})
 
 		application = StaticDataMiddleware(application, {
-			'/files': os.path.abspath(sites_path)
+			str('/files'): str(os.path.abspath(sites_path))
 		})
 
 	application.debug = True

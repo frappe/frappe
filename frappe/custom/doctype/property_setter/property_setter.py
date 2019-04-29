@@ -33,16 +33,20 @@ class PropertySetter(Document):
 			frappe.db.sql("""delete from `tabProperty Setter` where
 				doctype_or_field = %(doctype_or_field)s
 				and doc_type = %(doc_type)s
-				and ifnull(field_name,'') = ifnull(%(field_name)s, '')
+				and coalesce(field_name,'') = coalesce(%(field_name)s, '')
 				and property = %(property)s""", self.get_valid_dict())
 
 	def get_property_list(self, dt):
-		return frappe.db.sql("""select fieldname, label, fieldtype
-		from tabDocField
-		where parent=%s
-		and fieldtype not in ('Section Break', 'Column Break', 'HTML', 'Read Only', 'Table', 'Fold')
-		and ifnull(fieldname, '') != ''
-		order by label asc""", dt, as_dict=1)
+		return frappe.db.get_all('DocField',
+			fields=['fieldname', 'label', 'fieldtype'],
+			filters={
+				'parent': dt,
+				'fieldtype': ['not in', ('Section Break', 'Column Break', 'HTML', 'Read Only', 'Fold') + frappe.model.table_fields],
+				'fieldname': ['!=', '']
+			},
+			order_by='label asc',
+			as_dict=1
+		)
 
 	def get_setup_data(self):
 		return {
@@ -69,7 +73,7 @@ class PropertySetter(Document):
 			from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 			validate_fields_for_doctype(self.doc_type)
 
-def make_property_setter(doctype, fieldname, property, value, property_type, for_doctype = False, 
+def make_property_setter(doctype, fieldname, property, value, property_type, for_doctype = False,
 		validate_fields_for_doctype=True):
 	# WARNING: Ignores Permissions
 	property_setter = frappe.get_doc({

@@ -4,17 +4,7 @@ frappe.ui.notifications = {
 	config: {
 		"ToDo": { label: __("To Do") },
 		"Event": { label: __("Calendar"), route: "List/Event/Calendar" },
-		"Email": { label: __("Email"), route: "List/Communication/Inbox" },
-		"Likes": { label: __("Likes"),
-			click: function() {
-				frappe.route_options = { show_likes: true };
-				if (frappe.get_route()[0]=="activity") {
-					frappe.pages['activity'].page.list.refresh();
-				} else {
-					frappe.set_route("activity");
-				}
-			}
-		},
+		"Email": { label: __("Email"), route: "List/Communication/Inbox" }
 	},
 
 	update_notifications: function() {

@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import frappe
 import frappe.defaults
 import unittest
@@ -93,14 +94,14 @@ def create_linked_contact(link_list):
 
 class TestAddressesAndContacts(unittest.TestCase):
 	def test_get_data(self):
-		linked_docs = [get_custom_doc_for_address_and_contacts(), get_custom_doc_for_address_and_contacts(), get_custom_doc_for_address_and_contacts()]
+		linked_docs = [get_custom_doc_for_address_and_contacts()]
 		links_list = [item.name for item in linked_docs]
 		create_linked_contact(links_list)
 		create_linked_address(links_list)
 		report_data = get_data({"reference_doctype": "Test Custom Doctype"})
-		for link in links_list:
+		for idx, link in enumerate(links_list):
 			test_item = [link, 'test address line 1', 'test address line 2', 'Milan', None, None, 'Italy', 0, '_Test First Name', '_Test Last Name', '+91 0000000000', None, 'test_contact@example.com', 1]
-			self.assertIn(test_item, report_data)
+			self.assertListEqual(test_item, report_data[idx])
 
 	def tearDown(self):
 		frappe.db.rollback()

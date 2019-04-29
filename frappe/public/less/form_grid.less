@@ -64,7 +64,7 @@
 }
 
 .grid-empty, .list-loading {
-	padding: 10px 15px;
+	padding: 30px 15px;
 	color: @border-color;
 }
 
@@ -164,6 +164,11 @@
 		}
 	}
 
+	.grid-static-col[data-fieldtype="Rating"] .field-area {
+		margin-top: 1rem;
+		margin-left: 1rem;
+	}
+
 	.grid-static-col[data-fieldtype="Code"] {
 		overflow: hidden;
 
@@ -259,6 +264,8 @@
 
 .grid-footer {
 	background-color: #fff;
+	border: 1px solid @border-color;
+	border-top: 0px;
 }
 
 .grid-footer-toolbar {

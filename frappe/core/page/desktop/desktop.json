@@ -1,10 +1,11 @@
 {
- "creation": "2013-02-14 17:37:37.000000", 
+ "content": null, 
+ "creation": "2019-01-29 13:11:48.872579", 
  "docstatus": 0, 
  "doctype": "Page", 
- "icon": "fa fa-th", 
- "idx": 1, 
- "modified": "2013-07-11 14:41:56.000000", 
+ "icon": "icon-th", 
+ "idx": 0, 
+ "modified": "2019-01-29 13:11:48.872579", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "desktop", 
@@ -15,6 +16,9 @@
    "role": "All"
   }
  ], 
+ "script": null, 
  "standard": "Yes", 
+ "style": null, 
+ "system_page": 0, 
  "title": "Desktop"
 }

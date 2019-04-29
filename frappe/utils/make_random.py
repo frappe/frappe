@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import frappe, random
 from six.moves import range
 from six import string_types

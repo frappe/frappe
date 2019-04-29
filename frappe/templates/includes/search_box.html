@@ -1,21 +1,11 @@
-<div class="item-search text-muted pull-right">
-	<div class='input-wrapper'>
-		<input type="text" class="item-search-input form-control"
-			placeholder="{{ _("Search") }}" autocomplete="off">
-		<i class="octicon octicon-search pull-right" style='cursor: pointer;'></i>
-	</div>
-</div>
-<div class="clearfix pull-right" style="width:100%;">
-	<h5 class="item-search-results" style="margin-right: 30px;"></h5>
-	<p class="pull-right" style="margin-top: -28px;">
-        <a style="display: none;" href="javascript:history.back();" class="octicon octicon-x text-extra-muted clear" title="{{ _("Clear Search") }}" ></a>
-	</p>
-</div>
+<form class="form-inline search-box justify-content-end">
+	<input type="text" class="item-search-input form-control" placeholder="{{ _("Search...") }}" autocomplete="off">
+</form>
 
 <script>
 frappe.ready(function() {
 	if(frappe.utils.get_url_arg("search")) {
-		$(".item-search-results").html('{{ _("Search results for") + ": " + html2text(frappe.form_dict.search or "")|trim }}');
+		$(".item-search-results").html('{{ _("Search results for") + ": " + html2text(frappe.form_dict.search or "") | e | trim }}');
 		$(".item-search").toggle(false);
 		$(".clear").toggle(true);
 	}

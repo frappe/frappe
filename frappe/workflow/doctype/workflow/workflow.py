@@ -46,9 +46,14 @@ class Workflow(Document):
 		states = self.get("states")
 		for d in states:
 			if not d.doc_status in docstatus_map:
-				frappe.db.sql("""update `tab%s` set `%s` = %s where \
-					ifnull(`%s`, '')='' and docstatus=%s""" % (self.document_type, self.workflow_state_field,
-						'%s', self.workflow_state_field, "%s"), (d.state, d.doc_status))
+				frappe.db.sql("""
+					UPDATE `tab{doctype}`
+					SET `{field}` = %s
+					WHERE ifnull(`{field}`, '') = ''
+					AND `docstatus` = %s
+				""".format(doctype=self.document_type, field=self.workflow_state_field),
+				(d.state, d.doc_status))
+
 				docstatus_map[d.doc_status] = d.state
 
 	def validate_docstatus(self):
@@ -75,8 +80,8 @@ class Workflow(Document):
 	def set_active(self):
 		if int(self.is_active or 0):
 			# clear all other
-			frappe.db.sql("""update tabWorkflow set is_active=0
-				where document_type=%s""",
+			frappe.db.sql("""UPDATE `tabWorkflow` SET `is_active`=0
+				WHERE `document_type`=%s""",
 				self.document_type)
 
 @frappe.whitelist()

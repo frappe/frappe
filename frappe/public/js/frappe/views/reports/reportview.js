@@ -107,11 +107,6 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 		this.set_tag_and_status_filter();
 		this.setup_listview_settings();
 
-		// add to desktop
-		this.page.add_menu_item(__("Add to Desktop"), function() {
-			frappe.add_to_desktop(me.docname || __('{0} Report', [me.doctype]), me.doctype, me.docname);
-		}, true);
-
 	},
 
 	make_new_and_refresh: function() {
@@ -264,7 +259,9 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 
 		return {
 			doctype: this.doctype,
-			fields: $.map(this.columns || [], function(v) { return me.get_full_column_name(v); }),
+			fields: $.map(this.columns || [], function(v) {
+				return me.get_full_column_name(v);
+			}),
 			order_by: this.get_order_by(),
 			add_total_row: this.add_total_row,
 			filters: filters,
@@ -801,7 +798,9 @@ frappe.views.ReportView = frappe.ui.BaseList.extend({
 			});
 
 			this.page.add_menu_item(__("Delete"), function() {
-				var delete_list = $.map(me.get_checked_items(), function(d) { return d.name; });
+				var delete_list = $.map(me.get_checked_items(), function(d) {
+					return d.name.toString();
+				});
 				if(!delete_list.length)
 					return;
 				if(frappe.confirm(__("This is PERMANENT action and you cannot undo. Continue?"),
@@ -891,7 +890,6 @@ frappe.ui.ColumnPicker = Class.extend({
 		});
 
 		new Sortable(this.column_list.get(0), {
-			//handle: '.sortable-handle',
 			filter: 'input',
 			draggable: '.column-list-item',
 			chosenClass: 'sortable-chosen',

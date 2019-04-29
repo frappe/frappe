@@ -7,13 +7,12 @@ from __future__ import unicode_literals
 import frappe
 import frappe.defaults
 import unittest
-import json
 import frappe.model.meta
 from frappe.permissions import (add_user_permission, remove_user_permission,
-	clear_user_permissions_for_doctype, get_doc_permissions, add_permission,
-	get_valid_perms)
+	clear_user_permissions_for_doctype, get_doc_permissions, add_permission)
 from frappe.core.page.permission_manager.permission_manager import update, reset
 from frappe.test_runner import make_test_records_for_doctype
+from frappe.core.doctype.user_permission.user_permission import clear_user_permissions
 
 test_dependencies = ['Blogger', 'Blog Post', "User", "Contact", "Salutation"]
 
@@ -83,11 +82,27 @@ class TestPermissions(unittest.TestCase):
 		self.assertFalse("-test-blog-post" in names)
 
 	def test_default_values(self):
+		doc = frappe.new_doc("Blog Post")
+		self.assertFalse(doc.get("blog_category"))
+
+		# Fetch default based on single user permission
 		add_user_permission("Blog Category", "_Test Blog Category 1", "test2@example.com")
 
 		frappe.set_user("test2@example.com")
 		doc = frappe.new_doc("Blog Post")
 		self.assertEqual(doc.get("blog_category"), "_Test Blog Category 1")
+
+		# Don't fetch default if user permissions is more than 1
+		add_user_permission("Blog Category", "_Test Blog Category", "test2@example.com", ignore_permissions=True)
+		frappe.clear_cache()
+		doc = frappe.new_doc("Blog Post")
+		self.assertFalse(doc.get("blog_category"))
+
+		# Fetch user permission set as default from multiple user permission
+		add_user_permission("Blog Category", "_Test Blog Category 2", "test2@example.com", ignore_permissions=True, is_default=1)
+		frappe.clear_cache()
+		doc = frappe.new_doc("Blog Post")
+		self.assertEqual(doc.get("blog_category"), "_Test Blog Category 2")
 
 	def test_user_link_match_doc(self):
 		blogger = frappe.get_doc("Blogger", "_Test Blogger 1")
@@ -298,7 +313,7 @@ class TestPermissions(unittest.TestCase):
 			doctype"""
 
 		frappe.set_user('Administrator')
-		frappe.db.sql('delete from tabContact')
+		frappe.db.sql('DELETE FROM `tabContact`')
 
 		reset('Salutation')
 		reset('Contact')
@@ -308,8 +323,8 @@ class TestPermissions(unittest.TestCase):
 		add_user_permission("Salutation", "Mr", "test3@example.com")
 		self.set_strict_user_permissions(0)
 
-		allowed_contact = frappe.get_doc('Contact', '_Test Contact for _Test Customer')
-		other_contact = frappe.get_doc('Contact', '_Test Contact for _Test Supplier')
+		allowed_contact = frappe.get_doc('Contact', '_Test Contact For _Test Customer')
+		other_contact = frappe.get_doc('Contact', '_Test Contact For _Test Supplier')
 
 		frappe.set_user("test3@example.com")
 		self.assertTrue(allowed_contact.has_permission('read'))
@@ -428,3 +443,34 @@ class TestPermissions(unittest.TestCase):
 
 		# delete the created doc
 		frappe.delete_doc('Blog Post', '-test-blog-post-title')
+
+	def test_clear_user_permissions(self):
+		current_user = frappe.session.user
+		frappe.set_user('Administrator')
+		clear_user_permissions_for_doctype('Blog Category', 'test2@example.com')
+		clear_user_permissions_for_doctype('Blog Post', 'test2@example.com')
+
+		add_user_permission('Blog Post', '-test-blog-post-1', 'test2@example.com')
+		add_user_permission('Blog Post', '-test-blog-post-2', 'test2@example.com')
+		add_user_permission("Blog Category", '_Test Blog Category 1', 'test2@example.com')
+
+		deleted_user_permission_count = clear_user_permissions('test2@example.com', 'Blog Post')
+
+		self.assertEqual(deleted_user_permission_count, 2)
+
+		blog_post_user_permission_count = frappe.db.count('User Permission', filters={
+			'user': 'test2@example.com',
+			'allow': 'Blog Post'
+		})
+
+		self.assertEqual(blog_post_user_permission_count, 0)
+
+		blog_category_user_permission_count = frappe.db.count('User Permission', filters={
+			'user': 'test2@example.com',
+			'allow': 'Blog Category'
+		})
+
+		self.assertEqual(blog_category_user_permission_count, 1)
+
+		# reset the user
+		frappe.set_user(current_user)

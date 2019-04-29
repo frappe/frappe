@@ -18,7 +18,9 @@
                 <a class="btn-print-print btn-sm btn btn-default">
                     <strong>{%= __("Print") %}</strong></a>
     			<a class="btn-sm btn btn-default" href="#Form/Print Settings">
-                    {%= __("Settings...") %}</a>
+					{%= __("Settings...") %}</a>
+				<a class="btn-printer-setting btn-sm btn btn-default" style="display: none;">
+						{%= __("Printer Settings...") %}</a>
     			<a class="btn-print-edit btn-sm btn btn-default">
                     {%= __("Customize...") %}</a>
     			<a class="btn-print-preview btn-sm btn btn-default">
@@ -31,6 +33,7 @@
 	<div class="print-preview-wrapper">
         <div class="print-preview">
 		    <div class="print-format"></div>
-        </div>
+		</div>
+		<div class="page-break-message text-muted text-center text-medium margin-top"></div>
     </div>
 </div>

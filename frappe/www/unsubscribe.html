@@ -1,0 +1,111 @@
+{% extends "templates/web.html" %}
+
+{% block title %} Unsubscribe from Newsletter {% endblock %}
+
+{% block page_content %}
+
+	<script>
+		frappe.ready(function() {
+			$("#select-all-btn").click(function() {
+				$(".group").prop('checked', true);
+
+			});
+			$("#unselect-all-btn").click(function() {
+				$(".group").prop('checked', false);
+			});
+		});
+	</script>
+
+	{% if status == "waiting_for_confirmation" %}
+	<!-- Confirmation page to select the group to unsubscribe -->
+		<div class="page-card ">
+			<div class='page-card-head'>
+				<span class='indicator blue'>Unsubscribe</span>
+			</div>
+			{% if email_groups %}
+				<div>
+					Select groups you wish to unsubscribe from.
+					<span class="text-muted">{{ email }}</span>
+				</div>
+				<!-- Show 'Select All' or 'Unselect All' buttons only if there are more than 5 groups -->
+				{% if email_groups|length > 5 %}
+				<button id="select-all-btn"class="small-btn">Select All</button>
+				<button id="unselect-all-btn"class="small-btn">Unselect All</button>
+				{% endif %}
+				<form method="post">
+					<input type="hidden" name="user_email" value="{{ email }}">
+					<input type="hidden" name="csrf_token" value="{{ frappe.session.csrf_token }}">
+					<!-- Break into columns if there are more than 20 groups -->
+					<div class="checkbox-container {% if email_groups|length > 10 %} row {% endif %}">
+						{% for group in email_groups %}
+						<div class="checkbox {% if email_groups|length > 10 %} col-sm-6 {% endif %}">
+							<label>
+								<input
+									type="checkbox"
+									{% if current_group[0].email_group == group.email_group %} checked {% endif %}
+									class="group"
+									name='{{ group.email_group }}'>
+									<span style="padding-left: 10px">{{ group.email_group }}</span>
+							</label>
+						</div>
+						{% endfor %}
+					</div>
+						<button
+							type="submit"
+							id="unsubscribe"
+							class="btn btn-primary">
+							Unsubscribe
+						</button>
+				</form>
+			{% else %}
+				<div>
+					You are not registered to any mailing list.
+					<span class="text-muted">{{ email }}</span>
+				</div>
+			{% endif %}
+		</div>
+
+	{% elif status == "unsubscribed" %}
+	<!-- Unsubscribed page comes after submission -->
+		<div class="page-card">
+			<div class='page-card-head'>
+				<span class='indicator green'>Unsubscribed</span>
+			</div>
+			You have been unsubscribed from selected mailing list.
+		</div>
+
+	{% else %}
+	<!-- For invalid and unsigned request -->
+		<div class="page-card">
+			<div class='page-card-head'>
+				<span class='indicator red'>Unsubscribe</span>
+			</div>
+			<b>Invalid Request.</b>
+		</div>
+	{% endif %}
+
+{% endblock %}
+
+{% block style %}
+	<style>
+		{% include "templates/styles/card_style.css" %}
+		.small-btn {
+			padding: 1px 5px;
+			font-size: 12px;
+			line-height: 1.5;
+			border-radius: 3px;
+			color: inherit;
+			background-color: #f0f4f7;
+			border-color: transparent;
+			margin: 15px 5px 0 0;
+		}
+		.checkbox-container {
+			margin-top: 20px;
+		}
+		.main-div {
+			width: 500px;
+			height: auto;
+		}
+	</style>
+{% endblock %}
+

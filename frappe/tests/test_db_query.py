@@ -38,7 +38,7 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue({'Blog Post': ['-test-blog-post-1', '-test-blog-post']} in build_match_conditions(as_condition=False))
 		# get as conditions
 		self.assertEqual(build_match_conditions(as_condition=True),
-			"""(((ifnull(`tabBlog Post`.`name`, "")="" or `tabBlog Post`.`name` in ("-test-blog-post-1", "-test-blog-post"))))""")
+			"""(((ifnull(`tabBlog Post`.`name`, '')='' or `tabBlog Post`.`name` in ('-test-blog-post-1', '-test-blog-post'))))""")
 
 		frappe.set_user('Administrator')
 
@@ -166,9 +166,9 @@ class TestReportview(unittest.TestCase):
 		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
 			fields=["name", "1' UNION SELECT * FROM __Auth --"],limit_start=0, limit_page_length=1)
 
-		data = DatabaseQuery("DocType").execute(fields=["name", "issingle", "count(name)"],
+		data = DatabaseQuery("DocType").execute(fields=["count(`name`) as count"],
 			limit_start=0, limit_page_length=1)
-		self.assertTrue('count(name)' in data[0])
+		self.assertTrue('count' in data[0])
 
 		data = DatabaseQuery("DocType").execute(fields=["name", "issingle", "locate('', name) as _relevance"],
 			limit_start=0, limit_page_length=1)
@@ -178,9 +178,11 @@ class TestReportview(unittest.TestCase):
 			limit_start=0, limit_page_length=1)
 		self.assertTrue('creation' in data[0])
 
-		data = DatabaseQuery("DocType").execute(fields=["name", "issingle",
-			"datediff(modified, creation) as date_diff"], limit_start=0, limit_page_length=1)
-		self.assertTrue('date_diff' in data[0])
+		if frappe.conf.db_type != 'postgres':
+			# datediff function does not exist in postgres
+			data = DatabaseQuery("DocType").execute(fields=["name", "issingle",
+				"datediff(modified, creation) as date_diff"], limit_start=0, limit_page_length=1)
+			self.assertTrue('date_diff' in data[0])
 
 	def test_nested_permission(self):
 		clear_user_permissions_for_doctype("File")
@@ -242,7 +244,7 @@ class TestReportview(unittest.TestCase):
 		out = DatabaseQuery("DocType").execute(fields=["name"],
 				filters={'issingle': 1}, or_filters=[['DocType', 'module', '=', 'Core']],
 				order_by='creation')
-		self.assertTrue('User Permission for Page and Report' in [d['name'] for d in out])
+		self.assertTrue('Role Permission for Page and Report' in [d['name'] for d in out])
 
 		out = DatabaseQuery("DocType").execute(fields=["name"],
 				filters={'track_changes': 1, 'module': 'Core'},
@@ -335,6 +337,17 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue(len(data) == 0)
 		self.assertTrue(len(frappe.get_all('File', {'name': ('not ancestors of', 'Home')})) == len(frappe.get_all('File')))
 
+
+	def test_is_set_is_not_set(self):
+		res = DatabaseQuery('DocType').execute(filters={'autoname': ['is', 'not set']})
+		self.assertTrue({'name': 'Integration Request'} in res)
+		self.assertTrue({'name': 'User'} in res)
+		self.assertFalse({'name': 'Blogger'} in res)
+
+		res = DatabaseQuery('DocType').execute(filters={'autoname': ['is', 'set']})
+		self.assertTrue({'name': 'DocField'} in res)
+		self.assertTrue({'name': 'Prepared Report'} in res)
+		self.assertFalse({'name': 'Property Setter'} in res)
 
 
 def create_event(subject="_Test Event", starts_on=None):

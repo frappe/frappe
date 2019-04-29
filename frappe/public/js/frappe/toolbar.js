@@ -21,7 +21,7 @@ $(document).on("toolbar_setup", function() {
 
 	if(limits.space || limits.users || limits.expiry || limits.emails) {
 		help_links = [];
-		help_links.push('<li><a href="#usage-info">' + frappe._('Usage Info') + '</a></li>');
+		help_links.push('<li class="usage-info-link"><a href="#usage-info">' + frappe._('Usage Info') + '</a></li>');
 		help_links.push('<li class="divider"></li>');
 		$(help_links.join("\n")).insertBefore($("#toolbar-user").find("li:first"));
 	}

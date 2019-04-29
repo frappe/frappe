@@ -7,5 +7,5 @@ def execute():
 		try:
 			frappe.get_doc("ToDo", name).on_update()
 		except Exception as e:
-			if e.args[0]!=1146:
+			if not frappe.db.is_table_missing(e):
 				raise

@@ -100,17 +100,20 @@ frappe.views.TreeView = Class.extend({
 				filter.default = frappe.route_options[filter.fieldname]
 			}
 
-			filter.change = function() {
-				var val = this.get_value();
-				me.args[filter.fieldname] = val;
-				if (val) {
-					me.root_label = val;
-					me.page.set_title(val);
-				} else {
-					me.root_label = me.opts.root_label;
-					me.set_title();
+			if(!filter.disable_onchange) {
+				filter.change = function() {
+					filter.on_change && filter.on_change();
+					var val = this.get_value();
+					me.args[filter.fieldname] = val;
+					if (val) {
+						me.root_label = val;
+						me.page.set_title(val);
+					} else {
+						me.root_label = me.opts.root_label;
+						me.set_title();
+					}
+					me.make_tree();
 				}
-				me.make_tree();
 			}
 
 			me.page.add_field(filter);
@@ -153,6 +156,12 @@ frappe.views.TreeView = Class.extend({
 		});
 
 		cur_tree = this.tree;
+		this.post_render();
+	},
+
+	post_render: function() {
+		var me = this;
+		me.opts.post_render && me.opts.post_render(me);
 	},
 
 	select_node: function(node) {
@@ -219,6 +228,9 @@ frappe.views.TreeView = Class.extend({
 		]
 
 		if(this.opts.toolbar && this.opts.extend_toolbar) {
+			toolbar = toolbar.filter(btn => {
+				return !me.opts.toolbar.find(d => d["label"]==btn["label"]);
+			});
 			return toolbar.concat(this.opts.toolbar)
 		} else if (this.opts.toolbar && !this.opts.extend_toolbar) {
 			return this.opts.toolbar
@@ -372,14 +384,6 @@ frappe.views.TreeView = Class.extend({
 			if (has_perm) {
 				me.page.add_menu_item(menu_item["label"], menu_item["action"]);
 			}
-		});
-
-		// last menu item
-		me.page.add_menu_item(__('Add to Desktop'), () => {
-			const label = me.doctype === 'Account' ?
-				__('Chart of Accounts') :
-				__(me.doctype);
-			frappe.add_to_desktop(label, me.doctype);
 		});
 	}
 });

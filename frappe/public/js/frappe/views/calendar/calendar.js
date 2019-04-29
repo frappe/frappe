@@ -17,7 +17,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 			return false;
 		}
 	}
-	
+
 	toggle_result_area() {}
 
 	get view_name() {
@@ -25,10 +25,12 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 	}
 
 	setup_defaults() {
-		super.setup_defaults();
-		this.page_title = __('{0} Calendar', [this.page_title]);
-		this.calendar_settings = frappe.views.calendar[this.doctype] || {};
-		this.calendar_name = frappe.get_route()[3];
+		return super.setup_defaults()
+			.then(() => {
+				this.page_title = __('{0} Calendar', [this.page_title]);
+				this.calendar_settings = frappe.views.calendar[this.doctype] || {};
+				this.calendar_name = frappe.get_route()[3];
+			});
 	}
 
 	setup_view() {
@@ -205,7 +207,7 @@ frappe.views.Calendar = Class.extend({
 		"default": "blue"
 	},
 	get_system_datetime: function(date) {
-		date._offset = moment.user_utc_offset;
+		date._offset = (moment(date).tz(frappe.sys_defaults.time_zone)._offset);
 		return frappe.datetime.convert_to_system_tz(date);
 	},
 	setup_options: function(defaults) {

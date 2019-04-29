@@ -13,7 +13,7 @@
 	<div class="login-content page-card" style="margin-top: 30px;">
 		<form class="form-signin form-login" role="form">
 			<div class="page-card-head">
-				<span class="indicator blue" data-text="{{ _("Sign In") }}"></span>
+				<span class="indicator blue" data-text="{{ _("Login") }}"></span>
 			</div>
 
 			<input type="text" id="login_email"
@@ -21,12 +21,15 @@
 				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _("Email address") }}{% endif %}"
 				required autofocus>
 
-
-			<input type="password" id="login_password"
-				class="form-control" placeholder="{{ _('Password') }}" required>
+			<div class="password-field" style="position: relative;">
+				<input type="password" id="login_password"
+						class="form-control" placeholder="{{ _('Password') }}" required>
+					
+				<span toggle="#login_password" class="fa fa-fw fa-eye toggle-password"></span>
+			</div>	
 
 			<button class="btn btn-sm btn-primary btn-block btn-login" type="submit">
-				{{ _("Sign in") }}</button>
+				{{ _("Login") }}</button>
 
 			{% if ldap_settings and ldap_settings.enabled %}
 			<button class="btn btn-sm btn-default btn-block btn-login btn-ldap-login">
@@ -43,7 +46,7 @@
 				<p class="text-center" style="margin-top: 15px">
 				{% for provider in provider_logins %}
 					<a href="{{ provider.auth_url }}"
-						class="btn btn-default btn-xs btn-social btn-{{ provider.name }}">
+						class="btn btn-default btn-sm btn-social btn-{{ provider.name }}">
 							{{ provider.icon }} {{ provider.provider_name }}</a>
 				{% endfor %}
 				</p>

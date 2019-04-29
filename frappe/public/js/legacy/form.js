@@ -142,11 +142,12 @@ _f.Frm.prototype.setup_drag_drop = function() {
 				throw "attach error";
 			}
 
-			frappe.upload.make({
-				args: me.attachments.get_args(),
+			new frappe.ui.FileUploader({
+				doctype: me.doctype,
+				docname: me.docname,
 				files: dataTransfer.files,
-				callback: function(attachment, r) {
-					me.attachments.attachment_uploaded(attachment, r);
+				on_success(file_doc) {
+					me.attachments.attachment_uploaded(file_doc);
 				}
 			});
 		});
@@ -213,7 +214,9 @@ _f.Frm.prototype.watch_model_updates = function() {
 	});
 
 	// on table fields
-	var table_fields = frappe.get_children("DocType", me.doctype, "fields", {fieldtype:"Table"});
+	var table_fields = frappe.get_children("DocType", me.doctype, "fields", {
+		fieldtype: ["in", frappe.model.table_fields]
+	});
 
 	// using $.each to preserve df via closure
 	$.each(table_fields, function(i, df) {
@@ -340,12 +343,13 @@ _f.Frm.prototype.refresh_header = function(is_a_different_doc) {
 	this.document_flow.refresh();
 	this.dashboard.refresh();
 
-	if(this.meta.is_submittable &&
-		this.perm[0] && this.perm[0].submit &&
-		!this.is_dirty() &&
-		!this.is_new() &&
-		this.doc.docstatus===0) {
-		this.dashboard.add_comment(__('Submit this document to confirm'), 'orange', true);
+	if(this.meta.is_submittable
+		&& this.perm[0] && this.perm[0].submit
+		&& !this.is_dirty()
+		&& !this.is_new()
+		&& !frappe.model.has_workflow(this.doctype) // show only if no workflow
+		&& this.doc.docstatus===0) {
+		this.dashboard.add_comment(__('Submit this document to confirm'), 'blue', true);
 	}
 
 	this.clear_custom_buttons();
@@ -917,8 +921,8 @@ _f.Frm.prototype.get_perm = function(permlevel, access_type) {
 };
 
 
-_f.Frm.prototype.set_intro = function(txt) {
-	this.dashboard.set_headline_alert(txt);
+_f.Frm.prototype.set_intro = function(txt, color) {
+	this.dashboard.set_headline_alert(txt, color);
 };
 
 _f.Frm.prototype.set_footnote = function(txt) {

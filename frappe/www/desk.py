@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals, print_function
 
-no_sitemap = 1
 no_cache = 1
 base_template_path = "templates/www/desk.html"
 
@@ -85,4 +84,9 @@ def get_desk_assets(build_version):
 	}
 
 def get_build_version():
-	return str(os.path.getmtime(os.path.join(frappe.local.sites_path, '.build')))
+	try:
+		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, '.build')))
+	except OSError:
+		# .build can sometimes not exist
+		# this is not a major problem so send fallback
+		return frappe.utils.random_string(8)

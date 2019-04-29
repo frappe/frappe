@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.desk.form.document_follow import follow_document
 from frappe.utils import cint
 
 @frappe.whitelist()
@@ -40,6 +41,8 @@ def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=No
 
 	doc.save(ignore_permissions=True)
 	notify_assignment(user, doctype, name, description=None, notify=notify)
+
+	follow_document(doctype, name, user)
 
 	return doc
 
@@ -89,7 +92,7 @@ def get_users(doctype, name):
 	return frappe.db.sql("""select
 			`name`, `user`, `read`, `write`, `share`, `everyone`
 		from
-			tabDocShare
+			`tabDocShare`
 		where
 			share_doctype=%s and share_name=%s""",
 		(doctype, name), as_dict=True)
@@ -107,12 +110,18 @@ def get_shared(doctype, user=None, rights=None):
 	if not rights:
 		rights = ["read"]
 
-	condition = " and ".join(["`{0}`=1".format(right) for right in rights])
+	filters = [[right, '=', 1] for right in rights]
+	filters += [['share_doctype', '=', doctype]]
+	or_filters = [['user', '=', user]]
+	if user != 'Guest':
+		or_filters += [['everyone', '=', 1]]
 
-	return frappe.db.sql_list("""select share_name from tabDocShare
-		where (user=%s {everyone}) and share_doctype=%s and {condition}""".format(
-			condition=condition, everyone="or everyone=1" if user!="Guest" else ""),
-		(user, doctype))
+	shared_docs = frappe.db.get_all('DocShare',
+		fields=['share_name'],
+		filters=filters,
+		or_filters=or_filters)
+
+	return [doc.share_name for doc in shared_docs]
 
 def get_shared_doctypes(user=None):
 	"""Return list of doctypes in which documents are shared for the given user."""

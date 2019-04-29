@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from six import with_metaclass
 from abc import ABCMeta, abstractmethod
 from frappe.utils.password import get_decrypted_password

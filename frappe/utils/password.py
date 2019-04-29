@@ -11,7 +11,6 @@ from passlib.hash import pbkdf2_sha256, mysql41
 from passlib.registry import register_crypt_handler
 from passlib.context import CryptContext
 
-
 class LegacyPassword(pbkdf2_sha256):
 	name = "frappe_legacy"
 	ident = "$frappel$"
@@ -50,16 +49,17 @@ def get_decrypted_password(doctype, name, fieldname='password', raise_exception=
 		frappe.throw(_('Password not found'), frappe.AuthenticationError)
 
 def set_encrypted_password(doctype, name, pwd, fieldname='password'):
-	frappe.db.sql("""insert into __Auth (doctype, name, fieldname, `password`, encrypted)
+	frappe.db.sql("""insert into `__Auth` (doctype, name, fieldname, `password`, encrypted)
 		values (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 1)
-		on duplicate key update `password`=%(pwd)s, encrypted=1""",
-		{ 'doctype': doctype, 'name': name, 'fieldname': fieldname, 'pwd': encrypt(pwd) })
+		{on_duplicate_update} `password`=%(pwd)s, encrypted=1""".format(
+			on_duplicate_update=frappe.db.get_on_duplicate_update(['doctype', 'name', 'fieldname'])
+		), { 'doctype': doctype, 'name': name, 'fieldname': fieldname, 'pwd': encrypt(pwd) })
 
 def check_password(user, pwd, doctype='User', fieldname='password'):
 	'''Checks if user and password are correct, else raises frappe.AuthenticationError'''
 
-	auth = frappe.db.sql("""select name, `password` from `__Auth`
-		where doctype=%(doctype)s and name=%(name)s and fieldname=%(fieldname)s and encrypted=0""",
+	auth = frappe.db.sql("""select `name`, `password` from `__Auth`
+		where `doctype`=%(doctype)s and `name`=%(name)s and `fieldname`=%(fieldname)s and `encrypted`=0""",
 		{'doctype': doctype, 'name': user, 'fieldname': fieldname}, as_dict=True)
 
 	if not auth or not passlibctx.verify(pwd, auth[0].password):
@@ -90,11 +90,17 @@ def update_password(user, pwd, doctype='User', fieldname='password', logout_all_
 		:param logout_all_session: delete all other session
 	'''
 	hashPwd = passlibctx.hash(pwd)
-	frappe.db.sql("""insert into __Auth (doctype, name, fieldname, `password`, encrypted)
-		values (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 0)
-		on duplicate key update
-			`password`=%(pwd)s, encrypted=0""",
-		{'doctype': doctype, 'name': user, 'fieldname': fieldname, 'pwd': hashPwd})
+	frappe.db.multisql({
+		"mariadb": """INSERT INTO `__Auth`
+			(`doctype`, `name`, `fieldname`, `password`, `encrypted`)
+			VALUES (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 0)
+			ON DUPLICATE key UPDATE `password`=%(pwd)s, encrypted=0""",
+		"postgres": """INSERT INTO `__Auth`
+			(`doctype`, `name`, `fieldname`, `password`, `encrypted`)
+			VALUES (%(doctype)s, %(name)s, %(fieldname)s, %(pwd)s, 0)
+			ON CONFLICT("name", "doctype", "fieldname") DO UPDATE
+			SET `password`=%(pwd)s, encrypted=0""",
+	}, {'doctype': doctype, 'name': user, 'fieldname': fieldname, 'pwd': hashPwd})
 
 	# clear all the sessions except current
 	if logout_all_sessions:
@@ -103,15 +109,15 @@ def update_password(user, pwd, doctype='User', fieldname='password', logout_all_
 
 def delete_all_passwords_for(doctype, name):
 	try:
-		frappe.db.sql("""delete from __Auth where doctype=%(doctype)s and name=%(name)s""",
+		frappe.db.sql("""delete from `__Auth` where `doctype`=%(doctype)s and `name`=%(name)s""",
 			{ 'doctype': doctype, 'name': name })
 	except Exception as e:
-		if e.args[0]!=1054:
+		if not frappe.db.is_missing_column(e):
 			raise
 
 def rename_password(doctype, old_name, new_name):
 	# NOTE: fieldname is not considered, since the document is renamed
-	frappe.db.sql("""update __Auth set name=%(new_name)s
+	frappe.db.sql("""update `__Auth` set name=%(new_name)s
 		where doctype=%(doctype)s and name=%(old_name)s""",
 		{ 'doctype': doctype, 'new_name': new_name, 'old_name': old_name })
 
@@ -122,14 +128,7 @@ def rename_password_field(doctype, old_fieldname, new_fieldname):
 
 def create_auth_table():
 	# same as Framework.sql
-	frappe.db.sql_ddl("""create table if not exists __Auth (
-			`doctype` VARCHAR(140) NOT NULL,
-			`name` VARCHAR(255) NOT NULL,
-			`fieldname` VARCHAR(140) NOT NULL,
-			`password` VARCHAR(255) NOT NULL,
-			`encrypted` INT(1) NOT NULL DEFAULT 0,
-			PRIMARY KEY (`doctype`, `name`, `fieldname`)
-		) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci""")
+	frappe.db.create_auth_table()
 
 def encrypt(pwd):
 	if len(pwd) > 100:

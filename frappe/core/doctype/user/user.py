@@ -12,6 +12,8 @@ from frappe.utils.user import get_system_managers
 import frappe.permissions
 import frappe.share
 import re
+import json
+
 from frappe.limits import get_limits
 from frappe.website.utils import is_signup_enabled
 from frappe.utils.background_jobs import enqueue
@@ -32,13 +34,13 @@ class User(Document):
 		if self.get("is_admin") or self.get("is_guest"):
 			self.name = self.first_name
 		else:
-			self.email = self.email.strip()
+			self.email = self.email.strip().lower()
 			self.name = self.email
 
 	def onload(self):
+		from frappe.config import get_modules_from_all_apps
 		self.set_onload('all_modules',
-			[m.module_name for m in frappe.db.get_all('Desktop Icon',
-				fields=['module_name'], filters={'standard': 1}, order_by="module_name")])
+			[m.get("module_name") for m in get_modules_from_all_apps()])
 
 	def before_insert(self):
 		self.flags.in_insert = True
@@ -229,12 +231,12 @@ class User(Document):
 		return link
 
 	def get_other_system_managers(self):
-		return frappe.db.sql("""select distinct user.name from `tabHas Role` user_role, tabUser user
+		return frappe.db.sql("""select distinct `user`.`name` from `tabHas Role` as `user_role`, `tabUser` as `user`
 			where user_role.role='System Manager'
-				and user.docstatus<2
-				and user.enabled=1
-				and user_role.parent = user.name
-			and user_role.parent not in ('Administrator', %s) limit 1""", (self.name,))
+				and `user`.docstatus<2
+				and `user`.enabled=1
+				and `user_role`.parent = `user`.name
+			and `user_role`.parent not in ('Administrator', %s) limit 1""", (self.name,))
 
 	def get_fullname(self):
 		"""get first_name space last_name"""
@@ -311,8 +313,8 @@ class User(Document):
 			frappe.local.login_manager.logout(user=self.name)
 
 		# delete todos
-		frappe.db.sql("""delete from `tabToDo` where owner=%s""", (self.name,))
-		frappe.db.sql("""update tabToDo set assigned_by=null where assigned_by=%s""",
+		frappe.db.sql("""DELETE FROM `tabToDo` WHERE `owner`=%s""", (self.name,))
+		frappe.db.sql("""UPDATE `tabToDo` SET `assigned_by`=NULL WHERE `assigned_by`=%s""",
 			(self.name,))
 
 		# delete events
@@ -328,6 +330,12 @@ class User(Document):
 			and reference_doctype='User'
 			and (reference_name=%s or owner=%s)""", (self.name, self.name))
 
+		# unlink contact
+		frappe.db.sql("""update `tabContact`
+			set `user`=null
+			where `user`=%s""", (self.name))
+
+
 	def before_rename(self, old_name, new_name, merge=False):
 		self.check_demo()
 		frappe.clear_cache(user=old_name)
@@ -341,27 +349,30 @@ class User(Document):
 		self.validate_email_type(new_name)
 
 	def validate_email_type(self, email):
-		from frappe.utils import validate_email_add
-		validate_email_add(email.strip(), True)
+		from frappe.utils import validate_email_address
+		validate_email_address(email.strip(), True)
 
 	def after_rename(self, old_name, new_name, merge=False):
-		tables = frappe.db.sql("show tables")
+		tables = frappe.db.get_tables()
 		for tab in tables:
-			desc = frappe.db.sql("desc `%s`" % tab[0], as_dict=1)
+			desc = frappe.db.get_table_columns_description(tab)
 			has_fields = []
 			for d in desc:
-				if d.get('Field') in ['owner', 'modified_by']:
-					has_fields.append(d.get('Field'))
+				if d.get('name') in ['owner', 'modified_by']:
+					has_fields.append(d.get('name'))
 			for field in has_fields:
-				frappe.db.sql("""\
-					update `%s` set `%s`=%s
-					where `%s`=%s""" % \
-					(tab[0], field, '%s', field, '%s'), (new_name, old_name))
+				frappe.db.sql("""UPDATE `%s`
+					SET `%s` = %s
+					WHERE `%s` = %s""" %
+					(tab, field, '%s', field, '%s'), (new_name, old_name))
+
+		if frappe.db.exists("Chat Profile", old_name):
+			frappe.rename_doc("Chat Profile", old_name, new_name, force=True)
 
 		# set email
-		frappe.db.sql("""\
-			update `tabUser` set email=%s
-			where name=%s""", (new_name, new_name))
+		frappe.db.sql("""UPDATE `tabUser`
+			SET email = %s
+			WHERE name = %s""", (new_name, new_name))
 
 	def append_roles(self, *roles):
 		"""Add roles to user"""
@@ -421,6 +432,9 @@ class User(Document):
 
 	def password_strength_test(self):
 		""" test password strength """
+		if self.flags.ignore_password_policy:
+			return
+
 		if self.__new_password:
 			user_data = (self.first_name, self.middle_name, self.last_name, self.email, self.birth_date)
 			result = test_password_strength(self.__new_password, '', None, user_data)
@@ -767,7 +781,7 @@ def sign_up(email, full_name, redirect_to):
 		if frappe.db.sql("""select count(*) from tabUser where
 			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 300:
 
-			frappe.respond_as_web_page(_('Temperorily Disabled'),
+			frappe.respond_as_web_page(_('Temporarily Disabled'),
 				_('Too many users signed up recently, so the registration is disabled. Please try back in an hour'),
 				http_status_code=429)
 
@@ -781,6 +795,7 @@ def sign_up(email, full_name, redirect_to):
 			"user_type": "Website User"
 		})
 		user.flags.ignore_permissions = True
+		user.flags.ignore_password_policy = True
 		user.insert()
 
 		# set default signup role as per Portal Settings
@@ -823,31 +838,33 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 		user_type_condition = ''
 
 	txt = "%{}%".format(txt)
-	return frappe.db.sql("""select name, concat_ws(' ', first_name, middle_name, last_name)
-		from `tabUser`
-		where enabled=1
+	return frappe.db.sql("""SELECT `name`, CONCAT_WS(' ', first_name, middle_name, last_name)
+		FROM `tabUser`
+		WHERE `enabled`=1
 			{user_type_condition}
-			and docstatus < 2
-			and name not in ({standard_users})
-			and ({key} like %(txt)s
-				or concat_ws(' ', first_name, middle_name, last_name) like %(txt)s)
+			AND `docstatus` < 2
+			AND `name` NOT IN ({standard_users})
+			AND ({key} LIKE %(txt)s
+				OR CONCAT_WS(' ', first_name, middle_name, last_name) LIKE %(txt)s)
 			{mcond}
-		order by
-			case when name like %(txt)s then 0 else 1 end,
-			case when concat_ws(' ', first_name, middle_name, last_name) like %(txt)s
-				then 0 else 1 end,
-			name asc
-		limit %(start)s, %(page_len)s""".format(
+		ORDER BY
+			CASE WHEN `name` LIKE %(txt)s THEN 0 ELSE 1 END,
+			CASE WHEN concat_ws(' ', first_name, middle_name, last_name) LIKE %(txt)s
+				THEN 0 ELSE 1 END,
+			NAME asc
+		LIMIT %(page_len)s OFFSET %(start)s""".format(
 			user_type_condition = user_type_condition,
-			standard_users=", ".join(["'{0}'".format(frappe.db.escape(u)) for u in STANDARD_USERS]),
+			standard_users=", ".join([frappe.db.escape(u) for u in STANDARD_USERS]),
 			key=searchfield, mcond=get_match_cond(doctype)),
 			dict(start=start, page_len=page_len, txt=txt))
 
 def get_total_users():
 	"""Returns total no. of system users"""
-	return frappe.db.sql('''select sum(simultaneous_sessions) from `tabUser`
-		where enabled=1 and user_type="System User"
-		and name not in ({})'''.format(", ".join(["%s"]*len(STANDARD_USERS))), STANDARD_USERS)[0][0]
+	return frappe.db.sql('''SELECT SUM(`simultaneous_sessions`)
+		FROM `tabUser`
+		WHERE `enabled` = 1
+		AND `user_type` = 'System User'
+		AND `name` NOT IN ({})'''.format(", ".join(["%s"]*len(STANDARD_USERS))), STANDARD_USERS)[0][0]
 
 def get_system_users(exclude_users=None, limit=None):
 	if not exclude_users:
@@ -889,10 +906,9 @@ def get_active_website_users():
 def get_permission_query_conditions(user):
 	if user=="Administrator":
 		return ""
-
 	else:
 		return """(`tabUser`.name not in ({standard_users}))""".format(
-			standard_users='"' + '", "'.join(STANDARD_USERS) + '"')
+			standard_users = ", ".join(frappe.db.escape(user) for user in STANDARD_USERS))
 
 def has_permission(doc, user):
 	if (user != "Administrator") and (doc.name in STANDARD_USERS):
@@ -930,7 +946,7 @@ def handle_password_test_fail(result):
 	suggestions = result['feedback']['suggestions'][0] if result['feedback']['suggestions'] else ''
 	warning = result['feedback']['warning'] if 'warning' in result['feedback'] else ''
 	suggestions += "<br>" + _("Hint: Include symbols, numbers and capital letters in the password") + '<br>'
-	frappe.throw(_('Invalid Password: ' + ' '.join([warning, suggestions])))
+	frappe.throw(' '.join([_('Invalid Password:'), warning, suggestions]))
 
 def update_gravatar(name):
 	gravatar = has_gravatar(name)
@@ -1038,7 +1054,7 @@ def update_roles(role_profile):
 		user.set('roles', [])
 		user.add_roles(*roles)
 
-def create_contact(user, ignore_links=False):
+def create_contact(user, ignore_links=False, ignore_mandatory=False):
 	if user.name in ["Administrator", "Guest"]: return
 
 	if not frappe.db.get_value("Contact", {"email_id": user.email}):
@@ -1051,7 +1067,7 @@ def create_contact(user, ignore_links=False):
 			"gender": user.gender,
 			"phone": user.phone,
 			"mobile_no": user.mobile_no
-		}).insert(ignore_permissions=True, ignore_links=ignore_links)
+		}).insert(ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory)
 
 
 @frappe.whitelist()
@@ -1073,3 +1089,11 @@ def generate_keys(user):
 
 		return {"api_secret": api_secret}
 	frappe.throw(frappe._("Not Permitted"), frappe.PermissionError)
+
+@frappe.whitelist()
+def update_profile_info(profile_info):
+	profile_info = json.loads(profile_info)
+	user = frappe.get_doc('User', frappe.session.user)
+	user.update(profile_info)
+	user.save()
+	return user

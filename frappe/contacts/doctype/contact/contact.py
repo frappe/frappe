@@ -102,7 +102,7 @@ def get_contact_details(contact):
 	out = {
 		"contact_person": contact.get("name"),
 		"contact_display": " ".join(filter(None,
-			[contact.get("first_name"), contact.get("last_name")])),
+			[contact.get("salutation"), contact.get("first_name"), contact.get("last_name")])),
 		"contact_email": contact.get("email_id"),
 		"contact_mobile": contact.get("mobile_no"),
 		"contact_phone": contact.get("phone"),
@@ -151,9 +151,8 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 			`tabContact`.idx desc, `tabContact`.name
 		limit %(start)s, %(page_len)s """.format(
 			mcond=get_match_cond(doctype),
-			key=frappe.db.escape(searchfield)),
-		{
-			'txt': "%%%s%%" % frappe.db.escape(txt),
+			key=searchfield), {
+			'txt': '%' + txt + '%',
 			'_txt': txt.replace("%", ""),
 			'start': start,
 			'page_len': page_len,

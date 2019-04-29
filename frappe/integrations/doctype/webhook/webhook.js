@@ -8,7 +8,7 @@ frappe.webhook = {
 			frappe.model.with_doctype(doc.webhook_doctype, function() {
 				var fields = $.map(frappe.get_doc("DocType", frm.doc.webhook_doctype).fields, function(d) {
 					if (frappe.model.no_value_type.indexOf(d.fieldtype) === -1 ||
-						d.fieldtype === 'Table') {
+						frappe.model.table_fields.includes(d.fieldtype)) {
 						return { label: d.label + ' (' + d.fieldtype + ')', value: d.fieldname };
 					}
 					else if (d.fieldtype === 'Currency' || d.fieldtype === 'Float') {

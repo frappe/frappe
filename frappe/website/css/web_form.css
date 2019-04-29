@@ -11,8 +11,8 @@
 	font-weight: normal;
 }
 
-input[type='checkbox'] {
-	margin-top: 3px;
+.checkbox .label-area {
+	padding-left: 3px;
 }
 
 .page-header-actions-block .btn-delete {
@@ -30,10 +30,6 @@ input[type='checkbox'] {
 
 .page-header-actions-block.actions-mode .btn-new {
 	display: none;
-}
-
-.checkbox label {
-	font-size: 12px;
 }
 
 .web-form-page, .web-form-page .section {

@@ -201,6 +201,11 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 			always: function (r) {
 				$(btn).prop("disabled", false);
 				frappe.ui.form.is_saving = false;
+
+				if (!r.exc) {
+					frappe.show_alert({message: __('Saved'), indicator: 'green'});
+				}
+
 				if (r) {
 					var doc = r.docs && r.docs[0];
 					if (doc) {

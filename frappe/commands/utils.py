@@ -79,6 +79,22 @@ def destroy_all_sessions(context, reason=None):
 		finally:
 			frappe.destroy()
 
+@click.command('show-config')
+@pass_context
+def show_config(context):
+	"print configuration file"
+	print("\t\033[92m{:<50}\033[0m \033[92m{:<15}\033[0m".format('Config','Value'))
+	sites_path = os.path.join(frappe.utils.get_bench_path(), 'sites')
+	site_path = context.sites[0]
+	configuration = frappe.get_site_config(sites_path=sites_path, site_path=site_path)
+	print_config(configuration)
+
+def print_config(config):
+	for conf, value in config.items():
+		if isinstance(value, dict):
+			print_config(value)
+		else:
+			print("\t{:<50} {:<15}".format(conf, value))
 
 @click.command('reset-perms')
 @pass_context
@@ -207,15 +223,16 @@ def export_csv(context, doctype, path):
 			frappe.destroy()
 
 @click.command('export-fixtures')
+@click.option('--app', default=None, help='Export fixtures of a specific app')
 @pass_context
-def export_fixtures(context):
+def export_fixtures(context, app=None):
 	"Export fixtures"
 	from frappe.utils.fixtures import export_fixtures
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			export_fixtures()
+			export_fixtures(app=app)
 		finally:
 			frappe.destroy()
 
@@ -327,7 +344,20 @@ def mariadb(context):
 		frappe.conf.db_name,
 		'-h', frappe.conf.db_host or "localhost",
 		'--pager=less -SFX',
+		'--safe-updates',
 		"-A"])
+
+@click.command('postgres')
+@pass_context
+def postgres(context):
+	"""
+		Enter into postgres console for a given site.
+	"""
+	site  = get_site(context)
+	frappe.init(site=site)
+	# This is assuming you're within the bench instance.
+	psql = find_executable('psql')
+	subprocess.run([ psql, '-d', frappe.conf.db_name])
 
 @click.command('jupyter')
 @pass_context
@@ -569,56 +599,30 @@ def get_version():
 
 
 @click.command('setup-global-help')
-@click.option('--mariadb_root_password')
-def setup_global_help(mariadb_root_password=None):
-	'''setup help table in a separate database that will be
+@click.option('--db_type')
+@click.option('--root_password')
+def setup_global_help(db_type=None, root_password=None):
+	'''Deprecated: setup help table in a separate database that will be
 	shared by the whole bench and set `global_help_setup` as 1 in
 	common_site_config.json'''
-
-	from frappe.installer import update_site_config
-
-	frappe.local.flags = frappe._dict()
-	frappe.local.flags.in_setup_help = True
-	frappe.local.flags.in_install = True
-	frappe.local.lang = 'en'
-	frappe.local.conf = frappe.get_site_config(sites_path='.')
-
-	update_site_config('global_help_setup', 1,
-		site_config_path=os.path.join('.', 'common_site_config.json'))
-
-	if mariadb_root_password:
-		frappe.local.conf.root_password = mariadb_root_password
-
-	from frappe.utils.help import sync
-	sync()
+	print_in_app_help_deprecation()
 
 @click.command('get-docs-app')
 @click.argument('app')
 def get_docs_app(app):
-	'''Get the docs app for given app'''
-	from frappe.utils.help import setup_apps_for_docs
-	setup_apps_for_docs(app)
+	'''Deprecated: Get the docs app for given app'''
+	print_in_app_help_deprecation()
 
 @click.command('get-all-docs-apps')
 def get_all_docs_apps():
-	'''Get docs apps for all apps'''
-	from frappe.utils.help import setup_apps_for_docs
-	for app in frappe.get_installed_apps():
-		setup_apps_for_docs(app)
+	'''Deprecated: Get docs apps for all apps'''
+	print_in_app_help_deprecation()
 
 @click.command('setup-help')
 @pass_context
 def setup_help(context):
-	'''Setup help table in the current site (called after migrate)'''
-	from frappe.utils.help import sync
-
-	for site in context.sites:
-		try:
-			frappe.init(site)
-			frappe.connect()
-			sync()
-		finally:
-			frappe.destroy()
+	'''Deprecated: Setup help table in the current site (called after migrate)'''
+	print_in_app_help_deprecation()
 
 @click.command('rebuild-global-search')
 @pass_context
@@ -656,14 +660,15 @@ def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
 	subprocess.check_output(['git', 'fetch', remote, branch], cwd = app_path)
 
 	# get diff
-	if subprocess.check_output(['git', 'diff', '{0}..upstream/{0}'.format(branch)], cwd = app_path):
+	if subprocess.check_output(['git', 'diff', '{0}..{1}/{0}'.format(branch, remote)], cwd = app_path):
 		print('Updates found for {0}'.format(app))
 		if app=='frappe':
 			# run bench update
-			subprocess.check_output(['bench', 'update', '--no-backup'], cwd = '..')
+			import shlex
+			subprocess.check_output(shlex.split('bench update --no-backup'), cwd = '..')
 		else:
 			updated = False
-			subprocess.check_output(['git', 'pull', '--rebase', 'upstream', branch],
+			subprocess.check_output(['git', 'pull', '--rebase', remote, branch],
 				cwd = app_path)
 			# find all sites with that app
 			for site in get_sites():
@@ -676,10 +681,14 @@ def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
 						subprocess.check_output(['bench', '--site', site, 'migrate'], cwd = '..')
 				frappe.destroy()
 
-			if updated and restart:
+			if updated or restart:
 				subprocess.check_output(['bench', 'restart'], cwd = '..')
 	else:
 		print('No Updates')
+
+def print_in_app_help_deprecation():
+	print("In app help has been removed.\nYou can access the documentation on erpnext.com/docs or frappe.io/docs")
+	return
 
 commands = [
 	build,
@@ -699,6 +708,7 @@ commands = [
 	make_app,
 	mysql,
 	mariadb,
+	postgres,
 	request,
 	reset_perms,
 	run_tests,
@@ -706,11 +716,11 @@ commands = [
 	run_setup_wizard_ui_test,
 	serve,
 	set_config,
+	show_config,
 	watch,
 	_bulk_rename,
 	add_to_email_queue,
 	setup_global_help,
 	setup_help,
-	rebuild_global_search,
-	auto_deploy
+	rebuild_global_search
 ]

@@ -47,12 +47,12 @@
 {%- endmacro %}
 
 {% macro version(name) %}
-<a class="btn btn-default btn-sm" disabled style="margin-bottom: 10px;">
+<a class="btn btn-light btn-sm" disabled style="margin-bottom: 10px;">
 	Version {{ autodoc.get_version(name) }}</a>
 {% endmacro %}
 
 {% macro source_link(app, file_path, tree=False) %}
-	<a class="btn btn-default btn-sm" href="{{ app.source_link }}/{{ "tree" if tree else "blob" }}/{{ app.branch }}/{{ file_path }}"
+	<a class="btn btn-light btn-sm" href="{{ app.source_link }}/{{ "tree" if tree else "blob" }}/{{ app.branch }}/{{ file_path }}"
 		target="_blank" style="margin-left: 10px; margin-bottom: 10px;"><i class="octicon octicon-mark-github"></i> Source</a>
 {% endmacro %}
 

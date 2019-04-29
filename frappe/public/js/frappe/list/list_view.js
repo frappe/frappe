@@ -72,7 +72,26 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		this.actions_menu_items = this.get_actions_menu_items();
 
+		if (this.view_user_settings.filters && this.view_user_settings.filters.length) {
+			// Priority 1: saved filters
+			const saved_filters = this.view_user_settings.filters;
+			this.filters = this.validate_filters(saved_filters);
+		} else {
+			// Priority 2: filters in listview_settings
+			this.filters = (this.settings.filters || []).map(f => {
+				if (f.length === 3) {
+					f = [this.doctype, f[0], f[1], f[2]];
+				}
+				return f;
+			});
+		}
+
 		this.patch_refresh_and_load_lib();
+		return this.get_list_view_settings();
+	}
+
+	get_list_view_settings() {
+		return frappe.call("frappe.desk.listview.get_list_settings", {doctype: this.doctype}).then(doc => this.list_view_settings = doc.message || {});
 	}
 
 	on_sort_change(sort_by, sort_order) {
@@ -137,6 +156,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		);
 
 		fields.forEach(f => this._add_field(f));
+
+		this.fields.forEach(f => {
+			const df = frappe.meta.get_docfield(f[1], f[0]);
+			if (df && df.fieldtype === 'Currency' && df.options && !df.options.includes(':')) {
+				this._add_field(df.options);
+			}
+		});
 	}
 
 	patch_refresh_and_load_lib() {
@@ -258,7 +284,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_no_result_message() {
 		const new_button = this.can_create ?
 			`<p><button class="btn btn-primary btn-sm btn-new-doc">
-				${__('Make a new {0}', [__(this.doctype)])}
+				${__('Create a new {0}', [__(this.doctype)])}
 			</button></p>` : '';
 
 		return `<div class="msg-box no-border">
@@ -268,7 +294,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	freeze() {
-		this.$result.find('.list-count').html(`<span>${__('Refreshing')}...</span>`);
+		if (this.list_view_settings && !this.list_view_settings.disable_count) {
+			this.$result.find('.list-count').html(`<span>${__('Refreshing')}...</span>`);
+		}
 	}
 
 	get_args() {
@@ -283,8 +311,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.route_options) {
 			this.filters = this.parse_filters_from_route_options();
 
-			return this.filter_area.clear(false)
-				.then(() => this.filter_area.set(this.filters));
+			if (this.filters.length > 0) {
+				return this.filter_area.clear(false)
+					.then(() => this.filter_area.set(this.filters));
+			}
 		}
 
 		return Promise.resolve();
@@ -343,7 +373,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.data.length > 0) {
 			// append rows
 			this.$result.append(
-				this.data.map(doc => this.get_list_row_html(doc)).join('')
+				this.data.map((doc, i) => {
+					doc._idx = i;
+					return this.get_list_row_html(doc);
+				}).join('')
 			);
 		}
 		this.on_row_checked();
@@ -352,10 +385,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	render_count() {
-		this.get_count_str()
-			.then(str => {
+		if (!this.list_view_settings.disable_count) {
+			this.get_count_str().then(str => {
 				this.$result.find('.list-count').html(`<span>${str}</span>`);
 			});
+		}
 	}
 
 	render_tags() {
@@ -442,7 +476,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_list_row_html(doc) {
-		return this.get_list_row_html_skeleton(this.get_left_html(doc), this.get_right_html(doc));
+		return this.get_list_row_html_skeleton(this.get_left_html(doc),
+			this.get_right_html(doc));
 	}
 
 	get_list_row_html_skeleton(left = '', right = '') {
@@ -549,7 +584,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_meta_html(doc) {
 		let html = '';
-		if (doc[this.meta.title_field || ''] !== doc.name) {
+		if (!this.settings.hide_name_column && doc[this.meta.title_field || ''] !== doc.name) {
 			html += `
 				<div class="level-item hidden-xs hidden-sm ellipsis">
 					<a class="text-muted ellipsis" href="${this.get_form_link(doc)}">
@@ -558,6 +593,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</div>
 			`;
 		}
+
+		if (this.settings.button && this.settings.button.show(doc)) {
+			html += `
+				<div class="level-item hidden-xs">
+					<button class="btn btn-action btn-default btn-xs"
+						data-name="${doc.name}" data-idx="${doc._idx}"
+						title="${this.settings.button.get_description(doc)}">
+						${this.settings.button.get_label(doc)}
+					</a>
+				</div>
+			`;
+		}
+
 		const modified = comment_when(doc.modified, true);
 
 		const last_assignee = JSON.parse(doc._assign || '[]').slice(-1)[0];
@@ -597,7 +645,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			args: {
 				doctype: this.doctype,
 				filters: this.get_filters_for_args(),
-				fields: [`count(${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`]
+				fields: [`count(${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`],
 			}
 		}).then(r => {
 			this.total_count = r.message.values[0][0] || current_count;
@@ -679,6 +727,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.setup_check_events();
 		this.setup_like();
 		this.setup_realtime_updates();
+		this.setup_action_handler();
 	}
 
 	setup_filterable() {
@@ -703,7 +752,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_list_click() {
-		this.$result.on('click', '.list-row', (e) => {
+		this.$result.on('click', '.list-row, .image-view-header', (e) => {
 			const $target = $(e.target);
 			// tick checkbox if Ctrl/Meta key is pressed
 			if (e.ctrlKey || e.metaKey && !$target.is('a')) {
@@ -728,6 +777,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				window.location.href = link.href;
 				return false;
 			}
+		});
+	}
+
+	setup_action_handler() {
+		this.$result.on('click', '.btn-action', (e) => {
+			const $button = $(e.currentTarget);
+			const doc = this.data[$button.attr('data-idx')];
+			this.settings.button.action(doc);
+			e.stopPropagation();
+			return false;
 		});
 	}
 
@@ -801,6 +860,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_realtime_updates() {
+		if (this.list_view_settings.disable_auto_refresh) {
+			return;
+		}
 		frappe.realtime.on('list_update', data => {
 			if (this.filter_area.is_being_edited()) {
 				return;
@@ -856,7 +918,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						}
 						return return_value;
 					});
-
+					this.toggle_result_area();
 					this.render();
 				});
 		});
@@ -889,7 +951,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_checked_items(only_docnames) {
 		const docnames = Array.from(this.$checks || [])
-			.map(check => $(check).data().name);
+			.map(check => cstr($(check).data().name));
 
 		if (only_docnames) return docnames;
 
@@ -971,9 +1033,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			items.push({
 				label: __('Customize'),
-				action: () => frappe.set_route('Form', 'Customize Form', {
-					doc_type: doctype
-				}),
+				action: () => {
+					if (!this.meta) return;
+					if (this.meta.custom) {
+						frappe.set_route('Form', 'DocType', doctype);
+					} else if (!this.meta.custom) {
+						frappe.set_route('Form', 'Customize Form', {
+							doc_type: doctype
+						});
+					}
+				},
 				standard: true
 			});
 		}
@@ -990,13 +1059,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			standard: true
 		});
 
-		// add to desktop
-		items.push({
-			label: __('Add to Desktop'),
-			action: () => frappe.add_to_desktop(doctype, doctype),
-			standard: true
-		});
-
 		if (frappe.user.has_role('System Manager') && frappe.boot.developer_mode === 1) {
 			// edit doctype
 			items.push({
@@ -1006,7 +1068,31 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 		}
 
+		if (frappe.user.has_role('System Manager')) {
+			items.push({
+				label: __('Settings'),
+				action: () => this.show_list_settings(),
+				standard: true
+			});
+		}
 		return items;
+	}
+
+	show_list_settings() {
+		frappe.model.with_doctype("List View Setting", () => {
+			let d = new frappe.ui.Dialog({
+				title: __("Settings"),
+				fields: frappe.get_meta("List View Setting").fields
+			});
+			d.set_values(this.list_view_settings);
+			d.show();
+			d.set_primary_action(__('Save'), () => {
+				let values = d.get_values();
+				frappe.call("frappe.desk.listview.set_list_settings", {doctype: this.doctype, values: values});
+				Object.assign(this.list_view_settings, values);
+				d.hide();
+			});
+		});
 	}
 
 	get_actions_menu_items() {
@@ -1048,7 +1134,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return {
 				label: __('Delete'),
 				action: () => {
-					const docnames = this.get_checked_items(true);
+					const docnames = this.get_checked_items(true).map(docname => docname.toString());
 					frappe.confirm(__('Delete {0} items permanently?', [docnames.length]),
 						() => bulk_operations.delete(docnames, this.refresh));
 				},
@@ -1143,7 +1229,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			let doctype = null;
 			let value = frappe.route_options[field];
 
-			if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
+			let value_array;
+			if ($.isArray(value) && value[0].startsWith('[') && value[0].endsWith(']')) {
+				value_array = [];
+				for(var i=0; i<value.length; i++) {
+					value_array.push(JSON.parse(value[i]));
+				}
+			} else if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
 				value = JSON.parse(value);
 			}
 
@@ -1163,7 +1255,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			if (doctype) {
-				if ($.isArray(value)) {
+				if (value_array) {
+					for(var j=0; j<value_array.length; j++){
+						if ($.isArray(value_array[j])) {
+							filters.push([doctype, field, value_array[j][0], value_array[j][1]]);
+						} else {
+							filters.push([doctype, field, "=", value_array[j]]);
+						}
+					}
+				} else if ($.isArray(value)) {
 					filters.push([doctype, field, value[0], value[1]]);
 				} else {
 					filters.push([doctype, field, "=", value]);

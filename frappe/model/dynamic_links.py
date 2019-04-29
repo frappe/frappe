@@ -1,19 +1,20 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
+from __future__ import unicode_literals
 import frappe
 
-# select doctypes that are accessed by the user (not read_only) first, so that the 
-# the validation message shows the user-facing doctype first. 
+# select doctypes that are accessed by the user (not read_only) first, so that the
+# the validation message shows the user-facing doctype first.
 # For example Journal Entry should be validated before GL Entry (which is an internal doctype)
 
 dynamic_link_queries =  [
-	"""select tabDocField.parent,
+	"""select `tabDocField`.parent,
 		`tabDocType`.read_only, `tabDocType`.in_create,
-		tabDocField.fieldname, tabDocField.options
-	from tabDocField, `tabDocType`
+		`tabDocField`.fieldname, `tabDocField`.options
+	from `tabDocField`, `tabDocType`
 	where `tabDocField`.fieldtype='Dynamic Link' and
-	`tabDocType`.name=`tabDocField`.parent
+	`tabDocType`.`name`=`tabDocField`.parent
 	order by `tabDocType`.read_only, `tabDocType`.in_create""",
 
 	"""select `tabCustom Field`.dt as parent,
@@ -21,7 +22,7 @@ dynamic_link_queries =  [
 		`tabCustom Field`.fieldname, `tabCustom Field`.options
 	from `tabCustom Field`, `tabDocType`
 	where `tabCustom Field`.fieldtype='Dynamic Link' and
-	`tabDocType`.name=`tabCustom Field`.dt
+	`tabDocType`.`name`=`tabCustom Field`.dt
 	order by `tabDocType`.read_only, `tabDocType`.in_create""",
 ]
 

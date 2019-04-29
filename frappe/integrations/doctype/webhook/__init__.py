@@ -2,6 +2,7 @@
 # Copyright (c) 2017, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+from __future__ import unicode_literals
 import frappe
 
 def run_webhooks(doc, method):
@@ -37,7 +38,7 @@ def run_webhooks(doc, method):
 
 	def _webhook_request(webhook):
 		if not webhook.name in frappe.flags.webhooks_executed.get(doc.name, []):
-			frappe.enqueue("frappe.integrations.doctype.webhook.webhook.enqueue_webhook", 
+			frappe.enqueue("frappe.integrations.doctype.webhook.webhook.enqueue_webhook",
 				enqueue_after_commit=True, doc=doc, webhook=webhook)
 
 			# keep list of webhooks executed for this doc in this request

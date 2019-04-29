@@ -3,13 +3,12 @@
 from __future__ import unicode_literals
 
 import frappe
-from frappe.utils import encode, cstr, cint, flt, comma_or
 
 import openpyxl
 import re
 from openpyxl.styles import Font
 from openpyxl import load_workbook
-from six import StringIO, BytesIO, string_types
+from six import BytesIO, string_types
 
 ILLEGAL_CHARACTERS_RE = re.compile(r'[\000-\010]|[\013-\014]|[\016-\037]')
 # return xlsx file object
@@ -53,7 +52,7 @@ def handle_html(data):
 	if '>' not in data:
 		return data
 
-	from html2text import unescape, HTML2Text
+	from html2text import HTML2Text
 
 	h = HTML2Text()
 	h.unicode_snob = True
@@ -62,16 +61,23 @@ def handle_html(data):
 	obj = HTML2Text()
 	obj.ignore_links = True
 	obj.body_width = 0
-	value = obj.handle(h)
+
+	try:
+		value = obj.handle(h)
+	except Exception:
+		# unable to parse html, send it raw
+		return data
+
 	value = ", ".join(value.split('  \n'))
 	value = " ".join(value.split('\n'))
 	value = ", ".join(value.split('# '))
+
 	return value
 
-def read_xlsx_file_from_attached_file(file_id=None, fcontent=None, filepath=None):
-	if file_id:
-		from frappe.utils.file_manager import get_file_path
-		filename = get_file_path(file_id)
+def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=None):
+	if file_url:
+		_file = frappe.get_doc("File", {"file_url": file_url})
+		filename = _file.get_full_path()
 	elif fcontent:
 		from io import BytesIO
 		filename = BytesIO(fcontent)

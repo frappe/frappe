@@ -46,7 +46,7 @@ class UserPermissions:
 				pass
 			except Exception as e:
 				# install boo-boo
-				if e.args[0] != 1146: raise
+				if not frappe.db.is_table_missing(e): raise
 
 			return user
 
@@ -157,8 +157,8 @@ class UserPermissions:
 				self.can_read.remove(dt)
 
 		if "System Manager" in self.get_roles():
-			self.can_import = filter(lambda d: d in self.can_create,
-				frappe.db.sql_list("""select name from `tabDocType` where allow_import = 1"""))
+			self.can_import = list(filter(lambda d: d in self.can_create,
+				frappe.db.sql_list("""select name from `tabDocType` where allow_import = 1""")))
 
 	def get_defaults(self):
 		import frappe.defaults
@@ -197,8 +197,9 @@ class UserPermissions:
 
 	def load_user(self):
 		d = frappe.db.sql("""select email, first_name, last_name, creation,
-			email_signature, user_type, language, background_image, background_style,
-			mute_sounds, send_me_a_copy from tabUser where name = %s""", (self.name,), as_dict=1)[0]
+			email_signature, user_type, language, background_style, background_image,
+			mute_sounds, send_me_a_copy, document_follow_notify
+			from tabUser where name = %s""", (self.name,), as_dict=1)[0]
 
 		if not self.can_read:
 			self.build_permissions()
@@ -229,7 +230,7 @@ def get_fullname_and_avatar(user):
 	first_name, last_name, avatar, name = frappe.db.get_value("User",
 		user, ["first_name", "last_name", "user_image", "name"])
 	return _dict({
-		"fullname": " ".join(filter(None, [first_name, last_name])),
+		"fullname": " ".join(list(filter(None, [first_name, last_name]))),
 		"avatar": avatar,
 		"name": name
 	})
@@ -238,14 +239,21 @@ def get_system_managers(only_name=False):
 	"""returns all system manager's user details"""
 	import email.utils
 	from frappe.core.doctype.user.user import STANDARD_USERS
-	system_managers = frappe.db.sql("""select distinct name,
-		concat_ws(" ", if(first_name="", null, first_name), if(last_name="", null, last_name))
-		as fullname from tabUser p
-		where docstatus < 2 and enabled = 1
-		and name not in ({})
-		and exists (select * from `tabHas Role` ur
-			where ur.parent = p.name and ur.role="System Manager")
-		order by creation desc""".format(", ".join(["%s"]*len(STANDARD_USERS))),
+	system_managers = frappe.db.sql("""SELECT DISTINCT `name`, `creation`,
+		CONCAT_WS(' ',
+			CASE WHEN `first_name`= '' THEN NULL ELSE `first_name` END,
+			CASE WHEN `last_name`= '' THEN NULL ELSE `last_name` END
+		) AS fullname
+		FROM `tabUser` AS p
+		WHERE `docstatus` < 2
+		AND `enabled` = 1
+		AND `name` NOT IN ({})
+		AND exists
+			(SELECT *
+				FROM `tabHas Role` AS ur
+				WHERE ur.parent = p.name
+				AND ur.role='System Manager')
+		ORDER BY `creation` DESC""".format(", ".join(["%s"]*len(STANDARD_USERS))),
 			STANDARD_USERS, as_dict=True)
 
 	if only_name:
@@ -269,21 +277,32 @@ def add_system_manager(email, first_name=None, last_name=None, send_welcome_emai
 		"send_welcome_email": 1 if send_welcome_email else 0
 	})
 
-	if password:
-		user.update({
-			"new_password": password
-		})
-
 	user.insert()
 
 	# add roles
-	roles = frappe.db.sql_list("""select name from `tabRole`
-		where name not in ("Administrator", "Guest", "All")""")
+	roles = frappe.get_all('Role',
+		fields=['name'],
+		filters={
+			'name': ['not in', ('Administrator', 'Guest', 'All')]
+		}
+	)
+	roles = [role.name for role in roles]
 	user.add_roles(*roles)
 
+	if password:
+		from frappe.utils.password import update_password
+		update_password(user=user.name, pwd=password)
+
 def get_enabled_system_users():
-	return frappe.db.sql("""select * from tabUser where
-		user_type='System User' and enabled=1 and name not in ('Administrator', 'Guest')""", as_dict=1)
+	# add more fields if required
+	return frappe.get_all('User',
+		fields=['email', 'language', 'name'],
+		filters={
+			'user_type': 'System User',
+			'enabled': 1,
+			'name': ['not in', ('Administrator', 'Guest')]
+		}
+	)
 
 def is_website_user():
 	return frappe.db.get_value('User', frappe.session.user, 'user_type') == "Website User"
@@ -360,3 +379,11 @@ def get_link_to_reset_password(user):
 	return {
 		'link': link
 	}
+
+def get_users_with_role(role):
+	return [p[0] for p in frappe.db.sql("""SELECT DISTINCT `tabUser`.`name`
+		FROM `tabHas Role`, `tabUser`
+		WHERE `tabHas Role`.`role`=%s
+		AND `tabUser`.`name`!='Administrator'
+		AND `tabHas Role`.`parent`=`tabUser`.`name`
+		AND `tabUser`.`enabled`=1""", role)]

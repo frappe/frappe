@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import frappe
 
 from frappe.patches.v7_0.re_route import update_routes
@@ -9,12 +10,6 @@ def execute():
 		frappe.reload_doc('website', 'doctype', 'help_article')
 		update_routes(['Help Category', 'Help Article'])
 		remove_from_installed_apps('knowledge_base')
-
-		# remove desktop icon
-		desktop_icon_name = frappe.db.get_value('Desktop Icon',
-			dict(module_name='Knowledge Base', type='module'))
-		if desktop_icon_name:
-			frappe.delete_doc('Desktop Icon', desktop_icon_name)
 
 		# remove module def
 		if frappe.db.exists('Module Def', 'Knowledge Base'):

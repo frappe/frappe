@@ -88,7 +88,7 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None, sen
 		if email_account:
 			if email_account.enable_outgoing and not getattr(email_account, 'from_site_config', False):
 				raise_exception = True
-				if email_account.smtp_server in ['localhost','127.0.0.1']:
+				if email_account.smtp_server in ['localhost','127.0.0.1'] or email_account.no_smtp_authentication:
 					raise_exception = False
 				email_account.password = email_account.get_password(raise_exception=raise_exception)
 			email_account.default_sender = email.utils.formataddr((email_account.name, email_account.get("email_id")))
@@ -109,7 +109,8 @@ def get_default_outgoing_email_account(raise_exception_not_set=True):
 		 "mail_password": "Super.Secret.Password",
 		 "auto_email_id": "emails@example.com",
 		 "email_sender_name": "Example Notifications",
-		 "always_use_account_email_id_as_sender": 0
+		 "always_use_account_email_id_as_sender": 0,
+		 "always_use_account_name_as_sender_name": 0
 		}
 	'''
 	email_account = _get_email_account({"enable_outgoing": 1, "default_outgoing": 1})
@@ -128,7 +129,8 @@ def get_default_outgoing_email_account(raise_exception_not_set=True):
 			"login_id": frappe.conf.get("mail_login"),
 			"email_id": frappe.conf.get("auto_email_id") or frappe.conf.get("mail_login") or 'notifications@example.com',
 			"password": frappe.conf.get("mail_password"),
-			"always_use_account_email_id_as_sender": frappe.conf.get("always_use_account_email_id_as_sender", 0)
+			"always_use_account_email_id_as_sender": frappe.conf.get("always_use_account_email_id_as_sender", 0),
+			"always_use_account_name_as_sender_name": frappe.conf.get("always_use_account_name_as_sender_name", 0)
 		})
 		email_account.from_site_config = True
 		email_account.name = frappe.conf.get("email_sender_name") or "Frappe"
@@ -170,15 +172,19 @@ class SMTPServer:
 		self.email_account = get_outgoing_email_account(raise_exception_not_set=False, append_to=append_to, sender=sender)
 		if self.email_account:
 			self.server = self.email_account.smtp_server
-			self.login = getattr(self.email_account, "login_id", None) or self.email_account.email_id
-			if self.email_account.ascii_encode_password:
-				self.password = frappe.safe_encode(self.email_account.password, 'ascii')
+			self.login = (getattr(self.email_account, "login_id", None) or self.email_account.email_id)
+			if not self.email_account.no_smtp_authentication:
+				if self.email_account.ascii_encode_password:
+					self.password = frappe.safe_encode(self.email_account.password, 'ascii')
+				else:
+					self.password = self.email_account.password
 			else:
-				self.password = self.email_account.password
+				self.password = None
 			self.port = self.email_account.smtp_port
 			self.use_tls = self.email_account.use_tls
 			self.sender = self.email_account.email_id
 			self.always_use_account_email_id_as_sender = cint(self.email_account.get("always_use_account_email_id_as_sender"))
+			self.always_use_account_name_as_sender_name = cint(self.email_account.get("always_use_account_name_as_sender_name"))
 
 	@property
 	def sess(self):
@@ -210,7 +216,7 @@ class SMTPServer:
 				self._sess.ehlo()
 
 			if self.login and self.password:
-				ret = self._sess.login((self.login or ""), (self.password or ""))
+				ret = self._sess.login(str(self.login or ""), str(self.password or ""))
 
 				# check if logged correctly
 				if ret[0]!=235:

@@ -27,11 +27,11 @@ class PrintFormat(Document):
 		if not self.module:
 			self.module = frappe.db.get_value('DocType', self.doc_type, 'module')
 
-		if self.html and self.print_format_type != 'Js':
+		if self.html and self.print_format_type != 'JS':
 			validate_template(self.html)
 
 	def extract_images(self):
-		from frappe.utils.file_manager import extract_images_from_html
+		from frappe.core.doctype.file.file import extract_images_from_html
 		if self.format_data:
 			data = json.loads(self.format_data)
 			for df in data:

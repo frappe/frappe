@@ -10,6 +10,13 @@ from six import iteritems
 
 class RedisWrapper(redis.Redis):
 	"""Redis client that will automatically prefix conf.db_name"""
+	def connected(self):
+		try:
+			self.ping()
+			return True
+		except redis.exceptions.ConnectionError:
+			return False
+
 	def make_key(self, key, user=None, shared=False):
 		if shared:
 			return key

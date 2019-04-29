@@ -3,18 +3,24 @@
 
 from __future__ import unicode_literals
 from six import iteritems, string_types
+
+import frappe
 import datetime
-import frappe, sys
 from frappe import _
-from frappe.utils import (cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta,
-	sanitize_html, sanitize_email, cast_fieldtype)
-from frappe.model import default_fields
+from frappe.model import default_fields, table_fields
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
-from frappe.model import display_fieldtypes
-from frappe.model.db_schema import type_map, varchar_len
+from frappe.model import display_fieldtypes, data_fieldtypes
 from frappe.utils.password import get_decrypted_password, set_encrypted_password
+from frappe.utils import (cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta,
+	sanitize_html, sanitize_email, cast_fieldtype)
+
+max_positive_value = {
+	'smallint': 2 ** 15,
+	'int': 2 ** 31,
+	'bigint': 2 ** 63
+}
 
 _classes = {}
 
@@ -222,7 +228,7 @@ class BaseDocument(object):
 					# unique empty field should be set to None
 					d[fieldname] = None
 
-				if isinstance(d[fieldname], list) and df.fieldtype != 'Table':
+				if isinstance(d[fieldname], list) and df.fieldtype not in table_fields:
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
 				if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time, datetime.timedelta)):
@@ -298,36 +304,36 @@ class BaseDocument(object):
 
 		if not self.creation:
 			self.creation = self.modified = now()
-			self.created_by = self.modifield_by = frappe.session.user
+			self.created_by = self.modified_by = frappe.session.user
 
 		d = self.get_valid_dict(convert_dates_to_str=True)
 
 		columns = list(d)
 		try:
-			frappe.db.sql("""insert into `tab{doctype}`
-				({columns}) values ({values})""".format(
+			frappe.db.sql("""INSERT INTO `tab{doctype}` ({columns})
+					VALUES ({values})""".format(
 					doctype = self.doctype,
 					columns = ", ".join(["`"+c+"`" for c in columns]),
 					values = ", ".join(["%s"] * len(columns))
 				), list(d.values()))
 		except Exception as e:
-			if e.args[0]==1062:
-				if "PRIMARY" in cstr(e.args[1]):
-					if self.meta.autoname=="hash":
-						# hash collision? try again
-						self.name = None
-						self.db_insert()
-						return
+			if frappe.db.is_primary_key_violation(e):
+				if self.meta.autoname=="hash":
+					# hash collision? try again
+					self.name = None
+					self.db_insert()
+					return
 
-					raise frappe.DuplicateEntryError(self.doctype, self.name, e)
+				frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
+				raise frappe.DuplicateEntryError(self.doctype, self.name, e)
 
-				elif "Duplicate" in cstr(e.args[1]):
-					# unique constraint
-					self.show_unique_validation_message(e)
-				else:
-					raise
+			elif frappe.db.is_unique_key_violation(e):
+				# unique constraint
+				self.show_unique_validation_message(e)
+
 			else:
 				raise
+
 		self.set("__islocal", False)
 
 	def db_update(self):
@@ -344,31 +350,33 @@ class BaseDocument(object):
 		columns = list(d)
 
 		try:
-			frappe.db.sql("""update `tab{doctype}`
-				set {values} where name=%s""".format(
+			frappe.db.sql("""UPDATE `tab{doctype}`
+				SET {values} WHERE `name`=%s""".format(
 					doctype = self.doctype,
 					values = ", ".join(["`"+c+"`=%s" for c in columns])
 				), list(d.values()) + [name])
 		except Exception as e:
-			if e.args[0]==1062 and "Duplicate" in cstr(e.args[1]):
+			if frappe.db.is_unique_key_violation(e):
 				self.show_unique_validation_message(e)
 			else:
 				raise
 
 	def show_unique_validation_message(self, e):
-		type, value, traceback = sys.exc_info()
-		fieldname, label = str(e).split("'")[-2], None
+		# TODO: Find a better way to extract fieldname
+		if frappe.conf.db_type != 'postgres':
+			fieldname = str(e).split("'")[-2]
+			label = None
 
-		# unique_first_fieldname_second_fieldname is the constraint name
-		# created using frappe.db.add_unique
-		if "unique_" in fieldname:
-			fieldname = fieldname.split("_", 1)[1]
+			# unique_first_fieldname_second_fieldname is the constraint name
+			# created using frappe.db.add_unique
+			if "unique_" in fieldname:
+				fieldname = fieldname.split("_", 1)[1]
 
-		df = self.meta.get_field(fieldname)
-		if df:
-			label = df.label
+			df = self.meta.get_field(fieldname)
+			if df:
+				label = df.label
 
-		frappe.msgprint(_("{0} must be unique".format(label or fieldname)))
+			frappe.msgprint(_("{0} must be unique".format(label or fieldname)))
 
 		# this is used to preserve traceback
 		raise frappe.UniqueValidationError(self.doctype, self.name, e)
@@ -396,7 +404,7 @@ class BaseDocument(object):
 	def _get_missing_mandatory_fields(self):
 		"""Get mandatory fields that do not have any values"""
 		def get_msg(df):
-			if df.fieldtype == "Table":
+			if df.fieldtype in table_fields:
 				return "{}: {}: {}".format(_("Error"), _("Data missing in table"), _(df.label))
 
 			elif self.parentfield:
@@ -451,9 +459,12 @@ class BaseDocument(object):
 				# that are mapped as link_fieldname.source_fieldname in Options of
 				# Readonly or Data or Text type fields
 
-				# NOTE: All fields will be replaced, if you want manual changes to stay
-				# use `frm.add_fetch`
-				fields_to_fetch = self.meta.get_fields_to_fetch(df.fieldname)
+				fields_to_fetch = [
+					_df for _df in self.meta.get_fields_to_fetch(df.fieldname)
+					if
+						not _df.get('fetch_if_empty')
+						or (_df.get('fetch_if_empty') and not self.get(_df.fieldname))
+				]
 
 				if not fields_to_fetch:
 					# cache a single value type
@@ -547,20 +558,39 @@ class BaseDocument(object):
 			# single doctype value type is mediumtext
 			return
 
+		type_map = frappe.db.type_map
+
 		for fieldname, value in iteritems(self.get_valid_dict()):
 			df = self.meta.get_field(fieldname)
-			if df and df.fieldtype in type_map and type_map[df.fieldtype][0]=="varchar":
-				max_length = cint(df.get("length")) or cint(varchar_len)
+
+			if not df or df.fieldtype == 'Check':
+				# skip standard fields and Check fields
+				continue
+
+			column_type = type_map[df.fieldtype][0] or None
+
+			if column_type == 'varchar':
+				default_column_max_length = type_map[df.fieldtype][1] or None
+				max_length = cint(df.get("length")) or cint(default_column_max_length)
 
 				if len(cstr(value)) > max_length:
-					if self.parentfield and self.idx:
-						reference = _("{0}, Row {1}").format(_(self.doctype), self.idx)
+					self.throw_length_exceeded_error(df, max_length, value)
 
-					else:
-						reference = "{0} {1}".format(_(self.doctype), self.name)
+			elif column_type in ('int', 'bigint', 'smallint'):
+				max_length = max_positive_value[column_type]
 
-					frappe.throw(_("{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}")\
-						.format(reference, _(df.label), max_length, value), frappe.CharacterLengthExceededError, title=_('Value too big'))
+				if abs(cint(value)) > max_length:
+					self.throw_length_exceeded_error(df, max_length, value)
+
+	def throw_length_exceeded_error(self, df, max_length, value):
+		if self.parentfield and self.idx:
+			reference = _("{0}, Row {1}").format(_(self.doctype), self.idx)
+
+		else:
+			reference = "{0} {1}".format(_(self.doctype), self.name)
+
+		frappe.throw(_("{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}")\
+			.format(reference, _(df.label), max_length, value), frappe.CharacterLengthExceededError, title=_('Value too big'))
 
 	def _validate_update_after_submit(self):
 		# get the full doc with children
@@ -571,7 +601,7 @@ class BaseDocument(object):
 			db_value = db_values.get(key)
 
 			if df and not df.allow_on_submit and (self.get(key) or db_value):
-				if df.fieldtype=="Table":
+				if df.fieldtype in table_fields:
 					# just check if the table size has changed
 					# individual fields will be checked in the loop for children
 					self_value = len(self.get(key))
@@ -754,7 +784,7 @@ class BaseDocument(object):
 				ref_doc = frappe.new_doc(self.doctype)
 			else:
 				# get values from old doc
-				if self.parent:
+				if self.get('parent_doc'):
 					self.parent_doc.get_latest()
 					ref_doc = [d for d in self.parent_doc.get(self.parentfield) if d.name == self.name][0]
 				else:
@@ -773,7 +803,7 @@ class BaseDocument(object):
 		return cast_fieldtype(df.fieldtype, value)
 
 	def _extract_images_from_text_editor(self):
-		from frappe.utils.file_manager import extract_images_from_doc
+		from frappe.core.doctype.file.file import extract_images_from_doc
 		if self.doctype != "DocType":
 			for df in self.meta.get("fields", {"fieldtype": ('=', "Text Editor")}):
 				extract_images_from_doc(self, df.fieldname)

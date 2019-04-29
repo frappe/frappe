@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import frappe
 from frappe.permissions import setup_custom_perms
 from frappe.core.page.permission_manager.permission_manager import get_standard_permissions

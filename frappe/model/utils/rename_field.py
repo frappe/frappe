@@ -5,7 +5,7 @@ from __future__ import unicode_literals, print_function
 
 import frappe
 import json
-from frappe.model import no_value_fields
+from frappe.model import no_value_fields, table_fields
 from frappe.utils.password import rename_password_field
 from frappe.model.utils.user_settings import update_user_settings_data, sync_user_settings
 
@@ -19,7 +19,7 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 		print("rename_field: " + (new_fieldname) + " not found in " + doctype)
 		return
 
-	if new_field.fieldtype == "Table":
+	if new_field.fieldtype in table_fields:
 		# change parentfield of table mentioned in options
 		frappe.db.sql("""update `tab%s` set parentfield=%s
 			where parentfield=%s""" % (new_field.options.split("\n")[0], "%s", "%s"),

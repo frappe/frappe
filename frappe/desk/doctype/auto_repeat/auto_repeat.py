@@ -79,9 +79,9 @@ class AutoRepeat(Document):
 			if self.recipients:
 				email_list = split_emails(self.recipients.replace("\n", ""))
 
-				from frappe.utils import validate_email_add
+				from frappe.utils import validate_email_address
 				for email in email_list:
-					if not validate_email_add(email):
+					if not validate_email_address(email):
 						frappe.throw(_("{0} is an invalid email address in 'Recipients'").format(email))
 			else:
 				frappe.throw(_("'Recipients' not specified"))

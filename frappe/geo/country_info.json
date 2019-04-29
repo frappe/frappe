@@ -1712,9 +1712,10 @@
  },
  "Mozambique": {
   "code": "mz",
+  "currency": "MZN",
   "currency_fraction": "Centavo",
   "currency_fraction_units": 100,
-  "currency_symbol": "MT",
+  "currency_symbol": "MZN",
   "number_format": "#,###.##",
   "timezones": [
    "Africa/Maputo"
@@ -2690,8 +2691,11 @@
  },
  "Yemen": {
   "code": "ye",
+  "currency": "YER",
   "currency_fraction": "Fils",
   "currency_fraction_units": 100,
+  "smallest_currency_fraction_value": 0.01,
+  "currency_name": "Yemeni Rial",
   "currency_symbol": "\ufdfc",
   "number_format": "#,###.##",
   "timezones": [

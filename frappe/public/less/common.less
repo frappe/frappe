@@ -141,6 +141,14 @@ a.badge-hover& {
 	}
 }
 
+.msgprint-dialog {
+	max-width: 400px;
+
+	.modal-content {
+		min-height: 110px;
+	}
+}
+
 .msgprint {
 	// margin: 15px 0px;
 	// text-align: center;
@@ -172,6 +180,10 @@ a.badge-hover& {
 
 .border {
 	border: 1px solid @border-color;
+}
+
+.rounded {
+	border-radius: 4px;
 }
 
 .close-inline {
@@ -303,4 +315,16 @@ a.no-decoration& {
 
 .text-small {
 	font-size: @text-small;
+}
+
+.text-large {
+	font-size: @text-large;
+}
+
+.disable-click {
+	pointer-events: none;
+}
+
+.popover-title {
+	display: none;
 }

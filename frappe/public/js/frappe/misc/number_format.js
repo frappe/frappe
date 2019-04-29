@@ -237,7 +237,7 @@ function round_based_on_smallest_currency_fraction(value, currency, precision) {
 			value -= remainder_val;
 		}
 	} else {
-		value = Math.round(value);
+		value = _round(value);
 	}
 	return value;
 }

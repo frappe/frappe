@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 # imports - standard imports
 import json
 
@@ -139,13 +141,16 @@ def send(user, room, content, type = "Content"):
 def seen(message, user = None):
 	authenticate(user)
 
-	mess = frappe.get_doc('Chat Message', message)
-	mess.add_seen(user)
+	has_message = frappe.db.exists('Chat Message', message)
 
-	room = mess.room
-	resp = dict(message = message, data = dict(seen = json.loads(mess._seen)))
+	if has_message:
+		mess = frappe.get_doc('Chat Message', message)
+		mess.add_seen(user)
 
-	frappe.publish_realtime('frappe.chat.message:update', resp, room = room, after_commit = True)
+		room = mess.room
+		resp = dict(message = message, data = dict(seen = json.loads(mess._seen)))
+
+		frappe.publish_realtime('frappe.chat.message:update', resp, room = room, after_commit = True)
 
 def history(room, fields = None, limit = 10, start = None, end = None):
 	room = frappe.get_doc('Chat Room', room)
@@ -192,18 +197,21 @@ def mark_messages_as_seen(message_names, user):
 def get(name, rooms = None, fields = None):
 	rooms, fields = safe_json_loads(rooms, fields)
 
-	dmess = frappe.get_doc('Chat Message', name)
-	data  = dict(
-		name      = dmess.name,
-		user      = dmess.user,
-		room      = dmess.room,
-		room_type = dmess.room_type,
-		content   = json.loads(dmess.content) if dmess.type in ["File"] else dmess.content,
-		type      = dmess.type,
-		urls      = dmess.urls,
-		mentions  = dmess.mentions,
-		creation  = dmess.creation,
-		seen      = get_if_empty(dmess._seen, [ ])
-	)
+	has_message = frappe.db.exists('Chat Message', name)
 
-	return data
+	if has_message:
+		dmess = frappe.get_doc('Chat Message', name)
+		data  = dict(
+			name      = dmess.name,
+			user      = dmess.user,
+			room      = dmess.room,
+			room_type = dmess.room_type,
+			content   = json.loads(dmess.content) if dmess.type in ["File"] else dmess.content,
+			type      = dmess.type,
+			urls      = dmess.urls,
+			mentions  = dmess.mentions,
+			creation  = dmess.creation,
+			seen      = get_if_empty(dmess._seen, [ ])
+		)
+
+		return data

@@ -45,11 +45,11 @@ class TestDataMigrationRun(unittest.TestCase):
 		created_todo = frappe.get_doc('ToDo', {'description': event_subject})
 		self.assertEqual(created_todo.description, event_subject)
 
-		todo_list = frappe.get_list('ToDo', filters={'description': 'Data migration todo'}, fields=['name'])
+		todo_list = frappe.get_list('ToDo', filters={'description': 'data migration todo'}, fields=['name'])
 		todo_name = todo_list[0].name
 
 		todo = frappe.get_doc('ToDo', todo_name)
-		todo.description = 'Data migration todo updated'
+		todo.description = 'data migration todo updated'
 		todo.save()
 
 		run = frappe.get_doc({
@@ -77,7 +77,7 @@ def create_plan():
 			{ 'remote_fieldname': 'starts_on', 'local_fieldname': 'eval:frappe.utils.get_datetime_str(frappe.utils.get_datetime())' }
 		],
 		'condition': '{"description": "data migration todo" }'
-	}).insert()
+	}).insert(ignore_if_duplicate=True)
 
 	frappe.get_doc({
 		'doctype': 'Data Migration Mapping',
@@ -91,23 +91,24 @@ def create_plan():
 		'fields': [
 			{ 'remote_fieldname': 'subject', 'local_fieldname': 'description' }
 		]
-	}).insert()
+	}).insert(ignore_if_duplicate=True)
 
 	frappe.get_doc({
 		'doctype': 'Data Migration Plan',
-		'plan_name': 'ToDo sync',
+		'plan_name': 'ToDo Sync',
 		'module': 'Core',
 		'mappings': [
 			{ 'mapping': 'Todo to Event' },
 			{ 'mapping': 'Event to ToDo' }
 		]
-	}).insert()
+	}).insert(ignore_if_duplicate=True)
 
 	frappe.get_doc({
 		'doctype': 'Data Migration Connector',
 		'connector_name': 'Local Connector',
 		'connector_type': 'Frappe',
-		'hostname': 'http://localhost:8000',
+		# connect to same host.
+		'hostname': frappe.conf.host_name,
 		'username': 'Administrator',
 		'password': 'admin'
-	}).insert()
+	}).insert(ignore_if_duplicate=True)

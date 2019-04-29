@@ -18,7 +18,7 @@
  "is_standard": 1, 
  "login_required": 1, 
  "max_attachment_size": 0, 
- "modified": "2018-11-01 19:35:43.552429", 
+ "modified": "2019-01-28 12:45:17.158069", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "edit-profile", 
@@ -126,19 +126,6 @@
    "max_length": 0, 
    "max_value": 0, 
    "options": "Language", 
-   "read_only": 0, 
-   "reqd": 0, 
-   "show_in_filter": 0
-  }, 
-  {
-   "allow_read_on_all_link_options": 0, 
-   "fieldname": "roles", 
-   "fieldtype": "Table", 
-   "hidden": 0, 
-   "label": "Roles Assigned", 
-   "max_length": 0, 
-   "max_value": 0, 
-   "options": "Has Role", 
    "read_only": 0, 
    "reqd": 0, 
    "show_in_filter": 0

@@ -1,3 +1,4 @@
+
 import './field_group';
 import '../dom';
 
@@ -84,6 +85,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				frappe.ui.open_dialogs.push(me);
 				me.focus_on_first_input();
 				me.on_page_show && me.on_page_show();
+				$(document).trigger('frappe.ui.Dialog:shown');
 			})
 			.on('scroll', function() {
 				var $input = $('input:focus');
@@ -108,6 +110,11 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	clear_message() {
 		this.$message.addClass('hide');
 		this.$body.removeClass('hide');
+	}
+
+	clear() {
+		super.clear();
+		this.clear_message();
 	}
 
 	set_primary_action(label, click) {
@@ -151,8 +158,13 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 			this.$wrapper.removeClass('fade');
 		}
 		this.$wrapper.modal("show");
+
+		// clear any message
+		this.clear_message();
+
 		this.primary_action_fulfilled = false;
 		this.is_visible = true;
+		return this;
 	}
 	hide() {
 		this.$wrapper.modal("hide");

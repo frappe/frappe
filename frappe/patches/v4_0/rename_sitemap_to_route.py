@@ -20,6 +20,6 @@ def execute():
 def rename_field_if_exists(doctype, old_fieldname, new_fieldname):
 	try:
 		rename_field(doctype, old_fieldname, new_fieldname)
-	except Exception as e:
-		if e.args[0] != 1054:
+	except frappe.db.ProgrammingError as e:
+		if not frappe.db.is_column_missing(e):
 			raise

@@ -7,21 +7,14 @@ import frappe, json
 from frappe.model.document import Document
 from frappe.permissions import (get_valid_perms, update_permission_property)
 from frappe import _
+from frappe.utils import cstr
 from frappe.core.utils import find
 from frappe.desk.form.linked_with import get_linked_doctypes
 
 class UserPermission(Document):
 	def validate(self):
-		duplicate_exists = frappe.db.get_all(self.doctype, filters={
-			'allow': self.allow,
-			'for_value': self.for_value,
-			'user': self.user,
-			'applicable_for': self.applicable_for,
-			'apply_to_all_doctypes': self.apply_to_all_doctypes,
-			'name': ['!=', self.name]
-		}, limit=1)
-		if duplicate_exists:
-			frappe.throw(_("User permission already exists"), frappe.DuplicateEntryError)
+		self.validate_user_permission()
+		self.validate_default_permission()
 
 	def on_update(self):
 		frappe.cache().delete_value('user_permissions')
@@ -30,6 +23,37 @@ class UserPermission(Document):
 	def on_trash(self): # pylint: disable=no-self-use
 		frappe.cache().delete_value('user_permissions')
 		frappe.publish_realtime('update_user_permissions')
+
+	def validate_user_permission(self):
+		''' checks for duplicate user permission records'''
+
+		duplicate_exists = frappe.db.get_all(self.doctype, filters={
+			'allow': self.allow,
+			'for_value': self.for_value,
+			'user': self.user,
+			'applicable_for': cstr(self.applicable_for),
+			'apply_to_all_doctypes': self.apply_to_all_doctypes,
+			'name': ['!=', self.name]
+		}, limit=1)
+		if duplicate_exists:
+			frappe.throw(_("User permission already exists"), frappe.DuplicateEntryError)
+
+	def validate_default_permission(self):
+		''' validate user permission overlap for default value of a particular doctype '''
+		overlap_exists = []
+		if self.is_default:
+			overlap_exists = frappe.get_all(self.doctype, filters={
+				'allow': self.allow,
+				'user': self.user,
+				'is_default': 1,
+				'name': ['!=', self.name]
+			}, or_filters={
+				'applicable_for': cstr(self.applicable_for),
+				'apply_to_all_doctypes': 1
+			}, limit=1)
+		if overlap_exists:
+			ref_link = frappe.get_desk_link(self.doctype, overlap_exists[0].name)
+			frappe.throw(_("{0} has already assigned default vaue for {1}.".format(ref_link, self.allow)))
 
 @frappe.whitelist()
 def get_user_permissions(user=None):
@@ -42,6 +66,9 @@ def get_user_permissions(user=None):
 	if not user:
 		user = frappe.session.user
 
+	if user == "Administrator":
+		return {}
+
 	cached_user_permissions = frappe.cache().hget("user_permissions", user)
 
 	if cached_user_permissions is not None:
@@ -49,35 +76,36 @@ def get_user_permissions(user=None):
 
 	out = {}
 
-	def add_doc_to_perm(perm, doc_name):
+	def add_doc_to_perm(perm, doc_name, is_default):
 		# group rules for each type
 		# for example if allow is "Customer", then build all allowed customers
 		# in a list
 		if not out.get(perm.allow):
 			out[perm.allow] = []
 
-		out[perm.allow].append({
+		out[perm.allow].append(frappe._dict({
 			'doc': doc_name,
-			'applicable_for': perm.get('applicable_for')
-		})
+			'applicable_for': perm.get('applicable_for'),
+			'is_default': is_default
+		}))
 
 	try:
 		for perm in frappe.get_all('User Permission',
-			fields=['allow', 'for_value', 'applicable_for'],
+			fields=['allow', 'for_value', 'applicable_for', 'is_default'],
 			filters=dict(user=user)):
 
 			meta = frappe.get_meta(perm.allow)
-			add_doc_to_perm(perm, perm.for_value)
+			add_doc_to_perm(perm, perm.for_value, perm.is_default)
 
 			if meta.is_nested_set():
 				decendants = frappe.db.get_descendants(perm.allow, perm.for_value)
 				for doc in decendants:
-					add_doc_to_perm(perm, doc)
+					add_doc_to_perm(perm, doc, False)
 
+		out = frappe._dict(out)
 		frappe.cache().hset("user_permissions", user, out)
-
-	except frappe.SQLError as e:
-		if e.args[0]==1146:
+	except frappe.db.SQLError as e:
+		if frappe.db.is_table_missing(e):
 			# called from patch
 			pass
 
@@ -95,7 +123,7 @@ def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, 
 	linked_doctypes = get_linked_doctypes(doctype, True).keys()
 	linked_doctypes = list(linked_doctypes)
 	linked_doctypes += [doctype]
-	
+
 	if txt:
 		linked_doctypes = [d for d in linked_doctypes if txt in d.lower()]
 
@@ -110,3 +138,102 @@ def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, 
 def get_permitted_documents(doctype):
 	return [d.get('doc') for d in get_user_permissions().get(doctype, []) \
 		if d.get('doc')]
+
+@frappe.whitelist()
+def check_applicable_doc_perm(user, doctype, docname):
+	frappe.only_for('System Manager')
+	applicable = []
+	doc_exists = frappe.get_all('User Permission',
+		fields=['name'],
+		filters={"user": user,
+			"allow": doctype,
+			"for_value": docname,
+			"apply_to_all_doctypes":1,
+		}, limit=1)
+	if doc_exists:
+		applicable = get_linked_doctypes(doctype).keys()
+	else:
+		data = frappe.get_all('User Permission',
+			fields=['applicable_for'],
+			filters={"user": user,
+				"allow": doctype,
+				"for_value":docname,
+			})
+		for d in data:
+			applicable.append(d.applicable_for)
+	return applicable
+
+
+@frappe.whitelist()
+def clear_user_permissions(user, for_doctype):
+	frappe.only_for('System Manager')
+	total = frappe.db.count('User Permission', filters = dict(user=user, allow=for_doctype))
+	if total:
+		frappe.db.sql('DELETE FROM `tabUser Permission` WHERE `user`=%s AND `allow`=%s', (user, for_doctype))
+		frappe.clear_cache()
+	return total
+
+@frappe.whitelist()
+def add_user_permissions(data):
+	''' Add and update the user permissions '''
+	frappe.only_for('System Manager')
+	if isinstance(data, frappe.string_types):
+		data = json.loads(data)
+	data = frappe._dict(data)
+
+	d = check_applicable_doc_perm(data.user, data.doctype, data.docname)
+	exists = frappe.db.exists("User Permission", {"user": data.user, "allow": data.doctype, "for_value": data.docname, "apply_to_all_doctypes": 1})
+	if data.apply_to_all_doctypes == 1 and not exists:
+		remove_applicable(d, data.user, data.doctype, data.docname)
+		insert_user_perm(data.user, data.doctype, data.docname, data.is_default, apply_to_all = 1)
+		return 1
+	else:
+		remove_apply_to_all(data.user, data.doctype, data.docname)
+		update_applicable(d, data.applicable_doctypes, data.user, data.doctype, data.docname)
+		for applicable in data.applicable_doctypes :
+			if applicable not in d:
+				insert_user_perm(data.user, data.doctype, data.docname, data.is_default, applicable = applicable)
+			elif exists:
+				insert_user_perm(data.user, data.doctype, data.docname, data.is_default, applicable = applicable)
+		return 1
+	return 0
+
+def insert_user_perm(user, doctype, docname, is_default=0, apply_to_all=None, applicable=None):
+	user_perm = frappe.new_doc("User Permission")
+	user_perm.user = user
+	user_perm.allow = doctype
+	user_perm.for_value = docname
+	user_perm.is_default = is_default
+	if applicable:
+		user_perm.applicable_for  = applicable
+		user_perm.apply_to_all_doctypes = 0
+	else:
+		user_perm.apply_to_all_doctypes = 1
+	user_perm.insert()
+
+def remove_applicable(d, user, doctype, docname):
+	for applicable_for in d:
+		frappe.db.sql("""DELETE FROM `tabUser Permission`
+			WHERE `user`=%s
+			AND `applicable_for`=%s
+			AND `allow`=%s
+			AND `for_value`=%s
+		""", (user, applicable_for, doctype, docname))
+
+def remove_apply_to_all(user, doctype, docname):
+	frappe.db.sql("""DELETE from `tabUser Permission`
+		WHERE `user`=%s
+		AND `apply_to_all_doctypes`=1
+		AND `allow`=%s
+		AND `for_value`=%s
+	""",(user, doctype, docname))
+
+def update_applicable(already_applied, to_apply, user, doctype, docname):
+	for applied in already_applied:
+		if applied not in to_apply:
+			frappe.db.sql("""DELETE FROM `tabUser Permission`
+				WHERE `user`=%s
+				AND `applicable_for`=%s
+				AND `allow`=%s
+				AND `for_value`=%s
+			""",(user, applied, doctype, docname))
