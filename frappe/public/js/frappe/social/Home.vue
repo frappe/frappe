@@ -60,10 +60,6 @@ export default {
 			this.show_preview = false;
 		})
 
-		frappe.app_updates.on('user_image_updated', () => {
-			this.$root.$emit('user_image_updated')
-		})
-
 		this.update_primary_action(frappe.get_route()[1])
 	},
 	mounted() {

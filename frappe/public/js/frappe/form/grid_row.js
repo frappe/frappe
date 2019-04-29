@@ -118,6 +118,35 @@ export default class GridRow {
 		this.toggle_view(false);
 		this.grid.add_new_row(idx, null, show, copy_doc);
 	}
+	move() {
+		// promopt the user where they want to move this row
+		var me = this;
+		frappe.prompt({
+			fieldname: 'move_to',
+			label: __('Move to Row Number'),
+			fieldtype: 'Int',
+			reqd: 1,
+			default: this.doc.idx,
+		}, function(values) {
+			if (me.doc._sortable === false) {
+				frappe.msgprint(__('Cannot move row'));
+				return;
+			}
+
+			// renumber and refresh
+			let data = me.grid.get_data();
+			data.move(me.doc.idx - 1, values.move_to - 1);
+
+			// renum idx
+			for(let i=0; i<data.length;i++) {
+				data[i].idx = i+1;
+			}
+
+			me.toggle_view(false);
+			me.grid.refresh();
+			$(me.frm.wrapper).trigger("grid-move-row", [me.frm, me]);
+		}, __('Move To'), 'Update');
+	}
 	refresh() {
 		if(this.frm && this.doc) {
 			this.doc = locals[this.doc.doctype][this.doc.name];
@@ -203,7 +232,7 @@ export default class GridRow {
 			if(!this.open_form_button) {
 				this.open_form_button = $('<a class="close btn-open-row">\
 					<span class="octicon octicon-triangle-down"></span></a>')
-					.appendTo($('<div class="col col-xs-1 sortable-handle"></div>').appendTo(this.row))
+					.appendTo($('<div class="col col-xs-1"></div>').appendTo(this.row))
 					.on('click', function() { me.toggle_view(); return false; });
 
 				if(this.is_too_small()) {

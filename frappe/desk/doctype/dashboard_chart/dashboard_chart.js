@@ -76,12 +76,17 @@ frappe.ui.form.on('Dashboard Chart', {
 			frm.trigger('render_filters_table');
 		} else {
 			if (frm.doc.chart_type==='Custom') {
-				frappe.xcall('frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config', {name: frm.doc.source})
-					.then(config => {
-						frappe.dom.eval(config);
-						frm.filters = frappe.dashboards.chart_sources[frm.doc.source].filters;
-						frm.trigger('render_filters_table');
-					});
+				if (frm.doc.source) {
+					frappe.xcall('frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config', {name: frm.doc.source})
+						.then(config => {
+							frappe.dom.eval(config);
+							frm.filters = frappe.dashboards.chart_sources[frm.doc.source].filters;
+							frm.trigger('render_filters_table');
+						});
+				} else {
+					frm.filters = [];
+					frm.trigger('render_filters_table');
+				}
 			} else {
 				// standard filters
 				if (frm.doc.document_type) {

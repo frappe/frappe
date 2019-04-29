@@ -21,6 +21,7 @@ psycopg2.extensions.register_type(DEC2FLOAT)
 
 class PostgresDatabase(Database):
 	ProgrammingError = psycopg2.ProgrammingError
+	TableMissingError = psycopg2.ProgrammingError
 	OperationalError = psycopg2.OperationalError
 	InternalError = psycopg2.InternalError
 	SQLError = psycopg2.ProgrammingError
@@ -63,7 +64,7 @@ class PostgresDatabase(Database):
 
 	def get_connection(self):
 		# warnings.filterwarnings('ignore', category=psycopg2.Warning)
-		conn = psycopg2.connect('host={} dbname={}'.format(self.host, self.user))
+		conn = psycopg2.connect('host={} dbname={} port={}'.format(self.host, self.user, self.port))
 		conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT) # TODO: Remove this
 		# conn = psycopg2.connect('host={} dbname={} user={} password={}'.format(self.host,
 		# 	self.user, self.user, self.password))

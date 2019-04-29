@@ -2,8 +2,6 @@
 	<div ref="banner" class="banner" :style="background_style">
 		<div
 			class="user-avatar container"
-			:class="{'editable-image': is_own_profile}"
-			@click="update_image"
 			v-html="user_avatar">
 		</div>
 	</div>
@@ -13,29 +11,23 @@ export default {
 	props: ['user_id'],
 	data() {
 		return {
-			is_own_profile: this.user_id === frappe.session.user,
 			user_avatar: frappe.avatar(this.user_id, 'avatar-xl'),
-			background_style: {
-				'background': '#262626'
-			}
+			user_banner: frappe.user_info(this.user_id).banner_image
 		}
 	},
 	created() {
 		this.$root.$on('user_image_updated', () => {
 			this.user_avatar = frappe.avatar(this.user_id, 'avatar-xl')
+			this.user_banner = frappe.user_info(this.user_id).banner_image
 		})
-		const user_banner = frappe.user_info(this.user_id).banner_image;
-		if (user_banner) {
-			this.background_style = {
-				'background-image': `url('${user_banner}')`
-			}
-		}
 	},
-	methods: {
-		update_image() {
-			if (this.is_own_profile) {
-				frappe.social.update_user_image.show()
+	computed: {
+		background_style() {
+			const style = {}
+			if (this.user_banner) {
+				style['background-image'] = `url('${this.user_banner}')`
 			}
+			return style;
 		}
 	},
 }
@@ -51,6 +43,7 @@ export default {
 	background-size: cover;
 	background-position: center;
 	background-repeat: no-repeat;
+	background-color: #262626;
 	.user-avatar {
 		position: relative;
 		/deep/ .avatar {

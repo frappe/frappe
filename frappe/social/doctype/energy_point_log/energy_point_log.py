@@ -11,8 +11,15 @@ from frappe.utils import cint, get_fullname, getdate
 
 class EnergyPointLog(Document):
 	def validate(self):
+		self.map_milestone_reference()
 		if self.type in ['Appreciation', 'Criticism'] and self.user == self.owner:
 			frappe.throw(_('You cannot give review points to yourself'))
+
+	def map_milestone_reference(self):
+		# link energy point to the original reference, if set by milestone
+		if self.reference_doctype == 'Milestone':
+			self.reference_doctype, self.reference_name = frappe.db.get_value('Milestone', self.reference_name,
+				['reference_type', 'reference_name'])
 
 	def after_insert(self):
 		alert_dict = get_alert_dict(self)
@@ -183,7 +190,7 @@ def revert(name, reason):
 		frappe.throw(_('This document cannot be reverted'))
 
 	doc_to_revert.reverted = 1
-	doc_to_revert.save()
+	doc_to_revert.save(ignore_permissions=True)
 
 	revert_log = frappe.get_doc({
 		'doctype': 'Energy Point Log',
@@ -194,7 +201,7 @@ def revert(name, reason):
 		'reference_doctype': doc_to_revert.reference_doctype,
 		'reference_name': doc_to_revert.reference_name,
 		'revert_of': doc_to_revert.name
-	}).insert()
+	}).insert(ignore_permissions=True)
 
 	return revert_log
 

@@ -18,13 +18,13 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.image_wrapper = this.image_section.find('.sidebar-image-wrapper');
 		this.make_assignments();
 		this.make_attachments();
+		this.make_review();
 		this.make_shared();
 		this.make_viewers();
 
 		this.make_tags();
 		this.make_like();
 		this.make_follow();
-		this.make_review();
 
 		this.bind_events();
 		frappe.ui.form.setup_user_image_event(this.frm);
@@ -171,7 +171,7 @@ frappe.ui.form.Sidebar = Class.extend({
 	make_review: function() {
 		if (frappe.boot.energy_points_enabled && !this.frm.is_new()) {
 			this.frm.reviews = new frappe.ui.form.Review({
-				parent: this.sidebar.find(".form-attachments"),
+				parent: this.sidebar.find(".form-reviews"),
 				frm: this.frm
 			});
 		}

@@ -103,9 +103,13 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"rating": get_feedback_rating(doc.doctype, doc.name),
 		"views": get_view_logs(doc.doctype, doc.name),
 		"energy_point_logs": get_point_logs(doc.doctype, doc.name),
-		"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
-		"document_follow_enabled": frappe.db.get_value("User", frappe.session.user, "document_follow_notify")
+		"milestones": get_milestones(doc.doctype, doc.name),
+		"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user)
 	}
+
+def get_milestones(doctype, name):
+	return frappe.db.get_all('Milestone', fields = ['creation', 'owner', 'track_field', 'value'],
+		filters=dict(reference_type=doctype, reference_name=name))
 
 def get_attachments(dt, dn):
 	return frappe.get_all("File", fields=["name", "file_name", "file_url", "is_private"],

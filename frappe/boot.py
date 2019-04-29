@@ -18,6 +18,7 @@ from frappe.translate import get_lang_dict
 from frappe.email.inbox import get_email_accounts
 from frappe.core.doctype.feedback_trigger.feedback_trigger import get_enabled_feedback_trigger
 from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
+from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -80,6 +81,7 @@ def get_bootinfo():
 	bootinfo.success_action = get_success_action()
 	bootinfo.update(get_email_accounts(user=frappe.session.user))
 	bootinfo.energy_points_enabled = is_energy_point_enabled()
+	bootinfo.points = get_energy_points(frappe.session.user)
 
 	return bootinfo
 

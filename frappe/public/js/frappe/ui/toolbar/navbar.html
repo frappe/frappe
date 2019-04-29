@@ -21,7 +21,7 @@
 					onclick="return false;">
 				{{ avatar }}
 				<span class="ellipsis toolbar-user-fullname hidden-xs hidden-sm">
-					{%= frappe.user.full_name() %}</span>
+					{%= __("Settings") %}</span>
 				<b class="caret hidden-xs hidden-sm"></b></a>
 				<ul class="dropdown-menu" id="toolbar-user" role="menu">
 					<li><a href="#Form/User/{%= encodeURIComponent(frappe.session.user) %}">
@@ -31,6 +31,9 @@
 						{%= __("Reload") %}</a></li>
 					<li><a href="/index" target="_blank" rel="noopener noreferrer">
 						{%= __("View Website") %}</a></li>
+					<li class="navbar-toggle-full-width">
+						<a href="#" onclick="return false">{%= __("Toggle Full Width") %}</a>
+					</li>
 					<li><a href="#background_jobs">
 						{%= __("Background Jobs") %}</a></li>
 					<li class="divider"></li>

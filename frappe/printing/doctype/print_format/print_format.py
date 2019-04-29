@@ -27,7 +27,7 @@ class PrintFormat(Document):
 		if not self.module:
 			self.module = frappe.db.get_value('DocType', self.doc_type, 'module')
 
-		if self.html and self.print_format_type != 'Js':
+		if self.html and self.print_format_type != 'JS':
 			validate_template(self.html)
 
 	def extract_images(self):

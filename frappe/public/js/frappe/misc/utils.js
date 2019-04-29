@@ -194,25 +194,6 @@ Object.assign(frappe.utils, {
 			return list;
 		}
 	},
-	set_intro: function(me, wrapper, txt, append, indicator) {
-		if(!me.intro_area) {
-			me.intro_area = $('<div class="intro-area">')
-				.prependTo(wrapper);
-		}
-		if(txt) {
-			if(!append) {
-				me.intro_area.empty();
-			}
-			if(indicator) {
-				me.intro_area.html('<div class="indicator '+indicator+'">'+txt+'</div>')
-			} else {
-				me.intro_area.html('<p class="text-muted">'+txt+'</div>')
-			}
-		} else {
-			me.intro_area.remove();
-			me.intro_area = null;
-		}
-	},
 	set_footnote: function(footnote_area, wrapper, txt) {
 		if(!footnote_area) {
 			footnote_area = $('<div class="text-muted footnote-area level">')
@@ -688,6 +669,27 @@ Object.assign(frappe.utils, {
 	deep_equal(a, b) {
 		return deep_equal(a, b);
 	},
+
+	file_name_ellipsis(filename, length) {
+		let first_part_length = length * 2 / 3;
+		let last_part_length = length - first_part_length;
+		let parts = filename.split('.');
+		let extn = parts.pop();
+		let name = parts.join('');
+		let first_part = name.slice(0, first_part_length);
+		let last_part = name.slice(-last_part_length);
+		if (name.length > length) {
+			return `${first_part}...${last_part}.${extn}`;
+		} else {
+			return filename;
+		}
+	},
+	get_decoded_string(dataURI) {
+		// decodes base64 to string
+		let parts = dataURI.split(',');
+		const encoded_data = parts[1];
+		return decodeURIComponent(escape(atob(encoded_data)));
+	}
 });
 
 // Array de duplicate
@@ -701,4 +703,10 @@ if (!Array.prototype.uniqBy) {
 			});
 		}
 	});
+	Object.defineProperty(Array.prototype, 'move', {
+		value: function(from, to) {
+			this.splice(to, 0, this.splice(from, 1)[0]);
+		}
+	});
 }
+
