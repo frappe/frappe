@@ -58,7 +58,7 @@ frappe.ui.form.on('Dashboard Chart', {
 					if (['Date', 'Datetime'].includes(df.fieldtype)) {
 						date_fields.push({label: df.label, value: df.fieldname});
 					}
-					if (['In', 'Float', 'Currency', 'Percent'].includes(df.fieldtype)) {
+					if (['Int', 'Float', 'Currency', 'Percent'].includes(df.fieldtype)) {
 						value_fields.push({label: df.label, value: df.fieldname});
 					}
 				});
