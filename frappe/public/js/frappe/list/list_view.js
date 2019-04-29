@@ -202,7 +202,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				} else {
 					this.make_new_doc();
 				}
-			}, 'octicon octicon-plus');
+			}, 'octicon octicon-plus','ctrl+b');
 		} else {
 			this.page.clear_primary_action();
 		}
@@ -226,6 +226,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.setup_events();
 		this.settings.onload && this.settings.onload(this);
 		this.show_restricted_list_indicator_if_applicable();
+
 	}
 
 	setup_freeze_area() {
@@ -753,7 +754,92 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.setup_like();
 		this.setup_realtime_updates();
 		this.setup_action_handler();
+		this.setup_keyboard_nav();
 	}
+
+	setup_keyboard_nav() {
+		let selected, next, new_class, is_nav;
+		let index = 0;
+		$(document).on('keydown',null, (e)=> {
+			if ($('[role="listbox"]').is(":visible")) {
+				console.log('true');
+				is_nav = true;
+			}
+			else {
+				is_nav = false;
+				let list = this.$result.find('.list-row-container');
+				list = list.add($('.list-paging-area').find('.btn'));
+				if(e.which === 40) {
+					if(selected) {
+						new_class = list.eq(index).is('button') ? 'btn-selected': 'selected';
+						// console.log('presseddd')
+						selected.removeClass(new_class);
+						index++;
+						next = list.eq(index);
+						if(next.length > 0) {
+							new_class = list.eq(index).is('button') ? 'btn-selected': 'selected';
+							selected = next.addClass(new_class);
+						} else {
+							new_class = list.eq(0).is('button') ? 'btn-selected': 'selected';
+							selected = list.eq(0).addClass(new_class);
+							index = 0;
+						}
+					} else {
+						new_class = list.eq(0).is('button') ? 'btn-selected': 'selected';
+						selected = list.eq(0).addClass(new_class);
+					}
+				} else if(e.which === 38) {
+					if(selected) {
+						new_class = list.eq(index).is('button') ? 'btn-selected': 'selected';
+						selected.removeClass(new_class);
+						if(index>0) index--;
+						next = list.eq(index);
+						if(next.length > 0) {
+							new_class = list.eq(index).is('button') ? 'btn-selected': 'selected';
+							selected = next.addClass(new_class);
+						} else {
+							new_class = list.eq(list.length-1).is('button') ? 'btn-selected': 'selected';
+							selected = list.eq(list.length - 1).addClass(new_class);
+							index = list.length - 1;
+						}
+					} else {
+						new_class = list.eq(list.length-1).is('button') ? 'btn-selected': 'selected';
+						selected = list.eq(list.length - 1).addClass(new_class);
+					}
+				} else if(e.which === 13) {
+					console.log('is nav', is_nav)
+					if(!is_nav) {
+						if(selected.is('button') ) {
+							selected.click();
+							selected.removeClass('btn-selected');
+							index = 0;
+						}
+						else selected.find('.list-row').click();
+						index = 0;
+					}
+				}
+				
+			}
+		});
+	}
+
+	// down_navigation(list) {
+	// 	let selected_element;
+	// 	if(selected_element) {
+	// 		console.log('presseddd')
+	// 		selected_element.removeClass('selected');
+	// 		next = selected_element.next();
+	// 		console.log('next', next)
+	// 		if(next.length > 0){
+	// 			selected_element = next.addClass('selected');
+	// 		} else {
+	// 			selected_element = list.eq(0).addClass('selected');
+	// 		}
+	// 	} else{
+	// 		selected_element = list.eq(0).addClass('selected');
+	// 		console.log('liSelected', liSelected);
+	// 	}
+	// }
 
 	setup_filterable() {
 		// filterable events
@@ -1030,6 +1116,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.model.can_import(doctype)) {
 			items.push({
 				label: __('Import'),
+				// shortcut: 'Ctrl + I',
 				action: () => frappe.set_route('List', 'Data Import', {
 					reference_doctype: doctype
 				}),
@@ -1040,6 +1127,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.model.can_set_user_permissions(doctype)) {
 			items.push({
 				label: __('User Permissions'),
+				// shortcut: 'Ctrl + U',
 				action: () => frappe.set_route('List', 'User Permission', {
 					allow: doctype
 				}),
@@ -1050,6 +1138,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.user_roles.includes('System Manager')) {
 			items.push({
 				label: __('Role Permissions Manager'),
+				// shortcut: 'Ctrl + M',
 				action: () => frappe.set_route('permission-manager', {
 					doctype
 				}),
@@ -1068,6 +1157,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						});
 					}
 				},
+				// shortcut: 'Alt + C',
 				standard: true
 			});
 		}
@@ -1075,12 +1165,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		items.push({
 			label: __('Toggle Sidebar'),
 			action: () => this.toggle_side_bar(),
+			// shortcut: 'Ctrl + T',
 			standard: true
 		});
 
 		items.push({
 			label: __('Share URL'),
 			action: () => this.share_url(),
+			// shortcut: 'Alt + S',
 			standard: true
 		});
 
@@ -1088,6 +1180,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			// edit doctype
 			items.push({
 				label: __('Edit DocType'),
+				// shortcut: 'Ctrl + E',
 				action: () => frappe.set_route('Form', 'DocType', doctype),
 				standard: true
 			});
@@ -1096,6 +1189,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.user.has_role('System Manager')) {
 			items.push({
 				label: __('Settings'),
+				// shortcut: 'Ctrl + Shift + S',
 				action: () => this.show_list_settings(),
 				standard: true
 			});

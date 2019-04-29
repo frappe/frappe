@@ -42,6 +42,193 @@ frappe.ui.Page = Class.extend({
 	make: function() {
 		this.wrapper = $(this.parent);
 		this.add_main_section();
+		this.setup_nav();
+	},
+
+	keyboard_shortcut(shortcut, element) {
+		let shortcut_key = shortcut.replace(/ /g,'');
+		// console.log('true', shortcut);
+		let namespace = 'keyup.'+ shortcut.charAt(shortcut.length-1);
+		$(document).on(namespace,null, shortcut_key, (e)=> {
+			console.log('heree');
+			// e.stopImmediatePropagation();
+			// console.log($li, shortcut);
+			element.click()
+		})
+	},
+
+
+	setup_nav() {
+		console.log('MENU', this.menu);
+		let menu_el = $('.menu-btn-group');
+		console.log('menu', menu_el);
+		let buttons = $('.page-actions').find('button'), menu_list, actions_list, el_list;
+		let timer = false;
+		$(document).on('keydown', null, 'alt', ()=> {
+			menu_list = $('.menu-btn-group ul li a').filter(':visible');
+			actions_list = $('.actions-btn-group ul li a').filter(':visible');
+			console.log('menu list', menu_list);
+			clearTimeout(timer);
+			timer=false;
+			if(!timer) timer = setTimeout(()=> {
+				if(menu_list.length) {
+					el_list = this.underline_alt_elements(menu_list);
+				} else if(actions_list.length) {
+					el_list = this.underline_alt_elements(actions_list);
+				}
+				else el_list = this.underline_alt_elements(buttons);
+			},1000);
+		});
+
+		$(document).on('keyup',null, (e)=> {
+			let index = 0, liSelected, next;
+			clearTimeout(timer);
+			timer = false;
+			console.log('el list', el_list);
+			if(el_list) {
+				this.remove_alt_elements(el_list);
+			}
+			menu_list = $('.menu-btn-group ul li a').filter(':visible');
+			console.log('prssanna', menu_list);
+			if(menu_list.length) {
+				console.log('yasss');
+				let li = menu_list;
+				console.log('list', li);
+				if(e.which === 40) {
+					console.log('down');
+					if(liSelected) {
+						liSelected.removeClass('selected');
+						next = liSelected.next();
+						if(next.length > 0) {
+							liSelected = next.addClass('selected');
+						} else {
+							liSelected = li.eq(0).addClass('selected');
+						}
+					} else {
+						liSelected = li.eq(0).addClass('selected');
+					}
+				} else if(e.which === 38) {
+					console.log('up');
+					if(liSelected) {
+						liSelected.removeClass('selected');
+						next = liSelected.prev();
+						if(next.length > 0) {
+							liSelected = next.addClass('selected');
+						} else {
+							liSelected = li.last().addClass('selected');
+						}
+					} else {
+						liSelected = li.last().addClass('selected');
+					}
+				}
+			}
+		})
+
+		// $(document).on('keydown',null,(e)=> {
+			// console.log('hereee');
+			// let menu = $('.menu-btn-group.open')
+			// console.log('menu', menu);
+			// if(menu.length) {
+			// 	console.log('yasss');
+			// 	let li = menu_list;
+			// 	console.log('list', li);
+			// 	if(e.which === 40) {
+			// 		if(liSelected) {
+			// 			liSelected.removeClass('selected');
+			// 			next = liSelected.next();
+			// 			if(next.length > 0) {
+			// 				liSelected = next.addClass('selected');
+			// 			} else {
+			// 				liSelected = li.eq(0).addClass('selected');
+			// 			}
+			// 		} else {
+			// 			liSelected = li.eq(0).addClass('selected');
+			// 		}
+			// 	} else if(e.which === 38) {
+			// 		if(liSelected) {
+			// 			liSelected.removeClass('selected');
+			// 			next = liSelected.prev();
+			// 			if(next.length > 0) {
+			// 				liSelected = next.addClass('selected');
+			// 			} else {
+			// 				liSelected = li.last().addClass('selected');
+			// 			}
+			// 		} else {
+			// 			liSelected = li.last().addClass('selected');
+			// 		}
+			// 	}
+			// }
+		// })
+	},
+
+	underline_alt_elements($list) {
+		console.log('list', $list);
+		let char_list = [];
+		let el_list = [];
+		$.each($list,(i,v)=> {
+			let $el = $(v);
+			if($el.is(':visible')) {
+				let el_obj={};
+				el_obj.$el = $el;
+				let text = $el.text().trim();
+				let i = 0;
+				let char = text.charAt(0);
+				console.log(char_list);
+				while(char_list.includes(char.toUpperCase())) {
+					i++;
+					char = text.charAt(i);
+				}
+				char_list.push(char.toUpperCase());
+				console.log(char);
+				let new_text = this.underline_character(text,i);
+				let new_html = $el.html().replace(text, new_text);
+				let shortcut = 'alt+'+text.charAt(i);
+				el_obj.shortcut = shortcut;
+				el_list.push(el_obj);
+				// char_list.push(text.charAt(0));
+				$el.html(new_html);
+			}
+		});
+		console.log('element list', el_list);
+		el_list.forEach((element)=> {
+			console.log('here');
+			let namespace = 'keyup.'+ element.shortcut.charAt(element.shortcut.length-1);
+			$(document).off(namespace);
+			if(element.$el.is(':visible')) {
+				console.log('visible');
+				this.keyboard_shortcut(element.shortcut, element.$el);
+			}
+		})
+		return el_list;
+	},
+
+	remove_alt_elements($list) {
+		$.each($list,(i,v)=> {
+			// let $el = $(v);
+			if(v.$el.is(':visible')) {
+				// let text = $el.text().trim();
+				// let new_text = this.remove_underline(text);
+				// console.log('new text', new_text);
+				let new_html = this.remove_underline(v.$el.html());
+				console.log(new_html);
+				v.$el.html(new_html);
+				let namespace = 'keyup.'+ v.shortcut.charAt(v.shortcut.length-1);
+				$(document).off(namespace);
+			}
+		});
+	},
+
+	underline_character(str, n) {
+		console.log('str', str);
+		let new_str;
+		new_str = str.slice(0,n) + "<u>"+str.charAt(n)+"</u>" + str.slice(n+1);
+		console.log('new str', new_str);
+		return new_str;
+	},
+
+	remove_underline(str) {
+		let new_str = str.replace('<u>','').replace('</u>','');
+		return new_str;
 	},
 
 	get_empty_state: function(title, message, primary_action) {
@@ -166,14 +353,17 @@ frappe.ui.Page = Class.extend({
 		}
 	},
 
-	set_primary_action: function(label, click, icon, working_label) {
+	set_primary_action: function(label, click, icon, shortcut, working_label) {
 		this.set_action(this.btn_primary, {
 			label: label,
 			click: click,
 			icon: icon,
-			working_label: working_label
+			working_label: working_label,
+			shortcut: shortcut
 		});
-
+		if(shortcut) {
+			this.keyboard_shortcut(shortcut,this.btn_primary);
+		}
 		return this.btn_primary;
 	},
 
@@ -212,8 +402,9 @@ frappe.ui.Page = Class.extend({
 
 	//--- Menu --//
 
-	add_menu_item: function(label, click, standard) {
-		return this.add_dropdown_item(label, click, standard, this.menu);
+	add_menu_item: function(label, click, standard, shortcut) {
+		// console.log('shortcut', shortcut)
+		return this.add_dropdown_item(label, click, standard, this.menu, shortcut);
 	},
 
 	clear_menu: function() {
@@ -271,15 +462,14 @@ frappe.ui.Page = Class.extend({
 	* @param {object} parent - DOM object representing the parent of the drop down item lists
 	* @param {Boolean} show_parent - Whether to show the dropdown button if dropdown item is added
 	*/
-	add_dropdown_item: function(label, click, standard, parent, show_parent=true) {
+	add_dropdown_item: function(label, click, standard, parent, shortcut, show_parent=true) {
 		let item_selector = 'li > a.grey-link';
 		if(show_parent) {
 			parent.parent().removeClass("hide");
 		}
-
-		var $li = $('<li><a class="grey-link">'+ label +'</a><li>'),
-			$link = $li.find("a").on("click", click);
-
+		if(shortcut) var $li = $('<li><a class="grey-link">'+ label + '<span class="text-muted"> ('+shortcut+')</span></a><li>');
+		else var $li = $('<li><a class="grey-link">'+ label +'</a><li>');
+		var $link = $li.find("a").on("click", click);
 		if (this.is_in_group_button_dropdown(parent, item_selector, label)) return;
 
 		if(standard) {
@@ -291,7 +481,10 @@ frappe.ui.Page = Class.extend({
 			}
 			$li.addClass("user-action").insertBefore(this.divider);
 		}
-
+		// console.log('parent', parent)
+		if(shortcut) {
+			this.keyboard_shortcut(shortcut, $li.find('a'));
+		}
 		return $link;
 	},
 

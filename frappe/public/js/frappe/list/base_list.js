@@ -173,10 +173,11 @@ frappe.views.BaseList = class BaseList {
 		}
 
 		this.menu_items.map(item => {
+			// console.log('item', item)
 			if (item.condition && item.condition() === false) {
 				return;
 			}
-			const $item = this.page.add_menu_item(item.label, item.action, item.standard);
+			const $item = this.page.add_menu_item(item.label, item.action, item.standard, item.shortcut);
 			if (item.class) {
 				$item && $item.addClass(item.class);
 			}
