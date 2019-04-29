@@ -41,6 +41,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_view() {
 		this.setup_columns();
 		this.bind_charts_button();
+		super.setup_new_doc_event();
 	}
 
 	setup_result_area() {

@@ -55,7 +55,7 @@
     "rollup-plugin-multi-entry": "^2.0.2",
     "rollup-plugin-node-resolve": "^4.0.1",
     "rollup-plugin-postcss": "^2.0.3",
-    "rollup-plugin-uglify": "^3.0.0",
+    "rollup-plugin-terser": "^4.0.4",
     "rollup-plugin-vue": "4.2.0",
     "vue-template-compiler": "^2.6.8"
   }

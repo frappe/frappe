@@ -46,9 +46,10 @@ class Database(object):
 	class InvalidColumnName(frappe.ValidationError): pass
 
 
-	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default=0):
+	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default=0, port=None):
 		self.setup_type_map()
 		self.host = host or frappe.conf.db_host or 'localhost'
+		self.port = port or frappe.conf.db_port or ''
 		self.user = user or frappe.conf.db_name
 		self.db_name = frappe.conf.db_name
 		self._conn = None
