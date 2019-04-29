@@ -181,6 +181,10 @@ class Database(object):
 			if(frappe.conf.db_type == 'postgres'):
 				self.rollback()
 
+			if frappe.conf.db_type == 'mariadb' and self.is_syntax_error(e):
+				frappe.errprint('Syntax error in query:')
+				frappe.errprint(query)
+
 			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
 			else:

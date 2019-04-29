@@ -164,6 +164,10 @@ class MariaDBDatabase(Database):
 	def cant_drop_field_or_key(e):
 		return e.args[0] == ER.CANT_DROP_FIELD_OR_KEY
 
+	@staticmethod
+	def is_syntax_error(e):
+		return e.args[0] == ER.PARSE_ERROR
+
 	def is_primary_key_violation(self, e):
 		return self.is_duplicate_entry(e) and 'PRIMARY' in cstr(e.args[1])
 
