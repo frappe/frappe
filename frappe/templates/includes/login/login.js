@@ -66,7 +66,7 @@ login.bind_events = function() {
 		}
 	});
 
-	{% if ldap_settings %}
+	{% if ldap_settings.enabled %}
 		$(".btn-ldap-login").on("click", function(){
 			var args = {};
 			args.cmd = "{{ ldap_settings.method }}";
