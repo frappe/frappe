@@ -17,7 +17,10 @@ class LDAPSettings(Document):
                                     base_dn=self.base_dn,
                                     password=self.get_password(raise_exception=False),
                                     ssl_tls_mode=self.ssl_tls_mode,
-                                    trusted_cert=self.require_trusted_certificate)
+                                    trusted_cert=self.require_trusted_certificate,
+                                    private_key_file=self.local_private_key_file,
+                                    server_cert_file=self.local_server_certificate_file,
+                                    ca_certs_file=self.local_ca_certs_file)
             else:
                 frappe.throw(_("LDAP Search String needs to end with a placeholder, eg sAMAccountName={0}"))
 
@@ -39,7 +42,10 @@ def connect_to_ldap(server_url,
                     base_dn,
                     password,
                     ssl_tls_mode,
-                    trusted_cert):
+                    trusted_cert,
+                    private_key_file,
+                    server_cert_file,
+                    ca_certs_file):
     try:
         import ldap3
         import ssl
@@ -50,6 +56,13 @@ def connect_to_ldap(server_url,
         else:
             tls_configuration = ldap3.Tls(validate=ssl.CERT_NONE,
                                           version=ssl.PROTOCOL_TLSv1)
+
+        if private_key_file:
+            tls_configuration.private_key_file = private_key_file
+        if server_cert_file:
+            tls_configuration.certificate_file = server_cert_file
+        if ca_certs_file:
+            tls_configuration.ca_certs_file = ca_certs_file
 
         server = ldap3.Server(host=server_url,
                               tls=tls_configuration)
@@ -98,7 +111,11 @@ def authenticate_ldap_user(user=None,
                                base_dn=settings.base_dn,
                                password=settings.get_password(raise_exception=False),
                                ssl_tls_mode=settings.ssl_tls_mode,
-                               trusted_cert=settings.require_trusted_certificate)
+                               trusted_cert=settings.require_trusted_certificate,
+                               private_key_file=settings.local_private_key_file,
+                               server_cert_file=settings.local_server_certificate_file,
+                               ca_certs_file=settings.local_ca_certs_file
+                               )
 
         filter = settings.ldap_search_string.format(user)
         conn.search(search_base=settings.organizational_unit,
@@ -116,7 +133,11 @@ def authenticate_ldap_user(user=None,
                             base_dn=user.entry_dn,
                             password=frappe.as_unicode(password),
                             ssl_tls_mode=settings.ssl_tls_mode,
-                            trusted_cert=settings.require_trusted_certificate)
+                            trusted_cert=settings.require_trusted_certificate,
+                            private_key_file=settings.local_private_key_file,
+                            server_cert_file=settings.local_server_certificate_file,
+                            ca_certs_file=settings.local_ca_certs_file
+                            )
             return create_user(params)
         else:
             frappe.throw(_("Not a valid LDAP user"))
