@@ -80,6 +80,23 @@ frappe.search.utils = {
 		return options;
 	},
 
+	get_frequent_links() {
+		let options = [];
+		frappe.boot.frequently_visited_links.forEach(link => {
+			const label = frappe.utils.get_route_label(link.route);
+			options.push({
+				'route': link.route,
+				'label': label,
+				'value': label,
+				'index': link.count,
+			});
+		});
+		if (!options.length) {
+			return this.get_recent_pages('');
+		}
+		return options;
+	},
+
 	get_search_in_list: function(keywords) {
 		var me = this;
 		var out = [];
