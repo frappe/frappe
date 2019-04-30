@@ -42,10 +42,10 @@ def get_pdf(html, options=None, output=None):
 		else:
 			raise
 
-	password = options["password"]
-
-	if six.PY2:
-		password = frappe.safe_encode(password)
+	if "password" in options:
+		password = options["password"]
+		if six.PY2:
+			password = frappe.safe_encode(password)
 
 	if output:
 		# Encrypt if required
@@ -54,7 +54,6 @@ def get_pdf(html, options=None, output=None):
 		return get_file_data_from_writer(output)
 
 	writer = PdfFileWriter()
-
 	writer.appendPagesFromReader(reader)
 
 	if "password" in options:
