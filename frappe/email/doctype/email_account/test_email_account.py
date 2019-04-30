@@ -26,8 +26,10 @@ class TestEmailAccount(unittest.TestCase):
 		email_account.db_set("enable_incoming", 0)
 
 	def test_incoming(self):
-		frappe.db.sql("""delete c.* from `tabCommunication` c inner join `tabDynamic Link` d on c.name=d.parent
-			where c.sender='test_sender@example.com'""")
+		for value in frappe.get_all("Communication", filters={"sender": "test_sender@example.com"}):
+			for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+				frappe.delete_doc_if_exists("Dynamic Link", child)
+			frappe.delete_doc_if_exists("Communication", value)
 
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-1.raw"), "r") as f:
 			test_mails = [f.read()]
@@ -56,8 +58,10 @@ class TestEmailAccount(unittest.TestCase):
 				"reference_name": links.link_name, "status":"Not Sent"}))
 
 	def test_incoming_with_attach(self):
-		frappe.db.sql("""delete c.* from `tabCommunication` c inner join `tabDynamic Link` d on c.name=d.parent
-			where c.sender='test_sender@example.com'""")
+		for value in frappe.get_all("Communication", filters={"sender": "test_sender@example.com"}):
+			for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+				frappe.delete_doc_if_exists("Dynamic Link", child)
+			frappe.delete_doc_if_exists("Communication", value)
 
 		existing_file = frappe.get_doc({'doctype': 'File', 'file_name': 'erpnext-conf-14.png'})
 		frappe.delete_doc("File", existing_file.name)
@@ -80,8 +84,10 @@ class TestEmailAccount(unittest.TestCase):
 		frappe.delete_doc("File", existing_file.name)
 
 	def test_incoming_attached_email_from_outlook_plain_text_only(self):
-		frappe.db.sql("""delete c.* from `tabCommunication` c inner join `tabDynamic Link` d on c.name=d.parent
-			where c.sender='test_sender@example.com'""")
+		for value in frappe.get_all("Communication", filters={"sender": "test_sender@example.com"}):
+			for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+				frappe.delete_doc_if_exists("Dynamic Link", child)
+			frappe.delete_doc_if_exists("Communication", value)
 
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-3.raw"), "r") as f:
 			test_mails = [f.read()]
@@ -94,8 +100,10 @@ class TestEmailAccount(unittest.TestCase):
 		self.assertTrue("This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content)
 
 	def test_incoming_attached_email_from_outlook_layers(self):
-		frappe.db.sql("""delete c.* from `tabCommunication` c inner join `tabDynamic Link` d on c.name=d.parent
-			where c.sender='test_sender@example.com'""")
+		for value in frappe.get_all("Communication", filters={"sender": "test_sender@example.com"}):
+			for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+				frappe.delete_doc_if_exists("Dynamic Link", child)
+			frappe.delete_doc_if_exists("Communication", value)
 
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-4.raw"), "r") as f:
 			test_mails = [f.read()]
@@ -108,8 +116,10 @@ class TestEmailAccount(unittest.TestCase):
 		self.assertTrue("This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content)
 
 	def test_outgoing(self):
-		frappe.db.sql("""delete c.* from `tabCommunication` c inner join `tabDynamic Link` d on c.name=d.parent
-			where c.sender='test_sender@example.com'""")
+		for value in frappe.get_all("Communication", filters={"sender": "test_sender@example.com"}):
+			for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+				frappe.delete_doc_if_exists("Dynamic Link", child)
+			frappe.delete_doc_if_exists("Communication", value)
 
 		make(sender="test_sender@example.com", recipients="test_receiver@example.com", subject = "test-mail-000",
 		content="test mail 000", send_email=True)
@@ -118,8 +128,10 @@ class TestEmailAccount(unittest.TestCase):
 		self.assertTrue("test-mail-000" in mail.get("Subject"))
 
 	def test_sendmail(self):
-		frappe.db.sql("""delete c.* from `tabCommunication` c inner join `tabDynamic Link` d on c.name=d.parent
-			where c.sender='test_sender@example.com'""")
+		for value in frappe.get_all("Communication", filters={"sender": "test_sender@example.com"}):
+			for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+				frappe.delete_doc_if_exists("Dynamic Link", child)
+			frappe.delete_doc_if_exists("Communication", value)
 
 		frappe.sendmail(sender="test_sender@example.com", recipients="test_recipient@example.com",
 			content="test mail 001", subject="test-mail-001", delayed=False)
@@ -139,8 +151,10 @@ class TestEmailAccount(unittest.TestCase):
 		self.assertTrue("test-mail-002" in sent_mail.get("Subject"))
 
 	def test_threading(self):
-		frappe.db.sql("""delete c.* from `tabCommunication` c inner join `tabDynamic Link` d on c.name=d.parent
-			where c.sender='test@example.com'""")
+		for value in frappe.get_all("Communication", filters={"sender": "test@example.com"}):
+			for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+				frappe.delete_doc_if_exists("Dynamic Link", child)
+			frappe.delete_doc_if_exists("Communication", value)
 
 		# send
 		sent_name = make(subject = "Test", content="test content", recipients="test_receiver@example.com",
@@ -168,8 +182,10 @@ class TestEmailAccount(unittest.TestCase):
 			self.assertTrue(sent_links[idx].link_doctype, comm_links[idx].link_doctype)
 
 	def test_threading_by_subject(self):
-		frappe.db.sql("""delete c.* from `tabCommunication` c inner join `tabDynamic Link` d on c.name=d.parent
-			where c.sender in ('test_sender@example.com', 'test@example.com')""")
+		for value in frappe.get_all("Communication", filters={"sender": "test_sender@example.com"}, or_filters={"sender": "test@example.com"}):
+			for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+				frappe.delete_doc_if_exists("Dynamic Link", child)
+			frappe.delete_doc_if_exists("Communication", value)
 
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-2.raw"), "r") as f:
 			test_mails = [f.read()]
@@ -200,7 +216,10 @@ class TestEmailAccount(unittest.TestCase):
 		self.assertEqual(len(comm_links), counter)
 
 	def test_threading_by_message_id(self):
-		frappe.db.sql("""delete c.* from `tabCommunication` c inner join `tabDynamic Link` d on c.name=d.parent""")
+		for value in frappe.get_all("Communication"):
+			for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+				frappe.delete_doc_if_exists("Dynamic Link", child)
+			frappe.delete_doc_if_exists("Communication", value)
 		frappe.db.sql("""delete from `tabEmail Queue`""")
 
 		# reference document for testing
