@@ -105,8 +105,6 @@ def authenticate_ldap_user(user=None,
     params = {}
     settings = frappe.get_doc("LDAP Settings")
     if settings and settings.enabled:
-        import ldap3
-
         conn = connect_to_ldap(server_url=settings.ldap_server_url,
                                base_dn=settings.base_dn,
                                password=settings.get_password(raise_exception=False),
@@ -114,12 +112,11 @@ def authenticate_ldap_user(user=None,
                                trusted_cert=settings.require_trusted_certificate,
                                private_key_file=settings.local_private_key_file,
                                server_cert_file=settings.local_server_certificate_file,
-                               ca_certs_file=settings.local_ca_certs_file
-                               )
+                               ca_certs_file=settings.local_ca_certs_file)
 
-        filter = settings.ldap_search_string.format(user)
+        user_filter = settings.ldap_search_string.format(user)
         conn.search(search_base=settings.organizational_unit,
-                    search_filter="({0})".format(filter),
+                    search_filter="({0})".format(user_filter),
                     attributes=[settings.ldap_email_field,
                                 settings.ldap_username_field,
                                 settings.ldap_first_name_field])
