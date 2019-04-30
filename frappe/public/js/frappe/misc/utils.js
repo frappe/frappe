@@ -670,6 +670,63 @@ Object.assign(frappe.utils, {
 		return deep_equal(a, b);
 	},
 
+    new_auto_repeat_prompt: function (frm) {
+        const fields = [
+            {
+                'fieldname': 'start_date',
+                'fieldtype': 'Date',
+                'label': __('Start Date'),
+                'default': frappe.datetime.nowdate()
+            },
+            {
+                'fieldname': 'end_date',
+                'fieldtype': 'Date',
+                'label': __('End Date')
+            },
+            {
+                'fieldname': 'frequency',
+                'fieldtype': 'Select',
+                'label': __('Frequency'),
+                'reqd': 1,
+                'options': [
+                    {'label': __('Daily'), 'value': 'Daily'},
+                    {'label': __('Weekly'), 'value': 'Weekly'},
+                    {'label': __('Monthly'), 'value': 'Monthly'},
+                    {'label': __('Quarterly'), 'value': 'Quarterly'},
+                    {'label': __('Half-yearly'), 'value': 'Half-yearly'},
+                    {'label': __('Yearly'), 'value': 'Yearly'}
+                ]
+            }
+        ];
+
+        frappe.prompt(fields, function (values) {
+                frappe.call({
+                    method: "frappe.desk.doctype.auto_repeat.auto_repeat.make_auto_repeat",
+                    args: {
+                        'doctype': frm.doc.doctype,
+                        'docname': frm.doc.name,
+                        'submit': true,
+                        'opts': {
+                            'start_date': values['start_date'],
+                            'end_date': values['end_date'],
+                            'frequency': values['frequency']
+                        }
+                    },
+                    callback: function (r) {
+                        if (r.message) {
+                            frappe.show_alert({
+                                'message': __("Successfully created repeating task"),
+                                'indicator': 'green'
+                            });
+                        }
+                    }
+                });
+            },
+            __('Auto Repeat'),
+            __('Submit')
+        );
+    },
+
 	file_name_ellipsis(filename, length) {
 		let first_part_length = length * 2 / 3;
 		let last_part_length = length - first_part_length;
