@@ -114,13 +114,8 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	set_default_print_language: function () {
  		var print_format = this.get_print_format();
-
- 		if (print_format.default_print_language) {
- 			this.lang_code = print_format.default_print_language;
- 			this.language_sel.val(this.lang_code);
- 		} else {
-			this.language_sel.val(frappe.boot.lang);
-		}
+		this.lang_code = print_format.default_print_format || frappe.boot.lang;
+		this.language_sel.val(this.lang_code);
  	},
 	multilingual_preview: function () {
 		var me = this;
@@ -210,7 +205,10 @@ frappe.ui.form.PrintPreview = Class.extend({
 		}
 	},
 	get_print_html: function (callback) {
-		frappe.call({
+		if (this._req) {
+			this._req.abort();
+		}
+		this._req = frappe.call({
 			method: "frappe.www.printview.get_html_and_style",
 			args: {
 				doc: this.frm.doc,
