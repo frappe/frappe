@@ -47,7 +47,15 @@ class TestEmailAccount(unittest.TestCase):
 			self.assertTrue(frappe.db.get_value(links.link_doctype, links.link_name, "name"))
 
 	def test_unread_notification(self):
-		self.test_incoming()
+		for value in frappe.get_all("Communication", filters={"sender": "test_sender@example.com"}):
+			if value:
+				for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+					if child:
+						frappe.delete_doc("Dynamic Link", child)
+				frappe.delete_doc("Communication", value)
+
+		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-1.raw"), "r") as f:
+			test_mails = [f.read()]
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		comm.db_set("creation", datetime.now() - timedelta(seconds = 30 * 60))
