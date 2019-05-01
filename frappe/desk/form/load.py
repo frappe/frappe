@@ -177,7 +177,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 			and (`tabDynamic Link`.link_doctype=%(doctype)s and `tabDynamic Link`.link_name=%(name)s)
 			and (`tabCommunication`.communication_type='Communication')'''
 
-  if after:
+	if after:
 		# find after a particular date
 		conditions+= ' and `tabCommunication`.creation > {0}'.format(after)
 
