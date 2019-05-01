@@ -648,10 +648,10 @@ Object.assign(frappe.utils, {
 	},
 	get_route_label(route_str) {
 		let route = route_str.split('/');
-		if (['List', 'modules'].includes(route[0])){
+		if (['List', 'modules'].includes(route[0])) {
 			return `${route[1]} ${route[2] || route[0]}`;
 		} else {
-			return `${route[0]} ${route[1]}`;
+			return `${frappe.utils.to_title_case(route[0], true)} ${route[1]}`;
 		}
 	},
 	report_column_total: function(values, column, type) {
