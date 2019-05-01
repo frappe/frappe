@@ -5,7 +5,7 @@ frappe.provide("frappe.ui.form");
 
 frappe.ui.form.Review = class Review {
 	constructor({parent, frm}) {
-		this.$wrapper = parent;
+		this.parent = parent;
 		this.frm = frm;
 		this.points = frappe.boot.points;
 		this.make_review_container();
@@ -21,7 +21,7 @@ frappe.ui.form.Review = class Review {
 		});
 	}
 	make_review_container() {
-		this.review_list_wrapper = this.$wrapper.find('.review-list');
+		this.review_list_wrapper = this.parent.find('.review-list');
 	}
 	add_review_button() {
 

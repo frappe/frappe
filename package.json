@@ -24,7 +24,7 @@
     "cookie": "^0.3.1",
     "express": "^4.16.2",
     "fast-deep-equal": "^2.0.1",
-    "frappe-datatable": "^1.12.1",
+    "frappe-datatable": "^1.12.2",
     "frappe-gantt": "^0.1.0",
     "fuse.js": "^3.2.0",
     "highlight.js": "^9.12.0",
@@ -55,7 +55,7 @@
     "rollup-plugin-multi-entry": "^2.0.2",
     "rollup-plugin-node-resolve": "^4.0.1",
     "rollup-plugin-postcss": "^2.0.3",
-    "rollup-plugin-uglify": "^3.0.0",
+    "rollup-plugin-terser": "^4.0.4",
     "rollup-plugin-vue": "4.2.0",
     "vue-template-compiler": "^2.6.8"
   }

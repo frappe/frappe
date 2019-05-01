@@ -7,6 +7,8 @@ import frappe
 import re
 import redis
 import json
+import os
+from bs4 import BeautifulSoup
 from frappe.utils import cint, strip_html_tags
 from frappe.model.base_document import get_controller
 from six import text_type
@@ -269,12 +271,65 @@ def update_global_search(doc):
 			route=route
 		)
 
-		try:
-			# append to search queue if connected
-			frappe.cache().lpush('global_search_queue', json.dumps(value))
-		except redis.exceptions.ConnectionError:
-			# not connected, sync directly
-			sync_value(value)
+		sync_value_in_queue(value)
+
+def update_global_search_for_all_web_pages():
+	files_to_index = get_web_pages_to_index()
+	add_web_pages_to_global_search(files_to_index)
+
+
+def get_web_pages_to_index():
+	apps = frappe.get_installed_apps()
+
+	files_to_index = {}
+	for app in apps:
+		base = frappe.get_app_path(app, 'www')
+		path_to_index = frappe.get_app_path(app, 'www')
+
+		for dirpath, _, filenames in os.walk(path_to_index, topdown=True):
+			for f in filenames:
+				if f.endswith(('.md', '.html')):
+					filepath = os.path.join(dirpath, f)
+
+					route = os.path.relpath(filepath, base)
+					route = '/' + route.split('.')[0]
+
+					if route.endswith('index'):
+						route = route.rsplit('index', 1)[0]
+
+					files_to_index[route] = filepath
+
+	return files_to_index
+
+
+def add_web_pages_to_global_search(files_to_index):
+	for route, filepath in files_to_index.items():
+		content = frappe.read_file(filepath)
+		if filepath.endswith('.html'):
+			content_html = content
+			content_md = frappe.utils.to_markdown(content)
+		else:
+			content_md = content
+			content_html = frappe.utils.md_to_html(content)
+
+		soup = BeautifulSoup(content_html, 'html.parser')
+
+		h1 = soup.find('h1')
+		title = h1.text if h1 else None
+		if not title:
+			title = frappe.unscrub(os.path.basename(filepath).split('.')[0])
+
+		value = dict(
+			doctype='Static Web Page',
+			name=route,
+			content=content_md,
+			published=1,
+			title=title,
+			route=route
+		)
+
+		sync_value_in_queue(value)
+
 
 
 def get_formatted_value(value, field):
@@ -304,6 +359,14 @@ def sync_global_search():
 	"""
 	while frappe.cache().llen('global_search_queue') > 0:
 		value = json.loads(frappe.cache().lpop('global_search_queue').decode('utf-8'))
+		sync_value(value)
+
+def sync_value_in_queue(value):
+	try:
+		# append to search queue if connected
+		frappe.cache().lpush('global_search_queue', json.dumps(value))
+	except redis.exceptions.ConnectionError:
+		# not connected, sync directly
 		sync_value(value)
 
 def sync_value(value):
@@ -393,10 +456,11 @@ def search(text, start=0, limit=20, doctype=""):
 
 
 @frappe.whitelist(allow_guest=True)
-def web_search(text, start=0, limit=20):
+def web_search(text, scope=None, start=0, limit=20):
 	"""
 	Search for given text in __global_search where published = 1
 	:param text: phrase to be searched
+	:param scope: search only in this route, for e.g /docs
 	:param start: start results at, default 0
 	:param limit: number of results to return, default 20
 	:return: Array of result objects
@@ -410,9 +474,13 @@ def web_search(text, start=0, limit=20):
 			WHERE {conditions}
 			LIMIT {limit} OFFSET {start}'''
 
-		mariadb_conditions = postgres_conditions = "`published` = 1 AND "
+		scope_condition = '`route` like "{}%" AND '.format(scope) if scope else ''
+		published_condition = '`published` = 1 AND '
+		mariadb_conditions = postgres_conditions = ' '.join([published_condition, scope_condition])
 
-		mariadb_conditions += 'MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)'.format(frappe.db.escape('+' + text + '*'))
+		# https://mariadb.com/kb/en/library/full-text-index-overview/#in-boolean-mode
+		text = '"{}"'.format(text)
+		mariadb_conditions += 'MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)'.format(frappe.db.escape(text))
 		postgres_conditions += 'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({})'.format(frappe.db.escape(text))
 
 		result = frappe.db.multisql({

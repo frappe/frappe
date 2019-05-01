@@ -191,8 +191,8 @@ def connect(site=None, db_name=None):
 def connect_read_only():
 	from frappe.database import get_db
 
-	local.read_only_db = get_db(local.conf.slave_host, local.conf.slave_db_name,
-		local.conf.slave_db_password)
+	local.read_only_db = get_db(host=local.conf.slave_host, user=local.conf.slave_db_name,
+		password=local.conf.slave_db_password)
 
 	# swap db connections
 	local.master_db = local.db
@@ -1262,7 +1262,7 @@ def get_all(doctype, *args, **kwargs):
 	:param fields: List of fields or `*`. Default is: `["name"]`.
 	:param filters: List of filters (see example).
 	:param order_by: Order By e.g. `modified desc`.
-	:param limit_page_start: Start results at record #. Default 0.
+	:param limit_start: Start results at record #. Default 0.
 	:param limit_page_length: No of records in the page. Default 20.
 
 	Example usage:
@@ -1297,7 +1297,7 @@ def get_value(*args, **kwargs):
 
 def as_json(obj, indent=1):
 	from frappe.utils.response import json_handler
-	return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler)
+	return json.dumps(obj, indent=indent, sort_keys=True, default=json_handler, separators=(',', ': '))
 
 def are_emails_muted():
 	from frappe.utils import cint

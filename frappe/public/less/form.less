@@ -48,6 +48,14 @@
 	border-bottom: 1px solid @border-color;
 }
 
+.form-message.yellow {
+	background-color: @light-yellow;
+}
+
+.form-message.blue {
+		background-color: @blue-extra-light;
+}
+
 .document-flow-wrapper {
 	padding: 40px 15px 30px;
 	font-size: @text-medium;
@@ -135,14 +143,11 @@
 }
 
 .form-heatmap {
+	padding: 0px 30px 15px 30px;
 
 	.heatmap {
 		display: flex;
 		justify-content: center;
-	}
-
-	.heatmap-message {
-		margin-top: 10px;
 	}
 
 	@media (max-width: @screen-sm) {
@@ -574,13 +579,15 @@ h6.uppercase, .h6.uppercase {
 	.timeline-indicator();
 }
 
-.timeline-item.notification-content.dark::before {
-	background-color: @text-color;
+.timeline-item {
+	.reply-link, .reply-link-all {
+		margin-left: 15px;
+		font-size: 12px;
+	}
 }
 
-.timeline-item .reply-link {
-	margin-left: 15px;
-	font-size: 12px;
+.timeline-item.notification-content.dark::before {
+	background-color: @text-color;
 }
 
 .timeline-head {
@@ -706,7 +713,7 @@ h6.uppercase, .h6.uppercase {
 }
 
 .frappe-control& {
-	margin-bottom: 10px;
+	margin-bottom: 15px;
 
 	.help-box {
 		margin-top: 3px;
