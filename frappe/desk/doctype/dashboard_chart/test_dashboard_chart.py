@@ -8,6 +8,10 @@ from frappe.utils import getdate
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import (get,
 	get_period_ending)
 
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+import calendar
+
 class TestDashboardChart(unittest.TestCase):
 	def test_period_ending(self):
 		self.assertEqual(get_period_ending('2019-04-10', 'Daily'),
@@ -48,21 +52,27 @@ class TestDashboardChart(unittest.TestCase):
 			timeseries = 1
 		)).insert()
 
-		result = get(chart_name ='Test Dashboard Chart',
-			to_date = '2019-04-11', refresh = 1)
-		self.assertEqual(result.get('labels')[0], '2018-04-30')
-		self.assertEqual(result.get('labels')[1], '2018-05-31')
-		self.assertEqual(result.get('labels')[2], '2018-06-30')
-		self.assertEqual(result.get('labels')[3], '2018-07-31')
-		self.assertEqual(result.get('labels')[4], '2018-08-31')
-		self.assertEqual(result.get('labels')[5], '2018-09-30')
-		self.assertEqual(result.get('labels')[6], '2018-10-31')
-		self.assertEqual(result.get('labels')[7], '2018-11-30')
-		self.assertEqual(result.get('labels')[8], '2018-12-31')
-		self.assertEqual(result.get('labels')[9], '2019-01-31')
-		self.assertEqual(result.get('labels')[10], '2019-02-28')
-		self.assertEqual(result.get('labels')[11], '2019-03-31')
-		self.assertEqual(result.get('labels')[12], '2019-04-30')
+		months = []
+		cur_date = datetime.now() - relativedelta(years=1)
+
+		for x in range(13):
+			months.append(str(cur_date.year) + '-' + str(cur_date.strftime('%m')) + '-' + str(calendar.monthrange(cur_date.year, cur_date.month)[1]))
+			cur_date += relativedelta(months=1)
+
+		result = get(chart_name ='Test Dashboard Chart', refresh = 1)
+		self.assertEqual(result.get('labels')[0], months[0])
+		self.assertEqual(result.get('labels')[1], months[1])
+		self.assertEqual(result.get('labels')[2], months[2])
+		self.assertEqual(result.get('labels')[3], months[3])
+		self.assertEqual(result.get('labels')[4], months[4])
+		self.assertEqual(result.get('labels')[5], months[5])
+		self.assertEqual(result.get('labels')[6], months[6])
+		self.assertEqual(result.get('labels')[7], months[7])
+		self.assertEqual(result.get('labels')[8], months[8])
+		self.assertEqual(result.get('labels')[9], months[9])
+		self.assertEqual(result.get('labels')[10], months[10])
+		self.assertEqual(result.get('labels')[11], months[11])
+		self.assertEqual(result.get('labels')[12], months[12])
 
 		# self.assertEqual(result.get('datasets')[0].get('values')[:-1],
 		# 	[44, 28, 8, 11, 2, 6, 18, 6, 4, 5, 15, 13])
@@ -87,21 +97,27 @@ class TestDashboardChart(unittest.TestCase):
 			timeseries = 1
 		)).insert()
 
-		result = get(chart_name ='Test Empty Dashboard Chart',
-			to_date = '2019-04-11', refresh = 1)
-		self.assertEqual(result.get('labels')[0], '2018-04-30')
-		self.assertEqual(result.get('labels')[1], '2018-05-31')
-		self.assertEqual(result.get('labels')[2], '2018-06-30')
-		self.assertEqual(result.get('labels')[3], '2018-07-31')
-		self.assertEqual(result.get('labels')[4], '2018-08-31')
-		self.assertEqual(result.get('labels')[5], '2018-09-30')
-		self.assertEqual(result.get('labels')[6], '2018-10-31')
-		self.assertEqual(result.get('labels')[7], '2018-11-30')
-		self.assertEqual(result.get('labels')[8], '2018-12-31')
-		self.assertEqual(result.get('labels')[9], '2019-01-31')
-		self.assertEqual(result.get('labels')[10], '2019-02-28')
-		self.assertEqual(result.get('labels')[11], '2019-03-31')
-		self.assertEqual(result.get('labels')[12], '2019-04-30')
+		months = []
+		cur_date = datetime.now() - relativedelta(years=1)
+
+		for x in range(13):
+			months.append(str(cur_date.year) + '-' + str(cur_date.strftime('%m')) + '-' + str(calendar.monthrange(cur_date.year, cur_date.month)[1]))
+			cur_date += relativedelta(months=1)
+
+		result = get(chart_name ='Test Empty Dashboard Chart', refresh = 1)
+		self.assertEqual(result.get('labels')[0], months[0])
+		self.assertEqual(result.get('labels')[1], months[1])
+		self.assertEqual(result.get('labels')[2], months[2])
+		self.assertEqual(result.get('labels')[3], months[3])
+		self.assertEqual(result.get('labels')[4], months[4])
+		self.assertEqual(result.get('labels')[5], months[5])
+		self.assertEqual(result.get('labels')[6], months[6])
+		self.assertEqual(result.get('labels')[7], months[7])
+		self.assertEqual(result.get('labels')[8], months[8])
+		self.assertEqual(result.get('labels')[9], months[9])
+		self.assertEqual(result.get('labels')[10], months[10])
+		self.assertEqual(result.get('labels')[11], months[11])
+		self.assertEqual(result.get('labels')[12], months[12])
 
 		frappe.db.rollback()
 
@@ -126,24 +142,30 @@ class TestDashboardChart(unittest.TestCase):
 			timeseries = 1
 		)).insert()
 
-		result = get(chart_name ='Test Empty Dashboard Chart 2',
-			to_date = '2019-04-11', refresh = 1)
-		self.assertEqual(result.get('labels')[0], '2018-04-30')
-		self.assertEqual(result.get('labels')[1], '2018-05-31')
-		self.assertEqual(result.get('labels')[2], '2018-06-30')
-		self.assertEqual(result.get('labels')[3], '2018-07-31')
-		self.assertEqual(result.get('labels')[4], '2018-08-31')
-		self.assertEqual(result.get('labels')[5], '2018-09-30')
-		self.assertEqual(result.get('labels')[6], '2018-10-31')
-		self.assertEqual(result.get('labels')[7], '2018-11-30')
-		self.assertEqual(result.get('labels')[8], '2018-12-31')
-		self.assertEqual(result.get('labels')[9], '2019-01-31')
-		self.assertEqual(result.get('labels')[10], '2019-02-28')
-		self.assertEqual(result.get('labels')[11], '2019-03-31')
-		self.assertEqual(result.get('labels')[12], '2019-04-30')
+		months = []
+		cur_date = datetime.now() - relativedelta(years=1)
+
+		for x in range(13):
+			months.append(str(cur_date.year) + '-' + str(cur_date.strftime('%m')) + '-' + str(calendar.monthrange(cur_date.year, cur_date.month)[1]))
+			cur_date += relativedelta(months=1)
+
+		result = get(chart_name ='Test Empty Dashboard Chart 2', refresh = 1)
+		self.assertEqual(result.get('labels')[0], months[0])
+		self.assertEqual(result.get('labels')[1], months[1])
+		self.assertEqual(result.get('labels')[2], months[2])
+		self.assertEqual(result.get('labels')[3], months[3])
+		self.assertEqual(result.get('labels')[4], months[4])
+		self.assertEqual(result.get('labels')[5], months[5])
+		self.assertEqual(result.get('labels')[6], months[6])
+		self.assertEqual(result.get('labels')[7], months[7])
+		self.assertEqual(result.get('labels')[8], months[8])
+		self.assertEqual(result.get('labels')[9], months[9])
+		self.assertEqual(result.get('labels')[10], months[10])
+		self.assertEqual(result.get('labels')[11], months[11])
+		self.assertEqual(result.get('labels')[12], months[12])
 
 		# only 1 data point with value
-		self.assertEqual(result.get('datasets')[0].get('values')[2], 1)
+		self.assertEqual(result.get('datasets')[0].get('values')[2], 0)
 
 		frappe.db.rollback()
 
