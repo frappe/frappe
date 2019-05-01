@@ -658,7 +658,7 @@ Object.assign(frappe.utils, {
 		if (route[0] === 'modules') {
 			return __('{0} Modules', [route[1]]);
 		}
-		return __(route[0]);
+		return __(frappe.utils.to_title_case(route[0], true));
 	},
 	report_column_total: function(values, column, type) {
 		if (column.column.fieldtype == "Percent" || type === "mean") {
