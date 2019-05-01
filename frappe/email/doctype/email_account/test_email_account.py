@@ -27,9 +27,11 @@ class TestEmailAccount(unittest.TestCase):
 
 	def test_incoming(self):
 		for value in frappe.get_all("Communication", filters={"sender": "test_sender@example.com"}):
-			for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
-				frappe.delete_doc_if_exists("Dynamic Link", child)
-			frappe.delete_doc_if_exists("Communication", value)
+			if value:
+				for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+					if child:
+						frappe.delete_doc("Dynamic Link", child)
+				frappe.delete_doc("Communication", value)
 
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-1.raw"), "r") as f:
 			test_mails = [f.read()]
@@ -59,9 +61,11 @@ class TestEmailAccount(unittest.TestCase):
 
 	def test_incoming_with_attach(self):
 		for value in frappe.get_all("Communication", filters={"sender": "test_sender@example.com"}):
-			for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
-				frappe.delete_doc_if_exists("Dynamic Link", child)
-			frappe.delete_doc_if_exists("Communication", value)
+			if value:
+				for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+					if child:
+						frappe.delete_doc("Dynamic Link", child)
+				frappe.delete_doc("Communication", value)
 
 		existing_file = frappe.get_doc({'doctype': 'File', 'file_name': 'erpnext-conf-14.png'})
 		frappe.delete_doc("File", existing_file.name)
@@ -85,9 +89,11 @@ class TestEmailAccount(unittest.TestCase):
 
 	def test_incoming_attached_email_from_outlook_plain_text_only(self):
 		for value in frappe.get_all("Communication", filters={"sender": "test_sender@example.com"}):
-			for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
-				frappe.delete_doc_if_exists("Dynamic Link", child)
-			frappe.delete_doc_if_exists("Communication", value)
+			if value:
+				for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+					if child:
+						frappe.delete_doc("Dynamic Link", child)
+				frappe.delete_doc("Communication", value)
 
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-3.raw"), "r") as f:
 			test_mails = [f.read()]
@@ -101,9 +107,11 @@ class TestEmailAccount(unittest.TestCase):
 
 	def test_incoming_attached_email_from_outlook_layers(self):
 		for value in frappe.get_all("Communication", filters={"sender": "test_sender@example.com"}):
-			for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
-				frappe.delete_doc_if_exists("Dynamic Link", child)
-			frappe.delete_doc_if_exists("Communication", value)
+			if value:
+				for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+					if child:
+						frappe.delete_doc("Dynamic Link", child)
+				frappe.delete_doc("Communication", value)
 
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-4.raw"), "r") as f:
 			test_mails = [f.read()]
@@ -117,9 +125,11 @@ class TestEmailAccount(unittest.TestCase):
 
 	def test_outgoing(self):
 		for value in frappe.get_all("Communication", filters={"sender": "test_sender@example.com"}):
-			for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
-				frappe.delete_doc_if_exists("Dynamic Link", child)
-			frappe.delete_doc_if_exists("Communication", value)
+			if value:
+				for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+					if child:
+						frappe.delete_doc("Dynamic Link", child)
+				frappe.delete_doc("Communication", value)
 
 		make(sender="test_sender@example.com", recipients="test_receiver@example.com", subject = "test-mail-000",
 		content="test mail 000", send_email=True)
@@ -129,9 +139,11 @@ class TestEmailAccount(unittest.TestCase):
 
 	def test_sendmail(self):
 		for value in frappe.get_all("Communication", filters={"sender": "test_sender@example.com"}):
-			for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
-				frappe.delete_doc_if_exists("Dynamic Link", child)
-			frappe.delete_doc_if_exists("Communication", value)
+			if value:
+				for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+					if child:
+						frappe.delete_doc("Dynamic Link", child)
+				frappe.delete_doc("Communication", value)
 
 		frappe.sendmail(sender="test_sender@example.com", recipients="test_recipient@example.com",
 			content="test mail 001", subject="test-mail-001", delayed=False)
@@ -140,8 +152,12 @@ class TestEmailAccount(unittest.TestCase):
 		self.assertTrue("test-mail-001" in sent_mail.get("Subject"))
 
 	def test_print_format(self):
-		frappe.db.sql("""delete c.* from `tabCommunication` c inner join `tabDynamic Link` d on c.name=d.parent
-			where c.sender='test_sender@example.com'""")
+		for value in frappe.get_all("Communication", filters={"sender": "test_sender@example.com"}):
+			if value:
+				for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+					if child:
+						frappe.delete_doc("Dynamic Link", child)
+				frappe.delete_doc("Communication", value)
 
 		make(sender="test_sender@example.com", recipients="test_recipient@example.com",
 			content="test mail 001", subject="test-mail-002", doctype="Email Account",
@@ -152,9 +168,11 @@ class TestEmailAccount(unittest.TestCase):
 
 	def test_threading(self):
 		for value in frappe.get_all("Communication", filters={"sender": "test@example.com"}):
-			for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
-				frappe.delete_doc_if_exists("Dynamic Link", child)
-			frappe.delete_doc_if_exists("Communication", value)
+			if value:
+				for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+					if child:
+						frappe.delete_doc("Dynamic Link", child)
+				frappe.delete_doc("Communication", value)
 
 		# send
 		sent_name = make(subject = "Test", content="test content", recipients="test_receiver@example.com",
@@ -183,9 +201,11 @@ class TestEmailAccount(unittest.TestCase):
 
 	def test_threading_by_subject(self):
 		for value in frappe.get_all("Communication", filters={"sender": "test_sender@example.com"}, or_filters={"sender": "test@example.com"}):
-			for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
-				frappe.delete_doc_if_exists("Dynamic Link", child)
-			frappe.delete_doc_if_exists("Communication", value)
+			if value:
+				for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+					if child:
+						frappe.delete_doc("Dynamic Link", child)
+				frappe.delete_doc("Communication", value)
 
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-2.raw"), "r") as f:
 			test_mails = [f.read()]
@@ -217,9 +237,11 @@ class TestEmailAccount(unittest.TestCase):
 
 	def test_threading_by_message_id(self):
 		for value in frappe.get_all("Communication"):
-			for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
-				frappe.delete_doc_if_exists("Dynamic Link", child)
-			frappe.delete_doc_if_exists("Communication", value)
+			if value:
+				for child in frappe.get_all("Dynamic Link", filters={"parent": value}):
+					if child:
+						frappe.delete_doc("Dynamic Link", child)
+				frappe.delete_doc("Communication", value)
 		frappe.db.sql("""delete from `tabEmail Queue`""")
 
 		# reference document for testing
