@@ -107,8 +107,8 @@ def update_comment_in_doc(doc, reference_doctype=None, reference_name=None):
 	def get_truncated(content):
 		return (content[:97] + '...') if len(content) > 100 else content
 
-	"""Communication now uses child doctype for maintaining links which are passed here as reference_doctype and reference_name"""
-	"""Incase of Comments, it still uses doc.reference_doctype and doc.reference_name"""
+	#	Communication now uses child doctype for maintaining links which are passed here as reference_doctype and reference_name
+	#	Incase of Comments, it still uses doc.reference_doctype and doc.reference_name
 
 	if not (reference_doctype and reference_name):
 		reference_doctype = doc.reference_doctype

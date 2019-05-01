@@ -5,10 +5,9 @@ from __future__ import unicode_literals, absolute_import
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_address, get_fullname, strip_html, cstr
+from frappe.utils import validate_email_address, get_fullname, strip_html
 from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_mins_to_first_response, get_parent_doc)
-from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr
 from frappe.core.doctype.comment.comment import update_comment_in_doc
 
@@ -60,11 +59,11 @@ class Communication(Document):
 		validate_email(self)
 
 	def deduplicate_dynamic_links(self):
-		if self.dynamic_links:
-			links, dynamic_link, duplicate = [], [], False
-			dynamic_link = self.dynamic_links
+		dynamic_links = self.dynamic_links
+		if dynamic_links:
+			links, duplicate = [], False
 
-			for l in dynamic_link:
+			for l in dynamic_links:
 				t = (l.link_doctype, l.link_name)
 				if not t in links:
 					links.append(t)
