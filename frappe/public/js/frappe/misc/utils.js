@@ -648,11 +648,18 @@ Object.assign(frappe.utils, {
 	},
 	get_route_label(route_str) {
 		let route = route_str.split('/');
-		if (['List', 'modules'].includes(route[0])) {
-			return `${route[1]} ${route[2] || route[0]}`;
-		} else {
-			return `${frappe.utils.to_title_case(route[0], true)} ${route[1]}`;
+
+		if (route[2] === 'Report' || route[0] === 'query-report') {
+			return __('{0} Report', [route[3] || route[1]]);
 		}
+		if (route[0] === 'List') {
+			return __('{0} List', [route[1]]);
+		}
+		if (route[0] === 'modules') {
+			return __('{0} Modules', [route[1]]);
+		}
+
+		return `${route[1]} ${frappe.utils.to_title_case(route[0], true)}`;
 	},
 	report_column_total: function(values, column, type) {
 		if (column.column.fieldtype == "Percent" || type === "mean") {
