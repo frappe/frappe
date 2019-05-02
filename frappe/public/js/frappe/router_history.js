@@ -1,6 +1,6 @@
 frappe.provide('frappe.route');
 frappe.route_history_queue = [];
-const routes_to_skip = ['Form', 'social'];
+const routes_to_skip = ['Form', 'social', 'setup-wizard'];
 
 const save_routes = frappe.utils.debounce(() => {
 	const routes = frappe.route_history_queue;
