@@ -145,7 +145,6 @@ frappe.ui.form.on("Communication", {
 			options += '\n' + dynamic_link.link_doctype + ': ' + dynamic_link.link_name;
 		}
 
-		console.log(options);
 		var d = new frappe.ui.Dialog ({
 			title: __("Remove link from Communication"),
 			fields: [{

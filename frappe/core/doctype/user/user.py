@@ -341,15 +341,6 @@ class User(Document):
 				and `tabCommunication`.communication_type in ('Chat', 'Notification')
 			""", (parent.name))
 
-
-		#frappe.db.sql("""
-		#	delete from `tabCommunication`
-		#	inner join `tabDynamic Link` on `tabCommunication`.name=`tabDynamic Link`.parent
-		#	where `tabCommunication`.communication_type in ('Chat', 'Notification')
-		#	and `tabDynamic Link`.link_doctype='User'
-		#	and (`tabDynamic Link`.link_name=%s or `tabDynamic Link`.link_owner=%s)
-		#""", (self.name, self.name), debug=True)
-
 		# unlink contact
 		frappe.db.sql("""update `tabContact`
 			set `user`=null
