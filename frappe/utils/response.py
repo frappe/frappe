@@ -106,8 +106,6 @@ def make_logs(response = None):
 
 	if frappe.error_log:
 		response['exc'] = json.dumps([frappe.utils.cstr(d["exc"]) for d in frappe.local.error_log])
-		if frappe.conf.developer_mode:
-			response['locals'] = json.dumps([frappe.utils.cstr(d["locals"]) for d in frappe.local.error_log])
 
 	if frappe.local.message_log:
 		response['_server_messages'] = json.dumps([frappe.utils.cstr(d) for
