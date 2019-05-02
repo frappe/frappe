@@ -6,14 +6,14 @@ frappe.ui.form.on("ToDo", {
 			return {
 				"filters": {
 					"issingle": 0
-                }
+				}
 			};
 		});
 	},
 
-    validate: function (frm) {
-        frm.trigger("new_auto_repeat_prompt");
-    },
+	validate: function (frm) {
+		frm.trigger("new_auto_repeat_prompt");
+	},
 
 	refresh: function (frm) {
 		if (frm.doc.reference_type && frm.doc.reference_name) {
@@ -43,7 +43,7 @@ frappe.ui.form.on("ToDo", {
 		}
 	},
 
-    new_auto_repeat_prompt: function (frm) {
-        frappe.utils.new_auto_repeat_prompt(frm);
-    }
+	new_auto_repeat_prompt: function (frm) {
+		frappe.utils.new_auto_repeat_prompt(frm);
+	}
 });
