@@ -375,12 +375,9 @@ frappe.request.report_error = function(xhr, request_opts) {
 	var data = JSON.parse(xhr.responseText);
 	if (data.exc) {
 		var exc = (JSON.parse(data.exc) || []).join("\n");
-		var locals = (JSON.parse(data.locals) || []).join("\n");
 		delete data.exc;
-		delete data.locals;
 	} else {
 		var exc = "";
-		locals = "";
 	}
 
 	if (exc) {
@@ -411,9 +408,6 @@ frappe.request.report_error = function(xhr, request_opts) {
 					'<hr>',
 					'<h5>Error Report</h5>',
 					'<pre>' + exc + '</pre>',
-					'<hr>',
-					'<h5>Locals</h5>',
-					'<pre>' + locals + '</pre>',
 					'<hr>',
 					'<h5>Request Data</h5>',
 					'<pre>' + JSON.stringify(request_opts, null, "\t") + '</pre>',
