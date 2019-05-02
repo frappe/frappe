@@ -36,6 +36,9 @@ def get_root_connection(root_login=None, root_password=None):
 	import getpass
 	if not frappe.local.flags.root_connection:
 		if not root_login:
+			root_login = frappe.conf.get("root_login") or None
+
+		if not root_login:
 			root_login = input("Enter postgres super user: ")
 
 		if not root_password:
