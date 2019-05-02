@@ -52,27 +52,13 @@ class TestDashboardChart(unittest.TestCase):
 			timeseries = 1
 		)).insert()
 
-		months = []
 		cur_date = datetime.now() - relativedelta(years=1)
 
-		for x in range(13):
-			months.append(str(cur_date.year) + '-' + str(cur_date.strftime('%m')) + '-' + str(calendar.monthrange(cur_date.year, cur_date.month)[1]))
-			cur_date += relativedelta(months=1)
-
 		result = get(chart_name ='Test Dashboard Chart', refresh = 1)
-		self.assertEqual(result.get('labels')[0], months[0])
-		self.assertEqual(result.get('labels')[1], months[1])
-		self.assertEqual(result.get('labels')[2], months[2])
-		self.assertEqual(result.get('labels')[3], months[3])
-		self.assertEqual(result.get('labels')[4], months[4])
-		self.assertEqual(result.get('labels')[5], months[5])
-		self.assertEqual(result.get('labels')[6], months[6])
-		self.assertEqual(result.get('labels')[7], months[7])
-		self.assertEqual(result.get('labels')[8], months[8])
-		self.assertEqual(result.get('labels')[9], months[9])
-		self.assertEqual(result.get('labels')[10], months[10])
-		self.assertEqual(result.get('labels')[11], months[11])
-		self.assertEqual(result.get('labels')[12], months[12])
+		for idx in range(13):
+			month = str(cur_date.year) + '-' + str(cur_date.strftime('%m')) + '-' + str(calendar.monthrange(cur_date.year, cur_date.month)[1])
+			self.assertEqual(result.get('labels')[idx], month)
+			cur_date += relativedelta(months=1)
 
 		# self.assertEqual(result.get('datasets')[0].get('values')[:-1],
 		# 	[44, 28, 8, 11, 2, 6, 18, 6, 4, 5, 15, 13])
@@ -97,27 +83,13 @@ class TestDashboardChart(unittest.TestCase):
 			timeseries = 1
 		)).insert()
 
-		months = []
 		cur_date = datetime.now() - relativedelta(years=1)
 
-		for x in range(13):
-			months.append(str(cur_date.year) + '-' + str(cur_date.strftime('%m')) + '-' + str(calendar.monthrange(cur_date.year, cur_date.month)[1]))
-			cur_date += relativedelta(months=1)
-
 		result = get(chart_name ='Test Empty Dashboard Chart', refresh = 1)
-		self.assertEqual(result.get('labels')[0], months[0])
-		self.assertEqual(result.get('labels')[1], months[1])
-		self.assertEqual(result.get('labels')[2], months[2])
-		self.assertEqual(result.get('labels')[3], months[3])
-		self.assertEqual(result.get('labels')[4], months[4])
-		self.assertEqual(result.get('labels')[5], months[5])
-		self.assertEqual(result.get('labels')[6], months[6])
-		self.assertEqual(result.get('labels')[7], months[7])
-		self.assertEqual(result.get('labels')[8], months[8])
-		self.assertEqual(result.get('labels')[9], months[9])
-		self.assertEqual(result.get('labels')[10], months[10])
-		self.assertEqual(result.get('labels')[11], months[11])
-		self.assertEqual(result.get('labels')[12], months[12])
+		for idx in range(13):
+			month = str(cur_date.year) + '-' + str(cur_date.strftime('%m')) + '-' + str(calendar.monthrange(cur_date.year, cur_date.month)[1])
+			self.assertEqual(result.get('labels')[idx], month)
+			cur_date += relativedelta(months=1)
 
 		frappe.db.rollback()
 
@@ -142,27 +114,13 @@ class TestDashboardChart(unittest.TestCase):
 			timeseries = 1
 		)).insert()
 
-		months = []
 		cur_date = datetime.now() - relativedelta(years=1)
 
-		for x in range(13):
-			months.append(str(cur_date.year) + '-' + str(cur_date.strftime('%m')) + '-' + str(calendar.monthrange(cur_date.year, cur_date.month)[1]))
-			cur_date += relativedelta(months=1)
-
 		result = get(chart_name ='Test Empty Dashboard Chart 2', refresh = 1)
-		self.assertEqual(result.get('labels')[0], months[0])
-		self.assertEqual(result.get('labels')[1], months[1])
-		self.assertEqual(result.get('labels')[2], months[2])
-		self.assertEqual(result.get('labels')[3], months[3])
-		self.assertEqual(result.get('labels')[4], months[4])
-		self.assertEqual(result.get('labels')[5], months[5])
-		self.assertEqual(result.get('labels')[6], months[6])
-		self.assertEqual(result.get('labels')[7], months[7])
-		self.assertEqual(result.get('labels')[8], months[8])
-		self.assertEqual(result.get('labels')[9], months[9])
-		self.assertEqual(result.get('labels')[10], months[10])
-		self.assertEqual(result.get('labels')[11], months[11])
-		self.assertEqual(result.get('labels')[12], months[12])
+		for idx in range(13):
+			month = str(cur_date.year) + '-' + str(cur_date.strftime('%m')) + '-' + str(calendar.monthrange(cur_date.year, cur_date.month)[1])
+			self.assertEqual(result.get('labels')[idx], month)
+			cur_date += relativedelta(months=1)
 
 		# only 1 data point with value
 		self.assertEqual(result.get('datasets')[0].get('values')[2], 0)
