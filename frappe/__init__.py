@@ -16,7 +16,6 @@ from faker import Faker
 # public
 from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
-from .utils.error import get_frame_locals
 
 # Hamless for Python 3
 # For Python 2 set default encoding to utf-8
@@ -274,7 +273,7 @@ def errprint(msg):
 	if not request or (not "cmd" in local.form_dict) or conf.developer_mode:
 		print(msg)
 
-	error_log.append({"exc": msg, "locals": get_frame_locals()})
+	error_log.append({"exc": msg})
 
 def log(msg):
 	"""Add to `debug_log`.
