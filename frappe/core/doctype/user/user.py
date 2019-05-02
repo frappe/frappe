@@ -326,7 +326,7 @@ class User(Document):
 
 		# delete messages
 		frappe.db.sql("""
-			delete `tabCommunication`.*, `tabDynamic Link`.*  from `tabCommunication`
+			delete from `tabCommunication`
 			inner join `tabDynamic Link` on `tabCommunication`.name=`tabDynamic Link`.parent
 			where `tabCommunication`.communication_type in ('Chat', 'Notification')
 			and `tabDynamic Link`.link_doctype='User'

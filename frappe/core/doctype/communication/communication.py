@@ -59,21 +59,15 @@ class Communication(Document):
 		validate_email(self)
 
 	def deduplicate_dynamic_links(self):
-		dynamic_links = self.dynamic_links
-		if dynamic_links:
-			links, duplicate = [], False
+		if self.dynamic_links:
+			links = []
 
-			for l in dynamic_links:
+			for l in self.dynamic_links:
 				t = (l.link_doctype, l.link_name)
 				if not t in links:
 					links.append(t)
 				else:
-					duplicate = True
-
-			if duplicate:
-				self.dynamic_links = []
-				for l in links:
-					self.add_link(link_doctype=l[0], link_name=l[1])
+					self.remove_link(l.link_doctype, l.link_name)
 
 	def validate_reference(self):
 		for dynamic_link in self.dynamic_links:
@@ -274,6 +268,13 @@ class Communication(Document):
 		links = frappe.get_all("Dynamic Link", filters=filters, fields=["link_doctype", "link_name"])
 		return links
 
+	def remove_link(self, link_doctype, link_name, autosave=False):
+		for l in self.dynamic_links:
+			if l.link_doctype == link_doctype and l.link_name == link_name:
+				self.dynamic_links.remove(l)
+
+		if autosave:
+			self.save()
 
 def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""

@@ -45,6 +45,10 @@ frappe.ui.form.on("Communication", {
 			frm.trigger('show_add_link_dialog');
 		});
 
+		frm.add_custom_button(__("Remove link"), function() {
+			frm.trigger('show_remove_link_dialog');
+		});
+
 		if(frm.doc.status==="Open") {
 			frm.add_custom_button(__("Close"), function() {
 				frm.set_value("status", "Closed");
@@ -105,18 +109,20 @@ frappe.ui.form.on("Communication", {
 
 	show_add_link_dialog: function(frm){
 		var d = new frappe.ui.Dialog ({
-			title: __("Add a new link to Communication"),
+			title: __("Add new link to Communication"),
 			fields: [{
 				"fieldtype": "Link",
 				"options": "DocType",
 				"label": __("Reference Doctype"),
 				"fieldname": "link_doctype",
+				"reqd": 1
 			},
 			{
 				"fieldtype": "Dynamic Link",
 				"options": "link_doctype",
 				"label": __("Reference Name"),
-				"fieldname": "link_name"
+				"fieldname": "link_name",
+				"reqd": 1
 			}],
 			primary_action: ({ link_doctype, link_name }) => {
 				d.hide();
@@ -127,6 +133,37 @@ frappe.ui.form.on("Communication", {
 				}).then(() => frm.refresh());
 			},
 			primary_action_label: __('Add Link')
+		});
+		d.show();
+	},
+
+	show_remove_link_dialog: function(frm){
+		let options = '';
+
+		for(var link in frm.doc.dynamic_links){
+			let dynamic_link = frm.doc.dynamic_links[link];
+			options += '\n' + dynamic_link.link_doctype + ': ' + dynamic_link.link_name;
+		}
+
+		console.log(options);
+		var d = new frappe.ui.Dialog ({
+			title: __("Remove link from Communication"),
+			fields: [{
+				"fieldtype": "Select",
+				"options": options,
+				"label": __("Link"),
+				"fieldname": "link",
+				"reqd": 1
+			}],
+			primary_action: ({ link }) => {
+				d.hide();
+				frm.call('remove_link', {
+					link_doctype: link.split(":")[0].trim(),
+					link_name: link.split(":")[1].trim(),
+					autosave: true
+				}).then(() => frm.refresh());
+			},
+			primary_action_label: __('Remove Link')
 		});
 		d.show();
 	},
