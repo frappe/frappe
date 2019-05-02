@@ -699,7 +699,7 @@ Object.assign(frappe.utils, {
 			}
 		];
 
-	frappe.prompt(fields, function (values) {
+		frappe.prompt(fields, function (values){
 			frappe.call({
 				method: "frappe.desk.doctype.auto_repeat.auto_repeat.make_auto_repeat",
 				args: {
