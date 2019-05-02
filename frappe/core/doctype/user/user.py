@@ -325,13 +325,30 @@ class User(Document):
 		frappe.db.sql("""delete from `tabDocShare` where user=%s""", self.name)
 
 		# delete messages
-		frappe.db.sql("""
-			delete from `tabCommunication`
-			inner join `tabDynamic Link` on `tabCommunication`.name=`tabDynamic Link`.parent
-			where `tabCommunication`.communication_type in ('Chat', 'Notification')
-			and `tabDynamic Link`.link_doctype='User'
-			and (`tabDynamic Link`.link_name=%s or `tabDynamic Link`.link_owner=%s)
-		""", (self.name, self.name), debug=True)
+		parents = frappe.db.sql("""select parent from `tabDynamic Link`
+				where `tabDynamic Link`.link_doctype='User'
+				and (`tabDynamic Link`.link_name=%s or `tabDynamic Link`.link_owner=%s)
+			""", (self.name, self.name), as_dict=True)
+
+		for parent in parents:
+			frappe.db.sql("""
+				delete from `tabDynamic Link`
+				where `tabDynamic Link`.parent='{0}'
+			""", (parent.name))
+			frappe.db.sql("""
+				delete from `tabCommunication`
+				where `tabCommunication`.name='{0}'
+				and `tabCommunication`.communication_type in ('Chat', 'Notification')
+			""", (parent.name))
+
+
+		#frappe.db.sql("""
+		#	delete from `tabCommunication`
+		#	inner join `tabDynamic Link` on `tabCommunication`.name=`tabDynamic Link`.parent
+		#	where `tabCommunication`.communication_type in ('Chat', 'Notification')
+		#	and `tabDynamic Link`.link_doctype='User'
+		#	and (`tabDynamic Link`.link_name=%s or `tabDynamic Link`.link_owner=%s)
+		#""", (self.name, self.name), debug=True)
 
 		# unlink contact
 		frappe.db.sql("""update `tabContact`
