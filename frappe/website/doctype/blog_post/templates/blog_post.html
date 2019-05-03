@@ -10,14 +10,8 @@
 		<!-- begin blog content -->
 		<div class="blog-info">
 			<h1 itemprop="headline" class="blog-header">{{ title }}</h1>
-			<p class="post-by text-muted small">
-				<a href="/blog?blogger={{ blogger }}" class="text-muted">{{ blogger_info and blogger_info.full_name or full_name }}</a>
-				&middot;
-				{{ frappe.format_date(published_on) }}
-				&middot;
-				<a href="/blog?blog_category={{ blog_category }}" class="text-muted">{{ category.title }}</a>
-				&middot;
-				{{ comment_text }}
+			<p class="text-muted">
+			{{ frappe.format_date(published_on) }}
 			</p>
 		</div>
 		<div itemprop="articleBody" class="longform blog-text mt-5">
