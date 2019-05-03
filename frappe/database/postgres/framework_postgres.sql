@@ -49,6 +49,7 @@ CREATE TABLE "tabDocField" (
   "description" text,
   "in_list_view" smallint NOT NULL DEFAULT 0,
   "in_standard_filter" smallint NOT NULL DEFAULT 0,
+  "in_preview" smallint NOT NULL DEFAULT 0,
   "read_only" smallint NOT NULL DEFAULT 0,
   "precision" varchar(255) DEFAULT NULL,
   "length" bigint NOT NULL DEFAULT 0,

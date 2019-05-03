@@ -123,6 +123,7 @@
 		"public/less/page.less",
 		"public/less/tree.less",
 		"public/less/desktop.less",
+		"public/less/link_preview.less",
 		"public/less/form.less",
 		"public/less/mobile.less",
 		"public/less/kanban.less",
@@ -167,6 +168,7 @@
 		"public/js/frappe/ui/keyboard.js",
 		"public/js/frappe/ui/colors.js",
 		"public/js/frappe/ui/sidebar.js",
+		"public/js/frappe/ui/link_preview.js",
 
 		"public/js/frappe/request.js",
 		"public/js/frappe/socketio_client.js",

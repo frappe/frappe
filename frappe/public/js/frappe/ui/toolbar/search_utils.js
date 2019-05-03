@@ -6,6 +6,7 @@ frappe.search.utils = {
 	},
 
 	get_recent_pages: function(keywords) {
+		if (keywords === null) keywords = '';
 		var me = this, values = [], options = [];
 
 		function find(list, keywords, process) {
@@ -44,7 +45,7 @@ frappe.search.utils = {
 					values.push([route[1], route]);
 				}
 			} else if(route[0]) {
-				values.push([frappe.route_titles[route[0]] || route[0], route]);
+				values.push([frappe.route_titles[route.join('/')] || route[0], route]);
 			}
 		});
 

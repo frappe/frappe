@@ -165,25 +165,6 @@ class UserPermissions:
 		self.defaults = frappe.defaults.get_defaults(self.name)
 		return self.defaults
 
-	# update recent documents
-	def update_recent(self, dt, dn):
-		rdl = frappe.cache().hget("user_recent", self.name) or []
-		new_rd = [dt, dn]
-
-		# clear if exists
-		for i in range(len(rdl)):
-			rd = rdl[i]
-			if rd==new_rd:
-				del rdl[i]
-				break
-
-		if len(rdl) > 19:
-			rdl = rdl[:19]
-
-		rdl = [new_rd] + rdl
-
-		frappe.cache().hset("user_recent", self.name, rdl)
-
 	def _get(self, key):
 		if not self.can_read:
 			self.build_permissions()
@@ -205,8 +186,6 @@ class UserPermissions:
 			self.build_permissions()
 
 		d.name = self.name
-		d.recent = json.dumps(frappe.cache().hget("user_recent", self.name) or [])
-
 		d.roles = self.get_roles()
 		d.defaults = self.get_defaults()
 
