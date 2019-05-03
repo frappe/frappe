@@ -8,6 +8,7 @@ frappe.provide('frappe.meta.doctypes');
 frappe.provide("frappe.meta.precision_map");
 
 frappe.get_meta = function(doctype) {
+	if(Object.keys(locals).length === 0 && locals.constructor === Object) return null
 	return locals["DocType"][doctype];
 }
 
