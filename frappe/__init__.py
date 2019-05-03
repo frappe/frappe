@@ -187,14 +187,19 @@ def connect(site=None, db_name=None):
 	local.db = Database(user=db_name or local.conf.db_name)
 	set_user("Administrator")
 
-def connect_read_only():
-	from frappe.database import Database
+def connect_secondary():
+	from frappe.database import get_db
+	user = local.conf.db_name
+	password = local.conf.db_password
 
-	local.read_only_db = Database(local.conf.slave_host, local.conf.slave_db_name,
-		local.conf.slave_db_password)
+	if local.conf.different_credentials_for_secondary:
+		user = local.conf.secondary_db_name
+		password = local.conf.secondary_db_password
+
+	local.read_only_db = get_db(host=local.conf.secondary_host, user=user, password=password)
 
 	# swap db connections
-	local.master_db = local.db
+	local.primary_db = local.db
 	local.db = local.read_only_db
 
 def get_site_config(sites_path=None, site_path=None):
@@ -495,16 +500,17 @@ def whitelist(allow_guest=False, xss_safe=False):
 def read_only():
 	def innfn(fn):
 		def wrapper_fn(*args, **kwargs):
-			if conf.use_slave_for_read_only:
-				connect_read_only()
+			if conf.read_from_secondary:
+				connect_secondary()
+
 			try:
 				retval = fn(*args, **get_newargs(fn, kwargs))
 			except:
 				raise
 			finally:
-				if local and hasattr(local, 'master_db'):
+				if local and hasattr(local, 'primary_db'):
 					local.db.close()
-					local.db = local.master_db
+					local.db = local.primary_db
 
 			return retval
 		return wrapper_fn
