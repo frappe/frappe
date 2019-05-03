@@ -58,7 +58,7 @@ export default class Grid {
 				<div class="grid-heading-row"></div>
 				<div class="grid-body">
 					<div class="rows"></div>
-					<div class="grid-empty text-center hide">${__("No Data")}</div>
+					<div class="grid-empty text-center">${__("No Data")}</div>
 				</div>
 			</div>
 			<div class="mt-2 small form-clickable-section grid-footer">
@@ -204,7 +204,7 @@ export default class Grid {
 			this.display_status = 'Write';
 		}
 
-		if(this.display_status==="None") return;
+		if(this.display_status === "None") return;
 
 		// redraw
 		var _scroll_y = $(document).scrollTop();
@@ -243,7 +243,7 @@ export default class Grid {
 			this.grid_rows_by_docname[d.name] = grid_row;
 		}
 
-		this.wrapper.find(".grid-empty").toggleClass("hide", !!data.length);
+		this.wrapper.find(".grid-empty").toggleClass("hidden", Boolean(data.length));
 
 		// toolbar
 		this.setup_toolbar();
@@ -363,7 +363,7 @@ export default class Grid {
 	get_data() {
 		var data = this.frm ?
 			this.frm.doc[this.df.fieldname] || []
-			: this.get_modal_data();
+			: this.df.data || this.get_modal_data();
 		data.sort(function(a, b) { return a.idx - b.idx});
 		return data;
 	}
@@ -479,6 +479,9 @@ export default class Grid {
 				this.frm.script_manager.trigger(this.df.fieldname + "_add", d.doctype, d.name);
 				this.refresh();
 			} else {
+				if (!this.df.data) {
+					this.df.data = [];
+				}
 				this.df.data.push({name: "batch " + (this.df.data.length+1), idx: this.df.data.length+1});
 				this.refresh();
 			}
