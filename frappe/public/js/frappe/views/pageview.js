@@ -16,7 +16,7 @@ frappe.views.pageview = {
 			return;
 		}
 
-		if((locals.Page && locals.Page[name]) || name==window.page_name) {
+		if((locals.Page && locals.Page[name] && locals.Page[name].script) || name==window.page_name) {
 			// already loaded
 			callback();
 		} else if(localStorage["_page:" + name] && frappe.boot.developer_mode!=1) {
@@ -59,6 +59,7 @@ frappe.views.pageview = {
 				return;
 			}
 		}
+		console.log('name', name);
 		frappe.model.with_doctype("Page", function() {
 			frappe.views.pageview.with_page(name, function(r) {
 				if(r && r.exc) {
