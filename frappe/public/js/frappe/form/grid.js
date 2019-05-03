@@ -61,15 +61,15 @@ export default class Grid {
 					<div class="grid-empty text-center">${__("No Data")}</div>
 				</div>
 			</div>
-			<div class="mt-2 small form-clickable-section grid-footer">
+			<div class="small form-clickable-section grid-footer">
 				<div class="row">
 					<div class="col-sm-6 grid-buttons">
 						<button type="reset"
-							class="btn btn-xs btn-danger grid-remove-rows hide"
+							class="btn btn-xs btn-danger grid-remove-rows hidden"
 							style="margin-right: 4px;">
 							${__("Delete")}</button>
 						<button type="reset"
-							class="grid-add-multiple-rows btn btn-xs btn-default hide"
+							class="grid-add-multiple-rows btn btn-xs btn-default hidden"
 							style="margin-right: 4px;">
 							${__("Add Multiple")}</a>
 						<!-- hack to allow firefox include this in tabs -->
@@ -77,10 +77,10 @@ export default class Grid {
 							${__("Add Row")}</button>
 					</div>
 					<div class="col-sm-6 text-right">
-						<a href="#" class="grid-download btn btn-xs btn-default hide"
+						<a href="#" class="grid-download btn btn-xs btn-default hidden"
 							style="margin-left: 10px;">
 							${__("Download")}</a>
-						<a href="#" class="grid-upload btn btn-xs btn-default hide"
+						<a href="#" class="grid-upload btn btn-xs btn-default hidden"
 							style="margin-left: 10px;">
 							${__("Upload")}</a>
 					</div>
@@ -165,7 +165,7 @@ export default class Grid {
 		});
 	}
 	refresh_remove_rows_button() {
-		this.remove_rows_button.toggleClass('hide',
+		this.remove_rows_button.toggleClass('hidden',
 			this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true);
 	}
 	get_selected() {
@@ -272,15 +272,15 @@ export default class Grid {
 
 			// show, hide buttons to add rows
 			if(this.cannot_add_rows || (this.df && this.df.cannot_add_rows)) {
-				// add 'hide' to buttons
+				// add 'hidden' to buttons
 				this.wrapper.find(".grid-add-row, .grid-add-multiple-rows")
-					.addClass('hide');
+					.addClass('hidden');
 			} else {
 				// show buttons
-				this.wrapper.find(".grid-add-row").removeClass('hide');
+				this.wrapper.find(".grid-add-row").removeClass('hidden');
 
 				if(this.multiple_set) {
-					this.wrapper.find(".grid-add-multiple-rows").removeClass('hide')
+					this.wrapper.find(".grid-add-multiple-rows").removeClass('hidden')
 				}
 			}
 
@@ -638,7 +638,7 @@ export default class Grid {
 		var btn = $(this.wrapper).find(".grid-add-multiple-rows");
 
 		// show button
-		btn.removeClass('hide');
+		btn.removeClass('hidden');
 
 		// open link selector on click
 		btn.on("click", function() {
@@ -661,7 +661,7 @@ export default class Grid {
 
 			// upload
 			frappe.flags.no_socketio = true;
-			$(this.wrapper).find(".grid-upload").removeClass("hide").on("click", function() {
+			$(this.wrapper).find(".grid-upload").removeClass('hidden').on("click", function() {
 				new frappe.ui.FileUploader({
 					as_dataurl: true,
 					allow_multiple: false,
@@ -713,7 +713,7 @@ export default class Grid {
 	setup_download() {
 		var me = this;
 		let title = me.df.label || frappe.model.unscrub(me.df.fieldname);
-		$(this.wrapper).find(".grid-download").removeClass("hide").on("click", function() {
+		$(this.wrapper).find(".grid-download").removeClass('hidden').on("click", function() {
 			var data = [];
 			var docfields = [];
 			data.push([__("Bulk Edit {0}", [title])]);
