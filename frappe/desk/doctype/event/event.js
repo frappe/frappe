@@ -27,14 +27,6 @@ frappe.ui.form.on("Event", {
 			new frappe.desk.eventParticipants(frm, "Contact");
 		}, __("Add Participants"));
 	},
-	// repeat_on: function(frm) {
-	// 	if(frm.doc.repeat_on==="Every Day") {
-	// 		["monday", "tuesday", "wednesday", "thursday",
-	// 			"friday", "saturday", "sunday"].map(function(v) {
-	// 				frm.set_value(v, 1);
-	// 			});
-	// 	}
-	// }
 });
 
 frappe.ui.form.on("Event Participants", {

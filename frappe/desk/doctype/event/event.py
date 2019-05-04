@@ -80,7 +80,6 @@ class Event(Document):
 
 @frappe.change_event('Event', 'repeat_on')
 def set_weekdays_if_repeat_everyday(doc):
-	print(doc)
 	if doc.repeat_on == 'Every Day':
 		for w in weekdays:
 			doc.set(w, 1)

@@ -1,6 +1,10 @@
 context('Recorder', () => {
 	before(() => {
+<<<<<<< 2f0409571bf1fd8bee7deec61f9a13d543b48017
 		cy.login();
+=======
+		cy.login('Administrator', Cypress.config('adminPassword'));
+>>>>>>> fix(tests): add tests for change handler
 	});
 
 	it('Navigate to Recorder', () => {

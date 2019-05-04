@@ -551,6 +551,8 @@ def change_event(doctype, fieldname, params=[]):
 			function = fn
 		)
 
+		return fn
+
 	return log_handlers
 
 def get_domain_data(module):

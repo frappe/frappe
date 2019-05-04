@@ -24,6 +24,9 @@ import 'cypress-file-upload';
 //
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... });
+
+
+
 Cypress.Commands.add('login', (email, password) => {
 	if (!email) {
 		email = 'Administrator';
@@ -36,7 +39,7 @@ Cypress.Commands.add('login', (email, password) => {
 		method: 'POST',
 		body: {
 			usr: email,
-			pwd: password
+			pwd: Cypress.config('adminPassword')
 		}
 	});
 });
@@ -81,6 +84,12 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype='Data') => {
 	} else {
 		return cy.get('@input').type(value, {waitForAnimations: false});
 	}
+});
+
+Cypress.Commands.add('get_input', (fieldname) => {
+	// cehck fieldname
+	let selector = `.frappe-control[data-fieldname="${fieldname}"] input`;
+	return cy.get(selector);
 });
 
 Cypress.Commands.add('awesomebar', (text) => {

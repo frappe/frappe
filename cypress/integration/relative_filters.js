@@ -1,10 +1,18 @@
 context('Relative Timeframe', () => {
 	beforeEach(() => {
+<<<<<<< 2f0409571bf1fd8bee7deec61f9a13d543b48017
 		cy.login();
 		cy.visit('/desk');
 	});
 	before(() => {
 		cy.login();
+=======
+		cy.login('Administrator', Cypress.config('adminPassword'));
+		cy.visit('/desk');
+	});
+	before(() => {
+		cy.login('Administrator', Cypress.config('adminPassword'));
+>>>>>>> fix(tests): add tests for change handler
 		cy.visit('/desk');
 		cy.window().its('frappe').then(frappe => {
 			frappe.call("frappe.tests.ui_test_helpers.create_todo_records");
