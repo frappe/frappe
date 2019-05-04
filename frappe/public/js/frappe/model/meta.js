@@ -19,6 +19,42 @@ $.extend(frappe.meta, {
 		frappe.meta.sync_messages(doc);
 		if(doc.__print_formats) frappe.model.sync(doc.__print_formats);
 		if(doc.__workflow_docs) frappe.model.sync(doc.__workflow_docs);
+		frappe.meta.setup_change_handlers(doc);
+	},
+
+	setup_change_handlers: function(doc) {
+		const handlers = doc.__change_event_handlers;
+		if (handlers) {
+			for (let fieldname in handlers) {
+				let params = handlers[fieldname];
+
+				// setup event trigger for each change event
+				frappe.ui.form.on(doc.name, fieldname, frm => {
+					let data = {};
+
+					// build data to send
+					data[fieldname] = frm.doc[fieldname];
+					for (let key of params) {
+						data[key] = frm.doc[key];
+					}
+
+					// trigger change event
+					return frappe.xcall('frappe.handler.handle_change', {
+						doctype: frm.doc.doctype,
+						fieldname: fieldname,
+						data: data
+					}).then((data) => {
+						// don't call all events with triggers as it
+						// is likely to create an infinite loop
+						// automatic handlers should manage their own triggers
+						Object.assign(frm.doc, data);
+						for (let key in data) {
+							frm.refresh_field(key);
+						}
+					});
+				});
+			}
+		}
 	},
 
 	// build docfield_map and docfield_list

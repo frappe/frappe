@@ -44,6 +44,7 @@ class FormMeta(Meta):
 
 		self.add_search_fields()
 		self.add_linked_document_type()
+		self.add_change_event_handlers()
 
 		if not self.istable:
 			self.add_code()
@@ -63,7 +64,7 @@ class FormMeta(Meta):
 			"__linked_with", "__messages", "__print_formats", "__workflow_docs",
 			"__form_grid_templates", "__listview_template", "__tree_js",
 			"__dashboard", "__kanban_column_fields", '__templates',
-			'__custom_js'):
+			'__custom_js', '__change_event_handlers'):
 			d[k] = self.get(k)
 
 		# d['fields'] = d.get('fields', [])
@@ -211,6 +212,15 @@ class FormMeta(Meta):
 		fields = [x['field_name'] for x in values]
 		fields = list(set(fields))
 		self.set("__kanban_column_fields", fields, as_value=True)
+
+	def add_change_event_handlers(self):
+		if self.name in frappe.change_event_handlers:
+			handlers = {}
+			# filter the params property that we need to send to the client
+			for key in frappe.change_event_handlers[self.name]:
+				handlers[key] = frappe.change_event_handlers[self.name][key]['params']
+
+			self.set('__change_event_handlers', handlers)
 
 def get_code_files_via_hooks(hook, name):
 	code_files = []

@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 from frappe import _
 import frappe.utils
 import frappe.sessions
@@ -11,6 +12,7 @@ from frappe.utils.response import build_response
 from frappe.utils import cint
 from werkzeug.wrappers import Response
 from six import string_types
+from frappe.model.document import get_controller
 
 def handle():
 	"""handle request"""
@@ -82,6 +84,13 @@ def version():
 @frappe.whitelist()
 def runserverobj(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	frappe.desk.form.run_method.runserverobj(method, docs=docs, dt=dt, dn=dn, arg=arg, args=args)
+
+@frappe.whitelist()
+def handle_change(doctype, fieldname, data):
+	# import doctype
+	controller = get_controller(doctype)
+	data = frappe._dict(json.loads(data))
+	return frappe.change_event_handlers[doctype][fieldname]['function'](data)
 
 @frappe.whitelist(allow_guest=True)
 def logout():

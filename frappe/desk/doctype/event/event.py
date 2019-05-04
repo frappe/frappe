@@ -18,6 +18,8 @@ communication_mapping = {"": "Event", "Event": "Event", "Meeting": "Meeting", "C
 
 class Event(Document):
 	def validate(self):
+		set_weekdays_if_repeat_everyday(self)
+
 		if not self.starts_on:
 			self.starts_on = now_datetime()
 
@@ -75,6 +77,15 @@ class Event(Document):
 		communication.status = "Linked"
 		communication.add_link(participant.reference_doctype, participant.reference_docname)
 		communication.save(ignore_permissions=True)
+
+@frappe.change_event('Event', 'repeat_on')
+def set_weekdays_if_repeat_everyday(doc):
+	print(doc)
+	if doc.repeat_on == 'Every Day':
+		for w in weekdays:
+			doc.set(w, 1)
+
+	return doc
 
 @frappe.whitelist()
 def delete_communication(event, reference_doctype, reference_docname):
