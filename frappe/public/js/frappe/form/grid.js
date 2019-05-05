@@ -136,18 +136,23 @@ export default class Grid {
 			var dirty = false;
 
 			let tasks = [];
-			me.deleted_docs = [];
-
 			me.get_selected().forEach((docname) => {
 				tasks.push(() => {
 					if (!me.frm) {
-						me.deleted_docs.push(docname);
+						me.df.data = me.df.data.filter((row)=> row.name != docname)
 					}
 					me.grid_rows_by_docname[docname].remove();
 					dirty = true;
 				});
 				tasks.push(() => frappe.timeout(0.1));
 			});
+
+			if (!me.frm) {
+				tasks.push(() => {
+					// reorder idx of df.data
+					me.df.data.forEach((row, index) => row.idx = index + 1)
+				})
+			}
 
 			tasks.push(() => {
 				if (dirty) me.refresh();
