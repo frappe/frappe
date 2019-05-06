@@ -20,8 +20,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			this.report_name = route[3];
 		}
 
-		this.add_totals_row = this.view_user_settings.add_totals_row || 0;
-
 		if (this.report_name) {
 			return this.get_report_doc()
 				.then(doc => {
@@ -35,6 +33,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					this.page_length = this.report_doc.json.page_length || 20;
 					this.order_by = this.report_doc.json.order_by || 'modified desc';
 				});
+		} else {
+			this.add_totals_row = this.view_user_settings.add_totals_row || 0;
 		}
 	}
 
@@ -70,6 +70,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		//Setup groupby for reports
 		this.group_by_control = new frappe.ui.GroupBy(this);
+		if (this.report_doc && this.report_doc.json.group_by) {
+			this.group_by_control.apply_settings(this.report_doc.json.group_by);
+		}
+		if (this.view_user_settings && this.view_user_settings.group_by) {
+			this.group_by_control.apply_settings(this.view_user_settings.group_by);
+		}
+
 	}
 
 	get_args() {
@@ -102,7 +109,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			order_by: this.sort_selector.get_sql_string(),
 			add_totals_row: this.add_totals_row,
 			page_length: this.page_length,
-			column_widths: this.get_column_widths()
+			column_widths: this.get_column_widths(),
+			group_by: this.group_by_control.get_settings()
 		}
 
 		let report_settings = {
@@ -111,7 +119,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			order_by: this.report_doc.json.order_by,
 			add_totals_row: this.report_doc.json.add_totals_row,
 			page_length: this.report_doc.json.page_length,
-			column_widths: this.report_doc.json.column_widths
+			column_widths: this.report_doc.json.column_widths,
+			group_by: this.report_doc.json.group_by
 		}
 
 		if (!frappe.utils.deep_equal(current_settings, report_settings)) {
@@ -129,7 +138,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				fields: this.fields,
 				filters: this.filter_area.get(),
 				order_by: this.sort_selector.get_sql_string(),
-				group_by: this.group_by,
+				group_by: this.group_by_control.get_settings(),
 				add_totals_row: this.add_totals_row
 			});
 		}
@@ -997,7 +1006,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				order_by: this.sort_selector.get_sql_string(),
 				add_totals_row: this.add_totals_row,
 				page_length: this.page_length,
-				column_widths: this.get_column_widths()
+				column_widths: this.get_column_widths(),
+				group_by: this.group_by_control.get_settings()
 			}
 
 			return frappe.call({
