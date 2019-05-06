@@ -2,7 +2,6 @@
 frappe.provide('frappe.views');
 
 frappe.ui.GroupBy = class {
-
 	constructor(report_view) {
 		this.report_view = report_view;
 		this.page = report_view.page;
@@ -76,35 +75,6 @@ frappe.ui.GroupBy = class {
 		group_by_button.click(() => this.groupby_edit_area.show());
 	}
 
-	set_args(args) {
-		if (this.aggregate_function) {
-			if (this.aggregate_function && this.group_by) {
-				let group_by_column;
-				if(this.aggregate_function === 'count') {
-					group_by_column = 'count(1)';
-				} else {
-					group_by_column = `${this.aggregate_function}(${this.aggregate_on})`;
-				}
-				args.fields.push(group_by_column + ' as _group_by_column');
-				this.order_by = '_group_by_column desc';
-			}
-
-			// //If chosen 'aggregate on' field is not in fields, push it to fields
-			if(!this.report_view.columns.includes('_group_by_column')) {
-				this.original_fields = this.report_view.fields.map(f => f);
-				this.report_view.fields = [this.group_by, '_group_by_column'];
-				this.report_view.setup_columns();
-			}
-
-			Object.assign(args, {
-				with_comment_count: false,
-				group_by: this.group_by_control.group_by || null,
-				order_by: this.group_by_control.order_by || null,
-			});
-		}
-
-	}
-
 	apply_group_by() {
 		this.group_by = this.page.wrapper.find('.groupby option:selected').val();
 		this.aggregate_function = this.page.wrapper.find('.aggregate-function option:selected').val();
@@ -130,25 +100,70 @@ frappe.ui.GroupBy = class {
 
 		//If function is count add a new field for count
 		this.page.wrapper.find('.set-groupby-and-run').hide();
+
+		this.report_view.refresh();
 	}
 
+	set_args(args) {
+		if (this.aggregate_function && this.group_by) {
+			let aggregate_column;
+			if(this.aggregate_function === 'count') {
+				aggregate_column = 'count(1)';
+			} else {
+				aggregate_column = `${this.aggregate_function}(${this.aggregate_on})`;
+			}
+
+			this.report_view.group_by = this.group_by;
+			this.report_view.order_by = '_aggregate_column desc';
+
+			// save orignial fields
+			if(!this.report_view.fields.map(f => f[0]).includes('_aggregate_column')) {
+				this.original_fields = this.report_view.fields.map(f => f);
+			}
+
+			this.report_view.fields = [
+				[this.group_by, this.doctype]
+			];
+
+			// rebuild fields for group by
+			args.fields = this.report_view.get_fields();
+
+			// add aggregate column in both query args and report view
+			this.report_view.fields.push(['_aggregate_column', this.doctype]);
+			args.fields.push(aggregate_column + ' as _aggregate_column');
+
+			// setup columns in datatable
+			this.report_view.setup_columns();
+
+			Object.assign(args, {
+				with_comment_count: false,
+				group_by: this.group_by || null,
+				order_by: this.order_by || null,
+			});
+		}
+
+	}
+
+
 	get_group_by_docfield() {
+		// called from build_column
 		let docfield;
 		if (this.aggregate_function === 'count') {
 			docfield = {
 				fieldtype: 'Int',
-				label: __('Count')
+				label: __('Count'),
+				parent: this.doctype
 			}
 		} else {
 			// get properties of "aggregate_on", for example Net Total
-			docfield = frappe.meta.docfield_map[doctype || this.doctype][this.group_by_control.aggregate_on];
+			docfield = Object.assign({}, frappe.meta.docfield_map[this.doctype][this.aggregate_on]);
 			if (this.aggregate_function === 'sum') {
 				docfield.label = __('Sum of {0}', [docfield.label]);
 			} else {
 				docfield.label = __('Average of {0}', [docfield.label]);
 			}
 		}
-		docfield.fieldname = '_group_by_column';
+		docfield.fieldname = '_aggregate_column';
 
 		return docfield;
 	}
@@ -169,17 +184,11 @@ frappe.ui.GroupBy = class {
 		if (this.original_fields) {
 			this.report_view.fields = this.original_fields;
 		} else {
-			// set in_list_view fields by default
-			this.report_view.fields = frappe.get_meta(this.report_view.doctype).fields.map(f => {
-				if (f.in_list_view) {
-					return f.fieldname;
-				} else {
-					return null;
-				}
-			}).filter(f => f);
+			this.report_view.set_default_fields();
 		}
 		this.report_view.setup_columns();
 		this.original_fields = null;
+		this.report_view.refresh();
 	}
 
 	get_group_by_fields() {

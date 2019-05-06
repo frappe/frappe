@@ -129,6 +129,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				fields: this.fields,
 				filters: this.filter_area.get(),
 				order_by: this.sort_selector.get_sql_string(),
+				group_by: this.group_by,
 				add_totals_row: this.add_totals_row
 			});
 		}
@@ -603,6 +604,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			return;
 		}
 
+		this.set_default_fields();
+	}
+
+	set_default_fields() {
 		// get fields from meta
 		this.fields = [];
 		const add_field = f => this._add_field(f);
@@ -829,17 +834,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		let docfield = frappe.meta.docfield_map[doctype || this.doctype][fieldname];
 
 		// group by column
-		if (fieldname === '_group_by_column') {
+		if (fieldname === '_aggregate_column') {
 			docfield = this.group_by_control.get_group_by_docfield();
-		}
-
-		// brackets are not allowed in fieldnames, if there is a bracket, its a function
-		if (!docfield && fieldname.includes('(')) {
-			if (fieldname.includes(' AS ')) {
-				fieldname = fieldname.split(' AS ').slice(-1)[0];
-			} else if (fieldname.includes(' as ')) {
-				fieldname = fieldname.split(' as ').slice(-1)[0];
-			}
 		}
 
 		if (!docfield) {
@@ -1107,7 +1103,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				label: __('Show Totals'),
 				action: () => {
 					this.add_totals_row = !this.add_totals_row;
-					this.save_view_user_settings({ add_totals_row: this.add_totals_row });
+					this.save_view_user_settings(
+						{ add_totals_row: this.add_totals_row });
 					this.datatable.refresh(this.get_data(this.data));
 				}
 			},
