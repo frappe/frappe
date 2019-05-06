@@ -127,11 +127,14 @@ frappe.ui.GroupBy = class {
 		//If function is count add a new field for count
 		this.page.wrapper.find('.set-groupby-and-run').hide();
 
+		return true;
+
 	}
 
 	apply_group_by_and_refresh() {
-		this.apply_group_by();
-		this.report_view.refresh();
+		if (this.apply_group_by()) {
+			this.report_view.refresh();
+		}
 	}
 
 	set_args(args) {

@@ -1008,7 +1008,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				page_length: this.page_length,
 				column_widths: this.get_column_widths(),
 				group_by: this.group_by_control.get_settings()
-			}
+			};
 
 			return frappe.call({
 				method: 'frappe.desk.reportview.save_report',
