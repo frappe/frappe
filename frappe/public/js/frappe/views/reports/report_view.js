@@ -74,21 +74,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	get_args() {
 		const args = super.get_args();
+		this.group_by_control.set_args(args);
 
-		if (this.group_by_control.aggregate_function) {
-			this.field_type = args.fields[0].substring(0,args.fields[0].indexOf('.'));
-			if (this.group_by_control.aggregate_function && this.group_by_control.group_by && this.group_by_control.aggregate_on) {
-				if(this.group_by_control.aggregate_function !== 'count') {
-					args.fields.push(`${this.group_by_control.aggregate_function}(${this.group_by_control.aggregate_on}) as ${this.group_by_control.aggregate_on}`);
-				}
-			}
-
-			Object.assign(args, {
-				with_comment_count: false,
-				group_by: this.group_by_control.group_by || null,
-				order_by: this.group_by_control.order_by || null,
-			});
-		}
 		return args;
 	}
 
@@ -841,14 +828,20 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		let [fieldname, doctype] = c;
 		let docfield = frappe.meta.docfield_map[doctype || this.doctype][fieldname];
 
+		// group by column
+		if (fieldname === '_group_by_column') {
+			docfield = this.group_by_control.get_group_by_docfield();
+		}
+
 		// brackets are not allowed in fieldnames, if there is a bracket, its a function
-		if (fieldname.includes('(')) {
+		if (!docfield && fieldname.includes('(')) {
 			if (fieldname.includes(' AS ')) {
 				fieldname = fieldname.split(' AS ').slice(-1)[0];
 			} else if (fieldname.includes(' as ')) {
 				fieldname = fieldname.split(' as ').slice(-1)[0];
 			}
 		}
+
 		if (!docfield) {
 			docfield = frappe.model.get_std_field(fieldname, true);
 
