@@ -59,8 +59,9 @@ def accept(key, sender, reference_doctype, reference_name, feedback, rating, ful
 			"sender_full_name": fullname or "",
 			"feedback_request": feedback_request,
 			"subject": "Feedback for {0} {1}".format(reference_doctype, reference_name),
-		}).insert(ignore_permissions=True)
+		})
 		communication.add_link(link_doctype=reference_doctype, link_name=reference_name)
+		communication.insert(ignore_permissions=True)
 
 		doc = frappe.get_doc("Feedback Request", feedback_request)
 		doc.is_feedback_submitted = 1
