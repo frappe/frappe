@@ -10,11 +10,6 @@ frappe.ui.form.on("ToDo", {
 			};
 		});
 	},
-
-	validate: function (frm) {
-		frm.trigger("new_auto_repeat_prompt");
-	},
-
 	refresh: function (frm) {
 		if (frm.doc.reference_type && frm.doc.reference_name) {
 			frm.add_custom_button(__(frm.doc.reference_name), function () {
@@ -41,9 +36,5 @@ frappe.ui.form.on("ToDo", {
 				frappe.new_doc("ToDo")
 			}, null, "btn-default");
 		}
-	},
-
-	new_auto_repeat_prompt: function (frm) {
-		frappe.utils.new_auto_repeat_prompt(frm);
 	}
 });

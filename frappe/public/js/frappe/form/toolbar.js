@@ -181,8 +181,15 @@ frappe.ui.form.Toolbar = Class.extend({
 				this.page.add_menu_item(__("Request Feedback"), function() {
 					var feedback = new frappe.utils.Feedback();
 					feedback.manual_feedback_request(me.frm.doc);
-				}, true)
+				}, true);
 			}
+		}
+
+		// Auto Repeat
+		if(this.can_repeat()) {
+			this.page.add_menu_item(__("Repeat"), function() {
+				frappe.utils.new_auto_repeat_prompt(me.frm);
+			}, true);
 		}
 
 		// New
@@ -190,6 +197,11 @@ frappe.ui.form.Toolbar = Class.extend({
 			this.page.add_menu_item(__("New {0} (Ctrl+B)", [__(me.frm.doctype)]), function() {
 				frappe.new_doc(me.frm.doctype, true);}, true);
 		}
+	},
+	can_repeat: function() {
+		return this.frm.meta.allow_auto_repeat
+			&& !this.frm.doc.__islocal
+			&& !this.frm.doc.auto_repeat;
 	},
 	can_save: function() {
 		return this.get_docstatus()===0;
