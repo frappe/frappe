@@ -126,7 +126,6 @@ $.extend(frappe.model, {
 					cached_timestamp: cached_timestamp
 				},
 				async: async,
-				freeze: true,
 				callback: function(r) {
 					if(r.exc) {
 						frappe.msgprint(__("Unable to load: {0}", [__(doctype)]));
