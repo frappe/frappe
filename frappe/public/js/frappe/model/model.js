@@ -182,7 +182,6 @@ $.extend(frappe.model, {
 						doctype: doctype,
 						name: name
 					},
-					freeze: true,
 					callback: function(r) {
 						callback && callback(name, r);
 						resolve(frappe.get_doc(doctype, name));
