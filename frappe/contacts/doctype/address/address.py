@@ -39,6 +39,7 @@ class Address(Document):
 	def validate(self):
 		self.link_address()
 		self.validate_reference()
+		self.set_link_title()
 		deduplicate_dynamic_links(self)
 
 	def link_address(self):
@@ -52,6 +53,18 @@ class Address(Document):
 				return True
 
 		return False
+
+	def set_link_title(self):
+		if not self.links:
+			return
+		else:
+			for address in self.links:
+				if not address.link_title:
+					linked_doc = frappe.get_doc(address.link_doctype, address.link_name)
+					try:
+						address.link_title = linked_doc.title_field
+					except AttributeError:
+						address.link_title = linked_doc.name
 
 	def validate_reference(self):
 		if self.is_your_company_address:
