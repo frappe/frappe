@@ -70,7 +70,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	})
 	comm.insert(ignore_permissions=True)
 
-	contacts = add_contacts([recipients, cc, bcc])
+	contacts = add_contacts([sender, recipients, cc, bcc])
 	for contact_name in contacts:
 		comm.add_link('Contact', contact_name)
 
