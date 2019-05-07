@@ -646,14 +646,23 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_count_str() {
 		const current_count = this.data.length;
+		const filters = this.get_filters_for_args();
+		const with_child_table_filter = filters.some(filter => {
+			return filter[0] !== this.doctype;
+		});
+
+		const fields = [
+			// cannot break this line as it adds extra \n's and \t's which breaks the query
+			`count(${with_child_table_filter ? 'distinct': ''}${frappe.model.get_full_column_name('name', this.doctype)}) AS total_count`
+		];
 
 		return frappe.call({
 			type: 'GET',
 			method: this.method,
 			args: {
 				doctype: this.doctype,
-				filters: this.get_filters_for_args(),
-				fields: [`count(${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`],
+				filters,
+				fields,
 			}
 		}).then(r => {
 			this.total_count = r.message.values[0][0] || current_count;
