@@ -182,12 +182,26 @@ frappe.ui.form.Toolbar = Class.extend({
 			}
 		}
 
-		// feedback
+		// Request feedback
 		if(!this.frm.doc.__unsaved) {
 			if(is_submittable && docstatus == 1) {
 				this.page.add_menu_item(__("Request Feedback"), function() {
 					var feedback = new frappe.utils.Feedback();
 					feedback.manual_feedback_request(me.frm.doc);
+				}, true)
+				
+				// Expand all sections
+				this.page.add_menu_item(__("Expand All Sections"), function() {
+					var all_fields_in_doc = me.frm.meta.fields;
+					function returnCollapsibleFields(field) { 
+						if (field.collapsible == 1 ) {
+							return field
+						}
+					}
+					var collapsible_fields = all_fields_in_doc.filter(returnCollapsibleFields);
+					for (let element of collapsible_fields) {
+							me.frm.get_field(element.fieldname).collapse();
+						}
 				}, true)
 			}
 		}
