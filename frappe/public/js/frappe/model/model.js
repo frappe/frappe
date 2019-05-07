@@ -382,7 +382,7 @@ $.extend(frappe.model, {
 				tasks.push(() => frappe.model.trigger(key, value, doc));
 			} else {
 				// execute link triggers (want to reselect to execute triggers)
-				if(fieldtype=="Link" && doc) {
+				if(in_list(["Link", "Dynamic Link"], fieldtype) && doc) {
 					tasks.push(() => frappe.model.trigger(key, value, doc));
 				}
 			}
