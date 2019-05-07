@@ -252,7 +252,7 @@ class Communication(Document):
 		)
 
 		if autosave:
-			self.save()
+			self.save(ignore_permissions=True)
 
 	def get_links(self, link_doctype=None, link_name=None):
 		filters = {
@@ -274,7 +274,7 @@ class Communication(Document):
 				self.dynamic_links.remove(l)
 
 		if autosave:
-			self.save()
+			self.save(ignore_permissions=True)
 
 def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""

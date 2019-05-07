@@ -347,8 +347,8 @@
  ],
  "icon": "fa fa-comment",
  "idx": 1,
- "modified": "2019-05-06 02:58:51.097154",
- "modified_by": "Administrator",
+ "modified": "2019-05-07 06:41:02.507435",
+ "modified_by": "test@erpnext.com",
  "module": "Core",
  "name": "Communication",
  "owner": "Administrator",
@@ -360,8 +360,7 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
-   "share": 1,
-   "write": 1
+   "share": 1
   },
   {
    "delete": 1,
@@ -372,16 +371,14 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
-   "share": 1,
-   "write": 1
+   "share": 1
   },
   {
    "delete": 1,
    "email": 1,
    "if_owner": 1,
    "read": 1,
-   "role": "All",
-   "write": 1
+   "role": "All"
   }
  ],
  "search_fields": "subject",
