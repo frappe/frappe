@@ -710,7 +710,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</span>
 			</span>
 			<span class="level-item ${seen} ellipsis" title="${escaped_subject}">
-				<a class="ellipsis" href="${this.get_form_link(doc)}" title="${escaped_subject}">
+				<a class="ellipsis" href="${this.get_form_link(doc)}" title="${escaped_subject}" data-doctype="${this.doctype}" data-name="${doc.name}">
 				${subject}
 				</a>
 			</span>
