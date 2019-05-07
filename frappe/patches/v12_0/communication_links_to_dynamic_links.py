@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import frappe
+from frappe.core.doctype.communication.email.add_contacts
 
 def execute():
 	for communication in frappe.get_list("Communication"):
@@ -11,4 +12,7 @@ def execute():
 			comm.add_link(comm.timeline_doctype, comm.timeline_name)
 		if comm.link_doctype and comm.link_name:
 			comm.add_link(comm.link_doctype, comm.link_name)
+		contacts = add_contacts([comm.sender, comm.recipients, comm.cc, comm.bcc])
+		for contact_name in contacts:
+			comm.add_link('Contact', contact_name)
 		comm.save(ignore_permissions=True)
