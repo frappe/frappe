@@ -15,6 +15,12 @@ class TestUserPermission(unittest.TestCase):
 		created = add_user_permissions(param)
 		self.assertEquals(created, 1)
 
+	def test_for_apply_to_all_on_update_from_apply_all(self):
+		user = get_user()
+		param = get_params(user, apply= 1)
+		create = add_user_permissions(param)
+		self.assertEquals(create, 0)
+
 	def test_for_applicable_on_update_from_apply_to_all(self):
 		''' Update User Permission from all to some applicable Doctypes'''
 		user = get_user()
