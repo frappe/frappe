@@ -113,14 +113,14 @@ frappe.ui.form.on("Communication", {
 			fields: [{
 				"fieldtype": "Link",
 				"options": "DocType",
-				"label": __("Reference Doctype"),
+				"label": __("Document Type"),
 				"fieldname": "link_doctype",
 				"reqd": 1
 			},
 			{
 				"fieldtype": "Dynamic Link",
 				"options": "link_doctype",
-				"label": __("Reference Name"),
+				"label": __("Document Name"),
 				"fieldname": "link_name",
 				"reqd": 1
 			}],
@@ -134,6 +134,13 @@ frappe.ui.form.on("Communication", {
 			},
 			primary_action_label: __('Add Link')
 		});
+		d.fields_dict.link_doctype.get_query = function() {
+			return {
+				"filters": {
+					"name": ["!=", "Communication"],
+				}
+			};
+		};
 		d.show();
 	},
 
