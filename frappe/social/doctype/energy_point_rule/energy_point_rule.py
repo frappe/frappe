@@ -33,7 +33,7 @@ class EnergyPointRule(Document):
 			if not points: return
 
 			# if user_field has no value
-			if not user: return
+			if not user or user == 'Administrator': return
 
 			try:
 				create_energy_points_log(reference_doctype, reference_name, {
@@ -48,8 +48,7 @@ class EnergyPointRule(Document):
 def process_energy_points(doc, state):
 	if (frappe.flags.in_patch
 		or frappe.flags.in_install
-		or not is_energy_point_enabled()
-		or frappe.session.user == 'Administrator'):
+		or not is_energy_point_enabled()):
 		return
 
 	for d in frappe.cache_manager.get_doctype_map('Energy Point Rule', doc.doctype,
