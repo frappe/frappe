@@ -3,39 +3,17 @@ frappe.ui.LinkPreview = class {
 	constructor() {
 		this.$links = [];
 		this.popover_timeout = null;
-		this.get_links();
+		this.setup_events();
 	}
 
-	get_links() {
-
-		$(document.body).on('mouseover', 'a[href*="/"], input[data-fieldname], .popover', (e) => {
+	setup_events() {
+		$(document.body).on('mouseover', 'a[data-doctype], input[data-fieldtype="Link"], .popover', (e) => {
 			this.link_hovered = true;
 			this.element = $(e.currentTarget);
-			this.is_link = true;
+			this.is_link = this.element.get(0).tagName.toLowerCase() === 'a';
 
 			if(!this.element.parents().find('.popover').length) {
-				if(this.element.attr('href')) {
-					this.link = this.element.attr('href');
-					if(this.link.startsWith('http')) {
-						return;
-					}
-					let details = this.get_details();
-					this.name = details.name;
-					this.doctype = details.doctype;
-				} else {
-					this.is_link = false;
-					this.link = this.element.parents('.control-input-wrapper').find('.control-value').children('a').attr('href');
-
-					if(this.link) {
-						let details = this.get_details();
-						this.name = details.name;
-						this.doctype = details.doctype;
-					} else {
-						this.name = this.element.parent().next().text();
-						this.doctype = this.element.attr('data-doctype');
-					}
-				}
-
+				this.identify_doc();
 				this.popover = this.element.data("bs.popover");
 				if(this.name && this.doctype) {
 					this.setup_popover_control(e);
@@ -45,33 +23,26 @@ frappe.ui.LinkPreview = class {
 
 	}
 
-	get_details() {
-		let details = {};
-		let link_arr = this.link.split('/');
-
-		if(link_arr.length > 2) {
-			details.name = decodeURI(link_arr[link_arr.length - 1]);
-			details.doctype = decodeURI(link_arr[link_arr.length -2]);
-			details.name = details.name.replace(new RegExp('%2F', 'g'), '/');
+	identify_doc() {
+		if (this.is_link) {
+			this.doctype = this.element.attr('data-doctype');
+			this.name = this.element.attr('data-name');
+		} else {
+			// input
+			this.doctype = this.element.attr('data-target');
+			this.name = this.element.val();
 		}
-		let title = this.element.attr('title');
-		if( title && title.includes('/')) {
-			details.name = title.trim();
-			details.doctype = decodeURI(link_arr[link_arr.length-3]);
-		}
-		return details;
 	}
 
-
 	setup_popover_control(e) {
-
-		if(!this.popover || !this.is_link) {
-			let preview_fields = this.get_preview_fields();
-			if(preview_fields.length) {
-				this.data_timeout = setTimeout(() => {
-					this.create_popover(e, preview_fields);
-				}, 1000);
-			}
+		if(!this.popover) {
+			this.get_preview_fields().then(preview_fields => {
+				if(preview_fields.length) {
+					this.data_timeout = setTimeout(() => {
+						this.create_popover(e, preview_fields);
+					}, 100);
+				}
+			});
 		} else {
 			this.popover_timeout = setTimeout(() => {
 				this.popover.show();
@@ -128,26 +99,29 @@ frappe.ui.LinkPreview = class {
 	}
 
 	get_preview_fields() {
-		let dt = this.doctype;
-		let fields = [];
-		frappe.model.with_doctype(dt, () => {
-			frappe.get_meta(dt).fields.filter((field) => {
-				if(field.in_preview) {
-					fields.push({'name':field.fieldname,'type':field.fieldtype});
-				}
-			});
-		});
-
-		if(!fields.length) {
+		return new Promise((resolve) => {
+			let dt = this.doctype;
+			let fields = [];
 			frappe.model.with_doctype(dt, () => {
-				frappe.get_meta(dt).fields.filter((field) => {
-					if(field.reqd) {
+				let meta_fields = frappe.get_meta(dt).fields;
+				meta_fields.filter((field) => {
+					// build list of fields to fetch
+					if(field.in_preview) {
 						fields.push({'name':field.fieldname,'type':field.fieldtype});
 					}
 				});
+
+				// no preview fields defined, build list from mandatory fields
+				if(!fields.length) {
+					meta_fields.filter((field) => {
+						if(field.reqd) {
+							fields.push({'name':field.fieldname,'type':field.fieldtype});
+						}
+					});
+				}
+				resolve(fields);
 			});
-		}
-		return fields;
+		});
 	}
 
 	get_preview_fields_value(field_list) {
@@ -159,7 +133,6 @@ frappe.ui.LinkPreview = class {
 	}
 
 	init_preview_popover(preview_data) {
-
 		let popover_content = this.get_popover_html(preview_data);
 		this.element.popover({
 			container: 'body',
@@ -179,12 +152,12 @@ frappe.ui.LinkPreview = class {
 	}
 
 	get_popover_html(preview_data) {
-		if(!this.link) {
-			this.link = window.location.href;
+		if(!this.href) {
+			this.href = window.location.href;
 		}
 
-		if(this.link && this.link.includes(' ')) {
-			this.link = this.link.replace(new RegExp(' ', 'g'), '%20');
+		if(this.href && this.href.includes(' ')) {
+			this.href = this.href.replace(new RegExp(' ', 'g'), '%20');
 		}
 
 		let image_html = '';
@@ -195,20 +168,20 @@ frappe.ui.LinkPreview = class {
 			let image_url = encodeURI(preview_data['image']);
 			image_html += `
 			<div class="preview-header">
-				<img src=${image_url} class="preview-image"></img> 
+				<img src=${image_url} class="preview-image"></img>
 			</div>`;
 		}
 		if(preview_data['title']) {
-			title_html+= `<a class="preview-title small" href=${this.link}>${preview_data['title']}</a>`;
+			title_html+= `<a class="preview-title small" href=${this.href}>${preview_data['title']}</a>`;
 		}
 
 		Object.keys(preview_data).forEach(key => {
 			if(key!='image' && key!='name') {
-				let value = this.truncate_value(preview_data[key]);            
+				let value = this.truncate_value(preview_data[key]);
 				let label = this.truncate_value(frappe.meta.get_label(this.doctype, key));
 				content_html += `
 				<tr class="preview-field">
-					<td class='text-muted small field-name'>${label}</td> 
+					<td class='text-muted small field-name'>${label}</td>
 					<td class="field-value small"> ${value} </td>
 				</tr>
 				`;
@@ -216,11 +189,11 @@ frappe.ui.LinkPreview = class {
 		});
 		content_html+=`</table>`;
 
-		let popover_content = 
+		let popover_content =
 			`<div class="preview-popover-header">${image_html}
 				<div class="preview-header">
 					<div class="preview-main">
-						<a class="preview-name text-bold" href=${this.link}>${preview_data['name']}</a>
+						<a class="preview-name text-bold" href=${this.href}>${preview_data['name']}</a>
 						${title_html}
 						<span class="text-muted small">${this.doctype}</span>
 					</div>
