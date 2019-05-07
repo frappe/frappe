@@ -509,7 +509,12 @@ _f.Frm.prototype.make_new = function(doctype) {
 
 			// set link fields (if found)
 			frappe.get_meta(doctype).fields.forEach(function(df) {
-				if(df.fieldtype==='Link' && df.options===me.doctype) {
+				if(df.fieldtype==='Link' && df.options==="DocType") {
+					new_doc[df.fieldname] = me.doctype;
+				}
+
+				if((df.fieldtype==='Link' && df.options===me.doctype)
+					|| (df.fieldtype==='Dynamic Link' && new_doc[df.options] === me.doctype)) {
 					new_doc[df.fieldname] = me.doc.name;
 				}
 			});
