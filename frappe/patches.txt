@@ -240,4 +240,6 @@ frappe.patches.v12_0.replace_null_values_in_tables
 frappe.patches.v12_0.reset_home_settings
 frappe.patches.v12_0.update_print_format_type
 frappe.patches.v11_0.remove_doctype_user_permissions_for_page_and_report #2019-05-01
+execute:frappe.reload_doc('core', 'doctype', 'communication')
+execute:frappe.reload_doc('core', 'doctype', 'dynamic_link')
 frappe.patches.v12_0.communication_links_to_dynamic_links
