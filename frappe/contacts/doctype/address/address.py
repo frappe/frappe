@@ -60,7 +60,7 @@ class Address(Document):
 		for address in self.links:
 			if not address.link_title:
 				linked_doc = frappe.get_doc(address.link_doctype, address.link_name)
-					address.link_title = linked_doc.get("title_field") or linked_doc.get("name")
+				address.link_title = linked_doc.get("title_field") or linked_doc.get("name")
 
 	def validate_reference(self):
 		if self.is_your_company_address:

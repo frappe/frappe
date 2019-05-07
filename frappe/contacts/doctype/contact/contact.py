@@ -47,7 +47,7 @@ class Contact(Document):
 		for contact in self.links:
 			if not contact.link_title:
 				linked_doc = frappe.get_doc(contact.link_doctype, contact.link_name)
-					contact.link_title = linked_doc.get("title_field") or linked_doc.get("name")
+				contact.link_title = linked_doc.get("title_field") or linked_doc.get("name")
 
 	def get_link_for(self, link_doctype):
 		'''Return the link name, if exists for the given link DocType'''
