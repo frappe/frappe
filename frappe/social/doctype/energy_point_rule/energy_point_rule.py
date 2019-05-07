@@ -53,7 +53,7 @@ def process_energy_points(doc, state):
 
 	for d in frappe.cache_manager.get_doctype_map('Energy Point Rule', doc.doctype,
 		dict(reference_doctype = doc.doctype, enabled=1)):
-		frappe.get_doc('Energy Point Rule', d.name).apply(doc)
+		frappe.get_doc('Energy Point Rule', d.get('name')).apply(doc)
 
 def get_energy_point_doctypes():
 	return [
