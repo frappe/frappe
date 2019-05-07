@@ -227,7 +227,7 @@
   {
    "fieldname": "dynamic_link_section",
    "fieldtype": "Section Break",
-   "label": "Dynamic Link"
+   "label": "Document Links"
   },
   {
    "fieldname": "dynamic_links",
