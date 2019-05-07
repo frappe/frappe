@@ -652,7 +652,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 
 		const fields = [
-			// can break this line as in adds extra \n's and \t's which breaks the query
+			// cannot break this line as it adds extra \n's and \t's which breaks the query
 			`count(${with_child_table_filter ? 'distinct': ''}${frappe.model.get_full_column_name('name', this.doctype)}) AS total_count`
 		];
 
