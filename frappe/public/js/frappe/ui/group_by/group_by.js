@@ -147,7 +147,8 @@ frappe.ui.GroupBy = class {
 			}
 
 			this.report_view.group_by = this.group_by;
-			this.report_view.order_by = '_aggregate_column desc';
+			this.report_view.sort_by = '_aggregate_column';
+			this.report_view.sort_order = 'desc';
 
 			// save orignial fields
 			if(!this.report_view.fields.map(f => f[0]).includes('_aggregate_column')) {
@@ -170,8 +171,8 @@ frappe.ui.GroupBy = class {
 
 			Object.assign(args, {
 				with_comment_count: false,
-				group_by: this.group_by || null,
-				order_by: this.order_by || null,
+				group_by: this.report_view.group_by || null,
+				order_by: '_aggregate_column desc'
 			});
 		}
 
@@ -185,8 +186,9 @@ frappe.ui.GroupBy = class {
 			docfield = {
 				fieldtype: 'Int',
 				label: __('Count'),
-				parent: this.doctype
-			}
+				parent: this.doctype,
+				width: 120
+			};
 		} else {
 			// get properties of "aggregate_on", for example Net Total
 			docfield = Object.assign({}, frappe.meta.docfield_map[this.doctype][this.aggregate_on]);

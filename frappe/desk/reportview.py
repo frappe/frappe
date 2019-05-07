@@ -108,7 +108,7 @@ def save_report():
 	d.report_type = "Report Builder"
 	d.json = data['json']
 	frappe.get_doc(d).save()
-	frappe.msgprint(_("{0} is saved").format(d.name))
+	frappe.msgprint(_("{0} is saved").format(d.name), alert=True)
 	return d.name
 
 @frappe.whitelist()
