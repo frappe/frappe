@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 import frappe
-from frappe.core.doctype.communication.email.add_contacts
+from frappe.core.doctype.communication.email import add_contacts
 
 def execute():
 	for communication in frappe.get_list("Communication"):
