@@ -124,9 +124,6 @@ frappe.ui.GroupBy = class {
 			return;
 		}
 
-		//If function is count add a new field for count
-		this.page.wrapper.find('.set-groupby-and-run').hide();
-
 		return true;
 
 	}
@@ -205,7 +202,6 @@ frappe.ui.GroupBy = class {
 
 	remove_group_by() {
 		this.groupby_edit_area.hide();
-		$('.set-groupby-and-run').show();
 
 		this.order_by = '';
 		this.group_by = null;
