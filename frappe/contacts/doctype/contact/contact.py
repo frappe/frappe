@@ -59,6 +59,9 @@ class Contact(Document):
 			if (link.link_doctype, link.link_name) in reference_links:
 				return True
 
+	def get_links(self):
+		links = frappe.get_all("Dynamic Link", filters={"parenttype": "Communication", "parent": self.name}, fields=["link_doctype", "link_name"])
+		return links
 
 def get_default_contact(doctype, name):
 	'''Returns default contact for the given doctype, name'''

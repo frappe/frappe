@@ -23,6 +23,7 @@ from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts, add_contacts
 from frappe.utils.scheduler import log
 from frappe.utils.html_utils import clean_email_html
+from frappe.contacts.doctype.contact import get_links
 
 class SentEmailInInbox(Exception): pass
 
@@ -388,6 +389,13 @@ class EmailAccount(Document):
 		contacts = add_contacts([email.mail.get("To"), email.mail.get("CC"), email.from_email])
 		for contact_name in contacts:
 			communication.add_link('Contact', contact_name)
+			contact = frappe.get_doc('Contact', contact_name)
+
+			#link contact's dynamic links to communication
+			contact_links = contact.get_links()
+			if contact_links:
+				for contact_link in contact_links:
+					comm.add_link(contact_link.link_doctype, contact_link.link_name)
 
 		communication.flags.in_receive = True
 		communication.insert(ignore_permissions = 1)

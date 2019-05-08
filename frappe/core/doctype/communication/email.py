@@ -17,6 +17,7 @@ import time
 from frappe import _
 from frappe.utils.background_jobs import enqueue
 from email.utils import parseaddr
+from frappe.contacts.doctype.contact import get_links
 
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
@@ -73,6 +74,13 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	contacts = add_contacts([sender, recipients, cc, bcc])
 	for contact_name in contacts:
 		comm.add_link('Contact', contact_name)
+		contact = frappe.get_doc('Contact', contact_name)
+
+		#link contact's dynamic links to communication
+		contact_links = contact.get_links()
+		if contact_links:
+			for contact_link in contact_links:
+				comm.add_link(contact_link.link_doctype, contact_link.link_name)
 
 	if doctype:
 		#link doctype if present to the communication
