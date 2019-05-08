@@ -276,7 +276,10 @@ def has_permission(doc, ptype, user):
 				return
 
 			if value.link_doctype and value.link_name:
-				if frappe.has_permission(value.link_doctype, ptype="read", doc=value.link_name):
+				# check permissions for doctype other than contact
+				if not value.link_doctype == "Contact" and \
+					frappe.has_permission(value.link_doctype, ptype="read", doc=value.link_name):
+
 					return True
 
 def get_permission_query_conditions_for_communication(user):
