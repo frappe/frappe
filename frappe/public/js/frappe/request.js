@@ -380,11 +380,16 @@ frappe.after_ajax = function(fn) {
 
 frappe.request.report_error = function(xhr, request_opts) {
 	var data = JSON.parse(xhr.responseText);
+	var exc;
 	if (data.exc) {
-		var exc = (JSON.parse(data.exc) || []).join("\n");
+		try {
+			exc = (JSON.parse(data.exc) || []).join("\n");
+		} catch (e) {
+			exc = data.exc;
+		}
 		delete data.exc;
 	} else {
-		var exc = "";
+		exc = "";
 	}
 
 	var show_communication = function() {

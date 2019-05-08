@@ -29,8 +29,6 @@ def savedocs(doc, action):
 		run_onload(doc)
 		send_updated_docs(doc)
 	except Exception:
-		if not frappe.local.message_log:
-			frappe.msgprint(frappe._('Did not save'))
 		frappe.errprint(frappe.utils.get_traceback())
 		raise
 
