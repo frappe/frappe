@@ -23,7 +23,6 @@ from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts, add_contacts
 from frappe.utils.scheduler import log
 from frappe.utils.html_utils import clean_email_html
-from frappe.contacts.doctype.contact import get_links
 
 class SentEmailInInbox(Exception): pass
 

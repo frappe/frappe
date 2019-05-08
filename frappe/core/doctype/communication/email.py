@@ -17,7 +17,6 @@ import time
 from frappe import _
 from frappe.utils.background_jobs import enqueue
 from email.utils import parseaddr
-from frappe.contacts.doctype.contact import get_links
 
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
