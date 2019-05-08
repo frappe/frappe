@@ -150,20 +150,20 @@ class Communication(Document):
 		if not self.is_new():
 			return
 
-		for dynamic_link in self.dynamic_links:
-			if dynamic_link.link_doctype and dynamic_link.link_name:
-				self.status = "Linked"
-			elif self.communication_type=="Communication":
-				self.status = "Open"
-			else:
-				self.status = "Closed"
+		linked_doctypes = [d.link_doctype for d in self.dynamic_links if not d.link_doctype == "Contact"]
+		if len(linked_doctypes) > 0:
+			self.status = "Linked"
+		elif self.communication_type=="Communication":
+			self.status = "Open"
+		else:
+			self.status = "Closed"
 
-			# set email status to spam
-			email_rule = frappe.db.get_value("Email Rule", { "email_id": self.sender, "is_spam":1 })
-			if self.communication_type == "Communication" and self.communication_medium == "Email" \
-				and self.sent_or_received == "Sent" and email_rule:
+		# set email status to spam
+		email_rule = frappe.db.get_value("Email Rule", { "email_id": self.sender, "is_spam":1 })
+		if self.communication_type == "Communication" and self.communication_medium == "Email" \
+			and self.sent_or_received == "Sent" and email_rule:
 
-				self.email_status = "Spam"
+			self.email_status = "Spam"
 
 	def set_sender_full_name(self):
 		if not self.sender_full_name and self.sender:
@@ -254,19 +254,8 @@ class Communication(Document):
 		if autosave:
 			self.save(ignore_permissions=True)
 
-	def get_links(self, link_doctype=None, link_name=None):
-		filters = {
-			"parenttype": "Communication",
-			"parent": self.name
-		}
-		if link_doctype and link_name:
-			filters.update({
-				"link_doctype": link_doctype,
-				"link_name": link_name
-			})
-
-		links = frappe.get_all("Dynamic Link", filters=filters, fields=["link_doctype", "link_name"])
-		return links
+	def get_links(self):
+		return self.dynamic_links
 
 	def remove_link(self, link_doctype, link_name, autosave=False):
 		for l in self.dynamic_links:
@@ -274,7 +263,7 @@ class Communication(Document):
 				self.dynamic_links.remove(l)
 
 		if autosave:
-			self.save(ignore_permissions=True)
+			self.save()
 
 def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""
