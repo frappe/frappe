@@ -64,14 +64,14 @@ class Communication(Document):
 			for l in self.dynamic_links:
 				t = (l.link_doctype, l.link_name)
 				if not t in links:
-					links.append(l)
+					links.append(t)
 				else:
 					duplicate = True
 
 			if duplicate:
 				self.dynamic_links.clear()
 				for l in links:
-					self.dynamic_links.append(l)
+					self.add_link(link_doctype=l[0], link_name=l[1])
 
 	def validate_reference(self):
 		for dynamic_link in self.dynamic_links:

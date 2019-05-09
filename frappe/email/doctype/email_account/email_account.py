@@ -389,7 +389,7 @@ class EmailAccount(Document):
 			communication.add_link('Contact', contact_name)
 
 			#link contact's dynamic links to communication
-			contact_links = get_contact_links(communication, contact_name)
+			get_contact_links(communication, contact_name)
 
 		communication.flags.in_receive = True
 		communication.insert(ignore_permissions = 1)
