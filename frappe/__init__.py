@@ -188,7 +188,7 @@ def connect(site=None, db_name=None):
 	set_user("Administrator")
 
 def connect_secondary():
-	from frappe.database import get_db
+	from frappe.database import Database
 	user = local.conf.db_name
 	password = local.conf.db_password
 
@@ -196,7 +196,7 @@ def connect_secondary():
 		user = local.conf.secondary_db_name
 		password = local.conf.secondary_db_password
 
-	local.read_only_db = get_db(host=local.conf.secondary_host, user=user, password=password)
+	local.read_only_db = Database(host=local.conf.secondary_host, user=user, password=password)
 
 	# swap db connections
 	local.primary_db = local.db
