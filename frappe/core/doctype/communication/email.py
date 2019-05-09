@@ -75,7 +75,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		comm.add_link('Contact', contact_name)
 
 		#link contact's dynamic links to communication
-		#get_contacts_link(comm, contact_name)
+		get_contact_links(comm, contact_name)
 
 	if doctype:
 		#link doctype if present to the communication
@@ -602,11 +602,11 @@ def get_contacts(email_strings):
 
 	return contacts
 
-def get_contacts_link(contact_name):
+def get_contact_links(communication, contact_name):
 	contact_links = frappe.get_list("Dynamic Link", filters={
-				"parenttype": "Contact",
-				"parent": contact_name
-			},fields=["link_doctype", "link_name"])
+			"parenttype": "Contact",
+			"parent": contact_name
+		}, fields=["link_doctype", "link_name"])
 
 	if contact_links:
 		for contact_link in contact_links:

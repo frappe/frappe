@@ -20,7 +20,7 @@ from datetime import datetime, timedelta
 from frappe.desk.form import assign_to
 from frappe.utils.user import get_system_managers
 from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts, get_contacts, get_contacts_link
+from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts, get_contacts, get_contact_links
 from frappe.utils.scheduler import log
 from frappe.utils.html_utils import clean_email_html
 
@@ -389,7 +389,7 @@ class EmailAccount(Document):
 			communication.add_link('Contact', contact_name)
 
 			#link contact's dynamic links to communication
-			#get_contacts_link(communication, contact_name)
+			contact_links = get_contact_links(communication, contact_name)
 
 		communication.flags.in_receive = True
 		communication.insert(ignore_permissions = 1)
