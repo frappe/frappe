@@ -10,7 +10,6 @@ from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_mins_to_first_response, get_parent_doc)
 from frappe.utils import parse_addr
 from frappe.core.doctype.comment.comment import update_comment_in_doc
-
 from collections import Counter
 
 exclude_from_linked_with = True
@@ -257,13 +256,13 @@ class Communication(Document):
 	def get_links(self):
 		return self.dynamic_links
 
-	def remove_link(self, link_doctype, link_name, autosave=False):
+	def remove_link(self, link_doctype, link_name, autosave=False, ignore_permissions=True):
 		for l in self.dynamic_links:
 			if l.link_doctype == link_doctype and l.link_name == link_name:
 				self.dynamic_links.remove(l)
 
 		if autosave:
-			self.save()
+			self.save(ignore_permissions=ignore_permissions)
 
 def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""

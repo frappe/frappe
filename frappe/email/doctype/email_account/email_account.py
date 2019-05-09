@@ -20,7 +20,7 @@ from datetime import datetime, timedelta
 from frappe.desk.form import assign_to
 from frappe.utils.user import get_system_managers
 from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts, add_contacts
+from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts, get_contacts, get_contacts_link
 from frappe.utils.scheduler import log
 from frappe.utils.html_utils import clean_email_html
 
@@ -66,7 +66,6 @@ class EmailAccount(Document):
 				if self.enable_incoming:
 					self.get_incoming_server()
 					self.no_failed = 0
-
 
 				if self.enable_outgoing:
 					self.check_smtp()
@@ -385,19 +384,12 @@ class EmailAccount(Document):
 			users = list(set([ user.get("parent") for user in users ]))
 			communication._seen = json.dumps(users)
 
-		contacts = add_contacts([email.mail.get("To"), email.mail.get("CC"), email.from_email])
+		contacts = get_contacts([email.from_email, email.mail.get("To"), email.mail.get("CC"), email.from_email])
 		for contact_name in contacts:
 			communication.add_link('Contact', contact_name)
 
 			#link contact's dynamic links to communication
-			contact_links = frappe.get_list("Dynamic Link", filters={
-					"parenttype": "Contact",
-					"parent": contact_name
-				}, fields=["link_doctype", "link_name"])
-
-			if contact_links:
-				for contact_link in contact_links:
-					comm.add_link(contact_link.link_doctype, contact_link.link_name)
+			#get_contacts_link(communication, contact_name)
 
 		communication.flags.in_receive = True
 		communication.insert(ignore_permissions = 1)

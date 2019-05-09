@@ -166,7 +166,8 @@ frappe.ui.form.on("Communication", {
 				frm.call('remove_link', {
 					link_doctype: link.split(":")[0].trim(),
 					link_name: link.split(":")[1].trim(),
-					autosave: true
+					autosave: true,
+					ignore_permissions: false
 				}).then(() => frm.refresh());
 			},
 			primary_action_label: __('Remove Link')
