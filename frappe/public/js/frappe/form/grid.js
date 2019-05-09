@@ -139,7 +139,7 @@ export default class Grid {
 			me.get_selected().forEach((docname) => {
 				tasks.push(() => {
 					if (!me.frm) {
-						me.df.data = me.df.data.filter((row)=> row.name != docname)
+						me.df.data = me.df.data.filter((row)=> row.name != docname);
 					}
 					me.grid_rows_by_docname[docname].remove();
 					dirty = true;
@@ -150,8 +150,8 @@ export default class Grid {
 			if (!me.frm) {
 				tasks.push(() => {
 					// reorder idx of df.data
-					me.df.data.forEach((row, index) => row.idx = index + 1)
-				})
+					me.df.data.forEach((row, index) => row.idx = index + 1);
+				});
 			}
 
 			tasks.push(() => {
@@ -285,7 +285,7 @@ export default class Grid {
 				this.wrapper.find(".grid-add-row").removeClass('hidden');
 
 				if(this.multiple_set) {
-					this.wrapper.find(".grid-add-multiple-rows").removeClass('hidden')
+					this.wrapper.find(".grid-add-multiple-rows").removeClass('hidden');
 				}
 			}
 
