@@ -30,7 +30,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	show() {
 		if (!this.has_permissions()) {
 			frappe.set_route('');
-			frappe.msgprint(__(`Not permitted to view ${this.doctype}`));
+			frappe.msgprint({
+				message: __(`Not permitted to view ${this.doctype}`),
+				primary_action: {
+					label: "Request Access",
+					action: () => {
+						frappe.new_doc("Permission Request", {
+							user: frappe.session.user,
+							doc_type: this.doctype
+						});
+					}
+				}
+			})
 			return;
 		}
 
