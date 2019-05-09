@@ -69,7 +69,7 @@ class Communication(Document):
 					duplicate = True
 
 			if duplicate:
-				self.dynamic_links.clear()
+				del self.dynamic_links[:] # make it python 2 compatible are list.clear() is python 3 only
 				for l in links:
 					self.add_link(link_doctype=l[0], link_name=l[1])
 
