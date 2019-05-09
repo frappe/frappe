@@ -12,10 +12,9 @@ frappe.pages['print-format-builder'].on_page_show = function(wrapper) {
 		});
 	} else if(frappe.route_options) {
 		if(frappe.route_options.make_new) {
-			var doctype = frappe.route_options.doctype;
-			var name = frappe.route_options.name;
+			let { doctype, name, based_on } = frappe.route_options;
 			frappe.route_options = null;
-			frappe.print_format_builder.setup_new_print_format(doctype, name);
+			frappe.print_format_builder.setup_new_print_format(doctype, name, based_on);
 		} else {
 			frappe.print_format_builder.print_format = frappe.route_options.doc;
 			frappe.route_options = null;
@@ -130,25 +129,16 @@ frappe.PrintFormatBuilder = Class.extend({
 
 		});
 	},
-	setup_new_print_format: function(doctype, name) {
-		var me = this;
-		frappe.call({
-			method: "frappe.client.insert",
-			args: {
-				doc: {
-					doctype: "Print Format",
-					name: name,
-					standard: "No",
-					doc_type: doctype,
-					print_format_builder: 1
-				}
-			},
-			callback: function(r) {
-				frappe.model.with_doc('Print Format', r.message.name)
-					.then(() => $(document).trigger({ type: 'new-print-format', print_format: r.message.name }));
-				me.print_format = r.message;
-				me.refresh();
-			}
+	setup_new_print_format: function(doctype, name, based_on) {
+		frappe.call('frappe.printing.page.print_format_builder.print_format_builder.create_custom_format', {
+			doctype,
+			name,
+			based_on
+		}).then((r) => {
+			frappe.model.with_doc('Print Format', r.message.name)
+				.then(() => $(document).trigger({ type: 'new-print-format', print_format: r.message.name }));
+			this.print_format = r.message;
+			this.refresh();
 		});
 	},
 	setup_print_format: function() {
