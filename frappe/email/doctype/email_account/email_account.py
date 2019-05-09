@@ -388,7 +388,6 @@ class EmailAccount(Document):
 		contacts = add_contacts([email.mail.get("To"), email.mail.get("CC"), email.from_email])
 		for contact_name in contacts:
 			communication.add_link('Contact', contact_name)
-			contact = frappe.get_doc('Contact', contact_name)
 
 			#link contact's dynamic links to communication
 			contact_links = frappe.get_list("Dynamic Link", filters={
