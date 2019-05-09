@@ -120,6 +120,12 @@ frappe.msgprint = function(msg, title) {
 				msg_dialog.msg_area.empty();
 			}
 		});
+
+		// setup and bind an action to the primary button
+		if (data.primary_action) {
+			msg_dialog.set_primary_action(__(data.primary_action.label || "Done"), data.primary_action.action);
+		}
+
 		msg_dialog.msg_area = $('<div class="msgprint">')
 			.appendTo(msg_dialog.body);
 
@@ -141,6 +147,12 @@ frappe.msgprint = function(msg, title) {
 
 	if(data.message.search(/<br>|<p>|<li>/)==-1) {
 		msg = frappe.utils.replace_newlines(data.message);
+	}
+
+	if (data.primary_action) {
+		msg_dialog.get_primary_btn().show();
+	} else {
+		msg_dialog.get_primary_btn().hide();
 	}
 
 	var msg_exists = false;
