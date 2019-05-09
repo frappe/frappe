@@ -238,6 +238,11 @@ frappe.sys_defaults = frappe.boot.sysdefaults;
 {% if row_template %}web_form_settings.web_form_row_template = "{{ row_template }}";{% endif %}
 </script>
 
+<script type="text/javascript" src="/assets/frappe/node_modules/vue/dist/vue.js"></script>
+<script>
+	Vue.prototype.__ = window.__;
+	Vue.prototype.frappe = window.frappe;
+</script>
 <script type="text/javascript" src="/assets/js/web_form.min.js"></script>
 <script>
 {% if script is defined %}
