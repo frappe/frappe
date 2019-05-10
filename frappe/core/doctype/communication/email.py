@@ -22,7 +22,7 @@ from email.utils import parseaddr
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, sender_full_name=None, recipients=None, communication_medium="Email", send_email=False,
 	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, bcc=None,
-	flags=None, read_receipt=None, print_letterhead=True):
+	flags=None, read_receipt=None, print_letterhead=True, email_template=None):
 	"""Make a new communication.
 
 	:param doctype: Reference DocType.
@@ -38,6 +38,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	:param print_format: Print Format name of parent document to be sent as attachment.
 	:param attachments: List of attachments as list of files or JSON string.
 	:param send_me_a_copy: Send a copy to the sender (default **False**).
+	:param email_template: Template which is used to compose mail .
 	"""
 
 	is_error_report = (doctype=="User" and name==frappe.session.user and subject=="Error Report")
@@ -64,6 +65,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"bcc": bcc or None,
 		"communication_medium": communication_medium,
 		"sent_or_received": sent_or_received,
+		"email_template": email_template,
 		"message_id":get_message_id().strip(" <>"),
 		"read_receipt":read_receipt,
 		"has_attachment": 1 if attachments else 0

@@ -39,6 +39,7 @@
   "in_reply_to",
   "user",
   "column_break_27",
+  "email_template",
   "unread_notification_sent",
   "seen",
   "_user_tags",
@@ -343,12 +344,19 @@
    "fieldtype": "Data",
    "label": "Feedback Request",
    "read_only": 1
+  },
+  {
+   "fieldname": "email_template",
+   "fieldtype": "Link",
+   "label": "Email Template",
+   "options": "Email Template",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-comment",
  "idx": 1,
- "modified": "2019-05-07 06:41:02.507435",
- "modified_by": "test@erpnext.com",
+ "modified": "2019-05-04 15:36:35.818714",
+ "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",
  "owner": "Administrator",
