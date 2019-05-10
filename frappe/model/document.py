@@ -230,6 +230,9 @@ class Document(BaseDocument):
 		self.set_docstatus()
 		self.flags.in_insert = False
 
+		# follow document on document creation
+
+
 		# run validate, on update etc.
 
 		# parent
@@ -259,6 +262,8 @@ class Document(BaseDocument):
 		if hasattr(self, "__islocal"):
 			delattr(self, "__islocal")
 
+		if not frappe.flags.in_migrate:
+			follow_document(self.doctype, self.name, frappe.session.user)
 		return self
 
 	def save(self, *args, **kwargs):
