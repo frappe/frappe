@@ -3,7 +3,7 @@
 
 frappe.ui.form.on('Permission Request', {
 	onload: (frm) => {
-		frm.set_value("user", frappe.session.user);
+		frm.set_value_if_missing("user", frappe.session.user);
 	},
 
 	refresh: (frm) => {
