@@ -70,8 +70,7 @@ frappe.ui.form.on('Auto Email Report', {
 				&& frappe.query_reports[frm.doc.reference_report]
 				&& frappe.query_reports[frm.doc.reference_report].filters) {
 				var report_filters = frappe.query_reports[frm.doc.reference_report].filters;
-			}
-			else{
+			} else {
 				var report_filters = frappe.query_reports[frm.doc.report].filters;
 			}
 
