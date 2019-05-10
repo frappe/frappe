@@ -282,6 +282,10 @@ def export_query():
 		filters = json.loads(data["filters"])
 	if isinstance(data.get("report_name"), string_types):
 		report_name = data["report_name"]
+		frappe.permissions.can_export(
+			frappe.get_cached_value('Report', report_name, 'ref_doctype'),
+			raise_exception=True
+		)
 	if isinstance(data.get("file_format_type"), string_types):
 		file_format_type = data["file_format_type"]
 
