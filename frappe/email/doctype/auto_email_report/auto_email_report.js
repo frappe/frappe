@@ -66,12 +66,14 @@ frappe.ui.form.on('Auto Email Report', {
 
 			var filters = JSON.parse(frm.doc.filters || '{}');
 
+			let report_filters;
+
 			if (frm.doc.report_type === 'Custom Report'
 				&& frappe.query_reports[frm.doc.reference_report]
 				&& frappe.query_reports[frm.doc.reference_report].filters) {
-				var report_filters = frappe.query_reports[frm.doc.reference_report].filters;
+				report_filters = frappe.query_reports[frm.doc.reference_report].filters;
 			} else {
-				var report_filters = frappe.query_reports[frm.doc.report].filters;
+				report_filters = frappe.query_reports[frm.doc.report].filters;
 			}
 
 			if(report_filters && report_filters.length > 0) {
