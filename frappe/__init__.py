@@ -187,20 +187,20 @@ def connect(site=None, db_name=None):
 	local.db = Database(user=db_name or local.conf.db_name)
 	set_user("Administrator")
 
-def connect_secondary():
+def connect_replica():
 	from frappe.database import Database
 	user = local.conf.db_name
 	password = local.conf.db_password
 
-	if local.conf.different_credentials_for_secondary:
-		user = local.conf.secondary_db_name
-		password = local.conf.secondary_db_password
+	if local.conf.different_credentials_for_replica:
+		user = local.conf.replica_db_name
+		password = local.conf.replica_db_password
 
-	local.read_only_db = Database(host=local.conf.secondary_host, user=user, password=password)
+	local.replica_db = Database(host=local.conf.replica_host, user=user, password=password)
 
 	# swap db connections
 	local.primary_db = local.db
-	local.db = local.read_only_db
+	local.db = local.replica_db
 
 def get_site_config(sites_path=None, site_path=None):
 	"""Returns `site_config.json` combined with `sites/common_site_config.json`.
@@ -500,8 +500,8 @@ def whitelist(allow_guest=False, xss_safe=False):
 def read_only():
 	def innfn(fn):
 		def wrapper_fn(*args, **kwargs):
-			if conf.read_from_secondary:
-				connect_secondary()
+			if conf.read_from_replica:
+				connect_replica()
 
 			try:
 				retval = fn(*args, **get_newargs(fn, kwargs))
