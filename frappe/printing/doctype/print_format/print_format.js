@@ -18,6 +18,7 @@ frappe.ui.form.on("Print Format", {
 			frm.set_intro(__("Please duplicate this to make changes"));
 		}
 		frm.trigger('render_buttons');
+		frm.toggle_display('standard', frappe.boot.developer_mode);
 	},
 	render_buttons: function(frm) {
 		frm.page.clear_inner_toolbar();

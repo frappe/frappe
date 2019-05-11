@@ -125,6 +125,7 @@ def get_allowed_functions_for_jenv():
 			"get_hooks": frappe.get_hooks,
 			"get_meta": frappe.get_meta,
 			"get_doc": frappe.get_doc,
+			"get_cached_doc": frappe.get_cached_doc,
 			"get_list": frappe.get_list,
 			"get_all": frappe.get_all,
 			'get_system_settings': frappe.get_system_settings,
@@ -165,6 +166,7 @@ def get_allowed_functions_for_jenv():
 		out['frappe']['date_format'] = date_format
 		out['frappe']["db"] = {
 			"get_value": frappe.db.get_value,
+			"get_single_value": frappe.db.get_single_value,
 			"get_default": frappe.db.get_default,
 			"escape": frappe.db.escape,
 		}

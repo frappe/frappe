@@ -63,8 +63,8 @@ def get_reference_addresses_and_contact(reference_doctype, reference_name):
 		contacts  = details.get("contact", [])
 		if not any([addresses, contacts]):
 			result = [reference_name]
-			result.extend(add_blank_columns_for("Contact"))
 			result.extend(add_blank_columns_for("Address"))
+			result.extend(add_blank_columns_for("Contact"))
 			data.append(result)
 		else:
 			addresses = list(map(list, addresses))

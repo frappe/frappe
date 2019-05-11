@@ -51,7 +51,7 @@ class TestNaming(unittest.TestCase):
 		todo.description = description
 		todo.insert()
 
-		series = getseries('', 2, doctype)
+		series = getseries('', 2)
 
 		series = str(int(series)-1)
 

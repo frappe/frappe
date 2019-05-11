@@ -1,0 +1,23 @@
+{
+ "content": null,
+ "creation": "2019-02-08 08:17:45.392739",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2019-02-08 08:23:04.416426",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "recorder",
+ "owner": "Administrator",
+ "page_name": "Recorder",
+ "roles": [
+  {
+   "role": "Administrator"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Recorder"
+}

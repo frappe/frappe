@@ -6,4 +6,4 @@ frappe.query_reports["{name}"] = {{
 	"filters": [
 
 	]
-}}
+}};

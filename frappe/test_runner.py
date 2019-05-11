@@ -5,6 +5,7 @@ from __future__ import unicode_literals, print_function
 
 import frappe
 import unittest, json, sys, os
+import time
 import xmlrunner
 import importlib
 from frappe.modules import load_doctype_module, get_module_name
@@ -16,6 +17,7 @@ from six.moves import reload_module
 from frappe.model.naming import revert_series_if_last
 
 unittest_runner = unittest.TextTestRunner
+SLOW_TEST_THRESHOLD = 2
 
 def xmlrunner_wrapper(output):
 	"""Convenience wrapper to keep method signature unchanged for XMLTestRunner and TextTestRunner"""
@@ -90,6 +92,20 @@ def set_test_email_config():
 		"admin_password": "admin"
 	})
 
+
+class TimeLoggingTestResult(unittest.TextTestResult):
+	def startTest(self, test):
+		self._started_at = time.time()
+		super(TimeLoggingTestResult, self).startTest(test)
+
+	def addSuccess(self, test):
+		elapsed = time.time() - self._started_at
+		name = self.getDescription(test)
+		if elapsed >= SLOW_TEST_THRESHOLD:
+			self.stream.write("\n{} ({:.03}s)\n".format(name, elapsed))
+		super(TimeLoggingTestResult, self).addSuccess(test)
+
+
 def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False, failfast=False):
 	import os
 
@@ -115,7 +131,7 @@ def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False, failfa
 		pr = cProfile.Profile()
 		pr.enable()
 
-	out = unittest_runner(verbosity=1+(verbose and 1 or 0), failfast=failfast).run(test_suite)
+	out = unittest_runner(resultclass=TimeLoggingTestResult, verbosity=1+(verbose and 1 or 0), failfast=failfast).run(test_suite)
 
 	if profile:
 		pr.disable()

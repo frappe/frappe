@@ -11,6 +11,7 @@ from frappe.core.doctype.doctype.doctype import (clear_permissions_cache,
 	validate_permissions_for_doctype)
 from frappe.permissions import (reset_perms, get_linked_doctypes, get_all_perms,
 	setup_custom_perms, add_permission, update_permission_property)
+from frappe.utils.user import get_users_with_role as _get_user_with_role
 
 not_allowed_in_permission_manager = ["DocType", "Patch Log", "Module Def", "Transaction Log"]
 
@@ -101,13 +102,7 @@ def reset(doctype):
 @frappe.whitelist()
 def get_users_with_role(role):
 	frappe.only_for("System Manager")
-
-	return [p[0] for p in frappe.db.sql("""select distinct tabUser.name
-		from `tabHas Role`, tabUser where
-			`tabHas Role`.role=%s
-			and tabUser.name != "Administrator"
-			and `tabHas Role`.parent = tabUser.name
-			and tabUser.enabled=1""", role)]
+	_get_user_with_role(role)
 
 @frappe.whitelist()
 def get_standard_permissions(doctype):

@@ -126,7 +126,8 @@ frappe.ui.keyCode = {
 	DOWN: 40,
 	ENTER: 13,
 	TAB: 9,
-	SPACE: 32
+	SPACE: 32,
+	BACKSPACE: 8
 }
 
 function close_grid_and_dialog() {

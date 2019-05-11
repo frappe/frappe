@@ -6,7 +6,6 @@ import frappe
 from frappe.utils import strip
 from frappe.website.doctype.website_theme.website_theme import get_active_theme
 
-no_sitemap = 1
 base_template_path = "templates/www/website_script.js"
 
 def get_context(context):

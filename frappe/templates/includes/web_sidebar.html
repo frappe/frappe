@@ -1,19 +1,5 @@
 <div class="web-sidebar">
-	<!-- <div class="your-account-info-sidebar">
-		<div class="row">
-			<div class="col-xs-2">
-				<span class="user-image-sidebar"></span>
-			</div>
-			<div class="col-xs-10">
-				<div class="web-sidebar-user">{{ fullname }}</div>
-				<a href="/?cmd=web_logout">
-					<div class="text-muted small">
-						{{ _("Logout") }}</div>
-				</a>
-			</div>
-		</div>
-	</div> -->
-	<div class="sidebar-items">
+	<div class="sidebar-items small">
 		<ul class="list-unstyled">
 			{% if sidebar_title %}
 			<li class="title">
@@ -21,14 +7,14 @@
 			</li>
 			{% endif %}
 			{% for item in sidebar_items -%}
-			<li class="sidebar-item">
+			<li class="sidebar-item my-2">
 				{% if item.type != 'input' %}
-					<a href="{{ item.route }}" class="gray {{ 'active' if pathname==item.route else '' }}"
+					<a href="{{ item.route }}" class="{{ 'text-dark' if pathname==item.route else 'text-muted' }}"
 						{% if item.target %}target="{{ item.target }}"{% endif %}>
 						{{ _(item.title or item.label) }}
 					</a>
 				{% else %}
-					<form action='{{ item.route }}' style="margin-right: 15px;">
+					<form action='{{ item.route }}' class="mr-3">
 						<input name='q' class='form-control' type='text' style="outline: none"
 							placeholder="{{ _(item.title or item.label) }}">
 					</form>
@@ -37,7 +23,7 @@
 			{%- endfor %}
 			{% if frappe.user != 'Guest' %}
 			<li class="sidebar-item">
-				<a href="/me">{{ _("My Account") }}</a>
+				<a href="/me" class="text-muted">{{ _("My Account") }}</a>
 			</li>
 			{% endif %}
 		</ul>
@@ -47,8 +33,13 @@
 <script>
 frappe.ready(function() {
 	$('.sidebar-item a').each(function(index) {
-	        if(this.href.trim() == window.location)
-	            $(this).addClass("active");
+        const active_class = 'text-dark font-weight-bold'
+        const non_active_class = 'text-muted'
+            if(this.href.trim() == window.location) {
+                $(this).removeClass(non_active_class).addClass(active_class);
+            } else {
+                $(this).removeClass(active_class).addClass(non_active_class);
+            }
 	    });
 });
 </script>

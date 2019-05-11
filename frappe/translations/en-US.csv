@@ -1,18 +1,18 @@
 apps/frappe/frappe/www/printview.py +83,Not allowed to print cancelled documents,Not allowed to print canceled documents
 apps/frappe/frappe/templates/pages/integrations/payment-cancel.html +3,Payment Cancelled,Payment Canceled
-apps/frappe/frappe/model/document.py +746,Cannot link cancelled document: {0},Cannot link canceled document: {0}
+apps/frappe/frappe/model/document.py +753,Cannot link cancelled document: {0},Cannot link canceled document: {0}
 DocType: Workflow State,zoom-out,zoom-out
 DocType: Print Settings,Allow Print for Cancelled,Allow Print for Canceled
-apps/frappe/frappe/utils/data.py +640,1 weeks ago,1 week ago
+apps/frappe/frappe/utils/data.py +641,1 weeks ago,1 week ago
 DocType: Workflow State,facetime-video,Facetime-Video
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py +50,Cancelling {0},Canceling {0}
-apps/frappe/frappe/model/document.py +678,Cannot edit cancelled document,Cannot edit canceled document
+apps/frappe/frappe/model/document.py +685,Cannot edit cancelled document,Cannot edit canceled document
 apps/frappe/frappe/templates/pages/integrations/payment-cancel.html +11,Your payment is cancelled.,Your payment is canceled.
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js +23,You selected Draft or Cancelled documents,You selected Draft or Canceled documents
 DocType: Workflow Document State,0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Draft; 1 - Submitted; 2 - Canceled
 DocType: Communication,Cancelled,Canceled
 apps/frappe/frappe/public/js/frappe/form/save.js +15,Cancelling,Canceling
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py +20,Cancelled Document restored as Draft,Canceled Document restored as Draft
-apps/frappe/frappe/config/setup.py +221,"States for workflow (e.g. Draft, Approved, Cancelled).","States for workflow (e.g. Draft, Approved, Canceled)."
-apps/frappe/frappe/workflow/doctype/workflow/workflow.py +66,Cannot change state of Cancelled Document. Transition row {0},Cannot change state of Canceled Document. Transition row {0}
-apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +458,cancelled this document,canceled this document
+apps/frappe/frappe/config/setup.py +226,"States for workflow (e.g. Draft, Approved, Cancelled).","States for workflow (e.g. Draft, Approved, Canceled)."
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +72,Cannot change state of Cancelled Document. Transition row {0},Cannot change state of Canceled Document. Transition row {0}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js +520,cancelled this document,canceled this document

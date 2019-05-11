@@ -6,13 +6,13 @@ from __future__ import unicode_literals
 Create a new document with defaults set
 """
 
-import frappe
-from frappe.utils import nowdate, nowtime, now_datetime
-import frappe.defaults
-from frappe.model.db_schema import type_map
 import copy
+import frappe
+import frappe.defaults
+from frappe.model import data_fieldtypes
+from frappe.utils import nowdate, nowtime, now_datetime
 from frappe.core.doctype.user_permission.user_permission import get_user_permissions
-from frappe.permissions import get_allowed_docs_for_doctype
+from frappe.permissions import filter_allowed_docs_for_doctype
 
 def get_new_doc(doctype, parent_doc = None, parentfield = None, as_dict=False):
 	if doctype not in frappe.local.new_doc_templates:
@@ -53,15 +53,15 @@ def set_user_and_static_default_values(doc):
 	defaults = frappe.defaults.get_defaults()
 
 	for df in doc.meta.get("fields"):
-		if df.fieldtype in type_map:
+		if df.fieldtype in data_fieldtypes:
 			# user permissions for link options
 			doctype_user_permissions = user_permissions.get(df.options, [])
-			# Allowed records for the reference doctype (link field)
-			allowed_records = get_allowed_docs_for_doctype(doctype_user_permissions, df.parent)
+			# Allowed records for the reference doctype (link field) along with default doc
+			allowed_records, default_doc = filter_allowed_docs_for_doctype(doctype_user_permissions, df.parent, with_default_doc=True)
 
-			user_default_value = get_user_default_value(df, defaults, doctype_user_permissions, allowed_records)
+			user_default_value = get_user_default_value(df, defaults, doctype_user_permissions, allowed_records, default_doc)
 			if user_default_value != None:
-				# do not set default if the field on which current field is dependent is not set
+    			# do not set default if the field on which current field is dependent is not set
 				if is_dependent_field_set(df.depends_on, doc):
 					doc.set(df.fieldname, user_default_value)
 			else:
@@ -78,14 +78,14 @@ def is_dependent_field_set(fieldname, doc):
 	if fieldname not in value_dict: return True
 	return value_dict[fieldname]
 
-def get_user_default_value(df, defaults, doctype_user_permissions, allowed_records):
+def get_user_default_value(df, defaults, doctype_user_permissions, allowed_records, default_doc):
 	# don't set defaults for "User" link field using User Permissions!
 	if df.fieldtype == "Link" and df.options != "User":
 		# 1 - look in user permissions only for document_type==Setup
 		# We don't want to include permissions of transactions to be used for defaults.
 		if (frappe.get_meta(df.options).document_type=="Setup"
-			and len(allowed_records)==1 and not df.ignore_user_permissions):
-			return allowed_records[0]
+			and not df.ignore_user_permissions and default_doc):
+				return default_doc
 
 		# 2 - Look in user defaults
 		user_default = defaults.get(df.fieldname)

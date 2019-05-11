@@ -9,5 +9,5 @@ def execute():
 
 	for record in duplicateRecords:
 		frappe.db.sql("""delete from `tabUser Permission`
-			where allow='{0}' and user='{1}' and for_value='{2}' limit {3}"""
-			.format(record.allow, record.user, frappe.db.escape(record.for_value), record.count - 1))
+			where allow=%s and user=%s and for_value=%s limit {0}"""
+			.format(record.count - 1), (record.allow, record.user, record.for_value))

@@ -9,8 +9,7 @@ import json
 from email.utils import formataddr
 from frappe.core.utils import get_parent_doc
 from frappe.utils import (get_url, get_formatted_email, cint,
-  validate_email_add, split_emails, time_diff_in_seconds, parse_addr, get_datetime)
-from frappe.utils.file_manager import get_file, add_attachments
+  validate_email_address, split_emails, time_diff_in_seconds, parse_addr, get_datetime)
 from frappe.email.queue import check_email_limit
 from frappe.utils.scheduler import log
 from frappe.email.email_body import get_message_id
@@ -19,15 +18,11 @@ import time
 from frappe import _
 from frappe.utils.background_jobs import enqueue
 
-# imports - third-party imports
-import pymysql
-from pymysql.constants import ER
-
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, sender_full_name=None, recipients=None, communication_medium="Email", send_email=False,
 	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, bcc=None,
-	flags=None, read_receipt=None, print_letterhead=True):
+	flags=None, read_receipt=None, print_letterhead=True, email_template=None):
 	"""Make a new communication.
 
 	:param doctype: Reference DocType.
@@ -38,11 +33,12 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	:param sender: Communcation sender (default current user).
 	:param recipients: Communication recipients as list.
 	:param communication_medium: Medium of communication (default **Email**).
-	:param send_mail: Send via email (default **False**).
+	:param send_email: Send via email (default **False**).
 	:param print_html: HTML Print format to be sent as attachment.
 	:param print_format: Print Format name of parent document to be sent as attachment.
 	:param attachments: List of attachments as list of files or JSON string.
 	:param send_me_a_copy: Send a copy to the sender (default **False**).
+	:param email_template: Template which is used to compose mail .
 	"""
 
 	is_error_report = (doctype=="User" and name==frappe.session.user and subject=="Error Report")
@@ -54,6 +50,9 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 
 	if not sender:
 		sender = get_formatted_email(frappe.session.user)
+
+	if isinstance(recipients, list):
+		recipients = ', '.join(recipients)
 
 	comm = frappe.get_doc({
 		"doctype":"Communication",
@@ -68,6 +67,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"sent_or_received": sent_or_received,
 		"reference_doctype": doctype,
 		"reference_name": name,
+		"email_template": email_template,
 		"message_id":get_message_id().strip(" <>"),
 		"read_receipt":read_receipt,
 		"has_attachment": 1 if attachments else 0
@@ -83,7 +83,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 
 	# if not committed, delayed task doesn't find the communication
 	if attachments:
-		add_attachments("Communication", comm.name, attachments)
+		add_attachments(comm.name, attachments)
 
 	frappe.db.commit()
 
@@ -103,14 +103,14 @@ def validate_email(doc):
 
 	# validate recipients
 	for email in split_emails(doc.recipients):
-		validate_email_add(email, throw=True)
+		validate_email_address(email, throw=True)
 
 	# validate CC
 	for email in split_emails(doc.cc):
-		validate_email_add(email, throw=True)
+		validate_email_address(email, throw=True)
 
 	for email in split_emails(doc.bcc):
-		validate_email_add(email, throw=True)
+		validate_email_address(email, throw=True)
 
 	# validate sender
 
@@ -284,11 +284,16 @@ def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None)
 			if isinstance(a, string_types):
 				# is it a filename?
 				try:
-					# keep this for error handling
-					file = get_file(a)
+					# check for both filename and file id
+					file_id = frappe.db.get_list('File', or_filters={'file_name': a, 'name': a}, limit=1)
+					if not file_id:
+						frappe.throw(_("Unable to find attachment {0}").format(a))
+					file_id = file_id[0]['name']
+					_file = frappe.get_doc("File", file_id)
+					_file.get_content()
 					# these attachments will be attached on-demand
 					# and won't be stored in the message
-					doc.attachments.append({"fid": a})
+					doc.attachments.append({"fid": file_id})
 				except IOError:
 					frappe.throw(_("Unable to find attachment {0}").format(a))
 			else:
@@ -398,6 +403,23 @@ def get_bcc(doc, recipients=None, fetched_from_email_account=False):
 
 	return bcc
 
+def add_attachments(name, attachments):
+	'''Add attachments to the given Communiction'''
+	# loop through attachments
+	for a in attachments:
+		if isinstance(a, string_types):
+			attach = frappe.db.get_value("File", {"name":a},
+				["file_name", "file_url", "is_private"], as_dict=1)
+
+			# save attachments to new doc
+			_file = frappe.get_doc({
+				"doctype": "File",
+				"file_url": attach.file_url,
+				"attached_to_doctype": "Communication",
+				"attached_to_name": name,
+				"folder": "Home/Attachments"})
+			_file.save(ignore_permissions=True)
+
 def filter_email_list(doc, email_list, exclude, is_cc=False, is_bcc=False):
 	# temp variables
 	filtered = []
@@ -480,9 +502,9 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 				communication._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 					recipients=recipients, cc=cc, bcc=bcc)
 
-			except pymysql.InternalError as e:
+			except frappe.db.InternalError as e:
 				# deadlock, try again
-				if e.args[0] == ER.LOCK_DEADLOCK:
+				if frappe.db.is_deadlocked(e):
 					frappe.db.rollback()
 					time.sleep(1)
 					continue

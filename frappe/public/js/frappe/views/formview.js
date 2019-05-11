@@ -19,7 +19,6 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 			me.show_doc(route);
 		}
 
-
 		if(!this.initialized) {
 			$(document).on("page-change", function() {
 				frappe.ui.form.close_grid_form();

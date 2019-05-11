@@ -254,8 +254,30 @@ $.extend(frappe.perm, {
 	},
 
 	get_allowed_docs_for_doctype: (user_permissions, doctype) => {
-		return (user_permissions || []).filter(perm => {
+		// returns docs from the list of user permissions that are allowed under provided doctype
+		return frappe.perm.filter_allowed_docs_for_doctype(user_permissions, doctype, false);
+	},
+
+	filter_allowed_docs_for_doctype: (user_permissions, doctype, with_default_doc=true) => {
+		// returns docs from the list of user permissions that are allowed under provided doctype
+		// also returns default doc when with_default_doc is set
+		const filtered_perms = (user_permissions || []).filter(perm => {
 			return (perm.applicable_for === doctype || !perm.applicable_for);
-		}).map(perm => perm.doc);
+		});
+
+		const allowed_docs = (filtered_perms).map(perm => perm.doc);
+
+		if (with_default_doc) {
+			const default_doc = allowed_docs.length === 1 ? allowed_docs : filtered_perms
+				.filter(perm => perm.is_default)
+				.map(record => record.doc);
+
+			return {
+				allowed_records: allowed_docs,
+				default_doc: default_doc[0]
+			};
+		} else {
+			return allowed_docs;
+		}
 	}
 });

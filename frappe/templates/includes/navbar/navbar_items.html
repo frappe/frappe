@@ -1,16 +1,64 @@
+{% macro render_item(item, submenu=False, parent=False) %}
+{% if item.child_items %}
+
+{% if parent %}
+<li class="nav-item dropdown {% if submenu %} dropdown-submenu {% endif %}">
+	<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+		data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		{{ item.label }}
+	</a>
+  	<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+		{% for child in item.child_items %}
+			{{ render_item(child, True) }}
+	  {% endfor %}
+	</ul>
+</li>
+{% else %}
+<li class="dropdown {% if submenu %} dropdown-submenu {% endif %}">
+	<a class="dropdown-item dropdown-toggle" href="#" id="navbarDropdown" role="button"
+		data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		{{ item.label }}
+	</a>
+	<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+		{% for child in item.child_items %}
+			{{ render_item(child, True) }}
+	{% endfor %}
+	</ul>
+</li>
+{% endif %}
+
+{% else %}
+
+{% if parent %}
+<li class="nav-item">
+	<a class="nav-link" href="{{ (item.url or '')|abs_url }}"
+		{{ item.target or ''}}>
+		{{ item.label }}
+	</a>
+</li>
+{% else %}
+<a class="dropdown-item" href="{{ (item.url or '') | abs_url }}"
+	{{ item.target or '' }}>
+	{{ item.label }}
+</a>
+{% endif %}
+
+{% endif %}
+{% endmacro %}
+
 {% if top_bar_items -%}
-<ul class="nav navbar-nav navbar-left">
-	{%- for page in top_bar_items -%}
-		{% if not page.parent_label and not page.right -%}
-			{% include "templates/includes/navbar/navbar_link.html" %}
+<ul class="navbar-nav mr-auto">
+	{%- for item in top_bar_items -%}
+		{% if not item.parent_label and not item.right -%}
+			{{ render_item(item, parent=True) }}
 		{%- endif -%}
 	{%- endfor %}
 </ul>
 {%- endif %}
-<ul class="nav navbar-nav navbar-right">
-	{%- for page in top_bar_items -%}
-		{% if not page.parent_label and page.right -%}
-			{% include "templates/includes/navbar/navbar_link.html" %}
+<ul class="navbar-nav ml-auto">
+	{%- for item in top_bar_items -%}
+		{% if not item.parent_label and item.right -%}
+			{{ render_item(item, parent=True) }}
 		{%- endif -%}
 	{%- endfor %}
 	{% if not only_static %}

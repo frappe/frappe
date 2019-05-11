@@ -187,6 +187,9 @@ def check_release_on_github(app):
 		# Passing this since some apps may not have git initializaed in them
 		return None
 
+	if isinstance(remote_url, bytes):
+		remote_url = remote_url.decode()
+
 	if "github.com" not in remote_url:
 		return None
 
@@ -237,7 +240,7 @@ def show_update_popup():
 					title             = app.title
 				)
 			if release_links:
-				update_message += _("New {} releases for the following apps are available".format(update_type)) + ":<br><br>{}<hr>".format(release_links)
+				update_message += _("New {} releases for the following apps are available".format(update_type)) + ":<br><br>{}".format(release_links)
 
 	if update_message:
 		frappe.msgprint(update_message, title=_("New updates are available"), indicator='green')

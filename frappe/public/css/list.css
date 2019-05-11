@@ -297,7 +297,6 @@ input.list-row-checkbox {
   justify-content: center;
   position: relative;
   height: 200px;
-  padding: 15px;
 }
 .image-view-container .image-field img {
   max-height: 100%;

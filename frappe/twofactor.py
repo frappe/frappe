@@ -11,7 +11,7 @@ from jinja2 import Template
 from pyqrcode import create as qrcreate
 from six import BytesIO
 from base64 import b64encode, b32encode
-from frappe.utils import get_url, get_datetime, time_diff_in_seconds
+from frappe.utils import get_url, get_datetime, time_diff_in_seconds, cint
 from six import iteritems, string_types
 
 class ExpiredLoginException(Exception): pass
@@ -20,7 +20,7 @@ def toggle_two_factor_auth(state, roles=[]):
 	'''Enable or disable 2FA in site_config and roles'''
 	for role in roles:
 		role = frappe.get_doc('Role', {'role_name': role})
-		role.two_factor_auth = state
+		role.two_factor_auth = cint(state)
 		role.save(ignore_permissions=True)
 
 def two_factor_is_enabled(user=None):
@@ -28,7 +28,7 @@ def two_factor_is_enabled(user=None):
 	enabled = int(frappe.db.get_value('System Settings', None, 'enable_two_factor_auth') or 0)
 	if enabled:
 		bypass_two_factor_auth = int(frappe.db.get_value('System Settings', None, 'bypass_2fa_for_retricted_ip_users') or 0)
-		if bypass_two_factor_auth:
+		if bypass_two_factor_auth and user:
 			user_doc = frappe.get_doc("User", user)
 			restrict_ip_list = user_doc.get_restricted_ip_list() #can be None or one or more than one ip address
 			if restrict_ip_list:
@@ -92,10 +92,14 @@ def two_factor_is_enabled_for_(user):
 		user = frappe.get_doc('User', user)
 
 	roles = [frappe.db.escape(d.role) for d in user.roles or []]
-	roles.append('All')
+	roles.append("'All'")
 
-	query = """select name from `tabRole` where two_factor_auth=1
-		and name in ({0}) limit 1""".format(', '.join('\"{}\"'.format(i) for i in roles))
+	query = """SELECT `name`
+		FROM `tabRole`
+		WHERE `two_factor_auth`= 1
+		AND `name` IN ({0})
+		LIMIT 1""".format(", ".join(roles))
+
 	if len(frappe.db.sql(query)) > 0:
 		return True
 
@@ -333,13 +337,19 @@ def get_qr_svg_code(totp_uri):
 
 def qrcode_as_png(user, totp_uri):
 	'''Save temporary Qrcode to server.'''
-	from frappe.utils.file_manager import save_file
 	folder = create_barcode_folder()
 	png_file_name = '{}.png'.format(frappe.generate_hash(length=20))
-	file_obj = save_file(png_file_name, png_file_name, 'User', user, folder=folder)
+	_file = frappe.get_doc({
+		"doctype": "File",
+		"file_name": png_file_name,
+		"attached_to_doctype": 'User',
+		"attached_to_name": user,
+		"folder": folder,
+		"content": png_file_name})
+	_file.save()
 	frappe.db.commit()
-	file_url = get_url(file_obj.file_url)
-	file_path = os.path.join(frappe.get_site_path('public', 'files'), file_obj.file_name)
+	file_url = get_url(_file.file_url)
+	file_path = os.path.join(frappe.get_site_path('public', 'files'), _file.file_name)
 	url = qrcreate(totp_uri)
 	with open(file_path, 'w') as png_file:
 		url.png(png_file, scale=8, module_color=[0, 0, 0, 180], background=[0xff, 0xff, 0xcc])

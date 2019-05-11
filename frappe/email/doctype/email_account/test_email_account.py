@@ -9,7 +9,6 @@ test_records = frappe.get_test_records('Email Account')
 
 from frappe.core.doctype.communication.email import make
 from frappe.desk.form.load import get_attachments
-from frappe.utils.file_manager import delete_file_from_filesystem
 from frappe.email.doctype.email_account.email_account import notify_unreplied
 from datetime import datetime, timedelta
 
@@ -47,16 +46,15 @@ class TestEmailAccount(unittest.TestCase):
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
 		comm.db_set("creation", datetime.now() - timedelta(seconds = 30 * 60))
 
-		frappe.db.sql("delete from `tabEmail Queue`")
+		frappe.db.sql("DELETE FROM `tabEmail Queue`")
 		notify_unreplied()
 		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": comm.reference_doctype,
 			"reference_name": comm.reference_name, "status":"Not Sent"}))
 
 	def test_incoming_with_attach(self):
-		frappe.db.sql("delete from tabCommunication where sender='test_sender@example.com'")
+		frappe.db.sql("DELETE FROM `tabCommunication` WHERE sender='test_sender@example.com'")
 		existing_file = frappe.get_doc({'doctype': 'File', 'file_name': 'erpnext-conf-14.png'})
 		frappe.delete_doc("File", existing_file.name)
-		delete_file_from_filesystem(existing_file)
 
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-2.raw"), "r") as testfile:
 			test_mails = [testfile.read()]
@@ -74,7 +72,7 @@ class TestEmailAccount(unittest.TestCase):
 		# cleanup
 		existing_file = frappe.get_doc({'doctype': 'File', 'file_name': 'erpnext-conf-14.png'})
 		frappe.delete_doc("File", existing_file.name)
-		delete_file_from_filesystem(existing_file)
+
 
 	def test_incoming_attached_email_from_outlook_plain_text_only(self):
 		frappe.db.sql("delete from tabCommunication where sender='test_sender@example.com'")

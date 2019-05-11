@@ -52,6 +52,13 @@ frappe.form.formatters = {
 	Percent: function(value, docfield, options) {
 		return frappe.form.formatters._right(flt(value, 2) + "%", options)
 	},
+	Rating: function(value) {
+		return `<span class="rating">
+	${Array.from(new Array(5)).map((_, i) =>
+		`<i class="fa fa-fw fa-star ${i < (value || 0) ? "star-click": "" } star-icon" data-idx="${(i+1)}"></i>`
+	).join('')}
+		</span>`;
+	},
 	Currency: function (value, docfield, options, doc) {
 		var currency  = frappe.meta.get_field_currency(docfield, doc);
 		var precision = docfield.precision || cint(frappe.boot.sysdefaults.currency_precision) || 2;
@@ -110,11 +117,11 @@ frappe.form.formatters = {
 			return repl('<a onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
 		} else if(docfield && doctype) {
-			return repl('<a class="grey" href="#Form/%(doctype)s/%(name)s" data-doctype="%(doctype)s">%(label)s</a>', {
-				doctype: encodeURIComponent(doctype),
-				name: encodeURIComponent(original_value),
-				label: __(options && options.label || value)
-			});
+			return `<a class="grey"
+				href="#Form/${encodeURIComponent(doctype)}/${encodeURIComponent(original_value)}"
+				data-doctype="${doctype}"
+				data-name="${original_value}">
+				${__(options && options.label || value)}</a>`
 		} else {
 			return value;
 		}
@@ -238,6 +245,16 @@ frappe.form.formatters = {
 			value = flt(flt(value) / 1024, 1) + "K";
 		}
 		return value;
+	},
+	TableMultiSelect: function(rows, df, options) {
+		rows = rows || [];
+		const meta = frappe.get_meta(df.options);
+		const link_field = meta.fields.find(df => df.fieldtype === 'Link');
+		const formatted_values = rows.map(row => {
+			const value = row[link_field.fieldname];
+			return frappe.format(value, link_field, options, row);
+		});
+		return formatted_values.join(', ');
 	}
 }
 

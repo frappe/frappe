@@ -3,10 +3,9 @@
 from __future__ import unicode_literals
 
 import unittest, frappe, pyotp
-from werkzeug.wrappers import Request
-from werkzeug.test import EnvironBuilder
 from frappe.auth import HTTPRequest
 from frappe.utils import cint
+from frappe.tests import set_request
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor, get_cached_user_pass,
 	two_factor_is_enabled_for_, confirm_otp_token, get_otpsecret_for_, get_verification_obj,
 	render_string_template)
@@ -137,6 +136,7 @@ class TestTwoFactor(unittest.TestCase):
 		#1
 		user = frappe.get_doc('User', self.user)
 		user.restrict_ip = "192.168.255.254" #Dummy IP
+		user.bypass_restrict_ip_check_if_2fa_enabled = 0
 		user.save()
 		enable_2fa(bypass_restrict_ip_check=0)
 		with self.assertRaises(frappe.AuthenticationError):
@@ -152,10 +152,6 @@ class TestTwoFactor(unittest.TestCase):
 		user.save()
 		enable_2fa()
 		self.assertIsNone(self.login_manager.validate_ip_address())
-
-def set_request(**kwargs):
-	builder = EnvironBuilder(**kwargs)
-	frappe.local.request = Request(builder.get_environ())
 
 def create_http_request():
 	'''Get http request object.'''
@@ -188,8 +184,8 @@ def toggle_2fa_all_role(state=None):
 	all_role = frappe.get_doc('Role','All')
 	if state == None:
 		state = False if all_role.two_factor_auth == True else False
-	if state not in [True,False]:return
-	all_role.two_factor_auth = state
+	if state not in [True, False]: return
+	all_role.two_factor_auth = cint(state)
 	all_role.save(ignore_permissions=True)
 	frappe.db.commit()
 

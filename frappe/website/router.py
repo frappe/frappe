@@ -4,7 +4,8 @@
 from __future__ import unicode_literals
 import frappe, os
 
-from frappe.website.utils import can_cache, delete_page_cache, extract_title
+from frappe.website.utils import (can_cache, delete_page_cache, extract_title,
+	extract_comment_tag)
 from frappe.model.document import get_controller
 from six import text_type
 import io
@@ -15,6 +16,9 @@ def resolve_route(path):
 
 	The only exceptions are `/about` and `/contact` these will be searched in Web Pages
 	first before checking the standard pages."""
+
+	raise_if_disabled(path)
+
 	if path not in ("about", "contact"):
 		context = get_page_info_from_template(path)
 		if context:
@@ -25,6 +29,21 @@ def resolve_route(path):
 		if context:
 			return context
 		return get_page_info_from_template(path)
+
+def raise_if_disabled(path):
+	routes = frappe.db.get_all('Portal Menu Item',
+		fields=['route', 'enabled'],
+		filters={
+			'route': ['like', '%{0}'.format(path)],
+			'enabled': 0
+		}
+	)
+
+	for r in routes:
+		_path = r.route.lstrip('/')
+		if path == _path and not r.enabled:
+			raise frappe.PermissionError
+
 
 def get_page_context(path):
 	page_context = None
@@ -115,7 +134,7 @@ def get_page_info_from_doctypes(path=None):
 				if path:
 					return routes[r.route]
 		except Exception as e:
-			if e.args[0]!=1054: raise e
+			if not frappe.db.is_missing_column(e): raise e
 
 	return routes
 
@@ -214,7 +233,10 @@ def get_page_info(path, app, start, basepath=None, app_path=None, fname=None):
 	setup_source(page_info)
 
 	# extract properties from HTML comments
-	load_properties(page_info)
+	load_properties_from_source(page_info)
+
+	# extract properties from controller attributes
+	load_properties_from_controller(page_info)
 
 	# if not page_info.title:
 	# 	print('no-title-for', page_info.route)
@@ -235,12 +257,7 @@ def setup_source(page_info):
 
 	# if only content
 	if page_info.template.endswith('.html') or page_info.template.endswith('.md'):
-		if ('</body>' not in source) and ('{% block' not in source):
-			page_info.only_content = True
-			html = '{% extends "templates/web.html" %}'
-			html += '\n{% block page_content %}\n' + source + '\n{% endblock %}'
-		else:
-			html = source
+		html = extend_from_base_template(page_info, source)
 
 		# load css/js files
 		js, css = '', ''
@@ -264,6 +281,23 @@ def setup_source(page_info):
 	# show table of contents
 	setup_index(page_info)
 
+def extend_from_base_template(page_info, source):
+	'''Extend the content with appropriate base template if required.
+
+	For easy composition, the users will only add the content of the page,
+	not its template. But if the user has explicitly put Jinja blocks, or <body> tags,
+	or comment tags like <!-- base_template: [path] -->
+	then the system will not try and put it inside the "web.template"
+	'''
+
+	if (('</body>' not in source) and ('{% block' not in source)
+		and ('<!-- base_template:' not in source)):
+		page_info.only_content = True
+		source = '''{% extends "templates/web.html" %}
+			{% block page_content %}\n''' + source + '\n{% endblock %}'
+
+	return source
+
 def setup_index(page_info):
 	'''Build page sequence from index.txt'''
 	if page_info.basename=='':
@@ -272,10 +306,23 @@ def setup_index(page_info):
 		if os.path.exists(index_txt_path):
 			page_info.index = open(index_txt_path, 'r').read().splitlines()
 
-def load_properties(page_info):
-	'''Load properties like no_cache, title from raw'''
+def load_properties_from_source(page_info):
+	'''Load properties like no_cache, title from source html'''
+
 	if not page_info.title:
 		page_info.title = extract_title(page_info.source, page_info.route)
+
+	custom_base_template = extract_comment_tag(page_info.source, 'base_template')
+
+	page_info.meta_tags = frappe._dict()
+
+	page_info.meta_tags.name = extract_comment_tag(page_info.source, 'meta:name')
+	page_info.meta_tags.description = extract_comment_tag(page_info.source, 'meta:description')
+
+	if custom_base_template:
+		page_info.source = '''{{% extends "{0}" %}}
+			{{% block page_content %}}{1}{{% endblock %}}'''.format(custom_base_template, page_info.source)
+		page_info.no_cache = 1
 
 	if "<!-- no-breadcrumbs -->" in page_info.source:
 		page_info.no_breadcrumbs = 1
@@ -296,7 +343,21 @@ def load_properties(page_info):
 		page_info.no_cache = 1
 
 	if "<!-- no-sitemap -->" in page_info.source:
-		page_info.no_cache = 1
+		page_info.sitemap = 0
+
+	if "<!-- sitemap -->" in page_info.source:
+		page_info.sitemap = 1
+
+def load_properties_from_controller(page_info):
+	if not page_info.controller: return
+
+	module = frappe.get_module(page_info.controller)
+	if not module: return
+
+	for prop in ("base_template_path", "template", "no_cache",
+		"sitemap", "condition_field"):
+		if hasattr(module, prop):
+			page_info[prop] = getattr(module, prop)
 
 def get_doctypes_with_web_view():
 	'''Return doctypes with Has Web View or set via hooks'''
@@ -308,51 +369,6 @@ def get_doctypes_with_web_view():
 		return doctypes
 
 	return frappe.cache().get_value('doctypes_with_web_view', _get)
-
-def sync_global_search():
-	'''Sync page content in global search'''
-	from frappe.website.render import render_page
-	from frappe.utils.global_search import sync_global_search
-	from bs4 import BeautifulSoup
-
-	if frappe.flags.update_global_search:
-		sync_global_search()
-	frappe.flags.update_global_search = []
-	frappe.session.user = 'Guest'
-	frappe.local.no_cache = True
-
-	frappe.db.sql('delete from __global_search where doctype="Static Web Page"')
-
-	for app in frappe.get_installed_apps(frappe_last=True):
-		app_path = frappe.get_app_path(app)
-
-		folders = get_start_folders()
-
-		for start in folders:
-			for basepath, folders, files in os.walk(os.path.join(app_path, start)):
-				for f in files:
-					if f.endswith('.html') or f.endswith('.md'):
-						path = os.path.join(basepath, f.rsplit('.', 1)[0])
-						try:
-							content = render_page(path)
-							soup = BeautifulSoup(content, 'html.parser')
-							text = ''
-							route = os.path.relpath(path, os.path.join(app_path, start))
-							for div in soup.findAll("div", {'class':'page-content'}):
-								text += div.text
-
-							frappe.flags.update_global_search.append(
-								dict(doctype='Static Web Page',
-									name=route,
-									content=text_type(text),
-									published=1,
-									title=text_type(soup.title.string),
-									route=route))
-
-						except Exception:
-							pass
-
-		sync_global_search()
 
 def get_start_folders():
 	return frappe.local.flags.web_pages_folders or ('www', 'templates/pages')

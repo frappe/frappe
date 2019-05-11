@@ -9,8 +9,7 @@ frappe.views.BaseList = class BaseList {
 		frappe.run_serially([
 			() => this.init(),
 			() => this.before_refresh(),
-			() => this.refresh(),
-			() => frappe.route_options = null
+			() => this.refresh()
 		]);
 	}
 
@@ -367,6 +366,9 @@ frappe.views.BaseList = class BaseList {
 			this.render();
 			this.after_render();
 			this.freeze(false);
+			if (this.settings.refresh) {
+				this.settings.refresh(this);
+			}
 		});
 	}
 
@@ -552,7 +554,9 @@ class FilterArea {
 			fields_dict[fieldname].set_value('');
 			return;
 		}
-		this.filter_list.get_filter(fieldname).remove();
+
+		let filter = this.filter_list.get_filter(fieldname);
+		if (filter) filter.remove();
 	}
 
 	clear(refresh = true) {

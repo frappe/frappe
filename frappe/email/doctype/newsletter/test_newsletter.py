@@ -7,6 +7,7 @@ import frappe, unittest
 from frappe.email.doctype.newsletter.newsletter import confirmed_unsubscribe
 from six.moves.urllib.parse import unquote
 
+test_dependencies = ["Email Group"]
 
 emails = ["test_subscriber1@example.com", "test_subscriber2@example.com",
 			"test_subscriber3@example.com", "test1@example.com"]
@@ -15,6 +16,13 @@ class TestNewsletter(unittest.TestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		frappe.db.sql('delete from `tabEmail Group Member`')
+
+		group_exist=frappe.db.exists("Email Group", "_Test Email Group")
+		if len(group_exist) == 0:
+			frappe.get_doc({
+				"doctype": "Email Group",
+				"title": "_Test Email Group"
+			}).insert()
 		for email in emails:
 				frappe.get_doc({
 					"doctype": "Email Group Member",
@@ -37,8 +45,8 @@ class TestNewsletter(unittest.TestCase):
 		from frappe.email.queue import flush
 		flush(from_test=True)
 		to_unsubscribe = unquote(frappe.local.flags.signed_query_string.split("email=")[1].split("&")[0])
-
-		confirmed_unsubscribe(to_unsubscribe, name)
+		group = frappe.get_all("Newsletter Email Group", filters={"parent" : name}, fields=["email_group"])
+		confirmed_unsubscribe(to_unsubscribe, group[0].email_group)
 
 		name = self.send_newsletter()
 
@@ -82,6 +90,3 @@ class TestNewsletter(unittest.TestCase):
 		doc.get_context(context)
 		self.assertEqual(context.no_cache, 1)
 		self.assertTrue("attachments" not in list(context))
-
-
-test_dependencies = ["Email Group"]

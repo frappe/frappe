@@ -1,16 +1,16 @@
 frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 	input_type: "checkbox",
 	make_wrapper: function() {
-		this.$wrapper = $('<div class="form-group frappe-control">\
-			<div class="checkbox">\
-				<label>\
-					<span class="input-area"></span>\
-					<span class="disp-area"></span>\
-					<span class="label-area small"></span>\
-				</label>\
-				<p class="help-box small text-muted"></p>\
-			</div>\
-		</div>').appendTo(this.parent);
+		this.$wrapper = $(`<div class="form-group frappe-control">
+			<div class="checkbox">
+				<label>
+					<span class="input-area"></span>
+					<span class="disp-area"></span>
+					<span class="label-area ${this.df.is_web_form ? "" : "small"}"></span>
+				</label>
+				<p class="help-box small text-muted"></p>
+			</div>
+		</div>`).appendTo(this.parent);
 	},
 	set_input_areas: function() {
 		this.label_area = this.label_span = this.$wrapper.find(".label-area").get(0);

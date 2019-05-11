@@ -460,7 +460,7 @@ def markdown(text, sanitize=True, linkify=True):
 def sanitize_email(emails):
 	sanitized = []
 	for e in split_emails(emails):
-		if not validate_email_add(e):
+		if not validate_email_address(e):
 			continue
 
 		full_name, email_id = parse_addr(e)
@@ -541,6 +541,8 @@ def get_site_info():
 	system_settings = frappe.db.get_singles_dict('System Settings')
 	space_usage = frappe._dict((frappe.local.conf.limits or {}).get('space_usage', {}))
 
+	kwargs = {"fields": ["user", "creation", "full_name"], "filters":{"Operation": "Login", "Status": "Success"}, "limit": "10"}
+
 	site_info = {
 		'installed_apps': get_installed_apps_info(),
 		'users': users,
@@ -555,7 +557,8 @@ def get_site_info():
 		'space_used': flt((space_usage.total or 0) / 1024.0, 2),
 		'database_size': space_usage.database_size,
 		'backup_size': space_usage.backup_size,
-		'files_size': space_usage.files_size
+		'files_size': space_usage.files_size,
+		'last_logins': frappe.get_all("Activity Log", **kwargs)
 	}
 
 	# from other apps
@@ -570,7 +573,9 @@ def parse_json(val):
 	Parses json if string else return
 	"""
 	if isinstance(val, string_types):
-		return json.loads(val)
+		val = json.loads(val)
+	if isinstance(val, dict):
+		val = frappe._dict(val)
 	return val
 
 def cast_fieldtype(fieldtype, value):
@@ -646,3 +651,16 @@ def gzip_decompress(data):
 	"""
 	with GzipFile(fileobj=io.BytesIO(data)) as f:
 		return f.read()
+
+def get_safe_filters(filters):
+	try:
+		filters = json.loads(filters)
+
+		if isinstance(filters, (integer_types, float)):
+			filters = frappe.as_unicode(filters)
+
+	except (TypeError, ValueError):
+		# filters are not passed, not json
+		pass
+
+	return filters

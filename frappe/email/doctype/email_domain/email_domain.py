@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_add ,cint
+from frappe.utils import validate_email_address ,cint
 import imaplib,poplib,smtplib
 
 class EmailDomain(Document):
@@ -18,7 +18,7 @@ class EmailDomain(Document):
 	def validate(self):
 		"""Validate email id and check POP3/IMAP and SMTP connections is enabled."""
 		if self.email_id:
-			validate_email_add(self.email_id, True)
+			validate_email_address(self.email_id, True)
 
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return

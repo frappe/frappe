@@ -105,3 +105,124 @@ class TestDocType(unittest.TestCase):
 				condition = field.get(depends_on)
 				if condition:
 					self.assertFalse(re.match(pattern, condition))
+
+	def test_sync_field_order(self):
+		from frappe.modules.import_file import get_file_path
+		import os
+
+		# create test doctype
+		test_doctype = frappe.get_doc({
+			"doctype": "DocType",
+			"module": "Core",
+			"fields": [
+				{
+					"label": "Field 1",
+					"fieldname": "field_1",
+					"fieldtype": "Data"
+				},
+				{
+					"label": "Field 2",
+					"fieldname": "field_2",
+					"fieldtype": "Data"
+				},
+				{
+					"label": "Field 3",
+					"fieldname": "field_3",
+					"fieldtype": "Data"
+				},
+				{
+					"label": "Field 4",
+					"fieldname": "field_4",
+					"fieldtype": "Data"
+				}
+			],
+			"permissions": [{
+				"role": "System Manager",
+				"read": 1
+			}],
+			"name": "Test Field Order DocType",
+			"__islocal": 1
+		})
+
+		path = get_file_path(test_doctype.module, test_doctype.doctype, test_doctype.name)
+		initial_fields_order = ['field_1', 'field_2', 'field_3', 'field_4']
+
+		frappe.delete_doc_if_exists("DocType", "Test Field Order DocType")
+		if os.path.isfile(path):
+			os.remove(path)
+
+		try:
+			frappe.flags.allow_doctype_export = 1
+			test_doctype.save()
+
+			# assert that field_order list is being created with the default order
+			test_doctype_json = frappe.get_file_json(path)
+			self.assertTrue(test_doctype_json.get("field_order"))
+			self.assertEqual(len(test_doctype_json['fields']), len(test_doctype_json['field_order']))
+			self.assertListEqual([f['fieldname'] for f in test_doctype_json['fields']], test_doctype_json['field_order'])
+			self.assertListEqual([f['fieldname'] for f in test_doctype_json['fields']], initial_fields_order)
+			self.assertListEqual(test_doctype_json['field_order'], initial_fields_order)
+
+			# remove field_order to test reload_doc/sync/migrate is backwards compatible without field_order
+			del test_doctype_json['field_order']
+			with open(path, 'w+') as txtfile:
+				txtfile.write(frappe.as_json(test_doctype_json))
+
+			# assert that field_order is actually removed from the json file
+			test_doctype_json = frappe.get_file_json(path)
+			self.assertFalse(test_doctype_json.get("field_order"))
+
+			# make sure that migrate/sync is backwards compatible without field_order
+			frappe.reload_doctype(test_doctype.name, force=True)
+			test_doctype.reload()
+
+			# assert that field_order list is being created with the default order again
+			test_doctype.save()
+			test_doctype_json = frappe.get_file_json(path)
+			self.assertTrue(test_doctype_json.get("field_order"))
+			self.assertEqual(len(test_doctype_json['fields']), len(test_doctype_json['field_order']))
+			self.assertListEqual([f['fieldname'] for f in test_doctype_json['fields']], test_doctype_json['field_order'])
+			self.assertListEqual([f['fieldname'] for f in test_doctype_json['fields']], initial_fields_order)
+			self.assertListEqual(test_doctype_json['field_order'], initial_fields_order)
+
+			# reorder fields: swap row 1 and 3
+			test_doctype.fields[0], test_doctype.fields[2] = test_doctype.fields[2], test_doctype.fields[0]
+			for i, f in enumerate(test_doctype.fields):
+				f.idx = i + 1
+
+			# assert that reordering fields only affects `field_order` rather than `fields` attr
+			test_doctype.save()
+			test_doctype_json = frappe.get_file_json(path)
+			self.assertListEqual([f['fieldname'] for f in test_doctype_json['fields']], initial_fields_order)
+			self.assertListEqual(test_doctype_json['field_order'], ['field_3', 'field_2', 'field_1', 'field_4'])
+
+			# reorder `field_order` in the json file: swap row 2 and 4
+			test_doctype_json['field_order'][1], test_doctype_json['field_order'][3] = test_doctype_json['field_order'][3], test_doctype_json['field_order'][1]
+			with open(path, 'w+') as txtfile:
+				txtfile.write(frappe.as_json(test_doctype_json))
+
+			# assert that reordering `field_order` from json file is reflected in DocType upon migrate/sync
+			frappe.reload_doctype(test_doctype.name, force=True)
+			test_doctype.reload()
+			self.assertListEqual([f.fieldname for f in test_doctype.fields], ['field_3', 'field_4', 'field_1', 'field_2'])
+
+			# insert row in the middle and remove first row (field 3)
+			test_doctype.append("fields", {
+				"label": "Field 5",
+				"fieldname": "field_5",
+				"fieldtype": "Data"
+			})
+			test_doctype.fields[4], test_doctype.fields[3] = test_doctype.fields[3], test_doctype.fields[4]
+			test_doctype.fields[3], test_doctype.fields[2] = test_doctype.fields[2], test_doctype.fields[3]
+			test_doctype.remove(test_doctype.fields[0])
+			for i, f in enumerate(test_doctype.fields):
+				f.idx = i + 1
+
+			test_doctype.save()
+			test_doctype_json = frappe.get_file_json(path)
+			self.assertListEqual([f['fieldname'] for f in test_doctype_json['fields']], ['field_1', 'field_2', 'field_4', 'field_5'])
+			self.assertListEqual(test_doctype_json['field_order'], ['field_4', 'field_5', 'field_1', 'field_2'])
+		except:
+			raise
+		finally:
+			frappe.flags.allow_doctype_export = 0

@@ -267,6 +267,10 @@ def update_oauth_user(user, data, provider):
 		save = True
 		user.set_social_login_userid(provider, userid="/".join(data["sub"].split("/")[-2:]))
 
+	elif provider=="fairlogin" and not user.get_social_login_userid(provider):
+		save = True
+		user.set_social_login_userid(provider, userid=data["preferred_username"])
+
 	if save:
 		user.flags.ignore_permissions = True
 		user.flags.no_welcome_mail = True
@@ -287,3 +291,8 @@ def redirect_post_login(desk_user):
 
 	# the #desktop is added to prevent a facebook redirect bug
 	frappe.local.response["location"] = "/desk#desktop" if desk_user else "/"
+
+def oauth_decoder(data):
+	if isinstance(data, bytes):
+		data = data.decode("utf-8")
+	return json.loads(data)

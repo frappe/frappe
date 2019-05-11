@@ -87,9 +87,8 @@ def delete_communication(event, reference_doctype, reference_docname):
 
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
-	return """(tabEvent.event_type='Public' or tabEvent.owner='%(user)s')""" % {
+	return """(`tabEvent`.`event_type`='Public' or `tabEvent`.`owner`=%(user)s)""" % {
 			"user": frappe.db.escape(user),
-			"roles": "', '".join([frappe.db.escape(r) for r in frappe.get_roles(user)])
 		}
 
 def has_permission(doc, user):
@@ -127,28 +126,26 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 		user = frappe.session.user
 	if isinstance(filters, string_types):
 		filters = json.loads(filters)
-	roles = frappe.get_roles(user)
-	events = frappe.db.sql("""select name, subject, description, color,
+	events = frappe.db.sql("""select `name`, subject, description, color,
 		starts_on, ends_on, owner, all_day, event_type, repeat_this_event, repeat_on,repeat_till,
 		monday, tuesday, wednesday, thursday, friday, saturday, sunday
-		from tabEvent where ((
+		from `tabEvent` where ((
 			(date(starts_on) between date(%(start)s) and date(%(end)s))
 			or (date(ends_on) between date(%(start)s) and date(%(end)s))
 			or (date(starts_on) <= date(%(start)s) and date(ends_on) >= date(%(end)s))
 		) or (
 			date(starts_on) <= date(%(start)s) and repeat_this_event=1 and
-			ifnull(repeat_till, "3000-01-01") > date(%(start)s)
+			coalesce(repeat_till, '3000-01-01') > date(%(start)s)
 		))
 		{reminder_condition}
 		{filter_condition}
 		and (event_type='Public' or owner=%(user)s
 		or exists(select name from `tabDocShare` where
-			tabDocShare.share_doctype="Event" and `tabDocShare`.share_name=tabEvent.name
-			and tabDocShare.user=%(user)s))
+			`tabDocShare`.share_doctype='Event' and `tabDocShare`.share_name=`tabEvent`.`name`
+			and `tabDocShare`.`user`=%(user)s))
 		order by starts_on""".format(
 			filter_condition=get_filters_cond('Event', filters, []),
-			reminder_condition="and ifnull(send_reminder,0)=1" if for_reminder else "",
-			roles=", ".join('"{}"'.format(frappe.db.escape(r)) for r in roles)
+			reminder_condition="and coalesce(send_reminder, 0)=1" if for_reminder else ""
 		), {
 			"start": start,
 			"end": end,

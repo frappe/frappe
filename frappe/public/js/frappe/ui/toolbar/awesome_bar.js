@@ -17,10 +17,10 @@ frappe.search.AwesomeBar = Class.extend({
 			maxItems: 99,
 			autoFirst: true,
 			list: [],
-			filter: function (text, term) {
+			filter: function(text, term) {
 				return true;
 			},
-			data: function (item, input) {
+			data: function(item, input) {
 				return {
 					label: (item.index || ""),
 					value: item.value
@@ -70,6 +70,7 @@ frappe.search.AwesomeBar = Class.extend({
 				} else {
 					me.options = me.options.concat(
 						me.deduplicate(frappe.search.utils.get_recent_pages(txt || "")));
+					me.options = me.options.concat(frappe.search.utils.get_frequent_links());
 				}
 				me.add_help();
 
@@ -82,7 +83,7 @@ frappe.search.AwesomeBar = Class.extend({
 			if (!this.autocomplete_open) {
 				$(this).trigger("input");
 			}
-		}
+		};
 		$input.on("focus", open_recent);
 
 		$input.on("awesomplete-open", function(e) {
@@ -129,7 +130,7 @@ frappe.search.AwesomeBar = Class.extend({
 			default: "Help",
 			onclick: function() {
 				var txt = '<table class="table table-bordered">\
-					<tr><td style="width: 50%">'+__("Make a new record")+'</td><td>'+
+					<tr><td style="width: 50%">'+__('Create a new record')+'</td><td>'+
 						__("new type of document")+'</td></tr>\
 					<tr><td>'+__("List a document type")+'</td><td>'+
 						__("document type..., e.g. customer")+'</td></tr>\
@@ -139,7 +140,7 @@ frappe.search.AwesomeBar = Class.extend({
 						__("module name...")+'</td></tr>\
 					<tr><td>'+__("Calculate")+'</td><td>'+
 						__("e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...")+'</td></tr>\
-				</table>'
+				</table>';
 				frappe.msgprint(txt, __("Search Help"));
 			}
 		});
@@ -168,7 +169,8 @@ frappe.search.AwesomeBar = Class.extend({
 			frappe.search.utils.get_reports(txt),
 			frappe.search.utils.get_pages(txt),
 			frappe.search.utils.get_modules(txt),
-			frappe.search.utils.get_recent_pages(txt || "")
+			frappe.search.utils.get_recent_pages(txt || ""),
+			frappe.search.utils.get_executables(txt)
 		);
 		var out = this.deduplicate(options);
 		return out.sort(function(a, b) {
@@ -184,7 +186,7 @@ frappe.search.AwesomeBar = Class.extend({
 					option.route.splice(2);
 				}
 				var str_route = (typeof option.route==='string') ?
-						option.route : option.route.join('/');
+					option.route : option.route.join('/');
 				if(routes.indexOf(str_route)===-1) {
 					out.push(option);
 					routes.push(str_route);
@@ -202,7 +204,7 @@ frappe.search.AwesomeBar = Class.extend({
 		return out;
 	},
 
-	set_global_results: function(global_results, txt){
+	set_global_results: function(global_results, txt) {
 		this.global_results = this.global_results.concat(global_results);
 	},
 

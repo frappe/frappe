@@ -14,7 +14,6 @@ from frappe import _
 
 from frappe.utils.csvutils import getlink
 from frappe.utils.dateutils import parse_date
-from frappe.utils.file_manager import save_url
 
 from frappe.utils import cint, cstr, flt, getdate, get_datetime, get_url, get_absolute_url
 from six import text_type, string_types
@@ -267,18 +266,26 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			# file is already attached
 			return
 
-		save_url(file_url, None, doctype, docname, "Home/Attachments", 0)
+		_file = frappe.get_doc({
+			"doctype": "File",
+			"file_url": file_url,
+			"attached_to_name": docname,
+			"attached_to_doctype": doctype,
+			"attached_to_field": 0,
+			"folder": "Home/Attachments"})
+		_file.save()
+
 
 	# header
 	filename, file_extension = ['','']
 	if not rows:
-		from frappe.utils.file_manager import get_file # get_file_doc
-		fname, fcontent = get_file(data_import_doc.import_file)
-		filename, file_extension = os.path.splitext(fname)
+		_file = frappe.get_doc("File", {"file_url": data_import_doc.import_file})
+		fcontent = _file.get_content()
+		filename, file_extension = _file.get_extension()
 
 		if file_extension == '.xlsx' and from_data_import == 'Yes':
 			from frappe.utils.xlsxutils import read_xlsx_file_from_attached_file
-			rows = read_xlsx_file_from_attached_file(file_id=data_import_doc.import_file)
+			rows = read_xlsx_file_from_attached_file(file_url=data_import_doc.import_file)
 
 		elif file_extension == '.csv':
 			from frappe.utils.csvutils import read_csv_content
@@ -477,7 +484,6 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		if error_flag and data_import_doc.skip_errors and len(data) != len(data_rows_with_error):
 			import_status = "Partially Successful"
 			# write the file with the faulty row
-			from frappe.utils.file_manager import save_file
 			file_name = 'error_' + filename + file_extension
 			if file_extension == '.xlsx':
 				from frappe.utils.xlsxutils import make_xlsx
@@ -486,9 +492,15 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			else:
 				from frappe.utils.csvutils import to_csv
 				file_data = to_csv(data_rows_with_error)
-			error_data_file = save_file(file_name, file_data, "Data Import",
-				data_import_doc.name,  "Home/Attachments")
-			data_import_doc.error_file = error_data_file.file_url
+			_file = frappe.get_doc({
+				"doctype": "File",
+				"file_name": file_name,
+				"attached_to_doctype": "Data Import",
+				"attached_to_name": data_import_doc.name,
+				"folder": "Home/Attachments",
+				"content": file_data})
+			_file.save()
+			data_import_doc.error_file = _file.file_url
 
 		elif error_flag:
 			import_status = "Failed"

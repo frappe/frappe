@@ -71,7 +71,7 @@ class TestScheduler(TestCase):
 	def test_restrict_scheduler_events(self):
 		frappe.set_user("Administrator")
 		dormant_date = add_days(today(), -5)
-		frappe.db.sql('update tabUser set last_active=%s', dormant_date)
+		frappe.db.sql('UPDATE `tabUser` SET `last_active`=%s', dormant_date)
 
 		restrict_scheduler_events_if_dormant()
 		frappe.local.conf = _dict(frappe.get_site_config())

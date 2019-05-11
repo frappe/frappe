@@ -279,7 +279,7 @@ _f.Frm.prototype.set_value = function(field, value, if_missing) {
 		var fieldobj = me.fields_dict[f];
 		if(fieldobj) {
 			if(!if_missing || !frappe.model.has_value(me.doctype, me.doc.name, f)) {
-				if(fieldobj.df.fieldtype==="Table" && $.isArray(v)) {
+				if(frappe.model.table_fields.includes(fieldobj.df.fieldtype) && $.isArray(v)) {
 
 					frappe.model.clear_table(me.doc, fieldobj.df.fieldname);
 
@@ -409,7 +409,13 @@ _f.Frm.prototype.get_selected = function() {
 	// returns list of children that are selected. returns [parentfield, name] for each
 	var selected = {}, me = this;
 	frappe.meta.get_table_fields(this.doctype).forEach(function(df) {
-		var _selected = me.fields_dict[df.fieldname].grid.get_selected();
+		// handle TableMultiselect child fields
+		let _selected = [];
+
+		if(me.fields_dict[df.fieldname].grid) {
+			_selected = me.fields_dict[df.fieldname].grid.get_selected();
+		}
+
 		if(_selected.length) {
 			selected[df.fieldname] = _selected;
 		}
@@ -456,6 +462,7 @@ _f.Frm.prototype.set_indicator_formatter = function(fieldname, get_color, get_te
 				}
 
 				const escaped_name = encodeURIComponent(value);
+
 				return repl('<a class="indicator %(color)s" href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
 					color: get_color(doc || {}),
 					doctype: df.options,

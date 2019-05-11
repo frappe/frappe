@@ -17,10 +17,6 @@ from   frappe.chat.util import (
 session = frappe.session
 
 class ChatProfile(Document):
-	def before_save(self):
-		if not self.is_new():
-			self.get_doc_before_save()
-
 	def on_update(self):
 		if not self.is_new():
 			b, a = self.get_doc_before_save(), self
@@ -85,6 +81,7 @@ def create(user, exists_ok = False, fields = None):
 		dprof.user = user
 		dprof.save(ignore_permissions = True)
 	except frappe.DuplicateEntryError:
+		frappe.clear_messages()
 		if not exists_ok:
 			frappe.throw(_('Chat Profile for User {0} exists.').format(user))
 

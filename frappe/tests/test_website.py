@@ -10,6 +10,12 @@ def set_request(**kwargs):
 	builder = EnvironBuilder(**kwargs)
 	frappe.local.request = Request(builder.get_environ())
 
+def get_html_for_route(route):
+	set_request(method='GET', path=route)
+	response = render.render()
+	html = frappe.safe_decode(response.get_data())
+	return html
+
 class TestWebsite(unittest.TestCase):
 
 	def test_page_load(self):
@@ -33,6 +39,14 @@ class TestWebsite(unittest.TestCase):
 			dict(source=r'/testfromregex.*', target=r'://testto2'),
 			dict(source=r'/testsub/(.*)', target=r'://testto3/\1')
 		]
+
+		website_settings = frappe.get_doc('Website Settings')
+		website_settings.append('route_redirects', {
+			'source': '/testsource',
+			'target': '/testtarget'
+		})
+		website_settings.save()
+
 		frappe.cache().delete_key('app_hooks')
 		frappe.cache().delete_key('website_redirects')
 
@@ -54,6 +68,11 @@ class TestWebsite(unittest.TestCase):
 		set_request(method='GET', path='/test404')
 		response = render.render()
 		self.assertEquals(response.status_code, 404)
+
+		set_request(method='GET', path='/testsource')
+		response = render.render()
+		self.assertEquals(response.status_code, 301)
+		self.assertEquals(response.headers.get('Location'), '/testtarget')
 
 		delattr(frappe.hooks, 'website_redirects')
 		frappe.cache().delete_key('app_hooks')
