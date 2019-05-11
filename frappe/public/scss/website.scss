@@ -126,3 +126,9 @@ h4.modal-title {
 	@extend .d-block;
 	@extend .d-sm-none;
 }
+
+.form-section .section-body {
+	width:100%;
+	padding: 15px;
+	@extend .row;
+}
