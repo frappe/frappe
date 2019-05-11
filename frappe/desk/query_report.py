@@ -17,6 +17,7 @@ from six import string_types, iteritems
 from datetime import timedelta
 from frappe.utils.file_manager import get_file
 from frappe.utils import gzip_decompress
+from collections import OrderedDict
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
@@ -517,3 +518,46 @@ def get_user_match_filters(doctypes, user):
 			match_filters[dt] = filter_list
 
 	return match_filters
+
+
+def group_report_data(rows_to_group, group_by, total_fields, description_field, postprocess_group=None):
+	if not group_by:
+		return rows_to_group
+	if not isinstance(group_by, list):
+		group_by = [group_by]
+
+	group_label = group_by[0][0] if isinstance(group_by[0], tuple) else group_by[0]
+	group_fieldname = group_by[0][1] if isinstance(group_by[0], tuple) else scrub(group_label)
+	group_rows = OrderedDict()
+	group_totals = {}
+
+	for row in rows_to_group:
+		group = row.get(group_fieldname) if group_fieldname else None
+		group_rows.setdefault(group, [])
+		group_rows[group].append(row)
+
+		group_totals.setdefault(group, {})
+		for total_field in total_fields:
+			group_totals[group].setdefault(total_field, 0)
+			group_totals[group][total_field] += row[total_field]
+
+	out = []
+
+	for group, rows in iteritems(group_rows):
+		group_totals[group][description_field] = ("'{0}: {1}'" if group else "'{0}'").format(group_label, group)
+
+		group_object = frappe._dict({
+			"_isGroup": 1,
+			"rows": group_report_data(rows, group_by[1:], total_fields, description_field, postprocess_group),
+			"totals": group_totals[group]
+		})
+
+		if group_fieldname:
+			group_object[group_fieldname] = group
+
+		if postprocess_group and callable(postprocess_group):
+			postprocess_group(group_object, group_fieldname, group)
+
+		out.append(group_object)
+
+	return out

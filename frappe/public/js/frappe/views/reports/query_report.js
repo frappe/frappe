@@ -419,7 +419,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.columns = this.prepare_columns(data.columns);
 		this.data = this.prepare_data(data.result);
 
-		this.tree_report = this.data.some(d => 'indent' in d);
+		this.tree_report = this.data.some(d => 'indent' in d) || this.data.some(d => '_isGroup' in d && 'totals' in d);
 	}
 
 	render_datatable() {
@@ -642,8 +642,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			}
 
 			const format_cell = (value, row, column, data) => {
-				return frappe.format(value, column,
+				value = frappe.format(value, column,
 					{for_print: false, always_show_decimals: true}, data);
+				if (data && data._isGroupTotal) {
+					value = $(`<span>${value}</span>`);
+					var $value = $(value).css("font-weight", "bold");
+					value = $value.wrap("<p></p>").parent().html();
+				}
+				return value;
 			};
 
 			let compareFn = null;
@@ -675,7 +681,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	prepare_data(data) {
-		return data.map(row => {
+		let res = data.map(row => {
 			let row_obj = {};
 			if (Array.isArray(row)) {
 				this.columns.forEach((column, i) => {
@@ -686,6 +692,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			}
 			return row;
 		});
+
+		if (this.raw_data.add_total_row) {
+			res[res.length - 1].is_total_row = true;
+		}
+		return res;
 	}
 
 	get_visible_columns() {
@@ -866,7 +877,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 
 				const visible_idx = this.datatable.datamanager.getFilteredRowIndices();
-				if (visible_idx.length + 1 === this.data.length) {
+				if (visible_idx.length + 1 === this.datatable.datamanager.flatData.length) {
 					visible_idx.push(visible_idx.length);
 				}
 
@@ -901,13 +912,21 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_data_for_print() {
-		const indices = this.datatable.datamanager.getFilteredRowIndices();
-		let rows = indices.map(i => this.data[i]);
-		let totalRow = this.datatable.bodyRenderer.getTotalRow().reduce((row, cell) => {
-			row[cell.column.id] = cell.content;
-			return row;
-		}, {});
-		rows.push(totalRow);
+		const indices = this.datatable.datamanager.rowViewOrder.filter(index => {
+			return this.datatable.bodyRenderer.visibleRowIndices.includes(index);
+		});
+
+		let rows = indices.map(i => this.datatable.datamanager.flatData[i]);
+		if (this.raw_data.add_total_row) {
+			let totalRow = this.datatable.bodyRenderer.getTotalRow().reduce((row, cell) => {
+				row[cell.column.id] = cell.content;
+				return row;
+			}, {});
+			totalRow.is_total_row = true;
+
+			rows.push(totalRow);
+		}
+
 		return rows;
 	}
 
@@ -1018,20 +1037,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			</div>`);
 			this.page.footer.before(this.$tree_footer);
 		}
-		this.$tree_footer.find('[data-action=collapse_all_rows]').show();
-		this.$tree_footer.find('[data-action=expand_all_rows]').hide();
 	}
 
 	expand_all_rows() {
-		this.$tree_footer.find('[data-action=expand_all_rows]').hide();
 		this.datatable.rowmanager.expandAllNodes();
-		this.$tree_footer.find('[data-action=collapse_all_rows]').show();
 	}
 
 	collapse_all_rows() {
-		this.$tree_footer.find('[data-action=collapse_all_rows]').hide();
 		this.datatable.rowmanager.collapseAllNodes();
-		this.$tree_footer.find('[data-action=expand_all_rows]').show();
 	}
 
 	message_div(message) {

@@ -25,12 +25,15 @@
     <tbody>
         {% for row in data %}
             <tr>
+            {%  var i = 0;
+                var indent = row.indent || 0;
+            %}
             {% for col in columns %}
                 {% if col.name && col._id !== "_check" %}
-
                     {% var value = col.fieldname ? row[col.fieldname] : row[col.id]; %}
 
                     <td>
+                    {% if indent && i == 0 %}<div style="padding-left:{{ 15 * row.indent }}px">{% endif %}
                         {{
                             col.formatter
                                 ? col.formatter(row._index, col._index, value, col, row, true)
@@ -40,7 +43,10 @@
                                         ? frappe.format(value, col.docfield)
                                         : value
                         }}
+                        {% if indent && i == 0 %}</div>{% endif %}
                     </td>
+
+                    {% i++; %}
                 {% endif %}
             {% endfor %}
             </tr>

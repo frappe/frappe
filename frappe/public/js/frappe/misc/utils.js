@@ -661,14 +661,63 @@ Object.assign(frappe.utils, {
 
 	report_column_total: function(values, column, type) {
 		if (column.column.fieldtype == "Percent" || type === "mean") {
-			return values.reduce((a, b) => a + flt(b)) / values.length;
+			return values.reduce((a, b) => a + flt(b), 0) / values.length;
 		} else if (column.column.fieldtype == "Int") {
-			return values.reduce((a, b) => a + cint(b));
+			return values.reduce((a, b) => a + cint(b), 0);
 		} else if (frappe.model.is_numeric_field(column.column.fieldtype)) {
-			return values.reduce((a, b) => a + flt(b));
+			return values.reduce((a, b) => a + flt(b), 0);
 		} else {
 			return null;
 		}
+	},
+
+	report_printable_groups: function(rows, groups, current_group) {
+		let new_group = {rows: [], group: current_group};
+		let groups_added = 0;
+
+		if (rows && rows.length) {
+			for (var row_idx = 0; row_idx < rows.length; row_idx++) {
+				let cur_row = rows[row_idx];
+
+				if (cur_row._isGroup) {
+					if (new_group.length) {
+						groups.push(new_group);
+						new_group = {rows: [], group: current_group};
+						groups_added++;
+					}
+
+					let child_groups_added = frappe.utils.report_printable_groups(cur_row.rows, groups,
+						Object.assign({}, current_group || {}, cur_row));
+					if (cur_row.totals) {
+						if (child_groups_added == 1) {
+							groups[groups.length - 1].rows.push(cur_row.totals);
+						} else {
+							groups.push({rows: [cur_row.totals], group: cur_row});
+						}
+					}
+				} else {
+					if (!groups.length || !cur_row.is_total_row) {
+						new_group.rows.push(cur_row);
+					}
+				}
+			}
+
+			if (new_group.rows.length) {
+				groups.push(new_group);
+				groups_added++;
+			}
+		}
+
+		return groups_added;
+	},
+
+	report_print_groups: function(rows, print_group_function) {
+		let groups = [];
+
+		frappe.utils.report_printable_groups(rows, groups);
+		$.each(groups, (i, d) => {
+			print_group_function(d.rows, d.group || {});
+		});
 	},
 
 	deep_equal(a, b) {
