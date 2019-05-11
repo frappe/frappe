@@ -40,6 +40,8 @@ def render(path=None, http_status_code=None):
 			http_status_code = 404
 		elif is_static_file(path):
 			return get_static_file_response()
+		elif is_web_form(path):
+			data = render_web_form(path)
 		else:
 			try:
 				data = render_page_by_language(path)
@@ -99,6 +101,14 @@ def is_static_file(path):
 			return True
 
 	return False
+
+def is_web_form(path):
+	return bool(frappe.get_all("Web Form", filters={'route': path}))
+
+def render_web_form(path):
+	web_form_name = frappe.get_all("Web Form", filters={'route': path})[0].name
+	data = render_page(path)
+	return data
 
 def get_static_file_response():
 	try:
