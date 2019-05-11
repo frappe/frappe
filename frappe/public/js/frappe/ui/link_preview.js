@@ -2,12 +2,13 @@ frappe.ui.LinkPreview = class {
 
 	constructor() {
 		this.$links = [];
+		this.LINK_CLASSES = 'a[data-doctype], input[data-fieldtype="Link"], .popover';
 		this.popover_timeout = null;
 		this.setup_events();
 	}
 
 	setup_events() {
-		$(document.body).on('mouseover', 'a[data-doctype], input[data-fieldtype="Link"], .popover', (e) => {
+		$(document.body).on('mouseover', this.LINK_CLASSES, (e) => {
 			this.link_hovered = true;
 			this.element = $(e.currentTarget);
 			this.is_link = this.element.get(0).tagName.toLowerCase() === 'a';
@@ -81,7 +82,7 @@ frappe.ui.LinkPreview = class {
 	}
 
 	handle_popover_hide() {
-		$(document.body).on('mouseout', 'a[href*="/"], input[data-fieldname], .popover', () => {
+		$(document.body).on('mouseout', this.LINK_CLASSES, () => {
 			this.link_hovered = false;
 			if(this.data_timeout) {
 				clearTimeout(this.data_timeout);
@@ -89,13 +90,22 @@ frappe.ui.LinkPreview = class {
 			if (this.popover_timeout) {
 				clearTimeout(this.popover_timeout);
 			}
+			this.clear_all_popovers();
 		});
 
 		$(document.body).on('mousemove', () => {
 			if (!this.link_hovered) {
-				this.$links.forEach($el => $el.popover('hide'));
+				this.clear_all_popovers();
 			}
 		});
+
+		$(window).on('hashchange', () => {
+			this.clear_all_popovers();
+		});
+	}
+
+	clear_all_popovers() {
+		this.$links.forEach($el => $el.popover('hide'));
 	}
 
 	get_preview_fields() {
