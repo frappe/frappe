@@ -18,7 +18,10 @@ frappe.ui.form.on('Energy Point Rule', {
 			const user_fields = fields.filter(df => (df.fieldtype === 'Link' && df.options === 'User')
 				|| df.fieldtype === 'Data')
 				.map(map_for_options)
-				.concat([{label: __('Owner'), value: 'owner'}]);
+				.concat([
+					{ label: __('Owner'), value: 'owner' },
+					{ label: __('Modified By'), value: 'modified_by' }
+				]);
 
 			const multiplier_fields = fields.filter(df => ['Int', 'Float'].includes(df.fieldtype))
 				.map(map_for_options);

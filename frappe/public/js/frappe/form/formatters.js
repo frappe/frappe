@@ -117,11 +117,11 @@ frappe.form.formatters = {
 			return repl('<a onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
 		} else if(docfield && doctype) {
-			return repl('<a class="grey" href="#Form/%(doctype)s/%(name)s" data-doctype="%(doctype)s">%(label)s</a>', {
-				doctype: encodeURIComponent(doctype),
-				name: encodeURIComponent(original_value),
-				label: __(options && options.label || value)
-			});
+			return `<a class="grey"
+				href="#Form/${encodeURIComponent(doctype)}/${encodeURIComponent(original_value)}"
+				data-doctype="${doctype}"
+				data-name="${original_value}">
+				${__(options && options.label || value)}</a>`
 		} else {
 			return value;
 		}

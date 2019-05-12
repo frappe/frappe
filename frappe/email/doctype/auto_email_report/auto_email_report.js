@@ -54,9 +54,9 @@ frappe.ui.form.on('Auto Email Report', {
 	show_filters: function(frm) {
 		var wrapper = $(frm.get_field('filters_display').wrapper);
 		wrapper.empty();
-		if(frm.doc.report_type !== 'Report Builder'
+		if(frm.doc.report_type === 'Custom Report' || (frm.doc.report_type !== 'Report Builder'
 			&& frappe.query_reports[frm.doc.report]
-			&& frappe.query_reports[frm.doc.report].filters) {
+			&& frappe.query_reports[frm.doc.report].filters)) {
 
 			// make a table to show filters
 			var table = $('<table class="table table-bordered" style="cursor:pointer; margin:0px;"><thead>\
@@ -65,7 +65,17 @@ frappe.ui.form.on('Auto Email Report', {
 			$('<p class="text-muted small">' + __("Click table to edit") + '</p>').appendTo(wrapper);
 
 			var filters = JSON.parse(frm.doc.filters || '{}');
-			var report_filters = frappe.query_reports[frm.doc.report].filters;
+
+			let report_filters;
+
+			if (frm.doc.report_type === 'Custom Report'
+				&& frappe.query_reports[frm.doc.reference_report]
+				&& frappe.query_reports[frm.doc.reference_report].filters) {
+				report_filters = frappe.query_reports[frm.doc.reference_report].filters;
+			} else {
+				report_filters = frappe.query_reports[frm.doc.report].filters;
+			}
+
 			if(report_filters && report_filters.length > 0) {
 				frm.set_value('filter_meta', JSON.stringify(report_filters));
 			}

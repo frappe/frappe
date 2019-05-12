@@ -5,5 +5,4 @@ from __future__ import unicode_literals
 import frappe
 
 def execute():
-    if frappe.db.table_exists('User Permission for Page and Report'):
-        frappe.delete_doc("DocType", "User Permission for Page and Report")
+        frappe.delete_doc_if_exists("DocType", "User Permission for Page and Report")
