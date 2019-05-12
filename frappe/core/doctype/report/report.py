@@ -100,7 +100,7 @@ class Report(Document):
 		columns = []
 		out = []
 
-		if self.report_type in ('Query Report', 'Script Report'):
+		if self.report_type in ('Query Report', 'Script Report', 'Custom Report'):
 			# query and script reports
 			data = frappe.desk.query_report.run(self.name, filters=filters, user=user)
 			for d in data.get('columns'):
