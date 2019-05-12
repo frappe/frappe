@@ -40,4 +40,3 @@ def execute():
 		{
 			"values": comm_list
 		})
-		parentfield, creation, modified, modified_by
