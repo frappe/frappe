@@ -30,6 +30,7 @@ def render(path=None, http_status_code=None):
 
 	try:
 		path = path.strip('/ ')
+		raise_if_disabled(path)
 		resolve_redirect(path)
 		path = resolve_path(path)
 		data = None
@@ -326,3 +327,17 @@ def add_csrf_token(data):
 				frappe.local.session.data.csrf_token))
 	else:
 		return data
+
+def raise_if_disabled(path):
+	routes = frappe.db.get_all('Portal Menu Item',
+		fields=['route', 'enabled'],
+		filters={
+			'enabled': 0,
+			'route': ['like', '%{0}'.format(path)]
+		}
+	)
+
+	for r in routes:
+		_path = r.route.lstrip('/')
+		if path == _path and not r.enabled:
+			raise frappe.PermissionError
