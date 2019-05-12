@@ -573,7 +573,7 @@ def mark_email_as_seen(name=None):
 		frappe.response["filecontent"] = buffered_obj.getvalue()
 
 def get_parent_doc(link_doctype, link_name):
-	"""Returns document of `link_doctype`, `link_doctype`"""
+	"""Returns document of `link_doctype`, `link_name`"""
 	if link_doctype and link_name:
 		parent_doc = frappe.get_doc(link_doctype, link_name)
 	return parent_doc if parent_doc else None

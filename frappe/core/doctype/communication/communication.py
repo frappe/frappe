@@ -292,13 +292,12 @@ def on_doctype_update():
 def has_permission(doc, ptype, user):
 	for value in doc.dynamic_links:
 		if ptype=="read":
-			if (value.link_doctype == "Communication" and value.link_name == doc.name):
+			if value.link_doctype == "Communication" and value.link_name == doc.name:
 				return
 
 			if value.link_doctype and value.link_name:
-				# check permissions for doctype other than contact
-				if not value.link_doctype == "Contact" and \
-					frappe.has_permission(value.link_doctype, ptype="read", doc=value.link_name):
+				# check permissions for doctype
+				if frappe.has_permission(value.link_doctype, ptype="read", doc=value.link_name):
 
 					return True
 
