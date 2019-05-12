@@ -494,6 +494,8 @@ def web_search(text, scope=None, start=0, limit=20):
 				tmp_result.append(i)
 		results += tmp_result
 
+	# chart of accounts -> {chart, of, accounts}
+	# titles that match the most of these words will have high relevance
 	words = set(get_distinct_words(text))
 	for r in results:
 		title_words = set(get_distinct_words(r.title))
