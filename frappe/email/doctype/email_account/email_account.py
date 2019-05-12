@@ -575,8 +575,8 @@ class EmailAccount(Document):
 				subject = _("Re: ") + communication.subject,
 				content = render_template(self.auto_reply_message or "", communication.as_dict()) or \
 					frappe.get_template("templates/emails/auto_reply.html").render(communication.as_dict()),
-				link_doctype = auto_reply.link_doctype,
-				link_name = auto_reply.link_name,
+				link_doctype = auto_reply.get("link_doctype"),
+				link_name = auto_reply.get("link_name"),
 				in_reply_to = email.mail.get("Message-Id"), # send back the Message-Id as In-Reply-To
 				unsubscribe_message = unsubscribe_message)
 
