@@ -91,12 +91,10 @@ class TestAutoRepeat(unittest.TestCase):
 		new_todo = frappe.db.get_value('ToDo',
 			{'auto_repeat': doc.name, 'name': ('!=', todo.name)}, 'name')
 
-		linked_comm = frappe.db.sql("""
-				select `tabCommunication`.name from `tabCommunication`
-				inner join `tabDynamic Link` on `tabCommunication`.name=`tabDynamic Link`.parent
-				where `tabDynamic Link`.link_doctype='ToDo'
-				and `tabDynamic Link`.link_name='{0}'
-			""".format(new_todo))
+		linked_comm = frappe.get_all("Communication", filters=[
+			["Dynamic Link", "link_doctype", "=", "ToDo"],
+			["Dynamic Link", "link_name", "=", new_todo],
+		])
 		self.assertTrue(linked_comm)
 
 

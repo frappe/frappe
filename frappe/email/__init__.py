@@ -45,7 +45,7 @@ def get_system_managers():
 		AND parent!='Administrator'
 		AND parent IN (SELECT email FROM tabUser WHERE enabled=1)""")
 
-@frappe.whitelist() #do later for relink
+@frappe.whitelist()
 def relink(name, link_doctype=None, link_name=None):
 	comm = frappe.get_doc("Communication", name)
 	comm.status = "Linked"

@@ -40,6 +40,7 @@ class Communication(Document):
 
 	def validate(self):
 		self.deduplicate_dynamic_links()
+		self.set_primary_link(index=0)
 		self.validate_reference()
 
 		if not self.user:
@@ -268,6 +269,21 @@ class Communication(Document):
 
 		if autosave:
 			self.save(ignore_permissions=ignore_permissions)
+
+	def set_primary_link(self, index=None, link_name=None, autosave=False, ignore_permissions=True):
+		# set first link as primary, by default
+		for idx, dynamic_link in enumerate(self.dynamic_links):
+			dynamic_link.is_primary_link = 0
+			if idx == index or dynamic_link.link_name == link_name:
+				dynamic_link.is_primary_link = 1
+
+		if autosave:
+			self.save(ignore_permissions=ignore_permissions)
+
+	def get_primary_link(self):
+		for dynamic_link in self.dynamic_links:
+			if dynamic_link.is_primary_link:
+				return dynamic_link
 
 def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""

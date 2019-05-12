@@ -49,6 +49,10 @@ frappe.ui.form.on("Communication", {
 			frm.trigger('show_remove_link_dialog');
 		});
 
+		frm.add_custom_button(__("Change Primary link"), function() {
+			frm.trigger('change_primary_link_dialog');
+		});
+
 		if(frm.doc.status==="Open") {
 			frm.add_custom_button(__("Close"), function() {
 				frm.set_value("status", "Closed");
@@ -171,6 +175,38 @@ frappe.ui.form.on("Communication", {
 				}).then(() => frm.refresh());
 			},
 			primary_action_label: __('Remove Link')
+		});
+		d.show();
+	},
+
+	change_primary_link_dialog: function(frm){
+		let options = '';
+
+		for(var link in frm.doc.dynamic_links){
+			let dynamic_link = frm.doc.dynamic_links[link];
+			if (!dynamic_link.is_primary_link) {
+				options += '\n' + dynamic_link.link_name;
+			}
+		}
+
+		var d = new frappe.ui.Dialog ({
+			title: __("Change Primary Link for Communication"),
+			fields: [{
+				"fieldtype": "Select",
+				"options": options,
+				"label": __("Link"),
+				"fieldname": "link",
+				"reqd": 1
+			}],
+			primary_action: ({ link }) => {
+				d.hide();
+				frm.call('set_primary_link', {
+					link_name: link,
+					autosave: true,
+					ignore_permissions: false
+				}).then(() => frm.refresh());
+			},
+			primary_action_label: __('Change Link')
 		});
 		d.show();
 	},

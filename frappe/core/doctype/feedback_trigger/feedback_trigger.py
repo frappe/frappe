@@ -106,13 +106,13 @@ def get_feedback_request_details(reference_doctype, reference_name, trigger="Man
 	recipients = doc.get(feedback_trigger.email_fieldname, None)
 	if feedback_trigger.check_communication:
 
-		communications = frappe.db.sql("""select `tabCommunication`.name from `tabCommunication`
-				inner join `tabDynamic Link` on `tabCommunication`.name=`tabDynamic Link`.parent
-				where `tabDynamic Link`.link_doctype='{0}'
-				and `tabDynamic Link`.link_name='{1}'
-				and `tabCommunication`.communication_type='Communication'
-				and `tabCommunication`.sent_or_received='Sent'""".format(reference_doctype, reference_name),
-			as_list=True)
+		communications = frappe.get_list("Communication",
+			filters=[
+				['Dynamic Link', 'link_doctype', '=', reference_doctype],
+				['Dynamic Link', 'link_name', '=', reference_name],
+				['Communication', 'communication_type', '=', 'Communication'],
+				['Communication', 'sent_or_received', '=', 'Sent']
+			], fields=["name"])
 
 		if len(communications) < 1:
 			frappe.msgprint(_("At least one reply is mandatory before requesting feedback"))
@@ -207,12 +207,12 @@ def delete_feedback_request_and_feedback(reference_doctype, reference_name):
 	for request in feedback_requests:
 		frappe.delete_doc("Feedback Request", request.get("name"), ignore_permissions=True)
 
-	communications = frappe.db.sql("""select `tabCommunication`.name from `tabCommunication`
-			inner join `tabDynamic Link` on `tabCommunication`.name=`tabDynamic Link`.parent
-			where `tabDynamic Link`.link_doctype='{0}'
-			and `tabDynamic Link`.link_name='{1}'
-			and `tabCommunication`.communication_type='Feedback'""".format(reference_doctype, reference_name),
-		as_list=True)
+	communications = frappe.get_list("Communication",
+		filters=[
+			['Dynamic Link', 'link_doctype', '=', reference_doctype],
+			['Dynamic Link', 'link_name', '=', reference_name],
+			['Communication', 'communication_type', '=', 'Feedback']
+		], fields=["name"])
 
 	for communication in communications:
 		frappe.delete_doc("Communication", communication, ignore_permissions=True)
