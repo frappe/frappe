@@ -307,7 +307,7 @@ def get_routes_to_index():
 def add_route_to_global_search(route):
 	from frappe.website.render import render_page
 	from frappe.tests.test_website import set_request
-	frappe.session.user = 'Guest'
+	frappe.set_user('Guest')
 	frappe.local.no_cache = True
 
 	try:
@@ -329,6 +329,8 @@ def add_route_to_global_search(route):
 		sync_value_in_queue(value)
 	except (frappe.PermissionError, frappe.DoesNotExistError, frappe.ValidationError, Exception):
 		pass
+
+	frappe.set_user('Administrator')
 
 
 def get_formatted_value(value, field):
