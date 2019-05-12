@@ -109,14 +109,14 @@ frappe.ui.form.PrintPreview = Class.extend({
 					default: print_format.name || 'Standard'
 				}
 			], function (data) {
-					frappe.route_options = {
-						make_new: true,
-						doctype: me.frm.doctype,
-						name: data.print_format_name,
-						based_on: data.based_on
-					};
-					frappe.set_route("print-format-builder");
-				}, __("New Custom Print Format"), __("Start"));
+				frappe.route_options = {
+					make_new: true,
+					doctype: me.frm.doctype,
+					name: data.print_format_name,
+					based_on: data.based_on
+				};
+				frappe.set_route("print-format-builder");
+			}, __("New Custom Print Format"), __("Start"));
 		});
 	},
 	set_user_lang: function () {
