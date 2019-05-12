@@ -115,15 +115,15 @@ frappe.ui.form.PrintPreview = Class.extend({
 					fieldtype: 'Read Only',
 					default: print_format.name || 'Standard'
 				}
-			], function (data) {
-					frappe.route_options = {
-						make_new: true,
-						doctype: me.frm.doctype,
-						name: data.print_format_name,
-						based_on: data.based_on
-					};
-					frappe.set_route("print-format-builder");
-				}, __("New Custom Print Format"), __("Start"));
+			], (data) => {
+				frappe.route_options = {
+					make_new: true,
+					doctype: me.frm.doctype,
+					name: data.print_format_name,
+					based_on: data.based_on
+				};
+				frappe.set_route("print-format-builder");
+			}, __("New Custom Print Format"), __("Start"));
 		});
 
 		$(document).on('new-print-format', (e) => {
@@ -305,7 +305,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 		});
 	},
 	get_mapped_printer: function () {
-		// returns a list of "print format: printer" mapping filtered by the current print format 
+		// returns a list of "print format: printer" mapping filtered by the current print format
 		let print_format_printer_map = this.get_print_format_printer_map();
 		if (print_format_printer_map[this.frm.doctype]) {
 			return print_format_printer_map[this.frm.doctype].filter(
@@ -570,7 +570,7 @@ frappe.ui.form.qz_init = function () {
 				});
 				qz.api.setSha256Type(function (data) {
 					// Codacy fix
-					/*global sha256*/ 
+					/*global sha256*/
 					return sha256(data);
 				});
 				resolve();
