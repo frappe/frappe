@@ -7,7 +7,7 @@ frappe.ready(function() {
 		let web_form = new frappe.ui.WebForm({
 			parent: wrapper,
 			fields: data.web_form.web_form_fields,
-			settings: web_form_settings
+			...web_form_settings
 		})
 
 		web_form.make();
