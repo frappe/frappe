@@ -35,19 +35,26 @@ class Event(Document):
 		self.sync_communication()
 
 	def on_trash(self):
-		communications = frappe.get_all("Dynamic Link", filters={"link_doctype": self.doctype, "link_name": self.name, "parenttype": "Communication"}, fields=["parent"])
+		communications = frappe.get_list("Communication", filters=[
+			["Dynamic Link", "link_doctype", "=", self.doctype],
+			["Dynamic Link", "link_name", "=", self.name],
+		], fields=["name"])
+
 		if communications:
 			for communication in communications:
-				frappe.get_doc("Communication", communication.parent).delete()
+				frappe.get_doc("Communication", communication.name).delete()
 
 	def sync_communication(self):
 		if self.event_participants:
 			for participant in self.event_participants:
+
 				communication_name = None
 				event_comm = frappe.db.get_value("Dynamic Link", dict(link_doctype=self.doctype, link_name=self.name, parenttype="Communication"), "parent")
 				participant_comm = frappe.db.get_value("Dynamic Link", dict(link_doctype=participant.reference_doctype, link_name=participant.reference_docname, parenttype="Communication"), "parent")
+
 				if event_comm == participant_comm:
 					communication_name = event_comm
+
 				if communication_name:
 					communication = frappe.get_doc("Communication", communication_name)
 					self.update_communication(participant, communication)

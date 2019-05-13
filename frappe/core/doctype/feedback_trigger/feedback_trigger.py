@@ -215,4 +215,4 @@ def delete_feedback_request_and_feedback(reference_doctype, reference_name):
 		], fields=["name"])
 
 	for communication in communications:
-		frappe.delete_doc("Communication", communication, ignore_permissions=True)
+		frappe.delete_doc("Communication", communication.name, ignore_permissions=True)

@@ -42,6 +42,15 @@ class ToDo(Document):
 		self.update_in_reference()
 
 	def on_trash(self):
+		communications = frappe.get_list("Communication", filters=[
+			["Dynamic Link", "link_doctype", "=", self.doctype],
+			["Dynamic Link", "link_name", "=", self.name]
+		], fields=["name"])
+
+		for communication in communications:
+			comm = frappe.get_doc("Communication", communication.name)
+			comm.remove_link(link_doctype=self.doctype, link_name=self.name, autosave=True)
+
 		self.update_in_reference()
 
 	def add_assign_comment(self, text, comment_type):

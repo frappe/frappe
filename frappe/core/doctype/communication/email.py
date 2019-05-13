@@ -73,7 +73,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	comm.insert(ignore_permissions=True)
 
 	if doctype:
-		#link doctype if present to the communication
+		#link doctype to the communication if present
 		link_doctype, link_name = doctype, name
 		comm.add_link(link_doctype=doctype, link_name=name)
 	else:

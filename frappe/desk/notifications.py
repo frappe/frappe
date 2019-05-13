@@ -56,14 +56,23 @@ def get_new_messages():
 		last_update = (now_datetime() - relativedelta(seconds=1800)).strftime(DATETIME_FORMAT)
 
 	return frappe.db.sql("""
-		select `tabCommunication`.name, `tabCommunication`.sender_full_name, `tabCommunication`.content,
-		`tabDynamic Link`.link_doctype, `tabDynamic Link`.link_name, `tabDynamic Link`.parent
-		from `tabCommunication` inner join `tabDynamic Link` on `tabCommunication`.name=`tabDynamic Link`.parent
+		select `tabCommunication`.name,
+				`tabCommunication`.sender_full_name,
+				`tabCommunication`.content,
+				`tabDynamic Link`.link_doctype,
+				`tabDynamic Link`.link_name
+		from `tabCommunication`
+			inner join `tabDynamic Link`
+				on `tabCommunication`.name=`tabDynamic Link`.parent
 		where `tabCommunication`.communication_type in ('Chat', 'Notification')
-		and `tabDynamic Link`.link_doctype='user'
-		and `tabDynamic Link`.link_name = %s
-		and `tabDynamic Link`.creation > %s
-		order by `tabDynamic Link`.creation desc""", (frappe.session.user, last_update), as_dict=1)
+			and `tabDynamic Link`.link_doctype='User'
+			and `tabDynamic Link`.link_name = %(user)s
+			and `tabCommunication`.creation > %(last_update)s
+		order by `tabCommunication`.creation desc""", {
+		"user": frappe.session.user,
+		"last_update": last_update
+	}, as_dict=1)
+
 
 def get_notifications_for_modules(config, notification_count):
 	"""Notifications for modules"""

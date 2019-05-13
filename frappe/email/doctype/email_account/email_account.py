@@ -664,6 +664,7 @@ def test_internet(host="8.8.8.8", port=53, timeout=3):
 		socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
 		return True
 	except Exception as ex:
+		print(ex.message)
 		return False
 
 def notify_unreplied():
