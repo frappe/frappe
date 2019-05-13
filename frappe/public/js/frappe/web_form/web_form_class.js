@@ -11,8 +11,14 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 
 	make(opts) {
 		super.make();
+		this.set_field_values();
 		this.setup_secondary_action();
 		this.setup_primary_action();
+	}
+
+	set_field_values() {
+		if (this.doc_name) this.set_values(this.doc);
+		else return
 	}
 
 	setup_primary_action() {

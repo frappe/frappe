@@ -3,12 +3,14 @@ frappe.ready(function() {
 	const wrapper = $(".web-form-wrapper");
 	get_data().then(res => {
 		const data = setup_fields(res.message);
+		data.doc = res.message.doc
 		data.web_form.doc_name = web_form_settings.doc_name
 
 		let web_form = new frappe.ui.WebForm({
 			parent: wrapper,
 			fields: data.web_form.web_form_fields,
-			...data.web_form
+			doc: data.doc,
+			...data.web_form,
 		});
 
 		web_form.make();
