@@ -483,27 +483,27 @@ def validate_fields(meta):
 	def check_unique_fieldname(fieldname):
 		duplicates = list(filter(None, map(lambda df: df.fieldname==fieldname and str(df.idx) or None, fields)))
 		if len(duplicates) > 1:
-			frappe.throw(_("[{0}]: Fieldname {1} appears multiple times in rows {2}").format(self.name, fieldname, ", ".join(duplicates)))
+			frappe.throw(_("{0}: Fieldname {1} appears multiple times in rows {2}").format(self.name, fieldname, ", ".join(duplicates)))
 
 	def check_fieldname_length(fieldname):
 		validate_column_length(fieldname)
 
 	def check_illegal_mandatory(d):
 		if (d.fieldtype in no_value_fields) and d.fieldtype!="Table" and d.reqd:
-			frappe.throw(_("[{0}]: Field {1} of type {2} cannot be mandatory").format(self.name, d.label, d.fieldtype))
+			frappe.throw(_("{0}: Field {1} of type {2} cannot be mandatory").format(self.name, d.label, d.fieldtype))
 
 	def check_link_table_options(d):
 		if d.fieldtype in ("Link", "Table"):
 			if not d.options:
-				frappe.throw(_("[{0}]: Options required for Link or Table type field {1} in row {2}").format(self.name, d.label, d.idx))
+				frappe.throw(_("{0}: Options required for Link or Table type field {1} in row {2}").format(self.name, d.label, d.idx))
 			if d.options=="[Select]" or d.options==d.parent:
 				return
 			if d.options != d.parent:
 				options = frappe.db.get_value("DocType", d.options, "name")
 				if not options:
-					frappe.throw(_("[{0}]: Options must be a valid DocType for field {1} in row {2}").format(self.name, d.label, d.idx))
+					frappe.throw(_("{0}: Options must be a valid DocType for field {1} in row {2}").format(self.name, d.label, d.idx))
 				elif not (options == d.options):
-					frappe.throw(_("[{0}]: Options {1} must be the same as doctype name {2} for the field {3}")
+					frappe.throw(_("{0}: Options {1} must be the same as doctype name {2} for the field {3}")
 						.format(self.name, d.options, options, d.label))
 				else:
 					# fix case
@@ -511,7 +511,7 @@ def validate_fields(meta):
 
 	def check_hidden_and_mandatory(d):
 		if d.hidden and d.reqd and not d.default:
-			frappe.throw(_("[{0}]: Field {1} in row {2} cannot be hidden and mandatory without default").format(self.name, d.label, d.idx))
+			frappe.throw(_("{0}: Field {1} in row {2} cannot be hidden and mandatory without default").format(self.name, d.label, d.idx))
 
 	def check_width(d):
 		if d.fieldtype == "Currency" and cint(d.width) < 100:
@@ -550,7 +550,7 @@ def validate_fields(meta):
 
 		if getattr(d, "unique", False):
 			if d.fieldtype not in ("Data", "Link", "Read Only"):
-				frappe.throw(_("[{0}]: Fieldtype {1} for {2} cannot be unique").format(self.name, d.fieldtype, d.label))
+				frappe.throw(_("{0}: Fieldtype {1} for {2} cannot be unique").format(self.name, d.fieldtype, d.label))
 
 			if not d.get("__islocal"):
 				try:
@@ -570,7 +570,7 @@ def validate_fields(meta):
 				else:
 					# else of try block
 					if has_non_unique_values and has_non_unique_values[0][0]:
-						frappe.throw(_("[{0}]: Field '{1}' cannot be set as Unique as it has non-unique values").format(self.name, d.label))
+						frappe.throw(_("{0}: Field '{1}' cannot be set as Unique as it has non-unique values").format(self.name, d.label))
 
 		if d.search_index and d.fieldtype in ("Text", "Long Text", "Small Text", "Code", "Text Editor"):
 			frappe.throw(_("Fieldtype {0} for {1} cannot be indexed").format(d.fieldtype, d.label))
