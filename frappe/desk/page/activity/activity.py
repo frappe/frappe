@@ -38,7 +38,7 @@ def get_feed(start, page_length):
 				{match_conditions_comment}
 		) X
 		order by X.creation DESC
-		limit %(start)s, %(page_length)s"""
+		OFFSET %(start)s LIMIT %(page_length)s"""
 		.format(match_conditions_comment = match_conditions_comment,
 			match_conditions_communication = match_conditions_communication), {
 			"user": frappe.session.user,
