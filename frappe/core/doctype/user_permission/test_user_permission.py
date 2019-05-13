@@ -19,7 +19,9 @@ class TestUserPermission(unittest.TestCase):
 		user = get_user()
 		param = get_params(user, apply_to_all= 1)
 
-		add_user_permissions(param)
+		check = add_user_permissions(param)
+
+		self.assertIsNotNone(check)
 
 		is_created = add_user_permissions(param)
 		self.assertEquals(is_created, 0)
@@ -29,7 +31,9 @@ class TestUserPermission(unittest.TestCase):
 		user = get_user()
 		param = get_params(user, applicable = ["Chat Room", "Chat Message"])
 
-		add_user_permissions(get_params(user, apply_to_all= 1))
+		check = add_user_permissions(get_params(user, apply_to_all= 1))
+
+		self.assertIsNotNone(check)
 
 		is_created = add_user_permissions(param)
 		frappe.db.commit()
@@ -48,7 +52,9 @@ class TestUserPermission(unittest.TestCase):
 		user = get_user()
 		param = get_params(user, apply_to_all = 1)
 
-		add_user_permissions(get_params(user, applicable = ["Chat Room", "Chat Message"]))
+		check = add_user_permissions(get_params(user, applicable = ["Chat Room", "Chat Message"]))
+
+		self.assertIsNotNone(check)
 
 		is_created = add_user_permissions(param)
 		is_created_apply_to_all = frappe.db.exists("User Permission", get_exists_param(user))
