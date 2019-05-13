@@ -1,7 +1,7 @@
 {
  "allow_import": 1,
  "creation": "2013-01-29 10:47:14",
- "description": "Keep a track of all communications",
+ "description": "Keeps track of all communications",
  "doctype": "DocType",
  "document_type": "Setup",
  "engine": "InnoDB",
@@ -43,12 +43,11 @@
   "email_template",
   "link_doctype",
   "link_name",
-  "timeline_doctype",
-  "timeline_name",
-  "timeline_label",
   "unread_notification_sent",
   "seen",
   "_user_tags",
+  "timeline_links_sections",
+  "dynamic_links",
   "email_inbox",
   "message_id",
   "uid",
@@ -299,25 +298,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "timeline_doctype",
-   "fieldtype": "Link",
-   "label": "Timeline DocType",
-   "options": "DocType",
-   "read_only": 1
-  },
-  {
-   "fieldname": "timeline_name",
-   "fieldtype": "Dynamic Link",
-   "label": "Timeline Name",
-   "options": "timeline_doctype",
-   "read_only": 1
-  },
-  {
-   "fieldname": "timeline_label",
-   "fieldtype": "Data",
-   "label": "Timeline field Name"
-  },
-  {
    "default": "0",
    "fieldname": "unread_notification_sent",
    "fieldtype": "Check",
@@ -398,11 +378,22 @@
    "label": "Email Template",
    "options": "Email Template",
    "read_only": 1
+  },
+  {
+   "fieldname": "timeline_links_sections",
+   "fieldtype": "Section Break",
+   "label": "Timeline Links"
+  },
+  {
+   "fieldname": "dynamic_links",
+   "fieldtype": "Table",
+   "label": "Dynamic Links",
+   "options": "Dynamic Link"
   }
  ],
  "icon": "fa fa-comment",
  "idx": 1,
- "modified": "2019-05-04 15:36:35.818714",
+ "modified": "2019-05-13 19:55:35.757242",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",

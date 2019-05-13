@@ -54,7 +54,15 @@ frappe.ui.form.on("Communication", {
 			frm.trigger('show_relink_dialog');
 		});
 
-		if(frm.doc.communication_type=="Communication" 
+		frm.add_custom_button(__("Add link"), function() {
+			frm.trigger('show_add_link_dialog');
+		});
+
+		frm.add_custom_button(__("Remove link"), function() {
+			frm.trigger('show_remove_link_dialog');
+		});
+
+		if(frm.doc.communication_type=="Communication"
 			&& frm.doc.communication_medium == "Email"
 			&& frm.doc.sent_or_received == "Received") {
 
@@ -90,7 +98,7 @@ frappe.ui.form.on("Communication", {
 			}
 		}
 
-		if(frm.doc.communication_type=="Communication" 
+		if(frm.doc.communication_type=="Communication"
 			&& frm.doc.communication_medium == "Phone"
 			&& frm.doc.sent_or_received == "Received"){
 
@@ -148,6 +156,74 @@ frappe.ui.form.on("Communication", {
 		d.show();
 	},
 
+	show_add_link_dialog: function(frm){
+		var d = new frappe.ui.Dialog ({
+			title: __("Add new link to Communication"),
+			fields: [{
+				"fieldtype": "Link",
+				"options": "DocType",
+				"label": __("Document Type"),
+				"fieldname": "link_doctype",
+				"reqd": 1
+			},
+			{
+				"fieldtype": "Dynamic Link",
+				"options": "link_doctype",
+				"label": __("Document Name"),
+				"fieldname": "link_name",
+				"reqd": 1
+			}],
+			primary_action: ({ link_doctype, link_name }) => {
+				d.hide();
+				frm.call('add_link', {
+					link_doctype,
+					link_name,
+					autosave: true
+				}).then(() => frm.refresh());
+			},
+			primary_action_label: __('Add Link')
+		});
+		d.fields_dict.link_doctype.get_query = function() {
+			return {
+				"filters": {
+					"name": ["!=", "Communication"],
+				}
+			};
+		};
+		d.show();
+	},
+
+	show_remove_link_dialog: function(frm){
+		let options = '';
+
+		for(var link in frm.doc.dynamic_links){
+			let dynamic_link = frm.doc.dynamic_links[link];
+			options += '\n' + dynamic_link.link_doctype + ': ' + dynamic_link.link_name;
+		}
+
+		var d = new frappe.ui.Dialog ({
+			title: __("Remove link from Communication"),
+			fields: [{
+				"fieldtype": "Select",
+				"options": options,
+				"label": __("Link"),
+				"fieldname": "link",
+				"reqd": 1
+			}],
+			primary_action: ({ link }) => {
+				d.hide();
+				frm.call('remove_link', {
+					link_doctype: link.split(":")[0].trim(),
+					link_name: link.split(":")[1].trim(),
+					autosave: true,
+					ignore_permissions: false
+				}).then(() => frm.refresh());
+			},
+			primary_action_label: __('Remove Link')
+		});
+		d.show();
+	},
+
 	mark_as_read_unread: function(frm) {
 		var action = frm.doc.seen? "Unread": "Read";
 		var flag = "(\\SEEN)";
@@ -185,7 +261,7 @@ frappe.ui.form.on("Communication", {
 
 	forward_mail: function(frm) {
 		var args = frm.events.get_mail_args(frm)
-		$.extend(args, {		
+		$.extend(args, {
 			forward: true,
 			subject: __("Fw: {0}", [frm.doc.subject]),
 		})

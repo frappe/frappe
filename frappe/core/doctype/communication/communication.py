@@ -8,7 +8,7 @@ from frappe.model.document import Document
 from frappe.utils import validate_email_address, get_fullname, strip_html, cstr
 from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_mins_to_first_response)
-from frappe.core.utils import get_parent_doc, set_timeline_doc
+from frappe.core.utils import get_parent_doc
 from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr
 from frappe.core.doctype.comment.comment import update_comment_in_doc
@@ -58,7 +58,6 @@ class Communication(Document):
 		self.set_sender_full_name()
 
 		validate_email(self)
-		set_timeline_doc(self)
 
 	def validate_reference(self):
 		if self.reference_doctype and self.reference_name:
@@ -231,25 +230,85 @@ class Communication(Document):
 			if commit:
 				frappe.db.commit()
 
+	# Timeline Links
+	def deduplicate_dynamic_links(self):
+		if self.dynamic_links:
+			links, duplicate = [], False
+
+			for l in self.dynamic_links:
+				t = (l.link_doctype, l.link_name)
+				if not t in links:
+					links.append(t)
+				else:
+					duplicate = True
+
+			if duplicate:
+				del self.dynamic_links[:] # make it python 2 compatible as list.clear() is python 3 only
+				for l in links:
+					self.add_link(link_doctype=l[0], link_name=l[1])
+
+	def validate_circular_links(self):
+		for dynamic_link in self.dynamic_links:
+			# Prevent circular linking of Communication DocTypes
+			if dynamic_link.link_doctype == "Communication":
+				circular_linking = False
+				circular_level_1 = get_timeline_parent_doc(dynamic_link.link_doctype, dynamic_link.link_name)
+
+				# Level 1
+				if circular_level_1:
+					for link in circular_level_1.dynamic_links:
+						if link.link_doctype == "Communication":
+							circular_level_2 = get_timeline_parent_doc(link.link_doctype, link.link_name)
+
+							# Level 2
+							if circular_level_2:
+								for ref_link in circular_level_2.dynamic_links:
+									if ref_link.link_doctype == "Communication":
+										circular_level_3 = get_timeline_parent_doc(ref_link.link_doctype, ref_link.link_name)
+
+										# Level 3
+										if circular_level_3:
+											if circular_level_3.name == self.name:
+												circular_linking = True
+												break
+						if circular_linking:
+							frappe.throw(_("Please make sure the Timeline Communication Docs are not circularly linked."), frappe.CircularLinkingError)
+
+	def add_link(self, link_doctype, link_name, autosave=False):
+		self.append("dynamic_links",
+			{
+				"link_doctype": link_doctype,
+				"link_name": link_name
+			}
+		)
+
+		if autosave:
+			self.save(ignore_permissions=True)
+
+	def get_links(self):
+		return self.dynamic_links
+
+	def remove_link(self, link_doctype, link_name, autosave=False, ignore_permissions=True):
+		for l in self.dynamic_links:
+			if l.link_doctype == link_doctype and l.link_name == link_name:
+				self.dynamic_links.remove(l)
+
+		if autosave:
+			self.save(ignore_permissions=ignore_permissions)
 
 def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""
 	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"])
-	frappe.db.add_index("Communication", ["timeline_doctype", "timeline_name"])
 	frappe.db.add_index("Communication", ["link_doctype", "link_name"])
 	frappe.db.add_index("Communication", ["status", "communication_type"])
 
 def has_permission(doc, ptype, user):
 	if ptype=="read":
-		if (doc.reference_doctype == "Communication" and doc.reference_name == doc.name) \
-			or (doc.timeline_doctype == "Communication" and doc.timeline_name == doc.name):
-				return
+		if doc.reference_doctype == "Communication" and doc.reference_name == doc.name:
+			return
 
 		if doc.reference_doctype and doc.reference_name:
 			if frappe.has_permission(doc.reference_doctype, ptype="read", doc=doc.reference_name):
-				return True
-		if doc.timeline_doctype and doc.timeline_name:
-			if frappe.has_permission(doc.timeline_doctype, ptype="read", doc=doc.timeline_name):
 				return True
 
 def get_permission_query_conditions_for_communication(user):
@@ -270,3 +329,9 @@ def get_permission_query_conditions_for_communication(user):
 		email_accounts = [ '"%s"'%account.get("email_account") for account in accounts ]
 		return """tabCommunication.email_account in ({email_accounts})"""\
 			.format(email_accounts=','.join(email_accounts))
+
+def get_timeline_parent_doc(link_doctype, link_name):
+	"""Returns document of `link_doctype`, `link_name`"""
+	if link_doctype and link_name:
+		parent_doc = frappe.get_doc(link_doctype, link_name)
+	return parent_doc if parent_doc else None
