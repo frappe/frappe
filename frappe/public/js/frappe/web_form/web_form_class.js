@@ -1,12 +1,12 @@
-frappe.provide('frappe.ui')
+frappe.provide("frappe.ui");
 
 window.web_form = null;
 
 frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 	constructor(opts) {
 		super();
-		Object.assign(this, opts)
-		window.web_form = this
+		Object.assign(this, opts);
+		window.web_form = this;
 	}
 
 	make(opts) {
@@ -16,18 +16,35 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	setup_primary_action() {
-		const primary_action_button = document.createElement('button');
-		primary_action_button.classList.add('btn', 'btn-primary', 'primary-action', 'btn-form-submit', 'btn-sm', 'ml-2');
-		primary_action_button.innerText = 'Save'
+		const primary_action_button = document.createElement("button");
+		primary_action_button.classList.add(
+			"btn",
+			"btn-primary",
+			"primary-action",
+			"btn-form-submit",
+			"btn-sm",
+			"ml-2"
+		);
+		primary_action_button.innerText = "Save";
 		primary_action_button.onclick = () => this.save();
-		document.querySelector('.web-form-actions').appendChild(primary_action_button);
+		document
+			.querySelector(".web-form-actions")
+			.appendChild(primary_action_button);
 	}
 
 	setup_secondary_action() {
-		const secondary_action_button = document.createElement('button');
-		secondary_action_button.classList.add('btn', 'btn-danger', 'button-delete', 'btn-sm', 'ml-2');
-		secondary_action_button.innerText = 'Delete'
-		document.querySelector('.web-form-actions').appendChild(secondary_action_button);
+		const secondary_action_button = document.createElement("button");
+		secondary_action_button.classList.add(
+			"btn",
+			"btn-danger",
+			"button-delete",
+			"btn-sm",
+			"ml-2"
+		);
+		secondary_action_button.innerText = "Delete";
+		document
+			.querySelector(".web-form-actions")
+			.appendChild(secondary_action_button);
 	}
 
 	save() {
@@ -43,11 +60,10 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 			method: "frappe.website.doctype.web_form.web_form.accept",
 			args: {
 				data: data,
-				web_form: this.web_form_name,
+				web_form: this.web_form_name
 			},
 			callback: function(response) {
-				if(!response.exc) {
-
+				if (!response.exc) {
 				}
 			},
 			always: function() {
