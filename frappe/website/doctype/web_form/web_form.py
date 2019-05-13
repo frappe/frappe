@@ -359,10 +359,8 @@ def accept(web_form, data, for_payment=False):
 	files_to_delete = []
 
 	web_form = frappe.get_doc("Web Form", web_form)
-	if data.doctype != web_form.doc_type:
-		frappe.throw(_("Invalid Request"))
 
-	elif data.name and not web_form.allow_edit:
+	if data.name and not web_form.allow_edit:
 		frappe.throw(_("You are not allowed to update this Web Form Document"))
 
 	frappe.flags.in_web_form = True
