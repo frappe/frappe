@@ -17,7 +17,7 @@ class TestUserPermission(unittest.TestCase):
 
 	def test_for_apply_to_all_on_update_from_apply_all(self):
 		user = get_user()
-		param = get_params(user, apply_to_all= 1)
+		param = get_params(user, apply_to_all=1)
 
 		check = add_user_permissions(param)
 
