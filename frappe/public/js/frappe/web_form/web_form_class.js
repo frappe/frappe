@@ -25,7 +25,7 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 			"btn-sm",
 			"ml-2"
 		);
-		primary_action_button.innerText = "Save";
+		primary_action_button.innerText = web_form.button_label || "Save";
 		primary_action_button.onclick = () => this.save();
 		document
 			.querySelector(".web-form-actions")
@@ -48,22 +48,27 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	save() {
+		// Handle data
 		let data = this.get_values();
 		if (!data || window.saving) return false;
+		data.doctype = this.doc_type;
 
+		// Save
 		window.saving = true;
 		frappe.form_dirty = false;
-		data.doctype = this.web_form_doctype;
 
 		frappe.call({
 			type: "POST",
 			method: "frappe.website.doctype.web_form.web_form.accept",
 			args: {
 				data: data,
-				web_form: this.web_form_name
+				web_form: this.name
 			},
-			callback: function(response) {
+			callback: response => {
+				// Check for any exception in response
 				if (!response.exc) {
+					// Success
+					this.handle_success(response.message);
 				}
 			},
 			always: function() {
@@ -71,5 +76,26 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 			}
 		});
 		return true;
+	}
+
+	handle_success(data) {
+		const success_dialog = new frappe.ui.Dialog({
+			title: __("Saved Successfully"),
+			secondary_action: () => {
+				if (this.login_required) {
+					if (this.route_to_success_link) {
+						window.location.pathname = this.success_url;
+					} else {
+						window.location.href =
+							window.location.pathname + "?name=" + data.name;
+					}
+				}
+			}
+		});
+
+		const success_message =
+			this.success_message || __("Your information has been submitted");
+		success_dialog.set_message(success_message);
+		success_dialog.show();
 	}
 };

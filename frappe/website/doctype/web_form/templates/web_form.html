@@ -30,7 +30,7 @@
 <script>
 window.web_form_settings = {
 	allow_incomplete: 	{{ allow_incomplete or 0 }},
-	success_link: 		'<p>{{ success_message or _("Your information has been submitted") }}</p><p><a href="{{ success_url or "/" }}" class="btn btn-sm btn-light">{{ _("Continue") }}</a></p>',
+	success_link: 		"{{ success_url or "/" }}",
 	datepicker_format: 	"{{ frappe.date_format }}",
 	web_form_doctype: 	"{{ doc_type }}",
 	web_form_name: 		"{{ name }}",
