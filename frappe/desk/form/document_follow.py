@@ -59,6 +59,9 @@ def get_message(doc_name, doctype, frequency, user):
 	return sorted(activity_list, key=lambda k: k["time"], reverse=True)
 
 def send_email_alert(receiver, docinfo, timeline):
+	print(receiver)
+	print(docinfo)
+	print(timeline)
 	if receiver:
 		frappe.sendmail(
 			subject=_("Document Follow Notification"),
@@ -134,7 +137,7 @@ def get_version(doctype, doc_name, frequency, user):
 
 	return timeline
 
-def get_comments(doctype, doc_name, frequency):
+def get_comments(doctype, doc_name, frequency, user):
 	timeline = []
 	filters = get_filters("reference_name", doc_name, frequency, user)
 	comments = frappe.get_all("Comment",
@@ -262,21 +265,21 @@ def get_filters(search_by, name, frequency, user):
 		filters = [
 			[search_by, "=", name],
 			["modified", ">", frappe.utils.add_days(frappe.utils.nowdate(),-7)],
-			["modified", "<", frappe.utils.nowdate()]
+			["modified", "<", frappe.utils.nowdate()],
 			["modified_by", "!=", user]
 		]
 	elif frequency == "Daily":
 		filters = [
 			[search_by, "=", name],
 			["modified", ">", frappe.utils.add_days(frappe.utils.nowdate(),-1)],
-			["modified", "<", frappe.utils.nowdate()]
+			["modified", "<", frappe.utils.nowdate()],
 			["modified_by", "!=", user]
 		]
 	elif frequency == "Hourly":
 		filters = [
 			[search_by, "=", name],
 			["modified", ">", frappe.utils.add_to_date(frappe.utils.now_datetime(), 0, 0, 0, -1)],
-			["modified", "<", frappe.utils.now_datetime()]
+			["modified", "<", frappe.utils.now_datetime()],
 			["modified_by", "!=", user]
 		]
 
