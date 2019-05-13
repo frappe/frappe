@@ -59,9 +59,6 @@ def get_message(doc_name, doctype, frequency, user):
 	return sorted(activity_list, key=lambda k: k["time"], reverse=True)
 
 def send_email_alert(receiver, docinfo, timeline):
-	print(receiver)
-	print(docinfo)
-	print(timeline)
 	if receiver:
 		frappe.sendmail(
 			subject=_("Document Follow Notification"),
