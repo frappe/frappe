@@ -167,7 +167,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 			`tabCommunication`.creation, `tabCommunication`.subject, `tabCommunication`.delivery_status,
 			`tabCommunication`._liked_by, `tabCommunication`.reference_doctype, `tabCommunication`.reference_name,
 			`tabCommunication`.link_doctype, `tabCommunication`.link_name, `tabCommunication`.read_by_recipient,
-			`tabCommunication`.rating, `tabDynamic Link`.link_doctype, `tabDynamic Link`.link_name
+			`tabCommunication`.rating, `tabDynamic Link`.link_doctype, `tabDynamic Link`.link_name, `tabDynamic Link`.parent
 		'''
 
 	conditions = '''
@@ -183,7 +183,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 
 	if not group_by:
 		group_by = '''
-			group by `tabCommunication`.name
+			group by `tabCommunication`.name, `tabDynamic Link`.parent
 		'''
 
 	if after:
@@ -200,7 +200,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	communications = frappe.db.sql('''
 		select {fields}
 		from `tabCommunication`
-			left join `tabDynamic Link`
+			inner join `tabDynamic Link`
 				on `tabCommunication`.name=`tabDynamic Link`.parent
 		where {conditions} {group_by}
 		order by `tabCommunication`.creation desc
