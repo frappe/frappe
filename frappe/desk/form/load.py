@@ -97,7 +97,6 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"assignments": get_assignments(doc.doctype, doc.name),
 		"permissions": get_doc_permissions(doc),
 		"shared": frappe.share.get_users(doc.doctype, doc.name),
-		"rating": get_feedback_rating(doc.doctype, doc.name),
 		"views": get_view_logs(doc.doctype, doc.name),
 		"energy_point_logs": get_point_logs(doc.doctype, doc.name),
 		"milestones": get_milestones(doc.doctype, doc.name),
@@ -242,21 +241,6 @@ def get_badge_info(doctypes, filters):
 def run_onload(doc):
 	doc.set("__onload", frappe._dict())
 	doc.run_method("onload")
-
-def get_feedback_rating(doctype, docname):
-	""" get and return the latest feedback rating if available """
-
-	rating= frappe.get_all("Communication", filters={
-		"reference_doctype": doctype,
-		"reference_name": docname,
-		"communication_type": "Feedback"
-	}, fields=["rating"], order_by="creation desc", as_list=True)
-
-	if not rating:
-		return 0
-	else:
-		return rating[0][0]
-
 
 def get_view_logs(doctype, docname):
 	""" get and return the latest view logs if available """

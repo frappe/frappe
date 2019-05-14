@@ -66,6 +66,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 				frappe.db.sql("delete from `tabProperty Setter` where doc_type = %s", name)
 				frappe.db.sql("delete from `tabReport` where ref_doctype=%s", name)
 				frappe.db.sql("delete from `tabCustom DocPerm` where parent=%s", name)
+				frappe.db.sql("delete from `__global_search` where doctype=%s", name)
 
 			delete_from_table(doctype, name, ignore_doctypes, None)
 

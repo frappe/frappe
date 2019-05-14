@@ -31,13 +31,6 @@ frappe.ui.form.on("Communication", {
 			}
 		}
 
-		if(frm.doc.communication_type == "Feedback") {
-			frm.add_custom_button(__("Resend"), function() {
-				var feedback = new frappe.utils.Feedback();
-				feedback.resend_feedback_request(frm.doc);
-			});
-		}
-
 		if(frm.doc.status==="Open") {
 			frm.add_custom_button(__("Close"), function() {
 				frm.set_value("status", "Closed");
