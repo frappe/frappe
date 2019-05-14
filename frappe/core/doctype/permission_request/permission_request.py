@@ -10,4 +10,10 @@ from frappe.model.document import Document
 
 
 class PermissionRequest(Document):
-	pass
+	def validate(self):
+		self.validate_duplicate_request()
+
+	def validate_duplicate_request(self):
+		if self.status == "Requested":
+			if frappe.db.exists("Permission Request", {"doc_type": self.doc_type, "user": self.user, "name": ["!=", self.name]}):
+				frappe.throw(_("A Permission Request already exists for this DocType and User"), frappe.DuplicateEntryError)
