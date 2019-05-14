@@ -208,7 +208,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			txt: me.dialog.fields_dict["search_term"].get_value(),
 			filters: filters,
 			filter_fields: Object.keys(me.setters).concat([me.date_field]),
-			page_length: this.page_length + 1,
+			page_length: this.page_length,
 			query: this.get_query ? this.get_query().query : '',
 			as_dict: 1
 		}
@@ -220,10 +220,6 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			callback: function(r) {
 				let results = [], more = 0;
 				if(r.values.length) {
-					if(r.values.length > me.page_length){
-						r.values.pop();
-						more = 1;
-					}
 					r.values.forEach(function(result) {
 						if(me.date_field in result) {
 							result["Date"] = result[me.date_field]
