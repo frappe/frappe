@@ -619,7 +619,8 @@ class FilterArea {
 				options: options,
 				fieldname: df.fieldname,
 				condition: condition,
-				onchange: () => this.refresh_list_view()
+				onchange: () => this.refresh_list_view(),
+				ignore_link_validation: fieldtype === 'Dynamic Link'
 			};
 		}));
 
