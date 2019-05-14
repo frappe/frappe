@@ -275,7 +275,7 @@ def get_filters(search_by, name, frequency, user):
 	elif frequency == "Hourly":
 		filters = [
 			[search_by, "=", name],
-			["modified", ">", frappe.utils.add_to_date(frappe.utils.now_datetime(), 0, 0, 0, -1)],
+			["modified", ">", frappe.utils.add_to_date(frappe.utils.now_datetime(), hours=-1)],
 			["modified", "<", frappe.utils.now_datetime()],
 			["modified_by", "!=", user]
 		]
