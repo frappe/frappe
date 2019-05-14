@@ -15,6 +15,7 @@ from frappe.model.naming import make_autoname
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from six import iteritems, string_types
 from past.builtins import cmp
+from frappe.contacts.address_and_contact import set_link_title
 
 import functools
 
@@ -39,6 +40,7 @@ class Address(Document):
 	def validate(self):
 		self.link_address()
 		self.validate_reference()
+		set_link_title(self)
 		deduplicate_dynamic_links(self)
 
 	def link_address(self):
