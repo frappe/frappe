@@ -254,7 +254,6 @@
 		"public/js/frappe/ui/comment.js",
 		"public/js/frappe/misc/rating_icons.html",
 
-		"public/js/frappe/feedback.js",
 		"public/js/frappe/chat.js",
 		"public/js/frappe/social/social_factory.js",
 		"public/js/frappe/misc/energy_point_utils.js"

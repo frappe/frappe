@@ -441,7 +441,6 @@ frappe.ui.form.Timeline = class Timeline {
 	set_icon_and_color(c) {
 		if(c.communication_type == "Feedback"){
 			c.icon = "octicon octicon-comment-discussion"
-			c.rating_icons = frappe.render_template("rating_icons", {rating: c.rating, show_label: true})
 		} else {
 			c.icon = {
 				"Email": "octicon octicon-mail",

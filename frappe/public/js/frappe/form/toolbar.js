@@ -175,16 +175,6 @@ frappe.ui.form.Toolbar = Class.extend({
 			}
 		}
 
-		// feedback
-		if(!this.frm.doc.__unsaved) {
-			if(is_submittable && docstatus == 1) {
-				this.page.add_menu_item(__("Request Feedback"), function() {
-					var feedback = new frappe.utils.Feedback();
-					feedback.manual_feedback_request(me.frm.doc);
-				}, true)
-			}
-		}
-
 		// New
 		if(p[CREATE] && !this.frm.meta.issingle) {
 			this.page.add_menu_item(__("New {0} (Ctrl+B)", [__(me.frm.doctype)]), function() {
