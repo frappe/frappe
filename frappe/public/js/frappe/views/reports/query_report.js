@@ -977,6 +977,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			{
 				label: __('Export'),
 				action: () => this.export_report(),
+				condition: () => frappe.model.can_export(this.report_doc.ref_doctype),
 				standard: true
 			},
 			{
@@ -1027,7 +1028,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								label: df.label,
 								link_field: this.doctype_field_map[values.doctype],
 								doctype: values.doctype,
-								options: df.fieldtype === "Link" ? values.doctype : undefined,
+								options: df.fieldtype === "Link" ? frappe.model.unscrub(df.fieldname) : undefined,
 								width: 100
 							});
 
