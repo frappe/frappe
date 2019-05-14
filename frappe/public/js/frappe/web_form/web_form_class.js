@@ -1,6 +1,10 @@
+import DataTable from 'frappe-datatable';
+
 frappe.provide("frappe.ui");
+frappe.provide('frappe.views');
 
 window.web_form = null;
+window.web_form_list = null;
 
 frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 	constructor(opts) {
@@ -105,3 +109,40 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 		success_dialog.show();
 	}
 };
+
+frappe.views.WebFormList = class WebFormList {
+	constructor(opts) {
+		Object.assign(this, opts);
+		window.web_form_list = this;
+
+		frappe.run_serially([
+			() => this.get_list_view_fields(),
+			() => this.get_data(),
+			() => this.make_datatable()
+		])
+	}
+
+	get_list_view_fields() {
+		return frappe.call({
+			method: 'frappe.website.doctype.web_form.web_form.get_in_list_view_fields',
+			args: { doctype: this.doctype }
+		}).then((response) => this.fields_list = response.message)
+	}
+
+	get_data() {
+		frappe.call({
+			method: 'frappe.www.list.get_list_data',
+			args: {
+				doctype: this.doctype,
+				fields: this.fields_list.map(df => df.fieldname),
+				web_form_name: this.web_form_name
+			}
+		}).then((response) => console.log(response))
+	}
+
+	make_datatable() {
+		console.log("All good")
+	}
+
+
+}
