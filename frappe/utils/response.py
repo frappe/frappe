@@ -21,6 +21,7 @@ from frappe.core.doctype.file.file import check_file_permission
 from frappe.website.render import render
 from frappe.utils import cint
 from six import text_type
+from six.moves.urllib.parse import quote
 
 def report_error(status_code):
 	'''Build error. Show traceback in developer mode'''
@@ -178,7 +179,7 @@ def send_private_file(path):
 	if frappe.local.request.headers.get('X-Use-X-Accel-Redirect'):
 		path = '/protected/' + path
 		response = Response()
-		response.headers['X-Accel-Redirect'] = frappe.utils.encode(path)
+		response.headers['X-Accel-Redirect'] = frappe.utils.encode(quote(path))
 
 	else:
 		filepath = frappe.utils.get_site_path(path)
