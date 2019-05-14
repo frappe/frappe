@@ -46,13 +46,13 @@ class Event(Document):
 				comms = frappe.get_list("Communication", filters=[
 					["Communication", "reference_doctype", "=", self.doctype],
 					["Communication", "reference_name", "=", self.name],
-					["Dynamic Link", "link_doctype", "=", participant.reference_doctype]
+					["Dynamic Link", "link_doctype", "=", participant.reference_doctype],
 					["Dynamic Link", "link_name", "=", participant.reference_docname]
 				], fields=["name"])
 
 				if comms:
 					for comm in comms:
-						communication = frappe.get_doc("Communication", comms.name)
+						communication = frappe.get_doc("Communication", comm.name)
 						self.update_communication(participant, communication)
 				else:
 					meta = frappe.get_meta(participant.reference_doctype)
