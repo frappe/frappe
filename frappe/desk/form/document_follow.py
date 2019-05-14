@@ -107,7 +107,7 @@ def send_document_follow_mails(frequency):
 						"reference_url": get_url_to_form(d.ref_doctype, d.ref_docname)
 					})
 
-			if message:
+			if message and frappe.db.get_value("User", user, "document_follow_notify", ignore=True):
 				send_email_alert(user, valid_document_follows, message)
 
 
