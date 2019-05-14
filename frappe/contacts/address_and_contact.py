@@ -152,3 +152,11 @@ def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, fil
 	valid_doctypes = [[doctype] for doctype in valid_doctypes]
 
 	return valid_doctypes
+
+def set_link_title(doc):
+	if not doc.links:
+		return
+	for link in doc.links:
+		if not link.link_title:
+			linked_doc = frappe.get_doc(link.link_doctype, link.link_name)
+			link.link_title = linked_doc.get("title_field") or linked_doc.get("name")

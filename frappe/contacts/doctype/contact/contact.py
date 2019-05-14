@@ -10,6 +10,7 @@ from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_li
 from six import iteritems
 from past.builtins import cmp
 from frappe.model.naming import append_number_if_name_exists
+from frappe.contacts.address_and_contact import set_link_title
 
 import functools
 
@@ -31,7 +32,7 @@ class Contact(Document):
 		if self.email_id:
 			self.email_id = self.email_id.strip()
 		self.set_user()
-		self.set_link_title()
+		set_link_title(self)
 		if self.email_id and not self.image:
 			self.image = has_gravatar(self.email_id)
 
@@ -40,14 +41,6 @@ class Contact(Document):
 	def set_user(self):
 		if not self.user and self.email_id:
 			self.user = frappe.db.get_value("User", {"email": self.email_id})
-
-	def set_link_title(self):
-		if not self.links:
-			return
-		for contact in self.links:
-			if not contact.link_title:
-				linked_doc = frappe.get_doc(contact.link_doctype, contact.link_name)
-				contact.link_title = linked_doc.get("title_field") or linked_doc.get("name")
 
 	def get_link_for(self, link_doctype):
 		'''Return the link name, if exists for the given link DocType'''
