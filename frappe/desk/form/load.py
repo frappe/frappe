@@ -182,6 +182,11 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 			)
 	'''
 
+	if not group_by:
+		group_by = '''
+			group by `tabCommunication`.name
+		'''
+
 	if after:
 		# find after a particular date
 		conditions += '''
@@ -210,7 +215,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 			"start": frappe.utils.cint(start),
 			"limit": limit
 		}, as_dict=as_dict, debug=True)
-
+	print(communications)
 	return communications
 
 def get_assignments(dt, dn):

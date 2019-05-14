@@ -72,21 +72,21 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"message_id":get_message_id().strip(" <>"),
 		"read_receipt":read_receipt,
 		"has_attachment": 1 if attachments else 0
-	})
-	comm.insert(ignore_permissions=True)
+	}).insert(ignore_permissions=True)
 
 	if not doctype:
 		# if no reference given, then send it against the communication
-		comm.db_set(dict(reference_doctype='Communication', reference_name=comm.name))
+		comm.reference_doctype = 'Communication'
+		comm.reference_name = comm.name
 
-	# contacts = get_contacts([sender, recipients, cc, bcc])
-	# for contact_name in contacts:
-	# 	comm.add_link('Contact', contact_name)
+	contacts = get_contacts([sender, recipients, cc, bcc])
+	for contact_name in contacts:
+		comm.add_link('Contact', contact_name)
 
-	# 	#link contact's dynamic links to communication
-	# 	add_contact_links_to_communication(comm, contact_name)
+		#link contact's dynamic links to communication
+		add_contact_links_to_communication(comm, contact_name)
 
-	# comm.save(ignore_permissions=True)
+	comm.save(ignore_permissions=True)
 
 	if isinstance(attachments, string_types):
 		attachments = json.loads(attachments)

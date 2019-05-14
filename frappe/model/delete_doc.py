@@ -279,7 +279,7 @@ def delete_dynamic_links(doctype, name):
 	# unlink communications
 	clear_references('Communication', doctype, name)
 	clear_references('Communication', doctype, name, 'link_doctype', 'link_name')
-	clear_references('Communication', doctype, name, 'timeline_doctype', 'timeline_name')
+	clear_timeline_references(doctype, name)
 
 	clear_references('Activity Log', doctype, name)
 	clear_references('Activity Log', doctype, name, 'timeline_doctype', 'timeline_name')
@@ -300,6 +300,15 @@ def clear_references(doctype, reference_doctype, reference_name,
 			{1}=%s and {2}=%s'''.format(doctype, reference_doctype_field, reference_name_field), # nosec
 		(reference_doctype, reference_name))
 
+def clear_timeline_references(link_doctype, link_name):
+	comms = frappe.get_list("Communication", filters=[
+		["Dynamic Link", "link_doctype", "=", link_doctype],
+		["Dynamic Link", "link_name", "=", link_name]
+	], fields=["name"])
+
+	for comm in comms:
+		doc = frappe.get_doc("Communication", comm.name)
+		doc.remove_link(link_doctype=link_doctype, link_name=link_name, autosave=True)
 
 def insert_feed(doc):
 	from frappe.utils import get_fullname

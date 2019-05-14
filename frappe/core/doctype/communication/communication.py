@@ -8,7 +8,6 @@ from frappe.model.document import Document
 from frappe.utils import validate_email_address, get_fullname, strip_html, cstr
 from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_mins_to_first_response)
-from frappe.core.utils import get_parent_doc
 from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr
 from frappe.core.doctype.comment.comment import update_comment_in_doc
@@ -57,6 +56,8 @@ class Communication(Document):
 		self.set_status()
 		self.set_sender_full_name()
 
+		self.validate_dynamic_links()
+		self.deduplicate_dynamic_links()
 		validate_email(self)
 
 	def validate_reference(self):
@@ -72,12 +73,14 @@ class Communication(Document):
 			# Prevent circular linking of Communication DocTypes
 			if self.reference_doctype == "Communication":
 				circular_linking = False
-				doc = get_parent_doc(self)
-				while doc.reference_doctype == "Communication":
-					if get_parent_doc(doc).name==self.name:
-						circular_linking = True
-						break
-					doc = get_parent_doc(doc)
+				doc = get_parent_doc(self.reference_doctype, self.reference_name)
+				if doc:
+					while doc.reference_doctype == "Communication":
+						if doc:
+							if doc.reference_name == self.name:
+								circular_linking = True
+								break
+						doc = get_parent_doc(doc.reference_doctype, doc.reference_name)
 				if circular_linking:
 					frappe.throw(_("Please make sure the Reference Communication Docs are not circularly linked."), frappe.CircularLinkingError)
 
@@ -247,32 +250,22 @@ class Communication(Document):
 				for l in links:
 					self.add_link(link_doctype=l[0], link_name=l[1])
 
-	def validate_circular_links(self):
+	def validate_dynamic_links(self):
+		circular_linking = False
 		for dynamic_link in self.dynamic_links:
-			# Prevent circular linking of Communication DocTypes
+
+			# Prevent circular linking of Timeline DocTypes
 			if dynamic_link.link_doctype == "Communication":
-				circular_linking = False
-				circular_level_1 = get_timeline_parent_doc(dynamic_link.link_doctype, dynamic_link.link_name)
+				doc = get_parent_doc(dynamic_link.link_doctype, dynamic_link.link_name)
+				if doc:
+					while doc.reference_doctype == "Communication":
+						if doc:
+							if doc.reference_name == self.name:
+								circular_linking = True
+								break
 
-				# Level 1
-				if circular_level_1:
-					for link in circular_level_1.dynamic_links:
-						if link.link_doctype == "Communication":
-							circular_level_2 = get_timeline_parent_doc(link.link_doctype, link.link_name)
-
-							# Level 2
-							if circular_level_2:
-								for ref_link in circular_level_2.dynamic_links:
-									if ref_link.link_doctype == "Communication":
-										circular_level_3 = get_timeline_parent_doc(ref_link.link_doctype, ref_link.link_name)
-
-										# Level 3
-										if circular_level_3:
-											if circular_level_3.name == self.name:
-												circular_linking = True
-												break
-						if circular_linking:
-							frappe.throw(_("Please make sure the Timeline Communication Docs are not circularly linked."), frappe.CircularLinkingError)
+		if circular_linking:
+			frappe.throw(_("Please make sure the Timeline Communication Docs are not circularly linked."), frappe.CircularLinkingError)
 
 	def add_link(self, link_doctype, link_name, autosave=False):
 		self.append("dynamic_links",
@@ -330,7 +323,7 @@ def get_permission_query_conditions_for_communication(user):
 		return """tabCommunication.email_account in ({email_accounts})"""\
 			.format(email_accounts=','.join(email_accounts))
 
-def get_timeline_parent_doc(link_doctype, link_name):
+def get_parent_doc(link_doctype, link_name):
 	"""Returns document of `link_doctype`, `link_name`"""
 	if link_doctype and link_name:
 		parent_doc = frappe.get_doc(link_doctype, link_name)

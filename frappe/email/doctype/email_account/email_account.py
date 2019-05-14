@@ -386,15 +386,15 @@ class EmailAccount(Document):
 			users = list(set([ user.get("parent") for user in users ]))
 			communication._seen = json.dumps(users)
 
-		# contacts = get_contacts([sender, recipients, cc, bcc])
-		# for contact_name in contacts:
-		# 	comm.add_link('Contact', contact_name)
+		contacts = get_contacts([email.from_email, email.mail.get("To"), email.mail.get("CC"), email.from_email])
+		for contact_name in contacts:
+			communication.add_link('Contact', contact_name)
 
-		# 	#link contact's dynamic links to communication
-		# 	add_contact_links_to_communication(comm, contact_name)
+			#link contact's dynamic links to communication
+			add_contact_links_to_communication(communication, contact_name)
 
 		communication.flags.in_receive = True
-		communication.insert(ignore_permissions = 1)
+		communication.insert(ignore_permissions=True)
 
 		# save attachments
 		communication._attachments = email.save_attachments_in_doc(communication)
