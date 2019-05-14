@@ -1,21 +1,31 @@
 frappe.ready(function() {
 	const { web_form_doctype, doc_name, web_form_name } = web_form_settings;
 	const wrapper = $(".web-form-wrapper");
-	get_data().then(res => {
-		const data = setup_fields(res.message);
-		data.doc = res.message.doc
-		data.web_form.doc_name = web_form_settings.doc_name
 
-		let web_form = new frappe.ui.WebForm({
+	if (web_form_settings.is_list) {
+		web_form_list = new frappe.views.WebFormList({
 			parent: wrapper,
-			fields: data.web_form.web_form_fields,
-			doc: data.doc,
-			...data.web_form,
-		});
-
-		web_form.make();
+			doctype: web_form_doctype,
+			web_form_name: web_form_name
+		})
 		document.querySelector("body").style.display = "block";
-	});
+	} else {
+		get_data().then(res => {
+			const data = setup_fields(res.message);
+			data.doc = res.message.doc
+			data.web_form.doc_name = web_form_settings.doc_name
+
+			let web_form = new frappe.ui.WebForm({
+				parent: wrapper,
+				fields: data.web_form.web_form_fields,
+				doc: data.doc,
+				...data.web_form,
+			});
+
+			web_form.make();
+			document.querySelector("body").style.display = "block";
+		});
+	}
 
 	function get_data() {
 		return frappe.call({
