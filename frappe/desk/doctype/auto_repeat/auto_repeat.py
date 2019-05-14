@@ -35,9 +35,10 @@ class AutoRepeat(Document):
 
 	def before_submit(self):
 		start_date_copy = self.start_date
+		today_copy = add_days(today(), -1)
 
-		if start_date_copy < today():
-			start_date_copy = today()
+		if start_date_copy <= today_copy:
+			start_date_copy = today_copy
 
 		if not self.next_schedule_date:
 			self.next_schedule_date = get_next_schedule_date(
