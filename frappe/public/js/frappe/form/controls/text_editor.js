@@ -38,24 +38,6 @@ class MyLink extends Link {
 
 Quill.register(MyLink);
 
-
-// hidden blot
-class HiddenBlock extends Block {
-	static create(value) {
-		const node = super.create(value);
-		node.setAttribute('data-comment', value);
-		node.classList.add('hidden');
-		return node;
-	}
-
-	static formats(node) {
-		return node.getAttribute('data-comment');
-	}
-}
-HiddenBlock.blotName = 'hiddenblot';
-HiddenBlock.tagName = 'SPAN';
-Quill.register(HiddenBlock, true);
-
 // image uploader
 const Uploader = Quill.import('modules/uploader');
 Uploader.DEFAULTS.mimetypes.push('image/gif');
@@ -73,6 +55,11 @@ Quill.register(AlignStyle, true);
 Quill.register(DirectionStyle, true);
 
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
+	make_wrapper() {
+		this._super();
+		this.$wrapper.find(".like-disabled-input").addClass("ql-editor");
+	},
+
 	make_input() {
 		this.has_input = true;
 		this.make_quill_editor();

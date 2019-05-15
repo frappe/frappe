@@ -22,7 +22,7 @@ class PreparedReport(Document):
 		self.status = "Queued"
 		self.report_start_time = frappe.utils.now()
 
-	def after_insert(self):
+	def enqueue_report(self):
 		enqueue(
 			run_background,
 			prepared_report=self.name, timeout=6000

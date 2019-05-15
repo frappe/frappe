@@ -162,7 +162,7 @@ def validate_rename(doctype, new, meta, merge, force, ignore_permissions):
 	if (not merge) and exists:
 		frappe.msgprint(_("Another {0} with name {1} exists, select another name").format(doctype, new), raise_exception=1)
 
-	if not (ignore_permissions or frappe.has_permission(doctype, "write")):
+	if not (ignore_permissions or frappe.permissions.has_permission(doctype, "write", raise_exception=False)):
 		frappe.msgprint(_("You need write permission to rename"), raise_exception=1)
 
 	if not (force or ignore_permissions) and not meta.allow_rename:

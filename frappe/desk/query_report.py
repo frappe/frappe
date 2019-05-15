@@ -133,6 +133,8 @@ def background_enqueue_run(report_name, filters=None, user=None):
 		})
 	track_instance.insert(ignore_permissions=True)
 	frappe.db.commit()
+	track_instance.enqueue_report()
+
 	return {
 		"name": track_instance.name,
 		"redirect_url": get_url_to_form("Prepared Report", track_instance.name)
@@ -280,6 +282,10 @@ def export_query():
 		filters = json.loads(data["filters"])
 	if isinstance(data.get("report_name"), string_types):
 		report_name = data["report_name"]
+		frappe.permissions.can_export(
+			frappe.get_cached_value('Report', report_name, 'ref_doctype'),
+			raise_exception=True
+		)
 	if isinstance(data.get("file_format_type"), string_types):
 		file_format_type = data["file_format_type"]
 
@@ -360,6 +366,8 @@ def add_total_row(result, columns, meta = None):
 			options = col.get("options")
 
 		for row in result:
+			if i >= len(row): continue
+
 			cell = row.get(fieldname) if isinstance(row, dict) else row[i]
 			if fieldtype in ["Currency", "Int", "Float", "Percent"] and flt(cell):
 				total_row[i] = flt(total_row[i]) + flt(cell)

@@ -1,0 +1,17 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.13.3
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  SNYK-JS-AWESOMPLETE-174474:
+    - awesomplete:
+        reason: No patch available
+        expires: '2019-06-11T14:12:04.995Z'
+  'npm:mem:20180117':
+    - showdown > yargs > os-locale > mem:
+        reason: No patch available
+        expires: '2019-06-11T14:12:04.995Z'
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:extend:20180424':
+    - superagent > extend:
+        patched: '2019-05-09T10:14:19.246Z'

@@ -310,6 +310,12 @@ frappe.ui.form.Dashboard = Class.extend({
 		var fieldname = this.data.non_standard_fieldnames
 			? (this.data.non_standard_fieldnames[doctype] || this.data.fieldname)
 			: this.data.fieldname;
+
+		if (this.data.dynamic_links && this.data.dynamic_links[fieldname]) {
+			let dynamic_fieldname = this.data.dynamic_links[fieldname][1];
+			filter[dynamic_fieldname] = this.data.dynamic_links[fieldname][0];
+		}
+
 		filter[fieldname] = this.frm.doc.name;
 		return filter;
 	},

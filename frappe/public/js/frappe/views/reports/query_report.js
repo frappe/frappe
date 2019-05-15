@@ -456,6 +456,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				layout: 'fixed',
 				cellHeight: 33,
 				showTotalRow: this.raw_data.add_total_row,
+				direction: frappe.utils.is_rtl() ? 'rtl' : 'ltr',
 				hooks: {
 					columnTotal: frappe.utils.report_column_total
 				}
@@ -467,6 +468,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.datatable = new DataTable(this.$report[0], datatable_options);
 		}
 
+		if (typeof this.report_settings.initial_depth == "number") {
+			this.datatable.rowmanager.setTreeDepth(this.report_settings.initial_depth);
+		}
 		if (this.report_settings.after_datatable_render) {
 			this.report_settings.after_datatable_render(this.datatable);
 		}
@@ -496,7 +500,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	get_possible_chart_options() {
 		const columns = this.raw_data.columns;
-		const rows =  this.raw_data.result;
+		const rows =  this.raw_data.result.filter(value => Object.keys(value).length);
+		const first_row = Array.isArray(rows[0]) ? rows[0] : Object.values(rows[0]);
 		const has_total_row = this.raw_data.add_total_row;
 		const first_row = Array.isArray(rows[0]) ? rows[0] : Object.values(rows[0]);
 
@@ -508,11 +513,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}, []);
 
 		function get_column_values(column_name) {
-			const column_index = columns.indexOf(column_name);
-			return rows.map(row => row[column_index]);
+			return rows.map(row => row[column_name]);
 		}
 
-		function get_chart_options({ y_field, x_field, chart_type, color }) {
+		function make_chart_options({ y_field, x_field, chart_type, color }) {
 			const type = chart_type.toLowerCase();
 			const colors = color ? [color] : undefined;
 
@@ -540,7 +544,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		function preview_chart() {
 			const wrapper = $(dialog.fields_dict["chart_preview"].wrapper);
 			const values = dialog.get_values(true);
-			let options = get_chart_options(values);
+			let options = make_chart_options(values);
 
 			Object.assign(options, {
 				height: 150
@@ -552,6 +556,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			wrapper.show();
 		}
 
+		function get_options(fields) {
+			return fields.map((field) => {
+				return {label: field.label, value: field.fieldname};
+			});
+        }
+
 		const numeric_fields = columns.filter((col, i) => indices.includes(i));
 		const non_numeric_fields = columns.filter((col, i) => !indices.includes(i))
 
@@ -562,16 +572,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					fieldname: 'y_field',
 					label: 'Y Field',
 					fieldtype: 'Select',
-					options: numeric_fields,
-					default: numeric_fields[0],
+					options: get_options(numeric_fields),
 					onchange: preview_chart
 				},
 				{
 					fieldname: 'x_field',
 					label: 'X Field',
 					fieldtype: 'Select',
-					options: non_numeric_fields,
-					default: non_numeric_fields[0],
+					options: get_options(non_numeric_fields),
 					onchange: preview_chart
 				},
 				{
@@ -606,9 +614,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			],
 			primary_action_label: __('Make'),
 			primary_action: (values) => {
-				let options = get_chart_options(values);
+				let options = make_chart_options(values);
 
-				options.title = __(`${this.report_name}: ${values.y_field} vs ${values.x_field}`);
+				options.title = __(`${this.report_name}: ${numeric_fields.filter((field) => field.fieldname == values.y_field)[0].label} vs ${non_numeric_fields.filter((field) => field.fieldname == values.x_field)[0].label}`);
 
 				this.render_chart(options);
 
@@ -970,6 +978,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			{
 				label: __('Export'),
 				action: () => this.export_report(),
+				condition: () => frappe.model.can_export(this.report_doc.ref_doctype),
 				standard: true
 			},
 			{
@@ -1020,7 +1029,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								label: df.label,
 								link_field: this.doctype_field_map[values.doctype],
 								doctype: values.doctype,
-								options: df.fieldtype === "Link" ? values.doctype : undefined,
+								options: df.fieldtype === "Link" ? frappe.model.unscrub(df.fieldname) : undefined,
 								width: 100
 							});
 

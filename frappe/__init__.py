@@ -16,7 +16,6 @@ from faker import Faker
 # public
 from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
-from .utils.error import get_frame_locals
 
 # Hamless for Python 3
 # For Python 2 set default encoding to utf-8
@@ -24,7 +23,7 @@ if sys.version[0] == '2':
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '11.1.23'
+__version__ = '11.1.28'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -274,7 +273,7 @@ def errprint(msg):
 	if not request or (not "cmd" in local.form_dict) or conf.developer_mode:
 		print(msg.encode('utf-8'))
 
-	error_log.append({"exc": msg, "locals": get_frame_locals()})
+	error_log.append({"exc": msg})
 
 def log(msg):
 	"""Add to `debug_log`.
