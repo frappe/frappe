@@ -15,5 +15,12 @@ class PermissionRequest(Document):
 
 	def validate_duplicate_request(self):
 		if self.status == "Requested":
-			if frappe.db.exists("Permission Request", {"doc_type": self.doc_type, "user": self.user, "name": ["!=", self.name]}):
+			filters = {
+				"doc_type": self.doc_type,
+				"user": self.user,
+				"name": ["!=", self.name],
+				"status": "Requested"
+			}
+
+			if frappe.db.exists("Permission Request", filters):
 				frappe.throw(_("A Permission Request already exists for this DocType and User"), frappe.DuplicateEntryError)
