@@ -2329,6 +2329,7 @@
  },
  "Suriname": {
   "code": "sr",
+  "currency": "SRD",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_symbol": "$",
