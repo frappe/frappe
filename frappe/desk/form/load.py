@@ -204,8 +204,8 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 			"name": name,
 			"start": frappe.utils.cint(start),
 			"limit": limit
-		}, as_dict=as_dict, debug=True)
-	print(communications)
+		}, as_dict=as_dict)
+
 	return communications
 
 def get_assignments(dt, dn):

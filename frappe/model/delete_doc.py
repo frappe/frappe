@@ -307,9 +307,10 @@ def clear_timeline_references(link_doctype, link_name):
 		["Dynamic Link", "link_name", "=", link_name]
 	], fields=["name"])
 
-	for comm in comms:
-		doc = frappe.get_doc("Communication", comm.name)
-		doc.remove_link(link_doctype=link_doctype, link_name=link_name, autosave=True)
+	if comms:
+		for comm in comms:
+			doc = frappe.get_doc("Communication", comm.name)
+			doc.remove_link(link_doctype=link_doctype, link_name=link_name, autosave=True, ignore_permissions=True)
 
 def insert_feed(doc):
 	from frappe.utils import get_fullname
