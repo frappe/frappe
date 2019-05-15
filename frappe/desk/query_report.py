@@ -520,14 +520,13 @@ def get_user_match_filters(doctypes, user):
 	return match_filters
 
 
-def group_report_data(rows_to_group, group_by, total_fields, description_field, postprocess_group=None):
+def group_report_data(rows_to_group, group_by, total_fields=None, calculate_totals=None, postprocess_group=None):
 	if not group_by:
 		return rows_to_group
 	if not isinstance(group_by, list):
 		group_by = [group_by]
 
-	group_label = group_by[0][0] if isinstance(group_by[0], tuple) else group_by[0]
-	group_fieldname = group_by[0][1] if isinstance(group_by[0], tuple) else scrub(group_label)
+	group_fieldname = group_by[0]
 	group_rows = OrderedDict()
 	group_totals = {}
 
@@ -537,27 +536,30 @@ def group_report_data(rows_to_group, group_by, total_fields, description_field, 
 		group_rows[group].append(row)
 
 		group_totals.setdefault(group, {})
-		for total_field in total_fields:
+		for total_field in (total_fields or []):
 			group_totals[group].setdefault(total_field, 0)
 			group_totals[group][total_field] += row[total_field]
+
+	if calculate_totals and callable(calculate_totals):
+		for group in group_rows.keys():
+			group_totals[group] = calculate_totals(group_rows[group], group, group_fieldname)
 
 	out = []
 
 	for group, rows in iteritems(group_rows):
-		group_totals[group][description_field] = ("'{0}: {1}'" if group else "'{0}'").format(group_label, group)
-
 		group_object = frappe._dict({
 			"_isGroup": 1,
-			"rows": group_report_data(rows, group_by[1:], total_fields, description_field, postprocess_group),
-			"totals": group_totals[group]
+			"rows": group_report_data(rows, group_by[1:],
+				total_fields=total_fields, calculate_totals=calculate_totals, postprocess_group=postprocess_group)
 		})
-
+		group_object['totals'] = group_totals[group]
 		if group_fieldname:
 			group_object[group_fieldname] = group
 
 		if postprocess_group and callable(postprocess_group):
-			postprocess_group(group_object, group_fieldname, group)
+			postprocess_group(group_object, group, group_fieldname)
 
-		out.append(group_object)
+		if group_object.rows or group_object.totals:
+			out.append(group_object)
 
 	return out
