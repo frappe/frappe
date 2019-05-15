@@ -28,6 +28,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 		doctype = frappe.form_dict.get('dt')
 		name = frappe.form_dict.get('dn')
 
+	print(doctype, name)
 	names = name
 	if isinstance(name, string_types) or isinstance(name, integer_types):
 		names = [name]
@@ -302,15 +303,24 @@ def clear_references(doctype, reference_doctype, reference_name,
 		(reference_doctype, reference_name))
 
 def clear_timeline_references(link_doctype, link_name):
-	comms = frappe.get_list("Communication", filters=[
+	links = frappe.get_list("Communication", filters=[
 		["Dynamic Link", "link_doctype", "=", link_doctype],
 		["Dynamic Link", "link_name", "=", link_name]
 	], fields=["name"])
 
-	if comms:
-		for comm in comms:
-			doc = frappe.get_doc("Communication", comm.name)
-			doc.remove_link(link_doctype=link_doctype, link_name=link_name, autosave=True, ignore_permissions=True)
+	if links:
+		for link in links:
+			frappe.db.sql("""
+				delete
+				from `tabDynamic Link`
+				where `tabDynamic Link`.parent='%(parent)s',
+					and `tabDynamic Link`.link_doctype='%(doctype)s',
+					and `tabDynamic Link`.link_name='%(name)s'
+			""",{
+				"parent": link.name,
+				"doctype": link_doctype,
+				"name": link_name
+			})
 
 def insert_feed(doc):
 	from frappe.utils import get_fullname
