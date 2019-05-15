@@ -266,14 +266,6 @@ frappe.ui.form.Toolbar = Class.extend({
 			}, true);
 		}
 
-		// Request feedback
-		if(is_submittable && docstatus == 1) {
-			this.page.add_menu_item(__("Request Feedback"), function() {
-				var feedback = new frappe.utils.Feedback();
-				feedback.manual_feedback_request(me.frm.doc);
-			}, true)
-		}
-
 		// Expand all sections
 		this.page.add_menu_item(__("Expand All Sections"), function () {
 			let section_fields = me.frm.meta.fields.filter((field) => field.fieldtype == "Section Break");
@@ -282,6 +274,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			}
 		}, true)
 
+		// New
 		if(p[CREATE] && !this.frm.meta.issingle) {
 			this.page.add_menu_item(__("New {0}", [__(me.frm.doctype)]), function() {
 				frappe.new_doc(me.frm.doctype, true);
