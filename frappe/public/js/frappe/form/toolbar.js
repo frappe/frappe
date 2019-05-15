@@ -267,22 +267,20 @@ frappe.ui.form.Toolbar = Class.extend({
 		}
 
 		// Request feedback
-			if(is_submittable && docstatus == 1) {
-				this.page.add_menu_item(__("Request Feedback"), function() {
-					var feedback = new frappe.utils.Feedback();
-					feedback.manual_feedback_request(me.frm.doc);
-				}, true)
-
-				// Expand all sections
-				this.page.add_menu_item(__("Expand All Sections"), function () {
-					var all_fields_in_doc = me.frm.meta.fields;
-					var collapsible_fields = all_fields_in_doc.filter((field) => field.fieldtype == "Section Break");
-					for (let element of collapsible_fields) {
-						me.frm.get_field(element.fieldname).collapse();
-					}
-				}, true)
-			}
+		if(is_submittable && docstatus == 1) {
+			this.page.add_menu_item(__("Request Feedback"), function() {
+				var feedback = new frappe.utils.Feedback();
+				feedback.manual_feedback_request(me.frm.doc);
+			}, true)
 		}
+
+		// Expand all sections
+		this.page.add_menu_item(__("Expand All Sections"), function () {
+			let section_fields = me.frm.meta.fields.filter((field) => field.fieldtype == "Section Break");
+			for (let section of section_fields) {
+				me.frm.get_field(section.fieldname).collapse();
+			}
+		}, true)
 
 		if(p[CREATE] && !this.frm.meta.issingle) {
 			this.page.add_menu_item(__("New {0}", [__(me.frm.doctype)]), function() {
