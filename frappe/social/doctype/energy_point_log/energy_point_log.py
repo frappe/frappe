@@ -37,20 +37,20 @@ def get_alert_dict(doc):
 	})
 	owner_name = get_fullname(doc.owner)
 	doc_link = frappe.get_desk_link(doc.reference_doctype, doc.reference_name)
-	points = frappe.bold(doc.points)
+	points = doc.points
 	if doc.type == 'Auto':
-		alert_dict.message=_('You gained {} points').format(points)
+		alert_dict.message=_('You gained {}').format(get_points_text(points))
 	elif doc.type == 'Appreciation':
-		alert_dict.message = _('{} appreciated your work on {} with {} points').format(
+		alert_dict.message = _('{} appreciated your work on {} with {}').format(
 			owner_name,
 			doc_link,
-			points
+			get_points_text(points)
 		)
 	elif doc.type == 'Criticism':
-		alert_dict.message = _('{} criticized your work on {} with {} points').format(
+		alert_dict.message = _('{} criticized your work on {} with {}').format(
 			owner_name,
 			doc_link,
-			points
+			get_points_text(points)
 		)
 		alert_dict.indicator = 'red'
 	elif doc.type == 'Revert':
@@ -63,6 +63,13 @@ def get_alert_dict(doc):
 		alert_dict = {}
 
 	return alert_dict
+
+def get_points_text(points):
+	bold_points = frappe.bold(points)
+	if points == 1:
+		return '{} point'.format(bold_points)
+
+	return '{} points'.format(bold_points)
 
 def send_review_mail(doc, message_dict):
 	if doc.type in ['Appreciation', 'Criticism']:
@@ -135,7 +142,7 @@ def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
 		{conditions}
 		GROUP BY `user`
 		ORDER BY `energy_points` DESC
-	""".format(conditions=conditions), values=values or (), as_dict=1)
+	""".format(conditions=conditions), values=tuple(values), as_dict=1)
 
 	if not as_dict:
 		return points_list
