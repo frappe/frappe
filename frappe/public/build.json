@@ -306,6 +306,9 @@
 		"public/js/frappe/list/list_view.js",
 		"public/js/frappe/list/list_factory.js",
 
+		"public/js/frappe/ui/filters/filters.js",
+		"public/js/frappe/ui/base_list.js",		
+		
 		"public/js/frappe/list/list_sidebar.js",
 		"public/js/frappe/list/list_sidebar.html",
 		"public/js/frappe/list/list_sidebar_stat.html",
