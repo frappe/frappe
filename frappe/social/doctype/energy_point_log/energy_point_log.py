@@ -67,9 +67,9 @@ def get_alert_dict(doc):
 def get_points_text(points):
 	bold_points = frappe.bold(points)
 	if points == 1:
-		return '{} point'.format(bold_points)
+		return _('{} point').format(bold_points)
 
-	return '{} points'.format(bold_points)
+	return _('{} points').format(bold_points)
 
 def send_review_mail(doc, message_dict):
 	if doc.type in ['Appreciation', 'Criticism']:
