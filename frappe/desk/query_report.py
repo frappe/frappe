@@ -607,44 +607,60 @@ def get_user_match_filters(doctypes, user):
 	return match_filters
 
 
-def group_report_data(rows_to_group, group_by, total_fields, description_field, postprocess_group=None):
+def group_report_data(rows_to_group, group_by, total_fields=None, calculate_totals=None, postprocess_group=None,
+		parent_groups=None):
 	if not group_by:
 		return rows_to_group
 	if not isinstance(group_by, list):
 		group_by = [group_by]
+	if not parent_groups:
+		parent_groups = []
 
-	group_label = group_by[0][0] if isinstance(group_by[0], tuple) else group_by[0]
-	group_fieldname = group_by[0][1] if isinstance(group_by[0], tuple) else scrub(group_label)
+	group_fieldname = group_by[0]
 	group_rows = OrderedDict()
 	group_totals = {}
 
 	for row in rows_to_group:
 		group = row.get(group_fieldname) if group_fieldname else None
-		group_rows.setdefault(group, [])
-		group_rows[group].append(row)
+		group_rows.setdefault(group, []).append(row)
 
-		group_totals.setdefault(group, {})
-		for total_field in total_fields:
-			group_totals[group].setdefault(total_field, 0)
-			group_totals[group][total_field] += row[total_field]
+		if total_fields:
+			group_totals.setdefault(group, {})
+			for total_field in total_fields:
+				group_totals[group].setdefault(total_field, 0)
+				group_totals[group][total_field] += row[total_field]
+
+	if calculate_totals and callable(calculate_totals):
+		for group in group_rows.keys():
+			grouped_by_list = parent_groups[:]
+			grouped_by_list.append(frappe._dict({"fieldname": group_fieldname, "value": group}))
+
+			group_totals[group] = calculate_totals(group_rows[group], grouped_by_list)
 
 	out = []
 
 	for group, rows in iteritems(group_rows):
-		group_totals[group][description_field] = ("'{0}: {1}'" if group else "'{0}'").format(group_label, group)
+		grouped_by_list = parent_groups[:]
+		grouped_by_list.append(frappe._dict({"fieldname": group_fieldname, "value": group}))
 
 		group_object = frappe._dict({
 			"_isGroup": 1,
-			"rows": group_report_data(rows, group_by[1:], total_fields, description_field, postprocess_group),
-			"totals": group_totals[group]
+			"rows": group_report_data(rows, group_by[1:],
+				total_fields=total_fields, calculate_totals=calculate_totals, postprocess_group=postprocess_group,
+				parent_groups=grouped_by_list)
 		})
 
-		if group_fieldname:
-			group_object[group_fieldname] = group
+		for g in grouped_by_list:
+			if g.fieldname != 'rows':
+				group_object[g.fieldname] = g.value
+
+		if group_totals.get(group):
+			group_object['totals'] = group_totals.get(group)
 
 		if postprocess_group and callable(postprocess_group):
-			postprocess_group(group_object, group_fieldname, group)
+			postprocess_group(group_object, grouped_by_list)
 
-		out.append(group_object)
+		if group_object.rows or group_object.totals:
+			out.append(group_object)
 
 	return out
