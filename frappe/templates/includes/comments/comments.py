@@ -16,16 +16,18 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 		frappe.msgprint(_('Comment Should be atleast 10 characters'))
 		return ''
 
+	blacklist = ['http://', 'https://', '@gmail.com']
+
+	if any([b in comment for b in blacklist]):
+		frappe.msgprint(_('Comments cannot have links or email addresses'))
+		return ''
+
 	comment = doc.add_comment(
 		text = comment,
 		comment_email = comment_email,
 		comment_by = comment_by)
 
-	blacklist = ['http://', 'https://', '@gmail.com']
-
-	if not any([b in comment.content for b in blacklist]):
-		# probably not spam!
-		comment.db_set('published', 1)
+	comment.db_set('published', 1)
 
 	# since comments are embedded in the page, clear the web cache
 	if route:

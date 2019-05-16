@@ -616,7 +616,9 @@ def validate_fields(meta):
 				frappe.throw(_("Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"))
 
 	def check_illegal_default(d):
-		if d.fieldtype == "Check" and d.default and d.default not in ('0', '1'):
+		if d.fieldtype == "Check" and not d.default:
+			d.default = '0'
+		if d.fieldtype == "Check" and d.default not in ('0', '1'):
 			frappe.throw(_("Default for 'Check' type of field must be either '0' or '1'"))
 		if d.fieldtype == "Select" and d.default and (d.default not in d.options.split("\n")):
 			frappe.throw(_("Default for {0} must be an option").format(d.fieldname))
