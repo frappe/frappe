@@ -28,7 +28,9 @@ frappe.ui.LinkPreview = class {
 		if (this.is_link) {
 			this.doctype = this.element.attr('data-doctype');
 			this.name = this.element.attr('data-name');
+			this.href = this.element.attr('href');
 		} else {
+			this.href = this.element.parents('.control-input-wrapper').find('.control-value a').attr('href');
 			// input
 			this.doctype = this.element.attr('data-target');
 			this.name = this.element.val();
@@ -36,7 +38,11 @@ frappe.ui.LinkPreview = class {
 	}
 
 	setup_popover_control(e) {
-		if(!this.popover) {
+		//If control field value is changed, new popover has to be created
+		this.element.on('change',()=> {
+			this.new_popover = true;
+		});
+		if(!this.popover || this.new_popover) {
 			this.get_preview_fields().then(preview_fields => {
 				if(preview_fields.length) {
 					this.data_timeout = setTimeout(() => {
@@ -49,13 +55,14 @@ frappe.ui.LinkPreview = class {
 				if (this.element.is(':focus')) {
 					return;
 				}
-				this.popover.show();
+				this.show_popover(e);
 			}, 1000);
 		}
 		this.handle_popover_hide();
 	}
 
 	create_popover(e, preview_fields) {
+		this.new_popover = false;
 		if (this.element.is(':focus')) {
 			return;
 		}
@@ -73,31 +80,37 @@ frappe.ui.LinkPreview = class {
 					} else {
 						this.init_preview_popover(preview_data);
 					}
-
-					if(!this.is_link) {
-						var left = e.pageX;
-						this.element.popover('show');
-						var width = $('.popover').width();
-						$('.control-field-popover').css('left', (left-(width/2)) + 'px');
-					} else {
-						this.element.popover('show');
-					}
+					this.show_popover(e);
 
 				}, 1000);
 			}
 		});
 	}
 
+	show_popover(e) {
+		if(!this.is_link) {
+			var left = e.pageX;
+			this.element.popover('show');
+			var width = $('.popover').width();
+			$('.control-field-popover').css('left', (left-(width/2)) + 'px');
+		} else {
+			this.element.popover('show');
+		}
+	}
+
 	handle_popover_hide() {
 		$(document.body).on('mouseout', this.LINK_CLASSES, () => {
-			this.link_hovered = false;
+			// To allow popover to be hovered on
+			if (!$('.popover:hover').length) {
+				this.link_hovered = false;
+			}
 			if(this.data_timeout) {
 				clearTimeout(this.data_timeout);
 			}
 			if (this.popover_timeout) {
 				clearTimeout(this.popover_timeout);
 			}
-			this.clear_all_popovers();
+			if(!this.link_hovered) this.clear_all_popovers();
 		});
 
 		$(window).on('hashchange', () => {
@@ -183,7 +196,7 @@ frappe.ui.LinkPreview = class {
 		let id_html = '';
 		let content_html = '';
 		let meta = frappe.get_meta(this.doctype);
-		let title = preview_data[meta.title_field];
+		let title = preview_data.title;
 
 		if(preview_data[meta.image_field]) {
 			let image_url = encodeURI(preview_data[meta.image_field]);
@@ -196,6 +209,9 @@ frappe.ui.LinkPreview = class {
 
 		if(title && title != preview_data.name) {
 			id_html+= `<a class="text-muted" href=${this.href}>${preview_data.name}</a>`;
+		}
+		if(!title) {
+			title = preview_data.name;
 		}
 
 		Object.keys(preview_data).forEach(key => {
