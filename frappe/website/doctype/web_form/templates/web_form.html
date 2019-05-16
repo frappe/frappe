@@ -16,10 +16,12 @@
 {% block header_actions %}
 <div class="web-form-actions" style="display: block; margin-right: 30px;">
 </div>
+<div class="list-view-actions"></div>
 {% endblock %}
 
 {% block page_content %}
 <div role="form" class="web-form-wrapper" data-web-form="{{ name }}" data-owner="{{ doc.owner }}">
+<div id="datatable" class="pt-3"></div>
 {% endblock %}
 
 {% block script %}
