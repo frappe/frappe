@@ -25,4 +25,4 @@ def execute():
         new_comment.db_insert()
 
     # clean up
-    frappe.db.sql('delete from tabCommunication where communication_type = "Comment"')
+    frappe.db.sql("delete from `tabCommunication` where communication_type = 'Comment'")
