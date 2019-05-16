@@ -25,8 +25,9 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 	comment = doc.add_comment(
 		text = comment,
 		comment_email = comment_email,
-		comment_by = comment_by,
-		published = 1)
+		comment_by = comment_by)
+
+	comment.db_set('published', 1)
 
 	# since comments are embedded in the page, clear the web cache
 	if route:
