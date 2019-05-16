@@ -413,6 +413,7 @@
    "options": "InnoDB\nMyISAM"
   },
   {
+   "default": "0",
    "fieldname": "show_preview_popup",
    "fieldtype": "Check",
    "label": "Show Preview Popup"
@@ -420,7 +421,7 @@
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
- "modified": "2019-05-16 09:18:29.373576",
+ "modified": "2019-05-16 14:58:33.405381",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
