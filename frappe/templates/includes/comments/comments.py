@@ -18,7 +18,7 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 
 	blacklist = ['http://', 'https://', '@gmail.com']
 
-	if any([b in comment.content for b in blacklist]):
+	if any([b in comment for b in blacklist]):
 		frappe.msgprint(_('Comments cannot have links or email addresses'))
 		return ''
 
