@@ -48,7 +48,7 @@ class TestCommunication(unittest.TestCase):
 			"doctype": "Communication",
 			"communication_type": "Communication",
 			"content": "This was created to test circular linking: Communication A",
-		}).insert()
+		}).insert(ignore_permissions=True)
 
 		b = frappe.get_doc({
 			"doctype": "Communication",
@@ -56,9 +56,7 @@ class TestCommunication(unittest.TestCase):
 			"content": "This was created to test circular linking: Communication B",
 			"reference_doctype": "Communication",
 			"reference_name": a.name
-		}).insert()
-
-		b.add_link(link_doctype="Communication", link_name=a.name, autosave=True)
+		}).insert(ignore_permissions=True)
 
 		c = frappe.get_doc({
 			"doctype": "Communication",
@@ -66,15 +64,10 @@ class TestCommunication(unittest.TestCase):
 			"content": "This was created to test circular linking: Communication C",
 			"reference_doctype": "Communication",
 			"reference_name": b.name
-		}).insert()
-
-		c.add_link(link_doctype="Communication", link_name=b.name, autosave=True)
+		}).insert(ignore_permissions=True)
 
 		a = frappe.get_doc("Communication", a.name)
 		a.reference_doctype = "Communication"
 		a.reference_name = c.name
 
 		self.assertRaises(frappe.CircularLinkingError, a.save)
-
-		a.add_link(link_doctype="Communication", link_name=c.name)
-		self.assertRaises(frappe.CircularLinkingError, c.save)
