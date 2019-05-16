@@ -24,16 +24,16 @@ def execute():
 			fields=['*']
 		)
 
-		property_setters_map = {}
+		property_setter_map = {}
 
-		for property in property_setters:
-			property_setters_map[property.field_name] = property
-			frappe.db.sql('DELETE FROM `tabProperty Setter` WHERE `name`=%s', property.name)
+		for prop in property_setters:
+			property_setter_map[prop.field_name] = prop
+			frappe.db.sql('DELETE FROM `tabProperty Setter` WHERE `name`=%s', prop.name)
 
 		meta = frappe.get_doc('DocType', doctype.name)
 
 		for df in meta.fields:
-			ps = property_setters_map.get(df.fieldname, None)
+			ps = property_setter_map.get(df.fieldname, None)
 			if ps:
 				value = cint(ps.value) if ps.property_type == 'Int' else ps.value
 				df.set(ps.property, value)
