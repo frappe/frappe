@@ -58,6 +58,8 @@ class TestCommunication(unittest.TestCase):
 			"reference_name": a.name
 		}).insert()
 
+		b.add_link(link_doctype="Communication", link_name=a.name, autosave=True)
+
 		c = frappe.get_doc({
 			"doctype": "Communication",
 			"communication_type": "Communication",
@@ -66,8 +68,13 @@ class TestCommunication(unittest.TestCase):
 			"reference_name": b.name
 		}).insert()
 
+		c.add_link(link_doctype="Communication", link_name=b.name, autosave=True)
+
 		a = frappe.get_doc("Communication", a.name)
 		a.reference_doctype = "Communication"
 		a.reference_name = c.name
 
 		self.assertRaises(frappe.CircularLinkingError, a.save)
+
+		a.add_link(link_doctype="Communication", link_name=c.name)
+		self.assertRaises(frappe.CircularLinkingError, c.save)

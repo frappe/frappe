@@ -28,7 +28,6 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 		doctype = frappe.form_dict.get('dt')
 		name = frappe.form_dict.get('dn')
 
-	print(doctype, name)
 	names = name
 	if isinstance(name, string_types) or isinstance(name, integer_types):
 		names = [name]
@@ -279,9 +278,9 @@ def delete_dynamic_links(doctype, name):
 	delete_references('Document Follow', doctype, name, 'ref_doctype', 'ref_docname')
 
 	# unlink communications
+	clear_timeline_references(doctype, name)
 	clear_references('Communication', doctype, name)
 	clear_references('Communication', doctype, name, 'link_doctype', 'link_name')
-	clear_timeline_references(doctype, name)
 
 	clear_references('Activity Log', doctype, name)
 	clear_references('Activity Log', doctype, name, 'timeline_doctype', 'timeline_name')

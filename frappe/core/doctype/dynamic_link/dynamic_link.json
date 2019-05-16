@@ -5,9 +5,8 @@
  "engine": "InnoDB",
  "field_order": [
   "link_doctype",
-  "link_title",
-  "cb_00",
-  "link_name"
+  "link_name",
+  "link_title"
  ],
  "fields": [
   {
@@ -32,14 +31,10 @@
    "in_list_view": 1,
    "label": "Link Title",
    "read_only": 1
-  },
-  {
-   "fieldname": "cb_00",
-   "fieldtype": "Column Break"
   }
  ],
  "istable": 1,
- "modified": "2019-05-14 17:36:38.391805",
+ "modified": "2019-05-16 19:54:31.400026",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Dynamic Link",
