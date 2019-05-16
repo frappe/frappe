@@ -14,7 +14,7 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 	make(opts) {
 		super.make();
 		this.set_field_values();
-		this.setup_secondary_action();
+		if (this.allow_delete) this.setup_delete_button();
 		this.setup_primary_action();
 	}
 
@@ -40,25 +40,30 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 			.appendChild(primary_action_button);
 	}
 
-	setup_secondary_action() {
-		const secondary_action_button = document.createElement("button");
-		secondary_action_button.classList.add(
+	setup_delete_button() {
+		const delete_button = document.createElement("button");
+		delete_button.classList.add(
 			"btn",
 			"btn-danger",
 			"button-delete",
 			"btn-sm",
 			"ml-2"
 		);
-		secondary_action_button.innerText = "Delete";
+		delete_button.innerText = "Delete";
+		delete_button.onclick = () => this.delete();
 		document
 			.querySelector(".web-form-actions")
-			.appendChild(secondary_action_button);
+			.appendChild(delete_button);
 	}
 
 	save() {
 		// Handle data
 		let data = this.get_values();
-		if (!data || window.saving) return false;
+		if (this.doc) {
+			Object.keys(data).forEach((field) => this.doc[field] = data[field])
+			data = this.doc
+		}
+		if (!data || window.saving) return;
 		data.doctype = this.doc_type;
 
 		// Save
@@ -84,6 +89,17 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 			}
 		});
 		return true;
+	}
+
+	delete() {
+		frappe.call({
+			type: "POST",
+			method: "frappe.website.doctype.web_form.webform.delete",
+			args: {
+				web_form_name: this.name,
+				docname: this.doc.name
+			}
+		})
 	}
 
 	handle_success(data) {
@@ -298,9 +314,9 @@ frappe.ui.WebFromListRow = class WebFromListRow {
 		let serialNo = this.row.insertCell();
 		serialNo.innerText = this.serial_number;
 
-		this.data.forEach(data => {
+		this.columns.forEach(field => {
 			let cell = this.row.insertCell();
-			let text = document.createTextNode(data);
+			let text = document.createTextNode(this.doc[field.fieldname] || '');
 			cell.appendChild(text);
 		});
 
