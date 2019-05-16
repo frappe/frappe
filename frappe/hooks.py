@@ -130,7 +130,6 @@ doc_events = {
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
 		],
 		"on_change": [
-			"frappe.core.doctype.feedback_trigger.feedback_trigger.trigger_feedback_request",
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
 		],
 	},
@@ -173,7 +172,6 @@ scheduler_events = {
 		"frappe.utils.scheduler.disable_scheduler_on_expiry",
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
-		"frappe.core.doctype.feedback_request.feedback_request.delete_feedback_request",
 		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs",
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
 		"frappe.desk.form.document_follow.send_daily_updates",

@@ -990,6 +990,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			{
 				label: __('Export'),
 				action: () => this.export_report(),
+				condition: () => frappe.model.can_export(this.report_doc.ref_doctype),
 				standard: true
 			},
 			{
@@ -1011,9 +1012,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								change: () => {
 									let doctype = d.get_value('doctype');
 									frappe.model.with_doctype(doctype, () => {
-										let fields = frappe.meta.get_docfields(doctype)
+										let options = frappe.meta.get_docfields(doctype)
+											.filter(frappe.model.is_value_type)
 											.map(df => ({ label: df.label, value: df.fieldname }));
-										d.set_df_property('field', 'options', fields);
+
+										d.set_df_property('field', 'options', options);
 
 									});
 								}

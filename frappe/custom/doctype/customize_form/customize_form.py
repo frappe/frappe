@@ -28,6 +28,7 @@ doctype_properties = {
 	'editable_grid': 'Check',
 	'max_attachments': 'Int',
 	'track_changes': 'Check',
+	'track_views': 'Check',
 }
 
 docfield_properties = {

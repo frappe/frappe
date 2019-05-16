@@ -39,7 +39,7 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype='Data') => {
 	let selector = `.form-control[data-fieldname="${fieldname}"]`;
 
 	if (fieldtype === 'Text Editor') {
-		selector = `[data-fieldname="${fieldname}"] .ql-editor`;
+		selector = `[data-fieldname="${fieldname}"] .ql-editor[contenteditable=true]`;
 	}
 	if (fieldtype === 'Code') {
 		selector = `[data-fieldname="${fieldname}"] .ace_text-input`;
