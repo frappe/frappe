@@ -686,8 +686,7 @@ Object.assign(frappe.utils, {
 						groups_added++;
 					}
 
-					let child_groups_added = frappe.utils.group_report_data_in_printable_format(cur_row.rows, groups,
-						Object.assign({}, current_group || {}, cur_row));
+					let child_groups_added = frappe.utils.group_report_data_in_printable_format(cur_row.rows, groups, cur_row);
 					if (cur_row.totals) {
 						if (child_groups_added == 1) {
 							groups[groups.length - 1].rows.push(cur_row.totals);
