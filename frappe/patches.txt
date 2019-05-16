@@ -235,7 +235,7 @@ frappe.patches.v12_0.set_primary_key_in_series
 execute:frappe.delete_doc("Page", "modules", ignore_missing=True)
 frappe.patches.v11_0.set_default_letter_head_source
 frappe.patches.v12_0.setup_comments_from_communications
-frappe.patches.v12_0.init_desk_settings #11-03-2019
+frappe.patches.v12_0.init_desk_settings #16-05-2019
 frappe.patches.v12_0.replace_null_values_in_tables
 frappe.patches.v12_0.reset_home_settings
 frappe.patches.v12_0.update_print_format_type
