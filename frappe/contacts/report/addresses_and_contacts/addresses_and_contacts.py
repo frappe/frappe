@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 from six import iteritems
 import frappe
-
+from frappe import _
 
 field_map = {
 	"Contact": [ "first_name", "last_name", "phone", "mobile_no", "email_id", "is_primary_contact" ],
@@ -93,6 +93,9 @@ def get_reference_details(reference_doctype, doctype, reference_list, reference_
 
 	for d in records:
 		temp_records.append(d[1:])
+
+	if not reference_list:
+		frappe.throw(_("No records present in {0}".format(reference_doctype)))
 
 	reference_details[reference_list[0]][frappe.scrub(doctype)] = temp_records
 	return reference_details
