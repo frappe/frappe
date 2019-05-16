@@ -310,7 +310,7 @@ class BaseDocument(object):
 			self.created_by = self.modified_by = frappe.session.user
 
 		# if doctype is "DocType", don't insert null values as we don't know who is valid yet
-		d = self.get_valid_dict(convert_dates_to_str=True, ignore_nulls=self.doctype in ('DocType', 'DocField', 'DocPerm'))
+		d = self.get_valid_dict(convert_dates_to_str=True, ignore_nulls = self.doctype in ('DocType', 'DocField', 'DocPerm'))
 
 		columns = list(d)
 		try:
@@ -345,7 +345,7 @@ class BaseDocument(object):
 			self.db_insert()
 			return
 
-		d = self.get_valid_dict(convert_dates_to_str=True)
+		d = self.get_valid_dict(convert_dates_to_str=True, ignore_nulls = self.doctype in ('DocType', 'DocField', 'DocPerm'))
 
 		# don't update name, as case might've been changed
 		name = d['name']
