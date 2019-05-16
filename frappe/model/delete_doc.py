@@ -83,6 +83,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 					doc.flags.in_delete = True
 					doc.run_method('on_change')
 
+				clear_timeline_references(doc.doctype, doc.name)
 				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links', doctype=doc.doctype, name=doc.name,
 					is_async=False if frappe.flags.in_test else True)
 
@@ -310,17 +311,8 @@ def clear_timeline_references(link_doctype, link_name):
 
 	if links:
 		for link in links:
-			frappe.db.sql("""
-				delete
-				from `tabDynamic Link`
-				where `tabDynamic Link`.parent='%(parent)s',
-					and `tabDynamic Link`.link_doctype='%(doctype)s',
-					and `tabDynamic Link`.link_name='%(name)s'
-			""",{
-				"parent": link.name,
-				"doctype": link_doctype,
-				"name": link_name
-			})
+			doc = frappe.get_doc("Communication", link.name)
+			doc.remove_link(link_doctype=link_doctype, link_name=link_name, autosave=True)
 
 def insert_feed(doc):
 	from frappe.utils import get_fullname
