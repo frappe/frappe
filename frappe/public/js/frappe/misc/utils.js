@@ -671,7 +671,7 @@ Object.assign(frappe.utils, {
 		}
 	},
 
-	report_printable_groups: function(rows, groups, current_group) {
+	group_report_data_in_printable_format: function(rows, groups, current_group) {
 		let new_group = {rows: [], group: current_group};
 		let groups_added = 0;
 
@@ -680,13 +680,13 @@ Object.assign(frappe.utils, {
 				let cur_row = rows[row_idx];
 
 				if (cur_row._isGroup) {
-					if (new_group.length) {
+					if (new_group.rows.length) {
 						groups.push(new_group);
 						new_group = {rows: [], group: current_group};
 						groups_added++;
 					}
 
-					let child_groups_added = frappe.utils.report_printable_groups(cur_row.rows, groups,
+					let child_groups_added = frappe.utils.group_report_data_in_printable_format(cur_row.rows, groups,
 						Object.assign({}, current_group || {}, cur_row));
 					if (cur_row.totals) {
 						if (child_groups_added == 1) {
@@ -709,15 +709,6 @@ Object.assign(frappe.utils, {
 		}
 
 		return groups_added;
-	},
-
-	report_print_groups: function(rows, print_group_function) {
-		let groups = [];
-
-		frappe.utils.report_printable_groups(rows, groups);
-		$.each(groups, (i, d) => {
-			print_group_function(d.rows, d.group || {});
-		});
 	},
 
 	deep_equal(a, b) {

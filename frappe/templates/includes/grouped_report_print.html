@@ -1,0 +1,11 @@
+{% function print_report_groups(rows, print_group_function) {
+	let groups = [];
+	frappe.utils.group_report_data_in_printable_format(rows, groups);
+
+	$.each(groups, (i, d) => {
+		print_group_function(d.rows, d.group || {});
+		if (print_settings.page_break_groups) {
+			_p.push("<div class='page-break'></div>");
+		}
+	});
+} %}

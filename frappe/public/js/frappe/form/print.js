@@ -313,6 +313,11 @@ frappe.ui.get_print_settings = function (pdf, callback, letter_head) {
 		label: __("Orientation"),
 		options: "Landscape\nPortrait",
 		default: "Landscape"
+	}, {
+		fieldtype: "Check",
+		fieldname: "page_break_groups",
+		label: __("Insert Page Breaks Between Groups"),
+		default: 1
 	}];
 
 	frappe.prompt(columns, function (data) {
