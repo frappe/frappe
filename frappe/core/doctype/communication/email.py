@@ -17,7 +17,6 @@ import frappe.email.smtp
 import time
 from frappe import _
 from frappe.utils.background_jobs import enqueue
-from email.utils import parseaddr
 
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
@@ -78,13 +77,6 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	# 	# if no reference given, then send it against the communication
 	# 	comm.reference_doctype = 'Communication'
 	# 	comm.reference_name = comm.name
-
-	contacts = get_contacts([sender, recipients, cc, bcc])
-	for contact_name in contacts:
-		comm.add_link('Contact', contact_name)
-
-		#link contact's dynamic links to communication
-		add_contact_links_to_communication(comm, contact_name)
 
 	comm.save(ignore_permissions=True)
 
@@ -568,39 +560,3 @@ def mark_email_as_seen(name=None):
 		frappe.response["type"] = 'binary'
 		frappe.response["filename"] = "imaginary_pixel.png"
 		frappe.response["filecontent"] = buffered_obj.getvalue()
-
-def get_contacts(email_strings):
-	email_addrs = []
-
-	for email_string in email_strings:
-		if email_string:
-			for email in email_string.split(","):
-					parsed_email = parseaddr(email)[1]
-					if parsed_email:
-						email_addrs.append(parsed_email)
-
-	contacts = []
-	for email in email_addrs:
-		contact_name = frappe.db.get_value('Contact', {'email_id': email})
-
-		if not contact_name:
-			contact = frappe.get_doc({
-					"doctype": "Contact",
-					"first_name": frappe.unscrub(email.split("@")[0]),
-					"email_id": email
-				}).insert(ignore_permissions=True)
-			contact_name = contact.name
-
-		contacts.append(contact_name)
-
-	return contacts
-
-def add_contact_links_to_communication(communication, contact_name):
-	contact_links = frappe.get_list("Dynamic Link", filters={
-			"parenttype": "Contact",
-			"parent": contact_name
-		}, fields=["link_doctype", "link_name"])
-
-	if contact_links:
-		for contact_link in contact_links:
-			communication.add_link(contact_link.link_doctype, contact_link.link_name)

@@ -47,7 +47,7 @@
   "seen",
   "_user_tags",
   "timeline_links_sections",
-  "dynamic_links",
+  "timeline_links",
   "email_inbox",
   "message_id",
   "uid",
@@ -203,6 +203,7 @@
    "label": "Date"
   },
   {
+   "default": "0",
    "fieldname": "read_receipt",
    "fieldtype": "Check",
    "label": "Sent Read Receipt",
@@ -219,6 +220,7 @@
    "read_only": 1
   },
   {
+   "default": "0",
    "fieldname": "read_by_recipient",
    "fieldtype": "Check",
    "label": "Read by Recipient",
@@ -305,6 +307,7 @@
    "read_only": 1
   },
   {
+   "default": "0",
    "fieldname": "seen",
    "fieldtype": "Check",
    "label": "Seen",
@@ -348,6 +351,7 @@
    "options": "Open\nSpam\nTrash"
   },
   {
+   "default": "0",
    "fieldname": "has_attachment",
    "fieldtype": "Check",
    "hidden": 1,
@@ -385,15 +389,15 @@
    "label": "Timeline Links"
   },
   {
-   "fieldname": "dynamic_links",
+   "fieldname": "timeline_links",
    "fieldtype": "Table",
-   "label": "Dynamic Links",
+   "label": "Timeline Links",
    "options": "Dynamic Link"
   }
  ],
  "icon": "fa fa-comment",
  "idx": 1,
- "modified": "2019-05-13 19:55:35.757242",
+ "modified": "2019-05-17 13:52:44.471256",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",

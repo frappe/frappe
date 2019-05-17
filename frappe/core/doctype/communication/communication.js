@@ -43,17 +43,17 @@ frappe.ui.form.on("Communication", {
 			});
 		}
 
-		frm.add_custom_button(__("Relink"), function() {
+		frm.add_custom_button(__("Add Primary link"), function() {
 			frm.trigger('show_relink_dialog');
-		});
+		}, "Links");
 
-		frm.add_custom_button(__("Add link"), function() {
+		frm.add_custom_button(__("Add Timeline Link"), function() {
 			frm.trigger('show_add_link_dialog');
-		});
+		}, "Links");
 
-		frm.add_custom_button(__("Remove link"), function() {
+		frm.add_custom_button(__("Remove Timeline Link"), function() {
 			frm.trigger('show_remove_link_dialog');
-		});
+		}, "Links");
 
 		if(frm.doc.communication_type=="Communication"
 			&& frm.doc.communication_medium == "Email"
