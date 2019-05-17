@@ -259,7 +259,7 @@ class User(Document):
 		if method:
 			subject = frappe.get_attr(method[-1])()
 		if not subject:
-			site_name = frappe.db.get_default('site_name') or frappe.get_conf().get("site_name")
+			site_name = frappe.db.get_single_value("System Settings", "application_name") or frappe.local.site
 			if site_name:
 				subject = _("Welcome to {0}".format(site_name))
 			else:
