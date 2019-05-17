@@ -503,7 +503,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const rows =  this.raw_data.result.filter(value => Object.keys(value).length);
 		const first_row = Array.isArray(rows[0]) ? rows[0] : Object.values(rows[0]);
 		const has_total_row = this.raw_data.add_total_row;
-		const first_row = Array.isArray(rows[0]) ? rows[0] : Object.values(rows[0]);
 
 		const indices = first_row.reduce((accumulator, current_value, current_index) => {
 			if (Number.isFinite(current_value)) {
