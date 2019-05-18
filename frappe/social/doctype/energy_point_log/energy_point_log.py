@@ -37,24 +37,29 @@ def get_alert_dict(doc):
 	})
 	owner_name = get_fullname(doc.owner)
 	doc_link = frappe.get_desk_link(doc.reference_doctype, doc.reference_name)
-	points = doc.points
+	points_text = 'point' if doc.points == 1 else 'points'
+	points = frappe.bold(doc.points)
 	if doc.type == 'Auto':
-		alert_dict.message=_('You gained {}').format(get_points_text(points))
+		message = 'You gained {{}} {0}'.format(points_text)
+		alert_dict.message=_(message).format(points)
 	elif doc.type == 'Appreciation':
-		alert_dict.message = _('{} appreciated your work on {} with {}').format(
+		message = '{{}} appreciated your work on {{}} with {{}} {0}'.format(points_text)
+		alert_dict.message = _(message).format(
 			owner_name,
 			doc_link,
-			get_points_text(points)
+			points
 		)
 	elif doc.type == 'Criticism':
-		alert_dict.message = _('{} criticized your work on {} with {}').format(
+		message = '{{}} criticized your work on {{}} with {{}} {0}'.format(points_text)
+		alert_dict.message = _(message).format(
 			owner_name,
 			doc_link,
-			get_points_text(points)
+			points
 		)
 		alert_dict.indicator = 'red'
 	elif doc.type == 'Revert':
-		alert_dict.message = _('{} reverted your points on {}').format(
+		message = '{{}} reverted your {0} on {{}}'.format(points_text)
+		alert_dict.message = _(message).format(
 			owner_name,
 			doc_link,
 		)
@@ -63,13 +68,6 @@ def get_alert_dict(doc):
 		alert_dict = {}
 
 	return alert_dict
-
-def get_points_text(points):
-	bold_points = frappe.bold(points)
-	if points == 1:
-		return _('{} point').format(bold_points)
-
-	return _('{} points').format(bold_points)
 
 def send_review_mail(doc, message_dict):
 	if doc.type in ['Appreciation', 'Criticism']:
