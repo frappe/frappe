@@ -15,6 +15,7 @@ def execute():
 					""", as_dict=True)
 
 	values = []
+
 	for count, communication in enumerate(communications):
 		counter = 1
 		if communication.timeline_doctype and communication.timeline_name:
@@ -28,18 +29,11 @@ def execute():
 				counter, frappe.generate_hash(length=10), communication.name, communication.link_doctype,
 				communication.link_name, communication.creation, communication.modified, communication.modified_by
 			))
-		if count % 200 == 0 or count == len(communications) - 1:
-			print("""
-				INSERT INTO `tabDynamic Link`
-					(`idx`, `name`, `parentfield`, `parenttype`, `parent`, `link_doctype`, `link_name`, `creation`,
-					`modified`, `modified_by`)
-				VALUES {0}
-			""".format(", ".join([d for d in values])))
+		if count % 1000 == 0 or count == len(communications) - 1:
 			frappe.db.sql("""
 				INSERT INTO `tabDynamic Link`
 					(`idx`, `name`, `parentfield`, `parenttype`, `parent`, `link_doctype`, `link_name`, `creation`,
 					`modified`, `modified_by`)
 				VALUES {0}
 			""".format(", ".join([d for d in values])))
-			# frappe.throw("YA")
 			values = []
