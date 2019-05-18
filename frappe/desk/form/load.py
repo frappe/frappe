@@ -166,8 +166,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 			`tabCommunication`.sender, `tabCommunication`.sender_full_name, `tabCommunication`.cc, `tabCommunication`.bcc,
 			`tabCommunication`.creation, `tabCommunication`.subject, `tabCommunication`.delivery_status,
 			`tabCommunication`._liked_by, `tabCommunication`.reference_doctype, `tabCommunication`.reference_name,
-			`tabCommunication`.link_doctype, `tabCommunication`.link_name, `tabCommunication`.read_by_recipient,
-			`tabCommunication`.rating
+			`tabCommunication`.read_by_recipient, `tabCommunication`.rating
 		'''
 
 	conditions = '''

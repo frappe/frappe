@@ -43,7 +43,7 @@ frappe.ui.form.on("Communication", {
 			});
 		}
 
-		frm.add_custom_button(__("Add Primary link"), function() {
+		frm.add_custom_button(__("Change Reference Link"), function() {
 			frm.trigger('show_relink_dialog');
 		}, "Links");
 
