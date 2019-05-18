@@ -29,7 +29,7 @@ def execute():
 				counter, frappe.generate_hash(length=10), communication.name, communication.link_doctype,
 				communication.link_name, communication.creation, communication.modified, communication.modified_by
 			))
-		if count % 1000 == 0 or count == len(communications) - 1:
+		if count % 10000 == 0 or count == len(communications) - 1:
 			frappe.db.sql("""
 				INSERT INTO `tabDynamic Link`
 					(`idx`, `name`, `parentfield`, `parenttype`, `parent`, `link_doctype`, `link_name`, `creation`,
