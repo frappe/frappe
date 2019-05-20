@@ -10,6 +10,9 @@ from frappe.model.document import Document
 
 class LDAPSettings(Document):
 	def validate(self):
+		if not self.enabled:
+			return
+
 		if not self.flags.ignore_mandatory:
 			self.validate_ldap_credentails()
 
