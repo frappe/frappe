@@ -167,13 +167,12 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					}
 
 					if(!me.df.only_select) {
-						if(frappe.model.can_create(doctype)
-							&& me.df.fieldtype !== "Dynamic Link") {
+						if(frappe.model.can_create(doctype)) {
 							// new item
 							r.results.push({
 								label: "<span class='text-primary link-option'>"
 									+ "<i class='fa fa-plus' style='margin-right: 5px;'></i> "
-									+ __("Create a new {0}", [__(me.df.options)])
+									+ __("Create a new {0}", [__(me.get_options())])
 									+ "</span>",
 								value: "create_new__link_option",
 								action: me.new_doc
