@@ -10,17 +10,20 @@ from frappe.model.document import Document
 
 class LDAPSettings(Document):
 	def validate(self):
+		if not self.enabled:
+			return
+
 		if not self.flags.ignore_mandatory:
-			if self.ldap_search_string.endswith("={0}"):
-				if self.enabled:
-					connect_to_ldap(server_url=self.ldap_server_url,
-					                base_dn=self.base_dn,
-					                password=self.get_password(raise_exception=False),
-					                ssl_tls_mode=self.ssl_tls_mode,
-					                trusted_cert=self.require_trusted_certificate,
-					                private_key_file=self.local_private_key_file,
-					                server_cert_file=self.local_server_certificate_file,
-					                ca_certs_file=self.local_ca_certs_file)
+			if self.ldap_search_string and self.ldap_search_string.endswith("={0}"):
+				connect_to_ldap(server_url=self.ldap_server_url,
+					base_dn=self.base_dn,
+					password=self.get_password(raise_exception=False),
+					ssl_tls_mode=self.ssl_tls_mode,
+					trusted_cert=self.require_trusted_certificate,
+					private_key_file=self.local_private_key_file,
+					server_cert_file=self.local_server_certificate_file,
+					ca_certs_file=self.local_ca_certs_file
+				)
 			else:
 				frappe.throw(_("LDAP Search String needs to end with a placeholder, eg sAMAccountName={0}"))
 
