@@ -127,8 +127,12 @@ frappe.ui.form.Toolbar = Class.extend({
 		// email
 		if(frappe.model.can_email(null, me.frm) && me.frm.doc.docstatus < 2) {
 			this.page.add_menu_item(__("Email"), function() {
-				me.frm.email_doc();}, true);
+				me.frm.email_doc();}, true, 'Ctrl + Shift + E');
 		}
+
+		// go to field modal		
+		this.page.add_menu_item(__("Go to field"), function() {
+			me.setup_modal();}, true, 'Ctrl + Shift + M');
 
 		// Linked With
 		if(!me.frm.meta.issingle) {
@@ -157,7 +161,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		if((cint(me.frm.doc.docstatus) != 1) && !me.frm.doc.__islocal
 			&& frappe.model.can_delete(me.frm.doctype)) {
 			this.page.add_menu_item(__("Delete"), function() {
-				me.frm.savetrash();}, true);
+				me.frm.savetrash();}, true, 'Ctrl + Shift + D');
 		}
 
 		if(frappe.user_roles.includes("System Manager") && me.frm.meta.issingle === 0) {
@@ -349,5 +353,64 @@ frappe.ui.form.Toolbar = Class.extend({
 		}
 
 		$(this.frm.wrapper).attr("data-state", this.frm.doc.__unsaved ? "dirty" : "clean");
+	},
+
+	setup_modal() {
+
+		if(!$('.form-layout').is(':visible')) {
+			return;	
+		}
+
+		let fields = this.get_section_fields();
+		let field_labels =  [];
+		fields.forEach((f)=> {field_labels.push(f.label)});
+		let dialog = new frappe.ui.Dialog({
+			title: __('Go to Field'),
+			fields: [
+				{
+					fieldtype: 'Select',
+					fieldname: 'go_to_field',
+					label: 'Select Field',
+					options: field_labels,
+					reqd: 1
+				}
+			]
+		});
+
+		dialog.set_primary_action("Go", () => {
+			let field = dialog.get_values().go_to_field;
+			let element = fields.find( f=> f.label == field);
+			let $el = $("[data-fieldname="+element.fieldname+"]")
+			if(element.section_body.hasClass('hide')) {
+				element.section_body.removeClass('hide');
+			}
+			frappe.utils.scroll_to($el.eq(0));
+			$el.addClass('has-error');
+			$el.find('.form-control').focus();
+			setTimeout(function(){
+				$el.removeClass('has-error');
+			},1000);
+			dialog.hide();
+		});
+
+		dialog.show();
+	},
+
+	get_section_fields() {
+		let fields = [];
+		let current_page = $('.page-container').filter(':visible');
+		current_page.get(0).frm.layout.sections.forEach((section)=> {
+			section.fields_list.forEach((f)=> {
+				if(f.df.fieldtype!=='Section Break' && !f.df.hidden && f.disp_status!=='None' && f.df.label) {
+					let field = {};
+					field.fieldname = f.df.fieldname;
+					field.label = f.df.label;
+					field.section_body = section.body;
+					field.section = section.df.label;
+					fields.push(field);
+				}
+			})
+		})
+		return fields;
 	}
 })

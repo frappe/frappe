@@ -115,6 +115,7 @@ frappe.search.AwesomeBar = Class.extend({
 				}
 			}
 			$input.val("");
+			$input.blur();
 		});
 
 		$input.on("awesomplete-selectcomplete", function(e) {

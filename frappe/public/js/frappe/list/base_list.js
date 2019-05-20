@@ -173,7 +173,6 @@ frappe.views.BaseList = class BaseList {
 		}
 
 		this.menu_items.map(item => {
-			// console.log('item', item)
 			if (item.condition && item.condition() === false) {
 				return;
 			}

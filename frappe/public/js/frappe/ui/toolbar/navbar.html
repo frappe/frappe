@@ -55,6 +55,8 @@
 					<li class="divider documentation-links"></li>
 					<li><a href="#" onclick="return frappe.ui.toolbar.show_about();">
 						{%= __("About") %}</a></li>
+					<li><a href="#" onclick="return frappe.ui.toolbar.show_shortcuts();">
+						{%= __("Keyboard Shortcuts") %}</a></li>
 				</ul>
 			</li>
 
@@ -64,7 +66,7 @@
 			<!-- end frappe.chat -->
 
 			<li class="dropdown dropdown-navbar-new-comments dropdown-mobile">
-				<a class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+				<a class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" href="#" onclick="return false;">
 					<span class="navbar-new-comments">0</span>
 				</a>
 				<ul class="dropdown-menu" id="dropdown-notification" role="menu" style="max-height: 480px; overflow-y: auto;">

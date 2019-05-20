@@ -37,192 +37,133 @@ frappe.ui.Page = Class.extend({
 
 		this.make();
 		frappe.ui.pages[frappe.get_route_str()] = this;
+		this.setup_nav();
 	},
 
 	make: function() {
 		this.wrapper = $(this.parent);
 		this.add_main_section();
-		this.setup_nav();
 	},
 
-	keyboard_shortcut(shortcut, element) {
+	keyboard_shortcut(shortcut, element, namespace) {
 		let shortcut_key = shortcut.replace(/ /g,'');
-		// console.log('true', shortcut);
-		let namespace = 'keyup.'+ shortcut.charAt(shortcut.length-1);
-		$(document).on(namespace,null, shortcut_key, (e)=> {
-			console.log('heree');
-			// e.stopImmediatePropagation();
-			// console.log($li, shortcut);
-			element.click()
-		})
-	},
 
+		$(document).on(namespace, null, shortcut_key, (e)=> {
+			e.stopImmediatePropagation();
+			e.preventDefault();
+
+			if(element.attr('href') && element.attr('href')!='#') {
+				window.location.href = element.attr('href');
+			} else {
+				if($('.form-layout').is(':visible')) {
+
+					$('.menu-btn-group').find('a.grey-link').each((i,v)=> {
+						if(v.textContent == element.get(0).textContent) {
+							element = $(v);
+						}
+					});
+				}
+				element.click();
+			}
+		});
+	},
 
 	setup_nav() {
-		console.log('MENU', this.menu);
-		let menu_el = $('.menu-btn-group');
-		console.log('menu', menu_el);
-		let buttons = $('.page-actions').find('button'), menu_list, actions_list, el_list;
-		let timer = false;
-		$(document).on('keydown', null, 'alt', ()=> {
-			menu_list = $('.menu-btn-group ul li a').filter(':visible');
-			actions_list = $('.actions-btn-group ul li a').filter(':visible');
-			console.log('menu list', menu_list);
-			clearTimeout(timer);
-			timer=false;
-			if(!timer) timer = setTimeout(()=> {
-				if(menu_list.length) {
-					el_list = this.underline_alt_elements(menu_list);
-				} else if(actions_list.length) {
-					el_list = this.underline_alt_elements(actions_list);
-				}
-				else el_list = this.underline_alt_elements(buttons);
-			},1000);
+		let menu_list, actions_list, el_list, sidebar_list, form_sidebar, navbar_breadcrumbs, dashboard_list;
+
+		$(document).on('keydown', null, 'alt', (e)=> {
+
+			e.stopImmediatePropagation();
+			let buttons = $('.page-actions').find('button').filter(':visible');
+			menu_list = $('.menu-btn-group').find('ul li a').filter(':visible');
+			actions_list = $('.actions-btn-group').find('ul li a').filter(':visible');
+			sidebar_list = $(".list-sidebar li:not('.divider') a:not('.disabled')").filter(':visible');
+			form_sidebar = $('.form-sidebar a:not(".close")').filter(':visible');
+			navbar_breadcrumbs = $('#navbar-breadcrumbs a').filter(':visible');
+
+			$.merge(buttons, navbar_breadcrumbs);
+			if(sidebar_list.length) {
+				$.merge(buttons, sidebar_list);
+			}
+			if(form_sidebar.length) {
+				dashboard_list = $('.transactions a').filter(':visible');
+				$.merge(buttons, form_sidebar);
+				$.merge(buttons, dashboard_list);
+			}
+
+			if(menu_list.length) {
+				menu_list = menu_list.add($('.menu-btn-group').filter(':visible').find('button'));
+				el_list = this.underline_alt_elements(menu_list, '.menu-item-label, .menu-btn-group-label');
+			} else if(actions_list.length) {
+				actions_list.add($('.actions-btn-group').filter(':visible'));
+				el_list = this.underline_alt_elements(actions_list,'.menu-item-label');
+			} else {
+				el_list = this.underline_alt_elements(buttons);
+			}
 		});
 
 		$(document).on('keyup',null, (e)=> {
-			let index = 0, liSelected, next;
-			clearTimeout(timer);
-			timer = false;
-			console.log('el list', el_list);
 			if(el_list) {
 				this.remove_alt_elements(el_list);
 			}
-			menu_list = $('.menu-btn-group ul li a').filter(':visible');
-			console.log('prssanna', menu_list);
-			if(menu_list.length) {
-				console.log('yasss');
-				let li = menu_list;
-				console.log('list', li);
-				if(e.which === 40) {
-					console.log('down');
-					if(liSelected) {
-						liSelected.removeClass('selected');
-						next = liSelected.next();
-						if(next.length > 0) {
-							liSelected = next.addClass('selected');
-						} else {
-							liSelected = li.eq(0).addClass('selected');
-						}
-					} else {
-						liSelected = li.eq(0).addClass('selected');
-					}
-				} else if(e.which === 38) {
-					console.log('up');
-					if(liSelected) {
-						liSelected.removeClass('selected');
-						next = liSelected.prev();
-						if(next.length > 0) {
-							liSelected = next.addClass('selected');
-						} else {
-							liSelected = li.last().addClass('selected');
-						}
-					} else {
-						liSelected = li.last().addClass('selected');
-					}
-				}
-			}
-		})
+			
+		});
 
-		// $(document).on('keydown',null,(e)=> {
-			// console.log('hereee');
-			// let menu = $('.menu-btn-group.open')
-			// console.log('menu', menu);
-			// if(menu.length) {
-			// 	console.log('yasss');
-			// 	let li = menu_list;
-			// 	console.log('list', li);
-			// 	if(e.which === 40) {
-			// 		if(liSelected) {
-			// 			liSelected.removeClass('selected');
-			// 			next = liSelected.next();
-			// 			if(next.length > 0) {
-			// 				liSelected = next.addClass('selected');
-			// 			} else {
-			// 				liSelected = li.eq(0).addClass('selected');
-			// 			}
-			// 		} else {
-			// 			liSelected = li.eq(0).addClass('selected');
-			// 		}
-			// 	} else if(e.which === 38) {
-			// 		if(liSelected) {
-			// 			liSelected.removeClass('selected');
-			// 			next = liSelected.prev();
-			// 			if(next.length > 0) {
-			// 				liSelected = next.addClass('selected');
-			// 			} else {
-			// 				liSelected = li.last().addClass('selected');
-			// 			}
-			// 		} else {
-			// 			liSelected = li.last().addClass('selected');
-			// 		}
-			// 	}
-			// }
-		// })
 	},
 
-	underline_alt_elements($list) {
-		console.log('list', $list);
-		let char_list = [];
-		let el_list = [];
+	underline_alt_elements($list, selector) {
+		if($list.length > 30) {
+			$list = $list.slice(0,30);
+		}
+		let char_list = ['S','C','H'], el_list = [];
+
 		$.each($list,(i,v)=> {
 			let $el = $(v);
 			if($el.is(':visible')) {
-				let el_obj={};
+				let el_obj={}, text;
 				el_obj.$el = $el;
-				let text = $el.text().trim();
+				if(selector) {
+					text = $el.find(selector).text().trim();
+				}
+				else text = $el.text().trim();
 				let i = 0;
 				let char = text.charAt(0);
-				console.log(char_list);
 				while(char_list.includes(char.toUpperCase())) {
 					i++;
 					char = text.charAt(i);
 				}
 				char_list.push(char.toUpperCase());
-				console.log(char);
 				let new_text = this.underline_character(text,i);
 				let new_html = $el.html().replace(text, new_text);
 				let shortcut = 'alt+'+text.charAt(i);
 				el_obj.shortcut = shortcut;
 				el_list.push(el_obj);
-				// char_list.push(text.charAt(0));
 				$el.html(new_html);
 			}
 		});
-		console.log('element list', el_list);
+
 		el_list.forEach((element)=> {
-			console.log('here');
-			let namespace = 'keyup.'+ element.shortcut.charAt(element.shortcut.length-1);
-			$(document).off(namespace);
 			if(element.$el.is(':visible')) {
-				console.log('visible');
-				this.keyboard_shortcut(element.shortcut, element.$el);
+				this.keyboard_shortcut(element.shortcut, element.$el, 'keyup.underline');
 			}
 		})
+
 		return el_list;
 	},
 
 	remove_alt_elements($list) {
 		$.each($list,(i,v)=> {
-			// let $el = $(v);
 			if(v.$el.is(':visible')) {
-				// let text = $el.text().trim();
-				// let new_text = this.remove_underline(text);
-				// console.log('new text', new_text);
 				let new_html = this.remove_underline(v.$el.html());
-				console.log(new_html);
 				v.$el.html(new_html);
-				let namespace = 'keyup.'+ v.shortcut.charAt(v.shortcut.length-1);
-				$(document).off(namespace);
+				$(document).off('keyup.underline');
 			}
 		});
 	},
 
 	underline_character(str, n) {
-		console.log('str', str);
 		let new_str;
 		new_str = str.slice(0,n) + "<u>"+str.charAt(n)+"</u>" + str.slice(n+1);
-		console.log('new str', new_str);
 		return new_str;
 	},
 
@@ -353,18 +294,15 @@ frappe.ui.Page = Class.extend({
 		}
 	},
 
-	set_primary_action: function(label, click, icon, shortcut, working_label) {
+	set_primary_action: function(label, click, icon, working_label) {
 		this.set_action(this.btn_primary, {
 			label: label,
 			click: click,
 			icon: icon,
-			working_label: working_label,
-			shortcut: shortcut
+			working_label: working_label
 		});
-		if(shortcut) {
-			this.keyboard_shortcut(shortcut,this.btn_primary);
-		}
 		return this.btn_primary;
+
 	},
 
 	set_secondary_action: function(label, click, icon, working_label) {
@@ -403,7 +341,6 @@ frappe.ui.Page = Class.extend({
 	//--- Menu --//
 
 	add_menu_item: function(label, click, standard, shortcut) {
-		// console.log('shortcut', shortcut)
 		return this.add_dropdown_item(label, click, standard, this.menu, shortcut);
 	},
 
@@ -467,8 +404,13 @@ frappe.ui.Page = Class.extend({
 		if(show_parent) {
 			parent.parent().removeClass("hide");
 		}
-		if(shortcut) var $li = $('<li><a class="grey-link">'+ label + '<span class="text-muted"> ('+shortcut+')</span></a><li>');
-		else var $li = $('<li><a class="grey-link">'+ label +'</a><li>');
+		if(shortcut) {
+			var $li = $('<li><a class="grey-link dropdown-item" href="#" onClick="return false;"><span class="menu-item-label">'
+									+ label + '</span><span class="text-muted std-shortcut">'+shortcut+'</span></a><li>');
+			this.keyboard_shortcut(shortcut, $li.find('a'), 'keyup.shortcut');
+		}
+		else var $li = $('<li><a class="grey-link dropdown-item" href="#" onClick="return false;"><span class="menu-item-label">'
+							+ label +'</span></a><li>');
 		var $link = $li.find("a").on("click", click);
 		if (this.is_in_group_button_dropdown(parent, item_selector, label)) return;
 
@@ -479,12 +421,9 @@ frappe.ui.Page = Class.extend({
 			if(!this.divider.length) {
 				this.divider = $('<li class="divider user-action"></li>').prependTo(parent);
 			}
-			$li.addClass("user-action").insertBefore(this.divider);
+			$li.addClass("user-action").insertBefore(this.divider).addClass('visible-xs');
 		}
-		// console.log('parent', parent)
-		if(shortcut) {
-			this.keyboard_shortcut(shortcut, $li.find('a'));
-		}
+
 		return $link;
 	},
 
@@ -521,7 +460,7 @@ frappe.ui.Page = Class.extend({
 			$group = $('<div class="btn-group" data-label="'+encodeURIComponent(label)+'" style="margin-left: 10px;">\
 				<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\
 				'+label+' <span class="caret"></span></button>\
-				<ul class="dropdown-menu" style="margin-top: -8px;"></ul></div>').appendTo(this.inner_toolbar);
+				<ul role="menu" class="dropdown-menu" style="margin-top: -8px;"></ul></div>').appendTo(this.inner_toolbar);
 		}
 		return $group;
 	},
@@ -569,7 +508,7 @@ frappe.ui.Page = Class.extend({
 			$(this.inner_toolbar).removeClass("hide");
 
 			if (!this.is_in_group_button_dropdown($group.find(".dropdown-menu"), 'li', label)) {
-				return $('<li><a data-label="'+encodeURIComponent(label)+'">'+label+'</a></li>')
+				return $('<li><a href="#" onclick="return false;" data-label="'+encodeURIComponent(label)+'">'+label+'</a></li>')
 					.on('click', _action)
 					.appendTo($group.find(".dropdown-menu"));
 			}

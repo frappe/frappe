@@ -202,7 +202,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				} else {
 					this.make_new_doc();
 				}
-			}, 'octicon octicon-plus','ctrl+b');
+			}, 'octicon octicon-plus');
 		} else {
 			this.page.clear_primary_action();
 		}
@@ -758,88 +758,117 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_keyboard_nav() {
-		let selected, next, new_class, is_nav;
-		let index = 0;
-		$(document).on('keydown',null, (e)=> {
-			if ($('[role="listbox"]').is(":visible")) {
-				console.log('true');
-				is_nav = true;
+		let new_class, is_list_nav, is_image_view;
+		this.next_index = 0;
+
+		$(document).off('keydown.list').on('keydown.list',null, (e)=> {
+			var {UP, DOWN, ENTER, SPACE} = frappe.ui.keyCode;
+			if(!in_list([UP, DOWN, ENTER, SPACE], e.which)) {
+				return;
 			}
-			else {
-				is_nav = false;
-				let list = this.$result.find('.list-row-container');
-				list = list.add($('.list-paging-area').find('.btn'));
-				if(e.which === 40) {
-					if(selected) {
-						new_class = list.eq(index).is('button') ? 'btn-selected': 'selected';
-						// console.log('presseddd')
-						selected.removeClass(new_class);
-						index++;
-						next = list.eq(index);
-						if(next.length > 0) {
-							new_class = list.eq(index).is('button') ? 'btn-selected': 'selected';
-							selected = next.addClass(new_class);
-						} else {
-							new_class = list.eq(0).is('button') ? 'btn-selected': 'selected';
-							selected = list.eq(0).addClass(new_class);
-							index = 0;
-						}
-					} else {
-						new_class = list.eq(0).is('button') ? 'btn-selected': 'selected';
-						selected = list.eq(0).addClass(new_class);
-					}
-				} else if(e.which === 38) {
-					if(selected) {
-						new_class = list.eq(index).is('button') ? 'btn-selected': 'selected';
-						selected.removeClass(new_class);
-						if(index>0) index--;
-						next = list.eq(index);
-						if(next.length > 0) {
-							new_class = list.eq(index).is('button') ? 'btn-selected': 'selected';
-							selected = next.addClass(new_class);
-						} else {
-							new_class = list.eq(list.length-1).is('button') ? 'btn-selected': 'selected';
-							selected = list.eq(list.length - 1).addClass(new_class);
-							index = list.length - 1;
-						}
-					} else {
-						new_class = list.eq(list.length-1).is('button') ? 'btn-selected': 'selected';
-						selected = list.eq(list.length - 1).addClass(new_class);
-					}
-				} else if(e.which === 13) {
-					console.log('is nav', is_nav)
-					if(!is_nav) {
-						if(selected.is('button') ) {
-							selected.click();
-							selected.removeClass('btn-selected');
-							index = 0;
-						}
-						else selected.find('.list-row').click();
-						index = 0;
+
+			if ($('[role="listbox"]').is(":visible") || $('.dropdown-menu').is(':visible') 
+				|| $('.modal').is(':visible') || $('input:focus').length > 0) {
+				is_list_nav = false;
+			} else {
+				is_list_nav = true;
+				if($('.image-view-container').is(':visible')) {
+					is_image_view = true;
+					this.list_items = $('.image-view-item').filter(':visible');
+				} else {
+					this.list_items = $('.list-row-container').filter(':visible');
+				}
+				this.list_items = this.list_items.add($('.list-paging-area').find('.btn').filter(':visible'));
+
+				if(this.list_items.length) {
+					if(e.which === DOWN) {
+						new_class = this.nav_down(new_class);
+					} else if(e.which === UP) {
+						new_class = this.nav_up(new_class);
+					} else if(e.which === ENTER ) {
+						this.nav_enter(is_list_nav, is_image_view);
+					} else if(e.which === SPACE && this.selected) {
+						e.preventDefault();
+						this.nav_space();
 					}
 				}
-				
+			
 			}
 		});
 	}
 
-	// down_navigation(list) {
-	// 	let selected_element;
-	// 	if(selected_element) {
-	// 		console.log('presseddd')
-	// 		selected_element.removeClass('selected');
-	// 		next = selected_element.next();
-	// 		console.log('next', next)
-	// 		if(next.length > 0){
-	// 			selected_element = next.addClass('selected');
-	// 		} else {
-	// 			selected_element = list.eq(0).addClass('selected');
-	// 		}
-	// 	} else{
-	// 		selected_element = list.eq(0).addClass('selected');
-	// 		console.log('liSelected', liSelected);
-	// 	}
-	// }
+	nav_down(new_class) {
+
+		if(this.selected && this.selected.is(':visible')) {
+			new_class = this.list_items.eq(this.next_index).is('button') ? 'page-btn-selected': 'list-selected';
+			this.selected.removeClass(new_class);
+			this.next_index++;
+			this.next_el = this.list_items.eq(this.next_index);
+
+			if(this.next_el.length > 0) {
+				new_class = this.list_items.eq(this.next_index).is('button') ? 'page-btn-selected': 'list-selected';
+				this.selected = this.next_el.addClass(new_class);
+			} else {
+				new_class = this.list_items.eq(0).is('button') ? 'page-btn-selected': 'list-selected';
+				this.selected = this.list_items.eq(0).addClass(new_class);
+				this.next_index = 0;
+			}
+
+		} else {
+			new_class = this.list_items.eq(0).is('button') ? 'page-btn-selected': 'list-selected';
+			this.selected = this.list_items.eq(0).addClass(new_class);
+			this.next_index = 0;
+		}
+
+		return new_class;
+	}
+
+	nav_up(new_class) {
+
+		if(this.selected && this.selected.is(':visible')) {
+			new_class = this.list_items.eq(this.next_index).is('button') ? 'page-btn-selected': 'list-selected';
+			this.selected.removeClass(new_class);
+	
+			if(this.next_index>0) this.next_index--;
+			this.next_el = this.list_items.eq(this.next_index);
+			if(this.next_el.length > 0) {
+				new_class = this.list_items.eq(this.next_index).is('button') ? 'page-btn-selected': 'list-selected';
+				this.selected = this.next_el.addClass(new_class);
+			} else {
+				new_class = this.list_items.eq(this.list_items.length-1).is('button') ? 'page-btn-selected': 'list-selected';
+				this.selected = this.list_items.eq(this.list_items.list.length - 1).addClass(new_class);
+				this.next_index = this.list_items.length - 1;
+			}
+
+		} else {
+			new_class = this.list_items.eq(this.list_items.length-1).is('button') ? 'page-btn-selected': 'list-selected';
+			this.selected = this.list_items.eq(this.list_items.length - 1).addClass(new_class);
+			this.next_index = this.list_items.length - 1;
+		}
+
+		return new_class;
+	}
+
+	nav_enter(is_list_nav, is_image_view) {
+		if(is_list_nav && this.selected && this.selected.is(':visible')) {
+			if(is_image_view) {
+				let image_link = this.selected.find('.list-subject a').get(0);
+				if(image_link) window.location.href = image_link.href;
+			}
+			if(this.selected.is('button') ) {
+				console.log('here');
+				this.selected.click();
+				this.selected.removeClass('btn-selected');
+			} else {
+				this.selected.find('.list-row').click();
+			}
+			this.next_index = -1;
+		}
+	}
+
+	nav_space() {
+		this.selected.find('.list-row-checkbox').click();
+	}
 
 	setup_filterable() {
 		// filterable events
@@ -1116,7 +1145,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.model.can_import(doctype)) {
 			items.push({
 				label: __('Import'),
-				// shortcut: 'Ctrl + I',
 				action: () => frappe.set_route('List', 'Data Import', {
 					reference_doctype: doctype
 				}),
@@ -1127,7 +1155,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.model.can_set_user_permissions(doctype)) {
 			items.push({
 				label: __('User Permissions'),
-				// shortcut: 'Ctrl + U',
 				action: () => frappe.set_route('List', 'User Permission', {
 					allow: doctype
 				}),
@@ -1138,7 +1165,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.user_roles.includes('System Manager')) {
 			items.push({
 				label: __('Role Permissions Manager'),
-				// shortcut: 'Ctrl + M',
 				action: () => frappe.set_route('permission-manager', {
 					doctype
 				}),
@@ -1157,30 +1183,29 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						});
 					}
 				},
-				// shortcut: 'Alt + C',
-				standard: true
+				standard: true,
+				shortcut: 'Ctrl + J',
 			});
 		}
 
 		items.push({
 			label: __('Toggle Sidebar'),
 			action: () => this.toggle_side_bar(),
-			// shortcut: 'Ctrl + T',
-			standard: true
+			standard: true,
+			shortcut: 'Ctrl + K',
 		});
 
 		items.push({
 			label: __('Share URL'),
 			action: () => this.share_url(),
-			// shortcut: 'Alt + S',
-			standard: true
+			standard: true,
+			shortcut: 'Ctrl + Shift + A',
 		});
 
 		if (frappe.user.has_role('System Manager') && frappe.boot.developer_mode === 1) {
 			// edit doctype
 			items.push({
 				label: __('Edit DocType'),
-				// shortcut: 'Ctrl + E',
 				action: () => frappe.set_route('Form', 'DocType', doctype),
 				standard: true
 			});
@@ -1189,7 +1214,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (frappe.user.has_role('System Manager')) {
 			items.push({
 				label: __('Settings'),
-				// shortcut: 'Ctrl + Shift + S',
 				action: () => this.show_list_settings(),
 				standard: true
 			});

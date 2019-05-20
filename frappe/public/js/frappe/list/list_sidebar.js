@@ -252,7 +252,7 @@ frappe.views.ListSidebar = class ListSidebar {
 	get_html_for_assigned(name, count) {
 		if (name === frappe.session.user) name='Me';
 		if (count > 99) count='99+';
-		let html = $('<li class="assigned"><a class="badge-hover" role="assigned-item"><span class="assigned-user">' 
+		let html = $('<li class="assigned"><a class="badge-hover" href="#" onclick="return false;" role="assigned-item"><span class="assigned-user">' 
 					+ name + '</span><span class="badge pull-right" style="position:relative">' + count + '</span></a></li>');
 		return html;
 	}

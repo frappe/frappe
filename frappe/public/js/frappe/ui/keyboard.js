@@ -68,6 +68,22 @@ frappe.ui.keys.on('ctrl+b', function(e) {
 	}
 });
 
+frappe.ui.keys.on('ctrl+h', function(e) {
+	$('.navbar-home img').click();
+});
+
+frappe.ui.keys.on('alt+s', function(e) {
+	$('.dropdown-navbar-user a').eq(0).click();
+});
+
+frappe.ui.keys.on('alt+h', function(e) {
+	$('.dropdown-help a').eq(0).click();
+});
+
+frappe.ui.keys.on('alt+c', function(e) {
+	$('.frappe-chat-dropdown a').eq(0).click();
+});
+
 frappe.ui.keys.on('escape', function(e) {
 	close_grid_and_dialog();
 });

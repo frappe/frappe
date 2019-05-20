@@ -206,6 +206,38 @@ $.extend(frappe.ui.toolbar, {
 		let fullwidth = JSON.parse(localStorage.container_fullwidth || 'false');
 		$(document.body).toggleClass('full-width', fullwidth);
 	},
+	show_shortcuts () {
+		let dialog = new frappe.ui.Dialog({
+			title: __('Keyboard Shortcuts'),
+		});
+
+		$(dialog.$wrapper).addClass('keyboard-shortcuts');
+		$(dialog.body).html(
+			`<div class='row keyboard-shortcut'>
+				<p class="command col-md-6">Help</p>
+				<p class="shortcut col-md-6 text-muted">Alt + H</p>
+			</div>
+			<div class='row keyboard-shortcut'>
+				<p class="command col-md-6">Settings</p>
+				<p class="shortcut col-md-6 text-muted">Alt + S</p>
+			</div>
+			<div class='row keyboard-shortcut'>
+				<p class="command col-md-6">Search</p>
+				<p class="shortcut col-md-6 text-muted">Ctrl + G</p>
+			</div>
+			<div class='row keyboard-shortcut'>
+				<p class="command col-md-6">Home</p>
+				<p class="shortcut col-md-6 text-muted">Ctrl + H</p>
+			</div>
+			<div class='row keyboard-shortcut'>
+				<p class="command col-md-6">Chat</p>
+				<p class="shortcut col-md-6 text-muted">Alt + C</p>
+			</div>`
+		);
+
+		dialog.show();
+		return false;
+	},
 });
 
 frappe.ui.toolbar.clear_cache = function() {
