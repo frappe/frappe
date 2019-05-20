@@ -31,41 +31,51 @@ class EnergyPointLog(Document):
 		frappe.publish_realtime('update_points', after_commit=True)
 
 def get_alert_dict(doc):
-	alert_dict = frappe._dict({
-		'message': '',
-		'indicator': 'green'
-	})
+	alert_dict = frappe._dict()
 	owner_name = get_fullname(doc.owner)
 	doc_link = frappe.get_desk_link(doc.reference_doctype, doc.reference_name)
-	points_text = 'point' if doc.points == 1 else 'points'
-	points = frappe.bold(doc.points)
+	points = doc.points
+	bold_points = frappe.bold(doc.points)
 	if doc.type == 'Auto':
-		message = 'You gained {{}} {0}'.format(points_text)
-		alert_dict.message=_(message).format(points)
+		if points == 1:
+			message = _('You gained {0} point')
+		else:
+			message = _('You gained {0} points')
+		alert_dict.message = message.format(bold_points)
+		alert_dict.indicator = 'green'
 	elif doc.type == 'Appreciation':
-		message = '{{}} appreciated your work on {{}} with {{}} {0}'.format(points_text)
-		alert_dict.message = _(message).format(
+		if points == 1:
+			message = _('{0} appreciated your work on {1} with {2} point')
+		else:
+			message = _('{0} appreciated your work on {1} with {2} points')
+		alert_dict.message = message.format(
 			owner_name,
 			doc_link,
-			points
+			bold_points
 		)
+		alert_dict.indicator = 'green'
 	elif doc.type == 'Criticism':
-		message = '{{}} criticized your work on {{}} with {{}} {0}'.format(points_text)
-		alert_dict.message = _(message).format(
+		if points == 1:
+			message = _('{0} criticized your work on {1} with {2} point')
+		else:
+			message = _('{0} criticized your work on {1} with {2} points')
+
+		alert_dict.message = message.format(
 			owner_name,
 			doc_link,
-			points
+			bold_points
 		)
 		alert_dict.indicator = 'red'
 	elif doc.type == 'Revert':
-		message = '{{}} reverted your {0} on {{}}'.format(points_text)
-		alert_dict.message = _(message).format(
+		if points == 1:
+			message = _('{0} reverted your point on {1}')
+		else:
+			message = _('{0} reverted your points on {1}')
+		alert_dict.message = message.format(
 			owner_name,
 			doc_link,
 		)
 		alert_dict.indicator = 'red'
-	else:
-		alert_dict = {}
 
 	return alert_dict
 
@@ -250,7 +260,7 @@ def send_summary(timespan):
 
 def get_footer_message(timespan):
 	if timespan == 'Monthly':
-		return _("Stats based on last month's performance (from {} to {})")
+		return _("Stats based on last month's performance (from {0} to {1})")
 	else:
-		return _("Stats based on last week's performance (from {} to {})")
+		return _("Stats based on last week's performance (from {0} to {1})")
 
