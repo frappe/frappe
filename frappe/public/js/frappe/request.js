@@ -197,10 +197,15 @@ frappe.request.call = function(opts) {
 		async: opts.async,
 		headers: Object.assign({
 			"X-Frappe-CSRF-Token": frappe.csrf_token,
-			"Accept": "application/json"
+			"Accept": "application/json",
+			"X-Frappe-CMD": opts.get('args', {}).get('cmd', '')
 		}, opts.headers),
 		cache: false
 	};
+
+	if (opts.args && opts.args.doctype) {
+		ajax_args.headers["X-Frappe-Doctype"] = opts.args.doctype;
+	}
 
 	frappe.last_request = ajax_args.data;
 
