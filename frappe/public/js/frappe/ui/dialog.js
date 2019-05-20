@@ -61,6 +61,10 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 			this.get_close_btn().html(this.secondary_action_label || this.action.secondary.label);
 		}
 
+		if (this.minimizable) {
+			this.get_minimize_btn().on('click', () => this.toggle_minimize());
+		}
+
 		var me = this;
 		this.$wrapper
 			.on("hide.bs.modal", function() {
@@ -99,6 +103,10 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 	get_primary_btn() {
 		return this.$wrapper.find(".modal-header .btn-primary");
+	}
+
+	get_minimize_btn() {
+		return this.$wrapper.find(".modal-header .btn-modal-minimize");
 	}
 
 	set_message(text) {
@@ -178,6 +186,11 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 	cancel() {
 		this.get_close_btn().trigger("click");
+	}
+	toggle_minimize() {
+		this.$wrapper.closest('.modal').toggleClass('modal-minimize');
+		this.get_minimize_btn().find('i').toggleClass('octicon-chevron-down').toggleClass('octicon-chevron-up');
+		this.is_minimized = !this.is_minimized;
 	}
 };
 

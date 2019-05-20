@@ -296,7 +296,10 @@ frappe.get_modal = function(title, content) {
 	                        <h4 class="modal-title" style="font-weight: bold;">${title}</h4>
 	                    </div>
 	                    <div class="col-xs-5">
-	                        <div class="text-right buttons">
+							<div class="text-right buttons">
+								<button type="button" class="btn btn-default btn-sm btn-modal-minimize">
+									<i class="octicon octicon-chevron-down" style="padding: 1px 0px;"></i>
+								</button>
 	            				<button type="button" class="btn btn-default btn-sm btn-modal-close"
 	                                data-dismiss="modal">
 									<i class="octicon octicon-x visible-xs" style="padding: 1px 0px;"></i>
