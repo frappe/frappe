@@ -12,7 +12,7 @@ class BulkUpdate(Document):
 	pass
 
 @frappe.whitelist()
-def update(doctype, field, value, condition='', limit=500):
+def update(doctype, field, value='', condition='', limit=500):
 	if not limit or cint(limit) > 500:
 		limit = 500
 
