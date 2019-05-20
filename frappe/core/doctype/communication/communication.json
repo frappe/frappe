@@ -383,8 +383,8 @@
  ],
  "icon": "fa fa-comment",
  "idx": 1,
- "modified": "2019-05-20 12:34:21.021632",
- "modified_by": "faris@erpnext.com",
+ "modified": "2019-05-20 14:14:01.514493",
+ "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",
  "owner": "Administrator",
@@ -410,10 +410,12 @@
    "share": 1
   },
   {
+   "delete": 1,
    "email": 1,
    "export": 1,
    "permlevel": 2,
    "print": 1,
+   "read": 1,
    "report": 1,
    "role": "System Manager",
    "share": 1,

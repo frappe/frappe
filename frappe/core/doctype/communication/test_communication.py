@@ -73,27 +73,22 @@ class TestCommunication(unittest.TestCase):
 		self.assertRaises(frappe.CircularLinkingError, a.save)
 
 	def test_deduplication_timeline_links(self):
-		todo = frappe.get_doc({
-			"doctype": "ToDo",
-			"description": "Test ToDo"
+		note = frappe.get_doc({
+			"doctype": "Note",
+			"title": "deduplication timeline links",
+			"content": "deduplication timeline links"
 		}).insert(ignore_permissions=True)
 
 		comm = frappe.get_doc({
 			"doctype": "Communication",
 			"communication_type": "Communication",
 			"content": "Deduplication of Links",
-			"communication_medium": "Email",
-			"timeline_links": [
-				{
-					"link_doctype": "ToDo",
-					"link_name": todo.name
-				},
-				{
-					"link_doctype": "ToDo",
-					"link_name": todo.name
-				}
-			]
+			"communication_medium": "Email"
 		}).insert(ignore_permissions=True)
+
+		#adding same link twice
+		comm.add_link(link_doctype="Note", link_name=note.name, autosave=True)
+		comm.add_link(link_doctype="Note", link_name=note.name, autosave=True)
 
 		comm = frappe.get_doc("Communication", comm.name)
 
@@ -140,42 +135,35 @@ class TestCommunication(unittest.TestCase):
 	def test_get_communication_data(self):
 		from frappe.desk.form.load import get_communication_data
 
-		todo = frappe.get_doc({
-			"doctype": "ToDo",
-			"description": "Test ToDo"
+		note = frappe.get_doc({
+			"doctype": "Note",
+			"title": "get communication data",
+			"content": "get communication data"
 		}).insert(ignore_permissions=True)
 
-		comm_todo_1 = frappe.get_doc({
+		comm_note_1 = frappe.get_doc({
 			"doctype": "Communication",
 			"communication_type": "Communication",
 			"content": "Test Get Communication Data 1",
-			"communication_medium": "Email",
-			"timeline_links": [
-				{
-					"link_doctype": "ToDo",
-					"link_name": todo.name
-				}
-			]
+			"communication_medium": "Email"
 		}).insert(ignore_permissions=True)
 
-		comm_todo_2 = frappe.get_doc({
+		comm_note_1.add_link(link_doctype="Note", link_name=note.name, autosave=True)
+
+		comm_note_2 = frappe.get_doc({
 			"doctype": "Communication",
 			"communication_type": "Communication",
 			"content": "Test Get Communication Data 2",
-			"communication_medium": "Email",
-			"timeline_links": [
-				{
-					"link_doctype": "ToDo",
-					"link_name": todo.name
-				}
-			]
+			"communication_medium": "Email"
 		}).insert(ignore_permissions=True)
 
-		comms = get_communication_data("ToDo", todo.name, as_dict=True)
+		comm_note_2.add_link(link_doctype="Note", link_name=note.name, autosave=True)
+
+		comms = get_communication_data("Note", note.name, as_dict=True)
 
 		data = []
 		for comm in comms:
 			data.append(comm.name)
 
-		self.assertIn(comm_todo_1.name, data)
-		self.assertIn(comm_todo_2.name, data)
+		self.assertIn(comm_note_1.name, data)
+		self.assertIn(comm_note_2.name, data)

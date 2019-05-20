@@ -238,6 +238,7 @@ class Communication(Document):
 	# Timeline Links
 	def set_timeline_links(self):
 		contacts = get_contacts([self.sender, self.recipients, self.cc, self.bcc])
+		print(contacts)
 		for contact_name in contacts:
 			self.add_link('Contact', contact_name)
 
