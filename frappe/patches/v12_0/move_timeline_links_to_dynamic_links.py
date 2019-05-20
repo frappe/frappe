@@ -41,6 +41,6 @@ def execute_query(values):
 				`modified`, `modified_by`)
 			VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9})
 		""".format(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9])
-	except IntegrityError as e:
+	except Exception as e:
 		values[1] = frappe.generate_hash(length=10)
 		execute_query(values)

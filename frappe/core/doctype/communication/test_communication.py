@@ -123,7 +123,8 @@ class TestCommunication(unittest.TestCase):
 			"communication_medium": "Email",
 			"subject": "Contacts Attached Test",
 			"sender": "comm_sender@example.com",
-			"recipients": "comm_recipient@example.com"
+			"recipients": "comm_recipient@example.com",
+			"cc": "comm_cc@example.com"
 		}).insert(ignore_permissions=True)
 
 		comm = frappe.get_doc("Communication", comm.name)
