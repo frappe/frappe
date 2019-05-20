@@ -160,36 +160,50 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	group_by=None, as_dict=True):
 	'''Returns list of communications for a given document'''
 	if not fields:
-		fields = '''`name`, `communication_type`,`communication_medium`, `comment_type`,
-			`communication_date`, `content`, `sender`, `sender_full_name`, `cc`, `bcc`,
-			`creation`, `subject`, `delivery_status`, `_liked_by`,
-			`timeline_doctype`, `timeline_name`, `reference_doctype`, `reference_name`,
-			`link_doctype`, `link_name`, `read_by_recipient`, `rating`, 'Communication' AS `doctype`'''
+		fields = '''
+			`tabCommunication`.name, `tabCommunication`.communication_type, `tabCommunication`.communication_medium,
+			`tabCommunication`.comment_type, `tabCommunication`.communication_date, `tabCommunication`.content,
+			`tabCommunication`.sender, `tabCommunication`.sender_full_name, `tabCommunication`.cc, `tabCommunication`.bcc,
+			`tabCommunication`.creation, `tabCommunication`.subject, `tabCommunication`.delivery_status,
+			`tabCommunication`._liked_by, `tabCommunication`.reference_doctype, `tabCommunication`.reference_name,
+			`tabCommunication`.read_by_recipient, `tabCommunication`.rating
+		'''
 
-	conditions = '''communication_type = 'Communication'
-			and (
-				(reference_doctype=%(doctype)s and reference_name=%(name)s)
+	conditions = '''
+		`tabCommunication`.communication_type in ('Communication', 'Feedback')
+		and	(
+				(`tabCommunication`.reference_doctype=%(doctype)s and `tabCommunication`.reference_name=%(name)s)
 				or (
-					(timeline_doctype=%(doctype)s and timeline_name=%(name)s)
-					and (communication_type='Communication')
+					(`tabDynamic Link`.link_doctype=%(doctype)s and `tabDynamic Link`.link_name=%(name)s)
+					and (`tabCommunication`.communication_type='Communication')
 				)
-			)'''
-
+			)
+	'''
 
 	if after:
 		# find after a particular date
-		conditions+= ' and creation > {0}'.format(after)
+		conditions += '''
+			and `tabCommunication`.creation > {0}
+		'''.format(after)
 
 	if doctype=='User':
-		conditions+= " and not (reference_doctype='User' and communication_type='Communication')"
+		conditions += '''
+			and not (`tabCommunication`.reference_doctype='User' and `tabCommunication`.communication_type='Communication')
+		'''
 
-	communications = frappe.db.sql("""select {fields}
+	communications = frappe.db.sql('''
+		select distinct {fields}
 		from `tabCommunication`
+			inner join `tabDynamic Link`
+				on `tabCommunication`.name=`tabDynamic Link`.parent
 		where {conditions} {group_by}
-		order by creation desc LIMIT %(limit)s OFFSET %(start)s""".format(
-			fields = fields, conditions=conditions, group_by=group_by or ""),
-			{ "doctype": doctype, "name": name, "start": frappe.utils.cint(start), "limit": limit },
-			as_dict=as_dict)
+		order by `tabCommunication`.creation desc
+		limit %(limit)s offset %(start)s'''.format(fields = fields, conditions=conditions, group_by=group_by or ""),{
+			"doctype": doctype,
+			"name": name,
+			"start": frappe.utils.cint(start),
+			"limit": limit
+		}, as_dict=as_dict)
 
 	return communications
 
