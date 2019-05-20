@@ -368,6 +368,7 @@
    "read_only": 1
   },
   {
+   "collapsible": 1,
    "fieldname": "timeline_links_sections",
    "fieldtype": "Section Break",
    "label": "Timeline Links"
@@ -376,13 +377,14 @@
    "fieldname": "timeline_links",
    "fieldtype": "Table",
    "label": "Timeline Links",
-   "options": "Dynamic Link"
+   "options": "Dynamic Link",
+   "permlevel": 2
   }
  ],
  "icon": "fa fa-comment",
  "idx": 1,
- "modified": "2019-05-18 00:34:57.100559",
- "modified_by": "Administrator",
+ "modified": "2019-05-20 12:34:21.021632",
+ "modified_by": "faris@erpnext.com",
  "module": "Core",
  "name": "Communication",
  "owner": "Administrator",
@@ -406,6 +408,16 @@
    "report": 1,
    "role": "System Manager",
    "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "permlevel": 2,
+   "print": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
   },
   {
    "delete": 1,

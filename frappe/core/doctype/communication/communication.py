@@ -321,9 +321,9 @@ def get_contacts(email_strings):
 	for email_string in email_strings:
 		if email_string:
 			for email in email_string.split(","):
-					parsed_email = parseaddr(email)[1]
-					if parsed_email:
-						email_addrs.append(parsed_email)
+				parsed_email = parseaddr(email)[1]
+				if parsed_email:
+					email_addrs.append(parsed_email)
 
 	contacts = []
 	for email in email_addrs:

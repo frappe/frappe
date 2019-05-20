@@ -73,11 +73,6 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"has_attachment": 1 if attachments else 0
 	}).insert(ignore_permissions=True)
 
-	# if not doctype:
-	# 	# if no reference given, then send it against the communication
-	# 	comm.reference_doctype = 'Communication'
-	# 	comm.reference_name = comm.name
-
 	comm.save(ignore_permissions=True)
 
 	if isinstance(attachments, string_types):
