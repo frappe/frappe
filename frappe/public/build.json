@@ -137,6 +137,11 @@
 		"public/css/desk-rtl.css",
 		"public/css/report-rtl.css"
 	],
+	"css/printview.css": [
+		"public/css/bootstrap.css",
+		"public/css/font-awesome.css",
+		"public/less/print.less"
+	],
 	"concat:js/libs.min.js": [
 		"public/js/lib/awesomplete/awesomplete.min.js",
 		"public/js/lib/Sortable.min.js",
