@@ -163,6 +163,9 @@ frappe.ui.form.Timeline = class Timeline {
 		// append energy point logs
 		timeline = timeline.concat(this.get_energy_point_logs());
 
+		// append milestones
+		timeline = timeline.concat(this.get_milestones());
+
 		// sort
 		timeline
 			.filter(a => a.content)
@@ -286,28 +289,38 @@ frappe.ui.form.Timeline = class Timeline {
 	}
 
 	add_reply_btn_event($timeline_item, c) {
-		var me = this;
-		$timeline_item.find(".reply-link").on("click", function() {
-			var name = $(this).attr("data-name");
+		$timeline_item.on('click', '.reply-link, .reply-link-all', (e) => {
 			var last_email = null;
 
-			// find the email tor reply to
-			me.get_communications().forEach(function(c) {
-				if(c.name==name) {
+			const $target = $(e.currentTarget);
+			const name = $target.data().name;
+
+			// find the email to reply to
+			this.get_communications().forEach(function(c) {
+				if(c.name == name) {
 					last_email = c;
 					return false;
 				}
 			});
 
-			// make the composer
-			new frappe.views.CommunicationComposer({
-				doc: me.frm.doc,
+			const opts = {
+				doc: this.frm.doc,
 				txt: "",
 				title: __('Reply'),
-				frm: me.frm,
-				last_email: last_email,
+				frm: this.frm,
+				last_email,
 				is_a_reply: true
-			});
+			};
+
+			if ($target.is('.reply-link-all')) {
+				if (last_email) {
+					opts.cc = last_email.cc;
+					opts.bcc = last_email.bcc;
+				}
+			}
+
+			// make the composer
+			new frappe.views.CommunicationComposer(opts);
 		});
 	}
 
@@ -428,8 +441,6 @@ frappe.ui.form.Timeline = class Timeline {
 	set_icon_and_color(c) {
 		if(c.communication_type == "Feedback"){
 			c.icon = "octicon octicon-comment-discussion"
-			c.rating_icons = frappe.render_template("rating_icons", {rating: c.rating, show_label: true})
-			c.color = "#f39c12"
 		} else {
 			c.icon = {
 				"Email": "octicon octicon-mail",
@@ -439,12 +450,12 @@ frappe.ui.form.Timeline = class Timeline {
 				"Event": "fa fa-calendar",
 				"Meeting": "octicon octicon-briefcase",
 				"ToDo": "fa fa-check",
-				"Created": "octicon octicon-plus",
 				"Submitted": "octicon octicon-lock",
 				"Cancelled": "octicon octicon-x",
 				"Assigned": "octicon octicon-person",
 				"Assignment Completed": "octicon octicon-check",
 				"Comment": "octicon octicon-comment-discussion",
+				"Milestone": "octicon octicon-milestone",
 				"Workflow": "octicon octicon-git-branch",
 				"Label": "octicon octicon-tag",
 				"Attachment": "octicon octicon-cloud-upload",
@@ -456,25 +467,6 @@ frappe.ui.form.Timeline = class Timeline {
 				"Relinked": "octicon octicon-check",
 				"Reply": "octicon octicon-mail-reply"
 			}[c.comment_type || c.communication_medium]
-
-			c.color = {
-				"Email": "#3498db",
-				"Chat": "#3498db",
-				"Phone": "#3498db",
-				"SMS": "#3498db",
-				"Created": "#1abc9c",
-				"Submitted": "#1abc9c",
-				"Cancelled": "#c0392b",
-				"Assigned": "#f39c12",
-				"Assignment Completed": "#16a085",
-				"Comment": "#f39c12",
-				"Workflow": "#2c3e50",
-				"Label": "#2c3e50",
-				"Attachment": "#7f8c8d",
-				"Attachment Removed": "#eee",
-				"Relinked": "#16a085",
-				"Reply": "#8d99a6"
-			}[c.comment_type || c.communication_medium];
 
 			c.icon_fg = {
 				"Attachment Removed": "#333",
@@ -526,6 +518,21 @@ frappe.ui.form.Timeline = class Timeline {
 			return log;
 		});
 		return energy_point_logs;
+	}
+
+	get_milestones() {
+		let milestones = this.frm.get_docinfo().milestones;
+		milestones.map(log => {
+			log.color = 'dark';
+			log.sender = log.owner;
+			log.comment_type = 'Milestone';
+			log.content = __('{0} changed {1} to {2}', [
+				frappe.user.full_name(log.owner).bold(),
+				frappe.meta.get_label(this.frm.doctype, log.track_field),
+				log.value.bold()]);
+			return log;
+		});
+		return milestones;
 	}
 
 	cast_comment_as_communication(c) {
@@ -836,4 +843,4 @@ $.extend(frappe.timeline, {
 
 		return index;
 	}
-})
+});

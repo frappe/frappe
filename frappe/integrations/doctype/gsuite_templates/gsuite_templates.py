@@ -3,6 +3,7 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+import requests
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -48,3 +49,45 @@ def create_gsuite_doc(doctype, docname, gs_template=None):
 		"is_private": _file.is_private,
 		"comment": comment.as_dict() if comment else {}
 		}
+
+@frappe.whitelist()
+def get_gdrive_docs():
+	""" Return a list of Google Docs files in Google Drive """
+	return get_gdrive_files('application/vnd.google-apps.document')
+
+@frappe.whitelist()
+def get_gdrive_folders():
+	""" Return a list of folders in Google Drive """
+	return get_gdrive_files('application/vnd.google-apps.folder')
+
+def get_gdrive_files(mime_type):
+	""" Get a list of files of the specified mime_type from Google Drive
+
+	returns [
+		{
+			"kind": "drive#file",
+			"id": "sf_lk-U6lYhVvdgsdf98cvkbj87rl6piFtnLEN9oNsrg",
+			"name": "My File Name",
+			"mimeType": mime_type
+		}
+	]
+	"""
+	settings = frappe.get_single("GSuite Settings")
+	token = settings.get_access_token()
+	url = 'https://www.googleapis.com/drive/v3/files'
+
+	params = {
+		"q": "mimeType='{}'".format(mime_type)
+	}
+
+	headers = {
+		'Authorization': 'Bearer {}'.format(token),
+		'Accept': 'application/json'
+	}
+
+	try:
+		response = requests.get(url, params=params, headers=headers)
+	except requests.exceptions.RequestException as err:
+		frappe.throw(err)
+
+	return response.json().get('files')

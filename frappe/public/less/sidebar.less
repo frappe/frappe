@@ -66,7 +66,8 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.sidebar-menu {
-		margin: 30px 0px;
+		padding: 15px 0px 5px 0px;
+		margin: 0px;
 	}
 }
 
@@ -92,15 +93,16 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	h6, .h6 {
-		text-transform: uppercase;
-		color: @text-muted;
-		font-size: @text-small;
 		margin-top: 0px;
+		margin-bottom: 7px;
 	}
 
 	> li {
 		position: relative;
-		margin-bottom: 7px;
+	}
+
+	.list-link {
+		margin: 7px 0px;
 	}
 }
 
@@ -113,7 +115,6 @@ body[data-route^="Module"] .main-menu {
 		}
 
 		input {
-			font-size: @text-medium !important;
 			color: @text-color !important;
 			font-style: italic;
 		}
@@ -123,6 +124,10 @@ body[data-route^="Module"] .main-menu {
 			margin-top: 2px;
 			margin-bottom: -1px;
 		}
+	}
+
+	.stat-link {
+		margin-bottom: 0.5em;
 	}
 
 	a.close {
@@ -166,8 +171,6 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.sidebar-image-section {
-		margin-top: 15px;
-		margin-bottom: 0px;
 		cursor: pointer;
 
 		.sidebar-image {
@@ -253,19 +256,16 @@ body[data-route^="Module"] .main-menu {
 	.assignment-row a.close {
 		margin-top: -12px;
 	}
-}
 
-.layout-side-section .form-sidebar {
-	.modified-by,
-	.created-by {
-		margin: 30px 0px;
+	.attachment-row {
+		margin-bottom: 4px;
 	}
 }
 
-// list sidebar
-
-.layout-side-section .list-sidebar {
-	margin-top: -15px;
+.layout-side-section .form-sidebar {
+	.modified-by {
+		margin-bottom: 15px;
+	}
 }
 
 .layout-side-section {

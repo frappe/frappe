@@ -273,6 +273,10 @@ textarea.form-control {
 	margin-right: 10px;
 }
 
+.progress, .progress-bar {
+	box-shadow: none;
+}
+
 a.progress-small {
 	.progress-chart {
 		width: 40px;
@@ -1054,6 +1058,12 @@ img.img-loading:after {
 	content: "\f00b";
 }
 
+// utilities
+
+.whitespace-nowrap {
+	white-space: nowrap;
+}
+
 // popover
 .popover {
 	border-radius: 4px;
@@ -1061,4 +1071,18 @@ img.img-loading:after {
 
 .popover-content {
 	padding: 12px;
+}
+
+body.full-width {
+	@media (min-width: @screen-md) {
+		.container {
+			width: 90%;
+		}
+	}
+}
+
+// utilities
+
+.whitespace-nowrap {
+	white-space: nowrap;
 }

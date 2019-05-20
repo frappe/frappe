@@ -17,6 +17,7 @@ from frappe.database.mariadb.schema import MariaDBTable
 
 class MariaDBDatabase(Database):
 	ProgrammingError = pymysql.err.ProgrammingError
+	TableMissingError = pymysql.err.ProgrammingError
 	OperationalError = pymysql.err.OperationalError
 	InternalError = pymysql.err.InternalError
 	SQLError = pymysql.err.ProgrammingError
@@ -80,11 +81,11 @@ class MariaDBDatabase(Database):
 
 		if usessl:
 			conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				charset='utf8mb4', use_unicode = True, ssl=ssl_params,
+				port=self.port, charset='utf8mb4', use_unicode = True, ssl=ssl_params,
 				conv = conversions, local_infile = frappe.conf.local_infile)
 		else:
 			conn = pymysql.connect(self.host, self.user or '', self.password or '',
-				charset='utf8mb4', use_unicode = True, conv = conversions,
+				port=self.port, charset='utf8mb4', use_unicode = True, conv = conversions,
 				local_infile = frappe.conf.local_infile)
 
 		# MYSQL_OPTION_MULTI_STATEMENTS_OFF = 1
@@ -162,6 +163,10 @@ class MariaDBDatabase(Database):
 	@staticmethod
 	def cant_drop_field_or_key(e):
 		return e.args[0] == ER.CANT_DROP_FIELD_OR_KEY
+
+	@staticmethod
+	def is_syntax_error(e):
+		return e.args[0] == ER.PARSE_ERROR
 
 	def is_primary_key_violation(self, e):
 		return self.is_duplicate_entry(e) and 'PRIMARY' in cstr(e.args[1])

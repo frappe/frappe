@@ -17,10 +17,6 @@ from   frappe.chat.util import (
 session = frappe.session
 
 class ChatProfile(Document):
-	def before_save(self):
-		if not self.is_new():
-			self.get_doc_before_save()
-
 	def on_update(self):
 		if not self.is_new():
 			b, a = self.get_doc_before_save(), self

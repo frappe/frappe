@@ -10,7 +10,7 @@ frappe.ui.form.on('Dashboard Chart', {
 	},
 
 	refresh: function(frm) {
-		frm.filters = null;
+		frm.chart_filters = null;
 		frm.set_df_property("filters_section", "hidden", 1);
 		frm.trigger('update_options');
 	},
@@ -58,7 +58,7 @@ frappe.ui.form.on('Dashboard Chart', {
 					if (['Date', 'Datetime'].includes(df.fieldtype)) {
 						date_fields.push({label: df.label, value: df.fieldname});
 					}
-					if (['In', 'Float', 'Currency', 'Percent'].includes(df.fieldtype)) {
+					if (['Int', 'Float', 'Currency', 'Percent'].includes(df.fieldtype)) {
 						value_fields.push({label: df.label, value: df.fieldname});
 					}
 				});
@@ -72,21 +72,26 @@ frappe.ui.form.on('Dashboard Chart', {
 	},
 
 	show_filters: function(frm) {
-		if (frm.filters) {
+		if (frm.chart_filters && frm.chart_filters.length) {
 			frm.trigger('render_filters_table');
 		} else {
 			if (frm.doc.chart_type==='Custom') {
-				frappe.xcall('frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config', {name: frm.doc.source})
-					.then(config => {
-						frappe.dom.eval(config);
-						frm.filters = frappe.dashboards.chart_sources[frm.doc.source].filters;
-						frm.trigger('render_filters_table');
-					});
+				if (frm.doc.source) {
+					frappe.xcall('frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config', {name: frm.doc.source})
+						.then(config => {
+							frappe.dom.eval(config);
+							frm.chart_filters = frappe.dashboards.chart_sources[frm.doc.source].filters;
+							frm.trigger('render_filters_table');
+						});
+				} else {
+					frm.chart_filters = [];
+					frm.trigger('render_filters_table');
+				}
 			} else {
 				// standard filters
 				if (frm.doc.document_type) {
 					// allow all link and select fields as filters
-					frm.filters = [];
+					frm.chart_filters = [];
 					frappe.model.with_doctype(frm.doc.document_type, () => {
 						frappe.get_meta(frm.doc.document_type).fields.map(df => {
 							if (['Link', 'Select'].includes(df.fieldtype)) {
@@ -95,12 +100,11 @@ frappe.ui.form.on('Dashboard Chart', {
 								// nothing is mandatory
 								_df.reqd = 0;
 								_df.default = null;
+								_df.read_only = 0;
+								_df.permlevel = 1;
+								_df.hidden = 0;
 
-								// no default
-
-								if (!df.read_only && !df.hidden) {
-									frm.filters.push(_df);
-								}
+								frm.chart_filters.push(_df);
 							}
 							frm.trigger('render_filters_table');
 						});
@@ -113,7 +117,7 @@ frappe.ui.form.on('Dashboard Chart', {
 
 	render_filters_table: function(frm) {
 		frm.set_df_property("filters_section", "hidden", 0);
-		let fields = frm.filters;
+		let fields = frm.chart_filters;
 
 		let wrapper = $(frm.get_field('filters_json').wrapper).empty();
 		let table = $(`<table class="table table-bordered" style="cursor:pointer; margin:0px;">

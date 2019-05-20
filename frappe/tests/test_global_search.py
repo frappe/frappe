@@ -181,3 +181,10 @@ class TestGlobalSearch(unittest.TestCase):
 					field_as_text = global_search.get_formatted_value(doc.description, field)
 
 			self.assertEqual(case["result"], field_as_text)
+
+	def test_web_page_index(self):
+		global_search.update_global_search_for_all_web_pages()
+		global_search.sync_global_search()
+		frappe.db.commit()
+		results = global_search.web_search('unsubscribe')
+		self.assertTrue('Unsubscribe' in results[0].content)

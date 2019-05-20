@@ -25,16 +25,18 @@ def print_has_permission_check_logs(func):
 		frappe.flags['has_permission_check_logs'] = []
 		result = func(*args, **kwargs)
 		self_perm_check = True if not kwargs.get('user') else kwargs.get('user') == frappe.session.user
+		raise_exception = False if kwargs.get('raise_exception') == False else True
+
 		# print only if access denied
 		# and if user is checking his own permission
-		if not result and self_perm_check:
+		if not result and self_perm_check and raise_exception:
 			msgprint(('<br>').join(frappe.flags.get('has_permission_check_logs')))
 		frappe.flags.pop('has_permission_check_logs', None)
 		return result
 	return inner
 
 @print_has_permission_check_logs
-def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
+def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None, raise_exception=True):
 	"""Returns True if user has permission `ptype` for given `doctype`.
 	If `doc` is passed, it also checks user, share and owner permissions.
 
@@ -395,7 +397,7 @@ def set_user_permission_if_allowed(doctype, name, user, with_message=False):
 	if get_role_permissions(frappe.get_meta(doctype), user).set_user_permissions!=1:
 		add_user_permission(doctype, name, user)
 
-def add_user_permission(doctype, name, user, ignore_permissions=False, applicable_for=None):
+def add_user_permission(doctype, name, user, ignore_permissions=False, applicable_for=None, is_default=0):
 	'''Add user permission'''
 	from frappe.core.doctype.user_permission.user_permission import user_permission_exists
 
@@ -408,6 +410,7 @@ def add_user_permission(doctype, name, user, ignore_permissions=False, applicabl
 			user=user,
 			allow=doctype,
 			for_value=name,
+			is_default=is_default,
 			applicable_for=applicable_for,
 		)).insert(ignore_permissions=ignore_permissions)
 
@@ -523,9 +526,22 @@ def allow_everything():
 	return perm
 
 def get_allowed_docs_for_doctype(user_permissions, doctype):
-	'''Returns all the docs from the passed user_permission
-		that are allowed under provide doctype'''
-	return [d.get('doc') for d in user_permissions if not d.get('applicable_for') or d.get('applicable_for') == doctype]
+	''' Returns all the docs from the passed user_permissions that are
+		allowed under provided doctype '''
+	return filter_allowed_docs_for_doctype(user_permissions, doctype, with_default_doc=False)
+
+def filter_allowed_docs_for_doctype(user_permissions, doctype, with_default_doc=True):
+	''' Returns all the docs from the passed user_permissions that are
+		allowed under provided doctype along with default doc value if with_default_doc is set '''
+	allowed_doc = []
+	default_doc = None
+	for doc in user_permissions:
+		if not doc.get('applicable_for') or doc.get('applicable_for') == doctype:
+			allowed_doc.append(doc.get('doc'))
+			if doc.get('is_default') or len(user_permissions) == 1 and with_default_doc:
+				default_doc = doc.get('doc')
+
+	return (allowed_doc, default_doc) if with_default_doc else allowed_doc
 
 def push_perm_check_log(log):
 	if frappe.flags.get('has_permission_check_logs') == None: return

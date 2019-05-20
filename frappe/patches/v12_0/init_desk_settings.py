@@ -8,4 +8,4 @@ from frappe.desk.moduleview import get_onboard_items
 def execute():
 	"""Reset the initial customizations for desk, with modules, indices and links."""
 	frappe.reload_doc("core", "doctype", "user")
-	frappe.db.sql("""update tabUser set home_settings = %s""", (''), debug=True)
+	frappe.db.sql("""update `tabUser` set home_settings = %s""", (''), debug=True)

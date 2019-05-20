@@ -329,33 +329,32 @@ export default class Grid {
 			this.grid_rows_by_docname[docname].refresh();
 	}
 	make_sortable($rows) {
-		var me =this;
-		if ('ontouchstart' in window) {
-			return;
-		}
-
 		new Sortable($rows.get(0), {
-			group: {name: me.df.fieldname},
+			group: {name: this.df.fieldname},
 			handle: '.sortable-handle',
 			draggable: '.grid-row',
+			animation: 100,
 			filter: 'li, a',
-			onUpdate: function(event, ui) {
-				me.frm.doc[me.df.fieldname] = [];
-				$rows.find(".grid-row").each(function(i, item) {
-					var doc = locals[me.doctype][$(item).attr('data-name')];
-					doc.idx = i + 1;
-					me.frm.doc[me.df.fieldname].push(doc);
-				});
+			onMove: (event) => {
+				// don't move if editable
+				if (!this.is_editable()) {
+					return false;
+				}
 
-				// re-order grid-rows by name
-				me.grid_rows = [];
-				me.frm.doc[me.df.fieldname].forEach(function(d) {
-					me.grid_rows.push(me.grid_rows_by_docname[d.name]);
-				});
-				me.frm.script_manager.trigger(me.df.fieldname + "_move", me.df.options, me.frm.doc[me.df.fieldname][event.newIndex].name);
-				me.refresh();
-
-				me.frm.dirty();
+				// prevent drag behaviour if _sortable property is "false"
+				let idx = $(event.dragged).closest('.grid-row').attr('data-idx');
+				let doc = this.get_data()[idx - 1];
+				if (doc && doc._sortable === false) {
+					return false;
+				}
+			},
+			onUpdate: (event) => {
+				let idx = $(event.item).closest('.grid-row').attr('data-idx');
+				let doc = this.get_data()[idx - 1];
+				this.renumber_based_on_dom();
+				this.frm.script_manager.trigger(this.df.fieldnathis + "_move", this.df.options, doc.nathis);
+				this.refresh();
+				this.frm.dirty();
 			}
 		});
 
@@ -502,6 +501,26 @@ export default class Grid {
 		}
 	}
 
+	renumber_based_on_dom() {
+		// renumber based on dom
+		let me = this;
+		let $rows = $(me.parent).find(".rows");
+
+		me.grid_rows = [];
+		me.frm.doc[me.df.fieldname] = [];
+
+		$rows.find(".grid-row").each(function(i, item) {
+
+			let $item = $(item);
+			let d = locals[me.doctype][$item.attr('data-name')];
+			d.idx = i + 1;
+			$item.attr('data-idx', d.idx);
+
+			me.frm.doc[me.df.fieldname].push(d);
+			me.grid_rows.push(me.grid_rows_by_docname[d.name]);
+		});
+	}
+
 	duplicate_row(d, copy_doc) {
 		$.each(copy_doc, function(key, value) {
 			if(!["creation", "modified", "modified_by", "idx", "owner",
@@ -640,9 +659,11 @@ export default class Grid {
 			// upload
 			frappe.flags.no_socketio = true;
 			$(this.wrapper).find(".grid-upload").removeClass("hide").on("click", function() {
-				frappe.prompt({fieldtype:"Attach", label:"Upload File", fieldname: "upload_file"},
-					function(data) {
-						var data = frappe.utils.csv_to_array(frappe.upload.get_string(data.upload_file));
+				new frappe.ui.FileUploader({
+					as_dataurl: true,
+					allow_multiple: false,
+					on_success(file) {
+						var data = frappe.utils.csv_to_array(frappe.utils.get_decoded_string(file.dataurl));
 						// row #2 contains fieldnames;
 						var fieldnames = data[2];
 
@@ -680,8 +701,8 @@ export default class Grid {
 
 						me.frm.refresh_field(me.df.fieldname);
 						frappe.msgprint({message:__('Table updated'), title:__('Success'), indicator:'green'})
-
-					}, __("Edit via Upload"), __("Update"));
+					}
+				});
 				return false;
 			});
 		}

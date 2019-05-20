@@ -105,6 +105,19 @@ class TestEnergyPointLog(unittest.TestCase):
 		self.assertEquals(energy_points_after_review, energy_points_before_review - criticism_points)
 		self.assertEquals(review_points_after_review, review_points_before_review - criticism_points)
 
+	def test_user_energy_point_as_admin(self):
+		frappe.set_user('Administrator')
+		create_energy_point_rule_for_todo()
+		created_todo = create_a_todo()
+
+		created_todo.status = 'Closed'
+		created_todo.save()
+
+		points_after_closing_todo = get_points('Administrator')
+
+		# no points for admin
+		self.assertEquals(points_after_closing_todo, 0)
+
 def create_energy_point_rule_for_todo(multiplier_field=None):
 	name = 'ToDo Closed'
 	point_rule = frappe.db.get_all(

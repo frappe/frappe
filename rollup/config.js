@@ -8,7 +8,7 @@ const commonjs = require('rollup-plugin-commonjs');
 const node_resolve = require('rollup-plugin-node-resolve');
 const postcss = require('rollup-plugin-postcss');
 const buble = require('rollup-plugin-buble');
-const uglify = require('rollup-plugin-uglify');
+const { terser } = require('rollup-plugin-terser');
 const vue = require('rollup-plugin-vue');
 const frappe_html = require('./frappe-html-plugin');
 
@@ -65,7 +65,7 @@ function get_rollup_options_for_js(output_file, input_files) {
 				paths: node_resolve_paths
 			}
 		}),
-		production && uglify()
+		production && terser()
 	];
 
 	return {

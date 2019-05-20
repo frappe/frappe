@@ -44,6 +44,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				search_modal.find('#modal-search').focus();
 			}, 300);
 		});
+		$('.navbar-toggle-full-width').click(() => {
+			frappe.ui.toolbar.toggle_full_width();
+		});
 	},
 
 	setup_sidebar: function() {
@@ -192,7 +195,17 @@ $.extend(frappe.ui.toolbar, {
 		</li>`).get(0);
 
 		parent_element.insertBefore(new_element, parent_element.children[index]);
-	}
+	},
+	toggle_full_width() {
+		let fullwidth = JSON.parse(localStorage.container_fullwidth || 'false');
+		fullwidth = !fullwidth;
+		localStorage.container_fullwidth = fullwidth;
+		frappe.ui.toolbar.set_fullwidth_if_enabled();
+	},
+	set_fullwidth_if_enabled() {
+		let fullwidth = JSON.parse(localStorage.container_fullwidth || 'false');
+		$(document.body).toggleClass('full-width', fullwidth);
+	},
 });
 
 frappe.ui.toolbar.clear_cache = function() {

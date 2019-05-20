@@ -44,19 +44,24 @@ export default class GridRowForm {
 					<button class="btn btn-default btn-xs pull-right" style="margin-left: 7px;">
 						<i class="octicon octicon-check visible-xs" style="padding-bottom: 2px;"></i>
 						<span class="hidden-xs octicon octicon-triangle-up"></span></button>
-					<button class="btn btn-default btn-xs pull-right grid-insert-row"
-						style="margin-left: 7px;">
-						${ __("Insert Above") }</button>
-					<button class="btn btn-default btn-xs pull-right grid-insert-row-below hidden-xs"
-						style="margin-left: 7px;">
-						${ __("Insert Below") }</button>
-					<button class="btn btn-default btn-xs pull-right grid-duplicate-row hidden-xs"
-						style="margin-left: 7px;">
-						${ __("Duplicate") }</button>
-					<button class="btn btn-danger btn-xs pull-right grid-delete-row">
-						<i class="octicon octicon-trashcan"
-							style="padding-bottom: 2px; margin-top: 1px;"></i>
-					</button>
+					<span class="row-actions">
+						<button class="btn btn-default btn-xs pull-right grid-move-row hidden-xs"
+							style="margin-left: 7px;">
+							${ __("Move") }</button>
+						<button class="btn btn-default btn-xs pull-right grid-duplicate-row hidden-xs"
+							style="margin-left: 7px;">
+							${ __("Duplicate") }</button>
+						<button class="btn btn-default btn-xs pull-right grid-insert-row"
+							style="margin-left: 7px;">
+							${ __("Insert Above") }</button>
+						<button class="btn btn-default btn-xs pull-right grid-insert-row-below hidden-xs"
+							style="margin-left: 7px;">
+							${ __("Insert Below") }</button>
+						<button class="btn btn-danger btn-xs pull-right grid-delete-row">
+							<i class="octicon octicon-trashcan"
+								style="padding-bottom: 2px; margin-top: 1px;"></i>
+						</button>
+					</span>
 				</div>
 			</div>
 			<div class="grid-form-body">
@@ -96,6 +101,10 @@ export default class GridRowForm {
 			.on('click', function() {
 				me.row.insert(true, true, true); return false;
 			});
+		this.wrapper.find(".grid-move-row")
+			.on('click', function() {
+				me.row.move(); return false;
+			});
 		this.wrapper.find(".grid-append-row")
 			.on('click', function() {
 				me.row.toggle_view(false);
@@ -108,7 +117,7 @@ export default class GridRowForm {
 		});
 	}
 	toggle_add_delete_button_display($parent) {
-		$parent.find(".grid-header-toolbar .btn, .grid-footer-toolbar .btn")
+		$parent.find(".row-actions")
 			.toggle(this.row.grid.is_editable());
 	}
 	refresh_field(fieldname) {
@@ -133,4 +142,4 @@ export default class GridRowForm {
 			}
 		}, 500);
 	}
-};
+}

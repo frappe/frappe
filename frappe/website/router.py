@@ -16,6 +16,7 @@ def resolve_route(path):
 
 	The only exceptions are `/about` and `/contact` these will be searched in Web Pages
 	first before checking the standard pages."""
+
 	if path not in ("about", "contact"):
 		context = get_page_info_from_template(path)
 		if context:
@@ -351,51 +352,6 @@ def get_doctypes_with_web_view():
 		return doctypes
 
 	return frappe.cache().get_value('doctypes_with_web_view', _get)
-
-def sync_global_search():
-	'''Sync page content in global search'''
-	from frappe.website.render import render_page
-	from frappe.utils.global_search import sync_global_search
-	from bs4 import BeautifulSoup
-
-	if frappe.flags.update_global_search:
-		sync_global_search()
-	frappe.flags.update_global_search = []
-	frappe.session.user = 'Guest'
-	frappe.local.no_cache = True
-
-	frappe.db.sql("DELETE FROM `__global_search` WHERE `doctype`='Static Web Page'")
-
-	for app in frappe.get_installed_apps(frappe_last=True):
-		app_path = frappe.get_app_path(app)
-
-		folders = get_start_folders()
-
-		for start in folders:
-			for basepath, folders, files in os.walk(os.path.join(app_path, start)):
-				for f in files:
-					if f.endswith('.html') or f.endswith('.md'):
-						path = os.path.join(basepath, f.rsplit('.', 1)[0])
-						try:
-							content = render_page(path)
-							soup = BeautifulSoup(content, 'html.parser')
-							text = ''
-							route = os.path.relpath(path, os.path.join(app_path, start))
-							for div in soup.findAll("div", {'class':'page-content'}):
-								text += div.text
-
-							frappe.flags.update_global_search.append(
-								dict(doctype='Static Web Page',
-									name=route,
-									content=text_type(text),
-									published=1,
-									title=text_type(soup.title.string),
-									route=route))
-
-						except Exception:
-							pass
-
-		sync_global_search()
 
 def get_start_folders():
 	return frappe.local.flags.web_pages_folders or ('www', 'templates/pages')

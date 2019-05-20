@@ -107,11 +107,10 @@ frappe.views.TreeView = Class.extend({
 					me.args[filter.fieldname] = val;
 					if (val) {
 						me.root_label = val;
-						me.page.set_title(val);
 					} else {
 						me.root_label = me.opts.root_label;
-						me.set_title();
 					}
+					me.set_title();
 					me.make_tree();
 				}
 			}

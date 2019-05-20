@@ -1,3 +1,4 @@
+import 'cypress-file-upload';
 // ***********************************************
 // This example commands.js shows you how to
 // create various custom commands and overwrite
@@ -38,7 +39,10 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype='Data') => {
 	let selector = `.form-control[data-fieldname="${fieldname}"]`;
 
 	if (fieldtype === 'Text Editor') {
-		selector = `[data-fieldname="${fieldname}"] .ql-editor`;
+		selector = `[data-fieldname="${fieldname}"] .ql-editor[contenteditable=true]`;
+	}
+	if (fieldtype === 'Code') {
+		selector = `[data-fieldname="${fieldname}"] .ace_text-input`;
 	}
 
 	cy.get(selector).as('input');
@@ -46,7 +50,7 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype='Data') => {
 	if (fieldtype === 'Select') {
 		return cy.get('@input').select(value);
 	} else {
-		return cy.get('@input').type(value);
+		return cy.get('@input').type(value, {waitForAnimations: false});
 	}
 });
 
@@ -74,4 +78,13 @@ Cypress.Commands.add('dialog', (title, fields) => {
 		d.show();
 		return d;
 	});
+});
+
+Cypress.Commands.add('get_open_dialog', () => {
+	return cy.get('.modal:visible').last();
+});
+
+Cypress.Commands.add('hide_dialog', () => {
+	cy.get_open_dialog().find('.btn-modal-close').click();
+	cy.get('.modal:visible').should('not.exist');
 });

@@ -17,7 +17,10 @@ from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate, get_doc_path
 from frappe.database.schema import validate_column_name, validate_column_length
 from frappe.model.docfield import supports_translation
+from frappe.modules.import_file import get_file_path
+from six import iteritems
 import frappe.website.render
+import json
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 
@@ -252,7 +255,8 @@ class DocType(Document):
 		self.update_fields_to_fetch()
 
 		from frappe import conf
-		if not self.custom and not (frappe.flags.in_import or frappe.flags.in_test) and conf.get('developer_mode'):
+		allow_doctype_export = frappe.flags.allow_doctype_export or (not frappe.flags.in_test and conf.get('developer_mode'))
+		if not self.custom and not frappe.flags.in_import and allow_doctype_export:
 			self.export_doc()
 			self.make_controller_template()
 
@@ -343,7 +347,8 @@ class DocType(Document):
 		if merge:
 			frappe.throw(_("DocType can not be merged"))
 
-		if not frappe.flags.in_test and not frappe.flags.in_patch:
+		# Do not rename and move files and folders for custom doctype
+		if not self.custom and not frappe.flags.in_test and not frappe.flags.in_patch:
 			self.rename_files_and_folders(old, new)
 
 	def after_rename(self, old, new, merge=False):
@@ -402,6 +407,72 @@ class DocType(Document):
 			make_property_setter(self.name, "naming_series", "options", naming_series[0].options, "Text", validate_fields_for_doctype=False)
 			if naming_series[0].default:
 				make_property_setter(self.name, "naming_series", "default", naming_series[0].default, "Text", validate_fields_for_doctype=False)
+
+	def before_export(self, docdict):
+		# remove null and empty fields
+		def remove_null_fields(o):
+			to_remove = []
+			for attr, value in iteritems(o):
+				if isinstance(value, list):
+					for v in value:
+						remove_null_fields(v)
+				elif not value:
+					to_remove.append(attr)
+
+			for attr in to_remove:
+				del o[attr]
+
+		remove_null_fields(docdict)
+
+		# retain order of 'fields' table and change order in 'field_order'
+		docdict["field_order"] = [f.fieldname for f in self.fields]
+
+		path = get_file_path(self.module, "DocType", self.name)
+		if os.path.exists(path):
+			try:
+				with open(path, 'r') as txtfile:
+					olddoc = json.loads(txtfile.read())
+
+				old_field_names = [f['fieldname'] for f in olddoc.get("fields", [])]
+				if old_field_names:
+					new_field_dicts = []
+					remaining_field_names = [f.fieldname for f in self.fields]
+
+					for fieldname in old_field_names:
+						field_dict = list(filter(lambda d: d['fieldname'] == fieldname, docdict['fields']))
+						if field_dict:
+							new_field_dicts.append(field_dict[0])
+							remaining_field_names.remove(fieldname)
+
+					for fieldname in remaining_field_names:
+						field_dict = list(filter(lambda d: d['fieldname'] == fieldname, docdict['fields']))
+						new_field_dicts.append(field_dict[0])
+
+					docdict['fields'] = new_field_dicts
+			except ValueError:
+				pass
+
+	@staticmethod
+	def prepare_for_import(docdict):
+		# set order of fields from field_order
+		if docdict.get("field_order"):
+			new_field_dicts = []
+			remaining_field_names = [f['fieldname'] for f in docdict.get('fields', [])]
+
+			for fieldname in docdict.get('field_order'):
+				field_dict = list(filter(lambda d: d['fieldname'] == fieldname, docdict.get('fields', [])))
+				if field_dict:
+					new_field_dicts.append(field_dict[0])
+					remaining_field_names.remove(fieldname)
+
+			for fieldname in remaining_field_names:
+				field_dict = list(filter(lambda d: d['fieldname'] == fieldname, docdict.get('fields', [])))
+				new_field_dicts.append(field_dict[0])
+
+			docdict['fields'] = new_field_dicts
+
+		if "field_order" in docdict:
+			del docdict["field_order"]
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/doctype/[name]/[name].json`."""
@@ -545,7 +616,9 @@ def validate_fields(meta):
 				frappe.throw(_("Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"))
 
 	def check_illegal_default(d):
-		if d.fieldtype == "Check" and d.default and d.default not in ('0', '1'):
+		if d.fieldtype == "Check" and not d.default:
+			d.default = '0'
+		if d.fieldtype == "Check" and d.default not in ('0', '1'):
 			frappe.throw(_("Default for 'Check' type of field must be either '0' or '1'"))
 		if d.fieldtype == "Select" and d.default and (d.default not in d.options.split("\n")):
 			frappe.throw(_("Default for {0} must be an option").format(d.fieldname))

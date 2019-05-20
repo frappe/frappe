@@ -9,8 +9,7 @@ frappe.views.BaseList = class BaseList {
 		frappe.run_serially([
 			() => this.init(),
 			() => this.before_refresh(),
-			() => this.refresh(),
-			() => frappe.route_options = null
+			() => this.refresh()
 		]);
 	}
 
@@ -624,7 +623,8 @@ class FilterArea {
 				options: options,
 				fieldname: df.fieldname,
 				condition: condition,
-				onchange: () => this.refresh_list_view()
+				onchange: () => this.refresh_list_view(),
+				ignore_link_validation: fieldtype === 'Dynamic Link'
 			};
 		}));
 

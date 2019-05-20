@@ -70,6 +70,7 @@ frappe.search.AwesomeBar = Class.extend({
 				} else {
 					me.options = me.options.concat(
 						me.deduplicate(frappe.search.utils.get_recent_pages(txt || "")));
+					me.options = me.options.concat(frappe.search.utils.get_frequent_links());
 				}
 				me.add_help();
 
@@ -203,7 +204,7 @@ frappe.search.AwesomeBar = Class.extend({
 		return out;
 	},
 
-	set_global_results: function(global_results, txt){
+	set_global_results: function(global_results, txt) {
 		this.global_results = this.global_results.concat(global_results);
 	},
 

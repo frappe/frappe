@@ -21,28 +21,30 @@ Object.assign(frappe.energy_points, {
 	format_history_log(log) {
 		// redundant code to honor readability and to avoid confusion
 		const separator = `<span>&nbsp;-&nbsp;</span>`;
+		const route = frappe.utils.get_form_link(log.reference_doctype, log.reference_name);
 		const formatted_log = `<span>
 			${this.get_points(log.points)}&nbsp;
-			<a href="#Form/Energy Point Log/${log.name}">${this.get_history_log_message(log)}</a>
+			<a href="${route}">${this.get_history_log_message(log)}</a>
 			${log.reason ? separator + log.reason: ''}
 			${separator + frappe.datetime.comment_when(log.creation)}
 		</span>`;
 		return formatted_log;
 	},
 	get_history_log_message(log) {
-		const doc_link = frappe.utils.get_form_link(log.reference_doctype, log.reference_name, true);
 		const owner_name = frappe.user.full_name(log.owner).bold();
+		const user = frappe.user.full_name(log.user).bold();
+		const ref_doc = log.reference_name;
+
 		if (log.type === 'Appreciation') {
-			return __('{0} appreciated on {1}', [owner_name, doc_link]);
+			return __('{0} appreciated on {1}', [owner_name, ref_doc]);
 		}
 		if (log.type === 'Criticism') {
-			return __('{0} criticized on {1}', [owner_name, doc_link]);
+			return __('{0} criticized on {1}', [owner_name, ref_doc]);
 		}
 		if (log.type === 'Revert') {
-			return __('{0} reverted {1}', [owner_name,
-				frappe.utils.get_form_link('Energy Point Log', log.revert_of, true)]);
+			return __('{0} reverted {1}', [user, log.revert_of]);
 		}
-		return __('via automatic rule {0} on {1}', [log.rule.bold(), doc_link]);
+		return __('via automatic rule {0} on {1}', [log.rule.bold(), ref_doc]);
 	},
 	get_form_log_message(log) {
 		// redundant code to honor readability and to avoid confusion

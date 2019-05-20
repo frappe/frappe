@@ -11,20 +11,19 @@ frappe.ui.form.Sidebar = Class.extend({
 			.html(sidebar_content)
 			.appendTo(this.page.sidebar.empty());
 
-		this.ratings = this.sidebar.find(".sidebar-rating");
 		this.comments = this.sidebar.find(".sidebar-comments");
 		this.user_actions = this.sidebar.find(".user-actions");
 		this.image_section = this.sidebar.find(".sidebar-image-section");
 		this.image_wrapper = this.image_section.find('.sidebar-image-wrapper');
 		this.make_assignments();
 		this.make_attachments();
+		this.make_review();
 		this.make_shared();
 		this.make_viewers();
 
 		this.make_tags();
 		this.make_like();
 		this.make_follow();
-		this.make_review();
 
 		this.bind_events();
 		frappe.ui.form.setup_user_image_event(this.frm);
@@ -67,7 +66,6 @@ frappe.ui.form.Sidebar = Class.extend({
 					"<br>" + comment_when(this.frm.doc.creation)]));
 
 			this.refresh_like();
-			this.setup_ratings();
 			frappe.ui.form.set_user_image(this.frm);
 		}
 	},
@@ -158,20 +156,10 @@ frappe.ui.form.Sidebar = Class.extend({
 	refresh_image: function() {
 	},
 
-	setup_ratings: function() {
-		var _ratings = this.frm.get_docinfo().rating || 0;
-
-		if(_ratings) {
-			this.ratings.removeClass("hide");
-			var rating_icons = frappe.render_template("rating_icons", {rating: _ratings, show_label: false});
-			this.ratings.find(".rating-icons").html(rating_icons);
-		}
-	},
-
 	make_review: function() {
 		if (frappe.boot.energy_points_enabled && !this.frm.is_new()) {
 			this.frm.reviews = new frappe.ui.form.Review({
-				parent: this.sidebar.find(".form-attachments"),
+				parent: this.sidebar.find(".form-reviews"),
 				frm: this.frm
 			});
 		}

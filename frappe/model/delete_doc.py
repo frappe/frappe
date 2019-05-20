@@ -14,6 +14,8 @@ from frappe.model.naming import revert_series_if_last
 from frappe.utils.global_search import delete_for_document
 from six import string_types, integer_types
 
+doctypes_to_skip = ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File", "Version", "Document Follow", "Comment" , "View Log")
+
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
 	ignore_permissions=False, flags=None, ignore_on_trash=False, ignore_missing=True):
 	"""
@@ -64,6 +66,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 				frappe.db.sql("delete from `tabProperty Setter` where doc_type = %s", name)
 				frappe.db.sql("delete from `tabReport` where ref_doctype=%s", name)
 				frappe.db.sql("delete from `tabCustom DocPerm` where parent=%s", name)
+				frappe.db.sql("delete from `__global_search` where doctype=%s", name)
 
 			delete_from_table(doctype, name, ignore_doctypes, None)
 
@@ -195,7 +198,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 			for item in frappe.db.get_values(link_dt, {link_field:doc.name},
 				["name", "parent", "parenttype", "docstatus"], as_dict=True):
 				linked_doctype = item.parenttype if item.parent else link_dt
-				if linked_doctype in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", 'File', 'Version', "Activity Log", "Document Follow"):
+				if linked_doctype in doctypes_to_skip:
 					# don't check for communication and todo!
 					continue
 
@@ -220,7 +223,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 	'''Raise `frappe.LinkExistsError` if the document is dynamically linked'''
 	for df in get_dynamic_link_map().get(doc.doctype, []):
-		if df.parent in ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", 'File', 'Version', 'View Log', "Document Follow"):
+		if df.parent in doctypes_to_skip:
 			# don't check for communication and todo!
 			continue
 
@@ -275,9 +278,8 @@ def delete_dynamic_links(doctype, name):
 	delete_references('Document Follow', doctype, name, 'ref_doctype', 'ref_docname')
 
 	# unlink communications
+	clear_timeline_references(doctype, name)
 	clear_references('Communication', doctype, name)
-	clear_references('Communication', doctype, name, 'link_doctype', 'link_name')
-	clear_references('Communication', doctype, name, 'timeline_doctype', 'timeline_name')
 
 	clear_references('Activity Log', doctype, name)
 	clear_references('Activity Log', doctype, name, 'timeline_doctype', 'timeline_name')
@@ -298,6 +300,9 @@ def clear_references(doctype, reference_doctype, reference_name,
 			{1}=%s and {2}=%s'''.format(doctype, reference_doctype_field, reference_name_field), # nosec
 		(reference_doctype, reference_name))
 
+def clear_timeline_references(link_doctype, link_name):
+	frappe.db.sql("""delete from `tabDynamic Link`
+		where `tabDynamic Link`.link_doctype='{0}' and `tabDynamic Link`.link_name='{1}'""".format(link_doctype, link_name)) # nosec
 
 def insert_feed(doc):
 	from frappe.utils import get_fullname

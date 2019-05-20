@@ -22,7 +22,7 @@ from frappe.utils.background_jobs import enqueue
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, sender_full_name=None, recipients=None, communication_medium="Email", send_email=False,
 	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, cc=None, bcc=None,
-	flags=None, read_receipt=None, print_letterhead=True):
+	flags=None, read_receipt=None, print_letterhead=True, email_template=None):
 	"""Make a new communication.
 
 	:param doctype: Reference DocType.
@@ -38,6 +38,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	:param print_format: Print Format name of parent document to be sent as attachment.
 	:param attachments: List of attachments as list of files or JSON string.
 	:param send_me_a_copy: Send a copy to the sender (default **False**).
+	:param email_template: Template which is used to compose mail .
 	"""
 
 	is_error_report = (doctype=="User" and name==frappe.session.user and subject=="Error Report")
@@ -66,15 +67,13 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"sent_or_received": sent_or_received,
 		"reference_doctype": doctype,
 		"reference_name": name,
+		"email_template": email_template,
 		"message_id":get_message_id().strip(" <>"),
 		"read_receipt":read_receipt,
 		"has_attachment": 1 if attachments else 0
-	})
-	comm.insert(ignore_permissions=True)
+	}).insert(ignore_permissions=True)
 
-	if not doctype:
-		# if no reference given, then send it against the communication
-		comm.db_set(dict(reference_doctype='Communication', reference_name=comm.name))
+	comm.save(ignore_permissions=True)
 
 	if isinstance(attachments, string_types):
 		attachments = json.loads(attachments)
@@ -556,4 +555,3 @@ def mark_email_as_seen(name=None):
 		frappe.response["type"] = 'binary'
 		frappe.response["filename"] = "imaginary_pixel.png"
 		frappe.response["filecontent"] = buffered_obj.getvalue()
-

@@ -117,6 +117,12 @@ class Document(BaseDocument):
 			# incorrect arguments. let's not proceed.
 			raise ValueError('Illegal arguments')
 
+	@staticmethod
+	def whitelist(f):
+		"""Decorator: Whitelist method to be called remotely via REST API."""
+		f.whitelisted = True
+		return f
+
 	def reload(self):
 		"""Reload document from database"""
 		self.load_from_db()
@@ -224,6 +230,9 @@ class Document(BaseDocument):
 		self.set_docstatus()
 		self.flags.in_insert = False
 
+		# follow document on document creation
+
+
 		# run validate, on update etc.
 
 		# parent
@@ -253,6 +262,8 @@ class Document(BaseDocument):
 		if hasattr(self, "__islocal"):
 			delattr(self, "__islocal")
 
+		if not (frappe.flags.in_migrate or frappe.local.flags.in_install):
+			follow_document(self.doctype, self.name, frappe.session.user)
 		return self
 
 	def save(self, *args, **kwargs):
@@ -370,13 +381,7 @@ class Document(BaseDocument):
 				(self.name, self.doctype, fieldname))
 
 	def get_doc_before_save(self):
-		if not getattr(self, '_doc_before_save', None):
-			try:
-				self._doc_before_save = frappe.get_doc(self.doctype, self.name)
-			except frappe.DoesNotExistError:
-				self._doc_before_save = None
-				frappe.clear_last_message()
-		return self._doc_before_save
+		return getattr(self, '_doc_before_save', None)
 
 	def set_new_name(self, force=False):
 		"""Calls `frappe.naming.se_new_name` for parent and child docs."""
@@ -834,11 +839,6 @@ class Document(BaseDocument):
 			elif alert.event=='Method' and method == alert.method:
 				_evaluate_alert(alert)
 
-	@staticmethod
-	def whitelist(f):
-		f.whitelisted = True
-		return f
-
 	@whitelist.__func__
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
@@ -899,11 +899,12 @@ class Document(BaseDocument):
 	def load_doc_before_save(self):
 		'''Save load document from db before saving'''
 		self._doc_before_save = None
-		if not (self.is_new()
-			and (getattr(self.meta, 'track_changes', False)
-				or self.meta.get_set_only_once_fields()
-				or self.meta.get_workflow())):
-			self.get_doc_before_save()
+		if not self.is_new():
+			try:
+				self._doc_before_save = frappe.get_doc(self.doctype, self.name)
+			except frappe.DoesNotExistError:
+				self._doc_before_save = None
+				frappe.clear_last_message()
 
 	def run_post_save_methods(self):
 		"""Run standard methods after `INSERT` or `UPDATE`. Standard Methods are:
@@ -1017,12 +1018,6 @@ class Document(BaseDocument):
 			version.insert(ignore_permissions=True)
 			if not frappe.flags.in_migrate:
 				follow_document(self.doctype, self.name, frappe.session.user)
-
-	@staticmethod
-	def whitelist(f):
-		"""Decorator: Whitelist method to be called remotely via REST API."""
-		f.whitelisted = True
-		return f
 
 	@staticmethod
 	def hook(f):

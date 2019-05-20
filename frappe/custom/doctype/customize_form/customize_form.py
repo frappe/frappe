@@ -28,6 +28,7 @@ doctype_properties = {
 	'editable_grid': 'Check',
 	'max_attachments': 'Int',
 	'track_changes': 'Check',
+	'track_views': 'Check',
 }
 
 docfield_properties = {
@@ -86,6 +87,9 @@ class CustomizeForm(Document):
 
 		if self.doc_type in core_doctypes_list:
 			return frappe.msgprint(_("Core DocTypes cannot be customized."))
+
+		if meta.issingle:
+			return frappe.msgprint(_("Single DocTypes cannot be customized."))
 
 		if meta.custom:
 			return frappe.msgprint(_("Only standard DocTypes are allowed to be customized from Customize Form."))
@@ -157,7 +161,7 @@ class CustomizeForm(Document):
 			frappe.db.updatedb(self.doc_type)
 
 		if not hasattr(self, 'hide_success') or not self.hide_success:
-			frappe.msgprint(_("{0} updated").format(_(self.doc_type)))
+			frappe.msgprint(_("{0} updated").format(_(self.doc_type)), alert=True)
 		frappe.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()
 

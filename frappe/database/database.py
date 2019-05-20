@@ -46,9 +46,10 @@ class Database(object):
 	class InvalidColumnName(frappe.ValidationError): pass
 
 
-	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default=0):
+	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default=0, port=None):
 		self.setup_type_map()
 		self.host = host or frappe.conf.db_host or 'localhost'
+		self.port = port or frappe.conf.db_port or ''
 		self.user = user or frappe.conf.db_name
 		self.db_name = frappe.conf.db_name
 		self._conn = None
@@ -153,6 +154,10 @@ class Database(object):
 					frappe.log(values)
 					frappe.log(">>>>")
 				self._cursor.execute(query, values)
+
+				if frappe.flags.in_migrate:
+					self.log_touched_tables(query, values)
+
 			else:
 				if debug:
 					if explain:
@@ -165,6 +170,9 @@ class Database(object):
 
 				self._cursor.execute(query)
 
+				if frappe.flags.in_migrate:
+					self.log_touched_tables(query)
+
 			if debug:
 				time_end = time()
 				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
@@ -172,6 +180,10 @@ class Database(object):
 		except Exception as e:
 			if(frappe.conf.db_type == 'postgres'):
 				self.rollback()
+
+			if frappe.conf.db_type == 'mariadb' and self.is_syntax_error(e):
+				frappe.errprint('Syntax error in query:')
+				frappe.errprint(query)
 
 			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
@@ -833,7 +845,7 @@ class Database(object):
 		"""Returns list of column names from given doctype."""
 		columns = self.get_db_table_columns('tab' + doctype)
 		if not columns:
-			raise self.ProgrammingError
+			raise self.TableMissingError
 		return columns
 
 	def has_column(self, doctype, column):
@@ -911,6 +923,20 @@ class Database(object):
 			), values)
 		else:
 			frappe.throw('No conditions provided')
+
+	def log_touched_tables(self, query, values=None):
+		if values:
+			query = frappe.safe_decode(self._cursor.mogrify(query, values))
+		if query.strip().lower().split()[0] in ('insert', 'delete', 'update', 'alter'):
+			# ([`\"']?) Captures ', " or ` at the begining of the table name (if provided)
+			# (tab([A-Z]\w+)( [A-Z]\w+)*) Captures table names that start with "tab"
+			# and are continued with multiple words that start with a captital letter
+			# e.g. 'tabXxx' or 'tabXxx Xxx' or 'tabXxx Xxx Xxx' and so on
+			# \1 matches the first captured group (quote character) at the end of the table name
+			tables = [groups[1] for groups in re.findall(r'([`"\']?)(tab([A-Z]\w+)( [A-Z]\w+)*)\1', query)]
+			if frappe.flags.touched_tables is None:
+				frappe.flags.touched_tables = set()
+			frappe.flags.touched_tables.update(tables)
 
 
 def enqueue_jobs_after_commit():

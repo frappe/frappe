@@ -183,7 +183,7 @@ frappe.RoleEditor = Class.extend({
 						<td>%(set_user_permissions)s</td>\
 						</tr>', perm));
 				}
-
+				me.perm_dialog.set_title(role);
 				me.perm_dialog.show();
 			}
 		});
@@ -191,7 +191,7 @@ frappe.RoleEditor = Class.extend({
 	},
 	make_perm_dialog: function() {
 		this.perm_dialog = new frappe.ui.Dialog({
-			title:__('Role Permissions')
+			title: __('Role Permissions')
 		});
 
 		this.perm_dialog.$wrapper.find('.modal-dialog').css("width", "800px");

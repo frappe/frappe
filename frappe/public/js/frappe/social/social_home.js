@@ -48,33 +48,6 @@ frappe.social.post_dialog = new frappe.ui.Dialog({
 	}
 });
 
-frappe.social.update_user_image = new frappe.ui.Dialog({
-	title: __("User Image"),
-	fields: [
-		{
-			fieldtype: "Attach Image",
-			fieldname: "image",
-			label: __("Image"),
-			reqd: 1,
-			default: frappe.user.image()
-		},
-	],
-	primary_action_label: __('Set Image'),
-	primary_action: (values) => {
-		const user = frappe.session.user;
-		frappe.db.set_value('User', user, 'user_image', values.image)
-			.then((resp) => {
-				frappe.boot.user_info[user].image = resp.message.user_image;
-				frappe.app_updates.trigger('user_image_updated');
-				frappe.social.update_user_image.clear();
-				frappe.social.update_user_image.hide();
-			})
-			.fail((err) => {
-				frappe.msgprint(err);
-			});
-	}
-});
-
 frappe.social.is_home_page = () => {
 	return frappe.get_route()[0] === 'social' && frappe.get_route()[1] === 'home';
 };

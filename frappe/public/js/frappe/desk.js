@@ -45,6 +45,7 @@ frappe.Application = Class.extend({
 		this.make_nav_bar();
 		this.set_favicon();
 		this.setup_analytics();
+		this.set_fullwidth_if_enabled();
 
 		this.setup_energy_point_listeners();
 
@@ -123,7 +124,7 @@ frappe.Application = Class.extend({
 				}
 			}
 		}
-
+		this.link_preview = new frappe.ui.LinkPreview();
 	},
 
 	setup_frappe_vue() {
@@ -268,7 +269,10 @@ frappe.Application = Class.extend({
 	refresh_notifications: function() {
 		var me = this;
 		if(frappe.session_alive && frappe.boot && frappe.boot.home_page !== 'setup-wizard') {
-			return frappe.call({
+			if (this._refresh_notifications) {
+				this._refresh_notifications.abort();
+			}
+			this._refresh_notifications = frappe.call({
 				type: 'GET',
 				method: "frappe.desk.notifications.get_notifications",
 				callback: function(r) {
@@ -507,6 +511,10 @@ frappe.Application = Class.extend({
 		}
 	},
 
+	set_fullwidth_if_enabled() {
+		frappe.ui.toolbar.set_fullwidth_if_enabled();
+	},
+
 	show_notes: function() {
 		var me = this;
 		if(frappe.boot.notes.length) {
@@ -556,7 +564,7 @@ frappe.Application = Class.extend({
 		frappe.realtime.on('energy_point_alert', (message) => {
 			frappe.show_alert(message);
 		});
-	}
+	},
 });
 
 frappe.get_module = function(m, default_module) {

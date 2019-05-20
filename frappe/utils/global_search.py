@@ -7,6 +7,8 @@ import frappe
 import re
 import redis
 import json
+import os
+from bs4 import BeautifulSoup
 from frappe.utils import cint, strip_html_tags
 from frappe.model.base_document import get_controller
 from six import text_type
@@ -269,12 +271,66 @@ def update_global_search(doc):
 			route=route
 		)
 
-		try:
-			# append to search queue if connected
-			frappe.cache().lpush('global_search_queue', json.dumps(value))
-		except redis.exceptions.ConnectionError:
-			# not connected, sync directly
-			sync_value(value)
+		sync_value_in_queue(value)
+
+def update_global_search_for_all_web_pages():
+	routes_to_index = get_routes_to_index()
+	for route in routes_to_index:
+		add_route_to_global_search(route)
+	sync_global_search()
+
+
+def get_routes_to_index():
+	apps = frappe.get_installed_apps()
+
+	routes_to_index = []
+	for app in apps:
+		base = frappe.get_app_path(app, 'www')
+		path_to_index = frappe.get_app_path(app, 'www')
+
+		for dirpath, _, filenames in os.walk(path_to_index, topdown=True):
+			for f in filenames:
+				if f.endswith(('.md', '.html')):
+					filepath = os.path.join(dirpath, f)
+
+					route = os.path.relpath(filepath, base)
+					route = route.split('.')[0]
+
+					if route.endswith('index'):
+						route = route.rsplit('index', 1)[0]
+
+					routes_to_index.append(route)
+
+	return routes_to_index
+
+
+def add_route_to_global_search(route):
+	from frappe.website.render import render_page
+	from frappe.tests.test_website import set_request
+	frappe.set_user('Guest')
+	frappe.local.no_cache = True
+
+	try:
+		set_request(method='GET', path=route)
+		content = render_page(route)
+		soup = BeautifulSoup(content, 'html.parser')
+		page_content = soup.find(class_='page_content')
+		text_content = page_content.text if page_content else ''
+		title = soup.title.text.strip() if soup.title else route
+
+		value = dict(
+			doctype='Static Web Page',
+			name=route,
+			content=text_content,
+			published=1,
+			title=title,
+			route=route
+		)
+		sync_value_in_queue(value)
+	except (frappe.PermissionError, frappe.DoesNotExistError, frappe.ValidationError, Exception):
+		pass
+
+	frappe.set_user('Administrator')
 
 
 def get_formatted_value(value, field):
@@ -304,6 +360,14 @@ def sync_global_search():
 	"""
 	while frappe.cache().llen('global_search_queue') > 0:
 		value = json.loads(frappe.cache().lpop('global_search_queue').decode('utf-8'))
+		sync_value(value)
+
+def sync_value_in_queue(value):
+	try:
+		# append to search queue if connected
+		frappe.cache().lpush('global_search_queue', json.dumps(value))
+	except redis.exceptions.ConnectionError:
+		# not connected, sync directly
 		sync_value(value)
 
 def sync_value(value):
@@ -393,10 +457,11 @@ def search(text, start=0, limit=20, doctype=""):
 
 
 @frappe.whitelist(allow_guest=True)
-def web_search(text, start=0, limit=20):
+def web_search(text, scope=None, start=0, limit=20):
 	"""
 	Search for given text in __global_search where published = 1
 	:param text: phrase to be searched
+	:param scope: search only in this route, for e.g /docs
 	:param start: start results at, default 0
 	:param limit: number of results to return, default 20
 	:return: Array of result objects
@@ -410,9 +475,13 @@ def web_search(text, start=0, limit=20):
 			WHERE {conditions}
 			LIMIT {limit} OFFSET {start}'''
 
-		mariadb_conditions = postgres_conditions = "`published` = 1 AND "
+		scope_condition = '`route` like "{}%" AND '.format(scope) if scope else ''
+		published_condition = '`published` = 1 AND '
+		mariadb_conditions = postgres_conditions = ' '.join([published_condition, scope_condition])
 
-		mariadb_conditions += 'MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)'.format(frappe.db.escape('+' + text + '*'))
+		# https://mariadb.com/kb/en/library/full-text-index-overview/#in-boolean-mode
+		text = '"{}"'.format(text)
+		mariadb_conditions += 'MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)'.format(frappe.db.escape(text))
 		postgres_conditions += 'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({})'.format(frappe.db.escape(text))
 
 		result = frappe.db.multisql({
@@ -425,4 +494,18 @@ def web_search(text, start=0, limit=20):
 				tmp_result.append(i)
 		results += tmp_result
 
+	# chart of accounts -> {chart, of, accounts}
+	# titles that match the most of these words will have high relevance
+	words = set(get_distinct_words(text))
+	for r in results:
+		title_words = set(get_distinct_words(r.title))
+		words_match = len(words.intersection(title_words))
+		r.relevance = words_match
+
+	results = sorted(results, key=lambda x: x.relevance, reverse=True)
 	return results
+
+def get_distinct_words(text):
+	text = text.replace('"', '')
+	text = text.replace("'", '')
+	return [w.strip().lower() for w in text.split(' ')]

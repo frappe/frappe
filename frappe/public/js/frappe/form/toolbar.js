@@ -160,7 +160,7 @@ frappe.ui.form.Toolbar = Class.extend({
 				me.frm.savetrash();}, true);
 		}
 
-		if(frappe.user_roles.includes("System Manager")) {
+		if(frappe.user_roles.includes("System Manager") && me.frm.meta.issingle === 0) {
 			this.page.add_menu_item(__("Customize"), function() {
 				frappe.set_route("Form", "Customize Form", {
 					doc_type: me.frm.doctype
@@ -172,16 +172,6 @@ frappe.ui.form.Toolbar = Class.extend({
 				this.page.add_menu_item(__("Edit DocType"), function() {
 					frappe.set_route('Form', 'DocType', me.frm.doctype);
 				}, true);
-			}
-		}
-
-		// feedback
-		if(!this.frm.doc.__unsaved) {
-			if(is_submittable && docstatus == 1) {
-				this.page.add_menu_item(__("Request Feedback"), function() {
-					var feedback = new frappe.utils.Feedback();
-					feedback.manual_feedback_request(me.frm.doc);
-				}, true)
 			}
 		}
 
