@@ -89,6 +89,11 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
+					"name": "Google Contacts Settings",
+					"description": _("Google Contacts integration"),
+				},
+				{
+					"type": "doctype",
 					"name": "Google Maps Settings",
 					"description": _("Google Maps integration"),
 				},

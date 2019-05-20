@@ -1,0 +1,110 @@
+{
+ "allow_copy": 1,
+ "creation": "2019-05-19 22:25:37.577175",
+ "doctype": "DocType",
+ "document_type": "System",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "enable",
+  "google_credentials",
+  "client_id",
+  "client_secret",
+  "section_break_7",
+  "refresh_token",
+  "authorization_code",
+  "column_break_10",
+  "session_token",
+  "state"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "enable",
+   "fieldtype": "Check",
+   "label": "Enable"
+  },
+  {
+   "depends_on": "eval:doc.enable",
+   "fieldname": "google_credentials",
+   "fieldtype": "Section Break",
+   "label": "Google API Credentials"
+  },
+  {
+   "fieldname": "client_id",
+   "fieldtype": "Data",
+   "label": "Client ID"
+  },
+  {
+   "fieldname": "client_secret",
+   "fieldtype": "Password",
+   "label": "Client Secret"
+  },
+  {
+   "fieldname": "section_break_7",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "refresh_token",
+   "fieldtype": "Password",
+   "hidden": 1,
+   "label": "Refresh Token",
+   "no_copy": 1,
+   "print_hide": 1,
+   "report_hide": 1
+  },
+  {
+   "fieldname": "authorization_code",
+   "fieldtype": "Password",
+   "hidden": 1,
+   "label": "Authorization Code",
+   "no_copy": 1,
+   "print_hide": 1,
+   "report_hide": 1
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "session_token",
+   "fieldtype": "Password",
+   "hidden": 1,
+   "label": "Session Token",
+   "no_copy": 1,
+   "print_hide": 1,
+   "report_hide": 1
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "state",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "issingle": 1,
+ "modified": "2019-05-19 22:25:37.577175",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Google Contacts Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "read_only": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
