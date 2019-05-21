@@ -161,49 +161,58 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	'''Returns list of communications for a given document'''
 	if not fields:
 		fields = '''
-			`tabCommunication`.name, `tabCommunication`.communication_type, `tabCommunication`.communication_medium,
-			`tabCommunication`.comment_type, `tabCommunication`.communication_date, `tabCommunication`.content,
-			`tabCommunication`.sender, `tabCommunication`.sender_full_name, `tabCommunication`.cc, `tabCommunication`.bcc,
-			`tabCommunication`.creation, `tabCommunication`.subject, `tabCommunication`.delivery_status,
-			`tabCommunication`._liked_by, `tabCommunication`.reference_doctype, `tabCommunication`.reference_name,
-			`tabCommunication`.read_by_recipient, `tabCommunication`.rating
+			C.name, C.communication_type, C.communication_medium,
+			C.comment_type, C.communication_date, C.content,
+			C.sender, C.sender_full_name, C.cc, C.bcc,
+			C.creation, C.subject, C.delivery_status,
+			C._liked_by, C.reference_doctype, C.reference_name,
+			C.read_by_recipient, C.rating
 		'''
 
-	conditions = '''
-		`tabCommunication`.communication_type in ('Communication', 'Feedback')
-		and	(
-				(`tabCommunication`.reference_doctype=%(doctype)s and `tabCommunication`.reference_name=%(name)s)
-				or (
-					(`tabCommunication Link`.link_doctype=%(doctype)s and `tabCommunication Link`.link_name=%(name)s)
-					and (`tabCommunication`.communication_type='Communication')
-				)
-			)
-	'''
-
+	conditions = ''
 	if after:
 		# find after a particular date
 		conditions += '''
-			and `tabCommunication`.creation > {0}
+			AND C.creation > {0}
 		'''.format(after)
 
 	if doctype=='User':
 		conditions += '''
-			and not (`tabCommunication`.reference_doctype='User' and `tabCommunication`.communication_type='Communication')
+			AND NOT (C.reference_doctype='User' AND C.communication_type='Communication')
 		'''
 
+	# communications linked to reference_doctype
+	part1 = '''
+		SELECT {fields}
+		FROM `tabCommunication` as C
+		WHERE C.communication_type IN ('Communication', 'Feedback')
+		AND (C.reference_doctype = %(doctype)s AND C.reference_name = %(name)s)
+		{conditions}
+	'''.format(fields=fields, conditions=conditions)
+
+	# communications linked in Timeline Links
+	part2 = '''
+		SELECT {fields}
+		FROM `tabCommunication` as C
+		INNER JOIN `tabDynamic Link` ON C.name=`tabDynamic Link`.parent
+		WHERE C.communication_type IN ('Communication', 'Feedback')
+		AND `tabDynamic Link`.link_doctype = %(doctype)s AND `tabDynamic Link`.link_name = %(name)s
+		{conditions}
+	'''.format(fields=fields, conditions=conditions)
+
 	communications = frappe.db.sql('''
-		select distinct {fields}
-		from `tabCommunication`
-			inner join `tabCommunication Link`
-				on `tabCommunication`.name=`tabCommunication Link`.parent
-		where {conditions} {group_by}
-		order by `tabCommunication`.creation desc
-		limit %(limit)s offset %(start)s'''.format(fields = fields, conditions=conditions, group_by=group_by or ""),{
-			"doctype": doctype,
-			"name": name,
-			"start": frappe.utils.cint(start),
-			"limit": limit
-		}, as_dict=as_dict)
+		SELECT *
+		FROM (({part1}) UNION ({part2})) AS combined
+		{group_by}
+		ORDER BY combined.creation DESC
+		LIMIT %(limit)s
+		OFFSET %(start)s
+	'''.format(part1=part1, part2=part2, group_by=(group_by or '')), dict(
+		doctype=doctype,
+		name=name,
+		start=frappe.utils.cint(start),
+		limit=limit
+	), as_dict=as_dict)
 
 	return communications
 
