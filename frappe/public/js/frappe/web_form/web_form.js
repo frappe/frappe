@@ -8,8 +8,11 @@ frappe.ready(function() {
 			doctype: web_form_doctype,
 			web_form_name: web_form_name
 		})
-		document.querySelector("body").style.display = "block";
 	} else {
+		// If editing is not allowed redirect to a new form
+		if (web_form_settings.doc_name && web_form_settings.allow_edit === 0) {
+			window.location.replace(window.location.pathname + "?new=1")
+		}
 		get_data().then(res => {
 			const data = setup_fields(res.message);
 			data.doc = res.message.doc
@@ -23,9 +26,9 @@ frappe.ready(function() {
 			});
 
 			web_form.make();
-			document.querySelector("body").style.display = "block";
 		});
 	}
+	document.querySelector("body").style.display = "block";
 
 	function get_data() {
 		return frappe.call({

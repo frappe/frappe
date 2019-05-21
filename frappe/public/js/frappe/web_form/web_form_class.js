@@ -97,7 +97,7 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 				web_form_name: this.name,
 				docname: this.doc.name
 			}
-		})
+		});
 	}
 
 	handle_success(data) {
@@ -126,21 +126,21 @@ frappe.views.WebFormList = class WebFormList {
 	constructor(opts) {
 		Object.assign(this, opts);
 		window.web_form_list = this;
-		this.rows = []
-		this.wrapper = document.getElementById("datatable")
-		this.refresh_list();
+		this.wrapper = document.getElementById("datatable");
+		this.refresh();
 		this.make_actions();
 	}
 
-	refresh_list() {
-		if (this.table) {
-			this.table.remove();
-			delete this.table;
-		}
+	refresh() {
+		this.table && this.table.remove() && delete this.table;
+		this.rows = [];
+		this.page_length = 20;
+		this.web_list_start = 0;
+
 		frappe.run_serially([
 			() => this.get_list_view_fields(),
 			() => this.get_data(),
-			() => this.make_table()
+			() => this.make_table(),
 		]);
 	}
 
@@ -151,28 +151,43 @@ frappe.views.WebFormList = class WebFormList {
 					"frappe.website.doctype.web_form.web_form.get_in_list_view_fields",
 				args: { doctype: this.doctype }
 			})
-			.then(response => this.fields_list = response.message);
+			.then(response => (this.fields_list = response.message));
 	}
 
-	get_data() {
-		return frappe
-			.call({
-				method: "frappe.www.list.get_list_data",
-				args: {
-					doctype: this.doctype,
-					fields: this.fields_list.map(df => df.fieldname),
-					web_form_name: this.web_form_name
-				}
-			})
-			.then(response => this.data = response.message);
+	fetch_data() {
+		return frappe.call({
+			method: "frappe.www.list.get_list_data",
+			args: {
+				doctype: this.doctype,
+				fields: this.fields_list.map(df => df.fieldname),
+				limit_start: this.web_list_start,
+				web_form_name: this.web_form_name
+			}
+		});
+	}
+
+	async get_data() {
+		let response = await this.fetch_data();
+		this.data = await response.message;
+	}
+
+	more() {
+		this.web_list_start += this.page_length
+		this.fetch_data().then((res) => {
+			if (res.message.length === 0) {
+				frappe.msgprint("No more items to display")
+			}
+			this.append_rows(res.message)
+		})
+
 	}
 
 	make_table() {
 		this.table = document.createElement("table");
-		this.table.classList.add("table", "table-bordered", "table-hover");
+		this.table.classList.add("table", "table-bordered");
 
 		this.make_table_head();
-		this.make_table_rows();
+		this.append_rows(this.data);
 
 		this.wrapper.appendChild(this.table);
 	}
@@ -215,9 +230,9 @@ frappe.views.WebFormList = class WebFormList {
 		}
 	}
 
-	make_table_rows() {
+	append_rows(row_data) {
 		const tbody = this.table.childNodes[1] || this.table.createTBody();
-		this.data.forEach((data_item, index) => {
+		row_data.forEach((data_item) => {
 			let row_element = tbody.insertRow();
 			row_element.setAttribute("id", data_item.name);
 
@@ -225,7 +240,7 @@ frappe.views.WebFormList = class WebFormList {
 				row: row_element,
 				doc: data_item,
 				columns: this.columns,
-				serial_number: index + 1,
+				serial_number: web_form_list.rows.length + 1,
 				events: {
 					onEdit: () => this.open_form(data_item.name),
 					onSelect: () => this.toggle_delete()
@@ -243,6 +258,7 @@ frappe.views.WebFormList = class WebFormList {
 		addButton(actions, "delete-rows", "danger", true, "Delete", () =>
 			this.delete_rows()
 		);
+
 		addButton(
 			actions,
 			"new",
@@ -251,8 +267,9 @@ frappe.views.WebFormList = class WebFormList {
 			"New",
 			() => (window.location.href = window.location.pathname + "?new=1")
 		);
-		addButton(footer, "more", "secondary", false, "More", () =>
-			this.get_more_data()
+
+		if (this.rows.length >= this.page_length) addButton(footer, "more", "secondary", false, "More", () =>
+			this.more()
 		);
 
 		function addButton(wrapper, id, type, hidden, name, action) {
@@ -312,7 +329,10 @@ frappe.views.WebFormList = class WebFormList {
 					docnames: this.get_selected().map(row => row.doc.name)
 				}
 			})
-			.then(() => this.refresh_list());
+			.then(() => {
+				this.refresh()
+				this.toggle_delete()
+			});
 	}
 };
 
