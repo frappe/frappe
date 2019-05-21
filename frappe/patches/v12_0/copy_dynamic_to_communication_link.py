@@ -3,8 +3,6 @@ from __future__ import unicode_literals
 import frappe
 
 def execute():
-	frappe.reload_doc('core', 'doctype', 'communication')
-
 	frappe.db.sql("""
 		INSERT INTO `tabCommunication Link`
 		SELECT * FROM `tabDynamic Link`
