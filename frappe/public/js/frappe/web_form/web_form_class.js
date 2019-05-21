@@ -51,17 +51,15 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 		);
 		delete_button.innerText = "Delete";
 		delete_button.onclick = () => this.delete();
-		document
-			.querySelector(".web-form-actions")
-			.appendChild(delete_button);
+		document.querySelector(".web-form-actions").appendChild(delete_button);
 	}
 
 	save() {
 		// Handle data
 		let data = this.get_values();
 		if (this.doc) {
-			Object.keys(data).forEach((field) => this.doc[field] = data[field])
-			data = this.doc
+			Object.keys(data).forEach(field => (this.doc[field] = data[field]));
+			data = this.doc;
 		}
 		if (!data || window.saving) return;
 		data.doctype = this.doc_type;
@@ -182,6 +180,8 @@ frappe.views.WebFormList = class WebFormList {
 	make_table_head() {
 		// Create Heading
 		let thead = this.table.createTHead();
+		thead.style.backgroundColor = "#f7fafc";
+		thead.style.color = "#8d99a6";
 		let row = thead.insertRow();
 		this.columns = this.fields_list.map(df => {
 			return {
@@ -207,18 +207,16 @@ frappe.views.WebFormList = class WebFormList {
 			th.appendChild(text);
 			row.appendChild(th);
 		});
-		add_heading(row, "Edit")
-
 
 		function add_heading(row, label) {
-			let th = document.createElement("th")
+			let th = document.createElement("th");
 			th.innerText = label;
 			row.appendChild(th);
 		}
 	}
 
 	make_table_rows() {
-		const tbody = this.table.createTBody();
+		const tbody = this.table.childNodes[1] || this.table.createTBody();
 		this.data.forEach((data_item, index) => {
 			let row_element = tbody.insertRow();
 			row_element.setAttribute("id", data_item.name);
@@ -238,9 +236,56 @@ frappe.views.WebFormList = class WebFormList {
 		});
 	}
 
+	make_actions() {
+		const actions = document.querySelector(".list-view-actions");
+		const footer = document.querySelector(".list-view-footer");
+
+		addButton(actions, "delete-rows", "danger", true, "Delete", () =>
+			this.delete_rows()
+		);
+		addButton(
+			actions,
+			"new",
+			"primary",
+			false,
+			"New",
+			() => (window.location.href = window.location.pathname + "?new=1")
+		);
+		addButton(footer, "more", "secondary", false, "More", () =>
+			this.get_more_data()
+		);
+
+		function addButton(wrapper, id, type, hidden, name, action) {
+			const button = document.createElement("button");
+			button.classList.add("btn", "btn-primary", "btn-sm", "ml-2");
+			if (type == "secondary")
+				button.classList.add(
+					"btn",
+					"btn-secondary",
+					"btn-sm",
+					"ml-2",
+					"text-white"
+				);
+			if (type == "danger")
+				button.classList.add(
+					"btn",
+					"btn-danger",
+					"button-delete",
+					"btn-sm",
+					"ml-2"
+				);
+
+			button.id = id;
+			button.innerText = name;
+			button.hidden = hidden;
+
+			button.onclick = action;
+			wrapper.appendChild(button);
+		}
+	}
+
 	toggle_select_all(checked) {
 		this.rows.forEach(row => row.toggle_select(checked));
-		this.toggle_delete();
 	}
 
 	open_form(name) {
@@ -251,49 +296,28 @@ frappe.views.WebFormList = class WebFormList {
 		return this.rows.filter(row => row.is_selected());
 	}
 
-	make_actions() {
-		const delete_button = document.createElement("button");
-		delete_button.id = "delete-select-row";
-		delete_button.classList.add(
-			"btn",
-			"btn-danger",
-			"button-delete",
-			"btn-sm",
-			"ml-2"
-		);
-		delete_button.innerText = "Delete";
-		delete_button.hidden = true;
-		delete_button.onclick = () => this.delete_rows();
-		document.querySelector(".list-view-actions").appendChild(delete_button);
-
-		const new_button = document.createElement("button");
-		new_button.id = "new-row";
-		new_button.classList.add("btn", "btn-primary", "btn-sm", "ml-2");
-		new_button.innerText = "New";
-		new_button.onclick = () =>
-			(window.location.href = window.location.pathname + "?new=1");
-		document.querySelector(".list-view-actions").appendChild(new_button);
-	}
-
 	toggle_delete() {
-		let btn = document.getElementById("delete-select-row");
+		let btn = document.getElementById("delete-rows");
 		btn.hidden = !this.get_selected().length;
 	}
 
 	delete_rows() {
-		frappe.call({
-			type:"POST",
-			method: "frappe.website.doctype.web_form.web_form.delete_multiple",
-			args: {
-				web_form_name: this.web_form_name,
-				docnames: this.get_selected().map(row => row.doc.name)
-			}
-		}).then(() => this.refresh_list());
+		frappe
+			.call({
+				type: "POST",
+				method:
+					"frappe.website.doctype.web_form.web_form.delete_multiple",
+				args: {
+					web_form_name: this.web_form_name,
+					docnames: this.get_selected().map(row => row.doc.name)
+				}
+			})
+			.then(() => this.refresh_list());
 	}
 };
 
 frappe.ui.WebFromListRow = class WebFromListRow {
-	constructor({ row, doc, columns, serial_number, events }) {
+	constructor({ row, doc, columns, serial_number, events, options }) {
 		Object.assign(this, { row, doc, columns, serial_number, events });
 		this.make_row();
 	}
@@ -316,19 +340,12 @@ frappe.ui.WebFromListRow = class WebFromListRow {
 
 		this.columns.forEach(field => {
 			let cell = this.row.insertCell();
-			let text = document.createTextNode(this.doc[field.fieldname] || '');
+			let text = document.createTextNode(this.doc[field.fieldname] || "");
 			cell.appendChild(text);
 		});
 
-		let cell = this.row.insertCell();
-		cell.classList.add("text-center");
-
-		let editButton = document.createElement("button");
-		editButton.classList.add("btn", "btn-default", "btn-xs");
-		editButton.innerHTML = `<i class="octicon octicon-pencil"></i>`;
-		editButton.onclick = event => this.events.onEdit();
-		cell.appendChild(editButton);
-		this.row.appendChild(cell);
+		// this.row.onclick = () => this.events.onEdit();
+		this.row.style.cursor = "pointer";
 	}
 
 	toggle_select(checked) {
