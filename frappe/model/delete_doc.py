@@ -301,8 +301,8 @@ def clear_references(doctype, reference_doctype, reference_name,
 		(reference_doctype, reference_name))
 
 def clear_timeline_references(link_doctype, link_name):
-	frappe.db.sql("""delete from `tabDynamic Link`
-		where `tabDynamic Link`.link_doctype='{0}' and `tabDynamic Link`.link_name='{1}'""".format(link_doctype, link_name)) # nosec
+	frappe.db.sql("""delete from `tabCommunication Link`
+		where `tabCommunication Link`.link_doctype='{0}' and `tabCommunication Link`.link_name='{1}'""".format(link_doctype, link_name)) # nosec
 
 def insert_feed(doc):
 	from frappe.utils import get_fullname

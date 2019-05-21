@@ -3,8 +3,6 @@ from __future__ import unicode_literals
 import frappe
 
 def execute():
-	frappe.reload_doc('core', 'doctype', 'communication')
-
 	communications = frappe.db.sql("""
 		SELECT
 			`tabCommunication`.name, `tabCommunication`.creation, `tabCommunication`.modified,
@@ -14,7 +12,7 @@ def execute():
 		WHERE `tabCommunication`.communication_medium='Email'
 	""", as_dict=True)
 
-	name = 10000000000001234567
+	name = 1000000000
 	values = []
 
 	for count, communication in enumerate(communications):
@@ -35,10 +33,12 @@ def execute():
 
 		if values and (count % 10000 == 0 or count == len(communications) - 1):
 			frappe.db.sql("""
-				INSERT INTO `tabDynamic Link`
+				INSERT INTO `tabCommunication Link`
 					(`idx`, `name`, `parentfield`, `parenttype`, `parent`, `link_doctype`, `link_name`, `creation`,
 					`modified`, `modified_by`)
 				VALUES {0}
 			""".format(", ".join([d for d in values])))
 
 			values = []
+
+	frappe.db.add_index("Communication Link", ["link_doctype", "link_name"])

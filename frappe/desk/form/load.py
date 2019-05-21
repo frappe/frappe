@@ -194,9 +194,9 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	part2 = '''
 		SELECT {fields}
 		FROM `tabCommunication` as C
-		INNER JOIN `tabDynamic Link` ON C.name=`tabDynamic Link`.parent
+		INNER JOIN `tabCommunication Link` ON C.name=`tabCommunication Link`.parent
 		WHERE C.communication_type IN ('Communication', 'Feedback')
-		AND `tabDynamic Link`.link_doctype = %(doctype)s AND `tabDynamic Link`.link_name = %(name)s
+		AND `tabCommunication Link`.link_doctype = %(doctype)s AND `tabCommunication Link`.link_name = %(name)s
 		{conditions}
 	'''.format(fields=fields, conditions=conditions)
 

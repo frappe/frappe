@@ -46,8 +46,8 @@ class Event(Document):
 				comms = frappe.get_list("Communication", filters=[
 					["Communication", "reference_doctype", "=", self.doctype],
 					["Communication", "reference_name", "=", self.name],
-					["Dynamic Link", "link_doctype", "=", participant.reference_doctype],
-					["Dynamic Link", "link_name", "=", participant.reference_docname]
+					["Communication Link", "link_doctype", "=", participant.reference_doctype],
+					["Communication Link", "link_name", "=", participant.reference_docname]
 				], fields=["name"])
 
 				if comms:
@@ -85,8 +85,8 @@ def delete_communication(event, reference_doctype, reference_docname):
 	comms = frappe.get_list("Communication", filters=[
 		["Communication", "reference_doctype", "=", event.get("doctype")],
 		["Communication", "reference_name", "=", event.get("name")],
-		["Dynamic Link", "link_doctype", "=", deleted_participant.reference_doctype],
-		["Dynamic Link", "link_name", "=", deleted_participant.reference_docname]
+		["Communication Link", "link_doctype", "=", deleted_participant.reference_doctype],
+		["Communication Link", "link_name", "=", deleted_participant.reference_docname]
 	], fields=["name"])
 
 	if comms:

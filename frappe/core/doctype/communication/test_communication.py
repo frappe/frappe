@@ -73,6 +73,8 @@ class TestCommunication(unittest.TestCase):
 		self.assertRaises(frappe.CircularLinkingError, a.save)
 
 	def test_deduplication_timeline_links(self):
+		frappe.delete_doc_if_exists("Note", "deduplication timeline links")
+
 		note = frappe.get_doc({
 			"doctype": "Note",
 			"title": "deduplication timeline links",
@@ -134,6 +136,8 @@ class TestCommunication(unittest.TestCase):
 
 	def test_get_communication_data(self):
 		from frappe.desk.form.load import get_communication_data
+
+		frappe.delete_doc_if_exists("Note", "get communication data")
 
 		note = frappe.get_doc({
 			"doctype": "Note",
