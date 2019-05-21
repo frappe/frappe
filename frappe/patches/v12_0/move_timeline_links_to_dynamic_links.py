@@ -34,11 +34,12 @@ def execute():
 			))
 
 		if count % 10000 == 0 or count == len(communications) - 1:
-			frappe.db.sql("""
-				INSERT INTO `tabDynamic Link`
-					(`idx`, `name`, `parentfield`, `parenttype`, `parent`, `link_doctype`, `link_name`, `creation`,
-					`modified`, `modified_by`)
-				VALUES {0}
-			""".format(", ".join([d for d in values])))
+			if values:
+				frappe.db.sql("""
+					INSERT INTO `tabDynamic Link`
+						(`idx`, `name`, `parentfield`, `parenttype`, `parent`, `link_doctype`, `link_name`, `creation`,
+						`modified`, `modified_by`)
+					VALUES {0}
+				""".format(", ".join([d for d in values])))
 
 			values = []
