@@ -999,9 +999,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								change: () => {
 									let doctype = d.get_value('doctype');
 									frappe.model.with_doctype(doctype, () => {
-										let fields = frappe.meta.get_docfields(doctype)
+										let options = frappe.meta.get_docfields(doctype)
+											.filter(frappe.model.is_value_type)
 											.map(df => ({ label: df.label, value: df.fieldname }));
-										d.set_df_property('field', 'options', fields);
+
+										d.set_df_property('field', 'options', options);
 
 									});
 								}

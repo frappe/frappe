@@ -19,6 +19,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		let me = this;
 
 		this.page_length = 20;
+		this.start = 0;
 
 		let fields = [
 			{
@@ -55,7 +56,12 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			},
 			{ fieldtype: "Section Break" },
 			{ fieldtype: "HTML", fieldname: "results_area" },
-			{ fieldtype: "Button", fieldname: "make_new", label: __("Make a new " + me.doctype) }
+			{ fieldtype: "Button", fieldname: "more_btn", label: __("More"),
+				click: function(){
+					me.start += 20;
+					me.get_results();
+				}
+			}
 		]);
 
 		let doctype_plural = !this.doctype.endsWith('y') ? this.doctype + 's'
@@ -65,25 +71,30 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			title: __("Select {0}", [(this.doctype=='[Select]') ? __("value") : __(doctype_plural)]),
 			fields: fields,
 			primary_action_label: __("Get Items"),
+			secondary_action_label: __("Make {0}", [me.doctype]),
 			primary_action: function() {
 				me.action(me.get_checked_values(), me.args);
+			},
+			secondary_action: function(e) {
+				// If user wants to close the modal
+				if (e) {
+					frappe.route_options = {};
+
+					Object.keys(me.setters).forEach(function(setter) {
+						frappe.route_options[setter] = me.dialog.fields_dict[setter].get_value() || undefined;
+					});
+
+					frappe.new_doc(me.doctype, true);
+				}
 			}
 		});
 
 		this.$parent = $(this.dialog.body);
 		this.$wrapper = this.dialog.fields_dict.results_area.$wrapper.append(`<div class="results"
 			style="border: 1px solid #d1d8dd; border-radius: 3px; height: 300px; overflow: auto;"></div>`);
-		this.$results = this.$wrapper.find('.results');
-		this.$make_new_btn = this.dialog.fields_dict.make_new.$wrapper;
 
-		this.$placeholder = $(`<div class="multiselect-empty-state">
-					<span class="text-center" style="margin-top: -40px;">
-						<i class="fa fa-2x fa-tags text-extra-muted"></i>
-						<p class="text-extra-muted">No ${this.doctype} found</p>
-						<button class="btn btn-default btn-xs text-muted" data-fieldtype="Button"
-							data-fieldname="make_new" placeholder="" value="">Make a new ${this.doctype}</button>
-					</span>
-				</div>`);
+		this.$results = this.$wrapper.find('.results');
+		this.$results.append(this.make_list_row());
 
 		this.args = {};
 
@@ -94,6 +105,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 
 	bind_events: function() {
 		let me = this;
+
 		this.$results.on('click', '.list-item-container', function (e) {
 			if (!$(e.target).is(':checkbox') && !$(e.target).is('a')) {
 				$(this).find(':checkbox').trigger('click');
@@ -118,14 +130,6 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			$this.data('timeout', setTimeout(function() {
 				me.get_results();
 			}, 300));
-		});
-
-		this.$parent.on('click', '.btn[data-fieldname="make_new"]', (e) => {
-			frappe.route_options = {};
-			Object.keys(this.setters).forEach(function(setter) {
-				frappe.route_options[setter] = me.dialog.fields_dict[setter].get_value() || undefined;
-			});
-			frappe.new_doc(this.doctype, true);
 		});
 	},
 
@@ -170,23 +174,21 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 
 	render_result_list: function(results, more = 0) {
 		var me = this;
-		this.$results.empty();
-		if(results.length === 0) {
-			this.$make_new_btn.addClass('hide');
-			this.$results.append(me.$placeholder);
-			return;
-		}
-		this.$make_new_btn.removeClass('hide');
 
-		this.$results.append(this.make_list_row());
+		var more_btn = me.dialog.fields_dict.more_btn.$wrapper;
+		if(results.length === 0) {
+			this.$results.empty();
+			more_btn.hide();
+			return;
+		} else {
+			more_btn.show();
+		}
+
 		results.forEach((result) => {
 			me.$results.append(me.make_list_row(result));
-		})
-		if (more) {
-			let message = __("Only {0} entries shown. Please filter for more specific results.", [this.page_length]);
-			me.$results.append($(`<div class="text-muted small" style="text-align: center;
-				margin: 10px;">${message}</div>`));
-		}
+		});
+
+		this.$results.animate({scrollTop: me.$results.prop('scrollHeight')}, 500);
 	},
 
 	get_results: function() {
@@ -208,6 +210,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			txt: me.dialog.fields_dict["search_term"].get_value(),
 			filters: filters,
 			filter_fields: Object.keys(me.setters).concat([me.date_field]),
+			start: this.start,
 			page_length: this.page_length + 1,
 			query: this.get_query ? this.get_query().query : '',
 			as_dict: 1
@@ -219,8 +222,8 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			args: args,
 			callback: function(r) {
 				let results = [], more = 0;
-				if(r.values.length) {
-					if(r.values.length > me.page_length){
+				if (r.values.length) {
+					if (r.values.length > me.page_length) {
 						r.values.pop();
 						more = 1;
 					}
@@ -241,7 +244,9 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 					});
 
 					// Preselect oldest entry
-					results[0].checked = 1
+					if (me.start < 1) {
+						results[0].checked = 1;
+					}
 				}
 				me.render_result_list(results, more);
 			}

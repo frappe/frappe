@@ -10,6 +10,7 @@ from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_li
 from six import iteritems
 from past.builtins import cmp
 from frappe.model.naming import append_number_if_name_exists
+from frappe.contacts.address_and_contact import set_link_title
 
 import functools
 
@@ -31,6 +32,7 @@ class Contact(Document):
 		if self.email_id:
 			self.email_id = self.email_id.strip()
 		self.set_user()
+		set_link_title(self)
 		if self.email_id and not self.image:
 			self.image = has_gravatar(self.email_id)
 
