@@ -241,7 +241,7 @@ frappe.patches.v12_0.reset_home_settings
 frappe.patches.v12_0.update_print_format_type
 frappe.patches.v11_0.remove_doctype_user_permissions_for_page_and_report #2019-05-01
 frappe.patches.v12_0.remove_feedback_rating
-execute:frappe.reload_doc('core', 'doctype', 'communication')
 execute:frappe.reload_doc('core', 'doctype', 'communication_link')
+execute:frappe.reload_doc('core', 'doctype', 'communication')
 frappe.patches.v12_0.move_timeline_links_to_dynamic_links
 frappe.patches.v12_0.copy_dynamic_to_communication_link
