@@ -18,13 +18,13 @@ frappe.ui.form.PrintPreview = Class.extend({
 	bind_events: function () {
 		var me = this;
 		this.wrapper.find(".btn-print-close").click(function () {
-			me.frm.hide_print();
+			me.hide();
 		});
 
 		// hide print view on pressing escape, only if there is no focus on any input
 		$(document).on("keydown", function (e) {
 			if (e.which === 27 && me.frm && e.target === document.body) {
-				me.frm.hide_print();
+				me.hide();
 			}
 		});
 
@@ -164,6 +164,24 @@ frappe.ui.form.PrintPreview = Class.extend({
 			me.preview();
 		}
 	},
+	toggle: function() {
+		if(this.wrapper.is(":visible")) {
+			// hide
+			this.hide();
+			return;
+		} else {
+			// show
+			if(!frappe.model.can_print(this.frm.doc.doctype, this)) {
+				frappe.msgprint(__("You are not allowed to print this document"));
+				return;
+			}
+			this.refresh_print_options().trigger("change");
+			this.frm.page.set_view("print");
+			this.set_user_lang();
+			this.set_default_print_language();
+			this.preview();
+		}
+	},
 	preview: function () {
 		var me = this;
 		this.get_print_html(function (out) {
@@ -184,6 +202,12 @@ frappe.ui.form.PrintPreview = Class.extend({
 				$message.text('');
 			}
 		});
+	},
+	hide: function() {
+		if(this.frm.setup_done && this.frm.page.current_view_name==="print") {
+			this.frm.page.set_view(this.frm.page.previous_view_name==="print" ?
+				"main" : (this.frm.page.previous_view_name || "main"));
+		}
 	},
 	show_footer: function() {
 		// footer is hidden by default as reqd by pdf generation

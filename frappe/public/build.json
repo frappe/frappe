@@ -283,7 +283,6 @@
 		"public/js/legacy/client_script_helpers.js",
 		"public/js/frappe/form/toolbar.js",
 		"public/js/frappe/form/dashboard.js",
-		"public/js/frappe/form/document_flow.js",
 		"public/js/frappe/form/save.js",
 		"public/js/frappe/form/script_manager.js",
 		"public/js/frappe/form/linked_with.js",
