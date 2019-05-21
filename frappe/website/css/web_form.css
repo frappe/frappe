@@ -90,3 +90,11 @@ body {
 .table > tbody > tr > td {
      vertical-align: middle;
 }
+
+table {
+	border: 1px solid #ebecf1;
+}
+
+.table > tbody > tr:hover {
+	background-color: rgb(247, 250, 252);
+}

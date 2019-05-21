@@ -184,7 +184,7 @@ frappe.views.WebFormList = class WebFormList {
 
 	make_table() {
 		this.table = document.createElement("table");
-		this.table.classList.add("table", "table-bordered");
+		this.table.classList.add("table");
 
 		this.make_table_head();
 		this.append_rows(this.data);
@@ -209,7 +209,7 @@ frappe.views.WebFormList = class WebFormList {
 
 		let checkbox = document.createElement("input");
 		checkbox.type = "checkbox";
-		checkbox.onchange = event =>
+		checkbox.onclick = event =>
 			this.toggle_select_all(event.target.checked);
 
 		th.appendChild(checkbox);
@@ -344,15 +344,16 @@ frappe.ui.WebFromListRow = class WebFromListRow {
 
 	make_row() {
 		// Add Checkboxes
-		let th = document.createElement("th");
+		let cell = this.row.insertCell();
 
 		this.checkbox = document.createElement("input");
 		this.checkbox.type = "checkbox";
-		this.checkbox.onchange = event =>
+		this.checkbox.onclick = event => {
 			this.toggle_select(event.target.checked);
+			event.stopImmediatePropagation();
+		}
 
-		th.appendChild(this.checkbox);
-		this.row.appendChild(th);
+		cell.appendChild(this.checkbox);
 
 		// Add Serial Number
 		let serialNo = this.row.insertCell();
@@ -364,7 +365,7 @@ frappe.ui.WebFromListRow = class WebFromListRow {
 			cell.appendChild(text);
 		});
 
-		// this.row.onclick = () => this.events.onEdit();
+		this.row.onclick = () => this.events.onEdit();
 		this.row.style.cursor = "pointer";
 	}
 
