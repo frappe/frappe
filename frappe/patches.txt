@@ -244,4 +244,3 @@ frappe.patches.v12_0.remove_feedback_rating
 execute:frappe.reload_doc('core', 'doctype', 'communication_link')
 execute:frappe.reload_doc('core', 'doctype', 'communication')
 frappe.patches.v12_0.move_timeline_links_to_dynamic_links
-frappe.patches.v12_0.copy_dynamic_to_communication_link
