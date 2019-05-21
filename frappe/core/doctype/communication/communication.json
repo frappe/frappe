@@ -377,13 +377,13 @@
    "fieldname": "timeline_links",
    "fieldtype": "Table",
    "label": "Timeline Links",
-   "options": "Dynamic Link",
+   "options": "Communication Link",
    "permlevel": 2
   }
  ],
  "icon": "fa fa-comment",
  "idx": 1,
- "modified": "2019-05-20 14:14:01.514493",
+ "modified": "2019-05-21 09:48:24.892143",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",

@@ -174,7 +174,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 		and	(
 				(`tabCommunication`.reference_doctype=%(doctype)s and `tabCommunication`.reference_name=%(name)s)
 				or (
-					(`tabDynamic Link`.link_doctype=%(doctype)s and `tabDynamic Link`.link_name=%(name)s)
+					(`tabCommunication Link`.link_doctype=%(doctype)s and `tabCommunication Link`.link_name=%(name)s)
 					and (`tabCommunication`.communication_type='Communication')
 				)
 			)
@@ -194,8 +194,8 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	communications = frappe.db.sql('''
 		select distinct {fields}
 		from `tabCommunication`
-			inner join `tabDynamic Link`
-				on `tabCommunication`.name=`tabDynamic Link`.parent
+			inner join `tabCommunication Link`
+				on `tabCommunication`.name=`tabCommunication Link`.parent
 		where {conditions} {group_by}
 		order by `tabCommunication`.creation desc
 		limit %(limit)s offset %(start)s'''.format(fields = fields, conditions=conditions, group_by=group_by or ""),{
