@@ -215,23 +215,26 @@ $.extend(frappe.ui.toolbar, {
 		$(dialog.body).html(
 			`<div class='row keyboard-shortcut'>
 				<p class="command col-md-6">Help</p>
-				<p class="shortcut col-md-6 text-muted">Alt + H</p>
+				<p class="shortcut col-md-3 text-muted">Alt + H</p>
 			</div>
 			<div class='row keyboard-shortcut'>
 				<p class="command col-md-6">Settings</p>
-				<p class="shortcut col-md-6 text-muted">Alt + S</p>
+				<p class="shortcut col-md-3 text-muted">Alt + S</p>
 			</div>
 			<div class='row keyboard-shortcut'>
 				<p class="command col-md-6">Search</p>
-				<p class="shortcut col-md-6 text-muted">Ctrl + G</p>
+				<p class="shortcut col-md-3 text-muted">Ctrl + G</p>
 			</div>
 			<div class='row keyboard-shortcut'>
 				<p class="command col-md-6">Home</p>
-				<p class="shortcut col-md-6 text-muted">Ctrl + H</p>
+				<p class="shortcut col-md-3 text-muted">Ctrl + H</p>
 			</div>
 			<div class='row keyboard-shortcut'>
 				<p class="command col-md-6">Chat</p>
-				<p class="shortcut col-md-6 text-muted">Alt + C</p>
+				<p class="shortcut col-md-3 text-muted">Alt + C</p>
+			</div>
+			<div class="row message">
+				<p class="col-md-12"> Press <span class="shortcut"> Alt </span> to see page shortcuts underlined </p>
 			</div>`
 		);
 

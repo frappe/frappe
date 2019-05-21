@@ -127,12 +127,12 @@ frappe.ui.form.Toolbar = Class.extend({
 		// email
 		if(frappe.model.can_email(null, me.frm) && me.frm.doc.docstatus < 2) {
 			this.page.add_menu_item(__("Email"), function() {
-				me.frm.email_doc();}, true, 'Ctrl + Shift + E');
+				me.frm.email_doc();}, true, 'Shift + Ctrl + E');
 		}
 
 		// go to field modal		
 		this.page.add_menu_item(__("Go to field"), function() {
-			me.setup_modal();}, true, 'Ctrl + Shift + M');
+			me.setup_modal();}, true, 'Shift + Ctrl + M');
 
 		// Linked With
 		if(!me.frm.meta.issingle) {
@@ -161,7 +161,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		if((cint(me.frm.doc.docstatus) != 1) && !me.frm.doc.__islocal
 			&& frappe.model.can_delete(me.frm.doctype)) {
 			this.page.add_menu_item(__("Delete"), function() {
-				me.frm.savetrash();}, true, 'Ctrl + Shift + D');
+				me.frm.savetrash();}, true, 'Shift + Ctrl + D');
 		}
 
 		if(frappe.user_roles.includes("System Manager") && me.frm.meta.issingle === 0) {
@@ -356,7 +356,6 @@ frappe.ui.form.Toolbar = Class.extend({
 	},
 
 	setup_modal() {
-
 		if(!$('.form-layout').is(':visible')) {
 			return;	
 		}
@@ -386,9 +385,9 @@ frappe.ui.form.Toolbar = Class.extend({
 			}
 			frappe.utils.scroll_to($el.eq(0));
 			$el.addClass('has-error');
-			$el.find('.form-control').focus();
 			setTimeout(function(){
 				$el.removeClass('has-error');
+				$el.find('input').focus();
 			},1000);
 			dialog.hide();
 		});

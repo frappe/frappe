@@ -754,30 +754,32 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.setup_like();
 		this.setup_realtime_updates();
 		this.setup_action_handler();
-		this.setup_keyboard_nav();
+		this.setup_list_keyboard_nav();
 	}
 
-	setup_keyboard_nav() {
+	setup_list_keyboard_nav() {
 		let new_class, is_list_nav, is_image_view;
 		this.next_index = 0;
 
-		$(document).off('keydown.list').on('keydown.list',null, (e)=> {
+		$(document).off('keydown.list').on('keydown.list', null, (e)=> {
 			var {UP, DOWN, ENTER, SPACE} = frappe.ui.keyCode;
 			if(!in_list([UP, DOWN, ENTER, SPACE], e.which)) {
 				return;
 			}
-
+			//If any other keyboard navigable list(like dropdown) is open, set is_list_nav to false
 			if ($('[role="listbox"]').is(":visible") || $('.dropdown-menu').is(':visible') 
 				|| $('.modal').is(':visible') || $('input:focus').length > 0) {
 				is_list_nav = false;
 			} else {
 				is_list_nav = true;
+				//For image view
 				if($('.image-view-container').is(':visible')) {
 					is_image_view = true;
 					this.list_items = $('.image-view-item').filter(':visible');
 				} else {
 					this.list_items = $('.list-row-container').filter(':visible');
 				}
+				//Add paging buttons to list items
 				this.list_items = this.list_items.add($('.list-paging-area').find('.btn').filter(':visible'));
 
 				if(this.list_items.length) {
@@ -856,7 +858,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				if(image_link) window.location.href = image_link.href;
 			}
 			if(this.selected.is('button') ) {
-				console.log('here');
 				this.selected.click();
 				this.selected.removeClass('btn-selected');
 			} else {
@@ -1199,7 +1200,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			label: __('Share URL'),
 			action: () => this.share_url(),
 			standard: true,
-			shortcut: 'Ctrl + Shift + A',
+			shortcut: 'Shift + Ctrl + A',
 		});
 
 		if (frappe.user.has_role('System Manager') && frappe.boot.developer_mode === 1) {
