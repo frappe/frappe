@@ -21,8 +21,13 @@
 
 {% block page_content %}
 <div role="form" class="web-form-wrapper" data-web-form="{{ name }}" data-owner="{{ doc.owner }}">
+	<hr>
+</div>
+{% if is_list %}
+<div class="list-filters row"></div>
 <div id="datatable" class="pt-3"></div>
 <div class="list-view-footer text-right"></div>
+{% endif %}
 {% endblock %}
 
 {% block script %}
