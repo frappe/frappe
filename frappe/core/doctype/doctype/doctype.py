@@ -24,6 +24,14 @@ import pymysql
 from pymysql.constants import ER
 
 class InvalidFieldNameError(frappe.ValidationError): pass
+class UniqueFieldnameError(frappe.ValidationError): pass
+class IllegalMandatoryError(frappe.ValidationError): pass
+class DoctypeLinkError(frappe.ValidationError): pass
+class WrongOptionsDoctypeLinkError(frappe.ValidationError): pass
+class HiddenAndMandatoryWithoutDefaultError(frappe.ValidationError): pass
+class NonUniqueError(frappe.ValidationError): pass
+class CannotIndexedError(frappe.ValidationError): pass
+class CannotCreateStandardDoctypeError(frappe.ValidationError): pass
 
 form_grid_templates = {
 	"fields": "templates/form_grid/fields.html"
@@ -102,7 +110,7 @@ class DocType(Document):
 			return
 
 		if not frappe.conf.get("developer_mode") and not self.custom:
-			frappe.throw(_("Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."))
+			frappe.throw(_("Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."), CannotCreateStandardDoctypeError)
 
 	def setup_fields_to_fetch(self):
 		'''Setup query to update values for newly set fetch values'''
@@ -483,27 +491,27 @@ def validate_fields(meta):
 	def check_unique_fieldname(docname, fieldname):
 		duplicates = list(filter(None, map(lambda df: df.fieldname==fieldname and str(df.idx) or None, fields)))
 		if len(duplicates) > 1:
-			frappe.throw(_("{0}: Fieldname {1} appears multiple times in rows {2}").format(docname, fieldname, ", ".join(duplicates)))
+			frappe.throw(_("{0}: Fieldname {1} appears multiple times in rows {2}").format(docname, fieldname, ", ".join(duplicates)), UniqueFieldnameError)
 
 	def check_fieldname_length(fieldname):
 		validate_column_length(fieldname)
 
 	def check_illegal_mandatory(docname, d):
 		if (d.fieldtype in no_value_fields) and d.fieldtype!="Table" and d.reqd:
-			frappe.throw(_("{0}: Field {1} of type {2} cannot be mandatory").format(docname, d.label, d.fieldtype))
+			frappe.throw(_("{0}: Field {1} of type {2} cannot be mandatory").format(docname, d.label, d.fieldtype), IllegalMandatoryError)
 
 	def check_link_table_options(docname, d):
 		if d.fieldtype in ("Link", "Table"):
 			if not d.options:
-				frappe.throw(_("{0}: Options required for Link or Table type field {1} in row {2}").format(docname, d.label, d.idx))
+				frappe.throw(_("{0}: Options required for Link or Table type field {1} in row {2}").format(docname, d.label, d.idx), DoctypeLinkError)
 			if d.options=="[Select]" or d.options==d.parent:
 				return
 			if d.options != d.parent:
 				options = frappe.db.get_value("DocType", d.options, "name")
 				if not options:
-					frappe.throw(_("{0}: Options must be a valid DocType for field {1} in row {2}").format(docname, d.label, d.idx))
+					frappe.throw(_("{0}: Options must be a valid DocType for field {1} in row {2}").format(docname, d.label, d.idx), WrongOptionsDoctypeLinkError)
 				elif not (options == d.options):
-					frappe.throw(_("{0}: Options {1} must be the same as doctype name {2} for the field {3}")
+					frappe.throw(_("{0}: Options {1} must be the same as doctype name {2} for the field {3}", DoctypeLinkError)
 						.format(docname, d.options, options, d.label))
 				else:
 					# fix case
@@ -511,7 +519,7 @@ def validate_fields(meta):
 
 	def check_hidden_and_mandatory(docname, d):
 		if d.hidden and d.reqd and not d.default:
-			frappe.throw(_("{0}: Field {1} in row {2} cannot be hidden and mandatory without default").format(docname, d.label, d.idx))
+			frappe.throw(_("{0}: Field {1} in row {2} cannot be hidden and mandatory without default").format(docname, d.label, d.idx), HiddenAndMandatoryWithoutDefaultError)
 
 	def check_width(d):
 		if d.fieldtype == "Currency" and cint(d.width) < 100:
@@ -550,7 +558,7 @@ def validate_fields(meta):
 
 		if getattr(d, "unique", False):
 			if d.fieldtype not in ("Data", "Link", "Read Only"):
-				frappe.throw(_("{0}: Fieldtype {1} for {2} cannot be unique").format(docname, d.fieldtype, d.label))
+				frappe.throw(_("{0}: Fieldtype {1} for {2} cannot be unique").format(docname, d.fieldtype, d.label), NonUniqueError)
 
 			if not d.get("__islocal"):
 				try:
@@ -570,10 +578,10 @@ def validate_fields(meta):
 				else:
 					# else of try block
 					if has_non_unique_values and has_non_unique_values[0][0]:
-						frappe.throw(_("{0}: Field '{1}' cannot be set as Unique as it has non-unique values").format(docname, d.label))
+						frappe.throw(_("{0}: Field '{1}' cannot be set as Unique as it has non-unique values").format(docname, d.label), NonUniqueError)
 
 		if d.search_index and d.fieldtype in ("Text", "Long Text", "Small Text", "Code", "Text Editor"):
-			frappe.throw(_("Fieldtype {0} for {1} cannot be indexed").format(d.fieldtype, d.label))
+			frappe.throw(_("{0}:Fieldtype {1} for {2} cannot be indexed").format(docname, d.fieldtype, d.label), CannotIndexedError)
 
 	def check_fold(fields):
 		fold_exists = False
