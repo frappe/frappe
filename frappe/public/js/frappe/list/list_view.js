@@ -758,7 +758,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_list_keyboard_nav() {
-		let new_class, is_list_nav, is_image_view;
+		let is_list_nav, is_image_view;
 		this.next_index = 0;
 
 		$(document).off('keydown.list').on('keydown.list', null, (e)=> {
@@ -784,9 +784,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 				if(this.list_items.length) {
 					if(e.which === DOWN) {
-						new_class = this.nav_down(new_class);
+						this.nav_down();
 					} else if(e.which === UP) {
-						new_class = this.nav_up(new_class);
+						this.nav_up();
 					} else if(e.which === ENTER ) {
 						this.nav_enter(is_list_nav, is_image_view);
 					} else if(e.which === SPACE && this.selected) {
@@ -799,56 +799,56 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
-	nav_down(new_class) {
+	add_selected_class(index, element) {
+		let new_class = this.list_items.eq(index).is('button') ? 'page-btn-selected': 'list-selected';
+		this.selected = element.addClass(new_class);
+	}
+
+	remove_selected_class(index, element) {
+		let new_class = this.list_items.eq(index).is('button') ? 'page-btn-selected': 'list-selected';
+		this.selected = element.removeClass(new_class);
+	}
+
+	nav_down() {
 
 		if(this.selected && this.selected.is(':visible')) {
-			new_class = this.list_items.eq(this.next_index).is('button') ? 'page-btn-selected': 'list-selected';
-			this.selected.removeClass(new_class);
+			this.remove_selected_class(this.next_index, this.selected);
 			this.next_index++;
 			this.next_el = this.list_items.eq(this.next_index);
 
 			if(this.next_el.length > 0) {
-				new_class = this.list_items.eq(this.next_index).is('button') ? 'page-btn-selected': 'list-selected';
-				this.selected = this.next_el.addClass(new_class);
+				this.add_selected_class(this.next_index, this.next_el);
 			} else {
-				new_class = this.list_items.eq(0).is('button') ? 'page-btn-selected': 'list-selected';
-				this.selected = this.list_items.eq(0).addClass(new_class);
+				this.add_selected_class(0, this.list_items.eq(0));
 				this.next_index = 0;
 			}
 
 		} else {
-			new_class = this.list_items.eq(0).is('button') ? 'page-btn-selected': 'list-selected';
-			this.selected = this.list_items.eq(0).addClass(new_class);
+			this.add_selected_class(0, this.list_items.eq(0));
 			this.next_index = 0;
 		}
 
-		return new_class;
 	}
 
-	nav_up(new_class) {
+	nav_up() {
 
 		if(this.selected && this.selected.is(':visible')) {
-			new_class = this.list_items.eq(this.next_index).is('button') ? 'page-btn-selected': 'list-selected';
-			this.selected.removeClass(new_class);
+			this.remove_selected_class(this.next_index, this.selected);
 	
 			if(this.next_index>0) this.next_index--;
 			this.next_el = this.list_items.eq(this.next_index);
 			if(this.next_el.length > 0) {
-				new_class = this.list_items.eq(this.next_index).is('button') ? 'page-btn-selected': 'list-selected';
-				this.selected = this.next_el.addClass(new_class);
+				this.add_selected_class(this.next_index, this.next_el);
 			} else {
-				new_class = this.list_items.eq(this.list_items.length-1).is('button') ? 'page-btn-selected': 'list-selected';
-				this.selected = this.list_items.eq(this.list_items.list.length - 1).addClass(new_class);
+				this.add_selected_class(this.list_items.length-1, this.list_items.eq(this.list_items.list.length - 1));
 				this.next_index = this.list_items.length - 1;
 			}
 
 		} else {
-			new_class = this.list_items.eq(this.list_items.length-1).is('button') ? 'page-btn-selected': 'list-selected';
-			this.selected = this.list_items.eq(this.list_items.length - 1).addClass(new_class);
+			this.add_selected_class(this.list_items.length-1, this.list_items.eq(this.list_items.list.length - 1));
 			this.next_index = this.list_items.length - 1;
 		}
 
-		return new_class;
 	}
 
 	nav_enter(is_list_nav, is_image_view) {

@@ -120,7 +120,8 @@ frappe.ui.form.Toolbar = Class.extend({
 				this.page.add_menu_item(__("Print"), function() {
 					me.frm.print_doc();}, true);
 				this.print_icon = this.page.add_action_icon("fa fa-print", function() {
-					me.frm.print_doc();});
+					me.frm.print_doc();
+				});
 			}
 		}
 
@@ -146,18 +147,21 @@ frappe.ui.form.Toolbar = Class.extend({
 		// copy
 		if(in_list(frappe.boot.user.can_create, me.frm.doctype) && !me.frm.meta.allow_copy) {
 			this.page.add_menu_item(__("Duplicate"), function() {
-				me.frm.copy_doc();}, true);
+				me.frm.copy_doc();
+			}, true);
 		}
 
 		// rename
 		if(this.can_rename()) {
 			this.page.add_menu_item(__("Rename"), function() {
-				me.frm.rename_doc();}, true);
+				me.frm.rename_doc();
+			}, true);
 		}
 
 		// reload
 		this.page.add_menu_item(__("Reload"), function() {
-			me.frm.reload_doc();}, true);
+			me.frm.reload_doc();
+		}, true);
 
 		// delete
 		if((cint(me.frm.doc.docstatus) != 1) && !me.frm.doc.__islocal
@@ -185,7 +189,8 @@ frappe.ui.form.Toolbar = Class.extend({
 		// New
 		if(p[CREATE] && !this.frm.meta.issingle) {
 			this.page.add_menu_item(__("New {0} (Ctrl+B)", [__(me.frm.doctype)]), function() {
-				frappe.new_doc(me.frm.doctype, true);}, true);
+				frappe.new_doc(me.frm.doctype, true);
+			}, true);
 		}
 	},
 	can_save: function() {
