@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest
+from frappe.core.doctype.doctype.doctype import UniqueFieldnameError, IllegalMandatoryError, DoctypeLinkError, WrongOptionsDoctypeLinkError,\
+ HiddenAndMandatoryWithoutDefaultError, CannotIndexedError, CannotCreateStandardDoctypeError
 
 # test_records = frappe.get_test_records('DocType')
 
@@ -105,3 +107,55 @@ class TestDocType(unittest.TestCase):
 				condition = field.get(depends_on)
 				if condition:
 					self.assertFalse(re.match(pattern, condition))
+
+	def test_unique_field_name_for_two_fields(self):
+		doc = self.new_doctype('Test Unique Field')
+		field_1 = doc.append('fields', {})
+		field_1.fieldname  = 'some_fieldname_1'
+		field_1.fieldtype = 'Data'
+
+		field_2 = doc.append('fields', {})
+		field_2.fieldname  = 'some_fieldname_1'
+		field_2.fieldtype = 'Data'
+
+		self.assertRaises(UniqueFieldnameError, doc.insert)
+
+	def test_illegal_mandatory_validation(self):
+		doc = self.new_doctype('Test Illegal mandatory')
+		field_1 = doc.append('fields', {})
+		field_1.fieldname  = 'some_fieldname_1'
+		field_1.fieldtype = 'Section Break'
+		field_1.reqd = 1
+
+		self.assertRaises(IllegalMandatoryError, doc.insert)
+
+	def test_link_with_wrong_and_no_options(self):
+		doc = self.new_doctype('Test link')
+		field_1 = doc.append('fields', {})
+		field_1.fieldname  = 'some_fieldname_1'
+		field_1.fieldtype = 'Link'
+
+		self.assertRaises(DoctypeLinkError, doc.insert)
+
+		field_1.options = 'wrongdoctype'
+
+		self.assertRaises(WrongOptionsDoctypeLinkError, doc.insert)
+
+	def test_hidden_and_mandatory_without_default(self):
+		doc = self.new_doctype('Test hidden and mandatory')
+		field_1 = doc.append('fields', {})
+		field_1.fieldname  = 'some_fieldname_1'
+		field_1.fieldtype = 'Data'
+		field_1.reqd = 1
+		field_1.hidden = 1
+
+		self.assertRaises(HiddenAndMandatoryWithoutDefaultError, doc.insert)
+
+	def test_field_can_not_be_indexed_validation(self):
+		doc = self.new_doctype('Test index')
+		field_1 = doc.append('fields', {})
+		field_1.fieldname  = 'some_fieldname_1'
+		field_1.fieldtype = 'Long Text'
+		field_1.search_index = 1
+
+		self.assertRaises(CannotIndexedError, doc.insert)
