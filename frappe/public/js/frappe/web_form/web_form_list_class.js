@@ -72,7 +72,8 @@ frappe.views.WebFormList = class WebFormList {
 		this.columns = this.fields_list.map(df => {
 			return {
 				label: df.label,
-				fieldname: df.fieldname
+				fieldname: df.fieldname,
+				fieldtype: df.fieldtype
 			};
 		});
 
@@ -250,8 +251,8 @@ frappe.ui.WebFromListRow = class WebFromListRow {
 
 		this.columns.forEach(field => {
 			let cell = this.row.insertCell();
-			let text = document.createTextNode(this.doc[field.fieldname] || "");
-			cell.appendChild(text);
+			let formatter = frappe.form.get_formatter(field.fieldtype)
+			cell.innerHTML = formatter(this.doc[field.fieldname]) || "";
 		});
 
 		this.row.onclick = () => this.events.onEdit();
