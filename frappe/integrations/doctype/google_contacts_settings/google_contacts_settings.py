@@ -10,19 +10,27 @@ if frappe.conf.developer_mode:
 	import os
 	os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
-SCOPES = 'https://www.googleapis.com/auth/calendar'
-AUTHORIZATION_BASE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
+SCOPES = 'https://www.googleapis.com/auth/contacts'
+GET_REQUEST = 'https://people.googleapis.com/v1/people/me/connections'
 
 class GoogleContactsSettings(Document):
 
+	def sync(self):
+		"""Get and Create Contact from Google People API"""
+		frappe.has_permission('Google Contacts Settings', throw=True)
+		headers = {
+			"Authorization": "Bearer {0}".format(self.get_access_token())
+		}
+
+		contacts = requests.get('https://people.googleapis.com/v1/people/me/connections', headers=headers).json()
+		print(contacts)
+
 	def get_access_token(self):
 		if not self.refresh_token:
-			raise frappe.ValidationError(_("GCalendar is not configured."))
+			raise frappe.ValidationError(_("Google Contacts is not configured."))
 		data = {
 			'client_id': self.client_id,
 			'client_secret': self.get_password(fieldname='client_secret',raise_exception=False),
-			'refresh_token': self.get_password(fieldname='refresh_token',raise_exception=False),
-			'grant_type': "refresh_token",
 			'scope': SCOPES
 		}
 		try:
@@ -30,3 +38,12 @@ class GoogleContactsSettings(Document):
 		except requests.exceptions.HTTPError:
 			frappe.throw(_("Something went wrong during the token generation. Please request again an authorization code."))
 		return r.get('access_token')
+
+@frappe.whitelist()
+def sync():
+	try:
+		google_contacts_settings = frappe.get_doc('Google Contacts Settings')
+		if google_contacts_settings.enable == 1:
+			google_contacts_settings.sync()
+	except Exception:
+		frappe.log_error(frappe.get_traceback())
