@@ -1,7 +1,7 @@
 {
  "allow_import": 1,
  "creation": "2013-01-29 10:47:14",
- "description": "Keep a track of all communications",
+ "description": "Keeps track of all communications",
  "doctype": "DocType",
  "document_type": "Setup",
  "engine": "InnoDB",
@@ -41,14 +41,11 @@
   "user",
   "column_break_27",
   "email_template",
-  "link_doctype",
-  "link_name",
-  "timeline_doctype",
-  "timeline_name",
-  "timeline_label",
   "unread_notification_sent",
   "seen",
   "_user_tags",
+  "timeline_links_sections",
+  "timeline_links",
   "email_inbox",
   "message_id",
   "uid",
@@ -204,6 +201,7 @@
    "label": "Date"
   },
   {
+   "default": "0",
    "fieldname": "read_receipt",
    "fieldtype": "Check",
    "label": "Sent Read Receipt",
@@ -220,6 +218,7 @@
    "read_only": 1
   },
   {
+   "default": "0",
    "fieldname": "read_by_recipient",
    "fieldtype": "Check",
    "label": "Read by Recipient",
@@ -285,39 +284,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "link_doctype",
-   "fieldtype": "Link",
-   "label": "Link DocType",
-   "options": "DocType",
-   "read_only": 1
-  },
-  {
-   "fieldname": "link_name",
-   "fieldtype": "Dynamic Link",
-   "label": "Link Name",
-   "options": "link_doctype",
-   "read_only": 1
-  },
-  {
-   "fieldname": "timeline_doctype",
-   "fieldtype": "Link",
-   "label": "Timeline DocType",
-   "options": "DocType",
-   "read_only": 1
-  },
-  {
-   "fieldname": "timeline_name",
-   "fieldtype": "Dynamic Link",
-   "label": "Timeline Name",
-   "options": "timeline_doctype",
-   "read_only": 1
-  },
-  {
-   "fieldname": "timeline_label",
-   "fieldtype": "Data",
-   "label": "Timeline field Name"
-  },
-  {
    "default": "0",
    "fieldname": "unread_notification_sent",
    "fieldtype": "Check",
@@ -325,6 +291,7 @@
    "read_only": 1
   },
   {
+   "default": "0",
    "fieldname": "seen",
    "fieldtype": "Check",
    "label": "Seen",
@@ -368,6 +335,7 @@
    "options": "Open\nSpam\nTrash"
   },
   {
+   "default": "0",
    "fieldname": "has_attachment",
    "fieldtype": "Check",
    "hidden": 1,
@@ -398,11 +366,24 @@
    "label": "Email Template",
    "options": "Email Template",
    "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "timeline_links_sections",
+   "fieldtype": "Section Break",
+   "label": "Timeline Links"
+  },
+  {
+   "fieldname": "timeline_links",
+   "fieldtype": "Table",
+   "label": "Timeline Links",
+   "options": "Communication Link",
+   "permlevel": 2
   }
  ],
  "icon": "fa fa-comment",
  "idx": 1,
- "modified": "2019-05-04 15:36:35.818714",
+ "modified": "2019-05-21 09:48:24.892143",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",
@@ -431,12 +412,25 @@
   {
    "delete": 1,
    "email": 1,
+   "export": 1,
+   "permlevel": 2,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "delete": 1,
+   "email": 1,
    "if_owner": 1,
    "read": 1,
    "role": "All"
   }
  ],
  "search_fields": "subject",
+ "sort_field": "modified",
  "sort_order": "DESC",
  "title_field": "subject",
  "track_changes": 1,

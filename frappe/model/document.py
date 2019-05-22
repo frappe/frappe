@@ -1195,18 +1195,10 @@ class Document(BaseDocument):
 			return
 
 		# update timeline doc in communication if it is different than current timeline doc
-		frappe.db.sql("""update `tabCommunication`
-			set timeline_doctype=%(timeline_doctype)s, timeline_name=%(timeline_name)s
-			where
-				reference_doctype=%(doctype)s and reference_name=%(name)s
-				and (timeline_doctype is null or timeline_doctype != %(timeline_doctype)s
-					or timeline_name is null or timeline_name != %(timeline_name)s)""",
-				{
-					"doctype": self.doctype,
-					"name": self.name,
-					"timeline_doctype": timeline_doctype,
-					"timeline_name": timeline_name
-				})
+		communication = frappe.get_doc("Communication", {"reference_doctype": self.doctype, "reference_name": self.name})
+		if communication.communication_medium == "Email":
+			# duplicate entries will be handled by deduplicate links in communication
+			communication.add_link(link_doctype=timeline_doctype, link_name=timeline_name, autosave=True)
 
 	def queue_action(self, action, **kwargs):
 		'''Run an action in background. If the action has an inner function,
