@@ -14,7 +14,7 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 
 	show() {
 		if (!this.setting) return;
-		if (this.form.doc.docstatus === 0 && !this.form.is_first_creation()) return;
+		if (this.form.doc.docstatus === 0 && !this.is_first_creation()) return;
 
 		this.prepare_dom();
 		this.show_alert();
@@ -90,4 +90,15 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 			}
 		};
 	}
+
+	is_first_creation() {
+		let { modified, creation } = this.form.doc;
+
+		// strip out milliseconds
+		modified = modified.split('.')[0];
+		creation = creation.split('.')[0];
+
+		return modified === creation;
+	}
+
 };

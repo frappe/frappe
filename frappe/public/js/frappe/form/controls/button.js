@@ -27,7 +27,6 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 	},
 	run_server_script: function() {
 		// DEPRECATE
-
 		var me = this;
 		if(this.frm && this.frm.docname) {
 			frappe.call({

@@ -1,3 +1,5 @@
+frappe.provide('frappe.ui.form');
+
 frappe.ui.form.Controller = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
@@ -36,10 +38,21 @@ frappe.ui.form.Form = class FrappeForm {
 
 	setup_meta() {
 		this.meta = frappe.get_doc('DocType', this.doctype);
-		this.perm = frappe.perm.get_perm(this.doctype); // for create
+
 		if(this.meta.istable) {
 			this.meta.in_dialog = 1;
 		}
+
+		this.perm = frappe.perm.get_perm(this.doctype); // for create
+		this.action_perm_type_map = {
+			"Create": "create",
+			"Save": "write",
+			"Submit": "submit",
+			"Update": "submit",
+			"Cancel": "cancel",
+			"Amend": "amend",
+			"Delete": "delete"
+		};
 	}
 
 	setup() {
@@ -218,7 +231,7 @@ frappe.ui.form.Form = class FrappeForm {
 			this.doc = frappe.get_doc(this.doctype, this.docname);
 
 			// check permissions
-			if(!this.has_permission()) {
+			if(!this.has_read_permission()) {
 				frappe.show_not_permitted(__(this.doctype) + " " + __(this.docname));
 				return;
 			}
@@ -606,6 +619,28 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.utils.play_sound("click");
 	}
 
+	validate_form_action(action, resolve) {
+		var perm_to_check = this.action_perm_type_map[action];
+		var allowed_for_workflow = false;
+		var perms = frappe.perm.get_perm(this.doc.doctype)[0];
+
+		// Allow submit, write, cancel and create permissions for read only documents that are assigned by
+		// workflows if the user already have those permissions. This is to allow for users to
+		// continue through the workflow states and to allow execution of functions like Duplicate.
+		if ((frappe.workflow.is_read_only(this.doctype, this.docname) && (perms["write"] ||
+			perms["create"] || perms["submit"] || perms["cancel"])) || !frappe.workflow.is_read_only(this.doctype, this.docname)) {
+			allowed_for_workflow = true;
+		}
+
+		if (!this.perm[0][perm_to_check] && !allowed_for_workflow) {
+			if(resolve) {
+				// re-enable buttons
+				resolve();
+			}
+			frappe.throw (__("No permission to '{0}' {1}", [__(action), __(this.doc.doctype)]));
+		}
+	}
+
 	// HELPERS
 
 	enable_save = function() {
@@ -680,7 +715,7 @@ frappe.ui.form.Form = class FrappeForm {
 			function() {}).attr("href", path || this.doc.route).attr("target", "_blank");
 	}
 
-	has_permission() {
+	has_read_permission() {
 		// get perm
 		var dt = this.parent_doctype ? this.parent_doctype : this.doctype;
 		this.perm = frappe.perm.get_perm(dt, this.doc);
@@ -739,7 +774,7 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.set_route('Form', this.doctype, name);
 	}
 
-	// UTILITIES
+	// ACTIONS
 
 	print_doc() {
 		this.print_preview.toggle();
@@ -795,6 +830,19 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
+	// UTILITIES
+	add_fetch(link_field, src_field, tar_field) {
+		if(!this.fetch_dict[link_field]) {
+			this.fetch_dict[link_field] = {'columns':[], 'fields':[]};
+		}
+		this.fetch_dict[link_field].columns.push(src_field);
+		this.fetch_dict[link_field].fields.push(tar_field);
+	}
+
+	has_perm(ptype) {
+		return frappe.perm.has_perm(this.doctype, 0, ptype, this.doc);
+	}
+
 	dirty() {
 		this.doc.__unsaved = 1;
 		this.$wrapper.trigger('dirty');
@@ -808,8 +856,488 @@ frappe.ui.form.Form = class FrappeForm {
 		return this.doc.__unsaved;
 	}
 
-	is_new = function() {
+	is_new() {
 		return this.doc.__islocal;
 	}
 
+	get_perm(permlevel, access_type) {
+		return this.perm[permlevel] ? this.perm[permlevel][access_type] : null;
+	}
+
+	set_intro(txt, color) {
+		this.dashboard.set_headline_alert(txt, color);
+	}
+
+	set_footnote(txt) {
+		this.footnote_area = frappe.utils.set_footnote(this.footnote_area, this.body, txt);
+	}
+
+	add_custom_button(label, fn, group) {
+		// temp! old parameter used to be icon
+		if(group && group.indexOf("fa fa-")!==-1) group = null;
+		var btn = this.page.add_inner_button(label, fn, group);
+		if(btn) {
+			this.custom_buttons[label] = btn;
+		}
+		return btn;
+	}
+
+	clear_custom_buttons() {
+		this.page.clear_inner_toolbar();
+		this.page.clear_user_actions();
+		this.custom_buttons = {};
+	}
+
+	//Remove specific custom button by button Label
+	remove_custom_button(label, group) {
+		this.page.remove_inner_button(label, group);
+	}
+
+	set_print_heading(txt) {
+		this.pformat[this.docname] = txt;
+	}
+
+	scroll_to_element() {
+		if (frappe.route_options && frappe.route_options.scroll_to) {
+			var scroll_to = frappe.route_options.scroll_to;
+			delete frappe.route_options.scroll_to;
+
+			var selector = [];
+			for (var key in scroll_to) {
+				var value = scroll_to[key];
+				selector.push(repl('[data-%(key)s="%(value)s"]', {key: key, value: value}));
+			}
+
+			selector = $(selector.join(" "));
+			if (selector.length) {
+				frappe.utils.scroll_to(selector);
+			}
+		}
+	}
+
+	set_print_heading(txt) {
+		this.pformat[this.docname] = txt;
+	}
+
+	show_success_action() {
+		const route = frappe.get_route();
+		if (route[0] !== 'Form') return;
+		if (this.meta.is_submittable && this.doc.docstatus !== 1) return;
+
+		const success_action = new frappe.ui.form.SuccessAction(this);
+		success_action.show();
+	}
+
+	get_doc() {
+		return locals[this.doctype][this.docname];
+	}
+
+	set_currency_labels(fields_list, currency, parentfield) {
+		// To set the currency in the label
+		// For example Total Cost(INR), Total Cost(USD)
+
+		var me = this;
+		var doctype = parentfield ? this.fields_dict[parentfield].grid.doctype : this.doc.doctype;
+		var field_label_map = {};
+		var grid_field_label_map = {};
+
+		$.each(fields_list, function(i, fname) {
+			var docfield = frappe.meta.docfield_map[doctype][fname];
+			if(docfield) {
+				var label = __(docfield.label || "").replace(/\([^\)]*\)/g, ""); // eslint-disable-line
+				if(parentfield) {
+					grid_field_label_map[doctype + "-" + fname] =
+						label.trim() + " (" + __(currency) + ")";
+				} else {
+					field_label_map[fname] = label.trim() + " (" + currency + ")";
+				}
+			}
+		});
+
+		$.each(field_label_map, function(fname, label) {
+			me.fields_dict[fname].set_label(label);
+		});
+
+		$.each(grid_field_label_map, function(fname, label) {
+			fname = fname.split("-");
+			var df = frappe.meta.get_docfield(fname[0], fname[1], me.doc.name);
+			if(df) df.label = label;
+		});
+	}
+
+	field_map(fnames, fn) {
+		if(typeof fnames==='string') {
+			if(fnames == '*') {
+				fnames = Object.keys(this.fields_dict);
+			} else {
+				fnames = [fnames];
+			}
+		}
+		for (var i=0, l=fnames.length; i<l; i++) {
+			var fieldname = fnames[i];
+			var field = frappe.meta.get_docfield(cur_frm.doctype, fieldname, this.docname);
+			if(field) {
+				fn(field);
+				this.refresh_field(fieldname);
+			}
+		}
+	}
+
+	get_docfield(fieldname1, fieldname2) {
+		if(fieldname2) {
+			// for child
+			var doctype = this.get_docfield(fieldname1).options;
+			return frappe.meta.get_docfield(doctype, fieldname2, this.docname);
+		} else {
+			// for parent
+			return frappe.meta.get_docfield(this.doctype, fieldname1, this.docname);
+		}
+	}
+
+	set_df_property(fieldname, property, value, docname, table_field) {
+		var df;
+		if (!docname && !table_field){
+			df = this.get_docfield(fieldname);
+		} else {
+			var grid = this.fields_dict[table_field].grid,
+				fname = frappe.utils.filter_dict(grid.docfields, {'fieldname': fieldname});
+			if (fname && fname.length)
+				df = frappe.meta.get_docfield(fname[0].parent, fieldname, docname);
+		}
+		if(df && df[property] != value) {
+			df[property] = value;
+			refresh_field(fieldname, table_field);
+		}
+	}
+
+	toggle_enable(fnames, enable) {
+		this.field_map(fnames, function(field) {
+			field.read_only = enable ? 0 : 1;
+		})
+	}
+
+	toggle_reqd(fnames, mandatory) {
+		this.field_map(fnames, function(field) {
+			field.reqd = mandatory ? true : false;
+		});
+	}
+
+	toggle_display(fnames, show) {
+		this.field_map(fnames, function(field) {
+			field.hidden = show ? 0 : 1;
+		});
+	}
+
+	get_files() {
+		return this.attachments
+			? frappe.utils.sort(this.attachments.get_attachments(), "file_name", "string")
+			: [] ;
+	}
+
+	set_query(fieldname, opt1, opt2) {
+		if(opt2) {
+			// on child table
+			// set_query(fieldname, parent fieldname, query)
+			this.fields_dict[opt1].grid.get_field(fieldname).get_query = opt2;
+		} else {
+			// on parent table
+			// set_query(fieldname, query)
+			if(this.fields_dict[fieldname]) {
+				this.fields_dict[fieldname].get_query = opt1;
+			}
+		}
+	}
+
+	clear_table(fieldname) {
+		frappe.model.clear_table(this.doc, fieldname);
+	}
+
+	add_child(fieldname, values) {
+		var doc = frappe.model.add_child(this.doc, frappe.meta.get_docfield(this.doctype, fieldname).options, fieldname);
+		if(values) {
+			// Values of unique keys should not be overridden
+			var d = {};
+			var unique_keys = ["idx", "name"];
+
+			Object.keys(values).map((key) => {
+				if(!unique_keys.includes(key)) {
+					d[key] = values[key];
+				}
+			});
+
+			$.extend(doc, d);
+		}
+		return doc;
+	}
+
+	set_value(field, value, if_missing) {
+		var me = this;
+		var _set = function(f, v) {
+			var fieldobj = me.fields_dict[f];
+			if(fieldobj) {
+				if(!if_missing || !frappe.model.has_value(me.doctype, me.doc.name, f)) {
+					if(frappe.model.table_fields.includes(fieldobj.df.fieldtype) && $.isArray(v)) {
+
+						frappe.model.clear_table(me.doc, fieldobj.df.fieldname);
+
+						for (var i=0, j=v.length; i < j; i++) {
+							var d = v[i];
+							var child = frappe.model.add_child(me.doc, fieldobj.df.options,
+								fieldobj.df.fieldname, i+1);
+							$.extend(child, d);
+						}
+
+						me.refresh_field(f);
+						return Promise.resolve();
+					} else {
+						return frappe.model.set_value(me.doctype, me.doc.name, f, v);
+					}
+				}
+			} else {
+				frappe.msgprint(__("Field {0} not found.",[f]));
+				throw "frm.set_value";
+			}
+		};
+
+		if(typeof field=="string") {
+			return _set(field, value);
+		} else if($.isPlainObject(field)) {
+			let tasks = [];
+			for (let f in field) {
+				let v = field[f];
+				if(me.get_field(f)) {
+					tasks.push(() => _set(f, v));
+				}
+			}
+			return frappe.run_serially(tasks);
+		}
+	}
+
+	call(opts, args, callback) {
+		var me = this;
+		if(typeof opts==='string') {
+			// called as frm.call('do_this', {with_arg: 'arg'});
+			opts = {
+				method: opts,
+				doc: this.doc,
+				args: args,
+				callback: callback
+			};
+		}
+		if(!opts.doc) {
+			if(opts.method.indexOf(".")===-1)
+				opts.method = frappe.model.get_server_module_name(me.doctype) + "." + opts.method;
+			opts.original_callback = opts.callback;
+			opts.callback = function(r) {
+				if($.isPlainObject(r.message)) {
+					if(opts.child) {
+						// update child doc
+						opts.child = locals[opts.child.doctype][opts.child.name];
+
+						var std_field_list = ["doctype"].concat(frappe.model.std_fields_list);
+						for (var key in r.message) {
+							if (std_field_list.indexOf(key)===-1) {
+								opts.child[key] = r.message[key];
+							}
+						}
+
+						me.fields_dict[opts.child.parentfield].refresh();
+					} else {
+						// update parent doc
+						me.set_value(r.message);
+					}
+				}
+				opts.original_callback && opts.original_callback(r);
+			};
+		} else {
+			opts.original_callback = opts.callback;
+			opts.callback = function(r) {
+				if(!r.exc) me.refresh_fields();
+
+				opts.original_callback && opts.original_callback(r);
+			};
+
+		}
+		return frappe.call(opts);
+	}
+
+	get_field(field) {
+		return this.fields_dict[field];
+	}
+
+	set_read_only() {
+		var perm = [];
+		var docperms = frappe.perm.get_perm(this.doc.doctype);
+		for (var i=0, l=docperms.length; i<l; i++) {
+			var p = docperms[i];
+			perm[p.permlevel || 0] = {read:1, print:1, cancel:1};
+		}
+		this.perm = perm;
+	}
+
+	trigger(event) {
+		return this.script_manager.trigger(event);
+	}
+
+	get_formatted(fieldname) {
+		return frappe.format(this.doc[fieldname],
+			frappe.meta.get_docfield(this.doctype, fieldname, this.docname),
+			{no_icon:true}, this.doc);
+	}
+
+	open_grid_row() {
+		return frappe.ui.form.get_open_grid_form();
+	}
+
+	get_title = function() {
+		if(this.meta.title_field) {
+			return this.doc[this.meta.title_field];
+		} else {
+			return this.doc.name;
+		}
+	}
+
+	get_selected() {
+		// returns list of children that are selected. returns [parentfield, name] for each
+		var selected = {}, me = this;
+		frappe.meta.get_table_fields(this.doctype).forEach(function(df) {
+			// handle TableMultiselect child fields
+			let _selected = [];
+
+			if(me.fields_dict[df.fieldname].grid) {
+				_selected = me.fields_dict[df.fieldname].grid.get_selected();
+			}
+
+			if(_selected.length) {
+				selected[df.fieldname] = _selected;
+			}
+		});
+		return selected;
+	}
+
+	set_indicator_formatter = function(fieldname, get_color, get_text) {
+		// get doctype from parent
+		var doctype;
+		if(frappe.meta.docfield_map[this.doctype][fieldname]) {
+			doctype = this.doctype;
+		} else {
+			frappe.meta.get_table_fields(this.doctype).every(function(df) {
+				if(frappe.meta.docfield_map[df.options][fieldname]) {
+					doctype = df.options;
+					return false;
+				} else {
+					return true;
+				}
+			});
+		}
+
+		frappe.meta.docfield_map[doctype][fieldname].formatter =
+			function(value, df, options, doc) {
+				if(value) {
+					var label;
+					if(get_text) {
+						label = get_text(doc);
+					} else if(frappe.form.link_formatters[df.options]) {
+						label = frappe.form.link_formatters[df.options](value, doc);
+					} else {
+						label = value;
+					}
+
+					const escaped_name = encodeURIComponent(value);
+
+					return repl('<a class="indicator %(color)s" href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
+						color: get_color(doc || {}),
+						doctype: df.options,
+						name: escaped_name,
+						label: label
+					});
+				} else {
+					return '';
+				}
+			};
+	}
+
+	can_create(doctype) {
+		// return true or false if the user can make a particlar doctype
+		// will check permission, `can_make_methods` if exists, or will decided on
+		// basis of whether the document is submittable
+		if(!frappe.model.can_create(doctype)) {
+			return false;
+		}
+
+		if(this.custom_make_buttons && this.custom_make_buttons[doctype]) {
+			// custom buttons are translated and so are the keys
+			const key = __(this.custom_make_buttons[doctype]);
+			// if the button is present, then show make
+			return !!this.custom_buttons[key];
+		}
+
+		if(this.can_make_methods && this.can_make_methods[doctype]) {
+			return this.can_make_methods[doctype](this);
+		} else {
+			if(this.meta.is_submittable && !this.doc.docstatus==1) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+	}
+
+	make_new(doctype) {
+		// make new doctype from the current form
+		// will handover to `make_methods` if defined
+		// or will create and match link fields
+		var me = this;
+		if(this.make_methods && this.make_methods[doctype]) {
+			return this.make_methods[doctype](this);
+		} else if(this.custom_make_buttons && this.custom_make_buttons[doctype]) {
+			this.custom_buttons[__(this.custom_make_buttons[doctype])].trigger('click');
+		} else {
+			frappe.model.with_doctype(doctype, function() {
+				var new_doc = frappe.model.get_new_doc(doctype);
+
+				// set link fields (if found)
+				frappe.get_meta(doctype).fields.forEach(function(df) {
+					if(df.fieldtype==='Link' && df.options===me.doctype) {
+						new_doc[df.fieldname] = me.doc.name;
+					}
+				});
+
+				frappe.ui.form.make_quick_entry(doctype, null, null, new_doc);
+				// frappe.set_route('Form', doctype, new_doc.name);
+			});
+		}
+	}
+
+	update_in_all_rows(table_fieldname, fieldname, value) {
+		// update the child value in all tables where it is missing
+		if(!value) return;
+		var cl = this.doc[table_fieldname] || [];
+		for(var i = 0; i < cl.length; i++){
+			if(!cl[i][fieldname]) cl[i][fieldname] = value;
+		}
+		refresh_field("items");
+	}
+
+	get_sum(table_fieldname, fieldname) {
+		let sum = 0;
+		for (let d of (this.doc[table_fieldname] || [])) {
+			sum += d[fieldname];
+		}
+		return sum;
+	}
 };
+
+frappe.validated = 0;
+// Proxy for frappe.validated
+Object.defineProperty(window, 'validated', {
+	get: function() {
+		console.warn('Please use `frappe.validated` instead of `validated`. It will be deprecated soon.');
+		return frappe.validated;
+	},
+	set: function(value) {
+		console.warn('Please use `frappe.validated` instead of `validated`. It will be deprecated soon.');
+		frappe.validated = value;
+		return frappe.validated;
+	}
+});

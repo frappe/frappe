@@ -75,7 +75,7 @@ frappe.ui.form.Share = Class.extend({
 
 		d.onhide = function() {
 			// reload comments
-			if(me.dirty) me.frm.reload_docinfo();
+			if(me.dirty) me.frm.sidebar.reload_docinfo();
 		}
 
 		d.show();

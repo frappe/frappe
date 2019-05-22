@@ -199,19 +199,8 @@ function precision(fieldname, doc) {
 }
 
 function in_list(list, item) {
-	if (!list) return false;
-	for (var i = 0, j = list.length; i < j; i++)
-		if (list[i] == item) return true;
-	return false;
+	return list.includes(item);
 }
-
-// Proxy for in_list
-Object.defineProperty(window, 'inList', {
-	get: function() {
-		console.warn('Please use `in_list` instead of `inList`. It will be deprecated soon.');
-		return in_list;
-	}
-});
 
 function remainder(numerator, denominator, precision) {
 	precision = cint(precision);
