@@ -132,7 +132,6 @@ frappe.PrintFormatBuilder = Class.extend({
 	setup_new_print_format: function(doctype, name, based_on) {
 		frappe.call({
 			method: 'frappe.printing.page.print_format_builder.print_format_builder.create_custom_format',
-
 			args: {
 				doctype: doctype,
 				name: name,
