@@ -91,7 +91,7 @@ body {
      vertical-align: middle;
 }
 
-table {
+table > thead {
 	border: 1px solid #ebecf1;
 }
 
