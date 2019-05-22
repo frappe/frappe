@@ -69,18 +69,22 @@ frappe.ui.keys.on('ctrl+b', function(e) {
 });
 
 frappe.ui.keys.on('ctrl+h', function(e) {
+	e.preventDefault();
 	$('.navbar-home img').click();
 });
 
 frappe.ui.keys.on('alt+s', function(e) {
+	e.preventDefault();
 	$('.dropdown-navbar-user a').eq(0).click();
 });
 
 frappe.ui.keys.on('alt+h', function(e) {
+	e.preventDefault();
 	$('.dropdown-help a').eq(0).click();
 });
 
 frappe.ui.keys.on('alt+c', function(e) {
+	e.preventDefault();
 	$('.frappe-chat-dropdown a').eq(0).click();
 });
 

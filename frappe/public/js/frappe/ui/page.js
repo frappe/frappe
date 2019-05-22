@@ -119,7 +119,7 @@ frappe.ui.Page = Class.extend({
 			}
 		});
 
-		$(document).on('keyup',null, (e)=> {
+		$(document).on('keyup',null, ()=> {
 			//When alt released, remove undeline from all elements if any
 			if(el_list) {
 				this.remove_alt_elements(el_list);
@@ -145,8 +145,9 @@ frappe.ui.Page = Class.extend({
 				el_obj.$el = $el;
 				if(selector) {
 					text = $el.find(selector).text().trim();
+				} else {
+					text = $el.text().trim();
 				}
-				else text = $el.text().trim();
 				let i = 0;
 				let char = text.charAt(0);
 				//Find character to underline
@@ -431,14 +432,16 @@ frappe.ui.Page = Class.extend({
 		if(show_parent) {
 			parent.parent().removeClass("hide");
 		}
+		let $li;
 		if(shortcut) {
-			var $li = $('<li><a class="grey-link dropdown-item" href="#" onClick="return false;"><span class="menu-item-label">'
+			$li = $('<li><a class="grey-link dropdown-item" href="#" onClick="return false;"><span class="menu-item-label">'
 									+ label + '</span><span class="text-muted std-shortcut">'+shortcut+'</span></a><li>');
 			this.keyboard_shortcut(shortcut, $li.find('a'), 'keyup.shortcut', true);
 			shortcut = shortcut.replace(/ /g,'').toLowerCase();
-		}
-		else var $li = $('<li><a class="grey-link dropdown-item" href="#" onClick="return false;"><span class="menu-item-label">'
+		} else {
+			$li = $('<li><a class="grey-link dropdown-item" href="#" onClick="return false;"><span class="menu-item-label">'
 							+ label +'</span></a><li>');
+		}
 		var $link = $li.find("a").on("click", click);
 		if (this.is_in_group_button_dropdown(parent, item_selector, label)) return;
 
